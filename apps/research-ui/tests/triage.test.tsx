@@ -581,3 +581,56 @@ describe("triage.details", () => {
     expect(provenance).toHaveTextContent("Recorded as you · HUMAN");
   });
 });
+
+describe("triage review fixes (M6-beta part 2)", () => {
+  it("never claims all decided before the queue has answered", async () => {
+    let release: () => void = () => undefined;
+    const held = new Promise<void>((r) => {
+      release = r;
+    });
+    const real = vi.mocked(fetch).getMockImplementation()!;
+    vi.mocked(fetch).mockImplementation(async (url, init) => {
+      if (String(url).includes("/queue")) await held;
+      return real(url as string, init);
+    });
+    render(<TriagePage locale="en" />);
+    await waitFor(() => expect(engine.log.some((l) => l.path === "/settings")).toBe(true));
+    await new Promise((r) => setTimeout(r, 20));
+    expect(document.querySelector("[data-all-decided]")).toBeNull();
+    expect(screen.queryByText("Every record has your decision.")).toBeNull();
+    release();
+    await screen.findByText("Drone weed mapping", { selector: "p bdi" });
+  });
+
+  it("with drafts and the default setting, N after the last record reaches the hand-off", async () => {
+    engine.proposals = new Set(["STU-a", "STU-b", "STU-c"]);
+    await ready();
+    for (const title of ["Drone weed mapping", "Title only record", "Third record"]) {
+      await screen.findByText(title, { selector: "p bdi" });
+      answer("INC-01", "Yes");
+      fireEvent.click(screen.getByRole("button", { name: /^Include/ }));
+      await screen.findByText("Your decision differs from the agent's draft.");
+      await press("n");
+    }
+    await screen.findByRole("heading", { name: "All 3 records are decided" });
+  });
+
+  it("moves focus to the next record's title after deciding", async () => {
+    engine.proposals = new Set();
+    await ready();
+    answer("INC-01", "Yes");
+    fireEvent.click(screen.getByRole("button", { name: /^Include/ }));
+    const title = await screen.findByText("Title only record", { selector: "p bdi" });
+    await waitFor(() => expect(title.closest("p")).toHaveFocus());
+  });
+
+  it("does not confirm an Exclude once no criterion fails any more", async () => {
+    await ready();
+    answer("INC-01", "No");
+    await press("e");
+    answer("INC-01", "Yes");
+    await press("Enter");
+    expect(postedEvents()).toEqual([]);
+    expect(screen.getByRole("button", { name: "Exclude with this reason" })).toBeDisabled();
+  });
+});

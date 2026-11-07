@@ -356,7 +356,7 @@ function HomeReady({
           <Tile label={t("includedSoFar")} value={n(summary.by_outcome.INCLUDE)} />
         </dl>
         <details className="mt-3 text-sm" data-home-details>
-          <summary className="cursor-pointer text-ink-muted">{DETAILS_LABEL[locale]}</summary>
+          <summary className="inline-flex min-h-11 cursor-pointer items-center rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus text-ink-muted">{DETAILS_LABEL[locale]}</summary>
           <dl className="mt-2 grid grid-cols-2 gap-4">
             <Tile label={t("agentProposed")} value={n(summary.agent_proposed)} note={t("agentProposedNote")} />
             <Tile label={t("conflicts")} value={n(summary.conflicts)} />
@@ -395,7 +395,7 @@ function HomeReady({
                   <th scope="row" className="py-2 text-start font-normal">
                     {t("batchN", { n: n(b.batch_index) })}
                     <details className="text-xs text-ink-muted">
-                      <summary className="cursor-pointer">{DETAILS_LABEL[locale]}</summary>
+                      <summary className="inline-flex min-h-11 cursor-pointer items-center rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus">{DETAILS_LABEL[locale]}</summary>
                       <DataCell>{b.batch_file}</DataCell>
                     </details>
                   </th>
@@ -435,7 +435,7 @@ function HomeReady({
       </p>
 
       <details className="rounded-lg border border-rule bg-leaf p-5 text-sm">
-        <summary className="cursor-pointer font-semibold text-ink">{t("terminal")}</summary>
+        <summary className="inline-flex min-h-11 cursor-pointer items-center rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus font-semibold text-ink">{t("terminal")}</summary>
         <p className="mt-2 text-ink-muted">{t("terminalBody")}</p>
         <pre className="mt-2 overflow-x-auto rounded-md bg-paper p-3 font-mono text-[0.8125rem] text-ink" dir="ltr">
           {"uv run python src/scholar_harness/agent_screen.py prepare <workspace>\nuv run python src/scholar_harness/agent_screen.py collect <workspace>"}

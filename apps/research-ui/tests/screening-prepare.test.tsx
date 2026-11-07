@@ -150,3 +150,22 @@ describe("prepare.advance-on-decide (M6-beta)", () => {
     expect(log.find((l) => l.method === "PUT")?.body).toMatchObject({ advance_on_decide: "next_at_once" });
   });
 });
+
+describe("prepare.advance-setting (review fixes)", () => {
+  it("is disabled, with a note, while drafts are shown beside the record", async () => {
+    engine();
+    render(<ScreeningPrepare locale="en" />);
+    fireEvent.click(await screen.findByLabelText("Show beside the record"));
+    expect(screen.getByLabelText(/Move on at once/)).toBeDisabled();
+    expect(screen.getByText("Drafts are already beside the record, so the next record always opens at once.")).toBeInTheDocument();
+  });
+
+  it("sends no advance_on_decide when saving without changing it", async () => {
+    const log = engine();
+    render(<ScreeningPrepare locale="en" />);
+    fireEvent.click(await screen.findByLabelText("Show beside the record"));
+    fireEvent.click(screen.getByRole("button", { name: "Save settings" }));
+    await screen.findByText("Settings saved");
+    expect(log.find((l) => l.method === "PUT")?.body).not.toHaveProperty("advance_on_decide");
+  });
+});

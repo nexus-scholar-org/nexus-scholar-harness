@@ -37,8 +37,11 @@ const staticExport = process.env.NEXT_STATIC_EXPORT === "1";
 function projectVersion(): string {
   try {
     const text = readFileSync(resolve(__dirname, "..", "..", "pyproject.toml"), "utf-8");
-    return /^version\s*=\s*"([^"]+)"/m.exec(text)?.[1] ?? "";
-  } catch {
+    const found = /^version\s*=\s*"([^"]+)"/m.exec(text)?.[1] ?? "";
+    if (!found) console.warn("next.config: no version in pyproject.toml; the footer will show none");
+    return found;
+  } catch (error) {
+    console.warn(`next.config: pyproject.toml not readable (${String(error)}); the footer will show no version`);
     return "";
   }
 }

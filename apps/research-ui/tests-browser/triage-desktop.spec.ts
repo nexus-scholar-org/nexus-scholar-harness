@@ -77,6 +77,10 @@ test("ten records decided by keyboard, at most ten keypresses each", async ({ pa
       }
     }
     await expect.poll(() => decided.size).toBe(before + 1);
+    if (i < N) {
+      // Focus lands on the next record's title (spec 03 amendment 3).
+      await expect(page.locator("article p[tabindex='-1']")).toBeFocused();
+    }
   }
   expect(keypresses / N).toBeLessThanOrEqual(10);
   await expect(page.getByRole("heading", { name: "All 10 records are decided" })).toBeVisible();

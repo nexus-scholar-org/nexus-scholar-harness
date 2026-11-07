@@ -35,6 +35,7 @@ const COPY = {
     advance: "After I decide",
     advanceDraft: "Show the draft, then N (default)",
     advanceNow: "Move on at once (drafts stay in the record's details)",
+    advanceShown: "Drafts are already beside the record, so the next record always opens at once.",
     mode: "Who sees each record",
     modeEvery: "I see every record (default)",
     modeAi: "AI-agreed exclusion: skip records the agent calls clear exclusions",
@@ -73,6 +74,7 @@ const COPY = {
     advance: "Après ma décision",
     advanceDraft: "Afficher le brouillon, puis N (par défaut)",
     advanceNow: "Passer tout de suite à la suivante (le brouillon reste dans les détails de la notice)",
+    advanceShown: "Les brouillons sont déjà à côté de la notice ; la notice suivante s'ouvre donc toujours tout de suite.",
     mode: "Qui voit chaque notice",
     modeEvery: "Je vois chaque notice (par défaut)",
     modeAi: "Exclusion validée par l'IA : passer les notices que l'agent juge clairement exclues",
@@ -111,6 +113,7 @@ const COPY = {
     advance: "بعد قراري",
     advanceDraft: "اعرض المسودة ثم N (الافتراضي)",
     advanceNow: "انتقل فورًا إلى التالي (تبقى المسودة في تفاصيل السجل)",
+    advanceShown: "المسودات معروضة بجانب السجل أصلًا، لذا يُفتح السجل التالي فورًا دائمًا.",
     mode: "من يرى كل سجل",
     modeEvery: "أرى كل سجل (افتراضي)",
     modeAi: "استبعاد يوافق عليه الذكاء الاصطناعي: تخطي السجلات التي يعدّها الوكيل مستبعدة بوضوح",
@@ -291,8 +294,13 @@ export function ScreeningPrepare({ locale }: Readonly<{ locale: Locale }>) {
                   </label>
                 ))}
               </fieldset>
-              <fieldset className="mt-4">
+              <fieldset className="mt-4" disabled={draft.blinding === "show"} aria-describedby={draft.blinding === "show" ? "advance-shown" : undefined}>
                 <legend className="text-sm font-semibold text-ink">{t("advance")}</legend>
+                {draft.blinding === "show" ? (
+                  <p id="advance-shown" className="mt-1 text-sm text-ink-muted">
+                    {t("advanceShown")}
+                  </p>
+                ) : null}
                 {(["show_draft_then_next", "next_at_once"] as const).map((value) => (
                   <label key={value} className="mt-2 flex min-h-11 items-center gap-2 text-ink">
                     <input

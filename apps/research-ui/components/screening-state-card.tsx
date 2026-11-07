@@ -124,14 +124,14 @@ export function StateCard({
           <bdi dir="ltr">{message}</bdi>
         </p>
       ) : null}
-      {state.affects ? (
-        <p className="mt-1 text-sm text-ink-muted">
-          {AFFECTS_LABEL[locale]} {state.affects}
-        </p>
-      ) : null}
       {/* The typed code sits behind Details (rule page 12): still in the DOM, still selectable. */}
       <details className="mt-2 text-sm" data-state-details>
-        <summary className="cursor-pointer text-ink-muted">{DETAILS_LABEL[locale]}</summary>
+        <summary className="inline-flex min-h-11 cursor-pointer items-center rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus text-ink-muted">{DETAILS_LABEL[locale]}</summary>
+        {state.affects ? (
+          <p className="mt-1 text-sm text-ink-muted">
+            {AFFECTS_LABEL[locale]} {state.affects}
+          </p>
+        ) : null}
         <p className={`mt-1 font-mono text-[0.8125rem] ${roleText}`} dir="ltr">
           {code}
         </p>

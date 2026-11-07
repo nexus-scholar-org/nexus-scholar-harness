@@ -40,7 +40,6 @@ const en = {
   yes: "Yes",
   no: "No",
   notReported: "Not reported",
-  checklistRequired: "Answer every criterion before deciding.",
   // M6-beta (spec 03 amendments)
   excludeReady: "Exclude is ready: {id} answered {answer}",
   includeNeeds: "Include needs {ids}",
@@ -74,7 +73,6 @@ const en = {
   reasonRequired: "Choose a reason to exclude.",
   noteLabel: "Note (optional)",
   recordedAs: "Recorded as you · HUMAN · {time} · protocol {fingerprint}",
-  undoUnavailable: "A first decision cannot be undone; change it instead.",
   saved: "Decision saved",
   skipped: "Skipped; it stays in the queue and nothing was recorded.",
   refused: "Refused: {code}",
@@ -149,7 +147,6 @@ const fr: Record<TriageCopyKey, string> = {
   yes: "Oui",
   no: "Non",
   notReported: "Non rapporté",
-  checklistRequired: "Répondez à chaque critère avant de décider.",
   // M6-beta (spec 03 amendments)
   excludeReady: "Exclusion possible : {id} répondu {answer}",
   includeNeeds: "L'inclusion demande {ids}",
@@ -183,7 +180,6 @@ const fr: Record<TriageCopyKey, string> = {
   reasonRequired: "Choisissez un motif pour exclure.",
   noteLabel: "Note (facultative)",
   recordedAs: "Enregistré comme vous · HUMAN · {time} · protocole {fingerprint}",
-  undoUnavailable: "Une première décision ne peut pas être annulée ; modifiez-la plutôt.",
   saved: "Décision enregistrée",
   skipped: "Passée ; elle reste dans la file et rien n'a été enregistré.",
   refused: "Refusé : {code}",
@@ -256,7 +252,6 @@ const ar: Record<TriageCopyKey, string> = {
   yes: "نعم",
   no: "لا",
   notReported: "غير مذكور",
-  checklistRequired: "أجب عن كل معيار قبل القرار.",
   // M6-beta (spec 03 amendments)
   excludeReady: "الاستبعاد جاهز: أُجيب عن {id} بـ {answer}",
   includeNeeds: "يحتاج الإدراج إلى {ids}",
@@ -290,7 +285,6 @@ const ar: Record<TriageCopyKey, string> = {
   reasonRequired: "اختر سببًا للاستبعاد.",
   noteLabel: "ملاحظة (اختيارية)",
   recordedAs: "سُجّل باسمك · HUMAN · {time} · البروتوكول {fingerprint}",
-  undoUnavailable: "لا يمكن التراجع عن قرار أول؛ غيّره بدلًا من ذلك.",
   saved: "حُفظ القرار",
   skipped: "تم التخطي؛ يبقى في القائمة ولم يُسجَّل شيء.",
   refused: "مرفوض: {code}",

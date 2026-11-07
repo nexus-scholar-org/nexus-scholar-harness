@@ -97,8 +97,10 @@ Go to **Screening**. The steps are across the top:
    clear (keys **1** yes, **2** no, **3** not reported). Exclude is ready as soon
    as one criterion fails, and its reason is taken from that criterion, so
    **E** then **Enter** excludes. Include is ready when every inclusion criterion
-   is yes. Unclear (goes to full text) is always possible. The next record opens
-   by itself, and your decisions are saved as you go. Identifiers and record
+   is yes. Unclear (goes to full text) is always possible. Your decisions are
+   saved as you go. With no agent draft, the next record opens by itself; with a
+   draft, it shows after your decision and **N** moves on (or choose "move on at
+   once" on Prepare). Identifiers and record
    details are under **Details**.
 4. **Agreement.** Only meaningful if an agent proposed drafts.
 5. **Publish.**

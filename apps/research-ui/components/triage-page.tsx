@@ -150,6 +150,10 @@ function TriageScreen({ locale }: Readonly<{ locale: Locale }>) {
   const [busy, setBusy] = useState(false);
   const [help, setHelp] = useState(false);
   const [summary, setSummary] = useState<Summary | null>(null);
+  // "All decided" may be claimed only once the queue has answered (review P2-1).
+  const [queueLoaded, setQueueLoaded] = useState(false);
+  // Focus the next record's title once it is on screen (review P2-3).
+  const focusNextTitle = useRef(false);
   // The queue card is collapsed by default; the choice lasts the browser session (spec 03, amendment 4).
   const [queueOpen, setQueueOpenState] = useState<boolean>(() => {
     try {
@@ -174,6 +178,12 @@ function TriageScreen({ locale }: Readonly<{ locale: Locale }>) {
   const current = useRef<string | null>(null);
 
   const item = items.find((i) => i.study_id === selected) ?? null;
+  useEffect(() => {
+    if (record && focusNextTitle.current) {
+      focusNextTitle.current = false;
+      recordHeading.current?.focus();
+    }
+  }, [record]);
   // The latest queue for key handlers that may run before the next render.
   const itemsRef = useRef(items);
   itemsRef.current = items;
@@ -183,6 +193,7 @@ function TriageScreen({ locale }: Readonly<{ locale: Locale }>) {
       const page = await getQueue(origin, { view: nextView, cursor: from, limit: 50 });
       setItems((prev) => (append ? [...prev, ...page.items] : page.items));
       setCursor(page.next_cursor);
+      setQueueLoaded(true);
       return page.items;
     },
     [origin],
@@ -292,6 +303,24 @@ function TriageScreen({ locale }: Readonly<{ locale: Locale }>) {
     }
   }
 
+  /** N after a decision: in "Needs you", the next undecided record, else the hand-off (review P2-2). */
+  async function nextAfterDecision() {
+    if (!settings) return;
+    if (view !== "needs_you") return move(1);
+    focusNextTitle.current = true;
+    const next = nextUndecided(itemsRef.current, current.current ?? "");
+    if (next) return void open(next.study_id, itemsRef.current, settings);
+    const list = await loadQueue(view);
+    const remaining = list.find((i) => !i.decided) ?? null;
+    if (remaining) await open(remaining.study_id, list, settings);
+    else {
+      focusNextTitle.current = false;
+      current.current = null;
+      setSelected(null);
+      setRecord(null);
+    }
+  }
+
   function move(step: number) {
     const list = itemsRef.current;
     if (!settings || list.length === 0) return;
@@ -369,9 +398,9 @@ function TriageScreen({ locale }: Readonly<{ locale: Locale }>) {
       const total = summary?.total ?? decidedItems.length;
       const next = nextUndecided(decidedItems, study);
       if (next) {
+        focusNextTitle.current = true;
         await open(next.study_id, decidedItems, settings);
         setMessage(t("savedNext", { k: Math.min(decidedNow + 1, Math.max(total, 1)), total }));
-        recordHeading.current?.focus();
         return;
       }
       const list = await loadQueue(view);
@@ -421,7 +450,7 @@ function TriageScreen({ locale }: Readonly<{ locale: Locale }>) {
   const reasons = record ? reasonOptions(record.criteria) : [];
   const criterionText = (id: string) => record?.criteria.find((c) => c.id === id)?.text ?? "";
   const undoable = record?.my_decision ? undoTarget(record.my_decision, record.history) !== null : false;
-  const allDone = view === "needs_you" && items.length === 0;
+  const allDone = queueLoaded && view === "needs_you" && items.length === 0;
 
   function openExclude() {
     // The reason comes from the checklist (amendment 2): the first failed criterion, pre-selected.
@@ -461,7 +490,7 @@ function TriageScreen({ locale }: Readonly<{ locale: Locale }>) {
       if (event.key === "Enter") {
         const target = event.target;
         const own = isTextField(target) || (typeof HTMLButtonElement !== "undefined" && target instanceof HTMLButtonElement);
-        if (!own && reasonOpen && reason && deciding) {
+        if (!own && reasonOpen && reason && deciding && canExclude) {
           event.preventDefault();
           void submit("EXCLUDE", { reasonCode: reason });
         }
@@ -488,7 +517,7 @@ function TriageScreen({ locale }: Readonly<{ locale: Locale }>) {
         move(key === "down" ? 1 : -1);
       }
       else if (key === "skip" && deciding) skip();
-      else if (key === "next" && !deciding) move(1);
+      else if (key === "next" && !deciding) void nextAfterDecision();
       else if (key === "undo" && decided && undoable) undo();
       else if (key === "yes") answer("yes");
       else if (key === "no") answer("no");
@@ -560,7 +589,13 @@ function TriageScreen({ locale }: Readonly<{ locale: Locale }>) {
 
       {stale ? (
         <p role="alert" className="rounded-md bg-blocked-soft px-4 py-3 text-blocked">
-          {t("staleBanner")} <span className="font-mono" dir="ltr">STALE_BINDING</span>
+          {t("staleBanner")}
+          <details className="mt-1 text-xs">
+            <summary className="inline-flex min-h-11 cursor-pointer items-center rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus">{t("details")}</summary>
+            <span className="font-mono" dir="ltr">
+              STALE_BINDING
+            </span>
+          </details>
         </p>
       ) : null}
 
@@ -646,7 +681,7 @@ function TriageScreen({ locale }: Readonly<{ locale: Locale }>) {
             <div role="alert" className="rounded-md bg-blocked-soft px-4 py-3 text-blocked" data-refusal={refusal}>
               <p>{stateCopy(locale, refusal).known ? `${stateCopy(locale, refusal).title}. ${stateCopy(locale, refusal).body}` : t("refused", { code: "" }).replace(/[:：]\s*$/, "")}</p>
               <details className="mt-1 text-xs">
-                <summary className="cursor-pointer">{t("details")}</summary>
+                <summary className="inline-flex min-h-11 cursor-pointer items-center rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus">{t("details")}</summary>
                 <span className="font-mono" dir="ltr">
                   {refusal}
                 </span>
@@ -691,19 +726,14 @@ function TriageScreen({ locale }: Readonly<{ locale: Locale }>) {
                   <span>
                     <bdi>{record.venue ?? t("notStored")}</bdi>
                   </span>
-                  {record.doi ? (
-                    <a className="text-anchor underline" href={`https://doi.org/${record.doi}`} dir="ltr">
-                      {record.doi}
-                    </a>
-                  ) : null}
                 </p>
                 <details className="mt-1 text-xs text-ink-muted" data-record-details>
-                  <summary className="cursor-pointer">{t("details")}</summary>
+                  <summary className="inline-flex min-h-11 cursor-pointer items-center rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus">{t("details")}</summary>
                   <DataCell>{record.study_id}</DataCell>
                   {record.doi ? (
-                    <span className="ms-2 font-mono" dir="ltr">
+                    <a className="ms-2 font-mono text-anchor underline" href={`https://doi.org/${record.doi}`} dir="ltr">
                       {record.doi}
-                    </span>
+                    </a>
                   ) : null}
                 </details>
                 <div className="mt-4">
@@ -828,10 +858,10 @@ function TriageScreen({ locale }: Readonly<{ locale: Locale }>) {
                       {decided.changed_after_reveal ? <DecisionBadge role="unclear">{t("changedAfterReveal")}</DecisionBadge> : null}
                     </p>
                     <p className="text-xs text-ink-muted">
-                      <span title={new Date(decided.decided_at).toLocaleString(locale)}>{t("savedWord")}</span>
+                      <span title={`${t("savedWord")} ${new Date(decided.decided_at).toLocaleString(locale)}`}>{t("savedWord")}</span>
                     </p>
                     <details className="text-xs text-ink-muted" data-decision-details>
-                      <summary className="cursor-pointer">{t("details")}</summary>
+                      <summary className="inline-flex min-h-11 cursor-pointer items-center rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus">{t("details")}</summary>
                       <p className="mt-1">
                         {t("recordedAs", {
                           time: new Date(decided.decided_at).toLocaleString(locale),
@@ -840,7 +870,7 @@ function TriageScreen({ locale }: Readonly<{ locale: Locale }>) {
                       </p>
                     </details>
                     <div className="flex flex-wrap gap-2">
-                      <Button variant="primary" onClick={() => move(1)} disabled={conflict !== null}>
+                      <Button variant="primary" onClick={() => void nextAfterDecision()} disabled={conflict !== null}>
                         {t("next")} <kbd className="text-xs opacity-80">N</kbd>
                       </Button>
                       <Button onClick={() => setEditing(true)} disabled={conflict !== null || stale}>
@@ -854,7 +884,7 @@ function TriageScreen({ locale }: Readonly<{ locale: Locale }>) {
                     </div>
                     {record.history.length > 1 ? (
                       <details className="text-sm">
-                        <summary className="cursor-pointer text-brand">{t("history")}</summary>
+                        <summary className="inline-flex min-h-11 cursor-pointer items-center rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus text-brand">{t("history")}</summary>
                         <ol className="mt-2 space-y-1">
                           {record.history.map((e) => (
                             <li key={e.event_id} className="text-ink-muted">
@@ -915,7 +945,7 @@ function TriageScreen({ locale }: Readonly<{ locale: Locale }>) {
                             </button>
                           ))}
                         </div>
-                        <Button disabled={!reason || busy} onClick={() => reason && void submit("EXCLUDE", { reasonCode: reason })}>
+                        <Button disabled={!reason || busy || !canExclude} onClick={() => reason && void submit("EXCLUDE", { reasonCode: reason })}>
                           {t("reasonConfirm")}
                         </Button>
                         {!reason ? <p className="text-sm text-ink-muted">{t("reasonRequired")}</p> : null}
@@ -1003,7 +1033,7 @@ function TriageScreen({ locale }: Readonly<{ locale: Locale }>) {
                 </ul>
               </section>
               <details className="text-xs" data-proposal-details>
-              <summary className="cursor-pointer text-ink-muted">{t("details")}</summary>
+              <summary className="inline-flex min-h-11 cursor-pointer items-center rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus text-ink-muted">{t("details")}</summary>
               <dl className="mt-1 grid grid-cols-[auto_1fr] gap-x-2 gap-y-1 text-xs">
                 <dt className="text-ink-muted">{t("model")}</dt>
                 <dd>
