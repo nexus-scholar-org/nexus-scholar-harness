@@ -267,3 +267,41 @@ def test_an_imported_corpus_publishes_the_snapshot_counts_and_names_its_database
     assert [s["records"] for s in body["figures"]["identified_by_source"]] == [3, 3]
     assert "Date searched: not recorded for every database." in body["not_stated"]
     assert "provenance_manifest.json" in {s["name"] for s in body["sources"]}
+
+
+# --- M6-beta: the paragraph reads as prose (review U-2, S-P1-1), on the 2026-11-06 evidence run ---
+
+EVIDENCE = Path(__file__).resolve().parents[2] / "workspaces" / "golden-uav-30-run-2026-11-06"
+
+
+def _evidence_methods(tmp_path: Path) -> dict:
+    import shutil
+
+    from scholar_harness.screening.export import build_methods
+
+    ws = tmp_path / "evidence"
+    shutil.copytree(EVIDENCE, ws)
+    return build_methods(ws)
+
+
+def test_no_op_settings_rows_are_not_repeated(tmp_path):
+    paragraph = _evidence_methods(tmp_path)["paragraph"]
+    assert paragraph.count("The AI-agreed-exclusion setting was") == 1
+    assert "The AI-agreed-exclusion setting was off." in paragraph
+    # Blinding really changed (hidden, shown, hidden, shown): each change once, no show-to-show row.
+    assert paragraph.count("Drafts were shown before the decision from 2026-11-06.") == 1
+
+
+def test_visible_drafts_report_no_blind_comparison(tmp_path):
+    body = _evidence_methods(tmp_path)
+    assert "After seeing a draft, the reviewer changed" not in body["paragraph"]
+    assert "29 decisions were made with the draft visible; no blind comparison is reported." in body["paragraph"]
+    assert body["figures"]["decided_with_draft_visible"] == 29
+    _assert_numbers_trace(body)
+
+
+def test_mcp_drafts_name_the_route(tmp_path):
+    body = _evidence_methods(tmp_path)
+    assert "provider not recorded" not in body["paragraph"]
+    assert "via the researcher's Claude session (MCP)" in body["paragraph"]
+    assert not any(s.startswith("Provider of the") for s in body["not_stated"])

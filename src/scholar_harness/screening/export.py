@@ -434,8 +434,16 @@ def _timeline(rows: list[dict[str, Any]], key: str, published: datetime | None, 
         if key in after:
             history.append((_time(row.get("timestamp")), before.get(key), after[key], row.get("timestamp")))
     history.sort(key=lambda h: h[0] or datetime.min.replace(tzinfo=UTC))
-    upto = [h for h in history if published is None or h[0] is None or h[0] <= published]
     initial = history[0][1] if history else now
+    # A row that leaves the value as it was is not a change (M6-beta, review U-2):
+    # the paragraph says each real change once.
+    changes, value = [], initial
+    for h in history:
+        if h[2] != value:
+            changes.append(h)
+            value = h[2]
+    history = changes
+    upto = [h for h in history if published is None or h[0] is None or h[0] <= published]
     at_publish = upto[-1][2] if upto else initial
     return Timeline(initial, [(_date(h[3]), h[2]) for h in upto], at_publish, bool(upto))
 
@@ -585,6 +593,7 @@ def build_methods(ws: Path) -> dict[str, Any]:
             caveats.append("proposals.jsonl is absent: no AI model proposal is recorded.")
     else:
         groups: dict[tuple[str, str, str, str], set[str]] = {}
+        drivers: dict[tuple[str, str, str, str], set[str]] = {}
         for p in proposals:
             run = runs.get(str(p.get("run_id") or ""), {})
             key = (
@@ -592,18 +601,27 @@ def build_methods(ws: Path) -> dict[str, Any]:
                 str(p.get("prompt_sha256") or ""),
             )
             groups.setdefault(key, set()).add(str(p["study_id"]))
+            drivers.setdefault(key, set()).add(str(p.get("driver") or ""))
         for (provider, model, task_version, prompt), studies in sorted(groups.items()):
             short = prompt.split(":", 1)[-1][:12]
             agent = {
                 "provider": provider or None, "model": model, "task_version": task_version,
                 "prompt_sha256_12": short, "n_proposed": len(studies),
             }
-            who = ", ".join(x for x in (provider or "provider not recorded", model) if x)
+            # Drafts submitted over MCP have no agent run: the researcher's own
+            # Claude session wrote them (M6-beta, review S-P1-2).
+            via_mcp = not provider and drivers[(provider, model, task_version, prompt)] == {"mcp"}
+            if via_mcp:
+                agent["route"] = "mcp"
+            who = (
+                f"{model}, via the researcher's Claude session (MCP)" if via_mcp
+                else ", ".join(x for x in (provider or "provider not recorded", model) if x)
+            )
             sentences.append(
                 f"An AI model ({who}, task version {task_version}, prompt SHA-256 {short}) proposed a draft decision "
                 f"with quoted evidence for {len(studies)} of {c['screened']} records."
             )
-            if not provider:
+            if not provider and not via_mcp:
                 not_stated.append(f"Provider of the {model} drafts: no agent run records it.")
             agents.append(agent)
         if sum(1 for p in proposals if p.get("cannot_decide")):
@@ -676,7 +694,27 @@ def build_methods(ws: Path) -> dict[str, Any]:
         figures["changed_after_reveal"] = len(changed)
         figures["revealed_decisions"] = len(revealed)
         figures["changes_not_tracked"] = len(untracked)
-        if revealed:
+        # A decision made with its draft already in view is not a blind decision:
+        # "changed k of n after seeing a draft" would read as a blind-then-reveal
+        # result (M6-beta, review S-P1-1). The first event of each study says
+        # whether the draft was in view (`proposal_shown`, contract §3.1).
+        proposed = {str(p["study_id"]) for p in proposals}
+        visible, blind = set(), set()
+        for study, chain in events.items():
+            first = next((e for e in chain if not e.get("supersedes")), None)
+            if first is None or study not in proposed:
+                continue
+            shown_info = first.get("proposal_shown")
+            if shown_info and shown_info.get("revealed_after_decision") is not True:
+                visible.add(study)
+            else:
+                blind.add(study)
+        figures["decided_with_draft_visible"] = len(visible)
+        if visible and not blind:
+            sentences.append(
+                f"{len(visible)} decisions were made with the draft visible; no blind comparison is reported."
+            )
+        elif revealed:
             sentences.append(
                 f"After seeing a draft, the reviewer changed {len(changed)} of {len(revealed)} decisions."
             )
