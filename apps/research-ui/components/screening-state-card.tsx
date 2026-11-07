@@ -126,7 +126,7 @@ export function StateCard({
       ) : null}
       {/* The typed code sits behind Details (rule page 12): still in the DOM, still selectable. */}
       <details className="mt-2 text-sm" data-state-details>
-        <summary className="inline-flex min-h-11 cursor-pointer items-center rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus text-ink-muted">{DETAILS_LABEL[locale]}</summary>
+        <summary className="min-h-11 cursor-pointer py-3 leading-5 rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus text-ink-muted">{DETAILS_LABEL[locale]}</summary>
         {state.affects ? (
           <p className="mt-1 text-sm text-ink-muted">
             {AFFECTS_LABEL[locale]} {state.affects}

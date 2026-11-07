@@ -487,7 +487,7 @@ export function ScreeningExport({ locale }: Readonly<{ locale: Locale }>) {
               ) : null}
 
               <details className="mt-5 text-sm" data-methods-details>
-                <summary className="inline-flex min-h-11 cursor-pointer items-center rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus font-medium text-brand">{DETAILS_LABEL[locale]}</summary>
+                <summary className="min-h-11 cursor-pointer py-3 leading-5 rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus font-medium text-brand">{DETAILS_LABEL[locale]}</summary>
                 <p className="mt-2 flex flex-wrap items-center gap-2 text-xs">
                   <span className="text-ink-muted">{t("generation")}</span>
                   <span title={methods.generation_id}>

@@ -308,7 +308,7 @@ export function ScreeningPublish({ locale }: Readonly<{ locale: Locale }>) {
           <div role="status" className="rounded-md bg-include-soft px-4 py-3 text-include" data-published>
             <p>{t("publishedPlain")}</p>
             <details className="mt-1 text-xs">
-              <summary className="inline-flex min-h-11 cursor-pointer items-center rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus">{DETAILS_LABEL[locale]}</summary>
+              <summary className="min-h-11 cursor-pointer py-3 leading-5 rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus">{DETAILS_LABEL[locale]}</summary>
               <DataCell>{published.generation_id}</DataCell>
             </details>
           </div>
@@ -318,7 +318,7 @@ export function ScreeningPublish({ locale }: Readonly<{ locale: Locale }>) {
           <div role="alert" className="rounded-md bg-unclear-soft px-4 py-3 text-ink" data-publication-stale>
             <p>{t("publishedStale", { n: n(staleChanged) })}</p>
             <details className="mt-1 text-xs text-ink-muted">
-              <summary className="inline-flex min-h-11 cursor-pointer items-center rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus">{DETAILS_LABEL[locale]}</summary>
+              <summary className="min-h-11 cursor-pointer py-3 leading-5 rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus">{DETAILS_LABEL[locale]}</summary>
               <span className="font-mono" dir="ltr">
                 GENERATION_STALE
               </span>
@@ -398,7 +398,7 @@ export function ScreeningPublish({ locale }: Readonly<{ locale: Locale }>) {
               </ul>
               {preview.checks.some((c) => c.ok && c.detail) ? (
                 <details className="mt-2 text-xs text-ink-muted" data-checks-details>
-                  <summary className="inline-flex min-h-11 cursor-pointer items-center rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus">{DETAILS_LABEL[locale]}</summary>
+                  <summary className="min-h-11 cursor-pointer py-3 leading-5 rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus">{DETAILS_LABEL[locale]}</summary>
                   <ul className="mt-1 space-y-1">
                     {preview.checks
                       .filter((c) => c.ok && c.detail)
@@ -493,7 +493,7 @@ export function ScreeningPublish({ locale }: Readonly<{ locale: Locale }>) {
                         )}
                       </p>
                       <details className="mt-1 text-xs text-ink-muted">
-                        <summary className="inline-flex min-h-11 cursor-pointer items-center rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus">{DETAILS_LABEL[locale]}</summary>
+                        <summary className="min-h-11 cursor-pointer py-3 leading-5 rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus">{DETAILS_LABEL[locale]}</summary>
                         <DataCell>{b.batch_file}</DataCell>
                       </details>
                       {approved ? <p className="mt-1 text-xs text-ink-muted">{t("approvedNote")}</p> : null}
@@ -538,7 +538,7 @@ export function ScreeningPublish({ locale }: Readonly<{ locale: Locale }>) {
                             {t("approve", { batch: label })}
                           </Button>
                           <details className="text-sm">
-                            <summary className="inline-flex min-h-11 cursor-pointer items-center rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus text-brand">{t("defer")}</summary>
+                            <summary className="min-h-11 cursor-pointer py-3 leading-5 rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus text-brand">{t("defer")}</summary>
                             <label className="mt-2 block text-ink">
                               {t("deferReason", { batch: label })}
                               <textarea

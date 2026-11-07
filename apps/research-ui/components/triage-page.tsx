@@ -591,7 +591,7 @@ function TriageScreen({ locale }: Readonly<{ locale: Locale }>) {
         <p role="alert" className="rounded-md bg-blocked-soft px-4 py-3 text-blocked">
           {t("staleBanner")}
           <details className="mt-1 text-xs">
-            <summary className="inline-flex min-h-11 cursor-pointer items-center rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus">{t("details")}</summary>
+            <summary className="min-h-11 cursor-pointer py-3 leading-5 rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus">{t("details")}</summary>
             <span className="font-mono" dir="ltr">
               STALE_BINDING
             </span>
@@ -681,7 +681,7 @@ function TriageScreen({ locale }: Readonly<{ locale: Locale }>) {
             <div role="alert" className="rounded-md bg-blocked-soft px-4 py-3 text-blocked" data-refusal={refusal}>
               <p>{stateCopy(locale, refusal).known ? `${stateCopy(locale, refusal).title}. ${stateCopy(locale, refusal).body}` : t("refused", { code: "" }).replace(/[:：]\s*$/, "")}</p>
               <details className="mt-1 text-xs">
-                <summary className="inline-flex min-h-11 cursor-pointer items-center rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus">{t("details")}</summary>
+                <summary className="min-h-11 cursor-pointer py-3 leading-5 rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus">{t("details")}</summary>
                 <span className="font-mono" dir="ltr">
                   {refusal}
                 </span>
@@ -728,7 +728,7 @@ function TriageScreen({ locale }: Readonly<{ locale: Locale }>) {
                   </span>
                 </p>
                 <details className="mt-1 text-xs text-ink-muted" data-record-details>
-                  <summary className="inline-flex min-h-11 cursor-pointer items-center rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus">{t("details")}</summary>
+                  <summary className="min-h-11 cursor-pointer py-3 leading-5 rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus">{t("details")}</summary>
                   <DataCell>{record.study_id}</DataCell>
                   {record.doi ? (
                     <a className="ms-2 font-mono text-anchor underline" href={`https://doi.org/${record.doi}`} dir="ltr">
@@ -861,7 +861,7 @@ function TriageScreen({ locale }: Readonly<{ locale: Locale }>) {
                       <span title={`${t("savedWord")} ${new Date(decided.decided_at).toLocaleString(locale)}`}>{t("savedWord")}</span>
                     </p>
                     <details className="text-xs text-ink-muted" data-decision-details>
-                      <summary className="inline-flex min-h-11 cursor-pointer items-center rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus">{t("details")}</summary>
+                      <summary className="min-h-11 cursor-pointer py-3 leading-5 rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus">{t("details")}</summary>
                       <p className="mt-1">
                         {t("recordedAs", {
                           time: new Date(decided.decided_at).toLocaleString(locale),
@@ -884,7 +884,7 @@ function TriageScreen({ locale }: Readonly<{ locale: Locale }>) {
                     </div>
                     {record.history.length > 1 ? (
                       <details className="text-sm">
-                        <summary className="inline-flex min-h-11 cursor-pointer items-center rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus text-brand">{t("history")}</summary>
+                        <summary className="min-h-11 cursor-pointer py-3 leading-5 rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus text-brand">{t("history")}</summary>
                         <ol className="mt-2 space-y-1">
                           {record.history.map((e) => (
                             <li key={e.event_id} className="text-ink-muted">
@@ -1033,7 +1033,7 @@ function TriageScreen({ locale }: Readonly<{ locale: Locale }>) {
                 </ul>
               </section>
               <details className="text-xs" data-proposal-details>
-              <summary className="inline-flex min-h-11 cursor-pointer items-center rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus text-ink-muted">{t("details")}</summary>
+              <summary className="min-h-11 cursor-pointer py-3 leading-5 rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus text-ink-muted">{t("details")}</summary>
               <dl className="mt-1 grid grid-cols-[auto_1fr] gap-x-2 gap-y-1 text-xs">
                 <dt className="text-ink-muted">{t("model")}</dt>
                 <dd>

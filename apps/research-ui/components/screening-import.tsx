@@ -743,7 +743,7 @@ function AddForm({
           {t("labelHelp")}
         </p>
         <details className="rounded-md border border-rule p-3" data-search-details open={refusal === "SOURCE_DATE_INVALID" ? true : undefined}>
-          <summary className="inline-flex min-h-11 cursor-pointer items-center rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus text-sm font-medium text-ink">{t("details")}</summary>
+          <summary className="min-h-11 cursor-pointer py-3 leading-5 rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus text-sm font-medium text-ink">{t("details")}</summary>
           <div className="mt-3 space-y-3">
             <label className="block text-sm text-ink">
               {t("searchedOn")}
