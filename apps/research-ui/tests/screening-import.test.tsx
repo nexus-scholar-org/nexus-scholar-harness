@@ -231,6 +231,23 @@ describe("import.accept", () => {
     expect(screen.getByText("Counted when frozen")).toBeInTheDocument();
   });
 
+  it("an accepted corpus from the app's search says so, with the engine's counts, instead of an empty table", async () => {
+    engine({
+      "/corpus": {
+        ...EMPTY,
+        state: "ACCEPTED",
+        from_discovery: true,
+        accepted: { artifact_id: "ART-corpus-golden", accepted_at: "2026-11-04T16:49:16Z", records: 30, studies: 30, duplicates: 0 },
+      },
+    });
+    render(<ScreeningImport locale="en" />);
+    const card = await screen.findByRole("heading", { level: 2, name: "This workspace's corpus came from the app's own search, not from database files." });
+    expect(card.parentElement).toHaveTextContent("30 records, 0 duplicates removed, 30 studies to screen.");
+    expect(document.querySelector("[data-import-databases]")).toBeNull();
+    expect(screen.queryByText("No databases added yet.")).toBeNull();
+    expect(screen.getByRole("link", { name: "Continue to Prepare" })).toBeInTheDocument();
+  });
+
   it("shows the discovery card and no form when the corpus came from the app's search", async () => {
     engine({ "/corpus": { ...EMPTY, from_discovery: true } });
     render(<ScreeningImport locale="en" />);
