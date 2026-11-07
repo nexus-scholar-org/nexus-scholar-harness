@@ -105,13 +105,13 @@ M = milestone; ✓ = route exists today.
 | `POST /decisions/events` | submit decisions | `{events:[…]}` (≤ 200) → `{results:[{event_id, result, decision_id?, refusal?}]}` | desktop, phone | M1a |
 | `GET /decisions/conflicts` | conflicts to resolve | → `{items:[{study_id, events:[…]}]}` | desktop, phone | M1a |
 | `POST /decisions/conflicts/{study_id}/resolve` | keep one | `{keep_event_id}` → writes a superseding event that names both | desktop, phone | M1a |
-| `GET /settings`, `PUT /settings` | screening settings | `{blinding: "reveal_after_decision"\|"show", mode: "human_sees_every_record"\|"ai_agreed_exclusion", sample_audit_size?, queue_order: "seeded"\|"agent_uncertainty"}` (`queue_order` M5-slim: `GET /queue` uses it, and an `order` parameter that differs is refused `INVALID_OUTPUT`); turning on AI-agreed exclusion needs a confirmation body and is journaled | desktop | M1a |
+| `GET /settings`, `PUT /settings` | screening settings | `{blinding: "reveal_after_decision"\|"show", mode: "human_sees_every_record"\|"ai_agreed_exclusion", sample_audit_size?, queue_order: "seeded"\|"agent_uncertainty", advance_on_decide: "show_draft_then_next"\|"next_at_once"}` (`queue_order` M5-slim: `GET /queue` uses it, and an `order` parameter that differs is refused `INVALID_OUTPUT`); turning on AI-agreed exclusion needs a confirmation body and is journaled | desktop | M1a |
 | `GET /approver`, `PUT /approver` | the name approvals are recorded under | `GET` → `{name: string\|null, set_at, basis: "typed-name"}`. `PUT {name}` (whitespace collapsed, 1–120 printable characters) writes `literature/screening/operator_context.json`, the operator context the approval reads, and journals `SCREENING_APPROVER_SET` with the name before and after; the same name again writes nothing. Refuses `INVALID_OUTPUT` (empty, too long, control characters) and `APPROVAL_NOT_OPERATOR` (a name the engine never trusts as a person, e.g. "unknown"). A typed name, not a verified sign-in (CON-02/03); approvals already made keep the name they were made under (decision 2026-11-06) | desktop | M5-slim |
 | `GET /corpus` | the corpus import (spec 11) | → `{shape:"screening.corpus-v1", state: "EMPTY"\|"STAGED"\|"ACCEPTED", sources:[{id, label, file_name, records, searched_on, query}], databases:[{label, records, files, searched_on:[…], search_details_missing}], preview:{identified, duplicates, unique_studies}, accepted:{artifact_id, accepted_at, records, studies, duplicates}\|null, from_discovery, limits:{max_source_bytes, label_max_length}}`. The preview uses the snapshot's own deduplicator and writes nothing | desktop | M5b |
 | `POST /corpus/sources` | stage one database's RIS export | `{label, file_name, content_base64, searched_on?, query?}` (extra fields refused; a label may repeat for a database exported in parts, and its files are summed per database) → 201 + the `GET /corpus` body; the file is kept under `literature/raw/ris/`; journaled `CORPUS_SOURCE_STAGED`. Refuses `SOURCE_LABEL_INVALID`, `SOURCE_DATE_INVALID` (not a real `YYYY-MM-DD` date), `SOURCE_NOT_RIS` (422; also content that is not base64), `SOURCE_TOO_LARGE` (413, 50 MB), `SOURCE_DUPLICATE_FILE`, `VERIFIED_EXISTS`, `CORPUS_ALREADY_ACCEPTED` (409) | desktop | M5b |
 | `POST /corpus/sources/{id}/remove` | drop a staged export file | → the `GET /corpus` body; journaled `CORPUS_SOURCE_REMOVED`; `SOURCE_NOT_FOUND` (404), `CORPUS_ALREADY_ACCEPTED` (409) | desktop | M5b |
 | `POST /corpus/accept` | UI for `nexus-scholar accept-corpus` | → the `GET /corpus` body, `state: "ACCEPTED"`; writes `verified.json` and `literature/raw/provenance_manifest.json`, then the acceptance gate publishes the snapshot (journaled). `NOTHING_STAGED` (also when every imported file was removed), `CORPUS_ALREADY_ACCEPTED`, `PROTOCOL_INVALID`, and `ACCEPT_CORPUS_REFUSED` when the acceptance gate refuses the snapshot (409, its issues in the message) | desktop | M5b |
-| `POST /prepare` | allowlisted prepare job | `{batch_size, shuffle_seed}` → `{job_id}`; refuses `SNAPSHOT_NOT_ACCEPTED` (proposed) | desktop | M1a |
+| `POST /prepare` | allowlisted prepare job | `{batch_size}` (5 to 100, default 20; passed to the job since M6-beta) → `{job_id}`; refuses `SNAPSHOT_NOT_ACCEPTED`, `BATCH_SIZE_INVALID` | desktop | M1a |
 | `POST /proposals/runs` | estimate, or start, an agent run | `{driver:"api", provider: "anthropic"\|"openai_compatible"\|"gemini", model, effort, base_url? (OpenAI-compatible), scope:{view: "needs_you"\|"no_proposal" \| study_ids}, consent?:{provider, accepted_at}, cost_ceiling_usd?, dry_run? (the first 20 records), estimate_only? (writes nothing)}` → `{run_id (null for an estimate), estimate:{records, tokens:{input_tokens, cache_read_tokens, cache_write_tokens, output_tokens}, assumptions, cost_usd, batch, prices_as_of, priced}}`. Refuses `CONSENT_REQUIRED`, `PROVIDER_KEY_MISSING`, `DRIVER_UNAVAILABLE`, `CEILING_NOT_PRICED`, `COST_CEILING_REACHED` (the estimate is above the ceiling), `RUN_ALREADY_ACTIVE`, `UNKNOWN_STUDY`, `INVALID_OUTPUT` (bad scope or consent) | desktop | M1b |
 | `POST /proposals/calibrations` | check the agent on your labels | `{study_ids, provider, model, effort, base_url?, cost_ceiling_usd?}` → `{run_id}`; the same refusals as a run; result `{include_recall, ci_low, missed_includes:[…]}`. **Advisory:** a missed include shows a warning and never blocks a run, because the researcher decides whether to trust it | desktop | M1b |
 | `GET /proposals/setup` | what the run screen needs before a run | → `{task:{task_version, prompt_sha256, model, effort}, providers:[{provider, key: "keychain"\|"environment"\|"none", consent}], data_flow, active_run, latest_run}`; names where a key is stored, never the key (M1b-2) | desktop | M1b |
@@ -158,6 +158,7 @@ The UI reads proposals only through `GET /records/{study_id}/proposal`. The fiel
 | `SNAPSHOT_NOT_ACCEPTED` | `/prepare` | no accepted corpus snapshot; run `accept-corpus` |
 | `UNKNOWN_STUDY` | events, records | `study_id` not in the bound corpus |
 | `REASON_CODE_INVALID` | events | EXCLUDE without a valid protocol reason code |
+| `REASON_CODE_INCONSISTENT` | events | EXCLUDE whose reason contradicts the event's own answer: `FAILS-INC-n` with INC-n answered yes, or `EXC-n` with EXC-n answered no (M6-beta) |
 | `TOKEN_SCOPE_REFUSED` | any | phone token used on a desktop-only route, or an expired token |
 | `CONSENT_REQUIRED` | `/proposals/runs` | no recorded consent for this provider |
 | `RUN_ALREADY_ACTIVE` | `/proposals/runs`, `/proposals/calibrations` | one agent run per workspace at a time |
@@ -179,6 +180,18 @@ The UI reads proposals only through `GET /records/{study_id}/proposal`. The fiel
 | `EXPORT_FORMAT_INVALID` | `/export` | HTTP 422: `format` is not `ris` or `csv`, or `set` names an unknown set (M5-slim) |
 | `EXPORT_SOURCE_MISMATCH` | `/export`, `/methods` | HTTP 409: a published file is missing or its digest differs from `generation.json`; nothing is exported (M5-slim) |
 | `METHODS_SOURCE_MISSING` | `/methods` | HTTP 409: `prisma_report.json`, which the paragraph cannot omit, is missing or lacks a count; missing optional sources are listed under `caveats` (M5-slim) |
+| `SOURCE_LABEL_INVALID` | `/corpus/sources` | HTTP 422: the database name is empty, too long or uses other characters (M5b) |
+| `SOURCE_DATE_INVALID` | `/corpus/sources` | HTTP 422: date searched is not a real `YYYY-MM-DD` date (M5b) |
+| `SOURCE_NOT_RIS` | `/corpus/sources` | HTTP 422: no RIS records in the file, or content that is not base64 (M5b) |
+| `SOURCE_TOO_LARGE` | `/corpus/sources` | HTTP 413: the file is over 50 MB (M5b) |
+| `SOURCE_DUPLICATE_FILE` | `/corpus/sources` | HTTP 409: the same file is already staged (M5b) |
+| `SOURCE_NOT_FOUND` | `/corpus/sources/{id}/remove` | HTTP 404: no staged file has that id (M5b) |
+| `VERIFIED_EXISTS` | `/corpus/sources` | HTTP 409: the corpus came from discovery; database exports would replace it (M5b) |
+| `CORPUS_ALREADY_ACCEPTED` | `/corpus/*` writes | HTTP 409: the corpus is frozen (M5b) |
+| `NOTHING_STAGED` | `/corpus/accept` | HTTP 409: no database file staged (M5b) |
+| `PROTOCOL_INVALID` | `/corpus/accept` | HTTP 409: `protocol.json` does not validate (M5b) |
+| `ACCEPT_CORPUS_REFUSED` | `/corpus/accept` | HTTP 409: the acceptance gate refused the snapshot; its issues in the message (M5b) |
+| `BATCH_SIZE_INVALID` | `/prepare` | HTTP 422: batch size outside 5 to 100 (M6-beta) |
 | `ENGINE_UNREACHABLE` | UI only | client-side state, never sent by the engine |
 
 ## 8. Shared fixtures and tests
@@ -199,7 +212,7 @@ A fixture change is a contract change and needs review by both tracks.
 2. Duplicate `event_id` → `duplicate`; same id with different content → `IDEMPOTENCY_CONFLICT`.
 3. Two differing non-superseding events → `conflict`; the study is excluded from the projection; collect refuses `BATCH_INCOMPLETE`.
 4. `GET /records/{id}/proposal` before a decision → `PROPOSAL_HIDDEN`.
-5. EXCLUDE without a reason code → `REASON_CODE_INVALID`.
+5. EXCLUDE without a reason code → `REASON_CODE_INVALID`. An EXCLUDE whose reason contradicts the event's own `criteria` answer for that criterion → `REASON_CODE_INCONSISTENT` (M6-beta); an absent or `not_reported` answer never contradicts.
 6. MAYBE passes finalize and is counted as "unclear to full text" in the PRISMA preview.
 7. A phone token on `/prepare`, `/proposals/runs` or publish → `TOKEN_SCOPE_REFUSED`. In M2, those routes are absent on the LAN sub-app.
 8. Every accepted batch of events writes exactly one journal row.

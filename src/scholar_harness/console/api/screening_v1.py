@@ -41,7 +41,11 @@ DEFAULT_SETTINGS: dict[str, Any] = {
     # The order the queue is shown in (M5-slim, spec 10): a setting, so a
     # change is journaled and the methods paragraph can state the order used.
     "queue_order": "seeded",
+    # What triage does after a decision (M6-beta, decision 2026-11-07): show the
+    # record's draft and wait for N, or open the next record at once.
+    "advance_on_decide": "show_draft_then_next",
 }
+ADVANCE_MODES = ("show_draft_then_next", "next_at_once")
 QUEUE_ORDERS = ("seeded", "agent_uncertainty")
 VIEWS = ("needs_you", "proposal_ready", "no_proposal", "title_only", "decided")
 
@@ -352,6 +356,7 @@ class SettingsBody(BaseModel):
     sample_audit_size: int | None = None
     screener_id: str | None = None
     queue_order: str | None = None
+    advance_on_decide: str | None = None
     confirm_ai_agreed_exclusion: bool = False
 
 
@@ -366,6 +371,8 @@ def put_settings(body: SettingsBody, request: Request) -> dict[str, Any]:
         raise _error(422, "INVALID_OUTPUT", "blinding must be reveal_after_decision or show")
     if update.get("mode") not in (None, "human_sees_every_record", "ai_agreed_exclusion"):
         raise _error(422, "INVALID_OUTPUT", "mode must be human_sees_every_record or ai_agreed_exclusion")
+    if update.get("advance_on_decide") not in (None, *ADVANCE_MODES):
+        raise _error(422, "INVALID_OUTPUT", f"advance_on_decide must be one of {ADVANCE_MODES}")
     if update.get("queue_order") not in (None, *QUEUE_ORDERS):
         raise _error(422, "INVALID_OUTPUT", f"queue_order must be one of {QUEUE_ORDERS}")
     if update.get("mode") == "ai_agreed_exclusion" and current["mode"] != "ai_agreed_exclusion":
@@ -566,10 +573,20 @@ class PrepareBody(BaseModel):
     batch_size: int = 20
 
 
+#: The batch sizes Prepare accepts (M6-beta, review U-1).
+BATCH_SIZE_MIN, BATCH_SIZE_MAX = 5, 100
+
+
 @router.post("/prepare", status_code=202)
 async def prepare(body: PrepareBody, request: Request) -> dict[str, Any]:
     """Start the allowlisted `screen_prepare` job; refuses without an accepted corpus."""
     ws = _ws(request)
+    if not BATCH_SIZE_MIN <= body.batch_size <= BATCH_SIZE_MAX:
+        raise _error(
+            422,
+            refusals.BATCH_SIZE_INVALID,
+            f"batch size {body.batch_size} is outside {BATCH_SIZE_MIN} to {BATCH_SIZE_MAX}",
+        )
     registry = ws / "audit" / "artifact_registry.json"
     accepted = registry.is_file() and any(
         e.get("artifact_type") == "corpus_snapshot"
@@ -577,7 +594,7 @@ async def prepare(body: PrepareBody, request: Request) -> dict[str, Any]:
     )
     if not accepted:
         raise _error(409, refusals.SNAPSHOT_NOT_ACCEPTED, "no accepted corpus snapshot; import and accept the corpus first (Import, or `nexus-scholar accept-corpus`)")
-    job = await request.app.state.job_runner.start("screen_prepare")
+    job = await request.app.state.job_runner.start("screen_prepare", args=["--batch-size", str(body.batch_size)])
     return {"job_id": job.job_id}
 
 

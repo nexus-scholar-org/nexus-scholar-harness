@@ -23,7 +23,9 @@ permissions:
 
 jobs:
   publish:
-    if: github.ref_type == 'tag' || github.event_name == 'workflow_dispatch'
+    # Tags only (M6-beta review): a manual run from a branch must never publish
+    # the project version to PyPI without the tag check below.
+    if: github.ref_type == 'tag'
     runs-on: ubuntu-latest
     environment: pypi
     steps:
@@ -41,6 +43,18 @@ jobs:
           cache: npm
           cache-dependency-path: apps/research-ui/package-lock.json
 
+      - name: Read the project version and check the tag
+        # M6-beta: the version lives in pyproject.toml only. A tag push must name
+        # exactly that version (v$VERSION), or nothing is built or published.
+        shell: bash
+        run: |
+          VERSION="$(python3 -c 'import tomllib; print(tomllib.load(open("pyproject.toml","rb"))["project"]["version"])')"
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+          if [ "$GITHUB_REF_TYPE" = "tag" ] && [ "$GITHUB_REF_NAME" != "v$VERSION" ]; then
+            echo "::error::tag $GITHUB_REF_NAME does not match the project version v$VERSION"
+            exit 1
+          fi
+
       - name: Build the app's static export
         # The wheel carries it as scholar_harness_data/ui (hatch_build.py);
         # NEXUS_WHEEL_REQUIRE_UI makes a missing export a build error.
@@ -56,4 +70,4 @@ jobs:
         run: uv build --wheel
 
       - name: Publish to PyPI (Trusted Publishing / OIDC)
-        run: uv publish dist/nexus_scholar-1.0.0-py3-none-any.whl
+        run: uv publish "dist/nexus_scholar-${VERSION}-py3-none-any.whl"

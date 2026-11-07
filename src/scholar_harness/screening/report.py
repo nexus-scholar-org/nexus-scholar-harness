@@ -5,7 +5,9 @@ import logging
 import sys
 from pathlib import Path
 
-from .batcher import _screening_dir
+from scholar_search.screening import evaluate_heuristic_screening
+
+from .batcher import _rebuild_doc, _screening_dir
 
 try:
     from scholar_agent.calibration import (

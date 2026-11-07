@@ -422,9 +422,10 @@ def _ui07_sanitize_details(ws: Path, details: dict[str, Any]) -> dict[str, Any]:
 
 def _ui07_publication_status(ws: Path) -> dict[str, Any]:
     """The §3(e) status object, verbatim in every shape that carries it."""
-    from scholar_harness.authority.generations import require_current_generation
+    # Published means current (M6-beta): a decision made after publish reads STALE.
+    from scholar_harness.screening.currentness import screening_currentness
 
-    result = require_current_generation(ws)
+    result = screening_currentness(ws)
     record = result.record
     generation_id: str | None = None
     if record is not None:

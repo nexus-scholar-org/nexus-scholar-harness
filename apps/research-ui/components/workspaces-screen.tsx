@@ -43,6 +43,8 @@ const COPY = {
     "status.noCorpus": "No corpus yet",
     "status.corpusAccepted": "Corpus accepted",
     "status.screening": "Screening in progress",
+    "status.published": "Published",
+    "status.publishedChanged": "Published, decisions since",
     untitled: "Untitled",
     never: "No activity yet",
     "create.label": "New workspace",
@@ -94,6 +96,8 @@ const COPY = {
     "status.noCorpus": "Pas encore de corpus",
     "status.corpusAccepted": "Corpus accepté",
     "status.screening": "Sélection en cours",
+    "status.published": "Publiée",
+    "status.publishedChanged": "Publiée, décisions depuis",
     untitled: "Sans titre",
     never: "Aucune activité",
     "create.label": "Nouvel espace",
@@ -145,6 +149,8 @@ const COPY = {
     "status.noCorpus": "لا يوجد متن بعد",
     "status.corpusAccepted": "قُبل المتن",
     "status.screening": "الفرز جارٍ",
+    "status.published": "منشور",
+    "status.publishedChanged": "منشور، مع قرارات بعده",
     untitled: "بلا عنوان",
     never: "لا نشاط بعد",
     "create.label": "مساحة عمل جديدة",
@@ -215,6 +221,12 @@ function reasonText(t: (key: WorkspacesCopyKey) => string, reason: string | unde
 }
 
 function statusOf(item: WorkspaceItem): { role: "include" | "unclear" | "blocked"; key: WorkspacesCopyKey } {
+  // The engine's status (M6-beta) decides; the older fields stay as a fallback.
+  if (item.status === "PUBLISHED") return { role: "include", key: "status.published" };
+  if (item.status === "PUBLISHED_CHANGED") return { role: "unclear", key: "status.publishedChanged" };
+  if (item.status === "SCREENING") return { role: "include", key: "status.screening" };
+  if (item.status === "CORPUS_ACCEPTED") return { role: "include", key: "status.corpusAccepted" };
+  if (item.status === "NEW") return { role: "unclear", key: "status.noCorpus" };
   if (item.screening_started) return { role: "include", key: "status.screening" };
   if (item.has_corpus) return { role: "include", key: "status.corpusAccepted" };
   return { role: "unclear", key: "status.noCorpus" };

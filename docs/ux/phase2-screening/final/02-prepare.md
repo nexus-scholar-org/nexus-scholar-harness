@@ -2,6 +2,15 @@
 
 Board: `Prepare` (D2, snapshot-missing state). Contract: `docs/architecture/screening-api-contract.md`.
 
+## Amended 2026-11-07 (M6-beta)
+Source: `docs/roadmap/milestones/M6-beta.md` section C and decision "Advance on decide, as a workspace setting"; review U-1.
+- **The batch-size field is honoured.** `POST /prepare` passes the size to the job (✓ done 2026-11-07, `screening_v1.py:566-590`; `tests/console/test_job_runner.py::test_prepare_honours_batch_size`, 10 records at size 10 give 3 batches on the golden fixture). The size is bounded 5 to 100; outside it the route refuses `BATCH_SIZE_INVALID` (HTTP 422, contract §7), shown as "Choose a batch size from 5 to 100." (`screening.refusal.BATCH_SIZE_INVALID`, code in Details) and the field keeps the typed value. The confirm dialog's "Prepare batches of n records?" is therefore true. Field hint `screening.prepare.batch.sizeHint` = "5 to 100 records".
+- **New setting: after I decide.** In the "Hidden while screening" card, below the reveal radios, a second radio group (`fieldset` + `legend`) "After I decide":
+  - "Show the draft, then N" (default) ;
+  - "Move on at once (drafts stay in the record's details)".
+  Keys `screening.prepare.advance.{legend,draftThenNext,atOnce,noteShown}`. It is stored with the other settings (`GET`/`PUT /settings` ✓ `screening_v1.py:325,339`; the new field is ✗ M6-beta; proposed wire name `advance_on_decide` with values `show_draft_then_next` | `next_at_once`, written into the contract §4 settings row with the engine change) and journaled as `SCREENING_SETTINGS_CHANGED` with `before`/`after`. When the reveal setting is "Show beside the record" the group is disabled with the note "Drafts are already beside the record, so there is nothing to reveal." (`noteShown`). The methods paragraph reports the choice only when drafts were skipped (10).
+- Tests: Vitest `prepare.advance-setting.test.tsx` (default value, change is sent through `PUT /settings`, disabled when drafts are shown), `prepare.batch-size.test.tsx` (out-of-range value shows the refusal sentence and keeps the field); Python tests as above.
+
 **Purpose.** Verify the protocol and corpus binding, accept the corpus snapshot if missing, choose batch and reveal settings, and prepare the batches.
 
 **Changed from the canvas.**
@@ -22,7 +31,7 @@ Board: `Prepare` (D2, snapshot-missing state). Contract: `docs/architecture/scre
 | existing batches | `GET /ui/batches` ✓ `screening.py:572` |
 
 ## Data out
-- `POST /prepare` ✗ M1a with `{batch_size, shuffle_seed}` → `{job_id}`; refuses `SNAPSHOT_NOT_ACCEPTED`.
+- `POST /prepare` ✓ `screening_v1.py:566` with `{batch_size, shuffle_seed}` → `{job_id}`; `batch_size` is passed to the job (M6-beta, bounded 5 to 100); refuses `SNAPSHOT_NOT_ACCEPTED` and `BATCH_SIZE_INVALID`.
 - `PUT /settings` ✗ M1a (blinding, mode, sample_audit_size?).
 - "Accept the Discovery corpus as a snapshot": `POST /corpus/accept` ✗ M0 with `{source: "verified" | "import", import_id?}` → `{snapshot_id, studies, fingerprint}`; runs the baseline drift check; journaled with the snapshot fingerprint.
 
@@ -40,7 +49,7 @@ Board: `Prepare` (D2, snapshot-missing state). Contract: `docs/architecture/scre
 - **Default**: binding table (Protocol Matches, Screening instrument Ready, Corpus snapshot), criteria and answers table (yes / no / not reported), rule tiles, Batches (records per batch, shuffle with recorded seed, seed), reveal setting, Prepare gate.
 - **Empty (the drawn state)**: snapshot missing. Row "Corpus snapshot · none accepted" in `blocked-soft`; note "Refused: `SNAPSHOT_NOT_ACCEPTED`", affects "batch preparation only"; primary button "Accept the Discovery corpus as a snapshot · 3,241 works"; Prepare disabled with the reason ("Available once the corpus snapshot is accepted"). No log error is shown.
 - **Loading**: skeleton for the binding table; Prepare shows job progress by `job_id`.
-- **Error**: `SNAPSHOT_NOT_ACCEPTED` (contract §7), `STALE_BINDING` (✓ `integrity.py:28`), `ENGINE_UNREACHABLE` (client-side). Each shows code, what it affects, one next step.
+- **Error**: `SNAPSHOT_NOT_ACCEPTED` (contract §7), `BATCH_SIZE_INVALID` (✓ `screening_v1.py:577`), `STALE_BINDING` (✓ `integrity.py:28`), `ENGINE_UNREACHABLE` (client-side). Each shows code, what it affects, one next step.
 - **Partial**: some batches written and others failed: list them and offer retry; prepare is idempotent for the same seed.
 - **Offline**: page read-only; Prepare disabled ("needs the engine on this computer").
 - **Protocol-changed**: binding row `Mismatch`; "Rebind" shown (08).

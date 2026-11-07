@@ -287,6 +287,16 @@ export const STATES: Record<string, StateEntry> = {
       ar: T("سبب خارج البروتوكول", "يحتاج الاستبعاد إلى رمز استبعاد من البروتوكول أو معيار إدراج غير مستوفى.", "ذلك القرار", "اختر سببًا آخر"),
     },
   },
+  // M6-beta (review S-P1-3): the reason must agree with the checklist answers.
+  REASON_CODE_INCONSISTENT: {
+    role: "blocked",
+    action: "none",
+    copy: {
+      en: T("The reason contradicts your answers", "The exclusion reason names a criterion you answered the other way. Change the answer or the reason.", "That decision; nothing was recorded", "Change the answer or the reason"),
+      fr: T("Le motif contredit vos réponses", "Le motif d'exclusion désigne un critère auquel vous avez répondu dans l'autre sens. Modifiez la réponse ou le motif.", "Cette décision ; rien n'a été enregistré", "Modifier la réponse ou le motif"),
+      ar: T("السبب يناقض إجاباتك", "يذكر سبب الاستبعاد معيارًا أجبت عنه بعكس ذلك. غيّر الإجابة أو السبب.", "ذلك القرار؛ لم يُسجَّل شيء", "غيّر الإجابة أو السبب"),
+    },
+  },
   UNKNOWN_STUDY: {
     role: "blocked",
     action: "reload",

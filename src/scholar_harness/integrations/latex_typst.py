@@ -93,7 +93,7 @@ class AcademicTypesettingExporter:
                 for cell in alignment
             )
 
-            def pad(row: list[str]) -> list[str]:
+            def pad(row: list[str], ncols: int = ncols) -> list[str]:
                 return (row + [""] * ncols)[:ncols]
 
             output.append(r"\begin{table}[h]")

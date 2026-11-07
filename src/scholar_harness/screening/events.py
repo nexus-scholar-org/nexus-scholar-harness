@@ -51,6 +51,8 @@ JOURNAL_ACTION = "SCREENING_DECISIONS_RECEIVED"
 # Refusal codes (console refusal set, contract §7).
 UNKNOWN_STUDY = "UNKNOWN_STUDY"
 REASON_CODE_INVALID = "REASON_CODE_INVALID"
+#: An EXCLUDE whose reason names a criterion the same event answers the other way (M6-beta).
+REASON_CODE_INCONSISTENT = "REASON_CODE_INCONSISTENT"
 IDEMPOTENCY_CONFLICT = "IDEMPOTENCY_CONFLICT"
 ATOMIC_COMMIT_FAILED = "ATOMIC_COMMIT_FAILED"
 INVALID_OUTPUT = "INVALID_OUTPUT"
@@ -242,6 +244,22 @@ def validate_event(event: Any, context: ScreeningContext) -> dict[str, str] | No
             REASON_CODE_INVALID,
             "an EXCLUDE needs a protocol exclusion code or FAILS-<inclusion id>",
         )
+    if event["outcome"] == "EXCLUDE":
+        # The reason must agree with the event's own checklist (M6-beta, review
+        # S-P1-3): FAILS-INC-n is refused when INC-n is answered yes, and EXC-n
+        # when EXC-n is answered no. An absent or not_reported answer is fine.
+        code = str(event.get("reason_code"))
+        criterion, contradiction = (code[len("FAILS-"):], "yes") if code.startswith("FAILS-") else (code, "no")
+        answers = {
+            str(c.get("id")): c.get("answer")
+            for c in (event.get("criteria") or [])
+            if isinstance(c, dict)
+        }
+        if answers.get(criterion) == contradiction:
+            return _refuse(
+                REASON_CODE_INCONSISTENT,
+                f"{code} contradicts this decision's own answer: {criterion} is answered {contradiction}",
+            )
     binding = event.get("binding") or {}
     batch = context.batches[context.study_batch[study]]
     if (

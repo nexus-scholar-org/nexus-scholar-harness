@@ -4,6 +4,8 @@ Board: `States` (D7, nine cards). Contract: `screening-api-contract.md` §4, §7
 
 **Purpose.** Turn every way screening can stop into what happened, what it affects, and one next step, with the typed code shown so a supervisor can find it in the journal.
 
+**Amended 2026-11-07 (M6-beta, researcher).** The typed code moves behind the card's "Details" disclosure (rule page `12-details-disclosure.md`). It stays in the DOM and is still selectable text, so a supervisor can still find it in the journal. The card body keeps the plain sentence, what it affects, and the next step.
+
 **Changed from the canvas.**
 - Codes follow contract §7: `DECISION_CONFLICT` is dropped (a conflict is the per-event result `conflict`, not a refusal); the Conflict card shows `conflict`. `RATE_LIMITED` is kept (exists in code). `PROVENANCE_MISSING` is in contract §7. `RUN_ALREADY_ACTIVE` and `COST_CEILING_REACHED` (contract §7) get cards too. `ENGINE_UNREACHABLE` is client-side only.
 - The Conflict card, the Engine-unreachable card and the Phone-offline card appear on the phone too (04).

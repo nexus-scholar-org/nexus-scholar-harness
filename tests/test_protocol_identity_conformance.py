@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import importlib.metadata
 import subprocess
 from pathlib import Path
 
@@ -40,7 +41,7 @@ def test_protocol_identity_emits_valid_contract_identifiers():
     producer_dict = ident.producer.model_dump(mode="json")
     contract_producer = Producer.model_validate(producer_dict)
     assert contract_producer.package == "scholar-protocol-kit"
-    assert contract_producer.version == "1.0.0"
+    assert contract_producer.version == importlib.metadata.version("nexus-scholar")  # the package version (M6-beta)
     assert len(contract_producer.commit) >= 7
 
     # 3. Protocol fingerprint must match sha256 pattern

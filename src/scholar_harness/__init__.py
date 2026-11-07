@@ -1,6 +1,12 @@
 """Nexus Scholar Research Harness Orchestrator."""
 
-__version__ = "1.0.0"
+from importlib.metadata import PackageNotFoundError, version as _dist_version
+
+# One version, in pyproject.toml; the installed metadata carries it (M6-beta).
+try:
+    __version__ = _dist_version("nexus-scholar")
+except PackageNotFoundError:  # a bare source tree with no install
+    __version__ = "0+unknown"
 
 from .orchestrator import ResearchOrchestrator
 

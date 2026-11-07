@@ -2,6 +2,14 @@
 
 Boards: `Publish` (D8), `MobilePair` (M2), `MobileApprove` (M7). Contract: `screening-api-contract.md` §4, §6.
 
+## Amended 2026-11-07 (M6-beta)
+Source: `docs/roadmap/milestones/M6-beta.md` sections B and D; decisions "Details on demand" and "Published means current". The rule is in [12](12-details-disclosure.md).
+- **Checks are one line each.** A pass mark (the `include` badge "Pass", text plus icon) and the check's plain name, nothing else (`screening-publish.tsx`, the `publish-checks` list). The `detail` text of passing checks moves into the Checks card's Details. A failing check keeps its count on the line, with the `blocked` badge "Fail", and the existing "Go to triage" or Protocol-changed card below it.
+- **Fingerprint and digests behind Details.** The generation id, the generation fingerprint and the file digests (the "Will be written" list) are in the approval gate card's Details. The banner after publishing reads "Published" with no id. The batch file names (`batch_001` and so on) are in the Batches card's Details; its rows read "Batch n", and the approve and code-field names use "batch n".
+- **PRISMA preview keeps the numbers and the reasons table** (identified, duplicates, screened, excluded with its reasons, unclear, included, not yet decided). Nothing moves out of that card.
+- **Published means current.** The workspace and publication status now read `STALE` (`GENERATION_STALE`, with the number of changed studies) as soon as a decision is made after publish; Home, the Workspaces list, Export and Methods all read it from `GET /ui/publication-status` through the currentness wrapper (✓ done 2026-11-07, `src/scholar_harness/screening/currentness.py`; `tests/console/test_publication_currentness.py::test_a_decision_after_publish_makes_the_status_stale_everywhere`). This screen shows a notice above the PRISMA card, "Decisions changed after this was published ({n} studies). Approve and publish again." (`screening.publish.stale`), with `GENERATION_STALE` in Details, and the gate is the normal one for the new generation. The published files on disk are still what was published; stored files and Contract v1 do not change.
+- Tests: `publish.details.test.tsx` (each check is one line with a pass or fail mark; fingerprint, digests and batch file names are inside closed `<details>` and in the DOM; the preview still shows the reasons table; a stale status shows the notice). Playwright `screening/publish.spec.ts` opens Details before asserting provenance.
+
 **Purpose.** Check the PRISMA screening preview, approve this exact generation once on the desktop, publish; and connect a phone for screening.
 
 **Changed from the canvas.**
@@ -15,14 +23,14 @@ Boards: `Publish` (D8), `MobilePair` (M2), `MobileApprove` (M7). Contract: `scre
 
 ## Entry / exit
 - Entry: step bar "5 Publish" when all records are decided; Agreement link. Phone: first run opens the connect screen.
-- Exit: published → 01 with a CURRENT publication status. Gate: Approve needs the pairing code and refuses without it (`APPROVAL_MISSING`).
+- Exit: published → 01 with a CURRENT publication status; a later decision turns it `STALE` (amendment). Gate: Approve needs the pairing code and refuses without it (`APPROVAL_MISSING`).
 
 ## Data in
 | Field | Source |
 | :-- | :-- |
 | `{identified, duplicates_removed, screened, excluded{total, by_reason}, unclear_to_full_text, included, not_yet_decided}` | `GET /prisma/preview` ✗ M1a (desktop, phone) |
 | `checks[{name, ok, detail}]` (HUMAN provenance, no open conflicts, batches bound, sample audit if opt-in, agreement attached) | `GET /prisma/preview` ✗ M1a |
-| publication status | `getPublicationStatus` ✓ `screening-api.ts:335` |
+| publication status (`CURRENT`, or `STALE` after a later decision) | `getPublicationStatus` ✓ `screening-api.ts:335` (currentness wrapper ✓ done 2026-11-07) |
 | pairing state, expiry, attempts | `GET /actions/pairing/status` ✓ `screening.py:1407` (desktop, phone read-only) |
 | batch review state | `GET /ui/batch/{n}/review` ✓ `screening.py:839` |
 | conflicts | `GET /decisions/conflicts` ✗ M1a |
@@ -48,13 +56,14 @@ Boards: `Publish` (D8), `MobilePair` (M2), `MobileApprove` (M7). Contract: `scre
 | `POST /api/v1/screening/lan/pair` | ✗ M2 |
 
 ## States
-- **Default (D8)**: h1 "All 3,241 records are decided. Approve this generation to publish the screening." PRISMA 2020 preview card (badge "Preview · not written"): identified, duplicates removed, screened, reports sought, excluded with reasons table, note that unclear records are kept in `included.json` as "Unclear, to full text". Checks card. Side: "Will be written" list (the five published files `included.json`, `excluded.json`, `conflicts.json`, `prisma_screening_report.md`, `prisma_report.json`, plus `generation.json`; no `fulltext_queue.json`), gate panel (generation fingerprint, code field, "Approve and publish" brand, "Defer with a reason"), and the phone card (QR) from 01.
+- **Default (D8)**: h1 "All 3,241 records are decided. Approve this generation to publish the screening." PRISMA 2020 preview card (badge "Preview · not written"): identified, duplicates removed, screened, reports sought, excluded with reasons table, note that unclear records are kept in `included.json` as "Unclear, to full text". Checks card (one line per check, amendment). Side: "Will be written" list (the five published files `included.json`, `excluded.json`, `conflicts.json`, `prisma_screening_report.md`, `prisma_report.json`, plus `generation.json`; no `fulltext_queue.json`; digests in Details), gate panel (code field, "Approve and publish" brand, "Defer with a reason"; the generation fingerprint is in its Details), and the phone card (QR) from 01.
 - **Empty**: nothing decided → Publish disabled, link to 03.
 - **Loading**: skeleton PRISMA cards; publish shows job status.
 - **Error**: `APPROVAL_MISSING` (✓ `src/scholar_harness/authority/binding.py:42`), `PAIRING_CODE_INVALID` (✓ `src/scholar_harness/authority/pairing.py:65`), `APPROVAL_NOT_OPERATOR` (✓ `src/scholar_harness/authority/binding.py:43`), `COVERAGE_INCOMPLETE` (✓ `src/scholar_harness/screening/integrity.py:20`), `UNRESOLVED_FINALIZE_REFUSED` (✓ `integrity.py:24`), `STALE_BINDING` (✓ `integrity.py:28`), `ACTION_ORIGIN_REFUSED` (✓ `screening.py:1319`), `BATCH_INCOMPLETE` (conflicted study left out of the projection), `TOKEN_SCOPE_REFUSED` (phone connect), `ENGINE_UNREACHABLE` (client-side).
 - **Partial**: `not_yet_decided` > 0 → Publish disabled; preview marked "n not yet decided".
 - **Offline**: last preview with "as of" caption; approve, publish and QR disabled. Phone: preview from cache, "Approve on your desktop" stays.
 - **Protocol-changed**: Publish disabled with the Protocol-changed card (08); approval of the old generation shown as superseded.
+- **Published, decisions since** (new): `STALE` notice above the preview (amendment); Approve and publish for the new generation as usual. Cannot occur before a first publish.
 - **Phone (M7, changed)**: PRISMA summary (identified, screened after duplicates, excluded with a reason, included, unclear to full text), "Exclusion reasons and checks" link, "Will be written on the desktop", message "Approve on your desktop", "This phone has n queued decisions".
 - **Connect (M2)**: "Connect this phone to your desktop." camera view, manual code field, "This phone can / cannot" card, button "Connect". After success → Home. Failure → `TOKEN_SCOPE_REFUSED` with "Show the pairing QR again on the desktop".
 
@@ -68,13 +77,13 @@ Boards: `Publish` (D8), `MobilePair` (M2), `MobileApprove` (M7). Contract: `scre
 Desktop order: PRISMA, checks, files, code field, Approve, Defer. `Enter` in the code field opens a confirm dialog. Phone: external keyboard `Tab` through the summary.
 
 ## Copy
-`screening.publish.title`, `screening.publish.lede`, `screening.publish.prisma.*`, `screening.publish.checks.*`, `screening.publish.files`, `screening.publish.gate.{label,body,code,approve,defer}`, `screening.publish.mobile.approveOnDesktop`, `screening.publish.methods.automation`, `screening.pair.{title,body,scan,manualCode,canDo,cannot,connect}`, `screening.outcome.unclear.long`.
+`screening.publish.title`, `screening.publish.lede`, `screening.publish.prisma.*`, `screening.publish.checks.*` (plus `screening.publish.check.pass|fail`), `screening.publish.published` ("Published"), `screening.publish.batch.n` ("Batch {n}"), `screening.publish.stale` ("Decisions changed after this was published ({n} studies). Approve and publish again."), `screening.details.*` (12), `screening.publish.files`, `screening.publish.gate.{label,body,code,approve,defer}`, `screening.publish.mobile.approveOnDesktop`, `screening.publish.methods.automation`, `screening.pair.{title,body,scan,manualCode,canDo,cannot,connect}`, `screening.outcome.unclear.long`.
 
 ## Accessibility
 QR has a text alternative (the URL and code spelled out on request). Checks use text plus `include` / `blocked` roles. Code field is labelled. RTL: fingerprints and codes LTR; layout mirrors.
 
 ## Acceptance tests
-Vitest: `publish.conflict-blocks.test.tsx`, `publish.mobile-has-no-approve.test.tsx`, `pairing.exchange.test.ts`. Playwright: `screening/publish.spec.ts` (approve with the code, publish golden-uav-30, `APPROVAL_MISSING`), `screening/pair-phone.spec.ts` (token exchange, reuse refused with `TOKEN_SCOPE_REFUSED`, publish route unreachable over LAN).
+Vitest: `publish.details.test.tsx` (M6-beta), `publish.conflict-blocks.test.tsx`, `publish.mobile-has-no-approve.test.tsx`, `pairing.exchange.test.ts`. Playwright: `screening/publish.spec.ts` (approve with the code, publish golden-uav-30, `APPROVAL_MISSING`), `screening/pair-phone.spec.ts` (token exchange, reuse refused with `TOKEN_SCOPE_REFUSED`, publish route unreachable over LAN).
 
 ## Decisions
 1. Contract §9.1 (decided 2026-11-04): a fresh one-time approval code per batch generation, never the pairing code. Approve and publish stays disabled while any paired phone has queued events, with the message "A phone still has unsent decisions. Open it on the same network to send them."

@@ -50,12 +50,12 @@ uv build --wheel
 - The first command downloads the screen libraries (a few minutes, once).
 - The second builds the screens. It ends with a list of pages; any line saying
   `Failed` means the build did not work (see Troubleshooting).
-- The third writes the package to `dist/nexus_scholar-1.0.0-py3-none-any.whl`.
+- The third writes the package to `dist/`, named with the version: `dist/nexus_scholar-1.1.0b1-py3-none-any.whl` for this beta (`nexus-scholar --version` prints it once installed).
 
 ## 4. Install it
 
 ```bash
-uv tool install --force dist/nexus_scholar-1.0.0-py3-none-any.whl
+uv tool install --force dist/nexus_scholar-1.1.0b1-py3-none-any.whl
 ```
 
 This installs the `nexus-scholar` command for your user. Check it:
@@ -151,7 +151,7 @@ From the code folder:
 git pull
 npm --prefix apps/research-ui run build:export
 uv build --wheel
-uv tool install --force dist/nexus_scholar-1.0.0-py3-none-any.whl
+uv tool install --force dist/nexus_scholar-1.1.0b1-py3-none-any.whl
 ```
 
 ## Troubleshooting

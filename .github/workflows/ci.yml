@@ -76,6 +76,12 @@ jobs:
       - name: Lint with ruff
         run: uv run ruff check scripts/
 
+      # M6-beta (review T-P1-3): real-bug classes only on src/ (undefined and
+      # redefined names, loop-variable capture, mutable defaults, syntax).
+      # Style findings (unused imports, F541) stay out of the gate on purpose.
+      - name: Lint src/ for real bugs
+        run: uv run ruff check src/ --select F821,F811,F823,F632,F7,B023,B006,E9
+
       - name: Verify plugin manifest
         run: uv run python scripts/validate_manifest.py
 

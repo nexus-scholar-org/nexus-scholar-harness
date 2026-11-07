@@ -142,6 +142,8 @@ export interface Settings {
   screener_id: string;
   /** The order the queue is shown in (M5-slim); a journaled setting. */
   queue_order?: "seeded" | "agent_uncertainty";
+  /** What triage does after a decision (M6-beta); a journaled setting. */
+  advance_on_decide?: "show_draft_then_next" | "next_at_once";
 }
 
 export interface PrismaCheck {

@@ -77,6 +77,7 @@ DEFAULT_SETTINGS = {
     "mode": "human_sees_every_record",
     "sample_audit_size": None,
     "queue_order": "seeded",
+    "advance_on_decide": "show_draft_then_next",
 }
 ORDER_LABELS = {"seeded": "seeded random", "agent_uncertainty": "agent-uncertainty"}
 NO_ABSTRACT = "No abstract available."
@@ -434,8 +435,16 @@ def _timeline(rows: list[dict[str, Any]], key: str, published: datetime | None, 
         if key in after:
             history.append((_time(row.get("timestamp")), before.get(key), after[key], row.get("timestamp")))
     history.sort(key=lambda h: h[0] or datetime.min.replace(tzinfo=UTC))
-    upto = [h for h in history if published is None or h[0] is None or h[0] <= published]
     initial = history[0][1] if history else now
+    # A row that leaves the value as it was is not a change (M6-beta, review U-2):
+    # the paragraph says each real change once.
+    changes, value = [], initial
+    for h in history:
+        if h[2] != value:
+            changes.append(h)
+            value = h[2]
+    history = changes
+    upto = [h for h in history if published is None or h[0] is None or h[0] <= published]
     at_publish = upto[-1][2] if upto else initial
     return Timeline(initial, [(_date(h[3]), h[2]) for h in upto], at_publish, bool(upto))
 
@@ -585,6 +594,7 @@ def build_methods(ws: Path) -> dict[str, Any]:
             caveats.append("proposals.jsonl is absent: no AI model proposal is recorded.")
     else:
         groups: dict[tuple[str, str, str, str], set[str]] = {}
+        drivers: dict[tuple[str, str, str, str], set[str]] = {}
         for p in proposals:
             run = runs.get(str(p.get("run_id") or ""), {})
             key = (
@@ -592,18 +602,27 @@ def build_methods(ws: Path) -> dict[str, Any]:
                 str(p.get("prompt_sha256") or ""),
             )
             groups.setdefault(key, set()).add(str(p["study_id"]))
+            drivers.setdefault(key, set()).add(str(p.get("driver") or ""))
         for (provider, model, task_version, prompt), studies in sorted(groups.items()):
             short = prompt.split(":", 1)[-1][:12]
             agent = {
                 "provider": provider or None, "model": model, "task_version": task_version,
                 "prompt_sha256_12": short, "n_proposed": len(studies),
             }
-            who = ", ".join(x for x in (provider or "provider not recorded", model) if x)
+            # Drafts submitted over MCP have no agent run: the researcher's own
+            # Claude session wrote them (M6-beta, review S-P1-2).
+            via_mcp = not provider and drivers[(provider, model, task_version, prompt)] == {"mcp"}
+            if via_mcp:
+                agent["route"] = "mcp"
+            who = (
+                f"{model}, via the researcher's Claude session (MCP)" if via_mcp
+                else ", ".join(x for x in (provider or "provider not recorded", model) if x)
+            )
             sentences.append(
                 f"An AI model ({who}, task version {task_version}, prompt SHA-256 {short}) proposed a draft decision "
                 f"with quoted evidence for {len(studies)} of {c['screened']} records."
             )
-            if not provider:
+            if not provider and not via_mcp:
                 not_stated.append(f"Provider of the {model} drafts: no agent run records it.")
             agents.append(agent)
         if sum(1 for p in proposals if p.get("cannot_decide")):
@@ -676,7 +695,37 @@ def build_methods(ws: Path) -> dict[str, Any]:
         figures["changed_after_reveal"] = len(changed)
         figures["revealed_decisions"] = len(revealed)
         figures["changes_not_tracked"] = len(untracked)
-        if revealed:
+        # A decision made with its draft already in view is not a blind decision:
+        # "changed k of n after seeing a draft" would read as a blind-then-reveal
+        # result (M6-beta, review S-P1-1). The first event of each study says
+        # whether the draft was in view (`proposal_shown`, contract §3.1).
+        proposed = {str(p["study_id"]) for p in proposals}
+        visible, blind = set(), set()
+        for study, chain in events.items():
+            first = next((e for e in chain if not e.get("supersedes")), None)
+            if first is None or study not in proposed:
+                continue
+            shown_info = first.get("proposal_shown")
+            if shown_info and shown_info.get("revealed_after_decision") is not True:
+                visible.add(study)
+            else:
+                blind.add(study)
+        figures["decided_with_draft_visible"] = len(visible)
+        if visible:
+            # Only decisions made before their reveal are a blind comparison.
+            blind_revealed = revealed & blind
+            figures["revealed_blind_decisions"] = len(blind_revealed)
+            figures["changed_after_reveal_blind"] = len(changed & blind)
+            if blind_revealed:
+                sentences.append(
+                    f"After seeing a draft, the reviewer changed {len(changed & blind)} of {len(blind_revealed)} decisions."
+                )
+            sentences.append(
+                f"{len(visible)} decisions were made with the draft visible; no blind comparison is reported."
+                if len(visible) != 1
+                else "1 decision was made with the draft visible; no blind comparison is reported."
+            )
+        elif revealed:
             sentences.append(
                 f"After seeing a draft, the reviewer changed {len(changed)} of {len(revealed)} decisions."
             )
@@ -688,6 +737,47 @@ def build_methods(ws: Path) -> dict[str, Any]:
                 "followed a draft was not tracked."
             )
             not_stated.append(f"Changes after a draft: not tracked for {len(untracked)} decisions changed before reveal tracking began.")
+
+    # 5b. Advance on decide: reported only when drafts were skipped.
+    if proposals:
+        history: list[tuple[datetime | None, Any]] = []
+        for row in rows:
+            after = (row.get("parameters") or {}).get("after") or {}
+            if "advance_on_decide" in after:
+                history.append((_time(row.get("timestamp")), after["advance_on_decide"]))
+        history.sort(key=lambda h: h[0] or datetime.min.replace(tzinfo=UTC))
+
+        def mode_at(when: datetime | None) -> Any:
+            value = DEFAULT_SETTINGS["advance_on_decide"]
+            for at, after in history:
+                if when is None or at is None or at <= when:
+                    value = after
+            return value
+
+        proposed_studies = {str(p["study_id"]) for p in proposals}
+        drafted_at: dict[str, datetime | None] = {}
+        for p in proposals:
+            created = _time(p.get("created_at"))
+            study = str(p["study_id"])
+            if study not in drafted_at or (created and (drafted_at[study] is None or created < drafted_at[study])):
+                drafted_at[study] = created
+        skipped = 0
+        for study, chain in events.items():
+            first = next((e for e in chain if not e.get("supersedes")), None)
+            if first is None or study not in proposed_studies or study in visible:
+                continue
+            received = _time(first.get("received_at"))
+            drafted = drafted_at.get(study)
+            if received is None or drafted is None or drafted > received:
+                continue  # no draft existed when the record was decided
+            if mode_at(received) == "next_at_once":
+                skipped += 1
+        figures["decided_draft_skipped"] = skipped
+        if skipped:
+            sentences.append(
+                f"For {skipped} records the next record opened at once after the decision, so the draft was not "
+                "shown unless the reviewer opened it from the record's details."
+            )
 
     # 6. AI-agreed exclusion
     on = "ai_agreed_exclusion"

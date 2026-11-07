@@ -5,6 +5,7 @@ import json
 import re
 import uuid
 from datetime import UTC, datetime
+from typing import TYPE_CHECKING
 
 import typer
 from rich.panel import Panel
@@ -16,6 +17,9 @@ from .intent import ConceptDraft, draft_default_concepts
 # We need to import distill_pool and TOPIC_COHERENCE_TOP3_SHARE
 from ..recon.distiller import distill_pool
 from ..recon.gates import TOPIC_COHERENCE_TOP3_SHARE
+
+if TYPE_CHECKING:
+    from .wizard import Responder
 
 # ---------------------------------------------------------------------------
 # Grounded recon loop (--grounded): Step 2 probe -> Step 3 distill -> Step 4
@@ -211,7 +215,6 @@ def _present_pool_assessment(pool_size: int, terms: dict) -> None:
     are informational.
     """
     from ..recon.gates import (
-        TOPIC_COHERENCE_TOP3_SHARE,
         compute_pool_sufficiency,
         compute_topic_purity,
     )
@@ -276,8 +279,6 @@ def _run_grounded_recon(
     subshell never blocks on terminal input.  The interactive gate remains the
     default.
     """
-    from ..recon.distiller import distill_pool
-
     engine = recon_engine if recon_engine is not None else ReconEngine()
     session_id = uuid.uuid4().hex[:12]
     cache_keys: list[str] = []

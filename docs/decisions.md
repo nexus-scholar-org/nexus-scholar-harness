@@ -4,6 +4,96 @@ One entry per decision that still shapes the code, newest first. The full
 records were removed in the 2026-11-03 docs cut; each entry names the commit
 history to read if you need the original reasoning (`git log --follow -- <path>`).
 
+## 2026-11-07 — Details on demand (M6-beta)
+
+Each screening screen shows only what the researcher acts on. Identifiers and proofs sit
+behind one "Details" disclosure per card. The disclosure is closed by default, reachable
+from the keyboard, and has the same label on every screen. This is the brand book's "plain
+words first, raw value underneath", read as: the raw value is one disclosure away, never
+inline.
+
+**Moved behind Details:**
+- study ids and the raw form of DOIs;
+- protocol and batch fingerprints;
+- generation ids and fingerprints;
+- event ids, run ids and prompt hashes;
+- the "Recorded as you · HUMAN · time · protocol sha" line (the card keeps "Saved", with the time on hover);
+- refusal codes (the plain sentence stays on the card);
+- batch file names on Home and Publish.
+
+Nothing leaves the DOM, so the provenance checks in Playwright still find every value. The
+list for each screen is `docs/ux/phase2-screening/final/12-details-disclosure.md`.
+
+## 2026-11-07 — Answer until decisive (M6-beta)
+
+The desktop checklist no longer has to be filled in full before a decision.
+- **Exclude** is enabled as soon as one criterion fails: an inclusion criterion answered
+  no, or an exclusion criterion answered yes.
+- **Include** needs every inclusion criterion answered yes and no exclusion criterion
+  answered yes.
+- **Unclear** is always enabled.
+
+A criterion left unanswered is stored as absent from the event's `criteria`. It is never
+recorded as `not_reported`, because that would claim the reviewer looked and found nothing.
+
+The screening contract does not change: `criteria` is already optional, and the engine
+validates only the reason code. On Exclude, the reason is pre-selected as the first failed
+criterion in protocol order, so E then Enter excludes. An engine refusal,
+`REASON_CODE_INCONSISTENT`, guards the case where an Exclude's reason code names a criterion
+that the same event answers the other way.
+
+## 2026-11-07 — Advance on decide, as a workspace setting (M6-beta)
+
+After a decision, triage moves on in one of two ways, chosen per workspace on Prepare:
+- **"show the draft, then N"** (the default): if the record has a draft, the revealed
+  state shows and N advances. If it has no draft, the next record opens at once.
+- **"move on at once"**: the next record always opens at once, and drafts stay in each
+  record's details.
+
+The setting is stored with the other screening settings (`GET/PUT /settings`) and journaled
+as `SCREENING_SETTINGS_CHANGED`. The methods paragraph reports it only when it changed what
+the reviewer saw, that is, when drafts were skipped.
+
+## 2026-11-07 — Published means current (M6-beta)
+
+A screening reads "Published" only while the published generation still matches the
+decision files. The publication gate (`require_current_generation`, or one wrapper that
+`/ui/publication-status`, `/summary`, export and methods all call) also checks
+`stale_projections`. A decision recorded after publish makes every surface read
+`GENERATION_STALE`, naming the stale batches or the number of changed studies.
+
+Stored files and the Contract-v1 artifacts do not change; only the status that is read
+changes. If the change turns out to alter stored semantics, it stops as
+`BLOCKED_BASELINE_DRIFT` and the lane escalates to RELEASE. This closes the currentness gap
+that M5-slim deferred (review T-P1-1).
+
+## 2026-11-07 — The beta's parked list (M6-beta)
+
+The researcher's plan of 2026-11-07 sets the order: every step before the first testers
+shortens a tester's path to a good first hour, and every step after them is driven by what
+they report.
+
+**Parked until a tester asks:**
+- the 1,644-record prompt gate (it measures agreement with earlier AI labels, review S-P0-2);
+- the second-screener lane;
+- the phone (M2);
+- the live audit view;
+- the PRISMA-ScR checklist rewrite;
+- full text, extraction, synthesis, graph and verify.
+
+**After the first testers:**
+- the Windows pytest job, once the suite runs in under ten minutes or there is a second
+  maintainer;
+- the hardening pass (atomic writes, `os.replace` retry, `/healthz`, dead routes and client
+  functions);
+- the parameters decision, acted on between tester rounds because it changes the protocol
+  fingerprint of new workspaces;
+- reporting as a guideline switch keyed from `playbook_type`.
+
+The beta is tagged `v1.1.0b1` only after the version fix, so the GitHub Release and its
+wheel carry the same version, and nothing named 1.0.0 is published under a beta tag
+(researcher, 2026-11-07).
+
 ## 2026-11-06 — Three kinds of parameter, and where each lives (proposed)
 
 The researcher raised it on 2026-11-06: values are encoded throughout the

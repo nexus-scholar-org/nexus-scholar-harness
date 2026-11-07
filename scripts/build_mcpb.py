@@ -10,7 +10,7 @@ Manifest format: MCPB `manifest_version` 0.4 (the schema shipped with
 `@anthropic-ai/mcpb` 2.1.2, `schemas/mcpb-manifest-v0.4.schema.json`).
 
     uv build --wheel
-    python scripts/build_mcpb.py --wheel dist/nexus_scholar-1.0.0-py3-none-any.whl
+    python scripts/build_mcpb.py --wheel dist/nexus_scholar-<version>-py3-none-any.whl
 
 writes `dist/nexus-scholar-<version>.mcpb` (a zip with `manifest.json`, the
 wheel and a short launcher note). `npx @anthropic-ai/mcpb validate

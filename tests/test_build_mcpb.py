@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import tomllib
 import zipfile
 from pathlib import Path
 
@@ -17,8 +18,13 @@ build_mcpb = importlib.util.module_from_spec(_SPEC)
 _SPEC.loader.exec_module(build_mcpb)
 
 
+#: The project's version, read the way the release workflow reads it (M6-beta).
+VERSION = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))["project"]["version"]
+WHEEL = f"nexus_scholar-{VERSION}-py3-none-any.whl"
+
+
 def _bundle(tmp_path: Path) -> zipfile.ZipFile:
-    wheel = tmp_path / "nexus_scholar-1.0.0-py3-none-any.whl"
+    wheel = tmp_path / WHEEL
     wheel.write_bytes(b"PK\x05\x06" + b"\x00" * 18)  # an empty zip stands in for the wheel
     return zipfile.ZipFile(build_mcpb.build(wheel, tmp_path / "dist"))
 
@@ -47,8 +53,9 @@ def test_the_extension_launches_its_own_wheel_on_the_chosen_workspace(tmp_path):
     bundle = _bundle(tmp_path)
     manifest = json.loads(bundle.read("manifest.json"))
     args = manifest["server"]["mcp_config"]["args"]
-    assert args[:2] == ["--from", "${__dirname}/nexus_scholar-1.0.0-py3-none-any.whl"]
-    assert "nexus_scholar-1.0.0-py3-none-any.whl" in bundle.namelist()
+    assert args[:2] == ["--from", "${__dirname}/" + WHEEL]
+    assert WHEEL in bundle.namelist()
+    assert json.loads(bundle.read("manifest.json"))["version"] == VERSION
     assert args[2:] == ["scholar-agent", "--workspace", "${user_config.workspace}"]
     assert manifest["user_config"]["workspace"]["type"] == "directory"
 

@@ -78,6 +78,24 @@ describe("workspaces.list", () => {
     expect(document.body.textContent).toContain(ROOT);
   });
 
+  it("shows the engine's status: published reads published, not in progress (M6-beta, U-3)", async () => {
+    engine({
+      list: () =>
+        listing({
+          items: [
+            item("done-review", { has_corpus: true, screening_started: true, status: "PUBLISHED" }),
+            item("changed-review", { has_corpus: true, screening_started: true, status: "PUBLISHED_CHANGED" }),
+          ],
+        }),
+    });
+    render(<WorkspacesScreen locale="en" />);
+    const done = (await screen.findByText("done review")).closest("tr")!;
+    expect(within(done).getByText("Published")).toBeInTheDocument();
+    expect(within(done).queryByText("Screening in progress")).toBeNull();
+    const changed = screen.getByText("changed review").closest("tr")!;
+    expect(within(changed).getByText("Published, decisions since")).toBeInTheDocument();
+  });
+
   it("hides invalid folders behind a count and shows them greyed with the reason and no Open", async () => {
     const calls = engine({
       list: (invalid) => listing({ skipped_count: 1, items: [...listing().items, ...(invalid ? [{ slug: "notes", title: null, path: `${ROOT}\\notes`, valid: false, invalid_reason: "missing protocol.json, project.json", is_current: false }] : [])] }),
