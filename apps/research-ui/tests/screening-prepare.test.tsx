@@ -137,3 +137,16 @@ describe("prepare copy", () => {
     }
   });
 });
+
+describe("prepare.advance-on-decide (M6-beta)", () => {
+  it("offers the two values, default first, and sends the setting only when it changes", async () => {
+    const log = engine();
+    render(<ScreeningPrepare locale="en" />);
+    const draftThenNext = await screen.findByLabelText("Show the draft, then N (default)");
+    expect(draftThenNext).toBeChecked();
+    fireEvent.click(screen.getByLabelText(/Move on at once/));
+    fireEvent.click(screen.getByRole("button", { name: "Save settings" }));
+    await screen.findByText("Settings saved");
+    expect(log.find((l) => l.method === "PUT")?.body).toMatchObject({ advance_on_decide: "next_at_once" });
+  });
+});

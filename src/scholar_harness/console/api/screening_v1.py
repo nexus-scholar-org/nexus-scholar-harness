@@ -185,6 +185,8 @@ def queue(
             "study_id": s,
             "title": papers.get(s, {}).get("title", ""),
             "batch_id": context.batches[context.study_batch[s]].batch_id,
+            # The batch's number, for "Record 12 of 30 · batch 1" (M6-beta, spec 03).
+            "batch_index": context.study_batch[s],
             "has_proposal": s in latest,
             "decided": s in winners,
             "flags": [] if _has_abstract(papers.get(s, {})) else ["title_only"],
@@ -212,6 +214,7 @@ def record(study_id: str, request: Request) -> dict[str, Any]:
         "venue": paper.get("venue"),
         "doi": paper.get("doi"),
         "abstract": paper.get("abstract") if _has_abstract(paper) else None,
+        "batch_index": context.study_batch[study_id],
         "highlights": [],  # criterion highlights arrive with the M1b triage UI
         "criteria": [
             {"id": c["id"], "text": c.get("description") or c.get("text") or c.get("criterion") or "", "kind": kind}

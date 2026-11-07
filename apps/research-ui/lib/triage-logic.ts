@@ -35,9 +35,70 @@ export function reasonOptions(criteria: readonly Criterion[]): string[] {
   ];
 }
 
-/** Every criterion answered (the desktop checklist is required, spec 05 §9.3). */
+/** Every criterion answered. Not required any more (M6-beta, answer until decisive). */
 export function checklistComplete(criteria: readonly Criterion[], answers: Readonly<Record<string, CriterionAnswer["answer"]>>): boolean {
   return criteria.every((c) => answers[c.id] !== undefined);
+}
+
+/**
+ * What the answers so far make possible (spec 03 amendment 1, "answer until
+ * decisive"). Exclude is ready as soon as one criterion fails (an inclusion
+ * answered no, or an exclusion answered yes); `failed` is the first such in
+ * protocol order. Include is ready when every inclusion is yes and no exclusion
+ * is yes; unanswered exclusions do not block it. Unclear is always possible.
+ * This says what the screen may enable; it never decides the record.
+ */
+export interface Decisiveness {
+  exclude: boolean;
+  include: boolean;
+  failed: { id: string; answer: CriterionAnswer["answer"]; kind: Criterion["kind"] } | null;
+  /** Inclusion criteria not yet answered yes. */
+  includeNeeds: string[];
+  /** Of those, the ones answered "not reported" (not yet yes). */
+  includeNeedsYes: string[];
+}
+
+export function decisiveFor(
+  criteria: readonly Criterion[],
+  answers: Readonly<Record<string, CriterionAnswer["answer"]>>,
+): Decisiveness {
+  const failing = criteria.find(
+    (c) => (c.kind === "inclusion" && answers[c.id] === "no") || (c.kind === "exclusion" && answers[c.id] === "yes"),
+  );
+  const notYes = criteria.filter((c) => c.kind === "inclusion" && answers[c.id] !== "yes");
+  return {
+    exclude: failing !== undefined,
+    include: failing === undefined && notYes.length === 0,
+    failed: failing ? { id: failing.id, answer: answers[failing.id], kind: failing.kind } : null,
+    includeNeeds: notYes.map((c) => c.id),
+    includeNeedsYes: notYes.filter((c) => answers[c.id] === "not_reported").map((c) => c.id),
+  };
+}
+
+/** The reason code the first failed criterion gives (`EXC-n`, or `FAILS-INC-n`). */
+export function reasonFromChecklist(failed: Decisiveness["failed"]): string | null {
+  if (failed === null) return null;
+  return failed.kind === "exclusion" ? failed.id : `FAILS-${failed.id}`;
+}
+
+/** The criterion a reason code names, and whether it is a failed inclusion. */
+export function criterionOfReason(code: string): { id: string; fails: boolean } {
+  return code.startsWith("FAILS-") ? { id: code.slice("FAILS-".length), fails: true } : { id: code, fails: false };
+}
+
+/** A chip's label: the criterion's first clause, at most 60 characters (spec 03 amendment 2). */
+export function firstClause(text: string, max = 60): string {
+  const clause = text.split(/[;:.,(]/)[0].trim() || text.trim();
+  return clause.length > max ? `${clause.slice(0, max - 1).trimEnd()}…` : clause;
+}
+
+/**
+ * "Record k of total" (spec 03 amendment 4): the records already decided plus
+ * this record's place in the "Needs you" list. Client-side, from the summary
+ * and the loaded queue.
+ */
+export function positionOf(input: { decided: number; total: number; indexInView: number }): { k: number; total: number } {
+  return { k: Math.min(input.decided + input.indexInView + 1, Math.max(input.total, 1)), total: input.total };
 }
 
 /** The answers in protocol order, as the event carries them. */
