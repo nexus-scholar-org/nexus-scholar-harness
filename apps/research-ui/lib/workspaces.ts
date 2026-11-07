@@ -14,6 +14,8 @@ export interface WorkspaceItem {
   invalid_reason?: string;
   has_corpus?: boolean;
   screening_started?: boolean;
+  /** Where the screening stands (M6-beta); older engines omit it. */
+  status?: "NEW" | "CORPUS_ACCEPTED" | "SCREENING" | "PUBLISHED" | "PUBLISHED_CHANGED";
   last_event?: { at: string | null; action: string | null } | null;
   is_current: boolean;
 }

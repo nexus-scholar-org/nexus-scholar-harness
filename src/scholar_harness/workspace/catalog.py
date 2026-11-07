@@ -85,6 +85,25 @@ def _screening_started(ws: Path) -> bool:
     return folder.is_dir() and any(p.stat().st_size > 0 for p in folder.glob("*.jsonl"))
 
 
+def _status(ws: Path, has_corpus: bool) -> str:
+    """Where the screening stands (M6-beta, review U-3), most advanced first.
+
+    PUBLISHED: a generation is published and still current. PUBLISHED_CHANGED:
+    a generation is published but no longer current (a decision since).
+    SCREENING: batches are prepared. CORPUS_ACCEPTED, NEW: before that.
+    """
+    screening = ws / "literature" / "screening"
+    if (screening / "generation.json").is_file():
+        from scholar_harness.authority.generations import GenerationStatus
+        from scholar_harness.screening.currentness import screening_currentness
+
+        current = screening_currentness(ws).status is GenerationStatus.CURRENT
+        return "PUBLISHED" if current else "PUBLISHED_CHANGED"
+    if screening.is_dir() and any(screening.glob("batch_[0-9][0-9][0-9].json")):
+        return "SCREENING"
+    return "CORPUS_ACCEPTED" if has_corpus else "NEW"
+
+
 def _title(ws: Path) -> str | None:
     try:
         return json.loads((ws / "project.json").read_text(encoding="utf-8")).get("title")
@@ -104,7 +123,13 @@ def describe(folder: Path, current: Path | None) -> dict[str, Any]:
     if not valid:
         item["invalid_reason"] = reason
         return item
-    item.update(has_corpus=_has_corpus(folder), screening_started=_screening_started(folder), last_event=_last_event(folder))
+    has_corpus = _has_corpus(folder)
+    item.update(
+        has_corpus=has_corpus,
+        screening_started=_screening_started(folder),
+        status=_status(folder, has_corpus),
+        last_event=_last_event(folder),
+    )
     return item
 
 
