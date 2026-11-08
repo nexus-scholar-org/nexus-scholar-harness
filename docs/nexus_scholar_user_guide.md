@@ -322,7 +322,7 @@ scaffolded):
 | `nexus-scholar export` | Export findings/bibliographies to external tools |
 | `nexus-scholar accept-corpus` | Accept the corpus snapshot from `literature/verified.json`, or import a RIS or PubMed `.nbib` export with `--ris`, so screening `prepare` can run |
 | `nexus-scholar serve` | Run the console server for a workspace (loopback only; needs the token in `NEXUS_CONSOLE_TOKEN` or the one it prints) |
-| `nexus-scholar inception` | Interactive Phase-0 Socratic methodology interview → compiled protocol |
+| `nexus-scholar inception` | Interactive Phase-0 Socratic methodology interview → compiled protocol. Each screening criterion is shown verbatim and accepted one by one. A title whose workspace already exists is refused; `--replace` replaces its protocol (the old files go to `audit/replaced/<stamp>/`), and a workspace with screening decisions or a published screening also needs `--discard-screening-binding` |
 
 Run any with `--help` for full options.
 

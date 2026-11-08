@@ -194,6 +194,20 @@ The UI reads proposals only through `GET /records/{study_id}/proposal`. The fiel
 | `BATCH_SIZE_INVALID` | `/prepare` | HTTP 422: batch size outside 5 to 100 (M6-beta) |
 | `PROTOCOL_METHOD_INVALID` | `/settings`, `/corpus`, `/corpus/accept` | HTTP 409: the protocol's `method` block is outside the checked limits (M7-method) |
 | `BLINDING_SET_BY_PROTOCOL` | `PUT /settings` | HTTP 409: the protocol's method block sets blinding; change the protocol to change it (M7-method) |
+| `DRAFT_ID_INVALID` | `/inception/drafts/{id}` | HTTP 422: the id is not `rec_` followed by hex digits (M4a) |
+| `DRAFT_NOT_FOUND` | `/inception/drafts/{id}` | HTTP 404: no draft with that id (M4a) |
+| `DRAFT_UNREADABLE` | `/inception/drafts/{id}` | HTTP 500: the stored draft cannot be read (M4a) |
+| `DRAFT_EXISTS` | `/inception/drafts` | HTTP 409: a draft with that id already exists (M4a) |
+| `DRAFT_CONFLICT` | `PUT /inception/drafts/{id}` | HTTP 409: the draft changed since `base_updated_at`; reload it (M4a) |
+| `DRAFT_EMITTED` | `/inception/drafts/{id}` save, genesis | HTTP 409: this draft already created a workspace (M4a) |
+| `DRAFT_INVALID` | `/inception/*` | HTTP 422: the draft does not match the draft shape, or names an unknown paradigm or playbook (M4a) |
+| `DRAFT_INCOMPLETE` | `/inception/steps`, preview, genesis | HTTP 422: the step needs answers the draft lacks; `details.missing` names them (M4a) |
+| `STEP_UNKNOWN` | `/inception/steps/{step}` | HTTP 404: not `scope`, `shape`, `criteria` or `matrix` (M4a) |
+| `CRITERIA_UNDECIDED` | preview, genesis | HTTP 422: a criterion the wizard wrote has no accept/reject decision (M4a, INC-22) |
+| `CRITERIA_MISSING` | preview, genesis | HTTP 422: no accepted inclusion or no accepted exclusion criterion (M4a) |
+| `INTENT_INVALID` | preview | HTTP 422: the protocol compiler refused the intent (M4a) |
+| `SCREENING_BOUND` | genesis with `replace` | HTTP 409: the workspace has screening decisions or a publication; `details` gives the counts (M4a, INC-08) |
+| `CONFIRMATION_MISMATCH` | genesis | HTTP 422: the typed confirmation is not the workspace slug (M4a, INC-08) |
 | `ENGINE_UNREACHABLE` | UI only | client-side state, never sent by the engine |
 
 ## 8. Shared fixtures and tests

@@ -28,6 +28,7 @@ from fastapi.staticfiles import StaticFiles
 from . import browser
 
 from .api import audit as audit_api
+from .api import inception as inception_api
 from .api import jobs as jobs_api
 from .api import pipelines as pipelines_api
 from .api import screening as screening_api
@@ -71,8 +72,8 @@ def _refusal(status: int, code: str, message: str) -> JSONResponse:
 
 
 def _workspace_free(path: str) -> bool:
-    """API routes that answer with no workspace open (workspaces API §2)."""
-    return path == "/api/v1/workspaces" or path.startswith("/api/v1/workspaces/")
+    """API routes that answer with no workspace open (workspaces API §2; inception, M4a)."""
+    return path == "/api/v1/workspaces" or path.startswith(("/api/v1/workspaces/", "/api/v1/inception/"))
 
 
 def _no_workspace() -> JSONResponse:
@@ -233,6 +234,7 @@ def create_app(
 
     app.include_router(workspace_api.router)
     app.include_router(workspaces_api.router)
+    app.include_router(inception_api.router)
     app.include_router(jobs_api.router)
     app.include_router(screening_api.router)
     app.include_router(screening_v1_api.router)

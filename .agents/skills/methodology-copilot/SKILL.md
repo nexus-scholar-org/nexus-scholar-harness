@@ -16,8 +16,9 @@ You are an expert PhD advisor and methodological architect. When a researcher pr
 | :--- | :--- |
 | Literature-grounded scoping (probe → distill → anchored directions → gap check) | `inception-agent` skill (driver); returns control here for the post-direction interview |
 | Classic paradigm interview, RQs, `intent.json`, compile + render | **this skill** |
-| Workspace scaffold, `audit/journal.jsonl`, `INDEX.md` | `workspace-manager` skill (`init_project.py`, `log_event.py`) |
-| `intent.json` → `protocol.json` → `SCREENING_CRITERIA.md` | `scholar-protocol` CLIs — all print to stdout, redirect to persist; there are no `-i`/`-o` flags |
+| Workspace scaffold, `protocol.json`, `SCREENING_CRITERIA.md`, GENESIS | the gated helper `{SKILL_DIR:inception-agent}/scripts/emit_protocol.py` (M4a; refuses an existing workspace without `--replace`) |
+| Other `audit/journal.jsonl` entries, `INDEX.md` | `workspace-manager` skill (`log_event.py`) |
+| Checking an intent or protocol without writing | `scholar-protocol` CLIs (`compile`, `fingerprint`, `render-criteria` print to stdout; never redirect them into a workspace) |
 | Search recall / matrix extraction | `scholar-search-kit` / `scholar-rag-kit` skills |
 
 ---
@@ -70,9 +71,10 @@ and handoffs documented in `specs/inception-ecosystem/`):
   `--grounded` for a literature-grounded session) unless the user explicitly
   wants the human conversation. Both are interfaces to the same 4-stage Socratic
   lifecycle — same `intent.json` schema, same compile + fingerprint convention.
-- Emission is write-once through `workspace-manager`: scaffold first
-  (`init_project.py` → `PROJECT_INITIALIZED`), then after `protocol.json` exists
-  record `GENESIS`. See `specs/inception-ecosystem/02_handoffs.md`.
+- Emission is write-once through the gated helper `emit_protocol.py`: it scaffolds
+  (`PROJECT_INITIALIZED`), compiles `protocol.json`, then records `GENESIS`, and
+  refuses an existing workspace unless the researcher asked for `--replace` (M4a).
+  See `specs/inception-ecosystem/02_handoffs.md`.
 
 ---
 
@@ -98,20 +100,11 @@ Engage the researcher to align on:
 - **Boundary Conditions**: What are the temporal, linguistic, domain, or dataset constraints?
 - **Research Questions & Facets**: What specific empirical facets must each RQ address?
 
-### Step 3: Scaffold Project Workspace
-Once the user confirms the paradigm and questions, scaffold the project workspace
-(`title` is positional — there is no `--title` flag):
-```bash
-{PY} {SKILL_DIR:workspace-manager}/scripts/init_project.py "<Project Title>" \
-  --slug "<project-slug>" \
-  --paradigm "<Selected Paradigm>" \
-  --rq "RQ1: <Question 1>" \
-  --rq "RQ2: <Question 2>"
-# optional: --description "<Abstract>" --keyword "<k>" --root <repo-root>
-```
+### Step 3: Accept every criterion
+Show each inclusion and exclusion criterion exactly as it will be compiled, with where it came from (typed by the researcher, or written by you). A criterion you wrote enters the intent only on the researcher's explicit yes for that criterion; drop what they refuse. If a side is left empty, ask them to write one: the protocol needs at least one inclusion and one exclusion criterion (INC-22).
 
 ### Step 4: Emit `intent.json` and Compile `protocol.json`
-Write `{WORKSPACE}/intent.json` adhering to the `IntentPacket` specification:
+Write `intent.json` to a scratch path **outside** any workspace, adhering to the `IntentPacket` specification:
 ```json
 {
   "protocol_id": "proto-20260901-<project-slug>",
@@ -158,17 +151,13 @@ Write `{WORKSPACE}/intent.json` adhering to the `IntentPacket` specification:
 }
 ```
 
-Then compile and render the canonical artifacts (both print to stdout, so
-redirect to persist — neither command takes `-i`, `-o`, or `--fingerprint`):
+Then emit through the gated helper (M4a). It is the same path as the CLI wizard: it scaffolds the workspace, compiles `protocol.json` and `SCREENING_CRITERIA.md`, and logs GENESIS. It refuses a folder that already holds a workspace unless the researcher asked for `--replace`, and refuses a workspace with screening decisions or a publication unless they also asked for `--discard-screening-binding`. Never scaffold with `init_project.py` or redirect the protocol CLI into `{WORKSPACE}/protocol.json`: neither is guarded.
 ```bash
-# Compile canonical protocol (canonical bytes to stdout)
-{CLI:protocol} compile {WORKSPACE}/intent.json > {WORKSPACE}/protocol.json
+# Preview: the fingerprint and the exact SCREENING_CRITERIA.md text; writes nothing
+{PY} {SKILL_DIR:inception-agent}/scripts/emit_protocol.py --intent <scratch>/intent.json --root <repo-root> --preview
 
-# Fingerprint the compiled protocol
-{CLI:protocol} fingerprint {WORKSPACE}/protocol.json
-
-# Render human-readable screening criteria (markdown to stdout)
-{CLI:protocol} render-criteria {WORKSPACE}/protocol.json > {WORKSPACE}/SCREENING_CRITERIA.md
+# Emit (after the researcher confirms)
+{PY} {SKILL_DIR:inception-agent}/scripts/emit_protocol.py --intent <scratch>/intent.json --root <repo-root>
 ```
 
 ---
@@ -217,8 +206,8 @@ interfaces only and anticipates no refactor behavior.
 ## Preflight
 
 - `{CLI:protocol} --help` succeeds (`compile`, `fingerprint`, `render-criteria` all print to stdout, no `-i`/`-o` flags); otherwise stop with `BLOCKED_INPUT`.
-- Emission scripts resolve: `{SKILL_DIR:workspace-manager}/scripts/init_project.py` and `{SKILL_DIR:workspace-manager}/scripts/log_event.py`.
-- `{WORKSPACE}` resolves before emission (`intent.json` → `protocol.json` → `SCREENING_CRITERIA.md` are read/written under `{WORKSPACE}/`; `project.json` carries the recorded `registered_workspace_id`).
+- The emit helper resolves: `{SKILL_DIR:inception-agent}/scripts/emit_protocol.py`; `{SKILL_DIR:workspace-manager}/scripts/log_event.py` for other ledger entries.
+- `intent.json` is drafted at a scratch path outside any workspace; the helper writes `intent.json`, `protocol.json` and `SCREENING_CRITERIA.md` under the workspace it creates. An existing workspace's `project.json` keeps its recorded `registered_workspace_id`.
 - Reference specs are readable if cited in a task: `specs/inception-ecosystem/02_handoffs.md`.
 
 ## Refusals

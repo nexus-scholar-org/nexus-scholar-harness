@@ -3,7 +3,6 @@ from __future__ import annotations
 import asyncio
 import json
 import re
-import uuid
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
@@ -12,6 +11,7 @@ from rich.panel import Panel
 
 from ..recon.engine import ReconEngine
 from .display import console
+from .drafts import new_session_id
 from .intent import ConceptDraft, draft_default_concepts
 
 # We need to import distill_pool and TOPIC_COHERENCE_TOP3_SHARE
@@ -280,7 +280,7 @@ def _run_grounded_recon(
     default.
     """
     engine = recon_engine if recon_engine is not None else ReconEngine()
-    session_id = uuid.uuid4().hex[:12]
+    session_id = new_session_id()  # M4a: one id format with the drafts and MCP recon
     cache_keys: list[str] = []
     pool_sizes: list[int] = []
     anchor_dois: list[str] = []
