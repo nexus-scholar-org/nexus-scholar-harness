@@ -34,6 +34,10 @@ VERIFICATION_IDENTITY_BRIDGE_MISS = "VERIFICATION_IDENTITY_BRIDGE_MISS"
 #: Verified row carries a DOI that maps to more than one recorded dedup
 #: parent; picking one would be inference, so the bridge is refused.
 VERIFICATION_IDENTITY_AMBIGUOUS_DOI = "VERIFICATION_IDENTITY_AMBIGUOUS_DOI"
+#: The bridge would give the row an id that another row of the batch holds,
+#: or a different id than the input row at the same position had: two
+#: studies would be merged (CORE-10, M3a-discovery), so the row is refused.
+VERIFICATION_IDENTITY_BRIDGE_CONFLICT = "VERIFICATION_IDENTITY_BRIDGE_CONFLICT"
 
 #: Quarantine filename for refused Stage-3 rows. Named in the HCM-04e
 #: decision record (Option B): refused rows are never published to the

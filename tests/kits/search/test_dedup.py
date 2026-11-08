@@ -289,3 +289,37 @@ def test_doi_conflict_check_normalizes_doi_surface_forms():
 
     doc_c = _doc(doi="10.1234/other")
     assert Deduplicator._has_identifier_conflict(doc_a, doc_c) is True
+
+
+# ---------------------------------------------------------------------------
+# M3a-discovery D5 / CORE-06: ids do not depend on the order records arrive in.
+# ---------------------------------------------------------------------------
+
+
+def _three_studies():
+    return [
+        Document(title="Alpha study of widgets", year=2020, provider="openalex",
+                 provider_id="W1", external_ids=ExternalIds(doi="10.1/a")),
+        Document(title="Beta analysis of gadgets", year=2021, provider="crossref",
+                 provider_id="10.1/b", external_ids=ExternalIds(doi="10.1/b")),
+        Document(title="Gamma review of gizmos", year=2022, provider="arxiv",
+                 provider_id="2201.00001", external_ids=ExternalIds(arxiv_id="2201.00001")),
+        # The same study as Alpha, from a second database.
+        Document(title="Alpha Study of Widgets", year=2020, provider="crossref",
+                 provider_id="10.1/a", external_ids=ExternalIds(doi="10.1/a")),
+    ]
+
+
+def _ids(order):
+    from scholar_search.dedup import stable_order
+
+    docs = [_three_studies()[i] for i in order]
+    clusters = Deduplicator().deduplicate(stable_order(docs))
+    return {c.representative.title.lower(): c.representative.workspace_id for c in clusters}
+
+
+def test_sci_ids_do_not_depend_on_input_order():
+    import itertools
+
+    results = {tuple(sorted(_ids(p).items())) for p in itertools.permutations(range(4))}
+    assert len(results) == 1, results

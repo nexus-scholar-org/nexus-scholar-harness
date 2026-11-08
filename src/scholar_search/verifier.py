@@ -56,10 +56,30 @@ class DocumentVerifier:
         self.crossref = crossref_provider or CrossrefProvider()
         self.openalex = openalex_provider or OpenAlexProvider()
 
+    @staticmethod
+    def _title_mismatch(doc: Document, resolved: Document, via: str) -> str | None:
+        """The DOI_TITLE_MISMATCH note when an identifier resolves to another title (SRCH-10).
+
+        A record without a usable title cannot be compared and is not a mismatch.
+        """
+        if not doc.title or doc.title == "Untitled" or not resolved.title:
+            return None
+        ratio, ok = bidirectional_title_similarity(doc.title, resolved.title)
+        if ok:
+            return None
+        return (
+            f"DOI_TITLE_MISMATCH: {via} resolves to a different title "
+            f"({ratio:.0%} similar): {resolved.title!r}"
+        )
+
     async def verify_document(self, doc: Document) -> tuple[bool, Document, str]:
         """
         Verifies if a document is real.
         Returns (is_verified, hydrated_document, explanation).
+
+        An identifier that resolves to a record with a different title is
+        ``DOI_TITLE_MISMATCH``: not verified, and the input record is returned
+        unchanged; it is never replaced by the resolved one (SRCH-10).
         """
         # 1. Verification by existing DOI (Crossref first, then OpenAlex fallback for arXiv/DataCite)
         if doc.external_ids.doi:
@@ -73,6 +93,9 @@ class DocumentVerifier:
                     item = response.get("message", {})
                     if item:
                         verified_doc = self.crossref._normalize_document(item)
+                        mismatch = self._title_mismatch(doc, verified_doc, f"DOI {clean_doi} (Crossref)")
+                        if mismatch:
+                            return False, doc, mismatch
                         return True, verified_doc, f"Verified via Crossref DOI ({clean_doi})"
             except Exception as e:
                 logger.debug(f"Crossref DOI verification failed for {clean_doi}: {e}")
@@ -85,6 +108,9 @@ class DocumentVerifier:
                     item = resp.json()
                     if item and item.get("id"):
                         verified_doc = self.openalex._normalize_document(item)
+                        mismatch = self._title_mismatch(doc, verified_doc, f"DOI {clean_doi} (OpenAlex)")
+                        if mismatch:
+                            return False, doc, mismatch
                         return True, verified_doc, f"Verified via OpenAlex DOI ({clean_doi})"
             except Exception as e:
                 logger.debug(f"OpenAlex DOI verification failed for {clean_doi}: {e}")
@@ -99,6 +125,9 @@ class DocumentVerifier:
                     item = resp.json()
                     if item and item.get("id"):
                         verified_doc = self.openalex._normalize_document(item)
+                        mismatch = self._title_mismatch(doc, verified_doc, f"arXiv {clean_arxiv} (OpenAlex)")
+                        if mismatch:
+                            return False, doc, mismatch
                         return True, verified_doc, f"Verified via OpenAlex arXiv ({clean_arxiv})"
             except Exception as e:
                 logger.debug(f"OpenAlex arXiv verification failed for {clean_arxiv}: {e}")
@@ -233,6 +262,12 @@ class DocumentVerifier:
                     "verified": is_verified,
                     "resolved_doi": current_doc.external_ids.doi,
                     "status": note,
+                    "code": (
+                        "DOI_TITLE_MISMATCH" if note.startswith("DOI_TITLE_MISMATCH")
+                        else "VERIFIED" if is_verified and verify
+                        else "UNVERIFIED" if verify
+                        else "NOT_CHECKED"
+                    ),
                 }
             )
 

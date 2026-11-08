@@ -126,3 +126,19 @@ def test_reporting_is_hashed_when_set_and_unknown_values_are_refused() -> None:
     assert len(fingerprints) == 3 and plain not in fingerprints
     with pytest.raises(ValidationError):
         _with({**DEFAULT_BLOCK, "reporting": "prisma-2009"})
+
+
+# M3a-discovery SRCH-31: the optional retrieval cap (decision 2026-11-08).
+def test_a_block_without_retrieval_cap_hashes_as_before_and_omits_the_key() -> None:
+    protocol = _with(DEFAULT_BLOCK)
+    assert protocol.method.retrieval_cap is None
+    assert '"retrieval_cap"' not in canonical_json(protocol).decode("utf-8")
+
+
+def test_retrieval_cap_is_hashed_when_set_and_must_be_positive() -> None:
+    plain = canonical_fingerprint(_with(DEFAULT_BLOCK))
+    capped = canonical_fingerprint(_with({**DEFAULT_BLOCK, "retrieval_cap": 500}))
+    assert capped != plain
+    for bad in (0, -1, 2.5, "500"):
+        with pytest.raises(ValidationError):
+            _with({**DEFAULT_BLOCK, "retrieval_cap": bad})

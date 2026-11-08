@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 
 import pytest
 import typer
@@ -161,7 +162,12 @@ def test_replace_with_discard_confirmation_proceeds_on_a_bound_workspace(tmp_pat
     assert "2 screening decision events" in genesis["description"]
 
 
+ANSI_PATTERN = r"\x1b\[[0-9;]*[A-Za-z]"  # a style code, written as an escape
+
+
 def test_cli_offers_replace_and_the_discard_confirmation():
-    out = CliRunner().invoke(app, ["inception", "--help"], terminal_width=200).output
+    raw = CliRunner().invoke(app, ["inception", "--help"], terminal_width=200).output
+    # CI forces colour: Rich puts style codes inside the option names, so strip them.
+    out = re.sub(ANSI_PATTERN, "", raw)
     assert "--replace" in out
     assert "--discard-screening-binding" in out

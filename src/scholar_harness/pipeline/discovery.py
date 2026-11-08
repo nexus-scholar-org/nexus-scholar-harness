@@ -179,6 +179,19 @@ class _ObservedProvider:
     def name(self) -> str:
         return getattr(self._provider, "name", type(self._provider).__name__)
 
+    # The engine hands each provider its SearchLeg through ``current_leg``
+    # (M3a-discovery); the proxy forwards it so the provider fills it in.
+    @property
+    def current_leg(self) -> Any:
+        return getattr(self._provider, "current_leg", None)
+
+    @current_leg.setter
+    def current_leg(self, leg: Any) -> None:
+        try:
+            self._provider.current_leg = leg
+        except AttributeError:  # pragma: no cover - read-only provider doubles
+            pass
+
     async def search(self, query: Any):
         count = 0
         try:
@@ -326,6 +339,9 @@ class DiscoveryOutcome:
     audit_reason: str = ""
     audit_workspace: str = ""
     stale_artifacts: tuple[str, ...] = ()
+    legs: list[dict[str, Any]] = field(default_factory=list)
+    search_run: str = ""
+    search_run_files: tuple[str, ...] = ()
 
     @property
     def stale_artifacts_present(self) -> bool:
@@ -378,12 +394,30 @@ async def run_discovery(
     query, providers = compile_protocol_search(p_path)
     if max_search_results:
         query.max_results = max_search_results
+        query.cap_source = "run_override"
 
     engine = SearchEngine(providers=_resolve_providers(providers))
     probe = _ProviderProbe()
     observed_providers = _observe_providers(engine, probe)
     discovered_docs = await engine.search_all(query, dedup=False)
     await engine.close()
+    # SRCH-30 / CORE-21: one leg per database, as the engine recorded it.
+    legs = [
+        leg.to_dict() if hasattr(leg, "to_dict") else dict(leg)
+        for leg in (getattr(engine, "last_legs", None) or [])
+    ]
+    if legs:
+        # The legs are the engine's own record of each provider. The proxy
+        # misses a leg the engine stopped at the cap (its stream is closed,
+        # so the proxy never sees the end), so the legs decide (M3a review 3).
+        probe.succeeded = {
+            leg["provider"]: int(leg.get("fetched") or 0)
+            for leg in legs if leg.get("status") == "ok"
+        }
+        probe.failed = {
+            leg["provider"]: str(leg.get("error") or "failed")
+            for leg in legs if leg.get("status") == "failed"
+        }
 
     count = len(discovered_docs)
     status, reason = _classify(count, probe)
@@ -401,6 +435,7 @@ async def run_discovery(
         if (lit_dir / name).exists()
     )
     stale_artifacts = () if published else pre_existing
+    payload: str | None = None
     if published:
         payload = json.dumps(
             [
@@ -413,6 +448,17 @@ async def run_discovery(
         (lit_dir / "all_raw_search.json").write_text(payload, encoding="utf-8")
         (lit_dir / "raw_search.json").write_text(payload, encoding="utf-8")
 
+    # CORE-21: every run keeps its own record in a run-numbered folder that is
+    # never overwritten: the legs always (a failed harvest is evidence too),
+    # the raw records when the harvest was published.
+    run_name, run_files = _archive_search_run(
+        lit_dir,
+        legs=legs,
+        query=query,
+        status=status,
+        payload=payload if published else None,
+    )
+
     outcome = DiscoveryOutcome(
         documents=discovered_docs,
         count=count,
@@ -423,6 +469,9 @@ async def run_discovery(
         provider_errors=dict(probe.failed),
         published=published,
         stale_artifacts=stale_artifacts,
+        legs=legs,
+        search_run=run_name,
+        search_run_files=tuple(run_files),
     )
 
     audit_status, audit_reason, audit_workspace = _append_discovery_event(
@@ -437,6 +486,62 @@ async def run_discovery(
     outcome.audit_reason = audit_reason
     outcome.audit_workspace = audit_workspace
     return outcome
+
+
+SEARCH_RUNS_DIR = "search_runs"
+
+
+def _archive_search_run(
+    lit_dir: Path,
+    *,
+    legs: list[dict[str, Any]],
+    query: Any,
+    status: str,
+    payload: str | None,
+) -> tuple[str, list[str]]:
+    """Write this run's legs (and raw records) to ``search_runs/run_NNN/``.
+
+    The folder number is the next free one; an existing folder is never
+    reused, so no run's record is overwritten (CORE-21). Creating the folder
+    with ``exist_ok=False`` makes a race between two runs fail loudly rather
+    than mix their files.
+    """
+    runs = lit_dir / SEARCH_RUNS_DIR
+    runs.mkdir(parents=True, exist_ok=True)
+    taken = [
+        int(p.name[4:]) for p in runs.iterdir()
+        if p.is_dir() and p.name.startswith("run_") and p.name[4:].isdigit()
+    ]
+    number = max(taken, default=0) + 1
+    run_dir = runs / f"run_{number:03d}"
+    run_dir.mkdir(exist_ok=False)
+
+    files: list[str] = []
+    if payload is not None:
+        (run_dir / "raw.json").write_text(payload, encoding="utf-8")
+        files.append(str(run_dir / "raw.json"))
+    manifest = {
+        "run": run_dir.name,
+        "status": status,
+        "query_id": getattr(query, "id", None),
+        "query_text": getattr(query, "text", None),
+        "year_min": getattr(query, "year_min", None),
+        "year_max": getattr(query, "year_max", None),
+        "raw_published": payload is not None,
+        "legs": legs,
+    }
+    (run_dir / "legs.json").write_text(
+        json.dumps(manifest, indent=2, ensure_ascii=False, default=str), encoding="utf-8"
+    )
+    files.append(str(run_dir / "legs.json"))
+    # D9: the PRISMA-S style report, rendered from the same manifest.
+    from scholar_search.search_report import render_search_report
+
+    (run_dir / "search_report.md").write_text(
+        render_search_report(json.loads(json.dumps(manifest, default=str))), encoding="utf-8"
+    )
+    files.append(str(run_dir / "search_report.md"))
+    return run_dir.name, files
 
 
 def _append_discovery_event(
@@ -470,7 +575,7 @@ def _append_discovery_event(
 
     outputs = [
         str(lit_dir / name) for name in CORPUS_ARTIFACT_NAMES if outcome.published
-    ]
+    ] + list(outcome.search_run_files)
 
     description = (
         f"Federated discovery via scholar-search-kit: {outcome.count} raw "
@@ -501,6 +606,9 @@ def _append_discovery_event(
             "corpus_published": outcome.published,
             "stale_artifacts_present": outcome.stale_artifacts_present,
             "stale_artifacts": list(outcome.stale_artifacts),
+            # SRCH-30 / CORE-21: per database, what was sent and what came back.
+            "search_run": outcome.search_run,
+            "legs": list(outcome.legs),
         },
         metrics={
             "raw_hits": outcome.count,

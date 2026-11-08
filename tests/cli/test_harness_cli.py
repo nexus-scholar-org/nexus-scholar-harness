@@ -198,3 +198,28 @@ def test_actions_table_extract_syntax():
     extract_action = extract_actions[0]
     assert "--input" not in extract_action.command_template
     assert "extract {ws}/pdfs/ --output {ws}/extracted/" in extract_action.command_template
+
+
+# M3a-discovery: a live search without a contact email is a typed refusal,
+# not a traceback, and nothing is searched.
+def test_run_without_a_contact_email_refuses_with_mailto_not_set(tmp_path, monkeypatch):
+    from scholar_search.config import settings
+
+    monkeypatch.setattr(settings, "mailto", None)
+    ws = tmp_path / "ws"
+    ws.mkdir()
+    (ws / "project.json").write_text(json.dumps({"project_id": "ws", "stats": {}}), encoding="utf-8")
+    proto = ws / "protocol.json"
+    proto.write_text(
+        json.dumps({"protocol_id": "p", "search_strategy": {"core_concepts": [{"concept": "weed", "synonyms": []}]}}),
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(
+        "scholar_harness.orchestrator.ResearchOrchestrator.run_pipeline",
+        lambda self, **kw: (_ for _ in ()).throw(__import__("scholar_search.engine", fromlist=["MailtoNotSet"]).MailtoNotSet()),
+    )
+    result = runner.invoke(app, ["run", "--workspace", str(ws), "--protocol", str(proto)])
+    assert result.exit_code == 1
+    assert "MAILTO_NOT_SET" in result.output
+    assert "SCHOLAR_MAILTO" in result.output
+    assert "Traceback" not in result.output

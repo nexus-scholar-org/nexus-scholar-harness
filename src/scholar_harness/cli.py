@@ -1058,10 +1058,17 @@ def run_pipeline(
         f"[bold cyan]🚀 Initializing Nexus Scholar Pipeline for {protocol_path}...[/bold cyan]"
     )
 
-    with console.status("[bold green]Executing multi-stage pipeline..."):
-        res = orchestrator.run_pipeline(
-            protocol_path=protocol_path, max_search_results=limit
-        )
+    from scholar_search.engine import MailtoNotSet
+
+    try:
+        with console.status("[bold green]Executing multi-stage pipeline..."):
+            res = orchestrator.run_pipeline(
+                protocol_path=protocol_path, max_search_results=limit
+            )
+    except MailtoNotSet as exc:
+        # Decision 2026-11-08: no live search without a real contact email.
+        console.print(f"[bold red]❌ {exc}[/bold red]")
+        raise typer.Exit(code=1) from None
 
     panel, status = _pipeline_summary_panel(res)
     console.print(panel)

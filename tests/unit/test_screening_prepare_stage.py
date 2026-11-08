@@ -625,19 +625,25 @@ def test_stage_systemexit_1_on_missing_registry(tmp_path):
 def test_orchestrator_systemexit_propagates_without_mapping_or_pause(
     tmp_path, monkeypatch
 ):
-    """NEG-01d: orchestrator delegates SystemExit identically (no swallow)."""
+    """NEG-01d, revised by M3a-discovery CORE-07 (plan §1.2): a prepare refusal
+    (``sys.exit(1)``) no longer kills the run. It is journalled as
+    ``PIPELINE_RUN_ABORTED`` and the run reports FAILED; still no report, no
+    pause row and no screening mapping is fabricated."""
     _install_upstream_fakes(monkeypatch, [])
     # Real batcher with no registry in this workspace -> sys.exit(1).
     ws = tmp_path / "ws"
     ws.mkdir()
     _write_orchestrator_protocol(ws)
 
-    with pytest.raises(SystemExit) as exc_info:
-        asyncio.run(orch.ResearchOrchestrator(ws).run_pipeline_async())
+    results = asyncio.run(orch.ResearchOrchestrator(ws).run_pipeline_async())
 
-    assert exc_info.value.code == 1
+    assert results["status"] == "FAILED"
+    assert results["stages"]["screening"]["status"] == "SKIPPED"
+    assert results["stages"]["screening"]["batch_files_prepared"] == 0
     assert not (ws / "literature" / "prisma_screening_report.md").exists()
     assert _pause_rows(ws) == []
+    journal = (ws / "audit" / "journal.jsonl").read_text(encoding="utf-8")
+    assert "PIPELINE_RUN_ABORTED" in journal
 
 
 # ---------------------------------------------------------------------------

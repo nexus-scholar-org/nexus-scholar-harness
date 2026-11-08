@@ -102,7 +102,7 @@ from typing import Any
 
 from scholar_protocol.models import ResearchProtocol
 
-from scholar_harness.workspace.audit import append_legacy_event
+from scholar_harness.workspace.audit import append_event, append_legacy_event
 
 from .deduplication import run_deduplication
 from .discovery import run_discovery
@@ -144,6 +144,143 @@ _ABORTED_STAGE_SHAPES: dict[str, dict[str, Any]] = {
         "entailment_rate": 0.0,
     },
 }
+
+
+def _existing_batch_count(lit_dir: Path) -> int:
+    """Screening batch files already prepared (decision files excluded)."""
+    screening = lit_dir / "screening"
+    if not screening.is_dir():
+        return 0
+    return sum(1 for p in screening.iterdir() if p.name.startswith("batch_")
+               and p.suffix == ".json" and "_decisions" not in p.name)
+
+
+def _accept_run_corpus(ws: Path, provider_errors: dict[str, str]) -> dict[str, Any]:
+    """Accept the run's verified records as the corpus snapshot (CORE-07).
+
+    Returns the stage mapping: ``ACCEPTED`` (or ``ALREADY_ACCEPTED`` when the
+    identical snapshot is registered), ``NOT_BUILT`` when the folder is not a
+    workspace (no ``project.json``, so no workspace id to bind the snapshot
+    to), or ``REFUSED`` with the typed code.
+    """
+    from scholar_harness.corpus_accept import AcceptCorpusRefused, accept_corpus
+
+    try:
+        manifest = json.loads((ws / "project.json").read_text(encoding="utf-8"))
+    except FileNotFoundError:
+        manifest = None
+    except (OSError, ValueError):
+        manifest = {}  # unreadable: accept_corpus refuses it with its own code
+    if manifest is None:
+        return {
+            "status": "NOT_BUILT",
+            "reason": "no project.json: the folder is not a workspace, so no snapshot was built",
+        }
+    registered = manifest.get("registered_workspace_id") if isinstance(manifest, dict) else None
+    if manifest and not (isinstance(registered, str) and registered.startswith("WSP-")):
+        return {
+            "status": "NOT_BUILT",
+            "reason": (
+                "project.json records no registered_workspace_id (a legacy workspace); "
+                "no snapshot was built. Run `nexus-scholar accept-corpus` after registering it."
+            ),
+        }
+    verified = ws / "literature" / "verified.json"
+    try:
+        rows = json.loads(verified.read_text(encoding="utf-8")) if verified.is_file() else []
+    except (OSError, ValueError):
+        rows = None  # unreadable: accept_corpus refuses it with its own code
+    if rows == [] or (rows is not None and not isinstance(rows, list)):
+        return {
+            "status": "NOT_BUILT",
+            "reason": "no verified records: there is nothing to snapshot",
+        }
+    from scholar_harness.corpus_accept import staged_sources
+
+    if staged_sources(ws):
+        # accept_corpus would materialise the staged database exports over the
+        # verified.json this run just wrote, dropping the searched records
+        # (M3a review finding 2). Two corpora are never merged silently.
+        return {
+            "status": "REFUSED",
+            "code": "STAGED_IMPORT_PENDING",
+            "reason": (
+                "database exports are staged for import in this workspace; accept or "
+                "remove them before building a corpus from a search run"
+            ),
+        }
+    warnings = [f"{name}: {error}" for name, error in sorted(provider_errors.items())]
+    try:
+        accepted = accept_corpus(ws, provider_warnings=warnings)
+    except AcceptCorpusRefused as exc:
+        return {"status": "REFUSED", "code": exc.code, "reason": str(exc)}
+    mapping = {
+        "status": "ALREADY_ACCEPTED" if accepted.already_accepted else "ACCEPTED",
+        "artifact_id": accepted.artifact_id,
+        "study_count": accepted.study_count,
+        "record_count": accepted.record_count,
+        "outcome_status": accepted.outcome_status,
+        "provider_warnings": list(accepted.warnings),
+    }
+    # Packet B: the producer's operation outcome (SUCCESS, or PARTIAL with the
+    # provider warnings) is journalled, not dropped (M3a review finding 5).
+    append_event(
+        ws,
+        "CORPUS_SNAPSHOT_ACCEPTED",
+        f"Corpus snapshot {accepted.artifact_id} from the search run: "
+        f"{accepted.study_count} studies from {accepted.record_count} records "
+        f"({accepted.outcome_status})",
+        agent="scholar-harness",
+        inputs=[str(ws / "literature" / "verified.json")],
+        outputs=[str(ws / "audit" / "artifact_registry.json")],
+        parameters={
+            "artifact_id": accepted.artifact_id,
+            "already_accepted": accepted.already_accepted,
+            "outcome_status": accepted.outcome_status,
+            "provider_warnings": list(accepted.warnings),
+        },
+        metrics={"studies": accepted.study_count, "records": accepted.record_count},
+        status=accepted.outcome_status,
+    )
+    return mapping
+
+
+def _resume_refusal(ws: Path) -> str | None:
+    """Why the batches of an accepted snapshot cannot be resumed, or ``None``.
+
+    The forced prepare used to refuse an edited protocol; resume keeps that
+    check, and refuses a batch set that does not cover every study of the
+    snapshot (a prepare that stopped part-way). M3a review finding 4.
+    """
+    from scholar_protocol.canonical import canonical_fingerprint
+
+    registry = json.loads((ws / "audit" / "artifact_registry.json").read_text(encoding="utf-8"))
+    corpora = sorted(
+        (e for e in registry.get("artifacts", {}).values() if e.get("artifact_type") == "corpus_snapshot"),
+        key=lambda e: str(e.get("accepted_at") or ""),
+    )
+    snapshot = json.loads((ws / corpora[-1]["path"]).read_text(encoding="utf-8"))
+    current = canonical_fingerprint(
+        ResearchProtocol.model_validate_json((ws / "protocol.json").read_text(encoding="utf-8"))
+    )
+    if current != snapshot.get("protocol_fingerprint"):
+        return (
+            "PROTOCOL_CHANGED_SINCE_SNAPSHOT: protocol.json no longer matches the "
+            "accepted corpus snapshot; start a new workspace for a changed protocol"
+        )
+    studies = {s["study_id"] for s in snapshot["data"]["studies"]}
+    covered: set[str] = set()
+    for path in sorted((ws / "literature" / "screening").glob("batch_*.json")):
+        if "_decisions" in path.name:
+            continue
+        covered |= {p.get("workspace_id") for p in json.loads(path.read_text(encoding="utf-8")).get("papers", [])}
+    missing = studies - covered
+    if missing:
+        return (
+            f"BATCHES_INCOMPLETE: {len(missing)} of {len(studies)} studies of the "
+            "accepted snapshot are in no screening batch; re-run prepare with --force"
+        )
+    return None
 
 
 def _apply_discovery_status(
@@ -292,133 +429,203 @@ async def run_pipeline(
     for d in (lit_dir, pdf_dir, ext_dir, synth_dir, audit_dir):
         d.mkdir(parents=True, exist_ok=True)
 
-    # -------------------------------------------------------------
-    # Stage 1: Protocol Query Compilation & Search
-    # -------------------------------------------------------------
-    # HCM-04b: delegated to the neutral pipeline stage. run_discovery owns
-    # query compilation, provider resolution, federated search, and
-    # raw-result publication; it publishes exactly one canonical
-    # DISCOVERY_SEARCH audit event (through workspace.audit) and writes no
-    # registry state.
-    #
-    # T-TRUTH-COUNTS-01: the pipeline status must reflect the harvest
-    # outcome without collapsing the two axes (D-5). A FAILED harvest
-    # publishes no corpus artifact at all and stops the pipeline here
-    # (fail-closed publication); an EMPTY_RESULT harvest is never reported
-    # as SUCCESS; a PARTIAL (degraded) harvest never overwrites the
-    # workflow state -- it is exposed through results["degraded"].
-    discovery_outcome = await run_discovery(
-        protocol_path=p_path,
-        literature_dir=lit_dir,
-        max_search_results=max_search_results,
-    )
-    # Local binding retained: Stage 2 deduplicates these documents.
-    discovered_docs = discovery_outcome.documents
-    results["stages"]["discovery"] = discovery_outcome.count
-    discovery_status = getattr(discovery_outcome, "status", None) or "SUCCESS"
-    discovery_reason = getattr(discovery_outcome, "reason", "") or ""
-    results["discovery"] = {
-        "count": discovery_outcome.count,
-        "status": discovery_status,
-        "reason": discovery_reason,
-        "corpus_published": bool(getattr(discovery_outcome, "published", True)),
-        "audit_status": getattr(discovery_outcome, "audit_status", "UNKNOWN"),
-        "audit_reason": getattr(discovery_outcome, "audit_reason", ""),
-        "audit_workspace": getattr(discovery_outcome, "audit_workspace", ""),
-        "stale_artifacts_present": bool(
-            getattr(discovery_outcome, "stale_artifacts_present", False)
-        ),
-        "stale_artifacts": list(
-            getattr(discovery_outcome, "stale_artifacts", ()) or ()
-        ),
-    }
+    # M3a-discovery CORE-06/07: once a corpus snapshot is accepted, the corpus
+    # is frozen. A re-run (resume) does not search, deduplicate or verify
+    # again, so ids, batches and decisions stay bound to that snapshot.
+    from scholar_harness.corpus_accept import _accepted_snapshot
 
-    if discovery_status == "FAILED":
-        # Fail-closed publication: a failed harvest must not produce
-        # authoritative downstream artifacts. The stage-mapping SHAPE is the
-        # successful-path shape (same keys, neutral zero values), so a
-        # consumer never hits a KeyError on an aborted run.
-        reason = f"discovery failed: {discovery_reason}"
-        for stage, shape in _ABORTED_STAGE_SHAPES.items():
+    corpus_frozen = _accepted_snapshot(ws)
+    if corpus_frozen:
+        verified_path = lit_dir / "verified.json"
+        verified_docs = (
+            json.loads(verified_path.read_text(encoding="utf-8"))
+            if verified_path.is_file()
+            else []
+        )
+        discovery_status = "SKIPPED"
+        discovery_reason = (
+            "CORPUS_ALREADY_ACCEPTED: the corpus snapshot is accepted; "
+            "discovery, deduplication and verification were not re-run"
+        )
+        results["stages"]["discovery"] = 0
+        results["discovery"] = {
+            "count": 0,
+            "status": discovery_status,
+            "reason": discovery_reason,
+            "corpus_published": False,
+        }
+        for stage in ("deduplication", "verification"):
             results["stages"][stage] = {
-                **shape,
+                **_ABORTED_STAGE_SHAPES[stage],
                 "status": "SKIPPED",
-                "reason": reason,
+                "reason": discovery_reason,
             }
-        results["status"] = "FAILED"
-        append_legacy_event(
-            ws,
-            "PIPELINE_RUN_ABORTED",
-            "scholar-harness",
-            "Pipeline aborted after a failed discovery harvest: "
-            f"{discovery_reason}{_pipeline_note(results)}",
-            [str(p_path)],
-            [],
-            results["stages"],
-            status=_ledger_status(results),
+        results["stages"]["corpus_snapshot"] = {
+            "status": "ALREADY_ACCEPTED",
+            "reason": discovery_reason,
+        }
+    else:
+        # -------------------------------------------------------------
+        # Stage 1: Protocol Query Compilation & Search
+        # -------------------------------------------------------------
+        # HCM-04b: delegated to the neutral pipeline stage. run_discovery owns
+        # query compilation, provider resolution, federated search, and
+        # raw-result publication; it publishes exactly one canonical
+        # DISCOVERY_SEARCH audit event (through workspace.audit) and writes no
+        # registry state.
+        #
+        # T-TRUTH-COUNTS-01: the pipeline status must reflect the harvest
+        # outcome without collapsing the two axes (D-5). A FAILED harvest
+        # publishes no corpus artifact at all and stops the pipeline here
+        # (fail-closed publication); an EMPTY_RESULT harvest is never reported
+        # as SUCCESS; a PARTIAL (degraded) harvest never overwrites the
+        # workflow state -- it is exposed through results["degraded"].
+        discovery_outcome = await run_discovery(
+            protocol_path=p_path,
+            literature_dir=lit_dir,
+            max_search_results=max_search_results,
         )
-        return results
+        # Local binding retained: Stage 2 deduplicates these documents.
+        discovered_docs = discovery_outcome.documents
+        results["stages"]["discovery"] = discovery_outcome.count
+        discovery_status = getattr(discovery_outcome, "status", None) or "SUCCESS"
+        discovery_reason = getattr(discovery_outcome, "reason", "") or ""
+        results["discovery"] = {
+            "count": discovery_outcome.count,
+            "status": discovery_status,
+            "reason": discovery_reason,
+            "corpus_published": bool(getattr(discovery_outcome, "published", True)),
+            "audit_status": getattr(discovery_outcome, "audit_status", "UNKNOWN"),
+            "audit_reason": getattr(discovery_outcome, "audit_reason", ""),
+            "audit_workspace": getattr(discovery_outcome, "audit_workspace", ""),
+            "stale_artifacts_present": bool(
+                getattr(discovery_outcome, "stale_artifacts_present", False)
+            ),
+            "stale_artifacts": list(
+                getattr(discovery_outcome, "stale_artifacts", ()) or ()
+            ),
+        }
 
-    # -------------------------------------------------------------
-    # Stage 2: 2-Tier Deduplication & PID Cluster Assignment
-    # Bug fix: Dedup now runs on ALL discovered_docs combined (not a subset).
-    # workspace_ids (SCI-XXXXXX) are assigned by the Deduplicator here.
-    # -------------------------------------------------------------
-    # HCM-04c: delegated to the neutral pipeline stage. run_deduplication
-    # owns 2-tier dedup, PID cluster assignment, and deduped publication;
-    # it writes no registry state and emits no audit event of its own.
-    dedup_outcome = run_deduplication(
-        discovered_documents=discovered_docs,
-        literature_dir=lit_dir,
-    )
-    # Local binding retained: Stage 2.5 hydrates these documents.
-    unique_docs = dedup_outcome.representatives
-    results["stages"]["deduplication"] = {
-        "unique": dedup_outcome.unique,
-        "duplicates_removed": dedup_outcome.duplicates_removed,
-    }
+        if discovery_status == "FAILED":
+            # Fail-closed publication: a failed harvest must not produce
+            # authoritative downstream artifacts. The stage-mapping SHAPE is the
+            # successful-path shape (same keys, neutral zero values), so a
+            # consumer never hits a KeyError on an aborted run.
+            reason = f"discovery failed: {discovery_reason}"
+            for stage, shape in _ABORTED_STAGE_SHAPES.items():
+                results["stages"][stage] = {
+                    **shape,
+                    "status": "SKIPPED",
+                    "reason": reason,
+                }
+            results["status"] = "FAILED"
+            append_legacy_event(
+                ws,
+                "PIPELINE_RUN_ABORTED",
+                "scholar-harness",
+                "Pipeline aborted after a failed discovery harvest: "
+                f"{discovery_reason}{_pipeline_note(results)}",
+                [str(p_path)],
+                [],
+                results["stages"],
+                status=_ledger_status(results),
+            )
+            return results
 
-    # -------------------------------------------------------------
-    # Stage 2.5: Abstract Hydration (backfill missing abstracts)
-    # -------------------------------------------------------------
-    # HCM-04d: delegated to the neutral pipeline stage. run_hydration owns
-    # client construction, missing-abstract backfill, the
-    # ABSTRACT_HYDRATION audit event, and client close; the hydrated
-    # documents flow to Stage 3 unchanged.
-    hydration_outcome = await run_hydration(
-        documents=unique_docs,
-        workspace_dir=ws,
-    )
-    # Local binding retained: Stage 3 verifies these documents.
-    docs_for_verify = hydration_outcome.documents
-
-    # -------------------------------------------------------------
-    # Stage 3: Verification (HCM-04e-1 Option B bridge-or-refuse)
-    # -------------------------------------------------------------
-    # HCM-04e: delegated to the neutral pipeline stage. run_verification
-    # owns verifier construction, the DOI-bridge preserve/restore/refuse
-    # loop (enumerate, no SCI- mint), verified/quarantine publication,
-    # and the identity-resolved audit event; the identified documents
-    # flow to Stage 4 unchanged.
-    verification_outcome = await run_verification(
-        documents=docs_for_verify,
-        literature_dir=lit_dir,
-        workspace_dir=ws,
-    )
-    # Local binding retained: Stage 4 counts these documents.
-    verified_docs = verification_outcome.documents
-    results["stages"]["verification"] = {
-        "status": verification_outcome.status,
-        "verified": verification_outcome.verified,
-        "refused": verification_outcome.refused,
-        "preserved": verification_outcome.preserved,
-        "bridge_restored": verification_outcome.bridge_restored,
-        "refusal_reasons": verification_outcome.refusal_reasons,
-    }
-    if verification_outcome.quarantine:
-        results["stages"]["verification"]["quarantine"] = (
-            verification_outcome.quarantine
+        # -------------------------------------------------------------
+        # Stage 2: 2-Tier Deduplication & PID Cluster Assignment
+        # Bug fix: Dedup now runs on ALL discovered_docs combined (not a subset).
+        # workspace_ids (SCI-XXXXXX) are assigned by the Deduplicator here.
+        # -------------------------------------------------------------
+        # HCM-04c: delegated to the neutral pipeline stage. run_deduplication
+        # owns 2-tier dedup, PID cluster assignment, and deduped publication;
+        # it writes no registry state and emits no audit event of its own.
+        dedup_outcome = run_deduplication(
+            discovered_documents=discovered_docs,
+            literature_dir=lit_dir,
         )
+        # Local binding retained: Stage 2.5 hydrates these documents.
+        unique_docs = dedup_outcome.representatives
+        results["stages"]["deduplication"] = {
+            "unique": dedup_outcome.unique,
+            "duplicates_removed": dedup_outcome.duplicates_removed,
+        }
+
+        # -------------------------------------------------------------
+        # Stage 2.5: Abstract Hydration (backfill missing abstracts)
+        # -------------------------------------------------------------
+        # HCM-04d: delegated to the neutral pipeline stage. run_hydration owns
+        # client construction, missing-abstract backfill, the
+        # ABSTRACT_HYDRATION audit event, and client close; the hydrated
+        # documents flow to Stage 3 unchanged.
+        hydration_outcome = await run_hydration(
+            documents=unique_docs,
+            workspace_dir=ws,
+        )
+        # Local binding retained: Stage 3 verifies these documents.
+        docs_for_verify = hydration_outcome.documents
+
+        # -------------------------------------------------------------
+        # Stage 3: Verification (HCM-04e-1 Option B bridge-or-refuse)
+        # -------------------------------------------------------------
+        # HCM-04e: delegated to the neutral pipeline stage. run_verification
+        # owns verifier construction, the DOI-bridge preserve/restore/refuse
+        # loop (enumerate, no SCI- mint), verified/quarantine publication,
+        # and the identity-resolved audit event; the identified documents
+        # flow to Stage 4 unchanged.
+        verification_outcome = await run_verification(
+            documents=docs_for_verify,
+            literature_dir=lit_dir,
+            workspace_dir=ws,
+        )
+        # Local binding retained: Stage 4 counts these documents.
+        verified_docs = verification_outcome.documents
+        results["stages"]["verification"] = {
+            "status": verification_outcome.status,
+            "verified": verification_outcome.verified,
+            "refused": verification_outcome.refused,
+            "preserved": verification_outcome.preserved,
+            "bridge_restored": verification_outcome.bridge_restored,
+            "refusal_reasons": verification_outcome.refusal_reasons,
+        }
+        if verification_outcome.quarantine:
+            results["stages"]["verification"]["quarantine"] = (
+                verification_outcome.quarantine
+            )
+
+        # -------------------------------------------------------------
+        # Stage 3.5: Corpus snapshot (WP-01 Packet B runtime adoption, CORE-07)
+        # -------------------------------------------------------------
+        # The verified records become the accepted Contract-v1 corpus
+        # snapshot through the same producer path as `accept-corpus`
+        # (build_corpus_snapshot_artifact + the acceptance gate), so
+        # screening can be prepared from a fresh run. Provider failures are
+        # carried as snapshot warnings (partial outcome, never hidden).
+        snapshot = _accept_run_corpus(
+            ws, getattr(discovery_outcome, "provider_errors", {}) or {}
+        )
+        results["stages"]["corpus_snapshot"] = snapshot
+        if snapshot["status"] == "REFUSED":
+            reason = f"corpus snapshot refused: {snapshot['reason']}"
+            for stage in ("screening", "extraction", "indexing", "matrix_rows", "graph_nodes", "synthesis"):
+                results["stages"][stage] = {
+                    **_ABORTED_STAGE_SHAPES[stage],
+                    "status": "SKIPPED",
+                    "reason": reason,
+                }
+            results["status"] = "FAILED"
+            append_legacy_event(
+                ws,
+                "PIPELINE_RUN_ABORTED",
+                "scholar-harness",
+                f"Pipeline aborted: the corpus snapshot was refused ({snapshot.get('code')}): "
+                f"{snapshot['reason']}{_pipeline_note(results)}",
+                [str(lit_dir / "verified.json")],
+                [],
+                results["stages"],
+                status=_ledger_status(results),
+            )
+            return results
 
     # -------------------------------------------------------------
     # Stage 4: Systematic PRISMA 2020 Screening — Agent-in-the-loop
@@ -441,12 +648,51 @@ async def run_pipeline(
         run_screening_preparation,
     )
 
-    preparation_outcome = run_screening_preparation(
-        workspace_dir=ws, batch_size=20, force=True
+    existing_batches = _existing_batch_count(lit_dir)
+    resume_refusal = (
+        _resume_refusal(ws) if corpus_frozen and existing_batches else None
     )
-    # Local binding retained: Stage 4 reports this count; Stages 5-9 gate
-    # on the collect handoff below.
-    total_batches = preparation_outcome.total_batches
+    if corpus_frozen and existing_batches and resume_refusal is None:
+        # Resume: the batches of the accepted snapshot are kept as they are
+        # (a forced re-prepare would reshuffle them under existing decisions).
+        total_batches = existing_batches
+    else:
+        try:
+            if resume_refusal is not None:
+                raise SystemExit(resume_refusal)
+            preparation_outcome = run_screening_preparation(
+                workspace_dir=ws, batch_size=20, force=True
+            )
+        except SystemExit as exc:
+            # cmd_prepare exits on a refusal (no registry, protocol mismatch).
+            # The run records the abort instead of dying (CORE-07).
+            reason = (
+                str(exc.code)
+                if isinstance(exc.code, str)
+                else "screening preparation refused (exit "
+                f"{exc.code}); see the log for the reason"
+            )
+            for stage in ("screening", "extraction", "indexing", "matrix_rows", "graph_nodes", "synthesis"):
+                results["stages"][stage] = {
+                    **_ABORTED_STAGE_SHAPES[stage],
+                    "status": "SKIPPED",
+                    "reason": reason,
+                }
+            results["status"] = "FAILED"
+            append_legacy_event(
+                ws,
+                "PIPELINE_RUN_ABORTED",
+                "scholar-harness",
+                f"Pipeline aborted: {reason}{_pipeline_note(results)}",
+                [str(p_path)],
+                [],
+                results["stages"],
+                status=_ledger_status(results),
+            )
+            return results
+        # Local binding retained: Stage 4 reports this count; Stages 5-9 gate
+        # on the collect handoff below.
+        total_batches = preparation_outcome.total_batches
 
     results["stages"]["screening"] = {
         "status": "PENDING_AGENT_REVIEW",

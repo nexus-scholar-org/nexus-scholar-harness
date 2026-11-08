@@ -25,7 +25,8 @@ Settings are loaded automatically from `.env` or system environment variables wi
 
 | Environment Variable | Default | Purpose |
 | :--- | :--- | :--- |
-| `SCHOLAR_MAILTO` | `student@university.edu` | Email injected into headers for Crossref and OpenAlex polite pool routing |
+| `SCHOLAR_MAILTO` | none (required for a live search) | Contact email sent to Crossref, OpenAlex and NCBI (polite pools). A live search refuses with `MAILTO_NOT_SET` without it. Never recorded in legs, reports or cassettes. |
+| `SCHOLAR_HTTP_CACHE` | `true` | Cache provider responses; set `0` to record or replay VCR cassettes |
 | `SCHOLAR_OPENALEX_KEY` | `None` | Optional OpenAlex Premium API key for higher rate limits |
 | `SCHOLAR_S2_KEY` | `None` | Optional Semantic Scholar API key |
 | `SCHOLAR_CACHE_DIR` | `.cache` | Local directory for SQLite HTTP cache |

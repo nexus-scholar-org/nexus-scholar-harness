@@ -62,7 +62,9 @@ class EffectiveMethod:
     def as_dict(self) -> dict[str, Any]:
         return {
             "source": self.source,
-            **self.config.model_dump(mode="json", exclude={"reporting"}),
+            # retrieval_cap is a discovery value (M3a); the screening view
+            # and its figures do not carry it.
+            **self.config.model_dump(mode="json", exclude={"reporting", "retrieval_cap"}),
             "reporting": self.reporting,
             "reporting_source": self.reporting_source,
         }

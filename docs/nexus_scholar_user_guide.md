@@ -294,7 +294,7 @@ starts this server on your workspace.
 
 | Variable | Purpose |
 | --- | --- |
-| `SCHOLAR_MAILTO` | Contact email used by OpenAlex/Crossref requests (helps rate limits) |
+| `SCHOLAR_MAILTO` | Contact email sent to OpenAlex, Crossref and NCBI (polite pools). **Required for a live search**: without it `run` refuses with `MAILTO_NOT_SET`. |
 | `OPENAI_API_KEY` / `ANTHROPIC_API_KEY` / `GEMINI_API_KEY` | Provider keys for synthesis/verification steps |
 | `NEXUS_RECON_ROOT` | Where discovery-recon cache pools live (default repo `.cache/inception_recon`); makes caching CWD-independent |
 | `NEXUS_MCP_CONFIG_HOME` | Where `setup-mcp` writes configs (hermetic setups) |
