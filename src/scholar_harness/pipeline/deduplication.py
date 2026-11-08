@@ -19,7 +19,7 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any
 
-from scholar_search.dedup import Deduplicator
+from scholar_search.dedup import Deduplicator, stable_order
 
 logger = logging.getLogger(__name__)
 
@@ -80,7 +80,8 @@ def run_deduplication(
         )
     else:
         deduplicator = Deduplicator()
-    clusters = deduplicator.deduplicate(discovered_documents)
+    # CORE-06: content order, not arrival order, so a re-run gives the same ids.
+    clusters = deduplicator.deduplicate(stable_order(discovered_documents))
     unique_docs = [c.representative for c in clusters]
     dupes_removed = len(discovered_documents) - len(unique_docs)
 

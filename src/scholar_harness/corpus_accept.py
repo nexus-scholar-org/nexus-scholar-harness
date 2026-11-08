@@ -517,6 +517,7 @@ def accept_corpus(
     *,
     ris: list[Path | tuple[str | None, Path]] | None = None,
     now: datetime | None = None,
+    provider_warnings: list[str] | None = None,
 ) -> AcceptCorpusResult:
     """Build and accept the corpus snapshot for ``workspace``.
 
@@ -569,6 +570,7 @@ def accept_corpus(
         protocol_fingerprint=fingerprint,
         created_at=now or datetime.now(UTC),
         deduplicator=deduplicator,
+        provider_warnings=provider_warnings,
     )
     artifact = built.artifact
     registry = ws / "audit" / "artifact_registry.json"

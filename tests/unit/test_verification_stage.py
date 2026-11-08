@@ -105,9 +105,10 @@ def _make_three_distinct_docs():
 
 
 def _deduped_docs(docs):
-    from scholar_search.dedup import Deduplicator
+    from scholar_search.dedup import Deduplicator, stable_order
 
-    return [c.representative for c in Deduplicator().deduplicate(list(docs))]
+    # Mirrors the dedup stage: content order first (M3a CORE-06).
+    return [c.representative for c in Deduplicator().deduplicate(stable_order(list(docs)))]
 
 
 def _fresh_doc_without_workspace(src):

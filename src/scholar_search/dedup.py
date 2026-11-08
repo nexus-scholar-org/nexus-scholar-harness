@@ -19,6 +19,34 @@ def _first_author_surname(doc: Document) -> str | None:
     return None
 
 
+def _stable_key(document: Document) -> tuple:
+    ext = document.external_ids
+    return (
+        (document.provider or "").lower(),
+        str(document.provider_id or ""),
+        (ext.doi or "").lower(),
+        (ext.arxiv_id or "").lower(),
+        str(ext.pubmed_id or ""),
+        (ext.openalex_id or ""),
+        (ext.s2_id or ""),
+        _title_key(document.title or ""),
+        document.year or 0,
+        document.title or "",
+    )
+
+
+def stable_order(documents: list[Document]) -> list[Document]:
+    """The documents in an order that depends only on their content (CORE-06).
+
+    ``Deduplicator`` numbers clusters in the order it meets records, so
+    ``SCI-`` ids followed arrival order and changed between runs. Sorting by
+    provider, provider id, identifiers and title first makes the ids, the
+    representatives and ``deduped.json`` the same whatever order the
+    providers answered in (COMPASS input-order invariance).
+    """
+    return sorted(documents, key=_stable_key)
+
+
 class Deduplicator:
     """
     Two-tier deterministic deduplication and non-destructive metadata fusion engine:

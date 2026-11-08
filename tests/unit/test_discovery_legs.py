@@ -142,3 +142,30 @@ def test_a_failed_leg_is_journalled_with_its_error(tmp_path, monkeypatch):
     assert pubmed["status"] == "failed"
     assert "HTTP 500" in pubmed["error"]
     assert pubmed["executed_query"] == "weed[ti]"
+
+
+# ---------------------------------------------------------------------------
+# M3a-discovery D5 / CORE-06: the dedup stage gives the same ids in any order.
+# ---------------------------------------------------------------------------
+
+
+def test_dedup_stage_ids_are_input_order_invariant(tmp_path):
+    from scholar_harness.pipeline.deduplication import run_deduplication
+
+    def docs():
+        return [
+            Document(title="Alpha study of widgets", year=2020, provider="openalex",
+                     provider_id="W1", external_ids=ExternalIds(doi="10.1/a")),
+            Document(title="Beta analysis of gadgets", year=2021, provider="crossref",
+                     provider_id="10.1/b", external_ids=ExternalIds(doi="10.1/b")),
+            Document(title="Gamma review of gizmos", year=2022, provider="pubmed",
+                     provider_id="77", external_ids=ExternalIds(pubmed_id="77")),
+        ]
+
+    forward = run_deduplication(discovered_documents=docs(), literature_dir=tmp_path / "a" / "literature")
+    backward = run_deduplication(discovered_documents=docs()[::-1], literature_dir=tmp_path / "b" / "literature")
+    by_title = lambda out: {d.title: d.workspace_id for d in out.representatives}  # noqa: E731
+    assert by_title(forward) == by_title(backward)
+    assert (tmp_path / "a" / "literature" / "deduped.json").read_bytes() == (
+        tmp_path / "b" / "literature" / "deduped.json"
+    ).read_bytes()

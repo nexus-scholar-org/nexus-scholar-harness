@@ -6,7 +6,7 @@ from dataclasses import replace
 from datetime import UTC, datetime
 
 from .config import settings
-from .dedup import Deduplicator
+from .dedup import Deduplicator, stable_order
 from .exceptions import ScholarSearchError
 from .models import Document, Query, SearchLeg, SearchRun
 from .providers import (
@@ -156,7 +156,7 @@ class SearchEngine:
             return SearchRun(documents=all_results, legs=legs)
 
         logger.info(f"Deduplicating {len(all_results)} raw results...")
-        clusters = self.deduplicator.deduplicate(all_results)
+        clusters = self.deduplicator.deduplicate(stable_order(all_results))
         unique_results = [cluster.representative for cluster in clusters]
         logger.info(f"  -> Reduced to {len(unique_results)} unique documents.")
         return SearchRun(documents=unique_results, legs=legs)
