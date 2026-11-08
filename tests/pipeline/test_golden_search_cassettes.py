@@ -132,7 +132,7 @@ def test_golden_search_replays_with_legs_report_and_stable_ids(tmp_path):
         assert leg["reported_total"] is not None, name
         assert 0 < leg["fetched"] <= CAP, (name, leg["fetched"])
         assert leg["cap"] == CAP and leg["cap_source"] == "run_override"
-        assert leg["cap_hit"] == (leg["reported_total"] > leg["fetched"]), name
+        assert leg["cap_hit"] == (leg["fetched"] >= CAP and leg["reported_total"] > leg["fetched"]), name
         assert leg["mailto_set"] is True
         assert "mailto" not in leg["request"] and "email" not in leg["request"]
     assert outcome.status == "SUCCESS"
@@ -154,8 +154,20 @@ def test_golden_search_replays_with_legs_report_and_stable_ids(tmp_path):
 
 
 def test_the_cassette_holds_no_contact_address_or_key():
-    text = CASSETTE.read_text(encoding="utf-8")
-    assert "mailto=" not in text and "email=" not in text
-    assert "api_key" not in text and "x-api-key" not in text.lower()
+    """The recorded requests carry no contact address, key or User-Agent.
+
+    Response bodies are provider data and may contain placeholders such as
+    Unpaywall's ``?email=<INSERT_YOUR_EMAIL>``; only the requests are checked.
+    """
+    import yaml
+
+    cassette = yaml.safe_load(CASSETTE.read_text(encoding="utf-8"))
+    assert cassette["interactions"]
+    for interaction in cassette["interactions"]:
+        request = interaction["request"]
+        uri = request["uri"].lower()
+        for name in _SECRET_QUERY:
+            assert f"{name}=" not in uri, uri
+        assert not {h.lower() for h in request.get("headers", {})} & set(_SECRET_HEADERS)
     if settings.mailto:
-        assert settings.mailto not in text
+        assert settings.mailto not in CASSETTE.read_text(encoding="utf-8")
