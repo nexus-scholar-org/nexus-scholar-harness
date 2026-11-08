@@ -12,7 +12,7 @@ import { SUPPORTED_LOCALES } from "@/i18n";
 const FIXTURES = `${resolve(process.cwd(), "../../tests/fixtures/screening_api")}/`;
 const fixture = (name: string) => JSON.parse(readFileSync(`${FIXTURES}${name}.json`, "utf-8")).response;
 
-function engine(job?: { state: string; error?: string | null }) {
+function engine(job?: { state: string; error?: string | null }, settings: Record<string, unknown> = {}) {
   let polls = 0;
   const log: { method: string; path: string; body: unknown }[] = [];
   vi.stubGlobal(
@@ -23,8 +23,8 @@ function engine(job?: { state: string; error?: string | null }) {
       const body = init?.body ? JSON.parse(String(init.body)) : null;
       log.push({ method, path, body });
       const json = (b: unknown, status = 200) => new Response(JSON.stringify(b), { status, headers: { "content-type": "application/json" } });
-      if (path === "/settings" && method === "GET") return json(fixture("settings_default").body);
-      if (path === "/settings" && method === "PUT") return json({ ...fixture("settings_default").body, ...body });
+      if (path === "/settings" && method === "GET") return json({ ...fixture("settings_default").body, ...settings });
+      if (path === "/settings" && method === "PUT") return json({ ...fixture("settings_default").body, ...settings, ...body });
       if (path === "/ui/batches") return json({ shape: "ui07.screening-batches-v1", run_id: null, count: 0, batches: [], missing: [] });
       if (path === "/prepare") {
         if (job) return json({ job_id: "job_1" });
@@ -167,5 +167,50 @@ describe("prepare.advance-setting (review fixes)", () => {
     fireEvent.click(screen.getByRole("button", { name: "Save settings" }));
     await screen.findByText("Settings saved");
     expect(log.find((l) => l.method === "PUT")?.body).not.toHaveProperty("advance_on_decide");
+  });
+});
+
+
+// M7-method (spec 02 amendment 2026-11-08): blinding set by the protocol, and
+// the rule table follows the protocol's not-reported policy.
+describe("prepare.blinding-from-protocol", () => {
+  it("shows the protocol's value read-only with its reason, and never sends a blinding change", async () => {
+    const log = engine(undefined, { blinding: "show", blinding_source: "protocol" });
+    render(<ScreeningPrepare locale="en" />);
+    const group = (await screen.findByText("The agent's draft")).closest("fieldset")!;
+    expect(group).toHaveAttribute("aria-readonly", "true");
+    const reason = screen.getByText("Set by your protocol");
+    expect(group.getAttribute("aria-describedby")).toContain(reason.id);
+    const radios = [...group.querySelectorAll('input[type="radio"]')] as HTMLInputElement[];
+    expect(radios.map((r) => r.checked)).toEqual([false, true]);
+    expect(radios.every((r) => !r.disabled)).toBe(true); // read-only, not a dimmed disabled control
+    fireEvent.click(radios[0]);
+    expect(radios[0].checked).toBe(false); // the other value cannot be chosen
+    fireEvent.click(screen.getByRole("button", { name: /^Save/ }));
+    await screen.findByText(/saved/i);
+    const put = log.find((l) => l.method === "PUT" && l.path === "/settings");
+    expect(put?.body).not.toHaveProperty("blinding");
+  });
+
+  it("stays editable when the setting is the source", async () => {
+    engine(undefined, { blinding_source: "settings" });
+    render(<ScreeningPrepare locale="en" />);
+    const group = (await screen.findByText("The agent's draft")).closest("fieldset")!;
+    expect(group).not.toHaveAttribute("aria-readonly");
+    expect(screen.queryByText("Set by your protocol")).toBeNull();
+  });
+});
+
+describe("prepare.rule-table-policy", () => {
+  it("describes the exclude policy's table when the protocol sets it", async () => {
+    engine(undefined, { not_reported_policy: "exclude" });
+    render(<ScreeningPrepare locale="en" />);
+    const rules = await screen.findByRole("heading", { name: "How an agent draft's outcome is derived" });
+    const items = [...rules.closest("section")!.querySelectorAll("li")].map((li) => li.textContent);
+    expect(items).toEqual([
+      "First, Unclear → full text: a check on the draft failed or the agent could not decide.",
+      "Otherwise exclude: any exclusion criterion answered yes, any inclusion criterion answered no, or any inclusion criterion not reported.",
+      "Otherwise include: every inclusion yes and no exclusion yes.",
+    ]);
   });
 });

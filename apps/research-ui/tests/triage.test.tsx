@@ -5,7 +5,7 @@ import { TriagePage } from "@/components/triage-page";
 import { SUPPORTED_LOCALES } from "@/i18n";
 import type { DecisionEvent, StoredEvent } from "@/lib/screening-v1";
 import { TRIAGE_COPY, tc } from "@/lib/triage-copy";
-import { mayReadProposal, reasonOptions, triageKey, undoTarget } from "@/lib/triage-logic";
+import { decisiveFor, mayReadProposal, reasonOptions, triageKey, undoTarget } from "@/lib/triage-logic";
 
 /**
  * Desktop triage (spec 03) and record detail (spec 05), in jsdom against a
@@ -46,6 +46,8 @@ interface Engine {
   proposalDelay?: Promise<void>;
   proposal?: typeof PROPOSAL;
   advance?: "show_draft_then_next" | "next_at_once";
+  /** The protocol's not-reported policy (M7-method). */
+  policy?: "unclear" | "exclude";
 }
 
 let engine: Engine;
@@ -100,7 +102,7 @@ function fakeFetch(url: string, init?: RequestInit): Promise<Response> {
   if (record) {
     const s = studies().find((x) => x.study_id === record[1])!;
     return Promise.resolve(
-      json({ ...s, year: 2024, venue: null, doi: null, batch_index: 1, highlights: [], criteria: engine.criteria ?? CRITERIA, binding: BINDING, my_decision: head(s.study_id), history: engine.events.filter((e) => e.study_id === s.study_id) }),
+      json({ ...s, year: 2024, venue: null, doi: null, batch_index: 1, highlights: [], criteria: engine.criteria ?? CRITERIA, binding: BINDING, my_decision: head(s.study_id), history: engine.events.filter((e) => e.study_id === s.study_id), not_reported_policy: engine.policy ?? "unclear" }),
     );
   }
   if (path === "/decisions/events" && method === "POST") {
@@ -632,5 +634,52 @@ describe("triage review fixes (M6-beta part 2)", () => {
     await press("Enter");
     expect(postedEvents()).toEqual([]);
     expect(screen.getByRole("button", { name: "Exclude with this reason" })).toBeDisabled();
+  });
+});
+
+
+// M7-method (spec 03 amendment 2026-11-08): the offer follows the protocol's not-reported policy.
+describe("triage.not-reported-policy", () => {
+  const TWO = [
+    { id: "INC-01", text: "UAV imagery", kind: "inclusion" as const },
+    { id: "INC-02", text: "Weeds", kind: "inclusion" as const },
+    { id: "EXC-01", text: "Not a crop field", kind: "exclusion" as const },
+  ];
+
+  it("unclear (default): a not-reported inclusion blocks Include and never readies Exclude", () => {
+    const d = decisiveFor(TWO, { "INC-01": "not_reported", "INC-02": "yes" });
+    expect(d.exclude).toBe(false);
+    expect(d.failed).toBeNull();
+  });
+
+  it("exclude: a not-reported inclusion readies Exclude; a definite failure outranks it", () => {
+    const nr = decisiveFor(TWO, { "INC-01": "not_reported", "INC-02": "yes" }, "exclude");
+    expect(nr.exclude).toBe(true);
+    expect(nr.failed).toEqual({ id: "INC-01", answer: "not_reported", kind: "inclusion" });
+    const definite = decisiveFor(TWO, { "INC-01": "not_reported", "INC-02": "no" }, "exclude");
+    expect(definite.failed?.id).toBe("INC-02");
+    const exclusion = decisiveFor(TWO, { "INC-01": "not_reported", "EXC-01": "yes" }, "exclude");
+    expect(exclusion.failed?.id).toBe("EXC-01");
+  });
+
+  it("exclude: an exclusion that is not reported never fails, and Include still needs every inclusion yes", () => {
+    const d = decisiveFor(TWO, { "INC-01": "yes", "INC-02": "yes", "EXC-01": "not_reported" }, "exclude");
+    expect(d.exclude).toBe(false);
+    expect(d.include).toBe(true);
+  });
+
+  it("on screen: Not reported, then E and Enter, excludes with FAILS-INC-01 and says why", async () => {
+    engine.policy = "exclude";
+    await ready();
+    answer("INC-01", "Not reported");
+    expect(document.querySelector("[data-decisive]")).toHaveTextContent(
+      "Exclude is ready: INC-01 not reported (your protocol excludes when not reported)",
+    );
+    expect(screen.getByRole("button", { name: /^Exclude/ })).toBeEnabled();
+    fireEvent.keyDown(window, { key: "e" });
+    fireEvent.keyDown(window, { key: "Enter" });
+    await waitFor(() => expect(postedEvents()).toHaveLength(1));
+    expect(postedEvents()[0]).toMatchObject({ outcome: "EXCLUDE", reason_code: "FAILS-INC-01" });
+    expect(postedEvents()[0].criteria).toEqual([{ id: "INC-01", answer: "not_reported" }]);
   });
 });

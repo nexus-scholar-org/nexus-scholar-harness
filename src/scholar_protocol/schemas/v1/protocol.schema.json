@@ -62,6 +62,18 @@
     },
     "verification": {
       "$ref": "#/definitions/VerificationConfig"
+    },
+    "method": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/MethodConfig"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Method parameters (dedup, rule table, not-reported policy, blinding). Absent means the engine defaults; absent is left out of the fingerprint."
     }
   },
   "required": [
@@ -105,6 +117,43 @@
       "title": "ConceptCluster",
       "type": "object",
       "additionalProperties": false
+    },
+    "DedupMethod": {
+      "additionalProperties": false,
+      "description": "How records from several databases are recognised as one study.\n\nTier 1 is an exact DOI match (always on). Tier 2 is a fuzzy title match at\n``title_similarity`` or above, optionally requiring the same first-author\nsurname, with publication years at most ``year_tolerance`` apart.",
+      "properties": {
+        "doi": {
+          "const": true,
+          "default": true,
+          "description": "Exact DOI match (always on)",
+          "title": "Doi",
+          "type": "boolean"
+        },
+        "title_similarity": {
+          "default": 0.97,
+          "description": "Minimum title similarity ratio [0.90, 1.00], at most two decimals",
+          "maximum": 1.0,
+          "minimum": 0.9,
+          "title": "Title Similarity",
+          "type": "number"
+        },
+        "first_author": {
+          "default": true,
+          "description": "Require the same first-author surname",
+          "title": "First Author",
+          "type": "boolean"
+        },
+        "year_tolerance": {
+          "default": 1,
+          "description": "Maximum difference in publication year [0, 2]",
+          "maximum": 2,
+          "minimum": 0,
+          "title": "Year Tolerance",
+          "type": "integer"
+        }
+      },
+      "title": "DedupMethod",
+      "type": "object"
     },
     "DimensionDataType": {
       "description": "Supported data types for extracted matrix dimensions.",
@@ -238,6 +287,44 @@
       "title": "MatrixDimension",
       "type": "object",
       "additionalProperties": false
+    },
+    "MethodConfig": {
+      "additionalProperties": false,
+      "description": "Method parameters a reader could ask \"how did you ...\" about.\n\nOptional in the protocol: when absent the engine uses these defaults\n(today's values) and the block is left out of the canonical JSON, so the\nprotocol's fingerprint is unchanged. When present it is hashed.",
+      "properties": {
+        "dedup": {
+          "$ref": "#/definitions/DedupMethod"
+        },
+        "rules_version": {
+          "const": "screening-rules-v1",
+          "default": "screening-rules-v1",
+          "description": "Rule table turning criterion answers into an outcome",
+          "title": "Rules Version",
+          "type": "string"
+        },
+        "not_reported": {
+          "default": "unclear",
+          "description": "unclear: any criterion not reported gives Unclear (full text); exclude: an inclusion criterion not reported gives Exclude (FAILS-INC-n)",
+          "enum": [
+            "unclear",
+            "exclude"
+          ],
+          "title": "Not Reported",
+          "type": "string"
+        },
+        "blinding": {
+          "default": "reveal_after_decision",
+          "description": "Whether the agent's draft is hidden until the decision",
+          "enum": [
+            "reveal_after_decision",
+            "show"
+          ],
+          "title": "Blinding",
+          "type": "string"
+        }
+      },
+      "title": "MethodConfig",
+      "type": "object"
     },
     "PlaybookType": {
       "description": "Canonical research playbook archetypes.",

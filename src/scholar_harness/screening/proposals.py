@@ -14,6 +14,12 @@ decision file, and a human decides with it hidden first.
 - any `not_reported`, `cannot_decide`, or failed check → MAYBE ("Unclear → full
   text"), never EXCLUDE.
 
+M7-method (decision 2026-11-08): the not-reported rule is the protocol's
+`method.not_reported` policy. `unclear` (the default) is the table above.
+`exclude` makes an inclusion criterion answered `not_reported` an EXCLUDE
+(`FAILS-INC-n`) after any definite failure; an exclusion criterion that is not
+reported never fails. A failed check or `cannot_decide` stays MAYBE under both.
+
 Plain-code validators run on every proposal: the schema, one answer per
 criterion, and each evidence quote found verbatim at its offsets in the
 record's title and abstract.
@@ -119,16 +125,24 @@ def validate_output(output: Any, criteria: Criteria, text: str) -> list[dict[str
     return checks
 
 
+NOT_REPORTED_POLICIES = ("unclear", "exclude")
+
+
 def derive_outcome(
-    output: Any, criteria: Criteria, checks: list[dict[str, Any]]
+    output: Any, criteria: Criteria, checks: list[dict[str, Any]], *, not_reported: str = "unclear"
 ) -> tuple[str, str | None]:
-    """The rule table (`RULES_VERSION`): (outcome, reason_code)."""
+    """The rule table (`RULES_VERSION`): (outcome, reason_code).
+
+    ``not_reported`` is the protocol's policy (``unclear`` or ``exclude``).
+    """
+    if not_reported not in NOT_REPORTED_POLICIES:
+        raise ValueError(f"not_reported must be one of {NOT_REPORTED_POLICIES}, got {not_reported!r}")
     if not all(check["ok"] for check in checks):
         return "MAYBE", None
     if output.get("cannot_decide"):
         return "MAYBE", None
     answers = {a["id"]: a["answer"] for a in output["criteria"]}
-    if any(answers[c] == "not_reported" for c in criteria.all):
+    if not_reported == "unclear" and any(answers[c] == "not_reported" for c in criteria.all):
         return "MAYBE", None
     for exclusion in criteria.exclusion:
         if answers[exclusion] == "yes":
@@ -136,6 +150,10 @@ def derive_outcome(
     for inclusion in criteria.inclusion:
         if answers[inclusion] == "no":
             return "EXCLUDE", f"FAILS-{inclusion}"
+    if not_reported == "exclude":
+        for inclusion in criteria.inclusion:
+            if answers[inclusion] == "not_reported":
+                return "EXCLUDE", f"FAILS-{inclusion}"
     return "INCLUDE", None
 
 
@@ -173,7 +191,12 @@ def submit_proposal(
     criteria = Criteria.from_protocol(protocol)
     text = record_text(title, abstract, published)
     checks = validate_output(output, criteria, text)
-    outcome, reason_code = derive_outcome(output, criteria, checks)
+    # M7-method: the protocol's not-reported policy. The record's
+    # protocol_fingerprint covers the method block, so no extra field is needed.
+    from .method import method_from_protocol
+
+    policy = method_from_protocol(protocol).config.not_reported
+    outcome, reason_code = derive_outcome(output, criteria, checks, not_reported=policy)
     in_hash = input_sha256(title, abstract, published)
     task_version = str(provenance.get("task_version") or "")
     model = str(provenance.get("model") or "")

@@ -77,6 +77,15 @@ def _ordered_model_dict(protocol: ResearchProtocol) -> dict[str, Any]:
                 sorted(ss["target_candidate_pool_size"].items())
             )
 
+    # M7-method: an absent method block is left out entirely, so every protocol
+    # written before the block existed keeps its exact fingerprint.
+    if raw.get("method") is None:
+        raw.pop("method", None)
+    else:
+        dedup = raw["method"].get("dedup")
+        if isinstance(dedup, dict) and "title_similarity" in dedup:
+            dedup["title_similarity"] = float(dedup["title_similarity"])
+
     # Ensure float serialization is stable for the trust threshold.
     if "verification" in raw:
         v = raw["verification"]

@@ -409,13 +409,36 @@ def _journal(ws: Path) -> list[dict[str, Any]] | None:
     return rows
 
 
-def _settings_now(ws: Path) -> dict[str, Any]:
+def _settings_now(ws: Path, method: Any = None) -> dict[str, Any]:
     path = ws / "literature" / "screening" / "settings.json"
     try:
         stored = json.loads(path.read_text(encoding="utf-8")) if path.is_file() else {}
     except (OSError, ValueError):
         stored = {}
-    return {**DEFAULT_SETTINGS, **(stored if isinstance(stored, dict) else {})}
+    settings = {**DEFAULT_SETTINGS, **(stored if isinstance(stored, dict) else {})}
+    if method is not None and method.source == "protocol":
+        settings["blinding"] = method.config.blinding  # set by the protocol (M7-method)
+    return settings
+
+
+def _dedup_sentence(dedup: Any) -> str:
+    """Spec 10 amendment 2026-11-08: the dedup tiers in force, in words."""
+    years = (
+        "the same publication year"
+        if dedup.year_tolerance == 0
+        else f"publication years at most {dedup.year_tolerance} year{'s' if dedup.year_tolerance > 1 else ''} apart"
+    )
+    author = "the same first author and " if dedup.first_author else ""
+    return (
+        f"Duplicates across databases were removed by exact DOI and by title similarity of at least "
+        f"{dedup.title_similarity:.2f} with {author}{years}."
+    )
+
+
+NOT_REPORTED_SENTENCES = {
+    "unclear": "A criterion the title and abstract did not report sent the record to full-text assessment.",
+    "exclude": "An inclusion criterion the title and abstract did not report excluded the record.",
+}
 
 
 @dataclass
@@ -549,6 +572,15 @@ def build_methods(ws: Path) -> dict[str, Any]:
         f"{c['screened']} records were screened; {c['excluded']} were excluded{reason_text}; "
         f"{c['unclear']} were unclear and went to full-text assessment; {c['included']} were included."
     )
+    # M7-method: the dedup tiers in force (always stated; spec 10 amendment).
+    from .method import MethodInvalid, effective_method
+
+    try:
+        method = effective_method(ws)
+    except MethodInvalid as exc:
+        raise ExportRefused(409, exc.code, str(exc)) from exc
+    sentences.append(_dedup_sentence(method.config.dedup))
+    figures["method"] = {**method.config.model_dump(mode="json"), "source": method.source}
     if "UNSPECIFIED" in reasons:
         caveats.append(
             f"{reasons['UNSPECIFIED']} exclusions in this older publication are counted as unspecified; "
@@ -564,6 +596,13 @@ def build_methods(ws: Path) -> dict[str, Any]:
         figures["reviewers"] = 1
     else:
         not_stated.append("Screener: the published decisions are not all human decisions by one reviewer.")
+    # M7-method: the not-reported policy and where the values come from.
+    sentences.append(NOT_REPORTED_SENTENCES[method.config.not_reported])
+    sentences.append(
+        "These values are set in the signed protocol."
+        if method.source == "protocol"
+        else f"These are the harness defaults ({method.config.rules_version}); the protocol does not set them."
+    )
 
     # 3. Agent use
     have_proposals = source(pr.PROPOSALS_FILE)
@@ -654,8 +693,13 @@ def build_methods(ws: Path) -> dict[str, Any]:
     else:
         sources.append({"name": "journal.jsonl", "path": "audit/journal.jsonl"})
     rows = [r for r in journal if r.get("action") == SETTINGS_ACTION]
-    now = _settings_now(ws)
-    blinding = _timeline(rows, "blinding", published, now["blinding"])
+    now = _settings_now(ws, method)
+    if method.source == "protocol":
+        # Set by the signed protocol for the whole screening (M7 review 3): older
+        # settings rows, from before the block, describe nothing that applied.
+        blinding = Timeline(method.config.blinding, [], method.config.blinding, False)
+    else:
+        blinding = _timeline(rows, "blinding", published, now["blinding"])
     mode = _timeline(rows, "mode", published, now["mode"])
     audit_size = _timeline(rows, "sample_audit_size", published, now["sample_audit_size"])
     order = _timeline(rows, "queue_order", published, now["queue_order"])

@@ -4,6 +4,59 @@ One entry per decision that still shapes the code, newest first. The full
 records were removed in the 2026-11-03 docs cut; each entry names the commit
 history to read if you need the original reasoning (`git log --follow -- <path>`).
 
+## 2026-11-08 — Method parameters move into the protocol (accepted; plan step 10)
+
+Accepts point 2 of "Three kinds of parameter" (2026-11-06) with the researcher's choices of 2026-11-08.
+
+**The block.** `protocol.json` may carry an optional `method` block:
+
+```json
+"method": {
+  "dedup": { "doi": true, "title_similarity": 0.97, "first_author": true, "year_tolerance": 1 },
+  "rules_version": "screening-rules-v1",
+  "not_reported": "unclear",
+  "blinding": "reveal_after_decision"
+}
+```
+
+**What goes in:** four values, the ones that can change what is included or how biased the screening is:
+- the dedup tiers;
+- the rule-table version;
+- the not-reported policy;
+- blinding.
+
+Batch size stays a Prepare setting, because it only changes how the work is chunked.
+
+**What a review may change, and the checked limits.** The protocol validator refuses anything outside these limits (`PROTOCOL_METHOD_INVALID`):
+- `title_similarity`: 0.90–1.00.
+- `year_tolerance`: 0–2.
+- `doi`: always true.
+- `first_author`: true or false.
+- `rules_version`: a version the engine knows (today only `screening-rules-v1`).
+- `not_reported`:
+  - `unclear` (today's rule): any criterion not reported gives Unclear, which goes to full text.
+  - `exclude`: an *inclusion* criterion not reported gives Exclude with `FAILS-INC-n`.
+  - In both cases an *exclusion* criterion not reported never fails, as today.
+  - The choice applies to the agent's drafts and to the reason the screen offers. A researcher's own decision is never overridden.
+- `blinding`: `reveal_after_decision` or `show`. When the protocol sets it, the Prepare control shows the value and does not change it; the refusal is `BLINDING_SET_BY_PROTOCOL`.
+
+**Fingerprint.** The block is optional, and when it is absent it is left out of the canonical JSON, so the fingerprint of every protocol without a block is unchanged. A protocol with the block hashes it, so the signed protocol covers these values. New workspaces are written with the block, filled with today's values.
+
+**Existing workspaces** are left as they are. Without a block the defaults apply (today's values), decisions and fingerprints are untouched, and the methods paragraph names the defaults it used. There is no adopt command. Adopting the block means re-inception or a new workspace.
+
+**Methods paragraph.** The paragraph reads the values in force (the block, or the defaults) and says which source it used.
+
+**Contract v1.** Adding an optional field to the protocol schema is decided by `generate_contract_baseline.py --check`, not by convenience. If the check moves, this entry is the architecture decision the gate requires. The work then also needs:
+- regenerated schemas and golden fixtures;
+- a negative regression test (a protocol without the block keeps its exact fingerprint; an out-of-range value is refused);
+- independent review.
+
+**Not chosen:**
+- An always-serialized default block. It would have changed every existing fingerprint.
+- Environment variables. They are invisible to the hash.
+- Batch size in the block. It does not change outcomes.
+- An adopt command for existing workspaces.
+
 ## 2026-11-07 — Details on demand (M6-beta)
 
 Each screening screen shows only what the researcher acts on. Identifiers and proofs sit
@@ -94,7 +147,7 @@ The beta is tagged `v1.1.0b1` only after the version fix, so the GitHub Release 
 wheel carry the same version, and nothing named 1.0.0 is published under a beta tag
 (researcher, 2026-11-07).
 
-## 2026-11-06 — Three kinds of parameter, and where each lives (proposed)
+## 2026-11-06 — Three kinds of parameter, and where each lives (proposed; point 2 accepted 2026-11-08, see "Method parameters move into the protocol")
 
 The researcher raised it on 2026-11-06: values are encoded throughout the
 project, screening may not be specific to systematic reviews, and the stages

@@ -102,6 +102,8 @@ export interface RecordDetail {
   binding: Binding;
   my_decision: StoredEvent | null;
   history: StoredEvent[];
+  /** The protocol's not-reported policy (M7-method); older engines omit it. */
+  not_reported_policy?: NotReportedPolicy;
 }
 
 export interface Validator {
@@ -148,7 +150,14 @@ export interface Settings {
   queue_order?: "seeded" | "agent_uncertainty";
   /** What triage does after a decision (M6-beta); a journaled setting. */
   advance_on_decide?: "show_draft_then_next" | "next_at_once";
+  /** Read-only (M7-method): "protocol" when the protocol's method block sets blinding. */
+  blinding_source?: "protocol" | "settings";
+  /** Read-only (M7-method): the protocol's not-reported policy. */
+  not_reported_policy?: NotReportedPolicy;
 }
+
+/** M7-method: what a criterion the abstract does not report does to the outcome. */
+export type NotReportedPolicy = "unclear" | "exclude";
 
 export interface PrismaCheck {
   name: string;

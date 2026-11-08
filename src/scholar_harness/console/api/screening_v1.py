@@ -68,10 +68,31 @@ def _workspace_id(ws: Path) -> str:
     return str(manifest.get("registered_workspace_id") or manifest.get("project_id") or "")
 
 
-def load_settings(ws: Path) -> dict[str, Any]:
+#: Read-only fields the settings report but never store (M7-method).
+DERIVED_SETTINGS = ("blinding_source", "not_reported_policy")
+
+
+def _stored_settings(ws: Path) -> dict[str, Any]:
     path = ws / SETTINGS_FILE
     stored = json.loads(path.read_text(encoding="utf-8")) if path.is_file() else {}
-    return {**DEFAULT_SETTINGS, **stored}
+    return {**DEFAULT_SETTINGS, **{k: v for k, v in stored.items() if k not in DERIVED_SETTINGS}}
+
+
+def load_settings(ws: Path) -> dict[str, Any]:
+    """The settings in force. Blinding comes from the protocol when its method
+    block sets it (M7-method, decision 2026-11-08); an invalid block refuses."""
+    from ...screening.method import MethodInvalid, effective_method
+
+    settings = _stored_settings(ws)
+    try:
+        method = effective_method(ws)
+    except MethodInvalid as exc:
+        raise _error(409, exc.code, str(exc)) from exc
+    if method.source == "protocol":
+        settings["blinding"] = method.config.blinding
+    settings["blinding_source"] = "protocol" if method.source == "protocol" else "settings"
+    settings["not_reported_policy"] = method.config.not_reported
+    return settings
 
 
 def _papers(ws: Path, context: ev.ScreeningContext) -> dict[str, dict[str, Any]]:
@@ -230,6 +251,9 @@ def record(study_id: str, request: Request) -> dict[str, Any]:
         },
         "my_decision": winners.get(study_id),
         "history": [e for e in events if e["study_id"] == study_id],
+        # M7-method: the protocol's not-reported policy, so the screen offers
+        # the reason the rule table would give.
+        "not_reported_policy": settings["not_reported_policy"],
     }
 
 
@@ -371,6 +395,14 @@ def put_settings(body: SettingsBody, request: Request) -> dict[str, Any]:
     ws = _ws(request)
     current = load_settings(ws)
     update = {k: v for k, v in body.model_dump().items() if v is not None and k != "confirm_ai_agreed_exclusion"}
+    if current["blinding_source"] == "protocol" and update.get("blinding") not in (None, current["blinding"]):
+        raise _error(
+            409,
+            refusals.BLINDING_SET_BY_PROTOCOL,
+            f"the protocol's method block sets blinding to {current['blinding']!r}; change the protocol to change it",
+        )
+    if current["blinding_source"] == "protocol":
+        update.pop("blinding", None)  # the same value: nothing to record
     if update.get("blinding") not in (None, "reveal_after_decision", "show"):
         raise _error(422, "INVALID_OUTPUT", "blinding must be reveal_after_decision or show")
     if update.get("mode") not in (None, "human_sees_every_record", "ai_agreed_exclusion"):
@@ -386,7 +418,9 @@ def put_settings(body: SettingsBody, request: Request) -> dict[str, Any]:
                 "INVALID_OUTPUT",
                 "AI-agreed exclusion needs confirm_ai_agreed_exclusion=true and a sample_audit_size",
             )
-    new = {**current, **update}
+    if not update:
+        return current  # nothing changed (e.g. the protocol's own blinding value repeated)
+    new = {**_stored_settings(ws), **update}
     atomic_write_text(ws / SETTINGS_FILE, json.dumps(new, indent=2, sort_keys=True) + "\n")
     append_event(
         ws,
@@ -397,7 +431,7 @@ def put_settings(body: SettingsBody, request: Request) -> dict[str, Any]:
         parameters={"before": {k: current[k] for k in update}, "after": update},
         refresh_index=False,
     )
-    return new
+    return load_settings(ws)
 
 
 #: What the approver name is: a name typed on this computer, not a verified
@@ -499,6 +533,17 @@ def _corpus_error(exc: Any) -> HTTPException:
     return _error(_CORPUS_STATUS.get(exc.code, 409), exc.code, str(exc))
 
 
+def _corpus_view(ws: Path) -> dict[str, Any]:
+    """`corpus_status` with its refusals typed (M7-method review finding 1:
+    an invalid method block answers 409, never 500)."""
+    from ...corpus_accept import AcceptCorpusRefused, corpus_status
+
+    try:
+        return corpus_status(ws)
+    except AcceptCorpusRefused as exc:
+        raise _corpus_error(exc) from exc
+
+
 class CorpusSourceBody(BaseModel):
     """One export file, sent as base64 so the stored copy is the researcher's bytes."""
 
@@ -513,15 +558,13 @@ class CorpusSourceBody(BaseModel):
 @router.get("/corpus")
 def get_corpus(request: Request) -> dict[str, Any]:
     """The corpus import: staged database exports, the counts acceptance would give, or what was accepted."""
-    from ...corpus_accept import corpus_status
-
-    return corpus_status(_ws(request))
+    return _corpus_view(_ws(request))
 
 
 @router.post("/corpus/sources", status_code=201)
 def post_corpus_source(body: CorpusSourceBody, request: Request) -> dict[str, Any]:
     """Stage one database's RIS export (desktop only, journaled). Nothing is accepted yet."""
-    from ...corpus_accept import AcceptCorpusRefused, corpus_status, stage_ris_source
+    from ...corpus_accept import AcceptCorpusRefused, stage_ris_source
 
     ws = _ws(request)
     try:
@@ -535,29 +578,29 @@ def post_corpus_source(body: CorpusSourceBody, request: Request) -> dict[str, An
         )
     except AcceptCorpusRefused as exc:
         raise _corpus_error(exc) from exc
-    return corpus_status(ws)
+    return _corpus_view(ws)
 
 
 @router.post("/corpus/sources/{source_id}/remove")
 def remove_corpus_source(source_id: str, request: Request) -> dict[str, Any]:
     """Drop one staged export file before acceptance (journaled)."""
-    from ...corpus_accept import AcceptCorpusRefused, corpus_status, remove_staged_source
+    from ...corpus_accept import AcceptCorpusRefused, remove_staged_source
 
     ws = _ws(request)
     try:
         remove_staged_source(ws, source_id)
     except AcceptCorpusRefused as exc:
         raise _corpus_error(exc) from exc
-    return corpus_status(ws)
+    return _corpus_view(ws)
 
 
 @router.post("/corpus/accept")
 def accept_corpus_route(request: Request) -> dict[str, Any]:
     """Freeze the staged exports into the Contract-v1 corpus snapshot (the acceptance gate decides)."""
-    from ...corpus_accept import AcceptCorpusRefused, accept_corpus, corpus_status, staged_sources
+    from ...corpus_accept import AcceptCorpusRefused, accept_corpus, staged_sources
 
     ws = _ws(request)
-    status = corpus_status(ws)
+    status = _corpus_view(ws)
     if status["state"] == "ACCEPTED":
         raise _error(409, "CORPUS_ALREADY_ACCEPTED", "the corpus is already accepted")
     if not staged_sources(ws) and not status["from_discovery"]:
@@ -566,7 +609,7 @@ def accept_corpus_route(request: Request) -> dict[str, Any]:
         accept_corpus(ws)
     except AcceptCorpusRefused as exc:
         raise _corpus_error(exc) from exc
-    return corpus_status(ws)
+    return _corpus_view(ws)
 
 
 class PrepareBody(BaseModel):

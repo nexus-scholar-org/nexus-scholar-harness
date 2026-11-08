@@ -303,8 +303,14 @@ def build_corpus_snapshot_artifact(
     provider_warnings: list[str] | None = None,
     provider_errors: list[dict[str, Any]] | None = None,
     commit: str | None = None,
+    deduplicator: Deduplicator | None = None,
 ) -> CorpusSnapshotBuild:
-    """Deduplicate records and emit a deterministic Contract-v1 corpus snapshot."""
+    """Deduplicate records and emit a deterministic Contract-v1 corpus snapshot.
+
+    ``deduplicator`` carries the protocol's ``method.dedup`` values (M7-method);
+    the default is today's tiers. The snapshot binds the protocol fingerprint,
+    which covers those values when the protocol sets them.
+    """
 
     if not documents:
         raise ValueError("a corpus snapshot requires at least one source record")
@@ -321,7 +327,7 @@ def build_corpus_snapshot_artifact(
         id(document): _stable_id("REC-", _record_identity(document))
         for document in working_documents
     }
-    clusters = Deduplicator().deduplicate(working_documents)
+    clusters = (deduplicator or Deduplicator()).deduplicate(working_documents)
 
     studies: list[dict[str, Any]] = []
     record_to_study: dict[str, str] = {}

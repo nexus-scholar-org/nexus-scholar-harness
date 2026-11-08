@@ -42,6 +42,7 @@ const en = {
   notReported: "Not reported",
   // M6-beta (spec 03 amendments)
   excludeReady: "Exclude is ready: {id} answered {answer}",
+  excludeReadyNotReported: "Exclude is ready: {id} not reported (your protocol excludes when not reported)",
   includeNeeds: "Include needs {ids}",
   includeNeedsYes: "Include needs {ids} to be yes",
   includeReady: "Include is ready",
@@ -149,6 +150,7 @@ const fr: Record<TriageCopyKey, string> = {
   notReported: "Non rapporté",
   // M6-beta (spec 03 amendments)
   excludeReady: "Exclusion possible : {id} répondu {answer}",
+  excludeReadyNotReported: "Exclusion possible : {id} non rapporté (votre protocole exclut ce qui n'est pas rapporté)",
   includeNeeds: "L'inclusion demande {ids}",
   includeNeedsYes: "L'inclusion demande que {ids} soit oui",
   includeReady: "Inclusion possible",
@@ -254,6 +256,7 @@ const ar: Record<TriageCopyKey, string> = {
   notReported: "غير مذكور",
   // M6-beta (spec 03 amendments)
   excludeReady: "الاستبعاد جاهز: أُجيب عن {id} بـ {answer}",
+  excludeReadyNotReported: "الاستبعاد جاهز: {id} غير مذكور (يستبعد بروتوكولك ما لم يُذكر)",
   includeNeeds: "يحتاج الإدراج إلى {ids}",
   includeNeedsYes: "يحتاج الإدراج أن تكون {ids} بنعم",
   includeReady: "الإدراج جاهز",

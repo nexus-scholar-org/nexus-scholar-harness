@@ -444,7 +444,7 @@ function TriageScreen({ locale }: Readonly<{ locale: Locale }>) {
   const decided = record?.my_decision ?? null;
   const deciding = record !== null && (decided === null || editing) && conflict === null;
   // Answer until decisive (spec 03 amendment 1): what the answers so far make possible.
-  const decisive = record !== null ? decisiveFor(record.criteria, answers) : null;
+  const decisive = record !== null ? decisiveFor(record.criteria, answers, record.not_reported_policy ?? "unclear") : null;
   const canInclude = decisive?.include ?? false;
   const canExclude = decisive?.exclude ?? false;
   const reasons = record ? reasonOptions(record.criteria) : [];
@@ -551,7 +551,9 @@ function TriageScreen({ locale }: Readonly<{ locale: Locale }>) {
   const statusLine = !decisive
     ? ""
     : decisive.failed
-      ? t("excludeReady", { id: decisive.failed.id, answer: t(ANSWER_KEY[decisive.failed.answer]).toLocaleLowerCase(locale) })
+      ? decisive.failed.answer === "not_reported"
+        ? t("excludeReadyNotReported", { id: decisive.failed.id })
+        : t("excludeReady", { id: decisive.failed.id, answer: t(ANSWER_KEY[decisive.failed.answer]).toLocaleLowerCase(locale) })
       : decisive.include
         ? t("includeReady")
         : decisive.includeNeedsYes.length > 0 && decisive.includeNeedsYes.length === decisive.includeNeeds.length

@@ -161,6 +161,13 @@ def compile_protocol_files(ws_dir: Path, intent: dict) -> dict[str, str]:
     )
 
     compiled = compile_protocol(IntentPacket.model_validate(intent))
+    # M7-method (decision 2026-11-08): a new workspace states its method values in
+    # the signed protocol, filled with today's defaults, rather than leaving them
+    # implicit. Existing workspaces are never rewritten.
+    if compiled.method is None:
+        from scholar_protocol.models import MethodConfig
+
+        compiled = compiled.model_copy(update={"method": MethodConfig()})
     (ws_dir / "protocol.json").write_bytes(canonical_json(compiled))
     (ws_dir / "SCREENING_CRITERIA.md").write_text(
         render_screening_criteria(compiled), encoding="utf-8"

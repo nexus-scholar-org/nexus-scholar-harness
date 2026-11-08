@@ -241,6 +241,7 @@ def stage_ris_source(
     """
     ws = Path(workspace).resolve()
     _refuse_if_frozen(ws)
+    _deduplicator(ws)  # M7-method: an invalid method block refuses before anything is written
     label = _check_label(label)
     if len(content) > MAX_SOURCE_BYTES:
         raise AcceptCorpusRefused(
@@ -305,6 +306,7 @@ def remove_staged_source(workspace: Path | str, source_id: str) -> None:
     """Drop one staged file (by its ``id``) before acceptance; its stored copy goes too."""
     ws = Path(workspace).resolve()
     _refuse_if_frozen(ws)
+    _deduplicator(ws)  # M7-method: an invalid method block refuses before anything is written
     sources = staged_sources(ws)
     keep = [s for s in sources if s["id"] != source_id]
     if len(keep) == len(sources):
@@ -353,6 +355,16 @@ def databases(sources: list[dict[str, Any]]) -> list[dict[str, Any]]:
     return list(rows.values())
 
 
+def _deduplicator(ws: Path) -> Deduplicator:
+    """The protocol's dedup tiers (M7-method); an invalid block refuses."""
+    from scholar_harness.screening.method import MethodInvalid, effective_method
+
+    try:
+        return effective_method(ws).deduplicator()
+    except MethodInvalid as exc:
+        raise AcceptCorpusRefused(str(exc), exc.code) from exc
+
+
 def preview_staged(workspace: Path | str) -> dict[str, Any]:
     """The counts acceptance would produce, without writing anything.
 
@@ -361,7 +373,7 @@ def preview_staged(workspace: Path | str) -> dict[str, Any]:
     """
     ws = Path(workspace).resolve()
     sources, documents = _staged_documents(ws)
-    unique = len(Deduplicator().deduplicate(copy.deepcopy(documents))) if documents else 0
+    unique = len(_deduplicator(ws).deduplicate(copy.deepcopy(documents))) if documents else 0
     return {
         "sources": [
             {k: s[k] for k in ("id", "label", "file_name", "records", "searched_on", "query")} for s in sources
@@ -514,6 +526,9 @@ def accept_corpus(
     """
     ws = Path(workspace).resolve()
     workspace_id = _workspace_id(ws)
+    # The specific refusal first: an invalid method block also fails the full
+    # protocol validation below, which would only say PROTOCOL_INVALID.
+    deduplicator = _deduplicator(ws)
     fingerprint = _protocol_fingerprint(ws)
     if ris:
         _refuse_if_frozen(ws)
@@ -553,6 +568,7 @@ def accept_corpus(
         run_id=run_id,
         protocol_fingerprint=fingerprint,
         created_at=now or datetime.now(UTC),
+        deduplicator=deduplicator,
     )
     artifact = built.artifact
     registry = ws / "audit" / "artifact_registry.json"

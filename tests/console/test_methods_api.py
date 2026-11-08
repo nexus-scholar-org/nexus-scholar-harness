@@ -40,11 +40,12 @@ def _leaves(value) -> list:
 
 def _assert_numbers_trace(body: dict) -> None:
     leaves = _leaves(body["figures"])
-    numbers = {v for v in leaves if isinstance(v, int) and not isinstance(v, bool)}
+    # Decimals are read as decimals (M7-method: the dedup threshold, e.g. 0.97).
+    numbers = {v for v in leaves if isinstance(v, (int, float)) and not isinstance(v, bool)}
     text = body["paragraph"].replace("SHA-256", "")
     for string in sorted({v for v in leaves if isinstance(v, str)}, key=len, reverse=True):
         text = text.replace(string, " ")
-    found = [int(n) for n in re.findall(r"\d+", text)]
+    found = [float(n) if "." in n else int(n) for n in re.findall(r"\d+(?:\.\d+)?", text)]
     assert found, "anti-vacuity: the paragraph states counts"
     assert set(found) <= numbers, (found, numbers)
 
