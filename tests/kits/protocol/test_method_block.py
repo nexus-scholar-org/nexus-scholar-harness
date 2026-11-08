@@ -57,7 +57,7 @@ def test_the_block_is_hashed_and_its_values_count() -> None:
 
 
 def test_the_defaults_are_todays_values() -> None:
-    assert MethodConfig().model_dump(mode="json") == DEFAULT_BLOCK
+    assert MethodConfig().model_dump(mode="json", exclude_none=True) == DEFAULT_BLOCK
 
 
 def test_an_integer_similarity_hashes_like_its_float() -> None:
@@ -111,3 +111,18 @@ def test_the_engine_knows_every_rules_version_the_protocol_accepts() -> None:
     from scholar_harness.screening.proposals import RULES_VERSION
 
     assert RULES_VERSION in KNOWN_RULES_VERSIONS
+
+
+# M7b-guideline G1: the optional reporting key (decision 2026-11-08).
+def test_a_block_without_reporting_hashes_as_before_and_omits_the_key() -> None:
+    protocol = _with(DEFAULT_BLOCK)
+    assert protocol.method.reporting is None
+    assert '"reporting"' not in canonical_json(protocol).decode("utf-8")
+
+
+def test_reporting_is_hashed_when_set_and_unknown_values_are_refused() -> None:
+    plain = canonical_fingerprint(_with(DEFAULT_BLOCK))
+    fingerprints = {canonical_fingerprint(_with({**DEFAULT_BLOCK, "reporting": value})) for value in ("prisma-2020", "prisma-scr", "none")}
+    assert len(fingerprints) == 3 and plain not in fingerprints
+    with pytest.raises(ValidationError):
+        _with({**DEFAULT_BLOCK, "reporting": "prisma-2009"})

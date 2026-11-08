@@ -18,7 +18,7 @@ import {
   type ReviewState,
   type ScreeningBatches,
 } from "@/lib/screening-api";
-import { beginApproval, getApprover, getPrismaPreview, putApprover, type Approver, type PairingBegun, type PrismaPreview } from "@/lib/screening-v1";
+import { beginApproval, getApprover, getPrismaPreview, getSettings, putApprover, type Approver, type PairingBegun, type PrismaPreview } from "@/lib/screening-v1";
 
 /**
  * Publish (spec 09): the PRISMA screening preview with its checks, one
@@ -41,6 +41,8 @@ const COPY = {
     exportLink: "Export and methods",
     loading: "Reading the preview…",
     prisma: "PRISMA 2020 screening preview",
+    prismaScr: "PRISMA-ScR screening preview",
+    prismaNone: "Screening preview",
     preview: "Preview · not written",
     identified: "Records identified",
     duplicates: "Duplicates removed",
@@ -76,6 +78,7 @@ const COPY = {
     publish: "Publish the screening",
     publishGate: "Publish",
     publishBody: "Writes the included, excluded and full-text lists and the PRISMA report for the approved generation.",
+    publishBodyNone: "Writes the included, excluded and full-text lists and the screening counts report for the approved generation.",
     published: "Published generation {id}",
     publishedPlain: "Published",
     batchN: "batch {n}",
@@ -97,6 +100,8 @@ const COPY = {
     exportLink: "Export et méthodes",
     loading: "Lecture de l'aperçu…",
     prisma: "Aperçu de sélection PRISMA 2020",
+    prismaScr: "Aperçu de sélection PRISMA-ScR",
+    prismaNone: "Aperçu de sélection",
     preview: "Aperçu · non écrit",
     identified: "Notices identifiées",
     duplicates: "Doublons retirés",
@@ -132,6 +137,7 @@ const COPY = {
     publish: "Publier la sélection",
     publishGate: "Publication",
     publishBody: "Écrit les listes d'inclusions, d'exclusions et de texte intégral ainsi que le rapport PRISMA de la génération approuvée.",
+    publishBodyNone: "Écrit les listes d'inclusions, d'exclusions et de texte intégral ainsi que le rapport des effectifs de la sélection de la génération approuvée.",
     published: "Génération publiée {id}",
     publishedPlain: "Publiée",
     batchN: "lot {n}",
@@ -153,6 +159,8 @@ const COPY = {
     exportLink: "التصدير والمنهجية",
     loading: "جارٍ قراءة المعاينة…",
     prisma: "معاينة فرز PRISMA 2020",
+    prismaScr: "معاينة فرز PRISMA-ScR",
+    prismaNone: "معاينة الفرز",
     preview: "معاينة · لم تُكتب",
     identified: "السجلات المحددة",
     duplicates: "المكررات المحذوفة",
@@ -188,6 +196,7 @@ const COPY = {
     publish: "نشر نتائج الفرز",
     publishGate: "النشر",
     publishBody: "يكتب قوائم المُدرجة والمستبعدة والنص الكامل وتقرير PRISMA للجيل المعتمد.",
+    publishBodyNone: "يكتب قوائم المُدرجة والمستبعدة والنص الكامل وتقرير أعداد الفرز للجيل المعتمد.",
     published: "نُشر الجيل {id}",
     publishedPlain: "نُشر",
     batchN: "الدفعة {n}",
@@ -222,7 +231,16 @@ function codeOf(error: unknown): { code: string; message: string } {
   return isScreeningApiError(error) ? { code: error.code, message: error.serverMessage } : { code: "ENGINE_UNREACHABLE", message: "" };
 }
 
-type Loaded = { preview: PrismaPreview; batches: ScreeningBatches; reviews: Record<number, ReviewState>; current: boolean; staleChanged: number | null; approver: Approver };
+type Loaded = {
+  preview: PrismaPreview;
+  batches: ScreeningBatches;
+  reviews: Record<number, ReviewState>;
+  current: boolean;
+  staleChanged: number | null;
+  approver: Approver;
+  /** The reporting guideline in force (M7b-guideline); an engine without it reads as PRISMA 2020. */
+  reporting: string;
+};
 
 export function ScreeningPublish({ locale }: Readonly<{ locale: Locale }>) {
   const t = useCallback((key: PublishCopyKey, values?: Record<string, string | number>) => fill(PUBLISH_COPY[locale][key], values), [locale]);
@@ -240,7 +258,7 @@ export function ScreeningPublish({ locale }: Readonly<{ locale: Locale }>) {
 
   const load = useCallback(async () => {
     try {
-      const [preview, batches, publication, approver] = await Promise.all([
+      const [preview, batches, publication, approver, reporting] = await Promise.all([
         getPrismaPreview(origin),
         getScreeningBatches(origin),
         // Spec 10, decision 3: the export link shows only while the publication is CURRENT.
@@ -253,11 +271,17 @@ export function ScreeningPublish({ locale }: Readonly<{ locale: Locale }>) {
           () => ({ current: false, staleChanged: null }),
         ),
         getApprover(origin),
+        // M7b-guideline (spec 09): an engine without the field reads as PRISMA 2020;
+        // a failed call names no guideline rather than guessing one (review 2).
+        getSettings(origin).then(
+          (s) => s.reporting ?? "prisma-2020",
+          () => "none",
+        ),
       ]);
       const reviews = Object.fromEntries(
         await Promise.all(batches.batches.map(async (b) => [b.batch_index, await getBatchReview(origin, b.batch_index)] as const)),
       );
-      setState({ status: "ready", data: { preview, batches, reviews, current: publication.current, staleChanged: publication.staleChanged, approver } });
+      setState({ status: "ready", data: { preview, batches, reviews, current: publication.current, staleChanged: publication.staleChanged, approver, reporting } });
     } catch (error) {
       setState({ status: "error", ...codeOf(error) });
     }
@@ -283,7 +307,7 @@ export function ScreeningPublish({ locale }: Readonly<{ locale: Locale }>) {
   const body = (() => {
     if (state.status === "loading") return <p className="text-ink-muted" role="status">{t("loading")}</p>;
     if (state.status === "error") return <StateCard pageHeading locale={locale} code={state.code} message={state.message} consoleOrigin={origin} onRetry={() => void load()} />;
-    const { preview, batches, reviews, current, staleChanged, approver } = state.data;
+    const { preview, batches, reviews, current, staleChanged, approver, reporting } = state.data;
     const allPass = preview.checks.every((c) => c.ok);
     const allApproved = batches.batches.every((b) => reviews[b.batch_index]?.review.present);
     const reasons = Object.entries(preview.excluded.by_reason).sort(([a], [b]) => a.localeCompare(b));
@@ -331,7 +355,7 @@ export function ScreeningPublish({ locale }: Readonly<{ locale: Locale }>) {
             <section aria-labelledby="publish-prisma" className="rounded-lg border border-rule bg-leaf p-5">
               <div className="flex flex-wrap items-center gap-2">
                 <h2 id="publish-prisma" className="font-semibold text-ink">
-                  {t("prisma")}
+                  {t(reporting === "prisma-scr" ? "prismaScr" : reporting === "none" ? "prismaNone" : "prisma")}
                 </h2>
                 <DecisionBadge role="exclude">{t("preview")}</DecisionBadge>
               </div>
@@ -572,7 +596,7 @@ export function ScreeningPublish({ locale }: Readonly<{ locale: Locale }>) {
                 </Button>
               }
             >
-              {t("publishBody")}
+              {t(reporting === "none" ? "publishBodyNone" : "publishBody")}
             </GatePanel>
           </div>
         </div>

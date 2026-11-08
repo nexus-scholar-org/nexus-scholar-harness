@@ -167,7 +167,11 @@ def compile_protocol_files(ws_dir: Path, intent: dict) -> dict[str, str]:
     if compiled.method is None:
         from scholar_protocol.models import MethodConfig
 
-        compiled = compiled.model_copy(update={"method": MethodConfig()})
+        from ..screening.method import DEFAULT_REPORTING, PLAYBOOK_REPORTING
+
+        # M7b-guideline: the guideline the playbook implies is stated, not implied.
+        reporting = PLAYBOOK_REPORTING.get(compiled.playbook_type.value, DEFAULT_REPORTING)
+        compiled = compiled.model_copy(update={"method": MethodConfig(reporting=reporting)})
     (ws_dir / "protocol.json").write_bytes(canonical_json(compiled))
     (ws_dir / "SCREENING_CRITERIA.md").write_text(
         render_screening_criteria(compiled), encoding="utf-8"

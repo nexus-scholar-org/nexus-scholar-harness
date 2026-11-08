@@ -4,6 +4,45 @@ One entry per decision that still shapes the code, newest first. The full
 records were removed in the 2026-11-03 docs cut; each entry names the commit
 history to read if you need the original reasoning (`git log --follow -- <path>`).
 
+## 2026-11-08 — Reporting follows a guideline chosen in the protocol (accepted; plan step 11)
+
+This accepts the 2026-11-06 consequence that screening is not specific to systematic reviews. The researcher chose the options below on 2026-11-08.
+
+**The key.** The protocol's `method` block gains an optional `reporting` key, with three values: `prisma-2020`, `prisma-scr` or `none`. When the key is absent, or the protocol has no block at all, the guideline comes from `playbook_type`:
+
+| Playbook type | Guideline |
+| :-- | :-- |
+| `PRISMA_SLR` | `prisma-2020` |
+| `RAPID_EVIDENCE` | `prisma-2020` (rapid reviews usually report against PRISMA 2020) |
+| `STUDENT_DISSERTATION` | `prisma-2020` |
+| `SCOPING_REVIEW` | `prisma-scr` |
+| `DESIGN_SCIENCE` | `none` (no systematic-search claim) |
+
+A protocol may still set any of the three values to override this.
+
+**Fingerprint.** An absent `reporting` is left out of the canonical JSON, the same way an absent block is. So no existing protocol's fingerprint changes, including protocols written with the M7-method block. New workspaces write the derived value into their block, so the signed protocol states it.
+
+**What the guideline changes.** Only the labels and one sentence.
+- **Screen labels name the guideline.**
+  - Publish's preview reads "PRISMA 2020 screening preview", "PRISMA-ScR screening preview" or "Screening preview".
+  - Export's counts heading reads "PRISMA 2020 counts", "PRISMA-ScR counts" or "Screening counts".
+  - Export's language note names the matching flow diagram, or "your flow diagram".
+- **The methods paragraph adds one sentence after the source sentence:**
+  - `prisma-2020`: "The screening is reported following PRISMA 2020."
+  - `prisma-scr`: "The screening is reported following PRISMA-ScR, the PRISMA extension for scoping reviews."
+  - `none`: no sentence.
+- **`figures.method.reporting` and `figures.method.reporting_source`** carry the value and where it came from: `protocol` or `playbook`, or `defaults` when there is no readable protocol (review, 2026-11-08). **`figures.method.reporting_label`** carries the name the sentence states ("PRISMA 2020", "PRISMA-ScR", or null for `none`), so the number in "PRISMA 2020" traces to a figure.
+
+**What does not change:**
+- The counts, their meaning and the counts sentence.
+- The engine and the rule table.
+- The published file `prisma_report.json`. It is a publication artifact that digests and currentness checks depend on, so it keeps its name under every guideline.
+
+**Not chosen:**
+- Always deriving from `playbook_type`, which would leave no way to override it.
+- PRISMA-ScR's "sources of evidence" wording in the counts sentence and labels. It is deferred to the parked PRISMA-ScR checklist work.
+- Renaming `prisma_report.json`.
+
 ## 2026-11-08 — Method parameters move into the protocol (accepted; plan step 10)
 
 Accepts point 2 of "Three kinds of parameter" (2026-11-06) with the researcher's choices of 2026-11-08.

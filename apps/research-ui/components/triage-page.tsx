@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 
 import type { Locale } from "@/i18n";
 import { Button, DataCell, DecisionBadge, EvidenceQuote, type DecisionRole } from "@/components/ui/base";
@@ -483,7 +483,10 @@ function TriageScreen({ locale }: Readonly<{ locale: Locale }>) {
     window.addEventListener("keydown", listener);
     return () => window.removeEventListener("keydown", listener);
   }, []);
-  useEffect(() => {
+  // Swapped in a layout effect, before paint (M7b, the deferred triage race): with
+  // a passive effect a key pressed once the next record was visible could still
+  // reach the previous record's handler, and the decision was silently dropped.
+  useLayoutEffect(() => {
     keyHandler.current = function onKey(event: KeyboardEvent) {
       // Enter confirms the chosen reason, but never from a text field or a
       // focused button, which keep their own Enter (review 7).

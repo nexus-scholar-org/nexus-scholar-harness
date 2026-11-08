@@ -38,7 +38,7 @@ function review(approved: boolean) {
   };
 }
 
-function engine(options: { preview?: unknown; approved?: boolean; redeem?: Response; publication?: string; approver?: string | null } = {}) {
+function engine(options: { preview?: unknown; approved?: boolean; redeem?: Response; publication?: string; approver?: string | null; reporting?: string } = {}) {
   let approved = options.approved ?? false;
   let approver = options.approver === undefined ? "Researcher" : options.approver;
   const log: { method: string; path: string; body: unknown }[] = [];
@@ -51,6 +51,9 @@ function engine(options: { preview?: unknown; approved?: boolean; redeem?: Respo
       log.push({ method, path, body });
       const ok = (b: unknown) => new Response(JSON.stringify(b), { status: 200, headers: { "content-type": "application/json" } });
       if (path === "/prisma/preview") return ok(options.preview ?? PREVIEW);
+      if (path === "/settings" && options.reporting === "error") return new Response(JSON.stringify({ detail: { code: "PROTOCOL_METHOD_INVALID" } }), { status: 409 });
+      if (path === "/settings" && options.reporting) return ok({ reporting: options.reporting, reporting_source: "protocol" });
+      if (path === "/settings") return ok({ blinding: "reveal_after_decision" }); // an engine without the field
       if (path === "/ui/batches") return ok(BATCHES);
       if (path === "/approver") {
         if (method === "PUT") approver = (body as { name: string }).name;
@@ -220,5 +223,42 @@ describe("publish.details (M6-beta, spec 09 amendment)", () => {
     });
     expect(notice).toHaveTextContent("Decisions changed after this was published (2 studies). Approve and publish again.");
     expect(within(notice as HTMLElement).getByText("GENERATION_STALE").closest("details")).not.toBeNull();
+  });
+});
+
+
+// M7b-guideline (spec 09 amendment 2026-11-08): the preview names the guideline.
+describe("publish.reporting", () => {
+  it.each([
+    ["prisma-2020", "PRISMA 2020 screening preview"],
+    ["prisma-scr", "PRISMA-ScR screening preview"],
+    ["none", "Screening preview"],
+  ])("heading follows %s", async (reporting, heading) => {
+    engine({ reporting });
+    render(<ScreeningPublish locale="en" />);
+    expect(await screen.findByText(heading)).toBeInTheDocument();
+  });
+
+  it("names the screening counts report under none, and reads an absent guideline as PRISMA 2020", async () => {
+    engine({ reporting: "none" });
+    const { unmount } = render(<ScreeningPublish locale="en" />);
+    expect(await screen.findByText(/the screening counts report for the approved generation/)).toBeInTheDocument();
+    unmount();
+    engine();
+    render(<ScreeningPublish locale="en" />);
+    expect(await screen.findByText("PRISMA 2020 screening preview")).toBeInTheDocument();
+  });
+
+  it("names no guideline when the settings call fails (review 2)", async () => {
+    engine({ reporting: "error" });
+    render(<ScreeningPublish locale="en" />);
+    expect(await screen.findByText("Screening preview")).toBeInTheDocument();
+    expect(screen.queryByText("PRISMA 2020 screening preview")).toBeNull();
+  });
+
+  it("has the three variants in every locale", () => {
+    for (const locale of SUPPORTED_LOCALES) {
+      for (const key of ["prisma", "prismaScr", "prismaNone", "publishBodyNone"] as const) expect(PUBLISH_COPY[locale][key]).toBeTruthy();
+    }
   });
 });

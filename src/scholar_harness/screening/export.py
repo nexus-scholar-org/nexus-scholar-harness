@@ -435,6 +435,13 @@ def _dedup_sentence(dedup: Any) -> str:
     )
 
 
+GUIDELINE_LABELS = {"prisma-2020": "PRISMA 2020", "prisma-scr": "PRISMA-ScR"}
+
+GUIDELINE_SENTENCES = {
+    "prisma-2020": "The screening is reported following PRISMA 2020.",
+    "prisma-scr": "The screening is reported following PRISMA-ScR, the PRISMA extension for scoping reviews.",
+}
+
 NOT_REPORTED_SENTENCES = {
     "unclear": "A criterion the title and abstract did not report sent the record to full-text assessment.",
     "exclude": "An inclusion criterion the title and abstract did not report excluded the record.",
@@ -580,7 +587,16 @@ def build_methods(ws: Path) -> dict[str, Any]:
     except MethodInvalid as exc:
         raise ExportRefused(409, exc.code, str(exc)) from exc
     sentences.append(_dedup_sentence(method.config.dedup))
-    figures["method"] = {**method.config.model_dump(mode="json"), "source": method.source}
+    figures["method"] = {
+        **method.config.model_dump(mode="json", exclude={"reporting"}),
+        "source": method.source,
+        # M7b-guideline: the guideline in force and where it came from.
+        "reporting": method.reporting,
+        "reporting_source": method.reporting_source,
+        # The name the sentence states (M7b review 1): "PRISMA 2020" carries a
+        # number, and every number in the paragraph must trace to a figure.
+        "reporting_label": GUIDELINE_LABELS.get(method.reporting),
+    }
     if "UNSPECIFIED" in reasons:
         caveats.append(
             f"{reasons['UNSPECIFIED']} exclusions in this older publication are counted as unspecified; "
@@ -603,6 +619,9 @@ def build_methods(ws: Path) -> dict[str, Any]:
         if method.source == "protocol"
         else f"These are the harness defaults ({method.config.rules_version}); the protocol does not set them."
     )
+    # M7b-guideline: the reporting guideline (none states nothing).
+    if method.reporting in GUIDELINE_SENTENCES:
+        sentences.append(GUIDELINE_SENTENCES[method.reporting])
 
     # 3. Agent use
     have_proposals = source(pr.PROPOSALS_FILE)

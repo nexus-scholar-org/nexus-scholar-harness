@@ -321,6 +321,24 @@
           ],
           "title": "Blinding",
           "type": "string"
+        },
+        "reporting": {
+          "anyOf": [
+            {
+              "enum": [
+                "prisma-2020",
+                "prisma-scr",
+                "none"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Reporting guideline (M7b-guideline). Absent means derived from playbook_type; absent is left out of the fingerprint.",
+          "title": "Reporting"
         }
       },
       "title": "MethodConfig",
