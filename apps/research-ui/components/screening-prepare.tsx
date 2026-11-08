@@ -28,6 +28,10 @@ const COPY = {
     ruleExclude: "Otherwise exclude: any exclusion criterion answered yes, or any inclusion criterion answered no.",
     ruleUnclear: "First, Unclear → full text: a check on the draft failed, the agent could not decide, or any criterion is not reported.",
     ruleInclude: "Otherwise include: every inclusion yes and every exclusion no.",
+    ruleUnclearExcludePolicy: "First, Unclear → full text: a check on the draft failed or the agent could not decide.",
+    ruleExcludeExcludePolicy: "Otherwise exclude: any exclusion criterion answered yes, any inclusion criterion answered no, or any inclusion criterion not reported.",
+    ruleIncludeExcludePolicy: "Otherwise include: every inclusion yes and no exclusion yes.",
+    setByProtocol: "Set by your protocol",
     settings: "While screening",
     blinding: "The agent's draft",
     blindingAfter: "Reveal after my decision (recommended)",
@@ -67,6 +71,10 @@ const COPY = {
     ruleExclude: "Sinon exclure : un critère d'exclusion répondu oui, ou un critère d'inclusion répondu non.",
     ruleUnclear: "D'abord, Incertain → texte intégral : un contrôle du brouillon a échoué, l'agent n'a pas pu décider, ou un critère n'est pas rapporté.",
     ruleInclude: "Sinon inclure : toutes les inclusions à oui et toutes les exclusions à non.",
+    ruleUnclearExcludePolicy: "D'abord, Incertain → texte intégral : un contrôle du brouillon a échoué ou l'agent n'a pas pu décider.",
+    ruleExcludeExcludePolicy: "Sinon exclure : un critère d'exclusion répondu oui, un critère d'inclusion répondu non, ou un critère d'inclusion non rapporté.",
+    ruleIncludeExcludePolicy: "Sinon inclure : toutes les inclusions à oui et aucune exclusion à oui.",
+    setByProtocol: "Défini par votre protocole",
     settings: "Pendant la sélection",
     blinding: "Le brouillon de l'agent",
     blindingAfter: "L'afficher après ma décision (recommandé)",
@@ -106,6 +114,10 @@ const COPY = {
     ruleExclude: "وإلا فاستبعاد: أي معيار استبعاد أجيب بنعم، أو أي معيار إدراج أجيب بلا.",
     ruleUnclear: "أولًا، غير واضح ← النص الكامل: فشل فحص على المسودة، أو لم يتمكن الوكيل من القرار، أو معيار غير مذكور.",
     ruleInclude: "وإلا فإدراج: كل معايير الإدراج نعم وكل معايير الاستبعاد لا.",
+    ruleUnclearExcludePolicy: "أولًا، غير واضح ← النص الكامل: فشل فحص على المسودة أو لم يتمكن الوكيل من القرار.",
+    ruleExcludeExcludePolicy: "وإلا فاستبعاد: أي معيار استبعاد أجيب بنعم، أو أي معيار إدراج أجيب بلا، أو أي معيار إدراج غير مذكور.",
+    ruleIncludeExcludePolicy: "وإلا فإدراج: كل معايير الإدراج نعم ولا معيار استبعاد بنعم.",
+    setByProtocol: "محدَّد في بروتوكولك",
     settings: "أثناء الفرز",
     blinding: "مسودة الوكيل",
     blindingAfter: "اعرضها بعد قراري (موصى به)",
@@ -193,7 +205,8 @@ export function ScreeningPrepare({ locale }: Readonly<{ locale: Locale }>) {
     try {
       const turningOn = draft.mode === "ai_agreed_exclusion" && settings.mode !== "ai_agreed_exclusion";
       const next = await putSettings(origin, {
-        blinding: draft.blinding,
+        // Never sent when the protocol sets it (M7-method, spec 02 amendment).
+        ...(settings.blinding_source === "protocol" ? {} : { blinding: draft.blinding }),
         mode: draft.mode,
         // Sent only when it changes, so saving other settings journals no no-op row (M6-beta).
         ...(draft.advance_on_decide && draft.advance_on_decide !== settings.advance_on_decide ? { advance_on_decide: draft.advance_on_decide } : {}),
@@ -253,6 +266,9 @@ export function ScreeningPrepare({ locale }: Readonly<{ locale: Locale }>) {
     const aiNeedsConfirm = draft.mode === "ai_agreed_exclusion" && settings.mode !== "ai_agreed_exclusion";
     const canSave = !aiNeedsConfirm || (aiConfirmed && (draft.sample_audit_size ?? 0) > 0);
     const stale = batches.batches.some((b) => b.binding?.state === "STALE_BINDING");
+    // M7-method: the protocol's method block may set blinding and the not-reported policy.
+    const blindingFromProtocol = settings.blinding_source === "protocol";
+    const excludePolicy = settings.not_reported_policy === "exclude";
 
     return (
       <div className="space-y-6">
@@ -275,9 +291,9 @@ export function ScreeningPrepare({ locale }: Readonly<{ locale: Locale }>) {
               </h2>
               <p className="mt-1 text-sm text-ink-muted">{t("rulesBody")}</p>
               <ol className="mt-3 grid gap-3 sm:grid-cols-3">
-                <li className="rounded-md bg-unclear-soft p-3 text-sm text-ink">{t("ruleUnclear")}</li>
-                <li className="rounded-md bg-exclude-soft p-3 text-sm text-ink">{t("ruleExclude")}</li>
-                <li className="rounded-md bg-include-soft p-3 text-sm text-ink">{t("ruleInclude")}</li>
+                <li className="rounded-md bg-unclear-soft p-3 text-sm text-ink">{t(excludePolicy ? "ruleUnclearExcludePolicy" : "ruleUnclear")}</li>
+                <li className="rounded-md bg-exclude-soft p-3 text-sm text-ink">{t(excludePolicy ? "ruleExcludeExcludePolicy" : "ruleExclude")}</li>
+                <li className="rounded-md bg-include-soft p-3 text-sm text-ink">{t(excludePolicy ? "ruleIncludeExcludePolicy" : "ruleInclude")}</li>
               </ol>
             </section>
 
@@ -285,11 +301,28 @@ export function ScreeningPrepare({ locale }: Readonly<{ locale: Locale }>) {
               <h2 id="prepare-settings" className="font-semibold text-ink">
                 {t("settings")}
               </h2>
-              <fieldset className="mt-3">
+              <fieldset
+                className="mt-3"
+                aria-readonly={blindingFromProtocol ? "true" : undefined}
+                aria-describedby={blindingFromProtocol ? "blinding-protocol" : undefined}
+              >
                 <legend className="text-sm font-semibold text-ink">{t("blinding")}</legend>
+                {blindingFromProtocol ? (
+                  <p id="blinding-protocol" className="mt-1 text-sm text-ink-muted">
+                    {t("setByProtocol")}
+                  </p>
+                ) : null}
                 {(["reveal_after_decision", "show"] as const).map((value) => (
                   <label key={value} className="mt-2 flex min-h-11 items-center gap-2 text-ink">
-                    <input type="radio" name="blinding" checked={draft.blinding === value} onChange={() => setDraft({ ...draft, blinding: value })} />
+                    <input
+                      type="radio"
+                      name="blinding"
+                      checked={draft.blinding === value}
+                      // Read-only, not disabled (spec 02 amendment): the protocol's value stays selected.
+                      onChange={() => {
+                        if (!blindingFromProtocol) setDraft({ ...draft, blinding: value });
+                      }}
+                    />
                     {value === "show" ? t("blindingShow") : t("blindingAfter")}
                   </label>
                 ))}

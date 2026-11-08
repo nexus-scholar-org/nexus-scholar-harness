@@ -8,7 +8,7 @@
  * a chip the protocol does not know is refused there (`REASON_CODE_INVALID`).
  */
 
-import type { Criterion, CriterionAnswer, Proposal, Settings, StoredEvent } from "./screening-v1";
+import type { Criterion, CriterionAnswer, NotReportedPolicy, Proposal, Settings, StoredEvent } from "./screening-v1";
 
 /**
  * Whether the screen may request the agent's draft for a record.
@@ -61,10 +61,15 @@ export interface Decisiveness {
 export function decisiveFor(
   criteria: readonly Criterion[],
   answers: Readonly<Record<string, CriterionAnswer["answer"]>>,
+  /** The protocol's not-reported policy (M7-method, spec 03 amendment 2026-11-08). */
+  policy: NotReportedPolicy = "unclear",
 ): Decisiveness {
-  const failing = criteria.find(
-    (c) => (c.kind === "inclusion" && answers[c.id] === "no") || (c.kind === "exclusion" && answers[c.id] === "yes"),
-  );
+  // A definite failure first, in protocol order; under "exclude" an inclusion
+  // answered "not reported" fails after it. An exclusion not reported never fails.
+  const failing =
+    criteria.find(
+      (c) => (c.kind === "inclusion" && answers[c.id] === "no") || (c.kind === "exclusion" && answers[c.id] === "yes"),
+    ) ?? (policy === "exclude" ? criteria.find((c) => c.kind === "inclusion" && answers[c.id] === "not_reported") : undefined);
   const notYes = criteria.filter((c) => c.kind === "inclusion" && answers[c.id] !== "yes");
   return {
     exclude: failing !== undefined,

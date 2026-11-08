@@ -297,6 +297,25 @@ export const STATES: Record<string, StateEntry> = {
       ar: T("السبب يناقض إجاباتك", "يذكر سبب الاستبعاد معيارًا أجبت عنه بعكس ذلك. غيّر الإجابة أو السبب.", "ذلك القرار؛ لم يُسجَّل شيء", "غيّر الإجابة أو السبب"),
     },
   },
+  // M7-method (spec 02 amendment 2026-11-08): the protocol's method block.
+  BLINDING_SET_BY_PROTOCOL: {
+    role: "blocked",
+    action: "reload",
+    copy: {
+      en: T("Set by your protocol", "Your protocol sets this. Change the protocol to change it.", "The draft setting", "Reload"),
+      fr: T("Défini par votre protocole", "Votre protocole fixe ce réglage. Modifiez le protocole pour le changer.", "Le réglage du brouillon", "Recharger"),
+      ar: T("محدَّد في بروتوكولك", "يحدد بروتوكولك هذا الإعداد. عدّل البروتوكول لتغييره.", "إعداد المسودة", "إعادة التحميل"),
+    },
+  },
+  PROTOCOL_METHOD_INVALID: {
+    role: "blocked",
+    action: "none",
+    copy: {
+      en: T("The protocol's method values are out of range", "A value in the protocol's method block is outside what the engine accepts. Correct protocol.json; the details name the value.", "Dedup, screening rules and the methods paragraph", "Correct the protocol"),
+      fr: T("Les valeurs de méthode du protocole sont hors limites", "Une valeur du bloc de méthode du protocole sort de ce que le moteur accepte. Corrigez protocol.json ; les détails nomment la valeur.", "Dédoublonnage, règles de tri et paragraphe de méthode", "Corriger le protocole"),
+      ar: T("قيم المنهج في البروتوكول خارج الحدود", "قيمة في كتلة المنهج في البروتوكول خارج ما يقبله المحرك. صحّح protocol.json؛ التفاصيل تذكر القيمة.", "إزالة التكرار وقواعد الفرز وفقرة المنهج", "صحّح البروتوكول"),
+    },
+  },
   UNKNOWN_STUDY: {
     role: "blocked",
     action: "reload",
