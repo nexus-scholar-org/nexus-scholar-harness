@@ -198,6 +198,10 @@ test.describe("locale routing", () => {
 
       const response = await page.goto(`/${segment}`);
       const status = response?.status() ?? 0;
+      // A variant 404s and its document attributes are set once the page's
+      // script runs, so wait for them rather than read before hydration
+      // (an intermittent `lang=null`, 2026-11-08).
+      await expect(page.locator("html")).toHaveAttribute("lang", expectedLang);
       const lang = await page.locator("html").getAttribute("lang");
       const dir = await page.locator("html").getAttribute("dir");
       report(`/${segment} -> ${status} lang=${String(lang)} dir=${String(dir)}`);
