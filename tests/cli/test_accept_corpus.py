@@ -468,8 +468,12 @@ def test_an_invalid_method_block_refuses_the_preview_and_acceptance(tmp_path):
     from scholar_harness.corpus_accept import AcceptCorpusRefused, accept_corpus, preview_staged, stage_ris_source
 
     ws = _workspace(tmp_path)
-    _with_method(ws, {**_LOOSE, "dedup": {**_LOOSE["dedup"], "title_similarity": 0.5}})
     stage_ris_source(ws, "Scopus", _NEAR_A.encode("utf-8"), file_name="a.ris")
+    _with_method(ws, {**_LOOSE, "dedup": {**_LOOSE["dedup"], "title_similarity": 0.5}})
+    # Staging and removal refuse too, before anything is written (review finding 1).
+    with pytest.raises(AcceptCorpusRefused) as raised:
+        stage_ris_source(ws, "Lens", _NEAR_B.encode("utf-8"), file_name="b.ris")
+    assert raised.value.code == "PROTOCOL_METHOD_INVALID"
     for call in (preview_staged, accept_corpus):
         with pytest.raises(AcceptCorpusRefused) as raised:
             call(ws)

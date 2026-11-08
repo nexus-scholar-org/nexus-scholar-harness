@@ -241,6 +241,7 @@ def stage_ris_source(
     """
     ws = Path(workspace).resolve()
     _refuse_if_frozen(ws)
+    _deduplicator(ws)  # M7-method: an invalid method block refuses before anything is written
     label = _check_label(label)
     if len(content) > MAX_SOURCE_BYTES:
         raise AcceptCorpusRefused(
@@ -305,6 +306,7 @@ def remove_staged_source(workspace: Path | str, source_id: str) -> None:
     """Drop one staged file (by its ``id``) before acceptance; its stored copy goes too."""
     ws = Path(workspace).resolve()
     _refuse_if_frozen(ws)
+    _deduplicator(ws)  # M7-method: an invalid method block refuses before anything is written
     sources = staged_sources(ws)
     keep = [s for s in sources if s["id"] != source_id]
     if len(keep) == len(sources):

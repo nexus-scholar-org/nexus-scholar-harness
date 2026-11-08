@@ -533,6 +533,17 @@ def _corpus_error(exc: Any) -> HTTPException:
     return _error(_CORPUS_STATUS.get(exc.code, 409), exc.code, str(exc))
 
 
+def _corpus_view(ws: Path) -> dict[str, Any]:
+    """`corpus_status` with its refusals typed (M7-method review finding 1:
+    an invalid method block answers 409, never 500)."""
+    from ...corpus_accept import AcceptCorpusRefused, corpus_status
+
+    try:
+        return corpus_status(ws)
+    except AcceptCorpusRefused as exc:
+        raise _corpus_error(exc) from exc
+
+
 class CorpusSourceBody(BaseModel):
     """One export file, sent as base64 so the stored copy is the researcher's bytes."""
 
@@ -547,18 +558,13 @@ class CorpusSourceBody(BaseModel):
 @router.get("/corpus")
 def get_corpus(request: Request) -> dict[str, Any]:
     """The corpus import: staged database exports, the counts acceptance would give, or what was accepted."""
-    from ...corpus_accept import AcceptCorpusRefused, corpus_status
-
-    try:
-        return corpus_status(_ws(request))
-    except AcceptCorpusRefused as exc:  # e.g. PROTOCOL_METHOD_INVALID
-        raise _corpus_error(exc) from exc
+    return _corpus_view(_ws(request))
 
 
 @router.post("/corpus/sources", status_code=201)
 def post_corpus_source(body: CorpusSourceBody, request: Request) -> dict[str, Any]:
     """Stage one database's RIS export (desktop only, journaled). Nothing is accepted yet."""
-    from ...corpus_accept import AcceptCorpusRefused, corpus_status, stage_ris_source
+    from ...corpus_accept import AcceptCorpusRefused, stage_ris_source
 
     ws = _ws(request)
     try:
@@ -572,29 +578,29 @@ def post_corpus_source(body: CorpusSourceBody, request: Request) -> dict[str, An
         )
     except AcceptCorpusRefused as exc:
         raise _corpus_error(exc) from exc
-    return corpus_status(ws)
+    return _corpus_view(ws)
 
 
 @router.post("/corpus/sources/{source_id}/remove")
 def remove_corpus_source(source_id: str, request: Request) -> dict[str, Any]:
     """Drop one staged export file before acceptance (journaled)."""
-    from ...corpus_accept import AcceptCorpusRefused, corpus_status, remove_staged_source
+    from ...corpus_accept import AcceptCorpusRefused, remove_staged_source
 
     ws = _ws(request)
     try:
         remove_staged_source(ws, source_id)
     except AcceptCorpusRefused as exc:
         raise _corpus_error(exc) from exc
-    return corpus_status(ws)
+    return _corpus_view(ws)
 
 
 @router.post("/corpus/accept")
 def accept_corpus_route(request: Request) -> dict[str, Any]:
     """Freeze the staged exports into the Contract-v1 corpus snapshot (the acceptance gate decides)."""
-    from ...corpus_accept import AcceptCorpusRefused, accept_corpus, corpus_status, staged_sources
+    from ...corpus_accept import AcceptCorpusRefused, accept_corpus, staged_sources
 
     ws = _ws(request)
-    status = corpus_status(ws)
+    status = _corpus_view(ws)
     if status["state"] == "ACCEPTED":
         raise _error(409, "CORPUS_ALREADY_ACCEPTED", "the corpus is already accepted")
     if not staged_sources(ws) and not status["from_discovery"]:
@@ -603,7 +609,7 @@ def accept_corpus_route(request: Request) -> dict[str, Any]:
         accept_corpus(ws)
     except AcceptCorpusRefused as exc:
         raise _corpus_error(exc) from exc
-    return corpus_status(ws)
+    return _corpus_view(ws)
 
 
 class PrepareBody(BaseModel):

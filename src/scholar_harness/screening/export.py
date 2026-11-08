@@ -694,7 +694,12 @@ def build_methods(ws: Path) -> dict[str, Any]:
         sources.append({"name": "journal.jsonl", "path": "audit/journal.jsonl"})
     rows = [r for r in journal if r.get("action") == SETTINGS_ACTION]
     now = _settings_now(ws, method)
-    blinding = _timeline(rows, "blinding", published, now["blinding"])
+    if method.source == "protocol":
+        # Set by the signed protocol for the whole screening (M7 review 3): older
+        # settings rows, from before the block, describe nothing that applied.
+        blinding = Timeline(method.config.blinding, [], method.config.blinding, False)
+    else:
+        blinding = _timeline(rows, "blinding", published, now["blinding"])
     mode = _timeline(rows, "mode", published, now["mode"])
     audit_size = _timeline(rows, "sample_audit_size", published, now["sample_audit_size"])
     order = _timeline(rows, "queue_order", published, now["queue_order"])

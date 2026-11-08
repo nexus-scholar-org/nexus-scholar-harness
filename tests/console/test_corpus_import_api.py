@@ -154,3 +154,40 @@ def test_the_stored_copy_is_the_uploaded_bytes(ws):
 def test_content_that_is_not_base64_is_refused(ws):
     response = _client(ws).post(f"{BASE}/sources", json={"label": "S", "file_name": "s.ris", "content_base64": "not base64!"})
     assert (response.status_code, response.json()["detail"]["code"]) == (422, "SOURCE_NOT_RIS")
+
+
+# M7-method review finding 1: an invalid method block refuses every corpus
+# write with 409 PROTOCOL_METHOD_INVALID before anything is written.
+def _break_method(ws: Path) -> None:
+    protocol = json.loads((ws / "protocol.json").read_text(encoding="utf-8"))
+    protocol["method"] = {
+        "dedup": {"doi": True, "title_similarity": 0.5, "first_author": True, "year_tolerance": 1},
+        "rules_version": "screening-rules-v1",
+        "not_reported": "unclear",
+        "blinding": "reveal_after_decision",
+    }
+    (ws / "protocol.json").write_text(json.dumps(protocol), encoding="utf-8")
+
+
+def test_an_invalid_method_block_refuses_staging_before_anything_is_written(ws):
+    _break_method(ws)
+    client = _client(ws)
+    response = _stage(client, "Lens", SCOPUS)
+    assert response.status_code == 409, response.text
+    assert response.json()["detail"]["code"] == "PROTOCOL_METHOD_INVALID"
+    assert not (ws / "literature" / "raw").exists()  # nothing staged
+    assert (ws / "audit" / "journal.jsonl").read_text(encoding="utf-8") == ""  # nothing journaled
+
+
+def test_an_invalid_method_block_refuses_removal_and_acceptance(ws):
+    client = _client(ws)
+    staged = _stage(client, "Scopus", SCOPUS)
+    assert staged.status_code == 201, staged.text
+    source_id = staged.json()["sources"][0]["id"]
+    _break_method(ws)
+    journal = (ws / "audit" / "journal.jsonl").read_text(encoding="utf-8")
+    for response in (client.post(f"{BASE}/sources/{source_id}/remove"), client.post(f"{BASE}/accept")):
+        assert response.status_code == 409, response.text
+        assert response.json()["detail"]["code"] == "PROTOCOL_METHOD_INVALID"
+    assert (ws / "audit" / "journal.jsonl").read_text(encoding="utf-8") == journal  # nothing changed
+    assert (ws / "literature" / "raw" / "ris" / f"{source_id}.ris").is_file()  # the staged file stays

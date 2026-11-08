@@ -55,11 +55,14 @@ def test_the_protocol_sets_blinding_and_a_change_is_refused(tmp_path):
     assert (settings["blinding"], settings["blinding_source"], settings["not_reported_policy"]) == (
         "show", "protocol", "exclude",
     )
+    journal = ws / "audit" / "journal.jsonl"
+    before = journal.read_text(encoding="utf-8")
     refused = client.put(f"{BASE}/settings", json={"blinding": "reveal_after_decision"})
     assert refused.status_code == 409
     assert refused.json()["detail"]["code"] == "BLINDING_SET_BY_PROTOCOL"
-    # The same value is not a change; other settings still change.
+    # The same value is not a change; neither writes a journal row (review 4).
     assert client.put(f"{BASE}/settings", json={"blinding": "show"}).status_code == 200
+    assert journal.read_text(encoding="utf-8") == before
     ok = client.put(f"{BASE}/settings", json={"queue_order": "agent_uncertainty"})
     assert ok.status_code == 200 and ok.json()["blinding"] == "show"
     stored = json.loads((ws / "literature" / "screening" / "settings.json").read_text(encoding="utf-8"))

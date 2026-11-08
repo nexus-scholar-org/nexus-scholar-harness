@@ -39,7 +39,7 @@ class Deduplicator:
     ) -> None:
         if not 0.90 <= float(title_similarity) <= 1.0:
             raise ValueError(f"title_similarity must be within [0.90, 1.00], got {title_similarity!r}")
-        if not isinstance(year_tolerance, int) or not 0 <= year_tolerance <= 2:
+        if isinstance(year_tolerance, bool) or not isinstance(year_tolerance, int) or not 0 <= year_tolerance <= 2:
             raise ValueError(f"year_tolerance must be 0, 1 or 2, got {year_tolerance!r}")
         self.title_similarity = float(title_similarity)
         self.first_author = bool(first_author)

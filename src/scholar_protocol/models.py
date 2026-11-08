@@ -16,7 +16,7 @@ import datetime
 from enum import Enum
 from typing import Any, Dict, List, Literal, Optional
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 # ---------------------------------------------------------------------------
@@ -308,12 +308,21 @@ class DedupMethod(BaseModel):
 
     doi: Literal[True] = Field(True, description="Exact DOI match (always on)")
     title_similarity: float = Field(
-        0.97, ge=0.90, le=1.0, description="Minimum title similarity ratio [0.90, 1.00]"
+        0.97, ge=0.90, le=1.0, description="Minimum title similarity ratio [0.90, 1.00], at most two decimals"
     )
     first_author: bool = Field(True, description="Require the same first-author surname")
     year_tolerance: int = Field(
-        1, ge=0, le=2, description="Maximum difference in publication year [0, 2]"
+        1, ge=0, le=2, strict=True, description="Maximum difference in publication year [0, 2]"
     )
+
+    @field_validator("title_similarity")
+    @classmethod
+    def _two_decimals(cls, value: float) -> float:
+        # The methods paragraph states the threshold with two decimals; a value
+        # with more would be reported as one that was not applied (M7 review 2).
+        if round(value, 2) != value:
+            raise ValueError("title_similarity takes at most two decimals (for example 0.95)")
+        return value
 
 
 class MethodConfig(BaseModel):

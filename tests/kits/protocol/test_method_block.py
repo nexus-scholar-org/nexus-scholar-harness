@@ -76,6 +76,9 @@ def test_an_integer_similarity_hashes_like_its_float() -> None:
         (("dedup", "title_similarity"), 1.01),
         (("dedup", "year_tolerance"), -1),
         (("dedup", "year_tolerance"), 3),
+        (("dedup", "year_tolerance"), True),
+        (("dedup", "title_similarity"), 0.975),  # review 2: printed as 0.97
+        (("dedup", "title_similarity"), 0.999),  # review 2: printed as 1.00
         (("dedup", "doi"), False),
         (("rules_version",), "screening-rules-v9"),
         (("not_reported",), "include"),

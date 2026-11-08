@@ -64,7 +64,10 @@ def test_first_author_off_merges_a_pair_with_different_first_authors() -> None:
     assert _clusters(Deduplicator(first_author=False), pair()) == 1
 
 
-@pytest.mark.parametrize("kwargs", [{"title_similarity": 0.89}, {"title_similarity": 1.2}, {"year_tolerance": 3}, {"year_tolerance": -1}])
+@pytest.mark.parametrize(
+    "kwargs",
+    [{"title_similarity": 0.89}, {"title_similarity": 1.2}, {"year_tolerance": 3}, {"year_tolerance": -1}, {"year_tolerance": True}],
+)
 def test_the_deduplicator_refuses_values_outside_the_limits(kwargs) -> None:
     with pytest.raises(ValueError):
         Deduplicator(**kwargs)
