@@ -1,5 +1,5 @@
 # M3a-discovery: the discovery engine (Python only)
-Branch: `dev/m3a/discovery` · Lane: **RELEASE** (WP-01 Packet B runtime adoption, CORE-07; `test_gate_policy.md` §lanes) · Status: IN PROGRESS · Started: 2026-11-08
+Branch: `dev/m3a/discovery` · Lane: **RELEASE** (WP-01 Packet B runtime adoption, CORE-07; `test_gate_policy.md` §lanes) · Status: READY FOR PR · Started: 2026-11-08
 
 Why: plan §6 M3 Discovery, split in two. M3a is the engine half: search legs, pagination, query honesty, stable ids, Packet B adoption and the golden cassettes. M3b (discovery specs 01–08 and screens) waits for the `apps/research-ui` redesign to merge. M3a touches no file under `apps/research-ui`. The researcher has no Scopus or Web of Science access, so the free providers (OpenAlex, Crossref, PubMed, Semantic Scholar, arXiv) are how a corpus is built.
 
@@ -76,6 +76,12 @@ Golden search as recorded (from the replayed report):
 | live record | 52646ee | `NEXUS_RECORD_CASSETTES=1 uv run pytest tests/pipeline/test_golden_search_cassettes.py` | cassette recorded, 6 requests | ~1 min |
 | replay | 09aaf1d | `uv run pytest tests/pipeline/test_golden_search_cassettes.py` | 2 passed, offline | 17 s |
 | contract | 81c7e53 | `generate_contract_baseline.py --check` | Contract baseline current | — |
+| pr (1st) | c6c1fed | `uv run pytest -q -n auto` (dev+pdf+rag) | 1 failed (`test_pipeline_core` layering), fixed in c6c1fed | ~8 min |
+| review | c6c1fed | milestone-reviewer | CHANGES: R1–R6 (+P3) | — |
+| pr | 0b97ba1 | `uv run pytest -n auto` (dev+pdf+rag) | 4544 passed, 15 skipped, 0 failed | 16 min 27 s |
+| lint | 0b97ba1 | `ruff check scripts/`; `ruff check src/ --select F821,F811,F823,F632,F7,B023,B006,E9`; `git diff --check origin/main...HEAD` | clean | — |
+| contract | 0b97ba1 | `generate_contract_baseline.py --check` | Contract baseline current | — |
+| re-review | 0b97ba1 | milestone-reviewer | APPROVE (all six findings fixed, no new defect) | — |
 
 ## Deferred
 - M3b: discovery specs 01–08 and the Discovery screens (plan §7 rule 1: M3 UI is the first cut); agent tasks (query critique, near-twin, methods text).
