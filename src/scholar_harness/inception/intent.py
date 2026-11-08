@@ -57,6 +57,9 @@ TRUSTWORTHINESS_FRAMEWORK: dict[str, str] = {
     "STUDENT_DISSERTATION": "APA / JBI Adapted Guidelines",
 }
 
+# Phase-4 trust threshold when the verification checks are enabled (else 0.0).
+VERIFICATION_TRUST_THRESHOLD = 6.0
+
 # Per-paradigm sample-RQ template and required evidence (used in the grid + drafting).
 PARADIGM_PROFILE: dict[str, dict] = {
     "Positivist": {

@@ -268,7 +268,7 @@ def test_grounded_wizard_presents_direction_and_records_recon_context(tmp_path):
 
     rc = result["recon_context"]
     assert rc is not None
-    assert len(rc["session_id"]) == 12
+    assert re.fullmatch(r"rec_[0-9a-f]{32}", rc["session_id"])  # M4a: the MCP recon format
     assert rc["cache_keys"] and all(k.startswith("v1/") for k in rc["cache_keys"])
     assert rc["pool_sizes"] == [3]
     assert set(rc["anchor_dois"]) == set(GROUNDED_DOIS)

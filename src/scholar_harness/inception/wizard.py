@@ -13,6 +13,7 @@ from ..recon.engine import ReconEngine
 from .display import console, show_refraction_grid, _bounded, _INLINE_LIST_CAP
 from .intent import (
     ALL_PLAYBOOKS,
+    VERIFICATION_TRUST_THRESHOLD,
     PARADIGM_KEYWORDS,
     PARADIGM_PROFILE,
     ConceptDraft,
@@ -368,11 +369,8 @@ def run_wizard(
         chosen = responder.multi("Select matrix columns", [d["name"] for d in default_dims])
         matrix_dimensions = [d for d in default_dims if d["name"] in chosen]
 
-    trust_threshold = 6.0
-    if responder.confirm("Enable all Phase-4 verification checks (retraction, COI, open-science)?", default=True):
-        trust_threshold = 6.0
-    else:
-        trust_threshold = 0.0
+    verification = responder.confirm("Enable all Phase-4 verification checks (retraction, COI, open-science)?", default=True)
+    trust_threshold = VERIFICATION_TRUST_THRESHOLD if verification else 0.0
 
     # ---- Stage 4e: metadata + confirmation -----------------------------------
     title = responder.text(
