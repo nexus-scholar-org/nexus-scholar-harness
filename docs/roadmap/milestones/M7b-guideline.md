@@ -1,5 +1,5 @@
 # M7b-guideline: reporting follows a guideline chosen in the protocol
-Branch: `dev/m7b/guideline` · Lane: **RELEASE** (protocol identity and the methods paragraph; `test_gate_policy.md` §lanes) · Status: IN PROGRESS · Started: 2026-11-08
+Branch: `dev/m7b/guideline` · Lane: **RELEASE** (protocol identity and the methods paragraph; `test_gate_policy.md` §lanes) · Status: READY FOR PR · Started: 2026-11-08
 
 Why: this is step 11 of the researcher's beta plan of 2026-11-07. Decision: [2026-11-08, Reporting follows a guideline chosen in the protocol](../../decisions.md). The protocol's `method` block gains an optional `reporting` key (`prisma-2020`, `prisma-scr` or `none`). When the key is absent it comes from `playbook_type`. It changes only the screen labels and one methods sentence.
 
@@ -16,7 +16,7 @@ Why: this is step 11 of the researcher's beta plan of 2026-11-07. Decision: [202
 - [x] **G6. Labels.** Done 2026-11-08, with copy from the spec 09 and 10 amendments. Publish reads `reporting` from `GET /settings`, and an engine without the field reads as PRISMA 2020. Export reads it from the bound publication's `figures.method.reporting`, so its heading and the paragraph always agree. Two wording refinements from the spec writer were accepted: "flow diagram" replaces "PRISMA box", and the `none` heading is "Counts of the published screening". Two older Export tests now use the PRISMA 2020 caption. vitest `publish.reporting` and `export.reporting` failed first; the full vitest suite passes 283/283. Publish's preview heading and Export's counts heading and language note follow the guideline. Specs 09 and 10 are amended first.
   - vitest for the three values in en, plus copy completeness in fr and ar.
 - [x] **Gate:** RELEASE closure on the final executable commit, including `generate_contract_baseline.py --check`.
-- [ ] **Review:** the milestone-reviewer returns APPROVE.
+- [x] **Review:** the milestone-reviewer returns APPROVE (CHANGES at `fbcbb64` and `1579f1d`, APPROVE at `a2e09a7`).
 
 ## Findings fixed
 | ID | Reproducing test | Fails before | Passes after |
@@ -42,9 +42,11 @@ Why: this is step 11 of the researcher's beta plan of 2026-11-07. Decision: [202
 | re-review | `1579f1d` | milestone-reviewer | CHANGES (docs only): `reporting_source: "defaults"` and `reporting_label` were undocumented. Fixed in `0229a56` | |
 | root cause | `0229a56`+ | triage-page.tsx | the key handler was swapped in a passive effect, after paint; a key pressed once the next record was visible could reach the previous record's handler. Now a layout effect | |
 | closure (UI) | final | vitest; Playwright full run | **284/284**; **173 passed, 13 skipped, 0 failed**; the ten-records test passed 12/12 alone | 3 m 18 s |
+| re-review | `a2e09a7` | milestone-reviewer | **APPROVE**: the docs findings are resolved and the triage root cause is confirmed (useLayoutEffect is safe under React 19 / Next 16). P3: a deterministic vitest for the race would be optional | |
 
 ## Deferred
 - **The triage keyboard race is fixed here,** not deferred: it blocked this gate (4 of 8 runs failed). It was a one-line move of the key-handler swap into `useLayoutEffect`.
+- **A deterministic vitest for the triage race** (review P3, optional): a MutationObserver dispatches the key before React's passive flush. For now the Playwright repeat is the guard.
 - **Import screen copy** (`screening-import.tsx`, review follow-up). "PRISMA asks for it" and "Counts for your PRISMA flow diagram" still read PRISMA under every guideline. Out of scope here, which covered Publish and Export only.
 - **The golden run's methods paragraph will now say PRISMA-ScR.** Every committed UAV workspace is `SCOPING_REVIEW`, and the decision intends this.
 - **No protocol** gives `reporting_source: "defaults"` (review 3), and `EffectiveMethod` has no silent defaults (review 4).
