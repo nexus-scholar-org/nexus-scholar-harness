@@ -7,6 +7,7 @@ import json
 from pathlib import Path
 
 from conftest import E2E_ANSWERS, GENESIS_TS, ScriptedResponder
+
 from scholar_harness.inception import run_wizard
 
 HELPER = Path(".agents/skills/inception-agent/scripts/emit_protocol.py").resolve()
