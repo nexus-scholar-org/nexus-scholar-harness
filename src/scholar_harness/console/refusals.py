@@ -82,6 +82,12 @@ ACCEPT_CORPUS_REFUSED = "ACCEPT_CORPUS_REFUSED"
 #: Prepare's batch size outside the bounds the screen offers.
 BATCH_SIZE_INVALID = "BATCH_SIZE_INVALID"
 
+# --- the protocol's method block (M7-method, decision 2026-11-08) ------------
+#: The protocol's ``method`` block is outside the checked limits.
+PROTOCOL_METHOD_INVALID = "PROTOCOL_METHOD_INVALID"
+#: Blinding is set by the protocol; the settings cannot change it.
+BLINDING_SET_BY_PROTOCOL = "BLINDING_SET_BY_PROTOCOL"
+
 # --- console guards (INC-01, M0) ----------------------------------------------
 HOST_REFUSED = "HOST_REFUSED"
 TOKEN_REQUIRED = "TOKEN_REQUIRED"
@@ -135,6 +141,8 @@ CONTRACT_ADDED = frozenset(
         PROTOCOL_INVALID,
         ACCEPT_CORPUS_REFUSED,
         BATCH_SIZE_INVALID,
+        PROTOCOL_METHOD_INVALID,
+        BLINDING_SET_BY_PROTOCOL,
     }
 )
 

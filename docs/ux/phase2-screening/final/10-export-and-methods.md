@@ -14,6 +14,25 @@ Source: `docs/roadmap/milestones/M6-beta.md` sections B, C and D; decisions "Det
   - when the advance-on-decide setting skipped drafts, one sentence says so (open question 1); otherwise the setting is not mentioned.
 - Tests (`tests/console/test_methods_api.py`): `no_op_settings_rows_are_not_repeated`, `visible_drafts_report_no_blind_comparison`, `mcp_drafts_name_the_route`, run against the 2026-11-06 evidence workspace as fixture. Vitest `export.details.test.tsx` (generation id, fingerprint and sources are inside a closed `<details>` labelled Details and in the DOM; the paragraph precedes the counts table).
 
+## Amended 2026-11-08 (M7-method)
+Source: `docs/decisions.md` 2026-11-08 "Method parameters move into the protocol". The paragraph now reports the method values in force and where they come from. The generated paragraph is English only (see Translation boundary), so these sentences have no i18n keys and no fr/ar versions; only the page chrome is translated.
+- **Values and source.** `GET /screening/methods` ✗ M7-method gains `figures.method = {dedup: {doi: true, title_similarity, first_author, year_tolerance}, rules_version, not_reported, blinding, source}`; `source` is `"protocol"` when the signed protocol carries a `method` block, else `"defaults"`. Every number in the new sentences must equal a value in `figures.method` (the existing "every number traces to `figures`" test covers it). The values come from the protocol bound to the published generation, not the live protocol.
+- **Where the sentences go.** (a) Dedup sentence directly after the PRISMA sentence (slot 1). (b) Not-reported sentence directly after the screener sentence (slot 2). (c) Source sentence immediately after (b), as the last method sentence before agent use (slot 3). Slots 3 to 8 keep their order. Blinding is not given a new sentence: slot 5 already states it from the settings history; `figures.method.blinding` is for traceability only.
+- **No no-op sentences.** The dedup and not-reported sentences state values in force (not settings rows that changed), so they are always written, including at the defaults; a default is reported because the reader needs the figure (0.97, 1 year), not because a row changed. The settings-row rule of M6-beta is unchanged.
+- **Exact wording (English, engine template).**
+  - Dedup, all tiers: "Duplicates across databases were removed by exact DOI and by title similarity of at least {t} with the same first author and publication years at most {y} apart."
+  - `first_author` false: drop "with the same first author and": "... by title similarity of at least {t} with publication years at most {y} apart."
+  - `year_tolerance` 0: "... and the same publication year" replaces "publication years at most {y} apart" ("... with the same first author and the same publication year."; without first author: "... with the same publication year."). `{y}` = 1 reads "at most 1 year apart".
+  - `{t}` is written with two decimals (0.97). `doi` is always true, so the exact-DOI clause is always present.
+  - Not reported, `unclear`: "A criterion the title and abstract did not report sent the record to full-text assessment."
+  - Not reported, `exclude`: "An inclusion criterion the title and abstract did not report excluded the record."
+  - Source, `defaults`: "These are the harness defaults (screening-rules-v1); the protocol does not set them."
+  - Source, `protocol`: "These values are set in the signed protocol."
+  - `rules_version` is named only in the `defaults` sentence (it is always `screening-rules-v1`); under `protocol` it is in `figures` and in the sources list, not repeated in prose.
+- **Banned words.** The new sentences contain none of "validated", "accurate", "recall", "agreement", "concordance", "kappa", "cost", "gate".
+- **Older publications.** A generation published before M7-method has no `method` block in its binding; it reads as `defaults` and the source sentence says so, which is true because the old rules were the defaults.
+- Tests (`tests/console/test_methods_api.py`): `methods_reports_dedup_tiers_in_force` (defaults, a protocol with `first_author: false`, a protocol with `year_tolerance: 0`), `methods_not_reported_sentence_follows_policy`, `methods_source_sentence_names_defaults_or_protocol`, `methods_figures_include_method`, and the banned-word test extended over the new sentences.
+
 **Purpose.** After the screening is published, take the decisions to a reference manager or spreadsheet, and copy a methods paragraph whose PRISMA counts and automation-use statement say what the workspace files show and no more.
 
 **Changed from the canvas.**

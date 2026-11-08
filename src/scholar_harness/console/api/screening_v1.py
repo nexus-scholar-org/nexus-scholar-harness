@@ -68,10 +68,31 @@ def _workspace_id(ws: Path) -> str:
     return str(manifest.get("registered_workspace_id") or manifest.get("project_id") or "")
 
 
-def load_settings(ws: Path) -> dict[str, Any]:
+#: Read-only fields the settings report but never store (M7-method).
+DERIVED_SETTINGS = ("blinding_source", "not_reported_policy")
+
+
+def _stored_settings(ws: Path) -> dict[str, Any]:
     path = ws / SETTINGS_FILE
     stored = json.loads(path.read_text(encoding="utf-8")) if path.is_file() else {}
-    return {**DEFAULT_SETTINGS, **stored}
+    return {**DEFAULT_SETTINGS, **{k: v for k, v in stored.items() if k not in DERIVED_SETTINGS}}
+
+
+def load_settings(ws: Path) -> dict[str, Any]:
+    """The settings in force. Blinding comes from the protocol when its method
+    block sets it (M7-method, decision 2026-11-08); an invalid block refuses."""
+    from ...screening.method import MethodInvalid, effective_method
+
+    settings = _stored_settings(ws)
+    try:
+        method = effective_method(ws)
+    except MethodInvalid as exc:
+        raise _error(409, exc.code, str(exc)) from exc
+    if method.source == "protocol":
+        settings["blinding"] = method.config.blinding
+    settings["blinding_source"] = "protocol" if method.source == "protocol" else "settings"
+    settings["not_reported_policy"] = method.config.not_reported
+    return settings
 
 
 def _papers(ws: Path, context: ev.ScreeningContext) -> dict[str, dict[str, Any]]:
@@ -230,6 +251,9 @@ def record(study_id: str, request: Request) -> dict[str, Any]:
         },
         "my_decision": winners.get(study_id),
         "history": [e for e in events if e["study_id"] == study_id],
+        # M7-method: the protocol's not-reported policy, so the screen offers
+        # the reason the rule table would give.
+        "not_reported_policy": settings["not_reported_policy"],
     }
 
 
@@ -371,6 +395,14 @@ def put_settings(body: SettingsBody, request: Request) -> dict[str, Any]:
     ws = _ws(request)
     current = load_settings(ws)
     update = {k: v for k, v in body.model_dump().items() if v is not None and k != "confirm_ai_agreed_exclusion"}
+    if current["blinding_source"] == "protocol" and update.get("blinding") not in (None, current["blinding"]):
+        raise _error(
+            409,
+            refusals.BLINDING_SET_BY_PROTOCOL,
+            f"the protocol's method block sets blinding to {current['blinding']!r}; change the protocol to change it",
+        )
+    if current["blinding_source"] == "protocol":
+        update.pop("blinding", None)  # the same value: nothing to record
     if update.get("blinding") not in (None, "reveal_after_decision", "show"):
         raise _error(422, "INVALID_OUTPUT", "blinding must be reveal_after_decision or show")
     if update.get("mode") not in (None, "human_sees_every_record", "ai_agreed_exclusion"):
@@ -386,7 +418,9 @@ def put_settings(body: SettingsBody, request: Request) -> dict[str, Any]:
                 "INVALID_OUTPUT",
                 "AI-agreed exclusion needs confirm_ai_agreed_exclusion=true and a sample_audit_size",
             )
-    new = {**current, **update}
+    if not update:
+        return current  # nothing changed (e.g. the protocol's own blinding value repeated)
+    new = {**_stored_settings(ws), **update}
     atomic_write_text(ws / SETTINGS_FILE, json.dumps(new, indent=2, sort_keys=True) + "\n")
     append_event(
         ws,
@@ -397,7 +431,7 @@ def put_settings(body: SettingsBody, request: Request) -> dict[str, Any]:
         parameters={"before": {k: current[k] for k in update}, "after": update},
         refresh_index=False,
     )
-    return new
+    return load_settings(ws)
 
 
 #: What the approver name is: a name typed on this computer, not a verified

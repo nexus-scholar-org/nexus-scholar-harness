@@ -39,6 +39,23 @@ Source: `docs/roadmap/milestones/M6-beta.md` section A and B; decisions "Answer 
 
 - Tests: `triage.decisive.test.tsx`, `triage.reason-from-checklist.test.tsx`, `triage.advance-on-decide.test.tsx`, `triage.position.test.tsx`, `triage.undo-hidden.test.tsx`, `triage.all-decided.test.tsx`, `triage.details.test.tsx`. Playwright at 1440 and 1024 for the collapsed queue.
 
+## Amended 2026-11-08 (M7-method)
+Source: `docs/decisions.md` 2026-11-08 "Method parameters move into the protocol". Extends amendment 1 ("Answer until decisive"); where it says an inclusion answered "not reported" only counts as not yet yes, this section wins when the policy is `exclude`.
+- **The screen reads the policy.** `not_reported_policy` (`"unclear"` default | `"exclude"`, from the protocol's `method.not_reported`) comes with `GET /settings` and with `GET /records/{study_id}` (✗ M7-method; the screen never reads `protocol.json`). With `"unclear"` nothing changes.
+- **Policy `exclude`.**
+  - An inclusion criterion answered "not reported" counts as failing: **Exclude is ready**, with the reason pre-selected as `FAILS-INC-n` (amendment 2 wording: "Fails INC-02 · …").
+  - A **definite failure outranks a not-reported inclusion** for the reason shown: an inclusion answered no or an exclusion answered yes comes first (protocol order among them); not-reported inclusions follow (protocol order among them). The other codes stay as chips.
+  - An **exclusion criterion answered "not reported" never fails**; it does not enable Exclude.
+  - Status line (`aria-live="polite"`): "Exclude is ready: INC-02 not reported (your protocol excludes when not reported)" (`screening.triage.checklist.excludeReadyNotReported`, `{id}`). When a definite failure exists, the existing `excludeReady` line names that failure instead. This line replaces "Include needs INC-02 to be yes" while a not-reported inclusion is present; "Include needs …" still lists inclusions that are unanswered.
+  - **Include is unchanged**: it needs every inclusion yes and no exclusion yes. **Unclear → full text** and Skip stay always enabled. The server's `derived_outcome` follows the same policy; the reviewer's own decision is never overridden, and "you can still choose another outcome" is kept. The model never derives the outcome.
+- **Events.** "Not reported" is still sent as `not_reported` only when the reviewer presses it; unanswered stays absent. Under `exclude`, `REASON_CODE_INCONSISTENT` (amendment 2) must accept `FAILS-INC-n` for a criterion answered `not_reported` (✗ M7-method with the policy); under `unclear` it is as before.
+- **Logic.** `lib/triage-logic.ts` `decisiveFor('EXCLUDE')` takes the policy as an argument; `lib/triage-copy.ts` picks the line.
+- Copy (key `screening.triage.checklist.excludeReadyNotReported`):
+  - en: "Exclude is ready: {id} not reported (your protocol excludes when not reported)"
+  - fr: "Exclure est prêt : {id} non rapporté (votre protocole exclut ce qui n'est pas rapporté)"
+  - ar: "الاستبعاد جاهز: {id} غير مُبلَّغ عنه (يستبعد بروتوكولك ما لم يُبلَّغ عنه)"
+- Tests: `triage.not-reported-policy.test.tsx` (exclude policy: not-reported inclusion enables Exclude with `FAILS-INC-n`; definite failure outranks it; not-reported exclusion does not enable Exclude; Include still needs every inclusion yes; unclear policy leaves all as today; choosing Unclear is possible). Python: `tests/test_screening_events.py` for the policy in `derived_outcome` and the consistency check.
+
 **Purpose.** Decide every record: read it, fill the checklist, choose Include / Exclude / Unclear → full text, and move on by keyboard.
 
 **Changed from the canvas.**
