@@ -26,6 +26,9 @@ E2E_ANSWERS = [
     "",                        # synonyms for 'on-device inference'
     False,                     # manual inclusion?
     False,                     # manual exclusion?
+    True,                      # accept inclusion 1 (proof; generated, explicit yes)
+    True,                      # accept exclusion 1 (closed-source models)
+    True,                      # accept exclusion 2 (pre-2022 studies)
     False,                     # configure matrix?
     True,                      # verification flags all-on?
     "On-Device Weed Detection for Embedded Agriculture",

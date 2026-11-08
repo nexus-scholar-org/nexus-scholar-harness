@@ -750,6 +750,16 @@ def inception(
         "--direction-id",
         help="Headless: pick the N-th grounded direction (1-based) without an interactive prompt",
     ),
+    replace: bool = typer.Option(
+        False,
+        "--replace",
+        help="Replace the protocol of an existing workspace with this title (the old protocol files are backed up under audit/replaced/)",
+    ),
+    discard_screening_binding: bool = typer.Option(
+        False,
+        "--discard-screening-binding",
+        help="With --replace: replace even though screening decisions or a published screening exist under the current protocol",
+    ),
 ):
     """Run the Phase-0 Socratic methodology interview and emit a compiled protocol."""
     inception_command(
@@ -758,6 +768,8 @@ def inception(
         grounded=grounded,
         auto_select=auto_select,
         direction_id=direction_id,
+        replace=replace,
+        discard_screening_binding=discard_screening_binding,
     )
 
 

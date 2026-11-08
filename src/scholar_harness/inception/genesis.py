@@ -140,10 +140,13 @@ def _log_project_event(
 # ---------------------------------------------------------------------------
 
 
-def compile_protocol_files(ws_dir: Path, intent: dict) -> dict[str, str]:
-    """Compile intent.json → protocol.json + SCREENING_CRITERIA.md via the kit, deterministically.
+def compile_intent(intent: dict) -> dict:
+    """Compile an intent in memory; nothing is written (the compile-preview).
 
-    Returns {"protocol_fingerprint": ..., "protocol_path": ..., "criteria_path": ...}.
+    Returns ``intent_text``, ``protocol_bytes``, ``criteria_text`` and
+    ``protocol_fingerprint``: exactly what :func:`compile_protocol_files`
+    writes, so a preview and the written workspace cannot differ. An invalid
+    intent raises ``pydantic.ValidationError``.
     """
     try:
         from scholar_protocol.canonical import canonical_fingerprint, canonical_json
@@ -154,11 +157,6 @@ def compile_protocol_files(ws_dir: Path, intent: dict) -> dict[str, str]:
         raise typer.Exit(
             "scholar-protocol-kit is not installed; run `uv sync` first"
         ) from exc
-
-    intent_path = ws_dir / "intent.json"
-    intent_path.write_text(
-        json.dumps(intent, indent=2, ensure_ascii=False), encoding="utf-8"
-    )
 
     compiled = compile_protocol(IntentPacket.model_validate(intent))
     # M7-method (decision 2026-11-08): a new workspace states its method values in
@@ -172,12 +170,27 @@ def compile_protocol_files(ws_dir: Path, intent: dict) -> dict[str, str]:
         # M7b-guideline: the guideline the playbook implies is stated, not implied.
         reporting = PLAYBOOK_REPORTING.get(compiled.playbook_type.value, DEFAULT_REPORTING)
         compiled = compiled.model_copy(update={"method": MethodConfig(reporting=reporting)})
-    (ws_dir / "protocol.json").write_bytes(canonical_json(compiled))
-    (ws_dir / "SCREENING_CRITERIA.md").write_text(
-        render_screening_criteria(compiled), encoding="utf-8"
-    )
     return {
+        "intent_text": json.dumps(intent, indent=2, ensure_ascii=False),
+        "protocol_bytes": canonical_json(compiled),
+        "criteria_text": render_screening_criteria(compiled),
         "protocol_fingerprint": canonical_fingerprint(compiled),
+    }
+
+
+def compile_protocol_files(ws_dir: Path, intent: dict) -> dict[str, str]:
+    """Compile intent.json → protocol.json + SCREENING_CRITERIA.md via the kit, deterministically.
+
+    Returns {"protocol_fingerprint": ..., "protocol_path": ..., "criteria_path": ...}.
+    The intent is compiled before anything is written, so an invalid intent
+    leaves the folder as it was.
+    """
+    out = compile_intent(intent)
+    (ws_dir / "intent.json").write_text(out["intent_text"], encoding="utf-8")
+    (ws_dir / "protocol.json").write_bytes(out["protocol_bytes"])
+    (ws_dir / "SCREENING_CRITERIA.md").write_text(out["criteria_text"], encoding="utf-8")
+    return {
+        "protocol_fingerprint": out["protocol_fingerprint"],
         "protocol_path": str(ws_dir / "protocol.json"),
         "criteria_path": str(ws_dir / "SCREENING_CRITERIA.md"),
     }
@@ -707,19 +720,23 @@ def scaffold_placeholder_workspace(target: Path, title: str, *, agent: str, time
         raise WorkspaceScaffoldRefused("WORKSPACE_TITLE_INVALID", "the title has no letters or digits to make a folder name from")
     if target.is_file() or (target.exists() and any((target / marker).exists() for marker in INIT_MARKERS)):
         raise WorkspaceScaffoldRefused("WORKSPACE_EXISTS", f"{target} already holds a Nexus Scholar workspace")
+    from .emit import GenesisRefused, emit_workspace
+
     target.mkdir(parents=True, exist_ok=True)
     # A fixed timestamp gives a reproducible placeholder protocol (its fingerprint).
     intent = _scaffold_only_intent(title, slug, timestamp or datetime.now(UTC).isoformat())
-    ws_dir = scaffold_raw_project(
-        target, title, slug, intent["primary_paradigm"], [rq["text"] for rq in intent["research_questions"]]
-    )
-    compiled = compile_protocol_files(ws_dir, intent)
-    log_genesis(
-        ws_dir,
-        f"nexus-scholar init (--scaffold-only): '{title}' compiled "
-        f"placeholder protocol fingerprint {compiled['protocol_fingerprint']}",
-        agent=agent,
-    )
+    # M4a: the one gated genesis path; it never replaces here.
+    try:
+        compiled = emit_workspace(
+            intent,
+            target_dir=target,
+            agent=agent,
+            description=f"nexus-scholar init (--scaffold-only): '{title}'",
+            fingerprint_label="placeholder protocol",
+        )
+    except GenesisRefused as exc:
+        raise WorkspaceScaffoldRefused("WORKSPACE_EXISTS", exc.message) from exc
+    ws_dir = Path(compiled["workspace_dir"])
     support = install_workspace_support_files(target)
     return {
         "intent": intent,
