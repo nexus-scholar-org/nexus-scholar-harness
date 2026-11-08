@@ -150,3 +150,58 @@ async def test_hydrate_metadata_allows_positive_match():
     assert hydrated.abstract == "Recovered abstract."
     assert hydrated.venue == "arXiv"
 
+
+
+# --- M3a-discovery D4 / SRCH-10: a DOI that resolves to another title -------
+
+
+def _doi_verifier(resolved_title: str):
+    mock_crossref = MagicMock()
+    mock_crossref.base_url = "https://api.crossref.org/works"
+    resp = MagicMock()
+    resp.status_code = 200
+    resp.json.return_value = {"message": {"title": [resolved_title], "DOI": "10.1/x"}}
+    mock_crossref.client.get = AsyncMock(return_value=resp)
+    mock_crossref._normalize_document.return_value = Document(
+        title=resolved_title, year=1999, external_ids=ExternalIds(doi="10.1/x")
+    )
+    mock_crossref.validate_reference = AsyncMock(return_value=None)
+    mock_openalex = MagicMock()
+    mock_openalex.base_url = "https://api.openalex.org/works"
+    notfound = MagicMock()
+    notfound.status_code = 404
+    mock_openalex.client.get = AsyncMock(return_value=notfound)
+    return DocumentVerifier(crossref_provider=mock_crossref, openalex_provider=mock_openalex)
+
+
+@pytest.mark.asyncio
+async def test_doi_resolving_to_a_different_title_is_a_mismatch_not_verified():
+    verifier = _doi_verifier("Unrelated Turtle Migration Paper")
+    doc = Document(title="Deep learning for weed detection from UAV imagery",
+                   external_ids=ExternalIds(doi="10.1/x"))
+    ok, out, note = await verifier.verify_document(doc)
+    assert ok is False
+    assert note.startswith("DOI_TITLE_MISMATCH")
+    assert out is doc
+    assert out.title == "Deep learning for weed detection from UAV imagery"
+
+
+@pytest.mark.asyncio
+async def test_process_batch_never_swaps_a_mismatched_record():
+    verifier = _doi_verifier("Unrelated Turtle Migration Paper")
+    doc = Document(title="Deep learning for weed detection from UAV imagery",
+                   year=2022, external_ids=ExternalIds(doi="10.1/x"))
+    processed, audit = await verifier.process_batch([doc], verify=True, enrich=True)
+    assert processed[0].title == "Deep learning for weed detection from UAV imagery"
+    assert processed[0].year == 2022
+    assert audit[0]["verified"] is False
+    assert audit[0]["code"] == "DOI_TITLE_MISMATCH"
+
+
+@pytest.mark.asyncio
+async def test_doi_with_matching_title_still_verifies():
+    verifier = _doi_verifier("Deep Learning for Weed Detection from UAV Imagery")
+    doc = Document(title="Deep learning for weed detection from UAV imagery",
+                   external_ids=ExternalIds(doi="10.1/x"))
+    ok, _, note = await verifier.verify_document(doc)
+    assert ok is True and "DOI" in note
