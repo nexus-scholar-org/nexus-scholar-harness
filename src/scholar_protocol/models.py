@@ -14,7 +14,7 @@ from __future__ import annotations
 
 import datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Literal, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -287,6 +287,62 @@ class VerificationConfig(BaseModel):
 
 
 # ---------------------------------------------------------------------------
+# Method parameters (M7-method, decision 2026-11-08)
+# ---------------------------------------------------------------------------
+
+#: Rule-table versions the screening engine implements. The harness asserts
+#: its own ``RULES_VERSION`` is listed here, so a protocol can never name a
+#: table the engine does not have.
+KNOWN_RULES_VERSIONS: tuple[str, ...] = ("screening-rules-v1",)
+
+
+class DedupMethod(BaseModel):
+    """How records from several databases are recognised as one study.
+
+    Tier 1 is an exact DOI match (always on). Tier 2 is a fuzzy title match at
+    ``title_similarity`` or above, optionally requiring the same first-author
+    surname, with publication years at most ``year_tolerance`` apart.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    doi: Literal[True] = Field(True, description="Exact DOI match (always on)")
+    title_similarity: float = Field(
+        0.97, ge=0.90, le=1.0, description="Minimum title similarity ratio [0.90, 1.00]"
+    )
+    first_author: bool = Field(True, description="Require the same first-author surname")
+    year_tolerance: int = Field(
+        1, ge=0, le=2, description="Maximum difference in publication year [0, 2]"
+    )
+
+
+class MethodConfig(BaseModel):
+    """Method parameters a reader could ask "how did you ..." about.
+
+    Optional in the protocol: when absent the engine uses these defaults
+    (today's values) and the block is left out of the canonical JSON, so the
+    protocol's fingerprint is unchanged. When present it is hashed.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    dedup: DedupMethod = Field(default_factory=DedupMethod)
+    rules_version: Literal["screening-rules-v1"] = Field(
+        "screening-rules-v1", description="Rule table turning criterion answers into an outcome"
+    )
+    not_reported: Literal["unclear", "exclude"] = Field(
+        "unclear",
+        description=(
+            "unclear: any criterion not reported gives Unclear (full text); "
+            "exclude: an inclusion criterion not reported gives Exclude (FAILS-INC-n)"
+        ),
+    )
+    blinding: Literal["reveal_after_decision", "show"] = Field(
+        "reveal_after_decision", description="Whether the agent's draft is hidden until the decision"
+    )
+
+
+# ---------------------------------------------------------------------------
 # Root model
 # ---------------------------------------------------------------------------
 
@@ -350,4 +406,11 @@ class ResearchProtocol(BaseModel):
     )
     verification: VerificationConfig = Field(
         default_factory=VerificationConfig,
+    )
+    method: Optional[MethodConfig] = Field(
+        None,
+        description=(
+            "Method parameters (dedup, rule table, not-reported policy, blinding). "
+            "Absent means the engine defaults; absent is left out of the fingerprint."
+        ),
     )
