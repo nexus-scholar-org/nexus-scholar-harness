@@ -24,20 +24,6 @@ export interface MissingEntry {
   reason: string;
 }
 
-export interface ProjectSummary {
-  shape: "ui07.project-summary-v1";
-  workspace_id: string | null;
-  project_id: string;
-  protocol: { present: boolean; fingerprint: string | null };
-  run: { screening_run_id: string; batches: number; batches_resolved: number } | null;
-  readiness: {
-    screening_prepared: boolean;
-    all_batches_resolved: boolean;
-    publication: PublicationStatus;
-  };
-  missing: MissingEntry[];
-}
-
 export interface PublicationStatus {
   shape: "ui07.publication-status-v1";
   status: "CURRENT" | "STALE" | "SUPERSEDED" | "MISMATCHED" | "LEGACY_UNVERIFIED";
@@ -72,48 +58,6 @@ export interface ScreeningBatches {
   run_id: string | null;
   count: number;
   batches: ScreeningBatchEntry[];
-  missing: MissingEntry[];
-}
-
-export interface ScreeningRow {
-  shape: "ui07.screening-row-v1";
-  study_id: string;
-  workspace_id?: string;
-  citation?: string;
-  abstract?: string;
-  decision: string;
-  reasons: string[];
-  uncertainty: string;
-  criterion_refs?: { inclusion: string[]; exclusion: string[] };
-  source_locators?: { doi?: string; url?: string; venue?: string; year?: number };
-}
-
-export interface ScreeningRows {
-  shape: "ui07.screening-rows-v1";
-  batch_index: number;
-  batch_file: string;
-  total: number;
-  offset: number;
-  limit: number;
-  rows: ScreeningRow[];
-  missing: MissingEntry[];
-}
-
-export interface CriterionRefs {
-  shape: "ui07.criterion-refs-v1";
-  protocol_fingerprint: string | null;
-  live_protocol_fingerprint?: string;
-  inclusion: { id: string; text: string }[];
-  exclusion: { id: string; text: string }[];
-  sources: {
-    workspace_id: string;
-    citation?: string;
-    abstract?: string;
-    doi?: string;
-    url?: string;
-    venue?: string;
-    year?: number;
-  }[];
   missing: MissingEntry[];
 }
 
@@ -203,23 +147,6 @@ export interface ReviewState {
   review: { present: false } | { present: true; approval_fingerprint: string };
   deferral: { present: boolean };
   missing: MissingEntry[];
-}
-
-export interface AuditFeedItem {
-  timestamp: string | null;
-  event_id: string | null;
-  action: string;
-  agent_or_tool: string | null;
-  description: string | null;
-  status: string | null;
-}
-
-export interface AuditFeed {
-  shape: "ui07.audit-feed-v1";
-  total: number;
-  offset: number;
-  limit: number;
-  items: AuditFeedItem[];
 }
 
 /**
@@ -334,83 +261,12 @@ export async function readJson<T>(path: string, origin: string, signal?: AbortSi
   return body as T;
 }
 
-export function getProjectSummary(origin: string, signal?: AbortSignal): Promise<ProjectSummary> {
-  return readJson<ProjectSummary>("/api/v1/ui/project-summary", consoleBase(origin), signal);
-}
-
 export function getPublicationStatus(origin: string, signal?: AbortSignal): Promise<PublicationStatus> {
   return readJson<PublicationStatus>("/api/v1/ui/publication-status", consoleBase(origin), signal);
 }
 
-export function getPublicationOutput(
-  origin: string,
-  name: "included.json" | "excluded.json" | "conflicts.json" | "prisma_screening_report.md" | "prisma_report.json",
-  signal?: AbortSignal,
-): Promise<PublicationOutput> {
-  return readJson<PublicationOutput>(
-    `/api/v1/ui/publication/outputs/${name}`,
-    consoleBase(origin),
-    signal,
-  );
-}
-
 export function getScreeningBatches(origin: string, signal?: AbortSignal): Promise<ScreeningBatches> {
   return readJson<ScreeningBatches>("/api/v1/screening/ui/batches", consoleBase(origin), signal);
-}
-
-/**
- * The harness-computed corpus counts (`GET /api/v1/workspace/status`).
- *
- * The console parses the workspace's literature files to answer this, so the
- * numbers on screen come from the same bytes the harness writes - the page
- * never counts the rows it happens to have loaded.
- */
-export function getWorkspaceStatus(origin: string, signal?: AbortSignal): Promise<WorkspaceStatus> {
-  return readJson<WorkspaceStatus>("/api/v1/workspace/status", consoleBase(origin), signal);
-}
-
-/**
- * One page of the stored corpus (`GET /api/v1/ui/corpus/{kind}`).
- *
- * The filter and the slice run over the whole stored set on the console, so
- * the excluded list (~13.5k rows, ~27 MB as a raw dump on the pilot workspace)
- * never crosses the wire whole. The excluded page is only requested when the
- * reader asks for it.
- */
-export function getCorpusPage(
-  kind: "included" | "excluded",
-  origin: string,
-  options?: { q?: string; reason?: string; limit?: number; offset?: number },
-  signal?: AbortSignal,
-): Promise<CorpusPage> {
-  const query = new URLSearchParams();
-  if (options?.q) query.set("q", options.q);
-  if (options?.reason) query.set("reason", options.reason);
-  if (options?.limit !== undefined) query.set("limit", String(options.limit));
-  if (options?.offset !== undefined) query.set("offset", String(options.offset));
-  const suffix = query.size > 0 ? `?${query.toString()}` : "";
-  return readJson<CorpusPage>(
-    `/api/v1/ui/corpus/${kind}${suffix}`,
-    consoleBase(origin),
-    signal,
-  );
-}
-
-export function getBatchRows(
-  origin: string,
-  batchIndex: number,
-  options?: { limit?: number; offset?: number },
-  signal?: AbortSignal,
-): Promise<ScreeningRows> {
-  const query = new URLSearchParams();
-  if (options?.limit !== undefined) query.set("limit", String(options.limit));
-  if (options?.offset !== undefined) query.set("offset", String(options.offset));
-  const suffix = query.size > 0 ? `?${query.toString()}` : "";
-  return readJson<ScreeningRows>(
-    `/api/v1/screening/ui/batch/${batchIndex}/rows${suffix}`,
-    consoleBase(origin),
-    signal,
-  );
 }
 
 export function getBatchReview(
@@ -420,36 +276,6 @@ export function getBatchReview(
 ): Promise<ReviewState> {
   return readJson<ReviewState>(
     `/api/v1/screening/ui/batch/${batchIndex}/review`,
-    consoleBase(origin),
-    signal,
-  );
-}
-
-export function getCriterionRefs(
-  origin: string,
-  batchIndex: number,
-  signal?: AbortSignal,
-): Promise<CriterionRefs> {
-  return readJson<CriterionRefs>(
-    `/api/v1/screening/ui/batch/${batchIndex}/criterion-refs`,
-    consoleBase(origin),
-    signal,
-  );
-}
-
-export function getAuditFeed(
-  origin: string,
-  options?: { action?: string; agent?: string; limit?: number; offset?: number },
-  signal?: AbortSignal,
-): Promise<AuditFeed> {
-  const query = new URLSearchParams();
-  if (options?.action !== undefined) query.set("action", options.action);
-  if (options?.agent !== undefined) query.set("agent", options.agent);
-  if (options?.limit !== undefined) query.set("limit", String(options.limit));
-  if (options?.offset !== undefined) query.set("offset", String(options.offset));
-  const suffix = query.size > 0 ? `?${query.toString()}` : "";
-  return readJson<AuditFeed>(
-    `/api/v1/screening/ui/audit-feed${suffix}`,
     consoleBase(origin),
     signal,
   );
@@ -557,21 +383,6 @@ export interface LineageTrace {
 }
 
 export type LineageSelector = { claim_id: string } | { chunk_id: string };
-
-export function getLineageTrace(
-  origin: string,
-  selector: LineageSelector,
-  signal?: AbortSignal,
-): Promise<LineageTrace> {
-  const query = new URLSearchParams();
-  if ("claim_id" in selector) query.set("claim_id", selector.claim_id);
-  else query.set("chunk_id", selector.chunk_id);
-  return readJson<LineageTrace>(
-    `/api/v1/ui/lineage?${query.toString()}`,
-    consoleBase(origin),
-    signal,
-  );
-}
 
 /**
  * Typed action calls over the console action routes (UI-07 action side).
@@ -700,22 +511,6 @@ export async function postJson<T>(
   return parsed as T;
 }
 
-export function getPairingStatus(
-  origin: string,
-  batchIndex: number,
-  requestId?: string,
-  signal?: AbortSignal,
-): Promise<PairingStatus> {
-  const query = new URLSearchParams();
-  query.set("batch", String(batchIndex));
-  if (requestId !== undefined) query.set("request_id", requestId);
-  return readJson<PairingStatus>(
-    `/api/v1/screening/actions/pairing/status?${query.toString()}`,
-    consoleBase(origin),
-    signal,
-  );
-}
-
 export function postPairingRedeem(
   origin: string,
   batchIndex: number,
@@ -727,20 +522,6 @@ export function postPairingRedeem(
     "/api/v1/screening/actions/pairing/redeem",
     consoleBase(origin),
     { batch: batchIndex, code, request_id: options?.requestId ?? null },
-    signal,
-  );
-}
-
-export function postDraftDecisions(
-  origin: string,
-  batchIndex: number,
-  payload: { decisions: DraftDecisionInput[]; reviewed_by?: string },
-  signal?: AbortSignal,
-): Promise<DraftResult> {
-  return postJson<DraftResult>(
-    `/api/v1/screening/batch/${batchIndex}/decisions`,
-    consoleBase(origin),
-    { batch: batchIndex, reviewed_by: payload.reviewed_by ?? "console", decisions: payload.decisions },
     signal,
   );
 }

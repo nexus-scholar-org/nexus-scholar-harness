@@ -410,9 +410,7 @@ def test_review_1_the_audit_feed_never_reveals_a_proposal_outcome(client, ws):
         created_at="2026-11-04T09:00:00Z",
     )
     journal = (ws / "audit" / "journal.jsonl").read_text(encoding="utf-8")
-    feed = client.get(f"{BASE}/ui/audit-feed").text
-    for text in (journal, feed):
-        assert "MAYBE" not in text and "derived" not in text
+    assert "MAYBE" not in journal and "derived" not in journal
 
 
 def test_review_10_agent_uncertainty_orders_unclear_drafts_first(client, ws):

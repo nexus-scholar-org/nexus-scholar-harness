@@ -382,24 +382,6 @@ def _ui07_refuse_caller_identity(request: Request) -> None:
         )
 
 
-def _ui07_protocol_fingerprint(ws: Path) -> str | None:
-    """Canonical protocol fingerprint, or None when it cannot be resolved.
-
-    Reuses the protocol kit (never reimplemented); any failure yields None
-    so the caller reports an explicit missing entry instead of inventing one.
-    """
-    try:
-        from scholar_protocol.canonical import (
-            canonical_fingerprint as _protocol_fingerprint,
-        )
-        from scholar_protocol.models import ResearchProtocol
-
-        raw = json.loads((ws / "protocol.json").read_text(encoding="utf-8"))
-        return _protocol_fingerprint(ResearchProtocol.model_validate(raw))
-    except Exception:  # noqa: BLE001 - any failure is "unavailable", never fatal
-        return None
-
-
 def _ui07_sanitize_details(ws: Path, details: dict[str, Any]) -> dict[str, Any]:
     """Make gate details browser-safe: workspace-relative paths, JSON values."""
     clean: dict[str, Any] = {}
@@ -440,103 +422,6 @@ def _ui07_publication_status(ws: Path) -> dict[str, Any]:
         "outputs": dict(record.output_digests) if record is not None else {},
         "message": result.message,
         "details": _ui07_sanitize_details(ws, dict(result.details)),
-    }
-
-
-@router.get("/ui/project-summary")
-def ui07_project_summary(request: Request):
-    """§3(a): project summary + workflow readiness (explicit missing, never null-silence)."""
-    _ui07_refuse_caller_identity(request)
-    ws = _ws(request)
-
-    missing: list[dict[str, Any]] = []
-
-    try:
-        from scholar_harness.workspace.identity import require_recorded_identity
-
-        workspace_id: str | None = require_recorded_identity(ws)
-    except Exception:  # noqa: BLE001 - unregistered workspaces report, never mint
-        workspace_id = None
-        missing.append({"file": "project.json", "reason": "IDENTITY_UNREGISTERED"})
-
-    try:
-        project_raw = json.loads((ws / "project.json").read_text(encoding="utf-8"))
-        project_id = (
-            project_raw.get("project_id") if isinstance(project_raw, dict) else None
-        )
-    except Exception:  # noqa: BLE001 - unreadable manifest is explicit, never fatal
-        project_id = None
-    if not isinstance(project_id, str) or not project_id:
-        project_id = ws.name
-        missing.append({"file": "project.json", "reason": "PROJECT_ID_ABSENT"})
-
-    protocol_path = ws / "protocol.json"
-    if protocol_path.is_file():
-        protocol_fp = _ui07_protocol_fingerprint(ws)
-        protocol = {"present": True, "fingerprint": protocol_fp}
-        if protocol_fp is None:
-            missing.append(
-                {"file": "protocol.json", "reason": "PROTOCOL_FINGERPRINT_UNAVAILABLE"}
-            )
-    else:
-        protocol = {"present": False, "fingerprint": None}
-        missing.append({"file": "protocol.json", "reason": "NOT_PREPARED"})
-
-    manifest_path = ws / "literature" / "screening" / "MANIFEST.json"
-    run: dict[str, Any] | None = None
-    batches_resolved = 0
-    batch_total = 0
-    all_batches_resolved = False
-    try:
-        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-        run_id = (
-            manifest.get("screening_run_id") if isinstance(manifest, dict) else None
-        )
-        rows = manifest.get("batches", []) if isinstance(manifest, dict) else []
-    except Exception:  # noqa: BLE001 - absent/unreadable manifest is explicit
-        run_id = None
-        rows = None
-    if isinstance(run_id, str) and run_id and isinstance(rows, list):
-        batch_total = len(rows)
-        for row in rows:
-            if not isinstance(row, dict):
-                continue
-            try:
-                idx = int(row.get("batch_index"))
-            except (TypeError, ValueError):
-                continue
-            if (
-                ws / "literature" / "screening" / f"batch_{idx:03d}_decisions.json"
-            ).is_file():
-                batches_resolved += 1
-        run = {
-            "screening_run_id": run_id,
-            "batches": batch_total,
-            "batches_resolved": batches_resolved,
-        }
-        all_batches_resolved = batch_total > 0 and batches_resolved == batch_total
-        if batch_total == 0:
-            missing.append(
-                {"file": "literature/screening/MANIFEST.json", "reason": "NO_BATCHES"}
-            )
-    else:
-        missing.append(
-            {"file": "literature/screening/MANIFEST.json", "reason": "NOT_PREPARED"}
-        )
-
-    publication = _ui07_publication_status(ws)
-    return {
-        "shape": "ui07.project-summary-v1",
-        "workspace_id": workspace_id,
-        "project_id": project_id,
-        "protocol": protocol,
-        "run": run,
-        "readiness": {
-            "screening_prepared": run is not None,
-            "all_batches_resolved": all_batches_resolved,
-            "publication": publication,
-        },
-        "missing": missing,
     }
 
 
