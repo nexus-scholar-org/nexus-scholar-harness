@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { PUBLISH_COPY, ScreeningPublish } from "@/components/screening-publish";
@@ -65,7 +65,7 @@ function engine(options: { preview?: unknown; approved?: boolean; redeem?: Respo
       }
       if (path === "/api/console/api/v1/ui/publication-status") {
         if (!options.publication) return new Response(JSON.stringify({ detail: { code: "NOT_FOUND" } }), { status: 404 });
-        return ok({ shape: "ui07.publication-status-v1", status: options.publication, code: null, generation_id: "GEN-1", outputs: {}, message: "", details: {} });
+        return ok({ shape: "ui07.publication-status-v1", status: options.publication, code: options.publication === "STALE" ? "GENERATION_STALE" : null, generation_id: "GEN-1", outputs: {}, message: "", details: options.publication === "STALE" ? { changed: 2 } : {} });
       }
       if (path === "/actions/publish") return ok({ shape: "screening-action-publish-v1", status: "CURRENT", generation_id: "GEN-1", generation_fingerprint: "sha256:g", outputs: {}, request_id: "r", journal_event_id: "e" });
       return new Response(JSON.stringify({ detail: { code: "NOT_FOUND" } }), { status: 404 });
@@ -134,27 +134,34 @@ describe("publish approval and publish", () => {
     const begin = log.find((l) => l.path === "/actions/pairing/begin");
     expect(begin?.body).toEqual({ batch: 1 });
 
-    const field = screen.getByLabelText("Approval code for batch_001");
+    const field = screen.getByLabelText("Approval code for batch 1");
     fireEvent.change(field, { target: { value: " AB12C-DE34F " } });
-    fireEvent.click(screen.getByRole("button", { name: "Approve batch_001" }));
+    fireEvent.click(screen.getByRole("button", { name: "Approve batch 1" }));
     await screen.findByText("Approval on file");
     // The UI cannot tell whether an approval on file is still current, so re-approval stays available (review 4).
-    expect(screen.getByRole("button", { name: "Approve batch_001" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Approve batch 1" })).toBeInTheDocument();
     expect(log.find((l) => l.path === "/actions/pairing/redeem")?.body).toMatchObject({ batch: 1, code: "AB12C-DE34F" });
     expect(field).toHaveValue("");
 
     const publish = screen.getByRole("button", { name: "Publish the screening" });
     await waitFor(() => expect(publish).toBeEnabled());
     fireEvent.click(publish);
-    await screen.findByText("Published generation GEN-1");
+    // "Published", with the generation id behind Details (M6-beta, rule page 12).
+    const banner = await waitFor(() => {
+      const el = document.querySelector("[data-published]");
+      if (!el) throw new Error("not yet");
+      return el;
+    });
+    expect(banner).toHaveTextContent("Published");
+    expect(within(banner as HTMLElement).getByText("GEN-1").closest("details")).not.toBeNull();
   });
 
   it("shows the engine's refusal for a wrong code", async () => {
     engine({ redeem: new Response(JSON.stringify({ detail: { code: "PAIRING_CODE_INVALID", message: "no" } }), { status: 403, headers: { "content-type": "application/json" } }) });
     render(<ScreeningPublish locale="en" />);
     await screen.findByText("Approve each batch, then publish the screening.");
-    fireEvent.change(screen.getByLabelText("Approval code for batch_001"), { target: { value: "WRONG" } });
-    fireEvent.click(screen.getByRole("button", { name: "Approve batch_001" }));
+    fireEvent.change(screen.getByLabelText("Approval code for batch 1"), { target: { value: "WRONG" } });
+    fireEvent.click(screen.getByRole("button", { name: "Approve batch 1" }));
     await screen.findByText("PAIRING_CODE_INVALID");
     expect(screen.getByText("Wrong approval code", { selector: "h2" })).toBeInTheDocument();
   });
@@ -184,5 +191,34 @@ describe("publish copy", () => {
         expect(holes(value), `${locale}/${key}`).toEqual(holes(PUBLISH_COPY.en[key as keyof typeof PUBLISH_COPY.en]));
       }
     }
+  });
+});
+
+describe("publish.details (M6-beta, spec 09 amendment)", () => {
+  it("shows each check as one line; a passing check's detail and the batch file name sit behind Details", async () => {
+    engine();
+    render(<ScreeningPublish locale="en" />);
+    await screen.findByRole("heading", { name: "Checks" });
+    for (const li of document.querySelectorAll("[data-check]")) {
+      expect(li.querySelector("[dir=ltr]")).toBeNull(); // no inline detail on a passing line
+    }
+    const checks = document.querySelector("[data-checks-details]") as HTMLDetailsElement;
+    expect(checks.open).toBe(false);
+    expect(screen.getByText("batch_001.json").closest("details")).not.toBeNull();
+    expect(screen.getByText(/^batch 1$/i)).toBeInTheDocument();
+    // The PRISMA preview keeps its reasons table.
+    expect(screen.getByRole("columnheader", { name: "Reason" })).toBeInTheDocument();
+  });
+
+  it("says how many studies changed after publishing, with the code behind Details", async () => {
+    engine({ publication: "STALE" });
+    render(<ScreeningPublish locale="en" />);
+    const notice = await waitFor(() => {
+      const el = document.querySelector("[data-publication-stale]");
+      if (!el) throw new Error("not yet");
+      return el;
+    });
+    expect(notice).toHaveTextContent("Decisions changed after this was published (2 studies). Approve and publish again.");
+    expect(within(notice as HTMLElement).getByText("GENERATION_STALE").closest("details")).not.toBeNull();
   });
 });

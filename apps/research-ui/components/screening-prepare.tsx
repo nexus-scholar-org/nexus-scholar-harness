@@ -32,6 +32,10 @@ const COPY = {
     blinding: "The agent's draft",
     blindingAfter: "Reveal after my decision (recommended)",
     blindingShow: "Show beside the record",
+    advance: "After I decide",
+    advanceDraft: "Show the draft, then N (default)",
+    advanceNow: "Move on at once (drafts stay in the record's details)",
+    advanceShown: "Drafts are already beside the record, so the next record always opens at once.",
     mode: "Who sees each record",
     modeEvery: "I see every record (default)",
     modeAi: "AI-agreed exclusion: skip records the agent calls clear exclusions",
@@ -67,6 +71,10 @@ const COPY = {
     blinding: "Le brouillon de l'agent",
     blindingAfter: "L'afficher après ma décision (recommandé)",
     blindingShow: "L'afficher à côté de la notice",
+    advance: "Après ma décision",
+    advanceDraft: "Afficher le brouillon, puis N (par défaut)",
+    advanceNow: "Passer tout de suite à la suivante (le brouillon reste dans les détails de la notice)",
+    advanceShown: "Les brouillons sont déjà à côté de la notice ; la notice suivante s'ouvre donc toujours tout de suite.",
     mode: "Qui voit chaque notice",
     modeEvery: "Je vois chaque notice (par défaut)",
     modeAi: "Exclusion validée par l'IA : passer les notices que l'agent juge clairement exclues",
@@ -102,6 +110,10 @@ const COPY = {
     blinding: "مسودة الوكيل",
     blindingAfter: "اعرضها بعد قراري (موصى به)",
     blindingShow: "اعرضها بجانب السجل",
+    advance: "بعد قراري",
+    advanceDraft: "اعرض المسودة ثم N (الافتراضي)",
+    advanceNow: "انتقل فورًا إلى التالي (تبقى المسودة في تفاصيل السجل)",
+    advanceShown: "المسودات معروضة بجانب السجل أصلًا، لذا يُفتح السجل التالي فورًا دائمًا.",
     mode: "من يرى كل سجل",
     modeEvery: "أرى كل سجل (افتراضي)",
     modeAi: "استبعاد يوافق عليه الذكاء الاصطناعي: تخطي السجلات التي يعدّها الوكيل مستبعدة بوضوح",
@@ -183,6 +195,8 @@ export function ScreeningPrepare({ locale }: Readonly<{ locale: Locale }>) {
       const next = await putSettings(origin, {
         blinding: draft.blinding,
         mode: draft.mode,
+        // Sent only when it changes, so saving other settings journals no no-op row (M6-beta).
+        ...(draft.advance_on_decide && draft.advance_on_decide !== settings.advance_on_decide ? { advance_on_decide: draft.advance_on_decide } : {}),
         ...(draft.mode === "ai_agreed_exclusion" ? { sample_audit_size: draft.sample_audit_size } : {}),
         ...(turningOn ? { confirm_ai_agreed_exclusion: aiConfirmed } : {}),
       });
@@ -277,6 +291,25 @@ export function ScreeningPrepare({ locale }: Readonly<{ locale: Locale }>) {
                   <label key={value} className="mt-2 flex min-h-11 items-center gap-2 text-ink">
                     <input type="radio" name="blinding" checked={draft.blinding === value} onChange={() => setDraft({ ...draft, blinding: value })} />
                     {value === "show" ? t("blindingShow") : t("blindingAfter")}
+                  </label>
+                ))}
+              </fieldset>
+              <fieldset className="mt-4" disabled={draft.blinding === "show"} aria-describedby={draft.blinding === "show" ? "advance-shown" : undefined}>
+                <legend className="text-sm font-semibold text-ink">{t("advance")}</legend>
+                {draft.blinding === "show" ? (
+                  <p id="advance-shown" className="mt-1 text-sm text-ink-muted">
+                    {t("advanceShown")}
+                  </p>
+                ) : null}
+                {(["show_draft_then_next", "next_at_once"] as const).map((value) => (
+                  <label key={value} className="mt-2 flex min-h-11 items-center gap-2 text-ink">
+                    <input
+                      type="radio"
+                      name="advance_on_decide"
+                      checked={(draft.advance_on_decide ?? "show_draft_then_next") === value}
+                      onChange={() => setDraft({ ...draft, advance_on_decide: value })}
+                    />
+                    {value === "next_at_once" ? t("advanceNow") : t("advanceDraft")}
                   </label>
                 ))}
               </fieldset>

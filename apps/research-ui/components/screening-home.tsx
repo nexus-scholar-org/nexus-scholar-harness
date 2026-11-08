@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { formatNumber, type Locale } from "@/i18n";
 import { DataCell, DecisionBadge } from "@/components/ui/base";
-import { ScreeningSteps, StateCard, exportHref, stepHref } from "@/components/screening-state-card";
+import { DETAILS_LABEL, ScreeningSteps, StateCard, exportHref, stepHref } from "@/components/screening-state-card";
 import { getPublicationStatus, getScreeningBatches, isScreeningApiError, type ScreeningBatches } from "@/lib/screening-api";
 import { getConflicts, getCorpus, getSettings, getSummary, type Conflict, type Corpus, type Settings, type Summary } from "@/lib/screening-v1";
 
@@ -63,6 +63,10 @@ const COPY = {
     modeEvery: "you see every record",
     modeAi: "AI-agreed exclusion (opt-in)",
     progressLabel: "{decided} of {total} records decided",
+    includedSoFar: "Included so far",
+    publishedStale: "Published, {n} studies changed since.",
+    publishAgain: "Publish again",
+    batchN: "Batch {n}",
     importCta: "Import your search results",
     imported: "{records} records from {databases}, {duplicates} duplicates removed.",
     importedLink: "What was imported",
@@ -113,6 +117,10 @@ const COPY = {
     modeEvery: "vous voyez chaque notice",
     modeAi: "exclusion validée par l'IA (option)",
     progressLabel: "{decided} notices décidées sur {total}",
+    includedSoFar: "Incluses à ce jour",
+    publishedStale: "Publiée, {n} études modifiées depuis.",
+    publishAgain: "Publier de nouveau",
+    batchN: "Lot {n}",
     importCta: "Importer vos résultats de recherche",
     imported: "{records} notices issues de {databases}, {duplicates} doublons retirés.",
     importedLink: "Ce qui a été importé",
@@ -163,6 +171,10 @@ const COPY = {
     modeEvery: "ترى كل سجل",
     modeAi: "استبعاد يوافق عليه الذكاء الاصطناعي (اختياري)",
     progressLabel: "حُسم {decided} من {total} سجلًا",
+    includedSoFar: "المُدرجة حتى الآن",
+    publishedStale: "منشور، وتغيّرت {n} دراسة منذ ذلك.",
+    publishAgain: "انشر مجددًا",
+    batchN: "الدفعة {n}",
     importCta: "استورد نتائج بحثك",
     imported: "{records} سجلًا من {databases}، وأُزيل {duplicates} مكررًا.",
     importedLink: "ما استُورد",
@@ -184,7 +196,8 @@ function consoleOrigin(): string {
   return new URLSearchParams(window.location.search).get("console") ?? "";
 }
 
-type Loaded = { summary: Summary; batches: ScreeningBatches; conflicts: Conflict[]; settings: Settings; published: boolean; corpus: Corpus | null };
+type Publication = { status: string; changed: number | null } | null;
+type Loaded = { summary: Summary; batches: ScreeningBatches; conflicts: Conflict[]; settings: Settings; publication: Publication; corpus: Corpus | null };
 
 export function ScreeningHome({ locale }: Readonly<{ locale: Locale }>) {
   const t = useCallback((key: HomeCopyKey, values?: Record<string, string | number>) => fill(HOME_COPY[locale][key], values), [locale]);
@@ -195,19 +208,23 @@ export function ScreeningHome({ locale }: Readonly<{ locale: Locale }>) {
   const load = useCallback(async () => {
     setState({ status: "loading" });
     try {
-      const [summary, batches, conflicts, settings, published, corpus] = await Promise.all([
+      const [summary, batches, conflicts, settings, publication, corpus] = await Promise.all([
         getSummary(origin),
         getScreeningBatches(origin),
         getConflicts(origin),
         getSettings(origin),
         // The export link shows only while the publication is CURRENT (spec 10, decision 3);
         // a failed read of the status hides the link and nothing else.
-        getPublicationStatus(origin).then((s) => s.status === "CURRENT", () => false),
+        // Published means current (M6-beta): STALE after a later decision, with the changed count.
+        getPublicationStatus(origin).then(
+          (s): Publication => ({ status: s.status, changed: typeof s.details?.changed === "number" ? (s.details.changed as number) : null }),
+          (): Publication => null,
+        ),
         // The import (spec 11): an entry until the corpus is accepted, then one
         // line of what was brought in. A failed read hides both and nothing else.
         getCorpus(origin).then((c): Corpus | null => c, () => null),
       ]);
-      setState({ status: "ready", data: { summary, batches, conflicts, settings, published, corpus } });
+      setState({ status: "ready", data: { summary, batches, conflicts, settings, publication, corpus } });
     } catch (error) {
       setState({
         status: "error",
@@ -257,7 +274,9 @@ function HomeReady({
   t: (key: HomeCopyKey, values?: Record<string, string | number>) => string;
   n: (value: number) => string;
 }>) {
-  const { summary, batches, conflicts, settings, published, corpus } = data;
+  const { summary, batches, conflicts, settings, publication, corpus } = data;
+  const published = publication?.status === "CURRENT";
+  const publishedStale = publication?.status === "STALE" && publication.changed !== null;
   const importOpen = corpus !== null && corpus.state !== "ACCEPTED" && !corpus.from_discovery;
   const imported = corpus?.state === "ACCEPTED" && corpus.accepted && corpus.databases.length > 0 ? corpus : null;
   const stale = batches.batches.some((b) => b.binding?.state === "STALE_BINDING");
@@ -292,12 +311,6 @@ function HomeReady({
             </a>
           )}
         </p>
-        <p className="mt-2 text-sm text-ink-muted">
-          {t("settings", {
-            blinding: settings.blinding === "show" ? t("blindingShow") : t("blindingHidden"),
-            mode: settings.mode === "ai_agreed_exclusion" ? t("modeAi") : t("modeEvery"),
-          })}
-        </p>
         {imported?.accepted ? (
           <p className="mt-2 text-sm text-ink" data-imported-line>
             {t("imported", {
@@ -316,6 +329,13 @@ function HomeReady({
               {t("exportLink")}
             </a>
           </p>
+        ) : publishedStale ? (
+          <p className="mt-2 text-sm text-ink" data-publication-stale>
+            {t("publishedStale", { n: n(publication!.changed!) })}{" "}
+            <a className="inline-flex min-h-11 items-center text-brand underline" href={stepHref(locale, "publish", origin)}>
+              {t("publishAgain")}
+            </a>
+          </p>
         ) : null}
       </header>
 
@@ -330,12 +350,18 @@ function HomeReady({
         <div role="img" aria-label={t("progressLabel", { decided: n(summary.decided), total: n(summary.total) })} className="mt-3 h-2 w-full rounded-sm bg-rule">
           <div className="h-2 rounded-sm bg-brand" style={{ width: `${percent}%` }} />
         </div>
-        <dl className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-4">
+        <dl className="mt-4 grid grid-cols-3 gap-4" data-home-tiles>
           <Tile label={t("needsYou")} value={n(summary.needs_you)} />
           <Tile label={t("decided")} value={n(summary.decided)} />
-          <Tile label={t("agentProposed")} value={n(summary.agent_proposed)} note={t("agentProposedNote")} />
-          <Tile label={t("conflicts")} value={n(summary.conflicts)} />
+          <Tile label={t("includedSoFar")} value={n(summary.by_outcome.INCLUDE)} />
         </dl>
+        <details className="mt-3 text-sm" data-home-details>
+          <summary className="min-h-11 cursor-pointer py-3 leading-5 rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus text-ink-muted">{DETAILS_LABEL[locale]}</summary>
+          <dl className="mt-2 grid grid-cols-2 gap-4">
+            <Tile label={t("agentProposed")} value={n(summary.agent_proposed)} note={t("agentProposedNote")} />
+            <Tile label={t("conflicts")} value={n(summary.conflicts)} />
+          </dl>
+        </details>
         <p className="mt-4 flex flex-wrap gap-2 text-sm">
           <DecisionBadge role="include">
             {t("included")} {n(summary.by_outcome.INCLUDE)}
@@ -367,7 +393,11 @@ function HomeReady({
               {batches.batches.map((b) => (
                 <tr key={b.batch_index} className="border-t border-rule">
                   <th scope="row" className="py-2 text-start font-normal">
-                    <DataCell>{b.batch_file}</DataCell>
+                    {t("batchN", { n: n(b.batch_index) })}
+                    <details className="text-xs text-ink-muted">
+                      <summary className="min-h-11 cursor-pointer py-3 leading-5 rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus">{DETAILS_LABEL[locale]}</summary>
+                      <DataCell>{b.batch_file}</DataCell>
+                    </details>
                   </th>
                   <td className="py-2">{n(b.items)}</td>
                   <td className="py-2">{n(b.decisions_count ?? 0)}</td>
@@ -397,8 +427,15 @@ function HomeReady({
         <Card title={t("phone")} body={t("phoneBody")} parked />
       </section>
 
+      <p className="text-sm text-ink-muted" data-home-settings>
+        {t("settings", {
+          blinding: settings.blinding === "show" ? t("blindingShow") : t("blindingHidden"),
+          mode: settings.mode === "ai_agreed_exclusion" ? t("modeAi") : t("modeEvery"),
+        })}
+      </p>
+
       <details className="rounded-lg border border-rule bg-leaf p-5 text-sm">
-        <summary className="cursor-pointer font-semibold text-ink">{t("terminal")}</summary>
+        <summary className="min-h-11 cursor-pointer py-3 leading-5 rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus font-semibold text-ink">{t("terminal")}</summary>
         <p className="mt-2 text-ink-muted">{t("terminalBody")}</p>
         <pre className="mt-2 overflow-x-auto rounded-md bg-paper p-3 font-mono text-[0.8125rem] text-ink" dir="ltr">
           {"uv run python src/scholar_harness/agent_screen.py prepare <workspace>\nuv run python src/scholar_harness/agent_screen.py collect <workspace>"}

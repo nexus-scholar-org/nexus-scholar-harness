@@ -32,6 +32,9 @@ const STEP_LABELS: Record<Locale, Record<ScreeningStep, string>> = {
 };
 
 const STEPS_LABEL: Record<Locale, string> = { en: "Screening steps", fr: "Étapes de la sélection", ar: "خطوات الفرز" };
+/** The label of every Details disclosure (rule page 12, M6-beta). */
+export const DETAILS_LABEL: Record<Locale, string> = { en: "Details", fr: "Détails", ar: "التفاصيل" };
+
 /** The way back to the workspaces screen (spec 00, M5-slim). */
 const WORKSPACES_LABEL: Record<Locale, string> = { en: "All workspaces", fr: "Tous les espaces", ar: "كل مساحات العمل" };
 
@@ -121,14 +124,18 @@ export function StateCard({
           <bdi dir="ltr">{message}</bdi>
         </p>
       ) : null}
-      {state.affects ? (
-        <p className="mt-1 text-sm text-ink-muted">
-          {AFFECTS_LABEL[locale]} {state.affects}
+      {/* The typed code sits behind Details (rule page 12): still in the DOM, still selectable. */}
+      <details className="mt-2 text-sm" data-state-details>
+        <summary className="min-h-11 cursor-pointer py-3 leading-5 rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus text-ink-muted">{DETAILS_LABEL[locale]}</summary>
+        {state.affects ? (
+          <p className="mt-1 text-sm text-ink-muted">
+            {AFFECTS_LABEL[locale]} {state.affects}
+          </p>
+        ) : null}
+        <p className={`mt-1 font-mono text-[0.8125rem] ${roleText}`} dir="ltr">
+          {code}
         </p>
-      ) : null}
-      <p className={`mt-2 font-mono text-[0.8125rem] ${roleText}`} dir="ltr">
-        {code}
-      </p>
+      </details>
       <div className="mt-3">
         {state.action === "retry" && onRetry ? (
           <Button onClick={onRetry}>{state.actionLabel}</Button>

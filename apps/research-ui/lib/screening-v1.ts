@@ -42,6 +42,8 @@ export interface QueueItem {
   study_id: string;
   title: string;
   batch_id: string;
+  /** The batch's number (M6-beta); older engines omit it. */
+  batch_index?: number;
   has_proposal: boolean;
   decided: boolean;
   flags: string[];
@@ -93,6 +95,8 @@ export interface RecordDetail {
   year: number | null;
   venue: string | null;
   doi: string | null;
+  /** The batch's number (M6-beta); older engines omit it. */
+  batch_index?: number;
   highlights: { start: number; end: number; criterion_id: string }[];
   criteria: Criterion[];
   binding: Binding;

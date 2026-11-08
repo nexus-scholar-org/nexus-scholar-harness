@@ -45,6 +45,7 @@ interface Engine {
   criteria?: typeof CRITERIA;
   proposalDelay?: Promise<void>;
   proposal?: typeof PROPOSAL;
+  advance?: "show_draft_then_next" | "next_at_once";
 }
 
 let engine: Engine;
@@ -73,11 +74,15 @@ function fakeFetch(url: string, init?: RequestInit): Promise<Response> {
   const method = (init?.method ?? "GET").toUpperCase();
   const body = init?.body ? JSON.parse(String(init.body)) : undefined;
   engine.log.push({ method, path, body });
-  if (path === "/settings") return Promise.resolve(json({ blinding: engine.blinding, mode: "human_sees_every_record", sample_audit_size: null, screener_id: "researcher:local" }));
+  if (path === "/settings") return Promise.resolve(json({ blinding: engine.blinding, mode: "human_sees_every_record", sample_audit_size: null, screener_id: "researcher:local", advance_on_decide: engine.advance ?? "show_draft_then_next" }));
+  if (path === "/summary") {
+    const decided = studies().filter((x) => head(x.study_id) !== null).length;
+    return Promise.resolve(json({ total: 3, decided, by_outcome: { INCLUDE: 0, EXCLUDE: 0, MAYBE: 0 }, agent_proposed: 1, needs_you: 3 - decided, conflicts: 0, lanes: { agent: 1, you: decided, second_screener: "PARKED" } }));
+  }
   if (path === "/queue") {
     const view = parsed.searchParams.get("view");
     const items = studies()
-      .map((s) => ({ study_id: s.study_id, title: s.title, batch_id: "batch-1", has_proposal: engine.proposals.has(s.study_id), decided: head(s.study_id) !== null, flags: s.abstract ? [] : ["title_only"] }))
+      .map((s) => ({ study_id: s.study_id, title: s.title, batch_id: "batch-1", batch_index: 1, has_proposal: engine.proposals.has(s.study_id), decided: head(s.study_id) !== null, flags: s.abstract ? [] : ["title_only"] }))
       .filter((i) => (view === "decided" ? i.decided : !i.decided));
     return Promise.resolve(json({ items, next_cursor: null }));
   }
@@ -95,7 +100,7 @@ function fakeFetch(url: string, init?: RequestInit): Promise<Response> {
   if (record) {
     const s = studies().find((x) => x.study_id === record[1])!;
     return Promise.resolve(
-      json({ ...s, year: 2024, venue: null, doi: null, highlights: [], criteria: engine.criteria ?? CRITERIA, binding: BINDING, my_decision: head(s.study_id), history: engine.events.filter((e) => e.study_id === s.study_id) }),
+      json({ ...s, year: 2024, venue: null, doi: null, batch_index: 1, highlights: [], criteria: engine.criteria ?? CRITERIA, binding: BINDING, my_decision: head(s.study_id), history: engine.events.filter((e) => e.study_id === s.study_id) }),
     );
   }
   if (path === "/decisions/events" && method === "POST") {
@@ -111,6 +116,7 @@ function fakeFetch(url: string, init?: RequestInit): Promise<Response> {
 
 beforeEach(() => {
   engine = { log: [], events: [], reveals: new Set(), blinding: "reveal_after_decision", proposals: new Set(["STU-a"]) };
+  window.sessionStorage.clear(); // the queue's open/closed choice lasts the session
   vi.stubGlobal("fetch", vi.fn(fakeFetch));
 });
 
@@ -125,10 +131,17 @@ async function ready() {
 }
 
 function answerAll() {
+  // Inclusions yes, exclusions no: the answers that make Include possible (M6-beta, answer until decisive).
   for (const group of document.querySelectorAll('[role="group"][aria-label]')) {
-    const yes = within(group as HTMLElement).queryByRole("button", { name: "Yes" });
-    if (yes) fireEvent.click(yes);
+    const id = (group as HTMLElement).getAttribute("aria-label") ?? "";
+    const pick = within(group as HTMLElement).queryByRole("button", { name: id.startsWith("EXC") ? "No" : "Yes" });
+    if (pick) fireEvent.click(pick);
   }
+}
+
+function answer(id: string, value: "Yes" | "No" | "Not reported") {
+  const group = document.querySelector(`[role="group"][aria-label="${id}"]`) as HTMLElement;
+  fireEvent.click(within(group).getByRole("button", { name: value }));
 }
 
 describe("triage.blinding-no-proposal-field", () => {
@@ -156,7 +169,7 @@ describe("record-detail.hidden-until-decision and derived-outcome-from-server", 
     const aside = screen.getByTestId("proposal-aside");
     expect(aside).toHaveTextContent("Exclude · EXC-01");
     expect(aside).toHaveTextContent("Not a decision");
-    expect(postedEvents()[0]).toMatchObject({ method: "HUMAN", outcome: "INCLUDE", criteria: [{ id: "INC-01", answer: "yes" }, { id: "EXC-01", answer: "yes" }] });
+    expect(postedEvents()[0]).toMatchObject({ method: "HUMAN", outcome: "INCLUDE", criteria: [{ id: "INC-01", answer: "yes" }, { id: "EXC-01", answer: "no" }] });
   });
 });
 
@@ -237,8 +250,10 @@ describe("triage.undo-superseding and triage.changed-after-reveal", () => {
     const first = postedEvents()[0];
 
     fireEvent.click(screen.getByRole("button", { name: "Change my decision" }));
+    answer("EXC-01", "Yes");
     fireEvent.click(screen.getByRole("button", { name: /^Exclude/ }));
-    fireEvent.click(screen.getByRole("button", { name: "1. EXC-01" }));
+    // EXC-01 is pre-selected from the checklist, shown in words with its code (M6-beta).
+    expect(screen.getByRole("button", { name: /^1\. Not a crop field/ })).toHaveAttribute("aria-pressed", "true");
     fireEvent.click(screen.getByRole("button", { name: "Exclude with this reason" }));
     await screen.findByText("Changed after seeing the agent's draft");
     const change = postedEvents()[1];
@@ -299,6 +314,10 @@ describe("review 2: show mode names the draft that was on screen", () => {
     fireEvent.click(screen.getByRole("button", { name: /^Include/ }));
     await waitFor(() => expect(postedEvents()).toHaveLength(1));
     expect(postedEvents()[0].proposal_shown).toEqual({ proposal_id: "PRP-1", revealed_after_decision: false });
+    await screen.findByText("Title only record", { selector: "p bdi" }); // moved on at once
+    await act(async () => {
+      fireEvent.keyDown(window, { key: "k" });
+    });
     await screen.findByRole("button", { name: "Change my decision" });
     fireEvent.click(screen.getByRole("button", { name: "Change my decision" }));
     fireEvent.click(screen.getByRole("button", { name: /^Unclear/ }));
@@ -316,7 +335,7 @@ describe("review 2: show mode names the draft that was on screen", () => {
 });
 
 describe("review 3 and 7: reason keys and Enter", () => {
-  it("picks reason chip 4 by keyboard and confirms with Enter", async () => {
+  it("picks reason chip 3 by keyboard over the pre-selected one, and confirms with Enter", async () => {
     engine.criteria = [
       { id: "INC-01", text: "UAV imagery", kind: "inclusion" },
       { id: "EXC-01", text: "a", kind: "exclusion" },
@@ -324,19 +343,23 @@ describe("review 3 and 7: reason keys and Enter", () => {
       { id: "EXC-03", text: "c", kind: "exclusion" },
     ];
     await ready();
-    answerAll();
+    answer("INC-01", "Yes");
+    answer("EXC-02", "Yes");
+    answer("EXC-03", "Yes");
     await act(async () => {
       fireEvent.keyDown(window, { key: "e" });
     });
+    // The first failed criterion in protocol order is pre-selected (M6-beta).
+    expect(screen.getByRole("button", { name: /^2\. b/ })).toHaveAttribute("aria-pressed", "true");
     await act(async () => {
-      fireEvent.keyDown(window, { key: "4" });
+      fireEvent.keyDown(window, { key: "3" });
     });
-    expect(screen.getByRole("button", { name: "4. FAILS-INC-01" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("button", { name: /^3\. c/ })).toHaveAttribute("aria-pressed", "true");
     await act(async () => {
       fireEvent.keyDown(window, { key: "Enter" });
     });
     await waitFor(() => expect(postedEvents()).toHaveLength(1));
-    expect(postedEvents()[0]).toMatchObject({ outcome: "EXCLUDE", reason_code: "FAILS-INC-01" });
+    expect(postedEvents()[0]).toMatchObject({ outcome: "EXCLUDE", reason_code: "EXC-03" });
   });
 
   it("does not submit when Enter is pressed in the note", async () => {
@@ -409,5 +432,205 @@ describe("triage copy", () => {
       }
     }
     expect(() => tc("en", "refused")).toThrow(/needs \{code\}/);
+  });
+});
+
+
+// --- M6-beta, spec 03 amendments ---------------------------------------------
+
+async function press(key: string) {
+  await act(async () => {
+    fireEvent.keyDown(window, { key });
+  });
+}
+
+describe("triage.decisive (answer until decisive)", () => {
+  it("enables Exclude on the first failed criterion and says so; Include waits for every inclusion yes", async () => {
+    await ready();
+    const include = () => screen.getByRole("button", { name: /^Include/ });
+    const exclude = () => screen.getByRole("button", { name: /^Exclude/ });
+    expect(include()).toBeDisabled();
+    expect(exclude()).toBeDisabled();
+    expect(screen.getByRole("button", { name: /^Unclear/ })).toBeEnabled();
+    expect(document.querySelector("[data-decisive]")).toHaveTextContent("Include needs INC-01");
+    answer("INC-01", "No");
+    expect(exclude()).toBeEnabled();
+    expect(include()).toBeDisabled();
+    expect(document.querySelector("[data-decisive]")).toHaveTextContent("Exclude is ready: INC-01 answered no");
+    answer("INC-01", "Not reported");
+    expect(document.querySelector("[data-decisive]")).toHaveTextContent("Include needs INC-01 to be yes");
+    answer("INC-01", "Yes");
+    // The exclusion criterion is still unanswered: it does not block Include.
+    expect(include()).toBeEnabled();
+    expect(document.querySelector("[data-decisive]")).toHaveTextContent("Include is ready");
+  });
+
+  it("sends only the criteria answered; an unanswered one is absent, never not_reported", async () => {
+    await ready();
+    answer("INC-01", "Yes");
+    fireEvent.click(screen.getByRole("button", { name: /^Include/ }));
+    await waitFor(() => expect(postedEvents()).toHaveLength(1));
+    expect(postedEvents()[0].criteria).toEqual([{ id: "INC-01", answer: "yes" }]);
+  });
+});
+
+describe("triage.reason-from-checklist", () => {
+  it("pre-selects the failed criterion, shows it in words, and E then Enter excludes", async () => {
+    await ready();
+    answer("INC-01", "No");
+    await press("e");
+    const chosen = document.querySelector("[data-reason]")!;
+    expect(chosen).toHaveTextContent("Fails INC-01 · UAV imagery");
+    expect(chosen).toHaveTextContent("FAILS-INC-01");
+    await press("Enter");
+    await waitFor(() => expect(postedEvents()).toHaveLength(1));
+    expect(postedEvents()[0]).toMatchObject({ outcome: "EXCLUDE", reason_code: "FAILS-INC-01" });
+  });
+});
+
+describe("triage.advance-on-decide", () => {
+  it("opens the next record at once when there is no draft to reveal", async () => {
+    engine.proposals = new Set();
+    await ready();
+    answer("INC-01", "Yes");
+    fireEvent.click(screen.getByRole("button", { name: /^Include/ }));
+    await screen.findByText("Title only record", { selector: "p bdi" });
+    expect(proposalReads()).toEqual([]);
+  });
+
+  it("with a draft and the default setting, shows the draft and waits for N", async () => {
+    await ready();
+    answer("INC-01", "Yes");
+    fireEvent.click(screen.getByRole("button", { name: /^Include/ }));
+    await screen.findByText("Your decision differs from the agent's draft.");
+    expect(screen.getByText("Drone weed mapping", { selector: "p bdi" })).toBeInTheDocument();
+  });
+
+  it("with 'move on at once', opens the next record and never reads the draft", async () => {
+    engine.advance = "next_at_once";
+    await ready();
+    answer("INC-01", "Yes");
+    fireEvent.click(screen.getByRole("button", { name: /^Include/ }));
+    await screen.findByText("Title only record", { selector: "p bdi" });
+    expect(proposalReads()).toEqual([]);
+    expect(engine.reveals.size).toBe(0);
+  });
+});
+
+describe("triage.position and the collapsed queue", () => {
+  it("says which record of how many, and shows only the current and next titles until opened", async () => {
+    await ready();
+    await waitFor(() => expect(document.querySelector("[data-position]")).toHaveTextContent("Record 1 of 3 · batch 1"));
+    const queue = document.querySelector("[data-queue-collapsed]") as HTMLElement;
+    expect(within(queue).getByText("Drone weed mapping")).toBeInTheDocument();
+    expect(within(queue).getByText("Title only record")).toBeInTheDocument();
+    expect(within(queue).queryByText("Third record")).toBeNull();
+    const toggle = screen.getByRole("button", { name: "Show the whole queue" });
+    expect(toggle).toHaveAttribute("aria-expanded", "false");
+    await press("j");
+    expect(screen.getByRole("button", { name: "Hide the queue" })).toHaveAttribute("aria-expanded", "true");
+    expect(screen.getByText("Third record")).toBeInTheDocument();
+  });
+});
+
+describe("triage.undo-hidden", () => {
+  it("shows no Undo on a first decision, and Undo once there is something to undo", async () => {
+    engine.proposals = new Set();
+    await ready();
+    answer("INC-01", "Yes");
+    fireEvent.click(screen.getByRole("button", { name: /^Include/ }));
+    await screen.findByText("Title only record", { selector: "p bdi" });
+    await press("k");
+    await screen.findByRole("button", { name: "Change my decision" });
+    expect(screen.queryByRole("button", { name: /^Undo/ })).toBeNull();
+    expect(screen.queryByText("A first decision cannot be undone; change it instead.")).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Change my decision" }));
+    fireEvent.click(screen.getByRole("button", { name: /^Unclear/ }));
+    await screen.findByRole("button", { name: /^Undo/ });
+  });
+});
+
+describe("triage.all-decided", () => {
+  it("hands off to Publish when nothing needs you, with no draft aside", async () => {
+    for (const s of studies()) {
+      engine.events.push({ event_id: `e-${s.study_id}`, study_id: s.study_id, outcome: "INCLUDE", supersedes: null } as unknown as StoredEvent);
+    }
+    render(<TriagePage locale="en" />);
+    await screen.findByRole("heading", { name: "All 3 records are decided" });
+    expect(screen.getByRole("link", { name: "Go to publish" })).toHaveAttribute("href", "/en/screening/publish");
+    expect(screen.getByRole("link", { name: "Agreement" })).toHaveAttribute("href", "/en/screening/agreement");
+    expect(screen.queryByTestId("proposal-aside")).toBeNull();
+    expect(screen.getByText("Every record has your decision.")).toBeInTheDocument();
+  });
+});
+
+describe("triage.details", () => {
+  it("keeps the study id and the provenance line behind Details, and says Saved", async () => {
+    engine.proposals = new Set();
+    await ready();
+    const details = document.querySelector("[data-record-details]") as HTMLDetailsElement;
+    expect(details.open).toBe(false);
+    expect(details).toHaveTextContent("STU-a");
+    answer("INC-01", "Yes");
+    fireEvent.click(screen.getByRole("button", { name: /^Include/ }));
+    await screen.findByText("Title only record", { selector: "p bdi" });
+    await press("k");
+    await screen.findByText("Saved");
+    const provenance = document.querySelector("[data-decision-details]") as HTMLDetailsElement;
+    expect(provenance.open).toBe(false);
+    expect(provenance).toHaveTextContent("Recorded as you · HUMAN");
+  });
+});
+
+describe("triage review fixes (M6-beta part 2)", () => {
+  it("never claims all decided before the queue has answered", async () => {
+    let release: () => void = () => undefined;
+    const held = new Promise<void>((r) => {
+      release = r;
+    });
+    const real = vi.mocked(fetch).getMockImplementation()!;
+    vi.mocked(fetch).mockImplementation(async (url, init) => {
+      if (String(url).includes("/queue")) await held;
+      return real(url as string, init);
+    });
+    render(<TriagePage locale="en" />);
+    await waitFor(() => expect(engine.log.some((l) => l.path === "/settings")).toBe(true));
+    await new Promise((r) => setTimeout(r, 20));
+    expect(document.querySelector("[data-all-decided]")).toBeNull();
+    expect(screen.queryByText("Every record has your decision.")).toBeNull();
+    release();
+    await screen.findByText("Drone weed mapping", { selector: "p bdi" });
+  });
+
+  it("with drafts and the default setting, N after the last record reaches the hand-off", async () => {
+    engine.proposals = new Set(["STU-a", "STU-b", "STU-c"]);
+    await ready();
+    for (const title of ["Drone weed mapping", "Title only record", "Third record"]) {
+      await screen.findByText(title, { selector: "p bdi" });
+      answer("INC-01", "Yes");
+      fireEvent.click(screen.getByRole("button", { name: /^Include/ }));
+      await screen.findByText("Your decision differs from the agent's draft.");
+      await press("n");
+    }
+    await screen.findByRole("heading", { name: "All 3 records are decided" });
+  });
+
+  it("moves focus to the next record's title after deciding", async () => {
+    engine.proposals = new Set();
+    await ready();
+    answer("INC-01", "Yes");
+    fireEvent.click(screen.getByRole("button", { name: /^Include/ }));
+    const title = await screen.findByText("Title only record", { selector: "p bdi" });
+    await waitFor(() => expect(title.closest("p")).toHaveFocus());
+  });
+
+  it("does not confirm an Exclude once no criterion fails any more", async () => {
+    await ready();
+    answer("INC-01", "No");
+    await press("e");
+    answer("INC-01", "Yes");
+    await press("Enter");
+    expect(postedEvents()).toEqual([]);
+    expect(screen.getByRole("button", { name: "Exclude with this reason" })).toBeDisabled();
   });
 });

@@ -647,3 +647,12 @@ def test_queue_order_setting(client, ws):
     assert client.get(f"{BASE}/queue").status_code == 200
     assert client.get(f"{BASE}/queue", params={"order": "agent_uncertainty"}).status_code == 200
     assert client.get(f"{BASE}/queue", params={"order": "seeded"}).status_code == 422
+
+
+
+def test_queue_items_and_records_carry_their_batch_number(client):
+    """M6-beta (spec 03 amendment 4): "Record 12 of 30 · batch 1" needs the batch's number."""
+    items = client.get(f"{BASE}/queue", params={"view": "needs_you", "limit": 50}).json()["items"]
+    assert items and all(isinstance(i["batch_index"], int) and i["batch_index"] >= 1 for i in items)
+    detail = client.get(f"{BASE}/records/{items[0]['study_id']}").json()
+    assert detail["batch_index"] == items[0]["batch_index"]

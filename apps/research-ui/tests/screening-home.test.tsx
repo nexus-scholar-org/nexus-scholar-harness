@@ -166,3 +166,42 @@ describe("states.conflict-not-a-refusal", () => {
     expect(document.querySelector('[data-role="blocked"]')).toBeNull();
   });
 });
+
+describe("home.compact (M6-beta, spec 01 amendment)", () => {
+  it("puts the button and three tiles before the batches; drafts, conflicts and file names sit behind Details", async () => {
+    engine({ "/summary": { ...body("summary_start"), by_outcome: { INCLUDE: 1, EXCLUDE: 0, MAYBE: 0 }, agent_proposed: 2, lanes: { agent: 2, you: 0, second_screener: "PARKED" } } });
+    render(<ScreeningHome locale="en" />);
+    await screen.findByText("Included so far");
+    const tiles = document.querySelector("[data-home-tiles]")!;
+    expect(tiles.querySelectorAll("dt")).toHaveLength(3);
+    const batches = screen.getByRole("heading", { name: "Batches" });
+    expect(tiles.compareDocumentPosition(batches) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    const details = document.querySelector("[data-home-details]") as HTMLDetailsElement;
+    expect(details.open).toBe(false);
+    expect(details).toHaveTextContent("Records with an agent draft");
+    expect(screen.getByText("Batch 1")).toBeInTheDocument();
+    expect(screen.getByText("batch_001.json").closest("details")).not.toBeNull();
+  });
+
+  it("keeps NOT_PREPARED inside the card's Details", async () => {
+    engine({ "/ui/batches": { ...BATCHES, count: 0, batches: [] } });
+    render(<ScreeningHome locale="en" />);
+    const code = await screen.findByText("NOT_PREPARED");
+    expect(code.closest("details")).not.toBeNull();
+  });
+
+  it("says how many studies changed since publishing and links to Publish again", async () => {
+    engine({
+      "/api/console/api/v1/ui/publication-status": { shape: "ui07.publication-status-v1", status: "STALE", code: "GENERATION_STALE", generation_id: "GEN-1", outputs: {}, message: "", details: { changed: 2 } },
+    });
+    render(<ScreeningHome locale="en" />);
+    const line = await waitFor(() => {
+      const el = document.querySelector("[data-publication-stale]");
+      if (!el) throw new Error("not yet");
+      return el;
+    });
+    expect(line).toHaveTextContent("Published, 2 studies changed since.");
+    expect(screen.getByRole("link", { name: "Publish again" })).toHaveAttribute("href", "/en/screening/publish");
+    expect(document.querySelector("[data-export-link]")).toBeNull();
+  });
+});

@@ -1,3 +1,5 @@
+import { createRequire } from "node:module";
+
 import type { Page, Route } from "@playwright/test";
 
 import { DESKTOP_VIEWPORT, expect, test } from "./helpers";
@@ -84,3 +86,49 @@ test("prepare shows the snapshot refusal with the terminal command, in Arabic to
   await expect(card).toContainText("nexus-scholar accept-corpus");
   await expect(card.locator("code")).toHaveAttribute("dir", "ltr");
 });
+
+// --- M6-beta: rendered axe on the compact Home and the Publish details (spec 01, 09; rule 12) ---
+
+const AXE_PATH = createRequire(import.meta.url).resolve("axe-core");
+
+async function axe(page: Page) {
+  await page.addScriptTag({ path: AXE_PATH });
+  return page.evaluate(async () => {
+    const run = (globalThis as unknown as { axe: { run: (ctx: Document) => Promise<{ violations: { id: string; nodes: { target: unknown }[] }[]; passes: { id: string }[] }> } }).axe;
+    const raw = await run.run(document);
+    return { violations: raw.violations.map((v) => `${v.id} ${JSON.stringify(v.nodes.map((n) => n.target))}`), passes: raw.passes.map((p) => p.id) };
+  });
+}
+
+const BATCHES_OK = { ...BATCHES_STALE, batches: [{ ...BATCHES_STALE.batches[0], binding: undefined, coverage: "COMPLETE" }] };
+const PREVIEW_OK = { ...PREVIEW_STALE, checks: PREVIEW_STALE.checks.map((c) => ({ ...c, ok: true })) };
+const STALE_STATUS = { shape: "ui07.publication-status-v1", status: "STALE", code: "GENERATION_STALE", generation_id: "GEN-1", outputs: {}, message: "", details: { changed: 2 } };
+
+for (const locale of ["en", "ar"] as const) {
+  test(`${locale}: axe finds no violation on the compact Home, contrast included`, async ({ page }) => {
+    await answer(page, { "/summary": SUMMARY, "/ui/batches": BATCHES_OK, "/decisions/conflicts": { items: [] }, "/settings": SETTINGS });
+    await page.route("**/api/console/api/v1/ui/publication-status", (route) => route.fulfill({ json: STALE_STATUS }));
+    await page.goto(`/${locale}/screening/home`);
+    await expect(page.locator("[data-home-tiles]")).toBeVisible();
+    await expect(page.locator("[data-publication-stale]")).toBeVisible();
+    const result = await axe(page);
+    expect(result.violations).toEqual([]);
+    expect(result.passes).toContain("color-contrast");
+  });
+
+  test(`${locale}: axe finds no violation on Publish with its Details and the stale notice`, async ({ page }) => {
+    await answer(page, {
+      "/prisma/preview": PREVIEW_OK,
+      "/ui/batches": BATCHES_OK,
+      "/ui/batch/1/review": { shape: "ui07.review-state-v1", batch_index: 1, recommendation: { present: false }, resolution: { resolved: 3, total: 3, unresolved_rows: [] }, override: { superseded: false }, review: { present: true, approval_fingerprint: "sha256:x" }, deferral: { present: false }, missing: [] },
+      "/approver": { name: "Researcher", set_at: "2026-11-06T13:00:00Z", basis: "typed-name" },
+    });
+    await page.route("**/api/console/api/v1/ui/publication-status", (route) => route.fulfill({ json: STALE_STATUS }));
+    await page.goto(`/${locale}/screening/publish`);
+    await expect(page.locator("[data-publication-stale]")).toBeVisible();
+    await page.locator("[data-checks-details] summary").click();
+    const result = await axe(page);
+    expect(result.violations).toEqual([]);
+    expect(result.passes).toContain("color-contrast");
+  });
+}

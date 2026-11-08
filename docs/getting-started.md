@@ -6,7 +6,7 @@ Everything runs on your computer. No account or API key is needed (the AI
 agent is optional and not covered here).
 
 The commands are the same on Windows (PowerShell), macOS and Linux unless a
-step says otherwise. This guide is for the beta, version **1.1.0b1**. To check
+step says otherwise. This guide is for the beta, version **1.1.0b2**. To check
 the version you have, run `nexus-scholar --version`.
 
 ## 1. Install uv (once)
@@ -32,7 +32,7 @@ installs the `nexus-scholar` command for your user. Check it:
 nexus-scholar --version
 ```
 
-It should print `nexus-scholar 1.1.0b1`. You can now run `nexus-scholar` from any
+It should print `nexus-scholar 1.1.0b2`. You can now run `nexus-scholar` from any
 folder, and you do not need to activate anything. If you use pip instead of uv:
 `pip install --pre nexus-scholar`.
 
@@ -85,13 +85,23 @@ import is one command:
 Go to **Screening**. The steps are across the top:
 
 1. **Prepare.** Check the settings, then **Prepare batches** → **Prepare now**.
-   The settings are the batch size (5 to 100 records), whether an agent's drafts
-   are hidden until you decide, and whether you see every record. After a few
-   seconds it says "Batches prepared".
+   The settings are:
+   - the batch size (5 to 100 records);
+   - whether an agent's drafts are hidden until you decide;
+   - what happens after you decide (show the draft, or move on at once);
+   - whether you see every record.
+
+   After a few seconds it says "Batches prepared".
 2. **Agent proposals** (optional). Skip it to screen on your own.
-3. **Triage.** Read each record and decide: include, exclude (with a reason
-   code), or unclear (goes to full text). The keyboard keys are shown on the
-   buttons. Your decisions are saved as you go.
+3. **Triage.** Read each record and answer the criteria until the decision is
+   clear (keys **1** yes, **2** no, **3** not reported). Exclude is ready as soon
+   as one criterion fails, and its reason is taken from that criterion, so
+   **E** then **Enter** excludes. Include is ready when every inclusion criterion
+   is yes. Unclear (goes to full text) is always possible. Your decisions are
+   saved as you go. With no agent draft, the next record opens by itself; with a
+   draft, it shows after your decision and **N** moves on (or choose "move on at
+   once" on Prepare). Identifiers and record
+   details are under **Details**.
 4. **Agreement.** Only meaningful if an agent proposed drafts.
 5. **Publish.**
    1. Type your name under **Approver** and **Save name**. Approvals are recorded
@@ -163,7 +173,7 @@ cd nexus-scholar-harness
 npm --prefix apps/research-ui ci
 npm --prefix apps/research-ui run build:export
 uv build --wheel
-uv tool install --force dist/nexus_scholar-1.1.0b1-py3-none-any.whl
+uv tool install --force dist/nexus_scholar-1.1.0b2-py3-none-any.whl
 ```
 
 The wheel's file name carries the version in `pyproject.toml`. If the app opens
