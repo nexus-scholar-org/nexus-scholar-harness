@@ -251,7 +251,7 @@ def test_preview_matches_what_acceptance_builds(tmp_path):
     first = dict(preview["sources"][0])
     assert first.pop("id").startswith("scopus-")
     assert first == {
-        "label": "Scopus", "file_name": "scopus-export.ris", "records": 3,
+        "label": "Scopus", "file_name": "scopus-export.ris", "format": "ris", "records": 3,
         "searched_on": "2026-11-06", "query": "uav AND weed",
     }
     assert [(d["label"], d["records"], d["search_details_missing"]) for d in preview["databases"]] == [
@@ -478,3 +478,104 @@ def test_an_invalid_method_block_refuses_the_preview_and_acceptance(tmp_path):
         with pytest.raises(AcceptCorpusRefused) as raised:
             call(ws)
         assert raised.value.code == "PROTOCOL_METHOD_INVALID"
+
+
+# --- M5c-nbib: a PubMed MEDLINE export beside the RIS exports ------------------
+
+NBIB_FIXTURE = ROOT / "tests" / "fixtures" / "pubmed" / "pubmed_uav_weeds.nbib"
+
+# Three PubMed records: a DOI twin of IEEE #1, a no-DOI near-twin of IEEE #2
+# (same title and first author, one year apart), and one record of its own.
+PUBMED = (
+    "PMID- 40000001\nDP  - 2024 Mar 15\n"
+    "TI  - Deep learning weed detection from UAV imagery in maize: a comparison of\n"
+    "      convolutional architectures.\n"
+    "AB  - PubMed abstract one.\nFAU - Rossi, Marco\nAU  - Rossi M\nLA  - eng\nPT  - Journal Article\n"
+    "TA  - Sensors (Basel)\nAID - 10.1000/m5c-1 [doi]\n\n"
+    "PMID- 40000002\nDP  - 2021\nTI  - Hyperspectral weed discrimination.\nAB  - PubMed abstract two.\n"
+    "FAU - Diaz, Ana\nAU  - Diaz A\nPT  - Journal Article\nTA  - Weed Res\n\n"
+    "PMID- 40000003\nDP  - 2021 Nov\nTI  - Semantic segmentation of crop rows aboard a UAV.\n"
+    "FAU - Nakamura, Yuki\nAU  - Nakamura Y\nAID - 10.1000/m5c-3 [doi]\n"
+)
+IEEE = (
+    "TY  - CONF\nAU  - Rossi, M.\nTI  - Deep Learning Weed Detection From UAV Imagery in Maize: A Comparison of "
+    "Convolutional Architectures\nPY  - 2024\nDO  - 10.1000/M5C-1\nER  - \n"
+    "TY  - CONF\nAU  - Diaz, A.\nTI  - Hyperspectral weed discrimination\nPY  - 2022\nER  - \n"
+    "TY  - CONF\nAU  - Chen, L.\nTI  - Drone crop scouting with deep learning\nPY  - 2022\nDO  - 10.1000/m5c-4\nER  - \n"
+)
+
+
+def test_a_pubmed_nbib_export_and_an_ieee_ris_export_are_deduplicated_together(tmp_path):
+    ws = _workspace(tmp_path)
+    pubmed, ieee = tmp_path / "pubmed-set.nbib", tmp_path / "ieee.ris"
+    pubmed.write_text(PUBMED, encoding="utf-8")
+    ieee.write_text(IEEE, encoding="utf-8")
+    result = runner.invoke(
+        app, ["accept-corpus", "--workspace", str(ws), "--ris", f"PubMed={pubmed}", "--ris", f"IEEE Xplore={ieee}"]
+    )
+    assert result.exit_code == 0, _plain(result.stdout)
+    assert "4 studies from 6 records" in _plain(result.stdout)
+
+    staged = json.loads((ws / "literature" / "raw" / "ris" / "sources.json").read_text(encoding="utf-8"))["sources"]
+    assert [(s["label"], s["format"], s["records"]) for s in staged] == [("PubMed", "nbib", 3), ("IEEE Xplore", "ris", 3)]
+    assert staged[0]["stored_as"].endswith(".nbib") and staged[1]["stored_as"].endswith(".ris")
+    assert (ws / staged[0]["stored_as"]).read_text(encoding="utf-8") == PUBMED  # kept byte for byte
+
+    verified = json.loads((ws / "literature" / "verified.json").read_text(encoding="utf-8"))
+    assert [r["source_database"] for r in verified] == ["PubMed"] * 3 + ["IEEE Xplore"] * 3
+    assert [r["provider"] for r in verified] == ["nbib"] * 3 + ["ris"] * 3
+    assert [r["external_ids"].get("pubmed_id") for r in verified[:3]] == ["40000001", "40000002", "40000003"]
+    assert verified[0]["external_ids"]["doi"] == "10.1000/m5c-1"
+    assert len({r["workspace_id"] for r in verified}) == 6
+
+    manifest = json.loads((ws / "literature" / "raw" / "provenance_manifest.json").read_text(encoding="utf-8"))
+    assert manifest["total_raw_harvested"] == 6
+    assert [(s["label"], s["format"]) for s in manifest["sources"]] == [("PubMed", "nbib"), ("IEEE Xplore", "ris")]
+    assert [(d["label"], d["records"]) for d in manifest["databases"]] == [("PubMed", 3), ("IEEE Xplore", 3)]
+
+    cmd_prepare(ws, batch_size=20)
+    batch = json.loads((ws / "literature" / "screening" / "batch_001.json").read_text(encoding="utf-8"))
+    titles = sorted(p["title"].lower().rstrip(".") for p in batch["papers"])
+    assert len(titles) == 4
+    assert sum(t.startswith("deep learning weed detection") for t in titles) == 1  # the DOI pair
+    assert titles.count("hyperspectral weed discrimination") == 1  # the title/author/year±1 pair
+    abstracts = {p["title"].lower()[:12]: p.get("abstract") for p in batch["papers"]}
+    assert abstracts["deep learnin"] == "PubMed abstract one."  # the IEEE twin has none
+
+    events = [json.loads(line) for line in (ws / "audit" / "journal.jsonl").read_text(encoding="utf-8").splitlines()]
+    imported = [e for e in events if e["action"] == "CORPUS_IMPORTED"][-1]
+    assert imported["metrics"]["by_source"] == {"PubMed": 3, "IEEE Xplore": 3}
+    assert imported["parameters"]["formats"] == ["nbib", "ris"]
+
+
+def test_the_import_format_is_chosen_by_extension_then_by_sniffing(tmp_path):
+    from scholar_harness.corpus_accept import AcceptCorpusRefused, detect_import_format, stage_ris_source
+
+    ris = SCOPUS.encode("utf-8")
+    nbib = PUBMED.encode("utf-8")
+    assert detect_import_format("scopus.ris", nbib) == "ris"  # the extension decides first
+    assert detect_import_format("pubmed.NBIB", ris) == "nbib"
+    assert detect_import_format("pubmed-set.txt", nbib) == "nbib"  # .txt: the first non-blank line
+    assert detect_import_format("savedrecs.txt", ris) == "ris"
+    assert detect_import_format("export.txt", b"\xef\xbb\xbf\r\n\r\nPMID- 1\r\nTI  - A\r\n") == "nbib"  # BOM, blank lines
+    assert detect_import_format("export", b"garbage") == "ris"
+
+    ws = _workspace(tmp_path)
+    entry = stage_ris_source(ws, "PubMed", nbib, file_name="pubmed-set.txt")
+    assert (entry["format"], entry["records"]) == ("nbib", 3)
+    assert entry["stored_as"].endswith(".nbib")
+    with pytest.raises(AcceptCorpusRefused) as raised:
+        stage_ris_source(ws, "Other", ris, file_name="not-really.nbib")  # RIS content under a .nbib name
+    assert raised.value.code == "SOURCE_NOT_RIS"
+    assert not list((ws / "literature" / "raw" / "ris").glob("other-*"))  # nothing kept
+
+
+def test_the_committed_pubmed_fixture_stages_as_five_records(tmp_path):
+    from scholar_harness.corpus_accept import preview_staged, stage_ris_source
+
+    ws = _workspace(tmp_path)
+    entry = stage_ris_source(ws, "PubMed", NBIB_FIXTURE.read_bytes(), file_name=NBIB_FIXTURE.name)
+    assert (entry["format"], entry["records"]) == ("nbib", 5)
+    preview = preview_staged(ws)
+    assert (preview["identified"], preview["duplicates"], preview["unique_studies"]) == (5, 0, 5)
+    assert preview["sources"][0]["format"] == "nbib"

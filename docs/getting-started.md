@@ -58,11 +58,13 @@ Click **New workspace**, type your review's title, and create it. Then open it.
 ## 4. Import your search results
 
 Export your search results as **RIS** from each database you searched (Scopus,
-Web of Science, IEEE Xplore, PubMed, or a reference manager such as Zotero). Then
-open the **Import** step in the app (it is in the steps bar until the corpus is
-accepted, and on the screening home):
+Web of Science, IEEE Xplore, or a reference manager such as Zotero). From
+**PubMed**, use *Send to → Citation manager*: the `.nbib` file it downloads is
+imported as it is. Then open the **Import** step in the app (it is in the steps
+bar until the corpus is accepted, and on the screening home):
 
-1. **Add a database file.** Choose the RIS file and type the database's name.
+1. **Add a database file.** Choose the RIS or `.nbib` file and type the
+   database's name.
    Under **Search details** you can add the date you searched and the exact
    search string. Both are optional, and both are what PRISMA asks you to
    report. A database you exported in parts: add each part under the same name,
@@ -152,7 +154,7 @@ is not yet tested.
 | `uv tool install` says no version matches, or installs 1.0.0 | Keep the version in the command: `"nexus-scholar>=1.1.0b4"` (the beta is a pre-release). |
 | The app stops at start with `No module named 'httpcore'` | It was installed with `--prerelease allow`. Reinstall: `uv tool install --force "nexus-scholar>=1.1.0b4"`. |
 | "No accepted corpus" (`SNAPSHOT_NOT_ACCEPTED`) | Import and accept your search results (step 4). |
-| "No records in this file" (`SOURCE_NOT_RIS`) | Export the results as RIS (`.ris` or `.txt`) from the database, not as CSV or BibTeX. |
+| "No records in this file" (`SOURCE_NOT_RIS`) | Export the results as RIS (`.ris` or `.txt`) from the database, or as `.nbib` from PubMed (Send to → Citation manager), not as CSV or BibTeX. |
 | "File too large" (`SOURCE_TOO_LARGE`) | Export in parts of under 50 MB and add each part under the same database name. |
 | `OPERATOR_CONTEXT_MISSING` when approving | Save your name under **Approver** on the Publish screen, then ask for a new code. |
 | `APPROVAL_CONTENT_CHANGED` when publishing | A decision changed after the last approval. Approve the last batch again (a new code), then publish. |

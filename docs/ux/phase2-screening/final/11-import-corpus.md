@@ -11,7 +11,7 @@ Boards: none. The canvas has no import board; `Prepare` (D2, snapshot-missing st
 - **One-way.** After acceptance the screen is a read-only record of what was imported. Replacing an accepted corpus is not offered, because it would invalidate screening decisions; the screen says so and gives the reason.
 - **Machine output as a draft.** The preview counts are computed by the engine from the files. They are shown with the draft styling and a "Preview · not frozen" badge until acceptance (BRAND_BOOK principle 5), and become plain facts after it.
 - **Live-only.** No Demonstration marker; `/screening/import` is added to `isLiveOnlyPath` (`apps/research-ui/components/app-shell.tsx`) with a test, as in 00, 09 and 10.
-- **Formats.** RIS only in this milestone (open question 3). The error for any other file is `SOURCE_NOT_RIS`.
+- **Formats.** RIS only in this milestone (open question 3). The error for any other file is `SOURCE_NOT_RIS`. Since M5c-nbib (2026-11-08): PubMed MEDLINE `.nbib` is read too; the format is chosen per file by its extension, else by its first line, and the file picker accepts `.ris`, `.nbib` and `.txt`. The refusal code name is unchanged.
 
 ## Entry / exit
 - Entry: Home (01) when no corpus is accepted, in place of the terminal hint ("Import your search results"); the action on the `SNAPSHOT_NOT_ACCEPTED` refusal card (08, 02): the card's action changes from the copyable terminal command to a link "Import the corpus" (the command stays as a secondary line for people who prefer the terminal); the steps bar if open question 4 is answered yes; the next-step card after a workspace is created (00); a direct URL. When the corpus is already accepted, Home and 02 link to this screen as "What was imported" (read-only).

@@ -9,8 +9,11 @@ through the harness acceptance gate, which validates it against the frozen
 Contract-v1 schema and journals the acceptance. Full Packet B adoption in the
 discovery stage is M3; this is the minimal bridge.
 
-Sources: ``literature/verified.json`` (what discovery writes), or one RIS
-export per database (Scopus, Web of Science, IEEE Xplore, Zotero...). Each RIS
+Sources: ``literature/verified.json`` (what discovery writes), or one export
+per database: RIS (Scopus, Web of Science, IEEE Xplore, Zotero...) or PubMed's
+MEDLINE ``.nbib`` (*Send to → Citation manager*; M5c-nbib). The format is
+chosen per file by its extension, else by sniffing its first line
+(``detect_import_format``), and recorded with the staged source. Each export
 file is first *staged* under ``literature/raw/ris/`` with its database label;
 acceptance writes every staged record to ``verified.json`` (one row per record,
 with its source and a record-derived ``SCI-`` id, so a re-import yields the same
@@ -35,7 +38,7 @@ from scholar_protocol.canonical import canonical_fingerprint as protocol_fingerp
 from scholar_protocol.models import ResearchProtocol
 from scholar_search.dedup import Deduplicator
 from scholar_search.identity import build_corpus_snapshot_artifact
-from scholar_search.importers import RISImporter
+from scholar_search.importers import NBIBImporter, RISImporter
 from scholar_search.models import Document
 
 from .contracts import AcceptanceContext, accept_artifact
@@ -143,15 +146,37 @@ def _verified_row(document: Document) -> dict[str, Any]:
     }
 
 
-def _parse_ris(path: Path, source_id: str) -> list[Document]:
-    """Every record of one RIS file, each kept apart with its file and position.
+#: Import formats, by the extension the stored copy keeps.
+IMPORT_FORMATS = ("ris", "nbib")
+_IMPORTERS = {"ris": RISImporter, "nbib": NBIBImporter}
+
+
+def detect_import_format(file_name: str, content: bytes) -> str:
+    """``"ris"`` or ``"nbib"`` for one export file (M5c-nbib).
+
+    The extension decides when it is ``.ris`` or ``.nbib``. Otherwise (``.txt``,
+    no extension) the first non-blank line decides: a MEDLINE export starts with
+    ``PMID- ``; anything else is read as RIS, the M5b behaviour.
+    """
+    suffix = Path(file_name).suffix.lower()
+    if suffix in {".ris", ".nbib"}:
+        return suffix[1:]
+    head = content[:4096].decode("utf-8-sig", errors="replace")
+    first = next((line.strip() for line in head.splitlines() if line.strip()), "")
+    return "nbib" if first.startswith("PMID- ") else "ris"
+
+
+def _parse_export(path: Path, source_id: str, fmt: str = "ris") -> list[Document]:
+    """Every record of one export file, each kept apart with its file and position.
 
     Records are not collapsed here, not even exact repeats inside one file: the
     snapshot builder's deduplicator does that, so the duplicate count covers both.
+    ``provider`` is the format (``ris`` or ``nbib``), so a ``verified.json`` row
+    says which reader produced it.
     """
     documents = []
-    for position, document in enumerate(RISImporter().parse(path), start=1):
-        document.provider = "ris"
+    for position, document in enumerate(_IMPORTERS[fmt]().parse(path), start=1):
+        document.provider = fmt
         document.provider_id = f"{source_id}#{position}"
         document.workspace_id = _stable_sci_id(document, source=source_id, position=position)
         documents.append(document)
@@ -238,10 +263,11 @@ def stage_ris_source(
     searched_on: str | None = None,
     query: str | None = None,
 ) -> dict[str, Any]:
-    """Copy one database's RIS export into the workspace, with its label.
+    """Copy one database's export (RIS or PubMed ``.nbib``) into the workspace, with its label.
 
     The file is kept byte for byte under ``literature/raw/ris/`` so the import
-    can be re-run and shared. Nothing reaches ``verified.json`` until acceptance.
+    can be re-run and shared; its format is detected from the name and first line
+    and recorded. Nothing reaches ``verified.json`` until acceptance.
     """
     ws = Path(workspace).resolve()
     _refuse_if_frozen(ws)
@@ -274,17 +300,21 @@ def stage_ris_source(
                 "SOURCE_DUPLICATE_FILE",
             )
     source_id = f"{_slug(label)}-{digest[:8]}"
-    stored = ws / RIS_DIR / f"{source_id}.ris"
+    fmt = detect_import_format(file_name, content)
+    stored = ws / RIS_DIR / f"{source_id}.{fmt}"
     stored.parent.mkdir(parents=True, exist_ok=True)
     stored.write_bytes(content)
-    records = len(_parse_ris(stored, source_id))
+    records = len(_parse_export(stored, source_id, fmt))
     if records == 0:
         stored.unlink()
-        raise AcceptCorpusRefused(f"{file_name} contains no RIS records", "SOURCE_NOT_RIS")
+        raise AcceptCorpusRefused(
+            f"{file_name} contains no RIS or PubMed (MEDLINE .nbib) records", "SOURCE_NOT_RIS"
+        )
     entry = {
         "id": source_id,
         "label": label,
         "file_name": Path(file_name).name,
+        "format": fmt,
         "stored_as": stored.relative_to(ws).as_posix(),
         "sha256": digest,
         "records": records,
@@ -331,7 +361,8 @@ def _staged_documents(ws: Path) -> tuple[list[dict[str, Any]], list[Document]]:
     sources = staged_sources(ws)
     documents: list[Document] = []
     for source in sources:
-        documents.extend(_parse_ris(ws / source["stored_as"], source["id"]))
+        # Sources staged before M5c-nbib carry no format: they are RIS.
+        documents.extend(_parse_export(ws / source["stored_as"], source["id"], source.get("format", "ris")))
     return sources, documents
 
 
@@ -380,7 +411,11 @@ def preview_staged(workspace: Path | str) -> dict[str, Any]:
     unique = len(_deduplicator(ws).deduplicate(copy.deepcopy(documents))) if documents else 0
     return {
         "sources": [
-            {k: s[k] for k in ("id", "label", "file_name", "records", "searched_on", "query")} for s in sources
+            {
+                **{k: s[k] for k in ("id", "label", "file_name", "records", "searched_on", "query")},
+                "format": s.get("format", "ris"),
+            }
+            for s in sources
         ],
         "databases": databases(sources),
         "identified": len(documents),
@@ -480,7 +515,10 @@ def _materialise_staged(ws: Path) -> None:
         "schema": IMPORT_MANIFEST_SCHEMA,
         "total_raw_harvested": len(documents),
         "sources": [
-            {k: s[k] for k in ("id", "label", "file_name", "stored_as", "sha256", "records", "searched_on", "query")}
+            {
+                **{k: s[k] for k in ("id", "label", "file_name", "stored_as", "sha256", "records", "searched_on", "query")},
+                "format": s.get("format", "ris"),
+            }
             for s in sources
         ],
         "databases": databases(sources),
@@ -493,17 +531,20 @@ def _materialise_staged(ws: Path) -> None:
         f"{len(databases(sources))} database(s) into literature/verified.json",
         inputs=[s["stored_as"] for s in sources],
         outputs=["literature/verified.json", MANIFEST_FILE.as_posix()],
-        parameters={"format": "ris", "sources": [s["id"] for s in sources]},
+        parameters={
+            "formats": sorted({s.get("format", "ris") for s in sources}),
+            "sources": [s["id"] for s in sources],
+        },
         metrics={"records": len(documents), "by_source": {d["label"]: d["records"] for d in databases(sources)}},
     )
 
 
 def import_ris(ws: Path, sources: list[tuple[str | None, Path]]) -> int:
-    """Stage RIS exports given as ``(label, path)`` (label ``None``: the file stem)."""
+    """Stage exports (RIS or PubMed ``.nbib``) given as ``(label, path)`` (label ``None``: the file stem)."""
     for label, path in sources:
         path = Path(path)
         if not path.is_file():
-            raise AcceptCorpusRefused(f"RIS file not found: {path}", "SOURCE_NOT_FOUND")
+            raise AcceptCorpusRefused(f"export file not found: {path}", "SOURCE_NOT_FOUND")
         stage_ris_source(ws, label or path.stem, path.read_bytes(), file_name=path.name)
     return sum(s["records"] for s in staged_sources(ws))
 

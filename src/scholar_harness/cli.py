@@ -1248,8 +1248,9 @@ def accept_corpus_command(
         None,
         "--ris",
         help=(
-            "A RIS export to import first, as LABEL=PATH (e.g. Scopus=scopus.ris) or PATH "
-            "(label = file name). Repeat once per database; duplicates across files are removed."
+            "A database export to import first (RIS, or PubMed's MEDLINE .nbib), as LABEL=PATH "
+            "(e.g. Scopus=scopus.ris, PubMed=pubmed-set.nbib) or PATH (label = file name). "
+            "Repeat once per database; duplicates across files are removed."
         ),
     ),
 ):

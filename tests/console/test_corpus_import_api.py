@@ -191,3 +191,31 @@ def test_an_invalid_method_block_refuses_removal_and_acceptance(ws):
         assert response.json()["detail"]["code"] == "PROTOCOL_METHOD_INVALID"
     assert (ws / "audit" / "journal.jsonl").read_text(encoding="utf-8") == journal  # nothing changed
     assert (ws / "literature" / "raw" / "ris" / f"{source_id}.ris").is_file()  # the staged file stays
+
+
+# M5c-nbib: a PubMed MEDLINE export is staged beside the RIS exports.
+NBIB_FIXTURE = ROOT / "tests" / "fixtures" / "pubmed" / "pubmed_uav_weeds.nbib"
+
+
+def test_a_pubmed_nbib_upload_is_staged_as_nbib(ws):
+    client = _client(ws)
+    raw = NBIB_FIXTURE.read_bytes()
+    response = client.post(
+        f"{BASE}/sources",
+        json={"label": "PubMed", "file_name": "pubmed-set.nbib", "content_base64": base64.b64encode(raw).decode("ascii")},
+    )
+    assert response.status_code == 201, response.text
+    body = response.json()
+    source = body["sources"][0]
+    assert (source["label"], source["file_name"], source["format"], source["records"]) == ("PubMed", "pubmed-set.nbib", "nbib", 5)
+    assert body["preview"] == {"identified": 5, "duplicates": 0, "unique_studies": 5}
+    stored = ws / "literature" / "raw" / "ris" / f"{source['id']}.nbib"
+    assert stored.read_bytes() == raw
+    staged = json.loads((ws / "literature" / "raw" / "ris" / "sources.json").read_text(encoding="utf-8"))["sources"][0]
+    assert (staged["format"], staged["sha256"]) == ("nbib", hashlib.sha256(raw).hexdigest())
+
+    # The RIS twin of the first PubMed record is one study across the two databases.
+    twin = _stage(client, "IEEE Xplore", "TY  - CONF\nAU  - Rossi, M.\nTI  - Deep learning-based weed detection\nPY  - 2024\nDO  - 10.1000/M5C-1\nER  - \n")
+    assert twin.status_code == 201, twin.text
+    assert twin.json()["preview"] == {"identified": 6, "duplicates": 1, "unique_studies": 5}
+    assert [(d["label"], d["records"]) for d in twin.json()["databases"]] == [("PubMed", 5), ("IEEE Xplore", 1)]

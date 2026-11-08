@@ -15,7 +15,7 @@ The `nexus-scholar` package bundles the harness, eight scientific kits and an MC
 
 | Surface | Available / intended use | Boundary |
 |---|---|---|
-| Screening app (`nexus-scholar ui`), beta | Workspaces, the import of RIS exports with deduplication across databases, title and abstract screening, optional AI drafts, approval, publication, RIS/CSV export, methods paragraph | One reviewer, title and abstract only, RIS only; see the [beta page](docs/beta/README.md) |
+| Screening app (`nexus-scholar ui`), beta | Workspaces, the import of RIS and PubMed `.nbib` exports with deduplication across databases, title and abstract screening, optional AI drafts, approval, publication, RIS/CSV export, methods paragraph | One reviewer, title and abstract only, RIS and PubMed `.nbib` only; see the [beta page](docs/beta/README.md) |
 | CLI/MCP toolkit | Workspace setup, the same import and screening steps from a terminal, and scientific tool access for an AI host | Follow the versioned user guide and supported tool surfaces |
 | Full text, extraction, synthesis, graph, verification | Kits in the package | Parked: not production, labelled so in `--help` |
 | Development branch (`main`) | The next beta | May differ from the installed release |

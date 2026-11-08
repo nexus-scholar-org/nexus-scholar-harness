@@ -22,12 +22,12 @@ const COPY = {
     eyebrow: "Screening · Import",
     title: "Import your search results",
     titleAccepted: "What was imported",
-    lede: "Add one RIS file for each database you searched. Nothing is final until you accept.",
+    lede: "Add one export file (RIS or PubMed .nbib) for each database you searched. Nothing is final until you accept.",
     ledeAccepted: "This corpus is frozen. Screening starts from it, so the app offers no way to change it.",
     loading: "Reading the import from the engine…",
     addTitle: "Add a database file",
-    file: "RIS file (.ris or .txt)",
-    fileHelp: "Export your results from the database as RIS, then choose the file. Up to {mb} MB.",
+    file: "RIS or PubMed .nbib file (.ris, .nbib or .txt)",
+    fileHelp: "Export your results from the database as RIS, or from PubMed with Send to → Citation manager (.nbib), then choose the file. Up to {mb} MB.",
     label: "Database name (required)",
     labelHelp: "A database exported in parts: add each part under the same name; the parts are added up.",
     details: "Search details (optional)",
@@ -85,12 +85,12 @@ const COPY = {
     eyebrow: "Sélection · Import",
     title: "Importez vos résultats de recherche",
     titleAccepted: "Ce qui a été importé",
-    lede: "Ajoutez un fichier RIS pour chaque base interrogée. Rien n'est définitif avant votre acceptation.",
+    lede: "Ajoutez un fichier d'export (RIS ou PubMed .nbib) pour chaque base interrogée. Rien n'est définitif avant votre acceptation.",
     ledeAccepted: "Ce corpus est figé. La sélection part de lui ; l'application ne permet donc pas de le modifier.",
     loading: "Lecture de l'import auprès du moteur…",
     addTitle: "Ajouter un fichier de base",
-    file: "Fichier RIS (.ris ou .txt)",
-    fileHelp: "Exportez vos résultats depuis la base au format RIS, puis choisissez le fichier. Jusqu'à {mb} Mo.",
+    file: "Fichier RIS ou PubMed .nbib (.ris, .nbib ou .txt)",
+    fileHelp: "Exportez vos résultats depuis la base au format RIS, ou depuis PubMed avec Send to → Citation manager (.nbib), puis choisissez le fichier. Jusqu'à {mb} Mo.",
     label: "Nom de la base (obligatoire)",
     labelHelp: "Une base exportée en plusieurs parties : ajoutez chaque partie sous le même nom ; les parties sont additionnées.",
     details: "Détails de la recherche (facultatif)",
@@ -148,12 +148,12 @@ const COPY = {
     eyebrow: "الفرز · الاستيراد",
     title: "استورد نتائج بحثك",
     titleAccepted: "ما استُورد",
-    lede: "أضف ملف RIS واحدًا لكل قاعدة بيانات بحثت فيها. لا شيء نهائي حتى تقبل.",
+    lede: "أضف ملف تصدير واحدًا (RIS أو PubMed ‏.nbib) لكل قاعدة بيانات بحثت فيها. لا شيء نهائي حتى تقبل.",
     ledeAccepted: "هذه المجموعة مجمّدة. يبدأ الفرز منها، لذا لا يتيح التطبيق تغييرها.",
     loading: "قراءة الاستيراد من المحرك…",
     addTitle: "أضف ملف قاعدة بيانات",
-    file: "ملف RIS ‏(.ris أو .txt)",
-    fileHelp: "صدّر نتائجك من قاعدة البيانات بصيغة RIS ثم اختر الملف. حتى {mb} ميغابايت.",
+    file: "ملف RIS أو PubMed ‏.nbib ‏(.ris أو .nbib أو .txt)",
+    fileHelp: "صدّر نتائجك من قاعدة البيانات بصيغة RIS، أو من PubMed عبر Send to ← Citation manager ‏(.nbib)، ثم اختر الملف. حتى {mb} ميغابايت.",
     label: "اسم قاعدة البيانات (مطلوب)",
     labelHelp: "قاعدة بيانات صُدّرت على أجزاء: أضف كل جزء تحت الاسم نفسه؛ تُجمع الأجزاء.",
     details: "تفاصيل البحث (اختياري)",
@@ -710,7 +710,7 @@ function AddForm({
           <input
             key={fileKey}
             type="file"
-            accept=".ris,.txt"
+            accept=".ris,.nbib,.txt"
             aria-describedby="import-file-help"
             onChange={(e) => setFile(e.target.files?.[0] ?? null)}
             className="mt-1 block w-full text-sm text-ink file:me-3 file:min-h-11 file:rounded-md file:border file:border-rule-strong file:bg-leaf file:px-4 file:text-ink"
