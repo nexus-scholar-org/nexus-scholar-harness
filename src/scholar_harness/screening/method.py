@@ -46,9 +46,10 @@ class MethodInvalid(ValueError):
 class EffectiveMethod:
     config: MethodConfig
     source: Literal["protocol", "defaults"]
-    #: The guideline in force and where it came from (M7b-guideline).
-    reporting: str = DEFAULT_REPORTING
-    reporting_source: Literal["protocol", "playbook"] = "playbook"
+    #: The guideline in force and where it came from (M7b-guideline). No defaults:
+    #: every construction states both (M7b review 4).
+    reporting: str
+    reporting_source: Literal["protocol", "playbook", "defaults"]
 
     def deduplicator(self) -> Deduplicator:
         dedup = self.config.dedup
@@ -82,8 +83,10 @@ def method_from_protocol(protocol: dict[str, Any] | None) -> EffectiveMethod:
     block = protocol.get("method") if isinstance(protocol, dict) else None
     playbook = str(protocol.get("playbook_type") or "") if isinstance(protocol, dict) else ""
     derived = PLAYBOOK_REPORTING.get(playbook, DEFAULT_REPORTING)
+    # Without a protocol there is no playbook to derive from (M7b review 3).
+    derived_source = "playbook" if isinstance(protocol, dict) else "defaults"
     if block is None:
-        return EffectiveMethod(MethodConfig(), "defaults", derived, "playbook")
+        return EffectiveMethod(MethodConfig(), "defaults", derived, derived_source)
     try:
         config = MethodConfig.model_validate(block)
     except ValidationError as exc:
@@ -93,4 +96,4 @@ def method_from_protocol(protocol: dict[str, Any] | None) -> EffectiveMethod:
         raise MethodInvalid(f"the protocol's method block is outside the checked limits ({problems})") from exc
     if config.reporting is not None:
         return EffectiveMethod(config, "protocol", config.reporting, "protocol")
-    return EffectiveMethod(config, "protocol", derived, "playbook")
+    return EffectiveMethod(config, "protocol", derived, derived_source)

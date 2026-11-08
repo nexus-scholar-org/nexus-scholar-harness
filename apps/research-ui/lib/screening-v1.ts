@@ -156,7 +156,7 @@ export interface Settings {
   not_reported_policy?: NotReportedPolicy;
   /** Read-only (M7b-guideline): the reporting guideline in force and its source. */
   reporting?: "prisma-2020" | "prisma-scr" | "none";
-  reporting_source?: "protocol" | "playbook";
+  reporting_source?: "protocol" | "playbook" | "defaults";
 }
 
 /** M7-method: what a criterion the abstract does not report does to the outcome. */

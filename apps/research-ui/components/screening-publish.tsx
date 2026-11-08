@@ -258,7 +258,7 @@ export function ScreeningPublish({ locale }: Readonly<{ locale: Locale }>) {
 
   const load = useCallback(async () => {
     try {
-      const [preview, batches, publication, approver] = await Promise.all([
+      const [preview, batches, publication, approver, reporting] = await Promise.all([
         getPrismaPreview(origin),
         getScreeningBatches(origin),
         // Spec 10, decision 3: the export link shows only while the publication is CURRENT.
@@ -271,11 +271,13 @@ export function ScreeningPublish({ locale }: Readonly<{ locale: Locale }>) {
           () => ({ current: false, staleChanged: null }),
         ),
         getApprover(origin),
+        // M7b-guideline (spec 09): an engine without the field reads as PRISMA 2020;
+        // a failed call names no guideline rather than guessing one (review 2).
+        getSettings(origin).then(
+          (s) => s.reporting ?? "prisma-2020",
+          () => "none",
+        ),
       ]);
-      const reporting = await getSettings(origin).then(
-        (s) => s.reporting ?? "prisma-2020",
-        () => "prisma-2020",
-      );
       const reviews = Object.fromEntries(
         await Promise.all(batches.batches.map(async (b) => [b.batch_index, await getBatchReview(origin, b.batch_index)] as const)),
       );

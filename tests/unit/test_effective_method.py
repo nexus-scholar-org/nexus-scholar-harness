@@ -24,9 +24,10 @@ def _ws(tmp_path: Path, protocol: dict | None) -> Path:
 
 
 def test_no_protocol_or_no_block_gives_the_defaults(tmp_path: Path) -> None:
-    for protocol in (None, {"protocol_id": "p"}):
+    for protocol, reporting_source in ((None, "defaults"), ({"protocol_id": "p"}, "playbook")):
         method = effective_method(_ws(tmp_path, protocol))
         assert method.source == "defaults"
+        assert method.reporting_source == reporting_source  # M7b review 3: no protocol, no playbook
         assert method.config.dedup.title_similarity == 0.97
         assert method.config.not_reported == "unclear"
         assert method.config.blinding == "reveal_after_decision"

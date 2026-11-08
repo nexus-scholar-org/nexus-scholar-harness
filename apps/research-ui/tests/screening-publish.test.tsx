@@ -51,7 +51,9 @@ function engine(options: { preview?: unknown; approved?: boolean; redeem?: Respo
       log.push({ method, path, body });
       const ok = (b: unknown) => new Response(JSON.stringify(b), { status: 200, headers: { "content-type": "application/json" } });
       if (path === "/prisma/preview") return ok(options.preview ?? PREVIEW);
+      if (path === "/settings" && options.reporting === "error") return new Response(JSON.stringify({ detail: { code: "PROTOCOL_METHOD_INVALID" } }), { status: 409 });
       if (path === "/settings" && options.reporting) return ok({ reporting: options.reporting, reporting_source: "protocol" });
+      if (path === "/settings") return ok({ blinding: "reveal_after_decision" }); // an engine without the field
       if (path === "/ui/batches") return ok(BATCHES);
       if (path === "/approver") {
         if (method === "PUT") approver = (body as { name: string }).name;
@@ -245,6 +247,13 @@ describe("publish.reporting", () => {
     engine();
     render(<ScreeningPublish locale="en" />);
     expect(await screen.findByText("PRISMA 2020 screening preview")).toBeInTheDocument();
+  });
+
+  it("names no guideline when the settings call fails (review 2)", async () => {
+    engine({ reporting: "error" });
+    render(<ScreeningPublish locale="en" />);
+    expect(await screen.findByText("Screening preview")).toBeInTheDocument();
+    expect(screen.queryByText("PRISMA 2020 screening preview")).toBeNull();
   });
 
   it("has the three variants in every locale", () => {

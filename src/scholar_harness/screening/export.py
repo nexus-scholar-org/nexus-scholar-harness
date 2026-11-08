@@ -435,6 +435,8 @@ def _dedup_sentence(dedup: Any) -> str:
     )
 
 
+GUIDELINE_LABELS = {"prisma-2020": "PRISMA 2020", "prisma-scr": "PRISMA-ScR"}
+
 GUIDELINE_SENTENCES = {
     "prisma-2020": "The screening is reported following PRISMA 2020.",
     "prisma-scr": "The screening is reported following PRISMA-ScR, the PRISMA extension for scoping reviews.",
@@ -591,6 +593,9 @@ def build_methods(ws: Path) -> dict[str, Any]:
         # M7b-guideline: the guideline in force and where it came from.
         "reporting": method.reporting,
         "reporting_source": method.reporting_source,
+        # The name the sentence states (M7b review 1): "PRISMA 2020" carries a
+        # number, and every number in the paragraph must trace to a figure.
+        "reporting_label": GUIDELINE_LABELS.get(method.reporting),
     }
     if "UNSPECIFIED" in reasons:
         caveats.append(
