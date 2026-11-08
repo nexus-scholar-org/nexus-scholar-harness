@@ -349,6 +349,16 @@ class MethodConfig(BaseModel):
     blinding: Literal["reveal_after_decision", "show"] = Field(
         "reveal_after_decision", description="Whether the agent's draft is hidden until the decision"
     )
+    retrieval_cap: Optional[int] = Field(
+        None,
+        ge=1,
+        strict=True,
+        description=(
+            "Most records fetched from one database for one query (M3a-discovery). "
+            "Absent means no protocol cap: each database is paged to its reported total; "
+            "absent is left out of the fingerprint."
+        ),
+    )
     reporting: Optional[Literal["prisma-2020", "prisma-scr", "none"]] = Field(
         None,
         description=(

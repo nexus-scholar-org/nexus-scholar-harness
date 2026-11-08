@@ -12,6 +12,8 @@ from .base import BaseAPIProvider
 class CrossrefProvider(BaseAPIProvider):
     """Searches Crossref REST API (https://api.crossref.org/works)."""
 
+    PAGE_SIZE = 1000  # Crossref's maximum rows per request
+
     def __init__(self) -> None:
         super().__init__(name="crossref", rate_limit=settings.rate_limit_crossref)
         self.base_url = "https://api.crossref.org/works"
@@ -83,9 +85,12 @@ class CrossrefProvider(BaseAPIProvider):
         """Search Crossref works."""
         translated_query = self.translator.translate(query)
 
+        limit = query.max_results
         params = {
             "query": translated_query,
-            "rows": min(query.max_results or 100, 1000),
+            "rows": min(limit or self.PAGE_SIZE, self.PAGE_SIZE),
+            # Deep paging (SRCH-11): Crossref's cursor walks the full result set.
+            "cursor": "*",
         }
 
         # Crossref uses filter syntax for years
@@ -101,15 +106,29 @@ class CrossrefProvider(BaseAPIProvider):
         if filters:
             params["filter"] = ",".join(filters)
 
-        resp = await self.client.get(self.base_url, params=params)
-        response = resp.json()
+        self._record_executed(translated_query, params)
 
         count = 0
-        for item in response.get("message", {}).get("items", []):
-            yield self._normalize_document(item, query.id)
-            count += 1
-            if query.max_results and count >= query.max_results:
+        while True:
+            resp = await self.client.get(self.base_url, params=params)
+            self._record_page()
+            message = resp.json().get("message", {}) or {}
+            self._record_total(message.get("total-results"))
+            items = message.get("items", []) or []
+            for item in items:
+                yield self._normalize_document(item, query.id)
+                count += 1
+                if limit and count >= limit:
+                    return
+            total = message.get("total-results")
+            next_cursor = message.get("next-cursor")
+            if not items or not next_cursor:
                 return
+            if total is not None and count >= int(total):
+                return
+            params["cursor"] = next_cursor
+            if limit:
+                params["rows"] = min(limit - count, self.PAGE_SIZE)
 
     # --- Snowballing features are not supported well by Crossref (use OpenAlex or S2) ---
 

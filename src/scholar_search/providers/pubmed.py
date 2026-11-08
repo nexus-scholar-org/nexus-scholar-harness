@@ -12,6 +12,8 @@ from .base import BaseAPIProvider
 class PubMedProvider(BaseAPIProvider):
     """Searches PubMed via NCBI E-utilities."""
 
+    ESEARCH_PAGE = 10_000  # ESearch maximum retmax
+
     def __init__(self) -> None:
         super().__init__(name="pubmed", rate_limit=settings.rate_limit_pubmed)
         self.base_url = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils"
@@ -27,6 +29,31 @@ class PubMedProvider(BaseAPIProvider):
             operator_map={"AND": "AND", "OR": "OR", "NOT": "NOT"},
         )
 
+    # PubMed field tags for the parser's fields (suffix syntax: term[tag]).
+    _TAGS = {QueryField.TITLE: "ti", QueryField.ABSTRACT: "ab", QueryField.AUTHOR: "au"}
+
+    def build_term(self, text: str) -> str:
+        """Translate the query from parsed tokens into PubMed syntax (SRCH-14).
+
+        Field-tagged terms become ``term[ti]`` and field-tagged phrases
+        ``"a phrase"[ti]``. Untagged words, phrases, operators and parentheses
+        pass through unchanged, so a colon inside a phrase is never read as a
+        field. A query the parser cannot read is sent exactly as written.
+        """
+        parser = self.translator.parser
+        tokens = parser.parse(text)
+        if not parser.validate(tokens):
+            return text
+        parts: list[str] = []
+        for token in tokens:
+            if token.is_operator:
+                parts.append(token.value)
+                continue
+            value = f'"{token.value}"' if token.is_phrase else token.value
+            tag = self._TAGS.get(token.field)
+            parts.append(f"{value}[{tag}]" if tag else value)
+        return " ".join(parts).replace("( ", "(").replace(" )", ")")
+
     async def _fetch_details(
         self, pmids: list[str], query_id: str | None = None
     ) -> AsyncIterator[Document]:
@@ -35,6 +62,9 @@ class PubMedProvider(BaseAPIProvider):
             return
 
         params = {"db": "pubmed", "id": ",".join(pmids), "retmode": "xml"}
+        if settings.mailto:
+            params["email"] = settings.mailto
+            params["tool"] = "nexus-scholar"
 
         resp = await self.client.get(f"{self.base_url}/efetch.fcgi", params=params)
         root = ET.fromstring(resp.content)
@@ -127,22 +157,19 @@ class PubMedProvider(BaseAPIProvider):
     async def search(self, query: Query) -> AsyncIterator[Document]:
         """Search PubMed using esearch and efetch."""
 
-        translated_query = self.translator.translate(query)
+        pubmed_query = self.build_term(query.text)
 
-        # PubMed uses [Tag] syntax. We translated fields like ti:term -> ti:term,
-        # but PubMed needs term[ti]. To keep it simple, we let the user write raw pubmed queries
-        # or use our generic translator which just emits them as "ti:term".
-        # We will parse "ti:term" to "term[ti]" for PubMed specifics here.
-        import re
-
-        pubmed_query = re.sub(r"(\w+):([^\s]+)", r"\2[\1]", translated_query)
-
+        limit = query.max_results
         params = {
             "db": "pubmed",
             "term": pubmed_query,
             "retmode": "json",
-            "retmax": min(query.max_results or 100, 1000),
+            "retmax": min(limit or self.ESEARCH_PAGE, self.ESEARCH_PAGE),
+            "retstart": 0,
         }
+        if settings.mailto:
+            params["email"] = settings.mailto
+            params["tool"] = "nexus-scholar"
 
         # Add year filter to PubMed query syntax if provided
         if query.year_min and query.year_max:
@@ -152,23 +179,42 @@ class PubMedProvider(BaseAPIProvider):
         elif query.year_max:
             params["term"] += f" AND 1000:{query.year_max}[pdat]"
 
-        resp = await self.client.get(f"{self.base_url}/esearch.fcgi", params=params)
-        search_response = resp.json()
-        pmids = search_response.get("esearchresult", {}).get("idlist", [])
+        self._record_executed(params["term"], params)
 
-        if not pmids:
-            return
-
-        # Fetch details in chunks
+        # Page ESearch with retstart (SRCH-11), then fetch details in chunks.
         chunk_size = 200
         count = 0
-        for i in range(0, len(pmids), chunk_size):
-            chunk = pmids[i : i + chunk_size]
-            async for doc in self._fetch_details(chunk, query.id):
-                yield doc
-                count += 1
-                if query.max_results and count >= query.max_results:
-                    return
+        while True:
+            resp = await self.client.get(f"{self.base_url}/esearch.fcgi", params=params)
+            self._record_page()
+            result = resp.json().get("esearchresult", {}) or {}
+            self._record_total(result.get("count"))
+            pmids = result.get("idlist", []) or []
+            if not pmids:
+                return
+            for i in range(0, len(pmids), chunk_size):
+                chunk = pmids[i : i + chunk_size]
+                async for doc in self._fetch_details(chunk, query.id):
+                    yield doc
+                    count += 1
+                    if limit and count >= limit:
+                        return
+            next_start = int(params["retstart"]) + len(pmids)
+            try:
+                total = int(result.get("count"))
+            except (TypeError, ValueError):
+                total = None
+            if total is not None and next_start >= total:
+                return
+            if total is None and len(pmids) < int(params["retmax"]):
+                return  # a short page is the last one when no total is reported
+            # ESearch without the history server stops at 10,000 records.
+            if next_start >= 10_000:
+                self._record_note("PubMed ESearch returns at most 10,000 records per query")
+                return
+            params["retstart"] = next_start
+            if limit:
+                params["retmax"] = min(limit - count, self.ESEARCH_PAGE)
 
     async def get_citations(self, document_id: str) -> AsyncIterator[Document]:
         """Forward Snowballing: Get PMIDs that cite this PMID using elink."""

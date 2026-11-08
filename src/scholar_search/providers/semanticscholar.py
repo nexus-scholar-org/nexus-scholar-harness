@@ -103,6 +103,7 @@ class SemanticScholarProvider(BaseAPIProvider):
         elif query.year_max:
             params["year"] = f"-{query.year_max}"
 
+        self._record_executed(translated_query, params)
         token = None
         count = 0
         # 403 auto-downgrade: AWS API Gateway answers 403 Forbidden when a
@@ -131,7 +132,9 @@ class SemanticScholarProvider(BaseAPIProvider):
                     resp = await self.client.get(self.base_url, params=params)
                 else:
                     raise
+            self._record_page()
             response_data = resp.json()
+            self._record_total(response_data.get("total"))
             data = response_data.get("data", [])
             token = response_data.get("token")
 

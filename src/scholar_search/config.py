@@ -9,9 +9,11 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     """Main configuration settings loaded from environment or .env file."""
 
-    # Polite crawling email (required for Crossref and OpenAlex best performance)
-    mailto: str = Field(
-        default="student@university.edu", description="Email for polite API crawling"
+    # Contact address for the providers' polite pools (Crossref, OpenAlex, NCBI).
+    # No default: a live search refuses with MAILTO_NOT_SET until it is set
+    # (decision 2026-11-08, "A live search needs a real contact email").
+    mailto: str | None = Field(
+        default=None, description="Contact email sent to the providers (SCHOLAR_MAILTO)"
     )
 
     # API Keys

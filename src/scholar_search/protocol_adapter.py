@@ -70,8 +70,13 @@ def compile_protocol_search(
     languages = search_strategy.get("languages", ["en"])
     primary_lang = languages[0] if languages else "en"
 
-    pool_size = search_strategy.get("target_candidate_pool_size") or {}
-    max_results = pool_size.get("max", 100)
+    # SRCH-31: target_candidate_pool_size is an advisory planning figure and
+    # never caps retrieval. The cap is the protocol's method.retrieval_cap;
+    # without it each database is paged to its reported total (the engine's
+    # safety ceiling still applies and is reported). Decision 2026-11-08.
+    method = data.get("method") or {}
+    max_results = method.get("retrieval_cap") if isinstance(method, dict) else None
+    cap_source = "protocol" if max_results else "query"
 
     target_databases = search_strategy.get(
         "target_databases",
@@ -85,6 +90,7 @@ def compile_protocol_search(
         year_max=year_max,
         language=primary_lang,
         max_results=max_results,
+        cap_source=cap_source,
     )
 
     return query, target_databases
