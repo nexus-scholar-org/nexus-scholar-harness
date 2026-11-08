@@ -1,0 +1,144 @@
+"""M3a-discovery D1 (harness half): SRCH-30 / CORE-21.
+
+The discovery stage journals one leg per database (executed query, reported
+total, fetched count, cap, cap_hit, dates) and keeps every run's raw records
+and legs in a run-numbered folder that is never overwritten.
+"""
+
+from __future__ import annotations
+
+import asyncio
+import json
+from pathlib import Path
+
+import pytest
+from scholar_search.config import settings
+from scholar_search.engine import SearchEngine
+from scholar_search.models import Document, ExternalIds
+from scholar_search.providers.base import BaseAPIProvider
+
+from scholar_harness.pipeline import discovery as disc
+
+from test_discovery_stage import _write_protocol
+
+
+@pytest.fixture(autouse=True)
+def _mailto(monkeypatch):
+    monkeypatch.setattr(settings, "mailto", "tester@example.org")
+
+
+class _StubProvider(BaseAPIProvider):
+    def __init__(self, name: str, titles: list[str], total: int):
+        super().__init__(name=name, rate_limit=0)
+        self.titles = titles
+        self.total = total
+
+    async def search(self, query):
+        self._record_executed(f"{self.name}::{query.text}", {"q": query.text, "mailto": "x"})
+        self._record_total(self.total)
+        self._record_page()
+        for i, title in enumerate(self.titles):
+            yield Document(
+                title=title,
+                year=2024,
+                provider=self.name,
+                provider_id=f"{self.name}-{i}",
+                external_ids=ExternalIds(doi=f"10.1/{self.name}{i}"),
+            )
+
+
+def _engine_factory(titles_by_provider: dict[str, list[str]], totals: dict[str, int]):
+    def factory(providers=None):
+        return SearchEngine(
+            providers=[_StubProvider(n, t, totals[n]) for n, t in titles_by_provider.items()]
+        )
+
+    return factory
+
+
+def _workspace(tmp_path: Path) -> tuple[Path, Path]:
+    ws = tmp_path / "ws"
+    ws.mkdir()
+    (ws / "project.json").write_text(
+        json.dumps({"project_id": "ws", "title": "T", "stats": {}}), encoding="utf-8"
+    )
+    return ws, _write_protocol(ws)
+
+
+def _events(ws: Path) -> list[dict]:
+    lines = (ws / "audit" / "journal.jsonl").read_text(encoding="utf-8").splitlines()
+    return [json.loads(line) for line in lines if line.strip()]
+
+
+def test_the_journal_records_one_leg_per_database(tmp_path, monkeypatch):
+    monkeypatch.setattr(
+        disc,
+        "SearchEngine",
+        _engine_factory({"openalex": ["A", "B"], "crossref": ["C"]}, {"openalex": 2, "crossref": 40}),
+    )
+    ws, proto = _workspace(tmp_path)
+
+    asyncio.run(disc.run_discovery(protocol_path=proto, literature_dir=ws / "literature",
+                                   max_search_results=1))
+
+    event = [e for e in _events(ws) if e["action"] == "DISCOVERY_SEARCH"][-1]
+    legs = {leg["provider"]: leg for leg in event["parameters"]["legs"]}
+    assert set(legs) == {"openalex", "crossref"}
+    cr = legs["crossref"]
+    assert cr["executed_query"].startswith("crossref::")
+    assert cr["reported_total"] == 40
+    assert cr["fetched"] == 1
+    assert cr["cap"] == 1
+    assert cr["cap_source"] == "run_override"
+    assert cr["cap_hit"] is True
+    assert cr["started_at"] and cr["finished_at"]
+    assert "mailto" not in cr["request"]
+    assert legs["openalex"]["reported_total"] == 2
+
+
+def test_each_run_keeps_its_own_raw_files(tmp_path, monkeypatch):
+    ws, proto = _workspace(tmp_path)
+    lit = ws / "literature"
+
+    monkeypatch.setattr(disc, "SearchEngine", _engine_factory({"openalex": ["First run"]}, {"openalex": 1}))
+    asyncio.run(disc.run_discovery(protocol_path=proto, literature_dir=lit))
+    monkeypatch.setattr(disc, "SearchEngine", _engine_factory({"openalex": ["Second run"]}, {"openalex": 1}))
+    asyncio.run(disc.run_discovery(protocol_path=proto, literature_dir=lit))
+
+    run1 = lit / "search_runs" / "run_001"
+    run2 = lit / "search_runs" / "run_002"
+    assert json.loads((run1 / "raw.json").read_text(encoding="utf-8"))[0]["title"] == "First run"
+    assert json.loads((run2 / "raw.json").read_text(encoding="utf-8"))[0]["title"] == "Second run"
+    legs1 = json.loads((run1 / "legs.json").read_text(encoding="utf-8"))
+    assert legs1["legs"][0]["provider"] == "openalex"
+    assert legs1["run"] == "run_001"
+
+    events = [e for e in _events(ws) if e["action"] == "DISCOVERY_SEARCH"]
+    assert [e["parameters"]["search_run"] for e in events] == ["run_001", "run_002"]
+    assert str(run2 / "raw.json") in events[-1]["outputs"]
+    assert str(run2 / "legs.json") in events[-1]["outputs"]
+
+
+def test_a_failed_leg_is_journalled_with_its_error(tmp_path, monkeypatch):
+    class _Boom(BaseAPIProvider):
+        def __init__(self):
+            super().__init__(name="pubmed", rate_limit=0)
+
+        async def search(self, query):
+            self._record_executed("weed[ti]", {})
+            raise RuntimeError("HTTP 500")
+            yield  # pragma: no cover
+
+    def factory(providers=None):
+        return SearchEngine(providers=[_StubProvider("openalex", ["A"], 1), _Boom()])
+
+    monkeypatch.setattr(disc, "SearchEngine", factory)
+    ws, proto = _workspace(tmp_path)
+    outcome = asyncio.run(disc.run_discovery(protocol_path=proto, literature_dir=ws / "literature"))
+
+    assert outcome.status == "PARTIAL"
+    event = [e for e in _events(ws) if e["action"] == "DISCOVERY_SEARCH"][-1]
+    pubmed = next(leg for leg in event["parameters"]["legs"] if leg["provider"] == "pubmed")
+    assert pubmed["status"] == "failed"
+    assert "HTTP 500" in pubmed["error"]
+    assert pubmed["executed_query"] == "weed[ti]"

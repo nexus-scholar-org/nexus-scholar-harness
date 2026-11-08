@@ -588,7 +588,7 @@ def build_methods(ws: Path) -> dict[str, Any]:
         raise ExportRefused(409, exc.code, str(exc)) from exc
     sentences.append(_dedup_sentence(method.config.dedup))
     figures["method"] = {
-        **method.config.model_dump(mode="json", exclude={"reporting"}),
+        **method.config.model_dump(mode="json", exclude={"reporting", "retrieval_cap"}),
         "source": method.source,
         # M7b-guideline: the guideline in force and where it came from.
         "reporting": method.reporting,
