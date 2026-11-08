@@ -55,7 +55,12 @@ def effective_method(workspace: Path | str) -> EffectiveMethod:
         raw = json.loads(path.read_text(encoding="utf-8"))
     except (OSError, ValueError):
         raw = None
-    block = raw.get("method") if isinstance(raw, dict) else None
+    return method_from_protocol(raw if isinstance(raw, dict) else None)
+
+
+def method_from_protocol(protocol: dict[str, Any] | None) -> EffectiveMethod:
+    """The same reading, for a caller that already holds the protocol dict."""
+    block = protocol.get("method") if isinstance(protocol, dict) else None
     if block is None:
         return EffectiveMethod(MethodConfig(), "defaults")
     try:
