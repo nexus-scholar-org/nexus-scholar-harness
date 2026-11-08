@@ -1,5 +1,5 @@
 # M7-method: method parameters move into the protocol
-Branch: `dev/m7/method-block` · Lane: **RELEASE** (protocol identity, screening outcomes and the methods paragraph; a possible Contract v1 schema change; `test_gate_policy.md` §lanes) · Status: IN PROGRESS · Started: 2026-11-08
+Branch: `dev/m7/method-block` · Lane: **RELEASE** (protocol identity, screening outcomes and the methods paragraph; a possible Contract v1 schema change; `test_gate_policy.md` §lanes) · Status: READY FOR PR · Started: 2026-11-08
 
 Why: this is step 10 of the researcher's beta plan of 2026-11-07. Decision: [2026-11-08, Method parameters move into the protocol](../../decisions.md). It accepts point 2 of the 2026-11-06 "Three kinds of parameter" entry. Four values that can change what is included, or how biased the screening is, become an optional `method` block in `protocol.json`: the dedup tiers, the rule-table version, the not-reported policy, and blinding. Batch size stays a Prepare setting. Existing workspaces keep their fingerprints and run on the defaults.
 
@@ -29,7 +29,7 @@ Why: this is step 10 of the researcher's beta plan of 2026-11-07. Decision: [202
   - Tests: one paragraph with the block and one without; the wording is from the spec 10 amendment.
 - [x] **M10. Contract gate.** Done 2026-11-08: after M1, `generate_contract_baseline.py --check` still reports the baseline current. The protocol schema is not part of the frozen Contract v1 baseline. The contract-schemas, two-study fixture and canonical-profile goldens `--check` all pass unchanged, so this is not a Contract v1 change. Re-run at closure. Run `generate_contract_baseline.py --check`. If it moves, this decision is the architecture decision, and the schemas and golden fixtures are regenerated with the reason recorded here. It is never regenerated to bless unexplained drift.
 - [x] **Gate:** `/gate checkpoint` per item, then RELEASE closure on the final executable commit.
-- [ ] **Review:** the milestone-reviewer returns APPROVE.
+- [x] **Review:** the milestone-reviewer returns APPROVE (CHANGES at `4445ddf`, APPROVE at `beb5aeb`).
 
 ## Findings fixed
 | ID | Reproducing test | Fails before | Passes after |
@@ -46,8 +46,14 @@ Why: this is step 10 of the researcher's beta plan of 2026-11-07. Decision: [202
 | closure (RELEASE) | `80b0923` | `pytest -q -n auto` | **4473 passed, 15 skipped, 0 failed** | 4 m 44 s |
 | closure (RELEASE) | `80b0923` | `uv build --wheel` | `nexus_scholar-1.1.0b2-py3-none-any.whl` | |
 | closure (RELEASE) | `80b0923` | typecheck, vitest, `next build`, Playwright (light and dark) | tsc clean; vitest **274/274**; build clean; Playwright **173 passed, 13 skipped, 0 failed** | 3 m 51 s |
+| review | `4445ddf` | milestone-reviewer | CHANGES: P2 corpus routes 500 and a staged file before refusing; P2 `.2f` could misstate a threshold; P3 old blinding rows under a protocol block; P3 journal not asserted. All four fixed in `beb5aeb` | |
+| pr (repair) | `beb5aeb` | contract baseline, schemas, two-study fixture and canonical goldens `--check`; ruff | all pass; the protocol schema changed only in a description | |
+| pr (repair) | `beb5aeb` | `pytest -q -n auto` | **4479 passed, 15 skipped, 0 failed** (UI unchanged since `80b0923`, so its evidence stands) | 4 m 52 s |
+| re-review | `beb5aeb` | milestone-reviewer | **APPROVE**: all findings resolved, none introduced | |
 
 ## Deferred
+- **Review follow-ups (P3).** There is no dedicated test that older blinding rows are ignored under a protocol block; the code is in `export.py`. The published JSON schema is looser than the model: an integer type accepts 1.0, and the two-decimal rule appears only in the description. Pydantic is the only reader. `effective_method` returns the defaults when `protocol.json` is missing or unreadable; the other gates refuse in that case. `KNOWN_RULES_VERSIONS` and the `rules_version` Literal are two lists to keep in step.
+- **The protocol screen and the "Open the protocol" link** (spec 02). They wait until the app has a protocol screen.
 - Batch size in the block (not chosen).
 - An adopt command for existing workspaces (not chosen). Re-inception or a new workspace adopts the block.
 - Step 11, the guideline switch (`prisma-2020`, `prisma-scr`, `none`). It is the next milestone, and it will add its key to this block.
