@@ -1,5 +1,5 @@
 # M4a-inception: the inception engine pieces that do not collide with M3a
-Branch: `dev/m4a/inception-engine` · Lane: **RELEASE** (confirmed by the researcher 2026-11-08: CLI semantics change, because re-inception refuses without `--replace`, and new HTTP routes; `test_gate_policy.md` §lanes; the plan's M4 row is RELEASE) · Status: READY TO SHIP (awaiting the researcher's approval to push) · Started: 2026-11-08
+Branch: `dev/m4a/inception-engine` · Lane: **RELEASE** (confirmed by the researcher 2026-11-08: CLI semantics change, because re-inception refuses without `--replace`, and new HTTP routes; `test_gate_policy.md` §lanes; the plan's M4 row is RELEASE) · Status: PR #206 OPEN, CI green (awaiting the researcher's approval to merge) · Started: 2026-11-08
 
 Why: plan §6 row "M4 Inception web" is split. M4a covers the engine work that touches neither `src/scholar_search/` nor `src/scholar_harness/recon/`, which M3a Discovery owns, nor the `scholar_protocol` models and compiler. Plan §1 has INC-08 and INC-22. Plan §2 "Phase 0 Inception" lists screens 00, 06 and 08 with their backend.
 
@@ -41,6 +41,10 @@ The phase-auditor re-verified INC-08 and INC-22 at `a273fc6` before the fix, by 
 | closure (RELEASE) | `e7f1e98` | contract baseline, contract schemas and two-study fixture `--check`; `ruff check scripts/`; `git diff --check origin/main...HEAD`; `sync_skills_bundle.py --check`; `uv build --wheel` | all pass | |
 | closure (RELEASE) | `e7f1e98` | `pytest -q -n auto` | exit 0, no FAILED or ERROR lines (the doubled `-q` hides the count line). The previous count was 4525 passed; the repairs add 8 tests | 9 m 00 s |
 | re-review | `e7f1e98` | milestone-reviewer (repair delta) | **APPROVE**: all six findings resolved, no defect introduced by the repairs | |
+| PR | `82bdc6e` | PR #206 CI | `python-test` failed: `test_cli_offers_replace_and_the_discard_confirmation` read Rich help that CI renders in colour, and the style codes split `--replace`. The test now strips ANSI codes | |
+| merge | `d7a12f8` | merge of `origin/main` (M3a `e1039b1`, b4) | conflict in `docs/decisions.md` only, with both sides kept; contract baseline and schemas `--check` pass | |
+| pr | `d7a12f8` | `pytest -q -n auto` | **4585 passed, 15 skipped, 0 failed** | 13 m 10 s |
+| CI | `d7a12f8` | PR #206 checks | **12/12 pass**: python-test, lint-and-smoke on ubuntu, macOS and Windows, wheel-e2e on ubuntu and Windows, build-wheel, research-ui, research-ui-browser | |
 | closure (RELEASE) | `2c99330` | `uv build --wheel` | `nexus_scholar-1.1.0b3-py3-none-any.whl`, which contains `inception/emit.py`, `inception/steps.py`, `console/api/inception.py` and the skill's `emit_protocol.py` | |
 
 ## Deferred
@@ -50,5 +54,4 @@ The phase-auditor re-verified INC-08 and INC-22 at `a273fc6` before the fix, by 
 - **Method questions M1–M7** (`docs/ux/phase0-inception/README.md`) stay open, as plan §2 proposes. That includes INC-23 (English as the silent language default), which the draft keeps for parity with the wizard.
 - **All UI** (`apps/research-ui`) is owned by the redesign session.
 - **Re-review follow-up (P3):** if an OSError hits half-way through a `--replace`, it can leave a half-replaced workspace. The backup under `audit/replaced/` holds the old files, but the refusal message does not name the backup path.
-- **Cross-platform CI** (ubuntu and macOS) runs on the PR; this closure ran on Windows only.
 - **Pre-existing lint in `wizard.py`** (unused imports, B008), outside the CI ruff scope, is left as it is.
