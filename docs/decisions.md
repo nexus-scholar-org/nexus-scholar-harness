@@ -31,7 +31,7 @@ A protocol may still set any of the three values to override this.
   - `prisma-2020`: "The screening is reported following PRISMA 2020."
   - `prisma-scr`: "The screening is reported following PRISMA-ScR, the PRISMA extension for scoping reviews."
   - `none`: no sentence.
-- **`figures.method.reporting` and `figures.method.reporting_source`** (`protocol` or `playbook`) carry the value and where it came from.
+- **`figures.method.reporting` and `figures.method.reporting_source`** carry the value and where it came from: `protocol` or `playbook`, or `defaults` when there is no readable protocol (review, 2026-11-08). **`figures.method.reporting_label`** carries the name the sentence states ("PRISMA 2020", "PRISMA-ScR", or null for `none`), so the number in "PRISMA 2020" traces to a figure.
 
 **What does not change:**
 - The counts, their meaning and the counts sentence.
