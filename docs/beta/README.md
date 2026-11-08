@@ -1,7 +1,11 @@
-# Nexus Scholar beta (1.1.0b2)
+# Nexus Scholar beta (1.1.0b3)
 
 Thank you for testing. This page says who the beta is for, how to install it,
 what it cannot do yet, and how to tell us what happened.
+
+## What is new in 1.1.0b3
+
+Fast keyboard triage no longer drops a decision, more RIS exports import fully, and the method values and the reporting guideline are stated in your protocol. Already on 1.1.0b2? Upgrade with `uv tool install --prerelease allow --force nexus-scholar`. Details, including changes to the local API: [release notes](../releases/1.1.0b3.md).
 
 ## Who it is for
 
@@ -19,7 +23,7 @@ methods paragraph.
    uv tool install --prerelease allow nexus-scholar
    ```
 
-3. Check the version (it should print `nexus-scholar 1.1.0b2`):
+3. Check the version (it should print `nexus-scholar 1.1.0b3`):
 
    ```bash
    nexus-scholar --version

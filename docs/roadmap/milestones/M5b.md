@@ -1,5 +1,5 @@
 # M5b Corpus import (several databases, deduplicated, accepted in the app)
-Branch: dev/m5b/corpus-import · Lane: **RELEASE** (raised from STANDARD at the review: the change alters artifact persistence (`verified.json` rows, a new provenance manifest, record ids), the published identification counts, public HTTP routes and CLI semantics; `test_gate_policy.md` §lanes) · Status: READY FOR PR · Started: 2026-11-06
+Branch: dev/m5b/corpus-import · Lane: **RELEASE** (raised from STANDARD at the review: the change alters artifact persistence (`verified.json` rows, a new provenance manifest, record ids), the published identification counts, public HTTP routes and CLI semantics; `test_gate_policy.md` §lanes) · Status: MERGED (PR #195, #196) · Started: 2026-11-06
 
 Why: gap G1 in [`prisma-scr-readiness.md`](../../assessment/prisma-scr-readiness.md). A review searches several databases. Its PRISMA flow diagram needs the records identified per database and the duplicates removed. Before this change, `accept-corpus --ris` took one file and the counts read 0 duplicates. The researcher asked for this on 2026-11-06, with a way to accept the corpus in the app. This branch also carries the M5-slim gate part 2 record and the readiness checklist (`a1e8811`).
 

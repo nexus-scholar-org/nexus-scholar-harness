@@ -1,5 +1,5 @@
 # M6-hardening: the quiet hardening pass
-Branch: `dev/m6h/hardening` · Lane: **RELEASE** (declared STANDARD, raised at review 2026-11-08: removing four `/api/v1` routes and changing the `/healthz` body is a public API change, `test_gate_policy.md` §lanes; no contract, stored-byte or UI change) · Status: READY FOR PR · Started: 2026-11-08
+Branch: `dev/m6h/hardening` · Lane: **RELEASE** (declared STANDARD, raised at review 2026-11-08: removing four `/api/v1` routes and changing the `/healthz` body is a public API change, `test_gate_policy.md` §lanes; no contract, stored-byte or UI change) · Status: MERGED (PR #200, `cd85427`) · Started: 2026-11-08
 
 Why: this is step 9 of the researcher's beta plan of 2026-11-07, "a hardening pass while testers work, small and quiet". No UI change, so testers never see a moving target. The items are the T-P2 findings that the [full review](../../assessment/full-review-2026-11-06.md) deferred from M6-beta. On 2026-11-08 the researcher added H6: the RIS reader fix, which a tester would hit with any export not from IEEE. This branch also carries the two M6-beta closing commits (the timed walk and the tester round, both waived). The researcher chose to fold them in here instead of opening a separate PR.
 

@@ -1,5 +1,5 @@
 # M5-slim Package (ship)
-Branch: dev/m5/package · Lane: **RELEASE** (closure; plan §6) · Status: PART 1 READY FOR PR (2026-11-05, at the researcher's request; the rest stays open below) · Started: 2026-11-05
+Branch: dev/m5/package · Lane: **RELEASE** (closure; plan §6) · Status: MERGED (PR #190–#194); the gate part 3, the live prompt gate, stays open below · Started: 2026-11-05
 
 Plan: [`production-plan.md`](../production-plan.md) §6 (M5-slim row), §5.3 stage 1 (A0 + MCP), §8 (parked labels). The branch also carries the workspace screen spec (`00-workspaces.md`, FINAL) and the MCP-route prompt-gate tool (`prompt-gate export|import`), both written after M1b-2 and merged in at the start.
 
