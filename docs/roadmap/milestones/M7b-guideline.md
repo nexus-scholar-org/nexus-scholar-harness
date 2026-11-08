@@ -15,7 +15,7 @@ Why: this is step 11 of the researcher's beta plan of 2026-11-07. Decision: [202
   - Tests: all three values; the numbers-trace invariant still holds. Done 2026-11-08 (`tests/console/test_methods_method_block.py`, which failed first; `test_methods_api.py` passes).
 - [x] **G6. Labels.** Done 2026-11-08, with copy from the spec 09 and 10 amendments. Publish reads `reporting` from `GET /settings`, and an engine without the field reads as PRISMA 2020. Export reads it from the bound publication's `figures.method.reporting`, so its heading and the paragraph always agree. Two wording refinements from the spec writer were accepted: "flow diagram" replaces "PRISMA box", and the `none` heading is "Counts of the published screening". Two older Export tests now use the PRISMA 2020 caption. vitest `publish.reporting` and `export.reporting` failed first; the full vitest suite passes 283/283. Publish's preview heading and Export's counts heading and language note follow the guideline. Specs 09 and 10 are amended first.
   - vitest for the three values in en, plus copy completeness in fr and ar.
-- [ ] **Gate:** RELEASE closure on the final executable commit, including `generate_contract_baseline.py --check`.
+- [x] **Gate:** RELEASE closure on the final executable commit, including `generate_contract_baseline.py --check`.
 - [ ] **Review:** the milestone-reviewer returns APPROVE.
 
 ## Findings fixed
@@ -28,6 +28,11 @@ Why: this is step 11 of the researcher's beta plan of 2026-11-07. Decision: [202
 ## Evidence
 | Stage | Commit | Command | Result | Duration |
 | :-- | :-- | :-- | :-- | :-- |
+| inner | per item | targeted pytest/vitest per item | each red before, green after | seconds |
+| closure (RELEASE) | `37a2057` | contract baseline, contract schemas, two-study fixture, canonical goldens and protocol schema `--check`; ruff; `git diff --check` | all pass | |
+| closure (RELEASE) | `37a2057` | `pytest -q -n auto` | **4493 passed, 15 skipped, 0 failed** | 6 m 06 s |
+| closure (RELEASE) | `37a2057` | `uv build --wheel` | `nexus_scholar-1.1.0b2-py3-none-any.whl` | |
+| closure (RELEASE) | `37a2057` | typecheck, vitest, `next build`, Playwright (light and dark) | tsc clean; vitest **283/283**; build clean; Playwright **172 passed, 1 failed, 13 skipped**. The failure was `locale-routing.spec.ts` N2 (dark): `html lang` read null once. Re-run `--repeat-each=3`: **48/48 passed**. This branch does not touch locale routing | 4 m 42 s |
 
 ## Deferred
 - PRISMA-ScR's "sources of evidence" wording in the counts. It belongs to the parked PRISMA-ScR checklist work.
