@@ -228,33 +228,103 @@ def slugify(text: str) -> str:
     return re.sub(r"[-\s]+", "-", text).strip("-")
 
 
-def make_intent(survey: Survey, slug: str, genesis_timestamp: str) -> dict:
-    """Assemble the ``IntentPacket`` dict (Stage 4) for the deterministic compiler."""
-    all_rqs = [f"RQ{i}" for i, _ in enumerate(survey.rqs, start=1)]
+def draft_rq(paradigm: str, topic: str, unit: str, proof: str) -> str:
+    """The paradigm's RQ1 draft (Stage 4a), shared by the wizard and the step API."""
+    return PARADIGM_PROFILE[paradigm]["rq_template"].format(topic=topic, unit=unit, proof=proof)
 
-    inclusion = [
-        {"criterion": f"Reports the gold-standard proof — {survey.proof}", "maps_to_rqs": all_rqs},
-    ] + [{"criterion": c, "maps_to_rqs": all_rqs} for c in survey.extra_inclusions]
 
-    exclusion = [
-        {
-            "criterion": item,
-            "reason_category": "OUT_OF_SCOPE",
-            "maps_to_rqs": all_rqs,
+# INC-22: where a criterion came from. ``generated`` sources were written by the
+# wizard, not typed by the researcher; their acceptance prompt defaults to "no".
+CRITERION_SOURCES: dict[str, tuple[str, bool]] = {
+    "proof": ("written by the wizard from your proof answer", True),
+    "paradigm_default": ("the {paradigm} paradigm's default exclusion, written by the wizard", True),
+    "out_of_scope": ("your out-of-scope answer", False),
+    "manual": ("typed by you", False),
+}
+
+
+@dataclass(frozen=True)
+class CriterionDraft:
+    """One screening criterion the wizard proposes, before the researcher accepts it."""
+
+    kind: str  # "inclusion" | "exclusion"
+    criterion: str
+    source: str  # a key of CRITERION_SOURCES
+    reason_category: str | None = None
+
+    @property
+    def generated(self) -> bool:
+        return CRITERION_SOURCES[self.source][1]
+
+    @property
+    def id(self) -> str:
+        """Content-derived: editing a criterion's text makes it a new, undecided one."""
+        import hashlib
+
+        raw = "\x1f".join((self.kind, self.source, self.criterion, self.reason_category or ""))
+        return "crit_" + hashlib.sha256(raw.encode("utf-8")).hexdigest()[:12]
+
+    def source_label(self, paradigm: str) -> str:
+        return CRITERION_SOURCES[self.source][0].format(paradigm=paradigm)
+
+    def as_dict(self, paradigm: str) -> dict:
+        return {
+            "id": self.id,
+            "kind": self.kind,
+            "criterion": self.criterion,
+            "reason_category": self.reason_category,
+            "source": self.source,
+            "source_label": self.source_label(paradigm),
+            "generated": self.generated,
         }
-        for item in survey.out_of_scope
-    ]
-    for text, category in survey.extra_exclusions:
-        exclusion.append({"criterion": text, "reason_category": category, "maps_to_rqs": all_rqs})
-    if not exclusion:
+
+
+def draft_criteria(survey: Survey) -> list[CriterionDraft]:
+    """Every criterion the wizard proposes, in order, each tagged with its source.
+
+    The rules are the historic ``make_intent`` rules: the proof answer becomes an
+    inclusion criterion; out-of-scope items and manual exclusions become
+    exclusions; with no exclusion at all, the paradigm's default is proposed.
+    """
+    drafts = [CriterionDraft("inclusion", f"Reports the gold-standard proof — {survey.proof}", "proof")]
+    drafts += [CriterionDraft("inclusion", c, "manual") for c in survey.extra_inclusions]
+    exclusions = [CriterionDraft("exclusion", item, "out_of_scope", "OUT_OF_SCOPE") for item in survey.out_of_scope]
+    exclusions += [CriterionDraft("exclusion", text, "manual", category) for text, category in survey.extra_exclusions]
+    if not exclusions:
         default_exclusion = PARADIGM_PROFILE[survey.paradigm]["negative_exclusions"]
-        exclusion.append({"criterion": default_exclusion, "reason_category": "OUT_OF_SCOPE", "maps_to_rqs": all_rqs})
+        exclusions.append(CriterionDraft("exclusion", default_exclusion, "paradigm_default", "OUT_OF_SCOPE"))
+    return drafts + exclusions
+
+
+def make_intent(
+    survey: Survey,
+    slug: str,
+    genesis_timestamp: str,
+    criteria: list[CriterionDraft] | None = None,
+) -> dict:
+    """Assemble the ``IntentPacket`` dict (Stage 4) for the deterministic compiler.
+
+    ``criteria`` are the criteria the researcher accepted (INC-22). ``None`` keeps
+    every drafted criterion, which only the deterministic placeholder protocol of
+    ``--scaffold-only`` relies on.
+    """
+    all_rqs = [f"RQ{i}" for i, _ in enumerate(survey.rqs, start=1)]
+    chosen = draft_criteria(survey) if criteria is None else criteria
+
+    inclusion = [{"criterion": c.criterion, "maps_to_rqs": all_rqs} for c in chosen if c.kind == "inclusion"]
+    exclusion = [
+        {"criterion": c.criterion, "reason_category": c.reason_category or "OUT_OF_SCOPE", "maps_to_rqs": all_rqs}
+        for c in chosen
+        if c.kind == "exclusion"
+    ]
+    # The rationale names only the out-of-scope items the researcher accepted.
+    out_of_scope = [c.criterion for c in chosen if c.source == "out_of_scope"]
 
     rationale = (
         f"{survey.paradigm} stance via the {survey.playbook} playbook. "
         f"Unit of analysis: {survey.unit_of_analysis}. "
         f"Convincing evidence is {survey.proof}. "
-        f"Explicitly out of scope: {'; '.join(survey.out_of_scope) or 'none specified'}."
+        f"Explicitly out of scope: {'; '.join(out_of_scope) or 'none specified'}."
     )
 
     languages = survey.languages or ["en"]

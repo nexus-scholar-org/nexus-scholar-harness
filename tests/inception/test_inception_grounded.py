@@ -78,6 +78,9 @@ _TAIL_COMMON = [
     # <one synonym answer per default concept goes here>
     False,             # manual inclusion?
     False,             # manual exclusion?
+    True,              # accept inclusion 1 (proof; generated, explicit yes)
+    True,              # accept exclusion 1
+    True,              # accept exclusion 2
     False,             # configure matrix?
     True,              # verification flags all-on?
     "On-Device Weed Detection for Embedded Agriculture",

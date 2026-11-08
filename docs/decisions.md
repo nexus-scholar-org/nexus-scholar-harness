@@ -4,6 +4,42 @@ One entry per decision that still shapes the code, newest first. The full
 records were removed in the 2026-11-03 docs cut; each entry names the commit
 history to read if you need the original reasoning (`git log --follow -- <path>`).
 
+## 2026-11-08 — Re-inception: refuse without `--replace`, back up, confirm a screening binding (accepted; M4a, INC-08)
+
+The researcher chose this on 2026-11-08.
+
+**One gated write path.** `scholar_harness.inception.emit.emit_workspace` is the only code that writes an inception protocol into a folder. The CLI wizard, `nexus-scholar init` (with and without `--scaffold-only`), the workspaces API, the inception HTTP route and the inception-agent helper `emit_protocol.py` all go through it. It compiles the intent before writing, so an invalid intent writes nothing.
+
+**The guard:**
+- **No `--replace`.** A folder that already holds a workspace (any `INIT_MARKERS` file) is refused with `WORKSPACE_EXISTS`, and nothing is written. The wizard checks as soon as the title gives the slug, then checks again at the write.
+- **`--replace`.** It copies `protocol.json`, `intent.json` and `SCREENING_CRITERIA.md` to `audit/replaced/<UTC stamp>/` before writing. `project.json` is kept: `created_at`, `stats`, `registered_workspace_id` and `project_id` stay. Only the fields the new protocol states are refreshed: title, paradigm, research questions and `updated_at`. GENESIS names the old fingerprint and the backup path.
+- **A screening binding needs a second, explicit confirmation.** Screening decisions are counted from the event log lines and the `batch_NNN_decisions.json` files, and a publication from `literature/screening/generation.json`. With any of these, `--replace` alone is refused with `SCREENING_BOUND`, and the refusal gives the counts.
+  - **Mechanism:** on the CLI and in the skill helper, the extra flag `--discard-screening-binding`. Over HTTP, the body must also carry `confirm_discard_screening_binding` equal to the workspace slug, typed by the researcher.
+  - GENESIS records that the binding was discarded, with the counts.
+
+**What does not change:** the protocol compiler, the fingerprint rules and the screening data. The old decisions stay on disk, and they still refer to the old criteria, which are kept in the backup.
+
+## 2026-11-08 — Inception criteria are shown verbatim and accepted one by one (accepted; M4a, INC-22)
+
+The researcher chose this on 2026-11-08.
+
+- **Every criterion is shown verbatim, with its source, and accepted one by one.** The source is one of: written by the wizard from the proof answer; the paradigm's default exclusion, written by the wizard; the researcher's out-of-scope answer; typed by the researcher.
+- **A criterion the wizard wrote needs an explicit yes.** Its prompt defaults to no. A criterion the researcher typed defaults to yes.
+- **A rejected criterion is not compiled.** The rationale's "Explicitly out of scope" sentence names only the accepted out-of-scope items.
+- **An empty side is filled by asking.** If either side would be left empty, the wizard asks the researcher to write a criterion, because `IntentPacket` needs at least one inclusion and one exclusion criterion.
+- **The pre-emit panel lists every accepted criterion in full**, not as counts.
+- **The source is not stored in the protocol.** Storing it would be a contract change. It appears in the wizard and in the step API output.
+- **The deterministic `--scaffold-only` placeholder protocol keeps every drafted criterion,** so its fingerprint does not move.
+- **The agent path follows the same rule.** The inception-agent skill must show each criterion and get a per-criterion yes before it writes `intent.json`.
+
+## 2026-11-08 — Inception drafts live under the workspaces root, with one session id (accepted; M4a, screens 00 and 08)
+
+The researcher chose this on 2026-11-08.
+
+- **Where drafts live.** A draft of the web wizard is saved at `<workspaces root>/.drafts/<session id>/draft.json`. A draft is the researcher's work, not a cache. The recon cache root defaults to `<repo>/.cache`, which does not fit a PyPI install.
+- **The workspace list ignores drafts.** It skips folders whose name starts with a dot.
+- **The session id** is `rec_` followed by 32 lowercase hex characters, the format the MCP recon sessions already use. The grounded CLI wizard uses it too (it used 12 hex characters). One id now names a draft and its recon session. The recon pools stay in the canonical recon cache.
+
 ## 2026-11-08 — Reporting follows a guideline chosen in the protocol (accepted; plan step 11)
 
 This accepts the 2026-11-06 consequence that screening is not specific to systematic reviews. The researcher chose the options below on 2026-11-08.

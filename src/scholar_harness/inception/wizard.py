@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Protocol
 
 import typer
+from rich.markup import escape
 from rich.panel import Panel
 from rich.table import Table
 
@@ -15,10 +16,13 @@ from .intent import (
     PARADIGM_KEYWORDS,
     PARADIGM_PROFILE,
     ConceptDraft,
+    CriterionDraft,
     RQDraft,
     Survey,
     detect_leanings,
+    draft_criteria,
     draft_default_concepts,
+    draft_rq,
     enforce_lexicon,
     make_intent,
     recommend_playbook,
@@ -28,14 +32,11 @@ from .intent import (
 from .grounded import _run_grounded_recon, _enforce_grounded_anchors, _now_iso
 from .genesis import (
     _default_matrix_dimensions,
-    compile_protocol_files,
     install_workspace_support_files,
-    log_genesis,
     require_uninitialized,
-    scaffold_project,
     scaffold_placeholder_workspace,
-    scaffold_raw_project,
 )
+from .emit import GenesisRefused, check_writable, emit_workspace, workspace_dir_for
 
 class Responder(Protocol):
     def text(self, message: str, default: str = "") -> str: ...
@@ -142,6 +143,55 @@ class ConsoleResponder:
 
 
 # ---------------------------------------------------------------------------
+# INC-22: criteria are shown verbatim and accepted one by one
+# ---------------------------------------------------------------------------
+
+
+def accept_criteria(responder: Responder, drafts: list[CriterionDraft], paradigm: str) -> list[CriterionDraft]:
+    """Show each drafted criterion verbatim with its source; keep the accepted ones.
+
+    A criterion the wizard wrote itself defaults to "no", so it enters the
+    protocol only on an explicit yes; one the researcher typed defaults to
+    "yes". A side left empty is filled by asking for a criterion, because a
+    protocol needs at least one inclusion and one exclusion criterion.
+    """
+    console.print(Panel.fit(
+        "Each criterion below goes into SCREENING_CRITERIA.md exactly as written.\n"
+        "Criteria the wizard wrote need an explicit yes.",
+        title="Screening criteria", border_style="cyan",
+    ))
+    accepted: list[CriterionDraft] = []
+    for n, draft in enumerate(drafts, start=1):
+        category = escape(f" [{draft.reason_category}]") if draft.reason_category else ""
+        console.print(f"[bold]{n}. {draft.kind.capitalize()}{category}[/bold]  [dim]({draft.source_label(paradigm)})[/dim]")
+        console.print(f"   {draft.criterion}", markup=False, highlight=False)
+        if responder.confirm(f"Accept {draft.kind} criterion {n} as written?", default=not draft.generated):
+            accepted.append(draft)
+    for kind, category in (("inclusion", None), ("exclusion", "OUT_OF_SCOPE")):
+        while not any(c.kind == kind for c in accepted):
+            text = responder.text(f"A protocol needs at least one {kind} criterion; write one:").strip()
+            if text:
+                accepted.append(CriterionDraft(kind, text, "manual", category))
+    return accepted
+
+
+def criteria_summary(criteria: list[CriterionDraft]) -> str:
+    lines = []
+    for kind in ("inclusion", "exclusion"):
+        lines.append(f"• {kind} criteria:")
+        for c in criteria:
+            if c.kind == kind:
+                category = f" [{c.reason_category}]" if c.reason_category else ""
+                lines.append(escape(f"    - {c.criterion}{category}"))
+    return "\n".join(lines)
+
+
+def _refuse(exc: GenesisRefused) -> typer.Exit:
+    console.print(f"[bold red]❌ Refusing to write: {escape(exc.message)}[/bold red]", highlight=False)
+    return typer.Exit(1)
+
+
+# ---------------------------------------------------------------------------
 # The wizard
 # ---------------------------------------------------------------------------
 
@@ -158,8 +208,16 @@ def run_wizard(
     direction_id: int | None = None,
     target_dir: Path | None = None,
     init_title: str | None = None,
+    replace: bool = False,
+    discard_screening_binding: bool = False,
 ) -> dict:
     """Run the 4-stage Socratic inception interview and emit the protocol.
+
+    INC-08: the protocol is written only through :func:`emit_workspace`, which
+    refuses a folder that already holds a workspace unless ``replace`` is set
+    (and, for a workspace with screening decisions or a publication, also
+    ``discard_screening_binding``). INC-22: every screening criterion is shown
+    verbatim and accepted one by one (:func:`accept_criteria`).
 
     Returns a summary dict: {intent, slug, title, playbook, paradigm,
     protocol_fingerprint, workspace_dir} where ``workspace_dir`` is set only
@@ -254,7 +312,7 @@ def run_wizard(
     profile = PARADIGM_PROFILE[paradigm]
     rq1_text = responder.text(
         "Refine research question RQ1 (or accept the draft)",
-        default=profile["rq_template"].format(topic=topic, unit=unit, proof=proof),
+        default=draft_rq(paradigm, topic, unit, proof),
     )
     rqs = [RQDraft(text=rq1_text, facet=profile["facet"], evidence=profile["evidence"])]
     if responder.confirm("Add a second research question (RQ2)?", default=False):
@@ -292,6 +350,17 @@ def run_wizard(
         cat = responder.text("Rejection category (e.g. LANGUAGE, INSUFFICIENT_DATA)", default="OUT_OF_SCOPE")
         extra_exclusions.append((text, cat))
 
+    # INC-22: the criteria are drafted from the answers so far, shown verbatim,
+    # and accepted one by one; only accepted criteria reach the protocol.
+    criteria_survey = Survey(
+        topic=topic, paradigm=paradigm, playbook=playbook, secondary_paradigm=secondary,
+        unit_of_analysis=unit, proof=proof, out_of_scope=out_of_scope, languages=languages,
+        start_year=start_year, end_year=end_year, lead_researcher="", title="", venue="",
+        timeline_weeks=None, rqs=rqs, concepts=concepts, extra_inclusions=extra_inclusions,
+        extra_exclusions=extra_exclusions, trust_score_threshold=0.0,
+    )
+    criteria = accept_criteria(responder, draft_criteria(criteria_survey), paradigm)
+
     # ---- Stage 4d: extraction matrix + verification --------------------------
     matrix_dimensions: list[dict] = []
     if responder.confirm("Configure a core extraction matrix (columns for the Phase-2 RAG extractor)?", default=playbook == "DESIGN_SCIENCE"):
@@ -311,6 +380,15 @@ def run_wizard(
         default=init_title or topic.strip().rstrip("?").capitalize(),
     )
     slug = slugify(title)
+    if not no_scaffold:
+        # INC-08: say so now, not after the last answer; emit_workspace checks again.
+        try:
+            check_writable(
+                workspace_dir_for(slug, root=root, target_dir=target_dir),
+                replace=replace, discard_screening_binding=discard_screening_binding,
+            )
+        except GenesisRefused as exc:
+            raise _refuse(exc) from exc
     lead = responder.text(
         "Lead researcher", default="AI Agent"
     )
@@ -340,13 +418,13 @@ def run_wizard(
         trust_score_threshold=trust_threshold,
         matrix_dimensions=matrix_dimensions,
     )
-    intent = make_intent(survey, slug, ts)
+    intent = make_intent(survey, slug, ts, criteria=criteria)
 
     # ---- Stage 4f: review + genesis -------------------------------------------
     console.print(Panel.fit(
-        f"[bold]{title}[/bold]\n"
+        f"[bold]{escape(title)}[/bold]\n"
         f"• slug: {slug}\n• paradigm: {paradigm} ({playbook})\n• RQs: {len(rqs)}\n"
-        f"• concepts: {len(concepts)}\n• inclusion: {len(intent['inclusion_criteria'])} / exclusion: {len(intent['exclusion_criteria'])}\n\n"
+        f"• concepts: {len(concepts)}\n{criteria_summary(criteria)}\n\n"
         f"Review the summary above; the protocol will be compiled deterministically from this intent.",
         title="Protocol Intent — Ready to Emit",
         border_style="cyan",
@@ -359,19 +437,21 @@ def run_wizard(
             "Interview complete (--no-scaffold mode); intent captured, nothing written."
         )
 
-    if target_dir is not None:
-        ws_dir = scaffold_raw_project(
-            target_dir, title, slug, paradigm, [rq.text for rq in rqs]
+    try:
+        compiled = emit_workspace(
+            intent, root=root, target_dir=target_dir,
+            replace=replace, discard_screening_binding=discard_screening_binding,
+            recon_context=recon_context,
         )
-    else:
-        ws_dir = scaffold_project(root, title, slug, paradigm, [rq.text for rq in rqs])
-    compiled = compile_protocol_files(ws_dir, intent)
-    log_genesis(
-        ws_dir,
-        f"Phase-0 Inception: '{title}' [{paradigm}, {playbook}] compiled protocol fingerprint "
-        f"{compiled['protocol_fingerprint']}",
-        recon_context=recon_context,
-    )
+    except GenesisRefused as exc:
+        raise _refuse(exc) from exc
+    ws_dir = Path(compiled["workspace_dir"])
+    if compiled["replaced"]:
+        console.print(
+            f"[bold yellow]Protocol replaced; the previous one ({compiled['previous_fingerprint']}) "
+            f"is backed up in {compiled['backup_dir']}[/bold yellow]",
+            highlight=False,
+        )
     console.print(f"[bold green]✅ Workspace scaffolded: {ws_dir}[/bold green]")
     console.print(f"   intent.json → protocol.json ({compiled['protocol_fingerprint']})")
     console.print("   SCREENING_CRITERIA.md written. Ready for Phase-1 discovery (uv run scholar-search ...).")
@@ -394,12 +474,15 @@ def inception_command(
     grounded: bool = False,
     auto_select: bool = False,
     direction_id: int | None = None,
+    replace: bool = False,
+    discard_screening_binding: bool = False,
 ) -> None:
     """Launch the interactive Phase-0 Socratic inception wizard."""
     run_wizard(
         ConsoleResponder(), root,
         no_scaffold=no_scaffold, grounded=grounded,
         auto_select=auto_select, direction_id=direction_id,
+        replace=replace, discard_screening_binding=discard_screening_binding,
     )
 
 
