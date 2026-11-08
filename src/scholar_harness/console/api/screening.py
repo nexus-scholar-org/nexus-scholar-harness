@@ -265,12 +265,11 @@ def post_batch_decisions(
 # bound at app state, serving the UI-07 presentation spec §§3-5 shapes:
 #
 # * GET /ui/batches                        §3(b) screening batches envelope
-# * GET /ui/batch/{n}/rows                 §3(b) per-record rows (paginated;
-#                                          OQ-P1 row paging is limit/offset)
 # * GET /ui/batch/{n}/review               §3(d) recommendation / resolution /
 #                                          override / review / deferral
-# * GET /ui/batch/{n}/criterion-refs       §3(c) criteria + source locators
-# * GET /ui/audit-feed                     §3(f) journey-scoped audit feed
+#
+# (/ui/batch/{n}/rows, /criterion-refs and /ui/audit-feed had no caller and
+# were removed in M6-hardening.)
 #
 # Discipline mirrors console/api/workspace.py's UI-07 section: backend-
 # resolved references (R1), caller-minted identities refused with 422 (R2),

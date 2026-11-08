@@ -467,6 +467,16 @@ def test_ui_refs_resolved_backend_side(tmp_path):
     assert all(b["batch_index"] in (0, 1) for b in batches["batches"])
 
 
+def test_ui_batches_report_a_complete_batch(tmp_path):
+    """The positive coverage case of /ui/batches (kept when the rows route was
+    removed in M6-hardening; review finding 2)."""
+    ws = _make_ws(tmp_path, with_decisions=True)
+    first = TestClient(create_app(ws)).get("/api/v1/screening/ui/batches").json()["batches"][0]
+    assert first["coverage"] == "COMPLETE"
+    assert "missing_ids" not in first and "extra_ids" not in first  # COMPLETE carries none
+    assert first["decisions_count"] == 2
+
+
 def test_ui_caller_minted_ids_refused_everywhere(tmp_path):
     ws = _make_ws(tmp_path)
     client = TestClient(create_app(ws))

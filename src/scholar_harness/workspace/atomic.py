@@ -2,7 +2,9 @@
 
 ``atomic_write_text`` writes a sibling temporary file, flushes it to disk and
 replaces the target, so a crash leaves either the old file or the new one,
-never a torn mix, and never a stray temporary file once the call returns.
+never a torn mix. When the call raises, it removes its temporary file (unless
+Windows still holds it); a killed process can leave one ``<name>.tmp-<hex>``
+file behind, which no reader globs.
 
 The bytes are exactly what ``Path.write_text(text, encoding="utf-8")`` writes
 (text mode, default newline translation), so digests computed over those bytes
@@ -17,6 +19,7 @@ at once.
 
 from __future__ import annotations
 
+import contextlib
 import os
 import time
 import uuid
@@ -51,4 +54,6 @@ def atomic_write_text(path: Path, text: str) -> None:
             os.fsync(stream.fileno())
         replace_with_retry(tmp, path)
     finally:
-        tmp.unlink(missing_ok=True)
+        # Best effort: a held temp file must not replace the original error.
+        with contextlib.suppress(OSError):
+            tmp.unlink(missing_ok=True)
