@@ -40,11 +40,15 @@ const COPY = {
     differs: "Your current decisions differ from the published ones. The file and paragraph describe the published screening.",
     "methods.title": "Methods paragraph",
     "methods.draftBadge": "Draft · check before you submit",
-    "methods.language": "Written in English for a manuscript. Check every number against your PRISMA box.",
+    "methods.language": "Written in English for a manuscript. Check every number against your PRISMA 2020 flow diagram.",
+    "methods.languageScr": "Written in English for a manuscript. Check every number against your PRISMA-ScR flow diagram.",
+    "methods.languageNone": "Written in English for a manuscript. Check every number against your flow diagram.",
     "methods.copy": "Copy paragraph",
     "methods.copied": "Copied",
     "methods.copyFailed": "Copying is blocked here; select the paragraph and copy it yourself.",
-    "methods.counts": "PRISMA counts of the published screening",
+    "methods.counts": "PRISMA 2020 counts of the published screening",
+    "methods.countsScr": "PRISMA-ScR counts of the published screening",
+    "methods.countsNone": "Counts of the published screening",
     "counts.identified": "Records identified",
     "counts.duplicates": "Duplicates removed",
     "counts.screened": "Records screened",
@@ -96,11 +100,15 @@ const COPY = {
     differs: "Vos décisions actuelles diffèrent des décisions publiées. Le fichier et le paragraphe décrivent la sélection publiée.",
     "methods.title": "Paragraphe de méthodes",
     "methods.draftBadge": "Brouillon · à vérifier avant soumission",
-    "methods.language": "Rédigé en anglais pour un manuscrit. Vérifiez chaque nombre avec votre diagramme PRISMA.",
+    "methods.language": "Rédigé en anglais pour un manuscrit. Vérifiez chaque nombre avec votre diagramme de flux PRISMA 2020.",
+    "methods.languageScr": "Rédigé en anglais pour un manuscrit. Vérifiez chaque nombre avec votre diagramme de flux PRISMA-ScR.",
+    "methods.languageNone": "Rédigé en anglais pour un manuscrit. Vérifiez chaque nombre avec votre diagramme de flux.",
     "methods.copy": "Copier le paragraphe",
     "methods.copied": "Copié",
     "methods.copyFailed": "La copie est bloquée ici ; sélectionnez le paragraphe et copiez-le vous-même.",
-    "methods.counts": "Effectifs PRISMA de la sélection publiée",
+    "methods.counts": "Effectifs PRISMA 2020 de la sélection publiée",
+    "methods.countsScr": "Effectifs PRISMA-ScR de la sélection publiée",
+    "methods.countsNone": "Effectifs de la sélection publiée",
     "counts.identified": "Notices identifiées",
     "counts.duplicates": "Doublons retirés",
     "counts.screened": "Notices examinées",
@@ -152,11 +160,15 @@ const COPY = {
     differs: "قراراتك الحالية تختلف عن القرارات المنشورة. يصف الملف والفقرة الفرز المنشور.",
     "methods.title": "فقرة المنهجية",
     "methods.draftBadge": "مسودة · راجعها قبل الإرسال",
-    "methods.language": "مكتوبة بالإنجليزية لمخطوطة. طابق كل رقم مع مخطط PRISMA الخاص بك.",
+    "methods.language": "مكتوبة بالإنجليزية لمخطوطة. طابق كل رقم مع مخطط تدفق PRISMA 2020 الخاص بك.",
+    "methods.languageScr": "مكتوبة بالإنجليزية لمخطوطة. طابق كل رقم مع مخطط تدفق PRISMA-ScR الخاص بك.",
+    "methods.languageNone": "مكتوبة بالإنجليزية لمخطوطة. طابق كل رقم مع مخطط التدفق الخاص بك.",
     "methods.copy": "نسخ الفقرة",
     "methods.copied": "نُسخت",
     "methods.copyFailed": "النسخ محظور هنا؛ حدّد الفقرة وانسخها بنفسك.",
-    "methods.counts": "أعداد PRISMA للفرز المنشور",
+    "methods.counts": "أعداد PRISMA 2020 للفرز المنشور",
+    "methods.countsScr": "أعداد PRISMA-ScR للفرز المنشور",
+    "methods.countsNone": "أعداد الفرز المنشور",
     "counts.identified": "السجلات المحددة",
     "counts.duplicates": "التكرارات المحذوفة",
     "counts.screened": "السجلات المفروزة",
@@ -360,6 +372,8 @@ export function ScreeningExport({ locale }: Readonly<{ locale: Locale }>) {
 
     const { methods, preview } = state.data;
     const f = methods.figures;
+    // M7b-guideline: the guideline the bound publication reports under (absent → PRISMA 2020).
+    const guideline = (f.method as { reporting?: string } | undefined)?.reporting ?? "prisma-2020";
     const reasons = Object.entries(f.exclusion_reasons ?? {}).sort(([a], [b]) => a.localeCompare(b));
     const differs =
       preview !== null &&
@@ -415,7 +429,7 @@ export function ScreeningExport({ locale }: Readonly<{ locale: Locale }>) {
                   {methods.paragraph}
                 </p>
               </div>
-              <p className="mt-2 text-xs text-ink-muted">{t("methods.language")}</p>
+              <p className="mt-2 text-xs text-ink-muted">{t(guideline === "prisma-scr" ? "methods.languageScr" : guideline === "none" ? "methods.languageNone" : "methods.language")}</p>
               <div className="mt-3 flex flex-wrap items-center gap-3">
                 <Button onClick={() => void copy(methods.paragraph)} data-copy>
                   {t("methods.copy")}
@@ -423,7 +437,9 @@ export function ScreeningExport({ locale }: Readonly<{ locale: Locale }>) {
               </div>
 
               <table className="mt-4 w-full text-sm">
-                <caption className="pb-2 text-start text-xs text-ink-muted">{t("methods.counts")}</caption>
+                <caption className="pb-2 text-start text-xs text-ink-muted">
+                  {t(guideline === "prisma-scr" ? "methods.countsScr" : guideline === "none" ? "methods.countsNone" : "methods.counts")}
+                </caption>
                 <tbody>
                   {(
                     [

@@ -80,7 +80,7 @@ describe("export.states", () => {
     expect(screen.getByText("Published · current")).toBeInTheDocument();
     expect(screen.getByText("Draft · check before you submit")).toBeInTheDocument();
     expect(screen.getByText(PARAGRAPH)).toBeInTheDocument();
-    const counts = screen.getByRole("table", { name: "PRISMA counts of the published screening" });
+    const counts = screen.getByRole("table", { name: "PRISMA 2020 counts of the published screening" });
     expect(within(counts).getByRole("row", { name: "Records identified 30" })).toBeInTheDocument();
     expect(within(counts).getByRole("row", { name: "Unclear, to full text 4" })).toBeInTheDocument();
     expect(screen.getByText("Queue order: not recorded for this screening.")).toBeInTheDocument();
@@ -284,12 +284,35 @@ describe("export.details (M6-beta, spec 10 amendment)", () => {
       if (!el) throw new Error("not yet");
       return el;
     });
-    const counts = screen.getByText("PRISMA counts of the published screening").closest("table")!;
+    const counts = screen.getByText("PRISMA 2020 counts of the published screening").closest("table")!;
     expect(paragraph.compareDocumentPosition(counts) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     const details = document.querySelector("[data-methods-details]") as HTMLDetailsElement;
     expect(details.open).toBe(false);
     expect(within(details).getByText("GEN-0123456789ab…")).toBeInTheDocument();
     expect(within(details).getByText(METHODS.generation_fingerprint)).toBeInTheDocument();
     expect(within(details).getByText("What this statement is based on")).toBeInTheDocument();
+  });
+});
+
+
+// M7b-guideline (spec 10 amendment 2026-11-08): the counts heading and note follow the guideline.
+describe("export.reporting", () => {
+  it.each([
+    ["prisma-2020", "PRISMA 2020 counts of the published screening", "Check every number against your PRISMA 2020 flow diagram."],
+    ["prisma-scr", "PRISMA-ScR counts of the published screening", "Check every number against your PRISMA-ScR flow diagram."],
+    ["none", "Counts of the published screening", "Check every number against your flow diagram."],
+  ])("%s", async (reporting, caption, note) => {
+    engine({ "/api/v1/screening/methods": { ...METHODS, figures: { ...METHODS.figures, method: { reporting, reporting_source: "protocol" } } } });
+    render(<ScreeningExport locale="en" />);
+    expect(await screen.findByText(caption)).toBeInTheDocument();
+    expect(screen.getByText(note, { exact: false })).toBeInTheDocument();
+  });
+
+  it("has the three variants in every locale", () => {
+    for (const locale of SUPPORTED_LOCALES) {
+      for (const key of ["methods.counts", "methods.countsScr", "methods.countsNone", "methods.language", "methods.languageScr", "methods.languageNone"] as const) {
+        expect(EXPORT_COPY[locale][key]).toBeTruthy();
+      }
+    }
   });
 });
