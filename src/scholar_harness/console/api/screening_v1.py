@@ -513,9 +513,12 @@ class CorpusSourceBody(BaseModel):
 @router.get("/corpus")
 def get_corpus(request: Request) -> dict[str, Any]:
     """The corpus import: staged database exports, the counts acceptance would give, or what was accepted."""
-    from ...corpus_accept import corpus_status
+    from ...corpus_accept import AcceptCorpusRefused, corpus_status
 
-    return corpus_status(_ws(request))
+    try:
+        return corpus_status(_ws(request))
+    except AcceptCorpusRefused as exc:  # e.g. PROTOCOL_METHOD_INVALID
+        raise _corpus_error(exc) from exc
 
 
 @router.post("/corpus/sources", status_code=201)

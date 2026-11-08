@@ -24,7 +24,47 @@ class Deduplicator:
     Two-tier deterministic deduplication and non-destructive metadata fusion engine:
       Tier 1: Canonical Persistent Identifiers (DOI, arXiv ID, PMID, OpenAlex ID, S2 ID)
       Tier 2: Fuzzy lexical title normalization (>= 97%) + author surname match + year tolerance (+/- 1 year)
+
+    The tier-2 values are parameters (M7-method, decision 2026-11-08): a
+    protocol's ``method.dedup`` block may set them within checked limits. The
+    defaults are the values above, and with them the result is unchanged.
     """
+
+    def __init__(
+        self,
+        *,
+        title_similarity: float = 0.97,
+        first_author: bool = True,
+        year_tolerance: int = 1,
+    ) -> None:
+        if not 0.90 <= float(title_similarity) <= 1.0:
+            raise ValueError(f"title_similarity must be within [0.90, 1.00], got {title_similarity!r}")
+        if not isinstance(year_tolerance, int) or not 0 <= year_tolerance <= 2:
+            raise ValueError(f"year_tolerance must be 0, 1 or 2, got {year_tolerance!r}")
+        self.title_similarity = float(title_similarity)
+        self.first_author = bool(first_author)
+        self.year_tolerance = year_tolerance
+        # Length pre-filter for tier 2. Two strings can only reach a ratio t if
+        # the shorter is at least t / (2 - t) of the longer. At the default (and
+        # above) the historical 5 % window is kept, so default results never
+        # move; a looser threshold widens it to that bound.
+        self._length_window = (
+            0.05 if self.title_similarity >= 0.97 else 1 - self.title_similarity / (2 - self.title_similarity)
+        )
+
+    def _authors_compatible(self, left: Document, right: Document) -> bool:
+        if not self.first_author:
+            return True
+        left_author = _first_author_surname(left)
+        right_author = _first_author_surname(right)
+        if left_author and right_author:
+            # Surnames should match or one contain the other (to handle prefixes like de/van/von)
+            return (
+                left_author == right_author
+                or left_author in right_author
+                or right_author in left_author
+            )
+        return True
 
     def deduplicate(self, documents: list[Document]) -> list[DocumentCluster]:
         clusters: list[DocumentCluster] = []
@@ -83,26 +123,19 @@ class Deduplicator:
                 len_doc = len(tkey)
                 for cand_tkey, cand_doc, cand_cluster in fuzzy_pool:
                     len_cand = len(cand_tkey)
-                    if abs(len_doc - len_cand) / max(len_doc, len_cand) > 0.05:
+                    if abs(len_doc - len_cand) / max(len_doc, len_cand) > self._length_window:
                         continue
                     if (
                         document.year
                         and cand_doc.year
-                        and abs(document.year - cand_doc.year) > 1
+                        and abs(document.year - cand_doc.year) > self.year_tolerance
                     ):
                         continue
                     if self._has_identifier_conflict(document, cand_doc):
                         continue
-                    left_author = _first_author_surname(document)
-                    right_author = _first_author_surname(cand_doc)
-                    if left_author and right_author:
-                        if (
-                            left_author != right_author
-                            and left_author not in right_author
-                            and right_author not in left_author
-                        ):
-                            continue
-                    if SequenceMatcher(None, tkey, cand_tkey).ratio() >= 0.97:
+                    if not self._authors_compatible(document, cand_doc):
+                        continue
+                    if SequenceMatcher(None, tkey, cand_tkey).ratio() >= self.title_similarity:
                         match = cand_cluster
                         break
 
@@ -277,8 +310,7 @@ class Deduplicator:
                 return True
         return False
 
-    @staticmethod
-    def _fuzzy_match(left: Document, right: Document) -> bool:
+    def _fuzzy_match(self, left: Document, right: Document) -> bool:
         if Deduplicator._has_identifier_conflict(left, right):
             return False
 
@@ -288,27 +320,16 @@ class Deduplicator:
             return False
 
         ratio = SequenceMatcher(None, left_title, right_title).ratio()
-        if ratio < 0.97:
+        if ratio < self.title_similarity:
             return False
 
-        # Check year tolerance (+/- 1 year) if both have publication year
+        # Check year tolerance if both have publication year
         if left.year and right.year:
-            if abs(left.year - right.year) > 1:
+            if abs(left.year - right.year) > self.year_tolerance:
                 return False
 
-        # Check author surname match if both have authors
-        left_author = _first_author_surname(left)
-        right_author = _first_author_surname(right)
-        if left_author and right_author:
-            # Surnames should match or one contain the other (to handle prefixes like de/van/von)
-            if (
-                left_author != right_author
-                and left_author not in right_author
-                and right_author not in left_author
-            ):
-                return False
-
-        return True
+        # Check author surname match if both have authors (unless switched off)
+        return self._authors_compatible(left, right)
 
     @staticmethod
     def _merge_metadata(rep: Document, source: Document) -> None:

@@ -430,3 +430,47 @@ def test_a_byte_order_mark_does_not_lose_the_first_record(tmp_path):
     ws = _workspace(tmp_path)
     entry = stage_ris_source(ws, "Scopus", b"\xef\xbb\xbf" + SCOPUS.encode(), file_name="scopus.ris")
     assert entry["records"] == 3
+
+
+# M7-method M4: acceptance deduplicates with the protocol's method.dedup values.
+_NEAR_A = "TY  - JOUR\nAU  - Huang, H.\nTI  - Weed mapping in maize with unmanned aerial vehicles and deep learning\nPY  - 2021\nER  - \n"
+_NEAR_B = "TY  - JOUR\nAU  - Huang, H.\nTI  - Weed mapping in maize using unmanned aerial vehicle and deep learning\nPY  - 2021\nER  - \n"
+
+
+def _with_method(ws: Path, method: dict) -> None:
+    protocol = json.loads((ws / "protocol.json").read_text(encoding="utf-8"))
+    protocol["method"] = method
+    (ws / "protocol.json").write_text(json.dumps(protocol), encoding="utf-8")
+
+
+_LOOSE = {
+    "dedup": {"doi": True, "title_similarity": 0.93, "first_author": True, "year_tolerance": 1},
+    "rules_version": "screening-rules-v1",
+    "not_reported": "unclear",
+    "blinding": "reveal_after_decision",
+}
+
+
+@pytest.mark.parametrize(("method", "studies"), [(None, 2), (_LOOSE, 1)])
+def test_acceptance_deduplicates_with_the_protocols_method(tmp_path, method, studies):
+    from scholar_harness.corpus_accept import accept_corpus, preview_staged, stage_ris_source
+
+    ws = _workspace(tmp_path)
+    if method is not None:
+        _with_method(ws, method)
+    stage_ris_source(ws, "Scopus", _NEAR_A.encode("utf-8"), file_name="a.ris")
+    stage_ris_source(ws, "Lens", _NEAR_B.encode("utf-8"), file_name="b.ris")
+    assert preview_staged(ws)["unique_studies"] == studies
+    assert accept_corpus(ws).study_count == studies
+
+
+def test_an_invalid_method_block_refuses_the_preview_and_acceptance(tmp_path):
+    from scholar_harness.corpus_accept import AcceptCorpusRefused, accept_corpus, preview_staged, stage_ris_source
+
+    ws = _workspace(tmp_path)
+    _with_method(ws, {**_LOOSE, "dedup": {**_LOOSE["dedup"], "title_similarity": 0.5}})
+    stage_ris_source(ws, "Scopus", _NEAR_A.encode("utf-8"), file_name="a.ris")
+    for call in (preview_staged, accept_corpus):
+        with pytest.raises(AcceptCorpusRefused) as raised:
+            call(ws)
+        assert raised.value.code == "PROTOCOL_METHOD_INVALID"
