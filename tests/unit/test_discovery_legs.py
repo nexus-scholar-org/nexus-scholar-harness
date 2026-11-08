@@ -202,7 +202,7 @@ def test_each_run_writes_a_prisma_s_report_per_database(tmp_path, monkeypatch):
 
 
 def test_the_report_renders_a_failed_leg_and_its_notes():
-    from scholar_harness.pipeline.search_report import render_search_report
+    from scholar_search.search_report import render_search_report
 
     manifest = {
         "run": "run_007", "status": "PARTIAL", "query_id": "Q1", "query_text": "weed AND drone",
