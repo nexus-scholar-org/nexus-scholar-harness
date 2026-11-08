@@ -22,11 +22,10 @@ uv --version
 ## 2. Install Nexus Scholar
 
 ```bash
-uv tool install --prerelease allow nexus-scholar
+uv tool install "nexus-scholar>=1.1.0b3"
 ```
 
-`--prerelease allow` is needed while Nexus Scholar is in beta. The command
-installs the `nexus-scholar` command for your user. Check it:
+The version in the command is needed while Nexus Scholar is in beta: it lets uv take a beta of Nexus Scholar without taking betas of anything else. Do not use `--prerelease allow`: it also takes development releases of other packages, and one of them stops the app from starting. The command installs the `nexus-scholar` command for your user. Check it:
 
 ```bash
 nexus-scholar --version
@@ -34,7 +33,7 @@ nexus-scholar --version
 
 It should print `nexus-scholar 1.1.0b3`. You can now run `nexus-scholar` from any
 folder, and you do not need to activate anything. If you use pip instead of uv:
-`pip install --pre nexus-scholar`.
+`pip install "nexus-scholar>=1.1.0b3"`.
 
 ## 3. Start the app and create a workspace
 
@@ -138,7 +137,7 @@ listed in [data-flow.md](data-flow.md).
 ## Updating
 
 ```bash
-uv tool install --force --prerelease allow nexus-scholar
+uv tool install --force "nexus-scholar>=1.1.0b3"
 ```
 
 Then check `nexus-scholar --version`. During the beta, finish a screening on the
@@ -150,7 +149,8 @@ is not yet tested.
 | What you see | What to do |
 | :-- | :-- |
 | `nexus-scholar` is not found | Run `uv tool update-shell`, then open a new terminal. |
-| `uv tool install` says no version matches | Add `--prerelease allow` (the beta is a pre-release). |
+| `uv tool install` says no version matches, or installs 1.0.0 | Keep the version in the command: `"nexus-scholar>=1.1.0b3"` (the beta is a pre-release). |
+| The app stops at start with `No module named 'httpcore'` | It was installed with `--prerelease allow`. Reinstall: `uv tool install --force "nexus-scholar>=1.1.0b3"`. |
 | "No accepted corpus" (`SNAPSHOT_NOT_ACCEPTED`) | Import and accept your search results (step 4). |
 | "No records in this file" (`SOURCE_NOT_RIS`) | Export the results as RIS (`.ris` or `.txt`) from the database, not as CSV or BibTeX. |
 | "File too large" (`SOURCE_TOO_LARGE`) | Export in parts of under 50 MB and add each part under the same database name. |

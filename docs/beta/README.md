@@ -5,7 +5,7 @@ what it cannot do yet, and how to tell us what happened.
 
 ## What is new in 1.1.0b3
 
-Fast keyboard triage no longer drops a decision, more RIS exports import fully, and the method values and the reporting guideline are stated in your protocol. Already on 1.1.0b2? Upgrade with `uv tool install --prerelease allow --force nexus-scholar`. Details, including changes to the local API: [release notes](../releases/1.1.0b3.md).
+Fast keyboard triage no longer drops a decision, more RIS exports import fully, and the method values and the reporting guideline are stated in your protocol. Already on 1.1.0b2? Upgrade with `uv tool install --force "nexus-scholar>=1.1.0b3"`. Details, including changes to the local API: [release notes](../releases/1.1.0b3.md).
 
 ## Who it is for
 
@@ -20,7 +20,7 @@ methods paragraph.
 2. Install Nexus Scholar:
 
    ```bash
-   uv tool install --prerelease allow nexus-scholar
+   uv tool install "nexus-scholar>=1.1.0b3"
    ```
 
 3. Check the version (it should print `nexus-scholar 1.1.0b3`):

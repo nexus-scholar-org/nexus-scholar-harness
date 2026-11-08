@@ -26,15 +26,15 @@ The latest release is the beta [v1.1.0b3](https://github.com/nexus-scholar-org/n
 
 **New here?** [Getting started](docs/getting-started.md) walks you from installing to a published screening and an exported reference list in about 15 minutes. Beta testers: read the [beta page](docs/beta/README.md) first.
 
-Install [uv](https://docs.astral.sh/uv/getting-started/installation/), then Nexus Scholar (the `--prerelease allow` is needed while it is in beta), and start the app:
+Install [uv](https://docs.astral.sh/uv/getting-started/installation/), then Nexus Scholar (the version in the command is needed while it is in beta; do not use `--prerelease allow`, which also takes development releases of other packages), and start the app:
 
 ```sh
-uv tool install --prerelease allow nexus-scholar
+uv tool install "nexus-scholar>=1.1.0b3"
 nexus-scholar --version
 nexus-scholar ui
 ```
 
-`nexus-scholar --version` should print `nexus-scholar 1.1.0b3`. With pip, use `pip install --pre nexus-scholar`. The app opens in your browser on **Workspaces**; everything runs on your computer.
+`nexus-scholar --version` should print `nexus-scholar 1.1.0b3`. With pip, use `pip install "nexus-scholar>=1.1.0b3"`. The app opens in your browser on **Workspaces**; everything runs on your computer.
 
 From a terminal, create a project and inspect its setup:
 
