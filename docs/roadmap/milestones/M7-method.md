@@ -1,0 +1,48 @@
+# M7-method: method parameters move into the protocol
+Branch: `dev/m7/method-block` · Lane: **RELEASE** (protocol identity, screening outcomes and the methods paragraph; a possible Contract v1 schema change; `test_gate_policy.md` §lanes) · Status: IN PROGRESS · Started: 2026-11-08
+
+Why: this is step 10 of the researcher's beta plan of 2026-11-07. Decision: [2026-11-08, Method parameters move into the protocol](../../decisions.md). It accepts point 2 of the 2026-11-06 "Three kinds of parameter" entry. Four values that can change what is included, or how biased the screening is, become an optional `method` block in `protocol.json`: the dedup tiers, the rule-table version, the not-reported policy, and blinding. Batch size stays a Prepare setting. Existing workspaces keep their fingerprints and run on the defaults.
+
+## Definition of done
+- [ ] **M1. The block exists and is optional.** `scholar_protocol.models.MethodConfig`, with `ResearchProtocol.method` defaulting to `None`. The canonical JSON leaves the key out when it is `None`, so every protocol without a block keeps its exact fingerprint. The JSON schema gains the optional property.
+  - Negative regression tests: the golden protocol fixtures hash to the same values as on `main`; a protocol with the block hashes differently, and the block's values are in the hash.
+- [ ] **M2. Checked limits.** Out-of-range values are refused with `PROTOCOL_METHOD_INVALID`, a test for each limit:
+  - `title_similarity` 0.90–1.00;
+  - `year_tolerance` 0–2;
+  - `doi` true;
+  - `rules_version` a known version;
+  - `not_reported` `unclear` or `exclude`;
+  - `blinding` `reveal_after_decision` or `show`.
+- [ ] **M3. One reader.** `effective_method(workspace)` returns the values in force and their source (`protocol` or `defaults`). Every consumer reads it; no consumer re-reads `protocol.json` itself.
+- [ ] **M4. Dedup reads it.** `Deduplicator` takes the tiers as parameters, with today's values as defaults. Corpus acceptance (`corpus_accept.py`) passes the workspace's values.
+  - Test: a looser threshold merges a pair that 0.97 keeps apart.
+  - Test: `year_tolerance: 0` separates a pair 1 year apart.
+- [ ] **M5. The rule table reads it.** `derive_outcome` takes the not-reported policy. With `exclude`, an inclusion criterion that is not reported gives `EXCLUDE` with `FAILS-INC-n`. An exclusion criterion that is not reported never fails. `unclear` is today's table, unchanged. An unknown `rules_version` is refused.
+  - Tests: every cell of both tables.
+- [ ] **M6. Blinding reads it.** When the protocol sets blinding, the settings route returns it with `blinding_source: "protocol"`, and `PUT /settings` refuses a change with `BLINDING_SET_BY_PROTOCOL`. Without a block, today's behaviour is unchanged.
+  - UI (spec 09 amendment first): Prepare shows the value read-only, with "set by your protocol".
+- [ ] **M7. The screen's offer follows the policy.** With `not_reported: exclude`, `decisiveFor` treats an inclusion answered "not reported" as failing, so Exclude is ready with `FAILS-INC-n`. Spec 03 amendment first.
+  - vitest for both policies.
+- [ ] **M8. New workspaces get the block.** The inception genesis writes `protocol.json` with the block filled with today's values.
+  - Test: a new workspace's protocol carries the block, and the methods paragraph reports its source as the protocol.
+- [ ] **M9. The methods paragraph reports the values in force.** It gives the dedup tiers, the rule table and the not-reported policy, and says whether they come from the protocol or from the defaults.
+  - Tests: one paragraph with the block and one without; the wording is from the spec 10 amendment.
+- [ ] **M10. Contract gate.** Run `generate_contract_baseline.py --check`. If it moves, this decision is the architecture decision, and the schemas and golden fixtures are regenerated with the reason recorded here. It is never regenerated to bless unexplained drift.
+- [ ] **Gate:** `/gate checkpoint` per item, then RELEASE closure on the final executable commit.
+- [ ] **Review:** the milestone-reviewer returns APPROVE.
+
+## Findings fixed
+| ID | Reproducing test | Fails before | Passes after |
+| :-- | :-- | :-- | :-- |
+
+## Decisions
+- [2026-11-08, Method parameters move into the protocol](../../decisions.md) (researcher, accepted 2026-11-08).
+
+## Evidence
+| Stage | Commit | Command | Result | Duration |
+| :-- | :-- | :-- | :-- | :-- |
+
+## Deferred
+- Batch size in the block (not chosen).
+- An adopt command for existing workspaces (not chosen). Re-inception or a new workspace adopts the block.
+- Step 11, the guideline switch (`prisma-2020`, `prisma-scr`, `none`). It is the next milestone, and it will add its key to this block.
