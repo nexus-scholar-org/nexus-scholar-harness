@@ -1,5 +1,5 @@
 # M6-hardening: the quiet hardening pass
-Branch: `dev/m6h/hardening` · Lane: **STANDARD** (no contract, publication-semantics or UI change; `test_gate_policy.md` §lanes) · Status: IN PROGRESS · Started: 2026-11-08
+Branch: `dev/m6h/hardening` · Lane: **RELEASE** (declared STANDARD, raised at review 2026-11-08: removing four `/api/v1` routes and changing the `/healthz` body is a public API change, `test_gate_policy.md` §lanes; no contract, stored-byte or UI change) · Status: READY FOR PR · Started: 2026-11-08
 
 Why: this is step 9 of the researcher's beta plan of 2026-11-07, "a hardening pass while testers work, small and quiet". No UI change, so testers never see a moving target. The items are the T-P2 findings that the [full review](../../assessment/full-review-2026-11-06.md) deferred from M6-beta. On 2026-11-08 the researcher added H6: the RIS reader fix, which a tester would hit with any export not from IEEE. This branch also carries the two M6-beta closing commits (the timed walk and the tester round, both waived). The researcher chose to fold them in here instead of opening a separate PR.
 
@@ -10,8 +10,8 @@ Why: this is step 9 of the researcher's beta plan of 2026-11-07, "a hardening pa
 - [x] **H4. Dead code removed.** The researcher decided on 2026-11-08 to remove four of the six routes and keep two. Removed: `/ui/project-summary`, `/ui/batch/{n}/rows`, `/ui/batch/{n}/criterion-refs` and `/ui/audit-feed`, which were UI-07 leftovers with no caller. Also removed: their helpers, the ten unused client functions in `lib/screening-api.ts`, and the six types only those routes used. Kept: `/ui/lineage`, the parked lineage feature with 17 tests (parked, not dead), and `/ui/corpus/{kind}`, which a future Corpus view may use. Tests that covered only the removed routes are deleted. Mixed tests now exercise the remaining routes instead: `test_screening_read_api.py`, `test_screening_api_v1.py` and `test_screening_actions.py`. Done 2026-11-08: `tsc` is clean, vitest passes 267/267, and the three console files pass 102. The contract doc row is updated, and `generate_contract_baseline.py --check` reports the baseline current.
 - [x] **H5. Machine-local `.claude/` files are ignored:** `.claude/launch.json`, `.claude/settings.local.json` and `.claude/worktrees/`. The tracked agents and skills are left alone (the researcher chose this, 2026-11-08). Check: `git status --short` no longer lists `.claude/launch.json`, and `select_test_gate.py --changed main --stage inner` stops falling back to the full suite because of it. Done 2026-11-08: `.claude/launch.json` no longer appears in `git status` or in the selector's paths; the 7 tracked `.claude/` files stay tracked. The selector still falls back to the full suite on this machine, but now because of the untracked `workspaces/test/` folder (another session's, left alone), not `.claude/`.
 - [x] **H6. The RIS reader handles more exporters.** Done 2026-11-08 in `scholar_search/importers.py`. It reads authors from `A1` as well as `AU`; `A2`–`A4` are editors and series authors, so they are not read as authors. Wrapped values, meaning lines without a tag, are joined to the value they continue with one space, so long titles and abstracts arrive whole. It accepts tags with an empty value and `ER  -` with or without a trailing space. A record that has authors but no other tag is no longer dropped. Tests in `tests/kits/search/test_importers_exporters.py`: `test_ris_importer_reads_a1_authors_and_wrapped_values` (WoS style), `test_ris_importer_reads_lens_style_records`, `test_ris_importer_keeps_au_and_a1_together_in_order`, `test_ris_importer_reads_a_crlf_export`. All four failed first: no authors, title cut at the wrap, `['First']`, and `0 == 2`.
-- [ ] **Gate:** `/gate checkpoint` per item, `/gate pr` once on the final executable commit, `generate_contract_baseline.py --check`, `git diff --check`.
-- [ ] **Review:** the milestone-reviewer returns APPROVE.
+- [x] **Gate:** `/gate checkpoint` per item, `/gate pr` once on the final executable commit, `generate_contract_baseline.py --check`, `git diff --check`. RELEASE closure recorded under Evidence.
+- [x] **Review:** the milestone-reviewer returns APPROVE (CHANGES at `ed98e50`, findings fixed in `66db538`; re-review recorded under Evidence).
 
 ## Findings fixed
 | ID | Reproducing test | Fails before | Passes after |
@@ -19,6 +19,7 @@ Why: this is step 9 of the researcher's beta plan of 2026-11-07, "a hardening pa
 | review T-P2 non-atomic settings / operator context | `tests/console/test_hardening_writes.py` (2) | yes: DID NOT RAISE (written in place) | yes |
 | review T-P2 non-atomic batch approval | `tests/authority/test_hardening_approval_writes.py` | yes: DID NOT RAISE | yes |
 | review T-P2 `os.replace` unretried on Windows | `tests/unit/test_atomic_write.py` (5) | yes: no helper (ImportError) | yes |
+| review 2 (lost `/ui/batches` COMPLETE coverage) | `test_screening_read_api.py::test_ui_batches_report_a_complete_batch` | n/a: restores the deleted assertions | yes |
 | review T-P2 `/healthz` path before auth | `tests/console/test_console_serve.py::test_healthz_reveals_no_workspace_path` | yes: the body carried `workspace` | yes |
 | H6 RIS `A1` / wrapped values / CRLF fixture (review missing test) | 4 tests in `tests/kits/search/test_importers_exporters.py` | yes: 4 failures | yes |
 
@@ -28,8 +29,19 @@ None needed. H2 retries only `PermissionError`, and only on Windows. H6 changes 
 ## Evidence
 | Stage | Commit | Command | Result | Duration |
 | :-- | :-- | :-- | :-- | :-- |
+| inner | per item | targeted pytest per item (atomic, console writes, approval, serve, importers, read API) | each red before the fix, green after | seconds |
+| pr | `ed98e50` | `pytest -q -n auto` | 4416 passed, 15 skipped, 0 failed (the first run on `954dd9f` failed one stale `/healthz` expectation in `test_ui_launcher.py`, fixed in `ed98e50`) | 4 m 30 s |
+| pr | `ed98e50` | Playwright | 170 passed, 3 failed: hygiene `COLLATERAL_EMITTED` ×2, because the `filter` utility was no longer emitted once the getCorpusPage comment was removed (fixed in `66db538`); and the triage ten-records keyboard test ×1 | 3 m 42 s |
+| review | `ed98e50` | milestone-reviewer | CHANGES: P2 lane, P2 lost COMPLETE coverage, P3 stale header, P3 temp cleanup, P3 evidence; all fixed in `66db538` | |
+| closure (RELEASE) | `66db538` | contract baseline, schemas and two-study fixture `--check`; `ruff check scripts/`; ruff on the `src/` bug classes; `git diff --check` | all pass | |
+| closure (RELEASE) | `66db538` | `pytest -q -n auto` | **4417 passed, 15 skipped, 0 failed** | 4 m 35 s |
+| closure (RELEASE) | `66db538` | `uv build --wheel` | `nexus_scholar-1.1.0b2-py3-none-any.whl` | |
+| closure (RELEASE) | `66db538` | typecheck, vitest, `next build`, Playwright (light and dark) | tsc clean; vitest **267/267**; build clean; Playwright **173 passed, 13 skipped, 0 failed** | 3 m 41 s |
 
 ## Deferred
+- **A flaky triage keyboard test.** `tests-browser/triage-desktop.spec.ts` "ten records decided by keyboard" failed 1 of 2 runs in the full gate and 2 of 3 runs on a `--repeat-each=3`; each time a record's decision never arrived within 10 s, at a different record each time. It passed in the closure run. This branch does not touch the triage code: `triage-page.tsx` imports only `isScreeningApiError` from the edited client file. Comparing against `main` in a worktree was attempted, but Turbopack refused the linked `node_modules`. It is likely a keypress landing before the next record's handlers are ready, a race the M6-beta part-2 fix narrowed. Follow-up: make the test wait for the checklist to be interactive, and look for the race in the app.
+- **Release notes for the next version** must say that `/api/v1/ui/project-summary`, `/api/v1/screening/ui/batch/{n}/rows`, `/criterion-refs` and `/api/v1/screening/ui/audit-feed` are removed, and that `/healthz` no longer returns `workspace`.
+- **RIS follow-ups** (review, P3): a wrapped author line is dropped, a repeated `AB` or `KW` keeps only the last value, and the `console-proxy.test.ts` fixture path still names `project-summary`.
 - The other T-P2 items from M6-beta's Deferred list: argument injection beyond `--`, coverage, and the gate-selection gap for `corpus_accept.py`. None was asked for in plan step 9.
 - No version bump in this milestone. The version stays `1.1.0b2`, and the RIS fix reaches PyPI only with the next bump; the researcher decided this on 2026-11-08. A PyPI version can never be reused, so the next release must first bump to `1.1.0b3`.
 - `select_test_gate.py --changed main` falls back to the full suite on the researcher's machine because the untracked `workspaces/test/` folder belongs to another session and was left alone. It is not a `.claude/` problem any more (H5).
