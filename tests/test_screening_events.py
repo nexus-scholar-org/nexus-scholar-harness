@@ -34,13 +34,15 @@ def ws(tmp_path) -> Path:
     return _build(tmp_path)
 
 
-def _build(tmp_path: Path, *, batch_size: int = 20) -> Path:
+def _build(tmp_path: Path, *, batch_size: int = 20, method: dict | None = None) -> Path:
     workspace = tmp_path / "ws"
     workspace.mkdir()
     (workspace / "project.json").write_text(
         json.dumps({"project_id": "events", "registered_workspace_id": WS_ID}), encoding="utf-8"
     )
     protocol = json.loads(PROTOCOL.read_text(encoding="utf-8"))
+    if method is not None:  # M7-method: screened under a protocol with a method block
+        protocol["method"] = method
     (workspace / "protocol.json").write_text(json.dumps(protocol), encoding="utf-8")
     fingerprint = canonical_fingerprint(ResearchProtocol.model_validate(protocol))
     docs = [
