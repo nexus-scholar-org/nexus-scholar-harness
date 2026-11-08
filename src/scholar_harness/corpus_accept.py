@@ -68,6 +68,10 @@ class AcceptCorpusResult:
     study_count: int
     record_count: int
     already_accepted: bool
+    # The builder's OperationOutcome status (SUCCESS, or PARTIAL when provider
+    # warnings were passed) and those warnings (M3a review finding 5).
+    outcome_status: str = "SUCCESS"
+    warnings: tuple[str, ...] = ()
 
 
 def _workspace_id(ws: Path) -> str:
@@ -517,6 +521,7 @@ def accept_corpus(
     *,
     ris: list[Path | tuple[str | None, Path]] | None = None,
     now: datetime | None = None,
+    provider_warnings: list[str] | None = None,
 ) -> AcceptCorpusResult:
     """Build and accept the corpus snapshot for ``workspace``.
 
@@ -569,6 +574,7 @@ def accept_corpus(
         protocol_fingerprint=fingerprint,
         created_at=now or datetime.now(UTC),
         deduplicator=deduplicator,
+        provider_warnings=provider_warnings,
     )
     artifact = built.artifact
     registry = ws / "audit" / "artifact_registry.json"
@@ -580,6 +586,8 @@ def accept_corpus(
                 len(artifact["data"]["studies"]),
                 len(documents),
                 already_accepted=True,
+                outcome_status=str(built.outcome.get("status", "SUCCESS")),
+                warnings=tuple(built.outcome.get("warnings", ())),
             )
 
     result = accept_artifact(
@@ -600,4 +608,6 @@ def accept_corpus(
         len(artifact["data"]["studies"]),
         len(documents),
         already_accepted=False,
+        outcome_status=str(built.outcome.get("status", "SUCCESS")),
+        warnings=tuple(built.outcome.get("warnings", ())),
     )

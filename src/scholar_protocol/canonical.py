@@ -86,6 +86,9 @@ def _ordered_model_dict(protocol: ResearchProtocol) -> dict[str, Any]:
         # written before the key existed keeps its fingerprint.
         if raw["method"].get("reporting") is None:
             raw["method"].pop("reporting", None)
+        # M3a-discovery: likewise an absent retrieval cap.
+        if raw["method"].get("retrieval_cap") is None:
+            raw["method"].pop("retrieval_cap", None)
         dedup = raw["method"].get("dedup")
         if isinstance(dedup, dict) and "title_similarity" in dedup:
             dedup["title_similarity"] = float(dedup["title_similarity"])

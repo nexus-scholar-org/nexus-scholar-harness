@@ -19,7 +19,8 @@ def test_a_new_workspace_protocol_carries_the_default_block(tmp_path):
     protocol = json.loads((tmp_path / "new" / "protocol.json").read_text(encoding="utf-8"))
     derived = PLAYBOOK_REPORTING[protocol["playbook_type"]]
     # M7b-guideline G3: the derived guideline is written into the signed protocol.
-    assert protocol["method"] == {**MethodConfig().model_dump(mode="json"), "reporting": derived}
+    # M3a-discovery: no retrieval cap is written (absent means no cap).
+    assert protocol["method"] == {**MethodConfig().model_dump(mode="json", exclude={"retrieval_cap"}), "reporting": derived}
     method = effective_method(tmp_path / "new")
     assert method.source == "protocol"
     assert (method.reporting, method.reporting_source) == (derived, "protocol")

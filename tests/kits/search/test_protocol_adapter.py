@@ -44,7 +44,7 @@ def test_compile_protocol_search_minimal_dict():
     assert " AND " in query.text
     assert query.year_min == 2021
     assert query.year_max == 2025
-    assert query.max_results == 300
+    assert query.max_results is None  # SRCH-31: the pool size is advisory
     assert providers == ["openalex", "arxiv"]
 
 
@@ -91,3 +91,39 @@ def test_cli_search_with_protocol_option(tmp_path: Path):
     result = runner.invoke(app, ["search", "--protocol", str(file_path), "--provider", "nonexistent"])
     assert result.exit_code != 0
     assert "Unknown provider" in result.output
+
+
+# M3a-discovery SRCH-31: target_candidate_pool_size is advisory, never a cap.
+def test_target_pool_max_is_not_the_retrieval_cap():
+    protocol = {
+        "protocol_id": "p1",
+        "search_strategy": {
+            "core_concepts": [{"concept": "weed", "synonyms": []}],
+            "target_candidate_pool_size": {"min": 50, "max": 300},
+        },
+    }
+    query, _ = compile_protocol_search(protocol)
+    assert query.max_results is None
+
+
+def test_no_hidden_default_cap_of_100():
+    protocol = {"protocol_id": "p1", "search_strategy": {"core_concepts": [{"concept": "weed", "synonyms": []}]}}
+    query, _ = compile_protocol_search(protocol)
+    assert query.max_results is None
+
+
+def test_method_retrieval_cap_is_the_cap_and_names_the_protocol():
+    protocol = {
+        "protocol_id": "p1",
+        "search_strategy": {"core_concepts": [{"concept": "weed", "synonyms": []}]},
+        "method": {"retrieval_cap": 250},
+    }
+    query, _ = compile_protocol_search(protocol)
+    assert query.max_results == 250
+    assert query.cap_source == "protocol"
+
+
+def test_protocol_default_databases_exclude_biorxiv():
+    protocol = {"protocol_id": "p1", "search_strategy": {"core_concepts": [{"concept": "weed", "synonyms": []}]}}
+    _, providers = compile_protocol_search(protocol)
+    assert "biorxiv" not in providers

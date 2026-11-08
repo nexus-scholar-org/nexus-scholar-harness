@@ -40,6 +40,7 @@ from scholar_harness.verification_identity import (
     AUDIT_ACTION as _VERIFICATION_AUDIT_ACTION,
     QUARANTINE_FILENAME as _VERIFICATION_QUARANTINE_FILENAME,
     VERIFICATION_IDENTITY_AMBIGUOUS_DOI,
+    VERIFICATION_IDENTITY_BRIDGE_CONFLICT,
     VERIFICATION_IDENTITY_BRIDGE_MISS,
     VERIFICATION_IDENTITY_MISSING_DOI,
     build_doi_bridge,
@@ -104,6 +105,11 @@ async def run_verification(
     refused_entries: list[dict[str, Any]] = []
     preserved_n = 0
     bridge_restored_n = 0
+    # CORE-10: ids held by rows that kept theirs; a bridge may not reuse one.
+    # Collected first so the outcome does not depend on row order.
+    claimed: set[str] = {
+        vd.workspace_id for vd in verified_docs if getattr(vd, "workspace_id", None)
+    }
     for _pos, vd in enumerate(verified_docs):
         _external_ids = getattr(vd, "external_ids", None)
         _doi = (
@@ -114,7 +120,29 @@ async def run_verification(
             identified_docs.append(vd)
             continue
         if _doi and _doi in wsid_by_doi and _doi not in ambiguous_dois:
-            vd.workspace_id = wsid_by_doi[_doi]
+            _target = wsid_by_doi[_doi]
+            _source = documents[_pos] if _pos < len(documents) else None
+            _source_id = getattr(_source, "workspace_id", None)
+            if _target in claimed or (_source_id and _source_id != _target):
+                refused_entries.append(
+                    {
+                        "position": _pos,
+                        "code": VERIFICATION_IDENTITY_BRIDGE_CONFLICT,
+                        "reason": (
+                            f"DOI {_doi!r} bridges to {_target}, which "
+                            + (
+                                "another row of this batch already holds"
+                                if _target in claimed
+                                else f"is not this row's input id {_source_id}"
+                            )
+                            + "; restoring it would merge two studies"
+                        ),
+                        "doc": vd,
+                    }
+                )
+                continue
+            vd.workspace_id = _target
+            claimed.add(_target)
             bridge_restored_n += 1
             identified_docs.append(vd)
             continue

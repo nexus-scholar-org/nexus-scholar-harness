@@ -322,6 +322,20 @@
           "title": "Blinding",
           "type": "string"
         },
+        "retrieval_cap": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Most records fetched from one database for one query (M3a-discovery). Absent means no protocol cap: each database is paged to its reported total; absent is left out of the fingerprint.",
+          "title": "Retrieval Cap"
+        },
         "reporting": {
           "anyOf": [
             {

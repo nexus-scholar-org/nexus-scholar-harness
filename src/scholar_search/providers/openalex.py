@@ -149,7 +149,7 @@ class OpenAlexProvider(BaseAPIProvider):
 
     def _build_params(self, query: Query) -> dict[str, Any]:
         params: dict[str, Any] = {
-            "mailto": settings.mailto,
+            **({"mailto": settings.mailto} if settings.mailto else {}),
         }
         if query.semantic:
             # Semantic mode (M0.6): OpenAlex rejects cursor pagination for
@@ -205,12 +205,24 @@ class OpenAlexProvider(BaseAPIProvider):
     async def search(self, query: Query) -> AsyncIterator[Document]:
         """Search OpenAlex works."""
         params = self._build_params(query)
+        executed = (
+            params.get("search.semantic")
+            or params.get("search")
+            or next(
+                (f[len("title_and_abstract.search:"):] for f in str(params.get("filter", "")).split(",")
+                 if f.startswith("title_and_abstract.search:")),
+                "",
+            )
+        )
+        self._record_executed(executed, params)
 
         count = 0
         page = 1
         while True:
             resp = await self.client.get(self.base_url, params=params)
+            self._record_page()
             response = resp.json()
+            self._record_total(response.get("meta", {}).get("count"))
 
             for item in response.get("results", []):
                 # Manual year filtering (if filter logic gets too complex for query params)

@@ -256,7 +256,8 @@ def test_all_documents_reach_deduplicator_not_subset(tmp_path, monkeypatch):
     assert len(seen) == 1
     # The stage passed ALL discovered docs, never a subset/slice.
     assert len(seen[0]) == 3
-    assert seen[0] == docs
+    # M3a CORE-06: every document, in content order (not arrival order).
+    assert sorted(map(id, seen[0])) == sorted(map(id, docs))
     assert outcome.unique == 2
 
 

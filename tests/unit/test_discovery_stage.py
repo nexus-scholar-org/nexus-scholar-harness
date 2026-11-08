@@ -512,7 +512,8 @@ def test_stage_writes_no_registry_state(tmp_path, monkeypatch):
     assert not (ws / "literature" / "audit").exists()
     assert list(ws.rglob("journal.jsonl")) == []
     written = sorted(p.name for p in (ws / "lit").iterdir())
-    assert written == ["all_raw_search.json", "raw_search.json"]
+    # M3a-discovery CORE-21: plus the run-numbered record of this run.
+    assert written == ["all_raw_search.json", "raw_search.json", "search_runs"]
 
 
 def test_nested_workspace_never_writes_into_an_unrelated_parents_ledger(
@@ -576,7 +577,10 @@ def test_failed_harvest_publishes_no_authoritative_corpus_artifact(
     )
     assert event["status"] == "FAILED"
     assert event["metrics"]["corpus_published"] is False
-    assert event["outputs"] == []
+    # M3a-discovery CORE-21/D9: the only outputs are the run's legs record and its report (what
+    # was sent and why it failed); no raw corpus file is published.
+    assert [Path(o).name for o in event["outputs"]] == ["legs.json", "search_report.md"]
+    assert not (lit / "search_runs" / "run_001" / "raw.json").exists()
 
 
 def test_stage_1_region_has_no_direct_kit_use():

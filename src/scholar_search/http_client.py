@@ -71,16 +71,19 @@ class AcademicHttpClient:
         cache_path = settings.cache_dir / "scholar_cache"
 
         transport = httpx.AsyncHTTPTransport(retries=4)
+        user_agent = "scholar-search-kit/0.1.0"
+        if settings.mailto:
+            user_agent += f" (mailto:{settings.mailto})"
 
-        if cache_enabled:
+        if cache_enabled and settings.http_cache:
             self.client = hishel.AsyncCacheClient(
                 transport=transport,
-                headers={"User-Agent": f"scholar-search-kit/0.1.0 (mailto:{settings.mailto})"},
+                headers={"User-Agent": user_agent},
             )
         else:
             self.client = httpx.AsyncClient(
                 transport=transport,
-                headers={"User-Agent": f"scholar-search-kit/0.1.0 (mailto:{settings.mailto})"},
+                headers={"User-Agent": user_agent},
             )
 
     async def get(
@@ -91,22 +94,40 @@ class AcademicHttpClient:
         headers: dict[str, str] | None = None,
         **kwargs,
     ) -> httpx.Response:
-        """Execute a GET request with rate limiting, timeouts, error wrapping, and caching."""
-        await self.rate_limiter.wait()
+        """Execute a GET request with rate limiting, timeouts, error wrapping, and caching.
 
+        HTTP 429 and 5xx answers are retried up to ``max_retries`` times with
+        backoff (honouring ``Retry-After``), because a paginated leg makes many
+        requests and one throttled page must not end it (M3a-discovery).
+        """
         req_timeout = timeout if timeout is not None else self.DEFAULT_TIMEOUT
 
-        logger.debug(f"[{self.name}] GET {url}")
-        try:
-            response = await self.client.get(
-                url, params=params, timeout=req_timeout, headers=headers, **kwargs
+        for attempt in range(self.max_retries + 1):
+            await self.rate_limiter.wait()
+            logger.debug(f"[{self.name}] GET {url}")
+            try:
+                response = await self.client.get(
+                    url, params=params, timeout=req_timeout, headers=headers, **kwargs
+                )
+            except httpx.TimeoutException as e:
+                raise ProviderError(
+                    self.name, f"Request timed out after {req_timeout}s: {e}"
+                ) from e
+            except httpx.RequestError as e:
+                raise ProviderError(self.name, f"Network communication error: {e}") from e
+
+            retryable = response.status_code == 429 or response.status_code >= 500
+            if not retryable or attempt >= self.max_retries:
+                break
+            retry_after = response.headers.get("retry-after")
+            try:
+                delay = float(retry_after) if retry_after else self.base_delay * (2**attempt)
+            except ValueError:
+                delay = self.base_delay * (2**attempt)
+            logger.warning(
+                f"[{self.name}] HTTP {response.status_code} on attempt {attempt + 1}, retry after {delay}s"
             )
-        except httpx.TimeoutException as e:
-            raise ProviderError(
-                self.name, f"Request timed out after {req_timeout}s: {e}"
-            ) from e
-        except httpx.RequestError as e:
-            raise ProviderError(self.name, f"Network communication error: {e}") from e
+            await asyncio.sleep(min(delay, 60.0))
 
         # Check for cache hit in hishel
         if getattr(response.extensions, "from_cache", False):

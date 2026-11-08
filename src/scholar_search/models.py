@@ -153,6 +153,67 @@ class Query:
     language: str = "en"
     max_results: int | None = None
     semantic: bool = False
+    # Where ``max_results`` came from, reported on each search leg: "protocol"
+    # (method.retrieval_cap), "run_override" (an explicit run option) or "query"
+    # (a caller-set value). With no max_results the engine ceiling applies.
+    cap_source: str = "query"
+
+
+@dataclass
+class SearchLeg:
+    """One provider's part of one search run (SRCH-30, CORE-21).
+
+    Records what was actually sent and what came back, so the run can be
+    reported per database (PRISMA-S): the executed query string, the total the
+    provider reported, how many records were fetched, the cap that applied and
+    whether it stopped the leg, and when. Never holds the contact address or
+    an API key.
+    """
+
+    provider: str
+    query_id: str
+    executed_query: str | None = None
+    request: dict[str, Any] = field(default_factory=dict)
+    reported_total: int | None = None
+    fetched: int = 0
+    pages: int = 0
+    cap: int | None = None
+    cap_source: str | None = None
+    cap_hit: bool = False
+    status: str = "pending"
+    error: str | None = None
+    notes: list[str] = field(default_factory=list)
+    mailto_set: bool = False
+    started_at: str | None = None
+    finished_at: str | None = None
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "provider": self.provider,
+            "query_id": self.query_id,
+            "executed_query": self.executed_query,
+            "request": dict(self.request),
+            "reported_total": self.reported_total,
+            "fetched": self.fetched,
+            "pages": self.pages,
+            "cap": self.cap,
+            "cap_source": self.cap_source,
+            "cap_hit": self.cap_hit,
+            "status": self.status,
+            "error": self.error,
+            "notes": list(self.notes),
+            "mailto_set": self.mailto_set,
+            "started_at": self.started_at,
+            "finished_at": self.finished_at,
+        }
+
+
+@dataclass
+class SearchRun:
+    """The result of ``SearchEngine.run``: the documents and one leg per provider."""
+
+    documents: list[Document]
+    legs: list[SearchLeg]
 
 
 @dataclass

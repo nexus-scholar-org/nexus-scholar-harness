@@ -1,5 +1,6 @@
 """arXiv provider implementation."""
 
+import re
 import xml.etree.ElementTree as ET
 from collections.abc import AsyncIterator
 
@@ -11,6 +12,8 @@ from .base import BaseAPIProvider
 class ArxivProvider(BaseAPIProvider):
     """Searches arXiv API (http://export.arxiv.org/api/query)."""
 
+    PAGE_SIZE = 1000  # arXiv recommends at most 2000 per call; 1000 keeps responses small
+
     def __init__(
         self,
         *,
@@ -20,7 +23,10 @@ class ArxivProvider(BaseAPIProvider):
         # arXiv allows 1 req/sec without API key
         super().__init__(name="arxiv", rate_limit=1.0)
         self.base_url = "https://export.arxiv.org/api/query"
-        self.ns = {"atom": "http://www.w3.org/2005/Atom"}
+        self.ns = {
+            "atom": "http://www.w3.org/2005/Atom",
+            "opensearch": "http://a9.com/-/spec/opensearch/1.1/",
+        }
 
         # arXiv supports AND, OR, ANDNOT. Prefixes: all, ti, au, abs
         self.translator = BooleanQueryTranslator(
@@ -138,6 +144,11 @@ class ArxivProvider(BaseAPIProvider):
     async def search(self, query: Query) -> AsyncIterator[Document]:
         """Search arXiv."""
         translated_query = self.translator.translate(query)
+        # arXiv's negation is the single operator ANDNOT; "a AND NOT b"
+        # translates to "a AND ANDNOT b", which arXiv cannot parse. Only that
+        # form is collapsed: "a OR NOT b" has no ANDNOT equivalent and is sent
+        # as written rather than changed in meaning.
+        translated_query = re.sub(r"\bAND\s+ANDNOT\b", "ANDNOT", translated_query)
 
         # If translator didn't apply any field, fallback to all:
         if ":" not in translated_query:
@@ -153,9 +164,19 @@ class ArxivProvider(BaseAPIProvider):
         # was an inert no-op (arXiv ran the full multi-phrase query). Domain
         # stoplists/stem families arrive ONLY via constructor config from the
         # research layer; the kit default carries neither.
-        if len(translated_query) > 300 and " AND " in query.text:
+        has_not = bool(re.search(r"\bNOT\b", query.text))
+        if len(translated_query) > 300 and " AND " in query.text and has_not:
+            # Compaction reads clauses as bags of tokens, so a NOT term would
+            # become a required one (SRCH-12). Send the full query instead.
+            self._record_note(
+                "arXiv query not compacted: it contains NOT, which compaction cannot keep; "
+                "the full translation was sent"
+            )
+        elif len(translated_query) > 300 and " AND " in query.text:
             import re as _re
 
+            original_translation = translated_query
+            dropped_phrases: list[str] = []
             compact_clauses = []
             for clause in query.text.split(" AND "):
                 phrases = _re.findall(r'"([^"]*)"', clause)
@@ -165,6 +186,8 @@ class ArxivProvider(BaseAPIProvider):
                     p_toks = _re.findall(r"[a-zA-Z0-9_-]{2,}", p)
                     if len(p_toks) == 1:
                         tokens.append(p_toks[0])
+                    elif p not in dropped_phrases:
+                        dropped_phrases.append(p)
                 tokens.extend(_re.findall(r"[a-zA-Z0-9_-]{3,}", bare))
                 seen = set()
                 deduped = []
@@ -192,36 +215,68 @@ class ArxivProvider(BaseAPIProvider):
                     )
             if compact_clauses:
                 translated_query = " AND ".join(compact_clauses)
+                # Never silent (SRCH-12): the leg says the query was rewritten
+                # and what the rewrite dropped.
+                note = (
+                    f"arXiv query compacted from {len(original_translation)} characters to "
+                    f"{len(translated_query)}: multi-word phrases dropped, at most 6 single "
+                    "tokens kept per clause"
+                )
+                if dropped_phrases:
+                    note += "; dropped phrases: " + ", ".join(f'"{p}"' for p in dropped_phrases)
+                self._record_note(note)
 
+        limit = query.max_results
         params = {
             "search_query": translated_query,
             "start": 0,
-            "max_results": min(query.max_results or 100, 1000),
+            "max_results": min(limit or self.PAGE_SIZE, self.PAGE_SIZE),
         }
+        self._record_executed(translated_query, params)
+        if query.year_min or query.year_max:
+            self._record_note(
+                "arXiv has no year filter in its API; years were filtered after retrieval, "
+                "so fetched can be below the reported total"
+            )
 
         # arXiv doesn't support direct year filtering in the query string well,
-        # so we fetch and filter locally.
-
-        response = await self.client.get(self.base_url, params=params)
-
-        # Parse XML
-        if not response.text.strip():
-            return
-
-        root = ET.fromstring(response.content)
+        # so we fetch and filter locally. Page with ``start`` (SRCH-11).
         count = 0
+        while True:
+            response = await self.client.get(self.base_url, params=params)
+            self._record_page()
 
-        for entry in root.findall("atom:entry", self.ns):
-            doc = self._parse_xml_entry(entry, query.id)
-
-            if query.year_min and (doc.year or 0) < query.year_min:
-                continue
-            if query.year_max and (doc.year or 9999) > query.year_max:
-                continue
-
-            yield doc
-            count += 1
-            if query.max_results and count >= query.max_results:
+            # Parse XML
+            if not response.text.strip():
                 return
+
+            root = ET.fromstring(response.content)
+            total_elem = root.find("opensearch:totalResults", self.ns)
+            total = None
+            if total_elem is not None and total_elem.text:
+                try:
+                    total = int(total_elem.text.strip())
+                except ValueError:
+                    total = None
+            self._record_total(total)
+
+            entries = root.findall("atom:entry", self.ns)
+            for entry in entries:
+                doc = self._parse_xml_entry(entry, query.id)
+
+                if query.year_min and (doc.year or 0) < query.year_min:
+                    continue
+                if query.year_max and (doc.year or 9999) > query.year_max:
+                    continue
+
+                yield doc
+                count += 1
+                if limit and count >= limit:
+                    return
+
+            next_start = int(params["start"]) + len(entries)
+            if not entries or total is None or next_start >= total:
+                return
+            params["start"] = next_start
 
     # arXiv has no native snowballing API
