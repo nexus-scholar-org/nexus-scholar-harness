@@ -75,6 +75,7 @@ from scholar_harness.screening.worker import (
     WorkerRefused,
     recommendation_path,
 )
+from scholar_harness.workspace.atomic import atomic_write_text
 from scholar_harness.verification_identity import (
     VERIFICATION_IDENTITY_BRIDGE_MISS,
     VERIFICATION_IDENTITY_MISSING_DOI,
@@ -921,12 +922,12 @@ def approve_command(
         "message": message,
         "reviewed_at": moment,
     }
+    # M6-hardening H1: both files are replaced whole, never torn by a crash.
     review_out = review_path(ws, batch_index)
-    review_out.write_text(
-        json.dumps(review_record, indent=2, sort_keys=True), encoding="utf-8"
-    )
+    atomic_write_text(review_out, json.dumps(review_record, indent=2, sort_keys=True))
     approval_out = batch_approval_path(ws, batch_index)
-    approval_out.write_text(
+    atomic_write_text(
+        approval_out,
         json.dumps(
             {
                 "schema": BATCH_APPROVAL_SCHEMA,
@@ -937,7 +938,6 @@ def approve_command(
             indent=2,
             sort_keys=True,
         ),
-        encoding="utf-8",
     )
 
     # CON-03: the corpus-wide publication approval is staged only when every

@@ -25,7 +25,6 @@ built-in gallery templates.
 from __future__ import annotations
 
 import json
-import os
 import uuid
 from pathlib import Path
 from typing import Any
@@ -45,6 +44,7 @@ from ...pipeline import (
     _toposort,
     validate_spec,
 )
+from ...workspace.atomic import replace_with_retry
 from .audit import log_event
 
 # Re-exported neutral-core names (HCM-03): importing them from this module
@@ -411,7 +411,7 @@ def _write_spec(ws: Path, spec: PipelineSpec) -> PipelineSpec:
     path = _store(ws) / f"{spec.id}.json"
     tmp = path.with_name(path.name + f".tmp-{uuid.uuid4().hex[:8]}")
     tmp.write_text(json.dumps(spec.model_dump(), indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-    os.replace(tmp, path)
+    replace_with_retry(tmp, path)
     return spec
 
 

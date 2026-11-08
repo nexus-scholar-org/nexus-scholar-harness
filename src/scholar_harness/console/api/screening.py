@@ -19,7 +19,6 @@ from __future__ import annotations
 
 import json
 import logging
-import os
 import uuid
 from datetime import UTC, datetime
 from pathlib import Path
@@ -28,6 +27,7 @@ from typing import Any
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel, ConfigDict, field_validator
 
+from ...workspace.atomic import replace_with_retry
 from .audit import log_event
 
 logger = logging.getLogger(__name__)
@@ -104,7 +104,7 @@ def _atomic_write_json(path: Path, payload: Any) -> None:
     tmp.write_text(
         json.dumps(payload, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
     )
-    os.replace(tmp, path)
+    replace_with_retry(tmp, path)
 
 
 @router.post("/batch/{n}/decisions", status_code=200)

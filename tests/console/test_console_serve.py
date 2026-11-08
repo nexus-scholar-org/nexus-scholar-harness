@@ -378,3 +378,12 @@ def test_job_stream_replays_snapshot_then_terminates(stub_app):
     assert asyncio.run(scenario())
 
 
+
+
+def test_healthz_reveals_no_workspace_path(tmp_path):
+    """M6-hardening H3: /healthz answers before authentication, so it must not
+    name the workspace's absolute path (full review 2026-11-06, T-P2)."""
+    ws = _bootstrap(tmp_path)
+    body = TestClient(create_app(ws)).get("/healthz").json()
+    assert body == {"status": "ok"}
+    assert str(ws) not in json.dumps(body) and ws.name not in json.dumps(body)

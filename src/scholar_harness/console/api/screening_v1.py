@@ -26,6 +26,7 @@ from fastapi import APIRouter, HTTPException, Request, Response
 from pydantic import BaseModel, ConfigDict, Field
 
 from ...screening import events as ev
+from ...workspace.atomic import atomic_write_text
 from ...screening import proposals as pr
 from .. import refusals
 
@@ -386,9 +387,7 @@ def put_settings(body: SettingsBody, request: Request) -> dict[str, Any]:
                 "AI-agreed exclusion needs confirm_ai_agreed_exclusion=true and a sample_audit_size",
             )
     new = {**current, **update}
-    path = ws / SETTINGS_FILE
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(new, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    atomic_write_text(ws / SETTINGS_FILE, json.dumps(new, indent=2, sort_keys=True) + "\n")
     append_event(
         ws,
         "SCREENING_SETTINGS_CHANGED",
@@ -473,9 +472,8 @@ def put_approver(body: ApproverBody, request: Request) -> dict[str, Any]:
     if name == before:
         return _approver(ws)
     path = operator_context_path(ws)
-    path.parent.mkdir(parents=True, exist_ok=True)
     payload = {"schema": "harness-operator-context-v1", "operator_identity": name, "set_at": _now(), "basis": APPROVER_BASIS}
-    path.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    atomic_write_text(path, json.dumps(payload, indent=2, sort_keys=True) + "\n")
     append_event(
         ws,
         "SCREENING_APPROVER_SET",
