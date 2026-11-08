@@ -577,9 +577,9 @@ def test_failed_harvest_publishes_no_authoritative_corpus_artifact(
     )
     assert event["status"] == "FAILED"
     assert event["metrics"]["corpus_published"] is False
-    # M3a-discovery CORE-21: the only output is the run's legs record (what
+    # M3a-discovery CORE-21/D9: the only outputs are the run's legs record and its report (what
     # was sent and why it failed); no raw corpus file is published.
-    assert [Path(o).name for o in event["outputs"]] == ["legs.json"]
+    assert [Path(o).name for o in event["outputs"]] == ["legs.json", "search_report.md"]
     assert not (lit / "search_runs" / "run_001" / "raw.json").exists()
 
 

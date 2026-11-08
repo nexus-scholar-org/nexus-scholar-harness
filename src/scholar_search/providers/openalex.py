@@ -149,7 +149,7 @@ class OpenAlexProvider(BaseAPIProvider):
 
     def _build_params(self, query: Query) -> dict[str, Any]:
         params: dict[str, Any] = {
-            "mailto": settings.mailto,
+            **({"mailto": settings.mailto} if settings.mailto else {}),
         }
         if query.semantic:
             # Semantic mode (M0.6): OpenAlex rejects cursor pagination for

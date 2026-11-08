@@ -214,7 +214,7 @@ class ReconEngine:
         params: dict[str, Any] = {
             "search": term,
             "per-page": 1,
-            "mailto": settings.mailto,
+            **({"mailto": settings.mailto} if settings.mailto else {}),
         }
         if settings.openalex_key:
             params["api_key"] = settings.openalex_key

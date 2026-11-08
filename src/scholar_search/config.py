@@ -25,6 +25,13 @@ class Settings(BaseSettings):
     )
 
     # Cache settings
+    http_cache: bool = Field(
+        default=True,
+        description=(
+            "Cache provider responses (SCHOLAR_HTTP_CACHE). Off for recording or "
+            "replaying VCR cassettes, where every request must reach the transport."
+        ),
+    )
     cache_dir: Path = Field(
         default=Path(".cache"), description="Directory to store SQLite cache"
     )

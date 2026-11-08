@@ -169,3 +169,58 @@ def test_dedup_stage_ids_are_input_order_invariant(tmp_path):
     assert (tmp_path / "a" / "literature" / "deduped.json").read_bytes() == (
         tmp_path / "b" / "literature" / "deduped.json"
     ).read_bytes()
+
+
+# ---------------------------------------------------------------------------
+# M3a-discovery D9: the PRISMA-S style search report, per database.
+# ---------------------------------------------------------------------------
+
+
+def test_each_run_writes_a_prisma_s_report_per_database(tmp_path, monkeypatch):
+    monkeypatch.setattr(
+        disc,
+        "SearchEngine",
+        _engine_factory({"openalex": ["A", "B"], "crossref": ["C"]}, {"openalex": 2, "crossref": 40}),
+    )
+    ws, proto = _workspace(tmp_path)
+    asyncio.run(disc.run_discovery(protocol_path=proto, literature_dir=ws / "literature",
+                                   max_search_results=1))
+
+    report = (ws / "literature" / "search_runs" / "run_001" / "search_report.md").read_text(encoding="utf-8")
+    assert "PRISMA-S" in report
+    for name in ("openalex", "crossref"):
+        assert f"crossref::" in report and f"openalex::" in report
+        assert name in report
+    # Per database: executed string, reported total, fetched, cap, cap hit, date.
+    crossref_line = next(line for line in report.splitlines() if line.startswith("| crossref"))
+    assert "40" in crossref_line and "| 1 |" in crossref_line
+    assert "cap reached" in crossref_line
+    assert "run override" in crossref_line
+    assert "mailto" not in report
+    event = [e for e in _events(ws) if e["action"] == "DISCOVERY_SEARCH"][-1]
+    assert any(o.endswith("search_report.md") for o in event["outputs"])
+
+
+def test_the_report_renders_a_failed_leg_and_its_notes():
+    from scholar_harness.pipeline.search_report import render_search_report
+
+    manifest = {
+        "run": "run_007", "status": "PARTIAL", "query_id": "Q1", "query_text": "weed AND drone",
+        "year_min": 2015, "year_max": 2025,
+        "legs": [
+            {"provider": "arxiv", "executed_query": "all:weed AND all:drone", "reported_total": 12,
+             "fetched": 12, "cap": 10000, "cap_source": "engine_ceiling", "cap_hit": False,
+             "status": "ok", "error": None, "notes": ["arXiv query compacted from 400 characters"],
+             "started_at": "2026-11-08T10:00:00+00:00", "finished_at": "2026-11-08T10:00:05+00:00",
+             "request": {}, "pages": 1, "mailto_set": True},
+            {"provider": "pubmed", "executed_query": "weed[ti]", "reported_total": None, "fetched": 0,
+             "cap": 10000, "cap_source": "engine_ceiling", "cap_hit": False, "status": "failed",
+             "error": "ProviderError: HTTP 500", "notes": [], "started_at": "2026-11-08T10:00:00+00:00",
+             "finished_at": "2026-11-08T10:00:01+00:00", "request": {}, "pages": 0, "mailto_set": True},
+        ],
+    }
+    text = render_search_report(manifest)
+    assert "run_007" in text and "2015" in text and "2025" in text
+    assert "arXiv query compacted" in text
+    assert "failed" in text and "HTTP 500" in text
+    assert "not reported" in text  # pubmed total unknown

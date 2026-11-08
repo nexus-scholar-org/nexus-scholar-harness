@@ -522,6 +522,13 @@ def _archive_search_run(
         json.dumps(manifest, indent=2, ensure_ascii=False, default=str), encoding="utf-8"
     )
     files.append(str(run_dir / "legs.json"))
+    # D9: the PRISMA-S style report, rendered from the same manifest.
+    from .search_report import render_search_report
+
+    (run_dir / "search_report.md").write_text(
+        render_search_report(json.loads(json.dumps(manifest, default=str))), encoding="utf-8"
+    )
+    files.append(str(run_dir / "search_report.md"))
     return run_dir.name, files
 
 

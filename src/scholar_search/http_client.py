@@ -75,7 +75,7 @@ class AcademicHttpClient:
         if settings.mailto:
             user_agent += f" (mailto:{settings.mailto})"
 
-        if cache_enabled:
+        if cache_enabled and settings.http_cache:
             self.client = hishel.AsyncCacheClient(
                 transport=transport,
                 headers={"User-Agent": user_agent},
