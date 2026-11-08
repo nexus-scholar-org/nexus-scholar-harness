@@ -31,4 +31,5 @@ None needed. H2 retries only `PermissionError`, and only on Windows. H6 changes 
 
 ## Deferred
 - The other T-P2 items from M6-beta's Deferred list: argument injection beyond `--`, coverage, and the gate-selection gap for `corpus_accept.py`. None was asked for in plan step 9.
-- If H6 lands, release it as `1.1.0b3`. The researcher decides on the tag after the merge.
+- No version bump in this milestone. The version stays `1.1.0b2`, and the RIS fix reaches PyPI only with the next bump; the researcher decided this on 2026-11-08. A PyPI version can never be reused, so the next release must first bump to `1.1.0b3`.
+- `select_test_gate.py --changed main` falls back to the full suite on the researcher's machine because the untracked `workspaces/test/` folder belongs to another session and was left alone. It is not a `.claude/` problem any more (H5).
