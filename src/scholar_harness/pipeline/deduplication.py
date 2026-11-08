@@ -66,7 +66,20 @@ def run_deduplication(
     lit_dir = Path(literature_dir)
     lit_dir.mkdir(parents=True, exist_ok=True)
 
-    deduplicator = Deduplicator()
+    # M7-method: the workspace protocol's dedup tiers (defaults when it sets none),
+    # so a discovery corpus is deduplicated as the methods paragraph reports.
+    from scholar_harness.screening.method import effective_method
+
+    method = effective_method(lit_dir.parent)
+    if method.source == "protocol":
+        tiers = method.config.dedup
+        deduplicator = Deduplicator(
+            title_similarity=tiers.title_similarity,
+            first_author=tiers.first_author,
+            year_tolerance=tiers.year_tolerance,
+        )
+    else:
+        deduplicator = Deduplicator()
     clusters = deduplicator.deduplicate(discovered_documents)
     unique_docs = [c.representative for c in clusters]
     dupes_removed = len(discovered_documents) - len(unique_docs)
