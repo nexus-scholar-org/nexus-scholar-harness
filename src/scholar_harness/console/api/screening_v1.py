@@ -69,7 +69,7 @@ def _workspace_id(ws: Path) -> str:
 
 
 #: Read-only fields the settings report but never store (M7-method).
-DERIVED_SETTINGS = ("blinding_source", "not_reported_policy")
+DERIVED_SETTINGS = ("blinding_source", "not_reported_policy", "reporting", "reporting_source")
 
 
 def _stored_settings(ws: Path) -> dict[str, Any]:
@@ -92,6 +92,9 @@ def load_settings(ws: Path) -> dict[str, Any]:
         settings["blinding"] = method.config.blinding
     settings["blinding_source"] = "protocol" if method.source == "protocol" else "settings"
     settings["not_reported_policy"] = method.config.not_reported
+    # M7b-guideline: the reporting guideline in force, for the screens' labels.
+    settings["reporting"] = method.reporting
+    settings["reporting_source"] = method.reporting_source
     return settings
 
 

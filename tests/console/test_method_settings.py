@@ -81,3 +81,18 @@ def test_the_new_codes_are_console_refusals(code):
     from scholar_harness.console import refusals
 
     assert code in refusals.CONTRACT_ADDED
+
+
+# M7b-guideline G4: the settings report the guideline in force, read-only.
+def test_the_settings_report_the_guideline_and_its_source(tmp_path):
+    client, ws = _client(tmp_path, None)
+    settings = client.get(f"{BASE}/settings").json()
+    assert settings["reporting_source"] == "playbook" and settings["reporting"] in ("prisma-2020", "prisma-scr", "none")
+    (tmp_path / "b").mkdir()
+    client2, ws2 = _client(tmp_path / "b", {**BLOCK, "reporting": "none"})
+    settings2 = client2.get(f"{BASE}/settings").json()
+    assert (settings2["reporting"], settings2["reporting_source"]) == ("none", "protocol")
+    client2.put(f"{BASE}/settings", json={"queue_order": "agent_uncertainty"})
+    stored = json.loads((ws2 / "literature" / "screening" / "settings.json").read_text(encoding="utf-8"))
+    assert "reporting" not in stored and "reporting_source" not in stored
+    assert client2.put(f"{BASE}/settings", json={"reporting": "prisma-scr"}).status_code == 422  # not a setting

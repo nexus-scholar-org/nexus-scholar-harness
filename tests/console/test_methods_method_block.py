@@ -61,7 +61,9 @@ def test_without_a_block_the_paragraph_names_the_defaults(tmp_path):
     # Placement: dedup right after PRISMA; not-reported and source right after the screener.
     assert text.index("were included.") < text.index(DEDUP_DEFAULT)
     assert text.index("One reviewer screened every record.") < text.index(UNCLEAR) < text.index(FROM_DEFAULTS)
-    assert body["figures"]["method"] == {
+    method = dict(body["figures"]["method"])
+    assert method.pop("reporting_source") == "playbook" and method.pop("reporting")  # M7b-guideline
+    assert method == {
         "dedup": {"doi": True, "title_similarity": 0.97, "first_author": True, "year_tolerance": 1},
         "rules_version": "screening-rules-v1",
         "not_reported": "unclear",
@@ -99,3 +101,28 @@ def test_the_dedup_sentence_follows_each_value(tmp_path, over, clause):
     text = _methods(_published(tmp_path, _block(**over)))["paragraph"]
     dedup = next(s for s in text.split(". ") if s.startswith("Duplicates across databases"))
     assert (dedup.rstrip(".") + ".").endswith(clause)
+
+
+# M7b-guideline G5: the guideline sentence follows the source sentence.
+GUIDELINE = {
+    "prisma-2020": "The screening is reported following PRISMA 2020.",
+    "prisma-scr": "The screening is reported following PRISMA-ScR, the PRISMA extension for scoping reviews.",
+}
+
+
+@pytest.mark.parametrize("reporting", ["prisma-2020", "prisma-scr", "none"])
+def test_the_methods_paragraph_names_the_guideline(tmp_path, reporting):
+    body = _methods(_published(tmp_path, _block(reporting=reporting)))
+    text = body["paragraph"]
+    for value, sentence in GUIDELINE.items():
+        assert (sentence in text) == (value == reporting)
+    if reporting != "none":
+        assert text.index(FROM_PROTOCOL) < text.index(GUIDELINE[reporting])
+    assert "reported following" not in text or reporting != "none"
+    assert (body["figures"]["method"]["reporting"], body["figures"]["method"]["reporting_source"]) == (reporting, "protocol")
+
+
+def test_without_a_key_the_guideline_comes_from_the_playbook(tmp_path):
+    body = _methods(_published(tmp_path, None))
+    assert body["figures"]["method"]["reporting_source"] == "playbook"
+    assert body["figures"]["method"]["reporting"] in ("prisma-2020", "prisma-scr", "none")
