@@ -4,6 +4,16 @@ One entry per decision that still shapes the code, newest first. The full
 records were removed in the 2026-11-03 docs cut; each entry names the commit
 history to read if you need the original reasoning (`git log --follow -- <path>`).
 
+## 2026-11-09 — An additive import format is a STANDARD-lane change (accepted; M5c-nbib)
+
+The researcher chose this on 2026-11-09, asked at the review of M5c-nbib (PubMed MEDLINE `.nbib` import beside RIS).
+
+**The question.** `test_gate_policy.md` §lanes lists public API and CLI semantics as RELEASE, and M5b (the RIS import, the same surface) was RELEASE. M5c-nbib widens `POST /corpus/sources` and `--ris` to a second file format and adds a `format` field to the source rows; the reviewer read that as RELEASE.
+
+**The decision.** A new import format that leaves identity, the contract, the `verified.json` row shape and every existing input's behaviour unchanged is STANDARD: the pr gate once on the final executable commit, the contract check, and an independent review. The closure-stage extras (schema and two-study fixture checks, wheel build) were run and recorded for M5c-nbib anyway, so the evidence covers either lane.
+
+**Not chosen:** relabelling the milestone RELEASE (no extra evidence would have been produced); treating every route widening as RELEASE by rule (the policy's RELEASE line is for changes to what existing inputs mean, which this is not).
+
 ## 2026-11-08 — The retrieval cap is a protocol method key (accepted; M3a-discovery, SRCH-31)
 
 The researcher chose this on 2026-11-08.
