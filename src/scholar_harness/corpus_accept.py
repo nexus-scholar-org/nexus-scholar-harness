@@ -149,6 +149,7 @@ def _verified_row(document: Document) -> dict[str, Any]:
 #: Import formats, by the extension the stored copy keeps.
 IMPORT_FORMATS = ("ris", "nbib")
 _IMPORTERS = {"ris": RISImporter, "nbib": NBIBImporter}
+_FORMAT_NAMES = {"ris": "RIS", "nbib": "PubMed (MEDLINE .nbib)"}
 
 
 def detect_import_format(file_name: str, content: bytes) -> str:
@@ -307,8 +308,12 @@ def stage_ris_source(
     records = len(_parse_export(stored, source_id, fmt))
     if records == 0:
         stored.unlink()
+        suffix = Path(file_name).suffix.lower()
+        chosen_by = f"from its {suffix} name" if suffix in {".ris", ".nbib"} else "from its first line"
         raise AcceptCorpusRefused(
-            f"{file_name} contains no RIS or PubMed (MEDLINE .nbib) records", "SOURCE_NOT_RIS"
+            f"{file_name} contains no {_FORMAT_NAMES[fmt]} records (read as {fmt} {chosen_by}); "
+            "export the results as RIS, or from PubMed as MEDLINE .nbib",
+            "SOURCE_NOT_RIS",
         )
     entry = {
         "id": source_id,
@@ -329,7 +334,8 @@ def stage_ris_source(
         inputs=[entry["file_name"]],
         outputs=[entry["stored_as"], SOURCES_FILE.as_posix()],
         parameters={
-            "id": source_id, "label": label, "searched_on": entry["searched_on"], "query": entry["query"],
+            "id": source_id, "label": label, "format": fmt,
+            "searched_on": entry["searched_on"], "query": entry["query"],
         },
         metrics={"records": records, "sha256": digest},
     )

@@ -104,6 +104,8 @@ _NBIB_TAG = re.compile(r"^([A-Z][A-Z0-9]{0,3}) {0,3}- ?(.*)$")
 #: ``AID``/``LID`` values carry their kind in brackets: ``10.1000/x [doi]``, ``s123 [pii]``.
 _NBIB_DOI = re.compile(r"^(.*?)\s*\[doi\]$", re.IGNORECASE)
 _NBIB_YEAR = re.compile(r"\d{4}")
+#: Generational suffixes PubMed appends to an ``AU`` value after the initials.
+_NBIB_SUFFIX = re.compile(r"^(?:[Jj]r|[Ss]r|2nd|3rd|4th|II|III|IV)\.?$")
 
 
 class NBIBImporter:
@@ -204,11 +206,17 @@ class NBIBImporter:
 
     @staticmethod
     def _abbreviated_author(value: str) -> Author:
-        """``AU``: ``Family I`` with the initials after the last space (``van der Berg A``)."""
-        family, _, initials = value.strip().rpartition(" ")
-        if not family:
-            return Author(family_name=initials)
-        return Author(family_name=family.strip(), given_name=initials.strip() or None)
+        """``AU``: ``Family I`` with the initials after the last space (``van der Berg A``).
+
+        A generational suffix PubMed writes after the initials (``Smith JA 3rd``,
+        ``Jones B Jr``) is dropped before the split, so the surname stays ``Smith``.
+        """
+        words = value.split()
+        if len(words) > 2 and _NBIB_SUFFIX.match(words[-1]):
+            words = words[:-1]
+        if len(words) < 2:
+            return Author(family_name=" ".join(words))
+        return Author(family_name=" ".join(words[:-1]), given_name=words[-1])
 
 
 class JSONImporter:

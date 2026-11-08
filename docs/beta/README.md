@@ -42,7 +42,7 @@ workspace, import your RIS files, prepare, screen, publish and export.
 
 - **One reviewer.** A second screener, and agreement between two people (kappa), are not in the beta.
 - **Title and abstract only.** No full-text screening, data extraction or synthesis. Unclear records are listed for full text.
-- **RIS only.** CSV, BibTeX and PubMed's own format are not imported yet.
+- **RIS and PubMed `.nbib` only.** CSV and BibTeX are not imported yet.
 - **Approval uses a code shown in the terminal.** Keep the terminal where the app runs in view.
 - **The approver is a typed name,** not a verified sign-in.
 - **AI drafts are optional and not validated.** Do not report a recall or accuracy figure for them.

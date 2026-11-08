@@ -63,7 +63,7 @@ None of the corpus routes is added to `_PHONE_ROUTES` (`src/scholar_harness/cons
 
 ## States
 - **Default (staged)**: Literata h1 "Import your search results". Lede "Add one file for each database you searched. Nothing is final until you accept." Stepper line "1 Add databases · 2 Check the counts · 3 Accept". Main: the "Add a database" card (collapsed to a button once at least one source is staged), the "Databases added" table, the "Counts for your PRISMA flow diagram" card. Side: "What happens next" (the freeze, copy of files to `literature/raw/ris/`, journal). One brand button on screen: "Accept and freeze the corpus" (after step 3 is reachable); "Add a database" is secondary until nothing is staged, when it becomes the brand button.
-- **Empty (`EMPTY`)**: EmptyState "No databases added yet" with the add form open and the brand button "Add a database". Caption "Export your results from each database as an RIS file (.ris or .txt), then add them here." Accept is absent. Not an error; no code is shown.
+- **Empty (`EMPTY`)**: EmptyState "No databases added yet" with the add form open and the brand button "Add a database". Caption "Export your results from each database as an RIS file (.ris or .txt), then add them here." (Since M5c-nbib a PubMed `.nbib` file is accepted too; the file field and its help say so.) Accept is absent. Not an error; no code is shown.
 - **Loading** (skeleton): table with three rows, counts card as skeleton; no count is shown until the server answers. **Uploading**: the row for the file appears at once with a progress state "Reading {file_name}" and a text status (not colour alone); the form is disabled; Accept is disabled; on success the row becomes a normal row and the counts refresh; no optimistic count. **Accepting**: button "Freezing the corpus", disabled; dialog closed; progress text in `aria-live`.
 - **Error** (typed refusal, each as a state card with code, what it affects, one next step; codes shown as in `stateCopy`):
   - `SOURCE_LABEL_TAKEN` ✓ M5b (409): "A database called {label} is already added. Use another name, or remove the first one." Affects: this file only. Field error under the label, focus returns to it.
@@ -146,7 +146,7 @@ Refusal codes (console set, outside Contract v1), from `AcceptCorpusRefused.code
 Defaults accepted, with three changes. Where this list and the text above differ, this list wins.
 1. **Search details are optional and hidden until needed.** Date searched and search string sit behind a closed "Search details" disclosure in the add form, not inline. A database whose files lack either shows a "not stated" flag in the table and on the counts card. The methods paragraph lists what is missing under "not stated". Nothing is required, and nothing is invented.
 2. **Search string:** one free-text box per file, shown verbatim in monospace (`dir="ltr"`).
-3. **RIS only** in M5b (`.ris`, `.txt`). Other formats are later.
+3. **RIS only** in M5b (`.ris`, `.txt`). Other formats are later. M5c-nbib (2026-11-08) added PubMed MEDLINE `.nbib`; CSV and BibTeX remain later.
 4. **Steps bar:** an unnumbered "Import" step before "1 Prepare", shown until the corpus is accepted. After acceptance the step goes away and Home shows one line, for example "30 records from Scopus and Web of Science, 2 duplicates removed", with a link "What was imported" to this screen (read-only).
 5. **Duplicates:** counts only. Reviewing duplicate groups by hand is a later screen.
 6. **No per-database "unique contributed" column.**

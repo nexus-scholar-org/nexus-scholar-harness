@@ -320,7 +320,7 @@ scaffolded):
 | `nexus-scholar sync` | Atomically rebuild `project.json` stats + `INDEX.md` from disk |
 | `nexus-scholar run` | Execute a research pipeline (classic `--protocol` or a `--pipeline` DAG) |
 | `nexus-scholar export` | Export findings/bibliographies to external tools |
-| `nexus-scholar accept-corpus` | Accept the corpus snapshot from `literature/verified.json`, or import a RIS export with `--ris`, so screening `prepare` can run |
+| `nexus-scholar accept-corpus` | Accept the corpus snapshot from `literature/verified.json`, or import a RIS or PubMed `.nbib` export with `--ris`, so screening `prepare` can run |
 | `nexus-scholar serve` | Run the console server for a workspace (loopback only; needs the token in `NEXUS_CONSOLE_TOKEN` or the one it prints) |
 | `nexus-scholar inception` | Interactive Phase-0 Socratic methodology interview → compiled protocol |
 

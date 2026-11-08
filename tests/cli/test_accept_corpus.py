@@ -579,3 +579,52 @@ def test_the_committed_pubmed_fixture_stages_as_five_records(tmp_path):
     preview = preview_staged(ws)
     assert (preview["identified"], preview["duplicates"], preview["unique_studies"]) == (5, 0, 5)
     assert preview["sources"][0]["format"] == "nbib"
+
+
+def test_a_source_staged_before_the_format_field_reads_as_ris(tmp_path):
+    """Review finding 3: ``sources.json`` entries written by M5b carry no ``format``."""
+    from scholar_harness.corpus_accept import accept_corpus, preview_staged, stage_ris_source
+
+    ws = _workspace(tmp_path)
+    stage_ris_source(ws, "Scopus", SCOPUS.encode("utf-8"), file_name="scopus.ris")
+    sources_file = ws / "literature" / "raw" / "ris" / "sources.json"
+    staged = json.loads(sources_file.read_text(encoding="utf-8"))
+    for entry in staged["sources"]:
+        del entry["format"]
+    sources_file.write_text(json.dumps(staged), encoding="utf-8")
+
+    preview = preview_staged(ws)
+    assert (preview["sources"][0]["format"], preview["sources"][0]["records"], preview["identified"]) == ("ris", 3, 3)
+    assert accept_corpus(ws).record_count == 3
+    manifest = json.loads((ws / "literature" / "raw" / "provenance_manifest.json").read_text(encoding="utf-8"))
+    assert [s["format"] for s in manifest["sources"]] == ["ris"]
+    verified = json.loads((ws / "literature" / "verified.json").read_text(encoding="utf-8"))
+    assert {r["provider"] for r in verified} == {"ris"}
+
+
+def test_a_refused_file_is_told_which_format_was_tried(tmp_path):
+    """Review finding 6: RIS bytes under a ``.nbib`` name are read as nbib because of the name."""
+    from scholar_harness.corpus_accept import AcceptCorpusRefused, stage_ris_source
+
+    ws = _workspace(tmp_path)
+    with pytest.raises(AcceptCorpusRefused) as by_name:
+        stage_ris_source(ws, "Other", SCOPUS.encode("utf-8"), file_name="renamed.nbib")
+    assert by_name.value.code == "SOURCE_NOT_RIS"
+    assert "no PubMed (MEDLINE .nbib) records (read as nbib from its .nbib name)" in str(by_name.value)
+    with pytest.raises(AcceptCorpusRefused) as by_line:
+        stage_ris_source(ws, "Notes", b"just some text\n", file_name="notes.txt")
+    assert "no RIS records (read as ris from its first line)" in str(by_line.value)
+    events = (ws / "audit" / "journal.jsonl").read_text(encoding="utf-8")
+    assert events == ""  # a refusal journals nothing
+
+
+def test_the_staged_event_records_the_format(tmp_path):
+    """Review finding 7: ``CORPUS_SOURCE_STAGED`` names the format, not only the stored extension."""
+    from scholar_harness.corpus_accept import stage_ris_source
+
+    ws = _workspace(tmp_path)
+    stage_ris_source(ws, "PubMed", PUBMED.encode("utf-8"), file_name="pubmed.txt")
+    stage_ris_source(ws, "IEEE Xplore", IEEE.encode("utf-8"), file_name="ieee.ris")
+    events = [json.loads(line) for line in (ws / "audit" / "journal.jsonl").read_text(encoding="utf-8").splitlines()]
+    staged = [e["parameters"]["format"] for e in events if e["action"] == "CORPUS_SOURCE_STAGED"]
+    assert staged == ["nbib", "ris"]

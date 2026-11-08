@@ -120,3 +120,27 @@ def test_a_file_without_medline_tags_yields_nothing(tmp_path: Path):
     path = tmp_path / "not.nbib"
     path.write_text("TY  - JOUR\nTI  - A RIS record\nER  - \n", encoding="utf-8")
     assert _parse(path) == []
+
+
+def test_au_generational_suffixes_do_not_become_the_surname(tmp_path: Path):
+    """Review finding 5: ``AU  - Smith JA 3rd`` is Smith, not "Smith JA"."""
+    path = tmp_path / "suffix.nbib"
+    path.write_text(
+        "PMID- 1\nTI  - One\nAU  - Smith JA 3rd\nAU  - Jones B Jr\nAU  - de la Cruz M\nAU  - Lee\nAU  - King C II\n",
+        encoding="utf-8",
+    )
+    (doc,) = _parse(path)
+    assert [(a.family_name, a.given_name) for a in doc.authors] == [
+        ("Smith", "JA"),
+        ("Jones", "B"),
+        ("de la Cruz", "M"),
+        ("Lee", None),
+        ("King", "C"),
+    ]
+
+
+def test_the_importers_are_exported_by_the_package():
+    import scholar_search
+
+    assert scholar_search.NBIBImporter is NBIBImporter
+    assert scholar_search.RISImporter.__name__ == "RISImporter"
