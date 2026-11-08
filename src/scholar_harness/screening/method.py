@@ -24,6 +24,17 @@ from scholar_search.dedup import Deduplicator
 
 PROTOCOL_METHOD_INVALID = "PROTOCOL_METHOD_INVALID"
 
+#: The reporting guideline a playbook implies when the protocol does not set one
+#: (decision 2026-11-08, "Reporting follows a guideline chosen in the protocol").
+PLAYBOOK_REPORTING: dict[str, str] = {
+    "PRISMA_SLR": "prisma-2020",
+    "RAPID_EVIDENCE": "prisma-2020",
+    "STUDENT_DISSERTATION": "prisma-2020",
+    "SCOPING_REVIEW": "prisma-scr",
+    "DESIGN_SCIENCE": "none",
+}
+DEFAULT_REPORTING = "prisma-2020"
+
 
 class MethodInvalid(ValueError):
     """The protocol's ``method`` block is outside the checked limits."""
@@ -35,6 +46,9 @@ class MethodInvalid(ValueError):
 class EffectiveMethod:
     config: MethodConfig
     source: Literal["protocol", "defaults"]
+    #: The guideline in force and where it came from (M7b-guideline).
+    reporting: str = DEFAULT_REPORTING
+    reporting_source: Literal["protocol", "playbook"] = "playbook"
 
     def deduplicator(self) -> Deduplicator:
         dedup = self.config.dedup
@@ -45,7 +59,12 @@ class EffectiveMethod:
         )
 
     def as_dict(self) -> dict[str, Any]:
-        return {"source": self.source, **self.config.model_dump(mode="json")}
+        return {
+            "source": self.source,
+            **self.config.model_dump(mode="json", exclude={"reporting"}),
+            "reporting": self.reporting,
+            "reporting_source": self.reporting_source,
+        }
 
 
 def effective_method(workspace: Path | str) -> EffectiveMethod:
@@ -61,12 +80,17 @@ def effective_method(workspace: Path | str) -> EffectiveMethod:
 def method_from_protocol(protocol: dict[str, Any] | None) -> EffectiveMethod:
     """The same reading, for a caller that already holds the protocol dict."""
     block = protocol.get("method") if isinstance(protocol, dict) else None
+    playbook = str(protocol.get("playbook_type") or "") if isinstance(protocol, dict) else ""
+    derived = PLAYBOOK_REPORTING.get(playbook, DEFAULT_REPORTING)
     if block is None:
-        return EffectiveMethod(MethodConfig(), "defaults")
+        return EffectiveMethod(MethodConfig(), "defaults", derived, "playbook")
     try:
-        return EffectiveMethod(MethodConfig.model_validate(block), "protocol")
+        config = MethodConfig.model_validate(block)
     except ValidationError as exc:
         problems = "; ".join(
             f"{'.'.join(str(p) for p in err['loc']) or 'method'}: {err['msg']}" for err in exc.errors()
         )
         raise MethodInvalid(f"the protocol's method block is outside the checked limits ({problems})") from exc
+    if config.reporting is not None:
+        return EffectiveMethod(config, "protocol", config.reporting, "protocol")
+    return EffectiveMethod(config, "protocol", derived, "playbook")

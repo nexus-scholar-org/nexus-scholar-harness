@@ -33,6 +33,30 @@ Source: `docs/decisions.md` 2026-11-08 "Method parameters move into the protocol
 - **Older publications.** A generation published before M7-method has no `method` block in its binding; it reads as `defaults` and the source sentence says so, which is true because the old rules were the defaults.
 - Tests (`tests/console/test_methods_api.py`): `methods_reports_dedup_tiers_in_force` (defaults, a protocol with `first_author: false`, a protocol with `year_tolerance: 0`), `methods_not_reported_sentence_follows_policy`, `methods_source_sentence_names_defaults_or_protocol`, `methods_figures_include_method`, and the banned-word test extended over the new sentences.
 
+## Amended 2026-11-08 (M7b-guideline)
+Source: `docs/decisions.md` 2026-11-08 "Reporting follows a guideline chosen in the protocol". Only two page labels and one methods sentence change. The counts, the counts sentence, the table, the five published files (`prisma_report.json` keeps its name) and the engine do not.
+- **Values and source.** `figures.method` ✗ M7b-guideline gains `reporting` (`"prisma-2020" | "prisma-scr" | "none"`) and `reporting_source` (`"protocol" | "playbook"`). They come from the protocol bound to the published generation, not the live protocol (as in M7-method); a publication made before this change has no `reporting` in its binding and reads from its bound `playbook_type` as `playbook`. The page labels below read `figures.method.reporting`, so the page always matches the paragraph. `GET /settings` also carries the live value (✗ M7b-guideline, used by 09 only).
+- **Counts heading (`methods.counts`) and language note (`methods.language`)** follow the guideline. Component keys in `screening-export.tsx`; spec keys `screening.methods.counts.*` and `screening.methods.language.*`.
+
+| Key | `reporting` | en | fr | ar |
+| :-- | :-- | :-- | :-- | :-- |
+| `methods.counts` | `prisma-2020` | PRISMA 2020 counts of the published screening | Effectifs PRISMA 2020 de la sélection publiée | أعداد PRISMA 2020 للفرز المنشور |
+| `methods.countsScr` | `prisma-scr` | PRISMA-ScR counts of the published screening | Effectifs PRISMA-ScR de la sélection publiée | أعداد PRISMA-ScR للفرز المنشور |
+| `methods.countsNone` | `none` | Counts of the published screening | Effectifs de la sélection publiée | أعداد الفرز المنشور |
+| `methods.language` | `prisma-2020` | Written in English for a manuscript. Check every number against your PRISMA 2020 flow diagram. | Rédigé en anglais pour un manuscrit. Vérifiez chaque nombre avec votre diagramme de flux PRISMA 2020. | مكتوبة بالإنجليزية لمخطوطة. طابق كل رقم مع مخطط تدفق PRISMA 2020 الخاص بك. |
+| `methods.languageScr` | `prisma-scr` | Written in English for a manuscript. Check every number against your PRISMA-ScR flow diagram. | Rédigé en anglais pour un manuscrit. Vérifiez chaque nombre avec votre diagramme de flux PRISMA-ScR. | مكتوبة بالإنجليزية لمخطوطة. طابق كل رقم مع مخطط تدفق PRISMA-ScR الخاص بك. |
+| `methods.languageNone` | `none` | Written in English for a manuscript. Check every number against your flow diagram. | Rédigé en anglais pour un manuscrit. Vérifiez chaque nombre avec votre diagramme de flux. | مكتوبة بالإنجليزية لمخطوطة. طابق كل رقم مع مخطط التدفق الخاص بك. |
+
+  The 2020 strings differ from today's only by "2020" and "flow diagram" (en "PRISMA box" becomes "flow diagram" for consistency with the decision; fr and ar already said diagram). The `none` heading is "Counts of the published screening" (the decision's "Screening counts", worded so the guideline name is simply dropped from the other two).
+- **One methods sentence (engine, English only, no i18n key).** Written directly after the M7-method source sentence (slot 3), before agent use (the later slots keep their order):
+  - `prisma-2020`: "The screening is reported following PRISMA 2020."
+  - `prisma-scr`: "The screening is reported following PRISMA-ScR, the PRISMA extension for scoping reviews."
+  - `none`: no sentence (the paragraph is exactly as before).
+  The sentence states the guideline chosen in the protocol and makes no claim of compliance or completeness. It is always written for the two guidelines, including at the playbook default, because the reader needs the guideline named; it is not a no-op row.
+- **Banned words.** Checked against the list in this spec ("validated", "accurate", "recall", "agreement", "concordance", "kappa", "cost", "gate"): neither sentence contains any. The banned-word test is extended over both.
+- **States.** Default, loading, empty, error (`EXPORT_NOT_PUBLISHED`, `GENERATION_STALE`, `GENERATION_SUPERSEDED`, `METHODS_SOURCE_MISSING`), partial, offline and protocol-changed are unchanged; before the methods route answers no heading is chosen (the table is a skeleton, as before), offline keeps the last heading and note with the "as of" caption, and a missing `reporting` in the response reads as `prisma-2020`. A protocol changed after publication still makes the status not `CURRENT` (Protocol-changed card), so the page never shows a heading that disagrees with its paragraph.
+- **Tests.** Python `tests/console/test_methods_api.py`: `methods_names_the_reporting_guideline` (prisma-2020 and prisma-scr sentences exact, none writes no sentence and the paragraph is otherwise identical, sentence sits right after the source sentence), `methods_figures_include_reporting_and_source`, `methods_reporting_defaults_from_playbook_type`, and the banned-word test extended. Vitest `export.reporting.test.tsx` (`counts_heading_follows_reporting`, `language_note_names_the_matching_flow_diagram`, `none_note_says_your_flow_diagram`, `all_three_variants_exist_in_en_fr_ar`); `export.i18n.test.ts` covers the new keys.
+
 **Purpose.** After the screening is published, take the decisions to a reference manager or spreadsheet, and copy a methods paragraph whose PRISMA counts and automation-use statement say what the workspace files show and no more.
 
 **Changed from the canvas.**

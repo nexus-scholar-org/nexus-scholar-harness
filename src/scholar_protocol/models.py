@@ -349,6 +349,13 @@ class MethodConfig(BaseModel):
     blinding: Literal["reveal_after_decision", "show"] = Field(
         "reveal_after_decision", description="Whether the agent's draft is hidden until the decision"
     )
+    reporting: Optional[Literal["prisma-2020", "prisma-scr", "none"]] = Field(
+        None,
+        description=(
+            "Reporting guideline (M7b-guideline). Absent means derived from playbook_type; "
+            "absent is left out of the fingerprint."
+        ),
+    )
 
 
 # ---------------------------------------------------------------------------

@@ -82,6 +82,10 @@ def _ordered_model_dict(protocol: ResearchProtocol) -> dict[str, Any]:
     if raw.get("method") is None:
         raw.pop("method", None)
     else:
+        # M7b-guideline: an absent reporting key is left out too, so a block
+        # written before the key existed keeps its fingerprint.
+        if raw["method"].get("reporting") is None:
+            raw["method"].pop("reporting", None)
         dedup = raw["method"].get("dedup")
         if isinstance(dedup, dict) and "title_similarity" in dedup:
             dedup["title_similarity"] = float(dedup["title_similarity"])

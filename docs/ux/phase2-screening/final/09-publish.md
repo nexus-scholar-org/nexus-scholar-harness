@@ -10,6 +10,26 @@ Source: `docs/roadmap/milestones/M6-beta.md` sections B and D; decisions "Detail
 - **Published means current.** The workspace and publication status now read `STALE` (`GENERATION_STALE`, with the number of changed studies) as soon as a decision is made after publish; Home, the Workspaces list, Export and Methods all read it from `GET /ui/publication-status` through the currentness wrapper (✓ done 2026-11-07, `src/scholar_harness/screening/currentness.py`; `tests/console/test_publication_currentness.py::test_a_decision_after_publish_makes_the_status_stale_everywhere`). This screen shows a notice above the PRISMA card, "Decisions changed after this was published ({n} studies). Approve and publish again." (`screening.publish.stale`), with `GENERATION_STALE` in Details, and the gate is the normal one for the new generation. The published files on disk are still what was published; stored files and Contract v1 do not change.
 - Tests: `publish.details.test.tsx` (each check is one line with a pass or fail mark; fingerprint, digests and batch file names are inside closed `<details>` and in the DOM; the preview still shows the reasons table; a stale status shows the notice). Playwright `screening/publish.spec.ts` opens Details before asserting provenance.
 
+## Amended 2026-11-08 (M7b-guideline)
+Source: `docs/decisions.md` 2026-11-08 "Reporting follows a guideline chosen in the protocol". Only two labels change. The counts, the checks, the "Will be written" list, the five published files (`prisma_report.json` keeps its name) and the engine do not.
+- **Where the guideline comes from.** `GET /api/v1/screening/settings` (✓ `screening_v1.py:325`; the fields below ✗ M7b-guideline) gains two read-only fields: `reporting` (`"prisma-2020" | "prisma-scr" | "none"`) and `reporting_source` (`"protocol" | "playbook"`). `PUT /settings` does not accept them (the guideline is set in the protocol, not on this screen). Client: `getScreeningSettings` in `apps/research-ui/lib/screening-api.ts`, type extended. No new call.
+- **Preview heading.** The card heading (`id="publish-prisma"`) follows `reporting`:
+
+| `reporting` | Key | en | fr | ar |
+| :-- | :-- | :-- | :-- | :-- |
+| `prisma-2020` | `prisma` (unchanged) | PRISMA 2020 screening preview | Aperçu de sélection PRISMA 2020 | معاينة فرز PRISMA 2020 |
+| `prisma-scr` | `prismaScr` | PRISMA-ScR screening preview | Aperçu de sélection PRISMA-ScR | معاينة فرز PRISMA-ScR |
+| `none` | `prismaNone` | Screening preview | Aperçu de sélection | معاينة الفرز |
+
+- **Publish body.** The side-card sentence (`publishBody`) says "the PRISMA report" under `prisma-2020` and `prisma-scr` (both are PRISMA guidelines; strings unchanged). Under `none` it uses `publishBodyNone`, which names no guideline:
+  - en: "Writes the included, excluded and full-text lists and the screening counts report for the approved generation."
+  - fr: "Écrit les listes d'inclusions, d'exclusions et de texte intégral ainsi que le rapport des effectifs de la sélection de la génération approuvée."
+  - ar: "يكتب قوائم المُدرجة والمستبعدة والنص الكامل وتقرير أعداد الفرز للجيل المعتمد."
+  - The file name `prisma_report.json` stays as it is in the "Will be written" list and in Details under every guideline (it is a publication artifact the digests depend on; decision "Not chosen: renaming").
+- **Spec copy keys.** `screening.publish.prisma.*` now has three heading leaves (`prisma-2020`, `prisma-scr`, `none`); `screening.publish.publishBody` gains the `none` variant. Check names, "Pass"/"Fail", "Preview · not written" and the unclear note are unchanged.
+- **Fallbacks.** If `reporting` is absent (an engine older than this change) the screen reads `prisma-2020`, so today's wording stays. Loading: the heading shows the skeleton line with the card; no guideline name appears before settings answer. Offline: the last heading stays with the "as of" caption. Error: settings refusals use the existing cards; the heading falls back to the neutral `none` wording rather than guessing a guideline. Protocol-changed: the guideline is read live, so a protocol that changes it shows the new heading with the Protocol-changed card (the preview is disabled until re-bound). Mobile read-only view uses the same keys.
+- **Tests.** Vitest `publish.reporting.test.tsx` (`heading_follows_prisma_2020`, `heading_follows_prisma_scr`, `heading_without_guideline_names_none`, `publish_body_names_screening_counts_report_under_none`, `absent_reporting_reads_prisma_2020`; the same three headings render in en, fr and ar). Python `tests/console/test_screening_v1_api.py::test_settings_report_reporting_and_source_read_only` (✗ M7b-guideline: playbook default per `playbook_type`, protocol override, `PUT` ignores or refuses the fields, `reporting_source` is `protocol` or `playbook`).
+
 **Purpose.** Check the PRISMA screening preview, approve this exact generation once on the desktop, publish; and connect a phone for screening.
 
 **Changed from the canvas.**
