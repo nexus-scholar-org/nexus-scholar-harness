@@ -71,7 +71,11 @@ class SearchEngine:
         self.last_legs: list[SearchLeg] = []
 
     def _check_mailto(self) -> None:
-        live = any(isinstance(p, BaseAPIProvider) for p in self.providers)
+        # Providers may be wrapped (the harness observes them through a proxy
+        # holding the real provider in ``_provider``); look through it.
+        live = any(
+            isinstance(getattr(p, "_provider", p), BaseAPIProvider) for p in self.providers
+        )
         if live and not settings.mailto:
             raise MailtoNotSet()
 

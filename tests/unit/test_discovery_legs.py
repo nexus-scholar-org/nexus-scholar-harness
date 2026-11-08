@@ -224,3 +224,53 @@ def test_the_report_renders_a_failed_leg_and_its_notes():
     assert "arXiv query compacted" in text
     assert "failed" in text and "HTTP 500" in text
     assert "not reported" in text  # pubmed total unknown
+
+
+# ---------------------------------------------------------------------------
+# M3a review finding 1: MAILTO_NOT_SET holds on the real run path, where the
+# stage wraps every provider in an observation proxy.
+# ---------------------------------------------------------------------------
+
+
+def test_run_discovery_refuses_without_mailto_before_any_request(tmp_path, monkeypatch):
+    from scholar_search.engine import MailtoNotSet
+    from scholar_search.http_client import AcademicHttpClient
+
+    async def _no_network(self, *a, **k):
+        raise AssertionError("a request was sent without a contact address")
+
+    monkeypatch.setattr(AcademicHttpClient, "get", _no_network)
+    monkeypatch.setattr(settings, "mailto", None)
+    ws, proto = _workspace(tmp_path)  # real engine, real providers from the protocol
+    with pytest.raises(MailtoNotSet):
+        asyncio.run(disc.run_discovery(protocol_path=proto, literature_dir=ws / "literature"))
+    assert not (ws / "literature" / "search_runs").exists()
+
+
+# ---------------------------------------------------------------------------
+# M3a review finding 3: a leg stopped at the cap still counts as succeeded.
+# ---------------------------------------------------------------------------
+
+
+def test_capped_legs_count_as_succeeded_in_the_journal(tmp_path, monkeypatch):
+    monkeypatch.setattr(
+        disc,
+        "SearchEngine",
+        _engine_factory({"openalex": ["A", "B"], "crossref": ["C", "D"]}, {"openalex": 9, "crossref": 9}),
+    )
+    ws, proto = _workspace(tmp_path)
+    outcome = asyncio.run(disc.run_discovery(protocol_path=proto, literature_dir=ws / "literature",
+                                             max_search_results=1))
+    assert outcome.providers_succeeded == ("crossref", "openalex")
+    event = [e for e in _events(ws) if e["action"] == "DISCOVERY_SEARCH"][-1]
+    assert event["metrics"]["providers_succeeded"] == 2
+    assert "from 2 provider(s)" in event["parameters"]["reason"]
+
+
+def test_the_report_does_not_claim_more_records_when_no_total_was_reported():
+    from scholar_search.search_report import render_search_report
+
+    leg = {"provider": "x", "executed_query": "q", "reported_total": None, "fetched": 5, "cap": 5,
+           "cap_source": "protocol", "cap_hit": True, "status": "ok", "notes": [], "request": {}}
+    text = render_search_report({"run": "run_001", "legs": [leg]})
+    assert "more may exist" in text and "more records exist" not in text

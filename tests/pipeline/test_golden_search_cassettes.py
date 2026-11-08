@@ -136,6 +136,7 @@ def test_golden_search_replays_with_legs_report_and_stable_ids(tmp_path):
         assert leg["mailto_set"] is True
         assert "mailto" not in leg["request"] and "email" not in leg["request"]
     assert outcome.status == "SUCCESS"
+    assert outcome.providers_succeeded == tuple(sorted(DATABASES))  # review finding 3
 
     report = (first / "literature" / "search_runs" / "run_001" / "search_report.md").read_text(encoding="utf-8")
     for name, leg in legs.items():

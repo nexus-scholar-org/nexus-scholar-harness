@@ -36,7 +36,10 @@ def _cap(leg: dict[str, Any]) -> str:
     source = _CAP_SOURCES.get(str(leg.get("cap_source")), str(leg.get("cap_source") or ""))
     text = f"{cap} ({source})" if cap is not None else "none"
     if leg.get("cap_hit"):
-        text += ", cap reached: more records exist"
+        if leg.get("reported_total") is None:
+            text += ", cap reached: the database reported no total, more may exist"
+        else:
+            text += ", cap reached: more records exist"
     return text
 
 

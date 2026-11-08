@@ -406,6 +406,18 @@ async def run_discovery(
         leg.to_dict() if hasattr(leg, "to_dict") else dict(leg)
         for leg in (getattr(engine, "last_legs", None) or [])
     ]
+    if legs:
+        # The legs are the engine's own record of each provider. The proxy
+        # misses a leg the engine stopped at the cap (its stream is closed,
+        # so the proxy never sees the end), so the legs decide (M3a review 3).
+        probe.succeeded = {
+            leg["provider"]: int(leg.get("fetched") or 0)
+            for leg in legs if leg.get("status") == "ok"
+        }
+        probe.failed = {
+            leg["provider"]: str(leg.get("error") or "failed")
+            for leg in legs if leg.get("status") == "failed"
+        }
 
     count = len(discovered_docs)
     status, reason = _classify(count, probe)

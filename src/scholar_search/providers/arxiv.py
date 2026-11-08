@@ -145,8 +145,10 @@ class ArxivProvider(BaseAPIProvider):
         """Search arXiv."""
         translated_query = self.translator.translate(query)
         # arXiv's negation is the single operator ANDNOT; "a AND NOT b"
-        # translates to "a AND ANDNOT b", which arXiv cannot parse.
-        translated_query = re.sub(r"\b(?:AND|OR)\s+ANDNOT\b", "ANDNOT", translated_query)
+        # translates to "a AND ANDNOT b", which arXiv cannot parse. Only that
+        # form is collapsed: "a OR NOT b" has no ANDNOT equivalent and is sent
+        # as written rather than changed in meaning.
+        translated_query = re.sub(r"\bAND\s+ANDNOT\b", "ANDNOT", translated_query)
 
         # If translator didn't apply any field, fallback to all:
         if ":" not in translated_query:

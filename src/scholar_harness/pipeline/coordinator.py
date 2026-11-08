@@ -102,7 +102,7 @@ from typing import Any
 
 from scholar_protocol.models import ResearchProtocol
 
-from scholar_harness.workspace.audit import append_legacy_event
+from scholar_harness.workspace.audit import append_event, append_legacy_event
 
 from .deduplication import run_deduplication
 from .discovery import run_discovery
@@ -195,18 +195,92 @@ def _accept_run_corpus(ws: Path, provider_errors: dict[str, str]) -> dict[str, A
             "status": "NOT_BUILT",
             "reason": "no verified records: there is nothing to snapshot",
         }
+    from scholar_harness.corpus_accept import staged_sources
+
+    if staged_sources(ws):
+        # accept_corpus would materialise the staged database exports over the
+        # verified.json this run just wrote, dropping the searched records
+        # (M3a review finding 2). Two corpora are never merged silently.
+        return {
+            "status": "REFUSED",
+            "code": "STAGED_IMPORT_PENDING",
+            "reason": (
+                "database exports are staged for import in this workspace; accept or "
+                "remove them before building a corpus from a search run"
+            ),
+        }
     warnings = [f"{name}: {error}" for name, error in sorted(provider_errors.items())]
     try:
         accepted = accept_corpus(ws, provider_warnings=warnings)
     except AcceptCorpusRefused as exc:
         return {"status": "REFUSED", "code": exc.code, "reason": str(exc)}
-    return {
+    mapping = {
         "status": "ALREADY_ACCEPTED" if accepted.already_accepted else "ACCEPTED",
         "artifact_id": accepted.artifact_id,
         "study_count": accepted.study_count,
         "record_count": accepted.record_count,
-        "provider_warnings": warnings,
+        "outcome_status": accepted.outcome_status,
+        "provider_warnings": list(accepted.warnings),
     }
+    # Packet B: the producer's operation outcome (SUCCESS, or PARTIAL with the
+    # provider warnings) is journalled, not dropped (M3a review finding 5).
+    append_event(
+        ws,
+        "CORPUS_SNAPSHOT_ACCEPTED",
+        f"Corpus snapshot {accepted.artifact_id} from the search run: "
+        f"{accepted.study_count} studies from {accepted.record_count} records "
+        f"({accepted.outcome_status})",
+        agent="scholar-harness",
+        inputs=[str(ws / "literature" / "verified.json")],
+        outputs=[str(ws / "audit" / "artifact_registry.json")],
+        parameters={
+            "artifact_id": accepted.artifact_id,
+            "already_accepted": accepted.already_accepted,
+            "outcome_status": accepted.outcome_status,
+            "provider_warnings": list(accepted.warnings),
+        },
+        metrics={"studies": accepted.study_count, "records": accepted.record_count},
+        status=accepted.outcome_status,
+    )
+    return mapping
+
+
+def _resume_refusal(ws: Path) -> str | None:
+    """Why the batches of an accepted snapshot cannot be resumed, or ``None``.
+
+    The forced prepare used to refuse an edited protocol; resume keeps that
+    check, and refuses a batch set that does not cover every study of the
+    snapshot (a prepare that stopped part-way). M3a review finding 4.
+    """
+    from scholar_protocol.canonical import canonical_fingerprint
+
+    registry = json.loads((ws / "audit" / "artifact_registry.json").read_text(encoding="utf-8"))
+    corpora = sorted(
+        (e for e in registry.get("artifacts", {}).values() if e.get("artifact_type") == "corpus_snapshot"),
+        key=lambda e: str(e.get("accepted_at") or ""),
+    )
+    snapshot = json.loads((ws / corpora[-1]["path"]).read_text(encoding="utf-8"))
+    current = canonical_fingerprint(
+        ResearchProtocol.model_validate_json((ws / "protocol.json").read_text(encoding="utf-8"))
+    )
+    if current != snapshot.get("protocol_fingerprint"):
+        return (
+            "PROTOCOL_CHANGED_SINCE_SNAPSHOT: protocol.json no longer matches the "
+            "accepted corpus snapshot; start a new workspace for a changed protocol"
+        )
+    studies = {s["study_id"] for s in snapshot["data"]["studies"]}
+    covered: set[str] = set()
+    for path in sorted((ws / "literature" / "screening").glob("batch_*.json")):
+        if "_decisions" in path.name:
+            continue
+        covered |= {p.get("workspace_id") for p in json.loads(path.read_text(encoding="utf-8")).get("papers", [])}
+    missing = studies - covered
+    if missing:
+        return (
+            f"BATCHES_INCOMPLETE: {len(missing)} of {len(studies)} studies of the "
+            "accepted snapshot are in no screening batch; re-run prepare with --force"
+        )
+    return None
 
 
 def _apply_discovery_status(
@@ -575,12 +649,17 @@ async def run_pipeline(
     )
 
     existing_batches = _existing_batch_count(lit_dir)
-    if corpus_frozen and existing_batches:
+    resume_refusal = (
+        _resume_refusal(ws) if corpus_frozen and existing_batches else None
+    )
+    if corpus_frozen and existing_batches and resume_refusal is None:
         # Resume: the batches of the accepted snapshot are kept as they are
         # (a forced re-prepare would reshuffle them under existing decisions).
         total_batches = existing_batches
     else:
         try:
+            if resume_refusal is not None:
+                raise SystemExit(resume_refusal)
             preparation_outcome = run_screening_preparation(
                 workspace_dir=ws, batch_size=20, force=True
             )
@@ -588,7 +667,9 @@ async def run_pipeline(
             # cmd_prepare exits on a refusal (no registry, protocol mismatch).
             # The run records the abort instead of dying (CORE-07).
             reason = (
-                "screening preparation refused (exit "
+                str(exc.code)
+                if isinstance(exc.code, str)
+                else "screening preparation refused (exit "
                 f"{exc.code}); see the log for the reason"
             )
             for stage in ("screening", "extraction", "indexing", "matrix_rows", "graph_nodes", "synthesis"):

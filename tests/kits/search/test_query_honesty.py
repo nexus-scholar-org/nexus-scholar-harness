@@ -100,3 +100,11 @@ async def test_pubmed_leaves_colons_inside_phrases_alone():
     await engine.run(Query(text='"weed: a review" OR herbicide', id="Q1"), dedup=False)
     term = provider.client.calls[0]["term"]
     assert term == '"weed: a review" OR herbicide'
+
+
+@pytest.mark.asyncio
+async def test_arxiv_and_not_becomes_andnot_but_or_not_is_left_alone():
+    sent, _ = await _arxiv_leg("weed AND NOT survey")
+    assert "ANDNOT all:survey" in sent and "AND ANDNOT" not in sent
+    sent, _ = await _arxiv_leg("weed OR NOT survey")
+    assert "OR ANDNOT" in sent

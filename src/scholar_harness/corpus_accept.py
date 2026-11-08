@@ -68,6 +68,10 @@ class AcceptCorpusResult:
     study_count: int
     record_count: int
     already_accepted: bool
+    # The builder's OperationOutcome status (SUCCESS, or PARTIAL when provider
+    # warnings were passed) and those warnings (M3a review finding 5).
+    outcome_status: str = "SUCCESS"
+    warnings: tuple[str, ...] = ()
 
 
 def _workspace_id(ws: Path) -> str:
@@ -582,6 +586,8 @@ def accept_corpus(
                 len(artifact["data"]["studies"]),
                 len(documents),
                 already_accepted=True,
+                outcome_status=str(built.outcome.get("status", "SUCCESS")),
+                warnings=tuple(built.outcome.get("warnings", ())),
             )
 
     result = accept_artifact(
@@ -602,4 +608,6 @@ def accept_corpus(
         len(artifact["data"]["studies"]),
         len(documents),
         already_accepted=False,
+        outcome_status=str(built.outcome.get("status", "SUCCESS")),
+        warnings=tuple(built.outcome.get("warnings", ())),
     )
