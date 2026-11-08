@@ -28,7 +28,7 @@ Why: this is step 10 of the researcher's beta plan of 2026-11-07. Decision: [202
 - [x] **M9. The methods paragraph reports the values in force.** Done 2026-11-08, wording from the spec 10 amendment: the dedup sentence comes after PRISMA, and the not-reported and source sentences come after the screener. `figures.method` carries the values and their source. The blinding timeline starts from the protocol's value when the protocol sets it. An invalid block refuses `/methods` with `PROTOCOL_METHOD_INVALID`. The "every number is a figure" invariant in `test_methods_api.py` now reads decimals as decimals, so 0.97 must match a figure, not 0 and 97. Tests: `tests/console/test_methods_method_block.py` (5, failed first with StopIteration because there was no dedup sentence). `tests/test_screening_events._build` takes an optional `method`. It gives the dedup tiers, the rule table and the not-reported policy, and says whether they come from the protocol or from the defaults.
   - Tests: one paragraph with the block and one without; the wording is from the spec 10 amendment.
 - [x] **M10. Contract gate.** Done 2026-11-08: after M1, `generate_contract_baseline.py --check` still reports the baseline current. The protocol schema is not part of the frozen Contract v1 baseline. The contract-schemas, two-study fixture and canonical-profile goldens `--check` all pass unchanged, so this is not a Contract v1 change. Re-run at closure. Run `generate_contract_baseline.py --check`. If it moves, this decision is the architecture decision, and the schemas and golden fixtures are regenerated with the reason recorded here. It is never regenerated to bless unexplained drift.
-- [ ] **Gate:** `/gate checkpoint` per item, then RELEASE closure on the final executable commit.
+- [x] **Gate:** `/gate checkpoint` per item, then RELEASE closure on the final executable commit.
 - [ ] **Review:** the milestone-reviewer returns APPROVE.
 
 ## Findings fixed
@@ -41,6 +41,11 @@ Why: this is step 10 of the researcher's beta plan of 2026-11-07. Decision: [202
 ## Evidence
 | Stage | Commit | Command | Result | Duration |
 | :-- | :-- | :-- | :-- | :-- |
+| inner | per item | targeted pytest/vitest per item | each red before, green after (see the DoD lines) | seconds |
+| closure (RELEASE) | `80b0923` | contract baseline, contract schemas, two-study fixture and canonical-profile goldens `--check`; ruff (`scripts/`, `src/` bug classes); `git diff --check` | all pass, nothing regenerated | |
+| closure (RELEASE) | `80b0923` | `pytest -q -n auto` | **4473 passed, 15 skipped, 0 failed** | 4 m 44 s |
+| closure (RELEASE) | `80b0923` | `uv build --wheel` | `nexus_scholar-1.1.0b2-py3-none-any.whl` | |
+| closure (RELEASE) | `80b0923` | typecheck, vitest, `next build`, Playwright (light and dark) | tsc clean; vitest **274/274**; build clean; Playwright **173 passed, 13 skipped, 0 failed** | 3 m 51 s |
 
 ## Deferred
 - Batch size in the block (not chosen).
