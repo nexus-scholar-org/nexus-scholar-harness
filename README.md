@@ -20,21 +20,21 @@ The `nexus-scholar` package bundles the harness, eight scientific kits and an MC
 | Full text, extraction, synthesis, graph, verification | Kits in the package | Parked: not production, labelled so in `--help` |
 | Development branch (`main`) | The next beta | May differ from the installed release |
 
-The latest release is the beta [v1.1.0b3](https://github.com/nexus-scholar-org/nexus-scholar-harness/releases/tag/v1.1.0b3) ([release notes](docs/releases/1.1.0b3.md)) (a pre-release, also on PyPI). Later work on `main` is not a claim about that release's behavior.
+The latest release is the beta [v1.1.0b4](https://github.com/nexus-scholar-org/nexus-scholar-harness/releases/tag/v1.1.0b4) ([release notes](docs/releases/1.1.0b4.md); features in [1.1.0b3](docs/releases/1.1.0b3.md)) (a pre-release, also on PyPI). Later work on `main` is not a claim about that release's behavior.
 
 ## Start a workspace
 
 **New here?** [Getting started](docs/getting-started.md) walks you from installing to a published screening and an exported reference list in about 15 minutes. Beta testers: read the [beta page](docs/beta/README.md) first.
 
-Install [uv](https://docs.astral.sh/uv/getting-started/installation/), then Nexus Scholar (the `--prerelease allow` is needed while it is in beta), and start the app:
+Install [uv](https://docs.astral.sh/uv/getting-started/installation/), then Nexus Scholar (the version in the command is needed while it is in beta; do not use `--prerelease allow`, which also takes development releases of other packages), and start the app:
 
 ```sh
-uv tool install --prerelease allow nexus-scholar
+uv tool install "nexus-scholar>=1.1.0b4"
 nexus-scholar --version
 nexus-scholar ui
 ```
 
-`nexus-scholar --version` should print `nexus-scholar 1.1.0b3`. With pip, use `pip install --pre nexus-scholar`. The app opens in your browser on **Workspaces**; everything runs on your computer.
+`nexus-scholar --version` should print `nexus-scholar 1.1.0b4`. With pip, use `pip install "nexus-scholar>=1.1.0b4"`. The app opens in your browser on **Workspaces**; everything runs on your computer.
 
 From a terminal, create a project and inspect its setup:
 

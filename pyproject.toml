@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "nexus-scholar"
-version = "1.1.0b3"
+version = "1.1.0b4"
 description = "Nexus Scholar: a harness for systematic literature reviews and the seven scholar_* packages it drives, in one distribution."
 readme = "README.md"
 requires-python = ">=3.11"
@@ -42,7 +42,10 @@ dependencies = [
     "bibtexparser>=2.0.0b7",
     "fastapi>=0.115.0",
     "hishel==0.0.32",
-    "httpx>=0.28.1",
+    # hishel 0.0.32 imports httpcore and is written against httpx 0.x: httpx 1.0
+    # pre-releases drop httpcore, and --prerelease allow would pick them (2026-11-08).
+    "httpcore>=1.0.9,<2",
+    "httpx>=0.28.1,<1",
     "mcp>=2.1.1",
     "networkx>=3.0",
     "pydantic>=2.0.0",
