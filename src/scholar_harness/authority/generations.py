@@ -66,6 +66,7 @@ from scholar_harness.authority.binding import (
     verify_approval,
 )
 from scholar_harness.authority.lifecycle import capture_snapshot, record_refusal
+from scholar_harness.workspace.atomic import replace_with_retry
 
 #: Sidecar identity for one authorized screening publication generation.
 GENERATION_SCHEMA = "harness-screening-generation-v1"
@@ -572,7 +573,8 @@ def publication_file_bytes(text: str) -> bytes:
 
 
 def _rename_tmp(tmp: Path, final: Path) -> None:
-    os.replace(tmp, final)
+    # Retries a transient Windows hold (antivirus, indexer); M6-hardening H2.
+    replace_with_retry(tmp, final)
 
 
 def _acquire_lock(lock_path: Path, timeout_s: float) -> None:

@@ -128,7 +128,7 @@ M = milestone; ✓ = route exists today.
 | `POST /actions/pairing/redeem` ✓ | approve | `screening.py:1429` (fix the proxy allowlist path, plan §1.2). **Desktop only in stage 1:** the phone shows the PRISMA summary and "Approve on your desktop" (changed from the MobileApprove canvas) | desktop | M0 |
 | `POST /actions/defer` ✓, `POST /actions/publish` ✓ | defer or publish | `screening.py:1512, :1581` | desktop | — |
 | `POST /lan/pair` | phone pairing | `{one_time_token}` → sets the phone session cookie. The one-time token lasts 2 minutes and works once. The phone session ends at the first of: `POST /lan/session/stop`, the desktop `nexus-scholar ui` process stopping, or 12 hours. Expired or reused tokens are refused | LAN sub-app only | M2 |
-| `GET /ui/batches`, `/ui/batch/{n}/rows`, `/review`, `/criterion-refs`, `/ui/audit-feed` ✓ | existing reads | kept; the new screens use `/queue` and `/records` | desktop | — |
+| `GET /ui/batches`, `/ui/batch/{n}/review` ✓ | existing reads | kept; the new screens use `/queue` and `/records`. `/ui/batch/{n}/rows`, `/criterion-refs`, `/ui/audit-feed` and `/ui/project-summary` were removed in M6-hardening (no caller) | desktop | — |
 
 **Errors.** Every route answers a refusal as HTTP 4xx with `{"detail": {"code": "<CODE>", "message": "…", "retryable": false, "details": {…}}}`, the shape the existing actions already use (for example `ACTION_ORIGIN_REFUSED` in `tests/console/test_screening_actions.py`). **Pagination** is cursor-based and opaque to the client.
 

@@ -1,6 +1,7 @@
 """Importers for reading local files into the normalized Document model."""
 
 import json
+import re
 from collections.abc import Iterator
 from pathlib import Path
 from typing import Any
@@ -8,48 +9,64 @@ from typing import Any
 from .models import Author, Document, ExternalIds
 
 
+#: A RIS tag line: two characters (letter, then letter or digit), two spaces,
+#: a hyphen, then the value. ``ER  -`` often has no trailing space.
+_RIS_TAG = re.compile(r"^([A-Z][A-Z0-9])  -(?: (.*))?$")
+#: Primary authors. IEEE, Lens and Scopus write ``AU``; Web of Science's RIS and
+#: older EndNote-style exports write ``A1``. ``A2``..``A4`` are editors and series
+#: authors, not the study's authors, so they are not read as authors.
+_RIS_AUTHOR_TAGS = frozenset({"AU", "A1"})
+
+
 class RISImporter:
-    """Parses standard RIS academic citation files."""
+    """Parses standard RIS academic citation files.
+
+    Wrapped values (a line without a tag, as some exporters write long titles
+    and abstracts) are joined to the value they continue with one space
+    (M6-hardening H6).
+    """
 
     def parse(self, filepath: str | Path) -> Iterator[Document]:
         current_record: dict[str, Any] = {}
         authors: list[Author] = []
+        last_tag: str | None = None
 
         with Path(filepath).open("r", encoding="utf-8-sig", errors="replace") as f:
-            for line in f:
-                line = line.strip()
+            for raw in f:
+                line = raw.strip()
                 if not line:
                     continue
 
-                # End of Record
-                if line.startswith("ER  -") or line.startswith("ER  -"):
-                    if current_record:
-                        yield self._build_document(current_record, authors)
-                        current_record = {}
-                        authors = []
+                match = _RIS_TAG.match(line)
+                if match is None:
+                    # A continuation of the previous value.
+                    if last_tag is not None and last_tag in current_record:
+                        current_record[last_tag] = f"{current_record[last_tag]} {line}".strip()
                     continue
 
-                # Parse tag
-                if len(line) >= 6 and line[2:6] == "  - ":
-                    tag = line[:2]
-                    value = line[6:].strip()
+                tag, value = match.group(1), (match.group(2) or "").strip()
+                if tag == "ER":
+                    if current_record or authors:
+                        yield self._build_document(current_record, authors)
+                    current_record, authors, last_tag = {}, [], None
+                    continue
+                if tag in _RIS_AUTHOR_TAGS:
+                    if value:
+                        authors.append(self._author(value))
+                    last_tag = None
+                else:
+                    current_record[tag] = value
+                    last_tag = tag
 
-                    if tag == "AU":
-                        parts = value.split(",")
-                        if len(parts) > 1:
-                            authors.append(
-                                Author(
-                                    family_name=parts[0].strip(),
-                                    given_name=parts[1].strip(),
-                                )
-                            )
-                        else:
-                            authors.append(Author(family_name=value))
-                    else:
-                        current_record[tag] = value
-
-            if current_record:
+            if current_record or authors:
                 yield self._build_document(current_record, authors)
+
+    @staticmethod
+    def _author(value: str) -> Author:
+        parts = value.split(",")
+        if len(parts) > 1:
+            return Author(family_name=parts[0].strip(), given_name=parts[1].strip())
+        return Author(family_name=value)
 
     def _build_document(self, record: dict, authors: list[Author]) -> Document:
         ext_ids = ExternalIds()

@@ -263,7 +263,9 @@ function hasClassToken(source: string, cls: string): boolean {
 const COLLATERAL_EMITTED = new Set([
   "collapse", // the word "collapse" in prose comments; no class uses it
   "shadow", // "shadowed" / "drop shadow" in the shape prose
-  "filter", // `items.filter(` in TypeScript (workspaces-screen.tsx); the bare word is harvested, no class uses it
+  // "filter" left the list in M6-hardening: the bare word came from the
+  // getCorpusPage comment ("The filter and the slice …"), removed with the
+  // unused client functions, and the build no longer emits the utility.
 ]);
 
 test.describe("browser-suite hygiene", () => {

@@ -25,6 +25,8 @@ import typer
 from rich.console import Console
 from rich.table import Table
 
+from scholar_harness.workspace.atomic import replace_with_retry
+
 console = Console()
 
 HARNESSES = ("claude", "cursor", "vscode", "dsh", "mcp")
@@ -200,7 +202,7 @@ def _write_target(path: Path, payload: bytes) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     tmp = path.with_name(f".{path.name}.tmp")
     tmp.write_bytes(payload)
-    os.replace(tmp, path)
+    replace_with_retry(tmp, path)
 
 
 def _masked_json(config: dict[str, Any]) -> str:

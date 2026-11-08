@@ -4,15 +4,15 @@ Hermetic tests over synthetic registered workspaces in tmp_path (never
 workspaces/, never a real workspace). Covers acceptance HCM06-01..06 on the
 Python side; HCM06-07..10 are covered by apps/research-ui/tests/screening-live.test.tsx.
 
-New routes under test (8 GETs, zero mutations):
-  workspace.py:  GET /api/v1/ui/project-summary
-                 GET /api/v1/ui/publication-status
+Routes under test (GETs, zero mutations):
+  workspace.py:  GET /api/v1/ui/publication-status
                  GET /api/v1/ui/publication/outputs/{name}
   screening.py:  GET /api/v1/screening/ui/batches
-                 GET /api/v1/screening/ui/batch/{n}/rows
                  GET /api/v1/screening/ui/batch/{n}/review
-                 GET /api/v1/screening/ui/batch/{n}/criterion-refs
-                 GET /api/v1/screening/ui/audit-feed
+
+M6-hardening (2026-11-08) removed four UI-07 routes that no screen called:
+/ui/project-summary, /ui/batch/{n}/rows, /ui/batch/{n}/criterion-refs and
+/ui/audit-feed, with the tests that covered only them.
 
 The pre-existing routes (including POST .../decisions) are untouched: their
 behavior is pinned by tests/console/test_console_serve.py and
@@ -448,24 +448,14 @@ def _collect_current(ws: Path):
 # ---------------------------------------------------------------------------
 
 _READ_ROUTES = [
-    "/api/v1/ui/project-summary",
     "/api/v1/ui/publication-status",
     "/api/v1/screening/ui/batches",
-    "/api/v1/screening/ui/audit-feed",
 ]
 
 
 def test_ui_refs_resolved_backend_side(tmp_path):
     ws = _make_ws(tmp_path)
     client = TestClient(create_app(ws))
-    summary = client.get("/api/v1/ui/project-summary").json()
-    assert summary["shape"] == "ui07.project-summary-v1"
-    assert summary["workspace_id"] == WS_ID  # from project.json, never the browser
-    assert summary["run"]["screening_run_id"] == RUN_ID  # from MANIFEST.json
-    assert summary["run"]["batches"] == 2
-    assert summary["protocol"]["present"] is True
-    assert summary["protocol"]["fingerprint"] == _protocol_fingerprint()
-
     batches = client.get("/api/v1/screening/ui/batches").json()
     assert batches["shape"] == "ui07.screening-batches-v1"
     assert batches["run_id"] == RUN_ID
@@ -477,21 +467,29 @@ def test_ui_refs_resolved_backend_side(tmp_path):
     assert all(b["batch_index"] in (0, 1) for b in batches["batches"])
 
 
+def test_ui_batches_report_a_complete_batch(tmp_path):
+    """The positive coverage case of /ui/batches (kept when the rows route was
+    removed in M6-hardening; review finding 2)."""
+    ws = _make_ws(tmp_path, with_decisions=True)
+    first = TestClient(create_app(ws)).get("/api/v1/screening/ui/batches").json()["batches"][0]
+    assert first["coverage"] == "COMPLETE"
+    assert "missing_ids" not in first and "extra_ids" not in first  # COMPLETE carries none
+    assert first["decisions_count"] == 2
+
+
 def test_ui_caller_minted_ids_refused_everywhere(tmp_path):
     ws = _make_ws(tmp_path)
     client = TestClient(create_app(ws))
     forged = "workspace_id=WSP-ffffffffffffffffffffffffffffffff&run_id=RUN-FORGED&generation_id=GEN-FORGED"
     for route in _READ_ROUTES + [
-        "/api/v1/screening/ui/batch/0/rows",
         "/api/v1/screening/ui/batch/0/review",
-        "/api/v1/screening/ui/batch/0/criterion-refs",
         "/api/v1/ui/publication/outputs/included.json",
     ]:
         r = client.get(f"{route}?{forged}")
         assert r.status_code == 422, route
         assert r.json()["detail"]["code"] == "CALLER_IDENTITY_REFUSED", route
     # Fingerprint smuggling is refused too.
-    r = client.get("/api/v1/ui/project-summary?protocol_fingerprint=sha256:forged")
+    r = client.get("/api/v1/ui/publication-status?protocol_fingerprint=sha256:forged")
     assert r.status_code == 422
     assert r.json()["detail"]["code"] == "CALLER_IDENTITY_REFUSED"
 
@@ -523,9 +521,7 @@ def test_ui_missing_batch_is_404_not_empty_200(tmp_path):
     ws = _make_ws(tmp_path)
     client = TestClient(create_app(ws))
     for route in [
-        "/api/v1/screening/ui/batch/9/rows",
         "/api/v1/screening/ui/batch/9/review",
-        "/api/v1/screening/ui/batch/9/criterion-refs",
     ]:
         r = client.get(route)
         assert r.status_code == 404, route
@@ -544,7 +540,6 @@ def test_ui_reads_never_mutate(tmp_path):
     client = TestClient(create_app(ws))
     before = _snapshot(ws)
     battery = [
-        "/api/v1/ui/project-summary",
         "/api/v1/ui/publication-status",
         "/api/v1/ui/publication/outputs/included.json",
         "/api/v1/ui/publication/outputs/excluded.json",
@@ -552,16 +547,12 @@ def test_ui_reads_never_mutate(tmp_path):
         "/api/v1/ui/publication/outputs/prisma_screening_report.md",
         "/api/v1/ui/publication/outputs/prisma_report.json",
         "/api/v1/screening/ui/batches",
-        "/api/v1/screening/ui/batch/0/rows",
-        "/api/v1/screening/ui/batch/1/rows?limit=1&offset=1",
         "/api/v1/screening/ui/batch/0/review",
-        "/api/v1/screening/ui/batch/0/criterion-refs",
-        "/api/v1/screening/ui/audit-feed",
-        "/api/v1/screening/ui/audit-feed?action=SCREEN_DECISIONS",
+        "/api/v1/screening/ui/batch/1/review",
         # Error paths must not write either.
-        "/api/v1/screening/ui/batch/9/rows",
+        "/api/v1/screening/ui/batch/9/review",
         "/api/v1/ui/publication/outputs/nope.json",
-        "/api/v1/ui/project-summary?workspace_id=WSP-00000000000000000000000000000000",
+        "/api/v1/ui/publication-status?workspace_id=WSP-00000000000000000000000000000000",
     ]
     for route in battery:
         client.get(route)
@@ -700,11 +691,6 @@ def test_ui_publication_statuses_current_stale_mismatched_legacy(tmp_path):
         "prisma_screening_report.md",
         "prisma_report.json",
     }
-    # The summary reuses the identical status object verbatim (never disagrees).
-    summary_pub = client.get("/api/v1/ui/project-summary").json()["readiness"][
-        "publication"
-    ]
-    assert summary_pub == current
 
     # STALE: output digest drift after publication.
     inc = ws / "literature" / "included.json"
@@ -748,18 +734,6 @@ def test_ui_empty_workspace_is_explicit(tmp_path):
     (ws / "audit" / "journal.jsonl").write_text("", encoding="utf-8")
     client = TestClient(create_app(ws))
 
-    summary = client.get("/api/v1/ui/project-summary").json()
-    assert summary["workspace_id"] is None  # unregistered: explicit, never minted
-    assert summary["protocol"] == {"present": False, "fingerprint": None}
-    assert summary["run"] is None
-    assert summary["readiness"] == {
-        "screening_prepared": False,
-        "all_batches_resolved": False,
-        "publication": summary["readiness"]["publication"],
-    }
-    reasons = {m["reason"] for m in summary["missing"]}
-    assert {"IDENTITY_UNREGISTERED", "NOT_PREPARED"} <= reasons
-
     # The §4 empty envelope, exactly: null run, zero count, NOT_PREPARED.
     batches = client.get("/api/v1/screening/ui/batches").json()
     assert batches == {
@@ -770,14 +744,6 @@ def test_ui_empty_workspace_is_explicit(tmp_path):
         "missing": [
             {"file": "literature/screening/MANIFEST.json", "reason": "NOT_PREPARED"}
         ],
-    }
-    feed = client.get("/api/v1/screening/ui/audit-feed").json()
-    assert feed == {
-        "shape": "ui07.audit-feed-v1",
-        "total": 0,
-        "offset": 0,
-        "limit": 100,
-        "items": [],
     }
 
 
@@ -801,13 +767,6 @@ def test_ui_no_decisions_yet_is_200_with_reason(tmp_path):
         "missing"
     ]
 
-    rows = client.get("/api/v1/screening/ui/batch/0/rows").json()
-    assert rows["total"] == 2
-    assert all(
-        r["decision"] == "PENDING_REVIEW" for r in rows["rows"]
-    )  # never defaulted INCLUDE
-    assert {"batch": "batch_000.json", "reason": "NO_DECISIONS_YET"} in rows["missing"]
-
 
 def test_ui_malformed_files_are_500_not_silent(tmp_path):
     ws = _make_ws(tmp_path, with_decisions=True)
@@ -815,7 +774,7 @@ def test_ui_malformed_files_are_500_not_silent(tmp_path):
         "{not json", encoding="utf-8"
     )
     client = TestClient(create_app(ws))
-    for route in ["/api/v1/screening/ui/batches", "/api/v1/screening/ui/batch/0/rows"]:
+    for route in ["/api/v1/screening/ui/batches"]:
         r = client.get(route)
         assert r.status_code == 500, route
         assert r.json()["detail"]["code"] == "UNPARSEABLE_JSON", route
@@ -827,44 +786,6 @@ def test_ui_malformed_files_are_500_not_silent(tmp_path):
     assert r.json()["detail"]["code"] == "UNPARSEABLE_JSON"
 
 
-def test_ui_rows_serve_stored_bytes_with_coverage_and_refs(tmp_path):
-    ws = _make_ws(tmp_path, with_decisions=True)
-    client = TestClient(create_app(ws))
-
-    batches = client.get("/api/v1/screening/ui/batches").json()
-    first = batches["batches"][0]
-    assert first["coverage"] == "COMPLETE"
-    assert (
-        "missing_ids" not in first and "extra_ids" not in first
-    )  # COMPLETE carries none
-    assert first["decisions_count"] == 2
-
-    rows = client.get("/api/v1/screening/ui/batch/0/rows").json()
-    assert rows["shape"] == "ui07.screening-rows-v1"
-    by_id = {r["study_id"]: r for r in rows["rows"]}
-    assert by_id["SCI-000001"]["decision"] == "INCLUDE"
-    assert by_id["SCI-000002"]["decision"] == "EXCLUDE"
-    assert by_id["SCI-000001"]["citation"].startswith("Author 1.")
-    assert by_id["SCI-000002"]["abstract"].endswith("as stored.")
-    assert by_id["SCI-000001"]["criterion_refs"] == {
-        "inclusion": ["INC-01"],
-        "exclusion": [],
-    }
-    assert by_id["SCI-000002"]["source_locators"]["doi"] == "10.0000/hcm06.2"
-
-    paged = client.get("/api/v1/screening/ui/batch/0/rows?limit=1&offset=1").json()
-    assert (paged["total"], paged["limit"], paged["offset"]) == (2, 1, 1)
-    assert [r["study_id"] for r in paged["rows"]] == ["SCI-000002"]
-
-    refs = client.get("/api/v1/screening/ui/batch/0/criterion-refs").json()
-    assert refs["shape"] == "ui07.criterion-refs-v1"
-    assert refs["protocol_fingerprint"] == _protocol_fingerprint()
-    assert refs["inclusion"] == [
-        {"id": "INC-01", "text": "Names the population and outcome."}
-    ]
-    assert refs["exclusion"] == [{"id": "EXC-02", "text": "No comparator arm."}]
-    assert refs["sources"][0]["doi"] == "10.0000/hcm06.1"
-    assert refs["missing"] == []
 
 
 def test_ui_incomplete_coverage_names_missing_and_extra(tmp_path):
@@ -947,64 +868,8 @@ def test_ui_publication_outputs_refuse_without_bytes(tmp_path):
         assert body["message"]
 
 
-def test_ui_audit_feed_projects_journey_newest_first(tmp_path):
-    ws = _make_ws(tmp_path, with_decisions=True)
-    _collect_current(ws)
-    client = TestClient(create_app(ws))
-    feed = client.get("/api/v1/screening/ui/audit-feed").json()
-    assert feed["shape"] == "ui07.audit-feed-v1"
-    assert feed["total"] >= 2
-    actions = [e["action"] for e in feed["items"]]
-    # The journey projection serves screening writes only: console drafts,
-    # the collect acceptance record, and the published generation.
-    assert set(actions) <= {
-        "SCREEN_DECISIONS",
-        "SCREENING_DECISIONS_RECORDED",
-        "SCREENING_GENERATION_PUBLISHED",
-    }
-    assert "SCREENING_GENERATION_PUBLISHED" in actions
-    for item in feed["items"]:
-        assert set(item) == {
-            "timestamp",
-            "event_id",
-            "action",
-            "agent_or_tool",
-            "description",
-            "status",
-        }
-    narrowed = client.get(
-        "/api/v1/screening/ui/audit-feed?action=SCREEN_DECISIONS"
-    ).json()
-    assert narrowed["total"] >= 1
-    assert {e["action"] for e in narrowed["items"]} == {"SCREEN_DECISIONS"}
 
 
-def test_ui_locator_less_paper_reports_no_source_locators(tmp_path):
-    """H-01: the renamed NO_SOURCE_LOCATORS reason surfaces (never invented,
-    never silent) on both the rows join and the criterion-refs sources.
-    Locator coverage is evaluated on decided rows, so the fixture keeps
-    decisions and strips only the locator fields."""
-    ws = _make_ws(tmp_path, n_batches=1, with_decisions=True)
-    batch_file = ws / "literature" / "screening" / "batch_000.json"
-    batch = json.loads(batch_file.read_text(encoding="utf-8"))
-    for paper in batch["papers"]:
-        for key in ("doi", "url", "venue", "year"):
-            paper.pop(key, None)
-    batch_file.write_text(json.dumps(batch), encoding="utf-8")
-    verified = json.loads(
-        (ws / "literature" / "verified.json").read_text(encoding="utf-8")
-    )
-    for entry in verified:
-        for key in ("doi", "url", "venue", "year", "external_ids"):
-            entry.pop(key, None)
-    (ws / "literature" / "verified.json").write_text(
-        json.dumps(verified), encoding="utf-8"
-    )
-    client = TestClient(create_app(ws))
-    rows = client.get("/api/v1/screening/ui/batch/0/rows").json()
-    assert {"study": "SCI-000001", "reason": "NO_SOURCE_LOCATORS"} in rows["missing"]
-    refs = client.get("/api/v1/screening/ui/batch/0/criterion-refs").json()
-    assert {"study": "SCI-000001", "reason": "NO_SOURCE_LOCATORS"} in refs["missing"]
 
 
 def test_ui_loopback_cors_allows_get_only(tmp_path):
@@ -1026,14 +891,3 @@ def test_ui_loopback_cors_allows_get_only(tmp_path):
         },
     )
     assert "POST" not in pre.headers.get("access-control-allow-methods", "")
-
-
-def test_ui_audit_feed_skips_an_unparseable_journal_line(tmp_path):
-    """M6-beta (review T-P1-3): the skip path called an undefined `logger`, so one bad line made the feed a 500."""
-    ws = _make_ws(tmp_path)
-    journal = ws / "audit" / "journal.jsonl"
-    journal.parent.mkdir(parents=True, exist_ok=True)
-    with journal.open("a", encoding="utf-8") as f:
-        f.write("{not json\n")
-    response = TestClient(create_app(ws)).get("/api/v1/screening/ui/audit-feed")
-    assert response.status_code == 200, response.text

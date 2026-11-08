@@ -241,8 +241,9 @@ def create_app(
     app.include_router(streams_api.router)
 
     @app.get("/healthz")
-    def healthz() -> dict[str, str | None]:
-        return {"status": "ok", "workspace": str(ws) if ws is not None else None}
+    def healthz() -> dict[str, str]:
+        # Open before authentication, so it names nothing on disk (M6-hardening H3).
+        return {"status": "ok"}
 
     if launch_codes is not None and browser_session is not None:
 

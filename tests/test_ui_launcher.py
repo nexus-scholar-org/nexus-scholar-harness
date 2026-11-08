@@ -85,7 +85,7 @@ def test_the_landing_page_and_the_empty_root(tmp_path, ui):
     app = launcher.Launcher(root=empty, workspace=None, **quiet)
     client = TestClient(app.build_app(None), base_url="http://127.0.0.1:8770", headers={"Authorization": f"Bearer {app.token}"})
     assert client.get("/api/v1/workspaces").json()["current"] is None
-    assert client.get("/healthz").json() == {"status": "ok", "workspace": None}
+    assert client.get("/healthz").json() == {"status": "ok"}  # names no path (M6-hardening H3)
     assert client.get("/api/v1/workspace/meta").json()["detail"]["code"] == "WORKSPACE_NOT_VALID"
     assert client.post("/api/v1/workspaces", json={"title": "Fresh"}).status_code == 201
 

@@ -880,9 +880,8 @@ def test_gets_never_mutate(tmp_path):
     battery = [
         "/api/v1/screening/actions/pairing/status?batch=1",
         "/api/v1/screening/ui/batches",
-        "/api/v1/screening/ui/batch/1/rows",
         "/api/v1/screening/ui/batch/1/review",
-        "/api/v1/screening/ui/batch/9/rows",
+        "/api/v1/screening/ui/batch/9/review",
         "/api/v1/screening/actions/pairing/status?batch=9",
     ]
     for route in battery:
