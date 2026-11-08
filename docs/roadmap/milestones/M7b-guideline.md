@@ -21,6 +21,9 @@ Why: this is step 11 of the researcher's beta plan of 2026-11-07. Decision: [202
 ## Findings fixed
 | ID | Reproducing test | Fails before | Passes after |
 | :-- | :-- | :-- | :-- |
+| deferred M6-hardening/M7-method: the triage keyboard race | `tests-browser/triage-desktop.spec.ts` "ten records decided by keyboard" (`--repeat-each`) | yes: 4 of 8 failed (a decision never reached the engine) | yes: 12/12, then the full Playwright run 173/0 |
+| review 1: numbers-trace under `prisma-2020` | `test_methods_method_block.py::test_the_methods_paragraph_names_the_guideline[prisma-2020]` | yes (the reviewer reproduced it) | yes |
+| review 2: Publish guessed PRISMA 2020 on a failed settings call | vitest `publish.reporting` "names no guideline when the settings call fails" | yes | yes |
 
 ## Decisions
 - [2026-11-08, Reporting follows a guideline chosen in the protocol](../../decisions.md) (researcher, accepted 2026-11-08).
@@ -33,8 +36,15 @@ Why: this is step 11 of the researcher's beta plan of 2026-11-07. Decision: [202
 | closure (RELEASE) | `37a2057` | `pytest -q -n auto` | **4493 passed, 15 skipped, 0 failed** | 6 m 06 s |
 | closure (RELEASE) | `37a2057` | `uv build --wheel` | `nexus_scholar-1.1.0b2-py3-none-any.whl` | |
 | closure (RELEASE) | `37a2057` | typecheck, vitest, `next build`, Playwright (light and dark) | tsc clean; vitest **283/283**; build clean; Playwright **172 passed, 1 failed, 13 skipped**. The failure was `locale-routing.spec.ts` N2 (dark): `html lang` read null once. Re-run `--repeat-each=3`: **48/48 passed**. This branch does not touch locale routing | 4 m 42 s |
+| review | `fbcbb64` | milestone-reviewer | CHANGES: P2 numbers-trace failed under `prisma-2020`; P2 Publish guessed a guideline on error; two P3s. Fixed in `1579f1d` | |
+| pr (repair) | `1579f1d` | `--check` and ruff; `pytest -q -n auto`; vitest | pass; **4493 passed, 0 failed**; **284/284** | 5 m 10 s |
+| pr (repair) | `1579f1d` | Playwright | 171 passed, **2 failed**: the triage ten-records keyboard test in both themes. Run alone: 4 of 8 failed | |
+| re-review | `1579f1d` | milestone-reviewer | CHANGES (docs only): `reporting_source: "defaults"` and `reporting_label` were undocumented. Fixed in `0229a56` | |
+| root cause | `0229a56`+ | triage-page.tsx | the key handler was swapped in a passive effect, after paint; a key pressed once the next record was visible could reach the previous record's handler. Now a layout effect | |
+| closure (UI) | final | vitest; Playwright full run | **284/284**; **173 passed, 13 skipped, 0 failed**; the ten-records test passed 12/12 alone | 3 m 18 s |
 
 ## Deferred
+- **The triage keyboard race is fixed here,** not deferred: it blocked this gate (4 of 8 runs failed). It was a one-line move of the key-handler swap into `useLayoutEffect`.
 - **Import screen copy** (`screening-import.tsx`, review follow-up). "PRISMA asks for it" and "Counts for your PRISMA flow diagram" still read PRISMA under every guideline. Out of scope here, which covered Publish and Export only.
 - **The golden run's methods paragraph will now say PRISMA-ScR.** Every committed UAV workspace is `SCOPING_REVIEW`, and the decision intends this.
 - **No protocol** gives `reporting_source: "defaults"` (review 3), and `EffectiveMethod` has no silent defaults (review 4).
