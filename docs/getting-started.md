@@ -6,7 +6,7 @@ Everything runs on your computer. No account or API key is needed (the AI
 agent is optional and not covered here).
 
 The commands are the same on Windows (PowerShell), macOS and Linux unless a
-step says otherwise. This guide is for the beta, version **1.1.0b2**. To check
+step says otherwise. This guide is for the beta, version **1.1.0b3**. To check
 the version you have, run `nexus-scholar --version`.
 
 ## 1. Install uv (once)
@@ -32,7 +32,7 @@ installs the `nexus-scholar` command for your user. Check it:
 nexus-scholar --version
 ```
 
-It should print `nexus-scholar 1.1.0b2`. You can now run `nexus-scholar` from any
+It should print `nexus-scholar 1.1.0b3`. You can now run `nexus-scholar` from any
 folder, and you do not need to activate anything. If you use pip instead of uv:
 `pip install --pre nexus-scholar`.
 
@@ -173,7 +173,7 @@ cd nexus-scholar-harness
 npm --prefix apps/research-ui ci
 npm --prefix apps/research-ui run build:export
 uv build --wheel
-uv tool install --force dist/nexus_scholar-1.1.0b2-py3-none-any.whl
+uv tool install --force dist/nexus_scholar-1.1.0b3-py3-none-any.whl
 ```
 
 The wheel's file name carries the version in `pyproject.toml`. If the app opens

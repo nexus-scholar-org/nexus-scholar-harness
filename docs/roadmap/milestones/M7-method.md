@@ -1,5 +1,5 @@
 # M7-method: method parameters move into the protocol
-Branch: `dev/m7/method-block` · Lane: **RELEASE** (protocol identity, screening outcomes and the methods paragraph; a possible Contract v1 schema change; `test_gate_policy.md` §lanes) · Status: READY FOR PR · Started: 2026-11-08
+Branch: `dev/m7/method-block` · Lane: **RELEASE** (protocol identity, screening outcomes and the methods paragraph; a possible Contract v1 schema change; `test_gate_policy.md` §lanes) · Status: MERGED (PR #201, `addb539`) · Started: 2026-11-08
 
 Why: this is step 10 of the researcher's beta plan of 2026-11-07. Decision: [2026-11-08, Method parameters move into the protocol](../../decisions.md). It accepts point 2 of the 2026-11-06 "Three kinds of parameter" entry. Four values that can change what is included, or how biased the screening is, become an optional `method` block in `protocol.json`: the dedup tiers, the rule-table version, the not-reported policy, and blinding. Batch size stays a Prepare setting. Existing workspaces keep their fingerprints and run on the defaults.
 

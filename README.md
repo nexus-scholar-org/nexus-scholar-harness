@@ -20,7 +20,7 @@ The `nexus-scholar` package bundles the harness, eight scientific kits and an MC
 | Full text, extraction, synthesis, graph, verification | Kits in the package | Parked: not production, labelled so in `--help` |
 | Development branch (`main`) | The next beta | May differ from the installed release |
 
-The latest release is the beta [v1.1.0b2](https://github.com/nexus-scholar-org/nexus-scholar-harness/releases/tag/v1.1.0b2) (a pre-release, also on PyPI). Later work on `main` is not a claim about that release's behavior.
+The latest release is the beta [v1.1.0b3](https://github.com/nexus-scholar-org/nexus-scholar-harness/releases/tag/v1.1.0b3) ([release notes](docs/releases/1.1.0b3.md)) (a pre-release, also on PyPI). Later work on `main` is not a claim about that release's behavior.
 
 ## Start a workspace
 
@@ -34,7 +34,7 @@ nexus-scholar --version
 nexus-scholar ui
 ```
 
-`nexus-scholar --version` should print `nexus-scholar 1.1.0b2`. With pip, use `pip install --pre nexus-scholar`. The app opens in your browser on **Workspaces**; everything runs on your computer.
+`nexus-scholar --version` should print `nexus-scholar 1.1.0b3`. With pip, use `pip install --pre nexus-scholar`. The app opens in your browser on **Workspaces**; everything runs on your computer.
 
 From a terminal, create a project and inspect its setup:
 
