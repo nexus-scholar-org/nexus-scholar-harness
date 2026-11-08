@@ -150,3 +150,17 @@ def test_the_ready_panel_lists_every_accepted_criterion(tmp_path, monkeypatch):
     assert PROOF_CRITERION in panel
     assert "closed-source models [OUT_OF_SCOPE]" in panel
     assert "inclusion: 1" not in panel
+
+
+def test_the_scaffold_only_placeholder_fingerprint_does_not_move(tmp_path):
+    """INC-22 changes the wizard, not the deterministic placeholder protocol.
+
+    The golden value was computed at `a273fc6` (main before M4a) with the same
+    title and timestamp.
+    """
+    from scholar_harness.inception.genesis import scaffold_placeholder_workspace
+
+    result = scaffold_placeholder_workspace(
+        tmp_path / "ws", "Placeholder Golden", agent="test", timestamp="2026-09-06T12:00:00+00:00"
+    )
+    assert result["protocol_fingerprint"] == "sha256:b7ea8b86a7fc4a2f69f325fca79953a8b9784e0cab02590722bd74dc4587f973"

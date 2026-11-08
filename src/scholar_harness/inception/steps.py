@@ -27,7 +27,13 @@ from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
-from .emit import GenesisRefused, check_writable, emit_workspace, screening_state
+from .emit import (
+    GenesisRefused,
+    check_writable,
+    emit_workspace,
+    existing_markers,
+    screening_state,
+)
 from .genesis import (
     _default_matrix_dimensions,
     compile_intent,
@@ -322,19 +328,34 @@ def genesis(
         raise StepRefused(
             "CONFIRMATION_MISMATCH", f"type the workspace name '{slug}' to confirm", details={"expected": slug}
         )
+    # As POST /workspaces: any existing folder that is not a workspace is refused,
+    # so a failure below can only ever remove a folder this request created.
+    if target.exists() and not existing_markers(target):
+        raise StepRefused(
+            "WORKSPACE_EXISTS", f"{target} already exists and is not a workspace; choose another title",
+            status=409, details={"path": str(target)},
+        )
     try:
         guard = check_writable(target, replace=replace, discard_screening_binding=discard)
     except GenesisRefused as exc:
         raise StepRefused(exc.code, exc.message, status=409, details=exc.details) from exc
-    new = not guard["exists"]
+    created = not guard["exists"] and not target.exists()
     try:
         result = emit_workspace(intent, target_dir=target, replace=replace, discard_screening_binding=discard, agent=agent)
-        if new:
+        if created:
             install_workspace_support_files(target)
     except GenesisRefused as exc:
         raise StepRefused(exc.code, exc.message, status=409, details=exc.details) from exc
+    except (OSError, shutil.Error) as exc:
+        if created:
+            shutil.rmtree(target, ignore_errors=True)
+        raise StepRefused(
+            "WORKSPACE_ROOT_UNAVAILABLE",
+            f"the workspace could not be written under {workspaces_root}: {type(exc).__name__}: {str(exc)[:300]}",
+            status=409,
+        ) from exc
     except BaseException:
-        if new:
+        if created:
             shutil.rmtree(target, ignore_errors=True)
         raise
     return {"slug": slug, "path": str(target), **result}

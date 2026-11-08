@@ -15,7 +15,7 @@ This is **not** a re-implementation. You reuse the real machinery:
 
 - **MCP recon tools** (nexus-scholar server): `recon_probe`, `recon_distill`, `recon_delta`. They carry FAIR session memory under the **canonical recon root** (`NEXUS_RECON_ROOT` if set, else `<project-root>/.cache/inception_recon`, resolved by walking up from the source tree so the MCP server and the CLI agree) and are idempotent (content-addressed cache keys — re-probing the same query is free).
 - **Parity helper** `scripts/grounded_directions.py`, which imports the *actual* wizard functions from the `scholar_harness.inception` package (`grounded._grounded_directions_for_terms`, `grounded._grounded_default_concepts`) so the directions you propose are **exactly** the ones the `--grounded` wizard would compute — same anchor filter (≥ 2 distinct DOIs), same ordering (multi-word → frequency → lexicographic), same ≤ 3 cap, and the same P1 behaviour: junk fragments (numeric/verb/venue-scrape) are filtered and at most one direction per lexical family is proposed (plural-normalized, so LLM spelling variants collapse but `vision-language-action vla models` and `self-regulated learning srl` stay distinct).
-- **workspace-manager** skill scripts for emission (`init_project.py`, `log_event.py`); **methodology-copilot** for the classic interview/intent-packet conventions when you reach the non-grounded stages.
+- **The gated emit helper** `scripts/emit_protocol.py` for every write (M4a): it calls `scholar_harness.inception.emit.emit_workspace`, the same overwrite-guarded path as the CLI wizard. Use **methodology-copilot** for the classic interview and intent-packet conventions when you reach the non-grounded stages, but emit only through this helper.
 
 ## Task routing
 
@@ -104,7 +104,8 @@ Follow **methodology-copilot** for the interviews that follow a direction choice
 Then emit **only after the user's explicit confirmation** (ask, mirroring the wizard's final confirm; a declined or dry run writes nothing). Emit through the gated helper. It is the same path as the CLI wizard and the HTTP route (`scholar_harness.inception.emit.emit_workspace`): it scaffolds, compiles, and logs GENESIS with the `recon_context` sidecar.
 
 ```bash
-# 1. Write intent.json (methodology-copilot IntentPacket schema) with the accepted criteria only.
+# 1. Write intent.json (methodology-copilot IntentPacket schema) with the accepted criteria only,
+#    to a scratch path OUTSIDE any workspace (never into an existing workspace folder).
 # 2. Preview: compiles in memory, prints the fingerprint and the exact SCREENING_CRITERIA.md text,
 #    and writes nothing. Show the criteria text to the researcher.
 {PY} {SKILL_DIR:inception-agent}/scripts/emit_protocol.py --intent <intent.json> --root <repo root> --preview
@@ -144,18 +145,18 @@ This skill describes the committed interfaces only. HCM-02 must revisit the Stag
 
 - Wizard lifecycle: `src/scholar_harness/inception/wizard.py` (`run_wizard`, `inception_command`, `init_command`).
 - Grounded recon + anchors: `src/scholar_harness/inception/grounded.py` (`_run_grounded_recon`, `_grounded_directions_for_terms`, `_grounded_default_concepts`, `_enforce_grounded_anchors`).
-- Emission + identity: `src/scholar_harness/inception/genesis.py` (`scaffold_project`, `compile_protocol_files`, `log_genesis`, `mint_registered_workspace_id`, `recorded_or_minted_workspace_id`); inline cap `display._INLINE_LIST_CAP` (50).
+- Emission + identity: `src/scholar_harness/inception/emit.py` (`emit_workspace`, the only write path, with its overwrite guard) over `genesis.py` (`compile_intent`, `compile_protocol_files`, `log_genesis`, `mint_registered_workspace_id`, `recorded_or_minted_workspace_id`); inline cap `display._INLINE_LIST_CAP` (50).
 - Parity helper CLI: `{SKILL_DIR:inception-agent}/scripts/grounded_directions.py` (`--terms` + `--topic` required; `--pool`, `--direction`, `--max-default-concepts` optional).
-- Emission CLIs: `{SKILL_DIR:workspace-manager}/scripts/init_project.py` (positional title; `--slug/--description/--paradigm/--rq/--keyword/--root` optional); `{SKILL_DIR:workspace-manager}/scripts/log_event.py` (positional project; `--action/--agent/--description/--inputs/--outputs/--status`; the metrics field is a Python keyword argument only).
-- Protocol CLIs: `{KIT_ROOT:protocol}/src/scholar_protocol/cli.py` (`compile <intent>`, `render-criteria <protocol>`, both positional-input plus stdout).
+- Emission CLI: `{SKILL_DIR:inception-agent}/scripts/emit_protocol.py` (`--intent` plus `--root` or `--dir`; `--preview`, `--recon-context`, `--replace`, `--discard-screening-binding` optional). Never scaffold with `init_project.py` or write `protocol.json` with the protocol CLI's `compile` redirect: neither is guarded.
+- Ledger CLI for entries other than GENESIS: `{SKILL_DIR:workspace-manager}/scripts/log_event.py` (positional project; `--action/--agent/--description/--inputs/--outputs/--status`; the metrics field is a Python keyword argument only).
 
 ## Preflight
 
 - `{CLI:agent} --help` succeeds (frontmatter `requires: [scholar-agent]`); otherwise stop with `BLOCKED_INPUT`.
 - The MCP recon tools (`recon_probe`, `recon_distill`, `recon_delta`) are callable in this session; if not, the headless fallback is `{CLI:harness} inception --grounded`.
 - The parity helper resolves: `{SKILL_DIR:inception-agent}/scripts/grounded_directions.py`.
-- Emission CLIs resolve: `{SKILL_DIR:workspace-manager}/scripts/init_project.py` and `log_event.py`.
-- `{WORKSPACE}` resolves before emission (the scaffold mints `project.json`; `protocol.json` is compiled from `{WORKSPACE}/intent.json` at Stage 6).
+- The emit helper resolves: `{SKILL_DIR:inception-agent}/scripts/emit_protocol.py`.
+- The workspace does not exist before emission: the helper scaffolds it and mints `project.json`. `intent.json` is written to a scratch path **outside** any workspace, and the helper copies it in.
 
 ## Refusals
 

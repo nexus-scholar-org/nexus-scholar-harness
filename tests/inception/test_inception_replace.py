@@ -20,6 +20,7 @@ from typer.testing import CliRunner
 
 from scholar_harness.cli import app
 from scholar_harness.inception import run_wizard
+from scholar_harness.inception.emit import screening_state
 
 SLUG = "on-device-weed-detection-for-embedded-agriculture"
 SENTINEL = b'{"sentinel": "live protocol"}'
@@ -76,7 +77,8 @@ def test_replace_backs_up_the_old_protocol_and_keeps_the_manifest(tmp_path):
     _first_run(tmp_path)
     ws = tmp_path / "workspaces" / SLUG
     manifest = _make_live(ws)
-    old_fingerprint = "sha256:" + hashlib.sha256(SENTINEL).hexdigest()
+    # The sentinel is not a protocol, so it is named by a labelled byte hash.
+    old_fingerprint = "file-sha256:" + hashlib.sha256(SENTINEL).hexdigest()
 
     result = run_wizard(ScriptedResponder(list(E2E_ANSWERS)), tmp_path, genesis_timestamp=GENESIS_TS, replace=True)
 
@@ -107,11 +109,33 @@ def _add_screening_decision(ws):
     (events / "researcher.jsonl").write_text('{"event_id": "e1"}\n{"event_id": "e2"}\n', encoding="utf-8")
 
 
-def test_replace_refuses_a_workspace_bound_to_screening(tmp_path):
+def _add_batch_decisions(ws):
+    screening = ws / "literature" / "screening"
+    screening.mkdir(parents=True, exist_ok=True)
+    (screening / "batch_000_decisions.json").write_text('{"decisions": []}', encoding="utf-8")
+
+
+def _add_publication(ws):
+    screening = ws / "literature" / "screening"
+    screening.mkdir(parents=True, exist_ok=True)
+    (screening / "generation.json").write_text('{"generation": 1}', encoding="utf-8")
+
+
+@pytest.mark.parametrize(
+    ("bind", "expected"),
+    [
+        (_add_screening_decision, {"decision_events": 2, "decision_files": 0, "published": False}),
+        (_add_batch_decisions, {"decision_events": 0, "decision_files": 1, "published": False}),
+        (_add_publication, {"decision_events": 0, "decision_files": 0, "published": True}),
+    ],
+    ids=["decision-events", "batch-decision-file", "publication"],
+)
+def test_replace_refuses_a_workspace_bound_to_screening(tmp_path, bind, expected):
     _first_run(tmp_path)
     ws = tmp_path / "workspaces" / SLUG
     _make_live(ws)
-    _add_screening_decision(ws)
+    bind(ws)
+    assert {k: v for k, v in screening_state(ws).items() if k != "bound"} == expected
 
     with pytest.raises(typer.Exit) as exc:
         run_wizard(ScriptedResponder(list(E2E_ANSWERS)), tmp_path, genesis_timestamp=GENESIS_TS, replace=True)

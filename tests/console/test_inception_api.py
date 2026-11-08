@@ -163,3 +163,69 @@ def test_the_phone_cannot_reach_inception(root):
     app = create_app(None, token=DESKTOP, phone_tokens={PHONE}, workspaces_root=root)
     phone = TestClient(app, base_url="http://127.0.0.1", headers={"Authorization": f"Bearer {PHONE}"})
     assert phone.post(f"{BASE}/drafts", json={"draft": {}}).status_code in (401, 403)
+
+
+def test_genesis_refuses_a_folder_that_is_not_a_workspace_and_keeps_it(root):
+    """Review P1: a foreign folder named like the slug is never written or removed."""
+    (root / SLUG).mkdir()
+    (root / SLUG / "my_notes.txt").write_text("mine", encoding="utf-8")
+    client = _client(root)
+    sid = client.post(f"{BASE}/drafts", json={"draft": _draft()}).json()["session_id"]
+    refused = client.post(f"{BASE}/drafts/{sid}/genesis", json={})
+    assert refused.status_code == 409 and refused.json()["detail"]["code"] == "WORKSPACE_EXISTS"
+    assert _tree(root / SLUG) == ["my_notes.txt"]
+
+
+def test_a_failed_genesis_removes_only_the_folder_it_created(root, monkeypatch):
+    import scholar_harness.inception.steps as steps_mod
+
+    def boom(_target):
+        raise OSError("disk full")
+
+    monkeypatch.setattr(steps_mod, "install_workspace_support_files", boom)
+    client = _client(root)
+    sid = client.post(f"{BASE}/drafts", json={"draft": _draft()}).json()["session_id"]
+    failed = client.post(f"{BASE}/drafts/{sid}/genesis", json={})
+    assert failed.status_code == 409 and failed.json()["detail"]["code"] == "WORKSPACE_ROOT_UNAVAILABLE"
+    assert not (root / SLUG).exists()
+    assert client.get(f"{BASE}/drafts/{sid}").json()["emitted"] is None
+
+
+def test_genesis_over_http_needs_the_typed_slug_for_a_bound_workspace(root):
+    client = _client(root)
+    first = client.post(f"{BASE}/drafts", json={"draft": _draft()}).json()["session_id"]
+    made = client.post(f"{BASE}/drafts/{first}/genesis", json={}).json()
+    screening = root / SLUG / "literature" / "screening"
+    screening.mkdir(parents=True, exist_ok=True)
+    (screening / "generation.json").write_text("{}", encoding="utf-8")
+
+    second = client.post(f"{BASE}/drafts", json={"draft": _draft()}).json()["session_id"]
+    bound = client.post(f"{BASE}/drafts/{second}/genesis", json={"replace": True})
+    assert bound.status_code == 409
+    assert bound.json()["detail"]["code"] == "SCREENING_BOUND"
+    assert bound.json()["detail"]["details"]["published"] is True
+
+    wrong = client.post(f"{BASE}/drafts/{second}/genesis", json={"replace": True, "confirm_discard_screening_binding": "yes"})
+    assert wrong.status_code == 422 and wrong.json()["detail"]["code"] == "CONFIRMATION_MISMATCH"
+
+    ok = client.post(f"{BASE}/drafts/{second}/genesis", json={"replace": True, "confirm_discard_screening_binding": SLUG})
+    assert ok.status_code == 201, ok.text
+    assert ok.json()["previous_fingerprint"] == made["protocol_fingerprint"]
+    genesis = [json.loads(line) for line in (root / SLUG / "audit" / "journal.jsonl").read_text(encoding="utf-8").splitlines()][-1]
+    assert "screening binding discarded" in genesis["description"]
+
+
+def test_every_inception_refusal_code_is_registered():
+    """The codes the inception routes raise are in the console refusal set (and the contract §7 table)."""
+    import re
+    from pathlib import Path
+
+    from scholar_harness.console import refusals
+
+    src = Path(__file__).resolve().parents[2] / "src" / "scholar_harness"
+    files = [src / "console" / "api" / "inception.py"] + [src / "inception" / f for f in ("steps.py", "drafts.py", "emit.py")]
+    raised = set()
+    for path in files:
+        raised |= set(re.findall(r'(?:Refused|GenesisRefused)\(\s*"([A-Z_]+)"', path.read_text(encoding="utf-8")))
+    assert len(raised) >= 14  # anti-vacuity
+    assert raised <= refusals.CONSOLE_REFUSALS, raised - refusals.CONSOLE_REFUSALS

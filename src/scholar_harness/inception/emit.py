@@ -121,10 +121,22 @@ def check_writable(
 
 
 def _fingerprint_of(path: Path) -> str | None:
+    """The protocol fingerprint the screening bindings carry (``canonical_fingerprint``).
+
+    A file that does not validate as a protocol gets a byte hash, labelled
+    ``file-sha256:`` so it is never mistaken for a protocol fingerprint.
+    """
     try:
-        return "sha256:" + hashlib.sha256(path.read_bytes()).hexdigest()
+        raw = path.read_bytes()
     except OSError:
         return None
+    try:
+        from scholar_protocol.canonical import canonical_fingerprint
+        from scholar_protocol.models import ResearchProtocol
+
+        return canonical_fingerprint(ResearchProtocol.model_validate(json.loads(raw)))
+    except Exception:  # noqa: BLE001 - anything unreadable as a protocol is hashed as bytes
+        return "file-sha256:" + hashlib.sha256(raw).hexdigest()
 
 
 def _backup(ws_dir: Path, stamp: str) -> Path:
