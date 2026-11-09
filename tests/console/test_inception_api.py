@@ -240,12 +240,16 @@ def _state(ws):
     """
     out: dict[str, set[tuple[int, bytes]]] = {}
     for path in ws.rglob("*"):
-        if not path.is_file():
-            continue
         rel = path.relative_to(ws).as_posix()
         if rel.startswith(".agents/skills/"):
-            rel = ".agents/skills/"
-        elif rel.startswith("audit/replaced/"):
+            # On Linux and macOS a skill is a symlinked folder (rglob does not enter
+            # it); on Windows it is copied. Either way the skill was written.
+            if path.is_symlink() or path.is_file():
+                out.setdefault(".agents/skills/", set()).add((path.lstat().st_mtime_ns, rel.encode()))
+            continue
+        if not path.is_file():
+            continue
+        if rel.startswith("audit/replaced/"):
             rel = "audit/replaced/<UTC stamp>/"
         out.setdefault(rel, set()).add((path.stat().st_mtime_ns, path.read_bytes()))
     return out
