@@ -1,5 +1,5 @@
 # M4c Recon over HTTP
-Branch: `dev/m4c/recon-http` · Lane: **RELEASE**. The milestone changes public HTTP and MCP semantics: new `/api/v1/inception/drafts/{id}/recon/...` routes, new fields and a `refresh` parameter on the `recon_*` tools, and recon adapter 1.1. It also changes artifact persistence: what the recon cache keeps and what a draft record holds. `test_gate_policy.md` §lanes therefore puts it in RELEASE. · Status: IN PROGRESS · Started: 2026-11-09
+Branch: `dev/m4c/recon-http` · Lane: **RELEASE**. The milestone changes public HTTP and MCP semantics: new `/api/v1/inception/drafts/{id}/recon/...` routes, new fields and a `refresh` parameter on the `recon_*` tools, and recon adapter 1.1. It also changes artifact persistence: what the recon cache keeps and what a draft record holds. `test_gate_policy.md` §lanes therefore puts it in RELEASE. · Status: READY FOR PR (review APPROVE on the repair delta at `a7da534`; PR gate green on `a7da534`) · Started: 2026-11-09
 
 Why: plan §6 row "M4 Inception web" lists "recon over HTTP" and INC-09/21. M4a (PR #206) held them until M3a (PR #204) rewrote the `scholar_search` providers. M4b (PR #209) left Explore and Direction as placeholders "coming with recon".
 
@@ -37,11 +37,11 @@ Why: plan §6 row "M4 Inception web" lists "recon over HTTP" and INC-09/21. M4a 
     - the recon events stream is in the proxy's `STREAM_PATHS`;
     - the fallback direction is no longer offered (03 Q5).
   - FINAL waits for the researcher's answers.
-- [ ] **Gate.**
+- [x] **Gate.**
   - [x] `/gate inner` after edits.
-  - [ ] `/gate pr` once on the final commit.
+  - [x] `/gate pr` on the final executable commit `a7da534`. The commit after it only removes a blank line at the end of two files.
   - [x] Contract check.
-  - [ ] `milestone-reviewer`.
+  - [x] `milestone-reviewer`: CHANGES at `3594571`, then APPROVE on the repair delta.
 
 ## Findings fixed
 | ID | Reproducing test | Fails before | Passes after |
@@ -76,6 +76,10 @@ Why: plan §6 row "M4 Inception web" lists "recon over HTTP" and INC-09/21. M4a 
 | checkpoint | `8e44451` | `pytest -n auto` (whole suite, with the offline guard) | 3 failed: RAG tests reaching the Hugging Face Hub (`test_cli_matrix_command`, `test_nexus_rag_and_matrix_tools`, `test_cli_index_and_query_flow`). Fixed with `HF_HUB_OFFLINE` and a CI pre-fetch; the three then pass | |
 | pr | `3594571` | `pytest -n auto` (whole suite, offline guard on) | **4648 passed, 15 skipped, 0 failed** | 8 m 17 s |
 | review | `3594571` | milestone-reviewer | CHANGES. P1: the PR gate was not yet recorded. P2: the cassette address check could not fail. P2: the gap check lost provider outcomes (INC-09 provenance). P3: directions differ by front door; jobs never evicted; session writes share one tmp name; no negative forge test; no flag for a changed question. All fixed or deferred below | |
+| inner | `a7da534` | `pytest tests/console tests/inception tests/recon tests/kits/agent tests/mcp tests/unit/test_recon_adapter_characterization.py tests/unit/test_offline_guard.py tests/pipeline/test_golden_recon_cassette.py tests/cli -m "not slow" -n auto` | **986 passed, 1 skipped** | 2 m 08 s |
+| pr | `a7da534` | `pytest -n auto` (whole suite, offline guard on) | **4653 passed, 15 skipped, 0 failed** | 7 m 13 s |
+| re-review | `a7da534` | milestone-reviewer (repair delta `3594571..a7da534`) | **APPROVE**, conditional on recording this PR gate. It ran 19 targeted tests and the contract check. P3 notes: each gap check stamps a new `created_at`, so it always makes a binding stale (as decided; spec 03 Q2); `adaptive.py` had no final newline | |
+| closure | `a7da534` and the whitespace commit | contract baseline, schemas, protocol schema and two-study fixture `--check`; `ruff check scripts/`; real-bug `ruff check src/`; `git diff --check origin/main...HEAD` | all pass. `git diff --check` found a blank line at the end of `grounding.py`; the whitespace commit removes it and adds the final newline to `adaptive.py` | |
 | record | working tree | `NEXUS_RECORD_CASSETTES=1 SCHOLAR_MAILTO=<researcher> pytest tests/pipeline/test_golden_recon_cassette.py` (one live run, approved) | cassette written: OpenAlex, Crossref and arXiv 200; Semantic Scholar 429 | |
 | inner | working tree | `pytest tests/recon tests/console/test_recon_api.py tests/pipeline/test_golden_recon_cassette.py tests/console/test_browser_access.py -n auto`; `vitest run tests/console-proxy.test.ts`; `tsc --noEmit` | 150 passed (replay, offline); 57 passed; clean | 1 m 17 s |
 

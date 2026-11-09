@@ -203,4 +203,3 @@ def recon_context(grounding: dict[str, Any], rqs: list[str], concepts: list[str]
         "apr_observed": compute_apr_observed({c: evidence[c] for c in concepts if c in evidence}),
         "rq_evidence": rq_evidence(rqs, grounding),
     }
-
