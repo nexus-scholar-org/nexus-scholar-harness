@@ -37,20 +37,24 @@ export function AppShell({
   children,
 }: Readonly<{ locale: Locale; children: ReactNode }>) {
   const pathname = usePathname() ?? `/${locale}`;
+  // Triage fits one desktop screen (spec 03, M8-triage 1): from 1024 px the shell is
+  // exactly the viewport tall and the footer is not rendered; panes scroll, never the page.
+  // Overflow is not clipped here, so a layout that spills still shows as a page scroll.
+  const oneScreen = isOneScreenRoute(pathname);
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className={oneScreen ? "flex min-h-screen flex-col lg:h-dvh lg:min-h-0" : "flex min-h-screen flex-col"} data-one-screen={oneScreen || undefined}>
       <a className="skip-link" href={`#${MAIN_CONTENT_ID}`}>
         {translate(locale, "a11y.skipToMain")}
       </a>
 
       <SiteHeader locale={locale} pathname={pathname} />
 
-      <main id={MAIN_CONTENT_ID} tabIndex={-1} className="flex-1 focus:outline-none">
+      <main id={MAIN_CONTENT_ID} tabIndex={-1} className={oneScreen ? "flex-1 focus:outline-none lg:flex lg:min-h-0 lg:flex-col" : "flex-1 focus:outline-none"}>
         {children}
       </main>
 
-      <footer className="border-t border-rule bg-leaf">
+      <footer className={oneScreen ? "border-t border-rule bg-leaf lg:hidden" : "border-t border-rule bg-leaf"}>
         <div className="mx-auto flex max-w-7xl flex-col gap-1.5 px-4 py-5 text-xs leading-5 text-ink-muted sm:px-6 md:flex-row md:items-center md:justify-between md:gap-6 lg:px-8">
           <p className="flex flex-col gap-1.5 md:flex-row md:items-center md:gap-3">
             <span className="font-display text-sm font-semibold text-ink">{translate(locale, "brand.productName")}</span>
@@ -67,4 +71,9 @@ export function AppShell({
       </footer>
     </div>
   );
+}
+
+/** Routes laid out as one desktop screen with no page scroll: triage (spec 03, M8-triage). */
+export function isOneScreenRoute(pathname: string): boolean {
+  return /^\/[^/]+\/screening\/triage\/?$/.test(pathname);
 }
