@@ -684,6 +684,28 @@ describe("triage.all-decided", () => {
     expect(screen.queryByTestId("proposal-aside")).toBeNull();
     expect(screen.getByText("Every record has your decision.")).toBeInTheDocument();
   });
+
+  it("still reaches a decided record from Queue once every record is decided", async () => {
+    for (const s of studies()) {
+      engine.events.push({ event_id: `e-${s.study_id}`, study_id: s.study_id, outcome: "INCLUDE", supersedes: null, binding: BINDING, criteria: [] } as unknown as StoredEvent);
+    }
+    render(<TriagePage locale="en" />);
+    await screen.findByRole("heading", { name: "All 3 records are decided" });
+    fireEvent.click(screen.getByRole("button", { name: /^Queue/ }));
+    fireEvent.change(screen.getByRole("combobox", { name: "Show" }), { target: { value: "decided" } });
+    await screen.findByText("Drone weed mapping", { selector: "p bdi" });
+    expect(await screen.findByRole("button", { name: "Change my decision" })).toBeInTheDocument();
+  });
+});
+
+describe("triage.boot-error", () => {
+  it("keeps a way out when the engine cannot be reached", async () => {
+    vi.mocked(fetch).mockImplementation(async () => json({ code: "ENGINE_DOWN" }, 503));
+    render(<TriagePage locale="en" />);
+    await screen.findByRole("alert");
+    expect(screen.getByRole("button", { name: "Try again" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Leave triage" })).toHaveAttribute("href", "/en/screening/home");
+  });
 });
 
 describe("triage.details", () => {

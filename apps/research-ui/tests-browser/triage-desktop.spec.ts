@@ -146,6 +146,26 @@ for (const viewport of [
   });
 }
 
+// The focus screen (decision 2026-11-09): from 1024 px the site header, step bar and footer give way to the triage bar.
+for (const { width, focus } of [
+  { width: 1440, focus: true },
+  { width: 800, focus: false },
+]) {
+  test(`at ${width} px the site header is ${focus ? "hidden behind the triage bar" : "shown"}`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 900 });
+    await engine(page);
+    await page.goto("/en/screening/triage");
+    await expect(page.locator("[data-position]")).toHaveText("Record 1 of 10 · batch 1");
+    await expect(page.getByRole("banner")).toHaveCount(focus ? 0 : 1);
+    await expect(page.getByRole("heading", { level: 1 })).toHaveAccessibleName(focus ? "Triage" : "Is this record in scope?");
+    if (focus) {
+      const leave = page.getByRole("link", { name: "Leave triage" });
+      for (let i = 0; i < 12 && !(await leave.evaluate((el) => el === document.activeElement)); i++) await page.keyboard.press("Tab");
+      await expect(leave).toBeFocused();
+    }
+  });
+}
+
 test("Include by I alone, and Exclude by E, a chip number and Enter, with no answers sent", async ({ page }) => {
   const decided = await engine(page);
   await page.goto("/en/screening/triage");

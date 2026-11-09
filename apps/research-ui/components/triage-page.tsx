@@ -570,16 +570,20 @@ function TriageScreen({ locale }: Readonly<{ locale: Locale }>) {
         <p className="mt-2 font-mono text-[0.8125rem] text-blocked" dir="ltr">
           {bootError}
         </p>
-        <Button className="mt-4" onClick={() => void boot()}>
-          {t("retry")}
-        </Button>
+        <p className="mt-4 flex flex-wrap items-center gap-4">
+          <Button onClick={() => void boot()}>{t("retry")}</Button>
+          {/* The site header is hidden on desktop triage (decision 2026-11-09): keep a way out. */}
+          <a href={stepHref(locale, "home", origin)} className="inline-flex min-h-11 items-center text-brand underline">
+            {t("leave")}
+          </a>
+        </p>
       </section>
     );
   }
 
   if (!settings) return <p className="text-ink-muted">{t("loading")}</p>;
 
-  const comparison = visibleProposal && decided ? compareAnswers(record!.criteria, decided.criteria, visibleProposal) : [];
+  const comparison = visibleProposal && decided ? compareAnswers(record!.criteria, decided.criteria ?? [], visibleProposal) : [];
   // What the answers allow (spec 03, M8-triage 4); it never asks for answers before a decision.
   const statusLine = !decisive
     ? ""
@@ -644,11 +648,10 @@ function TriageScreen({ locale }: Readonly<{ locale: Locale }>) {
         {/* The shell's demonstration marker covers the fixture screens; this one is live (as corpus and lineage say). */}
         <p className="inline-block border border-rule-strong px-2 py-0.5 text-xs text-ink-muted lg:hidden">{t("liveStamp")}</p>
         <div className="flex flex-wrap items-center gap-1 lg:ms-auto">
-          {items.length > 0 ? (
-            <Button variant="quiet" aria-expanded={queueOpen} aria-controls="triage-queue-list" onClick={() => setQueueOpen(!queueOpen)}>
-              {t("queueToggle")} <kbd className="text-xs opacity-80">J K</kbd>
-            </Button>
-          ) : null}
+          {/* Always shown: with an empty view, Queue is the way to the Decided view (review 2026-11-09). */}
+          <Button variant="quiet" aria-expanded={queueOpen} aria-controls="triage-queue-list" onClick={() => setQueueOpen(!queueOpen)}>
+            {t("queueToggle")} <kbd className="text-xs opacity-80">J K</kbd>
+          </Button>
           <Button variant="quiet" onClick={() => setHelp(true)}>
             {t("helpButton")} <kbd className="text-xs opacity-80">?</kbd>
           </Button>
@@ -721,7 +724,7 @@ function TriageScreen({ locale }: Readonly<{ locale: Locale }>) {
             </label>
           ) : null}
           {items.length === 0 ? (
-            <div className="mt-4 text-sm text-ink-muted">
+            <div id="triage-queue-list" className="mt-4 text-sm text-ink-muted">
               <p>{view === "needs_you" ? t("allDecided") : t("queueEmpty")}</p>
             </div>
           ) : !queueOpen ? (
