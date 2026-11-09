@@ -4,6 +4,18 @@ One entry per decision that still shapes the code, newest first. The full
 records were removed in the 2026-11-03 docs cut; each entry names the commit
 history to read if you need the original reasoning (`git log --follow -- <path>`).
 
+## 2026-11-10 — Discovery over HTTP: seven decisions for the Phase 1 screens (accepted; discovery API packet)
+
+The researcher chose these on 2026-11-10, each explained in plain terms and taken one by one. The packet is `docs/architecture/research_ui/DISCOVERY_API_PACKET.md`.
+
+1. **A harvest started from the browser runs inside the console process**, as recon does, so each database's progress is reported record by record. Closing the console stops the run; what was fetched is kept as a `PARTIAL` run. Not chosen: a subprocess job with a log poll (coarse progress).
+2. **Near-twin pair review waits.** The first Duplicates screen shows counts per rule (identifier, exact title, fuzzy title). Whether pair-by-pair review is built is decided after the researcher's own corpora show how many near-twins survive. It would change the snapshot's inputs, so it is a RELEASE-lane milestone of its own.
+3. **The recall check never rewrites the query.** It reports found or not found per database against the frozen protocol's query; a miss is recorded and never blocks the harvest; the fix is a protocol amendment through inception. The terminal tool's "heal" stays off the console.
+4. **The plan shows the exact string each database will receive before the run.** Every provider exposes its translation without a request; a test pins the preview equal to the replayed golden legs.
+5. **The contact email stays `SCHOLAR_MAILTO`.** On `MAILTO_NOT_SET` the screen prints the line to set and offers Retry; the browser writes no settings file. Revisit after testers.
+6. **No CSV import** until a tester brings a CSV-only export. RIS and PubMed `.nbib` remain the formats.
+7. **A per-run cap override is allowed from the browser**, recorded as `run_override` on every leg and in the report; the plan shows only the protocol's cap.
+
 ## 2026-11-09 — Recon over HTTP: one session store, pools that say what failed, anchors by occurrence (proposed; M4c)
 
 Proposed by the M4c session. The researcher accepts or changes it at the PR.

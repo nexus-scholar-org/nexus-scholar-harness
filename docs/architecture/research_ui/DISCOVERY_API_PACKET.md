@@ -1,6 +1,6 @@
 # Discovery API packet (Phase 1 screens 01–08)
 
-Status: DRAFT for the researcher's review, 2026-11-09. Nothing here is implemented; no route in this document exists on `main` (`dfdb691`) unless the "exists" column says so.
+Status: DECIDED 2026-11-10 (the seven decisions in §6 were taken by the researcher; recorded in [`docs/decisions.md`](../../decisions.md)). Nothing here is implemented; no route in this document exists on `main` (`dfdb691`) unless the "exists" column says so. Implementation starts with M3b-api (§7).
 Plan: [`docs/roadmap/production-plan.md`](../../roadmap/production-plan.md) §2 Phase 1 (screens 01–08), §6 M3, §7 cut rule 1 and 3.
 Engine record: [`docs/roadmap/milestones/M3a-discovery.md`](../../roadmap/milestones/M3a-discovery.md) (what the engine already does and what it deferred).
 Boards: `docs/ux/phase1-discovery/final/project/{Plan,Recall,Harvest,Import,Dedup,Report,States,Handoff}.dc.html`. The written `Status: FINAL` specs 01–08 are M3b's first task; this packet gives them the routes to point at.
@@ -148,24 +148,24 @@ Both lists change together (`console/browser.py:40-65`, `apps/research-ui/app/ap
 - `/jobs/start` stays `405` from the browser. Discovery runs go through their own typed route, as recon does, so the proxy never becomes a general job starter.
 - Phone tokens (`_PHONE_ROUTES`, `serve.py:56-64`) get no discovery route: discovery is desktop-only, like inception.
 
-## 6. Decisions for the researcher (before M3b starts)
+## 6. Decisions (taken by the researcher, 2026-11-10)
 
-1. **How a run executes from the browser.** Recommended: in-process, like recon (`ReconJobs`), because leg progress comes from `progress_callback` and the coordinator's stage results, which a `uv run` subprocess only exposes as log lines. Cost: a long run holds the console process; recon already accepts this. Alternative: a `JobRunner` action `discovery_run` (`uv run scholar-harness run -w <ws>`) with a `legs.json` poll for progress, simpler to cancel, coarser progress.
-2. **Near-twin review (E4b): Stage 2 or cut.** Plan §7 cut 3 says counts first. The UAV v0.3 run merged 7.6 % and the board's 14 pairs are illustrative; the researcher's own corpora decide whether the review is worth a RELEASE-lane change to what the snapshot is built from.
-3. **Recall check is check-only.** `validate_and_heal` stays off the console. A miss is recorded and never blocks the run. Confirm.
-4. **The plan dry run (E1)** needs every provider to expose its translation without a request. OpenAlex, Crossref, PubMed and arXiv build the string before the request today; Semantic Scholar does too. Confirm the refactor (no behaviour change, tests pin executed strings equal between dry run and run).
-5. **Contact email from the screen.** Today `SCHOLAR_MAILTO` is an environment variable with no default (decision 2026-11-08). The States board wants "Save and continue". Options: (a) keep it an environment variable and have the screen print the exact line to set, (b) a `PUT /settings/contact {mailto}` that writes `.env` next to the workspaces root. (b) writes a file the researcher may not expect from a browser; recommended (a) for b5 and b6, revisit after testers.
-6. **CSV import.** Out until a tester brings a Scopus CSV. Confirm.
-7. **Cap override from the browser.** Allowed per run, recorded as `cap_source: "run_override"` on every leg and on the run; the plan screen shows only the protocol cap. Confirm, or make the override terminal-only.
+1. **A run executes in-process**, like recon (`ReconJobs`): leg progress comes from `progress_callback` and the coordinator's stage results, which a `uv run` subprocess would only expose as log lines. Accepted cost: a long run holds the console process, and closing the console stops it (the archived run stays `PARTIAL`). The `JobRunner` alternative (`discovery_run` action with a `legs.json` poll) is not built.
+2. **Near-twin review (E4b) is Stage 2**: counts per tier first (plan §7 cut 3). Whether the pair review is built at all is decided after the researcher's own corpora show how many near-twins survive the tiers.
+3. **The recall check is check-only.** `validate_and_heal` stays off the console; the executed query is always the protocol's. A miss is recorded in the check and the report and never blocks the run; the fix is a protocol amendment through inception.
+4. **The plan dry run (E1) is built**: every provider exposes its translation without a request, with a test that the preview equals the replayed golden legs' `executed_query`. No behaviour change.
+5. **The contact email stays an environment variable** (`SCHOLAR_MAILTO`, decision 2026-11-08). On `MAILTO_NOT_SET` the screen prints the exact line to set and offers Retry; the browser writes no settings file. Revisit after testers.
+6. **CSV import is out** until a tester brings a CSV-only export; the Import screen says "RIS or PubMed .nbib".
+7. **A per-run cap override is allowed from the browser**, recorded as `cap_source: "run_override"` on every leg and on the run and printed in the report; the plan screen shows only the protocol cap.
 
 ## 7. Milestone split and lanes
 
 | Milestone | Content | Lane | Needs |
 | :-- | :-- | :-- | :-- |
-| **M3b-api** | Layer R routes (plan without E1, runs, run, report markdown, report-v1 without `by_tier`, handoff), Layer J (runs, recall with E2, jobs, events, cancel), refusals registered, allowlists, proxy stream path, E5 typed codes | STANDARD (no snapshot semantics change; `generate_contract_baseline.py --check` in every commit) | decisions 1, 3, 5, 7 |
-| **M3c-screens** | Specs 01–04, 06–08 `Status: FINAL` from the boards against M3b-api, then the screens; 05 as counts only | STANDARD | M3b-api merged |
-| **M3d-engine** | E1 dry run, E3 import rejections and `limits`, E4a tiers | STANDARD | decision 4, 6 |
-| **M3e-neartwins** | E4b pairs, decisions, acceptance reads them | RELEASE (Packet B inputs) | decision 2 |
+| **M3b-api** | Layer R routes (plan without E1, runs, run, report markdown, report-v1 without `by_tier`, handoff), Layer J (runs in-process, recall with E2, jobs, events, cancel, cap override), refusals registered, allowlists, proxy stream path, E5 typed codes | STANDARD (no snapshot semantics change; `generate_contract_baseline.py --check` in every commit) | decided |
+| **M3c-screens** | Specs 01–04, 06–08 `Status: FINAL` from the boards against M3b-api, then the screens; 05 as counts only; the `MAILTO_NOT_SET` state prints the line to set | STANDARD | M3b-api merged |
+| **M3d-engine** | E1 dry run, E3 import rejections and `limits` (no CSV), E4a tiers | STANDARD | decided |
+| **M3e-neartwins** | E4b pairs, decisions, acceptance reads them | RELEASE (Packet B inputs) | after the researcher's own corpora show the need |
 
 ## 8. Tests each route brings (names to create)
 

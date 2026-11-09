@@ -431,9 +431,10 @@ token, no direct console mutation from the browser.
 
 ## UI-10 — Discovery screens (Phase 1, specs 01–08)
 
-**Packet drafted 2026-11-09, not started.** The routes, refusal codes, allowlist
-changes, engine additions and the decisions the researcher must take first are in
-[`DISCOVERY_API_PACKET.md`](./DISCOVERY_API_PACKET.md). No discovery screen is
+**Packet decided 2026-11-10, not started.** The routes, refusal codes, allowlist
+changes, engine additions and the researcher's seven decisions are in
+[`DISCOVERY_API_PACKET.md`](./DISCOVERY_API_PACKET.md) (decisions also in
+`docs/decisions.md`). No discovery screen is
 built before its routes exist on `main` (M3b-api) and its spec under
 `docs/ux/phase1-discovery/final/` is `Status: FINAL`.
 
