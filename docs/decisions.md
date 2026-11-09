@@ -4,6 +4,17 @@ One entry per decision that still shapes the code, newest first. The full
 records were removed in the 2026-11-03 docs cut; each entry names the commit
 history to read if you need the original reasoning (`git log --follow -- <path>`).
 
+## 2026-11-09 — The inception write gate names every file, and a draft keeps its backup (accepted; M4b)
+
+The researcher chose this on 2026-11-09, closing the open questions of the inception specs 06, 07 and 08 before the screens were built.
+
+- **The preview lists every file genesis writes.** `POST /inception/preview` answers `files` with the files of a new workspace (`NEW_WORKSPACE_FILES` in `inception/emit.py` plus `SUPPORT_FILES` in `inception/genesis.py`), or, when the target already holds a workspace, the files a replacement rewrites and its backup folder (`REPLACEMENT_FILES`). It used to name four files, so the write gate under-promised. `test_preview_names_every_file_genesis_writes` runs both geneses and compares.
+- **A draft keeps the backup.** The draft's `emitted` record now also holds `backup_dir` and `previous_fingerprint` when genesis returns them, so the Done screen shows them after a reload.
+- **Blank drafts and resume.** "Start a new review" always creates a draft; a draft with no title and no topic is listed as "Empty draft" (the browser cannot discard drafts: DELETE is not carried). Resume opens Scope.
+- **Lane.** The two engine changes alter public HTTP answers, so M4b is RELEASE (`test_gate_policy.md` §lanes), not the STANDARD it started as.
+
+**Not chosen:** showing the four-file list verbatim and deferring the engine change (the gate would keep under-promising); keeping the backup only in the browser tab (lost on reload); reusing an untouched draft (a frontend rule about what counts as untouched).
+
 ## 2026-11-09 — An additive import format is a STANDARD-lane change (accepted; M5c-nbib)
 
 The researcher chose this on 2026-11-09, asked at the review of M5c-nbib (PubMed MEDLINE `.nbib` import beside RIS).

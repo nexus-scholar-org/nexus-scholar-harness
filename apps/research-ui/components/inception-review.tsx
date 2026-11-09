@@ -233,12 +233,14 @@ export function InceptionReview({ locale }: Readonly<{ locale: Locale }>) {
               <dl className="grid gap-3 rounded-lg border border-rule bg-leaf p-4 text-sm sm:grid-cols-2">
                 <div>
                   <dt className="text-ink-muted">{t("review.lens")}</dt>
-                  <dd className="text-ink" dir="ltr">
-                    {paradigm} · {String(draft.playbook ?? "")}
+                  <dd className="text-ink">
+                    <span dir="ltr">
+                      {paradigm} · {String(draft.playbook ?? "")}
+                    </span>
+                    <a className="flex min-h-11 items-center text-brand underline" href={inceptionHref(locale, "shape", draftId, origin)}>
+                      {t("review.edit", { step: t("step.shape") })}
+                    </a>
                   </dd>
-                  <a className="inline-flex min-h-11 items-center text-brand underline" href={inceptionHref(locale, "shape", draftId, origin)}>
-                    {t("review.edit", { step: t("step.shape") })}
-                  </a>
                 </div>
                 <div>
                   <dt className="text-ink-muted">{t("review.window")}</dt>
@@ -249,10 +251,10 @@ export function InceptionReview({ locale }: Readonly<{ locale: Locale }>) {
                         ? t("review.yearsOpen", { from: String(draft.start_year) })
                         : t("review.yearsAny")}{" "}
                     · <bdi dir="ltr">{(draft.languages ?? []).join(", ")}</bdi>
+                    <a className="flex min-h-11 items-center text-brand underline" href={inceptionHref(locale, "scope", draftId, origin)}>
+                      {t("review.edit", { step: t("step.scope") })}
+                    </a>
                   </dd>
-                  <a className="inline-flex min-h-11 items-center text-brand underline" href={inceptionHref(locale, "scope", draftId, origin)}>
-                    {t("review.edit", { step: t("step.scope") })}
-                  </a>
                 </div>
                 <div className="sm:col-span-2">
                   <dt className="text-ink-muted">{t("review.questions")}</dt>
