@@ -63,7 +63,7 @@ test("a researcher creates a workspace from the browser and lands on screening H
 
   await expect(page.getByRole("heading", { name: "The workspace is created" })).toBeVisible();
   await page.getByRole("button", { name: "Open the workspace" }).click();
-  await page.waitForURL(//en/screening/home/?$/);
+  await page.waitForURL(/\/en\/screening\/home\/?$/);
   expect(fake.calls.find((c) => c.path === "/api/v1/workspaces/open")?.body).toEqual({ slug: "weed-review" });
 });
 
