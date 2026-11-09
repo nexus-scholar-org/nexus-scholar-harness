@@ -93,7 +93,7 @@ POOL_COMPLETE, POOL_PARTIAL, POOL_EMPTY = "complete", "partial", "empty"
 
 
 def _atomic_write_json(path: Path, payload: dict[str, Any]) -> None:
-    tmp = path.with_suffix(path.suffix + ".tmp")
+    tmp = path.with_suffix(f"{path.suffix}.{os.getpid()}.{_sha1(str(path) + datetime.now(UTC).isoformat())[:8]}.tmp")
     tmp.write_text(json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8")
     os.replace(tmp, path)
 

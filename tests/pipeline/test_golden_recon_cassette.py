@@ -148,11 +148,31 @@ def test_the_golden_probe_runs_from_http_and_binds(tmp_path):
     assert bound["grounding"]["pool"]["fingerprint"] == done["result"]["fingerprint"]
 
 
+#: The real address while recording; read before the autouse fixture patches settings.
+_RECORDING_ADDRESS = os.environ.get("SCHOLAR_MAILTO") if RECORD else None
+_EMAIL = re.compile(r"[A-Za-z0-9._%+-]+@(?:[A-Za-z0-9-]+\.)+[A-Za-z]{2,}\b")
+#: Addresses that may appear in provider help text or in our own replay setting.
+_HARMLESS = re.compile(r"@(example\.(?:com|org|invalid)|openalex\.org|semanticscholar\.org|crossref\.org|arxiv\.org)$", re.I)
+
+
+def addresses_in(text: str) -> list[str]:
+    """Every e-mail address in ``text`` except documented harmless ones."""
+    return sorted({m for m in _EMAIL.findall(text) if not _HARMLESS.search(m)})
+
+
+def test_the_address_check_finds_a_planted_address():
+    planted = "body: {string: 'contact researcher@univ-example.dz for access'}"
+    assert addresses_in(planted) == ["researcher@univ-example.dz"]
+    assert addresses_in("mailto: replay@example.invalid; see support@openalex.org") == []
+    assert addresses_in("mAP@0.5 and mAP@0.5:0.95 on the benchmark") == []  # metrics, not addresses
+
+
 def test_the_recon_cassette_holds_no_contact_address_or_key():
-    """No request carries a contact address or key; no address appears anywhere.
+    """No request carries a contact address or key, and no address appears anywhere.
 
     Response bodies may mention ``api_key`` in provider help text (OpenAlex
-    does), so the request URIs and headers are what is checked for parameters.
+    does), so the request URIs and headers are checked for parameters, and the
+    whole file for addresses.
     """
     data = yaml.safe_load(CASSETTE.read_text(encoding="utf-8"))
     for interaction in data["interactions"]:
@@ -164,6 +184,6 @@ def test_the_recon_cassette_holds_no_contact_address_or_key():
         headers = {k.lower() for k in (request.get("headers") or {})}
         assert not headers & {"user-agent", "x-api-key", "authorization", "cookie"}
     text = CASSETTE.read_text(encoding="utf-8")
-    assert not re.search(r"[A-Za-z0-9._%+-]+@(?!example\.)[A-Za-z0-9.-]+\.(dz|edu|ac|org|com)\b", text.split("interactions:", 1)[0])
-    if settings.mailto:
-        assert settings.mailto not in text
+    assert addresses_in(text) == []
+    if _RECORDING_ADDRESS:
+        assert _RECORDING_ADDRESS not in text

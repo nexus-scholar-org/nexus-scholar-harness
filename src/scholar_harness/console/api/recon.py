@@ -56,6 +56,8 @@ router = APIRouter(prefix="/api/v1/inception/drafts/{session_id}/recon", tags=["
 RECON_JOB_ACTIVE = "RECON_JOB_ACTIVE"
 RECON_JOB_NOT_FOUND = "RECON_JOB_NOT_FOUND"
 TERMINAL = ("succeeded", "failed")
+#: Finished jobs kept per draft; older ones answer RECON_JOB_NOT_FOUND (their results stay in the session).
+KEEP_FINISHED = 10
 
 
 def _now() -> str:
@@ -102,7 +104,15 @@ class ReconJobs:
     def active(self, session_id: str) -> ReconJob | None:
         return next((j for j in self.jobs.values() if j.session_id == session_id and j.state not in TERMINAL), None)
 
+    def _evict(self, session_id: str) -> None:
+        """Keep the last ``KEEP_FINISHED`` finished jobs of a draft (review #5); results are in the session."""
+        finished = [j for j in self.jobs.values() if j.session_id == session_id and j.state in TERMINAL]
+        finished.sort(key=lambda j: j.finished_at or "")
+        for job in finished[: max(0, len(finished) - KEEP_FINISHED)]:
+            self.jobs.pop(job.job_id, None)
+
     def start(self, session_id: str, kind: str, work) -> ReconJob:
+        self._evict(session_id)
         job = ReconJob(job_id="rjob_" + uuid.uuid4().hex[:16], session_id=session_id, kind=kind)
         self.jobs[job.job_id] = job
         job.emit("snapshot", {"job": job.to_dict()})
@@ -214,6 +224,8 @@ def recon_state(session_id: str, request: Request) -> dict[str, Any]:
     return {
         "session_id": session_id,
         "mailto_set": _mailto_set(request),
+        # The draft's question changed since the session searched it (review #8; spec 02 Q3).
+        "topic_changed": bool(session and session.get("topic") and session["topic"] != _draft_model.topic),
         "session": session,
         "grounding": grounding,
         "binding": check_binding(sessions, grounding) if grounding else None,

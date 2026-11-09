@@ -293,3 +293,41 @@ def test_a_draft_without_recon_previews_and_emits_as_before(env):
     assert "grounding" not in preview and "audit/recon_context.json" not in preview["files"]
     made = client.post(f"{BASE}/drafts/{sid}/genesis", json={}).json()
     assert not (Path(made["path"]) / "audit" / "recon_context.json").exists()
+
+
+def test_a_client_cannot_forge_or_smuggle_grounding(env):
+    """Review #7: only the bind route writes grounding; a save cannot add one."""
+    client, _app, root, _recon = env
+    sid = _new_draft(client)
+    forged = {"session_id": sid, "pool": {"fingerprint": "sha256:forged"}, "direction": {"label": "x"}}
+    top = client.put(f"{BASE}/drafts/{sid}", json={"draft": _draft(), "grounding": forged})
+    assert top.status_code == 422
+    inside = client.put(f"{BASE}/drafts/{sid}", json={"draft": {**_draft(), "grounding": forged}})
+    assert (inside.status_code, inside.json()["detail"]["code"]) == (422, "DRAFT_INVALID")
+    assert "grounding" not in client.get(f"{BASE}/drafts/{sid}").json()
+    made = client.post(f"{BASE}/drafts/{sid}/genesis", json={}).json()
+    assert not (Path(made["path"]) / "audit" / "recon_context.json").exists()
+
+
+def test_finished_jobs_are_kept_only_up_to_a_limit(env):
+    """Review #5: a long-running console does not keep every finished job."""
+    from scholar_harness.console.api import recon as recon_api
+
+    client, app, _root, _recon = env
+    sid = _new_draft(client)
+    ids = [_probe(client, sid, refresh=True)["job_id"] for _ in range(recon_api.KEEP_FINISHED + 2)]
+    kept = [j for j in app.state.recon_jobs.jobs.values() if j.session_id == sid]
+    assert len(kept) == recon_api.KEEP_FINISHED + 1  # the limit, plus the newest
+    assert client.get(f"{BASE}/drafts/{sid}/recon/jobs/{ids[0]}").json()["detail"]["code"] == "RECON_JOB_NOT_FOUND"
+    assert client.get(f"{BASE}/drafts/{sid}/recon/jobs/{ids[-1]}").status_code == 200
+
+
+def test_a_question_changed_after_the_search_is_flagged(env):
+    """Review #8: the session searched an older question."""
+    client, _app, _root, _recon = env
+    sid = _new_draft(client)
+    _probe(client, sid)
+    assert client.get(f"{BASE}/drafts/{sid}/recon").json()["topic_changed"] is False
+    record = client.get(f"{BASE}/drafts/{sid}").json()
+    client.put(f"{BASE}/drafts/{sid}", json={"draft": {**_draft(), "topic": "soil salinity"}, "base_updated_at": record["updated_at"]})
+    assert client.get(f"{BASE}/drafts/{sid}/recon").json()["topic_changed"] is True

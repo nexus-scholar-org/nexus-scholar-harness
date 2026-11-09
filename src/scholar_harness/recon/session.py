@@ -16,6 +16,10 @@ probed without a session. Now the three front doors call :class:`ReconSessions`:
 
 Refusals are :class:`ReconRefused` with a code and a plain sentence.
 
+One session has one writer at a time: the console runs one job per draft, and
+a CLI or MCP run on the same ``rec_`` id at the same moment may overwrite the
+other's last probe record (the pools themselves are content-addressed).
+
 INC-21: :func:`term_evidence` anchors a term only on records whose title or
 abstract contains it, and keeps the number of records the provider returned
 (``hits``) apart from the number that contain it (``observed_in``).
@@ -118,7 +122,8 @@ def term_evidence(pool: dict[str, Any], term: str) -> dict[str, Any]:
 
 
 def _atomic_write_json(path: Path, payload: dict[str, Any]) -> None:
-    tmp = path.with_suffix(path.suffix + ".tmp")
+    # A unique temporary name, so two writers never collide on it (review #6).
+    tmp = path.with_suffix(f"{path.suffix}.{uuid.uuid4().hex[:8]}.tmp")
     tmp.write_text(json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8")
     os.replace(tmp, path)
 
@@ -371,6 +376,28 @@ class ReconSessions:
                 "for the console (environment or .env) and start it again.",
             ) from exc
         merged_pool, merged_terms = result["pool"], result["distilled"]
+        followup_pools = result.get("followup_pools") or []
+        if followup_pools:
+            # INC-09 provenance (review #3): the merged pool is a new pool. It keeps
+            # the original's legs and every follow-up's legs (each with its query),
+            # is partial when any of them failed, and has its own time.
+            legs = [dict(leg) for leg in pool.get("legs") or []]
+            for fp in followup_pools:
+                legs += [{**leg, "query": fp.get("query")} for leg in fp.get("legs") or []]
+            partial = pool.get("status") == "partial" or any(
+                fp.get("status") == "partial" or any(leg.get("status") == "failed" for leg in fp.get("legs") or [])
+                for fp in followup_pools
+            )
+            merged_pool = {
+                **merged_pool,
+                "status": "partial" if partial else POOL_COMPLETE,
+                "legs": legs,
+                "created_at": _now(),
+                "merged_from": {
+                    "created_at": pool.get("created_at"),
+                    "followups": [{k: fp.get(k) for k in ("query", "status", "created_at", "cache_key")} for fp in followup_pools],
+                },
+            }
         pool_file = self.persist(session_id, "pool", merged_pool)
         terms_file = self.persist(session_id, "distilled", merged_terms)
         merged_keys: list[str] = []
@@ -392,7 +419,7 @@ class ReconSessions:
             "status": merged_pool.get("status", POOL_COMPLETE),
             "n_docs": len(merged_pool.get("docs") or []),
             "served_from_cache": False,
-            "legs": [],
+            "legs": _legs_summary(merged_pool.get("legs") or []),
             "at": _now(),
         })
         self.save(session)

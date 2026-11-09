@@ -55,6 +55,9 @@ Why: plan §6 row "M4 Inception web" lists "recon over HTTP" and INC-09/21. M4a 
 | INC-21 | `::test_inc21_the_topic_is_anchored_only_where_it_occurs` | yes: `KeyError: 'term_evidence'` | yes |
 | INC-21 | `::test_inc21_apr_measures_occurrence_not_hits` | yes: no occurrence APR | yes |
 | prior 9 over HTTP (spec 03 Q5) | `tests/recon/test_session.py::test_a_direction_is_offered_only_when_its_term_occurs_in_two_records` | yes: the joined "pool vocabulary" direction was offered | yes |
+| review #3: gap check loses provenance | `tests/recon/test_session.py::test_the_gap_check_keeps_each_follow_up_legs_and_its_own_time` | yes: the merged pool stayed `complete` with a failed follow-up leg | yes |
+| review #2: the address check could not fail | `tests/pipeline/test_golden_recon_cassette.py::test_the_address_check_finds_a_planted_address` | the check ran on an empty string; once fixed it also caught `mAP@0.5`, so the pattern needs an alphabetic TLD | yes |
+| review #5, #7, #8 | `tests/console/test_recon_api.py::test_finished_jobs_are_kept_only_up_to_a_limit`, `::test_a_client_cannot_forge_or_smuggle_grounding`, `::test_a_question_changed_after_the_search_is_flagged` | #5 and #8 were missing behaviour; #7 was an untested claim | yes |
 | audit (phase-auditor) | `tests/recon/test_session.py::test_the_mcp_tool_answers_mailto_not_set_in_its_envelope`, `::test_the_cli_wizard_exits_with_mailto_not_set` | `MailtoNotSet` escaped the MCP envelope and the wizard (read in the audit) | yes |
 
 ## Decisions
@@ -71,6 +74,8 @@ Why: plan §6 row "M4 Inception web" lists "recon over HTTP" and INC-09/21. M4a 
 | inner | `80ba36b` | `npm run typecheck`; `vitest run tests/console-proxy.test.ts` | clean; 56 passed | |
 | check | working tree | `generate_contract_baseline.py --check`; `ruff check scripts/`; real-bug `ruff check src/` | current; clean; clean | |
 | checkpoint | `8e44451` | `pytest -n auto` (whole suite, with the offline guard) | 3 failed: RAG tests reaching the Hugging Face Hub (`test_cli_matrix_command`, `test_nexus_rag_and_matrix_tools`, `test_cli_index_and_query_flow`). Fixed with `HF_HUB_OFFLINE` and a CI pre-fetch; the three then pass | |
+| pr | `3594571` | `pytest -n auto` (whole suite, offline guard on) | **4648 passed, 15 skipped, 0 failed** | 8 m 17 s |
+| review | `3594571` | milestone-reviewer | CHANGES. P1: the PR gate was not yet recorded. P2: the cassette address check could not fail. P2: the gap check lost provider outcomes (INC-09 provenance). P3: directions differ by front door; jobs never evicted; session writes share one tmp name; no negative forge test; no flag for a changed question. All fixed or deferred below | |
 | record | working tree | `NEXUS_RECORD_CASSETTES=1 SCHOLAR_MAILTO=<researcher> pytest tests/pipeline/test_golden_recon_cassette.py` (one live run, approved) | cassette written: OpenAlex, Crossref and arXiv 200; Semantic Scholar 429 | |
 | inner | working tree | `pytest tests/recon tests/console/test_recon_api.py tests/pipeline/test_golden_recon_cassette.py tests/console/test_browser_access.py -n auto`; `vitest run tests/console-proxy.test.ts`; `tsc --noEmit` | 150 passed (replay, offline); 57 passed; clean | 1 m 17 s |
 
@@ -84,6 +89,11 @@ Why: plan §6 row "M4 Inception web" lists "recon over HTTP" and INC-09/21. M4a 
   - Prior 7: the cache key omits the sample size.
   - Prior 8: the venue-token substring filter.
 - **Release notes** (b5) for recon over HTTP and adapter 1.1.
+- **Directions differ by front door** (review #4). Over HTTP a direction needs its concept in at least two records (`directions_for`). The CLI wizard and the inception-agent skill helper still call `_grounded_directions_for_terms`, which keeps the "pool vocabulary" fallback (prior finding 9), so the same pool can give the wizard one direction more. Routing the wizard through `directions_for` changes CLI output and its tests, so it is left to the prior-9 fix.
+- **Review follow-ups (not required):**
+  - `pools/uncached/` has no cleanup.
+  - The `narrower` check runs `distill_pool` in the async handler.
+  - The kit `FakeSessions` mirrors `run_followups`, while the real store calls `execute_followups`.
 - **Engine gaps the specs work around.** Each is listed in the spec's "Changed from the canvas":
   - no cancel route for a recon job;
   - no read-only check of your own direction;

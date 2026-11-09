@@ -189,3 +189,30 @@ def test_a_direction_is_offered_only_when_its_term_occurs_in_two_records(tmp_pat
     pool, _ = store.latest_pool(sid)
     assert _grounded_directions_for_terms(distill_pool(pool)), "the wizard's fallback still forms one"
     assert store.directions(sid)["directions"] == []
+
+
+def test_the_gap_check_keeps_each_follow_up_legs_and_its_own_time(tmp_path):
+    """Review #3: a follow-up whose provider failed must make the merged pool partial."""
+    docs = [_doc(i, f"Grape disease detection {i}", "grape disease detection") for i in range(12)]
+    docs += [_doc(50, "Hyperspectral vineyard imaging", "hyperspectral imaging of grapes")]
+
+    def search_fn(query, providers):
+        if query.text == TOPIC:
+            legs = [SearchLeg(provider=p, query_id=query.id, status="ok") for p in providers]
+            return SearchRun(documents=docs, legs=legs)
+        legs = [SearchLeg(provider=p, query_id=query.id, status="failed" if p == "openalex" else "ok",
+                          error="HTTPStatusError: 429" if p == "openalex" else None) for p in providers]
+        return SearchRun(documents=[_doc(900, f"{query.text} follow-up", query.text)], legs=legs)
+
+    store = ReconSessions(root=tmp_path / "recon", search_fn=search_fn)
+    first = asyncio.run(store.probe(TOPIC, topic=TOPIC))
+    out = asyncio.run(store.delta(first["session_id"]))
+    if not out["followups"]:
+        pytest.skip("no thin school in this pool")
+    merged, _ = store.latest_pool(first["session_id"])
+    assert merged["status"] == "partial"
+    assert merged["created_at"] != first["created_at"]
+    failed = [leg for leg in merged["legs"] if leg.get("status") == "failed"]
+    assert failed and all(leg.get("query") for leg in failed)
+    record = store.load(first["session_id"])["probes"][-1]
+    assert record["purpose"] == "delta" and record["status"] == "partial" and record["legs"]
