@@ -1,5 +1,5 @@
 # M4b Inception screens over the step API
-Branch: `dev/m4b/inception-ui` · Lane: **RELEASE**. The milestone started as STANDARD: a UI over routes that M4a shipped and reviewed under RELEASE. The researcher's answers on 2026-11-09 added two engine changes to public HTTP answers: preview `files` and the draft's `emitted` record (`test_gate_policy.md` §lanes; decision 2026-11-09). · Status: READY FOR PR (review APPROVE at `2489c46`; gates green on `c2022bc`) · Started: 2026-11-09
+Branch: `dev/m4b/inception-ui` · Lane: **RELEASE**. The milestone started as STANDARD: a UI over routes that M4a shipped and reviewed under RELEASE. The researcher's answers on 2026-11-09 added two engine changes to public HTTP answers: preview `files` and the draft's `emitted` record (`test_gate_policy.md` §lanes; decision 2026-11-09). · Status: MERGED (PR #209, 68a9c13) · Started: 2026-11-09
 
 Why: plan §6 row "M4 Inception web" lists the UI for inception specs 00–08. M4a (PR #206) shipped the engine: drafts, the stateless step API, compile-preview and gated genesis (`docs/architecture/inception-api.md`). M4b builds the screens over it, so a researcher creates a workspace from the browser without the CLI wizard. Recon over HTTP (INC-09/21) is still not built, so Explore and Direction stay placeholders.
 

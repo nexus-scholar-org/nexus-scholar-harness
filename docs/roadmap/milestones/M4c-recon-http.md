@@ -1,5 +1,5 @@
 # M4c Recon over HTTP
-Branch: `dev/m4c/recon-http` · Lane: **RELEASE**. The milestone changes public HTTP and MCP semantics: new `/api/v1/inception/drafts/{id}/recon/...` routes, new fields and a `refresh` parameter on the `recon_*` tools, and recon adapter 1.1. It also changes artifact persistence: what the recon cache keeps and what a draft record holds. `test_gate_policy.md` §lanes therefore puts it in RELEASE. · Status: READY FOR PR (review APPROVE on the repair delta at `a7da534`; PR gate green on `a7da534`) · Started: 2026-11-09
+Branch: `dev/m4c/recon-http` · Lane: **RELEASE**. The milestone changes public HTTP and MCP semantics: new `/api/v1/inception/drafts/{id}/recon/...` routes, new fields and a `refresh` parameter on the `recon_*` tools, and recon adapter 1.1. It also changes artifact persistence: what the recon cache keeps and what a draft record holds. `test_gate_policy.md` §lanes therefore puts it in RELEASE. · Status: MERGED (PR #210, 14ac439) · Started: 2026-11-09
 
 Why: plan §6 row "M4 Inception web" lists "recon over HTTP" and INC-09/21. M4a (PR #206) held them until M3a (PR #204) rewrote the `scholar_search` providers. M4b (PR #209) left Explore and Direction as placeholders "coming with recon".
 

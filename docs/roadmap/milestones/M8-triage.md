@@ -1,5 +1,5 @@
 # M8-triage Triage on one screen, the checklist optional
-Branch: dev/m8/triage-no-scroll · Lane: **STANDARD** (UI and spec only: no contract, engine, identity or publication change; the methods paragraph is unchanged by the researcher's choice) · Status: READY FOR PR (focus screen added after the researcher tried the app; its review CHANGES fixed; push and PR await the researcher) · Started: 2026-11-09
+Branch: dev/m8/triage-no-scroll · Lane: **STANDARD** (UI and spec only: no contract, engine, identity or publication change; the methods paragraph is unchanged by the researcher's choice) · Status: MERGED (PR #208, a831ee2) · Started: 2026-11-09
 
 Why: the researcher's own run on real IEEE records (2026-11-09). The triage screen scrolls, and the long checklist has to be answered for every record before Include is possible. A redesign session's triage mockup (uncommitted, `.taste-skill/triage-inspect/desktop-fold.jpg` in the researcher's main checkout) is the one no-scroll screen: a top line with the position, the record in its own pane, the checklist in a right column, and a fixed decision bar. Only the triage screen is built; the other eight mockups wait for tester feedback. Base: `origin/main` at `8726fb9`.
 
