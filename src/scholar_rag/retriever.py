@@ -211,8 +211,14 @@ class ScholarRetriever:
         if self.collection.count() == 0:
             return []
 
+        # The query is embedded with the retriever's own model and passed as a
+        # vector. Collections written by ``replacement.py`` store no embedding
+        # function, so a ``query_texts=`` call would make Chroma embed the query
+        # with its default ONNX model (downloaded on first use), a second,
+        # undeclared source of vectors that does not match the stored ones.
+        query_embeddings = self.embedder([query_text])
         results = self.collection.query(
-            query_texts=[query_text], n_results=min(fetch_k, self.collection.count()), where=combined_filter
+            query_embeddings=query_embeddings, n_results=min(fetch_k, self.collection.count()), where=combined_filter
         )
 
         formatted: list[RetrievalResult] = []

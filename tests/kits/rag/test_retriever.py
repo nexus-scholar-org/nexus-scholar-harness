@@ -116,3 +116,41 @@ def test_hybrid_graph_boost(populated_retriever):
     assert p1_results[0].seed_boost > 0
     assert p1_results[0].citation_token.startswith("[")
     assert results_boosted[0].hybrid_score >= results_base[0].hybrid_score
+
+
+def test_query_embeds_with_the_retrievers_own_model_on_a_collection_without_one(tmp_path, monkeypatch):
+    """A collection written without an embedding function (as ``replacement.py``
+    writes them) must be queried with the retriever's own model, never with
+    ChromaDB's default ONNX model, which is downloaded on first use. Fails
+    before the ``query_embeddings`` change: the fallback ``get_collection``
+    dropped the retriever's model and ``query_texts`` reached the default."""
+    import chromadb
+    from chromadb.api import types as chroma_types
+    from chromadb.utils.embedding_functions import onnx_mini_lm_l6_v2
+
+    from scholar_rag.embedder import get_embedder
+
+    def refuse(self, input):  # Chroma's signature
+        raise AssertionError("ChromaDB's default embedding model was used; the suite must never download it")
+
+    monkeypatch.setattr(chroma_types.DefaultEmbeddingFunction, "__call__", refuse)
+    monkeypatch.setattr(onnx_mini_lm_l6_v2.ONNXMiniLM_L6_V2, "__call__", refuse)
+
+    embedder = get_embedder(provider="mock")
+    db_dir = tmp_path / "no_ef_db"
+    client = chromadb.PersistentClient(path=str(db_dir))
+    collection = client.get_or_create_collection(name="docs", metadata={"hnsw:space": "cosine"})
+    texts = ["We conduct a field study with 45 enterprise developers.", "Accuracy increases on benchmarks."]
+    collection.add(
+        ids=["chk-1", "chk-2"],
+        documents=texts,
+        embeddings=embedder(texts),
+        metadatas=[{"doi": "10.1000/paper2", "section_category": "Methodology"}, {"doi": "10.1000/paper1", "section_category": "Results"}],
+    )
+    del client
+
+    retriever = ScholarRetriever(db_path=str(db_dir), collection_name="docs", embedder_kwargs={"provider": "mock"})
+    results = retriever.query("field study with developers", n_results=1, log_journal=False)
+
+    assert len(results) == 1
+    assert results[0].metadata["doi"] == "10.1000/paper2"

@@ -132,3 +132,26 @@ for (const locale of ["en", "ar"] as const) {
     }
   }
 }
+
+for (const screen of SCREENS) {
+  test(`en/inception/${screen}: no hydration mismatch with ?draft= in the address`, async ({ page }) => {
+    // The pages are prerendered without a query string; the step bar hrefs used
+    // to read `?draft=` during the first render, so React saw hrefs the server
+    // never sent and logged a mismatch on every screen (M4b follow-up).
+    const problems: string[] = [];
+    page.on("console", (message) => {
+      if (/hydrat|did not match|Text content does not match/i.test(message.text())) problems.push(`console.${message.type()}: ${message.text()}`);
+    });
+    page.on("pageerror", (error) => {
+      if (/hydrat|did not match/i.test(error.message)) problems.push(`pageerror: ${error.message}`);
+    });
+    const emitted = screen === "done/";
+    const fake = await engine(page, { draft: emitted ? undefined : decided() });
+    if (emitted) fake.seed(decided(), { slug: "on-device-weed-detection", path: "C:\w\on-device-weed-detection", protocol_fingerprint: "sha256:" + "ab".repeat(32), replaced: false });
+    // Only `?draft=`: a `?console=` override would send the calls past the proxy the fake answers.
+    await page.goto(`/en/inception/${screen}${screen ? `?draft=${SESSION}` : ""}`);
+    await expect(page.locator("h1")).toBeVisible();
+    await page.waitForLoadState("networkidle");
+    expect(problems, `en/inception/${screen} reported a hydration mismatch`).toEqual([]);
+  });
+}

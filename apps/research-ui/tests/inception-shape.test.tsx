@@ -27,7 +27,15 @@ describe("inception.shape", () => {
     expect(within(playbook).getByRole("radio")).not.toBeChecked();
     fireEvent.click(within(playbook).getByRole("radio"));
 
-    fireEvent.click(within(draftCard.closest("[data-rq-draft]") as HTMLElement).getByRole("button", { name: "Use this draft as RQ1" }));
+    // The template is filled from the unit and the proof: until both are answered it cannot be used.
+    const card_ = draftCard.closest("[data-rq-draft]") as HTMLElement;
+    const use = within(card_).getByRole("button", { name: "Use this draft as RQ1" });
+    expect(use).toBeDisabled();
+    expect(within(card_).getByText("Answer the unit and the proof first; the draft fills them in.")).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText("Unit of analysis"), { target: { value: "embedded cameras" } });
+    fireEvent.change(screen.getByLabelText("Proof a reviewer would accept"), { target: { value: "mIoU and FPS" } });
+    await waitFor(() => expect(use).toBeEnabled());
+    fireEvent.click(use);
     expect((screen.getByLabelText("Research question 1") as HTMLTextAreaElement).value).toContain("weed detection");
 
     fireEvent.change(screen.getByLabelText("Out of scope"), { target: { value: "closed models\n\npre-2020" } });
@@ -35,6 +43,26 @@ describe("inception.shape", () => {
     await waitFor(() => expect(assign).toHaveBeenCalledWith(`/en/inception/criteria/?draft=${SESSION}`));
     const put = engine.calls.find((c) => c.method === "PUT")!;
     expect(put.body?.draft).toMatchObject({ paradigm: "Design Science", playbook: "DESIGN_SCIENCE", out_of_scope: ["closed models", "pre-2020"] });
+  });
+
+  it("offers the template only once the engine has answered for the answers on screen", async () => {
+    setUp({ draft: { topic: "weed detection", paradigm: "Design Science", playbook: "DESIGN_SCIENCE", unit_of_analysis: "embedded cameras", proof: "mIoU" } });
+    render(<InceptionShape locale="en" />);
+    const card = (await screen.findByText("Template draft · not yet yours")).closest("[data-rq-draft]") as HTMLElement;
+    const use = within(card).getByRole("button", { name: "Use this draft as RQ1" });
+    await waitFor(() => expect(use).toBeEnabled());
+    expect(within(card).getByText(/achieve mIoU for embedded cameras/)).toBeInTheDocument();
+
+    // An edit makes the shown draft stale until the debounced step answers again.
+    fireEvent.change(screen.getByLabelText("Proof a reviewer would accept"), { target: { value: "FPS on a public benchmark" } });
+    expect(use).toBeDisabled();
+    expect(card).toHaveAttribute("data-draft-current", "false");
+    expect(within(card).getByText("Updating the draft from your answers…")).toBeInTheDocument();
+
+    await waitFor(() => expect(use).toBeEnabled());
+    expect(card).toHaveAttribute("data-draft-current", "true");
+    fireEvent.click(use);
+    expect((screen.getByLabelText("Research question 1") as HTMLTextAreaElement).value).toContain("achieve FPS on a public benchmark for embedded cameras");
   });
 
   it("shows DRAFT_INCOMPLETE as the fields the engine names, with links", async () => {

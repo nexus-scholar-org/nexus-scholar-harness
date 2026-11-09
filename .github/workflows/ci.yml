@@ -134,14 +134,12 @@ jobs:
           uv run --no-sync python scripts/generate_protocol_schema.py --check
 
       # The suite runs offline (tests/conftest.py refuses non-loopback connects
-      # and sets HF_HUB_OFFLINE), so the RAG tests' embedding models are fetched
-      # here, before pytest (M4c): the sentence-transformers model, and
-      # ChromaDB's default ONNX model (downloaded from S3 on first query into
-      # ~/.cache/chroma).
-      - name: Fetch the embedding models the RAG tests load
-        run: |
-          uv run --no-sync python -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('all-MiniLM-L6-v2')"
-          uv run --no-sync python -c "from chromadb.utils.embedding_functions import DefaultEmbeddingFunction; DefaultEmbeddingFunction()(['warm'])"
+      # and sets HF_HUB_OFFLINE), so the sentence-transformers model the RAG
+      # tests load is fetched here, before pytest (M4c). ChromaDB's default ONNX
+      # model is not needed: the retriever embeds its queries itself
+      # (tests/kits/rag/test_retriever.py guards that).
+      - name: Fetch the embedding model the RAG tests load
+        run: uv run --no-sync python -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('all-MiniLM-L6-v2')"
 
       - name: Test suite
         run: uv run --no-sync pytest -q -o addopts=""
