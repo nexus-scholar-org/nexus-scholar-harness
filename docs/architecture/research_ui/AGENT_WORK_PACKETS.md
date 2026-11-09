@@ -429,6 +429,23 @@ separate console.
 **Negative cases:** no general-purpose pass-through, no browser-held pairing
 token, no direct console mutation from the browser.
 
+## UI-10 — Discovery screens (Phase 1, specs 01–08)
+
+**Packet decided 2026-11-10, not started.** The routes, refusal codes, allowlist
+changes, engine additions and the researcher's seven decisions are in
+[`DISCOVERY_API_PACKET.md`](./DISCOVERY_API_PACKET.md) (decisions also in
+`docs/decisions.md`). No discovery screen is
+built before its routes exist on `main` (M3b-api) and its spec under
+`docs/ux/phase1-discovery/final/` is `Status: FINAL`.
+
+**Scope:** read the engine's search runs, legs, report and hand-off counts; start
+and follow a run or a recall check through typed routes (never `/jobs/start`);
+the import screen is spec 11 reached from the discovery step bar.
+
+**Negative cases:** the browser never computes a count the harness did not write;
+no query is rewritten by a recall check; a capped leg is always shown as a lower
+bound; a frozen snapshot is never re-run from the browser.
+
 ## Prompt for a small UI agent
 
 ```text
