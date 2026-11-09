@@ -1,11 +1,11 @@
-# Nexus Scholar beta (1.1.0b4)
+# Nexus Scholar beta (1.1.0b5)
 
 Thank you for testing. This page says who the beta is for, how to install it,
 what it cannot do yet, and how to tell us what happened.
 
-## What is new in 1.1.0b3 and 1.1.0b4
+## What is new in 1.1.0b5
 
-1.1.0b4 fixes the install: with the old `--prerelease allow` command the app could stop at start ([release notes](../releases/1.1.0b4.md)). 1.1.0b3 brought the features: fast keyboard triage no longer drops a decision, more RIS exports import fully, and the method values and the reporting guideline are stated in your protocol. Already on 1.1.0b2? Upgrade with `uv tool install --force "nexus-scholar>=1.1.0b4"`. Details, including changes to the local API: [release notes](../releases/1.1.0b3.md).
+1.1.0b5 adds creating a workspace from the browser (inception screens), PubMed `.nbib` import, a one-screen triage focus view with an optional checklist, and a more honest search engine on the command line. Already on 1.1.0b4 or earlier? Upgrade with `uv tool install --force "nexus-scholar>=1.1.0b5"`. Details, including changes to the local API: [release notes](../releases/1.1.0b5.md).
 
 ## Who it is for
 
@@ -20,10 +20,10 @@ methods paragraph.
 2. Install Nexus Scholar:
 
    ```bash
-   uv tool install "nexus-scholar>=1.1.0b4"
+   uv tool install "nexus-scholar>=1.1.0b5"
    ```
 
-3. Check the version (it should print `nexus-scholar 1.1.0b4`):
+3. Check the version (it should print `nexus-scholar 1.1.0b5`):
 
    ```bash
    nexus-scholar --version
