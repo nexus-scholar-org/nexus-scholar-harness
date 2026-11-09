@@ -762,9 +762,12 @@ def test_adopted_server_source_has_zero_discovery_mechanisms():
         tool_src = _inspect.getsource(tool_fn)
         assert "_ensure_harness_recon_loaded()" in tool_src
         assert "_recon_adapter is None" in tool_src
-    assert "_recon_adapter.make_engine(" in _inspect.getsource(server.recon_probe)
+    # M4c: probe and delta go through the harness recon session store, the
+    # one the CLI wizard and the console use; distill keeps the adapter.
+    assert "_sessions().probe(" in _inspect.getsource(server.recon_probe)
     assert "_recon_adapter.distill_terms(" in _inspect.getsource(server.recon_distill)
-    assert "_recon_adapter.run_followups(" in _inspect.getsource(server.recon_delta)
+    assert "_sessions().delta(" in _inspect.getsource(server.recon_delta)
+    assert "_recon_adapter.make_sessions(cache_root=RECON_CACHE_ROOT, search_fn=RECON_SEARCH_FN)" in _inspect.getsource(server._sessions)
 
 
 def test_adopted_unavailable_adapter_returns_typed_envelopes(tmp_path, monkeypatch):

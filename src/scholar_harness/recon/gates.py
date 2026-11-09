@@ -126,3 +126,16 @@ def compute_topic_purity(topics: list[dict]) -> dict[str, Any]:
         "top3_share": round(top3_share, 4),
         "threshold": TOPIC_COHERENCE_TOP3_SHARE,
     }
+
+def compute_apr_observed(term_evidence: dict[str, dict[str, Any]]) -> float:
+    """APR by occurrence (INC-21): the share of terms observed in at least one record.
+
+    ``term_evidence`` maps a term to ``{"hits", "observed_in", "anchor_dois"}``
+    (``scholar_harness.recon.session.term_evidence``). A term the providers
+    returned records for but that no record's title or abstract contains is
+    unanchored, however many hits it had. An empty map is vacuously 1.0.
+    """
+    if not term_evidence:
+        return 1.0
+    observed = sum(1 for ev in term_evidence.values() if int((ev or {}).get("observed_in") or 0) > 0)
+    return observed / len(term_evidence)

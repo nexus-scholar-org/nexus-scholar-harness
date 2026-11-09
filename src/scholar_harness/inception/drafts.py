@@ -92,6 +92,23 @@ class DraftStore:
         record["updated_at"] = _now()
         return self._write(record)
 
+    def bind_grounding(self, session_id: str, grounding: dict[str, Any], base_updated_at: str | None = None) -> dict[str, Any]:
+        """Write the grounded evidence of a chosen direction beside the draft (M4c).
+
+        Only the recon bind route calls this; a ``save`` of the draft keeps it.
+        """
+        record = self.load(session_id)
+        if base_updated_at is not None and base_updated_at != record["updated_at"]:
+            raise DraftRefused(
+                "DRAFT_CONFLICT", "the draft changed since it was read; reload it",
+                details={"updated_at": record["updated_at"]},
+            )
+        if record.get("emitted"):
+            raise DraftRefused("DRAFT_EMITTED", "this draft already created a workspace", details={"emitted": record["emitted"]})
+        record["grounding"] = grounding
+        record["updated_at"] = _now()
+        return self._write(record)
+
     def mark_emitted(self, session_id: str, result: dict[str, Any]) -> dict[str, Any]:
         record = self.load(session_id)
         record["emitted"] = {**result, "at": _now()}

@@ -71,6 +71,10 @@ const POST_PATHS: ReadonlyArray<RegExp> = [
   /^api\/v1\/inception\/(drafts|preview)$/,
   /^api\/v1\/inception\/steps\/(scope|shape|criteria|matrix)$/,
   /^api\/v1\/inception\/drafts\/[A-Za-z0-9_-]+\/genesis$/,
+  // M4c: recon over HTTP (Explore, Direction). Probe and delta start a job; the
+  // console refuses MAILTO_NOT_SET before any request. Distill and bind write
+  // only under the recon cache and the draft record.
+  /^api\/v1\/inception\/drafts\/[A-Za-z0-9_-]+\/recon\/(probe|delta|distill|bind)$/,
 ];
 
 /** The one GET with a side effect: the engine records a reveal when a draft is read. */
@@ -93,6 +97,8 @@ const PUT_PATHS: ReadonlyArray<RegExp> = [
 const STREAM_PATHS: ReadonlyArray<RegExp> = [
   /^api\/v1\/jobs\/[A-Za-z0-9_-]+\/stream$/,
   /^api\/v1\/events(\/tick)?$/,
+  // M4c: a recon job's events (probe and gap check); a live probe can page for minutes.
+  /^api\/v1\/inception\/drafts\/[A-Za-z0-9_-]+\/recon\/jobs\/[A-Za-z0-9_-]+\/events$/,
 ];
 
 function isStreamPath(path: string): boolean {

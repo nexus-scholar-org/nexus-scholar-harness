@@ -162,6 +162,39 @@ def test_inception_writes_need_this_origin_and_discard_is_not_carried(ws, ui):
     assert (ws.parent / ".drafts" / sid / "draft.json").is_file()
 
 
+def test_recon_reaches_the_engine_from_the_browser(ws, ui, tmp_path):
+    """M4c: probe (a job), its events, distill, directions and bind through the allowlist."""
+    from scholar_search.models import Document, ExternalIds
+
+    def search_fn(query, providers):
+        return [
+            Document(title=f"Weed detection on embedded boards {i}", year=2023, provider="openalex",
+                     provider_id=f"W{i}", external_ids=ExternalIds(doi=f"10.1/b{i}"), abstract="weed detection")
+            for i in range(13)
+        ]
+
+    app = _app(ws, ui)[0]
+    app.state.recon_root, app.state.recon_search_fn = tmp_path / "recon", search_fn
+    same = {"Origin": "http://127.0.0.1:8765"}
+    base = "/api/console/api/v1/inception"
+    with _browser(app) as client:
+        sid = client.post(f"{base}/drafts", json={"draft": _inception_draft()}, headers=same).json()["session_id"]
+        recon = f"{base}/drafts/{sid}/recon"
+        foreign = client.post(f"{recon}/probe", json={}, headers={"Origin": "http://127.0.0.1:3000"})
+        assert foreign.json()["detail"]["code"] == "CONSOLE_ORIGIN_REFUSED"
+        job = client.post(f"{recon}/probe", json={}, headers=same)
+        assert job.status_code == 202, job.text
+        job_id = job.json()["job"]["job_id"]
+        with client.stream("GET", f"{recon}/jobs/{job_id}/events") as stream:
+            frames = [line for line in stream.iter_lines() if line.startswith("event: ")]
+        assert frames[0] == "event: snapshot" and frames[-1] == "event: done"
+        assert client.post(f"{recon}/distill", json={}, headers=same).status_code == 200
+        labels = [d["label"] for d in client.get(f"{recon}/directions").json()["directions"]]
+        bound = client.post(f"{recon}/bind", json={"direction": labels[0]}, headers=same)
+        assert bound.status_code == 200 and bound.json()["grounding"]["pool"]["fingerprint"].startswith("sha256:")
+        assert client.post(f"{recon}/jobs/{job_id}/cancel", json={}, headers=same).json()["detail"]["code"] == "CONSOLE_METHOD_REFUSED"
+
+
 def test_the_static_ui_is_served_with_a_root_redirect_and_a_404_page(ws, ui):
     app, _ = _app(ws, ui)
     client = TestClient(app, base_url="http://127.0.0.1:8765", follow_redirects=False)

@@ -97,10 +97,15 @@ def _explode_search_fn(query, providers):
 
 
 def test_a01_adapter_version_is_pinned():
-    """A01 [OBSERVED-ADAPTER]: the explicit interface is versioned."""
-    assert adapter.ADAPTER_VERSION == "1.0"
-    assert adapter.adapter_version() == "1.0"
-    assert adapter.describe_interface()["adapter_version"] == "1.0"
+    """A01 [OBSERVED-ADAPTER]: the explicit interface is versioned.
+
+    1.1 (M4c) adds ``make_sessions``, the recon session store the MCP tools,
+    the CLI wizard and the console share.
+    """
+    assert adapter.ADAPTER_VERSION == "1.1"
+    assert adapter.adapter_version() == adapter.ADAPTER_VERSION
+    assert adapter.describe_interface()["adapter_version"] == adapter.ADAPTER_VERSION
+    assert "make_sessions" in adapter.describe_interface()["entry_points"]
 
 
 def test_a02_adapter_has_no_kit_transport_or_discovery_imports():
@@ -394,10 +399,12 @@ def test_b02_tool_signatures_are_exact(tmp_path, monkeypatch):
         "start_year",
         "limit",
         "semantic",
+        "refresh",  # M4c (INC-09)
     ]
     probe_defaults = inspect.signature(server.recon_probe).parameters
     assert probe_defaults["session_id"].default is None
     assert probe_defaults["start_year"].default == 2020
+    assert probe_defaults["refresh"].default is False
     assert probe_defaults["limit"].default == 10
     assert probe_defaults["semantic"].default is False
     assert list(inspect.signature(server.recon_distill).parameters) == [
@@ -639,15 +646,16 @@ def test_f01_search_fn_is_test_only_seam():
 
     The single module-level ``RECON_SEARCH_FN = None`` assignment is the only
     write in shipped kit code; every other assignment site is a test file.
-    The adopted server threads it into ``make_engine`` (probe + delta) and
-    ``run_followups`` (delta) -- three read sites, zero writes.
+    Since M4c the server threads it into the harness recon session store in
+    one place (``_sessions``), which probe, distill and delta share -- one
+    read site, zero writes.
     """
     server = _kit_server()
     src = inspect.getsource(server)
     assert src.count("RECON_SEARCH_FN = None") == 1
     assert src.count("RECON_SEARCH_FN =") == 1
     assert "search_fn=RECON_SEARCH_FN" in src
-    assert src.count("search_fn=RECON_SEARCH_FN") == 3  # probe + delta x2
+    assert src.count("search_fn=RECON_SEARCH_FN") == 1  # _sessions() (M4c)
 
 
 def test_f02_injected_search_fn_never_touches_network(tmp_path, monkeypatch):
@@ -668,13 +676,18 @@ def test_f02_injected_search_fn_never_touches_network(tmp_path, monkeypatch):
 
 
 def test_g01_wizard_drives_same_engine_and_distiller():
-    """G01 [SOURCE-TRACE]: the CLI wizard uses ReconEngine + distill_pool."""
+    """G01 [SOURCE-TRACE]: the CLI wizard uses ReconEngine + distill_pool.
+
+    Since M4c it probes through the shared recon session store (the one the
+    MCP tools and the console use), built on its ReconEngine.
+    """
     from scholar_harness.inception import grounded as wizard_grounded
 
     src = Path(wizard_grounded.__file__).read_text(encoding="utf-8")
     assert "ReconEngine" in src
     assert "distill_pool" in src
-    assert "engine.probe" in src
+    assert "ReconSessions(engine=" in src
+    assert "sessions.probe(" in src
 
 
 def test_g02_skill_helper_imports_wizard_directly_without_discovery():
@@ -707,14 +720,17 @@ def test_g02_skill_helper_imports_wizard_directly_without_discovery():
 
 
 def test_g03_mcp_drives_adapter_entry_points():
-    """G03 [ADOPTED-KIT, SOURCE-TRACE]: MCP tools call the adapter, not engine fns."""
+    """G03 [ADOPTED-KIT, SOURCE-TRACE]: MCP tools call the harness, not engine fns.
+
+    M4c: probe and delta call the harness recon session store (shared with the
+    CLI wizard and the console); distill keeps the adapter's entry points.
+    """
     server = _kit_server()
-    assert "_recon_adapter.make_engine(" in inspect.getsource(server.recon_probe)
-    assert "engine.probe(" in inspect.getsource(server.recon_probe)
+    assert "_sessions().probe(" in inspect.getsource(server.recon_probe)
+    assert "_recon_adapter.make_sessions(" in inspect.getsource(server._sessions)
     assert "_recon_adapter.distill_terms(" in inspect.getsource(server.recon_distill)
     assert "_recon_adapter.merge_lexicon(" in inspect.getsource(server.recon_distill)
-    assert "_recon_adapter.distill_terms(" in inspect.getsource(server.recon_delta)
-    assert "_recon_adapter.run_followups(" in inspect.getsource(server.recon_delta)
+    assert "_sessions().delta(" in inspect.getsource(server.recon_delta)
     assert "_recon_adapter.pool_gate(" in inspect.getsource(server.recon_distill)
     assert "_recon_adapter.topic_gate(" in inspect.getsource(server.recon_distill)
     for fn in (server.recon_probe, server.recon_distill, server.recon_delta):
@@ -828,26 +844,23 @@ def test_h02_missing_adapter_distill_returns_typed_envelope(tmp_path, monkeypatc
         _restore_loader_state(server, saved)
 
 
-def test_h03_none_cache_root_escapes_envelope_as_typeerror(tmp_path, monkeypatch):
-    """H03 [OBSERVED-KIT]: RECON_CACHE_ROOT=None -> uncaught TypeError.
+def test_h03_none_cache_root_falls_back_to_the_canonical_root(tmp_path, monkeypatch):
+    """H03 [OBSERVED-KIT]: RECON_CACHE_ROOT=None falls back to NEXUS_RECON_ROOT.
 
-    Correction of the naive hypothesis ("None root falls back via
-    NEXUS_RECON_ROOT"): the session helper ``_session_root`` divides the
-    snapshot global directly (``RECON_CACHE_ROOT / "sessions"``), so a None
-    snapshot raises TypeError OUTSIDE the documented envelope before the
-    engine (which *would* fall back) is ever constructed.  Adoption keeps this
-    shape: the loader binds a live adapter root on every tool call, so ``None``
-    here is reachable only as a test-only post-load mutation of the module
-    global -- production always carries the adapter-resolved root.  The adapter
-    never snapshots: ``resolve_cache_root`` always delegates live (A04/A05).
+    Before M4c the server's own ``_session_root`` divided the snapshot global
+    (``RECON_CACHE_ROOT / "sessions"``), so a None snapshot raised TypeError
+    outside the envelope. The session store now lives in the harness
+    (``scholar_harness.recon.session``) and builds its engine with the
+    canonical root, so a None snapshot resolves like the engine does.
     """
     server = _kit_server()
     target = tmp_path / "fallback"
     monkeypatch.setenv("NEXUS_RECON_ROOT", str(target))
     monkeypatch.setattr(server, "RECON_CACHE_ROOT", None, raising=False)
     monkeypatch.setattr(server, "RECON_SEARCH_FN", _topic_search_fn)
-    with pytest.raises(TypeError):
-        server.recon_probe(topic="edge inference")
+    result = json.loads(server.recon_probe(topic="edge inference"))
+    assert result["status"] == "probe_ok", result
+    assert Path(result["pool_path"]).resolve().is_relative_to(target.resolve())
 
 
 def test_h04_workspaces_anchor_refused_with_no_writes(tmp_path, monkeypatch):

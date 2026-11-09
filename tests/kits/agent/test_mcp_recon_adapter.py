@@ -197,6 +197,85 @@ def _install_fake_adapter(monkeypatch, tmp_root: Path, calls: dict):
             "dropped_n": 0,
         }
 
+    class FakeSessions:
+        """Adapter 1.1 ``make_sessions`` (M4c): the session store over the fake engine.
+
+        Mirrors ``scholar_harness.recon.session.ReconSessions`` only as far
+        as the MCP tools use it, so the wiring assertions below still prove
+        that probe goes through ``make_engine`` and delta through
+        ``run_followups`` with the tool's root and search seam.
+        """
+
+        def __init__(self, cache_root=None, search_fn=None):
+            self.cache_root, self.search_fn = cache_root, search_fn
+            self.engine = make_engine(cache_root=cache_root, search_fn=search_fn)
+            self.root = Path(cache_root) if cache_root is not None else tmp_root
+
+        def _dir(self, sid):
+            return self.root / "sessions" / sid
+
+        def load(self, sid):
+            path = self._dir(sid) / "session.json"
+            if not path.is_file():
+                raise RuntimeError(f"session not found: {sid}")
+            return json.loads(path.read_text(encoding="utf-8"))
+
+        def save(self, session):
+            folder = self._dir(session["session_id"])
+            folder.mkdir(parents=True, exist_ok=True)
+            (folder / "session.json").write_text(json.dumps(session), encoding="utf-8")
+
+        def persist(self, sid, prefix, payload):
+            folder = self._dir(sid)
+            folder.mkdir(parents=True, exist_ok=True)
+            path = folder / f"{prefix}_{len(list(folder.glob(prefix + '_*')))}.json"
+            path.write_text(json.dumps(payload), encoding="utf-8")
+            return path
+
+        def latest_pool(self, sid):
+            path = Path(self.load(sid)["pools"][-1])
+            return json.loads(path.read_text(encoding="utf-8")), path
+
+        async def probe(self, query, *, session_id=None, topic=None, year_min=2000, year_max=None,
+                        max_results=25, semantic=False, refresh=False, **_):
+            sid = session_id or "rec_" + "0" * 32
+            upstream, n = await self.engine.probe(
+                query=query, year_min=year_min, year_max=year_max, max_results=max_results, semantic=semantic
+            )
+            pool = json.loads(upstream.read_text(encoding="utf-8"))
+            path = self.persist(sid, "pool", pool)
+            try:
+                session = self.load(sid)
+            except RuntimeError:
+                session = {"session_id": sid, "topic": topic or query, "cache_keys": [], "pools": []}
+            session["cache_keys"].append(pool["cache_key"])
+            session["pools"].append(str(path))
+            self.save(session)
+            return {"session_id": sid, "cache_key": pool["cache_key"], "n_docs": n, "pool_path": str(path),
+                    "status": "complete", "fingerprint": "sha256:fake", "created_at": None,
+                    "served_from_cache": False, "legs": []}
+
+        async def delta(self, sid, followups=3):
+            pool, _ = self.latest_pool(sid)
+            result = await run_followups(pool, distill_terms(pool), cache_root=self.cache_root,
+                                         search_fn=self.search_fn, max_followups=followups)
+            return {
+                "session_id": sid,
+                "merged_cache_keys": [pool["cache_key"], *result["cache_keys_merged"]],
+                "followups": [
+                    {**item, "confidence": {"label": "gap", "detail": item["reason"]}}
+                    for item in result["followups"]
+                ],
+                "topics": result["distilled"]["topics"],
+                "dropped_n": result["dropped_n"],
+                "pool_size_before": len(pool["docs"]),
+                "pool_size_after": len(result["pool"]["docs"]),
+            }
+
+    def make_sessions(cache_root=None, search_fn=None):
+        return FakeSessions(cache_root=cache_root, search_fn=search_fn)
+
+    adapter_mod.make_sessions = make_sessions  # type: ignore[attr-defined]
     adapter_mod.resolve_cache_root = resolve_cache_root  # type: ignore[attr-defined]
     adapter_mod.default_lexicon = default_lexicon  # type: ignore[attr-defined]
     adapter_mod.merge_lexicon = merge_lexicon  # type: ignore[attr-defined]

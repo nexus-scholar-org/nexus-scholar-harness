@@ -334,5 +334,16 @@ async def execute_followups(
         "distilled": distill_pool(merged, lexicon),
         "followups": executed,
         "cache_keys_merged": list(merged.get("merged_from_cache_keys") or []),
+        # M4c (INC-09): what each follow-up search answered, for the merged pool's provenance.
+        "followup_pools": [
+            {
+                "query": fp.get("query"),
+                "status": fp.get("status", "complete"),
+                "created_at": fp.get("created_at"),
+                "cache_key": fp.get("cache_key"),
+                "legs": list(fp.get("legs") or []),
+            }
+            for fp in followup_pools
+        ],
         "dropped_n": dropped_n,
     }

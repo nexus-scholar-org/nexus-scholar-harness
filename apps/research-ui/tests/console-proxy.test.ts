@@ -321,6 +321,11 @@ describe("console proxy — writes", () => {
     ["inception/steps/criteria"],
     ["inception/steps/matrix"],
     ["inception/drafts/rec_0123456789abcdef0123456789abcdef/genesis"],
+    // M4c: recon over HTTP.
+    ["inception/drafts/rec_0123456789abcdef0123456789abcdef/recon/probe"],
+    ["inception/drafts/rec_0123456789abcdef0123456789abcdef/recon/delta"],
+    ["inception/drafts/rec_0123456789abcdef0123456789abcdef/recon/distill"],
+    ["inception/drafts/rec_0123456789abcdef0123456789abcdef/recon/bind"],
   ])("forwards the %s POST", async (route) => {
     vi.stubEnv("NEXUS_CONSOLE_URL", CONSOLE);
     const fetchSpy = vi.fn(() => Promise.resolve(jsonResponse({ ok: true })));
@@ -334,7 +339,14 @@ describe("console proxy — writes", () => {
     expect(String(call[0])).toBe(`${CONSOLE}/api/v1/${route}`);
   });
 
-  it.each([["inception/steps/emit"], ["inception/genesis"], ["inception/drafts/rec_1/emitted"]])(
+  it.each([
+    ["inception/steps/emit"],
+    ["inception/genesis"],
+    ["inception/drafts/rec_1/emitted"],
+    ["inception/drafts/rec_1/recon/directions"],
+    ["inception/drafts/rec_1/recon/jobs/rjob_1/cancel"],
+    ["inception/drafts/rec_1/recon"],
+  ])(
     "refuses the %s POST",
     async (route) => {
       vi.stubEnv("NEXUS_CONSOLE_URL", CONSOLE);
@@ -515,6 +527,28 @@ describe("console proxy — event streams", () => {
     // A stream carries the caller's signal, not the 120 s read timeout.
     expect(signal?.aborted).toBe(false);
 
+    aborter.abort();
+    expect(signal?.aborted).toBe(true);
+  });
+
+  it("treats a recon job's events as a stream: the caller's signal, not the read timeout (M4c)", async () => {
+    vi.stubEnv("NEXUS_CONSOLE_URL", CONSOLE);
+    const fetchSpy = vi.fn(() =>
+      Promise.resolve(new Response(": keepalive\n\n", {
+        headers: { "content-type": "text/event-stream" },
+      })),
+    );
+    vi.stubGlobal("fetch", fetchSpy);
+    const route = "api/v1/inception/drafts/rec_0123456789abcdef/recon/jobs/rjob_0123456789abcdef/events";
+    const aborter = new AbortController();
+    const response = await GET(
+      request(route, { headers: { accept: "text/event-stream" }, signal: aborter.signal }),
+      context(...route.split("/")),
+    );
+    expect(response.status).toBe(200);
+    const call = fetchSpy.mock.calls[0] as unknown as [unknown, RequestInit | undefined];
+    const signal = call[1]?.signal as AbortSignal | undefined;
+    expect(signal?.aborted).toBe(false);
     aborter.abort();
     expect(signal?.aborted).toBe(true);
   });
