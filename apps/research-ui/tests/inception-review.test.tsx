@@ -71,9 +71,17 @@ describe("inception.review", () => {
     expect(engine.calls.filter((c) => c.path.endsWith("/genesis")).map((c) => c.body)).toEqual([{}, { replace: true }]);
   });
 
+  it("says the fingerprint is a preview that creating re-stamps", async () => {
+    setUp({ draft: decided() });
+    render(<InceptionReview locale="en" />);
+    expect(await screen.findByText(/Creating the workspace stamps the date into the protocol/)).toBeInTheDocument();
+    expect(screen.getByText("Protocol fingerprint (preview)")).toBeInTheDocument();
+  });
+
   it("does not offer Replace when the folder is not a workspace", async () => {
     setUp({ draft: decided(), existing: "folder" });
     render(<InceptionReview locale="en" />);
+    expect(await screen.findByText("A folder with this name exists and is not a workspace")).toBeInTheDocument();
     fireEvent.click(await screen.findByRole("button", { name: "Create the workspace" }));
     expect(await screen.findByRole("heading", { name: "A workspace for this title already exists" })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Replace and back up" })).toBeNull();

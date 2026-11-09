@@ -287,3 +287,13 @@ def test_a_replacement_records_its_backup_on_the_draft(root):
     emitted = client.get(f"{BASE}/drafts/{second}").json()["emitted"]
     assert emitted["backup_dir"] == made["backup_dir"] and emitted["previous_fingerprint"] == made["previous_fingerprint"]
     assert emitted["previous_fingerprint"].startswith("sha256:")
+
+
+def test_preview_tells_a_workspace_from_a_folder_that_is_not_one(root):
+    """M4b review #3: the checks and the file list follow what genesis decides on, the markers."""
+    client = _client(root)
+    (root / SLUG).mkdir()
+    (root / SLUG / "my_notes.txt").write_text("mine", encoding="utf-8")
+    target = client.post(f"{BASE}/preview", json={"draft": _draft()}).json()["target"]
+    assert target["exists"] is True and target["workspace"] is False and target["screening"] is None
+    assert "project.json" in client.post(f"{BASE}/preview", json={"draft": _draft()}).json()["files"]

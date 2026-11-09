@@ -120,4 +120,6 @@ None.
 - A typed exclusion always gets the reason code `OUT_OF_SCOPE`; there is no code select.
 - When an upstream answer changes, the criteria the wizard wrote from it come back as "Waiting for you" because their ids change; no extra sentence names the cause.
 - Concepts are rows of a concept field and a synonyms field; out-of-scope items are edited on Shape.
+- The parked labels are shown: the matrix ("Parked: the Matrix phase that fills these columns is not in production.") and the verification checks (advisory, Phase 4 parked). With no column ticked the protocol has no matrix columns, and the help text says so (the engine applies no playbook default).
+- A typed exclusion is sent without a reason code, so the engine's default (`OUT_OF_SCOPE`) applies.
 - Copy keys and their en, fr and ar texts are the code's: `apps/research-ui/lib/inception-copy.ts` (screen copy) and `apps/research-ui/lib/screening-states.ts` (refusal cards). The Copy section above gives the design intent and the English wording; where a key name or a sentence differs, the code is the record and `tests/inception-copy.test.ts` pins every key in every locale.

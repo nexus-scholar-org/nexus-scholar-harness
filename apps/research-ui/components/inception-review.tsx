@@ -352,6 +352,9 @@ export function InceptionReview({ locale }: Readonly<{ locale: Locale }>) {
                 <dd data-fingerprint>
                   <DataCell>{preview.protocol_fingerprint}</DataCell>
                 </dd>
+                <dd className="mt-1 text-xs text-ink-muted" data-fingerprint-note>
+                  {t("review.fingerprintNote")}
+                </dd>
               </div>
             </dl>
 
@@ -365,9 +368,16 @@ export function InceptionReview({ locale }: Readonly<{ locale: Locale }>) {
                 <li className="text-include">{t("review.check.compiler")}</li>
                 {!target?.exists ? (
                   <li className="text-include">{t("review.check.free")}</li>
+                ) : !target.workspace ? (
+                  <li className="text-blocked" data-target-folder>
+                    {t("review.check.folder")}
+                  </li>
                 ) : target.screening?.bound ? (
                   <li className="text-blocked" data-target-bound>
-                    {t("review.check.bound", { n: formatNumber(locale, target.screening.decision_events + target.screening.decision_files) })}
+                    {t("review.check.bound", {
+                      events: formatNumber(locale, target.screening.decision_events),
+                      files: formatNumber(locale, target.screening.decision_files),
+                    })}
                   </li>
                 ) : (
                   <li className="text-unclear" data-target-exists>

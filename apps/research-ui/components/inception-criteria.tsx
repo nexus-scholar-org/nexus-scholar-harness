@@ -103,7 +103,7 @@ export function InceptionCriteria({ locale }: Readonly<{ locale: Locale }>) {
       const text = value.trim();
       if (!text) return;
       if (kind === "inclusion") update({ extra_inclusions: [...(draft.extra_inclusions ?? []), text] });
-      else update({ extra_exclusions: [...(draft.extra_exclusions ?? []), { criterion: text, reason_category: "OUT_OF_SCOPE" }] });
+      else update({ extra_exclusions: [...(draft.extra_exclusions ?? []), { criterion: text }] });
       setValue("");
     };
     return (
@@ -265,6 +265,9 @@ export function InceptionCriteria({ locale }: Readonly<{ locale: Locale }>) {
           <fieldset className="rounded-lg border border-rule bg-leaf p-4" data-matrix>
             <legend className="px-1 font-semibold text-ink">{t("criteria.matrix")}</legend>
             <p className="text-xs text-ink-muted">{t("criteria.matrixHelp")}</p>
+            <p className="mt-1 inline-block rounded-sm border border-dashed border-rule px-2 text-xs text-ink-muted" data-parked="matrix">
+              {t("criteria.matrixParked")}
+            </p>
             <div className="mt-2">
               <Button onClick={() => update({ matrix_columns: matrix.columns.map((c) => c.name) })} data-tick-all>
                 {t("criteria.tickAll")}
@@ -303,7 +306,12 @@ export function InceptionCriteria({ locale }: Readonly<{ locale: Locale }>) {
             onChange={(event) => update({ verification_checks: event.target.checked })}
             className="mt-1 h-5 w-5 shrink-0"
           />
-          <span className="text-sm text-ink">{t("criteria.verification")}</span>
+          <span className="text-sm text-ink">
+            {t("criteria.verification")}
+            <span className="mt-1 block text-xs text-ink-muted" data-parked="verification">
+              {t("criteria.verificationParked")}
+            </span>
+          </span>
         </label>
 
         {stepError ? <InceptionRefusal locale={locale} refusal={stepError} draftId={draftId} origin={origin} /> : null}

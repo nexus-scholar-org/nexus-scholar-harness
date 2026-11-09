@@ -293,12 +293,15 @@ def preview(raw_draft: dict[str, Any] | None, *, workspaces_root: Path | None = 
     if workspaces_root is not None:
         target = Path(workspaces_root) / intent["project_slug"]
         exists = target.exists()
-        out["files"] = planned_files(exists=bool(existing_markers(target)))
+        # What genesis decides on: a folder holds a workspace when it has a marker.
+        workspace = bool(existing_markers(target))
+        out["files"] = planned_files(exists=workspace)
         out["target"] = {
             "slug": intent["project_slug"],
             "path": str(target),
             "exists": exists,
-            "screening": screening_state(target) if exists else None,
+            "workspace": workspace,
+            "screening": screening_state(target) if workspace else None,
         }
     return out
 

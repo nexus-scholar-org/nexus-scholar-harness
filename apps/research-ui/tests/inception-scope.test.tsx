@@ -60,6 +60,13 @@ describe("inception.scope", () => {
     expect((engine.drafts.get(SESSION)!.draft as { topic: string }).topic).toBe("other tab");
   });
 
+  it("says in words that the address names no draft, and asks the engine nothing", async () => {
+    const { engine } = setUp({ search: "" });
+    render(<InceptionScope locale="en" />);
+    expect(await screen.findByRole("heading", { name: "No draft is named in this address. Open one from the list of drafts." })).toBeInTheDocument();
+    expect(engine.calls).toEqual([]);
+  });
+
   it("shows a missing draft as the page's refusal", async () => {
     setUp({ noDraft: true });
     render(<InceptionScope locale="en" />);

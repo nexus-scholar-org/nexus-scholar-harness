@@ -51,6 +51,9 @@ export interface Emitted {
   path: string;
   protocol_fingerprint: string;
   replaced: boolean;
+  /** For a replacement (M4b): kept on the draft so Done shows them after a reload. */
+  previous_fingerprint?: string | null;
+  backup_dir?: string | null;
 }
 
 export interface DraftRecord {
@@ -142,7 +145,8 @@ export interface Preview {
   criteria: Criterion[];
   files: string[];
   written: string[];
-  target?: { slug: string; path: string; exists: boolean; screening: ScreeningBinding | null };
+  /** `workspace`: the folder holds a workspace (what genesis decides on); `exists` alone may be a folder that is not one. */
+  target?: { slug: string; path: string; exists: boolean; workspace: boolean; screening: ScreeningBinding | null };
 }
 
 export interface GenesisResult {

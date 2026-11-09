@@ -60,6 +60,14 @@ describe("inception.criteria", () => {
     expect(screen.getByRole("checkbox", { name: /Performance Metric/ })).toBeChecked();
   });
 
+  it("labels the matrix and the verification checks as parked", async () => {
+    setUp({ draft: completeDraft() });
+    render(<InceptionCriteria locale="en" />);
+    expect(await screen.findByText("Parked: the Matrix phase that fills these columns is not in production.")).toBeInTheDocument();
+    expect(screen.getByText(/Advisory: Phase 4 checks are parked/)).toBeInTheDocument();
+    expect(screen.getByText("Ticked columns are saved in the protocol. With none ticked, the protocol has no matrix columns.")).toBeInTheDocument();
+  });
+
   it("offers the engine's suggested concepts as drafts", async () => {
     setUp({ draft: completeDraft({ concepts: [] }) });
     render(<InceptionCriteria locale="en" />);

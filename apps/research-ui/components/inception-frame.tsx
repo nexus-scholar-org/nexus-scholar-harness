@@ -169,10 +169,8 @@ export function useDraft() {
   const load = useCallback(async () => {
     setLoadError(null);
     setSaveError(null);
-    if (!draftId) {
-      setLoadError({ code: "DRAFT_ID_INVALID", message: "" });
-      return;
-    }
+    // No `?draft=` is not something the engine refused; the frame says so in words.
+    if (!draftId) return;
     try {
       const read = await readDraft(origin, draftId);
       setRecord(read);
@@ -224,7 +222,14 @@ export function InceptionFrame({
   return (
     <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8 lg:py-12">
       <InceptionSteps locale={locale} current={current} draftId={draftId} origin={origin} />
-      {loadError ? (
+      {!draftId ? (
+        <div className="space-y-3" data-no-draft>
+          <h1 className="font-display text-3xl text-ink">{t("noDraft")}</h1>
+          <a className="inline-flex min-h-11 items-center text-brand underline" href={inceptionHref(locale, "", "", origin)}>
+            {t("backToDrafts")}
+          </a>
+        </div>
+      ) : loadError ? (
         <div className="space-y-3">
           <InceptionRefusal locale={locale} refusal={loadError} draftId={draftId} origin={origin} onRetry={() => void draft.reload()} />
           <a className="inline-flex min-h-11 items-center text-brand underline" href={inceptionHref(locale, "", "", origin)}>

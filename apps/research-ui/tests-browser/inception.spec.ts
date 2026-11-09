@@ -70,7 +70,7 @@ test("a researcher creates a workspace from the browser and lands on screening H
 test("replacing a workspace with screening needs the typed name, and a wrong one is a sentence", async ({ page }) => {
   await engine(page, { draft: decided(), existing: "bound" });
   await page.goto(`/en/inception/review/?draft=${SESSION}`);
-  await expect(page.getByText("4 screening decisions exist in this folder")).toBeVisible();
+  await expect(page.getByText("4 decision events and 0 batch decision files exist in this folder")).toBeVisible();
   await page.getByRole("button", { name: "Create the workspace" }).click();
   await page.getByRole("button", { name: "Replace and back up" }).click();
   await expect(page.getByRole("heading", { name: "Screening was done under the current protocol" })).toBeFocused();

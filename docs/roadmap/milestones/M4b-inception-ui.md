@@ -32,6 +32,7 @@ Why: plan §6 row "M4 Inception web" lists the UI for inception specs 00–08. M
 | ID | Reproducing test | Fails before | Passes after |
 | :-- | :-- | :-- | :-- |
 | preview under-promises (spec 06 Q1) | `tests/console/test_inception_api.py::test_preview_names_every_file_genesis_writes` | yes: `.agents/skills/`, `.env.example`, `.mcp.json`, `INDEX.md`, `synthesis/literature_review.md` and others were written but not listed | yes |
+| review #3: checks from "folder exists" | `tests/console/test_inception_api.py::test_preview_tells_a_workspace_from_a_folder_that_is_not_one` | yes: `KeyError: 'workspace'` | yes |
 | backup lost on reload (spec 07 Q1) | `tests/console/test_inception_api.py::test_a_replacement_records_its_backup_on_the_draft` | yes: `KeyError: 'backup_dir'` | yes |
 
 ## Decisions
@@ -44,9 +45,15 @@ Why: plan §6 row "M4 Inception web" lists the UI for inception specs 00–08. M
 | inner | `fafbddb` | `pytest tests/console/test_browser_access.py`; `vitest tests/console-proxy.test.ts` | 10 passed; 49 passed | |
 | inner | `1f65f79` | `pytest tests/console/test_inception_api.py tests/inception tests/console/test_browser_access.py tests/cli/test_cli_init.py tests/console/test_workspaces_api.py -n auto` | 165 passed, 1 skipped | 26 s |
 | inner | `1f65f79` | `npx tsc --noEmit`; `npx vitest run` (whole UI suite) | clean; 27 files, 326 passed | |
+| pr | `59f0c4d` | `pytest -n auto` (whole suite) | **4609 passed, 15 skipped, 0 failed** | 8 m 37 s |
+| closure | `59f0c4d` | `npx playwright test` (whole suite, light and dark) | **249 passed, 13 skipped, 0 failed** | 6 m 43 s |
+| closure | `59f0c4d` | `uv build --wheel` | `nexus_scholar-1.1.0b4-py3-none-any.whl` | |
+| review | `59f0c4d` | milestone-reviewer | CHANGES. P2: Review's fingerprint is re-stamped at genesis, so it is not "exactly" what is written. P2: the matrix and verification controls had no parked label, and the matrix help promised defaults that are not applied. P3: the Checks line used "folder exists", not the workspace markers genesis decides on. P3: the replacement list is fixed. P3: the replace text said project.json is "kept". Repairs below | |
 | closure | working tree after `1f65f79` | contract baseline, schemas and two-study fixture `--check`; `ruff check scripts/`; real-bug `ruff check src/`; `sync_skills_bundle.py --check`; `git diff --check` | all pass | |
 
 ## Deferred
+- **Binding genesis to the previewed protocol** (review #1): genesis stamps its own time, so the written fingerprint differs from the preview. A save from another tab between preview and Create also goes through. The screen now labels the value a preview. Sending the expected fingerprint or the preview's timestamp with genesis is an engine decision for the researcher.
+- **Release notes**: `docs/releases/` has no unreleased file. The next one (b5) names the browser inception flow, the inception routes on the browser surface, preview `files` and `target.workspace`, and the `emitted` backup fields. The user guide still describes only the CLI wizard, and plan §6 still says inception stays CLI/MCP.
 - **Explore (02) and Direction (03)** wait for recon over HTTP (INC-09/21). Drafts carry no grounded evidence.
 - **Discarding a draft** (`DELETE /inception/drafts/{id}`): the browser surface carries GET, HEAD, POST and PUT only. Blank drafts are labelled "Empty draft" (decision 2026-11-09).
 - **Spec features simplified in the build.** They are listed under "As built (M4b)" in each spec:

@@ -55,7 +55,9 @@ NEW_WORKSPACE_FILES = (
 )
 
 #: What a replacement writes or rewrites: the protocol files, the refreshed
-#: manifest and index, the journal, and one backup folder.
+#: manifest and index, the journal, and one backup folder. A partial workspace
+#: (only some markers present) may lack `project.json`, which is then not
+#: refreshed: the list can over-promise there, never under-promise.
 REPLACEMENT_FILES = (
     "intent.json",
     "protocol.json",

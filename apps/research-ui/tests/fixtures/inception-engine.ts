@@ -123,7 +123,8 @@ export function inceptionEngine(options: FakeOptions = {}) {
           slug,
           path: `${ROOT}\\${slug}`,
           exists,
-          screening: exists ? { bound: existing === "bound", decision_events: existing === "bound" ? 4 : 0, decision_files: 0, published: false } : null,
+          workspace: exists && existing !== "folder",
+          screening: exists && existing !== "folder" ? { bound: existing === "bound", decision_events: existing === "bound" ? 4 : 0, decision_files: 0, published: false } : null,
         },
       },
     };
