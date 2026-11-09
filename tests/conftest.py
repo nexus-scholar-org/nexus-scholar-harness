@@ -2,13 +2,56 @@
 
 from __future__ import annotations
 
+import ipaddress
 import json
+import os
+import socket
 from pathlib import Path
 from typing import Any, Dict, List
 
 import pytest
 
 GENESIS_TS = "2026-09-06T12:00:00+00:00"
+
+
+# --- the suite runs offline (M4c) ----------------------------------------------
+# Any socket connect to a non-loopback address fails the test that made it, so
+# a live provider call can never hide in the suite. Cassette replays (VCR) and
+# in-process TestClients open no sockets. Recording cassettes
+# (NEXUS_RECORD_CASSETTES=1) or NEXUS_ALLOW_NETWORK=1 lifts the guard.
+_REAL_CONNECT = socket.socket.connect
+_REAL_CONNECT_EX = socket.socket.connect_ex
+
+
+def _loopback(address: Any) -> bool:
+    if not isinstance(address, tuple):  # AF_UNIX path
+        return True
+    host = str(address[0]).split("%", 1)[0]
+    if host == "localhost":
+        return True
+    try:
+        return ipaddress.ip_address(host).is_loopback
+    except ValueError:
+        return False
+
+
+def _guarded_connect(self, address):
+    if not _loopback(address):
+        raise RuntimeError(f"NETWORK_BLOCKED: a test tried to reach {address!r}; the suite runs offline (use a cassette)")
+    return _REAL_CONNECT(self, address)
+
+
+def _guarded_connect_ex(self, address):
+    if not _loopback(address):
+        raise RuntimeError(f"NETWORK_BLOCKED: a test tried to reach {address!r}; the suite runs offline (use a cassette)")
+    return _REAL_CONNECT_EX(self, address)
+
+
+def pytest_configure(config):
+    if os.environ.get("NEXUS_RECORD_CASSETTES") == "1" or os.environ.get("NEXUS_ALLOW_NETWORK") == "1":
+        return
+    socket.socket.connect = _guarded_connect
+    socket.socket.connect_ex = _guarded_connect_ex
 
 E2E_ANSWERS = [
     "Can an on-device computer-vision weed-detection pipeline achieve real-time frame rates on embedded hardware without sacrificing classification accuracy?",

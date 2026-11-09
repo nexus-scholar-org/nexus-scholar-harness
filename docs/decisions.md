@@ -4,6 +4,42 @@ One entry per decision that still shapes the code, newest first. The full
 records were removed in the 2026-11-03 docs cut; each entry names the commit
 history to read if you need the original reasoning (`git log --follow -- <path>`).
 
+## 2026-11-09 — Recon over HTTP: one session store, pools that say what failed, anchors by occurrence (proposed; M4c)
+
+Proposed by the M4c session. The researcher accepts or changes it at the PR.
+
+- **One recon engine.**
+  - The recon session store moves from `scholar_agent/server.py` to `scholar_harness/recon/session.py`.
+  - The CLI wizard, the MCP `recon_*` tools and the console routes all probe through it, on the M3a `SearchEngine.run`. The MCP tools reach it through the adapter (`make_sessions`, adapter 1.1).
+  - `MAILTO_NOT_SET` is a refusal at every door, before any request.
+- **What a pool keeps, and what is cached (INC-09).**
+  - A pool records one leg per provider and a status: `complete`, `partial` (a leg failed) or `empty`.
+  - Only a complete pool is cached.
+  - A partial pool is used and says which provider failed, but it is searched again next time.
+  - An empty pool never becomes the session's pool.
+  - `refresh` searches again.
+  - `created_at` is shown in every probe answer, in the grounding and in the GENESIS summary.
+- **Anchored means observed (INC-21).**
+  - A paper anchors a term only when the term occurs as whole words in its title or abstract. Case, hyphens and punctuation are ignored, and there is no stemming.
+  - "Hits returned" is kept apart from "observed in".
+  - `compute_apr_observed` measures occurrence.
+  - The topic is anchored only where it occurs.
+- **Grounding lives beside the draft.**
+  - `bind` writes `grounding` on the draft record, never inside `draft`. A client save cannot forge or drop it, and a draft without recon is unchanged, so no migration is needed.
+  - `STALE_BINDING` means that the session's latest pool is not the bound pool.
+  - Per-RQ evidence is computed at preview and genesis, because the RQs are written after the direction is chosen.
+- **A pool under 12 papers binds only with consent.** `bind` refuses `POOL_TOO_SMALL` unless `accept_thin_pool` is set (INC-28 for the HTTP route). The CLI wizard still only prints a note.
+- **No new search at genesis.** The CLI wizard searches each concept and synonym (budget 3). The HTTP flow does not search again at genesis. Preview shows each concept's occurrence in the bound pool and `apr_observed` instead.
+- **The contact email** is the console process's `SCHOLAR_MAILTO`, from the environment or `.env`. There is no in-app setting yet, and the screens say how to set it.
+- **Recon jobs** are kept in memory by the console process. A restart loses the job records, not the results: every probe is in the session store.
+- **The suite runs offline.** `tests/conftest.py` refuses any non-loopback socket connect unless `NEXUS_RECORD_CASSETTES=1` or `NEXUS_ALLOW_NETWORK=1` is set.
+- **Lane.** RELEASE: the milestone changes public HTTP and MCP answers and what the recon cache persists.
+
+**Not chosen:**
+- Grounding inside the draft: a client could forge it.
+- A TTL on cached pools: complete pools stay reusable, `created_at` shows their age, and `refresh` replaces them.
+- Running the console's probes through the subprocess `JobRunner`: a recon probe runs in-process and has no CLI action.
+
 ## 2026-11-09 — The inception write gate names every file, and a draft keeps its backup (accepted; M4b)
 
 The researcher chose this on 2026-11-09, closing the open questions of the inception specs 06, 07 and 08 before the screens were built.
