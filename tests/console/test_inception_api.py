@@ -229,3 +229,78 @@ def test_every_inception_refusal_code_is_registered():
         raised |= set(re.findall(r'(?:Refused|GenesisRefused)\(\s*"([A-Z_]+)"', path.read_text(encoding="utf-8")))
     assert len(raised) >= 14  # anti-vacuity
     assert raised <= refusals.CONSOLE_REFUSALS, raised - refusals.CONSOLE_REFUSALS
+
+
+def _state(ws):
+    """Each file under `ws` in the preview's spelling, with what tells a write: mtime and bytes.
+
+    Skills under `.agents/skills/` and one replacement backup collapse to their folder.
+    The mtime matters: `INDEX.md` is rewritten on every journal event, stamped to the
+    second, so two geneses in one second leave it byte-identical but written.
+    """
+    out: dict[str, set[tuple[int, bytes]]] = {}
+    for path in ws.rglob("*"):
+        rel = path.relative_to(ws).as_posix()
+        if rel.startswith(".agents/skills/"):
+            # On Linux and macOS a skill is a symlinked folder (rglob does not enter
+            # it); on Windows it is copied. Either way the skill was written.
+            if path.is_symlink() or path.is_file():
+                out.setdefault(".agents/skills/", set()).add((path.lstat().st_mtime_ns, rel.encode()))
+            continue
+        if not path.is_file():
+            continue
+        if rel.startswith("audit/replaced/"):
+            rel = "audit/replaced/<UTC stamp>/"
+        out.setdefault(rel, set()).add((path.stat().st_mtime_ns, path.read_bytes()))
+    return out
+
+
+def _written(ws, before=None):
+    """Every file under `ws` that is new, or rewritten since `before` (a `_state`)."""
+    now = _state(ws)
+    if before is None:
+        return set(now)
+    return {rel for rel, marks in now.items() if before.get(rel) != marks}
+
+
+def test_preview_names_every_file_genesis_writes(root):
+    """M4b (researcher, 2026-11-09): the write gate lists exactly what genesis writes."""
+    client = _client(root)
+    planned = client.post(f"{BASE}/preview", json={"draft": _draft()}).json()["files"]
+    sid = client.post(f"{BASE}/drafts", json={"draft": _draft()}).json()["session_id"]
+    assert client.post(f"{BASE}/drafts/{sid}/genesis", json={}).status_code == 201
+    ws = root / SLUG
+    assert set(planned) == _written(ws)
+
+    snapshot = _state(ws)
+    # A changed answer, so every rewritten file differs from the first genesis.
+    changed = {**_draft(), "out_of_scope": ["pre-2020 studies"]}
+    replan = client.post(f"{BASE}/preview", json={"draft": changed}).json()["files"]
+    second = client.post(f"{BASE}/drafts", json={"draft": changed}).json()["session_id"]
+    assert client.post(f"{BASE}/drafts/{second}/genesis", json={"replace": True}).status_code == 201
+    assert set(replan) == _written(ws, snapshot)
+
+
+def test_a_replacement_records_its_backup_on_the_draft(root):
+    """M4b (researcher, 2026-11-09): Done reads the backup and previous fingerprint after a reload."""
+    client = _client(root)
+    first = client.post(f"{BASE}/drafts", json={"draft": _draft()}).json()["session_id"]
+    client.post(f"{BASE}/drafts/{first}/genesis", json={})
+    assert set(client.get(f"{BASE}/drafts/{first}").json()["emitted"]) >= {"slug", "path", "protocol_fingerprint", "replaced"}
+    assert "backup_dir" not in client.get(f"{BASE}/drafts/{first}").json()["emitted"]
+
+    second = client.post(f"{BASE}/drafts", json={"draft": _draft()}).json()["session_id"]
+    made = client.post(f"{BASE}/drafts/{second}/genesis", json={"replace": True}).json()
+    emitted = client.get(f"{BASE}/drafts/{second}").json()["emitted"]
+    assert emitted["backup_dir"] == made["backup_dir"] and emitted["previous_fingerprint"] == made["previous_fingerprint"]
+    assert emitted["previous_fingerprint"].startswith("sha256:")
+
+
+def test_preview_tells_a_workspace_from_a_folder_that_is_not_one(root):
+    """M4b review #3: the checks and the file list follow what genesis decides on, the markers."""
+    client = _client(root)
+    (root / SLUG).mkdir()
+    (root / SLUG / "my_notes.txt").write_text("mine", encoding="utf-8")
+    target = client.post(f"{BASE}/preview", json={"draft": _draft()}).json()["target"]
+    assert target["exists"] is True and target["workspace"] is False and target["screening"] is None
+    assert "project.json" in client.post(f"{BASE}/preview", json={"draft": _draft()}).json()["files"]

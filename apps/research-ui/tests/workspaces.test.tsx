@@ -78,6 +78,15 @@ describe("workspaces.list", () => {
     expect(document.body.textContent).toContain(ROOT);
   });
 
+  it("links New review to the inception drafts, as a secondary action beside the one brand button (M4b)", async () => {
+    engine();
+    render(<WorkspacesScreen locale="en" />);
+    const link = await screen.findByRole("link", { name: "New review" });
+    expect(link).toHaveAttribute("href", "/en/inception/");
+    expect(link.className).not.toContain("bg-brand");
+    expect(document.querySelectorAll(".bg-brand")).toHaveLength(1);
+  });
+
   it("shows the engine's status: published reads published, not in progress (M6-beta, U-3)", async () => {
     engine({
       list: () =>

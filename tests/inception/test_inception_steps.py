@@ -95,6 +95,7 @@ def test_preview_writes_nothing(tmp_path):
         "slug": "on-device-weed-detection-for-embedded-agriculture",
         "path": str(tmp_path / "on-device-weed-detection-for-embedded-agriculture"),
         "exists": False,
+        "workspace": False,
         "screening": None,
     }
 

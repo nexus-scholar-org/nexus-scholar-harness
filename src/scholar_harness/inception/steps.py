@@ -28,6 +28,8 @@ from typing import Any
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
 from .emit import (
+    NEW_WORKSPACE_FILES,
+    REPLACEMENT_FILES,
     GenesisRefused,
     check_writable,
     emit_workspace,
@@ -35,6 +37,7 @@ from .emit import (
     screening_state,
 )
 from .genesis import (
+    SUPPORT_FILES,
     _default_matrix_dimensions,
     compile_intent,
     install_workspace_support_files,
@@ -284,19 +287,28 @@ def preview(raw_draft: dict[str, Any] | None, *, workspaces_root: Path | None = 
         "protocol_fingerprint": compiled["protocol_fingerprint"],
         "screening_criteria": compiled["criteria_text"],
         "criteria": [i for i in criteria_with_decisions(draft) if i["status"] == "accepted"],
-        "files": ["intent.json", "protocol.json", "SCREENING_CRITERIA.md", "audit/journal.jsonl"],
+        "files": planned_files(exists=False),
         "written": [],
     }
     if workspaces_root is not None:
         target = Path(workspaces_root) / intent["project_slug"]
         exists = target.exists()
+        # What genesis decides on: a folder holds a workspace when it has a marker.
+        workspace = bool(existing_markers(target))
+        out["files"] = planned_files(exists=workspace)
         out["target"] = {
             "slug": intent["project_slug"],
             "path": str(target),
             "exists": exists,
-            "screening": screening_state(target) if exists else None,
+            "workspace": workspace,
+            "screening": screening_state(target) if workspace else None,
         }
     return out
+
+
+def planned_files(*, exists: bool) -> list[str]:
+    """Every file :func:`genesis` writes: a new workspace, or a replacement of one."""
+    return list(REPLACEMENT_FILES) if exists else [*NEW_WORKSPACE_FILES, *SUPPORT_FILES]
 
 
 def genesis(

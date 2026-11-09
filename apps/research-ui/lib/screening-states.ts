@@ -515,6 +515,133 @@ export const STATES: Record<string, StateEntry> = {
       ar: T("المسودة مخفية", "احسم السجل أولًا؛ تُفتح مسودة الوكيل بعد ذلك.", "مسودة الوكيل", "احسم السجل"),
     },
   },
+  // Phase 0 inception (M4b, specs 01–08): the inception API's refusals.
+  DRAFT_CONFLICT: {
+    role: "unclear",
+    action: "reload",
+    copy: {
+      en: T("This draft was saved somewhere else", "It changed since this page read it, perhaps in another tab or from the terminal. Nothing was overwritten. Reload the saved draft, then make your change again.", "Saving this draft", "Reload the saved draft"),
+      fr: T("Ce brouillon a été enregistré ailleurs", "Il a changé depuis que cette page l'a lu, peut-être dans un autre onglet ou depuis le terminal. Rien n'a été écrasé. Rechargez le brouillon enregistré, puis refaites votre modification.", "L'enregistrement de ce brouillon", "Recharger le brouillon enregistré"),
+      ar: T("حُفظت هذه المسودة في مكان آخر", "تغيّرت منذ أن قرأتها هذه الصفحة، ربما في تبويب آخر أو من الطرفية. لم يُستبدل شيء. أعد تحميل المسودة المحفوظة ثم أعد تعديلك.", "حفظ هذه المسودة", "إعادة تحميل المسودة المحفوظة"),
+    },
+  },
+  DRAFT_EMITTED: {
+    role: "include",
+    action: "none",
+    copy: {
+      en: T("This draft already created a workspace", "A draft creates one workspace and is then closed, so it can no longer be changed. Start a new review to make another.", "Changing this draft", "See what was created"),
+      fr: T("Ce brouillon a déjà créé un espace", "Un brouillon crée un seul espace puis se ferme ; il ne peut plus être modifié. Commencez une nouvelle revue pour en créer un autre.", "La modification de ce brouillon", "Voir ce qui a été créé"),
+      ar: T("أنشأت هذه المسودة مساحة عمل بالفعل", "تُنشئ المسودة مساحة عمل واحدة ثم تُغلق، فلا يمكن تعديلها بعد ذلك. ابدأ مراجعة جديدة لإنشاء غيرها.", "تعديل هذه المسودة", "عرض ما أُنشئ"),
+    },
+  },
+  DRAFT_NOT_FOUND: {
+    role: "blocked",
+    action: "none",
+    copy: {
+      en: T("This draft is not here", "No draft with this id is under the workspaces folder. It may belong to another folder, or the link is wrong.", "This draft", "Go to all drafts"),
+      fr: T("Ce brouillon est introuvable", "Aucun brouillon avec cet identifiant n'est dans le dossier des espaces. Il appartient peut-être à un autre dossier, ou le lien est erroné.", "Ce brouillon", "Aller à tous les brouillons"),
+      ar: T("هذه المسودة غير موجودة", "لا توجد مسودة بهذا المعرّف في مجلد مساحات العمل. ربما تتبع مجلدًا آخر، أو أن الرابط خاطئ.", "هذه المسودة", "الانتقال إلى كل المسودات"),
+    },
+  },
+  DRAFT_ID_INVALID: {
+    role: "blocked",
+    action: "none",
+    copy: {
+      en: T("This is not a draft id", "A draft id starts with rec_ followed by 32 letters and digits. Open the draft from the list instead.", "This draft", "Go to all drafts"),
+      fr: T("Ce n'est pas un identifiant de brouillon", "Un identifiant commence par rec_ suivi de 32 lettres et chiffres. Ouvrez plutôt le brouillon depuis la liste.", "Ce brouillon", "Aller à tous les brouillons"),
+      ar: T("هذا ليس معرّف مسودة", "يبدأ معرّف المسودة بـ rec_ يليه 32 حرفًا ورقمًا. افتح المسودة من القائمة بدلًا من ذلك.", "هذه المسودة", "الانتقال إلى كل المسودات"),
+    },
+  },
+  DRAFT_UNREADABLE: {
+    role: "blocked",
+    action: "none",
+    copy: {
+      en: T("This draft cannot be read", "Its file is damaged or was edited by hand. It is kept as it is; start a new review, or repair the file.", "This draft", "Go to all drafts"),
+      fr: T("Ce brouillon est illisible", "Son fichier est endommagé ou a été modifié à la main. Il est conservé tel quel ; commencez une nouvelle revue, ou réparez le fichier.", "Ce brouillon", "Aller à tous les brouillons"),
+      ar: T("تتعذّر قراءة هذه المسودة", "ملفها تالف أو عُدّل يدويًا. يُترك كما هو؛ ابدأ مراجعة جديدة أو أصلح الملف.", "هذه المسودة", "الانتقال إلى كل المسودات"),
+    },
+  },
+  DRAFT_EXISTS: {
+    role: "unclear",
+    action: "reload",
+    copy: {
+      en: T("A draft with this id already exists", "Two drafts cannot share an id. Reload to see the drafts that exist.", "Starting a draft", "Reload"),
+      fr: T("Un brouillon avec cet identifiant existe déjà", "Deux brouillons ne peuvent pas partager un identifiant. Rechargez pour voir les brouillons existants.", "Le démarrage d'un brouillon", "Recharger"),
+      ar: T("توجد مسودة بهذا المعرّف", "لا يمكن لمسودتين أن تتشاركا معرّفًا. أعد التحميل لترى المسودات الموجودة.", "بدء مسودة", "إعادة التحميل"),
+    },
+  },
+  DRAFT_INVALID: {
+    role: "blocked",
+    action: "none",
+    copy: {
+      en: T("The engine did not accept an answer", "One answer has the wrong form, for example a year that is not a number, or a lens or playbook the engine does not know. The engine's reason is below.", "Saving this draft", "Correct the answer"),
+      fr: T("Le moteur n'a pas accepté une réponse", "Une réponse n'a pas la bonne forme, par exemple une année qui n'est pas un nombre, ou une perspective ou une méthode que le moteur ne connaît pas. La raison du moteur figure ci-dessous.", "L'enregistrement de ce brouillon", "Corriger la réponse"),
+      ar: T("لم يقبل المحرك إحدى الإجابات", "إحدى الإجابات بصيغة خاطئة، مثل سنة ليست رقمًا، أو منظور أو منهج لا يعرفه المحرك. سبب المحرك أدناه.", "حفظ هذه المسودة", "صحّح الإجابة"),
+    },
+  },
+  DRAFT_INCOMPLETE: {
+    role: "unclear",
+    action: "none",
+    copy: {
+      en: T("A few answers are still missing", "The engine needs the answers listed below before it can propose this step.", "This step only; your answers are kept", "Answer them"),
+      fr: T("Il manque encore quelques réponses", "Le moteur a besoin des réponses listées ci-dessous avant de proposer cette étape.", "Cette étape seulement ; vos réponses sont conservées", "Y répondre"),
+      ar: T("ما زالت بعض الإجابات ناقصة", "يحتاج المحرك إلى الإجابات المذكورة أدناه قبل أن يقترح هذه الخطوة.", "هذه الخطوة فقط؛ تُحفظ إجاباتك", "أجب عنها"),
+    },
+  },
+  STEP_UNKNOWN: {
+    role: "blocked",
+    action: "none",
+    copy: {
+      en: T("The engine does not know this step", "This app and the engine are different versions. Update the app.", "This step", "Update the app"),
+      fr: T("Le moteur ne connaît pas cette étape", "L'application et le moteur ne sont pas de la même version. Mettez l'application à jour.", "Cette étape", "Mettre à jour l'application"),
+      ar: T("لا يعرف المحرك هذه الخطوة", "التطبيق والمحرك بإصدارين مختلفين. حدّث التطبيق.", "هذه الخطوة", "تحديث التطبيق"),
+    },
+  },
+  CRITERIA_UNDECIDED: {
+    role: "unclear",
+    action: "none",
+    copy: {
+      en: T("Some criteria still wait for your decision", "Every criterion the wizard wrote must be accepted or rejected before the protocol can be compiled.", "Review and creating the workspace", "Decide them on Concepts and criteria"),
+      fr: T("Des critères attendent encore votre décision", "Chaque critère écrit par l'assistant doit être accepté ou rejeté avant de compiler le protocole.", "La vérification et la création de l'espace", "Les décider dans Concepts et critères"),
+      ar: T("ما زالت بعض المعايير بانتظار قرارك", "يجب قبول كل معيار كتبه المعالج أو رفضه قبل تجميع البروتوكول.", "المراجعة وإنشاء مساحة العمل", "احسمها في المفاهيم والمعايير"),
+    },
+  },
+  CRITERIA_MISSING: {
+    role: "blocked",
+    action: "none",
+    copy: {
+      en: T("The protocol needs both kinds of criteria", "Accept at least one inclusion and one exclusion criterion.", "Review and creating the workspace", "Add them on Concepts and criteria"),
+      fr: T("Le protocole a besoin des deux types de critères", "Acceptez au moins un critère d'inclusion et un critère d'exclusion.", "La vérification et la création de l'espace", "Les ajouter dans Concepts et critères"),
+      ar: T("يحتاج البروتوكول إلى نوعي المعايير", "اقبل معيار إدراج واحدًا على الأقل ومعيار استبعاد واحدًا.", "المراجعة وإنشاء مساحة العمل", "أضفها في المفاهيم والمعايير"),
+    },
+  },
+  INTENT_INVALID: {
+    role: "blocked",
+    action: "none",
+    copy: {
+      en: T("The protocol compiler refused these answers", "The answers make a protocol the compiler cannot accept. Its reasons are below; correct the answers they name.", "Review and creating the workspace", "Correct the answers"),
+      fr: T("Le compilateur du protocole a refusé ces réponses", "Les réponses forment un protocole que le compilateur ne peut pas accepter. Ses raisons figurent ci-dessous ; corrigez les réponses qu'elles nomment.", "La vérification et la création de l'espace", "Corriger les réponses"),
+      ar: T("رفض مُجمِّع البروتوكول هذه الإجابات", "تُكوِّن الإجابات بروتوكولًا لا يقبله المُجمِّع. أسبابه أدناه؛ صحّح الإجابات التي يذكرها.", "المراجعة وإنشاء مساحة العمل", "صحّح الإجابات"),
+    },
+  },
+  SCREENING_BOUND: {
+    role: "blocked",
+    action: "none",
+    copy: {
+      en: T("Screening was done under the current protocol", "Replacing the protocol would leave those decisions pointing at criteria that no longer exist. Type the workspace name to confirm, or keep the protocol.", "Replacing this workspace's protocol", "Type the workspace name"),
+      fr: T("Une sélection a été faite sous le protocole actuel", "Remplacer le protocole laisserait ces décisions pointer vers des critères qui n'existent plus. Saisissez le nom de l'espace pour confirmer, ou gardez le protocole.", "Le remplacement du protocole de cet espace", "Saisir le nom de l'espace"),
+      ar: T("جرى فرز وفق البروتوكول الحالي", "استبدال البروتوكول سيترك تلك القرارات تشير إلى معايير لم تعد موجودة. اكتب اسم مساحة العمل للتأكيد، أو أبقِ البروتوكول.", "استبدال بروتوكول مساحة العمل هذه", "اكتب اسم مساحة العمل"),
+    },
+  },
+  CONFIRMATION_MISMATCH: {
+    role: "unclear",
+    action: "none",
+    copy: {
+      en: T("The name does not match", "Type the workspace name exactly as shown to replace its protocol. Nothing was changed.", "Replacing this workspace's protocol", "Type it again"),
+      fr: T("Le nom ne correspond pas", "Saisissez le nom de l'espace exactement comme affiché pour remplacer son protocole. Rien n'a été modifié.", "Le remplacement du protocole de cet espace", "Le saisir à nouveau"),
+      ar: T("الاسم غير مطابق", "اكتب اسم مساحة العمل كما يظهر تمامًا لاستبدال بروتوكولها. لم يتغير شيء.", "استبدال بروتوكول مساحة العمل هذه", "اكتبه مجددًا"),
+    },
+  },
 };
 
 export interface StateCopy {

@@ -312,6 +312,65 @@ describe("console proxy — writes", () => {
     expect(fetchSpy).not.toHaveBeenCalled();
   });
 
+  // M4b: the inception routes (inception API). Discarding a draft is not carried.
+  it.each([
+    ["inception/drafts"],
+    ["inception/preview"],
+    ["inception/steps/scope"],
+    ["inception/steps/shape"],
+    ["inception/steps/criteria"],
+    ["inception/steps/matrix"],
+    ["inception/drafts/rec_0123456789abcdef0123456789abcdef/genesis"],
+  ])("forwards the %s POST", async (route) => {
+    vi.stubEnv("NEXUS_CONSOLE_URL", CONSOLE);
+    const fetchSpy = vi.fn(() => Promise.resolve(jsonResponse({ ok: true })));
+    vi.stubGlobal("fetch", fetchSpy);
+    const response = await POST(
+      request(`api/v1/${route}`, { method: "POST", headers: { "content-type": "application/json" }, body: "{}" }),
+      context("api", "v1", ...route.split("/")),
+    );
+    expect(response.status).toBe(200);
+    const call = fetchSpy.mock.calls[0] as unknown as [unknown];
+    expect(String(call[0])).toBe(`${CONSOLE}/api/v1/${route}`);
+  });
+
+  it.each([["inception/steps/emit"], ["inception/genesis"], ["inception/drafts/rec_1/emitted"]])(
+    "refuses the %s POST",
+    async (route) => {
+      vi.stubEnv("NEXUS_CONSOLE_URL", CONSOLE);
+      const fetchSpy = vi.fn();
+      vi.stubGlobal("fetch", fetchSpy);
+      const response = await POST(
+        request(`api/v1/${route}`, { method: "POST", headers: { "content-type": "application/json" }, body: "{}" }),
+        context("api", "v1", ...route.split("/")),
+      );
+      expect(response.status).toBe(405);
+      expect(fetchSpy).not.toHaveBeenCalled();
+    },
+  );
+
+  it("forwards PUT to save an inception draft, and only the draft itself", async () => {
+    vi.stubEnv("NEXUS_CONSOLE_URL", CONSOLE);
+    const fetchSpy = vi.fn(() => Promise.resolve(jsonResponse({ session_id: "rec_1" })));
+    vi.stubGlobal("fetch", fetchSpy);
+    const body = JSON.stringify({ draft: {}, base_updated_at: "2026-11-09T00:00:00+00:00" });
+    const ok = await PUT(
+      request("api/v1/inception/drafts/rec_1", { method: "PUT", headers: { "content-type": "application/json" }, body }),
+      context("api", "v1", "inception", "drafts", "rec_1"),
+    );
+    expect(ok.status).toBe(200);
+    const call = fetchSpy.mock.calls[0] as unknown as [unknown, RequestInit | undefined];
+    expect(String(call[0])).toBe(`${CONSOLE}/api/v1/inception/drafts/rec_1`);
+    expect(call[1]?.body).toBe(body);
+
+    const refused = await PUT(
+      request("api/v1/inception/drafts/rec_1/genesis", { method: "PUT", body: "{}" }),
+      context("api", "v1", "inception", "drafts", "rec_1", "genesis"),
+    );
+    expect(refused.status).toBe(405);
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+  });
+
   it("forwards PUT for the screening settings and nothing else", async () => {
     vi.stubEnv("NEXUS_CONSOLE_URL", CONSOLE);
     const fetchSpy = vi.fn(() => Promise.resolve(jsonResponse({ blinding: "show" })));

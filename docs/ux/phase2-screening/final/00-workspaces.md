@@ -107,3 +107,12 @@ All answered by the researcher, 2026-11-05.
 5. The placeholder protocol is allowed, shown as a draft with the placeholder line; no Contract v1 change. (researcher, 2026-11-05)
 6. `docs/architecture/workspaces-api.md` is written before the engine work; `GET /workspaces` may return absolute paths (desktop-only, local). (researcher, 2026-11-05)
 7. Create also runs `install_workspace_support_files` (skills, `.mcp.json`, `.env.example`), like the CLI; validity checks only `protocol.json`, `project.json` and `audit/journal.jsonl`, so older workspaces without `.mcp.json` still list. (researcher, 2026-11-05)
+
+## Addendum (M4b, 2026-11-09): the "New review" link
+The Inception screens (`docs/ux/phase0-inception/final/01-scope.md` to `08-states.md`) now exist, so this screen gets one entry to them. Nothing else in this spec changes.
+- **Link.** A secondary link-button "New review" (`workspaces.cta.newReview`, 44 px) beside the brand button "New workspace", going to `/[locale]/inception/` (08, the list of drafts with "Start a new review"). It is a link, not a second brand button; "New workspace" stays the screen's one brand button. It carries `?console=` when set. It is present in the Default and Empty states, absent when the root is unavailable, and absent on a phone (this screen shows the desktop pointer there).
+- **What "New workspace" still is.** The empty scaffold with the placeholder protocol; it does not start the wizard. The "No Inception wizard" cut above stands for it.
+- **Placeholder line.** `workspaces.create.placeholderProtocol` changes from "Placeholder protocol. Run the Inception wizard from the terminal to replace it." to "Placeholder protocol. Use New review with the same title to replace it." (A review with the same title reaches `WORKSPACE_EXISTS` at the write gate and asks before replacing; the old files are backed up.) fr and ar by the implementer.
+- **Not added.** No count of drafts, no "Resume" link and no draft rows here; drafts have their own page (08). The empty-folder help text is unchanged.
+- **Copy key.** `workspaces.cta.newReview` = "New review".
+- **Tests.** Add to `workspaces.list.test.tsx`: the link is present with the right href, is secondary, and the screen still has exactly one brand button; to `workspaces/workspaces.spec.ts`: the link opens `/inception/`.

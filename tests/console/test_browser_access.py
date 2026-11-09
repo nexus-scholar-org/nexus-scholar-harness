@@ -11,9 +11,11 @@ import re
 from pathlib import Path
 
 import pytest
+from conftest import E2E_ANSWERS
 from fastapi.testclient import TestClient
 
 from scholar_harness.console import browser, create_app
+from scholar_harness.inception.intent import CriterionDraft
 from scholar_harness.workspace import catalog
 
 TOKEN, SESSION = "desk-token", "session-secret"
@@ -105,6 +107,59 @@ def test_the_draft_is_read_only_from_this_apps_pages(ws, ui):
     client = _browser(_app(ws, ui)[0])
     cross = client.get("/api/console/api/v1/screening/records/S-1/proposal", headers={"Sec-Fetch-Site": "cross-site"})
     assert (cross.status_code, cross.json()["detail"]["code"]) == (403, "CONSOLE_ORIGIN_REFUSED")
+
+
+def _inception_draft() -> dict:
+    a = E2E_ANSWERS
+    proof_id = CriterionDraft("inclusion", f"Reports the gold-standard proof — {a[5]}", "proof").id
+    return {
+        "topic": a[0], "paradigm": a[1], "playbook": a[2], "unit_of_analysis": a[4], "proof": a[5],
+        "out_of_scope": [s.strip() for s in a[6].split(",")], "rqs": [a[8]],
+        "concepts": [{"concept": "weed detection"}, {"concept": "on-device inference"}],
+        "criteria_decisions": {proof_id: True},
+        "title": "On-Device Weed Detection for Embedded Agriculture", "lead_researcher": "Dr. Mouadh",
+    }
+
+
+def test_the_inception_flow_reaches_the_engine_from_the_browser(ws, ui):
+    """M4b: the inception screens use drafts, steps, preview and genesis through the allowlist."""
+    client = _browser(_app(ws, ui)[0])
+    same = {"Origin": "http://127.0.0.1:8765"}
+    base = "/api/console/api/v1/inception"
+    created = client.post(f"{base}/drafts", json={"draft": {"topic": "edge AI"}}, headers=same)
+    assert created.status_code == 201, created.text
+    record = created.json()
+    sid = record["session_id"]
+    assert client.get(f"{base}/drafts").json()["items"][0]["session_id"] == sid
+    saved = client.put(f"{base}/drafts/{sid}", json={"draft": _inception_draft(), "base_updated_at": record["updated_at"]}, headers=same)
+    assert saved.status_code == 200, saved.text
+    stale = client.put(f"{base}/drafts/{sid}", json={"draft": {}, "base_updated_at": record["updated_at"]}, headers=same)
+    assert stale.json()["detail"]["code"] == "DRAFT_CONFLICT"
+    for step in ("scope", "shape", "criteria", "matrix"):
+        assert client.post(f"{base}/steps/{step}", json={"draft": _inception_draft()}, headers=same).status_code == 200, step
+    preview = client.post(f"{base}/preview", json={"draft": _inception_draft()}, headers=same)
+    assert preview.status_code == 200 and preview.json()["written"] == []
+    made = client.post(f"{base}/drafts/{sid}/genesis", json={}, headers=same)
+    assert made.status_code == 201, made.text
+    assert (ws.parent / made.json()["slug"] / "protocol.json").is_file()
+
+
+def test_inception_writes_need_this_origin_and_discard_is_not_carried(ws, ui):
+    client = _browser(_app(ws, ui)[0])
+    same = {"Origin": "http://127.0.0.1:8765"}
+    base = "/api/console/api/v1/inception"
+    foreign = client.post(f"{base}/drafts", json={"draft": {}}, headers={"Origin": "http://127.0.0.1:3000"})
+    assert (foreign.status_code, foreign.json()["detail"]["code"]) == (403, "CONSOLE_ORIGIN_REFUSED")
+    sid = client.post(f"{base}/drafts", json={"draft": {}}, headers=same).json()["session_id"]
+    foreign_put = client.put(f"{base}/drafts/{sid}", json={"draft": {}}, headers={"Origin": "http://127.0.0.1:3000"})
+    assert foreign_put.json()["detail"]["code"] == "CONSOLE_ORIGIN_REFUSED"
+    for path in (f"{base}/steps/emit", f"{base}/drafts/{sid}/emitted", f"{base}/genesis"):
+        refused = client.post(path, json={}, headers=same)
+        assert (refused.status_code, refused.json()["detail"]["code"]) == (405, "CONSOLE_METHOD_REFUSED"), path
+    assert client.put(f"{base}/drafts/{sid}/genesis", json={}, headers=same).json()["detail"]["code"] == "CONSOLE_METHOD_REFUSED"
+    discard = client.delete(f"{base}/drafts/{sid}", headers=same)
+    assert discard.json()["detail"]["code"] == "CONSOLE_METHOD_REFUSED"
+    assert (ws.parent / ".drafts" / sid / "draft.json").is_file()
 
 
 def test_the_static_ui_is_served_with_a_root_redirect_and_a_404_page(ws, ui):

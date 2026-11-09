@@ -65,13 +65,26 @@ const POST_PATHS: ReadonlyArray<RegExp> = [
   // M5-slim: create and open a workspace (workspaces API §3). Open answers
   // RESTART_UNSUPPORTED unless the console was started by `nexus-scholar ui`.
   /^api\/v1\/workspaces(\/open)?$/,
+  // M4b: inception (inception API). Start a draft, ask a step, preview, and the
+  // one gated write (genesis). The console runs the overwrite guard and the
+  // typed-slug confirmation; discarding a draft (DELETE) is not carried.
+  /^api\/v1\/inception\/(drafts|preview)$/,
+  /^api\/v1\/inception\/steps\/(scope|shape|criteria|matrix)$/,
+  /^api\/v1\/inception\/drafts\/[A-Za-z0-9_-]+\/genesis$/,
 ];
 
 /** The one GET with a side effect: the engine records a reveal when a draft is read. */
 const READ_PROPOSAL = /^api\/v1\/screening\/records\/[A-Za-z0-9_-]+\/proposal$/;
 
-/** PUT targets: the screening settings only (journaled by the console). */
-const PUT_PATHS: ReadonlyArray<RegExp> = [/^api\/v1\/screening\/settings$/, /^api\/v1\/screening\/approver$/];
+/**
+ * PUT targets: the screening settings and approver (journaled by the console),
+ * and saving an inception draft (M4b; the console checks `base_updated_at`).
+ */
+const PUT_PATHS: ReadonlyArray<RegExp> = [
+  /^api\/v1\/screening\/settings$/,
+  /^api\/v1\/screening\/approver$/,
+  /^api\/v1\/inception\/drafts\/[A-Za-z0-9_-]+$/,
+];
 
 /**
  * The console's long-lived SSE routes. They are GET-only (no allowlist
@@ -185,7 +198,7 @@ async function forward(request: NextRequest, segments: string[] | undefined): Pr
     return typedError(405, "CONSOLE_METHOD_REFUSED", "the console proxy accepts GET, HEAD, POST and PUT");
   }
   if (method === "PUT" && !PUT_PATHS.some((pattern) => pattern.test(path))) {
-    return typedError(405, "CONSOLE_METHOD_REFUSED", "PUT is proxied only for the screening settings and the approver name");
+    return typedError(405, "CONSOLE_METHOD_REFUSED", "PUT is proxied only for the screening settings, the approver name and inception drafts");
   }
   // Reading a draft records a reveal (M1b-0), so this GET has an effect: a
   // browser request from another site (an <img> or a link) must not trigger it.
@@ -197,7 +210,7 @@ async function forward(request: NextRequest, segments: string[] | undefined): Pr
     return typedError(
       405,
       "CONSOLE_METHOD_REFUSED",
-      "POST is proxied only for screening actions and draft decisions",
+      "POST is proxied only for screening actions, draft decisions, workspaces and inception",
     );
   }
 
