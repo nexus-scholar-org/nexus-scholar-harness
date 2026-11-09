@@ -231,12 +231,14 @@ def test_every_inception_refusal_code_is_registered():
     assert raised <= refusals.CONSOLE_REFUSALS, raised - refusals.CONSOLE_REFUSALS
 
 
-def _written(ws, before=None):
-    """Every file under `ws` that is new or changed since `before`, in the preview's spelling.
+def _state(ws):
+    """Each file under `ws` in the preview's spelling, with what tells a write: mtime and bytes.
 
     Skills under `.agents/skills/` and one replacement backup collapse to their folder.
+    The mtime matters: `INDEX.md` is rewritten on every journal event, stamped to the
+    second, so two geneses in one second leave it byte-identical but written.
     """
-    out = {}
+    out: dict[str, set[tuple[int, bytes]]] = {}
     for path in ws.rglob("*"):
         if not path.is_file():
             continue
@@ -245,10 +247,16 @@ def _written(ws, before=None):
             rel = ".agents/skills/"
         elif rel.startswith("audit/replaced/"):
             rel = "audit/replaced/<UTC stamp>/"
-        out.setdefault(rel, set()).add(path.read_bytes())
+        out.setdefault(rel, set()).add((path.stat().st_mtime_ns, path.read_bytes()))
+    return out
+
+
+def _written(ws, before=None):
+    """Every file under `ws` that is new, or rewritten since `before` (a `_state`)."""
+    now = _state(ws)
     if before is None:
-        return set(out)
-    return {rel for rel, contents in out.items() if before.get(rel) != contents}
+        return set(now)
+    return {rel for rel, marks in now.items() if before.get(rel) != marks}
 
 
 def test_preview_names_every_file_genesis_writes(root):
@@ -260,12 +268,7 @@ def test_preview_names_every_file_genesis_writes(root):
     ws = root / SLUG
     assert set(planned) == _written(ws)
 
-    snapshot: dict[str, set[bytes]] = {}
-    for path in ws.rglob("*"):
-        if path.is_file():
-            rel = path.relative_to(ws).as_posix()
-            rel = ".agents/skills/" if rel.startswith(".agents/skills/") else rel
-            snapshot.setdefault(rel, set()).add(path.read_bytes())
+    snapshot = _state(ws)
     # A changed answer, so every rewritten file differs from the first genesis.
     changed = {**_draft(), "out_of_scope": ["pre-2020 studies"]}
     replan = client.post(f"{BASE}/preview", json={"draft": changed}).json()["files"]
