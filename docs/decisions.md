@@ -4,6 +4,18 @@ One entry per decision that still shapes the code, newest first. The full
 records were removed in the 2026-11-03 docs cut; each entry names the commit
 history to read if you need the original reasoning (`git log --follow -- <path>`).
 
+## 2026-11-09 — Triage is a focus screen on desktop: its own top bar, a counts rail, no filter chips (accepted; M8-triage)
+
+The researcher chose this on 2026-11-09, after trying the first M8-triage build: "I want the triage the full viewport like the screenshots", and "I don't like those buttons" (the step bar and the queue's view chips).
+
+**The decision.** From 1024 px the triage route is a focus screen, as in the redesign mockup:
+- the site header and the screening step bar are not shown there; one slim triage bar takes their place, with the product name, "Triage" (the page's h1), the position line with a progress strip, and Queue (J/K), Help (?) and Leave triage (a link to screening Home);
+- the queue column becomes a counts rail (need you, decided, skipped in this session) over the current and next titles; the whole queue opens from Queue or J/K, and its view is chosen from one dropdown instead of five chip buttons.
+
+Below 1024 px nothing changes: the site header, the step bar and the stacked layout stay. On the desktop triage screen the language and theme menus are therefore one step away, on any other screen.
+
+**Not chosen:** keeping the site header with a compact step bar (the first M8-triage build).
+
 ## 2026-11-09 — Triage: the checklist is a tool for the reason, not a gate for the decision (accepted; M8-triage)
 
 The researcher chose this on 2026-11-09, after screening real IEEE records: the long checklist had to be answered for every record before Include was possible.
