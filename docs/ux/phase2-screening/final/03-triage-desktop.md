@@ -23,14 +23,14 @@ Source: `docs/roadmap/milestones/M8-triage.md`; the three decisions of 2026-11-0
 **2. The checklist is collapsed by default.**
 - A 44 px toggle button "Your checklist · optional" (`screening.triage.checklist.toggle`; `aria-expanded`, `aria-controls`) with a one-line summary: "No answers" (`screening.triage.checklist.summaryNone`) or "{n} of {m} answered" (`screening.triage.checklist.summarySome`, `{n}`, `{m}`).
 - It opens on the toggle; on **E** (to pick the reason); on **1**, **2** or **3**, which also answer the focused criterion (the first criterion by default), as before.
-- Each new record opens with the checklist closed, unless the researcher opened it with the toggle: that choice is remembered for the browser session (`sessionStorage`, key per workspace, like the queue toggle), not stored in the workspace.
+- Each new record opens with the checklist closed, unless the researcher opened it with the toggle: that choice is remembered for the browser session (`sessionStorage`, one key for the browser session, like the queue toggle), not stored in the workspace.
 - It is a toggle button, not a Details disclosure, so rule page 12 is unchanged (no edit to 12 is needed).
 
 **3. What is enabled.** This replaces M6-beta amendment 1's Include rule.
 - **Include** needs no answers. It is disabled only while an answer the researcher gave fails a criterion: an inclusion answered no, an exclusion answered yes, or, under the protocol's `exclude` not-reported policy (M7-method), an inclusion answered "not reported".
 - **Exclude** is always enabled while deciding. It needs a reason: pre-selected as the first failed criterion when the answers give one (M6-beta amendment 2 and the M7-method ordering unchanged). Otherwise the reason chips are offered with none chosen and the line "Choose a reason: press its number, then Enter" (`screening.triage.reason.choose`). Chips whose criterion is answered the other way (`FAILS-INC-n` with INC-n answered yes; `EXC-n` with EXC-n answered no) are disabled, because the engine would refuse them (`REASON_CODE_INCONSISTENT`).
 - **Unclear → full text** and **Skip** are unchanged.
-- Absent answers stay absent in the event: never auto-filled, never sent as `not_reported`. An Include with no answers sends no `criteria`. The server's `derived_outcome` rule is unchanged.
+- Absent answers stay absent in the event: never auto-filled, never sent as `not_reported`. An Include with no answers sends an empty `criteria` list (no answers), which the engine reads as absent. The server's `derived_outcome` rule is unchanged.
 
 **4. Status line** (`aria-live="polite"`, in the decision bar):
 - a criterion fails: the existing `excludeReady` / `excludeReadyNotReported` line, followed by "Include is off while it fails." (`screening.triage.checklist.includeOff`);
@@ -113,13 +113,13 @@ Source: `docs/decisions.md` 2026-11-08 "Method parameters move into the protocol
   - ar: "الاستبعاد جاهز: {id} غير مُبلَّغ عنه (يستبعد بروتوكولك ما لم يُبلَّغ عنه)"
 - Tests: `triage.not-reported-policy.test.tsx` (exclude policy: not-reported inclusion enables Exclude with `FAILS-INC-n`; definite failure outranks it; not-reported exclusion does not enable Exclude; Include is disabled by a not-reported inclusion and needs no answers otherwise (M8-triage 3); unclear policy leaves all as today; choosing Unclear is possible). Python: `tests/test_screening_events.py` for the policy in `derived_outcome` and the consistency check.
 
-**Purpose.** Decide every record: read it, fill the checklist, choose Include / Exclude / Unclear → full text, and move on by keyboard.
+**Purpose.** Decide every record: read it, choose Include / Exclude / Unclear → full text, answer the checklist when it helps give a reason (M8-triage), and move on by keyboard.
 
 **Changed from the canvas.**
 - Canvas D4/D5 already hide the proposal until you decide and show the queue as all records (chips Proposal ready / No proposal / Title only). Kept.
 - **Skip** (S) is a client-side deferral and writes **no event** (canvas shows it as an action; it is not a decision).
 - **Changing a decision after the reveal** ("Change my decision", D5) is allowed as a superseding event; the engine sets `changed_after_reveal` (contract §3.1). **Undo** (Z) is also a superseding event; it appears only once the record has something to undo (amendment 5).
-- ~~The checklist answers (yes / no / not reported) are **required** on desktop.~~ Amended: answers are taken until the decision is decisive (amendment 1); unanswered criteria are absent, never `not_reported`. The "From your answers: Include" line is the server's plain-code rule-table result; "you can still choose another outcome" is kept. The model never derives the outcome.
+- ~~The checklist answers (yes / no / not reported) are **required** on desktop.~~ Amended: ~~answers are taken until the decision is decisive (amendment 1);~~ the checklist is optional and collapsed by default (M8-triage 2 and 3); unanswered criteria are absent, never `not_reported`. The "From your answers: Include" line is the server's plain-code rule-table result; "you can still choose another outcome" is kept. The model never derives the outcome.
 - Chip filters that reveal the agent's call (D5 "Differs" on the compared record, and any "agent disagrees" view) exist only for records you have already decided (`GET /queue` with `decided=true`).
 - A queue ordering by the agent's uncertainty is available after a proposals run: `GET /queue?order=agent_uncertainty` ✗ M1a. It orders without revealing the agent's call, and the methods paragraph discloses it (see 06). Default ordering is the seeded order. A decision on a study with an open conflict returns the per-event result `conflict` (no separate refusal code).
 - The canvas "Unclear" button reads "Unclear" with a tooltip; the label everywhere else is "Unclear → full text" (stored `MAYBE`).
