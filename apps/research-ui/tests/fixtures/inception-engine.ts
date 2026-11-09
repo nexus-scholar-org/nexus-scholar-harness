@@ -185,7 +185,7 @@ export function inceptionEngine(options: FakeOptions = {}) {
         if (lacking) return lacking;
         return {
           status: 200,
-          body: { step: "shape", recommended_playbook: "DESIGN_SCIENCE", playbooks: PLAYBOOKS, trustworthiness_framework: "Hevner DSR", rq_draft: `Can a novel ${String(draft.topic)} artifact achieve its goal?`, lexicon: "Use DSR rigor vocabulary.", lexicon_warnings: [] },
+          body: { step: "shape", recommended_playbook: "DESIGN_SCIENCE", playbooks: PLAYBOOKS, trustworthiness_framework: "Hevner DSR", rq_draft: `Can a novel ${String(draft.topic)} artifact achieve ${String(draft.proof ?? "its goal")} for ${String(draft.unit_of_analysis ?? "its users")}?`, lexicon: "Use DSR rigor vocabulary.", lexicon_warnings: [] },
         };
       }
       if (step[1] === "criteria") {

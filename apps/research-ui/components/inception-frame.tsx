@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useState, type ReactNode } from "react";
 
 import type { Locale } from "@/i18n";
 import { DataCell } from "@/components/ui/base";
@@ -35,6 +35,21 @@ export function consoleOrigin(): string {
 export function draftParam(): string {
   if (typeof window === "undefined") return "";
   return new URLSearchParams(window.location.search).get("draft") ?? "";
+}
+
+/**
+ * `?draft=` and `?console=`, read after hydration. The pages are prerendered
+ * without a query string, so reading `window.location` during the first render
+ * gave the step bar hrefs the server never saw and React a hydration mismatch
+ * on every inception screen. Until `ready`, the screen renders what the server
+ * rendered: no draft id, no origin.
+ */
+export function useLocationParams(): { origin: string; draftId: string; ready: boolean } {
+  const [params, setParams] = useState({ origin: "", draftId: "", ready: false });
+  useEffect(() => {
+    setParams({ origin: consoleOrigin(), draftId: draftParam(), ready: true });
+  }, []);
+  return params;
 }
 
 /** The link to one inception screen for this draft, keeping the console override. */
@@ -158,8 +173,7 @@ export function InceptionSteps({ locale, current, draftId, origin }: Readonly<{ 
  * `DRAFT_CONFLICT` and overwrites nothing; the screen shows it and offers a reload.
  */
 export function useDraft() {
-  const origin = useMemo(consoleOrigin, []);
-  const draftId = useMemo(draftParam, []);
+  const { origin, draftId, ready } = useLocationParams();
   const [record, setRecord] = useState<DraftRecord | null>(null);
   const [draft, setDraft] = useState<Draft>({});
   const [loadError, setLoadError] = useState<Refusal | null>(null);
@@ -170,7 +184,7 @@ export function useDraft() {
     setLoadError(null);
     setSaveError(null);
     // No `?draft=` is not something the engine refused; the frame says so in words.
-    if (!draftId) return;
+    if (!ready || !draftId) return;
     try {
       const read = await readDraft(origin, draftId);
       setRecord(read);
@@ -178,7 +192,7 @@ export function useDraft() {
     } catch (error) {
       setLoadError(refusalOf(error));
     }
-  }, [origin, draftId]);
+  }, [origin, draftId, ready]);
 
   useEffect(() => {
     void load();
@@ -208,7 +222,7 @@ export function useDraft() {
     [origin, record, draft],
   );
 
-  return { origin, draftId, record, draft, setDraft, update, save, saving, loadError, saveError, setSaveError, reload: load };
+  return { origin, draftId, ready, record, draft, setDraft, update, save, saving, loadError, saveError, setSaveError, reload: load };
 }
 
 export function InceptionFrame({
@@ -218,11 +232,15 @@ export function InceptionFrame({
   children,
 }: Readonly<{ locale: Locale; current: InceptionStep; draft: ReturnType<typeof useDraft>; children: ReactNode }>) {
   const t = inceptionT(locale);
-  const { record, loadError, origin, draftId } = draft;
+  const { record, loadError, origin, draftId, ready } = draft;
   return (
     <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8 lg:py-12">
       <InceptionSteps locale={locale} current={current} draftId={draftId} origin={origin} />
-      {!draftId ? (
+      {!ready ? (
+        <p role="status" className="text-ink-muted">
+          {t("loading")}
+        </p>
+      ) : !draftId ? (
         <div className="space-y-3" data-no-draft>
           <h1 className="font-display text-3xl text-ink">{t("noDraft")}</h1>
           <a className="inline-flex min-h-11 items-center text-brand underline" href={inceptionHref(locale, "", "", origin)}>

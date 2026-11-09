@@ -28,6 +28,8 @@ export function InceptionShape({ locale }: Readonly<{ locale: Locale }>) {
   const { draft, update, save, saving, saveError, origin, draftId, record } = state;
   const [scope, setScope] = useState<ScopeStep | null>(null);
   const [shape, setShape] = useState<ShapeStep | null>(null);
+  // The answers `shape` was computed from; while it lags the form, the draft is stale.
+  const [shapeFor, setShapeFor] = useState("");
   const [stepError, setStepError] = useState<Refusal | null>(null);
   const [outOfScope, setOutOfScope] = useState<string | null>(null);
 
@@ -57,6 +59,7 @@ export function InceptionShape({ locale }: Readonly<{ locale: Locale }>) {
       runStep(origin, "shape", ask, controller.signal).then(
         (answer) => {
           setShape(answer);
+          setShapeFor(shapeKey);
           setStepError(null);
         },
         (error) => {
@@ -83,6 +86,13 @@ export function InceptionShape({ locale }: Readonly<{ locale: Locale }>) {
 
   const leaning = scope?.recommended_paradigm;
   const firstEmpty = rqs.findIndex((rq) => rq.trim() === "");
+  // The template is filled from the unit and the proof: it is offered only once
+  // both are answered and the engine has answered for the answers on screen.
+  // Otherwise a click would insert a sentence with blanks, or one from before
+  // the last edit (the shape step is debounced).
+  const draftFilled = Boolean(draft.unit_of_analysis?.trim()) && Boolean(draft.proof?.trim());
+  const draftCurrent = shape !== null && shapeFor === shapeKey;
+  const draftHint = !draftFilled ? t("shape.draftNeeds") : !draftCurrent ? t("shape.draftWaiting") : "";
 
   return (
     <InceptionFrame locale={locale} current="shape" draft={state}>
@@ -214,16 +224,27 @@ export function InceptionShape({ locale }: Readonly<{ locale: Locale }>) {
 
         <section aria-labelledby="shape-rq-draft" className="space-y-3">
           {shape ? (
-            <div className="rounded-lg border border-dashed border-rule p-4" data-rq-draft>
+            <div className="rounded-lg border border-dashed border-rule p-4" data-rq-draft data-draft-current={draftCurrent ? "true" : "false"} aria-busy={!draftCurrent}>
               <p id="shape-rq-draft" className="text-xs font-semibold text-ink-muted">
                 {t("shape.rqDraft")}
               </p>
-              <p className="mt-1 text-ink" dir="ltr">
+              <p className={`mt-1 ${draftCurrent ? "text-ink" : "text-ink-muted"}`} dir="ltr">
                 {shape.rq_draft}
               </p>
               <div className="mt-2">
-                <Button onClick={() => setRq(firstEmpty >= 0 ? firstEmpty : rqs.length, shape.rq_draft)}>{t("shape.useDraft", { n: (firstEmpty >= 0 ? firstEmpty : rqs.length) + 1 })}</Button>
+                <Button
+                  disabled={!draftFilled || !draftCurrent}
+                  aria-describedby={draftHint ? "shape-rq-draft-hint" : undefined}
+                  onClick={() => setRq(firstEmpty >= 0 ? firstEmpty : rqs.length, shape.rq_draft)}
+                >
+                  {t("shape.useDraft", { n: (firstEmpty >= 0 ? firstEmpty : rqs.length) + 1 })}
+                </Button>
               </div>
+              {draftHint ? (
+                <p id="shape-rq-draft-hint" className="mt-2 text-xs text-ink-muted" aria-live="polite">
+                  {draftHint}
+                </p>
+              ) : null}
               <p className="mt-2 text-xs text-ink-muted">
                 {t("shape.lexicon")}: <span dir="ltr">{shape.lexicon}</span>
               </p>

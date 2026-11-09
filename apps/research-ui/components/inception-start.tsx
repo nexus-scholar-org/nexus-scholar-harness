@@ -1,10 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import type { Locale } from "@/i18n";
 import { Button, DataCell } from "@/components/ui/base";
-import { consoleOrigin, inceptionHref, InceptionRefusal, refusalOf, stamp, type Refusal } from "@/components/inception-frame";
+import { inceptionHref, InceptionRefusal, refusalOf, stamp, useLocationParams, type Refusal } from "@/components/inception-frame";
 import { createDraft, listDrafts, type DraftListing } from "@/lib/inception-api";
 import { inceptionT } from "@/lib/inception-copy";
 
@@ -15,7 +15,7 @@ import { inceptionT } from "@/lib/inception-copy";
  */
 export function InceptionStart({ locale }: Readonly<{ locale: Locale }>) {
   const t = inceptionT(locale);
-  const origin = useMemo(consoleOrigin, []);
+  const { origin, ready } = useLocationParams();
   const [listing, setListing] = useState<DraftListing | null>(null);
   const [loadError, setLoadError] = useState<Refusal | null>(null);
   const [refusal, setRefusal] = useState<Refusal | null>(null);
@@ -23,12 +23,13 @@ export function InceptionStart({ locale }: Readonly<{ locale: Locale }>) {
 
   const load = useCallback(async () => {
     setLoadError(null);
+    if (!ready) return;
     try {
       setListing(await listDrafts(origin));
     } catch (error) {
       setLoadError(refusalOf(error));
     }
-  }, [origin]);
+  }, [origin, ready]);
 
   useEffect(() => {
     void load();
