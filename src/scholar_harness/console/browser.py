@@ -53,6 +53,7 @@ POST_PATHS: tuple[re.Pattern[str], ...] = tuple(
         r"api/v1/inception/(drafts|preview)",
         r"api/v1/inception/steps/(scope|shape|criteria|matrix)",
         r"api/v1/inception/drafts/[A-Za-z0-9_-]+/genesis",
+        r"api/v1/inception/drafts/[A-Za-z0-9_-]+/recon/(probe|delta|distill|bind)",
     )
 )
 PUT_PATHS: tuple[re.Pattern[str], ...] = (

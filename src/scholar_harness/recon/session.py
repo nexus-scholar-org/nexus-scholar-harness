@@ -58,8 +58,12 @@ NARROW_BUDGET = 1
 DELTA_BUDGET = 3
 
 
-class ReconRefused(Exception):
-    """A recon step was refused; ``code`` names why, ``status`` is the HTTP status."""
+class ReconRefused(RuntimeError):
+    """A recon step was refused; ``code`` names why, ``status`` is the HTTP status.
+
+    A ``RuntimeError`` so callers that only know the adapter's error envelope
+    (the MCP tools) report it without importing this module.
+    """
 
     def __init__(self, code: str, message: str, status: int = 409, details: dict[str, Any] | None = None):
         super().__init__(message)
@@ -263,10 +267,11 @@ class ReconSessions:
         session["probes"].append(record)
         if record["cache_key"] and record["cache_key"] not in session["cache_keys"]:
             session["cache_keys"].append(record["cache_key"])
-        if str(artifact) not in session["pools"]:
-            session["pools"].append(str(artifact))
-        else:  # the same pool again: make it the latest
-            session["pools"].remove(str(artifact))
+        # An empty pool is recorded as a probe but never becomes the session's
+        # latest pool: distill, directions and bindings keep the last usable one.
+        if record["n_docs"]:
+            if str(artifact) in session["pools"]:  # the same pool again: make it the latest
+                session["pools"].remove(str(artifact))
             session["pools"].append(str(artifact))
         self.save(session)
         return {"session_id": sid, **record}

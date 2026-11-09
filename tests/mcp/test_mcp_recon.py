@@ -767,7 +767,7 @@ def test_adopted_server_source_has_zero_discovery_mechanisms():
     assert "_sessions().probe(" in _inspect.getsource(server.recon_probe)
     assert "_recon_adapter.distill_terms(" in _inspect.getsource(server.recon_distill)
     assert "_sessions().delta(" in _inspect.getsource(server.recon_delta)
-    assert "ReconSessions(root=RECON_CACHE_ROOT, search_fn=RECON_SEARCH_FN)" in _inspect.getsource(server._sessions)
+    assert "_recon_adapter.make_sessions(cache_root=RECON_CACHE_ROOT, search_fn=RECON_SEARCH_FN)" in _inspect.getsource(server._sessions)
 
 
 def test_adopted_unavailable_adapter_returns_typed_envelopes(tmp_path, monkeypatch):

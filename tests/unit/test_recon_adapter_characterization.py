@@ -97,10 +97,15 @@ def _explode_search_fn(query, providers):
 
 
 def test_a01_adapter_version_is_pinned():
-    """A01 [OBSERVED-ADAPTER]: the explicit interface is versioned."""
-    assert adapter.ADAPTER_VERSION == "1.0"
-    assert adapter.adapter_version() == "1.0"
-    assert adapter.describe_interface()["adapter_version"] == "1.0"
+    """A01 [OBSERVED-ADAPTER]: the explicit interface is versioned.
+
+    1.1 (M4c) adds ``make_sessions``, the recon session store the MCP tools,
+    the CLI wizard and the console share.
+    """
+    assert adapter.ADAPTER_VERSION == "1.1"
+    assert adapter.adapter_version() == adapter.ADAPTER_VERSION
+    assert adapter.describe_interface()["adapter_version"] == adapter.ADAPTER_VERSION
+    assert "make_sessions" in adapter.describe_interface()["entry_points"]
 
 
 def test_a02_adapter_has_no_kit_transport_or_discovery_imports():
@@ -722,6 +727,7 @@ def test_g03_mcp_drives_adapter_entry_points():
     """
     server = _kit_server()
     assert "_sessions().probe(" in inspect.getsource(server.recon_probe)
+    assert "_recon_adapter.make_sessions(" in inspect.getsource(server._sessions)
     assert "_recon_adapter.distill_terms(" in inspect.getsource(server.recon_distill)
     assert "_recon_adapter.merge_lexicon(" in inspect.getsource(server.recon_distill)
     assert "_sessions().delta(" in inspect.getsource(server.recon_delta)

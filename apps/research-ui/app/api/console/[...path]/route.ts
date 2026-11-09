@@ -71,6 +71,10 @@ const POST_PATHS: ReadonlyArray<RegExp> = [
   /^api\/v1\/inception\/(drafts|preview)$/,
   /^api\/v1\/inception\/steps\/(scope|shape|criteria|matrix)$/,
   /^api\/v1\/inception\/drafts\/[A-Za-z0-9_-]+\/genesis$/,
+  // M4c: recon over HTTP (Explore, Direction). Probe and delta start a job; the
+  // console refuses MAILTO_NOT_SET before any request. Distill and bind write
+  // only under the recon cache and the draft record.
+  /^api\/v1\/inception\/drafts\/[A-Za-z0-9_-]+\/recon\/(probe|delta|distill|bind)$/,
 ];
 
 /** The one GET with a side effect: the engine records a reveal when a draft is read. */

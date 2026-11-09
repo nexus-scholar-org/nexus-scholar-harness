@@ -13,8 +13,11 @@ the same functions the CLI wizard calls (`detect_leanings`, `draft_rq`,
 * :func:`genesis` is the one write, through :func:`emit_workspace` and its
   overwrite guard.
 
-Recon (probe/distill/delta over HTTP) is held until M3a merges, so a draft
-carries no grounded evidence yet.
+Grounded evidence (M4c): a draft record may carry a ``grounding`` written by
+the recon bind route (``inception/grounding.py``). :func:`preview` and
+:func:`genesis` take it as an argument: preview shows the bound pool, the
+direction and per-RQ evidence; genesis writes it to ``audit/recon_context.json``.
+Without it every step answers as in M4b.
 """
 
 from __future__ import annotations
@@ -62,6 +65,8 @@ from .intent import (
 )
 
 STEPS = ("scope", "shape", "criteria", "matrix")
+#: Written by genesis for a draft with grounded evidence (M4c).
+RECON_CONTEXT_FILE = "audit/recon_context.json"
 
 
 class StepRefused(Exception):
@@ -267,7 +272,13 @@ def build_intent(draft: Draft, genesis_timestamp: str) -> dict[str, Any]:
     return make_intent(survey, slug, genesis_timestamp, criteria=accepted)
 
 
-def preview(raw_draft: dict[str, Any] | None, *, workspaces_root: Path | None = None, genesis_timestamp: str | None = None) -> dict[str, Any]:
+def preview(
+    raw_draft: dict[str, Any] | None,
+    *,
+    workspaces_root: Path | None = None,
+    genesis_timestamp: str | None = None,
+    grounding: dict[str, Any] | None = None,
+) -> dict[str, Any]:
     """Compile the draft in memory. Writes nothing.
 
     With ``workspaces_root`` it also says where the workspace would go and
@@ -290,6 +301,8 @@ def preview(raw_draft: dict[str, Any] | None, *, workspaces_root: Path | None = 
         "files": planned_files(exists=False),
         "written": [],
     }
+    if grounding:
+        out["grounding"] = grounding_preview(draft, grounding)
     if workspaces_root is not None:
         target = Path(workspaces_root) / intent["project_slug"]
         exists = target.exists()
@@ -303,7 +316,25 @@ def preview(raw_draft: dict[str, Any] | None, *, workspaces_root: Path | None = 
             "workspace": workspace,
             "screening": screening_state(target) if workspace else None,
         }
+    if grounding and RECON_CONTEXT_FILE not in out["files"]:
+        out["files"].append(RECON_CONTEXT_FILE)  # genesis writes it for a bound draft
     return out
+
+
+def grounding_preview(draft: Draft, grounding: dict[str, Any]) -> dict[str, Any]:
+    """What a bound draft's genesis records: the pool, the direction and the evidence per RQ."""
+    from .grounding import recon_context
+
+    ctx = recon_context(grounding, list(draft.rqs), [c.concept for c in draft.concepts])
+    return {
+        "session_id": grounding.get("session_id"),
+        "pool": grounding.get("pool"),
+        "direction": grounding.get("direction"),
+        "anchors": grounding.get("anchors"),
+        "rq_evidence": ctx["rq_evidence"],
+        "concept_evidence": {c.concept: ctx["term_evidence"].get(c.concept) for c in draft.concepts},
+        "apr_observed": ctx["apr_observed"],
+    }
 
 
 def planned_files(*, exists: bool) -> list[str]:
@@ -318,6 +349,7 @@ def genesis(
     agent: str,
     replace: bool = False,
     confirm_discard_screening_binding: str | None = None,
+    grounding: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Create (or, with ``replace``, re-protocol) ``<workspaces_root>/<slug>`` from a draft.
 
@@ -353,7 +385,15 @@ def genesis(
         raise StepRefused(exc.code, exc.message, status=409, details=exc.details) from exc
     created = not guard["exists"] and not target.exists()
     try:
-        result = emit_workspace(intent, target_dir=target, replace=replace, discard_screening_binding=discard, agent=agent)
+        context = None
+        if grounding:
+            from .grounding import recon_context
+
+            context = recon_context(grounding, list(draft.rqs), [c.concept for c in draft.concepts])
+        result = emit_workspace(
+            intent, target_dir=target, replace=replace, discard_screening_binding=discard,
+            agent=agent, recon_context=context,
+        )
         if created:
             install_workspace_support_files(target)
     except GenesisRefused as exc:

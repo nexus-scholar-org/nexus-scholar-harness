@@ -208,6 +208,20 @@ The UI reads proposals only through `GET /records/{study_id}/proposal`. The fiel
 | `INTENT_INVALID` | preview | HTTP 422: the protocol compiler refused the intent (M4a) |
 | `SCREENING_BOUND` | genesis with `replace` | HTTP 409: the workspace has screening decisions or a publication; `details` gives the counts (M4a, INC-08) |
 | `CONFIRMATION_MISMATCH` | genesis | HTTP 422: the typed confirmation is not the workspace slug (M4a, INC-08) |
+| `MAILTO_NOT_SET` | recon probe, delta | HTTP 409: the console has no contact email (`SCHOLAR_MAILTO`); no request was sent (M4c) |
+| `RECON_SESSION_INVALID` | `/inception/drafts/{id}/recon/*` | HTTP 422: the id is not a recon session id, or its folder would be under `workspaces/` (M4c) |
+| `RECON_SESSION_NOT_FOUND` | `/inception/drafts/{id}/recon/*` | HTTP 404: the draft has no recon session yet; run a probe (M4c) |
+| `RECON_NO_POOL` | distill, directions, delta, bind, narrower probe | HTTP 409: the session has no usable pool; run a probe (M4c) |
+| `POOL_EMPTY` | recon probe job | the probe found no papers; nothing was cached (M4c, INC-09) |
+| `PROVIDERS_FAILED` | recon probe job | every database failed; `details.legs` names each failure; nothing was cached (M4c, INC-09) |
+| `POOL_TOO_SMALL` | recon bind | HTTP 409: the pool is under the floor of 12 papers; bind again with `accept_thin_pool` (M4c) |
+| `NARROW_BUDGET_SPENT` | recon probe with `narrower` | HTTP 409: the draft's one narrower search is used (M4c) |
+| `DIRECTION_UNKNOWN` | recon probe with `narrower`, bind | HTTP 422: the label is not a direction of the current pool; `details.directions` lists them (M4c) |
+| `NO_DIRECTION` | recon bind | HTTP 422: send exactly one of `direction` or `own` (M4c) |
+| `RECON_JOB_ACTIVE` | recon probe, delta | HTTP 409: a search for this draft is already running (M4c) |
+| `RECON_JOB_NOT_FOUND` | `.../recon/jobs/{job_id}` | HTTP 404: no recon job with that id for this draft (M4c) |
+| `RECON_FAILED` | recon jobs | the job stopped on an unexpected error; `message` names it (M4c) |
+| `STALE_BINDING` (inception) | preview with `session_id`, genesis | HTTP 409: the draft's direction was chosen on a pool that is no longer its recon session's latest; choose it again (M4c). The code predates M4c and is listed in the console set. |
 | `ENGINE_UNREACHABLE` | UI only | client-side state, never sent by the engine |
 
 ## 8. Shared fixtures and tests

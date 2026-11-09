@@ -339,6 +339,8 @@ def log_genesis(
             "session_id": recon_context.get("session_id"),
             "cache_keys": recon_context.get("cache_keys") or [],
             "pool_sizes": recon_context.get("pool_sizes") or [],
+            # INC-09 (M4c): when each pool was made, so a months-old cache shows.
+            "pool_created_at": recon_context.get("pool_created_at") or [],
             "direction": recon_context.get("direction"),
             "concept": recon_context.get("concept"),
             "anchor_dois": anchors["values"],

@@ -63,7 +63,7 @@ from .lexicon import DEFAULT_LEXICON as _DEFAULT_LEXICON
 from .lexicon import DomainLexicon as _DomainLexicon
 from .lexicon import merge_lexicons as _merge_lexicons
 
-ADAPTER_VERSION = "1.0"
+ADAPTER_VERSION = "1.1"  # 1.1 (M4c): make_sessions
 
 __all__ = [
     "ADAPTER_VERSION",
@@ -77,6 +77,7 @@ __all__ = [
     "describe_interface",
     "distill_terms",
     "make_engine",
+    "make_sessions",
     "merge_lexicon",
     "merge_pool_list",
     "normalize_text",
@@ -118,7 +119,7 @@ def _reject_workspaces(path: Path, what: str) -> Path:
 
 
 def adapter_version() -> str:
-    """Return the versioned adapter interface identifier (``"1.0"``)."""
+    """Return the versioned adapter interface identifier (``"1.1"``)."""
     return ADAPTER_VERSION
 
 
@@ -138,6 +139,7 @@ def describe_interface() -> dict[str, Any]:
                 "describe_interface",
                 "distill_terms",
                 "make_engine",
+                "make_sessions",
                 "merge_lexicon",
                 "merge_pool_list",
                 "normalize_text",
@@ -154,6 +156,7 @@ def describe_interface() -> dict[str, Any]:
         "delegates_to": sorted(
             [
                 "scholar_harness.recon.engine.ReconEngine",
+                "scholar_harness.recon.session.ReconSessions",
                 "scholar_harness.recon.engine.canonical_recon_root",
                 "scholar_harness.recon.engine.cache_key",
                 "scholar_harness.recon.distiller.distill_pool",
@@ -201,6 +204,21 @@ def make_engine(
         _reject_workspaces(resolved, "cache_root")
         return engine_cls(cache_root=resolved, search_fn=search_fn)
     return engine_cls(cache_root=None, search_fn=search_fn)
+
+
+def make_sessions(
+    cache_root: Path | str | None = None,
+    search_fn: _SearchFn | None = None,
+) -> Any:
+    """The recon session store on an engine from :func:`make_engine` (adapter 1.1, M4c).
+
+    ``scholar_harness.recon.session.ReconSessions`` is the one store the CLI
+    wizard, the MCP tools and the console use; its refusals are
+    ``ReconRefused`` (a ``RuntimeError`` with a ``code``).
+    """
+    from .session import ReconSessions
+
+    return ReconSessions(engine=make_engine(cache_root=cache_root, search_fn=search_fn))
 
 
 def build_cache_key(

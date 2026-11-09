@@ -1735,10 +1735,12 @@ def _new_session_id() -> str:
 
 
 def _sessions():
-    """The harness recon session store (M4c: one store for MCP, CLI and console)."""
-    from scholar_harness.recon.session import ReconSessions
+    """The harness recon session store (M4c: one store for MCP, CLI and console).
 
-    return ReconSessions(root=RECON_CACHE_ROOT, search_fn=RECON_SEARCH_FN)
+    Built through the adapter seam (``make_sessions``, adapter 1.1); its
+    refusals are ``RuntimeError`` subclasses carrying a ``code``.
+    """
+    return _recon_adapter.make_sessions(cache_root=RECON_CACHE_ROOT, search_fn=RECON_SEARCH_FN)
 
 
 def _session_root(session_id: str) -> Path:
@@ -1806,8 +1808,6 @@ def recon_probe(
                 "cache_key": None,
             }
         )
-    from scholar_harness.recon.session import ReconRefused
-
     try:
         result = asyncio.run(
             _sessions().probe(
@@ -1837,7 +1837,7 @@ def recon_probe(
             },
             indent=2,
         )
-    except (ReconRefused, RuntimeError, ValueError, OSError) as exc:
+    except (RuntimeError, ValueError, OSError) as exc:
         return _recon_error(exc)
 
 
@@ -1906,8 +1906,6 @@ def recon_distill(session_id: str, lexicon_json: str | dict | None = None) -> st
                 "cache_key": None,
             }
         )
-    from scholar_harness.recon.session import ReconRefused
-
     try:
         lexicon = None
         artifact_prefix = "distilled"
@@ -1962,7 +1960,7 @@ def recon_distill(session_id: str, lexicon_json: str | dict | None = None) -> st
             },
             indent=2,
         )
-    except (ReconRefused, RuntimeError, ValueError, OSError) as exc:
+    except (RuntimeError, ValueError, OSError) as exc:
         return _recon_error(exc)
 
 
@@ -1995,11 +1993,9 @@ def recon_delta(session_id: str, followups: int = 3) -> str:
                 "cache_key": None,
             }
         )
-    from scholar_harness.recon.session import ReconRefused
-
     try:
         return json.dumps(asyncio.run(_sessions().delta(str(session_id), followups=followups)), indent=2)
-    except (ReconRefused, RuntimeError, ValueError, OSError) as exc:
+    except (RuntimeError, ValueError, OSError) as exc:
         return _recon_error(exc)
 
 

@@ -31,6 +31,7 @@ from .api import audit as audit_api
 from .api import inception as inception_api
 from .api import jobs as jobs_api
 from .api import pipelines as pipelines_api
+from .api import recon as recon_api
 from .api import screening as screening_api
 from .api import screening_v1 as screening_v1_api
 from .api import streams as streams_api
@@ -235,6 +236,7 @@ def create_app(
     app.include_router(workspace_api.router)
     app.include_router(workspaces_api.router)
     app.include_router(inception_api.router)
+    app.include_router(recon_api.router)
     app.include_router(jobs_api.router)
     app.include_router(screening_api.router)
     app.include_router(screening_v1_api.router)

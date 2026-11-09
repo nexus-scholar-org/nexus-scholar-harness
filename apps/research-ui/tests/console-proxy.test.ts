@@ -321,6 +321,11 @@ describe("console proxy — writes", () => {
     ["inception/steps/criteria"],
     ["inception/steps/matrix"],
     ["inception/drafts/rec_0123456789abcdef0123456789abcdef/genesis"],
+    // M4c: recon over HTTP.
+    ["inception/drafts/rec_0123456789abcdef0123456789abcdef/recon/probe"],
+    ["inception/drafts/rec_0123456789abcdef0123456789abcdef/recon/delta"],
+    ["inception/drafts/rec_0123456789abcdef0123456789abcdef/recon/distill"],
+    ["inception/drafts/rec_0123456789abcdef0123456789abcdef/recon/bind"],
   ])("forwards the %s POST", async (route) => {
     vi.stubEnv("NEXUS_CONSOLE_URL", CONSOLE);
     const fetchSpy = vi.fn(() => Promise.resolve(jsonResponse({ ok: true })));
@@ -334,7 +339,14 @@ describe("console proxy — writes", () => {
     expect(String(call[0])).toBe(`${CONSOLE}/api/v1/${route}`);
   });
 
-  it.each([["inception/steps/emit"], ["inception/genesis"], ["inception/drafts/rec_1/emitted"]])(
+  it.each([
+    ["inception/steps/emit"],
+    ["inception/genesis"],
+    ["inception/drafts/rec_1/emitted"],
+    ["inception/drafts/rec_1/recon/directions"],
+    ["inception/drafts/rec_1/recon/jobs/rjob_1/cancel"],
+    ["inception/drafts/rec_1/recon"],
+  ])(
     "refuses the %s POST",
     async (route) => {
       vi.stubEnv("NEXUS_CONSOLE_URL", CONSOLE);
