@@ -2,6 +2,9 @@
 
 Boards: `Triage` (D4), `TriageRevealed` (D5), `MobileTriage` (M3), `MobileRevealed` (M5). Brand components: `EvidenceQuote`, `DataCell`, `StatusBadge`. Contract: `screening-api-contract.md` §3-§5.
 
+## Amended 2026-11-09 (M8-triage)
+The checklist is optional and collapsed by default on desktop; Include needs no answers and is disabled only while an answer fails a criterion. The sentence below "Include needs every inclusion yes and no exclusion yes" and the "Include needs …" status lines are superseded; see 03, section "Amended 2026-11-09 (M8-triage)" (points 2 to 4). Exclude is always enabled and takes its reason from the checklist when a criterion fails, else from the chips. Event shape unchanged.
+
 ## Amended 2026-11-07 (M6-beta)
 Source: `docs/roadmap/milestones/M6-beta.md` sections A and B; decisions "Answer until decisive" and "Details on demand"; reviews U-4, U-5, S-P1-3. The triage page (03) holds the full rules; this component follows them.
 - **Checklist: answer until decisive.** The sentence "On desktop the checklist answers are required" and the §9.3 sentence below are rewritten: on desktop the reviewer answers only as many criteria as the decision needs. Exclude is ready when one criterion fails (an inclusion answered no or an exclusion answered yes); Include needs every inclusion yes and no exclusion yes; Unclear is always available. An unanswered criterion is **absent** from `criteria` in the emitted event, never `not_reported`; `not_reported` is sent only when the reviewer presses that chip. The status line replaces "Answer every criterion before deciding": "Exclude is ready: INC-01 answered no" / "Include needs INC-02 and INC-03" (keys in 03). `onDecide({outcome, reasonCode, criteria, note})` receives `criteria` with answered entries only; `reasonCode` is pre-filled by the host from the first failed criterion in protocol order.

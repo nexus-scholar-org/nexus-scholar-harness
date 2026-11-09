@@ -1,20 +1,77 @@
-# 03 Triage queue, desktop    Status: FINAL | Phase 2 Screening | Route `/screening/triage` | Milestone M1a (events, queue) + M1b (UI)
+# 03 Triage queue, desktop    Status: FINAL | Phase 2 Screening | Route `/screening/triage` | Milestone M1a (events, queue) + M1b (UI); amended M6-beta, M7-method, M8-triage
 
 Boards: `Triage` (D4, proposal hidden), `TriageRevealed` (D5, after deciding). Contract: `docs/architecture/screening-api-contract.md` §3-§4.
+
+## Amended 2026-11-09 (M8-triage)
+Source: `docs/roadmap/milestones/M8-triage.md`; the three decisions of 2026-11-09 tagged M8-triage in `docs/decisions.md` (not reopened here); mockup `.taste-skill/triage-inspect/desktop-fold.jpg`. Where a sentence further down, or in the M6-beta and M7-method sections, says otherwise, this section wins; the old sentences are struck or rewritten in place. Engine and event contract: no change.
+
+**0. Rule.** "The checklist is a tool for the reason, not a gate for the decision."
+
+**1. One screen, no page scroll (≥ 1024 px).**
+- At 1440×900 and 1280×720 the page never scrolls: `document.documentElement.scrollHeight <= innerHeight`. The site header stays. On the triage route at ≥ 1024 px the shell's footer is not rendered and the shell takes exactly the viewport height. Below 1024 px the page flows and scrolls as before (the phone is 04).
+- Zones, top to bottom:
+  1. the step bar;
+  2. one compact header line: h1 "Is this record in scope?" at a smaller size, the position line "Record 12 of 30 · batch 1" (`screening.triage.position`), the live stamp; the lede stays as text;
+  3. banners (stale binding, refusal) when present;
+  4. three columns that fill the remaining height:
+     - **queue**, about 220 px, collapsed as M6-beta amendment 4; the expanded list scrolls inside its column;
+     - **record pane**: title, year and venue, Details, abstract, origin note. It scrolls inside itself, is a labelled region "Record text" (`screening.triage.recordPane`, `role="region"`) with `tabindex="0"` so the keyboard can scroll it;
+     - **right column**, about 340 px, in order: the reason panel when open, the checklist, the comparison table after a reveal, the agent draft aside, the note, the decision history. It scrolls inside itself;
+  5. a **decision bar** at the bottom that never scrolls away. While deciding: Include (brand), Exclude, Unclear → full text, Skip, with key hints and the status line (point 4). Once decided: the outcome badge, "Saved" with its Details, Next record (N, brand), Change my decision, Undo (only when it can).
+- Not adopted from the mockup: the counts rail and the progress strip (the position line says it), and "Leave triage" (the step bar and the site header already leave).
+
+**2. The checklist is collapsed by default.**
+- A 44 px toggle button "Your checklist · optional" (`screening.triage.checklist.toggle`; `aria-expanded`, `aria-controls`) with a one-line summary: "No answers" (`screening.triage.checklist.summaryNone`) or "{n} of {m} answered" (`screening.triage.checklist.summarySome`, `{n}`, `{m}`).
+- It opens on the toggle; on **E** (to pick the reason); on **1**, **2** or **3**, which also answer the focused criterion (the first criterion by default), as before.
+- Each new record opens with the checklist closed, unless the researcher opened it with the toggle: that choice is remembered for the browser session (`sessionStorage`, key per workspace, like the queue toggle), not stored in the workspace.
+- It is a toggle button, not a Details disclosure, so rule page 12 is unchanged (no edit to 12 is needed).
+
+**3. What is enabled.** This replaces M6-beta amendment 1's Include rule.
+- **Include** needs no answers. It is disabled only while an answer the researcher gave fails a criterion: an inclusion answered no, an exclusion answered yes, or, under the protocol's `exclude` not-reported policy (M7-method), an inclusion answered "not reported".
+- **Exclude** is always enabled while deciding. It needs a reason: pre-selected as the first failed criterion when the answers give one (M6-beta amendment 2 and the M7-method ordering unchanged). Otherwise the reason chips are offered with none chosen and the line "Choose a reason: press its number, then Enter" (`screening.triage.reason.choose`). Chips whose criterion is answered the other way (`FAILS-INC-n` with INC-n answered yes; `EXC-n` with EXC-n answered no) are disabled, because the engine would refuse them (`REASON_CODE_INCONSISTENT`).
+- **Unclear → full text** and **Skip** are unchanged.
+- Absent answers stay absent in the event: never auto-filled, never sent as `not_reported`. An Include with no answers sends no `criteria`. The server's `derived_outcome` rule is unchanged.
+
+**4. Status line** (`aria-live="polite"`, in the decision bar):
+- a criterion fails: the existing `excludeReady` / `excludeReadyNotReported` line, followed by "Include is off while it fails." (`screening.triage.checklist.includeOff`);
+- no answers: "The checklist is optional: decide now, or answer to give a reason." (`screening.triage.checklist.optional`);
+- every inclusion answered yes and nothing fails: "Include is ready" (`includeReady`, kept);
+- some answers, nothing fails: "{n} of {m} answered; unanswered criteria are not recorded." (`screening.triage.checklist.answeredSome`).
+- Removed: `screening.triage.checklist.includeNeeds`, `includeNeedsYes`.
+
+**5. Keyboard.** The map is unchanged (I/E/U, S, Z, N, J/K, 1/2/3, ?; Esc closes help and the reason panel; Enter confirms the chosen reason). Changes: 1/2/3 open a closed checklist and answer; E opens the checklist and the reason panel; with no failed criterion, a reason chip number then Enter excludes. Budget: Include in one keypress (I); Exclude in three (2, E, Enter, or E, chip number, Enter). Playwright `triage-desktop.spec.ts` keeps ten records by keyboard in at most 25 keypresses, with focus on the next record's title.
+
+**6. Kept unchanged.** Position line; advance on decide (M6-beta 3); undo rules (5); the all-decided hand-off (6; it fills the record and right columns); the Details rule (12: 44 px summaries with a focus ring); the draft hidden until decided; one brand button per state.
+
+**7. Methods paragraph:** unchanged (decision 2026-11-09).
+
+**8. Copy** (`lib/triage-copy.ts`):
+- `screening.triage.checklist.toggle`: en "Your checklist · optional"; fr "Votre grille · facultative"; ar "قائمتك المرجعية · اختيارية"
+- `.summaryNone`: en "No answers"; fr "Aucune réponse"; ar "لا إجابات"
+- `.summarySome`: en "{n} of {m} answered"; fr "{n} sur {m} répondus"; ar "تمت الإجابة على {n} من {m}"
+- `.includeOff`: en "Include is off while it fails."; fr "Inclure est désactivé tant qu'il échoue."; ar "الإدراج معطّل ما دام المعيار غير مستوفى."
+- `.optional`: en "The checklist is optional: decide now, or answer to give a reason."; fr "La grille est facultative : décidez maintenant, ou répondez pour donner un motif."; ar "القائمة اختيارية: قرّر الآن، أو أجب لتحديد السبب."
+- `.answeredSome`: en "{n} of {m} answered; unanswered criteria are not recorded."; fr "{n} sur {m} répondus ; les critères sans réponse ne sont pas enregistrés."; ar "تمت الإجابة على {n} من {m}؛ المعايير دون إجابة لا تُسجَّل."
+- `screening.triage.reason.choose`: en "Choose a reason: press its number, then Enter"; fr "Choisissez un motif : appuyez sur son numéro, puis Entrée"; ar "اختر سببًا: اضغط رقمه ثم Enter"
+- `screening.triage.recordPane`: en "Record text"; fr "Texte de la notice"; ar "نص السجل"
+
+**9. Tests.**
+- Vitest: `triage.decisive.test.tsx` (rewritten for the new Include rule); `triage.collapsed-checklist.test.tsx` (closed by default; opens on the toggle, on E and on 1/2/3; Include with no answers sends no `criteria`; the session choice is remembered); `triage.reason-from-checklist.test.tsx` (extended: no failed criterion means no chip chosen, a chip then Enter excludes; contradicting chips are disabled); `triage.not-reported-policy.test.tsx` (kept).
+- Playwright `screening/triage-desktop.spec.ts`: no page scroll at 1440×900 and 1280×720 on `/screening/triage` with a long abstract, and the record pane scrolls instead; the 25-keypress budget; axe with no violation in light and dark.
 
 ## Amended 2026-11-07 (M6-beta)
 Source: `docs/roadmap/milestones/M6-beta.md` section A and B; decisions "Answer until decisive", "Advance on decide, as a workspace setting", "Details on demand"; review U-4 to U-8, S-P1-3. Where a sentence further down says otherwise, this section wins; the old sentences are struck or rewritten in place.
 
 **1. Answer until decisive.** The checklist is no longer all-or-nothing.
 - **Exclude** is enabled as soon as one criterion fails: an inclusion criterion answered no, or an exclusion criterion answered yes.
-- **Include** is enabled when every inclusion criterion is answered yes and no exclusion criterion is answered yes. Exclusion criteria left unanswered do not block it.
+- ~~**Include** is enabled when every inclusion criterion is answered yes and no exclusion criterion is answered yes. Exclusion criteria left unanswered do not block it.~~ Amended 2026-11-09 (M8-triage 3): Include needs no answers; it is disabled only while an answer fails a criterion.
 - **Unclear → full text** is always enabled. **Skip** is unchanged.
 - A criterion left unanswered is **absent** from the event's `criteria`. It is never sent as `not_reported`: that value is sent only when the reviewer presses "Not reported" on that criterion, because it claims the reviewer looked and found nothing.
 - The line under the checklist replaces "Answer every criterion before deciding" (`screening.triage.checklist.required`, removed). It is a status line, `aria-live="polite"`:
   - one criterion fails: "Exclude is ready: INC-01 answered no" (`screening.triage.checklist.excludeReady`, `{id}`, `{answer}`); with an exclusion criterion: "Exclude is ready: EXC-02 answered yes";
-  - nothing fails and inclusion answers are missing: "Include needs INC-02 and INC-03" (`screening.triage.checklist.includeNeeds`, `{ids}`);
-  - an inclusion answered "not reported" counts as not yet yes: "Include needs INC-02 to be yes";
-  - Include ready: "Include is ready" (`screening.triage.checklist.includeReady`).
+  - ~~nothing fails and inclusion answers are missing: "Include needs INC-02 and INC-03" (`includeNeeds`, `{ids}`);~~ removed (M8-triage 4);
+  - ~~an inclusion answered "not reported" counts as not yet yes: "Include needs INC-02 to be yes";~~ removed (`includeNeedsYes`); the lines are now those of M8-triage 4;
+  - Include ready: "Include is ready" (`screening.triage.checklist.includeReady`, kept).
 - Logic: `lib/triage-logic.ts` `allAnswered` is replaced by `decisiveFor(outcome)`; the UI states what is enabled, it does not derive the outcome (the server's `derived_outcome` rule is unchanged and the reviewer can still choose another outcome).
 - Engine: no change to the event contract (`criteria` stays optional; `events.py` validates the reason code only).
 
@@ -46,15 +103,15 @@ Source: `docs/decisions.md` 2026-11-08 "Method parameters move into the protocol
   - An inclusion criterion answered "not reported" counts as failing: **Exclude is ready**, with the reason pre-selected as `FAILS-INC-n` (amendment 2 wording: "Fails INC-02 · …").
   - A **definite failure outranks a not-reported inclusion** for the reason shown: an inclusion answered no or an exclusion answered yes comes first (protocol order among them); not-reported inclusions follow (protocol order among them). The other codes stay as chips.
   - An **exclusion criterion answered "not reported" never fails**; it does not enable Exclude.
-  - Status line (`aria-live="polite"`): "Exclude is ready: INC-02 not reported (your protocol excludes when not reported)" (`screening.triage.checklist.excludeReadyNotReported`, `{id}`). When a definite failure exists, the existing `excludeReady` line names that failure instead. This line replaces "Include needs INC-02 to be yes" while a not-reported inclusion is present; "Include needs …" still lists inclusions that are unanswered.
-  - **Include is unchanged**: it needs every inclusion yes and no exclusion yes. **Unclear → full text** and Skip stay always enabled. The server's `derived_outcome` follows the same policy; the reviewer's own decision is never overridden, and "you can still choose another outcome" is kept. The model never derives the outcome.
+  - Status line (`aria-live="polite"`): "Exclude is ready: INC-02 not reported (your protocol excludes when not reported)" (`screening.triage.checklist.excludeReadyNotReported`, `{id}`). When a definite failure exists, the existing `excludeReady` line names that failure instead. This line is followed by "Include is off while it fails." (M8-triage 4); the "Include needs …" lines are removed.
+  - **Include**: ~~it needs every inclusion yes and no exclusion yes~~ (M8-triage 3) needs no answers and is disabled while an inclusion is answered "not reported" under this policy. **Unclear → full text** and Skip stay always enabled. The server's `derived_outcome` follows the same policy; the reviewer's own decision is never overridden, and "you can still choose another outcome" is kept. The model never derives the outcome.
 - **Events.** "Not reported" is still sent as `not_reported` only when the reviewer presses it; unanswered stays absent. Under `exclude`, `REASON_CODE_INCONSISTENT` (amendment 2) must accept `FAILS-INC-n` for a criterion answered `not_reported` (✗ M7-method with the policy); under `unclear` it is as before.
 - **Logic.** `lib/triage-logic.ts` `decisiveFor('EXCLUDE')` takes the policy as an argument; `lib/triage-copy.ts` picks the line.
 - Copy (key `screening.triage.checklist.excludeReadyNotReported`):
   - en: "Exclude is ready: {id} not reported (your protocol excludes when not reported)"
   - fr: "Exclure est prêt : {id} non rapporté (votre protocole exclut ce qui n'est pas rapporté)"
   - ar: "الاستبعاد جاهز: {id} غير مُبلَّغ عنه (يستبعد بروتوكولك ما لم يُبلَّغ عنه)"
-- Tests: `triage.not-reported-policy.test.tsx` (exclude policy: not-reported inclusion enables Exclude with `FAILS-INC-n`; definite failure outranks it; not-reported exclusion does not enable Exclude; Include still needs every inclusion yes; unclear policy leaves all as today; choosing Unclear is possible). Python: `tests/test_screening_events.py` for the policy in `derived_outcome` and the consistency check.
+- Tests: `triage.not-reported-policy.test.tsx` (exclude policy: not-reported inclusion enables Exclude with `FAILS-INC-n`; definite failure outranks it; not-reported exclusion does not enable Exclude; Include is disabled by a not-reported inclusion and needs no answers otherwise (M8-triage 3); unclear policy leaves all as today; choosing Unclear is possible). Python: `tests/test_screening_events.py` for the policy in `derived_outcome` and the consistency check.
 
 **Purpose.** Decide every record: read it, fill the checklist, choose Include / Exclude / Unclear → full text, and move on by keyboard.
 
@@ -98,7 +155,7 @@ Source: `docs/decisions.md` 2026-11-08 "Method parameters move into the protocol
 | `POST /api/v1/screening/batch/{n}/decisions` (legacy draft writer) | ✓ `screening.py:102`; deprecated, not used by this screen |
 
 ## States
-- **Default (D4)** (amended): h1 "Is this record in scope? Decide first; the agent's draft opens after." "Record 12 of 30 · batch 1" above the record. Left queue card collapsed: chips (Proposal ready n, No proposal n, Title only n) plus the current and next titles, expandable. Centre record with highlights; "Your checklist" with chip answers and the status line ("Exclude is ready: INC-01 answered no"); right `draft` aside "Agent proposal · draft · Hidden until you decide" with skeleton bars (model, prompt hash and date in its Details); decision card: Include (brand), Exclude, Unclear, Skip with key hints (Undo only when it can); on Exclude the pre-selected reason in words and the other reasons as chips; after a decision "Saved" (the recorded-as line is in Details).
+- **Default (D4)** (amended): h1 "Is this record in scope? Decide first; the agent's draft opens after." "Record 12 of 30 · batch 1" above the record. Layout and the h1 as in M8-triage 1 (one compact header line, no page scroll). Left queue card collapsed: chips (Proposal ready n, No proposal n, Title only n) plus the current and next titles, expandable. Centre record pane with highlights; right column with "Your checklist · optional" (collapsed, M8-triage 2; chip answers when opened) and the status line in the decision bar ("Exclude is ready: INC-01 answered no. Include is off while it fails."); right `draft` aside "Agent proposal · draft · Hidden until you decide" with skeleton bars (model, prompt hash and date in its Details); decision card: Include (brand), Exclude, Unclear, Skip with key hints (Undo only when it can); on Exclude the pre-selected reason in words and the other reasons as chips; after a decision "Saved" (the recorded-as line is in Details).
 - **Revealed (D5)**: h1 "You included it. The agent's draft said exclude, on INC-03." Queue row tagged "Included by you". Table "Your checklist beside the agent's" with a "Differs" badge row and an Outcome row; the draft aside shows outcome "Exclude · fails INC-03" with "Not a decision", the reasoning verbatim, the abstract quote; model, prompt hash and proposal id are in the aside's Details. Actions: Next record (N, brand), Change my decision, Undo (only when it can), Decision history. Reached only when the record has a draft and the setting is "show the draft, then N".
 - **Empty**: all decided → the hand-off of amendment 6 ("All 30 records are decided", Publish brand button, Agreement link); zero batches → link to 02 (D7 Empty).
 - **Loading**: skeleton rows and record (D7 Loading); next 5 records prefetched.
@@ -108,22 +165,22 @@ Source: `docs/decisions.md` 2026-11-08 "Method parameters move into the protocol
 - **Protocol-changed**: banner "Batches no longer match the protocol", decisions disabled, existing decisions kept (08).
 
 ## Desktop layout
-Canvas D4/D5: three zones (queue 260 px, record and checklist, draft aside), compact density, one brand button per screen: Include in D4, Next record in D5. The `draft` surface is plain `surface`, never an `include` tint until a person verifies.
+~~Canvas D4/D5: three zones (queue 260 px, record and checklist, draft aside)~~ Amended 2026-11-09: three columns (queue about 220 px, record pane, right column about 340 px) and a fixed decision bar, filling the viewport with no page scroll (M8-triage 1). Compact density, one brand button per screen: Include in D4, Next record in D5. The `draft` surface is plain `surface`, never an `include` tint until a person verifies.
 
 ## Mobile layout (≤ 640 px)
 See 04.
 
 ## Keyboard
-`I` Include, `E` Exclude (reason pre-selected; `Enter` confirms it, chips 1-7 choose another), `U` Unclear → full text, `S` Skip (deferral), `Z` Undo (only when available), `N` next record (after a reveal), `J`/`K` queue (the first press expands the collapsed queue), `1`/`2`/`3` yes/no/not reported on the focused criterion, `?` help. Shortcuts are off in text fields. After a decision focus moves to the revealed heading, then to Next record.
+`I` Include, `E` Exclude (opens the checklist and the reason panel; reason pre-selected when a criterion fails, else none; `Enter` confirms it, chips 1-7 choose another), `U` Unclear → full text, `S` Skip (deferral), `Z` Undo (only when available), `N` next record (after a reveal), `J`/`K` queue (the first press expands the collapsed queue), `1`/`2`/`3` yes/no/not reported on the focused criterion (and open a closed checklist), `?` help, `Esc` closes help and the reason panel. Budget: Include one keypress, Exclude three (M8-triage 5). Shortcuts are off in text fields. After a decision focus moves to the revealed heading, then to Next record.
 
 ## Copy
-`screening.triage.title`, `screening.triage.lede`, `screening.triage.queue.chip.{proposalReady,noProposal,titleOnly}`, `screening.triage.queue.hiddenRow`, `screening.triage.checklist.*`, `screening.triage.proposal.{hiddenTitle,hiddenBody,draftLabel,notADecision,differs}`, `screening.triage.decision.{include,exclude,unclear,skip,undo,change,next,history}`, `screening.triage.reason.*` (including `.fails`, `.meets`), `screening.triage.checklist.{excludeReady,includeNeeds,includeReady}`, `screening.triage.position`, `screening.triage.queue.{current,next,expand,collapse}`, `screening.triage.allDecided.{title,lede}`, `screening.triage.announce.savedNext`, `screening.refusal.REASON_CODE_INCONSISTENT`, `screening.details.*` (12; replaces `screening.triage.recordedAs` on the card), removed: `screening.triage.checklist.required`, `undoUnavailable`, `screening.triage.revealed.title.{agrees,differs}`, `screening.outcome.unclear.long`.
+`screening.triage.title`, `screening.triage.lede`, `screening.triage.queue.chip.{proposalReady,noProposal,titleOnly}`, `screening.triage.queue.hiddenRow`, `screening.triage.checklist.*`, `screening.triage.proposal.{hiddenTitle,hiddenBody,draftLabel,notADecision,differs}`, `screening.triage.decision.{include,exclude,unclear,skip,undo,change,next,history}`, `screening.triage.reason.*` (including `.fails`, `.meets`), `screening.triage.checklist.{excludeReady,excludeReadyNotReported,includeReady,includeOff,optional,answeredSome,toggle,summaryNone,summarySome}`, `screening.triage.reason.choose`, `screening.triage.recordPane`, `screening.triage.position`, `screening.triage.queue.{current,next,expand,collapse}`, `screening.triage.allDecided.{title,lede}`, `screening.triage.announce.savedNext`, `screening.refusal.REASON_CODE_INCONSISTENT`, `screening.details.*` (12; replaces `screening.triage.recordedAs` on the card), removed: `screening.triage.checklist.required`, `screening.triage.checklist.includeNeeds`, `includeNeedsYes`, `undoUnavailable`, `screening.triage.revealed.title.{agrees,differs}`, `screening.outcome.unclear.long`.
 
 ## Accessibility
 Decision buttons show text and a key hint. Queue is a list with `aria-current`; chips use `aria-pressed`. Live region announces "Decision saved", "Queued", "Conflict". Draft aside is labelled "Agent proposal, hidden" / "revealed". Answer chips are 44 px. Contrast per tokens: `include`/`unclear`/`blocked` as text and icon colour on their `-soft` fills only. RTL: queue card flips to the inline end; key hints Latin.
 
 ## Acceptance tests
-Vitest: `triage.keymap.test.tsx`, `triage.blinding-no-proposal-field.test.tsx`, `triage.skip-writes-no-event.test.ts`, `triage.undo-superseding.test.ts`, `triage.changed-after-reveal.test.ts`, and the M6-beta tests listed in the amendment. Playwright: `screening/triage-desktop.spec.ts` (golden-uav-30 end to end, proposal hidden until decision, conflict visible, replay idempotent).
+Vitest: `triage.keymap.test.tsx`, `triage.blinding-no-proposal-field.test.tsx`, `triage.skip-writes-no-event.test.ts`, `triage.undo-superseding.test.ts`, `triage.changed-after-reveal.test.ts`, the M6-beta tests listed in that amendment (`triage.decisive` rewritten) and the M8-triage tests (amendment 9: `triage.collapsed-checklist`, extended `triage.reason-from-checklist`, no page scroll at 1440×900 and 1280×720, 25-keypress budget, axe in light and dark). Playwright: `screening/triage-desktop.spec.ts` (golden-uav-30 end to end, proposal hidden until decision, conflict visible, replay idempotent).
 
 ## Open questions
 None.
