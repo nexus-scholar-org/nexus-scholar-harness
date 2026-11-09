@@ -694,7 +694,7 @@ function TriageScreen({ locale }: Readonly<{ locale: Locale }>) {
           <h2 id="triage-queue" className="sr-only">
             {t("queueHeading")}
           </h2>
-          {/* The counts rail (decision 2026-11-09): the numbers, not five filter buttons. */}
+          {/* The counts rail (decision 2026-11-09): the numbers, not five view chips. */}
           <dl className="grid grid-cols-3 gap-2 text-center lg:grid-cols-1 lg:text-start" data-rail>
             {[
               { label: t("railNeedsYou"), value: summary?.needs_you },
