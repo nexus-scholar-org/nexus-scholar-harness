@@ -1734,68 +1734,24 @@ def _new_session_id() -> str:
     return "rec_" + uuid.uuid4().hex
 
 
-_SESSION_ID_RE = re.compile(r"^rec_[0-9a-f]{6,64}$")
+def _sessions():
+    """The harness recon session store (M4c: one store for MCP, CLI and console)."""
+    from scholar_harness.recon.session import ReconSessions
 
-
-def _validate_session_id(session_id: str) -> None:
-    if not isinstance(session_id, str) or _SESSION_ID_RE.fullmatch(session_id) is None:
-        raise ValueError(
-            "malformed session_id (expected 'rec_' followed by hex digits)"
-        )
-
-
-def _assert_safe_session_root(root: Path) -> None:
-    """Refuse session roots under any path segment named ``workspaces``.
-
-    Same guard semantics as ``ReconEngine._assert_safe_output`` (case-
-    insensitive part match, which on Windows also covers ``Workspaces``).
-    """
-    resolved = Path(root).resolve()
-    if any(part.lower() == "workspaces" for part in resolved.parts):
-        raise RuntimeError(f"refusing to write under workspaces/: {resolved}")
+    return ReconSessions(root=RECON_CACHE_ROOT, search_fn=RECON_SEARCH_FN)
 
 
 def _session_root(session_id: str) -> Path:
-    _validate_session_id(session_id)
-    root = RECON_CACHE_ROOT / "sessions" / session_id
-    _assert_safe_session_root(root)
-    return root
-
-
-def _blank_session(session_id: str, topic: str) -> dict:
-    stamp = _now_iso()
-    return {
-        "session_id": session_id,
-        "topic": topic,
-        "cache_keys": [],
-        "pools": [],
-        "created_at": stamp,
-        "updated_at": stamp,
-    }
+    return _sessions().session_root(session_id)
 
 
 def load_session(session_id: str) -> dict:
     """Read a session's on-disk state (T5.4: survives across copilot turns)."""
-    path = _session_root(session_id) / "session.json"
-    if not path.is_file():
-        raise RuntimeError(f"session not found: {session_id}")
-    return json.loads(path.read_text(encoding="utf-8"))
+    return _sessions().load(session_id)
 
 
 def save_session(session: dict) -> Path:
-    session["updated_at"] = _now_iso()
-    root = _session_root(str(session["session_id"]))
-    root.mkdir(parents=True, exist_ok=True)
-    path = root / "session.json"
-    tmp = path.with_suffix(path.suffix + ".tmp")
-    tmp.write_text(json.dumps(session, indent=2, ensure_ascii=False), encoding="utf-8")
-    os.replace(tmp, path)
-    return path
-
-
-def _append_unique(entries: list, value: Any) -> None:
-    if value and value not in entries:
-        entries.append(value)
+    return _sessions().save(session)
 
 
 def _content_sha(payload: dict) -> str:
@@ -1804,20 +1760,13 @@ def _content_sha(payload: dict) -> str:
     ).hexdigest()
 
 
-def _atomic_write_json(path: Path, payload: dict) -> None:
-    tmp = path.with_suffix(path.suffix + ".tmp")
-    tmp.write_text(json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8")
-    os.replace(tmp, path)
-
-
-def _persist_artifact(root: Path, prefix: str, payload: dict) -> Path:
-    """Content-addressed artifact write: same payload -> same file, no rewrite."""
-    _assert_safe_session_root(root)
-    root.mkdir(parents=True, exist_ok=True)
-    path = root / f"{prefix}_{_content_sha(payload)}.json"
-    if not path.is_file():
-        _atomic_write_json(path, payload)
-    return path
+def _recon_error(exc: Exception) -> str:
+    """The tools' error envelope; a refusal also carries its code (e.g. MAILTO_NOT_SET)."""
+    out = {"status": "error", "message": getattr(exc, "message", None) or str(exc), "cache_key": None}
+    code = getattr(exc, "code", None)
+    if code:
+        out["code"] = code
+    return json.dumps(out)
 
 
 @mcp.tool()
@@ -1827,6 +1776,7 @@ def recon_probe(
     start_year: int = 2020,
     limit: int = 10,
     semantic: bool = False,
+    refresh: bool = False,
 ) -> str:
     """Probe the literature surface for a topic and record a FAIR recon session.
 
@@ -1839,6 +1789,13 @@ def recon_probe(
     carries the ``/m/semantic/`` mode segment.  Returns machine-readable JSON
     only -- ``cache_key`` (T5.5 lineage), ``pool_path``, ``n_docs`` -- never
     prose.
+
+    M4c: the probe runs through ``scholar_harness.recon.session`` (the store
+    the CLI wizard and the console use) on the M3a providers. The answer also
+    carries ``pool_status`` (``complete|partial|empty``), one leg per provider,
+    ``created_at`` and the pool fingerprint. An empty or partial pool is never
+    cached (INC-09); ``refresh=True`` probes again. Without ``SCHOLAR_MAILTO``
+    the tool answers ``code: MAILTO_NOT_SET`` and sends no request.
     """
     _ensure_harness_recon_loaded()
     if _recon_adapter is None:
@@ -1849,45 +1806,39 @@ def recon_probe(
                 "cache_key": None,
             }
         )
+    from scholar_harness.recon.session import ReconRefused
+
     try:
-        sid = session_id if session_id is not None else _new_session_id()
-        root = _session_root(sid)
-        engine = _recon_adapter.make_engine(
-            cache_root=RECON_CACHE_ROOT, search_fn=RECON_SEARCH_FN
-        )
-        pool_file, n_docs = asyncio.run(
-            engine.probe(
-                query=topic,
+        result = asyncio.run(
+            _sessions().probe(
+                topic,
+                session_id=session_id,
+                topic=topic,
                 year_min=start_year,
                 year_max=None,
                 max_results=limit,
                 semantic=semantic,
+                refresh=refresh,
             )
         )
-        pool = json.loads(pool_file.read_text(encoding="utf-8"))
-        cache_key = str(pool.get("cache_key") or "")
-        artifact = _persist_artifact(root, "pool", pool).resolve()
-        session = (
-            load_session(sid)
-            if (root / "session.json").is_file()
-            else _blank_session(sid, topic)
-        )
-        session["topic"] = topic
-        _append_unique(session["cache_keys"], cache_key)
-        _append_unique(session["pools"], str(artifact))
-        save_session(session)
         return json.dumps(
             {
-                "session_id": sid,
-                "cache_key": cache_key,
+                "session_id": result["session_id"],
+                "cache_key": result["cache_key"],
                 "status": "probe_ok",
-                "n_docs": n_docs,
-                "pool_path": str(artifact),
+                "n_docs": result["n_docs"],
+                "pool_path": result["pool_path"],
+                # M4c (INC-09): what each provider answered and when the pool was made.
+                "pool_status": result["status"],
+                "pool_fingerprint": result["fingerprint"],
+                "created_at": result["created_at"],
+                "served_from_cache": result["served_from_cache"],
+                "legs": result["legs"],
             },
             indent=2,
         )
-    except (RuntimeError, ValueError, OSError) as exc:
-        return json.dumps({"status": "error", "message": str(exc), "cache_key": None})
+    except (ReconRefused, RuntimeError, ValueError, OSError) as exc:
+        return _recon_error(exc)
 
 
 def _validated_lexicon_fields(value: Any, name: str) -> dict[str, str]:
@@ -1955,6 +1906,8 @@ def recon_distill(session_id: str, lexicon_json: str | dict | None = None) -> st
                 "cache_key": None,
             }
         )
+    from scholar_harness.recon.session import ReconRefused
+
     try:
         lexicon = None
         artifact_prefix = "distilled"
@@ -1975,18 +1928,14 @@ def recon_distill(session_id: str, lexicon_json: str | dict | None = None) -> st
                 _recon_adapter.default_lexicon(), extra
             )
             artifact_prefix = "distilled_lx" + _content_sha({"lexicon": parsed})[:12]
-        session = load_session(str(session_id))
-        if not session["pools"]:
-            raise RuntimeError(
-                f"session {session_id} has no pool; run recon_probe first"
-            )
-        pool = json.loads(Path(session["pools"][-1]).read_text(encoding="utf-8"))
+        store = _sessions()
+        session = store.load(str(session_id))
+        pool, _pool_path = store.latest_pool(str(session_id))
         distilled = _recon_adapter.distill_terms(
             pool, lexicon=lexicon, query_text=session.get("topic")
         )
-        root = _session_root(str(session_id))
-        terms_file = _persist_artifact(root, artifact_prefix, distilled).resolve()
-        save_session(session)
+        terms_file = store.persist(str(session_id), artifact_prefix, distilled)
+        store.save(session)
         pool_gate = _recon_adapter.pool_gate(len(pool.get("docs", []) or []))
         purity = _recon_adapter.topic_gate(distilled.get("topics") or [])
         return json.dumps(
@@ -2013,8 +1962,8 @@ def recon_distill(session_id: str, lexicon_json: str | dict | None = None) -> st
             },
             indent=2,
         )
-    except (RuntimeError, ValueError, OSError) as exc:
-        return json.dumps({"status": "error", "message": str(exc), "cache_key": None})
+    except (ReconRefused, RuntimeError, ValueError, OSError) as exc:
+        return _recon_error(exc)
 
 
 @mcp.tool()
@@ -2046,75 +1995,12 @@ def recon_delta(session_id: str, followups: int = 3) -> str:
                 "cache_key": None,
             }
         )
+    from scholar_harness.recon.session import ReconRefused
+
     try:
-        session = load_session(str(session_id))
-        if not session["pools"]:
-            raise RuntimeError(
-                f"session {session_id} has no pool; run recon_probe first"
-            )
-        pool = json.loads(Path(session["pools"][-1]).read_text(encoding="utf-8"))
-        distilled = _recon_adapter.distill_terms(pool)
-        budget = max(0, min(int(followups), 3))
-        # Fresh-engine equivalence: the engine holds no per-probe mutable
-        # state, so building via the adapter and letting run_followups resolve
-        # its own engine from the same cache_root/search_fn is behavior
-        # identical to passing the tool-built engine.
-        _recon_adapter.make_engine(
-            cache_root=RECON_CACHE_ROOT, search_fn=RECON_SEARCH_FN
-        )
-        result = asyncio.run(
-            _recon_adapter.run_followups(
-                pool,
-                distilled,
-                cache_root=RECON_CACHE_ROOT,
-                search_fn=RECON_SEARCH_FN,
-                max_followups=budget,
-            )
-        )
-        root = _session_root(str(session_id))
-        merged_pool = result["pool"]
-        merged_terms = result["distilled"]
-        pool_file = _persist_artifact(root, "pool", merged_pool).resolve()
-        terms_file = _persist_artifact(root, "distilled", merged_terms).resolve()
-        merged_keys: list[str] = []
-        _append_unique(merged_keys, str(pool.get("cache_key") or ""))
-        for key in result.get("cache_keys_merged") or []:
-            _append_unique(merged_keys, str(key))
-        for key in merged_keys:
-            _append_unique(session["cache_keys"], key)
-        _append_unique(session["pools"], str(pool_file))
-        save_session(session)
-        return json.dumps(
-            {
-                "session_id": str(session_id),
-                "merged_cache_keys": merged_keys,
-                "followups": [
-                    {
-                        "term": str(item.get("term") or ""),
-                        "reason": str(item.get("reason") or ""),
-                        "confidence": {
-                            "label": "gap",
-                            "detail": str(item.get("reason") or ""),
-                        },
-                        "school_n": int(item.get("school_n") or 0),
-                        "corpus_total": int(item.get("corpus_total", -1)),
-                        "saturation_label": str(
-                            item.get("saturation_label") or "unknown"
-                        ),
-                    }
-                    for item in result.get("followups") or []
-                ],
-                "pool_path": str(pool_file),
-                "terms_path": str(terms_file),
-                "topics": merged_terms.get("topics") or [],
-                "dropped_n": int(result.get("dropped_n") or 0),
-                "pool_size_before": len(pool.get("docs") or []),
-                "pool_size_after": len(merged_pool.get("docs") or []),
-            },
-            indent=2,
-        )
-    except (RuntimeError, ValueError, OSError) as exc:
-        return json.dumps({"status": "error", "message": str(exc), "cache_key": None})
+        return json.dumps(asyncio.run(_sessions().delta(str(session_id), followups=followups)), indent=2)
+    except (ReconRefused, RuntimeError, ValueError, OSError) as exc:
+        return _recon_error(exc)
 
 
 # ==============================================================================

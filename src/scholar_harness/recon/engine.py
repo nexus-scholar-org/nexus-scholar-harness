@@ -19,7 +19,7 @@ from typing import Any
 
 from scholar_search.config import settings
 from scholar_search.engine import SearchEngine
-from scholar_search.models import Document, Query
+from scholar_search.models import Document, Query, SearchRun
 from scholar_search.providers import (
     ArxivProvider,
     CrossrefProvider,
@@ -81,7 +81,15 @@ _PROVIDER_CLASSES: dict[str, type] = {
     "arxiv": ArxivProvider,
 }
 
-SearchFn = Callable[[Query, list[str]], list[Document] | Awaitable[list[Document]]]
+SearchFn = Callable[
+    [Query, list[str]],
+    list[Document] | SearchRun | Awaitable[list[Document] | SearchRun],
+]
+#: ``progress(provider, fetched)`` while a live probe pages (the console's stream).
+ProgressFn = Callable[[str, int], None]
+
+#: Pool status (INC-09): only a complete pool is cached.
+POOL_COMPLETE, POOL_PARTIAL, POOL_EMPTY = "complete", "partial", "empty"
 
 
 def _atomic_write_json(path: Path, payload: dict[str, Any]) -> None:
@@ -161,7 +169,13 @@ class ReconEngine:
         year_max: int | None,
         max_results: int | None,
         semantic: bool = False,
-    ) -> list[Document]:
+        progress: ProgressFn | None = None,
+    ) -> tuple[list[Document], list[dict[str, Any]]]:
+        """Run the M3a ``SearchEngine`` and keep its legs (one per provider).
+
+        ``MailtoNotSet`` is raised by ``SearchEngine.run`` before any request
+        and is left to propagate: the caller turns it into ``MAILTO_NOT_SET``.
+        """
         engine = self._build_engine(providers)
         try:
             q = Query(
@@ -171,7 +185,8 @@ class ReconEngine:
                 year_max=year_max,
                 semantic=semantic,
             )
-            return await engine.search_all(q, dedup=True)
+            run = await engine.run(q, dedup=True, progress_callback=progress)
+            return list(run.documents), [leg.to_dict() for leg in run.legs]
         finally:
             await engine.close()
 
@@ -210,11 +225,13 @@ class ReconEngine:
         )
         if "openalex" not in provider_list or self.search_fn is not None:
             return -1
+        if not settings.mailto:  # M3a: no live request without a contact address
+            return -1
         provider = OpenAlexProvider()
         params: dict[str, Any] = {
             "search": term,
             "per-page": 1,
-            **({"mailto": settings.mailto} if settings.mailto else {}),
+            "mailto": settings.mailto,
         }
         if settings.openalex_key:
             params["api_key"] = settings.openalex_key
@@ -242,7 +259,13 @@ class ReconEngine:
         year_max: int | None,
         max_results: int | None,
         semantic: bool = False,
-    ) -> list[Document]:
+        progress: ProgressFn | None = None,
+    ) -> tuple[list[Document], list[dict[str, Any]]]:
+        """The documents and the per-provider legs of one search.
+
+        An injected ``search_fn`` may return a ``SearchRun`` (documents and
+        legs) or a bare document list, which records no legs.
+        """
         if self.search_fn is not None:
             result = self.search_fn(
                 Query(
@@ -256,9 +279,11 @@ class ReconEngine:
             )
             if inspect.isawaitable(result):
                 result = await result
-            return list(result)
+            if isinstance(result, SearchRun):
+                return list(result.documents), [leg.to_dict() for leg in result.legs]
+            return list(result), []
         return await self._fetch_real(
-            query_text, providers, year_min, year_max, max_results, semantic
+            query_text, providers, year_min, year_max, max_results, semantic, progress
         )
 
     async def probe(
@@ -269,46 +294,88 @@ class ReconEngine:
         year_max: int | None = None,
         max_results: int = 25,
         semantic: bool = False,
+        refresh: bool = False,
+        progress: ProgressFn | None = None,
     ) -> tuple[Path, int]:
-        """Run one probe and return ``(pool_file, n)``.
+        """Run one probe and return ``(pool_file, n)``; see :meth:`probe_pool`."""
+        pool, path, _cached = await self.probe_pool(
+            query, providers, year_min, year_max, max_results, semantic, refresh, progress
+        )
+        return path, len(pool["docs"])
+
+    async def probe_pool(
+        self,
+        query: str,
+        providers: list[str] | None = None,
+        year_min: int = 2000,
+        year_max: int | None = None,
+        max_results: int = 25,
+        semantic: bool = False,
+        refresh: bool = False,
+        progress: ProgressFn | None = None,
+    ) -> tuple[dict[str, Any], Path, bool]:
+        """Run one probe; return ``(pool, pool_file, served_from_cache)``.
 
         A cache hit for the same key returns the existing pool with zero
-        network calls; otherwise a fresh pool is persisted under ``pools/``.
+        network calls, unless ``refresh=True``. ``semantic=True`` (M0.6)
+        selects OpenAlex ``search.semantic`` with a mode-segmented key.
 
-        ``semantic=True`` (M0.6) selects OpenAlex ``search.semantic`` and
-        mints a mode-segmented cache key (``/m/semantic/``) so keyword and
-        semantic pools never collide.  The default is byte-identical to the
-        pre-M0.6 keyword path.
+        INC-09 (M4c): the pool keeps one leg per provider (``legs``: status,
+        reported total, fetched, error) and a ``status``: ``complete``,
+        ``partial`` (a leg failed) or ``empty`` (no documents). Only a
+        complete pool is written to the cache; any other is written under
+        ``pools/uncached/`` so callers can read it, and is never reused. A
+        cached pool from before M4c that holds no documents is not reused
+        either.
 
-        Returned pool size is ``min(25, len(deduped_docs))``; on sparse
-        provider returns ``n`` may be < 10 (by design -- no zero-padding is
-        performed).  This is the documented tension between DoD M0.1.1's
-        ``10 <= n <= 25`` and T1.2's no-zero-padding rule: the bound holds
-        for normal-denseness providers, not for sparse ones.
+        Pool size is ``min(25, len(deduped_docs))``; a sparse pool is not
+        padded.
         """
         provider_list = list(DEFAULT_PROVIDERS) if providers is None else list(providers)
         key = cache_key(query, provider_list, year_min, year_max, semantic=semantic)
         pool_path = self.pools_dir / f"{_sha1(key)}_pool.json"
         self._assert_safe_output(pool_path)
 
-        if pool_path.exists():
+        if pool_path.exists() and not refresh:
             try:
                 payload = json.loads(pool_path.read_text(encoding="utf-8"))
-                return pool_path, len(payload.get("docs", []))
             except (OSError, ValueError):
-                pass
+                payload = None
+            if (
+                isinstance(payload, dict)
+                and payload.get("docs")
+                and payload.get("status", POOL_COMPLETE) == POOL_COMPLETE
+            ):
+                return payload, pool_path, True
 
-        docs = await self._fetch(
-            query, provider_list, year_min, year_max, max_results, semantic
+        docs, legs = await self._fetch(
+            query, provider_list, year_min, year_max, max_results, semantic, progress
         )
-        self.pools_dir.mkdir(parents=True, exist_ok=True)
-        self._assert_safe_output(pool_path)
-
+        if not docs:
+            status = POOL_EMPTY
+        elif any(leg.get("status") == "failed" for leg in legs):
+            status = POOL_PARTIAL
+        else:
+            status = POOL_COMPLETE
+        stamp = datetime.now(UTC)
         payload = {
             "cache_key": key,
-            "created_at": datetime.now(UTC).isoformat(),
+            "created_at": stamp.isoformat(),
+            "status": status,
+            "query": query,
+            "providers": provider_list,
+            "year_min": year_min,
+            "year_max": year_max,
+            "max_results": max_results,
+            "semantic": semantic,
+            "legs": legs,
             "docs": [_doc_to_pool_entry(d) for d in docs[:POOL_MAX]],
             "fulltexts": {},
         }
+        if status != POOL_COMPLETE:
+            name = f"{_sha1(key)}_{stamp.strftime('%Y%m%dT%H%M%S%f')}_pool.json"
+            pool_path = self.pools_dir / "uncached" / name
+        pool_path.parent.mkdir(parents=True, exist_ok=True)
+        self._assert_safe_output(pool_path)
         _atomic_write_json(pool_path, payload)
-        return pool_path, len(payload["docs"])
+        return payload, pool_path, False

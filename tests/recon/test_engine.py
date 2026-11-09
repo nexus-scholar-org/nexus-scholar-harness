@@ -236,6 +236,7 @@ def test_corpus_count_openalex_meta_count(tmp_path, monkeypatch):
             captured["closed"] = True
 
     monkeypatch.setattr(eng, "OpenAlexProvider", FakeOpenAlex)
+    monkeypatch.setattr(eng.settings, "mailto", "researcher@example.invalid")
     engine = eng.ReconEngine(cache_root=tmp_path / "cache")
     assert asyncio.run(
         engine.corpus_count("grape disease detection", year_min=2019, year_max=2021)
@@ -249,6 +250,20 @@ def test_corpus_count_openalex_meta_count(tmp_path, monkeypatch):
     # The per-call provider async client is always released (no leak in the
     # long-lived MCP server even on the happy path).
     assert captured["closed"] is True
+
+
+def test_corpus_count_without_a_contact_address_sends_nothing(tmp_path, monkeypatch):
+    """M3a: no live request without SCHOLAR_MAILTO; the count is unknown (-1)."""
+    import scholar_harness.recon.engine as eng
+
+    class NoCall:
+        def __init__(self):
+            raise AssertionError("no provider may be built without a contact address")
+
+    monkeypatch.setattr(eng, "OpenAlexProvider", NoCall)
+    monkeypatch.setattr(eng.settings, "mailto", None)
+    engine = eng.ReconEngine(cache_root=tmp_path / "cache")
+    assert asyncio.run(engine.corpus_count("grape disease detection")) == -1
 
 
 def test_corpus_count_failure_returns_minus_one(tmp_path, monkeypatch):
@@ -267,6 +282,7 @@ def test_corpus_count_failure_returns_minus_one(tmp_path, monkeypatch):
             pass
 
     monkeypatch.setattr(eng, "OpenAlexProvider", BrokenOpenAlex)
+    monkeypatch.setattr(eng.settings, "mailto", "researcher@example.invalid")
     engine = eng.ReconEngine(cache_root=tmp_path / "cache")
     assert asyncio.run(engine.corpus_count("edge inference")) == -1
 
