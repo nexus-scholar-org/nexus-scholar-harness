@@ -110,10 +110,11 @@ test.describe("keyboard", () => {
 test.describe("language menu", () => {
   test("switches language on the same screen", async ({ page }) => {
     await page.setViewportSize(DESKTOP_VIEWPORT);
-    await page.goto("/fr/screening/triage");
+    // Home, not triage: from 1024 px triage is a focus screen without the site header (decision 2026-11-09).
+    await page.goto("/fr/screening/home");
     await page.locator(LANGUAGE_BUTTON).click();
     await page.getByRole("menuitem", { name: LOCALE_METADATA.ar.endonym }).click();
-    await page.waitForURL(/\/ar\/screening\/triage\/?$/);
+    await page.waitForURL(/\/ar\/screening\/home\/?$/);
     await expect(page.locator("html")).toHaveAttribute("lang", "ar");
     await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
     await expect(page.locator(PRIMARY_NAV)).toContainText(CATALOGS.ar["nav.screening"]);

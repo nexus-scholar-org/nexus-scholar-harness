@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 
-import type { Locale } from "@/i18n";
+import { translate, type Locale } from "@/i18n";
 import { Button, DataCell, DecisionBadge, EvidenceQuote, type DecisionRole } from "@/components/ui/base";
 import { ScreeningSteps, stepHref } from "@/components/screening-state-card";
 import { isScreeningApiError } from "@/lib/screening-api";
@@ -137,8 +137,8 @@ function nextUndecided(list: readonly QueueItem[], study: string): QueueItem | n
 export function TriagePage({ locale }: Readonly<{ locale: Locale }>) {
   return (
     // From 1024 px the screen fills the shell's height and never scrolls (spec 03, M8-triage 1).
-    <div className="mx-auto w-full max-w-7xl px-6 py-10 lg:flex lg:min-h-0 lg:flex-1 lg:flex-col lg:px-8 lg:py-3">
-      <ScreeningSteps locale={locale} current="triage" consoleOrigin={consoleOrigin()} className="mb-6 lg:mb-2 lg:flex-none" />
+    <div className="mx-auto w-full max-w-7xl px-6 py-10 lg:flex lg:min-h-0 lg:max-w-none lg:flex-1 lg:flex-col lg:px-6 lg:py-3">
+      <ScreeningSteps locale={locale} current="triage" consoleOrigin={consoleOrigin()} className="mb-6 lg:hidden" />
       <TriageScreen locale={locale} />
     </div>
   );
@@ -169,6 +169,8 @@ function TriageScreen({ locale }: Readonly<{ locale: Locale }>) {
   const [busy, setBusy] = useState(false);
   const [help, setHelp] = useState(false);
   const [summary, setSummary] = useState<Summary | null>(null);
+  // Skips in this browser session, for the counts rail; a skip writes nothing (spec 03).
+  const [skippedCount, setSkippedCount] = useState(0);
   // "All decided" may be claimed only once the queue has answered (review P2-1).
   const [queueLoaded, setQueueLoaded] = useState(false);
   // Focus the next record's title once it is on screen (review P2-3).
@@ -451,6 +453,7 @@ function TriageScreen({ locale }: Readonly<{ locale: Locale }>) {
   }
 
   function skip() {
+    setSkippedCount((n) => n + 1);
     setMessage(t("skipped"));
     move(1);
   }
@@ -615,17 +618,44 @@ function TriageScreen({ locale }: Readonly<{ locale: Locale }>) {
 
   return (
     <div className="space-y-6 lg:flex lg:min-h-0 lg:flex-1 lg:flex-col lg:gap-3 lg:space-y-0">
-      <header className="lg:flex lg:flex-none lg:flex-wrap lg:items-baseline lg:gap-x-4 lg:gap-y-1">
-        <p className="text-xs font-semibold uppercase tracking-[0.05em] text-brand lg:hidden rtl:tracking-normal">{t("eyebrow")}</p>
-        <h1 className="font-display mt-1 text-[1.75rem] leading-[2.25rem] text-ink lg:mt-0 lg:text-[1.25rem] lg:leading-7">{t("title")}</h1>
-        <p className="mt-1 text-ink-muted lg:mt-0 lg:text-sm">{allDone ? t("allDecidedLede") : settings.blinding === "show" ? t("ledeShow") : t("lede")}</p>
+      {/* The triage bar (decision 2026-11-09): from 1024 px it replaces the site header and the step bar. */}
+      <header className="flex flex-wrap items-center gap-x-4 gap-y-2 lg:flex-none lg:border-b lg:border-rule lg:pb-2" data-triage-bar>
+        <a href={stepHref(locale, "home", origin)} className="hidden rounded-sm font-display text-lg font-semibold text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus lg:inline">
+          {translate(locale, "brand.productName")}
+        </a>
+        <div className="w-full lg:w-auto">
+          <p className="text-xs font-semibold uppercase tracking-[0.05em] text-brand lg:hidden rtl:tracking-normal">{t("eyebrow")}</p>
+          <h1 className="font-display mt-1 text-[1.75rem] leading-[2.25rem] text-ink lg:mt-0 lg:font-sans lg:text-sm lg:font-medium lg:leading-5 lg:text-ink-muted">
+            <span className="lg:hidden">{t("title")}</span>
+            <span className="hidden lg:inline">{t("barTitle")}</span>
+          </h1>
+          <p className={`mt-1 text-ink-muted ${allDone ? "" : "lg:hidden"}`}>{allDone ? t("allDecidedLede") : settings.blinding === "show" ? t("ledeShow") : t("lede")}</p>
+        </div>
         {position && !allDone ? (
-          <p className="mt-1 text-sm font-medium text-ink lg:mt-0" data-position>
-            {position}
+          <p className="flex items-center gap-3 text-sm font-medium text-ink lg:mx-auto">
+            <span data-position>{position}</span>
+            {summary && summary.total > 0 ? (
+              <span aria-hidden="true" className="hidden h-1.5 w-40 overflow-hidden rounded-full bg-rule lg:block" data-progress>
+                <span className="block h-full bg-brand" style={{ width: `${Math.round((100 * summary.decided) / summary.total)}%` }} />
+              </span>
+            ) : null}
           </p>
         ) : null}
         {/* The shell's demonstration marker covers the fixture screens; this one is live (as corpus and lineage say). */}
-        <p className="mt-2 inline-block border border-rule-strong px-2 py-0.5 text-xs text-ink-muted lg:mt-0 lg:ms-auto">{t("liveStamp")}</p>
+        <p className="inline-block border border-rule-strong px-2 py-0.5 text-xs text-ink-muted lg:hidden">{t("liveStamp")}</p>
+        <div className="flex flex-wrap items-center gap-1 lg:ms-auto">
+          {items.length > 0 ? (
+            <Button variant="quiet" aria-expanded={queueOpen} aria-controls="triage-queue-list" onClick={() => setQueueOpen(!queueOpen)}>
+              {t("queueToggle")} <kbd className="text-xs opacity-80">J K</kbd>
+            </Button>
+          ) : null}
+          <Button variant="quiet" onClick={() => setHelp(true)}>
+            {t("helpButton")} <kbd className="text-xs opacity-80">?</kbd>
+          </Button>
+          <a href={stepHref(locale, "home", origin)} className="inline-flex min-h-11 items-center rounded-md px-3 text-sm text-brand underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus">
+            {t("leave")}
+          </a>
+        </div>
       </header>
 
       <p role="status" aria-live="polite" className="sr-only">
@@ -658,22 +688,38 @@ function TriageScreen({ locale }: Readonly<{ locale: Locale }>) {
       <div className="flex flex-col gap-6 lg:grid lg:min-h-0 lg:flex-1 lg:grid-cols-[200px_minmax(0,1fr)_300px] lg:grid-rows-[minmax(0,1fr)] lg:gap-4 xl:grid-cols-[220px_minmax(0,1fr)_340px]">
         {/* Queue (spec 03, left column); the expanded list scrolls inside it */}
         <nav aria-labelledby="triage-queue" className={`w-full rounded-lg border border-rule bg-leaf p-4 lg:max-w-none ${pane}`}>
-          <h2 id="triage-queue" className="text-sm font-semibold text-ink">
+          <h2 id="triage-queue" className="sr-only">
             {t("queueHeading")}
           </h2>
-          <div className="mt-3 flex flex-wrap gap-2">
-            {VIEWS.map((v) => (
-              <button
-                key={v}
-                type="button"
-                aria-pressed={view === v}
-                onClick={() => void changeView(v)}
-                className={`min-h-11 rounded-md border px-2 text-xs ${view === v ? "border-brand bg-brand-soft text-brand" : "border-rule text-ink"}`}
-              >
-                {t(`view.${v}` as TriageCopyKey)}
-              </button>
+          {/* The counts rail (decision 2026-11-09): the numbers, not five filter buttons. */}
+          <dl className="grid grid-cols-3 gap-2 text-center lg:grid-cols-1 lg:text-start" data-rail>
+            {[
+              { label: t("railNeedsYou"), value: summary?.needs_you },
+              { label: t("railDecided"), value: summary?.decided },
+              { label: t("railSkipped"), value: skippedCount },
+            ].map((row) => (
+              <div key={row.label} className="flex flex-col-reverse">
+                <dt className="text-xs text-ink-muted">{row.label}</dt>
+                <dd className="font-mono text-2xl leading-8 text-ink">{row.value ?? "–"}</dd>
+              </div>
             ))}
-          </div>
+          </dl>
+          {queueOpen ? (
+            <label className="mt-4 block text-xs text-ink-muted">
+              {t("viewLabel")}
+              <select
+                value={view}
+                onChange={(e) => void changeView(e.target.value as QueueView)}
+                className="mt-1 block min-h-11 w-full rounded-md border border-rule bg-paper px-2 text-sm text-ink"
+              >
+                {VIEWS.map((v) => (
+                  <option key={v} value={v}>
+                    {t(`view.${v}` as TriageCopyKey)}
+                  </option>
+                ))}
+              </select>
+            </label>
+          ) : null}
           {items.length === 0 ? (
             <div className="mt-4 text-sm text-ink-muted">
               <p>{view === "needs_you" ? t("allDecided") : t("queueEmpty")}</p>
@@ -719,11 +765,6 @@ function TriageScreen({ locale }: Readonly<{ locale: Locale }>) {
               ))}
             </ul>
           )}
-          {items.length > 0 ? (
-            <Button variant="quiet" className="mt-2" aria-expanded={queueOpen} aria-controls="triage-queue-list" onClick={() => setQueueOpen(!queueOpen)}>
-              {queueOpen ? t("queueCollapse") : t("queueExpand")}
-            </Button>
-          ) : null}
           {queueOpen && cursor !== null ? (
             <Button variant="quiet" className="mt-2" onClick={() => void loadQueue(view, true, cursor)}>
               {t("queueMore")}

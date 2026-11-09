@@ -99,8 +99,8 @@ for (const width of [1440, 1024]) {
     await expect(queue).toContainText("Record number 1");
     await expect(queue).toContainText("Record number 2");
     await expect(queue).not.toContainText("Record number 3");
-    await page.getByRole("button", { name: "Show the whole queue" }).click();
-    await expect(page.getByRole("button", { name: "Hide the queue" })).toHaveAttribute("aria-expanded", "true");
+    await page.getByRole("button", { name: /^Queue/ }).click();
+    await expect(page.getByRole("button", { name: /^Queue/ })).toHaveAttribute("aria-expanded", "true");
     await expect(page.locator("#triage-queue-list")).toContainText("Record number 10");
   });
 }
@@ -115,7 +115,7 @@ const LONG_CRITERIA = [
   { id: "EXC-03", text: "Confirmed review, survey, editorial, or position paper.", kind: "exclusion" },
   { id: "EXC-04", text: "Outside the frozen publication date range.", kind: "exclusion" },
 ];
-const LONG_ABSTRACT = Array.from({ length: 6 }, () =>
+const LONG_ABSTRACT = Array.from({ length: 12 }, () =>
   "In this study, the components of olive trees were determined from images taken by an unmanned aerial vehicle over a commercial grove, using local extrema and multiresolution segmentation; crown borders, crown areas and tree heights were compared with terrestrial measurements and reached high overall accuracy.",
 ).join(" ");
 

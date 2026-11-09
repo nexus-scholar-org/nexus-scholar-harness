@@ -48,7 +48,14 @@ export function AppShell({
         {translate(locale, "a11y.skipToMain")}
       </a>
 
-      <SiteHeader locale={locale} pathname={pathname} />
+      {/* Triage is a focus screen from 1024 px: its own bar replaces the site header (decision 2026-11-09). */}
+      {oneScreen ? (
+        <div className="contents lg:hidden">
+          <SiteHeader locale={locale} pathname={pathname} />
+        </div>
+      ) : (
+        <SiteHeader locale={locale} pathname={pathname} />
+      )}
 
       <main id={MAIN_CONTENT_ID} tabIndex={-1} className={oneScreen ? "flex-1 focus:outline-none lg:flex lg:min-h-0 lg:flex-col" : "flex-1 focus:outline-none"}>
         {children}

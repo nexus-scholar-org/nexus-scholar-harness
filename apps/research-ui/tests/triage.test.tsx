@@ -614,11 +614,44 @@ describe("triage.position and the collapsed queue", () => {
     expect(within(queue).getByText("Drone weed mapping")).toBeInTheDocument();
     expect(within(queue).getByText("Title only record")).toBeInTheDocument();
     expect(within(queue).queryByText("Third record")).toBeNull();
-    const toggle = screen.getByRole("button", { name: "Show the whole queue" });
+    const toggle = screen.getByRole("button", { name: /^Queue/ });
     expect(toggle).toHaveAttribute("aria-expanded", "false");
     await press("j");
-    expect(screen.getByRole("button", { name: "Hide the queue" })).toHaveAttribute("aria-expanded", "true");
+    expect(screen.getByRole("button", { name: /^Queue/ })).toHaveAttribute("aria-expanded", "true");
     expect(screen.getByText("Third record")).toBeInTheDocument();
+  });
+});
+
+// The focus bar and the counts rail (decision 2026-11-09, spec 03 M8-triage 1).
+describe("triage.focus-bar", () => {
+  it("names the page Triage, links Leave to Home, opens Help, and counts in the rail", async () => {
+    await ready();
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Triage");
+    expect(screen.getByRole("link", { name: "Leave triage" })).toHaveAttribute("href", "/en/screening/home");
+    fireEvent.click(screen.getByRole("button", { name: /^Help/ }));
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Close" }));
+    const rail = () => document.querySelector("[data-rail]") as HTMLElement;
+    const count = (label: string) => [...rail().querySelectorAll("dt")].find((dt) => dt.textContent === label)?.nextElementSibling?.textContent;
+    await waitFor(() => expect(count("need you")).toBe("3"));
+    expect(count("decided")).toBe("0");
+    expect(count("skipped")).toBe("0");
+    expect(screen.queryByRole("button", { name: "Decided" })).toBeNull(); // no chip buttons
+    await press("s");
+    expect(count("skipped")).toBe("1");
+  });
+
+  it("opens the whole queue from Queue, and the view is chosen from one select", async () => {
+    engine.proposals = new Set();
+    await ready();
+    await press("i");
+    await screen.findByText("Title only record", { selector: "p bdi" });
+    fireEvent.click(screen.getByRole("button", { name: /^Queue/ }));
+    const select = screen.getByRole("combobox", { name: "Show" });
+    expect(select).toHaveValue("needs_you");
+    fireEvent.change(select, { target: { value: "decided" } });
+    await screen.findByText("Drone weed mapping", { selector: "p bdi" });
+    expect(select).toHaveValue("decided");
   });
 });
 

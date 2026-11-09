@@ -8,17 +8,22 @@ Source: `docs/roadmap/milestones/M8-triage.md`; the three decisions of 2026-11-0
 **0. Rule.** "The checklist is a tool for the reason, not a gate for the decision."
 
 **1. One screen, no page scroll (≥ 1024 px).**
-- At 1440×900 and 1280×720 the page never scrolls: `document.documentElement.scrollHeight <= innerHeight`. The site header stays. On the triage route at ≥ 1024 px the shell's footer is not rendered and the shell takes exactly the viewport height. Below 1024 px the page flows and scrolls as before (the phone is 04).
-- Zones, top to bottom:
-  1. the step bar;
-  2. one compact header line: h1 "Is this record in scope?" at a smaller size, the position line "Record 12 of 30 · batch 1" (`screening.triage.position`), the live stamp; the lede stays as text;
-  3. banners (stale binding, refusal) when present;
-  4. three columns that fill the remaining height:
-     - **queue**, about 220 px, collapsed as M6-beta amendment 4; the expanded list scrolls inside its column;
-     - **record pane**: title, year and venue, Details, abstract, origin note. It scrolls inside itself, is a labelled region "Record text" (`screening.triage.recordPane`, `role="region"`) with `tabindex="0"` so the keyboard can scroll it;
-     - **right column**, about 340 px, in order: the reason panel when open, the checklist, the comparison table after a reveal, the agent draft aside, the note, the decision history. It scrolls inside itself;
-  5. a **decision bar** at the bottom that never scrolls away. While deciding: Include (brand), Exclude, Unclear → full text, Skip, with key hints and the status line (point 4). Once decided: the outcome badge, "Saved" with its Details, Next record (N, brand), Change my decision, Undo (only when it can).
-- Not adopted from the mockup: the counts rail and the progress strip (the position line says it), and "Leave triage" (the step bar and the site header already leave).
+- Amended 2026-11-09 (decision "Triage is a focus screen on desktop", second M8-triage build): at ≥ 1024 px the triage route is a focus screen. At 1440×900 and 1280×720 the page never scrolls: `document.documentElement.scrollHeight <= innerHeight`. There is **no site header and no step bar** on this route, no footer, and the shell takes exactly the viewport height. The language and theme menus are one step away, on any other screen (Home). Below 1024 px the page flows and scrolls as before (the phone is 04).
+- Zones, top to bottom (≥ 1024 px):
+  1. one **triage bar**, about 48 px tall, containing:
+     - "Nexus Scholar" (wordmark, a link to screening Home);
+     - the h1 "Triage" (`screening.triage.barTitle`);
+     - the position line "Record 12 of 30 · batch 1" (`screening.triage.position`, key unchanged) with a thin progress strip of decided/total beside it (decorative, `aria-hidden`; the position line carries the meaning);
+     - on the inline end: **Queue** with key hints J K (`screening.triage.queueToggle`; a toggle button with `aria-expanded` and `aria-controls` on the queue list; it replaces the "Show the whole queue"/"Hide the queue" button), **Help** with key hint ? (`screening.triage.helpButton`; opens the existing help dialog) and **Leave triage** (`screening.triage.leave`; a link to screening Home; no Esc shortcut: Esc keeps closing help and the reason panel);
+  2. banners (stale binding, refusal) when present;
+  3. three columns that fill the remaining height:
+     - **left column, about 220 px, a counts rail**: Need you, Decided (both from `GET /summary`) and Skipped (skips in this browser session, client-side, no event), each a large number over a small label (`screening.triage.rail.{needsYou,decided,skipped}`). Under the rail sit the current and next titles (M6-beta amendment 4, kept). When Queue is open the whole list shows there, and its view is chosen from one `<select>` labelled "Show" (`screening.triage.queue.viewLabel`) with the options Needs you / Proposal ready / No proposal / Title only / Decided; this replaces the five chip buttons. The list scrolls inside the column;
+     - **record pane**, unchanged: title, year and venue, Details, abstract, origin note. It scrolls inside itself, is a labelled region "Record text" (`screening.triage.recordPane`, `role="region"`) with `tabindex="0"` so the keyboard can scroll it;
+     - **right column**, about 340 px, unchanged: the reason panel when open, the checklist, the comparison table after a reveal, the agent draft aside, the note, the decision history. It scrolls inside itself;
+  4. a **decision bar** at the bottom that never scrolls away, unchanged. While deciding: Include (brand), Exclude, Unclear → full text, Skip, with key hints and the status line (point 4). Once decided: the outcome badge, "Saved" with its Details, Next record (N, brand), Change my decision, Undo (only when it can).
+- Below 1024 px: the site header, the step bar, the title "Is this record in scope?" (`screening.triage.title`), the lede and the stacked layout stay as before; the triage bar shows at the top of the content, wrapped.
+- At ≥ 1024 px the lede about the blinding setting is not shown: the draft aside already says "Hidden until you decide" or shows the draft. The all-decided lede ("Every record has your decision.") stays in the hand-off card. The live-data stamp is not shown at ≥ 1024 px.
+- Adopted from the mockup: the counts rail, the progress strip and Leave triage. Not adopted: the workspace name in the bar, because no API gives it to the screen.
 
 **2. The checklist is collapsed by default.**
 - A 44 px toggle button "Your checklist · optional" (`screening.triage.checklist.toggle`; `aria-expanded`, `aria-controls`) with a one-line summary: "No answers" (`screening.triage.checklist.summaryNone`) or "{n} of {m} answered" (`screening.triage.checklist.summarySome`, `{n}`, `{m}`).
@@ -54,10 +59,20 @@ Source: `docs/roadmap/milestones/M8-triage.md`; the three decisions of 2026-11-0
 - `.answeredSome`: en "{n} of {m} answered; unanswered criteria are not recorded."; fr "{n} sur {m} répondus ; les critères sans réponse ne sont pas enregistrés."; ar "تمت الإجابة على {n} من {m}؛ المعايير دون إجابة لا تُسجَّل."
 - `screening.triage.reason.choose`: en "Choose a reason: press its number, then Enter"; fr "Choisissez un motif : appuyez sur son numéro, puis Entrée"; ar "اختر سببًا: اضغط رقمه ثم Enter"
 - `screening.triage.recordPane`: en "Record text"; fr "Texte de la notice"; ar "نص السجل"
+- Focus bar (second M8-triage build):
+  - `screening.triage.barTitle`: en "Triage"; fr "Tri"; ar "الفرز"
+  - `.queueToggle`: en "Queue"; fr "File"; ar "قائمة الانتظار"
+  - `.helpButton`: en "Help"; fr "Aide"; ar "مساعدة"
+  - `.leave`: en "Leave triage"; fr "Quitter le tri"; ar "مغادرة الفرز"
+  - `.rail.needsYou`: en "need you"; fr "à traiter"; ar "بانتظارك"
+  - `.rail.decided`: en "decided"; fr "décidées"; ar "تم البتّ فيها"
+  - `.rail.skipped`: en "skipped"; fr "passées"; ar "متخطّاة"
+  - `.queue.viewLabel`: en "Show"; fr "Afficher"; ar "عرض"
 
 **9. Tests.**
 - Vitest: `triage.decisive.test.tsx` (rewritten for the new Include rule); `triage.collapsed-checklist.test.tsx` (closed by default; opens on the toggle, on E and on 1/2/3; Include with no answers sends no `criteria`; the session choice is remembered); `triage.reason-from-checklist.test.tsx` (extended: no failed criterion means no chip chosen, a chip then Enter excludes; contradicting chips are disabled); `triage.not-reported-policy.test.tsx` (kept).
-- Playwright `screening/triage-desktop.spec.ts`: no page scroll at 1440×900 and 1280×720 on `/screening/triage` with a long abstract, and the record pane scrolls instead; the 25-keypress budget; axe with no violation in light and dark.
+- Vitest `triage.position and the collapsed queue` now uses the Queue toggle. New `triage.focus-bar`: the bar with h1 "Triage"; Queue toggles the list; Help opens the dialog; Leave links to Home; the rail counts; Skipped counts a skip; the view select changes the view.
+- Playwright `screening/triage-desktop.spec.ts`: no page scroll at 1440×900 and 1280×720 on `/screening/triage` with a long abstract, and the record pane scrolls instead (the no-scroll tests stand); the 25-keypress budget; axe with no violation in light and dark. `shell.spec.ts`: the language-switch test moves to `/screening/home`, because desktop triage has no site header.
 
 ## Amended 2026-11-07 (M6-beta)
 Source: `docs/roadmap/milestones/M6-beta.md` section A and B; decisions "Answer until decisive", "Advance on decide, as a workspace setting", "Details on demand"; review U-4 to U-8, S-P1-3. Where a sentence further down says otherwise, this section wins; the old sentences are struck or rewritten in place.
@@ -86,7 +101,7 @@ Source: `docs/roadmap/milestones/M6-beta.md` section A and B; decisions "Answer 
 
 **4. Position and a collapsed queue.**
 - Above the record: "Record 12 of 30 · batch 1" (`screening.triage.position`, `{k}`, `{total}`, `{batch}`). `k` is the number of records already decided plus this record's place in the "Needs you" list; `total` is the summary total (client-side, from `GET /summary` and the loaded queue, no engine change). When a decided record is open from the "Decided" view it reads "Decided record 4 of 11 · batch 1".
-- The queue card is **collapsed by default**: the view chips plus two rows, the current title and the next title (`screening.triage.queue.current`, `.next`). A toggle button "Show the whole queue" / "Hide the queue" (`screening.triage.queue.expand`, `.collapse`, `aria-expanded`, `aria-controls`) expands it; so does the first **J** or **K**. The choice is remembered for the browser session (`sessionStorage`, key per workspace), not stored in the workspace. The toggle and the chips are 44 px.
+- The queue card is **collapsed by default**: ~~the view chips plus~~ two rows, the current title and the next title (`screening.triage.queue.current`, `.next`). ~~A toggle button "Show the whole queue" / "Hide the queue" (`screening.triage.queue.expand`, `.collapse`, `aria-expanded`, `aria-controls`) expands it;~~ Superseded 2026-11-09 by M8-triage point 1: the Queue toggle in the triage bar opens it, and the view is chosen from one "Show" select instead of chips. The first **J** or **K** still opens the queue. The choice is remembered for the browser session (`sessionStorage`, key per workspace), not stored in the workspace. ~~The toggle and the chips are 44 px.~~
 
 **5. Undo only when it can.** **Z** and the Undo button are absent until the record has a superseding target (`undoTarget` returns a value). The copy "A first decision cannot be undone; change it instead." (`undoUnavailable`) is removed. "Change my decision" stays.
 
@@ -131,6 +146,7 @@ Source: `docs/decisions.md` 2026-11-08 "Method parameters move into the protocol
 ## Data in
 | Field | Source |
 | :-- | :-- |
+| rail counts Need you, Decided (Skipped is client-side) | `GET /summary` |
 | queue items `{study_id, title, batch_id, has_proposal, decided, flags}`; views `needs_you`, `proposal_ready`, `no_proposal`, `title_only`, `decided` | `GET /queue?view=&cursor=&limit=` ✗ M1a |
 | record, highlights, criteria, my_decision, history | `GET /records/{study_id}` ✗ M1a (see 05) |
 | proposal (after decision) | `GET /records/{study_id}/proposal` ✗ M1a; `PROPOSAL_HIDDEN` before |
@@ -155,7 +171,7 @@ Source: `docs/decisions.md` 2026-11-08 "Method parameters move into the protocol
 | `POST /api/v1/screening/batch/{n}/decisions` (legacy draft writer) | ✓ `screening.py:102`; deprecated, not used by this screen |
 
 ## States
-- **Default (D4)** (amended): h1 "Is this record in scope? Decide first; the agent's draft opens after." "Record 12 of 30 · batch 1" above the record. Layout and the h1 as in M8-triage 1 (one compact header line, no page scroll). Left queue card collapsed: chips (Proposal ready n, No proposal n, Title only n) plus the current and next titles, expandable. Centre record pane with highlights; right column with "Your checklist · optional" (collapsed, M8-triage 2; chip answers when opened) and the status line in the decision bar ("Exclude is ready: INC-01 answered no. Include is off while it fails."); right `draft` aside "Agent proposal · draft · Hidden until you decide" with skeleton bars (model, prompt hash and date in its Details); decision card: Include (brand), Exclude, Unclear, Skip with key hints (Undo only when it can); on Exclude the pre-selected reason in words and the other reasons as chips; after a decision "Saved" (the recorded-as line is in Details).
+- **Default (D4)** (amended): h1 "Is this record in scope? Decide first; the agent's draft opens after." "Record 12 of 30 · batch 1" above the record. Layout as in M8-triage 1 (at ≥ 1024 px: triage bar with h1 "Triage", no page scroll; the h1 above applies below 1024 px). Left column: counts rail (need you, decided, skipped) over the current and next titles; Queue opens the whole list with the "Show" select. Centre record pane with highlights; right column with "Your checklist · optional" (collapsed, M8-triage 2; chip answers when opened) and the status line in the decision bar ("Exclude is ready: INC-01 answered no. Include is off while it fails."); right `draft` aside "Agent proposal · draft · Hidden until you decide" with skeleton bars (model, prompt hash and date in its Details); decision card: Include (brand), Exclude, Unclear, Skip with key hints (Undo only when it can); on Exclude the pre-selected reason in words and the other reasons as chips; after a decision "Saved" (the recorded-as line is in Details).
 - **Revealed (D5)**: h1 "You included it. The agent's draft said exclude, on INC-03." Queue row tagged "Included by you". Table "Your checklist beside the agent's" with a "Differs" badge row and an Outcome row; the draft aside shows outcome "Exclude · fails INC-03" with "Not a decision", the reasoning verbatim, the abstract quote; model, prompt hash and proposal id are in the aside's Details. Actions: Next record (N, brand), Change my decision, Undo (only when it can), Decision history. Reached only when the record has a draft and the setting is "show the draft, then N".
 - **Empty**: all decided → the hand-off of amendment 6 ("All 30 records are decided", Publish brand button, Agreement link); zero batches → link to 02 (D7 Empty).
 - **Loading**: skeleton rows and record (D7 Loading); next 5 records prefetched.
@@ -165,7 +181,7 @@ Source: `docs/decisions.md` 2026-11-08 "Method parameters move into the protocol
 - **Protocol-changed**: banner "Batches no longer match the protocol", decisions disabled, existing decisions kept (08).
 
 ## Desktop layout
-~~Canvas D4/D5: three zones (queue 260 px, record and checklist, draft aside)~~ Amended 2026-11-09: three columns (queue about 220 px, record pane, right column about 340 px) and a fixed decision bar, filling the viewport with no page scroll (M8-triage 1). Compact density, one brand button per screen: Include in D4, Next record in D5. The `draft` surface is plain `surface`, never an `include` tint until a person verifies.
+~~Canvas D4/D5: three zones (queue 260 px, record and checklist, draft aside)~~ Amended 2026-11-09: three columns (counts rail and titles about 220 px, record pane, right column about 340 px) under a 48 px triage bar and a fixed decision bar, filling the viewport with no page scroll (M8-triage 1). Compact density, one brand button per screen: Include in D4, Next record in D5. The `draft` surface is plain `surface`, never an `include` tint until a person verifies.
 
 ## Mobile layout (≤ 640 px)
 See 04.
@@ -174,10 +190,10 @@ See 04.
 `I` Include, `E` Exclude (opens the checklist and the reason panel; reason pre-selected when a criterion fails, else none; `Enter` confirms it, chips 1-7 choose another), `U` Unclear → full text, `S` Skip (deferral), `Z` Undo (only when available), `N` next record (after a reveal), `J`/`K` queue (the first press expands the collapsed queue), `1`/`2`/`3` yes/no/not reported on the focused criterion (and open a closed checklist), `?` help, `Esc` closes help and the reason panel. Budget: Include one keypress, Exclude three (M8-triage 5). Shortcuts are off in text fields. After a decision focus moves to the revealed heading, then to Next record.
 
 ## Copy
-`screening.triage.title`, `screening.triage.lede`, `screening.triage.queue.chip.{proposalReady,noProposal,titleOnly}`, `screening.triage.queue.hiddenRow`, `screening.triage.checklist.*`, `screening.triage.proposal.{hiddenTitle,hiddenBody,draftLabel,notADecision,differs}`, `screening.triage.decision.{include,exclude,unclear,skip,undo,change,next,history}`, `screening.triage.reason.*` (including `.fails`, `.meets`), `screening.triage.checklist.{excludeReady,excludeReadyNotReported,includeReady,includeOff,optional,answeredSome,toggle,summaryNone,summarySome}`, `screening.triage.reason.choose`, `screening.triage.recordPane`, `screening.triage.position`, `screening.triage.queue.{current,next,expand,collapse}`, `screening.triage.allDecided.{title,lede}`, `screening.triage.announce.savedNext`, `screening.refusal.REASON_CODE_INCONSISTENT`, `screening.details.*` (12; replaces `screening.triage.recordedAs` on the card), removed: `screening.triage.checklist.required`, `screening.triage.checklist.includeNeeds`, `includeNeedsYes`, `undoUnavailable`, `screening.triage.revealed.title.{agrees,differs}`, `screening.outcome.unclear.long`.
+`screening.triage.title` (below 1024 px), `screening.triage.lede` (below 1024 px), `screening.triage.{barTitle,queueToggle,helpButton,leave}`, `screening.triage.rail.{needsYou,decided,skipped}`, `screening.triage.queue.viewLabel`, `screening.triage.queue.hiddenRow`, `screening.triage.checklist.*`, `screening.triage.proposal.{hiddenTitle,hiddenBody,draftLabel,notADecision,differs}`, `screening.triage.decision.{include,exclude,unclear,skip,undo,change,next,history}`, `screening.triage.reason.*` (including `.fails`, `.meets`), `screening.triage.checklist.{excludeReady,excludeReadyNotReported,includeReady,includeOff,optional,answeredSome,toggle,summaryNone,summarySome}`, `screening.triage.reason.choose`, `screening.triage.recordPane`, `screening.triage.position`, `screening.triage.queue.{current,next}`, `screening.triage.allDecided.{title,lede}`, `screening.triage.announce.savedNext`, `screening.refusal.REASON_CODE_INCONSISTENT`, `screening.details.*` (12; replaces `screening.triage.recordedAs` on the card), removed: `screening.triage.queue.{expand,collapse}`, `screening.triage.queue.chip.{proposalReady,noProposal,titleOnly}`, `screening.triage.checklist.required`, `screening.triage.checklist.includeNeeds`, `includeNeedsYes`, `undoUnavailable`, `screening.triage.revealed.title.{agrees,differs}`, `screening.outcome.unclear.long`.
 
 ## Accessibility
-Decision buttons show text and a key hint. Queue is a list with `aria-current`; chips use `aria-pressed`. Live region announces "Decision saved", "Queued", "Conflict". Draft aside is labelled "Agent proposal, hidden" / "revealed". Answer chips are 44 px. Contrast per tokens: `include`/`unclear`/`blocked` as text and icon colour on their `-soft` fills only. RTL: queue card flips to the inline end; key hints Latin.
+Decision buttons show text and a key hint. Queue is a list with `aria-current`; the Queue toggle has `aria-expanded`/`aria-controls`; the view select is labelled "Show"; the progress strip is `aria-hidden`. Live region announces "Decision saved", "Queued", "Conflict". Draft aside is labelled "Agent proposal, hidden" / "revealed". Answer chips are 44 px. Contrast per tokens: `include`/`unclear`/`blocked` as text and icon colour on their `-soft` fills only. RTL: queue card flips to the inline end; key hints Latin.
 
 ## Acceptance tests
 Vitest: `triage.keymap.test.tsx`, `triage.blinding-no-proposal-field.test.tsx`, `triage.skip-writes-no-event.test.ts`, `triage.undo-superseding.test.ts`, `triage.changed-after-reveal.test.ts`, the M6-beta tests listed in that amendment (`triage.decisive` rewritten) and the M8-triage tests (amendment 9: `triage.collapsed-checklist`, extended `triage.reason-from-checklist`, no page scroll at 1440×900 and 1280×720, 25-keypress budget, axe in light and dark). Playwright: `screening/triage-desktop.spec.ts` (golden-uav-30 end to end, proposal hidden until decision, conflict visible, replay idempotent).
