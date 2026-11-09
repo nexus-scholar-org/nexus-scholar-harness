@@ -55,6 +55,9 @@ Why: plan §6 row "M4 Inception web" lists the UI for inception specs 00–08. M
 | pr | `2489c46` | `pytest -n auto` | 1 failed, 4609 passed. `test_preview_names_every_file_genesis_writes` is flaky: `INDEX.md` is rewritten stamped to the second, so it can be byte-identical; it failed 2 of 5 runs alone. The fix in `c2022bc` makes the test also detect writes by mtime; it then passed 8 of 8 alone | 8 m 18 s |
 | re-review | `2489c46` | milestone-reviewer (repair delta) | **APPROVE**: all five findings resolved. P3 follow-up: a regular file at the target reads as a workspace in preview, and genesis refuses it correctly | |
 | pr | `c2022bc` | `pytest -n auto` (whole suite; this commit changes only that Python test) | **4610 passed, 15 skipped, 0 failed**; `git diff --check` clean | 6 m 24 s |
+| merge | `508132e` | merge of `origin/main` (M8-triage, PR #208, `a831ee2`) | conflict in `docs/decisions.md` only; both sides kept, M4b's entry first | |
+| pr | `508132e` | `pytest -n auto`; contract baseline, schemas and two-study fixture `--check` | **4610 passed, 15 skipped, 0 failed**; all checks pass | 7 m 52 s |
+| closure | `508132e` | `tsc --noEmit`; `vitest run`; `npx playwright test` (light and dark) | clean; **340 passed**; **259 passed, 13 skipped, 0 failed** | 6 m 24 s |
 | closure | working tree after `1f65f79` | contract baseline, schemas and two-study fixture `--check`; `ruff check scripts/`; real-bug `ruff check src/`; `sync_skills_bundle.py --check`; `git diff --check` | all pass | |
 
 ## Deferred
