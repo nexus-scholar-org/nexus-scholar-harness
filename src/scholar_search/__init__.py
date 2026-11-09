@@ -10,6 +10,7 @@ from .exceptions import (
     VerificationError,
 )
 from .export import Exporter
+from .importers import NBIBImporter, RISImporter
 from .protocol_adapter import compile_protocol_search
 from .providers import SearchProvider
 from .screening import (
@@ -48,6 +49,7 @@ __all__ = [
     "PrismaFlowReport",
     "ProviderError",
     "Query",
+    "NBIBImporter",
     "RISImporter",
     "RateLimitExceededError",
     "ScholarSearchError",

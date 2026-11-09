@@ -566,7 +566,8 @@ def get_corpus(request: Request) -> dict[str, Any]:
 
 @router.post("/corpus/sources", status_code=201)
 def post_corpus_source(body: CorpusSourceBody, request: Request) -> dict[str, Any]:
-    """Stage one database's RIS export (desktop only, journaled). Nothing is accepted yet."""
+    """Stage one database's export, RIS or PubMed ``.nbib`` by the file's name and first line
+    (desktop only, journaled). Nothing is accepted yet."""
     from ...corpus_accept import AcceptCorpusRefused, stage_ris_source
 
     ws = _ws(request)
