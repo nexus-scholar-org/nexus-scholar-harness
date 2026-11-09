@@ -57,10 +57,10 @@ function useImportStep(consoleOrigin: string, current?: ScreeningStep): boolean 
   return open;
 }
 
-export function ScreeningSteps({ locale, current, consoleOrigin = "" }: Readonly<{ locale: Locale; current?: ScreeningStep; consoleOrigin?: string }>) {
+export function ScreeningSteps({ locale, current, consoleOrigin = "", className = "mb-6" }: Readonly<{ locale: Locale; current?: ScreeningStep; consoleOrigin?: string; className?: string }>) {
   const showImport = useImportStep(consoleOrigin, current);
   return (
-    <nav aria-label={STEPS_LABEL[locale]} className="mb-6">
+    <nav aria-label={STEPS_LABEL[locale]} className={className}>
       <ol className="flex flex-wrap gap-2 text-sm">
         <li>
           <a

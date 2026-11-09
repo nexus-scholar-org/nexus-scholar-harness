@@ -14,6 +14,43 @@ The researcher chose this on 2026-11-09, closing the open questions of the incep
 - **Lane.** The two engine changes alter public HTTP answers, so M4b is RELEASE (`test_gate_policy.md` §lanes), not the STANDARD it started as.
 
 **Not chosen:** showing the four-file list verbatim and deferring the engine change (the gate would keep under-promising); keeping the backup only in the browser tab (lost on reload); reusing an untouched draft (a frontend rule about what counts as untouched).
+## 2026-11-09 — Triage is a focus screen on desktop: its own top bar, a counts rail, no filter chips (accepted; M8-triage)
+
+The researcher chose this on 2026-11-09, after trying the first M8-triage build: "I want the triage the full viewport like the screenshots", and "I don't like those buttons" (the step bar and the queue's view chips).
+
+**The decision.** From 1024 px the triage route is a focus screen, as in the redesign mockup:
+- the site header and the screening step bar are not shown there; one slim triage bar takes their place, with the product name, "Triage" (the page's h1), the position line with a progress strip, and Queue (J/K), Help (?) and Leave triage (a link to screening Home);
+- the queue column becomes a counts rail (need you, decided, skipped in this session) over the current and next titles; the whole queue opens from Queue or J/K, and its view is chosen from one dropdown instead of five chip buttons.
+
+Below 1024 px nothing changes: the site header, the step bar and the stacked layout stay. On the desktop triage screen the language and theme menus are therefore one step away, on any other screen.
+
+**Not chosen:** keeping the site header with a compact step bar (the first M8-triage build).
+
+## 2026-11-09 — Triage: the checklist is a tool for the reason, not a gate for the decision (accepted; M8-triage)
+
+The researcher chose this on 2026-11-09, after screening real IEEE records: the long checklist had to be answered for every record before Include was possible.
+
+**The decision.** The checklist is collapsed by default. The screen shows the record and the three decision buttons.
+- **Include** needs no answers. It is turned off only while an answer the researcher gave fails a criterion (an inclusion answered no, an exclusion answered yes, or an inclusion answered "not reported" under the protocol's `exclude` policy), so a decision never contradicts its own answers.
+- **Exclude** is always available. It needs a reason. The reason is pre-selected from the first failed criterion when the answers give one; otherwise the reason chips are offered with none chosen.
+- **The checklist opens** on E, to pick the reason, on a number key (1/2/3 answer the focused criterion), or on demand with its toggle.
+- **Absent answers stay absent** in the event. They are never auto-filled and never sent as `not_reported`.
+
+**Engine:** no change. `criteria` is optional in the decision-event contract, an EXCLUDE still carries `EXC-n` or `FAILS-INC-n`, and `REASON_CODE_INCONSISTENT` still refuses a reason that contradicts an answered criterion.
+
+**Not chosen:** the inclusion criteria as one compact row of chips with Include still gated on every inclusion yes, and the two combined. Both keep the checklist as a gate.
+
+## 2026-11-09 — The methods paragraph does not count decisions made without per-criterion answers (accepted; M8-triage)
+
+The researcher chose this on 2026-11-09. The exported methods paragraph is unchanged by M8-triage. Each decision event still records which answers were given, so the count can be added later from the events.
+
+**Not chosen:** a sentence such as "n decisions were recorded without per-criterion answers" in `screening/export.py`.
+
+## 2026-11-09 — The triage screen fits 1440×900 and 1280×720 without page scroll (accepted; M8-triage)
+
+The researcher chose this on 2026-11-09. At both viewport sizes the triage page never scrolls; a long abstract, the open checklist and the expanded queue scroll inside their own panes. Playwright checks `document.documentElement.scrollHeight <= innerHeight` at both sizes with a long abstract.
+
+**Not chosen:** 1440×900 only, which would leave laptop screens scrolling.
 
 ## 2026-11-09 — An additive import format is a STANDARD-lane change (accepted; M5c-nbib)
 

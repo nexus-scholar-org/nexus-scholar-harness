@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 
-import type { Locale } from "@/i18n";
+import { translate, type Locale } from "@/i18n";
 import { Button, DataCell, DecisionBadge, EvidenceQuote, type DecisionRole } from "@/components/ui/base";
 import { ScreeningSteps, stepHref } from "@/components/screening-state-card";
 import { isScreeningApiError } from "@/lib/screening-api";
@@ -33,6 +33,7 @@ import { tc, type TriageCopyKey } from "@/lib/triage-copy";
 import {
   answersInOrder,
   compareAnswers,
+  contradicts,
   criterionOfReason,
   decisiveFor,
   failedChecks,
@@ -64,6 +65,23 @@ import {
 const VIEWS: QueueView[] = ["needs_you", "proposal_ready", "no_proposal", "title_only", "decided"];
 const PREFETCH = 5;
 const QUEUE_OPEN_KEY = "nexus.triage.queueOpen";
+const CHECKLIST_OPEN_KEY = "nexus.triage.checklistOpen";
+
+function remembered(key: string): boolean {
+  try {
+    return typeof window !== "undefined" && window.sessionStorage.getItem(key) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function remember(key: string, value: boolean) {
+  try {
+    window.sessionStorage.setItem(key, value ? "1" : "0");
+  } catch {
+    /* private window: the choice simply is not remembered */
+  }
+}
 
 type ProposalState =
   | { status: "hidden" }
@@ -118,8 +136,9 @@ function nextUndecided(list: readonly QueueItem[], study: string): QueueItem | n
 
 export function TriagePage({ locale }: Readonly<{ locale: Locale }>) {
   return (
-    <div className="mx-auto max-w-7xl px-6 py-10 lg:px-8 lg:py-14">
-      <ScreeningSteps locale={locale} current="triage" consoleOrigin={consoleOrigin()} />
+    // From 1024 px the screen fills the shell's height and never scrolls (spec 03, M8-triage 1).
+    <div className="mx-auto w-full max-w-7xl px-6 py-10 lg:flex lg:min-h-0 lg:max-w-none lg:flex-1 lg:flex-col lg:px-6 lg:py-3">
+      <ScreeningSteps locale={locale} current="triage" consoleOrigin={consoleOrigin()} className="mb-6 lg:hidden" />
       <TriageScreen locale={locale} />
     </div>
   );
@@ -150,25 +169,28 @@ function TriageScreen({ locale }: Readonly<{ locale: Locale }>) {
   const [busy, setBusy] = useState(false);
   const [help, setHelp] = useState(false);
   const [summary, setSummary] = useState<Summary | null>(null);
+  // Skips in this browser session, for the counts rail; a skip writes nothing (spec 03).
+  const [skippedCount, setSkippedCount] = useState(0);
   // "All decided" may be claimed only once the queue has answered (review P2-1).
   const [queueLoaded, setQueueLoaded] = useState(false);
   // Focus the next record's title once it is on screen (review P2-3).
   const focusNextTitle = useRef(false);
   // The queue card is collapsed by default; the choice lasts the browser session (spec 03, amendment 4).
-  const [queueOpen, setQueueOpenState] = useState<boolean>(() => {
-    try {
-      return typeof window !== "undefined" && window.sessionStorage.getItem(QUEUE_OPEN_KEY) === "1";
-    } catch {
-      return false;
-    }
-  });
+  const [queueOpen, setQueueOpenState] = useState<boolean>(() => remembered(QUEUE_OPEN_KEY));
   const setQueueOpen = useCallback((value: boolean) => {
     setQueueOpenState(value);
-    try {
-      window.sessionStorage.setItem(QUEUE_OPEN_KEY, value ? "1" : "0");
-    } catch {
-      /* private window: the choice simply is not remembered */
-    }
+    remember(QUEUE_OPEN_KEY, value);
+  }, []);
+  // The checklist is collapsed by default (spec 03, M8-triage 2). E and 1/2/3 open it
+  // for the record on screen; only its toggle's choice lasts the browser session.
+  const checklistChoice = useRef<boolean>(remembered(CHECKLIST_OPEN_KEY));
+  const [checklistOpen, setChecklistOpen] = useState<boolean>(checklistChoice.current);
+  const toggleChecklist = useCallback(() => {
+    setChecklistOpen((open) => {
+      checklistChoice.current = !open;
+      remember(CHECKLIST_OPEN_KEY, !open);
+      return !open;
+    });
   }, []);
   const cache = useRef(new Map<string, RecordDetail>());
   const recordHeading = useRef<HTMLParagraphElement>(null);
@@ -247,6 +269,7 @@ function TriageScreen({ locale }: Readonly<{ locale: Locale }>) {
       setRefusal(null);
       setConflict(null);
       setFocusIndex(0);
+      setChecklistOpen(checklistChoice.current);
       setRecord(null);
       setProposal({ status: "hidden" });
       try {
@@ -430,6 +453,7 @@ function TriageScreen({ locale }: Readonly<{ locale: Locale }>) {
   }
 
   function skip() {
+    setSkippedCount((n) => n + 1);
     setMessage(t("skipped"));
     move(1);
   }
@@ -443,10 +467,13 @@ function TriageScreen({ locale }: Readonly<{ locale: Locale }>) {
 
   const decided = record?.my_decision ?? null;
   const deciding = record !== null && (decided === null || editing) && conflict === null;
-  // Answer until decisive (spec 03 amendment 1): what the answers so far make possible.
+  // The checklist is a tool for the reason, not a gate for the decision (spec 03, M8-triage 3):
+  // Include is off only while an answer given fails; Exclude is always there and needs a reason.
   const decisive = record !== null ? decisiveFor(record.criteria, answers, record.not_reported_policy ?? "unclear") : null;
   const canInclude = decisive?.include ?? false;
-  const canExclude = decisive?.exclude ?? false;
+  const canExclude = record !== null;
+  // A reason the answers contradict would be refused (`REASON_CODE_INCONSISTENT`).
+  const reasonUsable = reason !== null && !contradicts(reason, answers);
   const reasons = record ? reasonOptions(record.criteria) : [];
   const criterionText = (id: string) => record?.criteria.find((c) => c.id === id)?.text ?? "";
   const undoable = record?.my_decision ? undoTarget(record.my_decision, record.history) !== null : false;
@@ -454,8 +481,10 @@ function TriageScreen({ locale }: Readonly<{ locale: Locale }>) {
 
   function openExclude() {
     // The reason comes from the checklist (amendment 2): the first failed criterion, pre-selected.
+    // With no failed criterion, none is chosen: the chips are offered (M8-triage 3).
     setReason((chosen) => chosen ?? reasonFromChecklist(decisive?.failed ?? null));
     setReasonOpen(true);
+    setChecklistOpen(true);
   }
   // The draft may be on screen only for the record it belongs to, once that
   // record is decided or the researcher chose to see drafts beside records.
@@ -471,6 +500,7 @@ function TriageScreen({ locale }: Readonly<{ locale: Locale }>) {
     if (!record || !deciding) return;
     const criterion = record.criteria[focusIndex];
     if (!criterion) return;
+    setChecklistOpen(true); // a number key opens a closed checklist and answers (M8-triage 2)
     setAnswers((prev) => ({ ...prev, [criterion.id]: value }));
     setFocusIndex((i) => Math.min(i + 1, record.criteria.length - 1));
   }
@@ -493,7 +523,7 @@ function TriageScreen({ locale }: Readonly<{ locale: Locale }>) {
       if (event.key === "Enter") {
         const target = event.target;
         const own = isTextField(target) || (typeof HTMLButtonElement !== "undefined" && target instanceof HTMLButtonElement);
-        if (!own && reasonOpen && reason && deciding && canExclude) {
+        if (!own && reasonOpen && reason && reasonUsable && deciding && canExclude) {
           event.preventDefault();
           void submit("EXCLUDE", { reasonCode: reason });
         }
@@ -502,7 +532,7 @@ function TriageScreen({ locale }: Readonly<{ locale: Locale }>) {
       // Reason chips take 1-9 while the panel is open (spec 03: chips 1-7; review 3).
       if (reasonOpen && /^[1-9]$/.test(event.key) && !isTextField(event.target) && !event.ctrlKey && !event.metaKey && !event.altKey) {
         const pick = reasons[Number(event.key) - 1];
-        if (pick) setReason(pick);
+        if (pick && !contradicts(pick, answers)) setReason(pick);
         event.preventDefault();
         return;
       }
@@ -540,28 +570,35 @@ function TriageScreen({ locale }: Readonly<{ locale: Locale }>) {
         <p className="mt-2 font-mono text-[0.8125rem] text-blocked" dir="ltr">
           {bootError}
         </p>
-        <Button className="mt-4" onClick={() => void boot()}>
-          {t("retry")}
-        </Button>
+        <p className="mt-4 flex flex-wrap items-center gap-4">
+          <Button onClick={() => void boot()}>{t("retry")}</Button>
+          {/* The site header is hidden on desktop triage (decision 2026-11-09): keep a way out. */}
+          <a href={stepHref(locale, "home", origin)} className="inline-flex min-h-11 items-center text-brand underline">
+            {t("leave")}
+          </a>
+        </p>
       </section>
     );
   }
 
   if (!settings) return <p className="text-ink-muted">{t("loading")}</p>;
 
-  const comparison = visibleProposal && decided ? compareAnswers(record!.criteria, decided.criteria, visibleProposal) : [];
-  const list = (ids: string[]) => new Intl.ListFormat(locale, { type: "conjunction" }).format(ids);
+  const comparison = visibleProposal && decided ? compareAnswers(record!.criteria, decided.criteria ?? [], visibleProposal) : [];
+  // What the answers allow (spec 03, M8-triage 4); it never asks for answers before a decision.
   const statusLine = !decisive
     ? ""
     : decisive.failed
-      ? decisive.failed.answer === "not_reported"
-        ? t("excludeReadyNotReported", { id: decisive.failed.id })
-        : t("excludeReady", { id: decisive.failed.id, answer: t(ANSWER_KEY[decisive.failed.answer]).toLocaleLowerCase(locale) })
-      : decisive.include
-        ? t("includeReady")
-        : decisive.includeNeedsYes.length > 0 && decisive.includeNeedsYes.length === decisive.includeNeeds.length
-          ? t("includeNeedsYes", { ids: list(decisive.includeNeedsYes) })
-          : t("includeNeeds", { ids: list(decisive.includeNeeds) });
+      ? `${
+          decisive.failed.answer === "not_reported"
+            ? t("excludeReadyNotReported", { id: decisive.failed.id })
+            : t("excludeReady", { id: decisive.failed.id, answer: t(ANSWER_KEY[decisive.failed.answer]).toLocaleLowerCase(locale) })
+        }. ${t("includeOff")}`
+      : decisive.answered === 0
+        ? t("checklistOptional")
+        : decisive.includeReady
+          ? t("includeReady")
+          : t("answeredSome", { n: decisive.answered, m: decisive.total });
+  const checklistSummary = !decisive || decisive.answered === 0 ? t("summaryNone") : t("summarySome", { n: decisive.answered, m: decisive.total });
   const batch = record?.batch_index ?? item?.batch_index;
   const position = (() => {
     if (!record || !summary || batch === undefined) return null;
@@ -578,14 +615,50 @@ function TriageScreen({ locale }: Readonly<{ locale: Locale }>) {
   const nextItem = selected ? nextUndecided(items, selected) : null;
   const failed = visibleProposal ? failedChecks(visibleProposal) : [];
 
+  const summaryClass = "min-h-11 cursor-pointer py-3 leading-5 rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus";
+  // Panes scroll inside themselves from 1024 px; the page never does (spec 03, M8-triage 1).
+  // `relative`: visually hidden text inside a pane (sr-only is absolute) must not reach past it.
+  const pane = "lg:relative lg:min-h-0 lg:overflow-y-auto";
+
   return (
-    <div className="space-y-6">
-      <header>
-        <p className="text-xs font-semibold uppercase tracking-[0.05em] text-brand rtl:tracking-normal">{t("eyebrow")}</p>
-        <h1 className="font-display mt-1 text-[1.75rem] leading-[2.25rem] text-ink">{t("title")}</h1>
-        <p className="mt-1 text-ink-muted">{allDone ? t("allDecidedLede") : settings.blinding === "show" ? t("ledeShow") : t("lede")}</p>
+    <div className="space-y-6 lg:flex lg:min-h-0 lg:flex-1 lg:flex-col lg:gap-3 lg:space-y-0">
+      {/* The triage bar (decision 2026-11-09): from 1024 px it replaces the site header and the step bar. */}
+      <header className="flex flex-wrap items-center gap-x-4 gap-y-2 lg:flex-none lg:border-b lg:border-rule lg:pb-2" data-triage-bar>
+        <a href={stepHref(locale, "home", origin)} className="hidden rounded-sm font-display text-lg font-semibold text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus lg:inline">
+          {translate(locale, "brand.productName")}
+        </a>
+        <div className="w-full lg:w-auto">
+          <p className="text-xs font-semibold uppercase tracking-[0.05em] text-brand lg:hidden rtl:tracking-normal">{t("eyebrow")}</p>
+          <h1 className="font-display mt-1 text-[1.75rem] leading-[2.25rem] text-ink lg:mt-0 lg:font-sans lg:text-sm lg:font-medium lg:leading-5 lg:text-ink-muted">
+            <span className="lg:hidden">{t("title")}</span>
+            <span className="hidden lg:inline">{t("barTitle")}</span>
+          </h1>
+          <p className={`mt-1 text-ink-muted ${allDone ? "" : "lg:hidden"}`}>{allDone ? t("allDecidedLede") : settings.blinding === "show" ? t("ledeShow") : t("lede")}</p>
+        </div>
+        {position && !allDone ? (
+          <p className="flex items-center gap-3 text-sm font-medium text-ink lg:mx-auto">
+            <span data-position>{position}</span>
+            {summary && summary.total > 0 ? (
+              <span aria-hidden="true" className="hidden h-1.5 w-40 overflow-hidden rounded-full bg-rule lg:block" data-progress>
+                <span className="block h-full bg-brand" style={{ width: `${Math.round((100 * summary.decided) / summary.total)}%` }} />
+              </span>
+            ) : null}
+          </p>
+        ) : null}
         {/* The shell's demonstration marker covers the fixture screens; this one is live (as corpus and lineage say). */}
-        <p className="mt-2 inline-block border border-rule-strong px-2 py-0.5 text-xs text-ink-muted">{t("liveStamp")}</p>
+        <p className="inline-block border border-rule-strong px-2 py-0.5 text-xs text-ink-muted lg:hidden">{t("liveStamp")}</p>
+        <div className="flex flex-wrap items-center gap-1 lg:ms-auto">
+          {/* Always shown: with an empty view, Queue is the way to the Decided view (review 2026-11-09). */}
+          <Button variant="quiet" aria-expanded={queueOpen} aria-controls="triage-queue-list" onClick={() => setQueueOpen(!queueOpen)}>
+            {t("queueToggle")} <kbd className="text-xs opacity-80">J K</kbd>
+          </Button>
+          <Button variant="quiet" onClick={() => setHelp(true)}>
+            {t("helpButton")} <kbd className="text-xs opacity-80">?</kbd>
+          </Button>
+          <a href={stepHref(locale, "home", origin)} className="inline-flex min-h-11 items-center rounded-md px-3 text-sm text-brand underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus">
+            {t("leave")}
+          </a>
+        </div>
       </header>
 
       <p role="status" aria-live="polite" className="sr-only">
@@ -593,38 +666,65 @@ function TriageScreen({ locale }: Readonly<{ locale: Locale }>) {
       </p>
 
       {stale ? (
-        <p role="alert" className="rounded-md bg-blocked-soft px-4 py-3 text-blocked">
-          {t("staleBanner")}
-          <details className="mt-1 text-xs">
-            <summary className="min-h-11 cursor-pointer py-3 leading-5 rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus">{t("details")}</summary>
+        <div role="alert" className="rounded-md bg-blocked-soft px-4 py-2 text-blocked lg:flex-none">
+          <p>{t("staleBanner")}</p>
+          <details className="text-xs">
+            <summary className={summaryClass}>{t("details")}</summary>
             <span className="font-mono" dir="ltr">
               STALE_BINDING
             </span>
           </details>
-        </p>
+        </div>
+      ) : null}
+      {refusal && !stale ? (
+        <div role="alert" className="rounded-md bg-blocked-soft px-4 py-2 text-blocked lg:flex-none" data-refusal={refusal}>
+          <p>{stateCopy(locale, refusal).known ? `${stateCopy(locale, refusal).title}. ${stateCopy(locale, refusal).body}` : t("refused", { code: "" }).replace(/[:：]\s*$/, "")}</p>
+          <details className="text-xs">
+            <summary className={summaryClass}>{t("details")}</summary>
+            <span className="font-mono" dir="ltr">
+              {refusal}
+            </span>
+          </details>
+        </div>
       ) : null}
 
-      <div className="flex flex-wrap gap-6">
-        {/* Queue (spec 03, left zone) */}
-        <nav aria-labelledby="triage-queue" className="w-full max-w-[260px] flex-none rounded-lg border border-rule bg-leaf p-4">
-          <h2 id="triage-queue" className="text-sm font-semibold text-ink">
+      <div className="flex flex-col gap-6 lg:grid lg:min-h-0 lg:flex-1 lg:grid-cols-[200px_minmax(0,1fr)_300px] lg:grid-rows-[minmax(0,1fr)] lg:gap-4 xl:grid-cols-[220px_minmax(0,1fr)_340px]">
+        {/* Queue (spec 03, left column); the expanded list scrolls inside it */}
+        <nav aria-labelledby="triage-queue" className={`w-full rounded-lg border border-rule bg-leaf p-4 lg:max-w-none ${pane}`}>
+          <h2 id="triage-queue" className="sr-only">
             {t("queueHeading")}
           </h2>
-          <div className="mt-3 flex flex-wrap gap-2">
-            {VIEWS.map((v) => (
-              <button
-                key={v}
-                type="button"
-                aria-pressed={view === v}
-                onClick={() => void changeView(v)}
-                className={`min-h-11 rounded-md border px-2 text-xs ${view === v ? "border-brand bg-brand-soft text-brand" : "border-rule text-ink"}`}
-              >
-                {t(`view.${v}` as TriageCopyKey)}
-              </button>
+          {/* The counts rail (decision 2026-11-09): the numbers, not five view chips. */}
+          <dl className="grid grid-cols-3 gap-2 text-center lg:grid-cols-1 lg:text-start" data-rail>
+            {[
+              { label: t("railNeedsYou"), value: summary?.needs_you },
+              { label: t("railDecided"), value: summary?.decided },
+              { label: t("railSkipped"), value: skippedCount },
+            ].map((row) => (
+              <div key={row.label} className="flex flex-col-reverse">
+                <dt className="text-xs text-ink-muted">{row.label}</dt>
+                <dd className="font-mono text-2xl leading-8 text-ink">{row.value ?? "–"}</dd>
+              </div>
             ))}
-          </div>
+          </dl>
+          {queueOpen ? (
+            <label className="mt-4 block text-xs text-ink-muted">
+              {t("viewLabel")}
+              <select
+                value={view}
+                onChange={(e) => void changeView(e.target.value as QueueView)}
+                className="mt-1 block min-h-11 w-full rounded-md border border-rule bg-paper px-2 text-sm text-ink"
+              >
+                {VIEWS.map((v) => (
+                  <option key={v} value={v}>
+                    {t(`view.${v}` as TriageCopyKey)}
+                  </option>
+                ))}
+              </select>
+            </label>
+          ) : null}
           {items.length === 0 ? (
-            <div className="mt-4 text-sm text-ink-muted">
+            <div id="triage-queue-list" className="mt-4 text-sm text-ink-muted">
               <p>{view === "needs_you" ? t("allDecided") : t("queueEmpty")}</p>
             </div>
           ) : !queueOpen ? (
@@ -668,11 +768,6 @@ function TriageScreen({ locale }: Readonly<{ locale: Locale }>) {
               ))}
             </ul>
           )}
-          {items.length > 0 ? (
-            <Button variant="quiet" className="mt-2" aria-expanded={queueOpen} aria-controls="triage-queue-list" onClick={() => setQueueOpen(!queueOpen)}>
-              {queueOpen ? t("queueCollapse") : t("queueExpand")}
-            </Button>
-          ) : null}
           {queueOpen && cursor !== null ? (
             <Button variant="quiet" className="mt-2" onClick={() => void loadQueue(view, true, cursor)}>
               {t("queueMore")}
@@ -680,83 +775,77 @@ function TriageScreen({ locale }: Readonly<{ locale: Locale }>) {
           ) : null}
         </nav>
 
-        {/* Record and checklist (spec 05) */}
-        <section aria-labelledby="triage-record" className="min-w-0 flex-[999_1_420px] space-y-4">
-          {refusal && !stale ? (
-            <div role="alert" className="rounded-md bg-blocked-soft px-4 py-3 text-blocked" data-refusal={refusal}>
-              <p>{stateCopy(locale, refusal).known ? `${stateCopy(locale, refusal).title}. ${stateCopy(locale, refusal).body}` : t("refused", { code: "" }).replace(/[:：]\s*$/, "")}</p>
-              <details className="mt-1 text-xs">
-                <summary className="min-h-11 cursor-pointer py-3 leading-5 rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus">{t("details")}</summary>
-                <span className="font-mono" dir="ltr">
-                  {refusal}
-                </span>
-              </details>
-            </div>
-          ) : null}
-          {allDone ? (
-            <section aria-labelledby="triage-all-decided" className="rounded-lg border border-rule bg-leaf p-6" data-all-decided>
-              <h2 id="triage-all-decided" className="font-display text-[1.375rem] leading-[1.75rem] text-ink">
-                {t("allDecidedTitle", { total: summary?.total ?? 0 })}
-              </h2>
-              <p className="mt-4 flex flex-wrap items-center gap-4">
-                <a className="inline-flex min-h-11 items-center rounded-md bg-brand px-4 font-medium text-on-brand" href={stepHref(locale, "publish", origin)}>
-                  {t("toPublish")}
-                </a>
-                <a className="text-brand underline" href={stepHref(locale, "agreement", origin)}>
-                  {t("toAgreement")}
-                </a>
-                <a className="text-brand underline" href={stepHref(locale, "home", origin)}>
-                  {t("toHome")}
-                </a>
-              </p>
+        {allDone ? (
+          <section aria-labelledby="triage-all-decided" className="rounded-lg border border-rule bg-leaf p-6 lg:col-span-2 lg:self-start" data-all-decided>
+            <h2 id="triage-all-decided" className="font-display text-[1.375rem] leading-[1.75rem] text-ink">
+              {t("allDecidedTitle", { total: summary?.total ?? 0 })}
+            </h2>
+            <p className="mt-4 flex flex-wrap items-center gap-4">
+              <a className="inline-flex min-h-11 items-center rounded-md bg-brand px-4 font-medium text-on-brand" href={stepHref(locale, "publish", origin)}>
+                {t("toPublish")}
+              </a>
+              <a className="text-brand underline" href={stepHref(locale, "agreement", origin)}>
+                {t("toAgreement")}
+              </a>
+              <a className="text-brand underline" href={stepHref(locale, "home", origin)}>
+                {t("toHome")}
+              </a>
+            </p>
+          </section>
+        ) : (
+          <>
+            {/* The record (spec 05): its own scrolling pane, reachable by keyboard */}
+            <section
+              aria-label={t("recordPane")}
+              tabIndex={record ? 0 : undefined}
+              className={`min-w-0 rounded-lg border border-rule bg-leaf p-5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus ${pane}`}
+              data-record-pane
+            >
+              {record === null ? (
+                selected ? <p className="text-ink-muted">{t("loading")}</p> : null
+              ) : (
+                <article>
+                  <h2 id="triage-record" className="sr-only">
+                    {t("recordHeading")}
+                  </h2>
+                  <p ref={recordHeading} tabIndex={-1} className="font-display text-[1.375rem] leading-[1.75rem] text-ink">
+                    <bdi>{record.title}</bdi>
+                  </p>
+                  <p className="mt-1 flex flex-wrap gap-x-3 text-sm text-ink-muted">
+                    <span>{record.year ?? t("notStored")}</span>
+                    <span>
+                      <bdi>{record.venue ?? t("notStored")}</bdi>
+                    </span>
+                  </p>
+                  <details className="mt-1 text-xs text-ink-muted" data-record-details>
+                    <summary className={summaryClass}>{t("details")}</summary>
+                    <DataCell>{record.study_id}</DataCell>
+                    {record.doi ? (
+                      <a className="ms-2 font-mono text-anchor underline" href={`https://doi.org/${record.doi}`} dir="ltr">
+                        {record.doi}
+                      </a>
+                    ) : null}
+                  </details>
+                  <div className="mt-3">
+                    {record.abstract && record.abstract.trim() && record.abstract !== "No abstract available." ? (
+                      <Abstract text={record.abstract} highlights={record.highlights} />
+                    ) : (
+                      <div className="space-y-2">
+                        <DecisionBadge role="unclear">{t("titleOnly")}</DecisionBadge>
+                        <p className="text-ink-muted">{t("noAbstract")}</p>
+                        <p className="text-sm text-ink-muted">{t("titleOnlyNote")}</p>
+                      </div>
+                    )}
+                  </div>
+                  <p className="mt-3 text-xs text-ink-faint">{t("originHidden")}</p>
+                </article>
+              )}
             </section>
-          ) : record === null ? (
-            selected ? <p className="text-ink-muted">{t("loading")}</p> : null
-          ) : (
-            <>
-              {position ? (
-                <p className="text-sm text-ink-muted" data-position>
-                  {position}
-                </p>
-              ) : null}
-              <article className="rounded-lg border border-rule bg-leaf p-5">
-                <h2 id="triage-record" className="sr-only">
-                  {t("recordHeading")}
-                </h2>
-                <p ref={recordHeading} tabIndex={-1} className="font-display text-[1.375rem] leading-[1.75rem] text-ink">
-                  <bdi>{record.title}</bdi>
-                </p>
-                <p className="mt-1 flex flex-wrap gap-x-3 text-sm text-ink-muted">
-                  <span>{record.year ?? t("notStored")}</span>
-                  <span>
-                    <bdi>{record.venue ?? t("notStored")}</bdi>
-                  </span>
-                </p>
-                <details className="mt-1 text-xs text-ink-muted" data-record-details>
-                  <summary className="min-h-11 cursor-pointer py-3 leading-5 rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus">{t("details")}</summary>
-                  <DataCell>{record.study_id}</DataCell>
-                  {record.doi ? (
-                    <a className="ms-2 font-mono text-anchor underline" href={`https://doi.org/${record.doi}`} dir="ltr">
-                      {record.doi}
-                    </a>
-                  ) : null}
-                </details>
-                <div className="mt-4">
-                  {record.abstract && record.abstract.trim() && record.abstract !== "No abstract available." ? (
-                    <Abstract text={record.abstract} highlights={record.highlights} />
-                  ) : (
-                    <div className="space-y-2">
-                      <DecisionBadge role="unclear">{t("titleOnly")}</DecisionBadge>
-                      <p className="text-ink-muted">{t("noAbstract")}</p>
-                      <p className="text-sm text-ink-muted">{t("titleOnlyNote")}</p>
-                    </div>
-                  )}
-                </div>
-                <p className="mt-3 text-xs text-ink-faint">{t("originHidden")}</p>
-              </article>
 
-              {conflict ? (
-                <section role="alert" className="rounded-lg border border-rule-strong bg-unclear-soft p-5">
+            {/* The right column: reason, checklist, comparison, draft, note, history (M8-triage 1) */}
+            <div className={`min-w-0 space-y-4 ${pane}`} data-right-column>
+              {record && conflict ? (
+                <section role="alert" className="rounded-lg border border-rule-strong bg-unclear-soft p-4">
                   <h2 className="font-semibold text-unclear">{t("conflictTitle")}</h2>
                   <p className="mt-1 text-ink">{t("conflictBody")}</p>
                   <div className="mt-3 flex flex-wrap gap-2">
@@ -769,8 +858,105 @@ function TriageScreen({ locale }: Readonly<{ locale: Locale }>) {
                 </section>
               ) : null}
 
-              {visibleProposal && decided ? (
-                <section className="rounded-lg border border-rule bg-leaf p-5">
+              {record && deciding && reasonOpen ? (
+                <fieldset className="space-y-2 rounded-lg border border-rule bg-leaf p-4">
+                  <legend className="px-1 text-sm font-semibold text-ink">{t("reasonLegend")}</legend>
+                  {reason ? (
+                    <p className="text-sm text-ink" data-reason={reason}>
+                      {(() => {
+                        const { id, fails } = criterionOfReason(reason);
+                        return t(fails ? "reasonFails" : "reasonMeets", { id, text: firstClause(criterionText(id)) });
+                      })()}
+                      <span className="block font-mono text-xs text-ink-muted" dir="ltr">
+                        {reason}
+                      </span>
+                    </p>
+                  ) : (
+                    <p className="text-sm text-ink-muted">{t("reasonRequired")}</p>
+                  )}
+                  <div className="flex flex-wrap gap-2">
+                    {reasons.map((code, index) => (
+                      <button
+                        key={code}
+                        type="button"
+                        aria-pressed={reason === code}
+                        disabled={contradicts(code, answers)}
+                        onClick={() => setReason(code)}
+                        className={`min-h-11 rounded-md border px-3 py-1 text-start text-sm disabled:cursor-not-allowed disabled:opacity-50 ${reason === code ? "border-brand bg-brand-soft text-brand" : "border-rule text-ink"}`}
+                      >
+                        <span className="block">
+                          {index + 1}. <bdi>{firstClause(criterionText(criterionOfReason(code).id)) || code}</bdi>
+                        </span>
+                        <span className="block font-mono text-xs opacity-80" dir="ltr">
+                          {code}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                  <Button disabled={!reasonUsable || busy || !canExclude} onClick={() => reason && void submit("EXCLUDE", { reasonCode: reason })}>
+                    {t("reasonConfirm")}
+                  </Button>
+                </fieldset>
+              ) : null}
+
+              {record ? (
+                <section className="rounded-lg border border-rule bg-leaf p-4" data-checklist>
+                  <button
+                    type="button"
+                    aria-expanded={checklistOpen}
+                    aria-controls="triage-checklist"
+                    onClick={toggleChecklist}
+                    className="flex min-h-11 w-full flex-wrap items-center justify-between gap-x-3 rounded-md text-start focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+                  >
+                    <span className="font-semibold text-ink">{t("checklistToggle")}</span>
+                    <span className="text-sm text-ink-muted">{checklistSummary}</span>
+                  </button>
+                  <div id="triage-checklist" hidden={!checklistOpen}>
+                    {checklistOpen ? (
+                      <fieldset className="mt-2" disabled={!deciding || stale}>
+                        <legend className="sr-only">{t("checklistHeading")}</legend>
+                        <ul className="space-y-2">
+                          {record.criteria.map((c, index) => (
+                            <li key={c.id} className={`rounded-md p-2 ${index === focusIndex && deciding ? "ring-2 ring-focus" : ""}`}>
+                              <p className="text-sm">
+                                <span className="font-mono text-ink-muted" dir="ltr">
+                                  {c.id}
+                                </span>{" "}
+                                <span className="text-ink-muted">· {c.kind === "inclusion" ? t("inclusion") : t("exclusion")}</span>
+                              </p>
+                              {c.text ? (
+                                <p dir="auto" className="text-sm text-ink">
+                                  {c.text}
+                                </p>
+                              ) : null}
+                              <div role="group" aria-label={c.id} className="mt-2 flex flex-wrap gap-2">
+                                {(["yes", "no", "not_reported"] as Answer[]).map((a) => (
+                                  <button
+                                    key={a}
+                                    type="button"
+                                    aria-pressed={answers[c.id] === a}
+                                    onFocus={() => setFocusIndex(index)}
+                                    onClick={() => {
+                                      setFocusIndex(index);
+                                      setAnswers((prev) => ({ ...prev, [c.id]: a }));
+                                    }}
+                                    className={`min-h-11 min-w-11 rounded-md border px-3 text-sm ${answers[c.id] === a ? "border-brand bg-brand-soft text-brand" : "border-rule text-ink"}`}
+                                  >
+                                    {t(ANSWER_KEY[a])}
+                                  </button>
+                                ))}
+                              </div>
+                            </li>
+                          ))}
+                        </ul>
+                      </fieldset>
+                    ) : null}
+                  </div>
+                </section>
+              ) : null}
+
+              {record && visibleProposal && decided ? (
+                <section className="rounded-lg border border-rule bg-leaf p-4">
                   <h2 ref={revealedHeading} tabIndex={-1} className="font-semibold text-ink">
                     {visibleProposal.derived_outcome === decided.outcome ? t("agrees") : t("disagrees")}
                   </h2>
@@ -803,262 +989,189 @@ function TriageScreen({ locale }: Readonly<{ locale: Locale }>) {
                 </section>
               ) : null}
 
-              {/* Checklist: required on desktop (spec 05, contract §9.3) */}
-              <fieldset className="rounded-lg border border-rule bg-leaf p-5" disabled={!deciding || stale}>
-                <legend className="px-1 font-semibold text-ink">{t("checklistHeading")}</legend>
-                <ul className="space-y-3">
-                  {record.criteria.map((c, index) => (
-                    <li key={c.id} className={`rounded-md p-2 ${index === focusIndex && deciding ? "ring-2 ring-focus" : ""}`}>
-                      <p className="text-sm">
-                        <span className="font-mono text-ink-muted" dir="ltr">
-                          {c.id}
-                        </span>{" "}
-                        <span className="text-ink-muted">· {c.kind === "inclusion" ? t("inclusion") : t("exclusion")}</span>
+              {/* The agent's draft (spec 05 aside): plain surface, never an include tint */}
+              <aside
+                aria-label={visibleProposal ? t("proposalRevealed") : t("proposalHiddenTitle")}
+                className="w-full rounded-lg border border-dashed border-rule-strong bg-leaf p-4"
+                data-testid="proposal-aside"
+              >
+                <p className="text-xs font-semibold uppercase tracking-[0.05em] text-ink-muted rtl:tracking-normal">{t("proposalHiddenTitle")}</p>
+                {visibleProposal === null && (proposal.status === "hidden" || proposal.status === "ready") ? (
+                  <div className="mt-3 space-y-2" aria-hidden="false">
+                    <p className="text-ink-muted">{t("proposalHiddenBody")}</p>
+                    <div className="h-3 w-3/4 rounded-sm bg-rule" />
+                    <div className="h-3 w-1/2 rounded-sm bg-rule" />
+                  </div>
+                ) : proposal.status === "none" ? (
+                  <p className="mt-3 text-ink-muted">{t("proposalNone")}</p>
+                ) : proposal.status === "loading" ? (
+                  <p className="mt-3 text-ink-muted">{t("loading")}</p>
+                ) : proposal.status === "error" ? (
+                  <p className="mt-3 text-blocked">{t("proposalUnavailable", { code: proposal.code })}</p>
+                ) : (
+                  <div className="mt-3 space-y-3 text-sm">
+                    <p className="flex flex-wrap items-center gap-2">
+                      <span className="text-ink-muted">{t("draftOutcome")}</span>
+                      <span className="rounded-sm border border-rule-strong px-2 py-0.5 text-xs font-semibold text-ink">
+                        {t(OUTCOME_KEY[visibleProposal!.derived_outcome])}
+                        {visibleProposal!.reason_code ? ` · ${visibleProposal!.reason_code}` : ""}
+                      </span>
+                      <span className="text-xs text-ink-muted">{t("notADecision")}</span>
+                    </p>
+                    {failed.length > 0 ? (
+                      <p className="text-blocked">
+                        {t("proposalRejected")} · {t("failedChecks", { checks: failed.join(", ") })}
                       </p>
-                      {c.text ? (
-                        <p dir="auto" className="text-ink">
-                          {c.text}
-                        </p>
-                      ) : null}
-                      <div role="group" aria-label={c.id} className="mt-2 flex flex-wrap gap-2">
-                        {(["yes", "no", "not_reported"] as Answer[]).map((a) => (
-                          <button
-                            key={a}
-                            type="button"
-                            aria-pressed={answers[c.id] === a}
-                            onFocus={() => setFocusIndex(index)}
-                            onClick={() => {
-                              setFocusIndex(index);
-                              setAnswers((prev) => ({ ...prev, [c.id]: a }));
-                            }}
-                            className={`min-h-11 min-w-11 rounded-md border px-3 text-sm ${answers[c.id] === a ? "border-brand bg-brand-soft text-brand" : "border-rule text-ink"}`}
-                          >
-                            {t(ANSWER_KEY[a])}
-                          </button>
+                    ) : null}
+                    {visibleProposal!.cannot_decide ? <p className="text-unclear">{t("cannotDecide")}</p> : null}
+                    {/* Every criterion with the agent's answer, open ones first: a quote alone does not say whether it supports or refutes */}
+                    <section aria-labelledby="proposal-answers" className="space-y-2">
+                      <p id="proposal-answers" className="text-xs font-semibold text-ink-muted">
+                        {t("agentAnswers")}
+                      </p>
+                      <ul className="space-y-2">
+                        {proposalAnswersOpenFirst(visibleProposal!.criteria).map((c) => (
+                          <li key={c.id} data-criterion={c.id} data-answer={c.answer} className="space-y-1">
+                            <p className="flex flex-wrap items-center gap-2 text-xs">
+                              <span className="font-mono text-ink-muted" dir="ltr">
+                                {c.id}
+                              </span>
+                              <span
+                                className={`rounded-sm border px-1.5 py-0.5 font-semibold ${c.answer === "not_reported" ? "border-unclear text-unclear" : "border-rule-strong text-ink"}`}
+                              >
+                                {t(ANSWER_KEY[c.answer])}
+                              </span>
+                            </p>
+                            {c.evidence?.text ? (
+                              <EvidenceQuote>
+                                <bdi>{c.evidence.text}</bdi>
+                              </EvidenceQuote>
+                            ) : (
+                              <p className="text-xs text-ink-muted">{t(c.answer === "not_reported" ? "recordSilent" : "noQuote")}</p>
+                            )}
+                          </li>
                         ))}
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-                {deciding && statusLine ? (
-                  <p className="mt-3 text-sm text-ink-muted" role="status" aria-live="polite" data-decisive>
-                    {statusLine}
-                  </p>
-                ) : null}
-              </fieldset>
-
-              {/* Decision card */}
-              <section aria-labelledby="triage-decision" className="rounded-lg border border-rule bg-leaf p-5">
-                <h2 id="triage-decision" className="font-semibold text-ink">
-                  {t("decisionHeading")}
-                </h2>
-                {decided && !editing ? (
-                  <div className="mt-2 space-y-2">
-                    <p className="flex flex-wrap items-center gap-2 text-ink">
-                      {t("decidedAs")}
-                      <DecisionBadge role={OUTCOME_ROLE[decided.outcome]}>
-                        {t(OUTCOME_KEY[decided.outcome])}
-                        {decided.reason_code ? ` · ${decided.reason_code}` : ""}
-                      </DecisionBadge>
-                      {decided.changed_after_reveal ? <DecisionBadge role="unclear">{t("changedAfterReveal")}</DecisionBadge> : null}
-                    </p>
-                    <p className="text-xs text-ink-muted">
-                      <span title={`${t("savedWord")} ${new Date(decided.decided_at).toLocaleString(locale)}`}>{t("savedWord")}</span>
-                    </p>
-                    <details className="text-xs text-ink-muted" data-decision-details>
-                      <summary className="min-h-11 cursor-pointer py-3 leading-5 rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus">{t("details")}</summary>
-                      <p className="mt-1">
-                        {t("recordedAs", {
-                          time: new Date(decided.decided_at).toLocaleString(locale),
-                          fingerprint: decided.binding.protocol_fingerprint.slice(0, 19),
-                        })}
-                      </p>
+                      </ul>
+                    </section>
+                    <details className="text-xs" data-proposal-details>
+                      <summary className={`${summaryClass} text-ink-muted`}>{t("details")}</summary>
+                      <dl className="mt-1 grid grid-cols-[auto_1fr] gap-x-2 gap-y-1 text-xs">
+                        <dt className="text-ink-muted">{t("model")}</dt>
+                        <dd>
+                          <DataCell>{visibleProposal!.model ?? t("notStored")}</DataCell>
+                        </dd>
+                        <dt className="text-ink-muted">{t("prompt")}</dt>
+                        <dd>
+                          <DataCell>{(visibleProposal!.prompt_sha256 ?? t("notStored")).slice(0, 19)}</DataCell>
+                        </dd>
+                        <dt className="text-ink-muted">{t("proposalId")}</dt>
+                        <dd>
+                          <DataCell>{visibleProposal!.proposal_id}</DataCell>
+                        </dd>
+                      </dl>
                     </details>
-                    <div className="flex flex-wrap gap-2">
-                      <Button variant="primary" onClick={() => void nextAfterDecision()} disabled={conflict !== null}>
-                        {t("next")} <kbd className="text-xs opacity-80">N</kbd>
-                      </Button>
-                      <Button onClick={() => setEditing(true)} disabled={conflict !== null || stale}>
-                        {t("change")}
-                      </Button>
-                      {undoable ? (
-                        <Button onClick={undo} disabled={conflict !== null || stale}>
-                          {t("undo")} <kbd className="text-xs opacity-80">Z</kbd>
-                        </Button>
-                      ) : null}
-                    </div>
-                    {record.history.length > 1 ? (
-                      <details className="text-sm">
-                        <summary className="min-h-11 cursor-pointer py-3 leading-5 rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus text-brand">{t("history")}</summary>
-                        <ol className="mt-2 space-y-1">
-                          {record.history.map((e) => (
-                            <li key={e.event_id} className="text-ink-muted">
-                              {new Date(e.decided_at).toLocaleString(locale)} · {t(OUTCOME_KEY[e.outcome])}
-                              {e.reason_code ? ` · ${e.reason_code}` : ""}
-                              {e.changed_after_reveal ? ` · ${t("changedAfterReveal")}` : ""}
-                            </li>
-                          ))}
-                        </ol>
-                      </details>
-                    ) : null}
                   </div>
-                ) : deciding ? (
-                  <div className="mt-3 space-y-3">
-                    <div className="flex flex-wrap gap-2">
-                      <Button variant="primary" disabled={!canInclude || busy || stale} onClick={() => void submit("INCLUDE")}>
-                        {t("include")} <kbd className="text-xs opacity-80">I</kbd>
-                      </Button>
-                      <Button disabled={!canExclude || busy || stale} aria-expanded={reasonOpen} onClick={openExclude}>
-                        {t("exclude")} <kbd className="text-xs opacity-80">E</kbd>
-                      </Button>
-                      <Button disabled={busy || stale} onClick={() => void submit("MAYBE")}>
-                        {t("unclear")} <kbd className="text-xs opacity-80">U</kbd>
-                      </Button>
-                      <Button variant="quiet" onClick={skip}>
-                        {t("skip")} <kbd className="text-xs opacity-80">S</kbd>
-                      </Button>
-                    </div>
-                    {reasonOpen ? (
-                      <fieldset className="space-y-2">
-                        <legend className="text-sm font-semibold text-ink">{t("reasonLegend")}</legend>
-                        {reason ? (
-                          <p className="text-sm text-ink" data-reason={reason}>
-                            {(() => {
-                              const { id, fails } = criterionOfReason(reason);
-                              return t(fails ? "reasonFails" : "reasonMeets", { id, text: firstClause(criterionText(id)) });
-                            })()}
-                            <span className="block font-mono text-xs text-ink-muted" dir="ltr">
-                              {reason}
-                            </span>
-                          </p>
-                        ) : null}
-                        <div className="flex flex-wrap gap-2">
-                          {reasons.map((code, index) => (
-                            <button
-                              key={code}
-                              type="button"
-                              aria-pressed={reason === code}
-                              onClick={() => setReason(code)}
-                              className={`min-h-11 rounded-md border px-3 py-1 text-start text-sm ${reason === code ? "border-brand bg-brand-soft text-brand" : "border-rule text-ink"}`}
-                            >
-                              <span className="block">
-                                {index + 1}. <bdi>{firstClause(criterionText(criterionOfReason(code).id)) || code}</bdi>
-                              </span>
-                              <span className="block font-mono text-xs opacity-80" dir="ltr">
-                                {code}
-                              </span>
-                            </button>
-                          ))}
-                        </div>
-                        <Button disabled={!reason || busy || !canExclude} onClick={() => reason && void submit("EXCLUDE", { reasonCode: reason })}>
-                          {t("reasonConfirm")}
-                        </Button>
-                        {!reason ? <p className="text-sm text-ink-muted">{t("reasonRequired")}</p> : null}
-                      </fieldset>
-                    ) : null}
-                    <label className="block text-sm text-ink">
-                      {t("noteLabel")}
-                      <textarea
-                        value={note}
-                        onChange={(e) => setNote(e.target.value)}
-                        rows={2}
-                        className="mt-1 block w-full rounded-md border border-rule bg-paper p-2 text-ink"
-                      />
-                    </label>
-                  </div>
-                ) : null}
-              </section>
-            </>
-          )}
-        </section>
+                )}
+              </aside>
 
-        {/* The agent's draft (spec 05 aside): plain surface, never an include tint; absent once all are decided */}
-        {allDone ? null : (
-        <aside
-          aria-label={visibleProposal ? t("proposalRevealed") : t("proposalHiddenTitle")}
-          className="w-full flex-[1_1_260px] rounded-lg border border-dashed border-rule-strong bg-leaf p-5"
-          data-testid="proposal-aside"
-        >
-          <p className="text-xs font-semibold uppercase tracking-[0.05em] text-ink-muted rtl:tracking-normal">{t("proposalHiddenTitle")}</p>
-          {visibleProposal === null && (proposal.status === "hidden" || proposal.status === "ready") ? (
-            <div className="mt-3 space-y-2" aria-hidden="false">
-              <p className="text-ink-muted">{t("proposalHiddenBody")}</p>
-              <div className="h-3 w-3/4 rounded-sm bg-rule" />
-              <div className="h-3 w-1/2 rounded-sm bg-rule" />
-            </div>
-          ) : proposal.status === "none" ? (
-            <p className="mt-3 text-ink-muted">{t("proposalNone")}</p>
-          ) : proposal.status === "loading" ? (
-            <p className="mt-3 text-ink-muted">{t("loading")}</p>
-          ) : proposal.status === "error" ? (
-            <p className="mt-3 text-blocked">{t("proposalUnavailable", { code: proposal.code })}</p>
-          ) : (
-            <div className="mt-3 space-y-3 text-sm">
-              <p className="flex flex-wrap items-center gap-2">
-                <span className="text-ink-muted">{t("draftOutcome")}</span>
-                <span className="rounded-sm border border-rule-strong px-2 py-0.5 text-xs font-semibold text-ink">
-                  {t(OUTCOME_KEY[visibleProposal!.derived_outcome])}
-                  {visibleProposal!.reason_code ? ` · ${visibleProposal!.reason_code}` : ""}
-                </span>
-                <span className="text-xs text-ink-muted">{t("notADecision")}</span>
-              </p>
-              {failed.length > 0 ? (
-                <p className="text-blocked">
-                  {t("proposalRejected")} · {t("failedChecks", { checks: failed.join(", ") })}
-                </p>
+              {record && deciding ? (
+                <label className="block rounded-lg border border-rule bg-leaf p-4 text-sm text-ink">
+                  {t("noteLabel")}
+                  <textarea
+                    value={note}
+                    onChange={(e) => setNote(e.target.value)}
+                    rows={2}
+                    className="mt-1 block w-full rounded-md border border-rule bg-paper p-2 text-ink"
+                  />
+                </label>
               ) : null}
-              {visibleProposal!.cannot_decide ? <p className="text-unclear">{t("cannotDecide")}</p> : null}
-              {/* Every criterion with the agent's answer, open ones first: a quote alone does not say whether it supports or refutes */}
-              <section aria-labelledby="proposal-answers" className="space-y-2">
-                <p id="proposal-answers" className="text-xs font-semibold text-ink-muted">
-                  {t("agentAnswers")}
-                </p>
-                <ul className="space-y-2">
-                  {proposalAnswersOpenFirst(visibleProposal!.criteria).map((c) => (
-                    <li key={c.id} data-criterion={c.id} data-answer={c.answer} className="space-y-1">
-                      <p className="flex flex-wrap items-center gap-2 text-xs">
-                        <span className="font-mono text-ink-muted" dir="ltr">
-                          {c.id}
-                        </span>
-                        <span
-                          className={`rounded-sm border px-1.5 py-0.5 font-semibold ${c.answer === "not_reported" ? "border-unclear text-unclear" : "border-rule-strong text-ink"}`}
-                        >
-                          {t(ANSWER_KEY[c.answer])}
-                        </span>
-                      </p>
-                      {c.evidence?.text ? (
-                        <EvidenceQuote>
-                          <bdi>{c.evidence.text}</bdi>
-                        </EvidenceQuote>
-                      ) : (
-                        <p className="text-xs text-ink-muted">{t(c.answer === "not_reported" ? "recordSilent" : "noQuote")}</p>
-                      )}
-                    </li>
-                  ))}
-                </ul>
-              </section>
-              <details className="text-xs" data-proposal-details>
-              <summary className="min-h-11 cursor-pointer py-3 leading-5 rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus text-ink-muted">{t("details")}</summary>
-              <dl className="mt-1 grid grid-cols-[auto_1fr] gap-x-2 gap-y-1 text-xs">
-                <dt className="text-ink-muted">{t("model")}</dt>
-                <dd>
-                  <DataCell>{visibleProposal!.model ?? t("notStored")}</DataCell>
-                </dd>
-                <dt className="text-ink-muted">{t("prompt")}</dt>
-                <dd>
-                  <DataCell>{(visibleProposal!.prompt_sha256 ?? t("notStored")).slice(0, 19)}</DataCell>
-                </dd>
-                <dt className="text-ink-muted">{t("proposalId")}</dt>
-                <dd>
-                  <DataCell>{visibleProposal!.proposal_id}</DataCell>
-                </dd>
-              </dl>
-              </details>
+
+              {record && decided && !editing && record.history.length > 1 ? (
+                <details className="rounded-lg border border-rule bg-leaf px-4 text-sm">
+                  <summary className={`${summaryClass} text-brand`}>{t("history")}</summary>
+                  <ol className="mb-3 space-y-1">
+                    {record.history.map((e) => (
+                      <li key={e.event_id} className="text-ink-muted">
+                        {new Date(e.decided_at).toLocaleString(locale)} · {t(OUTCOME_KEY[e.outcome])}
+                        {e.reason_code ? ` · ${e.reason_code}` : ""}
+                        {e.changed_after_reveal ? ` · ${t("changedAfterReveal")}` : ""}
+                      </li>
+                    ))}
+                  </ol>
+                </details>
+              ) : null}
             </div>
-          )}
-        </aside>
+          </>
         )}
       </div>
+
+      {/* The decision bar: never scrolls away (spec 03, M8-triage 1) */}
+      {record && !allDone ? (
+        <section aria-labelledby="triage-decision" className="rounded-lg border border-rule bg-leaf px-4 py-3 lg:flex-none" data-decision-bar>
+          <h2 id="triage-decision" className="sr-only">
+            {t("decisionHeading")}
+          </h2>
+          {decided && !editing ? (
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+              <p className="flex flex-wrap items-center gap-2 text-ink">
+                {t("decidedAs")}
+                <DecisionBadge role={OUTCOME_ROLE[decided.outcome]}>
+                  {t(OUTCOME_KEY[decided.outcome])}
+                  {decided.reason_code ? ` · ${decided.reason_code}` : ""}
+                </DecisionBadge>
+                {decided.changed_after_reveal ? <DecisionBadge role="unclear">{t("changedAfterReveal")}</DecisionBadge> : null}
+                <span className="text-xs text-ink-muted" title={`${t("savedWord")} ${new Date(decided.decided_at).toLocaleString(locale)}`}>
+                  {t("savedWord")}
+                </span>
+              </p>
+              <div className="flex flex-wrap gap-2">
+                <Button variant="primary" onClick={() => void nextAfterDecision()} disabled={conflict !== null}>
+                  {t("next")} <kbd className="text-xs opacity-80">N</kbd>
+                </Button>
+                <Button onClick={() => setEditing(true)} disabled={conflict !== null || stale}>
+                  {t("change")}
+                </Button>
+                {undoable ? (
+                  <Button onClick={undo} disabled={conflict !== null || stale}>
+                    {t("undo")} <kbd className="text-xs opacity-80">Z</kbd>
+                  </Button>
+                ) : null}
+              </div>
+              <details className="text-xs text-ink-muted" data-decision-details>
+                <summary className={summaryClass}>{t("details")}</summary>
+                <p className="pb-2">
+                  {t("recordedAs", {
+                    time: new Date(decided.decided_at).toLocaleString(locale),
+                    fingerprint: decided.binding.protocol_fingerprint.slice(0, 19),
+                  })}
+                </p>
+              </details>
+            </div>
+          ) : deciding ? (
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+              <div className="flex flex-wrap gap-2">
+                <Button variant="primary" disabled={!canInclude || busy || stale} onClick={() => void submit("INCLUDE")}>
+                  {t("include")} <kbd className="text-xs opacity-80">I</kbd>
+                </Button>
+                <Button disabled={!canExclude || busy || stale} aria-expanded={reasonOpen} onClick={openExclude}>
+                  {t("exclude")} <kbd className="text-xs opacity-80">E</kbd>
+                </Button>
+                <Button disabled={busy || stale} onClick={() => void submit("MAYBE")}>
+                  {t("unclear")} <kbd className="text-xs opacity-80">U</kbd>
+                </Button>
+                <Button variant="quiet" onClick={skip}>
+                  {t("skip")} <kbd className="text-xs opacity-80">S</kbd>
+                </Button>
+              </div>
+              {statusLine ? (
+                <p className="min-w-0 flex-1 text-sm text-ink-muted" role="status" aria-live="polite" data-decisive>
+                  {statusLine}
+                </p>
+              ) : null}
+            </div>
+          ) : null}
+        </section>
+      ) : null}
 
       {help ? (
         <div role="dialog" aria-modal="true" aria-labelledby="triage-help" className="fixed inset-0 z-50 flex items-center justify-center bg-ink/40 p-4">

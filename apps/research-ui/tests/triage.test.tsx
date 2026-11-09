@@ -5,7 +5,7 @@ import { TriagePage } from "@/components/triage-page";
 import { SUPPORTED_LOCALES } from "@/i18n";
 import type { DecisionEvent, StoredEvent } from "@/lib/screening-v1";
 import { TRIAGE_COPY, tc } from "@/lib/triage-copy";
-import { decisiveFor, mayReadProposal, reasonOptions, triageKey, undoTarget } from "@/lib/triage-logic";
+import { contradicts, decisiveFor, mayReadProposal, reasonOptions, triageKey, undoTarget } from "@/lib/triage-logic";
 
 /**
  * Desktop triage (spec 03) and record detail (spec 05), in jsdom against a
@@ -132,8 +132,15 @@ async function ready() {
   await screen.findByText("Drone weed mapping", { selector: "p bdi" });
 }
 
+/** The checklist is collapsed by default (M8-triage); a test that answers opens it first, as a person would. */
+function openChecklist() {
+  const toggle = screen.queryByRole("button", { name: /^Your checklist/ });
+  if (toggle && toggle.getAttribute("aria-expanded") === "false") fireEvent.click(toggle);
+}
+
 function answerAll() {
-  // Inclusions yes, exclusions no: the answers that make Include possible (M6-beta, answer until decisive).
+  // Inclusions yes, exclusions no (M6-beta, answer until decisive).
+  openChecklist();
   for (const group of document.querySelectorAll('[role="group"][aria-label]')) {
     const id = (group as HTMLElement).getAttribute("aria-label") ?? "";
     const pick = within(group as HTMLElement).queryByRole("button", { name: id.startsWith("EXC") ? "No" : "Yes" });
@@ -142,6 +149,7 @@ function answerAll() {
 }
 
 function answer(id: string, value: "Yes" | "No" | "Not reported") {
+  openChecklist();
   const group = document.querySelector(`[role="group"][aria-label="${id}"]`) as HTMLElement;
   fireEvent.click(within(group).getByRole("button", { name: value }));
 }
@@ -446,25 +454,30 @@ async function press(key: string) {
   });
 }
 
-describe("triage.decisive (answer until decisive)", () => {
-  it("enables Exclude on the first failed criterion and says so; Include waits for every inclusion yes", async () => {
+describe("triage.decisive (M8-triage: the checklist is a tool for the reason, not a gate)", () => {
+  it("enables all three decisions with no answers; Include is off only while an answer fails", async () => {
     await ready();
     const include = () => screen.getByRole("button", { name: /^Include/ });
     const exclude = () => screen.getByRole("button", { name: /^Exclude/ });
-    expect(include()).toBeDisabled();
-    expect(exclude()).toBeDisabled();
-    expect(screen.getByRole("button", { name: /^Unclear/ })).toBeEnabled();
-    expect(document.querySelector("[data-decisive]")).toHaveTextContent("Include needs INC-01");
-    answer("INC-01", "No");
-    expect(exclude()).toBeEnabled();
-    expect(include()).toBeDisabled();
-    expect(document.querySelector("[data-decisive]")).toHaveTextContent("Exclude is ready: INC-01 answered no");
-    answer("INC-01", "Not reported");
-    expect(document.querySelector("[data-decisive]")).toHaveTextContent("Include needs INC-01 to be yes");
-    answer("INC-01", "Yes");
-    // The exclusion criterion is still unanswered: it does not block Include.
+    const line = () => document.querySelector("[data-decisive]");
     expect(include()).toBeEnabled();
-    expect(document.querySelector("[data-decisive]")).toHaveTextContent("Include is ready");
+    expect(exclude()).toBeEnabled();
+    expect(screen.getByRole("button", { name: /^Unclear/ })).toBeEnabled();
+    expect(line()).toHaveTextContent("The checklist is optional: decide now, or answer to give a reason.");
+    answer("INC-01", "No");
+    expect(include()).toBeDisabled();
+    expect(exclude()).toBeEnabled();
+    expect(line()).toHaveTextContent("Exclude is ready: INC-01 answered no. Include is off while it fails.");
+    answer("INC-01", "Not reported");
+    // Under the default policy "not reported" does not fail: Include is back.
+    expect(include()).toBeEnabled();
+    expect(line()).toHaveTextContent("1 of 2 answered; unanswered criteria are not recorded.");
+    answer("INC-01", "Yes");
+    expect(include()).toBeEnabled();
+    expect(line()).toHaveTextContent("Include is ready");
+    answer("EXC-01", "Yes");
+    expect(include()).toBeDisabled();
+    expect(line()).toHaveTextContent("Exclude is ready: EXC-01 answered yes. Include is off while it fails.");
   });
 
   it("sends only the criteria answered; an unanswered one is absent, never not_reported", async () => {
@@ -473,6 +486,66 @@ describe("triage.decisive (answer until decisive)", () => {
     fireEvent.click(screen.getByRole("button", { name: /^Include/ }));
     await waitFor(() => expect(postedEvents()).toHaveLength(1));
     expect(postedEvents()[0].criteria).toEqual([{ id: "INC-01", answer: "yes" }]);
+  });
+
+  it("decides from the answers given, never from unanswered ones", () => {
+    expect(decisiveFor(CRITERIA, {})).toMatchObject({ include: true, exclude: false, failed: null, includeReady: false, answered: 0, total: 2 });
+    expect(decisiveFor(CRITERIA, { "INC-01": "yes" })).toMatchObject({ include: true, includeReady: true, answered: 1 });
+    expect(decisiveFor(CRITERIA, { "INC-01": "no" })).toMatchObject({ include: false, exclude: true, failed: { id: "INC-01", answer: "no", kind: "inclusion" } });
+  });
+});
+
+describe("triage.collapsed-checklist", () => {
+  const toggle = () => screen.getByRole("button", { name: /^Your checklist/ });
+
+  it("is closed by default, and I includes with no answers sent", async () => {
+    engine.proposals = new Set();
+    await ready();
+    expect(toggle()).toHaveAttribute("aria-expanded", "false");
+    expect(toggle()).toHaveTextContent("No answers");
+    expect(document.querySelector('[role="group"][aria-label="INC-01"]')).toBeNull();
+    await press("i");
+    await waitFor(() => expect(postedEvents()).toHaveLength(1));
+    expect(postedEvents()[0]).toMatchObject({ outcome: "INCLUDE", criteria: [] });
+  });
+
+  it("opens on its toggle, and that choice lasts to the next record", async () => {
+    engine.proposals = new Set();
+    await ready();
+    fireEvent.click(toggle());
+    expect(toggle()).toHaveAttribute("aria-expanded", "true");
+    expect(screen.getByRole("group", { name: "INC-01" })).toBeInTheDocument();
+    await press("i");
+    await screen.findByText("Title only record", { selector: "p bdi" });
+    expect(toggle()).toHaveAttribute("aria-expanded", "true");
+  });
+
+  it("opens on a number key, which answers the focused criterion; the next record opens closed", async () => {
+    engine.proposals = new Set();
+    await ready();
+    await press("2");
+    expect(toggle()).toHaveAttribute("aria-expanded", "true");
+    expect(toggle()).toHaveTextContent("1 of 2 answered");
+    expect(within(screen.getByRole("group", { name: "INC-01" })).getByRole("button", { name: "No" })).toHaveAttribute("aria-pressed", "true");
+    await press("e");
+    await press("Enter");
+    await screen.findByText("Title only record", { selector: "p bdi" });
+    expect(toggle()).toHaveAttribute("aria-expanded", "false");
+  });
+
+  it("opens on E with the reason chips and none chosen; a chip number then Enter excludes", async () => {
+    await ready();
+    await press("e");
+    expect(toggle()).toHaveAttribute("aria-expanded", "true");
+    expect(document.querySelector("[data-reason]")).toBeNull();
+    expect(screen.getByText("Choose a reason: press its number, then Enter")).toBeInTheDocument();
+    await press("Enter");
+    expect(postedEvents()).toEqual([]);
+    await press("2");
+    expect(document.querySelector("[data-reason]")).toHaveTextContent("FAILS-INC-01");
+    await press("Enter");
+    await waitFor(() => expect(postedEvents()).toHaveLength(1));
+    expect(postedEvents()[0]).toMatchObject({ outcome: "EXCLUDE", reason_code: "FAILS-INC-01", criteria: [] });
   });
 });
 
@@ -487,6 +560,20 @@ describe("triage.reason-from-checklist", () => {
     await press("Enter");
     await waitFor(() => expect(postedEvents()).toHaveLength(1));
     expect(postedEvents()[0]).toMatchObject({ outcome: "EXCLUDE", reason_code: "FAILS-INC-01" });
+  });
+
+  it("disables a chip that contradicts an answer, and its number key does nothing", async () => {
+    await ready();
+    answer("INC-01", "Yes");
+    await press("e");
+    expect(screen.getByRole("button", { name: /^2\. UAV imagery/ })).toBeDisabled();
+    expect(screen.getByRole("button", { name: /^1\. Not a crop field/ })).toBeEnabled();
+    await press("2");
+    expect(document.querySelector("[data-reason]")).toBeNull();
+    expect(contradicts("FAILS-INC-01", { "INC-01": "yes" })).toBe(true);
+    expect(contradicts("EXC-01", { "EXC-01": "no" })).toBe(true);
+    expect(contradicts("FAILS-INC-01", { "INC-01": "not_reported" })).toBe(false);
+    expect(contradicts("EXC-01", {})).toBe(false);
   });
 });
 
@@ -527,11 +614,44 @@ describe("triage.position and the collapsed queue", () => {
     expect(within(queue).getByText("Drone weed mapping")).toBeInTheDocument();
     expect(within(queue).getByText("Title only record")).toBeInTheDocument();
     expect(within(queue).queryByText("Third record")).toBeNull();
-    const toggle = screen.getByRole("button", { name: "Show the whole queue" });
+    const toggle = screen.getByRole("button", { name: /^Queue/ });
     expect(toggle).toHaveAttribute("aria-expanded", "false");
     await press("j");
-    expect(screen.getByRole("button", { name: "Hide the queue" })).toHaveAttribute("aria-expanded", "true");
+    expect(screen.getByRole("button", { name: /^Queue/ })).toHaveAttribute("aria-expanded", "true");
     expect(screen.getByText("Third record")).toBeInTheDocument();
+  });
+});
+
+// The focus bar and the counts rail (decision 2026-11-09, spec 03 M8-triage 1).
+describe("triage.focus-bar", () => {
+  it("names the page Triage, links Leave to Home, opens Help, and counts in the rail", async () => {
+    await ready();
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Triage");
+    expect(screen.getByRole("link", { name: "Leave triage" })).toHaveAttribute("href", "/en/screening/home");
+    fireEvent.click(screen.getByRole("button", { name: /^Help/ }));
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Close" }));
+    const rail = () => document.querySelector("[data-rail]") as HTMLElement;
+    const count = (label: string) => [...rail().querySelectorAll("dt")].find((dt) => dt.textContent === label)?.nextElementSibling?.textContent;
+    await waitFor(() => expect(count("need you")).toBe("3"));
+    expect(count("decided")).toBe("0");
+    expect(count("skipped")).toBe("0");
+    expect(screen.queryByRole("button", { name: "Decided" })).toBeNull(); // no chip buttons
+    await press("s");
+    expect(count("skipped")).toBe("1");
+  });
+
+  it("opens the whole queue from Queue, and the view is chosen from one select", async () => {
+    engine.proposals = new Set();
+    await ready();
+    await press("i");
+    await screen.findByText("Title only record", { selector: "p bdi" });
+    fireEvent.click(screen.getByRole("button", { name: /^Queue/ }));
+    const select = screen.getByRole("combobox", { name: "Show" });
+    expect(select).toHaveValue("needs_you");
+    fireEvent.change(select, { target: { value: "decided" } });
+    await screen.findByText("Drone weed mapping", { selector: "p bdi" });
+    expect(select).toHaveValue("decided");
   });
 });
 
@@ -563,6 +683,28 @@ describe("triage.all-decided", () => {
     expect(screen.getByRole("link", { name: "Agreement" })).toHaveAttribute("href", "/en/screening/agreement");
     expect(screen.queryByTestId("proposal-aside")).toBeNull();
     expect(screen.getByText("Every record has your decision.")).toBeInTheDocument();
+  });
+
+  it("still reaches a decided record from Queue once every record is decided", async () => {
+    for (const s of studies()) {
+      engine.events.push({ event_id: `e-${s.study_id}`, study_id: s.study_id, outcome: "INCLUDE", supersedes: null, binding: BINDING, criteria: [] } as unknown as StoredEvent);
+    }
+    render(<TriagePage locale="en" />);
+    await screen.findByRole("heading", { name: "All 3 records are decided" });
+    fireEvent.click(screen.getByRole("button", { name: /^Queue/ }));
+    fireEvent.change(screen.getByRole("combobox", { name: "Show" }), { target: { value: "decided" } });
+    await screen.findByText("Drone weed mapping", { selector: "p bdi" });
+    expect(await screen.findByRole("button", { name: "Change my decision" })).toBeInTheDocument();
+  });
+});
+
+describe("triage.boot-error", () => {
+  it("keeps a way out when the engine cannot be reached", async () => {
+    vi.mocked(fetch).mockImplementation(async () => json({ code: "ENGINE_DOWN" }, 503));
+    render(<TriagePage locale="en" />);
+    await screen.findByRole("alert");
+    expect(screen.getByRole("button", { name: "Try again" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Leave triage" })).toHaveAttribute("href", "/en/screening/home");
   });
 });
 
@@ -626,7 +768,7 @@ describe("triage review fixes (M6-beta part 2)", () => {
     await waitFor(() => expect(title.closest("p")).toHaveFocus());
   });
 
-  it("does not confirm an Exclude once no criterion fails any more", async () => {
+  it("does not confirm an Exclude whose reason an answer now contradicts", async () => {
     await ready();
     answer("INC-01", "No");
     await press("e");
@@ -646,10 +788,12 @@ describe("triage.not-reported-policy", () => {
     { id: "EXC-01", text: "Not a crop field", kind: "exclusion" as const },
   ];
 
-  it("unclear (default): a not-reported inclusion blocks Include and never readies Exclude", () => {
+  it("unclear (default): a not-reported inclusion neither fails nor blocks Include, and is not yet ready", () => {
     const d = decisiveFor(TWO, { "INC-01": "not_reported", "INC-02": "yes" });
     expect(d.exclude).toBe(false);
     expect(d.failed).toBeNull();
+    expect(d.include).toBe(true);
+    expect(d.includeReady).toBe(false);
   });
 
   it("exclude: a not-reported inclusion readies Exclude; a definite failure outranks it", () => {
@@ -662,10 +806,12 @@ describe("triage.not-reported-policy", () => {
     expect(exclusion.failed?.id).toBe("EXC-01");
   });
 
-  it("exclude: an exclusion that is not reported never fails, and Include still needs every inclusion yes", () => {
+  it("exclude: an exclusion that is not reported never fails; a not-reported inclusion turns Include off", () => {
     const d = decisiveFor(TWO, { "INC-01": "yes", "INC-02": "yes", "EXC-01": "not_reported" }, "exclude");
     expect(d.exclude).toBe(false);
     expect(d.include).toBe(true);
+    expect(d.includeReady).toBe(true);
+    expect(decisiveFor(TWO, { "INC-01": "not_reported" }, "exclude").include).toBe(false);
   });
 
   it("on screen: Not reported, then E and Enter, excludes with FAILS-INC-01 and says why", async () => {
