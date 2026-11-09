@@ -229,3 +229,61 @@ def test_every_inception_refusal_code_is_registered():
         raised |= set(re.findall(r'(?:Refused|GenesisRefused)\(\s*"([A-Z_]+)"', path.read_text(encoding="utf-8")))
     assert len(raised) >= 14  # anti-vacuity
     assert raised <= refusals.CONSOLE_REFUSALS, raised - refusals.CONSOLE_REFUSALS
+
+
+def _written(ws, before=None):
+    """Every file under `ws` that is new or changed since `before`, in the preview's spelling.
+
+    Skills under `.agents/skills/` and one replacement backup collapse to their folder.
+    """
+    out = {}
+    for path in ws.rglob("*"):
+        if not path.is_file():
+            continue
+        rel = path.relative_to(ws).as_posix()
+        if rel.startswith(".agents/skills/"):
+            rel = ".agents/skills/"
+        elif rel.startswith("audit/replaced/"):
+            rel = "audit/replaced/<UTC stamp>/"
+        out.setdefault(rel, set()).add(path.read_bytes())
+    if before is None:
+        return set(out)
+    return {rel for rel, contents in out.items() if before.get(rel) != contents}
+
+
+def test_preview_names_every_file_genesis_writes(root):
+    """M4b (researcher, 2026-11-09): the write gate lists exactly what genesis writes."""
+    client = _client(root)
+    planned = client.post(f"{BASE}/preview", json={"draft": _draft()}).json()["files"]
+    sid = client.post(f"{BASE}/drafts", json={"draft": _draft()}).json()["session_id"]
+    assert client.post(f"{BASE}/drafts/{sid}/genesis", json={}).status_code == 201
+    ws = root / SLUG
+    assert set(planned) == _written(ws)
+
+    snapshot: dict[str, set[bytes]] = {}
+    for path in ws.rglob("*"):
+        if path.is_file():
+            rel = path.relative_to(ws).as_posix()
+            rel = ".agents/skills/" if rel.startswith(".agents/skills/") else rel
+            snapshot.setdefault(rel, set()).add(path.read_bytes())
+    # A changed answer, so every rewritten file differs from the first genesis.
+    changed = {**_draft(), "out_of_scope": ["pre-2020 studies"]}
+    replan = client.post(f"{BASE}/preview", json={"draft": changed}).json()["files"]
+    second = client.post(f"{BASE}/drafts", json={"draft": changed}).json()["session_id"]
+    assert client.post(f"{BASE}/drafts/{second}/genesis", json={"replace": True}).status_code == 201
+    assert set(replan) == _written(ws, snapshot)
+
+
+def test_a_replacement_records_its_backup_on_the_draft(root):
+    """M4b (researcher, 2026-11-09): Done reads the backup and previous fingerprint after a reload."""
+    client = _client(root)
+    first = client.post(f"{BASE}/drafts", json={"draft": _draft()}).json()["session_id"]
+    client.post(f"{BASE}/drafts/{first}/genesis", json={})
+    assert set(client.get(f"{BASE}/drafts/{first}").json()["emitted"]) >= {"slug", "path", "protocol_fingerprint", "replaced"}
+    assert "backup_dir" not in client.get(f"{BASE}/drafts/{first}").json()["emitted"]
+
+    second = client.post(f"{BASE}/drafts", json={"draft": _draft()}).json()["session_id"]
+    made = client.post(f"{BASE}/drafts/{second}/genesis", json={"replace": True}).json()
+    emitted = client.get(f"{BASE}/drafts/{second}").json()["emitted"]
+    assert emitted["backup_dir"] == made["backup_dir"] and emitted["previous_fingerprint"] == made["previous_fingerprint"]
+    assert emitted["previous_fingerprint"].startswith("sha256:")

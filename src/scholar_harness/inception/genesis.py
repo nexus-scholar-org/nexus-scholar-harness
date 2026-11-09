@@ -559,6 +559,10 @@ def write_workspace_gitignore(target: Path) -> Path:
     return path
 
 
+#: What :func:`install_workspace_support_files` writes (skills collapse to their folder).
+SUPPORT_FILES = (".env.example", ".mcp.json", ".gitignore", ".agents/skills/")
+
+
 def install_workspace_support_files(target: Path) -> dict:
     """Vendor skills, ``.env.example`` and ``.mcp.json`` into ``target`` (P7.3).
 

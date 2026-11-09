@@ -133,7 +133,9 @@ def genesis(session_id: str, body: GenesisBody, request: Request) -> dict[str, A
             replace=body.replace,
             confirm_discard_screening_binding=body.confirm_discard_screening_binding,
         )
-        store.mark_emitted(session_id, {k: result[k] for k in ("slug", "path", "protocol_fingerprint", "replaced")})
+        # The backup and the previous fingerprint too, so Done shows them after a reload (M4b).
+        kept = ("slug", "path", "protocol_fingerprint", "replaced", "previous_fingerprint", "backup_dir")
+        store.mark_emitted(session_id, {k: result[k] for k in kept if result.get(k) is not None})
     except (DraftRefused, steps.StepRefused) as exc:
         raise _error(exc) from exc
     return {"session_id": session_id, **result}

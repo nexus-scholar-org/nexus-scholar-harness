@@ -41,6 +41,31 @@ from .genesis import (
 #: The files a replacement backs up before it overwrites them.
 REPLACED_FILES = ("protocol.json", "intent.json", "SCREENING_CRITERIA.md")
 
+#: What :func:`emit_workspace` writes into a new folder (``target_dir`` layout).
+#: The review screen shows this list at the write gate (M4b, researcher
+#: 2026-11-09); ``test_preview_names_every_file_genesis_writes`` keeps it exact.
+NEW_WORKSPACE_FILES = (
+    "project.json",
+    "intent.json",
+    "protocol.json",
+    "SCREENING_CRITERIA.md",
+    "INDEX.md",
+    "audit/journal.jsonl",
+    "synthesis/literature_review.md",
+)
+
+#: What a replacement writes or rewrites: the protocol files, the refreshed
+#: manifest and index, the journal, and one backup folder.
+REPLACEMENT_FILES = (
+    "intent.json",
+    "protocol.json",
+    "SCREENING_CRITERIA.md",
+    "project.json",
+    "INDEX.md",
+    "audit/journal.jsonl",
+    "audit/replaced/<UTC stamp>/",
+)
+
 
 class GenesisRefused(Exception):
     """The gated genesis path refused to write; ``code`` names why."""

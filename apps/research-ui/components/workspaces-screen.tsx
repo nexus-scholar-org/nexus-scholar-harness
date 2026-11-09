@@ -33,6 +33,7 @@ const COPY = {
     liveStamp: "Live data from this computer",
     loading: "Reading the workspaces…",
     "cta.new": "New workspace",
+    "cta.newReview": "New review",
     "cta.open": "Open",
     openNow: "Open now",
     "table.caption": "Workspaces in {root}",
@@ -86,6 +87,7 @@ const COPY = {
     liveStamp: "Données réelles de cet ordinateur",
     loading: "Lecture des espaces…",
     "cta.new": "Nouvel espace",
+    "cta.newReview": "Nouvelle revue",
     "cta.open": "Ouvrir",
     openNow: "Ouvert",
     "table.caption": "Espaces dans {root}",
@@ -139,6 +141,7 @@ const COPY = {
     liveStamp: "بيانات حقيقية من هذا الحاسوب",
     loading: "جارٍ قراءة مساحات العمل…",
     "cta.new": "مساحة عمل جديدة",
+    "cta.newReview": "مراجعة جديدة",
     "cta.open": "فتح",
     openNow: "مفتوحة الآن",
     "table.caption": "مساحات العمل في {root}",
@@ -357,10 +360,18 @@ export function WorkspacesScreen({ locale }: Readonly<{ locale: Locale }>) {
           <h1 className="mt-2 font-display text-3xl text-ink">{t("title")}</h1>
           <p className="mt-2 max-w-2xl text-ink-muted">{fill(WORKSPACES_COPY[locale].lede, { root: "⁨" + root + "⁩" })}</p>
           <p className="mt-2 inline-block border border-rule px-2 py-0.5 text-xs text-ink-muted">{t("liveStamp")}</p>
-          <div className="mt-4">
+          <div className="mt-4 flex flex-wrap gap-3">
             <Button variant="primary" id="new-workspace" onClick={() => setCreating(true)} aria-expanded={creating} aria-controls="create-panel">
               {t("cta.new")}
             </Button>
+            {/* M4b: a review set up step by step (inception specs 01–08), not only a placeholder protocol. */}
+            <a
+              href={`/${locale}/inception/${origin ? `?console=${encodeURIComponent(origin)}` : ""}`}
+              className="inline-flex min-h-11 items-center justify-center rounded-md border border-rule-strong bg-leaf px-4 text-[0.9375rem] font-medium leading-[1.375rem] text-ink hover:bg-leaf-raised"
+              data-new-review
+            >
+              {t("cta.newReview")}
+            </a>
           </div>
         </header>
 
