@@ -1,5 +1,5 @@
 # M3a-discovery: the discovery engine (Python only)
-Branch: `dev/m3a/discovery` · Lane: **RELEASE** (WP-01 Packet B runtime adoption, CORE-07; `test_gate_policy.md` §lanes) · Status: READY FOR PR · Started: 2026-11-08
+Branch: `dev/m3a/discovery` · Lane: **RELEASE** (WP-01 Packet B runtime adoption, CORE-07; `test_gate_policy.md` §lanes) · Status: MERGED (PR #204, e1039b1) · Started: 2026-11-08
 
 Why: plan §6 M3 Discovery, split in two. M3a is the engine half: search legs, pagination, query honesty, stable ids, Packet B adoption and the golden cassettes. M3b (discovery specs 01–08 and screens) waits for the `apps/research-ui` redesign to merge. M3a touches no file under `apps/research-ui`. The researcher has no Scopus or Web of Science access, so the free providers (OpenAlex, Crossref, PubMed, Semantic Scholar, arXiv) are how a corpus is built.
 

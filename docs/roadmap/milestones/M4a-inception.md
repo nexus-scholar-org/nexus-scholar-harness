@@ -1,5 +1,5 @@
 # M4a-inception: the inception engine pieces that do not collide with M3a
-Branch: `dev/m4a/inception-engine` · Lane: **RELEASE** (confirmed by the researcher 2026-11-08: CLI semantics change, because re-inception refuses without `--replace`, and new HTTP routes; `test_gate_policy.md` §lanes; the plan's M4 row is RELEASE) · Status: PR #206 OPEN, CI green (awaiting the researcher's approval to merge) · Started: 2026-11-08
+Branch: `dev/m4a/inception-engine` · Lane: **RELEASE** (confirmed by the researcher 2026-11-08: CLI semantics change, because re-inception refuses without `--replace`, and new HTTP routes; `test_gate_policy.md` §lanes; the plan's M4 row is RELEASE) · Status: MERGED (PR #206, 65e361d) · Started: 2026-11-08
 
 Why: plan §6 row "M4 Inception web" is split. M4a covers the engine work that touches neither `src/scholar_search/` nor `src/scholar_harness/recon/`, which M3a Discovery owns, nor the `scholar_protocol` models and compiler. Plan §1 has INC-08 and INC-22. Plan §2 "Phase 0 Inception" lists screens 00, 06 and 08 with their backend.
 
