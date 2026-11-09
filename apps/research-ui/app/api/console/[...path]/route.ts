@@ -97,6 +97,8 @@ const PUT_PATHS: ReadonlyArray<RegExp> = [
 const STREAM_PATHS: ReadonlyArray<RegExp> = [
   /^api\/v1\/jobs\/[A-Za-z0-9_-]+\/stream$/,
   /^api\/v1\/events(\/tick)?$/,
+  // M4c: a recon job's events (probe and gap check); a live probe can page for minutes.
+  /^api\/v1\/inception\/drafts\/[A-Za-z0-9_-]+\/recon\/jobs\/[A-Za-z0-9_-]+\/events$/,
 ];
 
 function isStreamPath(path: string): boolean {

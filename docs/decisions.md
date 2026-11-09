@@ -32,7 +32,12 @@ Proposed by the M4c session. The researcher accepts or changes it at the PR.
 - **No new search at genesis.** The CLI wizard searches each concept and synonym (budget 3). The HTTP flow does not search again at genesis. Preview shows each concept's occurrence in the bound pool and `apr_observed` instead.
 - **The contact email** is the console process's `SCHOLAR_MAILTO`, from the environment or `.env`. There is no in-app setting yet, and the screens say how to set it.
 - **Recon jobs** are kept in memory by the console process. A restart loses the job records, not the results: every probe is in the session store.
-- **The suite runs offline.** `tests/conftest.py` refuses any non-loopback socket connect unless `NEXUS_RECORD_CASSETTES=1` or `NEXUS_ALLOW_NETWORK=1` is set.
+- **A direction needs its concept in two papers.** Over HTTP a direction is offered only when its concept occurs in at least two titles or abstracts, and its anchors are those papers. The wizard's "pool vocabulary" fallback (prior finding 9), which joins unrelated terms, is therefore not offered there. The CLI wizard keeps it.
+- **The suite runs offline.**
+  - `tests/conftest.py` refuses any non-loopback socket connect unless `NEXUS_RECORD_CASSETTES=1` or `NEXUS_ALLOW_NETWORK=1` is set.
+  - It sets `HF_HUB_OFFLINE` for the RAG tests' cached embedding model. The guard found three RAG tests that reached the Hugging Face Hub on every run.
+  - CI fetches `all-MiniLM-L6-v2` in a step before pytest.
+- **The golden recon cassette** was recorded once, on 2026-11-09, with the researcher's approval and contact address. That address is filtered out and is not in the file. Semantic Scholar answered HTTP 429 (no API key). The cassette keeps that partial answer, so the replay proves INC-09 on real responses.
 - **Lane.** RELEASE: the milestone changes public HTTP and MCP answers and what the recon cache persists.
 
 **Not chosen:**

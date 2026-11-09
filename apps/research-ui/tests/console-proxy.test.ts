@@ -531,6 +531,28 @@ describe("console proxy — event streams", () => {
     expect(signal?.aborted).toBe(true);
   });
 
+  it("treats a recon job's events as a stream: the caller's signal, not the read timeout (M4c)", async () => {
+    vi.stubEnv("NEXUS_CONSOLE_URL", CONSOLE);
+    const fetchSpy = vi.fn(() =>
+      Promise.resolve(new Response(": keepalive\n\n", {
+        headers: { "content-type": "text/event-stream" },
+      })),
+    );
+    vi.stubGlobal("fetch", fetchSpy);
+    const route = "api/v1/inception/drafts/rec_0123456789abcdef/recon/jobs/rjob_0123456789abcdef/events";
+    const aborter = new AbortController();
+    const response = await GET(
+      request(route, { headers: { accept: "text/event-stream" }, signal: aborter.signal }),
+      context(...route.split("/")),
+    );
+    expect(response.status).toBe(200);
+    const call = fetchSpy.mock.calls[0] as unknown as [unknown, RequestInit | undefined];
+    const signal = call[1]?.signal as AbortSignal | undefined;
+    expect(signal?.aborted).toBe(false);
+    aborter.abort();
+    expect(signal?.aborted).toBe(true);
+  });
+
   it("streams any upstream that answers text/event-stream, even off the stream paths", async () => {
     vi.stubEnv("NEXUS_CONSOLE_URL", CONSOLE);
     const body = new ReadableStream<Uint8Array>({

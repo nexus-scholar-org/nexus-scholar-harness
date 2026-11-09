@@ -299,7 +299,7 @@ class ReconSessions:
         distilled = distill_pool(pool, lexicon=lexicon, query_text=query)
         terms_file = self.persist(session_id, artifact_prefix, distilled)
         docs = pool.get("docs") or []
-        directions = directions_for(distilled, len(docs))
+        directions = directions_for(distilled, pool)
         anchors: dict[str, int] = {}
         for d in directions:
             for doi in d["anchor_dois"]:
@@ -341,7 +341,7 @@ class ReconSessions:
                 "pool": compute_pool_sufficiency(len(docs)),
                 "purity": compute_topic_purity(distilled.get("topics") or []),
             },
-            "directions": directions_for(distilled, len(docs)),
+            "directions": directions_for(distilled, pool),
             "narrower_left": self.current(session_id)["narrower_left"],
             "distilled": distilled,
         }
@@ -444,17 +444,28 @@ def _pool_summary(pool: dict[str, Any], path: Path) -> dict[str, Any]:
     }
 
 
-def directions_for(distilled: dict[str, Any], n_docs: int) -> list[dict[str, Any]]:
-    """The wizard's directions, with the occurrence count and the schools that share anchors."""
+def directions_for(distilled: dict[str, Any], pool: dict[str, Any]) -> list[dict[str, Any]]:
+    """The wizard's directions whose concept occurs in at least two records (INC-21).
+
+    Each carries ``observed_in`` (records whose title or abstract contains the
+    concept, out of ``n_docs``), its anchor DOIs by that same rule, and the
+    schools that share them. The wizard's "pool vocabulary" fallback, which
+    joins unrelated terms and anchors on their union, does not pass.
+    """
     from .directions import _grounded_directions_for_terms
 
     schools = distilled.get("schools") or []
+    n_docs = len(pool.get("docs") or [])
     out = []
     for d in _grounded_directions_for_terms(distilled):
-        anchors = set(d["anchor_dois"])
+        ev = term_evidence(pool, d["concept"])
+        if ev["observed_in"] < 2:
+            continue
+        anchors = set(ev["anchor_dois"])
         out.append({
             **d,
-            "observed_in": len(anchors),
+            "anchor_dois": ev["anchor_dois"],
+            "observed_in": ev["observed_in"],
             "n_docs": n_docs,
             "schools": [s["label"] for s in schools if anchors & set(s.get("anchor_dois") or [])],
         })

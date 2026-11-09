@@ -133,6 +133,12 @@ jobs:
           uv run --no-sync python scripts/generate_two_study_contract_fixture.py --check
           uv run --no-sync python scripts/generate_protocol_schema.py --check
 
+      # The suite runs offline (tests/conftest.py refuses non-loopback connects
+      # and sets HF_HUB_OFFLINE), so the RAG tests' embedding model is fetched
+      # here, before pytest (M4c).
+      - name: Fetch the embedding model the RAG tests load
+        run: uv run --no-sync python -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('all-MiniLM-L6-v2')"
+
       - name: Test suite
         run: uv run --no-sync pytest -q -o addopts=""
 

@@ -52,6 +52,10 @@ def pytest_configure(config):
         return
     socket.socket.connect = _guarded_connect
     socket.socket.connect_ex = _guarded_connect_ex
+    # Hugging Face checks the Hub on every model load, even from its cache; the
+    # RAG tests load the embedding model from the local cache instead.
+    os.environ.setdefault("HF_HUB_OFFLINE", "1")
+    os.environ.setdefault("TRANSFORMERS_OFFLINE", "1")
 
 E2E_ANSWERS = [
     "Can an on-device computer-vision weed-detection pipeline achieve real-time frame rates on embedded hardware without sacrificing classification accuracy?",

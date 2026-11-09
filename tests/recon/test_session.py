@@ -170,3 +170,22 @@ def test_the_cli_wizard_exits_with_mailto_not_set(tmp_path, monkeypatch):
     with pytest.raises(typer.Exit) as stop:
         _run_grounded_recon(None, TOPIC, ReconEngine(cache_root=tmp_path / "recon"), auto_select=True)
     assert "MAILTO_NOT_SET" in str(stop.value)
+
+
+def test_a_direction_is_offered_only_when_its_term_occurs_in_two_records(tmp_path):
+    """The wizard's fallback joins unrelated terms into one "pool vocabulary"
+    direction anchored on their union (prior finding 9). Over HTTP a direction
+    is offered only when its concept occurs in at least two titles or
+    abstracts, so that fallback is not offered (INC-21's rule)."""
+
+    def search_fn(query, providers):
+        return [_doc(1, "Alpha gradients", "x"), _doc(2, "Beta manifolds", "y")]
+
+    store = ReconSessions(root=tmp_path / "recon", search_fn=search_fn)
+    sid = asyncio.run(store.probe("anything"))["session_id"]
+    from scholar_harness.recon.directions import _grounded_directions_for_terms
+    from scholar_harness.recon.distiller import distill_pool
+
+    pool, _ = store.latest_pool(sid)
+    assert _grounded_directions_for_terms(distill_pool(pool)), "the wizard's fallback still forms one"
+    assert store.directions(sid)["directions"] == []
