@@ -2,9 +2,12 @@
 
 Boards: `Triage` (D4), `TriageRevealed` (D5), `MobileTriage` (M3), `MobileRevealed` (M5). Brand components: `EvidenceQuote`, `DataCell`, `StatusBadge`. Contract: `screening-api-contract.md` §3-§5.
 
+## Amended 2026-11-09 (M8-triage)
+The checklist is optional and collapsed by default on desktop; Include needs no answers and is disabled only while an answer fails a criterion. The sentence below "Include needs every inclusion yes and no exclusion yes" and the "Include needs …" status lines are superseded; see 03, section "Amended 2026-11-09 (M8-triage)" (points 2 to 4). Exclude is always enabled and takes its reason from the checklist when a criterion fails, else from the chips. Event shape unchanged.
+
 ## Amended 2026-11-07 (M6-beta)
 Source: `docs/roadmap/milestones/M6-beta.md` sections A and B; decisions "Answer until decisive" and "Details on demand"; reviews U-4, U-5, S-P1-3. The triage page (03) holds the full rules; this component follows them.
-- **Checklist: answer until decisive.** The sentence "On desktop the checklist answers are required" and the §9.3 sentence below are rewritten: on desktop the reviewer answers only as many criteria as the decision needs. Exclude is ready when one criterion fails (an inclusion answered no or an exclusion answered yes); Include needs every inclusion yes and no exclusion yes; Unclear is always available. An unanswered criterion is **absent** from `criteria` in the emitted event, never `not_reported`; `not_reported` is sent only when the reviewer presses that chip. The status line replaces "Answer every criterion before deciding": "Exclude is ready: INC-01 answered no" / "Include needs INC-02 and INC-03" (keys in 03). `onDecide({outcome, reasonCode, criteria, note})` receives `criteria` with answered entries only; `reasonCode` is pre-filled by the host from the first failed criterion in protocol order.
+- **Checklist: answer until decisive.** The sentence "On desktop the checklist answers are required" and the §9.3 sentence below are rewritten: on desktop the reviewer answers only as many criteria as the decision needs. Exclude is ready when one criterion fails (an inclusion answered no or an exclusion answered yes); ~~Include needs every inclusion yes and no exclusion yes;~~ (superseded 2026-11-09, M8-triage: Include needs no answers and is off only while an answer fails); Unclear is always available. An unanswered criterion is **absent** from `criteria` in the emitted event, never `not_reported`; `not_reported` is sent only when the reviewer presses that chip. The status line replaces "Answer every criterion before deciding": "Exclude is ready: INC-01 answered no" / ~~"Include needs INC-02 and INC-03"~~ (keys in 03; the Include-needs lines were removed 2026-11-09, M8-triage 4). `onDecide({outcome, reasonCode, criteria, note})` receives `criteria` with answered entries only; `reasonCode` is pre-filled by the host from the first failed criterion in protocol order.
 - **Reason in words.** The component shows the reason as "Fails INC-01 · {criterion text}" with the code in mono underneath; other codes are chips with the criterion's first clause (60 characters).
 - **Details.** The `STU-` study id, the raw DOI, the provenance line (`screening.record.provenance`) and, in the aside, model, prompt hash and proposal hash move into one Details per card (12). The card keeps one word, "Saved" (hover shows the time). In the meta row the DOI is no longer printed; it is an `<a>` inside Details.
 - **Undo** (`onUndo()`) is offered only when the record has a superseding target; the component renders no Undo and no "cannot be undone" text otherwise.
@@ -16,7 +19,7 @@ Source: `docs/roadmap/milestones/M6-beta.md` sections A and B; decisions "Answer
 **Changed from the canvas.**
 - Nothing structural. Spec rules added: the outcome row is the plain-code rule-table result returned by the server (`derived_outcome`); the UI never computes it.
 - The draft aside never shows an `include` tint (BRAND_BOOK principle 5); the badge "Not a decision" stays.
-- On the phone (M3) the checklist is absent; it is not required there; an Exclude needs a reason only (contract §9.3). ~~On desktop the checklist answers are required.~~ On desktop the checklist is answered until the decision is decisive (amendment); it is never required in full.
+- On the phone (M3) the checklist is absent; it is not required there; an Exclude needs a reason only (contract §9.3). ~~On desktop the checklist answers are required.~~ ~~On desktop the checklist is answered until the decision is decisive (amendment);~~ On desktop the checklist is optional and collapsed by default (M8-triage); it is never required.
 
 ## Entry / exit
 Embedded. Prop `studyId`; emits `onDecide({outcome, reasonCode, criteria, note})`, `onSkip()` (local only), `onUndo()`. No navigation.
@@ -51,7 +54,7 @@ Via the host: `POST /decisions/events` ✗ M1a. After the reveal the host may po
 - **Protocol-changed**: banner and read-only checklist.
 
 ## Desktop layout
-Zones as in D4/D5: record card, checklist card (flex 999 1 420 px), draft aside (flex 1 1 260 px); decision card below (03).
+~~Zones as in D4/D5: record card, checklist card (flex 999 1 420 px), draft aside (flex 1 1 260 px); decision card below (03).~~ Amended 2026-11-09: the record pane, a right column (reason, checklist, draft) and a fixed decision bar, with no page scroll (03, M8-triage 1).
 
 ## Mobile layout (≤ 640 px)
 M3 card: label with `STU-` id, Literata title 22/28, meta, abstract with highlights, `draft` strip at the bottom. M5: stacked "Your decision" card then the `draft` card. Highlights also underlined (not colour alone).

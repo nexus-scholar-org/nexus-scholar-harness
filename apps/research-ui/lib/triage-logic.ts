@@ -35,27 +35,35 @@ export function reasonOptions(criteria: readonly Criterion[]): string[] {
   ];
 }
 
-/** Every criterion answered. Not required any more (M6-beta, answer until decisive). */
+/** Every criterion answered. Not required (M6-beta, answer until decisive; M8-triage, the checklist is optional). */
 export function checklistComplete(criteria: readonly Criterion[], answers: Readonly<Record<string, CriterionAnswer["answer"]>>): boolean {
   return criteria.every((c) => answers[c.id] !== undefined);
 }
 
 /**
- * What the answers so far make possible (spec 03 amendment 1, "answer until
- * decisive"). Exclude is ready as soon as one criterion fails (an inclusion
- * answered no, or an exclusion answered yes); `failed` is the first such in
- * protocol order. Include is ready when every inclusion is yes and no exclusion
- * is yes; unanswered exclusions do not block it. Unclear is always possible.
- * This says what the screen may enable; it never decides the record.
+ * What the answers given make possible (spec 03, M8-triage amendment: the
+ * checklist is a tool for the reason, not a gate for the decision).
+ *
+ * - `include`: no answer given fails a criterion. Include needs no answers; it
+ *   is off only while the researcher's own answers say the record fails.
+ * - `exclude` / `failed`: a criterion fails on the answers given, so Exclude has
+ *   its reason from the checklist (the first failure in protocol order). Exclude
+ *   itself is always available; without a failure the reason is chosen from the chips.
+ * - `includeReady`: every inclusion answered yes and nothing fails.
+ *
+ * Failing means an inclusion answered no or an exclusion answered yes; under the
+ * protocol's `exclude` not-reported policy, an inclusion answered "not reported"
+ * fails after the definite failures. This says what the screen may enable; it
+ * never decides the record and never fills an unanswered criterion.
  */
 export interface Decisiveness {
-  exclude: boolean;
   include: boolean;
+  exclude: boolean;
   failed: { id: string; answer: CriterionAnswer["answer"]; kind: Criterion["kind"] } | null;
-  /** Inclusion criteria not yet answered yes. */
-  includeNeeds: string[];
-  /** Of those, the ones answered "not reported" (not yet yes). */
-  includeNeedsYes: string[];
+  includeReady: boolean;
+  /** How many criteria have an answer, of how many. */
+  answered: number;
+  total: number;
 }
 
 export function decisiveFor(
@@ -70,14 +78,26 @@ export function decisiveFor(
     criteria.find(
       (c) => (c.kind === "inclusion" && answers[c.id] === "no") || (c.kind === "exclusion" && answers[c.id] === "yes"),
     ) ?? (policy === "exclude" ? criteria.find((c) => c.kind === "inclusion" && answers[c.id] === "not_reported") : undefined);
-  const notYes = criteria.filter((c) => c.kind === "inclusion" && answers[c.id] !== "yes");
+  const inclusions = criteria.filter((c) => c.kind === "inclusion");
   return {
+    include: failing === undefined,
     exclude: failing !== undefined,
-    include: failing === undefined && notYes.length === 0,
     failed: failing ? { id: failing.id, answer: answers[failing.id], kind: failing.kind } : null,
-    includeNeeds: notYes.map((c) => c.id),
-    includeNeedsYes: notYes.filter((c) => answers[c.id] === "not_reported").map((c) => c.id),
+    includeReady: failing === undefined && inclusions.length > 0 && inclusions.every((c) => answers[c.id] === "yes"),
+    answered: criteria.filter((c) => answers[c.id] !== undefined).length,
+    total: criteria.length,
   };
+}
+
+/**
+ * Whether a reason code contradicts an answer the researcher gave: `FAILS-INC-n`
+ * with INC-n answered yes, or `EXC-n` with EXC-n answered no. The engine refuses
+ * such an event (`REASON_CODE_INCONSISTENT`), so the chip is disabled. Absent and
+ * "not reported" answers never contradict.
+ */
+export function contradicts(code: string, answers: Readonly<Record<string, CriterionAnswer["answer"]>>): boolean {
+  const { id, fails } = criterionOfReason(code);
+  return fails ? answers[id] === "yes" : answers[id] === "no";
 }
 
 /** The reason code the first failed criterion gives (`EXC-n`, or `FAILS-INC-n`). */
