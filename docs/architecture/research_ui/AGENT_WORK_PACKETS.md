@@ -2,6 +2,8 @@
 
 Dispatch one packet at a time. Agents must read `apps/research-ui/AGENTS.md` first. These packets deliberately avoid E3 runtime dependencies.
 
+**Status (2026-11-10).** These packets are mostly history. Since the production plan (`docs/roadmap/production-plan.md`), UI work is specified by the final specs under `docs/ux/<phase>/final/` and built in plan milestones (M1b-1 onward), not by new UI-NN packets. The demonstration screens of UI-02 to UI-06 and UI-08 (overview, the single-record `/screening` page, lineage, audit, corpus) were removed on 2026-11-05 at the researcher's request (`docs/decisions.md`, M5-slim). The brand book replaced `VISUAL_DIRECTION.md` as the design system on 2026-11-03 (`docs/decisions.md`). UI-09 (the proxy) and UI-10 (discovery) are current; their sections below say what is on `main`.
+
 ## UI-01 — Application shell
 
 **Scope:** `apps/research-ui/app/layout.tsx`, navigation components, global styling.
@@ -285,6 +287,8 @@ authoritative research artifacts.
 
 ## UI-06 — Audit activity
 
+**Removed 2026-11-05** with the other demonstration screens (`docs/decisions.md`); `GET /api/v1/screening/ui/audit-feed` was removed in M6-hardening (PR #200). The text below is history.
+
 **Implemented 2026-10-31.** Route `/[locale]/audit`, presented as **Audit** in
 the primary navigation. The default source is the demonstration feed under
 `lib/mock-audit.ts`; `?source=live` reads
@@ -345,6 +349,8 @@ collect, and the pairing/defer/publish panel is unchanged.
 
 ## UI-08 — Screening corpus (included and excluded records)
 
+**Removed 2026-11-05** with the other demonstration screens (`docs/decisions.md`). The text below is history. The console still serves `GET /api/v1/ui/corpus/{kind}` and `GET /api/v1/literature/included|excluded` (`console/api/workspace.py`); no screen reads them.
+
 **Implemented 2026-10-30.** Route `/[locale]/corpus`, presented as **Corpus** in
 the primary navigation. Reads `GET /api/v1/workspace/status` (harness-computed
 counts and phase), `GET /api/v1/ui/publication-status` (currentness), and
@@ -402,7 +408,14 @@ Rules, each pinned by `tests/console-proxy.test.ts`:
 - GET/HEAD anywhere under that prefix; POST only for
   `/api/v1/screening/batch/{n}/decisions` and
   `/api/v1/screening/actions/(redeem|defer|publish)`. `/audit/events`,
-  `/jobs/start`, `/pipelines` POST and every other method are `405`;
+  `/jobs/start`, `/pipelines` POST and every other method are `405`.
+  (As of 2026-11-10 the lists are longer: `POST_PATHS`, `PUT_PATHS` and
+  `STREAM_PATHS` in `app/api/console/[...path]/route.ts` add the screening API,
+  corpus import, agent runs, workspaces, inception, recon and discovery routes,
+  and PUT for settings, approver, inception drafts and the discovery methods
+  text. `/audit/events`, `/jobs/start`, `/pipelines` POST and DELETE stay
+  refused. The packaged app's own list is `console/browser.py`;
+  `docs/architecture/console/SPECS.md` has both.)
 - the browser-only `console` query parameter is stripped, never forwarded;
 - upstream failure is a typed `502`, timeout a typed `504`.
 
@@ -431,12 +444,14 @@ token, no direct console mutation from the browser.
 
 ## UI-10 — Discovery screens (Phase 1, specs 01–08)
 
-**Packet decided 2026-11-10, not started.** The routes, refusal codes, allowlist
-changes, engine additions and the researcher's seven decisions are in
+**Done 2026-11-10.** The packet was decided on 2026-11-10 and built the same
+day: the routes in M3b-api (PR #214), the engine items in M3d-engine (PR #215),
+the specs 01 to 08 (`Status: FINAL`) and the screens under
+`/[locale]/discovery/` in M3c-screens (PR #216). The routes, refusal codes,
+allowlist changes, engine additions and the researcher's seven decisions are in
 [`DISCOVERY_API_PACKET.md`](./DISCOVERY_API_PACKET.md) (decisions also in
-`docs/decisions.md`). No discovery screen is
-built before its routes exist on `main` (M3b-api) and its spec under
-`docs/ux/phase1-discovery/final/` is `Status: FINAL`.
+`docs/decisions.md`). Still open: near-twin pair review (M3e-neartwins) and one
+corpus from a harvest plus exports (M3f-combined-corpus).
 
 **Scope:** read the engine's search runs, legs, report and hand-off counts; start
 and follow a run or a recall check through typed routes (never `/jobs/start`);

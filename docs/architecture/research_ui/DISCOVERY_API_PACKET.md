@@ -1,9 +1,10 @@
 # Discovery API packet (Phase 1 screens 01–08)
 
-Status: DECIDED 2026-11-10 (the seven decisions in §6 were taken by the researcher; recorded in [`docs/decisions.md`](../../decisions.md)). Implemented by M3b-api (Layers R and J, E2, E5) and M3d-engine (the hand-off accept, E1, E3, E4a); E4b is M3e-neartwins.
+Status: DECIDED 2026-11-10 (the seven decisions in §6 were taken by the researcher; recorded in [`docs/decisions.md`](../../decisions.md)). Implemented by M3b-api (Layers R and J, E2, E5) and M3d-engine (the hand-off accept, E1, E3, E4a); E4b is M3e-neartwins. The screens 01 to 08 are built by M3c-screens. All three are merged: M3b-api (PR #214), M3d-engine (PR #215), M3c-screens (PR #216), on 2026-11-10. §2 describes `main` before M3b-api.
 Plan: [`docs/roadmap/production-plan.md`](../../roadmap/production-plan.md) §2 Phase 1 (screens 01–08), §6 M3, §7 cut rule 1 and 3.
 Engine record: [`docs/roadmap/milestones/M3a-discovery.md`](../../roadmap/milestones/M3a-discovery.md) (what the engine already does and what it deferred).
-Boards: `docs/ux/phase1-discovery/final/project/{Plan,Recall,Harvest,Import,Dedup,Report,States,Handoff}.dc.html`. The written `Status: FINAL` specs 01–08 are M3b's first task; this packet gives them the routes to point at.
+Boards: `docs/ux/phase1-discovery/final/project/{Plan,Recall,Harvest,Import,Dedup,Report,States,Handoff}.dc.html`. The written `Status: FINAL` specs 01–08 are M3b's first task; this packet gives them the routes to point at. (They were written in M3c-screens, under `docs/ux/phase1-discovery/final/`.)
+Provider note (2026-11-10): OpenAlex has required an API key since 2026-02-13, so `MAILTO_NOT_SET` no longer protects an OpenAlex leg; no code refuses a run without `SCHOLAR_OPENALEX_KEY` yet. See [`PROVIDERS_2026-11.md`](../../kits/search/PROVIDERS_2026-11.md) §1 and the [three-phase review](../../assessment/three-phase-hardening-2026-11-10.md) F12 (planned as M3h-providers).
 Conventions it follows: [`AGENT_WORK_PACKETS.md`](./AGENT_WORK_PACKETS.md) §UI-09 (same-origin proxy, no browser job start), [`UI-07_ACTION_SPEC.md`](./UI-07_ACTION_SPEC.md) §2 (browser credentials carry no authority), `apps/research-ui/AGENTS.md` (the harness computes, the UI shows).
 
 Every path below is under `/api/v1`. Bodies and answers are JSON unless marked SSE or Markdown. Refusals use the inception envelope: `{"detail": {"code", "message", "details"?}}` (`console/api/inception.py:41-45`). Every new code is added to `console/refusals.py` and so to `tests/console/test_console_refusals.py`.
@@ -165,10 +166,11 @@ Both lists change together (`console/browser.py:40-65`, `apps/research-ui/app/ap
 
 | Milestone | Content | Lane | Needs |
 | :-- | :-- | :-- | :-- |
-| **M3b-api** | Layer R routes (plan without E1, runs, run, report markdown, report-v1 without `by_tier`, handoff), Layer J (runs in-process, recall with E2, jobs, events, cancel, cap override), refusals registered, allowlists, proxy stream path, E5 typed codes | STANDARD (no snapshot semantics change; `generate_contract_baseline.py --check` in every commit) | decided |
-| **M3c-screens** | Specs 01–04, 06–08 `Status: FINAL` from the boards against M3b-api, then the screens; 05 as counts only; the `MAILTO_NOT_SET` state prints the line to set | STANDARD | M3b-api merged |
-| **M3d-engine** | E1 dry run, E3 import rejections and `limits` (no CSV), E4a tiers | STANDARD | decided |
-| **M3e-neartwins** | E4b pairs, decisions, acceptance reads them | RELEASE (Packet B inputs) | after the researcher's own corpora show the need |
+| **M3b-api** (done 2026-11-10, PR #214) | Layer R routes (plan without E1, runs, run, report markdown, report-v1 without `by_tier`, handoff), Layer J (runs in-process, recall with E2, jobs, events, cancel, cap override), refusals registered, allowlists, proxy stream path, E5 typed codes | STANDARD (no snapshot semantics change; `generate_contract_baseline.py --check` in every commit) | decided |
+| **M3c-screens** (done 2026-11-10, PR #216) | Specs 01–04, 06–08 `Status: FINAL` from the boards against M3b-api, then the screens; 05 as counts only; the `MAILTO_NOT_SET` state prints the line to set | STANDARD | M3b-api merged |
+| **M3d-engine** (done 2026-11-10, PR #215) | The hand-off accept (browser runs stop before the snapshot), E1 dry run, E3 import rejections and `limits` (no CSV), E4a tiers | STANDARD | decided |
+| **M3e-neartwins** (planned) | E4b pairs, decisions, acceptance reads them | RELEASE (Packet B inputs) | after the researcher's own corpora show the need |
+| **M3f-combined-corpus** (planned) | One snapshot from a harvest plus staged exports, deduplicated together (§4.4); until then `VERIFIED_EXISTS` keeps them apart | RELEASE (Packet B inputs) | researcher, "combine later" (2026-11-10) |
 
 ## 8. Tests each route brings (names to create)
 
