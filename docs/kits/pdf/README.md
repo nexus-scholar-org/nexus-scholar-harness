@@ -1,6 +1,6 @@
 # Scholar PDF Kit
 
-> Historical (2026-11-10): parked (not production; see `docs/roadmap/production-plan.md` §7/§8). The kit is now `src/scholar_<kit>/` in the one `nexus-scholar` package. Written for the former kit repository; install instructions here are obsolete (install `nexus-scholar`).
+> Status (2026-11-10): Historical: parked (not production; see `docs/roadmap/production-plan.md` §7/§8). The kit is now `src/scholar_<kit>/` in the one `nexus-scholar` package. Written for the former kit repository; install instructions here are obsolete (install `nexus-scholar`).
 
 [![CI Status](https://github.com/mouadh/Nexus-Scholar-Suite/actions/workflows/scholar-pdf-kit-ci.yml/badge.svg)](https://github.com/mouadh/Nexus-Scholar-Suite/actions)
 [![Python Version](https://img.shields.io/badge/python-3.11%20%7C%203.12-blue)](https://python.org)

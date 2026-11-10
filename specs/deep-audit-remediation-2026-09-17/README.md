@@ -2,8 +2,10 @@
 
 **Specification set:** `deep-audit-remediation-2026-09-17`  
 **Version:** 1.0.0  
-**Status (2026-11-10):** Contract v1 frozen (WP-00 delivered) and still normative; WP-01 closed with residual debt (`docs/architecture/wp01/README.md`). The remediation waves are historical: superseded as the plan of record by `docs/roadmap/production-plan.md` and the 2026-11-03 assessment. The kit-repository delivery steps below no longer apply (one package since 2026-11-03).  
-**Status (as written):** Normative baseline — Contract v1 frozen (WP-00 delivered); remaining waves and WP-01 adopters active  
+**Status (2026-11-10):** Contract v1 frozen (WP-00 delivered) and still normative; WP-01 closed with residual debt (`docs/architecture/wp01/README.md`). The remediation waves are historical: superseded as the plan of record by `docs/roadmap/production-plan.md` and the 2026-11-03 assessment. The kit-repository delivery steps below no longer apply (one package since 2026-11-03).
+
+**Status (as written):** Normative baseline — Contract v1 frozen (WP-00 delivered); remaining waves and WP-01 adopters active
+
 **Evidence date:** 2026-09-17  
 **Scope:** `src/scholar_harness` and all eight `tools/scholar-*-kit` packages
 

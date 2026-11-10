@@ -1,7 +1,8 @@
 # Scientific Agent Loop Composition Framework
 
 **Version:** 0.1.0-proposal  
-**Status (2026-11-10):** Historical (2026-11-10): superseded by the decision of 2026-11-03 "Agent system: proposals only, least autonomy per job" (`docs/architecture/agent-system.md`) and by the autonomy ladder (`docs/architecture/agent_autonomy_ladder.md`).  
+**Status (2026-11-10):** Historical: superseded by the decision of 2026-11-03 "Agent system: proposals only, least autonomy per job" (`docs/architecture/agent-system.md`) and by the autonomy ladder (`docs/architecture/agent_autonomy_ladder.md`).
+
 **Status:** Draft — not yet an execution contract  
 **Purpose:** Compose Nexus Scholar kits into bounded, auditable scientific tasks
 

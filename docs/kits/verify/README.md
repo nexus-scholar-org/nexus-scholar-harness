@@ -1,6 +1,6 @@
 # scholar-verify-kit
 
-> Historical (2026-11-10): parked (not production; see `docs/roadmap/production-plan.md` §7/§8). The kit is now `src/scholar_<kit>/` in the one `nexus-scholar` package. Written for the former kit repository; install instructions here are obsolete (install `nexus-scholar`).
+> Status (2026-11-10): Historical: parked (not production; see `docs/roadmap/production-plan.md` §7/§8). The kit is now `src/scholar_<kit>/` in the one `nexus-scholar` package. Written for the former kit repository; install instructions here are obsolete (install `nexus-scholar`).
 
 Post-screening trust verification for a Nexus Scholar workspace. Given a
 screened corpus with canonical extraction records, the kit produces the four

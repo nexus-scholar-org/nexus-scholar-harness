@@ -1,6 +1,7 @@
 # System Scope, Evidence Baseline, and Findings Register
 
-**Status (2026-11-10):** Historical: superseded as the current view by `docs/assessment/README.md` (decision 2026-11-03, "Fresh assessment replaces earlier audit material").  
+**Status (2026-11-10):** Historical: superseded as the current view by `docs/assessment/README.md` (decision 2026-11-03, "Fresh assessment replaces earlier audit material").
+
 **Status:** Draft for review  
 **Applies to:** Harness plus eight toolkits  
 **Source of truth:** Live checkout inspected on 2026-09-17
