@@ -214,7 +214,8 @@ def _accept_run_corpus(ws: Path, provider_errors: dict[str, str]) -> dict[str, A
         accepted = accept_corpus(ws, provider_warnings=warnings)
     except AcceptCorpusRefused as exc:
         return {"status": "REFUSED", "code": exc.code, "reason": str(exc)}
-    mapping = {
+    _journal_snapshot_accepted(ws, accepted, "from the search run", agent="scholar-harness")
+    return {
         "status": "ALREADY_ACCEPTED" if accepted.already_accepted else "ACCEPTED",
         "artifact_id": accepted.artifact_id,
         "study_count": accepted.study_count,
@@ -222,27 +223,86 @@ def _accept_run_corpus(ws: Path, provider_errors: dict[str, str]) -> dict[str, A
         "outcome_status": accepted.outcome_status,
         "provider_warnings": list(accepted.warnings),
     }
-    # Packet B: the producer's operation outcome (SUCCESS, or PARTIAL with the
-    # provider warnings) is journalled, not dropped (M3a review finding 5).
+
+
+def _journal_snapshot_accepted(
+    ws: Path, accepted: Any, origin: str, *, agent: str, run: str | None = None
+) -> None:
+    """Packet B: the producer's operation outcome (SUCCESS, or PARTIAL with the
+    provider warnings) is journalled, not dropped (M3a review finding 5)."""
+    parameters: dict[str, Any] = {
+        "artifact_id": accepted.artifact_id,
+        "already_accepted": accepted.already_accepted,
+        "outcome_status": accepted.outcome_status,
+        "provider_warnings": list(accepted.warnings),
+    }
+    if run is not None:
+        parameters["run"] = run
     append_event(
         ws,
         "CORPUS_SNAPSHOT_ACCEPTED",
-        f"Corpus snapshot {accepted.artifact_id} from the search run: "
+        f"Corpus snapshot {accepted.artifact_id} {origin}: "
         f"{accepted.study_count} studies from {accepted.record_count} records "
         f"({accepted.outcome_status})",
-        agent="scholar-harness",
+        agent=agent,
         inputs=[str(ws / "literature" / "verified.json")],
         outputs=[str(ws / "audit" / "artifact_registry.json")],
-        parameters={
-            "artifact_id": accepted.artifact_id,
-            "already_accepted": accepted.already_accepted,
-            "outcome_status": accepted.outcome_status,
-            "provider_warnings": list(accepted.warnings),
-        },
+        parameters=parameters,
         metrics={"studies": accepted.study_count, "records": accepted.record_count},
         status=accepted.outcome_status,
     )
-    return mapping
+
+
+def discovery_corpus_run(ws: Path) -> Path | None:
+    """The newest search run whose records became ``verified.json``, or ``None``."""
+    runs_dir = Path(ws) / "literature" / "search_runs"
+    if not runs_dir.is_dir():
+        return None
+    runs = sorted(
+        (d for d in runs_dir.iterdir() if d.is_dir() and d.name.startswith("run_") and d.name[4:].isdigit()),
+        key=lambda d: int(d.name[4:]),
+        reverse=True,
+    )
+    for run_dir in runs:
+        try:
+            manifest = json.loads((run_dir / "legs.json").read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            continue
+        published = manifest.get("corpus_published", manifest.get("raw_published"))
+        if published:
+            return run_dir
+    return None
+
+
+def accept_discovery_corpus(workspace: Path | str, *, agent: str = "scholar-harness-console") -> Any:
+    """Accept a browser run's ``verified.json`` as the corpus snapshot (M3d-engine).
+
+    The hand-off screen's accept (decision 2026-11-10): the same producer call
+    as the end of a CLI ``run`` (``accept_corpus`` with the run's failed
+    databases as provider warnings, read back from its ``legs.json``), so the
+    same records give the same artifact id and the same outcome status, and
+    the same ``CORPUS_SNAPSHOT_ACCEPTED`` row. Refusals propagate as
+    ``AcceptCorpusRefused``.
+    """
+    from scholar_harness.corpus_accept import accept_corpus
+
+    ws = Path(workspace).resolve()
+    run_dir = discovery_corpus_run(ws)
+    errors: dict[str, str] = {}
+    if run_dir is not None:
+        manifest = json.loads((run_dir / "legs.json").read_text(encoding="utf-8"))
+        errors = {
+            str(leg.get("provider")): str(leg.get("error") or "failed")
+            for leg in manifest.get("legs") or []
+            if isinstance(leg, dict) and leg.get("status") == "failed"
+        }
+    warnings = [f"{name}: {error}" for name, error in sorted(errors.items())]
+    accepted = accept_corpus(ws, provider_warnings=warnings)
+    origin = f"from search run {run_dir.name}, accepted on the hand-off screen" if run_dir else "from discovery"
+    _journal_snapshot_accepted(
+        ws, accepted, origin, agent=agent, run=run_dir.name if run_dir else None
+    )
+    return accepted
 
 
 #: Typed codes of the resume refusals (E5, M3b-api). The reason strings keep
@@ -398,6 +458,7 @@ async def run_pipeline(
     stage_callback: Callable[[str, str, Any], None] | None = None,
     should_stop: Callable[[], bool] | None = None,
     notes: list[str] | None = None,
+    freeze_corpus: bool = True,
 ) -> dict[str, Any]:
     """Execute the end-to-end research workflow from protocol to synthesis.
 
@@ -422,6 +483,12 @@ async def run_pipeline(
     ``screening_prepare``). A harvest the researcher cancelled stops after
     discovery with status ``CANCELLED``: nothing is deduplicated or accepted.
     A resume refusal carries its typed ``code`` on the run and on the stages.
+
+    M3d-engine (decision 2026-11-10): ``freeze_corpus=False`` is the browser
+    run. It stops after verification with ``corpus_snapshot`` ``NOT_ACCEPTED``
+    and status ``PENDING_CORPUS_ACCEPT``: no snapshot, no screening batches.
+    The hand-off screen's accept (``accept_discovery_corpus``) freezes it. The
+    CLI keeps the default, which accepts at the end of the run as since M3a.
     """
 
     def emit_stage(name: str, status: str, detail: Any = None) -> None:
@@ -660,6 +727,34 @@ async def run_pipeline(
         emit_stage("verification", str(verification_outcome.status), {
             "verified": verification_outcome.verified, "refused": verification_outcome.refused,
         })
+
+        if not freeze_corpus:
+            # M3d-engine: a browser harvest does not freeze the corpus; the
+            # hand-off screen does (decision 2026-11-10). Nothing past
+            # verification is built, and another run or the accept may follow.
+            reason = "awaiting the hand-off accept"
+            results["stages"]["corpus_snapshot"] = {"status": "NOT_ACCEPTED", "reason": reason}
+            emit_stage("corpus_snapshot", "NOT_ACCEPTED", results["stages"]["corpus_snapshot"])
+            for stage in ("screening", "extraction", "indexing", "matrix_rows", "graph_nodes", "synthesis"):
+                results["stages"][stage] = {
+                    **_ABORTED_STAGE_SHAPES[stage],
+                    "status": "SKIPPED",
+                    "reason": reason,
+                }
+            results["status"] = "PENDING_CORPUS_ACCEPT"
+            _apply_discovery_status(results, discovery_status, discovery_reason)
+            append_legacy_event(
+                ws,
+                "PIPELINE_RUN_PAUSED_FOR_CORPUS_ACCEPT",
+                "scholar-harness",
+                "Pipeline paused before the corpus snapshot; the researcher accepts "
+                f"literature/verified.json on the hand-off screen{_pipeline_note(results)}",
+                [str(p_path)],
+                [str(lit_dir / "verified.json")],
+                results["stages"],
+                status=_ledger_status(results),
+            )
+            return results
 
         # -------------------------------------------------------------
         # Stage 3.5: Corpus snapshot (WP-01 Packet B runtime adoption, CORE-07)

@@ -294,9 +294,10 @@ def test_run_events_replay_snapshot_legs_stages_and_done(env):
     assert {leg["provider"] for leg in legs} == {"openalex", "semanticscholar", "crossref", "arxiv", "pubmed"}
     assert set(legs[0]) >= {"job_id", "provider", "fetched", "reported_total", "cap", "cap_hit", "status"}
     stages = [data["stage"] for name, data in events if name == "stage"]
-    assert stages == ["discovery", "deduplication", "hydration", "verification", "corpus_snapshot", "screening_prepare"]
+    # M3d-engine (decision 2026-11-10): a browser run stops before the snapshot.
+    assert stages == ["discovery", "deduplication", "hydration", "verification", "corpus_snapshot"]
     assert job["state"] == "succeeded" and job["result"]["run"] == "run_001"
-    assert job["result"]["stages"]["corpus_snapshot"]["status"] == "ACCEPTED"
+    assert job["result"]["stages"]["corpus_snapshot"]["status"] == "NOT_ACCEPTED"
 
     # A second connect replays the same stream in full.
     assert [name for name, _ in _events(client, job["job_id"])] == names
@@ -493,7 +494,8 @@ def test_report_marks_a_capped_leg_as_a_lower_bound(env):
     assert report["dedup"]["removed"] == 1 and report["dedup"]["unique_works"] == 7
     assert report["dedup"]["by_tier"] is None
     assert report["outside_year_window"] == 0
-    assert report["prisma"]["identified"] == 7
+    # M3d-engine: no screening is prepared before the hand-off accept, so there is no PRISMA preview yet.
+    assert report["prisma"] is None
     assert [r["run"] for r in report["runs"]["runs"]] == ["run_001"]
 
 
@@ -519,8 +521,7 @@ def test_methods_text_is_a_draft_until_reviewed(env):
     assert len(rows) == 1 and rows[0]["parameters"]["run"] == "run_001"
 
     # A later run starts from its own draft; the reviewed text of run_001 stays and is shown beside it.
-    (ws / "audit" / "artifact_registry.json").unlink()
-    _run(client, {"cap_override": 3})
+    _run(client, {"cap_override": 3})  # allowed: a browser run does not freeze the corpus (M3d-engine)
     methods = client.get(f"{BASE}/report").json()["methods_text"]
     assert methods["built_from"] == "run_002" and methods["reviewed"] is False
     assert methods["earlier_reviewed"]["run"] == "run_001"
@@ -560,3 +561,55 @@ def test_handoff_counts_abstracts_and_the_year_window_from_verified_json(env):
     assert handoff["near_twins_undecided"] is None
     assert handoff["protocol_fingerprint"].startswith("sha256:")
     assert handoff["corpus"]["shape"] == "screening.corpus-v1"
+
+
+# --------------------------------------------------------------------------- hand-off accept (M3d-engine)
+
+
+def test_a_browser_run_stops_before_the_snapshot_and_the_handoff_accepts_it(env):
+    """Decision 2026-11-10: a browser harvest does not freeze the corpus; the hand-off screen does."""
+    client, ws, _ = env
+    job, _ = _run(client, {"providers": ["openalex", "crossref"]})
+    assert job["state"] == "succeeded", job
+    snapshot = job["result"]["stages"]["corpus_snapshot"]
+    assert snapshot == {"status": "NOT_ACCEPTED", "reason": "awaiting the hand-off accept"}
+    assert job["result"]["status"] == "PENDING_CORPUS_ACCEPT"
+    registry = ws / "audit" / "artifact_registry.json"
+    assert not registry.is_file() or "corpus_snapshot" not in registry.read_text(encoding="utf-8")
+    assert not list((ws / "literature" / "screening").glob("batch_*.json")) if (ws / "literature" / "screening").is_dir() else True
+    actions = [e["action"] for e in _journal(ws)]
+    assert "CORPUS_SNAPSHOT_ACCEPTED" not in actions and "PIPELINE_RUN_PAUSED_FOR_CORPUS_ACCEPT" in actions
+
+    before = client.get("/api/v1/screening/corpus").json()
+    assert before["state"] == "STAGED" and before["from_discovery"] is True and before["accepted"] is None
+    assert client.get(f"{BASE}/handoff").json()["corpus"]["state"] == "STAGED"
+
+    # Another browser run is allowed before the accept, and is the corpus the accept freezes.
+    second, _ = _run(client, {"providers": ["openalex"]})
+    assert second["state"] == "succeeded" and second["result"]["run"] == "run_002"
+
+    accepted = client.post("/api/v1/screening/corpus/accept")
+    assert accepted.status_code == 200, accepted.text
+    after = accepted.json()
+    assert after["state"] == "ACCEPTED" and after["from_discovery"] is True
+    assert after["accepted"]["studies"] == len(json.loads((ws / "literature" / "verified.json").read_text(encoding="utf-8")))
+    assert client.get(f"{BASE}/handoff").json()["corpus"]["state"] == "ACCEPTED"
+    events = [e for e in _journal(ws) if e["action"] == "CORPUS_SNAPSHOT_ACCEPTED"]
+    assert len(events) == 1 and events[0]["parameters"]["artifact_id"] == after["accepted"]["artifact_id"]
+
+    again = client.post(f"{BASE}/runs", json={})
+    assert again.status_code == 409 and _code(again) == "CORPUS_ALREADY_ACCEPTED"
+    twice = client.post("/api/v1/screening/corpus/accept")
+    assert twice.status_code == 409 and _code(twice) == "CORPUS_ALREADY_ACCEPTED"
+
+
+def test_the_handoff_accept_keeps_a_failed_database_as_a_snapshot_warning(env):
+    """The accept reads the run's failed legs, as the pipeline passed them, so the outcome stays PARTIAL."""
+    client, ws, providers = env
+    providers.set("crossref", FakeProvider("crossref", [], fail=RuntimeError("boom")))
+    job, _ = _run(client, {"providers": ["openalex", "crossref"]})
+    assert job["state"] == "succeeded", job
+    assert client.post("/api/v1/screening/corpus/accept").status_code == 200
+    event = next(e for e in _journal(ws) if e["action"] == "CORPUS_SNAPSHOT_ACCEPTED")
+    assert event["parameters"]["outcome_status"] == "PARTIAL"
+    assert any(w.startswith("crossref: ") for w in event["parameters"]["provider_warnings"])

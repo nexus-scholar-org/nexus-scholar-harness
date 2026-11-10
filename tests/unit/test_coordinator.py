@@ -452,8 +452,11 @@ def test_signatures_identical_and_mock_mode_unused(tmp_path, monkeypatch):
         "stage_callback",
         "should_stop",
         "notes",
+        "freeze_corpus",
     ]
-    assert all(p.default is None for p in params[5:])
+    assert all(p.default is None for p in params[5:-1])
+    # M3d-engine: the browser run passes False (stop before the snapshot); every other caller accepts.
+    assert params[-1].default is True
     assert all(p.kind is inspect.Parameter.KEYWORD_ONLY for p in params)
     assert params[0].default is inspect.Parameter.empty  # workspace_dir required
     assert params[1].default is None

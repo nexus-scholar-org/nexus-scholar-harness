@@ -607,10 +607,18 @@ def accept_corpus_route(request: Request) -> dict[str, Any]:
     status = _corpus_view(ws)
     if status["state"] == "ACCEPTED":
         raise _error(409, "CORPUS_ALREADY_ACCEPTED", "the corpus is already accepted")
-    if not staged_sources(ws) and not status["from_discovery"]:
+    staged = staged_sources(ws)
+    if not staged and not status["from_discovery"]:
         raise _error(409, "NOTHING_STAGED", "add at least one database export first")
     try:
-        accept_corpus(ws)
+        if staged:
+            accept_corpus(ws)
+        else:
+            # M3d-engine: a browser run's verified.json, frozen on the hand-off
+            # screen exactly as the end of a CLI run freezes it (decision 2026-11-10).
+            from ...pipeline.coordinator import accept_discovery_corpus
+
+            accept_discovery_corpus(ws)
     except AcceptCorpusRefused as exc:
         raise _corpus_error(exc) from exc
     return _corpus_view(ws)

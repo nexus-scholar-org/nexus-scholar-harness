@@ -172,3 +172,77 @@ def test_the_cassette_holds_no_contact_address_or_key():
         assert not {h.lower() for h in request.get("headers", {})} & set(_SECRET_HEADERS)
     if settings.mailto:
         assert settings.mailto not in CASSETTE.read_text(encoding="utf-8")
+
+
+class _PassthroughVerifier:
+    async def process_batch(self, docs, verify=True, enrich=True):
+        return list(docs), []
+
+
+class _PassthroughHydrator:
+    def __init__(self, client):
+        pass
+
+    async def hydrate_missing_abstracts(self, docs, batch_size=50):
+        return list(docs), {"attempted": 0, "hydrated": 0, "failed": 0}
+
+
+class _Client:
+    def __init__(self, *a, **k):
+        pass
+
+    async def close(self):
+        pass
+
+
+def test_the_handoff_accept_gives_the_snapshot_the_cli_run_gives(tmp_path, monkeypatch):
+    """M3d-engine (decision 2026-11-10): the browser run stops before the snapshot,
+    and the hand-off accept builds the artifact the CLI run's accept step builds.
+
+    The artifact id is a function of the accepted records, and each record carries
+    its ``retrieved_at``, so two harvests never share an id (true of two CLI runs
+    too). The pin is therefore on the same records: the browser run's workspace
+    is copied before the accept, the CLI run's accept step (``_accept_run_corpus``)
+    freezes the copy, the hand-off accept freezes the original, and the ids match.
+    A CLI run of the same search gives the same counts. Verification and hydration
+    are passed through (they are not in the cassette).
+    """
+    from scholar_harness.pipeline import coordinator
+    from scholar_harness.pipeline import hydration as hyd_mod
+    from scholar_harness.pipeline import verification as ver_mod
+
+    monkeypatch.setattr(hyd_mod, "AbstractHydrator", _PassthroughHydrator)
+    monkeypatch.setattr(hyd_mod, "AcademicHttpClient", _Client)
+    monkeypatch.setattr(ver_mod, "DocumentVerifier", _PassthroughVerifier)
+
+    def run(ws: Path, **kwargs):
+        with _vcr().use_cassette(str(CASSETTE)):
+            return asyncio.run(coordinator.run_pipeline(
+                workspace_dir=ws, max_search_results=CAP, indexing_fn=lambda _ws: ({}, None), **kwargs,
+            ))
+
+    cli = _workspace(tmp_path, "cli")
+    cli_results = run(cli)
+    cli_snapshot = cli_results["stages"]["corpus_snapshot"]
+    assert cli_snapshot["status"] == "ACCEPTED", cli_snapshot  # the CLI still accepts at the end of a run
+
+    browser = _workspace(tmp_path, "browser")
+    browser_results = run(browser, freeze_corpus=False)
+    assert browser_results["status"] == "PENDING_CORPUS_ACCEPT"
+    assert browser_results["stages"]["corpus_snapshot"] == {
+        "status": "NOT_ACCEPTED", "reason": "awaiting the hand-off accept",
+    }
+    registry = browser / "audit" / "artifact_registry.json"
+    assert not registry.is_file() or "corpus_snapshot" not in registry.read_text(encoding="utf-8")
+    assert not (browser / "literature" / "screening").is_dir() or not list(
+        (browser / "literature" / "screening").glob("batch_*.json")
+    )
+
+    same_records = tmp_path / "same-records"
+    shutil.copytree(browser, same_records)
+    pipeline_step = coordinator._accept_run_corpus(same_records, {})
+    accepted = coordinator.accept_discovery_corpus(browser)
+    assert pipeline_step["status"] == "ACCEPTED"
+    assert accepted.artifact_id == pipeline_step["artifact_id"]
+    assert accepted.outcome_status == pipeline_step["outcome_status"] == cli_snapshot["outcome_status"]
+    assert (accepted.study_count, accepted.record_count) == (cli_snapshot["study_count"], cli_snapshot["record_count"])

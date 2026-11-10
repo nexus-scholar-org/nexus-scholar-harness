@@ -500,6 +500,10 @@ def corpus_status(workspace: Path | str) -> dict[str, Any]:
     else:
         verified = ws / "literature" / "verified.json"
         status["from_discovery"] = verified.is_file() and not _imported(ws)
+        if status["from_discovery"]:
+            # M3d-engine: a discovery corpus waiting for the hand-off accept is
+            # staged, as database exports are (decision 2026-11-10).
+            status["state"] = "STAGED"
     return status
 
 

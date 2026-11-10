@@ -726,6 +726,8 @@ async def start_run(body: RunBody, request: Request) -> dict[str, Any]:
             workspace_dir=ws, max_search_results=body.cap_override, indexing_fn=_no_indexing,
             providers=providers, leg_callback=_leg_reporter(job), stage_callback=on_stage,
             should_stop=lambda: job.cancel_requested, notes=[body.note] if body.note else None,
+            # M3d-engine: the hand-off screen's accept freezes the corpus (decision 2026-11-10).
+            freeze_corpus=False,
         )
         result = json.loads(json.dumps({
             "run": (results.get("discovery") or {}).get("search_run") or None,
