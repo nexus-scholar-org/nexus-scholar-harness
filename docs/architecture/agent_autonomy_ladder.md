@@ -62,22 +62,62 @@ Rules that hold on every rung:
 
 A calibration compares the agent's latest proposals with the researcher's own
 decisions on records decided **before** the draft was revealed (the agreement
-route already knows which those are). The numbers below are proposed defaults;
-each is a setting with a floor the engine refuses to go under.
+route already knows which those are). The numbers below are defaults; each
+is a setting with a floor the engine refuses to go under.
 
-| Gate | Records compared (min) | Include recall (point) | Include recall (95% CI low) | Missed includes allowed |
-|---|---|---|---|---|
-| L1 | 100, or the whole corpus when it has fewer than 200 records, never fewer than 50 | ≥ 0.95 | ≥ 0.90 | ≤ 2 |
-| L2 | 200, never fewer than 100 | ≥ 0.98 | ≥ 0.95 | ≤ 1 |
+**Amended 2026-11-11: the gate counts includes, not records.** The first
+version counted records (100 for L1). Lesson 35 of
+`docs/lessons/2026-10-17_uav_harvest_calibration_lessons.md` shows why that
+fails: the UAV corpus was about 98.7% excludes, so 100 records hold one or
+two includes, and a recall interval over two includes is meaningless. A
+researcher's Unclear counts as an include for the comparison (as
+`calibration_result` already does), because an Unclear goes to full text.
+
+| Gate | Researcher's includes compared (min) | Include recall, 95% Wilson lower bound | Missed includes allowed |
+|---|---|---|---|
+| L1 | 35 | ≥ 0.90 | as the bound allows (0 at 35 includes, 1 from about 55) |
+| L2 | 75 | ≥ 0.95 | as the bound allows (0 at 75, 1 from about 110) |
+
+The bound, not the point estimate, is the gate: 35 of 35 found gives a
+lower bound of 0.90, and 34 of 35 does not pass. The engine computes the
+Wilson interval itself; agreement and Cohen's κ are shown for information
+only, never as a gate, because both collapse under extreme prevalence
+(lesson 35).
+
+What this costs the researcher: at a 2% include rate, 35 includes means
+about 1 750 records screened blind first; at 10%, about 350. The agreement
+screen shows the estimate from the researcher's own include rate so far.
+On a small or very sparse corpus L1 may never unlock, and that is the
+honest answer: there is not enough evidence to trust the agent with it.
 
 Why recall of includes and not agreement: an agent that excludes a relevant
 study costs the review a finding; an agent that includes an irrelevant one
 costs the researcher one full-text read. The gate is one-sided on purpose.
 
 The researcher reaches the gate by screening normally at L0 with blinding on
-(the default) until enough records are decided, then running one calibration
-over them. The agreement screen (spec 07) shows the gate as a bar: "73 of
-100 compared; recall 0.96; the next rung needs 27 more records".
+(the default) until enough includes are decided, then running one
+calibration over them. The agreement screen (spec 07) shows the gate as a
+bar: "21 of 35 includes compared; recall lower bound not yet computable;
+at your include rate, about 700 more records".
+
+### What the agent is never shown (lesson 54)
+
+A blinded A/B on the UAV corpus changed one thing, a sentence telling the
+screening agent that a pack was "about 95 to 100% exclusion". On clean noise
+it changed nothing; on the judgment cases it flipped the blind Unclear
+records to Exclude, including a guardrail record. So, at every rung:
+
+- The agent's prompt carries no outcome statistics: no include rate, no
+  agreement figure, no "most of these are excluded", no count of what the
+  researcher decided.
+- The agent is not told which database a record came from or how the
+  database performed (provider precision differs about 70 times, lesson 44,
+  and is a prior of exactly this kind).
+- Any proposed hint or prior passes the same blinded A/B test before it is
+  adopted, and the test measures how often Unclear stays Unclear, not mean
+  confidence, which does not detect this failure.
+- The audit at L1 reports the agent's Unclear rate beside its misses; a
+  falling Unclear rate after a prompt or task change is a warning on Home.
 
 The audit sample at L1 is drawn at random from the agent's excludes at the
 time the mode is set, sized by `sample_audit_size` (default 60: enough to see
@@ -191,11 +231,12 @@ researcher's.
    the engine only, carrying the proposal, the mode, the calibration run and
    the human who set the mode. A client can never post one. Contract change
    through the baseline gate and an independent review.
-2. **L1 gate**: at least 100 blind decisions compared (the whole corpus
-   under 200 records, never fewer than 50), include recall ≥ 0.95, 95% CI
-   low ≥ 0.90, at most 2 missed includes.
-3. **Autopilot (L2)**: designed and gated (200 compared, recall ≥ 0.98, CI
-   low ≥ 0.95, ≤ 1 miss, typed acknowledgement at publish) but built only
+2. **L1 gate** (amended 2026-11-11, §4): at least 35 of the researcher's
+   blind includes compared, include recall 95% Wilson lower bound ≥ 0.90.
+   The first version counted 100 records, which on a 98.7%-exclude corpus
+   holds one or two includes.
+3. **Autopilot (L2)**: designed and gated (75 includes compared, lower
+   bound ≥ 0.95, typed acknowledgement at publish) but built only
    after the IEEE measurement. The first release ships L0 and L1.
 4. **Audit sample**: 60 random agent excludes, fixed; the 10%-of-excludes
    figure is shown as advice.
