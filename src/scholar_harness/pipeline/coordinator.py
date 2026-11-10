@@ -245,6 +245,16 @@ def _accept_run_corpus(ws: Path, provider_errors: dict[str, str]) -> dict[str, A
     return mapping
 
 
+#: Typed codes of the resume refusals (E5, M3b-api). The reason strings keep
+#: them as prefixes, so journals and older readers still read them.
+RESUME_REFUSAL_CODES = ("PROTOCOL_CHANGED_SINCE_SNAPSHOT", "BATCHES_INCOMPLETE")
+
+
+def _refusal_code(reason: str) -> str | None:
+    prefix = reason.split(":", 1)[0].strip()
+    return prefix if prefix in RESUME_REFUSAL_CODES else None
+
+
 def _resume_refusal(ws: Path) -> str | None:
     """Why the batches of an accepted snapshot cannot be resumed, or ``None``.
 
@@ -382,6 +392,12 @@ async def run_pipeline(
     max_search_results: int | None = None,
     mock_mode: bool = False,
     indexing_fn: Callable[[Path], tuple[dict[str, Any], Any]],
+    providers: list[str] | None = None,
+    progress_callback: Callable[[str, int], None] | None = None,
+    leg_callback: Callable[[Any], None] | None = None,
+    stage_callback: Callable[[str, str, Any], None] | None = None,
+    should_stop: Callable[[], bool] | None = None,
+    notes: list[str] | None = None,
 ) -> dict[str, Any]:
     """Execute the end-to-end research workflow from protocol to synthesis.
 
@@ -397,7 +413,21 @@ async def run_pipeline(
     parity). The screening-preparation import stays function-level at its
     base position. Kit/stage/audit failure propagates with no fabricated
     output and no success claim.
+
+    M3b-api (the console's discovery job): ``providers``, ``progress_callback``,
+    ``leg_callback``, ``should_stop`` and ``notes`` pass through to
+    ``run_discovery``; ``stage_callback(stage, status, detail)`` is called as
+    each stage of a search run ends (``discovery``, ``deduplication``,
+    ``hydration``, ``verification``, ``corpus_snapshot``,
+    ``screening_prepare``). A harvest the researcher cancelled stops after
+    discovery with status ``CANCELLED``: nothing is deduplicated or accepted.
+    A resume refusal carries its typed ``code`` on the run and on the stages.
     """
+
+    def emit_stage(name: str, status: str, detail: Any = None) -> None:
+        if stage_callback is not None:
+            stage_callback(name, status, detail)
+
     # mock_mode is accepted-but-unused: identical outcomes either way
     # (signature test test_discovery_stage.py:358). No reference here
     # preserves the base unused-parameter semantics.
@@ -480,10 +510,22 @@ async def run_pipeline(
         # (fail-closed publication); an EMPTY_RESULT harvest is never reported
         # as SUCCESS; a PARTIAL (degraded) harvest never overwrites the
         # workflow state -- it is exposed through results["degraded"].
+        discovery_options = {
+            key: value
+            for key, value in (
+                ("providers", providers),
+                ("progress_callback", progress_callback),
+                ("leg_callback", leg_callback),
+                ("should_stop", should_stop),
+                ("notes", notes),
+            )
+            if value is not None
+        }
         discovery_outcome = await run_discovery(
             protocol_path=p_path,
             literature_dir=lit_dir,
             max_search_results=max_search_results,
+            **discovery_options,
         )
         # Local binding retained: Stage 2 deduplicates these documents.
         discovered_docs = discovery_outcome.documents
@@ -504,7 +546,28 @@ async def run_pipeline(
             "stale_artifacts": list(
                 getattr(discovery_outcome, "stale_artifacts", ()) or ()
             ),
+            "search_run": getattr(discovery_outcome, "search_run", "") or "",
         }
+        emit_stage("discovery", discovery_status, {"count": discovery_outcome.count, "reason": discovery_reason})
+
+        if getattr(discovery_outcome, "cancelled", False) is True:
+            # M3b-api: the researcher stopped the harvest. Its records stay in
+            # the run's folder; nothing downstream is built from a stopped search.
+            reason = f"discovery cancelled: {discovery_reason}"
+            for name, shape in _ABORTED_STAGE_SHAPES.items():
+                results["stages"][name] = {**shape, "status": "SKIPPED", "reason": reason}
+            results["status"] = "CANCELLED"
+            append_legacy_event(
+                ws,
+                "PIPELINE_RUN_ABORTED",
+                "scholar-harness",
+                f"Pipeline stopped: {discovery_reason}{_pipeline_note(results)}",
+                [str(p_path)],
+                [],
+                results["stages"],
+                status=_ledger_status(results),
+            )
+            return results
 
         if discovery_status == "FAILED":
             # Fail-closed publication: a failed harvest must not produce
@@ -550,6 +613,7 @@ async def run_pipeline(
             "unique": dedup_outcome.unique,
             "duplicates_removed": dedup_outcome.duplicates_removed,
         }
+        emit_stage("deduplication", "DONE", results["stages"]["deduplication"])
 
         # -------------------------------------------------------------
         # Stage 2.5: Abstract Hydration (backfill missing abstracts)
@@ -564,6 +628,7 @@ async def run_pipeline(
         )
         # Local binding retained: Stage 3 verifies these documents.
         docs_for_verify = hydration_outcome.documents
+        emit_stage("hydration", "DONE", None)
 
         # -------------------------------------------------------------
         # Stage 3: Verification (HCM-04e-1 Option B bridge-or-refuse)
@@ -592,6 +657,9 @@ async def run_pipeline(
             results["stages"]["verification"]["quarantine"] = (
                 verification_outcome.quarantine
             )
+        emit_stage("verification", str(verification_outcome.status), {
+            "verified": verification_outcome.verified, "refused": verification_outcome.refused,
+        })
 
         # -------------------------------------------------------------
         # Stage 3.5: Corpus snapshot (WP-01 Packet B runtime adoption, CORE-07)
@@ -605,6 +673,7 @@ async def run_pipeline(
             ws, getattr(discovery_outcome, "provider_errors", {}) or {}
         )
         results["stages"]["corpus_snapshot"] = snapshot
+        emit_stage("corpus_snapshot", snapshot["status"], snapshot)
         if snapshot["status"] == "REFUSED":
             reason = f"corpus snapshot refused: {snapshot['reason']}"
             for stage in ("screening", "extraction", "indexing", "matrix_rows", "graph_nodes", "synthesis"):
@@ -672,13 +741,18 @@ async def run_pipeline(
                 else "screening preparation refused (exit "
                 f"{exc.code}); see the log for the reason"
             )
-            for stage in ("screening", "extraction", "indexing", "matrix_rows", "graph_nodes", "synthesis"):
-                results["stages"][stage] = {
-                    **_ABORTED_STAGE_SHAPES[stage],
+            code = _refusal_code(reason)
+            for name in ("screening", "extraction", "indexing", "matrix_rows", "graph_nodes", "synthesis"):
+                results["stages"][name] = {
+                    **_ABORTED_STAGE_SHAPES[name],
                     "status": "SKIPPED",
                     "reason": reason,
+                    **({"code": code} if code else {}),
                 }
             results["status"] = "FAILED"
+            if code:
+                results["code"] = code
+            emit_stage("screening_prepare", "FAILED", {"reason": reason, "code": code})
             append_legacy_event(
                 ws,
                 "PIPELINE_RUN_ABORTED",
@@ -699,6 +773,7 @@ async def run_pipeline(
         "batch_files_prepared": total_batches,
         "papers_to_screen": len(verified_docs),
     }
+    emit_stage("screening_prepare", "DONE", {"batch_files_prepared": total_batches})
     # Stages 5-9 require the PRISMA collect handoff to have run. Without
     # literature/included.json the pipeline must stop, never fabricate output.
     inc_file = lit_dir / "included.json"

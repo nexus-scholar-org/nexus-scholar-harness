@@ -124,6 +124,34 @@ RECON_JOB_ACTIVE = "RECON_JOB_ACTIVE"
 RECON_JOB_NOT_FOUND = "RECON_JOB_NOT_FOUND"
 RECON_FAILED = "RECON_FAILED"
 
+# --- discovery over HTTP (M3b-api, `console/api/discovery.py`) ----------------
+#: `docs/architecture/research_ui/DISCOVERY_API_PACKET.md` §4.7. ``MAILTO_NOT_SET``,
+#: ``PROTOCOL_INVALID``, ``CORPUS_ALREADY_ACCEPTED`` and ``PROVIDERS_FAILED``
+#: (above) answer the discovery routes too.
+PROTOCOL_MISSING = "PROTOCOL_MISSING"
+DISCOVERY_JOB_ACTIVE = "DISCOVERY_JOB_ACTIVE"
+DISCOVERY_JOB_NOT_FOUND = "DISCOVERY_JOB_NOT_FOUND"
+RUN_NOT_FOUND = "RUN_NOT_FOUND"
+RECALL_NOT_RUN = "RECALL_NOT_RUN"
+SEEDS_INVALID = "SEEDS_INVALID"
+CAP_INVALID = "CAP_INVALID"
+#: A database name the engine does not know, in a run's or a check's ``providers``.
+PROVIDER_UNKNOWN = "PROVIDER_UNKNOWN"
+#: A discovery job stopped on an unexpected error; ``message`` names it.
+DISCOVERY_FAILED = "DISCOVERY_FAILED"
+#: E5: typed codes on a run job's ``error`` (the coordinator's resume refusals
+#: and its snapshot refusal), formerly only reason-string prefixes.
+PROTOCOL_CHANGED_SINCE_SNAPSHOT = "PROTOCOL_CHANGED_SINCE_SNAPSHOT"
+BATCHES_INCOMPLETE = "BATCHES_INCOMPLETE"
+STAGED_IMPORT_PENDING = "STAGED_IMPORT_PENDING"
+#: E5: a failed search leg's ``error_code``: a leg field, never an HTTP status
+#: (a failed leg makes a PARTIAL run).
+PROVIDER_RATE_LIMITED = "PROVIDER_RATE_LIMITED"
+PROVIDER_TIMEOUT = "PROVIDER_TIMEOUT"
+PROVIDER_UNAVAILABLE = "PROVIDER_UNAVAILABLE"
+PROVIDER_REFUSED = "PROVIDER_REFUSED"
+LEG_ERROR_CODES = frozenset({PROVIDER_RATE_LIMITED, PROVIDER_TIMEOUT, PROVIDER_UNAVAILABLE, PROVIDER_REFUSED})
+
 # --- console guards (INC-01, M0) ----------------------------------------------
 HOST_REFUSED = "HOST_REFUSED"
 TOKEN_REQUIRED = "TOKEN_REQUIRED"
@@ -206,7 +234,20 @@ CONTRACT_ADDED = frozenset(
         RECON_JOB_ACTIVE,
         RECON_JOB_NOT_FOUND,
         RECON_FAILED,
+        PROTOCOL_MISSING,
+        DISCOVERY_JOB_ACTIVE,
+        DISCOVERY_JOB_NOT_FOUND,
+        RUN_NOT_FOUND,
+        RECALL_NOT_RUN,
+        SEEDS_INVALID,
+        CAP_INVALID,
+        PROVIDER_UNKNOWN,
+        DISCOVERY_FAILED,
+        PROTOCOL_CHANGED_SINCE_SNAPSHOT,
+        BATCHES_INCOMPLETE,
+        STAGED_IMPORT_PENDING,
     }
+    | LEG_ERROR_CODES
 )
 
 #: Every code the console API may return.

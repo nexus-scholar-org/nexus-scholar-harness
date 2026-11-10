@@ -24,6 +24,10 @@ class RateLimitExceededError(ProviderError):
         super().__init__(provider=provider, message=message, status_code=429)
 
 
+class ProviderTimeoutError(ProviderError):
+    """Raised when a provider request timed out (``PROVIDER_TIMEOUT`` on the leg)."""
+
+
 class InvalidQueryError(ScholarSearchError):
     """Raised when a search query cannot be parsed or translated."""
 

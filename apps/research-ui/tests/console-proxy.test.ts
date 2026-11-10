@@ -326,6 +326,10 @@ describe("console proxy — writes", () => {
     ["inception/drafts/rec_0123456789abcdef0123456789abcdef/recon/delta"],
     ["inception/drafts/rec_0123456789abcdef0123456789abcdef/recon/distill"],
     ["inception/drafts/rec_0123456789abcdef0123456789abcdef/recon/bind"],
+    // M3b-api: discovery jobs.
+    ["discovery/runs"],
+    ["discovery/recall"],
+    ["discovery/jobs/djob_0123456789abcdef/cancel"],
   ])("forwards the %s POST", async (route) => {
     vi.stubEnv("NEXUS_CONSOLE_URL", CONSOLE);
     const fetchSpy = vi.fn(() => Promise.resolve(jsonResponse({ ok: true })));
@@ -346,6 +350,12 @@ describe("console proxy — writes", () => {
     ["inception/drafts/rec_1/recon/directions"],
     ["inception/drafts/rec_1/recon/jobs/rjob_1/cancel"],
     ["inception/drafts/rec_1/recon"],
+    ["discovery/plan"],
+    ["discovery/report"],
+    ["discovery/report/methods"],
+    ["discovery/jobs/djob_1/events"],
+    ["discovery/runs/run_001"],
+    ["jobs/start"],
   ])(
     "refuses the %s POST",
     async (route) => {
@@ -378,6 +388,27 @@ describe("console proxy — writes", () => {
     const refused = await PUT(
       request("api/v1/inception/drafts/rec_1/genesis", { method: "PUT", body: "{}" }),
       context("api", "v1", "inception", "drafts", "rec_1", "genesis"),
+    );
+    expect(refused.status).toBe(405);
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it("forwards PUT for the discovery methods text, and no other discovery path (M3b-api)", async () => {
+    vi.stubEnv("NEXUS_CONSOLE_URL", CONSOLE);
+    const fetchSpy = vi.fn(() => Promise.resolve(jsonResponse({ reviewed: true })));
+    vi.stubGlobal("fetch", fetchSpy);
+    const body = JSON.stringify({ text: "We searched five databases.", reviewed: true });
+    const ok = await PUT(
+      request("api/v1/discovery/report/methods", { method: "PUT", headers: { "content-type": "application/json" }, body }),
+      context("api", "v1", "discovery", "report", "methods"),
+    );
+    expect(ok.status).toBe(200);
+    const call = fetchSpy.mock.calls[0] as unknown as [unknown, RequestInit | undefined];
+    expect(String(call[0])).toBe(`${CONSOLE}/api/v1/discovery/report/methods`);
+
+    const refused = await PUT(
+      request("api/v1/discovery/report", { method: "PUT", body: "{}" }),
+      context("api", "v1", "discovery", "report"),
     );
     expect(refused.status).toBe(405);
     expect(fetchSpy).toHaveBeenCalledTimes(1);
@@ -540,6 +571,28 @@ describe("console proxy — event streams", () => {
     );
     vi.stubGlobal("fetch", fetchSpy);
     const route = "api/v1/inception/drafts/rec_0123456789abcdef/recon/jobs/rjob_0123456789abcdef/events";
+    const aborter = new AbortController();
+    const response = await GET(
+      request(route, { headers: { accept: "text/event-stream" }, signal: aborter.signal }),
+      context(...route.split("/")),
+    );
+    expect(response.status).toBe(200);
+    const call = fetchSpy.mock.calls[0] as unknown as [unknown, RequestInit | undefined];
+    const signal = call[1]?.signal as AbortSignal | undefined;
+    expect(signal?.aborted).toBe(false);
+    aborter.abort();
+    expect(signal?.aborted).toBe(true);
+  });
+
+  it("treats a discovery job's events as a stream: the caller's signal, not the read timeout (M3b-api)", async () => {
+    vi.stubEnv("NEXUS_CONSOLE_URL", CONSOLE);
+    const fetchSpy = vi.fn(() =>
+      Promise.resolve(new Response(": keepalive\n\n", {
+        headers: { "content-type": "text/event-stream" },
+      })),
+    );
+    vi.stubGlobal("fetch", fetchSpy);
+    const route = "api/v1/discovery/jobs/djob_0123456789abcdef/events";
     const aborter = new AbortController();
     const response = await GET(
       request(route, { headers: { accept: "text/event-stream" }, signal: aborter.signal }),

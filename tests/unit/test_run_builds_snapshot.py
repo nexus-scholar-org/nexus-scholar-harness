@@ -151,6 +151,8 @@ def test_resume_refuses_an_edited_protocol(tmp_path, monkeypatch):
 
     assert results["status"] == "FAILED"
     assert results["stages"]["screening"]["reason"].startswith("PROTOCOL_CHANGED_SINCE_SNAPSHOT")
+    # E5 (M3b-api): the code is typed, beside the reason string it still prefixes.
+    assert results["code"] == "PROTOCOL_CHANGED_SINCE_SNAPSHOT" and results["stages"]["screening"]["code"] == "PROTOCOL_CHANGED_SINCE_SNAPSHOT"
     assert _aborted(ws)
 
 
@@ -168,6 +170,8 @@ def test_resume_refuses_batches_that_do_not_cover_the_snapshot(tmp_path, monkeyp
 
     assert results["status"] == "FAILED"
     assert results["stages"]["screening"]["reason"].startswith("BATCHES_INCOMPLETE")
+    # E5 (M3b-api): the code is typed, beside the reason string it still prefixes.
+    assert results["code"] == "BATCHES_INCOMPLETE" and results["stages"]["screening"]["code"] == "BATCHES_INCOMPLETE"
 
 
 def test_no_project_json_reports_not_built(tmp_path, monkeypatch):

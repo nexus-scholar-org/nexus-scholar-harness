@@ -4,6 +4,10 @@ One entry per decision that still shapes the code, newest first. The full
 records were removed in the 2026-11-03 docs cut; each entry names the commit
 history to read if you need the original reasoning (`git log --follow -- <path>`).
 
+## 2026-11-10 — Discovery API: what the packet left open (proposed; M3b-api)
+
+Twelve points the discovery API packet did not settle, decided while building M3b-api; each is listed with its packet section in `docs/roadmap/milestones/M3b-api.md` "Decisions". The ones that shape later work: a researcher's cancel (and a console shutdown) stops the harvest only, archives the run `PARTIAL` with its records in the run folder, and builds nothing from it; the methods draft is rendered on read and never stored, the reviewed text is stored per run; a run is `stale` once a later run's records became the corpus; `PROVIDER_UNKNOWN` (422) is a new code; a leg failure that is not a provider answer has no `error_code`; `run_pipeline` gains optional keyword hooks, the CLI and orchestrator calls are unchanged.
+
 ## 2026-11-10 — Discovery over HTTP: seven decisions for the Phase 1 screens (accepted; discovery API packet)
 
 The researcher chose these on 2026-11-10, each explained in plain terms and taken one by one. The packet is `docs/architecture/research_ui/DISCOVERY_API_PACKET.md`.

@@ -62,6 +62,10 @@ def render_search_report(manifest: dict[str, Any]) -> str:
     ]
     if years:
         lines.append(f"- Publication years: {years}")
+    if manifest.get("cap_override") is not None:
+        lines.append(f"- Run override cap: {manifest['cap_override']} records per database")
+    for note in manifest.get("notes") or []:
+        lines.append(f"- Note: {_cell(note)}")
     lines += [
         "",
         "| Database | Executed query | Reported total | Fetched | Cap | Status | Date |",
@@ -98,3 +102,67 @@ def render_search_report(manifest: dict[str, Any]) -> str:
             lines.append(f"- {provider}: {params}")
     lines.append("")
     return "\n".join(lines)
+
+
+def _names(items: list[str]) -> str:
+    if len(items) <= 1:
+        return "".join(items)
+    return ", ".join(items[:-1]) + " and " + items[-1]
+
+
+def render_methods_text(
+    legs: list[dict[str, Any]],
+    imports: list[dict[str, Any]] | None = None,
+    dedup: dict[str, Any] | None = None,
+    *,
+    query_text: str | None = None,
+    years: tuple[Any, Any] | None = None,
+    cap_override: int | None = None,
+) -> str:
+    """The search paragraph of a methods section, every number from a field (packet §4.6).
+
+    One sentence for the searched databases, one per database with its counts
+    and cap, one for the imported exports and one for deduplication. It states
+    what the run recorded and nothing else: no adjectives, no claims about
+    completeness beyond the cap flags.
+    """
+    searched = [leg for leg in legs if leg.get("status") != "pending"]
+    dates = sorted(str(leg.get("started_at") or "")[:10] for leg in searched if leg.get("started_at"))
+    names = [str(leg.get("provider")) for leg in searched]
+    parts: list[str] = []
+    if searched:
+        when = f" on {dates[0]}" if dates and dates[0] == dates[-1] else (
+            f" between {dates[0]} and {dates[-1]}" if dates else "")
+        lead = f"We searched {len(searched)} database{'s' if len(searched) != 1 else ''} ({_names(names)}){when}"
+        if query_text:
+            lead += f" with the query `{query_text}`"
+        if years and (years[0] or years[1]):
+            lead += f", limited to publication years {years[0] or '…'}–{years[1] or '…'}"
+        parts.append(lead + ".")
+        if cap_override is not None:
+            parts.append(f"This run fetched at most {cap_override} records per database (a run override of the protocol cap).")
+        for leg in searched:
+            name = leg.get("provider")
+            total = leg.get("reported_total")
+            fetched = int(leg.get("fetched") or 0)
+            status = leg.get("status")
+            if status == "failed":
+                parts.append(f"{name} did not answer ({leg.get('error_code') or 'failed'}); it contributed {fetched} records.")
+                continue
+            sentence = f"{name} reported {total} records and {fetched} were fetched" if total is not None else (
+                f"{name} reported no total and {fetched} records were fetched")
+            if status == "stopped":
+                sentence += "; the search was stopped by the researcher, so the count is a lower bound"
+            elif leg.get("cap_hit"):
+                sentence += f"; the cap of {leg.get('cap')} records was reached, so the count is a lower bound"
+            parts.append(sentence + ".")
+    imports = imports or []
+    if imports:
+        rows = [f"{imp.get('label')} ({imp.get('records')} records" + (
+            f", searched on {imp.get('searched_on')}" if imp.get("searched_on") else "") + ")" for imp in imports]
+        parts.append(f"We imported {len(imports)} database export{'s' if len(imports) != 1 else ''}: {_names(rows)}.")
+    if dedup and dedup.get("unique_works") is not None:
+        parts.append(
+            f"Deduplication removed {dedup.get('removed')} records, leaving {dedup.get('unique_works')} unique works."
+        )
+    return " ".join(parts)

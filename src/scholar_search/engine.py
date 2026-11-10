@@ -7,7 +7,7 @@ from datetime import UTC, datetime
 
 from .config import settings
 from .dedup import Deduplicator, stable_order
-from .exceptions import ScholarSearchError
+from .exceptions import ProviderError, ProviderTimeoutError, RateLimitExceededError, ScholarSearchError
 from .models import Document, Query, SearchLeg, SearchRun
 from .providers import (
     ArxivProvider,
@@ -48,6 +48,33 @@ def _now() -> str:
     return datetime.now(UTC).isoformat()
 
 
+#: The note on a leg the researcher stopped (M3b-api, packet §4.3).
+STOPPED_NOTE = "cancelled by the researcher"
+
+
+def provider_error_code(exc: BaseException) -> str | None:
+    """The typed code of a provider failure (E5, packet §4.7), or ``None``.
+
+    429 is ``PROVIDER_RATE_LIMITED``; a timeout ``PROVIDER_TIMEOUT``; a 5xx or a
+    network error without an answer ``PROVIDER_UNAVAILABLE``; any other 4xx
+    ``PROVIDER_REFUSED``. An exception that is not the provider's answer (a
+    parse error, a bug) gets no code: its text is the whole story.
+    """
+    if isinstance(exc, RateLimitExceededError):
+        return "PROVIDER_RATE_LIMITED"
+    if isinstance(exc, (ProviderTimeoutError, TimeoutError, asyncio.TimeoutError)):
+        return "PROVIDER_TIMEOUT"
+    if isinstance(exc, ProviderError):
+        status = exc.status_code
+        if status == 429:
+            return "PROVIDER_RATE_LIMITED"
+        if status is None or status >= 500:
+            return "PROVIDER_UNAVAILABLE"
+        if status >= 400:
+            return "PROVIDER_REFUSED"
+    return None
+
+
 class SearchEngine:
     """Orchestrates search across multiple academic providers."""
 
@@ -79,7 +106,15 @@ class SearchEngine:
         if live and not settings.mailto:
             raise MailtoNotSet()
 
-    async def run(self, query: Query, dedup: bool = True, progress_callback=None) -> SearchRun:
+    async def run(
+        self,
+        query: Query,
+        dedup: bool = True,
+        progress_callback=None,
+        *,
+        leg_callback=None,
+        should_stop=None,
+    ) -> SearchRun:
         """Run the query on every provider and return the documents with one leg each.
 
         Each provider is paged to its reported total, to the query's cap
@@ -87,6 +122,12 @@ class SearchEngine:
         that stopped at a cap while the database reported more says
         ``cap_hit``. A failing provider gives a ``failed`` leg; it never
         silently disappears.
+
+        ``leg_callback(leg)`` is called with the live ``SearchLeg`` after each
+        record and when a leg ends. ``should_stop()`` is asked after each record:
+        once it answers true every running leg stops where it is, keeps what it
+        fetched and says ``status: "stopped"`` with a note (the researcher's
+        cancel, M3b-api).
         """
         self._check_mailto()
         if query.max_results:
@@ -109,18 +150,29 @@ class SearchEngine:
             leg.status = "running"
             stream = provider.search(leg_query)
             try:
+                stopped = False
                 async for doc in stream:
                     sink.append(doc)
                     leg.fetched += 1
                     if progress_callback:
                         progress_callback(provider.name, leg.fetched)
+                    if leg_callback:
+                        leg_callback(leg)
                     if leg.fetched >= cap:
                         break
-                leg.status = "ok"
+                    if should_stop is not None and should_stop():
+                        stopped = True
+                        break
+                if stopped:
+                    leg.status = "stopped"
+                    leg.notes.append(STOPPED_NOTE)
+                else:
+                    leg.status = "ok"
                 logger.info(f"  -> Found {leg.fetched} documents from {provider.name}.")
             except Exception as e:
                 leg.status = "failed"
                 leg.error = f"{type(e).__name__}: {e}"
+                leg.error_code = provider_error_code(e)
                 logger.error(f"Error querying {provider.name}: {e}")
             finally:
                 aclose = getattr(stream, "aclose", None)
@@ -132,6 +184,8 @@ class SearchEngine:
                 leg.finished_at = _now()
                 if leg.fetched >= cap and (leg.reported_total is None or leg.reported_total > leg.fetched):
                     leg.cap_hit = True
+                if leg_callback:
+                    leg_callback(leg)
                 try:
                     provider.current_leg = None
                 except AttributeError:  # pragma: no cover
@@ -165,9 +219,11 @@ class SearchEngine:
         logger.info(f"  -> Reduced to {len(unique_results)} unique documents.")
         return SearchRun(documents=unique_results, legs=legs)
 
-    async def search_all(self, query: Query, dedup: bool = True, progress_callback=None) -> list[Document]:
+    async def search_all(
+        self, query: Query, dedup: bool = True, progress_callback=None, **run_options
+    ) -> list[Document]:
         """Run the query and return only the documents; the legs are in ``last_legs``."""
-        run = await self.run(query, dedup=dedup, progress_callback=progress_callback)
+        run = await self.run(query, dedup=dedup, progress_callback=progress_callback, **run_options)
         return run.documents
 
     async def snowball_forward(self, document_id: str, provider_name: str, progress_callback=None) -> list[Document]:

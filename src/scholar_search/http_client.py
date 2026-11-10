@@ -10,7 +10,7 @@ import hishel
 import httpx
 
 from .config import settings
-from .exceptions import ProviderError, RateLimitExceededError
+from .exceptions import ProviderError, ProviderTimeoutError, RateLimitExceededError
 
 logger = logging.getLogger(__name__)
 
@@ -110,7 +110,7 @@ class AcademicHttpClient:
                     url, params=params, timeout=req_timeout, headers=headers, **kwargs
                 )
             except httpx.TimeoutException as e:
-                raise ProviderError(
+                raise ProviderTimeoutError(
                     self.name, f"Request timed out after {req_timeout}s: {e}"
                 ) from e
             except httpx.RequestError as e:
@@ -197,7 +197,7 @@ class AcademicHttpClient:
                 if attempt < self.max_retries:
                     await asyncio.sleep(self.base_delay * (2 ** attempt))
                     continue
-                raise ProviderError(
+                raise ProviderTimeoutError(
                     self.name, f"Request timed out after {req_timeout}s: {exc}"
                 ) from exc
             except httpx.RequestError as exc:
