@@ -175,13 +175,19 @@ def _parse_export(path: Path, source_id: str, fmt: str = "ris") -> list[Document
     ``provider`` is the format (``ris`` or ``nbib``), so a ``verified.json`` row
     says which reader produced it.
     """
+    return _read_export(path, source_id, fmt)[0]
+
+
+def _read_export(path: Path, source_id: str, fmt: str = "ris") -> tuple[list[Document], list[dict[str, Any]]]:
+    """``_parse_export`` plus the lines the importer could not use (E3, M3d-engine)."""
+    importer = _IMPORTERS[fmt]()
     documents = []
-    for position, document in enumerate(_IMPORTERS[fmt]().parse(path), start=1):
+    for position, document in enumerate(importer.parse(path), start=1):
         document.provider = fmt
         document.provider_id = f"{source_id}#{position}"
         document.workspace_id = _stable_sci_id(document, source=source_id, position=position)
         documents.append(document)
-    return documents
+    return documents, list(importer.rejected)
 
 
 def _check_label(label: str) -> str:
@@ -263,12 +269,17 @@ def stage_ris_source(
     file_name: str,
     searched_on: str | None = None,
     query: str | None = None,
+    limits: str | None = None,
 ) -> dict[str, Any]:
     """Copy one database's export (RIS or PubMed ``.nbib``) into the workspace, with its label.
 
     The file is kept byte for byte under ``literature/raw/ris/`` so the import
     can be re-run and shared; its format is detected from the name and first line
     and recorded. Nothing reaches ``verified.json`` until acceptance.
+
+    E3 (M3d-engine): the row carries ``rejected`` (the lines the importer could
+    not use, ``{line, code, reason}``) and ``limits`` (the filters the researcher
+    applied in the database, stored verbatim; ``None`` when not given).
     """
     ws = Path(workspace).resolve()
     _refuse_if_frozen(ws)
@@ -305,7 +316,8 @@ def stage_ris_source(
     stored = ws / RIS_DIR / f"{source_id}.{fmt}"
     stored.parent.mkdir(parents=True, exist_ok=True)
     stored.write_bytes(content)
-    records = len(_parse_export(stored, source_id, fmt))
+    parsed, rejected = _read_export(stored, source_id, fmt)
+    records = len(parsed)
     if records == 0:
         stored.unlink()
         suffix = Path(file_name).suffix.lower()
@@ -325,6 +337,8 @@ def stage_ris_source(
         "records": records,
         "searched_on": searched_on or None,
         "query": (query or "").strip() or None,
+        "limits": limits if limits and limits.strip() else None,
+        "rejected": rejected,
     }
     _write_sources(ws, [*sources, entry])
     append_event(
@@ -336,8 +350,9 @@ def stage_ris_source(
         parameters={
             "id": source_id, "label": label, "format": fmt,
             "searched_on": entry["searched_on"], "query": entry["query"],
+            "limits": entry["limits"],
         },
-        metrics={"records": records, "sha256": digest},
+        metrics={"records": records, "sha256": digest, "rejected": len(rejected)},
     )
     return entry
 
@@ -420,6 +435,9 @@ def preview_staged(workspace: Path | str) -> dict[str, Any]:
             {
                 **{k: s[k] for k in ("id", "label", "file_name", "records", "searched_on", "query")},
                 "format": s.get("format", "ris"),
+                # E3 (M3d-engine); rows staged before it carry neither.
+                "limits": s.get("limits"),
+                "rejected": list(s.get("rejected") or []),
             }
             for s in sources
         ],

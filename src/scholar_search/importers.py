@@ -18,48 +18,91 @@ _RIS_TAG = re.compile(r"^([A-Z][A-Z0-9])  -(?: (.*))?$")
 _RIS_AUTHOR_TAGS = frozenset({"AU", "A1"})
 
 
+#: E3 (M3d-engine): the codes of a line an importer could not use.
+IMPORT_NO_TITLE = "IMPORT_NO_TITLE"
+IMPORT_BAD_TAG = "IMPORT_BAD_TAG"
+IMPORT_BAD_YEAR = "IMPORT_BAD_YEAR"
+
+
+def _rejection(line: int, code: str, reason: str) -> dict[str, Any]:
+    return {"line": line, "code": code, "reason": reason}
+
+
 class RISImporter:
     """Parses standard RIS academic citation files.
 
     Wrapped values (a line without a tag, as some exporters write long titles
     and abstracts) are joined to the value they continue with one space
     (M6-hardening H6).
+
+    E3 (M3d-engine): after ``parse`` is drained, ``rejected`` lists the lines it
+    could not use, as ``{line, code, reason}`` (1-based line numbers):
+    ``IMPORT_BAD_TAG`` for a line that is neither a tag nor a continuation of
+    one; ``IMPORT_NO_TITLE`` for a record without ``TI``/``T1`` (the record is
+    not imported; ``line`` is its first line); ``IMPORT_BAD_YEAR`` for a
+    ``PY``/``Y1`` without a four-digit year (the record is imported without a year).
     """
 
+    def __init__(self) -> None:
+        self.rejected: list[dict[str, Any]] = []
+
     def parse(self, filepath: str | Path) -> Iterator[Document]:
+        self.rejected = []
         current_record: dict[str, Any] = {}
+        lines: dict[str, int] = {}
         authors: list[Author] = []
         last_tag: str | None = None
-
+        start: int | None = None
         with Path(filepath).open("r", encoding="utf-8-sig", errors="replace") as f:
-            for raw in f:
+            for number, raw in enumerate(f, start=1):
                 line = raw.strip()
                 if not line:
                     continue
-
                 match = _RIS_TAG.match(line)
                 if match is None:
                     # A continuation of the previous value.
                     if last_tag is not None and last_tag in current_record:
                         current_record[last_tag] = f"{current_record[last_tag]} {line}".strip()
+                    else:
+                        self.rejected.append(_rejection(
+                            number, IMPORT_BAD_TAG,
+                            f"not a RIS tag line and not the continuation of a value: {line[:80]!r}",
+                        ))
                     continue
-
                 tag, value = match.group(1), (match.group(2) or "").strip()
                 if tag == "ER":
                     if current_record or authors:
-                        yield self._build_document(current_record, authors)
-                    current_record, authors, last_tag = {}, [], None
+                        yield from self._finish(current_record, authors, lines, start or number)
+                    current_record, authors, last_tag, lines, start = {}, [], None, {}, None
                     continue
+                if start is None:
+                    start = number
                 if tag in _RIS_AUTHOR_TAGS:
                     if value:
                         authors.append(self._author(value))
                     last_tag = None
                 else:
                     current_record[tag] = value
+                    lines[tag] = number
                     last_tag = tag
-
             if current_record or authors:
-                yield self._build_document(current_record, authors)
+                yield from self._finish(current_record, authors, lines, start or 1)
+
+    def _finish(
+        self, record: dict, authors: list[Author], lines: dict[str, int], start: int
+    ) -> Iterator[Document]:
+        if not (record.get("TI") or record.get("T1")):
+            self.rejected.append(_rejection(start, IMPORT_NO_TITLE, "record without a title (TI or T1); not imported"))
+            return
+        for tag in ("PY", "Y1"):
+            if tag in record:
+                if not re.match(r"\d{4}", record[tag]):
+                    self.rejected.append(_rejection(
+                        lines[tag], IMPORT_BAD_YEAR,
+                        f"{tag} {record[tag][:40]!r} is not a year; the record is imported without one",
+                    ))
+                break
+        yield self._build_document(record, authors)
 
     @staticmethod
     def _author(value: str) -> Author:
@@ -125,17 +168,32 @@ class NBIBImporter:
     kept in ``raw_data`` (``publication_types``, ``keywords``, ``language``).
     """
 
+    def __init__(self) -> None:
+        #: E3 (M3d-engine): the lines ``parse`` could not use, ``{line, code, reason}``.
+        self.rejected: list[dict[str, Any]] = []
+
     def parse(self, filepath: str | Path) -> Iterator[Document]:
+        """Every MEDLINE record of ``filepath``; ``rejected`` lists what was not used.
+
+        ``IMPORT_BAD_TAG``: a line that is neither a tag nor the continuation of
+        one; ``IMPORT_NO_TITLE``: a record without ``TI`` (not imported; ``line``
+        is its ``PMID`` line); ``IMPORT_BAD_YEAR``: a ``DP`` with no four-digit
+        year (the record is imported without a year). A block without a
+        ``PMID`` is not a MEDLINE record and is skipped without a rejection, so
+        a RIS file read here yields nothing, not a list of all its lines.
+        """
+        self.rejected = []
         record: dict[str, list[str]] = {}
+        lines: dict[str, int] = {}
         last_tag: str | None = None
 
         with Path(filepath).open("r", encoding="utf-8-sig", errors="replace") as f:
-            for raw in f:
+            for number, raw in enumerate(f, start=1):
                 line = raw.rstrip("\r\n")
                 if not line.strip():
                     if record:
-                        yield from self._emit(record)
-                    record, last_tag = {}, None
+                        yield from self._emit(record, lines)
+                    record, last_tag, lines = {}, None, {}
                     continue
                 match = None if line[0] == " " else _NBIB_TAG.match(line)
                 if match is None:
@@ -143,22 +201,39 @@ class NBIBImporter:
                     if last_tag is not None and record.get(last_tag):
                         values = record[last_tag]
                         values[-1] = f"{values[-1]} {line.strip()}".strip()
+                    else:
+                        self.rejected.append(_rejection(
+                            number, IMPORT_BAD_TAG,
+                            f"not a MEDLINE tag line and not the continuation of a value: {line.strip()[:80]!r}",
+                        ))
                     continue
                 tag, value = match.group(1), match.group(2).strip()
                 if tag == "PMID" and record:
                     # A new record glued to the previous one without a blank line.
-                    yield from self._emit(record)
-                    record = {}
+                    yield from self._emit(record, lines)
+                    record, lines = {}, {}
                 record.setdefault(tag, []).append(value)
+                lines.setdefault(tag, number)
                 last_tag = tag
 
             if record:
-                yield from self._emit(record)
+                yield from self._emit(record, lines)
 
-    def _emit(self, record: dict[str, list[str]]) -> Iterator[Document]:
+    def _emit(self, record: dict[str, list[str]], lines: dict[str, int] | None = None) -> Iterator[Document]:
+        lines = lines or {}
         pmid = next((v.strip() for v in record.get("PMID", []) if v.strip()), None)
         if pmid is None:
             return
+        if not " ".join(record.get("TI", [])).strip():
+            self.rejected.append(_rejection(
+                lines.get("PMID", 0), IMPORT_NO_TITLE, f"PMID {pmid} has no title (TI); not imported",
+            ))
+            return
+        if record.get("DP") and not any(_NBIB_YEAR.search(v) for v in record["DP"]):
+            self.rejected.append(_rejection(
+                lines.get("DP", 0), IMPORT_BAD_YEAR,
+                f"DP {record['DP'][0][:40]!r} of PMID {pmid} is not a year; the record is imported without one",
+            ))
         authors = [self._full_author(v) for v in record.get("FAU", []) if v.strip()] or [
             self._abbreviated_author(v) for v in record.get("AU", []) if v.strip()
         ]

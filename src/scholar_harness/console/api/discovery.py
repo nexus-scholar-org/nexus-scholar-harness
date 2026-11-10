@@ -506,8 +506,8 @@ def report(request: Request, run: str | None = None) -> dict[str, Any]:
     } for leg in legs]
     imports = [{
         "label": s.get("label"), "searched_on": s.get("searched_on"), "query": s.get("query"),
-        # E3 (M3d-engine): the limits the researcher applied there and the rejected lines.
-        "limits": None, "records": s.get("records"), "rejected": None,
+        # E3 (M3d-engine): the limits the researcher applied there and the lines the importer could not use.
+        "limits": s.get("limits"), "records": s.get("records"), "rejected": list(s.get("rejected") or []),
     } for s in staged_sources(ws)]
     identification += [{
         "database": imp["label"], "kind": "import", "executed_query": imp["query"], "reported_total": None,

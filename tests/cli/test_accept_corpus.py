@@ -253,6 +253,7 @@ def test_preview_matches_what_acceptance_builds(tmp_path):
     assert first == {
         "label": "Scopus", "file_name": "scopus-export.ris", "format": "ris", "records": 3,
         "searched_on": "2026-11-06", "query": "uav AND weed",
+        "limits": None, "rejected": [],  # E3 (M3d-engine)
     }
     assert [(d["label"], d["records"], d["search_details_missing"]) for d in preview["databases"]] == [
         ("Scopus", 3, False), ("Web of Science", 3, True)

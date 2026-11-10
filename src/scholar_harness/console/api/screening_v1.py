@@ -556,6 +556,8 @@ class CorpusSourceBody(BaseModel):
     content_base64: str
     searched_on: str | None = None
     query: str | None = None
+    #: E3 (M3d-engine): the limits applied in the database (types, languages, years), stored verbatim.
+    limits: str | None = Field(default=None, max_length=2_000)
 
 
 @router.get("/corpus")
@@ -578,7 +580,7 @@ def post_corpus_source(body: CorpusSourceBody, request: Request) -> dict[str, An
     try:
         stage_ris_source(
             ws, body.label, content,
-            file_name=body.file_name, searched_on=body.searched_on, query=body.query,
+            file_name=body.file_name, searched_on=body.searched_on, query=body.query, limits=body.limits,
         )
     except AcceptCorpusRefused as exc:
         raise _corpus_error(exc) from exc

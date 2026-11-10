@@ -83,7 +83,7 @@ Three layers, so the screens that need no new engine can start first:
 Existing routes, unchanged: `GET /screening/corpus`, `POST /screening/corpus/sources`, `POST /screening/corpus/sources/{id}/remove`. The discovery Import screen is the same screen as spec 11 (M5b) reached from discovery's step bar; it does not get a second route set.
 
 Additions, all **E3**:
-- `POST /screening/corpus/sources` body gains `limits?: str` (stored verbatim, printed in the report) and the staged row gains `rejected: [{line, code, reason}]` with codes `IMPORT_NO_TITLE`, `IMPORT_BAD_TAG`, `IMPORT_BAD_YEAR`, and `records` stays the parsed count. The importer (`scholar_search/importers.py`) returns rejections instead of dropping lines silently.
+- `POST /screening/corpus/sources` body gains `limits?: str` (stored verbatim, printed in the report) and the staged row gains `rejected: [{line, code, reason}]` with codes `IMPORT_NO_TITLE`, `IMPORT_BAD_TAG`, `IMPORT_BAD_YEAR`, and `records` stays the parsed count. The importer (`scholar_search/importers.py`) returns rejections instead of dropping lines silently. Built in M3d-engine: a record without a title is not imported (`IMPORT_NO_TITLE`); a bad year keeps the record without a year; a stray line is listed as `IMPORT_BAD_TAG`. `GET /screening/corpus` `sources[]` and the report's `imports[]` carry `limits` and `rejected`.
 - CSV import is **not in this packet** (RIS and `.nbib` only, as today). Plan §2 row 04 says "RIS/CSV"; the researcher decides whether CSV is worth a column-mapping step (Scopus CSV headers differ from WoS). Until then the screen says "RIS or PubMed .nbib".
 
 ### 4.5 Dedup (screen 05)

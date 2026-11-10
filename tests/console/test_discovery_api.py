@@ -622,3 +622,17 @@ def test_the_handoff_accept_keeps_a_failed_database_as_a_snapshot_warning(env):
     event = next(e for e in _journal(ws) if e["action"] == "CORPUS_SNAPSHOT_ACCEPTED")
     assert event["parameters"]["outcome_status"] == "PARTIAL"
     assert any(w.startswith("crossref: ") for w in event["parameters"]["provider_warnings"])
+
+
+def test_report_lists_each_imports_limits_and_rejected_lines(env):
+    """E3 (M3d-engine, packet §4.6): imports[].limits and imports[].rejected come from the staged rows."""
+    from scholar_harness.corpus_accept import stage_ris_source
+
+    client, ws, _ = env
+    _write_run(ws, 1, started="2026-11-10T08:00:00Z")
+    fixture = ROOT / "tests" / "kits" / "search" / "fixtures" / "imports" / "rejections.ris"
+    stage_ris_source(ws, "Scopus", fixture.read_bytes(), file_name="scopus.ris", searched_on="2026-11-10",
+                     query="uav AND weed", limits="English; 2018-2025")
+    (imp,) = client.get(f"{BASE}/report").json()["imports"]
+    assert imp["limits"] == "English; 2018-2025" and imp["records"] == 3
+    assert [r["code"] for r in imp["rejected"]] == ["IMPORT_BAD_TAG", "IMPORT_NO_TITLE", "IMPORT_BAD_YEAR"]

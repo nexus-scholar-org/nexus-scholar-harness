@@ -237,6 +237,10 @@ The UI reads proposals only through `GET /records/{study_id}/proposal`. The fiel
 | `PROVIDER_TIMEOUT` | search leg `error_code` | the database did not answer in time; a leg field (E5, M3b-api) |
 | `PROVIDER_UNAVAILABLE` | search leg `error_code` | a 5xx answer or no answer at all; a leg field (E5, M3b-api) |
 | `PROVIDER_REFUSED` | search leg `error_code` | any other 4xx answer; a leg field (E5, M3b-api) |
+| `IMPORT_NO_TITLE` | staged source `rejected[].code` | a record without a title; not imported; a row field, never an HTTP status (E3, M3d-engine) |
+| `IMPORT_BAD_TAG` | staged source `rejected[].code` | a line that is neither a tag nor a continuation; a row field (E3, M3d-engine) |
+| `IMPORT_BAD_YEAR` | staged source `rejected[].code` | a year tag without a four-digit year; the record is imported without a year; a row field (E3, M3d-engine) |
+| `DEDUP_NOT_RUN` | `GET /discovery/dedup` | HTTP 404: no deduplication has run in this workspace (E4a, M3d-engine) |
 | `STALE_BINDING` (inception) | preview with `session_id`, genesis | HTTP 409: the draft's direction was chosen on a pool that is no longer its recon session's latest; choose it again (M4c). The code predates M4c and is listed in the console set. |
 | `ENGINE_UNREACHABLE` | UI only | client-side state, never sent by the engine |
 

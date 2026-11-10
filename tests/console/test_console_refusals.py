@@ -27,3 +27,12 @@ def test_codes_are_their_own_names():
     for code in refusals.CONSOLE_REFUSALS:
         assert re.fullmatch(r"[A-Z][A-Z_]+", code)
     assert refusals.CONTRACT_ADDED <= refusals.CONSOLE_REFUSALS
+
+
+def test_the_import_rejection_codes_are_the_importers_own():
+    """E3 (M3d-engine): the row codes the console registers are the ones the importers write."""
+    from scholar_search import importers
+
+    assert refusals.IMPORT_REJECTION_CODES == {
+        importers.IMPORT_NO_TITLE, importers.IMPORT_BAD_TAG, importers.IMPORT_BAD_YEAR,
+    }
