@@ -717,7 +717,7 @@ function DatabaseRow({
               ) : null}
               {file.rejected && file.rejected.length > 0 ? (
                 <details className="w-full text-xs" data-rejected={file.id}>
-                  <summary className="min-h-11 cursor-pointer py-3 leading-5 text-ink">{dt("import.rejected.title")}</summary>
+                  <summary className="min-h-11 cursor-pointer py-3 leading-5 rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus text-ink">{dt("import.rejected.title")}</summary>
                   <table className="w-full text-xs">
                     <caption className="sr-only">{dt("import.rejected.caption", { file: file.file_name })}</caption>
                     <thead>

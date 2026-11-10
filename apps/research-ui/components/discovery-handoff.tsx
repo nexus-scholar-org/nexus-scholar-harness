@@ -306,7 +306,7 @@ export function DiscoveryHandoff({ locale }: Readonly<{ locale: Locale }>) {
               <GatePanel
                 label={t("handoff.gate.label")}
                 actions={
-                  <Button variant="primary" onClick={() => void accept()} disabled={accepting || offline} aria-describedby={offline ? "handoff-offline" : undefined} data-accept>
+                  <Button variant="primary" onClick={() => void accept()} disabled={accepting || offline || acceptError?.code === "PROTOCOL_CHANGED_SINCE_RUN"} aria-describedby={offline ? "handoff-offline" : undefined} data-accept>
                     {accepting ? t("handoff.gate.accepting") : t("handoff.gate.accept")}
                   </Button>
                 }

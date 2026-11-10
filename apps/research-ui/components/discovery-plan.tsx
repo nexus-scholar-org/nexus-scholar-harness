@@ -56,17 +56,19 @@ export function DiscoveryPlan({ locale }: Readonly<{ locale: Locale }>) {
       } catch (error) {
         setRefusal(refusalOf(error));
       }
-      getRuns(origin).then(
-        (runs) => setHasRun(runs.runs.length > 0),
-        () => undefined,
-      );
     },
     [origin],
   );
 
   useEffect(() => {
-    if (ready) void load();
-  }, [ready, load]);
+    if (!ready) return;
+    void load();
+    // Read once on load: "Check again" re-reads the plan and nothing else (spec 01 acceptance).
+    getRuns(origin).then(
+      (runs) => setHasRun(runs.runs.length > 0),
+      () => undefined,
+    );
+  }, [ready, load, origin]);
 
   const copyAll = async () => {
     if (!plan) return;
@@ -90,7 +92,7 @@ export function DiscoveryPlan({ locale }: Readonly<{ locale: Locale }>) {
         <Loading locale={locale} />
       ) : (
         <div className="grid gap-6 lg:grid-cols-3">
-          <div className="space-y-6 lg:col-span-2">
+          <div className="space-y-6 min-w-0 lg:col-span-2">
             <header>
               <Eyebrow locale={locale} step="plan" name={t("plan.eyebrowName")} />
               <h1 ref={heading} tabIndex={-1} className="mt-2 font-display text-3xl text-ink">
@@ -136,7 +138,7 @@ export function DiscoveryPlan({ locale }: Readonly<{ locale: Locale }>) {
                       )}
                       {p.request ? (
                         <details className="mt-2 text-sm">
-                          <summary className="min-h-11 cursor-pointer py-3 leading-5 text-ink-muted">{t("plan.request.show")}</summary>
+                          <summary className="min-h-11 cursor-pointer py-3 leading-5 rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus text-ink-muted">{t("plan.request.show")}</summary>
                           <pre className="overflow-x-auto rounded-sm bg-paper p-2 font-mono text-[0.8125rem] text-ink" dir="ltr">
                             {JSON.stringify(p.request, null, 2)}
                           </pre>

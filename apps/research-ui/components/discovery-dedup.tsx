@@ -99,7 +99,7 @@ export function DiscoveryDedup({ locale }: Readonly<{ locale: Locale }>) {
                 </dd>
                 <dd>
                   <details className="text-xs">
-                    <summary className="min-h-11 cursor-pointer py-3 leading-5 text-ink-muted">{DETAILS_LABEL[locale]}</summary>
+                    <summary className="min-h-11 cursor-pointer py-3 leading-5 rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus text-ink-muted">{DETAILS_LABEL[locale]}</summary>
                     <p className="text-ink-muted" data-rate-written>
                       {t("dedup.rateWritten", { fraction: "" })}
                       <DataCell>{String(dedup.removed_rate)}</DataCell>

@@ -78,7 +78,7 @@ export function LegRow({ locale, leg, full }: Readonly<{ locale: Locale; leg: Le
           <>
             <p data-leg-error={leg.error_code ?? ""}>{leg.error_code && LEG_CODES.has(leg.error_code) ? t(`harvest.leg.code.${leg.error_code}` as DiscoveryCopyKey) : t("harvest.leg.failedNoCode")}</p>
             <details className="text-xs">
-              <summary className="min-h-11 cursor-pointer py-3 leading-5 text-ink-muted">{DETAILS_LABEL[locale]}</summary>
+              <summary className="min-h-11 cursor-pointer py-3 leading-5 rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus text-ink-muted">{DETAILS_LABEL[locale]}</summary>
               {leg.error_code ? (
                 <p className="font-mono text-blocked" dir="ltr">
                   {leg.error_code}
@@ -405,7 +405,7 @@ export function DiscoveryHarvest({ locale }: Readonly<{ locale: Locale }>) {
 
           {running ? (
             <div className="grid gap-6 lg:grid-cols-3">
-              <section className="space-y-4 rounded-lg border border-rule bg-leaf p-5 lg:col-span-2" data-live>
+              <section className="space-y-4 rounded-lg border border-rule bg-leaf p-5 min-w-0 lg:col-span-2" data-live>
                 {stream.legs.length ? <LegTable locale={locale} legs={stream.legs} /> : <p role="status">{t("harvest.reading")}</p>}
                 <Stages locale={locale} stages={stream.stages} />
               </section>
@@ -425,7 +425,7 @@ export function DiscoveryHarvest({ locale }: Readonly<{ locale: Locale }>) {
             </div>
           ) : !selected ? (
             <div className="grid gap-6 lg:grid-cols-3">
-              <section aria-labelledby="harvest-will" className="rounded-lg border border-rule bg-leaf p-5 lg:col-span-2">
+              <section aria-labelledby="harvest-will" className="rounded-lg border border-rule bg-leaf p-5 min-w-0 lg:col-span-2">
                 <h2 id="harvest-will" className="font-semibold text-ink">
                   {t("harvest.willSearch")}
                 </h2>
@@ -455,7 +455,7 @@ export function DiscoveryHarvest({ locale }: Readonly<{ locale: Locale }>) {
             <Loading locale={locale} />
           ) : (
             <div className="grid gap-6 lg:grid-cols-3">
-              <div className="space-y-4 lg:col-span-2">
+              <div className="space-y-4 min-w-0 lg:col-span-2">
                 {changed ? (
                   <p className="rounded-lg border border-rule bg-leaf p-3 text-ink" data-run-changed>
                     {t("harvest.changed")}

@@ -202,7 +202,7 @@ export function DiscoveryRecall({ locale }: Readonly<{ locale: Locale }>) {
           ) : null}
 
           <div className="grid gap-6 lg:grid-cols-3">
-            <div className="space-y-6 lg:col-span-2">
+            <div className="space-y-6 min-w-0 lg:col-span-2">
               {running ? (
                 <section className="rounded-lg border border-rule bg-leaf p-5" aria-live="polite" data-checking>
                   <h2 className="font-semibold text-ink">{t("recall.checking", { n: filled })}</h2>
@@ -294,7 +294,7 @@ export function DiscoveryRecall({ locale }: Readonly<{ locale: Locale }>) {
                             ) : null}
                             {leg.error ? (
                               <details className="text-xs">
-                                <summary className="min-h-11 cursor-pointer py-3 leading-5 text-ink-muted">{DETAILS_LABEL[locale]}</summary>
+                                <summary className="min-h-11 cursor-pointer py-3 leading-5 rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus text-ink-muted">{DETAILS_LABEL[locale]}</summary>
                                 <p dir="ltr">{leg.error}</p>
                               </details>
                             ) : null}

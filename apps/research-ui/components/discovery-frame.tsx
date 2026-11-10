@@ -223,7 +223,7 @@ export function RunSelector({
   if (!runs.length) return null;
   return (
     <details className="mt-3 text-sm" data-run-selector>
-      <summary className="min-h-11 cursor-pointer py-3 leading-5 text-ink">
+      <summary className="min-h-11 cursor-pointer py-3 leading-5 rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus text-ink">
         {t("run.label")}: <DataCell>{selected}</DataCell>
       </summary>
       <ul className="mt-1 space-y-1">

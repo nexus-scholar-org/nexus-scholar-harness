@@ -408,7 +408,7 @@ export function DiscoveryReport({ locale }: Readonly<{ locale: Locale }>) {
                 </div>
                 {methods.earlier_reviewed ? (
                   <details className="mt-4 text-sm" data-earlier-reviewed>
-                    <summary className="min-h-11 cursor-pointer py-3 leading-5 text-ink">
+                    <summary className="min-h-11 cursor-pointer py-3 leading-5 rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus text-ink">
                       {t("report.methods.earlier", { run: methods.earlier_reviewed.run, date: stamp(methods.earlier_reviewed.reviewed_at) })}
                     </summary>
                     <p className="whitespace-pre-wrap text-ink" dir="auto">
@@ -453,7 +453,7 @@ export function DiscoveryReport({ locale }: Readonly<{ locale: Locale }>) {
                 </p>
               </section>
               <details className="text-xs">
-                <summary className="min-h-11 cursor-pointer py-3 leading-5 text-ink-muted">{DETAILS_LABEL[locale]}</summary>
+                <summary className="min-h-11 cursor-pointer py-3 leading-5 rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus text-ink-muted">{DETAILS_LABEL[locale]}</summary>
                 <p className="text-ink-muted">
                   <DataCell>{report.shape}</DataCell>
                 </p>
