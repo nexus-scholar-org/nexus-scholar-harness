@@ -15,7 +15,7 @@ You are an expert academic research agent equipped with `scholar-search-kit`. Th
 - `{CLI:search} --help` resolves → else `BLOCKED_INPUT`.
 - `{WORKSPACE}` resolves — `protocol.json` for `--protocol`/screening commands; `literature/…` for export and handoff artifacts.
 - `{CONFIG}` present (the pin manifest).
-- `SCHOLAR_MAILTO` set (polite pool); `GEMINI_API_KEY` needed for `nexus_screen_llm` (`LLMBatchScreener`).
+- `SCHOLAR_MAILTO` set (required: a live search refuses `MAILTO_NOT_SET` without it) and `SCHOLAR_OPENALEX_KEY` set (OpenAlex requires a key since 2026-02-13; see the search section of `docs/kits_surface_matrix.md`); `GEMINI_API_KEY` needed for `nexus_screen_llm` (`LLMBatchScreener`).
 
 ## Refusals
 - `BLOCKED_INPUT` — a preflight requirement is missing (e.g. `protocol.json` absent where `--protocol` is required).
@@ -204,9 +204,13 @@ if __name__ == "__main__":
 
 ## Verified surface, MCP mapping & knowledge
 
-- **Provider defaults**: `SearchEngine(providers=None)` builds **all 6** providers; the
-  CLI search default is **5** (no bioRxiv); `compile_protocol_search` default DBs =
-  openalex, semanticscholar, crossref, arxiv. `search` CLI has no single-top-K — it
+- **Provider defaults** (known inconsistency, not fixed): `SearchEngine(providers=None)`
+  builds **5** providers (openalex, semanticscholar, crossref, arxiv, pubmed;
+  `engine.py:86-93`); the CLI search default and the browser plan are the same 5
+  (`cli.py:195-201`, `console/api/discovery.py:53`); `compile_protocol_search`
+  default DBs, the protocol model, recon and MCP `nexus_discover` use **4** (no
+  PubMed; `protocol_adapter.py:81-84`, `scholar_protocol/models.py:126-129`,
+  `recon/engine.py:32`). bioRxiv is never a default. `search` CLI has no single-top-K: it
   queries all providers and dedups.
 - **Dedup**: PID tier (doi/arxiv/pubmed/openalex/s2) → exact-normalized-title →
   fuzzy title ≥ 0.97 + year ±1 + first-author containment; a conflicting
@@ -218,13 +222,22 @@ if __name__ == "__main__":
   chars (`bidirectional_title_similarity`); Crossref `validate_reference` further
   requires relevance `score > 40`.
 - **Rate limits / env**: OpenAlex 10/s, Crossref 5/s, Semantic Scholar 1/s, PubMed 3/s,
-  arXiv/bioRxiv 1/s; Scopus/WebOfScience unsupported. Set `SCHOLAR_MAILTO` (polite pool),
-  `SCHOLAR_OPENALEX_KEY`, `SCHOLAR_S2_KEY`, `SCHOLAR_CACHE_DIR`. Client = httpx + hishel,
-  4 transport retries, 429 → 5 exponential retries, 30 s timeout, UA
-  `scholar-search-kit/0.1.0 (mailto:…)`.
-- **Per-provider exceptions are swallowed** — empty results (`{"total": 0, "documents": []}`)
-  are a *valid* outcome, not an error. Check provider-level errors, never assume the empty
-  list means "no network".
+  arXiv/bioRxiv 1/s (`config.py`, `arxiv.py:24`); Scopus/WebOfScience unsupported (import
+  their RIS exports instead). Set `SCHOLAR_MAILTO` (required), `SCHOLAR_OPENALEX_KEY`
+  (required by OpenAlex since 2026-02-13; the code still calls it optional),
+  `SCHOLAR_S2_KEY`, `SCHOLAR_CACHE_DIR`. Client = httpx + hishel, 4 transport retries,
+  429/5xx → 3 retries with backoff (`http_client.py:60, 105-130`), 30 s timeout, UA
+  `scholar-search-kit/0.1.0 (mailto:…)` (`http_client.py:74-76`; the version string is stale).
+- **Provider limits below our defaults** (from the repository's provider reference of 2026-11, cited in `docs/kits_surface_matrix.md`, not
+  fixed in code): Crossref list requests 3/s polite, 1/s public; arXiv one request every
+  3 s; OpenAlex `per_page` max 100 (we ask for 200). Expect 429 retries on long legs.
+- **Known bug, PubMed `[ab]`**: `providers/pubmed.py:33` maps the abstract field to `[ab]`,
+  which PubMed does not know; it silently searches all fields while the leg still shows
+  `[ab]`. Treat abstract-scoped PubMed terms as all-fields until `[tiab]` lands.
+- **Provider failures are on the leg**: a failed provider leg carries `error` and
+  `error_code` (`PROVIDER_RATE_LIMITED`, `PROVIDER_TIMEOUT`, `PROVIDER_UNAVAILABLE`,
+  `PROVIDER_REFUSED`; `engine.py:55-75`). Empty results with no error are a valid
+  outcome; read the legs, never assume the empty list means "no network".
 - **Snowball sandbox**: caps depth 5 / max 500 / 2000 docs; CLI `chain` defaults
   depth 1 / 200 / 500 backward.
 - **MCP tools** (subset of the full CLI/API surface — no full provider parity):

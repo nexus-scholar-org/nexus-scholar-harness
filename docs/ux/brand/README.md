@@ -3,7 +3,7 @@
 The visual identity for Nexus Scholar, built fresh from the Phase 0 to Phase 4 wireframes and
 their UX reviews (`docs/ux/phase*/`). It replaces the grey wireframe look.
 
-Status: **proposal**, first version, no logo yet. Not yet applied to any canvas or to `apps/research-ui`.
+Status: first version, no logo yet. Written as a **proposal**; adopted as the design system on 2026-11-03 (plan §3, `docs/decisions.md`) and applied to `apps/research-ui` in M0 (PR #185): `docs/ux/brand/tokens.json` is generated into `apps/research-ui/app/theme.css`. The final-spec canvases under `docs/ux/*/final/project/` use it.
 
 ## Where things are
 

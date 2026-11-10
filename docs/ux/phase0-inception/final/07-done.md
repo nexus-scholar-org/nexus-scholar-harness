@@ -1,4 +1,4 @@
-# 07 Done and hand-off    Status: FINAL | Phase 0 Inception | Route `/[locale]/inception/done?draft=rec_<32 hex>` (desktop only) | Milestone M4b
+# 07 Done and hand-off    Status: FINAL, built (M4b, PR #209) | Phase 0 Inception | Route `/[locale]/inception/done?draft=rec_<32 hex>` (desktop only) | Milestone M4b
 
 Boards: `Done` (D8, `docs/ux/phase0-inception/final/project/Done.dc.html`). Contract: `docs/architecture/inception-api.md` (genesis), `docs/architecture/workspaces-api.md` §3 and §4 (`POST /workspaces/open`, the restart). Code: `src/scholar_harness/console/api/inception.py:122` (genesis stores `emitted`), `src/scholar_harness/inception/drafts.py:95` (`mark_emitted`), `src/scholar_harness/console/api/workspaces.py:61` (open), `apps/research-ui/components/workspaces-screen.tsx:312-339` (the open-and-wait loop to reuse). The shared draft rules are in 01 "Shared by 01, 04, 05, 06 and 07".
 

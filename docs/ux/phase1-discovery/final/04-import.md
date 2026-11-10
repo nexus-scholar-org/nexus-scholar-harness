@@ -1,4 +1,4 @@
-# 04 Import    Status: FINAL | Phase 1 Discovery | Route `/[locale]/screening/import?return=discovery` (the existing screen; write actions desktop only) | Milestone M3c-screens (an addendum to the built M5b screen, over the M3d-engine items)
+# 04 Import    Status: FINAL, built (M3c-screens, PR #216) | Phase 1 Discovery | Route `/[locale]/screening/import?return=discovery` (the existing screen; write actions desktop only) | Milestone M3c-screens (an addendum to the built M5b screen, over the M3d-engine items)
 
 **This spec is an addendum.** The screen is built and specified in `docs/ux/phase2-screening/final/11-import-corpus.md` (M5b, with M5c-nbib's PubMed `.nbib`), implemented in `apps/research-ui/components/screening-import.tsx`. Everything in 11 stands (states, layout, the accept dialog, keyboard, accessibility, refusals, decisions of 2026-11-06). This page lists **only what discovery adds**. Where this page and 11 differ, this page wins for the discovery visit.
 

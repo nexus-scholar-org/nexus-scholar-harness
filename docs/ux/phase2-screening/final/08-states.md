@@ -1,4 +1,4 @@
-# 08 States and recovery    Status: FINAL | Phase 2 Screening | Route: inline cards on 01-09 plus `/screening/issues` | Milestone M1a (typed refusals) + M1b (UI)
+# 08 States and recovery    Status: FINAL; inline cards built (M1b-1), `/screening/issues` not built | Phase 2 Screening | Route: inline cards on 01-09 plus `/screening/issues` | Milestone M1a (typed refusals) + M1b (UI)
 
 Board: `States` (D7, nine cards). Contract: `screening-api-contract.md` §4, §7. Code check: `src/` grepped for each existing code.
 

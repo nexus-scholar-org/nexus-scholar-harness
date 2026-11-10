@@ -6,7 +6,7 @@
 > **Regenerate:** re-run the sweep when kit APIs/CLIs change; skill content mirrors this
 > matrix and is synced to the plugin bundle by `scripts/sync_skills_bundle.py`.
 
-> **Parked, not production (M5-slim, production plan §8).** Version 1.0 ships
+> **Parked, not production (M5-slim, production plan §8).** The beta ships
 > **screening** (import → prepare → screen → publish, with optional agent
 > proposals). The retrieval and synthesis kit (`scholar_rag`), the citation
 > graph (`scholar_graph`), verification and trust (`scholar_verify`) and full
@@ -167,7 +167,8 @@ latent bug**, with the working path in parentheses.
 ## Per-kit surface
 
 ### scholar-search-kit
-- **Public API (importable from root):** `SearchEngine(providers=None)` (defaults 6),
+- **Re-checked 2026-11-10** against `main` and [`docs/kits/search/PROVIDERS_2026-11.md`](kits/search/PROVIDERS_2026-11.md) (the provider reference: limits, what the code sends, hardening candidates). The bullets below were corrected where they had drifted.
+- **Public API (importable from root):** `SearchEngine(providers=None)` (defaults 5: openalex, semanticscholar, crossref, arxiv, pubmed; `engine.py:86-93`),
   `Deduplicator.deduplicate(docs) -> list[DocumentCluster]` (SCI-`%06d` ids),
   `DocumentVerifier`, `CitationChainer.chain(…)`, `evaluate_heuristic_screening`,
   `partition_screening_results`, `reconcile_multi_screener_decisions`,
@@ -176,21 +177,43 @@ latent bug**, with the working path in parentheses.
   `scholar_search.models` (docs/skills that import them from root are wrong).
 - **CLI:** search / snowball / chain / import / dedup / verify / export / screen.
   `screen` needs `--input` + `--protocol`; `dedup` has only `--output/--format`
-  (no `--export/--csv-output`). `search` CLI default = 5 providers (no bioRxiv);
-  protocol search default DBs = openalex/semanticscholar/crossref/arxiv.
-- **MCP:** `nexus_discover` hardcodes 4 providers (no PubMed/bioRxiv), `dedup=True`
+  (no `--export/--csv-output`). `search` CLI default = 5 providers (no bioRxiv,
+  `cli.py:195-201`); protocol search default DBs = openalex/semanticscholar/crossref/arxiv
+  (`protocol_adapter.py:81-84`, `scholar_protocol/models.py:126-129`; the CLI's
+  protocol path falls back to the same four, `cli.py:187-193`).
+  **Known inconsistency:** the engine, `plan.py:26` and the browser plan
+  (`console/api/discovery.py:53`) default to five with PubMed; the protocol model,
+  the protocol adapter, recon (`recon/engine.py:32`) and MCP `nexus_discover` default
+  to four. A protocol without `target_databases` therefore runs four databases while
+  the browser and a plain CLI search run five. Not fixed.
+- **Known bug, PubMed `[ab]`:** `providers/pubmed.py:33` maps the abstract field to
+  `[ab]`, which is not a PubMed field tag; PubMed silently searches all fields and the
+  leg's executed query still shows `[ab]`. `[tiab]` is the planned fix. Not fixed.
+- **MCP:** `nexus_discover` hardcodes 4 providers (no PubMed/bioRxiv, `scholar_agent/server.py:510-515`), `dedup=True`
   forced, writes CWD-relative `.cache/mcp/discover_<slug>_<ts>.json`; `nexus_dedup`
   JSON-only; `nexus_screen` (see finding 8); `nexus_screen_reconcile` (screener-id
   keyed from file stem).
-- **Knowledge:** env `SCHOLAR_MAILTO` (polite pool), `SCHOLAR_OPENALEX_KEY`,
-  `SCHOLAR_S2_KEY`, `SCHOLAR_CACHE_DIR`; rate limits OA 10/s · CR 5/s · S2 1/s ·
-  PubMed 3/s (arXiv/bioRxiv 1/s); client = httpx+hishel, 4 transport retries, 429→
-  5 exponential retries, 30 s timeout, user-agent `scholar-search-kit/0.1.0 (mailto:…)`;
+- **Knowledge:** env `SCHOLAR_MAILTO` (required: no default, a live search refuses
+  `MAILTO_NOT_SET`, `config.py:12-17`, `engine.py:35-44`), `SCHOLAR_OPENALEX_KEY`
+  (required in practice: OpenAlex made keys mandatory on 2026-02-13; keyless calls share
+  a small per-IP daily budget and, per the OpenAlex docs, cursor paging past page one answers 401; the code
+  still labels the key optional, `config.py:20-22`, and still sends `mailto`, which
+  OpenAlex no longer uses), `SCHOLAR_S2_KEY`, `SCHOLAR_CACHE_DIR`, `SCHOLAR_HTTP_CACHE`;
+  rate limits OA 10/s · CR 5/s · S2 1/s · PubMed 3/s (arXiv/bioRxiv 1/s).
+  **Provider limits now below ours:** Crossref list requests are 3/s polite, 1/s
+  public (since 2026-07-21; `config.py:46-48` sends 5/s); arXiv asks for one request
+  every 3 s. OpenAlex `per_page` max is 100 (200 deprecated; `openalex.py:160, 266, 297`
+  ask for 200). Client = httpx+hishel, 4 transport retries, 429/5xx →
+  3 retries with backoff (`http_client.py:60, 105-130`), 30 s timeout, user-agent
+  `scholar-search-kit/0.1.0 (mailto:…)` (`http_client.py:74-76`; the version string is
+  stale, the package is `nexus-scholar` 1.1.0b5);
   dedup = PID tier → exact-normalized-title tier → fuzzy 0.97 / year±1 / first-author
   containment; verifier thresholds ≥0.90 bidirectional or ≥12-char containment
   (Crossref validate score > 40 + OpenAlex); snowball sandbox caps depth 5/500/2000,
-  CLI `chain` defaults depth 1/200/500 backward; per-provider exceptions are
-  **swallowed** (empty results ≠ error).
+  CLI `chain` defaults depth 1/200/500 backward. A provider failure is recorded on
+  its search leg with `error_code` (`PROVIDER_RATE_LIMITED`, `PROVIDER_TIMEOUT`,
+  `PROVIDER_UNAVAILABLE`, `PROVIDER_REFUSED`; `engine.py:55-75, 172-175`) since M3b-api,
+  rather than swallowed.
 
 ### scholar-pdf-kit
 - **Public API:** `AsyncPDFDownloader(output_dir, use_smart_names, proxy_url, …)`
@@ -483,15 +506,14 @@ scholar-agent-kit ──adapter import──► scholar_harness.recon.adapter (g
 
 | Scope | Variable (default) | Kit |
 | :-- | :-- | :-- |
-| Polite pool / keys | `SCHOLAR_MAILTO`, `SCHOLAR_OPENALEX_KEY`, `SCHOLAR_S2_KEY` | search |
+| Polite pool / keys | `SCHOLAR_MAILTO` (required, no default), `SCHOLAR_OPENALEX_KEY` (required by OpenAlex since 2026-02-13; the code still calls it optional), `SCHOLAR_S2_KEY`. No NCBI key setting exists. | search |
 | Cache | `SCHOLAR_CACHE_DIR` (`.cache`, hishel TTL 30d unused) | search |
 | PDF | `MAILTO`, `DOWNLOAD_DIR`, `MAX_CONCURRENT_DOWNLOADS`, `DOWNLOAD_TIMEOUT`, `PROXY_URL`, `PROXY_STYLE`, `PDF_STRUCTURAL_VALIDATION`, `ENABLE_PUBLISHER_DIRECT_PATTERNS` | pdf |
 | Embedder | `OPENAI_API_KEY` | rag |
 | MCP/harness | `NEXUS_RECON_ROOT`, `NEXUS_SKILLS_SRC`, `NEXUS_MCP_CONFIG_HOME` (P7.4 `setup-mcp` config root override, mirrors `NEXUS_RECON_ROOT`) | agent/harness |
 | LLM screening | `GEMINI_API_KEY` | search (`LLMBatchScreener`) |
 
-Known pins: protocol `1.0.0`; all other kits `0.1.0` (Phase-7 doc's `>=0.2.0`
-requirement unsatisfiable today); bibtexparser `2.0.0b9` **beta**; chromadb `1.5.9`;
+Known pins (2026-11-10): there are no per-kit versions any more; every package ships in the one `nexus-scholar` wheel, version `1.1.0b5` (`pyproject.toml:7`). `.agents/plugins/nexus-scholar/plugins.json` carries no `default_rev` pins, so the `default_rev` sentence below is history. Third-party pins as last swept (2026-09-13, not re-checked): bibtexparser `2.0.0b9` **beta**; chromadb `1.5.9`;
 sentence-transformers `6.0.0`; networkx `3.6.1`; mcp `2.1.1` (agent kit);
 pymupdf `1.28.2` (`import fitz`); docling `2.123.0` (only with `[extract]` extra);
 `plugins.json` lists all 7 kits to `default_rev` full commit SHAs (freshness enforced by

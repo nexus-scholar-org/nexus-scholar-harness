@@ -20,9 +20,11 @@ to production:
 - **Phase 2, Screening:** a human decides include, exclude or unclear for each
   record, on desktop or phone, with full provenance.
 
-**Screening comes first** and is what ships at week 6. Discovery is stretch, and
-the web Inception wizard comes after the two months; until then inception runs
-through the CLI and MCP, labelled beta. Everything else (synthesis, graph, RAG,
+**Screening comes first** and is what ships at week 6. Discovery was stretch, and
+the web Inception wizard was planned for after the two months. Both were built
+anyway: as of 2026-11-10, browser inception (M4a to M4c) and browser discovery
+(M3a to M3d) are on `main`, and the planned next work is in
+[`production-plan.md`](production-plan.md) §6. Everything else (synthesis, graph, RAG,
 risk of bias) is parked and labelled "not production" rather than removed.
 
 Principles that shape every decision:
@@ -44,6 +46,11 @@ Principles that shape every decision:
 | M5-slim Package | 6 | Installable wheel serving the UI, decision export, methods paragraph. **The gate:** a real end-to-end screening run on the golden UAV workspace |
 | M3 Discovery | 7–8 | Stretch |
 
+That was the plan of 2026-11-03. What happened: M0 to M1b-2, M5-slim, M5b,
+M6-beta, M6-hardening, M7, M7b, M8, M3a to M3d and M4a to M4c are merged (PRs
+#183 to #216, 2026-11-04 to 2026-11-10); M2, the phone, is not started. Plan §6
+has each milestone's PR and the planned rows.
+
 M1a and M1b meet at a written API contract with shared test fixtures, so the
 backend and the UI can be built at the same time by two people.
 
@@ -62,7 +69,8 @@ backend and the UI can be built at the same time by two people.
 4. [`../architecture/screening-api-contract.md`](../architecture/screening-api-contract.md):
    the boundary between engine and UI. Decision events, every endpoint,
    refusal codes, shared fixtures, and the decisions in §9.
-5. Screen specs, all FINAL, in
+5. Screen specs, all FINAL (each Status line says what is built; the phone
+   parts are M2 and not built), in
    [`../ux/phase2-screening/final/`](../ux/phase2-screening/final/):
    [01 home](../ux/phase2-screening/final/01-screening-home.md),
    [02 prepare](../ux/phase2-screening/final/02-prepare.md),

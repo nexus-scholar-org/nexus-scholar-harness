@@ -1,4 +1,4 @@
-# 04 Shape    Status: FINAL | Phase 0 Inception | Route `/[locale]/inception/shape?draft=rec_<32 hex>` (desktop only) | Milestone M4b
+# 04 Shape    Status: FINAL, built (M4b, PR #209) | Phase 0 Inception | Route `/[locale]/inception/shape?draft=rec_<32 hex>` (desktop only) | Milestone M4b
 
 Boards: `Shape` (D5, `docs/ux/phase0-inception/final/project/Shape.dc.html`). No dedicated mobile board; `MobileScope` sets the narrow pattern. Contract: `docs/architecture/inception-api.md` (Steps: `scope`, `shape`). Code: `src/scholar_harness/inception/steps.py` (`_scope` `:165`, `_shape` `:177`, `_require` `:123`), `src/scholar_harness/inception/intent.py` (`PARADIGM_PROFILE`, `ALL_PLAYBOOKS` `:43`, `TRUSTWORTHINESS_FRAMEWORK` `:52`, `detect_leanings` `:119`, `enforce_lexicon` `:137`, `draft_rq` `:234`). The load/save protocol, the stepper, the proposal-card styling, conflict handling and the phone rule are in 01 "Shared by 01, 04, 05, 06 and 07".
 

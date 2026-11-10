@@ -1,19 +1,28 @@
 # Phase 5 — Specifications (Harness Console)
 
-> **Status:** Planning | **Version:** 1.0.0 (PipelineSpec schema `0.1.0`) | The companion design docs (README/BLUEPRINT/PLAN) were archived in the 2026-10-12 consolidation; this file is the live contract.
+> **Status:** Built and in use (checked against `main` on 2026-11-10) | **Version:** 1.0.0 (PipelineSpec schema `0.1.0`) | The companion design docs (README/BLUEPRINT/PLAN) were archived in the 2026-10-12 consolidation. §1, §2, §3.0 and §9 describe the console as it is; §3's seed table and §4 to §8 are the original Phase 5 design, kept for the parts that still hold. The routes the screens use are specified in [`screening-api-contract.md`](../screening-api-contract.md), [`workspaces-api.md`](../workspaces-api.md), [`inception-api.md`](../inception-api.md) and [`research_ui/DISCOVERY_API_PACKET.md`](../research_ui/DISCOVERY_API_PACKET.md).
 
-## 1. Console package layout (target)
+## 1. Console package layout
 
 ```
 src/scholar_harness/console/
 ├── __init__.py
-├── serve.py                 # `scholar-harness serve` entry (FastAPI app factory)
+├── serve.py                 # create_app: FastAPI factory, token, TrustedHost, origin checks
+├── browser.py               # the packaged app's browser surface: launch code, cookie, allowlist
+├── launcher.py              # `nexus-scholar ui`: static UI + engine, workspace switching
+├── refusals.py              # the console refusal set (contract §7)
 ├── api/
 │   ├── workspace.py         # GET reads over canonical files
+│   ├── workspaces.py        # list, create, open (M5-slim)
+│   ├── inception.py         # drafts, steps, preview, genesis (M4a)
+│   ├── recon.py             # recon over HTTP (M4c)
+│   ├── discovery.py         # plan, runs, recall, report, dedup, hand-off (M3b-api, M3d-engine)
 │   ├── jobs.py              # POST/GET jobs, SSE stream
-│   ├── screening.py         # batch list + decisions writer
+│   ├── screening.py         # batch list, decisions writer, pairing, defer, publish
+│   ├── screening_v1.py      # the screening API (M1a onward)
 │   ├── pipelines.py         # PipelineSpec CRUD + dry-run
-│   └── audit.py             # journal reads + event POST
+│   ├── audit.py             # event POST
+│   └── streams.py           # /api/v1/events/tick
 └── runtimes/
     ├── job_runner.py        # asyncio subprocess wrapper
     └── actions.py           # Action → [command] mapping table (single source)
@@ -31,11 +40,37 @@ Runtime dir (never committed): `<workspace>/.harness-console/{jobs,pid,log}`.
 uv run scholar-harness serve --workspace <path> [--port 8765] [--host 127.0.0.1]
 ```
 
-- Default bind is loopback. `--host 0.0.0.0` prints a prominent exposure warning.
-- Reads `settings`/env exactly like the kits: API keys come from the environment, never via UI.
-- Serves `/api/v1/*` → JSON; `/api/v1/jobs/{id}/stream` and `/api/v1/events/tick` → SSE (`text/event-stream`); `/healthz` → liveness. `/` and `/static/*` are `404` (no bundled UI).
+- Default bind is loopback. `--host 0.0.0.0` prints a prominent exposure warning. (Superseded by INC-01, M0: `serve` refuses any host outside `127.0.0.1`, `localhost`, `::1`; `cli.py` `serve`.)
+- Every route except `/healthz` needs `Authorization: Bearer <token>`. The token is `NEXUS_CONSOLE_TOKEN` when set, else generated and printed once (`cli.py` `serve`, `serve.py` `create_app`). Hosts outside the loopback list answer `HOST_REFUSED`; a write from a foreign origin answers `ACTION_ORIGIN_REFUSED`.
+- Reads `settings`/env exactly like the kits: API keys come from the environment (or the OS keychain for the screening drivers, `nexus-scholar keys`), never via UI.
+- Serves `/api/v1/*` → JSON; SSE (`text/event-stream`) on `/api/v1/jobs/{id}/stream`, `/api/v1/events/tick`, `/api/v1/inception/drafts/{id}/recon/jobs/{job}/events` and `/api/v1/discovery/jobs/{job}/events`; `/healthz` → liveness. `serve` bundles no UI.
+- **`nexus-scholar ui`** (M5-slim) is the researcher's entry point: one process on `127.0.0.1` (port 8770 by default) serves the static export of `apps/research-ui` and the same API, opens the browser through a one-time `/launch?code=` link that sets an HttpOnly session cookie, and can switch workspaces (`--workspace`, `--root`). The browser calls `/api/console/api/v1/...`, checked by `console/browser.py` (§9).
 
-## 3. HTTP API (seed surface, M5.1→M5.3)
+## 3. HTTP API
+
+### 3.0 Routers mounted today (2026-11-10)
+
+From `@router.` in `src/scholar_harness/console/api/*.py` and `include_router` in `serve.py`:
+
+| Router (file) | Prefix | Routes | Specified in |
+| :-- | :-- | :-- | :-- |
+| `workspace.py` | `/api/v1` | GET `workspace/meta`, `workspace/status`, `literature/candidates`, `literature/included`, `literature/excluded`, `screening/batches`, `screening/batch/{n}`, `synthesis`, `synthesis/{filename}`, `phase4`, `phase4/{filename}`, `harvest/corpus`, `assets/graph`, `audit/events`, `agents/actions`, `ui/corpus/{kind}`, `ui/publication-status`, `ui/publication/outputs/{name}`, `ui/lineage` | this file §3, UI-07 specs |
+| `workspaces.py` | `/api/v1` | GET `workspaces`; POST `workspaces`, `workspaces/open` | `workspaces-api.md` |
+| `inception.py` | `/api/v1/inception` | GET/POST `drafts`; GET/PUT/DELETE `drafts/{id}`; POST `steps/{step}`, `preview`, `drafts/{id}/genesis` | `inception-api.md` |
+| `recon.py` | `/api/v1/inception/drafts/{id}/recon` | GET `` (the state), `jobs/{job}`, `jobs/{job}/events`, `directions`; POST `probe`, `delta`, `distill`, `bind` | `inception-api.md` |
+| `discovery.py` | `/api/v1/discovery` | GET `plan`, `runs`, `runs/{run}`, `runs/{run}/report`, `dedup`, `report`, `handoff`, `recall`, `jobs/{job}`, `jobs/{job}/events`; PUT `report/methods`; POST `runs`, `recall`, `jobs/{job}/cancel` | `DISCOVERY_API_PACKET.md` |
+| `screening_v1.py` | `/api/v1/screening` | GET `summary`, `queue`, `records/{id}`, `records/{id}/proposal`, `decisions/conflicts`, `settings`, `approver`, `corpus`, `prisma/preview`, `export`, `methods`, `proposals/setup`, `proposals/runs/{id}`, `agreement`; PUT `settings`, `approver`; POST `decisions/events`, `decisions/conflicts/{id}/resolve`, `corpus/sources`, `corpus/sources/{id}/remove`, `corpus/accept`, `prepare`, `actions/pairing/begin`, `proposals/runs`, `proposals/runs/{id}/cancel`, `proposals/calibrations` | `screening-api-contract.md` §4 |
+| `screening.py` | `/api/v1/screening` | POST `batch/{n}/decisions`, `actions/pairing/redeem`, `actions/defer`, `actions/publish`; GET `ui/batches`, `ui/batch/{n}/review`, `actions/pairing/status` | `screening-api-contract.md` §4, UI-07 |
+| `jobs.py` | `/api/v1/jobs` | POST `start`, `{id}/cancel`; GET ``, `{id}`, `{id}/stream` | this file §6 |
+| `pipelines.py` | `/api/v1/pipelines` | GET ``, `{id}`, `{id}/export`; POST ``, `{id}/dry-run` | this file §4 |
+| `audit.py` | `/api/v1/audit` | POST `events` | this file §3 |
+| `streams.py` | `/api/v1/events` | GET `tick` | this file §8 |
+
+Four `/api/v1` routes that no caller used were removed in M6-hardening (PR #200; see `screening-api-contract.md` §4). The phone LAN routes (`/lan/pair`, `/lan/session/*`) are M2 and not built.
+
+### 3.1 Seed surface (M5.1 to M5.3, the original design)
+
+The table below is the original seed design. Where it differs from §3.0, §3.0 is what the code serves (for example jobs start at `POST /api/v1/jobs/start`, and a job's SSE is `/api/v1/jobs/{id}/stream`).
 
 All responses return the canonical file contents or 404 with the missing relative path. No cursor/pagination for v1 lists beyond `limit`/`offset`.
 
@@ -212,9 +247,44 @@ visible:
 | Audit | `/[locale]/audit` | UI-06 |
 | Job control / pipeline builder | **API only** (`/jobs`, `/pipelines`) — deliberately not browser-driven | — |
 
+The routes in that table are history: the demonstration screens were removed on
+2026-11-05 (`docs/decisions.md`). The Research UI routes on `main` (2026-11-10,
+`apps/research-ui/app/[locale]/`) are:
+
+| Phase | Routes | Built in |
+| :-- | :-- | :-- |
+| Workspaces | `/workspaces` (`/[locale]` forwards there) | M5-slim |
+| 0 Inception | `/inception` (drafts), `/inception/scope`, `/inception/shape`, `/inception/criteria`, `/inception/review`, `/inception/done`. Explore and Direction have specs but no route | M4b |
+| 1 Discovery | `/discovery`, `/discovery/plan`, `/discovery/recall`, `/discovery/harvest`, `/discovery/dedup`, `/discovery/report`, `/discovery/handoff`; Import is `/screening/import?return=discovery` | M3c-screens |
+| 2 Screening | `/screening` (forwards to home), `/screening/home`, `/screening/import`, `/screening/prepare`, `/screening/triage`, `/screening/proposals`, `/screening/agreement`, `/screening/publish`, `/screening/export` | M1b-1 to M8-triage |
+
+Job control and the pipeline builder stay API only.
+
+**Browser allowlists.** Two lists carry the same rules and are kept equal by
+tests: the development proxy (`apps/research-ui/app/api/console/[...path]/route.ts`,
+pinned by `apps/research-ui/tests/console-proxy.test.ts`) and the packaged
+app's browser surface (`src/scholar_harness/console/browser.py`, pinned by
+`tests/console/test_browser_access.py`). GET and HEAD reach any `/api/v1/...`
+path of plain segments. POST reaches only: screening `batch/{n}/decisions`,
+`actions/pairing/(begin|redeem)`, `actions/defer`, `actions/publish`,
+`decisions/events`, `decisions/conflicts/{id}/resolve`, `prepare`,
+`corpus/(sources|accept)`, `corpus/sources/{id}/remove`,
+`proposals/(runs|calibrations)`, `proposals/runs/{id}/cancel`; `workspaces` and
+`workspaces/open`; inception `drafts`, `preview`, `steps/(scope|shape|criteria|matrix)`,
+`drafts/{id}/genesis`, `drafts/{id}/recon/(probe|delta|distill|bind)`;
+discovery `runs`, `recall`, `jobs/{id}/cancel`. PUT reaches only screening
+`settings` and `approver`, `inception/drafts/{id}` and `discovery/report/methods`.
+DELETE (for example discarding an inception draft), `/jobs/start`, `/pipelines`
+POST and `/audit/events` POST are refused (`CONSOLE_METHOD_REFUSED`). Writes are
+accepted only from the app's own origin, and the proposal read (which records a
+reveal) only from the app's own pages.
+
 No UI code remains in this package. Do not re-add a bundled SPA here: the UI's
 transport rules (loopback-only upstream, path + method allowlist, streamed SSE,
 GET-only CORS) are pinned in `apps/research-ui/tests/console-proxy.test.ts`.
+In the packaged app, `create_app` is given the static export's folder
+(`serve.py` `_UIFiles`) and `launcher.py` starts it; the export is built from
+`apps/research-ui`, not kept here.
 
 ## 10. Acceptance matrix (hermetic tests)
 

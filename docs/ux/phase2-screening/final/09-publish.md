@@ -1,4 +1,4 @@
-# 09 Publish, approval and phone pairing    Status: FINAL | Phase 2 Screening | Route `/screening/publish`; phone `/screening/connect` | Milestone M0 (redeem path fix) + M1a (preview, pairing begin) + M1b (UI) + M2 (`/lan/pair`, phone)
+# 09 Publish, approval and phone pairing    Status: FINAL; desktop publish built (M1b-1), phone pairing not built (M2) | Phase 2 Screening | Route `/screening/publish`; phone `/screening/connect` | Milestone M0 (redeem path fix) + M1a (preview, pairing begin) + M1b (UI) + M2 (`/lan/pair`, phone)
 
 Boards: `Publish` (D8), `MobilePair` (M2), `MobileApprove` (M7). Contract: `screening-api-contract.md` §4, §6.
 

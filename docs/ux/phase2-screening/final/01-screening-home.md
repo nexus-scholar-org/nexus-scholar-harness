@@ -1,4 +1,4 @@
-# 01 Screening home    Status: FINAL | Phase 2 Screening | Route `/screening` (desktop), `/screening` ≤ 640 px (phone home) | Milestone M1a (backend) + M1b (UI) + M2 (phone)
+# 01 Screening home    Status: FINAL; desktop built (M1b-1), phone home not built (M2) | Phase 2 Screening | Route `/screening` (desktop), `/screening` ≤ 640 px (phone home) | Milestone M1a (backend) + M1b (UI) + M2 (phone)
 
 Boards: `Main` (D1), `MobileHome` (M1), `MobilePair` (M2, entry from the QR). Contract: `docs/architecture/screening-api-contract.md` (authoritative).
 

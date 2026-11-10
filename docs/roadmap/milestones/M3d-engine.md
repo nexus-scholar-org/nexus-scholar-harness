@@ -1,5 +1,5 @@
 # M3d-engine Discovery engine items
-Branch: `dev/m3d-engine/engine-items` · Lane: **STANDARD** (packet §7; what the corpus snapshot is built from is unchanged, only *when* a browser run builds it; `generate_contract_baseline.py --check` at every commit) · Status: READY FOR PR · Started: 2026-11-10
+Branch: `dev/m3d-engine/engine-items` · Lane: **STANDARD** (packet §7; what the corpus snapshot is built from is unchanged, only *when* a browser run builds it; `generate_contract_baseline.py --check` at every commit) · Status: MERGED (PR #215, b6643a0, 2026-11-10) · Started: 2026-11-10
 
 Why: M3b-api (PR #214) shipped the discovery routes and deferred four engine items to this milestone: the researcher's decision of 2026-11-10 "A browser harvest does not freeze the corpus; the hand-off screen does", and the packet's E1, E3 and E4a ([`DISCOVERY_API_PACKET.md`](../../architecture/research_ui/DISCOVERY_API_PACKET.md) §4.1, §4.4, §4.5, §7). No UI work.
 

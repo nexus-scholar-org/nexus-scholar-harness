@@ -130,6 +130,8 @@ M = milestone; ✓ = route exists today.
 | `POST /lan/pair` | phone pairing | `{one_time_token}` → sets the phone session cookie. The one-time token lasts 2 minutes and works once. The phone session ends at the first of: `POST /lan/session/stop`, the desktop `nexus-scholar ui` process stopping, or 12 hours. Expired or reused tokens are refused | LAN sub-app only | M2 |
 | `GET /ui/batches`, `/ui/batch/{n}/review` ✓ | existing reads | kept; the new screens use `/queue` and `/records`. `/ui/batch/{n}/rows`, `/criterion-refs`, `/ui/audit-feed` and `/ui/project-summary` were removed in M6-hardening (no caller) | desktop | — |
 
+**Note on `mode` (2026-11-10, informational; the contract above is unchanged).** The setting `mode: "ai_agreed_exclusion"` exists in name only: no code reads it, so it changes nothing in the queue or the intake; it is only reported in the methods paragraph (`screening/export.py`). The researcher decided on 2026-11-10 to replace it with the modes of the [agent autonomy ladder](agent_autonomy_ladder.md) (§3, §6). That replacement is a contract change planned as M9b-ladder-engine; until it lands, this table is what the engine answers.
+
 **Errors.** Every route answers a refusal as HTTP 4xx with `{"detail": {"code": "<CODE>", "message": "…", "retryable": false, "details": {…}}}`, the shape the existing actions already use (for example `ACTION_ORIGIN_REFUSED` in `tests/console/test_screening_actions.py`). **Pagination** is cursor-based and opaque to the client.
 
 ## 5. Proposals as the UI sees them

@@ -1,5 +1,5 @@
 # M3c-screens Discovery screens
-Branch: `dev/m3c/discovery-screens` · Lane: **STANDARD** (packet §7: a UI over routes M3b-api and M3d-engine shipped; no engine or contract change; `generate_contract_baseline.py --check` at every commit) · Status: READY FOR PR · Started: 2026-11-10
+Branch: `dev/m3c/discovery-screens` · Lane: **STANDARD** (packet §7: a UI over routes M3b-api and M3d-engine shipped; no engine or contract change; `generate_contract_baseline.py --check` at every commit) · Status: MERGED (PR #216, 90406db, 2026-11-10) · Started: 2026-11-10
 
 Why: plan §2 Phase 1 lists the discovery screens 01–08 and plan §6 M3 their specs. M3b-api (PR #214) and M3d-engine (PR #215) put the routes on `main` ([`DISCOVERY_API_PACKET.md`](../../architecture/research_ui/DISCOVERY_API_PACKET.md) §4, decisions §6, split §7). This milestone writes the eight specs against those routes and builds the screens, as M4b did for inception.
 

@@ -1,4 +1,4 @@
-# 02 Recall check    Status: FINAL | Phase 1 Discovery | Route `/[locale]/discovery/recall` (desktop only) | Milestone M3c-screens (browser screens over the M3b-api routes)
+# 02 Recall check    Status: FINAL, built (M3c-screens, PR #216) | Phase 1 Discovery | Route `/[locale]/discovery/recall` (desktop only) | Milestone M3c-screens (browser screens over the M3b-api routes)
 
 Boards: `Recall` (D2, `docs/ux/phase1-discovery/final/project/Recall.dc.html`); no phone board (see Mobile layout). Contract: `docs/architecture/research_ui/DISCOVERY_API_PACKET.md` §4.2, §4.7, §6 decisions 3 and 5. Records: `docs/roadmap/milestones/M3b-api.md` decision 10 (recall details), decision 11 (thinned leg events); `M3d-engine.md`. Code: `src/scholar_harness/console/api/discovery.py` (`POST /discovery/recall` at `:798`, `GET /discovery/recall` at `:840`, jobs at `:855`, `:864`, `:887`), `SearchLeg` at `src/scholar_search/models.py:194`. Shared rules: **01-plan.md "Shared by 01–08"** (step bar, `?console=`, run selector, job streams, refusals, hard rules). Brand: `docs/ux/brand/BRAND_BOOK.md`, `tokens.json`.
 

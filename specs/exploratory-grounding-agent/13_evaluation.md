@@ -1,6 +1,6 @@
 # 13 — Evaluation Framework (ReconBench + measurable gates)
 
-> **Status:** Proposed measurement contract. The cheap gates are M0.7 implementation candidates (see `08_milestones.md` M0.7 stub); ReconBench is a later benchmark effort.
+> **Status:** Historical: the series is complete (`specs/README.md`, label of 2026-11-10). As written: Proposed measurement contract. The cheap gates are M0.7 implementation candidates (see `08_milestones.md` M0.7 stub); ReconBench is a later benchmark effort.
 > **Date:** 2026-09-13 · **Origin:** distilled from `temp_brainstorming.md` (retired) and aligned with `11_honest_review.md` (P1–P3).
 > **Extends:** `11_honest_review.md`, `08_milestones.md` (M0.7), `12_semantic_grounding.md` (topics layer enables Topic Jaccard).
 

@@ -1,6 +1,7 @@
 # Agent system: the AI behind Inception, Discovery and Screening
 
-**Status:** ACCEPTED as the design direction (2026-11-03). Three items are still open (§9). Nothing in this document is implemented yet. It lands in milestones M1, M3 and M4 of [`../roadmap/production-plan.md`](../roadmap/production-plan.md).
+**Status:** ACCEPTED as the design direction (2026-11-03). Three items were open (§9). When written, nothing in this document was implemented. It lands in milestones M1, M3 and M4 of [`../roadmap/production-plan.md`](../roadmap/production-plan.md).
+**Status as of 2026-11-10:** the screening half is built (M1a to M1b-2, PR #186 to #189: proposal store, rule table, validators, MCP proposal tools, the three drivers, agent runs, calibration, agreement); the live prompt gate is still open (M5-slim record). The discovery and inception agent tasks of §3 are not built, although the M3 and M4 screens and routes are. §9 item 1 was settled on 2026-11-05 (Gemini stays behind the interface; `docs/decisions.md`). **Autonomy beyond proposals** is decided in [`agent_autonomy_ladder.md`](agent_autonomy_ladder.md) (2026-11-10): the agent earns screening autonomy rung by rung through a calibration gate, every agent decision is an engine-minted `AGENT_ADOPTED` event, and a bounded discovery assistant proposes protocol edits. It extends the "proposals only" principle below; it does not reverse it. Planned as M9a to M9d.
 **Related:** [`../decisions.md`](../decisions.md) (deployment: local engine, MCP-first plus BYO key), [`confirmation.md`](confirmation.md), [`refusals.md`](refusals.md), `roles/*.json`, the final wireframes in `docs/ux/<phase>/final/` (added by PR #182).
 
 ## 1. Principle
@@ -130,11 +131,12 @@ Each task lives in `src/scholar_agent/tasks/<task>/`:
 | M1b Screening UI + driver | screening proposal task; Anthropic driver with Batches, caching and refusal handling; prompt-gate eval on the v03 labelled set; the measured per-1,000-record cost |
 | M2 Screening mobile | none beyond M1 (proposals are read-only on the phone) |
 | M5-slim Package | the methods paragraph states how the agent was used (model, prompt version, whether a person saw every record) |
-| M3 Discovery (stretch) | query critique task; near-twin task; methods-text task with the numeric check |
-| M4 Inception web (after the horizon) | directions task; criteria task; conversational agent loop (unless cut, §9). Until then, conversational inception runs through the MCP path. |
+| M3 Discovery (was stretch; screens and routes built as M3a to M3d, 2026-11-10) | query critique task; near-twin task; methods-text task with the numeric check. None of these tasks is built; the discovery assistant of [`agent_autonomy_ladder.md`](agent_autonomy_ladder.md) §8 (M9d) now holds the discovery tasks |
+| M4 Inception web (was after the horizon; built as M4a to M4c, 2026-11-09) | directions task; criteria task; conversational agent loop (unless cut, §9). None is built: the web inception uses the wizard's own functions, and conversational inception runs through the MCP path. |
+| M9a to M9d (planned, 2026-11-10) | measurement on the IEEE corpus, the autonomy ladder engine and UI, the discovery assistant ([`agent_autonomy_ladder.md`](agent_autonomy_ladder.md) §10) |
 
 ## 9. Open decisions
 
 1. **Gemini:** keep it as Driver C behind the same interface, or remove it? The screening code is Gemini-only today (`scholar_search/screening.py:591-621`). Recommendation: keep it behind the interface, with Claude as the default. Until this is decided, `decisions.md` names Gemini only as an existing option, not a commitment.
-2. **In-app inception chat (M4):** M4 is now past the horizon, so this waits. The MCP path covers conversational inception meanwhile.
+2. **In-app inception chat (M4):** M4 is now past the horizon, so this waits. The MCP path covers conversational inception meanwhile. (2026-11-10: the inception screens were built in M4b without a chat; this item is still open.)
 3. **Cheaper screening model:** measure Sonnet 5.5 and Haiku 5.5 against the prompt-gate eval during M1b, and adopt one only if it meets the include-recall threshold.

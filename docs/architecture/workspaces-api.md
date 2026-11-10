@@ -1,10 +1,10 @@
 # Workspaces API (M5-slim)
 
-Status: **AGREED** (researcher, 2026-11-05), before any engine work (decision 2026-11-05, "The minimal workspace screen: root, open, create"). Screen: [`docs/ux/phase2-screening/final/00-workspaces.md`](../ux/phase2-screening/final/00-workspaces.md) (FINAL). Same conventions as [`screening-api-contract.md`](screening-api-contract.md): JSON over the console's `/api/v1`, refusals as `{"detail": {"code", "message"}}`, desktop-only unless a route is listed in `_PHONE_ROUTES` (`src/scholar_harness/console/serve.py`).
+Status: **IN USE** (built in M5-slim, PR #190, 2026-11-05; `status` added in M6-beta). It was **AGREED** (researcher, 2026-11-05) before any engine work (decision 2026-11-05, "The minimal workspace screen: root, open, create"). Screen: [`docs/ux/phase2-screening/final/00-workspaces.md`](../ux/phase2-screening/final/00-workspaces.md) (FINAL). Same conventions as [`screening-api-contract.md`](screening-api-contract.md): JSON over the console's `/api/v1`, refusals as `{"detail": {"code", "message"}}`, desktop-only unless a route is listed in `_PHONE_ROUTES` (`src/scholar_harness/console/serve.py`).
 
 ## 1. What it is for
 
-The packaged app (`nexus-scholar ui`) serves **one workspace at a time**, as the console always has (`create_app(workspace)`). These three routes let the researcher see the workspaces under a root, create one, and switch to another. Switching **restarts** the server on the other folder: no state crosses workspaces. The multi-workspace server stays in M4.
+The packaged app (`nexus-scholar ui`) serves **one workspace at a time**, as the console always has (`create_app(workspace)`). These three routes let the researcher see the workspaces under a root, create one, and switch to another. Switching **restarts** the server on the other folder: no state crosses workspaces. The multi-workspace server was planned for M4; M4a to M4c were built without it, so it is still not built. A workspace can also be created from the browser through inception genesis ([`inception-api.md`](inception-api.md), M4a and M4b).
 
 ## 2. The root
 
@@ -16,7 +16,7 @@ The launcher resolves the workspaces root once, in this order, and passes it to 
 
 `nexus-scholar ui --workspace <path>` opens that folder directly and skips the screen. The root is still resolved, so the screen works from the app bar; the open workspace may sit outside the root, and is then shown as the current row with its own path. No config file and no settings route.
 
-**No workspace open.** Started without `--workspace`, the launcher binds the server to the most recently active workspace under the root (by its last journal row) and opens the workspaces screen. When the root holds none, the server runs with no workspace: only the three workspaces routes, the static UI and `/healthz` answer, and every other API route is refused `409 WORKSPACE_NOT_VALID` ("no workspace is open"). `GET /workspaces` then returns `current: null`. (Added during M5-slim; the screen's empty state covers it.)
+**No workspace open.** Started without `--workspace`, the launcher binds the server to the most recently active workspace under the root (by its last journal row) and opens the workspaces screen. When the root holds none, the server runs with no workspace: only the three workspaces routes, the inception routes (added in M4a; `_workspace_free` in `console/serve.py`), the static UI and `/healthz` answer, and every other API route is refused `409 WORKSPACE_NOT_VALID` ("no workspace is open"). `GET /workspaces` then returns `current: null`. (Added during M5-slim; the screen's empty state covers it.)
 
 A folder under the root **is a workspace** when it contains `protocol.json`, `project.json` and `audit/journal.jsonl`. `.mcp.json`, skills and `.env.example` are not required. Only direct children of the root are listed; the scan does not recurse and follows no symlink out of the root.
 

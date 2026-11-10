@@ -1,4 +1,4 @@
-# 04 Triage, mobile    Status: FINAL | Phase 2 Screening | Route `/screening/triage` (≤ 640 px, LAN sub-app) | Milestone M2 (on M1a routes)
+# 04 Triage, mobile    Status: FINAL, not built (M2) | Phase 2 Screening | Route `/screening/triage` (≤ 640 px, LAN sub-app) | Milestone M2 (on M1a routes)
 
 Boards: `MobileTriage` (M3), `MobileReason` (M4), `MobileRevealed` (M5), `MobileOffline` (M6). Rules: production plan §4. Contract: `docs/architecture/screening-api-contract.md` §3, §6.
 

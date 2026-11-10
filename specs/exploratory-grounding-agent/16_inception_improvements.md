@@ -1,6 +1,6 @@
 # 16 — First-Run Evaluation → Inception Improvement Backlog (Proposed)
 
-> **Status:** Proposed. Born from the 2026-09-13 first-run evaluation of the grounded inception agent (hallucination/factual-grounding domain) plus recovery experiments. Being validated by a cross-domain multi-agent trial (`evaluation/multi_domain_trial_*.json`).
+> **Status:** Historical: the series is complete (`specs/README.md`, label of 2026-11-10). As written: Proposed. Born from the 2026-09-13 first-run evaluation of the grounded inception agent (hallucination/factual-grounding domain) plus recovery experiments. Being validated by a cross-domain multi-agent trial (`evaluation/multi_domain_trial_*.json`).
 > **Owner:** harness + inception-agent skill + methodology-copilot. All changes still ship via fork + PR (pull-request gate), never direct push.
 > **Purity rule:** every claim below cites the concrete session/artifact that produced it.
 > **Trial note (2026-09-13, updated):** cross-domain trial COMPLETE — see §E–F for quantitative results; §B recommendations revised accordingly.

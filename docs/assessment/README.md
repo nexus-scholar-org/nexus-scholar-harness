@@ -9,6 +9,22 @@ Since the 2026-11-03 merge into one package, a cited `tools/scholar-<kit>-kit/sr
 path lives at `src/<pkg>/…` and `tools/scholar-<kit>-kit/tests/…` at `tests/kits/<kit>/…`. Nothing was fixed — each
 document ends with a prioritized recommendation table.
 
+## 0. Current priorities (2026-11-10)
+
+The 2026-11-03 assessment below is the baseline; much of it has since been fixed. The current priorities for Phases 0 to 2 come from the newest reviews:
+
+1. [`three-phase-hardening-2026-11-10.md`](three-phase-hardening-2026-11-10.md): the three phases driven as one flow over the console API at `b6643a0`. Its ranked findings and hardening order (§3, §4):
+   - **P1:** F1 replacing a protocol keeps the old corpus and decisions (`inception/emit.py:170`); F11 PubMed `[ab]` is not a field tag (`scholar_search/providers/pubmed.py:33`); F12 OpenAlex requires a key since 2026-02-13 (`openalex.py:152`, `config.py:20-22`).
+   - **P2:** F2 "bound to current protocol" is vacuously true after an edit; F3 the hand-off and runs list do not say the protocol changed; F4 the corpus view shows zeros for a discovery corpus; F5 validation errors bypass the refusal envelope; F6 inception drafts have no size limits; F13 OpenAlex `per_page` 100 and the deprecated search filter; F14 Crossref rate limits; F15 the default database sets disagree.
+   - **P3:** F7 event fields trusted from the client; F8 journal noise and event ids; F9 stdout from the API process; F10 six tests fail only under `-n auto`; F16 arXiv rate and date filter, S2 citation paging, leg record gaps.
+   - Order: provider correctness (F11 to F13) first, then F1 (needs a researcher decision), then F2 and F3, input limits (F5 to F7), provider resilience (F14 to F16), F4, then F8 to F10. The plan calls the provider work M3h-providers (`docs/roadmap/production-plan.md` §6).
+2. [`../kits/search/PROVIDERS_2026-11.md`](../kits/search/PROVIDERS_2026-11.md): what each discovery provider offers today, what the code sends, and a ranked list of provider hardening candidates.
+3. [`full-review-2026-11-06.md`](full-review-2026-11-06.md): scientific, technical and UI/UX review of the packaged app at `87d4467`; M6-beta and M6-hardening were built from its findings (see their records for which).
+4. [`prisma-scr-readiness.md`](prisma-scr-readiness.md) (2026-11-06): the gaps to close before the PhD review's first search.
+5. [`../architecture/agent_autonomy_ladder.md`](../architecture/agent_autonomy_ladder.md) (decided 2026-11-10): the agent autonomy work (M9a to M9d) waits for the IEEE measurement.
+
+**What the plan milestones fixed from §3 below**, as their records state (not re-verified here): M0 (INC-01, AGT-01, CORE-17); M1a and M1b (CON-10, CON-11, CON-13, CON-14, CON-02/03, SRCH-16/17/35, AGT-16/18/19; the 2026-11-06 full review confirms CON-11, SRCH-16/17/35 and AGT-16/18/19 fixed); M3a-discovery (SRCH-30, CORE-21, SRCH-11/31, SRCH-12/13/14, SRCH-10, CORE-06, CORE-10, CORE-07); M4a-inception (INC-08, INC-22); M4c-recon-http (INC-09, INC-21). Records: `docs/roadmap/milestones/`. The "Repo" column in §3 is stale: since 2026-11-03 every kit fix lands in `src/scholar_<kit>/` in this repository.
+
 **Method.** Eleven documents written by nine parallel reviewers, each owning one scope.
 Every reviewer read the code directly, treated existing docs (READMEs, `SKILL.md`,
 [`kits_surface_matrix.md`](../kits_surface_matrix.md)) as claims to test rather than

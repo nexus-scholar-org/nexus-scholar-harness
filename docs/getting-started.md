@@ -2,7 +2,7 @@
 
 This guide takes you from nothing to a published screening with an exported
 reference list. It takes about 15 minutes, plus the time you spend screening.
-Everything runs on your computer. No account or API key is needed (the AI
+Everything runs on your computer. No account or API key is needed to screen (the AI
 agent is optional and not covered here).
 
 The commands are the same on Windows (PowerShell), macOS and Linux unless a
@@ -50,10 +50,38 @@ Click **New workspace**, type your review's title, and create it. Then open it.
 
 > **About the protocol.** A workspace made this way has a placeholder protocol
 > (shown as a draft). It is enough to try the app. For a real review, write your
-> inclusion and exclusion criteria with the guided interview instead:
+> question and your inclusion and exclusion criteria first, with **New review**
+> (below) or with the guided interview in the terminal:
 > `nexus-scholar init "Your review title" --dir "<your workspaces folder>/<review-name>"`
 > (beta). The folder you give becomes the workspace, so give a new folder inside
 > your workspaces folder, then open it in the app.
+
+### Write the protocol in the app (Inception)
+
+On **Workspaces**, click **New review**. It opens your drafts; start a new one
+or resume one. The steps are:
+
+1. **Scope.** What is the review about: the topic, the years and the languages.
+2. **Shape.** The lens (paradigm) and playbook, the unit of analysis, what
+   proof a reviewer would accept, what is out of scope, and the research
+   questions. The lens the engine leans to and its draft question are shown as
+   drafts; nothing is used until you choose it.
+3. **Concepts and criteria.** The concepts the search uses and the screening
+   criteria, each shown word for word with where it came from. A criterion the
+   engine wrote needs your **Accept**; one you typed is accepted by default. A
+   rejected criterion is not used.
+4. **Review and create.** Nothing is written until you press **Create the
+   workspace**. If the folder already holds a workspace, the screen offers to
+   replace it and keep a backup; if it has screening decisions, you type the
+   workspace's name to confirm.
+5. **Done.** The folder and the protocol's fingerprint, and a link to open the
+   workspace.
+
+The step bar also shows **Explore** and **Direction** (the grounded search of
+a first pool of papers). They have no screen yet; the CLI wizard
+(`nexus-scholar inception`) and the MCP tools still have them. Every save is
+checked against the draft's last update, so a second tab cannot overwrite your
+work without telling you.
 
 ## 4. Import your search results
 
@@ -80,6 +108,48 @@ Each file is copied unchanged into the workspace (`literature/raw/ris/`), and
 every step is recorded in its audit journal. Prefer the terminal? The same
 import is one command:
 `nexus-scholar accept-corpus --workspace "<workspace folder>" --ris "Scopus=<scopus>.ris" --ris "Web of Science=<wos>.ris"`.
+
+### Or search the free databases from the app (Discovery)
+
+> **Not in 1.1.0b5.** The Discovery screens are on `main` and come with the
+> next beta, 1.1.0b6 ([draft notes](releases/1.1.0b6.md)). In 1.1.0b5 the same
+> search runs from the terminal: `nexus-scholar run`.
+
+Discovery searches the free databases your protocol selects (among OpenAlex,
+Semantic Scholar, Crossref, arXiv and PubMed) with
+the query your protocol compiles, and records what each database was asked and
+what came back. Two settings are needed before you start the app:
+
+- **`SCHOLAR_MAILTO`**, your contact email. A search refuses to start without
+  it (`MAILTO_NOT_SET`), and the Plan screen prints the line to set.
+- **`SCHOLAR_OPENALEX_KEY`**, a free OpenAlex API key. OpenAlex has required a
+  key since 2026-02-13. The app does not check for it yet: without it, OpenAlex
+  shares a small daily budget with everyone on your network address, and
+  documents that paging past the first page is refused.
+
+Set both in the terminal before `nexus-scholar ui`, or put them in a `.env`
+file in the folder you start the app from (`SCHOLAR_MAILTO=you@university.edu`).
+Then open **Discovery** in the header. The entry page says where the search
+stands, and the steps are:
+
+1. **Plan.** The exact string each database will receive, and what it cannot
+   express. Nothing is sent.
+2. **Recall** (optional). Give papers you already know are relevant; the check
+   says which databases find them. It never changes the query.
+3. **Harvest.** **Start the harvest**. Each database appears as it finishes,
+   with the total it reported and how many records it returned. A database that
+   stops at the cap reads "at least N".
+4. **Import.** The import screen above. For now a corpus is either a harvest or
+   imported exports, not both: add exports before the first harvest, or harvest
+   and skip this step.
+5. **Duplicates.** How many records were merged, by rule (identifier, exact
+   title, close title). Pair-by-pair review is not built.
+6. **Report.** The PRISMA-S identification per database and a methods
+   paragraph you mark as reviewed.
+7. **Hand-off.** **Accept this corpus** freezes it, and screening starts from it.
+
+A harvest does not freeze anything by itself; only the Hand-off accept does.
+What the search sends, and to whom, is in [data-flow.md](data-flow.md).
 
 ## 5. Screen
 
@@ -154,6 +224,8 @@ is not yet tested.
 | `uv tool install` says no version matches, or installs 1.0.0 | Keep the version in the command: `"nexus-scholar>=1.1.0b5"` (the beta is a pre-release). |
 | The app stops at start with `No module named 'httpcore'` | It was installed with `--prerelease allow`. Reinstall: `uv tool install --force "nexus-scholar>=1.1.0b5"`. |
 | "No accepted corpus" (`SNAPSHOT_NOT_ACCEPTED`) | Import and accept your search results (step 4). |
+| `MAILTO_NOT_SET` before a search | Set `SCHOLAR_MAILTO` (and `SCHOLAR_OPENALEX_KEY`) as in step 4, Discovery, then start the app again. |
+| `VERIFIED_EXISTS` when adding an export | A search already ran in this workspace. For now a corpus is a harvest or imported exports, not both. |
 | "No records in this file" (`SOURCE_NOT_RIS`) | Export the results as RIS (`.ris` or `.txt`) from the database, or as `.nbib` from PubMed (Send to → Citation manager), not as CSV or BibTeX. |
 | "File too large" (`SOURCE_TOO_LARGE`) | Export in parts of under 50 MB and add each part under the same database name. |
 | `OPERATOR_CONTEXT_MISSING` when approving | Save your name under **Approver** on the Publish screen, then ask for a new code. |

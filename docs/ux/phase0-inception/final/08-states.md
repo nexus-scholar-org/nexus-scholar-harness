@@ -1,4 +1,4 @@
-# 08 States and resume draft    Status: FINAL | Phase 0 Inception | Route `/[locale]/inception/` (desktop only) | Milestone M4b
+# 08 States and resume draft    Status: FINAL, built (M4b, PR #209) | Phase 0 Inception | Route `/[locale]/inception/` (desktop only) | Milestone M4b
 
 Boards: `States` (D9, `docs/ux/phase0-inception/final/project/States.dc.html`) and the "Resume your draft" card of `Main` (D1, `.../Main.dc.html`). Contract: `docs/architecture/inception-api.md` (Routes: list, create); refusal rows in `docs/architecture/screening-api-contract.md` §7 (lines 197-210). Code: `src/scholar_harness/console/api/inception.py` (`list_drafts` `:66`, `create_draft` `:71`), `src/scholar_harness/inception/drafts.py` (`DraftStore.listing` `:101`, `SESSION_ID_RE` `:25`), `src/scholar_harness/console/refusals.py:94-107`, `apps/research-ui/components/screening-state-card.tsx`, `apps/research-ui/lib/screening-states.ts`. Decisions: `docs/decisions.md`, 2026-11-08 "Inception drafts live under the workspaces root, with one session id". The shared draft rules are in 01 "Shared by 01, 04, 05, 06 and 07".
 

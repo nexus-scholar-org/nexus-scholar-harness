@@ -1,4 +1,4 @@
-# 06 Search report    Status: FINAL | Phase 1 Discovery | Route `/[locale]/discovery/report` (`?run=run_NNN`, desktop only) | Milestone M3c-screens
+# 06 Search report    Status: FINAL, built (M3c-screens, PR #216) | Phase 1 Discovery | Route `/[locale]/discovery/report` (`?run=run_NNN`, desktop only) | Milestone M3c-screens
 
 Boards: `Report` (D6, `docs/ux/phase1-discovery/final/project/Report.dc.html`), `MobileReport` (`.../MobileReport.dc.html`). Packet: `docs/architecture/research_ui/DISCOVERY_API_PACKET.md` §4.6, §6 decision 7; records `docs/roadmap/milestones/M3b-api.md` decisions 3-5, `M3d-engine.md` decisions 8, 9. Code: `src/scholar_harness/console/api/discovery.py:524` (`report`), `:627` (`put_methods`), `:397` (`runs`), `:419` (markdown), `:402` (one run). Pattern for generated methods text: `docs/ux/phase2-screening/final/10-export-and-methods.md`. Brand: `docs/ux/brand/BRAND_BOOK.md` (principle 5, machine output as a draft), `docs/ux/brand/tokens.json`. Shared rules: see 01-plan.md, Shared.
 

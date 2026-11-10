@@ -22,18 +22,29 @@ It provides a unified Python API and Command Line Interface (CLI) to query, norm
 
 ## Installation
 
-Ensure `git` and `uv` are installed on your system.
+The kit is no longer a separate repository. Since 2026-11-03 it is the `scholar_search` package inside the one `nexus-scholar` package (`src/scholar_search/`). The old `scholar-search-kit` repository and its CI badge above are archived history.
 
 ```bash
-# Clone the repository
-git clone https://github.com/nexus-scholar-org/scholar-search-kit.git
+# As a user: the released beta
+uv tool install "nexus-scholar>=1.1.0b5"
 
-# Navigate to the toolkit directory
-cd scholar-search-kit
-
-# Install the package and dependencies
-uv pip install -e .
+# As a developer, from a clone of this repository
+uv sync --extra dev
 ```
+
+---
+
+## Provider facts (2026-11)
+
+The full reference is [`PROVIDERS_2026-11.md`](PROVIDERS_2026-11.md): what each provider offers today, what our code sends, and the ranked hardening candidates. The points that change how you run a search:
+
+- **Contact email.** `SCHOLAR_MAILTO` has no default. A live search refuses with `MAILTO_NOT_SET` until it is set (`src/scholar_search/config.py:12-17`, `src/scholar_search/engine.py:35-44`).
+- **OpenAlex needs a key.** OpenAlex made API keys mandatory on 2026-02-13. Without `SCHOLAR_OPENALEX_KEY` a request shares a small daily budget with every caller on your IP, and OpenAlex documents that cursor paging past the first page answers 401. The code still calls the key "Premium ... (Optional)" (`config.py:20-22`) and still sends `mailto`, which OpenAlex no longer uses. Set the key.
+- **OpenAlex page size.** OpenAlex supports `per_page` up to 100; 200 is deprecated. Keyword mode asks for up to 200 (`src/scholar_search/providers/openalex.py:160`) and snowballing asks for 200 (`openalex.py:266, 297`). Known issue, not fixed.
+- **Crossref rate.** Crossref allows list requests at 3 per second in the polite pool (1 per second without a contact address) since 2026-07-21. Our default is 5 per second (`config.py:46-48`), so long legs draw 429 retries. Known issue, not fixed.
+- **PubMed `[ab]` is not a field tag (known bug).** `src/scholar_search/providers/pubmed.py:33` maps the abstract field to `[ab]`. PubMed does not know that tag and silently widens the term to all fields, while the leg's executed query still shows `[ab]`. The fix (`[tiab]`) is planned, not done.
+- **Default databases disagree (known inconsistency).** Five providers (OpenAlex, Semantic Scholar, Crossref, arXiv, PubMed) are the default in `src/scholar_search/engine.py:32`, `src/scholar_search/plan.py:26`, the browser plan (`src/scholar_harness/console/api/discovery.py:53`) and `scholar-search search` without a protocol (`src/scholar_search/cli.py:195-201`). Four (no PubMed) are the default when a protocol has no `target_databases` (`src/scholar_search/protocol_adapter.py:81-84`, `src/scholar_protocol/models.py:126-129`), in recon (`src/scholar_harness/recon/engine.py:32`) and in the MCP tool `nexus_discover` (`src/scholar_agent/server.py:510-515`). bioRxiv is never a default.
+- **User-Agent.** Requests carry `scholar-search-kit/0.1.0`, plus ` (mailto:<address>)` when a contact email is set (`src/scholar_search/http_client.py:74-76`). The version string is stale: the package is `nexus-scholar` 1.1.0b5.
 
 ---
 
@@ -97,27 +108,36 @@ Generates:
 ## Programmatic Python API
 
 ```python
+import asyncio
+
 from scholar_search import SearchEngine, Query, DocumentVerifier, Exporter
 from scholar_search.providers import OpenAlexProvider, ArxivProvider
 
-# 1. Initialize Engine
-engine = SearchEngine(providers=[OpenAlexProvider(), ArxivProvider()])
+async def main():
+    # 1. Initialize Engine
+    engine = SearchEngine(providers=[OpenAlexProvider(), ArxivProvider()])
+    try:
+        # 2. Execute Query (search_all is async: engine.py:222)
+        query = Query(text='title:"deep learning"', year_min=2022, max_results=25)
+        documents = await engine.search_all(query, dedup=True)
+    finally:
+        await engine.close()
 
-# 2. Execute Query
-query = Query(text='title:"deep learning"', year_min=2022, max_results=25)
-documents = engine.search_all(query, dedup=True)
+    # 3. Export to JSON for scholar-pdf-kit
+    Exporter().json(documents, "literature_review.json")
 
-# 3. Export to JSON for scholar-pdf-kit
-Exporter().json(documents, "literature_review.json")
+asyncio.run(main())
 ```
 
 ---
 
 ## Documentation
 
-Detailed guides and references are available in the `docs/` directory:
-- [Tutorial](docs/tutorial.md): Step-by-step walkthrough of search, snowballing, and verification.
-- [API Reference](docs/api_reference.md): Technical interface documentation.
+- [API Reference](api_reference.md): Technical interface documentation.
+- [Provider reference, 2026-11](PROVIDERS_2026-11.md): provider limits, what the code sends, known gaps.
+- [`docs/kits_surface_matrix.md`](../../kits_surface_matrix.md): the verified API, CLI and MCP map.
+
+The tutorial this section used to link (`docs/tutorial.md`) does not exist in this repository.
 
 ---
 

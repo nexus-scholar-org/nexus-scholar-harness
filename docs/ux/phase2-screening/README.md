@@ -9,6 +9,7 @@ lessons (27–54) in [UAV harvest calibration lessons](../../lessons/2026-10-17_
 Open-access PDF harvest (the other half of Phase 2) is out of scope here.
 
 Status: **proposal**. Code-reading review by an AI reviewer (Claude); no user testing.
+As of 2026-11-10 this review and its wireframes are history. The build source is the final specs in [`final/`](final/), built in M1a to M8-triage. Not built: the phone (spec 04, the phone parts of 01 and 09: M2) and the `/screening/issues` list of spec 08.
 Line references point to the code as of 2026-11-02. Previous phase: [Phase 1 discovery](../phase1-discovery/README.md).
 
 ## Where things are

@@ -1,6 +1,6 @@
 # Inception API (M4a, recon M4c)
 
-Status: **IN USE** (engine M4a, 2026-11-08; screens M4b, 2026-11-09, specs `docs/ux/phase0-inception/final/`). The browser surface (`console/browser.py` and the Next proxy) carries GET, POST to drafts, steps, preview and genesis, and PUT on a draft; it does not carry DELETE, so the browser cannot discard a draft. Decisions: [2026-11-08 re-inception, criteria acceptance, inception drafts](../decisions.md). Conventions follow [`workspaces-api.md`](workspaces-api.md): JSON over `/api/v1`, refusals as `{"detail": {"code", "message", "details"?}}`, desktop only (not in `_PHONE_ROUTES`). Every route answers with or without an open workspace (`_workspace_free` in `console/serve.py`).
+Status: **IN USE** (engine M4a, PR #206, 2026-11-08; screens M4b, PR #209, 2026-11-09; recon M4c, PR #210, 2026-11-09; specs `docs/ux/phase0-inception/final/`). The browser surface (`console/browser.py` and the Next proxy) carries GET, POST to drafts, steps, preview, genesis and the recon `probe`, `delta`, `distill` and `bind`, and PUT on a draft; it does not carry DELETE, so the browser cannot discard a draft. Decisions: [2026-11-08 re-inception, criteria acceptance, inception drafts](../decisions.md). Conventions follow [`workspaces-api.md`](workspaces-api.md): JSON over `/api/v1`, refusals as `{"detail": {"code", "message", "details"?}}`, desktop only (not in `_PHONE_ROUTES`). Every route answers with or without an open workspace (`_workspace_free` in `console/serve.py`).
 
 Code: routes in `src/scholar_harness/console/api/inception.py`; steps, preview and genesis in `src/scholar_harness/inception/steps.py`; drafts in `inception/drafts.py`; the gate in `inception/emit.py`.
 
@@ -69,6 +69,14 @@ Code: `src/scholar_harness/console/api/recon.py` (routes), `recon/session.py` (t
 
 ## Not here yet
 
-- **The Explore and Direction screens.** Their specs are `docs/ux/phase0-inception/final/02-explore.md` and `03-direction.md`.
+- **The Explore and Direction screens.** The recon routes above exist; the screens do not. Their specs are `docs/ux/phase0-inception/final/02-explore.md` and `03-direction.md` (`Status: DRAFT`).
 - **A custom lexicon over HTTP.** The MCP `recon_distill` takes `lexicon_json`.
 - **A multi-workspace server.** Genesis creates a workspace; opening it is still `POST /workspaces/open`.
+
+## Known issues (three-phase review, 2026-11-10)
+
+From [`three-phase-hardening-2026-11-10.md`](../assessment/three-phase-hardening-2026-11-10.md); not fixed on `main`:
+
+- **F1 (P1).** Genesis with `replace` backs up only `protocol.json`, `intent.json` and `SCREENING_CRITERIA.md` (`src/scholar_harness/inception/emit.py:170`). Everything under `literature/` stays, so the new protocol sees the old accepted corpus and `POST /discovery/runs` refuses `CORPUS_ALREADY_ACCEPTED`. The fix needs a researcher decision.
+- **F6 (P2).** Drafts have no size limits (`src/scholar_harness/console/api/inception.py:56`, `DraftBody`): a 20,000-character topic or 500 research questions are saved.
+- **F5 (P2).** A body that fails validation answers FastAPI's default `{"detail": [ ... ]}` list, not the refusal envelope above (no handler for `RequestValidationError` in `console/serve.py`).
