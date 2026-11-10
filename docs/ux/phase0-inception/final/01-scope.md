@@ -92,7 +92,7 @@ Focus order: skip link, shell, stepper (linked steps only), h1, question, From y
 Keys in `apps/research-ui/lib/inception-copy.ts` (en master, then fr and ar; fr/ar are added by the implementer, not here). No literal `aria-label`, `title`, `alt` or `placeholder` attributes (N9 guard).
 
 Shared (`inception.common.*`):
-- `stepper.label` "Inception steps"; `stepper.scope` "1 Scope"; `stepper.explore` "2 Explore"; `stepper.direction` "3 Direction"; `stepper.shape` "4 Shape"; `stepper.criteria` "5 Concepts and criteria"; `stepper.review` "6 Review and create"; `stepper.done` "Done"; `stepper.comingWithRecon` "Coming with recon".
+- `stepper.label` "Inception steps"; `stepper.scope` "1 Scope"; `stepper.explore` "2 Explore"; `stepper.direction` "3 Direction"; `stepper.shape` "4 Shape"; `stepper.criteria` "5 Concepts and criteria"; `stepper.review` "6 Review and create"; `stepper.done` "Done"; `stepper.comingWithRecon` "Not built yet" (was "Coming with recon" until M3h-providers: recon runs over HTTP since M4c, the Explore and Direction screens do not exist).
 - `eyebrow` "Step {n} of 6 · {name}"; `draftId` "Draft {id}"; `draftSaved` "Draft saved {date}"; `unsaved` "Unsaved changes"; `saving` "Saving the draft"; `saved` "Draft saved".
 - `back` "Back to your drafts"; `saveExit` "Save draft and exit"; `offlineNote` "needs the engine on this computer"; `asOf` "As of {time}".
 - `leave.title` "Leave without saving?"; `leave.body` "Your changes on this page are not in the draft yet."; `leave.save` "Save and leave"; `leave.discard` "Leave without saving"; `leave.stay` "Stay".

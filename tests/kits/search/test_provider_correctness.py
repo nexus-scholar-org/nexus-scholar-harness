@@ -1,0 +1,212 @@
+"""M3h-providers: provider correctness findings F11, F12, F13.
+
+`docs/assessment/three-phase-hardening-2026-11-10.md` §2 and
+`docs/kits/search/PROVIDERS_2026-11.md`. Offline: the PubMed answers are the
+ESearch responses recorded on 2026-11-10 under ``fixtures/pubmed/``.
+"""
+
+from __future__ import annotations
+
+import asyncio
+import json
+from pathlib import Path
+
+import pytest
+from scholar_search.config import settings
+from scholar_search.engine import SearchEngine
+from scholar_search.exceptions import ProviderError
+from scholar_search.models import Query, SearchLeg
+from scholar_search.providers import openalex as openalex_mod
+from scholar_search.providers.openalex import OpenAlexProvider
+from scholar_search.providers.pubmed import PubMedProvider
+
+FIXTURES = Path(__file__).parent / "fixtures" / "pubmed"
+
+
+@pytest.fixture(autouse=True)
+def _contact(monkeypatch):
+    monkeypatch.setattr(settings, "mailto", "tester@example.org")
+    monkeypatch.setattr(settings, "openalex_key", None)
+
+
+class _Json:
+    status_code = 200
+    content = b""
+
+    def __init__(self, body):
+        self.body = body
+
+    def json(self):
+        return self.body
+
+
+class _Capture:
+    def __init__(self, body):
+        self.calls: list[tuple[str, dict]] = []
+        self.body = body
+
+    async def get(self, url, params=None, **kwargs):
+        self.calls.append((url, dict(params or {})))
+        return _Json(self.body)
+
+
+def _recorded(name: str) -> dict:
+    body = json.loads((FIXTURES / name).read_text(encoding="utf-8"))
+    body["esearchresult"]["idlist"] = []  # stop after the search page: no efetch
+    return body
+
+
+# --------------------------------------------------------------------------- F11 PubMed
+
+
+def test_pubmed_abstract_terms_are_sent_as_title_or_abstract():
+    provider = PubMedProvider()
+    executed, request, notes = provider.translate(
+        Query(text='abs:"weed mapping" AND title:drone', year_min=2020, year_max=2026)
+    )
+    assert executed == '"weed mapping"[tiab] AND drone[ti] AND 2020:2026[pdat]'
+    assert request["term"] == executed
+    assert "[ab]" not in executed
+    assert notes == [PubMedProvider.ABSTRACT_NOTE]
+
+
+def test_pubmed_query_without_abstract_terms_has_no_abstract_note():
+    _, _, notes = PubMedProvider().translate(Query(text="weed AND drone"))
+    assert notes == []
+
+
+@pytest.mark.asyncio
+async def test_pubmed_leg_records_the_tiab_string_it_sent():
+    provider = PubMedProvider()
+    provider.client = _Capture(_recorded("esearch_tiab_ok.json"))
+    run = await SearchEngine(providers=[provider]).run(
+        Query(text='abs:"weed mapping" AND title:drone', id="Q1"), dedup=False
+    )
+    sent = provider.client.calls[0][1]["term"]
+    assert sent == '"weed mapping"[tiab] AND drone[ti]'
+    leg = run.legs[0]
+    assert leg.executed_query == sent
+    assert PubMedProvider.ABSTRACT_NOTE in leg.notes
+    assert not any("did not apply" in n for n in leg.notes), leg.notes
+
+
+def _esearch_leg(body: dict, term: str) -> SearchLeg:
+    provider = PubMedProvider()
+    provider.current_leg = SearchLeg(provider="pubmed", query_id="Q1")
+    provider._record_esearch_errors(body["esearchresult"], term)
+    return provider.current_leg
+
+
+def test_a_field_tag_pubmed_did_not_apply_becomes_a_leg_note():
+    """The recorded answer to ``weed[ab] AND drone[ti]``: JSON says nothing, the translation widens."""
+    body = _recorded("esearch_ab_field_not_found.json")
+    assert body["esearchresult"]["errorlist"]["fieldsnotfound"] == []  # why the translation is read
+    leg = _esearch_leg(body, "weed[ab] AND drone[ti]")
+    notes = [n for n in leg.notes if "did not apply" in n]
+    assert len(notes) == 1, leg.notes
+    assert "[ab]" in notes[0] and "[ti]" not in notes[0]
+    assert '"weed"[All Fields]' in notes[0]
+
+
+def test_a_fieldsnotfound_entry_becomes_a_leg_note():
+    leg = _esearch_leg(
+        {"esearchresult": {"errorlist": {"fieldsnotfound": ["ab"], "phrasesnotfound": ["zz qq"]}}},
+        "weed[ab]",
+    )
+    assert any("[ab]" in n for n in leg.notes), leg.notes
+    assert any('"zz qq"' in n for n in leg.notes), leg.notes
+
+
+def test_every_applied_tag_gives_no_note():
+    body = _recorded("esearch_tiab_ok.json")
+    leg = _esearch_leg(body, '"weed mapping"[tiab] AND drone[ti] AND smith[au] AND 2020:2026[pdat]')
+    assert leg.notes == []
+
+
+# --------------------------------------------------------------------------- F12 OpenAlex key
+
+
+def test_openalex_never_sends_the_contact_email():
+    executed, request, notes = OpenAlexProvider().translate(Query(text="weed AND drone"))
+    assert "mailto" not in request and "email" not in request
+    assert any("SCHOLAR_OPENALEX_KEY" in n for n in notes), notes
+
+
+def test_openalex_sends_the_key_and_drops_the_note_when_set(monkeypatch):
+    monkeypatch.setattr(settings, "openalex_key", "k-test")
+    _, request, notes = OpenAlexProvider().translate(Query(text="weed AND drone"))
+    assert request["api_key"] == "k-test" and "mailto" not in request
+    assert notes == []
+
+
+@pytest.mark.parametrize("status", [401, 403, 409])
+def test_an_openalex_key_refusal_is_provider_refused_with_a_key_note(status):
+    provider = OpenAlexProvider()
+
+    async def refuse(*args, **kwargs):
+        raise ProviderError("openalex", "HTTP request failed: key", status_code=status)
+
+    provider.client.get = refuse
+    run = asyncio.run(SearchEngine(providers=[provider]).run(Query(text="weed AND drone"), dedup=False))
+    leg = run.legs[0].to_dict()
+    assert leg["status"] == "failed" and leg["error_code"] == "PROVIDER_REFUSED"
+    assert any(f"HTTP {status}" in n and "SCHOLAR_OPENALEX_KEY" in n for n in leg["notes"]), leg["notes"]
+
+
+def test_an_openalex_server_error_gets_no_key_note():
+    provider = OpenAlexProvider()
+
+    async def fail(*args, **kwargs):
+        raise ProviderError("openalex", "bad gateway", status_code=502)
+
+    provider.client.get = fail
+    run = asyncio.run(SearchEngine(providers=[provider]).run(Query(text="weed"), dedup=False))
+    leg = run.legs[0].to_dict()
+    assert leg["error_code"] == "PROVIDER_UNAVAILABLE"
+    assert not any("refused the request" in n for n in leg["notes"])
+
+
+# --------------------------------------------------------------------------- F13 OpenAlex page and search
+
+
+@pytest.mark.parametrize("cap", [None, 50, 100, 200, 10_000])
+def test_openalex_page_size_never_exceeds_100(cap):
+    _, request, _ = OpenAlexProvider().translate(Query(text="weed", max_results=cap))
+    assert request["per-page"] == min(cap or 100, 100)
+    assert getattr(openalex_mod, "MAX_PER_PAGE", None) == 100
+
+
+def test_openalex_boolean_query_uses_the_scoped_search_parameter():
+    query = Query(text='("unmanned aerial vehicle" OR drone) AND weed', year_min=2020, year_max=2026)
+    executed, request, _ = OpenAlexProvider().translate(query)
+    assert request["search.title_and_abstract"] == executed == '("unmanned aerial vehicle" OR drone) AND weed'
+    assert "search" not in request
+    assert request["filter"] == "from_publication_date:2020-01-01,to_publication_date:2026-12-31"
+    assert "title_and_abstract.search" not in json.dumps(request)
+
+
+def test_openalex_boolean_query_with_a_comma_is_sent_unchanged():
+    text = '"weed, crop" AND drone'
+    executed, request, _ = OpenAlexProvider().translate(Query(text=text))
+    assert executed == request["search.title_and_abstract"] == text
+    assert "filter" not in request
+
+
+@pytest.mark.asyncio
+async def test_openalex_search_sends_what_translate_says():
+    provider = OpenAlexProvider()
+    provider.client = _Capture({"results": [], "meta": {"count": 0, "next_cursor": None}})
+    query = Query(text="weed AND drone", max_results=500)
+    _, expected, _ = provider.translate(query)
+    _ = [d async for d in provider.search(query)]
+    assert provider.client.calls[0][1] == expected
+
+
+@pytest.mark.asyncio
+async def test_openalex_snowball_pages_are_100():
+    provider = OpenAlexProvider()
+    provider.client = _Capture({"results": [], "meta": {"next_cursor": None}, "referenced_works": ["W1"]})
+    _ = [d async for d in provider.get_citations("W9")]
+    _ = [d async for d in provider.get_references("W9")]
+    pages = [params.get("per-page") for _, params in provider.client.calls if "filter" in params]
+    assert pages == [100, 100]

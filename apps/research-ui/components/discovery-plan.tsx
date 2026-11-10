@@ -11,6 +11,7 @@ import {
   LINK,
   Loading,
   MailtoCard,
+  OpenAlexKeyCard,
   discoveryHref,
   refusalOf,
   type Refusal,
@@ -237,9 +238,25 @@ export function DiscoveryPlan({ locale }: Readonly<{ locale: Locale }>) {
                   </dd>
                   <dd className="mt-1 text-xs text-ink-muted">{t("plan.limits.mailto.help")}</dd>
                 </div>
+                {plan.openalex_key_set === undefined ? null : (
+                  <div data-openalex-key-set={plan.openalex_key_set ? "true" : "false"}>
+                    <dt className="text-ink-muted">{t("openalexKey.title")}</dt>
+                    <dd className="text-ink">
+                      {plan.openalex_key_set ? (
+                        <DecisionBadge role="include">{t("plan.limits.mailto.set")}</DecisionBadge>
+                      ) : (
+                        <DecisionBadge role="unclear">{t("plan.limits.mailto.notSet")}</DecisionBadge>
+                      )}
+                    </dd>
+                    <dd className="mt-1 text-xs text-ink-muted">{t("plan.limits.openalexKey.help")}</dd>
+                  </div>
+                )}
               </dl>
             </section>
             {!plan.mailto_set ? <MailtoCard locale={locale} onCheck={() => void load(true)} /> : null}
+            {plan.openalex_key_set === false && plan.providers.some((p) => p.name === "openalex" && p.selected) ? (
+              <OpenAlexKeyCard locale={locale} onCheck={() => void load(true)} />
+            ) : null}
             <section className="rounded-lg border border-rule bg-leaf p-5">
               <p className="text-sm text-ink-muted">{t("amend.help")}</p>
               <a className={LINK} href={`/${locale}/inception/${origin ? `?console=${encodeURIComponent(origin)}` : ""}`} data-amend>

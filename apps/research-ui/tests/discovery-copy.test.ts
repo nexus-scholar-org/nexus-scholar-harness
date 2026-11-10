@@ -9,7 +9,7 @@ import { stateCopy } from "@/lib/screening-states";
 const placeholders = (s: string) => [...s.matchAll(/\{(\w+)\}/g)].map((m) => m[1]).sort();
 
 const CODES = [
-  "PROTOCOL_MISSING", "PROTOCOL_INVALID", "PROTOCOL_CHANGED_SINCE_RUN", "PROTOCOL_CHANGED_SINCE_SNAPSHOT", "MAILTO_NOT_SET",
+  "PROTOCOL_MISSING", "PROTOCOL_INVALID", "PROTOCOL_CHANGED_SINCE_RUN", "PROTOCOL_CHANGED_SINCE_SNAPSHOT", "MAILTO_NOT_SET", "OPENALEX_KEY_NOT_SET",
   "DISCOVERY_JOB_ACTIVE", "DISCOVERY_JOB_NOT_FOUND", "RUN_NOT_FOUND", "RECALL_NOT_RUN", "DEDUP_NOT_RUN", "SEEDS_INVALID",
   "CAP_INVALID", "PROVIDER_UNKNOWN", "STAGED_IMPORT_PENDING", "BATCHES_INCOMPLETE", "PROVIDERS_FAILED", "DISCOVERY_FAILED",
   "ACCEPT_CORPUS_REFUSED", "VERIFIED_EXISTS", "CORPUS_ALREADY_ACCEPTED", "NOTHING_STAGED",
@@ -53,5 +53,16 @@ describe("discovery.copy", () => {
       expect(DISCOVERY_COPY[locale]["mailto.line"].startsWith("SCHOLAR_MAILTO=")).toBe(true);
       expect(stateCopy(locale, "MAILTO_NOT_SET").command).toBe("SCHOLAR_MAILTO=<your email>");
     }
+  });
+
+  it("prints the SCHOLAR_OPENALEX_KEY line untranslated and never calls the email an OpenAlex requirement (F12)", () => {
+    for (const locale of SUPPORTED_LOCALES) {
+      expect(DISCOVERY_COPY[locale]["openalexKey.line"]).toBe("SCHOLAR_OPENALEX_KEY=<your key>");
+      expect(stateCopy(locale, "OPENALEX_KEY_NOT_SET").command).toBe("SCHOLAR_OPENALEX_KEY=<your key>");
+      const help = DISCOVERY_COPY[locale]["plan.limits.mailto.help"];
+      expect(help, locale).toContain("Crossref");
+      expect(help, locale).toContain("PubMed");
+    }
+    expect(DISCOVERY_COPY.en["plan.limits.mailto.help"]).not.toMatch(/Required by OpenAlex/);
   });
 });

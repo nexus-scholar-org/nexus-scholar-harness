@@ -116,6 +116,7 @@ def env(tmp_path, monkeypatch):
     monkeypatch.setattr(hyd_mod, "AcademicHttpClient", _Client)
     monkeypatch.setattr(ver_mod, "DocumentVerifier", _PassthroughVerifier)
     monkeypatch.setattr(settings, "mailto", "console@example.invalid")
+    monkeypatch.setattr(settings, "openalex_key", "console-test-key")  # a placeholder, never sent
     app = create_app(ws, token=TOKEN, workspaces_root=root)
     with TestClient(app, base_url="http://127.0.0.1", headers={"Authorization": f"Bearer {TOKEN}"}) as client:
         yield client, ws, providers
@@ -244,6 +245,38 @@ def test_a_run_cannot_start_without_a_contact_email(env, monkeypatch):
     assert not providers.by_name  # no provider was even built
 
 
+def test_a_run_that_selects_openalex_needs_its_key(env, monkeypatch):
+    """F12 (M3h-providers): OpenAlex requires an API key since 2026-02-13."""
+    client, ws, providers = env
+    monkeypatch.setattr(settings, "openalex_key", None)
+    assert client.get(f"{BASE}/plan").json()["openalex_key_set"] is False
+    response = client.post(f"{BASE}/runs", json={})  # the protocol selects openalex
+    assert response.status_code == 409 and _code(response) == "OPENALEX_KEY_NOT_SET"
+    assert "SCHOLAR_OPENALEX_KEY" in response.json()["detail"]["message"]
+    explicit = client.post(f"{BASE}/runs", json={"providers": ["openalex", "pubmed"]})
+    assert explicit.status_code == 409 and _code(explicit) == "OPENALEX_KEY_NOT_SET"
+    assert not (ws / "literature" / "search_runs").exists()
+    assert not providers.by_name  # no provider was even built
+    # The contact email is checked first: both missing answers MAILTO_NOT_SET.
+    monkeypatch.setattr(settings, "mailto", None)
+    assert _code(client.post(f"{BASE}/runs", json={})) == "MAILTO_NOT_SET"
+
+
+def test_a_run_without_openalex_needs_no_openalex_key(env, monkeypatch):
+    client, _, providers = env
+    monkeypatch.setattr(settings, "openalex_key", None)
+    response = client.post(f"{BASE}/runs", json={"providers": ["pubmed", "crossref"]})
+    assert response.status_code == 202, response.text
+    job = response.json()["job"]
+    _events(client, job["job_id"])
+    assert set(providers.by_name) == {"pubmed", "crossref"}
+
+
+def test_the_plan_reports_the_openalex_key(env):
+    client, _, _ = env
+    assert client.get(f"{BASE}/plan").json()["openalex_key_set"] is True
+
+
 def test_a_run_cannot_start_on_an_accepted_snapshot(env):
     client, ws, _ = env
     (ws / "audit").mkdir(exist_ok=True)
@@ -366,6 +399,7 @@ def test_closing_the_console_keeps_the_fetched_records_as_a_partial_run(tmp_path
     providers.set("openalex", FakeProvider("openalex", [_doc("openalex", i) for i in range(500)], delay=0.02))
     monkeypatch.setattr(disc, "_resolve_providers", providers)
     monkeypatch.setattr(settings, "mailto", "console@example.invalid")
+    monkeypatch.setattr(settings, "openalex_key", "console-test-key")  # a placeholder, never sent
     app = create_app(ws, token=TOKEN, workspaces_root=root)
     with TestClient(app, base_url="http://127.0.0.1", headers={"Authorization": f"Bearer {TOKEN}"}) as client:
         assert client.post(f"{BASE}/runs", json={"providers": ["openalex"]}).status_code == 202

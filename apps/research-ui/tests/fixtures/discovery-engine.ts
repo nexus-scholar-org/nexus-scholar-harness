@@ -21,6 +21,8 @@ export interface DiscoveryFakeOptions {
   protocol?: "ok" | "missing" | "invalid";
   /** `SCHOLAR_MAILTO` set for the console (default true). */
   mailto?: boolean;
+  /** `SCHOLAR_OPENALEX_KEY` set for the console (default true; M3h-providers). */
+  openalexKey?: boolean;
   /** Finished browser runs already in the workspace (default 0). */
   runs?: number;
   /** The corpus is frozen already. */
@@ -75,6 +77,7 @@ export function discoveryEngine(options: DiscoveryFakeOptions = {}) {
   const capped = options.cappedLeg === undefined ? "crossref" : options.cappedLeg;
   let protocol = options.protocol ?? "ok";
   let mailto = options.mailto ?? true;
+  let openalexKey = options.openalexKey ?? true;
   let accepted = options.accepted ?? false;
   let staged = options.staged ?? false;
   let protocolChanged = options.protocolChangedSinceRun ?? false;
@@ -157,7 +160,7 @@ export function discoveryEngine(options: DiscoveryFakeOptions = {}) {
   const plan = () => ({
     shape: "discovery.plan-v1", protocol_fingerprint: FINGERPRINT,
     query: { id: "Q1", text: QUERY_TEXT, year_min: 2018, year_max: 2026, language: "en" },
-    cap: { value: 500, source: "protocol", ceiling: 10000 }, mailto_set: mailto,
+    cap: { value: 500, source: "protocol", ceiling: 10000 }, mailto_set: mailto, openalex_key_set: openalexKey,
     providers: PROVIDERS.map((name) => {
       const selected = SELECTED.includes(name);
       return {
@@ -271,6 +274,9 @@ export function discoveryEngine(options: DiscoveryFakeOptions = {}) {
         needProtocol() ??
         (cap !== undefined && cap !== null && !(cap >= 1 && cap <= 10000) ? refuse(422, "CAP_INVALID", "A run cap must be 1 to 10000 records per database.") : null) ??
         (!mailto ? mailtoRefusal : null) ??
+        (!openalexKey && ((body?.providers as string[] | undefined) ?? SELECTED).includes("openalex")
+          ? refuse(409, "OPENALEX_KEY_NOT_SET", "OpenAlex needs an API key. Set SCHOLAR_OPENALEX_KEY for the console (environment or .env) and start it again, or leave OpenAlex out of this run.")
+          : null) ??
         (accepted ? refuse(409, "CORPUS_ALREADY_ACCEPTED", "The corpus snapshot is accepted; a frozen corpus is never searched again from the browser.") : null) ??
         (staged ? refuse(409, "STAGED_IMPORT_PENDING", "Database exports are staged for import; accept or remove them before a search run.") : null) ??
         busy();
@@ -360,6 +366,7 @@ export function discoveryEngine(options: DiscoveryFakeOptions = {}) {
     handle,
     runs,
     setMailto: (value: boolean) => (mailto = value),
+    setOpenalexKey: (value: boolean) => (openalexKey = value),
     setProtocol: (value: "ok" | "missing" | "invalid") => (protocol = value),
     setStaged: (value: boolean) => (staged = value),
     get accepted() {

@@ -36,7 +36,7 @@ test("a researcher creates a workspace from the browser and lands on screening H
   await page.getByRole("button", { name: "Start a new review" }).click();
 
   await expect(page.getByRole("heading", { name: "What is the review about?" })).toBeVisible();
-  await expect(page.getByText("2 Explore · coming with recon")).toBeVisible();
+  await expect(page.getByText("2 Explore · not built yet")).toBeVisible();
   await page.getByLabel("Research topic, in one or two sentences").fill("on-device weed detection");
   await page.getByRole("button", { name: "Continue to Shape" }).click();
 

@@ -334,8 +334,8 @@ starts this server on your workspace.
 
 | Variable | Purpose |
 | --- | --- |
-| `SCHOLAR_MAILTO` | Contact email sent to Crossref (in the User-Agent) and NCBI, and still sent to OpenAlex, which no longer uses it. **Required for a live search**: without it `run`, a browser harvest and a recall check refuse with `MAILTO_NOT_SET`. |
-| `SCHOLAR_OPENALEX_KEY` | OpenAlex API key (free). **OpenAlex has required a key since 2026-02-13.** Without it, OpenAlex requests share a small daily budget with everyone on your network address, and OpenAlex documents that paging past the first page is refused. The code still calls the key optional and does not refuse a run without it (known gap, `src/scholar_search/config.py:20-22`; see `docs/kits/search/PROVIDERS_2026-11.md`). |
+| `SCHOLAR_MAILTO` | Contact email sent to Crossref (in the User-Agent) and to NCBI for PubMed. OpenAlex no longer reads an email and is not sent one. **Required for a live search**: without it `run`, a browser harvest and a recall check refuse with `MAILTO_NOT_SET`. |
+| `SCHOLAR_OPENALEX_KEY` | OpenAlex API key (free, from openalex.org). **Required to search OpenAlex: OpenAlex has required a key since 2026-02-13.** A browser harvest that includes OpenAlex refuses with `OPENALEX_KEY_NOT_SET` until it is set, and the Plan screen shows whether it is set. Without it, a CLI `run` still sends OpenAlex keyless requests, which share a small daily budget with everyone on your network address; paging past the first page is refused, and the OpenAlex leg then fails with `PROVIDER_REFUSED` and a note naming the key. |
 | `SCHOLAR_S2_KEY` | Semantic Scholar API key (optional; without it the shared public pool is used). |
 | `NEXUS_WORKSPACES_ROOT` | Folder holding your workspaces for `nexus-scholar ui` (else `~/Documents/Nexus Scholar/workspaces`). |
 | `NEXUS_CONSOLE_TOKEN` | The per-launch token of `nexus-scholar serve` (it prints one if unset). |

@@ -706,6 +706,16 @@ export const STATES: Record<string, StateEntry> = {
       ar: T("حدّد بريدًا للتواصل قبل البحث", "يحتاج البحث إلى بريد للتواصل مع قواعد البيانات العلمية. ضع السطر أدناه في بيئة وحدة التحكم أو في ملف ‎.env‎، ثم أعد تشغيل وحدة التحكم.", "فحص الاستدعاء والحصاد", "تحقّق مجددًا"),
     },
   },
+  OPENALEX_KEY_NOT_SET: {
+    role: "blocked",
+    action: "retry",
+    command: "SCHOLAR_OPENALEX_KEY=<your key>",
+    copy: {
+      en: T("Set the OpenAlex API key before searching OpenAlex", "OpenAlex requires a free API key since February 2026. Put the line below in the console's environment, or in a .env file, then start the console again, or leave OpenAlex out of the run.", "Harvest", "Check again"),
+      fr: T("Indiquez la clé d'API OpenAlex avant de chercher dans OpenAlex", "OpenAlex exige une clé d'API gratuite depuis février 2026. Mettez la ligne ci-dessous dans l'environnement de la console ou dans un fichier .env, puis redémarrez la console, ou retirez OpenAlex de l'exécution.", "La collecte", "Vérifier à nouveau"),
+      ar: T("حدّد مفتاح واجهة OpenAlex البرمجية قبل البحث فيها", "تشترط OpenAlex مفتاح واجهة برمجية مجانيًا منذ فبراير 2026. ضع السطر أدناه في بيئة وحدة التحكم أو في ملف ‎.env‎، ثم أعد تشغيل وحدة التحكم، أو استبعد OpenAlex من التشغيل.", "الحصاد", "تحقّق مجددًا"),
+    },
+  },
   DISCOVERY_JOB_ACTIVE: {
     role: "unclear",
     action: "none",

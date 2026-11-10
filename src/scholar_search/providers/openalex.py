@@ -5,9 +5,27 @@ from collections.abc import AsyncIterator
 from typing import Any
 
 from ..config import settings
+from ..exceptions import ProviderError
 from ..models import Author, Document, ExternalIds, Query
 from ..query_translator import BooleanQueryTranslator, QueryField
 from .base import BaseAPIProvider
+
+
+#: OpenAlex's largest supported page (F13): ``per_page=200`` is "deprecated
+#: and will be removed" (help.openalex.org paging page, 2026-11-03).
+MAX_PER_PAGE = 100
+
+#: HTTP answers OpenAlex gives a request without a usable key (F12): 401 for
+#: a cursor past page one, 403 for a bad key, 409 once the keyless daily
+#: budget is spent. Keys are required since 2026-02-13.
+KEY_STATUSES = frozenset({401, 403, 409})
+
+
+def key_note(status: int | None) -> str:
+    return (
+        f"OpenAlex refused the request (HTTP {status}): OpenAlex requires an API key "
+        "since 2026-02-13. Set SCHOLAR_OPENALEX_KEY (a free key from openalex.org)."
+    )
 
 
 class OpenAlexProvider(BaseAPIProvider):
@@ -148,16 +166,16 @@ class OpenAlexProvider(BaseAPIProvider):
         return " ".join(word for _, word in word_index)
 
     def _build_params(self, query: Query) -> dict[str, Any]:
-        params: dict[str, Any] = {
-            **({"mailto": settings.mailto} if settings.mailto else {}),
-        }
+        # No ``mailto``: OpenAlex dropped the email parameter for API keys on
+        # 2026-02-13 (F12); the key is the only identification it reads.
+        params: dict[str, Any] = {}
         if query.semantic:
             # Semantic mode (M0.6): OpenAlex rejects cursor pagination for
             # `search.semantic` (page/per_page only, max 50 results per
             # request), so cap per-page and never set a cursor key.
             params["per-page"] = min(query.max_results or 50, 50)
         else:
-            params["per-page"] = min(query.max_results or 100, 200)
+            params["per-page"] = min(query.max_results or MAX_PER_PAGE, MAX_PER_PAGE)
             params["cursor"] = "*"
         if settings.openalex_key:
             params["api_key"] = settings.openalex_key
@@ -182,15 +200,15 @@ class OpenAlexProvider(BaseAPIProvider):
                 flags=re.IGNORECASE,
             )
             if any(op in normalized_q for op in (" AND ", " OR ", " NOT ")):
-                # Boolean queries go to the strict title-and-abstract search
-                # FILTER, not the full-text `search` param: `search` also hits
-                # full text (reference lists, passing mentions), which diluted
-                # top-ranked mega-cited surveys and obscured narrow primary
-                # studies (observed live 2026-10-17). The filter value is
-                # appended to the comma-joined `filter` list — the boolean
-                # text must therefore contain no commas (guaranteed for the
-                # concept-clause queries this provider is used with).
-                filters.append(f"title_and_abstract.search:{normalized_q}")
+                # Boolean queries go to the title-and-abstract search, not the
+                # full-text `search` param: `search` also hits full text
+                # (reference lists, passing mentions), which diluted top-ranked
+                # mega-cited surveys and obscured narrow primary studies
+                # (observed live 2026-10-17). F13: the scoped parameter
+                # `search.title_and_abstract` replaces the filter form
+                # `title_and_abstract.search:`, which OpenAlex calls "no longer
+                # recommended"; as its own parameter the text may hold commas.
+                params["search.title_and_abstract"] = normalized_q
             else:
                 params["search"] = normalized_q
 
@@ -206,14 +224,24 @@ class OpenAlexProvider(BaseAPIProvider):
         params = self._build_params(query)
         executed = (
             params.get("search.semantic")
+            or params.get("search.title_and_abstract")
             or params.get("search")
-            or next(
-                (f[len("title_and_abstract.search:"):] for f in str(params.get("filter", "")).split(",")
-                 if f.startswith("title_and_abstract.search:")),
-                "",
-            )
+            or ""
         )
-        return executed, params, []
+        notes = [] if settings.openalex_key else [
+            "No OpenAlex API key is set (SCHOLAR_OPENALEX_KEY): OpenAlex requires one "
+            "since 2026-02-13 and refuses keyless paging past the first page"
+        ]
+        return executed, params, notes
+
+    async def _get(self, params: dict[str, Any]):
+        """One page; a key refusal (401/403/409) is named on the leg (F12)."""
+        try:
+            return await self.client.get(self.base_url, params=params)
+        except ProviderError as exc:
+            if exc.status_code in KEY_STATUSES:
+                self._record_note(key_note(exc.status_code))
+            raise
 
     async def search(self, query: Query) -> AsyncIterator[Document]:
         """Search OpenAlex works."""
@@ -222,7 +250,7 @@ class OpenAlexProvider(BaseAPIProvider):
         count = 0
         page = 1
         while True:
-            resp = await self.client.get(self.base_url, params=params)
+            resp = await self._get(params)
             self._record_page()
             response = resp.json()
             self._record_total(response.get("meta", {}).get("count"))
@@ -263,7 +291,7 @@ class OpenAlexProvider(BaseAPIProvider):
     async def get_citations(self, document_id: str) -> AsyncIterator[Document]:
         """Forward Snowballing: Get papers that cite this specific OpenAlex ID."""
         # e.g., filter=cites:W123456789
-        params = {"filter": f"cites:{document_id}", "per-page": 200, "cursor": "*"}
+        params = {"filter": f"cites:{document_id}", "per-page": MAX_PER_PAGE, "cursor": "*"}
         if settings.openalex_key:
             params["api_key"] = settings.openalex_key
 
@@ -294,7 +322,7 @@ class OpenAlexProvider(BaseAPIProvider):
             chunk = referenced_works[i : i + chunk_size]
             id_filter = "|".join(chunk)
 
-            params = {"filter": f"openalex:{id_filter}", "per-page": 200}
+            params = {"filter": f"openalex:{id_filter}", "per-page": MAX_PER_PAGE}
             if settings.openalex_key:
                 params["api_key"] = settings.openalex_key
 

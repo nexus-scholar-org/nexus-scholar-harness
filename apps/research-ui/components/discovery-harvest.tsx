@@ -388,7 +388,7 @@ export function DiscoveryHarvest({ locale }: Readonly<{ locale: Locale }>) {
           ) : null}
           {startError ? (
             <div className="space-y-2">
-              <DiscoveryRefusal locale={locale} refusal={startError} origin={origin} onRetry={startError.code === "MAILTO_NOT_SET" ? () => { setStartError(null); void load(); } : undefined} />
+              <DiscoveryRefusal locale={locale} refusal={startError} origin={origin} onRetry={startError.code === "MAILTO_NOT_SET" || startError.code === "OPENALEX_KEY_NOT_SET" ? () => { setStartError(null); void load(); } : undefined} />
               {startError.code === "DISCOVERY_JOB_ACTIVE" && (startError.details as { job?: DiscoveryJob } | undefined)?.job?.kind === "run" ? (
                 <Button onClick={() => follow(startError)}>{t("job.follow")}</Button>
               ) : null}

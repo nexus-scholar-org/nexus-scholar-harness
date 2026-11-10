@@ -9,16 +9,24 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     """Main configuration settings loaded from environment or .env file."""
 
-    # Contact address for the providers' polite pools (Crossref, OpenAlex, NCBI).
+    # Contact address for the providers that read one (Crossref's polite pool,
+    # NCBI E-utilities for PubMed). OpenAlex no longer reads it (F12).
     # No default: a live search refuses with MAILTO_NOT_SET until it is set
     # (decision 2026-11-08, "A live search needs a real contact email").
     mailto: str | None = Field(
-        default=None, description="Contact email sent to the providers (SCHOLAR_MAILTO)"
+        default=None,
+        description="Contact email sent to Crossref and PubMed (SCHOLAR_MAILTO)",
     )
 
     # API Keys
+    # OpenAlex requires a key since 2026-02-13 (announced 2026-01-14): keyless
+    # calls share a small daily budget per IP, then answer 409, and cursor
+    # paging past the first page answers 401. A browser run that selects
+    # OpenAlex refuses with OPENALEX_KEY_NOT_SET until it is set
+    # (decision 2026-11-10, "OpenAlex needs its API key").
     openalex_key: str | None = Field(
-        default=None, description="OpenAlex Premium API Key (Optional)"
+        default=None,
+        description="OpenAlex API key, required for OpenAlex searches (SCHOLAR_OPENALEX_KEY)",
     )
     s2_key: str | None = Field(
         default=None, description="Semantic Scholar API Key (Optional but recommended)"
