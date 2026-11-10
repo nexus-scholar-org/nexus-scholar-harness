@@ -216,7 +216,7 @@ def test_discovery_reaches_the_engine_from_the_browser(ws, ui, monkeypatch):
         assert (recall.status_code, recall.json()["detail"]["code"]) == (409, "MAILTO_NOT_SET")
         cancel = client.post(f"{base}/jobs/djob_0123456789abcdef/cancel", json={}, headers=same)
         assert (cancel.status_code, cancel.json()["detail"]["code"]) == (404, "DISCOVERY_JOB_NOT_FOUND")
-        methods = client.put(f"{base}/report/methods", json={"text": "x"}, headers=same)
+        methods = client.put(f"{base}/report/methods", json={"text": "x", "reviewed": True}, headers=same)
         assert (methods.status_code, methods.json()["detail"]["code"]) == (404, "RUN_NOT_FOUND")
         assert client.get(f"{base}/runs").json()["shape"] == "discovery.runs-v1"
         for path in ("plan", "report", "runs/run_001", "jobs/djob_1/events"):
