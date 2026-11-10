@@ -580,7 +580,8 @@ def report(request: Request, run: str | None = None) -> dict[str, Any]:
 class MethodsBody(BaseModel):
     model_config = ConfigDict(extra="forbid")
     text: str = Field(min_length=1, max_length=20_000)
-    reviewed: bool = True
+    # Required (review finding 2): a save that does not say it was reviewed is never recorded as a review.
+    reviewed: bool
     run: str | None = None
 
 
@@ -631,12 +632,14 @@ def handoff(request: Request) -> dict[str, Any]:
             mix[name] = mix.get(name, 0) + 1
     total = len(rows)
     with_abstract = sum(1 for row in rows if str(row.get("abstract") or "").strip())
-    dirs = _run_dirs(ws)
-    legs = _manifest(dirs[0])["legs"] if dirs else []
+    # verified.json belongs to the newest run published as the corpus; its
+    # lower-bound warnings come from that run, not from a later failed one.
+    corpus_run = next((d for d in _run_dirs(ws) if _published(_manifest(d))), None)
+    legs = _manifest(corpus_run)["legs"] if corpus_run else []
     return {
         "shape": "discovery.handoff-v1",
         "corpus": _corpus_view(ws),
-        "run": dirs[0].name if dirs else None,
+        "run": corpus_run.name if corpus_run else None,
         "provider_mix": [
             {"provider": name, "records": n, "share": round(n / total, 4) if total else 0.0}
             for name, n in sorted(mix.items(), key=lambda kv: (-kv[1], kv[0]))
@@ -692,7 +695,7 @@ def _run_error(results: dict[str, Any]) -> dict[str, Any]:
 
 @router.post("/runs", status_code=202)
 async def start_run(body: RunBody, request: Request) -> dict[str, Any]:
-    from ...corpus_accept import _accepted_snapshot
+    from ...corpus_accept import _accepted_snapshot, staged_sources
     from ...pipeline.coordinator import run_pipeline
 
     ws, jobs = _ws(request), _jobs(request)
@@ -705,6 +708,11 @@ async def start_run(body: RunBody, request: Request) -> dict[str, Any]:
         if _accepted_snapshot(ws):
             raise Refused(409, refusals.CORPUS_ALREADY_ACCEPTED,
                           "The corpus snapshot is accepted; a frozen corpus is never searched again from the browser.")
+        if staged_sources(ws):
+            # The run would end at the snapshot with this refusal (M3a review
+            # finding 2); say it before any request instead.
+            raise Refused(409, refusals.STAGED_IMPORT_PENDING,
+                          "Database exports are staged for import; accept or remove them before a search run.")
         _refuse_busy(jobs, ws)
     except Refused as exc:
         raise _http(exc) from exc

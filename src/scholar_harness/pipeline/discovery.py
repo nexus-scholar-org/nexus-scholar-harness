@@ -574,10 +574,12 @@ def _archive_search_run(
         "query_text": getattr(query, "text", None),
         "year_min": getattr(query, "year_min", None),
         "year_max": getattr(query, "year_max", None),
-        "raw_published": payload is not None,
-        # M3b-api: whether this run's records became literature/raw_search.json
-        # (a cancelled run keeps raw.json here but publishes nothing), the
-        # browser's per-run cap (decision 7) and the run's notes.
+        # Published as literature/raw_search.json (M3a's meaning, kept): a
+        # cancelled run keeps raw.json here (``raw_kept``) but publishes nothing.
+        "raw_published": payload is not None if corpus_published is None else corpus_published,
+        "raw_kept": payload is not None,
+        # M3b-api: the same fact under its own name, the browser's per-run cap
+        # (decision 7) and the run's notes.
         "corpus_published": payload is not None if corpus_published is None else corpus_published,
         "cap_override": cap_override,
         "notes": list(notes or []),

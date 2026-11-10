@@ -246,6 +246,18 @@ def test_a_run_cannot_start_on_an_accepted_snapshot(env):
     assert not (ws / "literature" / "search_runs").exists()
 
 
+def test_a_run_cannot_start_over_staged_exports(env):
+    """A run would end at the snapshot with STAGED_IMPORT_PENDING; it is refused before any request."""
+    from scholar_harness.corpus_accept import stage_ris_source
+
+    client, ws, providers = env
+    ris = b"TY  - JOUR\nTI  - A staged record\nPY  - 2023\nDO  - 10.1/staged\nER  - \n"
+    stage_ris_source(ws, "Scopus", ris, file_name="export.ris", searched_on="2026-11-01")
+    response = client.post(f"{BASE}/runs", json={})
+    assert response.status_code == 409 and _code(response) == "STAGED_IMPORT_PENDING"
+    assert not (ws / "literature" / "search_runs").exists() and not providers.by_name
+
+
 def test_a_run_refuses_a_cap_outside_the_ceiling_and_an_unknown_provider(env):
     client, _, _ = env
     for cap in (0, 10001, -3):
@@ -317,6 +329,9 @@ def test_cancel_keeps_fetched_records_and_archives_a_partial_run(env):
     manifest = json.loads((run / "legs.json").read_text(encoding="utf-8"))
     assert manifest["status"] == "PARTIAL"
     assert "cancelled by the researcher" in manifest["notes"]
+    # Review finding 1: kept, not published as the corpus.
+    assert manifest["raw_published"] is False and manifest["raw_kept"] is True
+    assert client.get(f"{BASE}/runs").json()["runs"][0]["raw_published"] is False
     legs = {leg["provider"]: leg for leg in manifest["legs"]}
     assert legs["openalex"]["status"] == "stopped" and 0 < legs["openalex"]["fetched"] < 500
     assert legs["crossref"]["status"] == "ok" and legs["crossref"]["fetched"] == 3
@@ -489,6 +504,11 @@ def test_methods_text_is_a_draft_until_reviewed(env):
     assert methods["reviewed"] is False and methods["built_from"] == "run_001"
     assert "5 databases" in methods["text"] and "3" in methods["text"]
 
+    # Review finding 2: a save that does not say whether it was reviewed is refused, and nothing is journaled.
+    unsaid = client.put(f"{BASE}/report/methods", json={"text": "We searched five databases."})
+    assert unsaid.status_code == 422
+    assert not (ws / "literature" / "search_runs" / "run_001" / "methods.md").exists()
+    assert not [r for r in _journal(ws) if r.get("action") == "METHODS_TEXT_REVIEWED"]
     saved = client.put(f"{BASE}/report/methods", json={"text": "We searched five databases.", "reviewed": True})
     assert saved.status_code == 200, saved.text
     stored = (ws / "literature" / "search_runs" / "run_001" / "methods.md").read_text(encoding="utf-8")
@@ -533,6 +553,10 @@ def test_handoff_counts_abstracts_and_the_year_window_from_verified_json(env):
     assert mix["openalex"]["records"] == 2 and mix["crossref"]["records"] == 2 and mix["arxiv"]["records"] == 1
     assert mix["openalex"]["share"] == 0.5
     assert handoff["lower_bound_databases"] == ["openalex"]
+    # Review finding 4: a later run that was not published does not replace the corpus run.
+    _write_run(ws, 2, started="2026-11-02T00:00:00+00:00", published=False, legs=[{**capped, "provider": "crossref"}])
+    later = client.get(f"{BASE}/handoff").json()
+    assert later["run"] == "run_001" and later["lower_bound_databases"] == ["openalex"]
     assert handoff["near_twins_undecided"] is None
     assert handoff["protocol_fingerprint"].startswith("sha256:")
     assert handoff["corpus"]["shape"] == "screening.corpus-v1"

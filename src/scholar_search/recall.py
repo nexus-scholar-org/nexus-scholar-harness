@@ -174,7 +174,9 @@ async def check_seeds(
     legs = [leg.to_dict() for leg in run.legs]
     failed = {leg["provider"] for leg in legs if leg["status"] == "failed"}
 
-    verifier = verifier or DocumentVerifier()
+    stopped = should_stop is not None and should_stop()
+    # A stopped check sends nothing more: no title lookups after the stop.
+    verifier = None if stopped else (verifier or DocumentVerifier())
     rows: list[dict[str, Any]] = []
     try:
         for seed in checked:
@@ -191,10 +193,13 @@ async def check_seeds(
                     found = found or hit
                 else:
                     per_provider[name] = "failed" if name in failed else "not_found"
-            title_check, title = await _title_check(verifier, seed, found)
+            if verifier is None:
+                title_check, title = "unresolved", (found.title if found else None)
+            else:
+                title_check, title = await _title_check(verifier, seed, found)
             rows.append({**seed, "title": title, "title_check": title_check, "per_provider": per_provider})
     finally:
-        close = getattr(verifier, "close", None)
+        close = getattr(verifier, "close", None) if verifier is not None else None
         if close is not None:
             await close()
     missed = [row["id"] for row in rows if "found" not in row["per_provider"].values()]

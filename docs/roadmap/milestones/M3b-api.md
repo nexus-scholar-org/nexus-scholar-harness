@@ -23,8 +23,7 @@ Each route's test was written from packet §8 before the route and run against `
 | `apps/research-ui/tests/console-proxy.test.ts` (discovery POST/PUT/stream) | new paths 405 | yes |
 
 ## Decisions
-Points the packet did not settle, decided in this milestone:
-Summary entry: [`docs/decisions.md`](../../decisions.md) "Discovery API: what the packet left open" (2026-11-10). Each point names the packet section it completes.
+Points the packet did not settle, decided in this milestone. Summary entry: [`docs/decisions.md`](../../decisions.md) "Discovery API: what the packet left open" (2026-11-10). Each point names the packet section it completes.
 
 1. **Cancel stops the harvest, not the run after it** (§4.3). A stopped leg says `status: "stopped"` with the note `cancelled by the researcher`; the run is archived `PARTIAL` with its fetched records in `search_runs/run_NNN/raw.json` only. A stopped harvest is not published as `literature/raw_search.json`, and the pipeline stops after discovery (`status: "CANCELLED"`, `PIPELINE_RUN_ABORTED` journaled): no dedup, no snapshot. A cancel that arrives after discovery ended does not stop dedup, verification or the snapshot. The job's last SSE event is `failed` with `state: "cancelled"` (the packet names only `done` and `failed`).
 2. **Closing the console is a cancel** (§6 decision 1). The console's lifespan cancels running discovery jobs on shutdown, so the run is archived `PARTIAL` as above. A killed process cannot do this; its harvest is lost (the M3a engine archives at the end of discovery).
@@ -39,6 +38,11 @@ Summary entry: [`docs/decisions.md`](../../decisions.md) "Discovery API: what th
 11. **Leg events are thinned** (§4.3): one at the first record, every 25 records and at each leg's end, so a 10,000-record leg does not put 10,000 events in the replayed stream.
 12. **`run_pipeline` gains optional keyword hooks** (`providers`, `progress_callback`, `leg_callback`, `stage_callback`, `should_stop`, `notes`, all `None` by default). The characterization test `tests/unit/test_coordinator.py::test_signatures_identical_and_mock_mode_unused` pins the extended list. `legs.json` gains `corpus_published`, `cap_override` and `notes`; a leg gains `error_code`. `search_report.md` prints the run override and the notes. The contract baseline check is unchanged.
 
+13. **Staged exports refuse a run before it starts** (review finding 3, optional fix taken): `POST /runs` answers `409 STAGED_IMPORT_PENDING` when database exports are staged, instead of harvesting and failing at the snapshot.
+
+### Open question for the researcher (review finding 3; before M3c specs)
+A browser run is `run_pipeline`, which since M3a builds **and accepts** the corpus snapshot at the end of a successful run. So after one good run: every later browser run answers `CORPUS_ALREADY_ACCEPTED`; "re-run with a higher cap" after a lower-bound leg is not possible from the browser; and the hand-off screen (packet §4.8, which assumes acceptance happens there through `POST /screening/corpus/accept`) opens on a corpus that is already accepted. This milestone keeps M3a's behaviour (STANDARD lane: what the snapshot is built from, and when, is unchanged). The choice for M3c: (a) a browser run stops before the snapshot (`NOT_BUILT`) and the hand-off accepts it, which changes the run's stages; or (b) the hand-off shows "already accepted" and a higher-cap re-run goes through inception's replace path.
+
 ## Evidence
 | Stage | Commit | Command | Result | Duration |
 | :-- | :-- | :-- | :-- | :-- |
@@ -49,3 +53,6 @@ Summary entry: [`docs/decisions.md`](../../decisions.md) "Discovery API: what th
 - The §8 golden-cassette test "the dry run's executed strings equal the replayed legs'" belongs to E1 and moves with it to M3d-engine.
 - Per-leg stop ("Stop arXiv") and slice yield: not offered, the engine has no leg cancel (packet §4.3); cancel stops the whole harvest.
 - A harvest lost to a killed console process (not a clean shutdown): the engine archives at the end of discovery; incremental archiving would be an engine item (packet §6 decision 1 assumes a clean close).
+- Report `identification[].cache` is always `null` (no cache flag on a leg yet); plan status `no_connection` is never produced (no offline probe); hand-off `dedup_decided_at` is left out (E4b).
+- A cancel does not interrupt a page request in flight or a retry back-off (up to 60 s in `http_client.py`); cancel waits 30 s and may answer `state: "running"`, the job then ends `cancelled`.
+- Reviewer follow-ups (P3): a draft save (`reviewed: false`) is journaled under `METHODS_TEXT_REVIEWED` with `reviewed: false` in its parameters; a malformed artifact registry gives 500 on `POST /runs`; dedup and prepare run synchronously in the console's event loop (decision 1's accepted cost); `JobRunner` jobs are not counted as discovery jobs (not browser-reachable).
