@@ -1,5 +1,7 @@
 # 09 — Nexus MCP Integration
 
+> **Status:** Historical: the series is complete (`specs/README.md`, label of 2026-11-10). Still cited from `src/`.
+
 > Reference for how the Nexus MCP surface (18 `nexus_*` tools) underpins the Grounded Exploratory Inception Agent. All tool implementations were **audited against real kit source** on 2026-09-12; results below.
 
 ## 1. Server wiring

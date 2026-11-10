@@ -2,6 +2,7 @@
 
 ## Metadata
 
+- Status (2026-11-10): Historical: `scholar_bib` was deleted in M5-slim (`docs/roadmap/milestones/M5-slim.md`); this spec governs no code.
 - Status: Draft for implementation
 - Date: 2026-09-17
 - Scope: `tools/scholar-bib-kit` and bibliography-facing MCP/harness adapters

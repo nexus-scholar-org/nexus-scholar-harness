@@ -2,6 +2,7 @@
 
 **Component:** `src/scholar_harness`  
 **Version:** 1.0.0-draft  
+**Status (2026-11-10):** Historical (2026-11-10): superseded as the plan of record by `docs/roadmap/production-plan.md` and the 2026-11-03 assessment (`docs/assessment/README.md`). Kept because code and baseline-locked documents cite it. The kit-repository delivery steps no longer apply: the kits are one package since 2026-11-03.  
 **Status:** Ready for design review  
 **Priority:** P0/P1  
 **Primary owners:** Harness, console, screening, workspace-state maintainers

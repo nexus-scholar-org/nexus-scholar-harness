@@ -1,5 +1,7 @@
 # 03 — Reconnaissance & Grounding Lifecycle
 
+> **Status:** Historical: the series is complete (`specs/README.md`, label of 2026-11-10). Still cited from `src/`.
+
 > The 5-step loop that converts curiosity into grounded research directions. Everything below happens **before** any `workspaces/` scaffold exists.
 
 ## Step 1 — Intent Clarification (Human-in-the-loop, LLM)
