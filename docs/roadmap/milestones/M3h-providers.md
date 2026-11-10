@@ -1,5 +1,5 @@
 # M3h-providers Provider correctness (F11, F12, F13)
-Branch: dev/m3h-providers/provider-correctness · Lane: **RELEASE** (escalated from the plan's STANDARD after the independent review: the diff changes public HTTP semantics, a new `OPENALEX_KEY_NOT_SET` refusal on `POST /discovery/runs` and new plan fields `openalex_key_set` and `s2_key_set`, and changes leg outcomes for a rejected Semantic Scholar key; `test_gate_policy.md` §lanes puts that in RELEASE, as it did for M4c. No Contract v1 schema, artifact identity or snapshot change: `generate_contract_baseline.py --check` passes at every commit) · Status: IN PROGRESS · Started: 2026-11-10
+Branch: dev/m3h-providers/provider-correctness · Lane: **RELEASE** (escalated from the plan's STANDARD after the independent review: the diff changes public HTTP semantics, a new `OPENALEX_KEY_NOT_SET` refusal on `POST /discovery/runs` and new plan fields `openalex_key_set` and `s2_key_set`, and changes leg outcomes for a rejected Semantic Scholar key; `test_gate_policy.md` §lanes puts that in RELEASE, as it did for M4c. No Contract v1 schema, artifact identity or snapshot change: `generate_contract_baseline.py --check` passes at every commit) · Status: READY FOR PR · Started: 2026-11-10
 
 Scope is the first package of the plan §6 row: F11, F12, F13 from
 [`three-phase-hardening-2026-11-10.md`](../../assessment/three-phase-hardening-2026-11-10.md)
@@ -25,7 +25,7 @@ proposal, not a build, for OpenAlex semantic search (see "Proposals").
 - [x] OpenAlex semantic search (addition B): proposal below; nothing in the harvest changes.
 - [x] Golden search cassette green with the new OpenAlex request (`tests/pipeline/test_golden_search_cassettes.py`): the OpenAlex interaction re-recorded with the researcher's OK and key (one live request, 2026-11-10); the other four databases' recordings are unchanged.
 - [x] Review findings repaired (first review: CHANGES, 6 findings): PubMed tag check no longer infers an unapplied known tag from label counts (`::test_a_dropped_tiab_term_is_not_reported_as_an_unapplied_tag`, `::test_the_golden_quoted_phrase_is_reported_as_searched_word_by_word`, `::test_pubmed_stop_words_are_noted`; second review R1: a quoted phrase PubMed cannot find is reported as searched word by word, from the recorded golden answer); the OpenAlex abstract hydrator asks for 100 (`::test_the_openalex_abstract_hydrator_asks_for_at_most_100`); the recon count probe no longer sends `mailto` to OpenAlex; lane escalated to RELEASE; docs corrected.
-- [ ] Closure gate (`select_test_gate.py --changed main --stage closure`), contract baseline check, `milestone-reviewer` APPROVE on the repair.
+- [x] Closure gate (`select_test_gate.py --changed main --stage closure`), contract baseline check, `milestone-reviewer` APPROVE on the repair.
 
 ## Findings fixed
 | ID | Reproducing test | Fails before | Passes after |
@@ -53,6 +53,9 @@ proposal, not a build, for OpenAlex semantic search (see "Proposals").
 | pr | `9a5ac4d8` | `uv run pytest -q -n auto`; `npm test`; `npm run typecheck` | pytest exit 0; vitest 434 passed; typecheck clean | 474 s + 71 s |
 | review | `9a5ac4d8` | `milestone-reviewer` | CHANGES (6 findings, repaired in `99f071b8`) | |
 | review | `99f071b8` | `milestone-reviewer` (repair delta) | CHANGES: R1 (quoted-phrase note wrong on the golden PubMed leg), R2 (two §1 rows unannotated); repaired in the next commit | |
+| closure | `99f071b8` | `select_test_gate.py --changed main --stage closure`: contract baseline, schemas and two-study fixture `--check`, ruff `scripts/`, `git diff --check`, `pytest -n auto`, `uv build --wheel`, typecheck, vitest, build, Playwright | all exit 0; pytest 4743 passed, 15 skipped; vitest 434 passed; Playwright 387 passed, 13 skipped | 1135 s |
+| review | `62cbab13` | `milestone-reviewer` (R1, R2 only) | **APPROVE** | |
+| pr | `75ffcf95` | `pytest -n auto`, contract baseline `--check`, ruff bug classes on `src/`, `git diff --check`, no key in the branch diff | 4745 passed, 15 skipped; all clean (`64b18cc2` repaired a K0 domain-word failure in a comment; `75ffcf95` the S2 rate) | 491 s |
 
 ## Proposals
 
