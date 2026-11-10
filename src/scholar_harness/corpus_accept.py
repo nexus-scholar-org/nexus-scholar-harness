@@ -270,6 +270,25 @@ def _staging_refusal(ws: Path) -> AcceptCorpusRefused | None:
     return None
 
 
+def refuse_if_run_protocol_changed(ws: Path, manifest: dict[str, Any]) -> None:
+    """Refuse a search run's corpus when ``protocol.json`` no longer compiles to the query it ran.
+
+    The hand-off accept (M3d-engine) binds the run's records to the current
+    protocol fingerprint, so the run must have searched that protocol's query
+    and year window (review F3): ``PROTOCOL_CHANGED_SINCE_RUN`` otherwise.
+    """
+    from scholar_search.protocol_adapter import compile_protocol_search
+
+    query, _ = compile_protocol_search(ws / "protocol.json")
+    ran = (manifest.get("query_text"), manifest.get("year_min"), manifest.get("year_max"))
+    if ran != (query.text, query.year_min, query.year_max):
+        raise AcceptCorpusRefused(
+            f"{manifest.get('run') or 'the search run'} searched a query or year window the protocol "
+            "no longer has; run the search again before accepting its corpus",
+            "PROTOCOL_CHANGED_SINCE_RUN",
+        )
+
+
 def _refuse_if_frozen(ws: Path) -> None:
     refusal = _staging_refusal(ws)
     if refusal is not None:

@@ -224,7 +224,7 @@ def test_a_pubmed_nbib_upload_is_staged_as_nbib(ws):
 FIXTURES = ROOT / "tests" / "kits" / "search" / "fixtures" / "imports"
 
 
-@pytest.mark.parametrize(("name", "kept"), [("rejections.ris", 3), ("rejections.nbib", 3)])
+@pytest.mark.parametrize(("name", "kept"), [("rejections.ris", 4), ("rejections.nbib", 4)])
 def test_a_staged_export_lists_its_rejected_lines_and_the_limits_applied(ws, name, kept):
     """E3 (M3d-engine, packet §4.4): the rejected lines and the limits travel with the staged row."""
     client = _client(ws)

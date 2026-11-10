@@ -39,7 +39,7 @@ class RISImporter:
     could not use, as ``{line, code, reason}`` (1-based line numbers):
     ``IMPORT_BAD_TAG`` for a line that is neither a tag nor a continuation of
     one; ``IMPORT_NO_TITLE`` for a record without ``TI``/``T1`` (the record is
-    not imported; ``line`` is its first line); ``IMPORT_BAD_YEAR`` for a
+    imported as before, as "Unknown Title"; ``line`` is its first line); ``IMPORT_BAD_YEAR`` for a
     ``PY``/``Y1`` without a four-digit year (the record is imported without a year).
     """
 
@@ -92,8 +92,11 @@ class RISImporter:
         self, record: dict, authors: list[Author], lines: dict[str, int], start: int
     ) -> Iterator[Document]:
         if not (record.get("TI") or record.get("T1")):
-            self.rejected.append(_rejection(start, IMPORT_NO_TITLE, "record without a title (TI or T1); not imported"))
-            return
+            # Kept as before ("Unknown Title"): dropping it would move the ids of
+            # every later record of the file (review F1). Reported, not removed.
+            self.rejected.append(_rejection(
+                start, IMPORT_NO_TITLE, "record without a title (TI or T1); imported as 'Unknown Title'",
+            ))
         for tag in ("PY", "Y1"):
             if tag in record:
                 if not re.match(r"\d{4}", record[tag]):
@@ -176,7 +179,7 @@ class NBIBImporter:
         """Every MEDLINE record of ``filepath``; ``rejected`` lists what was not used.
 
         ``IMPORT_BAD_TAG``: a line that is neither a tag nor the continuation of
-        one; ``IMPORT_NO_TITLE``: a record without ``TI`` (not imported; ``line``
+        one; ``IMPORT_NO_TITLE``: a record without ``TI`` (imported as before; ``line``
         is its ``PMID`` line); ``IMPORT_BAD_YEAR``: a ``DP`` with no four-digit
         year (the record is imported without a year). A block without a
         ``PMID`` is not a MEDLINE record and is skipped without a rejection, so
@@ -226,9 +229,8 @@ class NBIBImporter:
             return
         if not " ".join(record.get("TI", [])).strip():
             self.rejected.append(_rejection(
-                lines.get("PMID", 0), IMPORT_NO_TITLE, f"PMID {pmid} has no title (TI); not imported",
+                lines.get("PMID", 0), IMPORT_NO_TITLE, f"PMID {pmid} has no title (TI); imported as 'Unknown Title'",
             ))
-            return
         if record.get("DP") and not any(_NBIB_YEAR.search(v) for v in record["DP"]):
             self.rejected.append(_rejection(
                 lines.get("DP", 0), IMPORT_BAD_YEAR,

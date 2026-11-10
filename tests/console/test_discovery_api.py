@@ -635,7 +635,7 @@ def test_report_lists_each_imports_limits_and_rejected_lines(env):
     stage_ris_source(ws, "Scopus", fixture.read_bytes(), file_name="scopus.ris", searched_on="2026-11-10",
                      query="uav AND weed", limits="English; 2018-2025")
     (imp,) = client.get(f"{BASE}/report").json()["imports"]
-    assert imp["limits"] == "English; 2018-2025" and imp["records"] == 3
+    assert imp["limits"] == "English; 2018-2025" and imp["records"] == 4
     assert [r["code"] for r in imp["rejected"]] == ["IMPORT_BAD_TAG", "IMPORT_NO_TITLE", "IMPORT_BAD_YEAR"]
 
 
@@ -691,3 +691,17 @@ def test_after_a_browser_run_the_corpus_says_why_an_export_cannot_be_staged(env)
 
     assert client.post("/api/v1/screening/corpus/accept").status_code == 200
     assert client.get("/api/v1/screening/corpus").json()["staging_refused"]["code"] == "CORPUS_ALREADY_ACCEPTED"
+
+
+def test_the_handoff_accept_refuses_a_run_from_an_earlier_protocol(env):
+    """Review F3: the accept binds the run's records to the current protocol, so a changed query is refused."""
+    client, ws, _ = env
+    job, _ = _run(client, {"providers": ["openalex"]})
+    assert job["state"] == "succeeded", job
+    protocol = json.loads((ws / "protocol.json").read_text(encoding="utf-8"))
+    protocol["search_strategy"]["date_range"]["start_year"] = 2015
+    (ws / "protocol.json").write_text(json.dumps(protocol), encoding="utf-8")
+    refused = client.post("/api/v1/screening/corpus/accept")
+    assert refused.status_code == 409 and _code(refused) == "PROTOCOL_CHANGED_SINCE_RUN"
+    assert client.get("/api/v1/screening/corpus").json()["state"] == "STAGED"
+    assert not [e for e in _journal(ws) if e["action"] == "CORPUS_SNAPSHOT_ACCEPTED"]

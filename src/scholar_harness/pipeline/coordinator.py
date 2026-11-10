@@ -291,6 +291,10 @@ def accept_discovery_corpus(workspace: Path | str, *, agent: str = "scholar-harn
     errors: dict[str, str] = {}
     if run_dir is not None:
         manifest = json.loads((run_dir / "legs.json").read_text(encoding="utf-8"))
+        # Review F3: the accept binds these records to the current protocol.
+        from scholar_harness.corpus_accept import refuse_if_run_protocol_changed
+
+        refuse_if_run_protocol_changed(ws, manifest)
         errors = {
             str(leg.get("provider")): str(leg.get("error") or "failed")
             for leg in manifest.get("legs") or []
