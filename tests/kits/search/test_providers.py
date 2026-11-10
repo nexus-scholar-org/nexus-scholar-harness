@@ -329,16 +329,16 @@ def test_openalex_build_params_semantic_small_max_results():
 
 
 def test_openalex_build_params_keyword_still_uses_cursor_and_correct_per_page():
-    """Keyword mode must preserve cursor='*' and per-page=min(max_results or 100, 200)."""
+    """Keyword mode must preserve cursor="*" and per-page=min(max_results or 100, 100) (F13)."""
     provider = OpenAlexProvider()
     params = provider._build_params(Query(text="machine learning", max_results=50))
     assert params["cursor"] == "*"
-    assert params["per-page"] == 50  # min(50, 200)
+    assert params["per-page"] == 50  # min(50, 100)
     assert "search.semantic" not in params
 
 
 def test_openalex_build_params_keyword_default_max_results():
-    """Keyword without max_results: per-page = min(100, 200) = 100, cursor present."""
+    """Keyword without max_results: per-page = 100, cursor present."""
     provider = OpenAlexProvider()
     params = provider._build_params(Query(text="machine learning"))
     assert params["cursor"] == "*"
@@ -346,11 +346,11 @@ def test_openalex_build_params_keyword_default_max_results():
 
 
 def test_openalex_build_params_keyword_large_max_results():
-    """Keyword with max_results > 200: per-page capped at 200."""
+    """Keyword with max_results > 100: per-page capped at 100, the OpenAlex maximum (F13)."""
     provider = OpenAlexProvider()
     params = provider._build_params(Query(text="test", max_results=500))
     assert params["cursor"] == "*"
-    assert params["per-page"] == 200
+    assert params["per-page"] == 100
 
 
 # ---------------------------------------------------------------------------

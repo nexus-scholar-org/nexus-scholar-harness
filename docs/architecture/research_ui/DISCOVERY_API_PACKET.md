@@ -4,7 +4,7 @@ Status: DECIDED 2026-11-10 (the seven decisions in §6 were taken by the researc
 Plan: [`docs/roadmap/production-plan.md`](../../roadmap/production-plan.md) §2 Phase 1 (screens 01–08), §6 M3, §7 cut rule 1 and 3.
 Engine record: [`docs/roadmap/milestones/M3a-discovery.md`](../../roadmap/milestones/M3a-discovery.md) (what the engine already does and what it deferred).
 Boards: `docs/ux/phase1-discovery/final/project/{Plan,Recall,Harvest,Import,Dedup,Report,States,Handoff}.dc.html`. The written `Status: FINAL` specs 01–08 are M3b's first task; this packet gives them the routes to point at. (They were written in M3c-screens, under `docs/ux/phase1-discovery/final/`.)
-Provider note (2026-11-10): OpenAlex has required an API key since 2026-02-13, so `MAILTO_NOT_SET` no longer protects an OpenAlex leg; no code refuses a run without `SCHOLAR_OPENALEX_KEY` yet. See [`PROVIDERS_2026-11.md`](../../kits/search/PROVIDERS_2026-11.md) §1 and the [three-phase review](../../assessment/three-phase-hardening-2026-11-10.md) F12 (planned as M3h-providers).
+Provider note (2026-11-10): OpenAlex has required an API key since 2026-02-13, so `MAILTO_NOT_SET` no longer protects an OpenAlex leg; since M3h-providers a run that selects OpenAlex without `SCHOLAR_OPENALEX_KEY` refuses with `OPENALEX_KEY_NOT_SET` (§4.7) and the plan reports `openalex_key_set`. See [`PROVIDERS_2026-11.md`](../../kits/search/PROVIDERS_2026-11.md) §1 and the [three-phase review](../../assessment/three-phase-hardening-2026-11-10.md) F12 (planned as M3h-providers).
 Conventions it follows: [`AGENT_WORK_PACKETS.md`](./AGENT_WORK_PACKETS.md) §UI-09 (same-origin proxy, no browser job start), [`UI-07_ACTION_SPEC.md`](./UI-07_ACTION_SPEC.md) §2 (browser credentials carry no authority), `apps/research-ui/AGENTS.md` (the harness computes, the UI shows).
 
 Every path below is under `/api/v1`. Bodies and answers are JSON unless marked SSE or Markdown. Refusals use the inception envelope: `{"detail": {"code", "message", "details"?}}` (`console/api/inception.py:41-45`). Every new code is added to `console/refusals.py` and so to `tests/console/test_console_refusals.py`.
@@ -40,7 +40,7 @@ Three layers, so the screens that need no new engine can start first:
 
 | Method and path | Layer | Answer |
 | :-- | :-- | :-- |
-| `GET /discovery/plan` | R + E1 | `{shape: "discovery.plan-v1", protocol_fingerprint, query: {id, text, year_min, year_max, language}, cap: {value, source, ceiling: 10000}, mailto_set, providers: [{name, selected, executed_query, request, cannot_express: [str], notes: [str], status: "translated" \| "not_selected" \| "off_by_default" \| "no_connection"}], imports_hint: ["scopus", "wos"]}` |
+| `GET /discovery/plan` | R + E1 | `{shape: "discovery.plan-v1", protocol_fingerprint, query: {id, text, year_min, year_max, language}, cap: {value, source, ceiling: 10000}, mailto_set, openalex_key_set, s2_key_set (both M3h-providers; `s2_key_set` means set, not verified), providers: [{name, selected, executed_query, request, cannot_express: [str], notes: [str], status: "translated" \| "not_selected" \| "off_by_default" \| "no_connection"}], imports_hint: ["scopus", "wos"]}` |
 
 - `cap` is the protocol's `method.retrieval_cap` with `source: "protocol"`, else `{value: 10000, source: "engine_ceiling"}`. A run override is per run (§4.3), shown on the run, never on the plan.
 - `providers[].executed_query` needs **E1, the dry run**: a `translate(query) -> (executed_query, request, notes)` on each provider that returns what `run` would send, without sending it. The engine already builds these strings before the first request; E1 exposes that step. `cannot_express` is the translator's own notes (arXiv phrases dropped, Semantic Scholar has no boolean, Crossref has no language filter, bioRxiv cannot evaluate NOT). Built in M3d-engine (`scholar_search.plan.compile_plan`; each provider's `search` starts with its own `translate`, so the preview equals the leg); `cannot_express` lists the protocol language (no provider sends one) and arXiv's year window. A database the protocol does not select is `not_selected` (`off_by_default` for bioRxiv) and is not translated.
@@ -119,6 +119,7 @@ No route. The codes every discovery route may return, with HTTP status, all regi
 | `PROTOCOL_MISSING` | 409 | plan, recall, runs: no `protocol.json` |
 | `PROTOCOL_INVALID` | 422 | existing; plan |
 | `MAILTO_NOT_SET` | 409 | existing; recall, runs, before any request |
+| `OPENALEX_KEY_NOT_SET` | 409 | runs that select OpenAlex while `SCHOLAR_OPENALEX_KEY` is unset, after `MAILTO_NOT_SET`, before any request (M3h-providers, F12); the plan's `openalex_key_set` says it ahead |
 | `DISCOVERY_JOB_ACTIVE` | 409 | recall, runs; `details.job` |
 | `DISCOVERY_JOB_NOT_FOUND` | 404 | jobs |
 | `RUN_NOT_FOUND` | 404 | runs/{run} |

@@ -133,6 +133,9 @@ DISCOVERY_JOB_ACTIVE = "DISCOVERY_JOB_ACTIVE"
 DISCOVERY_JOB_NOT_FOUND = "DISCOVERY_JOB_NOT_FOUND"
 RUN_NOT_FOUND = "RUN_NOT_FOUND"
 RECALL_NOT_RUN = "RECALL_NOT_RUN"
+#: M3h-providers (F12): a run that selects OpenAlex while the console has no
+#: ``SCHOLAR_OPENALEX_KEY``; OpenAlex requires a key since 2026-02-13.
+OPENALEX_KEY_NOT_SET = "OPENALEX_KEY_NOT_SET"
 SEEDS_INVALID = "SEEDS_INVALID"
 CAP_INVALID = "CAP_INVALID"
 #: A database name the engine does not know, in a run's or a check's ``providers``.
@@ -249,6 +252,7 @@ CONTRACT_ADDED = frozenset(
         DISCOVERY_JOB_NOT_FOUND,
         RUN_NOT_FOUND,
         RECALL_NOT_RUN,
+        OPENALEX_KEY_NOT_SET,
         SEEDS_INVALID,
         CAP_INVALID,
         PROVIDER_UNKNOWN,

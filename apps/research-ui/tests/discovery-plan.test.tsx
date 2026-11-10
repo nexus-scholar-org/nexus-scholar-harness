@@ -60,9 +60,69 @@ describe("discovery.plan", () => {
     const before = engine.calls.length;
     engine.setMailto(true);
     await user.click(within(card).getByRole("button", { name: "Check again" }));
-    await screen.findByText("Set");
-    expect(document.querySelector("[data-mailto]")).toBeNull();
+    await waitFor(() => expect(document.querySelector("[data-mailto]")).toBeNull());
+    expect(screen.getAllByText("Set")).toHaveLength(2); // the contact email and the OpenAlex key
     expect(sent(engine).slice(before)).toEqual(["GET /api/v1/discovery/plan"]);
+  });
+
+  it("prints the SCHOLAR_OPENALEX_KEY line when OpenAlex is selected without its key, and Check again re-reads the plan only (F12)", async () => {
+    const user = userEvent.setup();
+    const { engine } = setUp({ openalexKey: false });
+    render(<DiscoveryPlan locale="en" />);
+    const card = (await screen.findByText("SCHOLAR_OPENALEX_KEY=<your key>")).closest("[data-openalex-key]") as HTMLElement;
+    expect(within(card).getByText(/OpenAlex requires a free API key since February 2026\./)).toBeInTheDocument();
+    expect(document.querySelector('[data-openalex-key-set="false"]')).not.toBeNull();
+    expect(screen.getByText("Required by Crossref and PubMed. OpenAlex needs its API key instead.")).toBeInTheDocument();
+    expect(document.querySelector("[data-mailto]")).toBeNull();
+    await waitFor(() => expect(sent(engine)).toContain("GET /api/v1/discovery/runs"));
+    const before = engine.calls.length;
+    engine.setOpenalexKey(true);
+    await user.click(within(card).getByRole("button", { name: "Check again" }));
+    await waitFor(() => expect(document.querySelector("[data-openalex-key]")).toBeNull());
+    expect(document.querySelector('[data-openalex-key-set="true"]')).not.toBeNull();
+    expect(sent(engine).slice(before)).toEqual(["GET /api/v1/discovery/plan"]);
+  });
+
+  it("prints the OpenAlex key line in French and Arabic with the variable name untranslated", async () => {
+    for (const locale of ["fr", "ar"] as const) {
+      setUp({ openalexKey: false });
+      const { unmount } = render(<DiscoveryPlan locale={locale} />);
+      const line = await screen.findByText("SCHOLAR_OPENALEX_KEY=<your key>");
+      expect(line).toHaveAttribute("dir", "ltr");
+      unmount();
+      vi.unstubAllGlobals();
+    }
+  });
+
+  it("says a Semantic Scholar key is set but not verified, and that none is optional", async () => {
+    setUp({ s2Key: true });
+    const { unmount } = render(<DiscoveryPlan locale="en" />);
+    await screen.findByRole("heading", { level: 1, name: "This is what each database will receive" });
+    const row = document.querySelector('[data-s2-key-set="true"]') as HTMLElement;
+    expect(within(row).getByText("Set, not yet verified")).toBeInTheDocument();
+    expect(within(row).getByText(/never retried without the key/)).toBeInTheDocument();
+    unmount();
+    vi.unstubAllGlobals();
+    setUp();
+    render(<DiscoveryPlan locale="en" />);
+    await screen.findByRole("heading", { level: 1, name: "This is what each database will receive" });
+    const none = document.querySelector('[data-s2-key-set="false"]') as HTMLElement;
+    expect(within(none).getByText("Not set")).toBeInTheDocument();
+    expect(within(none).getByText(/^Optional\./)).toBeInTheDocument();
+  });
+
+  it("shows no key card when the plan does not select OpenAlex", async () => {
+    const plan = enginePlan();
+    const without: Plan = {
+      ...plan,
+      openalex_key_set: false,
+      providers: plan.providers.map((p) => (p.name === "openalex" ? { ...p, selected: false, status: "not_selected", executed_query: null, request: null } : p)),
+    };
+    setUp({ refuseOnce: { "GET /api/v1/discovery/plan": { status: 200, body: without } } });
+    render(<DiscoveryPlan locale="en" />);
+    await screen.findByRole("heading", { level: 1, name: "This is what each database will receive" });
+    expect(document.querySelector('[data-openalex-key-set="false"]')).not.toBeNull();
+    expect(document.querySelector("[data-openalex-key]")).toBeNull();
   });
 
   it("shows No preview for a selected database without a string, and an unknown status verbatim", async () => {

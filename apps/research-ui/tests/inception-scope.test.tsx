@@ -10,13 +10,13 @@ import { setUp } from "./inception-helpers";
 afterEach(() => vi.unstubAllGlobals());
 
 describe("inception.scope", () => {
-  it("shows the stepper with Explore and Direction coming with recon, not as links", async () => {
+  it("shows the stepper with Explore and Direction marked not built yet, not as links", async () => {
     setUp();
     render(<InceptionScope locale="en" />);
     await screen.findByLabelText("Research topic, in one or two sentences");
     const nav = screen.getByRole("navigation", { name: "Inception steps" });
-    expect(within(nav).getByText("2 Explore · coming with recon").closest("a")).toBeNull();
-    expect(within(nav).getByText("3 Direction · coming with recon").closest("a")).toBeNull();
+    expect(within(nav).getByText("2 Explore · not built yet").closest("a")).toBeNull();
+    expect(within(nav).getByText("3 Direction · not built yet").closest("a")).toBeNull();
     expect(within(nav).getByRole("link", { name: "1 Scope" })).toHaveAttribute("aria-current", "step");
     expect(screen.getByText(SESSION)).toBeInTheDocument();
   });

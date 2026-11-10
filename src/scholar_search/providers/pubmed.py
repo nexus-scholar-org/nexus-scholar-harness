@@ -1,5 +1,6 @@
 """PubMed provider implementation."""
 
+import re
 import xml.etree.ElementTree as ET
 from collections.abc import AsyncIterator
 
@@ -23,14 +24,22 @@ class PubMedProvider(BaseAPIProvider):
             field_map={
                 QueryField.ANY: "",
                 QueryField.TITLE: "ti",
-                QueryField.ABSTRACT: "ab",
+                QueryField.ABSTRACT: "tiab",
                 QueryField.AUTHOR: "au",
             },
             operator_map={"AND": "AND", "OR": "OR", "NOT": "NOT"},
         )
 
     # PubMed field tags for the parser's fields (suffix syntax: term[tag]).
-    _TAGS = {QueryField.TITLE: "ti", QueryField.ABSTRACT: "ab", QueryField.AUTHOR: "au"}
+    # PubMed has no abstract-only tag: ``[ab]`` answers FieldNotFound and the
+    # term is silently searched in all fields (F11, live 2026-11-10), so an
+    # abstract-scoped term is sent as title-or-abstract and the leg says so.
+    _TAGS = {QueryField.TITLE: "ti", QueryField.ABSTRACT: "tiab", QueryField.AUTHOR: "au"}
+
+    ABSTRACT_NOTE = (
+        "PubMed has no abstract-only field: abstract-scoped terms are sent as "
+        "title-or-abstract ([tiab])"
+    )
 
     def build_term(self, text: str) -> str:
         """Translate the query from parsed tokens into PubMed syntax (SRCH-14).
@@ -176,7 +185,82 @@ class PubMedProvider(BaseAPIProvider):
             params["term"] += f" AND {query.year_min}:3000[pdat]"
         elif query.year_max:
             params["term"] += f" AND 1000:{query.year_max}[pdat]"
-        return params["term"], params, []
+        notes = [self.ABSTRACT_NOTE] if self._has_abstract_terms(query.text) else []
+        return params["term"], params, notes
+
+    def _has_abstract_terms(self, text: str) -> bool:
+        parser = self.translator.parser
+        tokens = parser.parse(text)
+        if not parser.validate(tokens):
+            return False
+        return any(t.field == QueryField.ABSTRACT for t in tokens if not t.is_operator)
+
+    # How ESearch's ``querytranslation`` names each tag this provider sends.
+    _TAG_LABELS = {
+        "ti": "[Title]",
+        "tiab": "[Title/Abstract]",
+        "au": "[Author]",
+        "pdat": "[Date - Publication]",
+    }
+
+    def _record_esearch_errors(self, result: dict, term: str) -> None:
+        """Put a field tag PubMed did not apply on the leg (F11), never drop it.
+
+        ESearch answers an unknown tag by searching the term in all fields. The
+        XML answer says ``<ErrorList><FieldNotFound>``, but the JSON
+        ``errorlist.fieldsnotfound`` stays empty (recorded 2026-11-10,
+        ``tests/kits/search/fixtures/pubmed/``), so a tag sent that is not one
+        of the tags PubMed is known to apply (``_TAG_LABELS``, each seen in a
+        recorded ``querytranslation``) is reported when PubMed translated the
+        term. Known tags are never inferred missing by counting labels: PubMed
+        also drops not-found and ignored terms from the translation, which
+        would read as an unapplied tag (review finding, M3h-providers).
+        """
+        errors = result.get("errorlist") or {}
+        if not isinstance(errors, dict):
+            errors = {}
+        warnings = result.get("warninglist") or {}
+        if not isinstance(warnings, dict):
+            warnings = {}
+        missing: list[str] = [str(f) for f in errors.get("fieldsnotfound") or [] if f]
+        translation = result.get("querytranslation")
+        if isinstance(translation, str) and translation:
+            for tag in re.findall(r"\[([A-Za-z]+)\]", term):
+                tag = tag.lower()
+                if tag not in self._TAG_LABELS and tag not in missing:
+                    missing.append(tag)
+        if missing:
+            seen = f" PubMed's translation: {translation}" if isinstance(translation, str) and translation else ""
+            self._record_note(
+                "PubMed did not apply the field tag(s) "
+                + ", ".join(f"[{f}]" for f in missing)
+                + " it was sent; an unknown tag is searched in all fields."
+                + seen
+            )
+        phrases = [p for p in errors.get("phrasesnotfound") or [] if p]
+        if phrases:
+            self._record_note(
+                "PubMed found no records for the phrase(s) "
+                + ", ".join(f'"{str(p).strip(chr(34))}"' for p in phrases)
+                + "; it left them out of the search"
+            )
+        # A quoted phrase PubMed has no record of is not dropped: it searches its
+        # words separately, ANDed (seen in the recorded golden search answer of
+        # 2026-11-08; fixture tests/kits/search/fixtures/pubmed/).
+        quoted = [str(p).strip('"') for p in warnings.get("quotedphrasesnotfound") or [] if p]
+        if quoted:
+            self._record_note(
+                "PubMed found no exact match for the quoted phrase(s) "
+                + ", ".join(f'"{p}"' for p in quoted)
+                + "; it searched their words separately, all required (see PubMed's translation)"
+            )
+        ignored = [p for p in warnings.get("phrasesignored") or [] if p]
+        if ignored:
+            self._record_note(
+                "PubMed ignored the term(s) "
+                + ", ".join(f'"{p}"' for p in ignored)
+                + " (stop words); they were not searched"
+            )
 
     async def search(self, query: Query) -> AsyncIterator[Document]:
         """Search PubMed using esearch and efetch."""
@@ -190,6 +274,8 @@ class PubMedProvider(BaseAPIProvider):
             resp = await self.client.get(f"{self.base_url}/esearch.fcgi", params=params)
             self._record_page()
             result = resp.json().get("esearchresult", {}) or {}
+            if params["retstart"] == 0:
+                self._record_esearch_errors(result, params["term"])
             self._record_total(result.get("count"))
             pmids = result.get("idlist", []) or []
             if not pmids:

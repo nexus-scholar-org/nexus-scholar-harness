@@ -123,9 +123,9 @@ what came back. Two settings are needed before you start the app:
 - **`SCHOLAR_MAILTO`**, your contact email. A search refuses to start without
   it (`MAILTO_NOT_SET`), and the Plan screen prints the line to set.
 - **`SCHOLAR_OPENALEX_KEY`**, a free OpenAlex API key. OpenAlex has required a
-  key since 2026-02-13. The app does not check for it yet: without it, OpenAlex
-  shares a small daily budget with everyone on your network address, and
-  documents that paging past the first page is refused.
+  key since 2026-02-13. A search that includes OpenAlex refuses to start without
+  it (`OPENALEX_KEY_NOT_SET`), and the Plan screen prints the line to set. To
+  search without OpenAlex, leave it out of the protocol's databases.
 
 Set both in the terminal before `nexus-scholar ui`, or put them in a `.env`
 file in the folder you start the app from (`SCHOLAR_MAILTO=you@university.edu`).
@@ -225,6 +225,7 @@ is not yet tested.
 | The app stops at start with `No module named 'httpcore'` | It was installed with `--prerelease allow`. Reinstall: `uv tool install --force "nexus-scholar>=1.1.0b6"`. |
 | "No accepted corpus" (`SNAPSHOT_NOT_ACCEPTED`) | Import and accept your search results (step 4). |
 | `MAILTO_NOT_SET` before a search | Set `SCHOLAR_MAILTO` (and `SCHOLAR_OPENALEX_KEY`) as in step 4, Discovery, then start the app again. |
+| `OPENALEX_KEY_NOT_SET` before a search | Set `SCHOLAR_OPENALEX_KEY` as in step 4, Discovery, then start the app again, or leave OpenAlex out of the run. |
 | `VERIFIED_EXISTS` when adding an export | A search already ran in this workspace. For now a corpus is a harvest or imported exports, not both. |
 | "No records in this file" (`SOURCE_NOT_RIS`) | Export the results as RIS (`.ris` or `.txt`) from the database, or as `.nbib` from PubMed (Send to → Citation manager), not as CSV or BibTeX. |
 | "File too large" (`SOURCE_TOO_LARGE`) | Export in parts of under 50 MB and add each part under the same database name. |

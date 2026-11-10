@@ -195,6 +195,32 @@ export function MailtoCard({ locale, onCheck }: Readonly<{ locale: Locale; onChe
   );
 }
 
+/**
+ * F12 (M3h-providers): OpenAlex requires an API key since 2026-02-13. Printed
+ * like the contact email: the exact line to set, never a settings form.
+ */
+export function OpenAlexKeyCard({ locale, onCheck }: Readonly<{ locale: Locale; onCheck?: () => void }>) {
+  const t = discoveryT(locale);
+  return (
+    <div className="rounded-lg border border-rule bg-leaf p-4" data-openalex-key>
+      <p className="font-semibold text-ink">
+        {t("openalexKey.title")}: <DecisionBadge role="unclear">{t("plan.limits.mailto.notSet")}</DecisionBadge>
+      </p>
+      <p className="mt-2">
+        <code className="rounded-sm bg-paper px-2 py-1 font-mono text-[0.8125rem] text-ink" dir="ltr" data-openalex-key-line>
+          {t("openalexKey.line")}
+        </code>
+      </p>
+      <p className="mt-2 text-sm text-ink-muted">{t("openalexKey.where")}</p>
+      {onCheck ? (
+        <Button className="mt-3" onClick={onCheck}>
+          {t("mailto.check")}
+        </Button>
+      ) : null}
+    </div>
+  );
+}
+
 /** The run's status as words, by a fixed table; an unknown status prints as itself. */
 export function statusText(locale: Locale, status: string | null | undefined): string {
   if (!status) return "";

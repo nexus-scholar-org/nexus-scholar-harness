@@ -13,6 +13,26 @@ from .base import BaseAPIProvider
 
 logger = logging.getLogger(__name__)
 
+#: HTTP answers that mean Semantic Scholar refused the caller, not the query.
+#: S2 answers an unrecognised or pruned ``x-api-key`` with 403 ``Forbidden``
+#: (AWS API Gateway, observed 2026-10-17); its tutorial documents 401 as
+#: "not authenticated or credentials invalid". Keys unused for about 60 days
+#: are pruned (release notes, 2024-11).
+REFUSED_STATUSES = frozenset({401, 403})
+
+
+def refused_note(status: int | None, keyed: bool) -> str:
+    if keyed:
+        return (
+            f"Semantic Scholar rejected SCHOLAR_S2_KEY (HTTP {status}); the leg was not run "
+            "keyless. Check the key (no quotes or spaces; keys unused for about 60 days are "
+            "pruned), or unset SCHOLAR_S2_KEY to search the shared keyless pool."
+        )
+    return (
+        f"Semantic Scholar refused a keyless request (HTTP {status}); the bulk search "
+        "needs no key, so this is the provider's answer to this address."
+    )
+
 
 class SemanticScholarProvider(BaseAPIProvider):
     """Searches Semantic Scholar API."""
@@ -108,11 +128,12 @@ class SemanticScholarProvider(BaseAPIProvider):
         _, params, _ = self._record_translation(query)
         token = None
         count = 0
-        # 403 auto-downgrade: AWS API Gateway answers 403 Forbidden when a
-        # bad/expired/placeholder key reaches the S2 endpoint. A rejected key
-        # must never zero out the provider leg (observed live 2026-10-17) —
-        # strip the header once and continue on the unauthenticated tier.
-        use_key = True
+        # M3h-providers: a rejected key fails the leg (PROVIDER_REFUSED) with a
+        # note naming SCHOLAR_S2_KEY. It is never silently retried keyless:
+        # the report would then claim a keyed search the provider refused, and
+        # the researcher would not learn the key is bad. (Until 2026-11-10 a
+        # 403 downgraded to the keyless pool with only a warning log.)
+        keyed = bool(settings.s2_key)
 
         while True:
             if token:
@@ -120,20 +141,12 @@ class SemanticScholarProvider(BaseAPIProvider):
 
             try:
                 resp = await self.client.get(
-                    self.base_url,
-                    params=params,
-                    headers=self._get_headers() if use_key else {},
+                    self.base_url, params=params, headers=self._get_headers()
                 )
             except ProviderError as exc:
-                if exc.status_code == 403 and use_key and settings.s2_key:
-                    logger.warning(
-                        "S2 rejected the x-api-key (403 Forbidden); "
-                        "downgrading to the unauthenticated public tier"
-                    )
-                    use_key = False
-                    resp = await self.client.get(self.base_url, params=params)
-                else:
-                    raise
+                if exc.status_code in REFUSED_STATUSES:
+                    self._record_note(refused_note(exc.status_code, keyed))
+                raise
             self._record_page()
             response_data = resp.json()
             self._record_total(response_data.get("total"))

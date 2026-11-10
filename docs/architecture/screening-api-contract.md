@@ -211,6 +211,7 @@ The UI reads proposals only through `GET /records/{study_id}/proposal`. The fiel
 | `SCREENING_BOUND` | genesis with `replace` | HTTP 409: the workspace has screening decisions or a publication; `details` gives the counts (M4a, INC-08) |
 | `CONFIRMATION_MISMATCH` | genesis | HTTP 422: the typed confirmation is not the workspace slug (M4a, INC-08) |
 | `MAILTO_NOT_SET` | recon probe, delta; discovery runs, recall | HTTP 409: the console has no contact email (`SCHOLAR_MAILTO`); no request was sent (M4c, M3b-api) |
+| `OPENALEX_KEY_NOT_SET` | discovery runs | HTTP 409: the run selects OpenAlex and the console has no `SCHOLAR_OPENALEX_KEY` (OpenAlex requires a key since 2026-02-13); no request was sent (M3h-providers) |
 | `RECON_SESSION_INVALID` | `/inception/drafts/{id}/recon/*` | HTTP 422: the id is not a recon session id, or its folder would be under `workspaces/` (M4c) |
 | `RECON_SESSION_NOT_FOUND` | `/inception/drafts/{id}/recon/*` | HTTP 404: the draft has no recon session yet; run a probe (M4c) |
 | `RECON_NO_POOL` | distill, directions, delta, bind, narrower probe | HTTP 409: the session has no usable pool; run a probe (M4c) |

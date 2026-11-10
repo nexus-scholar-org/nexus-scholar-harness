@@ -254,6 +254,20 @@ def _require_mailto() -> None:
         )
 
 
+def _openalex_key_set() -> bool:
+    return bool(settings.openalex_key)
+
+
+def _require_openalex_key(providers: list[str]) -> None:
+    """F12 (M3h-providers): OpenAlex requires an API key since 2026-02-13."""
+    if "openalex" in providers and not _openalex_key_set():
+        raise Refused(
+            409, refusals.OPENALEX_KEY_NOT_SET,
+            "OpenAlex needs an API key. Set SCHOLAR_OPENALEX_KEY for the console "
+            "(environment or .env) and start it again, or leave OpenAlex out of this run.",
+        )
+
+
 def _check_providers(names: list[str] | None) -> list[str] | None:
     if names is None:
         return None
@@ -389,6 +403,9 @@ def plan(request: Request) -> dict[str, Any]:
                   "year_max": query.year_max, "language": query.language},
         "cap": cap,
         "mailto_set": _mailto_set(),
+        "openalex_key_set": _openalex_key_set(),
+        # M3h-providers: set, not verified; a rejected key fails the S2 leg.
+        "s2_key_set": bool(settings.s2_key),
         "providers": providers,
         "imports_hint": ["scopus", "wos"],
     }
@@ -739,11 +756,12 @@ async def start_run(body: RunBody, request: Request) -> dict[str, Any]:
 
     ws, jobs = _ws(request), _jobs(request)
     try:
-        _protocol(ws)
+        proto = _protocol(ws)
         if body.cap_override is not None and not 1 <= body.cap_override <= ENGINE_CEILING:
             raise Refused(422, refusals.CAP_INVALID, f"A run cap must be 1 to {ENGINE_CEILING} records per database.")
         providers = _check_providers(body.providers)
         _require_mailto()
+        _require_openalex_key(providers if providers is not None else proto.providers)
         if _accepted_snapshot(ws):
             raise Refused(409, refusals.CORPUS_ALREADY_ACCEPTED,
                           "The corpus snapshot is accepted; a frozen corpus is never searched again from the browser.")

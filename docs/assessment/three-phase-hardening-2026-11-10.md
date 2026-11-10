@@ -219,6 +219,8 @@ STANDARD lane unless noted:
    required and surfaced on the plan, `per_page` 100, the recommended search
    parameter). These change what a live harvest returns, so they come first
    and need one recorded-cassette run per provider.
+   Status: fixed in M3h-providers (`docs/roadmap/milestones/M3h-providers.md`),
+   with the Semantic Scholar key findings added; PR pending.
 2. **F1 replace semantics** (needs a researcher decision: back up `literature/`
    or refuse). Engine only. RELEASE lane: it moves researcher data.
 3. **F2 + F3 protocol-change signals** in one PR: the fingerprint in

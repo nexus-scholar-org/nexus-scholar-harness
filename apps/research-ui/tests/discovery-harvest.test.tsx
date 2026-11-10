@@ -58,6 +58,20 @@ describe("discovery.harvest", () => {
     await screen.findByRole("heading", { name: "The harvest is finished. The corpus is not frozen yet." });
   });
 
+  it("prints the SCHOLAR_OPENALEX_KEY line for OPENALEX_KEY_NOT_SET; Check again re-reads and starts nothing (F12)", async () => {
+    const user = userEvent.setup();
+    const { engine } = setUp({ openalexKey: false });
+    render(<DiscoveryHarvest locale="en" />);
+    await user.click(await screen.findByRole("button", { name: "Start the harvest" }));
+    const card = await screen.findByRole("alert");
+    expect(card).toHaveAttribute("data-state", "OPENALEX_KEY_NOT_SET");
+    expect(within(card).getByText("SCHOLAR_OPENALEX_KEY=<your key>")).toBeInTheDocument();
+    engine.setOpenalexKey(true);
+    await user.click(within(card).getByRole("button", { name: "Check again" }));
+    await waitFor(() => expect(screen.queryByRole("alert")).toBeNull());
+    expect(engine.calls.filter((c) => c.method === "POST")).toHaveLength(1);
+  });
+
   it("refuses a frozen corpus and removes Start", async () => {
     setUp({ runs: 1, accepted: true });
     render(<DiscoveryHarvest locale="en" />);
