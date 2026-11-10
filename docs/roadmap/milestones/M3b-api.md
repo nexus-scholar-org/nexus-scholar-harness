@@ -1,14 +1,14 @@
 # M3b-api Discovery API
-Branch: `dev/m3b-api/discovery-api` · Lane: **STANDARD** (packet §7: no change to what the corpus snapshot is built from; `generate_contract_baseline.py --check` at every commit) · Status: IN PROGRESS · Started: 2026-11-10
+Branch: `dev/m3b-api/discovery-api` · Lane: **STANDARD** (packet §7: no change to what the corpus snapshot is built from; `generate_contract_baseline.py --check` at every commit) · Status: READY FOR PR · Started: 2026-11-10
 
 Why: plan §6 M3 is split. M3a (PR #204) built the engine; the screens 01–08 need routes that read what it writes and start it from the browser. The routes, codes and tests are fixed in [`DISCOVERY_API_PACKET.md`](../../architecture/research_ui/DISCOVERY_API_PACKET.md) (§4 shapes, §4.7 codes, §5 allowlists, §6 the researcher's seven decisions of 2026-11-10, §8 test names). No UI work here.
 
 ## Definition of done
-- [ ] **Layer R reads** (packet §4.1, §4.3, §4.6, §4.8): `GET /discovery/plan` (no E1: `executed_query: null`), `GET /discovery/runs`, `GET /discovery/runs/{run}`, `GET /discovery/runs/{run}/report`, `GET /discovery/report` (report-v1 without `by_tier`), `PUT /discovery/report/methods`, `GET /discovery/handoff`. Tests: `tests/console/test_discovery_api.py`.
-- [ ] **Layer J jobs** (packet §4.2, §4.3): `POST /discovery/runs` in-process with `cap_override`, `providers`, `note`; `POST /discovery/recall` over a new check-only `check_seeds` (E2); `GET /discovery/recall`; `GET /discovery/jobs/{id}`, `.../events` (SSE replayed on connect), `POST .../cancel` (run archived `PARTIAL`, records kept). One discovery job per workspace; `MAILTO_NOT_SET` and `CORPUS_ALREADY_ACCEPTED` before anything starts. Tests: `tests/console/test_discovery_api.py`, `tests/kits/search/test_recall_check.py`.
-- [ ] **E5 typed codes**: `leg.error_code` (`PROVIDER_RATE_LIMITED`, `PROVIDER_TIMEOUT`, `PROVIDER_UNAVAILABLE`, `PROVIDER_REFUSED`) beside `error`; `PROTOCOL_CHANGED_SINCE_SNAPSHOT` and `BATCHES_INCOMPLETE` as a typed `code` on the run's stages and on the job's `error`, with the reason strings kept. Tests: `tests/kits/search/test_leg_error_codes.py`, `tests/unit/test_run_builds_snapshot.py`.
-- [ ] **Registration and transport**: every new code in `console/refusals.py` and the contract §7 table; POST `discovery/(runs|recall)`, `discovery/jobs/<id>/cancel` and PUT `discovery/report/methods` in both allowlists; `discovery/jobs/<id>/events` in the proxy's `STREAM_PATHS`; `/jobs/start` still `405`; no phone-token route. Tests: `tests/console/test_console_refusals.py`, `tests/console/test_browser_access.py`, `apps/research-ui/tests/console-proxy.test.ts`.
-- [ ] **Gate**: `/gate inner` after edits, `/gate pr` once on the final executable commit, contract check, `milestone-reviewer` APPROVE.
+- [x] **Layer R reads** (packet §4.1, §4.3, §4.6, §4.8): `GET /discovery/plan` (no E1: `executed_query: null`), `GET /discovery/runs`, `GET /discovery/runs/{run}`, `GET /discovery/runs/{run}/report`, `GET /discovery/report` (report-v1 without `by_tier`), `PUT /discovery/report/methods`, `GET /discovery/handoff`. Tests: `tests/console/test_discovery_api.py`.
+- [x] **Layer J jobs** (packet §4.2, §4.3): `POST /discovery/runs` in-process with `cap_override`, `providers`, `note`; `POST /discovery/recall` over a new check-only `check_seeds` (E2); `GET /discovery/recall`; `GET /discovery/jobs/{id}`, `.../events` (SSE replayed on connect), `POST .../cancel` (run archived `PARTIAL`, records kept). One discovery job per workspace; `MAILTO_NOT_SET` and `CORPUS_ALREADY_ACCEPTED` before anything starts. Tests: `tests/console/test_discovery_api.py`, `tests/kits/search/test_recall_check.py`.
+- [x] **E5 typed codes**: `leg.error_code` (`PROVIDER_RATE_LIMITED`, `PROVIDER_TIMEOUT`, `PROVIDER_UNAVAILABLE`, `PROVIDER_REFUSED`) beside `error`; `PROTOCOL_CHANGED_SINCE_SNAPSHOT` and `BATCHES_INCOMPLETE` as a typed `code` on the run's stages and on the job's `error`, with the reason strings kept. Tests: `tests/kits/search/test_leg_error_codes.py`, `tests/unit/test_run_builds_snapshot.py`.
+- [x] **Registration and transport**: every new code in `console/refusals.py` and the contract §7 table; POST `discovery/(runs|recall)`, `discovery/jobs/<id>/cancel` and PUT `discovery/report/methods` in both allowlists; `discovery/jobs/<id>/events` in the proxy's `STREAM_PATHS`; `/jobs/start` still `405`; no phone-token route. Tests: `tests/console/test_console_refusals.py`, `tests/console/test_browser_access.py`, `apps/research-ui/tests/console-proxy.test.ts`.
+- [x] **Gate**: `/gate inner` after edits, `/gate pr` once on the final executable commit, contract check, `milestone-reviewer` APPROVE.
 
 ## Tests written first
 Each route's test was written from packet §8 before the route and run against `main` + the test: all 13 console tests failed (12 on 404, the two recall tests on the missing `scholar_search.recall`), the two E5 assertions in `test_run_builds_snapshot.py` failed with `KeyError: 'code'`. `tests/kits/search/test_recall_check.py` found one gap in the first `check_seeds` (an arXiv DOI seed did not match a record with only the arXiv id), fixed before commit.
@@ -46,6 +46,16 @@ A browser run is `run_pipeline`, which since M3a builds **and accepts** the corp
 ## Evidence
 | Stage | Commit | Command | Result | Duration |
 | :-- | :-- | :-- | :-- | :-- |
+| inner | working tree before `dbc1482` | `select_test_gate.py --changed main --stage inner` (console, pipeline+unit, kits/search, `tsc`, proxy vitest) | pass after pinning the extended `run_pipeline` signature in `test_coordinator.py` | ~4 min |
+| pr | `dbc1482` | `uv run pytest -q -n auto` | 4683 passed, 15 skipped, 0 failed | 644 s |
+| pr | `dbc1482` | `npm --prefix apps/research-ui run typecheck` / `test` / `build` / `test:browser` | pass; vitest 360 passed (27 files); build ok; Playwright 271 passed, 13 skipped | 11 s / 96 s / – / 474 s |
+| review | `dbc1482` | `milestone-reviewer` | CHANGES: 4 findings (2× P2 code, 1× P2 record, 1× P3) | – |
+| review | `06b2f22` | `milestone-reviewer` on the repair delta | APPROVE (follow-up F1 pinned in `c4184f6`) | – |
+| pr | `c4184f6` | `uv run pytest -q -n auto` | 1 failed: `test_browser_access.py::test_discovery_reaches_the_engine_from_the_browser` (the methods PUT now needs `reviewed`); fixed in `c69490c` | 430 s |
+| pr | `c69490c` | `uv run pytest -q -n auto` | 4685 passed, 15 skipped, 0 failed | 392 s |
+| pr | `c69490c` | `ruff check scripts/`; `ruff check src/ --select F821,F811,F823,F632,F7,B023,B006,E9`; `generate_contract_baseline.py --check`; `git diff --check origin/main...HEAD` | all pass; "Contract baseline current" | <10 s |
+
+UI evidence from `dbc1482` is reused for `c69490c` (policy "Evidence reuse"): no file under `apps/research-ui/` changed after `dbc1482`. The Playwright run rewrote 12 tracked screenshots; they were restored, not committed.
 
 ## Deferred
 - E1 dry run (`providers[].executed_query`), E3 import rejections and `limits`, E4a dedup tiers (`by_tier`): M3d-engine (packet §7).
