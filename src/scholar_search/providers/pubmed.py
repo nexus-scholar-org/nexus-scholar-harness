@@ -245,8 +245,8 @@ class PubMedProvider(BaseAPIProvider):
                 + "; it left them out of the search"
             )
         # A quoted phrase PubMed has no record of is not dropped: it searches its
-        # words separately, ANDed (golden UAV leg, 2026-11-08: "herbicide
-        # prescription"; fixture esearch_golden_uav_warnings.json).
+        # words separately, ANDed (seen in the recorded golden search answer of
+        # 2026-11-08; fixture tests/kits/search/fixtures/pubmed/).
         quoted = [str(p).strip('"') for p in warnings.get("quotedphrasesnotfound") or [] if p]
         if quoted:
             self._record_note(
