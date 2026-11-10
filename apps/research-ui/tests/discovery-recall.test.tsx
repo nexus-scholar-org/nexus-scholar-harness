@@ -151,6 +151,6 @@ describe("discovery.recall", () => {
     });
     render(<DiscoveryRecall locale="en" />);
     await screen.findByText("Checking the seeds");
-    expect(screen.queryByText(/Checking d+ seeds/)).toBeNull();
+    expect(screen.queryByText(/Checking \d+ seeds/)).toBeNull();
   });
 });
