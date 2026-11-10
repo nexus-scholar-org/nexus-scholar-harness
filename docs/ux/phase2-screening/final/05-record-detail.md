@@ -1,4 +1,4 @@
-# 05 Record detail (shared component)    Status: FINAL | Phase 2 Screening | Component `RecordDetail`, used in 03 and 04 | Milestone M1a (data) + M1b (UI)
+# 05 Record detail (shared component)    Status: FINAL, built (M1b-1) | Phase 2 Screening | Component `RecordDetail`, used in 03 and 04 | Milestone M1a (data) + M1b (UI)
 
 Boards: `Triage` (D4), `TriageRevealed` (D5), `MobileTriage` (M3), `MobileRevealed` (M5). Brand components: `EvidenceQuote`, `DataCell`, `StatusBadge`. Contract: `screening-api-contract.md` §3-§5.
 

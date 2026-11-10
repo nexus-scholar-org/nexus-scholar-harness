@@ -1,4 +1,4 @@
-# 05 Duplicates    Status: FINAL | Phase 1 Discovery | Route `/[locale]/discovery/dedup` (desktop only) | Milestone M3c-screens (counts only; the near-twin pair review is M3e)
+# 05 Duplicates    Status: FINAL, built (M3c-screens, PR #216) | Phase 1 Discovery | Route `/[locale]/discovery/dedup` (desktop only) | Milestone M3c-screens (counts only; the near-twin pair review is M3e)
 
 Boards: `Dedup` (D5, `docs/ux/phase1-discovery/final/project/Dedup.dc.html`), `MobileDedup` (`.../MobileDedup.dc.html`). Contract/packet: `docs/architecture/research_ui/DISCOVERY_API_PACKET.md` §4.5 (Stage 1 only), §6 decision 2; `docs/roadmap/milestones/M3d-engine.md` decisions 9-11. Code: `src/scholar_harness/console/api/discovery.py:516` (`dedup_counts`), `:494-511` (`_dedup_summary`). Decisions: `docs/decisions.md` 2026-11-10 "Discovery over HTTP: seven decisions" (2). Brand: `docs/ux/brand/BRAND_BOOK.md`, `docs/ux/brand/tokens.json`. Shared rules (step bar, `?console=`, run selector, SSE, refusal copy, hard rules): see 01-plan.md, Shared.
 

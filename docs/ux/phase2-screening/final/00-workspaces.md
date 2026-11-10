@@ -1,4 +1,4 @@
-# 00 Workspaces (minimal)    Status: FINAL | Phase 2 Screening (entry; borrows Phase 0 spec 00) | Route `/workspaces` (desktop only) | Milestone M5-slim (list, create, open); the full picker stays in M4
+# 00 Workspaces (minimal)    Status: FINAL, built (M5-slim) | Phase 2 Screening (entry; borrows Phase 0 spec 00) | Route `/workspaces` (desktop only) | Milestone M5-slim (list, create, open); the full picker stays in M4
 
 Boards: `Main` (Inception D1 "Workspaces", `docs/ux/phase0-inception/final/project/Main.dc.html`), `MobileWorkspaces` (`.../MobileWorkspaces.dc.html`, not used here). Contract: `docs/architecture/workspaces-api.md`, not yet written; it is written before the engine work starts (Decision 6). Decision: `docs/decisions.md`, 2026-11-05, "A minimal workspace screen joins M5-slim" (merged with M1b-2, PR #189), and "The minimal workspace screen: root, open, create" (this spec's answers).
 

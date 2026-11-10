@@ -1,4 +1,4 @@
-# 06 Agent proposals run    Status: FINAL | Phase 2 Screening | Route `/screening/proposals` | Milestone M1b (driver, routes, UI)
+# 06 Agent proposals run    Status: FINAL, built (M1b-2) | Phase 2 Screening | Route `/screening/proposals` | Milestone M1b (driver, routes, UI)
 
 Board: `Proposals` (D3). Contract: `screening-api-contract.md` §4-§5; agent design `docs/architecture/agent-system.md` §2-§5.
 

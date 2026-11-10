@@ -1,4 +1,4 @@
-# 11 Import the corpus    Status: FINAL | Phase 2 Screening (before Prepare) | Route `/screening/import` (write actions desktop only) | Milestone M5b (corpus import; engine and UI)
+# 11 Import the corpus    Status: FINAL, built (M5b) | Phase 2 Screening (before Prepare) | Route `/screening/import` (write actions desktop only) | Milestone M5b (corpus import; engine and UI)
 
 Boards: none. The canvas has no import board; `Prepare` (D2, snapshot-missing state) only offers "Accept the Discovery corpus as a snapshot". This screen reuses the `Prepare` binding table, the `Publish` PRISMA card, the table, badge, EmptyState and state-card patterns and introduces no component. Contract: `docs/architecture/screening-api-contract.md` §4 (`POST /corpus/accept`), §7. PRISMA 2020 wording: the identification box ("Records identified from: Databases (n = …)"; "Records removed before screening: Duplicate records removed (n = …)"). Existing command being replaced as the only way in: `nexus-scholar accept-corpus --ris <one file>` (`src/scholar_harness/cli.py:1219`, `src/scholar_harness/corpus_accept.py:143`).
 

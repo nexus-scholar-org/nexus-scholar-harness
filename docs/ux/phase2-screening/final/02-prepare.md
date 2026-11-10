@@ -1,4 +1,4 @@
-# 02 Prepare and binding check    Status: FINAL | Phase 2 Screening | Route `/screening/prepare` | Milestone M0 (`accept-corpus`) + M1a (`/prepare`, settings) + M1b (UI)
+# 02 Prepare and binding check    Status: FINAL, built (M1b-1) | Phase 2 Screening | Route `/screening/prepare` | Milestone M0 (`accept-corpus`) + M1a (`/prepare`, settings) + M1b (UI)
 
 Board: `Prepare` (D2, snapshot-missing state). Contract: `docs/architecture/screening-api-contract.md`.
 

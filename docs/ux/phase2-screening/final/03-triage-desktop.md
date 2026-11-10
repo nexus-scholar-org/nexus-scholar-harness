@@ -1,4 +1,4 @@
-# 03 Triage queue, desktop    Status: FINAL | Phase 2 Screening | Route `/screening/triage` | Milestone M1a (events, queue) + M1b (UI); amended M6-beta, M7-method, M8-triage
+# 03 Triage queue, desktop    Status: FINAL, built (M1b-1; rebuilt in M6-beta and M8-triage) | Phase 2 Screening | Route `/screening/triage` | Milestone M1a (events, queue) + M1b (UI); amended M6-beta, M7-method, M8-triage
 
 Boards: `Triage` (D4, proposal hidden), `TriageRevealed` (D5, after deciding). Contract: `docs/architecture/screening-api-contract.md` §3-§4.
 

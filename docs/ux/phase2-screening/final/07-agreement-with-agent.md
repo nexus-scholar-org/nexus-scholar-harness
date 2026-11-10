@@ -1,4 +1,4 @@
-# 07 Agreement with the agent    Status: FINAL | Phase 2 Screening | Route `/screening/agreement` | Milestone M1b (`GET /agreement` and UI)
+# 07 Agreement with the agent    Status: FINAL, built (M1b-2) | Phase 2 Screening | Route `/screening/agreement` | Milestone M1b (`GET /agreement` and UI)
 
 Board: `Agreement` (D6). Contract: `screening-api-contract.md`.
 

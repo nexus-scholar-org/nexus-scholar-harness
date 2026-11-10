@@ -1,4 +1,4 @@
-# 01 Scope    Status: FINAL | Phase 0 Inception | Route `/[locale]/inception/scope?draft=rec_<32 hex>` (desktop only) | Milestone M4b (browser screens over the M4a step API)
+# 01 Scope    Status: FINAL, built (M4b, PR #209) | Phase 0 Inception | Route `/[locale]/inception/scope?draft=rec_<32 hex>` (desktop only) | Milestone M4b (browser screens over the M4a step API)
 
 Boards: `Scope` (D2, `docs/ux/phase0-inception/final/project/Scope.dc.html`), `MobileScope` (M2, `.../MobileScope.dc.html`). Contract: `docs/architecture/inception-api.md` (Draft, Routes, Steps). Code: `src/scholar_harness/console/api/inception.py`, `src/scholar_harness/inception/steps.py` (`Draft` at `:84`, `_scope` at `:165`), `src/scholar_harness/inception/drafts.py`. Decisions: `docs/decisions.md`, 2026-11-08 "Inception drafts live under the workspaces root, with one session id". Brand: `docs/ux/brand/BRAND_BOOK.md` (principles 4 and 5, step header pattern), `docs/ux/brand/tokens.json`.
 

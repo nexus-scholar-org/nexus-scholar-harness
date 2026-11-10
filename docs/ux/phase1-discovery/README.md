@@ -7,6 +7,7 @@ the `scholar-harness run` command, and the `scholar-search-kit` skill, read agai
 [UAV harvest calibration lessons](../../lessons/2026-10-17_uav_harvest_calibration_lessons.md).
 
 Status: **proposal**. Code-reading review by an AI reviewer (Claude); no user testing.
+As of 2026-11-10 this review and its wireframes are history. The build source is the final specs in [`final/`](final/): 01 to 08 are FINAL and built (M3c-screens, PR #216, over the M3b-api and M3d-engine routes). Near-twin pair review is not built (M3e-neartwins).
 Line references point to the code as of 2026-11-02. Previous phase: [Phase 0 inception](../phase0-inception/README.md).
 
 ## Where things are

@@ -5,6 +5,7 @@ UX and methodology review of the grounded inception module
 the `inception-agent` skill and its parity helper, with wireframes for a revised flow.
 
 Status: **proposal**. Code-reading review by an AI reviewer (Claude); no user testing.
+As of 2026-11-10 this review and its wireframes are history. The build source is the final specs in [`final/`](final/): 01 and 04 to 08 are built (M4b, PR #209); 02 Explore and 03 Direction are DRAFT and not built, although recon over HTTP exists (M4c, PR #210).
 Line references point to the code as of 2026-11-02.
 
 ## Where things are
@@ -49,7 +50,7 @@ sources to it.
 | 9 | Pool health reported as purity / QEI jargon | `grounded.py` | Designed (boards 2, 7) |
 | 10 | Session id formats differ between wizard and MCP | `grounded.py:281` | Open |
 
-The fixes in `46f4a46` are on branch `fix/inception-ux-quick-wins` (not yet pushed or reviewed).
+The fixes in `46f4a46` were made on branch `fix/inception-ux-quick-wins` and are on `main` (checked 2026-11-10).
 
 ## Methodology comments (from the review)
 
