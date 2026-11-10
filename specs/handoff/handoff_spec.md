@@ -1,5 +1,7 @@
 # Agent Handoff Protocol Specification
 
+**Status (2026-11-10):** the runtime (`src/scholar_harness/handoff.py`, `tests/test_handoff.py`) is still present. The autonomous phase loop it describes is not part of the production plan (decision 2026-11-03, "Production scope: Inception, Discovery, Screening over two months"); the phases after screening are parked.
+
 ## 1. Phase Sequence
 
 ```

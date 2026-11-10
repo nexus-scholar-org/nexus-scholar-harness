@@ -1,5 +1,7 @@
 # 04 — Memory & Cache Architecture
 
+> **Status:** Historical: the series is complete (`specs/README.md`, label of 2026-11-10). Still cited from `src/`.
+
 ## 1. Two-tier storage principle
 
 | Tier | Location | Ownership | Git | Retention |

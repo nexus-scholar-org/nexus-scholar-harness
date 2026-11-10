@@ -1,5 +1,7 @@
 # Scholar PDF Kit: API Reference
 
+> Status (2026-11-10): Historical: parked (not production; see `docs/roadmap/production-plan.md` §7/§8). The kit is now `src/scholar_<kit>/` in the one `nexus-scholar` package. Written for the former kit repository; install instructions here are obsolete (install `nexus-scholar`).
+
 This document provides the API contracts for the core components of `scholar-pdf-kit`.
 
 ## `AsyncPDFDownloader`

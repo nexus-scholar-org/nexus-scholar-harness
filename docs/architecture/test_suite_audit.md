@@ -2,6 +2,8 @@
 
 Status: audit only. No policy, framework, contract, pin, permission, code, test, or CI change made. Cleanup proposals are unimplemented.
 
+Status (2026-11-10): Historical: F1 was delivered by PR #127 on 2026-10-13 (§12). Test gates are now selected by source area (decision 2026-11-03, "Claude Code dev workflow and area-based test gates"; `test_gate_policy.md`). Status unverified on 2026-11-10 for F2 to F5: no later record says they were done.
+
 Sections 1–10 retain the original audit baseline. The dated addendum below
 updates completed-task evidence without turning historical observations into
 current-state claims.

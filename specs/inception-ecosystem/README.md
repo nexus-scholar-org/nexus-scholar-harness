@@ -2,6 +2,7 @@
 
 > **Status:** Live · canonical home for the orchestration skills that compose the
 > Nexus Scholar inception flow.
+> **Checked 2026-11-10:** still live. The browser inception flow (M4b, PR #209) and recon over HTTP (M4c, PR #210) now sit beside these skills, on the same recon engine.
 > **Relates:** `specs/exploratory-grounding-agent/` (the grounded recon subsystem this
 > ecosystem drives), `.agents/skills/` (canonical skill tree), `.agents/plugins/nexus-scholar/skills/`
 > (distribution bundle mirror), `.opencode/agent/inception-agent.md`.

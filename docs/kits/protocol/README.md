@@ -1,5 +1,7 @@
 # scholar-protocol-kit
 
+> Status (2026-11-10): written for the former kit repository; the code is now `src/scholar_<kit>/` in the one `nexus-scholar` package (decision 2026-11-03), and install instructions here are obsolete (install `nexus-scholar`). Check claims against the code.
+
 > **Phase 0** of the Nexus Scholar harness.  
 > Pure Python. Zero LLM. Zero network. Fully deterministic.
 

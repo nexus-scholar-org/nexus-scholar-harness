@@ -1,6 +1,6 @@
 # UI-07 Action Specification (minimal, separately reviewed)
 
-Status: specification-in-review. No implementation authorized by this document.
+Status (2026-11-10): Historical: delivered by PR #134 (`aa6e2f0`, 2026-10-14). The pairing, redeem, defer and publish actions are still served by `src/scholar_harness/console/api/screening.py`; the research UI's screening routes are specified by `docs/architecture/screening-api-contract.md` (M1a, PR #186). As written: specification-in-review. No implementation authorized by this document.
 Companion: [UI-07 Presentation Spec](./UI-07_PRESENTATION_SPEC.md) (read-only; this spec adds nothing to it).
 HCM prerequisite: HCM-02 (see the [HCM close-out record](../harness-core-modularity/README.md)).
 Product direction: [individual researcher application](../../decisions.md).

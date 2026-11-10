@@ -8,6 +8,8 @@ Inception and recon are useful provenance-aware exploratory scoping assistants. 
 
 The review inspected `src/scholar_harness/inception/` and `src/scholar_harness/recon/` at local HEAD `38c89bc4a54014bdea004831a243a81ab39f0200`; these directories had no delta against the then-fetched `origin/main`. Small offline counterexamples were executed against the inspected source. No provider search, research workspace mutation, runtime repair, or cross-domain effectiveness evaluation was performed. Findings must be rechecked if these modules change.
 
+Status (2026-11-10): follow-ups partly addressed. Finding 9 is fixed over HTTP only (M4c, PR #210; the CLI wizard keeps the fallback, M4c Deferred). Findings 7 and 8 are open (M4c Deferred). Status unverified on 2026-11-10 for finding 6 and for the methodology items 1 to 5 and follow-ups 1, 3 and 4: no milestone record says they were done.
+
 ## Findings and evidence
 
 ### Methodology concerns

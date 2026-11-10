@@ -1,5 +1,7 @@
 # Scholar RAG Kit Remediation Specification
 
+**Status (2026-11-10):** Historical: parked (not production; see `docs/roadmap/production-plan.md` §7/§8). The kit is now `src/scholar_<kit>/` in the one `nexus-scholar` package.
+
 **Status:** Proposed  
 **Date:** 2026-09-17  
 **Owner:** scholar-rag-kit maintainers  

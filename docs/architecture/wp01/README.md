@@ -1,5 +1,7 @@
 # WP-01 — Contract v1 adoption: completion and residual debt
 
+Status (2026-11-10): Historical: closed with residual debt (below). PR #42 (2026-09-24) adopted the Packet A to D producers as library code; on 2026-11-03 no runtime path built a corpus snapshot yet (production plan §1.2, CORE-07). That runtime path was added by M0 (`nexus-scholar accept-corpus`, PR #185) and M3a (`run` builds the snapshot, PR #204). The baseline-locked handoff and Packet C reference keep their original status lines; changing them needs a contract decision and a baseline regeneration.
+
 WP-01 (Contract v1 adoption) is **closed with residual debt**. The implemented
 boundary rules are in [`evidence-boundaries.md`](./evidence-boundaries.md); the
 normative contract is the frozen set at `docs/architecture/`. The per-packet
@@ -10,7 +12,7 @@ remain in git history.
 
 | Packet | Verdict | Canonical merge(s) | Headline |
 |---|---|---|---|
-| **A–D producers** (protocol / corpus / acceptance / screening) | adopted | harness PR #42 `ca6a77b` | Producers adopted; Compass records A/B/C/D adopted. |
+| **A–D producers** (protocol / corpus / acceptance / screening) | adopted (library producers); Packet B runtime path: M0 PR #185, M3a PR #204 | harness PR #42 `ca6a77b` | Producers adopted; Compass records A/B/C/D adopted. |
 | **E1** — acquired-document boundary | `APPROVE` | pdf-kit PR #1 `858911f`; agent-kit PR #1 `6050e0c`; harness PR #47 `baaeeb4` | Kit commits exact PDF bytes for an accepted study; agent kit declares acquisition unsupported on MCP and rejects without I/O; harness vendors both at full-SHA pins. |
 | **E2** — extracted-text boundary | `APPROVE` | pdf-kit PR #2 `6ec6e3b`, PR #3 `0430e40`; agent-kit PR #2 `deebfad`; harness PR #50 `0fb6655`; runtime acceptance PR #63 `193209d` | Deterministic `pdf-extraction-manifest-v1` sidecar + non-authoritative Contract candidate; extraction published through the frozen acceptance gate. |
 | **E3** — chunks / index-lineage boundary | `APPROVE` (blocked-with-cause; later all-live) | rag-kit PR #12 `f108fa8`, PR #13 `15a7a5a`; harness PR #64 `657b9d5`, #65 `3255333`, #69 `bb40f9d`, #70 `fb3629d`, #74 `38c89bc`, #75 `e09e909` | Index Manifest v1 sidecar with `CHK-` identity; `index-acceptance-v1` seven-step acceptance; accepted record `rag/index/accepted.json` + §6.6 audit event. |
