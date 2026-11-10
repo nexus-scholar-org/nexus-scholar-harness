@@ -69,4 +69,4 @@ proposal, not a build, for OpenAlex semantic search (see "Proposals").
 - F14, F15, F16 (plan §6 row, second package).
 - Recall checks do not require the OpenAlex key (decision above).
 - The abstract hydrator's one keyless retry after an S2 403 (same silent-fallback shape as the leg had); follow-up.
-- A live check of the researcher's S2 key and of keyless `/paper/search` (§3a "Still open"): needs the researcher's OK.
+- A keyless `/paper/search` check (§3a "Still open"). The researcher's S2 key was checked live on 2026-11-10 with their OK: 403 `ForbiddenException` on the bulk endpoint (§3a).

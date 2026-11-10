@@ -88,7 +88,9 @@ Sources read on 2026-11-10:
 | Keyless pool size | Product page: "1,000 requests per second, shared among all unauthenticated users". Release notes 2024-01: "All unauthenticated users share a limit of 5,000 requests per 5 minutes", then reduced (2024-03). **Contradictory; unverified.** | `rate_limit_s2 = 1.0` rps, keyed or not, with backoff on 429. |
 | Getting a key | Product page form; keys are e-mailed; release notes 2024-08: no keys for free e-mail domains or third-party apps. | Documented in the user guide §8. |
 
-Still open, needing a live check with the researcher's OK (the key read from the environment, only the status code logged, never a body that could hold the key): one keyed bulk request to see whether the researcher's key answers 200, 401 or 403; one keyless `/paper/search` request to see whether it answers 401, 403 or 429.
+Live check, 2026-11-10, with the researcher's OK: one keyed request to `/graph/v1/paper/search/bulk` (`query=weed + drone`, `fields=paperId`, `year=2024`), the key read from the worktree's `.env`, only the status line and the error-type header kept. The researcher's key (40 characters, no quotes or spaces) answered **`HTTP/1.1 403 Forbidden`, `x-amzn-ErrorType: ForbiddenException`**. So a well-formed key Semantic Scholar does not accept answers 403, not 401; the sources do not say whether it was never activated, pruned or revoked, so the researcher needs a new or reactivated key. With this milestone that key fails the Semantic Scholar leg with `PROVIDER_REFUSED`; unsetting it searches the keyless pool.
+
+Still open (no request made): whether keyless `/paper/search` answers 401, 403 or 429, and whether a pruned key differs from a never-activated one.
 
 Not changed here: the abstract hydrator (`scholar_search` enrichment, K0 negative case 4) still retries once without the key after a 403 and counts a second failure as failed. It does not claim a hydration it did not get, but it is the same silent fallback; aligning it is a follow-up.
 
