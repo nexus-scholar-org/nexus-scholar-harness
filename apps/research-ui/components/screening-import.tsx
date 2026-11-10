@@ -7,6 +7,11 @@ import { Button, DataCell, DecisionBadge } from "@/components/ui/base";
 import { ScreeningSteps, StateCard, stepHref } from "@/components/screening-state-card";
 import { isScreeningApiError } from "@/lib/screening-api";
 import { acceptCorpus, addCorpusSource, fileToBase64, getCorpus, removeCorpusSource, type Corpus, type CorpusDatabase } from "@/lib/screening-v1";
+import { DiscoverySteps, discoveryHref } from "@/components/discovery-frame";
+import { discoveryT } from "@/lib/discovery-copy";
+
+/** The importer's row codes (E3, M3d-engine) that have a sentence; any other code is shown as sent. */
+const REJECTION_CODES = new Set(["IMPORT_NO_TITLE", "IMPORT_BAD_TAG", "IMPORT_BAD_YEAR"]);
 
 /**
  * Import the corpus (spec 11, M5b): one RIS export per file, labelled with its
@@ -253,9 +258,26 @@ export function ScreeningImport({ locale }: Readonly<{ locale: Locale }>) {
     void reload();
   }, [reload]);
 
+  // Discovery spec 04: `?return=discovery` shows the discovery step bar and a way back.
+  // Read after mount, so the prerendered first render and the hydrated one agree.
+  const [fromDiscovery, setFromDiscovery] = useState(false);
+  useEffect(() => {
+    setFromDiscovery(new URLSearchParams(window.location.search).get("return") === "discovery");
+  }, []);
+  const dt = discoveryT(locale);
+
   return (
     <div className="mx-auto max-w-7xl px-6 py-10 lg:px-8 lg:py-14">
-      <ScreeningSteps locale={locale} current="import" consoleOrigin={origin} />
+      {fromDiscovery ? (
+        <>
+          <DiscoverySteps locale={locale} current="import" origin={origin} />
+          <a className="mb-4 inline-flex min-h-11 items-center text-brand underline" href={discoveryHref(locale, "", origin)} data-back-to-discovery>
+            {dt("import.back")}
+          </a>
+        </>
+      ) : (
+        <ScreeningSteps locale={locale} current="import" consoleOrigin={origin} />
+      )}
       {load.status === "loading" ? (
         <p className="text-ink-muted" role="status">
           {t("loading")}
@@ -274,6 +296,7 @@ export function ScreeningImport({ locale }: Readonly<{ locale: Locale }>) {
         <ImportReady
           locale={locale}
           origin={origin}
+          fromDiscovery={fromDiscovery}
           corpus={load.corpus}
           onCorpus={(corpus) => setLoad({ status: "ready", corpus })}
           t={t}
@@ -287,6 +310,7 @@ export function ScreeningImport({ locale }: Readonly<{ locale: Locale }>) {
 function ImportReady({
   locale,
   origin,
+  fromDiscovery = false,
   corpus,
   onCorpus,
   t,
@@ -294,13 +318,23 @@ function ImportReady({
 }: Readonly<{
   locale: Locale;
   origin: string;
+  fromDiscovery?: boolean;
   corpus: Corpus;
   onCorpus: (corpus: Corpus) => void;
   t: (key: ImportCopyKey, values?: Record<string, string | number>) => string;
   n: (value: number) => string;
 }>) {
   const accepted = corpus.state === "ACCEPTED";
-  const blockedByDiscovery = corpus.from_discovery && !accepted;
+  const dt = discoveryT(locale);
+  // M3d-engine: the engine says why staging is refused now (`staging_refused`); an older engine
+  // without the field still blocks a discovery corpus, as before.
+  const stagingRefused =
+    corpus.staging_refused && corpus.staging_refused.code !== "CORPUS_ALREADY_ACCEPTED"
+      ? corpus.staging_refused
+      : corpus.staging_refused === undefined && corpus.from_discovery && !accepted
+        ? { code: "VERIFIED_EXISTS", message: "" }
+        : null;
+  const blockedByDiscovery = !accepted && stagingRefused !== null;
   const [refusal, setRefusal] = useState<Refusal>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [announce, setAnnounce] = useState("");
@@ -355,7 +389,7 @@ function ImportReady({
   return (
     <div className="space-y-6">
       <header>
-        <p className="text-xs font-semibold uppercase tracking-[0.05em] text-brand rtl:tracking-normal">{t("eyebrow")}</p>
+        <p className="text-xs font-semibold uppercase tracking-[0.05em] text-brand rtl:tracking-normal">{fromDiscovery ? dt("import.eyebrow") : t("eyebrow")}</p>
         <h1 className="font-display mt-1 text-[1.75rem] leading-[2.25rem] text-ink">{accepted ? t("titleAccepted") : t("title")}</h1>
         <p className="mt-1 text-ink-muted">{accepted ? t("ledeAccepted") : t("lede")}</p>
       </header>
@@ -373,7 +407,11 @@ function ImportReady({
 
       <div className="hidden flex-wrap gap-6 sm:flex">
         <div className="w-full min-w-0 flex-[2_1_480px] space-y-6">
-          {blockedByDiscovery ? <StateCard locale={locale} code="VERIFIED_EXISTS" consoleOrigin={origin} /> : null}
+          {blockedByDiscovery && stagingRefused ? (
+            <div data-staging-refused={stagingRefused.code}>
+              <StateCard locale={locale} code={stagingRefused.code} consoleOrigin={origin} />
+            </div>
+          ) : null}
           {refusal ? (
             <StateCard locale={locale} code={refusal.code} message={refusal.message} consoleOrigin={origin} onRetry={() => setRefusal(null)} />
           ) : null}
@@ -384,12 +422,22 @@ function ImportReady({
               busy={busy !== null}
               primary={corpus.sources.length === 0}
               t={t}
+              dt={dt}
               onTooLarge={() => setRefusal({ code: "SOURCE_TOO_LARGE", message: "" })}
-              onAdd={async (file, label, searchedOn, query) => {
+              onAdd={async (file, label, searchedOn, query, limits) => {
                 const content_base64 = await fileToBase64(file);
                 return act(
                   t("reading", { file: file.name }),
-                  () => addCorpusSource(origin, { label, file_name: file.name, content_base64, searched_on: searchedOn || null, query: query || null }),
+                  () =>
+                    addCorpusSource(origin, {
+                      label,
+                      file_name: file.name,
+                      content_base64,
+                      searched_on: searchedOn || null,
+                      query: query || null,
+                      // E3 (M3d-engine): sent as typed; a blank field sends nothing.
+                      ...(limits.trim() ? { limits } : {}),
+                    }),
                   t("added", { file: file.name, label }),
                 );
               }}
@@ -433,6 +481,7 @@ function ImportReady({
                   {corpus.databases.map((db) => (
                     <DatabaseRow
                       key={db.label}
+                      dt={dt}
                       db={db}
                       corpus={corpus}
                       removable={!accepted}
@@ -524,6 +573,13 @@ function ImportReady({
               <a className="mt-4 inline-flex min-h-11 items-center rounded-md bg-brand px-4 font-medium text-on-brand" href={stepHref(locale, "prepare", origin)}>
                 {t("continue")}
               </a>
+              {fromDiscovery ? (
+                <p className="mt-2">
+                  <a className="inline-flex min-h-11 items-center text-brand underline" href={discoveryHref(locale, "handoff", origin)} data-go-handoff>
+                    {dt("import.handoff")}
+                  </a>
+                </p>
+              ) : null}
             </section>
           ) : !blockedByDiscovery ? (
             <section aria-labelledby="import-side" className="rounded-lg border border-rule bg-leaf p-5">
@@ -535,6 +591,11 @@ function ImportReady({
                 <li>{t("sideNoChange")}</li>
                 <li>{t("sideFiles")}</li>
               </ul>
+              {fromDiscovery ? (
+                <p className="mt-2 text-xs text-ink-muted" data-import-rule>
+                  {dt("import.rule")}
+                </p>
+              ) : null}
               {confirming ? (
                 <div
                   role="alertdialog"
@@ -604,6 +665,7 @@ function ImportReady({
 
 function DatabaseRow({
   db,
+  dt,
   corpus,
   removable,
   busy,
@@ -612,6 +674,7 @@ function DatabaseRow({
   onRemove,
 }: Readonly<{
   db: CorpusDatabase;
+  dt: ReturnType<typeof discoveryT>;
   corpus: Corpus;
   removable: boolean;
   busy: boolean;
@@ -644,6 +707,54 @@ function DatabaseRow({
                   {t("removeShort")}
                 </Button>
               ) : null}
+              {file.limits ? (
+                <span className="w-full text-xs text-ink-muted" data-source-limits>
+                  {dt("import.limits.row")}:{" "}
+                  <span className="font-mono [overflow-wrap:anywhere]" dir="ltr">
+                    {file.limits}
+                  </span>
+                </span>
+              ) : null}
+              {file.rejected && file.rejected.length > 0 ? (
+                <details className="w-full text-xs" data-rejected={file.id}>
+                  <summary className="min-h-11 cursor-pointer py-3 leading-5 text-ink">{dt("import.rejected.title")}</summary>
+                  <table className="w-full text-xs">
+                    <caption className="sr-only">{dt("import.rejected.caption", { file: file.file_name })}</caption>
+                    <thead>
+                      <tr className="text-ink-muted">
+                        <th scope="col" className="py-1 pe-2 text-start">
+                          {dt("import.rejected.line")}
+                        </th>
+                        <th scope="col" className="py-1 pe-2 text-start">
+                          {dt("import.rejected.code")}
+                        </th>
+                        <th scope="col" className="py-1 text-start">
+                          {dt("import.rejected.what")}
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {file.rejected.map((r) => (
+                        <tr key={`${r.line}-${r.code}`} className="border-t border-rule align-top" data-rejected-code={r.code}>
+                          <td className="py-1 pe-2 tabular-nums" dir="ltr">
+                            {r.line}
+                          </td>
+                          <td className="py-1 pe-2 font-mono text-unclear" dir="ltr">
+                            {r.code}
+                          </td>
+                          <td className="py-1">
+                            {REJECTION_CODES.has(r.code) ? dt(`import.rejected.${r.code}` as "import.rejected.IMPORT_NO_TITLE") : null}{" "}
+                            <span className="text-ink-muted" dir="ltr">
+                              {r.reason}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                  <p className="mt-1 text-ink-muted">{dt("import.rejected.inReport")}</p>
+                </details>
+              ) : null}
             </li>
           ))}
         </ul>
@@ -667,6 +778,7 @@ function AddForm({
   busy,
   primary,
   t,
+  dt,
   onTooLarge,
   onAdd,
 }: Readonly<{
@@ -675,13 +787,15 @@ function AddForm({
   busy: boolean;
   primary: boolean;
   t: (key: ImportCopyKey, values?: Record<string, string | number>) => string;
+  dt: ReturnType<typeof discoveryT>;
   onTooLarge: () => void;
-  onAdd: (file: File, label: string, searchedOn: string, query: string) => Promise<boolean>;
+  onAdd: (file: File, label: string, searchedOn: string, query: string, limits: string) => Promise<boolean>;
 }>) {
   const [file, setFile] = useState<File | null>(null);
   const [label, setLabel] = useState("");
   const [searchedOn, setSearchedOn] = useState("");
   const [query, setQuery] = useState("");
+  const [limits, setLimits] = useState("");
   const [fileKey, setFileKey] = useState(0);
   const limitMb = Math.round(corpus.limits.max_source_bytes / (1024 * 1024));
   const known = Array.from(new Set([...corpus.databases.map((d) => d.label), ...SUGGESTIONS]));
@@ -693,11 +807,12 @@ function AddForm({
       onTooLarge();
       return;
     }
-    if (await onAdd(file, label.trim(), searchedOn, query)) {
+    if (await onAdd(file, label.trim(), searchedOn, query, limits)) {
       setFile(null);
       setFileKey((k) => k + 1);
       setSearchedOn("");
       setQuery("");
+      setLimits("");
     }
   }
 
@@ -772,6 +887,22 @@ function AddForm({
             </label>
             <p id="import-query-help" className="text-xs text-ink-muted">
               {t("queryHelp")}
+            </p>
+            <label className="block text-sm text-ink">
+              {dt("import.limits.label")}
+              <textarea
+                dir="ltr"
+                rows={2}
+                maxLength={2000}
+                value={limits}
+                aria-describedby="import-limits-help"
+                onChange={(e) => setLimits(e.target.value)}
+                className="mt-1 block w-full rounded-md border border-rule bg-paper p-2 font-mono text-[0.8125rem] text-ink"
+                data-limits
+              />
+            </label>
+            <p id="import-limits-help" className="text-xs text-ink-muted">
+              {dt("import.limits.help")}
             </p>
           </div>
         </details>

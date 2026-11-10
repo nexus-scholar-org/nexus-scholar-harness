@@ -33,6 +33,7 @@ export const MOBILE_NAV_PANEL_ID = "mobile-primary-nav";
 /** The primary destinations. Every entry is a route that exists. */
 export const NAV_ITEMS = [
   { id: "workspaces", href: "/workspaces" },
+  { id: "discovery", href: "/discovery" },
   { id: "screening", href: "/screening/home" },
 ] as const;
 
@@ -45,6 +46,7 @@ export type NavId = (typeof NAV_ITEMS)[number]["id"];
 export function currentNavId(pathname: string, locale: Locale): NavId | undefined {
   const path = pathname.endsWith("/") ? pathname.slice(0, -1) : pathname;
   if (path === `/${locale}/workspaces`) return "workspaces";
+  if (path === `/${locale}/discovery` || path.startsWith(`/${locale}/discovery/`)) return "discovery";
   if (path === `/${locale}/screening` || path.startsWith(`/${locale}/screening/`)) return "screening";
   return undefined;
 }

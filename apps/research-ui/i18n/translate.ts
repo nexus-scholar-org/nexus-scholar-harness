@@ -67,6 +67,7 @@ export class UnmappedTokenError extends Error {
  */
 const NAV_KEYS: Readonly<Record<string, MessageKey>> = {
   workspaces: "nav.workspaces",
+  discovery: "nav.discovery",
   screening: "nav.screening",
 };
 

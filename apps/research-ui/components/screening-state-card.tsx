@@ -108,10 +108,17 @@ export function StateCard({
   const Heading = pageHeading ? "h1" : "h2";
   const state = stateCopy(locale, code);
   const roleText = { include: "text-include", unclear: "text-unclear", blocked: "text-blocked", exclude: "text-exclude" }[state.role];
+  const query = consoleOrigin ? `?console=${encodeURIComponent(consoleOrigin)}` : "";
   const href =
     state.action === "import" || state.action === "prepare" || state.action === "proposals" || state.action === "triage" || state.action === "publish" || state.action === "home"
       ? stepHref(locale, state.action, consoleOrigin)
-      : null;
+      : state.action === "harvest" || state.action === "handoff"
+        ? `/${locale}/discovery/${state.action}/${query}`
+        : state.action === "discovery-import"
+          ? `/${locale}/screening/import?return=discovery${consoleOrigin ? `&console=${encodeURIComponent(consoleOrigin)}` : ""}`
+          : state.action === "inception"
+            ? `/${locale}/inception/${query}`
+            : null;
   return (
     <section role="alert" aria-labelledby={`state-${code}`} className="rounded-lg border border-rule bg-leaf p-5" data-state={code}>
       <DecisionBadge role={state.role}>{state.title}</DecisionBadge>

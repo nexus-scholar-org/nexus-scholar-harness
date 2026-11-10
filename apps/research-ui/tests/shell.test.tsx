@@ -97,14 +97,15 @@ describe("landmarks", () => {
 });
 
 describe("primary navigation", () => {
-  it("links the two destinations in every locale, and nothing else", () => {
+  it("links the three destinations in every locale, and nothing else", () => {
     for (const locale of SUPPORTED_LOCALES) {
       renderShell(locale);
       const nav = screen.getByRole("navigation", { name: t(locale, "nav.landmark.primary") });
       const links = within(nav).getAllByRole("link");
-      expect(links.map((link) => link.textContent), locale).toEqual([t(locale, "nav.workspaces"), t(locale, "nav.screening")]);
+      expect(links.map((link) => link.textContent), locale).toEqual([t(locale, "nav.workspaces"), t(locale, "nav.discovery"), t(locale, "nav.screening")]);
       expect(links.map((link) => link.getAttribute("href")), locale).toEqual([
         `/${locale}/workspaces`,
+        `/${locale}/discovery`,
         `/${locale}/screening/home`,
       ]);
     }
@@ -126,7 +127,8 @@ describe("primary navigation", () => {
     expect(currentNavId("/en/screeningx", "en")).toBeUndefined();
     expect(currentNavId("/en/corpus", "en")).toBeUndefined();
     expect(currentNavId("/fr/workspaces", "en")).toBeUndefined();
-    expect(NAV_ITEMS.map((item) => item.id)).toEqual(["workspaces", "screening"]);
+    expect(NAV_ITEMS.map((item) => item.id)).toEqual(["workspaces", "discovery", "screening"]);
+    expect(currentNavId("/fr/discovery/harvest/", "fr")).toBe("discovery");
   });
 
   it("sends the wordmark to the workspaces screen", () => {
@@ -175,6 +177,7 @@ describe("mobile menu", () => {
     const dialog = screen.getByRole("dialog", { name: t("en", "nav.mobileDialogTitle") });
     expect(within(dialog).getAllByRole("link").map((link) => link.textContent)).toEqual([
       t("en", "nav.workspaces"),
+      t("en", "nav.discovery"),
       t("en", "nav.screening"),
       ...SUPPORTED_LOCALES.map((code) => LOCALE_METADATA[code].endonym),
     ]);
