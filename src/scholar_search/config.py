@@ -59,8 +59,12 @@ class Settings(BaseSettings):
     rate_limit_crossref: float = Field(
         default=5.0, description="Crossref requests per second (with mailto)"
     )
+    # Semantic Scholar keys get "1 request per second, cumulative across all
+    # endpoints", and S2 asks callers to set their limit "below this
+    # threshold" (key e-mail, 2026-11-11); exactly 1.0 lets two requests land
+    # in one second. The abstract hydrator has its own limiter (follow-up).
     rate_limit_s2: float = Field(
-        default=1.0, description="Semantic Scholar requests per second (no key)"
+        default=0.9, description="Semantic Scholar requests per second (SCHOLAR_RATE_LIMIT_S2)"
     )
     rate_limit_pubmed: float = Field(
         default=3.0, description="PubMed requests per second (no key)"

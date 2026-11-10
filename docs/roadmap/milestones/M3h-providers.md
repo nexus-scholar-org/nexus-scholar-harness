@@ -77,4 +77,5 @@ proposal, not a build, for OpenAlex semantic search (see "Proposals").
 - Recall checks do not require the OpenAlex key (decision above).
 - The abstract hydrator's one keyless retry after an S2 403 (same silent-fallback shape as the leg had); follow-up.
 - A run whose protocol lists no database falls back to the engine default (with OpenAlex) without the key gate firing; check whether the protocol model allows an empty list (reviewer follow-up).
-- A keyless `/paper/search` check (§3a "Still open"). The researcher's S2 key was checked live on 2026-11-10 with their OK: 403 `ForbiddenException` on the bulk endpoint (§3a).
+- A keyless `/paper/search` check (§3a "Still open"). The researcher's S2 key was checked live on 2026-11-10 with their OK: 403 `ForbiddenException` on the bulk endpoint (§3a). Their new key (2026-11-11): 429 `TooManyRequestsException`, then 200 on one retry; `rate_limit_s2` lowered to 0.9 (`::test_the_s2_rate_limit_stays_below_one_request_per_second`).
+- One Semantic Scholar budget for the leg and the abstract hydrator (the key's 1 rps is cumulative across endpoints); with F14.

@@ -312,3 +312,12 @@ async def test_the_openalex_abstract_hydrator_asks_for_at_most_100():
     hydrator = AbstractHydrator(http_client=client)
     await hydrator._hydrate_from_openalex(["10.1/a", "10.1/b"])
     assert client.get.await_args.kwargs["params"]["per-page"] == 100
+
+
+def test_the_s2_rate_limit_stays_below_one_request_per_second():
+    """S2 keys allow 1 request per second across all endpoints; S2 asks for a limit below it."""
+    from scholar_search.config import Settings
+    from scholar_search.providers.semanticscholar import SemanticScholarProvider
+
+    assert Settings.model_fields["rate_limit_s2"].default < 1.0
+    assert SemanticScholarProvider().client.rate_limiter.rate < 1.0
