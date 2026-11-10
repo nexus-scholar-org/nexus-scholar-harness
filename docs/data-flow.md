@@ -10,7 +10,7 @@ page reaches any host other than this computer).
 
 This page lists every place where data leaves the machine, what is sent, and to
 whom. It was written for M5-slim (2026-11-05) and checked again on 2026-11-10
-against the beta 1.1.0b5 and `main` (the Discovery screens, coming in 1.1.0b6).
+against the beta 1.1.0b6.
 
 ## Screening with an AI model (optional)
 
@@ -57,7 +57,7 @@ identifiers of your records** (DOIs, titles), never your decisions:
 
 | Action | Where you start it | Sent to |
 | :-- | :-- | :-- |
-| Search (a harvest) | Discovery, **Start the harvest** (on `main`, 1.1.0b6); `nexus-scholar run`; `scholar-search`; MCP `nexus_discover` | The databases your protocol selects among OpenAlex, Semantic Scholar, Crossref, arXiv and PubMed (NCBI E-utilities); bioRxiv only when the protocol names it |
+| Search (a harvest) | Discovery, **Start the harvest** (1.1.0b6); `nexus-scholar run`; `scholar-search`; MCP `nexus_discover` | The databases your protocol selects among OpenAlex, Semantic Scholar, Crossref, arXiv and PubMed (NCBI E-utilities); bioRxiv only when the protocol names it |
 | Plan (dry run) | Discovery, **Plan** | Nothing: the strings are translated on your computer |
 | Recall check | Discovery, **Recall** (on `main`) | The protocol query, to the protocol's databases; then each seed's identifier to Crossref and OpenAlex for a title check (`scholar_search/recall.py`) |
 | Abstract hydration and DOI verification, after a harvest | Part of the same run | Record DOIs (and arXiv ids) to Semantic Scholar, OpenAlex and Crossref (`scholar_search/enrichment.py`, `scholar_search/verifier.py`) |

@@ -15,12 +15,12 @@ The `nexus-scholar` package bundles the harness, seven scientific kits and an MC
 
 | Surface | Available / intended use | Boundary |
 |---|---|---|
-| Screening app (`nexus-scholar ui`), beta | Workspaces, creating a workspace in the browser (Inception: Scope, Shape, Concepts and criteria, Review, Done), the import of RIS and PubMed `.nbib` exports with deduplication across databases, title and abstract screening, optional AI drafts, approval, publication, RIS/CSV export, methods paragraph | One reviewer, title and abstract only, RIS and PubMed `.nbib` only; the Explore and Direction inception steps have no screen; see the [beta page](docs/beta/README.md) |
+| Screening app (`nexus-scholar ui`), beta | Workspaces, creating a workspace in the browser (Inception: Scope, Shape, Concepts and criteria, Review, Done), searching the free databases (Discovery: Plan, Recall, Harvest, Import, Duplicates, Report, Hand-off), the import of RIS and PubMed `.nbib` exports with deduplication across databases, title and abstract screening, optional AI drafts, approval, publication, RIS/CSV export, methods paragraph | One reviewer, title and abstract only, RIS and PubMed `.nbib` only; the Explore and Direction inception steps have no screen; see the [beta page](docs/beta/README.md) |
 | CLI/MCP toolkit | Workspace setup, a search of the free databases with per-database records (`scholar-harness run`), the same import and screening steps from a terminal, and scientific tool access for an AI host | Follow the versioned user guide and supported tool surfaces. A live search needs `SCHOLAR_MAILTO` and, for OpenAlex, `SCHOLAR_OPENALEX_KEY` |
 | Full text, extraction, synthesis, graph, verification | Kits in the package | Parked: not production, labelled so in `--help` |
-| Development branch (`main`) | The next beta (`1.1.0b6`, not tagged): the Discovery screens (Plan, Recall, Harvest, Duplicates, Report, Hand-off); see the [draft notes](docs/releases/1.1.0b6.md) | May differ from the installed release |
+| Development branch (`main`) | Work after `1.1.0b6`, not tagged | May differ from the installed release |
 
-The latest release is the beta [v1.1.0b5](https://github.com/nexus-scholar-org/nexus-scholar-harness/releases/tag/v1.1.0b5) ([release notes](docs/releases/1.1.0b5.md); previous: [1.1.0b4](docs/releases/1.1.0b4.md), [1.1.0b3](docs/releases/1.1.0b3.md)) (a pre-release, also on PyPI). Later work on `main` is not a claim about that release's behavior.
+The latest release is the beta [v1.1.0b6](https://github.com/nexus-scholar-org/nexus-scholar-harness/releases/tag/v1.1.0b6) ([release notes](docs/releases/1.1.0b6.md); previous: [1.1.0b5](docs/releases/1.1.0b5.md), [1.1.0b4](docs/releases/1.1.0b4.md), [1.1.0b3](docs/releases/1.1.0b3.md)) (a pre-release, also on PyPI). Later work on `main` is not a claim about that release's behavior.
 
 ## Start a workspace
 
@@ -29,12 +29,12 @@ The latest release is the beta [v1.1.0b5](https://github.com/nexus-scholar-org/n
 Install [uv](https://docs.astral.sh/uv/getting-started/installation/), then Nexus Scholar (the version in the command is needed while it is in beta; do not use `--prerelease allow`, which also takes development releases of other packages), and start the app:
 
 ```sh
-uv tool install "nexus-scholar>=1.1.0b5"
+uv tool install "nexus-scholar>=1.1.0b6"
 nexus-scholar --version
 nexus-scholar ui
 ```
 
-`nexus-scholar --version` should print `nexus-scholar 1.1.0b5`. With pip, use `pip install "nexus-scholar>=1.1.0b5"`. The app opens in your browser on **Workspaces**; everything runs on your computer.
+`nexus-scholar --version` should print `nexus-scholar 1.1.0b6`. With pip, use `pip install "nexus-scholar>=1.1.0b6"`. The app opens in your browser on **Workspaces**; everything runs on your computer.
 
 From a terminal, create a project and inspect its setup:
 

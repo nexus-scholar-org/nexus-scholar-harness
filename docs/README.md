@@ -14,7 +14,7 @@ summarized in [`decisions.md`](decisions.md).
 | [Beta page](beta/README.md) | What the beta does and does not do, and how to report a problem. |
 | [User guide](nexus_scholar_user_guide.md) | Install, workspace setup, the `ui` command, MCP, `doctor`, audit logging, environment, troubleshooting. |
 | [What leaves your computer](data-flow.md) | Every external service, what it receives and when. |
-| [Release notes](releases/) | [1.1.0b6 (draft, not tagged)](releases/1.1.0b6.md), [1.1.0b5](releases/1.1.0b5.md), [1.1.0b4](releases/1.1.0b4.md), [1.1.0b3](releases/1.1.0b3.md). |
+| [Release notes](releases/) | [1.1.0b6](releases/1.1.0b6.md), [1.1.0b5](releases/1.1.0b5.md), [1.1.0b4](releases/1.1.0b4.md), [1.1.0b3](releases/1.1.0b3.md). |
 | [Assessment](assessment/README.md) | **Current state and priorities.** The 2026-11-03 assessment of the harness and the kits with a ranked P0/P1/P2 list, the [full review of 2026-11-06](assessment/full-review-2026-11-06.md) and the [three-phase review of 2026-11-10](assessment/three-phase-hardening-2026-11-10.md). |
 | [Decisions](decisions.md) | One entry per decision that still shapes the code. |
 | [AGENTS.md](../AGENTS.md) | Rules for anyone (person or agent) changing the code. |
