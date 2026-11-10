@@ -1,5 +1,5 @@
 # M3b-api Discovery API
-Branch: `dev/m3b-api/discovery-api` · Lane: **STANDARD** (packet §7: no change to what the corpus snapshot is built from; `generate_contract_baseline.py --check` at every commit) · Status: READY FOR PR · Started: 2026-11-10
+Branch: `dev/m3b-api/discovery-api` · Lane: **STANDARD** (packet §7: no change to what the corpus snapshot is built from; `generate_contract_baseline.py --check` at every commit) · Status: MERGED (PR #214, 11283fb, 2026-11-10) · Started: 2026-11-10
 
 Why: plan §6 M3 is split. M3a (PR #204) built the engine; the screens 01–08 need routes that read what it writes and start it from the browser. The routes, codes and tests are fixed in [`DISCOVERY_API_PACKET.md`](../../architecture/research_ui/DISCOVERY_API_PACKET.md) (§4 shapes, §4.7 codes, §5 allowlists, §6 the researcher's seven decisions of 2026-11-10, §8 test names). No UI work here.
 
