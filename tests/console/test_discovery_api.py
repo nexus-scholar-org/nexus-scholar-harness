@@ -667,3 +667,27 @@ def test_dedup_reports_the_counts_per_tier_of_the_newest_deduplication(env):
         "near_twins": None,
     }
     assert client.get(f"{BASE}/report").json()["dedup"]["by_tier"] == dedup["tiers"]
+
+
+def test_after_a_browser_run_the_corpus_says_why_an_export_cannot_be_staged(env):
+    """Researcher, 2026-11-10 ("keep the rule for now, combine later"): an export is staged only
+    before any run; the corpus view names the refusal so the Import and hand-off screens can show it."""
+    import base64
+
+    client, ws, _ = env
+    assert client.get("/api/v1/screening/corpus").json()["staging_refused"] is None
+    job, _ = _run(client, {"providers": ["openalex"]})
+    assert job["state"] == "succeeded", job
+    corpus = client.get("/api/v1/screening/corpus").json()
+    assert corpus["staging_refused"]["code"] == "VERIFIED_EXISTS"
+    assert "search run" in corpus["staging_refused"]["message"]
+    assert client.get(f"{BASE}/handoff").json()["corpus"]["staging_refused"] == corpus["staging_refused"]
+    ris = b"TY  - JOUR\nTI  - A record\nPY  - 2023\nER  -\n"
+    staged = client.post("/api/v1/screening/corpus/sources", json={
+        "label": "Scopus", "file_name": "scopus.ris", "content_base64": base64.b64encode(ris).decode("ascii"),
+    })
+    assert staged.status_code == 409 and _code(staged) == "VERIFIED_EXISTS"
+    assert staged.json()["detail"]["message"] == corpus["staging_refused"]["message"]
+
+    assert client.post("/api/v1/screening/corpus/accept").status_code == 200
+    assert client.get("/api/v1/screening/corpus").json()["staging_refused"]["code"] == "CORPUS_ALREADY_ACCEPTED"

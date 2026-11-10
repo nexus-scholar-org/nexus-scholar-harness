@@ -247,18 +247,33 @@ def _imported(ws: Path) -> bool:
         return False
 
 
-def _refuse_if_frozen(ws: Path) -> None:
+def _staging_refusal(ws: Path) -> AcceptCorpusRefused | None:
+    """Why a database export cannot be staged now, or ``None`` when it can.
+
+    Researcher, 2026-11-10 ("keep the rule for now, combine later"): an export
+    is staged only before any search run. A snapshot built from a harvest plus
+    staged exports is M3f-combined-corpus (RELEASE: it changes the snapshot's inputs).
+    """
     if _accepted_snapshot(ws):
-        raise AcceptCorpusRefused(
+        return AcceptCorpusRefused(
             "the corpus is already accepted; its sources can no longer change",
             "CORPUS_ALREADY_ACCEPTED",
         )
     if (ws / "literature" / "verified.json").exists() and not _imported(ws):
-        raise AcceptCorpusRefused(
-            "literature/verified.json already exists (a corpus from discovery); "
-            "remove it first to import database exports instead",
+        return AcceptCorpusRefused(
+            "literature/verified.json already exists and holds the corpus of a search run; database exports are "
+            "imported only before any search run, so one corpus is never replaced by another. "
+            "Accept the search corpus on the hand-off screen, or remove literature/verified.json "
+            "to import exports instead",
             "VERIFIED_EXISTS",
         )
+    return None
+
+
+def _refuse_if_frozen(ws: Path) -> None:
+    refusal = _staging_refusal(ws)
+    if refusal is not None:
+        raise refusal
 
 
 def stage_ris_source(
@@ -502,7 +517,12 @@ def corpus_status(workspace: Path | str) -> dict[str, Any]:
         "accepted": None,
         "from_discovery": False,
         "limits": {"max_source_bytes": MAX_SOURCE_BYTES, "label_max_length": LABEL_MAX_LENGTH},
+        # M3d-engine: why staging an export is refused now ({code, message}), else None.
+        "staging_refused": None,
     }
+    refusal = _staging_refusal(ws)
+    if refusal is not None:
+        status["staging_refused"] = {"code": refusal.code, "message": str(refusal)}
     if snapshot:
         artifact = json.loads((ws / snapshot["path"]).read_text(encoding="utf-8"))
         studies = len(artifact["data"]["studies"])
