@@ -1,5 +1,7 @@
 # Git Workflow — Multi-Branch Staging
 
+> **Status (2026-11-10): Historical.** The staging-branch phases (0, A to F) and the "autonomous mode" below are not the current workflow, and no `staging/*` branch exists. Today: one branch per milestone from `main` (`dev/<m>/<slug>`), one PR per milestone through the fork, and the researcher approves every push and PR (`AGENTS.md`, `.agents/skills/pull-request-gate/SKILL.md`).
+
 ## AUTONOMOUS MODE
 
 All git operations are pre-approved. No human approval required for:
@@ -121,12 +123,12 @@ Files: {list}
 | Phase | Branch | Status | Dependencies |
 |-------|--------|--------|--------------|
 | 0 | `staging/phase-0` | DONE | None |
-| A | `staging/phase-a` | PENDING | Phase 0 |
-| B | `staging/phase-b` | PENDING | Phase 0 |
-| C | `staging/phase-c` | PENDING | Phase 0 |
-| D | `staging/phase-d` | PENDING | Phase 0, A |
-| E | `staging/phase-e` | PENDING | Phase B, D |
-| F | `staging/phase-f` | PENDING | Phase D |
+| A | `staging/phase-a` | Not pursued (historical) | Phase 0 |
+| B | `staging/phase-b` | Not pursued (historical) | Phase 0 |
+| C | `staging/phase-c` | Not pursued (historical) | Phase 0 |
+| D | `staging/phase-d` | Not pursued (historical) | Phase 0, A |
+| E | `staging/phase-e` | Not pursued (historical) | Phase B, D |
+| F | `staging/phase-f` | Not pursued (historical) | Phase D |
 
 ## Conflict Resolution
 

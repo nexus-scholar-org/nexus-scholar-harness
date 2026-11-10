@@ -1,5 +1,7 @@
 # Harness core modularity (HCM) track
 
+Status (2026-11-10): Historical: the track closed on 2026-10-29 (close-out record below). HCM-06 was delivered by PR #133; four of its read routes were removed in M6-hardening (PR #200, 2026-11-08).
+
 Entrypoint for the HCM track: extracting neutral services from `scholar_harness`
 without behaviour change.
 

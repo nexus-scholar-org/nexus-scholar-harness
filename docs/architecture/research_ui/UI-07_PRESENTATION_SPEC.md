@@ -1,6 +1,6 @@
 # UI-07 Presentation Specification (read-only)
 
-Status: specification-in-review. No implementation authorized by this document.
+Status (2026-11-10): Historical: delivered by PR #133 (`6575209`, 2026-10-13); superseded for the research UI by `docs/architecture/screening-api-contract.md` (M1a, PR #186). `/ui/batches` and `/ui/batch/{n}/review` are still served; four other read routes were removed in M6-hardening (PR #200, 2026-11-08). As written: specification-in-review. No implementation authorized by this document.
 Companion: [UI-07 Action Spec](./UI-07_ACTION_SPEC.md) (separately reviewed).
 HCM prerequisite: HCM-02 (see the [HCM close-out record](../harness-core-modularity/README.md)).
 Product direction: [individual researcher application](../../decisions.md).

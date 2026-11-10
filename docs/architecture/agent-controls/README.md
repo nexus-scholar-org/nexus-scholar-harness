@@ -1,5 +1,7 @@
 # Agent controls (AG) track
 
+Status (2026-11-10): Historical: the AG track was delivered (PR #121, #125 and #130; the last two on 2026-10-13). Its "next product work" (UI-07, HCM-06) was delivered by PR #133 and #134 and then superseded for the research UI by the screening API of M1a (PR #186). The dated LEGACY migration exception below is still in the tests (`tests/authority/test_publication_generations.py:1054`).
+
 Entrypoint for the AG track: authorization boundaries for agent-assisted
 screening/publication. AG-03A proved protected-publisher feasibility for the
 Windows MIC disposable flow; AG-03B's review lifecycle merged in PR #121 at
