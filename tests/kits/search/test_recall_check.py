@@ -63,3 +63,15 @@ def test_the_query_is_run_as_it_is_with_the_cap():
     assert rows["2301.00001"] == {"openalex": "not_found", "arxiv": "found", "pubmed": "n/a"}
     assert check["found"] == 3 and check["missed_everywhere"] == []
     assert {leg["provider"]: leg["status"] for leg in check["legs"]}["pubmed"] == "failed"
+
+
+class _MustNotCall:
+    async def verify_document(self, doc):
+        raise AssertionError("a stopped check sent a title lookup")
+
+
+def test_a_stopped_check_sends_no_title_lookup():
+    provider = _Provider("openalex", [Document(title="x", provider="openalex", external_ids=ExternalIds(doi="10.1/a"))])
+    check = asyncio.run(check_seeds(Query(text="uav"), [{"id": "10.1/a", "kind": "doi"}], [provider], 10,
+                                    verifier=_MustNotCall(), should_stop=lambda: True))
+    assert check["seeds"][0]["title_check"] == "unresolved"
