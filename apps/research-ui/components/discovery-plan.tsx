@@ -258,7 +258,7 @@ export function DiscoveryPlan({ locale }: Readonly<{ locale: Locale }>) {
                       {plan.s2_key_set ? (
                         <DecisionBadge role="unclear">{t("plan.limits.s2Key.set")}</DecisionBadge>
                       ) : (
-                        <DecisionBadge role="exclude">{t("plan.limits.mailto.notSet")}</DecisionBadge>
+                        t("plan.limits.mailto.notSet")
                       )}
                     </dd>
                     <dd className="mt-1 text-xs text-ink-muted">{t("plan.limits.s2Key.help")}</dd>

@@ -144,7 +144,8 @@ class AbstractHydrator:
         for i in range(0, len(dois), 50):
             chunk = [d.strip().lower() for d in dois[i : i + 50]]
             doi_filter = "|".join(f"https://doi.org/{d}" for d in chunk)
-            params: dict[str, Any] = {"filter": f"doi:{doi_filter}", "per-page": 200}
+            # 100 is the OpenAlex maximum page (F13); a chunk holds at most 50 DOIs.
+            params: dict[str, Any] = {"filter": f"doi:{doi_filter}", "per-page": 100}
             if settings.openalex_key:
                 params["api_key"] = settings.openalex_key
             try:

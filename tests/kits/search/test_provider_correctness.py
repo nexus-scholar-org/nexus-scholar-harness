@@ -256,3 +256,48 @@ def test_s2_uses_the_bulk_endpoint_and_sends_the_key_as_x_api_key(monkeypatch):
     assert provider._get_headers() == {"x-api-key": "s2-placeholder"}
     _, request, _ = provider.translate(Query(text="weed AND drone"))
     assert "x-api-key" not in request and "api_key" not in request
+
+
+# --------------------------------------------------------------------------- review findings (M3h-providers)
+
+
+def test_a_dropped_tiab_term_is_not_reported_as_an_unapplied_tag():
+    """A known tag whose term PubMed dropped (not found) is applied; only the drop is noted."""
+    leg = _esearch_leg(
+        {"esearchresult": {
+            "querytranslation": '"drone"[Title/Abstract]',
+            "errorlist": {"phrasesnotfound": ["zzqqxx"], "fieldsnotfound": []},
+        }},
+        "drone[tiab] OR zzqqxx[tiab]",
+    )
+    assert not any("did not apply" in n for n in leg.notes), leg.notes
+    assert any('"zzqqxx"' in n and "left them out" in n for n in leg.notes), leg.notes
+
+
+def test_pubmed_warnings_for_quoted_phrases_and_stop_words_are_noted():
+    leg = _esearch_leg(
+        {"esearchresult": {
+            "querytranslation": '"weed"[Title]',
+            "warninglist": {"quotedphrasesnotfound": ["zz weed qq"], "phrasesignored": ["the"],
+                            "outputmessages": []},
+        }},
+        '"zz weed qq"[ti] OR weed[ti] AND the',
+    )
+    assert not any("did not apply" in n for n in leg.notes), leg.notes
+    assert any('"zz weed qq"' in n for n in leg.notes), leg.notes
+    assert any('"the"' in n and "stop words" in n for n in leg.notes), leg.notes
+
+
+@pytest.mark.asyncio
+async def test_the_openalex_abstract_hydrator_asks_for_at_most_100():
+    from unittest.mock import AsyncMock, MagicMock
+
+    from scholar_search.enrichment import AbstractHydrator
+
+    client = MagicMock()
+    answer = MagicMock(status_code=200)
+    answer.json.return_value = {"results": []}
+    client.get = AsyncMock(return_value=answer)
+    hydrator = AbstractHydrator(http_client=client)
+    await hydrator._hydrate_from_openalex(["10.1/a", "10.1/b"])
+    assert client.get.await_args.kwargs["params"]["per-page"] == 100

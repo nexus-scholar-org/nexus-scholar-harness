@@ -1,5 +1,5 @@
 # M3h-providers Provider correctness (F11, F12, F13)
-Branch: dev/m3h-providers/provider-correctness · Lane: STANDARD (plan §6) · Status: IN PROGRESS · Started: 2026-11-10
+Branch: dev/m3h-providers/provider-correctness · Lane: **RELEASE** (escalated from the plan's STANDARD after the independent review: the diff changes public HTTP semantics, a new `OPENALEX_KEY_NOT_SET` refusal on `POST /discovery/runs` and new plan fields `openalex_key_set` and `s2_key_set`, and changes leg outcomes for a rejected Semantic Scholar key; `test_gate_policy.md` §lanes puts that in RELEASE, as it did for M4c. No Contract v1 schema, artifact identity or snapshot change: `generate_contract_baseline.py --check` passes at every commit) · Status: IN PROGRESS · Started: 2026-11-10
 
 Scope is the first package of the plan §6 row: F11, F12, F13 from
 [`three-phase-hardening-2026-11-10.md`](../../assessment/three-phase-hardening-2026-11-10.md)
@@ -23,8 +23,9 @@ proposal, not a build, for OpenAlex semantic search (see "Proposals").
 - [x] UI strings: inception says Explore and Direction are not built yet; the contact email is required by Crossref and PubMed, OpenAlex needs its key (`inception-scope.test.tsx`, `discovery-copy.test.ts`).
 - [x] S2 (addition A): a rejected `SCHOLAR_S2_KEY` (401/403) fails the leg with `PROVIDER_REFUSED` and a note naming the variable, with no keyless retry (`test_provider_correctness.py::test_a_rejected_s2_key_fails_the_leg_and_is_never_retried_keyless`, `::test_a_keyless_s2_refusal_says_it_was_keyless`, `::test_s2_uses_the_bulk_endpoint_and_sends_the_key_as_x_api_key`); the plan reports `s2_key_set` (`tests/console/test_discovery_api.py::test_the_plan_reports_whether_a_semantic_scholar_key_is_set`) and the Plan screen says "Set, not yet verified" (`discovery-plan.test.tsx`); findings in `docs/kits/search/PROVIDERS_2026-11.md` §3a.
 - [x] OpenAlex semantic search (addition B): proposal below; nothing in the harvest changes.
-- [ ] Golden search cassette green with the new OpenAlex request (`tests/pipeline/test_golden_search_cassettes.py`): the OpenAlex interaction re-recorded with the researcher's OK and key (one live request, 2026-11-10); the other four databases' recordings are unchanged.
-- [ ] PR gate (`select_test_gate.py --changed main --stage pr`), contract baseline check, `milestone-reviewer` APPROVE.
+- [x] Golden search cassette green with the new OpenAlex request (`tests/pipeline/test_golden_search_cassettes.py`): the OpenAlex interaction re-recorded with the researcher's OK and key (one live request, 2026-11-10); the other four databases' recordings are unchanged.
+- [x] Review findings repaired (first review: CHANGES, 6 findings): PubMed tag check no longer infers an unapplied known tag from label counts (`::test_a_dropped_tiab_term_is_not_reported_as_an_unapplied_tag`, `::test_pubmed_warnings_for_quoted_phrases_and_stop_words_are_noted`); the OpenAlex abstract hydrator asks for 100 (`::test_the_openalex_abstract_hydrator_asks_for_at_most_100`); the recon count probe no longer sends `mailto` to OpenAlex; lane escalated to RELEASE; docs corrected.
+- [ ] Closure gate (`select_test_gate.py --changed main --stage closure`), contract baseline check, `milestone-reviewer` APPROVE on the repair.
 
 ## Findings fixed
 | ID | Reproducing test | Fails before | Passes after |
@@ -32,6 +33,7 @@ proposal, not a build, for OpenAlex semantic search (see "Proposals").
 | F11 | `tests/kits/search/test_provider_correctness.py` (5 PubMed tests) | yes, 5 failed at `3e353ea` | yes |
 | F12 | `test_provider_correctness.py` (5 OpenAlex key tests); `tests/console/test_discovery_api.py` (2 key tests) | yes, 7 failed at `3e353ea` | yes |
 | F13 | `test_provider_correctness.py` (8 page and parameter tests) | yes, 8 failed at `3e353ea` (one import error first; the test reads `MAX_PER_PAGE` through the module) | yes |
+| S2 key (addition A) | `test_provider_correctness.py::test_a_rejected_s2_key_fails_the_leg_and_is_never_retried_keyless` | yes by reading: at `3e353ea` a 403 retried keyless (two calls, leg `ok`) | yes |
 
 ## Decisions
 - [2026-11-10 — OpenAlex needs its API key](../../decisions.md) (proposed; the researcher confirms at the PR).
@@ -46,6 +48,10 @@ proposal, not a build, for OpenAlex semantic search (see "Proposals").
 | inner | working tree | `uv run pytest tests/kits/search/test_provider_correctness.py tests/kits/search/test_providers.py tests/kits/search/test_query_honesty.py tests/kits/search/test_plan_dry_run.py tests/kits/search/test_leg_error_codes.py tests/kits/search/test_search_legs.py tests/console/test_discovery_api.py tests/console/test_console_refusals.py` | 106 passed | ~40 s |
 | inner | working tree | `npx vitest run` (plan, copy, inception copy, inception scope, harvest, recall) and `tsc --noEmit` | 40 passed; typecheck clean | ~20 s |
 | inner | working tree | `uv run pytest tests/pipeline/test_golden_search_cassettes.py` | 3 failed: the OpenAlex request is not in the cassette (expected; re-record pending) | ~30 s |
+| pr | `9cf8f50` | `uv run pytest -q -n auto`; vitest; build; Playwright | pytest: only the 3 expected golden failures; vitest 434 passed; build ok; Playwright 387 passed, 13 skipped | 616 s + 661 s |
+| inner | `9840493` | `uv run pytest tests/pipeline/test_golden_search_cassettes.py tests/pipeline/test_golden_recon_cassette.py` | 9 passed (after the OpenAlex re-record) | 68 s |
+| pr | `9a5ac4d8` | `uv run pytest -q -n auto`; `npm test`; `npm run typecheck` | pytest exit 0; vitest 434 passed; typecheck clean | 474 s + 71 s |
+| review | `9a5ac4d8` | `milestone-reviewer` | CHANGES (6 findings, repaired in the next commit) | |
 
 ## Proposals
 
@@ -69,4 +75,5 @@ proposal, not a build, for OpenAlex semantic search (see "Proposals").
 - F14, F15, F16 (plan §6 row, second package).
 - Recall checks do not require the OpenAlex key (decision above).
 - The abstract hydrator's one keyless retry after an S2 403 (same silent-fallback shape as the leg had); follow-up.
+- A run whose protocol lists no database falls back to the engine default (with OpenAlex) without the key gate firing; check whether the protocol model allows an empty list (reviewer follow-up).
 - A keyless `/paper/search` check (§3a "Still open"). The researcher's S2 key was checked live on 2026-11-10 with their OK: 403 `ForbiddenException` on the bulk endpoint (§3a).

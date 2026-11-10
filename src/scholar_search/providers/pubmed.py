@@ -209,21 +209,25 @@ class PubMedProvider(BaseAPIProvider):
         ESearch answers an unknown tag by searching the term in all fields. The
         XML answer says ``<ErrorList><FieldNotFound>``, but the JSON
         ``errorlist.fieldsnotfound`` stays empty (recorded 2026-11-10,
-        ``tests/kits/search/fixtures/pubmed/``), so the tags sent are also
-        counted against the labels in ``querytranslation``.
+        ``tests/kits/search/fixtures/pubmed/``), so a tag sent that is not one
+        of the tags PubMed is known to apply (``_TAG_LABELS``, each seen in a
+        recorded ``querytranslation``) is reported when PubMed translated the
+        term. Known tags are never inferred missing by counting labels: PubMed
+        also drops not-found and ignored terms from the translation, which
+        would read as an unapplied tag (review finding, M3h-providers).
         """
         errors = result.get("errorlist") or {}
-        missing: list[str] = []
-        if isinstance(errors, dict):
-            missing += [str(f) for f in errors.get("fieldsnotfound") or [] if f]
+        if not isinstance(errors, dict):
+            errors = {}
+        warnings = result.get("warninglist") or {}
+        if not isinstance(warnings, dict):
+            warnings = {}
+        missing: list[str] = [str(f) for f in errors.get("fieldsnotfound") or [] if f]
         translation = result.get("querytranslation")
         if isinstance(translation, str) and translation:
-            sent: dict[str, int] = {}
             for tag in re.findall(r"\[([A-Za-z]+)\]", term):
-                sent[tag.lower()] = sent.get(tag.lower(), 0) + 1
-            for tag, n in sent.items():
-                label = self._TAG_LABELS.get(tag)
-                if (label is None or translation.count(label) < n) and tag not in missing:
+                tag = tag.lower()
+                if tag not in self._TAG_LABELS and tag not in missing:
                     missing.append(tag)
         if missing:
             seen = f" PubMed's translation: {translation}" if isinstance(translation, str) and translation else ""
@@ -233,12 +237,20 @@ class PubMedProvider(BaseAPIProvider):
                 + " it was sent; an unknown tag is searched in all fields."
                 + seen
             )
-        phrases = [p for p in (errors.get("phrasesnotfound") or [] if isinstance(errors, dict) else []) if p]
+        phrases = [p for p in errors.get("phrasesnotfound") or [] if p]
+        phrases += [p for p in warnings.get("quotedphrasesnotfound") or [] if p and p not in phrases]
         if phrases:
             self._record_note(
                 "PubMed found no records for the phrase(s) "
                 + ", ".join(f'"{p}"' for p in phrases)
                 + "; it left them out of the search"
+            )
+        ignored = [p for p in warnings.get("phrasesignored") or [] if p]
+        if ignored:
+            self._record_note(
+                "PubMed ignored the term(s) "
+                + ", ".join(f'"{p}"' for p in ignored)
+                + " (stop words); they were not searched"
             )
 
     async def search(self, query: Query) -> AsyncIterator[Document]:
