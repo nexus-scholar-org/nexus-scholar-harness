@@ -142,6 +142,12 @@ export function StateCard({
         <p className={`mt-1 font-mono text-[0.8125rem] ${roleText}`} dir="ltr">
           {code}
         </p>
+        {/* M3c-screens review 1: a known card still keeps the engine's own sentence, under Details. */}
+        {message && state.known ? (
+          <p className="mt-1 text-sm text-ink-muted" data-engine-message>
+            <bdi dir="ltr">{message}</bdi>
+          </p>
+        ) : null}
       </details>
       <div className="mt-3">
         {state.action === "retry" && onRetry ? (
@@ -153,7 +159,7 @@ export function StateCard({
             {command ?? state.actionLabel}
           </code>
         ) : href ? (
-          <a className="text-brand underline" href={href}>
+          <a className="inline-flex min-h-11 items-center text-brand underline" href={href}>
             {state.actionLabel}
           </a>
         ) : state.actionLabel ? (

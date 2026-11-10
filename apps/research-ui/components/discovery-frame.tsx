@@ -235,7 +235,7 @@ export function RunSelector({
               aria-current={r.run === selected ? "true" : undefined}
               data-run-option={r.run}
             >
-              <bdi dir="ltr">{t("run.option", { run: r.run, date: stamp(r.started_at), status: statusText(locale, r.status) })}</bdi>
+              <bdi>{t("run.option", { run: r.run, date: stamp(r.started_at), status: statusText(locale, r.status) })}</bdi>
               {r.stale ? <DecisionBadge role="unclear">{t("run.stale")}</DecisionBadge> : null}
             </a>
           </li>

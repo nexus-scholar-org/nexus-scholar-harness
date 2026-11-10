@@ -78,7 +78,7 @@ test("a researcher goes from the plan to the hand-off accept and lands on screen
   expect(fake.accepted).toBe(true);
 });
 
-test("MAILTO_NOT_SET prints the line to set and Retry starts the harvest once it is set", async ({ page }) => {
+test("MAILTO_NOT_SET prints the line to set; Check again re-reads, then the harvest starts", async ({ page }) => {
   const fake = await engine(page, { mailto: false });
   await page.goto("/en/discovery/harvest/");
   await expect(page.locator("[data-mailto-line]").first()).toHaveText("SCHOLAR_MAILTO=<your email>");
@@ -88,6 +88,9 @@ test("MAILTO_NOT_SET prints the line to set and Retry starts the harvest once it
   await expect(card).toContainText("SCHOLAR_MAILTO=<your email>");
   fake.setMailto(true);
   await card.getByRole("button", { name: "Check again" }).click();
+  await expect(card).toHaveCount(0);
+  await expect(page.locator("[data-mailto-line]")).toHaveCount(0);
+  await page.getByRole("button", { name: "Start the harvest" }).click();
   await expect(page.getByRole("heading", { name: "The harvest is finished. The corpus is not frozen yet." })).toBeVisible();
 });
 

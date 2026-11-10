@@ -283,7 +283,11 @@ export function discoveryEngine(options: DiscoveryFakeOptions = {}) {
           { event: "leg", data: { provider: l.provider, fetched: 1, reported_total: l.reported_total, cap: l.cap, cap_hit: false, status: "running", error_code: null } },
           { event: "leg", data: { provider: l.provider, fetched: l.fetched, reported_total: l.reported_total, cap: l.cap, cap_hit: l.cap_hit, status: l.status, error_code: l.error_code } },
         ]),
-        ...["discovery", "deduplication", "verification", "hydration"].map((stage) => ({ event: "stage", data: { stage, status: "COMPLETED", detail: {} } })),
+        // The engine's own stage statuses (`pipeline/coordinator.py`: discovery SUCCESS or PARTIAL, deduplication and hydration DONE, verification the outcome status).
+        { event: "stage", data: { stage: "discovery", status: options.failedLeg ? "PARTIAL" : "SUCCESS", detail: { count: fetchedTotal(run) } } },
+        { event: "stage", data: { stage: "deduplication", status: "DONE", detail: {} } },
+        { event: "stage", data: { stage: "hydration", status: "DONE", detail: null } },
+        { event: "stage", data: { stage: "verification", status: "SUCCESS", detail: {} } },
         { event: "stage", data: { stage: "corpus_snapshot", status: "NOT_ACCEPTED", detail: { reason: "awaiting the hand-off accept" } } },
       ];
       const job = startJob("run", events, {

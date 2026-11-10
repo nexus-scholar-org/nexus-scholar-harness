@@ -77,7 +77,7 @@ async function addFile(page: Page, name: string, label: string, details?: { date
       await page.locator("[data-search-details] summary").click();
     }
     await page.locator('[data-search-details] input[type="date"]').fill(details.date);
-    await page.locator("[data-search-details] textarea").fill(details.query);
+    await page.locator("[data-search-details] textarea:not([data-limits])").fill(details.query);
   }
   await page.locator("[data-import-form] button[type=submit]").click();
   // After an add the form clears its file input; the next file waits for that.
@@ -122,7 +122,7 @@ test("Arabic mirrors the page and keeps file names and the search string left-to
   const file = page.locator('[data-database="Scopus"] bdi[dir="ltr"]').first();
   expect(await file.evaluate((el) => getComputedStyle(el).direction)).toBe("ltr");
   await page.locator("[data-search-details] summary").click();
-  expect(await page.locator("[data-search-details] textarea").evaluate((el) => getComputedStyle(el).direction)).toBe("ltr");
+  expect(await page.locator("[data-search-details] textarea:not([data-limits])").evaluate((el) => getComputedStyle(el).direction)).toBe("ltr");
 });
 
 test("a phone sees only the desktop pointer", async ({ page }) => {

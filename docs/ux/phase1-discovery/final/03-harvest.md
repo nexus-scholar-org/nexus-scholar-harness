@@ -101,3 +101,4 @@ None.
 
 ## As built (M3c)
 Built in `apps/research-ui/components/discovery-harvest.tsx`. "Harvest again" opens the same form (cap override, note) under a secondary button, so the screen keeps one brand action ("Start the harvest" before any run, "Go to Duplicates" after). The stages list is shown only for a job followed on this page (the stage events are not stored after the job). Simplified: no per-database polite announcements (the h1 is the live region), and while the engine is unreachable the controls are not pre-disabled (the refusal card answers).
+Test coverage: reload mid-run (reattach through `active_job`), cancel mid-run and the double drop ("Connection lost" and Retry) are covered in vitest (`tests/discovery-harvest.test.tsx`, `tests/discovery-frame.test.tsx`), not in Playwright; the Playwright spec covers the full path, the refusals, axe, overflow and hydration.

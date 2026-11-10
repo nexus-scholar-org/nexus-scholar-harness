@@ -139,3 +139,4 @@ None.
 
 ## As built (M3c)
 The codes are cards in `apps/research-ui/lib/screening-states.ts` (en, fr, ar), checked in every locale by `tests/discovery-copy.test.ts`. The printed contact line is `SCHOLAR_MAILTO=<your email>` (spec 01's form), with Check again. `CORPUS_ALREADY_ACCEPTED` keeps the screening card ("The corpus is already frozen"); on the discovery screens the accepted state replaces Start, Check and Accept, so the card is rarely reached.
+Review repairs (M3c): a known card now keeps the engine's own message under Details (`data-engine-message`), so a `DISCOVERY_FAILED` job or an `ACCEPT_CORPUS_REFUSED` accept still shows the engine's sentence. On Recall and Harvest, the `MAILTO_NOT_SET` card's "Check again" re-reads the page; it never starts a job. Not built: a copy button beside the `SCHOLAR_MAILTO` line (the line is selectable text).

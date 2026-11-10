@@ -99,7 +99,7 @@ describe("discovery.recall", () => {
     const card = await screen.findByRole("alert");
     expect(card).toHaveAttribute("data-state", "SEEDS_INVALID");
     expect(within(card.querySelector("details") as HTMLElement).getByText("SEEDS_INVALID")).toBeInTheDocument();
-    expect(screen.getByText("seed not-a-doi is not a well-formed identifier")).toBeInTheDocument();
+    expect(document.querySelector("[data-seeds-invalid]")?.textContent).toBe("seed not-a-doi is not a well-formed identifier");
     expect(screen.getByLabelText("Identifier of seed 1")).toHaveAttribute("aria-invalid", "true");
     expect(engine.calls.some((c) => c.path.startsWith("/api/v1/discovery/jobs/"))).toBe(false);
   });
@@ -116,6 +116,10 @@ describe("discovery.recall", () => {
     expect(within(card.querySelector("details") as HTMLElement).getByText("MAILTO_NOT_SET")).toBeInTheDocument();
     engine.setMailto(true);
     await user.click(within(card).getByRole("button", { name: "Check again" }));
+    // Check again re-reads; it starts nothing (review 4).
+    await waitFor(() => expect(screen.queryByRole("alert")).toBeNull());
+    expect(engine.calls.filter((c) => c.method === "POST")).toHaveLength(1);
+    await user.click(screen.getByRole("button", { name: "Check these seeds" }));
     await screen.findByRole("heading", { level: 1, name: "The query finds 1 of the 1 papers you gave it" });
   });
 
@@ -137,5 +141,16 @@ describe("discovery.recall", () => {
     await screen.findByText("The corpus is frozen. This check is kept as a record.");
     await waitFor(() => expect(document.querySelector("[data-recall-form]")).toBeNull());
     expect(screen.queryByRole("button", { name: /Check these seeds|Check again/ })).toBeNull();
+  });
+
+  it("prints no seed count for a check reattached after a reload (review 3)", async () => {
+    setUp({
+      refuseOnce: {
+        "GET /api/v1/discovery/runs": { status: 200, body: { shape: "discovery.runs-v1", runs: [], active_job: { job_id: "djob_r", kind: "recall", state: "running", started_at: "2026-11-10T09:00:00+00:00", finished_at: null, result: null, error: null } } },
+      },
+    });
+    render(<DiscoveryRecall locale="en" />);
+    await screen.findByText("Checking the seeds");
+    expect(screen.queryByText(/Checking d+ seeds/)).toBeNull();
   });
 });

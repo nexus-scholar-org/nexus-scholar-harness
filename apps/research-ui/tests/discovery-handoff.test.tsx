@@ -4,7 +4,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { DiscoveryHandoff } from "@/components/discovery-handoff";
 
-import { FINGERPRINT, discoveryEngine } from "./fixtures/discovery-engine";
+import { FINGERPRINT, discoveryEngine, refuse } from "./fixtures/discovery-engine";
 import { sent, setUp } from "./discovery-helpers";
 
 /** 08 Hand-off (spec docs/ux/phase1-discovery/final/08-handoff.md) over the stateful fake. */
@@ -97,5 +97,23 @@ describe("discovery.handoff", () => {
     render(<DiscoveryHandoff locale="en" />);
     await screen.findByRole("heading", { level: 1, name: "There is nothing to hand off yet." });
     expect(screen.queryByRole("button", { name: "Accept this corpus" })).toBeNull();
+  });
+
+  it("keeps the engine's message under Details for a known refusal: ACCEPT_CORPUS_REFUSED (review 1)", async () => {
+    const user = userEvent.setup();
+    setUp({ runs: 1, refuseOnce: { "POST /api/v1/screening/corpus/accept": refuse(409, "ACCEPT_CORPUS_REFUSED", "the corpus has no unique study") } });
+    render(<DiscoveryHandoff locale="en" />);
+    await user.click(await screen.findByRole("button", { name: "Accept this corpus" }));
+    const card = await screen.findByRole("alert");
+    expect(card).toHaveAttribute("data-state", "ACCEPT_CORPUS_REFUSED");
+    const details = card.querySelector("details") as HTMLElement;
+    expect(within(details).getByText("the corpus has no unique study")).toBeInTheDocument();
+  });
+
+  it("does not offer the accept while a harvest runs (review follow-up)", async () => {
+    setUp({ runs: 1, activeJob: true });
+    render(<DiscoveryHandoff locale="en" />);
+    await screen.findByText("A harvest is running. Accept after it ends, so the corpus you freeze is the one you read here.");
+    expect(screen.getByRole("button", { name: "Accept this corpus" })).toBeDisabled();
   });
 });

@@ -53,6 +53,8 @@ export function DiscoveryRecall({ locale }: Readonly<{ locale: Locale }>) {
   const [jobId, setJobId] = useState<string | null>(null);
   const [otherJob, setOtherJob] = useState(false);
   const [cancelled, setCancelled] = useState(false);
+  // The number of seeds this page sent (review 3); a reattached check prints no number.
+  const [submitted, setSubmitted] = useState<number | null>(null);
   const [rows, setRows] = useState<SeedRow[]>([{ key: 0, kind: "doi", id: "" }]);
   const [loaded, setLoaded] = useState(false);
   const nextKey = useRef(1);
@@ -116,6 +118,7 @@ export function DiscoveryRecall({ locale }: Readonly<{ locale: Locale }>) {
     const seeds = rows.filter((r) => r.id.trim()).map((r) => ({ id: r.id.trim(), kind: r.kind, source: "you" as const }));
     try {
       const { job } = await startRecall(origin, seeds);
+      setSubmitted(seeds.length);
       setJobId(job.job_id);
     } catch (error) {
       const refusal = refusalOf(error);
@@ -171,7 +174,7 @@ export function DiscoveryRecall({ locale }: Readonly<{ locale: Locale }>) {
           ) : null}
           {startError ? (
             <div className="space-y-2">
-              <DiscoveryRefusal locale={locale} refusal={startError} origin={origin} onRetry={startError.code === "MAILTO_NOT_SET" ? () => void submit() : undefined} />
+              <DiscoveryRefusal locale={locale} refusal={startError} origin={origin} onRetry={startError.code === "MAILTO_NOT_SET" ? () => { setStartError(null); void load(); } : undefined} />
               {startError.code === "SEEDS_INVALID" && startError.message ? (
                 <p className="text-sm text-ink" data-seeds-invalid>
                   <bdi dir="ltr">{startError.message}</bdi>
@@ -205,12 +208,12 @@ export function DiscoveryRecall({ locale }: Readonly<{ locale: Locale }>) {
             <div className="space-y-6 min-w-0 lg:col-span-2">
               {running ? (
                 <section className="rounded-lg border border-rule bg-leaf p-5" aria-live="polite" data-checking>
-                  <h2 className="font-semibold text-ink">{t("recall.checking", { n: filled })}</h2>
+                  <h2 className="font-semibold text-ink">{submitted != null ? t("recall.checking", { n: submitted }) : t("recall.checkingAny")}</h2>
                   <p className="mt-1 text-sm text-ink-muted">{t("recall.asking")}</p>
                   <ul className="mt-2 space-y-1 text-sm">
                     {stream.legs.map((leg) => (
                       <li key={leg.provider} data-asking={leg.provider}>
-                        {providerName(leg.provider)} · <bdi dir="ltr">{leg.cap_hit ? t("lowerBound", { n: leg.fetched }) : leg.fetched}</bdi> · {leg.status}
+                        {providerName(leg.provider)} · <bdi>{leg.cap_hit ? t("lowerBound", { n: leg.fetched }) : leg.fetched}</bdi> · {leg.status}
                       </li>
                     ))}
                   </ul>
@@ -282,7 +285,7 @@ export function DiscoveryRecall({ locale }: Readonly<{ locale: Locale }>) {
                     {check.legs.map((leg) => (
                       <li key={leg.provider} data-leg={leg.provider}>
                         {providerName(leg.provider)}:{" "}
-                        <bdi dir="ltr">{leg.reported_total == null ? "–" : leg.cap_hit ? t("lowerBound", { n: leg.reported_total }) : leg.reported_total}</bdi>
+                        <bdi>{leg.reported_total == null ? "–" : leg.cap_hit ? t("lowerBound", { n: leg.reported_total }) : leg.reported_total}</bdi>
                         {leg.status === "failed" ? (
                           <>
                             {" "}
@@ -401,7 +404,7 @@ export function DiscoveryRecall({ locale }: Readonly<{ locale: Locale }>) {
                     <DataCell>{check.query_text}</DataCell>
                   </p>
                   <p className="mt-2 text-ink-muted">
-                    <bdi dir="ltr">{t("recall.checkedAt", { date: stamp(check.checked_at) })}</bdi>
+                    <bdi>{t("recall.checkedAt", { date: stamp(check.checked_at) })}</bdi>
                   </p>
                   <p className="mt-1 text-xs text-ink-muted">
                     <DataCell>{check.protocol_fingerprint}</DataCell>

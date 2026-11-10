@@ -61,12 +61,12 @@ export function LegRow({ locale, leg, full }: Readonly<{ locale: Locale; leg: Le
         {providerName(leg.provider)}
       </th>
       <td className="py-2 pe-3">
-        <bdi dir="ltr" data-count>
+        <bdi data-count>
           {count}
         </bdi>
         {leg.cap_hit && leg.reported_total != null ? (
           <span className="block text-xs text-ink-muted">
-            <bdi dir="ltr">{t("harvest.count.of", { fetched: leg.fetched, reported: leg.reported_total })}</bdi>
+            <bdi>{t("harvest.count.of", { fetched: leg.fetched, reported: leg.reported_total })}</bdi>
           </span>
         ) : null}
       </td>
@@ -388,7 +388,7 @@ export function DiscoveryHarvest({ locale }: Readonly<{ locale: Locale }>) {
           ) : null}
           {startError ? (
             <div className="space-y-2">
-              <DiscoveryRefusal locale={locale} refusal={startError} origin={origin} onRetry={startError.code === "MAILTO_NOT_SET" ? () => void start() : undefined} />
+              <DiscoveryRefusal locale={locale} refusal={startError} origin={origin} onRetry={startError.code === "MAILTO_NOT_SET" ? () => { setStartError(null); void load(); } : undefined} />
               {startError.code === "DISCOVERY_JOB_ACTIVE" && (startError.details as { job?: DiscoveryJob } | undefined)?.job?.kind === "run" ? (
                 <Button onClick={() => follow(startError)}>{t("job.follow")}</Button>
               ) : null}

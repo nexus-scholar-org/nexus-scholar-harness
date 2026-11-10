@@ -188,10 +188,10 @@ export function DiscoveryReport({ locale }: Readonly<{ locale: Locale }>) {
                               ) : null}
                             </td>
                             <td className="py-2 pe-3">
-                              <bdi dir="ltr">{row.reported_total ?? t("report.reportedNone")}</bdi>
+                              <bdi>{row.reported_total ?? t("report.reportedNone")}</bdi>
                             </td>
                             <td className="py-2 pe-3" data-fetched>
-                              <bdi dir="ltr">{row.completeness === "lower_bound" ? t("report.completeness.atLeast", { n: row.fetched ?? 0 }) : row.fetched}</bdi>
+                              <bdi>{row.completeness === "lower_bound" ? t("report.completeness.atLeast", { n: row.fetched ?? 0 }) : row.fetched}</bdi>
                             </td>
                             <td className="py-2 pe-3">
                               <DecisionBadge role={c.role}>{c.text}</DecisionBadge>
@@ -203,7 +203,7 @@ export function DiscoveryReport({ locale }: Readonly<{ locale: Locale }>) {
                               ) : null}
                             </td>
                             <td className="py-2 pe-3">
-                              <bdi dir="ltr">{row.no_abstract_rate == null ? t("report.noAbstractNone") : percent(row.no_abstract_rate)}</bdi>
+                              <bdi>{row.no_abstract_rate == null ? t("report.noAbstractNone") : percent(row.no_abstract_rate)}</bdi>
                             </td>
                             <td className="py-2 pe-3">
                               <bdi dir="ltr">{stamp(row.searched_at)}</bdi>

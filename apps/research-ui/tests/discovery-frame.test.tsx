@@ -82,3 +82,13 @@ describe("discovery.frame", () => {
     expect(result.current.lost).toBe(false);
   });
 });
+
+describe("discovery.frame state card", () => {
+  it("keeps a failed run's engine text under Details for a known code: DISCOVERY_FAILED (review 1)", async () => {
+    const { StateCard } = await import("@/components/screening-state-card");
+    render(<StateCard locale="en" code="DISCOVERY_FAILED" message="ValueError: the provider answered nothing parseable" />);
+    const details = document.querySelector("[data-state-details]") as HTMLElement;
+    expect(details.querySelector("[data-engine-message]")?.textContent).toBe("ValueError: the provider answered nothing parseable");
+    expect(screen.getByRole("link", { name: "Search again" })).toHaveAttribute("href", "/en/discovery/harvest/");
+  });
+});

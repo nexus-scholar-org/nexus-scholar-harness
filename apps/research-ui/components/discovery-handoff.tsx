@@ -18,7 +18,7 @@ import {
   useDiscoveryParams,
   type Refusal,
 } from "@/components/discovery-frame";
-import { getHandoff, type Handoff } from "@/lib/discovery-api";
+import { getHandoff, getRuns, type Handoff } from "@/lib/discovery-api";
 import { acceptCorpus } from "@/lib/screening-v1";
 import { discoveryT, providerName } from "@/lib/discovery-copy";
 
@@ -38,6 +38,7 @@ export function DiscoveryHandoff({ locale }: Readonly<{ locale: Locale }>) {
   const [acceptError, setAcceptError] = useState<Refusal | null>(null);
   const [accepting, setAccepting] = useState(false);
   const [offline, setOffline] = useState(false);
+  const [harvestRunning, setHarvestRunning] = useState(false);
   const heading = useRef<HTMLHeadingElement>(null);
 
   const load = useCallback(async () => {
@@ -50,6 +51,12 @@ export function DiscoveryHandoff({ locale }: Readonly<{ locale: Locale }>) {
       if (r.code === "ENGINE_UNREACHABLE" || r.code === "CONSOLE_UNREACHABLE" || r.code === "CONSOLE_TIMEOUT") setOffline(true);
       setRefusal(r);
     }
+    // Review follow-up: the accept route does not check a running harvest, so the screen
+    // does not offer the accept while one runs (an engine guard is a follow-up).
+    getRuns(origin).then(
+      (runs) => setHarvestRunning(runs.active_job?.kind === "run"),
+      () => setHarvestRunning(false),
+    );
   }, [origin]);
 
   useEffect(() => {
@@ -113,7 +120,7 @@ export function DiscoveryHandoff({ locale }: Readonly<{ locale: Locale }>) {
               </div>
               <div>
                 <dd className="text-ink">
-                  <bdi dir="ltr">{t("handoff.accepted.at", { date: stamp(corpus.accepted.accepted_at) })}</bdi>
+                  <bdi>{t("handoff.accepted.at", { date: stamp(corpus.accepted.accepted_at) })}</bdi>
                 </dd>
               </div>
               <div>
@@ -175,7 +182,7 @@ export function DiscoveryHandoff({ locale }: Readonly<{ locale: Locale }>) {
                         <li key={m.provider} data-mix-row={m.provider}>
                           <div className="flex flex-wrap justify-between gap-2">
                             <span className="text-ink">{providerName(m.provider)}</span>
-                            <bdi dir="ltr" className="text-ink-muted">
+                            <bdi className="text-ink-muted">
                               {t("handoff.mix.row", { records: m.records, share: percent(m.share) })}
                             </bdi>
                           </div>
@@ -306,7 +313,7 @@ export function DiscoveryHandoff({ locale }: Readonly<{ locale: Locale }>) {
               <GatePanel
                 label={t("handoff.gate.label")}
                 actions={
-                  <Button variant="primary" onClick={() => void accept()} disabled={accepting || offline || acceptError?.code === "PROTOCOL_CHANGED_SINCE_RUN"} aria-describedby={offline ? "handoff-offline" : undefined} data-accept>
+                  <Button variant="primary" onClick={() => void accept()} disabled={accepting || offline || harvestRunning || acceptError?.code === "PROTOCOL_CHANGED_SINCE_RUN"} aria-describedby={offline ? "handoff-offline" : harvestRunning ? "handoff-running" : undefined} data-accept>
                     {accepting ? t("handoff.gate.accepting") : t("handoff.gate.accept")}
                   </Button>
                 }
@@ -315,6 +322,11 @@ export function DiscoveryHandoff({ locale }: Readonly<{ locale: Locale }>) {
                 {offline ? (
                   <p id="handoff-offline" className="mt-2 text-sm text-ink-muted">
                     {t("handoff.gate.offline")}
+                  </p>
+                ) : null}
+                {harvestRunning ? (
+                  <p id="handoff-running" className="mt-2 text-sm text-ink" data-harvest-running>
+                    {t("handoff.gate.running")}
                   </p>
                 ) : null}
               </GatePanel>

@@ -1,4 +1,4 @@
-import { render, screen, within } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
@@ -42,7 +42,7 @@ describe("discovery.harvest", () => {
     expect(sent(engine)).toContain("GET /api/v1/discovery/jobs/djob_0000000000000000/events");
   });
 
-  it("prints the SCHOLAR_MAILTO line and retries the start", async () => {
+  it("prints the SCHOLAR_MAILTO line; Check again re-reads and starts nothing", async () => {
     const user = userEvent.setup();
     const { engine } = setUp({ mailto: false });
     render(<DiscoveryHarvest locale="en" />);
@@ -52,6 +52,9 @@ describe("discovery.harvest", () => {
     expect(within(card).getByText("SCHOLAR_MAILTO=<your email>")).toBeInTheDocument();
     engine.setMailto(true);
     await user.click(within(card).getByRole("button", { name: "Check again" }));
+    await waitFor(() => expect(screen.queryByRole("alert")).toBeNull());
+    expect(engine.calls.filter((c) => c.method === "POST")).toHaveLength(1);
+    await user.click(screen.getByRole("button", { name: "Start the harvest" }));
     await screen.findByRole("heading", { name: "The harvest is finished. The corpus is not frozen yet." });
   });
 
