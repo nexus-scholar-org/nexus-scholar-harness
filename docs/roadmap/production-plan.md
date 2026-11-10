@@ -7,7 +7,7 @@
 - you see every record by default;
 - Unclear is stored as MAYBE.
 
-The revised sequence is in §6. **Progress (2026-11-10):** implementation started with M0 on 2026-11-04. Every §6 row up to M3c-screens is merged except M2 (the phone). The released beta is `1.1.0b5` (PyPI and GitHub). `main` also holds the discovery API packet (PR #213), M3b-api (PR #214), M3d-engine (PR #215) and M3c-screens (PR #216); these go out as `1.1.0b6`, not yet tagged. What is next is at the end of §6.
+The revised sequence is in §6. **Progress (2026-11-10):** implementation started with M0 on 2026-11-04. Every §6 row up to M3c-screens is merged except M2 (the phone). The released beta is `1.1.0b6` (PyPI and GitHub), which carries the discovery API packet (PR #213), M3b-api (PR #214), M3d-engine (PR #215) and M3c-screens (PR #216). What is next is at the end of §6.
 **Base:** `main` at `4229f04` for this planning pass (§1 and §2 describe that commit, not today's `main`). The contract baseline check passes there (`generate_contract_baseline.py --check`: "Contract baseline current").
 **Scope:** Phase 0 Inception, Phase 1 Discovery and Phase 2 Screening, each end to end (backend and UI). Everything else is frozen and labelled "not production" (§8).
 **First paying user:** solo PhD researchers, then labs and institutions. **Horizon:** 1 month for the screening wedge, 2 months for all three phases. **Infra and token budget:** to be decided. The recommended architecture needs none in stage 1 (§5).

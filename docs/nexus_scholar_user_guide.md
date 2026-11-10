@@ -1,7 +1,7 @@
 # nexus-scholar 1.1 (beta): user guide
 
-This guide follows the current beta, **1.1.0b5** (PyPI and GitHub). Where `main`
-already does more (the next beta, 1.1.0b6, not tagged), the text says so.
+This guide follows the current beta, **1.1.0b6** (PyPI and GitHub). Where `main`
+already does more, the text says so.
 
 `nexus-scholar` is the distributed entry point for the **Nexus Scholar
 Harness**: a portable toolkit that scaffolds a systematic literature review
@@ -13,7 +13,7 @@ GitHub Releases — no source checkout, no per-kit installs.
 > **screening** (import → prepare → screen → publish, with optional agent
 > proposals), **inception in the browser** (Scope, Shape, Concepts and criteria,
 > Review and create, Done; Explore and Direction have no screen yet) and, on
-> `main` for 1.1.0b6, **discovery in the browser** (Plan to Hand-off). The retrieval and synthesis kit (`scholar_rag`), the citation
+> 1.1.0b6, **discovery in the browser** (Plan to Hand-off). The retrieval and synthesis kit (`scholar_rag`), the citation
 > graph (`scholar_graph`), verification and trust (`scholar_verify`) and full
 > text (`scholar_pdf`, findings PDF-07/08) still work, but are parked: their
 > `--help` says so first, their MCP tools say so in their descriptions, and the
@@ -37,7 +37,7 @@ GitHub Releases — no source checkout, no per-kit installs.
 Run any command in an ephemeral isolated environment directly from PyPI:
 
 ```sh
-uvx "nexus-scholar>=1.1.0b5" --help
+uvx "nexus-scholar>=1.1.0b6" --help
 ```
 
 `uvx` caches the environment, so repeat runs are fast.
@@ -49,10 +49,10 @@ uvx "nexus-scholar>=1.1.0b5" --help
 
 ```sh
 # Via standard pip:
-pip install "nexus-scholar>=1.1.0b5"
+pip install "nexus-scholar>=1.1.0b6"
 
 # Or as an isolated CLI tool via uv:
-uv tool install "nexus-scholar>=1.1.0b5"
+uv tool install "nexus-scholar>=1.1.0b6"
 ```
 
 The version in the command is needed while Nexus Scholar is in beta. Do not use
@@ -91,7 +91,7 @@ screen, is in [Getting started](getting-started.md):
   criteria, Review and create, Done. Nothing is written until you press
   **Create the workspace**. The step bar shows Explore and Direction, which have
   no screen yet; the CLI wizard and the MCP `recon_*` tools still run them.
-- **Discovery** (on `main`, 1.1.0b6): Plan, Recall, Harvest, Import,
+- **Discovery** (1.1.0b6): Plan, Recall, Harvest, Import,
   Duplicates, Report, Hand-off. A browser harvest does not freeze the corpus;
   **Accept this corpus** on Hand-off does. It needs `SCHOLAR_MAILTO` and, for
   OpenAlex, `SCHOLAR_OPENALEX_KEY` (§8).
@@ -390,6 +390,6 @@ Run any with `--help` for full options.
 
 - Releases are tagged on the harness repo (`v*`); each tag publishes a wheel to
   PyPI and GitHub Releases with auto-generated notes.
-- Upgrade during the beta with `uv tool install --force "nexus-scholar>=1.1.0b5"`
-  or `pip install -U "nexus-scholar>=1.1.0b5"`. Release notes are in
-  `docs/releases/` (1.1.0b6 is a draft: not tagged).
+- Upgrade during the beta with `uv tool install --force "nexus-scholar>=1.1.0b6"`
+  or `pip install -U "nexus-scholar>=1.1.0b6"`. Release notes are in
+  `docs/releases/` (1.1.0b6 is the latest).

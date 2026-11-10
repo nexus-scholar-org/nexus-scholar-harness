@@ -26,7 +26,7 @@ The kit is no longer a separate repository. Since 2026-11-03 it is the `scholar_
 
 ```bash
 # As a user: the released beta
-uv tool install "nexus-scholar>=1.1.0b5"
+uv tool install "nexus-scholar>=1.1.0b6"
 
 # As a developer, from a clone of this repository
 uv sync --extra dev

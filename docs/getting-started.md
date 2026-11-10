@@ -6,7 +6,7 @@ Everything runs on your computer. No account or API key is needed to screen (the
 agent is optional and not covered here).
 
 The commands are the same on Windows (PowerShell), macOS and Linux unless a
-step says otherwise. This guide is for the beta, version **1.1.0b5**. To check
+step says otherwise. This guide is for the beta, version **1.1.0b6**. To check
 the version you have, run `nexus-scholar --version`.
 
 ## 1. Install uv (once)
@@ -22,7 +22,7 @@ uv --version
 ## 2. Install Nexus Scholar
 
 ```bash
-uv tool install "nexus-scholar>=1.1.0b5"
+uv tool install "nexus-scholar>=1.1.0b6"
 ```
 
 The version in the command is needed while Nexus Scholar is in beta: it lets uv take a beta of Nexus Scholar without taking betas of anything else. Do not use `--prerelease allow`: it also takes development releases of other packages, and one of them stops the app from starting. The command installs the `nexus-scholar` command for your user. Check it:
@@ -31,9 +31,9 @@ The version in the command is needed while Nexus Scholar is in beta: it lets uv 
 nexus-scholar --version
 ```
 
-It should print `nexus-scholar 1.1.0b5`. You can now run `nexus-scholar` from any
+It should print `nexus-scholar 1.1.0b6`. You can now run `nexus-scholar` from any
 folder, and you do not need to activate anything. If you use pip instead of uv:
-`pip install "nexus-scholar>=1.1.0b5"`.
+`pip install "nexus-scholar>=1.1.0b6"`.
 
 ## 3. Start the app and create a workspace
 
@@ -111,9 +111,9 @@ import is one command:
 
 ### Or search the free databases from the app (Discovery)
 
-> **Not in 1.1.0b5.** The Discovery screens are on `main` and come with the
-> next beta, 1.1.0b6 ([draft notes](releases/1.1.0b6.md)). In 1.1.0b5 the same
-> search runs from the terminal: `nexus-scholar run`.
+> **New in 1.1.0b6.** The Discovery screens have not been tried by a second
+> person yet ([release notes](releases/1.1.0b6.md)). Before 1.1.0b6 the same
+> search ran from the terminal: `nexus-scholar run`, which still works.
 
 Discovery searches the free databases your protocol selects (among OpenAlex,
 Semantic Scholar, Crossref, arXiv and PubMed) with
@@ -209,7 +209,7 @@ listed in [data-flow.md](data-flow.md).
 ## Updating
 
 ```bash
-uv tool install --force "nexus-scholar>=1.1.0b5"
+uv tool install --force "nexus-scholar>=1.1.0b6"
 ```
 
 Then check `nexus-scholar --version`. During the beta, finish a screening on the
@@ -221,8 +221,8 @@ is not yet tested.
 | What you see | What to do |
 | :-- | :-- |
 | `nexus-scholar` is not found | Run `uv tool update-shell`, then open a new terminal. |
-| `uv tool install` says no version matches, or installs 1.0.0 | Keep the version in the command: `"nexus-scholar>=1.1.0b5"` (the beta is a pre-release). |
-| The app stops at start with `No module named 'httpcore'` | It was installed with `--prerelease allow`. Reinstall: `uv tool install --force "nexus-scholar>=1.1.0b5"`. |
+| `uv tool install` says no version matches, or installs 1.0.0 | Keep the version in the command: `"nexus-scholar>=1.1.0b6"` (the beta is a pre-release). |
+| The app stops at start with `No module named 'httpcore'` | It was installed with `--prerelease allow`. Reinstall: `uv tool install --force "nexus-scholar>=1.1.0b6"`. |
 | "No accepted corpus" (`SNAPSHOT_NOT_ACCEPTED`) | Import and accept your search results (step 4). |
 | `MAILTO_NOT_SET` before a search | Set `SCHOLAR_MAILTO` (and `SCHOLAR_OPENALEX_KEY`) as in step 4, Discovery, then start the app again. |
 | `VERIFIED_EXISTS` when adding an export | A search already ran in this workspace. For now a corpus is a harvest or imported exports, not both. |
@@ -247,7 +247,7 @@ cd nexus-scholar-harness
 npm --prefix apps/research-ui ci
 npm --prefix apps/research-ui run build:export
 uv build --wheel
-uv tool install --force dist/nexus_scholar-1.1.0b5-py3-none-any.whl
+uv tool install --force dist/nexus_scholar-1.1.0b6-py3-none-any.whl
 ```
 
 The wheel's file name carries the version in `pyproject.toml`. If the app opens
