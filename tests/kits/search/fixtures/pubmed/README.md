@@ -10,3 +10,9 @@ with `retmode=json`, no `email`, `tool` or `api_key`. Saved unchanged.
   `querytranslation` with the tags it sent.
 - `esearch_tiab_ok.json`: `term="weed mapping"[tiab] AND drone[ti] AND smith[au] AND 2020:2026[pdat]`;
   every tag is applied (`[Title/Abstract]`, `[Title]`, `[Author]`, `[Date - Publication]`).
+- `esearch_golden_uav_warnings.json`: the ESearch answer inside the golden UAV
+  cassette (`tests/fixtures/cassettes/golden_uav_search.yaml`, recorded
+  2026-11-08), trimmed to `count`, `retmax`, `retstart`, `querytranslation`,
+  `errorlist` and `warninglist` with an empty `idlist`. Its `warninglist`
+  reports `quotedphrasesnotfound: ['"herbicide prescription"']`, and its
+  `querytranslation` shows the words searched separately and ANDed, not dropped.

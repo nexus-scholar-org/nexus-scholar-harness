@@ -274,18 +274,29 @@ def test_a_dropped_tiab_term_is_not_reported_as_an_unapplied_tag():
     assert any('"zzqqxx"' in n and "left them out" in n for n in leg.notes), leg.notes
 
 
-def test_pubmed_warnings_for_quoted_phrases_and_stop_words_are_noted():
+def test_the_golden_quoted_phrase_is_reported_as_searched_word_by_word():
+    """Recorded golden answer (2026-11-08): PubMed split "herbicide prescription", it did not drop it."""
+    body = json.loads((FIXTURES / "esearch_golden_uav_warnings.json").read_text(encoding="utf-8"))
+    assert body["esearchresult"]["warninglist"]["quotedphrasesnotfound"] == ['"herbicide prescription"']
+    term = (
+        '(UAV OR drone) AND (weed OR "herbicide prescription") AND (mapping OR detection) AND 2020:2026[pdat]'
+    )
+    leg = _esearch_leg(body, term)
+    assert leg.notes == [
+        'PubMed found no exact match for the quoted phrase(s) "herbicide prescription"; '
+        "it searched their words separately, all required (see PubMed's translation)"
+    ]
+
+
+def test_pubmed_stop_words_are_noted():
     leg = _esearch_leg(
         {"esearchresult": {
             "querytranslation": '"weed"[Title]',
-            "warninglist": {"quotedphrasesnotfound": ["zz weed qq"], "phrasesignored": ["the"],
-                            "outputmessages": []},
+            "warninglist": {"quotedphrasesnotfound": [], "phrasesignored": ["the"], "outputmessages": []},
         }},
-        '"zz weed qq"[ti] OR weed[ti] AND the',
+        "weed[ti] AND the",
     )
-    assert not any("did not apply" in n for n in leg.notes), leg.notes
-    assert any('"zz weed qq"' in n for n in leg.notes), leg.notes
-    assert any('"the"' in n and "stop words" in n for n in leg.notes), leg.notes
+    assert leg.notes == ['PubMed ignored the term(s) "the" (stop words); they were not searched']
 
 
 @pytest.mark.asyncio

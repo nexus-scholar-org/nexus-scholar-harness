@@ -238,12 +238,21 @@ class PubMedProvider(BaseAPIProvider):
                 + seen
             )
         phrases = [p for p in errors.get("phrasesnotfound") or [] if p]
-        phrases += [p for p in warnings.get("quotedphrasesnotfound") or [] if p and p not in phrases]
         if phrases:
             self._record_note(
                 "PubMed found no records for the phrase(s) "
-                + ", ".join(f'"{p}"' for p in phrases)
+                + ", ".join(f'"{str(p).strip(chr(34))}"' for p in phrases)
                 + "; it left them out of the search"
+            )
+        # A quoted phrase PubMed has no record of is not dropped: it searches its
+        # words separately, ANDed (golden UAV leg, 2026-11-08: "herbicide
+        # prescription"; fixture esearch_golden_uav_warnings.json).
+        quoted = [str(p).strip('"') for p in warnings.get("quotedphrasesnotfound") or [] if p]
+        if quoted:
+            self._record_note(
+                "PubMed found no exact match for the quoted phrase(s) "
+                + ", ".join(f'"{p}"' for p in quoted)
+                + "; it searched their words separately, all required (see PubMed's translation)"
             )
         ignored = [p for p in warnings.get("phrasesignored") or [] if p]
         if ignored:

@@ -24,7 +24,7 @@ proposal, not a build, for OpenAlex semantic search (see "Proposals").
 - [x] S2 (addition A): a rejected `SCHOLAR_S2_KEY` (401/403) fails the leg with `PROVIDER_REFUSED` and a note naming the variable, with no keyless retry (`test_provider_correctness.py::test_a_rejected_s2_key_fails_the_leg_and_is_never_retried_keyless`, `::test_a_keyless_s2_refusal_says_it_was_keyless`, `::test_s2_uses_the_bulk_endpoint_and_sends_the_key_as_x_api_key`); the plan reports `s2_key_set` (`tests/console/test_discovery_api.py::test_the_plan_reports_whether_a_semantic_scholar_key_is_set`) and the Plan screen says "Set, not yet verified" (`discovery-plan.test.tsx`); findings in `docs/kits/search/PROVIDERS_2026-11.md` §3a.
 - [x] OpenAlex semantic search (addition B): proposal below; nothing in the harvest changes.
 - [x] Golden search cassette green with the new OpenAlex request (`tests/pipeline/test_golden_search_cassettes.py`): the OpenAlex interaction re-recorded with the researcher's OK and key (one live request, 2026-11-10); the other four databases' recordings are unchanged.
-- [x] Review findings repaired (first review: CHANGES, 6 findings): PubMed tag check no longer infers an unapplied known tag from label counts (`::test_a_dropped_tiab_term_is_not_reported_as_an_unapplied_tag`, `::test_pubmed_warnings_for_quoted_phrases_and_stop_words_are_noted`); the OpenAlex abstract hydrator asks for 100 (`::test_the_openalex_abstract_hydrator_asks_for_at_most_100`); the recon count probe no longer sends `mailto` to OpenAlex; lane escalated to RELEASE; docs corrected.
+- [x] Review findings repaired (first review: CHANGES, 6 findings): PubMed tag check no longer infers an unapplied known tag from label counts (`::test_a_dropped_tiab_term_is_not_reported_as_an_unapplied_tag`, `::test_the_golden_quoted_phrase_is_reported_as_searched_word_by_word`, `::test_pubmed_stop_words_are_noted`; second review R1: a quoted phrase PubMed cannot find is reported as searched word by word, from the recorded golden answer); the OpenAlex abstract hydrator asks for 100 (`::test_the_openalex_abstract_hydrator_asks_for_at_most_100`); the recon count probe no longer sends `mailto` to OpenAlex; lane escalated to RELEASE; docs corrected.
 - [ ] Closure gate (`select_test_gate.py --changed main --stage closure`), contract baseline check, `milestone-reviewer` APPROVE on the repair.
 
 ## Findings fixed
@@ -51,7 +51,8 @@ proposal, not a build, for OpenAlex semantic search (see "Proposals").
 | pr | `9cf8f50` | `uv run pytest -q -n auto`; vitest; build; Playwright | pytest: only the 3 expected golden failures; vitest 434 passed; build ok; Playwright 387 passed, 13 skipped | 616 s + 661 s |
 | inner | `9840493` | `uv run pytest tests/pipeline/test_golden_search_cassettes.py tests/pipeline/test_golden_recon_cassette.py` | 9 passed (after the OpenAlex re-record) | 68 s |
 | pr | `9a5ac4d8` | `uv run pytest -q -n auto`; `npm test`; `npm run typecheck` | pytest exit 0; vitest 434 passed; typecheck clean | 474 s + 71 s |
-| review | `9a5ac4d8` | `milestone-reviewer` | CHANGES (6 findings, repaired in the next commit) | |
+| review | `9a5ac4d8` | `milestone-reviewer` | CHANGES (6 findings, repaired in `99f071b8`) | |
+| review | `99f071b8` | `milestone-reviewer` (repair delta) | CHANGES: R1 (quoted-phrase note wrong on the golden PubMed leg), R2 (two §1 rows unannotated); repaired in the next commit | |
 
 ## Proposals
 
