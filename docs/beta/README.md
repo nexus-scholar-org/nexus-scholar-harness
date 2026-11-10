@@ -11,7 +11,7 @@ what it cannot do yet, and how to tell us what happened.
 
 Researchers who screen titles and abstracts for a systematic or scoping review,
 alone, on their own computer. You bring RIS exports from the databases you
-searched. You leave with a published screening, its PRISMA counts and a draft
+searched (or PubMed `.nbib` exports). You leave with a published screening, its PRISMA counts and a draft
 methods paragraph.
 
 ## Install (four commands)
@@ -36,7 +36,7 @@ methods paragraph.
    ```
 
 Then follow [Getting started](../getting-started.md) from step 3: create a
-workspace, import your RIS files, prepare, screen, publish and export.
+workspace, import your RIS or `.nbib` files, prepare, screen, publish and export.
 
 ## Known limits
 
@@ -46,6 +46,8 @@ workspace, import your RIS files, prepare, screen, publish and export.
 - **Approval uses a code shown in the terminal.** Keep the terminal where the app runs in view.
 - **The approver is a typed name,** not a verified sign-in.
 - **AI drafts are optional and not validated.** Do not report a recall or accuracy figure for them.
+- **No search from the browser in 1.1.0b5.** The Discovery screens (Plan to Hand-off) are on `main` and come with 1.1.0b6 ([draft notes](../releases/1.1.0b6.md)). A command-line search (`nexus-scholar run`) needs `SCHOLAR_MAILTO`, and OpenAlex needs `SCHOLAR_OPENALEX_KEY` (required by OpenAlex since 2026-02-13).
+- **Inception has no Explore or Direction screen.** The browser flow goes Scope, Shape, Concepts and criteria, Review, Done.
 
 ## Tell us what happened
 

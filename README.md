@@ -2,7 +2,7 @@
 
 **A research workspace and toolkit for literature reviews, with source lineage and explicit researcher control over final evidence.**
 
-Nexus helps you define a protocol, discover literature, work through screening and full-text evidence, and keep project artifacts and history together. The intended first user is an individual researcher. Today the released product is the **screening app** (beta). You import your database exports, screen titles and abstracts on your own computer, publish the screening with its PRISMA counts, and export the decisions and a draft methods paragraph. It comes with the CLI/MCP toolkit it is built on.
+Nexus helps you define a protocol, discover literature, work through screening and full-text evidence, and keep project artifacts and history together. The intended first user is an individual researcher. Today the released product is the **screening app** (beta). You create a workspace in the browser, import your database exports, screen titles and abstracts on your own computer, publish the screening with its PRISMA counts, and export the decisions and a draft methods paragraph. It comes with the CLI/MCP toolkit it is built on. Searching the free databases from the browser (the Discovery screens) is on `main` and comes with the next beta, `1.1.0b6`.
 
 [![CI](https://github.com/nexus-scholar-org/nexus-scholar-harness/actions/workflows/ci.yml/badge.svg)](https://github.com/nexus-scholar-org/nexus-scholar-harness/actions/workflows/ci.yml)
 [![PyPI](https://img.shields.io/pypi/v/nexus-scholar.svg)](https://pypi.org/project/nexus-scholar/)
@@ -11,14 +11,14 @@ Nexus helps you define a protocol, discover literature, work through screening a
 
 ## What you can use today
 
-The `nexus-scholar` package bundles the harness, eight scientific kits and an MCP server. Initialize a local workspace, inspect its environment, record events and generate configuration for an AI host. Scientific capabilities have different dependencies and acceptance requirements; installation alone does not establish a completed review.
+The `nexus-scholar` package bundles the harness, seven scientific kits and an MCP server. Initialize a local workspace, inspect its environment, record events and generate configuration for an AI host. Scientific capabilities have different dependencies and acceptance requirements; installation alone does not establish a completed review.
 
 | Surface | Available / intended use | Boundary |
 |---|---|---|
-| Screening app (`nexus-scholar ui`), beta | Workspaces, the import of RIS and PubMed `.nbib` exports with deduplication across databases, title and abstract screening, optional AI drafts, approval, publication, RIS/CSV export, methods paragraph | One reviewer, title and abstract only, RIS and PubMed `.nbib` only; see the [beta page](docs/beta/README.md) |
-| CLI/MCP toolkit | Workspace setup, the same import and screening steps from a terminal, and scientific tool access for an AI host | Follow the versioned user guide and supported tool surfaces |
+| Screening app (`nexus-scholar ui`), beta | Workspaces, creating a workspace in the browser (Inception: Scope, Shape, Concepts and criteria, Review, Done), the import of RIS and PubMed `.nbib` exports with deduplication across databases, title and abstract screening, optional AI drafts, approval, publication, RIS/CSV export, methods paragraph | One reviewer, title and abstract only, RIS and PubMed `.nbib` only; the Explore and Direction inception steps have no screen; see the [beta page](docs/beta/README.md) |
+| CLI/MCP toolkit | Workspace setup, a search of the free databases with per-database records (`scholar-harness run`), the same import and screening steps from a terminal, and scientific tool access for an AI host | Follow the versioned user guide and supported tool surfaces. A live search needs `SCHOLAR_MAILTO` and, for OpenAlex, `SCHOLAR_OPENALEX_KEY` |
 | Full text, extraction, synthesis, graph, verification | Kits in the package | Parked: not production, labelled so in `--help` |
-| Development branch (`main`) | The next beta | May differ from the installed release |
+| Development branch (`main`) | The next beta (`1.1.0b6`, not tagged): the Discovery screens (Plan, Recall, Harvest, Duplicates, Report, Hand-off); see the [draft notes](docs/releases/1.1.0b6.md) | May differ from the installed release |
 
 The latest release is the beta [v1.1.0b5](https://github.com/nexus-scholar-org/nexus-scholar-harness/releases/tag/v1.1.0b5) ([release notes](docs/releases/1.1.0b5.md); previous: [1.1.0b4](docs/releases/1.1.0b4.md), [1.1.0b3](docs/releases/1.1.0b3.md)) (a pre-release, also on PyPI). Later work on `main` is not a claim about that release's behavior.
 
@@ -61,7 +61,7 @@ For a crop/weed review, the intended first complete interaction is:
 5. Explicitly authorize final decisions and publish the current screening result.
 6. Export a screening record with reasons and provenance.
 
-In the beta, steps 2 to 6 work end to end for title and abstract screening by one reviewer. Search is done in the databases themselves and their RIS exports are imported. The AI drafts are optional, hidden until you decide by default, and never decide for you. Full-text charting, synthesis and scientific evaluation have separate readiness requirements and are parked.
+In the beta, step 1 works in the browser (without the grounded Explore and Direction steps), and steps 2 to 6 work end to end for title and abstract screening by one reviewer. Search is done in the databases themselves and their RIS or `.nbib` exports are imported, or from a terminal with `scholar-harness run`. On `main` the search also runs from the browser (Discovery). The AI drafts are optional, hidden until you decide by default, and never decide for you. Full-text charting, synthesis and scientific evaluation have separate readiness requirements and are parked.
 
 ![The Import screen: two databases, their records summed per database, and the counts for the PRISMA flow diagram (test data)](apps/research-ui/screenshots/1440-screening-import-staged.png)
 
@@ -82,7 +82,6 @@ See the [AG record](docs/architecture/agent-controls/README.md), [evidence bound
 | Protocol | Compile and validate research intent/protocols |
 | Search | Discovery, deduplication, metadata and screening support |
 | PDF | Full-text acquisition and extraction |
-| Bibliography | BibTeX parsing, cleaning and resolution |
 | RAG | Indexing, retrieval and synthesis capabilities |
 | Graph | Citation networks and graph analysis |
 | Agent | MCP tool interfaces |
