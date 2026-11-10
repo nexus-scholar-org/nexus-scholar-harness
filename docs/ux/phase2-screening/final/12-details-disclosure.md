@@ -68,7 +68,7 @@ Same elements as 03 (05 is the record card, the checklist and the aside). Additi
 The card shows the typed code as selectable text in the role colour (`data-state={code}`, `<code dir="ltr">`). Under this rule the title, the plain sentence and the next-step button stay; the code and the "affects" line go into a Details disclosure inside the card. `data-state` stays on the section, so tests keep finding the code by attribute. Spec 08 lists every refusal card and says each shows its code: that sentence is overridden by this rule; 08's states, wording and next steps are unchanged.
 
 ## Out of scope
-Discovery screens (stretch), Workspaces list (00, which already shows the plain status), Import (11, its details are an import report), and phone screens 04 and 07.
+Discovery screens (stretch when this was written; built in M3c-screens), Workspaces list (00, which already shows the plain status), Import (11, its details are an import report), and phone screens 04 and 07.
 
 ## States
 - **Default**: closed.

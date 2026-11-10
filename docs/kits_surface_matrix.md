@@ -6,7 +6,7 @@
 > **Regenerate:** re-run the sweep when kit APIs/CLIs change; skill content mirrors this
 > matrix and is synced to the plugin bundle by `scripts/sync_skills_bundle.py`.
 
-> **Parked, not production (M5-slim, production plan §8).** Version 1.0 ships
+> **Parked, not production (M5-slim, production plan §8).** The beta ships
 > **screening** (import → prepare → screen → publish, with optional agent
 > proposals). The retrieval and synthesis kit (`scholar_rag`), the citation
 > graph (`scholar_graph`), verification and trust (`scholar_verify`) and full
