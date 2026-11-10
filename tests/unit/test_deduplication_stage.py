@@ -226,7 +226,9 @@ def test_deduped_file_is_byte_identical_and_matches_golden(tmp_path):
     )
     # Exactly one file, exact filename.
     written = sorted(p.name for p in lit.iterdir())
-    assert written == ["deduped.json"]
+    # E4a (M3d-engine): the stage also writes its per-cluster record, nothing else.
+    assert written == ["dedup", "deduped.json"]
+    assert sorted(p.name for p in (lit / "dedup").iterdir()) == ["clusters.json"]
     # Typed outcome aliases agree.
     assert outcome.documents is outcome.representatives
     assert outcome.unique_docs is outcome.representatives
@@ -294,7 +296,9 @@ def test_stage_emits_no_audit_event_and_no_registry_writes(tmp_path):
     assert list(ws.rglob("journal.jsonl")) == []
     assert list(ws.rglob("artifact_registry.json")) == []
     written = sorted(p.name for p in lit.iterdir())
-    assert written == ["deduped.json"]
+    # E4a (M3d-engine): the stage also writes its per-cluster record, nothing else.
+    assert written == ["dedup", "deduped.json"]
+    assert sorted(p.name for p in (lit / "dedup").iterdir()) == ["clusters.json"]
 
 
 # ---------------------------------------------------------------------------

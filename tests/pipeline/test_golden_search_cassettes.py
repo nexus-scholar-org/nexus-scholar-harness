@@ -271,3 +271,34 @@ def test_the_plan_dry_run_equals_the_replayed_legs(tmp_path):
         assert preview[name]["notes"] == [n for n in sent[name]["notes"] if n in preview[name]["notes"]], name
     assert preview["biorxiv"]["status"] == "off_by_default"
     assert preview["biorxiv"]["executed_query"] is None and preview["biorxiv"]["request"] is None
+
+
+#: The golden SCI-id map and REC->STU map before E4a (computed at 695bad4 on the
+#: replayed cassette). E4a records the tier of each merge and must move neither.
+GOLDEN_SCI_DIGEST = "b016a8025043df4ecd86c710fe11a44fd6c547238d97eb56e0c3ebf3f29415c7"
+GOLDEN_REC_DIGEST = "87bc4f85c5b9270fef3b428a8bd13dab7e5869e836f0218a038b1fd2fc8b34bb"
+
+
+def test_dedup_tiers_are_recorded_and_the_ids_do_not_move(tmp_path):
+    """E4a (M3d-engine, packet §4.5 Stage 1): clusters.json beside deduped.json, ids unchanged."""
+    import hashlib
+    import json
+
+    ws = _workspace(tmp_path, "tiers")
+    outcome = _search(ws)
+    sci, rec = _ids(ws, outcome.documents)
+    assert hashlib.sha256(json.dumps(sorted(sci.items())).encode()).hexdigest() == GOLDEN_SCI_DIGEST
+    assert hashlib.sha256(json.dumps(sorted(rec.items())).encode()).hexdigest() == GOLDEN_REC_DIGEST
+
+    data = json.loads((ws / "literature" / "dedup" / "clusters.json").read_text(encoding="utf-8"))
+    assert data["run"] == "run_001"
+    assert data["method"] == {"title_similarity": 0.97, "year_tolerance": 1, "first_author": True, "source": "default"}
+    clusters = data["clusters"]
+    assert len(clusters) == len(sci)
+    removed = sum(len(c["members"]) - 1 for c in clusters)
+    assert removed == len(outcome.documents) - len(sci)
+    assert {c["tier"] for c in clusters} <= {None, "identifier", "exact_title", "fuzzy_title"}
+    assert all((c["tier"] is None) == (len(c["members"]) == 1) for c in clusters)
+    merged_by = [m["merged_by"] for c in clusters for m in c["members"][1:]]
+    assert len(merged_by) == removed and "identifier" in merged_by
+    assert sorted(c["representative"]["workspace_id"] for c in clusters) == sorted(sci.values())

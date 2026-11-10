@@ -48,6 +48,73 @@ class DeduplicationOutcome:
         return self.representatives
 
 
+#: E4a (M3d-engine): the per-cluster record of the deduplication, beside deduped.json.
+CLUSTERS_FILE = Path("dedup") / "clusters.json"
+
+
+def _newest_run(lit_dir: Path) -> str | None:
+    """The search run this deduplication follows: the newest ``search_runs/run_NNN``."""
+    runs_dir = lit_dir / "search_runs"
+    if not runs_dir.is_dir():
+        return None
+    numbers = [int(d.name[4:]) for d in runs_dir.iterdir() if d.is_dir() and d.name.startswith("run_") and d.name[4:].isdigit()]
+    return f"run_{max(numbers):03d}" if numbers else None
+
+
+def _record(doc: Any) -> dict[str, Any]:
+    ext = getattr(doc, "external_ids", None)
+    return {
+        "workspace_id": getattr(doc, "workspace_id", None),
+        "provider": getattr(doc, "provider", None),
+        "provider_id": getattr(doc, "provider_id", None),
+        "doi": getattr(ext, "doi", None),
+        "title": getattr(doc, "title", None),
+        "year": getattr(doc, "year", None),
+    }
+
+
+def _merged_by(cluster: Any, index: int) -> str | None:
+    merges = list(getattr(cluster, "merges", None) or [])
+    return merges[index - 1] if 0 < index <= len(merges) else None
+
+
+def _write_clusters(lit_dir: Path, clusters: list[Any], deduplicator: Deduplicator, source: str) -> None:
+    """``literature/dedup/clusters.json``: which tier merged each cluster (E4a, packet §4.5).
+
+    ``tier`` is the tier of the cluster's first merge (``None`` for a
+    singleton); each member after the first says which tier merged it
+    (``merged_by``), so the counts per tier add up to the records removed.
+    Writes nothing the snapshot or the ids depend on.
+    """
+    data = {
+        "schema": "nexus.dedup-clusters.v1",
+        "run": _newest_run(lit_dir),
+        "method": {
+            "title_similarity": getattr(deduplicator, "title_similarity", None),
+            "year_tolerance": getattr(deduplicator, "year_tolerance", None),
+            "first_author": getattr(deduplicator, "first_author", None),
+            "source": source,
+        },
+        "clusters": [
+            {
+                "cluster_id": cluster.cluster_id,
+                "tier": getattr(cluster, "tier", None),
+                "representative": _record(cluster.representative),
+                "members": [
+                    {**_record(member), "merged_by": _merged_by(cluster, i)}
+                    for i, member in enumerate(cluster.members)
+                ],
+            }
+            for cluster in clusters
+        ],
+    }
+    path = lit_dir / CLUSTERS_FILE
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = path.with_suffix(".json.tmp")
+    tmp.write_text(json.dumps(data, indent=2, default=str), encoding="utf-8")
+    tmp.replace(path)
+
+
 def run_deduplication(
     *,
     discovered_documents: list[Any],
@@ -92,6 +159,7 @@ def run_deduplication(
         default=str,
     )
     (lit_dir / "deduped.json").write_text(payload, encoding="utf-8")
+    _write_clusters(lit_dir, clusters, deduplicator, "protocol" if method.source == "protocol" else "default")
     return DeduplicationOutcome(
         representatives=unique_docs,
         unique=len(unique_docs),

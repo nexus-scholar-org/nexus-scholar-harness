@@ -501,7 +501,8 @@ def test_report_marks_a_capped_leg_as_a_lower_bound(env):
     assert rows["crossref"]["completeness"] == "full" and rows["crossref"]["kind"] == "search"
     assert {n["database"] for n in report["not_searched"]} == {"semanticscholar", "arxiv", "pubmed", "biorxiv"}
     assert report["dedup"]["removed"] == 1 and report["dedup"]["unique_works"] == 7
-    assert report["dedup"]["by_tier"] is None
+    # E4a (M3d-engine): the one duplicate shares a DOI.
+    assert report["dedup"]["by_tier"] == {"identifier": 1, "exact_title": 0, "fuzzy_title": 0}
     assert report["outside_year_window"] == 0
     # M3d-engine: no screening is prepared before the hand-off accept, so there is no PRISMA preview yet.
     assert report["prisma"] is None
@@ -636,3 +637,33 @@ def test_report_lists_each_imports_limits_and_rejected_lines(env):
     (imp,) = client.get(f"{BASE}/report").json()["imports"]
     assert imp["limits"] == "English; 2018-2025" and imp["records"] == 3
     assert [r["code"] for r in imp["rejected"]] == ["IMPORT_BAD_TAG", "IMPORT_NO_TITLE", "IMPORT_BAD_YEAR"]
+
+
+# --------------------------------------------------------------------------- dedup (E4a)
+
+
+def test_dedup_reports_the_counts_per_tier_of_the_newest_deduplication(env):
+    """E4a (M3d-engine, packet §4.5 Stage 1): counts only, from literature/dedup/clusters.json."""
+    client, ws, providers = env
+    missing = client.get(f"{BASE}/dedup")
+    assert missing.status_code == 404 and _code(missing) == "DEDUP_NOT_RUN"
+
+    providers.set("openalex", FakeProvider("openalex", [
+        _doc("openalex", 0), _doc("openalex", 1, title="Drone imagery for weed detection", doi=""),
+        _doc("openalex", 2),
+    ]))
+    providers.set("crossref", FakeProvider("crossref", [
+        _doc("openalex", 0),  # same DOI as openalex 0: identifier
+        _doc("crossref", 1, title="Drone imagery for weed detection", doi=""),  # same title, no DOI: exact title
+        _doc("crossref", 2),
+    ]))
+    job, _ = _run(client, {"providers": ["openalex", "crossref"]})
+    assert job["state"] == "succeeded", job
+    dedup = client.get(f"{BASE}/dedup").json()
+    assert dedup == {
+        "shape": "discovery.dedup-v1", "run": "run_001", "input_records": 6, "unique_works": 4, "removed": 2,
+        "removed_rate": round(2 / 6, 4), "tiers": {"identifier": 1, "exact_title": 1, "fuzzy_title": 0},
+        "method": {"title_similarity": 0.97, "year_tolerance": 1, "first_author": True, "source": "default"},
+        "near_twins": None,
+    }
+    assert client.get(f"{BASE}/report").json()["dedup"]["by_tier"] == dedup["tiers"]

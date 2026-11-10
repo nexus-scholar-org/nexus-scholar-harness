@@ -120,6 +120,7 @@ class Deduplicator:
 
         for document in documents:
             match = None
+            tier = None  # E4a: which tier found the match
             ext = document.external_ids
 
             # Tier 1: Canonical Persistent Identifiers in O(1)
@@ -138,6 +139,8 @@ class Deduplicator:
                 document, match.representative
             ):
                 match = None
+            if match is not None:
+                tier = "identifier"
 
             # Tier 1b: Exact normalized title match in O(1)
             tkey = _title_key(document.title)
@@ -145,6 +148,7 @@ class Deduplicator:
                 exact_cluster = exact_title_index[tkey]
                 if self._fuzzy_match(document, exact_cluster.representative):
                     match = exact_cluster
+                    tier = "exact_title"
 
             # Tier 2: Fuzzy Lexical Title Match (pruned by length & author/year)
             if match is None and tkey:
@@ -165,6 +169,7 @@ class Deduplicator:
                         continue
                     if SequenceMatcher(None, tkey, cand_tkey).ratio() >= self.title_similarity:
                         match = cand_cluster
+                        tier = "fuzzy_title"
                         break
 
             if match is None:
@@ -173,6 +178,7 @@ class Deduplicator:
                 match = DocumentCluster(cluster_id, document, [document])
                 clusters.append(match)
             else:
+                match.merges.append(str(tier))  # set by whichever tier matched
                 # Score-based representative election
                 candidate_score = compute_total_score(document)
                 current_score = compute_total_score(match.representative)

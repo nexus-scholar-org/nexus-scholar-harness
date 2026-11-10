@@ -479,6 +479,48 @@ def _completeness(leg: dict[str, Any]) -> str:
     return "full"
 
 
+DEDUP_TIERS = ("identifier", "exact_title", "fuzzy_title")
+
+
+def _dedup_summary(ws: Path) -> dict[str, Any] | None:
+    """Counts from ``literature/dedup/clusters.json`` (E4a), or ``None`` before any deduplication.
+
+    ``tiers`` counts the records each tier removed (a member merged into a
+    cluster), so the three add up to ``removed``.
+    """
+    from ...pipeline.deduplication import CLUSTERS_FILE
+
+    data = _read_json(_lit(ws) / CLUSTERS_FILE)
+    if not isinstance(data, dict) or not isinstance(data.get("clusters"), list):
+        return None
+    clusters = [c for c in data["clusters"] if isinstance(c, dict)]
+    members = [m for c in clusters for m in (c.get("members") or []) if isinstance(m, dict)]
+    tiers = dict.fromkeys(DEDUP_TIERS, 0)
+    for member in members:
+        if member.get("merged_by") in tiers:
+            tiers[member["merged_by"]] += 1
+    total, unique = len(members), len(clusters)
+    return {
+        "shape": "discovery.dedup-v1",
+        "run": data.get("run"),
+        "input_records": total,
+        "unique_works": unique,
+        "removed": total - unique,
+        "removed_rate": round((total - unique) / total, 4) if total else 0.0,
+        "tiers": tiers,
+        "method": data.get("method"),
+        "near_twins": None,  # E4b (M3e-neartwins)
+    }
+
+
+@router.get("/dedup")
+def dedup_counts(request: Request) -> dict[str, Any]:
+    summary = _dedup_summary(_ws(request))
+    if summary is None:
+        raise _http(Refused(404, refusals.DEDUP_NOT_RUN, "No deduplication has run in this workspace yet."))
+    return summary
+
+
 @router.get("/report")
 def report(request: Request, run: str | None = None) -> dict[str, Any]:
     from scholar_search.search_report import render_methods_text
@@ -524,9 +566,11 @@ def report(request: Request, run: str | None = None) -> dict[str, Any]:
     deduped = _read_json(_lit(ws) / "deduped.json") if newest_corpus == run_dir else None
     fetched_total = sum(int(leg.get("fetched") or 0) for leg in legs)
     unique = len(deduped) if isinstance(deduped, list) else None
+    summary = _dedup_summary(ws)
     dedup = {
         "removed": fetched_total - unique if unique is not None else None,
-        "by_tier": None,  # E4a (M3d-engine)
+        # E4a (M3d-engine): only when clusters.json is this run's deduplication.
+        "by_tier": summary["tiers"] if summary and summary["run"] == run_dir.name and deduped is not None else None,
         "near_twins": None,  # E4b (M3e-neartwins)
         "unique_works": unique,
     }
