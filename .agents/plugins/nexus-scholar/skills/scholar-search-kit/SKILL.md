@@ -15,7 +15,7 @@ You are an expert academic research agent equipped with `scholar-search-kit`. Th
 - `{CLI:search} --help` resolves → else `BLOCKED_INPUT`.
 - `{WORKSPACE}` resolves — `protocol.json` for `--protocol`/screening commands; `literature/…` for export and handoff artifacts.
 - `{CONFIG}` present (the pin manifest).
-- `SCHOLAR_MAILTO` set (required: a live search refuses `MAILTO_NOT_SET` without it) and `SCHOLAR_OPENALEX_KEY` set (OpenAlex requires a key since 2026-02-13; see `docs/kits/search/PROVIDERS_2026-11.md`); `GEMINI_API_KEY` needed for `nexus_screen_llm` (`LLMBatchScreener`).
+- `SCHOLAR_MAILTO` set (required: a live search refuses `MAILTO_NOT_SET` without it) and `SCHOLAR_OPENALEX_KEY` set (OpenAlex requires a key since 2026-02-13; see the search section of `docs/kits_surface_matrix.md`); `GEMINI_API_KEY` needed for `nexus_screen_llm` (`LLMBatchScreener`).
 
 ## Refusals
 - `BLOCKED_INPUT` — a preflight requirement is missing (e.g. `protocol.json` absent where `--protocol` is required).
@@ -228,7 +228,7 @@ if __name__ == "__main__":
   `SCHOLAR_S2_KEY`, `SCHOLAR_CACHE_DIR`. Client = httpx + hishel, 4 transport retries,
   429/5xx → 3 retries with backoff (`http_client.py:60, 105-130`), 30 s timeout, UA
   `scholar-search-kit/0.1.0 (mailto:…)` (`http_client.py:74-76`; the version string is stale).
-- **Provider limits below our defaults** (from `docs/kits/search/PROVIDERS_2026-11.md`, not
+- **Provider limits below our defaults** (from the repository's provider reference of 2026-11, cited in `docs/kits_surface_matrix.md`, not
   fixed in code): Crossref list requests 3/s polite, 1/s public; arXiv one request every
   3 s; OpenAlex `per_page` max 100 (we ask for 200). Expect 429 retries on long legs.
 - **Known bug, PubMed `[ab]`**: `providers/pubmed.py:33` maps the abstract field to `[ab]`,
