@@ -28,8 +28,13 @@ class Settings(BaseSettings):
         default=None,
         description="OpenAlex API key, required for OpenAlex searches (SCHOLAR_OPENALEX_KEY)",
     )
+    # Semantic Scholar: the bulk search runs keyless in a shared pool; a key
+    # (sent as ``x-api-key``) gives 1 request per second of one's own. A key
+    # S2 rejects (401/403; keys unused for about 60 days are pruned) fails the
+    # leg with PROVIDER_REFUSED, never a silent keyless retry (M3h-providers).
     s2_key: str | None = Field(
-        default=None, description="Semantic Scholar API Key (Optional but recommended)"
+        default=None,
+        description="Semantic Scholar API key, optional (SCHOLAR_S2_KEY)",
     )
 
     # Cache settings

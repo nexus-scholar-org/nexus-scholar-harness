@@ -251,6 +251,19 @@ export function DiscoveryPlan({ locale }: Readonly<{ locale: Locale }>) {
                     <dd className="mt-1 text-xs text-ink-muted">{t("plan.limits.openalexKey.help")}</dd>
                   </div>
                 )}
+                {plan.s2_key_set === undefined ? null : (
+                  <div data-s2-key-set={plan.s2_key_set ? "true" : "false"}>
+                    <dt className="text-ink-muted">{t("s2Key.title")}</dt>
+                    <dd className="text-ink">
+                      {plan.s2_key_set ? (
+                        <DecisionBadge role="unclear">{t("plan.limits.s2Key.set")}</DecisionBadge>
+                      ) : (
+                        <DecisionBadge role="exclude">{t("plan.limits.mailto.notSet")}</DecisionBadge>
+                      )}
+                    </dd>
+                    <dd className="mt-1 text-xs text-ink-muted">{t("plan.limits.s2Key.help")}</dd>
+                  </div>
+                )}
               </dl>
             </section>
             {!plan.mailto_set ? <MailtoCard locale={locale} onCheck={() => void load(true)} /> : null}

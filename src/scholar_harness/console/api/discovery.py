@@ -404,6 +404,8 @@ def plan(request: Request) -> dict[str, Any]:
         "cap": cap,
         "mailto_set": _mailto_set(),
         "openalex_key_set": _openalex_key_set(),
+        # M3h-providers: set, not verified; a rejected key fails the S2 leg.
+        "s2_key_set": bool(settings.s2_key),
         "providers": providers,
         "imports_hint": ["scopus", "wos"],
     }

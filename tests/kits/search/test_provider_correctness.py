@@ -210,3 +210,49 @@ async def test_openalex_snowball_pages_are_100():
     _ = [d async for d in provider.get_references("W9")]
     pages = [params.get("per-page") for _, params in provider.client.calls if "filter" in params]
     assert pages == [100, 100]
+
+
+# --------------------------------------------------------------------------- Semantic Scholar key (researcher's addition A)
+
+
+def _s2_leg(monkeypatch, key, status):
+    from scholar_search.providers.semanticscholar import SemanticScholarProvider
+
+    monkeypatch.setattr(settings, "s2_key", key)
+    provider = SemanticScholarProvider()
+    calls = []
+
+    async def refuse(url, params=None, headers=None, **kwargs):
+        calls.append(dict(headers or {}))
+        raise ProviderError("semanticscholar", '{"message":"Forbidden"}', status_code=status)
+
+    provider.client.get = refuse
+    run = asyncio.run(SearchEngine(providers=[provider]).run(Query(text="weed AND drone"), dedup=False))
+    return run.legs[0].to_dict(), calls
+
+
+@pytest.mark.parametrize("status", [401, 403])
+def test_a_rejected_s2_key_fails_the_leg_and_is_never_retried_keyless(monkeypatch, status):
+    leg, calls = _s2_leg(monkeypatch, "s2-placeholder", status)
+    assert calls == [{"x-api-key": "s2-placeholder"}]  # one keyed request, no keyless retry
+    assert leg["status"] == "failed" and leg["error_code"] == "PROVIDER_REFUSED"
+    assert any("rejected SCHOLAR_S2_KEY" in n and f"HTTP {status}" in n for n in leg["notes"]), leg["notes"]
+    assert "s2-placeholder" not in json.dumps(leg)
+
+
+def test_a_keyless_s2_refusal_says_it_was_keyless(monkeypatch):
+    leg, calls = _s2_leg(monkeypatch, None, 403)
+    assert calls == [{}]
+    assert leg["error_code"] == "PROVIDER_REFUSED"
+    assert any("keyless request" in n for n in leg["notes"]), leg["notes"]
+
+
+def test_s2_uses_the_bulk_endpoint_and_sends_the_key_as_x_api_key(monkeypatch):
+    from scholar_search.providers.semanticscholar import SemanticScholarProvider
+
+    monkeypatch.setattr(settings, "s2_key", "s2-placeholder")
+    provider = SemanticScholarProvider()
+    assert provider.base_url.endswith("/graph/v1/paper/search/bulk")
+    assert provider._get_headers() == {"x-api-key": "s2-placeholder"}
+    _, request, _ = provider.translate(Query(text="weed AND drone"))
+    assert "x-api-key" not in request and "api_key" not in request

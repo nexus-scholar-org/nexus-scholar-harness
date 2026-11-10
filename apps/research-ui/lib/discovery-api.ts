@@ -34,6 +34,8 @@ export interface Plan {
   mailto_set: boolean;
   /** M3h-providers (F12): a run that selects OpenAlex refuses OPENALEX_KEY_NOT_SET without it. Absent from older consoles. */
   openalex_key_set?: boolean;
+  /** M3h-providers: the Semantic Scholar key is set (not verified until a search runs). Absent from older consoles. */
+  s2_key_set?: boolean;
   providers: PlanProvider[];
   imports_hint: string[];
 }

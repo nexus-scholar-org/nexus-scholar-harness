@@ -94,6 +94,23 @@ describe("discovery.plan", () => {
     }
   });
 
+  it("says a Semantic Scholar key is set but not verified, and that none is optional", async () => {
+    setUp({ s2Key: true });
+    const { unmount } = render(<DiscoveryPlan locale="en" />);
+    await screen.findByRole("heading", { level: 1, name: "This is what each database will receive" });
+    const row = document.querySelector('[data-s2-key-set="true"]') as HTMLElement;
+    expect(within(row).getByText("Set, not yet verified")).toBeInTheDocument();
+    expect(within(row).getByText(/never retried without the key/)).toBeInTheDocument();
+    unmount();
+    vi.unstubAllGlobals();
+    setUp();
+    render(<DiscoveryPlan locale="en" />);
+    await screen.findByRole("heading", { level: 1, name: "This is what each database will receive" });
+    const none = document.querySelector('[data-s2-key-set="false"]') as HTMLElement;
+    expect(within(none).getByText("Not set")).toBeInTheDocument();
+    expect(within(none).getByText(/^Optional\./)).toBeInTheDocument();
+  });
+
   it("shows no key card when the plan does not select OpenAlex", async () => {
     const plan = enginePlan();
     const without: Plan = {

@@ -23,6 +23,8 @@ export interface DiscoveryFakeOptions {
   mailto?: boolean;
   /** `SCHOLAR_OPENALEX_KEY` set for the console (default true; M3h-providers). */
   openalexKey?: boolean;
+  /** `SCHOLAR_S2_KEY` set for the console (default false; M3h-providers). */
+  s2Key?: boolean;
   /** Finished browser runs already in the workspace (default 0). */
   runs?: number;
   /** The corpus is frozen already. */
@@ -78,6 +80,7 @@ export function discoveryEngine(options: DiscoveryFakeOptions = {}) {
   let protocol = options.protocol ?? "ok";
   let mailto = options.mailto ?? true;
   let openalexKey = options.openalexKey ?? true;
+  const s2Key = options.s2Key ?? false;
   let accepted = options.accepted ?? false;
   let staged = options.staged ?? false;
   let protocolChanged = options.protocolChangedSinceRun ?? false;
@@ -160,7 +163,7 @@ export function discoveryEngine(options: DiscoveryFakeOptions = {}) {
   const plan = () => ({
     shape: "discovery.plan-v1", protocol_fingerprint: FINGERPRINT,
     query: { id: "Q1", text: QUERY_TEXT, year_min: 2018, year_max: 2026, language: "en" },
-    cap: { value: 500, source: "protocol", ceiling: 10000 }, mailto_set: mailto, openalex_key_set: openalexKey,
+    cap: { value: 500, source: "protocol", ceiling: 10000 }, mailto_set: mailto, openalex_key_set: openalexKey, s2_key_set: s2Key,
     providers: PROVIDERS.map((name) => {
       const selected = SELECTED.includes(name);
       return {

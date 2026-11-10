@@ -277,6 +277,16 @@ def test_the_plan_reports_the_openalex_key(env):
     assert client.get(f"{BASE}/plan").json()["openalex_key_set"] is True
 
 
+def test_the_plan_reports_whether_a_semantic_scholar_key_is_set(env, monkeypatch):
+    client, _, _ = env
+    monkeypatch.setattr(settings, "s2_key", None)
+    assert client.get(f"{BASE}/plan").json()["s2_key_set"] is False
+    monkeypatch.setattr(settings, "s2_key", "s2-placeholder")  # never sent: the plan sends nothing
+    plan = client.get(f"{BASE}/plan").json()
+    assert plan["s2_key_set"] is True
+    assert "s2-placeholder" not in json.dumps(plan)
+
+
 def test_a_run_cannot_start_on_an_accepted_snapshot(env):
     client, ws, _ = env
     (ws / "audit").mkdir(exist_ok=True)

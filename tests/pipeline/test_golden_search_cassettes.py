@@ -4,6 +4,10 @@ The cassette ``tests/fixtures/cassettes/golden_uav_search.yaml`` was recorded
 in ONE live run of the golden UAV protocol (decision 2026-11-08, "One live
 golden search, frozen to cassettes") against OpenAlex, Semantic Scholar,
 Crossref, arXiv and PubMed, with a run override of 100 records per database.
+Its one OpenAlex interaction was re-recorded on 2026-11-10 (M3h-providers,
+with the researcher's OK and key) when OpenAlex moved to the
+``search.title_and_abstract`` parameter; the other interactions are the
+2026-11-08 recording.
 The contact address, API keys and the User-Agent are filtered out.
 
 By default the test only replays (``record_mode="none"``): a request that is
@@ -273,10 +277,14 @@ def test_the_plan_dry_run_equals_the_replayed_legs(tmp_path):
     assert preview["biorxiv"]["executed_query"] is None and preview["biorxiv"]["request"] is None
 
 
-#: The golden SCI-id map and REC->STU map before E4a (computed at 695bad4 on the
-#: replayed cassette). E4a records the tier of each merge and must move neither.
-GOLDEN_SCI_DIGEST = "b016a8025043df4ecd86c710fe11a44fd6c547238d97eb56e0c3ebf3f29415c7"
-GOLDEN_REC_DIGEST = "87bc4f85c5b9270fef3b428a8bd13dab7e5869e836f0218a038b1fd2fc8b34bb"
+#: The golden SCI-id map and REC->STU map on the replayed cassette. E4a records
+#: the tier of each merge and must move neither. First computed at 695bad4;
+#: moved once in M3h-providers (2026-11-10), when the OpenAlex interaction was
+#: re-recorded for the `search.title_and_abstract` parameter with the
+#: researcher's OK (OpenAlex returned 100 of 1,389 records that day; the other
+#: four databases' recordings are unchanged). 419 records, 387 studies.
+GOLDEN_SCI_DIGEST = "abc193514788fb15fc1efed966534db526321185cd07b8f3262bbabbbe545341"
+GOLDEN_REC_DIGEST = "e0145ce0c7ae4c9e7b5c3f23be8722d7d06427aa38c4c5de0d994a4d336d63d1"
 
 
 def test_dedup_tiers_are_recorded_and_the_ids_do_not_move(tmp_path):
