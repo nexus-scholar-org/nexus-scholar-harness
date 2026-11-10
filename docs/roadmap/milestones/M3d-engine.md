@@ -55,8 +55,14 @@ Points the packet and the decision of 2026-11-10 did not settle, decided in this
 | pr | `7d4c7bc` | `uv run pytest -q -n auto` | 4710 passed, 15 skipped, 0 failed | 475 s |
 | review | `7d4c7bc` | `milestone-reviewer` on the repair delta | CHANGES: F1–F4 repaired; R1 (P2) new; F5 open | – |
 | pr | `7d4c7bc` | `ruff check scripts/`; `ruff check src/ --select F821,F811,F823,F632,F7,B023,B006,E9`; `generate_contract_baseline.py --check`; `git diff --check origin/main...HEAD` | all pass; "Contract baseline current" | <10 s |
+| pr | `80866a3` | `uv run pytest -q -n auto` | exit 0: 4711 passed, 15 skipped, 0 failed | 448 s |
+| pr | `80866a3` | `generate_contract_baseline.py --check`; `git diff --check origin/main...HEAD` | pass; "Contract baseline current" | <10 s |
+| review | `80866a3` | `milestone-reviewer` on the R1 delta | **APPROVE** (condition: this `pr` row) | – |
+
+No file under `apps/research-ui/` changed, so no UI gate ran and no screenshot was rewritten. The reviewer's P3 follow-ups are listed under Deferred.
 
 ## Deferred
+- Reviewer P3 follow-ups (not in this milestone): the plan's `status: "selected"` (a selected provider without `translate`) is not in the packet's enum; `render_methods_text` does not print `imports[].limits` or `rejected`; `GET /screening/corpus` has a top-level `limits` (upload limits) and `sources[].limits` (a string), two meanings of one name; `GET /discovery/dedup` answers `DEDUP_NOT_RUN` on an import-only workspace although `accept_corpus` deduplicated; older than this diff, a CLI run refused `STAGED_IMPORT_PENDING` leaves staged exports beside a discovery `verified.json`.
 - **M3f-combined-corpus** (RELEASE lane, its own milestone; researcher 2026-11-10 "combine later"): one corpus snapshot built from a search harvest plus staged database exports, deduplicated together. It changes the snapshot's inputs (Packet B), so it is not in this STANDARD milestone; until then `VERIFIED_EXISTS` keeps the two apart (decision 12).
 - E4b near-twin pairs and decisions: M3e-neartwins (packet §4.5 Stage 2). `GET /discovery/dedup` answers `near_twins: null`; the hand-off's `near_twins_undecided` stays `null`.
 - The UI types (`apps/research-ui/lib/screening-v1.ts`) do not yet name the new fields (`staging_refused`, `sources[].limits`, `sources[].rejected`); no UI work in this milestone (M3c-screens).
