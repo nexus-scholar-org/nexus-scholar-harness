@@ -279,6 +279,8 @@ def refuse_if_run_protocol_changed(ws: Path, manifest: dict[str, Any]) -> None:
     """
     from scholar_search.protocol_adapter import compile_protocol_search
 
+    # Review R1: a missing or unreadable protocol refuses typed (as accept_corpus does), never a 500.
+    _protocol_fingerprint(ws)
     query, _ = compile_protocol_search(ws / "protocol.json")
     ran = (manifest.get("query_text"), manifest.get("year_min"), manifest.get("year_max"))
     if ran != (query.text, query.year_min, query.year_max):

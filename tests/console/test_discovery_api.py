@@ -705,3 +705,13 @@ def test_the_handoff_accept_refuses_a_run_from_an_earlier_protocol(env):
     assert refused.status_code == 409 and _code(refused) == "PROTOCOL_CHANGED_SINCE_RUN"
     assert client.get("/api/v1/screening/corpus").json()["state"] == "STAGED"
     assert not [e for e in _journal(ws) if e["action"] == "CORPUS_SNAPSHOT_ACCEPTED"]
+
+
+def test_the_handoff_accept_refuses_an_unreadable_protocol_as_invalid(env):
+    """Review R1: a protocol.json that is not JSON is a typed PROTOCOL_INVALID, never a 500."""
+    client, ws, _ = env
+    job, _ = _run(client, {"providers": ["openalex"]})
+    assert job["state"] == "succeeded", job
+    (ws / "protocol.json").write_text("{not json", encoding="utf-8")
+    refused = client.post("/api/v1/screening/corpus/accept")
+    assert 400 <= refused.status_code < 500 and _code(refused) == "PROTOCOL_INVALID", refused.text
