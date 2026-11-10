@@ -444,7 +444,16 @@ def test_signatures_identical_and_mock_mode_unused(tmp_path, monkeypatch):
         "max_search_results",
         "mock_mode",
         "indexing_fn",
+        # M3b-api: the console's discovery job hooks; optional, so every
+        # existing caller (the orchestrator, the CLI) is unchanged.
+        "providers",
+        "progress_callback",
+        "leg_callback",
+        "stage_callback",
+        "should_stop",
+        "notes",
     ]
+    assert all(p.default is None for p in params[5:])
     assert all(p.kind is inspect.Parameter.KEYWORD_ONLY for p in params)
     assert params[0].default is inspect.Parameter.empty  # workspace_dir required
     assert params[1].default is None

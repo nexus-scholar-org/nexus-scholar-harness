@@ -208,7 +208,7 @@ The UI reads proposals only through `GET /records/{study_id}/proposal`. The fiel
 | `INTENT_INVALID` | preview | HTTP 422: the protocol compiler refused the intent (M4a) |
 | `SCREENING_BOUND` | genesis with `replace` | HTTP 409: the workspace has screening decisions or a publication; `details` gives the counts (M4a, INC-08) |
 | `CONFIRMATION_MISMATCH` | genesis | HTTP 422: the typed confirmation is not the workspace slug (M4a, INC-08) |
-| `MAILTO_NOT_SET` | recon probe, delta | HTTP 409: the console has no contact email (`SCHOLAR_MAILTO`); no request was sent (M4c) |
+| `MAILTO_NOT_SET` | recon probe, delta; discovery runs, recall | HTTP 409: the console has no contact email (`SCHOLAR_MAILTO`); no request was sent (M4c, M3b-api) |
 | `RECON_SESSION_INVALID` | `/inception/drafts/{id}/recon/*` | HTTP 422: the id is not a recon session id, or its folder would be under `workspaces/` (M4c) |
 | `RECON_SESSION_NOT_FOUND` | `/inception/drafts/{id}/recon/*` | HTTP 404: the draft has no recon session yet; run a probe (M4c) |
 | `RECON_NO_POOL` | distill, directions, delta, bind, narrower probe | HTTP 409: the session has no usable pool; run a probe (M4c) |
@@ -221,6 +221,22 @@ The UI reads proposals only through `GET /records/{study_id}/proposal`. The fiel
 | `RECON_JOB_ACTIVE` | recon probe, delta | HTTP 409: a search for this draft is already running (M4c) |
 | `RECON_JOB_NOT_FOUND` | `.../recon/jobs/{job_id}` | HTTP 404: no recon job with that id for this draft (M4c) |
 | `RECON_FAILED` | recon jobs | the job stopped on an unexpected error; `message` names it (M4c) |
+| `PROTOCOL_MISSING` | discovery plan, runs, recall, report, handoff | HTTP 409: the workspace has no `protocol.json` (M3b-api) |
+| `DISCOVERY_JOB_ACTIVE` | discovery runs, recall | HTTP 409: a discovery job is already running for this workspace; `details.job` is it (M3b-api) |
+| `DISCOVERY_JOB_NOT_FOUND` | `/discovery/jobs/{job_id}` | HTTP 404: no discovery job with that id in this workspace (M3b-api) |
+| `RUN_NOT_FOUND` | `/discovery/runs/{run}`, report, report methods | HTTP 404: no search run of that name, or no run yet (M3b-api) |
+| `RECALL_NOT_RUN` | `GET /discovery/recall` | HTTP 404: no recall check has been run (M3b-api) |
+| `SEEDS_INVALID` | discovery recall | HTTP 422: no seed, more than 25, or a malformed DOI or arXiv id (M3b-api) |
+| `CAP_INVALID` | discovery runs | HTTP 422: `cap_override` is not 1 to 10,000 (M3b-api) |
+| `PROVIDER_UNKNOWN` | discovery runs, recall | HTTP 422: a database name the engine does not know; `details.known` lists them (M3b-api) |
+| `DISCOVERY_FAILED` | discovery jobs | the job stopped on an unexpected error; `message` names it (M3b-api) |
+| `PROTOCOL_CHANGED_SINCE_SNAPSHOT` | discovery run job `error` | the protocol no longer matches the accepted snapshot; resume refused (E5, M3b-api; also the reason's prefix) |
+| `BATCHES_INCOMPLETE` | discovery run job `error` | the accepted snapshot has studies in no screening batch; resume refused (E5, M3b-api; also the reason's prefix) |
+| `STAGED_IMPORT_PENDING` | discovery run job `error` | database exports are staged; the search run built no snapshot (M3a, typed on the job in M3b-api) |
+| `PROVIDER_RATE_LIMITED` | search leg `error_code` | the database answered 429; a leg field, never an HTTP status (E5, M3b-api) |
+| `PROVIDER_TIMEOUT` | search leg `error_code` | the database did not answer in time; a leg field (E5, M3b-api) |
+| `PROVIDER_UNAVAILABLE` | search leg `error_code` | a 5xx answer or no answer at all; a leg field (E5, M3b-api) |
+| `PROVIDER_REFUSED` | search leg `error_code` | any other 4xx answer; a leg field (E5, M3b-api) |
 | `STALE_BINDING` (inception) | preview with `session_id`, genesis | HTTP 409: the draft's direction was chosen on a pool that is no longer its recon session's latest; choose it again (M4c). The code predates M4c and is listed in the console set. |
 | `ENGINE_UNREACHABLE` | UI only | client-side state, never sent by the engine |
 

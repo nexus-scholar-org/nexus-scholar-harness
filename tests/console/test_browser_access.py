@@ -195,6 +195,48 @@ def test_recon_reaches_the_engine_from_the_browser(ws, ui, tmp_path):
         assert client.post(f"{recon}/jobs/{job_id}/cancel", json={}, headers=same).json()["detail"]["code"] == "CONSOLE_METHOD_REFUSED"
 
 
+def test_discovery_reaches_the_engine_from_the_browser(ws, ui, monkeypatch):
+    """M3b-api (packet §5): the two job starts, cancel and the methods text pass the
+    allowlist and reach their routes; nothing else of discovery is writable, and
+    the generic job start stays closed."""
+    from scholar_search.config import settings
+
+    monkeypatch.setattr(settings, "mailto", None)
+    app = _app(ws, ui)[0]
+    same = {"Origin": "http://127.0.0.1:8765"}
+    base = "/api/console/api/v1/discovery"
+    with _browser(app) as client:
+        foreign = client.post(f"{base}/runs", json={}, headers={"Origin": "http://127.0.0.1:3000"})
+        assert foreign.json()["detail"]["code"] == "CONSOLE_ORIGIN_REFUSED"
+        # Reached the route: it refuses before any request, as the packet says.
+        run = client.post(f"{base}/runs", json={}, headers=same)
+        assert (run.status_code, run.json()["detail"]["code"]) == (409, "MAILTO_NOT_SET")
+        seeds = {"seeds": [{"id": "10.1000/x", "kind": "doi", "source": "you"}]}
+        recall = client.post(f"{base}/recall", json=seeds, headers=same)
+        assert (recall.status_code, recall.json()["detail"]["code"]) == (409, "MAILTO_NOT_SET")
+        cancel = client.post(f"{base}/jobs/djob_0123456789abcdef/cancel", json={}, headers=same)
+        assert (cancel.status_code, cancel.json()["detail"]["code"]) == (404, "DISCOVERY_JOB_NOT_FOUND")
+        methods = client.put(f"{base}/report/methods", json={"text": "x", "reviewed": True}, headers=same)
+        assert (methods.status_code, methods.json()["detail"]["code"]) == (404, "RUN_NOT_FOUND")
+        assert client.get(f"{base}/runs").json()["shape"] == "discovery.runs-v1"
+        for path in ("plan", "report", "runs/run_001", "jobs/djob_1/events"):
+            refused = client.post(f"{base}/{path}", json={}, headers=same)
+            assert refused.json()["detail"]["code"] == "CONSOLE_METHOD_REFUSED", path
+        refused = client.put(f"{base}/report", json={}, headers=same)
+        assert refused.json()["detail"]["code"] == "CONSOLE_METHOD_REFUSED"
+        start = client.post("/api/console/api/v1/jobs/start", json={"action_id": "discovery"}, headers=same)
+        assert (start.status_code, start.json()["detail"]["code"]) == (405, "CONSOLE_METHOD_REFUSED")
+
+
+def test_a_phone_token_reaches_no_discovery_route(ws):
+    """Discovery is desktop-only, like inception (packet §5)."""
+    app = create_app(ws, token=TOKEN, phone_tokens={"phone-token"}, workspaces_root=ws.parent)
+    client = TestClient(app, base_url="http://127.0.0.1", headers={"Authorization": "Bearer phone-token"})
+    for method, path in (("GET", "plan"), ("GET", "runs"), ("POST", "runs"), ("GET", "handoff")):
+        response = client.request(method, f"/api/v1/discovery/{path}", json={} if method == "POST" else None)
+        assert (response.status_code, response.json()["detail"]["code"]) == (403, "TOKEN_SCOPE_REFUSED"), path
+
+
 def test_the_static_ui_is_served_with_a_root_redirect_and_a_404_page(ws, ui):
     app, _ = _app(ws, ui)
     client = TestClient(app, base_url="http://127.0.0.1:8765", follow_redirects=False)

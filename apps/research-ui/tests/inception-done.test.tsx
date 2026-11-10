@@ -21,7 +21,9 @@ describe("inception.done", () => {
   it("shows the folder and fingerprint, opens the workspace and lands on screening Home", async () => {
     const { engine, assign } = setUp({ draft: { title: "Weed review" }, emitted: emitted() });
     render(<InceptionDone locale="en" />);
-    expect(await screen.findByRole("heading", { name: "The workspace is created" })).toHaveFocus();
+    // The heading renders before the effect that focuses it; wait for the focus (CI flake on PR #214).
+    const heading = await screen.findByRole("heading", { name: "The workspace is created" });
+    await waitFor(() => expect(heading).toHaveFocus());
     expect(document.querySelector("[data-done-path]")?.textContent).toBe(`${ROOT}\\weed-review`);
     fireEvent.click(screen.getByRole("button", { name: "Open the workspace" }));
     await waitFor(() => expect(assign).toHaveBeenCalledWith("/en/screening/home/"));

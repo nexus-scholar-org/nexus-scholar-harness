@@ -75,6 +75,11 @@ const POST_PATHS: ReadonlyArray<RegExp> = [
   // console refuses MAILTO_NOT_SET before any request. Distill and bind write
   // only under the recon cache and the draft record.
   /^api\/v1\/inception\/drafts\/[A-Za-z0-9_-]+\/recon\/(probe|delta|distill|bind)$/,
+  // M3b-api: discovery (DISCOVERY_API_PACKET §5). A search run and a recall check
+  // start a job in the console, which refuses MAILTO_NOT_SET, CORPUS_ALREADY_ACCEPTED
+  // and a second job before anything starts; cancel keeps the fetched records.
+  /^api\/v1\/discovery\/(runs|recall)$/,
+  /^api\/v1\/discovery\/jobs\/[A-Za-z0-9_-]+\/cancel$/,
 ];
 
 /** The one GET with a side effect: the engine records a reveal when a draft is read. */
@@ -88,6 +93,8 @@ const PUT_PATHS: ReadonlyArray<RegExp> = [
   /^api\/v1\/screening\/settings$/,
   /^api\/v1\/screening\/approver$/,
   /^api\/v1\/inception\/drafts\/[A-Za-z0-9_-]+$/,
+  // M3b-api: the researcher's reviewed methods paragraph of a search run (journaled).
+  /^api\/v1\/discovery\/report\/methods$/,
 ];
 
 /**
@@ -99,6 +106,8 @@ const STREAM_PATHS: ReadonlyArray<RegExp> = [
   /^api\/v1\/events(\/tick)?$/,
   // M4c: a recon job's events (probe and gap check); a live probe can page for minutes.
   /^api\/v1\/inception\/drafts\/[A-Za-z0-9_-]+\/recon\/jobs\/[A-Za-z0-9_-]+\/events$/,
+  // M3b-api: a discovery job's events (a search run pages for minutes).
+  /^api\/v1\/discovery\/jobs\/[A-Za-z0-9_-]+\/events$/,
 ];
 
 function isStreamPath(path: string): boolean {
@@ -204,7 +213,7 @@ async function forward(request: NextRequest, segments: string[] | undefined): Pr
     return typedError(405, "CONSOLE_METHOD_REFUSED", "the console proxy accepts GET, HEAD, POST and PUT");
   }
   if (method === "PUT" && !PUT_PATHS.some((pattern) => pattern.test(path))) {
-    return typedError(405, "CONSOLE_METHOD_REFUSED", "PUT is proxied only for the screening settings, the approver name and inception drafts");
+    return typedError(405, "CONSOLE_METHOD_REFUSED", "PUT is proxied only for the screening settings, the approver name, inception drafts and the discovery methods text");
   }
   // Reading a draft records a reveal (M1b-0), so this GET has an effect: a
   // browser request from another site (an <img> or a link) must not trigger it.
@@ -216,7 +225,7 @@ async function forward(request: NextRequest, segments: string[] | undefined): Pr
     return typedError(
       405,
       "CONSOLE_METHOD_REFUSED",
-      "POST is proxied only for screening actions, draft decisions, workspaces and inception",
+      "POST is proxied only for screening actions, draft decisions, workspaces, inception and discovery",
     );
   }
 

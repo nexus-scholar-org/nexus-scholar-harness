@@ -342,6 +342,9 @@ class DiscoveryOutcome:
     legs: list[dict[str, Any]] = field(default_factory=list)
     search_run: str = ""
     search_run_files: tuple[str, ...] = ()
+    #: The researcher stopped the harvest (M3b-api): the run is archived
+    #: ``PARTIAL`` with its fetched records, and nothing is published as the corpus.
+    cancelled: bool = False
 
     @property
     def stale_artifacts_present(self) -> bool:
@@ -355,6 +358,11 @@ async def run_discovery(
     literature_dir: Path | str,
     max_search_results: int | None = None,
     agent_or_tool: str = "scholar-harness",
+    providers: list[str] | None = None,
+    progress_callback=None,
+    leg_callback=None,
+    should_stop=None,
+    notes: list[str] | None = None,
 ) -> DiscoveryOutcome:
     """Compile the protocol query, run federated search, publish raw results.
 
@@ -383,6 +391,15 @@ async def run_discovery(
     workspace is resolved strictly; when none can be resolved the outcome
     says so explicitly (``audit_status="NOT_WRITTEN"``). The stage writes no
     registry/acceptance state.
+
+    M3b-api (the console's discovery job): ``providers`` runs a subset of
+    databases instead of the protocol's list; ``progress_callback`` and
+    ``leg_callback`` pass through to ``SearchEngine.run``; ``should_stop`` is
+    the researcher's cancel. A cancelled harvest keeps its fetched records in
+    ``search_runs/run_NNN/raw.json``, is archived ``PARTIAL`` with the note
+    ``cancelled by the researcher`` and publishes nothing as the corpus.
+    ``notes`` (the researcher's note on the run) and ``max_search_results``
+    (as ``cap_override``) are written to ``legs.json``.
     """
     p_path = Path(protocol_path).resolve()
     if not p_path.exists():
@@ -391,15 +408,25 @@ async def run_discovery(
     lit_dir = Path(literature_dir)
     lit_dir.mkdir(parents=True, exist_ok=True)
 
-    query, providers = compile_protocol_search(p_path)
+    query, protocol_providers = compile_protocol_search(p_path)
     if max_search_results:
         query.max_results = max_search_results
         query.cap_source = "run_override"
 
-    engine = SearchEngine(providers=_resolve_providers(providers))
+    engine = SearchEngine(providers=_resolve_providers(providers or protocol_providers))
     probe = _ProviderProbe()
     observed_providers = _observe_providers(engine, probe)
-    discovered_docs = await engine.search_all(query, dedup=False)
+    # Only what was asked is passed, so engine doubles with the older signature still run.
+    run_options = {
+        key: value
+        for key, value in (
+            ("progress_callback", progress_callback),
+            ("leg_callback", leg_callback),
+            ("should_stop", should_stop),
+        )
+        if value is not None
+    }
+    discovered_docs = await engine.search_all(query, dedup=False, **run_options)
     await engine.close()
     # SRCH-30 / CORE-21: one leg per database, as the engine recorded it.
     legs = [
@@ -421,11 +448,23 @@ async def run_discovery(
 
     count = len(discovered_docs)
     status, reason = _classify(count, probe)
+    run_notes = [str(n) for n in (notes or []) if str(n).strip()]
+    cancelled = bool(should_stop is not None and should_stop()) or any(
+        leg.get("status") == "stopped" for leg in legs
+    )
+    if cancelled:
+        from scholar_search.engine import STOPPED_NOTE
+
+        status = "PARTIAL"
+        reason = f"{STOPPED_NOTE}: {count} record(s) fetched before the stop; not published as the corpus"
+        run_notes.append(STOPPED_NOTE)
 
     # Save both combined raw and first-provider raw for reference. A FAILED
     # harvest publishes nothing: an authoritative corpus artifact must never
-    # be the product of a broken harvest (fail-closed publication).
-    published = status != "FAILED"
+    # be the product of a broken harvest (fail-closed publication). A
+    # cancelled harvest is not the corpus either; its records stay in the
+    # run's own folder.
+    published = status != "FAILED" and not cancelled
     # Artifacts of a PREVIOUS run that are still on disk. A failed harvest
     # does not delete them (that would destroy the researcher's evidence),
     # but they are not this run's corpus -- they are reported explicitly.
@@ -436,7 +475,7 @@ async def run_discovery(
     )
     stale_artifacts = () if published else pre_existing
     payload: str | None = None
-    if published:
+    if published or (cancelled and discovered_docs):
         payload = json.dumps(
             [
                 asdict(d) if hasattr(d, "__dataclass_fields__") else d
@@ -445,6 +484,7 @@ async def run_discovery(
             indent=2,
             default=str,
         )
+    if published and payload is not None:
         (lit_dir / "all_raw_search.json").write_text(payload, encoding="utf-8")
         (lit_dir / "raw_search.json").write_text(payload, encoding="utf-8")
 
@@ -456,7 +496,10 @@ async def run_discovery(
         legs=legs,
         query=query,
         status=status,
-        payload=payload if published else None,
+        payload=payload,
+        cap_override=max_search_results or None,
+        notes=run_notes,
+        corpus_published=published,
     )
 
     outcome = DiscoveryOutcome(
@@ -472,6 +515,7 @@ async def run_discovery(
         legs=legs,
         search_run=run_name,
         search_run_files=tuple(run_files),
+        cancelled=cancelled,
     )
 
     audit_status, audit_reason, audit_workspace = _append_discovery_event(
@@ -498,6 +542,9 @@ def _archive_search_run(
     query: Any,
     status: str,
     payload: str | None,
+    cap_override: int | None = None,
+    notes: list[str] | None = None,
+    corpus_published: bool | None = None,
 ) -> tuple[str, list[str]]:
     """Write this run's legs (and raw records) to ``search_runs/run_NNN/``.
 
@@ -527,7 +574,15 @@ def _archive_search_run(
         "query_text": getattr(query, "text", None),
         "year_min": getattr(query, "year_min", None),
         "year_max": getattr(query, "year_max", None),
-        "raw_published": payload is not None,
+        # Published as literature/raw_search.json (M3a's meaning, kept): a
+        # cancelled run keeps raw.json here (``raw_kept``) but publishes nothing.
+        "raw_published": payload is not None if corpus_published is None else corpus_published,
+        "raw_kept": payload is not None,
+        # M3b-api: the same fact under its own name, the browser's per-run cap
+        # (decision 7) and the run's notes.
+        "corpus_published": payload is not None if corpus_published is None else corpus_published,
+        "cap_override": cap_override,
+        "notes": list(notes or []),
         "legs": legs,
     }
     (run_dir / "legs.json").write_text(

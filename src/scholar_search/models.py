@@ -182,6 +182,10 @@ class SearchLeg:
     cap_hit: bool = False
     status: str = "pending"
     error: str | None = None
+    # E5 (M3b-api): the failure kind beside the text: PROVIDER_RATE_LIMITED,
+    # PROVIDER_TIMEOUT, PROVIDER_UNAVAILABLE or PROVIDER_REFUSED; None when the
+    # leg did not fail or failed on something that is not the provider's answer.
+    error_code: str | None = None
     notes: list[str] = field(default_factory=list)
     mailto_set: bool = False
     started_at: str | None = None
@@ -201,6 +205,7 @@ class SearchLeg:
             "cap_hit": self.cap_hit,
             "status": self.status,
             "error": self.error,
+            "error_code": self.error_code,
             "notes": list(self.notes),
             "mailto_set": self.mailto_set,
             "started_at": self.started_at,
