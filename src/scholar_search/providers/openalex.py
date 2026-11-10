@@ -202,8 +202,7 @@ class OpenAlexProvider(BaseAPIProvider):
 
         return params
 
-    async def search(self, query: Query) -> AsyncIterator[Document]:
-        """Search OpenAlex works."""
+    def translate(self, query: Query) -> tuple[str, dict[str, Any], list[str]]:
         params = self._build_params(query)
         executed = (
             params.get("search.semantic")
@@ -214,7 +213,11 @@ class OpenAlexProvider(BaseAPIProvider):
                 "",
             )
         )
-        self._record_executed(executed, params)
+        return executed, params, []
+
+    async def search(self, query: Query) -> AsyncIterator[Document]:
+        """Search OpenAlex works."""
+        _, params, _ = self._record_translation(query)
 
         count = 0
         page = 1

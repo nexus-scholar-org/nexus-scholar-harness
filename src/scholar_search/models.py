@@ -226,6 +226,14 @@ class DocumentCluster:
     cluster_id: int
     representative: Document
     members: list[Document]
+    #: E4a (M3d-engine): the tier that merged each member after the first
+    #: (``identifier``, ``exact_title`` or ``fuzzy_title``), in member order.
+    merges: list[str] = field(default_factory=list)
+
+    @property
+    def tier(self) -> str | None:
+        """The tier of the cluster's first merge; ``None`` for a singleton."""
+        return self.merges[0] if self.merges else None
 
     @property
     def size(self) -> int:

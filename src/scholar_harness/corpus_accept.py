@@ -175,13 +175,19 @@ def _parse_export(path: Path, source_id: str, fmt: str = "ris") -> list[Document
     ``provider`` is the format (``ris`` or ``nbib``), so a ``verified.json`` row
     says which reader produced it.
     """
+    return _read_export(path, source_id, fmt)[0]
+
+
+def _read_export(path: Path, source_id: str, fmt: str = "ris") -> tuple[list[Document], list[dict[str, Any]]]:
+    """``_parse_export`` plus the lines the importer could not use (E3, M3d-engine)."""
+    importer = _IMPORTERS[fmt]()
     documents = []
-    for position, document in enumerate(_IMPORTERS[fmt]().parse(path), start=1):
+    for position, document in enumerate(importer.parse(path), start=1):
         document.provider = fmt
         document.provider_id = f"{source_id}#{position}"
         document.workspace_id = _stable_sci_id(document, source=source_id, position=position)
         documents.append(document)
-    return documents
+    return documents, list(importer.rejected)
 
 
 def _check_label(label: str) -> str:
@@ -241,18 +247,54 @@ def _imported(ws: Path) -> bool:
         return False
 
 
-def _refuse_if_frozen(ws: Path) -> None:
+def _staging_refusal(ws: Path) -> AcceptCorpusRefused | None:
+    """Why a database export cannot be staged now, or ``None`` when it can.
+
+    Researcher, 2026-11-10 ("keep the rule for now, combine later"): an export
+    is staged only before any search run. A snapshot built from a harvest plus
+    staged exports is M3f-combined-corpus (RELEASE: it changes the snapshot's inputs).
+    """
     if _accepted_snapshot(ws):
-        raise AcceptCorpusRefused(
+        return AcceptCorpusRefused(
             "the corpus is already accepted; its sources can no longer change",
             "CORPUS_ALREADY_ACCEPTED",
         )
     if (ws / "literature" / "verified.json").exists() and not _imported(ws):
-        raise AcceptCorpusRefused(
-            "literature/verified.json already exists (a corpus from discovery); "
-            "remove it first to import database exports instead",
+        return AcceptCorpusRefused(
+            "literature/verified.json already exists and holds the corpus of a search run; database exports are "
+            "imported only before any search run, so one corpus is never replaced by another. "
+            "Accept the search corpus on the hand-off screen, or remove literature/verified.json "
+            "to import exports instead",
             "VERIFIED_EXISTS",
         )
+    return None
+
+
+def refuse_if_run_protocol_changed(ws: Path, manifest: dict[str, Any]) -> None:
+    """Refuse a search run's corpus when ``protocol.json`` no longer compiles to the query it ran.
+
+    The hand-off accept (M3d-engine) binds the run's records to the current
+    protocol fingerprint, so the run must have searched that protocol's query
+    and year window (review F3): ``PROTOCOL_CHANGED_SINCE_RUN`` otherwise.
+    """
+    from scholar_search.protocol_adapter import compile_protocol_search
+
+    # Review R1: a missing or unreadable protocol refuses typed (as accept_corpus does), never a 500.
+    _protocol_fingerprint(ws)
+    query, _ = compile_protocol_search(ws / "protocol.json")
+    ran = (manifest.get("query_text"), manifest.get("year_min"), manifest.get("year_max"))
+    if ran != (query.text, query.year_min, query.year_max):
+        raise AcceptCorpusRefused(
+            f"{manifest.get('run') or 'the search run'} searched a query or year window the protocol "
+            "no longer has; run the search again before accepting its corpus",
+            "PROTOCOL_CHANGED_SINCE_RUN",
+        )
+
+
+def _refuse_if_frozen(ws: Path) -> None:
+    refusal = _staging_refusal(ws)
+    if refusal is not None:
+        raise refusal
 
 
 def stage_ris_source(
@@ -263,12 +305,17 @@ def stage_ris_source(
     file_name: str,
     searched_on: str | None = None,
     query: str | None = None,
+    limits: str | None = None,
 ) -> dict[str, Any]:
     """Copy one database's export (RIS or PubMed ``.nbib``) into the workspace, with its label.
 
     The file is kept byte for byte under ``literature/raw/ris/`` so the import
     can be re-run and shared; its format is detected from the name and first line
     and recorded. Nothing reaches ``verified.json`` until acceptance.
+
+    E3 (M3d-engine): the row carries ``rejected`` (the lines the importer could
+    not use, ``{line, code, reason}``) and ``limits`` (the filters the researcher
+    applied in the database, stored verbatim; ``None`` when not given).
     """
     ws = Path(workspace).resolve()
     _refuse_if_frozen(ws)
@@ -305,7 +352,8 @@ def stage_ris_source(
     stored = ws / RIS_DIR / f"{source_id}.{fmt}"
     stored.parent.mkdir(parents=True, exist_ok=True)
     stored.write_bytes(content)
-    records = len(_parse_export(stored, source_id, fmt))
+    parsed, rejected = _read_export(stored, source_id, fmt)
+    records = len(parsed)
     if records == 0:
         stored.unlink()
         suffix = Path(file_name).suffix.lower()
@@ -325,6 +373,8 @@ def stage_ris_source(
         "records": records,
         "searched_on": searched_on or None,
         "query": (query or "").strip() or None,
+        "limits": limits if limits and limits.strip() else None,
+        "rejected": rejected,
     }
     _write_sources(ws, [*sources, entry])
     append_event(
@@ -336,8 +386,9 @@ def stage_ris_source(
         parameters={
             "id": source_id, "label": label, "format": fmt,
             "searched_on": entry["searched_on"], "query": entry["query"],
+            "limits": entry["limits"],
         },
-        metrics={"records": records, "sha256": digest},
+        metrics={"records": records, "sha256": digest, "rejected": len(rejected)},
     )
     return entry
 
@@ -420,6 +471,9 @@ def preview_staged(workspace: Path | str) -> dict[str, Any]:
             {
                 **{k: s[k] for k in ("id", "label", "file_name", "records", "searched_on", "query")},
                 "format": s.get("format", "ris"),
+                # E3 (M3d-engine); rows staged before it carry neither.
+                "limits": s.get("limits"),
+                "rejected": list(s.get("rejected") or []),
             }
             for s in sources
         ],
@@ -484,7 +538,12 @@ def corpus_status(workspace: Path | str) -> dict[str, Any]:
         "accepted": None,
         "from_discovery": False,
         "limits": {"max_source_bytes": MAX_SOURCE_BYTES, "label_max_length": LABEL_MAX_LENGTH},
+        # M3d-engine: why staging an export is refused now ({code, message}), else None.
+        "staging_refused": None,
     }
+    refusal = _staging_refusal(ws)
+    if refusal is not None:
+        status["staging_refused"] = {"code": refusal.code, "message": str(refusal)}
     if snapshot:
         artifact = json.loads((ws / snapshot["path"]).read_text(encoding="utf-8"))
         studies = len(artifact["data"]["studies"])
@@ -500,6 +559,10 @@ def corpus_status(workspace: Path | str) -> dict[str, Any]:
     else:
         verified = ws / "literature" / "verified.json"
         status["from_discovery"] = verified.is_file() and not _imported(ws)
+        if status["from_discovery"]:
+            # M3d-engine: a discovery corpus waiting for the hand-off accept is
+            # staged, as database exports are (decision 2026-11-10).
+            status["state"] = "STAGED"
     return status
 
 

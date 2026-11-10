@@ -378,15 +378,10 @@ def plan(request: Request) -> dict[str, Any]:
         cap = {"value": int(query.max_results), "source": "protocol", "ceiling": ENGINE_CEILING}
     else:
         cap = {"value": ENGINE_CEILING, "source": "engine_ceiling", "ceiling": ENGINE_CEILING}
-    providers = []
-    for name in KNOWN_PROVIDERS:
-        selected = name in proto.providers
-        status = "selected" if selected else ("not_selected" if name in DEFAULT_PROVIDERS else "off_by_default")
-        providers.append({
-            "name": name, "selected": selected,
-            # E1 (the dry run) is M3d-engine: until then the executed string is known after the run.
-            "executed_query": None, "request": None, "cannot_express": [], "notes": [], "status": status,
-        })
+    from scholar_search.plan import compile_plan
+
+    # E1 (M3d-engine): each selected database's translation, made without a request.
+    providers = compile_plan(proto.path, KNOWN_PROVIDERS)["providers"]
     return {
         "shape": "discovery.plan-v1",
         "protocol_fingerprint": proto.fingerprint,
@@ -484,6 +479,48 @@ def _completeness(leg: dict[str, Any]) -> str:
     return "full"
 
 
+DEDUP_TIERS = ("identifier", "exact_title", "fuzzy_title")
+
+
+def _dedup_summary(ws: Path) -> dict[str, Any] | None:
+    """Counts from ``literature/dedup/clusters.json`` (E4a), or ``None`` before any deduplication.
+
+    ``tiers`` counts the records each tier removed (a member merged into a
+    cluster), so the three add up to ``removed``.
+    """
+    from ...pipeline.deduplication import CLUSTERS_FILE
+
+    data = _read_json(_lit(ws) / CLUSTERS_FILE)
+    if not isinstance(data, dict) or not isinstance(data.get("clusters"), list):
+        return None
+    clusters = [c for c in data["clusters"] if isinstance(c, dict)]
+    members = [m for c in clusters for m in (c.get("members") or []) if isinstance(m, dict)]
+    tiers = dict.fromkeys(DEDUP_TIERS, 0)
+    for member in members:
+        if member.get("merged_by") in tiers:
+            tiers[member["merged_by"]] += 1
+    total, unique = len(members), len(clusters)
+    return {
+        "shape": "discovery.dedup-v1",
+        "run": data.get("run"),
+        "input_records": total,
+        "unique_works": unique,
+        "removed": total - unique,
+        "removed_rate": round((total - unique) / total, 4) if total else 0.0,
+        "tiers": tiers,
+        "method": data.get("method"),
+        "near_twins": None,  # E4b (M3e-neartwins)
+    }
+
+
+@router.get("/dedup")
+def dedup_counts(request: Request) -> dict[str, Any]:
+    summary = _dedup_summary(_ws(request))
+    if summary is None:
+        raise _http(Refused(404, refusals.DEDUP_NOT_RUN, "No deduplication has run in this workspace yet."))
+    return summary
+
+
 @router.get("/report")
 def report(request: Request, run: str | None = None) -> dict[str, Any]:
     from scholar_search.search_report import render_methods_text
@@ -511,8 +548,8 @@ def report(request: Request, run: str | None = None) -> dict[str, Any]:
     } for leg in legs]
     imports = [{
         "label": s.get("label"), "searched_on": s.get("searched_on"), "query": s.get("query"),
-        # E3 (M3d-engine): the limits the researcher applied there and the rejected lines.
-        "limits": None, "records": s.get("records"), "rejected": None,
+        # E3 (M3d-engine): the limits the researcher applied there and the lines the importer could not use.
+        "limits": s.get("limits"), "records": s.get("records"), "rejected": list(s.get("rejected") or []),
     } for s in staged_sources(ws)]
     identification += [{
         "database": imp["label"], "kind": "import", "executed_query": imp["query"], "reported_total": None,
@@ -529,9 +566,11 @@ def report(request: Request, run: str | None = None) -> dict[str, Any]:
     deduped = _read_json(_lit(ws) / "deduped.json") if newest_corpus == run_dir else None
     fetched_total = sum(int(leg.get("fetched") or 0) for leg in legs)
     unique = len(deduped) if isinstance(deduped, list) else None
+    summary = _dedup_summary(ws)
     dedup = {
         "removed": fetched_total - unique if unique is not None else None,
-        "by_tier": None,  # E4a (M3d-engine)
+        # E4a (M3d-engine): only when clusters.json is this run's deduplication.
+        "by_tier": summary["tiers"] if summary and summary["run"] == run_dir.name and deduped is not None else None,
         "near_twins": None,  # E4b (M3e-neartwins)
         "unique_works": unique,
     }
@@ -726,6 +765,8 @@ async def start_run(body: RunBody, request: Request) -> dict[str, Any]:
             workspace_dir=ws, max_search_results=body.cap_override, indexing_fn=_no_indexing,
             providers=providers, leg_callback=_leg_reporter(job), stage_callback=on_stage,
             should_stop=lambda: job.cancel_requested, notes=[body.note] if body.note else None,
+            # M3d-engine: the hand-off screen's accept freezes the corpus (decision 2026-11-10).
+            freeze_corpus=False,
         )
         result = json.loads(json.dumps({
             "run": (results.get("discovery") or {}).get("search_run") or None,

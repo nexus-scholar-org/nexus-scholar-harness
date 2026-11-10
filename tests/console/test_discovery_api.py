@@ -187,8 +187,17 @@ def test_plan_reports_the_protocol_cap_and_the_ceiling(env):
     assert plan["protocol_fingerprint"].startswith("sha256:")
     assert plan["query"]["year_min"] == 2020 and plan["query"]["text"]
     by_name = {p["name"]: p for p in plan["providers"]}
-    assert by_name["openalex"]["selected"] is True and by_name["openalex"]["executed_query"] is None
-    assert by_name["biorxiv"] == {**by_name["biorxiv"], "selected": False, "status": "off_by_default"}
+    # E1 (M3d-engine): each selected database's string and request, before any run, without a request sent.
+    for name in ("openalex", "semanticscholar", "crossref", "arxiv", "pubmed"):
+        row = by_name[name]
+        assert row["selected"] is True and row["status"] == "translated", row
+        assert row["executed_query"] and isinstance(row["request"], dict), row
+        assert not {"mailto", "email", "tool", "api_key"} & set(row["request"]), row
+        assert any(c.startswith("language (en)") for c in row["cannot_express"]), row
+    assert "[pdat]" in by_name["pubmed"]["executed_query"]
+    assert any("no year filter" in n for n in by_name["arxiv"]["notes"])
+    assert by_name["biorxiv"] == {**by_name["biorxiv"], "selected": False, "status": "off_by_default",
+                                  "executed_query": None, "request": None}
     assert plan["imports_hint"] == ["scopus", "wos"]
 
     protocol = json.loads((ws / "protocol.json").read_text(encoding="utf-8"))
@@ -294,9 +303,10 @@ def test_run_events_replay_snapshot_legs_stages_and_done(env):
     assert {leg["provider"] for leg in legs} == {"openalex", "semanticscholar", "crossref", "arxiv", "pubmed"}
     assert set(legs[0]) >= {"job_id", "provider", "fetched", "reported_total", "cap", "cap_hit", "status"}
     stages = [data["stage"] for name, data in events if name == "stage"]
-    assert stages == ["discovery", "deduplication", "hydration", "verification", "corpus_snapshot", "screening_prepare"]
+    # M3d-engine (decision 2026-11-10): a browser run stops before the snapshot.
+    assert stages == ["discovery", "deduplication", "hydration", "verification", "corpus_snapshot"]
     assert job["state"] == "succeeded" and job["result"]["run"] == "run_001"
-    assert job["result"]["stages"]["corpus_snapshot"]["status"] == "ACCEPTED"
+    assert job["result"]["stages"]["corpus_snapshot"]["status"] == "NOT_ACCEPTED"
 
     # A second connect replays the same stream in full.
     assert [name for name, _ in _events(client, job["job_id"])] == names
@@ -491,9 +501,11 @@ def test_report_marks_a_capped_leg_as_a_lower_bound(env):
     assert rows["crossref"]["completeness"] == "full" and rows["crossref"]["kind"] == "search"
     assert {n["database"] for n in report["not_searched"]} == {"semanticscholar", "arxiv", "pubmed", "biorxiv"}
     assert report["dedup"]["removed"] == 1 and report["dedup"]["unique_works"] == 7
-    assert report["dedup"]["by_tier"] is None
+    # E4a (M3d-engine): the one duplicate shares a DOI.
+    assert report["dedup"]["by_tier"] == {"identifier": 1, "exact_title": 0, "fuzzy_title": 0}
     assert report["outside_year_window"] == 0
-    assert report["prisma"]["identified"] == 7
+    # M3d-engine: no screening is prepared before the hand-off accept, so there is no PRISMA preview yet.
+    assert report["prisma"] is None
     assert [r["run"] for r in report["runs"]["runs"]] == ["run_001"]
 
 
@@ -519,8 +531,7 @@ def test_methods_text_is_a_draft_until_reviewed(env):
     assert len(rows) == 1 and rows[0]["parameters"]["run"] == "run_001"
 
     # A later run starts from its own draft; the reviewed text of run_001 stays and is shown beside it.
-    (ws / "audit" / "artifact_registry.json").unlink()
-    _run(client, {"cap_override": 3})
+    _run(client, {"cap_override": 3})  # allowed: a browser run does not freeze the corpus (M3d-engine)
     methods = client.get(f"{BASE}/report").json()["methods_text"]
     assert methods["built_from"] == "run_002" and methods["reviewed"] is False
     assert methods["earlier_reviewed"]["run"] == "run_001"
@@ -560,3 +571,147 @@ def test_handoff_counts_abstracts_and_the_year_window_from_verified_json(env):
     assert handoff["near_twins_undecided"] is None
     assert handoff["protocol_fingerprint"].startswith("sha256:")
     assert handoff["corpus"]["shape"] == "screening.corpus-v1"
+
+
+# --------------------------------------------------------------------------- hand-off accept (M3d-engine)
+
+
+def test_a_browser_run_stops_before_the_snapshot_and_the_handoff_accepts_it(env):
+    """Decision 2026-11-10: a browser harvest does not freeze the corpus; the hand-off screen does."""
+    client, ws, _ = env
+    job, _ = _run(client, {"providers": ["openalex", "crossref"]})
+    assert job["state"] == "succeeded", job
+    snapshot = job["result"]["stages"]["corpus_snapshot"]
+    assert snapshot == {"status": "NOT_ACCEPTED", "reason": "awaiting the hand-off accept"}
+    assert job["result"]["status"] == "PENDING_CORPUS_ACCEPT"
+    registry = ws / "audit" / "artifact_registry.json"
+    assert not registry.is_file() or "corpus_snapshot" not in registry.read_text(encoding="utf-8")
+    assert not list((ws / "literature" / "screening").glob("batch_*.json")) if (ws / "literature" / "screening").is_dir() else True
+    actions = [e["action"] for e in _journal(ws)]
+    assert "CORPUS_SNAPSHOT_ACCEPTED" not in actions and "PIPELINE_RUN_PAUSED_FOR_CORPUS_ACCEPT" in actions
+
+    before = client.get("/api/v1/screening/corpus").json()
+    assert before["state"] == "STAGED" and before["from_discovery"] is True and before["accepted"] is None
+    assert client.get(f"{BASE}/handoff").json()["corpus"]["state"] == "STAGED"
+
+    # Another browser run is allowed before the accept, and is the corpus the accept freezes.
+    second, _ = _run(client, {"providers": ["openalex"]})
+    assert second["state"] == "succeeded" and second["result"]["run"] == "run_002"
+
+    accepted = client.post("/api/v1/screening/corpus/accept")
+    assert accepted.status_code == 200, accepted.text
+    after = accepted.json()
+    assert after["state"] == "ACCEPTED" and after["from_discovery"] is True
+    assert after["accepted"]["studies"] == len(json.loads((ws / "literature" / "verified.json").read_text(encoding="utf-8")))
+    assert client.get(f"{BASE}/handoff").json()["corpus"]["state"] == "ACCEPTED"
+    events = [e for e in _journal(ws) if e["action"] == "CORPUS_SNAPSHOT_ACCEPTED"]
+    assert len(events) == 1 and events[0]["parameters"]["artifact_id"] == after["accepted"]["artifact_id"]
+
+    again = client.post(f"{BASE}/runs", json={})
+    assert again.status_code == 409 and _code(again) == "CORPUS_ALREADY_ACCEPTED"
+    twice = client.post("/api/v1/screening/corpus/accept")
+    assert twice.status_code == 409 and _code(twice) == "CORPUS_ALREADY_ACCEPTED"
+
+
+def test_the_handoff_accept_keeps_a_failed_database_as_a_snapshot_warning(env):
+    """The accept reads the run's failed legs, as the pipeline passed them, so the outcome stays PARTIAL."""
+    client, ws, providers = env
+    providers.set("crossref", FakeProvider("crossref", [], fail=RuntimeError("boom")))
+    job, _ = _run(client, {"providers": ["openalex", "crossref"]})
+    assert job["state"] == "succeeded", job
+    assert client.post("/api/v1/screening/corpus/accept").status_code == 200
+    event = next(e for e in _journal(ws) if e["action"] == "CORPUS_SNAPSHOT_ACCEPTED")
+    assert event["parameters"]["outcome_status"] == "PARTIAL"
+    assert any(w.startswith("crossref: ") for w in event["parameters"]["provider_warnings"])
+
+
+def test_report_lists_each_imports_limits_and_rejected_lines(env):
+    """E3 (M3d-engine, packet §4.6): imports[].limits and imports[].rejected come from the staged rows."""
+    from scholar_harness.corpus_accept import stage_ris_source
+
+    client, ws, _ = env
+    _write_run(ws, 1, started="2026-11-10T08:00:00Z")
+    fixture = ROOT / "tests" / "kits" / "search" / "fixtures" / "imports" / "rejections.ris"
+    stage_ris_source(ws, "Scopus", fixture.read_bytes(), file_name="scopus.ris", searched_on="2026-11-10",
+                     query="uav AND weed", limits="English; 2018-2025")
+    (imp,) = client.get(f"{BASE}/report").json()["imports"]
+    assert imp["limits"] == "English; 2018-2025" and imp["records"] == 4
+    assert [r["code"] for r in imp["rejected"]] == ["IMPORT_BAD_TAG", "IMPORT_NO_TITLE", "IMPORT_BAD_YEAR"]
+
+
+# --------------------------------------------------------------------------- dedup (E4a)
+
+
+def test_dedup_reports_the_counts_per_tier_of_the_newest_deduplication(env):
+    """E4a (M3d-engine, packet §4.5 Stage 1): counts only, from literature/dedup/clusters.json."""
+    client, ws, providers = env
+    missing = client.get(f"{BASE}/dedup")
+    assert missing.status_code == 404 and _code(missing) == "DEDUP_NOT_RUN"
+
+    providers.set("openalex", FakeProvider("openalex", [
+        _doc("openalex", 0), _doc("openalex", 1, title="Drone imagery for weed detection", doi=""),
+        _doc("openalex", 2),
+    ]))
+    providers.set("crossref", FakeProvider("crossref", [
+        _doc("openalex", 0),  # same DOI as openalex 0: identifier
+        _doc("crossref", 1, title="Drone imagery for weed detection", doi=""),  # same title, no DOI: exact title
+        _doc("crossref", 2),
+    ]))
+    job, _ = _run(client, {"providers": ["openalex", "crossref"]})
+    assert job["state"] == "succeeded", job
+    dedup = client.get(f"{BASE}/dedup").json()
+    assert dedup == {
+        "shape": "discovery.dedup-v1", "run": "run_001", "input_records": 6, "unique_works": 4, "removed": 2,
+        "removed_rate": round(2 / 6, 4), "tiers": {"identifier": 1, "exact_title": 1, "fuzzy_title": 0},
+        "method": {"title_similarity": 0.97, "year_tolerance": 1, "first_author": True, "source": "default"},
+        "near_twins": None,
+    }
+    assert client.get(f"{BASE}/report").json()["dedup"]["by_tier"] == dedup["tiers"]
+
+
+def test_after_a_browser_run_the_corpus_says_why_an_export_cannot_be_staged(env):
+    """Researcher, 2026-11-10 ("keep the rule for now, combine later"): an export is staged only
+    before any run; the corpus view names the refusal so the Import and hand-off screens can show it."""
+    import base64
+
+    client, ws, _ = env
+    assert client.get("/api/v1/screening/corpus").json()["staging_refused"] is None
+    job, _ = _run(client, {"providers": ["openalex"]})
+    assert job["state"] == "succeeded", job
+    corpus = client.get("/api/v1/screening/corpus").json()
+    assert corpus["staging_refused"]["code"] == "VERIFIED_EXISTS"
+    assert "search run" in corpus["staging_refused"]["message"]
+    assert client.get(f"{BASE}/handoff").json()["corpus"]["staging_refused"] == corpus["staging_refused"]
+    ris = b"TY  - JOUR\nTI  - A record\nPY  - 2023\nER  -\n"
+    staged = client.post("/api/v1/screening/corpus/sources", json={
+        "label": "Scopus", "file_name": "scopus.ris", "content_base64": base64.b64encode(ris).decode("ascii"),
+    })
+    assert staged.status_code == 409 and _code(staged) == "VERIFIED_EXISTS"
+    assert staged.json()["detail"]["message"] == corpus["staging_refused"]["message"]
+
+    assert client.post("/api/v1/screening/corpus/accept").status_code == 200
+    assert client.get("/api/v1/screening/corpus").json()["staging_refused"]["code"] == "CORPUS_ALREADY_ACCEPTED"
+
+
+def test_the_handoff_accept_refuses_a_run_from_an_earlier_protocol(env):
+    """Review F3: the accept binds the run's records to the current protocol, so a changed query is refused."""
+    client, ws, _ = env
+    job, _ = _run(client, {"providers": ["openalex"]})
+    assert job["state"] == "succeeded", job
+    protocol = json.loads((ws / "protocol.json").read_text(encoding="utf-8"))
+    protocol["search_strategy"]["date_range"]["start_year"] = 2015
+    (ws / "protocol.json").write_text(json.dumps(protocol), encoding="utf-8")
+    refused = client.post("/api/v1/screening/corpus/accept")
+    assert refused.status_code == 409 and _code(refused) == "PROTOCOL_CHANGED_SINCE_RUN"
+    assert client.get("/api/v1/screening/corpus").json()["state"] == "STAGED"
+    assert not [e for e in _journal(ws) if e["action"] == "CORPUS_SNAPSHOT_ACCEPTED"]
+
+
+def test_the_handoff_accept_refuses_an_unreadable_protocol_as_invalid(env):
+    """Review R1: a protocol.json that is not JSON is a typed PROTOCOL_INVALID, never a 500."""
+    client, ws, _ = env
+    job, _ = _run(client, {"providers": ["openalex"]})
+    assert job["state"] == "succeeded", job
+    (ws / "protocol.json").write_text("{not json", encoding="utf-8")
+    refused = client.post("/api/v1/screening/corpus/accept")
+    assert 400 <= refused.status_code < 500 and _code(refused) == "PROTOCOL_INVALID", refused.text

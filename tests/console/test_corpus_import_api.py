@@ -219,3 +219,36 @@ def test_a_pubmed_nbib_upload_is_staged_as_nbib(ws):
     assert twin.status_code == 201, twin.text
     assert twin.json()["preview"] == {"identified": 6, "duplicates": 1, "unique_studies": 5}
     assert [(d["label"], d["records"]) for d in twin.json()["databases"]] == [("PubMed", 5), ("IEEE Xplore", 1)]
+
+
+FIXTURES = ROOT / "tests" / "kits" / "search" / "fixtures" / "imports"
+
+
+@pytest.mark.parametrize(("name", "kept"), [("rejections.ris", 4), ("rejections.nbib", 4)])
+def test_a_staged_export_lists_its_rejected_lines_and_the_limits_applied(ws, name, kept):
+    """E3 (M3d-engine, packet §4.4): the rejected lines and the limits travel with the staged row."""
+    client = _client(ws)
+    raw = (FIXTURES / name).read_bytes()
+    limits = "Article, Review; English; 2018-2025; subject area: Agricultural and Biological Sciences"
+    response = client.post(f"{BASE}/sources", json={
+        "label": "Scopus", "file_name": name, "content_base64": base64.b64encode(raw).decode("ascii"),
+        "searched_on": "2026-11-10", "query": "uav AND weed", "limits": limits,
+    })
+    assert response.status_code == 201, response.text
+    (source,) = response.json()["sources"]
+    assert source["records"] == kept
+    assert source["limits"] == limits
+    assert sorted(r["code"] for r in source["rejected"]) == ["IMPORT_BAD_TAG", "IMPORT_BAD_YEAR", "IMPORT_NO_TITLE"]
+    assert all(set(r) == {"line", "code", "reason"} for r in source["rejected"])
+    assert client.get(BASE).json()["sources"][0]["rejected"] == source["rejected"]
+    staged = json.loads((ws / "literature" / "raw" / "ris" / "sources.json").read_text(encoding="utf-8"))
+    assert staged["sources"][0]["limits"] == limits and len(staged["sources"][0]["rejected"]) == 3
+    event = [json.loads(line) for line in (ws / "audit" / "journal.jsonl").read_text(encoding="utf-8").splitlines()][-1]
+    assert event["action"] == "CORPUS_SOURCE_STAGED"
+    assert event["parameters"]["limits"] == limits and event["metrics"]["rejected"] == 3
+
+
+def test_a_clean_export_has_no_rejections_and_no_limits(ws):
+    client = _client(ws)
+    (source,) = _stage(client, "Scopus", SCOPUS).json()["sources"]
+    assert source["rejected"] == [] and source["limits"] is None

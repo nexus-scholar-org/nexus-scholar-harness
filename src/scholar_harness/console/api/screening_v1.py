@@ -556,6 +556,8 @@ class CorpusSourceBody(BaseModel):
     content_base64: str
     searched_on: str | None = None
     query: str | None = None
+    #: E3 (M3d-engine): the limits applied in the database (types, languages, years), stored verbatim.
+    limits: str | None = Field(default=None, max_length=2_000)
 
 
 @router.get("/corpus")
@@ -578,7 +580,7 @@ def post_corpus_source(body: CorpusSourceBody, request: Request) -> dict[str, An
     try:
         stage_ris_source(
             ws, body.label, content,
-            file_name=body.file_name, searched_on=body.searched_on, query=body.query,
+            file_name=body.file_name, searched_on=body.searched_on, query=body.query, limits=body.limits,
         )
     except AcceptCorpusRefused as exc:
         raise _corpus_error(exc) from exc
@@ -607,10 +609,18 @@ def accept_corpus_route(request: Request) -> dict[str, Any]:
     status = _corpus_view(ws)
     if status["state"] == "ACCEPTED":
         raise _error(409, "CORPUS_ALREADY_ACCEPTED", "the corpus is already accepted")
-    if not staged_sources(ws) and not status["from_discovery"]:
+    staged = staged_sources(ws)
+    if not staged and not status["from_discovery"]:
         raise _error(409, "NOTHING_STAGED", "add at least one database export first")
     try:
-        accept_corpus(ws)
+        if staged:
+            accept_corpus(ws)
+        else:
+            # M3d-engine: a browser run's verified.json, frozen on the hand-off
+            # screen exactly as the end of a CLI run freezes it (decision 2026-11-10).
+            from ...pipeline.coordinator import accept_discovery_corpus
+
+            accept_discovery_corpus(ws)
     except AcceptCorpusRefused as exc:
         raise _corpus_error(exc) from exc
     return _corpus_view(ws)

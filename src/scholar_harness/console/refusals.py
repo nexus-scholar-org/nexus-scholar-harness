@@ -151,6 +151,16 @@ PROVIDER_TIMEOUT = "PROVIDER_TIMEOUT"
 PROVIDER_UNAVAILABLE = "PROVIDER_UNAVAILABLE"
 PROVIDER_REFUSED = "PROVIDER_REFUSED"
 LEG_ERROR_CODES = frozenset({PROVIDER_RATE_LIMITED, PROVIDER_TIMEOUT, PROVIDER_UNAVAILABLE, PROVIDER_REFUSED})
+#: E3 (M3d-engine): a staged export's ``rejected[].code``: a row field, never an
+#: HTTP status (the importer's own constants, ``scholar_search.importers``).
+IMPORT_NO_TITLE = "IMPORT_NO_TITLE"
+IMPORT_BAD_TAG = "IMPORT_BAD_TAG"
+IMPORT_BAD_YEAR = "IMPORT_BAD_YEAR"
+IMPORT_REJECTION_CODES = frozenset({IMPORT_NO_TITLE, IMPORT_BAD_TAG, IMPORT_BAD_YEAR})
+#: E4a (M3d-engine): ``GET /discovery/dedup`` before any deduplication.
+DEDUP_NOT_RUN = "DEDUP_NOT_RUN"
+#: Review F3 (M3d-engine): the hand-off accept of a run whose query or years the protocol no longer has.
+PROTOCOL_CHANGED_SINCE_RUN = "PROTOCOL_CHANGED_SINCE_RUN"
 
 # --- console guards (INC-01, M0) ----------------------------------------------
 HOST_REFUSED = "HOST_REFUSED"
@@ -246,8 +256,11 @@ CONTRACT_ADDED = frozenset(
         PROTOCOL_CHANGED_SINCE_SNAPSHOT,
         BATCHES_INCOMPLETE,
         STAGED_IMPORT_PENDING,
+        DEDUP_NOT_RUN,
+        PROTOCOL_CHANGED_SINCE_RUN,
     }
     | LEG_ERROR_CODES
+    | IMPORT_REJECTION_CODES
 )
 
 #: Every code the console API may return.
