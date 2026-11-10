@@ -1,4 +1,7 @@
-# nexus-scholar v1.0.0 — User Guide
+# nexus-scholar 1.1 (beta): user guide
+
+This guide follows the current beta, **1.1.0b5** (PyPI and GitHub). Where `main`
+already does more (the next beta, 1.1.0b6, not tagged), the text says so.
 
 `nexus-scholar` is the distributed entry point for the **Nexus Scholar
 Harness**: a portable toolkit that scaffolds a systematic literature review
@@ -6,17 +9,19 @@ workspace, wires it into AI agents (MCP), audits every step, and checks its own
 health. Everything runs from a single pure-Python wheel published on PyPI and
 GitHub Releases — no source checkout, no per-kit installs.
 
-> **Parked, not production (M5-slim, production plan §8).** Version 1.0 ships
+> **Parked, not production (M5-slim, production plan §8).** The beta ships
 > **screening** (import → prepare → screen → publish, with optional agent
-> proposals). The retrieval and synthesis kit (`scholar_rag`), the citation
+> proposals), **inception in the browser** (Scope, Shape, Concepts and criteria,
+> Review and create, Done; Explore and Direction have no screen yet) and, on
+> `main` for 1.1.0b6, **discovery in the browser** (Plan to Hand-off). The retrieval and synthesis kit (`scholar_rag`), the citation
 > graph (`scholar_graph`), verification and trust (`scholar_verify`) and full
 > text (`scholar_pdf`, findings PDF-07/08) still work, but are parked: their
 > `--help` says so first, their MCP tools say so in their descriptions, and the
 > app labels any screen that shows them. Do not rely on them for a review.
 
 - Works on **Windows, macOS, Linux** (Python 3.11+ via `uv` or `pip`).
-- The wheel bundles the harness CLI **plus all eight scholar kits** and the
-  twelve skill bundles, so a workspace initialized here is self-contained and
+- The wheel bundles the harness CLI **plus the seven scholar kits**, the
+  research app (`nexus-scholar ui`) and the skill bundles, so a workspace initialized here is self-contained and
   portable.
 - PyPI: <https://pypi.org/project/nexus-scholar/>
 - GitHub Releases: <https://github.com/nexus-scholar-org/nexus-scholar-harness/releases>
@@ -32,7 +37,7 @@ GitHub Releases — no source checkout, no per-kit installs.
 Run any command in an ephemeral isolated environment directly from PyPI:
 
 ```sh
-uvx nexus-scholar --help
+uvx "nexus-scholar>=1.1.0b5" --help
 ```
 
 `uvx` caches the environment, so repeat runs are fast.
@@ -44,11 +49,15 @@ uvx nexus-scholar --help
 
 ```sh
 # Via standard pip:
-pip install nexus-scholar
+pip install "nexus-scholar>=1.1.0b5"
 
 # Or as an isolated CLI tool via uv:
-uv tool install nexus-scholar
+uv tool install "nexus-scholar>=1.1.0b5"
 ```
+
+The version in the command is needed while Nexus Scholar is in beta. Do not use
+`--prerelease allow`: it also takes development releases of other packages, and
+one of them stops the app from starting (see `docs/releases/1.1.0b4.md`).
 
 Installs **two** executables on your PATH:
 `nexus-scholar` (this guide) and `scholar-agent` (the MCP server, §7).
@@ -63,6 +72,33 @@ scholar-agent --help          # lists the MCP tools exposed
 ---
 
 ## 2. Quick start
+
+**In the browser (recommended for a review):**
+
+```sh
+nexus-scholar ui
+```
+
+The app opens on **Workspaces** on `127.0.0.1`. Options: `--root <folder>`
+(where your workspaces live; else `NEXUS_WORKSPACES_ROOT`, else
+`~/Documents/Nexus Scholar/workspaces`), `--workspace <folder>` (open one
+directly), `--port` (default 8770; another free port is used if taken) and
+`--no-browser` (print the one-time link instead). Keep the terminal open: the
+app runs there and prints the approval codes. The researcher's flow, screen by
+screen, is in [Getting started](getting-started.md):
+
+- **New review** on Workspaces opens inception: Scope, Shape, Concepts and
+  criteria, Review and create, Done. Nothing is written until you press
+  **Create the workspace**. The step bar shows Explore and Direction, which have
+  no screen yet; the CLI wizard and the MCP `recon_*` tools still run them.
+- **Discovery** (on `main`, 1.1.0b6): Plan, Recall, Harvest, Import,
+  Duplicates, Report, Hand-off. A browser harvest does not freeze the corpus;
+  **Accept this corpus** on Hand-off does. It needs `SCHOLAR_MAILTO` and, for
+  OpenAlex, `SCHOLAR_OPENALEX_KEY` (§8).
+- **Screening**: Import, Prepare, Triage, Agent proposals, Agreement, Publish,
+  Export and methods.
+
+**From a terminal:**
 
 ```sh
 # 1. create a workspace anywhere
@@ -122,7 +158,8 @@ Notes:
 - Re-running `init` into a folder that is already a Nexus Scholar workspace (or
   a git repo / a plain file target) is **refused** to avoid clobbering data.
 - Interactive mode runs the inception wizard to shape the protocol; for
-  automation or CI use `--scaffold-only`.
+  automation or CI use `--scaffold-only`. The same interview also runs in the
+  browser (`nexus-scholar ui`, **New review**) since 1.1.0b5.
 
 ---
 
@@ -177,7 +214,7 @@ What it verifies:
 
 | Group | Checks |
 | --- | --- |
-| `kits` | Each of the 8 bundled kits imports and matches its pinned revision |
+| `kits` | Each of the seven bundled kits imports; they share the `nexus-scholar` version (no per-kit pins) |
 | `keys` | API keys present/absent (values shown masked `***` or `Missing`); model keys warn rather than fail |
 | `skills` | Skill bundles resolvable (workspace copy / repo / wheel bundle) |
 | `layout` | Canonical contract files present; `project.json` stats match disk state |
@@ -282,8 +319,11 @@ scholar-agent [--workspace <root>] [--transport stdio|sse|streamable-http]
   (default `NEXUS_MCP_WORKSPACE` or the current repo root). CWD-independent.
 - `--transport` selects the protocol; `stdio` is the default for desktop
   clients.
-- Execute commands like `--help` to list the 15 tools (`nexus_discover`,
-  `nexus_screen`, `nexus_rag_query`, `nexus_verify_claims`, …).
+- Run it with `--help` to list the tools. `src/scholar_agent/` registers 27
+  (2026-11-10), among them `nexus_discover`, `nexus_screening_queue`,
+  `nexus_screening_record`, `nexus_submit_proposal`, the recon tools
+  `recon_probe`, `recon_distill` and `recon_delta`, and the parked
+  `nexus_rag_*`, `nexus_graph_*` and `nexus_verify_*` tools.
 
 Pair it with §4: `setup-mcp --harness claude` writes the client config that
 starts this server on your workspace.
@@ -294,14 +334,20 @@ starts this server on your workspace.
 
 | Variable | Purpose |
 | --- | --- |
-| `SCHOLAR_MAILTO` | Contact email sent to OpenAlex, Crossref and NCBI (polite pools). **Required for a live search**: without it `run` refuses with `MAILTO_NOT_SET`. |
+| `SCHOLAR_MAILTO` | Contact email sent to Crossref (in the User-Agent) and NCBI, and still sent to OpenAlex, which no longer uses it. **Required for a live search**: without it `run`, a browser harvest and a recall check refuse with `MAILTO_NOT_SET`. |
+| `SCHOLAR_OPENALEX_KEY` | OpenAlex API key (free). **OpenAlex has required a key since 2026-02-13.** Without it, OpenAlex requests share a small daily budget with everyone on your network address, and OpenAlex documents that paging past the first page is refused. The code still calls the key optional and does not refuse a run without it (known gap, `src/scholar_search/config.py:20-22`; see `docs/kits/search/PROVIDERS_2026-11.md`). |
+| `SCHOLAR_S2_KEY` | Semantic Scholar API key (optional; without it the shared public pool is used). |
+| `NEXUS_WORKSPACES_ROOT` | Folder holding your workspaces for `nexus-scholar ui` (else `~/Documents/Nexus Scholar/workspaces`). |
+| `NEXUS_CONSOLE_TOKEN` | The per-launch token of `nexus-scholar serve` (it prints one if unset). |
 | `OPENAI_API_KEY` / `ANTHROPIC_API_KEY` / `GEMINI_API_KEY` | Provider keys for synthesis/verification steps |
-| `NEXUS_RECON_ROOT` | Where discovery-recon cache pools live (default repo `.cache/inception_recon`); makes caching CWD-independent |
+| `NEXUS_RECON_ROOT` | Where the inception recon cache pools live (default repo `.cache/inception_recon`); makes caching CWD-independent. The CLI wizard, the MCP tools and the console's recon routes share it |
 | `NEXUS_MCP_CONFIG_HOME` | Where `setup-mcp` writes configs (hermetic setups) |
 | `NEXUS_SKILLS_SRC` | Override the skill-bundle source root (`init` picks it first) |
 
 Copy `.env.example` (created by `init`) to `.env` and fill in keys; `doctor` and
-`setup-mcp` read `<workspace>/.env` by default. `setup-mcp` never copies key
+`setup-mcp` read `<workspace>/.env` by default. The search settings
+(`SCHOLAR_*`) are also read from a `.env` file in the folder the process starts
+from, so `nexus-scholar ui` started in a folder with a `.env` uses it. `setup-mcp` never copies key
 values into an MCP config file: it adds `--env-file <path>` to the server
 command, and `scholar-agent` loads the keys from that file when it starts
 (variables already set in your environment win). `.env`, `.mcp.json` and
@@ -318,10 +364,11 @@ scaffolded):
 | --- | --- |
 | `nexus-scholar status` | Pipeline status + metrics for a workspace |
 | `nexus-scholar sync` | Atomically rebuild `project.json` stats + `INDEX.md` from disk |
-| `nexus-scholar run` | Execute a research pipeline (classic `--protocol` or a `--pipeline` DAG) |
+| `nexus-scholar run` | Execute a research pipeline (classic `--protocol` or a `--pipeline` DAG). The discovery stage records each database's leg under `literature/search_runs/run_NNN/`, and the run accepts the corpus snapshot at the end |
 | `nexus-scholar export` | Export findings/bibliographies to external tools |
 | `nexus-scholar accept-corpus` | Accept the corpus snapshot from `literature/verified.json`, or import a RIS or PubMed `.nbib` export with `--ris`, so screening `prepare` can run |
-| `nexus-scholar serve` | Run the console server for a workspace (loopback only; needs the token in `NEXUS_CONSOLE_TOKEN` or the one it prints) |
+| `nexus-scholar ui` | Start the research app in your browser (§2): the console and the app from one process, on `127.0.0.1` |
+| `nexus-scholar serve` | Run the console server for a workspace (loopback only; needs the token in `NEXUS_CONSOLE_TOKEN` or the one it prints); for development with `apps/research-ui` |
 | `nexus-scholar inception` | Interactive Phase-0 Socratic methodology interview → compiled protocol. Each screening criterion is shown verbatim and accepted one by one. A title whose workspace already exists is refused; `--replace` replaces its protocol (the old files go to `audit/replaced/<stamp>/`), and a workspace with screening decisions or a published screening also needs `--discard-screening-binding` |
 
 Run any with `--help` for full options.
@@ -332,7 +379,7 @@ Run any with `--help` for full options.
 
 | Symptom | Likely fix |
 | --- | --- |
-| `doctor` exits non-zero with a `kits` FAIL | Rebuild/redownload the wheel — kit revisions are pinned and bundled; a source checkout mismatch is impossible by construction |
+| `doctor` exits non-zero with a `kits` FAIL | Reinstall the wheel: the kits are part of the one `nexus-scholar` package and share its version |
 | `log batch` exits 1 but the journal looks fine | One or more records were skipped (invalid JSON or missing `action`/`description`); the error lines show which |
 | `doctor` reports `keys` as `Missing` | No `.env` present; create one from `.env.example` (optional — `doctor` WARNs/SKIPs, not FAILs) |
 | `init` refuses a folder | It already looks like a workspace (or is a git repo / a file target). Point `--dir` at a fresh folder |
@@ -343,5 +390,6 @@ Run any with `--help` for full options.
 
 - Releases are tagged on the harness repo (`v*`); each tag publishes a wheel to
   PyPI and GitHub Releases with auto-generated notes.
-- Upgrade with `pip install -U nexus-scholar` or `uv tool upgrade nexus-scholar`
-  (or force reinstall via `uv tool install --force nexus-scholar`).
+- Upgrade during the beta with `uv tool install --force "nexus-scholar>=1.1.0b5"`
+  or `pip install -U "nexus-scholar>=1.1.0b5"`. Release notes are in
+  `docs/releases/` (1.1.0b6 is a draft: not tagged).

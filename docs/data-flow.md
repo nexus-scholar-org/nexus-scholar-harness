@@ -9,7 +9,8 @@ bundled (`apps/research-ui/tests-browser/hygiene.spec.ts` fails the build if a
 page reaches any host other than this computer).
 
 This page lists every place where data leaves the machine, what is sent, and to
-whom. It describes version 1.0.0 as of 2026-11-05 (M5-slim).
+whom. It was written for M5-slim (2026-11-05) and checked again on 2026-11-10
+against the beta 1.1.0b5 and `main` (the Discovery screens, coming in 1.1.0b6).
 
 ## Screening with an AI model (optional)
 
@@ -49,20 +50,39 @@ your Claude reads records from the workspace through the server's tools
 Claude app, under your Claude account's terms**, not through Nexus Scholar.
 The MCP server itself runs on your computer and holds no key.
 
-## Searching and checking the literature (optional, command line)
+## Searching and checking the literature (optional, app or command line)
 
 These run only when you start them, and send **your search terms or the
 identifiers of your records** (DOIs, titles), never your decisions:
 
-| Action | Sent to |
-| :-- | :-- |
-| Search (`scholar-search`, discovery, inception reconnaissance) | OpenAlex, Crossref, PubMed (NCBI E-utilities), arXiv, bioRxiv, Semantic Scholar |
-| Full-text discovery and download (parked, not production) | Unpaywall, `doi.org` and the publisher sites it points to |
-| Citation graph (parked) | OpenAlex |
-| Verification: retractions and related checks (parked) | Crossref, OpenAlex |
+| Action | Where you start it | Sent to |
+| :-- | :-- | :-- |
+| Search (a harvest) | Discovery, **Start the harvest** (on `main`, 1.1.0b6); `nexus-scholar run`; `scholar-search`; MCP `nexus_discover` | The databases your protocol selects among OpenAlex, Semantic Scholar, Crossref, arXiv and PubMed (NCBI E-utilities); bioRxiv only when the protocol names it |
+| Plan (dry run) | Discovery, **Plan** | Nothing: the strings are translated on your computer |
+| Recall check | Discovery, **Recall** (on `main`) | The protocol query, to the protocol's databases; then each seed's identifier to Crossref and OpenAlex for a title check (`scholar_search/recall.py`) |
+| Abstract hydration and DOI verification, after a harvest | Part of the same run | Record DOIs (and arXiv ids) to Semantic Scholar, OpenAlex and Crossref (`scholar_search/enrichment.py`, `scholar_search/verifier.py`) |
+| Inception reconnaissance (a first pool of up to 25 papers) | CLI wizard, MCP `recon_*` tools, and the console's recon routes (1.1.0b5; the Explore screen is not built) | Your topic as a query, to OpenAlex, Semantic Scholar, Crossref and arXiv |
+| Full-text discovery and download (parked, not production) | CLI | Unpaywall, `doi.org` and the publisher sites it points to |
+| Citation graph (parked) | CLI, MCP | OpenAlex |
+| Verification: retractions and related checks (parked) | CLI, MCP | Crossref, OpenAlex |
 
-The import path that screening starts from (`nexus-scholar accept-corpus` on a
-file you exported) sends nothing.
+With every search request the engine also sends who is asking:
+
+- **Your contact email** (`SCHOLAR_MAILTO`): in the User-Agent header to every
+  provider (`scholar-search-kit/0.1.0 (mailto:<address>)`, a stale version
+  string), as `mailto` to OpenAlex, which no longer uses it, and as `email` (with
+  `tool=nexus-scholar`) to PubMed. A live search refuses to start without it.
+- **Your OpenAlex key** (`SCHOLAR_OPENALEX_KEY`), to OpenAlex only, when set.
+  OpenAlex has required a key since 2026-02-13; without one, your requests share
+  a small daily budget with everyone on your network address.
+- **Your Semantic Scholar key** (`SCHOLAR_S2_KEY`), to Semantic Scholar only,
+  when set.
+
+Responses are cached on your disk under `.cache/` unless `SCHOLAR_HTTP_CACHE`
+is off. Provider details: [`kits/search/PROVIDERS_2026-11.md`](kits/search/PROVIDERS_2026-11.md).
+
+The import path that screening starts from (the Import screen, or
+`nexus-scholar accept-corpus` on a file you exported) sends nothing.
 
 ## Phones (not yet)
 
