@@ -1,6 +1,6 @@
 # 14 — Autonomous Agent Loops (operating contract)
 
-> **Status:** Proposed — the behavior contract for an unattended research agent (methodology-copilot) driving the recon lifecycle through MCP. Two required MCP seams (GAP A, GAP B) are still missing, so full autonomy is blocked until M0.7.
+> **Status:** Historical: the series is complete (`specs/README.md`, label of 2026-11-10). As written: Proposed — the behavior contract for an unattended research agent (methodology-copilot) driving the recon lifecycle through MCP. Two required MCP seams (GAP A, GAP B) are still missing, so full autonomy is blocked until M0.7.
 > **Date:** 2026-09-13 · **Origin:** distilled from `temp_brainstorming.md` (retired).
 > **Owner:** methodology-copilot executes; the harness provides the seams. Researcher remains the final gate on direction selection (never auto-emitted protocol without human validation).
 
