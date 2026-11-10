@@ -10,7 +10,7 @@ Why: plan §2 Phase 1 lists the discovery screens 01–08 and plan §6 M3 their 
 - [ ] **Gate.** `/gate inner` after edits, `/gate checkpoint` at the end of each half, `/gate pr` once on the final commit (full Python suite, contract check, vitest, build, Playwright), `milestone-reviewer` APPROVE.
 
 ## Decisions
-<links to docs/decisions.md entries and the researcher's answers per spec>
+- [2026-11-10, Discovery screens: ten answers that close specs 01–08](../../decisions.md) — the researcher took every recommended answer ("all recommended"); the specs became `Status: FINAL`. The drafts were written by two `ux-spec-writer` runs (01–04 with the shared section, 05–08) against the route facts verified at `b6643a0`.
 
 ## Evidence
 | Stage | Commit | Command | Result | Duration |
@@ -18,4 +18,12 @@ Why: plan §2 Phase 1 lists the discovery screens 01–08 and plan §6 M3 their 
 | start | `b6643a0` | branch from `origin/main` | clean | |
 
 ## Deferred
-<anything cut, with the packet section or plan §7 rule that allowed it>
+Route gaps found while writing the specs; each screen shows an honest state instead (see each spec's "Changed from the canvas"):
+- **Anchor seeds on Recall** (packet §4.2): no route links an open workspace to its inception draft's recon binding. Needs an engine item that records the anchor papers (or draft id) in the workspace at genesis.
+- **Protocol amendment from the browser** (packet §4.1, §4.2): no route opens an existing workspace's protocol as an inception draft; the screens link to the inception drafts screen.
+- **Near-twin pair review** (packet §4.5 Stage 2, decision 2): M3e-neartwins, RELEASE lane.
+- **Failed databases on the hand-off** (packet §4.8): `lower_bound_databases` names capped ones only; the hand-off links to the report (answer 10).
+- **Hydration state** (packet §4.8): no route says whether abstracts were filled for the corpus (answer 9).
+- **Report gaps** (packet §4.6): no total identified across databases, `cache` always `null`, no dedup counts for an older run, `not_searched` has two reasons only.
+- **Harvest gaps** (packet §4.3): no per-database stop, retry or split, no slice yield, no running total while a run is in progress, no cancel reason.
+- **Plan gaps** (packet §4.1): no reported totals before a run (the board's dry-run counts).
