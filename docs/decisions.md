@@ -8,6 +8,23 @@ history to read if you need the original reasoning (`git log --follow -- <path>`
 
 Twelve points the discovery API packet did not settle, decided while building M3b-api; each is listed with its packet section in `docs/roadmap/milestones/M3b-api.md` "Decisions". The ones that shape later work: a researcher's cancel (and a console shutdown) stops the harvest only, archives the run `PARTIAL` with its records in the run folder, and builds nothing from it; the methods draft is rendered on read and never stored, the reviewed text is stored per run; a run is `stale` once a later run's records became the corpus; `PROVIDER_UNKNOWN` (422) is a new code; a leg failure that is not a provider answer has no `error_code`; `run_pipeline` gains optional keyword hooks, the CLI and orchestrator calls are unchanged.
 
+## 2026-11-10 — Discovery screens: ten answers that close specs 01–08 (accepted; M3c-screens)
+
+The researcher took every recommended answer on 2026-11-10 ("all recommended"). The specs are `docs/ux/phase1-discovery/final/01-plan.md` to `08-handoff.md`; the record is `docs/roadmap/milestones/M3c-screens.md`.
+
+1. `/discovery/` is a short status page (step bar, one line per step from the routes, "Continue at …"), not a redirect: a running harvest stays visible.
+2. A protocol change from discovery is a sentence and a link to the inception drafts screen; no one-click amendment until the replace path is reachable from the browser (deferred).
+3. Recall seeds are the researcher's own (DOI or arXiv id); inception's anchor papers wait for an engine item that records them in the workspace (deferred).
+4. Duplicates says that records the rules did not prove to be one work stay separate works.
+5. The share removed is shown as a percentage; the written fraction is under Details.
+6. A reviewed methods text can be edited; the save warns that it will no longer be marked reviewed.
+7. The methods text of the latest run can be reviewed after the corpus is accepted (it is not part of the frozen corpus); older runs stay read-only.
+8. "Hide the database of origin while screening" is cut: the existing blinding hides the agent's proposal, not the origin; a future screening setting with its own spec.
+9. "Fill missing abstracts" is cut: the hand-off shows how many records have an abstract; a hydration field only if testers ask.
+10. Failed databases are reached from the hand-off through the report in M3c; naming them in the hand-off answer is a small engine follow-up (deferred).
+
+Also decided in the milestone, not asked: the primary navigation is Workspaces · Discovery · Screening (Inception is not a navigation entry today).
+
 ## 2026-11-10 — A browser harvest does not freeze the corpus; the hand-off screen does (accepted; M3b-api, engine change in M3d-engine)
 
 The researcher chose this on 2026-11-10 (option a of the M3b-api open question): "I press Accept on the hand-off screen". A search run started from the browser stops after deduplication and verification; it builds no corpus snapshot and prepares no screening batches. The corpus is frozen only by the hand-off screen's accept, the existing `POST /screening/corpus/accept`. Until then another harvest is allowed; an import is allowed only before any harvest (researcher, 2026-11-10, in M3d-engine: "Keep the rule for now, combine later"; `VERIFIED_EXISTS` keeps a harvest and imports apart, and one snapshot from both, deduplicated together, is M3f-combined-corpus, a RELEASE-lane milestone of its own because it changes the snapshot's inputs). The CLI `scholar-harness run` is unchanged (it still accepts the snapshot at the end of a run, as since M3a). The engine change (the browser run skipping `_accept_run_corpus` and the screening prepare) is M3d-engine, not M3b-api: in M3b-api a successful browser run still accepts the snapshot as M3a does. Built in M3d-engine: the browser run ends `PENDING_CORPUS_ACCEPT` with `corpus_snapshot` `NOT_ACCEPTED`, and the accept builds the artifact the CLI run's accept step builds from the same records (`docs/roadmap/milestones/M3d-engine.md`).

@@ -35,10 +35,10 @@ describe("catalog parity", () => {
     // 150 keys until M5-slim; the demonstration screens and their 128 keys
     // were removed on 2026-11-05, and the new header and footer added 6
     // (`nav.workspaces`, `shell.descriptor`, `footer.*`): 22, the shell
-    // chrome only. `messages/en.ts`'s header states the same figure.
+    // chrome only; M3c-screens added `nav.discovery` (23). `messages/en.ts`'s header states the same figure.
     const expected = Object.keys(en).sort();
 
-    expect(expected).toHaveLength(22);
+    expect(expected).toHaveLength(23);
     for (const locale of SUPPORTED_LOCALES) {
       expect(Object.keys(CATALOGS[locale]).sort()).toEqual(expected);
     }

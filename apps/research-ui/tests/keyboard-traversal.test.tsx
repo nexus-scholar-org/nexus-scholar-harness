@@ -46,6 +46,7 @@ function expectedTabStops(locale: Locale): string[] {
     // The wordmark links to the workspaces screen.
     `a:${CATALOGS[locale]["brand.productName"]}`,
     `a:${CATALOGS[locale]["nav.workspaces"]}`,
+    `a:${CATALOGS[locale]["nav.discovery"]}`,
     `a:${CATALOGS[locale]["nav.screening"]}`,
     // The language menu's button shows the current endonym.
     `button:${LOCALE_METADATA[locale].endonym}`,

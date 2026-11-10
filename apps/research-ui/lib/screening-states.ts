@@ -11,7 +11,22 @@ import type { DecisionRole } from "@/components/ui/base";
  * card because the screens must show it, and its role is `unclear`.
  */
 
-export type StateAction = "import" | "prepare" | "proposals" | "triage" | "publish" | "home" | "retry" | "reload" | "terminal" | "none";
+export type StateAction =
+  | "import"
+  | "prepare"
+  | "proposals"
+  | "triage"
+  | "publish"
+  | "home"
+  | "retry"
+  | "reload"
+  | "terminal"
+  | "none"
+  // Phase 1 discovery (M3c-screens): links into the discovery steps and inception.
+  | "harvest"
+  | "discovery-import"
+  | "handoff"
+  | "inception";
 
 interface StateEntry {
   role: DecisionRole;
@@ -98,13 +113,15 @@ export const STATES: Record<string, StateEntry> = {
       ar: T("لم يعد هذا الملف في القائمة", "أُزيل مسبقًا، ربما من تبويب آخر.", "قائمة الملفات", "إعادة التحميل"),
     },
   },
+  // M3c-screens (spec 04): since M3d-engine a browser harvest waits for the hand-off accept,
+  // so the next step is the hand-off, not Prepare.
   VERIFIED_EXISTS: {
-    role: "blocked",
-    action: "prepare",
+    role: "unclear",
+    action: "handoff",
     copy: {
-      en: T("This workspace already has a corpus", "Its records came from the app's own search (literature/verified.json). Database exports would replace them, so none can be added here.", "Importing database exports", "Go to Prepare"),
-      fr: T("Cet espace a déjà un corpus", "Ses notices viennent de la recherche de l'application (literature/verified.json). Des exports de bases les remplaceraient ; aucun ne peut donc être ajouté ici.", "L'import d'exports de bases", "Aller à Préparer"),
-      ar: T("لهذه المساحة مجموعة بالفعل", "جاءت سجلاتها من بحث التطبيق نفسه (literature/verified.json). ستحل محلها صادرات قواعد البيانات، لذا لا يمكن إضافة أي منها هنا.", "استيراد صادرات قواعد البيانات", "الذهاب إلى التحضير"),
+      en: T("Exports cannot be added after a harvest", "A search in this workspace already made the records, so a database export cannot be added to them. An export can be added only before the first harvest; combining the two is planned.", "No file can be added to this workspace.", "Accept the harvest's corpus"),
+      fr: T("Impossible d'ajouter des exports après une collecte", "Une recherche dans cet espace a déjà produit les notices ; un export de base ne peut pas s'y ajouter. Un export ne s'ajoute qu'avant la première collecte ; la combinaison des deux est prévue.", "Aucun fichier ne peut être ajouté à cet espace.", "Accepter le corpus de la collecte"),
+      ar: T("لا يمكن إضافة صادرات بعد الحصاد", "أنتج بحث في مساحة العمل هذه السجلات بالفعل، فلا يمكن إضافة صادرات قاعدة بيانات إليها. تُضاف الصادرات قبل الحصاد الأول فقط؛ والجمع بين الاثنين مخطط له.", "لا يمكن إضافة أي ملف إلى مساحة العمل هذه.", "اقبل مجموعة الحصاد"),
     },
   },
   CORPUS_ALREADY_ACCEPTED: {
@@ -640,6 +657,170 @@ export const STATES: Record<string, StateEntry> = {
       en: T("The name does not match", "Type the workspace name exactly as shown to replace its protocol. Nothing was changed.", "Replacing this workspace's protocol", "Type it again"),
       fr: T("Le nom ne correspond pas", "Saisissez le nom de l'espace exactement comme affiché pour remplacer son protocole. Rien n'a été modifié.", "Le remplacement du protocole de cet espace", "Le saisir à nouveau"),
       ar: T("الاسم غير مطابق", "اكتب اسم مساحة العمل كما يظهر تمامًا لاستبدال بروتوكولها. لم يتغير شيء.", "استبدال بروتوكول مساحة العمل هذه", "اكتبه مجددًا"),
+    },
+  },
+  // Phase 1 discovery (M3c-screens, spec 07): the discovery routes' refusals and job errors.
+  PROTOCOL_MISSING: {
+    role: "blocked",
+    action: "inception",
+    copy: {
+      en: T("There is no protocol to search with yet", "Discovery reads its question, years and limits from a frozen protocol, and this workspace has none.", "Every step of discovery", "Write the protocol in inception"),
+      fr: T("Il n'y a pas encore de protocole pour chercher", "La recherche lit sa question, ses années et ses limites dans un protocole figé, et cet espace n'en a pas.", "Toutes les étapes de la recherche", "Rédiger le protocole dans l'Inception"),
+      ar: T("لا يوجد بروتوكول للبحث به بعد", "يقرأ الاستكشاف سؤاله وسنواته وحدوده من بروتوكول مجمّد، ولا يوجد بروتوكول في مساحة العمل هذه.", "كل خطوات الاستكشاف", "اكتب البروتوكول في مرحلة التأسيس"),
+    },
+  },
+  PROTOCOL_INVALID: {
+    role: "blocked",
+    action: "inception",
+    copy: {
+      en: T("The protocol cannot be read", "Its file is damaged or no longer valid, so nothing can be searched or accepted. The engine's message is under Details.", "Searching and the hand-off", "Open inception"),
+      fr: T("Le protocole est illisible", "Son fichier est endommagé ou n'est plus valide ; rien ne peut être cherché ni accepté. Le message du moteur est dans les détails.", "La recherche et la remise", "Ouvrir l'Inception"),
+      ar: T("تتعذر قراءة البروتوكول", "ملفه تالف أو لم يعد صالحًا، فلا يمكن البحث ولا القبول. رسالة المحرك في التفاصيل.", "البحث والتسليم", "افتح مرحلة التأسيس"),
+    },
+  },
+  PROTOCOL_CHANGED_SINCE_RUN: {
+    role: "unclear",
+    action: "harvest",
+    copy: {
+      en: T("The protocol changed after this search", "The run searched a query or year window the protocol no longer has. Run the search again before accepting its corpus. Nothing was frozen.", "The hand-off", "Search again"),
+      fr: T("Le protocole a changé après cette recherche", "L'exécution a cherché une requête ou une période que le protocole n'a plus. Relancez la recherche avant d'accepter son corpus. Rien n'a été figé.", "La remise", "Chercher à nouveau"),
+      ar: T("تغيّر البروتوكول بعد هذا البحث", "بحث هذا التشغيل باستعلام أو نطاق سنوات لم يعد في البروتوكول. أعد البحث قبل قبول مجموعته. لم يُجمَّد شيء.", "التسليم", "ابحث مجددًا"),
+    },
+  },
+  PROTOCOL_CHANGED_SINCE_SNAPSHOT: {
+    role: "unclear",
+    action: "inception",
+    copy: {
+      en: T("The protocol no longer matches the accepted corpus", "The workspace already froze a corpus under another protocol, and the engine will not resume on it. A changed protocol needs a new workspace.", "That search", "Open inception"),
+      fr: T("Le protocole ne correspond plus au corpus accepté", "L'espace a déjà figé un corpus sous un autre protocole et le moteur ne reprendra pas dessus. Un protocole modifié demande un nouvel espace.", "Cette recherche", "Ouvrir l'Inception"),
+      ar: T("لم يعد البروتوكول مطابقًا للمجموعة المقبولة", "جمّدت مساحة العمل مجموعة تحت بروتوكول آخر، ولن يستأنف المحرك عليها. البروتوكول المعدَّل يحتاج إلى مساحة عمل جديدة.", "ذلك البحث", "افتح مرحلة التأسيس"),
+    },
+  },
+  MAILTO_NOT_SET: {
+    role: "blocked",
+    action: "retry",
+    command: "SCHOLAR_MAILTO=<your email>",
+    copy: {
+      en: T("Set a contact email before searching", "A search needs a contact email for the literature databases. Put the line below in the console's environment, or in a .env file, then start the console again.", "Recall and Harvest", "Check again"),
+      fr: T("Indiquez une adresse de contact avant de chercher", "Une recherche demande une adresse de contact pour les bases bibliographiques. Mettez la ligne ci-dessous dans l'environnement de la console ou dans un fichier .env, puis redémarrez la console.", "Le rappel et la collecte", "Vérifier à nouveau"),
+      ar: T("حدّد بريدًا للتواصل قبل البحث", "يحتاج البحث إلى بريد للتواصل مع قواعد البيانات العلمية. ضع السطر أدناه في بيئة وحدة التحكم أو في ملف ‎.env‎، ثم أعد تشغيل وحدة التحكم.", "فحص الاستدعاء والحصاد", "تحقّق مجددًا"),
+    },
+  },
+  DISCOVERY_JOB_ACTIVE: {
+    role: "unclear",
+    action: "none",
+    copy: {
+      en: T("A search is already running", "One discovery job runs at a time in a workspace. Nothing new was started.", "Starting another", "Follow the running job"),
+      fr: T("Une recherche est déjà en cours", "Une seule tâche de recherche tourne à la fois dans un espace. Rien de nouveau n'a été lancé.", "Le lancement d'une autre", "Suivre la tâche en cours"),
+      ar: T("يجري بحث بالفعل", "تعمل مهمة استكشاف واحدة في كل مرة داخل مساحة العمل. لم يبدأ شيء جديد.", "بدء مهمة أخرى", "تابع المهمة الجارية"),
+    },
+  },
+  DISCOVERY_JOB_NOT_FOUND: {
+    role: "unclear",
+    action: "harvest",
+    copy: {
+      en: T("The console no longer knows this job", "The console was restarted, so this job is no longer known. If it produced a run, the run is in the run list.", "Live progress for this job", "See the run list"),
+      fr: T("La console ne connaît plus cette tâche", "La console a redémarré ; cette tâche n'est plus connue. Si elle a produit une exécution, elle figure dans la liste.", "Le suivi de cette tâche", "Voir la liste des exécutions"),
+      ar: T("لم تعد وحدة التحكم تعرف هذه المهمة", "أُعيد تشغيل وحدة التحكم، فلم تعد هذه المهمة معروفة. إن أنتجت تشغيلًا فهو في قائمة التشغيلات.", "متابعة هذه المهمة", "اعرض قائمة التشغيلات"),
+    },
+  },
+  RUN_NOT_FOUND: {
+    role: "exclude",
+    action: "harvest",
+    copy: {
+      en: T("There is no such run", "No search run exists in this workspace yet, or the address names a run that is not here.", "The report", "Go to Harvest"),
+      fr: T("Cette exécution n'existe pas", "Aucune recherche n'a encore été exécutée dans cet espace, ou l'adresse nomme une exécution absente.", "Le rapport", "Aller à la collecte"),
+      ar: T("لا يوجد هذا التشغيل", "لا يوجد تشغيل بحث في مساحة العمل هذه بعد، أو أن العنوان يذكر تشغيلًا غير موجود.", "التقرير", "اذهب إلى الحصاد"),
+    },
+  },
+  RECALL_NOT_RUN: {
+    role: "exclude",
+    action: "none",
+    copy: {
+      en: T("No recall check has run yet", "The page shows nothing until you run one.", "The recall table", "Run the check"),
+      fr: T("Aucun contrôle de rappel n'a encore été fait", "La page n'affiche rien tant que vous n'en lancez pas un.", "Le tableau de rappel", "Lancer le contrôle"),
+      ar: T("لم يُجرَ فحص استدعاء بعد", "لا تعرض الصفحة شيئًا حتى تجري فحصًا.", "جدول الاستدعاء", "أجرِ الفحص"),
+    },
+  },
+  DEDUP_NOT_RUN: {
+    role: "exclude",
+    action: "harvest",
+    copy: {
+      en: T("No deduplication has run yet", "A search run deduplicates its records; a database export is deduplicated when you accept it.", "The duplicate counts", "Go to Harvest"),
+      fr: T("Aucun dédoublonnage n'a encore été fait", "Une recherche dédoublonne ses notices ; un export de base est dédoublonné quand vous l'acceptez.", "Les comptes de doublons", "Aller à la collecte"),
+      ar: T("لم تُجرَ إزالة التكرار بعد", "يزيل تشغيل البحث تكرار سجلاته؛ أما صادرات قواعد البيانات فتُزال تكراراتها عند قبولها.", "أعداد التكرارات", "اذهب إلى الحصاد"),
+    },
+  },
+  SEEDS_INVALID: {
+    role: "blocked",
+    action: "none",
+    copy: {
+      en: T("A seed could not be used", "Nothing was checked. One to 25 seeds, each a DOI or an arXiv id; the engine names the first one it could not use.", "The recall check", "Fix the seed named"),
+      fr: T("Une graine n'a pas pu être utilisée", "Rien n'a été vérifié. De 1 à 25 graines, chacune un DOI ou un identifiant arXiv ; le moteur nomme la première qu'il n'a pas pu utiliser.", "Le contrôle de rappel", "Corriger la graine nommée"),
+      ar: T("تعذّر استخدام إحدى البذور", "لم يُفحص شيء. من 1 إلى 25 بذرة، كل منها DOI أو معرّف arXiv؛ يذكر المحرك أول بذرة تعذّر استخدامها.", "فحص الاستدعاء", "صحّح البذرة المذكورة"),
+    },
+  },
+  CAP_INVALID: {
+    role: "blocked",
+    action: "none",
+    copy: {
+      en: T("That cap is not allowed", "A cap for one run is a whole number from 1 to 10,000. Nothing was started.", "Starting a search", "Change the cap"),
+      fr: T("Ce plafond n'est pas autorisé", "Le plafond d'une exécution est un nombre entier de 1 à 10 000. Rien n'a été lancé.", "Le lancement d'une recherche", "Modifier le plafond"),
+      ar: T("هذا الحد غير مسموح", "حد التشغيل الواحد عدد صحيح من 1 إلى 10,000. لم يبدأ شيء.", "بدء البحث", "غيّر الحد"),
+    },
+  },
+  PROVIDER_UNKNOWN: {
+    role: "blocked",
+    action: "none",
+    copy: {
+      en: T("A database name is not one the engine knows", "Nothing was started. The engine's list is under Details.", "Starting", "Choose from the list"),
+      fr: T("Un nom de base est inconnu du moteur", "Rien n'a été lancé. La liste du moteur est dans les détails.", "Le lancement", "Choisir dans la liste"),
+      ar: T("اسم قاعدة بيانات لا يعرفه المحرك", "لم يبدأ شيء. قائمة المحرك في التفاصيل.", "البدء", "اختر من القائمة"),
+    },
+  },
+  STAGED_IMPORT_PENDING: {
+    role: "unclear",
+    action: "discovery-import",
+    copy: {
+      en: T("Database exports are staged for import", "Accept or remove them before a search run. Nothing was started.", "Starting a search", "Go to Import"),
+      fr: T("Des exports de bases attendent l'import", "Acceptez-les ou retirez-les avant une recherche. Rien n'a été lancé.", "Le lancement d'une recherche", "Aller à l'import"),
+      ar: T("توجد صادرات قواعد بيانات بانتظار الاستيراد", "اقبلها أو أزلها قبل تشغيل البحث. لم يبدأ شيء.", "بدء البحث", "اذهب إلى الاستيراد"),
+    },
+  },
+  BATCHES_INCOMPLETE: {
+    role: "unclear",
+    action: "home",
+    copy: {
+      en: T("Some studies are in no screening batch", "The engine stopped the run; its message is under Details.", "That search", "Go to screening Home"),
+      fr: T("Des études ne sont dans aucun lot", "Le moteur a arrêté l'exécution ; son message est dans les détails.", "Cette recherche", "Aller à l'accueil de la sélection"),
+      ar: T("بعض الدراسات ليست في أي دفعة فرز", "أوقف المحرك التشغيل؛ رسالته في التفاصيل.", "ذلك البحث", "اذهب إلى صفحة الفرز الرئيسية"),
+    },
+  },
+  PROVIDERS_FAILED: {
+    role: "blocked",
+    action: "harvest",
+    copy: {
+      en: T("No database answered", "Every database failed, so no records were kept. Each database's reason is listed with it.", "This search", "Search again"),
+      fr: T("Aucune base n'a répondu", "Toutes les bases ont échoué ; aucune notice n'a été gardée. La raison de chaque base est indiquée avec elle.", "Cette recherche", "Chercher à nouveau"),
+      ar: T("لم تُجب أي قاعدة بيانات", "فشلت كل قواعد البيانات، فلم يُحفظ أي سجل. سبب كل قاعدة مذكور معها.", "هذا البحث", "ابحث مجددًا"),
+    },
+  },
+  DISCOVERY_FAILED: {
+    role: "blocked",
+    action: "harvest",
+    copy: {
+      en: T("The search failed", "Something other than a database stopped it. The engine's text is under Details.", "This search", "Search again"),
+      fr: T("La recherche a échoué", "Autre chose qu'une base l'a arrêtée. Le texte du moteur est dans les détails.", "Cette recherche", "Chercher à nouveau"),
+      ar: T("فشل البحث", "أوقفه شيء غير قواعد البيانات. نص المحرك في التفاصيل.", "هذا البحث", "ابحث مجددًا"),
+    },
+  },
+  ACCEPT_CORPUS_REFUSED: {
+    role: "blocked",
+    action: "retry",
+    copy: {
+      en: T("The engine refused to freeze the corpus", "Its own message is under Details. Nothing was frozen.", "Accepting", "Try again"),
+      fr: T("Le moteur a refusé de figer le corpus", "Son message est dans les détails. Rien n'a été figé.", "L'acceptation", "Réessayer"),
+      ar: T("رفض المحرك تجميد المجموعة", "رسالته في التفاصيل. لم يُجمَّد شيء.", "القبول", "إعادة المحاولة"),
     },
   },
 };

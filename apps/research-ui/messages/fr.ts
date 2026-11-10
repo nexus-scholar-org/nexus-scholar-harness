@@ -33,6 +33,7 @@ const fr: Record<MessageKey, string> = {
     "Fonctionne sur cet ordinateur. Rien n'est envoyé ailleurs, sauf si vous lancez les propositions de l'agent.",
   "footer.journal":
     "Chaque décision est consignée dans le journal d'audit de l'espace de travail.",
+  "nav.discovery": "Recherche",
   "nav.screening": "Sélection",
   "nav.workspaces": "Espaces de travail",
   "nav.landmark.primary": "Principal",

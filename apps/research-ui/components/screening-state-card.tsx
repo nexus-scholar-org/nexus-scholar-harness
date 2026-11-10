@@ -108,10 +108,17 @@ export function StateCard({
   const Heading = pageHeading ? "h1" : "h2";
   const state = stateCopy(locale, code);
   const roleText = { include: "text-include", unclear: "text-unclear", blocked: "text-blocked", exclude: "text-exclude" }[state.role];
+  const query = consoleOrigin ? `?console=${encodeURIComponent(consoleOrigin)}` : "";
   const href =
     state.action === "import" || state.action === "prepare" || state.action === "proposals" || state.action === "triage" || state.action === "publish" || state.action === "home"
       ? stepHref(locale, state.action, consoleOrigin)
-      : null;
+      : state.action === "harvest" || state.action === "handoff"
+        ? `/${locale}/discovery/${state.action}/${query}`
+        : state.action === "discovery-import"
+          ? `/${locale}/screening/import?return=discovery${consoleOrigin ? `&console=${encodeURIComponent(consoleOrigin)}` : ""}`
+          : state.action === "inception"
+            ? `/${locale}/inception/${query}`
+            : null;
   return (
     <section role="alert" aria-labelledby={`state-${code}`} className="rounded-lg border border-rule bg-leaf p-5" data-state={code}>
       <DecisionBadge role={state.role}>{state.title}</DecisionBadge>
@@ -135,6 +142,12 @@ export function StateCard({
         <p className={`mt-1 font-mono text-[0.8125rem] ${roleText}`} dir="ltr">
           {code}
         </p>
+        {/* M3c-screens review 1: a known card still keeps the engine's own sentence, under Details. */}
+        {message && state.known ? (
+          <p className="mt-1 text-sm text-ink-muted" data-engine-message>
+            <bdi dir="ltr">{message}</bdi>
+          </p>
+        ) : null}
       </details>
       <div className="mt-3">
         {state.action === "retry" && onRetry ? (
@@ -146,7 +159,7 @@ export function StateCard({
             {command ?? state.actionLabel}
           </code>
         ) : href ? (
-          <a className="text-brand underline" href={href}>
+          <a className="inline-flex min-h-11 items-center text-brand underline" href={href}>
             {state.actionLabel}
           </a>
         ) : state.actionLabel ? (

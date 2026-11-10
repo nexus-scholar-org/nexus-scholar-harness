@@ -36,6 +36,7 @@ const ar: Record<MessageKey, string> = {
     "يعمل على هذا الحاسوب. لا يُرسَل شيء إلى أي مكان إلا إذا بدأت مقترحات الوكيل.",
   "footer.journal":
     "يُسجَّل كل قرار في سجل التدقيق الخاص بمساحة العمل.",
+  "nav.discovery": "الاستكشاف",
   "nav.screening": "الفرز",
   "nav.workspaces": "مساحات العمل",
   "nav.landmark.primary": "التنقل الرئيسي",

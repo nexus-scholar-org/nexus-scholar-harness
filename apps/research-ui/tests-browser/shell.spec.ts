@@ -71,12 +71,12 @@ test.describe("header at each width", () => {
 });
 
 test.describe("keyboard", () => {
-  test("1440px ring: skip link, wordmark, two destinations, language, three themes", async ({ page }) => {
+  test("1440px ring: skip link, wordmark, three destinations, language, three themes", async ({ page }) => {
     await page.setViewportSize(DESKTOP_VIEWPORT);
     await page.goto("/fr/workspaces");
     await page.waitForLoadState("networkidle");
     const ring: string[] = [];
-    for (let press = 0; press < 8; press += 1) {
+    for (let press = 0; press < 9; press += 1) {
       await page.keyboard.press("Tab");
       ring.push(describeStop(await activeStop(page)));
     }
@@ -86,6 +86,7 @@ test.describe("keyboard", () => {
       `a:${fr["a11y.skipToMain"]}`,
       `a:${fr["brand.productName"]}`,
       `a:${fr["nav.workspaces"]}`,
+      `a:${fr["nav.discovery"]}`,
       `a:${fr["nav.screening"]}`,
       `button:${fr["locale.selectorLabel"]}: ${LOCALE_METADATA.fr.endonym}`,
       `button:${fr["theme.system"]}`,

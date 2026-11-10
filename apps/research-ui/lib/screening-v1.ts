@@ -313,6 +313,12 @@ export interface CorpusSource {
   records: number;
   searched_on: string | null;
   query: string | null;
+  /** `ris` or `nbib` (M5c-nbib). */
+  format?: "ris" | "nbib" | string;
+  /** E3 (M3d-engine): the limits applied in the database, stored verbatim; `null` when none were given. */
+  limits?: string | null;
+  /** E3 (M3d-engine): the lines the importer could not use, with their row codes. */
+  rejected?: { line: number; code: string; reason: string }[];
 }
 
 export interface CorpusDatabase {
@@ -332,6 +338,8 @@ export interface Corpus {
   accepted: { artifact_id: string; accepted_at: string | null; records: number; studies: number; duplicates: number } | null;
   from_discovery: boolean;
   limits: { max_source_bytes: number; label_max_length: number };
+  /** M3d-engine: why staging an export is refused now (`VERIFIED_EXISTS`, `CORPUS_ALREADY_ACCEPTED`), else `null`. */
+  staging_refused?: { code: string; message: string } | null;
 }
 
 export interface CorpusSourceUpload {
@@ -341,6 +349,8 @@ export interface CorpusSourceUpload {
   content_base64: string;
   searched_on?: string | null;
   query?: string | null;
+  /** E3 (M3d-engine): the limits applied in the database, at most 2,000 characters. */
+  limits?: string | null;
 }
 
 /** Base64 of a file's bytes, without decoding them as text (BOMs and legacy encodings survive). */
