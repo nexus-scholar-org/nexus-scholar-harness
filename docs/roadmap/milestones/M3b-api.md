@@ -40,7 +40,7 @@ Points the packet did not settle, decided in this milestone. Summary entry: [`do
 
 13. **Staged exports refuse a run before it starts** (review finding 3, optional fix taken): `POST /runs` answers `409 STAGED_IMPORT_PENDING` when database exports are staged, instead of harvesting and failing at the snapshot.
 
-### Open question for the researcher (review finding 3; before M3c specs)
+### Open question for the researcher (review finding 3; before M3c specs) — answered 2026-11-10: option (a), see the Deferred line and `docs/decisions.md`
 A browser run is `run_pipeline`, which since M3a builds **and accepts** the corpus snapshot at the end of a successful run. So after one good run: every later browser run answers `CORPUS_ALREADY_ACCEPTED`; "re-run with a higher cap" after a lower-bound leg is not possible from the browser; and the hand-off screen (packet §4.8, which assumes acceptance happens there through `POST /screening/corpus/accept`) opens on a corpus that is already accepted. This milestone keeps M3a's behaviour (STANDARD lane: what the snapshot is built from, and when, is unchanged). The choice for M3c: (a) a browser run stops before the snapshot (`NOT_BUILT`) and the hand-off accepts it, which changes the run's stages; or (b) the hand-off shows "already accepted" and a higher-cap re-run goes through inception's replace path.
 
 ## Evidence
@@ -66,3 +66,4 @@ UI evidence from `dbc1482` is reused for `c69490c` (policy "Evidence reuse"): no
 - Report `identification[].cache` is always `null` (no cache flag on a leg yet); plan status `no_connection` is never produced (no offline probe); hand-off `dedup_decided_at` is left out (E4b).
 - A cancel does not interrupt a page request in flight or a retry back-off (up to 60 s in `http_client.py`); cancel waits 30 s and may answer `state: "running"`, the job then ends `cancelled`.
 - Reviewer follow-ups (P3): a draft save (`reviewed: false`) is journaled under `METHODS_TEXT_REVIEWED` with `reviewed: false` in its parameters; a malformed artifact registry gives 500 on `POST /runs`; dedup and prepare run synchronously in the console's event loop (decision 1's accepted cost); `JobRunner` jobs are not counted as discovery jobs (not browser-reachable).
+- A browser run that stops before the snapshot (researcher's choice of option (a), 2026-11-10; `docs/decisions.md` "A browser harvest does not freeze the corpus; the hand-off screen does"): the browser run skips `_accept_run_corpus` and the screening prepare, the CLI `run` is unchanged. Engine change in M3d-engine; until then a successful browser run accepts the snapshot as in M3a.
