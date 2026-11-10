@@ -378,15 +378,10 @@ def plan(request: Request) -> dict[str, Any]:
         cap = {"value": int(query.max_results), "source": "protocol", "ceiling": ENGINE_CEILING}
     else:
         cap = {"value": ENGINE_CEILING, "source": "engine_ceiling", "ceiling": ENGINE_CEILING}
-    providers = []
-    for name in KNOWN_PROVIDERS:
-        selected = name in proto.providers
-        status = "selected" if selected else ("not_selected" if name in DEFAULT_PROVIDERS else "off_by_default")
-        providers.append({
-            "name": name, "selected": selected,
-            # E1 (the dry run) is M3d-engine: until then the executed string is known after the run.
-            "executed_query": None, "request": None, "cannot_express": [], "notes": [], "status": status,
-        })
+    from scholar_search.plan import compile_plan
+
+    # E1 (M3d-engine): each selected database's translation, made without a request.
+    providers = compile_plan(proto.path, KNOWN_PROVIDERS)["providers"]
     return {
         "shape": "discovery.plan-v1",
         "protocol_fingerprint": proto.fingerprint,

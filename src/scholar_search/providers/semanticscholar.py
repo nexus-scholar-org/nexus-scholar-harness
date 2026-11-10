@@ -83,8 +83,7 @@ class SemanticScholarProvider(BaseAPIProvider):
         doc.mark_retrieved()
         return doc
 
-    async def search(self, query: Query) -> AsyncIterator[Document]:
-        """Search Semantic Scholar using the bulk endpoint."""
+    def translate(self, query: Query) -> tuple[str, dict, list[str]]:
         # Translate query to bulk syntax (e.g. "term1 + term2 | term3")
         translated_query = self.translator.translate(query)
         # S2 bulk search supports +, |, -, "phrase", and ( ) grouping! Only strip &
@@ -102,8 +101,11 @@ class SemanticScholarProvider(BaseAPIProvider):
             params["year"] = f"{query.year_min}-"
         elif query.year_max:
             params["year"] = f"-{query.year_max}"
+        return translated_query, params, []
 
-        self._record_executed(translated_query, params)
+    async def search(self, query: Query) -> AsyncIterator[Document]:
+        """Search Semantic Scholar using the bulk endpoint."""
+        _, params, _ = self._record_translation(query)
         token = None
         count = 0
         # 403 auto-downgrade: AWS API Gateway answers 403 Forbidden when a

@@ -154,9 +154,7 @@ class PubMedProvider(BaseAPIProvider):
             doc.mark_retrieved()
             yield doc
 
-    async def search(self, query: Query) -> AsyncIterator[Document]:
-        """Search PubMed using esearch and efetch."""
-
+    def translate(self, query: Query) -> tuple[str, dict, list[str]]:
         pubmed_query = self.build_term(query.text)
 
         limit = query.max_results
@@ -178,8 +176,12 @@ class PubMedProvider(BaseAPIProvider):
             params["term"] += f" AND {query.year_min}:3000[pdat]"
         elif query.year_max:
             params["term"] += f" AND 1000:{query.year_max}[pdat]"
+        return params["term"], params, []
 
-        self._record_executed(params["term"], params)
+    async def search(self, query: Query) -> AsyncIterator[Document]:
+        """Search PubMed using esearch and efetch."""
+        _, params, _ = self._record_translation(query)
+        limit = query.max_results
 
         # Page ESearch with retstart (SRCH-11), then fetch details in chunks.
         chunk_size = 200

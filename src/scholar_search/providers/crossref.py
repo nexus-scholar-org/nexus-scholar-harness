@@ -81,8 +81,7 @@ class CrossrefProvider(BaseAPIProvider):
         doc.mark_retrieved()
         return doc
 
-    async def search(self, query: Query) -> AsyncIterator[Document]:
-        """Search Crossref works."""
+    def translate(self, query: Query) -> tuple[str, dict, list[str]]:
         translated_query = self.translator.translate(query)
 
         limit = query.max_results
@@ -105,8 +104,12 @@ class CrossrefProvider(BaseAPIProvider):
 
         if filters:
             params["filter"] = ",".join(filters)
+        return translated_query, params, []
 
-        self._record_executed(translated_query, params)
+    async def search(self, query: Query) -> AsyncIterator[Document]:
+        """Search Crossref works."""
+        _, params, _ = self._record_translation(query)
+        limit = query.max_results
 
         count = 0
         while True:

@@ -187,8 +187,17 @@ def test_plan_reports_the_protocol_cap_and_the_ceiling(env):
     assert plan["protocol_fingerprint"].startswith("sha256:")
     assert plan["query"]["year_min"] == 2020 and plan["query"]["text"]
     by_name = {p["name"]: p for p in plan["providers"]}
-    assert by_name["openalex"]["selected"] is True and by_name["openalex"]["executed_query"] is None
-    assert by_name["biorxiv"] == {**by_name["biorxiv"], "selected": False, "status": "off_by_default"}
+    # E1 (M3d-engine): each selected database's string and request, before any run, without a request sent.
+    for name in ("openalex", "semanticscholar", "crossref", "arxiv", "pubmed"):
+        row = by_name[name]
+        assert row["selected"] is True and row["status"] == "translated", row
+        assert row["executed_query"] and isinstance(row["request"], dict), row
+        assert not {"mailto", "email", "tool", "api_key"} & set(row["request"]), row
+        assert any(c.startswith("language (en)") for c in row["cannot_express"]), row
+    assert "[pdat]" in by_name["pubmed"]["executed_query"]
+    assert any("no year filter" in n for n in by_name["arxiv"]["notes"])
+    assert by_name["biorxiv"] == {**by_name["biorxiv"], "selected": False, "status": "off_by_default",
+                                  "executed_query": None, "request": None}
     assert plan["imports_hint"] == ["scopus", "wos"]
 
     protocol = json.loads((ws / "protocol.json").read_text(encoding="utf-8"))

@@ -73,6 +73,31 @@ class BaseAPIProvider(ABC):
         if self.current_leg is not None and note not in self.current_leg.notes:
             self.current_leg.notes.append(note)
 
+    def translate(self, query: Query) -> tuple[str, dict, list[str]]:
+        """``(executed_query, request, notes)``: what ``search`` would send, sent nowhere.
+
+        E1 (M3d-engine): ``search`` builds its request through this method, so
+        the plan's dry run and the leg can never disagree. ``request`` is the
+        full parameter mapping (contact address and keys included); a report
+        shows it through ``public_request``. A provider that cannot say what it
+        sends before it runs raises ``NotImplementedError``.
+        """
+        raise NotImplementedError(f"{self.name} has no dry-run translation")
+
+    def cannot_express(self, query: Query) -> list[str]:
+        """The parts of the protocol query this database is not sent (E1)."""
+        if query.language:
+            return [f"language ({query.language}): no language filter is sent to {self.name}"]
+        return []
+
+    def _record_translation(self, query: Query) -> tuple[str, dict, list[str]]:
+        """Translate, then record the executed string, the request and the notes on the leg."""
+        executed, params, notes = self.translate(query)
+        self._record_executed(executed, params)
+        for note in notes:
+            self._record_note(note)
+        return executed, params, notes
+
     @abstractmethod
     async def search(self, query: Query) -> AsyncIterator[Document]:
         pass

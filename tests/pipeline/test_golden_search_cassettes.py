@@ -246,3 +246,28 @@ def test_the_handoff_accept_gives_the_snapshot_the_cli_run_gives(tmp_path, monke
     assert accepted.artifact_id == pipeline_step["artifact_id"]
     assert accepted.outcome_status == pipeline_step["outcome_status"] == cli_snapshot["outcome_status"]
     assert (accepted.study_count, accepted.record_count) == (cli_snapshot["study_count"], cli_snapshot["record_count"])
+
+
+def test_the_plan_dry_run_equals_the_replayed_legs(tmp_path):
+    """E1 (M3d-engine, packet §4.1, decision 4): each provider's translation, made
+    without a request, is the string the replayed golden run sent, per database."""
+    from scholar_search.plan import compile_plan
+
+    ws = _workspace(tmp_path, "plan")
+    outcome = _search(ws)
+    sent = {leg["provider"]: leg for leg in outcome.legs}
+
+    with _vcr().use_cassette(str(CASSETTE), allow_playback_repeats=False) as cassette:
+        plan = compile_plan(ws / "protocol.json", ["openalex", "semanticscholar", "crossref", "arxiv", "pubmed", "biorxiv"])
+        assert cassette.play_count == 0  # the dry run sends nothing
+    preview = {p["name"]: p for p in plan["providers"]}
+    assert set(preview) == DATABASES | {"biorxiv"}
+    for name in DATABASES:
+        assert preview[name]["status"] == "translated", name
+        assert preview[name]["executed_query"] == sent[name]["executed_query"], name
+        # The leg ran with the run override; the request differs only in what the cap sets.
+        assert set(preview[name]["request"]) == set(sent[name]["request"]), name
+        assert "mailto" not in preview[name]["request"] and "email" not in preview[name]["request"]
+        assert preview[name]["notes"] == [n for n in sent[name]["notes"] if n in preview[name]["notes"]], name
+    assert preview["biorxiv"]["status"] == "off_by_default"
+    assert preview["biorxiv"]["executed_query"] is None and preview["biorxiv"]["request"] is None

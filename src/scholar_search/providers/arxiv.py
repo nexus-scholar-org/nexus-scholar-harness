@@ -141,8 +141,8 @@ class ArxivProvider(BaseAPIProvider):
         doc.mark_retrieved()
         return doc
 
-    async def search(self, query: Query) -> AsyncIterator[Document]:
-        """Search arXiv."""
+    def translate(self, query: Query) -> tuple[str, dict, list[str]]:
+        notes: list[str] = []
         translated_query = self.translator.translate(query)
         # arXiv's negation is the single operator ANDNOT; "a AND NOT b"
         # translates to "a AND ANDNOT b", which arXiv cannot parse. Only that
@@ -168,7 +168,7 @@ class ArxivProvider(BaseAPIProvider):
         if len(translated_query) > 300 and " AND " in query.text and has_not:
             # Compaction reads clauses as bags of tokens, so a NOT term would
             # become a required one (SRCH-12). Send the full query instead.
-            self._record_note(
+            notes.append(
                 "arXiv query not compacted: it contains NOT, which compaction cannot keep; "
                 "the full translation was sent"
             )
@@ -224,7 +224,7 @@ class ArxivProvider(BaseAPIProvider):
                 )
                 if dropped_phrases:
                     note += "; dropped phrases: " + ", ".join(f'"{p}"' for p in dropped_phrases)
-                self._record_note(note)
+                notes.append(note)
 
         limit = query.max_results
         params = {
@@ -232,12 +232,23 @@ class ArxivProvider(BaseAPIProvider):
             "start": 0,
             "max_results": min(limit or self.PAGE_SIZE, self.PAGE_SIZE),
         }
-        self._record_executed(translated_query, params)
         if query.year_min or query.year_max:
-            self._record_note(
+            notes.append(
                 "arXiv has no year filter in its API; years were filtered after retrieval, "
                 "so fetched can be below the reported total"
             )
+        return translated_query, params, notes
+
+    def cannot_express(self, query: Query) -> list[str]:
+        out = super().cannot_express(query)
+        if query.year_min or query.year_max:
+            out.append("year window: arXiv has no year filter; years are filtered after retrieval")
+        return out
+
+    async def search(self, query: Query) -> AsyncIterator[Document]:
+        """Search arXiv."""
+        _, params, _ = self._record_translation(query)
+        limit = query.max_results
 
         # arXiv doesn't support direct year filtering in the query string well,
         # so we fetch and filter locally. Page with ``start`` (SRCH-11).
