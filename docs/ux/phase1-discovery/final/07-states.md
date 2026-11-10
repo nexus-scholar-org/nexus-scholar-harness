@@ -138,3 +138,4 @@ Playwright `discovery.spec.ts`: a stateful fake raises each refusal on its route
 None.
 
 ## As built (M3c)
+The codes are cards in `apps/research-ui/lib/screening-states.ts` (en, fr, ar), checked in every locale by `tests/discovery-copy.test.ts`. The printed contact line is `SCHOLAR_MAILTO=<your email>` (spec 01's form), with Check again. `CORPUS_ALREADY_ACCEPTED` keeps the screening card ("The corpus is already frozen"); on the discovery screens the accepted state replaces Start, Check and Accept, so the card is rarely reached.

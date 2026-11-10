@@ -89,3 +89,4 @@ Playwright `apps/research-ui/tests-browser/discovery.spec.ts` (this screen's par
 2. **Percent or fraction.** The harness writes the share removed as a fraction (for example 0.0756). The screen shows it as a percentage for reading and prints the written fraction under Details. Is that acceptable for your manuscript's PRISMA numbers? Recommended: yes; the written value stays visible and copyable.
 
 ## As built (M3c)
+Built in `apps/research-ui/components/discovery-dedup.tsx` as written: counts verbatim, the share as a percentage with the written fraction under Details (answer 5), the pairs note (answer 4), no write. Not built: keeping the last read with "As of" while the engine is unreachable (the refusal card with Try again stands in).

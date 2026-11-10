@@ -106,3 +106,4 @@ Playwright `discovery.spec.ts` (this screen's part): a partial run (one failed, 
 2. **Reviewing after the corpus is accepted.** The engine accepts the review of the latest run's methods text before and after the hand-off accept. Recommended: allow it (the methods text is for the manuscript and is not part of the frozen corpus), and keep older runs read-only.
 
 ## As built (M3c)
+Built in `apps/research-ui/components/discovery-report.tsx`. Reviewed is shown only from the `PUT` answer; editing a reviewed text shows "Edited, not saved" and Save as draft warns first (answer 6); the latest run's text can be reviewed after the accept and older runs are read-only (answer 7). Not built: disabling the methods buttons while the engine is unreachable (a failed save shows its card and keeps the text), the "{run} differs" line (the report always reads the run it names).

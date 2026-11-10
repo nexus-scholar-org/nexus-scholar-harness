@@ -96,3 +96,4 @@ Playwright `discovery.spec.ts` (this screen's part): from the discovery step bar
 None.
 
 ## As built (M3c)
+Built in `apps/research-ui/components/screening-import.tsx`. The `limits` field, the per-file limits and the "Lines the importer noted" table show on every visit (they are engine data), the step bar, "Back to discovery", the rule line and "Go to the hand-off" only with `?return=discovery` (read after mount). The `VERIFIED_EXISTS` card copy changed for every visit: since M3d-engine a harvest waits for the hand-off accept, so its next step is "Accept the harvest's corpus" (the hand-off), not Prepare. Not built: the "{file} was added; some lines were noted" announcement.
