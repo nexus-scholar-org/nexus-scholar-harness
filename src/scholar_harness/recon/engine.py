@@ -128,6 +128,17 @@ def _doc_to_pool_entry(doc: Document) -> dict[str, Any]:
     return entry
 
 
+#: The databases that take a key, and the setting that holds it (M4d DoD 1).
+KEY_SETTINGS = {"openalex": "openalex_key", "semanticscholar": "s2_key"}
+
+
+def _with_key_state(leg: dict[str, Any]) -> dict[str, Any]:
+    """Stamp ``key_set`` on a leg as it was when it ran; ``None`` for a database without keys."""
+    setting = KEY_SETTINGS.get(str(leg.get("provider")))
+    leg["key_set"] = bool(getattr(settings, setting, None)) if setting else None
+    return leg
+
+
 class ReconEngine:
     """Single-probe empirical surface scan with deterministic caching."""
 
@@ -186,7 +197,7 @@ class ReconEngine:
                 semantic=semantic,
             )
             run = await engine.run(q, dedup=True, progress_callback=progress)
-            return list(run.documents), [leg.to_dict() for leg in run.legs]
+            return list(run.documents), [_with_key_state(leg.to_dict()) for leg in run.legs]
         finally:
             await engine.close()
 

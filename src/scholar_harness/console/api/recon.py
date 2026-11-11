@@ -48,6 +48,7 @@ from scholar_harness.recon.session import (
     NARROW_BUDGET_SPENT,
     ReconRefused,
     ReconSessions,
+    key_state,
     refuse_unusable_pool,
 )
 
@@ -224,6 +225,8 @@ def recon_state(session_id: str, request: Request) -> dict[str, Any]:
     return {
         "session_id": session_id,
         "mailto_set": _mailto_set(request),
+        # M4d DoD 1: whether OpenAlex and Semantic Scholar have their keys (as GET /discovery/plan says).
+        "keys": key_state(),
         # The draft's question changed since the session searched it (review #8; spec 02 Q3).
         "topic_changed": bool(session and session.get("topic") and session["topic"] != _draft_model.topic),
         "session": session,

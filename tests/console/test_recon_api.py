@@ -331,3 +331,30 @@ def test_a_question_changed_after_the_search_is_flagged(env):
     record = client.get(f"{BASE}/drafts/{sid}").json()
     client.put(f"{BASE}/drafts/{sid}", json={"draft": {**_draft(), "topic": "soil salinity"}, "base_updated_at": record["updated_at"]})
     assert client.get(f"{BASE}/drafts/{sid}/recon").json()["topic_changed"] is True
+
+
+def test_the_recon_state_reports_the_database_keys_and_each_legs_code_and_notes(env, monkeypatch):
+    """M4d DoD 1: Explore reads key state and leg codes from the engine, as the Plan screen does."""
+    client, app, _root, _recon = env
+    monkeypatch.setattr(settings, "openalex_key", None)
+    monkeypatch.setattr(settings, "s2_key", "s2-placeholder")
+    seam = Seam()
+
+    def answer(query, providers):
+        run = seam(query, providers)
+        for leg in run.legs:
+            if leg.provider == "semanticscholar":
+                leg.status, leg.error_code = "failed", "PROVIDER_REFUSED"
+                leg.notes.append("Semantic Scholar rejected SCHOLAR_S2_KEY (HTTP 403)")
+        return run
+
+    app.state.recon_search_fn = answer
+    sid = _new_draft(client)
+    _probe(client, sid)
+    state = client.get(f"{BASE}/drafts/{sid}/recon").json()
+    assert state["keys"] == {"openalex_key_set": False, "s2_key_set": True}
+    legs = {leg["provider"]: leg for leg in state["session"]["latest"]["legs"]}
+    assert legs["semanticscholar"]["error_code"] == "PROVIDER_REFUSED"
+    assert legs["semanticscholar"]["notes"] == ["Semantic Scholar rejected SCHOLAR_S2_KEY (HTTP 403)"]
+    assert (legs["openalex"]["key_set"], legs["semanticscholar"]["key_set"], legs["crossref"]["key_set"]) == (False, True, None)
+    assert "s2-placeholder" not in json.dumps(state)

@@ -36,10 +36,11 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
+from scholar_search.config import settings
 from scholar_search.engine import MailtoNotSet
 
 from .distiller import distill_pool
-from .engine import POOL_COMPLETE, POOL_EMPTY, POOL_MAX, ProgressFn, ReconEngine, SearchFn
+from .engine import KEY_SETTINGS, POOL_COMPLETE, POOL_EMPTY, POOL_MAX, ProgressFn, ReconEngine, SearchFn
 from .gates import compute_pool_sufficiency, compute_topic_purity
 
 SESSION_ID_RE = re.compile(r"^rec_[0-9a-f]{6,64}$")
@@ -132,9 +133,32 @@ def _content_sha(payload: dict[str, Any]) -> str:
     return hashlib.sha1(json.dumps(payload, sort_keys=True, ensure_ascii=False).encode("utf-8")).hexdigest()
 
 
+def key_state() -> dict[str, bool]:
+    """Whether each keyed database has its key set (never the key itself)."""
+    return {
+        "openalex_key_set": bool(getattr(settings, "openalex_key", None)),
+        "s2_key_set": bool(getattr(settings, "s2_key", None)),
+    }
+
+
 def _legs_summary(legs: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    keep = ("provider", "status", "reported_total", "fetched", "cap", "cap_hit", "error")
-    return [{k: leg.get(k) for k in keep} for leg in legs]
+    """One line per database: its status, counts, failure code and notes (INC-09, M4d DoD 1).
+
+    ``key_set`` is ``True``/``False`` for a database that takes a key and
+    ``None`` for one that does not, as it was when the probe ran.
+    """
+    keep = ("provider", "status", "reported_total", "fetched", "cap", "cap_hit", "error", "error_code")
+    out = []
+    for leg in legs:
+        row = {k: leg.get(k) for k in keep}
+        row["notes"] = list(leg.get("notes") or [])
+        setting = KEY_SETTINGS.get(str(leg.get("provider")))
+        if "key_set" in leg:  # stamped by the engine when the leg ran (a cached pool keeps it)
+            row["key_set"] = leg["key_set"]
+        else:
+            row["key_set"] = bool(getattr(settings, setting, None)) if setting else None
+        out.append(row)
+    return out
 
 
 class ReconSessions:
