@@ -15,8 +15,8 @@ Boards: `Shape` (D5, `docs/ux/phase0-inception/final/project/Shape.dc.html`). No
 - **Cut**: the phase ladder in the app bar (the shell owns it) and the "Run from the terminal" disclosure (no resumable command). Each card's "Evidence" and "Excludes" lines are kept, but they come from the engine's `refraction[{paradigm, evidence, negatives}]`, not from hand-written text.
 
 ## Entry / exit
-- Entry: "Continue to Shape" on 01; the stepper; "Back to Shape" from 05.
-- Exit: "Continue to concepts and criteria" goes to 05 after saving; "Back to Scope" goes to 01; "Save draft and exit" goes to 08.
+- Entry: "Continue to Shape" on 03 (Direction; amended 2026-11-11 for M4d, it was on 01); the stepper; "Back to Shape" from 05. Step order: Scope 1, Explore 2, Direction 3, Shape 4, Criteria 5, Review 6.
+- Exit: "Continue to concepts and criteria" goes to 05 after saving; "Back to Direction" goes to 03 (was "Back to Scope" to 01); "Save draft and exit" goes to 08.
 - Gate: Continue is enabled when a paradigm, a playbook, a unit of analysis, a proof and at least one non-empty research question are present (a presence check that mirrors the engine's `_require` for `paradigm`, `playbook`, `unit_of_analysis`, `proof`, `rqs`; the engine stays the authority). Nothing is written to a workspace.
 
 ## Data in
@@ -74,7 +74,7 @@ Keys in `apps/research-ui/lib/inception-copy.ts`; shared keys are in 01.
 - `unit.label` "Unit of analysis"; `unit.help` "For example a model, a team, a crop field."; `proof.label` "Proof a reviewer would accept"; `proof.help` "It becomes the first inclusion criterion in step 5; you accept it there."
 - `rq.template` "Template draft · not yet yours"; `rq.templateMeta` "template {playbook} · RQ1 · filled from unit and proof"; `rq.use` "Use this as RQ1"; `rq.own` "Write my own"; `rq.waiting` "Choose a lens to get a template question."; `rq.label` "Research question {n}"; `rq.add` "Add another question"; `rq.remove` "Remove question {n}"; `rq.vocab` "Vocabulary for this lens: {lexicon}"; `rq.lexiconWarning` "{warning}".
 - `gate.paradigm` "Choose a lens"; `gate.playbook` "Choose a playbook"; `gate.unit` "Write the unit of analysis"; `gate.proof` "Write the proof"; `gate.rq` "Write RQ1".
-- `back` "Back to Scope"; `continue` "Continue to concepts and criteria".
+- `back` "Back to Direction"; `continue` "Continue to concepts and criteria".
 - Refusals: `inception.refusal.<CODE>.*` (08); the `DRAFT_INCOMPLETE` topic sentence is `inception.shape.needTopic` "Write your question in step 1 first."
 
 ## Accessibility
