@@ -7,6 +7,9 @@ import { formatNumber } from "@/i18n";
 import { Button, DecisionBadge } from "@/components/ui/base";
 import { inceptionHref, InceptionFrame, InceptionRefusal, refusalOf, StepHeader, useDraft, type Refusal } from "@/components/inception-frame";
 import { runStep, type CriteriaStep, type Criterion, type Draft, type MatrixStep } from "@/lib/inception-api";
+import { getConcepts, getRecon, hasUsablePool, type ConceptReport, type ReconState } from "@/lib/recon-api";
+import { DETAILS_LABEL } from "@/components/screening-state-card";
+import { DoiLink } from "@/components/inception-recon";
 import { inceptionT, sourceText } from "@/lib/inception-copy";
 
 /**
@@ -15,7 +18,13 @@ import { inceptionT, sourceText } from "@/lib/inception-copy";
  * status; the screen only records the researcher's Accept or Reject in
  * `criteria_decisions`. A criterion the wizard wrote stays "waiting" (default
  * no) until accepted; one the researcher typed is accepted unless rejected.
+ *
+ * With a pool (M4d), each concept shows how many pool papers each of its terms
+ * occurs in and the engine's co-occurring pool terms as unticked boxes; a tick
+ * only adds the term to that concept's synonyms in the page, saved with it.
  */
+
+const SUGGESTIONS_SHOWN = 5;
 
 function synonymsOf(text: string): string[] {
   return text
@@ -34,6 +43,27 @@ export function InceptionCriteria({ locale }: Readonly<{ locale: Locale }>) {
   const [stepError, setStepError] = useState<Refusal | null>(null);
   const [newInclusion, setNewInclusion] = useState("");
   const [newExclusion, setNewExclusion] = useState("");
+  const [recon, setRecon] = useState<ReconState | null>(null);
+  const [report, setReport] = useState<ConceptReport | null>(null);
+  const [allSuggestions, setAllSuggestions] = useState<Record<number, boolean>>({});
+
+  // The counts describe the saved draft: read once per stored version.
+  useEffect(() => {
+    if (!record) return;
+    const controller = new AbortController();
+    getRecon(origin, record.session_id, controller.signal).then(
+      (read) => {
+        setRecon(read);
+        if (!hasUsablePool(read)) return setReport(null);
+        getConcepts(origin, record.session_id, controller.signal).then(setReport, () => setReport(null));
+      },
+      () => {
+        setRecon(null);
+        setReport(null);
+      },
+    );
+    return () => controller.abort();
+  }, [origin, record]);
 
   useEffect(() => {
     if (!record) return;
@@ -207,7 +237,8 @@ export function InceptionCriteria({ locale }: Readonly<{ locale: Locale }>) {
           </h2>
           <ol className="mt-3 space-y-3">
             {concepts.map((c, index) => (
-              <li key={index} className="grid gap-2 sm:grid-cols-[1fr_2fr_auto] sm:items-end" data-concept={index}>
+              <li key={index} data-concept={index}>
+              <div className="grid gap-2 sm:grid-cols-[1fr_2fr_auto] sm:items-end">
                 <div>
                   <label htmlFor={`concept-${index}`} className="block text-xs text-ink-muted">
                     {t("criteria.concept")} {formatNumber(locale, index + 1)}
@@ -220,6 +251,7 @@ export function InceptionCriteria({ locale }: Readonly<{ locale: Locale }>) {
                   </label>
                   <input
                     id={`concept-syn-${index}`}
+                    key={(c.synonyms ?? []).join("|")}
                     defaultValue={(c.synonyms ?? []).join(", ")}
                     onBlur={(event) => setConcept(index, { synonyms: synonymsOf(event.target.value) })}
                     className="mt-1 block min-h-11 w-full rounded-md border border-rule bg-paper px-2 text-ink"
@@ -228,9 +260,39 @@ export function InceptionCriteria({ locale }: Readonly<{ locale: Locale }>) {
                 <Button variant="quiet" onClick={() => update({ concepts: concepts.filter((_, i) => i !== index) })}>
                   {t("criteria.removeConcept", { n: formatNumber(locale, index + 1) })}
                 </Button>
+              </div>
+              {report ? (
+                <Anchoring
+                  locale={locale}
+                  index={index}
+                  report={report}
+                  concept={c.concept}
+                  synonyms={c.synonyms ?? []}
+                  all={!!allSuggestions[index]}
+                  onAll={() => setAllSuggestions((a) => ({ ...a, [index]: !a[index] }))}
+                  onTick={(term, on) => setConcept(index, { synonyms: on ? [...(c.synonyms ?? []), term] : (c.synonyms ?? []).filter((x) => x !== term) })}
+                />
+              ) : null}
               </li>
             ))}
           </ol>
+          {report ? <p className="mt-2 text-xs text-ink-muted" data-anchor-note>{t("criteria.anchor.note")}</p> : null}
+          {recon && !hasUsablePool(recon) ? (
+            <p className="mt-2 text-sm text-ink-muted" data-no-pool>
+              {t("criteria.synonyms.noPool")}{" "}
+              <a className="inline-flex min-h-11 items-center text-brand underline" href={inceptionHref(locale, "explore", draftId, origin)}>
+                {t("criteria.synonyms.goExplore")}
+              </a>
+            </p>
+          ) : null}
+          {recon?.scope_changed && report ? (
+            <p className="mt-2 text-sm text-unclear" data-scope-changed>
+              {t("criteria.anchor.scopeChanged")}{" "}
+              <a className="inline-flex min-h-11 items-center text-brand underline" href={inceptionHref(locale, "explore", draftId, origin)}>
+                {t("criteria.synonyms.goExplore")}
+              </a>
+            </p>
+          ) : null}
           <div className="mt-3">
             <Button onClick={() => update({ concepts: [...concepts, { concept: "", synonyms: [] }] })}>{t("criteria.addConcept")}</Button>
           </div>
@@ -327,5 +389,102 @@ export function InceptionCriteria({ locale }: Readonly<{ locale: Locale }>) {
         </div>
       </form>
     </InceptionFrame>
+  );
+}
+
+/** One concept's counts in the pool and the engine's co-occurring pool terms (spec 05, M4d). */
+function Anchoring({
+  locale,
+  index,
+  report,
+  concept,
+  synonyms,
+  all,
+  onAll,
+  onTick,
+}: Readonly<{
+  locale: Locale;
+  index: number;
+  report: ConceptReport;
+  concept: string;
+  synonyms: string[];
+  all: boolean;
+  onAll: () => void;
+  onTick: (term: string, on: boolean) => void;
+}>) {
+  const t = inceptionT(locale);
+  const row = report.concepts.find((r) => r.source === "draft" && r.concept === concept.trim());
+  if (!row) return null;
+  const total = String(report.n_docs);
+  const suggestions = all ? row.suggestions : row.suggestions.slice(0, SUGGESTIONS_SHOWN);
+  return (
+    <div className="mt-2 space-y-2 text-sm" data-anchoring={index}>
+      <p className="text-ink" data-anchor-concept>
+        <bdi dir="auto">{t("criteria.anchor.concept", { concept: row.concept, anchored: String(row.anchored_in), total })}</bdi>
+        {row.anchored_in === 0 ? (
+          <>
+            {" "}
+            <DecisionBadge role="unclear">{t("criteria.anchor.none")}</DecisionBadge>
+          </>
+        ) : null}
+      </p>
+      <ul className="flex flex-wrap gap-2">
+        {row.terms.map((term) => (
+          <li key={term.term} className="rounded-sm border border-rule px-2 py-1" data-term={term.term} data-observed={term.observed_in}>
+            <span dir="auto" className="text-ink">
+              {term.term}
+            </span>{" "}
+            {term.observed_in === 0 ? (
+              <DecisionBadge role="unclear">{t("criteria.anchor.none")}</DecisionBadge>
+            ) : (
+              <span className="text-ink-muted" dir="ltr">
+                {t("criteria.anchor.term", { observed: String(term.observed_in), total })}
+              </span>
+            )}
+            {term.anchor_dois.length ? (
+              <details className="text-xs">
+                <summary className="min-h-11 cursor-pointer rounded-sm py-3 leading-5 text-ink-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus">
+                  {DETAILS_LABEL[locale]} · {t("criteria.anchor.dois", { n: String(term.anchor_dois.length) })}
+                </summary>
+                <ul>
+                  {term.anchor_dois.map((doi) => (
+                    <li key={doi}>
+                      <DoiLink locale={locale} doi={doi} />
+                    </li>
+                  ))}
+                </ul>
+              </details>
+            ) : null}
+          </li>
+        ))}
+      </ul>
+      <div role="group" aria-label={t("criteria.synonyms.group", { concept: row.concept })} className="rounded-md border border-dashed border-ink-muted p-3" data-suggestions={index}>
+        <p className="text-xs font-semibold text-ink-muted">{t("criteria.synonyms.title")}</p>
+        <p className="text-xs text-ink-muted">{t("criteria.synonyms.help")}</p>
+        {row.suggestions.length === 0 ? (
+          <p className="mt-1 text-ink-muted">{t("criteria.synonyms.none")}</p>
+        ) : (
+          <ul className="mt-1">
+            {suggestions.map((sug) => {
+              const on = synonyms.includes(sug.term);
+              return (
+                <li key={sug.term}>
+                  <label className="flex min-h-11 cursor-pointer items-center gap-3 text-ink">
+                    <input type="checkbox" checked={on} onChange={() => onTick(sug.term, !on)} className="h-5 w-5 shrink-0" data-suggestion={sug.term} />
+                    <bdi dir="auto">{t("criteria.synonyms.option", { term: sug.term, observed: String(sug.observed_in) })}</bdi>
+                  </label>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+        {row.suggestions.length > SUGGESTIONS_SHOWN ? (
+          <Button variant="quiet" className="px-0" aria-expanded={all} onClick={onAll}>
+            {all ? t("criteria.synonyms.less") : t("criteria.synonyms.more", { n: String(row.suggestions.length) })}
+          </Button>
+        ) : null}
+        {row.suggestions.some((sug) => synonyms.includes(sug.term)) ? <p className="text-xs text-ink-muted">{t("criteria.synonyms.unsaved")}</p> : null}
+      </div>
+    </div>
   );
 }

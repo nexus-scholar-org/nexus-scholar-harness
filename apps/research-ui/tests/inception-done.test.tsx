@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { InceptionDone } from "@/components/inception-done";
@@ -51,5 +51,13 @@ describe("inception.done", () => {
     render(<InceptionDone locale="en" />);
     expect(await screen.findByRole("heading", { name: "This draft has not created a workspace yet." })).toBeInTheDocument();
     expect(sent(engine).some((c) => c.includes("/workspaces/open"))).toBe(false);
+  });
+
+  it("after a replacement, lists what was archived beside the old protocol (M4d)", async () => {
+    setUp({ emitted: emitted({ replaced: true, backup_dir: `${ROOT}\\weed-review\\audit\\replaced\\20261109T100000Z`, archived: ["literature/", "artifacts/"] }) });
+    render(<InceptionDone locale="en" />);
+    const archived = (await screen.findByText("Archived beside the old protocol")).closest("[data-archived]") as HTMLElement;
+    expect(within(archived).getByText("literature/")).toBeInTheDocument();
+    expect(within(archived).getByText(/The new protocol starts with no corpus/)).toBeInTheDocument();
   });
 });

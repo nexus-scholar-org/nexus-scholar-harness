@@ -114,6 +114,17 @@ export function InceptionDone({ locale }: Readonly<{ locale: Locale }>) {
                 </dd>
               </div>
             ) : null}
+            {result.archived?.length ? (
+              <div data-archived>
+                <dt className="text-ink-muted">{t("done.archived")}</dt>
+                {result.archived.map((path) => (
+                  <dd key={path}>
+                    <DataCell>{path}</DataCell>
+                  </dd>
+                ))}
+                <dd className="mt-1 text-ink">{t("done.archivedNote")}</dd>
+              </div>
+            ) : null}
           </dl>
           {opening ? (
             <p role="status" className="text-lg text-ink" data-opening>

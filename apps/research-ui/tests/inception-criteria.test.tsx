@@ -81,4 +81,42 @@ describe("inception.criteria", () => {
     const proof = (await screen.findByText(PROOF)).closest("li")!;
     expect(within(proof).getByText("كتبه المعالج من إجابتك عن الدليل")).toBeInTheDocument();
   });
+
+  it("shows each term's count in the pool and ticks a pool term into the synonyms only on a click (M4d)", async () => {
+    const { engine } = setUp({ draft: completeDraft({ concepts: [{ concept: "weed detection", synonyms: ["quantum"] }] }) });
+    engine.handle("POST", `/api/v1/inception/drafts/${SESSION}/recon/probe`, { refresh: false, semantic: false });
+    render(<InceptionCriteria locale="en" />);
+    expect(await screen.findByText("weed detection: in 8 of 14")).toBeInTheDocument();
+    const quantum = document.querySelector("[data-term='quantum']") as HTMLElement;
+    expect(within(quantum).getByText("not in the pool")).toBeInTheDocument();
+    const group = screen.getByRole("group", { name: "Terms from your first search for weed detection" });
+    const boxes = within(group).getAllByRole("checkbox");
+    expect(boxes.map((b) => b.getAttribute("data-suggestion"))).toEqual(["embedded hardware", "real-time"]);
+    expect(boxes.every((b) => !(b as HTMLInputElement).checked)).toBe(true);
+    const puts = () => engine.calls.filter((c) => c.method === "PUT");
+    fireEvent.click(within(group).getByRole("checkbox", { name: "embedded hardware · 8 papers" }));
+    expect(puts()).toHaveLength(0);
+    fireEvent.click(within(group).getByRole("checkbox", { name: "real-time · 8 papers" }));
+    fireEvent.click(within(group).getByRole("checkbox", { name: "real-time · 8 papers" }));
+    fireEvent.click(screen.getByRole("button", { name: "Continue to review" }));
+    await waitFor(() => expect(puts()).toHaveLength(1));
+    expect((puts()[0].body as { draft: { concepts: unknown } }).draft.concepts).toEqual([{ concept: "weed detection", synonyms: ["quantum", "embedded hardware"] }]);
+  });
+
+  it("with no pool shows no counts, no suggestions, a link to Explore, and never reads the concepts (M4d)", async () => {
+    const { engine } = setUp({ draft: completeDraft() });
+    render(<InceptionCriteria locale="en" />);
+    expect(await screen.findByRole("link", { name: "Go to Explore" })).toHaveAttribute("href", `/en/inception/explore/?draft=${SESSION}`);
+    expect(document.querySelector("[data-anchoring]")).toBeNull();
+    expect(engine.calls.some((c) => c.path.endsWith("/recon/concepts"))).toBe(false);
+  });
+
+  it("notes an earlier scope when the engine reports one (M4d)", async () => {
+    const { engine } = setUp({ draft: completeDraft() });
+    engine.handle("POST", `/api/v1/inception/drafts/${SESSION}/recon/probe`, { refresh: false, semantic: false });
+    const record = engine.drafts.get(SESSION)!;
+    engine.handle("PUT", `/api/v1/inception/drafts/${SESSION}`, { draft: { ...(record.draft as object), start_year: 2015 }, base_updated_at: record.updated_at });
+    render(<InceptionCriteria locale="en" />);
+    expect(await screen.findByText(/The pool was searched for an earlier scope; counts may not match./)).toBeInTheDocument();
+  });
 });
