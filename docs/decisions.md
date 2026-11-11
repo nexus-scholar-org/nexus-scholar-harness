@@ -4,6 +4,10 @@ One entry per decision that still shapes the code, newest first. The full
 records were removed in the 2026-11-03 docs cut; each entry names the commit
 history to read if you need the original reasoning (`git log --follow -- <path>`).
 
+## 2026-11-11 — Citation chasing comes after M4d, before the parked phases (accepted)
+
+The researcher asked which of synthesis, the extraction matrix and the citation graph to build first. Answer taken: citation chasing (backward and forward snowballing from the includes) first, as a small discovery milestone `M3g-citation-chasing` after M4d, because it raises recall, the product's core promise, and the search kit already has the primitives. Then the extraction matrix, because synthesis without extracted data is a summary of abstracts. Synthesis after that, starting from matrix tables rather than generated prose. The graph visualisation last, if ever. The three stay parked until screening is solid with real users; only `M3g` enters the plan now (`docs/roadmap/production-plan.md` §6).
+
 ## 2026-11-11 — How M4d grounds browser inception: keys, languages, pool synonyms, anchor seeds (proposed; M4d-inception-bridge)
 
 Choices made while building M4d; the researcher confirms them at the PR. Record: `docs/roadmap/milestones/M4d-inception-bridge.md`.
