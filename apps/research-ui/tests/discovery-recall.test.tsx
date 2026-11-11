@@ -153,4 +153,56 @@ describe("discovery.recall", () => {
     await screen.findByText("Checking the seeds");
     expect(screen.queryByText(/Checking \d+ seeds/)).toBeNull();
   });
+
+  it("pre-fills the protocol's anchor seeds as removable Anchor rows and sends them only on the button (M4d)", async () => {
+    const user = userEvent.setup();
+    const { engine } = setUp({ goldenSeeds: ["10.1000/a", "10.1000/b"] });
+    render(<DiscoveryRecall locale="en" />);
+    await screen.findByRole("heading", { level: 1, name: "No recall check yet" });
+    expect(screen.getByText("These are the anchor papers you kept in inception. Remove any you do not want, or add your own.")).toBeInTheDocument();
+    expect(screen.getByLabelText("Identifier of seed 1")).toHaveValue("10.1000/a");
+    expect(screen.getByLabelText("Identifier of seed 2")).toHaveValue("10.1000/b");
+    expect(document.querySelectorAll("[data-anchor-row]")).toHaveLength(2);
+    expect(engine.calls.some((c) => c.method === "POST" && c.path === "/api/v1/discovery/recall")).toBe(false);
+    await user.click(screen.getByRole("button", { name: "Add a seed" }));
+    await user.type(screen.getByLabelText("Identifier of seed 3"), "10.1000/mine");
+    await user.click(screen.getByRole("button", { name: "Check these seeds" }));
+    await screen.findByRole("heading", { level: 1, name: /The query finds/ });
+    const post = engine.calls.find((c) => c.method === "POST" && c.path === "/api/v1/discovery/recall")!;
+    expect(post.body).toEqual({
+      seeds: [
+        { id: "10.1000/a", kind: "doi", source: "anchor" },
+        { id: "10.1000/b", kind: "doi", source: "anchor" },
+        { id: "10.1000/mine", kind: "doi", source: "you" },
+      ],
+    });
+  });
+
+  it("sends only the anchor seed that was not removed (M4d)", async () => {
+    const user = userEvent.setup();
+    const { engine } = setUp({ goldenSeeds: ["10.1000/a", "10.1000/b"] });
+    render(<DiscoveryRecall locale="en" />);
+    await user.click(await screen.findByRole("button", { name: "Remove seed 1" }));
+    await user.click(screen.getByRole("button", { name: "Check these seeds" }));
+    await screen.findByRole("heading", { level: 1, name: /The query finds/ });
+    expect(engine.calls.find((c) => c.method === "POST" && c.path === "/api/v1/discovery/recall")!.body).toEqual({ seeds: [{ id: "10.1000/b", kind: "doi", source: "anchor" }] });
+  });
+
+  it("opens with one empty row when the protocol has no anchor seeds, and with the stored check's seeds when one exists (M4d)", async () => {
+    setUp({ goldenSeeds: [] });
+    render(<DiscoveryRecall locale="en" />);
+    expect(await screen.findByLabelText("Identifier of seed 1")).toHaveValue("");
+    expect(document.querySelectorAll("[data-seed-row]")).toHaveLength(1);
+    expect(document.querySelector("[data-anchor-row]")).toBeNull();
+  });
+
+  it("fills the form from a stored check, not from the anchor seeds (M4d)", async () => {
+    const { engine } = setUp({ goldenSeeds: ["10.1000/anchor-only"] });
+    engine.handle("POST", "/api/v1/discovery/recall", { seeds: [{ id: "10.1000/one", kind: "doi", source: "you" }] });
+    render(<DiscoveryRecall locale="en" />);
+    await screen.findByRole("heading", { level: 1, name: /The query finds/ });
+    const values = [...document.querySelectorAll("[data-seed-row] input")].map((i) => (i as HTMLInputElement).value);
+    expect(values.length).toBeGreaterThan(0);
+    expect(values).not.toContain("10.1000/anchor-only");
+  });
 });
