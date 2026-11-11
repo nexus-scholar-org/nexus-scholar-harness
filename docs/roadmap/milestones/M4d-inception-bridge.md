@@ -1,5 +1,5 @@
 # M4d-inception-bridge Grounded inception in the browser (Explore, Direction, synonyms, anchor seeds, replace semantics)
-Branch: dev/m4d/inception-bridge · Lane: **RELEASE** (F1 moves researcher data under `literature/`, per [`three-phase-hardening-2026-11-10.md`](../../assessment/three-phase-hardening-2026-11-10.md) §4 item 2; the seeds add a draft field and write `search_strategy.golden_seeds`; `test_gate_policy.md` §lanes) · Status: READY FOR PR · Started: 2026-11-11
+Branch: dev/m4d/inception-bridge · Lane: **RELEASE** (F1 moves researcher data under `literature/`, per [`three-phase-hardening-2026-11-10.md`](../../assessment/three-phase-hardening-2026-11-10.md) §4 item 2; the seeds add a draft field and write `search_strategy.golden_seeds`; `test_gate_policy.md` §lanes) · Status: MERGED (PR #223, merge commit `71f4c624`, 2026-11-11) · Started: 2026-11-11
 
 Approved by the researcher in chat on 2026-11-11 (relayed by the coordinating session). Base: `origin/main` at `839a51dd`.
 
