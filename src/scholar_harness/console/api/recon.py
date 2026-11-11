@@ -40,7 +40,8 @@ from scholar_search.config import settings
 
 from scholar_harness.inception import steps
 from scholar_harness.inception.drafts import DraftRefused, DraftStore
-from scholar_harness.inception.grounding import build_grounding, check_binding
+from scholar_harness.inception.grounding import build_grounding, check_binding, scope_changes, scope_of
+from scholar_harness.inception.intent import draft_default_concepts
 from scholar_harness.recon.session import (
     DELTA_BUDGET,
     DIRECTION_UNKNOWN,
@@ -48,13 +49,18 @@ from scholar_harness.recon.session import (
     NARROW_BUDGET_SPENT,
     ReconRefused,
     ReconSessions,
+    key_state,
+    pool_fingerprint,
     refuse_unusable_pool,
+    term_evidence,
 )
+from scholar_harness.recon.vocabulary import concept_report, seed_candidates
 
 router = APIRouter(prefix="/api/v1/inception/drafts/{session_id}/recon", tags=["inception-recon"])
 
 RECON_JOB_ACTIVE = "RECON_JOB_ACTIVE"
 RECON_JOB_NOT_FOUND = "RECON_JOB_NOT_FOUND"
+TERM_EMPTY = "TERM_EMPTY"
 TERMINAL = ("succeeded", "failed")
 #: Finished jobs kept per draft; older ones answer RECON_JOB_NOT_FOUND (their results stay in the session).
 KEEP_FINISHED = 10
@@ -207,6 +213,8 @@ class BindBody(BaseModel):
     model_config = ConfigDict(extra="forbid")
     direction: str | None = None
     own: str | None = None
+    #: Go on without a direction, recorded as not grounded (spec 03 Q1, M4d).
+    skip: bool = False
     accept_thin_pool: bool = False
     base_updated_at: str | None = None
 
@@ -221,16 +229,34 @@ def recon_state(session_id: str, request: Request) -> dict[str, Any]:
         raise _error(exc) from exc
     grounding = record.get("grounding")
     active = _jobs(request).active(session_id)
+    changes = _scope_changes(sessions, session_id, session, _draft_model) if session else []
     return {
         "session_id": session_id,
         "mailto_set": _mailto_set(request),
+        # M4d DoD 1: whether OpenAlex and Semantic Scholar have their keys (as GET /discovery/plan says).
+        "keys": key_state(),
         # The draft's question changed since the session searched it (review #8; spec 02 Q3).
         "topic_changed": bool(session and session.get("topic") and session["topic"] != _draft_model.topic),
         "session": session,
         "grounding": grounding,
-        "binding": check_binding(sessions, grounding) if grounding else None,
+        # M4d (spec 02 Q3, 03 Q3): the saved question, years or languages differ from the latest pool's.
+        "scope_changed": bool(changes),
+        "scope_changes": changes,
+        "binding": check_binding(sessions, grounding, scope_of(_draft_model)) if grounding else None,
         "active_job": active.to_dict() if active else None,
     }
+
+
+def _scope_changes(sessions: ReconSessions, session_id: str, session: dict[str, Any], draft: Any) -> list[str]:
+    """The parts of the draft's scope that differ from what the latest pool was searched for."""
+    try:
+        pool, _path = sessions.latest_pool(session_id)
+    except ReconRefused:
+        return []
+    then: dict[str, Any] = {"topic": session.get("topic"), "year_min": pool.get("year_min"), "year_max": pool.get("year_max")}
+    if "languages" in pool and pool["languages"] is not None:
+        then["languages"] = pool["languages"]
+    return scope_changes(scope_of(draft), then)
 
 
 @router.post("/probe", status_code=202)
@@ -268,6 +294,7 @@ async def start_probe(session_id: str, body: ProbeBody, request: Request) -> dic
             query, session_id=session_id, topic=draft.topic, purpose=purpose,
             year_min=draft.start_year or 2000, year_max=draft.end_year,
             semantic=body.semantic, refresh=body.refresh, progress=progress,
+            languages=list(draft.languages),
         )
         refuse_unusable_pool(result)
         return result
@@ -360,13 +387,68 @@ def directions(session_id: str, request: Request) -> dict[str, Any]:
     return out
 
 
+def _concept_rows(draft: steps.Draft) -> tuple[list[dict[str, Any]], str]:
+    """The draft's concepts, or the scope step's suggested words when it has none yet."""
+    if draft.concepts:
+        return [{"concept": c.concept, "synonyms": list(c.synonyms)} for c in draft.concepts], "draft"
+    return [{"concept": w, "synonyms": []} for w in draft_default_concepts(draft.topic)], "suggested"
+
+
+@router.get("/concepts")
+def concepts(session_id: str, request: Request) -> dict[str, Any]:
+    """M4d DoD 3 and 4: per concept, the pool records anchoring it and co-occurring pool terms."""
+    try:
+        _record, draft = _draft(request, session_id)
+        pool, _path = _sessions(request).latest_pool(session_id)
+    except (ReconRefused, DraftRefused, steps.StepRefused) as exc:
+        raise _error(exc) from exc
+    rows, source = _concept_rows(draft)
+    return {
+        "session_id": session_id,
+        "fingerprint": pool_fingerprint(pool),
+        "n_docs": len(pool.get("docs") or []),
+        "concepts": concept_report(pool, rows, source),
+    }
+
+
+@router.get("/evidence")
+def evidence(session_id: str, request: Request, term: str = "") -> dict[str, Any]:
+    """Spec 03 Q4 (M4d): does a phrase occur in the latest pool? Reads only."""
+    try:
+        _draft(request, session_id)
+        if not term.strip():
+            raise ReconRefused(TERM_EMPTY, "Type a phrase to check.", status=422)
+        pool, _path = _sessions(request).latest_pool(session_id)
+    except (ReconRefused, DraftRefused, steps.StepRefused) as exc:
+        raise _error(exc) from exc
+    return {"term": term, **term_evidence(pool, term.strip()), "n_docs": len(pool.get("docs") or [])}
+
+
+@router.get("/seeds")
+def seeds(session_id: str, request: Request) -> dict[str, Any]:
+    """M4d DoD 5: the pool records that anchor a direction or a concept, offered as recall seeds."""
+    try:
+        _record, draft = _draft(request, session_id)
+        sessions = _sessions(request)
+        found = sessions.directions(session_id)
+        pool, _path = sessions.latest_pool(session_id)
+    except (ReconRefused, DraftRefused, steps.StepRefused) as exc:
+        raise _error(exc) from exc
+    rows, _source = _concept_rows(draft)
+    return {
+        "session_id": session_id,
+        "fingerprint": pool_fingerprint(pool),
+        "papers": seed_candidates(pool, found["directions"], [r["concept"] for r in rows]),
+    }
+
+
 @router.post("/bind")
 def bind(session_id: str, body: BindBody, request: Request) -> dict[str, Any]:
     try:
-        _draft(request, session_id)
+        _record, draft = _draft(request, session_id)
         grounding = build_grounding(
             _sessions(request), session_id, direction=body.direction, own=body.own,
-            accept_thin_pool=body.accept_thin_pool,
+            accept_thin_pool=body.accept_thin_pool, scope=scope_of(draft), skip=body.skip,
         )
         return _store(request).bind_grounding(session_id, grounding, base_updated_at=body.base_updated_at)
     except (ReconRefused, DraftRefused, steps.StepRefused) as exc:

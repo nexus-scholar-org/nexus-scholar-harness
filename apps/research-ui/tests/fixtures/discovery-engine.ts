@@ -43,6 +43,8 @@ export interface DiscoveryFakeOptions {
   recall?: boolean;
   /** Refuse a route once with this answer, keyed `METHOD path`. */
   refuseOnce?: Record<string, Answer>;
+  /** The protocol's anchor papers kept in inception (`golden_seeds` on the plan, M4d). */
+  goldenSeeds?: string[];
 }
 
 const PROVIDERS = ["openalex", "semanticscholar", "crossref", "arxiv", "pubmed", "biorxiv"] as const;
@@ -163,7 +165,7 @@ export function discoveryEngine(options: DiscoveryFakeOptions = {}) {
   const plan = () => ({
     shape: "discovery.plan-v1", protocol_fingerprint: FINGERPRINT,
     query: { id: "Q1", text: QUERY_TEXT, year_min: 2018, year_max: 2026, language: "en" },
-    cap: { value: 500, source: "protocol", ceiling: 10000 }, mailto_set: mailto, openalex_key_set: openalexKey, s2_key_set: s2Key,
+    cap: { value: 500, source: "protocol", ceiling: 10000 }, mailto_set: mailto, openalex_key_set: openalexKey, s2_key_set: s2Key, golden_seeds: options.goldenSeeds ?? [],
     providers: PROVIDERS.map((name) => {
       const selected = SELECTED.includes(name);
       return {

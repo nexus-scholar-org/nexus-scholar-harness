@@ -10,7 +10,7 @@ Routes (`/<locale>/…`, locales `en`, `fr`, `ar`):
 | :-- | :-- |
 | `/workspaces` | the workspaces screen (spec 00); `/<locale>` forwards here |
 | `/inception` | inception drafts and resume (Phase 0 spec 08) |
-| `/inception/scope`, `/shape`, `/criteria`, `/review`, `/done` | the inception steps (Phase 0 specs 01, 04 to 07; `?draft=`). Explore (02) and Direction (03) have no screen yet |
+| `/inception/scope`, `/explore`, `/direction`, `/shape`, `/criteria`, `/review`, `/done` | the inception steps (Phase 0 specs 01 to 07; `?draft=`). Explore (02) and Direction (03) read the recon routes of the draft (M4d) |
 | `/discovery` | the discovery entry page |
 | `/discovery/plan`, `/recall`, `/harvest`, `/dedup`, `/report`, `/handoff` | the discovery steps (Phase 1 specs 01 to 03, 05, 06, 08); Import (04) is `/screening/import?return=discovery` |
 | `/screening/home`, `/import`, `/prepare`, `/triage`, `/proposals`, `/agreement`, `/publish`, `/export` | the screening steps (Phase 2 specs 01 to 03, 06, 07, 09 to 11); `/screening` forwards to the home |

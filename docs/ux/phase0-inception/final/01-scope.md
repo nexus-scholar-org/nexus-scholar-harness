@@ -9,7 +9,7 @@ Boards: `Scope` (D2, `docs/ux/phase0-inception/final/project/Scope.dc.html`), `M
 - **"Papers to sample" (25)**, "12 or more keeps directions reliable": a recon parameter; not a draft field.
 - **The side card "The first search will use"** (papers, years, languages, mode, source): the search does not exist. The years and languages stay as plain fields.
 - **"Topic checks as you type"** (two subjects, fewer than 4 words, a question with no subject): a client-side heuristic. The browser makes no domain decision (`apps/research-ui/AGENTS.md`), and the engine has no such check. Cut. The only length rule is that the question is not empty.
-- **The button "Search 25 papers"**: becomes "Continue to Shape". Steps 2 Explore and 3 Direction need recon; the stepper shows them as "Coming with recon", not as links (see 02 and 03). The step numbers are kept so recon can slot in without renumbering.
+- **The button "Search 25 papers"**: becomes "Continue to Explore" (amended 2026-11-11 for M4d; it was "Continue to Shape" while Explore and Direction were not built). The first search itself is run on Explore (02), not here. The step order is Scope 1, Explore 2, Direction 3, Shape 4, Criteria 5, Review 6; the stepper links all of them (02 and 03 are live).
 - **"Nothing written yet … recon cache … session rec_7f3a…"**: drafts are in `<workspaces root>/.drafts/<session id>/draft.json`, not the recon cache (decision 2026-11-08). The card says so with the real root.
 - **The disclosure "Run from the terminal" (`uv run scholar-harness inception --grounded`)**: that command does not read a browser draft, and there is no `--resume` (`grep` of `cli.py` and `inception/` finds none). Cut on every inception screen.
 - **The phase ladder in the app bar** (Inception, Discovery, … Trust, "Not production"): the shell's primary nav owns it. Cut.
@@ -22,7 +22,7 @@ The other specs refer to this section instead of repeating it.
 
 **Route and shell.** `?draft=` carries the session id (`rec_` plus 32 lowercase hex characters; `SESSION_ID_RE` allows 6 to 64, the UI mints none). The `?console=<origin>` parameter is carried on every link, as on the screening screens. The inception routes are workspace-free on the engine (`_workspace_free`, `serve.py:74`): they must render with no workspace open, so the shell treats `/inception/*` as a workspace-free, live-only path (no Demonstration marker), as `/workspaces` is. The proxy already allows the calls (`apps/research-ui/app/api/console/[...path]/route.ts:68-86`, `src/scholar_harness/console/browser.py:53-61`): POST for drafts, preview, steps and genesis; PUT for one draft; **no DELETE**, so no screen offers to discard a draft.
 
-**Stepper** (`nav`, label `inception.common.stepper.label`): `1 Scope`, `2 Explore` and `3 Direction` (plain text with the tag "Coming with recon", not focusable, no link), `4 Shape`, `5 Concepts and criteria`, `6 Review and create`, and `Done` only once the draft has `emitted`. The current step has `aria-current="step"`. Any linked step can be opened at any time; no step is locked, because the draft has no "step reached" field.
+**Stepper** (`nav`, label `inception.common.stepper.label`): `1 Scope`, `2 Explore`, `3 Direction` (all live links since M4d; the "Coming with recon" / "Not built yet" tag is removed), `4 Shape`, `5 Concepts and criteria`, `6 Review and create`, and `Done` only once the draft has `emitted`. The current step has `aria-current="step"`. Any linked step can be opened at any time; no step is locked, because the draft has no "step reached" field.
 
 **Loading and saving.**
 1. Every screen starts with `GET /drafts/{id}` and keeps the record's `updated_at` as `base_updated_at`. Fields the screen does not edit are carried through unchanged in the next save (PUT replaces the whole draft).
@@ -38,7 +38,7 @@ The other specs refer to this section instead of repeating it.
 
 ## Entry / exit
 - Entry: "Start a new review" on 08 (`POST /drafts`, then here); "Resume" on 08; the stepper from any other draft screen; a link "New review" on the Workspaces screen reaches 08 first (addendum in `docs/ux/phase2-screening/final/00-workspaces.md`).
-- Exit: "Continue to Shape" goes to 04 after saving. "Save draft and exit" goes to 08. "Back to your drafts" (no save needed when clean) goes to 08.
+- Exit: "Continue to Explore" goes to 02 after saving (was 04). "Save draft and exit" goes to 08. "Back to your drafts" (no save needed when clean) goes to 08.
 - Gate: Continue is disabled until the question is not empty (the engine's `_require` for `topic`; the engine stays the authority). Nothing is written to a workspace on this screen.
 
 ## Data in
@@ -66,7 +66,7 @@ The other specs refer to this section instead of repeating it.
 None is in `_PHONE_ROUTES` (`serve.py:55`): a phone token gets `TOKEN_SCOPE_REFUSED`. Writes sit under the loopback origin check (`ACTION_ORIGIN_REFUSED`) plus `HOST_REFUSED` and `TOKEN_REQUIRED`.
 
 ## States
-- **Default**: eyebrow "Step 1 of 6 · Scope"; Literata h1 "What is your review about?"; lede "The question, the years and the languages set the window of the review. Nothing is written to a workspace in this step."; the form card; the side cards. One brand button: "Continue to Shape".
+- **Default**: eyebrow "Step 1 of 6 · Scope"; Literata h1 "What is your review about?"; lede "The question, the years and the languages set the window of the review. Nothing is written to a workspace in this step."; the form card; the side cards. One brand button: "Continue to Explore".
 - **Empty**: a new draft (`draft` is `{}`): the question is empty, years are empty, language chip "English" is on (the engine default `["en"]`), Continue is disabled with the reason beside it ("Write your question first"). The side proposal card is replaced by the line "The wizard reads your question after you write it." Not an error; no code.
 - **Loading** (skeleton): the h1 area and three field skeletons; no field is editable until the draft has loaded. The proposal card has its own skeleton (`aria-busy`) while `steps/scope` runs; the form is usable meanwhile.
 - **Error** (typed refusal, `StateCard`):
@@ -92,7 +92,7 @@ Focus order: skip link, shell, stepper (linked steps only), h1, question, From y
 Keys in `apps/research-ui/lib/inception-copy.ts` (en master, then fr and ar; fr/ar are added by the implementer, not here). No literal `aria-label`, `title`, `alt` or `placeholder` attributes (N9 guard).
 
 Shared (`inception.common.*`):
-- `stepper.label` "Inception steps"; `stepper.scope` "1 Scope"; `stepper.explore` "2 Explore"; `stepper.direction` "3 Direction"; `stepper.shape` "4 Shape"; `stepper.criteria` "5 Concepts and criteria"; `stepper.review` "6 Review and create"; `stepper.done` "Done"; `stepper.comingWithRecon` "Not built yet" (was "Coming with recon" until M3h-providers: recon runs over HTTP since M4c, the Explore and Direction screens do not exist).
+- `stepper.label` "Inception steps"; `stepper.scope` "1 Scope"; `stepper.explore` "2 Explore"; `stepper.direction` "3 Direction"; `stepper.shape` "4 Shape"; `stepper.criteria` "5 Concepts and criteria"; `stepper.review` "6 Review and create"; `stepper.done` "Done"; `stepper.comingWithRecon` removed once 02 and 03 ship (it read "Not built yet", and "Coming with recon" until M3h-providers; recon runs over HTTP since M4c and the Explore and Direction screens are live from M4d).
 - `eyebrow` "Step {n} of 6 · {name}"; `draftId` "Draft {id}"; `draftSaved` "Draft saved {date}"; `unsaved` "Unsaved changes"; `saving` "Saving the draft"; `saved` "Draft saved".
 - `back` "Back to your drafts"; `saveExit` "Save draft and exit"; `offlineNote` "needs the engine on this computer"; `asOf` "As of {time}".
 - `leave.title` "Leave without saving?"; `leave.body` "Your changes on this page are not in the draft yet."; `leave.save` "Save and leave"; `leave.discard` "Leave without saving"; `leave.stay` "Stay".
@@ -107,11 +107,11 @@ Scope (`inception.scope.*`):
 - `languages.label` "Languages"; `languages.add` "Add a language"; `languages.code` "Language code, for example fr"; `languages.remove` "Remove {language}"; `languages.help` "Records in other languages are excluded at screening only if you write an exclusion for them."
 - `reads.title` "What the wizard reads"; `reads.lens` "Closest lens by keywords: {paradigm}, {n} keyword matches. You choose the lens in step 4."; `reads.none` "No keyword matches any lens yet."; `reads.concepts` "Words it picked out as concepts"; `reads.waiting` "The wizard reads your question after you write it."; `reads.note` "These are suggestions only. Nothing is added until you add it in step 5."
 - `saved.title` "Where this is saved"; `saved.body` "This draft is saved on this computer in {root}, not in a workspace. A workspace is written only at step 6."
-- `continue` "Continue to Shape".
+- `continue` "Continue to Explore".
 - Refusals use the shared keys `inception.refusal.<CODE>.{title,body,affects,action}` (08).
 
 ## Accessibility
-- Contrast pairs from tokens: `ink` on `ground`, `ink-muted` captions on `surface`, `brand` on `brand-soft` for the current step; the "Coming with recon" tag is `ink-muted` text, not colour alone. Status never rests on colour only.
+- Contrast pairs from tokens: `ink` on `ground`, `ink-muted` captions on `surface`, `brand` on `brand-soft` for the current step; every step is a link; the current step is marked by `aria-current` and the `brand` styling, not colour alone. Status never rests on colour only.
 - The question and years have visible labels and `aria-describedby` for their help; the disabled Continue carries `aria-describedby` pointing at the reason; refusals use `role="alert"`; "Draft saved" is announced with `aria-live="polite"`.
 - Language chips are a `role="group"` labelled "Languages", each chip a button with `aria-pressed`; the add field has a visible label.
 - The proposal card is labelled by its badge; its keyword matches are text.

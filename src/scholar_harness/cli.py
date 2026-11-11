@@ -753,7 +753,7 @@ def inception(
     replace: bool = typer.Option(
         False,
         "--replace",
-        help="Replace the protocol of an existing workspace with this title (the old protocol files are backed up under audit/replaced/)",
+        help="Replace the protocol of an existing workspace with this title (the old protocol files and its corpus are archived under audit/replaced/)",
     ),
     discard_screening_binding: bool = typer.Option(
         False,

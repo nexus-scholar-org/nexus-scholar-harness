@@ -7,7 +7,8 @@ import { formatNumber } from "@/i18n";
 import { Button, DataCell, DecisionBadge, GatePanel } from "@/components/ui/base";
 import { DETAILS_LABEL } from "@/components/screening-state-card";
 import { inceptionHref, InceptionFrame, InceptionRefusal, refusalOf, StepHeader, useDraft, type Refusal } from "@/components/inception-frame";
-import { previewDraft, runGenesis, runStep, type Criterion, type GenesisRequest, type Preview, type ScreeningBinding } from "@/lib/inception-api";
+import { previewDraft, runGenesis, runStep, type Criterion, type DraftRecord, type GenesisRequest, type Preview, type ScreeningBinding } from "@/lib/inception-api";
+import { DoiLink } from "@/components/inception-recon";
 import { inceptionT, sourceText } from "@/lib/inception-copy";
 
 /**
@@ -51,7 +52,8 @@ export function InceptionReview({ locale }: Readonly<{ locale: Locale }>) {
       setRefusal(null);
       try {
         if (store && !(await save())) return;
-        const [compiled, steps] = await Promise.all([previewDraft(origin, draft), runStep(origin, "criteria", draft)]);
+        // With the session id the engine refuses a stale direction (STALE_BINDING) before compiling.
+        const [compiled, steps] = await Promise.all([previewDraft(origin, draft, undefined, record?.session_id), runStep(origin, "criteria", draft)]);
         setPreview(compiled);
         setRejected(steps.criteria.filter((c) => c.status === "rejected"));
         setStale(false);
@@ -62,7 +64,7 @@ export function InceptionReview({ locale }: Readonly<{ locale: Locale }>) {
         setChecking(false);
       }
     },
-    [origin, draft, save],
+    [origin, draft, save, record?.session_id],
   );
 
   // Preview the saved draft once it is read.
@@ -276,6 +278,8 @@ export function InceptionReview({ locale }: Readonly<{ locale: Locale }>) {
                 </div>
               </dl>
 
+              <DirectionSection locale={locale} record={record} draftId={draftId} origin={origin} />
+
               <section aria-labelledby="review-criteria" className="rounded-lg border border-rule bg-leaf p-4">
                 <h2 id="review-criteria" className="font-semibold text-ink">
                   {t("review.criteria")}
@@ -396,6 +400,7 @@ export function InceptionReview({ locale }: Readonly<{ locale: Locale }>) {
                 <p className="mt-1">
                   <DataCell>{confirm.path}</DataCell>
                 </p>
+                <ArchiveList locale={locale} archive={target?.archive ?? []} />
               </section>
             ) : confirm?.kind === "bound" ? (
               <section role="alert" aria-labelledby="confirm-title" className="rounded-lg border border-blocked bg-leaf p-4" data-confirm="bound">
@@ -412,6 +417,7 @@ export function InceptionReview({ locale }: Readonly<{ locale: Locale }>) {
                 <p className="mt-1">
                   <DataCell>{confirm.path}</DataCell>
                 </p>
+                <ArchiveList locale={locale} archive={target?.archive ?? []} />
               </section>
             ) : null}
 
@@ -453,5 +459,89 @@ export function InceptionReview({ locale }: Readonly<{ locale: Locale }>) {
         ) : null}
       </div>
     </InceptionFrame>
+  );
+}
+
+/**
+ * Direction and recall seeds (spec 06, M4d): the choice as the draft records it,
+ * the explicit skip included, and how many recall seeds were kept. None of the
+ * four lines blocks Create; a stale direction comes back from the preview.
+ */
+function DirectionSection({ locale, record, draftId, origin }: Readonly<{ locale: Locale; record: DraftRecord | null; draftId: string; origin: string }>) {
+  const t = inceptionT(locale);
+  const grounding = record?.grounding ?? null;
+  const seeds = record?.draft.golden_seeds ?? [];
+  const direction = grounding?.direction;
+  const skipped = !!grounding && (grounding.choice === "none" || direction?.source === "none");
+  return (
+    <section aria-labelledby="review-direction" className="rounded-lg border border-rule bg-leaf p-4 text-sm" data-review-direction>
+      <h2 id="review-direction" className="font-semibold text-ink">
+        {t("review.direction.title")}
+      </h2>
+      {!grounding || !direction ? (
+        <p className="mt-2 flex flex-wrap items-center gap-2" data-direction-line="none">
+          <DecisionBadge role="exclude">{t("review.direction.none")}</DecisionBadge>
+        </p>
+      ) : skipped ? (
+        <div className="mt-2" data-direction-line="skipped">
+          <DecisionBadge role="unclear">{t("review.direction.skipped")}</DecisionBadge>
+          <p className="mt-1 text-ink">{t("review.direction.skippedBody")}</p>
+        </div>
+      ) : (
+        <div className="mt-2" data-direction-line={direction.source === "researcher" ? "own" : "pool"}>
+          <p className="flex flex-wrap items-center gap-2 text-ink">
+            <bdi>{t(direction.source === "researcher" ? "review.direction.own" : "review.direction.chosen", { label: direction.label })}</bdi>
+            <DecisionBadge role={direction.grounded ? "include" : "unclear"}>{direction.grounded ? t("review.direction.grounded") : t("review.direction.ungrounded")}</DecisionBadge>
+          </p>
+          <p className="text-ink-muted">{t("review.direction.occurs", { observed: String(direction.observed_in), total: String(direction.n_docs) })}</p>
+        </div>
+      )}
+      <a className="inline-flex min-h-11 items-center text-brand underline" href={inceptionHref(locale, "direction", draftId, origin)}>
+        {t("review.edit", { step: t("step.direction") })}
+      </a>
+      {seeds.length ? (
+        <div data-review-seeds={seeds.length}>
+          <p className="text-ink">{t("review.seeds.count", { n: String(seeds.length) })}</p>
+          <details>
+            <summary className="min-h-11 cursor-pointer rounded-sm py-3 leading-5 text-ink-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus">
+              {DETAILS_LABEL[locale]} · {t("review.seeds.details")}
+            </summary>
+            <ul>
+              {seeds.map((doi) => (
+                <li key={doi}>
+                  <DoiLink locale={locale} doi={doi} />
+                </li>
+              ))}
+            </ul>
+          </details>
+        </div>
+      ) : (
+        <p className="text-ink" data-review-seeds="0">
+          {t("review.seeds.none")}
+        </p>
+      )}
+      <p className="mt-1 text-xs text-ink-muted">{t("review.seeds.caption")}</p>
+    </section>
+  );
+}
+
+/** What a replacement moves into the backup folder beside the old protocol (the preview's `target.archive`, M4d). */
+function ArchiveList({ locale, archive }: Readonly<{ locale: Locale; archive: string[] }>) {
+  const t = inceptionT(locale);
+  if (!archive.length) return null;
+  return (
+    <div className="mt-3 text-sm" data-archive>
+      <p className="font-medium text-ink">{t("review.archive.title")}</p>
+      <ul className="mt-1 space-y-1">
+        {archive.map((path) => (
+          <li key={path}>
+            <DataCell>{path}</DataCell>
+          </li>
+        ))}
+      </ul>
+      <p className="mt-1 text-ink">
+        <bdi>{t("review.archive.body")}</bdi>
+      </p>
+    </div>
   );
 }

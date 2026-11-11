@@ -203,6 +203,8 @@ class Survey:
     extra_exclusions: list[tuple[str, str]]
     trust_score_threshold: float
     matrix_dimensions: list[dict] = field(default_factory=list)
+    #: DOIs the discovery Recall check looks for (M4d): the pool anchors the researcher kept.
+    golden_seeds: list[str] = field(default_factory=list)
 
 
 def draft_default_concepts(topic: str) -> list[str]:
@@ -332,7 +334,7 @@ def make_intent(
 
     languages = survey.languages or ["en"]
 
-    return {
+    intent = {
         "protocol_id": f"proto-{genesis_timestamp[:10].replace('-', '')}-{slug}",
         "genesis_timestamp": genesis_timestamp,
         "project_slug": slug,
@@ -376,5 +378,9 @@ def make_intent(
         "reproducibility_das_cas_check": True,
         "minimum_trust_score_threshold": survey.trust_score_threshold,
     }
+    # Only when the researcher kept seeds, so an intent without them is unchanged (M4d).
+    if survey.golden_seeds:
+        intent["golden_seeds"] = list(survey.golden_seeds)
+    return intent
 
 

@@ -10,11 +10,13 @@
  * researcher's own (accepted unless rejected).
  */
 
+import { reconEngine, type ReconOptions } from "./recon-engine";
+
 export const ROOT = "C:\\Users\\r\\Documents\\Nexus Scholar\\workspaces";
 export const SESSION = "rec_0123456789abcdef0123456789abcdef";
 
 type Json = Record<string, unknown>;
-export type Answer = { status: number; body: unknown };
+export type Answer = { status: number; body: unknown; sse?: boolean };
 
 export interface FakeOptions {
   /** A workspace already in the target folder; `bound` adds screening decisions. */
@@ -23,6 +25,8 @@ export interface FakeOptions {
   refuseOnce?: Record<string, Answer>;
   /** The open route's answer (default: a restart). */
   restarting?: boolean;
+  /** The recon routes of the draft (M4d): contact address, keys, what each probe finds. */
+  recon?: ReconOptions;
 }
 
 const PARADIGMS = [
@@ -81,11 +85,12 @@ export function inceptionEngine(options: FakeOptions = {}) {
   let clock = 0;
   const now = () => `2026-11-09T10:${String(clock++).padStart(2, "0")}:00+00:00`;
   const drafts = new Map<string, Json>();
-  const calls: { method: string; path: string; body: Json | null }[] = [];
+  const calls: { method: string; path: string; body: Json | null; search?: string }[] = [];
   const refuseOnce = { ...(options.refuseOnce ?? {}) };
   let existing = options.existing ?? "none";
   let current: string | null = null;
   let nextId = 0;
+  const recon = reconEngine(options.recon ?? {}, () => now());
 
   const seed = (draft: Json = {}, emitted: Json | null = null, id = SESSION): string => {
     const at = now();
@@ -125,17 +130,25 @@ export function inceptionEngine(options: FakeOptions = {}) {
           exists,
           workspace: exists && existing !== "folder",
           screening: exists && existing !== "folder" ? { bound: existing === "bound", decision_events: existing === "bound" ? 4 : 0, decision_files: 0, published: false } : null,
+          archive: exists && existing !== "folder" ? ["literature/", "artifacts/"] : [],
         },
       },
     };
   };
 
-  const handle = (method: string, path: string, body: Json | null): Answer => {
-    calls.push({ method, path, body });
+  const handle = (method: string, fullPath: string, body: Json | null): Answer => {
+    const [path, search = ""] = fullPath.split("?");
+    calls.push({ method, path, body, ...(search ? { search } : {}) });
     const once = refuseOnce[`${method} ${path}`];
     if (once) {
       delete refuseOnce[`${method} ${path}`];
       return once;
+    }
+    const reconPath = path.match(/^\/api\/v1\/inception\/drafts\/([^/]+)\/recon(.*)$/);
+    if (reconPath) {
+      const record = drafts.get(reconPath[1]);
+      if (!record) return refuse(404, "DRAFT_NOT_FOUND");
+      return recon.handle(method, reconPath[2], new URLSearchParams(search), body, record, (next) => drafts.set(reconPath[1], next));
     }
     if (path === "/api/v1/inception/drafts" && method === "GET") {
       const items = [...drafts.values()].map((r) => ({
@@ -164,6 +177,8 @@ export function inceptionEngine(options: FakeOptions = {}) {
       if (method === "PUT") {
         if (record.emitted) return refuse(409, "DRAFT_EMITTED", "this draft already created a workspace");
         if (body?.base_updated_at && body.base_updated_at !== record.updated_at) return refuse(409, "DRAFT_CONFLICT", "the draft changed since it was read");
+        const seeds = ((body?.draft ?? {}) as Json).golden_seeds as unknown[] | undefined;
+        if (seeds && (seeds.length > 25 || seeds.some((d) => !/^10\./.test(String(d))))) return refuse(422, "DRAFT_INVALID", "golden_seeds: at most 25 DOIs", { errors: ["golden_seeds"] });
         const stored = { ...record, draft: body?.draft ?? {}, updated_at: now() };
         drafts.set(one[1], stored);
         return { status: 200, body: stored };
@@ -199,12 +214,18 @@ export function inceptionEngine(options: FakeOptions = {}) {
       }
       return refuse(404, "STEP_UNKNOWN");
     }
-    if (path === "/api/v1/inception/preview" && method === "POST") return previewOf((body?.draft ?? {}) as Json);
+    if (path === "/api/v1/inception/preview" && method === "POST") {
+      const bound = body?.session_id ? drafts.get(String(body.session_id)) : undefined;
+      const stale = bound ? recon.staleBinding({ ...bound, draft: body?.draft ?? {} }) : null;
+      return stale ?? previewOf((body?.draft ?? {}) as Json);
+    }
     const gen = path.match(/^\/api\/v1\/inception\/drafts\/([^/]+)\/genesis$/);
     if (gen && method === "POST") {
       const record = drafts.get(gen[1]);
       if (!record) return refuse(404, "DRAFT_NOT_FOUND");
       if (record.emitted) return refuse(409, "DRAFT_EMITTED", "this draft already created a workspace");
+      const stale = recon.staleBinding(record);
+      if (stale) return stale;
       const compiled = previewOf(record.draft as Json);
       if (compiled.status !== 200) return compiled;
       const slug = slugify(String((record.draft as Json).title));
@@ -222,7 +243,7 @@ export function inceptionEngine(options: FakeOptions = {}) {
         path: target,
         protocol_fingerprint: "sha256:" + "ab".repeat(32),
         replaced,
-        ...(replaced ? { previous_fingerprint: "sha256:" + "cd".repeat(32), backup_dir: `${target}\\audit\\replaced\\20261109T100000Z` } : {}),
+        ...(replaced ? { previous_fingerprint: "sha256:" + "cd".repeat(32), backup_dir: `${target}\\audit\\replaced\\20261109T100000Z`, archived: ["literature/", "artifacts/"] } : {}),
       };
       drafts.set(gen[1], { ...record, emitted: { slug, path: target, protocol_fingerprint: result.protocol_fingerprint, replaced } });
       existing = "workspace";
@@ -237,7 +258,12 @@ export function inceptionEngine(options: FakeOptions = {}) {
     return refuse(404, "NOT_FOUND", path);
   };
 
-  return { handle, calls, drafts, seed };
+  /** Refuse the next call of `METHOD path` with this answer. */
+  const refuseNext = (key: string, answer: Answer) => {
+    refuseOnce[key] = answer;
+  };
+
+  return { handle, calls, drafts, seed, recon, refuseNext };
 }
 
 /** A complete draft: every answer preview needs, the generated criterion still undecided. */
@@ -266,10 +292,11 @@ export function proofId(proof = "mIoU and FPS on a public benchmark"): string {
 export function stubFetch(engine: ReturnType<typeof inceptionEngine>, stub: (fn: (url: string, init?: RequestInit) => Promise<Response>) => void) {
   stub(async (url: string, init?: RequestInit) => {
     const parsed = new URL(url, "http://localhost");
-    const path = parsed.pathname.replace("/api/console", "");
+    const path = parsed.pathname.replace("/api/console", "") + parsed.search;
     const method = (init?.method ?? "GET").toUpperCase();
     const body = init?.body ? (JSON.parse(String(init.body)) as Json) : null;
     const answer = engine.handle(method, path, body);
+    if (answer.sse) return new Response(String(answer.body), { status: answer.status, headers: { "content-type": "text/event-stream" } });
     return new Response(JSON.stringify(answer.body), { status: answer.status, headers: { "content-type": "application/json" } });
   });
 }

@@ -27,12 +27,17 @@ import { discoveryT, providerName, type DiscoveryCopyKey } from "@/lib/discovery
  * 02 Recall check (spec `docs/ux/phase1-discovery/final/02-recall.md`): does the
  * frozen query reach papers the researcher already knows? Check-only
  * (decision 3): the query is never rewritten, a miss blocks nothing, and a
- * synonym is a protocol amendment through inception. Seeds are the
- * researcher's own (DOI or arXiv id); anchor seeds wait for an engine item.
+ * synonym is a protocol amendment through inception. With no check yet, the
+ * form opens with the protocol's anchor papers (`golden_seeds`, kept on
+ * inception's Direction step, M4d) as removable "Anchor" rows; nothing is
+ * checked until the researcher presses the button.
  */
 
 const MAX_SEEDS = 25;
-type SeedRow = { key: number; kind: SeedKind; id: string };
+/** `anchor`: the protocol DOI this row was filled with; it is sent as an anchor seed only while unchanged. */
+type SeedRow = { key: number; kind: SeedKind; id: string; anchor?: string };
+
+const isAnchor = (row: SeedRow) => !!row.anchor && row.kind === "doi" && row.id.trim() === row.anchor;
 
 const CELL: Record<string, { key: DiscoveryCopyKey; role: DecisionRole }> = {
   found: { key: "recall.found", role: "include" },
@@ -61,29 +66,33 @@ export function DiscoveryRecall({ locale }: Readonly<{ locale: Locale }>) {
   const heading = useRef<HTMLHeadingElement>(null);
   const firstSeed = useRef<HTMLInputElement>(null);
 
-  const readCheck = useCallback(async () => {
+  const readCheck = useCallback(async (golden: string[] = []) => {
     try {
       const last = await getRecall(origin);
       setCheck(last);
       setEmpty(false);
-      setRows(last.seeds.map((s) => ({ key: nextKey.current++, kind: s.kind === "arxiv" ? "arxiv" : "doi", id: s.id })));
+      setRows(last.seeds.map((s) => ({ key: nextKey.current++, kind: s.kind === "arxiv" ? "arxiv" : "doi", id: s.id, anchor: s.source === "anchor" ? s.id : undefined })));
     } catch (error) {
       const refusal = refusalOf(error);
-      if (refusal.code === "RECALL_NOT_RUN") setEmpty(true);
-      else setLoadError(refusal);
+      if (refusal.code === "RECALL_NOT_RUN") {
+        setEmpty(true);
+        if (golden.length) setRows(golden.slice(0, MAX_SEEDS).map((doi) => ({ key: nextKey.current++, kind: "doi", id: doi, anchor: doi })));
+      } else setLoadError(refusal);
     }
   }, [origin]);
 
   const load = useCallback(async () => {
     setLoadError(null);
+    let read: Plan;
     try {
-      setPlan(await getPlan(origin));
+      read = await getPlan(origin);
+      setPlan(read);
     } catch (error) {
       setLoadError(refusalOf(error));
       setLoaded(true);
       return;
     }
-    await readCheck();
+    await readCheck(read.golden_seeds ?? []);
     getRuns(origin).then(
       (runs) => {
         const active = runs.active_job;
@@ -115,7 +124,7 @@ export function DiscoveryRecall({ locale }: Readonly<{ locale: Locale }>) {
   const submit = async () => {
     setStartError(null);
     setCancelled(false);
-    const seeds = rows.filter((r) => r.id.trim()).map((r) => ({ id: r.id.trim(), kind: r.kind, source: "you" as const }));
+    const seeds = rows.filter((r) => r.id.trim()).map((r) => ({ id: r.id.trim(), kind: r.kind, source: isAnchor(r) ? ("anchor" as const) : ("you" as const) }));
     try {
       const { job } = await startRecall(origin, seeds);
       setSubmitted(seeds.length);
@@ -321,6 +330,11 @@ export function DiscoveryRecall({ locale }: Readonly<{ locale: Locale }>) {
                   <p id="recall-help" className="mt-1 text-sm text-ink-muted">
                     {t("recall.form.help")}
                   </p>
+                  {!check && rows.some((r) => r.anchor) ? (
+                    <p className="mt-1 text-sm text-ink" data-anchor-note>
+                      {t("recall.form.anchorNote")}
+                    </p>
+                  ) : null}
                   <ol className="mt-3 space-y-3">
                     {rows.map((row, index) => (
                       <li key={row.key} className="flex flex-wrap items-end gap-2" data-seed-row>
@@ -357,6 +371,12 @@ export function DiscoveryRecall({ locale }: Readonly<{ locale: Locale }>) {
                             }}
                             className="min-h-11 w-full rounded-md border border-rule-strong bg-paper px-3 font-mono text-[0.8125rem] text-ink"
                           />
+                          {isAnchor(row) ? (
+                            <p className="mt-1 flex flex-wrap items-center gap-2 text-xs text-ink-muted" data-anchor-row>
+                              <DecisionBadge role="exclude">{t("recall.form.anchorRow")}</DecisionBadge>
+                              {!check ? t("recall.form.anchorTitleLater") : null}
+                            </p>
+                          ) : null}
                         </div>
                         <Button
                           disabled={running}

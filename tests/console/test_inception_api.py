@@ -9,6 +9,7 @@ overwrite guard.
 from __future__ import annotations
 
 import json
+from pathlib import Path
 import re
 
 import pytest
@@ -304,3 +305,124 @@ def test_preview_tells_a_workspace_from_a_folder_that_is_not_one(root):
     target = client.post(f"{BASE}/preview", json={"draft": _draft()}).json()["target"]
     assert target["exists"] is True and target["workspace"] is False and target["screening"] is None
     assert "project.json" in client.post(f"{BASE}/preview", json={"draft": _draft()}).json()["files"]
+
+
+def _accept_a_corpus(ws):
+    """An accepted corpus and its screening as discovery, import and screening leave them on disk."""
+    (ws / "artifacts" / "corpus_snapshot").mkdir(parents=True)
+    (ws / "artifacts" / "corpus_snapshot" / "a1.json").write_text(
+        json.dumps({"artifact_id": "a1", "data": {"studies": [], "record_to_study": {}}}), encoding="utf-8")
+    (ws / "audit" / "artifact_registry.json").write_text(json.dumps({"artifacts": {"a1": {
+        "artifact_type": "corpus_snapshot", "path": "artifacts/corpus_snapshot/a1.json",
+        "accepted_at": "2026-11-10T00:00:00+00:00"}}}), encoding="utf-8")
+    (ws / "literature" / "verified.json").write_text("[]", encoding="utf-8")
+    (ws / "literature" / "search_runs" / "run-1").mkdir(parents=True)
+    (ws / "literature" / "search_runs" / "run-1" / "legs.json").write_text("[]", encoding="utf-8")
+    (ws / "literature" / "screening" / "events").mkdir(parents=True)
+    (ws / "literature" / "screening" / "events" / "e.jsonl").write_text('{"x": 1}\n', encoding="utf-8")
+    (ws / ".harness-console").mkdir()
+    (ws / ".harness-console" / "jobs.json").write_text("{}", encoding="utf-8")
+    (ws / "pdfs" / "p.pdf").write_bytes(b"%PDF")
+    (ws / "synthesis" / "notes.md").write_text("old notes", encoding="utf-8")
+
+
+def test_replacing_a_protocol_archives_its_corpus_and_starts_clean(root):
+    """F1 (M4d, decision 2026-11-11): the old corpus and decisions move beside the old protocol."""
+    from scholar_harness.corpus_accept import _accepted_snapshot, corpus_status
+
+    client = _client(root)
+    first = client.post(f"{BASE}/drafts", json={"draft": _draft()}).json()["session_id"]
+    client.post(f"{BASE}/drafts/{first}/genesis", json={})
+    ws = root / SLUG
+    _accept_a_corpus(ws)
+    assert corpus_status(ws)["state"] == "ACCEPTED"
+
+    preview = client.post(f"{BASE}/preview", json={"draft": _draft()}).json()
+    assert {"literature/", "artifacts/", "audit/artifact_registry.json", ".harness-console/", "pdfs/", "synthesis/"} <= set(
+        preview["target"]["archive"]
+    )
+
+    second = client.post(f"{BASE}/drafts", json={"draft": _draft()}).json()["session_id"]
+    made = client.post(f"{BASE}/drafts/{second}/genesis", json={"replace": True, "confirm_discard_screening_binding": SLUG})
+    assert made.status_code == 201, made.text
+    backup = Path(made.json()["backup_dir"])
+    for rel in ("literature/verified.json", "literature/screening/events/e.jsonl", "literature/search_runs/run-1/legs.json",
+                "artifacts/corpus_snapshot/a1.json", "audit/artifact_registry.json", ".harness-console/jobs.json",
+                "pdfs/p.pdf", "synthesis/notes.md", "protocol.json"):
+        assert (backup / rel).is_file(), rel
+    assert not (ws / "literature" / "verified.json").exists()
+    assert not (ws / "audit" / "artifact_registry.json").exists()
+    assert not (ws / ".harness-console").exists()
+    assert not _accepted_snapshot(ws) and corpus_status(ws)["state"] == "EMPTY"
+    # The canonical layout is back, empty, with fresh notes for the new protocol.
+    for sub in ("literature", "pdfs", "extracted", "synthesis"):
+        assert (ws / sub).is_dir()
+    assert (ws / "synthesis" / "literature_review.md").is_file(), "the researcher's review notes stay"
+    assert not (ws / "synthesis" / "notes.md").exists()
+    assert set(made.json()["archived"]) >= {"literature/", "artifacts/", "audit/artifact_registry.json"}
+    genesis = [json.loads(line) for line in (ws / "audit" / "journal.jsonl").read_text(encoding="utf-8").splitlines()][-1]
+    assert "archived" in genesis["description"] and "literature/" in genesis["description"]
+
+
+def test_replacing_a_protocol_with_no_corpus_moves_nothing_but_the_protocol(root):
+    client = _client(root)
+    first = client.post(f"{BASE}/drafts", json={"draft": _draft()}).json()["session_id"]
+    client.post(f"{BASE}/drafts/{first}/genesis", json={})
+    second = client.post(f"{BASE}/drafts", json={"draft": _draft()}).json()["session_id"]
+    made = client.post(f"{BASE}/drafts/{second}/genesis", json={"replace": True}).json()
+    assert made["archived"] == []
+    assert (root / SLUG / "synthesis" / "literature_review.md").is_file()
+
+
+def test_an_archive_that_stops_part_way_is_journaled_and_refused(root, monkeypatch):
+    """F1 review #3: a move that fails leaves a record of where every path is."""
+    import shutil as shutil_mod
+
+    client = _client(root)
+    first = client.post(f"{BASE}/drafts", json={"draft": _draft()}).json()["session_id"]
+    made = client.post(f"{BASE}/drafts/{first}/genesis", json={}).json()
+    ws = root / SLUG
+    _accept_a_corpus(ws)
+    real_move, calls = shutil_mod.move, []
+
+    def flaky(src, dst):
+        calls.append(src)
+        if len(calls) == 2:
+            raise PermissionError("locked by another program")
+        return real_move(src, dst)
+
+    monkeypatch.setattr(shutil_mod, "move", flaky)
+    second = client.post(f"{BASE}/drafts", json={"draft": _draft()}).json()["session_id"]
+    refused = client.post(f"{BASE}/drafts/{second}/genesis", json={"replace": True, "confirm_discard_screening_binding": SLUG})
+    assert refused.status_code == 409, refused.text
+    detail = refused.json()["detail"]
+    assert detail["code"] == "ARCHIVE_INCOMPLETE"
+    assert detail["details"]["moved"] == ["literature/"] and "artifacts/" in detail["details"]["not_moved"]
+    assert (Path(detail["details"]["backup_dir"]) / "literature" / "verified.json").is_file()
+    events = [json.loads(line) for line in (ws / "audit" / "journal.jsonl").read_text(encoding="utf-8").splitlines()]
+    assert events[-1]["action"] == "PROTOCOL_REPLACE_INCOMPLETE" and "literature/" in events[-1]["description"]
+    # The protocol was not replaced.
+    assert json.loads((ws / "protocol.json").read_text(encoding="utf-8")) is not None
+    assert client.get(f"{BASE}/drafts/{second}").json()["emitted"] is None
+    assert made["protocol_fingerprint"]
+
+
+def test_a_replacement_waits_for_a_running_job_in_the_workspace(root):
+    """F1 review #3: a running search would write into the new protocol's corpus."""
+    from scholar_harness.console.api.discovery import DiscoveryJob, DiscoveryJobs
+
+    client = _client(root)
+    first = client.post(f"{BASE}/drafts", json={"draft": _draft()}).json()["session_id"]
+    client.post(f"{BASE}/drafts/{first}/genesis", json={})
+    ws = root / SLUG
+    jobs = DiscoveryJobs()
+    jobs.jobs["djob_1"] = DiscoveryJob(job_id="djob_1", workspace=str(ws.resolve()), kind="run")
+    jobs.jobs["djob_1"].state = "running"
+    client.app.state.discovery_jobs = jobs
+    before = _tree(ws)
+    second = client.post(f"{BASE}/drafts", json={"draft": _draft()}).json()["session_id"]
+    refused = client.post(f"{BASE}/drafts/{second}/genesis", json={"replace": True})
+    assert (refused.status_code, refused.json()["detail"]["code"]) == (409, "WORKSPACE_JOB_ACTIVE")
+    assert _tree(ws) == before
+    jobs.jobs["djob_1"].state = "succeeded"
+    assert client.post(f"{BASE}/drafts/{second}/genesis", json={"replace": True}).status_code == 201

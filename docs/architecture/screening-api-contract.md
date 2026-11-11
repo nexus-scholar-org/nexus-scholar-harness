@@ -210,6 +210,8 @@ The UI reads proposals only through `GET /records/{study_id}/proposal`. The fiel
 | `INTENT_INVALID` | preview | HTTP 422: the protocol compiler refused the intent (M4a) |
 | `SCREENING_BOUND` | genesis with `replace` | HTTP 409: the workspace has screening decisions or a publication; `details` gives the counts (M4a, INC-08) |
 | `CONFIRMATION_MISMATCH` | genesis | HTTP 422: the typed confirmation is not the workspace slug (M4a, INC-08) |
+| `WORKSPACE_JOB_ACTIVE` | genesis with `replace` | HTTP 409: a discovery or console job is still running in the workspace; nothing moved (M4d, F1) |
+| `ARCHIVE_INCOMPLETE` | genesis with `replace` | HTTP 409: archiving the old corpus stopped part way; `details {backup_dir, moved, not_moved}`, journaled as `PROTOCOL_REPLACE_INCOMPLETE`; the protocol was not replaced (M4d, F1) |
 | `MAILTO_NOT_SET` | recon probe, delta; discovery runs, recall | HTTP 409: the console has no contact email (`SCHOLAR_MAILTO`); no request was sent (M4c, M3b-api) |
 | `OPENALEX_KEY_NOT_SET` | discovery runs | HTTP 409: the run selects OpenAlex and the console has no `SCHOLAR_OPENALEX_KEY` (OpenAlex requires a key since 2026-02-13); no request was sent (M3h-providers) |
 | `RECON_SESSION_INVALID` | `/inception/drafts/{id}/recon/*` | HTTP 422: the id is not a recon session id, or its folder would be under `workspaces/` (M4c) |
@@ -224,6 +226,7 @@ The UI reads proposals only through `GET /records/{study_id}/proposal`. The fiel
 | `RECON_JOB_ACTIVE` | recon probe, delta | HTTP 409: a search for this draft is already running (M4c) |
 | `RECON_JOB_NOT_FOUND` | `.../recon/jobs/{job_id}` | HTTP 404: no recon job with that id for this draft (M4c) |
 | `RECON_FAILED` | recon jobs | the job stopped on an unexpected error; `message` names it (M4c) |
+| `TERM_EMPTY` | recon evidence | HTTP 422: the phrase to check is empty (M4d) |
 | `PROTOCOL_MISSING` | discovery plan, runs, recall, report, handoff | HTTP 409: the workspace has no `protocol.json` (M3b-api) |
 | `DISCOVERY_JOB_ACTIVE` | discovery runs, recall | HTTP 409: a discovery job is already running for this workspace; `details.job` is it (M3b-api) |
 | `DISCOVERY_JOB_NOT_FOUND` | `/discovery/jobs/{job_id}` | HTTP 404: no discovery job with that id in this workspace (M3b-api) |
@@ -245,7 +248,7 @@ The UI reads proposals only through `GET /records/{study_id}/proposal`. The fiel
 | `IMPORT_BAD_YEAR` | staged source `rejected[].code` | a year tag without a four-digit year; the record is imported without a year; a row field (E3, M3d-engine) |
 | `DEDUP_NOT_RUN` | `GET /discovery/dedup` | HTTP 404: no deduplication has run in this workspace (E4a, M3d-engine) |
 | `PROTOCOL_CHANGED_SINCE_RUN` | `POST /corpus/accept` (discovery hand-off) | HTTP 409: the newest search run's query or year window differs from what `protocol.json` compiles to now; search again before accepting (M3d-engine) |
-| `STALE_BINDING` (inception) | preview with `session_id`, genesis | HTTP 409: the draft's direction was chosen on a pool that is no longer its recon session's latest; choose it again (M4c). The code predates M4c and is listed in the console set. |
+| `STALE_BINDING` (inception) | preview with `session_id`, genesis | HTTP 409: the draft's direction was chosen on a pool that is no longer its recon session's latest (M4c), or the draft's question, years or languages changed after it was chosen (`details.code: SCOPE_CHANGED`, `details.changes`; M4d); choose it again. The code predates M4c and is listed in the console set. |
 | `ENGINE_UNREACHABLE` | UI only | client-side state, never sent by the engine |
 
 ## 8. Shared fixtures and tests

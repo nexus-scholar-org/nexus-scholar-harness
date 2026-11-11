@@ -2,7 +2,7 @@ import { fireEvent, render, screen, waitFor, within } from "@testing-library/rea
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { InceptionShape } from "@/components/inception-shape";
-import { SESSION } from "./fixtures/inception-engine";
+import { completeDraft, SESSION } from "./fixtures/inception-engine";
 import { setUp } from "./inception-helpers";
 
 /** Spec 04 (M4b): lens cards with the engine's leaning, the playbook, the RQ template as a draft. */
@@ -72,5 +72,11 @@ describe("inception.shape", () => {
     const missing = card.closest("[data-refusal]")!.querySelector("[data-missing]") as HTMLElement;
     expect(within(missing).getByText("Research topic")).toBeInTheDocument();
     expect(within(missing).getByRole("link", { name: "Go to Scope" })).toHaveAttribute("href", `/en/inception/scope/?draft=${SESSION}`);
+  });
+
+  it("goes back to Direction, step 3 (M4d)", async () => {
+    setUp({ draft: completeDraft() });
+    render(<InceptionShape locale="en" />);
+    expect(await screen.findByRole("link", { name: "Back to Direction" })).toHaveAttribute("href", `/en/inception/direction/?draft=${SESSION}`);
   });
 });

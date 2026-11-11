@@ -29,7 +29,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from scholar_harness.inception import steps
 from scholar_harness.inception.drafts import DraftRefused, DraftStore
-from scholar_harness.inception.grounding import refuse_stale
+from scholar_harness.inception.grounding import refuse_stale, scope_of
 from scholar_harness.recon.session import ReconRefused, ReconSessions
 
 router = APIRouter(prefix="/api/v1/inception", tags=["inception"])
@@ -137,10 +137,26 @@ def preview(body: PreviewBody, request: Request) -> dict[str, Any]:
         if body.session_id is not None:
             grounding = _store(request).load(body.session_id).get("grounding")
             if grounding:
-                refuse_stale(_recon(request), grounding)
+                refuse_stale(_recon(request), grounding, scope_of(steps.parse_draft(body.draft)))
         return steps.preview(body.draft, workspaces_root=_root(request), grounding=grounding)
     except (DraftRefused, steps.StepRefused, ReconRefused) as exc:
         raise _error(exc) from exc
+
+
+def _running_job(request: Request, target: Path) -> str | None:
+    """A discovery or console job of this process still running in ``target`` (M4d, F1 review)."""
+    resolved = Path(target).resolve()
+    discovery = getattr(request.app.state, "discovery_jobs", None)
+    if discovery is not None:
+        job = discovery.active(resolved) or discovery.active(Path(target))
+        if job is not None:
+            return f"discovery job {job.job_id} ({job.kind})"
+    runner = getattr(request.app.state, "job_runner", None)
+    if runner is not None and Path(runner.workspace).resolve() == resolved:
+        for job in runner.jobs.values():
+            if job.state in ("queued", "running"):
+                return f"console job {job.job_id} ({job.action_id})"
+    return None
 
 
 @router.post("/drafts/{session_id}/genesis", status_code=201)
@@ -152,7 +168,7 @@ def genesis(session_id: str, body: GenesisBody, request: Request) -> dict[str, A
             raise DraftRefused("DRAFT_EMITTED", "this draft already created a workspace", details={"emitted": record["emitted"]})
         grounding = record.get("grounding")
         if grounding:
-            refuse_stale(_recon(request), grounding)
+            refuse_stale(_recon(request), grounding, scope_of(steps.parse_draft(record["draft"])))
         result = steps.genesis(
             record["draft"],
             grounding=grounding,
@@ -160,9 +176,10 @@ def genesis(session_id: str, body: GenesisBody, request: Request) -> dict[str, A
             agent=UI_AGENT,
             replace=body.replace,
             confirm_discard_screening_binding=body.confirm_discard_screening_binding,
+            busy=lambda target: _running_job(request, target),
         )
         # The backup and the previous fingerprint too, so Done shows them after a reload (M4b).
-        kept = ("slug", "path", "protocol_fingerprint", "replaced", "previous_fingerprint", "backup_dir")
+        kept = ("slug", "path", "protocol_fingerprint", "replaced", "previous_fingerprint", "backup_dir", "archived")
         store.mark_emitted(session_id, {k: result[k] for k in kept if result.get(k) is not None})
     except (DraftRefused, steps.StepRefused, ReconRefused) as exc:
         raise _error(exc) from exc

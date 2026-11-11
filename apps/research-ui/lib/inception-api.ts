@@ -44,6 +44,8 @@ export interface Draft {
   lead_researcher?: string;
   venue?: string;
   timeline_weeks?: number | null;
+  /** M4d: the recall seeds kept on Direction (DOIs, at most 25); compiled into `search_strategy.golden_seeds`. */
+  golden_seeds?: string[];
 }
 
 export interface Emitted {
@@ -54,6 +56,31 @@ export interface Emitted {
   /** For a replacement (M4b): kept on the draft so Done shows them after a reload. */
   previous_fingerprint?: string | null;
   backup_dir?: string | null;
+  /** M4d (F1): what a replacement moved into the backup folder beside the old protocol. */
+  archived?: string[] | null;
+}
+
+/** The direction bound to a draft (M4c); `source` is `none` for the explicit skip (M4d). */
+export interface GroundingDirection {
+  label: string;
+  concept: string;
+  anchor_dois: string[];
+  observed_in: number;
+  n_docs: number;
+  schools?: string[];
+  detail?: string;
+  source: "pool" | "researcher" | "none" | string;
+  grounded: boolean;
+}
+
+export interface Grounding {
+  session_id: string;
+  bound_at: string;
+  pool: { fingerprint: string; created_at: string | null; status?: string; query?: string | null; n_docs?: number };
+  direction: GroundingDirection;
+  anchors: string[];
+  /** `none` for the explicit skip (M4d); otherwise the direction's source. */
+  choice?: "pool" | "researcher" | "none" | string;
 }
 
 export interface DraftRecord {
@@ -62,6 +89,8 @@ export interface DraftRecord {
   updated_at: string;
   draft: Draft;
   emitted: Emitted | null;
+  /** Written only by the engine's bind route (M4c); a save carries it through. */
+  grounding?: Grounding | null;
 }
 
 export interface DraftListItem {
@@ -146,7 +175,15 @@ export interface Preview {
   files: string[];
   written: string[];
   /** `workspace`: the folder holds a workspace (what genesis decides on); `exists` alone may be a folder that is not one. */
-  target?: { slug: string; path: string; exists: boolean; workspace: boolean; screening: ScreeningBinding | null };
+  target?: {
+    slug: string;
+    path: string;
+    exists: boolean;
+    workspace: boolean;
+    screening: ScreeningBinding | null;
+    /** M4d (F1): the workspace paths a replacement archives beside the old protocol. */
+    archive?: string[];
+  };
 }
 
 export interface GenesisResult {
@@ -157,6 +194,7 @@ export interface GenesisResult {
   replaced: boolean;
   previous_fingerprint?: string | null;
   backup_dir?: string | null;
+  archived?: string[] | null;
 }
 
 export interface GenesisRequest {
@@ -195,8 +233,9 @@ export function runStep(origin: string, step: string, draft: Draft, signal?: Abo
   return postJson(`${BASE}/steps/${step}`, origin, { draft }, signal);
 }
 
-export function previewDraft(origin: string, draft: Draft, signal?: AbortSignal): Promise<Preview> {
-  return postJson<Preview>(`${BASE}/preview`, origin, { draft }, signal);
+/** With `sessionId`, the engine checks the draft's bound direction first (`STALE_BINDING`, M4c). */
+export function previewDraft(origin: string, draft: Draft, signal?: AbortSignal, sessionId?: string): Promise<Preview> {
+  return postJson<Preview>(`${BASE}/preview`, origin, sessionId ? { draft, session_id: sessionId } : { draft }, signal);
 }
 
 export function runGenesis(origin: string, sessionId: string, request: GenesisRequest = {}, signal?: AbortSignal): Promise<GenesisResult> {

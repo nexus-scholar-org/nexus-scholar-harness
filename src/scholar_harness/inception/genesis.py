@@ -285,18 +285,7 @@ def scaffold_raw_project(
         json.dumps(manifest, indent=2, ensure_ascii=False), encoding="utf-8"
     )
 
-    notes = ws_dir / "synthesis" / "literature_review.md"
-    if not notes.exists():
-        rq_section = "\\n".join(
-            f"- **{rq}**"
-            for rq in (rqs or ["RQ1: Primary research questions to be formulated."])
-        )
-        notes.write_text(
-            f"# Literature Review: {title}\\n\\n"
-            f"## Objectives & Research Questions\\n{rq_section}\\n\\n"
-            f"## Findings & Synthesis\\n*To be generated from extracted papers.*\\n",
-            encoding="utf-8",
-        )
+    write_review_notes(ws_dir, title, rqs)
 
     _log_project_event(
         ws_dir,
@@ -308,6 +297,23 @@ def scaffold_raw_project(
         parameters={"title": title, "slug": slug, "rqs": list(rqs)},
     )
     return ws_dir
+
+
+def write_review_notes(ws_dir: Path, title: str, rqs: list[str]) -> None:
+    """The empty ``synthesis/literature_review.md`` a new workspace starts with (kept if present)."""
+    notes = Path(ws_dir) / "synthesis" / "literature_review.md"
+    notes.parent.mkdir(parents=True, exist_ok=True)
+    if not notes.exists():
+        rq_section = "\\n".join(
+            f"- **{rq}**"
+            for rq in (rqs or ["RQ1: Primary research questions to be formulated."])
+        )
+        notes.write_text(
+            f"# Literature Review: {title}\\n\\n"
+            f"## Objectives & Research Questions\\n{rq_section}\\n\\n"
+            f"## Findings & Synthesis\\n*To be generated from extracted papers.*\\n",
+            encoding="utf-8",
+        )
 
 
 def log_genesis(

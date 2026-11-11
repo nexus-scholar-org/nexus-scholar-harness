@@ -287,6 +287,16 @@ def test_the_plan_reports_whether_a_semantic_scholar_key_is_set(env, monkeypatch
     assert "s2-placeholder" not in json.dumps(plan)
 
 
+def test_the_plan_lists_the_protocols_recall_seeds(env):
+    """M4d DoD 5: the Recall screen pre-fills the seeds inception saved in the protocol."""
+    client, ws, _ = env
+    assert client.get(f"{BASE}/plan").json()["golden_seeds"] == []
+    protocol = json.loads((ws / "protocol.json").read_text(encoding="utf-8"))
+    protocol["search_strategy"]["golden_seeds"] = ["10.1/seed-a", "10.1/seed-b"]
+    (ws / "protocol.json").write_text(json.dumps(protocol), encoding="utf-8")
+    assert client.get(f"{BASE}/plan").json()["golden_seeds"] == ["10.1/seed-a", "10.1/seed-b"]
+
+
 def test_a_run_cannot_start_on_an_accepted_snapshot(env):
     client, ws, _ = env
     (ws / "audit").mkdir(exist_ok=True)

@@ -23,12 +23,13 @@ Without it every step answers as in M4b.
 from __future__ import annotations
 
 import json
+import re
 import shutil
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
-from pydantic import BaseModel, ConfigDict, Field, ValidationError
+from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator
 
 from .emit import (
     NEW_WORKSPACE_FILES,
@@ -37,6 +38,7 @@ from .emit import (
     check_writable,
     emit_workspace,
     existing_markers,
+    corpus_paths,
     screening_state,
 )
 from .genesis import (
@@ -89,6 +91,25 @@ class ExclusionIn(BaseModel):
     reason_category: str = "OUT_OF_SCOPE"
 
 
+#: The discovery Recall check takes at most 25 seeds (``scholar_search.recall``).
+MAX_GOLDEN_SEEDS = 25
+_DOI = re.compile(r"^10\.\d+(\.\d+)*/\S+$")
+
+
+def _doi_list(values: list[str]) -> list[str]:
+    out: list[str] = []
+    for value in values:
+        doi = str(value).strip()
+        for prefix in ("https://doi.org/", "http://doi.org/", "doi:"):
+            if doi.lower().startswith(prefix):
+                doi = doi[len(prefix):]
+        if not _DOI.match(doi):
+            raise ValueError(f"{value!r} is not a DOI (10.<registrant>/<suffix>)")
+        if doi.lower() not in {d.lower() for d in out}:
+            out.append(doi)
+    return out
+
+
 class Draft(BaseModel):
     """Everything the interview collects. Every field is optional until preview."""
 
@@ -112,10 +133,18 @@ class Draft(BaseModel):
     criteria_decisions: dict[str, bool] = Field(default_factory=dict)
     matrix_columns: list[str] = Field(default_factory=list)
     verification_checks: bool = True
+    #: DOIs kept as recall seeds from the pool's anchors (M4d DoD 5); compiled
+    #: into ``search_strategy.golden_seeds`` at genesis.
+    golden_seeds: list[str] = Field(default_factory=list, max_length=MAX_GOLDEN_SEEDS)
     title: str = ""
     lead_researcher: str = ""
     venue: str = ""
     timeline_weeks: int | None = None
+
+    @field_validator("golden_seeds")
+    @classmethod
+    def _seeds_are_dois(cls, values: list[str]) -> list[str]:
+        return _doi_list(values)
 
 
 def parse_draft(raw: dict[str, Any] | None) -> Draft:
@@ -162,6 +191,7 @@ def _survey(draft: Draft) -> Survey:
         extra_exclusions=[(e.criterion, e.reason_category) for e in draft.extra_exclusions],
         trust_score_threshold=VERIFICATION_TRUST_THRESHOLD if draft.verification_checks else 0.0,
         matrix_dimensions=[],
+        golden_seeds=list(draft.golden_seeds),
     )
 
 
@@ -315,6 +345,8 @@ def preview(
             "exists": exists,
             "workspace": workspace,
             "screening": screening_state(target) if workspace else None,
+            # F1 (M4d): what a replacement would archive beside the old protocol.
+            "archive": corpus_paths(target) if workspace else [],
         }
     if grounding and RECON_CONTEXT_FILE not in out["files"]:
         out["files"].append(RECON_CONTEXT_FILE)  # genesis writes it for a bound draft
@@ -350,8 +382,14 @@ def genesis(
     replace: bool = False,
     confirm_discard_screening_binding: str | None = None,
     grounding: dict[str, Any] | None = None,
+    busy: Callable[[Path], str | None] | None = None,
 ) -> dict[str, Any]:
     """Create (or, with ``replace``, re-protocol) ``<workspaces_root>/<slug>`` from a draft.
+
+    ``busy(target)`` names a job still running in the target workspace; a
+    replacement is then refused with ``WORKSPACE_JOB_ACTIVE`` before anything
+    moves, so a running search or screening cannot write into the new
+    protocol's corpus (F1 review, M4d).
 
     The only write of the web wizard, through :func:`emit_workspace`. A
     screening binding is discarded only when ``confirm_discard_screening_binding``
@@ -379,6 +417,14 @@ def genesis(
             "WORKSPACE_EXISTS", f"{target} already exists and is not a workspace; choose another title",
             status=409, details={"path": str(target)},
         )
+    if replace and busy is not None and existing_markers(target):
+        running = busy(target)
+        if running:
+            raise StepRefused(
+                "WORKSPACE_JOB_ACTIVE",
+                f"{running} is still running in this workspace; wait for it to end or stop it, then replace the protocol",
+                status=409, details={"job": running},
+            )
     try:
         guard = check_writable(target, replace=replace, discard_screening_binding=discard)
     except GenesisRefused as exc:
