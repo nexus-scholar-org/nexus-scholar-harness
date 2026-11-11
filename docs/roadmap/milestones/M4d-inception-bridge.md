@@ -15,7 +15,7 @@ Done in this order.
 - [ ] **3. Explore and Direction screens** in `apps/research-ui` over the M4c recon routes, between Scope and Shape. Specs `docs/ux/phase0-inception/final/02-explore.md` and `03-direction.md` at `Status: FINAL` before the build. Explore shows pool size, provider legs and per-concept anchoring counts; on Direction nothing is applied without a click. en, fr, ar strings.
 - [ ] **4. Synonyms from the pool, accepted one by one.** For each concept, the co-occurring pool terms with paper counts; each ticked term joins that concept's OR group in the compiled query. No language model.
 - [ ] **5. Anchor seeds.** The anchored papers are offered as seeds; the ones kept are saved to the protocol's `search_strategy.golden_seeds` before acceptance or genesis; the discovery Recall screen then checks them.
-- [ ] **6. F1 fix** as decided in Step 0, with its reproducing test written first.
+- [x] **6. F1 fix** as decided in Step 0, with its reproducing test written first: a replace moves `literature/`, `artifacts/`, `audit/artifact_registry.json`, `.harness-console/` and the derived folders into `audit/replaced/<stamp>/`; the preview names them (`target.archive`), genesis returns them (`archived`) and the `GENESIS` event records them (`b1e37167`; tests in Findings fixed).
 - [ ] Gates: `/gate checkpoint` at the end of each item; PR gate once; contract baseline `--check` passes; `milestone-reviewer` APPROVE.
 
 Optional tail, only if cheap and the researcher agrees: F6 (draft size limits), F5 (validation errors inside the refusal envelope), the three inception UI P3s (Criteria allows zero concepts; Review shows a refusal before the title is typed; Workspaces has two create buttons).
