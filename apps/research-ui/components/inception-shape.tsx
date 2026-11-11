@@ -286,6 +286,9 @@ export function InceptionShape({ locale }: Readonly<{ locale: Locale }>) {
           <Button onClick={() => void persist("")} disabled={saving}>
             {t("saveAndExit")}
           </Button>
+          <a className="inline-flex min-h-11 items-center text-brand underline" href={inceptionHref(locale, "direction", draftId, origin)} data-back>
+            {t("shape.back")}
+          </a>
           {draft.paradigm ? null : (
             <p id="shape-need-lens" className="self-center text-sm text-ink-muted">
               {t("shape.needLens")}

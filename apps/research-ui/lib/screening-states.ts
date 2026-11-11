@@ -26,7 +26,11 @@ export type StateAction =
   | "harvest"
   | "discovery-import"
   | "handoff"
-  | "inception";
+  | "inception"
+  // M4d inception recon: a link to one inception step of this draft (the caller gives the href),
+  // and running the first search again (the caller gives the handler).
+  | "inception-step"
+  | "explore-search";
 
 interface StateEntry {
   role: DecisionRole;
@@ -833,6 +837,145 @@ export const STATES: Record<string, StateEntry> = {
       ar: T("رفض المحرك تجميد المجموعة", "رسالته في التفاصيل. لم يُجمَّد شيء.", "القبول", "إعادة المحاولة"),
     },
   },
+  // Inception recon (specs 02 Explore and 03 Direction, M4d). Three codes that
+  // discovery or screening also use carry their inception meaning under the
+  // `inception.` prefix (`inceptionStateKey`).
+  "inception.STALE_BINDING": {
+    role: "unclear",
+    action: "inception-step",
+    copy: {
+      en: T("The direction was chosen on a pool or a scope that no longer matches", "The search ran again, or the scope changed, after you chose it. Nothing was written.", "The preview and creating the workspace", "Choose the direction again"),
+      fr: T("La direction a été choisie sur un corpus ou une portée qui ne correspondent plus", "La recherche a été relancée, ou la portée a changé, après votre choix. Rien n'a été écrit.", "L'aperçu et la création de l'espace", "Choisir de nouveau la direction"),
+      ar: T("اختير الاتجاه على مجموعة أوراق أو نطاق لم يعودا مطابقين", "أُعيد البحث، أو تغيّر النطاق، بعد اختيارك له. لم يُكتب شيء.", "المعاينة وإنشاء مساحة العمل", "اختر الاتجاه من جديد"),
+    },
+  },
+  "inception.MAILTO_NOT_SET": {
+    role: "blocked",
+    action: "reload",
+    command: "SCHOLAR_MAILTO=<your email>",
+    copy: {
+      en: T("This console has no contact email for the literature databases", "A search needs one, and no request was sent. There is no setting for it in the app yet: set SCHOLAR_MAILTO in the environment or the .env of the console and start the console again.", "New searches (a pool already on screen still works)", "Reload the page"),
+      fr: T("Cette console n'a pas d'adresse de contact pour les bases bibliographiques", "Une recherche en demande une, et aucune requête n'a été envoyée. L'application n'a pas encore de réglage pour cela : définissez SCHOLAR_MAILTO dans l'environnement ou le .env de la console, puis redémarrez la console.", "Les nouvelles recherches (un corpus déjà affiché reste utilisable)", "Recharger la page"),
+      ar: T("ليس لوحدة التحكم هذه بريد للتواصل مع قواعد البيانات العلمية", "يحتاج البحث إلى بريد، ولم يُرسل أي طلب. لا يوجد إعداد لذلك في التطبيق بعد: عيّن SCHOLAR_MAILTO في بيئة وحدة التحكم أو ملف ‎.env‎ الخاص بها، ثم أعد تشغيلها.", "عمليات البحث الجديدة (تبقى مجموعة الأوراق المعروضة صالحة)", "أعد تحميل الصفحة"),
+    },
+  },
+  "inception.PROVIDERS_FAILED": {
+    role: "blocked",
+    action: "explore-search",
+    copy: {
+      en: T("Every database failed to answer", "There is no pool. Nothing was cached; try again later. The table names each failure.", "This search", "Search again"),
+      fr: T("Aucune base n'a répondu", "Il n'y a pas de corpus. Rien n'a été mis en cache ; réessayez plus tard. Le tableau indique chaque échec.", "Cette recherche", "Chercher à nouveau"),
+      ar: T("لم تُجب أي قاعدة بيانات", "لا توجد مجموعة أوراق. لم يُخزَّن شيء مؤقتًا؛ حاول لاحقًا. يذكر الجدول كل إخفاق.", "هذا البحث", "ابحث مجددًا"),
+    },
+  },
+  RECON_JOB_ACTIVE: {
+    role: "unclear",
+    action: "retry",
+    copy: {
+      en: T("A search for this draft is already running", "Only one runs at a time.", "Starting another search", "Watch the running search"),
+      fr: T("Une recherche est déjà en cours pour ce brouillon", "Une seule à la fois.", "Le lancement d'une autre recherche", "Suivre la recherche en cours"),
+      ar: T("يجري بحث لهذه المسودة بالفعل", "لا يجري إلا بحث واحد في كل مرة.", "بدء بحث آخر", "تابع البحث الجاري"),
+    },
+  },
+  POOL_EMPTY: {
+    role: "blocked",
+    action: "inception-step",
+    copy: {
+      en: T("The search found no papers", "Nothing was cached. Widen the years or rephrase the question. The table shows what each database answered.", "This search", "Change scope"),
+      fr: T("La recherche n'a trouvé aucun article", "Rien n'a été mis en cache. Élargissez les années ou reformulez la question. Le tableau montre la réponse de chaque base.", "Cette recherche", "Modifier la portée"),
+      ar: T("لم يجد البحث أي ورقة", "لم يُخزَّن شيء مؤقتًا. وسّع السنوات أو أعد صياغة السؤال. يبيّن الجدول ما أجابت به كل قاعدة.", "هذا البحث", "غيّر النطاق"),
+    },
+  },
+  RECON_FAILED: {
+    role: "blocked",
+    action: "explore-search",
+    copy: {
+      en: T("The search stopped on an unexpected error", "The engine's report is under Details. Nothing was cached.", "This search", "Search again"),
+      fr: T("La recherche s'est arrêtée sur une erreur inattendue", "Le rapport du moteur est dans les détails. Rien n'a été mis en cache.", "Cette recherche", "Chercher à nouveau"),
+      ar: T("توقف البحث بسبب خطأ غير متوقع", "تقرير المحرك في التفاصيل. لم يُخزَّن شيء مؤقتًا.", "هذا البحث", "ابحث مجددًا"),
+    },
+  },
+  RECON_NO_POOL: {
+    role: "unclear",
+    action: "inception-step",
+    copy: {
+      en: T("There is no pool yet", "A search has to succeed first.", "Reading the pool", "Search the literature"),
+      fr: T("Il n'y a pas encore de corpus", "Une recherche doit d'abord réussir.", "La lecture du corpus", "Chercher dans la littérature"),
+      ar: T("لا توجد مجموعة أوراق بعد", "يجب أن ينجح بحث أولًا.", "قراءة مجموعة الأوراق", "ابحث في الأدبيات"),
+    },
+  },
+  RECON_SESSION_NOT_FOUND: {
+    role: "unclear",
+    action: "inception-step",
+    copy: {
+      en: T("This draft has not searched yet", "Its pool can be read once a search has succeeded.", "Reading the pool", "Search the literature"),
+      fr: T("Ce brouillon n'a pas encore cherché", "Son corpus se lit une fois qu'une recherche a réussi.", "La lecture du corpus", "Chercher dans la littérature"),
+      ar: T("لم تُجرِ هذه المسودة أي بحث بعد", "تُقرأ مجموعة أوراقها بعد أن ينجح بحث.", "قراءة مجموعة الأوراق", "ابحث في الأدبيات"),
+    },
+  },
+  RECON_SESSION_INVALID: {
+    role: "blocked",
+    action: "inception",
+    copy: {
+      en: T("That is not a search session id", "The draft link may be cut short.", "This page only", "Go to your drafts"),
+      fr: T("Ce n'est pas un identifiant de session de recherche", "Le lien du brouillon est peut-être tronqué.", "Cette page seulement", "Aller à vos brouillons"),
+      ar: T("هذا ليس معرّف جلسة بحث", "ربما اقتُطع رابط المسودة.", "هذه الصفحة فقط", "اذهب إلى مسوداتك"),
+    },
+  },
+  RECON_JOB_NOT_FOUND: {
+    role: "unclear",
+    action: "retry",
+    copy: {
+      en: T("The search can no longer be followed", "The console may have restarted. The pool, if one arrived, is below.", "This page only", "Reload the pool"),
+      fr: T("La recherche ne peut plus être suivie", "La console a peut-être redémarré. Le corpus, s'il est arrivé, est ci-dessous.", "Cette page seulement", "Recharger le corpus"),
+      ar: T("لم يعد ممكنًا متابعة البحث", "ربما أُعيد تشغيل وحدة التحكم. مجموعة الأوراق، إن وصلت، أدناه.", "هذه الصفحة فقط", "أعد تحميل مجموعة الأوراق"),
+    },
+  },
+  POOL_TOO_SMALL: {
+    role: "unclear",
+    action: "none",
+    copy: {
+      en: T("The pool is under the floor for a direction", "Directions from so few papers are often fragments. Nothing was bound.", "Choosing a direction", "Accept a small pool and choose again"),
+      fr: T("Le corpus est sous le seuil d'une direction", "Les directions tirées de si peu d'articles sont souvent des fragments. Rien n'a été lié.", "Le choix d'une direction", "Accepter un petit corpus et choisir de nouveau"),
+      ar: T("مجموعة الأوراق دون الحد الأدنى لاتجاه", "الاتجاهات المستخلصة من أوراق قليلة كهذه كثيرًا ما تكون أجزاء. لم يُربط شيء.", "اختيار اتجاه", "اقبل مجموعة صغيرة واختر من جديد"),
+    },
+  },
+  NO_DIRECTION: {
+    role: "blocked",
+    action: "none",
+    copy: {
+      en: T("Choose one direction, write your own, or go on without one", "Exactly one is needed.", "Choosing a direction", "Choose a direction"),
+      fr: T("Choisissez une direction, écrivez la vôtre, ou continuez sans", "Il en faut exactement une.", "Le choix d'une direction", "Choisir une direction"),
+      ar: T("اختر اتجاهًا واحدًا، أو اكتب اتجاهك، أو تابع من دون اتجاه", "المطلوب واحد بالضبط.", "اختيار اتجاه", "اختر اتجاهًا"),
+    },
+  },
+  DIRECTION_UNKNOWN: {
+    role: "unclear",
+    action: "retry",
+    copy: {
+      en: T("That is not a direction of the current pool", "The pool may have changed since you opened this page. The current directions are listed.", "Choosing a direction, or a narrower search", "Reload the directions"),
+      fr: T("Ce n'est pas une direction du corpus actuel", "Le corpus a peut-être changé depuis l'ouverture de cette page. Les directions actuelles sont listées.", "Le choix d'une direction, ou une recherche plus étroite", "Recharger les directions"),
+      ar: T("هذا ليس اتجاهًا من مجموعة الأوراق الحالية", "ربما تغيّرت المجموعة منذ فتحت هذه الصفحة. الاتجاهات الحالية مذكورة.", "اختيار اتجاه، أو بحث أضيق", "أعد تحميل الاتجاهات"),
+    },
+  },
+  NARROW_BUDGET_SPENT: {
+    role: "unclear",
+    action: "none",
+    copy: {
+      en: T("The one narrower search of this draft is used", "It cannot be run again.", "Narrower search", "Back to the directions"),
+      fr: T("La recherche plus étroite de ce brouillon est utilisée", "Elle ne peut pas être relancée.", "La recherche plus étroite", "Retour aux directions"),
+      ar: T("استُخدم البحث الأضيق الوحيد لهذه المسودة", "لا يمكن إجراؤه مرة أخرى.", "البحث الأضيق", "العودة إلى الاتجاهات"),
+    },
+  },
+  TERM_EMPTY: {
+    role: "unclear",
+    action: "none",
+    copy: {
+      en: T("Type a phrase to check", "An empty phrase cannot be looked up. Nothing was checked.", "The phrase check", "Write your direction first"),
+      fr: T("Saisissez une expression à vérifier", "Une expression vide ne peut pas être cherchée. Rien n'a été vérifié.", "La vérification de l'expression", "Écrivez d'abord votre direction"),
+      ar: T("اكتب عبارة للتحقق منها", "لا يمكن البحث عن عبارة فارغة. لم يُتحقق من شيء.", "التحقق من العبارة", "اكتب اتجاهك أولًا"),
+    },
+  },
 };
 
 export interface StateCopy {
@@ -852,6 +995,18 @@ const UNKNOWN: Record<Locale, { title: string; body: string }> = {
   fr: { title: "Refusé", body: "Le moteur a refusé avec le code ci-dessous." },
   ar: { title: "مرفوض", body: "رفض المحرك ذلك بالرمز أدناه." },
 };
+
+/**
+ * The inception screens (M4d) share three codes with discovery and screening
+ * whose meaning differs there (`STALE_BINDING`, `MAILTO_NOT_SET`,
+ * `PROVIDERS_FAILED`); their inception cards are registered under this prefix.
+ */
+export const INCEPTION_SCOPE = "inception.";
+
+/** The card key for a code shown on an inception screen: the scoped one when it exists. */
+export function inceptionStateKey(code: string): string {
+  return STATES[INCEPTION_SCOPE + code] ? INCEPTION_SCOPE + code : code;
+}
 
 /** The card for a code; an unknown code renders as itself, never as another card. */
 export function stateCopy(locale: Locale, code: string): StateCopy {

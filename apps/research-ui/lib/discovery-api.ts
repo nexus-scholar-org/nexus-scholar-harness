@@ -36,6 +36,8 @@ export interface Plan {
   openalex_key_set?: boolean;
   /** M3h-providers: the Semantic Scholar key is set (not verified until a search runs). Absent from older consoles. */
   s2_key_set?: boolean;
+  /** M4d: the protocol's anchor papers kept in inception (`search_strategy.golden_seeds`, DOIs). Absent from older consoles. */
+  golden_seeds?: string[];
   providers: PlanProvider[];
   imports_hint: string[];
 }
@@ -318,15 +320,28 @@ export function parseSse(text: string): { events: JobEvent[]; rest: string } {
  * connection. Resolves when the stream closes (`ended` tells whether a `done`
  * or `failed` event was seen); rejects on a refusal or a dropped connection.
  */
-export async function streamJob(
+export function streamJob(
   origin: string,
   jobId: string,
   onEvent: (event: JobEvent) => void,
   signal?: AbortSignal,
 ): Promise<{ ended: boolean }> {
+  return streamEvents(`${consoleBase(origin)}${BASE}/jobs/${encodeURIComponent(jobId)}/events`, onEvent, signal);
+}
+
+/**
+ * Read one server-sent event stream to its end (a discovery job, or a recon
+ * job of an inception draft, M4d). Resolves when the stream closes; `ended`
+ * says whether a `done` or `failed` event was seen.
+ */
+export async function streamEvents<E extends { event: string }>(
+  url: string,
+  onEvent: (event: E) => void,
+  signal?: AbortSignal,
+): Promise<{ ended: boolean }> {
   let response: Response;
   try {
-    response = await fetch(`${consoleBase(origin)}${BASE}/jobs/${encodeURIComponent(jobId)}/events`, {
+    response = await fetch(url, {
       headers: { accept: "text/event-stream" },
       signal,
     });
@@ -348,7 +363,7 @@ export async function streamJob(
   const handle = (events: JobEvent[]) => {
     for (const event of events) {
       if (event.event === "done" || event.event === "failed") ended = true;
-      onEvent(event);
+      onEvent(event as unknown as E);
     }
   };
   if (!response.body || typeof response.body.getReader !== "function") {

@@ -5,26 +5,27 @@ import { useCallback, useEffect, useState, type ReactNode } from "react";
 import type { Locale } from "@/i18n";
 import { DataCell } from "@/components/ui/base";
 import { StateCard } from "@/components/screening-state-card";
+import { inceptionStateKey } from "@/lib/screening-states";
 import { isScreeningApiError } from "@/lib/screening-api";
 import { readDraft, saveDraft, type Draft, type DraftRecord } from "@/lib/inception-api";
 import { inceptionT, type InceptionCopyKey } from "@/lib/inception-copy";
 
 /**
  * The frame every inception screen shares (specs 01–08, M4b): the draft id and
- * save time, the six-step bar (Explore and Direction wait for recon over HTTP,
- * so they are labels, not links), the load-and-save hook over `GET/PUT
+ * save time, the six-step bar (every step a link since M4d, when Explore and
+ * Direction were built over the recon routes), the load-and-save hook over `GET/PUT
  * /inception/drafts/{id}` with `base_updated_at`, and the refusal card.
  */
 
 export type InceptionStep = "scope" | "explore" | "direction" | "shape" | "criteria" | "review" | "done";
 
-const STEPS: { step: InceptionStep; n: number; key: InceptionCopyKey; live: boolean }[] = [
-  { step: "scope", n: 1, key: "step.scope", live: true },
-  { step: "explore", n: 2, key: "step.explore", live: false },
-  { step: "direction", n: 3, key: "step.direction", live: false },
-  { step: "shape", n: 4, key: "step.shape", live: true },
-  { step: "criteria", n: 5, key: "step.criteria", live: true },
-  { step: "review", n: 6, key: "step.review", live: true },
+const STEPS: { step: InceptionStep; n: number; key: InceptionCopyKey }[] = [
+  { step: "scope", n: 1, key: "step.scope" },
+  { step: "explore", n: 2, key: "step.explore" },
+  { step: "direction", n: 3, key: "step.direction" },
+  { step: "shape", n: 4, key: "step.shape" },
+  { step: "criteria", n: 5, key: "step.criteria" },
+  { step: "review", n: 6, key: "step.review" },
 ];
 
 export function consoleOrigin(): string {
@@ -82,6 +83,14 @@ const FIELD_STEP: Record<string, InceptionStep> = {
   lead_researcher: "review",
 };
 
+/** The step a refusal card links to on the inception screens (action `inception-step`, M4d). */
+const ACTION_STEP: Record<string, InceptionStep> = {
+  STALE_BINDING: "direction",
+  POOL_EMPTY: "scope",
+  RECON_NO_POOL: "explore",
+  RECON_SESSION_NOT_FOUND: "explore",
+};
+
 const ENGINE_REASON = new Set(["DRAFT_INVALID", "INTENT_INVALID", "WORKSPACE_ROOT_UNAVAILABLE", "WORKSPACE_EXISTS"]);
 
 /** A refusal as a sentence (the shared state card), plus what the engine's details name. */
@@ -98,7 +107,16 @@ export function InceptionRefusal({
   const missing = Array.isArray(details.missing) ? details.missing.map(String) : [];
   return (
     <div data-refusal={refusal.code} className="space-y-2">
-      <StateCard locale={locale} code={refusal.code} message={refusal.message} consoleOrigin={origin} onRetry={onRetry} command={command} />
+      <StateCard
+        locale={locale}
+        code={refusal.code}
+        copyCode={inceptionStateKey(refusal.code)}
+        actionHref={ACTION_STEP[refusal.code] ? inceptionHref(locale, ACTION_STEP[refusal.code], draftId, origin) : undefined}
+        message={refusal.message}
+        consoleOrigin={origin}
+        onRetry={onRetry}
+        command={command}
+      />
       {missing.length > 0 ? (
         <div className="rounded-lg border border-rule bg-leaf p-4" data-missing>
           <p className="text-sm text-ink">{t("fieldsMissing")}</p>
@@ -143,25 +161,17 @@ export function InceptionSteps({ locale, current, draftId, origin }: Readonly<{ 
             {t("backToDrafts")}
           </a>
         </li>
-        {STEPS.map(({ step, n, key, live }) =>
-          live ? (
-            <li key={step}>
-              <a
-                href={inceptionHref(locale, step, draftId, origin)}
-                aria-current={step === current ? "step" : undefined}
-                className={`inline-flex min-h-11 items-center rounded-md border px-3 ${step === current ? "border-brand bg-brand-soft text-brand" : "border-rule text-ink"}`}
-              >
-                {t("step.current", { n, label: t(key) })}
-              </a>
-            </li>
-          ) : (
-            <li key={step}>
-              <span className="inline-flex min-h-11 items-center rounded-md border border-dashed border-rule px-3 text-ink-muted" data-coming-with-recon={step}>
-                {t("step.comingWithRecon", { n, label: t(key) })}
-              </span>
-            </li>
-          ),
-        )}
+        {STEPS.map(({ step, n, key }) => (
+          <li key={step}>
+            <a
+              href={inceptionHref(locale, step, draftId, origin)}
+              aria-current={step === current ? "step" : undefined}
+              className={`inline-flex min-h-11 items-center rounded-md border px-3 ${step === current ? "border-brand bg-brand-soft text-brand" : "border-rule text-ink"}`}
+            >
+              {t("step.current", { n, label: t(key) })}
+            </a>
+          </li>
+        ))}
       </ol>
     </nav>
   );
@@ -200,6 +210,12 @@ export function useDraft() {
 
   const update = useCallback((patch: Partial<Draft>) => setDraft((current) => ({ ...current, ...patch })), []);
 
+  /** Take a record the engine answered with (a bind, M4d) as the one the page now holds. */
+  const adopt = useCallback((next: DraftRecord) => {
+    setRecord(next);
+    setDraft(next.draft ?? {});
+  }, []);
+
   /** Save the whole draft; resolves true when the engine stored it. */
   const save = useCallback(
     async (next?: Draft): Promise<boolean> => {
@@ -222,7 +238,7 @@ export function useDraft() {
     [origin, record, draft],
   );
 
-  return { origin, draftId, ready, record, draft, setDraft, update, save, saving, loadError, saveError, setSaveError, reload: load };
+  return { origin, draftId, ready, record, draft, setDraft, update, save, saving, loadError, saveError, setSaveError, reload: load, adopt };
 }
 
 export function InceptionFrame({

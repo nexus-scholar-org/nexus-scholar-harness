@@ -9,8 +9,7 @@ import { inceptionT } from "@/lib/inception-copy";
 
 /**
  * Step 1, Scope (spec 01, M4b): the topic, the review window and the languages.
- * The recon search the canvas starts here (mode, sample size, the first 25
- * papers) waits for recon over HTTP; this step only saves answers.
+ * This step only saves answers; the first search runs on Explore (02, M4d).
  */
 
 /** A year field's value as the draft holds it: a number, or null when empty. */
@@ -42,7 +41,7 @@ export function InceptionScope({ locale }: Readonly<{ locale: Locale }>) {
   const to = parseYear(toText);
   const yearsValid = from !== "invalid" && to !== "invalid";
 
-  const persist = async (next: "shape" | "") => {
+  const persist = async (next: "explore" | "") => {
     if (!yearsValid) return;
     const stored = await save({
       ...draft,
@@ -60,7 +59,7 @@ export function InceptionScope({ locale }: Readonly<{ locale: Locale }>) {
         className="space-y-5"
         onSubmit={(event) => {
           event.preventDefault();
-          void persist("shape");
+          void persist("explore");
         }}
       >
         <div>
@@ -134,11 +133,7 @@ export function InceptionScope({ locale }: Readonly<{ locale: Locale }>) {
           </p>
         </div>
 
-        <p className="rounded-md border border-dashed border-rule p-3 text-sm text-ink-muted" data-recon-note>
-          {t("recon.note")}
-        </p>
-
-        {saveError ? <InceptionRefusal locale={locale} refusal={saveError} draftId={draftId} origin={origin} onRetry={() => void persist("shape")} /> : null}
+        {saveError ? <InceptionRefusal locale={locale} refusal={saveError} draftId={draftId} origin={origin} onRetry={() => void persist("explore")} /> : null}
 
         <div className="flex flex-wrap gap-3">
           <Button variant="primary" type="submit" disabled={saving || !yearsValid || !(draft.topic ?? "").trim()} aria-describedby={(draft.topic ?? "").trim() ? undefined : "scope-need-topic"}>

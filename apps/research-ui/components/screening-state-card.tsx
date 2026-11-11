@@ -95,6 +95,8 @@ export function StateCard({
   message,
   command,
   pageHeading = false,
+  copyCode,
+  actionHref,
 }: Readonly<{
   locale: Locale;
   code: string;
@@ -104,9 +106,13 @@ export function StateCard({
   command?: string;
   /** The card stands in for the whole screen (a failed first read): its title is the page's h1. */
   pageHeading?: boolean;
+  /** The card to show for `code` when a screen scopes its copy (inception, M4d); the code shown stays `code`. */
+  copyCode?: string;
+  /** The link of an `inception-step` action (the caller knows the draft). */
+  actionHref?: string;
 }>) {
   const Heading = pageHeading ? "h1" : "h2";
-  const state = stateCopy(locale, code);
+  const state = stateCopy(locale, copyCode ?? code);
   const roleText = { include: "text-include", unclear: "text-unclear", blocked: "text-blocked", exclude: "text-exclude" }[state.role];
   const query = consoleOrigin ? `?console=${encodeURIComponent(consoleOrigin)}` : "";
   const href =
@@ -118,7 +124,9 @@ export function StateCard({
           ? `/${locale}/screening/import?return=discovery${consoleOrigin ? `&console=${encodeURIComponent(consoleOrigin)}` : ""}`
           : state.action === "inception"
             ? `/${locale}/inception/${query}`
-            : null;
+            : state.action === "inception-step"
+              ? (actionHref ?? `/${locale}/inception/${query}`)
+              : null;
   return (
     <section role="alert" aria-labelledby={`state-${code}`} className="rounded-lg border border-rule bg-leaf p-5" data-state={code}>
       <DecisionBadge role={state.role}>{state.title}</DecisionBadge>
@@ -150,7 +158,7 @@ export function StateCard({
         ) : null}
       </details>
       <div className="mt-3">
-        {state.action === "retry" && onRetry ? (
+        {(state.action === "retry" || state.action === "explore-search") && onRetry ? (
           <Button onClick={onRetry}>{state.actionLabel}</Button>
         ) : state.action === "reload" ? (
           <Button onClick={() => window.location.reload()}>{state.actionLabel}</Button>
