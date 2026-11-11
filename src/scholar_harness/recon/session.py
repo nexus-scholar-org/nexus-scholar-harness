@@ -250,6 +250,7 @@ class ReconSessions:
         refresh: bool = False,
         providers: list[str] | None = None,
         progress: ProgressFn | None = None,
+        languages: list[str] | None = None,
     ) -> dict[str, Any]:
         """Probe ``query``, record the pool in the session and return its summary.
 
@@ -268,6 +269,7 @@ class ReconSessions:
                 semantic=semantic,
                 refresh=refresh,
                 progress=progress,
+                languages=languages,
             )
         except MailtoNotSet as exc:
             raise ReconRefused(
@@ -290,6 +292,9 @@ class ReconSessions:
             "status": pool.get("status", POOL_COMPLETE),
             "n_docs": len(pool.get("docs") or []),
             "served_from_cache": cached,
+            "year_min": pool.get("year_min"),
+            "year_max": pool.get("year_max"),
+            "languages": pool.get("languages"),
             "legs": _legs_summary(pool.get("legs") or []),
             "at": _now(),
         }
@@ -488,6 +493,7 @@ def _pool_summary(pool: dict[str, Any], path: Path) -> dict[str, Any]:
         "query": pool.get("query"),
         "year_min": pool.get("year_min"),
         "year_max": pool.get("year_max"),
+        "languages": pool.get("languages"),
         "semantic": pool.get("semantic"),
         "n_docs": len(pool.get("docs") or []),
         "max_docs": POOL_MAX,

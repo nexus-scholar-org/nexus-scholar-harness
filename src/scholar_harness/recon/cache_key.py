@@ -52,6 +52,7 @@ def cache_key(
     year_max: int | None = None,
     version: str = VERSION,
     semantic: bool = False,
+    languages: list[str] | None = None,
 ) -> str:
     """Build the hierarchical cache key for a probe.
 
@@ -61,8 +62,15 @@ def cache_key(
         v1/<providers>/y<year_min>-<year_max>/m/semantic/q/<sha256>
 
     Keyword keys stay byte-identical to the pre-M0.6 5-segment form.
+
+    ``languages`` (M4d) go into the hashed part, sorted, so a pool searched for
+    other languages is another pool; ``None`` keeps the earlier key unchanged
+    (the CLI wizard and MCP probes that send no languages).
     """
     normalized = normalize_query(query)
+    if languages:
+        langs = ",".join(sorted({str(x).strip().casefold() for x in languages if str(x).strip()}))
+        normalized = f"{normalized} | languages={langs}"
     provider_seg = ",".join(providers)
     digest = hashlib.sha256(normalized.encode("utf-8")).hexdigest()
     year_seg = _year_segment(year_min, year_max)

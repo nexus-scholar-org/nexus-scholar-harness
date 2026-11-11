@@ -29,7 +29,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from scholar_harness.inception import steps
 from scholar_harness.inception.drafts import DraftRefused, DraftStore
-from scholar_harness.inception.grounding import refuse_stale
+from scholar_harness.inception.grounding import refuse_stale, scope_of
 from scholar_harness.recon.session import ReconRefused, ReconSessions
 
 router = APIRouter(prefix="/api/v1/inception", tags=["inception"])
@@ -137,7 +137,7 @@ def preview(body: PreviewBody, request: Request) -> dict[str, Any]:
         if body.session_id is not None:
             grounding = _store(request).load(body.session_id).get("grounding")
             if grounding:
-                refuse_stale(_recon(request), grounding)
+                refuse_stale(_recon(request), grounding, scope_of(steps.parse_draft(body.draft)))
         return steps.preview(body.draft, workspaces_root=_root(request), grounding=grounding)
     except (DraftRefused, steps.StepRefused, ReconRefused) as exc:
         raise _error(exc) from exc
@@ -152,7 +152,7 @@ def genesis(session_id: str, body: GenesisBody, request: Request) -> dict[str, A
             raise DraftRefused("DRAFT_EMITTED", "this draft already created a workspace", details={"emitted": record["emitted"]})
         grounding = record.get("grounding")
         if grounding:
-            refuse_stale(_recon(request), grounding)
+            refuse_stale(_recon(request), grounding, scope_of(steps.parse_draft(record["draft"])))
         result = steps.genesis(
             record["draft"],
             grounding=grounding,

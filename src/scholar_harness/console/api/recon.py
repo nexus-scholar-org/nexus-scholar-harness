@@ -40,7 +40,7 @@ from scholar_search.config import settings
 
 from scholar_harness.inception import steps
 from scholar_harness.inception.drafts import DraftRefused, DraftStore
-from scholar_harness.inception.grounding import build_grounding, check_binding
+from scholar_harness.inception.grounding import build_grounding, check_binding, scope_changes, scope_of
 from scholar_harness.recon.session import (
     DELTA_BUDGET,
     DIRECTION_UNKNOWN,
@@ -222,6 +222,7 @@ def recon_state(session_id: str, request: Request) -> dict[str, Any]:
         raise _error(exc) from exc
     grounding = record.get("grounding")
     active = _jobs(request).active(session_id)
+    changes = _scope_changes(sessions, session_id, session, _draft_model) if session else []
     return {
         "session_id": session_id,
         "mailto_set": _mailto_set(request),
@@ -231,9 +232,24 @@ def recon_state(session_id: str, request: Request) -> dict[str, Any]:
         "topic_changed": bool(session and session.get("topic") and session["topic"] != _draft_model.topic),
         "session": session,
         "grounding": grounding,
-        "binding": check_binding(sessions, grounding) if grounding else None,
+        # M4d (spec 02 Q3, 03 Q3): the saved question, years or languages differ from the latest pool's.
+        "scope_changed": bool(changes),
+        "scope_changes": changes,
+        "binding": check_binding(sessions, grounding, scope_of(_draft_model)) if grounding else None,
         "active_job": active.to_dict() if active else None,
     }
+
+
+def _scope_changes(sessions: ReconSessions, session_id: str, session: dict[str, Any], draft: Any) -> list[str]:
+    """The parts of the draft's scope that differ from what the latest pool was searched for."""
+    try:
+        pool, _path = sessions.latest_pool(session_id)
+    except ReconRefused:
+        return []
+    then: dict[str, Any] = {"topic": session.get("topic"), "year_min": pool.get("year_min"), "year_max": pool.get("year_max")}
+    if "languages" in pool and pool["languages"] is not None:
+        then["languages"] = pool["languages"]
+    return scope_changes(scope_of(draft), then)
 
 
 @router.post("/probe", status_code=202)
@@ -271,6 +287,7 @@ async def start_probe(session_id: str, body: ProbeBody, request: Request) -> dic
             query, session_id=session_id, topic=draft.topic, purpose=purpose,
             year_min=draft.start_year or 2000, year_max=draft.end_year,
             semantic=body.semantic, refresh=body.refresh, progress=progress,
+            languages=list(draft.languages),
         )
         refuse_unusable_pool(result)
         return result
@@ -366,10 +383,10 @@ def directions(session_id: str, request: Request) -> dict[str, Any]:
 @router.post("/bind")
 def bind(session_id: str, body: BindBody, request: Request) -> dict[str, Any]:
     try:
-        _draft(request, session_id)
+        _record, draft = _draft(request, session_id)
         grounding = build_grounding(
             _sessions(request), session_id, direction=body.direction, own=body.own,
-            accept_thin_pool=body.accept_thin_pool,
+            accept_thin_pool=body.accept_thin_pool, scope=scope_of(draft),
         )
         return _store(request).bind_grounding(session_id, grounding, base_updated_at=body.base_updated_at)
     except (ReconRefused, DraftRefused, steps.StepRefused) as exc:

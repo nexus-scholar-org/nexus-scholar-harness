@@ -132,6 +132,20 @@ def _doc_to_pool_entry(doc: Document) -> dict[str, Any]:
 KEY_SETTINGS = {"openalex": "openalex_key", "semanticscholar": "s2_key"}
 
 
+def _query(
+    text: str,
+    max_results: int | None,
+    year_min: int,
+    year_max: int | None,
+    semantic: bool,
+    languages: list[str] | None,
+) -> Query:
+    q = Query(text=text, max_results=max_results, year_min=year_min, year_max=year_max, semantic=semantic)
+    if languages:
+        q.language = ",".join(languages)
+    return q
+
+
 def _with_key_state(leg: dict[str, Any]) -> dict[str, Any]:
     """Stamp ``key_set`` on a leg as it was when it ran; ``None`` for a database without keys."""
     setting = KEY_SETTINGS.get(str(leg.get("provider")))
@@ -181,6 +195,7 @@ class ReconEngine:
         max_results: int | None,
         semantic: bool = False,
         progress: ProgressFn | None = None,
+        languages: list[str] | None = None,
     ) -> tuple[list[Document], list[dict[str, Any]]]:
         """Run the M3a ``SearchEngine`` and keep its legs (one per provider).
 
@@ -189,13 +204,7 @@ class ReconEngine:
         """
         engine = self._build_engine(providers)
         try:
-            q = Query(
-                text=query_text,
-                max_results=max_results,
-                year_min=year_min,
-                year_max=year_max,
-                semantic=semantic,
-            )
+            q = _query(query_text, max_results, year_min, year_max, semantic, languages)
             run = await engine.run(q, dedup=True, progress_callback=progress)
             return list(run.documents), [_with_key_state(leg.to_dict()) for leg in run.legs]
         finally:
@@ -270,6 +279,7 @@ class ReconEngine:
         max_results: int | None,
         semantic: bool = False,
         progress: ProgressFn | None = None,
+        languages: list[str] | None = None,
     ) -> tuple[list[Document], list[dict[str, Any]]]:
         """The documents and the per-provider legs of one search.
 
@@ -278,13 +288,7 @@ class ReconEngine:
         """
         if self.search_fn is not None:
             result = self.search_fn(
-                Query(
-                    text=query_text,
-                    max_results=max_results,
-                    year_min=year_min,
-                    year_max=year_max,
-                    semantic=semantic,
-                ),
+                _query(query_text, max_results, year_min, year_max, semantic, languages),
                 providers,
             )
             if inspect.isawaitable(result):
@@ -293,7 +297,7 @@ class ReconEngine:
                 return list(result.documents), [leg.to_dict() for leg in result.legs]
             return list(result), []
         return await self._fetch_real(
-            query_text, providers, year_min, year_max, max_results, semantic, progress
+            query_text, providers, year_min, year_max, max_results, semantic, progress, languages
         )
 
     async def probe(
@@ -306,10 +310,11 @@ class ReconEngine:
         semantic: bool = False,
         refresh: bool = False,
         progress: ProgressFn | None = None,
+        languages: list[str] | None = None,
     ) -> tuple[Path, int]:
         """Run one probe and return ``(pool_file, n)``; see :meth:`probe_pool`."""
         pool, path, _cached = await self.probe_pool(
-            query, providers, year_min, year_max, max_results, semantic, refresh, progress
+            query, providers, year_min, year_max, max_results, semantic, refresh, progress, languages
         )
         return path, len(pool["docs"])
 
@@ -323,6 +328,7 @@ class ReconEngine:
         semantic: bool = False,
         refresh: bool = False,
         progress: ProgressFn | None = None,
+        languages: list[str] | None = None,
     ) -> tuple[dict[str, Any], Path, bool]:
         """Run one probe; return ``(pool, pool_file, served_from_cache)``.
 
@@ -340,9 +346,14 @@ class ReconEngine:
 
         Pool size is ``min(25, len(deduped_docs))``; a sparse pool is not
         padded.
+
+        ``languages`` (M4d) are the review's languages: they are sent on the
+        query, recorded in the pool and part of its cache key. No database
+        filters by language today; each leg's notes say so.
         """
         provider_list = list(DEFAULT_PROVIDERS) if providers is None else list(providers)
-        key = cache_key(query, provider_list, year_min, year_max, semantic=semantic)
+        langs = list(languages) if languages else None
+        key = cache_key(query, provider_list, year_min, year_max, semantic=semantic, languages=langs)
         pool_path = self.pools_dir / f"{_sha1(key)}_pool.json"
         self._assert_safe_output(pool_path)
 
@@ -359,7 +370,7 @@ class ReconEngine:
                 return payload, pool_path, True
 
         docs, legs = await self._fetch(
-            query, provider_list, year_min, year_max, max_results, semantic, progress
+            query, provider_list, year_min, year_max, max_results, semantic, progress, langs
         )
         if not docs:
             status = POOL_EMPTY
@@ -376,6 +387,7 @@ class ReconEngine:
             "providers": provider_list,
             "year_min": year_min,
             "year_max": year_max,
+            "languages": langs,
             "max_results": max_results,
             "semantic": semantic,
             "legs": legs,

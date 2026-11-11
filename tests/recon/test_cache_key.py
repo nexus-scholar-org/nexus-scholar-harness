@@ -104,3 +104,15 @@ def test_parse_existing_five_part_key_reports_keyword_mode():
     assert parsed["mode"] == "keyword"
     assert len(key.split("/")) == 5
     assert len(parsed["providers"]) == 2
+
+def test_languages_make_a_different_key_and_none_keeps_the_old_one():
+    """M4d DoD 2: a pool searched for other languages is another pool."""
+    base = cache_key("weed detection", ["openalex"], 2015, 2024)
+    assert cache_key("weed detection", ["openalex"], 2015, 2024, languages=None) == base
+    en = cache_key("weed detection", ["openalex"], 2015, 2024, languages=["en"])
+    assert en != base
+    assert cache_key("weed detection", ["openalex"], 2015, 2024, languages=["fr", "en"]) == cache_key(
+        "weed detection", ["openalex"], 2015, 2024, languages=["en", "fr"]
+    )
+    assert cache_key("weed detection", ["openalex"], 2015, 2024, languages=["en", "fr"]) != en
+    assert parse_cache_key(en)["year_min"] == 2015

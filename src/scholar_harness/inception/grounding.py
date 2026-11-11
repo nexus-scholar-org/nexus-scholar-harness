@@ -35,6 +35,33 @@ from ..recon.session import (
 )
 
 STALE_BINDING = "STALE_BINDING"
+#: ``check_binding`` codes: the pool moved on, or the draft's scope moved away from it (M4d).
+POOL_CHANGED = "POOL_CHANGED"
+SCOPE_CHANGED = "SCOPE_CHANGED"
+#: The probe's default from-year when the draft has none (``recon.py``).
+DEFAULT_YEAR_MIN = 2000
+
+
+def scope_of(draft: Any) -> dict[str, Any]:
+    """The part of a draft a pool is searched for: question, years and languages (M4d)."""
+    return {
+        "topic": getattr(draft, "topic", "") or "",
+        "year_min": getattr(draft, "start_year", None) or DEFAULT_YEAR_MIN,
+        "year_max": getattr(draft, "end_year", None),
+        "languages": sorted(getattr(draft, "languages", None) or []),
+    }
+
+
+def scope_changes(now: dict[str, Any], then: dict[str, Any]) -> list[str]:
+    """Which of ``topic``, ``years`` and ``languages`` differ; a part ``then`` did not record is not compared."""
+    out = []
+    if then.get("topic") is not None and (now.get("topic") or "") != (then.get("topic") or ""):
+        out.append("topic")
+    if "year_min" in then and (now.get("year_min"), now.get("year_max")) != (then.get("year_min"), then.get("year_max")):
+        out.append("years")
+    if then.get("languages") is not None and sorted(now.get("languages") or []) != sorted(then.get("languages") or []):
+        out.append("languages")
+    return out
 #: A direction the researcher wrote is grounded once it occurs in this many records (as a pool direction).
 OWN_DIRECTION_MIN_ANCHORS = 2
 
@@ -50,6 +77,7 @@ def build_grounding(
     direction: str | None = None,
     own: str | None = None,
     accept_thin_pool: bool = False,
+    scope: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """The grounding for one chosen direction on the session's latest pool.
 
@@ -109,7 +137,7 @@ def build_grounding(
     topic = session.get("topic")
     if topic:
         evidence[topic] = term_evidence(pool, topic)
-    return {
+    out = {
         "session_id": session_id,
         "bound_at": _now(),
         "pool": {k: pool_summary[k] for k in ("fingerprint", "created_at", "cache_key", "path", "status", "query", "n_docs", "legs")},
@@ -119,30 +147,62 @@ def build_grounding(
         "anchored_terms": anchored_terms,
         "term_evidence": evidence,
     }
+    if scope is not None:  # the draft's scope at bind time; a later change makes the binding stale (M4d)
+        out["scope"] = dict(scope)
+    return out
 
 
-def check_binding(sessions: ReconSessions, grounding: dict[str, Any]) -> dict[str, Any]:
-    """``{"stale": False}``, or ``{"stale": True, "reason", "bound", "current"}``."""
+def check_binding(
+    sessions: ReconSessions, grounding: dict[str, Any], draft_scope: dict[str, Any] | None = None
+) -> dict[str, Any]:
+    """``{"stale": False}``, or ``{"stale": True, "code", "reason", "bound", "current"}``.
+
+    ``code`` is ``POOL_CHANGED`` when the pool moved on and ``SCOPE_CHANGED``
+    (with ``changes``) when ``draft_scope`` differs from the scope recorded at
+    bind time (M4d). A grounding bound before M4d has no scope and is compared
+    on its pool only.
+    """
+    state = _check_pool(sessions, grounding)
+    if state["stale"] or draft_scope is None or not grounding.get("scope"):
+        return state
+    changes = scope_changes(draft_scope, grounding["scope"])
+    if changes:
+        return {
+            **state,
+            "stale": True,
+            "code": SCOPE_CHANGED,
+            "reason": f"the draft's {', '.join(changes)} changed after this direction was chosen",
+            "changes": changes,
+        }
+    return state
+
+
+def _check_pool(sessions: ReconSessions, grounding: dict[str, Any]) -> dict[str, Any]:
     bound = (grounding.get("pool") or {}).get("fingerprint")
     path = Path((grounding.get("pool") or {}).get("path") or "")
     try:
         on_disk = pool_fingerprint(json.loads(path.read_text(encoding="utf-8")))
     except (OSError, ValueError):
-        return {"stale": True, "reason": "the bound pool file is gone", "bound": bound, "current": None}
+        return {"stale": True, "code": POOL_CHANGED, "reason": "the bound pool file is gone", "bound": bound, "current": None}
     if on_disk != bound:
-        return {"stale": True, "reason": "the bound pool file changed", "bound": bound, "current": on_disk}
+        return {"stale": True, "code": POOL_CHANGED, "reason": "the bound pool file changed", "bound": bound, "current": on_disk}
     try:
         latest, _ = sessions.latest_pool(grounding["session_id"])
     except ReconRefused:
-        return {"stale": True, "reason": "the recon session is gone", "bound": bound, "current": None}
+        return {"stale": True, "code": POOL_CHANGED, "reason": "the recon session is gone", "bound": bound, "current": None}
     current = pool_fingerprint(latest)
     if current != bound:
-        return {"stale": True, "reason": "the session searched again after this direction was chosen", "bound": bound, "current": current}
+        return {
+            "stale": True, "code": POOL_CHANGED,
+            "reason": "the session searched again after this direction was chosen", "bound": bound, "current": current,
+        }
     return {"stale": False, "bound": bound, "current": current}
 
 
-def refuse_stale(sessions: ReconSessions, grounding: dict[str, Any]) -> None:
-    state = check_binding(sessions, grounding)
+def refuse_stale(
+    sessions: ReconSessions, grounding: dict[str, Any], draft_scope: dict[str, Any] | None = None
+) -> None:
+    state = check_binding(sessions, grounding, draft_scope)
     if state["stale"]:
         raise ReconRefused(
             STALE_BINDING,

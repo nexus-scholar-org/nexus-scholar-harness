@@ -43,9 +43,11 @@ class Seam:
         self.docs = _pool() if docs is None else docs
         self.failed = list(failed)
         self.calls: list[str] = []
+        self.queries: list[Query] = []
 
     def __call__(self, query: Query, providers: list[str]) -> SearchRun:
         self.calls.append(query.text)
+        self.queries.append(query)
         legs = [
             SearchLeg(provider=p, query_id=query.id, status="failed" if p in self.failed else "ok",
                       error="ConnectError: offline" if p in self.failed else None)
@@ -358,3 +360,54 @@ def test_the_recon_state_reports_the_database_keys_and_each_legs_code_and_notes(
     assert legs["semanticscholar"]["notes"] == ["Semantic Scholar rejected SCHOLAR_S2_KEY (HTTP 403)"]
     assert (legs["openalex"]["key_set"], legs["semanticscholar"]["key_set"], legs["crossref"]["key_set"]) == (False, True, None)
     assert "s2-placeholder" not in json.dumps(state)
+
+
+def _save(client, sid: str, **changes) -> None:
+    record = client.get(f"{BASE}/drafts/{sid}").json()
+    saved = client.put(f"{BASE}/drafts/{sid}", json={"draft": {**record["draft"], **changes}, "base_updated_at": record["updated_at"]})
+    assert saved.status_code == 200, saved.text
+
+
+def test_the_probe_sends_the_drafts_years_and_languages_and_the_pool_keeps_them(env):
+    """M4d DoD 2: the pool is searched for the review's years and languages, and says so."""
+    client, app, _root, _recon = env
+    sid = _new_draft(client)
+    _save(client, sid, start_year=2018, end_year=2024, languages=["en", "fr"])
+    job = _probe(client, sid)
+    query = app.state.recon_search_fn.queries[-1]
+    assert (query.year_min, query.year_max, query.language) == (2018, 2024, "en,fr")
+    assert job["result"]["languages"] == ["en", "fr"]
+    assert (job["result"]["year_min"], job["result"]["year_max"]) == (2018, 2024)
+    pool = client.post(f"{BASE}/drafts/{sid}/recon/distill").json()["pool"]
+    assert pool["languages"] == ["en", "fr"]
+
+
+def test_other_languages_are_a_different_pool(env):
+    client, app, _root, _recon = env
+    sid = _new_draft(client)
+    first = _probe(client, sid)
+    _save(client, sid, languages=["fr"])
+    second = _probe(client, sid)
+    assert second["result"]["served_from_cache"] is False
+    assert first["result"]["cache_key"] != second["result"]["cache_key"]
+
+
+def test_a_changed_scope_is_reported_and_makes_the_bound_direction_stale(env):
+    """M4d (spec 02 Q3, 03 Q3): the engine compares the saved scope with the pool, not the browser."""
+    client, _app, _root, _recon = env
+    sid = _new_draft(client)
+    _probe(client, sid)
+    label = client.get(f"{BASE}/drafts/{sid}/recon/directions").json()["directions"][0]["label"]
+    assert client.post(f"{BASE}/drafts/{sid}/recon/bind", json={"direction": label}).status_code == 200
+    state = client.get(f"{BASE}/drafts/{sid}/recon").json()
+    assert (state["scope_changed"], state["scope_changes"], state["binding"]["stale"]) == (False, [], False)
+
+    _save(client, sid, languages=["en", "ar"], end_year=2025)
+    state = client.get(f"{BASE}/drafts/{sid}/recon").json()
+    assert state["scope_changed"] is True
+    assert state["scope_changes"] == ["years", "languages"]
+    assert state["binding"]["stale"] is True and state["binding"]["code"] == "SCOPE_CHANGED"
+    draft = client.get(f"{BASE}/drafts/{sid}").json()["draft"]
+    preview = client.post(f"{BASE}/preview", json={"draft": draft, "session_id": sid})
+    assert preview.json()["detail"]["code"] == "STALE_BINDING", preview.text
+    assert client.post(f"{BASE}/drafts/{sid}/genesis", json={}).json()["detail"]["code"] == "STALE_BINDING"
