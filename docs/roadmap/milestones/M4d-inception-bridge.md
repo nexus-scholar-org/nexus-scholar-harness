@@ -30,7 +30,7 @@ Optional tail, only if cheap and the researcher agrees: F6 (draft size limits), 
 
 ## Decisions
 - [2026-11-11, Replacing a protocol archives its corpus; inception grounding answers](../../decisions.md) (accepted by the researcher in chat: F1 option (a), an explicit skip, no gap check in the first build, the remaining spec defaults).
-- [2026-11-11, How M4d grounds browser inception](../../decisions.md) (proposed: keyless OpenAlex in the probe, languages recorded and not filtered, a scope change makes a binding stale, the synonym rule, seeds as DOIs, review notes kept on replace).
+- [2026-11-11, How M4d grounds browser inception](../../decisions.md) (accepted 2026-11-11 by the researcher: keyless OpenAlex in the probe, languages recorded and not filtered, a scope change makes a binding stale, the synonym rule, seeds as DOIs, review notes kept on replace).
 - Specs `02-explore.md` and `03-direction.md` are FINAL; `05`, `06` and discovery `02-recall.md` amended (`45389204`).
 
 ## Evidence
