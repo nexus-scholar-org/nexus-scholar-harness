@@ -194,6 +194,7 @@ def compile_protocol(intent: IntentPacket) -> ResearchProtocol:
             intent.open_access_preferred, preset.open_access_preferred
         ),
         target_candidate_pool_size=pool_size,
+        golden_seeds=list(intent.golden_seeds or []),
     )
 
     # --- screening criteria -------------------------------------------------

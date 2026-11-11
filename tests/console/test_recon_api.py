@@ -411,3 +411,105 @@ def test_a_changed_scope_is_reported_and_makes_the_bound_direction_stale(env):
     preview = client.post(f"{BASE}/preview", json={"draft": draft, "session_id": sid})
     assert preview.json()["detail"]["code"] == "STALE_BINDING", preview.text
     assert client.post(f"{BASE}/drafts/{sid}/genesis", json={}).json()["detail"]["code"] == "STALE_BINDING"
+
+
+# --------------------------------------------------------------------------- M4d DoD 3-5
+
+
+def test_each_concept_says_how_many_pool_papers_anchor_it_and_offers_pool_terms(env):
+    """M4d DoD 3 and 4: per-concept anchoring and co-occurring pool terms, no language model."""
+    client, _app, _root, _recon = env
+    sid = _new_draft(client)
+    assert client.get(f"{BASE}/drafts/{sid}/recon/concepts").json()["detail"]["code"] == "RECON_SESSION_NOT_FOUND"
+    _probe(client, sid)
+    _save(client, sid, concepts=[{"concept": "weed detection", "synonyms": ["weed segmentation"]}, {"concept": "on-device inference"}])
+    body = client.get(f"{BASE}/drafts/{sid}/recon/concepts").json()
+    assert body["n_docs"] == 14 and body["fingerprint"].startswith("sha256:")
+    weed, device = body["concepts"]
+    assert (weed["concept"], weed["source"]) == ("weed detection", "draft")
+    assert [(t["term"], t["observed_in"]) for t in weed["terms"]] == [("weed detection", 8), ("weed segmentation", 6)]
+    assert weed["anchored_in"] == 14
+    assert device["anchored_in"] == 8
+    for concept in body["concepts"]:
+        counts = [s["observed_in"] for s in concept["suggestions"]]
+        assert counts == sorted(counts, reverse=True) and all(n >= 2 for n in counts)
+        assert len(concept["suggestions"]) <= 10
+        for s in concept["suggestions"]:
+            # Never a term a concept already has, nor a piece or an extension of one.
+            for t in ("weed detection", "weed segmentation", "on-device inference"):
+                assert t.replace("-", " ") not in s["term"].replace("-", " ")
+                assert s["term"].replace("-", " ") not in t.replace("-", " ")
+    assert "embedded hardware" in [s["term"] for s in device["suggestions"]]
+
+
+def test_a_draft_without_concepts_gets_the_scope_steps_suggested_concepts(env):
+    client, _app, _root, _recon = env
+    sid = _new_draft(client)
+    _save(client, sid, concepts=[])
+    _probe(client, sid)
+    concepts = client.get(f"{BASE}/drafts/{sid}/recon/concepts").json()["concepts"]
+    assert concepts and {c["source"] for c in concepts} == {"suggested"}
+
+
+def test_your_own_phrase_can_be_checked_without_binding(env):
+    """Spec 03 Q4 (M4d): a read-only check before an own direction is bound."""
+    client, _app, _root, _recon = env
+    sid = _new_draft(client)
+    _probe(client, sid)
+    before = client.get(f"{BASE}/drafts/{sid}").json()
+    ev = client.get(f"{BASE}/drafts/{sid}/recon/evidence", params={"term": "Weed-Detection"}).json()
+    assert (ev["term"], ev["observed_in"], ev["n_docs"], len(ev["anchor_dois"])) == ("Weed-Detection", 8, 14, 8)
+    assert client.get(f"{BASE}/drafts/{sid}").json() == before
+    blank = client.get(f"{BASE}/drafts/{sid}/recon/evidence", params={"term": "  "})
+    assert blank.status_code == 422
+
+
+def test_going_on_without_a_direction_is_recorded_as_not_grounded(env):
+    """Spec 03 Q1 (M4d): the skip is an explicit choice that Review and intent.json can show."""
+    client, _app, root, _recon = env
+    sid = _new_draft(client)
+    _probe(client, sid)
+    both = client.post(f"{BASE}/drafts/{sid}/recon/bind", json={"skip": True, "direction": "x"})
+    assert both.status_code == 422 and both.json()["detail"]["code"] == "NO_DIRECTION"
+    bound = client.post(f"{BASE}/drafts/{sid}/recon/bind", json={"skip": True})
+    assert bound.status_code == 200, bound.text
+    g = bound.json()["grounding"]
+    assert (g["direction"]["source"], g["direction"]["grounded"], g["choice"]) == ("none", False, "none")
+    assert g["anchors"] == []
+    made = client.post(f"{BASE}/drafts/{sid}/genesis", json={})
+    assert made.status_code == 201, made.text
+    ctx = json.loads((root / made.json()["slug"] / "audit" / "recon_context.json").read_text(encoding="utf-8"))
+    assert (ctx["direction_source"], ctx["direction_grounded"]) == ("none", False)
+
+
+def test_the_anchored_papers_are_offered_as_seeds_and_kept_ones_reach_the_protocol(env):
+    """M4d DoD 5: seeds come from the pool's anchors and are written before genesis."""
+    client, _app, root, _recon = env
+    sid = _new_draft(client)
+    _probe(client, sid)
+    seeds = client.get(f"{BASE}/drafts/{sid}/recon/seeds").json()
+    papers = seeds["papers"]
+    assert papers and all(p["doi"] for p in papers)
+    assert all(p["anchors"]["directions"] or p["anchors"]["concepts"] for p in papers)
+    n = [len(p["anchors"]["directions"]) + len(p["anchors"]["concepts"]) for p in papers]
+    assert n == sorted(n, reverse=True)
+
+    kept = [papers[0]["doi"], papers[1]["doi"]]
+    _save(client, sid, golden_seeds=kept)
+    draft = client.get(f"{BASE}/drafts/{sid}").json()["draft"]
+    preview = client.post(f"{BASE}/preview", json={"draft": draft})
+    assert preview.json()["protocol"]["search_strategy"]["golden_seeds"] == kept
+    made = client.post(f"{BASE}/drafts/{sid}/genesis", json={})
+    assert made.status_code == 201, made.text
+    protocol = json.loads((root / made.json()["slug"] / "protocol.json").read_text(encoding="utf-8"))
+    assert protocol["search_strategy"]["golden_seeds"] == kept
+
+
+def test_seeds_must_be_dois_and_at_most_25(env):
+    client, _app, _root, _recon = env
+    sid = _new_draft(client)
+    record = client.get(f"{BASE}/drafts/{sid}").json()
+    for bad in (["not a doi"], [f"10.1/x{i}" for i in range(26)]):
+        draft = {**record["draft"], "golden_seeds": bad}
+        refused = client.post(f"{BASE}/preview", json={"draft": draft})
+        assert refused.status_code == 422 and refused.json()["detail"]["code"] == "DRAFT_INVALID", refused.text

@@ -224,6 +224,7 @@ The UI reads proposals only through `GET /records/{study_id}/proposal`. The fiel
 | `RECON_JOB_ACTIVE` | recon probe, delta | HTTP 409: a search for this draft is already running (M4c) |
 | `RECON_JOB_NOT_FOUND` | `.../recon/jobs/{job_id}` | HTTP 404: no recon job with that id for this draft (M4c) |
 | `RECON_FAILED` | recon jobs | the job stopped on an unexpected error; `message` names it (M4c) |
+| `TERM_EMPTY` | recon evidence | HTTP 422: the phrase to check is empty (M4d) |
 | `PROTOCOL_MISSING` | discovery plan, runs, recall, report, handoff | HTTP 409: the workspace has no `protocol.json` (M3b-api) |
 | `DISCOVERY_JOB_ACTIVE` | discovery runs, recall | HTTP 409: a discovery job is already running for this workspace; `details.job` is it (M3b-api) |
 | `DISCOVERY_JOB_NOT_FOUND` | `/discovery/jobs/{job_id}` | HTTP 404: no discovery job with that id in this workspace (M3b-api) |

@@ -23,12 +23,13 @@ Without it every step answers as in M4b.
 from __future__ import annotations
 
 import json
+import re
 import shutil
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-from pydantic import BaseModel, ConfigDict, Field, ValidationError
+from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator
 
 from .emit import (
     NEW_WORKSPACE_FILES,
@@ -89,6 +90,25 @@ class ExclusionIn(BaseModel):
     reason_category: str = "OUT_OF_SCOPE"
 
 
+#: The discovery Recall check takes at most 25 seeds (``scholar_search.recall``).
+MAX_GOLDEN_SEEDS = 25
+_DOI = re.compile(r"^10\.\d+(\.\d+)*/\S+$")
+
+
+def _doi_list(values: list[str]) -> list[str]:
+    out: list[str] = []
+    for value in values:
+        doi = str(value).strip()
+        for prefix in ("https://doi.org/", "http://doi.org/", "doi:"):
+            if doi.lower().startswith(prefix):
+                doi = doi[len(prefix):]
+        if not _DOI.match(doi):
+            raise ValueError(f"{value!r} is not a DOI (10.<registrant>/<suffix>)")
+        if doi.lower() not in {d.lower() for d in out}:
+            out.append(doi)
+    return out
+
+
 class Draft(BaseModel):
     """Everything the interview collects. Every field is optional until preview."""
 
@@ -112,10 +132,18 @@ class Draft(BaseModel):
     criteria_decisions: dict[str, bool] = Field(default_factory=dict)
     matrix_columns: list[str] = Field(default_factory=list)
     verification_checks: bool = True
+    #: DOIs kept as recall seeds from the pool's anchors (M4d DoD 5); compiled
+    #: into ``search_strategy.golden_seeds`` at genesis.
+    golden_seeds: list[str] = Field(default_factory=list, max_length=MAX_GOLDEN_SEEDS)
     title: str = ""
     lead_researcher: str = ""
     venue: str = ""
     timeline_weeks: int | None = None
+
+    @field_validator("golden_seeds")
+    @classmethod
+    def _seeds_are_dois(cls, values: list[str]) -> list[str]:
+        return _doi_list(values)
 
 
 def parse_draft(raw: dict[str, Any] | None) -> Draft:
@@ -162,6 +190,7 @@ def _survey(draft: Draft) -> Survey:
         extra_exclusions=[(e.criterion, e.reason_category) for e in draft.extra_exclusions],
         trust_score_threshold=VERIFICATION_TRUST_THRESHOLD if draft.verification_checks else 0.0,
         matrix_dimensions=[],
+        golden_seeds=list(draft.golden_seeds),
     )
 
 

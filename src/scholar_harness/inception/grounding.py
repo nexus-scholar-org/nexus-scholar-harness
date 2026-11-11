@@ -78,20 +78,27 @@ def build_grounding(
     own: str | None = None,
     accept_thin_pool: bool = False,
     scope: dict[str, Any] | None = None,
+    skip: bool = False,
 ) -> dict[str, Any]:
     """The grounding for one chosen direction on the session's latest pool.
+
+    ``skip`` (M4d, spec 03 Q1) records that the researcher went on without a
+    direction: ``choice`` is ``none``, the direction is not grounded and has
+    no anchors, and no pool floor applies.
 
     ``direction`` is the label of a proposed direction; ``own`` is a direction
     the researcher wrote, recorded as ungrounded unless it occurs in at least
     two records of the pool. A pool under the floor of 12 refuses
     ``POOL_TOO_SMALL`` unless ``accept_thin_pool``.
     """
-    if bool(direction) == bool(own):
-        raise ReconRefused(NO_DIRECTION, "Choose one of the proposed directions or write your own.", status=422)
+    if sum((bool(direction), bool(own), bool(skip))) != 1:
+        raise ReconRefused(
+            NO_DIRECTION, "Choose one of the proposed directions, write your own, or go on without one.", status=422
+        )
     found = sessions.directions(session_id)
     pool_summary = found["pool"]
     n_docs = pool_summary["n_docs"]
-    if n_docs < POOL_THIN_FLOOR and not accept_thin_pool:
+    if n_docs < POOL_THIN_FLOOR and not accept_thin_pool and not skip:
         raise ReconRefused(
             POOL_TOO_SMALL,
             f"The pool has {n_docs} papers, under the floor of {POOL_THIN_FLOOR}; directions from it are often "
@@ -110,6 +117,11 @@ def build_grounding(
                 details={"directions": [d["label"] for d in found["directions"]]},
             )
         chosen = {**chosen, "source": "pool", "grounded": True}
+    elif skip:
+        chosen = {
+            "label": "", "concept": "", "anchor_dois": [], "observed_in": 0, "n_docs": n_docs, "schools": [],
+            "detail": "no direction chosen; the protocol is not grounded", "source": "none", "grounded": False,
+        }
     else:
         own = (own or "").strip()
         ev = term_evidence(pool, own)
@@ -131,9 +143,7 @@ def build_grounding(
         if t["anchor_dois"]:
             anchored_terms.setdefault(t["term"], list(t["anchor_dois"]))
     session = sessions.load(session_id)
-    evidence = {
-        chosen["concept"]: term_evidence(pool, chosen["concept"]),
-    }
+    evidence = {chosen["concept"]: term_evidence(pool, chosen["concept"])} if chosen["concept"] else {}
     topic = session.get("topic")
     if topic:
         evidence[topic] = term_evidence(pool, topic)
@@ -143,7 +153,8 @@ def build_grounding(
         "pool": {k: pool_summary[k] for k in ("fingerprint", "created_at", "cache_key", "path", "status", "query", "n_docs", "legs")},
         "direction": chosen,
         "anchors": sorted(chosen["anchor_dois"]),
-        "default_concepts": _grounded_default_concepts(distilled, chosen["concept"]),
+        "choice": "none" if skip else chosen["source"],
+        "default_concepts": _grounded_default_concepts(distilled, chosen["concept"]) if chosen["concept"] else [],
         "anchored_terms": anchored_terms,
         "term_evidence": evidence,
     }

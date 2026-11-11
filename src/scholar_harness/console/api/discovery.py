@@ -408,7 +408,18 @@ def plan(request: Request) -> dict[str, Any]:
         "s2_key_set": bool(settings.s2_key),
         "providers": providers,
         "imports_hint": ["scopus", "wos"],
+        # M4d: the recall seeds inception kept from its pool; Recall pre-fills them as "anchor".
+        "golden_seeds": _golden_seeds(proto.path),
     }
+
+
+def _golden_seeds(path: Path) -> list[str]:
+    try:
+        protocol = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return []
+    seeds = (protocol.get("search_strategy") or {}).get("golden_seeds") or []
+    return [str(s) for s in seeds if str(s).strip()]
 
 
 @router.get("/runs")

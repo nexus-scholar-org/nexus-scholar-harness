@@ -214,6 +214,10 @@ class IntentPacket(BaseModel):
         None,
         description="Maximum candidate pool size; None = use playbook preset default",
     )
+    golden_seeds: Optional[List[str]] = Field(
+        None,
+        description="DOIs the search must find (recall seeds); None = none",
+    )
 
     # ---- Screening criteria (required, min 1 each) --------------------------
 

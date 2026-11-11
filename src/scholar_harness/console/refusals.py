@@ -123,6 +123,8 @@ NO_DIRECTION = "NO_DIRECTION"
 RECON_JOB_ACTIVE = "RECON_JOB_ACTIVE"
 RECON_JOB_NOT_FOUND = "RECON_JOB_NOT_FOUND"
 RECON_FAILED = "RECON_FAILED"
+#: M4d: the read-only phrase check was sent no phrase.
+TERM_EMPTY = "TERM_EMPTY"
 
 # --- discovery over HTTP (M3b-api, `console/api/discovery.py`) ----------------
 #: `docs/architecture/research_ui/DISCOVERY_API_PACKET.md` §4.7. ``MAILTO_NOT_SET``,
@@ -247,6 +249,7 @@ CONTRACT_ADDED = frozenset(
         RECON_JOB_ACTIVE,
         RECON_JOB_NOT_FOUND,
         RECON_FAILED,
+        TERM_EMPTY,
         PROTOCOL_MISSING,
         DISCOVERY_JOB_ACTIVE,
         DISCOVERY_JOB_NOT_FOUND,
