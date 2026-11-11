@@ -4,6 +4,17 @@ One entry per decision that still shapes the code, newest first. The full
 records were removed in the 2026-11-03 docs cut; each entry names the commit
 history to read if you need the original reasoning (`git log --follow -- <path>`).
 
+## 2026-11-11 — How M4d grounds browser inception: keys, languages, pool synonyms, anchor seeds (proposed; M4d-inception-bridge)
+
+Choices made while building M4d; the researcher confirms them at the PR. Record: `docs/roadmap/milestones/M4d-inception-bridge.md`.
+
+1. **The recon probe still asks OpenAlex without a key.** A probe fetches at most 25 records, which the keyless daily budget usually allows, so the probe is not refused the way a discovery run is (`OPENALEX_KEY_NOT_SET`). The leg says the key is missing (`key_set: false` and the provider's note), and a refusal (401, 403 or 409) fails the leg with `PROVIDER_REFUSED` and a note naming `SCHOLAR_OPENALEX_KEY`; the pool is then `partial` and never cached. A rejected Semantic Scholar key (403) and a throttle (429) fail their legs with `PROVIDER_REFUSED` and `PROVIDER_RATE_LIMITED`. Each leg keeps `error_code`, `notes` and `key_set`.
+2. **Languages are recorded, not filtered.** The draft's languages go on the probe's query, into the pool and into its cache key, so a pool says which languages it was searched for. No database filters the probe by language today; every leg notes it. A real filter changes what the providers send for discovery too, so it waits for the provider package that owns them.
+3. **A changed scope makes a bound direction stale.** A binding records the draft's question, years and languages. When any of them later differs, `check_binding` answers `SCOPE_CHANGED`, and preview and genesis refuse with `STALE_BINDING`, as for a changed pool.
+4. **Pool synonyms are counts, not suggestions from a model.** For each concept, a term is offered when it occurs (1 to 3 words, stopwords dropped) in at least two of the pool records whose title or abstract contains the concept or one of its synonyms. It must not be a term of any concept, nor a piece or an extension of one. At most 10 are offered, the most frequent first. Nothing is added until the researcher ticks it.
+5. **Seeds are DOIs from the pool's anchors.** The offered papers are pool records with a DOI that anchor a direction or a concept. The draft keeps at most 25 (the Recall limit), normalised and checked as DOIs. An intent without seeds compiles to the same protocol bytes as before.
+6. **Replace keeps the review notes.** `synthesis/literature_review.md` is the researcher's own text and stays; everything else listed in the F1 decision moves.
+
 ## 2026-11-11 — Replacing a protocol archives its corpus; inception grounding answers (accepted; M4d-inception-bridge)
 
 The researcher answered on 2026-11-11 in chat, taking every recommended option. Record: `docs/roadmap/milestones/M4d-inception-bridge.md`.

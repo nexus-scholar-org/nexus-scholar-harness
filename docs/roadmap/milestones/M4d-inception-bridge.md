@@ -9,7 +9,7 @@ Out of scope (deferred by the researcher): tagging b7; the M9a cost measurement.
 
 ## Definition of done
 Done in this order.
-- [ ] **Step 0, F1 decision.** `phase-auditor` on F1 at HEAD; the researcher chooses the replace semantics; entry in `docs/decisions.md`.
+- [x] **Step 0, F1 decision.** `phase-auditor` confirmed F1 at `839a51dd` in every part (backup set `emit.py:42`; an accepted corpus with no decisions is not "screening bound"; neither option touches Contract v1). The researcher chose option (a), archive and start clean, on 2026-11-11 (`docs/decisions.md`).
 - [ ] **1. Key and leg state on the recon probe.** Without an OpenAlex key, and with a Semantic Scholar key that is rejected (403) or throttled (429), the probe reports each provider's key and leg state instead of silently returning a thin pool; Explore shows that state as the Plan screen does. Offline tests with fakes or cassettes (socket guard on).
 - [ ] **2. Years and languages reach the probe.** The draft's year window and languages are passed to the recon probe, are part of the pool and of its cache key, and are shown on Explore.
 - [ ] **3. Explore and Direction screens** in `apps/research-ui` over the M4c recon routes, between Scope and Shape. Specs `docs/ux/phase0-inception/final/02-explore.md` and `03-direction.md` at `Status: FINAL` before the build. Explore shows pool size, provider legs and per-concept anchoring counts; on Direction nothing is applied without a click. en, fr, ar strings.
@@ -23,12 +23,24 @@ Optional tail, only if cheap and the researcher agrees: F6 (draft size limits), 
 ## Findings fixed
 | ID | Reproducing test | Fails before | Passes after |
 | :-- | :-- | :-- | :-- |
+| F1 | `tests/console/test_inception_api.py::test_replacing_a_protocol_archives_its_corpus_and_starts_clean`, `::test_replacing_a_protocol_with_no_corpus_moves_nothing_but_the_protocol` | yes (`KeyError: 'archive'`/`'archived'`; the corpus stayed ACCEPTED) | yes, `b1e37167` |
+| Probe drops key and leg state (DoD 1) | `tests/recon/test_probe_key_state.py` (5 tests: keyless OpenAlex note, OpenAlex 409, S2 403, S2 429, a database without keys); `tests/console/test_recon_api.py::test_the_recon_state_reports_the_database_keys_and_each_legs_code_and_notes` | yes, 5 failed (`KeyError: 'key_set'`; `_legs_summary` dropped notes and `error_code`) | yes, `ae73e10b` |
+| Probe ignores languages (DoD 2) | `test_recon_api.py::test_the_probe_sends_the_drafts_years_and_languages_and_the_pool_keeps_them`, `::test_other_languages_are_a_different_pool`, `::test_a_changed_scope_is_reported_and_makes_the_bound_direction_stale`; `tests/recon/test_cache_key.py::test_languages_make_a_different_key_and_none_keeps_the_old_one` | yes | yes, `80ad23f2` |
+| No concepts, phrase check, skip or seeds over HTTP (DoD 3–5 engine) | `test_recon_api.py::test_each_concept_says_how_many_pool_papers_anchor_it_and_offers_pool_terms`, `::test_a_draft_without_concepts_gets_the_scope_steps_suggested_concepts`, `::test_your_own_phrase_can_be_checked_without_binding`, `::test_going_on_without_a_direction_is_recorded_as_not_grounded`, `::test_the_anchored_papers_are_offered_as_seeds_and_kept_ones_reach_the_protocol`, `::test_seeds_must_be_dois_and_at_most_25`; `tests/console/test_discovery_api.py::test_the_plan_lists_the_protocols_recall_seeds` | yes, 5 failed (routes 404, unknown draft field) | yes, `07a908cf` |
 
 ## Decisions
+- [2026-11-11, Replacing a protocol archives its corpus; inception grounding answers](../../decisions.md) (accepted by the researcher in chat: F1 option (a), an explicit skip, no gap check in the first build, the remaining spec defaults).
+- [2026-11-11, How M4d grounds browser inception](../../decisions.md) (proposed: keyless OpenAlex in the probe, languages recorded and not filtered, a scope change makes a binding stale, the synonym rule, seeds as DOIs, review notes kept on replace).
+- Specs `02-explore.md` and `03-direction.md` are FINAL; `05`, `06` and discovery `02-recall.md` amended (`45389204`).
 
 ## Evidence
 | Stage | Commit | Command | Result | Duration |
 | :-- | :-- | :-- | :-- | :-- |
 | start | `839a51dd` | branch `dev/m4d/inception-bridge` from `origin/main` | clean | |
+| audit | `839a51dd` | phase-auditor on F1 | confirmed in every part; Contract v1 untouched by either option | |
+| red | working tree | `pytest tests/recon/test_probe_key_state.py` | 5 failed, each for the dropped key and leg state | |
+| inner | `80ad23f2` | `pytest tests/console/test_recon_api.py tests/recon tests/console/test_inception_api.py tests/inception tests/mcp tests/unit/test_recon_adapter_characterization.py tests/pipeline/test_golden_recon_cassette.py -n auto` | all pass (golden recon cassette replays unchanged) | |
+| inner | `b1e37167` | `pytest tests/console tests/inception tests/cli tests/recon tests/mcp tests/kits/protocol tests/kits/agent tests/pipeline/test_golden_recon_cassette.py tests/unit/test_recon_adapter_characterization.py -m "not slow" -n auto` | **1200 passed, 1 skipped** | 2 m 20 s |
+| checkpoint (engine) | `8d08f7af` | the `select_test_gate.py --changed main --stage checkpoint` commands run together with `-n auto`: `git diff --check`; `pytest tests/console tests/authority tests/inception tests/recon tests/cli tests/unit tests/mcp tests/kits/protocol tests/kits/agent/test_mcp_recon_adapter.py tests/test_protocol_identity_conformance.py tests/conformance/test_actions_cli_parity.py tests/test_screening_decision_contract.py`; contract baseline `--check`; protocol schema `--check` | **1951 passed, 3 skipped**; diff clean; baseline current; schema in sync | 3 m 40 s |
 
 ## Deferred
