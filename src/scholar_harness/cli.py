@@ -1398,6 +1398,35 @@ def chase_status(
     console.print(table)
 
 
+@chase_app.command("accept")
+def chase_accept(
+    workspace: Path = typer.Argument(Path("."), help="Path to the research workspace"),
+    chase: str | None = typer.Option(None, "--chase", help="The run to send (default: the newest published one)"),
+):
+    """Send a chase run's new records to screening as the next round.
+
+    Freezes them as their own corpus snapshot (naming the parent snapshot),
+    archives the finished round under literature/screening_rounds/, and leaves
+    the workspace ready for `prepare`. Needs the screening published and the
+    protocol unchanged since.
+    """
+    from .pipeline.citation_chase import ChaseRefused, accept_citation_chase
+
+    try:
+        accepted = accept_citation_chase(workspace, chase=chase)
+    except ChaseRefused as exc:
+        console.print(f"[bold red]❌ {exc.code}: {exc}[/bold red]", markup=True, soft_wrap=True)
+        raise typer.Exit(1) from exc
+    console.print(
+        f"[bold green]✅ {accepted.chase} sent to screening as round {accepted.round}:[/bold green] "
+        f"{accepted.study_count} works from {accepted.record_count} records ({accepted.outcome_status})",
+        soft_wrap=True,
+    )
+    console.print(f"[dim]{accepted.artifact_id} (parent {accepted.parent_corpus})[/dim]", soft_wrap=True)
+    console.print(f"[dim]Round {accepted.round - 1} archived under {accepted.round_path}[/dim]", soft_wrap=True)
+    console.print("[dim]Next: prepare the screening batches.[/dim]")
+
+
 app.add_typer(chase_app, name="chase")
 
 

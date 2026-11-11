@@ -497,6 +497,13 @@ def prisma_identification(ws: Path, screened_docs: int) -> tuple[int, int]:
     as ``/prisma/preview`` and ``check_golden_workspace.py``. Otherwise the
     discovery harvest manifest is read as before (or no duplicates are known).
     """
+    from .screening.rounds import chase_identification
+
+    # M3g: a citation-searching round identifies what the chase fetched; its
+    # duplicates are the records found twice or already in the corpus.
+    chased = chase_identification(ws)
+    if chased is not None:
+        return chased
     manifest_path = ws / MANIFEST_FILE
     manifest: dict[str, Any] = {}
     if manifest_path.exists():

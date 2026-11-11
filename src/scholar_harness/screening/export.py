@@ -574,11 +574,44 @@ def build_methods(ws: Path) -> dict[str, Any]:
     # 1. PRISMA
     c = figures_counts
     reason_text = f" ({', '.join(f'{k}: {v}' for k, v in sorted(reasons.items()))})" if reasons else ""
-    sentences.append(
-        f"{c['identified']} records were identified; {c['duplicates_removed']} duplicates were removed; "
-        f"{c['screened']} records were screened; {c['excluded']} were excluded{reason_text}; "
-        f"{c['unclear']} were unclear and went to full-text assessment; {c['included']} were included."
-    )
+    if prisma.get("arm") == "citation_searching" and isinstance(prisma.get("previous_rounds"), list):
+        # M3g: two arms. The earlier rounds as published, then this round's citation searching.
+        figures["rounds"] = []
+        for earlier in prisma["previous_rounds"]:
+            earlier_prisma = earlier.get("prisma") if isinstance(earlier, dict) and isinstance(earlier.get("prisma"), dict) else {}
+            ec = {k: int(earlier_prisma.get(k) or 0) for k in (
+                "total_identified", "duplicates_removed", "records_screened", "records_excluded",
+                "records_unclear", "records_included",
+            )}
+            label = "databases" if earlier.get("arm") == "databases" else str(earlier.get("arm") or "earlier round")
+            sentences.append(
+                f"Round {earlier.get('round')} ({label}): {ec['total_identified']} records were identified; "
+                f"{ec['duplicates_removed']} duplicates were removed; {ec['records_screened']} records were screened; "
+                f"{ec['records_excluded']} were excluded; {ec['records_unclear']} were unclear and went to full-text "
+                f"assessment; {ec['records_included']} were included."
+            )
+            figures["rounds"].append({"round": earlier.get("round"), "arm": earlier.get("arm"), **ec})
+        ident = prisma.get("identification") if isinstance(prisma.get("identification"), dict) else {}
+        removed = ident.get("removed_before_screening") if isinstance(ident.get("removed_before_screening"), dict) else {}
+        directions = " and ".join(str(d) for d in (ident.get("directions") or ["forward", "backward"]))
+        providers = ", ".join(str(p) for p in (ident.get("providers") or []))
+        sentences.append(
+            f"Round {prisma.get('round')} (citation searching, {directions} from {ident.get('chaseable_seeds', 0)} "
+            f"of {ident.get('seeds', 0)} included studies on {providers}): {c['identified']} records were identified; "
+            f"{c['duplicates_removed']} were duplicates or already in the corpus; "
+            f"{int(removed.get('outside_year_window') or 0)} were outside the protocol's year window; "
+            f"{c['screened']} records were screened; {c['excluded']} were excluded{reason_text}; "
+            f"{c['unclear']} were unclear and went to full-text assessment; {c['included']} were included."
+        )
+        figures["rounds"].append({"round": prisma.get("round"), "arm": "citation_searching", **figures_counts,
+                                  "removed_before_screening": dict(removed)})
+        figures["review_totals"] = dict(prisma.get("review_totals") or {})
+    else:
+        sentences.append(
+            f"{c['identified']} records were identified; {c['duplicates_removed']} duplicates were removed; "
+            f"{c['screened']} records were screened; {c['excluded']} were excluded{reason_text}; "
+            f"{c['unclear']} were unclear and went to full-text assessment; {c['included']} were included."
+        )
     # M7-method: the dedup tiers in force (always stated; spec 10 amendment).
     from .method import MethodInvalid, effective_method
 

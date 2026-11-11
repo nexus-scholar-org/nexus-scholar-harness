@@ -248,6 +248,14 @@ The UI reads proposals only through `GET /records/{study_id}/proposal`. The fiel
 | `IMPORT_BAD_YEAR` | staged source `rejected[].code` | a year tag without a four-digit year; the record is imported without a year; a row field (E3, M3d-engine) |
 | `DEDUP_NOT_RUN` | `GET /discovery/dedup` | HTTP 404: no deduplication has run in this workspace (E4a, M3d-engine) |
 | `PROTOCOL_CHANGED_SINCE_RUN` | `POST /corpus/accept` (discovery hand-off) | HTTP 409: the newest search run's query or year window differs from what `protocol.json` compiles to now; search again before accepting (M3d-engine) |
+| `SCREENING_NOT_PUBLISHED` | `POST /discovery/chase/runs`, `POST /discovery/chase/accept` | HTTP 409: the screening of this workspace is not published and current (`literature/included.json` missing, or the generation is not `CURRENT`); the chase's seeds are the published includes (M3g-citation-chasing) |
+| `CHASE_NOT_RUN` | `POST /discovery/chase/accept`, `GET /discovery/chase/runs/{chase}` | HTTP 409 (404 on the read): no published chase run to send, or the named run does not exist or was not published (failed or cancelled) (M3g) |
+| `CHASE_NOTHING_NEW` | `POST /discovery/chase/accept` | HTTP 409: the chase run found nothing new to the corpus inside the year window; there is no round to start (M3g) |
+| `CHASE_ALREADY_ACCEPTED` | `POST /discovery/chase/accept` | HTTP 409: this chase run was already sent to screening; `message` names the round (M3g) |
+| `CHASE_STALE` | `POST /discovery/chase/accept` | HTTP 409: the screening was published again, or a later corpus snapshot was accepted, after this chase ran; run the chase again (M3g) |
+| `CHASE_DIRECTION_INVALID` | `POST /discovery/chase/runs` | HTTP 422: a direction other than `forward` or `backward`, or none (M3g) |
+| `CHASE_SEEDS_INVALID` | `POST /discovery/chase/runs` | HTTP 422: a seed source other than `included` or `included+unclear` (M3g) |
+| `PROTOCOL_CHANGED_SINCE_PUBLISH` | `POST /discovery/chase/accept` | HTTP 409: `protocol.json` differs from the protocol the screening was published under; the includes no longer belong to the current protocol, so screening must be redone and published before a chase is sent (M3g) |
 | `STALE_BINDING` (inception) | preview with `session_id`, genesis | HTTP 409: the draft's direction was chosen on a pool that is no longer its recon session's latest (M4c), or the draft's question, years or languages changed after it was chosen (`details.code: SCOPE_CHANGED`, `details.changes`; M4d); choose it again. The code predates M4c and is listed in the console set. |
 | `ENGINE_UNREACHABLE` | UI only | client-side state, never sent by the engine |
 

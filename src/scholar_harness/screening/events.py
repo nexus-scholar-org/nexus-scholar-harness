@@ -128,11 +128,17 @@ def load_context(workspace: Path) -> ScreeningContext:
     if not registry_path.is_file():
         return context
     entries = json.loads(registry_path.read_text(encoding="utf-8")).get("artifacts", {})
+    corpus_fingerprint = newest_corpus_fingerprint(ws, entries)
     newest: dict[int, tuple[str, dict]] = {}
     for artifact_id, entry in entries.items():
         if entry.get("artifact_type") != "screening_batch":
             continue
         artifact = json.loads((ws / entry["path"]).read_text(encoding="utf-8"))
+        # M3g (screening rounds): a batch bound to an earlier corpus snapshot
+        # belongs to an archived round; the context is the current corpus only.
+        bound = (artifact.get("data", {}).get("binding") or {}).get("corpus_fingerprint")
+        if corpus_fingerprint is not None and bound is not None and bound != corpus_fingerprint:
+            continue
         index = int(artifact["data"]["batch_index"])
         if index not in newest or entry.get("accepted_at", "") > newest[index][1].get("accepted_at", ""):
             newest[index] = (artifact_id, {**entry, "_artifact": artifact})
@@ -143,6 +149,32 @@ def load_context(workspace: Path) -> ScreeningContext:
         for study in candidates:
             context.study_batch[study] = index
     return context
+
+
+def newest_corpus_fingerprint(workspace: Path, entries: dict[str, Any] | None = None) -> str | None:
+    """The ``corpus_fingerprint`` of the newest accepted corpus snapshot, or ``None``.
+
+    Every read is guarded: an unreadable registry or artifact answers ``None``,
+    which keeps every batch (today's behaviour), never a refusal.
+    """
+    ws = Path(workspace)
+    if entries is None:
+        try:
+            entries = json.loads((ws / "audit" / "artifact_registry.json").read_text(encoding="utf-8")).get("artifacts", {})
+        except (OSError, ValueError):
+            return None
+    corpora = [
+        e for e in (entries or {}).values()
+        if isinstance(e, dict) and e.get("artifact_type") == "corpus_snapshot" and e.get("path")
+    ]
+    if not corpora:
+        return None
+    entry = max(corpora, key=lambda e: str(e.get("accepted_at") or ""))
+    try:
+        value = json.loads((ws / entry["path"]).read_text(encoding="utf-8")).get("corpus_fingerprint")
+    except (OSError, ValueError):
+        return None
+    return value if isinstance(value, str) and value else None
 
 
 def screener_file(workspace: Path, screener_id: str) -> Path:

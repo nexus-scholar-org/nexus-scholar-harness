@@ -98,3 +98,24 @@ def test_chase_run_refuses_without_a_published_screening_and_on_bad_options(ws, 
 
     empty = runner.invoke(app, ["chase", "status", str(ws)])
     assert empty.exit_code == 0 and "No citation chase" in _plain(empty.output)
+
+
+def test_chase_accept_sends_the_run_to_screening_as_round_2(ws, monkeypatch):
+    docs = [helpers._doc(f"C{i}", provider="openalex", pid=f"W{i}", doi=f"10.2/{i}", openalex=f"W{i}") for i in range(2)]
+    _install(monkeypatch, helpers.FakeChaseProvider("openalex", citations={helpers.W_INCLUDE: docs}))
+    before = runner.invoke(app, ["chase", "accept", str(ws)])
+    assert before.exit_code == 1 and "CHASE_NOT_RUN" in _plain(before.output)
+
+    assert runner.invoke(app, ["chase", "run", str(ws), "--providers", "openalex", "--directions", "forward"]).exit_code == 0
+    result = runner.invoke(app, ["chase", "accept", str(ws)])
+    out = _plain(result.output)
+    assert result.exit_code == 0, out
+    assert "chase_001 sent to screening as round 2" in out and "2 works from 2 records" in out
+    assert "Round 1 archived under literature/screening_rounds/round_001" in out
+    assert (ws / "literature" / "screening_rounds" / "round_001" / "screening" / "generation.json").is_file()
+    assert len(json.loads((ws / "literature" / "verified.json").read_text(encoding="utf-8"))) == 2
+
+    status = runner.invoke(app, ["chase", "status", str(ws)])
+    assert "2" in _plain(status.output)  # the Accepted column names the round
+    twice = runner.invoke(app, ["chase", "accept", str(ws), "--chase", "chase_001"])
+    assert twice.exit_code == 1 and "CHASE_ALREADY_ACCEPTED" in _plain(twice.output)

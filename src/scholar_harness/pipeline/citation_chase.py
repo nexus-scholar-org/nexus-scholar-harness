@@ -74,6 +74,7 @@ class ChaseRefused(Exception):
     def __init__(self, message: str, code: str = "CHASE_REFUSED") -> None:
         super().__init__(message)
         self.code = code
+        self.details: dict[str, Any] = {}
 
 
 @dataclass
@@ -286,6 +287,18 @@ def _parent_corpus(ws: Path) -> dict[str, Any] | None:
     if not corpora:
         return None
     return max(corpora, key=lambda e: str(e.get("accepted_at") or ""))
+
+
+def _corpus_entry(ws: Path, artifact_id: str) -> dict[str, Any] | None:
+    """One registered corpus snapshot's registry row, or ``None``."""
+    registry = ws / "audit" / "artifact_registry.json"
+    try:
+        entry = json.loads(registry.read_text(encoding="utf-8")).get("artifacts", {}).get(artifact_id)
+    except (OSError, ValueError):
+        return None
+    if not isinstance(entry, dict) or entry.get("artifact_type") != "corpus_snapshot":
+        return None
+    return {"artifact_id": artifact_id, **entry}
 
 
 def _generation_id(ws: Path) -> str | None:
@@ -628,3 +641,287 @@ def chase_summaries(workspace: Path | str) -> list[dict[str, Any]]:
             "accepted": m.get("accepted"),
         })
     return out
+
+
+# --------------------------------------------------------------------------- the accept (round 2)
+
+
+@dataclass
+class ChaseAccepted:
+    chase: str
+    round: int
+    artifact_id: str
+    study_count: int
+    record_count: int
+    outcome_status: str
+    parent_corpus: str
+    archived: list[str]
+    round_path: str
+    already_accepted: bool = False
+
+
+def legs_summary(legs: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """One row per database and direction, summed by the engine (the browser sums nothing)."""
+    rows: dict[tuple[str, str], dict[str, Any]] = {}
+    for leg in legs:
+        if not isinstance(leg, dict):
+            continue
+        key = (str(leg.get("provider")), str(leg.get("direction")))
+        row = rows.setdefault(key, {
+            "provider": key[0], "direction": key[1], "legs": 0, "ok": 0, "failed": 0, "skipped": 0,
+            "fetched": 0, "cap_hits": 0,
+        })
+        row["legs"] += 1
+        status = str(leg.get("status") or "")
+        if status in ("ok", "failed", "skipped"):
+            row[status] += 1
+        row["fetched"] += int(leg.get("fetched") or 0)
+        row["cap_hits"] += 1 if leg.get("cap_hit") else 0
+    def order(key: tuple[str, str]) -> tuple[int, str, int]:
+        provider, direction = key
+        return (
+            DEFAULT_PROVIDERS.index(provider) if provider in DEFAULT_PROVIDERS else 9,
+            provider,
+            DIRECTIONS.index(direction) if direction in DIRECTIONS else 9,
+        )
+
+    return [rows[k] for k in sorted(rows, key=order)]
+
+
+def chase_run_dir(workspace: Path | str, chase: str | None = None) -> Path | None:
+    """The named chase run, or the newest published one; ``None`` when there is none."""
+    ws = Path(workspace)
+    if chase:
+        run_dir = ws / "literature" / CHASE_DIR / chase
+        if not re.fullmatch(r"chase_\d{3,}", chase) or not (run_dir / "chase.json").is_file():
+            raise ChaseRefused(f"no chase run {chase!r} in this workspace", "CHASE_NOT_RUN")
+        return run_dir
+    for run_dir in chase_dirs(ws):
+        try:
+            manifest = read_manifest(run_dir)
+        except (OSError, ValueError):
+            continue
+        if manifest.get("published") and (run_dir / "new.json").is_file():
+            return run_dir
+    return None
+
+
+def accept_citation_chase(
+    workspace: Path | str, *, chase: str | None = None, agent: str = AGENT, now: datetime | None = None
+) -> ChaseAccepted:
+    """Send a chase run's new records to screening as the next round (decision 2026-11-12, item 4).
+
+    Order, fail-closed: every precondition is checked and the round's corpus
+    snapshot is built and validated in memory before anything is written; the
+    acceptance gate registers the snapshot (its ``inputs`` name the parent
+    snapshot); then the finished round's ``literature/screening/`` and its
+    published outputs move into ``literature/screening_rounds/round_NNN/``,
+    the new records become ``literature/verified.json``, the rounds index
+    makes the new round current, the chase manifest records the accept and
+    three journal rows are written (``CORPUS_SNAPSHOT_ACCEPTED``,
+    ``SCREENING_ROUND_ARCHIVED``, ``CITATION_CHASE_ACCEPTED``). A move that
+    stops part way is journaled and refused as ``ARCHIVE_INCOMPLETE``; a retry
+    continues it.
+    """
+    from pydantic import ValidationError
+    from scholar_search.identity import build_corpus_snapshot_artifact
+
+    from scholar_harness.authority.generations import GenerationStatus, require_current_generation
+    from scholar_harness.contracts import AcceptanceContext, accept_artifact
+    from scholar_harness.contracts.canonical import canonical_fingerprint, deterministic_id
+    from scholar_harness.contracts.identifiers import IdentifierKind
+    from scholar_harness.contracts.models import CorpusSnapshotArtifact
+    from scholar_harness.corpus_accept import (
+        AcceptCorpusRefused,
+        AcceptCorpusResult,
+        _protocol_fingerprint,
+        _stable_sci_id,
+        _workspace_id,
+    )
+    from scholar_harness.pipeline.coordinator import _journal_snapshot_accepted
+    from scholar_harness.screening import rounds
+    from scholar_harness.screening.batcher import _rebuild_doc
+
+    ws = Path(workspace).resolve()
+    lit = ws / "literature"
+    run_dir = chase_run_dir(ws, chase)
+    if run_dir is None:
+        raise ChaseRefused("no published chase run in this workspace; run `chase run` first", "CHASE_NOT_RUN")
+    manifest = read_manifest(run_dir)
+    if manifest.get("accepted"):
+        sent_round = manifest["accepted"].get("round")
+        raise ChaseRefused(f"{run_dir.name} was already sent to screening (round {sent_round})", "CHASE_ALREADY_ACCEPTED")
+    if not manifest.get("published") or not (run_dir / "new.json").is_file():
+        raise ChaseRefused(f"{run_dir.name} was not published ({manifest.get('status')}): nothing to send", "CHASE_NOT_RUN")
+    rows = json.loads((run_dir / "new.json").read_text(encoding="utf-8"))
+    if not isinstance(rows, list) or not rows:
+        raise ChaseRefused(f"{run_dir.name} found nothing new to screen", "CHASE_NOTHING_NEW")
+
+    try:
+        workspace_id = _workspace_id(ws)
+        fingerprint = _protocol_fingerprint(ws)
+    except AcceptCorpusRefused as exc:
+        raise ChaseRefused(str(exc), exc.code or "PROTOCOL_INVALID") from exc
+    current = rounds.current_round(ws)
+    previous_number = int(current.get("round") or 1)
+    number = previous_number + 1
+    # A retry after an archive that stopped part way: the finished round's
+    # generation record is already in the round folder, so it is read there.
+    partial = rounds.round_folder(ws, previous_number)
+    resumed = partial.is_dir() and (partial / "screening" / "generation.json").is_file()
+    if resumed:
+        try:
+            published = json.loads((partial / "screening" / "generation.json").read_text(encoding="utf-8"))
+        except (OSError, ValueError) as exc:
+            raise ChaseRefused(f"the archived generation record of round {previous_number} cannot be read ({exc})", "ARCHIVE_INCOMPLETE") from exc
+        generation_id = str(published.get("generation_id") or "")
+        generation_protocol = str(published.get("protocol_fingerprint") or "")
+    else:
+        currentness = require_current_generation(ws)
+        record = currentness.record
+        if record is not None and record.protocol_fingerprint != fingerprint:
+            raise ChaseRefused(
+                "protocol.json changed after the screening was published; the published includes no longer belong "
+                "to the current protocol, so screening must be redone and published under it before a chase is sent",
+                "PROTOCOL_CHANGED_SINCE_PUBLISH",
+            )
+        if currentness.status is not GenerationStatus.CURRENT or record is None:
+            raise ChaseRefused(
+                f"the screening is not published and current ({currentness.code or currentness.status.value}: "
+                f"{currentness.message})",
+                "SCREENING_NOT_PUBLISHED",
+            )
+        generation_id, generation_protocol = record.generation_id, record.protocol_fingerprint
+    if generation_protocol and generation_protocol != fingerprint:
+        raise ChaseRefused(
+            "protocol.json changed after the screening was published; screening must be redone and published "
+            "under the current protocol before a chase is sent",
+            "PROTOCOL_CHANGED_SINCE_PUBLISH",
+        )
+    if manifest.get("generation_id") and manifest["generation_id"] != generation_id:
+        raise ChaseRefused("the screening was published again after this chase ran; run the chase again", "CHASE_STALE")
+    declared = (manifest.get("parent_corpus") or {}).get("artifact_id")
+    if resumed and declared:
+        # The round's snapshot was registered before the move stopped, so the
+        # newest snapshot is no longer the parent: the parent is the declared one.
+        parent = _corpus_entry(ws, declared)
+        if parent is None:
+            raise ChaseRefused(f"the parent corpus {declared} of this chase is not registered", "CHASE_STALE")
+    else:
+        parent = _parent_corpus(ws)
+        if parent is None:
+            raise ChaseRefused("no accepted corpus snapshot in this workspace", "SNAPSHOT_NOT_ACCEPTED")
+        if declared and declared != parent["artifact_id"]:
+            raise ChaseRefused("a later corpus snapshot was accepted after this chase ran; run the chase again", "CHASE_STALE")
+    deduplicator = _deduplicator(ws)
+
+    verified_rows: list[dict[str, Any]] = []
+    docs: list[Document] = []
+    for i, row in enumerate(rows, start=1):
+        if not isinstance(row, dict):
+            raise ChaseRefused(f"{run_dir.name}/new.json row {i} is not a record", "CHASE_NOT_RUN")
+        doc = _rebuild_doc(row, fallback_id="")
+        doc.workspace_id = _stable_sci_id(doc, source=run_dir.name, position=i)
+        new_row = dict(row)
+        new_row["workspace_id"] = doc.workspace_id
+        verified_rows.append(new_row)
+        docs.append(doc)
+    failed = sorted({
+        f"{leg.get('provider')}: {leg.get('error_code') or leg.get('error') or 'failed'}"
+        for leg in manifest.get("legs") or [] if isinstance(leg, dict) and leg.get("status") == "failed"
+    })
+    run_id = deterministic_id(
+        IdentifierKind.RUN, workspace_id,
+        {"operation": "accept-chase-corpus", "chase": run_dir.name, "protocol_fingerprint": fingerprint,
+         "records_sha256": canonical_fingerprint(verified_rows)},
+    )
+    built = build_corpus_snapshot_artifact(
+        docs, workspace_id=workspace_id, run_id=run_id, protocol_fingerprint=fingerprint,
+        created_at=now or datetime.now(UTC), deduplicator=deduplicator, provider_warnings=failed,
+    )
+    artifact = built.artifact
+    artifact["inputs"] = [{"artifact_id": parent["artifact_id"], "sha256": parent["sha256"]}]
+    try:
+        CorpusSnapshotArtifact.model_validate(artifact)
+    except ValidationError as exc:
+        raise ChaseRefused(
+            f"the round {number} snapshot is not a valid corpus snapshot ({str(exc)[:300]})", "ACCEPT_CORPUS_REFUSED"
+        ) from exc
+
+    registry = ws / "audit" / "artifact_registry.json"
+    entries = json.loads(registry.read_text(encoding="utf-8")).get("artifacts", {}) if registry.is_file() else {}
+    already = artifact["artifact_id"] in entries
+    if not already:
+        result = accept_artifact(
+            ws, artifact,
+            expected=AcceptanceContext(
+                workspace_id=workspace_id, protocol_fingerprint=fingerprint,
+                corpus_fingerprint=artifact["corpus_fingerprint"],
+            ),
+            actor="nexus-scholar-chase-accept",
+        )
+        if not result.accepted:
+            issues = "; ".join(f"{i.code}: {i.message}" for i in result.issues) or "no detail"
+            raise ChaseRefused(f"the acceptance gate refused the round {number} snapshot ({issues})", "ACCEPT_CORPUS_REFUSED")
+
+    try:
+        finished = rounds.archive_round(
+            ws, number=previous_number, arm=str(current.get("arm") or rounds.ARM_DATABASES),
+            generation_id=generation_id, corpus_artifact_id=parent["artifact_id"], chase=current.get("chase"),
+        )
+    except rounds.RoundArchiveIncomplete as exc:
+        append_event(
+            ws, "SCREENING_ROUND_ARCHIVE_INCOMPLETE", str(exc), agent=agent,
+            outputs=[f"{exc.backup}/{rel}" for rel in exc.moved],
+            parameters={"round": previous_number, "chase": run_dir.name, "moved": exc.moved, "not_moved": exc.not_moved,
+                        "snapshot_artifact_id": artifact["artifact_id"]},
+            status="FAILED",
+        )
+        refused = ChaseRefused(str(exc), "ARCHIVE_INCOMPLETE")
+        refused.details = {"backup_dir": exc.backup, "moved": exc.moved, "not_moved": exc.not_moved}
+        raise refused from exc
+
+    lit.mkdir(parents=True, exist_ok=True)
+    (lit / "verified.json").write_text(_dump(verified_rows), encoding="utf-8")
+    rounds.start_round(
+        ws, finished, number=number, arm=rounds.ARM_CITATION_SEARCHING, chase=run_dir.name,
+        corpus_artifact_id=artifact["artifact_id"],
+    )
+    accepted_at = _now()
+    manifest["accepted"] = {
+        "round": number, "artifact_id": artifact["artifact_id"], "accepted_at": accepted_at,
+        "records": len(docs), "studies": len(artifact["data"]["studies"]),
+    }
+    (run_dir / "chase.json").write_text(_dump(manifest), encoding="utf-8")
+
+    accepted = AcceptCorpusResult(
+        artifact["artifact_id"], len(artifact["data"]["studies"]), len(docs), already_accepted=already,
+        outcome_status=str(built.outcome.get("status", "SUCCESS")), warnings=tuple(built.outcome.get("warnings", ())),
+    )
+    _journal_snapshot_accepted(
+        ws, accepted, f"from citation chase {run_dir.name} (screening round {number})", agent=agent, run=run_dir.name,
+    )
+    append_event(
+        ws, "SCREENING_ROUND_ARCHIVED",
+        f"Screening round {previous_number} ({finished['arm']}) archived under {finished['path']} before round {number}",
+        agent=agent, inputs=[str(lit / "screening")], outputs=[f"{finished['path']}/{rel}" for rel in finished["moved"]],
+        parameters={"round": previous_number, "arm": finished["arm"], "generation_id": generation_id,
+                    "corpus_artifact_id": parent["artifact_id"], "moved": finished["moved"]},
+    )
+    append_event(
+        ws, "CITATION_CHASE_ACCEPTED",
+        f"Citation chase {run_dir.name} sent to screening as round {number}: {len(docs)} record(s), "
+        f"{accepted.study_count} work(s), corpus {artifact['artifact_id']}",
+        agent=agent, inputs=[str(run_dir / "new.json"), str(run_dir / "chase.json")],
+        outputs=[str(lit / "verified.json"), str(rounds.rounds_path(ws)), str(run_dir / "chase.json")],
+        parameters={"chase": run_dir.name, "round": number, "artifact_id": artifact["artifact_id"],
+                    "parent_corpus": parent["artifact_id"], "archived": finished["moved"],
+                    "archive_path": finished["path"], "method": "DETERMINISTIC_RULE"},
+        metrics={"records": len(docs), "studies": accepted.study_count},
+        status=accepted.outcome_status,
+    )
+    return ChaseAccepted(
+        chase=run_dir.name, round=number, artifact_id=artifact["artifact_id"], study_count=accepted.study_count,
+        record_count=len(docs), outcome_status=accepted.outcome_status, parent_corpus=parent["artifact_id"],
+        archived=list(finished["moved"]), round_path=str(finished["path"]), already_accepted=already,
+    )
