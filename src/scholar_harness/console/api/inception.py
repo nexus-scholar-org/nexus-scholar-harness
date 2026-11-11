@@ -143,6 +143,22 @@ def preview(body: PreviewBody, request: Request) -> dict[str, Any]:
         raise _error(exc) from exc
 
 
+def _running_job(request: Request, target: Path) -> str | None:
+    """A discovery or console job of this process still running in ``target`` (M4d, F1 review)."""
+    resolved = Path(target).resolve()
+    discovery = getattr(request.app.state, "discovery_jobs", None)
+    if discovery is not None:
+        job = discovery.active(resolved) or discovery.active(Path(target))
+        if job is not None:
+            return f"discovery job {job.job_id} ({job.kind})"
+    runner = getattr(request.app.state, "job_runner", None)
+    if runner is not None and Path(runner.workspace).resolve() == resolved:
+        for job in runner.jobs.values():
+            if job.state in ("queued", "running"):
+                return f"console job {job.job_id} ({job.action_id})"
+    return None
+
+
 @router.post("/drafts/{session_id}/genesis", status_code=201)
 def genesis(session_id: str, body: GenesisBody, request: Request) -> dict[str, Any]:
     store = _store(request)
@@ -160,6 +176,7 @@ def genesis(session_id: str, body: GenesisBody, request: Request) -> dict[str, A
             agent=UI_AGENT,
             replace=body.replace,
             confirm_discard_screening_binding=body.confirm_discard_screening_binding,
+            busy=lambda target: _running_job(request, target),
         )
         # The backup and the previous fingerprint too, so Done shows them after a reload (M4b).
         kept = ("slug", "path", "protocol_fingerprint", "replaced", "previous_fingerprint", "backup_dir", "archived")

@@ -27,7 +27,7 @@ import re
 import shutil
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator
 
@@ -382,8 +382,14 @@ def genesis(
     replace: bool = False,
     confirm_discard_screening_binding: str | None = None,
     grounding: dict[str, Any] | None = None,
+    busy: Callable[[Path], str | None] | None = None,
 ) -> dict[str, Any]:
     """Create (or, with ``replace``, re-protocol) ``<workspaces_root>/<slug>`` from a draft.
+
+    ``busy(target)`` names a job still running in the target workspace; a
+    replacement is then refused with ``WORKSPACE_JOB_ACTIVE`` before anything
+    moves, so a running search or screening cannot write into the new
+    protocol's corpus (F1 review, M4d).
 
     The only write of the web wizard, through :func:`emit_workspace`. A
     screening binding is discarded only when ``confirm_discard_screening_binding``
@@ -411,6 +417,14 @@ def genesis(
             "WORKSPACE_EXISTS", f"{target} already exists and is not a workspace; choose another title",
             status=409, details={"path": str(target)},
         )
+    if replace and busy is not None and existing_markers(target):
+        running = busy(target)
+        if running:
+            raise StepRefused(
+                "WORKSPACE_JOB_ACTIVE",
+                f"{running} is still running in this workspace; wait for it to end or stop it, then replace the protocol",
+                status=409, details={"job": running},
+            )
     try:
         guard = check_writable(target, replace=replace, discard_screening_binding=discard)
     except GenesisRefused as exc:

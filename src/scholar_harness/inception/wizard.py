@@ -381,12 +381,18 @@ def run_wizard(
     if not no_scaffold:
         # INC-08: say so now, not after the last answer; emit_workspace checks again.
         try:
-            check_writable(
+            guard = check_writable(
                 workspace_dir_for(slug, root=root, target_dir=target_dir),
                 replace=replace, discard_screening_binding=discard_screening_binding,
             )
         except GenesisRefused as exc:
             raise _refuse(exc) from exc
+        if guard.get("archive"):
+            console.print(
+                "[bold yellow]Replacing this protocol also moves its corpus into audit/replaced/: "
+                f"{', '.join(guard['archive'])}[/bold yellow]",
+                highlight=False,
+            )
     lead = responder.text(
         "Lead researcher", default="AI Agent"
     )
@@ -450,6 +456,12 @@ def run_wizard(
             f"is backed up in {compiled['backup_dir']}[/bold yellow]",
             highlight=False,
         )
+        if compiled.get("archived"):
+            console.print(
+                "[bold yellow]The old protocol's corpus moved there too, so the new protocol starts "
+                f"with no corpus: {', '.join(compiled['archived'])}[/bold yellow]",
+                highlight=False,
+            )
     console.print(f"[bold green]✅ Workspace scaffolded: {ws_dir}[/bold green]")
     console.print(f"   intent.json → protocol.json ({compiled['protocol_fingerprint']})")
     console.print("   SCREENING_CRITERIA.md written. Ready for Phase-1 discovery (uv run scholar-search ...).")

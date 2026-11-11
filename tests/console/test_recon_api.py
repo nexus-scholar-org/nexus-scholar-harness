@@ -513,3 +513,32 @@ def test_seeds_must_be_dois_and_at_most_25(env):
         draft = {**record["draft"], "golden_seeds": bad}
         refused = client.post(f"{BASE}/preview", json={"draft": draft})
         assert refused.status_code == 422 and refused.json()["detail"]["code"] == "DRAFT_INVALID", refused.text
+
+
+def test_a_binding_made_before_m4d_is_not_stale_for_its_scope(env):
+    """Review #7: a grounding without a recorded scope is compared on its pool only."""
+    from scholar_harness.inception.drafts import DraftStore
+
+    client, _app, root, _recon = env
+    sid = _new_draft(client)
+    _probe(client, sid)
+    label = client.get(f"{BASE}/drafts/{sid}/recon/directions").json()["directions"][0]["label"]
+    client.post(f"{BASE}/drafts/{sid}/recon/bind", json={"direction": label})
+    drafts = DraftStore(root)
+    grounding = drafts.load(sid)["grounding"]
+    grounding.pop("scope")  # as M4c wrote it
+    drafts.bind_grounding(sid, grounding)
+    _save(client, sid, languages=["fr"], start_year=2019)
+    assert client.get(f"{BASE}/drafts/{sid}/recon").json()["binding"]["stale"] is False
+
+
+def test_a_draft_with_no_from_year_matches_a_pool_searched_from_2000(env):
+    """Review #7: the probe's default from-year is the scope's default, so nothing goes stale."""
+    client, _app, _root, _recon = env
+    sid = _new_draft(client)
+    _save(client, sid, start_year=None)
+    _probe(client, sid)
+    label = client.get(f"{BASE}/drafts/{sid}/recon/directions").json()["directions"][0]["label"]
+    client.post(f"{BASE}/drafts/{sid}/recon/bind", json={"direction": label})
+    state = client.get(f"{BASE}/drafts/{sid}/recon").json()
+    assert (state["scope_changed"], state["binding"]["stale"]) == (False, False)

@@ -56,6 +56,8 @@ ARCHIVED_ON_REPLACE = (
     "rag/",
     "phase4/",
     "synthesis/",
+    "chroma_db/",
+    "run-reports/",
 )
 #: The canonical folders a workspace starts with, made again after an archive.
 CANONICAL_DIRS = ("literature", "pdfs", "extracted", "synthesis")
@@ -130,9 +132,44 @@ def corpus_paths(ws_dir: Path) -> list[str]:
 
 
 def _archive_corpus(ws_dir: Path, backup: Path) -> list[str]:
-    """Move the old protocol's corpus into ``backup``; make the empty canonical folders again."""
-    moved = corpus_paths(ws_dir)
-    for rel in moved:
+    """Move the old protocol's corpus into ``backup``; make the empty canonical folders again.
+
+    A move that fails part way (a locked file, a full disk) is journaled with
+    what was already moved and refused as ``ARCHIVE_INCOMPLETE``, so the
+    record says where every path is; nothing is moved back.
+    """
+    planned = corpus_paths(ws_dir)
+    moved: list[str] = []
+    try:
+        _move_corpus(ws_dir, backup, planned, moved)
+    except OSError as exc:
+        backup_rel = backup.relative_to(ws_dir).as_posix()
+        left = [rel for rel in planned if rel not in moved]
+        description = (
+            f"Protocol replacement stopped while archiving the old corpus into {backup_rel}: "
+            f"{type(exc).__name__}: {str(exc)[:200]}. Moved: {', '.join(moved) or 'nothing'}. "
+            f"Not moved: {', '.join(left)}. The protocol was not replaced."
+        )
+        try:
+            from scholar_harness.workspace.audit import append_event
+
+            append_event(
+                ws_dir, "PROTOCOL_REPLACE_INCOMPLETE", description, agent="scholar-harness/inception",
+                outputs=[f"{backup_rel}/{rel}" for rel in moved], status="FAILED",
+            )
+        except OSError:
+            pass  # the refusal below still names every path
+        raise GenesisRefused(
+            "ARCHIVE_INCOMPLETE", description,
+            {"backup_dir": str(backup), "moved": moved, "not_moved": left},
+        ) from exc
+    for sub in CANONICAL_DIRS:
+        (ws_dir / sub).mkdir(parents=True, exist_ok=True)
+    return moved
+
+
+def _move_corpus(ws_dir: Path, backup: Path, planned: list[str], moved: list[str]) -> None:
+    for rel in planned:
         source = ws_dir / rel.rstrip("/")
         kept = [ws_dir / k for k in KEPT_ON_REPLACE if (ws_dir / k).is_file() and (ws_dir / k).is_relative_to(source)]
         if kept:  # move what is not kept, file by file
@@ -140,13 +177,12 @@ def _archive_corpus(ws_dir: Path, backup: Path) -> list[str]:
                 dest = backup / path.relative_to(ws_dir)
                 dest.parent.mkdir(parents=True, exist_ok=True)
                 shutil.move(str(path), str(dest))
+            moved.append(rel)
             continue
         dest = backup / rel.rstrip("/")
         dest.parent.mkdir(parents=True, exist_ok=True)
         shutil.move(str(source), str(dest))
-    for sub in CANONICAL_DIRS:
-        (ws_dir / sub).mkdir(parents=True, exist_ok=True)
-    return moved
+        moved.append(rel)
 
 
 def screening_state(ws_dir: Path) -> dict[str, int | bool]:
