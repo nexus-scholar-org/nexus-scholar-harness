@@ -1,0 +1,38 @@
+# M3g-citation-chasing Citation chasing (snowballing) from the included set
+Branch: dev/m3g/citation-chasing · Lane: **RELEASE** (the chase's new records are frozen as a corpus snapshot of their own with the parent snapshot in `inputs`, a Packet B artifact; a new CLI command group and new console routes; `test_gate_policy.md` §lanes "artifact identity or persistence; public API, CLI") · Status: IN PROGRESS · Started: 2026-11-11
+
+Approved by the researcher in chat on 2026-11-11 (relayed by the coordinating session). Base: `origin/main` at `6c66d24b`. Plan row: `docs/roadmap/production-plan.md` §6 "M3g-citation-chasing"; decision `docs/decisions.md` 2026-11-11 "Citation chasing comes after M4d, before the parked phases".
+
+Why: database searches miss works that the included studies cite or that cite them. PRISMA 2020 reports what citation searching finds in its own arm of the flow diagram ("Identification of studies via other methods"), and PRISMA-S item 7 asks for the method (forward, backward, from which set). The search kit already has `snowball_forward` / `snowball_backward` and the providers' `get_citations` / `get_references`; the harness has no run, no provenance, no corpus addition and no screen for it. No AI spend; every test offline (fakes and cassettes).
+
+Read first: `docs/architecture/DEVELOPER_COMPASS.md`; `docs/lessons/2026-10-17_uav_harvest_calibration_lessons.md` (lessons 2, 44 to 50: verified identifiers only, provider precision, caps as a weak lever, per-provider counts in every report). Contract baseline `--check` passed at the start (`6c66d24b`).
+
+## Definition of done
+- [ ] **0. Decisions** recorded in `docs/decisions.md` and accepted by the researcher: one level or several; caps per seed; forward, backward or both by default; how a chased batch adds to a frozen corpus snapshot (the Contract v1 question; see Decisions below).
+- [ ] **1. The chase run** (`src/scholar_harness/pipeline/citation_chase.py`): seeds are the published includes (`literature/included.json`) with a DOI or a provider id; OpenAlex first, Semantic Scholar second; reuses `SearchEngine.snowball_forward` / `snowball_backward` (the kit gains an optional `limit`, nothing re-derived in the harness); one leg per seed × provider × direction with `fetched`, `cap_hit`, `status`, `error_code`, `notes`; run folder `literature/citation_chase/chase_NNN/` (`chase.json`, `raw.json`, `edges.json`, `new.json`); status `SUCCESS` / `PARTIAL` / `FAILED` / `EMPTY_RESULT` by the discovery rules; journal `CITATION_CHASE`. Tests: `tests/pipeline/test_citation_chase.py` (fakes; the socket guard on).
+- [ ] **2. Dedup against the corpus and within the chase** with the workspace's `Deduplicator` (`corpus_accept._deduplicator`): a chased record that clusters with a corpus record is `already_in_corpus` (its edge is kept as provenance), chased records that cluster together keep one representative with merged `sources`; the protocol year window is applied before screening and counted (`outside_year_window`). Each new record carries `sources[]` with `via: "citation-chase"`, the seed study id, the direction and the provider. Tests in `test_citation_chase.py`.
+- [ ] **3. Corpus addition** as decided in 0: the new records become `literature/verified.json` of a second screening round, frozen as their own `corpus_snapshot` whose `inputs` name the parent snapshot (id + sha256) and the chase run; round 1's `literature/screening/` and published outputs are archived under `literature/screening_rounds/round_001/`; `load_context` reads only the batches bound to the newest snapshot; `rounds.json` indexes the rounds. Refusals: `SCREENING_NOT_PUBLISHED`, `CHASE_NOT_RUN`, `CHASE_NOTHING_NEW`, `PROTOCOL_CHANGED_SINCE_PUBLISH`, `WORKSPACE_JOB_ACTIVE`. Negative tests: a stale parent, a changed protocol, a refused accept leaves no artifact and no archive. Contract baseline `--check` still passes (no contract file changes).
+- [ ] **4. PRISMA**: `prisma_report.json` gains an `other_methods.citation_searching` block (identified, duplicates removed, already in corpus, outside the year window, screened, excluded, included, unclear) and the markdown prints the second arm; the databases arm keeps round 1's published numbers byte-for-byte; `GET /screening/prisma/preview` and the methods paragraph say both arms; a workspace without a chase renders exactly as today (pinned). Tests: `tests/test_screening_*`, `tests/console/test_export_api.py`, `tests/console/test_screening_api_v1.py`.
+- [ ] **5. CLI**: `nexus-scholar chase run <ws> [--directions both|forward|backward] [--providers ...] [--cap-per-seed N] [--seeds included|included+unclear]`, `chase status <ws>`, `chase accept <ws>`; `--help` on the base install. Tests: `tests/cli/test_chase_cli.py`.
+- [ ] **6. Console routes** `POST /api/v1/discovery/chase/runs` (in-process job, SSE legs like the harvest), `GET /discovery/chase`, `GET /discovery/chase/runs/{n}`, `POST /discovery/chase/accept`; codes registered in `console/refusals.py` and the contract §7 table. Tests: `tests/console/test_chase_api.py`.
+- [ ] **7. Screen**: `docs/ux/phase1-discovery/final/09-chase.md` at `Status: FINAL` first (ux-spec-writer; the researcher closes the open questions), then `/[locale]/discovery/chase` in `apps/research-ui`; en, fr, ar strings; vitest and the browser hygiene spec.
+- [ ] **8. Gates**: `/gate inner` after each executable edit, `/gate checkpoint` at the end of each item, `/gate pr` once on the final commit, contract baseline `--check`, `milestone-reviewer` APPROVE; status READY FOR PR.
+
+## Findings fixed
+| ID | Reproducing test | Fails before | Passes after |
+| :-- | :-- | :-- | :-- |
+
+## Decisions
+Put to the researcher on 2026-11-11 with a recommendation each (see the message relayed by the coordinating session); recorded in `docs/decisions.md` once answered.
+
+1. **Levels.** One level per chase run (seeds = the published includes; what the chase finds is screened, never chased again in the same run). A later round's includes can be chased again with the same command, which is how saturation is reached deliberately and reported per round. Multi-hop BFS (`CitationChainer`) stays a kit tool.
+2. **Caps.** References (backward) uncapped: a paper cites a bounded list. Citing papers (forward) capped at 500 per seed per provider, recorded as `cap_hit` and reported as a lower bound, like a harvest leg. A run ceiling of 5,000 new records after dedup; beyond it the run is `PARTIAL` with a note. The protocol's year window is applied before screening and the removed count is reported (`outside_year_window`), since the frozen protocol makes the window an exclusion anyway.
+3. **Directions.** Both by default; `--directions forward|backward` to restrict.
+4. **Corpus addition.** Option (a), a second screening round: the chase's new records are frozen as their own corpus snapshot with the parent snapshot in `inputs`; round 1's screening folder and published outputs are archived (as a protocol replace archives a corpus, F1) and round 2 is prepared in the usual place. Rejected: (b) rebuilding one combined snapshot, because every existing decision event is bound to a batch of the old snapshot and the contract makes that mismatch a closed gate (carrying decisions forward would mint events the researcher never made); (c) chasing only before the freeze from the protocol's golden seeds, because the plan asks for the includes as seeds and anchors are few.
+
+## Evidence
+| Stage | Commit | Command | Result | Duration |
+| :-- | :-- | :-- | :-- | :-- |
+| start | `6c66d24b` | branch `dev/m3g/citation-chasing` from `origin/main`; `generate_contract_baseline.py --check` | clean; "Contract baseline current" | |
+
+## Deferred
