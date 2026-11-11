@@ -369,7 +369,7 @@ scaffolded):
 | `nexus-scholar accept-corpus` | Accept the corpus snapshot from `literature/verified.json`, or import a RIS or PubMed `.nbib` export with `--ris`, so screening `prepare` can run |
 | `nexus-scholar ui` | Start the research app in your browser (§2): the console and the app from one process, on `127.0.0.1` |
 | `nexus-scholar serve` | Run the console server for a workspace (loopback only; needs the token in `NEXUS_CONSOLE_TOKEN` or the one it prints); for development with `apps/research-ui` |
-| `nexus-scholar inception` | Interactive Phase-0 Socratic methodology interview → compiled protocol. Each screening criterion is shown verbatim and accepted one by one. A title whose workspace already exists is refused; `--replace` replaces its protocol (the old files go to `audit/replaced/<stamp>/`), and a workspace with screening decisions or a published screening also needs `--discard-screening-binding` |
+| `nexus-scholar inception` | Interactive Phase-0 Socratic methodology interview → compiled protocol. Each screening criterion is shown verbatim and accepted one by one. A title whose workspace already exists is refused; `--replace` replaces its protocol: the old protocol files and the old corpus (`literature/`, `artifacts/`, the artifact registry, `.harness-console/`, `pdfs/`, `extracted/`, `rag/`, `phase4/`, `synthesis/` except `literature_review.md`) go to `audit/replaced/<stamp>/`, so the new protocol starts with no corpus, and a workspace with screening decisions or a published screening also needs `--discard-screening-binding` |
 
 Run any with `--help` for full options.
 

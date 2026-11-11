@@ -97,6 +97,7 @@ def test_preview_writes_nothing(tmp_path):
         "exists": False,
         "workspace": False,
         "screening": None,
+        "archive": [],
     }
 
 

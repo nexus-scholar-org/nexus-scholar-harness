@@ -36,10 +36,38 @@ from .genesis import (
     log_genesis,
     scaffold_project,
     scaffold_raw_project,
+    write_review_notes,
 )
 
 #: The files a replacement backs up before it overwrites them.
 REPLACED_FILES = ("protocol.json", "intent.json", "SCREENING_CRITERIA.md")
+
+#: What belongs to a protocol's corpus and is archived beside it when the
+#: protocol is replaced (F1, decision 2026-11-11): the search runs, the
+#: accepted corpus and its registry, the screening decisions, the console's
+#: jobs and everything built from the corpus. Directories end in ``/``.
+ARCHIVED_ON_REPLACE = (
+    "literature/",
+    "artifacts/",
+    "audit/artifact_registry.json",
+    ".harness-console/",
+    "pdfs/",
+    "extracted/",
+    "rag/",
+    "phase4/",
+    "synthesis/",
+)
+#: The canonical folders a workspace starts with, made again after an archive.
+CANONICAL_DIRS = ("literature", "pdfs", "extracted", "synthesis")
+#: Kept in place: the researcher's own review notes, which every workspace starts with.
+KEPT_ON_REPLACE = ("synthesis/literature_review.md",)
+
+
+def _corpus_files(ws_dir: Path, rel: str) -> list[Path]:
+    """The files under one :data:`ARCHIVED_ON_REPLACE` entry, without the kept ones."""
+    path = Path(ws_dir) / rel.rstrip("/")
+    files = [path] if path.is_file() else [p for p in path.rglob("*") if p.is_file()] if path.is_dir() else []
+    return [f for f in files if f.relative_to(ws_dir).as_posix() not in KEPT_ON_REPLACE]
 
 #: What :func:`emit_workspace` writes into a new folder (``target_dir`` layout).
 #: The review screen shows this list at the write gate (M4b, researcher
@@ -96,6 +124,31 @@ def existing_markers(ws_dir: Path) -> list[str]:
     return [marker for marker in INIT_MARKERS if (ws_dir / marker).exists()]
 
 
+def corpus_paths(ws_dir: Path) -> list[str]:
+    """The :data:`ARCHIVED_ON_REPLACE` paths that hold something (an empty folder is left alone)."""
+    return [rel for rel in ARCHIVED_ON_REPLACE if _corpus_files(ws_dir, rel)]
+
+
+def _archive_corpus(ws_dir: Path, backup: Path) -> list[str]:
+    """Move the old protocol's corpus into ``backup``; make the empty canonical folders again."""
+    moved = corpus_paths(ws_dir)
+    for rel in moved:
+        source = ws_dir / rel.rstrip("/")
+        kept = [ws_dir / k for k in KEPT_ON_REPLACE if (ws_dir / k).is_file() and (ws_dir / k).is_relative_to(source)]
+        if kept:  # move what is not kept, file by file
+            for path in _corpus_files(ws_dir, rel):
+                dest = backup / path.relative_to(ws_dir)
+                dest.parent.mkdir(parents=True, exist_ok=True)
+                shutil.move(str(path), str(dest))
+            continue
+        dest = backup / rel.rstrip("/")
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        shutil.move(str(source), str(dest))
+    for sub in CANONICAL_DIRS:
+        (ws_dir / sub).mkdir(parents=True, exist_ok=True)
+    return moved
+
+
 def screening_state(ws_dir: Path) -> dict[str, int | bool]:
     """What a protocol replacement would orphan: decisions and a publication."""
     screening = Path(ws_dir) / "literature" / "screening"
@@ -125,7 +178,7 @@ def check_writable(
         raise GenesisRefused("WORKSPACE_EXISTS", f"{ws_dir} is a file, not a folder", {"path": str(ws_dir)})
     present = existing_markers(ws_dir)
     if not present:
-        return {"exists": False, "screening": None}
+        return {"exists": False, "screening": None, "archive": []}
     if not replace:
         raise GenesisRefused(
             "WORKSPACE_EXISTS",
@@ -144,7 +197,7 @@ def check_writable(
             "Add --discard-screening-binding to replace it anyway",
             {"path": str(ws_dir), **state},
         )
-    return {"exists": True, "screening": state}
+    return {"exists": True, "screening": state, "archive": corpus_paths(ws_dir)}
 
 
 def _fingerprint_of(path: Path) -> str | None:
@@ -236,18 +289,26 @@ def emit_workspace(
             "workspace_dir": str(ws_dir),
             "protocol_fingerprint": compiled["protocol_fingerprint"],
             "replaced": False,
+            "archived": [],
         }
 
     previous = _fingerprint_of(ws_dir / "protocol.json")
     stamp = datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
     backup = _backup(ws_dir, stamp)
+    archived = _archive_corpus(ws_dir, backup)
     compiled = compile_protocol_files(ws_dir, intent)
     _refresh_manifest(ws_dir, intent)
+    write_review_notes(ws_dir, title, rqs)
     state = guard["screening"] or {}
     backup_rel = backup.relative_to(ws_dir).as_posix()
     note = (
         f" REPLACED protocol fingerprint {previous or 'none'} (backup at {backup_rel})"
     )
+    if archived:
+        note += (
+            f"; the old protocol's corpus was archived with it ({', '.join(archived)}), "
+            "so the new protocol starts with no corpus and no screening decisions"
+        )
     if state.get("bound"):
         note += (
             f"; screening binding discarded by the researcher: {state['decision_events']} screening decision events, "
@@ -265,4 +326,5 @@ def emit_workspace(
         "replaced": True,
         "previous_fingerprint": previous,
         "backup_dir": str(backup),
+        "archived": archived,
     }

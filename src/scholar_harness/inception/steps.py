@@ -38,6 +38,7 @@ from .emit import (
     check_writable,
     emit_workspace,
     existing_markers,
+    corpus_paths,
     screening_state,
 )
 from .genesis import (
@@ -344,6 +345,8 @@ def preview(
             "exists": exists,
             "workspace": workspace,
             "screening": screening_state(target) if workspace else None,
+            # F1 (M4d): what a replacement would archive beside the old protocol.
+            "archive": corpus_paths(target) if workspace else [],
         }
     if grounding and RECON_CONTEXT_FILE not in out["files"]:
         out["files"].append(RECON_CONTEXT_FILE)  # genesis writes it for a bound draft
