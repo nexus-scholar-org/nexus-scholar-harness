@@ -1,0 +1,577 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Inception Map</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,400;7..72,600&family=Public+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one reading column (max 1100px) with a sticky tab rail; evidence on the left, the current item on the right where a screen is wide enough. Tokens are the Nexus Scholar Provenance system. */
+:root{
+  --ground:#f5f6f8; --surface:#ffffff; --raised:#eef1f5; --ink:#16202b; --muted:#55616e; --hair:#d5dae1;
+  --brand:#24456e; --brand-soft:#e8eef7; --on-brand:#ffffff;
+  --anchor:#9a5f10; --anchor-soft:#f8efe0;
+  --include:#1f6a3d; --include-soft:#e6f2ea; --unclear:#8a4a00; --unclear-soft:#fbf0e0;
+  --blocked:#9b1c1c; --blocked-soft:#fbe7e7; --exclude:#4b5563; --exclude-soft:#eceef1;
+  --display:"Literata",Georgia,"Times New Roman",serif;
+  --sans:"Public Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,"Cascadia Mono",Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --ground:#111519; --surface:#181d23; --raised:#1f262e; --ink:#e6e9ed; --muted:#9aa5b1; --hair:#2c343d;
+  --brand:#8fb3e6; --brand-soft:#1b2a3f; --on-brand:#0f1a2b; --anchor:#e2a94c; --anchor-soft:#3a2c14;
+  --include:#7fd0a0; --include-soft:#16301f; --unclear:#f0b06a; --unclear-soft:#33261a;
+  --blocked:#f08c8c; --blocked-soft:#3a1a1a; --exclude:#aab4bf; --exclude-soft:#262e36; color-scheme:dark }}
+:root[data-theme="dark"]{
+  --ground:#111519; --surface:#181d23; --raised:#1f262e; --ink:#e6e9ed; --muted:#9aa5b1; --hair:#2c343d;
+  --brand:#8fb3e6; --brand-soft:#1b2a3f; --on-brand:#0f1a2b; --anchor:#e2a94c; --anchor-soft:#3a2c14;
+  --include:#7fd0a0; --include-soft:#16301f; --unclear:#f0b06a; --unclear-soft:#33261a;
+  --blocked:#f08c8c; --blocked-soft:#3a1a1a; --exclude:#aab4bf; --exclude-soft:#262e36; color-scheme:dark }
+
+*{box-sizing:border-box}
+body{background:var(--ground);color:var(--ink);font:400 15px/22px var(--sans);margin:0;
+  padding-block:0 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:1100px;margin:0 auto}
+a{color:var(--brand)}
+code,.mono{font-family:var(--mono);font-size:13px;line-height:18px}
+code{background:var(--raised);padding:1px 5px;border-radius:4px;word-break:break-word}
+.label{font:600 12px/16px var(--sans);letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+h1{font:600 clamp(28px,4.5vw,40px)/1.1 var(--display);letter-spacing:-.01em;margin:8px 0 12px;text-wrap:balance}
+h2{font:600 28px/34px var(--display);letter-spacing:-.005em;margin:0 0 8px;text-wrap:balance}
+h3{font:600 18px/24px var(--sans);margin:0 0 6px}
+p{margin:0 0 12px;max-width:70ch}
+.lede{color:var(--muted);max-width:72ch}
+header{padding-block:40px 20px}
+
+/* Tabs */
+nav.tabs{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--ground);border-bottom:1px solid var(--hair);display:flex;gap:4px;overflow-x:auto;padding-block:8px;scrollbar-width:none}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--ground)}
+nav.tabs::-webkit-scrollbar{display:none}
+nav.tabs a{flex:0 0 auto;text-decoration:none;color:var(--muted);font-weight:500;padding:10px 14px;border-radius:6px;border:1px solid transparent;min-height:44px;display:inline-flex;align-items:center}
+nav.tabs a[aria-current="page"]{color:var(--brand);background:var(--brand-soft);border-color:var(--hair)}
+nav.tabs a:focus-visible,button:focus-visible,input:focus-visible,summary:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+section.panel{padding-block:28px 8px}
+section.panel[hidden]{display:none}
+
+/* Cards and grid */
+.card{background:var(--surface);border:1px solid var(--hair);border-radius:6px;padding:16px;min-width:0}
+.grid{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+.two{display:grid;gap:24px;grid-template-columns:minmax(0,2fr) minmax(0,1fr)}
+@media (max-width:820px){.two{grid-template-columns:1fr}}
+.src{font-family:var(--mono);font-size:12px;line-height:17px;color:var(--muted);margin-top:8px;word-break:break-word}
+.src::before{content:"source  ";color:var(--anchor)}
+.badge{display:inline-block;font:600 12px/16px var(--sans);padding:3px 8px;border-radius:4px;white-space:nowrap}
+.b-inc{background:var(--include-soft);color:var(--include)} .b-unc{background:var(--unclear-soft);color:var(--unclear)}
+.b-blk{background:var(--blocked-soft);color:var(--blocked)} .b-exc{background:var(--exclude-soft);color:var(--exclude)}
+.b-m4a{background:var(--brand-soft);color:var(--brand)} .b-anc{background:var(--anchor-soft);color:var(--anchor)}
+.gate{background:var(--brand-soft);border:1px dashed var(--brand);border-radius:10px;padding:16px}
+.gate .label{color:var(--brand)}
+.quote{border-left:0;background:var(--anchor-soft);color:var(--ink);padding:10px 14px;border-radius:6px;font-style:italic;margin:0 0 10px}
+.quote cite{display:block;font-style:normal;font-family:var(--mono);font-size:12px;color:var(--anchor);margin-top:6px}
+table{border-collapse:collapse;width:100%;font-size:14px;line-height:20px}
+th{text-align:left;font:600 12px/16px var(--sans);letter-spacing:.05em;text-transform:uppercase;color:var(--muted);padding:8px 10px;border-bottom:1px solid var(--hair)}
+td{padding:9px 10px;border-bottom:1px solid var(--hair);vertical-align:top}
+tr:last-child td{border-bottom:0}
+.scroll{overflow-x:auto}
+.num{font-variant-numeric:tabular-nums}
+details{border-top:1px solid var(--hair);padding-block:4px}
+summary{cursor:pointer;min-height:44px;display:flex;align-items:center;gap:8px;font-weight:600;list-style:none}
+summary::before{content:"+";font-family:var(--mono);color:var(--muted);width:14px}
+details[open] summary::before{content:"−"}
+details>div{padding-block:4px 14px}
+ul{margin:0 0 12px;padding-left:20px}li{margin-bottom:4px}
+button{font:500 14px/20px var(--sans);min-height:44px;padding:8px 14px;border-radius:6px;border:1px solid var(--hair);background:var(--surface);color:var(--ink);cursor:pointer}
+button.primary{background:var(--brand);color:var(--on-brand);border-color:var(--brand)}
+button[aria-pressed="true"]{background:var(--brand-soft);border-color:var(--brand);color:var(--brand)}
+input[type=text],input[type=search]{font:400 15px/22px var(--sans);min-height:44px;padding:8px 12px;border:1px solid var(--hair);border-radius:4px;background:var(--surface);color:var(--ink);width:100%}
+
+/* Pipeline rail */
+.rail{display:flex;flex-wrap:wrap;gap:8px;align-items:stretch;margin:8px 0 16px}
+.rail .node{flex:1 1 150px;min-width:0;text-align:left;display:flex;flex-direction:column;gap:4px;padding:12px 14px;min-height:88px}
+.rail .node .label{font-size:11px}
+.rail .node strong{font-weight:600}
+.rail .node small{color:var(--muted);font-size:13px;line-height:18px}
+.rail .node[aria-pressed="true"]{background:var(--brand-soft);border-color:var(--brand)}
+.rail .node.cache{border-style:dashed}
+.rail .arrow{align-self:center;color:var(--muted);font-family:var(--mono);flex:0 0 auto}
+@media (max-width:640px){.rail .arrow{display:none}.rail .node{flex-basis:100%}}
+.detail{min-height:120px}
+.detail h3 span{color:var(--muted);font-weight:400}
+
+/* Stepper */
+.steps{display:grid;grid-template-columns:260px minmax(0,1fr);gap:20px}
+@media (max-width:820px){.steps{grid-template-columns:1fr}}
+.steplist{display:flex;flex-direction:column;gap:4px}
+.steplist button{text-align:left;display:flex;gap:10px;align-items:flex-start;min-height:44px;padding:10px 12px}
+.steplist button .k{font-family:var(--mono);font-size:12px;color:var(--muted);min-width:34px;padding-top:2px}
+.steplist button[aria-pressed="true"] .k{color:var(--brand)}
+.kv{display:grid;grid-template-columns:130px minmax(0,1fr);gap:6px 14px;font-size:14px;line-height:20px}
+.kv dt{color:var(--muted)} .kv dd{margin:0}
+@media (max-width:520px){.kv{grid-template-columns:1fr}.kv dt{margin-top:6px}}
+.m4a{background:var(--brand-soft);border:1px solid var(--hair);border-radius:6px;padding:12px 14px;margin-top:12px}
+.m4a .label{color:var(--brand)}
+
+/* Recon sandbox */
+.pool{display:grid;gap:8px;grid-template-columns:repeat(auto-fill,minmax(230px,1fr))}
+.doc{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border:1px solid var(--hair);border-radius:6px;background:var(--surface);cursor:pointer;min-height:44px}
+.doc input{margin-top:4px;accent-color:var(--brand)}
+.doc .t{font-size:14px;line-height:19px}
+.doc .d{font-family:var(--mono);font-size:12px;color:var(--anchor);word-break:break-all}
+.doc.off{opacity:.5}
+.terms li{display:flex;justify-content:space-between;gap:10px;border-bottom:1px solid var(--hair);padding:6px 0;list-style:none}
+.terms .c{font-variant-numeric:tabular-nums;font-family:var(--mono);font-size:13px}
+.dir{padding:10px 12px;border:1px solid var(--hair);border-radius:6px;background:var(--surface);margin-bottom:8px}
+.dir .d{font-family:var(--mono);font-size:12px;color:var(--anchor)}
+.flow{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 16px}
+.flow .f{flex:1 1 160px;border:1px solid var(--hair);background:var(--surface);border-radius:6px;padding:10px 12px;min-width:0}
+.flow .f .label{font-size:11px}
+.flow .f small{color:var(--muted);display:block;font-size:13px;line-height:18px}
+
+/* Protocol tree */
+.tree{font-family:var(--mono);font-size:13px;line-height:20px;background:var(--raised);border-radius:6px;padding:12px 14px;overflow-x:auto}
+.tree button{all:unset;cursor:pointer;color:var(--brand);text-decoration:underline dotted;min-height:0;padding:0}
+.tree button[aria-pressed="true"]{background:var(--brand-soft);text-decoration:none;padding:0 3px;border-radius:3px}
+.tree .c{color:var(--muted)}
+.tree .s{color:var(--anchor)}
+.fp{word-break:break-all}
+
+/* Glossary */
+.gl dt{font-weight:600;margin-top:12px}.gl dd{margin:2px 0 0;max-width:70ch}
+.gl .mono{color:var(--muted)}
+footer{border-top:1px solid var(--hair);margin-top:32px;padding-block:16px;color:var(--muted);font-size:13px;line-height:18px}
+@media (prefers-reduced-motion:no-preference){section.panel{animation:fade .2s ease-out}}
+@keyframes fade{from{opacity:.6}to{opacity:1}}
+</style>
+
+<div class="wrap">
+<header>
+  <div class="label">Nexus Scholar · Phase 0 · Inception</div>
+  <p class="lede" style="border:1px dashed var(--hair);border-radius:6px;padding:10px 12px;margin-bottom:16px"><strong>Snapshot of 8 November 2026.</strong> Since then: M4a merged (PR #206), so the items marked "M4a, not merged" are on <code>main</code>; INC-09 and INC-21 were fixed in M4c (PR #210); recon runs over HTTP (M4c). Still open on 11 November: the Explore and Direction screens, <code>golden_seeds</code> from recon, and the probe ignoring the year window (milestone M4d), and the replace path keeping the old corpus (F1, decided: archive and start clean).</p>
+
+  <h1>How a research idea becomes a protocol the screener can hold you to</h1>
+  <p class="lede">Inception is the first phase of a Nexus Scholar review. It takes one or two sentences of curiosity, probes the literature to check the words are real, interviews the researcher, and compiles a fixed <code>protocol.json</code>. Every later screening decision is bound to that file's fingerprint. This map reads the code as it stands on <code>main</code> on 8 November 2026, plus the M4a branch that is in review as PR #206.</p>
+</header>
+
+<nav class="tabs" aria-label="Sections">
+  <a href="#overview">Overview</a>
+  <a href="#steps">The wizard</a>
+  <a href="#recon">Recon engine</a>
+  <a href="#protocol">The protocol</a>
+  <a href="#science">The method</a>
+  <a href="#open">Open questions</a>
+  <a href="#glossary">Glossary</a>
+</nav>
+
+<!-- ============ OVERVIEW ============ -->
+<section class="panel" id="p-overview">
+  <div class="label">The whole pipeline</div>
+  <h2>Six stations, one write</h2>
+  <p>Click a station. Dashed stations write only to a cache, never to a workspace. Only the last station writes files a review depends on.</p>
+  <div class="rail" id="rail" role="group" aria-label="Pipeline stations"></div>
+  <div class="card detail" id="rail-detail"></div>
+
+  <div class="grid" style="margin-top:24px">
+    <div class="card">
+      <div class="label">Goes in</div>
+      <p>One or two sentences of raw curiosity. With <code>--grounded</code>, a 25-record literature probe on that sentence as well.</p>
+      <div class="src">wizard.py:186-199</div>
+    </div>
+    <div class="card">
+      <div class="label">Comes out</div>
+      <ul>
+        <li><code>protocol.json</code>, the compiled, hashed protocol</li>
+        <li><code>intent.json</code>, the interview answers</li>
+        <li><code>SCREENING_CRITERIA.md</code>, the criteria for humans</li>
+        <li><code>project.json</code>, <code>INDEX.md</code></li>
+        <li><code>audit/journal.jsonl</code> with <code>PROJECT_INITIALIZED</code> and <code>GENESIS</code></li>
+        <li><code>audit/recon_context.json</code> in grounded mode</li>
+      </ul>
+      <div class="src">genesis.py:143-183, 252-349</div>
+    </div>
+    <div class="card">
+      <div class="label">Why screening depends on it</div>
+      <p>An exclusion must cite an <code>EXC-nn</code> id or <code>FAILS-INC-nn</code> from the protocol. Every decision event carries the protocol's fingerprint; a mismatch is refused as <code>STALE_BINDING</code>. The protocol is the contract each decision is checked against.</p>
+      <div class="src">screening/events.py:100-126, 263-270 · batcher.py:232-237</div>
+    </div>
+  </div>
+
+  <div class="gate" style="margin-top:24px">
+    <div class="label">The one rule under everything</div>
+    <p style="margin:6px 0 0;max-width:none">Nothing is written until the researcher confirms, and nothing a machine wrote is treated as a result. Recon writes to a cache. The interview holds its answers in memory. The compile is a pure function with no model and no network. The researcher's "yes" at Review is the only write. From M4a onward, every write goes through one guarded function, <code>emit_workspace</code>.</p>
+  </div>
+</section>
+
+<!-- ============ STEPS ============ -->
+<section class="panel" id="p-steps" hidden>
+  <div class="label">The wizard, as the code runs it</div>
+  <h2>Four stages in the docstring, eleven moments in the code</h2>
+  <p>The entry points are <code>scholar-harness inception</code> and <code>nexus-scholar init &lt;title&gt;</code>; both drive <code>run_wizard()</code> through a <code>Responder</code>, so the terminal, the MCP agent and (from M4a) the HTTP step API ask the same questions. The UX design regroups these into six screens: Scope, Explore, Direction, Shape, Concepts, Review.</p>
+  <p><button id="toggle-m4a" aria-pressed="true">Show what M4a changes (PR #206, not merged)</button></p>
+  <div class="steps">
+    <div class="steplist" id="steplist" role="tablist" aria-label="Wizard steps"></div>
+    <div class="card" id="stepdetail"></div>
+  </div>
+</section>
+
+<!-- ============ RECON ============ -->
+<section class="panel" id="p-recon" hidden>
+  <div class="label">The recon engine · src/scholar_harness/recon/</div>
+  <h2>Probe, distill, direct, then anchor every word</h2>
+  <p>A recon is an exploratory scan of the literature that runs before any workspace exists. Its hard invariant: it never writes to <code>workspaces/</code>. It writes a pool file into a content-addressed cache and returns terms with the DOIs that back them.</p>
+
+  <div class="flow">
+    <div class="f"><div class="label">1 · Probe</div><strong>Federated search, 25 records</strong><small>OpenAlex, Semantic Scholar, Crossref, arXiv; deduplicated by the search kit; kept in arrival order; cached by key.</small><div class="src">engine.py:32-33, 264-313</div></div>
+    <div class="f"><div class="label">2 · Distill</div><strong>Terms with their anchor DOIs</strong><small>Pure Python, no model. 1–3-word n-grams from title and abstract of DOI-bearing records; frequency = number of records containing the term.</small><div class="src">distiller.py:67-117, 249-283</div></div>
+    <div class="f"><div class="label">3 · Direct</div><strong>Up to 3 directions</strong><small>Terms with ≥2 anchors, junk-filtered, one per lexical family, longest phrases first. The researcher picks one or asks for a narrower probe, once.</small><div class="src">grounded.py:145-191, 311-357</div></div>
+    <div class="f"><div class="label">4 · Anchor</div><strong>Every concept needs evidence</strong><small>A concept or synonym not already anchored gets its own probe, within a budget of 3. Unanchored concepts stop the wizard; unanchored synonyms are dropped.</small><div class="src">grounded.py:428-500</div></div>
+  </div>
+
+  <div class="two">
+    <div>
+      <h3>Try it: a pool in miniature</h3>
+      <p>Eight illustrative records (the DOIs are placeholders). Untick records to shrink the pool and watch which terms keep two anchors, which directions survive, and when the pool turns thin. The real rules are the same; the real pool has 25 records and the family filter is more careful.</p>
+      <div class="pool" id="pool"></div>
+    </div>
+    <div>
+      <div class="card">
+        <div class="label">Gates (advisory in the wizard)</div>
+        <div id="gates" style="margin-top:8px"></div>
+        <div class="src">gates.py:23, 28, 59-127 · grounded.py:208-252</div>
+      </div>
+      <div class="card" style="margin-top:16px">
+        <div class="label">Directions offered</div>
+        <div id="dirs" style="margin-top:8px"></div>
+        <div class="src">rule: ≥2 anchor DOIs, max 3 · grounded.py:145-191</div>
+      </div>
+      <div class="card" style="margin-top:16px">
+        <div class="label">Micro-taxonomy (term · anchors)</div>
+        <ul class="terms" id="terms" style="padding:0;margin:8px 0 0"></ul>
+      </div>
+    </div>
+  </div>
+
+  <h3 style="margin-top:28px">The cache key</h3>
+  <p>Type a query. The engine casefolds it, collapses whitespace, strips trailing punctuation, hashes it, and files the pool under the SHA-1 of this key. The same words give the same pool with zero network calls; a failed or empty probe is cached the same way (finding INC-09). <code>year_max=None</code> resolves to the current year, so the same probe gets a new key each January.</p>
+  <input type="text" id="q" value="Drone-based crop stress detection with deep learning  " aria-label="Probe query">
+  <div class="card" style="margin-top:10px">
+    <div class="kv">
+      <dt>normalized</dt><dd><code id="qn"></code></dd>
+      <dt>key shape</dt><dd><code class="fp" id="qk"></code></dd>
+      <dt>cache root</dt><dd><code>NEXUS_RECON_ROOT</code>, else <code>&lt;project&gt;/.cache/inception_recon</code>, else <code>~/.cache/nexus-scholar/inception_recon</code></dd>
+    </div>
+    <div class="src">cache_key.py:30-71 · engine.py:57-75, 291</div>
+  </div>
+
+  <div class="grid" style="margin-top:24px">
+    <div class="card"><h3>What else the distiller reports</h3>
+      <ul>
+        <li><strong>metrics, datasets, schools</strong>: regex hits from a domain lexicon; schools are documented as false-positive-prone.</li>
+        <li><strong>topics</strong>: OpenAlex topic labels, DOI-anchored.</li>
+        <li><strong>QEI</strong>, the query echo index: how much of the top-10 vocabulary just repeats the query. A dispersion signal, not novelty; target ≤0.3.</li>
+        <li><strong>saturation</strong>: scant, sparse, dense or unknown, from an uncapped OpenAlex count.</li>
+      </ul><div class="src">distiller.py:129-246 · engine.py:178-235</div></div>
+    <div class="card"><h3>What the wizard does not do</h3>
+      <ul>
+        <li>It probes with all defaults: keyword mode, from 2000, cap 25. The year window the researcher gives later is never applied to the probe.</li>
+        <li>It allows one narrower re-probe, not the adaptive follow-ups that the MCP <code>recon_delta</code> tool runs.</li>
+        <li>Its gates never abort. They print notes; the human decides.</li>
+      </ul><div class="src">grounded.py:289, 30, 213-215 · adaptive.py:163-338</div></div>
+    <div class="card"><h3>What "anchored" means, exactly</h3>
+      <p>In the distiller a term is anchored to records that contain it. In the step-5 enforcement, a concept counts as anchored if its probe pool holds any DOI at all; the term is not checked to occur in the record. That is finding INC-21, held for the discovery milestone.</p>
+      <div class="src">distiller.py:105-117 · grounded.py:418-425</div></div>
+  </div>
+</section>
+
+<!-- ============ PROTOCOL ============ -->
+<section class="panel" id="p-protocol" hidden>
+  <div class="label">src/scholar_protocol/</div>
+  <h2>A pure compile, a canonical hash</h2>
+  <p>The interview produces an <code>IntentPacket</code>. <code>compile_protocol</code> turns it into a <code>ResearchProtocol</code> with no model and no network, so the same intent always gives the same protocol and the same fingerprint. Click a field.</p>
+  <div class="two">
+    <div class="tree" id="tree"></div>
+    <div class="card" id="treedetail"><div class="label">Field</div><p style="margin-top:6px">Pick a field on the left.</p></div>
+  </div>
+
+  <div class="grid" style="margin-top:24px">
+    <div class="card"><h3>The fingerprint</h3>
+      <p><code>sha256:</code> plus the hash of the canonical JSON: keys in declaration order, compact separators, ASCII only, thresholds as floats. <code>created_at</code> is pinned to the genesis timestamp so a re-compile reproduces it. An absent <code>method</code> block is dropped from the bytes, so protocols written before that block existed keep their fingerprint.</p>
+      <div class="src">canonical.py:48-101, 145-159 · intent.py:140-146</div></div>
+    <div class="card"><h3>Ids</h3>
+      <p>Criteria are numbered in declaration order: <code>INC-01</code>, <code>INC-02</code>… and <code>EXC-01</code>…; questions are <code>RQ1</code>, <code>RQ2</code>. The wizard's <code>protocol_id</code> is <code>proto-YYYYMMDD-&lt;slug&gt;</code>; Contract v1 envelopes mint <code>PRT-&lt;sha256[:32]&gt;</code> of the canonical bytes.</p>
+      <div class="src">compiler.py:26-31, 79-102 · identity.py:96-131</div></div>
+    <div class="card"><h3>How screening holds on</h3>
+      <p>Each decision event carries <code>{protocol_fingerprint, batch_id, batch_sha256}</code>. The engine recomputes the fingerprint from <code>protocol.json</code> on load; a mismatch is <code>STALE_BINDING</code>, and after a protocol change earlier decisions count nowhere. Decisions must carry <code>method: HUMAN</code>; agents submit proposals.</p>
+      <div class="src">events.py:108-126, 228-231, 263-292</div></div>
+    <div class="card"><h3>Framing</h3>
+      <p>There is no PICO, SPIDER or PEO structure. Questions are framed through four paradigms (Positivist, Interpretivist, Design Science, Pragmatist) and five playbooks (PRISMA SLR, scoping, rapid evidence, design science, student dissertation), each mapped to a reporting guideline. Adding a structured framing is open question M6, a contract decision.</p>
+      <div class="src">models.py:27-59 · presets.py:69-145 · inception/intent.py:52-58</div></div>
+  </div>
+</section>
+
+<!-- ============ SCIENCE ============ -->
+<section class="panel" id="p-science" hidden>
+  <div class="label">The method behind each step, as the repository states it</div>
+  <h2>Why the engine is shaped this way</h2>
+  <div class="grid" id="science"></div>
+</section>
+
+<!-- ============ OPEN ============ -->
+<section class="panel" id="p-open" hidden>
+  <div class="label">Known gaps</div>
+  <h2>What is open, deferred or fixed</h2>
+  <p>The production plan chose to leave the seven method questions open and visible rather than solve them inside a two-month window. M4a fixes two inception findings and holds the rest for the discovery milestone, which rewrites the search providers the recon depends on.</p>
+
+  <h3>Method questions M1–M7</h3>
+  <div class="scroll card" style="padding:0"><table>
+    <thead><tr><th>#</th><th>Question</th><th>Weight</th><th>Status</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">M1</td><td>Unanchored synonyms are dropped, which protects precision at the cost of recall, the thing a systematic search is judged on first.</td><td>Major</td><td><span class="badge b-unc">Open</span></td></tr>
+      <tr><td class="mono">M2</td><td>Directions are the most frequent n-grams in a thin, query-shaped pool, so they can echo the query back.</td><td>Major</td><td><span class="badge b-unc">Open</span></td></tr>
+      <tr><td class="mono">M3</td><td>The gate thresholds (12 records, 0.50 top-3 topic share) come from one multi-domain trial on 13 Sept 2026.</td><td>Major</td><td><span class="badge b-unc">Open</span></td></tr>
+      <tr><td class="mono">M4</td><td>Semantic results drift between runs; provider, date and mode are not recorded in the protocol.</td><td>Major · contract</td><td><span class="badge b-unc">Open</span></td></tr>
+      <tr><td class="mono">M5</td><td>No multi-database choice, PRESS peer review of the search, criteria pilot, dual screening or PROSPERO/OSF registration.</td><td>Major</td><td><span class="badge b-unc">Open</span></td></tr>
+      <tr><td class="mono">M6</td><td>Four keyword-detected paradigms; no PICO, SPIDER or PEO.</td><td>Moderate · contract</td><td><span class="badge b-unc">Open</span></td></tr>
+      <tr><td class="mono">M7</td><td>Three machine-ranked directions can steer the researcher (automation bias).</td><td>Moderate</td><td><span class="badge b-unc">Open</span></td></tr>
+    </tbody></table></div>
+  <div class="src">docs/ux/phase0-inception/README.md:54-64 · production-plan.md:157</div>
+
+  <h3 style="margin-top:24px">Inception findings</h3>
+  <div class="scroll card" style="padding:0"><table>
+    <thead><tr><th>ID</th><th>Problem</th><th>Status</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">INC-08</td><td>Re-inception silently overwrote the protocol; earlier decisions then pointed at criteria that no longer existed. No prompt, no backup.</td><td><span class="badge b-m4a">Fixed in M4a</span></td></tr>
+      <tr><td class="mono">INC-22</td><td>Criteria were injected without being shown; the confirm panel showed counts only.</td><td><span class="badge b-m4a">Fixed in M4a</span></td></tr>
+      <tr><td class="mono">INC-09</td><td>Empty or failed probes are cached forever, with no record of which provider failed.</td><td><span class="badge b-exc">Deferred to M3a</span></td></tr>
+      <tr><td class="mono">INC-21</td><td>"Anchored" means only that the provider returned something; a stub reproduction anchors "quantum error correction" to a bird paper.</td><td><span class="badge b-exc">Deferred to M3a</span></td></tr>
+      <tr><td class="mono">INC-23</td><td>English-only is a silent default.</td><td><span class="badge b-unc">Open</span></td></tr>
+      <tr><td class="mono">INC-24</td><td>The direction ranker favours phrase length; "best" means longest.</td><td><span class="badge b-unc">Open</span></td></tr>
+      <tr><td class="mono">INC-25</td><td>The QEI note compares against the topic-share constant 0.50, not its own target.</td><td><span class="badge b-unc">Open</span></td></tr>
+      <tr><td class="mono">INC-26</td><td>Paradigm detection is substring matching ("ecosystem" reads as Design Science).</td><td><span class="badge b-unc">Open</span></td></tr>
+      <tr><td class="mono">INC-15/16</td><td>Declining verification leaves the three flags true; unvalidated inputs compile.</td><td><span class="badge b-unc">Open</span></td></tr>
+      <tr><td class="mono">INC-10</td><td>The 25-record pool is chosen by arrival order, not relevance.</td><td><span class="badge b-unc">Open</span></td></tr>
+    </tbody></table></div>
+  <div class="src">production-plan.md:60-69 · docs/assessment/harness-inception-recon-console.md</div>
+
+  <h3 style="margin-top:24px">Protocol findings</h3>
+  <div class="scroll card" style="padding:0"><table>
+    <thead><tr><th>ID</th><th>Problem</th><th>Plan</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">PROT-01</td><td>Verification, trust and <code>incompatible_concepts</code> are rendered but never enforced.</td><td>Relabel as advisory</td></tr>
+      <tr><td class="mono">PROT-02</td><td>Compile skips the cross-field checks in <code>validate.py</code>.</td><td>Held for after M3a</td></tr>
+      <tr><td class="mono">PROT-03</td><td>Unknown keys are dropped silently (no <code>extra="forbid"</code> outside the method block), and the fingerprint does not change.</td><td>Contract change; needs an architecture decision and new golden fixtures</td></tr>
+      <tr><td class="mono">PROT-08</td><td>The renderer omits date range, languages and two-tier screening; it has no version.</td><td>Enters the screening binding; held for after M3a</td></tr>
+    </tbody></table></div>
+  <div class="src">docs/assessment/kit-protocol.md:48-97 · production-plan.md:68-69</div>
+
+  <h3 style="margin-top:24px">Discrepancies this map found while reading</h3>
+  <ul>
+    <li>The wizard docstring says "4-stage"; the code has stage 1, an optional grounded block, stages 2 and 3, and six sub-steps in stage 4. The UX design is six screens.</li>
+    <li><code>golden_seeds</code> exists in the model, but inception never fills it from the recon anchors. The seed recall check lives in Discovery instead.</li>
+    <li>The compiled <code>date_range</code> holds whatever the researcher typed, possibly null, not the model default.</li>
+    <li>A half-finished <code>--replace</code> after an OS error does not name the backup path (M4a, deferred P3).</li>
+  </ul>
+</section>
+
+<!-- ============ GLOSSARY ============ -->
+<section class="panel" id="p-glossary" hidden>
+  <div class="label">Terms the module uses</div>
+  <h2>Glossary</h2>
+  <input type="search" id="gsearch" placeholder="Filter terms, for example anchor or fingerprint" aria-label="Filter glossary">
+  <dl class="gl" id="gl"></dl>
+</section>
+
+<footer>Built from the repository at <code>main</code> (merge of PR #202, 8 Nov 2026) and branch <code>dev/m4a/inception-engine</code> (PR #206, under review). File references are to that checkout; line numbers drift as the code moves. Items marked M4a describe behaviour that is not on <code>main</code> yet.</footer>
+</div>
+
+<script>
+(function(){
+"use strict";
+/* ---------- Routing ---------- */
+const TABS=["overview","steps","recon","protocol","science","open","glossary"];
+function show(){
+  let h=(location.hash||"#overview").slice(1); if(!TABS.includes(h)) h="overview";
+  TABS.forEach(t=>{document.getElementById("p-"+t).hidden=(t!==h)});
+  document.querySelectorAll("nav.tabs a").forEach(a=>{ if(a.getAttribute("href")==="#"+h) a.setAttribute("aria-current","page"); else a.removeAttribute("aria-current"); });
+}
+addEventListener("hashchange",show); show();
+
+/* ---------- Overview rail ---------- */
+const RAIL=[
+ {k:"IDEA",t:"Raw curiosity",s:"One or two sentences",cache:false,
+  d:"<h3>Stage 1 <span>· wizard.py:180-190</span></h3><p>The researcher types the topic. An empty topic exits the wizard. Nothing is written. In grounded mode this sentence is also the first probe query.</p>"},
+ {k:"RECON",t:"Literature probe",s:"Cache only · optional",cache:true,
+  d:"<h3>Grounded recon <span>· grounded.py:255-384</span></h3><p>With <code>--grounded</code>, the topic is searched across four free databases, 25 records are kept, and terms are distilled with their anchor DOIs. The researcher picks one of up to three directions, or asks once for a narrower probe. The result is a <code>recon_context</code> held in memory; pools live in the recon cache, never in a workspace.</p><p>Refusals: no direction with two anchors stops the wizard.</p>"},
+ {k:"INTERVIEW",t:"Socratic interview",s:"Paradigm, boundaries, questions, concepts",cache:false,
+  d:"<h3>Stages 2–4 <span>· wizard.py:201-343</span></h3><p>Paradigm and playbook (defaults from keyword leanings), the unit of analysis, the proof a peer reviewer would accept, what is out of scope, the research questions drafted from the paradigm template, the concepts and synonyms (grounded mode checks each has literature evidence), extraction columns, verification checks, and the title and metadata. All of it stays in memory.</p>"},
+ {k:"CRITERIA",t:"Screening criteria",s:"Shown verbatim from M4a",cache:false,
+  d:"<h3>Criteria <span>· inception/intent.py:235-251</span></h3><p>On <code>main</code> the criteria are assembled silently: the proof answer becomes <code>INC-01</code>, each out-of-scope item an <code>EXC</code>, and the paradigm's default exclusion is injected when none exists. The confirm panel shows counts only (finding INC-22).</p><div class='m4a'><div class='label'>M4a · PR #206</div>Each criterion is printed in full with its source. Wizard-written criteria default to <strong>no</strong>; typed ones default to yes. Only accepted criteria reach the protocol.</div>"},
+ {k:"REVIEW",t:"Review and emit",s:"The only write",cache:false,
+  d:"<h3>Stage 4f <span>· wizard.py:345-377</span></h3><p>The researcher confirms \"Emit protocol.json and scaffold the workspace?\". Declining or <code>--no-scaffold</code> writes nothing. On <code>main</code>, <code>run_wizard</code> has no overwrite guard (finding INC-08).</p><div class='m4a'><div class='label'>M4a · PR #206</div>One guarded path, <code>emit_workspace</code>. An existing workspace is refused as <code>WORKSPACE_EXISTS</code> unless <code>--replace</code>, which backs up the old protocol files under <code>audit/replaced/&lt;stamp&gt;/</code>. A workspace with screening decisions is refused as <code>SCREENING_BOUND</code> unless <code>--discard-screening-binding</code>; over HTTP the researcher types the slug to confirm. The intent is compiled before any write, so an invalid intent writes nothing.</div>"},
+ {k:"WORKSPACE",t:"Workspace written",s:"protocol.json, intent.json, criteria, journal",cache:false,
+  d:"<h3>Genesis <span>· genesis.py:143-183, 300-349</span></h3><p><code>protocol.json</code> is compiled from the intent (a pure function) and hashed. <code>SCREENING_CRITERIA.md</code> is rendered from it. The journal gets <code>PROJECT_INITIALIZED</code> and <code>GENESIS</code>; GENESIS carries a bounded summary of the recon and points to <code>audit/recon_context.json</code> for the full lineage. From here, screening binds every decision to the protocol fingerprint.</p>"}
+];
+const rail=document.getElementById("rail"), rd=document.getElementById("rail-detail");
+RAIL.forEach((n,i)=>{
+  const b=document.createElement("button"); b.className="card node"+(n.cache?" cache":""); b.setAttribute("aria-pressed",i===0?"true":"false");
+  b.innerHTML=`<span class="label">${n.k}</span><strong>${n.t}</strong><small>${n.s}</small>`;
+  b.addEventListener("click",()=>{rail.querySelectorAll(".node").forEach(x=>x.setAttribute("aria-pressed","false")); b.setAttribute("aria-pressed","true"); rd.innerHTML=n.d;});
+  rail.appendChild(b);
+  if(i<RAIL.length-1){const a=document.createElement("span");a.className="arrow";a.textContent="→";a.setAttribute("aria-hidden","true");rail.appendChild(a);}
+});
+rd.innerHTML=RAIL[0].d;
+
+/* ---------- Steps ---------- */
+const STEPS=[
+ {k:"1",t:"Raw curiosity",does:"Types the research topic.",eng:"Nothing yet. In grounded mode the topic becomes the first probe query.",writes:"Nothing.",ref:"Empty topic → exit \"No research topic provided\".",src:"wizard.py:180-190",m4a:null},
+ {k:"1b",t:"Grounded recon (optional)",does:"Picks one of up to three directions, or asks once for \"Search again, narrower\".",eng:"Probe (25 records, four providers, from 2000) → distill → rank terms with ≥2 anchor DOIs. Builds <code>anchored_terms</code> and default concepts from the pool.",writes:"Pool files in the recon cache only. A <code>recon_context</code> dict in memory.",ref:"No direction with ≥2 anchors → exit. <code>--direction-id</code> out of range → exit.",src:"grounded.py:255-384",m4a:"The session id becomes <code>rec_</code> + 32 hex, the same format the MCP recon tools and the new draft sessions use, so one id follows the interview from probe to draft to workspace."},
+ {k:"2",t:"Paradigm and playbook",does:"Picks a paradigm (Positivist, Interpretivist, Design Science, Pragmatist), a playbook, and an optional secondary paradigm.",eng:"<code>detect_leanings</code> scores substring keyword hits per paradigm; the top score is the default. The refraction grid shows all four side by side. <code>recommend_playbook</code> maps paradigm → playbook.",writes:"Nothing.",ref:"None.",src:"wizard.py:201-228 · intent.py:116-131",m4a:null},
+ {k:"3",t:"Boundary questions",does:"Unit of analysis; the proof that would convince a top-tier peer reviewer; the out-of-scope list; an optional year window and languages.",eng:"<code>enforce_lexicon</code> warns when positivist terms appear in an interpretivist topic (advisory, topic only).",writes:"Nothing.",ref:"None; the lexicon warning never blocks.",src:"wizard.py:230-251 · intent.py:134-139",m4a:null},
+ {k:"4a",t:"Research questions",does:"Edits the RQ1 draft, optionally adds RQ2.",eng:"RQ1 is drafted from the paradigm's <code>rq_template</code>.",writes:"Nothing.",ref:"None.",src:"wizard.py:253-262 · intent.py:71-105",m4a:null},
+ {k:"4b",t:"Concepts and synonyms",does:"Comma-separated concepts, then synonyms for each.",eng:"Defaults: pool-anchored concepts in grounded mode, else the first three non-stopword words. Grounded mode then probes any unanchored concept or synonym, within a budget of three probes.",writes:"Nothing (supplementary pools go to the cache).",ref:"An unanchored concept after probing → exit \"has no literature evidence\". An unanchored synonym is dropped with a warning.",src:"wizard.py:264-283 · grounded.py:387-500",m4a:null},
+ {k:"4c",t:"Screening criteria",does:"Optionally one manual inclusion and one manual exclusion with a category.",eng:"On <code>main</code> the rest is assembled later and silently: proof → <code>INC-01</code>; out-of-scope items → <code>EXC</code>; the paradigm's default exclusion when none exists.",writes:"Nothing.",ref:"None.",src:"wizard.py:285-293 · intent.py:235-251",m4a:"<code>accept_criteria</code> runs right after this step. Every drafted criterion is printed verbatim with its source (<code>proof</code>, <code>paradigm_default</code>, <code>out_of_scope</code>, <code>manual</code>). Wizard-written ones default to no, typed ones to yes. A rejected criterion is dropped; an empty side forces the researcher to write one. The criterion id is content-derived (<code>crit_</code> + sha256[:12]). The source is not stored in the protocol, because that would be a contract change."},
+ {k:"4d",t:"Matrix and verification",does:"Optional extraction columns; whether to enable the Phase 4 checks.",eng:"Default matrix dimensions; trust threshold 6.0, or 0.0 if declined.",writes:"Nothing.",ref:"None. (Finding INC-15: declining leaves the three verification flags true.)",src:"wizard.py:295-306 · genesis.py:352-405",m4a:null},
+ {k:"4e",t:"Title and metadata",does:"Title (the slug is derived), lead researcher, venue, timeline.",eng:"<code>slugify</code>, then <code>make_intent</code> builds the <code>IntentPacket</code>.",writes:"Nothing.",ref:"None on <code>main</code>.",src:"wizard.py:308-343 · intent.py:223-305",m4a:"<code>check_writable</code> runs as soon as the slug is known, so a folder that cannot be written is refused before the researcher answers the rest."},
+ {k:"4f",t:"Review and emit",does:"Confirms \"Emit protocol.json and scaffold the workspace?\".",eng:"Scaffold the folders, compile the intent into <code>protocol.json</code>, render <code>SCREENING_CRITERIA.md</code>, log <code>PROJECT_INITIALIZED</code> and <code>GENESIS</code>.",writes:"<code>project.json</code>, <code>intent.json</code>, <code>protocol.json</code>, <code>SCREENING_CRITERIA.md</code>, <code>INDEX.md</code>, the journal, <code>audit/recon_context.json</code>.",ref:"Decline → \"Inception aborted\". <code>--no-scaffold</code> → nothing written. On <code>main</code>: no overwrite guard here (INC-08).",src:"wizard.py:345-377 · genesis.py",m4a:"The panel lists every criterion in full. Emission goes through <code>emit_workspace</code>: <code>WORKSPACE_EXISTS</code> without <code>--replace</code>; with it, a backup under <code>audit/replaced/&lt;UTC stamp&gt;/</code>, <code>project.json</code> kept, GENESIS naming the old fingerprint. <code>SCREENING_BOUND</code> when decisions, decision files or <code>generation.json</code> exist, unless <code>--discard-screening-binding</code> (HTTP: type the slug). The intent is compiled before any write."},
+ {k:"API",t:"Step API and drafts (M4a)",does:"Over HTTP: save a draft, answer a step, preview, then genesis.",eng:"<code>run_step</code> answers scope, shape, criteria and matrix over the same wizard functions. <code>preview</code> compiles without writing: intent, protocol, fingerprint, exact criteria text, target folder, screening state. <code>genesis</code> is the only write.",writes:"Drafts at <code>&lt;workspaces root&gt;/.drafts/rec_&lt;hex&gt;/draft.json</code>, written atomically; workspaces only through genesis.",ref:"<code>DRAFT_INVALID</code>, <code>DRAFT_INCOMPLETE</code>, <code>CRITERIA_UNDECIDED</code>, <code>CRITERIA_MISSING</code>, <code>INTENT_INVALID</code>, <code>WORKSPACE_TITLE_INVALID</code>, <code>CONFIRMATION_MISMATCH</code>, <code>WORKSPACE_EXISTS</code>, <code>WORKSPACE_ROOT_UNAVAILABLE</code>, <code>DRAFT_CONFLICT</code>, <code>DRAFT_EMITTED</code>, <code>DRAFT_NOT_FOUND</code>.",src:"inception/steps.py, drafts.py, emit.py · console/api/inception.py (M4a)",m4a:"Routes under <code>/api/v1/inception</code>: <code>GET/POST /drafts</code>, <code>GET/PUT/DELETE /drafts/{id}</code>, <code>POST /steps/{step}</code>, <code>POST /preview</code>, <code>POST /drafts/{id}/genesis</code>. A new workspace that fails half-way is removed; a pre-existing folder that is not a workspace is refused, never deleted. Recon over HTTP is not in M4a."}
+];
+let showM4a=true, cur=0;
+const sl=document.getElementById("steplist"), sd=document.getElementById("stepdetail");
+STEPS.forEach((s,i)=>{const b=document.createElement("button");b.innerHTML=`<span class="k">${s.k}</span><span>${s.t}</span>`;b.setAttribute("aria-pressed",i===0?"true":"false");b.addEventListener("click",()=>{cur=i;renderStep();});sl.appendChild(b);});
+function renderStep(){
+  sl.querySelectorAll("button").forEach((b,i)=>b.setAttribute("aria-pressed",i===cur?"true":"false"));
+  const s=STEPS[cur];
+  sd.innerHTML=`<div class="label">Step ${s.k}</div><h3>${s.t}</h3>
+  <dl class="kv"><dt>Researcher</dt><dd>${s.does}</dd><dt>Engine</dt><dd>${s.eng}</dd><dt>Writes</dt><dd>${s.writes}</dd><dt>Refusals</dt><dd>${s.ref}</dd></dl>
+  <div class="src">${s.src}</div>
+  ${showM4a&&s.m4a?`<div class="m4a"><div class="label">M4a · PR #206 · not yet merged</div><div style="margin-top:4px">${s.m4a}</div></div>`:""}`;
+}
+renderStep();
+document.getElementById("toggle-m4a").addEventListener("click",e=>{showM4a=!showM4a;e.currentTarget.setAttribute("aria-pressed",String(showM4a));renderStep();});
+
+/* ---------- Recon sandbox ---------- */
+const DOCS=[
+ {doi:"10.0000/ex.001",t:"UAV multispectral imaging for early crop stress detection",terms:["crop stress detection","uav imaging","multispectral imaging","deep learning"]},
+ {doi:"10.0000/ex.002",t:"Deep learning on drone imagery for plant disease mapping",terms:["deep learning","drone imagery","plant disease","crop stress detection"]},
+ {doi:"10.0000/ex.003",t:"Thermal and multispectral fusion for water stress in vineyards",terms:["multispectral imaging","water stress","sensor fusion"]},
+ {doi:"10.0000/ex.004",t:"Convolutional networks for weed detection from UAV orthomosaics",terms:["deep learning","uav imaging","weed detection"]},
+ {doi:"10.0000/ex.005",t:"Transfer learning across growing seasons for crop stress detection",terms:["transfer learning","crop stress detection","deep learning"]},
+ {doi:"10.0000/ex.006",t:"A review of remote sensing indices for drought monitoring",terms:["remote sensing","drought monitoring","vegetation indices"]},
+ {doi:"10.0000/ex.007",t:"Edge inference on drones: latency and accuracy trade-offs",terms:["drone imagery","edge inference","deep learning"]},
+ {doi:"10.0000/ex.008",t:"Hyperspectral sensing of nitrogen deficiency in maize",terms:["hyperspectral sensing","nitrogen deficiency","vegetation indices"]}
+];
+const POOL_THIN_FLOOR=12, TOP3=0.50;
+const pool=document.getElementById("pool");
+DOCS.forEach((d,i)=>{const l=document.createElement("label");l.className="doc";l.innerHTML=`<input type="checkbox" id="doc${i}" checked><span><span class="t">${d.t}</span><br><span class="d">${d.doi}</span></span>`;l.querySelector("input").addEventListener("change",renderPool);pool.appendChild(l);});
+function renderPool(){
+  const on=DOCS.filter((d,i)=>document.getElementById("doc"+i).checked);
+  document.querySelectorAll(".doc").forEach((l,i)=>l.classList.toggle("off",!document.getElementById("doc"+i).checked));
+  const map=new Map();
+  on.forEach(d=>d.terms.forEach(t=>{if(!map.has(t))map.set(t,[]);map.get(t).push(d.doi);}));
+  const terms=[...map.entries()].sort((a,b)=>b[1].length-a[1].length||a[0].localeCompare(b[0]));
+  document.getElementById("terms").innerHTML=terms.map(([t,ds])=>`<li><span>${t}</span><span class="c">${ds.length}</span></li>`).join("")||"<li><span class='mono'>pool empty</span></li>";
+  const dirs=terms.filter(([t,ds])=>ds.length>=2).sort((a,b)=>b[0].split(" ").length-a[0].split(" ").length||b[1].length-a[1].length||a[0].localeCompare(b[0])).slice(0,3);
+  document.getElementById("dirs").innerHTML=dirs.length?dirs.map(([t,ds])=>`<div class="dir"><strong>${t}</strong><br><span class="d">${ds.join(" · ")}</span></div>`).join(""):`<div class="dir"><span class="badge b-blk">No direction</span> No term has two anchor DOIs. On main the wizard exits here.</div>`;
+  const n=on.length, suff=n>=POOL_THIN_FLOOR;
+  // Toy "topic purity": share of records in the top-3 terms' union, as a stand-in for the OpenAlex top-3 topic share.
+  const top3=new Set(); terms.slice(0,3).forEach(([t,ds])=>ds.forEach(x=>top3.add(x)));
+  const share=n?top3.size/n:0;
+  const purity=!n?"indeterminate":share>=TOP3?"coherent":"fragmented";
+  document.getElementById("gates").innerHTML=`<dl class="kv">
+    <dt>pool size</dt><dd><span class="num">${n}</span> records · <span class="badge ${suff?"b-inc":"b-unc"}">${suff?"sufficient":"thin"}</span> <span class="mono" style="color:var(--muted)">floor ${POOL_THIN_FLOOR}</span></dd>
+    <dt>coherence</dt><dd><span class="num">${share.toFixed(2)}</span> of records in the top-3 terms · <span class="badge ${purity==="coherent"?"b-inc":purity==="fragmented"?"b-unc":"b-exc"}">${purity}</span> <span class="mono" style="color:var(--muted)">threshold ${TOP3}</span></dd>
+    <dt>APR</dt><dd><span class="num">1.00</span> by construction: every term here has an anchor (finding INC-21)</dd>
+  </dl><p class="src" style="margin-top:4px">A real 25-record probe is still under the floor of 12 only when providers return little. The coherence figure here is a stand-in; the engine uses OpenAlex topic labels.</p>`;
+}
+renderPool();
+
+/* ---------- Cache key ---------- */
+const q=document.getElementById("q");
+async function key(){
+  const norm=q.value.toLowerCase().replace(/\s+/g," ").trim().replace(/[.!?;:,]+$/,"");
+  document.getElementById("qn").textContent=norm||"(empty)";
+  let hex="…";
+  try{ if(crypto&&crypto.subtle){const b=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(norm));hex=[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,"0")).join("");} }catch(e){}
+  const y=new Date().getFullYear();
+  document.getElementById("qk").textContent=`v1/<openalex,semanticscholar,crossref,arxiv>/y2000-${y}/q/${hex}`;
+}
+q.addEventListener("input",key); key();
+
+/* ---------- Protocol tree ---------- */
+const FIELDS={
+ top:{n:"Top level",d:"<p><code>$schema</code>, <code>protocol_id</code>, <code>created_at</code>, <code>project_slug</code>, <code>playbook_type</code>, and free-form <code>metadata</code> (title, lead researcher, venue, timeline). <code>created_at</code> is pinned to the genesis timestamp so the fingerprint is reproducible.</p>",s:"models.py:381-432 · intent.py:140-146"},
+ epi:{n:"epistemology",d:"<p>Primary and optional secondary paradigm, the unit of analysis, the trustworthiness framework the playbook implies (PRISMA 2020, JBI, REA, Hevner DSR, APA/JBI), a rationale, and <code>incompatible_concepts</code>. Finding PROT-01: these are rendered, never enforced.</p>",s:"models.py:233-261 · inception/intent.py:52-58"},
+ rq:{n:"research_questions[]",d:"<p>Each has an id (<code>RQ1</code>, <code>RQ2</code>…), the text, a target facet, a synthesis type and the evidence type it needs. RQ1 is drafted from the paradigm template and edited by the researcher.</p>",s:"models.py:83-100"},
+ ss:{n:"search_strategy",d:"<p>Core concepts with synonyms and a boolean operator, target databases, date range, languages, open-access preference, target pool size, and <code>golden_seeds</code>. The compiler never fills <code>golden_seeds</code>: the recon anchors are not carried into the protocol, and the seed recall check lives in Discovery. The compiled <code>date_range</code> holds what the researcher typed, possibly null.</p>",s:"models.py:116-149 · compiler.py:178-197"},
+ sc:{n:"screening_criteria",d:"<p><code>inclusion[]</code> and <code>exclusion[]</code>, each with an id, the criterion text, the RQs it maps to and a reason category. At least one of each is required. These ids are the only legal reason codes at screening: an EXCLUDE cites <code>EXC-nn</code> or <code>FAILS-INC-nn</code>. <code>two_tier_screening</code> is declared here and omitted by the renderer (PROT-08).</p>",s:"models.py:152-187 · screening/events.py:100-105"},
+ md:{n:"matrix_dimensions[]",d:"<p>The extraction columns for Phase 3. Defaults come from the playbook; the researcher can add columns at step 4d.</p>",s:"models.py:190-230 · genesis.py:352-405"},
+ ver:{n:"verification",d:"<p>Retraction, conflict-of-interest and data/code availability flags, and a minimum trust score 0–10. Declining verification sets the threshold to 0.0 but leaves the flags true (INC-15).</p>",s:"models.py:264-286 · inception/intent.py:301-304"},
+ me:{n:"method (optional, hashed)",d:"<p>Added by the M7 milestones. <code>dedup</code>: DOI always, title similarity 0.90–1.00 (default 0.97), first author, year tolerance 0–2 (default 1). <code>rules_version</code> (<code>screening-rules-v1</code>). <code>not_reported</code>: unclear or exclude. <code>blinding</code>: reveal after decision or show. <code>reporting</code>: prisma-2020, prisma-scr or none, derived from the playbook when absent. This block uses <code>extra=\"forbid\"</code>; the rest of the model does not (PROT-03). Anything a reviewer could ask \"how did you…\" about belongs here, covered by the hash, so the researcher signs it.</p>",s:"models.py:299-358 · genesis.py:163-174 · docs/decisions.md:205-217"}
+};
+const tree=document.getElementById("tree"), td=document.getElementById("treedetail");
+tree.innerHTML=`{
+  <button data-f="top">"$schema"</button>: <span class="s">"…"</span>, <button data-f="top">"protocol_id"</button>: <span class="s">"proto-20261108-uav-crop-stress"</span>,
+  <button data-f="top">"created_at"</button>: <span class="s">"2026-11-08T…Z"</span>, <button data-f="top">"playbook_type"</button>: <span class="s">"PRISMA_SLR"</span>,
+  <button data-f="top">"metadata"</button>: { <span class="c">title, lead_researcher, venue, timeline</span> },
+  <button data-f="epi">"epistemology"</button>: { <span class="c">primary_paradigm, unit_of_analysis, trustworthiness_framework, …</span> },
+  <button data-f="rq">"research_questions"</button>: [ { <span class="c">id: RQ1, text, target_facet, synthesis_type</span> } ],
+  <button data-f="ss">"search_strategy"</button>: { <span class="c">core_concepts[], target_databases, date_range, languages, golden_seeds[]</span> },
+  <button data-f="sc">"screening_criteria"</button>: { <span class="c">inclusion[ INC-01… ], exclusion[ EXC-01… ], two_tier_screening</span> },
+  <button data-f="md">"matrix_dimensions"</button>: [ <span class="c">…</span> ],
+  <button data-f="ver">"verification"</button>: { <span class="c">retraction, coi, das_cas, minimum_trust_score_threshold</span> },
+  <button data-f="me">"method"</button>: { <span class="c">dedup, rules_version, not_reported, blinding, reporting</span> }
+}
+<span class="c">fingerprint = "sha256:" + sha256(canonical_json(protocol))</span>`;
+tree.querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>{tree.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed","false"));tree.querySelectorAll(`button[data-f="${b.dataset.f}"]`).forEach(x=>x.setAttribute("aria-pressed","true"));const f=FIELDS[b.dataset.f];td.innerHTML=`<div class="label">Field</div><h3>${f.n}</h3>${f.d}<div class="src">${f.s}</div>`;}));
+
+/* ---------- Science cards ---------- */
+const SCI=[
+ {t:"Scope before you protocol",b:"Recon runs before any workspace exists so that the protocol's vocabulary is validated against the literature rather than guessed. Step 1 narrows fuzzy curiosity into axes that can be probed; the spec is explicit that these are not screening criteria yet. The whole loop operates before any ground truth exists, which is why its outputs are directions to choose from, not answers.",q:"\"vocabulary was validated against the literature, not guessed\"",c:"specs/exploratory-grounding-agent/03_lifecycle.md:3, 7, 50 · 13_evaluation.md:9"},
+ {t:"Ground every term in a retrieved record",b:"The traceability invariant: every term that survives into the protocol must trace to a real retrieved document. The lineage runs GENESIS → session → cache key → pool → anchor DOI → record. The distiller is lexicon-free and model-free for the micro-taxonomy, so the same pool always yields the same terms. The UX review calls anchoring every concept to real DOIs the right defence against invented terms.",q:"\"Every term that survives into the final protocol must be traceable to a real Document retrieved\"",c:"03_lifecycle.md:57-59 · 04_memory_and_cache.md:174 · 14_agent_loops.md:82 · review.html:105"},
+ {t:"A deterministic compile with a visible boundary",b:"The interview, or a model, may produce the intent. The compile from intent to protocol is a pure function: no model, no network, same input, same bytes, same fingerprint. The review lists this determinism plus the content-addressed cache as the module's main strength.",q:"compile_protocol: no LLM, no network",c:"scholar_protocol/intent.py:23-31 · compiler.py:1-6 · review.html:111"},
+ {t:"The human is the gate",b:"The researcher remains the final gate on direction selection; no protocol is emitted without human validation. The recon gates (pool size, coherence, provenance rate) print notes and never abort, because the judgement belongs to the person who will defend the review.",q:"\"never auto-emitted protocol without human validation\"",c:"14_agent_loops.md:5, 81 · 13_evaluation.md:55 · grounded.py:213-215"},
+ {t:"The proof criterion, and the defaults it hides",b:"The interview asks what artifact or metric would convince a top-tier peer reviewer. That answer becomes the mandatory inclusion criterion INC-01. When the researcher names no exclusion, the paradigm's default exclusion is injected. The assessment calls these hidden screening policy: the Interpretivist default would drop mixed-methods evidence without the researcher ever seeing the rule.",q:"\"hidden screening policy\"",c:"inception/intent.py:235-251 · docs/assessment/harness-inception-recon-console.md:123"},
+ {t:"Criteria must be read before they rule (INC-22)",b:"At screening, the protocol's criteria are the screener's rules and the only legal reason codes. A criterion the researcher never saw is a rule they cannot defend. M4a therefore prints every criterion verbatim with its source and defaults wizard-written ones to no. The inference is this map's; the defect and the fix are the repository's.",q:"\"Criteria are injected without being shown\"",c:"production-plan.md:66 · M4a docs/decisions.md · events.py:100-105"},
+ {t:"A protocol is not overwritten (INC-08)",b:"A workspace that has been searched or screened was silently re-protocolled; earlier decisions then referred to criteria that no longer existed, with no prompt and no backup. The fix is a guard, a dated backup under audit/, a GENESIS event naming the old fingerprint, and an explicit confirmation before any screening binding is discarded.",q:"\"Earlier screening decisions then refer to criteria that no longer exist\"",c:"harness-inception-recon-console.md:56-62 · M4a emit.py"},
+ {t:"Anchors protect precision; recall is the open debt",b:"A direction needs two DOIs, a concept or synonym one; two distinct DOIs per concept is called the defensible norm. The review warns this protects precision at the cost of recall, which a systematic search is judged on first, and proposes checking synonyms against corpus counts instead of dropping them. Recall against seed papers is planned in Discovery.",q:"\"protects precision at the cost of recall\"",c:"SKILL.md:135 · 16_inception_improvements.md:23-24 · review.html:105, 125-127 · production-plan.md:137"},
+ {t:"Say what a signal measures",b:"QEI measures seed-tightness, not inquiry quality, and inverts on well-scoped seeds. Topic purity is the signal that separates good pools from bad. Saturation is a thinness signal, not a gap certificate: search sparsity alone never proves a research gap.",q:"\"search sparsity alone never proves a research gap\"",c:"16_inception_improvements.md §E · SKILL.md:78 · review.html:113"},
+ {t:"Provenance is the product",b:"The journal is append-only; each event carries a timestamp, an id, the actor, inputs, outputs and status. Screening decisions must be method HUMAN; agent output is a proposal. GENESIS records the recon lineage in bounded form and points to the full context file. Method parameters moved into the hashed protocol because anything a reviewer could ask \"how did you…\" about should be covered by the hash the researcher signs.",q:"\"covered by the protocol hash, so the researcher signs it\"",c:"log_event.py:238-256 · events.py:228-231 · docs/decisions.md:205-217"},
+ {t:"Where PRISMA-P is not yet met",b:"The repository says so itself: the model lacks registration, amendments, the selection process, risk of bias and a synthesis plan, and the prisma-check score counts invented items. Review question M5 asks for multi-database search, PRESS peer review of the search string, criteria piloting, dual screening and PROSPERO or OSF registration. The reporting guideline per playbook is a first step.",q:"\"prisma-check scores invented items\"",c:"docs/assessment/kit-protocol.md:7, 99, 116-131 · review.html:158-159 · docs/decisions.md:7-44"}
+];
+document.getElementById("science").innerHTML=SCI.map(s=>`<div class="card"><h3>${s.t}</h3><p>${s.b}</p><blockquote class="quote">${s.q}<cite>${s.c}</cite></blockquote></div>`).join("");
+
+/* ---------- Glossary ---------- */
+const GL=[
+ ["recon","Exploratory scan of the literature before any workspace exists: probe → distill → (delta) → direction. Writes only to the recon cache.","recon/__init__.py · 03_lifecycle.md"],
+ ["probe","One federated, deduplicated search capped at 25 records, content-addressed by its cache key.","engine.py:264-313"],
+ ["pool","The persisted probe result, pools/<sha1(key)>_pool.json: cache_key, created_at, docs[] with id, provider, doi, title, abstract, year, citations, topics.","engine.py:97-120, 307-313"],
+ ["distill","Deterministic extraction of the micro-taxonomy, metrics, datasets, schools, topics and QEI from DOI-bearing title and abstract text.","distiller.py:249-283"],
+ ["anchor, anchor DOI","A pool DOI cited as evidence for a term. In the distiller the term occurs in that record; in step-5 enforcement it is any DOI in the term's probe pool (INC-21).","distiller.py:105-117 · grounded.py:418-425"],
+ ["anchored_terms","The session map term → DOIs: the topic, the validated concept, taxonomy terms with ≥1 anchor, plus terms that passed supplementary probes.","grounded.py:366-372, 442-499"],
+ ["APR","Anchor Provenance Rate: the share of terms with at least one anchor DOI. Target 100%; 1.0 by construction today.","gates.py:31-56"],
+ ["direction","One of up to three taxonomy n-grams with ≥2 anchor DOIs, junk-filtered and one per lexical family, offered for the researcher to choose.","grounded.py:145-191"],
+ ["delta probe","In the wizard, one narrower re-probe on a direction label. In the MCP recon_delta tool, bounded follow-ups on thin schools and topics with a DOI-union merge.","grounded.py:336-357 · adaptive.py:267-338"],
+ ["school","A lexicon regex cluster of pool records, documented as false-positive-prone.","distiller.py:166-189"],
+ ["lexicon","DomainLexicon of metric, dataset and school regexes; mergeable, extra wins per key. The agent can inject one through recon_distill.","lexicon.py"],
+ ["gate","Pool sufficiency (≥12 records), topic purity (≥0.50 top-3 share), APR. Advisory in the wizard.","gates.py"],
+ ["QEI","Query Echo Index: the share of the top-10 terms sharing a token with the query. A dispersion signal, not novelty; target ≤0.3.","distiller.py:129-150"],
+ ["saturation","scant (<50), sparse (50–500), dense (>500) or unknown, from an uncapped OpenAlex count.","engine.py:36-37, 178-235"],
+ ["cache key","v1/<providers>/y<min>-<max>[/m/semantic]/q/<sha256(normalized query)>. The pool file is the SHA-1 of this key.","cache_key.py:48-71"],
+ ["canonical recon root","NEXUS_RECON_ROOT, else <project-root>/.cache/inception_recon, else ~/.cache/nexus-scholar/inception_recon. Shared by the CLI and the MCP server.","engine.py:57-75"],
+ ["recon_context","Session provenance: session_id, cache_keys, pool_sizes, anchor_dois, direction, concept, default_concepts, anchored_terms. Full copy in audit/recon_context.json; bounded summary in GENESIS.","genesis.py:300-349"],
+ ["IntentPacket","The interview's structured answers; the compiler's deterministic input.","scholar_protocol/intent.py:126-246"],
+ ["genesis","Emission of the workspace protocol plus the GENESIS journal event. Its timestamp pins created_at. From M4a, emit_workspace is the one guarded path.","genesis.py · M4a emit.py"],
+ ["fingerprint","sha256:<hex> of the canonical protocol JSON.","canonical.py:145-159"],
+ ["binding","{protocol_fingerprint, batch_id, batch_sha256} on each screening event; a mismatch is STALE_BINDING. From M4a a 'screening binding' is any decision or publication under the current protocol, and replacing the protocol needs --discard-screening-binding.","events.py:263-285"],
+ ["paradigm, playbook","Epistemological stance (4) and review archetype (5) that set defaults, templates and the reporting guideline.","models.py:27-59 · presets.py"],
+ ["refraction grid","The four-paradigm table of goal, sample RQ, evidence and default exclusions shown at stage 2.","display.py:20-32"],
+ ["proof criterion","The 'gold-standard proof' answer turned into INC-01. Wizard-written, so it needs an explicit yes from M4a.","inception/intent.py:236"],
+ ["paradigm default exclusion","negative_exclusions injected as EXC when the researcher names no exclusion.","inception/intent.py:249-251"],
+ ["draft session (M4a)","A saved web-wizard interview at <workspaces root>/.drafts/rec_<hex>/draft.json with conflict-checked saves.","inception/drafts.py"],
+ ["rec_<hex>","The session id format, rec_ + 32 lowercase hex, shared by MCP recon, drafts and, from M4a, the grounded wizard.","server.py:1734-1737 · grounded.py:283"],
+ ["method block","Optional hashed protocol.method: dedup tiers, rules version, not-reported policy, blinding, reporting. Absent means engine defaults and no fingerprint change.","models.py:299-358 · canonical.py:80-91"],
+ ["method: HUMAN","The provenance label every screening decision must carry; agents only submit proposals.","events.py:228-231"]
+];
+const gl=document.getElementById("gl");
+function renderGl(f){const s=(f||"").toLowerCase();gl.innerHTML=GL.filter(g=>!s||g[0].toLowerCase().includes(s)||g[1].toLowerCase().includes(s)).map(g=>`<dt>${g[0]}</dt><dd>${g[1]}<br><span class="mono">${g[2]}</span></dd>`).join("")||"<dd>No term matches.</dd>";}
+renderGl(""); document.getElementById("gsearch").addEventListener("input",e=>renderGl(e.target.value));
+})();
+</script>
+
+</body></html>
