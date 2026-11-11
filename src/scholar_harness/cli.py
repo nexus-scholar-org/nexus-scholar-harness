@@ -1290,6 +1290,117 @@ def accept_corpus_command(
     console.print("[dim]Next: prepare the screening batches.[/dim]")
 
 
+chase_app = typer.Typer(
+    help=(
+        "Citation chasing (snowballing) from the published includes: fetch the papers "
+        "they cite and the papers that cite them, keep what is new to the corpus."
+    ),
+    no_args_is_help=True,
+)
+
+_CHASE_DIRECTIONS = {"both": ("forward", "backward"), "forward": ("forward",), "backward": ("backward",)}
+
+
+@chase_app.command("run")
+def chase_run(
+    workspace: Path = typer.Argument(Path("."), help="Path to the research workspace"),
+    directions: str = typer.Option(
+        "both", "--directions", "-d", help="both (default), forward (citing papers) or backward (references)"
+    ),
+    providers: str | None = typer.Option(
+        None, "--providers", "-p",
+        help="Comma-separated databases, asked in this order (default: openalex,semanticscholar)",
+    ),
+    cap_per_seed: int = typer.Option(
+        500, "--cap-per-seed", min=1,
+        help="At most this many citing papers per seed and database (references are never capped)",
+    ),
+    ceiling: int = typer.Option(5000, "--ceiling", min=1, help="At most this many new records kept by the run"),
+    seeds: str = typer.Option(
+        "included", "--seeds", help="Which published decisions are seeds: included, or included+unclear"
+    ),
+    note: str | None = typer.Option(None, "--note", help="A note kept with the run"),
+):
+    """Chase the citations of the published includes (M3g).
+
+    Needs a published screening (literature/included.json). Writes
+    literature/citation_chase/chase_NNN/ (chase.json, raw.json, edges.json and,
+    when the run is published, new.json) and journals CITATION_CHASE. Nothing is
+    added to the corpus: run `chase accept` for that.
+    """
+    import asyncio
+
+    from .pipeline.citation_chase import ChaseRefused, run_citation_chase
+
+    if directions not in _CHASE_DIRECTIONS:
+        console.print("[bold red]❌ --directions must be both, forward or backward[/bold red]")
+        raise typer.Exit(2)
+    names = [p.strip() for p in providers.split(",") if p.strip()] if providers else None
+    try:
+        outcome = asyncio.run(run_citation_chase(
+            workspace, providers=names, directions=_CHASE_DIRECTIONS[directions],
+            forward_cap=cap_per_seed, run_ceiling=ceiling, seed_source=seeds, note=note,
+        ))
+    except ChaseRefused as exc:
+        console.print(f"[bold red]❌ {exc.code}: {exc}[/bold red]", markup=True, soft_wrap=True)
+        raise typer.Exit(1) from exc
+    counts = outcome.counts
+    chaseable = sum(1 for s in outcome.seeds if s.chaseable)
+    colour = {"SUCCESS": "green", "PARTIAL": "yellow", "EMPTY_RESULT": "yellow"}.get(outcome.status, "red")
+    console.print(
+        f"[bold {colour}]{outcome.status}[/bold {colour}] {outcome.chase}: {outcome.reason}", soft_wrap=True
+    )
+    console.print(
+        f"Seeds {chaseable}/{len(outcome.seeds)} chaseable · fetched {counts.raw} · "
+        f"duplicates within the chase {counts.duplicates_within_chase} · already in the corpus "
+        f"{counts.already_in_corpus} · outside the year window {counts.outside_year_window} · "
+        f"new {counts.new}",
+        soft_wrap=True,
+    )
+    for leg in outcome.legs:
+        if leg.status != "ok":
+            console.print(
+                f"[dim]  {leg.provider} {leg.direction} {leg.seed}: {leg.status}"
+                f"{' ' + (leg.error_code or leg.error or '') if leg.error or leg.error_code else ''}"
+                f"{' ' + '; '.join(leg.notes) if leg.notes else ''}[/dim]",
+                soft_wrap=True,
+            )
+    console.print(f"[dim]{Path(workspace) / 'literature' / 'citation_chase' / outcome.chase}[/dim]", soft_wrap=True)
+    if outcome.published and counts.new:
+        console.print("[dim]Next: `chase accept` sends the new records to screening as a citation-searching round.[/dim]")
+    if outcome.status == "FAILED":
+        raise typer.Exit(1)
+
+
+@chase_app.command("status")
+def chase_status(
+    workspace: Path = typer.Argument(Path("."), help="Path to the research workspace"),
+):
+    """List the chase runs of a workspace, newest first."""
+    from .pipeline.citation_chase import chase_summaries
+
+    rows = chase_summaries(workspace)
+    if not rows:
+        console.print("No citation chase has run in this workspace.")
+        return
+    table = Table(title="Citation chases")
+    for column in ("Chase", "Status", "Seeds", "Fetched", "New", "Accepted", "Finished"):
+        table.add_column(column)
+    for row in rows:
+        counts = row.get("counts") or {}
+        accepted = row.get("accepted")
+        table.add_row(
+            str(row["chase"]), str(row["status"]), f"{row['chaseable_seeds']}/{row['seeds']}",
+            str(counts.get("raw", 0)), str(counts.get("new", 0)),
+            str(accepted.get("round") if isinstance(accepted, dict) else "no"),
+            str(row.get("finished_at") or ""),
+        )
+    console.print(table)
+
+
+app.add_typer(chase_app, name="chase")
+
+
 @app.command("serve")
 def serve(
     workspace: Path = typer.Option(
