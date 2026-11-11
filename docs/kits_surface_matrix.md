@@ -210,7 +210,10 @@ latent bug**, with the working path in parentheses.
   dedup = PID tier → exact-normalized-title tier → fuzzy 0.97 / year±1 / first-author
   containment; verifier thresholds ≥0.90 bidirectional or ≥12-char containment
   (Crossref validate score > 40 + OpenAlex); snowball sandbox caps depth 5/500/2000,
-  CLI `chain` defaults depth 1/200/500 backward. A provider failure is recorded on
+  CLI `chain` defaults depth 1/200/500 backward. `SearchEngine.snowball_forward/backward`
+  take an optional `limit` (M3g): the harness's citation chase (`scholar_harness.pipeline.citation_chase`,
+  CLI `nexus-scholar chase`, routes `/api/v1/discovery/chase/*`) calls them per seed, OpenAlex then
+  Semantic Scholar, with a forward cap of 500 and no MCP tool yet. A provider failure is recorded on
   its search leg with `error_code` (`PROVIDER_RATE_LIMITED`, `PROVIDER_TIMEOUT`,
   `PROVIDER_UNAVAILABLE`, `PROVIDER_REFUSED`; `engine.py:55-75, 172-175`) since M3b-api,
   rather than swallowed.
