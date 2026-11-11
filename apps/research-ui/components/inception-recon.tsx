@@ -189,7 +189,7 @@ export function LegsList({ locale, legs }: Readonly<{ locale: Locale; legs: Reco
               {!failed ? (
                 <>
                   <dt className="text-ink-muted">{t("explore.legs.col.fetched")}</dt>
-                  <dd dir="ltr" className="text-ink" data-fetched>
+                  <dd className="text-ink" data-fetched>
                     {total == null ? String(leg.fetched ?? 0) : t("explore.legs.fetchedOf", { fetched: String(leg.fetched ?? 0), total })}
                   </dd>
                 </>

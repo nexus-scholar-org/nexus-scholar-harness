@@ -20,6 +20,7 @@ import {
   yearsText,
 } from "@/components/inception-recon";
 import { inceptionT } from "@/lib/inception-copy";
+import { inceptionRichT, Ltr } from "@/components/rich-copy";
 import {
   bindDirection,
   getDirections,
@@ -60,6 +61,7 @@ function detailText(locale: Locale, detail: string | undefined): string {
 
 export function InceptionDirection({ locale }: Readonly<{ locale: Locale }>) {
   const t = inceptionT(locale);
+  const rt = inceptionRichT(locale);
   const state = useDraft();
   const { draft, origin, draftId, record, save, saving, saveError, adopt } = state;
   const [recon, setRecon] = useState<ReconState | null>(null);
@@ -330,7 +332,7 @@ export function InceptionDirection({ locale }: Readonly<{ locale: Locale }>) {
                 </p>
               ) : null}
               <p className="text-ink-muted">
-                <bdi dir="ltr">{t("direction.stale.detail", { bound: shortFingerprint(recon?.binding?.bound), current: shortFingerprint(recon?.binding?.current) })}</bdi>
+                {rt("direction.stale.detail", { bound: <Ltr mono>{shortFingerprint(recon?.binding?.bound)}</Ltr>, current: <Ltr mono>{shortFingerprint(recon?.binding?.current)}</Ltr> })}
               </p>
             </details>
           </section>
@@ -351,14 +353,14 @@ export function InceptionDirection({ locale }: Readonly<{ locale: Locale }>) {
         {usable && found && pool ? (
           <>
             <div className="flex flex-wrap items-center gap-3 text-sm text-ink-muted" data-pool-line>
-              <bdi dir="ltr">
-                {t("direction.pool.line", {
+              <span>
+                {rt("direction.pool.line", {
                   n: String(pool.n_docs),
-                  date: stamp(pool.created_at),
+                  date: <Ltr>{stamp(pool.created_at)}</Ltr>,
                   years: yearsText(locale, pool.year_min, pool.year_max),
-                  languages: (pool.languages ?? []).join(", "),
+                  languages: <Ltr>{(pool.languages ?? []).join(", ")}</Ltr>,
                 })}
-              </bdi>
+              </span>
               {pool.status === "partial" ? <DecisionBadge role="unclear">{t("explore.pool.partial")}</DecisionBadge> : null}
               <a className="inline-flex min-h-11 items-center text-brand underline" href={inceptionHref(locale, "explore", draftId, origin)}>
                 {t("direction.back")}
@@ -407,7 +409,7 @@ export function InceptionDirection({ locale }: Readonly<{ locale: Locale }>) {
                   ))}
                 </ul>
                 <p className="mt-1 text-xs text-ink-muted">
-                  <bdi dir="ltr">{t("direction.bound.at", { date: stamp(grounding.bound_at), pooldate: stamp(grounding.pool?.created_at) })}</bdi> · <DataCell>{shortFingerprint(grounding.pool?.fingerprint)}</DataCell>
+                  {rt("direction.bound.at", { date: <Ltr>{stamp(grounding.bound_at)}</Ltr>, pooldate: <Ltr>{stamp(grounding.pool?.created_at)}</Ltr> })} · <DataCell>{shortFingerprint(grounding.pool?.fingerprint)}</DataCell>
                 </p>
                 {!rechoose ? (
                   <Button className="mt-2" disabled={busy || conflict} onClick={() => setRechoose(true)} data-rechoose>
@@ -578,12 +580,10 @@ export function InceptionDirection({ locale }: Readonly<{ locale: Locale }>) {
                 <InceptionRefusal locale={locale} refusal={bindError} draftId={draftId} origin={origin} onRetry={() => void loadAll()} />
                 {bindError.code === "POOL_TOO_SMALL" ? (
                   <p className="text-sm text-ink" data-too-small>
-                    <bdi dir="ltr">
-                      {t("direction.thin.raw", {
-                        n: String((bindError.details as { n_docs?: number } | undefined)?.n_docs ?? ""),
-                        floor: String((bindError.details as { floor?: number } | undefined)?.floor ?? ""),
-                      })}
-                    </bdi>
+                    {t("direction.thin.raw", {
+                      n: String((bindError.details as { n_docs?: number } | undefined)?.n_docs ?? ""),
+                      floor: String((bindError.details as { floor?: number } | undefined)?.floor ?? ""),
+                    })}
                   </p>
                 ) : null}
               </div>
@@ -716,7 +716,7 @@ function DirectionCard({
           </span>
         </span>
         <span className="mt-2 flex flex-wrap gap-2">
-          <span className="inline-flex items-center rounded-sm border border-rule px-2 py-0.5 text-xs text-ink" dir="ltr">
+          <span className="inline-flex items-center rounded-sm border border-rule px-2 py-0.5 text-xs text-ink" data-anchors-count>
             {n === 1 ? t("direction.card.anchors.one") : t("direction.card.anchors", { n: String(n) })}
           </span>
           {chosen ? <span className="text-xs font-semibold text-brand">{t("direction.card.selected")}</span> : null}
@@ -802,7 +802,7 @@ function SeedsCard({
       </h2>
       <p className="text-sm text-ink-muted">{t("direction.seeds.caption")}</p>
       <p className="mt-1 text-sm text-ink" aria-live="polite" data-seeds-count>
-        <bdi dir="ltr">{t("direction.seeds.count", { n: String(ticked.length) })}</bdi>
+        {t("direction.seeds.count", { n: String(ticked.length) })}
       </p>
       {full ? (
         <p id="seeds-max" className="text-sm text-unclear">

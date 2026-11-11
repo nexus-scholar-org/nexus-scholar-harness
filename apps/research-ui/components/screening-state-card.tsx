@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 
 import type { Locale } from "@/i18n";
 import { Button, DecisionBadge } from "@/components/ui/base";
@@ -97,6 +97,7 @@ export function StateCard({
   pageHeading = false,
   copyCode,
   actionHref,
+  details,
 }: Readonly<{
   locale: Locale;
   code: string;
@@ -110,6 +111,8 @@ export function StateCard({
   copyCode?: string;
   /** The link of an `inception-step` action (the caller knows the draft). */
   actionHref?: string;
+  /** What the refusal's details name (a job, a backup folder, file lists), shown under Details. */
+  details?: ReactNode;
 }>) {
   const Heading = pageHeading ? "h1" : "h2";
   const state = stateCopy(locale, copyCode ?? code);
@@ -156,6 +159,7 @@ export function StateCard({
             <bdi dir="ltr">{message}</bdi>
           </p>
         ) : null}
+        {details}
       </details>
       <div className="mt-3">
         {(state.action === "retry" || state.action === "explore-search") && onRetry ? (

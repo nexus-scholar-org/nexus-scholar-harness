@@ -20,6 +20,7 @@ import {
   yearsText,
 } from "@/components/inception-recon";
 import { inceptionT } from "@/lib/inception-copy";
+import { inceptionRichT, Ltr } from "@/components/rich-copy";
 import {
   distill,
   getConcepts,
@@ -51,6 +52,7 @@ type PaperSort = "anchors" | "year" | "title";
 
 export function InceptionExplore({ locale }: Readonly<{ locale: Locale }>) {
   const t = inceptionT(locale);
+  const rt = inceptionRichT(locale);
   const state = useDraft();
   const { draft, origin, draftId, record } = state;
   const [recon, setRecon] = useState<ReconState | null>(null);
@@ -230,7 +232,7 @@ export function InceptionExplore({ locale }: Readonly<{ locale: Locale }>) {
               </div>
               <div>
                 <dd className="text-ink">
-                  <bdi dir="ltr">{yearsText(locale, draft.start_year ?? DEFAULT_YEAR, draft.end_year ?? null)}</bdi> · <bdi dir="ltr">{(draft.languages ?? ["en"]).join(", ")}</bdi>
+                  {yearsText(locale, draft.start_year ?? DEFAULT_YEAR, draft.end_year ?? null)} · <bdi dir="ltr">{(draft.languages ?? ["en"]).join(", ")}</bdi>
                 </dd>
                 {draft.start_year == null ? <dd className="text-xs text-ink-muted">{t("explore.defaultYear", { year: String(DEFAULT_YEAR) })}</dd> : null}
               </div>
@@ -277,7 +279,7 @@ export function InceptionExplore({ locale }: Readonly<{ locale: Locale }>) {
               {t("explore.legs.title")}
             </h2>
             <p className="text-xs text-ink-muted">
-              <bdi dir="ltr">{t("explore.legs.latest", { date: stamp(latest.at ?? latest.created_at) })}</bdi>
+              {rt("explore.legs.latest", { date: <Ltr>{stamp(latest.at ?? latest.created_at)}</Ltr> })}
             </p>
             <div className="mt-3">
               <KeyLines locale={locale} keys={recon?.keys} />
@@ -366,6 +368,7 @@ function PoolView({
   asOf: string;
 }>) {
   const t = inceptionT(locale);
+  const rt = inceptionRichT(locale);
   const summary = pool.pool;
   const { pool: size, purity } = pool.gates;
   const partial = summary.status === "partial" || summary.legs.some((l) => l.status === "failed");
@@ -379,15 +382,15 @@ function PoolView({
               {t("explore.pool.title", { n: String(summary.n_docs) })}
             </h2>
             <p className="text-sm text-ink-muted" data-pool-meta>
-              <bdi dir="ltr">
-                {t("explore.pool.meta", {
-                  date: stamp(summary.created_at),
+              <span>
+                {rt("explore.pool.meta", {
+                  date: <Ltr>{stamp(summary.created_at)}</Ltr>,
                   mode: summary.semantic ? t("explore.mode.semantic") : t("explore.mode.keyword"),
                   from: summary.year_min == null ? "" : String(summary.year_min),
                   to: summary.year_max == null ? t("explore.first.toPresent") : String(summary.year_max),
-                  languages: (summary.languages ?? []).join(", "),
+                  languages: <Ltr>{(summary.languages ?? []).join(", ")}</Ltr>,
                 })}
-              </bdi>
+              </span>
             </p>
             <p className="text-xs text-ink-muted">{t("explore.pool.langNote")}</p>
             <p className="mt-1 flex flex-wrap items-center gap-2 text-xs text-ink-muted">
@@ -415,7 +418,7 @@ function PoolView({
             {size.sufficient ? (
               <>
                 <DecisionBadge role="include">{t("explore.tile.size.ok")}</DecisionBadge>
-                <p className="mt-1 text-ink" dir="ltr">
+                <p className="mt-1 text-ink">
                   {t("explore.tile.size.value", { n: String(size.n_docs), max: String(summary.max_docs) })}
                 </p>
                 <p className="text-xs text-ink-muted">{t("explore.tile.size.raw", { threshold: String(size.threshold) })}</p>
@@ -448,7 +451,7 @@ function PoolView({
                 {purity.top3_share != null ? (
                   <>
                     <p className="mt-1 text-ink">{t("explore.tile.spread.value", { pct: String(Math.round(purity.top3_share * 100)) })}</p>
-                    <p className="text-xs text-ink-muted" dir="ltr">
+                    <p className="text-xs text-ink-muted">
                       {t("explore.tile.spread.raw", { share: String(purity.top3_share), threshold: String(purity.threshold) })}
                     </p>
                   </>
@@ -462,7 +465,7 @@ function PoolView({
                 {t("explore.tile.echo.title")}
               </h3>
               <p className="mt-1 text-ink">
-                <bdi dir="ltr">{t("explore.tile.echo.value", { qei: String(qei) })}</bdi>
+                {t("explore.tile.echo.value", { qei: String(qei) })}
               </p>
               <p className="text-xs text-ink-muted">{t("explore.tile.echo.body")}</p>
             </section>
@@ -534,7 +537,7 @@ function ReadingCard({ locale, pool, allTopics, setAllTopics }: Readonly<{ local
               <span dir="auto" className="text-ink">
                 {s.label}
               </span>
-              <span className="text-ink-muted" dir="ltr">
+              <span className="text-ink-muted">
                 {s.n === 1 ? t("explore.schools.one") : t("explore.schools.count", { n: String(s.n) })}
               </span>
             </div>

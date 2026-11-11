@@ -179,4 +179,48 @@ describe("inception.review", () => {
     expect(within(section).getByRole("link", { name: "Choose the direction again" })).toHaveAttribute("href", `/en/inception/direction/?draft=${SESSION}`);
     expect(screen.queryByRole("button", { name: "Create the workspace" })).toBeNull();
   });
+
+  it("shows WORKSPACE_JOB_ACTIVE from a replace with the running job and the code under Details (M4d, F1)", async () => {
+    const { engine, assign } = setUp({ draft: decided(), existing: "workspace" });
+    render(<InceptionReview locale="en" />);
+    fireEvent.click(await screen.findByRole("button", { name: "Create the workspace" }));
+    await screen.findByRole("heading", { name: "Replace the protocol of the existing workspace?" });
+    engine.refuseNext(`POST /api/v1/inception/drafts/${SESSION}/genesis`, {
+      status: 409,
+      body: { detail: { code: "WORKSPACE_JOB_ACTIVE", message: "a job is running", details: { job: { job_id: "job-7", kind: "discovery", state: "running" } } } },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Replace and back up" }));
+    const card = (await screen.findByRole("heading", { name: "A job is still running in this workspace" })).closest("section") as HTMLElement;
+    const details = card.querySelector("[data-state-details]") as HTMLElement;
+    expect(within(details).getByText("WORKSPACE_JOB_ACTIVE")).toBeInTheDocument();
+    expect(details.querySelector("[data-refusal-job]")?.textContent).toContain("discovery · job-7 · running");
+    expect(card.textContent).toContain("Wait for the job to end or stop it, then create again");
+    expect(assign).not.toHaveBeenCalled();
+  });
+
+  it("shows ARCHIVE_INCOMPLETE with the backup folder and both file lists under Details (M4d, F1)", async () => {
+    const { engine, assign } = setUp({ draft: decided(), existing: "workspace" });
+    render(<InceptionReview locale="en" />);
+    fireEvent.click(await screen.findByRole("button", { name: "Create the workspace" }));
+    await screen.findByRole("heading", { name: "Replace the protocol of the existing workspace?" });
+    engine.refuseNext(`POST /api/v1/inception/drafts/${SESSION}/genesis`, {
+      status: 409,
+      body: {
+        detail: {
+          code: "ARCHIVE_INCOMPLETE",
+          message: "archive stopped",
+          details: { backup_dir: "audit/replaced/20261111T120000Z", moved: ["literature/"], not_moved: ["artifacts/"] },
+        },
+      },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Replace and back up" }));
+    const card = (await screen.findByRole("heading", { name: "Archiving the old corpus stopped part way" })).closest("section") as HTMLElement;
+    const details = card.querySelector("[data-state-details]") as HTMLElement;
+    expect(within(details).getByText("ARCHIVE_INCOMPLETE")).toBeInTheDocument();
+    expect(within(details.querySelector("[data-backup-dir]") as HTMLElement).getByText("audit/replaced/20261111T120000Z")).toBeInTheDocument();
+    expect(within(details.querySelector("[data-moved]") as HTMLElement).getByText("literature/")).toBeInTheDocument();
+    expect(within(details.querySelector("[data-not-moved]") as HTMLElement).getByText("artifacts/")).toBeInTheDocument();
+    expect(card.textContent).toContain("Close the program holding the file, then try again");
+    expect(assign).not.toHaveBeenCalled();
+  });
 });

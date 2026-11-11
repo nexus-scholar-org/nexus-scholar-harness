@@ -663,6 +663,25 @@ export const STATES: Record<string, StateEntry> = {
       ar: T("الاسم غير مطابق", "اكتب اسم مساحة العمل كما يظهر تمامًا لاستبدال بروتوكولها. لم يتغير شيء.", "استبدال بروتوكول مساحة العمل هذه", "اكتبه مجددًا"),
     },
   },
+  // M4d (F1): genesis with replace refuses while a job runs, and reports an archive that stopped part way.
+  WORKSPACE_JOB_ACTIVE: {
+    role: "unclear",
+    action: "none",
+    copy: {
+      en: T("A job is still running in this workspace", "A discovery or console job is working in the workspace, so its protocol cannot be replaced now. Nothing was moved. The job is named under Details.", "Replacing this workspace's protocol", "Wait for the job to end or stop it, then create again"),
+      fr: T("Une tâche est encore en cours dans cet espace", "Une tâche de recherche ou de la console travaille dans l'espace ; son protocole ne peut pas être remplacé maintenant. Rien n'a été déplacé. La tâche est nommée dans les détails.", "Le remplacement du protocole de cet espace", "Attendre la fin de la tâche ou l'arrêter, puis créer à nouveau"),
+      ar: T("ما زالت مهمة قيد التشغيل في مساحة العمل هذه", "تعمل مهمة استكشاف أو مهمة من وحدة التحكم في مساحة العمل، فلا يمكن استبدال بروتوكولها الآن. لم يُنقل شيء. اسم المهمة في التفاصيل.", "استبدال بروتوكول مساحة العمل هذه", "انتظر انتهاء المهمة أو أوقفها، ثم أنشئ مجددًا"),
+    },
+  },
+  ARCHIVE_INCOMPLETE: {
+    role: "blocked",
+    action: "none",
+    copy: {
+      en: T("Archiving the old corpus stopped part way", "Some files were moved to the backup folder and some were not, so the protocol was not replaced. The journal records it. The backup folder and both lists are under Details.", "Replacing this workspace's protocol", "Close the program holding the file, then try again"),
+      fr: T("L'archivage de l'ancien corpus s'est arrêté en cours de route", "Certains fichiers ont été déplacés dans le dossier de sauvegarde et d'autres non ; le protocole n'a donc pas été remplacé. Le journal l'enregistre. Le dossier de sauvegarde et les deux listes sont dans les détails.", "Le remplacement du protocole de cet espace", "Fermer le programme qui tient le fichier, puis réessayer"),
+      ar: T("توقفت أرشفة المجموعة القديمة في منتصف الطريق", "نُقلت بعض الملفات إلى مجلد النسخ الاحتياطي ولم يُنقل بعضها، فلم يُستبدل البروتوكول. سُجّل ذلك في السجل. مجلد النسخ الاحتياطي والقائمتان في التفاصيل.", "استبدال بروتوكول مساحة العمل هذه", "أغلق البرنامج الذي يمسك الملف، ثم حاول مجددًا"),
+    },
+  },
   // Phase 1 discovery (M3c-screens, spec 07): the discovery routes' refusals and job errors.
   PROTOCOL_MISSING: {
     role: "blocked",

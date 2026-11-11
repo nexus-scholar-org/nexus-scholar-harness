@@ -313,4 +313,31 @@ describe("inception.direction", () => {
     expect(first).toBeDisabled();
     expect(screen.getByRole("button", { name: "Continue without a direction" })).toBeDisabled();
   });
+
+  it("keeps Arabic sentences in the page direction and isolates only their values left to right", async () => {
+    const { engine } = prepare();
+    bind(engine, { direction: "weed detection" });
+    render(<InceptionDirection locale="ar" />);
+    await waitFor(() => expect(document.querySelectorAll("[data-seed]").length).toBeGreaterThan(2));
+    // The pool line is a sentence: no dir of its own or on its sentence span; its date and language codes are LTR values.
+    const line = document.querySelector("[data-pool-line]") as HTMLElement;
+    const sentence = line.firstElementChild as HTMLElement;
+    expect(sentence).not.toHaveAttribute("dir");
+    expect(line.closest("[dir='ltr']")).toBeNull();
+    const values = [...sentence.querySelectorAll("[data-ltr-value]")];
+    expect(values.every((v) => v.getAttribute("dir") === "ltr")).toBe(true);
+    expect(values.map((v) => v.textContent)).toContain("en");
+    expect(sentence.textContent).toMatch(/^مجموعة من 14 ورقة/);
+    // The seeds count carries no LTR wrapper at all.
+    fireEvent.click(within(document.querySelector("[data-seed]") as HTMLElement).getByRole("checkbox"));
+    const count = document.querySelector("[data-seeds-count]") as HTMLElement;
+    expect(count.textContent).toBe("1 من 25 محددة");
+    expect(count).not.toHaveAttribute("dir");
+    expect(count.querySelector("[dir='ltr']")).toBeNull();
+    // The bound line's sentence has no dir, while the DOI and fingerprint inside the card are LTR.
+    const doi = document.querySelector("[data-doi]") as HTMLElement;
+    expect(doi.querySelector("[dir='ltr']")?.textContent).toBe(doi.getAttribute("data-doi"));
+    const anchors = document.querySelector("[data-anchors-count]");
+    if (anchors) expect(anchors).not.toHaveAttribute("dir");
+  });
 });

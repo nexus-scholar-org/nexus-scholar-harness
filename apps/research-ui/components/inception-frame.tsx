@@ -116,6 +116,7 @@ export function InceptionRefusal({
         consoleOrigin={origin}
         onRetry={onRetry}
         command={command}
+        details={<RefusalDetails locale={locale} refusal={refusal} />}
       />
       {missing.length > 0 ? (
         <div className="rounded-lg border border-rule bg-leaf p-4" data-missing>
@@ -145,6 +146,53 @@ export function InceptionRefusal({
       ) : null}
     </div>
   );
+}
+
+/** The job a replace waits for, and the files an interrupted archive did and did not move (M4d, F1). */
+function RefusalDetails({ locale, refusal }: Readonly<{ locale: Locale; refusal: Refusal }>) {
+  const t = inceptionT(locale);
+  const details = (refusal.details ?? {}) as Record<string, unknown>;
+  if (refusal.code === "WORKSPACE_JOB_ACTIVE" && details.job != null) {
+    const job = details.job;
+    const name =
+      typeof job === "object"
+        ? ["kind", "job_id", "state"].map((k) => (job as Record<string, unknown>)[k]).filter((v) => v != null && v !== "").join(" · ")
+        : String(job);
+    return (
+      <p className="mt-1 text-sm text-ink-muted" data-refusal-job>
+        {t("refusal.job")} <DataCell>{name}</DataCell>
+      </p>
+    );
+  }
+  if (refusal.code === "ARCHIVE_INCOMPLETE") {
+    const list = (v: unknown) => (Array.isArray(v) ? v.map(String) : []);
+    const files = (key: "refusal.moved" | "refusal.notMoved", items: string[], attr: string) => (
+      <div className="mt-1 text-sm" {...{ [attr]: "" }}>
+        <p className="text-ink-muted">{t(key, { n: String(items.length) })}</p>
+        {items.length ? (
+          <ul className="ms-4 list-disc">
+            {items.map((item) => (
+              <li key={item}>
+                <DataCell>{item}</DataCell>
+              </li>
+            ))}
+          </ul>
+        ) : null}
+      </div>
+    );
+    return (
+      <>
+        {details.backup_dir ? (
+          <p className="mt-1 text-sm text-ink-muted" data-backup-dir>
+            {t("refusal.backup")} <DataCell>{String(details.backup_dir)}</DataCell>
+          </p>
+        ) : null}
+        {files("refusal.moved", list(details.moved), "data-moved")}
+        {files("refusal.notMoved", list(details.not_moved), "data-not-moved")}
+      </>
+    );
+  }
+  return null;
 }
 
 const INCEPTION_FIELD_KEYS: Record<string, true> = Object.fromEntries(

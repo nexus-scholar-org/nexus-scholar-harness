@@ -437,7 +437,7 @@ function Anchoring({
             {term.observed_in === 0 ? (
               <DecisionBadge role="unclear">{t("criteria.anchor.none")}</DecisionBadge>
             ) : (
-              <span className="text-ink-muted" dir="ltr">
+              <span className="text-ink-muted" data-anchor-term>
                 {t("criteria.anchor.term", { observed: String(term.observed_in), total })}
               </span>
             )}

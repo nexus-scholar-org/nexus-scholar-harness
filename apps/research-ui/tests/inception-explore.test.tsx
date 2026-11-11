@@ -225,4 +225,27 @@ describe("inception.explore", () => {
     expect(await screen.findByRole("heading", { name: "A search for this draft is already running" })).toBeInTheDocument();
     await waitFor(() => expect(set.engine.calls.some((c) => c.path === `${RECON}/jobs/${started.job.job_id}/events`)).toBe(true));
   });
+
+  it("keeps Arabic sentences in the page direction and isolates only their values left to right", async () => {
+    setUp({ draft: completeDraft(), recon: {} }).engine.handle("POST", `${RECON}/probe`, { refresh: false, semantic: false });
+    render(<InceptionExplore locale="ar" />);
+    await waitFor(() => expect(document.querySelector("[data-pool-meta]")).not.toBeNull());
+    const meta = document.querySelector("[data-pool-meta]") as HTMLElement;
+    expect(meta.closest("[dir='ltr']")).toBeNull();
+    const sentence = meta.firstElementChild as HTMLElement;
+    expect(sentence).not.toHaveAttribute("dir");
+    const values = [...sentence.querySelectorAll("[data-ltr-value]")];
+    expect(values.every((v) => v.getAttribute("dir") === "ltr")).toBe(true);
+    expect(values.map((v) => v.textContent)).toContain("en");
+    expect(sentence.textContent).toMatch(/^جُلبت في /);
+    // The latest-search line is a sentence; only its date is LTR.
+    const latest = document.querySelector("[data-databases] p") as HTMLElement;
+    expect(latest).not.toHaveAttribute("dir");
+    expect(latest.textContent).toMatch(/^آخر بحث، /);
+    expect(latest.querySelectorAll("[dir='ltr']")).toHaveLength(1);
+    // No tile sentence carries dir="ltr"; the DOIs in the papers table do.
+    for (const tile of document.querySelectorAll("[data-tile] p")) expect(tile).not.toHaveAttribute("dir", "ltr");
+    const doi = document.querySelector("[data-doi]") as HTMLElement;
+    expect(doi.querySelector("[dir='ltr']")?.textContent).toBe(doi.getAttribute("data-doi"));
+  });
 });
