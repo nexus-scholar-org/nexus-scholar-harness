@@ -142,6 +142,7 @@ from __future__ import annotations
 import json
 import os
 import re
+import time
 from collections.abc import Callable, Iterable, Mapping, Sequence
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -197,6 +198,18 @@ SIDECAR_SUFFIX = ".json"
 #: publication boundary.
 LOCK_FILENAME = ".replacement.lock"
 LOCK_SCHEMA_VERSION = "index-replacement-lock-v1"
+
+#: Releasing the lock deletes its file, and Windows refuses to delete a file that
+#: another handle has open. A second run that was refused reads the file to name
+#: the holder, so the holder's delete can meet that read. The delete is tried
+#: again a bounded number of times: no clock is read, and a file that stays in
+#: use is reported with the operating system's own error.
+LOCK_RELEASE_ATTEMPTS = 200
+LOCK_RELEASE_RETRY_INTERVAL_SECONDS = 0.01
+
+#: ``ERROR_SHARING_VIOLATION``: the only delete failure that is treated as
+#: transient. Any other refusal is reported on the first try.
+_WINDOWS_FILE_IN_USE = 32
 
 #: The only three outcomes an indexing run may report (6.5: a refusal travels
 #: through the same result model as a success).
@@ -1311,12 +1324,16 @@ class WorkspaceLock:
 
         Idempotent, so an exit path that releases twice cannot fail a run, and
         releasing a lock this object never took cannot remove somebody else's.
+
+        A delete that Windows refuses because a contending run is reading the
+        file is tried again (:func:`_delete_lock_file`), so that read cannot
+        fail a run that has already published.
         """
 
         if not self._held:
             return
         self._held = False
-        self._path.unlink(missing_ok=True)
+        _delete_lock_file(self._path)
 
     def __enter__(self) -> WorkspaceLock:
         self.acquire()
@@ -1338,6 +1355,30 @@ class WorkspaceLock:
             return None
         run_id = payload.get("run_id")
         return str(run_id) if isinstance(run_id, str) else None
+
+
+def _delete_lock_file(path: Path) -> None:
+    """Delete the lock file, waiting out a handle that briefly holds it open.
+
+    Only ``ERROR_SHARING_VIOLATION`` is waited for, and only
+    :data:`LOCK_RELEASE_ATTEMPTS` times. A file that is already gone is a
+    released lock. Every other failure, and a file that never frees up, is raised
+    unchanged: by the time a run releases it has published or refused, and that
+    outcome is not this function's to rewrite.
+    """
+
+    for attempt in range(1, LOCK_RELEASE_ATTEMPTS + 1):
+        try:
+            os.unlink(path)
+        except FileNotFoundError:
+            return
+        except PermissionError as exc:
+            in_use = getattr(exc, "winerror", None) == _WINDOWS_FILE_IN_USE
+            if not in_use or attempt == LOCK_RELEASE_ATTEMPTS:
+                raise
+            time.sleep(LOCK_RELEASE_RETRY_INTERVAL_SECONDS)
+        else:
+            return
 
 
 # ---------------------------------------------------------------------------
