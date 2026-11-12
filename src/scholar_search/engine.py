@@ -226,37 +226,51 @@ class SearchEngine:
         run = await self.run(query, dedup=dedup, progress_callback=progress_callback, **run_options)
         return run.documents
 
-    async def snowball_forward(self, document_id: str, provider_name: str, progress_callback=None) -> list[Document]:
-        """Finds papers that cite the given document ID."""
+    async def snowball_forward(
+        self, document_id: str, provider_name: str, progress_callback=None, limit: int | None = None
+    ) -> list[Document]:
+        """Finds papers that cite the given document ID.
+
+        ``limit`` (M3g-citation-chasing) stops after that many citing papers,
+        so a seed cited thousands of times does not fetch every page; the
+        caller reads ``len(result) >= limit`` as "the cap was reached".
+        """
         for provider in self.providers:
             if provider.name.lower() == provider_name.lower():
                 logger.info(f"Forward snowballing on {provider.name} for {document_id}")
-                results = []
-                count = 0
-                async for doc in provider.get_citations(document_id):
-                    results.append(doc)
-                    count += 1
-                    if progress_callback:
-                        progress_callback(provider.name, count)
-                return results
+                return await self._collect_snowball(
+                    provider, provider.get_citations(document_id), progress_callback, limit
+                )
         raise ValueError(f"Provider {provider_name} not found or not registered.")
 
-    async def snowball_backward(self, document_id: str, provider_name: str, progress_callback=None) -> list[Document]:
-        """Finds papers that the given document cites."""
+    async def snowball_backward(
+        self, document_id: str, provider_name: str, progress_callback=None, limit: int | None = None
+    ) -> list[Document]:
+        """Finds papers that the given document cites (``limit`` as for forward)."""
         for provider in self.providers:
             if provider.name.lower() == provider_name.lower():
                 logger.info(
                     f"Backward snowballing on {provider.name} for {document_id}"
                 )
-                results = []
-                count = 0
-                async for doc in provider.get_references(document_id):
-                    results.append(doc)
-                    count += 1
-                    if progress_callback:
-                        progress_callback(provider.name, count)
-                return results
+                return await self._collect_snowball(
+                    provider, provider.get_references(document_id), progress_callback, limit
+                )
         raise ValueError(f"Provider {provider_name} not found or not registered.")
+
+    @staticmethod
+    async def _collect_snowball(provider, stream, progress_callback, limit: int | None) -> list[Document]:
+        results: list[Document] = []
+        count = 0
+        if limit is not None and limit <= 0:
+            return results
+        async for doc in stream:
+            results.append(doc)
+            count += 1
+            if progress_callback:
+                progress_callback(provider.name, count)
+            if limit is not None and count >= limit:
+                break
+        return results
 
     async def close(self):
         """Close HTTP clients for all providers."""

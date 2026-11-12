@@ -69,7 +69,7 @@ export type JobState = "running" | "succeeded" | "failed" | "cancelled";
 
 export interface DiscoveryJob {
   job_id: string;
-  kind: "run" | "recall";
+  kind: "run" | "recall" | "chase";
   state: JobState;
   started_at: string;
   finished_at: string | null;
@@ -389,4 +389,159 @@ export async function streamEvents<E extends { event: string }>(
   }
   handle(parseSse(`${buffer}\n\n`).events);
   return { ended };
+}
+
+// --------------------------------------------------------------------------- citation chasing (M3g)
+
+/** `ChaseLeg` as `chase.json` writes it: one seed, one database, one direction. */
+export interface ChaseLeg {
+  seed: string;
+  provider: ProviderName;
+  direction: "forward" | "backward" | string;
+  fetched: number;
+  cap: number | null;
+  cap_hit: boolean;
+  status: "ok" | "failed" | "skipped" | "pending" | string;
+  error: string | null;
+  error_code: LegErrorCode | string | null;
+  notes: string[];
+  started_at: string | null;
+  finished_at: string | null;
+}
+
+/** One row per database and direction, summed by the engine (`legs_summary`); the browser sums nothing. */
+export interface ChaseLegsSummary {
+  provider: ProviderName;
+  direction: "forward" | "backward" | string;
+  legs: number;
+  ok: number;
+  failed: number;
+  skipped: number;
+  fetched: number;
+  cap_hits: number;
+}
+
+export interface ChaseCounts {
+  raw: number;
+  duplicates_within_chase: number;
+  already_in_corpus: number;
+  outside_year_window: number;
+  over_ceiling: number;
+  new: number;
+}
+
+export interface ChaseSeed {
+  study_id: string;
+  title: string;
+  decision: "INCLUDE" | "MAYBE" | string;
+  doi: string | null;
+  openalex_id: string | null;
+  s2_id: string | null;
+  chaseable: boolean;
+  reason: string | null;
+}
+
+export interface ChaseAccepted {
+  round: number;
+  artifact_id: string;
+  accepted_at: string;
+  records: number;
+  studies: number;
+}
+
+/** `chase_summaries()` rows (`GET /discovery/chase` → `runs[]`). */
+export interface ChaseRunSummary {
+  chase: string;
+  status: "SUCCESS" | "PARTIAL" | "EMPTY_RESULT" | "FAILED" | string | null;
+  reason: string | null;
+  started_at: string | null;
+  finished_at: string | null;
+  seeds: number;
+  chaseable_seeds: number;
+  providers: string[];
+  directions: string[];
+  counts: Partial<ChaseCounts>;
+  published: boolean;
+  accepted: ChaseAccepted | null;
+}
+
+/** `chase.json` with `legs_summary` added (`GET /discovery/chase` → `latest`, `GET /discovery/chase/runs/{chase}`). */
+export interface ChaseRun {
+  schema: "nexus.citation-chase.v1";
+  chase: string;
+  status: ChaseRunSummary["status"];
+  reason: string;
+  started_at: string;
+  finished_at: string;
+  seed_source: "included" | "included+unclear" | string;
+  generation_id: string | null;
+  parent_corpus: { artifact_id: string; sha256: string | null } | null;
+  providers: string[];
+  directions: string[];
+  forward_cap: number | null;
+  run_ceiling: number | null;
+  year_min: number | null;
+  year_max: number | null;
+  seeds: ChaseSeed[];
+  legs: ChaseLeg[];
+  legs_summary: ChaseLegsSummary[];
+  counts: ChaseCounts;
+  already_in_corpus: { record: string; title: string; study_id: string | null; sources?: unknown[] }[];
+  published: boolean;
+  cancelled: boolean;
+  notes: string[];
+  accepted: ChaseAccepted | null;
+}
+
+export interface ChaseState {
+  shape: "discovery.chase-v1";
+  /** `code` (review R2): why the screening does not count as published (`SCREENING_NOT_PUBLISHED`, `PROTOCOL_CHANGED_SINCE_PUBLISH`, ...), else null. */
+  screening: { published: boolean; generation_id: string | null; round: number; arm: "databases" | "citation_searching" | string | null; code?: string | null };
+  seeds: { source: string; total: number; chaseable: number; not_chaseable: { study_id: string; title: string; reason: string | null }[] };
+  keys: { openalex_key_set: boolean; s2_key_set: boolean };
+  defaults: { directions: string[]; providers: string[]; forward_cap: number; run_ceiling: number };
+  runs: ChaseRunSummary[];
+  latest: ChaseRun | null;
+  active_job: DiscoveryJob | null;
+}
+
+export interface ChaseRequest {
+  directions?: ("forward" | "backward")[];
+  providers?: string[];
+  cap_per_seed?: number;
+  ceiling?: number;
+  seeds?: "included" | "included+unclear";
+  note?: string;
+}
+
+export interface ChaseAcceptAnswer {
+  shape: "discovery.chase-accept-v1";
+  chase: string;
+  round: number;
+  corpus: { artifact_id: string; studies: number; records: number; outcome_status: string };
+  parent_corpus: string;
+  archived: string[];
+  archive_path: string;
+}
+
+/** A chase job's `leg` event: one seed, one database, one direction, as it finished. */
+export type ChaseLegEvent = {
+  event: "leg";
+  data: { job_id: string; seed: string; provider: string; direction: string; fetched: number; cap: number | null; cap_hit: boolean; status: string; error_code: string | null; notes: string[] };
+};
+
+export function getChase(origin: string, signal?: AbortSignal): Promise<ChaseState> {
+  return readJson<ChaseState>(`${BASE}/chase`, consoleBase(origin), signal);
+}
+
+export function getChaseRun(origin: string, chase: string, signal?: AbortSignal): Promise<ChaseRun> {
+  return readJson<ChaseRun>(`${BASE}/chase/runs/${encodeURIComponent(chase)}`, consoleBase(origin), signal);
+}
+
+export function startChase(origin: string, request: ChaseRequest = {}, signal?: AbortSignal): Promise<{ job: DiscoveryJob }> {
+  return postJson<{ job: DiscoveryJob }>(`${BASE}/chase/runs`, origin, request, signal);
+}
+
+export function acceptChase(origin: string, chase?: string, signal?: AbortSignal): Promise<ChaseAcceptAnswer> {
+  return postJson<ChaseAcceptAnswer>(`${BASE}/chase/accept`, origin, chase ? { chase } : {}, signal);
 }

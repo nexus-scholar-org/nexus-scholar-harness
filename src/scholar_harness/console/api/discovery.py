@@ -921,3 +921,191 @@ async def cancel_job(job_id: str, request: Request) -> dict[str, Any]:
         if job.task is not None:
             await asyncio.wait({job.task}, timeout=CANCEL_WAIT_SECONDS)
     return {"job": job.to_dict()}
+
+
+# --------------------------------------------------------------------------- citation chasing (M3g)
+
+
+class ChaseRunBody(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    directions: list[str] | None = None
+    providers: list[str] | None = None
+    cap_per_seed: int | None = None
+    ceiling: int | None = None
+    seeds: str | None = None
+    note: str | None = Field(default=None, max_length=2_000)
+
+
+class ChaseAcceptBody(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    chase: str | None = None
+
+
+#: HTTP status per ``ChaseRefused.code``; 409 otherwise.
+_CHASE_STATUS = {
+    refusals.PROTOCOL_INVALID: 422, refusals.PROTOCOL_METHOD_INVALID: 422, refusals.CHASE_DIRECTION_INVALID: 422,
+    refusals.CHASE_SEEDS_INVALID: 422, refusals.PROVIDER_UNKNOWN: 422, refusals.PROTOCOL_MISSING: 409,
+}
+
+
+def _chase_refused(exc: Any) -> Refused:
+    return Refused(_CHASE_STATUS.get(exc.code, 409), exc.code, str(exc), details=dict(getattr(exc, "details", {}) or {}))
+
+
+def _s2_key_set() -> bool:
+    return bool(settings.s2_key)
+
+
+def _chase_view(ws: Path) -> dict[str, Any]:
+    from ...pipeline import citation_chase as cc
+    from ...screening import rounds
+
+    seeds_view: dict[str, Any] = {"source": "included", "total": 0, "chaseable": 0, "not_chaseable": []}
+    publication = cc.publication_state(ws)
+    published = bool(publication["published"])
+    try:
+        seeds = cc.load_seeds(ws) if published else []
+    except cc.ChaseRefused:
+        published, seeds = False, []
+    seeds_view["total"] = len(seeds)
+    seeds_view["chaseable"] = sum(1 for s in seeds if s.chaseable)
+    seeds_view["not_chaseable"] = [
+        {"study_id": s.study_id, "title": s.title, "reason": s.reason} for s in seeds if not s.chaseable
+    ]
+    runs = cc.chase_summaries(ws)
+    latest: dict[str, Any] | None = None
+    dirs = cc.chase_dirs(ws)
+    if dirs:
+        try:
+            latest = cc.read_manifest(dirs[0])
+            latest["legs_summary"] = cc.legs_summary(latest.get("legs") or [])
+        except (OSError, ValueError):
+            latest = None
+    current = rounds.current_round(ws)
+    return {
+        "shape": "discovery.chase-v1",
+        "screening": {
+            "published": published,
+            "generation_id": publication["generation_id"] if published else None,
+            "code": publication["code"],
+            "round": int(current.get("round") or 1),
+            "arm": current.get("arm"),
+        },
+        "seeds": seeds_view,
+        "keys": {"openalex_key_set": _openalex_key_set(), "s2_key_set": _s2_key_set()},
+        "defaults": {
+            "directions": list(cc.DIRECTIONS), "providers": list(cc.DEFAULT_PROVIDERS),
+            "forward_cap": cc.DEFAULT_FORWARD_CAP, "run_ceiling": cc.DEFAULT_RUN_CEILING,
+        },
+        "runs": runs,
+        "latest": latest,
+    }
+
+
+@router.get("/chase")
+def chase_state(request: Request) -> dict[str, Any]:
+    ws = _ws(request)
+    active = _jobs(request).active(ws)
+    return {**_chase_view(ws), "active_job": active.to_dict() if active else None}
+
+
+@router.get("/chase/runs/{chase}")
+def chase_run_detail(chase: str, request: Request) -> dict[str, Any]:
+    from ...pipeline import citation_chase as cc
+
+    ws = _ws(request)
+    try:
+        run_dir = cc.chase_run_dir(ws, chase)
+    except cc.ChaseRefused as exc:
+        raise _http(Refused(404, exc.code, str(exc))) from exc
+    manifest = cc.read_manifest(run_dir)
+    manifest["legs_summary"] = cc.legs_summary(manifest.get("legs") or [])
+    return manifest
+
+
+def _chase_leg_reporter(job: DiscoveryJob):
+    def on_leg(leg: Any) -> None:
+        job.emit("leg", {
+            "job_id": job.job_id, "seed": leg.seed, "provider": leg.provider, "direction": leg.direction,
+            "fetched": leg.fetched, "cap": leg.cap, "cap_hit": leg.cap_hit, "status": leg.status,
+            "error_code": leg.error_code, "notes": list(leg.notes),
+        })
+
+    return on_leg
+
+
+@router.post("/chase/runs", status_code=202)
+async def start_chase(body: ChaseRunBody, request: Request) -> dict[str, Any]:
+    from ...pipeline import citation_chase as cc
+
+    ws, jobs = _ws(request), _jobs(request)
+    try:
+        _protocol(ws)
+        try:
+            cc.load_seeds(ws, seed_source=body.seeds or "included")
+            cc.require_published(ws)  # review R2: published, current, same protocol
+        except cc.ChaseRefused as exc:
+            raise _chase_refused(exc) from exc
+        providers = _check_providers(body.providers) or list(cc.DEFAULT_PROVIDERS)
+        directions = tuple(body.directions) if body.directions is not None else cc.DIRECTIONS
+        if not directions or any(d not in cc.DIRECTIONS for d in directions):
+            raise Refused(422, refusals.CHASE_DIRECTION_INVALID, f"directions must be among {list(cc.DIRECTIONS)}")
+        for name, value in (("cap_per_seed", body.cap_per_seed), ("ceiling", body.ceiling)):
+            if value is not None and not 1 <= value <= ENGINE_CEILING:
+                raise Refused(422, refusals.CAP_INVALID, f"{name} must be 1 to {ENGINE_CEILING}")
+        _require_openalex_key(providers)
+        _refuse_busy(jobs, ws)
+    except Refused as exc:
+        raise _http(exc) from exc
+
+    async def work(job: DiscoveryJob):
+        outcome = await cc.run_citation_chase(
+            ws, providers=providers, directions=directions,
+            forward_cap=body.cap_per_seed if body.cap_per_seed is not None else cc.DEFAULT_FORWARD_CAP,
+            run_ceiling=body.ceiling if body.ceiling is not None else cc.DEFAULT_RUN_CEILING,
+            seed_source=body.seeds or "included", note=body.note, leg_callback=_chase_leg_reporter(job),
+            should_stop=lambda: job.cancel_requested, agent=AGENT,
+        )
+        result = json.loads(json.dumps({
+            "chase": outcome.chase, "status": outcome.status, "reason": outcome.reason,
+            "counts": outcome.counts.__dict__, "published": outcome.published, "cancelled": outcome.cancelled,
+            "legs_summary": cc.legs_summary([leg.__dict__ for leg in outcome.legs]),
+        }, default=str))
+        if outcome.cancelled:
+            return "cancelled", result, None
+        if outcome.status == "FAILED":
+            return "failed", result, {"code": refusals.PROVIDERS_FAILED, "message": outcome.reason}
+        return "succeeded", result, None
+
+    return {"job": jobs.start(ws, "chase", work).to_dict()}
+
+
+@router.post("/chase/accept")
+def accept_chase(body: ChaseAcceptBody, request: Request) -> dict[str, Any]:
+    from ...pipeline import citation_chase as cc
+
+    ws, jobs = _ws(request), _jobs(request)
+    try:
+        _protocol(ws)
+        active = jobs.active(ws)
+        if active is not None:
+            raise Refused(409, refusals.WORKSPACE_JOB_ACTIVE, "A discovery job is running in this workspace; nothing was moved.",
+                          details={"job": active.to_dict()})
+        try:
+            accepted = cc.accept_citation_chase(ws, chase=body.chase, agent=AGENT)
+        except cc.ChaseRefused as exc:
+            raise _chase_refused(exc) from exc
+    except Refused as exc:
+        raise _http(exc) from exc
+    return {
+        "shape": "discovery.chase-accept-v1",
+        "chase": accepted.chase,
+        "round": accepted.round,
+        "corpus": {
+            "artifact_id": accepted.artifact_id, "studies": accepted.study_count, "records": accepted.record_count,
+            "outcome_status": accepted.outcome_status,
+        },
+        "parent_corpus": accepted.parent_corpus,
+        "archived": accepted.archived,
+        "archive_path": accepted.round_path,
+    }

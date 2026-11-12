@@ -6,7 +6,7 @@ import type { Locale } from "@/i18n";
 import { Button, DataCell, DecisionBadge } from "@/components/ui/base";
 import { StateCard } from "@/components/screening-state-card";
 import { refusalOf, stamp, type Refusal } from "@/components/inception-frame";
-import { getJob, streamJob, type DiscoveryJob, type JobEvent, type RunSummary } from "@/lib/discovery-api";
+import { getChase, getJob, streamJob, type DiscoveryJob, type JobEvent, type RunSummary } from "@/lib/discovery-api";
 import { discoveryT, type DiscoveryCopyKey } from "@/lib/discovery-copy";
 
 /**
@@ -18,7 +18,7 @@ import { discoveryT, type DiscoveryCopyKey } from "@/lib/discovery-copy";
 
 export { refusalOf, stamp, type Refusal };
 
-export type DiscoveryStep = "plan" | "recall" | "harvest" | "import" | "dedup" | "report" | "handoff";
+export type DiscoveryStep = "plan" | "recall" | "harvest" | "import" | "dedup" | "report" | "handoff" | "chase";
 
 const STEPS: { step: DiscoveryStep; key: DiscoveryCopyKey }[] = [
   { step: "plan", key: "steps.plan" },
@@ -29,6 +29,9 @@ const STEPS: { step: DiscoveryStep; key: DiscoveryCopyKey }[] = [
   { step: "report", key: "steps.report" },
   { step: "handoff", key: "steps.handoff" },
 ];
+//: M3g (spec 09): the Chase step follows the hand-off and is shown only once the
+//: screening is published, which the frame reads from `GET /discovery/chase`.
+const CHASE_STEP: { step: DiscoveryStep; key: DiscoveryCopyKey } = { step: "chase", key: "steps.chase" };
 
 /** The step's number (1–7) for the eyebrow. */
 export function stepNumber(step: DiscoveryStep): number {
@@ -77,8 +80,26 @@ export function DiscoverySteps({
   origin,
   run = "",
   marks,
-}: Readonly<{ locale: Locale; current?: DiscoveryStep; origin: string; run?: string; marks?: StepMarks }>) {
+  chase,
+}: Readonly<{ locale: Locale; current?: DiscoveryStep; origin: string; run?: string; marks?: StepMarks; chase?: boolean }>) {
   const t = discoveryT(locale);
+  const [published, setPublished] = useState(false);
+  useEffect(() => {
+    if (chase !== undefined) return;
+    let cancelled = false;
+    getChase(origin).then(
+      (state) => {
+        if (!cancelled) setPublished(!!state.screening?.published);
+      },
+      () => {
+        if (!cancelled) setPublished(false);
+      },
+    );
+    return () => {
+      cancelled = true;
+    };
+  }, [origin, chase]);
+  const steps = (chase ?? published) || current === "chase" ? [...STEPS, CHASE_STEP] : STEPS;
   return (
     <nav aria-label={t("steps.label")} className="mb-6" data-discovery-steps>
       <ol className="flex flex-wrap gap-2 text-sm">
@@ -92,7 +113,7 @@ export function DiscoverySteps({
             {t("steps.overview")}
           </a>
         </li>
-        {STEPS.map(({ step, key }) => {
+        {steps.map(({ step, key }) => {
           const mark = marks?.[step];
           return (
             <li key={step}>
@@ -129,11 +150,12 @@ export function DiscoveryFrame({
   origin,
   run = "",
   marks,
+  chase,
   children,
-}: Readonly<{ locale: Locale; current?: DiscoveryStep; origin: string; run?: string; marks?: StepMarks; children: ReactNode }>) {
+}: Readonly<{ locale: Locale; current?: DiscoveryStep; origin: string; run?: string; marks?: StepMarks; chase?: boolean; children: ReactNode }>) {
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8 lg:py-12">
-      <DiscoverySteps locale={locale} current={current} origin={origin} run={run} marks={marks} />
+      <DiscoverySteps locale={locale} current={current} origin={origin} run={run} marks={marks} chase={chase} />
       {children}
     </div>
   );
@@ -287,7 +309,24 @@ export function OlderRunNote({ locale, summary, newest }: Readonly<{ locale: Loc
   );
 }
 
-export type LegView = { provider: string; fetched: number; reported_total: number | null; cap: number | null; cap_hit: boolean; status: string; error_code: string | null };
+export type LegView = {
+  provider: string;
+  fetched: number;
+  reported_total: number | null;
+  cap: number | null;
+  cap_hit: boolean;
+  status: string;
+  error_code: string | null;
+  /** M3g: a chase leg is one seed, one database, one direction. */
+  seed?: string;
+  direction?: string;
+  notes?: string[];
+};
+
+/** A harvest leg is keyed by its database; a chase leg by its seed, database and direction. */
+export function legKey(leg: { provider: string; seed?: string; direction?: string }): string {
+  return [leg.seed ?? "", leg.provider, leg.direction ?? ""].join("|");
+}
 export type StageView = { stage: string; status: string; detail: unknown };
 
 export interface JobStreamState {
@@ -316,6 +355,7 @@ function now(): string {
 export function useJobStream(origin: string, jobId: string | null, onEnd?: (job: DiscoveryJob | null) => void): JobStreamState & { retry: () => void } {
   const [state, setState] = useState<JobStreamState>(EMPTY);
   const [attempt, setAttempt] = useState(0);
+  // (M3g) chase legs carry seed and direction; the stream keeps one row per leg key.
   const endRef = useRef(onEnd);
   endRef.current = onEnd;
 
@@ -334,8 +374,8 @@ export function useJobStream(origin: string, jobId: string | null, onEnd?: (job:
       const apply = (event: JobEvent) => {
         if (event.event === "snapshot" || event.event === "done" || event.event === "failed") view = { ...view, job: event.data.job, ended: event.event !== "snapshot" };
         else if (event.event === "leg") {
-          const { job_id: _ignored, ...leg } = event.data;
-          legs.set(leg.provider, leg);
+          const { job_id: _ignored, ...leg } = event.data as LegView & { job_id: string };
+          legs.set(legKey(leg), { ...leg, reported_total: leg.reported_total ?? null });
         } else if (event.event === "stage") stages.set(event.data.stage, { stage: event.data.stage, status: event.data.status, detail: event.data.detail });
         view = { ...view, legs: [...legs.values()], stages: [...stages.values()], lastAt: now(), lost: false, error: null };
         if (!cancelled) setState(view);

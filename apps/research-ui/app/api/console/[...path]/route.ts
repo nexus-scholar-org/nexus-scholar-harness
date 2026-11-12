@@ -80,6 +80,10 @@ const POST_PATHS: ReadonlyArray<RegExp> = [
   // and a second job before anything starts; cancel keeps the fetched records.
   /^api\/v1\/discovery\/(runs|recall)$/,
   /^api\/v1\/discovery\/jobs\/[A-Za-z0-9_-]+\/cancel$/,
+  // M3g: citation chasing. Start a chase (a job in the console process) and send
+  // its new records to screening as the next round; the console checks the
+  // published screening, the keys, the one-job lock and the protocol.
+  /^api\/v1\/discovery\/chase\/(runs|accept)$/,
 ];
 
 /** The one GET with a side effect: the engine records a reveal when a draft is read. */

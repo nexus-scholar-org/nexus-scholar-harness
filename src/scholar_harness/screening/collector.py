@@ -4,7 +4,6 @@ import json
 import logging
 import shutil
 import sys
-from dataclasses import asdict
 from pathlib import Path
 
 from scholar_harness.contracts.acceptance import AcceptanceContext, accept_artifact
@@ -1179,6 +1178,7 @@ def cmd_collect(workspace_dir: Path) -> None:
 
     # Look for raw provenance manifest to get exact total_identified and duplicates_removed
     from ..corpus_accept import prisma_identification
+    from .rounds import prisma_outputs
 
     total_identified, duplicates_removed = prisma_identification(lit_dir.parent, len(docs))
 
@@ -1235,8 +1235,9 @@ def cmd_collect(workspace_dir: Path) -> None:
         "conflicts.json": json.dumps(
             conflicts, indent=2, default=str, ensure_ascii=False
         ),
-        "prisma_screening_report.md": report.to_markdown(),
-        "prisma_report.json": json.dumps(asdict(report), indent=2),
+        # M3g: one helper for collect and approval; a citation-searching
+        # round adds the second PRISMA arm, a first round writes the kit's report.
+        **prisma_outputs(workspace_dir, report),
     }
     _snapshot = build_publication_snapshot(
         workspace_id=_scope.workspace_id,

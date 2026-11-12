@@ -701,7 +701,7 @@ def prisma_preview(request: Request) -> dict[str, Any]:
             ),
         },
     ]
-    return {
+    preview = {
         "identified": identified,
         "duplicates_removed": identified - len(corpus["studies"]),
         "screened": screened,
@@ -711,6 +711,20 @@ def prisma_preview(request: Request) -> dict[str, Any]:
         "not_yet_decided": screened - len(winners),
         "checks": checks,
     }
+    # M3g: a citation-searching round identifies what the chase fetched and
+    # carries the earlier rounds' published counts (the databases arm).
+    from ...screening import rounds as _rounds
+
+    current = _rounds.current_round(ws)
+    chased = _rounds.chase_identification(ws)
+    if current.get("arm") == _rounds.ARM_CITATION_SEARCHING and chased is not None:
+        preview["identified"], preview["duplicates_removed"] = chased
+        preview["arm"] = _rounds.ARM_CITATION_SEARCHING
+        preview["round"] = int(current.get("round") or 1)
+        preview["previous_rounds"] = [
+            {"round": r.get("round"), "arm": r.get("arm"), "prisma": r.get("prisma")} for r in _rounds.previous_rounds(ws)
+        ]
+    return preview
 
 
 @router.get("/export")
