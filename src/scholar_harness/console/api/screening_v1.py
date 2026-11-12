@@ -141,7 +141,10 @@ def summary(request: Request) -> dict[str, Any]:
         # offers Prepare, whose own refusal names a missing snapshot.
         empty = {"INCLUDE": 0, "EXCLUDE": 0, "MAYBE": 0}
         lanes = {"agent": 0, "you": 0, "second_screener": "PARKED"}
-        return {"total": 0, "decided": 0, "by_outcome": empty, "agent_proposed": 0, "needs_you": 0, "conflicts": 0, "lanes": lanes}
+        return {
+            "total": 0, "decided": 0, "by_outcome": empty, "agent_proposed": 0, "needs_you": 0, "conflicts": 0,
+            "lanes": lanes, "protocol_changed": False,
+        }
     context, settings, events, winners = _state(ws)
     proposed = {p["study_id"] for p in pr.read_proposals(ws)}
     by_outcome = {"INCLUDE": 0, "EXCLUDE": 0, "MAYBE": 0}
@@ -157,6 +160,9 @@ def summary(request: Request) -> dict[str, Any]:
         "needs_you": total - len(winners),
         "conflicts": len(open_conflicts),
         "lanes": {"agent": len(proposed), "you": len(winners), "second_screener": "PARKED"},
+        # Review F2 (decision 2026-11-12): the batches were prepared under
+        # another protocol, so earlier decisions count nowhere; Home says so.
+        "protocol_changed": context.protocol_changed,
     }
 
 
@@ -219,7 +225,7 @@ def queue(
         for s in page
     ]
     next_cursor = cursor + len(page) if cursor + len(page) < len(chosen) else None
-    return {"items": items, "next_cursor": next_cursor}
+    return {"items": items, "next_cursor": next_cursor, "protocol_changed": context.protocol_changed}
 
 
 @router.get("/records/{study_id}")
@@ -684,12 +690,21 @@ def prisma_preview(request: Request) -> dict[str, Any]:
         },
         {"name": "no_open_conflicts", "ok": not open_conflicts, "detail": f"{len(open_conflicts)} open"},
         {
+            # Review F2: not vacuous. No decision proves nothing, and a batch
+            # prepared under another protocol is not bound to this one.
             "name": "bound_to_current_protocol",
-            "ok": all(
+            "ok": bool(winners)
+            and not context.protocol_changed
+            and all(
                 (w.get("binding") or {}).get("protocol_fingerprint") == context.protocol_fingerprint
                 for w in winners.values()
             ),
-            "detail": context.protocol_fingerprint,
+            "detail": (
+                f"the batches were prepared under another protocol; the current one is {context.protocol_fingerprint}"
+                if context.protocol_changed
+                else context.protocol_fingerprint if winners
+                else f"no decision yet; the current protocol is {context.protocol_fingerprint}"
+            ),
         },
         {"name": "every_record_decided", "ok": len(winners) == screened, "detail": f"{screened - len(winners)} not yet decided"},
         {

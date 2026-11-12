@@ -409,6 +409,8 @@ async def run_discovery(
     lit_dir.mkdir(parents=True, exist_ok=True)
 
     query, protocol_providers = compile_protocol_search(p_path)
+    # Review F3: the protocol this run searched, read before the run starts.
+    protocol_fingerprint, protocol_search = protocol_search_record(p_path)
     if max_search_results:
         query.max_results = max_search_results
         query.cap_source = "run_override"
@@ -500,6 +502,8 @@ async def run_discovery(
         cap_override=max_search_results or None,
         notes=run_notes,
         corpus_published=published,
+        protocol_fingerprint=protocol_fingerprint,
+        protocol_search=protocol_search,
     )
 
     outcome = DiscoveryOutcome(
@@ -535,6 +539,72 @@ async def run_discovery(
 SEARCH_RUNS_DIR = "search_runs"
 
 
+# --------------------------------------------------------------------------- protocol drift (review F3)
+
+
+def _database_key(name: Any) -> str:
+    key = str(name).lower().strip().replace("-", "_").replace(" ", "_")
+    return "semanticscholar" if key == "semantic_scholar" else key
+
+
+def protocol_search_record(protocol_path: Path | str) -> tuple[str | None, dict[str, Any]]:
+    """``(protocol_fingerprint, search)`` of a protocol, as a run records them in ``legs.json``.
+
+    ``search`` is what the protocol compiles to for a harvest: the query text,
+    the year window, the language, the protocol's retrieval cap and its
+    database list (sorted, canonical names). Review F3: a later edit to any of
+    these changes what a run would fetch; an edit elsewhere (criteria, title)
+    changes only the fingerprint. The fingerprint is ``None`` when the
+    protocol does not validate.
+    """
+    from pydantic import ValidationError
+    from scholar_protocol.canonical import canonical_fingerprint
+    from scholar_protocol.models import ResearchProtocol
+
+    path = Path(protocol_path)
+    query, databases = compile_protocol_search(path)
+    try:
+        fingerprint: str | None = canonical_fingerprint(
+            ResearchProtocol.model_validate_json(path.read_text(encoding="utf-8"))
+        )
+    except (ValidationError, ValueError):
+        fingerprint = None
+    search = {
+        "query_text": getattr(query, "text", None),
+        "year_min": getattr(query, "year_min", None),
+        "year_max": getattr(query, "year_max", None),
+        "language": getattr(query, "language", None),
+        "retrieval_cap": getattr(query, "max_results", None),
+        "databases": sorted({_database_key(d) for d in databases or []}),
+    }
+    return fingerprint, search
+
+
+def run_protocol_drift(protocol_path: Path | str, manifest: dict[str, Any]) -> dict[str, bool]:
+    """How the protocol differs from the one a run searched (review F3).
+
+    ``search_changed``: the protocol now compiles to another search than the
+    run did (query, years, language, cap or databases). ``protocol_changed``:
+    any semantic edit (the fingerprint differs), which includes a search change.
+    A run written before F3 has neither record: its query text and year window
+    decide ``search_changed`` (the accept gate since M3d), and nothing else is
+    known, so ``protocol_changed`` follows it.
+    """
+    fingerprint, search = protocol_search_record(protocol_path)
+    ran = manifest.get("protocol_search")
+    if isinstance(ran, dict):
+        search_changed = ran != search
+    else:
+        search_changed = (manifest.get("query_text"), manifest.get("year_min"), manifest.get("year_max")) != (
+            search["query_text"], search["year_min"], search["year_max"]
+        )
+    ran_fingerprint = manifest.get("protocol_fingerprint")
+    protocol_changed = search_changed or (
+        bool(ran_fingerprint) and fingerprint is not None and ran_fingerprint != fingerprint
+    )
+    return {"protocol_changed": bool(protocol_changed), "search_changed": bool(search_changed)}
+
+
 def _archive_search_run(
     lit_dir: Path,
     *,
@@ -545,6 +615,8 @@ def _archive_search_run(
     cap_override: int | None = None,
     notes: list[str] | None = None,
     corpus_published: bool | None = None,
+    protocol_fingerprint: str | None = None,
+    protocol_search: dict[str, Any] | None = None,
 ) -> tuple[str, list[str]]:
     """Write this run's legs (and raw records) to ``search_runs/run_NNN/``.
 
@@ -583,6 +655,10 @@ def _archive_search_run(
         "corpus_published": payload is not None if corpus_published is None else corpus_published,
         "cap_override": cap_override,
         "notes": list(notes or []),
+        # Review F3: the protocol the run searched, so the runs list and the
+        # hand-off can say it changed before the accept.
+        "protocol_fingerprint": protocol_fingerprint,
+        "protocol_search": protocol_search,
         "legs": legs,
     }
     (run_dir / "legs.json").write_text(

@@ -190,3 +190,22 @@ def test_the_browser_may_post_the_chase_routes():
     assert any(p.fullmatch("api/v1/discovery/chase/runs") for p in POST_PATHS)
     assert any(p.fullmatch("api/v1/discovery/chase/accept") for p in POST_PATHS)
     assert not any(p.fullmatch("api/v1/discovery/chase/runs/chase_001") for p in POST_PATHS)
+
+
+
+def test_f4_a_round_2_corpus_view_shows_the_chase(env, monkeypatch):
+    """F4 with M3g: after the chase accept the corpus view is the citation-searching round's, not zeros."""
+    client, ws = env
+    docs = [h._doc(f"Chased {i}", provider="openalex", pid=f"W{i}", doi=f"10.2/{i}", openalex=f"W{i}") for i in range(3)]
+    _install(monkeypatch, h.FakeChaseProvider("openalex", citations={h.W_INCLUDE: docs}))
+    job, _ = _run(client, {"providers": ["openalex"], "directions": ["forward"]})
+    assert job["state"] == "succeeded"
+    assert client.post(f"{BASE}/chase/accept", json={}).status_code == 200
+
+    corpus = client.get("/api/v1/screening/corpus").json()
+    assert corpus["state"] == "ACCEPTED" and corpus["origin"] == "citation_searching"
+    assert corpus["from_discovery"] is False
+    (row,) = corpus["databases"]
+    assert row["provider"] == "openalex" and row["label"] == "OpenAlex" and row["records"] == 3
+    assert corpus["preview"] == {"identified": 3, "duplicates": 0, "unique_studies": 3}
+    assert corpus["accepted"]["records"] == 3
