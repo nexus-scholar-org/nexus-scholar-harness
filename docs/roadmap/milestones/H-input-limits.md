@@ -1,5 +1,5 @@
 # H-input-limits Input hardening (F5, F6, F7)
-Branch: dev/hardening/input-limits · Lane: **RELEASE** (escalated from the brief's STANDARD after the independent review: the diff changes public HTTP semantics, every console 422 becomes the `BODY_INVALID` envelope, inception gains `DRAFT_TOO_LARGE`, and decision intake refuses events it accepted before; `test_gate_policy.md` §lanes puts that in RELEASE, as it did for M3h-providers and M4c. No Contract v1 schema, artifact identity or snapshot change: `generate_contract_baseline.py --check` passes) · Status: READY FOR PR (merge `aaeb0960` of `origin/main`; the researcher approved push, PR and merge when CI is green, relayed 2026-11-12) · Started: 2026-11-12
+Branch: dev/hardening/input-limits · Lane: **RELEASE** (escalated from the brief's STANDARD after the independent review: the diff changes public HTTP semantics, every console 422 becomes the `BODY_INVALID` envelope, inception gains `DRAFT_TOO_LARGE`, and decision intake refuses events it accepted before; `test_gate_policy.md` §lanes puts that in RELEASE, as it did for M3h-providers and M4c. No Contract v1 schema, artifact identity or snapshot change: `generate_contract_baseline.py --check` passes) · Status: **MERGED** (PR #226, merge `fd3cc329`, 2026-11-12) · Started: 2026-11-12
 
 Scope is item 4 of the hardening plan in
 [`three-phase-hardening-2026-11-10.md`](../../assessment/three-phase-hardening-2026-11-10.md) §4:
@@ -27,7 +27,7 @@ session), F2–F4, F8–F10.
 | F7 | `tests/test_screening_events.py::test_f7_future_decisions_foreign_devices_and_long_notes_are_refused` (7 cases), `::test_f7_values_at_the_limits_are_accepted`; `tests/console/test_screening_api_v1.py::test_f7_a_phone_device_under_a_desktop_token_is_refused` | yes at `6c66d24b`: the auditor got `accepted` for a 2031 `decided_at`, a phone device on a desktop token and a 50 000-character note; the new tests fail at collection (no `MAX_NOTE_CHARS`) | yes |
 
 ## Decisions
-- [2026-11-12 — Input limits for drafts and decision events; one envelope for validation errors](../../decisions.md) (proposed; the researcher confirms at the PR).
+- [2026-11-12 — Input limits for drafts and decision events; one envelope for validation errors](../../decisions.md) (accepted by the researcher 2026-11-12).
 - The limits sit on the draft shape in `inception/steps.py` (every route parses it), not on `DraftBody` as the review suggested; `DraftBody` only wraps a dict.
 - F7 adds no refusal code: a mismatched `device` and an oversized `note` are `INVALID_OUTPUT`, the code already used for a wrong `device` value; the future `decided_at` is `PROVENANCE_MISSING` as the review asked. The device is refused, not rewritten from the scope.
 - Three existing tests sent a phone device under a desktop token to stage a second-device conflict; they now send it under the phone token. The events test helper's engine clock follows the latest `decided_at` it sends (it was fixed at 10:00:05, two hours before some fixtures' decisions).

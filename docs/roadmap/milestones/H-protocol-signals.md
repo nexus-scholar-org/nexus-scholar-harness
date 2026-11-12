@@ -1,5 +1,5 @@
 # H-protocol-signals Protocol-change signals and the discovery corpus view (F2, F3, F4)
-Branch: dev/hardening/protocol-signals · Lane: **RELEASE** (the diff changes public HTTP responses: `/screening/summary`, `/screening/queue`, `/screening/prisma/preview`, `/discovery/runs`, `/discovery/handoff`, `/screening/corpus`, and widens the accept refusal `PROTOCOL_CHANGED_SINCE_RUN`; `test_gate_policy.md` §lanes, as for H-input-limits and M3h-providers. No Contract v1 schema, artifact identity or snapshot change: `generate_contract_baseline.py --check` passes) · Status: READY FOR PR (head after the `origin/main` merge `d335c819`) · Started: 2026-11-12
+Branch: dev/hardening/protocol-signals · Lane: **RELEASE** (the diff changes public HTTP responses: `/screening/summary`, `/screening/queue`, `/screening/prisma/preview`, `/discovery/runs`, `/discovery/handoff`, `/screening/corpus`, and widens the accept refusal `PROTOCOL_CHANGED_SINCE_RUN`; `test_gate_policy.md` §lanes, as for H-input-limits and M3h-providers. No Contract v1 schema, artifact identity or snapshot change: `generate_contract_baseline.py --check` passes) · Status: **MERGED** (PR #228, merge `a3afc17a`, 2026-11-12) · Started: 2026-11-12
 
 Scope is items 3 and 6 of the hardening plan in
 [`three-phase-hardening-2026-11-10.md`](../../assessment/three-phase-hardening-2026-11-10.md) §4:
@@ -34,7 +34,7 @@ Each finding was re-verified open at `fd3cc329` by `phase-auditor` (F2 and F4 ru
 The F4 tests sit in `test_discovery_api.py` and `test_chase_api.py`, not `test_corpus_api.py` as the review proposed: that file tests the `/corpus` records page, and the two files named hold the browser-run and chase fixtures.
 
 ## Decisions
-- [2026-11-12 — Protocol-change signals are flags; the hand-off accept refuses a changed search only](../../decisions.md) (proposed; the researcher confirms at the PR). F2 chose the flag `protocol_changed` over the refusal `PROTOCOL_CHANGED_SINCE_BATCH`; `PROTOCOL_CHANGED_SINCE_BATCH` is a UI state card only. F3 widened `PROTOCOL_CHANGED_SINCE_RUN` to the compiled search (query, years, language, cap, databases) and flags a criteria-only edit without refusing.
+- [2026-11-12 — Protocol-change signals are flags; the hand-off accept refuses a changed search only](../../decisions.md) (accepted by the researcher 2026-11-12). F2 chose the flag `protocol_changed` over the refusal `PROTOCOL_CHANGED_SINCE_BATCH`; `PROTOCOL_CHANGED_SINCE_BATCH` is a UI state card only. F3 widened `PROTOCOL_CHANGED_SINCE_RUN` to the compiled search (query, years, language, cap, databases) and flags a criteria-only edit without refusing.
 - Recovery after F2 is undoing the edit or replacing the protocol through Inception (M4d archive); Prepare cannot rebind, because it refuses a protocol that differs from the accepted corpus's.
 - The screening API UI fixtures (`tests/fixtures/screening_api/`) were regenerated with `scripts/generate_screening_api_fixtures.py`: four files gain `protocol_changed: false`, nothing else changes.
 
