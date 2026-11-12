@@ -1,5 +1,5 @@
 # H-input-limits Input hardening (F5, F6, F7)
-Branch: dev/hardening/input-limits · Lane: **RELEASE** (escalated from the brief's STANDARD after the independent review: the diff changes public HTTP semantics, every console 422 becomes the `BODY_INVALID` envelope, inception gains `DRAFT_TOO_LARGE`, and decision intake refuses events it accepted before; `test_gate_policy.md` §lanes puts that in RELEASE, as it did for M3h-providers and M4c. No Contract v1 schema, artifact identity or snapshot change: `generate_contract_baseline.py --check` passes) · Status: IN PROGRESS · Started: 2026-11-12
+Branch: dev/hardening/input-limits · Lane: **RELEASE** (escalated from the brief's STANDARD after the independent review: the diff changes public HTTP semantics, every console 422 becomes the `BODY_INVALID` envelope, inception gains `DRAFT_TOO_LARGE`, and decision intake refuses events it accepted before; `test_gate_policy.md` §lanes puts that in RELEASE, as it did for M3h-providers and M4c. No Contract v1 schema, artifact identity or snapshot change: `generate_contract_baseline.py --check` passes) · Status: READY FOR PR (closure evidence at `2953f5f3`; push and PR wait for the researcher) · Started: 2026-11-12
 
 Scope is item 4 of the hardening plan in
 [`three-phase-hardening-2026-11-10.md`](../../assessment/three-phase-hardening-2026-11-10.md) §4:
@@ -16,7 +16,7 @@ session), F2–F4, F8–F10.
 - [x] F7: a decision event with `decided_at` more than 5 minutes after the engine's `received_at` is refused `PROVENANCE_MISSING`; a `device` that contradicts the token scope is refused; `note` is capped at 2 000 characters (`tests/test_screening_events.py`, `tests/console/test_screening_api_v1.py`).
 - [x] Each finding re-verified by `phase-auditor` before the fix; failing test written first.
 - [x] F7 review repair: a retry of an event stored before the limits is still `duplicate` (`tests/test_screening_events.py::test_f7_a_stored_event_retried_after_the_limits_is_a_duplicate`).
-- [ ] Closure gate (`select_test_gate.py --changed main --stage closure`) on the final commit, `generate_contract_baseline.py --check`, `milestone-reviewer` APPROVE.
+- [x] Closure gate (`select_test_gate.py --changed main --stage closure`) on the final commit, `generate_contract_baseline.py --check`, `milestone-reviewer` APPROVE.
 
 ## Findings fixed
 | ID | Reproducing test | Fails before | Passes after |
@@ -40,7 +40,10 @@ session), F2–F4, F8–F10.
 | pr | `0c5f1777` | `select_test_gate.py --changed main --stage pr`: `git diff --check`, `pytest -n auto`, ruff `scripts/`, typecheck, vitest, build, Playwright; plus ruff bug classes on `src/` and the baseline check | all pass: pytest 4793 passed, 15 skipped; vitest 499 passed (39 files); build ok; Playwright 431 passed, 13 skipped (light-only screenshots; 13 rewritten screenshots restored) | ~14 min + ~11 min |
 | review | `0c5f1777` | `milestone-reviewer` | CHANGES: lane must be RELEASE (P2); test citation and a query-parameter check, retried stored events, resolve-route note, provenance card copy (P3) | |
 | inner | repair | `pytest tests/test_screening_events.py tests/console/test_corpus_api.py tests/console/test_screening_api_v1.py tests/console/test_console_refusals.py`; `vitest` screening-home, triage | 103 passed; 65 passed; the new duplicate-retry test fails on the `0c5f1777` `events.py` (`['refused'] == ['duplicate']`) | ~1 min |
+| closure | `2953f5f3` | `select_test_gate.py --changed main --stage closure`: contract baseline, schemas and two-study fixture `--check`, ruff `scripts/`, `git diff --check`, `pytest -n auto`, `uv build --wheel`, typecheck, vitest, build, Playwright; plus ruff bug classes on `src/` | all pass: pytest 4794 passed, 15 skipped; wheel built; vitest 499 passed (39 files); Playwright 431 passed, 13 skipped (13 rewritten screenshots restored) | ~18 min |
+| review | `2953f5f3` | `milestone-reviewer` (repair delta, findings 1 to 5) | **APPROVE**; finding 4 accepted as residual (Deferred) | |
 
 ## Deferred
+- Re-review follow-up (P3): a one-line comment in `_intake_locked` saying a known event id skips the F7 limits on purpose (finding 3), so a later change does not tighten it back.
 - Review finding 4 (P3, residual): the conflict-resolve route (`console/api/screening_v1.py`) copies the kept event's `note` into the resolving event. A note stored before the 2 000-character limit and longer than it makes that resolution refused `INVALID_OUTPUT`. Only data written before this change can hit it, and today only the researcher's own desktop writes events; truncating or dropping the copied note is a design call left for the researcher. The workaround is to supersede the event with a shorter note first.
 - Review follow-up (P3): the `DRAFT_TOO_LARGE` card names the common limits, not the 200-character name limit; the engine's message names the exact field and limit.
