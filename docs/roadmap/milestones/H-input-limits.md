@@ -1,5 +1,5 @@
 # H-input-limits Input hardening (F5, F6, F7)
-Branch: dev/hardening/input-limits · Lane: **STANDARD** (`test_gate_policy.md` §lanes: a bounded behaviour change owned by this repository; the three fixes add refusal codes and limits on request bodies, change no Contract v1 schema, artifact identity or snapshot, and `generate_contract_baseline.py --check` must pass at every commit; escalate to RELEASE if the diff ever touches `src/scholar_harness/contracts/`) · Status: IN PROGRESS · Started: 2026-11-12
+Branch: dev/hardening/input-limits · Lane: **RELEASE** (escalated from the brief's STANDARD after the independent review: the diff changes public HTTP semantics, every console 422 becomes the `BODY_INVALID` envelope, inception gains `DRAFT_TOO_LARGE`, and decision intake refuses events it accepted before; `test_gate_policy.md` §lanes puts that in RELEASE, as it did for M3h-providers and M4c. No Contract v1 schema, artifact identity or snapshot change: `generate_contract_baseline.py --check` passes) · Status: IN PROGRESS · Started: 2026-11-12
 
 Scope is item 4 of the hardening plan in
 [`three-phase-hardening-2026-11-10.md`](../../assessment/three-phase-hardening-2026-11-10.md) §4:
@@ -10,12 +10,13 @@ screening round/snapshot code (owned by the concurrent M3g-citation-chasing
 session), F2–F4, F8–F10.
 
 ## Definition of done
-- [x] F5: every console body that pydantic refuses answers 422 with `{"detail": {"code": "BODY_INVALID", "message", "details"}}`; one `RequestValidationError` handler in `console/serve.py`; the code is registered in `console/refusals.py` and the screening API contract §7 (`tests/console/test_console_refusals.py`, `tests/console/test_console_serve.py`).
+- [x] F5: every console body that pydantic refuses answers 422 with `{"detail": {"code": "BODY_INVALID", "message", "details"}}`; one `RequestValidationError` handler in `console/serve.py`; the code is registered in `console/refusals.py` and the screening API contract §7 (`tests/console/test_console_refusals.py` for bodies, `tests/console/test_corpus_api.py::test_corpus_refusals` for a query parameter, `?limit=0`).
 - [x] F5: the Research UI shows a readable card for `BODY_INVALID` (`apps/research-ui/lib/screening-states.ts`, its test).
 - [x] F6: the draft shape has size limits (text fields and list counts); a draft over them is refused `DRAFT_TOO_LARGE` (422), registered in the refusal set and the contract §7; the limits are recorded in `docs/decisions.md` (`tests/console/test_inception_api.py`).
 - [x] F7: a decision event with `decided_at` more than 5 minutes after the engine's `received_at` is refused `PROVENANCE_MISSING`; a `device` that contradicts the token scope is refused; `note` is capped at 2 000 characters (`tests/test_screening_events.py`, `tests/console/test_screening_api_v1.py`).
 - [x] Each finding re-verified by `phase-auditor` before the fix; failing test written first.
-- [ ] `/gate pr` once on the final commit, `generate_contract_baseline.py --check`, `milestone-reviewer` APPROVE.
+- [x] F7 review repair: a retry of an event stored before the limits is still `duplicate` (`tests/test_screening_events.py::test_f7_a_stored_event_retried_after_the_limits_is_a_duplicate`).
+- [ ] Closure gate (`select_test_gate.py --changed main --stage closure`) on the final commit, `generate_contract_baseline.py --check`, `milestone-reviewer` APPROVE.
 
 ## Findings fixed
 | ID | Reproducing test | Fails before | Passes after |
@@ -36,5 +37,10 @@ session), F2–F4, F8–F10.
 | :-- | :-- | :-- | :-- | :-- |
 | inner | working tree on `6c66d24b` | `select_test_gate.py --changed main --stage inner`: `git diff --check`, screening tests, `tests/console -n auto`, `tests/inception`, typecheck, `vitest related`, the five owning files | all pass: 136, 407 (1 pre-existing skip), 112, 157 passed; vitest 28 files, 334 tests; typecheck clean | ~5 min |
 | inner | working tree | `ruff check src/ --select F821,F811,F823,F632,F7,B023,B006,E9`; `ruff check scripts/`; `generate_contract_baseline.py --check` | all clean; baseline current | <1 min |
+| pr | `0c5f1777` | `select_test_gate.py --changed main --stage pr`: `git diff --check`, `pytest -n auto`, ruff `scripts/`, typecheck, vitest, build, Playwright; plus ruff bug classes on `src/` and the baseline check | all pass: pytest 4793 passed, 15 skipped; vitest 499 passed (39 files); build ok; Playwright 431 passed, 13 skipped (light-only screenshots; 13 rewritten screenshots restored) | ~14 min + ~11 min |
+| review | `0c5f1777` | `milestone-reviewer` | CHANGES: lane must be RELEASE (P2); test citation and a query-parameter check, retried stored events, resolve-route note, provenance card copy (P3) | |
+| inner | repair | `pytest tests/test_screening_events.py tests/console/test_corpus_api.py tests/console/test_screening_api_v1.py tests/console/test_console_refusals.py`; `vitest` screening-home, triage | 103 passed; 65 passed; the new duplicate-retry test fails on the `0c5f1777` `events.py` (`['refused'] == ['duplicate']`) | ~1 min |
 
 ## Deferred
+- Review finding 4 (P3, residual): the conflict-resolve route (`console/api/screening_v1.py`) copies the kept event's `note` into the resolving event. A note stored before the 2 000-character limit and longer than it makes that resolution refused `INVALID_OUTPUT`. Only data written before this change can hit it, and today only the researcher's own desktop writes events; truncating or dropping the copied note is a design call left for the researcher. The workaround is to supersede the event with a shorter note first.
+- Review follow-up (P3): the `DRAFT_TOO_LARGE` card names the common limits, not the 200-character name limit; the engine's message names the exact field and limit.

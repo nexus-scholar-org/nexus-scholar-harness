@@ -201,7 +201,11 @@ def test_corpus_refusals(tmp_path):
     assert forged.status_code == 422
     assert forged.json()["detail"]["code"] == "CALLER_IDENTITY_REFUSED"
 
-    assert client.get("/api/v1/ui/corpus/included?limit=0").status_code == 422
+    bad_limit = client.get("/api/v1/ui/corpus/included?limit=0")
+    assert bad_limit.status_code == 422
+    # H-input-limits (F5): a query parameter pydantic refuses answers the envelope too.
+    assert bad_limit.json()["detail"]["code"] == "BODY_INVALID"
+    assert bad_limit.json()["detail"]["details"]["errors"][0]["loc"] == ["query", "limit"]
     assert client.get("/api/v1/ui/corpus/included?limit=201").status_code == 422
     assert client.get("/api/v1/ui/corpus/included?offset=-1").status_code == 422
 

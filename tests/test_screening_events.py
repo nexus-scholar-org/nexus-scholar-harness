@@ -686,3 +686,19 @@ def test_f7_values_at_the_limits_are_accepted(ws):
     phone = _event(ws, studies[1], device="phone")
     assert _intake(ws, [phone], token_scope="phone") == ["accepted"]
     assert [e["device"] for e in ev.read_events(ws)] == ["desktop", "phone"]
+
+
+def test_f7_a_stored_event_retried_after_the_limits_is_a_duplicate(ws):
+    """Review finding 3: an event stored before the F7 limits (here a long note and a
+    phone device under a desktop token, written straight to the log) is still a
+    `duplicate` when retried, so the retry re-projects instead of being refused."""
+    studies = _studies(ws)
+    old = _event(ws, studies[0], device="phone", note="n" * (ev.MAX_NOTE_CHARS + 10))
+    stored = {**old, "received_at": "2026-11-04T10:00:05Z", "token_scope": "desktop", "changed_after_reveal": False}
+    log = ev.screener_file(ws, SCREENER)
+    log.parent.mkdir(parents=True, exist_ok=True)
+    log.write_text(json.dumps(stored) + "\n", encoding="utf-8")
+    assert [e["event_id"] for e in ev.read_events(ws)] == [old["event_id"]]
+    assert _intake(ws, [old]) == ["duplicate"]
+    # A new event with the same values is refused.
+    assert _intake(ws, [{**old, "event_id": str(uuid.uuid4())}]) == ["refused"]

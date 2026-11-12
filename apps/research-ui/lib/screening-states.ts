@@ -222,9 +222,9 @@ export const STATES: Record<string, StateEntry> = {
     role: "blocked",
     action: "triage",
     copy: {
-      en: T("Decision without provenance", "A decision lacks its screener, method or time and was refused; nothing is filled in for it.", "That decision", "Decide it again"),
-      fr: T("Décision sans provenance", "Une décision sans évaluateur, méthode ou horodatage a été refusée ; rien n'est complété à sa place.", "Cette décision", "La décider à nouveau"),
-      ar: T("قرار دون مصدر", "رُفض قرار يفتقد المراجع أو الطريقة أو الوقت، ولا يُملأ عنه شيء.", "ذلك القرار", "حسمه من جديد"),
+      en: T("Decision without provenance", "A decision lacks its screener, method or time, or its time is more than 5 minutes ahead of this computer's clock, and was refused; nothing is filled in for it. If the device's clock is wrong, correct it first.", "That decision", "Decide it again"),
+      fr: T("Décision sans provenance", "Une décision sans évaluateur, méthode ou horodatage, ou dont l'heure dépasse de plus de 5 minutes l'horloge de cet ordinateur, a été refusée ; rien n'est complété à sa place. Si l'horloge de l'appareil est fausse, corrigez-la d'abord.", "Cette décision", "La décider à nouveau"),
+      ar: T("قرار دون مصدر", "رُفض قرار يفتقد المراجع أو الطريقة أو الوقت، أو يسبق وقتُه ساعةَ هذا الحاسوب بأكثر من 5 دقائق، ولا يُملأ عنه شيء. إن كانت ساعة الجهاز خاطئة فصحّحها أولًا.", "ذلك القرار", "حسمه من جديد"),
     },
   },
   BATCH_MISSING: {

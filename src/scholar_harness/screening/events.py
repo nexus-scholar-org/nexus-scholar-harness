@@ -238,20 +238,39 @@ def validate_event(
     ``token_scope`` (``desktop`` or ``phone``) the event's ``device`` must be
     that scope; a ``note`` is text of at most :data:`MAX_NOTE_CHARS`.
     """
-    if not isinstance(event, dict):
-        return _refuse(INVALID_OUTPUT, "an event must be an object")
-    if not _UUID.match(str(event.get("event_id") or "")):
-        return _refuse(INVALID_OUTPUT, "event_id must be a UUID string")
+    return _shape_refusal(event, context) or _limit_refusal(event, token_scope, received_at)
+
+
+def _limit_refusal(event: dict[str, Any], token_scope: str | None, received_at: str | None) -> dict[str, str] | None:
+    """F7 (H-input-limits): the checks on values the client chooses, for an event
+    whose shape is valid. Intake applies them to new events only, so a retry of an
+    event stored before these limits is still a ``duplicate``."""
     decided = _parse_time(event.get("decided_at"))
-    if not str(event.get("screener_id") or "").strip() or decided is None:
-        return _refuse(PROVENANCE_MISSING, "screener_id and a real decided_at are required")
     received = _parse_time(received_at)
-    if received is not None and decided - received > MAX_FUTURE_SKEW:
+    if decided is not None and received is not None and decided - received > MAX_FUTURE_SKEW:
         return _refuse(
             PROVENANCE_MISSING,
             f"decided_at is more than {MAX_FUTURE_SKEW.seconds // 60} minutes ahead of the engine's clock; "
             "check the device's clock",
         )
+    if token_scope in DEVICES and event.get("device") != token_scope:
+        return _refuse(INVALID_OUTPUT, f"device must be {token_scope}, the scope of the token that sent the event")
+    note = event.get("note")
+    if note is not None and not isinstance(note, str):
+        return _refuse(INVALID_OUTPUT, "note must be text or null")
+    if isinstance(note, str) and len(note) > MAX_NOTE_CHARS:
+        return _refuse(INVALID_OUTPUT, f"note is longer than {MAX_NOTE_CHARS} characters")
+    return None
+
+
+def _shape_refusal(event: Any, context: ScreeningContext) -> dict[str, str] | None:
+    """The checks every event met before H-input-limits: shape, provenance, corpus, reason and binding."""
+    if not isinstance(event, dict):
+        return _refuse(INVALID_OUTPUT, "an event must be an object")
+    if not _UUID.match(str(event.get("event_id") or "")):
+        return _refuse(INVALID_OUTPUT, "event_id must be a UUID string")
+    if not str(event.get("screener_id") or "").strip() or _parse_time(event.get("decided_at")) is None:
+        return _refuse(PROVENANCE_MISSING, "screener_id and a real decided_at are required")
     if event.get("method") != "HUMAN":
         return _refuse(
             INVALID_OUTPUT, "decision events are human decisions; agents submit proposals"
@@ -260,13 +279,6 @@ def validate_event(
         return _refuse(INVALID_OUTPUT, "outcome must be INCLUDE, EXCLUDE or MAYBE")
     if event.get("device") not in DEVICES:
         return _refuse(INVALID_OUTPUT, "device must be desktop or phone")
-    if token_scope in DEVICES and event["device"] != token_scope:
-        return _refuse(INVALID_OUTPUT, f"device must be {token_scope}, the scope of the token that sent the event")
-    note = event.get("note")
-    if note is not None and not isinstance(note, str):
-        return _refuse(INVALID_OUTPUT, "note must be text or null")
-    if isinstance(note, str) and len(note) > MAX_NOTE_CHARS:
-        return _refuse(INVALID_OUTPUT, f"note is longer than {MAX_NOTE_CHARS} characters")
     for engine_field in ENGINE_FIELDS:
         if engine_field in event:
             return _refuse(INVALID_OUTPUT, f"{engine_field} is set by the engine, not the client")
@@ -488,11 +500,16 @@ def _intake_locked(ws, events, token_scope, received_at, device, context, after_
     pending: list[dict[str, Any]] = []
     for raw in events:
         event_id = str(raw.get("event_id") or "") if isinstance(raw, dict) else ""
-        refusal = validate_event(raw, context, token_scope=token_scope, received_at=received_at)
+        refusal = _shape_refusal(raw, context)
         if refusal is not None:
             results.append(IntakeResult(event_id, "refused", refusal))
             continue
         previous = known.get(event_id)
+        if previous is None:
+            refusal = _limit_refusal(raw, token_scope, received_at)
+            if refusal is not None:
+                results.append(IntakeResult(event_id, "refused", refusal))
+                continue
         if previous is not None:
             if _client_content(previous) == _client_content(raw):
                 results.append(IntakeResult(event_id, "duplicate"))
