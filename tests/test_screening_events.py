@@ -702,3 +702,30 @@ def test_f7_a_stored_event_retried_after_the_limits_is_a_duplicate(ws):
     assert _intake(ws, [old]) == ["duplicate"]
     # A new event with the same values is refused.
     assert _intake(ws, [{**old, "event_id": str(uuid.uuid4())}]) == ["refused"]
+
+
+def _store_legacy(ws: Path, event: dict) -> None:
+    """Append an event as an engine before the F7 limits stored it (no intake checks)."""
+    stored = {**event, "received_at": "2026-11-04T10:00:05Z", "token_scope": event["device"], "changed_after_reveal": False}
+    log = ev.screener_file(ws, SCREENER)
+    log.parent.mkdir(parents=True, exist_ok=True)
+    with log.open("a", encoding="utf-8") as handle:
+        handle.write(json.dumps(stored) + "\n")
+
+
+def test_f7_a_note_copied_from_the_superseded_event_skips_the_cap(ws):
+    """Decision 2026-11-12: the 2 000-character cap is for new client input; a note
+    equal to the stored note of the event it supersedes is a copy and is accepted."""
+    studies = _studies(ws)
+    long_note = "n" * (ev.MAX_NOTE_CHARS + 500)
+    legacy = _event(ws, studies[0], note=long_note)
+    _store_legacy(ws, legacy)
+    copy = _event(ws, studies[0], "MAYBE", supersedes=legacy["event_id"], note=long_note)
+    assert _intake(ws, [copy]) == ["accepted"]
+    # A changed long note is new input and is still refused.
+    other = _event(ws, studies[1], note="short")
+    assert _intake(ws, [other]) == ["accepted"]
+    grown = _event(ws, studies[1], "MAYBE", supersedes=other["event_id"], note=long_note)
+    assert _intake(ws, [grown]) == ["refused"]
+    edited = _event(ws, studies[0], "EXCLUDE", supersedes=copy["event_id"], note=long_note + "!")
+    assert _intake(ws, [edited]) == ["refused"]

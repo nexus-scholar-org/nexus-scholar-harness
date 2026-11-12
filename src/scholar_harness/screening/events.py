@@ -241,10 +241,22 @@ def validate_event(
     return _shape_refusal(event, context) or _limit_refusal(event, token_scope, received_at)
 
 
-def _limit_refusal(event: dict[str, Any], token_scope: str | None, received_at: str | None) -> dict[str, str] | None:
+def _limit_refusal(
+    event: dict[str, Any],
+    token_scope: str | None,
+    received_at: str | None,
+    *,
+    copied_note: str | None = None,
+) -> dict[str, str] | None:
     """F7 (H-input-limits): the checks on values the client chooses, for an event
     whose shape is valid. Intake applies them to new events only, so a retry of an
-    event stored before these limits is still a ``duplicate``."""
+    event stored before these limits is still a ``duplicate``.
+
+    ``copied_note`` is the stored note of the event this one supersedes. A note
+    equal to it is a copy of stored data, not new client input, so it skips the
+    length cap (decision 2026-11-12): resolving a conflict keeps a note written
+    before the cap.
+    """
     decided = _parse_time(event.get("decided_at"))
     received = _parse_time(received_at)
     if decided is not None and received is not None and decided - received > MAX_FUTURE_SKEW:
@@ -258,7 +270,7 @@ def _limit_refusal(event: dict[str, Any], token_scope: str | None, received_at: 
     note = event.get("note")
     if note is not None and not isinstance(note, str):
         return _refuse(INVALID_OUTPUT, "note must be text or null")
-    if isinstance(note, str) and len(note) > MAX_NOTE_CHARS:
+    if isinstance(note, str) and len(note) > MAX_NOTE_CHARS and note != copied_note:
         return _refuse(INVALID_OUTPUT, f"note is longer than {MAX_NOTE_CHARS} characters")
     return None
 
@@ -505,8 +517,14 @@ def _intake_locked(ws, events, token_scope, received_at, device, context, after_
             results.append(IntakeResult(event_id, "refused", refusal))
             continue
         previous = known.get(event_id)
+        # A known event id skips the F7 limits on purpose (review finding 3): it
+        # can only be a `duplicate` or an IDEMPOTENCY_CONFLICT below, so a retry
+        # of an event stored before the limits still re-projects. Do not move the
+        # limits ahead of this check.
         if previous is None:
-            refusal = _limit_refusal(raw, token_scope, received_at)
+            parent = known.get(str(raw.get("supersedes") or ""))
+            copied = parent.get("note") if parent is not None and isinstance(parent.get("note"), str) else None
+            refusal = _limit_refusal(raw, token_scope, received_at, copied_note=copied)
             if refusal is not None:
                 results.append(IntakeResult(event_id, "refused", refusal))
                 continue

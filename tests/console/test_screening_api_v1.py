@@ -666,3 +666,25 @@ def test_f7_a_phone_device_under_a_desktop_token_is_refused(client):
     results = _post(client, [_event(client, study)], headers=phone)  # device: desktop
     assert results[0]["result"] == "refused" and results[0]["refusal"]["code"] == "INVALID_OUTPUT"
     assert client.get(f"{BASE}/decisions/conflicts").json()["items"] == []
+
+
+def test_a_conflict_kept_with_a_legacy_long_note_resolves(client, ws):
+    """Decision 2026-11-12: a note stored before the 2 000-character cap, copied by the
+    resolve route into the resolving event, does not make the resolution refused."""
+    from scholar_harness.screening import events as ev
+
+    study = _studies(client)[0]
+    long_note = "n" * (ev.MAX_NOTE_CHARS + 500)
+    legacy = _event(client, study, note=long_note)
+    stored = {**legacy, "received_at": "2026-11-04T10:00:05Z", "token_scope": "desktop", "changed_after_reveal": False}
+    log = ev.screener_file(ws, legacy["screener_id"])
+    log.parent.mkdir(parents=True, exist_ok=True)
+    log.write_text(json.dumps(stored) + "\n", encoding="utf-8")
+    phone = {"Authorization": f"Bearer {PHONE}"}
+    assert _post(client, [_event(client, study, "EXCLUDE", device="phone")], headers=phone)[0]["result"] == "conflict"
+    resolved = client.post(f"{BASE}/decisions/conflicts/{study}/resolve", json={"keep_event_id": legacy["event_id"]})
+    assert resolved.status_code == 200, resolved.text[:300]
+    assert resolved.json()["results"][0]["result"] == "accepted"
+    assert client.get(f"{BASE}/decisions/conflicts").json()["items"] == []
+    resolution = [e for e in ev.read_events(ws) if e.get("supersedes") == legacy["event_id"]]
+    assert len(resolution) == 1 and resolution[0]["note"] == long_note

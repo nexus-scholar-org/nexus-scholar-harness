@@ -16,6 +16,7 @@ session), F2–F4, F8–F10.
 - [x] F7: a decision event with `decided_at` more than 5 minutes after the engine's `received_at` is refused `PROVENANCE_MISSING`; a `device` that contradicts the token scope is refused; `note` is capped at 2 000 characters (`tests/test_screening_events.py`, `tests/console/test_screening_api_v1.py`).
 - [x] Each finding re-verified by `phase-auditor` before the fix; failing test written first.
 - [x] F7 review repair: a retry of an event stored before the limits is still `duplicate` (`tests/test_screening_events.py::test_f7_a_stored_event_retried_after_the_limits_is_a_duplicate`).
+- [x] Review finding 4, decided by the researcher on 2026-11-12 ("yes do that", relayed by the coordinating session): a note copied from the event it supersedes skips the cap, so a conflict kept with a note stored before the cap resolves (`tests/console/test_screening_api_v1.py::test_a_conflict_kept_with_a_legacy_long_note_resolves`, `tests/test_screening_events.py::test_f7_a_note_copied_from_the_superseded_event_skips_the_cap`). The two follow-ups are done: the comment on known event ids in `_intake_locked`, and the 200-character limit on the `DRAFT_TOO_LARGE` card.
 - [x] Closure gate (`select_test_gate.py --changed main --stage closure`) on the final commit, `generate_contract_baseline.py --check`, `milestone-reviewer` APPROVE.
 
 ## Findings fixed
@@ -44,6 +45,3 @@ session), F2–F4, F8–F10.
 | review | `2953f5f3` | `milestone-reviewer` (repair delta, findings 1 to 5) | **APPROVE**; finding 4 accepted as residual (Deferred) | |
 
 ## Deferred
-- Re-review follow-up (P3): a one-line comment in `_intake_locked` saying a known event id skips the F7 limits on purpose (finding 3), so a later change does not tighten it back.
-- Review finding 4 (P3, residual): the conflict-resolve route (`console/api/screening_v1.py`) copies the kept event's `note` into the resolving event. A note stored before the 2 000-character limit and longer than it makes that resolution refused `INVALID_OUTPUT`. Only data written before this change can hit it, and today only the researcher's own desktop writes events; truncating or dropping the copied note is a design call left for the researcher. The workaround is to supersede the event with a shorter note first.
-- Review follow-up (P3): the `DRAFT_TOO_LARGE` card names the common limits, not the 200-character name limit; the engine's message names the exact field and limit.

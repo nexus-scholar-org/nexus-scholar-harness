@@ -604,9 +604,9 @@ export const STATES: Record<string, StateEntry> = {
     role: "blocked",
     action: "none",
     copy: {
-      en: T("The draft is over its size limits", "An answer is longer than the engine keeps, or a list has more entries than it keeps: 2,000 characters for a topic or a question, 20 research questions, 50 concepts. Nothing was saved. The engine names the field below.", "Saving this draft", "Shorten the answer named"),
-      fr: T("Le brouillon dépasse ses limites de taille", "Une réponse est plus longue que ce que le moteur conserve, ou une liste compte plus d'entrées qu'il n'en garde : 2 000 caractères pour un sujet ou une question, 20 questions de recherche, 50 concepts. Rien n'a été enregistré. Le moteur nomme le champ ci-dessous.", "L'enregistrement de ce brouillon", "Raccourcir la réponse nommée"),
-      ar: T("المسودة تتجاوز حدود حجمها", "إحدى الإجابات أطول مما يحتفظ به المحرك، أو تضم قائمة مدخلات أكثر مما يحتفظ به: 2000 حرف للموضوع أو السؤال، و20 سؤال بحث، و50 مفهومًا. لم يُحفظ شيء. يذكر المحرك الحقل أدناه.", "حفظ هذه المسودة", "اختصر الإجابة المذكورة"),
+      en: T("The draft is over its size limits", "An answer is longer than the engine keeps, or a list has more entries than it keeps: 2,000 characters for a topic or a question, 200 for a name or a concept, 20 research questions, 50 concepts. Nothing was saved. The engine names the field below.", "Saving this draft", "Shorten the answer named"),
+      fr: T("Le brouillon dépasse ses limites de taille", "Une réponse est plus longue que ce que le moteur conserve, ou une liste compte plus d'entrées qu'il n'en garde : 2 000 caractères pour un sujet ou une question, 200 pour un nom ou un concept, 20 questions de recherche, 50 concepts. Rien n'a été enregistré. Le moteur nomme le champ ci-dessous.", "L'enregistrement de ce brouillon", "Raccourcir la réponse nommée"),
+      ar: T("المسودة تتجاوز حدود حجمها", "إحدى الإجابات أطول مما يحتفظ به المحرك، أو تضم قائمة مدخلات أكثر مما يحتفظ به: 2000 حرف للموضوع أو السؤال، و200 حرف للاسم أو المفهوم، و20 سؤال بحث، و50 مفهومًا. لم يُحفظ شيء. يذكر المحرك الحقل أدناه.", "حفظ هذه المسودة", "اختصر الإجابة المذكورة"),
     },
   },
   DRAFT_INCOMPLETE: {
