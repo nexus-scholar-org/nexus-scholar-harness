@@ -25,6 +25,8 @@ describe("inception.copy", () => {
       "DRAFT_INCOMPLETE", "STEP_UNKNOWN", "CRITERIA_UNDECIDED", "CRITERIA_MISSING", "INTENT_INVALID", "SCREENING_BOUND",
       "CONFIRMATION_MISMATCH", "WORKSPACE_EXISTS", "WORKSPACE_ROOT_UNAVAILABLE", "WORKSPACE_TITLE_INVALID", "WORKSPACE_PATH_REFUSED",
       "WORKSPACE_JOB_ACTIVE", "ARCHIVE_INCOMPLETE",
+      // H-input-limits: a draft over its size limits (F6) and a body pydantic refuses (F5).
+      "DRAFT_TOO_LARGE", "BODY_INVALID",
     ];
     for (const locale of SUPPORTED_LOCALES) {
       for (const code of codes) expect(stateCopy(locale, code).known, `${locale} ${code}`).toBe(true);

@@ -21,6 +21,7 @@ from pathlib import Path
 from typing import Any
 
 from fastapi import FastAPI, Request
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
@@ -38,6 +39,7 @@ from .api import screening_v1 as screening_v1_api
 from .api import streams as streams_api
 from .api import workspace as workspace_api
 from .api import workspaces as workspaces_api
+from .refusals import BODY_INVALID
 from .runtimes.job_runner import JobRunner
 
 #: Host names a loopback console answers to. ``serve`` passes exactly these.
@@ -71,6 +73,27 @@ def _phone_may_reach(method: str, path: str) -> bool:
 
 def _refusal(status: int, code: str, message: str) -> JSONResponse:
     return JSONResponse({"detail": {"code": code, "message": message}}, status_code=status)
+
+
+def _body_invalid(exc: RequestValidationError) -> JSONResponse:
+    """A body, query or path pydantic refuses (F5, H-input-limits).
+
+    Answers the refusal envelope with ``BODY_INVALID``, never FastAPI's bare
+    error list, so every refusal the console sends carries a code. ``details.errors``
+    keeps each error's ``loc``, ``msg`` and ``type``; the client's own value
+    (``input``) is not echoed back, and ``ctx`` may hold exception objects.
+    """
+    errors = [
+        {"loc": list(e.get("loc", ())), "msg": str(e.get("msg", "")), "type": str(e.get("type", ""))}
+        for e in exc.errors()
+    ]
+    first = errors[0] if errors else {"loc": ["body"], "msg": "the request could not be read"}
+    where = ".".join(str(part) for part in first["loc"]) or "body"
+    more = f" (and {len(errors) - 1} more)" if len(errors) > 1 else ""
+    message = f"the request does not match the route's shape: {where}: {first['msg']}{more}"
+    return JSONResponse(
+        {"detail": {"code": BODY_INVALID, "message": message, "details": {"errors": errors}}}, status_code=422
+    )
 
 
 def _workspace_free(path: str) -> bool:
@@ -183,6 +206,10 @@ def create_app(
     # Phone-scoped tokens (contract §4, §6). M2's `/lan/pair` adds to this set;
     # tests pass them in. A phone token reaches only `_PHONE_ROUTES`.
     app.state.phone_tokens = {t for t in (phone_tokens or ()) if t}
+
+    @app.exception_handler(RequestValidationError)
+    async def body_invalid(request: Request, exc: RequestValidationError) -> JSONResponse:  # noqa: ARG001 - FastAPI's signature
+        return _body_invalid(exc)
 
     # Registered after CORS, so it is the outer layer and runs first.
     @app.middleware("http")

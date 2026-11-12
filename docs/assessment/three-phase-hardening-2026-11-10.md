@@ -130,6 +130,8 @@ code on every refusal. This holds for all three phases.
   one-line message and `details` = the pydantic errors; register the code in
   `console/refusals.py`.
 - Test: `tests/console/test_console_refusals.py` (every refusal has a code).
+- Status: fixed in H-input-limits (`docs/roadmap/milestones/H-input-limits.md`);
+  `details` is `{"errors": [...]}` without the client's `input`.
 
 ### F6 (P2) Inception drafts have no size limits
 
@@ -142,6 +144,9 @@ nothing.
 - Fix: `Field(max_length=...)` on the text fields and a maximum count for
   `rqs`, `concepts`, `out_of_scope` and criteria; refuse with `DRAFT_TOO_LARGE`.
 - Test: `tests/console/test_inception_api.py`.
+- Status: fixed in H-input-limits; the limits sit on the draft shape
+  (`inception/steps.py`, `DRAFT_LIMITS`), which every route parses, not on
+  `DraftBody`; decision 2026-11-12 lists them.
 
 ### F7 (P3) Decision events trust three client-supplied values
 
@@ -153,7 +158,10 @@ provenance is recoverable); a 50 000-character note.
 - Fix: refuse a `decided_at` more than a few minutes in the future
   (`PROVENANCE_MISSING`); derive `device` from the token scope or refuse the
   mismatch; cap `note` at 2 000 characters like the discovery note.
-- Test: `tests/screening/` event-intake tests.
+- Test: `tests/test_screening_events.py`, `tests/console/test_screening_api_v1.py`
+  (the event-intake tests).
+- Status: fixed in H-input-limits; a mismatched `device` is refused
+  (`INVALID_OUTPUT`), not rewritten, and the future window is 5 minutes.
 
 ### F8 (P3) Journal noise and deterministic event ids
 
@@ -229,6 +237,7 @@ STANDARD lane unless noted:
    and on the hand-off screen.
 4. **F5 + F6 + F7 input hardening**: one validation handler, draft limits,
    event limits. Small, mechanical, good Sonnet work.
+   Status: fixed in H-input-limits (`docs/roadmap/milestones/H-input-limits.md`); PR pending.
 5. **F14 + F15 + F16 provider resilience**: rate limits from the providers'
    current rules and headers, one default database set, the arXiv date
    filter, paged citations, a fuller leg record.

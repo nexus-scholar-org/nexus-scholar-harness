@@ -59,7 +59,7 @@
   - **The stamp** is `true` on a superseding event from the same screener received after a current-generation reveal of that study's proposal, whether or not the outcome changes; the event chain shows what changed. A reveal from an earlier protocol or batch does not count.
   - Events stored before M1b-0 carry `false`, which for them means "not tracked".
 - **Skip** is client-side deferral. It writes no event.
-- `screener_id` is an unauthenticated local attestation (CON-02 relabel). The engine stamps `received_at` and the `device` token scope on intake; the client cannot set them.
+- `screener_id` is an unauthenticated local attestation (CON-02 relabel). The engine stamps `received_at` and the `device` token scope on intake; the client cannot set them. Since H-input-limits (F7) intake also refuses, as `INVALID_OUTPUT`, a `device` that is not the token's scope (a desktop token sends `desktop`, a phone token `phone`) and a `note` that is not text or is longer than 2 000 characters.
 
 ### 3.2 Storage
 
@@ -176,7 +176,7 @@ The UI reads proposals only through `GET /records/{study_id}/proposal`. The fiel
 | `WORKSPACE_NOT_VALID` | `/workspaces/open` | the folder is not a workspace, or no longer exists |
 | `WORKSPACE_BUSY` | `/workspaces/open` | an agent run is active or an approval is open; the restart would end it |
 | `RESTART_UNSUPPORTED` | `/workspaces/open` | the server was not started by `nexus-scholar ui` (M5-slim; all seven in `workspaces-api.md` §5) |
-| `PROVENANCE_MISSING` | events intake, collect | a decision lacks screener, method or `decided_at`; refused, never filled in (CON-11) |
+| `PROVENANCE_MISSING` | events intake, collect | a decision lacks screener, method or `decided_at`, or its `decided_at` is more than 5 minutes ahead of the engine's clock (H-input-limits, F7); refused, never filled in (CON-11) |
 | `PROJECTION_STALE` | publish, PRISMA preview check | a `batch_NNN_decisions.json` differs from the decision events (its rewrite failed); publish refuses until a retry re-projects it (M1b-0) |
 | `EXPORT_NOT_PUBLISHED` | `/export`, `/methods` | HTTP 409: no screening generation has been published (M5-slim, spec 10) |
 | `EXPORT_FORMAT_INVALID` | `/export` | HTTP 422: `format` is not `ris` or `csv`, or `set` names an unknown set (M5-slim) |
@@ -248,6 +248,8 @@ The UI reads proposals only through `GET /records/{study_id}/proposal`. The fiel
 | `IMPORT_BAD_YEAR` | staged source `rejected[].code` | a year tag without a four-digit year; the record is imported without a year; a row field (E3, M3d-engine) |
 | `DEDUP_NOT_RUN` | `GET /discovery/dedup` | HTTP 404: no deduplication has run in this workspace (E4a, M3d-engine) |
 | `PROTOCOL_CHANGED_SINCE_RUN` | `POST /corpus/accept` (discovery hand-off) | HTTP 409: the newest search run's query or year window differs from what `protocol.json` compiles to now; search again before accepting (M3d-engine) |
+| `DRAFT_TOO_LARGE` | `/inception/*` | HTTP 422: the draft is over its size limits (2 000 characters per free-text answer, 200 per name, 20 research questions, 50 concepts with 50 synonyms each, 50 items per list, 500 criterion decisions, 25 seeds); `message` names each field over its limit, `details.limits` the limits; nothing is saved (H-input-limits, F6) |
+| `BODY_INVALID` | every route | HTTP 422: a body, query or path parameter pydantic refuses (wrong type, unknown field, a discovery note over 2 000 characters); `details.errors[]` gives `loc`, `msg` and `type`, never the client's value (H-input-limits, F5) |
 | `STALE_BINDING` (inception) | preview with `session_id`, genesis | HTTP 409: the draft's direction was chosen on a pool that is no longer its recon session's latest (M4c), or the draft's question, years or languages changed after it was chosen (`details.code: SCOPE_CHANGED`, `details.changes`; M4d); choose it again. The code predates M4c and is listed in the console set. |
 | `ENGINE_UNREACHABLE` | UI only | client-side state, never sent by the engine |
 

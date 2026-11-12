@@ -99,6 +99,8 @@ DRAFT_CONFLICT = "DRAFT_CONFLICT"
 DRAFT_EMITTED = "DRAFT_EMITTED"
 DRAFT_INVALID = "DRAFT_INVALID"
 DRAFT_INCOMPLETE = "DRAFT_INCOMPLETE"
+#: H-input-limits (F6): the draft is over the size limits in ``inception/steps.py`` (``DRAFT_LIMITS``).
+DRAFT_TOO_LARGE = "DRAFT_TOO_LARGE"
 STEP_UNKNOWN = "STEP_UNKNOWN"
 CRITERIA_UNDECIDED = "CRITERIA_UNDECIDED"
 CRITERIA_MISSING = "CRITERIA_MISSING"
@@ -171,6 +173,11 @@ DEDUP_NOT_RUN = "DEDUP_NOT_RUN"
 #: Review F3 (M3d-engine): the hand-off accept of a run whose query or years the protocol no longer has.
 PROTOCOL_CHANGED_SINCE_RUN = "PROTOCOL_CHANGED_SINCE_RUN"
 
+# --- request validation (H-input-limits, F5) ----------------------------------
+#: A body, query or path parameter pydantic refuses on any route (HTTP 422);
+#: ``details.errors`` lists ``loc``, ``msg`` and ``type`` for each error.
+BODY_INVALID = "BODY_INVALID"
+
 # --- console guards (INC-01, M0) ----------------------------------------------
 HOST_REFUSED = "HOST_REFUSED"
 TOKEN_REQUIRED = "TOKEN_REQUIRED"
@@ -234,6 +241,7 @@ CONTRACT_ADDED = frozenset(
         DRAFT_EMITTED,
         DRAFT_INVALID,
         DRAFT_INCOMPLETE,
+        DRAFT_TOO_LARGE,
         STEP_UNKNOWN,
         CRITERIA_UNDECIDED,
         CRITERIA_MISSING,
@@ -271,6 +279,7 @@ CONTRACT_ADDED = frozenset(
         STAGED_IMPORT_PENDING,
         DEDUP_NOT_RUN,
         PROTOCOL_CHANGED_SINCE_RUN,
+        BODY_INVALID,
     }
     | LEG_ERROR_CODES
     | IMPORT_REJECTION_CODES

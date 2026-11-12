@@ -197,7 +197,8 @@ def test_conflict_listed_and_resolved_with_a_superseding_event(client):
     study = _studies(client)[0]
     keep = _event(client, study, "INCLUDE")
     _post(client, [keep])
-    assert _post(client, [_event(client, study, "EXCLUDE", device="phone")])[0]["result"] == "conflict"
+    phone = {"Authorization": f"Bearer {PHONE}"}
+    assert _post(client, [_event(client, study, "EXCLUDE", device="phone")], headers=phone)[0]["result"] == "conflict"
     conflicts = client.get(f"{BASE}/decisions/conflicts").json()["items"]
     assert [c["study_id"] for c in conflicts] == [study]
     resolved = client.post(f"{BASE}/decisions/conflicts/{study}/resolve", json={"keep_event_id": keep["event_id"]})
@@ -654,3 +655,14 @@ def test_queue_items_and_records_carry_their_batch_number(client):
     assert items and all(isinstance(i["batch_index"], int) and i["batch_index"] >= 1 for i in items)
     detail = client.get(f"{BASE}/records/{items[0]['study_id']}").json()
     assert detail["batch_index"] == items[0]["batch_index"]
+
+
+def test_f7_a_phone_device_under_a_desktop_token_is_refused(client):
+    """F7 (three-phase review): the device a decision claims must be the token's scope."""
+    study = _studies(client)[0]
+    results = _post(client, [_event(client, study, device="phone")])
+    assert results[0]["result"] == "refused" and results[0]["refusal"]["code"] == "INVALID_OUTPUT"
+    phone = {"Authorization": f"Bearer {PHONE}"}
+    results = _post(client, [_event(client, study)], headers=phone)  # device: desktop
+    assert results[0]["result"] == "refused" and results[0]["refusal"]["code"] == "INVALID_OUTPUT"
+    assert client.get(f"{BASE}/decisions/conflicts").json()["items"] == []

@@ -29,7 +29,7 @@ import re
 from collections.abc import Iterator
 from contextlib import contextmanager
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
@@ -43,6 +43,11 @@ logger = logging.getLogger(__name__)
 EVENTS_DIR = Path("literature") / "screening" / "events"
 OUTCOMES = frozenset({"INCLUDE", "EXCLUDE", "MAYBE"})
 DEVICES = frozenset({"desktop", "phone"})
+#: F7 (H-input-limits): a ``decided_at`` further ahead of the engine's clock
+#: than this is refused; a device clock may run a little fast, a year cannot.
+MAX_FUTURE_SKEW = timedelta(minutes=5)
+#: F7: a ``note`` longer than this is refused (the discovery note's limit).
+MAX_NOTE_CHARS = 2_000
 REVEALS_FILE = Path("literature") / "screening" / "reveals.jsonl"
 REVEAL_ACTION = "SCREENING_PROPOSAL_REVEALED"
 PROJECTION_FAILED_ACTION = "SCREENING_PROJECTION_FAILED"
@@ -208,23 +213,45 @@ def _parse_time(value: Any) -> datetime | None:
     if not isinstance(value, str) or not value.strip() or value.startswith("1970-01-01"):
         return None
     try:
-        return datetime.fromisoformat(value.replace("Z", "+00:00"))
+        parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
     except ValueError:
         return None
+    # A time without an offset is read as UTC, so two times always compare.
+    return parsed if parsed.tzinfo is not None else parsed.replace(tzinfo=UTC)
 
 
 def _refuse(code: str, message: str) -> dict[str, str]:
     return {"code": code, "message": message}
 
 
-def validate_event(event: Any, context: ScreeningContext) -> dict[str, str] | None:
-    """The typed refusal for one event, or None when it may be stored."""
+def validate_event(
+    event: Any,
+    context: ScreeningContext,
+    *,
+    token_scope: str | None = None,
+    received_at: str | None = None,
+) -> dict[str, str] | None:
+    """The typed refusal for one event, or None when it may be stored.
+
+    F7 (H-input-limits): with ``received_at`` (the engine's clock) a
+    ``decided_at`` more than :data:`MAX_FUTURE_SKEW` ahead is refused; with
+    ``token_scope`` (``desktop`` or ``phone``) the event's ``device`` must be
+    that scope; a ``note`` is text of at most :data:`MAX_NOTE_CHARS`.
+    """
     if not isinstance(event, dict):
         return _refuse(INVALID_OUTPUT, "an event must be an object")
     if not _UUID.match(str(event.get("event_id") or "")):
         return _refuse(INVALID_OUTPUT, "event_id must be a UUID string")
-    if not str(event.get("screener_id") or "").strip() or _parse_time(event.get("decided_at")) is None:
+    decided = _parse_time(event.get("decided_at"))
+    if not str(event.get("screener_id") or "").strip() or decided is None:
         return _refuse(PROVENANCE_MISSING, "screener_id and a real decided_at are required")
+    received = _parse_time(received_at)
+    if received is not None and decided - received > MAX_FUTURE_SKEW:
+        return _refuse(
+            PROVENANCE_MISSING,
+            f"decided_at is more than {MAX_FUTURE_SKEW.seconds // 60} minutes ahead of the engine's clock; "
+            "check the device's clock",
+        )
     if event.get("method") != "HUMAN":
         return _refuse(
             INVALID_OUTPUT, "decision events are human decisions; agents submit proposals"
@@ -233,6 +260,13 @@ def validate_event(event: Any, context: ScreeningContext) -> dict[str, str] | No
         return _refuse(INVALID_OUTPUT, "outcome must be INCLUDE, EXCLUDE or MAYBE")
     if event.get("device") not in DEVICES:
         return _refuse(INVALID_OUTPUT, "device must be desktop or phone")
+    if token_scope in DEVICES and event["device"] != token_scope:
+        return _refuse(INVALID_OUTPUT, f"device must be {token_scope}, the scope of the token that sent the event")
+    note = event.get("note")
+    if note is not None and not isinstance(note, str):
+        return _refuse(INVALID_OUTPUT, "note must be text or null")
+    if isinstance(note, str) and len(note) > MAX_NOTE_CHARS:
+        return _refuse(INVALID_OUTPUT, f"note is longer than {MAX_NOTE_CHARS} characters")
     for engine_field in ENGINE_FIELDS:
         if engine_field in event:
             return _refuse(INVALID_OUTPUT, f"{engine_field} is set by the engine, not the client")
@@ -454,7 +488,7 @@ def _intake_locked(ws, events, token_scope, received_at, device, context, after_
     pending: list[dict[str, Any]] = []
     for raw in events:
         event_id = str(raw.get("event_id") or "") if isinstance(raw, dict) else ""
-        refusal = validate_event(raw, context)
+        refusal = validate_event(raw, context, token_scope=token_scope, received_at=received_at)
         if refusal is not None:
             results.append(IntakeResult(event_id, "refused", refusal))
             continue
