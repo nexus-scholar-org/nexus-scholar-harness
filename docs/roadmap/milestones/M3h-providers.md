@@ -36,8 +36,8 @@ proposal, not a build, for OpenAlex semantic search (see "Proposals").
 | S2 key (addition A) | `test_provider_correctness.py::test_a_rejected_s2_key_fails_the_leg_and_is_never_retried_keyless` | yes by reading: at `3e353ea` a 403 retried keyless (two calls, leg `ok`) | yes |
 
 ## Decisions
-- [2026-11-10 — OpenAlex needs its API key](../../decisions.md) (proposed; the researcher confirms at the PR).
-- [2026-11-10 — A rejected Semantic Scholar key fails the leg](../../decisions.md) (proposed; replaces the silent 403 downgrade of 2026-10-17).
+- [2026-11-10 — OpenAlex needs its API key](../../decisions.md) (accepted by the researcher 2026-11-12).
+- [2026-11-10 — A rejected Semantic Scholar key fails the leg](../../decisions.md) (accepted by the researcher 2026-11-12; replaces the silent 403 downgrade of 2026-10-17).
 - Golden cassette: the researcher chose on 2026-11-10 to re-record only the OpenAlex interaction with their key (in the worktree's gitignored `.env`). One live request; the key is filtered out of the cassette and asserted absent. The pinned SCI/REC digests move because OpenAlex now returns today's records for the scoped search parameter.
 - A live check on 2026-11-10 (one keyless ESearch request to NCBI, no email, recorded as the fixtures) showed that the JSON answer's `errorlist.fieldsnotfound` is empty for `weed[ab]` while the XML answer says `<FieldNotFound>ab</FieldNotFound>`. The provider therefore also compares the tags it sent with the labels in `querytranslation`.
 - The inception copy key `step.comingWithRecon` keeps its name (spec 02 names it for deletion when Explore ships); only its text changes.

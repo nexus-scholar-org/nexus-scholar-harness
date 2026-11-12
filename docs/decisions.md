@@ -67,11 +67,11 @@ The researcher answered on 2026-11-11 in chat, taking every recommended option. 
 
 The researcher approved two corrections to the 2026-11-10 ladder entry below, both from `docs/lessons/2026-10-17_uav_harvest_calibration_lessons.md`, which the first design did not use. (1) Lesson 35: the UAV corpus was about 98.7% excludes, so the gate's "100 records compared" held one or two includes and its recall interval meant nothing. The gate now counts the researcher's blind includes (an Unclear counts as an include): L1 needs at least 35 compared with a 95% Wilson lower bound on include recall of at least 0.90; L2 needs 75 and 0.95. Agreement and Cohen's κ are shown, never gated on. At a 2% include rate L1 needs about 1 750 records screened first; on a sparse corpus it may never unlock, by design. (2) Lesson 54: a disclosed exclusion prior flipped blind Unclear judgments to Exclude, so at every rung the agent's prompt carries no outcome statistics and no database of origin, any new prior passes a blinded A/B test measured on the Unclear-preservation rate, and the L1 audit reports the agent's Unclear rate beside its misses. Design: [`architecture/agent_autonomy_ladder.md`](architecture/agent_autonomy_ladder.md) §4.
 
-## 2026-11-10 — A Semantic Scholar key that is rejected fails the leg; no silent keyless fallback (proposed; M3h-providers)
+## 2026-11-10 — A Semantic Scholar key that is rejected fails the leg; no silent keyless fallback (accepted 2026-11-12; M3h-providers)
 
 Until now a 403 on `SCHOLAR_S2_KEY` retried the bulk search keyless with only a warning log, so a bad, quoted or pruned key was invisible and the report could not say which pool served the leg. Now a 401 or 403 fails the Semantic Scholar leg with `PROVIDER_REFUSED` and a note naming `SCHOLAR_S2_KEY` (the other databases still run, the run is `PARTIAL`); to search keyless the researcher unsets the key. `GET /discovery/plan` reports `s2_key_set` and the Plan screen says "Set, not yet verified", because the plan sends nothing. The key stays optional: the bulk endpoint runs keyless. The abstract hydrator's one keyless retry is unchanged (a follow-up). Evidence: `docs/kits/search/PROVIDERS_2026-11.md` §3a.
 
-## 2026-11-10 — OpenAlex needs its API key: a browser run that selects OpenAlex refuses without it (proposed; M3h-providers)
+## 2026-11-10 — OpenAlex needs its API key: a browser run that selects OpenAlex refuses without it (accepted 2026-11-12; M3h-providers)
 
 OpenAlex has required an API key since 2026-02-13 (keys only; the email parameter is gone; keyless calls share a small daily budget per IP, then 409; cursor paging past page one answers 401). The search kit stops sending `mailto` to OpenAlex. `POST /api/v1/discovery/runs` refuses with the new code `OPENALEX_KEY_NOT_SET` (409), after `MAILTO_NOT_SET` and before any request, when OpenAlex is among the run's databases (the body's `providers`, else the protocol's) and `SCHOLAR_OPENALEX_KEY` is unset; `GET /discovery/plan` reports `openalex_key_set`, and the Plan screen prints the line to set as it does for the contact email. The key stays an environment variable, like the email (decision 2026-11-08): the browser writes no settings file. Not gated: the engine and the CLI `run` (a keyless OpenAlex leg fails with `PROVIDER_REFUSED` and a note naming the key, and the other databases still run), and recall checks (a DOI lookup per seed fits the keyless budget). An OpenAlex 401, 403 or 409 keeps `error_code: PROVIDER_REFUSED` and adds that note. Record: `docs/roadmap/milestones/M3h-providers.md`; findings F12 in `docs/assessment/three-phase-hardening-2026-11-10.md`.
 
@@ -79,7 +79,7 @@ OpenAlex has required an API key since 2026-02-13 (keys only; the email paramete
 
 The screening agent stays a proposer by default (rung L0, today's behaviour). Two gated modes are added: "Agent screens, you audit" (L1: the agent's EXCLUDE proposals stand as decisions; the researcher decides every agent INCLUDE, every Unclear, and a random audit sample of 60 agent excludes) and "Autopilot" (L2: every record the agent could decide; Unclear stays with the researcher; typed acknowledgement at publish). A rung unlocks only through a calibration on the researcher's own blind decisions of this review: L1 needs at least 100 compared (the whole corpus under 200 records, never fewer than 50), include recall ≥ 0.95, 95% CI low ≥ 0.90, at most 2 missed includes; L2 needs 200, ≥ 0.98, ≥ 0.95, ≤ 1. L2 is designed but built only after the screening agent has been measured on the IEEE corpus. Provenance: one `AGENT_ADOPTED` decision event per record, minted by the engine only (never accepted from a client), carrying the proposal id, the mode, the calibration run and the human who set the mode; a Contract v1 change through the baseline gate and an independent review. A protocol change drops the review to L0 and invalidates the calibration. A missed include found in the audit is reported on Home and in the methods paragraph; the researcher, not the engine, decides whether to drop the mode. The methods paragraph states the classifier, the mode, the calibration numbers and the audit result. The existing `ai_agreed_exclusion` setting, which no code acts on, is retired. A bounded discovery assistant (synonyms, translation explanations, recall repair) is proposals into the protocol, no autonomy. Milestones M9a-measure, M9b-ladder-engine (RELEASE), M9c-ladder-ui, M9d-discovery-assistant, none before M3c-screens lands. Design: [`architecture/agent_autonomy_ladder.md`](architecture/agent_autonomy_ladder.md).
 
-## 2026-11-10 — Discovery API: what the packet left open (proposed; M3b-api)
+## 2026-11-10 — Discovery API: what the packet left open (accepted 2026-11-12; M3b-api)
 
 Twelve points the discovery API packet did not settle, decided while building M3b-api; each is listed with its packet section in `docs/roadmap/milestones/M3b-api.md` "Decisions". The ones that shape later work: a researcher's cancel (and a console shutdown) stops the harvest only, archives the run `PARTIAL` with its records in the run folder, and builds nothing from it; the methods draft is rendered on read and never stored, the reviewed text is stored per run; a run is `stale` once a later run's records became the corpus; `PROVIDER_UNKNOWN` (422) is a new code; a leg failure that is not a provider answer has no `error_code`; `run_pipeline` gains optional keyword hooks, the CLI and orchestrator calls are unchanged.
 
@@ -116,9 +116,9 @@ The researcher chose these on 2026-11-10, each explained in plain terms and take
 6. **No CSV import** until a tester brings a CSV-only export. RIS and PubMed `.nbib` remain the formats.
 7. **A per-run cap override is allowed from the browser**, recorded as `run_override` on every leg and in the report; the plan shows only the protocol's cap.
 
-## 2026-11-09 — Recon over HTTP: one session store, pools that say what failed, anchors by occurrence (proposed; M4c)
+## 2026-11-09 — Recon over HTTP: one session store, pools that say what failed, anchors by occurrence (accepted 2026-11-12; M4c)
 
-Proposed by the M4c session. The researcher accepts or changes it at the PR.
+Proposed by the M4c session. The researcher accepted it as written on 2026-11-12.
 
 - **One recon engine.**
   - The recon session store moves from `scholar_agent/server.py` to `scholar_harness/recon/session.py`.
@@ -465,7 +465,7 @@ The beta is tagged `v1.1.0b1` only after the version fix, so the GitHub Release 
 wheel carry the same version, and nothing named 1.0.0 is published under a beta tag
 (researcher, 2026-11-07).
 
-## 2026-11-06 — Three kinds of parameter, and where each lives (proposed; point 2 accepted 2026-11-08, see "Method parameters move into the protocol")
+## 2026-11-06 — Three kinds of parameter, and where each lives (accepted 2026-11-12; point 2 was accepted 2026-11-08, see "Method parameters move into the protocol")
 
 The researcher raised it on 2026-11-06: values are encoded throughout the
 project, screening may not be specific to systematic reviews, and the stages
