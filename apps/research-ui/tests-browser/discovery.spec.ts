@@ -129,6 +129,32 @@ test("a failed database shows its typed code and a capped one is a lower bound",
   await expect(page.locator('[data-ident="crossref"]')).toHaveAttribute("data-completeness", "lower_bound");
 });
 
+test("a published screening is chased, one database fails and one is capped, the accept starts round 2 and lands on Home", async ({ page }) => {
+  const fake = await engine(page, { runs: 1, accepted: true, published: true, chaseCapped: true, chaseFailedLeg: { provider: "semanticscholar", direction: "backward", code: "PROVIDER_RATE_LIMITED", error: "HTTP 429" } });
+  await page.goto("/en/discovery/chase/");
+  await expect(page.getByRole("heading", { name: "Chase the citations of your included studies" })).toBeVisible();
+  await expect(page.locator("nav[data-discovery-steps]").getByRole("link", { name: "8 Chase" })).toHaveAttribute("aria-current", "step");
+  await page.getByRole("button", { name: "Chase citations" }).click();
+  await expect(page.getByRole("heading", { name: "The chase is finished. These works are new." })).toBeVisible();
+  await expect(page.locator('[data-summary="openalex|forward"] [data-fetched]')).toContainText("at least 500");
+  await expect(page.locator('[data-summary="semanticscholar|backward"]')).toContainText("1");
+  await expect(page.locator("[data-count=new]")).toBeVisible();
+  await page.getByRole("button", { name: /Send these \d+ works to screening/ }).click();
+  await expect(page.getByRole("heading", { name: "These works are with screening as round 2." })).toBeVisible();
+  expect(fake.round).toBe(2);
+  await page.getByRole("link", { name: "Go to screening" }).click();
+  await page.waitForURL(/\/en\/screening\/home\/?$/);
+});
+
+test("before publication the chase screen asks for the publish screen and shows no form", async ({ page }) => {
+  await engine(page, { runs: 1, accepted: true });
+  await page.goto("/en/discovery/chase/");
+  await expect(page.getByRole("heading", { name: "Publish the screening first." })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Chase citations" })).toHaveCount(0);
+  await expect(page.getByRole("link", { name: "Go to the Publish screen" })).toHaveAttribute("href", /\/en\/screening\/publish/);
+  await expect(page.locator("nav[data-discovery-steps]").getByRole("link", { name: "7 Hand-off" })).toBeVisible();
+});
+
 test("the hand-off refuses a run from an earlier protocol: PROTOCOL_CHANGED_SINCE_RUN", async ({ page }) => {
   const fake = await engine(page, { runs: 1, protocolChangedSinceRun: true });
   await page.goto("/en/discovery/handoff/");
@@ -139,7 +165,7 @@ test("the hand-off refuses a run from an earlier protocol: PROTOCOL_CHANGED_SINC
   expect(fake.accepted).toBe(false);
 });
 
-const SCREENS = ["", "plan/", "recall/", "harvest/", "dedup/", "report/", "handoff/"] as const;
+const SCREENS = ["", "plan/", "recall/", "harvest/", "dedup/", "report/", "handoff/", "chase/"] as const;
 const SEEDED: DiscoveryFakeOptions = { runs: 1 };
 
 const AXE_PATH = createRequire(import.meta.url).resolve("axe-core");

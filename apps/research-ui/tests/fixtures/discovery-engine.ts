@@ -45,6 +45,20 @@ export interface DiscoveryFakeOptions {
   refuseOnce?: Record<string, Answer>;
   /** The protocol's anchor papers kept in inception (`golden_seeds` on the plan, M4d). */
   goldenSeeds?: string[];
+  /** M3g: the screening is published and current (the chase's seeds are its includes; default false). */
+  published?: boolean;
+  /** M3g: finished chase runs already in the workspace (default 0). */
+  chaseRuns?: number;
+  /** M3g: fail this database and direction in every chase, with this typed code. */
+  chaseFailedLeg?: { provider: string; direction: "forward" | "backward"; code: string; error: string };
+  /** M3g: the forward OpenAlex leg reaches its cap in every chase (a lower bound). Default false. */
+  chaseCapped?: boolean;
+  /** M3g: every chase finds nothing new (EMPTY_RESULT). */
+  chaseNothingNew?: boolean;
+  /** M3g: the published includes carry no identifier (no chaseable seed). */
+  chaseNoSeeds?: boolean;
+  /** M3g: a chase is in progress; its stream has no end yet. */
+  activeChase?: boolean;
 }
 
 const PROVIDERS = ["openalex", "semanticscholar", "crossref", "arxiv", "pubmed", "biorxiv"] as const;
@@ -91,6 +105,91 @@ export function discoveryEngine(options: DiscoveryFakeOptions = {}) {
   let recall: Json | null = null;
   let methods: Record<string, Json> = {};
   let nextJob = 0;
+  // M3g: the citation chase. The screening is published or not; the chase runs, newest first.
+  let published = options.published ?? false;
+  let round = 1;
+  const chases: Json[] = [];
+  const SEED = "STU-" + "a".repeat(32);
+  const SEED_TITLE = "Edge weed detection on UAV imagery with a quantised network";
+  const UNCHASEABLE = { study_id: "STU-" + "b".repeat(32), title: "A record published without a DOI", reason: "no DOI, OpenAlex id or Semantic Scholar id" };
+  const chaseLegsOf = (providers: string[], directions: string[], cap: number): Json[] =>
+    providers.flatMap((provider) =>
+      directions.map((direction) => {
+        const failed = options.chaseFailedLeg?.provider === provider && options.chaseFailedLeg.direction === direction;
+        const hit = !!options.chaseCapped && provider === "openalex" && direction === "forward";
+        const fetched = failed ? 0 : hit ? cap : provider === "openalex" ? (direction === "forward" ? 7 : 31) : direction === "forward" ? 5 : 0;
+        const at = now();
+        return {
+          seed: SEED, provider, direction, fetched, cap: direction === "forward" ? cap : null, cap_hit: hit,
+          status: failed ? "failed" : "ok", error: failed ? options.chaseFailedLeg!.error : null, error_code: failed ? options.chaseFailedLeg!.code : null,
+          notes: hit ? [`stopped at the cap of ${cap}: the count is a lower bound`] : [], started_at: at, finished_at: at,
+        };
+      }),
+    );
+  const legsSummary = (legs: Json[]): Json[] => {
+    const rows = new Map<string, Json>();
+    for (const leg of legs) {
+      const key = `${leg.provider}|${leg.direction}`;
+      const row = rows.get(key) ?? { provider: leg.provider, direction: leg.direction, legs: 0, ok: 0, failed: 0, skipped: 0, fetched: 0, cap_hits: 0 };
+      row.legs = Number(row.legs) + 1;
+      row[String(leg.status)] = Number(row[String(leg.status)] ?? 0) + 1;
+      row.fetched = Number(row.fetched) + Number(leg.fetched);
+      row.cap_hits = Number(row.cap_hits) + (leg.cap_hit ? 1 : 0);
+      rows.set(key, row);
+    }
+    return [...rows.values()];
+  };
+  const addChase = (request: Json | null, cancelled = false): Json => {
+    const providers = ((request?.providers as string[] | undefined) ?? ["openalex", "semanticscholar"]);
+    const directions = ((request?.directions as string[] | undefined) ?? ["forward", "backward"]);
+    const cap = (request?.cap_per_seed as number | undefined) ?? 500;
+    const ceiling = (request?.ceiling as number | undefined) ?? 5000;
+    const legs = chaseLegsOf(providers, directions, cap);
+    const raw = legs.reduce((n, l) => n + Number(l.fetched), 0);
+    const failed = legs.filter((l) => l.status === "failed").length;
+    const nothing = !!options.chaseNothingNew;
+    const counts = nothing
+      ? { raw, duplicates_within_chase: 0, already_in_corpus: raw, outside_year_window: 0, over_ceiling: 0, new: 0 }
+      : { raw, duplicates_within_chase: Math.min(6, raw), already_in_corpus: Math.min(9, Math.max(0, raw - 6)), outside_year_window: Math.min(11, Math.max(0, raw - 15)), over_ceiling: 0, new: Math.max(0, raw - 26) };
+    const status = cancelled ? "PARTIAL" : failed === legs.length && legs.length ? "FAILED" : failed ? "PARTIAL" : counts.new === 0 ? "EMPTY_RESULT" : "SUCCESS";
+    const reason = cancelled
+      ? `cancelled by the researcher: ${raw} record(s) fetched before the stop; not published`
+      : status === "FAILED" ? "every database leg failed" : status === "PARTIAL" ? `${failed} of ${legs.length} legs failed`
+        : status === "EMPTY_RESULT" ? "nothing new: every chased record is in the corpus, a duplicate or outside the year window" : `${counts.new} new record(s) from 1 seed(s)`;
+    const at = now();
+    const chase = {
+      schema: "nexus.citation-chase.v1", chase: `chase_${String(chases.length + 1).padStart(3, "0")}`, status, reason, started_at: at, finished_at: now(),
+      seed_source: (request?.seeds as string | undefined) ?? "included", generation_id: "GEN-" + "7".repeat(12), parent_corpus: { artifact_id: "ART-corpus-" + "1".repeat(12), sha256: "sha256:" + "ab".repeat(32) },
+      providers, directions, forward_cap: cap, run_ceiling: ceiling, year_min: 2018, year_max: 2026,
+      seeds: [
+        { study_id: SEED, title: SEED_TITLE, decision: "INCLUDE", doi: "10.1000/seed", openalex_id: "W1", s2_id: null, chaseable: true, reason: null },
+        { ...UNCHASEABLE, decision: "INCLUDE", doi: null, openalex_id: null, s2_id: null, chaseable: false },
+      ],
+      legs, legs_summary: legsSummary(legs), counts,
+      already_in_corpus: counts.already_in_corpus ? [{ record: "doi:10.1000/known", title: "A work already in your corpus", study_id: "STU-" + "c".repeat(32) }] : [],
+      published: status !== "FAILED" && !cancelled, cancelled, notes: request?.note ? [String(request.note)] : cancelled ? ["cancelled by the researcher"] : [], accepted: null,
+    };
+    chases.unshift(chase);
+    return chase;
+  };
+  for (let i = 0; i < (options.chaseRuns ?? 0); i++) addChase(null);
+  const chaseSummaries = () =>
+    chases.map((c) => ({
+      chase: c.chase, status: c.status, reason: c.reason, started_at: c.started_at, finished_at: c.finished_at, seeds: (c.seeds as Json[]).length,
+      chaseable_seeds: (c.seeds as Json[]).filter((x) => x.chaseable).length, providers: c.providers, directions: c.directions, counts: c.counts, published: c.published, accepted: c.accepted,
+    }));
+  const chaseState = () => ({
+    shape: "discovery.chase-v1",
+    screening: { published, generation_id: published ? "GEN-" + "7".repeat(12) : null, round, arm: round > 1 ? "citation_searching" : "databases" },
+    seeds: !published
+      ? { source: "included", total: 0, chaseable: 0, not_chaseable: [] }
+      : options.chaseNoSeeds
+        ? { source: "included", total: 1, chaseable: 0, not_chaseable: [UNCHASEABLE] }
+        : { source: "included", total: 2, chaseable: 1, not_chaseable: [UNCHASEABLE] },
+    keys: { openalex_key_set: openalexKey, s2_key_set: s2Key },
+    defaults: { directions: ["forward", "backward"], providers: ["openalex", "semanticscholar"], forward_cap: 500, run_ceiling: 5000 },
+    runs: chaseSummaries(), latest: chases[0] ?? null, active_job: activeJob(),
+  });
 
   const legsOf = (capOverride: number | null): Json[] =>
     SELECTED.map((provider) => {
@@ -177,7 +276,7 @@ export function discoveryEngine(options: DiscoveryFakeOptions = {}) {
     imports_hint: ["scopus", "wos"],
   });
 
-  const startJob = (kind: "run" | "recall", events: { event: string; data: unknown }[], result: Json | null, open = false, state = "succeeded", error: Json | null = null): Json => {
+  const startJob = (kind: "run" | "recall" | "chase", events: { event: string; data: unknown }[], result: Json | null, open = false, state = "succeeded", error: Json | null = null): Json => {
     const id = `djob_${String(nextJob++).padStart(16, "0")}`;
     const started = now();
     const running = { job_id: id, kind, state: "running", started_at: started, finished_at: null, result: null, error: null };
@@ -191,6 +290,9 @@ export function discoveryEngine(options: DiscoveryFakeOptions = {}) {
     return running;
   };
 
+  if (options.activeChase) {
+    startJob("chase", [{ event: "leg", data: { seed: SEED, provider: "openalex", direction: "forward", fetched: 7, cap: 500, cap_hit: false, status: "ok", error_code: null, notes: [] } }], null, true);
+  }
   if (options.activeJob) {
     startJob("run", [{ event: "leg", data: { provider: "openalex", fetched: 25, reported_total: 412, cap: 10000, cap_hit: false, status: "running", error_code: null } }], null, true);
   }
@@ -339,6 +441,7 @@ export function discoveryEngine(options: DiscoveryFakeOptions = {}) {
           entry.events.push({ event: "failed", data: { job: entry.job } });
           entry.open = false;
           if (entry.job.kind === "run") addRun(null, "PARTIAL");
+          if (entry.job.kind === "chase") addChase(null, true);
         }
         return { status: 200, body: { job: entry.job } };
       }
@@ -363,6 +466,60 @@ export function discoveryEngine(options: DiscoveryFakeOptions = {}) {
       accepted = true;
       return { status: 200, body: corpus() };
     }
+    // M3g: citation chasing.
+    if (method === "GET" && route === "/api/v1/discovery/chase") return { status: 200, body: chaseState() };
+    const chaseMatch = /^\/api\/v1\/discovery\/chase\/runs\/(chase_\d{3,})$/.exec(route);
+    if (method === "GET" && chaseMatch) {
+      const chase = chases.find((c) => c.chase === chaseMatch[1]);
+      return chase ? { status: 200, body: chase } : refuse(404, "CHASE_NOT_RUN", `no chase run '${chaseMatch[1]}' in this workspace`);
+    }
+    if (method === "POST" && route === "/api/v1/discovery/chase/runs") {
+      const directions = body?.directions as string[] | undefined;
+      const providers = (body?.providers as string[] | undefined) ?? ["openalex", "semanticscholar"];
+      const refused =
+        needProtocol() ??
+        (!published ? refuse(409, "SCREENING_NOT_PUBLISHED", "literature/included.json is missing: publish the screening before chasing citations") : null) ??
+        (providers.some((p) => !PROVIDERS.includes(p as (typeof PROVIDERS)[number])) ? refuse(422, "PROVIDER_UNKNOWN", "Unknown or empty database list.") : null) ??
+        (directions && (!directions.length || directions.some((d) => d !== "forward" && d !== "backward")) ? refuse(422, "CHASE_DIRECTION_INVALID", "directions must be among ['forward', 'backward']") : null) ??
+        (body?.seeds && body.seeds !== "included" && body.seeds !== "included+unclear" ? refuse(422, "CHASE_SEEDS_INVALID", "seed source must be one of ['included', 'included+unclear']") : null) ??
+        (!openalexKey && providers.includes("openalex")
+          ? refuse(409, "OPENALEX_KEY_NOT_SET", "OpenAlex needs an API key. Set SCHOLAR_OPENALEX_KEY for the console (environment or .env) and start it again, or leave OpenAlex out of this run.")
+          : null) ??
+        busy();
+      if (refused) return refused;
+      const chase = addChase(body);
+      const legs = chase.legs as Json[];
+      const events = legs.map((l) => ({ event: "leg", data: { seed: l.seed, provider: l.provider, direction: l.direction, fetched: l.fetched, cap: l.cap, cap_hit: l.cap_hit, status: l.status, error_code: l.error_code, notes: l.notes } }));
+      const result = { chase: chase.chase, status: chase.status, reason: chase.reason, counts: chase.counts, published: chase.published, cancelled: false, legs_summary: chase.legs_summary };
+      const job = chase.status === "FAILED"
+        ? startJob("chase", events, result, false, "failed", { code: "PROVIDERS_FAILED", message: chase.reason })
+        : startJob("chase", events, result);
+      return { status: 202, body: { job } };
+    }
+    if (method === "POST" && route === "/api/v1/discovery/chase/accept") {
+      const wanted = body?.chase as string | undefined;
+      const chase = wanted ? chases.find((c) => c.chase === wanted) : chases.find((c) => c.published);
+      if (!chase) return refuse(409, "CHASE_NOT_RUN", "no published chase run in this workspace; run `chase run` first");
+      if (chase.accepted) return refuse(409, "CHASE_ALREADY_ACCEPTED", `${chase.chase} was already sent to screening (round ${(chase.accepted as Json).round})`);
+      if (!chase.published) return refuse(409, "CHASE_NOT_RUN", `${chase.chase} was not published (${chase.status}): nothing to send`);
+      if (!published) return refuse(409, "SCREENING_NOT_PUBLISHED", "the screening is not published and current");
+      if (protocolChanged) return refuse(409, "PROTOCOL_CHANGED_SINCE_PUBLISH", "protocol.json changed after the screening was published; screening must be redone and published under the current protocol before a chase is sent");
+      const counts = chase.counts as Json;
+      if (!Number(counts.new)) return refuse(409, "CHASE_NOTHING_NEW", `${chase.chase} found nothing new to screen`);
+      const active = activeJob();
+      if (active) return refuse(409, "WORKSPACE_JOB_ACTIVE", "A discovery job is running in this workspace; nothing was moved.", { job: active });
+      round += 1;
+      published = false;
+      chase.accepted = { round, artifact_id: "ART-corpus-" + "2".repeat(12), accepted_at: now(), records: counts.new, studies: counts.new };
+      return {
+        status: 200,
+        body: {
+          shape: "discovery.chase-accept-v1", chase: chase.chase, round, corpus: { artifact_id: "ART-corpus-" + "2".repeat(12), studies: counts.new, records: counts.new, outcome_status: "SUCCESS" },
+          parent_corpus: "ART-corpus-" + "1".repeat(12), archived: ["screening/", "included.json", "excluded.json", "conflicts.json", "prisma_report.json", "prisma_screening_report.md", "verified.json"],
+          archive_path: `literature/screening_rounds/round_${String(round - 1).padStart(3, "0")}`,
+        },
+      };
+    }
     return refuse(404, "NOT_FOUND", `the fake has no ${method} ${route}`);
   }
 
@@ -376,6 +533,11 @@ export function discoveryEngine(options: DiscoveryFakeOptions = {}) {
     setStaged: (value: boolean) => (staged = value),
     get accepted() {
       return accepted;
+    },
+    chases,
+    setPublished: (value: boolean) => (published = value),
+    get round() {
+      return round;
     },
   };
 }

@@ -173,6 +173,19 @@ DEDUP_NOT_RUN = "DEDUP_NOT_RUN"
 #: Review F3 (M3d-engine): the hand-off accept of a run whose query or years the protocol no longer has.
 PROTOCOL_CHANGED_SINCE_RUN = "PROTOCOL_CHANGED_SINCE_RUN"
 
+# --- citation chasing (M3g-citation-chasing, `pipeline/citation_chase.py`, `console/api/discovery.py`)
+#: ``ChaseRefused.code`` values. ``OPENALEX_KEY_NOT_SET``, ``PROVIDER_UNKNOWN``,
+#: ``DISCOVERY_JOB_ACTIVE``, ``WORKSPACE_JOB_ACTIVE``, ``ARCHIVE_INCOMPLETE``,
+#: ``ACCEPT_CORPUS_REFUSED`` and ``PROTOCOL_INVALID`` (above) answer the chase routes too.
+SCREENING_NOT_PUBLISHED = "SCREENING_NOT_PUBLISHED"
+CHASE_NOT_RUN = "CHASE_NOT_RUN"
+CHASE_NOTHING_NEW = "CHASE_NOTHING_NEW"
+CHASE_ALREADY_ACCEPTED = "CHASE_ALREADY_ACCEPTED"
+CHASE_STALE = "CHASE_STALE"
+CHASE_DIRECTION_INVALID = "CHASE_DIRECTION_INVALID"
+CHASE_SEEDS_INVALID = "CHASE_SEEDS_INVALID"
+PROTOCOL_CHANGED_SINCE_PUBLISH = "PROTOCOL_CHANGED_SINCE_PUBLISH"
+
 # --- request validation (H-input-limits, F5) ----------------------------------
 #: A body, query or path parameter pydantic refuses on any route (HTTP 422);
 #: ``details.errors`` lists ``loc``, ``msg`` and ``type`` for each error.
@@ -279,6 +292,14 @@ CONTRACT_ADDED = frozenset(
         STAGED_IMPORT_PENDING,
         DEDUP_NOT_RUN,
         PROTOCOL_CHANGED_SINCE_RUN,
+        SCREENING_NOT_PUBLISHED,
+        CHASE_NOT_RUN,
+        CHASE_NOTHING_NEW,
+        CHASE_ALREADY_ACCEPTED,
+        CHASE_STALE,
+        CHASE_DIRECTION_INVALID,
+        CHASE_SEEDS_INVALID,
+        PROTOCOL_CHANGED_SINCE_PUBLISH,
         BODY_INVALID,
     }
     | LEG_ERROR_CODES

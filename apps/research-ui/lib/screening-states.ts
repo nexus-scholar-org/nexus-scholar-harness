@@ -748,6 +748,79 @@ export const STATES: Record<string, StateEntry> = {
       ar: T("حدّد مفتاح واجهة OpenAlex البرمجية قبل البحث فيها", "تشترط OpenAlex مفتاح واجهة برمجية مجانيًا منذ فبراير 2026. ضع السطر أدناه في بيئة وحدة التحكم أو في ملف ‎.env‎، ثم أعد تشغيل وحدة التحكم، أو استبعد OpenAlex من التشغيل.", "الحصاد", "تحقّق مجددًا"),
     },
   },
+  // M3g-citation-chasing (spec 09): the chase routes' refusals.
+  SCREENING_NOT_PUBLISHED: {
+    role: "exclude",
+    action: "publish",
+    copy: {
+      en: T("Publish the screening first.", "Citation chasing starts from the studies you included, and those are final only once the screening is published.", "The chase", "Go to the Publish screen"),
+      fr: T("Publiez d'abord la sélection.", "La chasse aux citations part des études que vous avez incluses, et celles-ci ne sont définitives qu'une fois la sélection publiée.", "La chasse", "Aller à l'écran Publier"),
+      ar: T("انشر الفرز أولًا.", "تبدأ مطاردة الاستشهادات من الدراسات التي أدرجتها، ولا تكون نهائية إلا بعد نشر الفرز.", "المطاردة", "اذهب إلى شاشة النشر"),
+    },
+  },
+  CHASE_NOT_RUN: {
+    role: "unclear",
+    action: "none",
+    copy: {
+      en: T("There is no published chase run to send.", "Run a chase first; a failed or stopped chase publishes nothing and cannot be sent.", "Sending works to screening", "Chase citations"),
+      fr: T("Aucune chasse publiée à envoyer.", "Lancez d'abord une chasse ; une chasse échouée ou arrêtée ne publie rien et ne peut pas être envoyée.", "L'envoi des travaux à la sélection", "Chasser les citations"),
+      ar: T("لا توجد مطاردة منشورة لإرسالها.", "شغّل مطاردة أولًا؛ المطاردة التي أخفقت أو أُوقفت لا تنشر شيئًا ولا يمكن إرسالها.", "إرسال الأعمال إلى الفرز", "طارد الاستشهادات"),
+    },
+  },
+  CHASE_NOTHING_NEW: {
+    role: "exclude",
+    action: "none",
+    copy: {
+      en: T("The chase found nothing new.", "Everything it fetched was already in your corpus, found twice, or outside the year window, so there is no round to start.", "Sending works to screening", "Chase again"),
+      fr: T("La chasse n'a rien trouvé de nouveau.", "Tout ce qu'elle a récupéré était déjà dans votre corpus, trouvé deux fois ou hors de la fenêtre d'années ; il n'y a donc pas de tour à ouvrir.", "L'envoi des travaux à la sélection", "Chasser à nouveau"),
+      ar: T("لم تجد المطاردة شيئًا جديدًا.", "كل ما جلبته كان في مجموعتك بالفعل، أو وُجد مرتين، أو خارج نافذة السنوات، فلا جولة تُفتح.", "إرسال الأعمال إلى الفرز", "طارد مجددًا"),
+    },
+  },
+  CHASE_ALREADY_ACCEPTED: {
+    role: "include",
+    action: "home",
+    copy: {
+      en: T("These works are already with screening.", "This chase run was sent to screening before; it is the finished state, not a failure.", "Sending works to screening", "Go to screening"),
+      fr: T("Ces travaux sont déjà en sélection.", "Cette chasse a déjà été envoyée à la sélection ; c'est l'état final, pas une erreur.", "L'envoi des travaux à la sélection", "Aller à la sélection"),
+      ar: T("هذه الأعمال في الفرز بالفعل.", "أُرسلت هذه المطاردة إلى الفرز من قبل؛ هذه هي الحالة النهائية، لا خطأ.", "إرسال الأعمال إلى الفرز", "اذهب إلى الفرز"),
+    },
+  },
+  CHASE_STALE: {
+    role: "unclear",
+    action: "none",
+    copy: {
+      en: T("The screening changed after this chase ran.", "The screening was published again, or a later corpus was accepted, after this chase; its seeds may differ. Run the chase again.", "Sending works to screening", "Chase again"),
+      fr: T("La sélection a changé après cette chasse.", "La sélection a été republiée, ou un corpus plus récent a été accepté, après cette chasse ; ses graines peuvent différer. Relancez la chasse.", "L'envoi des travaux à la sélection", "Chasser à nouveau"),
+      ar: T("تغيّر الفرز بعد هذه المطاردة.", "نُشر الفرز مجددًا، أو قُبلت مجموعة أحدث، بعد هذه المطاردة؛ قد تختلف بذورها. أعد المطاردة.", "إرسال الأعمال إلى الفرز", "طارد مجددًا"),
+    },
+  },
+  CHASE_DIRECTION_INVALID: {
+    role: "blocked",
+    action: "none",
+    copy: {
+      en: T("Choose forward, backward or both.", "The engine chases citing works (forward), references (backward) or both; the request named another direction.", "Starting the chase", "Choose a direction"),
+      fr: T("Choisissez avant, arrière ou les deux.", "Le moteur chasse les travaux citants (avant), les références (arrière) ou les deux ; la requête nommait une autre direction.", "Le lancement de la chasse", "Choisir une direction"),
+      ar: T("اختر الأمام أو الخلف أو كليهما.", "يطارد المحرك الأعمال المستشهِدة (الأمام) أو المراجع (الخلف) أو كليهما؛ سمّى الطلب اتجاهًا آخر.", "بدء المطاردة", "اختر اتجاهًا"),
+    },
+  },
+  CHASE_SEEDS_INVALID: {
+    role: "blocked",
+    action: "none",
+    copy: {
+      en: T("The seed choice is not valid.", "Seeds are the included studies, or the included and unclear studies; the request named something else.", "Starting the chase", "Choose the seeds"),
+      fr: T("Le choix des graines n'est pas valide.", "Les graines sont les études incluses, ou les études incluses et incertaines ; la requête nommait autre chose.", "Le lancement de la chasse", "Choisir les graines"),
+      ar: T("اختيار البذور غير صالح.", "البذور هي الدراسات المدرجة، أو المدرجة وغير الواضحة؛ سمّى الطلب شيئًا آخر.", "بدء المطاردة", "اختر البذور"),
+    },
+  },
+  PROTOCOL_CHANGED_SINCE_PUBLISH: {
+    role: "unclear",
+    action: "home",
+    copy: {
+      en: T("The protocol changed after the screening was published", "Its includes no longer belong to the current protocol. Screening has to be redone and published under the current protocol before a chase can be sent. Nothing was moved.", "Sending works to screening", "Go to screening"),
+      fr: T("Le protocole a changé après la publication de la sélection", "Ses inclusions n'appartiennent plus au protocole actuel. La sélection doit être refaite et publiée sous le protocole actuel avant d'envoyer une chasse. Rien n'a été déplacé.", "L'envoi des travaux à la sélection", "Aller à la sélection"),
+      ar: T("تغيّر البروتوكول بعد نشر الفرز", "لم تعد إدراجاته تنتمي إلى البروتوكول الحالي. يجب إعادة الفرز ونشره تحت البروتوكول الحالي قبل إرسال مطاردة. لم يُنقل شيء.", "إرسال الأعمال إلى الفرز", "اذهب إلى الفرز"),
+    },
+  },
   DISCOVERY_JOB_ACTIVE: {
     role: "unclear",
     action: "none",

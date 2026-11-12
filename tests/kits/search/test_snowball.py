@@ -346,3 +346,49 @@ class TestCLIChain:
                 assert "Chained Paper" in result.stdout
                 assert output_file.exists()
                 assert edges_file.exists()
+
+# ---------------------------------------------------------------------------
+# M3g-citation-chasing: the engine's snowball methods take a limit
+# ---------------------------------------------------------------------------
+
+
+class TestEngineSnowballLimit:
+    def _engine(self, docs):
+        from scholar_search.engine import SearchEngine
+
+        provider = MagicMock()
+        provider.name = "openalex"
+        provider.pulled = 0
+
+        async def stream(_document_id):
+            for doc in docs:
+                provider.pulled += 1
+                yield doc
+
+        provider.get_citations = stream
+        provider.get_references = stream
+        return SearchEngine(providers=[provider]), provider
+
+    def test_forward_stops_at_the_limit_without_draining_the_stream(self):
+        import asyncio
+
+        docs = [_doc(f"Citing {i}", f"W{i}") for i in range(10)]
+        engine, provider = self._engine(docs)
+        got = asyncio.run(engine.snowball_forward("W1", "openalex", limit=3))
+        assert [d.title for d in got] == ["Citing 0", "Citing 1", "Citing 2"]
+        assert provider.pulled == 3
+
+    def test_backward_without_a_limit_takes_everything(self):
+        import asyncio
+
+        docs = [_doc(f"Ref {i}", f"W{i}") for i in range(4)]
+        engine, provider = self._engine(docs)
+        got = asyncio.run(engine.snowball_backward("W1", "openalex"))
+        assert len(got) == 4 and provider.pulled == 4
+
+    def test_a_zero_limit_asks_for_nothing(self):
+        import asyncio
+
+        engine, provider = self._engine([_doc("Citing", "W0")])
+        assert asyncio.run(engine.snowball_forward("W1", "openalex", limit=0)) == []
+        assert provider.pulled == 0

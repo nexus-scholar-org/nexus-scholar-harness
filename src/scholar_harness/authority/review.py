@@ -35,7 +35,6 @@ from __future__ import annotations
 
 import json
 import sys
-from dataclasses import asdict
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -798,6 +797,7 @@ def _compute_single_screener_content(
                 reason_codes[wsid] = str(entry["reason_code"])
 
     from ..corpus_accept import prisma_identification
+    from ..screening.rounds import prisma_outputs
 
     # One helper for collect and approval, so both hash the same counts.
     total_identified, duplicates_removed = prisma_identification(ws, len(docs))
@@ -820,8 +820,9 @@ def _compute_single_screener_content(
         "conflicts.json": json.dumps(
             conflicts, indent=2, default=str, ensure_ascii=False
         ),
-        "prisma_screening_report.md": report.to_markdown(),
-        "prisma_report.json": json.dumps(asdict(report), indent=2),
+        # M3g: the same round-aware helper as cmd_collect, so approval and
+        # collect hash the same PRISMA bytes.
+        **prisma_outputs(ws, report),
     }
 
 

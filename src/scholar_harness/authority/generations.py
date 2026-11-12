@@ -1082,6 +1082,13 @@ def _downgrade_evidence(ws: Path, screening_dir: Path) -> list[str]:
     artifacts = registry.get("artifacts", {}) if isinstance(registry, dict) else {}
     if not isinstance(artifacts, dict):
         return evidence
+    # M3g (screening rounds): decisions bound to an earlier corpus snapshot
+    # belong to an archived round, so they say nothing about whether the
+    # current round's generation was deleted. Guarded: no fingerprint keeps
+    # today's reading.
+    from scholar_harness.screening.events import newest_corpus_fingerprint
+
+    current_corpus = newest_corpus_fingerprint(ws, artifacts)
     for entry in artifacts.values():
         if not isinstance(entry, dict):
             continue
@@ -1094,9 +1101,13 @@ def _downgrade_evidence(ws: Path, screening_dir: Path) -> list[str]:
             envelope = json.loads((ws / rel).read_text(encoding="utf-8"))
         except (OSError, ValueError):
             continue
-        if isinstance(envelope, dict) and "decision_file_sha256" in envelope:
-            evidence.append("registry-lineage")
-            break
+        if not isinstance(envelope, dict) or "decision_file_sha256" not in envelope:
+            continue
+        bound = envelope.get("corpus_fingerprint")
+        if current_corpus is not None and isinstance(bound, str) and bound and bound != current_corpus:
+            continue
+        evidence.append("registry-lineage")
+        break
     return evidence
 
 

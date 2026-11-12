@@ -26,6 +26,7 @@ const COPY = {
     ledeShown: "The agent drafts, you decide. Drafts are shown beside each record, before you decide.",
     live: "Live data from this workspace's screening engine",
     exportLink: "Export and methods",
+    chaseLink: "Chase citations",
     openTriage: "Open triage · {n} need you",
     seeChange: "See the change",
     loading: "Counts appear only once every file is read; no partial number is shown as final.",
@@ -80,6 +81,7 @@ const COPY = {
     ledeShown: "L'agent rédige, vous décidez. Les brouillons sont affichés à côté de chaque notice, avant votre décision.",
     live: "Données en direct du moteur de sélection de cet espace",
     exportLink: "Export et méthodes",
+    chaseLink: "Chasser les citations",
     openTriage: "Ouvrir le tri · {n} à traiter",
     seeChange: "Voir la modification",
     loading: "Les totaux n'apparaissent qu'une fois tous les fichiers lus ; aucun chiffre partiel n'est présenté comme définitif.",
@@ -134,6 +136,7 @@ const COPY = {
     ledeShown: "الوكيل يكتب المسودات وأنت تقرر. تُعرض المسودات بجانب كل سجل قبل أن تقرر.",
     live: "بيانات حية من محرك الفرز لهذه المساحة",
     exportLink: "التصدير والمنهجية",
+    chaseLink: "طارد الاستشهادات",
     openTriage: "فتح المراجعة · {n} بانتظارك",
     seeChange: "عرض التغيير",
     loading: "لا تظهر الأعداد إلا بعد قراءة كل الملفات؛ ولا يُعرض رقم جزئي على أنه نهائي.",
@@ -324,9 +327,13 @@ function HomeReady({
           </p>
         ) : null}
         {published ? (
-          <p className="mt-2">
+          <p className="mt-2 flex flex-wrap gap-4">
             <a className="inline-flex min-h-11 items-center text-brand underline" href={exportHref(locale, origin)} data-export-link>
               {t("exportLink")}
+            </a>
+            {/* M3g (spec 09): citation chasing starts from the published includes. */}
+            <a className="inline-flex min-h-11 items-center text-brand underline" href={`/${locale}/discovery/chase/${origin ? `?console=${encodeURIComponent(origin)}` : ""}`} data-chase-link>
+              {t("chaseLink")}
             </a>
           </p>
         ) : publishedStale ? (
