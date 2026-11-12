@@ -22,6 +22,7 @@ from __future__ import annotations
 
 import json
 import threading
+import time
 from collections.abc import Callable, Iterator, Mapping, Sequence
 from copy import deepcopy
 from pathlib import Path
@@ -629,7 +630,7 @@ def test_e3_pos_006_a_second_removal_removes_nothing(protocol, backend):
     )
 
 
-def test_e3_pos_006_a_concurrent_reader_never_sees_a_mixture(protocol, backend):
+def test_e3_pos_006_a_concurrent_reader_never_sees_a_mixture(protocol, backend, monkeypatch):
     """The "never a mixture" limb, driven by a real interleaving rather than asserted.
 
     A reader thread resolves the live set in a tight loop while a run replaces a
@@ -656,36 +657,48 @@ def test_e3_pos_006_a_concurrent_reader_never_sees_a_mixture(protocol, backend):
     assert new != old
 
     observations: list[frozenset[str]] = []
-    observed_first = threading.Event()
     stop = threading.Event()
 
     def reader() -> None:
         while not stop.is_set():
             observations.append(frozenset(backend.visible_ids()))
-            # Signalled only *after* a snapshot is taken, so the main thread
-            # cannot start a switch until this reader is genuinely inside the
-            # loop. A ``threading.Barrier`` would prove only that the thread was
-            # scheduled, not that it had observed the pre-switch set -- which is
-            # the whole point, and is what the old never-waited-on ``reading``
-            # event silently failed to establish.
-            observed_first.set()
+
+    def await_fresh_snapshots(why: str) -> None:
+        """Block until the reader has taken a snapshot that *started* after this call.
+
+        The first snapshot appended after the call may have been read before it,
+        so two are awaited: the second one is certainly fresh. This is what makes
+        the straddle certain instead of likely -- the reader is never assumed to
+        have been scheduled, it is waited for.
+        """
+
+        target = len(observations) + 2
+        deadline = time.monotonic() + 30
+        while len(observations) < target:
+            assert time.monotonic() < deadline, why
+            time.sleep(0.001)
+
+    switch = backend.switch_visibility
+
+    def switch_under_a_live_reader(run_id: str, chunk_ids: Sequence[str], mode: str) -> None:
+        # R1-R4 have run and the pointer is about to move: hold the switch until
+        # the reader has read the live set at this very point, mid-run. However
+        # starved the reader thread is, it then holds a pre-switch observation
+        # taken while the replacement was in flight.
+        await_fresh_snapshots("the reader took no snapshot just before R5, so it cannot straddle the switch")
+        switch(run_id, chunk_ids, mode)
+
+    monkeypatch.setattr(backend, "switch_visibility", switch_under_a_live_reader)
 
     thread = threading.Thread(target=reader, daemon=True)
     thread.start()
     try:
-        assert observed_first.wait(timeout=10), "the reader never observed the pre-switch set, so it cannot straddle R5"
-        # Bounded: if the reader never straddles the switch, retry rather than pass
-        # a test that only ever saw one shape. Without this, a fast reader that only
-        # ever saw ``new`` would satisfy "never a mixture" without having observed
-        # the transition at all. The reader is deliberately left running across
-        # iterations -- clearing a per-iteration stop flag could let it observe the
-        # flag as set and exit the loop, after which no iteration would have a
-        # reader left to observe anything.
-        for _ in range(50):
-            if old in observations and new in observations:
-                break
-            del observations[:]
-            protocol.run(request_for(candidate, accepted=accepted))
+        await_fresh_snapshots("the reader never observed the pre-switch set, so it cannot straddle R5")
+        protocol.run(request_for(candidate, accepted=accepted))
+        # R6 has run. The reader keeps reading until it has resolved the live set
+        # after the switch, so both sides of R5 are observed in every run of this
+        # test; nothing is retried and no observation is discarded.
+        await_fresh_snapshots("the reader took no snapshot after the run, so it cannot straddle R5")
     finally:
         stop.set()
         thread.join(timeout=10)
