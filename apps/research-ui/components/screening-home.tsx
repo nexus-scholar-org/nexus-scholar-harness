@@ -22,6 +22,7 @@ const COPY = {
     title: "{decided} of {total} records are decided; {needs} still need you.",
     titleDone: "All {total} records are decided.",
     titleEmpty: "Nothing to screen yet: prepare the batches first.",
+    titleProtocolChanged: "The protocol changed after screening started.",
     lede: "The agent drafts, you decide. Drafts stay hidden until you have decided each record.",
     ledeShown: "The agent drafts, you decide. Drafts are shown beside each record, before you decide.",
     live: "Live data from this workspace's screening engine",
@@ -77,6 +78,7 @@ const COPY = {
     title: "{decided} notices sur {total} sont décidées ; {needs} vous attendent encore.",
     titleDone: "Les {total} notices sont toutes décidées.",
     titleEmpty: "Rien à examiner pour l'instant : préparez d'abord les lots.",
+    titleProtocolChanged: "Le protocole a changé après le début de la sélection.",
     lede: "L'agent rédige, vous décidez. Les brouillons restent masqués jusqu'à votre décision sur chaque notice.",
     ledeShown: "L'agent rédige, vous décidez. Les brouillons sont affichés à côté de chaque notice, avant votre décision.",
     live: "Données en direct du moteur de sélection de cet espace",
@@ -132,6 +134,7 @@ const COPY = {
     title: "حُسم {decided} من {total} سجلًا؛ وما زال {needs} بانتظارك.",
     titleDone: "حُسمت السجلات الـ{total} كلها.",
     titleEmpty: "لا شيء للفرز بعد: حضّر الدفعات أولًا.",
+    titleProtocolChanged: "تغيّر البروتوكول بعد بدء الفرز.",
     lede: "الوكيل يكتب المسودات وأنت تقرر. تبقى المسودات مخفية حتى تحسم كل سجل.",
     ledeShown: "الوكيل يكتب المسودات وأنت تقرر. تُعرض المسودات بجانب كل سجل قبل أن تقرر.",
     live: "بيانات حية من محرك الفرز لهذه المساحة",
@@ -281,8 +284,12 @@ function HomeReady({
   const published = publication?.status === "CURRENT";
   const publishedStale = publication?.status === "STALE" && publication.changed !== null;
   const importOpen = corpus !== null && corpus.state !== "ACCEPTED" && !corpus.from_discovery;
-  const imported = corpus?.state === "ACCEPTED" && corpus.accepted && corpus.databases.length > 0 ? corpus : null;
+  // Review F4: a harvest's or a chase round's corpus now has rows too, but it was not imported.
+  const imported = corpus?.state === "ACCEPTED" && corpus.accepted && corpus.databases.length > 0 && (corpus.origin ?? "imports") === "imports" ? corpus : null;
   const stale = batches.batches.some((b) => b.binding?.state === "STALE_BINDING");
+  // Review F2: the batches were prepared under another protocol, so the queue
+  // would start over; Home says why instead of offering it.
+  const protocolChanged = summary.protocol_changed === true;
   const percent = summary.total > 0 ? Math.round((summary.decided / summary.total) * 100) : 0;
   const triage = stepHref(locale, "triage", origin);
 
@@ -291,7 +298,9 @@ function HomeReady({
       <header>
         <p className="text-xs font-semibold uppercase tracking-[0.05em] text-brand rtl:tracking-normal">{t("eyebrow")}</p>
         <h1 className="font-display mt-1 text-[1.75rem] leading-[2.25rem] text-ink">
-          {summary.total === 0
+          {protocolChanged
+            ? t("titleProtocolChanged")
+            : summary.total === 0
             ? t("titleEmpty")
             : summary.needs_you === 0
             ? t("titleDone", { total: n(summary.total) })
@@ -308,7 +317,7 @@ function HomeReady({
             <a className="inline-flex min-h-11 items-center rounded-md bg-brand px-4 font-medium text-on-brand" href={stepHref(locale, "prepare", origin)}>
               {t("seeChange")}
             </a>
-          ) : batches.count === 0 ? null : (
+          ) : batches.count === 0 || protocolChanged ? null : (
             <a className="inline-flex min-h-11 items-center rounded-md bg-brand px-4 font-medium text-on-brand" href={triage}>
               {t("openTriage", { n: n(summary.needs_you) })}
             </a>
@@ -346,6 +355,7 @@ function HomeReady({
         ) : null}
       </header>
 
+      {protocolChanged ? <StateCard locale={locale} code="PROTOCOL_CHANGED_SINCE_BATCH" consoleOrigin={origin} /> : null}
       {stale ? <StateCard locale={locale} code="STALE_BINDING" consoleOrigin={origin} /> : null}
       {batches.count === 0 && !importOpen ? <StateCard locale={locale} code="NOT_PREPARED" consoleOrigin={origin} /> : null}
       {conflicts.length > 0 ? <StateCard locale={locale} code="conflict" consoleOrigin={origin} /> : null}

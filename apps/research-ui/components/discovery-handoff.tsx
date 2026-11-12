@@ -89,8 +89,12 @@ export function DiscoveryHandoff({ locale }: Readonly<{ locale: Locale }>) {
   const empty = !!corpus && (corpus.state === "EMPTY" || (corpus.state === "STAGED" && !corpus.from_discovery && corpus.sources.length === 0));
   const preview = corpus?.preview ?? null;
   const fromDiscovery = !!corpus?.from_discovery;
-  // The engine's corpus preview counts staged exports only; for a harvest it writes no works count, so the
-  // headline carries no number then (route gap, M3c-screens Deferred). The browser adds nothing up.
+  // Review F3: the protocol was edited after the corpus run searched it.
+  const searchChanged = fromDiscovery && handoff?.search_changed === true;
+  const otherChange = fromDiscovery && handoff?.protocol_changed === true && !searchChanged;
+  // For a harvest the engine's preview (review F4) counts works after deduplication, before verification,
+  // so it can differ from the accepted count: the headline carries no number then (H-protocol-signals
+  // Deferred). The browser adds nothing up.
   const works = fromDiscovery ? null : preview?.unique_studies;
 
   return (
@@ -300,6 +304,12 @@ export function DiscoveryHandoff({ locale }: Readonly<{ locale: Locale }>) {
                   </p>
                 ) : null}
               </section>
+              {/* Review F3: say it before the click. A search change is refused by the accept. */}
+              {searchChanged && !acceptError ? (
+                <div data-protocol-changed="search">
+                  <DiscoveryRefusal locale={locale} refusal={{ code: "PROTOCOL_CHANGED_SINCE_RUN", message: "" }} origin={origin} />
+                </div>
+              ) : null}
               {acceptError ? (
                 <div className="space-y-2">
                   <DiscoveryRefusal locale={locale} refusal={acceptError} origin={origin} onRetry={() => void accept()} />
@@ -313,12 +323,17 @@ export function DiscoveryHandoff({ locale }: Readonly<{ locale: Locale }>) {
               <GatePanel
                 label={t("handoff.gate.label")}
                 actions={
-                  <Button variant="primary" onClick={() => void accept()} disabled={accepting || offline || harvestRunning || acceptError?.code === "PROTOCOL_CHANGED_SINCE_RUN"} aria-describedby={offline ? "handoff-offline" : harvestRunning ? "handoff-running" : undefined} data-accept>
+                  <Button variant="primary" onClick={() => void accept()} disabled={accepting || offline || harvestRunning || searchChanged || acceptError?.code === "PROTOCOL_CHANGED_SINCE_RUN"} aria-describedby={offline ? "handoff-offline" : harvestRunning ? "handoff-running" : undefined} data-accept>
                     {accepting ? t("handoff.gate.accepting") : t("handoff.gate.accept")}
                   </Button>
                 }
               >
                 <p>{t("handoff.gate.body")}</p>
+                {otherChange ? (
+                  <p className="mt-2 text-sm text-ink" data-protocol-changed="other">
+                    {t("handoff.gate.protocolChanged")}
+                  </p>
+                ) : null}
                 {offline ? (
                   <p id="handoff-offline" className="mt-2 text-sm text-ink-muted">
                     {t("handoff.gate.offline")}

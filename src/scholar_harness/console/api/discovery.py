@@ -308,6 +308,19 @@ def _published(manifest: dict[str, Any]) -> bool:
     return bool(manifest.get("corpus_published", manifest.get("raw_published")))
 
 
+_NO_DRIFT: dict[str, bool | None] = {"protocol_changed": None, "search_changed": None}
+
+
+def _drift(ws: Path, manifest: dict[str, Any]) -> dict[str, bool | None]:
+    """Review F3: how the protocol differs from the one the run searched; ``None`` when unknown."""
+    from ...pipeline.discovery import run_protocol_drift
+
+    try:
+        return dict(run_protocol_drift(ws / "protocol.json", manifest))
+    except (OSError, ValueError, TypeError, AttributeError):
+        return dict(_NO_DRIFT)
+
+
 def _run_summaries(ws: Path) -> list[dict[str, Any]]:
     out: list[dict[str, Any]] = []
     later_published = False
@@ -327,6 +340,8 @@ def _run_summaries(ws: Path) -> list[dict[str, Any]]:
             "cap_override": manifest.get("cap_override"),
             # A later run whose records became the corpus makes this one's files stale.
             "stale": later_published,
+            # Review F3: the protocol was edited since this run searched it.
+            **_drift(ws, manifest),
         })
         later_published = later_published or _published(manifest)
     return out
@@ -702,7 +717,8 @@ def handoff(request: Request) -> dict[str, Any]:
     # verified.json belongs to the newest run published as the corpus; its
     # lower-bound warnings come from that run, not from a later failed one.
     corpus_run = next((d for d in _run_dirs(ws) if _published(_manifest(d))), None)
-    legs = _manifest(corpus_run)["legs"] if corpus_run else []
+    corpus_manifest = _manifest(corpus_run) if corpus_run else None
+    legs = corpus_manifest["legs"] if corpus_manifest else []
     return {
         "shape": "discovery.handoff-v1",
         "corpus": _corpus_view(ws),
@@ -719,6 +735,10 @@ def handoff(request: Request) -> dict[str, Any]:
         "near_twins_undecided": None,  # E4b (M3e-neartwins)
         "lower_bound_databases": sorted(str(leg.get("provider")) for leg in legs if leg.get("cap_hit")),
         "protocol_fingerprint": proto.fingerprint,
+        # Review F3: the run's protocol, and whether it changed since (the
+        # screen warns before the accept; a search change is refused by it).
+        "run_protocol_fingerprint": corpus_manifest.get("protocol_fingerprint") if corpus_manifest else None,
+        **(_drift(ws, corpus_manifest) if corpus_manifest else _NO_DRIFT),
     }
 
 

@@ -769,3 +769,145 @@ def test_the_handoff_accept_refuses_an_unreadable_protocol_as_invalid(env):
     (ws / "protocol.json").write_text("{not json", encoding="utf-8")
     refused = client.post("/api/v1/screening/corpus/accept")
     assert 400 <= refused.status_code < 500 and _code(refused) == "PROTOCOL_INVALID", refused.text
+
+
+# --------------------------------------------------------------------------- F3 (three-phase review)
+
+
+def _edit_protocol(ws: Path, edit) -> None:
+    protocol = json.loads((ws / "protocol.json").read_text(encoding="utf-8"))
+    edit(protocol)
+    (ws / "protocol.json").write_text(json.dumps(protocol), encoding="utf-8")
+
+
+def _flags(client) -> tuple[dict, dict]:
+    run = client.get(f"{BASE}/runs").json()["runs"][0]
+    return run, client.get(f"{BASE}/handoff").json()
+
+
+def test_f3_a_run_records_the_protocol_it_searched(env):
+    client, ws, _ = env
+    job, _ = _run(client, {"providers": ["openalex"]})
+    assert job["state"] == "succeeded", job
+    manifest = json.loads((ws / "literature" / "search_runs" / "run_001" / "legs.json").read_text(encoding="utf-8"))
+    plan = client.get(f"{BASE}/plan").json()
+    assert manifest["protocol_fingerprint"] == plan["protocol_fingerprint"]
+    search = manifest["protocol_search"]
+    assert set(search) == {"query_text", "year_min", "year_max", "language", "retrieval_cap", "databases"}
+    assert search["databases"] == sorted(["openalex", "semanticscholar", "crossref", "arxiv", "pubmed"])
+    run, handoff = _flags(client)
+    assert run["protocol_changed"] is False and run["search_changed"] is False
+    assert handoff["protocol_changed"] is False and handoff["search_changed"] is False
+    assert handoff["run_protocol_fingerprint"] == manifest["protocol_fingerprint"]
+
+
+@pytest.mark.parametrize(
+    "edit",
+    [
+        pytest.param(lambda p: p["search_strategy"].__setitem__("target_databases", ["openalex"]), id="databases"),
+        pytest.param(lambda p: p["search_strategy"].__setitem__("languages", ["fr"]), id="languages"),
+        pytest.param(lambda p: p.setdefault("method", {}).__setitem__("retrieval_cap", 50), id="cap"),
+    ],
+)
+def test_f3_a_search_edit_is_flagged_before_the_accept_and_refused_by_it(env, edit):
+    """F3: the runs list and the hand-off say the protocol changed before the click; the accept refuses."""
+    client, ws, _ = env
+    job, _ = _run(client, {"providers": ["openalex"]})
+    assert job["state"] == "succeeded", job
+    _edit_protocol(ws, edit)
+    run, handoff = _flags(client)
+    assert run["protocol_changed"] is True and run["search_changed"] is True
+    assert handoff["protocol_changed"] is True and handoff["search_changed"] is True
+    refused = client.post("/api/v1/screening/corpus/accept")
+    assert refused.status_code == 409 and _code(refused) == "PROTOCOL_CHANGED_SINCE_RUN"
+
+
+def test_f3_a_criteria_edit_is_flagged_but_the_search_still_stands(env):
+    """F3 (decision 2026-11-12): a criteria-only edit leaves the search the run did the protocol's search."""
+    client, ws, _ = env
+    job, _ = _run(client, {"providers": ["openalex"]})
+    assert job["state"] == "succeeded", job
+
+    def edit(p):
+        p["screening_criteria"]["inclusion"][0]["criterion"] += " (amended)"
+
+    _edit_protocol(ws, edit)
+    run, handoff = _flags(client)
+    assert run["protocol_changed"] is True and run["search_changed"] is False
+    assert handoff["protocol_changed"] is True and handoff["search_changed"] is False
+    assert client.post("/api/v1/screening/corpus/accept").status_code == 200
+
+
+def test_f3_a_key_the_run_did_not_record_is_not_an_edit(env):
+    """Review finding 5: only the keys both records hold are compared."""
+    client, ws, _ = env
+    job, _ = _run(client, {"providers": ["openalex"]})
+    assert job["state"] == "succeeded", job
+    path = ws / "literature" / "search_runs" / "run_001" / "legs.json"
+    manifest = json.loads(path.read_text(encoding="utf-8"))
+    del manifest["protocol_search"]["language"]
+    path.write_text(json.dumps(manifest), encoding="utf-8")
+    run, handoff = _flags(client)
+    assert run["search_changed"] is False and handoff["protocol_changed"] is False
+
+
+def test_f3_a_protocol_without_a_database_list_records_none(env):
+    """Review finding 5: the adapter's default list is not the protocol's; a change of it is not an edit."""
+    from scholar_harness.pipeline.discovery import protocol_search_record
+
+    client, ws, _ = env
+    _edit_protocol(ws, lambda p: p["search_strategy"].pop("target_databases"))
+    _, search = protocol_search_record(ws / "protocol.json")
+    assert search["databases"] is None
+
+
+def test_f3_a_run_from_before_the_fingerprint_reads_by_its_query(env):
+    """A legs.json written before F3 has no fingerprint: query and years decide, the rest is unknown."""
+    client, ws, _ = env
+    _write_run(ws, 1, started="2026-11-01T00:00:00+00:00")
+    run = client.get(f"{BASE}/runs").json()["runs"][0]
+    assert run["search_changed"] is True  # its query "q" is not the protocol's
+    assert run["protocol_changed"] is True
+
+
+# --------------------------------------------------------------------------- F4 (three-phase review)
+
+
+def test_f4_the_corpus_view_of_a_browser_harvest_shows_its_databases_and_counts(env):
+    """F4: GET /screening/corpus reads the run's legs and deduped.json, before and after the accept."""
+    client, ws, providers = env
+    providers.set("openalex", FakeProvider("openalex", [_doc("openalex", i) for i in range(4)], total=900))
+    providers.set("crossref", FakeProvider("crossref", [_doc("openalex", 0), _doc("crossref", 1), _doc("crossref", 2)]))
+    job, _ = _run(client, {"providers": ["openalex", "crossref"], "cap_override": 4})
+    assert job["state"] == "succeeded", job
+    deduped = json.loads((ws / "literature" / "deduped.json").read_text(encoding="utf-8"))
+
+    before = client.get("/api/v1/screening/corpus").json()
+    assert before["state"] == "STAGED" and before["from_discovery"] is True and before["origin"] == "discovery"
+    rows = {d["provider"]: d for d in before["databases"]}
+    assert set(rows) == {"openalex", "crossref"}
+    assert rows["openalex"]["label"] == "OpenAlex" and rows["openalex"]["records"] == 4
+    assert rows["openalex"]["cap_hit"] is True and rows["crossref"]["cap_hit"] is False
+    assert rows["crossref"]["records"] == 3 and rows["crossref"]["status"] == "ok"
+    assert all(d["files"] == 0 and d["search_details_missing"] is False and len(d["searched_on"]) == 1
+               for d in before["databases"])
+    assert before["preview"] == {"identified": 7, "duplicates": 7 - len(deduped), "unique_studies": len(deduped)}
+    assert len(deduped) == 6
+    assert before["sources"] == []
+    assert client.get(f"{BASE}/handoff").json()["corpus"]["databases"] == before["databases"]
+
+    accepted = client.post("/api/v1/screening/corpus/accept").json()
+    assert accepted["state"] == "ACCEPTED"
+    assert accepted["databases"] == before["databases"] and accepted["preview"] == before["preview"]
+
+
+def test_f4_a_corpus_of_imports_keeps_its_own_view(env):
+    """No run: the staged exports decide, as before."""
+    from scholar_harness.corpus_accept import stage_ris_source
+
+    client, ws, _ = env
+    ris = b"TY  - JOUR\nTI  - A record\nPY  - 2023\nER  -\n"
+    stage_ris_source(ws, "Scopus", ris, file_name="scopus.ris")
+    corpus = client.get("/api/v1/screening/corpus").json()
+    assert corpus["origin"] == "imports" and [d["label"] for d in corpus["databases"]] == ["Scopus"]
+    assert corpus["preview"]["identified"] == 1

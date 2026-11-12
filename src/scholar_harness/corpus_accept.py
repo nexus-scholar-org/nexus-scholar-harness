@@ -271,22 +271,24 @@ def _staging_refusal(ws: Path) -> AcceptCorpusRefused | None:
 
 
 def refuse_if_run_protocol_changed(ws: Path, manifest: dict[str, Any]) -> None:
-    """Refuse a search run's corpus when ``protocol.json`` no longer compiles to the query it ran.
+    """Refuse a search run's corpus when ``protocol.json`` no longer compiles to the search it ran.
 
     The hand-off accept (M3d-engine) binds the run's records to the current
-    protocol fingerprint, so the run must have searched that protocol's query
-    and year window (review F3): ``PROTOCOL_CHANGED_SINCE_RUN`` otherwise.
+    protocol fingerprint, so the run must have searched that protocol's query,
+    year window, language, retrieval cap and databases (review F3; a run from
+    before F3 is checked on its query and year window):
+    ``PROTOCOL_CHANGED_SINCE_RUN`` otherwise. An edit outside the search (the
+    criteria, the title) is flagged on the hand-off but does not refuse
+    (decision 2026-11-12).
     """
-    from scholar_search.protocol_adapter import compile_protocol_search
+    from .pipeline.discovery import run_protocol_drift
 
     # Review R1: a missing or unreadable protocol refuses typed (as accept_corpus does), never a 500.
     _protocol_fingerprint(ws)
-    query, _ = compile_protocol_search(ws / "protocol.json")
-    ran = (manifest.get("query_text"), manifest.get("year_min"), manifest.get("year_max"))
-    if ran != (query.text, query.year_min, query.year_max):
+    if run_protocol_drift(ws / "protocol.json", manifest)["search_changed"]:
         raise AcceptCorpusRefused(
-            f"{manifest.get('run') or 'the search run'} searched a query or year window the protocol "
-            "no longer has; run the search again before accepting its corpus",
+            f"{manifest.get('run') or 'the search run'} searched a query, year window, language, cap or "
+            "database list the protocol no longer has; run the search again before accepting its corpus",
             "PROTOCOL_CHANGED_SINCE_RUN",
         )
 
@@ -524,6 +526,85 @@ def prisma_identification(ws: Path, screened_docs: int) -> tuple[int, int]:
     return total, max(0, total - screened_docs)
 
 
+#: Review F4: the names the corpus view gives a database a run searched (the UI's own names).
+DATABASE_LABELS = {
+    "openalex": "OpenAlex", "semanticscholar": "Semantic Scholar", "crossref": "Crossref",
+    "arxiv": "arXiv", "pubmed": "PubMed", "biorxiv": "bioRxiv",
+}
+
+
+def _leg_rows(legs: list[Any]) -> list[dict[str, Any]]:
+    """One corpus-view row per database a run searched, summed over its legs (review F4).
+
+    The import rows' keys (``label``, ``records``, ``files``, ``searched_on``,
+    ``search_details_missing``) plus ``provider``, ``status`` and ``cap_hit``:
+    a database the engine searched has its query and date in the run's record,
+    so its search details are never missing, and it has no export file.
+    """
+    rows: dict[str, dict[str, Any]] = {}
+    for leg in legs:
+        if not isinstance(leg, dict) or not leg.get("provider"):
+            continue
+        provider = str(leg["provider"])
+        row = rows.setdefault(provider, {
+            "label": DATABASE_LABELS.get(provider, provider), "records": 0, "files": 0, "searched_on": [],
+            "search_details_missing": False, "provider": provider, "status": "ok", "cap_hit": False,
+        })
+        row["records"] += int(leg.get("fetched") or 0)
+        row["cap_hit"] = row["cap_hit"] or bool(leg.get("cap_hit"))
+        if leg.get("status") and leg.get("status") != "ok":
+            row["status"] = str(leg["status"])
+        day = str(leg.get("started_at") or "")[:10]
+        if day and day not in row["searched_on"]:
+            row["searched_on"].append(day)
+    for row in rows.values():
+        row["searched_on"].sort()
+    return list(rows.values())
+
+
+def _harvest_view(ws: Path) -> tuple[str, list[dict[str, Any]] | None, dict[str, int]] | None:
+    """``(origin, databases, preview)`` of a corpus that came from a search, else ``None`` (review F4).
+
+    A citation-searching round (M3g) reads its chase run's own counts
+    (identified = fetched, duplicates = found twice or already in the corpus,
+    studies = the new works); it gives no database rows (``None``), because
+    citation searching is not a database search (PRISMA 2020 reports it under
+    other methods) and the chase screen lists its legs. A browser harvest reads
+    the newest run published as the corpus: its legs, and ``deduped.json``
+    for the studies after deduplication. Unreadable files answer ``None``.
+    """
+    from .pipeline.coordinator import discovery_corpus_run
+    from .screening.rounds import ARM_CITATION_SEARCHING, current_round
+
+    def read(path: Path) -> Any:
+        try:
+            return json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            return None
+
+    current = current_round(ws)
+    if current.get("arm") == ARM_CITATION_SEARCHING and current.get("chase"):
+        chase = read(ws / "literature" / "citation_chase" / str(current["chase"]) / "chase.json")
+        if not isinstance(chase, dict) or not isinstance(chase.get("counts"), dict):
+            return None
+        counts = chase["counts"]
+        duplicates = int(counts.get("duplicates_within_chase") or 0) + int(counts.get("already_in_corpus") or 0)
+        preview = {
+            "identified": int(counts.get("raw") or 0), "duplicates": duplicates,
+            "unique_studies": int(counts.get("new") or 0),
+        }
+        return "citation_searching", None, preview
+    run_dir = discovery_corpus_run(ws)
+    manifest = read(run_dir / "legs.json") if run_dir is not None else None
+    if not isinstance(manifest, dict):
+        return None
+    rows = _leg_rows(list(manifest.get("legs") or []))
+    identified = sum(row["records"] for row in rows)
+    deduped = read(ws / "literature" / "deduped.json")
+    unique = len(deduped) if isinstance(deduped, list) else identified
+    return "discovery", rows, {"identified": identified, "duplicates": max(0, identified - unique), "unique_studies": unique}
+
+
 def corpus_status(workspace: Path | str) -> dict[str, Any]:
     """What the Import screen shows: ``EMPTY``, ``STAGED`` or ``ACCEPTED``, with counts."""
     ws = Path(workspace).resolve()
@@ -544,6 +625,9 @@ def corpus_status(workspace: Path | str) -> dict[str, Any]:
         "preview": {k: preview[k] for k in ("identified", "duplicates", "unique_studies")},
         "accepted": None,
         "from_discovery": False,
+        # Review F4: where the corpus comes from: "imports", "discovery",
+        # "citation_searching" (an M3g round), or None while nothing is there.
+        "origin": "imports" if sources else None,
         "limits": {"max_source_bytes": MAX_SOURCE_BYTES, "label_max_length": LABEL_MAX_LENGTH},
         # M3d-engine: why staging an export is refused now ({code, message}), else None.
         "staging_refused": None,
@@ -570,6 +654,19 @@ def corpus_status(workspace: Path | str) -> dict[str, Any]:
             # M3d-engine: a discovery corpus waiting for the hand-off accept is
             # staged, as database exports are (decision 2026-11-10).
             status["state"] = "STAGED"
+    from .screening.rounds import ARM_CITATION_SEARCHING, current_round
+
+    chase_round = snapshot is not None and current_round(ws).get("arm") == ARM_CITATION_SEARCHING
+    if status["from_discovery"] or chase_round:
+        # Review F4: a corpus from a search shows its databases and counts, not zeros;
+        # an M3g round shows its chase, also after a first round built from imports.
+        # In an M3g round only ``origin`` and ``preview`` change: the database
+        # rows and ``from_discovery`` stay round 1's (the databases arm).
+        harvest = _harvest_view(ws)
+        if harvest is not None:
+            status["origin"], rows, status["preview"] = harvest
+            if rows is not None:
+                status["databases"] = rows
     return status
 
 

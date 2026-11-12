@@ -37,6 +37,7 @@ Per card action: `POST /prepare` ✗ M1a (rebind, re-screen a batch); `POST /dec
 | Empty: No batches yet | exclude | none | n/a | Prepare batches (02) |
 | Loading: Reading 163 batch files | brand | none | n/a | no partial number shown as final |
 | Protocol changed | blocked | `STALE_BINDING` | ✓ `src/scholar_harness/screening/integrity.py:28` | Rebind and re-screen what changed / See the change; decisions kept |
+| Protocol changed after screening started | unclear | `PROTOCOL_CHANGED_SINCE_BATCH` | ✓ `protocol_changed` on `GET /summary` (review F2, H-protocol-signals; a UI state, not a refusal) | Open inception; undoing the edit to `protocol.json` brings the decisions back; nothing deleted |
 | Title only: n records have no abstract | unclear | none (flag `title_only`) | n/a | Fill abstracts from OpenAlex first / Screen them as they are; goes to Unclear, never excluded by default |
 | Refused file: decisions file without provenance | blocked | `PROVENANCE_MISSING` | contract §7 (events intake, collect; a decision lacks screener, method or `decided_at`) | Re-screen batch / Open the refused file (kept as `.rejected`) |
 | Engine unreachable | blocked | `ENGINE_UNREACHABLE` | client-side only | Try again; "held in this tab" warning |

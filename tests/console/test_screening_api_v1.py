@@ -688,3 +688,44 @@ def test_a_conflict_kept_with_a_legacy_long_note_resolves(client, ws):
     assert client.get(f"{BASE}/decisions/conflicts").json()["items"] == []
     resolution = [e for e in ev.read_events(ws) if e.get("supersedes") == legacy["event_id"]]
     assert len(resolution) == 1 and resolution[0]["note"] == long_note
+
+
+# --------------------------------------------------------------------------- F2 (three-phase review)
+
+
+def _checks(client: TestClient) -> dict[str, dict]:
+    return {c["name"]: c for c in client.get(f"{BASE}/prisma/preview").json()["checks"]}
+
+
+def test_f2_a_protocol_edit_after_decisions_is_not_bound_and_is_flagged(client, ws):
+    """F2: the batches were prepared under another protocol, so the check fails and Home is told why."""
+    studies = _studies(client)
+    assert client.get(f"{BASE}/summary").json()["protocol_changed"] is False
+    assert client.get(f"{BASE}/queue").json()["protocol_changed"] is False
+    assert all(r["result"] == "accepted" for r in _post(client, [_event(client, s) for s in studies]))
+    assert _checks(client)["bound_to_current_protocol"]["ok"] is True
+
+    _amend_protocol(ws)
+    check = _checks(client)["bound_to_current_protocol"]
+    assert check["ok"] is False
+    assert "batch" in check["detail"]
+    summary = client.get(f"{BASE}/summary").json()
+    assert summary["protocol_changed"] is True and summary["decided"] == 0
+    assert client.get(f"{BASE}/queue").json()["protocol_changed"] is True
+    # A decision bound to the new protocol does not make the old batches current.
+    assert _post(client, [_event(client, studies[0], "EXCLUDE")])[0]["result"] == "accepted"
+    assert _checks(client)["bound_to_current_protocol"]["ok"] is False
+
+
+def test_f2_no_decisions_is_not_vacuously_bound(client):
+    """F2: an empty set of decisions proves nothing about the protocol they were bound to."""
+    check = _checks(client)["bound_to_current_protocol"]
+    assert check["ok"] is False
+    assert client.get(f"{BASE}/summary").json()["protocol_changed"] is False
+
+
+def test_f2_nothing_prepared_reports_no_protocol_change(tmp_path):
+    ws = _workspace(tmp_path, prepare="accept_only")
+    _amend_protocol(ws)
+    c = TestClient(create_app(ws, token=DESKTOP), base_url="http://127.0.0.1", headers={"Authorization": f"Bearer {DESKTOP}"})
+    assert c.get(f"{BASE}/summary").json()["protocol_changed"] is False

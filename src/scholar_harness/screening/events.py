@@ -90,6 +90,8 @@ class BatchBinding:
     batch_id: str
     batch_sha256: str
     candidates: tuple[str, ...]
+    #: The protocol the batch was prepared under (its envelope's fingerprint).
+    protocol_fingerprint: str | None = None
 
 
 @dataclass
@@ -101,6 +103,18 @@ class ScreeningContext:
     inclusion_ids: frozenset[str]
     batches: dict[int, BatchBinding] = field(default_factory=dict)
     study_batch: dict[str, int] = field(default_factory=dict)
+
+    @property
+    def protocol_changed(self) -> bool:
+        """True when a current batch was prepared under another protocol (review F2).
+
+        Only the current round's batches are in ``batches`` (M3g), so an
+        archived round prepared under an earlier protocol does not count.
+        """
+        return any(
+            b.protocol_fingerprint is not None and b.protocol_fingerprint != self.protocol_fingerprint
+            for b in self.batches.values()
+        )
 
     def valid_reason(self, code: str | None) -> bool:
         if not code:
@@ -150,7 +164,11 @@ def load_context(workspace: Path) -> ScreeningContext:
     for index, (_, entry) in sorted(newest.items()):
         data = entry["_artifact"]["data"]
         candidates = tuple(str(c["study_id"]) for c in data.get("candidates", []))
-        context.batches[index] = BatchBinding(index, str(data["batch_id"]), entry["sha256"], candidates)
+        bound_protocol = entry["_artifact"].get("protocol_fingerprint")
+        context.batches[index] = BatchBinding(
+            index, str(data["batch_id"]), entry["sha256"], candidates,
+            str(bound_protocol) if bound_protocol else None,
+        )
         for study in candidates:
             context.study_batch[study] = index
     return context

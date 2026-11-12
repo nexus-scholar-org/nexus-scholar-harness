@@ -36,6 +36,8 @@ export interface Summary {
   conflicts: number;
   queued_on_phones?: number;
   lanes: { agent: number; you: number; second_screener: "PARKED" };
+  /** Review F2: the batches were prepared under another protocol; earlier decisions count nowhere. */
+  protocol_changed?: boolean;
 }
 
 export interface QueueItem {
@@ -52,6 +54,8 @@ export interface QueueItem {
 export interface QueuePage {
   items: QueueItem[];
   next_cursor: number | null;
+  /** Review F2, as on the summary. */
+  protocol_changed?: boolean;
 }
 
 export interface Criterion {
@@ -327,6 +331,10 @@ export interface CorpusDatabase {
   files: number;
   searched_on: string[];
   search_details_missing: boolean;
+  /** Review F4: a database a run searched (no export file): its id, leg status and whether its cap was hit. */
+  provider?: string;
+  status?: string;
+  cap_hit?: boolean;
 }
 
 export interface Corpus {
@@ -337,6 +345,8 @@ export interface Corpus {
   preview: { identified: number; duplicates: number; unique_studies: number };
   accepted: { artifact_id: string; accepted_at: string | null; records: number; studies: number; duplicates: number } | null;
   from_discovery: boolean;
+  /** Review F4: where the corpus comes from; `null` while nothing is there. */
+  origin?: "imports" | "discovery" | "citation_searching" | null;
   limits: { max_source_bytes: number; label_max_length: number };
   /** M3d-engine: why staging an export is refused now (`VERIFIED_EXISTS`, `CORPUS_ALREADY_ACCEPTED`), else `null`. */
   staging_refused?: { code: string; message: string } | null;

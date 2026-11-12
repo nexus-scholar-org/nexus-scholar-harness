@@ -63,6 +63,7 @@ Phone access only: `POST /lan/session/begin` ✗ M2 shows the QR; `POST /lan/ses
 - **Partial**: agent run partial (batch 121 running, 831 records without a draft): text "you can decide these without one". `missing[]` entries are listed, never hidden.
 - **Offline**: desktop: last summary with an "as of" caption. Phone: header badge "Offline · n queued" and the tab "Queued n"; the count is the local IndexedDB queue (04).
 - **Protocol-changed**: batch rows show "Protocol changed" (the code `STALE_BINDING` is in Details); the primary button becomes "See the change".
+- **Protocol changed after screening started** (review F2, H-protocol-signals): when `/summary` answers `protocol_changed: true`, the h1 is "The protocol changed after screening started.", the `PROTOCOL_CHANGED_SINCE_BATCH` card (08) is shown with "Open inception", and there is no "Open triage" button (the queue would show every record as undecided).
 - **Published, decisions since** (new): see the amendment; the publication status is `STALE`, the export link is hidden and "Publish again" is offered. This state cannot occur before a first publish.
 
 ## Desktop layout

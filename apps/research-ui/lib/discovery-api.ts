@@ -87,6 +87,10 @@ export interface RunSummary {
   raw_published: boolean;
   cap_override: number | null;
   stale: boolean;
+  /** Review F3: the protocol was edited since this run (`null` when it cannot be read). */
+  protocol_changed?: boolean | null;
+  /** Review F3: the edit changed the search itself (query, years, language, cap, databases). */
+  search_changed?: boolean | null;
 }
 
 export interface Runs {
@@ -222,6 +226,10 @@ export interface Handoff {
   near_twins_undecided: null;
   lower_bound_databases: string[];
   protocol_fingerprint: string;
+  /** Review F3: the protocol the corpus run searched (`null` for a run from before F3). */
+  run_protocol_fingerprint?: string | null;
+  protocol_changed?: boolean | null;
+  search_changed?: boolean | null;
 }
 
 export interface RunRequest {
