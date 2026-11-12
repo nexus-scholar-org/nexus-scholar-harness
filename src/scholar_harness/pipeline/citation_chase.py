@@ -355,6 +355,31 @@ def _corpus_entry(ws: Path, artifact_id: str) -> dict[str, Any] | None:
     return {"artifact_id": artifact_id, **entry}
 
 
+def _pending_round_snapshot(ws: Path, parent_id: str, current_round_corpus: str | None) -> str | None:
+    """A registered corpus snapshot built on ``parent_id`` that no round records yet, or ``None``.
+
+    That is the state an accept leaves when its archive step fails after the
+    acceptance gate registered the next round's snapshot.
+    """
+    registry = ws / "audit" / "artifact_registry.json"
+    try:
+        entries = json.loads(registry.read_text(encoding="utf-8")).get("artifacts", {})
+    except (OSError, ValueError):
+        return None
+    for artifact_id, entry in entries.items():
+        if not isinstance(entry, dict) or entry.get("artifact_type") != "corpus_snapshot":
+            continue
+        if artifact_id in (parent_id, current_round_corpus):
+            continue
+        try:
+            artifact = json.loads((ws / entry["path"]).read_text(encoding="utf-8"))
+        except (OSError, ValueError, KeyError, TypeError):
+            continue
+        if any(isinstance(i, dict) and i.get("artifact_id") == parent_id for i in artifact.get("inputs") or []):
+            return artifact_id
+    return None
+
+
 def _generation_id(ws: Path) -> str | None:
     path = ws / "literature" / "screening" / "generation.json"
     try:
@@ -858,7 +883,11 @@ def accept_citation_chase(
     if manifest.get("generation_id") and manifest["generation_id"] != generation_id:
         raise ChaseRefused("the screening was published again after this chase ran; run the chase again", "CHASE_STALE")
     declared = (manifest.get("parent_corpus") or {}).get("artifact_id")
-    if resumed and declared:
+    # Re-review: a retry after ARCHIVE_INCOMPLETE is recognised from the registry,
+    # whichever archive step failed: the round's snapshot was registered (its
+    # ``inputs`` name this chase's parent) but the rounds index does not record it.
+    pending = bool(declared) and _pending_round_snapshot(ws, declared, current.get("corpus_artifact_id")) is not None
+    if (resumed or pending) and declared:
         # The round's snapshot was registered before the move stopped, so the
         # newest snapshot is no longer the parent: the parent is the declared one.
         parent = _corpus_entry(ws, declared)

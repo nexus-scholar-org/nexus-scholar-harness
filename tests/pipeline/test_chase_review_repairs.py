@@ -19,6 +19,7 @@ import pytest
 
 from scholar_harness.pipeline import citation_chase as cc
 from scholar_harness.screening import events as ev
+from scholar_harness.screening import rounds
 from scholar_harness.screening.batcher import cmd_prepare
 
 _SPEC = importlib.util.spec_from_file_location("_chase_accept_helpers", Path(__file__).resolve().parent / "test_chase_accept.py")
@@ -123,3 +124,39 @@ def test_r5_an_included_row_without_a_decision_is_not_a_seed(ws):
     seeds = cc.load_seeds(ws)
     missing = [s for s in seeds if s.decision == ""]
     assert len(missing) == 1 and not missing[0].chaseable and "no published decision" in missing[0].reason
+
+
+# Re-review (a02883b4): a retry after ARCHIVE_INCOMPLETE must resume, whichever step failed.
+
+
+def test_r4b_a_retry_after_a_round_folder_that_could_not_be_made_resumes(ws, monkeypatch):
+    ca._chase(ws, monkeypatch)
+    blocker = ws / "literature" / "screening_rounds" / "round_001"
+    blocker.parent.mkdir(parents=True)
+    blocker.write_text("in the way", encoding="utf-8")
+    with pytest.raises(cc.ChaseRefused) as exc:
+        cc.accept_citation_chase(ws)
+    assert exc.value.code == "ARCHIVE_INCOMPLETE"
+    blocker.unlink()
+    accepted = cc.accept_citation_chase(ws)
+    assert accepted.round == 2 and accepted.already_accepted
+    assert len(ca._corpora(ws)) == 2  # one round-2 snapshot, not a second one
+    assert (ws / "literature" / "screening_rounds" / "round_001" / "screening" / "generation.json").is_file()
+
+
+def test_r4c_a_retry_after_a_failed_first_move_resumes(ws, monkeypatch):
+    ca._chase(ws, monkeypatch)
+    real_move = rounds.shutil.move
+
+    def failing_first(src, dst):
+        raise OSError("locked")
+
+    monkeypatch.setattr(rounds.shutil, "move", failing_first)
+    with pytest.raises(cc.ChaseRefused) as exc:
+        cc.accept_citation_chase(ws)
+    assert exc.value.code == "ARCHIVE_INCOMPLETE" and exc.value.details["moved"] == []
+    monkeypatch.setattr(rounds.shutil, "move", real_move)
+    accepted = cc.accept_citation_chase(ws)
+    assert accepted.round == 2 and accepted.already_accepted
+    assert len(ca._corpora(ws)) == 2
+    assert rounds.current_round(ws)["corpus_artifact_id"] == accepted.artifact_id
