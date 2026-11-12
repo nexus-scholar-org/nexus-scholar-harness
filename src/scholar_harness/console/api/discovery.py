@@ -1064,6 +1064,7 @@ async def start_chase(body: ChaseRunBody, request: Request) -> dict[str, Any]:
         try:
             cc.load_seeds(ws, seed_source=body.seeds or "included")
             cc.require_published(ws)  # review R2: published, current, same protocol
+            cc.require_no_pending_accept(ws)  # a failed accept is finished before a new chase
         except cc.ChaseRefused as exc:
             raise _chase_refused(exc) from exc
         providers = _check_providers(body.providers) or list(cc.DEFAULT_PROVIDERS)

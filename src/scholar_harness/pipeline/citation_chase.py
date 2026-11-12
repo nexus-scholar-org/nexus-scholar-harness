@@ -325,7 +325,12 @@ def _deduplicator(ws: Path) -> Deduplicator:
 
 
 def _parent_corpus(ws: Path) -> dict[str, Any] | None:
-    """The newest accepted corpus snapshot's registry row, or ``None``."""
+    """The newest accepted corpus snapshot's registry row, or ``None``.
+
+    A round snapshot that an unfinished accept registered (see
+    ``pending_accept``) is never a parent: nobody has screened it.
+    """
+    unfinished = {aid for _name, _manifest, ids in _unfinished_round_snapshots(ws) for aid in ids}
     registry = ws / "audit" / "artifact_registry.json"
     if not registry.is_file():
         return None
@@ -336,7 +341,7 @@ def _parent_corpus(ws: Path) -> dict[str, Any] | None:
     corpora = [
         {"artifact_id": aid, **entry}
         for aid, entry in entries.items()
-        if isinstance(entry, dict) and entry.get("artifact_type") == "corpus_snapshot"
+        if isinstance(entry, dict) and entry.get("artifact_type") == "corpus_snapshot" and aid not in unfinished
     ]
     if not corpora:
         return None
@@ -355,29 +360,135 @@ def _corpus_entry(ws: Path, artifact_id: str) -> dict[str, Any] | None:
     return {"artifact_id": artifact_id, **entry}
 
 
-def _pending_round_snapshot(ws: Path, parent_id: str, current_round_corpus: str | None) -> str | None:
-    """A registered corpus snapshot built on ``parent_id`` that no round records yet, or ``None``.
-
-    That is the state an accept leaves when its archive step fails after the
-    acceptance gate registered the next round's snapshot.
-    """
-    registry = ws / "audit" / "artifact_registry.json"
+def _archive_incomplete_snapshots(ws: Path) -> dict[str, list[str]]:
+    """Chase name -> snapshot ids from its ``SCREENING_ROUND_ARCHIVE_INCOMPLETE`` journal rows."""
+    out: dict[str, list[str]] = {}
     try:
-        entries = json.loads(registry.read_text(encoding="utf-8")).get("artifacts", {})
-    except (OSError, ValueError):
-        return None
-    for artifact_id, entry in entries.items():
-        if not isinstance(entry, dict) or entry.get("artifact_type") != "corpus_snapshot":
-            continue
-        if artifact_id in (parent_id, current_round_corpus):
+        lines = (ws / "audit" / "journal.jsonl").read_text(encoding="utf-8").splitlines()
+    except OSError:
+        return out
+    for line in lines:
+        if "SCREENING_ROUND_ARCHIVE_INCOMPLETE" not in line:
             continue
         try:
-            artifact = json.loads((ws / entry["path"]).read_text(encoding="utf-8"))
-        except (OSError, ValueError, KeyError, TypeError):
+            row = json.loads(line)
+        except ValueError:
             continue
-        if any(isinstance(i, dict) and i.get("artifact_id") == parent_id for i in artifact.get("inputs") or []):
-            return artifact_id
+        if not isinstance(row, dict) or row.get("action") != "SCREENING_ROUND_ARCHIVE_INCOMPLETE":
+            continue
+        params = row.get("parameters")
+        if not isinstance(params, dict):
+            continue
+        if params.get("chase") and params.get("snapshot_artifact_id"):
+            out.setdefault(str(params["chase"]), []).append(str(params["snapshot_artifact_id"]))
+    return out
+
+
+def _unfinished_round_snapshots(ws: Path) -> list[tuple[str, dict[str, Any], set[str]]]:
+    """``(chase, manifest, snapshot ids)`` for each unaccepted chase whose accept registered a
+    round snapshot that the rounds index does not record.
+
+    The snapshot is tied to the chase that built it: the ``pending_round`` its
+    accept writes into ``chase.json`` before the acceptance gate, else that
+    chase's ``SCREENING_ROUND_ARCHIVE_INCOMPLETE`` journal row.
+    """
+    from scholar_harness.screening import rounds
+
+    index = rounds.read_rounds(ws)
+    current = index.get("current") if isinstance(index.get("current"), dict) else {}
+    recorded = {
+        str(r["corpus_artifact_id"]) for r in [current, *(index.get("rounds") or [])]
+        if isinstance(r, dict) and r.get("corpus_artifact_id")
+    }
+    try:
+        entries = json.loads((ws / "audit" / "artifact_registry.json").read_text(encoding="utf-8")).get("artifacts", {})
+    except (OSError, ValueError, AttributeError):
+        return []
+    if not isinstance(entries, dict):
+        return []
+    registered = {
+        aid for aid, e in entries.items() if isinstance(e, dict) and e.get("artifact_type") == "corpus_snapshot"
+    }
+    journaled: dict[str, list[str]] | None = None
+    out: list[tuple[str, dict[str, Any], set[str]]] = []
+    for run_dir in chase_dirs(ws):
+        try:
+            manifest = read_manifest(run_dir)
+        except (OSError, ValueError):
+            continue
+        if not isinstance(manifest, dict) or manifest.get("accepted"):
+            continue
+        parent = manifest.get("parent_corpus")
+        declared = parent.get("artifact_id") if isinstance(parent, dict) else None
+        marker = manifest.get("pending_round")
+        owned = {str(marker["artifact_id"])} if isinstance(marker, dict) and marker.get("artifact_id") else set()
+        if journaled is None:
+            journaled = _archive_incomplete_snapshots(ws)
+        owned.update(journaled.get(run_dir.name, []))
+        ids = {aid for aid in owned if aid in registered and aid not in recorded and aid != declared}
+        if ids:
+            out.append((run_dir.name, manifest, ids))
+    return out
+
+
+def _round_generation(ws: Path) -> str | None:
+    """The current round's published generation id, also while its archive is half done."""
+    from scholar_harness.screening import rounds
+
+    number = int(rounds.current_round(ws).get("round") or 1)
+    archived = rounds.round_folder(ws, number) / "screening" / "generation.json"
+    if archived.is_file():
+        try:
+            return str(json.loads(archived.read_text(encoding="utf-8")).get("generation_id") or "") or None
+        except (OSError, ValueError, AttributeError):
+            return None
+    return _generation_id(ws)
+
+
+def pending_accept(workspace: Path | str) -> str | None:
+    """The chase run whose accept stopped after registering its round snapshot, or ``None``.
+
+    An accept that refused ``ARCHIVE_INCOMPLETE`` leaves the next round's
+    snapshot registered but not recorded in the rounds index. Another chase's
+    accept would archive the round on its behalf, so the accept has to be
+    finished first. The snapshot counts only while its chase can still finish:
+    the chase's parent is the current round's corpus and the screening it ran
+    on is still the published one. A chase whose screening was published again
+    is refused ``CHASE_STALE`` on a retry, so its snapshot no longer blocks;
+    it stays registered, and ``_parent_corpus`` never takes it as a parent.
+    """
+    from scholar_harness.screening import rounds
+
+    ws = Path(workspace)
+    current = rounds.current_round(ws)
+    current_corpus = current.get("corpus_artifact_id")
+    current_number = current.get("round") or 1
+    generation: str | None = None
+    for name, manifest, _ids in _unfinished_round_snapshots(ws):
+        parent = manifest.get("parent_corpus")
+        declared = parent.get("artifact_id") if isinstance(parent, dict) else None
+        if not declared:
+            continue
+        # Only a chase on the current round's corpus can still finish its round.
+        if current_corpus and declared != current_corpus:
+            continue
+        if not current_corpus and current_number != 1:
+            continue
+        generation = generation or _round_generation(ws)
+        if manifest.get("generation_id") and generation and manifest["generation_id"] != generation:
+            continue  # published again since: a retry is CHASE_STALE, so this one cannot block
+        return name
     return None
+
+
+def require_no_pending_accept(workspace: Path | str) -> None:
+    chase = pending_accept(workspace)
+    if chase is not None:
+        raise ChaseRefused(
+            f"the accept of {chase} registered the next round's corpus but stopped before the round was archived; "
+            f"finish that accept first: run `chase accept --chase {chase}` again (or Accept on the Chase screen)",
+            "CHASE_ACCEPT_PENDING",
+        )
 
 
 def _generation_id(ws: Path) -> str | None:
@@ -437,6 +548,7 @@ async def run_citation_chase(
         raise ChaseRefused("at least one direction is needed", "CHASE_DIRECTION_INVALID")
     seeds = load_seeds(ws, seed_source=seed_source)
     require_published(ws)  # review R2: before any request
+    require_no_pending_accept(ws)  # deferred P3: never chase from an unscreened round snapshot
     deduplicator = _deduplicator(ws)
     year_min, year_max = _year_window(protocol_path)
     names = [str(n) for n in (providers or list(DEFAULT_PROVIDERS))]
@@ -838,6 +950,15 @@ def accept_citation_chase(
     rows = json.loads((run_dir / "new.json").read_text(encoding="utf-8"))
     if not isinstance(rows, list) or not rows:
         raise ChaseRefused(f"{run_dir.name} found nothing new to screen", "CHASE_NOTHING_NEW")
+    owner = pending_accept(ws)
+    if owner is not None and owner != run_dir.name:
+        # Review R6 #2: another chase's round snapshot is registered and waits for
+        # its archive; this accept must not finish that round on its behalf.
+        raise ChaseRefused(
+            f"the accept of {owner} registered the next round's corpus but stopped before the round was archived; "
+            f"finish that accept first: run `chase accept --chase {owner}` again",
+            "CHASE_ACCEPT_PENDING",
+        )
 
     try:
         workspace_id = _workspace_id(ws)
@@ -883,10 +1004,10 @@ def accept_citation_chase(
     if manifest.get("generation_id") and manifest["generation_id"] != generation_id:
         raise ChaseRefused("the screening was published again after this chase ran; run the chase again", "CHASE_STALE")
     declared = (manifest.get("parent_corpus") or {}).get("artifact_id")
-    # Re-review: a retry after ARCHIVE_INCOMPLETE is recognised from the registry,
-    # whichever archive step failed: the round's snapshot was registered (its
-    # ``inputs`` name this chase's parent) but the rounds index does not record it.
-    pending = bool(declared) and _pending_round_snapshot(ws, declared, current.get("corpus_artifact_id")) is not None
+    # Re-review: a retry after ARCHIVE_INCOMPLETE is recognised whichever archive
+    # step failed: this chase's round snapshot was registered (its ``pending_round``
+    # marker or its journal row names it) but the rounds index does not record it.
+    pending = owner == run_dir.name
     if (resumed or pending) and declared:
         # The round's snapshot was registered before the move stopped, so the
         # newest snapshot is no longer the parent: the parent is the declared one.
@@ -938,6 +1059,12 @@ def accept_citation_chase(
     entries = json.loads(registry.read_text(encoding="utf-8")).get("artifacts", {}) if registry.is_file() else {}
     already = artifact["artifact_id"] in entries
     if not already:
+        # The owner marker is written before the gate, so a snapshot that gets
+        # registered is always tied to this chase (review R6); a refusal undoes it.
+        manifest_path = run_dir / "chase.json"
+        before = manifest_path.read_text(encoding="utf-8")
+        manifest["pending_round"] = {"round": number, "artifact_id": artifact["artifact_id"]}
+        manifest_path.write_text(_dump(manifest), encoding="utf-8")
         result = accept_artifact(
             ws, artifact,
             expected=AcceptanceContext(
@@ -947,6 +1074,7 @@ def accept_citation_chase(
             actor="nexus-scholar-chase-accept",
         )
         if not result.accepted:
+            manifest_path.write_text(before, encoding="utf-8")
             issues = "; ".join(f"{i.code}: {i.message}" for i in result.issues) or "no detail"
             raise ChaseRefused(f"the acceptance gate refused the round {number} snapshot ({issues})", "ACCEPT_CORPUS_REFUSED")
 
@@ -974,6 +1102,7 @@ def accept_citation_chase(
         corpus_artifact_id=artifact["artifact_id"],
     )
     accepted_at = _now()
+    manifest.pop("pending_round", None)
     manifest["accepted"] = {
         "round": number, "artifact_id": artifact["artifact_id"], "accepted_at": accepted_at,
         "records": len(docs), "studies": len(artifact["data"]["studies"]),
