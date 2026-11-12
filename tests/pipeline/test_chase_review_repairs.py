@@ -193,3 +193,64 @@ def test_r6_a_new_chase_while_an_accept_is_pending_is_refused(ws, monkeypatch):
     accepted = cc.accept_citation_chase(ws)
     assert accepted.round == 2 and parent["parent_corpus"]["artifact_id"] != accepted.artifact_id
     cc.require_no_pending_accept(ws)
+
+
+def _fail_moves(monkeypatch):
+    def failing(src, dst):
+        raise OSError("locked")
+
+    monkeypatch.setattr(rounds.shutil, "move", failing)
+
+
+def test_r6b_with_two_chases_on_one_parent_the_refusal_names_the_one_that_failed(ws, monkeypatch):
+    """Review of fcc3557e (P1, P2): the pending snapshot belongs to the chase that built it."""
+    a = ca._chase(ws, monkeypatch)
+    b = ca._chase(ws, monkeypatch, docs=[h._doc("Other", provider="openalex", pid="W9", doi="10.2/z", openalex="W9", year=2023)])
+    real_move = rounds.shutil.move
+    _fail_moves(monkeypatch)
+    with pytest.raises(cc.ChaseRefused) as exc:
+        cc.accept_citation_chase(ws, chase=a.chase)
+    assert exc.value.code == "ARCHIVE_INCOMPLETE"
+    monkeypatch.setattr(rounds.shutil, "move", real_move)
+
+    assert cc.pending_accept(ws) == a.chase
+    with pytest.raises(cc.ChaseRefused) as exc:  # the other chase may not finish a's round
+        cc.accept_citation_chase(ws, chase=b.chase)
+    assert exc.value.code == "CHASE_ACCEPT_PENDING" and a.chase in str(exc.value)
+    assert len(ca._corpora(ws)) == 2  # no third snapshot
+
+    accepted = cc.accept_citation_chase(ws, chase=a.chase)
+    assert accepted.round == 2 and cc.pending_accept(ws) is None
+    manifest = json.loads((ws / "literature" / "citation_chase" / a.chase / "chase.json").read_text(encoding="utf-8"))
+    assert "pending_round" not in manifest and manifest["accepted"]["artifact_id"] == accepted.artifact_id
+
+    # b ran on round 1's corpus: after round 2 is published it is stale, and no lockout remains.
+    cmd_prepare(ws, batch_size=20)
+    ca._publish_round(ws, "INCLUDE")
+    with pytest.raises(cc.ChaseRefused) as exc:
+        cc.accept_citation_chase(ws, chase=b.chase)
+    assert exc.value.code == "CHASE_STALE"
+    cc.require_no_pending_accept(ws)
+
+
+def test_r6c_the_owner_is_known_from_the_journal_without_the_marker(ws, monkeypatch):
+    a = ca._chase(ws, monkeypatch)
+    _fail_moves(monkeypatch)
+    with pytest.raises(cc.ChaseRefused):
+        cc.accept_citation_chase(ws, chase=a.chase)
+    path = ws / "literature" / "citation_chase" / a.chase / "chase.json"
+    manifest = json.loads(path.read_text(encoding="utf-8"))
+    manifest.pop("pending_round")  # a run accepted before the marker existed
+    path.write_text(json.dumps(manifest), encoding="utf-8")
+    assert cc.pending_accept(ws) == a.chase
+
+
+def test_r6d_malformed_manifests_are_skipped(ws, monkeypatch):
+    ca._chase(ws, monkeypatch)
+    bad = ws / "literature" / "citation_chase" / "chase_002"
+    bad.mkdir()
+    (bad / "chase.json").write_text("[1, 2]", encoding="utf-8")
+    worse = ws / "literature" / "citation_chase" / "chase_003"
+    worse.mkdir()
+    (worse / "chase.json").write_text(json.dumps({"parent_corpus": "not an object"}), encoding="utf-8")
+    assert cc.pending_accept(ws) is None
