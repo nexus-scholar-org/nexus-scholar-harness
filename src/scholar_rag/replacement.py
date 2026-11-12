@@ -1311,7 +1311,7 @@ class WorkspaceLock:
                 handle.write(canonical_json_bytes(record))
                 handle.write(b"\n")
         except OSError as exc:
-            self._path.unlink(missing_ok=True)
+            _delete_lock_file(self._path)
             raise ReplacementValidationError(
                 f"replacement could not record the workspace lock holder: {type(exc).__name__}. A lock "
                 "whose holder is unrecorded is not a lock, so it is removed rather than left behind.",
@@ -1361,20 +1361,21 @@ def _delete_lock_file(path: Path) -> None:
     """Delete the lock file, waiting out a handle that briefly holds it open.
 
     Only ``ERROR_SHARING_VIOLATION`` is waited for, and only
-    :data:`LOCK_RELEASE_ATTEMPTS` times. A file that is already gone is a
-    released lock. Every other failure, and a file that never frees up, is raised
+    :data:`LOCK_RELEASE_ATTEMPTS` times (never fewer than once). A file that is
+    already gone is a released lock. Every other failure, and a file that never frees up, is raised
     unchanged: by the time a run releases it has published or refused, and that
     outcome is not this function's to rewrite.
     """
 
-    for attempt in range(1, LOCK_RELEASE_ATTEMPTS + 1):
+    attempts = max(LOCK_RELEASE_ATTEMPTS, 1)
+    for attempt in range(1, attempts + 1):
         try:
             os.unlink(path)
         except FileNotFoundError:
             return
         except PermissionError as exc:
             in_use = getattr(exc, "winerror", None) == _WINDOWS_FILE_IN_USE
-            if not in_use or attempt == LOCK_RELEASE_ATTEMPTS:
+            if not in_use or attempt == attempts:
                 raise
             time.sleep(LOCK_RELEASE_RETRY_INTERVAL_SECONDS)
         else:
