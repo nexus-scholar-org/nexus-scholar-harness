@@ -190,3 +190,32 @@ def test_the_browser_may_post_the_chase_routes():
     assert any(p.fullmatch("api/v1/discovery/chase/runs") for p in POST_PATHS)
     assert any(p.fullmatch("api/v1/discovery/chase/accept") for p in POST_PATHS)
     assert not any(p.fullmatch("api/v1/discovery/chase/runs/chase_001") for p in POST_PATHS)
+
+
+def test_a_new_chase_while_an_accept_is_pending_is_refused(env, monkeypatch):
+    """Deferred M3g P3: the parent of a new chase is never an unscreened round snapshot."""
+    from scholar_harness.screening import rounds
+
+    client, ws = env
+    docs = [h._doc(f"Chased {i}", provider="openalex", pid=f"W{i}", doi=f"10.2/{i}", openalex=f"W{i}") for i in range(2)]
+    _install(monkeypatch, h.FakeChaseProvider("openalex", citations={h.W_INCLUDE: docs}))
+    job, _ = _run(client, {"providers": ["openalex"], "directions": ["forward"]})
+    assert job["state"] == "succeeded"
+
+    real_move = rounds.shutil.move
+
+    def failing(src, dst):
+        raise OSError("locked")
+
+    monkeypatch.setattr(rounds.shutil, "move", failing)
+    failed = client.post(f"{BASE}/chase/accept", json={})
+    assert failed.status_code == 409 and _code(failed) == "ARCHIVE_INCOMPLETE"
+    monkeypatch.setattr(rounds.shutil, "move", real_move)
+
+    refused = client.post(f"{BASE}/chase/runs", json={"providers": ["openalex"], "directions": ["forward"]})
+    assert refused.status_code == 409 and _code(refused) == "CHASE_ACCEPT_PENDING"
+    assert "chase_001" in refused.json()["detail"]["message"]
+    assert client.get(f"{BASE}/chase").json()["active_job"] is None
+
+    finished = client.post(f"{BASE}/chase/accept", json={})
+    assert finished.status_code == 200 and finished.json()["round"] == 2

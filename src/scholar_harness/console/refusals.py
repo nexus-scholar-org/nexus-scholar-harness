@@ -184,6 +184,8 @@ CHASE_ALREADY_ACCEPTED = "CHASE_ALREADY_ACCEPTED"
 CHASE_STALE = "CHASE_STALE"
 CHASE_DIRECTION_INVALID = "CHASE_DIRECTION_INVALID"
 CHASE_SEEDS_INVALID = "CHASE_SEEDS_INVALID"
+#: A failed accept registered the next round's snapshot; finish it before a new chase or another accept.
+CHASE_ACCEPT_PENDING = "CHASE_ACCEPT_PENDING"
 PROTOCOL_CHANGED_SINCE_PUBLISH = "PROTOCOL_CHANGED_SINCE_PUBLISH"
 
 # --- request validation (H-input-limits, F5) ----------------------------------
@@ -299,6 +301,7 @@ CONTRACT_ADDED = frozenset(
         CHASE_STALE,
         CHASE_DIRECTION_INVALID,
         CHASE_SEEDS_INVALID,
+        CHASE_ACCEPT_PENDING,
         PROTOCOL_CHANGED_SINCE_PUBLISH,
         BODY_INVALID,
     }

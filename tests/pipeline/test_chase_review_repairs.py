@@ -160,3 +160,129 @@ def test_r4c_a_retry_after_a_failed_first_move_resumes(ws, monkeypatch):
     assert accepted.round == 2 and accepted.already_accepted
     assert len(ca._corpora(ws)) == 2
     assert rounds.current_round(ws)["corpus_artifact_id"] == accepted.artifact_id
+
+
+# Deferred P3 (M3g review): a new chase while a round snapshot is pending must not take it as parent.
+
+
+def test_r6_a_new_chase_while_an_accept_is_pending_is_refused(ws, monkeypatch):
+    first = ca._chase(ws, monkeypatch)
+    parent = json.loads((ws / "literature" / "citation_chase" / first.chase / "chase.json").read_text(encoding="utf-8"))
+    real_move = rounds.shutil.move
+
+    def failing_first(src, dst):
+        raise OSError("locked")
+
+    monkeypatch.setattr(rounds.shutil, "move", failing_first)
+    with pytest.raises(cc.ChaseRefused) as exc:
+        cc.accept_citation_chase(ws)
+    assert exc.value.code == "ARCHIVE_INCOMPLETE"
+    monkeypatch.setattr(rounds.shutil, "move", real_move)
+    assert len(ca._corpora(ws)) == 2  # the round-2 snapshot is registered, not yet recorded as a round
+
+    provider = h.FakeChaseProvider("openalex", citations={h.W_INCLUDE: []})
+    ca._install(monkeypatch, provider)
+    with pytest.raises(cc.ChaseRefused) as exc:
+        asyncio.run(cc.run_citation_chase(ws, providers=["openalex"], directions=["forward"]))
+    assert exc.value.code == "CHASE_ACCEPT_PENDING"
+    assert first.chase in str(exc.value)
+    assert provider.asked == []
+    assert [p.name for p in (ws / "literature" / "citation_chase").iterdir() if p.is_dir()] == [first.chase]
+
+    # Finishing the accept clears the refusal: the next chase's parent is the round-2 snapshot.
+    accepted = cc.accept_citation_chase(ws)
+    assert accepted.round == 2 and parent["parent_corpus"]["artifact_id"] != accepted.artifact_id
+    cc.require_no_pending_accept(ws)
+
+
+def _fail_moves(monkeypatch):
+    def failing(src, dst):
+        raise OSError("locked")
+
+    monkeypatch.setattr(rounds.shutil, "move", failing)
+
+
+def test_r6b_with_two_chases_on_one_parent_the_refusal_names_the_one_that_failed(ws, monkeypatch):
+    """Review of fcc3557e (P1, P2): the pending snapshot belongs to the chase that built it."""
+    a = ca._chase(ws, monkeypatch)
+    b = ca._chase(ws, monkeypatch, docs=[h._doc("Other", provider="openalex", pid="W9", doi="10.2/z", openalex="W9", year=2023)])
+    real_move = rounds.shutil.move
+    _fail_moves(monkeypatch)
+    with pytest.raises(cc.ChaseRefused) as exc:
+        cc.accept_citation_chase(ws, chase=a.chase)
+    assert exc.value.code == "ARCHIVE_INCOMPLETE"
+    monkeypatch.setattr(rounds.shutil, "move", real_move)
+
+    assert cc.pending_accept(ws) == a.chase
+    with pytest.raises(cc.ChaseRefused) as exc:  # the other chase may not finish a's round
+        cc.accept_citation_chase(ws, chase=b.chase)
+    assert exc.value.code == "CHASE_ACCEPT_PENDING" and a.chase in str(exc.value)
+    assert len(ca._corpora(ws)) == 2  # no third snapshot
+
+    accepted = cc.accept_citation_chase(ws, chase=a.chase)
+    assert accepted.round == 2 and cc.pending_accept(ws) is None
+    manifest = json.loads((ws / "literature" / "citation_chase" / a.chase / "chase.json").read_text(encoding="utf-8"))
+    assert "pending_round" not in manifest and manifest["accepted"]["artifact_id"] == accepted.artifact_id
+
+    # b ran on round 1's corpus: after round 2 is published it is stale, and no lockout remains.
+    cmd_prepare(ws, batch_size=20)
+    ca._publish_round(ws, "INCLUDE")
+    with pytest.raises(cc.ChaseRefused) as exc:
+        cc.accept_citation_chase(ws, chase=b.chase)
+    assert exc.value.code == "CHASE_STALE"
+    cc.require_no_pending_accept(ws)
+
+
+def test_r6c_the_owner_is_known_from_the_journal_without_the_marker(ws, monkeypatch):
+    a = ca._chase(ws, monkeypatch)
+    _fail_moves(monkeypatch)
+    with pytest.raises(cc.ChaseRefused):
+        cc.accept_citation_chase(ws, chase=a.chase)
+    path = ws / "literature" / "citation_chase" / a.chase / "chase.json"
+    manifest = json.loads(path.read_text(encoding="utf-8"))
+    manifest.pop("pending_round")  # a run accepted before the marker existed
+    path.write_text(json.dumps(manifest), encoding="utf-8")
+    assert cc.pending_accept(ws) == a.chase
+
+
+def test_r6d_malformed_manifests_are_skipped(ws, monkeypatch):
+    ca._chase(ws, monkeypatch)
+    bad = ws / "literature" / "citation_chase" / "chase_002"
+    bad.mkdir()
+    (bad / "chase.json").write_text("[1, 2]", encoding="utf-8")
+    worse = ws / "literature" / "citation_chase" / "chase_003"
+    worse.mkdir()
+    (worse / "chase.json").write_text(json.dumps({"parent_corpus": "not an object"}), encoding="utf-8")
+    assert cc.pending_accept(ws) is None
+
+
+def test_r6e_a_pending_chase_whose_screening_was_published_again_does_not_lock_the_workspace(ws, monkeypatch):
+    """Re-review of 034e4597 (P2): a retry refused CHASE_STALE and a new chase refused
+    CHASE_ACCEPT_PENDING left no way out. The stale chase's snapshot stays registered but
+    blocks nothing and is never a parent."""
+    a = ca._chase(ws, monkeypatch)
+    path = ws / "literature" / "citation_chase" / a.chase / "chase.json"
+    round1_parent = json.loads(path.read_text(encoding="utf-8"))["parent_corpus"]["artifact_id"]
+    real_move = rounds.shutil.move
+    _fail_moves(monkeypatch)
+    with pytest.raises(cc.ChaseRefused) as exc:
+        cc.accept_citation_chase(ws, chase=a.chase)
+    assert exc.value.code == "ARCHIVE_INCOMPLETE"
+    monkeypatch.setattr(rounds.shutil, "move", real_move)
+    (orphan,) = [aid for aid, _e in ca._corpora(ws) if aid != round1_parent]
+
+    # Round 1 was published again after the chase ran (simulated on the chase's record).
+    manifest = json.loads(path.read_text(encoding="utf-8"))
+    manifest["generation_id"] = "GEN-an-earlier-publication"
+    path.write_text(json.dumps(manifest), encoding="utf-8")
+    with pytest.raises(cc.ChaseRefused) as exc:
+        cc.accept_citation_chase(ws, chase=a.chase)
+    assert exc.value.code == "CHASE_STALE"
+    assert cc.pending_accept(ws) is None
+
+    b = ca._chase(ws, monkeypatch, docs=[h._doc("Other", provider="openalex", pid="W9", doi="10.2/z", openalex="W9", year=2023)])
+    b_manifest = json.loads((ws / "literature" / "citation_chase" / b.chase / "chase.json").read_text(encoding="utf-8"))
+    assert b_manifest["parent_corpus"]["artifact_id"] == round1_parent  # never the orphaned snapshot
+    accepted = cc.accept_citation_chase(ws, chase=b.chase)
+    assert accepted.round == 2 and accepted.artifact_id != orphan
+    assert rounds.current_round(ws)["corpus_artifact_id"] == accepted.artifact_id
