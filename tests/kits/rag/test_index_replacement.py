@@ -21,6 +21,7 @@ the protocol does not make to its caller.
 from __future__ import annotations
 
 import json
+import os
 import threading
 import time
 from collections.abc import Callable, Iterator, Mapping, Sequence
@@ -30,6 +31,7 @@ from typing import Any
 
 import pytest
 
+import scholar_rag.replacement as replacement_module
 from scholar_rag.canonical import canonical_json_bytes
 from scholar_rag.index_manifest import (
     E3_SIDECAR_CODES,
@@ -1461,6 +1463,200 @@ def test_e3_neg_052_an_orphaned_lock_is_refused_exactly_like_a_live_holder(proto
         mentions=("orphan",),
     )
     assert (workspace / INDEX_DIR / LOCK_FILENAME).exists(), "this module never heals an orphan lock"
+
+
+def file_in_use() -> PermissionError:
+    """What Windows raises when a file that another handle has open is deleted.
+
+    ``WinError 32``: a second run that is reading the lock file to name its holder
+    keeps a handle on it for an instant, and Windows refuses the delete meanwhile.
+    """
+
+    error = PermissionError(13, "The process cannot access the file because it is being used by another process")
+    error.winerror = 32
+    return error
+
+
+def test_the_lock_is_released_when_a_contender_briefly_has_its_file_open(protocol, workspace, monkeypatch):
+    """A refused second run reads the lock file; that read must not fail the holder.
+
+    Seen as a crash on Windows: the winner's ``release`` raised ``PermissionError``
+    after its replacement had completed, and the lock file stayed behind. The
+    delete is refused three times here, as a contender's short read would, and the
+    run must still return its result with the lock gone.
+    """
+
+    lock_path = workspace / INDEX_DIR / LOCK_FILENAME
+    unlink = os.unlink
+    refused: list[str] = []
+
+    def busy_three_times(target: Any, *args: Any, **kwargs: Any) -> None:
+        if Path(target) == lock_path and len(refused) < 3:
+            refused.append(str(target))
+            raise file_in_use()
+        unlink(target, *args, **kwargs)
+
+    monkeypatch.setattr(replacement_module, "LOCK_RELEASE_RETRY_INTERVAL_SECONDS", 0)
+    monkeypatch.setattr(os, "unlink", busy_three_times)
+    result = protocol.run(request_for(payload()))
+    monkeypatch.undo()
+
+    assert result.outcome == "REPLACED"
+    assert len(refused) == 3, "the delete was retried until the file was free"
+    assert not lock_path.exists(), "the lock is released, so the next run is not refused as a conflict"
+
+
+@pytest.mark.skipif(os.name != "nt", reason="only Windows refuses to delete a file another handle has open")
+def test_on_windows_the_lock_is_released_while_another_thread_reads_its_file(workspace):
+    """The same fault with a real handle instead of a simulated error."""
+
+    manifest = payload()
+    lock = WorkspaceLock(
+        workspace_root=workspace,
+        workspace_id=manifest["workspace_id"],
+        run_id=manifest["run_id"],
+        created_at=CREATED_AT,
+    )
+    lock.acquire()
+    lock_path = workspace / INDEX_DIR / LOCK_FILENAME
+    reading = threading.Event()
+
+    def contender() -> None:
+        with lock_path.open("rb"):
+            reading.set()
+            time.sleep(0.3)
+
+    thread = threading.Thread(target=contender)
+    thread.start()
+    try:
+        assert reading.wait(timeout=10)
+        lock.release()
+    finally:
+        thread.join(timeout=10)
+    assert not lock_path.exists()
+
+
+def test_a_lock_file_that_stays_in_use_is_reported_after_a_bounded_number_of_tries(workspace, monkeypatch):
+    """The wait is bounded: a file that never frees up is an error, not a hang.
+
+    The error stays the operating system's own. The run has already published by
+    the time it releases, so a typed refusal here would report a committed
+    replacement as refused; the lock file left behind is an orphan, which 7.4
+    already refuses like a live holder.
+    """
+
+    manifest = payload()
+    lock = WorkspaceLock(
+        workspace_root=workspace,
+        workspace_id=manifest["workspace_id"],
+        run_id=manifest["run_id"],
+        created_at=CREATED_AT,
+    )
+    lock.acquire()
+    lock_path = workspace / INDEX_DIR / LOCK_FILENAME
+    tries: list[str] = []
+
+    unlink = os.unlink
+
+    def always_busy(target: Any, *args: Any, **kwargs: Any) -> None:
+        if Path(target) != lock_path:
+            return unlink(target, *args, **kwargs)
+        tries.append(str(target))
+        raise file_in_use()
+
+    monkeypatch.setattr(replacement_module, "LOCK_RELEASE_ATTEMPTS", 5)
+    monkeypatch.setattr(replacement_module, "LOCK_RELEASE_RETRY_INTERVAL_SECONDS", 0)
+    monkeypatch.setattr(os, "unlink", always_busy)
+    with pytest.raises(PermissionError):
+        lock.release()
+    monkeypatch.undo()
+
+    assert len(tries) == 5, "the delete is tried a bounded number of times"
+    assert lock_path.exists(), "nothing claims the lock was released"
+
+
+def test_the_delete_is_tried_once_even_when_the_attempt_count_is_set_below_one(workspace, monkeypatch):
+    """A count of zero must not turn ``release`` into a silent no-op that leaves the file."""
+
+    manifest = payload()
+    lock = WorkspaceLock(
+        workspace_root=workspace,
+        workspace_id=manifest["workspace_id"],
+        run_id=manifest["run_id"],
+        created_at=CREATED_AT,
+    )
+    lock.acquire()
+    monkeypatch.setattr(replacement_module, "LOCK_RELEASE_ATTEMPTS", 0)
+    lock.release()
+    assert not (workspace / INDEX_DIR / LOCK_FILENAME).exists()
+
+
+def test_a_lock_whose_holder_cannot_be_recorded_is_removed_while_its_file_is_briefly_in_use(workspace, monkeypatch):
+    """The other delete in this class: a failed holder record must not leave an orphan.
+
+    The typed refusal has to survive a contender's short read of the file, or the
+    caller gets a raw ``PermissionError`` and a lock nobody is recorded as holding.
+    """
+
+    manifest = payload()
+    lock = WorkspaceLock(
+        workspace_root=workspace,
+        workspace_id=manifest["workspace_id"],
+        run_id=manifest["run_id"],
+        created_at=CREATED_AT,
+    )
+    lock_path = workspace / INDEX_DIR / LOCK_FILENAME
+    unlink = os.unlink
+    refused: list[str] = []
+
+    def busy_three_times(target: Any, *args: Any, **kwargs: Any) -> None:
+        if Path(target) == lock_path and len(refused) < 3:
+            refused.append(str(target))
+            raise file_in_use()
+        unlink(target, *args, **kwargs)
+
+    def disk_full(_: Any) -> bytes:
+        raise OSError(28, "No space left on device")
+
+    monkeypatch.setattr(replacement_module, "canonical_json_bytes", disk_full)
+    monkeypatch.setattr(replacement_module, "LOCK_RELEASE_RETRY_INTERVAL_SECONDS", 0)
+    monkeypatch.setattr(os, "unlink", busy_three_times)
+    with pytest.raises(replacement_module.ReplacementValidationError):
+        lock.acquire()
+    monkeypatch.undo()
+
+    assert len(refused) == 3
+    assert lock.held is False
+    assert not lock_path.exists(), "a lock whose holder is unrecorded is removed, not left behind"
+
+
+def test_a_delete_refused_for_another_reason_is_not_retried(workspace, monkeypatch):
+    """Only "file in use" is transient; a permission fault is reported at once."""
+
+    manifest = payload()
+    lock = WorkspaceLock(
+        workspace_root=workspace,
+        workspace_id=manifest["workspace_id"],
+        run_id=manifest["run_id"],
+        created_at=CREATED_AT,
+    )
+    lock.acquire()
+    lock_path = workspace / INDEX_DIR / LOCK_FILENAME
+    tries: list[str] = []
+    unlink = os.unlink
+
+    def denied(target: Any, *args: Any, **kwargs: Any) -> None:
+        if Path(target) != lock_path:
+            return unlink(target, *args, **kwargs)
+        tries.append(str(target))
+        raise PermissionError(13, "Permission denied")
+
+    monkeypatch.setattr(os, "unlink", denied)
+    with pytest.raises(PermissionError):
+        lock.release()
+    monkeypatch.undo()
+
+    assert len(tries) == 1
 
 
 def test_two_runs_on_one_workspace_are_mutually_exclusive(protocol, backend, workspace):

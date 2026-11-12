@@ -4,6 +4,16 @@ One entry per decision that still shapes the code, newest first. The full
 records were removed in the 2026-11-03 docs cut; each entry names the commit
 history to read if you need the original reasoning (`git log --follow -- <path>`).
 
+## 2026-11-12 — Releasing the index workspace lock waits out a file in use; an exhausted wait stays an OS error (proposed)
+
+Found by a full-suite run on Windows: `test_two_runs_on_one_workspace_are_mutually_exclusive` failed once because `WorkspaceLock.release()` (`src/scholar_rag/replacement.py`) raised `PermissionError` (WinError 32). A refused second run reads the lock file to name its holder; Windows refuses to delete a file another handle has open, so the holder's delete failed after its replacement had completed and the lock file stayed behind.
+
+1. **The delete is tried again, a bounded number of times.** Only `ERROR_SHARING_VIOLATION` is treated as transient: `LOCK_RELEASE_ATTEMPTS` (200) tries, `LOCK_RELEASE_RETRY_INTERVAL_SECONDS` (0.01 s) apart, about two seconds at most. No clock is read, in keeping with 7.4 ("never reads a timestamp"). A file that is already gone is a released lock. Any other failure is raised on the first try. The recovery store's release takes the same path.
+2. **An exhausted wait is not a typed refusal.** By the time a run releases, it has published or refused. A typed `ReplacementError` from `release()` would travel back as a `REFUSED` result for a replacement that committed, which is a contract change (4.5 and 6.5 close the codes and the result model). So the operating system's error is raised unchanged, as before this change, and the file left behind is an orphan lock, which 7.4 already refuses like a live holder. Giving that case its own outcome needs the researcher's decision. What a caller sees today, unchanged by this fix: `IndexReplacement.run` raises the `PermissionError`; the index service (`src/scholar_rag/index_service.py`) reports the run as `FAILED`, naming only the error type, with no journal row; recovery is then refused `CONFLICT` by the orphan lock, so an operator has to delete the lock file by hand. The same single delete is now used when a lock's holder cannot be recorded (`acquire`'s failure path).
+3. **Not covered here (follow-up).** The commit-intent deletes in `replacement.py` and `recovery.py` can meet the unlocked reader `IndexRecovery.inspect` the same way, and `release()` clears its held flag before the delete, so a second `release()` after an exhausted wait does nothing. Both predate this change.
+
+No Contract v1 schema, code or baseline file changes. Tests: `tests/kits/rag/test_index_replacement.py` (a simulated file in use on every platform, a real open handle on Windows, the bounded wait, and no retry for another fault).
+
 ## 2026-11-12 — Protocol-change signals are flags; the hand-off accept refuses a changed search only (proposed; H-protocol-signals)
 
 Fixes F2, F3 and F4 of the three-phase review (`docs/assessment/three-phase-hardening-2026-11-10.md`). Record: `docs/roadmap/milestones/H-protocol-signals.md`.
