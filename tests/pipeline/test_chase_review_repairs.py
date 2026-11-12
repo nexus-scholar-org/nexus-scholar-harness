@@ -254,3 +254,35 @@ def test_r6d_malformed_manifests_are_skipped(ws, monkeypatch):
     worse.mkdir()
     (worse / "chase.json").write_text(json.dumps({"parent_corpus": "not an object"}), encoding="utf-8")
     assert cc.pending_accept(ws) is None
+
+
+def test_r6e_a_pending_chase_whose_screening_was_published_again_does_not_lock_the_workspace(ws, monkeypatch):
+    """Re-review of 034e4597 (P2): a retry refused CHASE_STALE and a new chase refused
+    CHASE_ACCEPT_PENDING left no way out. The stale chase's snapshot stays registered but
+    blocks nothing and is never a parent."""
+    a = ca._chase(ws, monkeypatch)
+    path = ws / "literature" / "citation_chase" / a.chase / "chase.json"
+    round1_parent = json.loads(path.read_text(encoding="utf-8"))["parent_corpus"]["artifact_id"]
+    real_move = rounds.shutil.move
+    _fail_moves(monkeypatch)
+    with pytest.raises(cc.ChaseRefused) as exc:
+        cc.accept_citation_chase(ws, chase=a.chase)
+    assert exc.value.code == "ARCHIVE_INCOMPLETE"
+    monkeypatch.setattr(rounds.shutil, "move", real_move)
+    (orphan,) = [aid for aid, _e in ca._corpora(ws) if aid != round1_parent]
+
+    # Round 1 was published again after the chase ran (simulated on the chase's record).
+    manifest = json.loads(path.read_text(encoding="utf-8"))
+    manifest["generation_id"] = "GEN-an-earlier-publication"
+    path.write_text(json.dumps(manifest), encoding="utf-8")
+    with pytest.raises(cc.ChaseRefused) as exc:
+        cc.accept_citation_chase(ws, chase=a.chase)
+    assert exc.value.code == "CHASE_STALE"
+    assert cc.pending_accept(ws) is None
+
+    b = ca._chase(ws, monkeypatch, docs=[h._doc("Other", provider="openalex", pid="W9", doi="10.2/z", openalex="W9", year=2023)])
+    b_manifest = json.loads((ws / "literature" / "citation_chase" / b.chase / "chase.json").read_text(encoding="utf-8"))
+    assert b_manifest["parent_corpus"]["artifact_id"] == round1_parent  # never the orphaned snapshot
+    accepted = cc.accept_citation_chase(ws, chase=b.chase)
+    assert accepted.round == 2 and accepted.artifact_id != orphan
+    assert rounds.current_round(ws)["corpus_artifact_id"] == accepted.artifact_id

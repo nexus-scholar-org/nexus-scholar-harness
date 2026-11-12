@@ -325,7 +325,12 @@ def _deduplicator(ws: Path) -> Deduplicator:
 
 
 def _parent_corpus(ws: Path) -> dict[str, Any] | None:
-    """The newest accepted corpus snapshot's registry row, or ``None``."""
+    """The newest accepted corpus snapshot's registry row, or ``None``.
+
+    A round snapshot that an unfinished accept registered (see
+    ``pending_accept``) is never a parent: nobody has screened it.
+    """
+    unfinished = {aid for _name, _manifest, ids in _unfinished_round_snapshots(ws) for aid in ids}
     registry = ws / "audit" / "artifact_registry.json"
     if not registry.is_file():
         return None
@@ -336,7 +341,7 @@ def _parent_corpus(ws: Path) -> dict[str, Any] | None:
     corpora = [
         {"artifact_id": aid, **entry}
         for aid, entry in entries.items()
-        if isinstance(entry, dict) and entry.get("artifact_type") == "corpus_snapshot"
+        if isinstance(entry, dict) and entry.get("artifact_type") == "corpus_snapshot" and aid not in unfinished
     ]
     if not corpora:
         return None
@@ -369,48 +374,43 @@ def _archive_incomplete_snapshots(ws: Path) -> dict[str, list[str]]:
             row = json.loads(line)
         except ValueError:
             continue
-        params = row.get("parameters") if isinstance(row, dict) else None
-        if row.get("action") != "SCREENING_ROUND_ARCHIVE_INCOMPLETE" or not isinstance(params, dict):
+        if not isinstance(row, dict) or row.get("action") != "SCREENING_ROUND_ARCHIVE_INCOMPLETE":
+            continue
+        params = row.get("parameters")
+        if not isinstance(params, dict):
             continue
         if params.get("chase") and params.get("snapshot_artifact_id"):
             out.setdefault(str(params["chase"]), []).append(str(params["snapshot_artifact_id"]))
     return out
 
 
-def pending_accept(workspace: Path | str) -> str | None:
-    """The chase run whose accept stopped after registering its round snapshot, or ``None``.
+def _unfinished_round_snapshots(ws: Path) -> list[tuple[str, dict[str, Any], set[str]]]:
+    """``(chase, manifest, snapshot ids)`` for each unaccepted chase whose accept registered a
+    round snapshot that the rounds index does not record.
 
-    An accept that refused ``ARCHIVE_INCOMPLETE`` leaves the next round's
-    snapshot registered but not recorded in the rounds index. That snapshot is
-    then the newest one, so a new chase would take an unscreened corpus as its
-    parent, and another chase's accept would archive the round on its behalf;
-    the accept has to be finished first. The snapshot is tied to the chase that
-    built it (the ``pending_round`` its accept writes into ``chase.json`` before
-    the acceptance gate, else that chase's ``SCREENING_ROUND_ARCHIVE_INCOMPLETE``
-    journal row), and it counts only while the chase's parent is still the
-    current round's corpus.
+    The snapshot is tied to the chase that built it: the ``pending_round`` its
+    accept writes into ``chase.json`` before the acceptance gate, else that
+    chase's ``SCREENING_ROUND_ARCHIVE_INCOMPLETE`` journal row.
     """
     from scholar_harness.screening import rounds
 
-    ws = Path(workspace)
     index = rounds.read_rounds(ws)
     current = index.get("current") if isinstance(index.get("current"), dict) else {}
-    current_corpus = current.get("corpus_artifact_id")
-    current_number = current.get("round") or 1
-    recorded = frozenset(
+    recorded = {
         str(r["corpus_artifact_id"]) for r in [current, *(index.get("rounds") or [])]
         if isinstance(r, dict) and r.get("corpus_artifact_id")
-    )
+    }
     try:
         entries = json.loads((ws / "audit" / "artifact_registry.json").read_text(encoding="utf-8")).get("artifacts", {})
     except (OSError, ValueError, AttributeError):
-        return None
+        return []
     if not isinstance(entries, dict):
-        return None
+        return []
     registered = {
         aid for aid, e in entries.items() if isinstance(e, dict) and e.get("artifact_type") == "corpus_snapshot"
     }
     journaled: dict[str, list[str]] | None = None
+    out: list[tuple[str, dict[str, Any], set[str]]] = []
     for run_dir in chase_dirs(ws):
         try:
             manifest = read_manifest(run_dir)
@@ -420,6 +420,53 @@ def pending_accept(workspace: Path | str) -> str | None:
             continue
         parent = manifest.get("parent_corpus")
         declared = parent.get("artifact_id") if isinstance(parent, dict) else None
+        marker = manifest.get("pending_round")
+        owned = {str(marker["artifact_id"])} if isinstance(marker, dict) and marker.get("artifact_id") else set()
+        if journaled is None:
+            journaled = _archive_incomplete_snapshots(ws)
+        owned.update(journaled.get(run_dir.name, []))
+        ids = {aid for aid in owned if aid in registered and aid not in recorded and aid != declared}
+        if ids:
+            out.append((run_dir.name, manifest, ids))
+    return out
+
+
+def _round_generation(ws: Path) -> str | None:
+    """The current round's published generation id, also while its archive is half done."""
+    from scholar_harness.screening import rounds
+
+    number = int(rounds.current_round(ws).get("round") or 1)
+    archived = rounds.round_folder(ws, number) / "screening" / "generation.json"
+    if archived.is_file():
+        try:
+            return str(json.loads(archived.read_text(encoding="utf-8")).get("generation_id") or "") or None
+        except (OSError, ValueError, AttributeError):
+            return None
+    return _generation_id(ws)
+
+
+def pending_accept(workspace: Path | str) -> str | None:
+    """The chase run whose accept stopped after registering its round snapshot, or ``None``.
+
+    An accept that refused ``ARCHIVE_INCOMPLETE`` leaves the next round's
+    snapshot registered but not recorded in the rounds index. Another chase's
+    accept would archive the round on its behalf, so the accept has to be
+    finished first. The snapshot counts only while its chase can still finish:
+    the chase's parent is the current round's corpus and the screening it ran
+    on is still the published one. A chase whose screening was published again
+    is refused ``CHASE_STALE`` on a retry, so its snapshot no longer blocks;
+    it stays registered, and ``_parent_corpus`` never takes it as a parent.
+    """
+    from scholar_harness.screening import rounds
+
+    ws = Path(workspace)
+    current = rounds.current_round(ws)
+    current_corpus = current.get("corpus_artifact_id")
+    current_number = current.get("round") or 1
+    generation: str | None = None
+    for name, manifest, _ids in _unfinished_round_snapshots(ws):
+        parent = manifest.get("parent_corpus")
+        declared = parent.get("artifact_id") if isinstance(parent, dict) else None
         if not declared:
             continue
         # Only a chase on the current round's corpus can still finish its round.
@@ -427,13 +474,10 @@ def pending_accept(workspace: Path | str) -> str | None:
             continue
         if not current_corpus and current_number != 1:
             continue
-        marker = manifest.get("pending_round")
-        owned = [str(marker["artifact_id"])] if isinstance(marker, dict) and marker.get("artifact_id") else []
-        if journaled is None:
-            journaled = _archive_incomplete_snapshots(ws)
-        owned += journaled.get(run_dir.name, [])
-        if any(aid in registered and aid not in recorded and aid != declared for aid in owned):
-            return run_dir.name
+        generation = generation or _round_generation(ws)
+        if manifest.get("generation_id") and generation and manifest["generation_id"] != generation:
+            continue  # published again since: a retry is CHASE_STALE, so this one cannot block
+        return name
     return None
 
 
@@ -442,7 +486,7 @@ def require_no_pending_accept(workspace: Path | str) -> None:
     if chase is not None:
         raise ChaseRefused(
             f"the accept of {chase} registered the next round's corpus but stopped before the round was archived; "
-            f"finish the accept first: run `chase accept` again (or Accept on the Chase screen)",
+            f"finish that accept first: run `chase accept --chase {chase}` again (or Accept on the Chase screen)",
             "CHASE_ACCEPT_PENDING",
         )
 
