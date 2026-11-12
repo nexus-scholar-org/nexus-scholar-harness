@@ -803,6 +803,15 @@ export const STATES: Record<string, StateEntry> = {
       ar: T("اختيار البذور غير صالح.", "البذور هي الدراسات المدرجة، أو المدرجة وغير الواضحة؛ سمّى الطلب شيئًا آخر.", "بدء المطاردة", "اختر البذور"),
     },
   },
+  CHASE_ACCEPT_PENDING: {
+    role: "blocked",
+    action: "none",
+    copy: {
+      en: T("Finish sending the last chase to screening first.", "An earlier accept registered the next round's corpus but stopped before the round was archived. A new chase would start from records nobody has screened. Accept that chase again; it resumes where it stopped.", "Starting the chase", "Accept the earlier chase again"),
+      fr: T("Terminez d'abord l'envoi de la dernière chasse à la sélection.", "Une acceptation précédente a enregistré le corpus du tour suivant mais s'est arrêtée avant l'archivage du tour. Une nouvelle chasse partirait de notices que personne n'a sélectionnées. Acceptez à nouveau cette chasse ; elle reprend là où elle s'est arrêtée.", "Le lancement de la chasse", "Accepter à nouveau la chasse précédente"),
+      ar: T("أكمل أولًا إرسال المطاردة الأخيرة إلى الفرز.", "سجّل قبولٌ سابق مجموعة الجولة التالية لكنه توقف قبل أرشفة الجولة. ستبدأ مطاردة جديدة من سجلات لم يفرزها أحد. اقبل تلك المطاردة مجددًا؛ فهي تستأنف من حيث توقفت.", "بدء المطاردة", "اقبل المطاردة السابقة مجددًا"),
+    },
+  },
   PROTOCOL_CHANGED_SINCE_PUBLISH: {
     role: "unclear",
     action: "home",

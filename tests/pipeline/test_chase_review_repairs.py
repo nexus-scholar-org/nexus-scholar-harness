@@ -160,3 +160,36 @@ def test_r4c_a_retry_after_a_failed_first_move_resumes(ws, monkeypatch):
     assert accepted.round == 2 and accepted.already_accepted
     assert len(ca._corpora(ws)) == 2
     assert rounds.current_round(ws)["corpus_artifact_id"] == accepted.artifact_id
+
+
+# Deferred P3 (M3g review): a new chase while a round snapshot is pending must not take it as parent.
+
+
+def test_r6_a_new_chase_while_an_accept_is_pending_is_refused(ws, monkeypatch):
+    first = ca._chase(ws, monkeypatch)
+    parent = json.loads((ws / "literature" / "citation_chase" / first.chase / "chase.json").read_text(encoding="utf-8"))
+    real_move = rounds.shutil.move
+
+    def failing_first(src, dst):
+        raise OSError("locked")
+
+    monkeypatch.setattr(rounds.shutil, "move", failing_first)
+    with pytest.raises(cc.ChaseRefused) as exc:
+        cc.accept_citation_chase(ws)
+    assert exc.value.code == "ARCHIVE_INCOMPLETE"
+    monkeypatch.setattr(rounds.shutil, "move", real_move)
+    assert len(ca._corpora(ws)) == 2  # the round-2 snapshot is registered, not yet recorded as a round
+
+    provider = h.FakeChaseProvider("openalex", citations={h.W_INCLUDE: []})
+    ca._install(monkeypatch, provider)
+    with pytest.raises(cc.ChaseRefused) as exc:
+        asyncio.run(cc.run_citation_chase(ws, providers=["openalex"], directions=["forward"]))
+    assert exc.value.code == "CHASE_ACCEPT_PENDING"
+    assert first.chase in str(exc.value)
+    assert provider.asked == []
+    assert [p.name for p in (ws / "literature" / "citation_chase").iterdir() if p.is_dir()] == [first.chase]
+
+    # Finishing the accept clears the refusal: the next chase's parent is the round-2 snapshot.
+    accepted = cc.accept_citation_chase(ws)
+    assert accepted.round == 2 and parent["parent_corpus"]["artifact_id"] != accepted.artifact_id
+    cc.require_no_pending_accept(ws)
