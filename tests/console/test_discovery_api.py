@@ -794,6 +794,7 @@ def test_f3_a_run_records_the_protocol_it_searched(env):
     assert manifest["protocol_fingerprint"] == plan["protocol_fingerprint"]
     search = manifest["protocol_search"]
     assert set(search) == {"query_text", "year_min", "year_max", "language", "retrieval_cap", "databases"}
+    assert search["databases"] == sorted(["openalex", "semanticscholar", "crossref", "arxiv", "pubmed"])
     run, handoff = _flags(client)
     assert run["protocol_changed"] is False and run["search_changed"] is False
     assert handoff["protocol_changed"] is False and handoff["search_changed"] is False
@@ -835,6 +836,29 @@ def test_f3_a_criteria_edit_is_flagged_but_the_search_still_stands(env):
     assert run["protocol_changed"] is True and run["search_changed"] is False
     assert handoff["protocol_changed"] is True and handoff["search_changed"] is False
     assert client.post("/api/v1/screening/corpus/accept").status_code == 200
+
+
+def test_f3_a_key_the_run_did_not_record_is_not_an_edit(env):
+    """Review finding 5: only the keys both records hold are compared."""
+    client, ws, _ = env
+    job, _ = _run(client, {"providers": ["openalex"]})
+    assert job["state"] == "succeeded", job
+    path = ws / "literature" / "search_runs" / "run_001" / "legs.json"
+    manifest = json.loads(path.read_text(encoding="utf-8"))
+    del manifest["protocol_search"]["language"]
+    path.write_text(json.dumps(manifest), encoding="utf-8")
+    run, handoff = _flags(client)
+    assert run["search_changed"] is False and handoff["protocol_changed"] is False
+
+
+def test_f3_a_protocol_without_a_database_list_records_none(env):
+    """Review finding 5: the adapter's default list is not the protocol's; a change of it is not an edit."""
+    from scholar_harness.pipeline.discovery import protocol_search_record
+
+    client, ws, _ = env
+    _edit_protocol(ws, lambda p: p["search_strategy"].pop("target_databases"))
+    _, search = protocol_search_record(ws / "protocol.json")
+    assert search["databases"] is None
 
 
 def test_f3_a_run_from_before_the_fingerprint_reads_by_its_query(env):

@@ -552,10 +552,11 @@ def protocol_search_record(protocol_path: Path | str) -> tuple[str | None, dict[
 
     ``search`` is what the protocol compiles to for a harvest: the query text,
     the year window, the language, the protocol's retrieval cap and its
-    database list (sorted, canonical names). Review F3: a later edit to any of
-    these changes what a run would fetch; an edit elsewhere (criteria, title)
-    changes only the fingerprint. The fingerprint is ``None`` when the
-    protocol does not validate.
+    database list (sorted, canonical names; ``None`` when the protocol names
+    none, so a change of the adapter's default list never reads as a protocol
+    edit). Review F3: a later edit to any of these changes what a run would
+    fetch; an edit elsewhere (criteria, title) changes only the fingerprint.
+    The fingerprint is ``None`` when the protocol does not validate.
     """
     from pydantic import ValidationError
     from scholar_protocol.canonical import canonical_fingerprint
@@ -563,6 +564,9 @@ def protocol_search_record(protocol_path: Path | str) -> tuple[str | None, dict[
 
     path = Path(protocol_path)
     query, databases = compile_protocol_search(path)
+    raw = json.loads(path.read_text(encoding="utf-8"))
+    strategy = raw.get("search_strategy") if isinstance(raw, dict) else None
+    explicit = isinstance(strategy, dict) and strategy.get("target_databases") is not None
     try:
         fingerprint: str | None = canonical_fingerprint(
             ResearchProtocol.model_validate_json(path.read_text(encoding="utf-8"))
@@ -575,7 +579,7 @@ def protocol_search_record(protocol_path: Path | str) -> tuple[str | None, dict[
         "year_max": getattr(query, "year_max", None),
         "language": getattr(query, "language", None),
         "retrieval_cap": getattr(query, "max_results", None),
-        "databases": sorted({_database_key(d) for d in databases or []}),
+        "databases": sorted({_database_key(d) for d in databases or []}) if explicit else None,
     }
     return fingerprint, search
 
@@ -593,7 +597,8 @@ def run_protocol_drift(protocol_path: Path | str, manifest: dict[str, Any]) -> d
     fingerprint, search = protocol_search_record(protocol_path)
     ran = manifest.get("protocol_search")
     if isinstance(ran, dict):
-        search_changed = ran != search
+        # The keys both records have: a key added to the record later is not an edit.
+        search_changed = any(ran[key] != search[key] for key in ran.keys() & search.keys())
     else:
         search_changed = (manifest.get("query_text"), manifest.get("year_min"), manifest.get("year_max")) != (
             search["query_text"], search["year_min"], search["year_max"]

@@ -73,6 +73,25 @@ describe("screening-home.summary", () => {
     expect(screen.queryByRole("link", { name: /Open triage/ })).toBeNull();
   });
 
+  it("review F4: says what was imported only for imports, not for a harvest's database rows", async () => {
+    const corpus = (origin: string) => ({
+      shape: "screening.corpus-v1", state: "ACCEPTED", sources: [], origin,
+      databases: [{ label: "OpenAlex", records: 4, files: 0, searched_on: ["2026-11-12"], search_details_missing: false, provider: "openalex" }],
+      preview: { identified: 4, duplicates: 0, unique_studies: 4 },
+      accepted: { artifact_id: "ART-corpus-1", accepted_at: "2026-11-12T10:00:00Z", records: 4, studies: 4, duplicates: 0 },
+      from_discovery: origin === "discovery", limits: { max_source_bytes: 1, label_max_length: 1 }, staging_refused: null,
+    });
+    engine({ "/corpus": corpus("discovery") });
+    const first = render(<ScreeningHome locale="en" />);
+    await screen.findByRole("heading", { level: 1, name: "0 of 3 records are decided; 3 still need you." });
+    expect(document.querySelector("[data-imported-line]")).toBeNull();
+    first.unmount();
+    vi.unstubAllGlobals();
+    engine({ "/corpus": corpus("imports") });
+    render(<ScreeningHome locale="en" />);
+    await waitFor(() => expect(document.querySelector("[data-imported-line]")).not.toBeNull());
+  });
+
   it("review F2: the summary fixture carries the flag the engine writes", () => {
     expect(body("summary_start").protocol_changed).toBe(false);
   });

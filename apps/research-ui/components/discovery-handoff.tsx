@@ -92,8 +92,9 @@ export function DiscoveryHandoff({ locale }: Readonly<{ locale: Locale }>) {
   // Review F3: the protocol was edited after the corpus run searched it.
   const searchChanged = fromDiscovery && handoff?.search_changed === true;
   const otherChange = fromDiscovery && handoff?.protocol_changed === true && !searchChanged;
-  // The engine's corpus preview counts staged exports only; for a harvest it writes no works count, so the
-  // headline carries no number then (route gap, M3c-screens Deferred). The browser adds nothing up.
+  // For a harvest the engine's preview (review F4) counts works after deduplication, before verification,
+  // so it can differ from the accepted count: the headline carries no number then (H-protocol-signals
+  // Deferred). The browser adds nothing up.
   const works = fromDiscovery ? null : preview?.unique_studies;
 
   return (

@@ -284,7 +284,8 @@ function HomeReady({
   const published = publication?.status === "CURRENT";
   const publishedStale = publication?.status === "STALE" && publication.changed !== null;
   const importOpen = corpus !== null && corpus.state !== "ACCEPTED" && !corpus.from_discovery;
-  const imported = corpus?.state === "ACCEPTED" && corpus.accepted && corpus.databases.length > 0 ? corpus : null;
+  // Review F4: a harvest's or a chase round's corpus now has rows too, but it was not imported.
+  const imported = corpus?.state === "ACCEPTED" && corpus.accepted && corpus.databases.length > 0 && (corpus.origin ?? "imports") === "imports" ? corpus : null;
   const stale = batches.batches.some((b) => b.binding?.state === "STALE_BINDING");
   // Review F2: the batches were prepared under another protocol, so the queue
   // would start over; Home says why instead of offering it.

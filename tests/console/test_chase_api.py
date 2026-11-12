@@ -204,8 +204,59 @@ def test_f4_a_round_2_corpus_view_shows_the_chase(env, monkeypatch):
 
     corpus = client.get("/api/v1/screening/corpus").json()
     assert corpus["state"] == "ACCEPTED" and corpus["origin"] == "citation_searching"
-    assert corpus["from_discovery"] is False
-    (row,) = corpus["databases"]
-    assert row["provider"] == "openalex" and row["label"] == "OpenAlex" and row["records"] == 3
+    # Citation searching is not a database row: the chase's legs are not listed as databases.
+    assert all(d.get("provider") != "openalex" or d.get("records") != 3 for d in corpus["databases"])
     assert corpus["preview"] == {"identified": 3, "duplicates": 0, "unique_studies": 3}
     assert corpus["accepted"]["records"] == 3
+
+
+def test_f4_a_round_2_after_imports_keeps_the_imports_as_its_databases(env, monkeypatch):
+    """Review finding 3: round 1 built from database exports; round 2 shows the chase counts, the exports' rows."""
+    from scholar_harness import corpus_accept as ca
+
+    client, ws = env
+    docs = [h._doc(f"Chased {i}", provider="openalex", pid=f"W{i}", doi=f"10.2/{i}", openalex=f"W{i}") for i in range(3)]
+    _install(monkeypatch, h.FakeChaseProvider("openalex", citations={h.W_INCLUDE: docs}))
+    job, _ = _run(client, {"providers": ["openalex"], "directions": ["forward"]})
+    assert job["state"] == "succeeded"
+    assert client.post(f"{BASE}/chase/accept", json={}).status_code == 200
+    # Round 1's staged exports stay on file after their accept, as an import leaves them.
+    stored = ws / "literature" / "raw" / "ris" / "scopus.ris"
+    stored.parent.mkdir(parents=True, exist_ok=True)
+    stored.write_bytes(b"TY  - JOUR\nTI  - A record\nPY  - 2023\nER  -\n")
+    ca._write_sources(ws, [{
+        "id": "scopus-1", "label": "Scopus", "file_name": "scopus.ris", "records": 1, "searched_on": "2026-11-01",
+        "query": "uav AND weed", "stored_as": "literature/raw/ris/scopus.ris", "format": "ris",
+    }])
+
+    corpus = client.get("/api/v1/screening/corpus").json()
+    assert corpus["origin"] == "citation_searching" and corpus["from_discovery"] is False
+    assert [d["label"] for d in corpus["databases"]] == ["Scopus"]
+    assert [s["label"] for s in corpus["sources"]] == ["Scopus"]
+    assert corpus["preview"] == {"identified": 3, "duplicates": 0, "unique_studies": 3}
+
+
+
+def test_f2_an_archived_round_never_raises_the_protocol_flag(env, monkeypatch):
+    """F2 with M3g: only the current round's batches are compared with the protocol."""
+    client, ws = env
+    docs = [h._doc(f"Chased {i}", provider="openalex", pid=f"W{i}", doi=f"10.2/{i}", openalex=f"W{i}") for i in range(3)]
+    _install(monkeypatch, h.FakeChaseProvider("openalex", citations={h.W_INCLUDE: docs}))
+    job, _ = _run(client, {"providers": ["openalex"], "directions": ["forward"]})
+    assert job["state"] == "succeeded"
+    assert client.post(f"{BASE}/chase/accept", json={}).status_code == 200
+    cmd_prepare(ws, batch_size=20)
+    registry = json.loads((ws / "audit" / "artifact_registry.json").read_text(encoding="utf-8"))["artifacts"]
+    current = {b.batch_id for b in ev.load_context(ws).batches.values()}
+    archived = [
+        ws / e["path"] for e in registry.values()
+        if e.get("artifact_type") == "screening_batch"
+        and json.loads((ws / e["path"]).read_text(encoding="utf-8"))["data"]["batch_id"] not in current
+    ]
+    assert archived, "round 1 left no batch artifact"
+    for path in archived:  # as if round 1 had been prepared under another protocol
+        envelope = json.loads(path.read_text(encoding="utf-8"))
+        envelope["protocol_fingerprint"] = "sha256:" + "f" * 64
+        path.write_text(json.dumps(envelope), encoding="utf-8")
+    summary = client.get("/api/v1/screening/summary").json()
+    assert summary["total"] == 3 and summary["protocol_changed"] is False

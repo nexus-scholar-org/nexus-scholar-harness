@@ -562,12 +562,14 @@ def _leg_rows(legs: list[Any]) -> list[dict[str, Any]]:
     return list(rows.values())
 
 
-def _harvest_view(ws: Path) -> tuple[str, list[dict[str, Any]], dict[str, int]] | None:
+def _harvest_view(ws: Path) -> tuple[str, list[dict[str, Any]] | None, dict[str, int]] | None:
     """``(origin, databases, preview)`` of a corpus that came from a search, else ``None`` (review F4).
 
-    A citation-searching round (M3g) reads its chase run: the legs, and the
-    chase's own counts (identified = fetched, duplicates = found twice or
-    already in the corpus, studies = the new works). A browser harvest reads
+    A citation-searching round (M3g) reads its chase run's own counts
+    (identified = fetched, duplicates = found twice or already in the corpus,
+    studies = the new works); it gives no database rows (``None``), because
+    citation searching is not a database search (PRISMA 2020 reports it under
+    other methods) and the chase screen lists its legs. A browser harvest reads
     the newest run published as the corpus: its legs, and ``deduped.json``
     for the studies after deduplication. Unreadable files answer ``None``.
     """
@@ -591,7 +593,7 @@ def _harvest_view(ws: Path) -> tuple[str, list[dict[str, Any]], dict[str, int]] 
             "identified": int(counts.get("raw") or 0), "duplicates": duplicates,
             "unique_studies": int(counts.get("new") or 0),
         }
-        return "citation_searching", _leg_rows(list(chase.get("legs") or [])), preview
+        return "citation_searching", None, preview
     run_dir = discovery_corpus_run(ws)
     manifest = read(run_dir / "legs.json") if run_dir is not None else None
     if not isinstance(manifest, dict):
@@ -658,11 +660,13 @@ def corpus_status(workspace: Path | str) -> dict[str, Any]:
     if status["from_discovery"] or chase_round:
         # Review F4: a corpus from a search shows its databases and counts, not zeros;
         # an M3g round shows its chase, also after a first round built from imports.
+        # In an M3g round only ``origin`` and ``preview`` change: the database
+        # rows and ``from_discovery`` stay round 1's (the databases arm).
         harvest = _harvest_view(ws)
         if harvest is not None:
-            status["origin"], status["databases"], status["preview"] = harvest
-            # A citation-searching round is not the hand-off's discovery corpus.
-            status["from_discovery"] = status["origin"] == "discovery"
+            status["origin"], rows, status["preview"] = harvest
+            if rows is not None:
+                status["databases"] = rows
     return status
 
 
