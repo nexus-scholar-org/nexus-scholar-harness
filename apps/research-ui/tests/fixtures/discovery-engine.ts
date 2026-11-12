@@ -39,6 +39,8 @@ export interface DiscoveryFakeOptions {
   cappedLeg?: string | null;
   /** The protocol changed after the newest run (the accept answers `PROTOCOL_CHANGED_SINCE_RUN`). */
   protocolChangedSinceRun?: boolean;
+  /** Review F3: what the hand-off says changed in the protocol since the corpus run, before any click. */
+  handoffProtocolChange?: "search" | "other" | null;
   /** A recall check was run already. */
   recall?: boolean;
   /** Refuse a route once with this answer, keyed `METHOD path`. */
@@ -309,6 +311,9 @@ export function discoveryEngine(options: DiscoveryFakeOptions = {}) {
       abstracts: { with_abstract: total - 84, title_only: 84, share_with_abstract: total ? Math.round(((total - 84) / total) * 10000) / 10000 : 0 },
       outside_year_window: 6, near_twins_undecided: null,
       lower_bound_databases: capped && runs.length ? [capped] : [], protocol_fingerprint: FINGERPRINT,
+      run_protocol_fingerprint: runs.length ? FINGERPRINT : null,
+      protocol_changed: runs.length ? !!options.handoffProtocolChange : null,
+      search_changed: runs.length ? options.handoffProtocolChange === "search" : null,
     };
   };
 

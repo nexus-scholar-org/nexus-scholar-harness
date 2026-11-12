@@ -64,6 +64,19 @@ describe("screening-home.summary", () => {
     expect(screen.queryByRole("link", { name: /Open triage/ })).toBeNull();
   });
 
+  it("review F2: says the protocol changed after screening started instead of an empty queue", async () => {
+    engine({ "/summary": { ...body("summary_start"), protocol_changed: true } });
+    render(<ScreeningHome locale="en" />);
+    await screen.findByRole("heading", { level: 1, name: "The protocol changed after screening started." });
+    expect(screen.getByText("PROTOCOL_CHANGED_SINCE_BATCH")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Open inception" })).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: /Open triage/ })).toBeNull();
+  });
+
+  it("review F2: the summary fixture carries the flag the engine writes", () => {
+    expect(body("summary_start").protocol_changed).toBe(false);
+  });
+
   it("shows the engine's code when it cannot be reached", async () => {
     vi.stubGlobal("fetch", vi.fn(async () => Promise.reject(new TypeError("fetch failed"))));
     render(<ScreeningHome locale="en" />);

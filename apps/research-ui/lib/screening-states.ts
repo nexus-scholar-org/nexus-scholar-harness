@@ -714,9 +714,20 @@ export const STATES: Record<string, StateEntry> = {
     role: "unclear",
     action: "harvest",
     copy: {
-      en: T("The protocol changed after this search", "The run searched a query or year window the protocol no longer has. Run the search again before accepting its corpus. Nothing was frozen.", "The hand-off", "Search again"),
-      fr: T("Le protocole a changé après cette recherche", "L'exécution a cherché une requête ou une période que le protocole n'a plus. Relancez la recherche avant d'accepter son corpus. Rien n'a été figé.", "La remise", "Chercher à nouveau"),
-      ar: T("تغيّر البروتوكول بعد هذا البحث", "بحث هذا التشغيل باستعلام أو نطاق سنوات لم يعد في البروتوكول. أعد البحث قبل قبول مجموعته. لم يُجمَّد شيء.", "التسليم", "ابحث مجددًا"),
+      en: T("The protocol changed after this search", "The run searched a query, year window, language, cap or database list the protocol no longer has. Run the search again before accepting its corpus. Nothing was frozen.", "The hand-off", "Search again"),
+      fr: T("Le protocole a changé après cette recherche", "L'exécution a cherché une requête, une période, une langue, un plafond ou une liste de bases que le protocole n'a plus. Relancez la recherche avant d'accepter son corpus. Rien n'a été figé.", "La remise", "Chercher à nouveau"),
+      ar: T("تغيّر البروتوكول بعد هذا البحث", "بحث هذا التشغيل باستعلام أو نطاق سنوات أو لغة أو حد أو قائمة قواعد بيانات لم تعد في البروتوكول. أعد البحث قبل قبول مجموعته. لم يُجمَّد شيء.", "التسليم", "ابحث مجددًا"),
+    },
+  },
+  // Review F2 (decision 2026-11-12): a flag on /summary and /queue, not a
+  // refusal; Home shows it instead of a queue that starts over.
+  PROTOCOL_CHANGED_SINCE_BATCH: {
+    role: "unclear",
+    action: "inception",
+    copy: {
+      en: T("The protocol changed after screening started", "protocol.json no longer matches the protocol the batches were prepared under, so the decisions made under it count nowhere and every record shows as undecided. Nothing was deleted: undo the edit to see them again, or replace the protocol in Inception, which archives this screening and starts clean.", "Triage, the counts and publishing", "Open inception"),
+      fr: T("Le protocole a changé après le début de la sélection", "protocol.json ne correspond plus au protocole sous lequel les lots ont été préparés : les décisions prises sous ce protocole ne comptent plus et chaque notice apparaît non décidée. Rien n'a été supprimé : annulez la modification pour les revoir, ou remplacez le protocole dans l'Inception, qui archive cette sélection et repart de zéro.", "Le tri, les comptes et la publication", "Ouvrir l'Inception"),
+      ar: T("تغيّر البروتوكول بعد بدء الفرز", "لم يعد protocol.json مطابقًا للبروتوكول الذي حُضّرت الدفعات تحته، فلا تُحتسب القرارات المتخذة تحته ويظهر كل سجل غير محسوم. لم يُحذف شيء: تراجع عن التعديل لتراها من جديد، أو استبدل البروتوكول في مرحلة التأسيس التي تؤرشف هذا الفرز وتبدأ من جديد.", "المراجعة والأعداد والنشر", "افتح مرحلة التأسيس"),
     },
   },
   PROTOCOL_CHANGED_SINCE_SNAPSHOT: {

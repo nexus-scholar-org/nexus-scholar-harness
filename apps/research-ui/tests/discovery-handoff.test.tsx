@@ -80,6 +80,33 @@ describe("discovery.handoff", () => {
     expect(screen.queryByText("This corpus is accepted.")).toBeNull();
   });
 
+  it("review F3: warns before the click when the protocol's search changed, and offers no accept", async () => {
+    const { engine } = setUp({ runs: 1, handoffProtocolChange: "search" });
+    render(<DiscoveryHandoff locale="en" />);
+    await screen.findAllByText("The protocol changed after this search");
+    const warning = document.querySelector('[data-protocol-changed="search"]') as HTMLElement;
+    expect(warning.querySelector('[data-state="PROTOCOL_CHANGED_SINCE_RUN"]')).not.toBeNull();
+    expect(within(warning).getByRole("link", { name: "Search again" })).toHaveAttribute("href", "/en/discovery/harvest/");
+    expect(screen.getByRole("button", { name: "Accept this corpus" })).toBeDisabled();
+    expect(engine.accepted).toBe(false);
+    expect(sent(engine).filter((c) => c === ACCEPT)).toHaveLength(0);
+  });
+
+  it("review F3: says a change outside the search (criteria, title) and keeps the accept", async () => {
+    setUp({ runs: 1, handoffProtocolChange: "other" });
+    render(<DiscoveryHandoff locale="en" />);
+    const note = await screen.findByText(/outside the search itself \(the criteria or the title\)/);
+    expect(note).toHaveAttribute("data-protocol-changed", "other");
+    expect(screen.getByRole("button", { name: "Accept this corpus" })).toBeEnabled();
+  });
+
+  it("review F3: says nothing when the protocol is the run's", async () => {
+    setUp({ runs: 1 });
+    render(<DiscoveryHandoff locale="en" />);
+    await screen.findByRole("button", { name: "Accept this corpus" });
+    expect(document.querySelector("[data-protocol-changed]")).toBeNull();
+  });
+
   it("re-reads after CORPUS_ALREADY_ACCEPTED and shows Accepted", async () => {
     const user = userEvent.setup();
     const { engine } = setUp({ runs: 1 });
