@@ -47,3 +47,19 @@ git switch -c baseline-72090e5 72090e5c0e561e4517ed50da507d29fc361abf12
 > `ai-research-harnesses-trust`) are fully present at this snapshot. They were
 > subsequently emptied from the working tree on the same day (see the
 > follow-up commit `80f7810`); all workspace content is still recoverable here.
+
+## `0ede974c` — last commit with the v0.2 UAV workspaces (2026-11-12)
+
+`workspaces/uav-crop-weed-reliability/` (41 files: the v0.2 pilot, its calibration
+and pilot evaluation) and `workspaces/uav-pilot-demo/` (22 files: the frozen v0.2
+inputs, `RESEARCHER_DECISIONS.md`, and `calibration/` with the 2026-10-16 raw
+harvests, `HARVEST_MULTIPROVIDER.md`, `QUERIES.md` and `SENTINELS.md`) were
+removed from the working tree in the commit after this one, at the researcher's
+request. The lessons file `docs/lessons/2026-10-17_uav_harvest_calibration_lessons.md`
+and `docs/architecture/workspace_stats_reconciliation.md` cite files in
+`uav-pilot-demo`; those citations resolve at this commit.
+
+```bash
+git checkout 0ede974c -- workspaces/uav-pilot-demo
+git checkout 0ede974c -- workspaces/uav-crop-weed-reliability
+```
