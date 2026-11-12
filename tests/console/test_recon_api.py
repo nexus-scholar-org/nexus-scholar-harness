@@ -509,10 +509,11 @@ def test_seeds_must_be_dois_and_at_most_25(env):
     client, _app, _root, _recon = env
     sid = _new_draft(client)
     record = client.get(f"{BASE}/drafts/{sid}").json()
-    for bad in (["not a doi"], [f"10.1/x{i}" for i in range(26)]):
+    # A malformed seed is a shape error; 26 seeds is a size limit (H-input-limits, F6).
+    for bad, code in ((["not a doi"], "DRAFT_INVALID"), ([f"10.1/x{i}" for i in range(26)], "DRAFT_TOO_LARGE")):
         draft = {**record["draft"], "golden_seeds": bad}
         refused = client.post(f"{BASE}/preview", json={"draft": draft})
-        assert refused.status_code == 422 and refused.json()["detail"]["code"] == "DRAFT_INVALID", refused.text
+        assert refused.status_code == 422 and refused.json()["detail"]["code"] == code, refused.text
 
 
 def test_a_binding_made_before_m4d_is_not_stale_for_its_scope(env):

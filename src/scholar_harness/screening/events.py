@@ -29,7 +29,7 @@ import re
 from collections.abc import Iterator
 from contextlib import contextmanager
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
@@ -43,6 +43,11 @@ logger = logging.getLogger(__name__)
 EVENTS_DIR = Path("literature") / "screening" / "events"
 OUTCOMES = frozenset({"INCLUDE", "EXCLUDE", "MAYBE"})
 DEVICES = frozenset({"desktop", "phone"})
+#: F7 (H-input-limits): a ``decided_at`` further ahead of the engine's clock
+#: than this is refused; a device clock may run a little fast, a year cannot.
+MAX_FUTURE_SKEW = timedelta(minutes=5)
+#: F7: a ``note`` longer than this is refused (the discovery note's limit).
+MAX_NOTE_CHARS = 2_000
 REVEALS_FILE = Path("literature") / "screening" / "reveals.jsonl"
 REVEAL_ACTION = "SCREENING_PROPOSAL_REVEALED"
 PROJECTION_FAILED_ACTION = "SCREENING_PROJECTION_FAILED"
@@ -246,17 +251,70 @@ def _parse_time(value: Any) -> datetime | None:
     if not isinstance(value, str) or not value.strip() or value.startswith("1970-01-01"):
         return None
     try:
-        return datetime.fromisoformat(value.replace("Z", "+00:00"))
+        parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
     except ValueError:
         return None
+    # A time without an offset is read as UTC, so two times always compare.
+    return parsed if parsed.tzinfo is not None else parsed.replace(tzinfo=UTC)
 
 
 def _refuse(code: str, message: str) -> dict[str, str]:
     return {"code": code, "message": message}
 
 
-def validate_event(event: Any, context: ScreeningContext) -> dict[str, str] | None:
-    """The typed refusal for one event, or None when it may be stored."""
+def validate_event(
+    event: Any,
+    context: ScreeningContext,
+    *,
+    token_scope: str | None = None,
+    received_at: str | None = None,
+) -> dict[str, str] | None:
+    """The typed refusal for one event, or None when it may be stored.
+
+    F7 (H-input-limits): with ``received_at`` (the engine's clock) a
+    ``decided_at`` more than :data:`MAX_FUTURE_SKEW` ahead is refused; with
+    ``token_scope`` (``desktop`` or ``phone``) the event's ``device`` must be
+    that scope; a ``note`` is text of at most :data:`MAX_NOTE_CHARS`.
+    """
+    return _shape_refusal(event, context) or _limit_refusal(event, token_scope, received_at)
+
+
+def _limit_refusal(
+    event: dict[str, Any],
+    token_scope: str | None,
+    received_at: str | None,
+    *,
+    copied_note: str | None = None,
+) -> dict[str, str] | None:
+    """F7 (H-input-limits): the checks on values the client chooses, for an event
+    whose shape is valid. Intake applies them to new events only, so a retry of an
+    event stored before these limits is still a ``duplicate``.
+
+    ``copied_note`` is the stored note of the event this one supersedes. A note
+    equal to it is a copy of stored data, not new client input, so it skips the
+    length cap (decision 2026-11-12): resolving a conflict keeps a note written
+    before the cap.
+    """
+    decided = _parse_time(event.get("decided_at"))
+    received = _parse_time(received_at)
+    if decided is not None and received is not None and decided - received > MAX_FUTURE_SKEW:
+        return _refuse(
+            PROVENANCE_MISSING,
+            f"decided_at is more than {MAX_FUTURE_SKEW.seconds // 60} minutes ahead of the engine's clock; "
+            "check the device's clock",
+        )
+    if token_scope in DEVICES and event.get("device") != token_scope:
+        return _refuse(INVALID_OUTPUT, f"device must be {token_scope}, the scope of the token that sent the event")
+    note = event.get("note")
+    if note is not None and not isinstance(note, str):
+        return _refuse(INVALID_OUTPUT, "note must be text or null")
+    if isinstance(note, str) and len(note) > MAX_NOTE_CHARS and note != copied_note:
+        return _refuse(INVALID_OUTPUT, f"note is longer than {MAX_NOTE_CHARS} characters")
+    return None
+
+
+def _shape_refusal(event: Any, context: ScreeningContext) -> dict[str, str] | None:
+    """The checks every event met before H-input-limits: shape, provenance, corpus, reason and binding."""
     if not isinstance(event, dict):
         return _refuse(INVALID_OUTPUT, "an event must be an object")
     if not _UUID.match(str(event.get("event_id") or "")):
@@ -492,11 +550,22 @@ def _intake_locked(ws, events, token_scope, received_at, device, context, after_
     pending: list[dict[str, Any]] = []
     for raw in events:
         event_id = str(raw.get("event_id") or "") if isinstance(raw, dict) else ""
-        refusal = validate_event(raw, context)
+        refusal = _shape_refusal(raw, context)
         if refusal is not None:
             results.append(IntakeResult(event_id, "refused", refusal))
             continue
         previous = known.get(event_id)
+        # A known event id skips the F7 limits on purpose (review finding 3): it
+        # can only be a `duplicate` or an IDEMPOTENCY_CONFLICT below, so a retry
+        # of an event stored before the limits still re-projects. Do not move the
+        # limits ahead of this check.
+        if previous is None:
+            parent = known.get(str(raw.get("supersedes") or ""))
+            copied = parent.get("note") if parent is not None and isinstance(parent.get("note"), str) else None
+            refusal = _limit_refusal(raw, token_scope, received_at, copied_note=copied)
+            if refusal is not None:
+                results.append(IntakeResult(event_id, "refused", refusal))
+                continue
         if previous is not None:
             if _client_content(previous) == _client_content(raw):
                 results.append(IntakeResult(event_id, "duplicate"))

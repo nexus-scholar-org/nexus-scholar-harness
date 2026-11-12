@@ -99,6 +99,8 @@ DRAFT_CONFLICT = "DRAFT_CONFLICT"
 DRAFT_EMITTED = "DRAFT_EMITTED"
 DRAFT_INVALID = "DRAFT_INVALID"
 DRAFT_INCOMPLETE = "DRAFT_INCOMPLETE"
+#: H-input-limits (F6): the draft is over the size limits in ``inception/steps.py`` (``DRAFT_LIMITS``).
+DRAFT_TOO_LARGE = "DRAFT_TOO_LARGE"
 STEP_UNKNOWN = "STEP_UNKNOWN"
 CRITERIA_UNDECIDED = "CRITERIA_UNDECIDED"
 CRITERIA_MISSING = "CRITERIA_MISSING"
@@ -184,6 +186,11 @@ CHASE_DIRECTION_INVALID = "CHASE_DIRECTION_INVALID"
 CHASE_SEEDS_INVALID = "CHASE_SEEDS_INVALID"
 PROTOCOL_CHANGED_SINCE_PUBLISH = "PROTOCOL_CHANGED_SINCE_PUBLISH"
 
+# --- request validation (H-input-limits, F5) ----------------------------------
+#: A body, query or path parameter pydantic refuses on any route (HTTP 422);
+#: ``details.errors`` lists ``loc``, ``msg`` and ``type`` for each error.
+BODY_INVALID = "BODY_INVALID"
+
 # --- console guards (INC-01, M0) ----------------------------------------------
 HOST_REFUSED = "HOST_REFUSED"
 TOKEN_REQUIRED = "TOKEN_REQUIRED"
@@ -247,6 +254,7 @@ CONTRACT_ADDED = frozenset(
         DRAFT_EMITTED,
         DRAFT_INVALID,
         DRAFT_INCOMPLETE,
+        DRAFT_TOO_LARGE,
         STEP_UNKNOWN,
         CRITERIA_UNDECIDED,
         CRITERIA_MISSING,
@@ -292,6 +300,7 @@ CONTRACT_ADDED = frozenset(
         CHASE_DIRECTION_INVALID,
         CHASE_SEEDS_INVALID,
         PROTOCOL_CHANGED_SINCE_PUBLISH,
+        BODY_INVALID,
     }
     | LEG_ERROR_CODES
     | IMPORT_REJECTION_CODES

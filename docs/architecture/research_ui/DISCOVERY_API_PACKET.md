@@ -125,6 +125,7 @@ No route. The codes every discovery route may return, with HTTP status, all regi
 | `RUN_NOT_FOUND` | 404 | runs/{run} |
 | `RECALL_NOT_RUN`, `DEDUP_NOT_RUN` | 404 | recall, dedup reads |
 | `SEEDS_INVALID`, `CAP_INVALID`, `PAIR_UNKNOWN` | 422 | recall, runs, dedup decisions |
+| `BODY_INVALID` | 422 | any route: a body, query or path parameter pydantic refuses (a `cap_override` that is not a number, `providers` not a list, a `note` over 2 000 characters); `details.errors[]` names each field, never the client's value (H-input-limits, F5) |
 | `CORPUS_ALREADY_ACCEPTED` | 409 | existing; runs, dedup decisions |
 | `DECISION_SUPERSEDED` | 409 | dedup decisions |
 | `PROTOCOL_CHANGED_SINCE_SNAPSHOT`, `BATCHES_INCOMPLETE` | 409 | **E5** turns these reason prefixes (`pipeline/coordinator.py:248-283`) into typed codes on the run job's `error` |

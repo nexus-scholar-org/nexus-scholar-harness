@@ -222,9 +222,9 @@ export const STATES: Record<string, StateEntry> = {
     role: "blocked",
     action: "triage",
     copy: {
-      en: T("Decision without provenance", "A decision lacks its screener, method or time and was refused; nothing is filled in for it.", "That decision", "Decide it again"),
-      fr: T("Décision sans provenance", "Une décision sans évaluateur, méthode ou horodatage a été refusée ; rien n'est complété à sa place.", "Cette décision", "La décider à nouveau"),
-      ar: T("قرار دون مصدر", "رُفض قرار يفتقد المراجع أو الطريقة أو الوقت، ولا يُملأ عنه شيء.", "ذلك القرار", "حسمه من جديد"),
+      en: T("Decision without provenance", "A decision lacks its screener, method or time, or its time is more than 5 minutes ahead of this computer's clock, and was refused; nothing is filled in for it. If the device's clock is wrong, correct it first.", "That decision", "Decide it again"),
+      fr: T("Décision sans provenance", "Une décision sans évaluateur, méthode ou horodatage, ou dont l'heure dépasse de plus de 5 minutes l'horloge de cet ordinateur, a été refusée ; rien n'est complété à sa place. Si l'horloge de l'appareil est fausse, corrigez-la d'abord.", "Cette décision", "La décider à nouveau"),
+      ar: T("قرار دون مصدر", "رُفض قرار يفتقد المراجع أو الطريقة أو الوقت، أو يسبق وقتُه ساعةَ هذا الحاسوب بأكثر من 5 دقائق، ولا يُملأ عنه شيء. إن كانت ساعة الجهاز خاطئة فصحّحها أولًا.", "ذلك القرار", "حسمه من جديد"),
     },
   },
   BATCH_MISSING: {
@@ -600,6 +600,15 @@ export const STATES: Record<string, StateEntry> = {
       ar: T("لم يقبل المحرك إحدى الإجابات", "إحدى الإجابات بصيغة خاطئة، مثل سنة ليست رقمًا، أو منظور أو منهج لا يعرفه المحرك. سبب المحرك أدناه.", "حفظ هذه المسودة", "صحّح الإجابة"),
     },
   },
+  DRAFT_TOO_LARGE: {
+    role: "blocked",
+    action: "none",
+    copy: {
+      en: T("The draft is over its size limits", "An answer is longer than the engine keeps, or a list has more entries than it keeps: 2,000 characters for a topic or a question, 200 for a name or a concept, 20 research questions, 50 concepts. Nothing was saved. The engine names the field below.", "Saving this draft", "Shorten the answer named"),
+      fr: T("Le brouillon dépasse ses limites de taille", "Une réponse est plus longue que ce que le moteur conserve, ou une liste compte plus d'entrées qu'il n'en garde : 2 000 caractères pour un sujet ou une question, 200 pour un nom ou un concept, 20 questions de recherche, 50 concepts. Rien n'a été enregistré. Le moteur nomme le champ ci-dessous.", "L'enregistrement de ce brouillon", "Raccourcir la réponse nommée"),
+      ar: T("المسودة تتجاوز حدود حجمها", "إحدى الإجابات أطول مما يحتفظ به المحرك، أو تضم قائمة مدخلات أكثر مما يحتفظ به: 2000 حرف للموضوع أو السؤال، و200 حرف للاسم أو المفهوم، و20 سؤال بحث، و50 مفهومًا. لم يُحفظ شيء. يذكر المحرك الحقل أدناه.", "حفظ هذه المسودة", "اختصر الإجابة المذكورة"),
+    },
+  },
   DRAFT_INCOMPLETE: {
     role: "unclear",
     action: "none",
@@ -873,6 +882,15 @@ export const STATES: Record<string, StateEntry> = {
       en: T("That cap is not allowed", "A cap for one run is a whole number from 1 to 10,000. Nothing was started.", "Starting a search", "Change the cap"),
       fr: T("Ce plafond n'est pas autorisé", "Le plafond d'une exécution est un nombre entier de 1 à 10 000. Rien n'a été lancé.", "Le lancement d'une recherche", "Modifier le plafond"),
       ar: T("هذا الحد غير مسموح", "حد التشغيل الواحد عدد صحيح من 1 إلى 10,000. لم يبدأ شيء.", "بدء البحث", "غيّر الحد"),
+    },
+  },
+  BODY_INVALID: {
+    role: "blocked",
+    action: "none",
+    copy: {
+      en: T("The engine could not read this request", "The request's shape is not what the engine expects, for example a number sent as text or a note over 2,000 characters. Nothing was changed. The engine's reason is below.", "This action", "Correct the value named and try again"),
+      fr: T("Le moteur n'a pas pu lire cette requête", "La forme de la requête n'est pas celle que le moteur attend, par exemple un nombre envoyé comme texte ou une note de plus de 2 000 caractères. Rien n'a été modifié. La raison du moteur figure ci-dessous.", "Cette action", "Corriger la valeur nommée et réessayer"),
+      ar: T("لم يستطع المحرك قراءة هذا الطلب", "شكل الطلب ليس ما يتوقعه المحرك، مثل رقم أُرسل كنص أو ملاحظة تتجاوز 2000 حرف. لم يتغيّر شيء. سبب المحرك أدناه.", "هذا الإجراء", "صحّح القيمة المذكورة وأعد المحاولة"),
     },
   },
   PROVIDER_UNKNOWN: {

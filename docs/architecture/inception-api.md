@@ -8,7 +8,7 @@ Code: routes in `src/scholar_harness/console/api/inception.py`; steps, preview a
 
 A draft holds every interview answer. All fields are optional until preview, and unknown keys are refused (`DRAFT_INVALID`):
 
-`topic`, `paradigm`, `playbook`, `secondary_paradigm`, `unit_of_analysis`, `proof`, `out_of_scope[]`, `languages[]` (default `["en"]`, as the wizard), `start_year`, `end_year`, `rqs[]`, `concepts[{concept, synonyms[]}]`, `extra_inclusions[]`, `extra_exclusions[{criterion, reason_category}]`, `criteria_decisions{criterion id: bool}`, `matrix_columns[]`, `verification_checks` (default true), `golden_seeds[]` (M4d: DOIs kept as recall seeds, at most 25, normalised and checked as DOIs, else `DRAFT_INVALID`; compiled into `search_strategy.golden_seeds`), `title`, `lead_researcher`, `venue`, `timeline_weeks`.
+`topic`, `paradigm`, `playbook`, `secondary_paradigm`, `unit_of_analysis`, `proof`, `out_of_scope[]`, `languages[]` (default `["en"]`, as the wizard), `start_year`, `end_year`, `rqs[]`, `concepts[{concept, synonyms[]}]`, `extra_inclusions[]`, `extra_exclusions[{criterion, reason_category}]`, `criteria_decisions{criterion id: bool}`, `matrix_columns[]`, `verification_checks` (default true), `golden_seeds[]` (M4d: DOIs kept as recall seeds, at most 25 (else `DRAFT_TOO_LARGE`), normalised and checked as DOIs (else `DRAFT_INVALID`); compiled into `search_strategy.golden_seeds`), `title`, `lead_researcher`, `venue`, `timeline_weeks`.
 
 A criterion id is derived from the criterion's kind, source and text (`crit_` plus 12 hex characters). Editing the text makes a new criterion, which has no decision yet.
 
@@ -83,5 +83,5 @@ Code: `src/scholar_harness/console/api/recon.py` (routes), `recon/session.py` (t
 From [`three-phase-hardening-2026-11-10.md`](../assessment/three-phase-hardening-2026-11-10.md); not fixed on `main` unless marked:
 
 - **F1 (P1).** Fixed in M4d: a replacement archives the old corpus beside the old protocol (decision 2026-11-11).
-- **F6 (P2).** Drafts have no size limits (`src/scholar_harness/console/api/inception.py:56`, `DraftBody`): a 20,000-character topic or 500 research questions are saved.
-- **F5 (P2).** A body that fails validation answers FastAPI's default `{"detail": [ ... ]}` list, not the refusal envelope above (no handler for `RequestValidationError` in `console/serve.py`).
+- **F6 (P2).** Fixed in H-input-limits: the draft shape (`inception/steps.py`, `DRAFT_LIMITS`) caps every text, name and list; a draft over a limit is refused `DRAFT_TOO_LARGE` on every route that parses one (decision 2026-11-12).
+- **F5 (P2).** Fixed in H-input-limits: `console/serve.py` answers every pydantic refusal as 422 `BODY_INVALID` in the envelope above, with `details.errors[]` and without the client's value (decision 2026-11-12).

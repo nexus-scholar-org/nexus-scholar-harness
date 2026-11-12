@@ -27,9 +27,9 @@ import re
 import shutil
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Callable
+from typing import Annotated, Any, Callable
 
-from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator
+from pydantic import BaseModel, ConfigDict, Field, StringConstraints, ValidationError, field_validator
 
 from .emit import (
     NEW_WORKSPACE_FILES,
@@ -79,20 +79,56 @@ class StepRefused(Exception):
         self.code, self.message, self.status, self.details = code, message, status, details or {}
 
 
+#: The discovery Recall check takes at most 25 seeds (``scholar_search.recall``).
+MAX_GOLDEN_SEEDS = 25
+
+# Draft size limits (F6, H-input-limits; decision 2026-11-12). Generous for a
+# real review and the same 2 000 characters the discovery note allows; a draft
+# over them is refused ``DRAFT_TOO_LARGE`` and never saved.
+#: A free-text answer: topic, unit of analysis, proof, title, each research
+#: question, each scope exclusion, each extra criterion.
+MAX_TEXT_CHARS = 2_000
+#: A name or label: researcher, venue, a concept, a synonym, a matrix column, a
+#: criterion id, a lens, a playbook, a language tag.
+MAX_NAME_CHARS = 200
+MAX_RQS = 20
+MAX_CONCEPTS = 50
+#: Synonyms per concept.
+MAX_SYNONYMS = 50
+#: ``out_of_scope``, ``extra_inclusions``, ``extra_exclusions``, ``matrix_columns``.
+MAX_LIST_ITEMS = 50
+MAX_CRITERIA_DECISIONS = 500
+MAX_LANGUAGES = 20
+#: The limits as the refusal's ``details.limits`` reports them.
+DRAFT_LIMITS: dict[str, int] = {
+    "text_chars": MAX_TEXT_CHARS,
+    "name_chars": MAX_NAME_CHARS,
+    "rqs": MAX_RQS,
+    "concepts": MAX_CONCEPTS,
+    "synonyms_per_concept": MAX_SYNONYMS,
+    "list_items": MAX_LIST_ITEMS,
+    "criteria_decisions": MAX_CRITERIA_DECISIONS,
+    "languages": MAX_LANGUAGES,
+    "golden_seeds": MAX_GOLDEN_SEEDS,
+}
+Text = Annotated[str, StringConstraints(max_length=MAX_TEXT_CHARS)]
+Name = Annotated[str, StringConstraints(max_length=MAX_NAME_CHARS)]
+#: pydantic's error types for a value over a length limit.
+_SIZE_ERRORS = frozenset({"string_too_long", "too_long"})
+
+
 class ConceptIn(BaseModel):
     model_config = ConfigDict(extra="forbid")
-    concept: str
-    synonyms: list[str] = Field(default_factory=list)
+    concept: Name
+    synonyms: list[Name] = Field(default_factory=list, max_length=MAX_SYNONYMS)
 
 
 class ExclusionIn(BaseModel):
     model_config = ConfigDict(extra="forbid")
-    criterion: str
-    reason_category: str = "OUT_OF_SCOPE"
+    criterion: Text
+    reason_category: Name = "OUT_OF_SCOPE"
 
 
-#: The discovery Recall check takes at most 25 seeds (``scholar_search.recall``).
-MAX_GOLDEN_SEEDS = 25
 _DOI = re.compile(r"^10\.\d+(\.\d+)*/\S+$")
 
 
@@ -115,30 +151,30 @@ class Draft(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    topic: str = ""
-    paradigm: str | None = None
-    playbook: str | None = None
-    secondary_paradigm: str | None = None
-    unit_of_analysis: str = ""
-    proof: str = ""
-    out_of_scope: list[str] = Field(default_factory=list)
-    languages: list[str] = Field(default_factory=lambda: ["en"])
+    topic: Text = ""
+    paradigm: Name | None = None
+    playbook: Name | None = None
+    secondary_paradigm: Name | None = None
+    unit_of_analysis: Text = ""
+    proof: Text = ""
+    out_of_scope: list[Text] = Field(default_factory=list, max_length=MAX_LIST_ITEMS)
+    languages: list[Name] = Field(default_factory=lambda: ["en"], max_length=MAX_LANGUAGES)
     start_year: int | None = None
     end_year: int | None = None
-    rqs: list[str] = Field(default_factory=list)
-    concepts: list[ConceptIn] = Field(default_factory=list)
-    extra_inclusions: list[str] = Field(default_factory=list)
-    extra_exclusions: list[ExclusionIn] = Field(default_factory=list)
+    rqs: list[Text] = Field(default_factory=list, max_length=MAX_RQS)
+    concepts: list[ConceptIn] = Field(default_factory=list, max_length=MAX_CONCEPTS)
+    extra_inclusions: list[Text] = Field(default_factory=list, max_length=MAX_LIST_ITEMS)
+    extra_exclusions: list[ExclusionIn] = Field(default_factory=list, max_length=MAX_LIST_ITEMS)
     #: criterion id -> accepted (True) / rejected (False). Ids come from the criteria step.
-    criteria_decisions: dict[str, bool] = Field(default_factory=dict)
-    matrix_columns: list[str] = Field(default_factory=list)
+    criteria_decisions: dict[Name, bool] = Field(default_factory=dict, max_length=MAX_CRITERIA_DECISIONS)
+    matrix_columns: list[Name] = Field(default_factory=list, max_length=MAX_LIST_ITEMS)
     verification_checks: bool = True
     #: DOIs kept as recall seeds from the pool's anchors (M4d DoD 5); compiled
     #: into ``search_strategy.golden_seeds`` at genesis.
     golden_seeds: list[str] = Field(default_factory=list, max_length=MAX_GOLDEN_SEEDS)
-    title: str = ""
-    lead_researcher: str = ""
-    venue: str = ""
+    title: Text = ""
+    lead_researcher: Name = ""
+    venue: Name = ""
     timeline_weeks: int | None = None
 
     @field_validator("golden_seeds")
@@ -147,13 +183,33 @@ class Draft(BaseModel):
         return _doi_list(values)
 
 
+def _over_limit(error: dict[str, Any]) -> str:
+    """``rqs[3] (over 2000 characters)`` or ``rqs (21 items, at most 20)`` for one size error."""
+    path = ""
+    for part in error.get("loc", ()):
+        path += f"[{part}]" if isinstance(part, int) else (f".{part}" if path else str(part))
+    ctx = error.get("ctx") or {}
+    if error.get("type") == "string_too_long":
+        return f"{path} (over {ctx.get('max_length')} characters)"
+    return f"{path} ({ctx.get('actual_length')} items, at most {ctx.get('max_length')})"
+
+
 def parse_draft(raw: dict[str, Any] | None) -> Draft:
     try:
         return Draft.model_validate(raw or {})
     except ValidationError as exc:
+        # The client's own values (``input``) are not echoed back: a refused
+        # draft may be the oversized one.
+        errors = [{k: v for k, v in e.items() if k != "input"} for e in json.loads(exc.json(include_url=False))]
+        over = [e for e in errors if e.get("type") in _SIZE_ERRORS]
+        if over:
+            raise StepRefused(
+                "DRAFT_TOO_LARGE",
+                "the draft is over its size limits: " + ", ".join(_over_limit(e) for e in over),
+                details={"errors": errors, "limits": dict(DRAFT_LIMITS)},
+            ) from exc
         raise StepRefused(
-            "DRAFT_INVALID", "the draft does not match the draft shape",
-            details={"errors": json.loads(exc.json(include_url=False))},
+            "DRAFT_INVALID", "the draft does not match the draft shape", details={"errors": errors},
         ) from exc
 
 

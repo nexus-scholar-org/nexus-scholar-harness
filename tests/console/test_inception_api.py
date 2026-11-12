@@ -17,6 +17,7 @@ from conftest import E2E_ANSWERS
 from fastapi.testclient import TestClient
 
 from scholar_harness.console import create_app
+from scholar_harness.inception import steps
 from scholar_harness.inception.intent import CriterionDraft
 from scholar_harness.workspace import catalog
 
@@ -426,3 +427,66 @@ def test_a_replacement_waits_for_a_running_job_in_the_workspace(root):
     assert _tree(ws) == before
     jobs.jobs["djob_1"].state = "succeeded"
     assert client.post(f"{BASE}/drafts/{second}/genesis", json={"replace": True}).status_code == 201
+
+
+# --- F6 (three-phase review): drafts have size limits ---------------------------
+
+
+def _over(limit: int) -> int:
+    return limit + 1
+
+
+@pytest.mark.parametrize(
+    ("draft", "field"),
+    [
+        ({"topic": "x" * _over(steps.MAX_TEXT_CHARS)}, "topic"),
+        ({"rqs": ["q"] * _over(steps.MAX_RQS)}, "rqs"),
+        ({"rqs": ["q" * _over(steps.MAX_TEXT_CHARS)]}, "rqs"),
+        ({"concepts": [{"concept": f"c{i}"} for i in range(_over(steps.MAX_CONCEPTS))]}, "concepts"),
+        ({"concepts": [{"concept": "c", "synonyms": ["s"] * _over(steps.MAX_SYNONYMS)}]}, "synonyms"),
+        ({"out_of_scope": ["o"] * _over(steps.MAX_LIST_ITEMS)}, "out_of_scope"),
+        ({"extra_inclusions": ["i"] * _over(steps.MAX_LIST_ITEMS)}, "extra_inclusions"),
+        ({"extra_exclusions": [{"criterion": "e"}] * _over(steps.MAX_LIST_ITEMS)}, "extra_exclusions"),
+        ({"extra_exclusions": [{"criterion": "e" * _over(steps.MAX_TEXT_CHARS)}]}, "criterion"),
+        ({"criteria_decisions": {f"INC-{i}": True for i in range(_over(steps.MAX_CRITERIA_DECISIONS))}}, "criteria_decisions"),
+        ({"title": "t" * _over(steps.MAX_TEXT_CHARS)}, "title"),
+        ({"lead_researcher": "n" * _over(steps.MAX_NAME_CHARS)}, "lead_researcher"),
+    ],
+    ids=["topic", "rqs-count", "rq-length", "concepts", "synonyms", "out_of_scope", "inclusions",
+         "exclusions", "criterion-length", "criteria_decisions", "title", "lead_researcher"],
+)
+def test_an_oversized_draft_is_refused_and_not_saved(root, draft, field):
+    client = _client(root)
+    response = client.post(f"{BASE}/drafts", json={"draft": draft})
+    assert response.status_code == 422, response.text[:300]
+    detail = response.json()["detail"]
+    assert detail["code"] == "DRAFT_TOO_LARGE"
+    assert field in detail["message"]
+    assert detail["details"]["errors"] and detail["details"]["limits"]
+    assert not (root / ".drafts").exists() or not any((root / ".drafts").iterdir())
+    # The same draft is refused on a step and a save.
+    assert client.post(f"{BASE}/steps/scope", json={"draft": draft}).json()["detail"]["code"] == "DRAFT_TOO_LARGE"
+    sid = client.post(f"{BASE}/drafts", json={"draft": {"topic": "small"}}).json()["session_id"]
+    saved = client.put(f"{BASE}/drafts/{sid}", json={"draft": draft})
+    assert saved.status_code == 422 and saved.json()["detail"]["code"] == "DRAFT_TOO_LARGE"
+    assert json.loads((root / ".drafts" / sid / "draft.json").read_text(encoding="utf-8"))["draft"]["topic"] == "small"
+
+
+def test_a_draft_at_its_limits_is_accepted(root):
+    client = _client(root)
+    draft = {
+        "topic": "x" * steps.MAX_TEXT_CHARS,
+        "rqs": ["q" * steps.MAX_TEXT_CHARS] * steps.MAX_RQS,
+        "concepts": [{"concept": f"c{i}", "synonyms": ["s"] * steps.MAX_SYNONYMS} for i in range(steps.MAX_CONCEPTS)],
+        "out_of_scope": ["o"] * steps.MAX_LIST_ITEMS,
+    }
+    response = client.post(f"{BASE}/drafts", json={"draft": draft})
+    assert response.status_code == 201, response.text[:300]
+
+
+def test_a_too_large_and_malformed_draft_is_reported_as_too_large():
+    """Size errors are what the researcher can act on; a shape error in the same body is listed too."""
+    with pytest.raises(steps.StepRefused) as refused:
+        steps.parse_draft({"topic": "x" * _over(steps.MAX_TEXT_CHARS), "start_year": "soon"})
+    assert refused.value.code == "DRAFT_TOO_LARGE"
+    assert {tuple(e["loc"]) for e in refused.value.details["errors"]} == {("topic",), ("start_year",)}

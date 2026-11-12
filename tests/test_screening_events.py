@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import json
 import uuid
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 import pytest
@@ -116,9 +116,20 @@ def _event(ws: Path, study: str, outcome: str = "INCLUDE", **overrides) -> dict:
     return event
 
 
+def _received_after(events: list[dict]) -> str:
+    """The engine's clock five seconds after the latest `decided_at` sent (F7: a
+    decision ahead of the engine's clock is refused), `10:00:05Z` for the default event."""
+    latest = datetime(2026, 11, 4, 10, 0, 0, tzinfo=UTC)
+    for event in events:
+        parsed = ev._parse_time(event.get("decided_at")) if isinstance(event, dict) else None
+        if parsed is not None and parsed > latest:
+            latest = parsed
+    return (latest + timedelta(seconds=5)).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
 def _intake(ws: Path, events: list[dict], **kw) -> list[str]:
     kw.setdefault("token_scope", "desktop")
-    kw.setdefault("received_at", "2026-11-04T10:00:05Z")
+    kw.setdefault("received_at", _received_after(events))
     return [r.result for r in ev.intake(ws, events, **kw)]
 
 
@@ -202,7 +213,7 @@ def test_required_3_conflict_leaves_the_projection_and_collect_refuses(ws):
     decided = [_event(ws, s) for s in studies]
     assert _intake(ws, decided) == ["accepted"] * 3
     rival = _event(ws, studies[0], "EXCLUDE", device="phone")
-    assert _intake(ws, [rival]) == ["conflict"]
+    assert _intake(ws, [rival], token_scope="phone") == ["conflict"]
     assert [c["study_id"] for c in ev.conflicts(ev.read_events(ws))] == [studies[0]]
     path = ev.write_projection(ws, 1, SCREENER, workspace_id=WS_ID)
     projected = json.loads(path.read_text(encoding="utf-8"))
@@ -214,7 +225,7 @@ def test_required_3_conflict_leaves_the_projection_and_collect_refuses(ws):
 def test_same_outcome_from_a_second_device_is_a_confirmation(ws):
     studies = _studies(ws)
     assert _intake(ws, [_event(ws, studies[0])]) == ["accepted"]
-    assert _intake(ws, [_event(ws, studies[0], device="phone")]) == ["accepted"]
+    assert _intake(ws, [_event(ws, studies[0], device="phone")], token_scope="phone") == ["accepted"]
     assert ev.conflicts(ev.read_events(ws)) == []
 
 
@@ -639,3 +650,82 @@ def test_an_exclude_reason_must_not_contradict_the_events_own_answer(ws, answer)
             assert result.refusal and result.refusal["code"] == "REASON_CODE_INCONSISTENT", result
         else:
             assert result.result == "accepted", result
+
+
+# --- F7 (three-phase review): three client-supplied values are checked ------------
+
+
+@pytest.mark.parametrize(
+    ("overrides", "kw", "code"),
+    [
+        ({"decided_at": "2031-01-01T00:00:00Z"}, {}, "PROVENANCE_MISSING"),
+        # received_at is 10:00:05; five minutes and one second later is refused
+        ({"decided_at": "2026-11-04T10:05:06Z"}, {}, "PROVENANCE_MISSING"),
+        ({"decided_at": "2026-11-04T12:05:06+02:00"}, {}, "PROVENANCE_MISSING"),  # the same instant, offset form
+        ({"device": "phone"}, {}, "INVALID_OUTPUT"),
+        ({"device": "desktop"}, {"token_scope": "phone"}, "INVALID_OUTPUT"),
+        ({"note": "n" * (ev.MAX_NOTE_CHARS + 1)}, {}, "INVALID_OUTPUT"),
+        ({"note": 7}, {}, "INVALID_OUTPUT"),
+    ],
+    ids=["decided-in-2031", "decided-5min-1s-ahead", "decided-ahead-with-offset", "phone-device-desktop-token",
+         "desktop-device-phone-token", "note-too-long", "note-not-text"],
+)
+def test_f7_future_decisions_foreign_devices_and_long_notes_are_refused(ws, overrides, kw, code):
+    studies = _studies(ws)
+    kw = {"token_scope": "desktop", "received_at": "2026-11-04T10:00:05Z", **kw}
+    results = ev.intake(ws, [_event(ws, studies[0], **overrides)], **kw)
+    assert results[0].result == "refused"
+    assert results[0].refusal["code"] == code
+    assert ev.read_events(ws) == []
+
+
+def test_f7_values_at_the_limits_are_accepted(ws):
+    studies = _studies(ws)
+    at_skew = _event(ws, studies[0], decided_at="2026-11-04T10:05:05Z", note="n" * ev.MAX_NOTE_CHARS)
+    assert _intake(ws, [at_skew]) == ["accepted"]
+    phone = _event(ws, studies[1], device="phone")
+    assert _intake(ws, [phone], token_scope="phone") == ["accepted"]
+    assert [e["device"] for e in ev.read_events(ws)] == ["desktop", "phone"]
+
+
+def test_f7_a_stored_event_retried_after_the_limits_is_a_duplicate(ws):
+    """Review finding 3: an event stored before the F7 limits (here a long note and a
+    phone device under a desktop token, written straight to the log) is still a
+    `duplicate` when retried, so the retry re-projects instead of being refused."""
+    studies = _studies(ws)
+    old = _event(ws, studies[0], device="phone", note="n" * (ev.MAX_NOTE_CHARS + 10))
+    stored = {**old, "received_at": "2026-11-04T10:00:05Z", "token_scope": "desktop", "changed_after_reveal": False}
+    log = ev.screener_file(ws, SCREENER)
+    log.parent.mkdir(parents=True, exist_ok=True)
+    log.write_text(json.dumps(stored) + "\n", encoding="utf-8")
+    assert [e["event_id"] for e in ev.read_events(ws)] == [old["event_id"]]
+    assert _intake(ws, [old]) == ["duplicate"]
+    # A new event with the same values is refused.
+    assert _intake(ws, [{**old, "event_id": str(uuid.uuid4())}]) == ["refused"]
+
+
+def _store_legacy(ws: Path, event: dict) -> None:
+    """Append an event as an engine before the F7 limits stored it (no intake checks)."""
+    stored = {**event, "received_at": "2026-11-04T10:00:05Z", "token_scope": event["device"], "changed_after_reveal": False}
+    log = ev.screener_file(ws, SCREENER)
+    log.parent.mkdir(parents=True, exist_ok=True)
+    with log.open("a", encoding="utf-8") as handle:
+        handle.write(json.dumps(stored) + "\n")
+
+
+def test_f7_a_note_copied_from_the_superseded_event_skips_the_cap(ws):
+    """Decision 2026-11-12: the 2 000-character cap is for new client input; a note
+    equal to the stored note of the event it supersedes is a copy and is accepted."""
+    studies = _studies(ws)
+    long_note = "n" * (ev.MAX_NOTE_CHARS + 500)
+    legacy = _event(ws, studies[0], note=long_note)
+    _store_legacy(ws, legacy)
+    copy = _event(ws, studies[0], "MAYBE", supersedes=legacy["event_id"], note=long_note)
+    assert _intake(ws, [copy]) == ["accepted"]
+    # A changed long note is new input and is still refused.
+    other = _event(ws, studies[1], note="short")
+    assert _intake(ws, [other]) == ["accepted"]
+    grown = _event(ws, studies[1], "MAYBE", supersedes=other["event_id"], note=long_note)
+    assert _intake(ws, [grown]) == ["refused"]
+    edited = _event(ws, studies[0], "EXCLUDE", supersedes=copy["event_id"], note=long_note + "!")
+    assert _intake(ws, [edited]) == ["refused"]

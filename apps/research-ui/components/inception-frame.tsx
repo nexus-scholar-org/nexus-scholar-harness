@@ -91,7 +91,7 @@ const ACTION_STEP: Record<string, InceptionStep> = {
   RECON_SESSION_NOT_FOUND: "explore",
 };
 
-const ENGINE_REASON = new Set(["DRAFT_INVALID", "INTENT_INVALID", "WORKSPACE_ROOT_UNAVAILABLE", "WORKSPACE_EXISTS"]);
+const ENGINE_REASON = new Set(["DRAFT_INVALID", "DRAFT_TOO_LARGE", "BODY_INVALID", "INTENT_INVALID", "WORKSPACE_ROOT_UNAVAILABLE", "WORKSPACE_EXISTS"]);
 
 /** A refusal as a sentence (the shared state card), plus what the engine's details name. */
 export function InceptionRefusal({
