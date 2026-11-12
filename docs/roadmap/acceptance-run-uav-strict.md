@@ -30,6 +30,7 @@ uv tool install --force dist/nexus_scholar-1.1.0b6-py3-none-any.whl
 nexus-scholar ui --root workspaces
 ```
 
+- The wheel built from `main` carries the version `1.1.0b6`, the same number as the released beta, although it holds everything merged since. `--force` replaces an installed b6 with it; `nexus-scholar --version` cannot tell the two apart.
 - Start the app from the repository root. The search settings are read from a `.env` file in the folder the app starts from (it is ignored by git; there is none in the repository root today). It must set `SCHOLAR_MAILTO` (your contact email) and `SCHOLAR_OPENALEX_KEY`; `SCHOLAR_S2_KEY` is optional. Without the first two, a harvest that includes OpenAlex is refused.
 - To see the missing-key case once, start without `SCHOLAR_OPENALEX_KEY`: Explore must say that OpenAlex was probed without a key. Then add the key and restart.
 - Use the workspace name `uav-crop-weed-strict-2026-11`. It lands in `workspaces/`, next to the golden run, so it can be committed as evidence afterwards.
