@@ -961,9 +961,10 @@ def _chase_view(ws: Path) -> dict[str, Any]:
     from ...screening import rounds
 
     seeds_view: dict[str, Any] = {"source": "included", "total": 0, "chaseable": 0, "not_chaseable": []}
-    published = True
+    publication = cc.publication_state(ws)
+    published = bool(publication["published"])
     try:
-        seeds = cc.load_seeds(ws)
+        seeds = cc.load_seeds(ws) if published else []
     except cc.ChaseRefused:
         published, seeds = False, []
     seeds_view["total"] = len(seeds)
@@ -985,7 +986,8 @@ def _chase_view(ws: Path) -> dict[str, Any]:
         "shape": "discovery.chase-v1",
         "screening": {
             "published": published,
-            "generation_id": cc._generation_id(ws) if published else None,
+            "generation_id": publication["generation_id"] if published else None,
+            "code": publication["code"],
             "round": int(current.get("round") or 1),
             "arm": current.get("arm"),
         },
@@ -1041,6 +1043,7 @@ async def start_chase(body: ChaseRunBody, request: Request) -> dict[str, Any]:
         _protocol(ws)
         try:
             cc.load_seeds(ws, seed_source=body.seeds or "included")
+            cc.require_published(ws)  # review R2: published, current, same protocol
         except cc.ChaseRefused as exc:
             raise _chase_refused(exc) from exc
         providers = _check_providers(body.providers) or list(cc.DEFAULT_PROVIDERS)

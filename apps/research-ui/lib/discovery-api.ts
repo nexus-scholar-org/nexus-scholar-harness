@@ -495,7 +495,8 @@ export interface ChaseRun {
 
 export interface ChaseState {
   shape: "discovery.chase-v1";
-  screening: { published: boolean; generation_id: string | null; round: number; arm: "databases" | "citation_searching" | string | null };
+  /** `code` (review R2): why the screening does not count as published (`SCREENING_NOT_PUBLISHED`, `PROTOCOL_CHANGED_SINCE_PUBLISH`, ...), else null. */
+  screening: { published: boolean; generation_id: string | null; round: number; arm: "databases" | "citation_searching" | string | null; code?: string | null };
   seeds: { source: string; total: number; chaseable: number; not_chaseable: { study_id: string; title: string; reason: string | null }[] };
   keys: { openalex_key_set: boolean; s2_key_set: boolean };
   defaults: { directions: string[]; providers: string[]; forward_cap: number; run_ceiling: number };

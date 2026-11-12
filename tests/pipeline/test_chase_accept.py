@@ -339,9 +339,13 @@ def test_a_first_round_writes_exactly_the_kits_prisma_report(ws):
     assert rounds.chase_identification(ws) is None
 
 
-def test_load_context_keeps_every_batch_bound_to_the_current_corpus(ws):
+def test_the_corpus_filter_applies_only_from_round_2(ws, monkeypatch):
     before = ev.load_context(ws)
-    assert before.batches and ev.newest_corpus_fingerprint(ws) is not None
-    assert all(True for _ in before.batches)
-    # No registry: no fingerprint, no filtering.
+    assert before.batches and ev.newest_corpus_fingerprint(ws) is None  # round 1: no filter (review R3)
+    _chase(ws, monkeypatch)
+    accepted = cc.accept_citation_chase(ws)
+    entry = _registry(ws)[accepted.artifact_id]
+    artifact = json.loads((ws / entry["path"]).read_text(encoding="utf-8"))
+    assert ev.newest_corpus_fingerprint(ws) == artifact["corpus_fingerprint"]
+    assert ev.load_context(ws).batches == {}  # round 1's batches belong to the archived round
     assert ev.newest_corpus_fingerprint(ws / "nowhere") is None

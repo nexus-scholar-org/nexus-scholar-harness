@@ -168,8 +168,8 @@ def load_seeds(workspace: Path | str, *, seed_source: str = "included") -> list[
         if not isinstance(row, dict):
             continue
         screening = row.get("screening") if isinstance(row.get("screening"), dict) else {}
-        decision = str(screening.get("decision") or "INCLUDE")
-        if decision not in wanted:
+        decision = str(screening.get("decision") or "")
+        if decision and decision not in wanted:
             continue
         eids = row.get("external_ids") if isinstance(row.get("external_ids"), dict) else {}
         doi = normalize_doi(eids.get("doi") or row.get("doi")) or None
@@ -184,7 +184,10 @@ def load_seeds(workspace: Path | str, *, seed_source: str = "included") -> list[
             openalex_id=openalex_id,
             s2_id=s2_id,
         )
-        if not study_id:
+        if not decision:
+            # Review R5: a missing decision is reported, never assumed to be an include.
+            seed.chaseable, seed.reason = False, "no published decision"
+        elif not study_id:
             seed.chaseable, seed.reason = False, "no study id"
         elif not (doi or openalex_id or s2_id):
             seed.chaseable, seed.reason = False, "no DOI, OpenAlex id or Semantic Scholar id"
@@ -246,19 +249,70 @@ def _year_window(protocol_path: Path) -> tuple[int | None, int | None]:
     return getattr(query, "year_min", None), getattr(query, "year_max", None)
 
 
-def _corpus_documents(ws: Path) -> list[Document]:
-    """Every record of the frozen corpus, from ``literature/verified.json``."""
+def _corpus_documents(ws: Path) -> list[tuple[Document, int]]:
+    """Every record of the corpus with the round it was screened in.
+
+    The current round's records are ``literature/verified.json``; each earlier
+    round's are in its archive, ``literature/screening_rounds/round_NNN/verified.json``
+    (review R1: a chase deduplicates against the whole corpus, every round).
+    """
+    from scholar_harness.screening import rounds
     from scholar_harness.screening.batcher import _rebuild_doc
 
-    path = ws / "literature" / "verified.json"
-    if not path.is_file():
-        return []
-    rows = json.loads(path.read_text(encoding="utf-8"))
-    docs: list[Document] = []
-    for i, row in enumerate(rows if isinstance(rows, list) else [], start=1):
-        if isinstance(row, dict):
-            docs.append(_rebuild_doc(row, fallback_id=f"corpus-{i:06d}"))
+    sources: list[tuple[Path, int]] = []
+    archive = rounds.rounds_dir(ws)
+    if archive.is_dir():
+        for folder in sorted(archive.iterdir()):
+            name = folder.name
+            if folder.is_dir() and name.startswith("round_") and name[6:].isdigit():
+                sources.append((folder / "verified.json", int(name[6:])))
+    sources.append((ws / "literature" / "verified.json", int(rounds.current_round(ws).get("round") or 1)))
+    docs: list[tuple[Document, int]] = []
+    for path, number in sources:
+        if not path.is_file():
+            continue
+        rows = json.loads(path.read_text(encoding="utf-8"))
+        for i, row in enumerate(rows if isinstance(rows, list) else [], start=1):
+            if isinstance(row, dict):
+                docs.append((_rebuild_doc(row, fallback_id=f"corpus-{number}-{i:06d}"), number))
     return docs
+
+
+def publication_state(workspace: Path | str) -> dict[str, Any]:
+    """Whether the current round's screening is published, current and under the current protocol.
+
+    ``{published, generation_id, code, message}``; ``code`` is ``None`` when it is.
+    Review R2: a chase starts only from such a publication, not from the mere
+    presence of ``literature/included.json``.
+    """
+    from scholar_harness.authority.generations import GenerationStatus, require_current_generation
+    from scholar_harness.corpus_accept import AcceptCorpusRefused, _protocol_fingerprint
+
+    ws = Path(workspace)
+    if not (ws / "literature" / "included.json").is_file():
+        return {"published": False, "generation_id": None, "code": "SCREENING_NOT_PUBLISHED",
+                "message": "literature/included.json is missing: publish the screening before chasing citations"}
+    result = require_current_generation(ws)
+    record = result.record
+    try:
+        fingerprint = _protocol_fingerprint(ws)
+    except AcceptCorpusRefused as exc:
+        return {"published": False, "generation_id": None, "code": exc.code or "PROTOCOL_INVALID", "message": str(exc)}
+    if record is not None and record.protocol_fingerprint != fingerprint:
+        return {"published": False, "generation_id": record.generation_id, "code": "PROTOCOL_CHANGED_SINCE_PUBLISH",
+                "message": "protocol.json changed after the screening was published; screening must be redone and "
+                           "published under the current protocol before a chase"}
+    if result.status is not GenerationStatus.CURRENT or record is None:
+        return {"published": False, "generation_id": record.generation_id if record else None, "code": "SCREENING_NOT_PUBLISHED",
+                "message": f"the screening is not published and current ({result.code or result.status.value}: {result.message})"}
+    return {"published": True, "generation_id": record.generation_id, "code": None, "message": ""}
+
+
+def require_published(workspace: Path | str) -> dict[str, Any]:
+    state = publication_state(workspace)
+    if not state["published"]:
+        raise ChaseRefused(state["message"], state["code"])
+    return state
 
 
 def _deduplicator(ws: Path) -> Deduplicator:
@@ -357,6 +411,7 @@ async def run_citation_chase(
     if not directions:
         raise ChaseRefused("at least one direction is needed", "CHASE_DIRECTION_INVALID")
     seeds = load_seeds(ws, seed_source=seed_source)
+    require_published(ws)  # review R2: before any request
     deduplicator = _deduplicator(ws)
     year_min, year_max = _year_window(protocol_path)
     names = [str(n) for n in (providers or list(DEFAULT_PROVIDERS))]
@@ -408,7 +463,7 @@ async def run_citation_chase(
                 leg.fetched = len(docs)
                 leg.cap_hit = bool(leg.cap is not None and leg.fetched >= leg.cap)
                 if leg.cap_hit:
-                    leg.notes.append(f"stopped at the cap of {leg.cap}: the count is a lower bound")
+                    leg.notes.append(f"reached the cap of {leg.cap}: the count is a lower bound")
                 leg.status, leg.finished_at = "ok", _now()
                 for doc in docs:
                     doc = copy.deepcopy(doc)
@@ -557,10 +612,11 @@ def _deduplicate(
     """
     if not raw:
         return [], [], 0
-    corpus = _corpus_documents(ws)
+    with_rounds = _corpus_documents(ws)
+    corpus = [doc for doc, _number in with_rounds]
     # The deduplicator rewrites every member's ``workspace_id`` in memory, so the
-    # study ids are taken before clustering; the corpus copies are discarded after.
-    corpus_study = {id(doc): doc.workspace_id for doc in corpus}
+    # study ids (and the round each was screened in) are taken before clustering.
+    corpus_study = {id(doc): (doc.workspace_id, number) for doc, number in with_rounds}
     corpus_ids = set(corpus_study)
     chased = copy.deepcopy(raw)
     chased_index = {id(doc): i for i, doc in enumerate(chased)}
@@ -576,9 +632,10 @@ def _deduplicate(
         unique_chased += 1
         corpus_members = [m for m in members if id(m) in corpus_ids]
         if corpus_members:
-            study = corpus_study[id(corpus_members[0])]
+            study, number = corpus_study[id(corpus_members[0])]
             for m in chased_members:
-                already.append({"record": _doc_key(m), "title": m.title, "study_id": study, "sources": list(m.sources)})
+                already.append({"record": _doc_key(m), "title": m.title, "study_id": study, "round": number,
+                                "sources": list(m.sources)})
             continue
         keep = copy.deepcopy(min(chased_members, key=lambda m: chased_index[id(m)]))
         merged: list[dict[str, Any]] = []

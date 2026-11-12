@@ -155,9 +155,15 @@ def newest_corpus_fingerprint(workspace: Path, entries: dict[str, Any] | None = 
     """The ``corpus_fingerprint`` of the newest accepted corpus snapshot, or ``None``.
 
     Every read is guarded: an unreadable registry or artifact answers ``None``,
-    which keeps every batch (today's behaviour), never a refusal.
+    which keeps every batch (today's behaviour), never a refusal. Review R3: the
+    answer is ``None`` unless the workspace screens a later round (M3g rounds
+    index), so a workspace without citation chasing reads exactly as before.
     """
+    from scholar_harness.screening.rounds import current_round
+
     ws = Path(workspace)
+    if int(current_round(ws).get("round") or 1) <= 1:
+        return None
     if entries is None:
         try:
             entries = json.loads((ws / "audit" / "artifact_registry.json").read_text(encoding="utf-8")).get("artifacts", {})

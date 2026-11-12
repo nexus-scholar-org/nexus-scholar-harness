@@ -111,24 +111,34 @@ class _LookupClient:
         pass
 
 
-def build_ws(tmp_path: Path) -> Path:
-    """A published screening whose includes are chaseable (also used by the CLI tests)."""
+def build_ws(tmp_path: Path, ids: str = "doi+openalex") -> Path:
+    """A published screening whose includes are chaseable (also used by the CLI tests).
+
+    ``ids`` sets the identifiers the records are published with (``doi+openalex``,
+    ``doi`` or ``none``), so a test never edits a published output afterwards
+    (a changed output makes the generation STALE, which the chase refuses).
+    """
+    tmp_path.mkdir(parents=True, exist_ok=True)
     workspace = tea.se._build(tmp_path)
     tea.decide(workspace)
     rows = json.loads((workspace / "literature" / "verified.json").read_text(encoding="utf-8"))
     for row in rows:
         i = row["title"].rsplit(" ", 1)[-1]
+        eids = {"doi": f"10.1000/ev-{i}", "openalex_id": f"W{i}000"}
+        if ids == "doi":
+            eids = {"doi": f"10.1000/ev-{i}"}
+        elif ids == "none":
+            eids = {}
         row.update({"year": 2026, "provider": "crossref", "provider_id": f"ev-{i}",
-                    "external_ids": {"doi": f"10.1000/ev-{i}", "openalex_id": f"W{i}000"},
-                    "authors": [{"family_name": "Reviewer"}]})
+                    "external_ids": eids, "authors": [{"family_name": "Reviewer"}]})
     (workspace / "literature" / "verified.json").write_text(json.dumps(rows), encoding="utf-8")
     tea.publish(workspace)
     global W_INCLUDE, DOI_INCLUDE, DOI_EXCLUDED, W_EXCLUDED
     included = json.loads((workspace / "literature" / "included.json").read_text(encoding="utf-8"))
     seed = next(r for r in included if r["screening"]["decision"] == "INCLUDE")
-    W_INCLUDE, DOI_INCLUDE = seed["external_ids"]["openalex_id"], seed["external_ids"]["doi"]
+    W_INCLUDE, DOI_INCLUDE = seed["external_ids"].get("openalex_id"), seed["external_ids"].get("doi")
     excluded = json.loads((workspace / "literature" / "excluded.json").read_text(encoding="utf-8"))
-    DOI_EXCLUDED, W_EXCLUDED = excluded[0]["external_ids"]["doi"], excluded[0]["external_ids"]["openalex_id"]
+    DOI_EXCLUDED, W_EXCLUDED = excluded[0]["external_ids"].get("doi"), excluded[0]["external_ids"].get("openalex_id")
     return workspace
 
 
@@ -333,11 +343,8 @@ def test_a_cancel_keeps_the_fetched_records_but_publishes_nothing(ws, monkeypatc
     assert [(leg.provider, leg.status) for leg in outcome.legs] == [("openalex", "ok"), ("openalex", "ok")]
 
 
-def test_a_doi_only_seed_is_looked_up_once_on_openalex_and_a_miss_skips_its_legs(ws, monkeypatch):
-    rows = json.loads((ws / "literature" / "included.json").read_text(encoding="utf-8"))
-    for row in rows:
-        row["external_ids"]["openalex_id"] = None
-    (ws / "literature" / "included.json").write_text(json.dumps(rows), encoding="utf-8")
+def test_a_doi_only_seed_is_looked_up_once_on_openalex_and_a_miss_skips_its_legs(tmp_path, monkeypatch):
+    ws = build_ws(tmp_path / "doi-only", ids="doi")
     doc = _doc("Cited", provider="openalex", pid="W1", doi="10.2/a", openalex="W1")
     openalex = FakeChaseProvider("openalex", citations={"W777": [doc]}, resolve={DOI_INCLUDE: "W777"}, lookup_client=True)
     _install(monkeypatch, openalex)
@@ -356,7 +363,7 @@ def test_a_doi_only_seed_is_looked_up_once_on_openalex_and_a_miss_skips_its_legs
     assert missing.asked == []
 
 
-def test_nothing_new_is_an_empty_result_and_a_seed_without_an_id_is_reported(ws, monkeypatch):
+def test_nothing_new_is_an_empty_result_and_a_seed_without_an_id_is_reported(ws, tmp_path, monkeypatch):
     in_corpus = _doc("Event record 0", provider="openalex", pid=W_EXCLUDED, doi=DOI_EXCLUDED, openalex=W_EXCLUDED, year=2026)
     _install(monkeypatch, FakeChaseProvider("openalex", citations={W_INCLUDE: [in_corpus]}))
     outcome = _run(ws, providers=["openalex"])
@@ -364,13 +371,10 @@ def test_nothing_new_is_an_empty_result_and_a_seed_without_an_id_is_reported(ws,
     assert outcome.counts.already_in_corpus == 1 and outcome.counts.new == 0
     assert json.loads((ws / "literature" / "citation_chase" / "chase_001" / "new.json").read_text(encoding="utf-8")) == []
 
-    rows = json.loads((ws / "literature" / "included.json").read_text(encoding="utf-8"))
-    for row in rows:
-        row["external_ids"] = {}
-    (ws / "literature" / "included.json").write_text(json.dumps(rows), encoding="utf-8")
-    bare = _run(ws, providers=["openalex"])
+    bare_ws = build_ws(tmp_path / "bare", ids="none")
+    bare = _run(bare_ws, providers=["openalex"])
     assert bare.status == "EMPTY_RESULT" and "no chaseable seed" in bare.reason and bare.legs == []
-    assert _manifest(ws, "chase_002")["seeds"][0]["chaseable"] is False
+    assert _manifest(bare_ws, "chase_001")["seeds"][0]["chaseable"] is False
 
 
 def test_the_run_ceiling_keeps_the_first_records_and_marks_the_run_partial(ws, monkeypatch):

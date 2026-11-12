@@ -712,7 +712,7 @@ export function DiscoveryChase({ locale }: Readonly<{ locale: Locale }>) {
       ) : !published ? (
         <div className="space-y-4" data-not-published>
           {eyebrow}
-          <StateCard locale={locale} code="SCREENING_NOT_PUBLISHED" consoleOrigin={origin} pageHeading />
+          <StateCard locale={locale} code={state.screening.code === "PROTOCOL_CHANGED_SINCE_PUBLISH" ? "PROTOCOL_CHANGED_SINCE_PUBLISH" : "SCREENING_NOT_PUBLISHED"} consoleOrigin={origin} pageHeading />
           <p>
             <a className={LINK} href={discoveryHref(locale, "", origin)}>
               {t("chase.back")}

@@ -127,7 +127,15 @@ def archive_round(
     ws = Path(workspace)
     lit = ws / "literature"
     backup = round_folder(ws, number)
-    backup.mkdir(parents=True, exist_ok=True)
+    rel_backup = backup.relative_to(ws).as_posix()
+    try:
+        backup.mkdir(parents=True, exist_ok=True)
+    except OSError as exc:  # review R4: typed and journaled like a failed move
+        raise RoundArchiveIncomplete(
+            f"archiving round {number} into {rel_backup} stopped: {type(exc).__name__}: {str(exc)[:200]}. "
+            "Moved: nothing.",
+            backup=rel_backup, moved=[], not_moved=[r for r in ARCHIVED_WITH_ROUND if (lit / r.rstrip("/")).exists()],
+        ) from exc
     prisma: dict[str, Any] | None = None
     for candidate in (lit / "prisma_report.json", backup / "prisma_report.json"):
         if candidate.is_file():
@@ -153,7 +161,6 @@ def archive_round(
             shutil.move(str(source), str(dest))
             moved.append(rel)
     except OSError as exc:
-        rel_backup = backup.relative_to(ws).as_posix()
         not_moved = [rel for rel in planned if rel not in moved]
         raise RoundArchiveIncomplete(
             f"archiving round {number} into {rel_backup} stopped: {type(exc).__name__}: {str(exc)[:200]}. "
@@ -172,7 +179,14 @@ def archive_round(
         "moved": moved_before + moved,
         "prisma": prisma,
     }
-    (backup / "round.json").write_text(json.dumps(record, indent=2, ensure_ascii=False, default=str), encoding="utf-8")
+    try:
+        (backup / "round.json").write_text(json.dumps(record, indent=2, ensure_ascii=False, default=str), encoding="utf-8")
+    except OSError as exc:  # review R4
+        raise RoundArchiveIncomplete(
+            f"round {number} was moved into {rel_backup} but its round.json could not be written: "
+            f"{type(exc).__name__}: {str(exc)[:200]}",
+            backup=rel_backup, moved=moved_before + moved, not_moved=[],
+        ) from exc
     return record
 
 

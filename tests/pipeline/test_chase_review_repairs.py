@@ -1,0 +1,125 @@
+"""M3g review repairs (milestone-reviewer CHANGES on 9c70a7bb), each test written to fail first.
+
+R1 (P1): a chase deduplicates against every round's records, not only the current round's.
+R2 (P2): a chase starts only from a published and current screening under the current protocol.
+R3 (P2): the newest-snapshot filter applies only to a workspace with screening rounds.
+R4 (P3): a round folder that cannot be made is a typed, journaled ARCHIVE_INCOMPLETE.
+R5 (P3): an included row without a published decision is reported, never assumed a seed.
+"""
+
+from __future__ import annotations
+
+import asyncio
+import importlib.util
+import json
+from datetime import UTC, datetime
+from pathlib import Path
+
+import pytest
+
+from scholar_harness.pipeline import citation_chase as cc
+from scholar_harness.screening import events as ev
+from scholar_harness.screening.batcher import cmd_prepare
+
+_SPEC = importlib.util.spec_from_file_location("_chase_accept_helpers", Path(__file__).resolve().parent / "test_chase_accept.py")
+ca = importlib.util.module_from_spec(_SPEC)
+_SPEC.loader.exec_module(ca)
+h = ca.h
+se = ca.se
+
+
+@pytest.fixture
+def ws(tmp_path: Path) -> Path:
+    return h.build_ws(tmp_path)
+
+
+def test_r1_a_round_3_chase_finds_round_1_records_already_in_the_corpus(ws, monkeypatch):
+    round1 = json.loads((ws / "literature" / "verified.json").read_text(encoding="utf-8"))
+    first = round1[0]
+    ca._chase(ws, monkeypatch)
+    cc.accept_citation_chase(ws)
+    cmd_prepare(ws, batch_size=20)
+    ca._publish_round(ws, "INCLUDE")
+
+    back = h._doc(first["title"], provider="openalex", pid=first["external_ids"]["openalex_id"],
+                  doi=first["external_ids"]["doi"], openalex=first["external_ids"]["openalex_id"], year=2026)
+    ca._install(monkeypatch, h.FakeChaseProvider("openalex", references={"W1": [back], "W2": [], "W3": []}))
+    outcome = asyncio.run(cc.run_citation_chase(ws, providers=["openalex"], directions=["backward"]))
+
+    assert outcome.counts.already_in_corpus == 1 and outcome.counts.new == 0
+    manifest = json.loads((ws / "literature" / "citation_chase" / outcome.chase / "chase.json").read_text(encoding="utf-8"))
+    (row,) = manifest["already_in_corpus"]
+    assert row["study_id"] == first["workspace_id"] and row["round"] == 1
+
+
+def test_r2_a_stale_publication_or_a_changed_protocol_starts_no_chase(ws, monkeypatch):
+    provider = h.FakeChaseProvider("openalex", citations={h.W_INCLUDE: []})
+    ca._install(monkeypatch, provider)
+    original = (ws / "protocol.json").read_text(encoding="utf-8")
+    protocol = json.loads(original)
+    protocol["search_strategy"]["date_range"]["start_year"] = 2019
+    (ws / "protocol.json").write_text(json.dumps(protocol), encoding="utf-8")
+    with pytest.raises(cc.ChaseRefused) as exc:
+        asyncio.run(cc.run_citation_chase(ws, providers=["openalex"]))
+    assert exc.value.code == "PROTOCOL_CHANGED_SINCE_PUBLISH"
+    (ws / "protocol.json").write_text(original, encoding="utf-8")
+
+    included = ws / "literature" / "included.json"
+    included.write_bytes(included.read_bytes() + b"\n")  # a changed output: the generation is STALE
+    with pytest.raises(cc.ChaseRefused) as exc:
+        asyncio.run(cc.run_citation_chase(ws, providers=["openalex"]))
+    assert exc.value.code == "SCREENING_NOT_PUBLISHED"
+    assert provider.asked == []
+    assert not (ws / "literature" / "citation_chase").exists()
+    assert cc.publication_state(ws)["published"] is False
+
+
+def test_r3_without_rounds_a_second_snapshot_drops_no_batch(tmp_path):
+    from scholar_protocol.canonical import canonical_fingerprint
+    from scholar_protocol.models import ResearchProtocol
+    from scholar_search.identity import build_corpus_snapshot_artifact
+    from scholar_search.models import Author, Document, ExternalIds
+
+    from scholar_harness.contracts import AcceptanceContext, accept_artifact
+
+    workspace = se._build(tmp_path)
+    before = ev.load_context(workspace)
+    assert before.batches
+    protocol = json.loads((workspace / "protocol.json").read_text(encoding="utf-8"))
+    fingerprint = canonical_fingerprint(ResearchProtocol.model_validate(protocol))
+    other = build_corpus_snapshot_artifact(
+        [Document(title="Another record", year=2026, provider="crossref", provider_id="x-1",
+                  external_ids=ExternalIds(doi="10.1000/x-1"), authors=[Author("Other")])],
+        workspace_id=se.WS_ID, run_id="RUN-other", protocol_fingerprint=fingerprint,
+        created_at=datetime(2026, 11, 5, tzinfo=UTC), commit="3" * 40,
+    ).artifact
+    assert accept_artifact(workspace, other, expected=AcceptanceContext(
+        workspace_id=se.WS_ID, protocol_fingerprint=fingerprint, corpus_fingerprint=other["corpus_fingerprint"],
+    )).accepted
+
+    assert ev.newest_corpus_fingerprint(workspace) is None  # no rounds index: no filter
+    after = ev.load_context(workspace)
+    assert after.batches.keys() == before.batches.keys() and after.study_batch == before.study_batch
+
+
+def test_r4_a_round_folder_that_cannot_be_made_is_archive_incomplete(ws, monkeypatch):
+    ca._chase(ws, monkeypatch)
+    blocker = ws / "literature" / "screening_rounds" / "round_001"
+    blocker.parent.mkdir(parents=True)
+    blocker.write_text("in the way", encoding="utf-8")  # a file where the round folder goes
+    with pytest.raises(cc.ChaseRefused) as exc:
+        cc.accept_citation_chase(ws)
+    assert exc.value.code == "ARCHIVE_INCOMPLETE"
+    assert exc.value.details["moved"] == []
+    (row,) = ca._journal(ws, "SCREENING_ROUND_ARCHIVE_INCOMPLETE")
+    assert row["status"] == "FAILED"
+    assert (ws / "literature" / "screening" / "generation.json").is_file()
+
+
+def test_r5_an_included_row_without_a_decision_is_not_a_seed(ws):
+    rows = json.loads((ws / "literature" / "included.json").read_text(encoding="utf-8"))
+    rows[0]["screening"].pop("decision")
+    (ws / "literature" / "included.json").write_text(json.dumps(rows), encoding="utf-8")
+    seeds = cc.load_seeds(ws)
+    missing = [s for s in seeds if s.decision == ""]
+    assert len(missing) == 1 and not missing[0].chaseable and "no published decision" in missing[0].reason
