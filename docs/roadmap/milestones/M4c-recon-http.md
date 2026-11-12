@@ -61,7 +61,7 @@ Why: plan §6 row "M4 Inception web" lists "recon over HTTP" and INC-09/21. M4a 
 | audit (phase-auditor) | `tests/recon/test_session.py::test_the_mcp_tool_answers_mailto_not_set_in_its_envelope`, `::test_the_cli_wizard_exits_with_mailto_not_set` | `MailtoNotSet` escaped the MCP envelope and the wizard (read in the audit) | yes |
 
 ## Decisions
-- [2026-11-09, Recon over HTTP: one session store, pools that say what failed, anchors by occurrence](../../decisions.md) (proposed; the researcher decides at the PR).
+- [2026-11-09, Recon over HTTP: one session store, pools that say what failed, anchors by occurrence](../../decisions.md) (accepted by the researcher 2026-11-12).
 
 ## Evidence
 | Stage | Commit | Command | Result | Duration |
