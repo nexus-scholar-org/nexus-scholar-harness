@@ -1,5 +1,5 @@
 # M10b Proposals and checks
-Branch: dev/m10b/proposals-checks · Lane: **to declare before engine work** (the spec stage is documentation only; RELEASE if the proposal record, the exclusion reasons or the next-step endpoint change a public HTTP response or touch Contract v1, per `docs/architecture/test_gate_policy.md`) · Status: IN PROGRESS (specs) · Started: 2026-11-14
+Branch: dev/m10b/proposals-checks · Lane: **to declare before engine work** (the spec stage is documentation only; RELEASE if the proposal record, the exclusion reasons or the next-step endpoint change a public HTTP response or touch Contract v1, per `docs/architecture/test_gate_policy.md`) · Status: SPECS FINAL (2026-11-15); the build has not started and waits for M10a and for the harvest fix M3i-harvest-robustness · Started: 2026-11-14
 
 Second milestone of the "Assisted inception" sequence the researcher approved on
 2026-11-14 (M10a search quality, **M10b proposals and checks**, M10c assistant and
@@ -47,7 +47,9 @@ Rules:
 - The engine-written suggestions that exist today (wizard criteria, synonym
   suggestions from the pool, suggested concepts, suggested matrix columns,
   direction proposals, anchor papers as seeds) keep their fields in M10b and adopt
-  the same card. They are not migrated to the proposal store in this milestone.
+  the same card. They are not migrated to the proposal store in this milestone;
+  when the researcher accepts one, a write-only record with the source
+  `engine:<mechanism>` is kept (R1, 2026-11-15).
 - An assistant never accepts a corpus, makes a screening decision or publishes
   (accepted decision, 2026-11-14).
 
@@ -74,20 +76,23 @@ source in the same list.
 
 ## Definition of done
 ### Specs (this stage)
-- [ ] `docs/ux/shared/final/01-proposals.md`: the proposal object, card, list, storage, API and record.
-- [ ] `docs/ux/shared/final/02-checks.md`: the checks panel, the catalogue of checks per step with their thresholds, dismissal, readiness on Review.
-- [ ] `docs/ux/shared/final/03-guidance.md`: hint, recommended mark and density rules, with the per-screen audit for inception 01 to 07 and discovery 01 to 09.
-- [ ] `docs/ux/shared/final/04-next-step.md`: the "what's next" bar and its state table.
-- [ ] `docs/ux/phase0-inception/final/09-start-from-protocol.md`.
-- [ ] `docs/ux/phase0-inception/final/05-criteria.md` amended: exclusion reasons, own matrix columns.
-- [ ] `docs/ux/phase0-inception/final/10-sample-curation.md`: removing a paper from the sample (folded into `02-explore` after M10a merges).
-- [ ] `docs/ux/phase1-discovery/final/10-size-estimate.md` (folded into `01-plan` after M10a merges).
-- [ ] The researcher has closed every open question; each spec says `Status: FINAL`.
+- [x] `docs/ux/shared/final/01-proposals.md`: the proposal object, card, list, storage, API and record.
+- [x] `docs/ux/shared/final/02-checks.md`: the checks panel, the catalogue of 51 checks per step with their thresholds, dismissal, readiness on Review.
+- [x] `docs/ux/shared/final/03-guidance.md`: hint, recommended mark and density rules, with the per-screen audit for inception 01 to 07 and discovery 01 to 09.
+- [x] `docs/ux/shared/final/04-next-step.md`: the "what's next" bar and its state table.
+- [x] `docs/ux/phase0-inception/final/09-start-from-protocol.md`.
+- [x] `docs/ux/phase0-inception/final/05-criteria.md` amended: exclusion reasons, own matrix columns.
+- [x] `docs/ux/phase0-inception/final/04-shape.md` amended (added 2026-11-15 by R3 and R4): the planned number of records, the optional proof answer.
+- [x] `docs/ux/phase0-inception/final/10-sample-curation.md`: removing a paper from the sample (folded into `02-explore` after M10a merges).
+- [x] `docs/ux/phase1-discovery/final/10-size-estimate.md` (folded into `01-plan` after M10a merges).
+- [x] The researcher has closed every open question (2026-11-15, "accept all"); each spec says `Status: FINAL`. The specs were written by seven writers and reconciled by the main session; no independent reviewer has read them.
 
 ### Build (after the specs are FINAL; items and tests are named then)
-- [ ] Proposal store, API and card.
-- [ ] Checks engine and panel.
-- [ ] The six other items above.
+- [ ] First: amend `docs/ux/phase2-screening/final/11-import-corpus.md` (the Import step links to the Hand-off; R6), fold `10-sample-curation` into `02-explore` and `10-size-estimate` into `01-plan`, and write the decisions below into `docs/decisions.md`.
+- [ ] Proposal store, API and card, with the write-only record of accepted engine suggestions (R1).
+- [ ] Checks engine and panel; thresholds calibrated on the golden UAV workspace before they are frozen.
+- [ ] The planned number of records and the optional proof answer (`04-shape`).
+- [ ] The six other items above. The import and the own matrix columns are built together.
 - [ ] `/gate pr`, `generate_contract_baseline.py --check`, `milestone-reviewer` APPROVE.
 
 ## Findings fixed
@@ -130,10 +135,19 @@ hydration and verification in that order (`pipeline/coordinator.py:595, 677, 696
 - Size estimate: 30 seconds per record as an editable default; the count runs only on a button; the estimate is not journaled.
 - Checks: thresholds are engine constants, calibrated on the golden UAV workspace before the build; a warning never blocks; a dismissal reopens when its data changes.
 
-### To reconcile after the answers (one pass over all eight files)
-- The size warning: `10-size-estimate` uses an absolute 1,000; `02-checks` compares with the planned size (R3 decides).
-- Check ids: `05-criteria` and `10-size-estimate` use working names; `02-checks` holds the catalogue.
-- Line numbers cited by older specs have drifted; new specs cite current lines.
+### Reconciled on 2026-11-15 (one pass by the main session after the answers)
+- **Size warning (R3).** One limit for the estimate and for both size checks: the researcher's planned maximum when stated, else 1,000 works. The planned number is a new optional field on Shape (`Draft.pool_min`, `pool_max`), compiled through the intent's existing `pool_min` and `pool_max` into `target_candidate_pool_size`; "stated" is read from `intent.json`. No protocol schema or Contract v1 change by reading (`scholar_protocol/intent.py:209, :213`, `compiler.py:183-185`).
+- **Proof (R4).** One rule for every draft, in `04-shape`: the proof may be empty when the draft holds a typed or imported inclusion that is not dropped. Checked in code: on the browser path the proof feeds only the wizard's inclusion, the template question and one rationale sentence.
+- **Harvest (R5).** The stage marker, "Finish preparing this corpus" and Stop in every stage leave M10b for their own fix, proposed id **M3i-harvest-robustness**. It starts after M10a merges (both change `console/api/discovery.py` and the Harvest screen) and before the M10b build; it amends `03-harvest` and `08-handoff`. The researcher approves its start.
+- **Check ids.** `10-sample-curation`'s two recommendations are the catalogue checks `EXPLORE_POOL_THIN` and `EXPLORE_SAMPLE_MOSTLY_LEFT_OUT` (new); the import's Review note is `REVIEW_IMPORT_STEP_NOT_OPENED` (new); the planned-size note is `SHAPE_PLANNED_SIZE_EMPTY` (new); the estimate's warning is `PLAN_ESTIMATE_ABOVE_TARGET`. The catalogue now has 51 checks.
+- **A contradiction between two specs, found in this pass.** `01-proposals` said an imported protocol creates proposals; `09-start-from-protocol` prefills the draft directly. Settled as `09` says: the import creates no proposal in M10b, and the `import:<name>` source is kept for a later import into a draft that already has answers.
+- **Own matrix columns.** The draft stores the whole dimension (seven fields); the form offers four.
+- **What the methods text may count.** Added to `01-proposals`: genesis marks each applied proposal `in_protocol: true|false`, because an applied value can be edited away later. This is the main session's addition, not a writer's or the researcher's; overrule it if unwanted.
+- Not changed: line numbers cited by older specs have drifted; the new specs cite the lines read on 2026-11-14.
+
+### After M10a merges
+- `EXPLORE_SAMPLE_ONE_SOURCE` describes the sample as cut today; rewrite its "why" for the spread sample.
+- The database picker and the "0 results" wording of M10a change text blocks that `03-guidance`'s audit counted (264 blocks at `a0191cc6`); recount Explore and Harvest before M10d.
 
 ## Evidence
 | Stage | Commit | Command | Result | Duration |
