@@ -1,0 +1,294 @@
+# 04 Next step    Status: DRAFT | Shared (every screen of a review) | Route none (a bar in the shell, `AppShell`) | Milestone M10b (engine state, endpoint and bar)
+
+Boards: none. No canvas board exists. The bar reuses the patterns of the step bars (`discovery-frame.tsx:77`, `inception-frame.tsx:202`) and the state card (`screening-state-card.tsx`); no new visual language. Records: `docs/roadmap/milestones/M10b-proposals-checks.md` ("a what's next bar on every screen of a review, computed by the engine"). Source of the scope: the strict UAV acceptance run of 2026-11-13. Neighbouring specs: `docs/ux/phase1-discovery/final/07-states.md`, `08-handoff.md`, `09-chase.md`; `docs/ux/phase2-screening/final/00-workspaces.md`, `01-screening-home.md`; `docs/ux/phase0-inception/final/07-done.md`. Brand: `docs/ux/brand/BRAND_BOOK.md` (one brand button per screen; machine output as a draft), `docs/ux/brand/tokens.json`.
+
+**Purpose.** On every screen of a review, say in one sentence what the researcher should do next and take them there with one button; when something is running, failed or stopped, say that instead, with the reason.
+
+**Changed from the existing specs.** No board exists, so each point is where the bar touches a finished spec. None of those specs is edited by this file; the amendments are listed under "Dependencies" and are made when this spec is FINAL.
+- **The bar never accepts, starts, publishes or decides.** It is a link to the screen that owns the action. The gates (Accept this corpus, Send these works to screening, Publish) stay on their screens (decision 2026-11-14: an assistant never accepts a corpus, makes a screening decision or publishes). So the bar's label is "Review and accept the corpus", never "Accept this corpus".
+- **The state is computed by the engine.** The browser never inspects files, counts, fingerprints or job stages to pick a sentence (`apps/research-ui/AGENTS.md`: no domain decision in frontend code). It receives a state code, copy parameters as the engine wrote them, and a destination screen name.
+- **The Hand-off's empty state (`08-handoff.md`, "Empty") is amended** to show the bar's waiting sentence when `waiting` is not null (see "Why the Hand-off can be empty after a finished harvest").
+- **Not added:** a progress percentage, a "step n of m" count, an estimate of time left (the engine has none), and any suggestion about the content of the review (that is M10c).
+
+## Entry / exit
+- Entry: none of its own. The bar is rendered by the shell on every route of a review (see Desktop layout for the exceptions).
+- Exit: its one button, a plain link to the destination screen, carrying `?console=` and, where the screen needs one, `?run=`, `?job=` or `?draft=` (the engine names them in `action.to.query`; the browser adds only `console`).
+- Gate: none. The bar writes nothing.
+
+## Data in
+| Field | Source |
+| :-- | :-- |
+| `shape`, `scope` (`workspace` or `draft`), `phase` (`inception`, `discovery`, `screening`, `published`), `state` (a code from the table), `round` | `GET /api/v1/review/next-step` ✗ M10b |
+| `params` (counts and names the sentence prints, as the engine wrote them) | same |
+| `waiting` (`null` or `{kind: "running" \| "stopped" \| "failed" \| "interrupted", job, stage, reason{code, message}, since}`) | same |
+| `action` (`null` or `{key, to{screen, query}}`) and `also[]` (at most one secondary link) | same |
+| `unknown[]` (what the engine could not read, for the hedged sentence), `computed_at`, `etag` | same |
+| for a draft, the same shape | `GET /api/v1/inception/drafts/{id}/next-step` ✗ M10b |
+
+The engine builds the answer only from the sources in the next table. Each is an existing field or file; where a state cannot be told apart today, the table says what the engine must add (✗ M10b).
+
+| Source the engine reads | Where it exists today |
+| :-- | :-- |
+| protocol present and valid; fingerprint | `_protocol`, `console/api/discovery.py:227` (`PROTOCOL_MISSING` 409, `PROTOCOL_INVALID` 422) |
+| contact email and OpenAlex key set; selected databases | `GET /discovery/plan` `mailto_set`, `openalex_key_set`, `providers`, `discovery.py:399-428`; the run's own refusals `discovery.py:248-269` |
+| search runs: `status`, `raw_published`, `fetched_total`, `legs_total`, `started_at`, `finished_at`, `stale`, `protocol_changed`, `search_changed` | `GET /discovery/runs`, `discovery.py:324-353`; manifest `legs.json` (`corpus_published`, `raw_published`, `legs[].status`, notes "cancelled by the researcher") written at `pipeline/discovery.py:496-507`, `:613-660` |
+| the running job: `kind`, `state`, `started_at`, `error{code,message}`, and while it lives the events `snapshot`, `leg`, `stage` (`discovery`, `deduplication`, `hydration`, `verification`, `corpus_snapshot`), `done`, `failed` | `DiscoveryJobs`, `discovery.py:86-153`; `stage` events from `run_pipeline`, `pipeline/coordinator.py:622, 687, 702, 731, 741`; read as `active_job` in `GET /discovery/runs` and `/discovery/chase` |
+| `literature/deduped.json` (count after duplicates), `literature/dedup/clusters.json` | `pipeline/deduplication.py:161`, `:52`; counts `_dedup_summary`, `discovery.py:528-556` |
+| `literature/verified.json` (the verification stage writes it) and `literature/verified_unresolved.json` (quarantine) | `pipeline/verification.py:172`, `:188`; read as `from_discovery`, `corpus_accept.py:651-656` |
+| corpus: `state` (`EMPTY`, `STAGED`, `ACCEPTED`), `from_discovery`, `sources[]`, `preview`, `accepted`, `staging_refused` | `corpus_status`, `corpus_accept.py:608-670`; `GET /screening/corpus`, `screening_v1.py:569` |
+| batches prepared; `total`, `decided`, `needs_you`, `conflicts`, `protocol_changed` | `GET /screening/summary`, `screening_v1.py:136-166` (`ev.load_context(ws).batches` empty means nothing prepared) |
+| the prepare job: `action_id` `screen_prepare`, `state` `queued`, `running`, `success`, `failed`, `cancelled`, `exit_code` | `GET /api/v1/jobs`, `console/api/jobs.py:86`; `job_runner.py:63, 171, 228, 453`; started at `screening_v1.py:661` |
+| publication: `status` (`CURRENT`, `STALE`, ...), `code` `GENERATION_STALE`, `generation_id` | `GET /ui/publication-status`, `workspace.py:405-425, 576`; `catalog._status`, `workspace/catalog.py:88-107` |
+| chase: `screening{published, round, arm}`, `seeds{chaseable}`, `runs[]` (`published`, `accepted`, `counts.new`), `active_job` | `GET /discovery/chase`, `discovery.py:979-1030` |
+| inception draft: `draft` fields, `emitted{slug, path, ...}`, `updated_at` | `drafts.py:112-141`, `GET /inception/drafts/{id}`; the missing fields exist only as the `DRAFT_INCOMPLETE` refusal (`inception/steps.py:216-219`) |
+
+## The state table
+Computed top to bottom; the first row whose condition holds is the answer (so a later row never needs to say "and not"). `waiting` is a second, independent field: a state may carry a waiting variant (table 2). Sentences are the en master (`next.state.<CODE>`); `{...}` are params printed as the engine wrote them (`bdi`, LTR for ids and numbers). The button is secondary-styled (see Desktop layout). "Screen" names a route: `inception.*` `/[locale]/inception/<step>`; `discovery.*` `/[locale]/discovery/<step>`; `screening.*` `/[locale]/screening/<step>`.
+
+### Table 1. States in order
+| # | State code | Condition (files and fields; ✓ exists, ✗ M10b adds) | Sentence | Button → destination |
+| :-- | :-- | :-- | :-- | :-- |
+| 1 | `NO_REVIEW` | `app.state.workspace` is `None`, or no valid row in `GET /workspaces` ✓ (`workspaces.py:33`; `catalog.listing`); the route is `/workspaces` or `/inception` and no draft is named | "No review is open." | "Choose or start a review" → `workspaces` (or `inception.list` when the listing is empty) |
+| 2 | `DRAFT_STARTED` (scope `draft`) | a draft record exists, `emitted` is `null` ✓ (`drafts.py:70`), and a field the Scope step needs is empty (`topic`) ✗ the engine must compute `missing[]` without a genesis attempt; today only `_require` raises `DRAFT_INCOMPLETE` (`steps.py:216`) | "Your draft has no topic yet." | "Go to Scope" → `inception.scope?draft=` |
+| 3 | `DRAFT_INCOMPLETE` (scope `draft`) | `emitted` null and `missing[]` names fields; the step per field is the browser's existing `FIELD_STEP` (`inception-frame.tsx:74`) but the engine names the step: `action.to.screen` = the first missing field's step in the order Scope, Explore, Direction, Shape, Criteria, Review ✗ M10b | "Your draft still needs {fields}." | "Go to {step}" → that step |
+| 4 | `DRAFT_READY` (scope `draft`) | all required fields present, `emitted` null | "Your draft is complete. Create the workspace when you are ready." | "Go to Review" → `inception.review?draft=` |
+| 5 | `DRAFT_CREATED` (scope `draft`) | `emitted` not null (`drafts.py:112`) | "The workspace {title} exists. Open it to continue." | "Go to the finished workspace" → `inception.done?draft=` (Open is on that screen; spec 07) |
+| 6 | `NO_PROTOCOL` | scope `workspace`; `protocol.json` missing (`discovery.py:233-235`, `PROTOCOL_MISSING`) | "This review has no protocol yet." | "Go to inception" → `inception.list` |
+| 7 | `PROTOCOL_INVALID` | `protocol.json` fails `ResearchProtocol` validation (`discovery.py:236-240`, `PROTOCOL_INVALID`) | "The protocol file cannot be read, so nothing can be searched." | "Go to inception" → `inception.list` |
+| 8 | `PROTOCOL_PLACEHOLDER` | the protocol is the placeholder a New workspace scaffolds (`00-workspaces.md` decision 5) ✗ M10b: no field marks it today; `project.json` must carry a `protocol_origin` of `placeholder` or `inception`, so the engine can tell | "This protocol is a placeholder. Write your own with New review." | "Go to inception" → `inception.list` |
+| 9 | `SETUP_NEEDED` | `plan.mailto_set` false, or `plan.openalex_key_set` false while `openalex` is in `plan.providers` (`discovery.py:420-421`; the run refuses with `MAILTO_NOT_SET` / `OPENALEX_KEY_NOT_SET`, `:248-269`); no search run yet | "A search needs {what}." (`what` = "a contact email", "an OpenAlex key" or both) | "See what to set" → `discovery.plan` (prints the exact line) |
+| 10 | `READY_TO_SEARCH` | protocol valid; no run dir with `legs.json` (`_run_dirs`, `discovery.py:281`); `corpus.state` `EMPTY` (`corpus_accept.py:622`); no `active_job` | "Your protocol is ready. Run the search." | "Go to Harvest" → `discovery.harvest` |
+| 11 | `STAGED_EXPORTS` | `corpus.state` `STAGED`, `from_discovery` false, `sources` not empty (`corpus_accept.py:622, 651`) | "{n} database exports are staged. Accept them to start screening." | "Review and accept the exports" → `discovery.handoff` |
+| 12 | `SEARCH_CHANGED` | the corpus run's `search_changed` true (`discovery.py:741`, `_drift`), `corpus.state` not `ACCEPTED`; the accept would be refused `PROTOCOL_CHANGED_SINCE_RUN` (`08-handoff.md`) | "You changed the search after run {run}. Search again before you accept." | "Go to Harvest" → `discovery.harvest` |
+| 13 | `CORPUS_READY` | `verified.json` exists, belongs to the newest published run, `corpus.state` `STAGED`, `from_discovery` true (`corpus_accept.py:651-656`); `search_changed` not true; not accepted. "Belongs to the newest run" ✗ M10b: see "What the engine cannot tell apart today" | "Your corpus is ready: {works} works from {records} records. Accept it to start screening." | "Review and accept the corpus" → `discovery.handoff` |
+| 14 | `CORPUS_PENDING` | the newest run is published (`raw_published` true) and there is no `CORPUS_READY` for it: this is the Hand-off case. Always carries `waiting` (table 2 rows A to E) | see table 2 | "Follow the search" or "Search again" (table 2) |
+| 15 | `NOT_PREPARED` | `corpus.state` `ACCEPTED`; `summary.total` 0 (no batches, `screening_v1.py:139-147`); no `screen_prepare` job running | "The corpus is accepted. Prepare the screening batches." | "Go to screening" → `screening.home` (Prepare lives there, `screening-home.tsx:305`) |
+| 16 | `PROTOCOL_CHANGED_AFTER_BATCHES` | `summary.protocol_changed` true (`screening_v1.py:165`) | "The protocol changed after screening started, so earlier decisions count nowhere." | "Open inception" → `inception.list` (spec 01 "Protocol changed after screening started") |
+| 17 | `CONFLICTS` | `summary.conflicts` > 0 (`screening_v1.py:161`) | "{n} decisions conflict. Resolve them before you go on." | "Go to screening home" → `screening.home` (the conflict card is there; no conflicts screen exists) |
+| 18 | `SCREENING` | `summary.needs_you` > 0 | "{needs_you} of {total} records still need you." | "Open triage" → `screening.triage` |
+| 19 | `READY_TO_PUBLISH` | `summary.total` > 0, `needs_you` 0, no `generation.json` (`catalog._status` is not `PUBLISHED`) | "Every record is decided. Check the agreement, then publish." | "Go to Publish" → `screening.publish` |
+| 20 | `PUBLISHED_STALE` | publication `status` not `CURRENT`, `code` `GENERATION_STALE` (`workspace.py:405-425`; `catalog` `PUBLISHED_CHANGED`) | "{n} studies changed since you published." | "Publish again" → `screening.publish` |
+| 21 | `PUBLISHED` | publication `CURRENT`; `chase.screening.published` true; no chase run (`runs` empty); `seeds.chaseable` > 0 | "Screening is published. You can chase the citations of your included studies." | "Go to Chase" → `discovery.chase` |
+| 22 | `CHASE_READY_TO_SEND` | newest chase run `published` true, `accepted` null, `counts.new` > 0, no `active_job` (`discovery.py:979-1022`) | "The chase found {new} new works. Send them to screening as round {round}." | "Review and send the works" → `discovery.chase` |
+| 23 | `CHASE_NOTHING_NEW` | newest chase run `published` true, `counts.new` 0, `EMPTY_RESULT` | "The chase found nothing new." | "Go to Chase" → `discovery.chase` |
+| 24 | `ROUND_ACCEPTED` | `chase.screening.round` > 1 and the round's batches are not prepared | "Round {round} is with screening. Prepare its batches." | "Go to screening" → `screening.home` |
+| 25 | `DONE` | publication `CURRENT`, and either no chaseable seed (`seeds.chaseable` 0: "No included study can be chased.") or the latest round published and its chase empty | "Nothing is waiting for you. Export and methods are on Publish." | "Go to Publish" → `screening.publish` |
+
+Rows 15 to 20 repeat for round 2 and later (`round` from `chase.screening.round`, `screening_v1` summary reads the current round's batches only, `rounds.py:92`); the sentences gain "in round {round}" when `round` > 1.
+
+### Table 2. Waiting, failed, stopped and interrupted variants
+`waiting` is set when a job is running, or when the newest run ended without a usable result. It replaces the sentence and the button of the state it sits on. A waiting bar is a `role="status"` line; its reason sits behind a Details disclosure with the typed code (rule: details on demand, `docs/ux/phase2-screening/final/12-details-disclosure.md`).
+
+| | Variant (`waiting.kind`, `stage`) | Condition | Sentence | Button → destination |
+| :-- | :-- | :-- | :-- | :-- |
+| A | `running`, `searching` | `active_job.kind` `run`, no `stage` event yet after `discovery` (`DiscoveryJobs.active`, `discovery.py:123`; stage events `coordinator.py:622`) | "The search is running. {answered} of {databases} databases have answered." | "Follow the search" → `discovery.harvest?job=` |
+| B | `running`, `deduplicating` | last `stage` event is `discovery` with a status other than `FAILED`; no `deduplication` event yet (the call at `coordinator.py:677` is synchronous; the engine may not answer reads during it, see Offline) | "The search found {records} records. Removing duplicates." | "Follow the search" |
+| C | `running`, `adding_abstracts` | last `stage` event `deduplication` (`coordinator.py:687`); `hydration` not yet (`:702`) | "{works} works remain after duplicates. Adding missing abstracts." | "Follow the search" |
+| D | `running`, `verifying` | last `stage` event `hydration`; `verification` not yet (`:731`) | "Checking {works} works against the databases. The hand-off opens when this ends." | "Follow the search" |
+| E | `running`, `preparing` | `GET /jobs` has a `screen_prepare` job `queued` or `running` (`job_runner.py:63, 171`) | "Preparing the screening batches." | "Follow the preparation" → `screening.home` |
+| F | `running`, `chasing` | `active_job.kind` `chase` (`discovery.py:1057`) | "The citation chase is running." | "Follow the chase" → `discovery.chase?job=` |
+| G | `stopped`, `searching` | newest run `PARTIAL`, `raw_published` false, a leg `stopped`, note "cancelled by the researcher" (`pipeline/discovery.py:454-462`); job `cancelled` | "You stopped the search. What was fetched is kept, but no corpus was made." Reason `STOPPED_BY_RESEARCHER`. | "Search again" → `discovery.harvest` |
+| H | `failed`, `searching` | newest run `FAILED` or job error `PROVIDERS_FAILED` (`discovery.py:766-780`) | "No database answered, so nothing was kept." Reason `PROVIDERS_FAILED` and the legs' codes. | "Search again" → `discovery.harvest` |
+| I | `failed`, `deduplicating`, `adding_abstracts` or `verifying` | the job is still in memory with `state` `failed` and `error` `DISCOVERY_FAILED` (an exception after discovery, `discovery.py:146-148`), and the newest run is `raw_published` | "The search finished, but preparing the corpus failed at {stage}. {message}" Reason: the job's code and message. | "Search again" → `discovery.harvest` |
+| J | `interrupted`, stage unknown | the newest run is `raw_published`, no `active_job`, no `verified.json` for that run, and no job in memory (console restarted: jobs are in memory only, `discovery.py:118`, `KEEP_FINISHED` 10) | "The search finished, but the corpus was not prepared. The console may have been closed while it ran." Reason `INTERRUPTED`, cause unknown. | "Search again" → `discovery.harvest` |
+| K | `running`/`failed`, `accepting_chase` | `WORKSPACE_JOB_ACTIVE` on the accept (`09-chase.md`) | "Wait for the running job to end, then send these works." | "Go to Chase" |
+
+Reasons are shown as `waiting.reason{code, message}`. Codes are the engine's: `STOPPED_BY_RESEARCHER` and `INTERRUPTED` are new labels (✗ M10b, they are not refusals and are not added to `console/refusals.py`); `PROVIDERS_FAILED`, `DISCOVERY_FAILED`, `PROVIDER_*` are registered (`07-states.md`). The page never guesses a meaning for an unregistered code; it prints the engine's text under Details.
+
+### The Hand-off case, exactly
+A harvest has finished (1,074 records, 1,050 works after duplicates), the researcher opens the Hand-off or the Import step:
+1. The run list shows the newest run `raw_published` true; Harvest shows every leg done.
+2. `deduped.json` exists (1,050 works). `verified.json` does not yet (or never will).
+3. No `verified.json` means `corpus.state` `EMPTY` and `from_discovery` false (`corpus_accept.py:622, 651-652`): the Import step's accept stays disabled and the Hand-off shows "There is nothing to hand off yet" (`discovery-handoff.tsx:89, 145`).
+4. The engine's answer is state `CORPUS_PENDING` with `waiting`:
+   - the job is alive: variant D (or B, C): "Checking 1,050 works against the databases. The hand-off opens when this ends." with "Follow the search";
+   - no job and a `failed` job in memory: variant I with the reason;
+   - no job in memory: variant J: "The search finished, but the corpus was not prepared. The console may have been closed while it ran." with "Search again".
+On the Hand-off the destination of the bar for variants B to D is Harvest; since Harvest is not the current screen, the bar shows the button there too.
+
+### What the engine cannot tell apart today (✗ M10b)
+- **Which stage a job is in after the console restarted.** Stages exist only as in-memory SSE events (`discovery.py:112`); on disk there is only `raw_published` on the run and, later, `deduped.json` and `verified.json`. The engine must write a small stage marker per run, `literature/search_runs/run_NNN/pipeline.json` (`{stages: {deduplication: {status, at}, hydration: {...}, verification: {...}}, ended: {status, at} | null}`), updated from the same `emit_stage` the SSE events use (`coordinator.py:498-500`). With it, J becomes "interrupted at verification" and a clean end is recorded.
+- **Whether `verified.json` belongs to the newest run.** It carries no run id. After run 1 finished, a run 2 in deduplication leaves run 1's `verified.json` in place: `corpus_status` then reports `STAGED` and `from_discovery` true while `handoff` returns `run` = `run_002` (the newest published run, `discovery.py:719`) with run 1's provider mix and abstract counts (`:707-735`). The marker above must name the run that produced `verified.json` (`verified_run`); `CORPUS_READY` requires it to equal the newest published run, otherwise the state is `CORPUS_PENDING` (rows B to D, or I or J).
+- **Placeholder protocol** (row 8): no field. `project.json` gets `protocol_origin`.
+- **Works count before verification**: `_harvest_view` (`corpus_accept.py:565-605`) is only reached when `from_discovery` is true; the engine reads `len(deduped.json)` and `fetched_total` itself for the `{works}` and `{records}` params of rows B to D.
+- **Cause of an interruption** (console closed or crashed): not recoverable. `DiscoveryJobs.stop_all` sets `cancel_requested` and waits 30 s (`discovery.py:156-163`); nothing after discovery reads `should_stop` (only `run_discovery` receives it, `coordinator.py:595-600`), so a stop during deduplication or verification is not honoured and a process exit leaves no journal event for the run. The marker records only that it ended unfinished (see open question 2).
+- **Dedup blocking the engine**: `run_deduplication` is called without `await` or a thread (`coordinator.py:677`); for 1,074 records the engine may not answer reads while it runs. Not measured; the bar's Offline state covers it.
+
+## Data out
+None. The bar writes nothing and journals nothing. Its refresh may read, never act.
+
+## Backend calls
+| Call | Status |
+| :-- | :-- |
+| `GET /api/v1/review/next-step` (scope `workspace`; the engine's current workspace) | ✗ M10b |
+| `GET /api/v1/inception/drafts/{id}/next-step` (scope `draft`) | ✗ M10b |
+| `literature/search_runs/run_NNN/pipeline.json` stage marker; `verified_run`; `project.json` `protocol_origin` | ✗ M10b (engine writes, no route) |
+| `GET /api/v1/discovery/runs`, `/plan`, `/handoff`, `/chase`, `/jobs/{id}/events`, `/jobs/{id}` | ✓ `discovery.py:440, 399, 698, 1025, 913, 904` (read by the engine's own function, not by the browser) |
+| `GET /api/v1/screening/summary`, `/corpus`, `/ui/publication-status`; `GET /api/v1/jobs` | ✓ `screening_v1.py:136, 569`; `workspace.py:576`; `jobs.py:86` |
+| `GET /api/v1/inception/drafts/{id}` | ✓ `inception.py:99` |
+| `GET /api/v1/workspaces` | ✓ `workspaces.py:33` |
+
+### The new endpoint
+`GET /api/v1/review/next-step` (no query) and `GET /api/v1/inception/drafts/{session_id}/next-step`. Both are reads, answer `200`, take the engine's own functions (no HTTP call to itself) and share one builder, `console/next_step.py` ✗ M10b (a pure function of the workspace folder, the job registries and the draft record, so a test drives it from a folder). The proxy (`apps/research-ui/app/api/console/[...path]/route.ts:45`) forwards GET; the console's read allowlist in `console/browser.py` gains the two paths if reads are listed there ✗ M10b. Neither is in `_PHONE_ROUTES` (`serve.py:55`): a phone-scoped token gets `TOKEN_SCOPE_REFUSED` and the bar renders nothing.
+
+Response, in the style of the existing routes (`shape`, engine-written values, nulls explicit):
+```json
+{
+  "shape": "review.next-step-v1",
+  "scope": "workspace",
+  "phase": "discovery",
+  "round": 1,
+  "state": "CORPUS_PENDING",
+  "params": {"run": "run_003", "records": 1074, "works": 1050, "databases": 5, "answered": 5},
+  "waiting": {
+    "kind": "running",
+    "stage": "verifying",
+    "job": {"job_id": "djob_ab12cd34ef56ab12", "kind": "run", "state": "running", "started_at": "2026-11-13T09:40:12+00:00"},
+    "reason": null,
+    "since": "2026-11-13T09:52:30+00:00"
+  },
+  "action": {
+    "key": "followSearch",
+    "to": {"screen": "discovery.harvest", "query": {"job": "djob_ab12cd34ef56ab12"}}
+  },
+  "also": [],
+  "unknown": [],
+  "protocol_fingerprint": "…as the engine wrote it…",
+  "computed_at": "2026-11-13T09:52:41+00:00",
+  "etag": "…"
+}
+```
+- `state` is one of the codes in table 1; `waiting.stage` one of `searching`, `deduplicating`, `adding_abstracts`, `verifying`, `preparing`, `chasing`, `accepting_chase`; `waiting.kind` one of `running`, `stopped`, `failed`, `interrupted`; `waiting.reason` is `{code, message}` for `stopped`, `failed`, `interrupted`, else `null`.
+- `action.key` selects the button label (`next.action.<key>`); `action.to.screen` is a screen name the browser maps to a route in one table; `action.to.query` holds only ids (`run`, `job`, `draft`). The engine does not know which screen the researcher is on, so it sends `to.screen` only; the browser compares it with the current screen name to choose between the button and the naming form (see Desktop layout). That is presentation, not a domain decision.
+- `unknown[]` lists what could not be read (`journal`, `jobs`, `publication`); the sentence for a hedged state is the same, with the line "Some information could not be read." behind Details. The state is still computed from what was readable; the engine never invents a state.
+- `etag` changes when any input changes; the browser sends `If-None-Match` and the engine answers `304`.
+- Refusals: none of its own. A workspace read error is `unknown[]`, not a 5xx. `DRAFT_NOT_FOUND`, `DRAFT_ID_INVALID`, `DRAFT_UNREADABLE` (draft route, existing codes, `07-done.md`), `TOKEN_SCOPE_REFUSED`, `HOST_REFUSED`, `TOKEN_REQUIRED` (shared guards).
+
+### When the bar refreshes
+Job events and writes that already exist trigger a re-read; nothing is added to the job streams.
+- On mount and on every route change inside the shell.
+- On the discovery job stream's events seen by the page: `stage`, `done`, `failed` (`discovery.py:913-933`, `job.emit` at `:112`; `useJobStream` in `discovery-frame.tsx:355`) and `snapshot` on connect. The hook dispatches a `nexus:review-changed` window event on those; the bar listens. `leg` events are ignored (too frequent; the bar's A sentence refreshes on the next stage or poll).
+- After a write the page makes and the engine answered: start run, cancel, corpus accept, source stage or remove, prepare (`screening_v1.py:644`), publish, chase start or accept, draft save, genesis, workspace open. Each screen already knows when it wrote; it dispatches the same event.
+- While `waiting.kind` is `running`: a poll every 5 s with `If-None-Match`, because a page that holds no stream (the Hand-off, Home, Import) gets no event. The poll stops when `waiting` is null.
+- On window focus and when the tab becomes visible, if the last answer is older than 30 s.
+- Never on a timer when nothing is waiting, and never more than one request in flight.
+
+## States
+- **Default**: one line, `bg-leaf` with a `rule` border: the sentence, then the one secondary button; the state code is behind a Details disclosure ("Details": state, run or job ids, the engine's time).
+- **Empty**: no bar when there is nothing to say: `DONE` still shows its sentence; scope `workspace` with no workspace on `/workspaces` shows none (the screen is the next step); a phone token shows none.
+- **Loading** (skeleton): a one-line skeleton of the bar's height with `aria-busy="true"`, no sentence and no button until the first answer, so the layout does not jump and no wrong sentence flashes. A refresh keeps the previous answer on screen (no skeleton).
+- **Error** (typed refusal → copy): `ENGINE_UNREACHABLE` (client-side, proxy `CONSOLE_UNREACHABLE` 502 / `CONSOLE_TIMEOUT` 504): "The page cannot reach the engine, so what comes next is not known. Last answer: {state sentence} as of {time}." with no button (the screen's own card says the rest); `TOKEN_SCOPE_REFUSED`: the bar is not rendered; `HOST_REFUSED`, `TOKEN_REQUIRED`: not rendered (the screen's guard card says it); draft route `DRAFT_NOT_FOUND`, `DRAFT_ID_INVALID`, `DRAFT_UNREADABLE`: not rendered (the screen's card says it). An unregistered code prints itself under Details.
+- **Partial**: `unknown[]` not empty: the sentence stays, the line "Some information could not be read." sits behind Details, and the state is the engine's best reading. States `INTERRUPTED` (J) and the missing `pipeline.json` of a run made before M10b read as "cause unknown", never as a guess.
+- **Offline**: the engine is local, so offline means unreachable: the error state above. The last answer stays with "as of {time}"; the button is removed (a link to a screen that cannot load would mislead), re-added on the next answer. During variant B the engine may not answer (dedup runs on the event loop): the bar shows the offline state for those seconds and recovers on its own; it does not report it as a failure.
+- **Stale / protocol changed**: the bar never compares fingerprints. States `SEARCH_CHANGED` (12) and `PROTOCOL_CHANGED_AFTER_BATCHES` (16) are the engine's flags (`search_changed`, `protocol_changed`); when `protocol_changed` is true and `search_changed` false before an accept, the engine still answers `CORPUS_READY` and adds `params.protocol_changed` true; the sentence gains "The protocol changed outside the search; accepting binds the records to it as it is now." (as spec 08). An answer older than the page's last write is discarded by `etag`/`computed_at`.
+- **Live-only**: yes. No fixture, no demonstration marker; the bar is absent on the screens that have none to show.
+
+## Desktop layout
+- **Where**: in `AppShell` (`apps/research-ui/components/app-shell.tsx:35-81`), a `<section role="region" aria-labelledby>` between the site header and `<main>`, outside `main` so a route's one `main` landmark is untouched (the shell comment at `:21-26`). The step bars (`DiscoverySteps`, `InceptionSteps`) stay inside the screens, below the bar. It is a sibling of the banner, in the document order: skip link, banner, bar, main. The skip link still targets `main`.
+- **Which routes**: every `/[locale]/inception/*` (draft scope, `?draft=` read after hydration, as `useLocationParams`, `inception-frame.tsx:48`), `/[locale]/discovery/*` and `/[locale]/screening/*` (workspace scope). Not on `/workspaces` (the screen is the next step), not on the triage focus route (`isOneScreenRoute`, `app-shell.tsx:84`: a focus screen has no header at 1024 px and up and the bar would break the one-screen rule), not on a phone.
+- **Look**: one row, `min-h-12`, the sentence on the inline start, the button on the inline end; `bg-leaf`, `rule` bottom border, `ink` text; a small state word before the sentence only in waiting variants (`Running`, `Stopped`, `Failed`, `Interrupted`, as text with the role colour: `brand` for running, `unclear` for stopped and interrupted, `blocked` for failed; text and icon, never a fill behind text). The sentence is not a draft: it is the engine's state, not a machine judgement about the research.
+- **Not sticky.** It scrolls away with the page, so it never covers content or a focused element (WCAG 2.2 focus not obscured), and the triage and gate screens keep their full height.
+- **It never competes with the screen's own main button.** Three rules, all decided by the browser from `action.to.screen` and the current screen name (a fixed route-to-screen table in one file; no engine call):
+  1. The bar's button is secondary (outline, `brand` text and border, no fill). The brand fill is reserved for the screen's one brand button (`08-handoff.md`, `09-chase.md`: one brand button per screen).
+  2. When `action.to.screen` is the current screen, the bar shows no button. It names the screen's own control instead, in words: "Next: {label}. The button is on this page." where `{label}` is the same `next.action.<key>` text the screen's own button carries. It is plain text, not a link (no second way to the same action, no focus stop).
+  3. When the current screen is a gate (`discovery.handoff` in `CORPUS_READY`, `discovery.chase` in `CHASE_READY_TO_SEND`, `screening.publish`), the bar is in the naming form even if a waiting variant would point elsewhere; the gate's own panel carries the evidence.
+- The Hand-off in `CORPUS_PENDING` is not the current screen's own state (it has no button there), so the bar shows its button ("Follow the search") beside the page's empty state; the amended empty state shows the same sentence.
+
+## Mobile layout (≤ 640 px)
+Per plan §4, write, gate and job screens are desktop-only; the bar's states point at such screens, so a phone shows no bar (the route is outside `_PHONE_ROUTES`; the first read answers `TOKEN_SCOPE_REFUSED` and the bar renders nothing). The phone's own screens (home, triage, queue; spec 01) keep their own primary buttons. A narrow desktop window (≤ 640 px) shows the bar as a block under the header: the sentence (up to three lines, wraps), then the button full width at 44 px; the waiting state word above the sentence; Details below. Not sticky, not at the bottom (a phone home has a fixed primary button there). No gestures.
+
+## Keyboard
+Focus order: skip link, site header, the bar's button (when it has one), then the page. The bar has at most one tab stop; the naming form has none. No single-key shortcut (the existing `g t`, `g p`, `?` are untouched). `Enter` and `Space` activate the button; Details is a native disclosure. A refresh never moves focus. When the answer changes while the focus is on the button, the button's label and destination change in place and the live region announces the new sentence (below); focus stays.
+
+## Copy
+Keys in a new copy file `apps/research-ui/lib/next-step-copy.ts` ✗ M10b (en master; fr and ar fall back to en, plan §7). No literal `aria-label`, `title`, `alt` or `placeholder` (N9). Placeholders `{...}` are printed LTR in `bdi`.
+
+Frame: `next.region` "What comes next"; `next.details` "Details"; `next.asOf` "As of {time}"; `next.unknown` "Some information could not be read."; `next.here` "Next: {label}. The button is on this page."; `next.offline` "The page cannot reach the engine, so what comes next is not known."; `next.offline.last` "Last answer: {sentence}"; `next.word.running` "Running"; `next.word.stopped` "Stopped"; `next.word.failed` "Failed"; `next.word.interrupted` "Interrupted".
+
+Sentences `next.state.<CODE>`:
+- `NO_REVIEW` "No review is open."
+- `DRAFT_STARTED` "Your draft has no topic yet."
+- `DRAFT_INCOMPLETE` "Your draft still needs {fields}."
+- `DRAFT_READY` "Your draft is complete. Create the workspace when you are ready."
+- `DRAFT_CREATED` "The workspace {title} exists. Open it to continue."
+- `NO_PROTOCOL` "This review has no protocol yet."
+- `PROTOCOL_INVALID` "The protocol file cannot be read, so nothing can be searched."
+- `PROTOCOL_PLACEHOLDER` "This protocol is a placeholder. Write your own with New review."
+- `SETUP_NEEDED` "A search needs {what}."
+- `READY_TO_SEARCH` "Your protocol is ready. Run the search."
+- `STAGED_EXPORTS` "{n} database exports are staged. Accept them to start screening."
+- `SEARCH_CHANGED` "You changed the search after run {run}. Search again before you accept."
+- `CORPUS_READY` "Your corpus is ready: {works} works from {records} records. Accept it to start screening."
+- `NOT_PREPARED` "The corpus is accepted. Prepare the screening batches."
+- `PROTOCOL_CHANGED_AFTER_BATCHES` "The protocol changed after screening started, so earlier decisions count nowhere."
+- `CONFLICTS` "{n} decisions conflict. Resolve them before you go on."
+- `SCREENING` "{needs_you} of {total} records still need you."
+- `READY_TO_PUBLISH` "Every record is decided. Check the agreement, then publish."
+- `PUBLISHED_STALE` "{n} studies changed since you published."
+- `PUBLISHED` "Screening is published. You can chase the citations of your included studies."
+- `CHASE_READY_TO_SEND` "The chase found {new} new works. Send them to screening as round {round}."
+- `CHASE_NOTHING_NEW` "The chase found nothing new."
+- `ROUND_ACCEPTED` "Round {round} is with screening. Prepare its batches."
+- `DONE` "Nothing is waiting for you. Export and methods are on Publish."
+- `round` suffix `next.inRound` " in round {round}"; `SETUP_NEEDED.what.email` "a contact email"; `.key` "an OpenAlex key"; `.both` "a contact email and an OpenAlex key".
+
+Waiting `next.waiting.<stage>` and reasons:
+- `searching` "The search is running. {answered} of {databases} databases have answered."
+- `deduplicating` "The search found {records} records. Removing duplicates."
+- `adding_abstracts` "{works} works remain after duplicates. Adding missing abstracts."
+- `verifying` "Checking {works} works against the databases. The hand-off opens when this ends."
+- `preparing` "Preparing the screening batches."
+- `chasing` "The citation chase is running."
+- `accepting_chase` "Wait for the running job to end, then send these works."
+- `next.stopped.searching` "You stopped the search. What was fetched is kept, but no corpus was made."
+- `next.failed.searching` "No database answered, so nothing was kept."
+- `next.failed.stage` "The search finished, but preparing the corpus failed at {stage}. {message}"
+- `next.interrupted` "The search finished, but the corpus was not prepared. The console may have been closed while it ran."
+- `next.reason.STOPPED_BY_RESEARCHER` "Stopped by you."; `next.reason.INTERRUPTED` "The search ended before the corpus was written. The cause is not recorded."; the registered codes use `discovery.states.<CODE>.*` (07).
+- stage names for `{stage}`: `next.stage.deduplicating` "removing duplicates", `next.stage.adding_abstracts` "adding abstracts", `next.stage.verifying` "checking the works".
+
+Buttons `next.action.<key>`: `chooseReview` "Choose or start a review"; `goToStep` "Go to {step}"; `goToReview` "Go to Review"; `goToDone` "Go to the finished workspace"; `goToInception` "Go to inception"; `seeWhatToSet` "See what to set"; `goToHarvest` "Go to Harvest"; `reviewExports` "Review and accept the exports"; `reviewCorpus` "Review and accept the corpus"; `followSearch` "Follow the search"; `searchAgain` "Search again"; `goToScreening` "Go to screening"; `openInception` "Open inception"; `goToScreeningHome` "Go to screening home"; `openTriage` "Open triage"; `goToPublish` "Go to Publish"; `publishAgain` "Publish again"; `goToChase` "Go to Chase"; `reviewChase` "Review and send the works"; `followPreparation` "Follow the preparation"; `followChase` "Follow the chase".
+
+## Accessibility
+- The bar is a labelled region (`next.region`). Waiting and result changes are announced through one `aria-live="polite"` `role="status"` node that holds the sentence; it announces only when the state code or `waiting.stage` changes (not on every poll) and is debounced by 2 s, so a fast stage sequence is read once. `aria-busy` while loading. The offline state is `role="status"`, not an alert (it is not a refusal of an action).
+- Status never rests on colour: the state word (Running, Stopped, Failed, Interrupted) is text with an icon; `blocked` is text colour only (tokens.json usage). Contrast pairs from tokens: `ink` on `leaf`; the secondary button `brand` on `leaf`; role words `brand`, `unclear`, `blocked` on `leaf`. Focus ring `focus` token, never clipped; the bar is not sticky so it never obscures a focused control.
+- The button is a link with a visible text label naming its destination ("Go to Harvest"), never an icon alone; its label changes with the answer. Targets 44 px.
+- RTL (ar): the row mirrors (sentence on the right, button on the left); the arrow in the button mirrors; ids (`run_003`, `djob_…`), counts, fingerprints and times are `dir="ltr"` with Latin digits inside `bdi`. Counts in a sentence stay the engine's numbers (no localised plural logic in the browser beyond the message format).
+- Light and dark tokens.
+
+## Acceptance tests
+Vitest `apps/research-ui/tests/next-step-bar.test.tsx`:
+- every `state` code in table 1 and every `waiting.stage` in table 2 maps to a sentence key in en, fr and ar, and every `action.key` to a button key (table-driven; `next-step.i18n`, the N9 guard);
+- the bar prints `params` as sent and computes nothing: no count, no state, no fingerprint is derived in the component (a fixture with `works` 1050 prints 1,050; a fixture with different `works` and `records` prints both unmodified);
+- the harvest-finished, verification-pending answer (`CORPUS_PENDING`, `waiting` `verifying`) shows "Checking 1,050 works against the databases..." and a "Follow the search" link to Harvest with the `job` id, and no "Accept" label anywhere;
+- the same answer with `waiting.kind` `interrupted` shows the interrupted sentence and "Search again", and the reason sits under Details;
+- when `action.to.screen` equals the current screen the bar renders the naming sentence (`next.here`) and no link; when the screen is a gate it renders the naming form;
+- the button is secondary (no brand fill class) and the page keeps exactly one brand button;
+- loading shows the skeleton with `aria-busy` and no sentence; `ENGINE_UNREACHABLE` shows the last sentence with "as of" and no button; `TOKEN_SCOPE_REFUSED`, `HOST_REFUSED` and a draft refusal render nothing;
+- a refresh happens on `nexus:review-changed`, on route change, and by a 5 s poll only while `waiting.kind` is `running`; never two requests at once; `If-None-Match` is sent and a `304` keeps the answer;
+- the live region announces on a state change and not on an unchanged poll; focus is not moved by a refresh;
+- the bar is absent on `/workspaces`, on the triage route and with a phone-scoped token; present on inception, discovery and screening routes (`isOneScreenRoute` untouched);
+- RTL (ar): ids and counts `dir="ltr"`, arrow mirrored; no literal `aria-label`.
+
+Python `tests/console/test_next_step_api.py` (the builder from a folder; each case from the table):
+- `test_harvest_finished_verification_pending_is_corpus_pending_waiting`: a workspace whose newest run has `raw_published` true, `deduped.json` with 1,050 works, no `verified.json`, and a live job whose last `stage` event is `hydration` answers `state` `CORPUS_PENDING`, `waiting.stage` `verifying`, `params.works` 1050, `params.records` 1074; **this fails before** (no route exists, and `GET /discovery/handoff` answers `corpus.state` `EMPTY` for the same folder);
+- `test_no_job_and_no_verified_is_interrupted`; `test_failed_job_keeps_its_reason`; `test_stopped_search_is_stopped`; `test_stale_verified_from_an_earlier_run_is_not_ready` (run 1's `verified.json` with a published run 2 and no marker for it answers `CORPUS_PENDING`, not `CORPUS_READY`);
+- one test per row of table 1 in order, including the first-match rule; `test_unreadable_journal_goes_to_unknown`; `test_phone_token_refused`; `test_etag_changes_with_inputs`;
+- `test_pipeline_marker_written_by_each_stage` (the `pipeline.json` of the run follows `emit_stage`); `tests/console/test_console_refusals.py` is unchanged (no new refusal code).
+Playwright `tests-browser/next-step.spec.ts` (stateful fake of the engine):
+- `harvest finished, verification pending`: after a harvest the Hand-off shows the bar "Checking 1,050 works against the databases..." and the page's empty state says the same instead of "There is nothing to hand off yet"; when the fake writes `verified.json` the bar becomes "Your corpus is ready..." with "Review and accept the corpus", and on the Hand-off it names the screen's own button and shows no link;
+- interrupted case (job gone): "Search again" leads to Harvest;
+- full path: no protocol, ready to search, searching, corpus ready, accepted, prepare running, screening, ready to publish, published, chase;
+- RTL (ar); axe in light and dark; no horizontal overflow at 375 and 1440 px; the bar is not on `/workspaces` or triage.
+
+## Dependencies (amendments to finished specs, made when this spec is FINAL)
+- `docs/ux/phase1-discovery/final/08-handoff.md` "Empty": show `waiting` when present; drop "There is nothing to hand off yet" for `CORPUS_PENDING`.
+- `docs/ux/phase2-screening/final/11-import-corpus.md` (the Import step): its disabled accept names the reason with the bar's sentence.
+- `docs/ux/phase1-discovery/final/03-harvest.md` is not edited here (M10a amends it); the Harvest screen's own job panel is the destination of "Follow the search" and already reads `?job=`.
+
+## Open questions
+1. **Resume instead of search again.** After an interrupted or failed preparation (variants I and J) the only way forward today is a whole new search, spending the databases' quota again on records that were already fetched (the run's `raw.json` is on disk). Should the engine offer "Finish preparing this corpus" (deduplicate, add abstracts and verify from the saved records, without searching)? Recommendation: yes, as an M10b engine item after the pipeline marker; the button replaces "Search again" in I and J; until then "Search again".
+2. **Stop during preparation.** Stop is honoured only while databases are being searched; during deduplication, abstracts and verification it is ignored, and closing the console cuts the job after 30 s with no record. Should Stop work in those stages and be recorded? Recommendation: yes, check the stop flag between stages (the stages are separate calls, `coordinator.py:677, 696, 712`), end the run as `STOPPED` with the marker, and let the bar say "You stopped the search while checking the works." The verification stage itself is not interrupted mid-batch.
+3. **Placeholder protocol marker.** The bar can tell "no protocol" but not "a placeholder from New workspace" (row 8). Recommendation: add `protocol_origin` (`placeholder` or `inception`) to `project.json` at scaffold and at genesis; no Contract v1 change (a project metadata field).
+4. **Bar on the inception screens (draft scope).** The inception draft has no workspace yet, so it needs the second route and the missing-fields computation (rows 2 to 5). Recommendation: include it in M10b with the same response shape, so one component serves every screen; `missing[]` is computed by the existing `_require` rules without a genesis attempt.
+5. **Where staged exports are accepted.** Row 11 sends staged exports to the Hand-off, as `08-handoff.md` ("Staged exports") allows, although the Import step also accepts them. Recommendation: the Hand-off for both origins, so there is one place called "accept the corpus" and the researcher is never sent to a disabled button; the Import step then links to it.
