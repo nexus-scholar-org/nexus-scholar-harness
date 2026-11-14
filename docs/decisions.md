@@ -4,6 +4,34 @@ One entry per decision that still shapes the code, newest first. The full
 records were removed in the 2026-11-03 docs cut; each entry names the commit
 history to read if you need the original reasoning (`git log --follow -- <path>`).
 
+## 2026-11-14 — M10a: where the database choice lives, the probe query, the arXiv cassette (PROPOSED; awaiting the researcher)
+
+Record: `docs/roadmap/milestones/M10a-search-quality.md`. None of the options below touches a Contract v1 artifact, the protocol schema or the corpus fingerprint; the recommended ones do not change `protocol.json` at all.
+
+1. **Explore: where the database choice and order live.**
+   - (a) **Recommended: on the probe.** `POST .../recon/probe` gains an optional ordered `databases` list and an optional `query` (the researcher's edited keyword query). The probe record, the pool (which already keeps an ordered `providers` and is cached by it) and the grounding's pool summary keep both. The screen pre-fills from the latest probe, so a reload shows the last choice. A different choice is a new pool, so a bound direction becomes stale by the existing fingerprint check. No draft field.
+   - (b) A new ordered `databases` field on the draft (`inception/steps.py::Draft`), saved before any probe and part of the scope that makes a binding stale.
+   - Either way the Explore choice does **not** become the protocol's `search_strategy.target_databases` in M10a: recon can ask four databases, Discovery six, and the compiled protocol stays as the preset makes it. Carrying it over is a later choice (M10b "start from an existing protocol").
+2. **Discovery: where the database choice and order live.**
+   - (a) **Recommended: per harvest, the protocol stays the default.** Plan and Harvest offer the protocol's databases in its order, with the others unticked; the researcher may untick, tick and reorder. Plan previews the chosen list (`GET /discovery/plan?providers=…`, a new optional parameter) and hands it to Harvest in the page address; Harvest sends it as `providers` on `POST /discovery/runs`, which the engine already accepts and checks (`_check_providers`). The run's `legs.json` records the list asked for (`requested_providers`, a run record, not a v1 artifact). The report's `not_searched` already names a protocol database that was not searched; it gains the reason "not selected for this harvest". The executed query of each leg (PRISMA-S) keeps its shape. The hand-off gate is unchanged: it compares the protocol's list then and now, never a run's choice (decision 2026-11-12, item 2).
+   - (b) Edit `protocol.search_strategy.target_databases`. No schema change, but it changes the protocol fingerprint (every later screen shows "protocol changed") and the browser has no protocol edit route except replace, which archives the corpus.
+   - (c) A workspace settings file. Invisible to the drift and accept gates; not recommended.
+   - In Discovery the order is the order the legs run and are listed in. It never changes the corpus: deduplication still sorts by `stable_order` (item 1 of the accepted entry below).
+3. **The golden recon cassette.** Joining arXiv terms with `AND` changes the arXiv request recorded in `tests/fixtures/cassettes/golden_recon_probe.yaml` (matched on the query string), so its two replay tests fail until the arXiv answer is recorded again. Editing the recorded URL by hand would put OR results behind an AND request.
+   - (a) **Recommended:** record the two arXiv interactions again, live, once, and replace only those in the cassette; the OpenAlex, Crossref and Semantic Scholar interactions stay byte-identical. arXiv is free and takes no key, but the engine refuses to run without `SCHOLAR_MAILTO`, which is sent to the databases: the researcher runs the one command, or approves it being run with their address.
+   - (b) Record the whole cassette again (all four databases answer anew; the recorded Semantic Scholar 429 would probably change).
+   - (c) Defer the arXiv change to a follow-up milestone.
+4. **Decided in the build, stated for review (not a question).** "0 results" is derived from a leg that finished with nothing fetched; no new leg status is added, so `legs.json` and `SearchLeg` keep their shape. The keyword query: words in the topic's order, minus stopwords and question and framing words, duplicates removed, at most six; a topic that already uses `AND`/`OR`/`NOT`, quotes or parentheses is sent as written. Six words joined by `AND` can still find nothing: the screen then says "0 results" and shows the query to shorten.
+
+## 2026-11-14 — Assisted inception: five milestones, database order, assistant limits (accepted 2026-11-14)
+
+After the strict run of 2026-11-13, where Explore returned nothing useful and the researcher typed every inception answer by hand, the researcher approved the "Assisted inception" sequence (plan §6): M10a search quality and database choice, M10b proposals and checks, M10c assistant and critic over MCP, M10d lighter screens, M10e an in-app chat panel.
+
+1. **The database order is sample priority only.** The researcher's database order decides which papers fill the Explore sample. It does not change which record represents a group of duplicates: that rule feeds the corpus fingerprint, and changing it would be a contract decision of its own.
+2. **The in-app chat comes after the MCP version.** M10e follows M10c and waits for the researcher's approval of the AI spend.
+3. **What an assistant may execute.** It reads and explains anything freely; it starts a search or a harvest only after the researcher confirms; its protocol edits arrive as proposals; it never accepts a corpus, makes a screening decision or publishes.
+4. **The full sequence is built, in the order above.**
+
 ## 2026-11-12 — Releasing the index workspace lock waits out a file in use; an exhausted wait stays an OS error (accepted 2026-11-12; PR #230)
 
 Found by a full-suite run on Windows: `test_two_runs_on_one_workspace_are_mutually_exclusive` failed once because `WorkspaceLock.release()` (`src/scholar_rag/replacement.py`) raised `PermissionError` (WinError 32). A refused second run reads the lock file to name its holder; Windows refuses to delete a file another handle has open, so the holder's delete failed after its replacement had completed and the lock file stayed behind.

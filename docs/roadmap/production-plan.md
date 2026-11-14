@@ -309,6 +309,16 @@ One PR per milestone, from `main`, through the fork. Lane declared up front; the
 | **M9c-ladder-ui** | Home card, Agreement gate, Settings modes, publish acknowledgement. Specs first. | same, §7, §10 | STANDARD |
 | **M9d-discovery-assistant** | Synonyms, translation explanations, recall repair, as proposals; MCP first. | same, §8, §10 | STANDARD |
 
+**Assisted inception (approved 2026-11-14).** On 2026-11-13 the researcher ran Inception and Discovery by hand on an installed wheel (topic "UAV crop-weed mapping"). Explore returned nothing useful and every answer was typed by hand. The researcher approved the five milestones below on 2026-11-14, to be built in this order; the decisions are in `docs/decisions.md` (2026-11-14). Assisted inception now comes before the rows above.
+
+| M | Content | Source | Lane |
+| :-- | :-- | :-- | :-- |
+| **M10a-search-quality** (in progress) | Search quality and database choice, no AI: a keyword query derived from the topic sentence, shown per database and editable; a database that returned nothing says "0 results"; the Explore sample of 25 chosen by each database's own relevance, spread across databases in the researcher's order; databases selectable and re-orderable in Explore and in Discovery (order is sample priority only, never which record represents a duplicate group); the arXiv translation combines terms instead of offering them as alternatives. Record: `docs/roadmap/milestones/M10a-search-quality.md` | strict run 2026-11-13; decisions 2026-11-14 | **RELEASE** |
+| **M10b-proposals** | One "proposal" object (what, why, evidence; Apply / Edit / Reject; journaled) used by every step; fixed checks without AI; start an inception from an existing protocol; a reason category per exclusion; the researcher's own matrix columns; a size estimate before a harvest; a "what's next" bar; removing a paper from the sample. The M10d screen specs are written at its start. | decisions 2026-11-14 | to be declared |
+| **M10c-assistant-mcp** | Assistant and critic over MCP (no AI spend), with a test set of deliberately broken protocols the critic must catch. Overlaps **M9d-discovery-assistant** (synonyms, translation explanations, recall repair as proposals): the two are planned together and M9d's MCP half is delivered here. What an assistant may execute is decided (2026-11-14). | decisions 2026-11-14; `agent_autonomy_ladder.md` §8 | to be declared |
+| **M10d-lighter-screens** | Lighter screens: tips behind icons, one main action per step, the recommended choice marked. Specs written once, at the start of M10b. | decisions 2026-11-14 | STANDARD (UI) |
+| **M10e-chat-panel** | A chat panel inside the app, after the MCP version (M10c). Needs an AI key: waits for the researcher's approval of the spend. | decisions 2026-11-14 | to be declared |
+
 **Before M2 starts:** five interviews with labs or institutions (see the `product-direction-sellable` direction), to test what stage 1 sells.
 
 ---
