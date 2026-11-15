@@ -10,11 +10,9 @@ abstract.
 
 Three checks: (a) at least 80 % of each new direction's anchors are on-topic, (b) the
 new sample holds more on-topic DOI records, (c) the new directions are
-observed in at least as many records. (a) separates old from new only in the
-without-arXiv case (the old sample's anchors are on-topic too when arXiv is
-in); (b) and (c) hold in both. The recorded-case numbers come from the current
-arXiv recording, which used the old arXiv query: they must be measured again
-after the researcher re-records it (decision 3a, 2026-11-14).
+observed in at least as many records. All three separate old from new in both
+cases. The numbers were measured on 2026-11-15, after the researcher recorded
+the arXiv answer to the AND query again (decision 3a, 2026-11-14).
 
 Known limitation: generic labels such as "convolutional neural network" still
 appear among the directions. They come from the direction scorer, which M10a
@@ -123,10 +121,10 @@ def test_relevance_sample_anchors_directions_in_on_topic_records(databases):
 
     assert new["directions"], "the relevance sample proposes directions"
     assert old["directions"], "the old sample proposes directions, so (c) compares two real values"
-    # (a) Measured 2026-11-14: every new anchor on-topic in both cases; old 1.0 with arXiv, 0.0 without.
+    # (a) Measured 2026-11-15: every new anchor on-topic in both cases; old 1.0/0.4/0.4 with arXiv, 0.0 without.
     assert all(share >= 0.8 for share in new["on_topic_share"]), new["on_topic_share"]
-    # (b) Measured: 7 -> 10 with arXiv, 0 -> 12 without. All DOI records: 9 -> 19 with arXiv, but
-    # 25 -> 24 without (the old rule then takes 25 off-topic Crossref records), so on-topic ones are compared.
+    # (b) Measured: 2 -> 11 with arXiv, 0 -> 12 without. All DOI records: 21 -> 20 with arXiv and
+    # 25 -> 24 without (the old rule fills with off-topic Crossref records), so on-topic ones are compared.
     assert new["on_topic_doi_records"] > old["on_topic_doi_records"]
-    # (c) Measured: 2 -> 3 with arXiv, 2 -> 4 without.
+    # (c) Measured: 2 -> 4 with arXiv, 2 -> 4 without.
     assert min(d["observed_in"] for d in new["directions"]) >= min(d["observed_in"] for d in old["directions"])

@@ -387,16 +387,16 @@ interactions:
       host:
       - export.arxiv.org
     method: GET
-    uri: https://export.arxiv.org/api/query?max_results=25&search_query=all%3AUAV+all%3Acrop+all%3Aweed+all%3Amapping&start=0
+    uri: https://export.arxiv.org/api/query?max_results=25&search_query=all%3AUAV+AND+all%3Acrop+AND+all%3Aweed+AND+all%3Amapping&start=0
   response:
     body:
       string: "<?xml version='1.0' encoding='UTF-8'?>\n<feed xmlns:opensearch=\"http://a9.com/-/spec/opensearch/1.1/\"
         xmlns:arxiv=\"http://arxiv.org/schemas/atom\" xmlns=\"http://www.w3.org/2005/Atom\">\n
-        \ <id>https://arxiv.org/api/HXwufXOpOnNFMPhUqxWl2XvIssg</id>\n  <title>arXiv
-        Query: search_query=all:UAV OR all:crop OR all:weed OR all:mapping&amp;id_list=&amp;start=0&amp;max_results=25</title>\n
-        \ <updated>2026-11-09T18:52:49Z</updated>\n  <link href=\"https://arxiv.org/api/query?search_query=all:UAV+OR+(all:crop+OR+(all:weed+OR+all:mapping))&amp;start=0&amp;max_results=25&amp;id_list=\"
+        \ <id>https://arxiv.org/api/robNzC6Svsvzy8k7f6rtP0ZUa6M</id>\n  <title>arXiv
+        Query: search_query=all:UAV AND all:crop AND all:weed AND all:mapping&amp;id_list=&amp;start=0&amp;max_results=25</title>\n
+        \ <updated>2026-11-15T06:27:00Z</updated>\n  <link href=\"https://arxiv.org/api/query?search_query=all:UAV+AND+(all:crop+AND+(all:weed+AND+all:mapping))&amp;start=0&amp;max_results=25&amp;id_list=\"
         type=\"application/atom+xml\"/>\n  <opensearch:itemsPerPage>25</opensearch:itemsPerPage>\n
-        \ <opensearch:totalResults>199720</opensearch:totalResults>\n  <opensearch:startIndex>0</opensearch:startIndex>\n
+        \ <opensearch:totalResults>9</opensearch:totalResults>\n  <opensearch:startIndex>0</opensearch:startIndex>\n
         \ <entry>\n    <id>http://arxiv.org/abs/2603.01932v2</id>\n    <title>BAWSeg:
         A UAV Multispectral Benchmark for Barley Weed Segmentation</title>\n    <updated>2026-03-17T17:55:38Z</updated>\n
         \   <link href=\"https://arxiv.org/abs/2603.01932v2\" rel=\"alternate\" type=\"text/html\"/>\n
@@ -471,260 +471,7 @@ interactions:
         \     <name>David Nuyttens</name>\n    </author>\n    <author>\n      <name>Peter
         Lootens</name>\n    </author>\n    <author>\n      <name>Erik Alexandersson</name>\n
         \   </author>\n    <author>\n      <name>Jan Pieters</name>\n    </author>\n
-        \ </entry>\n  <entry>\n    <id>http://arxiv.org/abs/2507.12590v2</id>\n    <title>From
-        Time-series Generation, Model Selection to Transfer Learning: A Comparative
-        Review of Pixel-wise Approaches for Large-scale Crop Mapping</title>\n    <updated>2025-08-10T03:45:28Z</updated>\n
-        \   <link href=\"https://arxiv.org/abs/2507.12590v2\" rel=\"alternate\" type=\"text/html\"/>\n
-        \   <link href=\"https://arxiv.org/pdf/2507.12590v2\" rel=\"related\" type=\"application/pdf\"
-        title=\"pdf\"/>\n    <summary>Crop mapping involves identifying and classifying
-        crop types using spatial data, primarily derived from remote sensing imagery.
-        This study presents the first comprehensive review of large-scale, pixel-wise
-        crop mapping workflows, encompassing both conventional supervised methods
-        and emerging transfer learning approaches. To identify the optimal time-series
-        generation approaches and supervised crop mapping models, we conducted systematic
-        experiments, comparing six widely adopted satellite image-based preprocessing
-        methods, alongside eleven supervised pixel-wise classification models. Additionally,
-        we assessed the synergistic impact of varied training sample sizes and variable
-        combinations. Moreover, we identified optimal transfer learning techniques
-        for different magnitudes of domain shift. The evaluation of optimal methods
-        was conducted across five diverse agricultural sites. Landsat 8 served as
-        the primary satellite data source. Labels come from CDL trusted pixels and
-        field surveys.\n  Our findings reveal three key insights. First, fine-scale
-        interval preprocessing paired with Transformer models consistently delivered
-        optimal performance for both supervised and transferable workflows. RF offered
-        rapid training and competitive performance in conventional supervised learning
-        and direct transfer to similar domains. Second, transfer learning techniques
-        enhanced workflow adaptability, with UDA being effective for homogeneous crop
-        classes while fine-tuning remains robust across diverse scenarios. Finally,
-        workflow choice depends heavily on the availability of labeled samples. With
-        a sufficient sample size, supervised training typically delivers more accurate
-        and generalizable results. Below a certain threshold, transfer learning that
-        matches the level of domain shift is a viable alternative to achieve crop
-        mapping. All code is publicly available to encourage reproducibility practice.</summary>\n
-        \   <category term=\"cs.CV\" scheme=\"http://arxiv.org/schemas/atom\"/>\n
-        \   <category term=\"cs.LG\" scheme=\"http://arxiv.org/schemas/atom\"/>\n
-        \   <published>2025-07-16T19:18:25Z</published>\n    <arxiv:comment>A review
-        paper on pixel-wise approaches for large-scale crop mapping. 29 pages, 18
-        figures. Preprint</arxiv:comment>\n    <arxiv:primary_category term=\"cs.CV\"/>\n
-        \   <arxiv:journal_ref>Computers and Electronics in Agriculture, Volume 246,
-        May 2026, 111646</arxiv:journal_ref>\n    <author>\n      <name>Judy Long</name>\n
-        \   </author>\n    <author>\n      <name>Tao Liu</name>\n    </author>\n    <author>\n
-        \     <name>Sean Alexander Woznicki</name>\n    </author>\n    <author>\n
-        \     <name>Miljana Markovi\u0107</name>\n    </author>\n    <author>\n      <name>Oskar
-        Marko</name>\n    </author>\n    <author>\n      <name>Molly Sears</name>\n
-        \   </author>\n    <arxiv:doi>10.1016/j.compag.2026.111646</arxiv:doi>\n    <link
-        rel=\"related\" href=\"https://doi.org/10.1016/j.compag.2026.111646\" title=\"doi\"/>\n
-        \ </entry>\n  <entry>\n    <id>http://arxiv.org/abs/2502.13103v1</id>\n    <title>WeedsGalore:
-        A Multispectral and Multitemporal UAV-based Dataset for Crop and Weed Segmentation
-        in Agricultural Maize Fields</title>\n    <updated>2025-02-18T18:13:19Z</updated>\n
-        \   <link href=\"https://arxiv.org/abs/2502.13103v1\" rel=\"alternate\" type=\"text/html\"/>\n
-        \   <link href=\"https://arxiv.org/pdf/2502.13103v1\" rel=\"related\" type=\"application/pdf\"
-        title=\"pdf\"/>\n    <summary>Weeds are one of the major reasons for crop
-        yield loss but current weeding practices fail to manage weeds in an efficient
-        and targeted manner. Effective weed management is especially important for
-        crops with high worldwide production such as maize, to maximize crop yield
-        for meeting increasing global demands. Advances in near-sensing and computer
-        vision enable the development of new tools for weed management. Specifically,
-        state-of-the-art segmentation models, coupled with novel sensing technologies,
-        can facilitate timely and accurate weeding and monitoring systems. However,
-        learning-based approaches require annotated data and show a lack of generalization
-        to aerial imaging for different crops. We present a novel dataset for semantic
-        and instance segmentation of crops and weeds in agricultural maize fields.
-        The multispectral UAV-based dataset contains images with RGB, red-edge, and
-        near-infrared bands, a large number of plant instances, dense annotations
-        for maize and four weed classes, and is multitemporal. We provide extensive
-        baseline results for both tasks, including probabilistic methods to quantify
-        prediction uncertainty, improve model calibration, and demonstrate the approach's
-        applicability to out-of-distribution data. The results show the effectiveness
-        of the two additional bands compared to RGB only, and better performance in
-        our target domain than models trained on existing datasets. We hope our dataset
-        advances research on methods and operational systems for fine-grained weed
-        identification, enhancing the robustness and applicability of UAV-based weed
-        management. The dataset and code are available at https://github.com/GFZ/weedsgalore</summary>\n
-        \   <category term=\"cs.CV\" scheme=\"http://arxiv.org/schemas/atom\"/>\n
-        \   <published>2025-02-18T18:13:19Z</published>\n    <arxiv:comment>11 pages,
-        7 figures, 7 tables</arxiv:comment>\n    <arxiv:primary_category term=\"cs.CV\"/>\n
-        \   <author>\n      <name>Ekin Celikkan</name>\n    </author>\n    <author>\n
-        \     <name>Timo Kunzmann</name>\n    </author>\n    <author>\n      <name>Yertay
-        Yeskaliyev</name>\n    </author>\n    <author>\n      <name>Sibylle Itzerott</name>\n
-        \   </author>\n    <author>\n      <name>Nadja Klein</name>\n    </author>\n
-        \   <author>\n      <name>Martin Herold</name>\n    </author>\n  </entry>\n
-        \ <entry>\n    <id>http://arxiv.org/abs/2309.13578v1</id>\n    <title>A SAM-based
-        Solution for Hierarchical Panoptic Segmentation of Crops and Weeds Competition</title>\n
-        \   <updated>2023-09-24T08:34:12Z</updated>\n    <link href=\"https://arxiv.org/abs/2309.13578v1\"
-        rel=\"alternate\" type=\"text/html\"/>\n    <link href=\"https://arxiv.org/pdf/2309.13578v1\"
-        rel=\"related\" type=\"application/pdf\" title=\"pdf\"/>\n    <summary>Panoptic
-        segmentation in agriculture is an advanced computer vision technique that
-        provides a comprehensive understanding of field composition. It facilitates
-        various tasks such as crop and weed segmentation, plant panoptic segmentation,
-        and leaf instance segmentation, all aimed at addressing challenges in agriculture.
-        Exploring the application of panoptic segmentation in agriculture, the 8th
-        Workshop on Computer Vision in Plant Phenotyping and Agriculture (CVPPA) hosted
-        the challenge of hierarchical panoptic segmentation of crops and weeds using
-        the PhenoBench dataset. To tackle the tasks presented in this competition,
-        we propose an approach that combines the effectiveness of the Segment AnyThing
-        Model (SAM) for instance segmentation with prompt input from object detection
-        models. Specifically, we integrated two notable approaches in object detection,
-        namely DINO and YOLO-v8. Our best-performing model achieved a PQ+ score of
-        81.33 based on the evaluation metrics of the competition.</summary>\n    <category
-        term=\"cs.CV\" scheme=\"http://arxiv.org/schemas/atom\"/>\n    <published>2023-09-24T08:34:12Z</published>\n
-        \   <arxiv:comment>Technical report of NYCU-WEED team for the challenge of
-        hierarchical panoptic segmentation of crops and weeds using the PhenoBench
-        dataset at the 8th Workshop on Computer Vision in Plant Phenotyping and Agriculture
-        (CVPPA) - International Conference on Computer Vision (ICCV) 2023</arxiv:comment>\n
-        \   <arxiv:primary_category term=\"cs.CV\"/>\n    <author>\n      <name>Khoa
-        Dang Nguyen</name>\n    </author>\n    <author>\n      <name>Thanh-Hai Phung</name>\n
-        \   </author>\n    <author>\n      <name>Hoang-Giang Cao</name>\n    </author>\n
-        \ </entry>\n  <entry>\n    <id>http://arxiv.org/abs/2410.04983v2</id>\n    <title>RoWeeder:
-        Unsupervised Weed Mapping through Crop-Row Detection</title>\n    <updated>2024-10-08T08:56:57Z</updated>\n
-        \   <link href=\"https://arxiv.org/abs/2410.04983v2\" rel=\"alternate\" type=\"text/html\"/>\n
-        \   <link href=\"https://arxiv.org/pdf/2410.04983v2\" rel=\"related\" type=\"application/pdf\"
-        title=\"pdf\"/>\n    <summary>Precision agriculture relies heavily on effective
-        weed management to ensure robust crop yields. This study presents RoWeeder,
-        an innovative framework for unsupervised weed mapping that combines crop-row
-        detection with a noise-resilient deep learning model. By leveraging crop-row
-        information to create a pseudo-ground truth, our method trains a lightweight
-        deep learning model capable of distinguishing between crops and weeds, even
-        in the presence of noisy data. Evaluated on the WeedMap dataset, RoWeeder
-        achieves an F1 score of 75.3, outperforming several baselines. Comprehensive
-        ablation studies further validated the model's performance. By integrating
-        RoWeeder with drone technology, farmers can conduct real-time aerial surveys,
-        enabling precise weed management across large fields. The code is available
-        at: \\url{https://github.com/pasqualedem/RoWeeder}.</summary>\n    <category
-        term=\"cs.CV\" scheme=\"http://arxiv.org/schemas/atom\"/>\n    <published>2024-10-07T12:26:22Z</published>\n
-        \   <arxiv:comment>Computer Vision for Plant Phenotyping and Agriculture (CVPPA)
-        workshop at ECCV 2024</arxiv:comment>\n    <arxiv:primary_category term=\"cs.CV\"/>\n
-        \   <author>\n      <name>Pasquale De Marinis</name>\n    </author>\n    <author>\n
-        \     <name>Gennaro Vessio</name>\n    </author>\n    <author>\n      <name>Giovanna
-        Castellano</name>\n    </author>\n  </entry>\n  <entry>\n    <id>http://arxiv.org/abs/2010.14708v2</id>\n
-        \   <title>Crop and weed classification based on AutoML</title>\n    <updated>2022-03-28T07:59:27Z</updated>\n
-        \   <link href=\"https://arxiv.org/abs/2010.14708v2\" rel=\"alternate\" type=\"text/html\"/>\n
-        \   <link href=\"https://arxiv.org/pdf/2010.14708v2\" rel=\"related\" type=\"application/pdf\"
-        title=\"pdf\"/>\n    <summary>CNN models already play an important role in
-        classification of crop and weed with high accuracy, more than 95% as reported
-        in literature. However, to manually choose and fine-tune the deep learning
-        models becomes laborious and indispensable in most traditional practices and
-        research. Moreover, the classic objective functions are not thoroughly compatible
-        with agricultural farming tasks as the corresponding models suffer from misclassifying
-        crop to weed, often more likely than in other deep learning application domains.
-        In this paper, we applied autonomous machine learning with a new objective
-        function for crop and weed classification, achieving higher accuracy and lower
-        crop killing rate (rate of identifying a crop as a weed). The experimental
-        results show that our method outperforms state-of-the-art applications, for
-        example, ResNet and VGG19.</summary>\n    <category term=\"cs.AI\" scheme=\"http://arxiv.org/schemas/atom\"/>\n
-        \   <category term=\"cs.LG\" scheme=\"http://arxiv.org/schemas/atom\"/>\n
-        \   <published>2020-10-28T02:35:17Z</published>\n    <arxiv:primary_category
-        term=\"cs.AI\"/>\n    <arxiv:journal_ref>J. Applied Computing and Intelligence,
-        2021, 1(1): 46-60</arxiv:journal_ref>\n    <author>\n      <name>Xuetao Jiang</name>\n
-        \   </author>\n    <author>\n      <name>Binbin Yong</name>\n    </author>\n
-        \   <author>\n      <name>Soheila Garshasbi</name>\n    </author>\n    <author>\n
-        \     <name>Jun Shen</name>\n    </author>\n    <author>\n      <name>Meiyu
-        Jiang</name>\n    </author>\n    <author>\n      <name>Qingguo Zhou</name>\n
-        \   </author>\n    <arxiv:doi>10.3934/aci.2021003</arxiv:doi>\n    <link rel=\"related\"
-        href=\"https://doi.org/10.3934/aci.2021003\" title=\"doi\"/>\n  </entry>\n
-        \ <entry>\n    <id>http://arxiv.org/abs/2601.13196v1</id>\n    <title>Active
-        Informative Planning for UAV-based Weed Mapping using Discrete Gaussian Process
-        Representations</title>\n    <updated>2026-01-19T16:20:27Z</updated>\n    <link
-        href=\"https://arxiv.org/abs/2601.13196v1\" rel=\"alternate\" type=\"text/html\"/>\n
-        \   <link href=\"https://arxiv.org/pdf/2601.13196v1\" rel=\"related\" type=\"application/pdf\"
-        title=\"pdf\"/>\n    <summary>Accurate agricultural weed mapping using unmanned
-        aerial vehicles (UAVs) is crucial for precision farming. While traditional
-        methods rely on rigid, pre-defined flight paths and intensive offline processing,
-        informative path planning (IPP) offers a way to collect data adaptively where
-        it is most needed. Gaussian process (GP) mapping provides a continuous model
-        of weed distribution with built-in uncertainty. However, GPs must be discretised
-        for practical use in autonomous planning. Many discretisation techniques exist,
-        but the impact of discrete representation choice remains poorly understood.
-        This paper investigates how different discrete GP representations influence
-        both mapping quality and mission-level performance in UAV-based weed mapping.
-        Considering a UAV equipped with a downward-facing camera, we implement a receding-horizon
-        IPP strategy that selects sampling locations based on the map uncertainty,
-        travel cost, and coverage penalties. We investigate multiple discretisation
-        strategies for representing the GP posterior and use their induced map partitions
-        to generate candidate viewpoints for planning. Experiments on real-world weed
-        distributions show that representation choice significantly affects exploration
-        behaviour and efficiency. Overall, our results demonstrate that discretisation
-        is not only a representational detail but a key design choice that shapes
-        planning dynamics, coverage efficiency, and computational load in online UAV
-        weed mapping.</summary>\n    <category term=\"cs.RO\" scheme=\"http://arxiv.org/schemas/atom\"/>\n
-        \   <published>2026-01-19T16:20:27Z</published>\n    <arxiv:primary_category
-        term=\"cs.RO\"/>\n    <author>\n      <name>Jacob Swindell</name>\n    </author>\n
-        \   <author>\n      <name>Marija Popovi\u0107</name>\n    </author>\n    <author>\n
-        \     <name>Riccardo Polvara</name>\n    </author>\n  </entry>\n  <entry>\n
-        \   <id>http://arxiv.org/abs/2109.02716v2</id>\n    <title>Vision Transformers
-        For Weeds and Crops Classification Of High Resolution UAV Images</title>\n
-        \   <updated>2021-10-22T08:34:08Z</updated>\n    <link href=\"https://arxiv.org/abs/2109.02716v2\"
-        rel=\"alternate\" type=\"text/html\"/>\n    <link href=\"https://arxiv.org/pdf/2109.02716v2\"
-        rel=\"related\" type=\"application/pdf\" title=\"pdf\"/>\n    <summary>Crop
-        and weed monitoring is an important challenge for agriculture and food production
-        nowadays. Thanks to recent advances in data acquisition and computation technologies,
-        agriculture is evolving to a more smart and precision farming to meet with
-        the high yield and high quality crop production. Classification and recognition
-        in Unmanned Aerial Vehicles (UAV) images are important phases for crop monitoring.
-        Advances in deep learning models relying on Convolutional Neural Network (CNN)
-        have achieved high performances in image classification in the agricultural
-        domain. Despite the success of this architecture, CNN still faces many challenges
-        such as high computation cost, the need of large labelled datasets, ... Natural
-        language processing's transformer architecture can be an alternative approach
-        to deal with CNN's limitations. Making use of the self-attention paradigm,
-        Vision Transformer (ViT) models can achieve competitive or better results
-        without applying any convolution operations. In this paper, we adopt the self-attention
-        mechanism via the ViT models for plant classification of weeds and crops:
-        red beet, off-type beet (green leaves), parsley and spinach. Our experiments
-        show that with small set of labelled training data, ViT models perform better
-        compared to state-of-the-art CNN-based models EfficientNet and ResNet, with
-        a top accuracy of 99.8\\% achieved by the ViT model.</summary>\n    <category
-        term=\"cs.CV\" scheme=\"http://arxiv.org/schemas/atom\"/>\n    <published>2021-09-06T19:58:54Z</published>\n
-        \   <arxiv:comment>Compared to the last version of the article, we have added
-        some experiments, that is the evaluation of the performances by varying the
-        number of samples in the test and train sets</arxiv:comment>\n    <arxiv:primary_category
-        term=\"cs.CV\"/>\n    <author>\n      <name>Reenul Reedha</name>\n    </author>\n
-        \   <author>\n      <name>Eric Dericquebourg</name>\n    </author>\n    <author>\n
-        \     <name>Raphael Canals</name>\n    </author>\n    <author>\n      <name>Adel
-        Hafiane</name>\n    </author>\n    <arxiv:doi>10.3390/rs14030592</arxiv:doi>\n
-        \   <link rel=\"related\" href=\"https://doi.org/10.3390/rs14030592\" title=\"doi\"/>\n
-        \ </entry>\n  <entry>\n    <id>http://arxiv.org/abs/2011.02193v2</id>\n    <title>Weed
-        Density and Distribution Estimation for Precision Agriculture using Semi-Supervised
-        Learning</title>\n    <updated>2021-02-18T14:05:01Z</updated>\n    <link href=\"https://arxiv.org/abs/2011.02193v2\"
-        rel=\"alternate\" type=\"text/html\"/>\n    <link href=\"https://arxiv.org/pdf/2011.02193v2\"
-        rel=\"related\" type=\"application/pdf\" title=\"pdf\"/>\n    <summary>Uncontrolled
-        growth of weeds can severely affect the crop yield and quality. Unrestricted
-        use of herbicide for weed removal alters biodiversity and cause environmental
-        pollution. Instead, identifying weed-infested regions can aid selective chemical
-        treatment of these regions. Advances in analyzing farm images have resulted
-        in solutions to identify weed plants. However, a majority of these approaches
-        are based on supervised learning methods which requires huge amount of manually
-        annotated images. As a result, these supervised approaches are economically
-        infeasible for the individual farmer because of the wide variety of plant
-        species being cultivated. In this paper, we propose a deep learning-based
-        semi-supervised approach for robust estimation of weed density and distribution
-        across farmlands using only limited color images acquired from autonomous
-        robots. This weed density and distribution can be useful in a site-specific
-        weed management system for selective treatment of infected areas using autonomous
-        robots. In this work, the foreground vegetation pixels containing crops and
-        weeds are first identified using a Convolutional Neural Network (CNN) based
-        unsupervised segmentation. Subsequently, the weed infected regions are identified
-        using a fine-tuned CNN, eliminating the need for designing hand-crafted features.
-        The approach is validated on two datasets of different crop/weed species (1)
-        Crop Weed Field Image Dataset (CWFID), which consists of carrot plant images
-        and the (2) Sugar Beets dataset. The proposed method is able to localize weed-infested
-        regions a maximum recall of 0.99 and estimate weed density with a maximum
-        accuracy of 82.13%. Hence, the proposed approach is shown to generalize to
-        different plant species without the need for extensive labeled data.</summary>\n
-        \   <category term=\"cs.CV\" scheme=\"http://arxiv.org/schemas/atom\"/>\n
-        \   <category term=\"cs.RO\" scheme=\"http://arxiv.org/schemas/atom\"/>\n
-        \   <published>2020-11-04T09:35:53Z</published>\n    <arxiv:comment>Included
-        few details about the dataset. This paper has been accepted in IEEE Access.
-        Citation: S. Shorewala, A. Ashfaque, S. R and U. Verma, \"Weed Density and
-        Distribution Estimation for Precision Agriculture using Semi-Supervised Learning,\"
-        in IEEE Access, doi: 10.1109/ACCESS.2021.3057912</arxiv:comment>\n    <arxiv:primary_category
-        term=\"cs.CV\"/>\n    <arxiv:journal_ref>IEEE Access, vol 9, 2021</arxiv:journal_ref>\n
-        \   <author>\n      <name>Shantam Shorewala</name>\n    </author>\n    <author>\n
-        \     <name>Armaan Ashfaque</name>\n    </author>\n    <author>\n      <name>Sidharth
-        R</name>\n    </author>\n    <author>\n      <name>Ujjwal Verma</name>\n    </author>\n
-        \   <arxiv:doi>10.1109/ACCESS.2021.3057912</arxiv:doi>\n    <link rel=\"related\"
-        href=\"https://doi.org/10.1109/ACCESS.2021.3057912\" title=\"doi\"/>\n  </entry>\n
-        \ <entry>\n    <id>http://arxiv.org/abs/2106.10581v1</id>\n    <title>Supervised
+        \ </entry>\n  <entry>\n    <id>http://arxiv.org/abs/2106.10581v1</id>\n    <title>Supervised
         learning for crop/weed classification based on color and texture features</title>\n
         \   <updated>2021-06-19T22:31:54Z</updated>\n    <link href=\"https://arxiv.org/abs/2106.10581v1\"
         rel=\"alternate\" type=\"text/html\"/>\n    <link href=\"https://arxiv.org/pdf/2106.10581v1\"
@@ -747,495 +494,212 @@ interactions:
         \   <published>2021-06-19T22:31:54Z</published>\n    <arxiv:primary_category
         term=\"cs.CV\"/>\n    <author>\n      <name>Faiza Mekhalfa</name>\n    </author>\n
         \   <author>\n      <name>Fouad Yacef</name>\n    </author>\n  </entry>\n
-        \ <entry>\n    <id>http://arxiv.org/abs/2307.12588v2</id>\n    <title>BonnBot-I:
-        A Precise Weed Management and Crop Monitoring Platform</title>\n    <updated>2024-12-03T07:45:34Z</updated>\n
-        \   <link href=\"https://arxiv.org/abs/2307.12588v2\" rel=\"alternate\" type=\"text/html\"/>\n
-        \   <link href=\"https://arxiv.org/pdf/2307.12588v2\" rel=\"related\" type=\"application/pdf\"
-        title=\"pdf\"/>\n    <summary>Cultivation and weeding are two of the primary
-        tasks performed by farmers today. A recent challenge for weeding is the desire
-        to reduce herbicide and pesticide treatments while maintaining crop quality
-        and quantity. In this paper, we introduce BonnBot-I a precise weed management
-        platform which can also performs field monitoring. Driven by crop monitoring
-        approaches that can accurately locate and classify plants (weed and crop)
-        we further improve their performance by fusing the platform available GNSS
-        and wheel odometry. This improves the tracking accuracy of our crop monitoring
-        approach from a normalized average error of 8.3% to 3.5%, evaluated on a new
-        publicly available corn dataset. We also present a novel arrangement of weeding
-        tools mounted on linear actuators evaluated in simulated environments. We
-        replicate weed distributions from a real field, using the results from our
-        monitoring approach, and show the validity of our work-space division techniques
-        which require significantly less movement (a 50% reduction) to achieve similar
-        results. Overall, BonnBot-I is a significant step forward in precise weed
-        management with a novel method of selectively spraying and controlling weeds
-        in an arable field.</summary>\n    <category term=\"cs.RO\" scheme=\"http://arxiv.org/schemas/atom\"/>\n
-        \   <category term=\"cs.AR\" scheme=\"http://arxiv.org/schemas/atom\"/>\n
-        \   <category term=\"cs.MA\" scheme=\"http://arxiv.org/schemas/atom\"/>\n
-        \   <category term=\"eess.SY\" scheme=\"http://arxiv.org/schemas/atom\"/>\n
-        \   <published>2023-07-24T07:59:54Z</published>\n    <arxiv:comment>2022 IEEE/RSJ
-        International Conference on Intelligent Robots and Systems (IROS)</arxiv:comment>\n
-        \   <arxiv:primary_category term=\"cs.RO\"/>\n    <author>\n      <name>Alireza
-        Ahmadi</name>\n    </author>\n    <author>\n      <name>Michael Halstead</name>\n
-        \   </author>\n    <author>\n      <name>Chris McCool</name>\n    </author>\n
-        \ </entry>\n  <entry>\n    <id>http://arxiv.org/abs/1806.03412v1</id>\n    <title>Fully
-        Convolutional Networks with Sequential Information for Robust Crop and Weed
-        Detection in Precision Farming</title>\n    <updated>2018-06-09T04:56:01Z</updated>\n
-        \   <link href=\"https://arxiv.org/abs/1806.03412v1\" rel=\"alternate\" type=\"text/html\"/>\n
-        \   <link href=\"https://arxiv.org/pdf/1806.03412v1\" rel=\"related\" type=\"application/pdf\"
-        title=\"pdf\"/>\n    <summary>Reducing the use of agrochemicals is an important
-        component towards sustainable agriculture. Robots that can perform targeted
-        weed control offer the potential to contribute to this goal, for example,
-        through specialized weeding actions such as selective spraying or mechanical
-        weed removal. A prerequisite of such systems is a reliable and robust plant
-        classification system that is able to distinguish crop and weed in the field.
-        A major challenge in this context is the fact that different fields show a
-        large variability. Thus, classification systems have to robustly cope with
-        substantial environmental changes with respect to weed pressure and weed types,
-        growth stages of the crop, visual appearance, and soil conditions. In this
-        paper, we propose a novel crop-weed classification system that relies on a
-        fully convolutional network with an encoder-decoder structure and incorporates
-        spatial information by considering image sequences. Exploiting the crop arrangement
-        information that is observable from the image sequences enables our system
-        to robustly estimate a pixel-wise labeling of the images into crop and weed,
-        i.e., a semantic segmentation. We provide a thorough experimental evaluation,
-        which shows that our system generalizes well to previously unseen fields under
-        varying environmental conditions --- a key capability to actually use such
-        systems in precision framing. We provide comparisons to other state-of-the-art
-        approaches and show that our system substantially improves the accuracy of
-        crop-weed classification without requiring a retraining of the model.</summary>\n
-        \   <category term=\"cs.CV\" scheme=\"http://arxiv.org/schemas/atom\"/>\n
-        \   <published>2018-06-09T04:56:01Z</published>\n    <arxiv:comment>Accepted
-        for publication in IEEE Robotics and Automation Letters (RA-L), 2018</arxiv:comment>\n
-        \   <arxiv:primary_category term=\"cs.CV\"/>\n    <author>\n      <name>Philipp
-        Lottes</name>\n    </author>\n    <author>\n      <name>Jens Behley</name>\n
-        \   </author>\n    <author>\n      <name>Andres Milioto</name>\n    </author>\n
-        \   <author>\n      <name>Cyrill Stachniss</name>\n    </author>\n    <arxiv:doi>10.1109/LRA.2018.2846289</arxiv:doi>\n
-        \   <link rel=\"related\" href=\"https://doi.org/10.1109/LRA.2018.2846289\"
-        title=\"doi\"/>\n  </entry>\n  <entry>\n    <id>http://arxiv.org/abs/2112.07819v1</id>\n
-        \   <title>Weed Recognition using Deep Learning Techniques on Class-imbalanced
-        Imagery</title>\n    <updated>2021-12-15T01:00:05Z</updated>\n    <link href=\"https://arxiv.org/abs/2112.07819v1\"
-        rel=\"alternate\" type=\"text/html\"/>\n    <link href=\"https://arxiv.org/pdf/2112.07819v1\"
-        rel=\"related\" type=\"application/pdf\" title=\"pdf\"/>\n    <summary>Most
-        weed species can adversely impact agricultural productivity by competing for
-        nutrients required by high-value crops. Manual weeding is not practical for
-        large cropping areas. Many studies have been undertaken to develop automatic
-        weed management systems for agricultural crops. In this process, one of the
-        major tasks is to recognise the weeds from images. However, weed recognition
-        is a challenging task. It is because weed and crop plants can be similar in
-        colour, texture and shape which can be exacerbated further by the imaging
-        conditions, geographic or weather conditions when the images are recorded.
-        Advanced machine learning techniques can be used to recognise weeds from imagery.
-        In this paper, we have investigated five state-of-the-art deep neural networks,
-        namely VGG16, ResNet-50, Inception-V3, Inception-ResNet-v2 and MobileNetV2,
-        and evaluated their performance for weed recognition. We have used several
-        experimental settings and multiple dataset combinations. In particular, we
-        constructed a large weed-crop dataset by combining several smaller datasets,
-        mitigating class imbalance by data augmentation, and using this dataset in
-        benchmarking the deep neural networks. We investigated the use of transfer
-        learning techniques by preserving the pre-trained weights for extracting the
-        features and fine-tuning them using the images of crop and weed datasets.
-        We found that VGG16 performed better than others on small-scale datasets,
-        while ResNet-50 performed better than other deep networks on the large combined
-        dataset.</summary>\n    <category term=\"cs.CV\" scheme=\"http://arxiv.org/schemas/atom\"/>\n
-        \   <category term=\"cs.AI\" scheme=\"http://arxiv.org/schemas/atom\"/>\n
-        \   <published>2021-12-15T01:00:05Z</published>\n    <arxiv:comment>The paper
-        is accepted by Crop and Pasture Science journal (https://www.publish.csiro.au/CP/justaccepted/CP21626)</arxiv:comment>\n
-        \   <arxiv:primary_category term=\"cs.CV\"/>\n    <author>\n      <name>A
-        S M Mahmudul Hasan</name>\n    </author>\n    <author>\n      <name>Ferdous
-        Sohel</name>\n    </author>\n    <author>\n      <name>Dean Diepeveen</name>\n
-        \   </author>\n    <author>\n      <name>Hamid Laga</name>\n    </author>\n
-        \   <author>\n      <name>Michael G. K. Jones</name>\n    </author>\n  </entry>\n
-        \ <entry>\n    <id>http://arxiv.org/abs/2610.24893v1</id>\n    <title>Multi-Speed
-        Field Evaluation of a Semi-Autonomous Precision Sprayer for Weed Control in
-        Vegetable Crops</title>\n    <updated>2026-10-17T22:31:01Z</updated>\n    <link
-        href=\"https://arxiv.org/abs/2610.24893v1\" rel=\"alternate\" type=\"text/html\"/>\n
-        \   <link href=\"https://arxiv.org/pdf/2610.24893v1\" rel=\"related\" type=\"application/pdf\"
-        title=\"pdf\"/>\n    <summary>Machine vision-guided precision spraying is
-        promising for sustainable vegetable production by enabling site-specific weed
-        targeting, reducing herbicide application while protecting crop yield and
-        quality. However, the effects of operating speed of sprayer systems on the
-        integrated detection-tracking-actuation pipeline remain insufficiently characterized
-        under field conditions. This study evaluated a semi-autonomous, tractor-based
-        spraying system for targeted weed control in radish and quantified performance
-        across three operating speeds. A five-season dataset comprising 10,599 images
-        and 84,311 annotated instances across seven classes was curated for model
-        development. A YOLOv11-medium model was integrated with ByteTrack tracking
-        and a customized 12-nozzle sprayer on a semi-autonomous electric tractor.
-        Field trials were conducted at 0.13, 0.27, and 0.45 m/s (i.e., 0.3, 0.6, and
-        1.0 mph) to characterize speed-dependent changes in weed detection, targeting,
-        actuation, and crop damage. At the lowest speed of 0.13 m/s, the system achieved
-        94.6% mAP@50 and 93.2% recall for weed and crop detection. However, increasing
-        platform speed substantially reduced system performance, with weed hit rate
-        declining from 78.3% to 35.0% and crop contact rates increasing from 20.1%
-        to 28.7%. Consequently, the system did not meet predefined commercial-viability
-        thresholds. These results demonstrate that practical deployment requires improvements
-        beyond weed detection alone, particularly coordinated improvements in motion-robust
-        plant perception, spray-timing compensation, and crop-adjacent actuation precision.
-        The identified performance bottlenecks provide specific engineering targets
-        for advancing vision-guided precision spraying toward practical, high-speed
-        vegetable weed management. The software programs developed in this study have
-        been made publicly available to support future precision weeding research.</summary>\n
-        \   <category term=\"cs.CV\" scheme=\"http://arxiv.org/schemas/atom\"/>\n
-        \   <published>2026-10-17T22:31:01Z</published>\n    <arxiv:comment>16 pages,
-        5 figures, 7 tables</arxiv:comment>\n    <arxiv:primary_category term=\"cs.CV\"/>\n
-        \   <author>\n      <name>Md Khairul Islam</name>\n    </author>\n    <author>\n
-        \     <name>Boyang Deng</name>\n    </author>\n    <author>\n      <name>Yuzhen
-        Lu</name>\n    </author>\n    <author>\n      <name>Daniel Brainard</name>\n
-        \   </author>\n    <author>\n      <name>Ajit Srivastava</name>\n    </author>\n
-        \ </entry>\n  <entry>\n    <id>http://arxiv.org/abs/2310.01055v3</id>\n    <title>Improved
-        Crop and Weed Detection with Diverse Data Ensemble Learning</title>\n    <updated>2024-06-14T06:26:48Z</updated>\n
-        \   <link href=\"https://arxiv.org/abs/2310.01055v3\" rel=\"alternate\" type=\"text/html\"/>\n
-        \   <link href=\"https://arxiv.org/pdf/2310.01055v3\" rel=\"related\" type=\"application/pdf\"
-        title=\"pdf\"/>\n    <summary>Modern agriculture heavily relies on Site-Specific
-        Farm Management practices, necessitating accurate detection, localization,
-        and quantification of crops and weeds in the field, which can be achieved
-        using deep learning techniques. In this regard, crop and weed-specific binary
-        segmentation models have shown promise. However, uncontrolled field conditions
-        limit their performance from one field to the other. To improve semantic model
-        generalization, existing methods augment and synthesize agricultural data
-        to account for uncontrolled field conditions. However, given highly varied
-        field conditions, these methods have limitations. To overcome the challenges
-        of model deterioration in such conditions, we propose utilizing data specific
-        to other crops and weeds for our specific target problem. To achieve this,
-        we propose a novel ensemble framework. Our approach involves utilizing different
-        crop and weed models trained on diverse datasets and employing a teacher-student
-        configuration. By using homogeneous stacking of base models and a trainable
-        meta-architecture to combine their outputs, we achieve significant improvements
-        for Canola crops and Kochia weeds on unseen test data, surpassing the performance
-        of single semantic segmentation models. We identify the UNET meta-architecture
-        as the most effective in this context. Finally, through ablation studies,
-        we demonstrate and validate the effectiveness of our proposed model. We observe
-        that including base models trained on other target crops and weeds can help
-        generalize the model to capture varied field conditions. Lastly, we propose
-        two novel datasets with varied conditions for comparisons.</summary>\n    <category
-        term=\"cs.CV\" scheme=\"http://arxiv.org/schemas/atom\"/>\n    <category term=\"cs.AI\"
-        scheme=\"http://arxiv.org/schemas/atom\"/>\n    <category term=\"cs.LG\" scheme=\"http://arxiv.org/schemas/atom\"/>\n
-        \   <published>2023-10-02T10:05:30Z</published>\n    <arxiv:comment>Accepted
-        in CVPR Workshop as an Oral</arxiv:comment>\n    <arxiv:primary_category term=\"cs.CV\"/>\n
-        \   <author>\n      <name>Muhammad Hamza Asad</name>\n    </author>\n    <author>\n
-        \     <name>Saeed Anwar</name>\n    </author>\n    <author>\n      <name>Abdul
-        Bais</name>\n    </author>\n  </entry>\n  <entry>\n    <id>http://arxiv.org/abs/1806.03413v1</id>\n
-        \   <title>Joint Stem Detection and Crop-Weed Classification for Plant-specific
-        Treatment in Precision Farming</title>\n    <updated>2018-06-09T04:56:07Z</updated>\n
-        \   <link href=\"https://arxiv.org/abs/1806.03413v1\" rel=\"alternate\" type=\"text/html\"/>\n
-        \   <link href=\"https://arxiv.org/pdf/1806.03413v1\" rel=\"related\" type=\"application/pdf\"
-        title=\"pdf\"/>\n    <summary>Applying agrochemicals is the default procedure
-        for conventional weed control in crop production, but has negative impacts
-        on the environment. Robots have the potential to treat every plant in the
-        field individually and thus can reduce the required use of such chemicals.
-        To achieve that, robots need the ability to identify crops and weeds in the
-        field and must additionally select effective treatments. While certain types
-        of weed can be treated mechanically, other types need to be treated by (selective)
-        spraying. In this paper, we present an approach that provides the necessary
-        information for effective plant-specific treatment. It outputs the stem location
-        for weeds, which allows for mechanical treatments, and the covered area of
-        the weed for selective spraying. Our approach uses an end-to-end trainable
-        fully convolutional network that simultaneously estimates stem positions as
-        well as the covered area of crops and weeds. It jointly learns the class-wise
-        stem detection and the pixel-wise semantic segmentation. Experimental evaluations
-        on different real-world datasets show that our approach is able to reliably
-        solve this problem. Compared to state-of-the-art approaches, our approach
-        not only substantially improves the stem detection accuracy, i.e., distinguishing
-        crop and weed stems, but also provides an improvement in the semantic segmentation
-        performance.</summary>\n    <category term=\"cs.CV\" scheme=\"http://arxiv.org/schemas/atom\"/>\n
-        \   <published>2018-06-09T04:56:07Z</published>\n    <arxiv:comment>Submitted
-        to the International Conference on Intelligent Robots and Systems (IROS),
-        2018</arxiv:comment>\n    <arxiv:primary_category term=\"cs.CV\"/>\n    <author>\n
-        \     <name>Philipp Lottes</name>\n    </author>\n    <author>\n      <name>Jens
-        Behley</name>\n    </author>\n    <author>\n      <name>Nived Chebrolu</name>\n
-        \   </author>\n    <author>\n      <name>Andres Milioto</name>\n    </author>\n
-        \   <author>\n      <name>Cyrill Stachniss</name>\n    </author>\n  </entry>\n
-        \ <entry>\n    <id>http://arxiv.org/abs/2305.10084v1</id>\n    <title>CWD30:
-        A Comprehensive and Holistic Dataset for Crop Weed Recognition in Precision
-        Agriculture</title>\n    <updated>2023-05-17T09:39:01Z</updated>\n    <link
-        href=\"https://arxiv.org/abs/2305.10084v1\" rel=\"alternate\" type=\"text/html\"/>\n
-        \   <link href=\"https://arxiv.org/pdf/2305.10084v1\" rel=\"related\" type=\"application/pdf\"
-        title=\"pdf\"/>\n    <summary>The growing demand for precision agriculture
-        necessitates efficient and accurate crop-weed recognition and classification
-        systems. Current datasets often lack the sample size, diversity, and hierarchical
-        structure needed to develop robust deep learning models for discriminating
-        crops and weeds in agricultural fields. Moreover, the similar external structure
-        and phenomics of crops and weeds complicate recognition tasks. To address
-        these issues, we present the CWD30 dataset, a large-scale, diverse, holistic,
-        and hierarchical dataset tailored for crop-weed recognition tasks in precision
-        agriculture. CWD30 comprises over 219,770 high-resolution images of 20 weed
-        species and 10 crop species, encompassing various growth stages, multiple
-        viewing angles, and environmental conditions. The images were collected from
-        diverse agricultural fields across different geographic locations and seasons,
-        ensuring a representative dataset. The dataset's hierarchical taxonomy enables
-        fine-grained classification and facilitates the development of more accurate,
-        robust, and generalizable deep learning models. We conduct extensive baseline
-        experiments to validate the efficacy of the CWD30 dataset. Our experiments
-        reveal that the dataset poses significant challenges due to intra-class variations,
-        inter-class similarities, and data imbalance. Additionally, we demonstrate
-        that minor training modifications like using CWD30 pretrained backbones can
-        significantly enhance model performance and reduce convergence time, saving
-        training resources on several downstream tasks. These challenges provide valuable
-        insights and opportunities for future research in crop-weed recognition. We
-        believe that the CWD30 dataset will serve as a benchmark for evaluating crop-weed
-        recognition algorithms, promoting advancements in precision agriculture, and
-        fostering collaboration among researchers in the field.</summary>\n    <category
-        term=\"cs.CV\" scheme=\"http://arxiv.org/schemas/atom\"/>\n    <published>2023-05-17T09:39:01Z</published>\n
-        \   <arxiv:comment>15 pages, 14 figures, journal research article</arxiv:comment>\n
-        \   <arxiv:primary_category term=\"cs.CV\"/>\n    <arxiv:journal_ref>Computers
-        and Electronics in Agriculture 229 (2025): 109737</arxiv:journal_ref>\n    <author>\n
-        \     <name>Talha Ilyas</name>\n    </author>\n    <author>\n      <name>Dewa
-        Made Sri Arsa</name>\n    </author>\n    <author>\n      <name>Khubaib Ahmad</name>\n
-        \   </author>\n    <author>\n      <name>Yong Chae Jeong</name>\n    </author>\n
-        \   <author>\n      <name>Okjae Won</name>\n    </author>\n    <author>\n
-        \     <name>Jong Hoon Lee</name>\n    </author>\n    <author>\n      <name>Hyongsuk
-        Kim</name>\n    </author>\n    <arxiv:doi>10.1016/j.compag.2024.109737</arxiv:doi>\n
-        \   <link rel=\"related\" href=\"https://doi.org/10.1016/j.compag.2024.109737\"
-        title=\"doi\"/>\n  </entry>\n  <entry>\n    <id>http://arxiv.org/abs/2203.11766v1</id>\n
-        \   <title>Monitoring and mapping of crop fields with UAV swarms based on
-        information gain</title>\n    <updated>2022-03-22T14:28:58Z</updated>\n    <link
-        href=\"https://arxiv.org/abs/2203.11766v1\" rel=\"alternate\" type=\"text/html\"/>\n
-        \   <link href=\"https://arxiv.org/pdf/2203.11766v1\" rel=\"related\" type=\"application/pdf\"
-        title=\"pdf\"/>\n    <summary>Monitoring crop fields to map features like
-        weeds can be efficiently performed with unmanned aerial vehicles (UAVs) that
-        can cover large areas in a short time due to their privileged perspective
-        and motion speed. However, the need for high-resolution images for precise
-        classification of features (e.g., detecting even the smallest weeds in the
-        field) contrasts with the limited payload and ight time of current UAVs. Thus,
-        it requires several flights to cover a large field uniformly. However, the
-        assumption that the whole field must be observed with the same precision is
-        unnecessary when features are heterogeneously distributed, like weeds appearing
-        in patches over the field. In this case, an adaptive approach that focuses
-        only on relevant areas can perform better, especially when multiple UAVs are
-        employed simultaneously. Leveraging on a swarm-robotics approach, we propose
-        a monitoring and mapping strategy that adaptively chooses the target areas
-        based on the expected information gain, which measures the potential for uncertainty
-        reduction due to further observations. The proposed strategy scales well with
-        group size and leads to smaller mapping errors than optimal pre-planned monitoring
-        approaches.</summary>\n    <category term=\"cs.RO\" scheme=\"http://arxiv.org/schemas/atom\"/>\n
-        \   <published>2022-03-22T14:28:58Z</published>\n    <arxiv:primary_category
-        term=\"cs.RO\"/>\n    <author>\n      <name>Carlos Carbone</name>\n    </author>\n
-        \   <author>\n      <name>Dario Albani</name>\n    </author>\n    <author>\n
-        \     <name>Federico Magistri</name>\n    </author>\n    <author>\n      <name>Dimitri
-        Ognibene</name>\n    </author>\n    <author>\n      <name>Cyrill Stachniss</name>\n
-        \   </author>\n    <author>\n      <name>Gert Kootstra</name>\n    </author>\n
-        \   <author>\n      <name>Daniele Nardi</name>\n    </author>\n    <author>\n
-        \     <name>Vito Trianni</name>\n    </author>\n    <arxiv:doi>10.1007/978-3-030-92790-5_24</arxiv:doi>\n
-        \   <link rel=\"related\" href=\"https://doi.org/10.1007/978-3-030-92790-5_24\"
-        title=\"doi\"/>\n  </entry>\n  <entry>\n    <id>http://arxiv.org/abs/1807.00035v1</id>\n
-        \   <title>An Efficient Data Warehouse for Crop Yield Prediction</title>\n
-        \   <updated>2018-06-26T15:51:30Z</updated>\n    <link href=\"https://arxiv.org/abs/1807.00035v1\"
-        rel=\"alternate\" type=\"text/html\"/>\n    <link href=\"https://arxiv.org/pdf/1807.00035v1\"
-        rel=\"related\" type=\"application/pdf\" title=\"pdf\"/>\n    <summary>Nowadays,
-        precision agriculture combined with modern information and communications
-        technologies, is becoming more common in agricultural activities such as automated
-        irrigation systems, precision planting, variable rate applications of nutrients
-        and pesticides, and agricultural decision support systems. In the latter,
-        crop management data analysis, based on machine learning and data mining,
-        focuses mainly on how to efficiently forecast and improve crop yield. In recent
-        years, raw and semi-processed agricultural data are usually collected using
-        sensors, robots, satellites, weather stations, farm equipment, farmers and
-        agribusinesses while the Internet of Things (IoT) should deliver the promise
-        of wirelessly connecting objects and devices in the agricultural ecosystem.
-        Agricultural data typically captures information about farming entities and
-        operations. Every farming entity encapsulates an individual farming concept,
-        such as field, crop, seed, soil, temperature, humidity, pest, and weed. Agricultural
-        datasets are spatial, temporal, complex, heterogeneous, non-standardized,
-        and very large. In particular, agricultural data is considered as Big Data
-        in terms of volume, variety, velocity and veracity. Designing and developing
-        a data warehouse for precision agriculture is a key foundation for establishing
-        a crop intelligence platform, which will enable resource efficient agronomy
-        decision making and recommendations. Some of the requirements for such an
-        agricultural data warehouse are privacy, security, and real-time access among
-        its stakeholders (e.g., farmers, farm equipment manufacturers, agribusinesses,
-        co-operative societies, customers and possibly Government agencies). However,
-        currently there are very few reports in the literature that focus on the design
-        of efficient data warehouses with the view of enabling Agricultural Big Data
-        analysis and data mining. In this paper ...</summary>\n    <category term=\"cs.CY\"
-        scheme=\"http://arxiv.org/schemas/atom\"/>\n    <category term=\"cs.DB\" scheme=\"http://arxiv.org/schemas/atom\"/>\n
-        \   <published>2018-06-26T15:51:30Z</published>\n    <arxiv:comment>12 pages.
-        Keywords. Data warehouse, constellation schema, crop yield prediction, precision
-        agriculture</arxiv:comment>\n    <arxiv:primary_category term=\"cs.CY\"/>\n
-        \   <arxiv:journal_ref>Proceedings of the 14th International Conference on
-        Precision Agriculture. June 24 to June 27, 2018, Montreal, Quebec, Canada</arxiv:journal_ref>\n
-        \   <author>\n      <name>Vuong M. Ngo</name>\n    </author>\n    <author>\n
-        \     <name>Nhien-An Le-Khac</name>\n    </author>\n    <author>\n      <name>M-Tahar
-        Kechadi</name>\n    </author>\n  </entry>\n  <entry>\n    <id>http://arxiv.org/abs/2503.07210v1</id>\n
-        \   <title>Discrete Gaussian Process Representations for Optimising UAV-based
-        Precision Weed Mapping</title>\n    <updated>2025-03-10T11:50:15Z</updated>\n
-        \   <link href=\"https://arxiv.org/abs/2503.07210v1\" rel=\"alternate\" type=\"text/html\"/>\n
-        \   <link href=\"https://arxiv.org/pdf/2503.07210v1\" rel=\"related\" type=\"application/pdf\"
-        title=\"pdf\"/>\n    <summary>Accurate agricultural weed mapping using UAVs
-        is crucial for precision farming applications. Traditional methods rely on
-        orthomosaic stitching from rigid flight paths, which is computationally intensive
-        and time-consuming. Gaussian Process (GP)-based mapping offers continuous
-        modelling of the underlying variable (i.e. weed distribution) but requires
-        discretisation for practical tasks like path planning or visualisation. Current
-        implementations often default to quadtrees or gridmaps without systematically
-        evaluating alternatives. This study compares five discretisation methods:
-        quadtrees, wedgelets, top-down binary space partition (BSP) trees using least
-        square error (LSE), bottom-up BSP trees using graph merging, and variable-resolution
-        hexagonal grids. Evaluations on real-world weed distributions measure visual
-        similarity, mean squared error (MSE), and computational efficiency. Results
-        show quadtrees perform best overall, but alternatives excel in specific scenarios:
-        hexagons or BSP LSE suit fields with large, dominant weed patches, while quadtrees
-        are optimal for dispersed small-scale distributions. These findings highlight
-        the need to tailor discretisation approaches to weed distribution patterns
-        (patch size, density, coverage) rather than relying on default methods. By
-        choosing representations based on the underlying distribution, we can improve
-        mapping accuracy and efficiency for precision agriculture applications.</summary>\n
+        \ <entry>\n    <id>http://arxiv.org/abs/2203.11766v1</id>\n    <title>Monitoring
+        and mapping of crop fields with UAV swarms based on information gain</title>\n
+        \   <updated>2022-03-22T14:28:58Z</updated>\n    <link href=\"https://arxiv.org/abs/2203.11766v1\"
+        rel=\"alternate\" type=\"text/html\"/>\n    <link href=\"https://arxiv.org/pdf/2203.11766v1\"
+        rel=\"related\" type=\"application/pdf\" title=\"pdf\"/>\n    <summary>Monitoring
+        crop fields to map features like weeds can be efficiently performed with unmanned
+        aerial vehicles (UAVs) that can cover large areas in a short time due to their
+        privileged perspective and motion speed. However, the need for high-resolution
+        images for precise classification of features (e.g., detecting even the smallest
+        weeds in the field) contrasts with the limited payload and ight time of current
+        UAVs. Thus, it requires several flights to cover a large field uniformly.
+        However, the assumption that the whole field must be observed with the same
+        precision is unnecessary when features are heterogeneously distributed, like
+        weeds appearing in patches over the field. In this case, an adaptive approach
+        that focuses only on relevant areas can perform better, especially when multiple
+        UAVs are employed simultaneously. Leveraging on a swarm-robotics approach,
+        we propose a monitoring and mapping strategy that adaptively chooses the target
+        areas based on the expected information gain, which measures the potential
+        for uncertainty reduction due to further observations. The proposed strategy
+        scales well with group size and leads to smaller mapping errors than optimal
+        pre-planned monitoring approaches.</summary>\n    <category term=\"cs.RO\"
+        scheme=\"http://arxiv.org/schemas/atom\"/>\n    <published>2022-03-22T14:28:58Z</published>\n
+        \   <arxiv:primary_category term=\"cs.RO\"/>\n    <author>\n      <name>Carlos
+        Carbone</name>\n    </author>\n    <author>\n      <name>Dario Albani</name>\n
+        \   </author>\n    <author>\n      <name>Federico Magistri</name>\n    </author>\n
+        \   <author>\n      <name>Dimitri Ognibene</name>\n    </author>\n    <author>\n
+        \     <name>Cyrill Stachniss</name>\n    </author>\n    <author>\n      <name>Gert
+        Kootstra</name>\n    </author>\n    <author>\n      <name>Daniele Nardi</name>\n
+        \   </author>\n    <author>\n      <name>Vito Trianni</name>\n    </author>\n
+        \   <arxiv:doi>10.1007/978-3-030-92790-5_24</arxiv:doi>\n    <link rel=\"related\"
+        href=\"https://doi.org/10.1007/978-3-030-92790-5_24\" title=\"doi\"/>\n  </entry>\n
+        \ <entry>\n    <id>http://arxiv.org/abs/1808.00100v2</id>\n    <title>WeedMap:
+        A large-scale semantic weed mapping framework using aerial multispectral imaging
+        and deep neural network for precision farming</title>\n    <updated>2018-09-06T14:50:02Z</updated>\n
+        \   <link href=\"https://arxiv.org/abs/1808.00100v2\" rel=\"alternate\" type=\"text/html\"/>\n
+        \   <link href=\"https://arxiv.org/pdf/1808.00100v2\" rel=\"related\" type=\"application/pdf\"
+        title=\"pdf\"/>\n    <summary>We present a novel weed segmentation and mapping
+        framework that processes multispectral images obtained from an unmanned aerial
+        vehicle (UAV) using a deep neural network (DNN). Most studies on crop/weed
+        semantic segmentation only consider single images for processing and classification.
+        Images taken by UAVs often cover only a few hundred square meters with either
+        color only or color and near-infrared (NIR) channels. Computing a single large
+        and accurate vegetation map (e.g., crop/weed) using a DNN is non-trivial due
+        to difficulties arising from: (1) limited ground sample distances (GSDs) in
+        high-altitude datasets, (2) sacrificed resolution resulting from downsampling
+        high-fidelity images, and (3) multispectral image alignment. To address these
+        issues, we adopt a stand sliding window approach that operates on only small
+        portions of multispectral orthomosaic maps (tiles), which are channel-wise
+        aligned and calibrated radiometrically across the entire map. We define the
+        tile size to be the same as that of the DNN input to avoid resolution loss.
+        Compared to our baseline model (i.e., SegNet with 3 channel RGB inputs) yielding
+        an area under the curve (AUC) of [background=0.607, crop=0.681, weed=0.576],
+        our proposed model with 9 input channels achieves [0.839, 0.863, 0.782]. Additionally,
+        we provide an extensive analysis of 20 trained models, both qualitatively
+        and quantitatively, in order to evaluate the effects of varying input channels
+        and tunable network hyperparameters. Furthermore, we release a large sugar
+        beet/weed aerial dataset with expertly guided annotations for further research
+        in the fields of remote sensing, precision agriculture, and agricultural robotics.</summary>\n
+        \   <category term=\"cs.RO\" scheme=\"http://arxiv.org/schemas/atom\"/>\n
+        \   <published>2018-07-31T22:45:11Z</published>\n    <arxiv:comment>25 pages,
+        14 figures, MDPI Remote Sensing</arxiv:comment>\n    <arxiv:primary_category
+        term=\"cs.RO\"/>\n    <author>\n      <name>Inkyu Sa</name>\n    </author>\n
+        \   <author>\n      <name>Marija Popovic</name>\n    </author>\n    <author>\n
+        \     <name>Raghav Khanna</name>\n    </author>\n    <author>\n      <name>Zetao
+        Chen</name>\n    </author>\n    <author>\n      <name>Philipp Lottes</name>\n
+        \   </author>\n    <author>\n      <name>Frank Liebisch</name>\n    </author>\n
+        \   <author>\n      <name>Juan Nieto</name>\n    </author>\n    <author>\n
+        \     <name>Cyrill Stachniss</name>\n    </author>\n    <author>\n      <name>Achim
+        Walter</name>\n    </author>\n    <author>\n      <name>Roland Siegwart</name>\n
+        \   </author>\n  </entry>\n  <entry>\n    <id>http://arxiv.org/abs/2108.01884v1</id>\n
+        \   <title>Adaptive Path Planning for UAV-based Multi-Resolution Semantic
+        Segmentation</title>\n    <updated>2021-08-04T07:30:04Z</updated>\n    <link
+        href=\"https://arxiv.org/abs/2108.01884v1\" rel=\"alternate\" type=\"text/html\"/>\n
+        \   <link href=\"https://arxiv.org/pdf/2108.01884v1\" rel=\"related\" type=\"application/pdf\"
+        title=\"pdf\"/>\n    <summary>In this paper, we address the problem of adaptive
+        path planning for accurate semantic segmentation of terrain using unmanned
+        aerial vehicles (UAVs). The usage of UAVs for terrain monitoring and remote
+        sensing is rapidly gaining momentum due to their high mobility, low cost,
+        and flexible deployment. However, a key challenge is planning missions to
+        maximize the value of acquired data in large environments given flight time
+        limitations. To address this, we propose an online planning algorithm which
+        adapts the UAV paths to obtain high-resolution semantic segmentations necessary
+        in areas on the terrain with fine details as they are detected in incoming
+        images. This enables us to perform close inspections at low altitudes only
+        where required, without wasting energy on exhaustive mapping at maximum resolution.
+        A key feature of our approach is a new accuracy model for deep learning-based
+        architectures that captures the relationship between UAV altitude and semantic
+        segmentation accuracy. We evaluate our approach on the application of crop/weed
+        segmentation in precision agriculture using real-world field data.</summary>\n
         \   <category term=\"cs.RO\" scheme=\"http://arxiv.org/schemas/atom\"/>\n
         \   <category term=\"cs.AI\" scheme=\"http://arxiv.org/schemas/atom\"/>\n
-        \   <published>2025-03-10T11:50:15Z</published>\n    <arxiv:primary_category
-        term=\"cs.RO\"/>\n    <author>\n      <name>Jacob Swindell</name>\n    </author>\n
-        \   <author>\n      <name>Madeleine Darbyshire</name>\n    </author>\n    <author>\n
-        \     <name>Marija Popovic</name>\n    </author>\n    <author>\n      <name>Riccardo
-        Polvara</name>\n    </author>\n  </entry>\n  <entry>\n    <id>http://arxiv.org/abs/2604.23442v1</id>\n
-        \   <title>Resource-Constrained UAV-Based Weed Detection for Site-Specific
-        Management on Edge Devices</title>\n    <updated>2026-04-25T20:58:51Z</updated>\n
-        \   <link href=\"https://arxiv.org/abs/2604.23442v1\" rel=\"alternate\" type=\"text/html\"/>\n
-        \   <link href=\"https://arxiv.org/pdf/2604.23442v1\" rel=\"related\" type=\"application/pdf\"
-        title=\"pdf\"/>\n    <summary>Weeds compete with crops for light, water, and
-        nutrients, reducing yield and crop quality. Efficient weed detection is essential
-        for site-specific weed management (SSWM). Although deep learning models have
-        been deployed on UAV-based edge systems, a systematic understanding of how
-        different model architectures perform under real-world resource constraints
-        is still lacking. To address this gap, this study proposes a deployment-oriented
-        framework for real-time UAV-based weed detection on resource-constrained edge
-        platforms. The framework integrates UAV data acquisition, model development,
-        and on-device inference, with a focus on balancing detection accuracy and
-        computational efficiency. A diverse set of state-of-the-art object detection
-        models is evaluated, including convolution-based YOLO models (v8-v12) and
-        transformer-based RT-DETR models (v1-v2). Experiments on three edge devices
-        (Jetson Orin Nano, Jetson AGX Xavier, and Jetson AGX Orin) demonstrate clear
-        trade-offs between accuracy and inference latency across models and hardware
-        configurations. Results show that high-capacity models achieve up to 86.9%
-        mAP50 but suffer from high latency, limiting real-time deployment. In contrast,
-        lightweight models achieve 66%-71% mAP50 with significantly lower latency,
-        enabling real-time performance. Among all models, RT-DETRv2-R50-M achieves
-        competitive accuracy (79% mAP50) with improved efficiency, while YOLOv10n
-        provides the fastest inference speed. YOLOv11s and RT-DETRv2-R50-M offer the
-        best balance between accuracy and speed, making them strong candidates for
-        real-time UAV deployment.</summary>\n    <category term=\"cs.CV\" scheme=\"http://arxiv.org/schemas/atom\"/>\n
-        \   <published>2026-04-25T20:58:51Z</published>\n    <arxiv:primary_category
-        term=\"cs.CV\"/>\n    <author>\n      <name>Linyuan Wang</name>\n    </author>\n
-        \   <author>\n      <name>Haibo Yao</name>\n    </author>\n    <author>\n
-        \     <name>Te-Ming Tseng</name>\n    </author>\n    <author>\n      <name>Kelvin
-        Betitame</name>\n    </author>\n    <author>\n      <name>Xin Sun</name>\n
-        \   </author>\n    <author>\n      <name>Hanbo Huang</name>\n    </author>\n
-        \   <author>\n      <name>Dong Chen</name>\n    </author>\n  </entry>\n  <entry>\n
-        \   <id>http://arxiv.org/abs/2006.16866v1</id>\n    <title>Rapid Response
-        Crop Maps in Data Sparse Regions</title>\n    <updated>2020-06-23T17:19:26Z</updated>\n
-        \   <link href=\"https://arxiv.org/abs/2006.16866v1\" rel=\"alternate\" type=\"text/html\"/>\n
-        \   <link href=\"https://arxiv.org/pdf/2006.16866v1\" rel=\"related\" type=\"application/pdf\"
-        title=\"pdf\"/>\n    <summary>Spatial information on cropland distribution,
-        often called cropland or crop maps, are critical inputs for a wide range of
-        agriculture and food security analyses and decisions. However, high-resolution
-        cropland maps are not readily available for most countries, especially in
-        regions dominated by smallholder farming (e.g., sub-Saharan Africa). These
-        maps are especially critical in times of crisis when decision makers need
-        to rapidly design and enact agriculture-related policies and mitigation strategies,
-        including providing humanitarian assistance, dispersing targeted aid, or boosting
-        productivity for farmers. A major challenge for developing crop maps is that
-        many regions do not have readily accessible ground truth data on croplands
-        necessary for training and validating predictive models, and field campaigns
-        are not feasible for collecting labels for rapid response. We present a method
-        for rapid mapping of croplands in regions where little to no ground data is
-        available. We present results for this method in Togo, where we delivered
-        a high-resolution (10 m) cropland map in under 10 days to facilitate rapid
-        response to the COVID-19 pandemic by the Togolese government. This demonstrated
-        a successful transition of machine learning applications research to operational
-        rapid response in a real humanitarian crisis. All maps, data, and code are
-        publicly available to enable future research and operational systems in data-sparse
-        regions.</summary>\n    <category term=\"cs.CV\" scheme=\"http://arxiv.org/schemas/atom\"/>\n
-        \   <category term=\"cs.LG\" scheme=\"http://arxiv.org/schemas/atom\"/>\n
-        \   <category term=\"eess.IV\" scheme=\"http://arxiv.org/schemas/atom\"/>\n
-        \   <published>2020-06-23T17:19:26Z</published>\n    <arxiv:comment>Presented
-        at KDD 2020 Humanitarian Mapping Workshop</arxiv:comment>\n    <arxiv:primary_category
-        term=\"cs.CV\"/>\n    <author>\n      <name>Hannah Kerner</name>\n    </author>\n
-        \   <author>\n      <name>Gabriel Tseng</name>\n    </author>\n    <author>\n
-        \     <name>Inbal Becker-Reshef</name>\n    </author>\n    <author>\n      <name>Catherine
-        Nakalembe</name>\n    </author>\n    <author>\n      <name>Brian Barker</name>\n
-        \   </author>\n    <author>\n      <name>Blake Munshell</name>\n    </author>\n
-        \   <author>\n      <name>Madhava Paliyam</name>\n    </author>\n    <author>\n
-        \     <name>Mehdi Hosseini</name>\n    </author>\n  </entry>\n  <entry>\n
-        \   <id>http://arxiv.org/abs/2602.23677v1</id>\n    <title>Vision-Language
-        Semantic Grounding for Multi-Domain Crop-Weed Segmentation</title>\n    <updated>2026-02-27T04:53:18Z</updated>\n
-        \   <link href=\"https://arxiv.org/abs/2602.23677v1\" rel=\"alternate\" type=\"text/html\"/>\n
-        \   <link href=\"https://arxiv.org/pdf/2602.23677v1\" rel=\"related\" type=\"application/pdf\"
-        title=\"pdf\"/>\n    <summary>Fine-grained crop-weed segmentation is essential
-        for enabling targeted herbicide application in precision agriculture. However,
-        existing deep learning models struggle to generalize across heterogeneous
-        agricultural environments due to reliance on dataset-specific visual features.
-        We propose Vision-Language Weed Segmentation (VL-WS), a novel framework that
-        addresses this limitation by grounding pixel-level segmentation in semantically
-        aligned, domain-invariant representations. Our architecture employs a dual-encoder
-        design, where frozen Contrastive Language-Image Pretraining (CLIP) embeddings
-        and task-specific spatial features are fused and modulated via Feature-wise
-        Linear Modulation (FiLM) layers conditioned on natural language captions.
-        This design enables image level textual descriptions to guide channel-wise
-        feature refinement while preserving fine-grained spatial localization. Unlike
-        prior works restricted to training and evaluation on single-source datasets,
-        VL-WS is trained on a unified corpus that includes close-range ground imagery
-        (robotic platforms) and high-altitude UAV imagery, covering diverse crop types,
-        weed species, growth stages, and sensing conditions. Experimental results
-        across four benchmark datasets demonstrate the effectiveness of our framework,
-        with VL-WS achieving a mean Dice score of 91.64% and outperforming the CNN
-        baseline by 4.98%. The largest gains occur on the most challenging weed class,
-        where VL-WS attains 80.45% Dice score compared to 65.03% for the best baseline,
-        representing a 15.42% improvement. VL-WS further maintains stable weed segmentation
-        performance under limited target-domain supervision, indicating improved generalization
-        and data efficiency. These findings highlight the potential of vision-language
-        alignment to enable scalable, label-efficient segmentation models deployable
-        across diverse real-world agricultural domains.</summary>\n    <category term=\"cs.CV\"
-        scheme=\"http://arxiv.org/schemas/atom\"/>\n    <published>2026-02-27T04:53:18Z</published>\n
-        \   <arxiv:primary_category term=\"cs.CV\"/>\n    <author>\n      <name>Nazia
-        Hossain</name>\n    </author>\n    <author>\n      <name>Xintong Jiang</name>\n
-        \   </author>\n    <author>\n      <name>Yu Tian</name>\n    </author>\n    <author>\n
-        \     <name>Philippe Seguin</name>\n    </author>\n    <author>\n      <name>O.
-        Grant Clark</name>\n    </author>\n    <author>\n      <name>Shangpeng Sun</name>\n
-        \   </author>\n  </entry>\n  <entry>\n    <id>http://arxiv.org/abs/2604.14837v1</id>\n
-        \   <title>Improved Multiscale Structural Mapping with Supervertex Vision
-        Transformer for the Detection of Alzheimer's Disease Neurodegeneration</title>\n
-        \   <updated>2026-04-16T10:15:22Z</updated>\n    <link href=\"https://arxiv.org/abs/2604.14837v1\"
-        rel=\"alternate\" type=\"text/html\"/>\n    <link href=\"https://arxiv.org/pdf/2604.14837v1\"
-        rel=\"related\" type=\"application/pdf\" title=\"pdf\"/>\n    <summary>Alzheimer's
-        disease (AD) confirmation often relies on positron emission tomography (PET)
-        or cerebrospinal fluid (CSF) analysis, which are costly and invasive. Consequently,
-        structural MRI biomarkers such as cortical thickness (CT) are widely used
-        for non-invasive AD screening. Multiscale structural mapping (MSSM) was recently
-        proposed to integrate gray-white matter contrasts (GWCs) with CT from a single
-        T1-weighted MRI (T1w) scan. Building on this framework, we propose MSSM+,
-        together with surface supervertex mapping (SSVM) and a Supervertex Vision
-        Transformer (SV-ViT). 3D T1w images from individuals with AD and cognitively
-        normal (CN) controls were analyzed. MSSM+ extends MSSM by incorporating sulcal
-        depth and cortical curvature at the vertex level. SSVM partitions the cortical
-        surface into supervertices (surface patches) that effectively represent inter-
-        and intra-regional spatial relationships. SV-ViT is a Vision Transformer architecture
-        operating on these supervertices, enabling anatomically informed learning
-        from surface mesh representations. Compared with MSSM, MSSM+ identified more
-        spatially extensive and statistically significant group differences between
-        AD and CN. In AD vs. CN classification, MSSM+ achieved a 3%p higher area under
-        the precision-recall curve than MSSM. Vendor-specific analyses further demonstrated
-        reduced signal variability and consistently improved classification performance
-        across MR manufacturers relative to CT, GWCs, and MSSM. These findings suggest
-        that MSSM+ combined with SV-ViT is a promising MRI-based imaging marker for
-        AD detection prior to CSF/PET confirmation.</summary>\n    <category term=\"cs.CV\"
-        scheme=\"http://arxiv.org/schemas/atom\"/>\n    <published>2026-04-16T10:15:22Z</published>\n
-        \   <arxiv:comment>Submitted to Human Brain Mapping</arxiv:comment>\n    <arxiv:primary_category
-        term=\"cs.CV\"/>\n    <arxiv:journal_ref>Human Brain Mapping 47(8), e70548
-        (2026)</arxiv:journal_ref>\n    <author>\n      <name>Geonwoo Baek</name>\n
-        \   </author>\n    <author>\n      <name>David H. Salat</name>\n    </author>\n
-        \   <author>\n      <name>Ikbeom Jang</name>\n    </author>\n    <arxiv:doi>10.1002/hbm.70548</arxiv:doi>\n
-        \   <link rel=\"related\" href=\"https://doi.org/10.1002/hbm.70548\" title=\"doi\"/>\n
-        \ </entry>\n</feed>\n"
+        \   <published>2021-08-04T07:30:04Z</published>\n    <arxiv:comment>6 pages,
+        submission to European Conference on Mobile Robots (ECMR) 2021</arxiv:comment>\n
+        \   <arxiv:primary_category term=\"cs.RO\"/>\n    <author>\n      <name>Felix
+        Stache</name>\n    </author>\n    <author>\n      <name>Jonas Westheider</name>\n
+        \   </author>\n    <author>\n      <name>Federico Magistri</name>\n    </author>\n
+        \   <author>\n      <name>Marija Popovi\u0107</name>\n    </author>\n    <author>\n
+        \     <name>Cyrill Stachniss</name>\n    </author>\n  </entry>\n  <entry>\n
+        \   <id>http://arxiv.org/abs/1906.02809v1</id>\n    <title>Scene and Environment
+        Monitoring Using Aerial Imagery and Deep Learning</title>\n    <updated>2019-06-06T20:58:39Z</updated>\n
+        \   <link href=\"https://arxiv.org/abs/1906.02809v1\" rel=\"alternate\" type=\"text/html\"/>\n
+        \   <link href=\"https://arxiv.org/pdf/1906.02809v1\" rel=\"related\" type=\"application/pdf\"
+        title=\"pdf\"/>\n    <summary>Unmanned Aerial vehicles (UAV) are a promising
+        technology for smart farming related applications. Aerial monitoring of agriculture
+        farms with UAV enables key decision-making pertaining to crop monitoring.
+        Advancements in deep learning techniques have further enhanced the precision
+        and reliability of aerial imagery based analysis. The capabilities to mount
+        various kinds of sensors (RGB, spectral cameras) on UAV allows remote crop
+        analysis applications such as vegetation classification and segmentation,
+        crop counting, yield monitoring and prediction, crop mapping, weed detection,
+        disease and nutrient deficiency detection and others. A significant amount
+        of studies are found in the literature that explores UAV for smart farming
+        applications. In this paper, a review of studies applying deep learning on
+        UAV imagery for smart farming is presented. Based on the application, we have
+        classified these studies into five major groups including: vegetation identification,
+        classification and segmentation, crop counting and yield predictions, crop
+        mapping, weed detection and crop disease and nutrient deficiency detection.
+        An in depth critical analysis of each study is provided.</summary>\n    <category
+        term=\"cs.CV\" scheme=\"http://arxiv.org/schemas/atom\"/>\n    <published>2019-06-06T20:58:39Z</published>\n
+        \   <arxiv:comment>8</arxiv:comment>\n    <arxiv:primary_category term=\"cs.CV\"/>\n
+        \   <arxiv:journal_ref>IoTI4 Workshop 2019</arxiv:journal_ref>\n    <author>\n
+        \     <name>Mahdi Maktabdar Oghaz</name>\n    </author>\n    <author>\n      <name>Manzoor
+        Razaak</name>\n    </author>\n    <author>\n      <name>Hamideh Kerdegari</name>\n
+        \   </author>\n    <author>\n      <name>Vasileios Argyriou</name>\n    </author>\n
+        \   <author>\n      <name>Paolo Remagnino</name>\n    </author>\n  </entry>\n
+        \ <entry>\n    <id>http://arxiv.org/abs/2205.11061v1</id>\n    <title>Vegetation
+        Mapping by UAV Visible Imagery and Machine Learning</title>\n    <updated>2022-05-23T05:59:25Z</updated>\n
+        \   <link href=\"https://arxiv.org/abs/2205.11061v1\" rel=\"alternate\" type=\"text/html\"/>\n
+        \   <link href=\"https://arxiv.org/pdf/2205.11061v1\" rel=\"related\" type=\"application/pdf\"
+        title=\"pdf\"/>\n    <summary>An experimental field cropped with sugar-beet
+        with a wide spreading of weeds has been used to test vegetation identification
+        from drone visible imagery. Expert masked and hue-filtered pictures have been
+        used to train several Machine Learning algorithms to develop a semi-automatic
+        methodology for identification and mapping species at high resolution. Results
+        show that 5m altitude allows for obtaining maps with an identification efficiency
+        of more than 90%. Such a method can be easily integrated to present VRHA,
+        as much as tools to obtain detailed maps of vegetation.</summary>\n    <category
+        term=\"cs.CV\" scheme=\"http://arxiv.org/schemas/atom\"/>\n    <category term=\"stat.ML\"
+        scheme=\"http://arxiv.org/schemas/atom\"/>\n    <published>2022-05-23T05:59:25Z</published>\n
+        \   <arxiv:comment>16 pages, numberedlines</arxiv:comment>\n    <arxiv:primary_category
+        term=\"cs.CV\"/>\n    <author>\n      <name>Giuliano Vitali</name>\n    </author>\n
+        \ </entry>\n  <entry>\n    <id>http://arxiv.org/abs/1911.03098v4</id>\n    <title>Building
+        an Aerial-Ground Robotics System for Precision Farming: An Adaptable Solution</title>\n
+        \   <updated>2022-06-07T08:21:22Z</updated>\n    <link href=\"https://arxiv.org/abs/1911.03098v4\"
+        rel=\"alternate\" type=\"text/html\"/>\n    <link href=\"https://arxiv.org/pdf/1911.03098v4\"
+        rel=\"related\" type=\"application/pdf\" title=\"pdf\"/>\n    <summary>The
+        application of autonomous robots in agriculture is gaining increasing popularity
+        thanks to the high impact it may have on food security, sustainability, resource
+        use efficiency, reduction of chemical treatments, and the optimization of
+        human effort and yield. With this vision, the Flourish research project aimed
+        to develop an adaptable robotic solution for precision farming that combines
+        the aerial survey capabilities of small autonomous unmanned aerial vehicles
+        (UAVs) with targeted intervention performed by multi-purpose unmanned ground
+        vehicles (UGVs). This paper presents an overview of the scientific and technological
+        advances and outcomes obtained in the project. We introduce multi-spectral
+        perception algorithms and aerial and ground-based systems developed for monitoring
+        crop density, weed pressure, crop nitrogen nutrition status, and to accurately
+        classify and locate weeds. We then introduce the navigation and mapping systems
+        tailored to our robots in the agricultural environment, as well as the modules
+        for collaborative mapping. We finally present the ground intervention hardware,
+        software solutions, and interfaces we implemented and tested in different
+        field conditions and with different crops. We describe a real use case in
+        which a UAV collaborates with a UGV to monitor the field and to perform selective
+        spraying without human intervention.</summary>\n    <category term=\"cs.RO\"
+        scheme=\"http://arxiv.org/schemas/atom\"/>\n    <published>2019-11-08T07:19:47Z</published>\n
+        \   <arxiv:comment>Published in IEEE Robotics &amp; Automation Magazine, vol.
+        28, no. 3, pp. 29-49, Sept. 2021</arxiv:comment>\n    <arxiv:primary_category
+        term=\"cs.RO\"/>\n    <arxiv:journal_ref>IEEE Robotics &amp; Automation Magazine,
+        vol. 28, no. 3, pp. 29-49, Sept. 2021</arxiv:journal_ref>\n    <author>\n
+        \     <name>Alberto Pretto</name>\n    </author>\n    <author>\n      <name>St\xE9phanie
+        Aravecchia</name>\n    </author>\n    <author>\n      <name>Wolfram Burgard</name>\n
+        \   </author>\n    <author>\n      <name>Nived Chebrolu</name>\n    </author>\n
+        \   <author>\n      <name>Christian Dornhege</name>\n    </author>\n    <author>\n
+        \     <name>Tillmann Falck</name>\n    </author>\n    <author>\n      <name>Freya
+        Fleckenstein</name>\n    </author>\n    <author>\n      <name>Alessandra Fontenla</name>\n
+        \   </author>\n    <author>\n      <name>Marco Imperoli</name>\n    </author>\n
+        \   <author>\n      <name>Raghav Khanna</name>\n    </author>\n    <author>\n
+        \     <name>Frank Liebisch</name>\n    </author>\n    <author>\n      <name>Philipp
+        Lottes</name>\n    </author>\n    <author>\n      <name>Andres Milioto</name>\n
+        \   </author>\n    <author>\n      <name>Daniele Nardi</name>\n    </author>\n
+        \   <author>\n      <name>Sandro Nardi</name>\n    </author>\n    <author>\n
+        \     <name>Johannes Pfeifer</name>\n    </author>\n    <author>\n      <name>Marija
+        Popovi\u0107</name>\n    </author>\n    <author>\n      <name>Ciro Potena</name>\n
+        \   </author>\n    <author>\n      <name>C\xE9dric Pradalier</name>\n    </author>\n
+        \   <author>\n      <name>Elisa Rothacker-Feder</name>\n    </author>\n    <author>\n
+        \     <name>Inkyu Sa</name>\n    </author>\n    <author>\n      <name>Alexander
+        Schaefer</name>\n    </author>\n    <author>\n      <name>Roland Siegwart</name>\n
+        \   </author>\n    <author>\n      <name>Cyrill Stachniss</name>\n    </author>\n
+        \   <author>\n      <name>Achim Walter</name>\n    </author>\n    <author>\n
+        \     <name>Wera Winterhalter</name>\n    </author>\n    <author>\n      <name>Xiaolong
+        Wu</name>\n    </author>\n    <author>\n      <name>Juan Nieto</name>\n    </author>\n
+        \   <arxiv:doi>10.1109/MRA.2020.3012492</arxiv:doi>\n    <link rel=\"related\"
+        href=\"https://doi.org/10.1109/MRA.2020.3012492\" title=\"doi\"/>\n  </entry>\n</feed>\n"
     headers:
       accept-ranges:
       - bytes
       age:
-      - '0'
+      - '82'
       connection:
       - keep-alive
       content-length:
-      - '66026'
+      - '23657'
       content-type:
       - application/atom+xml; charset=utf-8
       date:
-      - Mon, 09 Nov 2026 18:52:49 GMT
+      - Sun, 15 Nov 2026 06:28:23 GMT
       server:
       - Google Frontend
       strict-transport-security:
@@ -1243,16 +707,16 @@ interactions:
       via:
       - 1.1 google, 1.1 varnish, 1.1 varnish, 1.1 varnish
       x-cache:
-      - MISS, MISS, MISS
+      - MISS, MISS, HIT
       x-cache-hits:
       - 0, 0, 0
       x-cloud-trace-context:
-      - 6a36123a081c184bb8068cc9320efa5f
+      - 60f79d6976bb46c1fd308aa35be9b35d
       x-served-by:
-      - cache-lga-kjfk8660077-LGA, cache-lga-kjfk8660077-LGA, cache-lga-kjfk8660077-LGA,
-        cache-mrs1530065-MRS
+      - cache-lga-kjfk8660020-LGA, cache-lga-kjfk8660020-LGA, cache-lga-kjfk8660020-LGA,
+        cache-mrs1530052-MRS
       x-timer:
-      - S1794250369.973468,VS0,VE570
+      - S1794724103.069372,VS0,VE1
     status:
       code: 200
       message: OK
@@ -7864,868 +7328,6 @@ interactions:
       - '0.099'
       x-ratelimit-reset:
       - '18431'
-    status:
-      code: 200
-      message: OK
-- request:
-    body: ''
-    headers:
-      accept:
-      - '*/*'
-      accept-encoding:
-      - gzip, deflate
-      connection:
-      - keep-alive
-      host:
-      - export.arxiv.org
-    method: GET
-    uri: https://export.arxiv.org/api/query?max_results=25&search_query=all%3AUAV+all%3Acrop+all%3Aweed+all%3Amapping&start=25
-  response:
-    body:
-      string: "<?xml version='1.0' encoding='UTF-8'?>\n<feed xmlns:opensearch=\"http://a9.com/-/spec/opensearch/1.1/\"
-        xmlns:arxiv=\"http://arxiv.org/schemas/atom\" xmlns=\"http://www.w3.org/2005/Atom\">\n
-        \ <id>https://arxiv.org/api/6v1KfMTTXcOLFhN8cn4wVrJraCw</id>\n  <title>arXiv
-        Query: search_query=all:UAV OR all:crop OR all:weed OR all:mapping&amp;id_list=&amp;start=25&amp;max_results=25</title>\n
-        \ <updated>2026-11-09T18:52:50Z</updated>\n  <link href=\"https://arxiv.org/api/query?search_query=all:UAV+OR+(all:crop+OR+(all:weed+OR+all:mapping))&amp;start=25&amp;max_results=25&amp;id_list=\"
-        type=\"application/atom+xml\"/>\n  <opensearch:itemsPerPage>25</opensearch:itemsPerPage>\n
-        \ <opensearch:totalResults>199720</opensearch:totalResults>\n  <opensearch:startIndex>25</opensearch:startIndex>\n
-        \ <entry>\n    <id>http://arxiv.org/abs/2505.07444v1</id>\n    <title>Lightweight
-        Multispectral Crop-Weed Segmentation for Precision Agriculture</title>\n    <updated>2025-05-12T11:08:42Z</updated>\n
-        \   <link href=\"https://arxiv.org/abs/2505.07444v1\" rel=\"alternate\" type=\"text/html\"/>\n
-        \   <link href=\"https://arxiv.org/pdf/2505.07444v1\" rel=\"related\" type=\"application/pdf\"
-        title=\"pdf\"/>\n    <summary>Efficient crop-weed segmentation is critical
-        for site-specific weed control in precision agriculture. Conventional CNN-based
-        methods struggle to generalize and rely on RGB imagery, limiting performance
-        under complex field conditions. To address these challenges, we propose a
-        lightweight transformer-CNN hybrid. It processes RGB, Near-Infrared (NIR),
-        and Red-Edge (RE) bands using specialized encoders and dynamic modality integration.
-        Evaluated on the WeedsGalore dataset, the model achieves a segmentation accuracy
-        (mean IoU) of 78.88%, outperforming RGB-only models by 15.8 percentage points.
-        With only 8.7 million parameters, the model offers high accuracy, computational
-        efficiency, and potential for real-time deployment on Unmanned Aerial Vehicles
-        (UAVs) and edge devices, advancing precision weed management.</summary>\n
-        \   <category term=\"cs.CV\" scheme=\"http://arxiv.org/schemas/atom\"/>\n
-        \   <category term=\"cs.RO\" scheme=\"http://arxiv.org/schemas/atom\"/>\n
-        \   <category term=\"eess.IV\" scheme=\"http://arxiv.org/schemas/atom\"/>\n
-        \   <published>2025-05-12T11:08:42Z</published>\n    <arxiv:comment>4 pages,
-        5 figures, 1 table</arxiv:comment>\n    <arxiv:primary_category term=\"cs.CV\"/>\n
-        \   <author>\n      <name>Zeynep Galymzhankyzy</name>\n    </author>\n    <author>\n
-        \     <name>Eric Martinson</name>\n    </author>\n  </entry>\n  <entry>\n
-        \   <id>http://arxiv.org/abs/2503.20068v1</id>\n    <title>iNatAg: Multi-Class
-        Classification Models Enabled by a Large-Scale Benchmark Dataset with 4.7M
-        Images of 2,959 Crop and Weed Species</title>\n    <updated>2025-03-25T21:04:42Z</updated>\n
-        \   <link href=\"https://arxiv.org/abs/2503.20068v1\" rel=\"alternate\" type=\"text/html\"/>\n
-        \   <link href=\"https://arxiv.org/pdf/2503.20068v1\" rel=\"related\" type=\"application/pdf\"
-        title=\"pdf\"/>\n    <summary>Accurate identification of crop and weed species
-        is critical for precision agriculture and sustainable farming. However, it
-        remains a challenging task due to a variety of factors -- a high degree of
-        visual similarity among species, environmental variability, and a continued
-        lack of large, agriculture-specific image data. We introduce iNatAg, a large-scale
-        image dataset which contains over 4.7 million images of 2,959 distinct crop
-        and weed species, with precise annotations along the taxonomic hierarchy from
-        binary crop/weed labels to specific species labels. Curated from the broader
-        iNaturalist database, iNatAg contains data from every continent and accurately
-        reflects the variability of natural image captures and environments. Enabled
-        by this data, we train benchmark models built upon the Swin Transformer architecture
-        and evaluate the impact of various modifications such as the incorporation
-        of geospatial data and LoRA finetuning. Our best models achieve state-of-the-art
-        performance across all taxonomic classification tasks, achieving 92.38\\%
-        on crop and weed classification. Furthermore, the scale of our dataset enables
-        us to explore incorrect misclassifications and unlock new analytic possiblities
-        for plant species. By combining large-scale species coverage, multi-task labels,
-        and geographic diversity, iNatAg provides a new foundation for building robust,
-        geolocation-aware agricultural classification systems. We release the iNatAg
-        dataset publicly through AgML (https://github.com/Project-AgML/AgML), enabling
-        direct access and integration into agricultural machine learning workflows.</summary>\n
-        \   <category term=\"cs.CV\" scheme=\"http://arxiv.org/schemas/atom\"/>\n
-        \   <published>2025-03-25T21:04:42Z</published>\n    <arxiv:primary_category
-        term=\"cs.CV\"/>\n    <author>\n      <name>Naitik Jain</name>\n    </author>\n
-        \   <author>\n      <name>Amogh Joshi</name>\n    </author>\n    <author>\n
-        \     <name>Mason Earles</name>\n    </author>\n  </entry>\n  <entry>\n    <id>http://arxiv.org/abs/2507.01269v1</id>\n
-        \   <title>Advancements in Weed Mapping: A Systematic Review</title>\n    <updated>2025-07-02T01:02:52Z</updated>\n
-        \   <link href=\"https://arxiv.org/abs/2507.01269v1\" rel=\"alternate\" type=\"text/html\"/>\n
-        \   <link href=\"https://arxiv.org/pdf/2507.01269v1\" rel=\"related\" type=\"application/pdf\"
-        title=\"pdf\"/>\n    <summary>Weed mapping plays a critical role in precision
-        management by providing accurate and timely data on weed distribution, enabling
-        targeted control and reduced herbicide use. This minimizes environmental impacts,
-        supports sustainable land management, and improves outcomes across agricultural
-        and natural environments. Recent advances in weed mapping leverage ground-vehicle
-        Red Green Blue (RGB) cameras, satellite and drone-based remote sensing combined
-        with sensors such as spectral, Near Infra-Red (NIR), and thermal cameras.
-        The resulting data are processed using advanced techniques including big data
-        analytics and machine learning, significantly improving the spatial and temporal
-        resolution of weed maps and enabling site-specific management decisions. Despite
-        a growing body of research in this domain, there is a lack of comprehensive
-        literature reviews specifically focused on weed mapping. In particular, the
-        absence of a structured analysis spanning the entire mapping pipeline, from
-        data acquisition to processing techniques and mapping tools, limits progress
-        in the field. This review addresses these gaps by systematically examining
-        state-of-the-art methods in data acquisition (sensor and platform technologies),
-        data processing (including annotation and modelling), and mapping techniques
-        (such as spatiotemporal analysis and decision support tools). Following PRISMA
-        guidelines, we critically evaluate and synthesize key findings from the literature
-        to provide a holistic understanding of the weed mapping landscape. This review
-        serves as a foundational reference to guide future research and support the
-        development of efficient, scalable, and sustainable weed management systems.</summary>\n
-        \   <category term=\"cs.CV\" scheme=\"http://arxiv.org/schemas/atom\"/>\n
-        \   <category term=\"eess.IV\" scheme=\"http://arxiv.org/schemas/atom\"/>\n
-        \   <published>2025-07-02T01:02:52Z</published>\n    <arxiv:primary_category
-        term=\"cs.CV\"/>\n    <arxiv:journal_ref>European Journal of Agronomy 175
-        (2026): 127992</arxiv:journal_ref>\n    <author>\n      <name>Mohammad Jahanbakht</name>\n
-        \   </author>\n    <author>\n      <name>Alex Olsen</name>\n    </author>\n
-        \   <author>\n      <name>Ross Marchant</name>\n    </author>\n    <author>\n
-        \     <name>Emilie Fillols</name>\n    </author>\n    <author>\n      <name>Mostafa
-        Rahimi Azghadi</name>\n    </author>\n    <arxiv:doi>10.1016/j.eja.2026.127992</arxiv:doi>\n
-        \   <link rel=\"related\" href=\"https://doi.org/10.1016/j.eja.2026.127992\"
-        title=\"doi\"/>\n  </entry>\n  <entry>\n    <id>http://arxiv.org/abs/2310.06582v1</id>\n
-        \   <title>Hierarchical Mask2Former: Panoptic Segmentation of Crops, Weeds
-        and Leaves</title>\n    <updated>2023-10-10T12:47:31Z</updated>\n    <link
-        href=\"https://arxiv.org/abs/2310.06582v1\" rel=\"alternate\" type=\"text/html\"/>\n
-        \   <link href=\"https://arxiv.org/pdf/2310.06582v1\" rel=\"related\" type=\"application/pdf\"
-        title=\"pdf\"/>\n    <summary>Advancements in machine vision that enable detailed
-        inferences to be made from images have the potential to transform many sectors
-        including agriculture. Precision agriculture, where data analysis enables
-        interventions to be precisely targeted, has many possible applications. Precision
-        spraying, for example, can limit the application of herbicide only to weeds,
-        or limit the application of fertiliser only to undernourished crops, instead
-        of spraying the entire field. The approach promises to maximise yields, whilst
-        minimising resource use and harms to the surrounding environment. To this
-        end, we propose a hierarchical panoptic segmentation method to simultaneously
-        identify indicators of plant growth and locate weeds within an image. We adapt
-        Mask2Former, a state-of-the-art architecture for panoptic segmentation, to
-        predict crop, weed and leaf masks. We achieve a PQ\u2020 of 75.99. Additionally,
-        we explore approaches to make the architecture more compact and therefore
-        more suitable for time and compute constrained applications. With our more
-        compact architecture, inference is up to 60% faster and the reduction in PQ\u2020
-        is less than 1%.</summary>\n    <category term=\"cs.CV\" scheme=\"http://arxiv.org/schemas/atom\"/>\n
-        \   <published>2023-10-10T12:47:31Z</published>\n    <arxiv:comment>6 pages,
-        5 figures, 2 tables, for code, see https://github.com/madeleinedarbyshire/HierarchicalMask2Former</arxiv:comment>\n
-        \   <arxiv:primary_category term=\"cs.CV\"/>\n    <author>\n      <name>Madeleine
-        Darbyshire</name>\n    </author>\n    <author>\n      <name>Elizabeth Sklar</name>\n
-        \   </author>\n    <author>\n      <name>Simon Parsons</name>\n    </author>\n
-        \ </entry>\n  <entry>\n    <id>http://arxiv.org/abs/1805.12395v1</id>\n    <title>Deep
-        Learning with unsupervised data labeling for weeds detection on UAV images</title>\n
-        \   <updated>2018-05-31T09:43:40Z</updated>\n    <link href=\"https://arxiv.org/abs/1805.12395v1\"
-        rel=\"alternate\" type=\"text/html\"/>\n    <link href=\"https://arxiv.org/pdf/1805.12395v1\"
-        rel=\"related\" type=\"application/pdf\" title=\"pdf\"/>\n    <summary>In
-        modern agriculture, usually weeds control consists in spraying herbicides
-        all over the agricultural field. This practice involves significant waste
-        and cost of herbicide for farmers and environmental pollution. One way to
-        reduce the cost and environmental impact is to allocate the right doses of
-        herbicide at the right place and at the right time (Precision Agriculture).
-        Nowadays, Unmanned Aerial Vehicle (UAV) is becoming an interesting acquisition
-        system for weeds localization and management due to its ability to obtain
-        the images of the entire agricultural field with a very high spatial resolution
-        and at low cost. Despite the important advances in UAV acquisition systems,
-        automatic weeds detection remains a challenging problem because of its strong
-        similarity with the crops. Recently Deep Learning approach has shown impressive
-        results in different complex classification problem. However, this approach
-        needs a certain amount of training data but, creating large agricultural datasets
-        with pixel-level annotations by expert is an extremely time consuming task.
-        In this paper, we propose a novel fully automatic learning method using Convolutional
-        Neuronal Networks (CNNs) with unsupervised training dataset collection for
-        weeds detection from UAV images. The proposed method consists in three main
-        phases. First we automatically detect the crop lines and using them to identify
-        the interline weeds. In the second phase, interline weeds are used to constitute
-        the training dataset. Finally, we performed CNNs on this dataset to build
-        a model able to detect the crop and weeds in the images. The results obtained
-        are comparable to the traditional supervised training data labeling. The accuracy
-        gaps are 1.5% in the spinach field and 6% in the bean field.</summary>\n    <category
-        term=\"cs.CV\" scheme=\"http://arxiv.org/schemas/atom\"/>\n    <published>2018-05-31T09:43:40Z</published>\n
-        \   <arxiv:primary_category term=\"cs.CV\"/>\n    <author>\n      <name>M.
-        Dian. Bah</name>\n    </author>\n    <author>\n      <name>Adel Hafiane</name>\n
-        \   </author>\n    <author>\n      <name>Raphael Canals</name>\n    </author>\n
-        \ </entry>\n  <entry>\n    <id>http://arxiv.org/abs/1801.08613v2</id>\n    <title>A
-        Rapidly Deployable Classification System using Visual Data for the Application
-        of Precision Weed Management</title>\n    <updated>2018-04-26T07:36:23Z</updated>\n
-        \   <link href=\"https://arxiv.org/abs/1801.08613v2\" rel=\"alternate\" type=\"text/html\"/>\n
-        \   <link href=\"https://arxiv.org/pdf/1801.08613v2\" rel=\"related\" type=\"application/pdf\"
-        title=\"pdf\"/>\n    <summary>In this work we demonstrate a rapidly deployable
-        weed classification system that uses visual data to enable autonomous precision
-        weeding without making prior assumptions about which weed species are present
-        in a given field. Previous work in this area relies on having prior knowledge
-        of the weed species present in the field. This assumption cannot always hold
-        true for every field, and thus limits the use of weed classification systems
-        based on this assumption. In this work, we obviate this assumption and introduce
-        a rapidly deployable approach able to operate on any field without any weed
-        species assumptions prior to deployment. We present a three stage pipeline
-        for the implementation of our weed classification system consisting of initial
-        field surveillance, offline processing and selective labelling, and automated
-        precision weeding. The key characteristic of our approach is the combination
-        of plant clustering and selective labelling which is what enables our system
-        to operate without prior weed species knowledge. Testing using field data
-        we are able to label 12.3 times fewer images than traditional full labelling
-        whilst reducing classification accuracy by only 14%.</summary>\n    <category
-        term=\"cs.CV\" scheme=\"http://arxiv.org/schemas/atom\"/>\n    <published>2018-01-25T22:00:00Z</published>\n
-        \   <arxiv:comment>36 pages, 14 figures, published Computers and Electronics
-        in Agriculture Vol. 148</arxiv:comment>\n    <arxiv:primary_category term=\"cs.CV\"/>\n
-        \   <arxiv:journal_ref>D. Hall, F. Dayoub, T. Perez, and C. McCool, \"A Rapidly
-        Deployable Classification System using Visual Data for the Application of
-        Precision Weed Management,\" Computers and Electronics in Agriculture, Vol.
-        148, pp. 107-120, May 2018</arxiv:journal_ref>\n    <author>\n      <name>David
-        Hall</name>\n    </author>\n    <author>\n      <name>Feras Dayoub</name>\n
-        \   </author>\n    <author>\n      <name>Tristan Perez</name>\n    </author>\n
-        \   <author>\n      <name>Chris McCool</name>\n    </author>\n    <arxiv:doi>10.1016/j.compag.2018.02.023</arxiv:doi>\n
-        \   <link rel=\"related\" href=\"https://doi.org/10.1016/j.compag.2018.02.023\"
-        title=\"doi\"/>\n  </entry>\n  <entry>\n    <id>http://arxiv.org/abs/2503.02465v2</id>\n
-        \   <title>UAV-VLRR: Vision-Language Informed NMPC for Rapid Response in UAV
-        Search and Rescue</title>\n    <updated>2025-05-13T06:49:22Z</updated>\n    <link
-        href=\"https://arxiv.org/abs/2503.02465v2\" rel=\"alternate\" type=\"text/html\"/>\n
-        \   <link href=\"https://arxiv.org/pdf/2503.02465v2\" rel=\"related\" type=\"application/pdf\"
-        title=\"pdf\"/>\n    <summary>Emergency search and rescue (SAR) operations
-        often require rapid and precise target identification in complex environments
-        where traditional manual drone control is inefficient. In order to address
-        these scenarios, a rapid SAR system, UAV-VLRR (Vision-Language-Rapid-Response),
-        is developed in this research. This system consists of two aspects: 1) A multimodal
-        system which harnesses the power of Visual Language Model (VLM) and the natural
-        language processing capabilities of ChatGPT-4o (LLM) for scene interpretation.
-        2) A non-linearmodel predictive control (NMPC) with built-in obstacle avoidance
-        for rapid response by a drone to fly according to the output of the multimodal
-        system. This work aims at improving response times in emergency SAR operations
-        by providing a more intuitive and natural approach to the operator to plan
-        the SAR mission while allowing the drone to carry out that mission in a rapid
-        and safe manner. When tested, our approach was faster on an average by 33.75%
-        when compared with an off-the-shelf autopilot and 54.6% when compared with
-        a human pilot. Video of UAV-VLRR: https://youtu.be/KJqQGKKt1xY</summary>\n
-        \   <category term=\"cs.RO\" scheme=\"http://arxiv.org/schemas/atom\"/>\n
-        \   <category term=\"eess.SY\" scheme=\"http://arxiv.org/schemas/atom\"/>\n
-        \   <published>2025-03-04T10:21:58Z</published>\n    <arxiv:comment>UAV-VLRR</arxiv:comment>\n
-        \   <arxiv:primary_category term=\"cs.RO\"/>\n    <author>\n      <name>Yasheerah
-        Yaqoot</name>\n    </author>\n    <author>\n      <name>Muhammad Ahsan Mustafa</name>\n
-        \   </author>\n    <author>\n      <name>Oleg Sautenkov</name>\n    </author>\n
-        \   <author>\n      <name>Artem Lykov</name>\n    </author>\n    <author>\n
-        \     <name>Valerii Serpiva</name>\n    </author>\n    <author>\n      <name>Dzmitry
-        Tsetserukou</name>\n    </author>\n  </entry>\n  <entry>\n    <id>http://arxiv.org/abs/1709.06764v2</id>\n
-        \   <title>Real-time Semantic Segmentation of Crop and Weed for Precision
-        Agriculture Robots Leveraging Background Knowledge in CNNs</title>\n    <updated>2018-03-02T15:46:48Z</updated>\n
-        \   <link href=\"https://arxiv.org/abs/1709.06764v2\" rel=\"alternate\" type=\"text/html\"/>\n
-        \   <link href=\"https://arxiv.org/pdf/1709.06764v2\" rel=\"related\" type=\"application/pdf\"
-        title=\"pdf\"/>\n    <summary>Precision farming robots, which target to reduce
-        the amount of herbicides that need to be brought out in the fields, must have
-        the ability to identify crops and weeds in real time to trigger weeding actions.
-        In this paper, we address the problem of CNN-based semantic segmentation of
-        crop fields separating sugar beet plants, weeds, and background solely based
-        on RGB data. We propose a CNN that exploits existing vegetation indexes and
-        provides a classification in real time. Furthermore, it can be effectively
-        re-trained to so far unseen fields with a comparably small amount of training
-        data. We implemented and thoroughly evaluated our system on a real agricultural
-        robot operating in different fields in Germany and Switzerland. The results
-        show that our system generalizes well, can operate at around 20Hz, and is
-        suitable for online operation in the fields.</summary>\n    <category term=\"cs.CV\"
-        scheme=\"http://arxiv.org/schemas/atom\"/>\n    <category term=\"cs.RO\" scheme=\"http://arxiv.org/schemas/atom\"/>\n
-        \   <published>2017-09-20T08:24:18Z</published>\n    <arxiv:comment>Accepted
-        for publication at IEEE International Conference on Robotics and Automation
-        2018 (ICRA 2018)</arxiv:comment>\n    <arxiv:primary_category term=\"cs.CV\"/>\n
-        \   <author>\n      <name>Andres Milioto</name>\n    </author>\n    <author>\n
-        \     <name>Philipp Lottes</name>\n    </author>\n    <author>\n      <name>Cyrill
-        Stachniss</name>\n    </author>\n  </entry>\n  <entry>\n    <id>http://arxiv.org/abs/1801.00443v2</id>\n
-        \   <title>Capacity Characterization of UAV-Enabled Two-User Broadcast Channel</title>\n
-        \   <updated>2018-01-06T06:55:00Z</updated>\n    <link href=\"https://arxiv.org/abs/1801.00443v2\"
-        rel=\"alternate\" type=\"text/html\"/>\n    <link href=\"https://arxiv.org/pdf/1801.00443v2\"
-        rel=\"related\" type=\"application/pdf\" title=\"pdf\"/>\n    <summary>Although
-        prior works have exploited the UAV's mobility to enhance the wireless communication
-        performance under different setups, the fundamental capacity limits of UAV-enabled/aided
-        multiuser communication systems have not yet been characterized. To fill this
-        gap, we consider in this paper a UAV-enabled two-user broadcast channel (BC),
-        where a UAV flying at a constant altitude is deployed to send independent
-        information to two users at different fixed locations on the ground. We aim
-        to characterize the capacity region of this new type of BC over a given UAV
-        flight duration, by jointly optimizing the UAV's trajectory and transmit power/rate
-        allocations over time, subject to the UAV's maximum speed and maximum transmit
-        power constraints. First, to draw essential insights, we consider two special
-        cases with asymptotically large/low UAV flight duration/speed, respectively.
-        For the former case, it is shown that a simple hover-fly-hover (HFH) UAV trajectory
-        with time division multiple access (TDMA) based orthogonal multiuser transmission
-        is capacity-achieving, while in the latter case, the UAV should hover at a
-        fixed location that is nearer to the user with larger achievable rate and
-        in general superposition coding (SC) based non-orthogonal transmission with
-        interference cancellation at the receiver of the nearer user is required.
-        Next, we consider the general case with finite UAV speed and flight duration.
-        We show that the optimal UAV trajectory should follow a general HFH structure,
-        i.e., the UAV successively hovers at a pair of initial and final locations
-        above the line segment of the two users each with a certain amount of time
-        and flies unidirectionally between them at the maximum speed, and SC is generally
-        needed.</summary>\n    <category term=\"cs.IT\" scheme=\"http://arxiv.org/schemas/atom\"/>\n
-        \   <category term=\"math.HO\" scheme=\"http://arxiv.org/schemas/atom\"/>\n
-        \   <category term=\"math.OC\" scheme=\"http://arxiv.org/schemas/atom\"/>\n
-        \   <published>2018-01-01T13:37:54Z</published>\n    <arxiv:comment>[ UAV-Enabled
-        Aerial Base Station (BS) III ] Submitted to IEEE JSAC. This is the third of
-        a series of three works (trilogy) that focus on UAV-enabled aerial BS for
-        wireless networks.The other two works are \"Common Throughput Maximization
-        in UAV-Enabled Multiuser OFDMA Systems with Delay Consideration\" and \"Joint
-        Trajectory and Communication Design for Multi-UAV Enabled Wireless Networks\"</arxiv:comment>\n
-        \   <arxiv:primary_category term=\"cs.IT\"/>\n    <author>\n      <name>Qingqing
-        Wu</name>\n    </author>\n    <author>\n      <name>Jie Xu</name>\n    </author>\n
-        \   <author>\n      <name>Rui Zhang</name>\n    </author>\n  </entry>\n  <entry>\n
-        \   <id>http://arxiv.org/abs/2607.16193v2</id>\n    <title>UAV-DualCog: A
-        Dual-Cognition Benchmark for Grounded UAV Agent-World Reasoning with MLLMs</title>\n
-        \   <updated>2026-11-02T15:59:35Z</updated>\n    <link href=\"https://arxiv.org/abs/2607.16193v2\"
-        rel=\"alternate\" type=\"text/html\"/>\n    <link href=\"https://arxiv.org/pdf/2607.16193v2\"
-        rel=\"related\" type=\"application/pdf\" title=\"pdf\"/>\n    <summary>Multimodal
-        large language models (MLLMs) perform strongly across vision-language tasks,
-        yet remain insufficiently explored in UAV scenarios. Recent UAV-oriented benchmarks
-        have begun to evaluate MLLMs in aerial scenarios, but typically focus on scene
-        understanding, event recognition, or navigation completion, rather than jointly
-        assessing the dual-cognition capability required for UAV agents: reasoning
-        about the UAV's own position, behavior, and observation state alongside external
-        landmark states under continuously changing viewpoints, supported by explicit
-        spatio-temporal grounding. To address this gap, we present UAV-DualCog, the
-        first benchmark to formulate UAV dual cognition as the coordinated evaluation
-        of Agent-State Reasoning and World-State Reasoning across multi-view images
-        and egocentric videos, with explicit spatial or temporal grounding. The State-aware
-        UAV Simulation Platform (SUSP) and the DualCog-aware Capture System (DCCS)
-        construct 4,096 image and 2,048 video samples from 12 scenes, pairing complementary
-        state questions within shared Agent-Landmark contexts. Extensive evaluations
-        on 45 models show that current MLLMs remain far from reliable in UAV dual
-        cognition: Agent-State Reasoning is generally weaker than World-State Reasoning,
-        semantic answers do not reliably coincide with spatial or temporal grounding,
-        and coordinated abilities remain limited. Thinking-mode comparisons, open-ended
-        analyses, and sim-to-real validation show that these limitations persist across
-        inference settings, formats, and environments. We further construct UAV-DualCog-Train
-        and improve UAV dual-cognition performance through a lightweight optimization
-        probe. Supplementary website, code, and dataset: https://smartdianlab.github.io/UAV-DualCog/</summary>\n
-        \   <category term=\"cs.CV\" scheme=\"http://arxiv.org/schemas/atom\"/>\n
-        \   <published>2026-07-17T17:59:56Z</published>\n    <arxiv:comment>8 pages,
-        4 figures, 6 tables. Project website: https://smartdianlab.github.io/UAV-DualCog/</arxiv:comment>\n
-        \   <arxiv:primary_category term=\"cs.CV\"/>\n    <author>\n      <name>Like
-        Liu</name>\n    </author>\n    <author>\n      <name>Zhengzheng Xu</name>\n
-        \   </author>\n    <author>\n      <name>Hongzhe Li</name>\n    </author>\n
-        \   <author>\n      <name>Lin Wang</name>\n    </author>\n    <author>\n      <name>Dian
-        Shao</name>\n    </author>\n  </entry>\n  <entry>\n    <id>http://arxiv.org/abs/2606.06709v1</id>\n
-        \   <title>USU-Corn-WeedDB: A UAV RGB Image Dataset for Multi-Species Weed
-        Detection in Forage Corn</title>\n    <updated>2026-06-04T20:51:41Z</updated>\n
-        \   <link href=\"https://arxiv.org/abs/2606.06709v1\" rel=\"alternate\" type=\"text/html\"/>\n
-        \   <link href=\"https://arxiv.org/pdf/2606.06709v1\" rel=\"related\" type=\"application/pdf\"
-        title=\"pdf\"/>\n    <summary>Weed pressure in forage corn production causes
-        yield losses of up to 31.5%, yet site-specific weed management (SSWM) systems
-        built on UAV imagery and deep learning remain constrained by the scarcity
-        of field-representative training datasets. We present USU-Corn-WeedDB, a publicly
-        available UAV RGB image dataset collected from a commercial forage corn field
-        in Cache Valley, Utah, designed to support multi-class weed detection under
-        both supervised and semi-supervised learning frameworks. RGB imagery was acquired
-        on 27 June 2025 using an Autel EVO II Dual 640T V2 drone at ~10m above ground
-        level, yielding a ground sampling distance of approximately 0.48 cm/pixel.
-        A total of 366 full-resolution images were tiled into 8,800 patches at 640
-        x 640-pixel resolution. Of these, 800 images were manually annotated for three
-        weed species; common lambsquarters (Chenopodium album), redroot pigweed (Amaranthus
-        retroflexus), and green foxtail (Setaria viridis) comprising 10,539 bounding-box
-        instances, with the remaining 8,000 tiles retained as an unlabeled pool for
-        semi-supervised experiments. This dataset reflects a natural class imbalance
-        where redroot pigweed constitutes 53.86% of annotated instances, which was
-        preserved intentionally to mirror real field conditions. To validate dataset
-        utility, we trained 28 object detection models spanning five architecture
-        families including YOLOv8, YOLOv9, YOLOv10, YOLO11, YOLO26, and RT-DETR under
-        identical conditions without hyperparameter tuning. Test set mAP@0.5 ranged
-        from 0.773 to 0.840, with lightweight models achieving competitive performance
-        relevant to edge-deployed UAV systems. USU-Corn-WeedDB is publicly available
-        at https://doi.org/10.5281/zenodo.20044178.</summary>\n    <category term=\"cs.CV\"
-        scheme=\"http://arxiv.org/schemas/atom\"/>\n    <published>2026-06-04T20:51:41Z</published>\n
-        \   <arxiv:comment>8 pages, 4 figures, 1 table</arxiv:comment>\n    <arxiv:primary_category
-        term=\"cs.CV\"/>\n    <author>\n      <name>Utsav Bhandari</name>\n    </author>\n
-        \   <author>\n      <name>Saroj Burlakoti</name>\n    </author>\n    <author>\n
-        \     <name>Rhonda Miller</name>\n    </author>\n    <author>\n      <name>Sierra
-        Young</name>\n    </author>\n    <author>\n      <name>Eric Westra</name>\n
-        \   </author>\n    <author>\n      <name>Aaron Etienne</name>\n    </author>\n
-        \ </entry>\n  <entry>\n    <id>http://arxiv.org/abs/2504.19991v2</id>\n    <title>Mapping
-        of Weed Management Methods in Orchards using Sentinel-2 and PlanetScope Data</title>\n
-        \   <updated>2025-07-23T12:31:13Z</updated>\n    <link href=\"https://arxiv.org/abs/2504.19991v2\"
-        rel=\"alternate\" type=\"text/html\"/>\n    <link href=\"https://arxiv.org/pdf/2504.19991v2\"
-        rel=\"related\" type=\"application/pdf\" title=\"pdf\"/>\n    <summary>Effective
-        weed management is crucial for improving agricultural productivity, as weeds
-        compete with crops for vital resources like nutrients and water. Accurate
-        maps of weed management methods are essential for policymakers to assess farmer
-        practices, evaluate impacts on vegetation health, biodiversity, and climate,
-        as well as ensure compliance with policies and subsidies. However, monitoring
-        weed management methods is challenging as they commonly rely on ground-based
-        field surveys, which are often costly, time-consuming and subject to delays.
-        In order to tackle this problem, we leverage earth observation data and Machine
-        Learning (ML). Specifically, we developed separate ML models using Sentinel-2
-        and PlanetScope satellite time series data, respectively, to classify four
-        distinct weed management methods (Mowing, Tillage, Chemical-spraying, and
-        No practice) in orchards. The findings demonstrate the potential of ML-driven
-        remote sensing to enhance the efficiency and accuracy of weed management mapping
-        in orchards.</summary>\n    <category term=\"cs.CV\" scheme=\"http://arxiv.org/schemas/atom\"/>\n
-        \   <category term=\"cs.LG\" scheme=\"http://arxiv.org/schemas/atom\"/>\n
-        \   <published>2025-04-28T17:09:10Z</published>\n    <arxiv:comment>Accepted
-        for 2025 IEEE International Geoscience and Remote Sensing Symposium (IGARSS
-        2025)</arxiv:comment>\n    <arxiv:primary_category term=\"cs.CV\"/>\n    <author>\n
-        \     <name>Ioannis Kontogiorgakis</name>\n    </author>\n    <author>\n      <name>Iason
-        Tsardanidis</name>\n    </author>\n    <author>\n      <name>Dimitrios Bormpoudakis</name>\n
-        \   </author>\n    <author>\n      <name>Ilias Tsoumas</name>\n    </author>\n
-        \   <author>\n      <name>Dimitra A. Loka</name>\n    </author>\n    <author>\n
-        \     <name>Christos Noulas</name>\n    </author>\n    <author>\n      <name>Alexandros
-        Tsitouras</name>\n    </author>\n    <author>\n      <name>Charalampos Kontoes</name>\n
-        \   </author>\n    <arxiv:doi>10.1109/IGARSS55030.2025.11243099</arxiv:doi>\n
-        \   <link rel=\"related\" href=\"https://doi.org/10.1109/IGARSS55030.2025.11243099\"
-        title=\"doi\"/>\n  </entry>\n  <entry>\n    <id>http://arxiv.org/abs/2502.06255v1</id>\n
-        \   <title>Towards Efficient and Intelligent Laser Weeding: Method and Dataset
-        for Weed Stem Detection</title>\n    <updated>2025-02-10T08:42:46Z</updated>\n
-        \   <link href=\"https://arxiv.org/abs/2502.06255v1\" rel=\"alternate\" type=\"text/html\"/>\n
-        \   <link href=\"https://arxiv.org/pdf/2502.06255v1\" rel=\"related\" type=\"application/pdf\"
-        title=\"pdf\"/>\n    <summary>Weed control is a critical challenge in modern
-        agriculture, as weeds compete with crops for essential nutrient resources,
-        significantly reducing crop yield and quality. Traditional weed control methods,
-        including chemical and mechanical approaches, have real-life limitations such
-        as associated environmental impact and efficiency. An emerging yet effective
-        approach is laser weeding, which uses a laser beam as the stem cutter. Although
-        there have been studies that use deep learning in weed recognition, its application
-        in intelligent laser weeding still requires a comprehensive understanding.
-        Thus, this study represents the first empirical investigation of weed recognition
-        for laser weeding. To increase the efficiency of laser beam cut and avoid
-        damaging the crops of interest, the laser beam shall be directly aimed at
-        the weed root. Yet, weed stem detection remains an under-explored problem.
-        We integrate the detection of crop and weed with the localization of weed
-        stem into one end-to-end system. To train and validate the proposed system
-        in a real-life scenario, we curate and construct a high-quality weed stem
-        detection dataset with human annotations. The dataset consists of 7,161 high-resolution
-        pictures collected in the field with annotations of 11,151 instances of weed.
-        Experimental results show that the proposed system improves weeding accuracy
-        by 6.7% and reduces energy cost by 32.3% compared to existing weed recognition
-        systems.</summary>\n    <category term=\"cs.CV\" scheme=\"http://arxiv.org/schemas/atom\"/>\n
-        \   <category term=\"cs.AI\" scheme=\"http://arxiv.org/schemas/atom\"/>\n
-        \   <published>2025-02-10T08:42:46Z</published>\n    <arxiv:comment>Accepted
-        by AAAI-AISI 2025</arxiv:comment>\n    <arxiv:primary_category term=\"cs.CV\"/>\n
-        \   <author>\n      <name>Dingning Liu</name>\n    </author>\n    <author>\n
-        \     <name>Jinzhe Li</name>\n    </author>\n    <author>\n      <name>Haoyang
-        Su</name>\n    </author>\n    <author>\n      <name>Bei Cui</name>\n    </author>\n
-        \   <author>\n      <name>Zhihui Wang</name>\n    </author>\n    <author>\n
-        \     <name>Qingbo Yuan</name>\n    </author>\n    <author>\n      <name>Wanli
-        Ouyang</name>\n    </author>\n    <author>\n      <name>Nanqing Dong</name>\n
-        \   </author>\n  </entry>\n  <entry>\n    <id>http://arxiv.org/abs/1612.03019v3</id>\n
-        \   <title>Automatic Model Based Dataset Generation for Fast and Accurate
-        Crop and Weeds Detection</title>\n    <updated>2017-08-06T17:33:20Z</updated>\n
-        \   <link href=\"https://arxiv.org/abs/1612.03019v3\" rel=\"alternate\" type=\"text/html\"/>\n
-        \   <link href=\"https://arxiv.org/pdf/1612.03019v3\" rel=\"related\" type=\"application/pdf\"
-        title=\"pdf\"/>\n    <summary>Selective weeding is one of the key challenges
-        in the field of agriculture robotics. To accomplish this task, a farm robot
-        should be able to accurately detect plants and to distinguish them between
-        crop and weeds. Most of the promising state-of-the-art approaches make use
-        of appearance-based models trained on large annotated datasets. Unfortunately,
-        creating large agricultural datasets with pixel-level annotations is an extremely
-        time consuming task, actually penalizing the usage of data-driven techniques.
-        In this paper, we face this problem by proposing a novel and effective approach
-        that aims to dramatically minimize the human intervention needed to train
-        the detection and classification algorithms. The idea is to procedurally generate
-        large synthetic training datasets randomizing the key features of the target
-        environment (i.e., crop and weed species, type of soil, light conditions).
-        More specifically, by tuning these model parameters, and exploiting a few
-        real-world textures, it is possible to render a large amount of realistic
-        views of an artificial agricultural scenario with no effort. The generated
-        data can be directly used to train the model or to supplement real-world images.
-        We validate the proposed methodology by using as testbed a modern deep learning
-        based image segmentation architecture. We compare the classification results
-        obtained using both real and synthetic images as training data. The reported
-        results confirm the effectiveness and the potentiality of our approach.</summary>\n
-        \   <category term=\"cs.CV\" scheme=\"http://arxiv.org/schemas/atom\"/>\n
-        \   <category term=\"cs.RO\" scheme=\"http://arxiv.org/schemas/atom\"/>\n
-        \   <published>2016-12-09T13:43:19Z</published>\n    <arxiv:comment>To appear
-        in IEEE/RSJ IROS 2017</arxiv:comment>\n    <arxiv:primary_category term=\"cs.CV\"/>\n
-        \   <author>\n      <name>Maurilio Di Cicco</name>\n    </author>\n    <author>\n
-        \     <name>Ciro Potena</name>\n    </author>\n    <author>\n      <name>Giorgio
-        Grisetti</name>\n    </author>\n    <author>\n      <name>Alberto Pretto</name>\n
-        \   </author>\n    <arxiv:doi>10.1109/IROS.2017.8206408</arxiv:doi>\n    <link
-        rel=\"related\" href=\"https://doi.org/10.1109/IROS.2017.8206408\" title=\"doi\"/>\n
-        \ </entry>\n  <entry>\n    <id>http://arxiv.org/abs/1912.03600v5</id>\n    <title>Repeatedly
-        Energy-Efficient and Fair Service Coverage: UAV Slicing (Proactive UAV Network
-        Slicing for URLLC and Mobile Broadband Service Multiplexing)</title>\n    <updated>2020-10-21T06:00:49Z</updated>\n
-        \   <link href=\"https://arxiv.org/abs/1912.03600v5\" rel=\"alternate\" type=\"text/html\"/>\n
-        \   <link href=\"https://arxiv.org/pdf/1912.03600v5\" rel=\"related\" type=\"application/pdf\"
-        title=\"pdf\"/>\n    <summary>Unmanned aerial vehicle (UAV) networks are convinced
-        as a significant part of 5G and emerging 6G wireless networks. UAV slicing
-        is a promising proposal of converging different services onto a common UAV
-        network without deploying individual network solution for each type of service.
-        This paper is concerned with UAV slicing for providing energy-efficient and
-        fair service coverage for enhanced mobile broadband (eMBB) users (UEs). Aiming
-        at physically configuring UAV slices, the UAV slicing problem is formulated
-        as a time-dependent mixed-integer-non-convex programming problem with a goal
-        of maximizing all UEs' data rates while minimizing UAVs' total transmit power.
-        To mitigate this challenging problem, we first decompose the original problem
-        into two time-dependent subproblems using a Lyapunov approach. We then derive
-        the procedure of tackling the non-convexity and the mixed-integer property
-        of the subproblems by exploring a successive convex approximate (SCA) method
-        and an alternative optimization scheme, respectively. Based on the derived
-        results, we develop an algorithm with provable performance guarantees to mitigate
-        the two subproblems repeatedly.</summary>\n    <category term=\"cs.NI\" scheme=\"http://arxiv.org/schemas/atom\"/>\n
-        \   <published>2019-12-08T03:01:10Z</published>\n    <arxiv:comment>The original
-        title is: Repeatedly Energy-Efficient and Fair Service Coverage: UAV Slicing</arxiv:comment>\n
-        \   <arxiv:primary_category term=\"cs.NI\"/>\n    <author>\n      <name>Peng
-        Yang</name>\n    </author>\n    <author>\n      <name>Xing Xi</name>\n    </author>\n
-        \   <author>\n      <name>Tony Q. S. Quek</name>\n    </author>\n    <author>\n
-        \     <name>Jingxuan Chen</name>\n    </author>\n    <author>\n      <name>Xianbin
-        Cao</name>\n    </author>\n    <author>\n      <name>Dapeng Wu</name>\n    </author>\n
-        \ </entry>\n  <entry>\n    <id>http://arxiv.org/abs/2603.00160v1</id>\n    <title>DINOv3
-        Meets YOLO26 for Weed Detection in Vegetable Crops</title>\n    <updated>2026-02-25T22:35:09Z</updated>\n
-        \   <link href=\"https://arxiv.org/abs/2603.00160v1\" rel=\"alternate\" type=\"text/html\"/>\n
-        \   <link href=\"https://arxiv.org/pdf/2603.00160v1\" rel=\"related\" type=\"application/pdf\"
-        title=\"pdf\"/>\n    <summary>Developing robust models for precision vegetable
-        weeding is currently constrained by the scarcity of large-scale, annotated
-        weed-crop datasets. To address this limitation, this study proposes a foundational
-        crop-weed detection model by integrating heterogeneous datasets and leveraging
-        self-supervised learning. A total of 618,642 crop-weed images were initially
-        collected and subsequently refined to 199,388 filtered images for fine-tuning
-        a DINOv3 vision transformer (ViT-small) through a sequential curation strategy.
-        The fine-tuned DINOv3 backbone was then integrated into YOLO26, serving either
-        as a primary backbone or part of a dual-backbone architecture. A feature alignment
-        loss was introduced in the dual backbone framework to enhance feature fusion
-        with minimal computational overhead. Experimental results show that the proposed
-        DINOv3-finetuned ViT-small-based YOLO26-large achieved up to a +5.4% mAP50
-        gain on in-domain images collected in the 2025 season. Moreover, it demonstrated
-        strong cross-domain generalization with mAP50 improvements of +14.0% on the
-        2021-2023 season dataset and +11.9% on the 2024 season dataset, compared to
-        the standard YOLO26-large. Although the DINOv3-YOLO26-large model has 45.6%
-        more parameters and a 2.9x increase in inference latency, it maintains real-time
-        performance at ~28.5 frames per second (fps). The curated dataset and software
-        programs developed in this study will be made publicly available.</summary>\n
-        \   <category term=\"cs.CV\" scheme=\"http://arxiv.org/schemas/atom\"/>\n
-        \   <category term=\"cs.AI\" scheme=\"http://arxiv.org/schemas/atom\"/>\n
-        \   <published>2026-02-25T22:35:09Z</published>\n    <arxiv:comment>10 pages,
-        2 figures</arxiv:comment>\n    <arxiv:primary_category term=\"cs.CV\"/>\n
-        \   <author>\n      <name>Boyang Deng</name>\n    </author>\n    <author>\n
-        \     <name>Yuzhen Lu</name>\n    </author>\n  </entry>\n  <entry>\n    <id>http://arxiv.org/abs/2312.03443v1</id>\n
-        \   <title>Data-driven Crop Growth Simulation on Time-varying Generated Images
-        using Multi-conditional Generative Adversarial Networks</title>\n    <updated>2023-12-06T11:54:50Z</updated>\n
-        \   <link href=\"https://arxiv.org/abs/2312.03443v1\" rel=\"alternate\" type=\"text/html\"/>\n
-        \   <link href=\"https://arxiv.org/pdf/2312.03443v1\" rel=\"related\" type=\"application/pdf\"
-        title=\"pdf\"/>\n    <summary>Image-based crop growth modeling can substantially
-        contribute to precision agriculture by revealing spatial crop development
-        over time, which allows an early and location-specific estimation of relevant
-        future plant traits, such as leaf area or biomass. A prerequisite for realistic
-        and sharp crop image generation is the integration of multiple growth-influencing
-        conditions in a model, such as an image of an initial growth stage, the associated
-        growth time, and further information about the field treatment. We present
-        a two-stage framework consisting first of an image prediction model and second
-        of a growth estimation model, which both are independently trained. The image
-        prediction model is a conditional Wasserstein generative adversarial network
-        (CWGAN). In the generator of this model, conditional batch normalization (CBN)
-        is used to integrate different conditions along with the input image. This
-        allows the model to generate time-varying artificial images dependent on multiple
-        influencing factors of different kinds. These images are used by the second
-        part of the framework for plant phenotyping by deriving plant-specific traits
-        and comparing them with those of non-artificial (real) reference images. For
-        various crop datasets, the framework allows realistic, sharp image predictions
-        with a slight loss of quality from short-term to long-term predictions. Simulations
-        of varying growth-influencing conditions performed with the trained framework
-        provide valuable insights into how such factors relate to crop appearances,
-        which is particularly useful in complex, less explored crop mixture systems.
-        Further results show that adding process-based simulated biomass as a condition
-        increases the accuracy of the derived phenotypic traits from the predicted
-        images. This demonstrates the potential of our framework to serve as an interface
-        between an image- and process-based crop growth model.</summary>\n    <category
-        term=\"cs.CV\" scheme=\"http://arxiv.org/schemas/atom\"/>\n    <category term=\"stat.ML\"
-        scheme=\"http://arxiv.org/schemas/atom\"/>\n    <published>2023-12-06T11:54:50Z</published>\n
-        \   <arxiv:comment>26 pages, 16 figures, code available at https://github.com/luked12/crop-growth-cgan</arxiv:comment>\n
-        \   <arxiv:primary_category term=\"cs.CV\"/>\n    <author>\n      <name>Lukas
-        Drees</name>\n    </author>\n    <author>\n      <name>Dereje T. Demie</name>\n
-        \   </author>\n    <author>\n      <name>Madhuri R. Paul</name>\n    </author>\n
-        \   <author>\n      <name>Johannes Leonhardt</name>\n    </author>\n    <author>\n
-        \     <name>Sabine J. Seidel</name>\n    </author>\n    <author>\n      <name>Thomas
-        F. D\xF6ring</name>\n    </author>\n    <author>\n      <name>Ribana Roscher</name>\n
-        \   </author>\n    <arxiv:doi>10.1186/s13007-024-01205-3</arxiv:doi>\n    <link
-        rel=\"related\" href=\"https://doi.org/10.1186/s13007-024-01205-3\" title=\"doi\"/>\n
-        \ </entry>\n  <entry>\n    <id>http://arxiv.org/abs/1801.00444v2</id>\n    <title>Common
-        Throughput Maximization in UAV-Enabled OFDMA Systems with Delay Consideration</title>\n
-        \   <updated>2018-01-06T06:52:11Z</updated>\n    <link href=\"https://arxiv.org/abs/1801.00444v2\"
-        rel=\"alternate\" type=\"text/html\"/>\n    <link href=\"https://arxiv.org/pdf/1801.00444v2\"
-        rel=\"related\" type=\"application/pdf\" title=\"pdf\"/>\n    <summary>The
-        use of unmanned aerial vehicles (UAVs) as communication platforms is of great
-        practical significance in future wireless networks, especially for on-demand
-        deployment in temporary events and emergency situations. Although prior works
-        have shown the performance improvement by exploiting the UAV's mobility, they
-        mainly focus on delay-tolerant applications. As delay requirements fundamentally
-        limit the UAV's mobility, it remains unknown whether the UAV is able to provide
-        any performance gain in delay-constrained communication scenarios. Motivated
-        by this, we study in this paper a UAV-enabled orthogonal frequency division
-        multiple access (OFDMA) network where a UAV is dispatched as a mobile base
-        station (BS) to serve a group of users on the ground. We consider a minimum-rate
-        ratio (MRR) for each user, defined as the minimum instantaneous rate required
-        over the average achievable throughput, to flexibly adjust the percentage
-        of its delay-constrained data traffic. Under a given set of constraints on
-        the users' MRRs, we aim to maximize the minimum average throughput of all
-        users by jointly optimizing the UAV trajectory and OFDMA resource allocation.
-        First, we show that the max-min throughput in general decreases as the users'
-        MRR constraints become more stringent, which reveals a fundamental throughput-delay
-        tradeoff in UAV-enabled communications. Next, we propose an iterative parameter-assisted
-        block coordinate descent method to optimize the UAV trajectory and OFDMA resource
-        allocation alternately, by applying the successive convex optimization and
-        the Lagrange duality, respectively. Furthermore, an efficient and systematic
-        UAV trajectory initialization scheme is proposed based on a simple circular
-        trajectory. Finally, simulation results are provided to verify our theoretical
-        findings and demonstrate the effectiveness of our proposed designs.</summary>\n
-        \   <category term=\"cs.IT\" scheme=\"http://arxiv.org/schemas/atom\"/>\n
-        \   <category term=\"math.DS\" scheme=\"http://arxiv.org/schemas/atom\"/>\n
-        \   <category term=\"math.HO\" scheme=\"http://arxiv.org/schemas/atom\"/>\n
-        \   <category term=\"math.OC\" scheme=\"http://arxiv.org/schemas/atom\"/>\n
-        \   <published>2018-01-01T13:41:00Z</published>\n    <arxiv:comment>[UAV-Enabled
-        Aerial Base Station (BS) II] Submitted to IEEE Transactions on Communications.
-        This is the second of a series of three works (trilogy) that focus on UAV-enabled
-        aerial BS for wireless networks. The other two works are \"Joint Trajectory
-        and Communication Design for Multi-UAV Enabled Wireless Networks\" and \"Capacity
-        Characterization of UAV-Enabled Two-User Broadcast Channel\"</arxiv:comment>\n
-        \   <arxiv:primary_category term=\"cs.IT\"/>\n    <author>\n      <name>Qingqing
-        Wu</name>\n    </author>\n    <author>\n      <name>Rui Zhang</name>\n    </author>\n
-        \ </entry>\n  <entry>\n    <id>http://arxiv.org/abs/2102.05755v2</id>\n    <title>Development
-        of Crop Yield Estimation Model using Soil and Environmental Parameters</title>\n
-        \   <updated>2025-12-29T08:29:43Z</updated>\n    <link href=\"https://arxiv.org/abs/2102.05755v2\"
-        rel=\"alternate\" type=\"text/html\"/>\n    <link href=\"https://arxiv.org/pdf/2102.05755v2\"
-        rel=\"related\" type=\"application/pdf\" title=\"pdf\"/>\n    <summary>Crop
-        yield is affected by various soil and environmental parameters and can vary
-        significantly. Therefore, a crop yield estimation model which can predict
-        pre-harvest yield is required for food security. The study is conducted on
-        tea forms operating under National Tea Research Institute, Pakistan. The data
-        is recorded on monthly basis for ten years period. The parameters collected
-        are minimum and maximum temperature, humidity, rainfall, PH level of the soil,
-        usage of pesticide and labor expertise. The design of model incorporated all
-        of these parameters and identified the parameters which are most crucial for
-        yield predictions. Feature transformation is performed to obtain better performing
-        model. The designed model is based on an ensemble of neural networks and provided
-        an R-squared of 0.9461 and RMSE of 0.1204 indicating the usability of the
-        proposed model in yield forecasting based on surface and environmental parameters.</summary>\n
-        \   <category term=\"cs.LG\" scheme=\"http://arxiv.org/schemas/atom\"/>\n
-        \   <published>2021-02-10T22:02:13Z</published>\n    <arxiv:comment>crop yield
-        forecasting, regression, data mining, artificial neural network, ensemble
-        learning</arxiv:comment>\n    <arxiv:primary_category term=\"cs.LG\"/>\n    <arxiv:journal_ref>Journal
-        of Agricultural Research (JAR), 59(3), pp. 295-303, 2021</arxiv:journal_ref>\n
-        \   <author>\n      <name>Nisar Ahmed</name>\n    </author>\n    <author>\n
-        \     <name>Hafiz Muhammad Shahzad Asif</name>\n    </author>\n    <author>\n
-        \     <name>Gulshan Saleem</name>\n    </author>\n    <author>\n      <name>Muhammad
-        Usman Younus</name>\n    </author>\n    <arxiv:doi>10.58475/ad2vgd97</arxiv:doi>\n
-        \   <link rel=\"related\" href=\"https://doi.org/10.58475/ad2vgd97\" title=\"doi\"/>\n
-        \ </entry>\n  <entry>\n    <id>http://arxiv.org/abs/2610.11049v2</id>\n    <title>SatFix:
-        Absolute Visual Localization of UAVs in Satellite Maps from a Single Oblique
-        Image</title>\n    <updated>2026-10-19T01:41:37Z</updated>\n    <link href=\"https://arxiv.org/abs/2610.11049v2\"
-        rel=\"alternate\" type=\"text/html\"/>\n    <link href=\"https://arxiv.org/pdf/2610.11049v2\"
-        rel=\"related\" type=\"application/pdf\" title=\"pdf\"/>\n    <summary>We
-        study absolute metric UAV localization within a provided geo-referenced satellite
-        region, recovering continuous map position and viewing heading from a single
-        oblique image or a short multi-view clip. Existing cross-view geo-localization
-        methods retrieve the most similar satellite tile from a gallery and report
-        Recall@K, but retrieval depends on gallery sampling, provides no heading estimate,
-        and returns a tile index rather than a continuous coordinate. We propose SatFix,
-        a feed-forward UAV--satellite localization framework built on VGGT-$\u03A9$.
-        Satellite-grid features act as queries that aggregate UAV visual evidence,
-        and two lightweight heads regress a 3-DoF pose in the satellite-map frame:
-        continuous 2D position and heading. SatFix requires no explicit 3D map, rendered
-        bird's-eye image, auxiliary sensor, or test-time pose alignment. A single
-        model supports both single- and multi-view inputs, with trajectory constraints
-        used during multi-view training. For metric evaluation, we introduce University-Metric,
-        where satellite imagery is re-collected over a region up to 10.7$\\times$
-        longer on a side (about 114$\\times$ the ground area) than the original University-1652
-        tiles, with continuous position and heading labels for the original UAV tours.
-        With one UAV view, SatFix localizes 52.08% of test frames within 50 m and
-        17.34% within 10 m, with median position and heading errors of 45.66 m and
-        $20.81^\\circ$, respectively. Inference takes under 0.1 s per single-view
-        query on an NVIDIA RTX 4090. With nine UAV views, the median position error
-        falls to 21.96 m and the median heading error to $8.73^\\circ$. Compared with
-        a fine-tuned VGGT-$\u03A9$ baseline, SatFix reduces median position error
-        by 34.0% and nine-view median heading error from $25.43^\\circ$ to $8.73^\\circ$.</summary>\n
-        \   <category term=\"cs.CV\" scheme=\"http://arxiv.org/schemas/atom\"/>\n
-        \   <published>2026-10-08T01:01:46Z</published>\n    <arxiv:comment>Satellite
-        images at multiple resolutions are available at: https://1drv.ms/u/c/758af5fc520c81c5/IQCjvHc3iiq6SJDpYipcIv5vAc-NmHMPCAwSTBnrA1vhM5U?e=YSX1lZ
-        UAV images can be downloaded from the original University-1652 dataset</arxiv:comment>\n
-        \   <arxiv:primary_category term=\"cs.CV\"/>\n    <author>\n      <name>Jiarui
-        Zeng</name>\n    </author>\n    <author>\n      <name>Kun Shi</name>\n    </author>\n
-        \   <author>\n      <name>Chiman Vong</name>\n    </author>\n    <author>\n
-        \     <name>Zhedong Zheng</name>\n    </author>\n  </entry>\n  <entry>\n    <id>http://arxiv.org/abs/1907.06181v2</id>\n
-        \   <title>Hybrid Offline-Online Design for UAV-Enabled Data Harvesting in
-        Probabilistic LoS Channel</title>\n    <updated>2020-01-02T12:51:15Z</updated>\n
-        \   <link href=\"https://arxiv.org/abs/1907.06181v2\" rel=\"alternate\" type=\"text/html\"/>\n
-        \   <link href=\"https://arxiv.org/pdf/1907.06181v2\" rel=\"related\" type=\"application/pdf\"
-        title=\"pdf\"/>\n    <summary>This paper considers an unmanned aerial vehicle
-        (UAV)-enabled wireless sensor network (WSN) in urban areas, where a UAV is
-        deployed to collect data from distributed sensor nodes (SNs) within a given
-        duration. To characterize the occasional building blockage between the UAV
-        and SNs, we construct the probabilistic line-of-sight (LoS) channel model
-        for a Manhattan-type city by using the combined simulation and data regression
-        method, which is shown in the form of a generalized logistic function of the
-        UAV-SN elevation angle. We assume that only the knowledge of SNs' locations
-        and the probabilistic LoS channel model is known a priori, while the UAV can
-        obtain the instantaneous LoS/Non-LoS channel state information (CSI) with
-        the SNs in real time along its flight. Our objective is to maximize the minimum
-        (average) data collection rate from all the SNs for the UAV. To this end,
-        we formulate a new rate maximization problem by jointly optimizing the UAV
-        three-dimensional (3D) trajectory and transmission scheduling of SNs. Although
-        the optimal solution is intractable due to the lack of the complete UAV-SNs
-        CSI, we propose in this paper a novel and general design method, called hybrid
-        offline-online optimization, to obtain a suboptimal solution to it, by leveraging
-        both the statistical and real-time CSI. Essentially, our proposed method decouples
-        the joint design of UAV trajectory and communication scheduling into two phases:
-        namely, an offline phase that determines the UAV path prior to its flight
-        based on the probabilistic LoS channel model, followed by an online phase
-        that adaptively adjusts the UAV flying speeds along the offline optimized
-        path as well as communication scheduling based on the instantaneous UAV-SNs
-        CSI and SNs' individual amounts of data received accumulatively.</summary>\n
-        \   <category term=\"cs.IT\" scheme=\"http://arxiv.org/schemas/atom\"/>\n
-        \   <category term=\"cs.NI\" scheme=\"http://arxiv.org/schemas/atom\"/>\n
-        \   <published>2019-07-14T07:42:13Z</published>\n    <arxiv:comment>The paper
-        has been submitted to IEEE for possible publication. This is the second of
-        the authors' series works on developing UAV trajectory under the more practical
-        UAV-ground channel model instead of the simplified LoS channel model. The
-        first one is \"3D Trajectory Optimization in Rician Fading for UAV-Enabled
-        Data Harvesting\"</arxiv:comment>\n    <arxiv:primary_category term=\"cs.IT\"/>\n
-        \   <author>\n      <name>Changsheng You</name>\n    </author>\n    <author>\n
-        \     <name>Rui Zhang</name>\n    </author>\n  </entry>\n  <entry>\n    <id>http://arxiv.org/abs/2412.11717v2</id>\n
-        \   <title>UAV-based path planning for efficient localization of non-uniformly
-        distributed weeds using prior knowledge: A reinforcement-learning approach</title>\n
-        \   <updated>2025-06-27T12:43:49Z</updated>\n    <link href=\"https://arxiv.org/abs/2412.11717v2\"
-        rel=\"alternate\" type=\"text/html\"/>\n    <link href=\"https://arxiv.org/pdf/2412.11717v2\"
-        rel=\"related\" type=\"application/pdf\" title=\"pdf\"/>\n    <summary>UAVs
-        are becoming popular in agriculture, however, they usually use time-consuming
-        row-by-row flight paths. This paper presents a deep-reinforcement-learning-based
-        approach for path planning to efficiently localize weeds in agricultural fields
-        using UAVs with minimal flight-path length. The method combines prior knowledge
-        about the field containing uncertain, low-resolution weed locations with in-flight
-        weed detections. The search policy was learned using deep Q-learning. We trained
-        the agent in simulation, allowing a thorough evaluation of the weed distribution,
-        typical errors in the perception system, prior knowledge, and different stopping
-        criteria on the planner's performance. When weeds were non-uniformly distributed
-        over the field, the agent found them faster than a row-by-row path, showing
-        its capability to learn and exploit the weed distribution. Detection errors
-        and prior knowledge quality had a minor effect on the performance, indicating
-        that the learned search policy was robust to detection errors and did not
-        need detailed prior knowledge. The agent also learned to terminate the search.
-        To test the transferability of the learned policy to a real-world scenario,
-        the planner was tested on real-world image data without further training,
-        which showed a 66% shorter path compared to a row-by-row path at the cost
-        of a 10% lower percentage of found weeds. Strengths and weaknesses of the
-        planner for practical application are comprehensively discussed, and directions
-        for further development are provided. Overall, it is concluded that the learned
-        search policy can improve the efficiency of finding non-uniformly distributed
-        weeds using a UAV and shows potential for use in agricultural practice.</summary>\n
-        \   <category term=\"cs.RO\" scheme=\"http://arxiv.org/schemas/atom\"/>\n
-        \   <published>2024-12-16T12:39:02Z</published>\n    <arxiv:primary_category
-        term=\"cs.RO\"/>\n    <arxiv:journal_ref>Computers and Electronics in Agriculture
-        237 (2025) 1-14</arxiv:journal_ref>\n    <author>\n      <name>Rick van Essen</name>\n
-        \   </author>\n    <author>\n      <name>Eldert van Henten</name>\n    </author>\n
-        \   <author>\n      <name>Gert Kootstra</name>\n    </author>\n    <arxiv:doi>10.1016/j.compag.2025.110651</arxiv:doi>\n
-        \   <link rel=\"related\" href=\"https://doi.org/10.1016/j.compag.2025.110651\"
-        title=\"doi\"/>\n  </entry>\n  <entry>\n    <id>http://arxiv.org/abs/2610.37022v1</id>\n
-        \   <title>Crop Yield Prediction Using Regression Models: A Comparative Evaluation
-        of Model Performance</title>\n    <updated>2026-10-27T10:58:16Z</updated>\n
-        \   <link href=\"https://arxiv.org/abs/2610.37022v1\" rel=\"alternate\" type=\"text/html\"/>\n
-        \   <link href=\"https://arxiv.org/pdf/2610.37022v1\" rel=\"related\" type=\"application/pdf\"
-        title=\"pdf\"/>\n    <summary>Reliable crop-yield prediction can support agricultural
-        planning and resource allocation. This study evaluates five regression models
-        for predicting crop yield from environmental, crop-related, and agricultural
-        management variables. The dataset initially contained 1,000,000 observations
-        and ten variables, with 231 observations having negative target values removed
-        during preprocessing. Categorical variables were represented using one-hot
-        encoding, and Boolean variables were converted into binary values. The models
-        considered were multiple linear regression (LR), random-forest regression
-        (RF), decision-tree regression (DT), ridge regression, and lasso regression.
-        Their performance was evaluated using 80:20 and 70:30 training-testing splits
-        based on the coefficient of determination (R-squared), mean squared error
-        (MSE), and root mean squared error (RMSE). Applying an 80:20 split, LR achieved
-        a test R-squared of approximately 0.9130 and a test RMSE of 0.5008. Applying
-        a 70:30 split, lasso regression yielded the highest test R-squared (approximately
-        0.9131) and the lowest test RMSE (approximately 0.5008), with performance
-        almost identical to LR and ridge regression. DT also showed improved test
-        performance under the 70:30 split, whereas RF exhibited a substantial gap
-        between training and testing performance. These results indicate that the
-        evaluated linear regression model provides competitive baselines for this
-        dataset. Further experimentation, including validation testing, will help
-        determine the models' performance and predictability.</summary>\n    <category
-        term=\"cs.LG\" scheme=\"http://arxiv.org/schemas/atom\"/>\n    <category term=\"cs.AI\"
-        scheme=\"http://arxiv.org/schemas/atom\"/>\n    <published>2026-10-27T10:58:16Z</published>\n
-        \   <arxiv:comment>Experimental evaluation of crop-yield prediction using
-        regression models</arxiv:comment>\n    <arxiv:primary_category term=\"cs.LG\"/>\n
-        \   <author>\n      <name>Saptak Das</name>\n    </author>\n    <author>\n
-        \     <name>Arijit Sarkar</name>\n    </author>\n    <author>\n      <name>Soumik
-        Neogi</name>\n    </author>\n    <author>\n      <name>Suborno Naskar</name>\n
-        \   </author>\n  </entry>\n  <entry>\n    <id>http://arxiv.org/abs/2201.05271v1</id>\n
-        \   <title>Trajectory and Transmit Power Optimization for IRS-Assisted UAV
-        Communication under Malicious Jamming</title>\n    <updated>2022-01-14T01:35:47Z</updated>\n
-        \   <link href=\"https://arxiv.org/abs/2201.05271v1\" rel=\"alternate\" type=\"text/html\"/>\n
-        \   <link href=\"https://arxiv.org/pdf/2201.05271v1\" rel=\"related\" type=\"application/pdf\"
-        title=\"pdf\"/>\n    <summary>In this letter, we investigate an unmanned aerial
-        vehicle (UAV) communication system, where an intelligent reflecting surface
-        (IRS) is deployed to assist in the transmission from a ground node (GN) to
-        the UAV in the presence of a jammer. We aim to maximize the average rate of
-        the UAV communication by jointly optimizing the GN's transmit power, the IRS's
-        passive beamforming and the UAV's trajectory. However, the formulated problem
-        is difficult to solve due to the non-convex objective function and the coupled
-        optimization variables. Thus, to tackle it, we propose an alternating optimization
-        (AO) based algorithm by exploiting the successive convex approximation (SCA)
-        and semidefinite relaxation (SDR) techniques. Simulation results show that
-        the proposed algorithm can significantly improve the average rate compared
-        with the benchmark algorithms. Moreover, it also shows that when the jamming
-        power is large and the number of IRS elements is relatively small, deploying
-        the IRS near the jammer outperforms deploying it near the GN, and vice versa.</summary>\n
-        \   <category term=\"eess.SP\" scheme=\"http://arxiv.org/schemas/atom\"/>\n
-        \   <category term=\"cs.IT\" scheme=\"http://arxiv.org/schemas/atom\"/>\n
-        \   <published>2022-01-14T01:35:47Z</published>\n    <arxiv:comment>IRS-Assisted
-        UAV Communication under Malicious Jamming</arxiv:comment>\n    <arxiv:primary_category
-        term=\"eess.SP\"/>\n    <author>\n      <name>Zhi Ji</name>\n    </author>\n
-        \   <author>\n      <name>Wendong Yang</name>\n    </author>\n    <author>\n
-        \     <name>Xinrong Guan</name>\n    </author>\n    <author>\n      <name>Xiao
-        Zhao</name>\n    </author>\n    <author>\n      <name>Guoxin Li</name>\n    </author>\n
-        \   <author>\n      <name>Qingqing Wu</name>\n    </author>\n  </entry>\n
-        \ <entry>\n    <id>http://arxiv.org/abs/1810.10839v1</id>\n    <title>Exploiting
-        NOMA for Multi-Beam UAV Communication in Cellular Uplink</title>\n    <updated>2018-10-25T12:05:15Z</updated>\n
-        \   <link href=\"https://arxiv.org/abs/1810.10839v1\" rel=\"alternate\" type=\"text/html\"/>\n
-        \   <link href=\"https://arxiv.org/pdf/1810.10839v1\" rel=\"related\" type=\"application/pdf\"
-        title=\"pdf\"/>\n    <summary>Unmanned aerial vehicles (UAVs) are expected
-        to be an important new class of users in the fifth generation (5G) and beyond
-        5G cellular networks. In particular, there are emerging UAV applications such
-        as aerial photograph and data relaying that require high-speed communications
-        between the UAVs and the ground base stations (GBSs). Due to the high UAV
-        altitude, the strong line-of-sight (LoS) links generally dominate the channels
-        between the UAVs and GBSs, which brings both opportunities and challenges
-        in the design of future wireless networks supporting both terrestrial and
-        aerial users. Although each UAV can associate with more GBSs for communication
-        as compared to terrestrial users thanks to the LoS-dominant channels, it also
-        causes/suffers more severe interference to/from the terrestrial communications
-        in the uplink/downlink. This paper studies the uplink communication from a
-        multi-antenna UAV to a set of GBSs within its signal coverage by considering
-        a practical yet challenging scenario when the number of antennas at the UAV
-        is smaller than that of co-channel GBSs. To achieve high-rate transmission
-        yet avoid interfering with any of the existing terrestrial communications
-        at the co-channel GBSs, we propose a novel multi-beam transmission strategy
-        by exploiting the non-orthogonal multiple access (NOMA) technique. Specifically,
-        the UAV sends each data stream to a selected subset of the GBSs, which can
-        decode the UAV's signals and then cancel them before decoding the messages
-        of their served terrestrial users, and in the meanwhile nulls its interference
-        at the other GBSs via zero-forcing (ZF) beamforming. To draw essential insight,
-        we first characterize in closed-form the degrees-of-freedom (DoF) under the
-        proposed strategy. Then, we propose an efficient algorithm to maximize the
-        UAV's transmit rate subject to the interference avoidance constraints for
-        protecting the terrestrial users.</summary>\n    <category term=\"cs.IT\"
-        scheme=\"http://arxiv.org/schemas/atom\"/>\n    <published>2018-10-25T12:05:15Z</published>\n
-        \   <arxiv:comment>submitted to ICC 2019. More information about this direction
-        can be found here https://sites.google.com/site/liulianggoodluck/uav</arxiv:comment>\n
-        \   <arxiv:primary_category term=\"cs.IT\"/>\n    <author>\n      <name>Liang
-        Liu</name>\n    </author>\n    <author>\n      <name>Shuowen Zhang</name>\n
-        \   </author>\n    <author>\n      <name>Rui Zhang</name>\n    </author>\n
-        \ </entry>\n</feed>\n"
-    headers:
-      accept-ranges:
-      - bytes
-      age:
-      - '0'
-      connection:
-      - keep-alive
-      content-length:
-      - '64715'
-      content-type:
-      - application/atom+xml; charset=utf-8
-      date:
-      - Mon, 09 Nov 2026 18:52:50 GMT
-      server:
-      - Google Frontend
-      strict-transport-security:
-      - max-age=300
-      via:
-      - 1.1 google, 1.1 varnish, 1.1 varnish, 1.1 varnish
-      x-cache:
-      - MISS, MISS, MISS
-      x-cache-hits:
-      - 0, 0, 0
-      x-cloud-trace-context:
-      - 0bab55cdcec43b07d8e04d04cfc2f687
-      x-served-by:
-      - cache-lga-kjfk8660054-LGA, cache-lga-kjfk8660054-LGA, cache-lga-kjfk8660064-LGA,
-        cache-mrs1530065-MRS
-      x-timer:
-      - S1794250370.790404,VS0,VE737
     status:
       code: 200
       message: OK
