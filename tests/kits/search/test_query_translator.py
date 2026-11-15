@@ -51,3 +51,27 @@ def test_boolean_translator():
     q = Query(text='title:"machine learning" AND deep')
     result = translator.translate(q)
     assert result == 'ti:"machine learning" + deep'
+
+
+def test_adjacent_terms_unchanged_without_implicit_operator():
+    from scholar_search.models import Query
+
+    translator = BooleanQueryTranslator(field_map={QueryField.ANY: "all"})
+    assert translator.translate(Query(text="a b")) == "all:a all:b"
+    assert translator.translate(Query(text='(a OR b) "c d" e')) == '( all:a OR all:b ) all:"c d" all:e'
+
+
+def test_implicit_operator_joins_adjacent_operands_only():
+    from scholar_search.models import Query
+
+    translator = BooleanQueryTranslator(
+        field_map={QueryField.ANY: "all"},
+        operator_map={"AND": "AND", "OR": "OR", "NOT": "ANDNOT"},
+        implicit_operator="AND",
+    )
+    assert translator.translate(Query(text="a b")) == "all:a AND all:b"
+    assert translator.translate(Query(text='(a OR b) "c d" (e)')) == (
+        '( all:a OR all:b ) AND all:"c d" AND ( all:e )'
+    )
+    assert translator.translate(Query(text="a NOT b")) == "all:a ANDNOT all:b"
+    assert translator.translate(Query(text="a OR b")) == "all:a OR all:b"
