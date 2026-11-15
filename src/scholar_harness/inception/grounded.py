@@ -10,6 +10,7 @@ import typer
 from rich.panel import Panel
 
 from ..recon.engine import ReconEngine
+from ..recon.keywords import keyword_query
 from ..recon.session import ReconRefused, ReconSessions, term_evidence
 from .display import console
 from .drafts import new_session_id
@@ -155,7 +156,8 @@ def _run_grounded_recon(
         pool_fingerprints.append(record["fingerprint"])
         return {"pool": pool, "terms": distill_pool(pool, query_text=query)}
 
-    data = probe_and_read(topic)
+    # M10a OBS-1: the topic is probed as its keywords; the session keeps the sentence.
+    data = probe_and_read(keyword_query(topic))
     directions = _grounded_directions_for_terms(data["terms"])
     if not directions:
         raise typer.Exit(

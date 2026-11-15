@@ -851,3 +851,52 @@ def test_adopted_year_window_honesty_defaults_diverge_explicit_parity(
     assert mcp_probe["status"] == "probe_ok"
     assert mcp_probe["cache_key"] == explicit_key
     assert Path(mcp_probe["pool_path"]).is_file()
+
+
+# ---------------------------------------------------------------------------
+# M10a OBS-1: recon_probe sends a topic sentence as its keyword query
+# ---------------------------------------------------------------------------
+
+
+def test_recon_probe_sends_a_sentence_as_keywords_and_keeps_the_topic(tmp_path, monkeypatch):
+    sentence = "How does edge inference affect crop disease detection on orchard robots?"
+    calls = []
+
+    def search_fn(query: Query, providers: list[str]):
+        calls.append(query.text)
+        return _topic_docs()
+
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(server, "RECON_SEARCH_FN", search_fn)
+    result = json.loads(server.recon_probe(topic=sentence))
+
+    assert result["status"] == "probe_ok"
+    assert calls == ["edge inference crop disease detection orchard"]
+    session_file = (
+        tmp_path / ".cache" / "inception_recon" / "sessions" / result["session_id"] / "session.json"
+    )
+    session = json.loads(session_file.read_text(encoding="utf-8"))
+    assert session["topic"] == sentence
+    assert session["probes"][-1]["query"] == calls[0]
+
+
+def test_recon_probe_takes_the_keyword_query_from_the_adapter(tmp_path, monkeypatch):
+    """Review item 10: the MCP's one harness boundary is the adapter; its keyword_query is what is sent."""
+    converted = []
+
+    def spy(topic: str) -> str:
+        converted.append(topic)
+        return "adapter keywords"
+
+    calls = []
+
+    def search_fn(query: Query, providers: list[str]):
+        calls.append(query.text)
+        return _topic_docs()
+
+    monkeypatch.setattr(server._recon_adapter, "keyword_query", spy)
+    monkeypatch.setattr(server, "RECON_SEARCH_FN", search_fn)
+    result = json.loads(server.recon_probe(topic="Any sentence at all?"))
+
+    assert result["status"] == "probe_ok"
+    assert converted == ["Any sentence at all?"] and calls == ["adapter keywords"]

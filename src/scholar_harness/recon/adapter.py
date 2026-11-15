@@ -59,11 +59,12 @@ from .engine import SearchFn as _SearchFn
 from .engine import canonical_recon_root as _canonical_recon_root
 from .gates import compute_pool_sufficiency as _compute_pool_sufficiency
 from .gates import compute_topic_purity as _compute_topic_purity
+from .keywords import keyword_query as _keyword_query
 from .lexicon import DEFAULT_LEXICON as _DEFAULT_LEXICON
 from .lexicon import DomainLexicon as _DomainLexicon
 from .lexicon import merge_lexicons as _merge_lexicons
 
-ADAPTER_VERSION = "1.1"  # 1.1 (M4c): make_sessions
+ADAPTER_VERSION = "1.2"  # 1.1 (M4c): make_sessions; 1.2 (M10a): keyword_query
 
 __all__ = [
     "ADAPTER_VERSION",
@@ -76,6 +77,7 @@ __all__ = [
     "default_providers",
     "describe_interface",
     "distill_terms",
+    "keyword_query",
     "make_engine",
     "make_sessions",
     "merge_lexicon",
@@ -119,7 +121,7 @@ def _reject_workspaces(path: Path, what: str) -> Path:
 
 
 def adapter_version() -> str:
-    """Return the versioned adapter interface identifier (``"1.1"``)."""
+    """Return the versioned adapter interface identifier (``"1.2"``)."""
     return ADAPTER_VERSION
 
 
@@ -138,6 +140,7 @@ def describe_interface() -> dict[str, Any]:
                 "default_providers",
                 "describe_interface",
                 "distill_terms",
+                "keyword_query",
                 "make_engine",
                 "make_sessions",
                 "merge_lexicon",
@@ -165,6 +168,7 @@ def describe_interface() -> dict[str, Any]:
                 "scholar_harness.recon.adaptive.execute_followups",
                 "scholar_harness.recon.gates.compute_pool_sufficiency",
                 "scholar_harness.recon.gates.compute_topic_purity",
+                "scholar_harness.recon.keywords.keyword_query",
                 "scholar_harness.recon.lexicon.merge_lexicons",
             ]
         ),
@@ -252,6 +256,18 @@ def normalize_text(text: str) -> str:
     if not isinstance(text, str):
         raise ReconAdapterInputError("text must be a string")
     return fn(text)
+
+
+def keyword_query(topic: str) -> str:
+    """The keyword query a topic is probed with (adapter 1.2, M10a; delegates).
+
+    The one rule the console and the CLI wizard use, so ``recon_probe`` sends
+    the same query for the same topic.
+    """
+    fn = _require_symbol("keyword_query", _keyword_query)
+    if not isinstance(topic, str):
+        raise ReconAdapterInputError("topic must be a string")
+    return fn(topic)
 
 
 def default_providers() -> list[str]:

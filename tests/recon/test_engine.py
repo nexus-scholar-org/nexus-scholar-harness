@@ -309,3 +309,213 @@ def test_default_recon_root_is_repo_anchored_not_cwd(tmp_path, monkeypatch):
     assert engine.cache_root == expected
     assert engine.cache_root.is_absolute()
     assert not str(engine.cache_root).startswith(str(tmp_path.resolve()))
+
+
+# ---------------------------------------------------------------------------
+# M10a OBS-2: the 25 are chosen by each database's own order, in the
+# researcher's database order; duplicate representatives are unchanged.
+# ---------------------------------------------------------------------------
+
+ORDER = ["openalex", "semanticscholar", "crossref", "arxiv"]
+SHARED_DOI = "10.5555/shared-record"
+
+
+def _ranked_docs(
+    name: str, n: int = 25, shared: dict[str, int | tuple[int, ...]] | None = None
+) -> list[Document]:
+    """``n`` records of one database in its relevance order.
+
+    ``provider_id`` runs against the rank, so an order by id is not the
+    database's order. ``shared`` maps a database to the rank (or ranks) that
+    carry ``SHARED_DOI``.
+    """
+    ranks = (shared or {}).get(name, ())
+    ranks = ranks if isinstance(ranks, tuple) else (ranks,)
+    docs = []
+    for i in range(n):
+        doi = f"10.5555/{name}-{i:03d}"
+        if i in ranks:
+            doi = SHARED_DOI
+        docs.append(
+            Document(
+                title=f"{name} paper ranked {i}",
+                year=2022,
+                provider=name,
+                provider_id=f"{24 - i:03d}",
+                external_ids=ExternalIds(doi=doi),
+                abstract=f"{name} abstract {i}" + (" with more detail" if name == "crossref" else ""),
+            )
+        )
+    return docs
+
+
+def _fake_provider_classes(shared: dict[str, int | tuple[int, ...]] | None = None) -> dict[str, type]:
+    classes = {}
+    for name in ORDER:
+
+        class _Fake:
+            _name = name
+
+            def __init__(self):
+                self.name = self._name
+                self.current_leg = None
+
+            async def search(self, query):
+                for doc in _ranked_docs(self.name, shared=shared):
+                    yield doc
+
+        classes[name] = _Fake
+    return classes
+
+
+def _probe_ids(tmp_path, monkeypatch, providers, shared=None, refresh=False) -> tuple[list[str], dict]:
+    import scholar_harness.recon.engine as eng
+
+    monkeypatch.delenv("NEXUS_RECON_ROOT", raising=False)
+    monkeypatch.setattr(eng, "_PROVIDER_CLASSES", _fake_provider_classes(shared))
+    engine = ReconEngine(cache_root=tmp_path / "cache")
+    pool, _path, _cached = asyncio.run(engine.probe_pool("weed mapping", providers=providers, refresh=refresh))
+    return [d["id"] for d in pool["docs"]], pool
+
+
+def test_sample_is_filled_by_rank_in_the_chosen_database_order(tmp_path, monkeypatch):
+    ids, pool = _probe_ids(tmp_path, monkeypatch, ORDER)
+    assert len(ids) == 25
+    assert {d["provider"] for d in pool["docs"]} == set(ORDER)
+    assert ids[:4] == [f"{name}|024" for name in ORDER]
+    assert ids[4:8] == [f"{name}|023" for name in ORDER]
+    again, _pool = _probe_ids(tmp_path, monkeypatch, ORDER, refresh=True)
+    assert again == ids
+
+
+def test_reversed_database_order_reverses_the_rank_zero_records(tmp_path, monkeypatch):
+    order = list(reversed(ORDER))
+    ids, _pool = _probe_ids(tmp_path, monkeypatch, order)
+    assert ids[:4] == [f"{name}|024" for name in order]
+
+
+def test_a_duplicate_appears_once_with_the_usual_representative(tmp_path, monkeypatch):
+    from scholar_search.dedup import Deduplicator, stable_order
+
+    shared = {"openalex": 0, "crossref": 3}
+    ids, pool = _probe_ids(tmp_path, monkeypatch, ORDER, shared=shared)
+    raw = [doc for name in ORDER for doc in _ranked_docs(name, shared=shared)]
+    clusters = Deduplicator().deduplicate(stable_order(raw))
+    (cluster,) = [c for c in clusters if c.representative.external_ids.doi == SHARED_DOI]
+    assert cluster.size == 2
+    expected = f"{cluster.representative.provider}|{cluster.representative.provider_id}"
+    assert [d["doi"] for d in pool["docs"]].count(SHARED_DOI) == 1
+    assert ids[0] == expected
+
+
+def test_one_database_keeps_its_own_order(tmp_path, monkeypatch):
+    ids, _pool = _probe_ids(tmp_path, monkeypatch, ["crossref"])
+    assert ids == [f"crossref|{24 - i:03d}" for i in range(25)]
+
+
+def test_a_duplicate_within_one_database_takes_the_stable_order_representative(tmp_path, monkeypatch):
+    """The same DOI at ranks 0 and 5 of one database, with equal scores.
+
+    Arrival order would keep rank 0 (``openalex|024``); ``stable_order`` puts
+    ``openalex|019`` first, so that record is the representative. The group
+    still sits at rank 0.
+    """
+    from scholar_search.dedup import Deduplicator, stable_order
+
+    shared = {"openalex": (0, 5)}
+    ids, pool = _probe_ids(tmp_path, monkeypatch, ORDER, shared=shared)
+    raw = [doc for name in ORDER for doc in _ranked_docs(name, shared=shared)]
+    clusters = Deduplicator().deduplicate(stable_order(raw))
+    (cluster,) = [c for c in clusters if c.representative.external_ids.doi == SHARED_DOI]
+    assert cluster.size == 2
+    expected = f"{cluster.representative.provider}|{cluster.representative.provider_id}"
+    assert expected == "openalex|019", "the fixture must make arrival order and stable order disagree"
+    assert [d["doi"] for d in pool["docs"]].count(SHARED_DOI) == 1
+    assert ids[0] == expected
+
+
+def _old_pool(key: str, providers: list[str]) -> dict:
+    """A complete pool as written before M10a: no ``sample`` marker."""
+    return {
+        "cache_key": key,
+        "created_at": "2026-11-01T00:00:00+00:00",
+        "status": "complete",
+        "query": "weed mapping",
+        "providers": providers,
+        "year_min": 2000,
+        "year_max": None,
+        "languages": None,
+        "max_results": 25,
+        "semantic": False,
+        "legs": [],
+        "docs": [{"id": "arxiv|old", "provider": "arxiv", "doi": None, "title": "old", "abstract": None,
+                  "year": 2020, "citations": 0, "oa_url": None}],
+        "fulltexts": {},
+    }
+
+
+@pytest.mark.parametrize("marker", [None, "relevance"], ids=["no-marker", "previous-marker"])
+def test_a_pool_cached_before_the_relevance_sample_is_fetched_again(tmp_path, marker):
+    """A pool without the current ``sample`` marker, or with an earlier one, is fetched again."""
+    from scholar_harness.recon.engine import POOL_SAMPLE
+
+    calls = {"n": 0}
+
+    def search_fn(query: Query, providers: list[str]) -> list[Document]:
+        calls["n"] += 1
+        return _ranked_docs("crossref", 3) + _ranked_docs("openalex", 3)
+
+    providers = ["openalex", "crossref"]
+    engine = ReconEngine(cache_root=tmp_path / "cache", search_fn=search_fn)
+    key = cache_key("weed mapping", providers, 2000)
+    pool_path = engine.pools_dir / f"{hashlib.sha1(key.encode('utf-8')).hexdigest()}_pool.json"
+    pool_path.parent.mkdir(parents=True)
+    old = _old_pool(key, providers)
+    if marker is not None:
+        old["sample"] = marker
+    pool_path.write_text(json.dumps(old), encoding="utf-8")
+
+    pool, path, cached = asyncio.run(engine.probe_pool("weed mapping", providers=providers))
+    assert (cached, calls["n"], path) == (False, 1, pool_path)
+    assert pool["sample"] == POOL_SAMPLE != marker
+    assert [d["id"] for d in pool["docs"]] == [
+        "openalex|024", "crossref|024", "openalex|023", "crossref|023", "openalex|022", "crossref|022"
+    ]
+    assert json.loads(pool_path.read_text(encoding="utf-8")) == pool, "the old pool is overwritten"
+
+    again, _path, cached = asyncio.run(engine.probe_pool("weed mapping", providers=providers))
+    assert (cached, calls["n"]) == (True, 1), "a pool with the marker is reused"
+    assert again == pool
+
+
+def _blocks() -> list[Document]:
+    """Three listed databases and one unlisted (``core``), in blocks, not in the requested order.
+
+    ``SHARED_DOI`` is crossref rank 0 and openalex rank 1.
+    """
+    shared = {"crossref": 0, "openalex": 1}
+    return (
+        _ranked_docs("crossref", 3, shared=shared)
+        + _ranked_docs("core", 2)
+        + _ranked_docs("openalex", 3, shared=shared)
+        + _ranked_docs("semanticscholar", 1)
+    )
+
+
+@pytest.mark.parametrize("as_run", [True, False], ids=["search-run", "bare-list"])
+def test_an_injected_search_is_put_in_rank_order_without_merging(tmp_path, as_run):
+    from scholar_search.models import SearchRun
+
+    def search_fn(query: Query, providers: list[str]):
+        return SearchRun(documents=_blocks(), legs=[]) if as_run else _blocks()
+
+    engine = ReconEngine(cache_root=tmp_path / "cache", search_fn=search_fn)
+    pool, _path, _cached = asyncio.run(
+        engine.probe_pool("weed mapping", providers=["openalex", "semanticscholar", "crossref"])
+    )
+    assert [d["id"] for d in pool["docs"]] == [
+        "openalex|024", "semanticscholar|024", "crossref|024", "core|024",
+        "openalex|023", "crossref|023", "core|023",
+        "openalex|022", "crossref|022",
+    ]
+    assert [d["doi"] for d in pool["docs"]].count(SHARED_DOI) == 2, "this path does not merge duplicates"

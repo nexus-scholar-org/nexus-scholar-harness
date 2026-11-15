@@ -100,12 +100,28 @@ def test_a01_adapter_version_is_pinned():
     """A01 [OBSERVED-ADAPTER]: the explicit interface is versioned.
 
     1.1 (M4c) adds ``make_sessions``, the recon session store the MCP tools,
-    the CLI wizard and the console share.
+    the CLI wizard and the console share. 1.2 (M10a) adds ``keyword_query``,
+    the topic's keyword query, so ``recon_probe`` sends what the console and
+    the wizard send.
     """
-    assert adapter.ADAPTER_VERSION == "1.1"
+    assert adapter.ADAPTER_VERSION == "1.2"
     assert adapter.adapter_version() == adapter.ADAPTER_VERSION
     assert adapter.describe_interface()["adapter_version"] == adapter.ADAPTER_VERSION
     assert "make_sessions" in adapter.describe_interface()["entry_points"]
+    assert "keyword_query" in adapter.describe_interface()["entry_points"]
+    assert "keyword_query" in adapter.__all__
+    assert "scholar_harness.recon.keywords.keyword_query" in adapter.describe_interface()["delegates_to"]
+
+
+def test_a01b_adapter_keyword_query_delegates_to_the_one_rule():
+    """A01b [OBSERVED-ADAPTER]: the adapter's keyword query is the console's and the wizard's."""
+    from scholar_harness.recon.keywords import keyword_query
+
+    sentence = "How does edge inference affect crop disease detection on orchard robots?"
+    assert adapter.keyword_query(sentence) == keyword_query(sentence)
+    assert adapter.keyword_query(sentence) == "edge inference crop disease detection orchard"
+    with pytest.raises(ReconAdapterInputError):
+        adapter.keyword_query(None)  # type: ignore[arg-type]
 
 
 def test_a02_adapter_has_no_kit_transport_or_discovery_imports():
@@ -727,6 +743,9 @@ def test_g03_mcp_drives_adapter_entry_points():
     """
     server = _kit_server()
     assert "_sessions().probe(" in inspect.getsource(server.recon_probe)
+    # M10a: the keyword query comes through the adapter, never a direct harness import.
+    assert "_recon_adapter.keyword_query(" in inspect.getsource(server.recon_probe)
+    assert "scholar_harness.recon.keywords" not in inspect.getsource(server.recon_probe)
     assert "_recon_adapter.make_sessions(" in inspect.getsource(server._sessions)
     assert "_recon_adapter.distill_terms(" in inspect.getsource(server.recon_distill)
     assert "_recon_adapter.merge_lexicon(" in inspect.getsource(server.recon_distill)
