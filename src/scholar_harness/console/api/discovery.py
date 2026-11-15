@@ -7,7 +7,8 @@ Layer R reads what the engine already writes (`literature/search_runs/`,
 `literature/recall_checks/`, `deduped.json`, `verified.json`):
 
 * ``GET /plan`` — the protocol's query and cap, the contact-address state and
-  the providers (``executed_query`` stays ``null`` until the E1 dry run).
+  the providers (``executed_query`` stays ``null`` until the E1 dry run);
+  ``?providers=a,b`` previews the databases a run is asked for (M10a).
 * ``GET /runs``, ``GET /runs/{run}``, ``GET /runs/{run}/report`` — the search runs.
 * ``GET /report``, ``PUT /report/methods`` — the PRISMA-S style report of a run
   and its reviewed methods paragraph.
@@ -39,6 +40,7 @@ from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import PlainTextResponse, StreamingResponse
 from pydantic import BaseModel, ConfigDict, Field
 from scholar_search.config import settings
+from scholar_search.plan import run_providers
 
 from ...pipeline import discovery as disc
 from ...workspace.audit import append_event
@@ -238,7 +240,9 @@ def _protocol(ws: Path) -> _Protocol:
         query, providers = compile_protocol_search(path)
     except (ValidationError, ValueError, TypeError) as exc:
         raise Refused(422, refusals.PROTOCOL_INVALID, f"protocol.json is not a valid protocol: {str(exc)[:300]}") from exc
-    return _Protocol(path, query, [_canonical(p) for p in providers], canonical_fingerprint(model))
+    # M10a: the list a run sent no ``providers`` searches (unknown names dropped, a
+    # repeat once, no known name the engine's default suite), not the raw field.
+    return _Protocol(path, query, run_providers(providers), canonical_fingerprint(model))
 
 
 def _mailto_set() -> bool:
@@ -269,13 +273,14 @@ def _require_openalex_key(providers: list[str]) -> None:
 
 
 def _check_providers(names: list[str] | None) -> list[str] | None:
+    """Canonical names in order, the first of each repeat (M10a: a repeated database ran twice)."""
     if names is None:
         return None
     unknown = [n for n in names if _canonical(n) not in KNOWN_PROVIDERS]
     if unknown or not names:
         raise Refused(422, refusals.PROVIDER_UNKNOWN, "Unknown or empty database list.",
                       details={"unknown": unknown, "known": list(KNOWN_PROVIDERS)})
-    return [_canonical(n) for n in names]
+    return list(dict.fromkeys(_canonical(n) for n in names))
 
 
 def _run_dirs(ws: Path) -> list[Path]:
@@ -338,6 +343,8 @@ def _run_summaries(ws: Path) -> list[dict[str, Any]]:
             "fetched_total": sum(int(leg.get("fetched") or 0) for leg in legs),
             "raw_published": bool(manifest.get("raw_published")),
             "cap_override": manifest.get("cap_override"),
+            # M10a: the databases asked for, in order; None when the protocol's list was used.
+            "requested_providers": manifest.get("requested_providers"),
             # A later run whose records became the corpus makes this one's files stale.
             "stale": later_published,
             # Review F3: the protocol was edited since this run searched it.
@@ -396,10 +403,18 @@ def _verified(ws: Path) -> list[dict[str, Any]]:
 # --------------------------------------------------------------------------- Layer R routes
 
 
+def _provider_param(value: str | None) -> list[str] | None:
+    """``?providers=a,b,c`` as an ordered list, checked as a run body's ``providers``."""
+    if value is None:
+        return None
+    return _check_providers([part.strip() for part in value.split(",")])
+
+
 @router.get("/plan")
-def plan(request: Request) -> dict[str, Any]:
+def plan(request: Request, providers: str | None = None) -> dict[str, Any]:
     try:
         proto = _protocol(_ws(request))
+        requested = _provider_param(providers)
     except Refused as exc:
         raise _http(exc) from exc
     query = proto.query
@@ -410,7 +425,8 @@ def plan(request: Request) -> dict[str, Any]:
     from scholar_search.plan import compile_plan
 
     # E1 (M3d-engine): each selected database's translation, made without a request.
-    providers = compile_plan(proto.path, KNOWN_PROVIDERS)["providers"]
+    # M10a: a chosen list replaces the protocol's and is listed first, in its order.
+    rows = compile_plan(proto.path, KNOWN_PROVIDERS, selected=requested)["providers"]
     return {
         "shape": "discovery.plan-v1",
         "protocol_fingerprint": proto.fingerprint,
@@ -421,7 +437,11 @@ def plan(request: Request) -> dict[str, Any]:
         "openalex_key_set": _openalex_key_set(),
         # M3h-providers: set, not verified; a rejected key fails the S2 leg.
         "s2_key_set": bool(settings.s2_key),
-        "providers": providers,
+        "providers": rows,
+        # M10a: the protocol's own list (what a run uses when it is sent no
+        # ``providers``) and the list this plan was asked for, or ``None``.
+        "protocol_providers": list(proto.providers),
+        "requested_providers": requested,
         "imports_hint": ["scopus", "wos"],
         # M4d: the recall seeds inception kept from its pool; Recall pre-fills them as "anchor".
         "golden_seeds": _golden_seeds(proto.path),
@@ -456,6 +476,7 @@ def run_detail(run: str, request: Request) -> dict[str, Any]:
         "report_path": (run_dir / "search_report.md").relative_to(ws).as_posix(),
         "recall_check": _preceding_check(ws, started[0] if started else None),
         "cap_override": manifest.get("cap_override"),
+        "requested_providers": manifest.get("requested_providers"),
     }
 
 
@@ -564,6 +585,23 @@ def dedup_counts(request: Request) -> dict[str, Any]:
     return summary
 
 
+#: M10a: a protocol database the run's own choice of databases left out.
+NOT_SELECTED_FOR_RUN = "not_selected_for_run"
+
+
+def _left_out(manifest: dict[str, Any], proto: _Protocol) -> list[str]:
+    """The protocol databases the run's own choice left out; the current list stands in for a run without a record."""
+    from scholar_search.search_report import protocol_databases_left_out
+
+    return protocol_databases_left_out(manifest, fallback=proto.providers)
+
+
+def _not_searched_reason(name: str, left_out: list[str]) -> str:
+    if name in left_out:
+        return NOT_SELECTED_FOR_RUN
+    return "off by default" if name not in DEFAULT_PROVIDERS else "not selected in the protocol"
+
+
 @router.get("/report")
 def report(request: Request, run: str | None = None) -> dict[str, Any]:
     from scholar_search.search_report import render_methods_text
@@ -600,8 +638,9 @@ def report(request: Request, run: str | None = None) -> dict[str, Any]:
         "error_code": None, "searched_at": imp["searched_on"], "notes": [],
     } for imp in imports]
     searched = {leg.get("provider") for leg in legs}
+    left_out = [name for name in _left_out(manifest, proto) if name not in searched]
     not_searched = [
-        {"database": name, "reason": "off by default" if name not in DEFAULT_PROVIDERS else "not selected in the protocol"}
+        {"database": name, "reason": _not_searched_reason(name, left_out)}
         for name in KNOWN_PROVIDERS if name not in searched
     ]
     # deduped.json is the newest corpus run's; it describes this run only when this run is that one.
@@ -632,6 +671,7 @@ def report(request: Request, run: str | None = None) -> dict[str, Any]:
             "text": render_methods_text(
                 legs, imports, dedup, query_text=manifest.get("query_text"),
                 years=(manifest.get("year_min"), manifest.get("year_max")), cap_override=manifest.get("cap_override"),
+                not_selected_for_run=left_out,
             ),
             "built_from": run_dir.name, "reviewed": False, "reviewed_at": None,
         }

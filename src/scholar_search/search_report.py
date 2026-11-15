@@ -11,6 +11,7 @@ a leg, so they cannot reach the report.
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from typing import Any
 
 _CAP_SOURCES = {
@@ -47,6 +48,37 @@ def _date(leg: dict[str, Any]) -> str:
     return str(leg.get("started_at") or "")[:10]
 
 
+def protocol_databases_left_out(manifest: dict[str, Any], fallback: Sequence[str] | None = None) -> list[str]:
+    """The protocol databases a run's own choice left out (M10a), in the known order.
+
+    Empty unless the run recorded ``requested_providers``. The protocol's list is
+    the one the run recorded in ``protocol_search.databases`` (``None``: the
+    protocol named none, so the adapter's default), read as a run reads it
+    (``run_providers``); ``fallback`` stands in for a run without that record.
+    """
+    from .plan import (
+        KNOWN_PROVIDERS,
+        canonical_provider,
+        protocol_default_providers,
+        run_providers,
+    )
+
+    requested = manifest.get("requested_providers")
+    if not isinstance(requested, list):
+        return []
+    record = manifest.get("protocol_search")
+    if isinstance(record, dict) and "databases" in record:
+        databases = record["databases"]
+        names = protocol_default_providers() if databases is None else databases
+    elif fallback is not None:
+        names = fallback
+    else:
+        return []
+    protocol = set(run_providers(names))
+    asked = {canonical_provider(n) for n in requested}
+    return [n for n in KNOWN_PROVIDERS if n in protocol and n not in asked]
+
+
 def render_search_report(manifest: dict[str, Any]) -> str:
     """Markdown for one run's search, one table row per database."""
     legs = list(manifest.get("legs") or [])
@@ -62,6 +94,9 @@ def render_search_report(manifest: dict[str, Any]) -> str:
     ]
     if years:
         lines.append(f"- Publication years: {years}")
+    left_out = protocol_databases_left_out(manifest)
+    if left_out:
+        lines.append(f"- Protocol databases not selected for this run: {_names(left_out)}")
     if manifest.get("cap_override") is not None:
         lines.append(f"- Run override cap: {manifest['cap_override']} records per database")
     for note in manifest.get("notes") or []:
@@ -118,13 +153,15 @@ def render_methods_text(
     query_text: str | None = None,
     years: tuple[Any, Any] | None = None,
     cap_override: int | None = None,
+    not_selected_for_run: Sequence[str] | None = None,
 ) -> str:
     """The search paragraph of a methods section, every number from a field (packet §4.6).
 
     One sentence for the searched databases, one per database with its counts
     and cap, one for the imported exports and one for deduplication. It states
     what the run recorded and nothing else: no adjectives, no claims about
-    completeness beyond the cap flags.
+    completeness beyond the cap flags. ``not_selected_for_run`` (M10a,
+    ``protocol_databases_left_out``) adds one sentence after the first.
     """
     searched = [leg for leg in legs if leg.get("status") != "pending"]
     dates = sorted(str(leg.get("started_at") or "")[:10] for leg in searched if leg.get("started_at"))
@@ -139,6 +176,10 @@ def render_methods_text(
         if years and (years[0] or years[1]):
             lead += f", limited to publication years {years[0] or '…'}–{years[1] or '…'}"
         parts.append(lead + ".")
+        if not_selected_for_run:
+            left_out = list(not_selected_for_run)
+            verb = "was" if len(left_out) == 1 else "were"
+            parts.append(f"The protocol also names {_names(left_out)}, which {verb} not selected for this run.")
         if cap_override is not None:
             parts.append(f"This run fetched at most {cap_override} records per database (a run override of the protocol cap).")
         for leg in searched:
