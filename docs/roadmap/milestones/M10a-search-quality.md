@@ -1,5 +1,5 @@
 # M10a-search-quality Search quality and database choice
-Branch: dev/m10a/search-quality · Lane: **RELEASE** (the probe and run bodies gain public HTTP fields, the MCP `recon_probe` and the CLI wizard send a different query, and the arXiv translation is a `scholar_search` change that Discovery shares; `test_gate_policy.md:43-48`, `DEVELOPER_COMPASS.md:93-94`; precedents M3h, M4c, M4d) · Status: IN PROGRESS · Started: 2026-11-14
+Branch: dev/m10a/search-quality · Lane: **RELEASE** (the probe and run bodies gain public HTTP fields, the MCP `recon_probe` and the CLI wizard send a different query, and the arXiv translation is a `scholar_search` change that Discovery shares; `test_gate_policy.md:43-48`, `DEVELOPER_COMPASS.md:93-94`; precedents M3h, M4c, M4d) · Status: READY FOR PR · Started: 2026-11-14
 
 First milestone of "Assisted inception" (plan §6, decisions 2026-11-14). Base: `origin/main` at `a0191cc6`. No language model anywhere in this milestone.
 
@@ -15,7 +15,7 @@ Out of scope: the proposal mechanism, any assistant, critic or chat, the lighter
 - [x] **4. arXiv combines terms.** Adjacent terms are joined with `AND`, as the arXiv API manual's Boolean syntax requires; Crossref is left as it is (no all-terms mode is documented). Test: OBS-3.
 - [x] **5. Databases selectable and re-orderable** in Explore and in Discovery (Plan and Harvest), keyboard-accessible and correct in right-to-left. Specs amended first (`02-explore`, `01-plan`, `03-harvest`). Component tests and a Playwright test for each screen.
 - [x] **6. Direction quality on a recorded pool** (OBS-4): a test on the recorded golden recon pool shows the relevance-chosen sample gives directions anchored in on-topic records; the direction code is not tuned. *Re-measured 2026-11-15 on the re-recorded arXiv answer (decision 3a): passes in both cases; numbers in Findings fixed.*
-- [ ] **7. Gates.** `/gate checkpoint` per item (golden cassette tests added by hand); `generate_contract_baseline.py --check` passes; `/gate pr` green on the final executable commit; `milestone-reviewer` APPROVE; Evidence filled. Stop before any push. *Re-record done 2026-11-15; `/gate pr` green on `7ed9a62a` (Python) and `e3367114` (UI, no UI or source change since); decision items 4 and 6 accepted 2026-11-15. Open: `milestone-reviewer` rerun.*
+- [x] **7. Gates.** `/gate checkpoint` per item (golden cassette tests added by hand); `generate_contract_baseline.py --check` passes; `/gate pr` green on the final executable commit; `milestone-reviewer` APPROVE; Evidence filled. Stop before any push. *Re-record done 2026-11-15; `/gate pr` green on `94257414` (Python and contract) and `e3367114` (UI; no UI or source change since `5bb626d2`); decision items 4 and 6 accepted 2026-11-15; `milestone-reviewer` APPROVE. Push and PR await the researcher.*
 
 ## Findings fixed
 | ID | Reproducing test | Fails before | Passes after |
@@ -56,6 +56,9 @@ Out of scope: the proposal mechanism, any assistant, critic or chat, the lighter
 | pr (Python) | `e3367114` | `uv run pytest -q -n auto` | exit 1: 1 failed, `tests/unit/test_record_golden_recon_arxiv.py::test_the_splice_replaces_only_the_arxiv_interactions` (it assumed the pre-re-record cassette; fixed in `7ed9a62a`); golden recon and direction-quality tests pass | 400 s |
 | pr (UI) | `e3367114` | `npm --prefix apps/research-ui run typecheck`, `test`, `build`, `test:browser` | all exit 0: vitest 43 files, 607 passed; Playwright 459 passed, 13 skipped. Nothing under `apps/` or `src/` changed after `5bb626d2`, and `7ed9a62a` changes one Python test only | 586 s |
 | pr (Python) | `7ed9a62a` | `uv run pytest -q -n auto` | **exit 0**: 5021 passed, 15 skipped, 0 failed | 370 s |
+| review | `8c4a7d61` | `milestone-reviewer` (rerun) | **APPROVE**: all five earlier findings closed; cassette non-arXiv interactions identical to `a0191cc6`, no address or key; targeted tests 38 passed; three optional P3s, fixed in `94257414` | |
+| contract | `94257414` | the six contract and lint checks as above | all exit 0 | 4 s |
+| pr (Python) | `94257414` | `uv run pytest -q -n auto` | **exit 0**: 5021 passed, 15 skipped, 0 failed (final executable commit) | 407 s |
 
 ## Deferred
 Nothing in the DoD was cut. Follow-ups found while building (plan §7: out of scope or pre-existing):
