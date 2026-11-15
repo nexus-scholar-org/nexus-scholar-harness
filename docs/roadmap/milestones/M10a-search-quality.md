@@ -8,14 +8,14 @@ Why: in the strict run of 2026-11-13 (topic "UAV crop-weed mapping"), Explore re
 Out of scope: the proposal mechanism, any assistant, critic or chat, the lighter-screens redesign, exclusion reason categories, matrix columns, wording fixes on the Review step, the empty Hand-off after a harvest, the acceptance runbook, one default database set (F15).
 
 ## Definition of done
-- [ ] **0. Audit.** Observations 1 to 4 re-verified at `a0191cc6` (phase-auditor, adversarially checked). Lane declared.
-- [ ] **1. A keyword query from the topic, without AI.** Derived deterministically from the topic sentence; the same rule at every front door (browser, CLI wizard, MCP); the topic sentence stays in the draft and protocol unchanged; the exact query each database received is shown; the researcher can edit it and search again. Tests: see Findings fixed (OBS-1).
-- [ ] **2. "0 results" is said.** A database that returned nothing says "0 results", not "answered", in Explore and on the Harvest legs. Tests: see Findings fixed (OBS-1b).
-- [ ] **3. A sample chosen by relevance.** The 25 are filled from each database's own order, spread across the selected databases in the researcher's order; deterministic; the representative of a duplicate group is unchanged (decision 2026-11-14, item 1). Test: four databases × 25 records give 25 with records from each, in the chosen order, identical on a second run (OBS-2).
-- [ ] **4. arXiv combines terms.** Adjacent terms are joined with `AND`, as the arXiv API manual's Boolean syntax requires; Crossref is left as it is (no all-terms mode is documented). Test: OBS-3.
-- [ ] **5. Databases selectable and re-orderable** in Explore and in Discovery (Plan and Harvest), keyboard-accessible and correct in right-to-left. Specs amended first (`02-explore`, `01-plan`, `03-harvest`). Component tests and a Playwright test for each screen.
-- [ ] **6. Direction quality on a recorded pool** (OBS-4): a test on the recorded golden recon pool shows the relevance-chosen sample gives directions anchored in on-topic records; the direction code is not tuned.
-- [ ] **7. Gates.** `/gate checkpoint` per item (golden cassette tests added by hand); `generate_contract_baseline.py --check` passes; `/gate pr` green on the final executable commit; `milestone-reviewer` APPROVE; Evidence filled. Stop before any push.
+- [x] **0. Audit.** Observations 1 to 4 re-verified at `a0191cc6` (phase-auditor, adversarially checked). Lane declared.
+- [x] **1. A keyword query from the topic, without AI.** Derived deterministically from the topic sentence; the same rule at every front door (browser, CLI wizard, MCP); the topic sentence stays in the draft and protocol unchanged; the exact query each database received is shown; the researcher can edit it and search again. Tests: see Findings fixed (OBS-1).
+- [x] **2. "0 results" is said.** A database that returned nothing says "0 results", not "answered", in Explore and on the Harvest legs. Tests: see Findings fixed (OBS-1b).
+- [x] **3. A sample chosen by relevance.** The 25 are filled from each database's own order, spread across the selected databases in the researcher's order; deterministic; the representative of a duplicate group is unchanged (decision 2026-11-14, item 1). Test: four databases × 25 records give 25 with records from each, in the chosen order, identical on a second run (OBS-2).
+- [x] **4. arXiv combines terms.** Adjacent terms are joined with `AND`, as the arXiv API manual's Boolean syntax requires; Crossref is left as it is (no all-terms mode is documented). Test: OBS-3.
+- [x] **5. Databases selectable and re-orderable** in Explore and in Discovery (Plan and Harvest), keyboard-accessible and correct in right-to-left. Specs amended first (`02-explore`, `01-plan`, `03-harvest`). Component tests and a Playwright test for each screen.
+- [ ] **6. Direction quality on a recorded pool** (OBS-4): a test on the recorded golden recon pool shows the relevance-chosen sample gives directions anchored in on-topic records; the direction code is not tuned. *Open: passes on the recorded pool as it is; the thresholds are re-measured after the arXiv re-record (decision 3a).*
+- [ ] **7. Gates.** `/gate checkpoint` per item (golden cassette tests added by hand); `generate_contract_baseline.py --check` passes; `/gate pr` green on the final executable commit; `milestone-reviewer` APPROVE; Evidence filled. Stop before any push. *Open: the golden recon test is red on its arXiv leg until the re-record; reviewer verdict CHANGES (evidence and acceptance only); decision items 4 and 6 await the researcher.*
 
 ## Findings fixed
 | ID | Reproducing test | Fails before | Passes after |
@@ -45,6 +45,12 @@ Out of scope: the proposal mechanism, any assistant, critic or chat, the lighter
 | :-- | :-- | :-- | :-- | :-- |
 | start | `a0191cc6` | branch `dev/m10a/search-quality` from `origin/main` | clean | |
 | audit | `a0191cc6` | phase-auditor on OBS-1, OBS-2 (two adversarial verifiers each); readers on OBS-3, OBS-4, UI, storage, lane | OBS-1 to OBS-3 confirmed, none refuted; OBS-4 partly: a relevance sample improves evidence (9 → 18 DOI records, observed_in 2 → 3+) but the generic labels come from the direction scorer | |
+| build | uncommitted | five writer rounds (Workflow: writer + two adversarial reviewers each); targeted pytest/vitest/Playwright per writer, recorded in their reports | every reproducing test failed first, then passed (Findings fixed); round 5 both writers OK/OK | rounds 1-5 |
+| checkpoint | uncommitted | no separate `/gate checkpoint` per DoD item: each writer ran its area's targeted tests (e.g. backend round 4: 786 passed; UI round 5: vitest 607, Playwright inception 138 and discovery 138); the PR gate below covers every area | passed | |
+| contract | `5bb626d2` | `generate_contract_baseline.py --check`; `generate_contract_schemas.py --check`; `generate_protocol_schema.py --check`; `ruff check scripts/`; `ruff check src/ --select F821,F811,F823,F632,F7,B023,B006,E9`; `git diff --check main...HEAD` | all exit 0 | |
+| pr (Python) | `5bb626d2` | `uv run pytest -q -n auto` | **exit 1**: 5019 passed, 15 skipped, 1 failed: `tests/pipeline/test_golden_recon_cassette.py::test_the_golden_probe_keeps_each_leg_and_feeds_directions` (arXiv leg only, request `all:UAV AND all:crop AND all:weed AND all:mapping` not in the cassette; expected until the re-record, decision 3a) | 552 s |
+| pr (UI) | `5bb626d2` | `npm --prefix apps/research-ui run typecheck`, `test`, `build`, `test:browser` | all exit 0: vitest 43 files, 607 passed; Playwright 459 passed, 13 skipped | 651 s |
+| review | `5bb626d2` | `milestone-reviewer` | CHANGES: no code, contract or provenance defect; P1 the golden arXiv test is red until the re-record; P2 decision item 6 not yet accepted; P2 this record (ticks, evidence: done here); P3 item 4's status; P3 follow-ups listed under Deferred. Order invariance strengthened to `verified.json` after the review | |
 
 ## Deferred
 Nothing in the DoD was cut. Follow-ups found while building (plan §7: out of scope or pre-existing):
@@ -56,5 +62,7 @@ Nothing in the DoD was cut. Follow-ups found while building (plan §7: out of sc
 - **Case/spacing re-search** does not cover gap-check follow-up terms (they come from the distiller).
 - **Harvest reattached after a reload** shows no "Databases asked" list: the job snapshot carries no providers.
 - **Chase** has no `reported_total` on its legs; the shared `PROVIDER_UNKNOWN` card speaks of a harvest (Chase never sends `providers` today).
-- **Keyword rule limits** (accepted, decision item 4): six words in topic order, English stopwords. Better suggestions are M10c.
+- **Keyword rule limits** (decision item 4, stated for review; acceptance pending with item 6): six words in topic order, English stopwords. Better suggestions are M10c.
 - **fr/ar copy** added in this milestone is not reviewed by a native speaker.
+- **From the milestone review (P3):** the "shorten the query" hint (`explore.legs.shorten`, spec 02 copy) names six words joined by AND on any empty search, also after an edit or for Crossref; the keyword rule drops a lower-case "not", which can invert a question ("… not using deep learning"; the query is shown and editable); a run that adds a database the protocol does not name is listed as searched but not called a deviation in `search_report.md`, and accepting a corpus from a run that left protocol databases out adds no snapshot warning (decision 2a); the recorder's address check matches the raw form only (the cassette test's planted-address check is the guard).
+- **Spec order.** The specs (02, 01, 03, 09) were amended and their questions closed by the researcher before the UI was built, but they were committed with the UI (`60d96e7d`), not in a commit of their own.

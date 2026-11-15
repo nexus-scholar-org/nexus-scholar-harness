@@ -1045,19 +1045,21 @@ def test_m10a_the_database_order_never_changes_the_corpus(env):
     ]))
     providers.set("arxiv", FakeProvider("arxiv", [_doc("arxiv", 0, doi=shared), _doc("arxiv", 1)]))
 
-    def harvest(order: list[str]) -> tuple[list, dict]:
+    def harvest(order: list[str]) -> tuple[list, dict, list]:
         job, _ = _run(client, {"providers": order})
         assert job["state"] == "succeeded", job
         lit = ws / "literature"
         deduped = json.loads((lit / "deduped.json").read_text(encoding="utf-8"))
         clusters = json.loads((lit / "dedup" / "clusters.json").read_text(encoding="utf-8"))
-        return deduped, clusters
+        verified = json.loads((lit / "verified.json").read_text(encoding="utf-8"))
+        return deduped, clusters, verified
 
-    first, first_clusters = harvest(["openalex", "crossref", "arxiv"])
-    second, second_clusters = harvest(["arxiv", "crossref", "openalex"])
+    first, first_clusters, first_verified = harvest(["openalex", "crossref", "arxiv"])
+    second, second_clusters, second_verified = harvest(["arxiv", "crossref", "openalex"])
     assert len(first) == 5  # 8 records: one DOI group of three, one title pair
     assert first == second  # same records, same representatives, same ids
     assert first_clusters["clusters"] == second_clusters["clusters"]
+    assert first_verified == second_verified  # what the corpus accept reads
     legs = [json.loads((ws / "literature" / "search_runs" / r / "legs.json").read_text(encoding="utf-8"))["legs"]
             for r in ("run_001", "run_002")]
     assert [leg["provider"] for leg in legs[0]] == ["openalex", "crossref", "arxiv"]
