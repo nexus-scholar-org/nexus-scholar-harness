@@ -4,6 +4,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import type { Locale } from "@/i18n";
 import { Button, DataCell, DecisionBadge, type DecisionRole } from "@/components/ui/base";
+import { DatabasePicker, type PickerItem, type PickerLabels } from "@/components/database-picker";
+import { StateCard } from "@/components/screening-state-card";
 import {
   DiscoveryFrame,
   DiscoveryRefusal,
@@ -16,7 +18,7 @@ import {
   refusalOf,
   type Refusal,
 } from "@/components/discovery-frame";
-import { getPlan, getRuns, type Plan } from "@/lib/discovery-api";
+import { KNOWN_PROVIDERS, getPlan, getRuns, type Plan } from "@/lib/discovery-api";
 import { discoveryT, providerName, type DiscoveryCopyKey } from "@/lib/discovery-copy";
 
 /**
@@ -24,38 +26,211 @@ import { discoveryT, providerName, type DiscoveryCopyKey } from "@/lib/discovery
  * database will receive, from `GET /discovery/plan` (the engine's dry run). The
  * screen writes nothing: there is no approve action, starting a harvest is the
  * record. The cap shown is the protocol's only; a run override lives on Harvest.
+ *
+ * M10a (decided 2026-11-14, item 2a): a picker chooses and orders the databases
+ * of this harvest only. A change re-reads `GET /discovery/plan?providers=...`;
+ * the choice lives in this page and the link to Harvest (`?databases=`), never
+ * in the protocol.
  */
 
 const STATUS_ROLE: Record<string, DecisionRole> = { translated: "include", selected: "unclear", not_selected: "exclude", off_by_default: "exclude" };
 
+// --------------------------------------------------------------------------- the picker, shared with 03 Harvest
+
+/** Two lists hold the same names in the same order. */
+export function sameList(a: readonly string[] | null | undefined, b: readonly string[] | null | undefined): boolean {
+  return !!a && !!b && a.length === b.length && a.every((name, i) => name === b[i]);
+}
+
+/** The list a run sent no `providers` searches (`protocol_providers`); an older console's selected rows. */
+export function protocolList(plan: Plan): string[] {
+  return plan.protocol_providers ?? plan.providers.filter((p) => p.selected).map((p) => p.name);
+}
+
+/** The six databases the engine knows, in its order; bioRxiv keeps its "Off by default" note. */
+export function pickerItems(locale: Locale): PickerItem[] {
+  const t = discoveryT(locale);
+  return KNOWN_PROVIDERS.map((id) => ({ id, label: providerName(id), note: id === "biorxiv" ? t("plan.status.off_by_default") : undefined }));
+}
+
+/** Every picker string, from this module's copy: the picker itself has none. */
+export function pickerLabels(locale: Locale): PickerLabels {
+  const t = discoveryT(locale);
+  const row = (kind: "check" | "up" | "down", name: string) => {
+    const id = KNOWN_PROVIDERS.find((known) => providerName(known) === name);
+    return id ? t(`plan.picker.${kind}.${id}` as DiscoveryCopyKey) : name;
+  };
+  return {
+    legend: t("plan.picker.legend"),
+    orderHelp: t("plan.picker.orderHelp"),
+    check: (name) => row("check", name),
+    up: (name) => row("up", name),
+    down: (name) => row("down", name),
+    moved: (name, position, total) => t("plan.picker.moved", { name, n: String(position), total: String(total) }),
+    none: t("plan.picker.none"),
+  };
+}
+
+/**
+ * How a chosen list differs from the protocol's: the databases added, the ones
+ * left out, and the order of the databases both hold. When only the order
+ * differs the line says "order"; beside an addition or a removal it names the
+ * moved databases (the shared ones not at their protocol place among the shared
+ * ones). A comparison of two lists, never a judgement; `null` when they are the same.
+ */
+export function differsText(locale: Locale, chosen: readonly string[], protocol: readonly string[]): string | null {
+  const t = discoveryT(locale);
+  const comma = locale === "ar" ? "، " : ", ";
+  const names = (list: readonly string[]) => list.map(providerName).join(comma);
+  const added = chosen.filter((name) => !protocol.includes(name));
+  const leftOut = protocol.filter((name) => !chosen.includes(name));
+  const kept = chosen.filter((name) => protocol.includes(name));
+  const keptInProtocolOrder = protocol.filter((name) => chosen.includes(name));
+  const moved = kept.filter((name, i) => name !== keptInProtocolOrder[i]);
+  const parts: string[] = [];
+  if (added.length) parts.push(t("plan.picker.differs.added", { names: names(added) }));
+  if (leftOut.length) parts.push(t("plan.picker.differs.leftOut", { names: names(leftOut) }));
+  if (moved.length) parts.push(parts.length ? t("plan.picker.differs.moved", { names: names(moved) }) : t("plan.picker.differs.order"));
+  return parts.length ? t("plan.picker.differs", { list: parts.join(locale === "ar" ? "؛ " : "; ") }) : null;
+}
+
+/** The "differs from the protocol" line, in the `unclear` role: informational, never a refusal. */
+export function DiffersLine({ locale, chosen, protocol }: Readonly<{ locale: Locale; chosen: readonly string[]; protocol: readonly string[] }>) {
+  const text = differsText(locale, chosen, protocol);
+  if (!text) return null;
+  return (
+    <p className="text-sm text-unclear" data-role="unclear" data-picker-differs>
+      {text}
+    </p>
+  );
+}
+
+/**
+ * `PROVIDER_UNKNOWN` (422): the shared card, each name the engine did not know
+ * under Details (an empty name, as from `?databases=a,,b`, shown as `""`), and
+ * "Reset to the protocol".
+ */
+export function ProviderUnknownCard({
+  locale,
+  refusal,
+  origin,
+  onReset,
+  pageHeading = false,
+}: Readonly<{ locale: Locale; refusal: Refusal; origin: string; onReset: () => void; pageHeading?: boolean }>) {
+  const t = discoveryT(locale);
+  const unknown = (refusal.details as { unknown?: unknown[] } | undefined)?.unknown;
+  return (
+    <div className="space-y-2" data-refusal={refusal.code}>
+      <StateCard
+        locale={locale}
+        code={refusal.code}
+        message={refusal.message}
+        consoleOrigin={origin}
+        pageHeading={pageHeading}
+        hideActionLabel
+        details={
+          Array.isArray(unknown) && unknown.length ? (
+            <div className="mt-1 text-sm" data-unknown-providers>
+              <p className="text-ink-muted">{t("plan.picker.unknown")}</p>
+              <ul className="mt-1 flex flex-wrap gap-x-3 gap-y-1">
+                {unknown.map((name, i) => (
+                  <li key={i}>
+                    <code className="font-mono text-[0.8125rem] text-ink" dir="ltr" data-unknown-provider>
+                      {String(name) === "" ? '""' : String(name)}
+                    </code>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null
+        }
+      />
+      <Button onClick={onReset} data-picker-reset>
+        {t("plan.picker.reset")}
+      </Button>
+    </div>
+  );
+}
+
+/** `?databases=` from the page address, read after hydration; `null` when absent. */
+export function readDatabasesParam(): string[] | null {
+  const raw = new URLSearchParams(window.location.search).get("databases");
+  return raw === null ? null : raw.split(",").map((part) => part.trim());
+}
+
+function harvestHref(locale: Locale, origin: string, databases: string[] | null): string {
+  const base = discoveryHref(locale, "harvest", origin);
+  if (!databases) return base;
+  const query = `databases=${databases.map(encodeURIComponent).join(",")}`;
+  return base.includes("?") ? `${base}&${query}` : `${base}?${query}`;
+}
+
+// --------------------------------------------------------------------------- the screen
+
 export function DiscoveryPlan({ locale }: Readonly<{ locale: Locale }>) {
   const t = discoveryT(locale);
   const [origin, setOrigin] = useState("");
+  const address = useRef<string[] | null>(null);
   const [ready, setReady] = useState(false);
   const [plan, setPlan] = useState<Plan | null>(null);
   const [hasRun, setHasRun] = useState(false);
   const [refusal, setRefusal] = useState<Refusal | null>(null);
   const [changed, setChanged] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [choice, setChoice] = useState<string[] | null>(null);
+  const [pending, setPending] = useState(false);
   const heading = useRef<HTMLHeadingElement>(null);
   const fingerprint = useRef<string | null>(null);
+  const protocolRef = useRef<string[] | null>(null);
+  const sequence = useRef(0);
+  // "Reset to the protocol" removes the button pressed (the card, or the reset once nothing differs):
+  // focus goes to the h1, as soon as it is on the page (M10a).
+  const focusHeading = useRef(false);
 
   useEffect(() => {
-    setOrigin(new URLSearchParams(window.location.search).get("console") ?? "");
+    if (focusHeading.current && heading.current) {
+      focusHeading.current = false;
+      heading.current.focus();
+    }
+  });
+
+  useEffect(() => {
+    const query = new URLSearchParams(window.location.search);
+    setOrigin(query.get("console") ?? "");
+    address.current = readDatabasesParam();
     setReady(true);
   }, []);
 
   const load = useCallback(
-    async (focus = false) => {
+    async (providers: string[] | null, focus = false): Promise<void> => {
+      const id = ++sequence.current;
       setRefusal(null);
+      setPending(true);
       try {
-        const next = await getPlan(origin);
+        let next = await getPlan(origin, providers);
+        if (id !== sequence.current) return;
         if (fingerprint.current && fingerprint.current !== next.protocol_fingerprint) setChanged(true);
         fingerprint.current = next.protocol_fingerprint;
+        const protocol = protocolList(next);
+        const before = protocolRef.current;
+        protocolRef.current = protocol;
+        if (before && !sameList(before, protocol)) {
+          // The protocol's own list changed since this page was read: the picker follows it.
+          setChanged(true);
+          setChoice(protocol);
+          if (providers) {
+            next = await getPlan(origin, null);
+            if (id !== sequence.current) return;
+          }
+        }
         setPlan(next);
+        setChoice((current) => current ?? next.requested_providers ?? protocol);
         if (focus) heading.current?.focus();
       } catch (error) {
+        if (id !== sequence.current) return;
         setRefusal(refusalOf(error));
+      } finally {
+        if (id === sequence.current) setPending(false);
       }
     },
     [origin],
@@ -63,13 +238,37 @@ export function DiscoveryPlan({ locale }: Readonly<{ locale: Locale }>) {
 
   useEffect(() => {
     if (!ready) return;
-    void load();
+    // The first read takes the choice the address carried (`?databases=`), else the protocol's.
+    void load(address.current);
     // Read once on load: "Check again" re-reads the plan and nothing else (spec 01 acceptance).
     getRuns(origin).then(
       (runs) => setHasRun(runs.runs.length > 0),
       () => undefined,
     );
   }, [ready, load, origin]);
+
+  const protocol = protocolRef.current ?? (plan ? protocolList(plan) : []);
+  /** The `providers` a read or a run is sent for a choice: none when it is the protocol's own list. */
+  const requestFor = (list: string[]) => (sameList(list, protocol) ? null : list);
+  const current = () => (choice && choice.length ? requestFor(choice) : null);
+
+  const choose = (next: string[]) => {
+    setChoice(next);
+    if (!next.length) {
+      // At least one must stay ticked: say so inline and read nothing.
+      sequence.current++;
+      setPending(false);
+      return;
+    }
+    void load(requestFor(next));
+  };
+
+  const reset = () => {
+    focusHeading.current = true;
+    address.current = null;
+    setChoice(protocolRef.current);
+    void load(null);
+  };
 
   const copyAll = async () => {
     if (!plan) return;
@@ -85,10 +284,16 @@ export function DiscoveryPlan({ locale }: Readonly<{ locale: Locale }>) {
     }
   };
 
+  const differs = !!choice && !sameList(choice, protocol);
+
   return (
     <DiscoveryFrame locale={locale} current="plan" origin={origin}>
       {refusal && !plan ? (
-        <DiscoveryRefusal locale={locale} refusal={refusal} origin={origin} onRetry={() => void load()} pageHeading />
+        refusal.code === "PROVIDER_UNKNOWN" ? (
+          <ProviderUnknownCard locale={locale} refusal={refusal} origin={origin} onReset={reset} pageHeading />
+        ) : (
+          <DiscoveryRefusal locale={locale} refusal={refusal} origin={origin} onRetry={() => void load(current())} pageHeading />
+        )
       ) : !plan ? (
         <Loading locale={locale} />
       ) : (
@@ -101,13 +306,35 @@ export function DiscoveryPlan({ locale }: Readonly<{ locale: Locale }>) {
               </h1>
               <p className="mt-2 max-w-2xl text-ink-muted">{t("plan.lede")}</p>
             </header>
-            {refusal ? <DiscoveryRefusal locale={locale} refusal={refusal} origin={origin} onRetry={() => void load()} /> : null}
+            <section aria-labelledby="plan-picker" className="space-y-3 rounded-lg border border-rule bg-leaf p-5" data-plan-picker>
+              <h2 id="plan-picker" className="font-semibold text-ink">
+                {t("plan.picker.title")}
+              </h2>
+              {choice ? <DatabasePicker items={pickerItems(locale)} value={choice} onChange={choose} labels={pickerLabels(locale)} /> : null}
+              {plan.requested_providers ? <DiffersLine locale={locale} chosen={plan.requested_providers} protocol={protocol} /> : null}
+              {differs ? (
+                <Button onClick={reset} data-picker-reset>
+                  {t("plan.picker.reset")}
+                </Button>
+              ) : null}
+              {/* Picker Loading (M10a): always in the page and outside the busy strings section, so the change of text is announced. */}
+              <p role="status" className={pending ? "text-sm text-ink-muted" : "sr-only"} data-plan-status data-plan-loading={pending ? "" : undefined}>
+                {pending ? t("plan.picker.loading") : ""}
+              </p>
+            </section>
+            {refusal ? (
+              refusal.code === "PROVIDER_UNKNOWN" ? (
+                <ProviderUnknownCard locale={locale} refusal={refusal} origin={origin} onReset={reset} />
+              ) : (
+                <DiscoveryRefusal locale={locale} refusal={refusal} origin={origin} onRetry={() => void load(current())} />
+              )
+            ) : null}
             {changed ? (
               <p role="status" className="rounded-lg border border-rule bg-leaf p-3 text-ink" data-plan-changed>
                 {t("plan.changed")}
               </p>
             ) : null}
-            <section aria-labelledby="plan-strings" className="rounded-lg border border-rule bg-leaf p-5">
+            <section aria-labelledby="plan-strings" aria-busy={pending || undefined} className="rounded-lg border border-rule bg-leaf p-5" data-plan-strings>
               <h2 id="plan-strings" className="font-semibold text-ink">
                 {t("plan.strings.title")}
               </h2>
@@ -115,7 +342,8 @@ export function DiscoveryPlan({ locale }: Readonly<{ locale: Locale }>) {
                 {t("plan.fingerprint")} <DataCell>{plan.protocol_fingerprint}</DataCell>
               </p>
               {plan.providers.every((p) => !p.selected) ? <p className="mt-3 text-ink">{t("plan.noneSelected")}</p> : null}
-              <div className="mt-4 space-y-4">
+              {/* Picker Loading (M10a): the last answer stays, dimmed, until the new one arrives; nothing is invented. */}
+              <div className={`mt-4 space-y-4 ${pending ? "opacity-60" : ""}`.trim()} data-plan-blocks data-dimmed={pending ? "true" : undefined}>
                 {plan.providers.map((p) => {
                   const statusKey = `plan.status.${p.status}` as DiscoveryCopyKey;
                   const known = p.status in STATUS_ROLE;
@@ -266,9 +494,9 @@ export function DiscoveryPlan({ locale }: Readonly<{ locale: Locale }>) {
                 )}
               </dl>
             </section>
-            {!plan.mailto_set ? <MailtoCard locale={locale} onCheck={() => void load(true)} /> : null}
+            {!plan.mailto_set ? <MailtoCard locale={locale} onCheck={() => void load(current(), true)} /> : null}
             {plan.openalex_key_set === false && plan.providers.some((p) => p.name === "openalex" && p.selected) ? (
-              <OpenAlexKeyCard locale={locale} onCheck={() => void load(true)} />
+              <OpenAlexKeyCard locale={locale} onCheck={() => void load(current(), true)} />
             ) : null}
             <section className="rounded-lg border border-rule bg-leaf p-5">
               <p className="text-sm text-ink-muted">{t("amend.help")}</p>
@@ -280,6 +508,13 @@ export function DiscoveryPlan({ locale }: Readonly<{ locale: Locale }>) {
                   {t("plan.next")}
                 </a>
               </p>
+              {choice && choice.length ? (
+                <p>
+                  <a className={LINK} href={harvestHref(locale, origin, differs ? choice : null)} data-next-harvest>
+                    {t("plan.next.harvest")}
+                  </a>
+                </p>
+              ) : null}
             </section>
           </aside>
         </div>

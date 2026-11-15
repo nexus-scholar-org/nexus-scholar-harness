@@ -27,11 +27,16 @@ export interface ReconLeg {
   notes: string[];
   /** `true`/`false` for a database that takes a key, `null` for one that does not. */
   key_set?: boolean | null;
+  /** The query this database received, as the engine recorded it. */
+  executed_query?: string | null;
 }
 
 export interface Probe {
   purpose: "topic" | "narrower" | "delta" | string;
+  /** What the databases were sent: the keyword query, the edited query or the narrower label (M10a). */
   query: string | null;
+  /** The databases asked, in order (M10a); null for a probe recorded before M10a. */
+  providers?: string[] | null;
   fingerprint: string;
   created_at: string | null;
   cache_key?: string;
@@ -84,6 +89,10 @@ export interface ReconState {
   grounding: Grounding | null;
   binding: Binding | null;
   active_job: ReconJob | null;
+  /** M10a: the keyword query the engine would send for the saved topic; null without a topic. */
+  derived_query?: string | null;
+  /** M10a: the databases a probe may ask, in the engine's default order. */
+  databases_available?: string[];
 }
 
 export interface PoolSummary {
@@ -91,6 +100,8 @@ export interface PoolSummary {
   created_at: string | null;
   status: "complete" | "partial" | "empty" | string;
   query: string | null;
+  /** The databases asked, in order (M10a). */
+  providers?: string[] | null;
   year_min: number | null;
   year_max: number | null;
   languages: string[] | null;
@@ -178,7 +189,18 @@ export type BindRequest =
   | { own: string; accept_thin_pool: boolean; base_updated_at: string }
   | { skip: true; base_updated_at: string };
 
-export type ProbeRequest = { refresh: boolean; semantic: boolean } | { narrower: string };
+/**
+ * A topic probe (first search or refresh) may carry the databases to ask, in
+ * order, and the researcher's edited query (M10a, decision 1a; refused 422
+ * `PROVIDER_UNKNOWN` and `BODY_INVALID`). A narrower probe takes neither.
+ */
+export type ProbeRequest = { refresh: boolean; semantic: boolean; databases?: string[]; query?: string } | { narrower: string };
+
+/** The longest edited query the engine takes (`QUERY_MAX` in `recon.py`). */
+export const QUERY_MAX = 2000;
+
+/** The databases a probe can ask, in the engine's default order, when an older engine does not say. */
+export const DEFAULT_DATABASES = ["openalex", "semanticscholar", "crossref", "arxiv"];
 
 export function getRecon(origin: string, draftId: string, signal?: AbortSignal): Promise<ReconState> {
   return readJson<ReconState>(base(draftId), consoleBase(origin), signal);
