@@ -20,10 +20,25 @@ Out of scope: the proposal mechanism, any assistant, critic or chat, the lighter
 ## Findings fixed
 | ID | Reproducing test | Fails before | Passes after |
 | :-- | :-- | :-- | :-- |
+| OBS-1 keyword query (browser) | `tests/console/test_recon_api.py::test_a_sentence_topic_is_probed_as_keywords` | the 19-word sentence reached every database; `KeyError: 'executed_query'` | yes |
+| OBS-1 keyword query (CLI wizard) | `tests/inception/test_inception_grounded.py::test_grounded_wizard_probes_the_topic_as_keywords_and_keeps_the_sentence` | the probe query was the whole sentence | yes |
+| OBS-1 keyword query (MCP) | `tests/mcp/test_mcp_recon.py::test_recon_probe_sends_a_sentence_as_keywords_and_keeps_the_topic`, `::test_recon_probe_takes_the_keyword_query_from_the_adapter`; `tests/unit/test_recon_adapter_characterization.py::test_a01b_adapter_keyword_query_delegates_to_the_one_rule` | sentence sent; `AttributeError: module 'scholar_harness.recon.adapter' has no attribute 'keyword_query'` | yes |
+| OBS-1 the rule | `tests/recon/test_keywords.py` (pinned outputs; NFD French, combining marks in Arabic/Devanagari/Tamil, acronyms, parentheses, hyphenated operators, capital operators next to punctuation, ZWNJ/ZWJ, no operator word in a keyworded output) | e.g. `'de tection d...' != 'détection de...'`; `'signal molecule plants' != 'NO signal molecule plants'`; `'weed OR crop' != 'weed (OR crop)'` | yes |
+| OBS-1 edit and search again | `tests/console/test_recon_api.py::test_the_chosen_databases_and_the_edited_query_are_sent_as_given`, `::test_the_recon_state_offers_the_derived_query_and_the_databases`, `::test_a_wrong_database_list_is_refused_before_any_request` | `422 BODY_INVALID 'body.databases: Extra inputs are not permitted'`; `KeyError: 'derived_query'` | yes |
+| OBS-1b "0 results" (Explore, Harvest, Chase) | `apps/research-ui/tests/inception-legs.test.tsx` "says 0 results, never answered, for a database that found nothing (en/ar)"; `discovery-harvest.test.tsx` "says 0 results, never Done, for a database that found nothing (M10a, OBS-1b)"; `discovery-chase.test.tsx` zero-leg cases; `inception-explore.test.tsx` "shows an empty search as POOL_EMPTY: each database says 0 results" | the leg read "answered" / "Done" | yes |
+| OBS-2 relevance sample | `tests/recon/test_engine.py::test_sample_is_filled_by_rank_in_the_chosen_database_order`, `::test_reversed_database_order_reverses_the_rank_zero_records`, `::test_a_duplicate_appears_once_with_the_usual_representative`, `::test_one_database_keeps_its_own_order` | `ImportError: relevance_sample`; 23 of 25 records from arXiv (sorted by database name) | yes |
+| OBS-2 representative unchanged | `tests/recon/test_engine.py::test_a_duplicate_within_one_database_takes_the_stable_order_representative`; `tests/console/test_discovery_api.py::test_m10a_the_database_order_never_changes_the_corpus` | guards (pass before; the first fails if `stable_order` is removed) | yes |
+| OBS-2 old cached pools | `tests/recon/test_engine.py::test_a_pool_cached_before_the_relevance_sample_is_fetched_again[no-marker,previous-marker]` | `(True, 0) != (False, 1)`: the pre-M10a pool was served with zero fetches | yes |
+| OBS-3 arXiv AND | `tests/kits/search/test_query_honesty.py::test_arxiv_joins_adjacent_terms_with_and`, `::test_arxiv_implicit_and_with_groups_phrases_and_not`, `::test_arxiv_typed_andnot_is_its_negation_not_a_required_word`, `::test_arxiv_andnot_after_a_field_is_a_term_of_that_field` | `'all:UAV all:crop all:weed all:mapping'` (OR by arXiv's reading); `'all:a AND all:ANDNOT AND all:b'` | yes |
+| OBS-4 direction quality | `tests/recon/test_direction_pool_quality.py::test_relevance_sample_anchors_directions_in_on_topic_records[recorded,without-arxiv]` | old sample vs new on the recorded pool: on-topic DOI records 7 → 10 (0 → 12 without arXiv), lowest `observed_in` 2 → 3 | yes (thresholds to re-measure after the arXiv re-record) |
+| Review: gap check / narrower databases | `tests/console/test_recon_api.py::test_the_gap_check_asks_the_databases_of_the_pool_it_extends`, `::test_a_narrower_search_asks_the_databases_of_the_pool_it_narrows`; `tests/recon/test_session.py::test_the_gap_check_asks_and_records_the_databases_of_the_pool_it_extends` | follow-ups asked the four defaults while the record named the chosen list | yes |
+| Review: case-only query edit | `tests/recon/test_session.py::test_a_query_differing_only_in_case_is_searched_again_and_recorded_as_sent` | `['grape AND disease'] != ['grape AND disease', 'grape and disease']`: served from the earlier pool | yes |
+| Review: Discovery choice per harvest | `tests/console/test_discovery_api.py::test_m10a_*` (plan `?providers=`, `protocol_providers`, `requested_providers`, `not_selected_for_run`, duplicates, explicit empty list); `tests/kits/search/test_search_report.py::test_the_methods_text_names_one_database_left_out_in_the_singular` | `KeyError: 'protocol_providers'`; `200 == 422`; `'not selected in the protocol' != 'not_selected_for_run'` | yes |
+| Item 5 pickers | `apps/research-ui/tests/database-picker.test.tsx`; `inception-explore.test.tsx` (query and databases); `discovery-plan.test.tsx`, `discovery-harvest.test.tsx`, `discovery-engine-fake.test.ts`; Playwright `tests-browser/inception.spec.ts`, `tests-browser/discovery.spec.ts` | no picker existed (`Failed to resolve import "@/components/database-picker"`) | yes |
 
 ## Decisions
 - [2026-11-14, Assisted inception](../../decisions.md) (accepted).
-- [2026-11-14, M10a: where the database choice lives, the probe query, the arXiv cassette](../../decisions.md) (proposed; awaiting the researcher).
+- [2026-11-14, M10a: where the database choice lives, the probe query, the arXiv cassette](../../decisions.md) (accepted 2026-11-14 by the researcher in chat: 1a on the probe, 2a per harvest, 3a re-record the arXiv interactions only, run by the researcher).
 
 ## Evidence
 | Stage | Commit | Command | Result | Duration |
@@ -32,3 +47,14 @@ Out of scope: the proposal mechanism, any assistant, critic or chat, the lighter
 | audit | `a0191cc6` | phase-auditor on OBS-1, OBS-2 (two adversarial verifiers each); readers on OBS-3, OBS-4, UI, storage, lane | OBS-1 to OBS-3 confirmed, none refuted; OBS-4 partly: a relevance sample improves evidence (9 → 18 DOI records, observed_in 2 → 3+) but the generic labels come from the direction scorer | |
 
 ## Deferred
+Nothing in the DoD was cut. Follow-ups found while building (plan §7: out of scope or pre-existing):
+- **arXiv re-record (decision 3a).** Run by the researcher: `SCHOLAR_MAILTO=… uv run python scripts/record_golden_recon_arxiv.py` (`--dry-run` first). Until then `tests/pipeline/test_golden_recon_cassette.py::test_the_golden_probe_keeps_each_leg_and_feeds_directions` fails on the arXiv leg only; afterwards re-measure `test_direction_pool_quality.py`.
+- **Direction does not carry the Explore choice.** Its "search again with semantic" and "Go back to the first search" send no `databases`/`query`, so the engine asks the four defaults with the derived query. Needs a spec 03 decision (M10c or a follow-up).
+- **`session.topic` is overwritten by empty and failed probes** (pre-existing), so `scope_changed` can read false while the usable pool was searched for the old question.
+- **MCP**: `recon_probe` takes no `databases`/`query` (decision 1a covers HTTP); `recon_distill` passes the topic as `query_text`.
+- **Search kit, pre-existing**: Semantic Scholar turns an operator inside a hyphenated word into syntax (`NOT-gate` → `- -gate`); arXiv compaction can drop a clause with no kept token without naming it in the leg note (SRCH-12); arXiv's raw-text fallback for unbalanced brackets carries the ANDNOT rewrite.
+- **Case/spacing re-search** does not cover gap-check follow-up terms (they come from the distiller).
+- **Harvest reattached after a reload** shows no "Databases asked" list: the job snapshot carries no providers.
+- **Chase** has no `reported_total` on its legs; the shared `PROVIDER_UNKNOWN` card speaks of a harvest (Chase never sends `providers` today).
+- **Keyword rule limits** (accepted, decision item 4): six words in topic order, English stopwords. Better suggestions are M10c.
+- **fr/ar copy** added in this milestone is not reviewed by a native speaker.
