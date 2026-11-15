@@ -15,7 +15,7 @@ Out of scope: the proposal mechanism, any assistant, critic or chat, the lighter
 - [x] **4. arXiv combines terms.** Adjacent terms are joined with `AND`, as the arXiv API manual's Boolean syntax requires; Crossref is left as it is (no all-terms mode is documented). Test: OBS-3.
 - [x] **5. Databases selectable and re-orderable** in Explore and in Discovery (Plan and Harvest), keyboard-accessible and correct in right-to-left. Specs amended first (`02-explore`, `01-plan`, `03-harvest`). Component tests and a Playwright test for each screen.
 - [ ] **6. Direction quality on a recorded pool** (OBS-4): a test on the recorded golden recon pool shows the relevance-chosen sample gives directions anchored in on-topic records; the direction code is not tuned. *Open: passes on the recorded pool as it is; the thresholds are re-measured after the arXiv re-record (decision 3a).*
-- [ ] **7. Gates.** `/gate checkpoint` per item (golden cassette tests added by hand); `generate_contract_baseline.py --check` passes; `/gate pr` green on the final executable commit; `milestone-reviewer` APPROVE; Evidence filled. Stop before any push. *Open: the golden recon test is red on its arXiv leg until the re-record; reviewer verdict CHANGES (evidence and acceptance only); decision items 4 and 6 await the researcher.*
+- [ ] **7. Gates.** `/gate checkpoint` per item (golden cassette tests added by hand); `generate_contract_baseline.py --check` passes; `/gate pr` green on the final executable commit; `milestone-reviewer` APPROVE; Evidence filled. Stop before any push. *Open: the golden recon test is red on its arXiv leg until the re-record; reviewer verdict CHANGES (evidence and acceptance only); decision items 4 and 6 accepted 2026-11-15.*
 
 ## Findings fixed
 | ID | Reproducing test | Fails before | Passes after |
@@ -38,7 +38,7 @@ Out of scope: the proposal mechanism, any assistant, critic or chat, the lighter
 
 ## Decisions
 - [2026-11-14, Assisted inception](../../decisions.md) (accepted).
-- [2026-11-14, M10a: where the database choice lives, the probe query, the arXiv cassette](../../decisions.md) (accepted 2026-11-14 by the researcher in chat: 1a on the probe, 2a per harvest, 3a re-record the arXiv interactions only, run by the researcher).
+- [2026-11-14, M10a: where the database choice lives, the probe query, the arXiv cassette](../../decisions.md) (accepted 2026-11-14 by the researcher in chat: 1a on the probe, 2a per harvest, 3a re-record the arXiv interactions only, run by the researcher); items 4 (keyword rule, "0 results") and 6 (review-round choices) accepted 2026-11-15 in chat.
 
 ## Evidence
 | Stage | Commit | Command | Result | Duration |
@@ -62,7 +62,7 @@ Nothing in the DoD was cut. Follow-ups found while building (plan §7: out of sc
 - **Case/spacing re-search** does not cover gap-check follow-up terms (they come from the distiller).
 - **Harvest reattached after a reload** shows no "Databases asked" list: the job snapshot carries no providers.
 - **Chase** has no `reported_total` on its legs; the shared `PROVIDER_UNKNOWN` card speaks of a harvest (Chase never sends `providers` today).
-- **Keyword rule limits** (decision item 4, stated for review; acceptance pending with item 6): six words in topic order, English stopwords. Better suggestions are M10c.
+- **Keyword rule limits** (decision item 4, accepted 2026-11-15): six words in topic order, English stopwords. Better suggestions are M10c.
 - **fr/ar copy** added in this milestone is not reviewed by a native speaker.
 - **From the milestone review (P3):** the "shorten the query" hint (`explore.legs.shorten`, spec 02 copy) names six words joined by AND on any empty search, also after an edit or for Crossref; the keyword rule drops a lower-case "not", which can invert a question ("… not using deep learning"; the query is shown and editable); a run that adds a database the protocol does not name is listed as searched but not called a deviation in `search_report.md`, and accepting a corpus from a run that left protocol databases out adds no snapshot warning (decision 2a); the recorder's address check matches the raw form only (the cassette test's planted-address check is the guard).
 - **Spec order.** The specs (02, 01, 03, 09) were amended and their questions closed by the researcher before the UI was built, but they were committed with the UI (`60d96e7d`), not in a commit of their own.
