@@ -1,5 +1,5 @@
 # M10a-search-quality Search quality and database choice
-Branch: dev/m10a/search-quality · Lane: **RELEASE** (the probe and run bodies gain public HTTP fields, the MCP `recon_probe` and the CLI wizard send a different query, and the arXiv translation is a `scholar_search` change that Discovery shares; `test_gate_policy.md:43-48`, `DEVELOPER_COMPASS.md:93-94`; precedents M3h, M4c, M4d) · Status: READY FOR PR · Started: 2026-11-14
+Branch: dev/m10a/search-quality · Lane: **RELEASE** (the probe and run bodies gain public HTTP fields, the MCP `recon_probe` and the CLI wizard send a different query, and the arXiv translation is a `scholar_search` change that Discovery shares; `test_gate_policy.md:43-48`, `DEVELOPER_COMPASS.md:93-94`; precedents M3h, M4c, M4d) · Status: MERGED (PR #233, merge commit `97768cdc`, 2026-11-17) · Started: 2026-11-14
 
 First milestone of "Assisted inception" (plan §6, decisions 2026-11-14). Base: `origin/main` at `a0191cc6`. No language model anywhere in this milestone.
 
@@ -59,6 +59,7 @@ Out of scope: the proposal mechanism, any assistant, critic or chat, the lighter
 | review | `8c4a7d61` | `milestone-reviewer` (rerun) | **APPROVE**: all five earlier findings closed; cassette non-arXiv interactions identical to `a0191cc6`, no address or key; targeted tests 38 passed; three optional P3s, fixed in `94257414` | |
 | contract | `94257414` | the six contract and lint checks as above | all exit 0 | 4 s |
 | pr (Python) | `94257414` | `uv run pytest -q -n auto` | **exit 0**: 5021 passed, 15 skipped, 0 failed (final executable commit) | 407 s |
+| ci | `6fdf8eac` | GitHub Actions on PR #233 | 12 of 12 checks passed: `python-test`, `research-ui`, `research-ui-browser`, `build-wheel`, `wheel-e2e` on two systems, `lint-and-smoke` on three systems and two Python versions | |
 
 ## Deferred
 Nothing in the DoD was cut. Follow-ups found while building (plan §7: out of scope or pre-existing):
