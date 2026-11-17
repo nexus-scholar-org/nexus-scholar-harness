@@ -255,24 +255,13 @@ def _journal_snapshot_accepted(
 
 
 def discovery_corpus_run(ws: Path) -> Path | None:
-    """The newest search run whose records became ``verified.json``, or ``None``."""
-    runs_dir = Path(ws) / "literature" / "search_runs"
-    if not runs_dir.is_dir():
-        return None
-    runs = sorted(
-        (d for d in runs_dir.iterdir() if d.is_dir() and d.name.startswith("run_") and d.name[4:].isdigit()),
-        key=lambda d: int(d.name[4:]),
-        reverse=True,
-    )
-    for run_dir in runs:
-        try:
-            manifest = json.loads((run_dir / "legs.json").read_text(encoding="utf-8"))
-        except (OSError, ValueError):
-            continue
-        published = manifest.get("corpus_published", manifest.get("raw_published"))
-        if published:
-            return run_dir
-    return None
+    """The newest search run published as the corpus, or ``None``.
+
+    Published means its search was kept as the corpus (``legs.json``); whether
+    its later stages ended, so that ``verified.json`` is this run's, is the
+    run's stage marker's to say (``harvest_marker``, M3i).
+    """
+    return harvest_marker.corpus_run_dir(Path(ws) / "literature")
 
 
 def accept_discovery_corpus(workspace: Path | str, *, agent: str = "scholar-harness-console") -> Any:

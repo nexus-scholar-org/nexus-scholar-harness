@@ -1,5 +1,7 @@
 # 08 Hand-off to screening    Status: FINAL, built (M3c-screens, PR #216) | Phase 1 Discovery | Route `/[locale]/discovery/handoff` (desktop only) | Milestone M3c-screens
 
+Amended 2026-11-17 for M3i-harvest-robustness (accepted by the researcher 2026-11-15 as answer R5 of the M10b spec questions; the choices made while building it are proposed in `docs/decisions.md`, 2026-11-17). Where this amendment contradicts the text below, the amendment wins. The full text is the section **"An unfinished preparation (M3i)"** at the end of this file.
+
 Boards: `Handoff` (D8, `docs/ux/phase1-discovery/final/project/Handoff.dc.html`); no phone board (`MobileStatus` carries only the Status tab). Packet: `docs/architecture/research_ui/DISCOVERY_API_PACKET.md` §4.8, §6; records `docs/roadmap/milestones/M3d-engine.md` decisions 1-3, 6, 12, 13 and `M3b-api.md`. Code: `src/scholar_harness/console/api/discovery.py:655` (`handoff`), `console/api/screening_v1.py:563` (corpus view), `:603` (accept), `src/scholar_harness/corpus_accept.py:520`, `apps/research-ui/components/screening-home.tsx:305` (Prepare entry), `apps/research-ui/components/screening-state-card.tsx`. Decisions: `docs/decisions.md` 2026-11-10 "A browser harvest does not freeze the corpus; the hand-off screen does" and "Discovery over HTTP: seven decisions". Brand: `docs/ux/brand/BRAND_BOOK.md` (GatePanel: the dashed `brand` border is for the gate only), `docs/ux/brand/tokens.json`. Shared rules (step bar, run selector, refusal copy, hard rules): see 01-plan.md, Shared.
 
 **Purpose.** Read what screening will receive and accept it, which freezes the corpus; after that, go to screening.
@@ -106,3 +108,25 @@ Playwright `discovery.spec.ts` (this screen's part, stateful fake of the discove
 ## As built (M3c)
 Built in `apps/research-ui/components/discovery-handoff.tsx`. **Route gap found while building:** for a harvest, `corpus.preview` counts staged exports only and is zero, and no field of `GET /discovery/handoff` gives the number of works a harvest hands to screening. The headline is therefore "Accept this corpus for screening?" without a number, and the browser adds nothing up (Deferred in `docs/roadmap/milestones/M3c-screens.md`). After `PROTOCOL_CHANGED_SINCE_RUN` the Accept button stays disabled until a reload. Failed databases are reached through the report link (answer 10).
 Review follow-up (M3c): `POST /screening/corpus/accept` does not check a running discovery job, so the screen reads `GET /discovery/runs` `active_job` and disables Accept while a harvest runs, with a sentence that says why. An engine guard (`DISCOVERY_JOB_ACTIVE` on the accept) is a follow-up (Deferred).
+
+
+## An unfinished preparation (M3i)
+
+**What was wrong.** After a harvest whose later steps (duplicates, abstracts, checks) did not end, this screen read "There is nothing to hand off yet", although the search had found records. And when an earlier run's works were still on disk, it showed them under the newer run's name and the accept froze them as that run's.
+
+**Data in (added).** `preparation` on `GET /discovery/handoff` (the corpus run's; `null` without a run), as on the runs (`03-harvest.md`). While it is not `ready` and nothing is staged or accepted, the engine sends `corpus.from_discovery: false`, an empty `provider_mix` and zero abstracts: none of an earlier run's rows are counted.
+
+**State (added): Not ready.** Shown when the corpus is not accepted, no export is staged, and `preparation.state` is `running`, `failed`, `stopped` or `interrupted`. It comes before "Empty".
+- h1 "The corpus is not ready to hand off yet."
+- One sentence, by state (`role="status"`): running, "The works of {run} are being prepared (step “{stage}”). The hand-off opens when this ends."; failed, "The search of {run} finished, but preparing its corpus failed at the step “{stage}”."; stopped, "You stopped the harvest of {run} before the step “{stage}”."; interrupted, "The search of {run} finished, but its corpus was not prepared. The console may have been closed while it ran."
+- For the three states that are not running: "The records found are saved; nothing has to be searched again."
+- The screen's one brand link, to Harvest with `?run=`: "Finish preparing this corpus on Harvest" ("Follow the harvest" while running; "Open Harvest" when the run cannot be finished). The action itself is on Harvest (the M10b spec's destination).
+- "Check again" re-reads the hand-off. No accept button, no provider mix, no counts.
+
+**Empty (changed).** "There is nothing to hand off yet." is now shown only when there is no published run and nothing staged.
+
+**The accept (changed).** `POST /screening/corpus/accept` answers `409 PREPARATION_UNFINISHED` (with the run, state and stage) while the corpus run's preparation is unfinished and nothing is staged; the card reads "The corpus is not prepared yet" with "Open Harvest". The Import step's accept shows the same card (M10b replaces that button with a link here).
+
+**Copy.** `handoff.pending.*` in en, fr and ar (`lib/discovery-copy.ts`); the card of `PREPARATION_UNFINISHED` in `lib/screening-states.ts`.
+
+**Acceptance tests.** Vitest `apps/research-ui/tests/discovery-preparation.test.tsx` (failed, interrupted, running then stopped, ready after finishing, staged exports beside an unfinished harvest, fr and ar). Playwright `tests-browser/discovery.spec.ts`, tests named "M3i". Engine: `tests/console/test_harvest_preparation_api.py`.

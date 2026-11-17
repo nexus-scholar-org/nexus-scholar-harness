@@ -330,6 +330,8 @@ describe("console proxy — writes", () => {
     ["discovery/runs"],
     ["discovery/recall"],
     ["discovery/jobs/djob_0123456789abcdef/cancel"],
+    // M3i: finish a harvest's remaining steps.
+    ["discovery/runs/run_001/prepare"],
   ])("forwards the %s POST", async (route) => {
     vi.stubEnv("NEXUS_CONSOLE_URL", CONSOLE);
     const fetchSpy = vi.fn(() => Promise.resolve(jsonResponse({ ok: true })));

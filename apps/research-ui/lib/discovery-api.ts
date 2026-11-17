@@ -79,12 +79,39 @@ export type JobState = "running" | "succeeded" | "failed" | "cancelled";
 
 export interface DiscoveryJob {
   job_id: string;
-  kind: "run" | "recall" | "chase";
+  /** `prepare` (M3i): the steps after a search, finished from the run's saved records. */
+  kind: "run" | "recall" | "chase" | "prepare";
   state: JobState;
   started_at: string;
   finished_at: string | null;
   result: Record<string, unknown> | null;
   error: { code: string; message: string; details?: unknown } | null;
+}
+
+/**
+ * M3i: the steps after a run's search (duplicates, abstracts, checks), as the engine reads them
+ * from the run's stage marker. `state`: `none` (the search was not kept as the corpus),
+ * `superseded` (a later run is the corpus), `ready`, `running`, `failed`, `stopped`, or
+ * `interrupted` (they never ended: the console was closed). `stage` is the step it is in, or
+ * where it failed or stopped; `null` when ready or when the run has no marker.
+ */
+export type PreparationState = "none" | "superseded" | "ready" | "running" | "failed" | "stopped" | "interrupted";
+export interface Preparation {
+  state: PreparationState;
+  stage: string | null;
+  stages: Record<string, { status: string; at: string }>;
+  ended_at: string | null;
+  message: string | null;
+  /** False for a run made before the marker existed: its state is not guessed. */
+  marker: boolean;
+  /** The remaining steps can be run from the run's saved records. */
+  can_finish: boolean;
+  job_id: string | null;
+}
+
+/** The states in which the steps after the search did not end and no job is running them. */
+export function preparationUnfinished(preparation: Preparation | null | undefined): boolean {
+  return !!preparation && (preparation.state === "failed" || preparation.state === "stopped" || preparation.state === "interrupted");
 }
 
 export interface RunSummary {
@@ -103,6 +130,8 @@ export interface RunSummary {
   protocol_changed?: boolean | null;
   /** Review F3: the edit changed the search itself (query, years, language, cap, databases). */
   search_changed?: boolean | null;
+  /** M3i: the steps after the search; absent from an engine older than M3i. */
+  preparation?: Preparation | null;
 }
 
 export interface Runs {
@@ -125,6 +154,8 @@ export interface RunDetail {
   /** M10a: the databases asked for, in order (the legs follow it); `null` when the protocol's list was used. */
   requested_providers?: string[] | null;
   legs: SearchLeg[];
+  /** M3i: the steps after the search; absent from an engine older than M3i. */
+  preparation?: Preparation | null;
   report_path: string;
   recall_check: { check: string; checked_at: string | null; found: number | null; total: number | null; missed_everywhere: string[] | null } | null;
 }
@@ -234,6 +265,8 @@ export interface Handoff {
   shape: "discovery.handoff-v1";
   corpus: Corpus;
   run: string | null;
+  /** M3i: the corpus run's steps after its search; `null` without a run. */
+  preparation?: Preparation | null;
   provider_mix: { provider: string; records: number; share: number }[];
   abstracts: { with_abstract: number; title_only: number; share_with_abstract: number };
   outside_year_window: number;
@@ -277,6 +310,11 @@ export function runReportHref(origin: string, run: string): string {
 
 export function startRun(origin: string, request: RunRequest = {}, signal?: AbortSignal): Promise<{ job: DiscoveryJob }> {
   return postJson<{ job: DiscoveryJob }>(`${BASE}/runs`, origin, request, signal);
+}
+
+/** M3i: `POST /discovery/runs/{run}/prepare`, "Finish preparing this corpus": no database is searched again. */
+export function finishPreparation(origin: string, run: string, signal?: AbortSignal): Promise<{ job: DiscoveryJob }> {
+  return postJson<{ job: DiscoveryJob }>(`${BASE}/runs/${encodeURIComponent(run)}/prepare`, origin, {}, signal);
 }
 
 export function startRecall(origin: string, seeds: SeedIn[], signal?: AbortSignal): Promise<{ job: DiscoveryJob }> {

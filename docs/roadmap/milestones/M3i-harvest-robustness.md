@@ -26,8 +26,16 @@ One harvest job runs four stages: search, deduplication, abstracts, verification
 - [ ] **D11 Gates.** `/gate pr` once on the final executable commit, `generate_contract_baseline.py --check`, both ruff commands, `git diff --check`, and the `milestone-reviewer` verdict, recorded below.
 
 ## Findings fixed
+The four points were re-verified by the `phase-auditor` at `97768cdc` (all CONFIRMED; (d) confirmed for a closed console and for a reload, and partly masked while the Harvest page stays open on a live console, where the job's `DISCOVERY_FAILED` card showed until the next reload). It added one finding, here (b2). Each engine test was run against the unchanged engine first (16 of 16 in `tests/console/test_harvest_preparation_api.py` failed), each screen test against the unchanged screens (15 of 19 in `apps/research-ui/tests/discovery-preparation.test.tsx` failed; the other four test the new state cards and an unchanged case).
+
 | ID | Reproducing test | Fails before | Passes after |
 | :-- | :-- | :-- | :-- |
+| (a) the run is published right after the search, with no record of the later stages | `test_harvest_preparation_api.py::test_pipeline_marker_written_by_each_stage`, `::test_a_run_that_dies_after_search_says_so` | `FileNotFoundError: ...run_001\pipeline.json`; `KeyError: 'preparation'` | yes |
+| (b) only verification writes `verified.json`; nothing says it is missing | `::test_a_run_that_dies_after_search_says_so`, `::test_the_accept_refuses_an_unfinished_preparation` | no marker, no `preparation`; the accept answered `NOTHING_STAGED` | yes |
+| (b2) an earlier run's `verified.json` is shown and accepted as a later run's (auditor) | `::test_the_handoff_never_offers_an_earlier_runs_works_as_a_later_runs`, `::test_the_engine_accept_refuses_while_the_marker_has_no_end` | `KeyError: 'preparation'`; the hand-off reported `run_002` with run 1's works and `corpus.state` `STAGED` | yes |
+| (c) Stop is ignored after the search | `::test_a_stop_after_the_search_is_honoured_before_the_next_stage`; `tests/pipeline/test_harvest_marker.py::test_the_stop_is_read_before_each_stage` | the cancel answered a job that ended `succeeded` with `PENDING_CORPUS_ACCEPT` | yes |
+| (d) a job that dies after the search leaves Harvest "finished" and the Hand-off "nothing to hand off" | engine: `::test_after_a_restart_the_marker_answers`, `::test_a_preparation_that_never_ended_reads_as_interrupted`; screens: `discovery-preparation.test.tsx` "says a harvest whose checks failed is not prepared…", "after a restart (no job in memory)…", "says the corpus is not prepared and links to the action…"; Playwright "M3i: the hand-off of an unfinished harvest…" | engine: `KeyError: 'preparation'`; screens: the old headings "The harvest is finished…" and "There is nothing to hand off yet." | yes |
+| no way forward except a new search | `::test_finish_preparing_resumes_from_the_marker_without_a_search`, `::test_finished_preparation_equals_an_uninterrupted_run`, `::test_a_failed_deduplication_is_finished_from_the_saved_records` | `404` on `POST /discovery/runs/run_001/prepare` | yes |
 
 ## Decisions
 See `docs/decisions.md`, 2026-11-17 "M3i: the harvest stage marker, finishing a preparation, and stop between stages" (proposed).

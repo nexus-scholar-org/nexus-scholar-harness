@@ -110,3 +110,67 @@ describe("discovery engine fake (M10a)", () => {
     expect((plain.handle("GET", "/api/v1/discovery/report", null).body as Json).not_searched).toEqual([{ database: "biorxiv", reason: "off by default" }]);
   });
 });
+
+/**
+ * M3i-harvest-robustness: the fake against `DISCOVERY_API_PACKET.md` ("`preparation` and
+ * `POST /discovery/runs/{run}/prepare`"). The engine's side of the same shapes and codes is pinned by
+ * `tests/console/test_harvest_preparation_api.py`.
+ */
+describe("discovery engine fake (M3i)", () => {
+  const KEYS = ["can_finish", "ended_at", "job_id", "marker", "message", "stage", "stages", "state"];
+  const preparation = (fake: ReturnType<typeof discoveryEngine>, route: string) => {
+    const body = fake.handle("GET", route, null).body as Json;
+    return (route.endsWith("/runs") ? (body.runs as Json[])[0].preparation : body.preparation) as Json;
+  };
+
+  it("carries the engine's preparation keys on the runs, the run and the hand-off", () => {
+    const fake = discoveryEngine({ runs: 1, preparation: "failed" });
+    for (const route of ["/api/v1/discovery/runs", "/api/v1/discovery/runs/run_001", "/api/v1/discovery/handoff"]) {
+      const view = preparation(fake, route);
+      expect(Object.keys(view).sort()).toEqual(KEYS);
+      expect([view.state, view.stage, view.marker, view.can_finish, view.job_id]).toEqual(["failed", "verification", true, true, null]);
+      expect(Object.keys(view.stages as Json)).toEqual(["deduplication", "hydration"]);
+    }
+    expect(preparation(discoveryEngine({ runs: 1 }), "/api/v1/discovery/runs").state).toBe("ready");
+    expect((discoveryEngine().handle("GET", "/api/v1/discovery/handoff", null).body as Json).preparation).toBeNull();
+  });
+
+  it("offers no works of an unfinished harvest, and refuses its accept before NOTHING_STAGED", () => {
+    const fake = discoveryEngine({ runs: 1, preparation: "interrupted", legacyRun: true });
+    const handoff = fake.handle("GET", "/api/v1/discovery/handoff", null).body as Json;
+    expect((handoff.corpus as Json).state).toBe("EMPTY");
+    expect((handoff.corpus as Json).from_discovery).toBe(false);
+    expect(handoff.provider_mix).toEqual([]);
+    expect([(handoff.preparation as Json).stage, (handoff.preparation as Json).marker]).toEqual([null, false]);
+    const refused = fake.handle("POST", "/api/v1/screening/corpus/accept", null);
+    expect(refused.status).toBe(409);
+    expect((refused.body as { detail: Json }).detail).toMatchObject({ code: "PREPARATION_UNFINISHED", details: { run: "run_001", state: "interrupted", stage: null } });
+  });
+
+  it("finishes from the saved records with a prepare job, and refuses what the engine refuses", () => {
+    const fake = discoveryEngine({ runs: 2, preparation: "failed" });
+    const reason = (run: string) => ((fake.handle("POST", `/api/v1/discovery/runs/${run}/prepare`, {}).body as { detail: { code: string; details: Json } }).detail);
+    expect(fake.handle("POST", "/api/v1/discovery/runs/run_009/prepare", {}).status).toBe(404);
+    expect(reason("run_001")).toMatchObject({ code: "PREPARATION_NOT_AVAILABLE", details: { reason: "superseded" } });
+    const started = fake.handle("POST", "/api/v1/discovery/runs/run_002/prepare", {});
+    expect(started.status).toBe(202);
+    const job = (started.body as { job: Json }).job;
+    expect(job.kind).toBe("prepare");
+    const done = (fake.handle("GET", `/api/v1/discovery/jobs/${job.job_id}`, null).body as { job: Json }).job;
+    expect([done.state, (done.result as Json).run, (done.result as Json).status, (done.result as Json).resumed_from]).toEqual(["succeeded", "run_002", "PENDING_CORPUS_ACCEPT", "hydration"]);
+    expect(preparation(fake, "/api/v1/discovery/runs").state).toBe("ready");
+    expect(reason("run_002")).toMatchObject({ code: "PREPARATION_NOT_AVAILABLE", details: { reason: "already_prepared" } });
+    expect(fake.calls.filter((c) => c.method === "POST" && c.path === "/api/v1/discovery/runs")).toHaveLength(0);
+  });
+
+  it("reads a stop after the search before the next step: cancelled, stopped before verification", () => {
+    const fake = discoveryEngine({ holdAfterSearch: true });
+    const job = (fake.handle("POST", "/api/v1/discovery/runs", {}).body as { job: Json }).job;
+    const running = preparation(fake, "/api/v1/discovery/runs");
+    expect([running.state, running.stage, running.job_id]).toEqual(["running", "hydration", job.job_id]);
+    const cancelled = (fake.handle("POST", `/api/v1/discovery/jobs/${job.job_id}/cancel`, {}).body as { job: Json }).job;
+    expect([cancelled.state, (cancelled.result as Json).status]).toEqual(["cancelled", "CANCELLED"]);
+    const stopped = preparation(fake, "/api/v1/discovery/runs");
+    expect([stopped.state, stopped.stage, stopped.can_finish]).toEqual(["stopped", "verification", true]);
+  });
+});

@@ -18,9 +18,9 @@ import {
   useDiscoveryParams,
   type Refusal,
 } from "@/components/discovery-frame";
-import { getHandoff, getRuns, type Handoff } from "@/lib/discovery-api";
+import { getHandoff, getRuns, preparationUnfinished, type Handoff } from "@/lib/discovery-api";
 import { acceptCorpus } from "@/lib/screening-v1";
-import { discoveryT, providerName } from "@/lib/discovery-copy";
+import { discoveryT, providerName, type DiscoveryCopyKey } from "@/lib/discovery-copy";
 
 /**
  * 08 Hand-off (spec `docs/ux/phase1-discovery/final/08-handoff.md`): what
@@ -28,7 +28,16 @@ import { discoveryT, providerName } from "@/lib/discovery-copy";
  * (`POST /screening/corpus/accept`), which freezes the corpus snapshot. The
  * accepted state is shown only from the engine's answer. Prepare stays on
  * screening Home; the hand-off sends the researcher there.
+ *
+ * M3i-harvest-robustness: a search is followed by three steps (duplicates,
+ * abstracts, checks) and only the last makes the works this screen hands off.
+ * While the corpus run's `preparation` says those steps are running, failed,
+ * stopped or never ended, the screen says that and links to Harvest, where
+ * "Finish preparing this corpus" is; it never says "nothing to hand off" for
+ * a harvest that found records, and never offers an earlier run's works.
  */
+
+const STAGE_KEYS = ["deduplication", "hydration", "verification"];
 
 export function DiscoveryHandoff({ locale }: Readonly<{ locale: Locale }>) {
   const t = discoveryT(locale);
@@ -86,6 +95,25 @@ export function DiscoveryHandoff({ locale }: Readonly<{ locale: Locale }>) {
 
   const corpus = handoff?.corpus;
   const accepted = corpus?.state === "ACCEPTED";
+  // M3i: the corpus run's steps after its search have not ended, and nothing else is staged or frozen.
+  const preparation = handoff?.preparation ?? null;
+  const pending =
+    !!corpus && !accepted && corpus.sources.length === 0 && !!preparation && (preparation.state === "running" || preparationUnfinished(preparation));
+  const pendingStage = preparation?.stage
+    ? STAGE_KEYS.includes(preparation.stage)
+      ? t(`harvest.stage.${preparation.stage}` as DiscoveryCopyKey)
+      : preparation.stage
+    : null;
+  const pendingRun = handoff?.run ?? "";
+  const pendingBody = !preparation
+    ? ""
+    : preparation.state === "running"
+      ? pendingStage
+        ? t("handoff.pending.running", { run: pendingRun, stage: pendingStage })
+        : t("handoff.pending.runningNoStage", { run: pendingRun })
+      : (preparation.state === "failed" || preparation.state === "stopped") && pendingStage
+        ? t(`handoff.pending.${preparation.state}` as DiscoveryCopyKey, { run: pendingRun, stage: pendingStage })
+        : t("handoff.pending.interrupted", { run: pendingRun });
   const empty = !!corpus && (corpus.state === "EMPTY" || (corpus.state === "STAGED" && !corpus.from_discovery && corpus.sources.length === 0));
   const preview = corpus?.preview ?? null;
   const fromDiscovery = !!corpus?.from_discovery;
@@ -137,6 +165,29 @@ export function DiscoveryHandoff({ locale }: Readonly<{ locale: Locale }>) {
               {t("handoff.accepted.go")}
             </a>
           </section>
+        </div>
+      ) : pending && preparation ? (
+        <div className="space-y-4" data-pending={preparation.state} data-pending-stage={preparation.stage ?? ""}>
+          <Eyebrow locale={locale} step="handoff" name={t("handoff.eyebrowName")} />
+          <h1 ref={heading} tabIndex={-1} className="font-display text-3xl text-ink">
+            {t("handoff.pending.title")}
+          </h1>
+          <p className="max-w-2xl text-ink" role="status" data-pending-body>
+            <bdi>{pendingBody}</bdi>
+          </p>
+          {preparation.state !== "running" ? <p className="max-w-2xl text-ink-muted">{t("handoff.pending.kept")}</p> : null}
+          <p className="flex flex-wrap items-center gap-4">
+            <a
+              className="inline-flex min-h-11 items-center rounded-md bg-brand px-4 font-medium text-on-brand"
+              href={discoveryHref(locale, "harvest", origin, pendingRun)}
+              data-pending-link
+            >
+              {preparation.state === "running" ? t("handoff.pending.follow") : preparation.can_finish ? t("handoff.pending.finish") : t("job.openHarvest")}
+            </a>
+            <Button onClick={() => void load()} data-pending-check>
+              {t("mailto.check")}
+            </Button>
+          </p>
         </div>
       ) : empty ? (
         <div className="space-y-4" data-empty>

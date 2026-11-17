@@ -2,6 +2,8 @@
 
 Amended 2026-11-14 for M10a; questions closed by the researcher 2026-11-14. Decided (entry "M10a: where the database choice lives, the probe query, the arXiv cassette" in `docs/decisions.md`, item 2a): the Discovery database choice is per harvest; the protocol's list stays the default and is never written. Where this amendment contradicts the text below (no `providers`, `PROVIDER_UNKNOWN` cannot occur), the amendment wins.
 
+Amended 2026-11-17 for M3i-harvest-robustness (accepted by the researcher 2026-11-15 as answer R5 of the M10b spec questions; the choices made while building it are proposed in `docs/decisions.md`, 2026-11-17, and are the researcher's to confirm). Where this amendment contradicts the text below, the amendment wins. In short: the search is the first of four steps; the screen names the step, says when the later steps did not end, and offers "Finish preparing this corpus". The full text is the section **"The steps after the search (M3i)"** at the end of this file.
+
 Boards: `Harvest` (D2, `docs/ux/phase1-discovery/final/project/Harvest.dc.html`, the running state); `States` (`.../States.dc.html`) for the refusal wording; no phone board (see Mobile layout). Contract: `docs/architecture/research_ui/DISCOVERY_API_PACKET.md` §4.3, §4.7, §6 decisions 1, 5 and 7. Records: `docs/roadmap/milestones/M3b-api.md` decisions 2, 3, 8, 9, 11, 12, 13; `M3d-engine.md` decisions 1, 3 and 12 (they override the packet where they differ). Code: `src/scholar_harness/console/api/discovery.py` (`GET /discovery/runs` at `:397`, `GET /discovery/runs/{run}` at `:402`, `POST /discovery/runs` at `:735`, jobs at `:855`, `:864`, `:887`), `SearchLeg` at `src/scholar_search/models.py:194`, the run end in `src/scholar_harness/pipeline/coordinator.py` (`run_pipeline(freeze_corpus=False)`). Decisions: `docs/decisions.md`, 2026-11-10 "Discovery over HTTP: seven decisions" and "A browser harvest does not freeze the corpus; the hand-off screen does". Shared rules: **01-plan.md "Shared by 01–08"** (step bar, `?console=`, run selector, job streams, refusals, hard rules).
 
 **Purpose.** Start the search against the databases the protocol selects, watch each database's progress as it happens, stop it if needed, and read how each database ended, counted against its own reported total.
@@ -120,3 +122,36 @@ None.
 ## As built (M3c)
 Built in `apps/research-ui/components/discovery-harvest.tsx`. "Harvest again" opens the same form (cap override, note) under a secondary button, so the screen keeps one brand action ("Start the harvest" before any run, "Go to Duplicates" after). The stages list is shown only for a job followed on this page (the stage events are not stored after the job). Simplified: no per-database polite announcements (the h1 is the live region), and while the engine is unreachable the controls are not pre-disabled (the refusal card answers).
 Test coverage: reload mid-run (reattach through `active_job`), cancel mid-run and the double drop ("Connection lost" and Retry) are covered in vitest (`tests/discovery-harvest.test.tsx`, `tests/discovery-frame.test.tsx`), not in Playwright; the Playwright spec covers the full path, the refusals, axe, overflow and hydration.
+
+
+## The steps after the search (M3i)
+
+**What was wrong.** One harvest job runs the search, then deduplication, abstracts and verification, and only verification writes the works the Hand-off needs. The run was shown as finished as soon as the search ended. A job that failed, was stopped or was lost with the console after the search left the screen reading "The harvest is finished" and the Hand-off reading "There is nothing to hand off yet" (strict run 2026-11-13: 1,074 records, 1,050 works, an empty Hand-off).
+
+**Data in (added).** `preparation` on each row of `GET /discovery/runs` and on `GET /discovery/runs/{run}`: `{state, stage, stages, ended_at, message, marker, can_finish, job_id}`, read by the engine from the run's stage marker (`literature/search_runs/run_NNN/pipeline.json`), so it is the same after the console restarted. `state`: `none`, `superseded`, `ready`, `running`, `failed`, `stopped`, `interrupted`. The screen prints it and derives nothing; an engine older than M3i sends no `preparation` and the screen behaves as before.
+
+**Backend calls (added).** `POST /api/v1/discovery/runs/{run}/prepare` → `202 {job}` with `job.kind = "prepare"`; the same job stream and cancel as a search run. Refusals: `RUN_NOT_FOUND`, `PREPARATION_NOT_AVAILABLE`, `CORPUS_ALREADY_ACCEPTED`, `STAGED_IMPORT_PENDING`, `DISCOVERY_JOB_ACTIVE`, `MAILTO_NOT_SET`, the protocol refusals.
+
+**States (added or changed).**
+
+| State | When | What the screen says |
+| :-- | :-- | :-- |
+| Preparing | a `run` job after its `discovery` stage event, or a `prepare` job | h1 "The corpus is being prepared"; badge "Preparing"; the list "Steps after the search" as the engine announces them. A `prepare` job shows no database table: "Removing duplicates, adding missing abstracts and checking the works of {run}. No database is searched." |
+| Stop, after the search | the same | The panel "If you stop" stays. Its text: "Fetching is finished. A stop now takes effect when the current step ends: what is done is kept, and you can finish preparing later without a new search. If the last step is already running, it ends as usual." Button "Stop after the current step" (the same cancel route). This replaces the earlier line "The remaining steps end on their own" and the missing button. |
+| Not prepared: failed | `preparation.state` `failed` (no job running) | h1 "The search finished, but preparing the corpus failed." A card "The corpus is not prepared yet": badge "Preparation failed"; "The search found its records and they are saved. The step “{stage}” then failed, so screening has nothing to receive yet."; the steps that ended; the engine's message under Details; the primary button "Finish preparing this corpus" with "Removes duplicates, adds missing abstracts and checks the works, from the saved records. No database is searched again." The job's `DISCOVERY_FAILED` card is not shown beside it (it would read "The search failed"). |
+| Not prepared: stopped | `stopped` | h1 "You stopped the harvest before the corpus was prepared."; badge "Preparation stopped"; "The records found are saved. You stopped before the step “{stage}”, so screening has nothing to receive yet."; the same button. |
+| Not prepared: interrupted | `interrupted` (no end recorded and no job: the console was closed or the process died) | h1 "The search finished, but the corpus was not prepared."; badge "Preparation unfinished"; "The records found are saved, but the steps after the search did not end, so screening has nothing to receive yet. The console may have been closed while they ran." With a known stage: "The step “{stage}” had not ended." For a run without a marker (`marker: false`): "This run was made by an earlier version, which did not record the step it stopped at." The same button. |
+| Cannot be finished | one of the three above with `can_finish: false` | No button; "The saved records of this run cannot be read, so it cannot be finished. Harvest again." |
+| Nothing to finish | `409 PREPARATION_NOT_AVAILABLE` on the button | The state card with "Check again", which re-reads the runs. |
+
+In the three "Not prepared" states the links "Go to Duplicates" and "Go to the hand-off" are not shown (the card holds the screen's one brand button); "Open the report" and "Harvest again" stay. The read-only note of an older run is not shown on a run that can still be finished. The step names in the sentences are the labels of the step list ("Duplicates", "Abstracts", "Checks").
+
+**Reattach.** On load, an active `run` or `prepare` job is followed; a `DISCOVERY_JOB_ACTIVE` refusal offers "Follow the running job" for both kinds.
+
+**Copy.** `lib/discovery-copy.ts`: `harvest.title.preparing`, `harvest.title.prep.*`, `harvest.badge.preparing`, `harvest.preparing.lede`, `harvest.prep.*`, `harvest.stop.prepare`, `harvest.stop.late` (reworded), in en, fr and ar; the cards of the two codes in `lib/screening-states.ts`.
+
+**Accessibility.** The h1 stays the live region and takes focus when a job ends; the card is a labelled section; the engine's message sits behind the Details disclosure with `dir="ltr"`; run ids are isolated with `bdi`.
+
+**Acceptance tests.** Vitest `apps/research-ui/tests/discovery-preparation.test.tsx` (failed, a job that fails after its search, interrupted without a marker, Stop after the search, a followed and reattached finishing job, records missing, the refusal, fr and ar). Playwright `tests-browser/discovery.spec.ts`, tests named "M3i": the path Hand-off → Harvest → Finish preparing → Hand-off accept with no search request; a failure that says the same after a reload; Stop after the search; axe in en and ar, light and dark; no sideways scroll at 375 and 1440 px.
+
+**Not in this amendment.** No poll: the screen follows the job's own stream. The M10b bar (`docs/ux/shared/final/04-next-step.md`, not built) reads the same marker.
