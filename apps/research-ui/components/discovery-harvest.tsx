@@ -806,8 +806,8 @@ function PreparationCard({ locale, preparation, onFinish, busy }: Readonly<{ loc
           <p className="mt-2 text-xs text-ink-muted">{t("harvest.prep.finishHelp")}</p>
         </>
       ) : (
-        <p className="mt-3 text-sm text-ink" data-cannot-finish>
-          {t("harvest.prep.cannotFinish")}
+        <p className="mt-3 text-sm text-ink" data-cannot-finish={preparation.cannot_finish ?? ""}>
+          {preparation.cannot_finish === "corpus_accepted" ? t("harvest.prep.cannotFinishAccepted") : t("harvest.prep.cannotFinish")}
         </p>
       )}
     </section>

@@ -76,10 +76,13 @@ def test_a_failure_and_a_stop_name_their_stage(tmp_path):
     harvest_marker.end(run, harvest_marker.STOPPED, stage="hydration")
     view = _view(lit, run)
     assert (view["state"], view["stage"], view["message"]) == ("stopped", "hydration", None)
-    # A frozen corpus, or records that are gone, leave nothing to finish.
-    assert _view(lit, run, frozen=True)["can_finish"] is False
+    # A frozen corpus, or records that are gone, leave nothing to finish, and the view says which.
+    assert view["cannot_finish"] is None
+    frozen = _view(lit, run, frozen=True)
+    assert (frozen["can_finish"], frozen["cannot_finish"]) == (False, "corpus_accepted")
     (run / "raw.json").unlink()
-    assert _view(lit, run)["can_finish"] is False
+    gone = _view(lit, run)
+    assert (gone["can_finish"], gone["cannot_finish"]) == (False, "records_missing")
 
 
 def test_a_later_attempt_keeps_the_earlier_stages_and_says_it_resumed(tmp_path):
@@ -276,3 +279,37 @@ def test_finishing_refuses_a_run_with_nothing_to_finish(monkeypatch, tmp_path):
     with pytest.raises(coordinator.PreparationRefused):
         asyncio.run(coordinator.finish_harvest_preparation(workspace_dir=ws, run="run_001"))
     assert coordinator.preparation_refusal(ws, "run_007").reason == "not_published"
+
+
+def test_the_marker_is_written_when_the_search_is_published(tmp_path):
+    """Review finding 1: the marker exists from the moment the run is published.
+
+    Otherwise a process that died between the run's ``legs.json`` and the first
+    stage would leave a published run without a marker, which reads as a run
+    made by an earlier version: ready, with an earlier run's ``verified.json``.
+    """
+    from scholar_harness.corpus_accept import AcceptCorpusRefused
+
+    lit = tmp_path / "literature"
+    lit.mkdir()
+    (lit / "verified.json").write_text("[]", encoding="utf-8")  # an earlier run's works
+    query = SimpleNamespace(id="Q", text="q", year_min=None, year_max=None)
+    name, _files = disc._archive_search_run(lit, legs=[], query=query, status="SUCCESS", payload="[]", corpus_published=True)
+    marker = harvest_marker.read(lit / "search_runs" / name)
+    assert marker is not None and marker["run"] == name and marker["ended"] is None and marker["resumed"] == []
+    pending = harvest_marker.pending_preparation(tmp_path)
+    assert (pending["run"], pending["state"], pending["stage"]) == (name, "interrupted", "deduplication")
+    with pytest.raises(AcceptCorpusRefused) as caught:
+        coordinator.accept_discovery_corpus(tmp_path)
+    assert caught.value.code == "PREPARATION_UNFINISHED"
+
+    # A search that was stopped keeps its records and is not the corpus: no marker.
+    kept, _files = disc._archive_search_run(lit, legs=[], query=query, status="PARTIAL", payload="[]", corpus_published=False)
+    assert harvest_marker.read(lit / "search_runs" / kept) is None
+    assert harvest_marker.pending_preparation(tmp_path)["run"] == name
+
+
+def test_a_new_run_has_no_resumed_entry_when_the_coordinator_takes_it_over(monkeypatch, tmp_path):
+    ws, _calls = _doubles(monkeypatch, tmp_path)
+    _pipeline(ws)
+    assert harvest_marker.read(ws / "literature" / "search_runs" / "run_001")["resumed"] == []

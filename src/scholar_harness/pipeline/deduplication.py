@@ -53,7 +53,19 @@ CLUSTERS_FILE = Path("dedup") / "clusters.json"
 
 
 def _newest_run(lit_dir: Path) -> str | None:
-    """The search run this deduplication follows: the newest ``search_runs/run_NNN``."""
+    """The search run this deduplication follows.
+
+    The newest run published as the corpus: deduplication only ever runs on
+    that run's records, right after its search or when its preparation is
+    finished later (M3i). A newer folder can be a search that was stopped,
+    which is not deduplicated. Without a published run (a bare folder), the
+    newest run folder, as before.
+    """
+    from .harvest_marker import corpus_run_dir
+
+    corpus_run = corpus_run_dir(lit_dir)
+    if corpus_run is not None:
+        return corpus_run.name
     runs_dir = lit_dir / "search_runs"
     if not runs_dir.is_dir():
         return None
@@ -78,6 +90,43 @@ def _merged_by(cluster: Any, index: int) -> str | None:
     return merges[index - 1] if 0 < index <= len(merges) else None
 
 
+def _deduplicator(lit_dir: Path) -> tuple[Deduplicator, str]:
+    """The deduplicator the workspace's protocol asks for, and where its tiers come from.
+
+    M7-method: the protocol's dedup tiers (defaults when it sets none), so a
+    discovery corpus is deduplicated as the methods paragraph reports.
+    """
+    from scholar_harness.screening.method import effective_method
+
+    method = effective_method(lit_dir.parent)
+    if method.source == "protocol":
+        tiers = method.config.dedup
+        return Deduplicator(
+            title_similarity=tiers.title_similarity,
+            first_author=tiers.first_author,
+            year_tolerance=tiers.year_tolerance,
+        ), "protocol"
+    return Deduplicator(), "default"
+
+
+def _method_record(deduplicator: Deduplicator, source: str) -> dict[str, Any]:
+    return {
+        "title_similarity": getattr(deduplicator, "title_similarity", None),
+        "year_tolerance": getattr(deduplicator, "year_tolerance", None),
+        "first_author": getattr(deduplicator, "first_author", None),
+        "source": source,
+    }
+
+
+def current_method(literature_dir: Path | str) -> dict[str, Any]:
+    """The method a deduplication run now would record (``clusters.json`` ``method``).
+
+    M3i-harvest-robustness: a harvest is finished from ``deduped.json`` only
+    when that file was made with the tiers the protocol asks for today.
+    """
+    return _method_record(*_deduplicator(Path(literature_dir)))
+
+
 def _write_clusters(lit_dir: Path, clusters: list[Any], deduplicator: Deduplicator, source: str) -> None:
     """``literature/dedup/clusters.json``: which tier merged each cluster (E4a, packet §4.5).
 
@@ -89,12 +138,7 @@ def _write_clusters(lit_dir: Path, clusters: list[Any], deduplicator: Deduplicat
     data = {
         "schema": "nexus.dedup-clusters.v1",
         "run": _newest_run(lit_dir),
-        "method": {
-            "title_similarity": getattr(deduplicator, "title_similarity", None),
-            "year_tolerance": getattr(deduplicator, "year_tolerance", None),
-            "first_author": getattr(deduplicator, "first_author", None),
-            "source": source,
-        },
+        "method": _method_record(deduplicator, source),
         "clusters": [
             {
                 "cluster_id": cluster.cluster_id,
@@ -133,20 +177,7 @@ def run_deduplication(
     lit_dir = Path(literature_dir)
     lit_dir.mkdir(parents=True, exist_ok=True)
 
-    # M7-method: the workspace protocol's dedup tiers (defaults when it sets none),
-    # so a discovery corpus is deduplicated as the methods paragraph reports.
-    from scholar_harness.screening.method import effective_method
-
-    method = effective_method(lit_dir.parent)
-    if method.source == "protocol":
-        tiers = method.config.dedup
-        deduplicator = Deduplicator(
-            title_similarity=tiers.title_similarity,
-            first_author=tiers.first_author,
-            year_tolerance=tiers.year_tolerance,
-        )
-    else:
-        deduplicator = Deduplicator()
+    deduplicator, source = _deduplicator(lit_dir)
     # CORE-06: content order, not arrival order, so a re-run gives the same ids.
     clusters = deduplicator.deduplicate(stable_order(discovered_documents))
     unique_docs = [c.representative for c in clusters]
@@ -159,7 +190,7 @@ def run_deduplication(
         default=str,
     )
     (lit_dir / "deduped.json").write_text(payload, encoding="utf-8")
-    _write_clusters(lit_dir, clusters, deduplicator, "protocol" if method.source == "protocol" else "default")
+    _write_clusters(lit_dir, clusters, deduplicator, source)
     return DeduplicationOutcome(
         representatives=unique_docs,
         unique=len(unique_docs),

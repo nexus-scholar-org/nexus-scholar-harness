@@ -141,6 +141,19 @@ describe("discovery.harvest: the steps after the search (M3i)", () => {
     expect(screen.getByRole("button", { name: "Harvest again" })).toBeInTheDocument();
   });
 
+  it("says the corpus is already accepted, not that the records are unreadable, when exports were accepted beside it (review finding 3)", async () => {
+    setUp({ runs: 1, preparation: "failed", accepted: true });
+    render(<DiscoveryHarvest locale="en" />);
+    await screen.findByRole("heading", { level: 1, name: "The search finished, but preparing the corpus failed." });
+    const card = await preparationCard();
+    expect(within(card).queryByRole("button", { name: FINISH })).toBeNull();
+    expect(card.querySelector("[data-cannot-finish]")).toHaveAttribute("data-cannot-finish", "corpus_accepted");
+    expect(card.querySelector("[data-cannot-finish]")).toHaveTextContent("The corpus of this workspace is already accepted, so this run stays as a record and is not prepared.");
+    expect(screen.queryByText(/cannot be read/)).toBeNull();
+    // A frozen corpus is never searched again: no "Harvest again" either.
+    expect(screen.queryByRole("button", { name: "Harvest again" })).toBeNull();
+  });
+
   it("shows the engine's refusal when there is nothing to finish, and Check again re-reads", async () => {
     const user = userEvent.setup();
     const { engine } = setUp({ runs: 1, preparation: "stopped" });

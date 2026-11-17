@@ -125,7 +125,7 @@ Review follow-up (M3c): `POST /screening/corpus/accept` does not check a running
 
 **Empty (changed).** "There is nothing to hand off yet." is now shown only when there is no published run and nothing staged.
 
-**The accept (changed).** `POST /screening/corpus/accept` answers `409 PREPARATION_UNFINISHED` (with the run, state and stage) while the corpus run's preparation is unfinished and nothing is staged; the card reads "The corpus is not prepared yet" with "Open Harvest". The Import step's accept shows the same card (M10b replaces that button with a link here).
+**The accept (changed).** `POST /screening/corpus/accept` answers `409 PREPARATION_UNFINISHED` (with the run, state and stage) while the corpus run's preparation is unfinished and nothing is staged; the card reads "The corpus is not prepared yet" with "Open Harvest". The screens do not offer the accept in that state (the Hand-off shows "Not ready"; the Import step's accept is disabled without staged exports, and with staged exports it accepts the exports), so the card is the engine's guard: it appears only if the state changed after the page was read, or for another client of the route. M10b replaces the Import accept with a link here.
 
 **Copy.** `handoff.pending.*` in en, fr and ar (`lib/discovery-copy.ts`); the card of `PREPARATION_UNFINISHED` in `lib/screening-states.ts`.
 

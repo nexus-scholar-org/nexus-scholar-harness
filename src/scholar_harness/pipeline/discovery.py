@@ -657,6 +657,16 @@ def _archive_search_run(
     if payload is not None:
         (run_dir / "raw.json").write_text(payload, encoding="utf-8")
         files.append(str(run_dir / "raw.json"))
+    published = payload is not None if corpus_published is None else corpus_published
+    if published:
+        # M3i-harvest-robustness: a run published as the corpus has its stage
+        # marker before its ``legs.json`` (the file that makes it a run), so no
+        # published run of this version is ever without one. A process that
+        # dies right after reads as interrupted, never as a run made before
+        # the marker existed.
+        from . import harvest_marker
+
+        harvest_marker.start(run_dir)
     manifest = {
         "run": run_dir.name,
         "status": status,

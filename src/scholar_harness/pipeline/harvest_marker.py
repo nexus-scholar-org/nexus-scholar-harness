@@ -202,12 +202,13 @@ def preparation_view(
     never ended: the console was closed or the process died). ``stage`` is the
     stage it is in, or where it failed or stopped; ``None`` when ready or when
     there is no marker to say. ``can_finish`` says whether the remaining stages
-    can be run from the run's saved records.
+    can be run from the run's saved records; when they cannot, ``cannot_finish``
+    says why (``corpus_accepted`` or ``records_missing``).
     """
     marker = read(run_dir)
     view: dict[str, Any] = {
         "state": NONE, "stage": None, "stages": dict(_stages(marker)), "ended_at": None,
-        "message": None, "marker": marker is not None, "can_finish": False,
+        "message": None, "marker": marker is not None, "can_finish": False, "cannot_finish": None,
     }
     if not published:
         return view
@@ -235,9 +236,14 @@ def preparation_view(
             else:
                 # Ended as done, but verified.json is missing or is not this run's.
                 view["state"], view["stage"] = INTERRUPTED, "verification"
-    view["can_finish"] = (
-        view["state"] in UNFINISHED_STATES and not frozen and (Path(run_dir) / "raw.json").is_file()
-    )
+    if view["state"] in UNFINISHED_STATES:
+        # Why the remaining stages cannot be run, when they cannot: the corpus
+        # is frozen (it came from elsewhere), or the run's records are gone.
+        if frozen:
+            view["cannot_finish"] = "corpus_accepted"
+        elif not (Path(run_dir) / "raw.json").is_file():
+            view["cannot_finish"] = "records_missing"
+        view["can_finish"] = view["cannot_finish"] is None
     return view
 
 

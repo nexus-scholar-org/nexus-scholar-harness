@@ -305,7 +305,8 @@ def refuse_if_preparation_unfinished(ws: Path) -> None:
     ended (the run's stage marker says so). Until then the file is missing or
     is an earlier run's, and nothing is frozen: ``PREPARATION_UNFINISHED``,
     with the run, the state and the stage in ``details``. A run made before
-    the marker existed is not refused here.
+    the marker existed is not refused when a ``verified.json`` exists (its
+    state is not guessed); without one it is refused as ``interrupted``.
     """
     from .pipeline.harvest_marker import pending_preparation
 

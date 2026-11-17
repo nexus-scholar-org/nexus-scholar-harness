@@ -101,6 +101,9 @@ class DiscoveryJob:
     result: dict[str, Any] | None = None
     error: dict[str, Any] | None = None
     cancel_requested: bool = False
+    #: M3i: the run whose stages after the search this job is running (a
+    #: ``prepare`` job from its start, a ``run`` job once its search ended).
+    preparing_run: str | None = None
     events: list[dict[str, Any]] = field(default_factory=list)
     changed: asyncio.Event = field(default_factory=asyncio.Event)
     task: asyncio.Task | None = None
@@ -348,10 +351,12 @@ def _preparation(ws: Path, run_dir: Path, manifest: dict[str, Any], *, newest_pu
                  active: DiscoveryJob | None, frozen: bool) -> dict[str, Any]:
     """A run's ``preparation``: the stages after its search, from its stage marker (M3i).
 
-    ``running`` needs both a marker without an end and a live search or finish
-    job in this console; without the job the same marker reads ``interrupted``.
+    ``running`` needs both a marker without an end and a live job in this
+    console that is preparing this run (``preparing_run``): a new search that
+    is still fetching does not make an earlier unfinished run read as running.
+    Without such a job the same marker reads ``interrupted``.
     """
-    running = active is not None and active.kind in PREPARING_KINDS
+    running = active is not None and active.kind in PREPARING_KINDS and active.preparing_run == run_dir.name
     view = harvest_marker.preparation_view(
         _lit(ws), run_dir, published=_published(manifest), newest_published=newest_published,
         job_running=running, frozen=frozen,
@@ -905,6 +910,11 @@ async def start_run(body: RunBody, request: Request) -> dict[str, Any]:
 
     async def work(job: DiscoveryJob):
         def on_stage(name: str, status: str, detail: Any) -> None:
+            if name == "discovery":
+                # M3i: the search ended; if it was published, its run is the newest
+                # published one, and this job now runs the stages after it.
+                corpus_run = harvest_marker.corpus_run_dir(_lit(ws))
+                job.preparing_run = corpus_run.name if corpus_run is not None else None
             job.emit("stage", {"job_id": job.job_id, "stage": name, "status": status,
                                "detail": json.loads(json.dumps(detail, default=str))})
 
@@ -979,7 +989,9 @@ async def finish_preparation(run: str, request: Request) -> dict[str, Any]:
             return "cancelled", result, None
         return "succeeded", result, None
 
-    return {"job": jobs.start(ws, "prepare", work).to_dict()}
+    job = jobs.start(ws, "prepare", work)
+    job.preparing_run = run
+    return {"job": job.to_dict()}
 
 
 class RecallBody(BaseModel):

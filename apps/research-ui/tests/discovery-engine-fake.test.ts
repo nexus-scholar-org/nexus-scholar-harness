@@ -117,7 +117,7 @@ describe("discovery engine fake (M10a)", () => {
  * `tests/console/test_harvest_preparation_api.py`.
  */
 describe("discovery engine fake (M3i)", () => {
-  const KEYS = ["can_finish", "ended_at", "job_id", "marker", "message", "stage", "stages", "state"];
+  const KEYS = ["can_finish", "cannot_finish", "ended_at", "job_id", "marker", "message", "stage", "stages", "state"];
   const preparation = (fake: ReturnType<typeof discoveryEngine>, route: string) => {
     const body = fake.handle("GET", route, null).body as Json;
     return (route.endsWith("/runs") ? (body.runs as Json[])[0].preparation : body.preparation) as Json;
@@ -161,6 +161,24 @@ describe("discovery engine fake (M3i)", () => {
     expect(preparation(fake, "/api/v1/discovery/runs").state).toBe("ready");
     expect(reason("run_002")).toMatchObject({ code: "PREPARATION_NOT_AVAILABLE", details: { reason: "already_prepared" } });
     expect(fake.calls.filter((c) => c.method === "POST" && c.path === "/api/v1/discovery/runs")).toHaveLength(0);
+  });
+
+  it("keeps the earlier ready run as the corpus after a search that was stopped (review finding 10)", () => {
+    const fake = discoveryEngine({ runs: 1, holdRun: true });
+    const job = (fake.handle("POST", "/api/v1/discovery/runs", {}).body as { job: Json }).job;
+    fake.handle("POST", `/api/v1/discovery/jobs/${job.job_id}/cancel`, {});
+    const rows = (fake.handle("GET", "/api/v1/discovery/runs", null).body as Json).runs as Json[];
+    expect(rows.map((r) => [r.run, (r.preparation as Json).state])).toEqual([["run_002", "none"], ["run_001", "ready"]]);
+    const handoff = fake.handle("GET", "/api/v1/discovery/handoff", null).body as Json;
+    expect([handoff.run, (handoff.corpus as Json).from_discovery, (handoff.preparation as Json).state]).toEqual(["run_001", true, "ready"]);
+    expect(fake.handle("POST", "/api/v1/screening/corpus/accept", null).status).toBe(200);
+  });
+
+  it("says why an unfinished run cannot be finished: the corpus is accepted, or the records are gone (review finding 3)", () => {
+    const frozen = preparation(discoveryEngine({ runs: 1, preparation: "failed", accepted: true }), "/api/v1/discovery/runs");
+    expect([frozen.can_finish, frozen.cannot_finish]).toEqual([false, "corpus_accepted"]);
+    const gone = preparation(discoveryEngine({ runs: 1, preparation: "failed", recordsMissing: true }), "/api/v1/discovery/runs");
+    expect([gone.can_finish, gone.cannot_finish]).toEqual([false, "records_missing"]);
   });
 
   it("reads a stop after the search before the next step: cancelled, stopped before verification", () => {

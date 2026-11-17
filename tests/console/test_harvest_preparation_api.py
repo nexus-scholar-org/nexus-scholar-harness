@@ -17,6 +17,7 @@ import asyncio
 import importlib.util
 import json
 import shutil
+import threading
 import time
 from pathlib import Path
 
@@ -43,6 +44,23 @@ ACCEPT = "/api/v1/screening/corpus/accept"
 class _VerifierDown(h._PassthroughVerifier):
     async def process_batch(self, docs, verify=True, enrich=True):
         raise RuntimeError("verifier down")
+
+
+def _hydrator_until(ready):
+    """An abstracts double that ends only once ``ready()`` is true (no timing; a 30 s guard)."""
+
+    class Held(h._PassthroughHydrator):
+        async def hydrate_missing_abstracts(self, docs, batch_size=50):
+            deadline = time.time() + 30
+            while not ready() and time.time() < deadline:
+                await asyncio.sleep(0.01)
+            return await super().hydrate_missing_abstracts(docs, batch_size)
+
+    return Held
+
+
+def _stop_requested(client) -> bool:
+    return any(job.cancel_requested for job in client.app.state.discovery_jobs.jobs.values())
 
 
 def _run_dir(ws: Path, run: str = "run_001") -> Path:
@@ -113,7 +131,9 @@ def test_pipeline_marker_written_by_each_stage(env, monkeypatch):
 
     preparation = _preparation(client)
     # The public shape (packet "preparation"); the UI's fake engine carries the same keys.
-    assert sorted(preparation) == ["can_finish", "ended_at", "job_id", "marker", "message", "stage", "stages", "state"]
+    assert sorted(preparation) == [
+        "can_finish", "cannot_finish", "ended_at", "job_id", "marker", "message", "stage", "stages", "state",
+    ]
     assert preparation["state"] == "ready" and preparation["stage"] is None and preparation["marker"] is True
     assert preparation["can_finish"] is False
     assert client.get(f"{BASE}/runs").json()["runs"][0]["preparation"]["state"] == "ready"
@@ -161,6 +181,8 @@ def test_a_run_that_dies_after_search_says_so(env, monkeypatch):
     aborted = [e for e in h._journal(ws) if e["action"] == "PIPELINE_RUN_ABORTED"]
     assert len(aborted) == 1 and "verification" in aborted[0]["description"] and "run_001" in aborted[0]["description"]
     assert aborted[0]["status"] == "FAILED"
+    preparation = _preparation(client)
+    assert preparation["cannot_finish"] is None
 
 
 # --------------------------------------------------------------------------- D3 stop between stages
@@ -170,14 +192,9 @@ def test_a_stop_after_the_search_is_honoured_before_the_next_stage(env, monkeypa
     """(c): a stop that arrives while abstracts are added ends the job before verification."""
     client, ws, _ = env
 
-    class SlowHydrator(h._PassthroughHydrator):
-        async def hydrate_missing_abstracts(self, docs, batch_size=50):
-            await asyncio.sleep(0.6)
-            return await super().hydrate_missing_abstracts(docs, batch_size)
-
-    monkeypatch.setattr(hyd_mod, "AbstractHydrator", SlowHydrator)
+    monkeypatch.setattr(hyd_mod, "AbstractHydrator", _hydrator_until(lambda: _stop_requested(client)))
     job_id = client.post(f"{BASE}/runs", json={"providers": ["openalex"]}).json()["job"]["job_id"]
-    deadline = time.time() + 10
+    deadline = time.time() + 30
     while not (ws / "literature" / "deduped.json").exists() and time.time() < deadline:
         time.sleep(0.05)
     assert (ws / "literature" / "deduped.json").exists(), "the search and the deduplication did not end"
@@ -197,6 +214,9 @@ def test_a_stop_after_the_search_is_honoured_before_the_next_stage(env, monkeypa
     assert stages == ["discovery", "deduplication", "hydration"]
     actions = [e["action"] for e in h._journal(ws)]
     assert "PIPELINE_RUN_ABORTED" in actions and "PIPELINE_RUN_PAUSED_FOR_CORPUS_ACCEPT" not in actions
+    # Review finding 5: a stopped run's row never reads as a success.
+    stopped = next(e for e in h._journal(ws) if e["action"] == "PIPELINE_RUN_ABORTED")
+    assert stopped["status"] == "PARTIAL" and "stopped by the researcher before verification" in stopped["description"]
     # The records are kept: the same run can be finished, and then accepted.
     job, _ = _finish(client)
     assert job["state"] == "succeeded", job
@@ -457,12 +477,8 @@ def test_one_job_at_a_time_also_for_finishing(env, monkeypatch):
     client, _ws, _ = env
     _fail_verification_once(client, monkeypatch, {"providers": ["openalex"]})
 
-    class SlowHydrator(h._PassthroughHydrator):
-        async def hydrate_missing_abstracts(self, docs, batch_size=50):
-            await asyncio.sleep(0.8)
-            return await super().hydrate_missing_abstracts(docs, batch_size)
-
-    monkeypatch.setattr(hyd_mod, "AbstractHydrator", SlowHydrator)
+    release = threading.Event()
+    monkeypatch.setattr(hyd_mod, "AbstractHydrator", _hydrator_until(release.is_set))
     started = client.post(f"{BASE}/runs/run_001/prepare")
     assert started.status_code == 202
     job_id = started.json()["job"]["job_id"]
@@ -473,6 +489,7 @@ def test_one_job_at_a_time_also_for_finishing(env, monkeypatch):
     assert busy.status_code == 409 and h._code(busy) == "DISCOVERY_JOB_ACTIVE"
     search = client.post(f"{BASE}/runs", json={"providers": ["openalex"]})
     assert search.status_code == 409 and h._code(search) == "DISCOVERY_JOB_ACTIVE"
+    release.set()
     h._events(client, job_id)
     assert client.get(f"{BASE}/jobs/{job_id}").json()["job"]["state"] == "succeeded"
 
@@ -482,3 +499,99 @@ def test_the_browser_allowlist_carries_the_finish_route():
 
     assert any(p.fullmatch("api/v1/discovery/runs/run_001/prepare") for p in POST_PATHS)
     assert not any(p.fullmatch("api/v1/discovery/runs/run_001/legs") for p in POST_PATHS)
+
+
+# --------------------------------------------------------------------------- review round 1 (2026-11-17)
+
+
+def test_finishing_names_its_own_run_in_the_deduplication_record(env, monkeypatch):
+    """Finding 2: a later search that was stopped is the newest folder, but not the run being deduplicated."""
+    client, ws, providers = env
+    real = coordinator.run_deduplication
+
+    def broken(**kwargs):
+        raise RuntimeError("no room")
+
+    monkeypatch.setattr(coordinator, "run_deduplication", broken)
+    first, _ = h._run(client, {"providers": ["crossref"]})
+    assert first["state"] == "failed"
+    monkeypatch.setattr(coordinator, "run_deduplication", real)
+    providers.set("openalex", h.FakeProvider("openalex", [h._doc("openalex", i) for i in range(500)], delay=0.02))
+    job_id = client.post(f"{BASE}/runs", json={"providers": ["openalex"]}).json()["job"]["job_id"]
+    time.sleep(0.4)
+    assert client.post(f"{BASE}/jobs/{job_id}/cancel").json()["job"]["state"] == "cancelled"
+    assert _run_dir(ws, "run_002").is_dir() and _preparation(client, "run_002")["state"] == "none"
+    assert _preparation(client, "run_001")["state"] == "failed"  # still the corpus run
+
+    job, _ = _finish(client, "run_001")
+    assert job["state"] == "succeeded", job
+    clusters = json.loads((ws / "literature" / "dedup" / "clusters.json").read_text(encoding="utf-8"))
+    assert clusters["run"] == "run_001"
+    assert client.get(f"{BASE}/dedup").json()["run"] == "run_001"
+
+
+def test_a_deduplication_record_of_another_run_is_not_reused(env, monkeypatch):
+    """The marker says deduplication ended, but deduped.json is another run's: start from this run's raw.json."""
+    client, ws, _ = env
+    _fail_verification_once(client, monkeypatch, {"providers": ["openalex"]})
+    path = ws / "literature" / "dedup" / "clusters.json"
+    clusters = json.loads(path.read_text(encoding="utf-8"))
+    assert clusters["run"] == "run_001"
+    path.write_text(json.dumps({**clusters, "run": "run_009"}), encoding="utf-8")
+    job, _ = _finish(client)
+    assert job["state"] == "succeeded" and job["result"]["resumed_from"] == "deduplication", job
+    assert json.loads(path.read_text(encoding="utf-8"))["run"] == "run_001"
+
+
+def test_changed_deduplication_tiers_start_again_from_the_saved_records(env, monkeypatch):
+    """Finding 11: deduped.json made under other tiers is not what the protocol asks for now."""
+    client, ws, _ = env
+    _fail_verification_once(client, monkeypatch, {"providers": ["openalex"]})
+    protocol = json.loads((ws / "protocol.json").read_text(encoding="utf-8"))
+    protocol["method"] = {
+        "dedup": {"doi": True, "title_similarity": 0.9, "first_author": True, "year_tolerance": 0},
+        "rules_version": "screening-rules-v1", "not_reported": "unclear", "blinding": "reveal_after_decision",
+    }
+    (ws / "protocol.json").write_text(json.dumps(protocol), encoding="utf-8")
+    job, events = _finish(client)
+    assert job["state"] == "succeeded" and job["result"]["resumed_from"] == "deduplication", job
+    assert next(d["stage"] for name, d in events if name == "stage") == "deduplication"
+    method = json.loads((ws / "literature" / "dedup" / "clusters.json").read_text(encoding="utf-8"))["method"]
+    assert method["title_similarity"] == 0.9 and method["year_tolerance"] == 0 and method["source"] == "protocol"
+
+
+def test_a_new_search_does_not_make_an_earlier_unfinished_run_read_as_running(env):
+    """Finding 6: `running` belongs to the run a job is preparing, not to any marker without an end."""
+    from scholar_harness.pipeline import harvest_marker
+
+    client, ws, providers = env
+    run = h._write_run(ws, 1, started="2026-11-13T08:00:00Z")
+    (run / "raw.json").write_text("[]", encoding="utf-8")
+    harvest_marker.start(run)
+    providers.set("openalex", h.FakeProvider("openalex", [h._doc("openalex", i) for i in range(500)], delay=0.02))
+    job_id = client.post(f"{BASE}/runs", json={"providers": ["openalex"]}).json()["job"]["job_id"]
+    time.sleep(0.3)
+    runs = client.get(f"{BASE}/runs").json()
+    assert runs["active_job"]["job_id"] == job_id  # the new search is still fetching
+    preparation = runs["runs"][0]["preparation"]
+    assert preparation["state"] == "interrupted" and preparation["job_id"] is None
+    assert client.get(f"{BASE}/handoff").json()["preparation"]["state"] == "interrupted"
+    assert client.post(f"{BASE}/jobs/{job_id}/cancel").json()["job"]["state"] == "cancelled"
+
+
+def test_a_frozen_corpus_says_why_a_run_cannot_be_finished(env, monkeypatch):
+    """Finding 3: exports accepted beside an unfinished harvest; the run says the corpus is accepted."""
+    from scholar_harness.corpus_accept import stage_ris_source
+
+    client, ws, _ = env
+    _fail_verification_once(client, monkeypatch, {"providers": ["openalex"]})
+    assert _preparation(client)["cannot_finish"] is None
+    fixture = h.ROOT / "tests" / "kits" / "search" / "fixtures" / "imports" / "rejections.ris"
+    stage_ris_source(ws, "Scopus", fixture.read_bytes(), file_name="scopus.ris", searched_on="2026-11-10")
+    assert client.post(ACCEPT).status_code == 200  # the staged exports are the corpus
+    preparation = _preparation(client)
+    assert preparation["state"] == "failed" and preparation["can_finish"] is False
+    assert preparation["cannot_finish"] == "corpus_accepted"
+    raw = _run_dir(ws) / "raw.json"
+    raw.unlink()
+    assert _preparation(client)["cannot_finish"] == "corpus_accepted"  # the frozen corpus comes first

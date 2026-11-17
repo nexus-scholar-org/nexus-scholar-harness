@@ -106,6 +106,8 @@ export interface Preparation {
   marker: boolean;
   /** The remaining steps can be run from the run's saved records. */
   can_finish: boolean;
+  /** Why they cannot, for an unfinished run: the corpus is frozen already, or the run's records are gone. */
+  cannot_finish?: "corpus_accepted" | "records_missing" | null;
   job_id: string | null;
 }
 

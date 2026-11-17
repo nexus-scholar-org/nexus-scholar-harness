@@ -105,6 +105,7 @@ from scholar_protocol.models import ResearchProtocol
 from scholar_harness.workspace.audit import append_event, append_legacy_event
 
 from . import harvest_marker
+from .deduplication import current_method as current_dedup_method
 from .deduplication import run_deduplication
 from .discovery import run_discovery
 from .extraction import run_extraction
@@ -543,7 +544,9 @@ async def _prepare_corpus(
                 [str(protocol_path)],
                 [],
                 results["stages"],
-                status=_ledger_status(results),
+                # The row's own outcome: the preparation did not end. Never the
+                # search's SUCCESS; a failed or empty search keeps its own word.
+                status="PARTIAL" if _ledger_status(results) == "SUCCESS" else _ledger_status(results),
             )
             return None
         try:
@@ -670,8 +673,9 @@ async def finish_harvest_preparation(
     M3i-harvest-robustness ("Finish preparing this corpus"). The run's stage
     marker says where to start: when deduplication ended for this run and its
     ``deduped.json`` is still this run's (``dedup/clusters.json`` names the
-    run), hydration starts from ``deduped.json``; otherwise deduplication
-    starts from the run's own ``raw.json``. Hydration keeps no file of its
+    run) and was made with the tiers the protocol asks for now, hydration
+    starts from ``deduped.json``; otherwise deduplication starts from the
+    run's own ``raw.json``. Hydration keeps no file of its
     own, so it is run again whenever verification did not end. A run without a
     marker (made before it existed) starts from ``raw.json``.
 
@@ -702,9 +706,11 @@ async def finish_harvest_preparation(
     if marker and "deduplication" in (marker.get("stages") or {}):
         clusters = lit_dir / "dedup" / "clusters.json"
         try:
-            same_run = json.loads(clusters.read_text(encoding="utf-8")).get("run") == run
-            documents = harvest_marker.load_saved_documents(lit_dir / "deduped.json") if same_run else None
-        except (OSError, ValueError, AttributeError):
+            record = json.loads(clusters.read_text(encoding="utf-8"))
+            # This run's deduplication, made with the tiers the protocol asks for today.
+            reusable = record.get("run") == run and record.get("method") == current_dedup_method(lit_dir)
+            documents = harvest_marker.load_saved_documents(lit_dir / "deduped.json") if reusable else None
+        except Exception:  # noqa: BLE001 - anything unreadable here means: start from the run's own records
             documents = None
         if documents is not None:
             first_stage = "hydration"
@@ -983,7 +989,10 @@ async def run_pipeline(
         search_run = results["discovery"]["search_run"]
         run_dir = (lit_dir / "search_runs" / search_run) if search_run else None
         if run_dir is not None and results["discovery"]["corpus_published"]:
-            harvest_marker.start(run_dir)
+            # ``run_discovery`` writes the marker as it publishes the run; a
+            # stage double that archived a run without one gets it here.
+            if harvest_marker.read(run_dir) is None:
+                harvest_marker.start(run_dir)
         else:
             run_dir = None
         verified_docs = await _prepare_corpus(

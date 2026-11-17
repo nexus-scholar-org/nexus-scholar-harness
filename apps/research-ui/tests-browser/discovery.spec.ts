@@ -286,7 +286,7 @@ test("M3i: Stop stays after the search and ends the harvest as stopped before th
   await expect(page.locator("[data-pending-body]")).toHaveText("You stopped the harvest of run_001 before the step “Checks”.");
 });
 
-test("M3i: the accept on the Import step names an unfinished harvest (the engine's refusal)", async ({ page }) => {
+test("M3i: the accept refuses an unfinished harvest with its typed code, and the hand-off offers no accept", async ({ page }) => {
   const fake = await engine(page, { runs: 1, preparation: "failed", refuseOnce: {} });
   const answer = fake.handle("POST", "/api/v1/screening/corpus/accept", null);
   expect(answer.status).toBe(409);
@@ -296,6 +296,7 @@ test("M3i: the accept on the Import step names an unfinished harvest (the engine
   expect(fake.accepted).toBe(false);
   await page.goto("/en/discovery/handoff/");
   await expect(page.getByRole("heading", { level: 1, name: "The corpus is not ready to hand off yet." })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Accept this corpus" })).toHaveCount(0);
 });
 
 const UNFINISHED: DiscoveryFakeOptions = { runs: 1, preparation: "failed" };
