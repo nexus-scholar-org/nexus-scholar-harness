@@ -20,6 +20,10 @@ running discovery job per workspace, ``MAILTO_NOT_SET`` and
 
 * ``POST /runs`` — the search run (``run_pipeline``); ``POST /recall`` — the
   check-only recall (``scholar_search.recall.check_seeds``, decision 3).
+* ``POST /runs/{run}/prepare`` — finish the stages after a search (deduplication,
+  abstracts, verification) from the run's saved records, without a new search
+  (M3i-harvest-robustness). Every run view carries ``preparation``, read from
+  the run's stage marker, so it is the same after the console restarted.
 * ``GET /recall``, ``GET /jobs/{id}``, ``GET /jobs/{id}/events`` (SSE replayed
   on connect), ``POST /jobs/{id}/cancel``.
 """
@@ -43,6 +47,7 @@ from scholar_search.config import settings
 from scholar_search.plan import run_providers
 
 from ...pipeline import discovery as disc
+from ...pipeline import harvest_marker
 from ...workspace.audit import append_event
 from .. import refusals
 
@@ -326,9 +331,39 @@ def _drift(ws: Path, manifest: dict[str, Any]) -> dict[str, bool | None]:
         return dict(_NO_DRIFT)
 
 
-def _run_summaries(ws: Path) -> list[dict[str, Any]]:
+#: Job kinds that run the stages after a search (M3i-harvest-robustness).
+PREPARING_KINDS = ("run", "prepare")
+
+
+def _frozen(ws: Path) -> bool:
+    from ...corpus_accept import _accepted_snapshot
+
+    try:
+        return bool(_accepted_snapshot(ws))
+    except (OSError, ValueError):
+        return False
+
+
+def _preparation(ws: Path, run_dir: Path, manifest: dict[str, Any], *, newest_published: bool,
+                 active: DiscoveryJob | None, frozen: bool) -> dict[str, Any]:
+    """A run's ``preparation``: the stages after its search, from its stage marker (M3i).
+
+    ``running`` needs both a marker without an end and a live search or finish
+    job in this console; without the job the same marker reads ``interrupted``.
+    """
+    running = active is not None and active.kind in PREPARING_KINDS
+    view = harvest_marker.preparation_view(
+        _lit(ws), run_dir, published=_published(manifest), newest_published=newest_published,
+        job_running=running, frozen=frozen,
+    )
+    view["job_id"] = active.job_id if running and view["state"] == harvest_marker.RUNNING else None
+    return view
+
+
+def _run_summaries(ws: Path, active: DiscoveryJob | None = None) -> list[dict[str, Any]]:
     out: list[dict[str, Any]] = []
     later_published = False
+    frozen = _frozen(ws)
     for run_dir in _run_dirs(ws):
         manifest = _manifest(run_dir)
         legs = manifest["legs"]
@@ -349,6 +384,9 @@ def _run_summaries(ws: Path) -> list[dict[str, Any]]:
             "stale": later_published,
             # Review F3: the protocol was edited since this run searched it.
             **_drift(ws, manifest),
+            # M3i: the stages after the search (the newest published run is the corpus run).
+            "preparation": _preparation(ws, run_dir, manifest, newest_published=not later_published,
+                                        active=active, frozen=frozen),
         })
         later_published = later_published or _published(manifest)
     return out
@@ -357,7 +395,7 @@ def _run_summaries(ws: Path) -> list[dict[str, Any]]:
 def _runs_payload(request: Request) -> dict[str, Any]:
     ws = _ws(request)
     active = _jobs(request).active(ws)
-    return {"shape": "discovery.runs-v1", "runs": _run_summaries(ws), "active_job": active.to_dict() if active else None}
+    return {"shape": "discovery.runs-v1", "runs": _run_summaries(ws, active), "active_job": active.to_dict() if active else None}
 
 
 def _checks(ws: Path) -> list[Path]:
@@ -471,12 +509,18 @@ def run_detail(run: str, request: Request) -> dict[str, Any]:
         raise _http(exc) from exc
     manifest = _manifest(run_dir)
     started = sorted(str(leg.get("started_at")) for leg in manifest["legs"] if leg.get("started_at"))
+    corpus_run = harvest_marker.corpus_run_dir(_lit(ws))
     return {
         **manifest,
         "report_path": (run_dir / "search_report.md").relative_to(ws).as_posix(),
         "recall_check": _preceding_check(ws, started[0] if started else None),
         "cap_override": manifest.get("cap_override"),
         "requested_providers": manifest.get("requested_providers"),
+        # M3i: the stages after the search, from the run's stage marker.
+        "preparation": _preparation(
+            ws, run_dir, manifest, newest_published=corpus_run is not None and corpus_run.name == run_dir.name,
+            active=_jobs(request).active(ws), frozen=_frozen(ws),
+        ),
     }
 
 
@@ -744,7 +788,24 @@ def handoff(request: Request) -> dict[str, Any]:
         proto = _protocol(ws)
     except Refused as exc:
         raise _http(exc) from exc
-    rows = _verified(ws)
+    # verified.json belongs to the newest run published as the corpus; its
+    # lower-bound warnings come from that run, not from a later failed one.
+    corpus_run = next((d for d in _run_dirs(ws) if _published(_manifest(d))), None)
+    corpus_manifest = _manifest(corpus_run) if corpus_run else None
+    corpus = _corpus_view(ws)
+    # M3i: the stages after that run's search. Until its verification ended,
+    # verified.json is missing or an earlier run's, so none of its rows are
+    # counted here as this run's works.
+    preparation = (
+        _preparation(ws, corpus_run, corpus_manifest, newest_published=True,
+                     active=_jobs(request).active(ws), frozen=corpus.get("state") == "ACCEPTED")
+        if corpus_run is not None and corpus_manifest is not None else None
+    )
+    unfinished = (
+        preparation is not None and preparation["state"] != harvest_marker.READY
+        and corpus.get("state") != "ACCEPTED" and not corpus.get("sources")
+    )
+    rows = [] if unfinished else _verified(ws)
     mix: dict[str, int] = {}
     for row in rows:
         names = {str(s.get("provider")) for s in (row.get("sources") or []) if isinstance(s, dict) and s.get("provider")}
@@ -754,15 +815,12 @@ def handoff(request: Request) -> dict[str, Any]:
             mix[name] = mix.get(name, 0) + 1
     total = len(rows)
     with_abstract = sum(1 for row in rows if str(row.get("abstract") or "").strip())
-    # verified.json belongs to the newest run published as the corpus; its
-    # lower-bound warnings come from that run, not from a later failed one.
-    corpus_run = next((d for d in _run_dirs(ws) if _published(_manifest(d))), None)
-    corpus_manifest = _manifest(corpus_run) if corpus_run else None
     legs = corpus_manifest["legs"] if corpus_manifest else []
     return {
         "shape": "discovery.handoff-v1",
-        "corpus": _corpus_view(ws),
+        "corpus": corpus,
         "run": corpus_run.name if corpus_run else None,
+        "preparation": preparation,
         "provider_mix": [
             {"provider": name, "records": n, "share": round(n / total, 4) if total else 0.0}
             for name, n in sorted(mix.items(), key=lambda kv: (-kv[1], kv[0]))
@@ -869,6 +927,59 @@ async def start_run(body: RunBody, request: Request) -> dict[str, Any]:
         return "succeeded", result, None
 
     return {"job": jobs.start(ws, "run", work).to_dict()}
+
+
+@router.post("/runs/{run}/prepare", status_code=202)
+async def finish_preparation(run: str, request: Request) -> dict[str, Any]:
+    """Finish the stages after a search from the run's saved records (M3i-harvest-robustness).
+
+    "Finish preparing this corpus": deduplication, abstracts and verification
+    for a published run whose job failed, was stopped or was lost with the
+    console. No database is searched. The job (kind ``prepare``) sends the
+    same ``stage`` events as a search run and ends as a browser run does,
+    before the snapshot.
+    """
+    from ...corpus_accept import _accepted_snapshot, staged_sources
+    from ...pipeline.coordinator import finish_harvest_preparation, preparation_refusal
+
+    ws, jobs = _ws(request), _jobs(request)
+    try:
+        _run_dir(ws, run)
+        _protocol(ws)
+        if _accepted_snapshot(ws):
+            raise Refused(409, refusals.CORPUS_ALREADY_ACCEPTED,
+                          "The corpus snapshot is accepted; a frozen corpus is never prepared again from the browser.")
+        if staged_sources(ws):
+            raise Refused(409, refusals.STAGED_IMPORT_PENDING,
+                          "Database exports are staged for import; accept or remove them before finishing a harvest.")
+        _refuse_busy(jobs, ws)
+        refusal = preparation_refusal(ws, run)
+        if refusal is not None:
+            raise Refused(409, refusals.PREPARATION_NOT_AVAILABLE, str(refusal), details={"run": run, "reason": refusal.reason})
+        # Abstracts and verification ask the databases, as a search does.
+        _require_mailto()
+    except Refused as exc:
+        raise _http(exc) from exc
+
+    async def work(job: DiscoveryJob):
+        def on_stage(name: str, status: str, detail: Any) -> None:
+            job.emit("stage", {"job_id": job.job_id, "stage": name, "status": status,
+                               "detail": json.loads(json.dumps(detail, default=str))})
+
+        results = await finish_harvest_preparation(
+            workspace_dir=ws, run=run, stage_callback=on_stage, should_stop=lambda: job.cancel_requested,
+        )
+        result = json.loads(json.dumps({
+            "run": run,
+            "status": results.get("status"),
+            "stages": results.get("stages"),
+            "resumed_from": results.get("resumed_from"),
+        }, default=str))
+        if results.get("status") == "CANCELLED":
+            return "cancelled", result, None
+        return "succeeded", result, None
+
+    return {"job": jobs.start(ws, "prepare", work).to_dict()}
 
 
 class RecallBody(BaseModel):

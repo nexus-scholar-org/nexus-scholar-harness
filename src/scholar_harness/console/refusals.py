@@ -172,6 +172,13 @@ IMPORT_REJECTION_CODES = frozenset({IMPORT_NO_TITLE, IMPORT_BAD_TAG, IMPORT_BAD_
 DEDUP_NOT_RUN = "DEDUP_NOT_RUN"
 #: Review F3 (M3d-engine): the hand-off accept of a run whose query or years the protocol no longer has.
 PROTOCOL_CHANGED_SINCE_RUN = "PROTOCOL_CHANGED_SINCE_RUN"
+#: M3i-harvest-robustness: ``POST /discovery/runs/{run}/prepare`` on a run with
+#: nothing to finish (``details.reason``: ``not_published``, ``superseded``,
+#: ``already_prepared`` or ``records_missing``).
+PREPARATION_NOT_AVAILABLE = "PREPARATION_NOT_AVAILABLE"
+#: M3i-harvest-robustness: the hand-off accept while the stages after the
+#: newest published run's search have not ended (``details``: run, state, stage).
+PREPARATION_UNFINISHED = "PREPARATION_UNFINISHED"
 
 # --- citation chasing (M3g-citation-chasing, `pipeline/citation_chase.py`, `console/api/discovery.py`)
 #: ``ChaseRefused.code`` values. ``OPENALEX_KEY_NOT_SET``, ``PROVIDER_UNKNOWN``,
@@ -294,6 +301,8 @@ CONTRACT_ADDED = frozenset(
         STAGED_IMPORT_PENDING,
         DEDUP_NOT_RUN,
         PROTOCOL_CHANGED_SINCE_RUN,
+        PREPARATION_NOT_AVAILABLE,
+        PREPARATION_UNFINISHED,
         SCREENING_NOT_PUBLISHED,
         CHASE_NOT_RUN,
         CHASE_NOTHING_NEW,
