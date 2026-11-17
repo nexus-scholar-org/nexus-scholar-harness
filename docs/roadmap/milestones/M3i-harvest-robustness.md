@@ -52,7 +52,7 @@ All in `docs/decisions.md`, 2026-11-17 "M3i: the harvest stage marker, finishing
 The lane (RELEASE) is stated at the top with its reason.
 
 ## Evidence
-Base for every selection: `origin/main` (`97768cdc`). The local `main` branch of the main checkout is 14 commits behind and was not touched (another session may be using that folder), so the selector was run with `--changed origin/main`.
+Base for every selection: `origin/main` at `97768cdc`. `origin/main` then moved to `45101265` (PR #234, three documentation files: `AGENTS.md`, the M10a record, one plan row); it was merged into this branch after the gates, with one conflict in the plan table (both rows kept). No executable file differs, so the evidence below stands (`test_gate_policy.md`, "Evidence reuse"). The local `main` branch of the main checkout is 14 commits behind and was not touched (another session may be using that folder), so the selector was run with `--changed origin/main`.
 
 | Stage | Commit | Command | Result | Duration |
 | :-- | :-- | :-- | :-- | :-- |
@@ -113,7 +113,7 @@ None of these is needed for the definition of done; each is a follow-up for the 
 - **A moment of `running` or `interrupted` on the wrong side of a job's start or end** (review round 2, N1), described under Review. No state is written from it.
 - **Two UI unit tests are sensitive to load** (`tests/i18n-direction-source.test.ts`, a 5 s timeout; `tests/screening-proposals.test.tsx`): they failed once when the UI suite shared the machine with the full Python suite, and pass alone. Neither file is touched by this branch.
 - **Small things from review round 2:** `pipeline.json` is written by the search step but is not listed in the `DISCOVERY_SEARCH` row's outputs; the module docstring of `pipeline/deduplication.py` still says "stdlib plus scholar-search-kit only" (loose since M7).
-- **Status lines.** The plan's M10a row still reads "in progress" (merged 2026-11-17, PR #233); the strict-run runbook does not yet say how to recover the stopped run. Not changed here.
+- **The strict-run runbook** does not yet say how to recover the stopped run (install a build with this fix, open Harvest, press "Finish preparing this corpus"). Not changed here.
 
 ## Release note (for the next version's notes; no release file exists for it yet)
 Discovery: a harvest now says which step it is in. If the steps after the search (duplicates, abstracts, checks) fail, are stopped, or the console is closed while they run, the Harvest and Hand-off screens say so instead of "nothing to hand off", and **Finish preparing this corpus** completes them from the saved records without a new search. Stop is honoured between the steps (a step that is running ends first; a stop during the last step has no effect). The accept refuses a corpus whose preparation is unfinished.
