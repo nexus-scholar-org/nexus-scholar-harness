@@ -35,6 +35,7 @@ import {
   type DiscoveryJob,
 } from "@/lib/discovery-api";
 import { discoveryT, providerName, type DiscoveryCopyKey } from "@/lib/discovery-copy";
+import { isZeroLeg } from "@/components/discovery-harvest";
 
 /**
  * 09 Citation chase (spec `docs/ux/phase1-discovery/final/09-chase.md`, M3g):
@@ -53,10 +54,11 @@ const CEILING_MAX = 10000;
 
 type Direction = "both" | "forward" | "backward";
 
-function legRole(leg: { status: string; cap_hit: boolean }): DecisionRole {
+function legRole(leg: { status: string; cap_hit: boolean; fetched: number; reported_total: number | null }): DecisionRole {
   if (leg.status === "failed") return "blocked";
   if (leg.status === "skipped") return "exclude";
-  if (leg.cap_hit) return "unclear";
+  // M10a: "0 results" (an ok leg with nothing fetched and no reported results) is `unclear`, never "Done".
+  if (leg.cap_hit || isZeroLeg(leg)) return "unclear";
   return "include";
 }
 
@@ -446,7 +448,9 @@ export function DiscoveryChase({ locale }: Readonly<{ locale: Locale }>) {
                   </bdi>
                 </td>
                 <td className="py-2 pe-3">
-                  <DecisionBadge role={legRole(leg)}>{known ? t(`chase.leg.status.${leg.status}` as DiscoveryCopyKey) : leg.status}</DecisionBadge>
+                  <DecisionBadge role={legRole(leg)}>
+                    {isZeroLeg(leg) ? t("chase.leg.zero") : known ? t(`chase.leg.status.${leg.status}` as DiscoveryCopyKey) : leg.status}
+                  </DecisionBadge>
                 </td>
                 <td className="py-2 text-ink">
                   {leg.status === "failed" ? (
@@ -478,7 +482,7 @@ export function DiscoveryChase({ locale }: Readonly<{ locale: Locale }>) {
   );
 
   const fullLegs = (legs: ChaseLeg[]): LegView[] =>
-    legs.map((l) => ({ provider: l.provider, fetched: l.fetched, reported_total: null, cap: l.cap, cap_hit: l.cap_hit, status: l.status, error_code: l.error_code, seed: l.seed, direction: l.direction, notes: l.notes }));
+    legs.map((l) => ({ provider: l.provider, fetched: l.fetched, reported_total: l.reported_total ?? null, cap: l.cap, cap_hit: l.cap_hit, status: l.status, error_code: l.error_code, seed: l.seed, direction: l.direction, notes: l.notes }));
 
   const summaryTable = detail ? (
     <section className="rounded-lg border border-rule bg-leaf p-5" data-legs>
@@ -508,6 +512,13 @@ export function DiscoveryChase({ locale }: Readonly<{ locale: Locale }>) {
                   <bdi dir="ltr" data-fetched>
                     {row.cap_hits > 0 ? t("lowerBound", { n: row.fetched }) : String(row.fetched)}
                   </bdi>
+                  {/* M10a: the summary follows the leg rule: every leg of the row answered ok and nothing came
+                      back; never beside a failed or skipped leg. */}
+                  {row.legs > 0 && row.ok === row.legs && row.fetched === 0 && row.cap_hits === 0 ? (
+                    <span className="ms-2">
+                      <DecisionBadge role="unclear">{t("chase.leg.zero")}</DecisionBadge>
+                    </span>
+                  ) : null}
                 </td>
                 <td className="py-2 pe-3">
                   {row.cap_hits > 0 ? <DecisionBadge role="unclear">{String(row.cap_hits)}</DecisionBadge> : <span className="text-ink-muted">0</span>}

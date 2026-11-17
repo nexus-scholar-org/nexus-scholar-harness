@@ -39,8 +39,18 @@ export interface Plan {
   /** M4d: the protocol's anchor papers kept in inception (`search_strategy.golden_seeds`, DOIs). Absent from older consoles. */
   golden_seeds?: string[];
   providers: PlanProvider[];
+  /** M10a: the list a run sent no `providers` searches, in the protocol's order, canonical names. Absent from older consoles. */
+  protocol_providers?: string[];
+  /** M10a: the `?providers=` list after canonicalisation, or `null` when the plan was read without it. */
+  requested_providers?: string[] | null;
   imports_hint: string[];
 }
+
+/** The databases the engine knows, in its own order (`KNOWN_PROVIDERS`); the pickers show all six (M10a). */
+export const KNOWN_PROVIDERS = ["openalex", "semanticscholar", "crossref", "arxiv", "pubmed", "biorxiv"] as const;
+
+/** The report's `not_searched` reason for a protocol database the run's `requested_providers` left out (M10a). */
+export const NOT_SELECTED_FOR_RUN = "not_selected_for_run";
 
 export type LegErrorCode = "PROVIDER_RATE_LIMITED" | "PROVIDER_TIMEOUT" | "PROVIDER_UNAVAILABLE" | "PROVIDER_REFUSED";
 
@@ -86,6 +96,8 @@ export interface RunSummary {
   fetched_total: number;
   raw_published: boolean;
   cap_override: number | null;
+  /** M10a: the databases this run was asked for, in order; `null` when it used the protocol's list or predates M10a. */
+  requested_providers?: string[] | null;
   stale: boolean;
   /** Review F3: the protocol was edited since this run (`null` when it cannot be read). */
   protocol_changed?: boolean | null;
@@ -110,6 +122,8 @@ export interface RunDetail {
   corpus_published?: boolean;
   cap_override: number | null;
   notes?: string[];
+  /** M10a: the databases asked for, in order (the legs follow it); `null` when the protocol's list was used. */
+  requested_providers?: string[] | null;
   legs: SearchLeg[];
   report_path: string;
   recall_check: { check: string; checked_at: string | null; found: number | null; total: number | null; missed_everywhere: string[] | null } | null;
@@ -238,8 +252,14 @@ export interface RunRequest {
   note?: string;
 }
 
-export function getPlan(origin: string, signal?: AbortSignal): Promise<Plan> {
-  return readJson<Plan>(`${BASE}/plan`, consoleBase(origin), signal);
+/**
+ * `GET /discovery/plan`; with `providers` (M10a) the ordered `?providers=a,b,c`
+ * the engine checks as a run body's (`PROVIDER_UNKNOWN` for an unknown name).
+ * `null` or absent reads the protocol's own plan.
+ */
+export function getPlan(origin: string, providers?: string[] | null, signal?: AbortSignal): Promise<Plan> {
+  const query = providers ? `?providers=${providers.map(encodeURIComponent).join(",")}` : "";
+  return readJson<Plan>(`${BASE}/plan${query}`, consoleBase(origin), signal);
 }
 
 export function getRuns(origin: string, signal?: AbortSignal): Promise<Runs> {
@@ -407,6 +427,8 @@ export interface ChaseLeg {
   provider: ProviderName;
   direction: "forward" | "backward" | string;
   fetched: number;
+  /** A total the database reported for the leg, when the engine records one (M10a reads it for "0 results"). */
+  reported_total?: number | null;
   cap: number | null;
   cap_hit: boolean;
   status: "ok" | "failed" | "skipped" | "pending" | string;

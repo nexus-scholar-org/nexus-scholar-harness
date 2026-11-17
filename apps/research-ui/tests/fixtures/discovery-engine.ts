@@ -61,6 +61,10 @@ export interface DiscoveryFakeOptions {
   chaseNoSeeds?: boolean;
   /** M3g: a chase is in progress; its stream has no end yet. */
   activeChase?: boolean;
+  /** M10a: the protocol's own database list, in its order (`protocol_providers`; default the five defaults). */
+  protocolProviders?: string[];
+  /** M10a: a started run stays running (its stream sends each database's first event and no end). */
+  holdRun?: boolean;
 }
 
 const PROVIDERS = ["openalex", "semanticscholar", "crossref", "arxiv", "pubmed", "biorxiv"] as const;
@@ -71,6 +75,7 @@ const FETCHED: Record<string, { reported: number; fetched: number }> = {
   crossref: { reported: 1840, fetched: 500 },
   arxiv: { reported: 57, fetched: 57 },
   pubmed: { reported: 96, fetched: 96 },
+  biorxiv: { reported: 12, fetched: 12 },
 };
 const EXECUTED: Record<string, string> = {
   openalex: 'title_and_abstract.search:("weed detection" OR "weed segmentation") AND ("edge device" OR "embedded")',
@@ -79,6 +84,31 @@ const EXECUTED: Record<string, string> = {
   arxiv: 'abs:"weed detection" OR abs:"weed segmentation"',
   pubmed: '("weed detection"[tiab] OR "weed segmentation"[tiab]) AND ("edge device"[tiab] OR "embedded"[tiab])',
 };
+/** bioRxiv has no dry run (the plan says `selected` with a note); its leg still records what it sent. */
+const BIORXIV_LEG_QUERY = "weed detection weed segmentation edge device embedded";
+
+/** The engine's `_canonical`: case, spaces and dashes folded, `semantic_scholar` is `semanticscholar`. */
+const canonical = (name: string): string => {
+  const key = name.toLowerCase().trim().replace(/[- ]/g, "_");
+  return key === "semantic_scholar" ? "semanticscholar" : key;
+};
+
+/** The engine's `_check_providers`: `null` when absent, else the canonical list or a `PROVIDER_UNKNOWN` answer. */
+function checkProviders(names: string[] | null | undefined): { names: string[] | null } | { refused: Answer } {
+  if (names === null || names === undefined) return { names: null };
+  const unknown = names.filter((n) => !(PROVIDERS as readonly string[]).includes(canonical(n)));
+  if (unknown.length || !names.length) {
+    return { refused: refuse(422, "PROVIDER_UNKNOWN", "Unknown or empty database list.", { unknown, known: [...PROVIDERS] }) };
+  }
+  // A name given twice is kept once, at its first place (M10a).
+  return { names: [...new Set(names.map(canonical))] };
+}
+
+/** `scholar_search.plan.run_providers`: canonical, known only, the first of each repeat; none known is the default suite. */
+function runProviders(names: string[]): string[] {
+  const known = [...new Set(names.map(canonical).filter((n) => (PROVIDERS as readonly string[]).includes(n)))];
+  return known.length ? known : [...SELECTED];
+}
 
 export const refuse = (status: number, code: string, message = code.toLowerCase(), details?: unknown): Answer => ({
   status,
@@ -193,15 +223,20 @@ export function discoveryEngine(options: DiscoveryFakeOptions = {}) {
     runs: chaseSummaries(), latest: chases[0] ?? null, active_job: activeJob(),
   });
 
-  const legsOf = (capOverride: number | null): Json[] =>
-    SELECTED.map((provider) => {
+  // M10a: `protocol_providers`, the list a run sent no `providers` searches; an edit of the protocol
+  // (`setProtocolProviders`) changes it and the protocol's fingerprint, as the engine would.
+  let protocolProviders = runProviders(options.protocolProviders ?? SELECTED);
+  let fingerprint = FINGERPRINT;
+  // M10a: the legs run and are listed in the order asked, else in the protocol's order.
+  const legsOf = (capOverride: number | null, requested: string[] | null = null): Json[] =>
+    (requested ?? protocolProviders).map((provider) => {
       const failed = options.failedLeg?.provider === provider;
       const base = FETCHED[provider];
       const cap = capOverride ?? (provider === capped ? 500 : 10000);
       const hit = !failed && provider === capped;
       const at = now();
       return {
-        provider, query_id: "Q1", executed_query: EXECUTED[provider], request: {},
+        provider, query_id: "Q1", executed_query: EXECUTED[provider] ?? BIORXIV_LEG_QUERY, request: {},
         reported_total: failed ? null : base.reported, fetched: failed ? 0 : hit ? cap : base.fetched, pages: 1,
         cap, cap_source: capOverride ? "run_override" : provider === capped ? "protocol" : "engine_ceiling", cap_hit: hit,
         status: failed ? "failed" : "ok", error: failed ? options.failedLeg!.error : null, error_code: failed ? options.failedLeg!.code : null,
@@ -209,11 +244,13 @@ export function discoveryEngine(options: DiscoveryFakeOptions = {}) {
       };
     });
 
-  const addRun = (capOverride: number | null = null, status = "PENDING_CORPUS_ACCEPT"): Json => {
-    const legs = legsOf(capOverride);
+  const addRun = (capOverride: number | null = null, status = "PENDING_CORPUS_ACCEPT", requested: string[] | null = null): Json => {
+    const legs = legsOf(capOverride, requested);
     const run = {
       run: `run_${String(runs.length + 1).padStart(3, "0")}`, status, query_id: "Q1", query_text: QUERY_TEXT,
-      year_min: 2018, year_max: 2026, raw_published: true, corpus_published: true, cap_override: capOverride, notes: [], legs,
+      year_min: 2018, year_max: 2026, raw_published: true, corpus_published: true, cap_override: capOverride, notes: [],
+      // M10a: the databases asked for, in order; null when the protocol's list was used.
+      requested_providers: requested, legs,
     };
     runs.unshift(run);
     return run;
@@ -225,7 +262,8 @@ export function discoveryEngine(options: DiscoveryFakeOptions = {}) {
     runs.map((run, index) => ({
       run: run.run, status: run.status, started_at: (run.legs as Json[])[0]?.started_at ?? null,
       finished_at: (run.legs as Json[]).at(-1)?.finished_at ?? null, legs_total: (run.legs as Json[]).length,
-      fetched_total: fetchedTotal(run), raw_published: true, cap_override: run.cap_override, stale: index > 0,
+      fetched_total: fetchedTotal(run), raw_published: true, cap_override: run.cap_override,
+      requested_providers: run.requested_providers ?? null, stale: index > 0,
     }));
   const activeJob = () => [...jobs.values()].find((j) => j.job.state === "running")?.job ?? null;
   const runsPayload = () => ({ shape: "discovery.runs-v1", runs: summaries(), active_job: activeJob() });
@@ -263,20 +301,29 @@ export function discoveryEngine(options: DiscoveryFakeOptions = {}) {
     };
   };
 
-  const plan = () => ({
-    shape: "discovery.plan-v1", protocol_fingerprint: FINGERPRINT,
-    query: { id: "Q1", text: QUERY_TEXT, year_min: 2018, year_max: 2026, language: "en" },
-    cap: { value: 500, source: "protocol", ceiling: 10000 }, mailto_set: mailto, openalex_key_set: openalexKey, s2_key_set: s2Key, golden_seeds: options.goldenSeeds ?? [],
-    providers: PROVIDERS.map((name) => {
-      const selected = SELECTED.includes(name);
-      return {
-        name, selected, executed_query: selected ? EXECUTED[name] : null, request: selected ? { q: EXECUTED[name] } : null,
-        cannot_express: selected ? (name === "arxiv" ? ["language en", "year window 2018-2026"] : ["language en"]) : [],
-        notes: [], status: selected ? "translated" : name === "biorxiv" ? "off_by_default" : "not_selected",
-      };
-    }),
-    imports_hint: ["scopus", "wos"],
-  });
+  // M10a: `?providers=` lists the chosen databases first, in order, as the selected rows; the others follow in the known order.
+  const plan = (requested: string[] | null = null) => {
+    const chosen = requested ? [...new Set(requested)] : protocolProviders;
+    const names = requested ? [...chosen, ...PROVIDERS.filter((n) => !chosen.includes(n))] : [...PROVIDERS];
+    return {
+      shape: "discovery.plan-v1", protocol_fingerprint: fingerprint,
+      query: { id: "Q1", text: QUERY_TEXT, year_min: 2018, year_max: 2026, language: "en" },
+      cap: { value: 500, source: "protocol", ceiling: 10000 }, mailto_set: mailto, openalex_key_set: openalexKey, s2_key_set: s2Key, golden_seeds: options.goldenSeeds ?? [],
+      providers: names.map((name) => {
+        const selected = chosen.includes(name);
+        const translated = selected && name in EXECUTED;
+        return {
+          name, selected, executed_query: translated ? EXECUTED[name] : null, request: translated ? { q: EXECUTED[name] } : null,
+          cannot_express: translated ? (name === "arxiv" ? ["language en", "year window 2018-2026"] : ["language en"]) : [],
+          notes: selected && !translated ? [`${name} has no dry-run translation`] : [],
+          status: translated ? "translated" : selected ? "selected" : name === "biorxiv" ? "off_by_default" : "not_selected",
+        };
+      }),
+      protocol_providers: [...protocolProviders],
+      requested_providers: requested,
+      imports_hint: ["scopus", "wos"],
+    };
+  };
 
   const startJob = (kind: "run" | "recall" | "chase", events: { event: string; data: unknown }[], result: Json | null, open = false, state = "succeeded", error: Json | null = null): Json => {
     const id = `djob_${String(nextJob++).padStart(16, "0")}`;
@@ -333,7 +380,12 @@ export function discoveryEngine(options: DiscoveryFakeOptions = {}) {
           completeness: l.status === "failed" ? "failed" : l.status === "stopped" ? "stopped" : l.cap_hit ? "lower_bound" : "full",
           no_abstract_rate: l.status === "failed" ? null : 0.0712, cache: null, error_code: l.error_code, searched_at: l.started_at, notes: l.notes,
         })),
-        not_searched: [{ database: "biorxiv", reason: "off by default" }],
+        // M10a: a protocol database the run's requested_providers left out is "not_selected_for_run".
+        not_searched: PROVIDERS.filter((name) => !legs.some((l) => l.provider === name)).map((name) => {
+          const requested = run.requested_providers as string[] | null | undefined;
+          const leftOut = Array.isArray(requested) && protocolProviders.includes(name) && !requested.includes(name);
+          return { database: name, reason: leftOut ? "not_selected_for_run" : name === "biorxiv" ? "off by default" : "not selected in the protocol" };
+        }),
         imports: [],
         dedup: newest && d ? { removed: d.removed, by_tier: d.tiers, near_twins: null, unique_works: d.unique_works } : { removed: null, by_tier: null, near_twins: null, unique_works: null },
         outside_year_window: 6,
@@ -371,7 +423,14 @@ export function discoveryEngine(options: DiscoveryFakeOptions = {}) {
       return active ? refuse(409, "DISCOVERY_JOB_ACTIVE", "A discovery job is already running for this workspace.", { job: active }) : null;
     };
 
-    if (method === "GET" && route === "/api/v1/discovery/plan") return needProtocol() ?? { status: 200, body: plan() };
+    if (method === "GET" && route === "/api/v1/discovery/plan") {
+      const refused = needProtocol();
+      if (refused) return refused;
+      const raw = params.get("providers");
+      const checked = checkProviders(raw === null ? null : raw.split(",").map((s) => s.trim()));
+      if ("refused" in checked) return checked.refused;
+      return { status: 200, body: plan(checked.names) };
+    }
     if (method === "GET" && route === "/api/v1/discovery/runs") return { status: 200, body: runsPayload() };
     const runMatch = /^\/api\/v1\/discovery\/runs\/(run_\d{3,})(\/report)?$/.exec(route);
     if (method === "GET" && runMatch) {
@@ -382,18 +441,26 @@ export function discoveryEngine(options: DiscoveryFakeOptions = {}) {
     }
     if (method === "POST" && route === "/api/v1/discovery/runs") {
       const cap = body?.cap_override as number | undefined;
+      const checked = checkProviders(body?.providers as string[] | null | undefined);
+      const requested = "names" in checked ? checked.names : null;
       const refused =
         needProtocol() ??
         (cap !== undefined && cap !== null && !(cap >= 1 && cap <= 10000) ? refuse(422, "CAP_INVALID", "A run cap must be 1 to 10000 records per database.") : null) ??
+        ("refused" in checked ? checked.refused : null) ??
         (!mailto ? mailtoRefusal : null) ??
-        (!openalexKey && ((body?.providers as string[] | undefined) ?? SELECTED).includes("openalex")
+        (!openalexKey && (requested ?? protocolProviders).includes("openalex")
           ? refuse(409, "OPENALEX_KEY_NOT_SET", "OpenAlex needs an API key. Set SCHOLAR_OPENALEX_KEY for the console (environment or .env) and start it again, or leave OpenAlex out of this run.")
           : null) ??
         (accepted ? refuse(409, "CORPUS_ALREADY_ACCEPTED", "The corpus snapshot is accepted; a frozen corpus is never searched again from the browser.") : null) ??
         (staged ? refuse(409, "STAGED_IMPORT_PENDING", "Database exports are staged for import; accept or remove them before a search run.") : null) ??
         busy();
       if (refused) return refused;
-      const run = addRun(cap ?? null);
+      if (options.holdRun) {
+        // The run is still fetching: each database's first event, no stage and no end.
+        const held = legsOf(cap ?? null, requested).map((l) => ({ event: "leg", data: { provider: l.provider, fetched: 1, reported_total: l.reported_total, cap: l.cap, cap_hit: false, status: "running", error_code: null } }));
+        return { status: 202, body: { job: startJob("run", held, null, true) } };
+      }
+      const run = addRun(cap ?? null, "PENDING_CORPUS_ACCEPT", requested);
       protocolChanged = false;
       const legs = run.legs as Json[];
       const events = [
@@ -427,7 +494,7 @@ export function discoveryEngine(options: DiscoveryFakeOptions = {}) {
       if (refused) return refused;
       const rows = seeds.map((s, i) => ({
         ...s, title: `Seed paper ${i + 1}`, title_check: "ok",
-        per_provider: Object.fromEntries(SELECTED.map((p) => [p, i === seeds.length - 1 && seeds.length > 1 ? "not_found" : p === "arxiv" && s.kind === "doi" ? "n/a" : "found"])),
+        per_provider: Object.fromEntries(protocolProviders.map((p) => [p, i === seeds.length - 1 && seeds.length > 1 ? "not_found" : p === "arxiv" && s.kind === "doi" ? "n/a" : "found"])),
       }));
       const missed = rows.filter((r) => !Object.values(r.per_provider).includes("found")).map((r) => r.id);
       recall = { shape: "discovery.recall-v1", protocol_fingerprint: FINGERPRINT, checked_at: now(), query_text: QUERY_TEXT, seeds: rows, found: rows.length - missed.length, total: rows.length, missed_everywhere: missed, legs: legsOf(null) };
@@ -536,6 +603,22 @@ export function discoveryEngine(options: DiscoveryFakeOptions = {}) {
     setOpenalexKey: (value: boolean) => (openalexKey = value),
     setProtocol: (value: "ok" | "missing" | "invalid") => (protocol = value),
     setStaged: (value: boolean) => (staged = value),
+    /** M10a: the protocol's database list is edited (a new list and a new fingerprint). */
+    setProtocolProviders: (value: string[]) => {
+      protocolProviders = runProviders(value);
+      fingerprint = "sha256:" + "ef".repeat(32);
+    },
+    /**
+     * M10a: a run stopped by the researcher after `done` databases of the `requested` list: its legs
+     * are a strict prefix of `requested_providers`, the last one `stopped`.
+     */
+    addStoppedRun: (requested: string[], done: number) => {
+      const run = addRun(null, "PARTIAL", requested);
+      const legs = (run.legs as Json[]).slice(0, done);
+      if (legs.length) legs[legs.length - 1] = { ...legs[legs.length - 1], status: "stopped" };
+      run.legs = legs;
+      return run;
+    },
     get accepted() {
       return accepted;
     },

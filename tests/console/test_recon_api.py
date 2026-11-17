@@ -44,10 +44,12 @@ class Seam:
         self.failed = list(failed)
         self.calls: list[str] = []
         self.queries: list[Query] = []
+        self.providers: list[list[str]] = []
 
     def __call__(self, query: Query, providers: list[str]) -> SearchRun:
         self.calls.append(query.text)
         self.queries.append(query)
+        self.providers.append(list(providers))
         legs = [
             SearchLeg(provider=p, query_id=query.id, status="failed" if p in self.failed else "ok",
                       error="ConnectError: offline" if p in self.failed else None)
@@ -543,3 +545,338 @@ def test_a_draft_with_no_from_year_matches_a_pool_searched_from_2000(env):
     client.post(f"{BASE}/drafts/{sid}/recon/bind", json={"direction": label})
     state = client.get(f"{BASE}/drafts/{sid}/recon").json()
     assert (state["scope_changed"], state["binding"]["stale"]) == (False, False)
+
+
+# --------------------------------------------------------------------------- M10a OBS-1
+
+SENTENCE = (
+    "How does on-device inference of lightweight CNN models affect real-time "
+    "weed detection accuracy in crop rows under field conditions?"
+)
+KEYWORDS = "on-device inference lightweight CNN models real-time"
+
+
+def test_a_sentence_topic_is_probed_as_keywords(env):
+    """OBS-1: a topic sentence is probed as its keyword query; the draft keeps the sentence."""
+    from scholar_search.providers.openalex import OpenAlexProvider
+    from scholar_search.providers.semanticscholar import SemanticScholarProvider
+
+    client, app, _root, _recon = env
+    seam = Seam()
+
+    def answer(query, providers):
+        run = seam(query, providers)
+        for leg in run.legs:
+            leg.executed_query = query.text
+        return run
+
+    app.state.recon_search_fn = answer
+    sid = _new_draft(client)
+    _save(client, sid, topic=SENTENCE)
+    job = _probe(client, sid)
+    assert job["state"] == "succeeded", job
+    assert seam.calls == [KEYWORDS]
+    assert job["result"]["query"] == KEYWORDS
+
+    # What the keyword query becomes at the two databases that require every word.
+    _text, params, _notes = OpenAlexProvider().translate(Query(text=KEYWORDS))
+    assert params["search"] == KEYWORDS and "search.title_and_abstract" not in params
+    s2_text, _params, _notes = SemanticScholarProvider().translate(Query(text=KEYWORDS))
+    assert s2_text.split() == KEYWORDS.split()
+    assert not {"+", "|", "AND", "OR", "NOT"} & set(s2_text.split())
+
+    state = client.get(f"{BASE}/drafts/{sid}/recon").json()
+    assert state["session"]["topic"] == SENTENCE and state["topic_changed"] is False
+    assert state["session"]["latest"]["query"] == KEYWORDS
+    assert {leg["executed_query"] for leg in state["session"]["latest"]["legs"]} == {KEYWORDS}
+    assert client.get(f"{BASE}/drafts/{sid}").json()["draft"]["topic"] == SENTENCE
+
+
+def test_a_semantic_probe_sends_the_keyword_query_to_every_database(env):
+    """Review item 5: OpenAlex search.semantic is one of four databases; all four get the keywords."""
+    client, app, _root, _recon = env
+    sid = _new_draft(client)
+    _save(client, sid, topic=SENTENCE)
+    job = _probe(client, sid, semantic=True)
+    assert job["state"] == "succeeded", job
+    seam = app.state.recon_search_fn
+    query = seam.queries[-1]
+    assert (query.text, query.semantic) == (KEYWORDS, True)
+    assert seam.providers[-1] == ["openalex", "semanticscholar", "crossref", "arxiv"]
+    assert job["result"]["query"] == KEYWORDS
+
+    # Review round 2, item 6: what the recorded semantic Query becomes at OpenAlex and S2.
+    from scholar_search.providers.openalex import OpenAlexProvider
+    from scholar_search.providers.semanticscholar import SemanticScholarProvider
+
+    _text, params, _notes = OpenAlexProvider().translate(query)
+    assert params["search.semantic"] == KEYWORDS and "search" not in params
+    s2_text, _params, _notes = SemanticScholarProvider().translate(query)
+    assert s2_text.split() == KEYWORDS.split()
+
+
+def test_a_narrower_search_is_never_keyworded(env, monkeypatch):
+    """Review item 7: only the topic is turned into keywords; a direction label is sent as it is."""
+    from scholar_harness.console.api import recon as recon_api
+
+    converted: list[str] = []
+
+    def spy(text: str) -> str:
+        converted.append(text)
+        return "kw " + text
+
+    monkeypatch.setattr(recon_api, "keyword_query", spy)
+    client, app, _root, _recon = env
+    sid = _new_draft(client)
+    _probe(client, sid)
+    seam = app.state.recon_search_fn
+    assert converted == [_draft()["topic"]] and seam.calls == ["kw " + _draft()["topic"]]
+
+    label = "weed detection in the field using lightweight models"  # stopwords and framing words
+    monkeypatch.setattr(
+        recon_api.ReconSessions, "directions", lambda self, sid: {"directions": [{"label": label}]}
+    )
+    job = _probe(client, sid, narrower=label)
+    assert job["state"] == "succeeded", job
+    assert seam.calls[-1] == label and job["result"]["query"] == label
+    assert job["result"]["purpose"] == "narrower"
+    assert converted == [_draft()["topic"]], "only the first search was keyworded"
+
+
+def test_the_gap_check_sends_its_term_as_written_to_the_pools_databases(env, monkeypatch):
+    """Review round 2, item 1: follow-ups ask the researcher's databases, and the record says so."""
+    from scholar_harness.console.api import recon as recon_api
+    from scholar_harness.recon import adaptive
+
+    converted: list[str] = []
+    monkeypatch.setattr(recon_api, "keyword_query", lambda text: converted.append(text) or text)
+    term = "weed detection in the field"  # a stopword: keywording would drop "in the"
+    monkeypatch.setattr(
+        adaptive, "plan_followups",
+        lambda distilled, pool: [{"term": term, "reason": "thin school", "school_n": 1}],
+    )
+    client, app, _root, _recon = env
+    chosen = ["crossref", "openalex"]
+    sid = _new_draft(client)
+    probe = _probe(client, sid, databases=chosen)
+    assert probe["state"] == "succeeded", probe
+    seam = app.state.recon_search_fn
+    before = len(seam.calls)
+    converted.clear()
+
+    started = client.post(f"{BASE}/drafts/{sid}/recon/delta", json={"followups": 3})
+    assert started.status_code == 202, started.text
+    job_id = started.json()["job"]["job_id"]
+    _events(client, sid, job_id)
+    job = client.get(f"{BASE}/drafts/{sid}/recon/jobs/{job_id}").json()["job"]
+    assert job["state"] == "succeeded", job
+    assert seam.calls[before:] == [term]
+    assert seam.providers[before:] == [chosen]
+    assert converted == []
+
+    record = client.get(f"{BASE}/drafts/{sid}/recon").json()["session"]["latest"]
+    assert record["purpose"] == "delta" and record["providers"] == chosen
+    new_legs = record["legs"][len(probe["result"]["legs"]):]
+    assert [leg["provider"] for leg in new_legs] == chosen
+    pool = client.post(f"{BASE}/drafts/{sid}/recon/distill").json()["pool"]
+    assert pool["providers"] == chosen
+
+
+def test_a_probe_recorded_before_m10a_reads_back_with_null_query_and_providers(env):
+    """Review item 9: the API never omits ``executed_query`` or ``providers`` for an older probe."""
+    client, _app, _root, recon = env
+    sid = _new_draft(client)
+    _probe(client, sid)
+    path = recon / "sessions" / sid / "session.json"
+    session = json.loads(path.read_text(encoding="utf-8"))
+    for probe in session["probes"]:
+        probe.pop("providers", None)
+        for leg in probe["legs"]:
+            leg.pop("executed_query", None)
+    path.write_text(json.dumps(session), encoding="utf-8")
+
+    state = client.get(f"{BASE}/drafts/{sid}/recon").json()["session"]
+    for probe in [state["latest"], *state["probes"]]:
+        assert probe["providers"] is None
+        assert probe["legs"] and all(leg["executed_query"] is None for leg in probe["legs"])
+
+
+# --------------------------------------------------------------------------- M10a decision 1a
+
+FOUR = ["openalex", "semanticscholar", "crossref", "arxiv"]
+
+
+def test_the_recon_state_offers_the_derived_query_and_the_databases(env):
+    client, _app, _root, _recon = env
+    sid = _new_draft(client)
+    _save(client, sid, topic=SENTENCE)
+    state = client.get(f"{BASE}/drafts/{sid}/recon").json()
+    assert state["derived_query"] == KEYWORDS
+    assert state["databases_available"] == FOUR
+    blank = client.post(f"{BASE}/drafts", json={"draft": {}}).json()["session_id"]
+    assert client.get(f"{BASE}/drafts/{blank}/recon").json()["derived_query"] is None
+
+
+def test_the_chosen_databases_and_the_edited_query_are_sent_as_given(env):
+    """Decision 1a: the Seam gets the researcher's order and query; the topic sentence stays."""
+    client, app, _root, _recon = env
+    sid = _new_draft(client)
+    _save(client, sid, topic=SENTENCE)
+    chosen = ["arxiv", "openalex", "crossref"]
+    edited = "lightweight CNN weed detection AND crop rows"
+    job = _probe(client, sid, databases=chosen, query=f"  {edited}  ")
+    assert job["state"] == "succeeded", job
+    seam = app.state.recon_search_fn
+    assert (seam.calls[-1], seam.providers[-1]) == (edited, chosen)
+    assert (job["result"]["query"], job["result"]["providers"]) == (edited, chosen)
+    assert [leg["provider"] for leg in job["result"]["legs"]] == chosen
+
+    state = client.get(f"{BASE}/drafts/{sid}/recon").json()
+    assert (state["session"]["latest"]["query"], state["session"]["latest"]["providers"]) == (edited, chosen)
+    assert state["session"]["topic"] == SENTENCE and state["topic_changed"] is False
+    assert state["derived_query"] == KEYWORDS
+    assert client.get(f"{BASE}/drafts/{sid}").json()["draft"]["topic"] == SENTENCE
+    pool = client.post(f"{BASE}/drafts/{sid}/recon/distill").json()["pool"]
+    assert (pool["query"], pool["providers"]) == (edited, chosen)
+
+
+def test_without_a_choice_the_four_databases_are_asked_in_default_order(env):
+    client, app, _root, _recon = env
+    sid = _new_draft(client)
+    job = _probe(client, sid)
+    assert app.state.recon_search_fn.providers[-1] == FOUR
+    assert job["result"]["providers"] == FOUR
+
+
+def test_a_narrower_search_asks_the_pools_databases(env):
+    client, app, _root, _recon = env
+    sid = _new_draft(client)
+    _probe(client, sid, databases=["crossref", "openalex"])
+    label = client.get(f"{BASE}/drafts/{sid}/recon/directions").json()["directions"][0]["label"]
+    job = _probe(client, sid, narrower=label)
+    assert job["state"] == "succeeded", job
+    assert app.state.recon_search_fn.providers[-1] == ["crossref", "openalex"]
+    assert job["result"]["providers"] == ["crossref", "openalex"]
+
+
+def _usable_then_empty_arxiv(client, app) -> str:
+    """A usable probe on [openalex, crossref], then an arXiv-only probe that finds nothing."""
+    sid = _new_draft(client)
+    assert _probe(client, sid, databases=["openalex", "crossref"])["state"] == "succeeded"
+    seam = app.state.recon_search_fn
+    kept = seam.docs
+    seam.docs = []
+    empty = _probe(client, sid, databases=["arxiv"], query="no such topic")
+    assert empty["state"] == "failed" and empty["error"]["code"] == "POOL_EMPTY", empty
+    seam.docs = kept
+    state = client.get(f"{BASE}/drafts/{sid}/recon").json()["session"]
+    assert state["latest"]["providers"] == ["arxiv"], "the empty probe is recorded"
+    return sid
+
+
+def test_the_gap_check_asks_the_databases_of_the_pool_it_extends(env, monkeypatch):
+    """Orchestrator decision: not the databases of a later empty probe, which left the pool as it was."""
+    from scholar_harness.recon import adaptive
+
+    term = "weed detection in the field"
+    monkeypatch.setattr(
+        adaptive, "plan_followups",
+        lambda distilled, pool: [{"term": term, "reason": "thin school", "school_n": 1}],
+    )
+    client, app, _root, _recon = env
+    sid = _usable_then_empty_arxiv(client, app)
+    seam = app.state.recon_search_fn
+    before = len(seam.calls)
+
+    started = client.post(f"{BASE}/drafts/{sid}/recon/delta", json={"followups": 3})
+    assert started.status_code == 202, started.text
+    job_id = started.json()["job"]["job_id"]
+    _events(client, sid, job_id)
+    job = client.get(f"{BASE}/drafts/{sid}/recon/jobs/{job_id}").json()["job"]
+    assert job["state"] == "succeeded", job
+    assert seam.calls[before:] == [term]
+    assert seam.providers[before:] == [["openalex", "crossref"]]
+    record = client.get(f"{BASE}/drafts/{sid}/recon").json()["session"]["latest"]
+    assert record["purpose"] == "delta" and record["providers"] == ["openalex", "crossref"]
+    pool = client.post(f"{BASE}/drafts/{sid}/recon/distill").json()["pool"]
+    assert pool["providers"] == ["openalex", "crossref"]
+
+
+def test_a_narrower_search_asks_the_databases_of_the_pool_it_narrows(env):
+    client, app, _root, _recon = env
+    sid = _usable_then_empty_arxiv(client, app)
+    label = client.get(f"{BASE}/drafts/{sid}/recon/directions").json()["directions"][0]["label"]
+    job = _probe(client, sid, narrower=label)
+    assert job["state"] == "succeeded", job
+    assert app.state.recon_search_fn.providers[-1] == ["openalex", "crossref"]
+    assert job["result"]["providers"] == ["openalex", "crossref"]
+
+
+@pytest.mark.parametrize(
+    ("databases", "unknown", "repeated"),
+    [
+        ([], [], []),
+        (["openalex", "pubmed"], ["pubmed"], []),
+        (["openalex", "OpenAlex"], ["OpenAlex"], []),
+        (["crossref", "openalex", "crossref"], [], ["crossref"]),
+    ],
+    ids=["empty", "unknown", "not-an-id", "duplicate"],
+)
+def test_a_wrong_database_list_is_refused_before_any_request(env, databases, unknown, repeated):
+    client, app, _root, recon = env
+    sid = _new_draft(client)
+    refused = client.post(f"{BASE}/drafts/{sid}/recon/probe", json={"databases": databases})
+    assert (refused.status_code, refused.json()["detail"]["code"]) == (422, "PROVIDER_UNKNOWN"), refused.text
+    details = refused.json()["detail"]["details"]
+    assert (details["known"], details["unknown"], details["repeated"]) == (FOUR, unknown, repeated)
+    assert app.state.recon_search_fn.calls == [] and not recon.exists()
+
+
+@pytest.mark.parametrize(
+    "body",
+    [
+        {"query": ""},
+        {"query": "   "},
+        {"query": "x" * 2001},
+        {"query": 7},
+        {"databases": "openalex"},
+        {"narrower": "weed detection", "query": "weed detection"},
+        {"narrower": "weed detection", "databases": ["openalex"]},
+    ],
+    ids=["empty", "blank", "too-long", "not-text", "not-a-list", "narrower-and-query", "narrower-and-databases"],
+)
+def test_a_malformed_probe_body_is_body_invalid(env, body):
+    client, app, _root, _recon = env
+    sid = _new_draft(client)
+    refused = client.post(f"{BASE}/drafts/{sid}/recon/probe", json=body)
+    assert (refused.status_code, refused.json()["detail"]["code"]) == (422, "BODY_INVALID"), refused.text
+    assert app.state.recon_search_fn.calls == []
+
+
+def test_a_query_of_2000_characters_is_accepted(env):
+    client, app, _root, _recon = env
+    sid = _new_draft(client)
+    job = _probe(client, sid, query="w" * 2000)
+    assert job["state"] == "succeeded" and app.state.recon_search_fn.calls == ["w" * 2000]
+
+
+def test_another_database_order_is_a_new_pool_and_makes_the_bound_direction_stale(env):
+    client, _app, _root, _recon = env
+    sid = _new_draft(client)
+    first = _probe(client, sid, databases=["openalex", "crossref"])
+    label = client.get(f"{BASE}/drafts/{sid}/recon/directions").json()["directions"][0]["label"]
+    assert client.post(f"{BASE}/drafts/{sid}/recon/bind", json={"direction": label}).status_code == 200
+    grounding = client.get(f"{BASE}/drafts/{sid}").json()["grounding"]
+    assert grounding["pool"]["providers"] == ["openalex", "crossref"]
+
+    again = _probe(client, sid, databases=["openalex", "crossref"])
+    assert again["result"]["served_from_cache"] is True
+    assert client.get(f"{BASE}/drafts/{sid}/recon").json()["binding"]["stale"] is False
+
+    second = _probe(client, sid, databases=["crossref", "openalex"])
+    assert second["result"]["served_from_cache"] is False
+    assert second["result"]["cache_key"] != first["result"]["cache_key"]
+    state = client.get(f"{BASE}/drafts/{sid}/recon").json()
+    assert state["binding"]["stale"] is True and state["binding"]["code"] == "POOL_CHANGED"
+    refused = client.post(f"{BASE}/drafts/{sid}/genesis", json={})
+    assert (refused.status_code, refused.json()["detail"]["code"]) == (409, "STALE_BINDING")

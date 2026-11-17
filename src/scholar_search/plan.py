@@ -22,13 +22,31 @@ from .providers.base import public_request
 
 #: Every database the engine knows, in the order a plan lists them.
 KNOWN_PROVIDERS: tuple[str, ...] = ("openalex", "semanticscholar", "crossref", "arxiv", "pubmed", "biorxiv")
-#: The databases a protocol selects unless it says otherwise; bioRxiv is off by default.
+#: The engine's own default suite (``SearchEngine()`` with no providers), which a
+#: run falls back to when its list names no known database; bioRxiv is off by default.
 DEFAULT_PROVIDERS: tuple[str, ...] = ("openalex", "semanticscholar", "crossref", "arxiv", "pubmed")
 
 
 def canonical_provider(name: str) -> str:
     key = str(name).lower().strip().replace("-", "_").replace(" ", "_")
     return "semanticscholar" if key == "semantic_scholar" else key
+
+
+def run_providers(names: Sequence[str] | None) -> list[str]:
+    """The databases a run searches for a list of names (M10a).
+
+    Canonical names, known ones only (the run drops an unknown name), the first
+    of each repeat, in order; a list with no known name is the engine's default
+    suite, as ``SearchEngine`` builds it when it is given no providers.
+    """
+    known = [canonical_provider(n) for n in names or []]
+    ordered = list(dict.fromkeys(n for n in known if n in KNOWN_PROVIDERS))
+    return ordered or list(DEFAULT_PROVIDERS)
+
+
+def protocol_default_providers() -> list[str]:
+    """The list the protocol adapter gives a protocol without ``search_strategy.target_databases``."""
+    return list(compile_protocol_search({"search_strategy": {}})[1])
 
 
 def leg_query(query: Query) -> Query:
@@ -70,17 +88,31 @@ def translate_provider(provider: Any, query: Query) -> dict[str, Any]:
 def compile_plan(
     protocol: dict[str, Any] | str | Path,
     providers: Sequence[str] | None = None,
+    selected: Sequence[str] | None = None,
 ) -> dict[str, Any]:
     """The per-database preview of a protocol's search, sending nothing.
 
     ``providers`` lists the databases to report on (default: every known one).
     A database the protocol selects is ``translated``; one it does not select is
     ``not_selected`` (or ``off_by_default`` for bioRxiv) and is not translated.
+    The protocol selects what a run sent no list searches (``run_providers``):
+    an explicit empty list selects the engine's default suite.
+
+    ``selected`` (M10a) is the list a run is asked to search, in order; it
+    replaces the protocol's list. Those rows come first in that order, then the
+    others in ``providers`` order. The query is the protocol's either way, so a
+    chosen row has the string that run's leg receives.
     """
-    query, selected = compile_protocol_search(protocol)
-    chosen = {canonical_provider(n) for n in selected}
+    query, protocol_selected = compile_protocol_search(protocol)
+    names = [canonical_provider(n) for n in (providers or KNOWN_PROVIDERS)]
+    if selected is None:
+        chosen = set(run_providers(protocol_selected))
+    else:
+        ordered = list(dict.fromkeys(canonical_provider(n) for n in selected))
+        chosen = set(ordered)
+        names = ordered + [n for n in dict.fromkeys(names) if n not in chosen]
     rows = []
-    for name in [canonical_provider(n) for n in (providers or KNOWN_PROVIDERS)]:
+    for name in names:
         row: dict[str, Any] = {
             "name": name, "selected": name in chosen,
             "executed_query": None, "request": None, "cannot_express": [], "notes": [],

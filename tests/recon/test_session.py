@@ -73,6 +73,30 @@ def test_a_second_probe_is_served_from_the_cache_and_says_so(store):
     assert again["fingerprint"] == first["fingerprint"]
 
 
+def test_a_query_differing_only_in_case_is_searched_again_and_recorded_as_sent(tmp_path, monkeypatch):
+    """Review item 2: the cache key casefolds, but S2 and arXiv read AND/OR/NOT only in capitals."""
+    monkeypatch.delenv("NEXUS_RECON_ROOT", raising=False)
+    sent: list[str] = []
+
+    def search_fn(query, providers):
+        sent.append(query.text)
+        return _search_fn(query, providers)
+
+    store = ReconSessions(root=tmp_path / "recon", search_fn=search_fn)
+    first = asyncio.run(store.probe("grape AND disease", topic=TOPIC))
+    second = asyncio.run(store.probe("grape and disease", session_id=first["session_id"], topic=TOPIC))
+    assert sent == ["grape AND disease", "grape and disease"]
+    assert first["cache_key"] == second["cache_key"], "the cache key itself is unchanged"
+    assert second["served_from_cache"] is False
+    for record in (first, second):
+        pool = json.loads(Path(record["pool_path"]).read_text(encoding="utf-8"))
+        assert pool["query"] == record["query"]
+    latest, _ = store.latest_pool(first["session_id"])
+    assert latest["query"] == "grape and disease"
+    third = asyncio.run(store.probe("grape and disease", session_id=first["session_id"]))
+    assert third["served_from_cache"] is True and len(sent) == 2
+
+
 def test_the_fingerprint_is_canonical():
     assert pool_fingerprint({"b": 1, "a": [1, 2]}) == pool_fingerprint({"a": [1, 2], "b": 1})
     assert pool_fingerprint({"a": 1}).startswith("sha256:")
@@ -216,3 +240,142 @@ def test_the_gap_check_keeps_each_follow_up_legs_and_its_own_time(tmp_path):
     assert failed and all(leg.get("query") for leg in failed)
     record = store.load(first["session_id"])["probes"][-1]
     assert record["purpose"] == "delta" and record["status"] == "partial" and record["legs"]
+
+
+def _usable_then_empty_arxiv(tmp_path, sent: list[list[str]]) -> tuple[ReconSessions, str]:
+    """A usable probe on [openalex, crossref], then an arXiv-only probe that finds nothing."""
+
+    def search_fn(query, providers):
+        sent.append(list(providers))
+        if providers == ["arxiv"]:
+            return SearchRun(documents=[], legs=[SearchLeg(provider="arxiv", query_id=query.id, status="ok")])
+        return _search_fn(query, providers)
+
+    store = ReconSessions(root=tmp_path / "recon", search_fn=search_fn)
+    first = asyncio.run(store.probe(TOPIC, topic=TOPIC, providers=["openalex", "crossref"]))
+    empty = asyncio.run(store.probe("no such topic", session_id=first["session_id"], providers=["arxiv"]))
+    assert empty["n_docs"] == 0 and empty["providers"] == ["arxiv"]
+    with pytest.raises(ReconRefused) as refused:
+        refuse_unusable_pool(empty)
+    assert refused.value.code == POOL_EMPTY_REFUSED
+    return store, first["session_id"]
+
+
+@pytest.mark.parametrize("planned", [[], [{"term": "edge devices", "reason": "thin school", "school_n": 1}]],
+                         ids=["no-follow-up", "one-follow-up"])
+def test_the_gap_check_asks_and_records_the_databases_of_the_pool_it_extends(tmp_path, monkeypatch, planned):
+    """Orchestrator decision (M10a): the pool's databases, not those of a later empty probe."""
+    from scholar_harness.recon import adaptive
+
+    monkeypatch.delenv("NEXUS_RECON_ROOT", raising=False)
+    monkeypatch.setattr(adaptive, "plan_followups", lambda distilled, pool: list(planned))
+    sent: list[list[str]] = []
+    store, sid = _usable_then_empty_arxiv(tmp_path, sent)
+    before = len(sent)
+    asyncio.run(store.delta(sid))
+    assert sent[before:] == [["openalex", "crossref"]] * len(planned)
+    record = store.load(sid)["probes"][-1]
+    pool, _ = store.latest_pool(sid)
+    assert record["purpose"] == "delta"
+    assert record["providers"] == pool["providers"] == ["openalex", "crossref"]
+    assert store.distill(sid)["pool"]["providers"] == ["openalex", "crossref"]
+
+
+FOUR = ["openalex", "semanticscholar", "crossref", "arxiv"]
+
+
+def test_a_pool_stored_before_m10a_falls_back_to_the_latest_usable_probes_databases(tmp_path, monkeypatch):
+    from scholar_harness.recon.session import pool_providers
+
+    monkeypatch.delenv("NEXUS_RECON_ROOT", raising=False)
+    session = {"probes": [
+        {"providers": ["crossref"], "n_docs": 5},
+        {"providers": None, "n_docs": 7},
+        {"providers": ["arxiv"], "n_docs": 0},  # empty or failed: it never became the pool
+    ]}
+    assert pool_providers({"providers": ["openalex", "arxiv"]}, session) == ["openalex", "arxiv"]
+    assert pool_providers({}, session) == ["crossref"]
+    assert pool_providers({}, {"probes": [{"providers": ["arxiv"], "n_docs": 0}]}) == FOUR
+    assert pool_providers({"providers": None}, {"probes": []}) == FOUR
+
+
+def _strip_providers(store: ReconSessions, sid: str, *, from_record: bool) -> None:
+    """Make the session's pool look stored before M10a: no ``providers`` (and, if asked, none on its probe)."""
+    session = store.load(sid)
+    old = session["pools"][-1]
+    pool = json.loads(Path(old).read_text(encoding="utf-8"))
+    pool.pop("providers", None)
+    new = str(store.persist(sid, "pool", pool))  # content-addressed, as a pre-M10a pool was stored
+    session["pools"][-1] = new
+    for probe in session["probes"]:
+        if probe.get("pool_path") == old:
+            probe["pool_path"] = new
+            if from_record:
+                probe.pop("providers", None)
+    store.save(session)
+
+
+def test_a_pre_m10a_pool_ignores_a_later_empty_probes_databases(tmp_path, monkeypatch):
+    """Review: the fallback skips a probe that never became the pool; none left means the four."""
+    from scholar_harness.recon import adaptive
+
+    monkeypatch.delenv("NEXUS_RECON_ROOT", raising=False)
+    monkeypatch.setattr(adaptive, "plan_followups",
+                        lambda distilled, pool: [{"term": "edge devices", "reason": "thin school", "school_n": 1}])
+    sent: list[list[str]] = []
+    store, sid = _usable_then_empty_arxiv(tmp_path, sent)
+    # The usable pool and its probe record lose their databases, as before M10a.
+    _strip_providers(store, sid, from_record=True)
+    assert store.load(sid)["probes"][-1]["providers"] == ["arxiv"]
+    before = len(sent)
+    asyncio.run(store.delta(sid))
+    assert sent[before:] == [FOUR]
+    record = store.load(sid)["probes"][-1]
+    assert record["purpose"] == "delta" and record["providers"] == FOUR
+
+
+@pytest.mark.parametrize("planned", [[], [{"term": "edge devices", "reason": "thin school", "school_n": 1}]],
+                         ids=["no-follow-up", "one-follow-up"])
+def test_the_gap_check_on_a_pre_m10a_pool_names_the_databases_it_asked(tmp_path, monkeypatch, planned):
+    """Review: the follow-ups, the delta record, the merged pool and distill name the same list."""
+    from scholar_harness.recon import adaptive
+
+    monkeypatch.delenv("NEXUS_RECON_ROOT", raising=False)
+    monkeypatch.setattr(adaptive, "plan_followups", lambda distilled, pool: list(planned))
+    sent: list[list[str]] = []
+
+    def search_fn(query, providers):
+        sent.append(list(providers))
+        return _search_fn(query, providers)
+
+    store = ReconSessions(root=tmp_path / "recon", search_fn=search_fn)
+    sid = asyncio.run(store.probe(TOPIC, topic=TOPIC, providers=["openalex", "crossref"]))["session_id"]
+    _strip_providers(store, sid, from_record=False)  # the pool names none; its probe record does
+    assert "providers" not in store.latest_pool(sid)[0]
+    before = len(sent)
+    asyncio.run(store.delta(sid))
+    assert sent[before:] == [["openalex", "crossref"]] * len(planned)
+    record = store.load(sid)["probes"][-1]
+    merged, _ = store.latest_pool(sid)
+    assert record["purpose"] == "delta"
+    assert record["providers"] == merged["providers"] == ["openalex", "crossref"]
+    assert store.distill(sid)["pool"]["providers"] == ["openalex", "crossref"]
+    assert store.directions(sid)["pool"]["providers"] == ["openalex", "crossref"]
+
+
+@pytest.mark.parametrize(("first", "second"), [("grape disease", "grape  disease"), ("grape disease", "grape disease.")],
+                         ids=["spacing", "trailing-punctuation"])
+def test_a_query_differing_in_what_the_cache_key_normalises_is_searched_again(tmp_path, monkeypatch, first, second):
+    """As letter case: the cache key ignores spacing and trailing punctuation, the probe does not."""
+    monkeypatch.delenv("NEXUS_RECON_ROOT", raising=False)
+    sent: list[str] = []
+
+    def search_fn(query, providers):
+        sent.append(query.text)
+        return _search_fn(query, providers)
+
+    store = ReconSessions(root=tmp_path / "recon", search_fn=search_fn)
+    a = asyncio.run(store.probe(first, topic=TOPIC))
+    b = asyncio.run(store.probe(second, session_id=a["session_id"], topic=TOPIC))
+    assert sent == [first, second] and a["cache_key"] == b["cache_key"]
+    assert b["served_from_cache"] is False and b["query"] == second

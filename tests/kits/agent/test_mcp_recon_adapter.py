@@ -275,6 +275,12 @@ def _install_fake_adapter(monkeypatch, tmp_root: Path, calls: dict):
     def make_sessions(cache_root=None, search_fn=None):
         return FakeSessions(cache_root=cache_root, search_fn=search_fn)
 
+    def keyword_query(topic):
+        """Adapter 1.2 ``keyword_query`` (M10a): a marked transform, so the test sees what is sent."""
+        calls.setdefault("keyword_query", []).append(topic)
+        return f"kw<{topic}>"
+
+    adapter_mod.keyword_query = keyword_query  # type: ignore[attr-defined]
     adapter_mod.make_sessions = make_sessions  # type: ignore[attr-defined]
     adapter_mod.resolve_cache_root = resolve_cache_root  # type: ignore[attr-defined]
     adapter_mod.default_lexicon = default_lexicon  # type: ignore[attr-defined]
@@ -448,10 +454,41 @@ def test_wiring_probe_uses_adapter_make_engine(
     assert len(calls.get("make_engine", [])) == 1
     assert calls["make_engine"][0]["cache_root"] == tmp_path
     assert calls["make_engine"][0]["search_fn"] is _fake_search
-    assert calls["probe"]["query"] == "wiring topic"
+    # M10a: the topic goes through the adapter's keyword_query; its answer is what is searched.
+    assert calls["keyword_query"] == ["wiring topic"]
+    assert calls["probe"]["query"] == "kw<wiring topic>"
     assert calls["probe"]["year_min"] == 2021
     assert calls["probe"]["max_results"] == 5
     assert calls["probe"]["semantic"] is True
+
+
+def test_wiring_probe_keeps_the_topic_in_the_session(tmp_path, monkeypatch, _clean_recon_state):
+    """M10a: the session keeps the topic as typed; only the search uses the keyword query."""
+    calls: dict = {}
+    _install_fake_adapter(monkeypatch, tmp_path, calls)
+    _reset_loader_state()
+    monkeypatch.setattr(server, "RECON_SEARCH_FN", None)
+
+    sid = json.loads(recon_probe("A topic sentence?"))["session_id"]
+    session = json.loads((tmp_path / "sessions" / sid / "session.json").read_text(encoding="utf-8"))
+    assert session["topic"] == "A topic sentence?"
+    assert calls["probe"]["query"] == "kw<A topic sentence?>"
+
+
+def test_wiring_probe_without_keyword_query_is_an_error_not_a_fallback(
+    tmp_path, monkeypatch, _clean_recon_state
+):
+    """M10a: an adapter older than 1.2 answers the error envelope; the topic is never sent unconverted."""
+    calls: dict = {}
+    _install_fake_adapter(monkeypatch, tmp_path, calls)
+    monkeypatch.delattr(sys.modules["scholar_harness.recon.adapter"], "keyword_query")
+    _reset_loader_state()
+    monkeypatch.setattr(server, "RECON_SEARCH_FN", None)
+
+    payload = json.loads(recon_probe("A topic sentence?"))
+    assert payload["status"] == "error" and payload["cache_key"] is None
+    assert "keyword_query" in payload["message"]
+    assert "probe" not in calls and "make_engine" not in calls
 
 
 def test_wiring_distill_uses_adapter_terms_and_gates(

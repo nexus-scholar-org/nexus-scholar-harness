@@ -58,7 +58,7 @@ Role is the brand status role (`docs/ux/brand/tokens.json`), shown as words in t
 | `DEDUP_NOT_RUN` | 404 | exclude | 05 | No deduplication has run yet: A search run deduplicates; a database export is deduplicated when you accept it. | The Duplicates counts | Go to Harvest. (An import-only workspace also answers this: known P3) |
 | `SEEDS_INVALID` | 422 | blocked | 02 | A seed is not an identifier the check can use: {message} (the engine names the first bad seed). One to 25 seeds, each a DOI or an arXiv id. | The recall check | Fix the seed named |
 | `CAP_INVALID` | 422 | blocked | 03 | That cap is not allowed: A per-run cap is a whole number from 1 to 10,000. | Starting a search | Change the cap |
-| `PROVIDER_UNKNOWN` | 422 | blocked | 02, 03 | A database name is not one the engine knows: {unknown} is not in {known}. | Starting | Choose from the list |
+| `PROVIDER_UNKNOWN` | 422 | blocked | 01, 03 (M10a: reachable only from a hand-edited `?databases=`) | The database list was refused: That database is not one the engine knows. Nothing was started. (Each unknown id under Details; an empty one shown as `""`.) | This harvest | Reset to the protocol (reloads the picker from the protocol; the screen's button, the card prints no second action line) |
 
 ### Corpus and hand-off
 | Code | HTTP | Role | Screens | Sentence | Affects | Action |

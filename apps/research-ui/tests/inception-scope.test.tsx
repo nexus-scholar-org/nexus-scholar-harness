@@ -62,6 +62,20 @@ describe("inception.scope", () => {
     expect((engine.drafts.get(SESSION)!.draft as { topic: string }).topic).toBe("other tab");
   });
 
+  it("shows a BODY_INVALID save as the generic card, never Explore's probe card (M10a)", async () => {
+    setUp({
+      draft: { topic: "x" },
+      refuseOnce: { [`PUT /api/v1/inception/drafts/${SESSION}`]: { status: 422, body: { detail: { code: "BODY_INVALID", message: "note too long", details: { errors: [] } } } } },
+    });
+    render(<InceptionScope locale="en" />);
+    await screen.findByLabelText("Research topic, in one or two sentences");
+    fireEvent.click(screen.getByRole("button", { name: "Continue to Explore" }));
+    const card = await screen.findByRole("heading", { name: "The engine could not read this request" });
+    expect(card.closest("section")?.querySelector("details")?.textContent).toContain("BODY_INVALID");
+    expect(screen.queryByText("That search request was not valid")).toBeNull();
+    expect(screen.queryByText("Edit the query")).toBeNull();
+  });
+
   it("says in words that the address names no draft, and asks the engine nothing", async () => {
     const { engine } = setUp({ search: "" });
     render(<InceptionScope locale="en" />);

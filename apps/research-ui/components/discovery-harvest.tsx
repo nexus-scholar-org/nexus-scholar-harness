@@ -24,7 +24,9 @@ import {
   type LegView,
   type Refusal,
 } from "@/components/discovery-frame";
-import { cancelJob, getPlan, getRun, getRuns, startRun, type DiscoveryJob, type Plan, type RunDetail, type Runs, type SearchLeg } from "@/lib/discovery-api";
+import { DatabasePicker } from "@/components/database-picker";
+import { DiffersLine, ProviderUnknownCard, pickerItems, pickerLabels, protocolList, readDatabasesParam, sameList } from "@/components/discovery-plan";
+import { cancelJob, getPlan, getRun, getRuns, startRun, type DiscoveryJob, type Plan, type RunDetail, type RunRequest, type Runs, type SearchLeg } from "@/lib/discovery-api";
 import { getCorpus, type Corpus } from "@/lib/screening-v1";
 import { discoveryT, providerName, type DiscoveryCopyKey } from "@/lib/discovery-copy";
 
@@ -34,20 +36,34 @@ import { discoveryT, providerName, type DiscoveryCopyKey } from "@/lib/discovery
  * the engine reports it, stop the whole harvest if needed, and read how each
  * database ended. One Cancel for the whole harvest: the engine has no stop for
  * a single database. A finished browser run is not frozen; the hand-off is.
+ *
+ * M10a (decided 2026-11-14, item 2a): the databases of this harvest are chosen
+ * and ordered with the picker, pre-filled from `?databases=` (the Plan's link)
+ * or the protocol. Start sends `providers` only once the picker was touched or
+ * the address carried a choice; untouched, the run uses the protocol's list.
  */
 
 const LEG_CODES = new Set(["PROVIDER_RATE_LIMITED", "PROVIDER_TIMEOUT", "PROVIDER_UNAVAILABLE", "PROVIDER_REFUSED"]);
 
-function legRole(leg: { status: string; cap_hit: boolean }): DecisionRole {
+/**
+ * A database that finished `ok` with nothing fetched while it reported no
+ * results (0, or no total): "0 results", never "Done". A database that
+ * reported more than 0 but sent nothing keeps "Done" and its counts (M10a).
+ */
+export function isZeroLeg(leg: { status: string; fetched: number; reported_total?: number | null }): boolean {
+  return leg.status === "ok" && leg.fetched === 0 && (leg.reported_total == null || leg.reported_total === 0);
+}
+
+function legRole(leg: { status: string; cap_hit: boolean; fetched: number; reported_total: number | null }): DecisionRole {
   if (leg.status === "failed") return "blocked";
   if (leg.status === "stopped") return "exclude";
-  if (leg.cap_hit) return "unclear";
+  if (leg.cap_hit || isZeroLeg(leg)) return "unclear";
   return "include";
 }
 
 export function LegRow({ locale, leg, full }: Readonly<{ locale: Locale; leg: LegView; full?: SearchLeg }>) {
   const t = discoveryT(locale);
-  const statusKey = `harvest.leg.status.${leg.status}` as DiscoveryCopyKey;
+  const statusKey = `harvest.leg.status.${isZeroLeg(leg) ? "none" : leg.status}` as DiscoveryCopyKey;
   const known = ["ok", "running", "failed", "stopped"].includes(leg.status);
   const count = leg.cap_hit
     ? t("lowerBound", { n: leg.fetched })
@@ -100,6 +116,15 @@ export function LegRow({ locale, leg, full }: Readonly<{ locale: Locale; leg: Le
           <p className="text-xs text-ink-muted" data-cap-source={capSource}>
             {t(`harvest.leg.capSource.${capSource}` as DiscoveryCopyKey)}
           </p>
+        ) : null}
+        {/* M10a (PRISMA-S): the query this database received, as the leg recorded it. */}
+        {full?.executed_query ? (
+          <div className="mt-1">
+            <p className="text-xs text-ink-muted">{t("harvest.leg.query")}</p>
+            <code dir="ltr" className="block font-mono text-[0.8125rem] leading-[1.125rem] text-ink [overflow-wrap:anywhere]" data-leg-query>
+              {full.executed_query}
+            </code>
+          </div>
         ) : null}
       </td>
     </tr>
@@ -157,15 +182,37 @@ export function DiscoveryHarvest({ locale }: Readonly<{ locale: Locale }>) {
   const [starting, setStarting] = useState(false);
   const [stopping, setStopping] = useState(false);
   const [again, setAgain] = useState(false);
+  // M10a: `?databases=` read after hydration (like `?run=`); the picker's choice; whether it was touched.
+  const [address, setAddress] = useState<{ ready: boolean; value: string[] | null }>({ ready: false, value: null });
+  const [choice, setChoice] = useState<string[] | null>(null);
+  const [touched, setTouched] = useState(false);
+  // M10a: the databases this page's Start asked, in order (the `providers` sent, else the protocol's list); null after a reattach.
+  const [startedWith, setStartedWith] = useState<string[] | null>(null);
   const heading = useRef<HTMLHeadingElement>(null);
   const capField = useRef<HTMLInputElement>(null);
+  // "Reset to the protocol" removes the button pressed (the card, or the reset once nothing differs):
+  // focus goes to the h1, as soon as it is on the page (M10a).
+  const focusHeading = useRef(false);
+
+  useEffect(() => {
+    setAddress({ ready: true, value: readDatabasesParam() });
+  }, []);
+
+  useEffect(() => {
+    if (focusHeading.current && heading.current) {
+      focusHeading.current = false;
+      heading.current.focus();
+    }
+  });
 
   const load = useCallback(async () => {
     setLoadError(null);
     try {
-      const [nextRuns, nextPlan] = await Promise.all([getRuns(origin), getPlan(origin)]);
+      // A choice in the address is read through the plan, which checks it (`PROVIDER_UNKNOWN`).
+      const [nextRuns, nextPlan] = await Promise.all([getRuns(origin), getPlan(origin, address.value)]);
       setRuns(nextRuns);
       setPlan(nextPlan);
+      setChoice((current) => current ?? nextPlan.requested_providers ?? protocolList(nextPlan));
       const active = nextRuns.active_job;
       if (active && active.kind === "run") setJobId(active.job_id);
       setOtherJob(active && active.kind !== "run" ? active : null);
@@ -173,11 +220,20 @@ export function DiscoveryHarvest({ locale }: Readonly<{ locale: Locale }>) {
       setLoadError(refusalOf(error));
     }
     getCorpus(origin).then(setCorpus, () => undefined);
-  }, [origin]);
+  }, [origin, address.value]);
 
   useEffect(() => {
-    if (ready) void load();
-  }, [ready, load]);
+    if (ready && address.ready) void load();
+  }, [ready, address.ready, load]);
+
+  /** "Reset to the protocol": the protocol's list, untouched, and no address choice (so no `providers`). */
+  const resetChoice = () => {
+    focusHeading.current = true;
+    setTouched(false);
+    setStartError(null);
+    setChoice(plan ? protocolList(plan) : null);
+    if (address.value) setAddress({ ready: true, value: null });
+  };
 
   const selected = wanted || runs?.runs[0]?.run || "";
   const newest = !!runs && runs.runs[0]?.run === selected;
@@ -198,6 +254,7 @@ export function DiscoveryHarvest({ locale }: Readonly<{ locale: Locale }>) {
     (job: DiscoveryJob | null) => {
       setLastJob(job);
       setJobId(null);
+      setStartedWith(null);
       setStopping(false);
       setAgain(false);
       void load();
@@ -212,7 +269,9 @@ export function DiscoveryHarvest({ locale }: Readonly<{ locale: Locale }>) {
   const start = async () => {
     setStartError(null);
     setCapError(false);
-    const body: { cap_override?: number; note?: string } = {};
+    const body: RunRequest = {};
+    // M10a: the chosen databases, in order, once touched or carried by the address; else the protocol's list.
+    if ((touched || address.value) && choice) body.providers = choice;
     if (cap.trim()) {
       if (!/^\d+$/.test(cap.trim())) {
         setCapError(true);
@@ -226,6 +285,7 @@ export function DiscoveryHarvest({ locale }: Readonly<{ locale: Locale }>) {
     try {
       const { job } = await startRun(origin, body);
       setLastJob(null);
+      setStartedWith(body.providers ?? (plan ? protocolList(plan) : null));
       setJobId(job.job_id);
     } catch (error) {
       const refusal = refusalOf(error);
@@ -255,6 +315,7 @@ export function DiscoveryHarvest({ locale }: Readonly<{ locale: Locale }>) {
     const job = (refusal.details as { job?: DiscoveryJob } | undefined)?.job;
     if (job?.kind === "run") {
       setStartError(null);
+      setStartedWith(null);
       setJobId(job.job_id);
     }
   };
@@ -266,7 +327,22 @@ export function DiscoveryHarvest({ locale }: Readonly<{ locale: Locale }>) {
   }));
   const changed =
     !!detail && !!plan && (detail.query_text !== plan.query.text || (detail.year_min ?? null) !== plan.query.year_min || (detail.year_max ?? null) !== plan.query.year_max);
-  const unselected = plan?.providers.filter((p) => !p.selected) ?? [];
+  const protocol = plan ? protocolList(plan) : [];
+  // The databases the selected run asked: its `requested_providers` when it carries them (a stopped
+  // run's legs can be a strict prefix of that list), else the protocol's list and whatever legs it has.
+  // A protocol database it did not ask reads "Not selected for this harvest." (the report's `not_selected_for_run`).
+  const asked = new Set(detail?.requested_providers ?? [...protocol, ...(detail?.legs ?? []).map((l) => l.provider)]);
+  const notAsked = (plan?.providers ?? [])
+    .filter((p) => !asked.has(p.name))
+    .map((p) => ({
+      name: p.name,
+      text:
+        detail?.requested_providers && protocol.includes(p.name)
+          ? t("harvest.leg.notChosen")
+          : p.status === "off_by_default"
+            ? t("harvest.leg.offByDefault")
+            : t("harvest.leg.notSelected"),
+    }));
   const jobError = lastJob?.state === "failed" ? lastJob.error : null;
   const title = running
     ? t("harvest.title.running")
@@ -323,7 +399,7 @@ export function DiscoveryHarvest({ locale }: Readonly<{ locale: Locale }>) {
         {t("harvest.form.noteHelp")}
       </p>
       <div className="mt-4">
-        <Button variant={selected ? "secondary" : "primary"} onClick={() => void start()} disabled={starting} data-start>
+        <Button variant={selected ? "secondary" : "primary"} onClick={() => void start()} disabled={starting || !choice?.length} data-start>
           {selected ? t("harvest.again") : t("harvest.start")}
         </Button>
       </div>
@@ -339,10 +415,36 @@ export function DiscoveryHarvest({ locale }: Readonly<{ locale: Locale }>) {
     </section>
   );
 
+  // M10a: the database picker ("What will be searched"), the line naming how the choice differs, and the reset.
+  const picker =
+    plan && choice ? (
+      <div className="mt-3 space-y-3" data-harvest-picker>
+        <DatabasePicker
+          items={pickerItems(locale)}
+          value={choice}
+          onChange={(next) => {
+            setChoice(next);
+            setTouched(true);
+          }}
+          labels={pickerLabels(locale)}
+        />
+        <DiffersLine locale={locale} chosen={choice} protocol={protocol} />
+        {!sameList(choice, protocol) ? (
+          <Button onClick={resetChoice} data-picker-reset>
+            {t("plan.picker.reset")}
+          </Button>
+        ) : null}
+      </div>
+    ) : null;
+
   return (
     <DiscoveryFrame locale={locale} current="harvest" origin={origin} run={wanted}>
       {loadError && !runs ? (
-        <DiscoveryRefusal locale={locale} refusal={loadError} origin={origin} onRetry={() => void load()} pageHeading />
+        loadError.code === "PROVIDER_UNKNOWN" ? (
+          <ProviderUnknownCard locale={locale} refusal={loadError} origin={origin} onReset={resetChoice} pageHeading />
+        ) : (
+          <DiscoveryRefusal locale={locale} refusal={loadError} origin={origin} onRetry={() => void load()} pageHeading />
+        )
       ) : !runs || !plan ? (
         <Loading locale={locale} />
       ) : (
@@ -388,7 +490,11 @@ export function DiscoveryHarvest({ locale }: Readonly<{ locale: Locale }>) {
           ) : null}
           {startError ? (
             <div className="space-y-2">
-              <DiscoveryRefusal locale={locale} refusal={startError} origin={origin} onRetry={startError.code === "MAILTO_NOT_SET" || startError.code === "OPENALEX_KEY_NOT_SET" ? () => { setStartError(null); void load(); } : undefined} />
+              {startError.code === "PROVIDER_UNKNOWN" ? (
+                <ProviderUnknownCard locale={locale} refusal={startError} origin={origin} onReset={resetChoice} />
+              ) : (
+                <DiscoveryRefusal locale={locale} refusal={startError} origin={origin} onRetry={startError.code === "MAILTO_NOT_SET" || startError.code === "OPENALEX_KEY_NOT_SET" ? () => { setStartError(null); void load(); } : undefined} />
+              )}
               {startError.code === "DISCOVERY_JOB_ACTIVE" && (startError.details as { job?: DiscoveryJob } | undefined)?.job?.kind === "run" ? (
                 <Button onClick={() => follow(startError)}>{t("job.follow")}</Button>
               ) : null}
@@ -407,6 +513,8 @@ export function DiscoveryHarvest({ locale }: Readonly<{ locale: Locale }>) {
             <div className="grid gap-6 lg:grid-cols-3">
               <section className="space-y-4 rounded-lg border border-rule bg-leaf p-5 min-w-0 lg:col-span-2" data-live>
                 {stream.legs.length ? <LegTable locale={locale} legs={stream.legs} /> : <p role="status">{t("harvest.reading")}</p>}
+                {/* Picker Loading (M10a): while the run runs, the picker gives way to the databases asked, in order. */}
+                {startedWith?.length ? <AskedList locale={locale} names={startedWith} protocol={protocol} /> : null}
                 <Stages locale={locale} stages={stream.stages} />
               </section>
               <aside className="rounded-lg border border-rule bg-leaf p-5">
@@ -429,14 +537,7 @@ export function DiscoveryHarvest({ locale }: Readonly<{ locale: Locale }>) {
                 <h2 id="harvest-will" className="font-semibold text-ink">
                   {t("harvest.willSearch")}
                 </h2>
-                <ul className="mt-3 space-y-1 text-ink">
-                  {plan.providers.map((p) => (
-                    <li key={p.name} data-will={p.name}>
-                      {providerName(p.name)}
-                      {!p.selected ? <span className="text-sm text-ink-muted"> · {p.status === "off_by_default" ? t("harvest.leg.offByDefault") : t("harvest.leg.notSelected")}</span> : null}
-                    </li>
-                  ))}
-                </ul>
+                {picker}
                 <p className="mt-3 text-sm text-ink-muted">
                   {t("plan.limits.cap")}: <bdi dir="ltr">{plan.cap.value}</bdi> ·{" "}
                   {plan.cap.source === "protocol" ? t("harvest.leg.capSource.protocol") : t("harvest.leg.capSource.engine_ceiling")}
@@ -472,11 +573,16 @@ export function DiscoveryHarvest({ locale }: Readonly<{ locale: Locale }>) {
                       : {t("harvest.failedList")}
                     </p>
                   ) : null}
-                  {unselected.length ? (
+                  {detail.requested_providers?.length ? (
+                    <div className="mt-3">
+                      <AskedList locale={locale} names={detail.requested_providers} protocol={protocol} />
+                    </div>
+                  ) : null}
+                  {notAsked.length ? (
                     <ul className="mt-3 space-y-1 text-sm text-ink-muted">
-                      {unselected.map((p) => (
-                        <li key={p.name}>
-                          {providerName(p.name)} · {p.status === "off_by_default" ? t("harvest.leg.offByDefault") : t("harvest.leg.notSelected")}
+                      {notAsked.map((p) => (
+                        <li key={p.name} data-not-asked={p.name}>
+                          {providerName(p.name)} · {p.text}
                         </li>
                       ))}
                     </ul>
@@ -522,7 +628,15 @@ export function DiscoveryHarvest({ locale }: Readonly<{ locale: Locale }>) {
                 ) : null}
                 {newest && !accepted ? (
                   again ? (
-                    form
+                    <>
+                      <section aria-labelledby="harvest-again-will" className="rounded-lg border border-rule bg-leaf p-5">
+                        <h2 id="harvest-again-will" className="font-semibold text-ink">
+                          {t("harvest.willSearch")}
+                        </h2>
+                        {picker}
+                      </section>
+                      {form}
+                    </>
                   ) : (
                     <section className="rounded-lg border border-rule bg-leaf p-5">
                       <p className="text-sm text-ink-muted">{t("harvest.againHelp")}</p>
@@ -538,6 +652,26 @@ export function DiscoveryHarvest({ locale }: Readonly<{ locale: Locale }>) {
         </div>
       )}
     </DiscoveryFrame>
+  );
+}
+
+/** "Databases asked, in order" (M10a): a run's asked list, and the line naming how it differs from the protocol. */
+function AskedList({ locale, names, protocol }: Readonly<{ locale: Locale; names: readonly string[]; protocol: readonly string[] }>) {
+  const t = discoveryT(locale);
+  return (
+    <div data-asked-list>
+      <h3 className="text-sm font-semibold text-ink">{t("harvest.asked.title")}</h3>
+      <ol className="mt-1 list-decimal space-y-1 ps-5 text-sm text-ink">
+        {names.map((name) => (
+          <li key={name} data-asked={name}>
+            {providerName(name)}
+          </li>
+        ))}
+      </ol>
+      <div className="mt-2">
+        <DiffersLine locale={locale} chosen={names} protocol={protocol} />
+      </div>
+    </div>
   );
 }
 

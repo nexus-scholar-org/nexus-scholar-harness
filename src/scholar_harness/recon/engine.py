@@ -18,6 +18,7 @@ from pathlib import Path
 from typing import Any
 
 from scholar_search.config import settings
+from scholar_search.dedup import Deduplicator, stable_order
 from scholar_search.engine import SearchEngine
 from scholar_search.models import Document, Query, SearchRun
 from scholar_search.providers import (
@@ -91,6 +92,10 @@ ProgressFn = Callable[[str, int], None]
 #: Pool status (INC-09): only a complete pool is cached.
 POOL_COMPLETE, POOL_PARTIAL, POOL_EMPTY = "complete", "partial", "empty"
 
+#: Pool ``sample`` marker a cache hit requires: change it whenever the sampling rule or a
+#: database's query translation changes, so older cached pools are fetched again.
+POOL_SAMPLE = "relevance-1"
+
 
 def _atomic_write_json(path: Path, payload: dict[str, Any]) -> None:
     tmp = path.with_suffix(f"{path.suffix}.{os.getpid()}.{_sha1(str(path) + datetime.now(UTC).isoformat())[:8]}.tmp")
@@ -146,6 +151,48 @@ def _query(
     return q
 
 
+def relevance_order(documents: list[Document], providers: list[str]) -> list[Document]:
+    """The documents by rank: each database's first record in ``providers`` order, then each second, ...
+
+    A record's rank is its position among its own database's records in
+    ``documents``. Databases not in ``providers`` follow the listed ones in
+    each round, in order of first appearance.
+    """
+    by_provider: dict[str, list[Document]] = {}
+    for doc in documents:
+        by_provider.setdefault(doc.provider or "", []).append(doc)
+    order = [p for p in dict.fromkeys(providers) if p in by_provider]
+    order += [p for p in by_provider if p not in order]
+    lists = [by_provider[p] for p in order]
+    out: list[Document] = []
+    for rank in range(max((len(docs) for docs in lists), default=0)):
+        out.extend(docs[rank] for docs in lists if rank < len(docs))
+    return out
+
+
+def relevance_sample(
+    documents: list[Document], providers: list[str], deduplicator: Deduplicator
+) -> list[Document]:
+    """The duplicate groups' representatives, in :func:`relevance_order`.
+
+    Groups and representatives are those ``SearchEngine.run`` makes
+    (``deduplicate(stable_order(...))``); only their order differs. A
+    duplicate group sits where its first record falls in that order and shows
+    the usual representative, which may be another database's record.
+    """
+    clusters = deduplicator.deduplicate(stable_order(documents))
+    cluster_of = {id(member): cluster for cluster in clusters for member in cluster.members}
+    taken: set[int] = set()
+    out: list[Document] = []
+    for doc in relevance_order(documents, providers):
+        cluster = cluster_of.get(id(doc))
+        if cluster is not None and cluster.cluster_id not in taken:
+            taken.add(cluster.cluster_id)
+            out.append(cluster.representative)
+    out += [c.representative for c in clusters if c.cluster_id not in taken]
+    return out
+
+
 def _with_key_state(leg: dict[str, Any]) -> dict[str, Any]:
     """Stamp ``key_set`` on a leg as it was when it ran; ``None`` for a database without keys."""
     setting = KEY_SETTINGS.get(str(leg.get("provider")))
@@ -199,14 +246,18 @@ class ReconEngine:
     ) -> tuple[list[Document], list[dict[str, Any]]]:
         """Run the M3a ``SearchEngine`` and keep its legs (one per provider).
 
+        The run is not deduplicated by the engine, so each database's own
+        order survives; :func:`relevance_sample` deduplicates it the same way.
+
         ``MailtoNotSet`` is raised by ``SearchEngine.run`` before any request
         and is left to propagate: the caller turns it into ``MAILTO_NOT_SET``.
         """
         engine = self._build_engine(providers)
         try:
             q = _query(query_text, max_results, year_min, year_max, semantic, languages)
-            run = await engine.run(q, dedup=True, progress_callback=progress)
-            return list(run.documents), [_with_key_state(leg.to_dict()) for leg in run.legs]
+            run = await engine.run(q, dedup=False, progress_callback=progress)
+            docs = relevance_sample(list(run.documents), providers, engine.deduplicator)
+            return docs, [_with_key_state(leg.to_dict()) for leg in run.legs]
         finally:
             await engine.close()
 
@@ -284,7 +335,8 @@ class ReconEngine:
         """The documents and the per-provider legs of one search.
 
         An injected ``search_fn`` may return a ``SearchRun`` (documents and
-        legs) or a bare document list, which records no legs.
+        legs) or a bare document list, which records no legs. Its documents
+        are put in :func:`relevance_order`, not deduplicated.
         """
         if self.search_fn is not None:
             result = self.search_fn(
@@ -294,8 +346,8 @@ class ReconEngine:
             if inspect.isawaitable(result):
                 result = await result
             if isinstance(result, SearchRun):
-                return list(result.documents), [leg.to_dict() for leg in result.legs]
-            return list(result), []
+                return relevance_order(list(result.documents), providers), [leg.to_dict() for leg in result.legs]
+            return relevance_order(list(result), providers), []
         return await self._fetch_real(
             query_text, providers, year_min, year_max, max_results, semantic, progress, languages
         )
@@ -342,10 +394,15 @@ class ReconEngine:
         complete pool is written to the cache; any other is written under
         ``pools/uncached/`` so callers can read it, and is never reused. A
         cached pool from before M4c that holds no documents is not reused
-        either.
+        either, nor is one without the ``sample`` marker (:data:`POOL_SAMPLE`,
+        M10a): it is fetched again and overwritten.
 
         Pool size is ``min(25, len(deduped_docs))``; a sparse pool is not
-        padded.
+        padded. The 25 are taken by rank across the databases in the order
+        given (each database's first record, then each second, ...), so each
+        database's own relevance order decides (M10a); see :func:`relevance_sample`.
+        A duplicate group sits where its first record falls and shows the
+        usual representative, which may be another database's record.
 
         ``languages`` (M4d) are the review's languages: they are sent on the
         query, recorded in the pool and part of its cache key. No database
@@ -366,6 +423,7 @@ class ReconEngine:
                 isinstance(payload, dict)
                 and payload.get("docs")
                 and payload.get("status", POOL_COMPLETE) == POOL_COMPLETE
+                and payload.get("sample") == POOL_SAMPLE
             ):
                 return payload, pool_path, True
 
@@ -383,6 +441,7 @@ class ReconEngine:
             "cache_key": key,
             "created_at": stamp.isoformat(),
             "status": status,
+            "sample": POOL_SAMPLE,
             "query": query,
             "providers": provider_list,
             "year_min": year_min,

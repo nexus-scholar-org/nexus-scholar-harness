@@ -78,6 +78,59 @@ test("a researcher goes from the plan to the hand-off accept and lands on screen
   expect(fake.accepted).toBe(true);
 });
 
+// M10a (decided 2026-11-14, item 2a): the database choice per harvest, from Plan to the run.
+const tickedRows = (page: Page) => page.locator('[data-harvest-picker] [data-picker-row][data-selected="true"]');
+
+test("a choice made on Plan reaches Harvest in the address; the run asks the chosen databases in the chosen order", async ({ page }) => {
+  const fake = await engine(page);
+  await page.goto("/en/discovery/plan/");
+  await expect(page.getByRole("heading", { name: "This is what each database will receive" })).toBeVisible();
+  for (const name of ["Semantic Scholar", "arXiv", "PubMed"]) await page.getByRole("checkbox", { name: `Search ${name}` }).uncheck();
+  await page.getByRole("button", { name: "Move Crossref up" }).click();
+  await expect(page.locator("[data-picker-differs]")).toContainText("left out Semantic Scholar, arXiv, PubMed; moved Crossref, OpenAlex");
+  const next = page.getByRole("link", { name: "Continue to Harvest with this choice" });
+  await expect(next).toHaveAttribute("href", "/en/discovery/harvest/?databases=crossref,openalex");
+  await expect(page.getByRole("link", { name: "Continue to Recall" })).toHaveAttribute("href", "/en/discovery/recall/");
+  await next.click();
+
+  await expect(page.getByRole("heading", { name: "Search the databases your protocol selects" })).toBeVisible();
+  // The router may re-encode the comma (`%2C`); the parameter the page reads is the same.
+  expect(new URL(page.url()).searchParams.get("databases")).toBe("crossref,openalex");
+  await expect(tickedRows(page)).toHaveCount(2);
+  expect(await tickedRows(page).evaluateAll((rows) => rows.map((r) => (r as HTMLElement).dataset.pickerRow))).toEqual(["crossref", "openalex"]);
+  await page.getByRole("checkbox", { name: "Search OpenAlex" }).uncheck();
+  await page.getByRole("checkbox", { name: "Search arXiv" }).check();
+  await page.getByRole("button", { name: "Start the harvest" }).click();
+  await expect(page.getByRole("heading", { name: "The harvest is finished. The corpus is not frozen yet." })).toBeVisible();
+
+  const post = fake.calls.find((c) => c.method === "POST" && c.path === "/api/v1/discovery/runs");
+  expect(post?.body).toEqual({ providers: ["crossref", "arxiv"] });
+  expect(await page.locator("[data-asked]").evaluateAll((items) => items.map((i) => (i as HTMLElement).dataset.asked))).toEqual(["crossref", "arxiv"]);
+  expect(await page.locator("[data-leg]").evaluateAll((rows) => rows.map((r) => (r as HTMLElement).dataset.leg))).toEqual(["crossref", "arxiv"]);
+  await expect(page.locator('[data-not-asked="openalex"]')).toHaveText("OpenAlex · Not selected for this harvest.");
+  await expect(page.locator('[data-leg="crossref"] [data-leg-query]')).toHaveText("weed detection weed segmentation edge device embedded");
+  await page.goto("/en/discovery/report/");
+  await expect(page.locator("[data-not-searched]")).toContainText("OpenAlex · Not selected for this harvest.");
+});
+
+test("ar/discovery/harvest: the picker is right to left, moves by keyboard, keeps focus and never mirrors its icons", async ({ page }) => {
+  const fake = await engine(page);
+  await page.goto("/ar/discovery/harvest/?databases=crossref,openalex");
+  await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
+  await expect(tickedRows(page)).toHaveCount(2);
+  const down = page.getByRole("button", { name: "انقل Crossref إلى الأسفل" });
+  await down.focus();
+  await page.keyboard.press("Space");
+  expect(await tickedRows(page).evaluateAll((rows) => rows.map((r) => (r as HTMLElement).dataset.pickerRow))).toEqual(["openalex", "crossref"]);
+  // Crossref reached the end: its Move down is disabled, so focus moved to its Move up.
+  await expect(page.getByRole("button", { name: "انقل Crossref إلى الأعلى" })).toBeFocused();
+  await expect(page.locator("[data-picker-status]")).toHaveText("نُقلت Crossref إلى الموضع 2 من 2");
+  const transforms = await page.locator("[data-harvest-picker] svg").evaluateAll((icons) => icons.map((i) => getComputedStyle(i).transform));
+  expect(transforms.every((value) => value === "none")).toBe(true);
+  await page.locator("[data-start]").click();
+  await expect.poll(() => fake.calls.find((c) => c.method === "POST" && c.path === "/api/v1/discovery/runs")?.body).toEqual({ providers: ["openalex", "crossref"] });
+});
+
 test("MAILTO_NOT_SET prints the line to set; Check again re-reads, then the harvest starts", async ({ page }) => {
   const fake = await engine(page, { mailto: false });
   await page.goto("/en/discovery/harvest/");

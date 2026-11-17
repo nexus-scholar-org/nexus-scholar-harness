@@ -8,7 +8,9 @@ import { SUPPORTED_LOCALES } from "@/i18n";
 import { DISCOVERY_COPY } from "@/lib/discovery-copy";
 import { stateCopy } from "@/lib/screening-states";
 
-import { refuse } from "./fixtures/discovery-engine";
+import type { ChaseRun, ChaseState } from "@/lib/discovery-api";
+
+import { discoveryEngine, refuse } from "./fixtures/discovery-engine";
 import { sent, setUp } from "./discovery-helpers";
 
 /** 09 Citation chase (spec docs/ux/phase1-discovery/final/09-chase.md, M3g) over the stateful fake. */
@@ -169,6 +171,70 @@ describe("discovery.chase", () => {
     const evidence = document.querySelector("[data-counts]") as HTMLElement;
     expect(evidence.compareDocumentPosition(gate) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(focusables.length).toBeGreaterThan(1);
+  });
+});
+
+describe("discovery.chase 0 results (M10a)", () => {
+  const FINISHED = "The chase is finished. These works are new.";
+  const badge = (selector: string) => (document.querySelector(selector) as HTMLElement).querySelector("[data-role]") as HTMLElement;
+
+  it("says 0 results for an ok leg with nothing fetched, Done for one that fetched, in the per-seed rows and the summary", async () => {
+    setUp({ ...PUBLISHED, chaseRuns: 1 });
+    render(<DiscoveryChase locale="en" />);
+    await screen.findByRole("heading", { level: 1, name: FINISHED });
+    // The fake's Semantic Scholar backward leg ends ok with nothing fetched.
+    const zero = badge('[data-leg="semanticscholar|backward"]');
+    expect(zero).toHaveTextContent("0 results");
+    expect(zero).toHaveAttribute("data-role", "unclear");
+    expect(badge('[data-leg="openalex|forward"]')).toHaveTextContent("Done");
+    const summary = document.querySelector('[data-summary="semanticscholar|backward"]') as HTMLElement;
+    expect(within(summary).getByText("0 results")).toHaveAttribute("data-role", "unclear");
+    expect(within(document.querySelector('[data-summary="openalex|backward"]') as HTMLElement).queryByText("0 results")).toBeNull();
+  });
+
+  // The engine's ChaseLeg has no `reported_total` yet: the openalex|forward leg below carries one only to
+  // pin the screen's forward-compatible rule (a reported total above 0 keeps "Done"), not engine behaviour.
+  it("never says 0 results for a failed or a skipped leg, or (forward-compatible, no engine total yet) a leg that reported more than 0", async () => {
+    const base = discoveryEngine({ ...PUBLISHED, chaseRuns: 1 }).handle("GET", "/api/v1/discovery/chase", null).body as ChaseState;
+    const latest = base.latest as ChaseRun;
+    const legs = latest.legs.map((leg) =>
+      leg.provider === "semanticscholar" && leg.direction === "backward"
+        ? { ...leg, status: "skipped", notes: ["no Semantic Scholar id"] }
+        : leg.provider === "semanticscholar" && leg.direction === "forward"
+          ? { ...leg, status: "failed", fetched: 0, error_code: "PROVIDER_TIMEOUT" }
+          : leg.provider === "openalex" && leg.direction === "forward"
+            ? { ...leg, fetched: 0, reported_total: 42 }
+            : leg,
+    );
+    const odd = { ...base, latest: { ...latest, legs } };
+    setUp({ ...PUBLISHED, chaseRuns: 1, refuseOnce: { "GET /api/v1/discovery/chase": { status: 200, body: odd } } });
+    render(<DiscoveryChase locale="en" />);
+    await screen.findByRole("heading", { level: 1, name: FINISHED });
+    expect(badge('[data-leg="semanticscholar|backward"]')).toHaveTextContent("Skipped");
+    expect(badge('[data-leg="semanticscholar|forward"]')).toHaveTextContent("Failed");
+    expect(badge('[data-leg="openalex|forward"]')).toHaveTextContent("Done");
+    expect(document.querySelector("[data-per-seed]")?.textContent).not.toContain("0 results");
+  });
+
+  it("says 0 results in a summary row only when every leg of the row ended ok with nothing fetched, never beside a failed or skipped leg", async () => {
+    const base = discoveryEngine({ ...PUBLISHED, chaseRuns: 1 }).handle("GET", "/api/v1/discovery/chase", null).body as ChaseState;
+    const latest = base.latest as ChaseRun;
+    const row = { cap_hits: 0, fetched: 0, failed: 0, skipped: 0 };
+    const legs_summary = [
+      { ...row, provider: "openalex", direction: "forward", legs: 2, ok: 1, failed: 1 },
+      { ...row, provider: "openalex", direction: "backward", legs: 2, ok: 1, skipped: 1 },
+      { ...row, provider: "semanticscholar", direction: "forward", legs: 2, ok: 2 },
+      { ...row, provider: "semanticscholar", direction: "backward", legs: 1, ok: 1, fetched: 4 },
+    ];
+    const odd = { ...base, latest: { ...latest, legs_summary } };
+    setUp({ ...PUBLISHED, chaseRuns: 1, refuseOnce: { "GET /api/v1/discovery/chase": { status: 200, body: odd } } });
+    render(<DiscoveryChase locale="en" />);
+    await screen.findByRole("heading", { level: 1, name: FINISHED });
+    const summary = (key: string) => document.querySelector(`[data-summary="${key}"]`) as HTMLElement;
+    expect(within(summary("openalex|forward")).queryByText("0 results")).toBeNull();
+    expect(within(summary("openalex|backward")).queryByText("0 results")).toBeNull();
+    expect(within(summary("semanticscholar|forward")).getByText("0 results")).toHaveAttribute("data-role", "unclear");
+    expect(within(summary("semanticscholar|backward")).queryByText("0 results")).toBeNull();
   });
 });
 

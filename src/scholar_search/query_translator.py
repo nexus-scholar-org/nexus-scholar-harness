@@ -180,6 +180,7 @@ class BooleanQueryTranslator(BaseQueryTranslator):
         field_map: dict[QueryField, str],
         operator_map: dict[str, str] | None = None,
         special_chars: str = "",
+        implicit_operator: str | None = None,
     ):
         super().__init__()
         self.field_map = field_map
@@ -189,6 +190,8 @@ class BooleanQueryTranslator(BaseQueryTranslator):
             "NOT": "NOT",
         }
         self.special_chars = special_chars
+        # Operator put between two adjacent operands; None keeps them as written.
+        self.implicit_operator = implicit_operator
 
     def translate(self, query: Query) -> str:
         tokens = self.parser.parse(query.text)
@@ -196,7 +199,13 @@ class BooleanQueryTranslator(BaseQueryTranslator):
             return query.text
 
         query_parts = []
+        previous_ends_operand = False
         for token in tokens:
+            starts_operand = not token.is_operator or token.value == "("
+            if self.implicit_operator and previous_ends_operand and starts_operand:
+                implicit = self.implicit_operator
+                query_parts.append(self.operator_map.get(implicit, implicit))
+            previous_ends_operand = not token.is_operator or token.value == ")"
             if token.is_operator:
                 if token.value in self.operator_map:
                     query_parts.append(self.operator_map[token.value])

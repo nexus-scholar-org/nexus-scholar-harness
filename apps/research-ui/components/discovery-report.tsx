@@ -21,7 +21,7 @@ import {
   useDiscoveryParams,
   type Refusal,
 } from "@/components/discovery-frame";
-import { getReport, putMethods, runReportHref, type IdentificationRow, type Report } from "@/lib/discovery-api";
+import { NOT_SELECTED_FOR_RUN, getReport, putMethods, runReportHref, type IdentificationRow, type Report } from "@/lib/discovery-api";
 import { getCorpus } from "@/lib/screening-v1";
 import { discoveryT, providerName, type DiscoveryCopyKey } from "@/lib/discovery-copy";
 
@@ -234,7 +234,13 @@ export function DiscoveryReport({ locale }: Readonly<{ locale: Locale }>) {
                   {report.not_searched.map((n) => (
                     <li key={n.database}>
                       {providerName(n.database)} ·{" "}
-                      {n.reason === "off by default" ? t("report.notSearched.off") : n.reason === "not selected in the protocol" ? t("report.notSearched.notSelected") : n.reason}
+                      {n.reason === "off by default"
+                        ? t("report.notSearched.off")
+                        : n.reason === "not selected in the protocol"
+                          ? t("report.notSearched.notSelected")
+                          : n.reason === NOT_SELECTED_FOR_RUN
+                            ? t("harvest.leg.notChosen")
+                            : n.reason}
                     </li>
                   ))}
                 </ul>

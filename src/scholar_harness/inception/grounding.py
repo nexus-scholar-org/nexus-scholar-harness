@@ -150,7 +150,10 @@ def build_grounding(
     out = {
         "session_id": session_id,
         "bound_at": _now(),
-        "pool": {k: pool_summary[k] for k in ("fingerprint", "created_at", "cache_key", "path", "status", "query", "n_docs", "legs")},
+        "pool": {
+            k: pool_summary[k]
+            for k in ("fingerprint", "created_at", "cache_key", "path", "status", "query", "providers", "n_docs", "legs")
+        },
         "direction": chosen,
         "anchors": sorted(chosen["anchor_dois"]),
         "choice": "none" if skip else chosen["source"],

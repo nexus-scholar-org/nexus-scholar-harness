@@ -98,6 +98,7 @@ export function StateCard({
   copyCode,
   actionHref,
   details,
+  hideActionLabel = false,
 }: Readonly<{
   locale: Locale;
   code: string;
@@ -113,6 +114,13 @@ export function StateCard({
   actionHref?: string;
   /** What the refusal's details name (a job, a backup folder, file lists), shown under Details. */
   details?: ReactNode;
+  /**
+   * The screen renders this card's next step as its own button beside the card
+   * (M10a: "Reset the databases", "Edit the query", "Reset to the protocol"), or
+   * deliberately offers none: an action `none` card then prints no muted action
+   * line, so the words appear once. The entry keeps its action label.
+   */
+  hideActionLabel?: boolean;
 }>) {
   const Heading = pageHeading ? "h1" : "h2";
   const state = stateCopy(locale, copyCode ?? code);
@@ -174,7 +182,7 @@ export function StateCard({
           <a className="inline-flex min-h-11 items-center text-brand underline" href={href}>
             {state.actionLabel}
           </a>
-        ) : state.actionLabel ? (
+        ) : state.actionLabel && !hideActionLabel ? (
           <p className="text-sm text-ink-muted">{state.actionLabel}</p>
         ) : null}
         {state.command ? (
