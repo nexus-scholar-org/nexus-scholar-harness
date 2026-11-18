@@ -549,6 +549,29 @@ def test_publish_idempotent_retry(tmp_path):
     assert len(history) == 1  # no duplicate generations
 
 
+def test_publish_idempotent_retry_logs_one_row(tmp_path):
+    """F8: a retry that joins the CURRENT generation adds no second journal row.
+
+    The reply of the retry still names the row of the first publish.
+    """
+    workspace, studies = _scaffold(tmp_path)
+    code = _ready(workspace, studies)
+    client = TestClient(create_app(workspace))
+    client.post(
+        "/api/v1/screening/actions/pairing/redeem",
+        json={"batch": 1, "code": code},
+    )
+    first = client.post("/api/v1/screening/actions/publish", json={}).json()
+    second = client.post("/api/v1/screening/actions/publish", json={}).json()
+    rows = [
+        r
+        for r in _journal_rows(workspace)
+        if r["action"] == "SCREENING_PUBLISH_COMPLETED"
+    ]
+    assert len(rows) == 1
+    assert first["journal_event_id"] == second["journal_event_id"] == rows[0]["event_id"]
+
+
 def test_full_chain_begin_to_replay_fails(tmp_path):
     """The continuous journey over the wire: begin (terminal) -> STAGED ->
     redeem -> CONSUMED -> publish CURRENT -> replay fails -> publish joins."""

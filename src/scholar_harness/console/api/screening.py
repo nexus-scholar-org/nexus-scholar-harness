@@ -986,6 +986,28 @@ def _journal_action(
     )
 
 
+def _published_event(ws: Path, generation_id: str) -> dict[str, Any] | None:
+    """The journal row already recording the publish of ``generation_id``, if any."""
+    path = ws / "audit" / "journal.jsonl"
+    try:
+        lines = path.read_text(encoding="utf-8").splitlines()
+    except OSError:
+        return None
+    for line in lines:
+        try:
+            row = json.loads(line)
+        except ValueError:
+            continue
+        if (
+            isinstance(row, dict)
+            and row.get("action") == "SCREENING_PUBLISH_COMPLETED"
+            and (row.get("parameters") or {}).get("generation_id") == generation_id
+            and isinstance(row.get("event_id"), str)
+        ):
+            return row
+    return None
+
+
 def _snapshot_file(path: Path) -> bytes | None:
     try:
         return path.read_bytes() if path.is_file() else None
@@ -1225,7 +1247,10 @@ def action_publish_screening(
         )
     record = current.record
     try:
-        event = _journal_action(
+        # A retry that joined the CURRENT generation names the row of the first
+        # publish instead of journaling a second one. A first publish whose row
+        # could not be written has no such row, so its retry still writes it.
+        event = _published_event(ws, record.generation_id) or _journal_action(
             ws,
             action="SCREENING_PUBLISH_COMPLETED",
             description=(

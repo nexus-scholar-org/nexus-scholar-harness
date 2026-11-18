@@ -239,8 +239,10 @@ def append_legacy_event(
     """Append one legacy orchestrator/handoff event (byte-compatible).
 
     Replicates ``ResearchOrchestrator._log_audit_event`` / ``handoff._log_audit_event``
-    exactly: ``hex(hash(action + description))[-6:]`` event-id limb (observed odd
-    scheme, hash-randomized, preserved per HCM-02 packet), no uppercasing, plain
+    exactly, except the event-id limb: it was ``hex(hash(action + description))[-6:]``,
+    so two events with the same action and text in the same second shared an id
+    (F8); it is now six random hex digits like :func:`append_event`'s. The id shape
+    ``EVT-<14 digits>-<6 hex>`` is unchanged. No uppercasing, plain
     ``json.dumps`` (default ``ensure_ascii``), no ``project.json`` update, no
     ``INDEX.md`` refresh, returns ``None``. ``OSError`` from the append
     propagates (no silent success).
@@ -253,9 +255,10 @@ def append_legacy_event(
     audit_file = ws / "audit" / "journal.jsonl"
     audit_file.parent.mkdir(parents=True, exist_ok=True)
 
+    now = datetime.now(UTC)
     event = {
-        "timestamp": datetime.now(UTC).isoformat(),
-        "event_id": f"EVT-{datetime.now(UTC).strftime('%Y%m%d%H%M%S')}-{hex(hash(action + description))[-6:]}",
+        "timestamp": now.isoformat(),
+        "event_id": f"EVT-{now.strftime('%Y%m%d%H%M%S')}-{uuid.uuid4().hex[:6]}",
         "action": action,
         "agent_or_tool": agent,
         "description": description,
