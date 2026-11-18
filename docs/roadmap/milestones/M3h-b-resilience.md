@@ -1,5 +1,5 @@
 # M3h-b-resilience Provider resilience (F14, F15, F16)
-Branch: dev/m3h-b/provider-resilience · Lane: **RELEASE** (see "Lane") · Status: IN PROGRESS · Started: 2026-11-18
+Branch: dev/m3h-b/provider-resilience · Lane: **RELEASE** (see "Lane") · Status: READY FOR PR · Started: 2026-11-18
 
 The second package of the plan §6 M3h row: findings F14, F15 and F16 of
 [`three-phase-hardening-2026-11-10.md`](../../assessment/three-phase-hardening-2026-11-10.md)
@@ -33,7 +33,7 @@ intended: `generate_contract_baseline.py --check` runs at every commit.
 - [x] Deferred from M3h: the leg and the abstract hydrator share one Semantic Scholar budget; the hydrator no longer retries keyless after a rejected key (tests named below).
 - [x] Deferred from M3h: the auth channel per leg (`key`, `mailto`, `none`, `key_rejected`) (test named below).
 - [x] Golden cassettes pass without re-recording (`tests/pipeline/test_golden_search_cassettes.py`, `test_golden_recon_cassette.py`).
-- [ ] Gates: inner after edits, checkpoint (one run after all items, see Evidence), pr once on the final executable commit, contract baseline `--check`, both ruff commands; `milestone-reviewer` APPROVE.
+- [x] Gates: inner after edits, checkpoint (one run after all items, see Evidence), pr once on the final executable commit, contract baseline `--check`, both ruff commands; `milestone-reviewer` APPROVE.
 - [x] Plan §6 M3h row updated.
 
 ## Audit
@@ -75,6 +75,7 @@ Cassette matching is `method, scheme, host, path, query`; headers (the User-Agen
 | contract | working tree | `generate_contract_baseline.py --check` | current | |
 | closure (includes pr) | `c8b5ecd7` (executable code as `3c67d6fc`) | `select_test_gate.py --changed origin/main --stage closure`: contract baseline, schemas and two-study fixture `--check`; `ruff check scripts/`; ruff bug classes on `src/`; `git diff --check origin/main...HEAD`; `uv run pytest -q -n auto`; `uv build --wheel` | all exit 0; pytest 5110 passed, 15 skipped, 0 failed (counted from the progress output: this repo's `-q` prints no summary line); wheel `nexus_scholar-1.1.0b6` built | 739 s |
 | review | `75def6c7` | `milestone-reviewer` | CHANGES (R1 P2, R2–R6 P3; see "Review"), repaired in `79944f50` | |
+| review | `7ec53ed3` | `milestone-reviewer` round 2 (R1–R6 and the repair delta `75def6c7..7ec53ed3`) | **APPROVE** (R1 withdrawn as a misreading, R2–R6 fixed); the reviewer relied on the recorded pr gate for the repair tests | |
 | pr | `79944f50` (final executable commit) | `git diff --check origin/main...HEAD`; contract baseline `--check`; `ruff check scripts/`; ruff bug classes on `src/`; `sync_skills_bundle.py --check`; `uv run pytest -q -n auto` | all exit 0; pytest 5116 passed, 15 skipped, 0 failed | 521 s |
 | checkpoint | `5f0d55fe` | `select_test_gate.py --changed origin/main --stage checkpoint` (`git diff --check`; pytest console+authority, recon+inception+MCP recon, pipeline+unit+e2e+console pipelines/jobs, kits/search+identity+stages+http client+screening migration, kits/agent+mcp+parity+capability+agent CLI, each `-n auto`; `sync_skills_bundle.py --check`; `test_count_freshness.py`) | every command exit 0 | 1085 s |
 
@@ -86,6 +87,7 @@ Cassette matching is `method, scheme, host, path, query`; headers (the User-Agen
   - R4 (P3): `tests/conftest.py` resets the shared budgets around every test.
   - R5 (P3): DoD ticked and Deferred filled (this file).
   - R6 (P3): the search-kit skill (both copies, `sync_skills_bundle.py --check` clean) states the new User-Agent and limits; `PROVIDERS_2026-11.md` says its code cells describe `b6643a0` and points at the fixed list.
+- Round 2 (`milestone-reviewer`, limited to R1–R6 and `75def6c7..7ec53ed3`): **APPROVE**. R1 withdrawn (the reviewer had read `scholar_verify` as the harvest verifier); R2–R6 fixed; no new finding. Follow-up, not blocking: pin `apps/research-ui/lib/recon-api.ts` to the Python constant (Deferred).
 
 ## Deferred
 Plan §7 ("Risks and cuts") names no rule for these. Each is left out because it needs a researcher decision or a live recording (no live calls in this milestone), or lies outside the areas this milestone was given:
