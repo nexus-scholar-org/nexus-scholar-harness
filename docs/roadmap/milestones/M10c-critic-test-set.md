@@ -1,5 +1,5 @@
 # M10c-critic-test-set: a test set of broken protocols for the M10c critic
-Branch: dev/m10c/critic-test-set · Lane: **STANDARD** (tests, fixtures and documentation only) · Status: READY FOR REVIEW, not pushed · Started: 2026-11-18
+Branch: dev/m10c/critic-test-set · Lane: **STANDARD** (tests, fixtures and documentation only) · Status: READY FOR THE RESEARCHER; committed, not pushed; full-suite gate not clean here (see Evidence) · Started: 2026-11-18
 
 Source: `docs/roadmap/production-plan.md` §6, row **M10c-assistant-mcp**: "an assistant and a critic over MCP … with a test set of deliberately broken protocols the critic must catch". The researcher approved this preparation on 2026-11-18. M10c itself cannot start until M10b (the proposal object and the 51 fixed, non-AI checks) is built; M10b is being built in another session. This milestone prepares only the test set, so M10c can start with it. It is not the first step of M10c and it does not decide M10c's design.
 
@@ -22,7 +22,7 @@ And `tests/kits/protocol/test_critic_protocol_set.py` (about 170 test cases), wh
 - [x] **D4 Manifest.** Every field the brief asks for, per defect (the unit a critic is scored on). The fixed-check assignments are hand-traced; `check_certainty` says when the trace is partial.
 - [x] **D5 Honesty test.** `tests/kits/protocol/test_critic_protocol_set.py`.
 - [x] **D6 README.** Scoring and limits.
-- [ ] **D7 Gates and review**, recorded below. The independent review returned CHANGES on the first pass; the repairs are listed under "Review round 1".
+- [~] **D7 Gates and review**, recorded below: targeted tests, ruff, baseline, diff check and two review rounds done; the full suite could not be run clean without the pdf and rag extras. The independent review returned CHANGES on the first pass; the repairs are listed under "Review round 1".
 
 ## Decisions taken here (the researcher may overrule; none touches a contract)
 1. **The unit is the defect, not the variant.** The manifest keeps `defects[]` per variant (one entry, or two for an interacting variant), each with its own severity, check and finding. The brief lists these keys per variant; for the 37 single-defect variants the list has one entry. An interacting variant is scored per defect.
@@ -58,8 +58,9 @@ Base for every selection: `origin/main` at `e7644a6c`.
 | :-- | :-- | :-- |
 | inner | `uv run --extra dev pytest tests/kits/protocol/test_critic_protocol_set.py` | all passed |
 | selection | `uv run python scripts/select_test_gate.py --changed origin/main --stage pr` | `git diff --check`, **`uv run pytest -q -n auto`** (the full suite), `ruff check scripts/`. Not the small selection the brief expected: the selector has no area for a new test file and falls back to the full suite (`select_test_gate.py`, `area_defaults`/`fallback`). Run once with 3 workers because the machine was busy. |
-| gate | see below | see below |
+| gate (full suite, 3 workers) | `uv run --extra dev pytest -q -n 3`, started at `15072483` (fixtures were then regenerated twice during the run, at `f2033de6` and `c14afe8a`) | **Not clean in this environment, and not a pass.** 80 tests failed or errored: 71 in `tests/kits/rag`, `tests/kits/pdf`, `tests/kits/agent` (MCP indexing), `tests/conformance/test_e3_*` and `tests/e2e` extraction, indexing and synthesis tests, which need `chromadb`, `fitz`, `sentence-transformers`, `docling`, `lxml`; none of those is installed in this worktree's venv (AGENTS.md: the full suite needs `--extra dev --extra pdf --extra rag`; 59 failures say `No module named 'chromadb'`, the e2e ones fail as `INDEX`/`extract_pdf` `FAILED` for the same reason). 9 were in `test_critic_protocol_set.py` and are an artefact of this session: the fixtures were rewritten while the run was in progress (the failing names include variants that no longer exist). I did not install the extras (large, offline) and did not run the suite on `origin/main` for comparison, so the claim "these fail without my change" rests on the missing modules, not on a baseline run. **The researcher or CI should run the full suite with the extras before a PR.** |
+| gate (own tests, final) | `uv run --extra dev pytest tests/kits/protocol/test_critic_protocol_set.py` at `c14afe8a` | 169 passed |
 | contract baseline | `uv run python scripts/generate_contract_baseline.py --check` | current |
 | lint | `uv run ruff check scripts/`; `uv run ruff check src/ --select F821,F811,F823,F632,F7,B023,B006,E9`; the new test file | all passed |
 | whitespace | `git diff --check origin/main` | clean |
-| review | `milestone-reviewer` | see below |
+| review | `milestone-reviewer` (Sonnet), two rounds | Round 1: CHANGES (repaired, see above). Round 2: CHANGES, small: counts in this record, the reason code of `sr-no-control-arm-requirement`, the expected `generalization` baseline warning, and an outcome-dependent required matrix column in the systematic base; all repaired in `c14afe8a`. Not re-reviewed after that commit. |
