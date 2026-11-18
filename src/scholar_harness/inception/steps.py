@@ -705,6 +705,7 @@ def genesis(
     confirm_discard_screening_binding: str | None = None,
     grounding: dict[str, Any] | None = None,
     busy: Callable[[Path], str | None] | None = None,
+    origin: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Create (or, with ``replace``, re-protocol) ``<workspaces_root>/<slug>`` from a draft.
 
@@ -758,9 +759,19 @@ def genesis(
             from .grounding import recon_context
 
             context = recon_context(grounding, list(draft.rqs), [c.concept for c in draft.concepts])
+        # M10b (09-start-from-protocol): a draft started from an earlier protocol
+        # keeps the default GENESIS summary and adds one sentence naming the source.
+        from .importer import genesis_sentence
+
+        added = genesis_sentence(origin)
+        description = (
+            f"Phase-0 Inception: '{intent['title']}' [{intent['primary_paradigm']}, {intent['playbook_type']}].{added}"
+            if added else None
+        )
         result = emit_workspace(
             intent, target_dir=target, replace=replace, discard_screening_binding=discard,
-            agent=agent, recon_context=context,
+            agent=agent, recon_context=context, description=description,
+            protocol_origin="import" if added else "inception",
         )
         if created:
             install_workspace_support_files(target)

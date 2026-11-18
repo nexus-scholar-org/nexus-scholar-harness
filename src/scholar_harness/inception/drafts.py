@@ -16,13 +16,29 @@ import json
 import os
 import re
 import shutil
+import threading
 import uuid
+from collections.abc import Callable
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
 DRAFTS_DIRNAME = ".drafts"
 SESSION_ID_RE = re.compile(r"^rec_[0-9a-f]{6,64}$")
+
+
+#: One lock per draft file (M10b, ``01-proposals`` "Where a proposal is kept").
+#: FastAPI runs the sync routes in threads, and every write here is load then
+#: write of the whole record: without a lock a side write (an origin mark, a
+#: check dismissal) racing a save would write the old ``draft`` back.
+_LOCKS: dict[str, threading.RLock] = {}
+_LOCKS_GUARD = threading.Lock()
+
+
+def _lock_for(path: Path) -> threading.RLock:
+    key = str(path.resolve()) if path.exists() else str(path.absolute())
+    with _LOCKS_GUARD:
+        return _LOCKS.setdefault(key, threading.RLock())
 
 
 def new_session_id() -> str:
@@ -62,12 +78,33 @@ class DraftStore:
         os.replace(tmp, path)
         return record
 
-    def create(self, draft: dict[str, Any], session_id: str | None = None) -> dict[str, Any]:
+    def create(
+        self, draft: dict[str, Any], session_id: str | None = None, *, extra: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        """A new draft record; ``extra`` holds side keys written with it (an import's ``origin``, M10b)."""
         sid = session_id or new_session_id()
-        if self._path(sid).exists():
-            raise DraftRefused("DRAFT_EXISTS", f"a draft {sid} already exists")
-        stamp = _now()
-        return self._write({"session_id": sid, "created_at": stamp, "updated_at": stamp, "draft": draft, "emitted": None})
+        with _lock_for(self._path(sid)):
+            if self._path(sid).exists():
+                raise DraftRefused("DRAFT_EXISTS", f"a draft {sid} already exists")
+            stamp = _now()
+            record = {"session_id": sid, "created_at": stamp, "updated_at": stamp, "draft": draft, "emitted": None}
+            record.update(extra or {})
+            return self._write(record)
+
+    def update_side(self, session_id: str, key: str, change: Callable[[Any], Any]) -> dict[str, Any]:
+        """Change one side key of the record, not the draft (M10b).
+
+        Re-reads the record under the draft's lock and writes ``change(current)``
+        to ``key`` only; ``updated_at`` does not change, so another tab's
+        ``base_updated_at`` stays valid and a save made in between is kept.
+        Nothing is changed on an emitted draft: the record is answered as it is.
+        """
+        with _lock_for(self._path(session_id)):
+            record = self.load(session_id)
+            if record.get("emitted"):
+                return record
+            record[key] = change(record.get(key))
+            return self._write(record)
 
     def load(self, session_id: str) -> dict[str, Any]:
         path = self._path(session_id)
@@ -80,6 +117,10 @@ class DraftStore:
 
     def save(self, session_id: str, draft: dict[str, Any], base_updated_at: str | None = None) -> dict[str, Any]:
         """Replace the draft; ``base_updated_at`` refuses a save over a newer one."""
+        with _lock_for(self._path(session_id)):
+            return self._save(session_id, draft, base_updated_at)
+
+    def _save(self, session_id: str, draft: dict[str, Any], base_updated_at: str | None) -> dict[str, Any]:
         record = self.load(session_id)
         if base_updated_at is not None and base_updated_at != record["updated_at"]:
             raise DraftRefused(
@@ -97,6 +138,10 @@ class DraftStore:
 
         Only the recon bind route calls this; a ``save`` of the draft keeps it.
         """
+        with _lock_for(self._path(session_id)):
+            return self._bind(session_id, grounding, base_updated_at)
+
+    def _bind(self, session_id: str, grounding: dict[str, Any], base_updated_at: str | None) -> dict[str, Any]:
         record = self.load(session_id)
         if base_updated_at is not None and base_updated_at != record["updated_at"]:
             raise DraftRefused(
@@ -110,10 +155,11 @@ class DraftStore:
         return self._write(record)
 
     def mark_emitted(self, session_id: str, result: dict[str, Any]) -> dict[str, Any]:
-        record = self.load(session_id)
-        record["emitted"] = {**result, "at": _now()}
-        record["updated_at"] = record["emitted"]["at"]
-        return self._write(record)
+        with _lock_for(self._path(session_id)):
+            record = self.load(session_id)
+            record["emitted"] = {**result, "at": _now()}
+            record["updated_at"] = record["emitted"]["at"]
+            return self._write(record)
 
     def listing(self) -> list[dict[str, Any]]:
         """Newest first; unreadable drafts are listed with ``readable: false``, never hidden."""
@@ -137,6 +183,8 @@ class DraftStore:
                 "created_at": record["created_at"],
                 "updated_at": record["updated_at"],
                 "emitted": record.get("emitted"),
+                # M10b (09-start-from-protocol): the start screen says "Started from {label}".
+                "origin_label": ((record.get("origin") or {}).get("source") or {}).get("label"),
             })
         items.sort(key=lambda item: item["updated_at"], reverse=True)
         return items

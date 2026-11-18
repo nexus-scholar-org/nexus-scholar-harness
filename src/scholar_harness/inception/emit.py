@@ -268,8 +268,24 @@ def _backup(ws_dir: Path, stamp: str) -> Path:
     return backup
 
 
-def _refresh_manifest(ws_dir: Path, intent: dict) -> None:
-    """Keep `project.json`; refresh only what the new protocol states."""
+#: Where a workspace's protocol came from (M10b, ``04-next-step``): a New-workspace
+#: placeholder, an inception draft, or a draft started from an earlier protocol.
+PROTOCOL_ORIGINS = ("placeholder", "inception", "import")
+
+
+def _write_origin(ws_dir: Path, origin: str) -> None:
+    """Record ``protocol_origin`` in `project.json` (project metadata, not Contract v1)."""
+    path = ws_dir / "project.json"
+    try:
+        manifest = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return
+    manifest["protocol_origin"] = origin
+    path.write_text(json.dumps(manifest, indent=2), encoding="utf-8")
+
+
+def _refresh_manifest(ws_dir: Path, intent: dict, protocol_origin: str = "inception") -> None:
+    """Keep `project.json`; refresh only what the new protocol states (and where it came from, M10b)."""
     path = ws_dir / "project.json"
     try:
         manifest = json.loads(path.read_text(encoding="utf-8"))
@@ -278,6 +294,7 @@ def _refresh_manifest(ws_dir: Path, intent: dict) -> None:
     manifest["title"] = intent["title"]
     manifest["paradigm"] = intent["primary_paradigm"]
     manifest["research_questions"] = [rq["text"] for rq in intent["research_questions"]]
+    manifest["protocol_origin"] = protocol_origin
     manifest["updated_at"] = datetime.now(UTC).isoformat()
     path.write_text(json.dumps(manifest, indent=2), encoding="utf-8")
 
@@ -293,6 +310,7 @@ def emit_workspace(
     agent: str = "scholar-harness/inception",
     description: str | None = None,
     fingerprint_label: str = "protocol",
+    protocol_origin: str = "inception",
 ) -> dict[str, Any]:
     """Write ``intent`` as a workspace's protocol through the overwrite guard.
 
@@ -315,6 +333,7 @@ def emit_workspace(
         else:
             scaffold_project(Path(root), title, slug, paradigm, rqs)
         compiled = compile_protocol_files(ws_dir, intent)
+        _write_origin(ws_dir, protocol_origin)
         log_genesis(
             ws_dir,
             f"{summary} compiled {fingerprint_label} fingerprint {compiled['protocol_fingerprint']}",
@@ -333,7 +352,7 @@ def emit_workspace(
     backup = _backup(ws_dir, stamp)
     archived = _archive_corpus(ws_dir, backup)
     compiled = compile_protocol_files(ws_dir, intent)
-    _refresh_manifest(ws_dir, intent)
+    _refresh_manifest(ws_dir, intent, protocol_origin)
     write_review_notes(ws_dir, title, rqs)
     state = guard["screening"] or {}
     backup_rel = backup.relative_to(ws_dir).as_posix()

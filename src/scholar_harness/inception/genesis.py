@@ -747,6 +747,7 @@ def scaffold_placeholder_workspace(target: Path, title: str, *, agent: str, time
             agent=agent,
             description=f"nexus-scholar init (--scaffold-only): '{title}'",
             fingerprint_label="placeholder protocol",
+            protocol_origin="placeholder",
         )
     except GenesisRefused as exc:
         raise WorkspaceScaffoldRefused("WORKSPACE_EXISTS", exc.message) from exc

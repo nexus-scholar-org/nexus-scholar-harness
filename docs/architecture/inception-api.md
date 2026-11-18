@@ -16,7 +16,7 @@ A criterion id is derived from the criterion's kind, source and text (`crit_` pl
 
 | Route | Purpose | Request → response |
 | :-- | :-- | :-- |
-| `GET /api/v1/inception/drafts` | list drafts (screen 08, resume) | → `{root, items: [{session_id, readable, title, topic, created_at, updated_at, emitted}]}`, newest first. An unreadable draft is listed with `readable: false` |
+| `GET /api/v1/inception/drafts` | list drafts (screen 08, resume) | → `{root, items: [{session_id, readable, title, topic, created_at, updated_at, emitted, origin_label}]}`, newest first. An unreadable draft is listed with `readable: false` |
 | `POST /api/v1/inception/drafts` | start a draft (screen 00) | `{draft}` → `201 {session_id, created_at, updated_at, draft, emitted: null}`. The id is `rec_` plus 32 hex characters |
 | `GET /api/v1/inception/drafts/{id}` | resume | → the record; `404 DRAFT_NOT_FOUND`, `422 DRAFT_ID_INVALID` |
 | `PUT /api/v1/inception/drafts/{id}` | save | `{draft, base_updated_at?}` → the record. `409 DRAFT_CONFLICT` when `base_updated_at` is not the stored one; `409 DRAFT_EMITTED` once the draft has created a workspace |
@@ -35,6 +35,35 @@ A criterion id is derived from the criterion's kind, source and text (`crit_` pl
 - **`matrix`** gives `columns` and `selected`.
 
 The same answers give the same intent and fingerprint through the CLI wizard and through preview (`test_preview_and_the_cli_wizard_compile_the_same_protocol`).
+
+## M10b Part A: the draft's own answers and starting from a protocol
+
+Specs: `docs/ux/phase0-inception/final/04-shape.md`, `05-criteria.md`, `09-start-from-protocol.md`; decisions `docs/decisions.md` 2026-11-15 (M10b). Code: `inception/steps.py`, `inception/intent.py`, `inception/importer.py`, `inception/drafts.py`, `inception/emit.py`.
+
+**New draft fields** (additive; an engine older than M10b refuses a draft that carries them, `DRAFT_INVALID`):
+
+- `pool_min`, `pool_max`: the number of records the researcher plans to screen. Whole numbers; `pool_max` from 1 to 1,000,000; `pool_min` from 0 to `pool_max`; `pool_min` alone is refused; `pool_max` alone compiles from 0. Compiled into `search_strategy.target_candidate_pool_size`; both empty keeps the playbook preset, and `intent.json` then holds `null` (so a preset is never read as the researcher's plan).
+- `out_of_scope_reasons{line: code}` (at most 50) and `default_exclusion_reason`: the reason codes of the out-of-scope lines and of the paradigm's default exclusion; empty is `OUT_OF_SCOPE`, so a draft that sets none keeps its criterion ids.
+- `custom_matrix_columns[{id?, name, description, data_type, required, fallback_value, target_section_category}]` (at most 50): the researcher's own matrix columns, the whole `MatrixDimensionIntent`. `data_type` is `free_text`, `numeric`, `categorical` or `list`. A name equal (ignoring case) to another own column's is `DRAFT_INVALID`; equal to a suggested column's is refused by the `matrix` step, preview and genesis (`DRAFT_INVALID`, `details.errors[0].loc` `["custom_matrix_columns", i, "name"]`). The engine derives each column's id from its name (lower case, other characters to `_`, `_2` on a clash); an id the column carries is kept when unique.
+
+**Reason codes** follow `^[A-Z][A-Z0-9_]{2,39}$` (`extra_exclusions[].reason_category`, `out_of_scope_reasons` values, `default_exclusion_reason`). The rule is checked only when a draft is created or saved (`POST`, `PUT`; `DRAFT_INVALID` naming each field); the steps, preview and genesis read an older code as it is, and the `criteria` step flags its row `reason_valid: false`.
+
+**The proof may be empty** when the draft holds an inclusion the researcher typed (or imported) that is not dropped (`proof_required`). With an empty proof the wizard writes no proof criterion, `rq_draft` is `null`, and the rationale leaves out the "Convincing evidence" sentence. `DRAFT_INCOMPLETE` names `proof` only when it is required.
+
+**Step answers (additive):** `shape` adds `proof_required` and `pool_preset {min, max}`; `criteria` adds `reason_suggestions[{code, source, phrases}]` (codes used in the draft first, `source: "used"`; `phrases` says the rule-based screener has a phrase list for the code; nothing is selected) and `reason_valid` on each exclusion; `matrix` adds `custom_columns` (with the derived ids) and lists them in `selected`. `build_intent` compiles the ticked suggested columns, then the own columns.
+
+**Wording (strict run 2026-11-13, findings 7 and 9):** the rationale reads "Convincing evidence: {proof}." (each answer after a colon, without a second full stop), and the suggested Sample Size column reads "How many were sampled or evaluated (unit of analysis: {unit})". The placeholder protocol's fingerprint moved once with it.
+
+**Routes:**
+
+| Route | Purpose | Request → response |
+| :-- | :-- | :-- |
+| `POST /api/v1/inception/drafts/import` | start a draft from an earlier protocol (spec 09) | `{source: {kind: "workspace", slug} \| {kind: "file", file_name, content_base64}, dry_run = true, expect_fingerprint?}`. Dry run → `200 {source, draft, carried[], lost[], needs_you[], earlier_pool}`; stores nothing. Creating → `201` the draft record plus `report`; the record holds `origin {kind: "import", source, imported_at, checked{scope, direction, shape, criteria, review}, report, earlier_pool}` beside `draft`. The source is only read. Refusals: `404 IMPORT_SOURCE_NOT_FOUND`, `422 IMPORT_SOURCE_UNREADABLE` (`details.reason`), `413 IMPORT_SOURCE_TOO_LARGE` (over 1 MiB), `422 IMPORT_NOT_A_PROTOCOL` (`details.missing`), `422 IMPORT_PROTOCOL_VERSION_UNSUPPORTED`, `422 PROTOCOL_INVALID` (`details.shape`, `errors`), `422 DRAFT_TOO_LARGE` (a value over a draft limit is never cut), `409 IMPORT_SOURCE_CHANGED` (creating, when the fingerprint is not `expect_fingerprint`), `422 WORKSPACE_PATH_REFUSED` |
+| `POST /api/v1/inception/drafts/{id}/origin/checked` | mark an imported step opened | `{step}` (`scope`, `direction`, `shape`, `criteria`, `review`) → `200 {session_id, origin}`; idempotent; `origin` is `null` for a draft that was not imported. A side write: `updated_at` does not change. `404 STEP_UNKNOWN` for another step |
+
+The draft listing adds `origin_label`. Genesis of an imported draft keeps the default GENESIS summary and adds "Started from {label}, protocol {fingerprint}, imported {date}."; every genesis writes `protocol_origin` (`inception`, `import`, or `placeholder` for `nexus-scholar init --scaffold-only`) into `project.json`, also on a replacement.
+
+**Draft lock.** Every write to a draft record runs under one lock per draft (`inception/drafts.py`). A side write (an origin mark) re-reads the record inside the lock and changes only its own key, so it never writes an older `draft` back over a save made in between.
 
 ## Recon (M4c)
 

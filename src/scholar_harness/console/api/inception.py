@@ -28,6 +28,7 @@ from fastapi import APIRouter, HTTPException, Request, Response
 from pydantic import BaseModel, ConfigDict, Field
 
 from scholar_harness.inception import steps
+from scholar_harness.inception import importer
 from scholar_harness.inception.drafts import DraftRefused, DraftStore
 from scholar_harness.inception.grounding import refuse_stale, scope_of
 from scholar_harness.recon.session import ReconRefused, ReconSessions
@@ -94,6 +95,67 @@ def create_draft(body: DraftBody, request: Request) -> dict[str, Any]:
         return _store(request).create(body.draft)
     except (DraftRefused, steps.StepRefused) as exc:
         raise _error(exc) from exc
+
+
+class ImportSource(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    kind: str = Field(pattern="^(workspace|file)$")
+    slug: str | None = Field(default=None, max_length=200)
+    file_name: str | None = Field(default=None, max_length=255)
+    #: The file's bytes, base64; at most 1 MiB decoded (refused ``IMPORT_SOURCE_TOO_LARGE``).
+    content_base64: str | None = Field(default=None, max_length=1_500_000)
+
+
+class ImportBody(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    source: ImportSource
+    dry_run: bool = True
+    #: On the creating call: the fingerprint the report showed (``IMPORT_SOURCE_CHANGED`` otherwise).
+    expect_fingerprint: str | None = None
+
+
+@router.post("/drafts/import")
+def import_draft(body: ImportBody, request: Request, response: Response) -> dict[str, Any]:
+    """Start a draft from an existing protocol (M10b, ``09-start-from-protocol``); the source is only read."""
+    try:
+        source = importer.read_source(body.source.model_dump(), _root(request))
+        mapped = importer.map_source(source)
+        if body.dry_run:
+            return importer.report(source, mapped)
+        if body.expect_fingerprint != source.fingerprint:
+            raise DraftRefused(
+                "IMPORT_SOURCE_CHANGED", "the protocol changed since it was read; read it again",
+                details={"expected": body.expect_fingerprint, "found": source.fingerprint},
+            )
+        origin = importer.origin_record(source, mapped)
+        record = _store(request).create(mapped["draft"], extra={"origin": origin})
+        response.status_code = 201
+        return {**record, "report": origin["report"]}
+    except (DraftRefused, steps.StepRefused) as exc:
+        raise _error(exc) from exc
+
+
+class CheckedBody(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    step: str = Field(max_length=40)
+
+
+@router.post("/drafts/{session_id}/origin/checked")
+def origin_checked(session_id: str, body: CheckedBody, request: Request) -> dict[str, Any]:
+    """Mark an imported step as opened (M10b); a side write: ``updated_at`` does not change."""
+    if body.step not in importer.IMPORTED_STEPS:
+        raise _error(steps.StepRefused("STEP_UNKNOWN", f"unknown step {body.step!r}", status=404, details={"steps": list(importer.IMPORTED_STEPS)}))
+
+    def mark(origin: Any) -> Any:
+        if not isinstance(origin, dict):
+            return origin
+        return {**origin, "checked": {**(origin.get("checked") or {}), body.step: True}}
+
+    try:
+        record = _store(request).update_side(session_id, "origin", mark)
+    except DraftRefused as exc:
+        raise _error(exc) from exc
+    return {"session_id": session_id, "origin": record.get("origin")}
 
 
 @router.get("/drafts/{session_id}")
@@ -177,6 +239,7 @@ def genesis(session_id: str, body: GenesisBody, request: Request) -> dict[str, A
             replace=body.replace,
             confirm_discard_screening_binding=body.confirm_discard_screening_binding,
             busy=lambda target: _running_job(request, target),
+            origin=record.get("origin"),
         )
         # The backup and the previous fingerprint too, so Done shows them after a reload (M4b).
         kept = ("slug", "path", "protocol_fingerprint", "replaced", "previous_fingerprint", "backup_dir", "archived")

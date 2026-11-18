@@ -7,7 +7,8 @@ import { DataCell } from "@/components/ui/base";
 import { StateCard } from "@/components/screening-state-card";
 import { inceptionStateKey } from "@/lib/screening-states";
 import { isScreeningApiError } from "@/lib/screening-api";
-import { readDraft, saveDraft, type Draft, type DraftRecord } from "@/lib/inception-api";
+import { markStepChecked, readDraft, saveDraft, type Draft, type DraftOrigin, type DraftRecord } from "@/lib/inception-api";
+import { importLossLines } from "@/lib/inception-import";
 import { inceptionT, type InceptionCopyKey } from "@/lib/inception-copy";
 
 /**
@@ -54,7 +55,7 @@ export function useLocationParams(): { origin: string; draftId: string; ready: b
 }
 
 /** The link to one inception screen for this draft, keeping the console override. */
-export function inceptionHref(locale: Locale, step: InceptionStep | "", draftId = "", origin = ""): string {
+export function inceptionHref(locale: Locale, step: InceptionStep | "import" | "", draftId = "", origin = ""): string {
   const query = new URLSearchParams();
   if (draftId) query.set("draft", draftId);
   if (origin) query.set("console", origin);
@@ -221,7 +222,16 @@ const INCEPTION_FIELD_KEYS: Record<string, true> = Object.fromEntries(
   ["topic", "paradigm", "playbook", "unit_of_analysis", "proof", "rqs", "concepts", "title", "lead_researcher"].map((f) => [`field.${f}`, true]),
 );
 
-export function InceptionSteps({ locale, current, draftId, origin }: Readonly<{ locale: Locale; current: InceptionStep; draftId: string; origin: string }>) {
+/** The steps an import fills (M10b, `09-start-from-protocol`); Explore carries nothing. */
+export const IMPORTED_STEPS: InceptionStep[] = ["scope", "direction", "shape", "criteria", "review"];
+
+export function InceptionSteps({
+  locale,
+  current,
+  draftId,
+  origin,
+  unchecked = [],
+}: Readonly<{ locale: Locale; current: InceptionStep; draftId: string; origin: string; unchecked?: InceptionStep[] }>) {
   const t = inceptionT(locale);
   return (
     <nav aria-label={t("stepsLabel")} className="mb-6">
@@ -239,6 +249,11 @@ export function InceptionSteps({ locale, current, draftId, origin }: Readonly<{ 
               className={`inline-flex min-h-11 items-center rounded-md border px-3 ${step === current ? "border-brand bg-brand-soft text-brand" : "border-rule text-ink"}`}
             >
               {t("step.current", { n, label: t(key) })}
+              {unchecked.includes(step) ? (
+                <span className="ms-2 text-xs text-unclear" data-imported-mark={step}>
+                  · {t("imported.mark")}
+                </span>
+              ) : null}
             </a>
           </li>
         ))}
@@ -319,9 +334,24 @@ export function InceptionFrame({
 }: Readonly<{ locale: Locale; current: InceptionStep; draft: ReturnType<typeof useDraft>; children: ReactNode }>) {
   const t = inceptionT(locale);
   const { record, loadError, origin, draftId, ready } = draft;
+  // M10b: an imported draft marks each step until it is opened; opening this one clears its mark.
+  const [opened, setOpened] = useState<InceptionStep[]>([]);
+  const imported = record?.origin?.kind === "import" ? record.origin : null;
+  const emitted = !!record?.emitted;
+  const needsMark = !!imported && !emitted && IMPORTED_STEPS.includes(current) && imported.checked?.[current] === false;
+  useEffect(() => {
+    if (!needsMark || !record || opened.includes(current)) return;
+    const controller = new AbortController();
+    markStepChecked(origin, record.session_id, current, controller.signal).then(
+      () => setOpened((list) => [...list, current]),
+      () => undefined, // the mark stays; nothing else depends on it
+    );
+    return () => controller.abort();
+  }, [needsMark, record, origin, current, opened]);
+  const unchecked = imported && !emitted ? IMPORTED_STEPS.filter((step) => imported.checked?.[step] === false && !opened.includes(step)) : [];
   return (
     <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8 lg:py-12">
-      <InceptionSteps locale={locale} current={current} draftId={draftId} origin={origin} />
+      <InceptionSteps locale={locale} current={current} draftId={draftId} origin={origin} unchecked={unchecked} />
       {!ready ? (
         <p role="status" className="text-ink-muted">
           {t("loading")}
@@ -357,6 +387,7 @@ export function InceptionFrame({
               <bdi dir="ltr">{stamp(record.updated_at)}</bdi>
             </span>
           </p>
+          {imported ? <ImportedBanner locale={locale} origin={imported} /> : null}
           {children}
         </>
       )}
@@ -379,4 +410,27 @@ export function StepHeader({ kicker, title, lede, extra }: Readonly<{ kicker: st
 /** An engine timestamp as `YYYY-MM-DD HH:MM`, as the other screens print it (UTC, as stored). */
 export function stamp(at: string | null | undefined): string {
   return at ? at.slice(0, 16).replace("T", " ") : "";
+}
+
+/** "Started from {label} ..." under the stepper of an imported draft, with what was not carried (M10b). */
+function ImportedBanner({ locale, origin }: Readonly<{ locale: Locale; origin: DraftOrigin }>) {
+  const t = inceptionT(locale);
+  const lines = importLossLines(locale, origin.report?.lost ?? [], origin.report?.needs_you ?? []);
+  return (
+    <section className="mb-4 rounded-lg border border-rule bg-leaf p-3 text-sm text-ink" data-imported-banner>
+      <p>
+        {t("imported.banner", { label: origin.source?.label ?? "", date: stamp(origin.source?.protocol_created_at ?? origin.imported_at) })}
+      </p>
+      {lines.length ? (
+        <details className="mt-1">
+          <summary className="min-h-11 cursor-pointer py-2 text-brand">{t("imported.bannerMore", { n: String(lines.length) })}</summary>
+          <ul className="list-disc ps-5 text-ink-muted">
+            {lines.map((line) => (
+              <li key={line}>{line}</li>
+            ))}
+          </ul>
+        </details>
+      ) : null}
+    </section>
+  );
 }

@@ -107,6 +107,17 @@ CRITERIA_MISSING = "CRITERIA_MISSING"
 INTENT_INVALID = "INTENT_INVALID"
 SCREENING_BOUND = "SCREENING_BOUND"
 CONFIRMATION_MISMATCH = "CONFIRMATION_MISMATCH"
+#: M10b (``09-start-from-protocol``, ``POST /inception/drafts/import``): the source
+#: workspace or its protocol.json is not there (404); its bytes are not base64,
+#: UTF-8, JSON or a JSON object (422); it is over 1 MiB (413); it is neither a
+#: protocol nor an intent (422); its ``$schema`` is not v1 (422); the source's
+#: fingerprint is not the one the report showed (409).
+IMPORT_SOURCE_NOT_FOUND = "IMPORT_SOURCE_NOT_FOUND"
+IMPORT_SOURCE_UNREADABLE = "IMPORT_SOURCE_UNREADABLE"
+IMPORT_SOURCE_TOO_LARGE = "IMPORT_SOURCE_TOO_LARGE"
+IMPORT_NOT_A_PROTOCOL = "IMPORT_NOT_A_PROTOCOL"
+IMPORT_PROTOCOL_VERSION_UNSUPPORTED = "IMPORT_PROTOCOL_VERSION_UNSUPPORTED"
+IMPORT_SOURCE_CHANGED = "IMPORT_SOURCE_CHANGED"
 
 # --- recon over HTTP (M4c, `console/api/recon.py`) ----------------------------
 #: Raised as ``ReconRefused`` (``recon/session.py``, ``inception/grounding.py``).
@@ -270,6 +281,12 @@ CONTRACT_ADDED = frozenset(
         INTENT_INVALID,
         SCREENING_BOUND,
         CONFIRMATION_MISMATCH,
+        IMPORT_SOURCE_NOT_FOUND,
+        IMPORT_SOURCE_UNREADABLE,
+        IMPORT_SOURCE_TOO_LARGE,
+        IMPORT_NOT_A_PROTOCOL,
+        IMPORT_PROTOCOL_VERSION_UNSUPPORTED,
+        IMPORT_SOURCE_CHANGED,
         MAILTO_NOT_SET,
         RECON_SESSION_INVALID,
         RECON_SESSION_NOT_FOUND,

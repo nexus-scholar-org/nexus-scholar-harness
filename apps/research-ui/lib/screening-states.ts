@@ -991,6 +991,71 @@ export const STATES: Record<string, StateEntry> = {
   // Inception recon (specs 02 Explore and 03 Direction, M4d). Three codes that
   // discovery or screening also use carry their inception meaning under the
   // `inception.` prefix (`inceptionStateKey`).
+  // M10b (spec 09): starting a draft from an earlier protocol. The screen's own
+  // buttons ("Choose a different source", "Read it again") are the next step.
+  IMPORT_SOURCE_NOT_FOUND: {
+    role: "blocked",
+    action: "none",
+    copy: {
+      en: T("That protocol is not there", "The workspace folder or its protocol.json is not on this computer any more.", "Starting from it", "Choose another source"),
+      fr: T("Ce protocole n'est pas là", "Le dossier de l'espace ou son protocol.json n'est plus sur cet ordinateur.", "Le départ depuis celui-ci", "Choisir une autre source"),
+      ar: T("ذلك البروتوكول غير موجود", "لم يعد مجلد مساحة العمل أو ملف protocol.json الخاص بها على هذا الحاسوب.", "البدء منه", "اختر مصدرًا آخر"),
+    },
+  },
+  IMPORT_SOURCE_UNREADABLE: {
+    role: "blocked",
+    action: "none",
+    copy: {
+      en: T("That file cannot be read", "It is not text in UTF-8, or not JSON, or not a JSON object. Details says which.", "Starting from it", "Choose another file"),
+      fr: T("Ce fichier ne peut pas être lu", "Ce n'est pas du texte UTF-8, ou pas du JSON, ou pas un objet JSON. Les détails disent lequel.", "Le départ depuis celui-ci", "Choisir un autre fichier"),
+      ar: T("لا يمكن قراءة ذلك الملف", "ليس نصًا بترميز UTF-8، أو ليس JSON، أو ليس كائن JSON. توضح التفاصيل أيها.", "البدء منه", "اختر ملفًا آخر"),
+    },
+  },
+  IMPORT_SOURCE_TOO_LARGE: {
+    role: "blocked",
+    action: "none",
+    copy: {
+      en: T("That file is too large for a protocol", "A protocol file is a few kilobytes. This one is over 1 MB.", "Starting from it", "Choose another file"),
+      fr: T("Ce fichier est trop grand pour un protocole", "Un fichier de protocole fait quelques kilo-octets. Celui-ci dépasse 1 Mo.", "Le départ depuis celui-ci", "Choisir un autre fichier"),
+      ar: T("ذلك الملف أكبر من أن يكون بروتوكولًا", "ملف البروتوكول بضعة كيلوبايتات. هذا الملف أكبر من 1 ميغابايت.", "البدء منه", "اختر ملفًا آخر"),
+    },
+  },
+  IMPORT_NOT_A_PROTOCOL: {
+    role: "blocked",
+    action: "none",
+    copy: {
+      en: T("That is not a protocol", "It is JSON, but it has no research questions, criteria and search strategy. Details lists what is missing.", "Starting from it", "Choose protocol.json or intent.json"),
+      fr: T("Ce n'est pas un protocole", "C'est du JSON, mais il n'a ni questions de recherche, ni critères, ni stratégie de recherche. Les détails listent ce qui manque.", "Le départ depuis celui-ci", "Choisir protocol.json ou intent.json"),
+      ar: T("هذا ليس بروتوكولًا", "إنه JSON، لكنه بلا أسئلة بحث ولا معايير ولا استراتيجية بحث. تسرد التفاصيل ما ينقص.", "البدء منه", "اختر protocol.json أو intent.json"),
+    },
+  },
+  IMPORT_PROTOCOL_VERSION_UNSUPPORTED: {
+    role: "blocked",
+    action: "none",
+    copy: {
+      en: T("This protocol is from a version this app does not read", "Its $schema is not the one this app reads. Nothing was guessed. Details shows both.", "Starting from it", "Choose another source"),
+      fr: T("Ce protocole vient d'une version que l'application ne lit pas", "Son $schema n'est pas celui que l'application lit. Rien n'a été deviné. Les détails montrent les deux.", "Le départ depuis celui-ci", "Choisir une autre source"),
+      ar: T("هذا البروتوكول من إصدار لا يقرؤه التطبيق", "قيمة $schema فيه ليست التي يقرؤها التطبيق. لم يُخمَّن شيء. تعرض التفاصيل القيمتين.", "البدء منه", "اختر مصدرًا آخر"),
+    },
+  },
+  IMPORT_SOURCE_CHANGED: {
+    role: "unclear",
+    action: "none",
+    copy: {
+      en: T("That protocol changed while you were looking", "Its fingerprint is not the one the report showed. No draft was created.", "Creating the draft", "Read it again"),
+      fr: T("Ce protocole a changé pendant que vous le lisiez", "Son empreinte n'est pas celle que le rapport montrait. Aucun brouillon n'a été créé.", "La création du brouillon", "Relire"),
+      ar: T("تغيّر ذلك البروتوكول أثناء اطلاعك عليه", "بصمته ليست التي عرضها التقرير. لم تُنشأ أي مسودة.", "إنشاء المسودة", "اقرأه مجددًا"),
+    },
+  },
+  "inception.PROTOCOL_INVALID": {
+    role: "blocked",
+    action: "none",
+    copy: {
+      en: T("This protocol does not pass the protocol check", "It looks like a protocol, but a field has the wrong type or value. Details lists them.", "Starting from it", "Choose another source"),
+      fr: T("Ce protocole ne passe pas la vérification", "Il ressemble à un protocole, mais un champ a le mauvais type ou la mauvaise valeur. Les détails les listent.", "Le départ depuis celui-ci", "Choisir une autre source"),
+      ar: T("لا يجتاز هذا البروتوكول فحص البروتوكول", "يبدو بروتوكولًا، لكن أحد الحقول بنوع أو قيمة خاطئة. تسردها التفاصيل.", "البدء منه", "اختر مصدرًا آخر"),
+    },
+  },
   "inception.STALE_BINDING": {
     role: "unclear",
     action: "inception-step",

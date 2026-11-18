@@ -111,7 +111,58 @@ export interface DraftRecord {
   emitted: Emitted | null;
   /** Written only by the engine's bind route (M4c); a save carries it through. */
   grounding?: Grounding | null;
+  /** M10b: the earlier protocol a draft was started from; written only by the engine. */
+  origin?: DraftOrigin | null;
 }
+
+/** M10b (`09-start-from-protocol`): what the import read. */
+export interface ImportSourceSummary {
+  kind: "workspace" | "file";
+  label: string;
+  read: "protocol" | "intent";
+  slug?: string;
+  file_name?: string;
+  schema?: string | null;
+  protocol_id?: string | null;
+  protocol_created_at?: string | null;
+  protocol_fingerprint: string | null;
+  target_slug: string;
+  collides_with_source: boolean;
+}
+
+/** One line of the import report, as the engine wrote it (`what` names the kind). */
+export interface ImportLoss {
+  what: string;
+  [key: string]: unknown;
+}
+
+export interface ImportCarried {
+  field: string;
+  from: string;
+  class: string;
+}
+
+export interface ImportReport {
+  source: ImportSourceSummary;
+  draft: Draft;
+  carried: ImportCarried[];
+  lost: ImportLoss[];
+  needs_you: string[];
+  earlier_pool: { min: number; max: number } | null;
+}
+
+export interface DraftOrigin {
+  kind: "import";
+  source: ImportSourceSummary;
+  imported_at: string;
+  checked: Record<string, boolean>;
+  report: { carried: ImportCarried[]; lost: ImportLoss[]; needs_you: string[] };
+  earlier_pool: { min: number; max: number } | null;
+}
+
+export type ImportSourceRequest =
+  | { kind: "workspace"; slug: string }
+  | { kind: "file"; file_name: string; content_base64: string };
 
 export interface DraftListItem {
   session_id: string;
@@ -121,6 +172,8 @@ export interface DraftListItem {
   created_at?: string | null;
   updated_at?: string | null;
   emitted?: Emitted | null;
+  /** M10b: the label of the earlier protocol the draft was started from. */
+  origin_label?: string | null;
 }
 
 export interface DraftListing {
@@ -277,4 +330,19 @@ export function previewDraft(origin: string, draft: Draft, signal?: AbortSignal,
 
 export function runGenesis(origin: string, sessionId: string, request: GenesisRequest = {}, signal?: AbortSignal): Promise<GenesisResult> {
   return postJson<GenesisResult>(`${BASE}/drafts/${encodeURIComponent(sessionId)}/genesis`, origin, request, signal);
+}
+
+/** M10b: read a protocol into a draft. `dry_run` answers the report and stores nothing. */
+export function importDraft(origin: string, source: ImportSourceRequest, signal?: AbortSignal): Promise<ImportReport> {
+  return postJson<ImportReport>(`${BASE}/drafts/import`, origin, { source, dry_run: true }, signal);
+}
+
+/** M10b: create the draft from the source the report showed; the engine refuses a source that changed since. */
+export function createImportedDraft(origin: string, source: ImportSourceRequest, expectFingerprint: string | null, signal?: AbortSignal): Promise<DraftRecord> {
+  return postJson<DraftRecord>(`${BASE}/drafts/import`, origin, { source, dry_run: false, expect_fingerprint: expectFingerprint }, signal);
+}
+
+/** M10b: mark an imported step as opened; the draft's `updated_at` does not change. */
+export function markStepChecked(origin: string, sessionId: string, step: string, signal?: AbortSignal): Promise<{ session_id: string; origin: DraftOrigin | null }> {
+  return postJson(`${BASE}/drafts/${encodeURIComponent(sessionId)}/origin/checked`, origin, { step }, signal);
 }

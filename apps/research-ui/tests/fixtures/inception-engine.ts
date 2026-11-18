@@ -27,6 +27,35 @@ export interface FakeOptions {
   restarting?: boolean;
   /** The recon routes of the draft (M4d): contact address, keys, what each probe finds. */
   recon?: ReconOptions;
+  /** M10b: the workspaces `GET /workspaces` lists, and the protocol each holds for the import. */
+  workspaces?: { slug: string; title: string; protocol?: Json }[];
+}
+
+/** M10b: the import's test double. It keeps the engine's report shape; the mapping rules are the engine's (Python tests). */
+function importReport(protocol: Json, label: string, kind: "workspace" | "file", slug?: string): Json {
+  const meta = (protocol.metadata ?? {}) as Json;
+  const sc = (protocol.screening_criteria ?? {}) as { inclusion?: Json[]; exclusion?: Json[] };
+  const draft: Json = {
+    topic: "",
+    title: meta.title,
+    lead_researcher: meta.lead_researcher,
+    paradigm: ((protocol.epistemology ?? {}) as Json).primary_paradigm,
+    playbook: protocol.playbook_type,
+    rqs: ((protocol.research_questions ?? []) as Json[]).map((rq) => rq.text),
+    extra_inclusions: (sc.inclusion ?? []).map((c) => c.criterion),
+    extra_exclusions: (sc.exclusion ?? []).map((c) => ({ criterion: c.criterion, reason_category: c.reason_category ?? "OUT_OF_SCOPE" })),
+  };
+  return {
+    source: {
+      kind, label, read: "protocol", slug, protocol_created_at: "2026-10-12T14:12:24+00:00",
+      protocol_fingerprint: "sha256:" + "ef".repeat(32), target_slug: slugify(String(meta.title ?? "")), collides_with_source: false,
+    },
+    draft,
+    carried: [{ field: "rqs", from: "research_questions[].text", class: "exact" }],
+    lost: [{ what: "facets", count: (draft.rqs as unknown[]).length }, { what: "rationale" }, { what: "preset" }],
+    needs_you: ["topic"],
+    earlier_pool: { min: 0, max: 1000 },
+  };
 }
 
 const PARADIGMS = [
@@ -102,15 +131,15 @@ export function inceptionEngine(options: FakeOptions = {}) {
   const now = () => `2026-11-09T10:${String(clock++).padStart(2, "0")}:00+00:00`;
   const drafts = new Map<string, Json>();
   const calls: { method: string; path: string; body: Json | null; search?: string }[] = [];
-  const refuseOnce = { ...(options.refuseOnce ?? {}) };
+  const refuseOnce = options.refuseOnce ?? {}; // the caller's object, so a test can add a refusal after the first read
   let existing = options.existing ?? "none";
   let current: string | null = null;
   let nextId = 0;
   const recon = reconEngine(options.recon ?? {}, () => now());
 
-  const seed = (draft: Json = {}, emitted: Json | null = null, id = SESSION): string => {
+  const seed = (draft: Json = {}, emitted: Json | null = null, id = SESSION, extra: Json = {}): string => {
     const at = now();
-    drafts.set(id, { session_id: id, created_at: at, updated_at: at, draft, emitted });
+    drafts.set(id, { session_id: id, created_at: at, updated_at: at, draft, emitted, ...extra });
     return id;
   };
 
@@ -175,8 +204,48 @@ export function inceptionEngine(options: FakeOptions = {}) {
         created_at: r.created_at,
         updated_at: r.updated_at,
         emitted: r.emitted,
+        origin_label: ((r.origin as Json | undefined)?.source as Json | undefined)?.label ?? null,
       }));
       return { status: 200, body: { root: ROOT, items } };
+    }
+    if (path === "/api/v1/inception/drafts/import" && method === "POST") {
+      const src = (body?.source ?? {}) as Json;
+      let protocol: Json | undefined;
+      let label = "";
+      if (src.kind === "workspace") {
+        const ws = (options.workspaces ?? []).find((w) => w.slug === src.slug);
+        if (!ws?.protocol) return refuse(404, "IMPORT_SOURCE_NOT_FOUND", "no protocol.json", { slug: src.slug });
+        protocol = ws.protocol;
+        label = String(src.slug);
+      } else {
+        try {
+          protocol = JSON.parse(Buffer.from(String(src.content_base64 ?? ""), "base64").toString("utf-8")) as Json;
+        } catch {
+          return refuse(422, "IMPORT_SOURCE_UNREADABLE", "not JSON", { reason: "not_json" });
+        }
+        if (!protocol.screening_criteria) return refuse(422, "IMPORT_NOT_A_PROTOCOL", "neither", { missing: ["screening_criteria"] });
+        label = String(src.file_name);
+      }
+      const report = importReport(protocol, label, src.kind === "workspace" ? "workspace" : "file", src.kind === "workspace" ? String(src.slug) : undefined);
+      if (body?.dry_run !== false) return { status: 200, body: report };
+      if (body.expect_fingerprint !== (report.source as Json).protocol_fingerprint) return refuse(409, "IMPORT_SOURCE_CHANGED", "changed");
+      nextId += 1;
+      const id = `rec_${String(nextId).padStart(32, "0")}`;
+      const checked = { scope: false, direction: false, shape: false, criteria: false, review: false };
+      seed(report.draft as Json, null, id, { origin: { kind: "import", source: report.source, imported_at: now(), checked, report: { carried: report.carried, lost: report.lost, needs_you: report.needs_you }, earlier_pool: report.earlier_pool } });
+      return { status: 201, body: drafts.get(id) };
+    }
+    const checkedPath = path.match(/^\/api\/v1\/inception\/drafts\/([^/]+)\/origin\/checked$/);
+    if (checkedPath && method === "POST") {
+      const record = drafts.get(checkedPath[1]);
+      if (!record) return refuse(404, "DRAFT_NOT_FOUND");
+      const originRec = record.origin as Json | undefined;
+      if (originRec) drafts.set(checkedPath[1], { ...record, origin: { ...originRec, checked: { ...(originRec.checked as Json), [String(body?.step)]: true } } });
+      return { status: 200, body: { session_id: checkedPath[1], origin: drafts.get(checkedPath[1])?.origin ?? null } };
+    }
+    if (path === "/api/v1/workspaces" && method === "GET") {
+      const items = (options.workspaces ?? []).map((w) => ({ slug: w.slug, title: w.title, path: `${ROOT}\\${w.slug}`, valid: true, last_event: { at: "2026-11-10T10:00:00+00:00", action: "GENESIS" } }));
+      return { status: 200, body: { root: ROOT, items, current: null } };
     }
     if (path === "/api/v1/inception/drafts" && method === "POST") {
       nextId += 1;

@@ -53,6 +53,9 @@ POST_PATHS: tuple[re.Pattern[str], ...] = tuple(
         r"api/v1/inception/(drafts|preview)",
         r"api/v1/inception/steps/(scope|shape|criteria|matrix)",
         r"api/v1/inception/drafts/[A-Za-z0-9_-]+/genesis",
+        # M10b (09-start-from-protocol): start a draft from a protocol; mark an imported step opened.
+        r"api/v1/inception/drafts/import",
+        r"api/v1/inception/drafts/[A-Za-z0-9_-]+/origin/checked",
         r"api/v1/inception/drafts/[A-Za-z0-9_-]+/recon/(probe|delta|distill|bind)",
         r"api/v1/discovery/(runs|recall)",
         # M3i-harvest-robustness: finish a harvest's remaining stages without a new search.

@@ -191,6 +191,7 @@ export function InceptionShape({ locale }: Readonly<{ locale: Locale }>) {
           min={draft.pool_min ?? null}
           max={draft.pool_max ?? null}
           preset={shape?.pool_preset ?? null}
+          earlier={record?.origin?.earlier_pool ?? null}
           problem={planned}
           onChange={(min, max) => update({ pool_min: min, pool_max: max })}
         />
@@ -230,6 +231,11 @@ export function InceptionShape({ locale }: Readonly<{ locale: Locale }>) {
             <p id="shape-proof-help" className="mt-1 text-xs text-ink-muted">
               {t("shape.proofHelp")}
             </p>
+            {record?.origin?.report?.needs_you?.includes("proof") && !(draft.proof ?? "").trim() && !proofOptional ? (
+              <p className="mt-1 text-sm text-unclear" data-needs-proof>
+                {t("imported.needs.line", { field: t("imported.needs.proof") })}
+              </p>
+            ) : null}
           </div>
         </div>
 
@@ -355,6 +361,7 @@ function PlannedRecords({
   min,
   max,
   preset,
+  earlier = null,
   problem,
   onChange,
 }: Readonly<{
@@ -362,6 +369,7 @@ function PlannedRecords({
   min: number | null;
   max: number | null;
   preset: { min: number; max: number } | null;
+  earlier?: { min: number; max: number } | null;
   problem: "order" | "range" | "max" | null;
   onChange: (min: number | null, max: number | null) => void;
 }>) {
@@ -419,6 +427,13 @@ function PlannedRecords({
           <span>{t("shape.planned.preset", { min: String(preset.min), max: String(preset.max) })}</span>
           <Button onClick={() => onChange(preset.min, preset.max)} data-use-preset>
             {t("shape.planned.usePreset")}
+          </Button>
+        </div>
+      ) : null}
+      {earlier ? (
+        <div className="mt-2" data-planned-earlier>
+          <Button onClick={() => onChange(earlier.min, earlier.max)} data-use-earlier>
+            {t("shape.planned.useEarlier", { min: String(earlier.min), max: String(earlier.max) })}
           </Button>
         </div>
       ) : null}
