@@ -1,0 +1,57 @@
+# H-small-fixes-2026-11-18 Runbook, wheel build guard, F9, F10 and load-sensitive tests
+Branch: dev/fix/runbook-build-flakes · Lane: **STANDARD** · Status: IN PROGRESS · Started: 2026-11-18
+
+Base: `origin/main` at `e7644a6c`. No live API calls, no AI spend. Out of scope by agreement with the concurrent sessions: every Inception and Discovery screen component (M10b), `src/scholar_search` (provider resilience). No screen component was edited.
+
+**Lane.** STANDARD, from `docs/architecture/test_gate_policy.md`: no public HTTP, CLI-semantics or MCP change and no Contract v1 model, schema or fixture change. The user-visible changes are the wording of one error message and a local build that now refuses to produce a UI-less wheel. The CI and release workflows already set `NEXUS_WHEEL_REQUIRE_UI=1` and build the export first (`ci.yml` `build-wheel`, `release.yml`, `publish.yml`), so `build-wheel` and `wheel-e2e` are unaffected.
+
+Source of the items: the strict acceptance run of 2026-11-13 (findings 1 and 13), `docs/assessment/three-phase-hardening-2026-11-10.md` (F9, F10), and the two load-sensitive UI tests named by the coordinating session.
+
+## Definition of done
+- [x] **1. Runbook** (`docs/roadmap/acceptance-run-uav-strict.md`): (a) says the app names the folder after the review title, with the folder the researcher will see; (b) `npm ci` and `npm run build:export` before `uv build --wheel`; (c) a section on resuming `run_001` after M3i, wording copied from `apps/research-ui/lib/discovery-copy.ts` and the M3i record's "Not verified" section; (d) the findings table holds the thirteen findings from the researcher's notes of 2026-11-14, each with its status at `e7644a6c`.
+- [x] **2. Wheel build guard.** A missing UI export is a build error naming the two commands; `NEXUS_WHEEL_ALLOW_NO_UI=1` builds a UI-less wheel on purpose and warns; the "no app bundle" message tells an installed user to rebuild and reinstall.
+- [x] **3. F9.** The skill lines go through logging; `nexus-scholar init` prints one summary line.
+- [x] **4a. F10 (Python).** Four of the six are explained and handled (a stale editable install); two did not reproduce and are not changed (see below).
+- [x] **4b. UI load-sensitive tests.** Both reproduced, causes found, tests fixed, no screen component touched.
+- [ ] **5. Gates.** `/gate pr` once on the final executable commit; `generate_contract_baseline.py --check`; both ruff commands; `milestone-reviewer`.
+
+## Findings fixed
+| Item | Reproducing test | Fails before | Passes after |
+| :-- | :-- | :-- | :-- |
+| 2 build guard | `tests/test_wheel_build_hook.py` (6 tests: fails naming the two commands, bundles the export, opt-out warns, release flag wins over the opt-out, editable and sdist never need it, the no-app-bundle message) | real `uv build --wheel` with no `apps/research-ui/.next-export`: "Successfully built ... nexus_scholar-1.1.0b6-py3-none-any.whl", 314 files, 0 under `scholar_harness_data/ui/`; the three guard tests failed (no `NEXUS_WHEEL_ALLOW_NO_UI`, no commands in the messages) | yes: the same build now ends `RuntimeError: apps/research-ui/.next-export has no static export, so the wheel would have no UI. Build the UI first ...`; with the opt-out it builds and warns; with a (fake) export present the wheel has `scholar_harness_data/ui/en/index.html` |
+| 3 F9 | `tests/inception/test_support_files_quiet.py` (4 tests) | stdout held one "skill ...: COPIED (symlink unavailable ..." paragraph per skill (twelve per workspace) when `scaffold_placeholder_workspace` ran; three of the four tests failed | yes: nothing on stdout; each skill is an INFO record of `scholar_harness.inception.genesis`; a missing skill source is a WARNING; `nexus-scholar init` prints one line ("N skills were COPIED ...") |
+| 4a version tests and screening fixtures | `tests/test_version.py::test_the_installed_metadata_is_the_project_version`; `skip_if_stale_install` in `tests/conftest.py` on the two version tests and `tests/console/test_screening_api_contract.py::test_the_committed_fixtures_are_what_the_engine_produces` | simulated stale install (`pyproject.toml` 1.1.0b7, installed metadata 1.1.0b6, `uv run --no-sync`): 2 version tests failed, and with metadata 1.1.0b4 seven committed screening fixtures differ (content hashes cover the producer version) | the same simulation: 1 failed (the explicit check, saying `run uv sync`), 3 skipped with the same reason; a fresh install: all pass |
+| 4b `i18n-direction-source.test.ts` | the test itself | N10 "uses no physical layout property" timed out at 5 000 ms (13.4 s in the run with another file; 3 failures in the loaded run of both files) | 82 to 206 ms, also under 16 busy processes |
+| 4b `screening-proposals.test.tsx` | the test itself | the first test, "keeps Start disabled until consent is ticked...": `Unable to find role="button" and name "Start agent proposals · 3 records"` after 1 219 ms, on an idle machine; also in the loaded run | 7 of 7 pass twice idle and in the loaded run |
+
+## Causes
+- **Wheel build.** `hatch_build.py` only failed on a missing export when `NEXUS_WHEEL_REQUIRE_UI=1` was set, which CI and release set and a local build does not. The default is now the error; the old behaviour is one opt-out away (`NEXUS_WHEEL_ALLOW_NO_UI=1`), for a machine without Node or the MCP-only extension (`scripts/build_mcpb.py` says so). `uv sync` (editable) is unaffected.
+- **F9.** `install_workspace_support_files` used the shared rich `console.print`, and genesis runs inside the API request.
+- **F10, four of six.** Not worker interference: the installed dist-info of the editable install was older than `pyproject.toml` (the assessment saw 1.1.0b4 in it on 2026-11-10). The package version is recorded in provenance, so `__version__`, the CLI version and the content hashes of seven screening fixtures all follow the installed metadata, and the assessment's four "version tests" plus the fixture test fail together. "Passes alone" is consistent with `uv run` refreshing the install on the first, single-file invocation. The tests did read `pyproject.toml` already; the code under test reads the installed metadata, as it must in a wheel, so the fix is not to change which one the tests read but to make a stale install one failure with its remedy instead of five. The producer version could not simply be pinned in the fixture generator: the `ProtocolProducer` and `CorpusProducer` models take their version default when the class is defined (`scholar_protocol/identity.py` line 41, `scholar_search/identity.py` line 43), so patching the module constant later does nothing (tried, reverted).
+- **4b i18n.** The N10 guard ran fourteen patterns over every UI file and each pattern re-read and re-split every file: with the screens added since, several thousand synchronous reads. It was slow, not wrong. The scan now reads each file once.
+- **4b proposals.** The first render in the file is cold (module graph, first role and accessible-name queries), which cost more than Testing Library's one-second default wait for the Start button. A throw-away render in `beforeAll` pays that cost outside any test.
+
+## Not reproduced and not changed
+- `tests/cli/test_cli_init.py::test_run_wizard_raw_target_handoff` (a missing GENESIS journal line under `-n auto`). On this machine the full suite under `-n auto` passed (5 074 passed, 15 skipped, 15 min), with this test in it. I found no shared state by reading `_log_project_event` (best effort: a missing log module only prints a warning) and did not try `--dist loadfile`, which would cost a second 15-minute run for a failure I cannot see. It stays an open P3 in the three-phase review: if it comes back on the researcher's machine, run it once there with `-n auto -rA` and keep the "event not logged" warning from the output.
+- The "Logged event [...]" lines that `log_event.py` (the workspace-manager skill script) prints during genesis are also stdout from inside a request. F9 names the skill paragraphs; those lines are the audit helper's own output and were left alone.
+
+## Evidence
+| Stage | Commit | Command | Result | Duration |
+| :-- | :-- | :-- | :-- | :-- |
+| baseline (working tree, before the last commit) | `e7644a6c` plus the first three commits | `uv run pytest -n auto` | 5 074 passed, 15 skipped | 15 min |
+| inner (item 2) | `60c96e93` | `uv run pytest tests/test_wheel_build_hook.py tests/test_ui_launcher.py tests/test_build_mcpb.py`; real `uv build --wheel` three ways (no export, `NEXUS_WHEEL_ALLOW_NO_UI=1`, a fake export) | 6 + 5 + 3 pass; the real builds behave as the table says | ~1 min |
+| inner (item 3) | `7a47cb8d` | `uv run pytest tests/inception tests/cli tests/console/test_inception_api.py` | 227 passed | 41 s |
+| inner (item 4) | `2fc86cc6` | vitest on the two files, idle and with 16 busy processes; `uv run pytest tests/test_version.py tests/console/test_screening_api_contract.py` (fresh install, then the stale simulation) | UI: 7 and 13 pass; Python: 10 pass, then 1 failed (the explicit check) and 3 skipped | ~5 min |
+| pr | `2fc86cc6` | `select_test_gate.py --changed origin/main --stage pr`, run step by step with `RESEARCH_UI_PORT=3291` | `git diff --check` ok; ruff `scripts/` ok; typecheck ok; `pytest -q -n auto` exit 0 (the summary line is hidden by the double `-q`; the same suite counted 5 074 passed, 15 skipped in the baseline row); `next build` ok; Playwright 491 passed, 13 skipped (13 rewritten screenshots restored with `git checkout`). **Vitest: first run 6 failed, 629 passed** (5 files outside this change: `discovery-harvest`, `discovery-recall`, `inception-done`, `inception-explore`, `keyboard-traversal`; timeouts of 5 000 ms and role lookups that did not find their heading, while another session's suites were running on the same machine); the same five files alone 96 passed; a second full run **635 passed in 44 files** | ~35 min |
+| contract and lint | `2fc86cc6` | `generate_contract_baseline.py --check`; `ruff check scripts/`; `ruff check src/ --select F821,F811,F823,F632,F7,B023,B006,E9` | baseline current; both ruff runs clean | <1 min |
+
+## Not verified
+- A wheel built from this branch was not installed and run, and the runbook's resume section was not tried against the strict run's real workspace (it lives on the second PC). Its wording is copied from the copy file at `e7644a6c`, not read from a running screen.
+- No CI run: the `build-wheel` and `wheel-e2e` jobs were read in `ci.yml`, `release.yml` and `publish.yml` (all three set `NEXUS_WHEEL_REQUIRE_UI=1` and run `npm ci` and `npm run build:export` before `uv build --wheel`), not executed.
+- F10: the researcher's six failures were not seen. Four are explained by a stale install and reproduced by simulation, not on the researcher's machine; the other two did not reproduce.
+- The load-sensitive UI tests were exercised under 16 busy processes on this machine only, not on the researcher's.
+- Five other UI test files also timed out once in the gate's first vitest run under load; they pass alone and in a second full run. They were not changed (out of the agreed scope; they are the same class of problem and may be worth one pass of their own).
+- Findings 2 to 4 of the strict run are marked "Fixed by M10a" from the M10a record, not re-run on a wheel.
+
+## Review
+(milestone-reviewer result goes here)
