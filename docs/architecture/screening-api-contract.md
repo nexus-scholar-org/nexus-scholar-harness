@@ -259,7 +259,7 @@ The UI reads proposals only through `GET /records/{study_id}/proposal`. The fiel
 | `IMPORT_PROTOCOL_VERSION_UNSUPPORTED` | `POST /inception/drafts/import` | HTTP 422: `$schema` is present and is not `schemas/v1/protocol.schema.json`; nothing is guessed; `details.found`, `details.supported` (M10b) |
 | `IMPORT_SOURCE_CHANGED` | `POST /inception/drafts/import` (creating) | HTTP 409: the source's fingerprint is not the `expect_fingerprint` the report showed; no draft is created; `details.expected`, `details.found` (M10b) |
 | `PROPOSAL_NOT_FOUND` | `POST /inception/drafts/{id}/proposals/{pid}/…` | HTTP 404: no proposal with that id on this draft; `details.proposal_id` (M10b, proposals) |
-| `PROPOSAL_STALE` | `POST /inception/drafts/{id}/proposals/{pid}/…``apply`, `apply-edited` | HTTP 409: the target field changed since the proposal was made; nothing is written; `details.base`, `details.current` (M10b) |
+| `PROPOSAL_STALE` | `POST /inception/drafts/{id}/proposals/{pid}/apply`, `…/apply-edited` | HTTP 409: the target field changed since the proposal was made; nothing is written; `details.base`, `details.current` (M10b) |
 | `PROPOSAL_NOT_OPEN` | `POST /inception/drafts/{id}/proposals/{pid}/…` | HTTP 409: apply, apply-edited or reject of a proposal that is not open, restore of one that is not rejected, or an `add` whose value is already there; `details.status` (M10b) |
 | `PROPOSAL_TARGET_UNSUPPORTED` | `POST /inception/drafts/{id}/proposals/{pid}/…` | HTTP 422: the target is not a draft field or the `op` does not fit it; `details.field`, `details.op` (M10b) |
 | `PROPOSAL_SOURCE_REFUSED` | proposal creation (engine) | HTTP 422: a source other than `check:*` or `import:*` (`agent:*` until M10c); `details.source` (M10b) |
