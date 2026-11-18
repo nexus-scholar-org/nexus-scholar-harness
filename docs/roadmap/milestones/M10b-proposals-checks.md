@@ -1,5 +1,5 @@
 # M10b Proposals and checks
-Branch: dev/m10b/build (from `dev/m10b/proposals-checks` at `2d07228d`, with `origin/main` at `e7644a6c` merged) · Lane: **RELEASE** (declared 2026-11-18: new public routes and answer fields, new refusal codes, new `Draft` fields that an older engine refuses, `audit/proposals.jsonl` and `audit/check_dismissals.jsonl` in the preview's `files`, and a changed accept path on the Import step; per `docs/architecture/test_gate_policy.md`) · Status: IN PROGRESS (spec pass done 2026-11-18; build not started) · Started: 2026-11-14
+Branch: dev/m10b/build (from `dev/m10b/proposals-checks` at `2d07228d`, with `origin/main` at `e7644a6c` merged) · Lane: **RELEASE** (declared 2026-11-18: new public routes and answer fields, new refusal codes, new `Draft` fields that an older engine refuses, `audit/proposals.jsonl` and `audit/check_dismissals.jsonl` in the preview's `files`, and a changed accept path on the Import step; per `docs/architecture/test_gate_policy.md`) · Status: IN PROGRESS (Part A built and gated 2026-11-18; review round 1 CHANGES fixed; Parts B, C, D not started) · Started: 2026-11-14
 
 Second milestone of the "Assisted inception" sequence the researcher approved on
 2026-11-14 (M10a search quality, **M10b proposals and checks**, M10c assistant and
@@ -207,3 +207,11 @@ hydration and verification in that order (`pipeline/coordinator.py:595, 677, 696
 | **pr** | **`e381f63b`** | `git diff --check origin/main...HEAD`; `generate_contract_baseline.py --check`; `ruff check scripts/`; `ruff check src/ --select F821,F811,F823,F632,F7,B023,B006,E9`; `pytest -q -n auto`; `typecheck`; `npm test`; `build`; `test:browser` | clean; current; clean; clean; **5,121 passed, 15 skipped, 0 failed**; clean; **658 passed (46 files)**; built; **507 passed, 13 skipped** (Playwright rewrote 10 tracked screenshots of screens Part A does not touch; restored) | 1,050 s in all (pytest 423 s, vitest 78 s, browser 529 s) |
 
 ## Deferred
+Part A (each listed by the Part A review of 2026-11-18, or found while building; none is a DoD item):
+- The import screen's Offline state (`09` States: Create disabled with "needs the engine on this computer"). Not built; the screen shows the engine-unreachable card from the read instead. To build with Part C's bar, which owns the offline line.
+- `inception-import.uav.test.tsx` (`09` names a vitest rebuild of the UAV draft against a fake that implements the mapping). The engine rebuild is the Python `test_import_rebuilds_uav_draft`, on the real UAV protocol; the UI is covered by `inception-import.test.tsx` and the browser scenario. Not written.
+- Vitest cases for the Scope "needs" line and "Use research question 1" exist only in `inception-import.test.tsx` ("shows the banner and the marks ..."); Shape's proof "needs" line has no test of its own.
+- The terminal wizard's "Rejection category" prompt still takes any text: the reason-code rule applies to browser saves (decision item 25). A separate decision.
+- `pool_max: true` is read as 1 (pydantic's lax integers). Strict integers for the two fields are a follow-up.
+- `REVIEW_IMPORT_STEP_NOT_OPENED` (the Review note for an unopened imported step) is a check: Part B.
+

@@ -60,3 +60,15 @@ def test_shape_answers_the_chosen_playbooks_preset():
     # No playbook chosen yet: the recommended one's preset.
     out = steps.run_step("shape", {"topic": "weeds", "paradigm": "Positivist"})
     assert out["pool_preset"] == steps.pool_preset(out["recommended_playbook"])
+
+
+@pytest.mark.parametrize(
+    ("pair", "loc"),
+    [({"pool_min": 300, "pool_max": 150}, ["pool_min"]), ({"pool_max": 0}, ["pool_max"]), ({"pool_min": 50}, ["pool_max"])],
+)
+def test_a_range_error_names_its_field(pair, loc):
+    """Review of Part A, finding 3: the screen marks the right input from ``loc``."""
+    with pytest.raises(steps.StepRefused) as exc:
+        steps.parse_draft({**ready_draft(), **pair})
+    assert exc.value.details["errors"][0]["loc"] == loc
+

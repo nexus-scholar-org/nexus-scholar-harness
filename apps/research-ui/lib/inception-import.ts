@@ -16,6 +16,8 @@ export function importLossLines(locale: Locale, lost: ImportLoss[], needsYou: st
         return t("import.lost.facets");
       case "matrix_id":
         return t("import.lost.matrixId", { name: s(loss.name), id: s(loss.id), new: s(loss.new) });
+      case "matrix_default":
+        return t("import.lost.matrixDefault", { name: s(loss.name) });
       case "reason_code":
         return t("import.lost.reasonCode", { id: s(loss.id), original: s(loss.original), code: s(loss.code) });
       case "operator":

@@ -102,8 +102,10 @@ class ImportSource(BaseModel):
     kind: str = Field(pattern="^(workspace|file)$")
     slug: str | None = Field(default=None, max_length=200)
     file_name: str | None = Field(default=None, max_length=255)
-    #: The file's bytes, base64; at most 1 MiB decoded (refused ``IMPORT_SOURCE_TOO_LARGE``).
-    content_base64: str | None = Field(default=None, max_length=1_500_000)
+    #: The file's bytes, base64. Over 1 MiB decoded the engine answers
+    #: ``IMPORT_SOURCE_TOO_LARGE`` (413); this cap (about 3 MB decoded) only stops a
+    #: body far past that before it is read (``BODY_INVALID``).
+    content_base64: str | None = Field(default=None, max_length=4_000_000)
 
 
 class ImportBody(BaseModel):

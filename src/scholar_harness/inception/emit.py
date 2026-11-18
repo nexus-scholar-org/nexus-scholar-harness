@@ -311,6 +311,7 @@ def emit_workspace(
     description: str | None = None,
     fingerprint_label: str = "protocol",
     protocol_origin: str = "inception",
+    source_note: str = "",
 ) -> dict[str, Any]:
     """Write ``intent`` as a workspace's protocol through the overwrite guard.
 
@@ -334,9 +335,11 @@ def emit_workspace(
             scaffold_project(Path(root), title, slug, paradigm, rqs)
         compiled = compile_protocol_files(ws_dir, intent)
         _write_origin(ws_dir, protocol_origin)
+        # M10b: a draft started from an earlier protocol adds one sentence naming it.
+        tail = f". {source_note}" if source_note else ""
         log_genesis(
             ws_dir,
-            f"{summary} compiled {fingerprint_label} fingerprint {compiled['protocol_fingerprint']}",
+            f"{summary} compiled {fingerprint_label} fingerprint {compiled['protocol_fingerprint']}{tail}",
             recon_context=recon_context,
             agent=agent,
         )
@@ -371,7 +374,8 @@ def emit_workspace(
         )
     log_genesis(
         ws_dir,
-        f"{summary} compiled {fingerprint_label} fingerprint {compiled['protocol_fingerprint']}.{note}",
+        f"{summary} compiled {fingerprint_label} fingerprint {compiled['protocol_fingerprint']}.{note}"
+        + (f" {source_note}" if source_note else ""),
         recon_context=recon_context,
         agent=agent,
     )

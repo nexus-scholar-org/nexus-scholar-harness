@@ -313,11 +313,17 @@ def map_source(source: Source) -> dict[str, Any]:
         if threshold not in (0, 0.0, VERIFICATION_TRUST_THRESHOLD):
             lost.append({"what": "threshold", "value": threshold})
 
-    defaults = {d["name"] for d in _default_matrix_dimensions(draft.get("playbook") or "", draft.get("unit_of_analysis") or "")}
+    defaults = {d["name"].casefold(): d for d in _default_matrix_dimensions(draft.get("playbook") or "", draft.get("unit_of_analysis") or "")}
     ticked, own = [], []
+    compared = ("description", "data_type", "required", "fallback_value", "target_section_category")
     for dim in v["matrix"]:
-        if dim.get("name") in defaults:
-            ticked.append(dim["name"])
+        default = defaults.get(str(dim.get("name") or "").casefold())
+        if default is not None:
+            # A column named like a suggested one is the suggestion, ticked; the
+            # suggestion's own wording compiles. Say so when the source's differed.
+            ticked.append(default["name"])
+            if any(dim.get(k) != default.get(k) for k in compared):
+                lost.append({"what": "matrix_default", "name": default["name"]})
         else:
             own.append({k: dim.get(k) for k in ("id", "name", "description", "data_type", "required", "fallback_value", "target_section_category")})
     if ticked:

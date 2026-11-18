@@ -29,7 +29,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Annotated, Any, Callable
 
-from pydantic import BaseModel, ConfigDict, Field, StringConstraints, ValidationError, field_validator, model_validator
+from pydantic import BaseModel, ConfigDict, Field, StringConstraints, ValidationError, field_validator
 
 from .emit import (
     NEW_WORKSPACE_FILES,
@@ -244,28 +244,6 @@ class Draft(BaseModel):
     def _seeds_are_dois(cls, values: list[str]) -> list[str]:
         return _doi_list(values)
 
-    @model_validator(mode="after")
-    def _planned_records(self) -> "Draft":
-        lo, hi = self.pool_min, self.pool_max
-        if hi is None:
-            if lo is not None:
-                raise ValueError("pool_min needs pool_max: state the largest number you plan to screen")
-            return self
-        if not 1 <= hi <= MAX_PLANNED_RECORDS:
-            raise ValueError(f"pool_max is a whole number from 1 to {MAX_PLANNED_RECORDS:,}")
-        if lo is not None and not 0 <= lo <= hi:
-            raise ValueError("pool_min is a whole number from 0 to pool_max")
-        return self
-
-    @model_validator(mode="after")
-    def _column_names(self) -> "Draft":
-        seen: set[str] = set()
-        for i, column in enumerate(self.custom_matrix_columns):
-            key = column.name.casefold()
-            if key in seen:
-                raise ValueError(f"custom_matrix_columns[{i}].name: a column named {column.name!r} already exists")
-            seen.add(key)
-        return self
 
 
 def _over_limit(error: dict[str, Any]) -> str:
@@ -277,6 +255,25 @@ def _over_limit(error: dict[str, Any]) -> str:
     if error.get("type") == "string_too_long":
         return f"{path} (over {ctx.get('max_length')} characters)"
     return f"{path} ({ctx.get('actual_length')} items, at most {ctx.get('max_length')})"
+
+
+def _field_errors(draft: Draft) -> list[dict[str, Any]]:
+    """Cross-field rules of the M10b fields, each naming its field (``loc``) and never the client's value."""
+    errors: list[dict[str, Any]] = []
+    lo, hi = draft.pool_min, draft.pool_max
+    if hi is None and lo is not None:
+        errors.append({"loc": ["pool_max"], "msg": "state the largest number you plan to screen", "type": "value_error"})
+    if hi is not None and not 1 <= hi <= MAX_PLANNED_RECORDS:
+        errors.append({"loc": ["pool_max"], "msg": f"a whole number from 1 to {MAX_PLANNED_RECORDS:,}", "type": "value_error"})
+    if hi is not None and lo is not None and not 0 <= lo <= hi:
+        errors.append({"loc": ["pool_min"], "msg": "a whole number from 0 to pool_max", "type": "value_error"})
+    seen: set[str] = set()
+    for i, column in enumerate(draft.custom_matrix_columns):
+        key = column.name.casefold()
+        if key in seen:
+            errors.append({"loc": ["custom_matrix_columns", i, "name"], "msg": "another own column has this name", "type": "value_error"})
+        seen.add(key)
+    return errors
 
 
 def reason_code_errors(draft: Draft) -> list[dict[str, Any]]:
@@ -314,6 +311,14 @@ def parse_draft(raw: dict[str, Any] | None, *, saving: bool = False) -> Draft:
 
 
 def _parse_draft(raw: dict[str, Any] | None) -> Draft:
+    draft = _validate_draft(raw)
+    errors = _field_errors(draft)
+    if errors:
+        raise StepRefused("DRAFT_INVALID", "the draft does not match the draft shape", details={"errors": errors})
+    return draft
+
+
+def _validate_draft(raw: dict[str, Any] | None) -> Draft:
     try:
         return Draft.model_validate(raw or {})
     except ValidationError as exc:
@@ -333,7 +338,8 @@ def _parse_draft(raw: dict[str, Any] | None) -> Draft:
 
 
 def _require(draft: Draft, *fields: str) -> None:
-    missing = [f for f in fields if not getattr(draft, f)]
+    # A text of white space only is missing too (review of M10b Part A, finding 4).
+    missing = [f for f in fields if not (getattr(draft, f).strip() if isinstance(getattr(draft, f), str) else getattr(draft, f))]
     if missing:
         raise StepRefused("DRAFT_INCOMPLETE", f"this step needs: {', '.join(missing)}", details={"missing": missing})
     if "paradigm" in fields and draft.paradigm not in PARADIGM_PROFILE:
@@ -384,7 +390,7 @@ def proof_required(draft: Draft) -> bool:
     from .intent import CriterionDraft
 
     for text in draft.extra_inclusions:
-        if draft.criteria_decisions.get(CriterionDraft("inclusion", text, "manual").id) is not False:
+        if text.strip() and draft.criteria_decisions.get(CriterionDraft("inclusion", text, "manual").id) is not False:
             return False
     return True
 
@@ -523,7 +529,7 @@ def reason_suggestions(draft: Draft) -> list[dict[str, Any]]:
     Codes already used in this draft come first. ``phrases`` says whether the
     rule-based screener has a phrase list for the code. Nothing is selected.
     """
-    from scholar_search.screening import _EXC_PHRASE_SIGNALS as EXCLUSION_REASON_PATTERNS
+    from scholar_search.screening import PHRASE_REASON_CODES as EXCLUSION_REASON_PATTERNS
 
     used: list[str] = []
     for code in [
@@ -764,13 +770,9 @@ def genesis(
         from .importer import genesis_sentence
 
         added = genesis_sentence(origin)
-        description = (
-            f"Phase-0 Inception: '{intent['title']}' [{intent['primary_paradigm']}, {intent['playbook_type']}].{added}"
-            if added else None
-        )
         result = emit_workspace(
             intent, target_dir=target, replace=replace, discard_screening_binding=discard,
-            agent=agent, recon_context=context, description=description,
+            agent=agent, recon_context=context, source_note=added.strip(),
             protocol_origin="import" if added else "inception",
         )
         if created:

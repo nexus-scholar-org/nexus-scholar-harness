@@ -319,7 +319,7 @@ export function InceptionShape({ locale }: Readonly<{ locale: Locale }>) {
           <Button variant="primary" type="submit" disabled={saving || !draft.paradigm || !!planned} aria-describedby={draft.paradigm ? undefined : "shape-need-lens"}>
             {saving ? t("saving") : t("shape.continue")}
           </Button>
-          <Button onClick={() => void persist("")} disabled={saving}>
+          <Button onClick={() => void persist("")} disabled={saving || !!planned}>
             {t("saveAndExit")}
           </Button>
           <a className="inline-flex min-h-11 items-center text-brand underline" href={inceptionHref(locale, "direction", draftId, origin)} data-back>

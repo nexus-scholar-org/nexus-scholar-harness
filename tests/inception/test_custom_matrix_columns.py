@@ -79,6 +79,8 @@ def test_a_name_clash_is_draft_invalid_naming_the_field():
     with pytest.raises(steps.StepRefused) as exc:
         steps.parse_draft({**ready_draft(), "custom_matrix_columns": [{"name": "A", "description": "d"}, {"name": "a", "description": "d"}]})
     assert exc.value.code == "DRAFT_INVALID"
+    assert exc.value.details["errors"][0]["loc"] == ["custom_matrix_columns", 1, "name"]
+    assert "'a'" not in str(exc.value.details)  # the client's value is not echoed
 
 
 def test_the_51st_column_is_too_large_and_a_bad_type_is_invalid():

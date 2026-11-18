@@ -75,3 +75,13 @@ def test_a_typed_proof_still_writes_the_wizard_criterion_waiting_for_the_researc
     proof_rows = [c for c in criteria["criteria"] if c["source"] == "proof"]
     assert len(proof_rows) == 1 and proof_rows[0]["status"] == "undecided"
     assert steps.run_step("shape", draft)["rq_draft"]
+
+
+def test_blank_answers_count_as_missing():
+    """Review of Part A, finding 4: a proof of spaces is no proof; a blank inclusion makes nothing optional."""
+    draft = {**ready_draft(), "extra_inclusions": [], "proof": "   "}
+    with pytest.raises(steps.StepRefused) as exc:
+        steps.run_step("criteria", draft)
+    assert exc.value.details["missing"] == ["proof"]
+    assert steps.run_step("shape", {**ready_draft(), "extra_inclusions": ["  "]})["proof_required"] is True
+

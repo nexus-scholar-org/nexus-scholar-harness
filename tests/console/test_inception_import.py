@@ -248,3 +248,80 @@ def test_genesis_names_origin_and_project_records_it(root):
 def test_the_two_routes_are_in_the_allowlist():
     assert any(p.fullmatch("api/v1/inception/drafts/import") for p in POST_PATHS)
     assert any(p.fullmatch("api/v1/inception/drafts/rec_0123abcd/origin/checked") for p in POST_PATHS)
+
+
+def test_a_column_named_like_a_suggestion_is_ticked_and_a_changed_wording_is_listed(root):
+    """Review of Part A, finding 1: such a column was ticked silently, or (other case) refused later."""
+    proto = _protocol()
+    proto["playbook_type"] = "PRISMA_SLR"
+    unit = proto["epistemology"]["unit_of_analysis"]
+    old = {
+        "id": "sample_size", "name": "Sample Size", "description": f"Number of {unit} sampled / evaluated",
+        "target_section_category": "methodology", "data_type": "numeric", "required": True, "fallback_value": "Not Reported",
+    }
+    other_case = {**old, "id": "n", "name": "sample size"}
+    for dim in (old, other_case):
+        proto["matrix_dimensions"] = [dim]
+        client = _client(root)
+        body = _import(client, _file("protocol.json", proto)).json()
+        assert body["draft"]["matrix_columns"] == ["Sample Size"]
+        assert "custom_matrix_columns" not in body["draft"]
+        assert {"what": "matrix_default", "name": "Sample Size"} in body["lost"]
+        draft = {**body["draft"], "topic": "UAV"}
+        assert client.post(f"{BASE}/steps/matrix", json={"draft": draft}).status_code == 200
+        assert client.post(f"{BASE}/preview", json={"draft": draft}).status_code == 200
+
+
+def test_the_draft_lock_keeps_a_save_that_arrives_during_a_side_write(root):
+    """09 tests: a PUT landing between the mark's read and write is kept (the per-draft lock)."""
+    import threading
+
+    from scholar_harness.inception.drafts import DraftStore
+
+    store = DraftStore(root)
+    record = store.create({"topic": "first"}, extra={"origin": {"kind": "import", "checked": {"shape": False}}})
+    sid = record["session_id"]
+    started, go = threading.Event(), threading.Event()
+    saved: dict = {}
+
+    def mark(origin):
+        started.set()
+        go.wait(5)
+        return {**origin, "checked": {"shape": True}}
+
+    marker = threading.Thread(target=lambda: store.update_side(sid, "origin", mark))
+    marker.start()
+    assert started.wait(5)
+    saver = threading.Thread(target=lambda: saved.update(store.save(sid, {"topic": "second"}, base_updated_at=record["updated_at"])))
+    saver.start()
+    saver.join(0.3)
+    assert saver.is_alive()  # the save waits for the side write
+    go.set()
+    marker.join(5)
+    saver.join(5)
+    final = store.load(sid)
+    assert final["draft"] == {"topic": "second"}
+    assert final["origin"]["checked"]["shape"] is True
+
+
+def test_protocol_origin_is_inception_for_a_plain_draft_and_on_a_replacement(root):
+    client = _client(root)
+    body = _import(client, {"kind": "workspace", "slug": "uav"}).json()
+    created = _import(client, {"kind": "workspace", "slug": "uav"}, dry_run=False, expect_fingerprint=body["source"]["protocol_fingerprint"]).json()
+    draft = {**created["draft"], "topic": "UAV crop-weed mapping", "title": "UAV weed mapping, third review"}
+    client.put(f"{BASE}/drafts/{created['session_id']}", json={"draft": draft, "base_updated_at": created["updated_at"]})
+    made = client.post(f"{BASE}/drafts/{created['session_id']}/genesis", json={}).json()
+    ws = Path(made["path"])
+    assert json.loads((ws / "project.json").read_text(encoding="utf-8"))["protocol_origin"] == "import"
+
+    plain = client.post(f"{BASE}/drafts", json={"draft": draft}).json()
+    replaced = client.post(f"{BASE}/drafts/{plain['session_id']}/genesis", json={"replace": True})
+    assert replaced.status_code == 201, replaced.text
+    assert json.loads((ws / "project.json").read_text(encoding="utf-8"))["protocol_origin"] == "inception"
+    rows = (ws / "audit" / "journal.jsonl").read_text(encoding="utf-8")
+    assert rows.count("Started from uav") == 1  # only the imported genesis names a source
+
+
+def test_an_oversized_file_is_the_engines_413_not_a_body_refusal(root):
+    answer = _import(_client(root), _file("p.json", b"{" + b" " * (2 * 1024 * 1024) + b"}"))
+    assert answer.status_code == 413 and answer.json()["detail"]["code"] == "IMPORT_SOURCE_TOO_LARGE"

@@ -36,7 +36,9 @@ _LOCKS_GUARD = threading.Lock()
 
 
 def _lock_for(path: Path) -> threading.RLock:
-    key = str(path.resolve()) if path.exists() else str(path.absolute())
+    # Always the absolute path, so one file has one key before and after it exists.
+    # One lock per draft ever touched in this process: a small, bounded-by-use map.
+    key = str(path.absolute())
     with _LOCKS_GUARD:
         return _LOCKS.setdefault(key, threading.RLock())
 
