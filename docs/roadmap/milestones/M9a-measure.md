@@ -77,7 +77,9 @@ Defaults: `--scope frozen`, `--provider anthropic`, `--model claude-opus-5-5`, `
 | :-- | :-- | :-- | :-- | :-- |
 | inner | working tree | `pytest tests/kits/agent/test_measure.py tests/kits/agent/test_prompt_gate.py tests/kits/agent/test_driver_contract.py` | 49 passed | seconds |
 | dry run | working tree | `uv run nexus-scholar prompt-gate measure --workspace workspaces/uav-crop-weed-v03 --dry-run` (frozen and all; opus, sonnet, haiku) | the table above; 0 network calls; workspace unchanged (`git status` clean) | seconds |
-| pr, baseline, ruff, review | _filled at closure_ | | | |
+| pr (final executable commit) | `86ee6572` | `select_test_gate.py --changed origin/main --stage pr` (areas `harness-cli`, `agent-mcp`): `git diff --check`, `pytest -q -n auto`, `ruff check scripts/` | `git diff --check` clean; `ruff check scripts/` clean; full pytest: 1 failed under load, `tests/authority/test_ag04_interaction.py::test_low_il_worker_process_windows` (a Windows integrity-level test in a file this branch does not touch; passes alone, 32 of 32 in its file); the passed total was cut off by the log tail and is not recorded | 20 min 28 s |
+| baseline, ruff | `86ee6572` | `generate_contract_baseline.py --check`; `ruff check src/ --select F821,F811,F823,F632,F7,B023,B006,E9` | current; clean | seconds |
+| review | `d4bb5ce7`, then `86ee6572` | `milestone-reviewer` (Sonnet) | round 1 on `d4bb5ce7`: CHANGES (no P1; P2: gates passed on an all-failed run, D11 ticked early, lane unexplained; P3 x7); all fixed or recorded in `86ee6572`. Round 2: see below | |
 
 ## Deferred
 - The measurement run (D9) and the threshold decision (D10).
