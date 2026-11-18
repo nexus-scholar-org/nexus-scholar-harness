@@ -105,6 +105,9 @@ test("a choice made on Plan reaches Harvest in the address; the run asks the cho
 
   const post = fake.calls.find((c) => c.method === "POST" && c.path === "/api/v1/discovery/runs");
   expect(post?.body).toEqual({ providers: ["crossref", "arxiv"] });
+  // The heading follows the runs list; the asked list and the legs follow the run detail, read after it.
+  await expect(page.locator("[data-asked]")).toHaveCount(2);
+  await expect(page.locator("[data-leg]")).toHaveCount(2);
   expect(await page.locator("[data-asked]").evaluateAll((items) => items.map((i) => (i as HTMLElement).dataset.asked))).toEqual(["crossref", "arxiv"]);
   expect(await page.locator("[data-leg]").evaluateAll((rows) => rows.map((r) => (r as HTMLElement).dataset.leg))).toEqual(["crossref", "arxiv"]);
   await expect(page.locator('[data-not-asked="openalex"]')).toHaveText("OpenAlex · Not selected for this harvest.");
