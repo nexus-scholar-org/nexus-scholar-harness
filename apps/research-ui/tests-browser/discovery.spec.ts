@@ -418,3 +418,76 @@ test("en/screening/import: no hydration mismatch with ?return=discovery in the a
   await page.waitForLoadState("networkidle");
   expect(problems).toEqual([]);
 });
+
+// --------------------------------------------------------------------------- M10b Part D: the size estimate
+
+test("M10b: count on Plan, see a capped database and the warning, follow the cap to Harvest, edit it, start", async ({ page }) => {
+  const fake = await engine(page);
+  await page.goto("/en/discovery/plan/");
+  await expect(page.getByRole("heading", { name: "This is what each database will receive" })).toBeVisible();
+  const card = page.locator("[data-estimate]");
+  await expect(card.getByText(/Nothing has been counted yet\./)).toBeVisible();
+  expect(fake.calls.filter((c) => c.path === "/api/v1/discovery/estimate")).toHaveLength(0);
+  await card.getByRole("button", { name: "Count what the databases hold" }).click();
+  await expect(card.locator('[data-estimate-row="crossref"]')).toContainText("Cut by the cap");
+  await expect(card.locator('[data-estimate-warn="note"]')).toContainText("This harvest could be large: up to 1453 works, over 1000.");
+  const use = card.getByRole("link", { name: "Use 282 for this harvest" });
+  await expect(use).toHaveAttribute("href", "/en/discovery/harvest/?cap=282");
+  await use.click();
+
+  await expect(page.getByRole("heading", { name: "Search the databases your protocol selects" })).toBeVisible();
+  const field = page.getByLabel("Cap for this harvest only");
+  await expect(field).toHaveValue("282");
+  await expect(page.getByText(/Filled in from the estimate\./)).toBeVisible();
+  expect(fake.calls.some((c) => c.method === "POST" && c.path === "/api/v1/discovery/runs")).toBe(false);
+  await field.fill("250");
+  await page.getByRole("button", { name: "Start the harvest" }).click();
+  await expect(page.getByRole("heading", { name: "The harvest is finished. The corpus is not frozen yet." })).toBeVisible();
+  expect(fake.calls.find((c) => c.method === "POST" && c.path === "/api/v1/discovery/runs")?.body).toEqual({ cap_override: 250 });
+  // A run exists: the card is gone, and a reload shows nothing stale as current.
+  await expect(page.locator("[data-estimate]")).toHaveCount(0);
+  await page.goto("/en/discovery/plan/");
+  await expect(page.locator("[data-imports-after-run]")).toBeVisible();
+  await expect(page.locator("[data-estimate]")).toHaveCount(0);
+});
+
+test("M10b: a database that fails its count leaves the rest readable", async ({ page }) => {
+  await engine(page, { estimateFails: { semanticscholar: "PROVIDER_RATE_LIMITED" } });
+  await page.goto("/en/discovery/plan/");
+  const card = page.locator("[data-estimate]");
+  await card.getByRole("button", { name: "Count what the databases hold" }).click();
+  await expect(card.locator('[data-estimate-row="semanticscholar"]')).toContainText("Not counted: The database limited the request rate.");
+  await expect(card.locator('[data-estimate-row="openalex"]')).toContainText("412 found");
+  await expect(card.locator("[data-estimate-records]")).toHaveText("Records: at least 1008");
+  await expect(card.locator('[data-estimate-rec="narrow"]')).toBeVisible();
+});
+
+for (const locale of ["en", "ar"] as const) {
+  test(`M10b ${locale}/discovery/plan with a counted estimate: axe finds no violation, contrast included`, async ({ page }) => {
+    await engine(page);
+    await page.goto(`/${locale}/discovery/plan/`);
+    await expect(page.locator("h1")).toBeVisible();
+    await page.locator("[data-estimate-count]").click();
+    await expect(page.locator("[data-estimate-figures]")).toBeVisible();
+    await page.locator("[data-estimate-rec] summary").click();
+    const result = await axe(page);
+    expect(result.violations).toEqual([]);
+    expect(result.passes).toContain("color-contrast");
+  });
+  for (const [name, viewport] of [
+    ["375px", MOBILE_VIEWPORT],
+    ["1440px", DESKTOP_VIEWPORT],
+  ] as const) {
+    for (const screen of ["plan/", "harvest/"] as const) {
+      test(`M10b ${locale}/discovery/${screen} ${name} with a counted estimate: nothing scrolls sideways`, async ({ page }) => {
+        await engine(page);
+        await page.setViewportSize(viewport);
+        await page.goto(`/${locale}/discovery/${screen}`);
+        await expect(page.locator("h1")).toBeVisible();
+        await page.locator("[data-estimate-count]").click();
+        await expect(page.locator("[data-estimate-figures]")).toBeVisible();
+        expectNoSidewaysScroll(await measureOverflow(page), `${locale}/discovery/${screen} ${name} estimate`);
+      });
+    }
+  }
+}

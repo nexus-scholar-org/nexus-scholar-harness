@@ -25,11 +25,14 @@ from __future__ import annotations
 import copy
 import inspect
 import json
+import os
 from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Any
 
 import pytest
+
+import scholar_rag.replacement as replacement_module
 
 # T-60's own surface, reused rather than restated.
 from .test_index_replacement import (
@@ -293,6 +296,40 @@ def test_e3_pos_010_recovery_a_run_with_no_commit_intent_proceeds_and_writes_not
     # not a repair.
     mutating = {"stage", "embed_staged", "switch_visibility", "remove_obsolete"}
     assert not [call for call in store.calls[len(before_calls) :] if call in mutating]
+
+
+def test_recovery_removes_an_intent_a_reader_briefly_has_open(
+    workspace: Path, store: FakeBackend, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """``IndexRecovery.inspect`` reads the intent without the lock.
+
+    On Windows the recovery run's own delete of the intent then met WinError 32 and
+    the run failed after it had already rolled back. The delete waits the way the
+    lock's does.
+    """
+
+    first, _ = interrupted_second(workspace, store, fail_on="switch_visibility")
+    target = intent_path(workspace, RUN_B)
+    unlink = os.unlink
+    refused: list[str] = []
+
+    def busy_three_times(path: Any, *args: Any, **kwargs: Any) -> None:
+        if Path(path) == target and len(refused) < 3:
+            refused.append(str(path))
+            error = PermissionError(13, "The process cannot access the file because it is being used")
+            error.winerror = 32
+            raise error
+        unlink(path, *args, **kwargs)
+
+    monkeypatch.setattr(replacement_module, "LOCK_RELEASE_RETRY_INTERVAL_SECONDS", 0)
+    monkeypatch.setattr(os, "unlink", busy_three_times)
+    decision = recovery_for(workspace, store).recover(run_id=RUN_B, accepted=first, event_durable=True)
+    monkeypatch.undo()
+
+    assert decision.state == "ROLLED_BACK"
+    assert decision.intent_removed is True
+    assert len(refused) == 3
+    assert not target.exists()
 
 
 def test_e3_pos_010_recovery_a_run_interrupted_before_r5_rolls_back_and_refuses_atomically(

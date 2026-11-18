@@ -298,6 +298,54 @@ export function getPlan(origin: string, providers?: string[] | null, signal?: Ab
   return readJson<Plan>(`${BASE}/plan${query}`, consoleBase(origin), signal);
 }
 
+/** M10b Part D: one database's row of the size estimate. */
+export interface EstimateRow {
+  name: ProviderName;
+  status: "counted" | "from_recall_check" | "not_countable" | "failed" | "not_selected" | "off_by_default" | string;
+  reported_total: number | null;
+  fetch_estimate: number | null;
+  fetch_is_upper_bound: boolean;
+  cap_binds: boolean | null;
+  /** What the cap leaves out (`reported_total - fetch_estimate`), written by the engine. */
+  not_fetched: number | null;
+  error: string | null;
+  error_code: string | null;
+  notes: string[];
+}
+
+/** M10b Part D: `POST /discovery/estimate`. Every figure is the engine's; the screen prints them. */
+export interface Estimate {
+  shape: "discovery.estimate-v1";
+  protocol_fingerprint: string;
+  counted_at: string;
+  served_from_cache: boolean;
+  /** The recall check whose totals were used, or `null`. */
+  recall_check: { check: string; checked_at: string | null } | null;
+  cap: { value: number; source: "protocol" | "engine_ceiling" | "run_override" | string; ceiling: number };
+  providers: EstimateRow[];
+  estimate: {
+    counted_all: boolean;
+    records: { low: number | null; high: number | null };
+    works: { low: number | null; high: number | null };
+    assumption: string;
+  };
+  effort: { pace_seconds: number; hours: { low: number | null; high: number | null } };
+  warn: { level: "none" | "note" | "warning" | string; threshold_works: number; limit?: { value: number; source: "planned" | "general" | string } };
+  recommendation: { kind: "cap" | "narrow" | null; cap: number | null; expected_works: { low: number; high: number } | null; cuts: number | null };
+}
+
+export interface EstimateRequest {
+  providers?: string[];
+  cap?: number;
+  pace_seconds?: number;
+  refresh?: boolean;
+}
+
+/** M10b Part D: count what the databases hold (count-only requests; the engine writes nothing). */
+export function postEstimate(origin: string, request: EstimateRequest = {}, signal?: AbortSignal): Promise<Estimate> {
+  return postJson<Estimate>(`${BASE}/estimate`, origin, request, signal);
+}
+
 export function getRuns(origin: string, signal?: AbortSignal): Promise<Runs> {
   return readJson<Runs>(`${BASE}/runs`, consoleBase(origin), signal);
 }

@@ -331,6 +331,20 @@ class ArxivProvider(BaseAPIProvider):
             )
         return out
 
+    async def count(self, query: Query) -> int | None:
+        """``opensearch:totalResults`` of the planned request with ``max_results=1`` (M10b).
+
+        The year window is not sent to arXiv (``YEAR_NOTE``), so with a window
+        this count is an upper bound of what a harvest keeps.
+        """
+        _, params, _ = self.translate(query)
+        params["max_results"] = 1
+        response = await self.client.get(self.base_url, params=params)
+        if not response.text.strip():
+            return None
+        total = ET.fromstring(response.content).find("opensearch:totalResults", self.ns)
+        return self._as_count(total.text.strip() if total is not None and total.text else None)
+
     async def search(self, query: Query) -> AsyncIterator[Document]:
         """Search arXiv."""
         _, params, _ = self._record_translation(query)

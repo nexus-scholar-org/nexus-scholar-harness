@@ -18,13 +18,13 @@ from pathlib import Path
 from typing import Any
 
 from fastapi import HTTPException, Request
+#: The general size limit when the researcher stated no planned number (R3), shared with the estimate (Part D).
+from scholar_search.estimate import SIZE_WARN_WORKS
 
 from scholar_harness.inception import checks as C
 from scholar_harness.workspace.audit import append_event
 
 # --- thresholds (⚑ first values, calibrated before freezing) ------------------
-#: The general size limit when the researcher stated no planned number (R3).
-SIZE_WARN_WORKS = 1_000
 #: ⚑ ``DEDUP_RATE_LOW``: removed share below this, with at least 3 databases and 200 records.
 DEDUP_RATE_FLOOR = 0.05
 DEDUP_MIN_DATABASES = 3
@@ -183,8 +183,12 @@ def compute(request: Request, run: str | None = None) -> tuple[list[dict[str, An
 
 
 def _above_target(ws: Path, summary: dict[str, Any]) -> list[dict[str, Any]]:
-    stated = planned(ws)
-    limit = stated["max"] if stated else SIZE_WARN_WORKS
+    from scholar_harness.size_limit import size_limit
+
+    # One rule with the estimate (Part D, ``size_limit``); ``planned`` adds the minimum the sentence quotes.
+    rule = size_limit(ws)
+    limit = rule["value"]
+    stated = planned(ws) if rule["source"] == "planned" else None
     fetched = int(summary["fetched_total"])
     if fetched <= limit:
         return []
