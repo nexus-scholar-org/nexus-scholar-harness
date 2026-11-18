@@ -196,7 +196,7 @@ def test_plan_reports_the_protocol_cap_and_the_ceiling(env):
         assert not {"mailto", "email", "tool", "api_key"} & set(row["request"]), row
         assert any(c.startswith("language (en)") for c in row["cannot_express"]), row
     assert "[pdat]" in by_name["pubmed"]["executed_query"]
-    assert any("no year filter" in n for n in by_name["arxiv"]["notes"])
+    assert any("submittedDate range filter was not sent" in n for n in by_name["arxiv"]["notes"])  # F16, M3h-b
     assert by_name["biorxiv"] == {**by_name["biorxiv"], "selected": False, "status": "off_by_default",
                                   "executed_query": None, "request": None}
     assert plan["imports_hint"] == ["scopus", "wos"]
@@ -942,10 +942,12 @@ def test_m10a_the_plan_lists_the_chosen_databases_first_in_the_chosen_order(env)
         # The same string a run with these databases sends: the query does not depend on the choice.
         assert rows[name]["executed_query"] == default[name]["executed_query"]
         assert rows[name]["request"] == default[name]["request"]
-    for name in ("openalex", "arxiv", "pubmed"):
+    for name in ("openalex", "arxiv"):
         assert rows[name]["selected"] is False and rows[name]["status"] == "not_selected", rows[name]
         assert rows[name]["executed_query"] is None and rows[name]["request"] is None
-    assert rows["biorxiv"]["status"] == "off_by_default" and rows["biorxiv"]["selected"] is False
+    # M3h-b-resilience (F15): PubMed is outside the one default set, like bioRxiv.
+    for name in ("pubmed", "biorxiv"):
+        assert rows[name]["status"] == "off_by_default" and rows[name]["selected"] is False, rows[name]
 
 
 def test_m10a_the_plan_translates_a_chosen_database_the_protocol_does_not_select(env):
@@ -1020,12 +1022,12 @@ def test_m10a_other_not_searched_reasons_are_unchanged(env):
     assert first["state"] == "succeeded", first
     reasons = {n["database"]: n["reason"] for n in client.get(f"{BASE}/report").json()["not_searched"]}
     assert reasons == {"semanticscholar": "not selected in the protocol", "arxiv": "not selected in the protocol",
-                       "pubmed": "not selected in the protocol", "biorxiv": "off by default"}
+                       "pubmed": "off by default", "biorxiv": "off by default"}  # F15, M3h-b
     second, _ = _run(client, {"providers": ["crossref"]})
     assert second["state"] == "succeeded", second
     reasons = {n["database"]: n["reason"] for n in client.get(f"{BASE}/report").json()["not_searched"]}
     assert reasons == {"openalex": "not_selected_for_run", "semanticscholar": "not selected in the protocol",
-                       "arxiv": "not selected in the protocol", "pubmed": "not selected in the protocol",
+                       "arxiv": "not selected in the protocol", "pubmed": "off by default",
                        "biorxiv": "off by default"}
 
 
@@ -1069,6 +1071,8 @@ def test_m10a_the_database_order_never_changes_the_corpus(env):
 # --------------------------------------------------------------------------- M10a review round 2
 
 
+# M3h-b-resilience (F15): the adapter's default, the engine's fallback and the
+# console's "off by default" wording are one list, the search kit's four.
 ADAPTER_DEFAULT = ["openalex", "semanticscholar", "crossref", "arxiv"]
 NOT_FOR_RUN = "not_selected_for_run"
 
@@ -1096,19 +1100,23 @@ def test_m10a_a_protocol_without_a_database_list_offers_the_adapter_default(env)
     assert second["state"] == "succeeded", second
     assert _reasons(client) == {
         "openalex": NOT_FOR_RUN, "crossref": NOT_FOR_RUN, "arxiv": NOT_FOR_RUN,
-        "pubmed": "not selected in the protocol", "biorxiv": "off by default",
+        "pubmed": "off by default", "biorxiv": "off by default",
     }
 
 
 def test_m10a_an_explicit_empty_database_list_offers_what_the_engine_searches(env, monkeypatch):
-    """An empty list makes the engine fall back to its own default suite; the plan says so, and the key check sees it."""
+    """An empty list makes the engine fall back to its own default suite; the plan says so, and the key check sees it.
+
+    M3h-b-resilience (F15): that suite is the one default set, the same four as
+    a protocol without a list.
+    """
     client, ws, providers = env
     _edit_protocol(ws, lambda p: p["search_strategy"].__setitem__("target_databases", []))
     plan = client.get(f"{BASE}/plan").json()
-    assert plan["protocol_providers"] == GOLDEN_DATABASES
+    assert plan["protocol_providers"] == ADAPTER_DEFAULT
     rows = {p["name"]: p for p in plan["providers"]}
-    assert [n for n, r in rows.items() if r["selected"]] == GOLDEN_DATABASES
-    assert all(rows[n]["status"] == "translated" for n in GOLDEN_DATABASES)
+    assert [n for n, r in rows.items() if r["selected"]] == ADAPTER_DEFAULT
+    assert all(rows[n]["status"] == "translated" for n in ADAPTER_DEFAULT)
 
     monkeypatch.setattr(settings, "openalex_key", None)
     refused = client.post(f"{BASE}/runs", json={})  # the engine would search OpenAlex
@@ -1117,12 +1125,12 @@ def test_m10a_an_explicit_empty_database_list_offers_what_the_engine_searches(en
 
     job, _ = _run(client, {})
     assert job["state"] == "succeeded", job
-    assert [leg["provider"] for leg in _legs_json(ws, "run_001")["legs"]] == GOLDEN_DATABASES
+    assert [leg["provider"] for leg in _legs_json(ws, "run_001")["legs"]] == ADAPTER_DEFAULT
     second, _ = _run(client, {"providers": ["crossref"]})
     assert second["state"] == "succeeded", second
     assert _reasons(client) == {
-        "openalex": NOT_FOR_RUN, "semanticscholar": NOT_FOR_RUN, "arxiv": NOT_FOR_RUN, "pubmed": NOT_FOR_RUN,
-        "biorxiv": "off by default",
+        "openalex": NOT_FOR_RUN, "semanticscholar": NOT_FOR_RUN, "arxiv": NOT_FOR_RUN,
+        "pubmed": "off by default", "biorxiv": "off by default",
     }
 
 
@@ -1241,14 +1249,14 @@ def _resolved_names(monkeypatch, providers) -> list[list[str]]:
 
 
 def test_m10a_a_recall_on_an_empty_protocol_list_asks_the_engines_default_suite(recall_env, monkeypatch):
-    """target_databases: [] and no providers: the recall asks the five the engine searches, not nothing."""
+    """target_databases: [] and no providers: the recall asks the default set the engine searches, not nothing."""
     from scholar_search.plan import DEFAULT_PROVIDERS
 
     client, ws, providers = recall_env
     _edit_protocol(ws, lambda p: p["search_strategy"].__setitem__("target_databases", []))
     seen = _resolved_names(monkeypatch, providers)
     check = _recall(client)
-    assert seen == [list(DEFAULT_PROVIDERS)] and len(DEFAULT_PROVIDERS) == 5
+    assert seen == [list(DEFAULT_PROVIDERS)] and list(DEFAULT_PROVIDERS) == ADAPTER_DEFAULT  # F15
     assert [leg["provider"] for leg in check["legs"]] == list(DEFAULT_PROVIDERS)
 
 

@@ -5,6 +5,7 @@ import xml.etree.ElementTree as ET
 from collections.abc import AsyncIterator
 from dataclasses import replace
 
+from ..http_client import ARXIV_RATE
 from ..models import Author, Document, ExternalIds, Query
 from ..query_translator import BooleanQueryTranslator, QueryField, QueryParser
 from .base import BaseAPIProvider
@@ -17,6 +18,13 @@ class ArxivProvider(BaseAPIProvider):
     """Searches arXiv API (http://export.arxiv.org/api/query)."""
 
     PAGE_SIZE = 1000  # arXiv recommends at most 2000 per call; 1000 keeps responses small
+    #: F16: arXiv does have a date filter (``submittedDate:[... TO ...]`` in
+    #: ``search_query``); sending it changes the recorded golden request, so
+    #: until that interaction is re-recorded the leg says it was not sent.
+    YEAR_NOTE = (
+        "arXiv's submittedDate range filter was not sent; years were filtered after "
+        "retrieval, so fetched can be below the reported total"
+    )
 
     def __init__(
         self,
@@ -24,8 +32,9 @@ class ArxivProvider(BaseAPIProvider):
         compact_stoplist: tuple[str, ...] | list[str] | None = None,
         compact_stem_families: dict[str, tuple[str, ...] | list[str]] | None = None,
     ) -> None:
-        # arXiv allows 1 req/sec without API key
-        super().__init__(name="arxiv", rate_limit=1.0)
+        # arXiv's terms of use ask for at most one request every three
+        # seconds (F16); every arXiv client in the process shares that budget.
+        super().__init__(name="arxiv", rate_limit=ARXIV_RATE)
         self.base_url = "https://export.arxiv.org/api/query"
         self.ns = {
             "atom": "http://www.w3.org/2005/Atom",
@@ -310,16 +319,16 @@ class ArxivProvider(BaseAPIProvider):
             "max_results": min(limit or self.PAGE_SIZE, self.PAGE_SIZE),
         }
         if query.year_min or query.year_max:
-            notes.append(
-                "arXiv has no year filter in its API; years were filtered after retrieval, "
-                "so fetched can be below the reported total"
-            )
+            notes.append(self.YEAR_NOTE)
         return translated_query, params, notes
 
     def cannot_express(self, query: Query) -> list[str]:
         out = super().cannot_express(query)
         if query.year_min or query.year_max:
-            out.append("year window: arXiv has no year filter; years are filtered after retrieval")
+            out.append(
+                "year window: not sent to arXiv (its submittedDate filter is not used yet); "
+                "years are filtered after retrieval"
+            )
         return out
 
     async def search(self, query: Query) -> AsyncIterator[Document]:

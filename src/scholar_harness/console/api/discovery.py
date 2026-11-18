@@ -44,7 +44,7 @@ from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import PlainTextResponse, StreamingResponse
 from pydantic import BaseModel, ConfigDict, Field
 from scholar_search.config import settings
-from scholar_search.plan import run_providers
+from scholar_search.plan import DEFAULT_PROVIDERS as DEFAULT_DATABASES, run_providers
 
 from ...pipeline import discovery as disc
 from ...pipeline import harvest_marker
@@ -57,7 +57,7 @@ AGENT = "scholar-harness-console"
 ENGINE_CEILING = 10_000
 #: Every database the engine can search, in the order the screens list them.
 KNOWN_PROVIDERS = ("openalex", "semanticscholar", "crossref", "arxiv", "pubmed", "biorxiv")
-DEFAULT_PROVIDERS = ("openalex", "semanticscholar", "crossref", "arxiv", "pubmed")
+DEFAULT_PROVIDERS = DEFAULT_DATABASES  # the search kit's one default set (F15)
 TERMINAL = ("succeeded", "failed", "cancelled")
 #: Finished jobs kept per workspace; their results are on disk.
 KEEP_FINISHED = 10

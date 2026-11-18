@@ -159,6 +159,24 @@ class Query:
     cap_source: str = "query"
 
 
+#: The databases searched when nothing names them (F15, M3h-b-resilience): a
+#: protocol without ``search_strategy.target_databases``, a list with no known
+#: name, ``SearchEngine()`` with no providers, a CLI search without a protocol
+#: and the recon probe. The protocol model's default and the protocol presets
+#: hold the same list (they cannot import this package);
+#: ``tests/kits/search/test_provider_resilience.py::test_one_default_database_set``
+#: keeps them equal. A protocol that names its databases searches exactly those.
+#: The choice of this list is a proposed decision (``docs/decisions.md``,
+#: 2026-11-18): PubMed and bioRxiv are searched when a protocol or a run names them.
+DEFAULT_DATABASES: tuple[str, ...] = ("openalex", "semanticscholar", "crossref", "arxiv")
+
+#: A leg's auth channel (F16, M3h-b-resilience): what identified the caller to
+#: the provider. ``key`` an API key was sent; ``key_rejected`` the provider
+#: refused the key (the leg was not retried keyless); ``mailto`` a contact
+#: address only (Crossref's polite pool, NCBI's ``email``); ``none`` nothing.
+AUTH_CHANNELS = ("key", "key_rejected", "mailto", "none")
+
+
 @dataclass
 class SearchLeg:
     """One provider's part of one search run (SRCH-30, CORE-21).
@@ -190,6 +208,12 @@ class SearchLeg:
     mailto_set: bool = False
     started_at: str | None = None
     finished_at: str | None = None
+    # F16 (M3h-b-resilience): where the leg's requests went (no parameters),
+    # how the caller was identified (``AUTH_CHANNELS``) and the records asked
+    # for per page. None for a provider that records no translation.
+    endpoint: str | None = None
+    auth: str | None = None
+    page_size: int | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -210,6 +234,9 @@ class SearchLeg:
             "mailto_set": self.mailto_set,
             "started_at": self.started_at,
             "finished_at": self.finished_at,
+            "endpoint": self.endpoint,
+            "auth": self.auth,
+            "page_size": self.page_size,
         }
 
 

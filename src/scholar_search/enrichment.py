@@ -92,26 +92,17 @@ class AbstractHydrator:
                     url, json=payload, params=params, headers=headers
                 )
             except ProviderError as exc:
-                if exc.status_code == 403 and headers:
-                    # Key rejected at the API Gateway (bad/expired/placeholder
-                    # token observed live 2026-10-17): one retry on the
-                    # unauthenticated tier. If that also 403s (batch endpoint
-                    # may require a valid key), return {} — OpenAlex-first
-                    # ordering already did the heavy lifting.
+                # A rejected key is never retried keyless (M3h-b-resilience,
+                # as the search leg since M3h-providers): the researcher must
+                # learn the key is bad, and OpenAlex already ran first.
+                if exc.status_code in (401, 403) and headers:
                     logger.warning(
-                        "S2 batch rejected the x-api-key (403 Forbidden); "
-                        "retrying unauthenticated"
+                        f"Semantic Scholar rejected SCHOLAR_S2_KEY (HTTP {exc.status_code}); "
+                        "no abstracts from Semantic Scholar in this batch, not retried keyless"
                     )
-                    try:
-                        response = await self.http_client.post(
-                            url, json=payload, params=params
-                        )
-                    except Exception as e:  # noqa: BLE001
-                        logger.warning(f"S2 batch request failed: {e}")
-                        return {}
                 else:
                     logger.warning(f"S2 batch request failed: {exc}")
-                    return {}
+                return {}
 
             if response.status_code != 200:
                 logger.warning(f"S2 batch request failed: {response.status_code}")

@@ -22,7 +22,7 @@ from .dedup import Deduplicator
 from .engine import SearchEngine
 from .export import Exporter
 from .importers import JSONImporter, JSONLImporter, RISImporter
-from .models import Document, Query
+from .models import DEFAULT_DATABASES, Document, Query
 from .providers import (
     ArxivProvider,
     BiorxivProvider,
@@ -61,6 +61,11 @@ def _get_provider_instance(name: str):
         raise typer.BadParameter(
             f"Unknown provider '{name}'. Options: openalex, crossref, pubmed, arxiv, semanticscholar, biorxiv"
         )
+
+
+def _default_providers() -> list:
+    """The search kit's one default set (F15, M3h-b-resilience), with or without a protocol."""
+    return [_get_provider_instance(name) for name in DEFAULT_DATABASES]
 
 
 def _save_output(documents: list[Document], output_path: Path, format_str: str) -> None:
@@ -185,20 +190,9 @@ def search(
                 except Exception as e:
                     logger.warning(f"Could not instantiate provider '{p_name}': {e}")
             if not providers:
-                providers = [
-                    OpenAlexProvider(),
-                    SemanticScholarProvider(),
-                    CrossrefProvider(),
-                    ArxivProvider(),
-                ]
+                providers = _default_providers()
         else:
-            providers = [
-                OpenAlexProvider(),
-                SemanticScholarProvider(),
-                CrossrefProvider(),
-                ArxivProvider(),
-                PubMedProvider(),
-            ]
+            providers = _default_providers()
 
         engine = SearchEngine(providers=providers)
 

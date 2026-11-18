@@ -16,7 +16,7 @@ from pathlib import Path
 from typing import Any
 
 from .engine import ENGINE_CEILING
-from .models import Query
+from .models import DEFAULT_DATABASES, Query
 from .protocol_adapter import compile_protocol_search
 from .providers.base import public_request
 
@@ -24,7 +24,7 @@ from .providers.base import public_request
 KNOWN_PROVIDERS: tuple[str, ...] = ("openalex", "semanticscholar", "crossref", "arxiv", "pubmed", "biorxiv")
 #: The engine's own default suite (``SearchEngine()`` with no providers), which a
 #: run falls back to when its list names no known database; bioRxiv is off by default.
-DEFAULT_PROVIDERS: tuple[str, ...] = ("openalex", "semanticscholar", "crossref", "arxiv", "pubmed")
+DEFAULT_PROVIDERS: tuple[str, ...] = DEFAULT_DATABASES
 
 
 def canonical_provider(name: str) -> str:
