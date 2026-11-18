@@ -549,6 +549,29 @@ def test_publish_idempotent_retry(tmp_path):
     assert len(history) == 1  # no duplicate generations
 
 
+def test_publish_idempotent_retry_logs_one_row(tmp_path):
+    """F8: a retry that joins the CURRENT generation adds no second journal row.
+
+    The reply of the retry still names the row of the first publish.
+    """
+    workspace, studies = _scaffold(tmp_path)
+    code = _ready(workspace, studies)
+    client = TestClient(create_app(workspace))
+    client.post(
+        "/api/v1/screening/actions/pairing/redeem",
+        json={"batch": 1, "code": code},
+    )
+    first = client.post("/api/v1/screening/actions/publish", json={}).json()
+    second = client.post("/api/v1/screening/actions/publish", json={}).json()
+    rows = [
+        r
+        for r in _journal_rows(workspace)
+        if r["action"] == "SCREENING_PUBLISH_COMPLETED"
+    ]
+    assert len(rows) == 1
+    assert first["journal_event_id"] == second["journal_event_id"] == rows[0]["event_id"]
+
+
 def test_full_chain_begin_to_replay_fails(tmp_path):
     """The continuous journey over the wire: begin (terminal) -> STAGED ->
     redeem -> CONSUMED -> publish CURRENT -> replay fails -> publish joins."""
@@ -1251,3 +1274,35 @@ def test_job_runner_journal_failure_captured_on_job(tmp_path, monkeypatch):
     assert job.journal_event_id is None
     assert job.error is not None and "journal failed" in job.error
     assert runner._active_actions == set()  # no single-flight leak
+
+
+def test_published_event_matches_the_exact_publication_only(tmp_path):
+    """The same generation_id with another fingerprint (a re-publish under a new
+    approval) is a new publication and gets no reused row; a row with corrupt
+    parameters is skipped, not a 500."""
+    from scholar_harness.console.api.screening import _published_event
+
+    NL = chr(10)
+    journal = tmp_path / "audit" / "journal.jsonl"
+    journal.parent.mkdir(parents=True)
+
+    def row(event_id, params):
+        return json.dumps(
+            {"event_id": event_id, "action": "SCREENING_PUBLISH_COMPLETED", "parameters": params}
+        )
+
+    journal.write_text(
+        NL.join(
+            [
+                "{ not json",
+                row("EVT-20260101000000-aaaaaa", "not a dict"),
+                row("EVT-20260101000001-bbbbbb", {"generation_id": "GEN-1", "generation_fingerprint": "old"}),
+                row("EVT-20260101000002-cccccc", {"generation_id": "GEN-1", "generation_fingerprint": "new"}),
+            ]
+        )
+        + NL,
+        encoding="utf-8",
+    )
+    assert _published_event(tmp_path, "GEN-1", "new")["event_id"] == "EVT-20260101000002-cccccc"
+    assert _published_event(tmp_path, "GEN-1", "other") is None
+    assert _published_event(tmp_path, "GEN-2", "new") is None
