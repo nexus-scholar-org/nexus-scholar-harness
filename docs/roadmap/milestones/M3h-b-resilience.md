@@ -21,20 +21,20 @@ semantics). No Contract v1 schema, artifact identity or snapshot change is
 intended: `generate_contract_baseline.py --check` runs at every commit.
 
 ## Definition of done
-- [ ] Audit: `phase-auditor` re-verified every point at HEAD (`e7644a6c`); result summarised under "Audit".
-- [ ] F14 Crossref rate: list requests at most 3 per second with a contact address, at most 1 without (test named below).
-- [ ] F14 headers: `x-rate-limit-limit` / `x-rate-limit-interval` lower the provider's budget, never raise it (test named below).
-- [ ] F14 User-Agent: `nexus-scholar/<installed version>`, never `scholar-search-kit/0.1.0` (test named below).
-- [ ] F15: one default database set, one constant; the recommended option built and recorded in `docs/decisions.md` as proposed, with what changing it would cost; a protocol that names its databases runs exactly those (test named below).
-- [ ] F16 arXiv rate: at most one request every 3 seconds (test named below).
-- [ ] F16 arXiv date filter: the leg note no longer denies the `submittedDate` filter (test named below); sending the clause needs the arXiv golden interaction re-recorded (see "Open for the researcher").
-- [ ] F16 S2 citations and references are paged past 1,000 (test named below).
-- [ ] F16 leg record: each leg in `legs.json` records its endpoint, auth channel and page size; the run records the client package and version (test named below).
-- [ ] Deferred from M3h: the leg and the abstract hydrator share one Semantic Scholar budget; the hydrator no longer retries keyless after a rejected key (tests named below).
-- [ ] Deferred from M3h: the auth channel per leg (`key`, `mailto`, `none`, `key_rejected`) (test named below).
-- [ ] Golden cassettes pass without re-recording (`tests/pipeline/test_golden_search_cassettes.py`, `test_golden_recon_cassette.py`).
-- [ ] Gates: inner after edits, checkpoint per item, pr once on the final executable commit, contract baseline `--check`, both ruff commands; `milestone-reviewer` APPROVE.
-- [ ] Plan §6 M3h row updated.
+- [x] Audit: `phase-auditor` re-verified every point at HEAD (`e7644a6c`); result summarised under "Audit".
+- [x] F14 Crossref rate: list requests at most 3 per second with a contact address, at most 1 without (test named below).
+- [x] F14 headers: `x-rate-limit-limit` / `x-rate-limit-interval` lower the provider's budget, never raise it (test named below).
+- [x] F14 User-Agent: `nexus-scholar/<installed version>`, never `scholar-search-kit/0.1.0` (test named below).
+- [x] F15: one default database set, one constant; the recommended option built and recorded in `docs/decisions.md` as proposed, with what changing it would cost; a protocol that names its databases runs exactly those (test named below).
+- [x] F16 arXiv rate: at most one request every 3 seconds (test named below).
+- [x] F16 arXiv date filter: the leg note no longer denies the `submittedDate` filter (test named below); sending the clause needs the arXiv golden interaction re-recorded (see "Deferred" and "Open for the researcher").
+- [x] F16 S2 citations and references are paged past 1,000 (test named below).
+- [x] F16 leg record: each leg in `legs.json` records its endpoint, auth channel and page size; the run records the client package and version (test named below).
+- [x] Deferred from M3h: the leg and the abstract hydrator share one Semantic Scholar budget; the hydrator no longer retries keyless after a rejected key (tests named below).
+- [x] Deferred from M3h: the auth channel per leg (`key`, `mailto`, `none`, `key_rejected`) (test named below).
+- [x] Golden cassettes pass without re-recording (`tests/pipeline/test_golden_search_cassettes.py`, `test_golden_recon_cassette.py`).
+- [ ] Gates: inner after edits, checkpoint (one run after all items, see Evidence), pr once on the final executable commit, contract baseline `--check`, both ruff commands; `milestone-reviewer` APPROVE.
+- [x] Plan §6 M3h row updated.
 
 ## Audit
 
@@ -74,10 +74,42 @@ Cassette matching is `method, scheme, host, path, query`; headers (the User-Agen
 | lint | working tree | `ruff check scripts/`; `ruff check src/ --select F821,F811,F823,F632,F7,B023,B006,E9`; broad `ruff check` on each touched kit file against `origin/main` | clean; clean; no new finding (counts equal before and after) | |
 | contract | working tree | `generate_contract_baseline.py --check` | current | |
 | closure (includes pr) | `c8b5ecd7` (executable code as `3c67d6fc`) | `select_test_gate.py --changed origin/main --stage closure`: contract baseline, schemas and two-study fixture `--check`; `ruff check scripts/`; ruff bug classes on `src/`; `git diff --check origin/main...HEAD`; `uv run pytest -q -n auto`; `uv build --wheel` | all exit 0; pytest 5110 passed, 15 skipped, 0 failed (counted from the progress output: this repo's `-q` prints no summary line); wheel `nexus_scholar-1.1.0b6` built | 739 s |
+| review | `75def6c7` | `milestone-reviewer` | CHANGES (R1 P2, R2–R6 P3; see "Review"), repaired in `79944f50` | |
+| pr | `79944f50` (final executable commit) | `git diff --check origin/main...HEAD`; contract baseline `--check`; `ruff check scripts/`; ruff bug classes on `src/`; `sync_skills_bundle.py --check`; `uv run pytest -q -n auto` | all exit 0; pytest 5116 passed, 15 skipped, 0 failed | 521 s |
 | checkpoint | `5f0d55fe` | `select_test_gate.py --changed origin/main --stage checkpoint` (`git diff --check`; pytest console+authority, recon+inception+MCP recon, pipeline+unit+e2e+console pipelines/jobs, kits/search+identity+stages+http client+screening migration, kits/agent+mcp+parity+capability+agent CLI, each `-n auto`; `sync_skills_bundle.py --check`; `test_count_freshness.py`) | every command exit 0 | 1085 s |
 
+## Review
+- Round 1 (`milestone-reviewer` on `75def6c7`): **CHANGES**, 1 P2 and 5 P3, no P1. Repaired in `79944f50`:
+  - R1 (P2): the record and decision said "the verifier" shares the Crossref budget; the reviewer read the post-screening `scholar_verify` kit, which has its own client. The harvest's verification stage (`scholar_search.verifier.DocumentVerifier`) does use the shared single-record budget; `::test_the_harvest_verifier_waits_on_the_crossref_single_record_budget` shows it (it passes on the code before the repair, which is the point: only the wording was wrong). The decision, the docstring and the config comment now name the harvest verifier and say `scholar_verify` is not counted (deferred).
+  - R2 (P3): a header can no longer set a budget below 1 per second (or the configured rate when lower) (`::test_a_throttle_header_never_sets_a_budget_below_one_per_second`, fails before).
+  - R3 (P3): zero or negative rate settings are refused, and a limiter with no rate never divides (`::test_a_zero_rate_setting_is_refused` ×3, `::test_a_limiter_with_no_rate_never_waits_or_divides`, both fail before).
+  - R4 (P3): `tests/conftest.py` resets the shared budgets around every test.
+  - R5 (P3): DoD ticked and Deferred filled (this file).
+  - R6 (P3): the search-kit skill (both copies, `sync_skills_bundle.py --check` clean) states the new User-Agent and limits; `PROVIDERS_2026-11.md` says its code cells describe `b6643a0` and points at the fixed list.
+
 ## Deferred
+Plan §7 ("Risks and cuts") names no rule for these. Each is left out because it needs a researcher decision or a live recording (no live calls in this milestone), or lies outside the areas this milestone was given:
+- **Sending the arXiv `submittedDate` clause** (F16). Needs the two arXiv golden interactions re-recorded with the researcher's `SCHOLAR_MAILTO` (decision 2026-11-18 item 2). Sketch in the shared hand-over note.
+- **The post-screening `scholar_verify` kit and `scholar_pdf`** keep their own HTTP clients and User-Agents (`nexus-scholar-verify-kit/0.1`, `scholar-pdf-kit/0.1`) and are outside the shared budgets.
+- **The UI's recon database list** (`apps/research-ui/lib/recon-api.ts`) holds the same four as a literal, not pinned to the Python constant (reviewer follow-up; outside this milestone's area).
+- **Semantic Scholar `/citations` paging beyond about 10,000 records** (a possible offset limit) is unverified; paging stops on a missing or non-advancing `next`.
+- **The rate limit per leg** (hardening candidate (c) 1 also named it) is not recorded; endpoint, auth channel and page size are.
+- **Header caps are per process and only go down** (bounded below by 1 per second); a restart resets them. Raising them again from a later header is a researcher's call (decision item 4).
+- **A quota-aware circuit breaker for 429s** (lesson 18, backlog K4, H6), deferred again from M3h-providers.
+
+## Open for the researcher
+1. Decision 2026-11-18 item 1 (F15): keep the four (built) or choose five (costs a protocol identity change, see the decision).
+2. Decision item 2: record the arXiv golden interactions so the date clause can be sent, or leave arXiv unfiltered.
+3. Items 3 to 7: confirm or overrule.
+4. Push to the fork and open the PR (title suggestion: "M3h-b-resilience: provider rates, one default database set, a fuller leg record").
 
 ## Not verified
 No live provider was called in this milestone. Every check is offline: unit
-doubles and the golden cassettes recorded on 2026-11-08 and 2026-11-10.
+doubles and the golden cassettes recorded on 2026-11-08 and 2026-11-10. So the
+following rest on the providers' documentation and on recorded answers only:
+Crossref's public-pool headers and its single-record limit; whether S2 sends
+`next` exactly as assumed on `/citations` and `/references`; arXiv's
+`submittedDate` syntax. No wheel was installed and run (it was built). Windows
+and Python 3.12 only (CI covers the other platforms). The UI was not run: the
+console change is one import and one assignment, and the screens already
+render `off_by_default` for any database.
