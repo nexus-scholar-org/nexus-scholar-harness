@@ -173,6 +173,7 @@ export function InceptionImport({ locale }: Readonly<{ locale: Locale }>) {
             accept=".json,application/json"
             className="sr-only"
             tabIndex={-1}
+            aria-labelledby="import-file"
             onChange={(event) => void pickFile(event.target.files?.[0])}
             data-file-input
           />

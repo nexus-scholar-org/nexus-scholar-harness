@@ -125,7 +125,7 @@ test("a researcher starts from an earlier review, writes the question, adds a re
   await own.getByRole("button", { name: "Add column" }).click();
   await expect(own.locator("[data-own-column='Sensor']")).toBeVisible();
   await page.getByRole("button", { name: "Continue to review" }).click();
-  await page.waitForURL(/\/en\/inception\/review\//);
+  await page.waitForURL(/\/en\/inception\/review\/?\?draft=/);
   const draft = fake.drafts.get(id)!.draft as { custom_matrix_columns: unknown[]; extra_exclusions: unknown[] };
   expect(draft.custom_matrix_columns).toEqual([{ name: "Sensor", description: "Camera on the UAV", data_type: "free_text", required: false }]);
   expect(draft.extra_exclusions).toEqual([{ criterion: "Satellite only", reason_category: "WRONG_PLATFORM" }]);
