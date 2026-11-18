@@ -551,4 +551,12 @@ def init_command(
         "   skills → .agents/skills/ · env template → .env.example · "
         f"MCP wiring → {support['mcp_config'].name} ({support['mcp_config']})"
     )
+    copied = [r["name"] for r in support.get("skill_records", []) if r["mode"] == "copy"]
+    if copied:
+        # Genesis logs each skill (F9); the command line says it once.
+        console.print(
+            f"[dim]   {len(copied)} skills were COPIED because symlinks are unavailable on this system; "
+            "enable Developer Mode, delete the workspace, and re-run `nexus-scholar init` to symlink "
+            "instead.[/dim]"
+        )
     return result
