@@ -357,4 +357,7 @@ Built in `src/scholar_search/providers/*` (`count`), `src/scholar_search/estimat
 - The answer adds `providers[].not_fetched`, `recommendation.cuts`, `recall_check` and `warn.limit`; arXiv is an upper bound only with a year window.
 - A changed database choice on Plan clears the shown estimate (the empty state returns).
 - Offline shows the unreachable-engine card with Try again above the last estimate "As of {time}"; the button is not disabled.
-- Not built: the skeleton rows while counting (the button reads "Counting" and the last figures are dimmed), and `<bdi>` around the numbers inside translated sentences (the numbers are Latin digits in every locale).
+- Each database's count is bounded at 45 s (`COUNT_TIMEOUT`): a slower one is a `failed` row with `PROVIDER_TIMEOUT`.
+- The duplicates reference line is not built: the card is removed once a run exists, and a deduplication exists only after a run, so the line could never appear (a contradiction in this section).
+- Focus order in the card: the recommendation's action and "Why this", the rows' Details, the pace field, then "Count what the databases hold" / "Count again" at the end of the card (the Keyboard section puts the button first). Focus is not moved after a count; after a refusal it moves to the card heading.
+- Not built: the skeleton rows while counting (the button reads "Counting" and the last figures are dimmed); `<bdi>` around the numbers inside translated sentences and `dir="ltr"` on the counts and hours (the numbers are Latin digits in every locale; the error text and codes under Details are `dir="ltr"`).

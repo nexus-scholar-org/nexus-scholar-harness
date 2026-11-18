@@ -1147,9 +1147,11 @@ async def size_estimate(body: EstimateBody, request: Request) -> dict[str, Any]:
     fresh = await est.count_providers(query, missing) if missing else {}
     rows_by_name = {**known, **fresh}
     if fresh or entry is None:
-        counted_at = _now()
+        # Asking only the databases that failed keeps the entry's first time: the rows counted then
+        # are not shown as counted now, and nothing is served past ``ESTIMATE_TTL`` from its count.
+        counted_at = entry["counted_at"] if entry else _now()
         cache[key] = {
-            "at": _monotonic(), "counted_at": counted_at, "recall_check": recall,
+            "at": entry["at"] if entry else _monotonic(), "counted_at": counted_at, "recall_check": recall,
             # A failed count is never kept: the next call asks that database again.
             "rows": {n: r for n, r in rows_by_name.items() if r["status"] != "failed"},
         }

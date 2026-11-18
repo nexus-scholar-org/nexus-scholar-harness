@@ -340,3 +340,26 @@ describe("discovery.estimate on Harvest", () => {
     expect(document.querySelector("[data-estimate]")).toBeNull();
   });
 });
+
+describe("discovery.estimate review fixes", () => {
+  it("answers a what-if after a recall-check estimate from the cache: no refresh with another pace", async () => {
+    const { engine, card } = await planCard({ estimate: answer({ recall_check: { check: "check_001", checked_at: "2026-11-17T10:00:00+00:00" } }) });
+    const user = await count(card);
+    const pace = within(card).getByLabelText("Seconds per record");
+    await user.clear(pace);
+    await user.type(pace, "45{Enter}");
+    await waitFor(() => expect(estimateCalls(engine)).toHaveLength(2));
+    expect(estimateCalls(engine)[1].body).toEqual({ pace_seconds: 45 });
+  });
+
+  it("says why a pace that is not a whole number is not sent, and sends nothing", async () => {
+    const { engine, card } = await planCard();
+    const user = await count(card);
+    const pace = within(card).getByLabelText("Seconds per record");
+    await user.clear(pace);
+    await user.type(pace, "3 0{Enter}");
+    expect(within(card).getByRole("alert")).toHaveTextContent("Use a whole number of seconds between 5 and 600");
+    expect(pace).toHaveAttribute("aria-invalid", "true");
+    expect(estimateCalls(engine)).toHaveLength(1);
+  });
+});

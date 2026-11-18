@@ -137,3 +137,22 @@ def test_a_failed_count_raises_the_providers_error():
     provider.client = _Refusing(_Answer())
     with pytest.raises(ProviderError):
         asyncio.run(provider.count(leg_query(_golden_query())))
+
+
+@pytest.mark.parametrize(("keyed", "status"), [(False, 403), (True, 401)])
+def test_a_refused_semantic_scholar_count_names_the_refusal(monkeypatch, keyed, status):
+    """Decision 14: a count has no leg, so the refusal sentence travels in the error."""
+    from scholar_search.exceptions import ProviderError
+
+    monkeypatch.setattr(settings, "s2_key", "s2-placeholder" if keyed else None)
+
+    class _Refusing(_Capture):
+        async def get(self, url, params=None, **kwargs):
+            raise ProviderError("semanticscholar", "Forbidden", status_code=status)
+
+    provider = SemanticScholarProvider()
+    provider.client = _Refusing(_Answer())
+    with pytest.raises(ProviderError) as raised:
+        asyncio.run(provider.count(leg_query(_golden_query())))
+    assert raised.value.status_code == status
+    assert ("SCHOLAR_S2_KEY" if keyed else "keyless request") in str(raised.value)

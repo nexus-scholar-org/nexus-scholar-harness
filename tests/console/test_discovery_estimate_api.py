@@ -433,3 +433,42 @@ def test_the_estimate_is_in_both_post_allow_lists():
     assert any(p.fullmatch("api/v1/discovery/estimate") for p in POST_PATHS)
     assert not any(p.fullmatch("api/v1/discovery/estimate/x") for p in POST_PATHS)
     # The proxy's list equals the console's (tests/console/test_browser_access.py).
+
+
+def test_a_database_that_does_not_answer_in_time_is_its_row_not_the_call(env, monkeypatch):
+    """Review finding 1: a count that retries a 429 for minutes must not time the whole call out at the proxy."""
+    import asyncio
+
+    client, _ws, doubles = env
+    monkeypatch.setattr(est, "COUNT_TIMEOUT", 0.2)
+
+    class _Hanging(CountingProvider):
+        async def count(self, query):
+            self.calls.append(query.text)
+            await asyncio.sleep(30)
+
+    make = doubles.__call__
+
+    def provider(name):
+        if name == "semanticscholar":
+            hanging = _Hanging(name)
+            doubles.made.append(hanging)
+            return hanging
+        return make(name)
+
+    monkeypatch.setattr(est, "_provider", provider)
+    answer = client.post(URL, json={}).json()
+    row = _row(answer, "semanticscholar")
+    assert row["status"] == "failed" and row["error_code"] == "PROVIDER_TIMEOUT"
+    assert _row(answer, "crossref")["status"] == "counted"
+
+
+def test_asking_a_failed_database_again_keeps_the_first_count_time(env):
+    """Review finding 3: the rows counted first are not shown as counted at the retry."""
+    client, _ws, doubles = env
+    doubles.fail["crossref"] = ProviderError("crossref", "down", status_code=503)
+    first = client.post(URL, json={}).json()
+    doubles.fail.clear()
+    second = client.post(URL, json={}).json()
+    assert _row(second, "crossref")["status"] == "counted"
+    assert second["counted_at"] == first["counted_at"]

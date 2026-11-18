@@ -4,9 +4,10 @@ import { useEffect, useRef, useState } from "react";
 
 import type { Locale } from "@/i18n";
 import { Button, DataCell, DecisionBadge } from "@/components/ui/base";
-import { DiscoveryRefusal, LINK, percent, refusalOf, stamp, type Refusal } from "@/components/discovery-frame";
-import { getDedup, postEstimate, type Estimate, type EstimateRequest, type EstimateRow } from "@/lib/discovery-api";
+import { DiscoveryRefusal, LINK, refusalOf, stamp, type Refusal } from "@/components/discovery-frame";
+import { postEstimate, type Estimate, type EstimateRequest, type EstimateRow } from "@/lib/discovery-api";
 import { discoveryT, providerName, type DiscoveryCopyKey } from "@/lib/discovery-copy";
+import { stateCopy } from "@/lib/screening-states";
 
 /**
  * The size estimate before a harvest (M10b Part D; spec `docs/ux/phase1-discovery/final/01-plan.md`
@@ -103,9 +104,9 @@ export function EstimateCard({ locale, origin, fingerprint, providers, cap = nul
   const [refusal, setRefusal] = useState<Refusal | null>(null);
   const [paceText, setPaceText] = useState("");
   const [paceInvalid, setPaceInvalid] = useState(false);
-  const [removedRate, setRemovedRate] = useState<number | null>(null);
   const [announce, setAnnounce] = useState("");
-  const dedupRead = useRef(false);
+  // What the shown estimate was asked with: "Count again" refreshes past a recall check only when nothing changed.
+  const shownWith = useRef<{ cap: number | null; pace: number | null } | null>(null);
   // The pace is sent only once the researcher edits it; until then the field shows the engine's.
   const paceEdited = useRef(false);
   const heading = useRef<HTMLHeadingElement>(null);
@@ -120,7 +121,7 @@ export function EstimateCard({ locale, origin, fingerprint, providers, cap = nul
     setAnnounce("");
   }, [providersKey]);
 
-  const count = async (refresh = false) => {
+  const count = async (fromRecall = false) => {
     const body: EstimateRequest = {};
     if (providers) body.providers = providers;
     if (cap !== null && cap !== undefined) body.cap = cap;
@@ -132,7 +133,10 @@ export function EstimateCard({ locale, origin, fingerprint, providers, cap = nul
       }
       body.pace_seconds = Number(pace);
     }
-    if (refresh) body.refresh = true;
+    const asked = { cap: body.cap ?? null, pace: body.pace_seconds ?? null };
+    // A what-if (another cap or pace) is answered from the cached counts; only a plain "Count again"
+    // after an estimate built from a recall check asks the databases themselves (review finding 4).
+    if (fromRecall && shownWith.current && shownWith.current.cap === asked.cap && shownWith.current.pace === asked.pace) body.refresh = true;
     const id = ++sequence.current;
     setCounting(true);
     setRefusal(null);
@@ -141,19 +145,12 @@ export function EstimateCard({ locale, origin, fingerprint, providers, cap = nul
       const answer = await postEstimate(origin, body);
       if (id !== sequence.current) return;
       setEstimate(answer);
+      shownWith.current = asked;
       if (!paceEdited.current) setPaceText(String(answer.effort.pace_seconds));
       const works = answer.estimate.works;
       setAnnounce(
         works.high === null ? t("estimate.announce.atLeast", { low: works.low ?? "" }) : t("estimate.announce", { low: works.low ?? "", high: works.high }),
       );
-      if (!dedupRead.current) {
-        // The reference line (the last harvest's share of duplicates) is read once, after a count, never on load.
-        dedupRead.current = true;
-        getDedup(origin).then(
-          (dedup) => setRemovedRate(dedup.removed_rate),
-          () => undefined,
-        );
-      }
     } catch (error) {
       if (id !== sequence.current) return;
       const next = refusalOf(error);
@@ -279,11 +276,6 @@ export function EstimateCard({ locale, origin, fingerprint, providers, cap = nul
                   : t("estimate.works", { low: works.low ?? "", high: works.high })}
               </p>
               <p className="text-xs text-ink-muted">{t("estimate.works.assumption")}</p>
-              {removedRate !== null ? (
-                <p className="text-xs text-ink-muted" data-estimate-dup>
-                  {t("estimate.dup.last", { pct: percent(removedRate) })}
-                </p>
-              ) : null}
             </div>
             <div data-estimate-effort>
               <p>
@@ -316,6 +308,11 @@ export function EstimateCard({ locale, origin, fingerprint, providers, cap = nul
                 className="mt-1 min-h-11 w-28 rounded-md border border-rule bg-paper px-3 text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
                 data-estimate-pace
               />
+              {paceInvalid && !refusal ? (
+                <p role="alert" className="mt-1 text-xs font-semibold text-unclear" data-estimate-pace-invalid>
+                  {stateCopy(locale, "PACE_INVALID").title}
+                </p>
+              ) : null}
               <p id="estimate-pace-help" className="mt-1 text-xs text-ink-muted">
                 {t("estimate.pace.help")}
               </p>

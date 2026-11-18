@@ -31,6 +31,10 @@ SIZE_WARN_WORKS = 1_000
 SUGGESTED_CAP_MIN = 100
 #: How long counts are kept for the same protocol and databases, in seconds.
 ESTIMATE_TTL = 600
+#: The longest one database's count may take, in seconds. The HTTP client retries a 429 or a 5xx
+#: and waits out ``Retry-After``; past this the row is ``failed`` with ``PROVIDER_TIMEOUT``, so a slow
+#: database never times the whole estimate out at the browser proxy (120 s).
+COUNT_TIMEOUT = 45.0
 #: The default screening pace, an editable assumption (decided 2026-11-15): seconds per record, one reviewer.
 DEFAULT_PACE_SECONDS = 30
 PACE_MIN, PACE_MAX = 5, 600
@@ -65,11 +69,14 @@ async def count_one(name: str, query: Query) -> dict[str, Any]:
     provider = _provider(name)
     row: dict[str, Any] = {"name": name, "status": "counted", "reported_total": None, "error": None, "error_code": None}
     try:
-        row["reported_total"] = await provider.count(leg_query(query))
+        row["reported_total"] = await asyncio.wait_for(provider.count(leg_query(query)), timeout=COUNT_TIMEOUT)
         if row["reported_total"] is None:
             row.update(status="failed", error=f"{name} answered without a total")
     except NotImplementedError:
         row["status"] = "not_countable"
+    except (TimeoutError, asyncio.TimeoutError):
+        row.update(status="failed", error=f"{name} did not answer the count within {COUNT_TIMEOUT:g} s",
+                   error_code="PROVIDER_TIMEOUT")
     except Exception as exc:  # noqa: BLE001 - a database's failure is its row, never the estimate's
         row.update(status="failed", error=str(exc)[:300], error_code=provider_error_code(exc))
     finally:
