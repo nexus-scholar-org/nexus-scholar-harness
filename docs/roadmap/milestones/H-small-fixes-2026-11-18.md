@@ -1,5 +1,5 @@
 # H-small-fixes-2026-11-18 Runbook, wheel build guard, F9, F10 and load-sensitive tests
-Branch: dev/fix/runbook-build-flakes · Lane: **STANDARD** · Status: READY FOR PR · Started: 2026-11-18
+Branch: dev/fix/runbook-build-flakes · Lane: **STANDARD** · Status: MERGED (PR #237, merge commit `4ba444fc`, 2026-11-18) · Started: 2026-11-18
 
 Base: `origin/main` at `e7644a6c`. No live API calls, no AI spend. Out of scope by agreement with the concurrent sessions: every Inception and Discovery screen component (M10b), `src/scholar_search` (provider resilience). No screen component was edited.
 
