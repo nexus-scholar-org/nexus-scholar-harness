@@ -84,7 +84,7 @@ export interface DiscoveryFakeOptions {
    * M10b Part D: the answer of `POST /discovery/estimate`, as a body or built from the request body.
    * Absent: the fake counts `FETCHED`'s reported totals with the engine's arithmetic.
    */
-  estimate?: Json | ((body: Json | null) => Json);
+  estimate?: object | ((body: Json | null) => object);
   /** M10b Part D: databases whose count fails (the row is `failed` with this code). */
   estimateFails?: Record<string, string>;
   /** M10b Part D: the planned maximum stated in `intent.json` (default none: the general limit of 1,000). */
@@ -675,7 +675,8 @@ export function discoveryEngine(options: DiscoveryFakeOptions = {}) {
         (accepted ? refuse(409, "CORPUS_ALREADY_ACCEPTED", "The corpus snapshot is accepted; a frozen corpus is never searched again from the browser.") : null) ??
         busy();
       if (refused) return refused;
-      if (options.estimate) return { status: 200, body: typeof options.estimate === "function" ? options.estimate(body) : options.estimate };
+      const stub = options.estimate;
+      if (stub) return { status: 200, body: typeof stub === "function" ? (stub as (b: Json | null) => object)(body) : stub };
       return { status: 200, body: estimateOf(requested ?? protocolProviders, cap ?? null, pace ?? 30) };
     }
     if (method === "POST" && route === "/api/v1/discovery/recall") {

@@ -222,3 +222,27 @@ Part A (each listed by the Part A review of 2026-11-18, or found while building;
 - `pool_max: true` is read as 1 (pydantic's lax integers). Strict integers for the two fields are a follow-up.
 - `REVIEW_IMPORT_STEP_NOT_OPENED` (the Review note for an unopened imported step) is a check: Part B.
 - The GENESIS row of a *replacement* made from an imported draft reads "...(backup at audit/replaced/...) Started from ..." with no full stop between (`emit.py`, the replacement branch; Part A round 2, P3). A code change would need the full gate again; Part B rewrites this genesis code for `audit/proposals.jsonl`, so it is fixed there, with a test.
+
+## Part D (size estimate)
+Branch `dev/m10b/part-d-size-estimate`, from `origin/main` at `6e39b00a` (Part A merged, PR #240; provider resilience merged, PR #239). Lane RELEASE, as the milestone (a new public route in both allow-lists, a new refusal code, a new method on every provider). Built by a separate session while Part B was built on its own branch; Part D touches no inception screen, proposal, check object or inception API.
+
+What D1 delivers:
+- `BaseAPIProvider.count(query)` and its five overrides (`src/scholar_search/providers/*`): one request built from the plan's `translate()`, no record body (OpenAlex `per-page=1`, Crossref `rows=0`, PubMed `retmax=0`, arXiv `max_results=1`, Semantic Scholar the first bulk page with `fields=paperId`); bioRxiv raises `NotImplementedError` (`not_countable`).
+- `scholar_search.estimate`: `count_providers` (in parallel; a failed database is its own row with the harvest's leg codes), `summarize` (fetch per database, records and works ranges, hours, the warning against the limit, the largest cap that keeps the sum at the limit, or narrowing), the constants `SIZE_WARN_WORKS` 1,000, `SUGGESTED_CAP_MIN` 100, `ESTIMATE_TTL` 600 s, pace 30 s (5 to 600).
+- `scholar_harness.size_limit.size_limit(ws)`: `intent.json` `pool_max` stated, else 1,000 (R3).
+- `POST /api/v1/discovery/estimate` (`console/api/discovery.py`), in both POST allow-lists; refuses `PROTOCOL_MISSING`/`PROTOCOL_INVALID`, `CAP_INVALID`, `PACE_INVALID` (new), `PROVIDER_UNKNOWN`, `MAILTO_NOT_SET`, `OPENALEX_KEY_NOT_SET`, `CORPUS_ALREADY_ACCEPTED`, `DISCOVERY_JOB_ACTIVE` before any request; uses a recall check for this protocol; caches counts 10 minutes; writes no file and no journal row. `PACE_INVALID` is in `console/refusals.py` and §7.
+- The Estimate card (`components/discovery-estimate.tsx`) on Plan (side column, under Limits) and Harvest (ready state, above "What will be searched"); `?cap=` fills Harvest's cap field after hydration; copy in en, fr, ar (`lib/discovery-copy.ts`, `PACE_INVALID` in `lib/screening-states.ts`); the fake engine answers the route.
+
+Proposed decisions: `docs/decisions.md`, "2026-11-18 — M10b Part D: the size estimate, where the spec is silent" (15 items, PROPOSED). Spec note: `01-plan.md` "As built (M10b Part D)".
+
+### Part D tests
+| Test | What it shows | Fails before |
+| :-- | :-- | :-- |
+| `tests/kits/search/test_provider_count.py` (9) | each count sends one request for the plan's string and filters with no record body; bioRxiv not countable; a missing total is `None`; a provider error is raised | yes: 9 of 9 fail on `origin/main` (no `count`) |
+| `tests/console/test_discovery_estimate_api.py` (44) | the arithmetic (cap binds, works range, arXiv, unknown upper end, hours, warning boundaries, the spec's 5,000/400/100 → 500 example, narrowing); the route (protocol's and chosen databases, what-if cap, a failed row, bioRxiv, the cache and its expiry, a changed list or protocol, re-asking only failed rows, recall check used, skipped on refresh, ignored for another protocol, planned and general limits, ten refusals with no request, no file written, both allow-lists) | written with the route; on `origin/main` the route answers 404 (not run separately) |
+| `apps/research-ui/tests/discovery-estimate.test.tsx` (24) | the spec's vitest list for Plan and Harvest | written with the card (not run against `origin/main`, where the card does not exist) |
+| `tests-browser/discovery.spec.ts` "M10b: …" (2 journeys, axe in en and ar, overflow at 375 and 1440 px on Plan and Harvest) | count on Plan → capped database and warning → "Use 282" → Harvest field filled, nothing started → edit → Start sends `cap_override: 250`; a failed database leaves the rest readable | new |
+
+### Part D evidence
+| Stage | Commit | Command | Result | Duration |
+| :-- | :-- | :-- | :-- | :-- |
