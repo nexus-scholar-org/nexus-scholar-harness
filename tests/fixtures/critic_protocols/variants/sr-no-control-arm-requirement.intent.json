@@ -127,7 +127,7 @@
         "RQ1",
         "RQ2"
       ],
-      "reason_category": "NO_COMPARATOR"
+      "reason_category": "WRONG_STUDY_DESIGN"
     },
     {
       "criterion": "Is a review, editorial, commentary, study protocol or conference abstract with no trial data.",
@@ -171,7 +171,7 @@
       "name": "Herbicide quantity, both arms",
       "description": "Herbicide quantity per hectare in the map-guided arm and in the uniform arm, with units.",
       "data_type": "numeric",
-      "required": true,
+      "required": false,
       "fallback_value": "Not Reported"
     },
     {

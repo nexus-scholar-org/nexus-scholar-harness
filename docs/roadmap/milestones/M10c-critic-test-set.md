@@ -9,7 +9,7 @@ Source: `docs/roadmap/production-plan.md` §6, row **M10c-assistant-mcp**: "an a
 `tests/fixtures/critic_protocols/` (all new):
 
 - two sound bases, each as an `IntentPacket` and as its compiled `protocol.json`: a **scoping review** (UAV crop-weed mapping, how studies evaluate generalization; derived from the golden UAV workspace, simplified) and a **systematic review** (UAV-guided versus uniform herbicide application, comparative field trials, meta-analysis);
-- 40 variants (26 from the scoping base, 14 from the systematic one), 43 defects: 37 variants with one defect, 3 with two that interact. 5 critical, 29 major, 9 minor. **31 of the 43 defects are "none: critic only"**: no existing validation and no fixed check of `02-checks.md` can see them;
+- 40 variants (26 from the scoping base, 14 from the systematic one), 43 defects: 37 variants with one defect, 3 with two that interact. 4 critical, 30 major, 9 minor. **31 of the 43 defects are "none: critic only"**: no existing validation and no fixed check of `02-checks.md` can see them;
 - `manifest.json` (`critic-protocols-v1`): per variant its base, format, exact differing fields, existing-validation result, and per defect the sentence, fields, severity, category, catching fixed check (or `none: critic only`) and the finding a good critic must report; the 51 check ids of the catalogue; a seed catalogue;
 - `README.md`: how M10c scores a critic (caught, missed, false alarms on the two bases) and what the set does not cover.
 
@@ -17,7 +17,7 @@ And `tests/kits/protocol/test_critic_protocol_set.py` (about 170 test cases), wh
 
 ## Definition of done
 - [x] **D1 Sound bases.** One scoping and one systematic protocol in the repository's own format, compiling cleanly. `test_base_compiles_cleanly`, `test_base_seeds_are_real_records_the_criteria_keep`.
-- [x] **D2 Variants.** 40 variants, one defect each, four with two. Every class the brief names has at least one (`test_the_set_shows_what_the_fixed_checks_cannot_see` asserts the classes).
+- [x] **D2 Variants.** 40 variants, one defect each, three with two. Every class the brief names has at least one (`test_the_set_shows_what_the_fixed_checks_cannot_see` asserts the classes).
 - [x] **D3 Additions from the specs.** Defects found in `02-checks.md` and in the compiler, validator and search adapter that the brief's list misses: see the README, "Where each defect class comes from". `03-guidance.md` is a set of screen-copy rules and describes no protocol defect.
 - [x] **D4 Manifest.** Every field the brief asks for, per defect (the unit a critic is scored on). The fixed-check assignments are hand-traced; `check_certainty` says when the trace is partial.
 - [x] **D5 Honesty test.** `tests/kits/protocol/test_critic_protocol_set.py`.
@@ -25,7 +25,7 @@ And `tests/kits/protocol/test_critic_protocol_set.py` (about 170 test cases), wh
 - [ ] **D7 Gates and review**, recorded below. The independent review returned CHANGES on the first pass; the repairs are listed under "Review round 1".
 
 ## Decisions taken here (the researcher may overrule; none touches a contract)
-1. **The unit is the defect, not the variant.** The manifest keeps `defects[]` per variant (one entry, or two for an interacting variant), each with its own severity, check and finding. The brief lists these keys per variant; for the 36 single-defect variants the list has one entry. An interacting variant is scored per defect.
+1. **The unit is the defect, not the variant.** The manifest keeps `defects[]` per variant (one entry, or two for an interacting variant), each with its own severity, check and finding. The brief lists these keys per variant; for the 37 single-defect variants the list has one entry. An interacting variant is scored per defect.
 2. **Two artefact forms.** Variants are `IntentPacket` files (the authored input, and what an inception draft compiles to through `build_intent`). Only two defects exist solely in a compiled protocol (criterion ids are generated, so a duplicate or case-colliding id cannot be written at intent level); those two variants are in `protocol` format and derive from the compiled base. Which artefact the M10c critic reads is left to M10c.
 3. **"Rejected by existing validation" has two layers.** `compile_protocol` rejects an intent that the `IntentPacket` model refuses (`intent_model`); the cross-field rules (`CROSS_FIELD_RQ_REF`, `DATE_RANGE_INCOHERENT`, `DUPLICATE_CRITERION_ID`, `POOL_SIZE_INCOHERENT`) live in `validate_protocol`, which `compile_intent` and the inception preview do not call. The manifest records both (`rejected_by`: `intent_model`, `compile`, `validate_protocol`, or null) and the warning codes. Four variants are rejected; this shows what the existing checks cover and leaves the other 36 compiling cleanly.
 4. **Seeds are real.** Recall seeds are DOIs from `workspaces/golden-uav-30/literature/verified.json` with their titles and years in `seed_catalog`; the set invents no DOI. The systematic base therefore has no seeds (no verified comparative-spraying trial exists in the repository); the README says a critic may note this but not raise it as a major finding.

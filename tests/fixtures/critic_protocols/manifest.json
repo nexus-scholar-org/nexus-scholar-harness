@@ -36,12 +36,12 @@
     "sr": {
       "intent": "bases/sr-base.intent.json",
       "protocol": "bases/sr-base.protocol.json",
-      "protocol_fingerprint": "sha256:250fe1e17b05abfac0893d410c8061d6af2d8025494f92b72baa6f91ce310aaf",
+      "protocol_fingerprint": "sha256:0b170a15e5d6ae9b2f03dfa81afd46fd46ee610aca3c9959e8211a914fbe47bf",
       "playbook_type": "PRISMA_SLR"
     }
   },
   "base_notes": {
-    "scoping": "Generalization is left out of the search on purpose (stated in its rationale): a facet word in the query would hide the studies that never test it. Derived from the golden UAV scoping review (workspaces/golden-uav-30/intent.json), simplified: three questions, three concepts, three inclusions, three exclusions, four recall seeds taken from its verified records.",
+    "scoping": "Generalization is left out of the search on purpose (stated in its rationale): a facet word in the query would hide the studies that never test it. Expected baseline for the fixed checks: CONCEPT_TERM_MISSING will likely fire on the word generalization (title and RQ2) for exactly that reason. Derived from the golden UAV scoping review (workspaces/golden-uav-30/intent.json), simplified: three questions, three concepts, three inclusions, three exclusions, four recall seeds taken from its verified records.",
     "sr": "A companion systematic review in the same domain (UAV-guided versus uniform herbicide application). Its recall seeds are empty on purpose: the repository holds no verified record of a comparative spraying trial, and the set invents no DOI. A critic may mention the missing seeds as a note, never as a major finding."
   },
   "seed_catalog": [
@@ -1003,6 +1003,7 @@
       "kind": "single",
       "fields": [
         "/exclusion_criteria/1/criterion",
+        "/exclusion_criteria/1/reason_category",
         "/inclusion_criteria/1/criterion"
       ],
       "rejected_by_existing_validation": false,
@@ -1016,15 +1017,17 @@
           "defect": "No criterion requires a uniform-application control arm any more, so single-arm trials and before-after reports are eligible, and a saving cannot be computed from them.",
           "fields": [
             "/inclusion_criteria/1/criterion",
-            "/exclusion_criteria/1/criterion"
+            "/exclusion_criteria/1/criterion",
+            "/exclusion_criteria/1/reason_category"
           ],
-          "severity": "critical",
+          "severity": "major",
           "category": "question-criteria-alignment",
           "catching_check": "none: critic only",
           "finding": "RQ1 and RQ2 are comparisons with uniform application; INC-02 and EXC-02 no longer require the control arm, so eligible studies may have no comparator.",
           "accepted_locators": [
             "/research_questions/0/text",
-            "/research_questions/1/text"
+            "/research_questions/1/text",
+            "/matrix_dimensions"
           ]
         }
       ]

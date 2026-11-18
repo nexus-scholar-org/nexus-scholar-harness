@@ -34,7 +34,6 @@ VARIANTS: list[dict[str, Any]] = MANIFEST["variants"]
 NONE = "none: critic only"
 SEVERITIES = {"critical", "major", "minor"}
 REJECTED_BY = {None, "intent_model", "compile", "validate_protocol"}
-# What the set must cover (the defect classes the M10c brief names).
 # Which fixed check should catch which defect ("<variant>#<defect index>"); pinned here so
 # a change of the manifest's assignments is a visible change of this file too.
 FIXED_CHECK_ASSIGNMENTS = {
@@ -51,6 +50,7 @@ FIXED_CHECK_ASSIGNMENTS = {
     "sr-planned-size-small-and-query-flooding#0": ["CONCEPTS_ONE_ONLY"],
     "sr-planned-size-small-and-query-flooding#1": ["PLAN_ESTIMATE_ABOVE_TARGET", "HARVEST_ABOVE_TARGET"],
 }
+# What the set must cover (the defect classes the M10c brief names).
 REQUIRED_CATEGORIES = {
     "question-criteria-alignment",
     "criteria-consistency",
