@@ -1,5 +1,5 @@
 # M10b Proposals and checks
-Branch: dev/m10b/build (from `dev/m10b/proposals-checks` at `2d07228d`, with `origin/main` at `e7644a6c` merged) · Lane: **RELEASE** (declared 2026-11-18: new public routes and answer fields, new refusal codes, new `Draft` fields that an older engine refuses, `audit/proposals.jsonl` and `audit/check_dismissals.jsonl` in the preview's `files`, and a changed accept path on the Import step; per `docs/architecture/test_gate_policy.md`) · Status: IN PROGRESS (Part A built and gated 2026-11-18; review round 1 CHANGES fixed; Parts B, C, D not started) · Started: 2026-11-14
+Branch: dev/m10b/build (from `dev/m10b/proposals-checks` at `2d07228d`, with `origin/main` at `e7644a6c` merged) · Lane: **RELEASE** (declared 2026-11-18: new public routes and answer fields, new refusal codes, new `Draft` fields that an older engine refuses, `audit/proposals.jsonl` and `audit/check_dismissals.jsonl` in the preview's `files`, and a changed accept path on the Import step; per `docs/architecture/test_gate_policy.md`) · Status: **Part A READY FOR PR** (2026-11-18; reviewer APPROVE on `dcb85d07`; merge waits for the researcher's acceptance of decision items 21, 25 and 26) · Parts B, C, D not started · Started: 2026-11-14
 
 Second milestone of the "Assisted inception" sequence the researcher approved on
 2026-11-14 (M10a search quality, **M10b proposals and checks**, M10c assistant and
@@ -133,8 +133,8 @@ Part D, the size estimate (after the search-provider resilience session merges):
 - [ ] D1 `POST /discovery/estimate` (in both allow-lists), a count per database, the Estimate card on Plan and Harvest (`01-plan` "Size estimate"); `PACE_INVALID` in the console refusal registry and §7. The count request per database touches `src/scholar_search/providers/*`. Tests: `tests/console/test_discovery_estimate_api.py`, `tests/kits/search/test_provider_count.py`; `tests/console/test_console_refusals.py`; `apps/research-ui/tests/discovery-estimate.test.tsx`.
 
 Every part:
-- [ ] Copy in en, fr and ar for every new key (the N9 guard and the copy tests pass).
-- [ ] `/gate pr` once on the final executable commit of the part, `generate_contract_baseline.py --check`, `git diff --check`, `milestone-reviewer` APPROVE.
+- [ ] Copy in en, fr and ar for every new key (the N9 guard and the copy tests pass). **Part A: done** (FR and AR are typed `Record<InceptionCopyKey, string>`, so the type check fails on a missing key; `inception-copy.test.ts` and the N9 guard pass). Parts B, C, D: open.
+- [ ] `/gate pr` once on the final executable commit of the part, `generate_contract_baseline.py --check`, `git diff --check`, `milestone-reviewer` APPROVE. **Part A: done** (pr gate on `a1ef6122`, the final executable commit; baseline current; diff check clean on `dcb85d07`; reviewer APPROVE on `dcb85d07`). Parts B, C, D: open.
 
 ## Findings fixed
 | ID | Reproducing test | Fails before | Passes after |
@@ -145,6 +145,11 @@ Every part:
 | Strict run 8 (Review lists concepts without synonyms) | `inception-answers.test.tsx` "lists each concept with its synonyms" | not run against `origin/main` (the test was written with the fix) | yes |
 | Strict run 9 (stray dot before the folder path; "Convincing evidence is A primary…") | `test_review_wording.py::test_the_rationale_quotes_each_answer_after_a_colon_without_a_double_full_stop`; `inception-answers.test.tsx` "puts the folder path inside the gate sentence" | yes for the rationale; the UI test was not run against `origin/main` | yes |
 | R3 / R4 (planned size, optional proof) | `test_steps_planned_size.py`, `test_steps_proof_optional.py` | yes: 7 of 14 fail (the 5 impossible-range cases already refuse on `origin/main`, as unknown fields under `extra="forbid"`; 2 proof cases describe what stays as it was) | yes |
+
+## Review (Part A)
+- Spec review (2026-11-18, before the build): CHANGES, 20 findings (4 P1, 15 P2, 1 P3); all fixed in `9924f5b2`.
+- Part A, round 1 on `4784790c`: CHANGES, 11 findings (2 P2, 9 P3, no P1). Finding 1 (an imported column named like a suggestion lost its wording silently, or a case variant was refused later) and findings 3 to 11 fixed in `a1ef6122` and `dcb85d07`. Finding 2 is not code: decision items 21, 25 and 26 wait for the researcher.
+- Part A, round 2 on `dcb85d07`: **APPROVE** (code), with the open condition above. One new P3, deferred (below).
 
 ## Decisions
 Proposed here; they move to `docs/decisions.md` once M10a's entries are merged.
@@ -216,3 +221,4 @@ Part A (each listed by the Part A review of 2026-11-18, or found while building;
 - The terminal wizard's "Rejection category" prompt still takes any text: the reason-code rule applies to browser saves (decision item 25). A separate decision.
 - `pool_max: true` is read as 1 (pydantic's lax integers). Strict integers for the two fields are a follow-up.
 - `REVIEW_IMPORT_STEP_NOT_OPENED` (the Review note for an unopened imported step) is a check: Part B.
+- The GENESIS row of a *replacement* made from an imported draft reads "...(backup at audit/replaced/...) Started from ..." with no full stop between (`emit.py`, the replacement branch; Part A round 2, P3). A code change would need the full gate again; Part B rewrites this genesis code for `audit/proposals.jsonl`, so it is fixed there, with a test.
