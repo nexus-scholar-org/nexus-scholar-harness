@@ -35,7 +35,7 @@ Base: `origin/main` at `6e39b00a`. Second bundle after `H-small-fixes-2026-11-18
 - **Baseline.** `generate_contract_baseline.py --check` says "Contract baseline current" before and after the edit; the manifest is not covered by it. Nothing regenerated.
 
 ## Decisions
-See `docs/decisions.md`, entry "2026-11-18 — Small fixes 2" (PROPOSED).
+See `docs/decisions.md`, entry "2026-11-18 — Small fixes 2": item 4 (F8-1, F8-3) accepted 2026-11-18; items 1 to 3 and 5 PROPOSED.
 
 ## Evidence
 | Stage | Commit | Command | Result | Duration |
@@ -60,7 +60,7 @@ See `docs/decisions.md`, entry "2026-11-18 — Small fixes 2" (PROPOSED).
 ## Review
 `milestone-reviewer` on `76166c11`: **CHANGES**, no P1, two P2, three P3 (it ran no tests). Repairs in the commit after `76166c11`, bounded to the findings:
 1. P2, `_published_event` matched `generation_id` alone: now also `generation_fingerprint`; non-dict `parameters` are skipped (P3 4). Regression test `test_published_event_matches_the_exact_publication_only`. Not reproduced through HTTP (a re-publish with another approval); covered at the function level.
-2. P2, the `audit.py` module docstring still said the hash scheme must not be normalised without a behaviour-decision packet: rewritten to point at decision item 4 (**PROPOSED; the researcher should accept item 4 before this merges**).
+2. P2, the `audit.py` module docstring still said the hash scheme must not be normalised without a behaviour-decision packet: rewritten to point at decision item 4 (item 4 accepted by the researcher on 2026-11-18).
 3. P3, stale `_delete_lock_file` in the `release()` docstring: renamed.
 5. P3 (closure does not set `NEXUS_WHEEL_REQUIRE_UI=1`, so a stale export could be bundled): left as is; `build:export` rebuilds the export in the same command list.
 Also raised by the reviewer: `inception/wizard.py` (the init wording, one line) sits in the Inception package; it is not a screen, the console API or a proposal object, but the researcher may want the M10b session told.

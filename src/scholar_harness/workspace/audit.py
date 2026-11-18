@@ -17,8 +17,8 @@ transport-neutral (no FastAPI, no Typer, no console import):
   ``hex(hash(action + description))[-6:]`` scheme (HCM-01 characterized it, HCM-02
   preserved it); F8 replaced the limb with six random hex digits because the old
   one gave two same-text events in one second the same id. That is the behaviour
-  decision item 4 of "Small fixes 2" in ``docs/decisions.md`` (PROPOSED until the
-  researcher accepts it); the ``EVT-<14 digits>-<6 hex>`` shape is unchanged.
+  decision item 4 of "Small fixes 2" in ``docs/decisions.md`` (accepted by the
+  researcher on 2026-11-18); the ``EVT-<14 digits>-<6 hex>`` shape is unchanged.
 
 ``refresh_index`` (best-effort, void) and ``refresh_index_atomic``
 (orchestrator-compatible, backup/restore, ``bool``) share the portable loader
