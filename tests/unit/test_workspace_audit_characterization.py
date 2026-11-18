@@ -501,3 +501,16 @@ def test_hc1_7_portable_loader_prefers_env_override(tmp_path, monkeypatch):
     assert module is not None
     assert hasattr(module, "log_project_event")
     assert str(Path(module.__file__).resolve()).startswith(str(fake_bundle.resolve()))
+
+
+def test_legacy_events_with_the_same_action_and_text_get_distinct_ids(tmp_path):
+    """F8: the id used to be hash(action + description), so a repeat in one
+    second (same process) got the same id."""
+    from scholar_harness.workspace.audit import append_legacy_event
+
+    for _ in range(2):
+        append_legacy_event(tmp_path, "A", "agent", "same text", [], [], {})
+    rows = [json.loads(line) for line in _journal_lines(tmp_path)]
+    assert len(rows) == 2
+    assert all(EVT_RE.match(r["event_id"]) for r in rows)
+    assert rows[0]["event_id"] != rows[1]["event_id"]
