@@ -94,7 +94,7 @@ Status of this section: FINAL, not built. Decided by the researcher on 2026-11-1
 
 **The field.** One card on this step, under the playbook choice: "How many records do you plan to screen?" with two whole-number inputs, "from" (optional) and "up to". A Hint (`03-guidance` rule 1) holds: "Titles and abstracts you will read. The size warnings before and after a harvest compare with this number." Under the inputs, as plain text: "This playbook usually plans {min} to {max}." with a secondary button "Use this range". The inputs are never prefilled: the playbook's range is a preset, not the researcher's plan, and it is not marked "Recommended". In a draft started from an earlier review (`09-start-from-protocol`) a second secondary button reads "Use the earlier range ({min} to {max})".
 
-**Optional.** Continue never needs it. Left empty, the protocol gets the playbook's preset exactly as today, the Review step shows the note `SHAPE_PLANNED_SIZE_EMPTY` (`02-checks`), and the size warnings use the general limit of 1,000 works (`10-size-estimate`).
+**Optional.** Continue never needs it. Left empty, the protocol gets the playbook's preset exactly as today, the Review step shows the note `SHAPE_PLANNED_SIZE_EMPTY` (`02-checks`), and the size warnings use the general limit of 1,000 works (`01-plan` "Size estimate (M10b)").
 
 **Engine.**
 - `Draft` (`steps.py:149`): new `pool_min: int | None` and `pool_max: int | None`. Rules: whole numbers; `pool_max` from 1 to 1,000,000; `pool_min` from 0 to `pool_max`; `pool_min` without `pool_max` is refused; `pool_max` alone gives `pool_min` 0. A value outside the rules is `DRAFT_INVALID` with `details.errors` naming the field.

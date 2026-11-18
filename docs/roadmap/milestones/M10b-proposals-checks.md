@@ -1,5 +1,5 @@
 # M10b Proposals and checks
-Branch: dev/m10b/proposals-checks · Lane: **to declare before engine work** (the spec stage is documentation only; RELEASE if the proposal record, the exclusion reasons or the next-step endpoint change a public HTTP response or touch Contract v1, per `docs/architecture/test_gate_policy.md`) · Status: SPECS FINAL (2026-11-15); the build has not started and waits for M10a and for the harvest fix M3i-harvest-robustness · Started: 2026-11-14
+Branch: dev/m10b/build (from `dev/m10b/proposals-checks` at `2d07228d`, with `origin/main` at `e7644a6c` merged) · Lane: **RELEASE** (declared 2026-11-18: new public routes and answer fields, new refusal codes, new `Draft` fields that an older engine refuses, `audit/proposals.jsonl` and `audit/check_dismissals.jsonl` in the preview's `files`, and a changed accept path on the Import step; per `docs/architecture/test_gate_policy.md`) · Status: IN PROGRESS (spec pass done 2026-11-18; build not started) · Started: 2026-11-14
 
 Second milestone of the "Assisted inception" sequence the researcher approved on
 2026-11-14 (M10a search quality, **M10b proposals and checks**, M10c assistant and
@@ -87,13 +87,38 @@ source in the same list.
 - [x] `docs/ux/phase1-discovery/final/10-size-estimate.md` (folded into `01-plan` after M10a merges).
 - [x] The researcher has closed every open question (2026-11-15, "accept all"); each spec says `Status: FINAL`. The specs were written by seven writers and reconciled by the main session; no independent reviewer has read them.
 
-### Build (after the specs are FINAL; items and tests are named then)
-- [ ] First: amend `docs/ux/phase2-screening/final/11-import-corpus.md` (the Import step links to the Hand-off; R6), fold `10-sample-curation` into `02-explore` and `10-size-estimate` into `01-plan`, and write the decisions below into `docs/decisions.md`.
-- [ ] Proposal store, API and card, with the write-only record of accepted engine suggestions (R1).
-- [ ] Checks engine and panel; thresholds calibrated on the golden UAV workspace before they are frozen.
-- [ ] The planned number of records and the optional proof answer (`04-shape`).
-- [ ] The six other items above. The import and the own matrix columns are built together.
-- [ ] `/gate pr`, `generate_contract_baseline.py --check`, `milestone-reviewer` APPROVE.
+### Spec pass after M10a and M3i (2026-11-18)
+- [x] S1 `10-sample-curation` folded into `docs/ux/phase0-inception/final/02-explore.md` "Sample curation (M10b)" and `10-size-estimate` into `docs/ux/phase1-discovery/final/01-plan.md` "Size estimate (M10b)" (with a pointer section in `03-harvest.md`); both files deleted and every reference updated.
+- [x] S2 The decisions written into `docs/decisions.md` (entry "2026-11-15 — M10b", items 1 to 17; 12 to 17 proposed, not yet accepted).
+- [x] S3 `docs/ux/phase2-screening/final/11-import-corpus.md` amended: "Accepting on the Hand-off (M10b, R6)".
+- [x] S4 `EXPLORE_SAMPLE_ONE_SOURCE`: its test text and "why" rewritten for M10a's spread sample (`02-checks`).
+- [x] S5 Guidance audit recounted for Explore (I-E6, I-E37 to I-E43) and Harvest (D-H13, D-H17 to D-H23); totals inception 96 / 34 / 11 (141), discovery 90 / 32 / 15 (137), checked by counting the rows.
+- [x] S6 Reconciled with M3i (merged): `04-next-step` reads `preparation` (rows 13, 14, B to D, G, I, J; "Finish preparing this corpus"; "What M3i settled"); the hand-off check is `HANDOFF_PREPARATION_UNFINISHED` with the refusal `PREPARATION_UNFINISHED`; the Hand-off stays the one place to accept.
+- [x] S7 `05-criteria`'s two check working names reconciled to the catalogue's `CRITERIA_REASONS_UNIFORM`.
+- [ ] S8 `milestone-reviewer` run once on the specs (no independent reviewer had read them); its findings fixed.
+
+### Build (definition of done; each item names its tests; a strict-run finding gets its reproducing test first)
+Part A, the draft's answers (Shape, Criteria, Review) and starting from a protocol:
+- [ ] A1 Planned number of records (`04-shape` "How many records you plan to screen"): `Draft.pool_min`, `pool_max`; `steps/shape` answers `pool_preset`; compiled into `target_candidate_pool_size`; Review's "Planned records" line. Tests: `tests/inception/test_steps_planned_size.py`; `apps/research-ui/tests/inception-shape.test.tsx`.
+- [ ] A2 Optional proof (`04-shape` "The proof answer may be empty"): `proof_required(draft)`; `steps/shape` answers `proof_required`. Tests: `tests/inception/test_steps_proof_optional.py`; `inception-shape.test.tsx`.
+- [ ] A3 Exclusion reason categories (`05-criteria` "Exclusion reasons"): `Draft.out_of_scope_reasons`, `default_exclusion_reason`, the code rule, `reason_suggestions`, the Reason combobox. Strict-run finding 5. Tests: `tests/inception/test_criteria_reasons.py`; `inception-criteria.test.tsx`.
+- [ ] A4 Own matrix columns (`05-criteria` "Own matrix columns"): `Draft.custom_matrix_columns`, `build_intent`, `steps/matrix` `custom_columns`. Strict-run finding 6. Tests: `tests/inception/test_custom_matrix_columns.py`; `inception-criteria.test.tsx`.
+- [ ] A5 Review wording (strict-run findings 7, 8, 9): the "Sample Size" column sentence, concepts listed with their synonyms, the stray dot before the folder path, "Convincing evidence is A primary…". Reproducing tests first.
+- [ ] A6 Start from an existing protocol (`09-start-from-protocol`): `POST /inception/drafts/import`, `…/origin/checked`, the screen, banner and step marks, the GENESIS description, `origin.label` in the draft listing. Built with A4. Tests: `tests/console/test_inception_import.py` (the UAV rebuild included); `apps/research-ui/tests/inception-import.test.tsx`.
+Part B, proposals and checks:
+- [ ] B1 Proposal store, API and card (`01-proposals`), the write-only `engine:<mechanism>` record (R1), genesis's `audit/proposals.jsonl` with `in_protocol` and the journal rows; both proxy allow-lists; the codes in `docs/architecture/inception-api.md`. Tests: `tests/console/test_inception_proposals.py`; `apps/research-ui/tests/proposals.test.tsx`.
+- [ ] B2 Checks engine (`02-checks`): the inception and discovery catalogues, dismissal and restore with the record (`check_dismissals`, `audit/check_dismissals.jsonl`); thresholds marked ⚑ run over the golden UAV workspace and the 2026-11-13 evidence, the result recorded here before they are frozen. Tests: `tests/console/test_inception_checks.py`, `tests/console/test_discovery_checks.py`.
+- [ ] B3 Checks panel on inception 01 to 06 and discovery 01 to 08; Review's "Ready to create?" list replaces its Checks card. Tests: `apps/research-ui/tests/checks-panel.test.tsx`.
+Part C, the what's-next bar, the Import link and Explore:
+- [ ] C1 Next-step builder `console/next_step.py`, `GET /review/next-step` and `GET /inception/drafts/{id}/next-step`, the bar in `AppShell`, `protocol_origin` in `project.json` (`04-next-step`). Strict-run finding 11. Tests: `tests/console/test_next_step_api.py`; `apps/research-ui/tests/next-step-bar.test.tsx`.
+- [ ] C2 The Import step links to the Hand-off (`11-import-corpus` "Accepting on the Hand-off"). Strict-run finding 11. Tests: the `screening-import` vitest file.
+- [ ] C3 Sample curation (`02-explore` "Sample curation"): `reserve` and `POOL_SAMPLE` `relevance-2`, `effective_pool`, `GET`/`POST …/recon/sample`, `SAMPLE_CHANGED`, `recon_context` `sample_exclusions`, the Papers card controls. Tests: `tests/recon/test_effective_pool.py`, `tests/console/test_recon_sample_api.py`; `apps/research-ui/tests/inception-sample.test.tsx`.
+- [ ] C4 Explore on an empty search: "Databases asked" shown once; the "shorten the query" advice only when the engine says so (decision item 17). Reproducing tests first.
+Part D, the size estimate:
+- [ ] D1 `POST /discovery/estimate`, a count per database, the Estimate card on Plan and Harvest (`01-plan` "Size estimate"). The count request per database touches `src/scholar_search/providers/*`, which another session (search-provider resilience) is changing now: built after that work merges, or with the count kept outside the provider files (to be decided). Tests: `tests/console/test_discovery_estimate_api.py`, `tests/kits/search/test_provider_count.py`; `apps/research-ui/tests/discovery-estimate.test.tsx`.
+Every part:
+- [ ] Copy in en, fr and ar for every new key (the N9 guard and the copy tests pass).
+- [ ] `/gate pr` once on the final executable commit, `generate_contract_baseline.py --check`, `git diff --check`, `milestone-reviewer` APPROVE.
 
 ## Findings fixed
 | ID | Reproducing test | Fails before | Passes after |
@@ -145,9 +170,9 @@ hydration and verification in that order (`pipeline/coordinator.py:595, 677, 696
 - **What the methods text may count.** Added to `01-proposals`: genesis marks each applied proposal `in_protocol: true|false`, because an applied value can be edited away later. This is the main session's addition, not a writer's or the researcher's; overrule it if unwanted.
 - Not changed: line numbers cited by older specs have drifted; the new specs cite the lines read on 2026-11-14.
 
-### After M10a merges
-- `EXPLORE_SAMPLE_ONE_SOURCE` describes the sample as cut today; rewrite its "why" for the spread sample.
-- The database picker and the "0 results" wording of M10a change text blocks that `03-guidance`'s audit counted (264 blocks at `a0191cc6`); recount Explore and Harvest before M10d.
+### After M10a merges (done 2026-11-18, items S4 and S5)
+- `EXPLORE_SAMPLE_ONE_SOURCE`'s "why" rewritten for the spread sample.
+- Explore and Harvest recounted in `03-guidance`'s audit: 264 blocks at `a0191cc6`, 278 now.
 
 ## Evidence
 | Stage | Commit | Command | Result | Duration |

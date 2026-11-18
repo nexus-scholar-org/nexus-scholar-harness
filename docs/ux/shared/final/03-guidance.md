@@ -19,7 +19,7 @@ Boards: none. The rules restate and extend decisions already taken: BRAND_BOOK p
 | every string | the existing catalogs `lib/inception-copy.ts`, `lib/discovery-copy.ts`, `lib/screening-states.ts` (no new text for moved blocks) |
 | `recommended_paradigm`, `default_concepts[]` (marks the Shape lens and its playbook, suggests concepts) | `POST /api/v1/inception/steps/scope` ✓ M4a (`console/api/inception.py:106`, `steps.py:165`) |
 | pool health gates (`gates.pool.sufficient`) that mark "semantic search" when a pool is thin | recon routes ✓ M4c (02-explore, "Backend calls") |
-| a suggested harvest cap | `size estimate` ✗ M10b (10-size-estimate); until it exists no cap is marked |
+| a suggested harvest cap | `size estimate` ✗ M10b (`01-plan` "Size estimate (M10b)"); until it exists no cap is marked |
 | open checks that mark the next fix on Review | `checks` ✗ M10b (02-checks); until it exists Review marks nothing |
 | the next step of a review | the "what's next" bar ✗ M10b (04-next-step) |
 
@@ -84,7 +84,7 @@ A hint may repeat a number or a label that is also visible elsewhere; it is neve
   | 03 Direction | nothing: the engine lists directions by evidence and states it is not a recommendation | any of the three directions; the seeds (the anchors are labelled "Anchors", nothing is ticked) |
   | 05 Criteria | the suggested concepts and pool synonyms keep their "not yet yours" label; the badge is added only when an M10b check proposes one | any wizard criterion (it keeps "Waiting for you") |
   | 06 Review | the first open check's fix, when 02-checks exists | the Create button |
-  | 03 Harvest | the suggested cap, when 10-size-estimate exists | the cap input is never pre-filled with it |
+  | 03 Harvest | the suggested cap, when the size estimate (`01-plan` "Size estimate (M10b)") exists | the cap input is never pre-filled with it |
 - **Step-level recommendation** is the what's-next bar, not a badge on a button.
 
 ### Rule 4: Collapsed details
@@ -143,7 +143,7 @@ Shared frame (`inception-frame.tsx`, every screen 01 to 07), then 01 Scope, 02 E
 | I-E3 | `explore.lede` (sentence 1) | "Pool health first, in plain words with the raw value underneath." | REMOVED | X3 describes the layout; the cards do it (principle 3) |
 | I-E4 | `explore.lede` (sentence 2) | "The schools, topics and papers below are what the later steps draw on." | STAYS | the one lede sentence |
 | I-E5 | `explore.first.title`, `first.question`, `first.years`, `first.toPresent`, `defaultYear` | "Your first search", the question, the years, "Your draft has no from-year, so the search starts at {year}." | STAYS | V4/V6 what is searched; a silent default is stated |
-| I-E6 | `explore.first.body` | "This sends your question to OpenAlex, Semantic Scholar, Crossref and arXiv and keeps up to {max} papers." | STAYS | V6 what leaves the machine before the main action |
+| I-E6 | `explore.first.body` | "This sends your question to the databases you ticked and keeps up to {max} papers." (M10a wording) | STAYS | V6 what leaves the machine before the main action |
 | I-E7 | `explore.mode.legend`, `mode.keyword`, `mode.semantic` | "Search mode", "Keyword", "Semantic" | STAYS | V7 option names (marked Recommended only on a thin pool) |
 | I-E8 | `explore.mode.help` | "Semantic search matches meaning, not only words." | HINT | T3 definition |
 | I-E9 | `explore.pool.title`, `pool.meta`, `pool.cached`, `pool.fingerprint` | "Pool · {n} papers", "fetched {date} · {mode} ...", "from cache", "Pool {fingerprint}" | STAYS | V4/V5 numbers and provenance (fingerprint in Details per spec 12) |
@@ -174,6 +174,13 @@ Shared frame (`inception-frame.tsx`, every screen 01 to 07), then 01 Scope, 02 E
 | I-E34 | `explore.progress.title`, `progress.leg`, `progress.lost` | "Searching", "{provider} · {fetched} fetched", "Lost contact with the engine ..." | STAYS | V8/V2 |
 | I-E35 | `explore.progress.note` | "Results are kept only if the search succeeds." | HINT | T4 background; the partial and failed cards (I-E11) carry the outcome |
 | I-E36 | `explore.first.go`, `explore.next*`, `explore.change`, `explore.offline`, `explore.asOf`, `explore.first.needTopic` | "Search the literature" / "See {n} directions", "needs the engine on this computer", "As of {time}" | STAYS | V7/V8; main action: "Search the literature" while no pool exists, "See {n} directions" after |
+| I-E37 | `explore.query.label`, `query.useDerived`, `query.tooLong` | "Query sent to the databases", "Use the derived query", "The query can have at most 2000 characters." | STAYS | V7 field label and control; V1 the length refusal (M10a, recounted 2026-11-18) |
+| I-E38 | `explore.query.help` | "The keywords below are sent to the databases. Your question above is not changed." | HINT | T3/T4 what the field is; the field label says the rest |
+| I-E39 | `explore.query.emptyHint` | "Leave empty and the engine derives a keyword query from your question." | HINT | T1 how-to; shown only when the engine has no derived query |
+| I-E40 | `explore.picker.legend`, `picker.check.*`, `picker.up.*`, `picker.down.*`, `picker.moved`, `picker.none`, `picker.reset`, `picker.unknown` | "Databases to ask", the per-database controls, "Pick at least one database." | STAYS | V7 controls and their names; V1 the "at least one" refusal |
+| I-E41 | `explore.picker.orderHelp` | "The order decides which papers fill the sample of {max} first." | HINT | T3 what the order means |
+| I-E42 | `explore.legs.col.query`, `legs.zero`, `legs.editQuery` | "Query sent", "0 results", "Edit the query" | STAYS | V3 "0 results" is a result; V5 the query each database received |
+| I-E43 | `explore.legs.shorten` | "Six words joined by AND can find nothing; shorten the query above." | STAYS | V2 advice tied to an empty result; M10b shows it only when the engine says the empty result followed a query of several words joined by AND (it showed for any empty search) |
 | I-D1 | `direction.kicker` | "Step 3 of 6 · Direction · pick one" | STAYS | V8 eyebrow |
 | I-D2 | `direction.title` | "Which direction should this review pursue?" | STAYS | the question |
 | I-D3 | `direction.lede` (sentence 1) | "These directions come from phrases that occur in the titles or abstracts of at least two papers of your pool." | STAYS | the one lede sentence; V5 says where they come from |
@@ -320,13 +327,20 @@ Shared (the entry `/discovery/` and spec 07 "States"), then 01 Plan, 02 Recall, 
 | D-H7 | `harvest.stage.corpusNotFrozen` | "The corpus is frozen on the hand-off screen." | REMOVED | X1 `harvest.title.finished` ("The corpus is not frozen yet.") says it |
 | D-H8 | `harvest.recall.line`, `harvest.recall.none` | "A recall check preceded this run: {found} of {total}, {date}", "No recall check preceded this run." | STAYS | V5 provenance and what is not known |
 | D-H9 | `harvest.note.label`, `harvest.capOverride.line`, `harvest.form.title`, `harvest.form.cap`, `harvest.form.capInvalid`, `harvest.form.note` | "This harvest", "Cap for this harvest only", "Cap for this run: {value} (run override)" | STAYS | V7/V5 an override is recorded |
-| D-H10 | `harvest.form.capHelp` | "Overrides the protocol's cap of {value} for every database in this run. It is recorded ... Between 1 and {ceiling}." | HINT | T1/T3; the suggested cap is marked Recommended when 10-size-estimate exists |
+| D-H10 | `harvest.form.capHelp` | "Overrides the protocol's cap of {value} for every database in this run. It is recorded ... Between 1 and {ceiling}." | HINT | T1/T3; the suggested cap is marked Recommended when the size estimate (`01-plan` "Size estimate (M10b)") exists |
 | D-H11 | `harvest.form.noteHelp` | "Kept with the run and printed in the report." | HINT | T1 how-to |
 | D-H12 | `harvest.start`, `harvest.again`, `harvest.againHelp`, `harvest.warn.imports` | "Start the harvest", "A new harvest replaces this run as the candidate corpus ...", "Starting a harvest means database exports can no longer be added ..." | STAYS | V6 consequence before the main action; main action "Start the harvest" |
-| D-H13 | `harvest.stop`, `harvest.stop.late`, `harvest.stopping` | "Stop the harvest and keep what was fetched" | STAYS | V7 the button already says what is kept |
+| D-H13 | `harvest.stop`, `harvest.stop.late`, `harvest.stop.prepare`, `harvest.stopping` | "Stop the harvest and keep what was fetched", "Stop after the current step", and since M3i "Fetching is finished. A stop now takes effect when the current step ends ..." | STAYS | V7 the button says what is kept; V6 when a stop takes effect, said before the click |
 | D-H14 | `harvest.stop.title`, `harvest.stop.body` | "If you stop: Fetched records are kept and the run is marked partial ..." | HINT | T1 reassurance; the button label states the consequence |
 | D-H15 | `harvest.saved` | "The databases, queries and counts are saved with the run and printed in the search report." | HINT | T4 background |
 | D-H16 | `harvest.next.*`, `harvest.changed`, `harvest.accepted`, `harvest.reading` | "Go to Duplicates", "This run searched an earlier query or year window ..." | STAYS | V7/V2 |
+| D-H17 | `harvest.asked.title`, `harvest.leg.query`, `harvest.leg.status.none`, `harvest.leg.notChosen` | "Databases asked, in order", "Query sent", "0 results", "Not selected for this harvest." | STAYS | V3/V5 what each database received and returned (M10a, recounted 2026-11-18) |
+| D-H18 | `harvest.title.preparing`, `harvest.title.prep.*`, `harvest.badge.preparing`, `harvest.prep.card`, `harvest.prep.badge.*` | "The corpus is being prepared", "The search finished, but preparing the corpus failed.", "Preparation unfinished" | STAYS | V8 the state in one sentence and its badge (M3i) |
+| D-H19 | `harvest.preparing.lede` | "Removing duplicates, adding missing abstracts and checking the works of {run}. No database is searched." | STAYS | the one lede sentence of the preparing state; V6 nothing leaves the machine |
+| D-H20 | `harvest.prep.failed`, `prep.stopped`, `prep.interrupted`, `prep.interruptedAt`, `prep.noMarker`, `prep.error` | "The step “{stage}” then failed, so screening has nothing to receive yet.", "This run was made by an earlier version ..." | STAYS | V2 what failed and what is not known |
+| D-H21 | `harvest.prep.ended`, `prep.noneEnded` | "Steps that ended", "No step after the search ended." | STAYS | V4 the stages as recorded |
+| D-H22 | `harvest.prep.finish`, `prep.cannotFinish`, `prep.cannotFinishAccepted` | "Finish preparing this corpus", "The saved records of this run cannot be read, so it cannot be finished." | STAYS | V7 the main action of the state; V1 why it is not offered |
+| D-H23 | `harvest.prep.finishHelp` | "Removes duplicates, adds missing abstracts and checks the works, from the saved records. No database is searched again." | HINT | T1 how it works; the button names the action |
 | D-I1 | `import.eyebrow`, `import.back`, `import.handoff` | "Step 4 of 7 · Import", "Back to discovery", "Go to the hand-off" | STAYS | V8/V7 |
 | D-I2 | `import.limits.label`, `import.limits.row` | "Limits you applied there, if any", "Limits" | STAYS | V7/V5 the limits the researcher states are recorded |
 | D-I3 | `import.limits.help` | "For example: document type, language, subject area. Stored exactly as you write it and printed in the search report." | HINT | T2 example |
@@ -401,12 +415,12 @@ Shared (the entry `/discovery/` and spec 07 "States"), then 01 Plan, 02 Recall, 
 
 | Phase | STAYS | HINT | REMOVED | Total blocks |
 | :-- | --: | --: | --: | --: |
-| Inception 01 to 07 (shared frame included) | 92 | 31 | 11 | 134 |
-| Discovery 01 to 09 (shared included) | 84 | 31 | 15 | 130 |
+| Inception 01 to 07 (shared frame included) | 96 | 34 | 11 | 141 |
+| Discovery 01 to 09 (shared included) | 90 | 32 | 15 | 137 |
 
 A "block" is a row: one sentence or one group of keys that share a decision and a reason (for example `harvest.col.*`). Sentences of one key with different decisions are separate rows. The test derives the same counts by counting rows with prefix `I-` and `D-` per decision.
 
-Amended elsewhere (may change): inception 01 Scope (I-S1 to I-S9), 02 Explore (I-E1 to I-E36), 03 Direction (I-D1 to I-D25), discovery 01 Plan (D-P1 to D-P16), 03 Harvest (D-H1 to D-H16).
+Recounted on 2026-11-18 after M10a and M3i merged: Explore (I-E6 reworded; I-E37 to I-E43 added) and Harvest (D-H13 reworded; D-H17 to D-H23 added); the totals above include them. Not recounted: Scope, Direction and Plan, which M10a also touched (the Plan picker reuses the Explore picker's decisions: its controls stay, its order sentence is a hint); M10d recounts every screen it lightens, from the rendered DOM. Before the recount: inception 92 / 31 / 11 (134), discovery 84 / 31 / 15 (130).
 
 ### Per-screen header and action check
 | Screen | Lede after the audit (one sentence) | Main action (the one brand button) | Other actions |
