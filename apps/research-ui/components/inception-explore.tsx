@@ -6,6 +6,8 @@ import type { Locale } from "@/i18n";
 import { Button, DataCell, DecisionBadge } from "@/components/ui/base";
 import { DatabasePicker } from "@/components/database-picker";
 import { inceptionHref, InceptionFrame, InceptionRefusal, refusalOf, StepHeader, useDraft, type Refusal } from "@/components/inception-frame";
+import { StepAssist } from "@/components/inception-assist";
+
 import {
   DoiLink,
   isOffline,
@@ -70,7 +72,7 @@ export function InceptionExplore({ locale }: Readonly<{ locale: Locale }>) {
   const t = inceptionT(locale);
   const rt = inceptionRichT(locale);
   const state = useDraft();
-  const { draft, origin, draftId, record } = state;
+  const { draft, origin, draftId, record, bumpAssist } = state;
   const [recon, setRecon] = useState<ReconState | null>(null);
   const [reconError, setReconError] = useState<Refusal | null>(null);
   const [pool, setPool] = useState<Distilled | null>(null);
@@ -152,8 +154,9 @@ export function InceptionExplore({ locale }: Readonly<{ locale: Locale }>) {
       void loadRecon().then(() => {
         if (job?.state === "succeeded") poolHeading.current?.focus();
       });
+      bumpAssist();
     },
-    [loadRecon],
+    [loadRecon, bumpAssist],
   );
   const progress = useReconJob(origin, draftId, jobId, onEnd);
   const running = !!jobId;
@@ -424,6 +427,8 @@ export function InceptionExplore({ locale }: Readonly<{ locale: Locale }>) {
             <PapersCard locale={locale} pool={pool} sort={sort} setSort={setSort} all={allPapers} setAll={setAllPapers} />
           </div>
         ) : null}
+
+        <StepAssist locale={locale} step="explore" />
 
         <div className="flex flex-wrap items-center justify-end gap-3">
           <a className="inline-flex min-h-11 items-center text-brand underline" href={inceptionHref(locale, "scope", draftId, origin)} data-change-scope>

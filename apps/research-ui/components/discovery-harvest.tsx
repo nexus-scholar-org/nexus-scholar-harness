@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { DiscoveryChecksPanel } from "@/components/discovery-checks";
 
 import type { Locale } from "@/i18n";
 import { Button, DataCell, DecisionBadge, type DecisionRole } from "@/components/ui/base";
@@ -682,6 +683,7 @@ export function DiscoveryHarvest({ locale }: Readonly<{ locale: Locale }>) {
                 </section>
               </div>
               <aside className="space-y-4">
+                <DiscoveryChecksPanel locale={locale} step="harvest" origin={origin} run={wanted} />
                 {unfinished && preparation ? (
                   <>
                     <PreparationCard locale={locale} preparation={preparation} onFinish={() => void finish()} busy={finishing} />

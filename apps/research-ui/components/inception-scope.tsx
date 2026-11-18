@@ -5,6 +5,8 @@ import { useState } from "react";
 import type { Locale } from "@/i18n";
 import { Button } from "@/components/ui/base";
 import { inceptionHref, InceptionFrame, InceptionRefusal, StepHeader, useDraft } from "@/components/inception-frame";
+import { StepAssist } from "@/components/inception-assist";
+
 import { inceptionT } from "@/lib/inception-copy";
 
 /**
@@ -145,6 +147,8 @@ export function InceptionScope({ locale }: Readonly<{ locale: Locale }>) {
         </div>
 
         {saveError ? <InceptionRefusal locale={locale} refusal={saveError} draftId={draftId} origin={origin} onRetry={() => void persist("explore")} /> : null}
+
+        <StepAssist locale={locale} step="scope" />
 
         <div className="flex flex-wrap gap-3">
           <Button variant="primary" type="submit" disabled={saving || !yearsValid || !(draft.topic ?? "").trim()} aria-describedby={(draft.topic ?? "").trim() ? undefined : "scope-need-topic"}>

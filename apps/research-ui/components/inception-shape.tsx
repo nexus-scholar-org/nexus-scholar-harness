@@ -5,6 +5,8 @@ import { useEffect, useState } from "react";
 import type { Locale } from "@/i18n";
 import { Button } from "@/components/ui/base";
 import { inceptionHref, InceptionFrame, InceptionRefusal, refusalOf, StepHeader, useDraft, type Refusal } from "@/components/inception-frame";
+import { StepAssist } from "@/components/inception-assist";
+
 import { runStep, type Draft, type ScopeStep, type ShapeStep } from "@/lib/inception-api";
 import { inceptionT } from "@/lib/inception-copy";
 
@@ -314,6 +316,8 @@ export function InceptionShape({ locale }: Readonly<{ locale: Locale }>) {
 
         {stepError ? <InceptionRefusal locale={locale} refusal={stepError} draftId={draftId} origin={origin} /> : null}
         {saveError ? <InceptionRefusal locale={locale} refusal={saveError} draftId={draftId} origin={origin} onRetry={() => void persist("criteria")} /> : null}
+
+        <StepAssist locale={locale} step="shape" />
 
         <div className="flex flex-wrap gap-3">
           <Button variant="primary" type="submit" disabled={saving || !draft.paradigm || !!planned} aria-describedby={draft.paradigm ? undefined : "shape-need-lens"}>

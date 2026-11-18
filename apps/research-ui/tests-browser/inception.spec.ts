@@ -30,6 +30,8 @@ async function engine(page: Page, options: FakeOptions & { draft?: Record<string
 }
 
 const decided = () => completeDraft({ criteria_decisions: { [proofId()]: true } });
+/** M10b Part B: a question that names UAV, so the screens draw the checks panel and a proposal card (axe, overflow, hydration). */
+const assisted = () => completeDraft({ criteria_decisions: { [proofId()]: true }, rqs: ["Can on-device weed detection run in real time on a UAV?"] });
 
 test.use({ viewport: DESKTOP_VIEWPORT });
 
@@ -132,9 +134,11 @@ test("a researcher starts from an earlier review, writes the question, adds a re
 });
 
 test("replacing a workspace with screening needs the typed name, and a wrong one is a sentence", async ({ page }) => {
-  await engine(page, { draft: decided(), existing: "bound" });
+  // M10b: the old Checks card line is the engine's REVIEW_TARGET_HAS_SCREENING row of "Ready to create?".
+  const screening = { check_id: "REVIEW_TARGET_HAS_SCREENING", step: "review", level: "warning" as const, dismissible: false, params: { n: 4 }, action: { kind: "field", step: "review", field: "title" } };
+  await engine(page, { draft: decided(), existing: "bound", checks: () => [screening] });
   await page.goto(`/en/inception/review/?draft=${SESSION}`);
-  await expect(page.getByText("4 decision events and 0 batch decision files exist in this folder")).toBeVisible();
+  await expect(page.locator("[data-check='REVIEW_TARGET_HAS_SCREENING'] [data-sentence]")).toHaveText("That workspace has 4 screening decisions.");
   await page.getByRole("button", { name: "Create the workspace" }).click();
   await page.getByRole("button", { name: "Replace and back up" }).click();
   await expect(page.getByRole("heading", { name: "Screening was done under the current protocol" })).toBeFocused();
@@ -146,6 +150,56 @@ test("replacing a workspace with screening needs the typed name, and a wrong one
   await page.getByRole("button", { name: "Replace, and discard the screening link" }).click();
   await expect(page.getByRole("heading", { name: "The protocol is replaced" })).toBeVisible();
   await expect(page.locator("[data-backup]")).toContainText("audit");
+});
+
+test("a check proposes UAV on Concepts and criteria; Apply writes it; a dismissed warning survives a reload; Review reads Not ready, then Ready (M10b)", async ({ page }) => {
+    const fake = await engine(page, {
+      draft: completeDraft({ title: "UAV weed detection", rqs: ["Can RGB cameras on a UAV find weeds in real time?"] }),
+      checks: true,
+    });
+    await page.goto(`/en/inception/criteria/?draft=${SESSION}`);
+
+    // The check made a proposal; nothing is applied until the click.
+    const proposals = page.locator("[data-proposals='criteria']");
+    const uav = proposals.locator("li[data-proposal]", { hasText: "Add UAV to Concepts" });
+    await expect(uav).toHaveAttribute("data-status", "open");
+    await expect(page.locator("#concept-1")).toHaveCount(0);
+    await uav.getByRole("button", { name: "Apply" }).click();
+    await expect(page.locator("#concept-1")).toHaveValue("UAV");
+    expect((fake.drafts.get(SESSION)!.draft as { concepts: { concept: string }[] }).concepts.map((c) => c.concept)).toEqual(["weed detection", "UAV"]);
+    await page.reload();
+    await expect(page.locator("#concept-1")).toHaveValue("UAV");
+    await proposals.locator("[data-decided] summary").click();
+    await expect(proposals.locator("[data-decided]").getByText("Applied by you")).toBeVisible();
+
+    // A warning dismissed with a reason is kept across a reload, under Dismissed, and can be restored.
+    const panel = page.locator("[data-checks-panel='criteria']");
+    const rgb = panel.locator("[data-open-rows] li[data-check='CONCEPT_TERM_MISSING'][data-subject='RGB']");
+    await rgb.getByRole("button", { name: "Dismiss" }).click();
+    await panel.getByLabel("Why are you dismissing this? It is kept in the record.").fill("RGB is the camera type, not a search word.");
+    await panel.getByRole("button", { name: "Dismiss with this reason" }).click();
+    await expect(panel.locator("[data-dismissed] summary")).toHaveText("Dismissed (1)");
+    await page.reload();
+    const dismissed = page.locator("[data-checks-panel='criteria'] [data-dismissed]");
+    await dismissed.locator("summary").click();
+    await expect(dismissed.locator("[data-dismissal]")).toContainText("RGB is the camera type, not a search word.");
+    await dismissed.getByRole("button", { name: "Restore" }).click();
+    await expect(page.locator("[data-checks-panel='criteria'] [data-open-rows] li[data-check='CONCEPT_TERM_MISSING'][data-subject='RGB']")).toBeVisible();
+
+    // Review: the undecided wizard criterion is a blocker; once accepted, Ready.
+    await page.goto(`/en/inception/review/?draft=${SESSION}`);
+    const ready = page.locator("[data-checks-panel='review-ready']");
+    await expect(ready.locator("[data-ready-sentence]")).toHaveText("Not ready: 1 must be fixed first.");
+    await expect(ready.locator("li[data-check='CRITERIA_UNDECIDED'] [data-step-chip]")).toHaveText("Step 5");
+    await page.goto(`/en/inception/criteria/?draft=${SESSION}`);
+    const proof = page.locator("[data-criterion]", { hasText: "Reports the gold-standard proof" });
+    await proof.getByRole("button", { name: "Accept" }).click();
+    await page.getByRole("button", { name: "Continue to review" }).click();
+    await page.waitForURL(/\/en\/inception\/review\/?\?draft=/);
+    await expect(page.locator("[data-checks-panel='review-ready'] [data-ready-sentence]")).toHaveText(/^Ready to create\./);
+    // The Accept on a wizard criterion was recorded with the save.
+    const put = fake.calls.filter((c) => c.method === "PUT").at(-1)!;
+    expect(put.body?.accepted_from).toEqual([{ mechanism: "wizard_criterion", field: "criteria_decisions", value: proofId() }]);
 });
 
 const SCREENS = ["", "scope/", "explore/", "direction/", "shape/", "criteria/", "review/", "done/", "import/"] as const;
@@ -175,7 +229,7 @@ for (const locale of ["en", "ar"] as const) {
   for (const screen of SCREENS) {
     test(`${locale}/inception/${screen}: axe finds no violation, contrast included`, async ({ page }) => {
       const emitted = screen === "done/";
-      const fake = await engine(page, { draft: emitted ? undefined : decided() });
+      const fake = await engine(page, { draft: emitted ? undefined : assisted(), checks: true });
       if (emitted) fake.seed(decided(), { slug: "on-device-weed-detection", path: "C:\\w\\on-device-weed-detection", protocol_fingerprint: "sha256:" + "ab".repeat(32), replaced: false });
       withPool(fake, screen);
       await page.goto(`/${locale}/inception/${screen}${screen ? `?draft=${SESSION}` : ""}`);
@@ -196,7 +250,7 @@ for (const locale of ["en", "ar"] as const) {
     for (const screen of SCREENS) {
       test(`${locale}/inception/${screen} ${name}: nothing scrolls sideways`, async ({ page }) => {
         const emitted = screen === "done/";
-        const fake = await engine(page, { draft: emitted ? undefined : decided() });
+        const fake = await engine(page, { draft: emitted ? undefined : assisted(), checks: true });
         if (emitted) fake.seed(decided(), { slug: "on-device-weed-detection", path: "C:\\Users\\r\\Documents\\Nexus Scholar\\workspaces\\on-device-weed-detection", protocol_fingerprint: "sha256:" + "ab".repeat(32), replaced: false });
         withPool(fake, screen);
         await page.setViewportSize(viewport);
@@ -222,7 +276,7 @@ for (const screen of SCREENS) {
       if (/hydrat|did not match/i.test(error.message)) problems.push(`pageerror: ${error.message}`);
     });
     const emitted = screen === "done/";
-    const fake = await engine(page, { draft: emitted ? undefined : decided() });
+    const fake = await engine(page, { draft: emitted ? undefined : assisted(), checks: true });
     if (emitted) fake.seed(decided(), { slug: "on-device-weed-detection", path: "C:\w\on-device-weed-detection", protocol_fingerprint: "sha256:" + "ab".repeat(32), replaced: false });
     withPool(fake, screen);
     // Only `?draft=`: a `?console=` override would send the calls past the proxy the fake answers.

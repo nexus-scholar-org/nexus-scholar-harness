@@ -7,9 +7,13 @@ import { DataCell } from "@/components/ui/base";
 import { StateCard } from "@/components/screening-state-card";
 import { inceptionStateKey } from "@/lib/screening-states";
 import { isScreeningApiError } from "@/lib/screening-api";
-import { markStepChecked, readDraft, saveDraft, type Draft, type DraftOrigin, type DraftRecord } from "@/lib/inception-api";
+import { markStepChecked, readDraft, saveDraft, type AcceptedFrom, type Draft, type DraftOrigin, type DraftRecord } from "@/lib/inception-api";
 import { importLossLines } from "@/lib/inception-import";
 import { inceptionT, type InceptionCopyKey } from "@/lib/inception-copy";
+import { CHECKS_COPY } from "@/lib/checks-copy";
+import { PROPOSALS_COPY, proposalsT } from "@/lib/proposals-copy";
+import { AssistProvider, useAssist } from "@/components/assist-context";
+import { fillNodes, focusAnchor } from "@/components/assist-anchor";
 
 /**
  * The frame every inception screen shares (specs 01–08, M4b): the draft id and
@@ -231,7 +235,8 @@ export function InceptionSteps({
   draftId,
   origin,
   unchecked = [],
-}: Readonly<{ locale: Locale; current: InceptionStep; draftId: string; origin: string; unchecked?: InceptionStep[] }>) {
+  badges = {},
+}: Readonly<{ locale: Locale; current: InceptionStep; draftId: string; origin: string; unchecked?: InceptionStep[]; badges?: StepBadges }>) {
   const t = inceptionT(locale);
   return (
     <nav aria-label={t("stepsLabel")} className="mb-6">
@@ -254,6 +259,16 @@ export function InceptionSteps({
                   · {t("imported.mark")}
                 </span>
               ) : null}
+              {badges[step]?.checks ? (
+                <span className="ms-2 text-xs text-unclear" data-step-checks={step}>
+                  · {fillNodes(CHECKS_COPY[locale]["checks.stepBadge"], { n: <bdi dir="ltr">{badges[step]?.checks}</bdi> })}
+                </span>
+              ) : null}
+              {badges[step]?.suggestions ? (
+                <span className="ms-2 text-xs text-ink-muted" data-step-suggestions={step}>
+                  · {fillNodes(PROPOSALS_COPY[locale]["proposals.badge"], { n: <bdi dir="ltr">{badges[step]?.suggestions}</bdi> })}
+                </span>
+              ) : null}
             </a>
           </li>
         ))}
@@ -274,6 +289,10 @@ export function useDraft() {
   const [loadError, setLoadError] = useState<Refusal | null>(null);
   const [saveError, setSaveError] = useState<Refusal | null>(null);
   const [saving, setSaving] = useState(false);
+  // M10b Part B: the checks and proposals re-read when this moves; `notRecorded` is the last save's answer.
+  const [assistVersion, setAssistVersion] = useState(0);
+  const [notRecorded, setNotRecorded] = useState<AcceptedFrom[]>([]);
+  const bumpAssist = useCallback(() => setAssistVersion((n) => n + 1), []);
 
   const load = useCallback(async () => {
     setLoadError(null);
@@ -299,19 +318,36 @@ export function useDraft() {
   const adopt = useCallback((next: DraftRecord) => {
     setRecord(next);
     setDraft(next.draft ?? {});
+    setAssistVersion((n) => n + 1);
   }, []);
 
-  /** Save the whole draft; resolves true when the engine stored it. */
+  /**
+   * A proposal decision's answer (M10b): the record takes the stored draft and
+   * time; the page takes the decided field from it and keeps its other edits.
+   */
+  const adoptDecision = useCallback((answer: { draft: Draft; updated_at: string }, field: string) => {
+    const top = (field.startsWith("concepts[") ? "concepts" : field) as keyof Draft;
+    setRecord((current) => (current ? { ...current, draft: answer.draft, updated_at: answer.updated_at } : current));
+    setDraft((current) => ({ ...current, [top]: answer.draft[top] }));
+  }, []);
+
+  /**
+   * Save the whole draft; resolves true when the engine stored it. `acceptedFrom`
+   * names the engine suggestions accepted in this save (M10b); a value the engine
+   * cannot record comes back in `not_recorded` and the save still stands.
+   */
   const save = useCallback(
-    async (next?: Draft): Promise<boolean> => {
+    async (next?: Draft, acceptedFrom: AcceptedFrom[] = []): Promise<boolean> => {
       if (!record) return false;
       const body = next ?? draft;
       setSaving(true);
       setSaveError(null);
       try {
-        const stored = await saveDraft(origin, record.session_id, body, record.updated_at);
+        const { not_recorded: missed, ...stored } = await saveDraft(origin, record.session_id, body, record.updated_at, undefined, acceptedFrom);
         setRecord(stored);
         setDraft(stored.draft ?? {});
+        setNotRecorded(missed ?? []);
+        bumpAssist();
         return true;
       } catch (error) {
         setSaveError(refusalOf(error));
@@ -320,10 +356,13 @@ export function useDraft() {
         setSaving(false);
       }
     },
-    [origin, record, draft],
+    [origin, record, draft, bumpAssist],
   );
 
-  return { origin, draftId, ready, record, draft, setDraft, update, save, saving, loadError, saveError, setSaveError, reload: load, adopt };
+  return {
+    origin, draftId, ready, record, draft, setDraft, update, save, saving, loadError, saveError, setSaveError, reload: load, adopt,
+    assistVersion, bumpAssist, adoptDecision, notRecorded,
+  };
 }
 
 export function InceptionFrame({
@@ -349,9 +388,17 @@ export function InceptionFrame({
     return () => controller.abort();
   }, [needsMark, record, origin, current, opened]);
   const unchecked = imported && !emitted ? IMPORTED_STEPS.filter((step) => imported.checked?.[step] === false && !opened.includes(step)) : [];
+  const assisted = STEPS.some((s) => s.step === current);
+  // M10b: a check's field link lands here with `#<field anchor>`; focus it once the screen has drawn it.
+  const sessionId = record?.session_id ?? "";
+  useEffect(() => {
+    if (!sessionId || typeof window === "undefined" || !window.location.hash) return;
+    return focusAnchor(decodeURIComponent(window.location.hash.slice(1)), 15);
+  }, [sessionId]);
   return (
+    <AssistProvider locale={locale} state={draft} active={assisted && !!record}>
     <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8 lg:py-12">
-      <InceptionSteps locale={locale} current={current} draftId={draftId} origin={origin} unchecked={unchecked} />
+      <AssistedSteps locale={locale} current={current} draftId={draftId} origin={origin} unchecked={unchecked} />
       {!ready ? (
         <p role="status" className="text-ink-muted">
           {t("loading")}
@@ -387,12 +434,32 @@ export function InceptionFrame({
               <bdi dir="ltr">{stamp(record.updated_at)}</bdi>
             </span>
           </p>
+          {draft.notRecorded.length ? (
+            <p className="mb-4 text-sm text-ink-muted" role="status" data-not-recorded>
+              {proposalsT(locale)("proposals.notRecorded")}
+            </p>
+          ) : null}
           {imported ? <ImportedBanner locale={locale} origin={imported} /> : null}
           {children}
         </>
       )}
     </div>
+    </AssistProvider>
   );
+}
+
+export type StepBadges = Partial<Record<InceptionStep, { checks: number; suggestions: number }>>;
+
+/** The step bar with the engine's counts per step (M10b): open checks to look at, open suggestions. */
+function AssistedSteps(props: Readonly<{ locale: Locale; current: InceptionStep; draftId: string; origin: string; unchecked: InceptionStep[] }>) {
+  const assist = useAssist();
+  const badges: StepBadges = {};
+  for (const { step } of STEPS) {
+    const checks = assist?.all?.by_step?.[step];
+    const proposals = assist?.proposals?.by_step?.[step];
+    badges[step] = { checks: checks ? checks.blocker + checks.warning : 0, suggestions: proposals?.open ?? 0 };
+  }
+  return <InceptionSteps {...props} badges={badges} />;
 }
 
 /** The heading block every step opens with: the kicker, the question, the lede. */

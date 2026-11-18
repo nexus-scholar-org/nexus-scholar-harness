@@ -11,6 +11,7 @@
  */
 
 type Json = Record<string, unknown>;
+import { checkRow, dismissal, DISCOVERY_STEPS, respond, withDismissals, type CheckIn } from "./checks-engine";
 export type Answer = { status: number; body: unknown; sse?: boolean };
 
 export const FINGERPRINT = "sha256:" + "cd".repeat(32);
@@ -18,6 +19,8 @@ export const QUERY_TEXT = '("weed detection" OR "weed segmentation") AND ("edge 
 export const MAILTO_LINE = "SCHOLAR_MAILTO=you@university.edu";
 
 export interface DiscoveryFakeOptions {
+  /** M10b Part B: the rows `GET /discovery/checks` serves (default none). */
+  checks?: CheckIn[];
   protocol?: "ok" | "missing" | "invalid";
   /** `SCHOLAR_MAILTO` set for the console (default true). */
   mailto?: boolean;
@@ -471,6 +474,10 @@ export function discoveryEngine(options: DiscoveryFakeOptions = {}) {
     };
   };
 
+  // M10b Part B: the discovery checks and the workspace's dismissal record.
+  let checkRows: CheckIn[] = options.checks ?? [];
+  const checkDismissals: Json[] = [];
+
   function handle(method: string, path: string, body: Json | null): Answer {
     calls.push({ method, path, body });
     const key = `${method} ${path.split("?")[0]}`;
@@ -660,6 +667,24 @@ export function discoveryEngine(options: DiscoveryFakeOptions = {}) {
       methods = { ...methods, [String(run.run)]: saved };
       return { status: 200, body: saved };
     }
+    const checksMatch = /^\/api\/v1\/discovery\/checks(?:\/([A-Z_]+)\/(dismiss|restore))?$/.exec(route);
+    if (checksMatch) {
+      const refused = needProtocol();
+      if (refused) return refused;
+      const step = params.get("step") ?? undefined;
+      if (step && !(DISCOVERY_STEPS as readonly string[]).includes(step)) return refuse(404, "STEP_UNKNOWN", `unknown step '${step}'`, { steps: DISCOVERY_STEPS });
+      const rows = () => withDismissals(checkRows.map((r) => checkRow(r)), checkDismissals);
+      const scope = { kind: "workspace", protocol_fingerprint: fingerprint, run: runs[0]?.run ?? null };
+      if (checksMatch[1] && method === "POST") {
+        const action = checksMatch[2] === "dismiss" ? "dismissed" : "restored";
+        const { entry, refused: no } = dismissal(rows(), checkDismissals, checksMatch[1], action, body, now());
+        if (no) return no;
+        checkDismissals.push(entry!);
+        const owner = String(checkRows.find((r) => r.check_id === checksMatch[1])?.step ?? "");
+        return { status: 200, body: respond(rows(), { step: owner, steps: DISCOVERY_STEPS, scope, at: now() }) };
+      }
+      if (!checksMatch[1] && method === "GET") return { status: 200, body: respond(rows(), { step, steps: DISCOVERY_STEPS, scope, at: now() }) };
+    }
     if (method === "GET" && route === "/api/v1/discovery/handoff") return needProtocol() ?? { status: 200, body: handoff() };
     if (method === "GET" && route === "/api/v1/screening/corpus") return { status: 200, body: corpus() };
     if (method === "POST" && route === "/api/v1/screening/corpus/accept") {
@@ -760,6 +785,11 @@ export function discoveryEngine(options: DiscoveryFakeOptions = {}) {
     get accepted() {
       return accepted;
     },
+    /** M10b: replace the rows the checks route serves. */
+    setChecks: (rows: CheckIn[]) => {
+      checkRows = rows;
+    },
+    checkDismissals,
     chases,
     setPublished: (value: boolean) => (published = value),
     get round() {

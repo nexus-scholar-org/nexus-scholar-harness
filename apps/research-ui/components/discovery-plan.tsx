@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { DiscoveryChecksPanel } from "@/components/discovery-checks";
 
 import type { Locale } from "@/i18n";
 import { Button, DataCell, DecisionBadge, type DecisionRole } from "@/components/ui/base";
@@ -425,6 +426,7 @@ export function DiscoveryPlan({ locale }: Readonly<{ locale: Locale }>) {
             </section>
           </div>
           <aside className="space-y-4">
+            <DiscoveryChecksPanel locale={locale} step="plan" origin={origin} />
             <section aria-labelledby="plan-limits" className="rounded-lg border border-rule bg-leaf p-5">
               <h2 id="plan-limits" className="font-semibold text-ink">
                 {t("plan.limits.title")}

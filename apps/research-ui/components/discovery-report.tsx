@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { DiscoveryChecksPanel } from "@/components/discovery-checks";
 
 import type { Locale } from "@/i18n";
 import { Button, DataCell, DecisionBadge, type DecisionRole } from "@/components/ui/base";
@@ -426,6 +427,7 @@ export function DiscoveryReport({ locale }: Readonly<{ locale: Locale }>) {
             </div>
 
             <aside className="space-y-4">
+            <DiscoveryChecksPanel locale={locale} step="report" origin={origin} run={wanted} />
               <section className="rounded-lg border border-rule bg-leaf p-5 text-sm">
                 <h2 className="font-semibold text-ink">{t("report.history.title")}</h2>
                 <ul className="mt-2 space-y-1">

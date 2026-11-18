@@ -8,6 +8,10 @@ import { StateCard } from "@/components/screening-state-card";
 import { refusalOf, stamp, type Refusal } from "@/components/inception-frame";
 import { getChase, getJob, streamJob, type DiscoveryJob, type JobEvent, type RunSummary } from "@/lib/discovery-api";
 import { discoveryT, type DiscoveryCopyKey } from "@/lib/discovery-copy";
+import { getDiscoveryChecks } from "@/lib/discovery-api";
+import { CHECKS_COPY } from "@/lib/checks-copy";
+import { fillNodes } from "@/components/assist-anchor";
+import { notifyDiscoveryChecks, useDiscoveryChecksVersion } from "@/components/checks-bus";
 
 /**
  * What every discovery screen shares (spec 01 "Shared by 01–08", M3c-screens):
@@ -99,6 +103,17 @@ export function DiscoverySteps({
       cancelled = true;
     };
   }, [origin, chase]);
+  // M10b (02-checks): each step's open checks to look at, from one all-steps read; text, never colour alone.
+  const checksVersion = useDiscoveryChecksVersion();
+  const [byStep, setByStep] = useState<Record<string, { blocker: number; warning: number; note: number }> | null>(null);
+  useEffect(() => {
+    const controller = new AbortController();
+    getDiscoveryChecks(origin, undefined, undefined, controller.signal).then(
+      (all) => setByStep(all.by_step ?? null),
+      () => setByStep(null),
+    );
+    return () => controller.abort();
+  }, [origin, checksVersion]);
   const steps = (chase ?? published) || current === "chase" ? [...STEPS, CHASE_STEP] : STEPS;
   return (
     <nav aria-label={t("steps.label")} className="mb-6" data-discovery-steps>
@@ -132,6 +147,11 @@ export function DiscoverySteps({
                 ) : mark === "earlier" ? (
                   <span className="text-xs text-unclear" data-mark="earlier">
                     {t("steps.earlierProtocol")}
+                  </span>
+                ) : null}
+                {byStep?.[step] && byStep[step].blocker + byStep[step].warning > 0 ? (
+                  <span className="text-xs text-unclear" data-step-checks={step}>
+                    {fillNodes(CHECKS_COPY[locale]["checks.stepBadge"], { n: <bdi dir="ltr">{byStep[step].blocker + byStep[step].warning}</bdi> })}
                   </span>
                 ) : null}
               </a>
@@ -385,6 +405,7 @@ export function useJobStream(origin: string, jobId: string | null, onEnd?: (job:
         if (cancelled) return;
         if (result.ended) {
           endRef.current?.(view.job);
+          notifyDiscoveryChecks();
           return;
         }
         // The stream closed before the job ended: a drop.
@@ -404,6 +425,7 @@ export function useJobStream(origin: string, jobId: string | null, onEnd?: (job:
           if (job.state !== "running") {
             setState((s) => ({ ...s, job, ended: true, lost: false }));
             endRef.current?.(job);
+            notifyDiscoveryChecks();
             return;
           }
         } catch (readError) {

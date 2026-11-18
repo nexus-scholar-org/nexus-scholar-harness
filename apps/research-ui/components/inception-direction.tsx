@@ -6,6 +6,8 @@ import type { Locale } from "@/i18n";
 import { Button, DataCell, DecisionBadge } from "@/components/ui/base";
 import { DETAILS_LABEL } from "@/components/screening-state-card";
 import { inceptionHref, InceptionFrame, InceptionRefusal, refusalOf, StepHeader, useDraft, type Refusal } from "@/components/inception-frame";
+import { StepAssist } from "@/components/inception-assist";
+
 import {
   DoiLink,
   isOffline,
@@ -251,7 +253,9 @@ export function InceptionDirection({ locale }: Readonly<{ locale: Locale }>) {
 
   const saveSeeds = async (): Promise<boolean> => {
     if (!seedsDirty) return true;
-    const stored = await save({ ...draft, golden_seeds: ticked });
+    // M10b: a seed newly kept from the sample is recorded as `anchor_seed` with this save.
+    const kept = ticked.filter((doi) => !savedSeeds.includes(doi) && (seeds?.papers ?? []).some((s) => s.doi === doi));
+    const stored = await save({ ...draft, golden_seeds: ticked }, kept.map((doi) => ({ mechanism: "anchor_seed" as const, field: "golden_seeds", value: doi })));
     if (stored) {
       setTicks(null);
       setSeedsSaved(true);
@@ -606,6 +610,8 @@ export function InceptionDirection({ locale }: Readonly<{ locale: Locale }>) {
         ) : null}
 
         {saveError ? <InceptionRefusal locale={locale} refusal={saveError} draftId={draftId} origin={origin} /> : null}
+
+        <StepAssist locale={locale} step="direction" />
 
         <div className="flex flex-wrap items-center justify-end gap-3">
           <a className="inline-flex min-h-11 items-center text-brand underline" href={inceptionHref(locale, "explore", draftId, origin)} data-back>
