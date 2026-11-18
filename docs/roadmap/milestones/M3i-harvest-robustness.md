@@ -1,5 +1,5 @@
 # M3i-harvest-robustness: a harvest says which stage it is in, and can be finished
-Branch: dev/m3i/harvest-robustness · Lane: **RELEASE** · Status: READY FOR PR (2026-11-17; not pushed, no PR opened: the researcher decides) · Started: 2026-11-17
+Branch: dev/m3i/harvest-robustness · Lane: **RELEASE** · Status: READY FOR PR (2026-11-17; decisions accepted and PR opened 2026-11-18 on the researcher's word) · Started: 2026-11-17
 
 Source: the strict acceptance run of 2026-11-13 (installed wheel, second PC). A browser harvest `run_001` returned 1,074 records and 1,050 works, and the Hand-off said "There is nothing to hand off yet". Accepted by the researcher on 2026-11-15 as its own fix before the M10b build (answer R5; `docs/roadmap/milestones/M10b-proposals-checks.md` on the local branch `dev/m10b/proposals-checks`, and `docs/ux/shared/final/04-next-step.md` there, "Order of work" and "What the engine cannot tell apart today").
 
@@ -38,7 +38,7 @@ The four points were re-verified by the `phase-auditor` at `97768cdc` (all CONFI
 | no way forward except a new search | `::test_finish_preparing_resumes_from_the_marker_without_a_search`, `::test_finished_preparation_equals_an_uninterrupted_run`, `::test_a_failed_deduplication_is_finished_from_the_saved_records` | `404` on `POST /discovery/runs/run_001/prepare` | yes |
 
 ## Decisions
-All in `docs/decisions.md`, 2026-11-17 "M3i: the harvest stage marker, finishing a preparation, and stop between stages". Every item is **proposed**, built as its recommended option, and the researcher's to confirm or overrule:
+All in `docs/decisions.md`, 2026-11-17 "M3i: the harvest stage marker, finishing a preparation, and stop between stages". The researcher accepted all ten as written on 2026-11-18; each is built as its recommended option:
 1. what the marker holds (fields added to the accepted text; the engine's own stage names);
 2. `raw_published` keeps its meaning; "ready" is a new fact (`preparation.state`);
 3. where finishing starts (the marker, then `deduped.json` or the run's `raw.json`; abstracts are run again; only the newest published run);
