@@ -1274,3 +1274,35 @@ def test_job_runner_journal_failure_captured_on_job(tmp_path, monkeypatch):
     assert job.journal_event_id is None
     assert job.error is not None and "journal failed" in job.error
     assert runner._active_actions == set()  # no single-flight leak
+
+
+def test_published_event_matches_the_exact_publication_only(tmp_path):
+    """The same generation_id with another fingerprint (a re-publish under a new
+    approval) is a new publication and gets no reused row; a row with corrupt
+    parameters is skipped, not a 500."""
+    from scholar_harness.console.api.screening import _published_event
+
+    NL = chr(10)
+    journal = tmp_path / "audit" / "journal.jsonl"
+    journal.parent.mkdir(parents=True)
+
+    def row(event_id, params):
+        return json.dumps(
+            {"event_id": event_id, "action": "SCREENING_PUBLISH_COMPLETED", "parameters": params}
+        )
+
+    journal.write_text(
+        NL.join(
+            [
+                "{ not json",
+                row("EVT-20260101000000-aaaaaa", "not a dict"),
+                row("EVT-20260101000001-bbbbbb", {"generation_id": "GEN-1", "generation_fingerprint": "old"}),
+                row("EVT-20260101000002-cccccc", {"generation_id": "GEN-1", "generation_fingerprint": "new"}),
+            ]
+        )
+        + NL,
+        encoding="utf-8",
+    )
+    assert _published_event(tmp_path, "GEN-1", "new")["event_id"] == "EVT-20260101000002-cccccc"
+    assert _published_event(tmp_path, "GEN-1", "other") is None
+    assert _published_event(tmp_path, "GEN-2", "new") is None

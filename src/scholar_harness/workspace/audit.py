@@ -12,11 +12,13 @@ transport-neutral (no FastAPI, no Typer, no console import):
   projection/INDEX failures are swallowed.
 
 * :func:`append_legacy_event` -- orchestrator/handoff byte-compatible writer:
-  preserves the observed ``hex(hash(action + description))[-6:]`` event-id
-  scheme, no uppercasing, ``json.dumps`` default encoding, no manifest update,
-  no INDEX refresh, returns ``None``. HCM-01 characterizes this odd scheme;
-  HCM-02 preserves it and regression-tests it. Do not "normalize" it without a
-  separate behavior-decision packet.
+  no uppercasing, ``json.dumps`` default encoding, no manifest update, no INDEX
+  refresh, returns ``None``. Its event-id limb was the observed
+  ``hex(hash(action + description))[-6:]`` scheme (HCM-01 characterized it, HCM-02
+  preserved it); F8 replaced the limb with six random hex digits because the old
+  one gave two same-text events in one second the same id. That is the behaviour
+  decision item 4 of "Small fixes 2" in ``docs/decisions.md`` (PROPOSED until the
+  researcher accepts it); the ``EVT-<14 digits>-<6 hex>`` shape is unchanged.
 
 ``refresh_index`` (best-effort, void) and ``refresh_index_atomic``
 (orchestrator-compatible, backup/restore, ``bool``) share the portable loader

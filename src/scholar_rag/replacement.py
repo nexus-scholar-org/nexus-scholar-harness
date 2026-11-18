@@ -1326,7 +1326,7 @@ class WorkspaceLock:
         releasing a lock this object never took cannot remove somebody else's.
 
         A delete that Windows refuses because a contending run is reading the
-        file is tried again (:func:`_delete_lock_file`), so that read cannot
+        file is tried again (:func:`delete_waiting_out_readers`), so that read cannot
         fail a run that has already published.
         """
 

@@ -986,8 +986,15 @@ def _journal_action(
     )
 
 
-def _published_event(ws: Path, generation_id: str) -> dict[str, Any] | None:
-    """The journal row already recording the publish of ``generation_id``, if any."""
+def _published_event(
+    ws: Path, generation_id: str, generation_fingerprint: str
+) -> dict[str, Any] | None:
+    """The journal row already recording this exact publication, if any.
+
+    ``generation_id`` names only the scope (workspace, run, batch set); a
+    re-publish of that scope with another approval or other outputs is a new
+    record with the same id and another fingerprint, and needs its own row.
+    """
     path = ws / "audit" / "journal.jsonl"
     try:
         lines = path.read_text(encoding="utf-8").splitlines()
@@ -998,10 +1005,13 @@ def _published_event(ws: Path, generation_id: str) -> dict[str, Any] | None:
             row = json.loads(line)
         except ValueError:
             continue
+        if not isinstance(row, dict) or row.get("action") != "SCREENING_PUBLISH_COMPLETED":
+            continue
+        params = row.get("parameters")
         if (
-            isinstance(row, dict)
-            and row.get("action") == "SCREENING_PUBLISH_COMPLETED"
-            and (row.get("parameters") or {}).get("generation_id") == generation_id
+            isinstance(params, dict)
+            and params.get("generation_id") == generation_id
+            and params.get("generation_fingerprint") == generation_fingerprint
             and isinstance(row.get("event_id"), str)
         ):
             return row
@@ -1250,7 +1260,7 @@ def action_publish_screening(
         # A retry that joined the CURRENT generation names the row of the first
         # publish instead of journaling a second one. A first publish whose row
         # could not be written has no such row, so its retry still writes it.
-        event = _published_event(ws, record.generation_id) or _journal_action(
+        event = _published_event(ws, record.generation_id, record.fingerprint()) or _journal_action(
             ws,
             action="SCREENING_PUBLISH_COMPLETED",
             description=(
