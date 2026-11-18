@@ -453,10 +453,10 @@ def test_a_replacement_archives_the_old_record_and_writes_a_new_one(env):
     first = _create(client)
     sid = first["session_id"]
     pid = _term_proposal(client, sid)["proposal_id"]
-    client.post(f"{BASE}/drafts/{sid}/proposals/{pid}/reject", json={})
+    client.post(f"{BASE}/drafts/{sid}/proposals/{pid}/reject", json={"reason": "in the title only"})
     ws = Path(client.post(f"{BASE}/drafts/{sid}/genesis", json={}).json()["path"])
     old = (ws / "audit" / "proposals.jsonl").read_text(encoding="utf-8")
-    assert old
+    assert _lines(ws / "audit" / "proposals.jsonl")[-1] == {**_lines(ws / "audit" / "proposals.jsonl")[-1], "event": "rejected", "reason": "in the title only"}
     second = _create(client)["session_id"]
     replaced = client.post(f"{BASE}/drafts/{second}/genesis", json={"replace": True})
     assert replaced.status_code == 201, replaced.text

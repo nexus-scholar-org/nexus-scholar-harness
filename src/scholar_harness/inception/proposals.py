@@ -461,6 +461,8 @@ def genesis_lines(record: dict[str, Any] | None) -> list[dict[str, Any]]:
             }
             if proposal["status"] != "rejected":
                 line["in_protocol"] = _in_protocol(proposal, record)
+            elif proposal.get("reason"):
+                line["reason"] = proposal["reason"]
             lines.append(line)
     return lines
 
