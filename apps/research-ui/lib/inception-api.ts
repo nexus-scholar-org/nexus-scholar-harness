@@ -21,6 +21,17 @@ export interface ExclusionIn {
   reason_category?: string;
 }
 
+/** M10b: the researcher's own matrix column (`05-criteria`); the engine derives `id` when absent. */
+export interface MatrixColumnIn {
+  id?: string | null;
+  name: string;
+  description?: string;
+  data_type?: string;
+  required?: boolean;
+  fallback_value?: string;
+  target_section_category?: string | null;
+}
+
 /** Every interview answer (inception API §Draft). All optional until preview. */
 export interface Draft {
   topic?: string;
@@ -46,6 +57,15 @@ export interface Draft {
   timeline_weeks?: number | null;
   /** M4d: the recall seeds kept on Direction (DOIs, at most 25); compiled into `search_strategy.golden_seeds`. */
   golden_seeds?: string[];
+  /** M10b (R3): the number of records the researcher plans to screen; empty keeps the playbook preset. */
+  pool_min?: number | null;
+  pool_max?: number | null;
+  /** M10b: the reason code of each out-of-scope line, keyed by its text. */
+  out_of_scope_reasons?: Record<string, string>;
+  /** M10b: the reason code of the paradigm's default exclusion. */
+  default_exclusion_reason?: string | null;
+  /** M10b: the researcher's own matrix columns. */
+  custom_matrix_columns?: MatrixColumnIn[];
 }
 
 export interface Emitted {
@@ -122,9 +142,14 @@ export interface ShapeStep {
   recommended_playbook: string;
   playbooks: { name: string; framework: string }[];
   trustworthiness_framework: string | null;
-  rq_draft: string;
+  /** M10b: null when the draft has no proof answer (no template question is offered). */
+  rq_draft: string | null;
   lexicon: string;
   lexicon_warnings: string[];
+  /** M10b (R4): whether the proof answer is still needed; the engine decides. */
+  proof_required?: boolean;
+  /** M10b (R3): the chosen playbook's planned-size preset. */
+  pool_preset?: { min: number; max: number } | null;
 }
 
 export type CriterionStatus = "accepted" | "rejected" | "undecided";
@@ -138,6 +163,15 @@ export interface Criterion {
   source_label: string;
   generated: boolean;
   status: CriterionStatus;
+  /** M10b: false for an exclusion whose saved code breaks the reason rule (flagged, not refused). */
+  reason_valid?: boolean;
+}
+
+/** M10b: a reason code the criteria step offers; `used` codes are already in this draft. */
+export interface ReasonSuggestion {
+  code: string;
+  source: "used" | "default" | "wizard" | "protocol_model" | "screener" | "example_protocol" | string;
+  phrases: boolean;
 }
 
 export interface CriteriaStep {
@@ -145,6 +179,7 @@ export interface CriteriaStep {
   criteria: Criterion[];
   undecided: string[];
   missing_sides: ("inclusion" | "exclusion")[];
+  reason_suggestions?: ReasonSuggestion[];
 }
 
 export interface MatrixColumn {
@@ -156,6 +191,8 @@ export interface MatrixColumn {
 export interface MatrixStep {
   step: "matrix";
   columns: MatrixColumn[];
+  /** M10b: the researcher's own columns with the ids the engine derived. */
+  custom_columns?: (MatrixColumn & { id: string })[];
   selected: string[];
 }
 

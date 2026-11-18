@@ -29,7 +29,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Annotated, Any, Callable
 
-from pydantic import BaseModel, ConfigDict, Field, StringConstraints, ValidationError, field_validator
+from pydantic import BaseModel, ConfigDict, Field, StringConstraints, ValidationError, field_validator, model_validator
 
 from .emit import (
     NEW_WORKSPACE_FILES,
@@ -49,6 +49,7 @@ from .genesis import (
 )
 from .intent import (
     ALL_PLAYBOOKS,
+    DEFAULT_REASON,
     PARADIGM_PROFILE,
     TRUSTWORTHINESS_FRAMEWORK,
     VERIFICATION_TRUST_THRESHOLD,
@@ -95,7 +96,8 @@ MAX_RQS = 20
 MAX_CONCEPTS = 50
 #: Synonyms per concept.
 MAX_SYNONYMS = 50
-#: ``out_of_scope``, ``extra_inclusions``, ``extra_exclusions``, ``matrix_columns``.
+#: ``out_of_scope``, ``extra_inclusions``, ``extra_exclusions``, ``matrix_columns``,
+#: ``out_of_scope_reasons`` and ``custom_matrix_columns`` (M10b).
 MAX_LIST_ITEMS = 50
 MAX_CRITERIA_DECISIONS = 500
 MAX_LANGUAGES = 20
@@ -111,6 +113,15 @@ DRAFT_LIMITS: dict[str, int] = {
     "languages": MAX_LANGUAGES,
     "golden_seeds": MAX_GOLDEN_SEEDS,
 }
+#: The planned number of records to screen (M10b, R3): whole numbers, the maximum
+#: from 1 to this.
+MAX_PLANNED_RECORDS = 1_000_000
+#: An exclusion's reason code (M10b, decided 2026-11-15): 3 to 40 characters,
+#: capitals, digits and ``_``, starting with a letter. Tighter than the protocol
+#: model, which takes any string.
+REASON_CODE = re.compile(r"^[A-Z][A-Z0-9_]{2,39}$")
+#: The values of ``MatrixDimension.data_type`` (``scholar_protocol.models.DimensionDataType``).
+MATRIX_DATA_TYPES = ("free_text", "numeric", "categorical", "list")
 Text = Annotated[str, StringConstraints(max_length=MAX_TEXT_CHARS)]
 Name = Annotated[str, StringConstraints(max_length=MAX_NAME_CHARS)]
 #: pydantic's error types for a value over a length limit.
@@ -123,10 +134,50 @@ class ConceptIn(BaseModel):
     synonyms: list[Name] = Field(default_factory=list, max_length=MAX_SYNONYMS)
 
 
+REASON_CODE_RULE = "a reason code has 3 to 40 characters: capital letters, digits and underscores, starting with a letter"
+
+
+def reason_code_ok(value: str | None) -> bool:
+    return bool(REASON_CODE.match(value or ""))
+
+
 class ExclusionIn(BaseModel):
     model_config = ConfigDict(extra="forbid")
     criterion: Text
-    reason_category: Name = "OUT_OF_SCOPE"
+    reason_category: Name = DEFAULT_REASON
+
+
+class MatrixColumnIn(BaseModel):
+    """The researcher's own extraction column (M10b, ``05-criteria``).
+
+    It holds the whole ``MatrixDimensionIntent``, so a column imported from an
+    earlier protocol compiles exactly as it was; the screen offers name,
+    description, type and required. ``id`` is derived from the name by the
+    engine when it is not given (:func:`custom_columns`).
+    """
+
+    model_config = ConfigDict(extra="forbid")
+    id: Name | None = None
+    name: Name
+    description: Text = ""
+    data_type: Name = "free_text"
+    required: bool = False
+    fallback_value: Name = "Not Reported"
+    target_section_category: Name | None = None
+
+    @field_validator("name")
+    @classmethod
+    def _named(cls, value: str) -> str:
+        if not value.strip():
+            raise ValueError("a column needs a name")
+        return value.strip()
+
+    @field_validator("data_type")
+    @classmethod
+    def _type(cls, value: str) -> str:
+        if value not in MATRIX_DATA_TYPES:
+            raise ValueError(f"data_type is one of {', '.join(MATRIX_DATA_TYPES)}")
+        return value
 
 
 _DOI = re.compile(r"^10\.\d+(\.\d+)*/\S+$")
@@ -176,11 +227,45 @@ class Draft(BaseModel):
     lead_researcher: Name = ""
     venue: Name = ""
     timeline_weeks: int | None = None
+    #: The number of records the researcher plans to screen (M10b, R3, ``04-shape``).
+    #: Optional; empty keeps the playbook preset in the protocol.
+    pool_min: int | None = None
+    pool_max: int | None = None
+    #: The reason code of each out-of-scope line, keyed by the line's text (M10b).
+    #: A key whose line is gone is ignored.
+    out_of_scope_reasons: dict[Text, Name] = Field(default_factory=dict, max_length=MAX_LIST_ITEMS)
+    #: The reason code of the paradigm's default exclusion (M10b); empty is ``OUT_OF_SCOPE``.
+    default_exclusion_reason: Name | None = None
+    #: The researcher's own matrix columns (M10b, ``05-criteria``).
+    custom_matrix_columns: list[MatrixColumnIn] = Field(default_factory=list, max_length=MAX_LIST_ITEMS)
 
     @field_validator("golden_seeds")
     @classmethod
     def _seeds_are_dois(cls, values: list[str]) -> list[str]:
         return _doi_list(values)
+
+    @model_validator(mode="after")
+    def _planned_records(self) -> "Draft":
+        lo, hi = self.pool_min, self.pool_max
+        if hi is None:
+            if lo is not None:
+                raise ValueError("pool_min needs pool_max: state the largest number you plan to screen")
+            return self
+        if not 1 <= hi <= MAX_PLANNED_RECORDS:
+            raise ValueError(f"pool_max is a whole number from 1 to {MAX_PLANNED_RECORDS:,}")
+        if lo is not None and not 0 <= lo <= hi:
+            raise ValueError("pool_min is a whole number from 0 to pool_max")
+        return self
+
+    @model_validator(mode="after")
+    def _column_names(self) -> "Draft":
+        seen: set[str] = set()
+        for i, column in enumerate(self.custom_matrix_columns):
+            key = column.name.casefold()
+            if key in seen:
+                raise ValueError(f"custom_matrix_columns[{i}].name: a column named {column.name!r} already exists")
+            seen.add(key)
+        return self
 
 
 def _over_limit(error: dict[str, Any]) -> str:
@@ -194,7 +279,41 @@ def _over_limit(error: dict[str, Any]) -> str:
     return f"{path} ({ctx.get('actual_length')} items, at most {ctx.get('max_length')})"
 
 
-def parse_draft(raw: dict[str, Any] | None) -> Draft:
+def reason_code_errors(draft: Draft) -> list[dict[str, Any]]:
+    """Every reason code outside :data:`REASON_CODE`, as ``DRAFT_INVALID`` errors (M10b).
+
+    Checked only when a draft is saved or created (``parse_draft(saving=True)``),
+    never when it is read: a draft saved before M10b with another code stays
+    readable, its row is flagged (``reason_valid: false``), and the next save
+    asks for a valid code (``05-criteria``, decided 2026-11-15).
+    """
+    errors: list[dict[str, Any]] = []
+
+    def bad(loc: list[Any]) -> None:
+        errors.append({"loc": loc, "msg": REASON_CODE_RULE, "type": "value_error"})
+
+    for i, exclusion in enumerate(draft.extra_exclusions):
+        if not reason_code_ok(exclusion.reason_category):
+            bad(["extra_exclusions", i, "reason_category"])
+    for line, code in draft.out_of_scope_reasons.items():
+        if not reason_code_ok(code):
+            bad(["out_of_scope_reasons", line])
+    if draft.default_exclusion_reason is not None and not reason_code_ok(draft.default_exclusion_reason):
+        bad(["default_exclusion_reason"])
+    return errors
+
+
+def parse_draft(raw: dict[str, Any] | None, *, saving: bool = False) -> Draft:
+    """The draft as the model reads it; ``saving`` adds the checks a save must pass (M10b)."""
+    draft = _parse_draft(raw)
+    if saving:
+        errors = reason_code_errors(draft)
+        if errors:
+            raise StepRefused("DRAFT_INVALID", REASON_CODE_RULE, details={"errors": errors})
+    return draft
+
+
+def _parse_draft(raw: dict[str, Any] | None) -> Draft:
     try:
         return Draft.model_validate(raw or {})
     except ValidationError as exc:
@@ -248,7 +367,85 @@ def _survey(draft: Draft) -> Survey:
         trust_score_threshold=VERIFICATION_TRUST_THRESHOLD if draft.verification_checks else 0.0,
         matrix_dimensions=[],
         golden_seeds=list(draft.golden_seeds),
+        pool_min=draft.pool_min,
+        pool_max=draft.pool_max,
+        out_of_scope_reasons=dict(draft.out_of_scope_reasons),
+        default_exclusion_reason=draft.default_exclusion_reason,
     )
+
+
+def proof_required(draft: Draft) -> bool:
+    """Whether the proof answer is still needed (M10b, R4, ``04-shape``).
+
+    It may be empty when the draft holds an inclusion the researcher typed or
+    imported that they have not dropped. Decisions are keyed by criterion id;
+    a typed inclusion is accepted unless its id is decided ``False``.
+    """
+    from .intent import CriterionDraft
+
+    for text in draft.extra_inclusions:
+        if draft.criteria_decisions.get(CriterionDraft("inclusion", text, "manual").id) is not False:
+            return False
+    return True
+
+
+def _required(draft: Draft, *fields: str) -> tuple[str, ...]:
+    """``fields`` without ``proof`` when the draft does not need one."""
+    if "proof" in fields and not proof_required(draft):
+        return tuple(f for f in fields if f != "proof")
+    return fields
+
+
+def _slug_id(name: str) -> str:
+    slug = re.sub(r"[^a-z0-9]+", "_", name.lower()).strip("_")
+    return slug or "column"
+
+
+def custom_columns(draft: Draft) -> list[dict[str, Any]]:
+    """The researcher's own columns as matrix dimensions, each with a unique id.
+
+    An id the column carries (an imported one) is kept when it is unique among
+    the suggested columns and the other own columns; otherwise, and for a typed
+    column, it is derived from the name: lower case, runs of other characters
+    become ``_``, and ``_2``, ``_3`` ... on a clash.
+    """
+    suggested = {d["id"] for d in _default_matrix_dimensions(draft.playbook or "", draft.unit_of_analysis or "")}
+    taken = set(suggested)
+    out: list[dict[str, Any]] = []
+    for column in draft.custom_matrix_columns:
+        base = column.id if column.id and column.id not in taken else _slug_id(column.name)
+        cid, n = base, 2
+        while cid in taken:
+            cid, n = f"{base}_{n}", n + 1
+        taken.add(cid)
+        out.append({
+            "id": cid,
+            "name": column.name,
+            "description": column.description,
+            "target_section_category": column.target_section_category,
+            "data_type": column.data_type,
+            "required": column.required,
+            "fallback_value": column.fallback_value,
+        })
+    return out
+
+
+def _column_clash(draft: Draft) -> None:
+    """An own column may not share a name with a suggested one (``05-criteria``)."""
+    if not draft.playbook or not draft.custom_matrix_columns:
+        return
+    names = {d["name"].casefold() for d in _default_matrix_dimensions(draft.playbook, draft.unit_of_analysis or "")}
+    for i, column in enumerate(draft.custom_matrix_columns):
+        if column.name.casefold() in names:
+            raise StepRefused(
+                "DRAFT_INVALID",
+                f"a suggested column is already named {column.name!r}; tick it instead",
+                details={"errors": [{
+                    "loc": ["custom_matrix_columns", i, "name"],
+                    "msg": f"a column named {column.name!r} already exists",
+                    "type": "value_error",
+                }]},
+            )
 
 
 # ---------------------------------------------------------------------------
@@ -276,10 +473,26 @@ def _shape(draft: Draft) -> dict[str, Any]:
         "recommended_playbook": recommend_playbook(paradigm),
         "playbooks": [{"name": p, "framework": TRUSTWORTHINESS_FRAMEWORK[p]} for p in ALL_PLAYBOOKS],
         "trustworthiness_framework": TRUSTWORTHINESS_FRAMEWORK.get(playbook),
-        "rq_draft": draft_rq(paradigm, draft.topic, draft.unit_of_analysis, draft.proof),
+        # M10b (R4): with no proof answer there is no template question to offer.
+        "rq_draft": draft_rq(paradigm, draft.topic, draft.unit_of_analysis, draft.proof) if draft.proof.strip() else None,
         "lexicon": PARADIGM_PROFILE[paradigm]["lexicon"],
         "lexicon_warnings": enforce_lexicon(paradigm, draft.topic),
+        "proof_required": proof_required(draft),
+        # M10b (R3): the chosen playbook's preset, so the browser holds no preset table.
+        "pool_preset": pool_preset(playbook),
     }
+
+
+def pool_preset(playbook: str | None) -> dict[str, int] | None:
+    """The playbook's ``target_candidate_pool_size`` preset, or ``None`` for an unknown one."""
+    from scholar_protocol.models import PlaybookType
+    from scholar_protocol.presets import PRESETS
+
+    try:
+        preset = PRESETS[PlaybookType(playbook)]
+    except (ValueError, KeyError):
+        return None
+    return {"min": preset.pool_min, "max": preset.pool_max}
 
 
 def criteria_with_decisions(draft: Draft) -> list[dict[str, Any]]:
@@ -292,6 +505,9 @@ def criteria_with_decisions(draft: Draft) -> list[dict[str, Any]]:
     out = []
     for c in draft_criteria(_survey(draft)):
         item = c.as_dict(draft.paradigm or "")
+        if c.kind == "exclusion":
+            # M10b: a code saved before the rule existed is shown and flagged, not refused.
+            item["reason_valid"] = reason_code_ok(c.reason_category)
         decision = draft.criteria_decisions.get(c.id)
         if decision is None:
             item["status"] = "undecided" if c.generated else "accepted"
@@ -301,21 +517,67 @@ def criteria_with_decisions(draft: Draft) -> list[dict[str, Any]]:
     return out
 
 
+def reason_suggestions(draft: Draft) -> list[dict[str, Any]]:
+    """Reason codes offered on the criteria step (M10b, ``05-criteria``).
+
+    Codes already used in this draft come first. ``phrases`` says whether the
+    rule-based screener has a phrase list for the code. Nothing is selected.
+    """
+    from scholar_search.screening import _EXC_PHRASE_SIGNALS as EXCLUSION_REASON_PATTERNS
+
+    used: list[str] = []
+    for code in [
+        *(e.reason_category for e in draft.extra_exclusions),
+        *draft.out_of_scope_reasons.values(),
+        *([draft.default_exclusion_reason] if draft.default_exclusion_reason else []),
+    ]:
+        if code not in used:
+            used.append(code)
+    out = [{"code": c, "source": "used", "phrases": c in EXCLUSION_REASON_PATTERNS} for c in used]
+    for code, source in REASON_SUGGESTIONS:
+        if code not in used:
+            out.append({"code": code, "source": source, "phrases": code in EXCLUSION_REASON_PATTERNS})
+    return out
+
+
+#: The suggested reason codes and where each comes from (``05-criteria``, "Suggested list").
+REASON_SUGGESTIONS: tuple[tuple[str, str], ...] = (
+    ("OUT_OF_SCOPE", "default"),
+    ("LANGUAGE", "wizard"),
+    ("INSUFFICIENT_DATA", "wizard"),
+    ("WRONG_POPULATION", "protocol_model"),
+    ("WRONG_OUTCOME", "protocol_model"),
+    ("NO_EMPIRICAL_EVALUATION", "screener"),
+    ("LANGUAGE_OR_FORMAT", "screener"),
+    ("WRONG_PLATFORM", "example_protocol"),
+    ("WRONG_TASK", "example_protocol"),
+    ("WRONG_REPORT_TYPE", "example_protocol"),
+    ("OUTSIDE_DATE_LANGUAGE", "example_protocol"),
+)
+
+
 def _criteria(draft: Draft) -> dict[str, Any]:
-    _require(draft, "paradigm", "proof")
+    _require(draft, *_required(draft, "paradigm", "proof"))
     items = criteria_with_decisions(draft)
     accepted_kinds = {i["kind"] for i in items if i["status"] == "accepted"}
     return {
         "criteria": items,
         "undecided": [i["id"] for i in items if i["status"] == "undecided"],
         "missing_sides": [k for k in ("inclusion", "exclusion") if k not in accepted_kinds],
+        "reason_suggestions": reason_suggestions(draft),
     }
 
 
 def _matrix(draft: Draft) -> dict[str, Any]:
     _require(draft, "playbook")
+    _column_clash(draft)
     dims = _default_matrix_dimensions(draft.playbook, draft.unit_of_analysis or "the unit of analysis")
-    return {"columns": dims, "selected": [d["name"] for d in dims if d["name"] in draft.matrix_columns]}
+    own = custom_columns(draft)
+    return {
+        "columns": dims,
+        "custom_columns": own,
+        "selected": [d["name"] for d in dims if d["name"] in draft.matrix_columns] + [c["name"] for c in own],
+    }
 
 
 _STEP_FUNCS = {"scope": _scope, "shape": _shape, "criteria": _criteria, "matrix": _matrix}
@@ -334,7 +596,10 @@ def run_step(step: str, raw_draft: dict[str, Any] | None) -> dict[str, Any]:
 
 def build_intent(draft: Draft, genesis_timestamp: str) -> dict[str, Any]:
     """The intent a genesis would compile; refuses an incomplete draft or undecided criteria."""
-    _require(draft, "topic", "paradigm", "playbook", "unit_of_analysis", "proof", "rqs", "concepts", "title", "lead_researcher")
+    _require(draft, *_required(
+        draft, "topic", "paradigm", "playbook", "unit_of_analysis", "proof", "rqs", "concepts", "title", "lead_researcher",
+    ))
+    _column_clash(draft)
     criteria = _criteria(draft)
     if criteria["undecided"]:
         raise StepRefused(
@@ -350,9 +615,10 @@ def build_intent(draft: Draft, genesis_timestamp: str) -> dict[str, Any]:
     if not slug:
         raise StepRefused("WORKSPACE_TITLE_INVALID", "the title has no letters or digits to make a folder name from")
     survey = _survey(draft)
-    if draft.matrix_columns:
-        dims = _default_matrix_dimensions(draft.playbook, draft.unit_of_analysis)
-        survey.matrix_dimensions = [d for d in dims if d["name"] in draft.matrix_columns]
+    # The ticked suggested columns in the playbook's order, then the researcher's
+    # own in the order entered (M10b); before M10b a custom name was dropped.
+    dims = _default_matrix_dimensions(draft.playbook, draft.unit_of_analysis)
+    survey.matrix_dimensions = [d for d in dims if d["name"] in draft.matrix_columns] + custom_columns(draft)
     accepted_ids = {i["id"] for i in criteria["criteria"] if i["status"] == "accepted"}
     accepted = [c for c in draft_criteria(survey) if c.id in accepted_ids]
     return make_intent(survey, slug, genesis_timestamp, criteria=accepted)

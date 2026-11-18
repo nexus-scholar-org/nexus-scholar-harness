@@ -90,7 +90,7 @@ def list_drafts(request: Request) -> dict[str, Any]:
 @router.post("/drafts", status_code=201)
 def create_draft(body: DraftBody, request: Request) -> dict[str, Any]:
     try:
-        steps.parse_draft(body.draft)
+        steps.parse_draft(body.draft, saving=True)
         return _store(request).create(body.draft)
     except (DraftRefused, steps.StepRefused) as exc:
         raise _error(exc) from exc
@@ -107,7 +107,7 @@ def read_draft(session_id: str, request: Request) -> dict[str, Any]:
 @router.put("/drafts/{session_id}")
 def save_draft(session_id: str, body: SaveBody, request: Request) -> dict[str, Any]:
     try:
-        steps.parse_draft(body.draft)
+        steps.parse_draft(body.draft, saving=True)
         return _store(request).save(session_id, body.draft, base_updated_at=body.base_updated_at)
     except (DraftRefused, steps.StepRefused) as exc:
         raise _error(exc) from exc

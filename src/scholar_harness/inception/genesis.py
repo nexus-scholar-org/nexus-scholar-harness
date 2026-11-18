@@ -376,7 +376,9 @@ def _default_matrix_dimensions(playbook: str, unit: str) -> list[dict]:
         "sample_size": {
             "id": "sample_size",
             "name": "Sample Size",
-            "description": f"Number of {unit} sampled / evaluated",
+            # Strict run 2026-11-13 (finding 7): the unit of analysis is an answer of
+            # any length, so it is quoted after the sentence, not pasted into it.
+            "description": f"How many were sampled or evaluated (unit of analysis: {unit})",
             "target_section_category": "methodology",
             "data_type": "numeric",
             "required": True,

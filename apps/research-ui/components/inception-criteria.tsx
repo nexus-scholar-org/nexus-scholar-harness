@@ -6,7 +6,7 @@ import type { Locale } from "@/i18n";
 import { formatNumber } from "@/i18n";
 import { Button, DecisionBadge } from "@/components/ui/base";
 import { inceptionHref, InceptionFrame, InceptionRefusal, refusalOf, StepHeader, useDraft, type Refusal } from "@/components/inception-frame";
-import { runStep, type CriteriaStep, type Criterion, type Draft, type MatrixStep } from "@/lib/inception-api";
+import { runStep, type CriteriaStep, type Criterion, type Draft, type MatrixColumnIn, type MatrixStep, type ReasonSuggestion } from "@/lib/inception-api";
 import { getConcepts, getRecon, hasUsablePool, type ConceptReport, type ReconState } from "@/lib/recon-api";
 import { DETAILS_LABEL } from "@/components/screening-state-card";
 import { DoiLink } from "@/components/inception-recon";
@@ -25,6 +25,23 @@ import { inceptionT, sourceText } from "@/lib/inception-copy";
  */
 
 const SUGGESTIONS_SHOWN = 5;
+
+/**
+ * M10b (`05-criteria`): a reason code as the researcher types it. Lower case
+ * becomes upper case and a space becomes `_`; any other character outside
+ * `A-Z 0-9 _` is not entered. This shapes the typing only: whether a code is
+ * valid is the engine's answer (`DRAFT_INVALID` on save).
+ */
+export function normaliseReason(text: string): { value: string; refused: boolean } {
+  const upper = text.toUpperCase().replace(/ /g, "_");
+  const value = upper.replace(/[^A-Z0-9_]/g, "");
+  return { value, refused: value !== upper };
+}
+
+/** The engine's own rule, repeated only to keep Add disabled until a code has its shape. */
+const REASON_SHAPE = /^[A-Z][A-Z0-9_]{2,39}$/;
+
+const MATRIX_TYPES = ["free_text", "numeric", "categorical", "list"] as const;
 
 function synonymsOf(text: string): string[] {
   return text
@@ -46,6 +63,8 @@ export function InceptionCriteria({ locale }: Readonly<{ locale: Locale }>) {
   const [recon, setRecon] = useState<ReconState | null>(null);
   const [report, setReport] = useState<ConceptReport | null>(null);
   const [allSuggestions, setAllSuggestions] = useState<Record<number, boolean>>({});
+  const [newExclusionReason, setNewExclusionReason] = useState("");
+  const [reasonEditing, setReasonEditing] = useState<string | null>(null);
 
   // The counts describe the saved draft: read once per stored version.
   useEffect(() => {
@@ -76,7 +95,11 @@ export function InceptionCriteria({ locale }: Readonly<{ locale: Locale }>) {
   }, [origin, record]);
 
   // The criteria and matrix follow every answer they are drafted from.
-  const key = JSON.stringify([draft.paradigm, draft.playbook, draft.proof, draft.unit_of_analysis, draft.out_of_scope, draft.extra_inclusions, draft.extra_exclusions, draft.criteria_decisions, draft.matrix_columns]);
+  const key = JSON.stringify([
+    draft.paradigm, draft.playbook, draft.proof, draft.unit_of_analysis, draft.out_of_scope, draft.extra_inclusions,
+    draft.extra_exclusions, draft.criteria_decisions, draft.matrix_columns, draft.out_of_scope_reasons,
+    draft.default_exclusion_reason, draft.custom_matrix_columns,
+  ]);
   useEffect(() => {
     if (!record) return;
     const controller = new AbortController();
@@ -121,6 +144,18 @@ export function InceptionCriteria({ locale }: Readonly<{ locale: Locale }>) {
     if (stored) window.location.assign(inceptionHref(locale, next, next ? draftId : "", origin));
   };
 
+  /** Writes a new reason where the criterion's source keeps it (M10b). */
+  const setReason = (item: Criterion, code: string) => {
+    if (item.source === "manual") {
+      update({ extra_exclusions: (draft.extra_exclusions ?? []).map((e) => (e.criterion === item.criterion ? { ...e, reason_category: code } : e)) });
+    } else if (item.source === "out_of_scope") {
+      update({ out_of_scope_reasons: { ...(draft.out_of_scope_reasons ?? {}), [item.criterion]: code } });
+    } else if (item.source === "paradigm_default") {
+      update({ default_exclusion_reason: code });
+    }
+    setReasonEditing(null);
+  };
+
   const undecided = criteria?.undecided.length ?? 0;
   const paradigm = draft.paradigm ?? "";
 
@@ -129,11 +164,16 @@ export function InceptionCriteria({ locale }: Readonly<{ locale: Locale }>) {
     const prefix = kind === "inclusion" ? "I" : "E";
     const value = kind === "inclusion" ? newInclusion : newExclusion;
     const setValue = kind === "inclusion" ? setNewInclusion : setNewExclusion;
+    // M10b: an exclusion is added only with a reason, so OUT_OF_SCOPE is never applied silently.
+    const reasonReady = kind === "inclusion" || REASON_SHAPE.test(newExclusionReason);
     const add = () => {
       const text = value.trim();
-      if (!text) return;
+      if (!text || !reasonReady) return;
       if (kind === "inclusion") update({ extra_inclusions: [...(draft.extra_inclusions ?? []), text] });
-      else update({ extra_exclusions: [...(draft.extra_exclusions ?? []), { criterion: text }] });
+      else {
+        update({ extra_exclusions: [...(draft.extra_exclusions ?? []), { criterion: text, reason_category: newExclusionReason }] });
+        setNewExclusionReason("");
+      }
       setValue("");
     };
     return (
@@ -153,7 +193,11 @@ export function InceptionCriteria({ locale }: Readonly<{ locale: Locale }>) {
               <li key={item.id} className="rounded-md border border-rule bg-paper p-3" data-criterion={item.id} data-status={item.status} data-generated={item.generated}>
                 <div className="flex flex-wrap items-center gap-2 text-xs">
                   <span className="font-mono text-ink-muted">{label}</span>
-                  {item.reason_category ? <span className="font-mono text-ink-muted" dir="ltr">{item.reason_category}</span> : null}
+                  {item.reason_category ? (
+                    <span className="font-mono text-ink-muted" dir="ltr" data-reason={item.reason_category}>
+                      {t("criteria.reason.row", { code: item.reason_category })}
+                    </span>
+                  ) : null}
                   <span className="text-ink-muted">{sourceText(locale, item.source, paradigm, item.source_label)}</span>
                   <DecisionBadge role={role}>{t(statusKey)}</DecisionBadge>
                 </div>
@@ -175,6 +219,18 @@ export function InceptionCriteria({ locale }: Readonly<{ locale: Locale }>) {
                   ) : null}
                 </div>
                 {item.generated ? <p className="mt-1 text-xs text-ink-muted">{t("criteria.editHint")}</p> : null}
+                {kind === "exclusion" ? (
+                  <ReasonControl
+                    locale={locale}
+                    item={item}
+                    label={label}
+                    suggestions={criteria?.reason_suggestions ?? []}
+                    open={reasonEditing === item.id}
+                    onOpen={() => setReasonEditing(item.id)}
+                    onCancel={() => setReasonEditing(null)}
+                    onChoose={(code) => setReason(item, code)}
+                  />
+                ) : null}
               </li>
             );
           })}
@@ -202,10 +258,24 @@ export function InceptionCriteria({ locale }: Readonly<{ locale: Locale }>) {
               className="mt-1 block min-h-11 w-full rounded-md border border-rule bg-paper px-2 text-ink"
             />
           </div>
-          <Button onClick={add} disabled={!value.trim()}>
+          {kind === "exclusion" ? (
+            <ReasonInput
+              locale={locale}
+              id="criteria-new-exclusion-reason"
+              value={newExclusionReason}
+              onChange={setNewExclusionReason}
+              suggestions={criteria?.reason_suggestions ?? []}
+            />
+          ) : null}
+          <Button onClick={add} disabled={!value.trim() || !reasonReady} aria-describedby={kind === "exclusion" && !reasonReady ? "criteria-choose-reason" : undefined}>
             {t("criteria.add")}
           </Button>
         </div>
+        {kind === "exclusion" && value.trim() && !reasonReady ? (
+          <p id="criteria-choose-reason" className="mt-1 text-xs text-ink-muted" data-choose-reason>
+            {t("criteria.reason.choose")}
+          </p>
+        ) : null}
       </section>
     );
   };
@@ -336,6 +406,7 @@ export function InceptionCriteria({ locale }: Readonly<{ locale: Locale }>) {
               </Button>
             </div>
             <div className="mt-2 space-y-2">
+              <p className="text-xs font-semibold text-ink-muted">{t("criteria.mine.suggestedTitle")}</p>
               {matrix.columns.map((column) => {
                 const checked = (draft.matrix_columns ?? []).includes(column.name);
                 return (
@@ -358,6 +429,12 @@ export function InceptionCriteria({ locale }: Readonly<{ locale: Locale }>) {
                 );
               })}
             </div>
+            <OwnColumns
+              locale={locale}
+              columns={draft.custom_matrix_columns ?? []}
+              derived={matrix.custom_columns ?? []}
+              onChange={(next) => update({ custom_matrix_columns: next })}
+            />
           </fieldset>
         ) : null}
 
@@ -485,6 +562,270 @@ function Anchoring({
         ) : null}
         {row.suggestions.some((sug) => synonyms.includes(sug.term)) ? <p className="text-xs text-ink-muted">{t("criteria.synonyms.unsaved")}</p> : null}
       </div>
+    </div>
+  );
+}
+
+/** The reason code input with the engine's suggestions (M10b, `05-criteria`). A native `list` input is a combobox. */
+function ReasonInput({
+  locale,
+  id,
+  value,
+  onChange,
+  suggestions,
+}: Readonly<{ locale: Locale; id: string; value: string; onChange: (code: string) => void; suggestions: ReasonSuggestion[] }>) {
+  const t = inceptionT(locale);
+  const [refused, setRefused] = useState(false);
+  const listId = `${id}-list`;
+  return (
+    <div className="min-w-0 sm:w-56">
+      <label htmlFor={id} className="block text-sm text-ink">
+        {t("criteria.reason.label")}
+      </label>
+      <input
+        id={id}
+        list={listId}
+        value={value}
+        dir="ltr"
+        autoComplete="off"
+        placeholder={t("criteria.reason.placeholder")}
+        aria-describedby={`${id}-format`}
+        onChange={(event) => {
+          const next = normaliseReason(event.target.value);
+          setRefused(next.refused);
+          onChange(next.value.slice(0, 40));
+        }}
+        className="mt-1 block min-h-11 w-full rounded-md border border-rule bg-paper px-2 font-mono text-ink"
+        data-reason-input
+      />
+      <datalist id={listId}>
+        {suggestions.map((s) => (
+          <option key={s.code} value={s.code}>
+            {s.source === "used" ? t("criteria.reason.used") : s.phrases ? t("criteria.reason.hasPhrases") : t("criteria.reason.noPhrases")}
+          </option>
+        ))}
+      </datalist>
+      <p id={`${id}-format`} className={`mt-1 text-xs ${refused ? "text-unclear" : "text-ink-muted"}`} aria-live="polite" data-reason-format={refused ? "refused" : "ok"}>
+        {t("criteria.reason.format")}
+      </p>
+    </div>
+  );
+}
+
+/** The reason of one exclusion row and "Change reason" (M10b). Not offered on a dropped row. */
+function ReasonControl({
+  locale,
+  item,
+  label,
+  suggestions,
+  open,
+  onOpen,
+  onCancel,
+  onChoose,
+}: Readonly<{
+  locale: Locale;
+  item: Criterion;
+  label: string;
+  suggestions: ReasonSuggestion[];
+  open: boolean;
+  onOpen: () => void;
+  onCancel: () => void;
+  onChoose: (code: string) => void;
+}>) {
+  const t = inceptionT(locale);
+  const [code, setCode] = useState(item.reason_category ?? "");
+  const invalidSaved = item.reason_valid === false;
+  if (item.status === "rejected") {
+    return <p className="mt-1 text-xs text-ink-muted" data-reason-dropped>{t("criteria.reason.droppedNote")}</p>;
+  }
+  return (
+    <div className="mt-2" data-reason-control={item.id}>
+      {invalidSaved ? (
+        <p className="text-xs text-unclear" data-reason-invalid>
+          {t("criteria.reason.invalidSaved")}
+        </p>
+      ) : null}
+      {open ? (
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
+          <ReasonInput locale={locale} id={`reason-${item.id}`} value={code} onChange={setCode} suggestions={suggestions} />
+          {item.generated && item.status === "accepted" ? (
+            <p className="text-xs text-unclear" data-reason-regenerated>
+              {t("criteria.reason.regenerated")}
+            </p>
+          ) : null}
+          <Button onClick={() => onChoose(code)} disabled={!REASON_SHAPE.test(code)} data-reason-apply>
+            {t("criteria.reason.apply")}
+          </Button>
+          <Button variant="quiet" onClick={onCancel}>
+            {t("criteria.reason.cancel")}
+          </Button>
+        </div>
+      ) : (
+        <Button variant="quiet" className="px-0" onClick={onOpen} aria-label={t("criteria.reason.changeFor", { id: label })} data-reason-change>
+          {t("criteria.reason.change")}
+        </Button>
+      )}
+    </div>
+  );
+}
+
+const EMPTY_COLUMN: MatrixColumnIn = { name: "", description: "", data_type: "free_text", required: false };
+
+/** "Your columns": the researcher's own matrix columns (M10b, `05-criteria`). */
+function OwnColumns({
+  locale,
+  columns,
+  derived,
+  onChange,
+}: Readonly<{
+  locale: Locale;
+  columns: MatrixColumnIn[];
+  derived: { id: string; name: string }[];
+  onChange: (next: MatrixColumnIn[]) => void;
+}>) {
+  const t = inceptionT(locale);
+  const [form, setForm] = useState<MatrixColumnIn>(EMPTY_COLUMN);
+  const [editing, setEditing] = useState<number | null>(null);
+  const [announce, setAnnounce] = useState("");
+  const others = columns.filter((_, i) => i !== editing);
+  // Presentation only: the engine refuses a clash (DRAFT_INVALID); this keeps Add from offering one.
+  const clash = others.some((c) => c.name.trim().toLowerCase() === form.name.trim().toLowerCase()) && !!form.name.trim();
+  const full = editing === null && columns.length >= 50;
+  const ready = !!form.name.trim() && !!(form.description ?? "").trim() && !clash && !full;
+  const submit = () => {
+    if (!ready) return;
+    const column = { ...form, name: form.name.trim(), description: (form.description ?? "").trim() };
+    onChange(editing === null ? [...columns, column] : columns.map((c, i) => (i === editing ? { ...c, ...column } : c)));
+    setAnnounce(t("criteria.mine.added", { name: column.name }));
+    setForm(EMPTY_COLUMN);
+    setEditing(null);
+  };
+  return (
+    <div className="mt-4 border-t border-rule pt-3" data-own-columns>
+      <h3 id="own-columns-title" className="text-sm font-semibold text-ink">
+        {t("criteria.mine.title")}
+      </h3>
+      {columns.length === 0 ? <p className="text-sm text-ink-muted">{t("criteria.mine.none")}</p> : null}
+      <ul aria-labelledby="own-columns-title" className="mt-2 space-y-2">
+        {columns.map((column, index) => (
+          <li key={`${column.name}-${index}`} className="rounded-md border border-rule bg-paper p-3" data-own-column={column.name}>
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="font-medium text-ink" dir="auto">
+                {column.name}
+              </span>
+              <DecisionBadge role="include">{t("criteria.mine.badge")}</DecisionBadge>
+              {derived[index]?.id ? (
+                <span className="font-mono text-xs text-ink-muted" dir="ltr" data-column-id>
+                  {derived[index].id}
+                </span>
+              ) : null}
+            </div>
+            {column.description ? (
+              <p className="mt-1 text-sm text-ink-muted" dir="auto">
+                {column.description}
+              </p>
+            ) : null}
+            <p className="mt-1 font-mono text-xs text-ink-muted" dir="ltr">
+              {t(`criteria.mine.type.${column.data_type ?? "free_text"}` as "criteria.mine.type.free_text")}
+              {column.required ? ` · ${t("criteria.mine.requiredShort")}` : ""}
+            </p>
+            <div className="mt-2 flex flex-wrap gap-2">
+              <Button
+                onClick={() => {
+                  setEditing(index);
+                  setForm({ ...EMPTY_COLUMN, ...column });
+                }}
+                aria-label={t("criteria.mine.edit", { name: column.name })}
+              >
+                {t("criteria.mine.editShort")}
+              </Button>
+              <Button variant="quiet" onClick={() => onChange(columns.filter((_, i) => i !== index))} aria-label={t("criteria.mine.remove", { name: column.name })} data-remove-column>
+                {t("criteria.mine.removeShort")}
+              </Button>
+            </div>
+          </li>
+        ))}
+      </ul>
+      <div className="mt-3 grid gap-2 sm:grid-cols-2" data-own-column-form>
+        <p className="text-sm font-medium text-ink sm:col-span-2">{editing === null ? t("criteria.mine.add") : t("criteria.mine.editing", { name: columns[editing]?.name ?? "" })}</p>
+        <div>
+          <label htmlFor="own-column-name" className="block text-sm text-ink">
+            {t("criteria.mine.name")}
+          </label>
+          <input
+            id="own-column-name"
+            value={form.name}
+            maxLength={200}
+            onChange={(event) => setForm({ ...form, name: event.target.value })}
+            aria-invalid={clash || undefined}
+            aria-describedby={clash ? "own-column-clash" : undefined}
+            className="mt-1 block min-h-11 w-full rounded-md border border-rule bg-paper px-2 text-ink"
+          />
+          {clash ? (
+            <p id="own-column-clash" className="mt-1 text-xs text-unclear" data-column-clash>
+              {t("criteria.mine.clash", { name: form.name.trim() })}
+            </p>
+          ) : null}
+        </div>
+        <div>
+          <label htmlFor="own-column-type" className="block text-sm text-ink">
+            {t("criteria.mine.type")}
+          </label>
+          <select
+            id="own-column-type"
+            value={form.data_type ?? "free_text"}
+            onChange={(event) => setForm({ ...form, data_type: event.target.value })}
+            className="mt-1 block min-h-11 w-full rounded-md border border-rule bg-paper px-2 text-ink"
+          >
+            {MATRIX_TYPES.map((type) => (
+              <option key={type} value={type}>
+                {t(`criteria.mine.type.${type}` as "criteria.mine.type.free_text")}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="sm:col-span-2">
+          <label htmlFor="own-column-description" className="block text-sm text-ink">
+            {t("criteria.mine.description")}
+          </label>
+          <textarea
+            id="own-column-description"
+            rows={2}
+            maxLength={2000}
+            value={form.description ?? ""}
+            onChange={(event) => setForm({ ...form, description: event.target.value })}
+            aria-describedby="own-column-description-help"
+            className="mt-1 block w-full rounded-md border border-rule bg-paper p-2 text-ink"
+          />
+          <p id="own-column-description-help" className="mt-1 text-xs text-ink-muted">
+            {t("criteria.mine.descriptionHelp")}
+          </p>
+        </div>
+        <label className="flex min-h-11 cursor-pointer items-center gap-3 sm:col-span-2">
+          <input type="checkbox" checked={!!form.required} onChange={(event) => setForm({ ...form, required: event.target.checked })} className="h-5 w-5 shrink-0" />
+          <span className="text-sm text-ink">{t("criteria.mine.required")}</span>
+        </label>
+        <div className="flex flex-wrap gap-2 sm:col-span-2">
+          <Button onClick={submit} disabled={!ready} data-add-column>
+            {editing === null ? t("criteria.mine.submit") : t("criteria.mine.save")}
+          </Button>
+          {editing !== null ? (
+            <Button
+              variant="quiet"
+              onClick={() => {
+                setEditing(null);
+                setForm(EMPTY_COLUMN);
+              }}
+            >
+              {t("criteria.reason.cancel")}
+            </Button>
+          ) : null}
+          {full ? <p className="self-center text-xs text-ink-muted">{t("criteria.mine.limit", { n: "50" })}</p> : null}
+        </div>
+      </div>
+      <p className="sr-only" role="status" aria-live="polite">
+        {announce}
+      </p>
     </div>
   );
 }
