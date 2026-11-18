@@ -1,5 +1,5 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 
 import { PROPOSALS_COPY, ScreeningProposals } from "@/components/screening-proposals";
 import { SUPPORTED_LOCALES } from "@/i18n";
@@ -67,6 +67,22 @@ function engine(options: { setup?: unknown; start?: (body: Record<string, unknow
 afterEach(() => vi.unstubAllGlobals());
 
 const startButton = () => screen.findByRole("button", { name: "Start agent proposals · 3 records" });
+
+/**
+ * The first render in this file is cold (module graph, first role and accessible-name
+ * queries over the whole screen) and cost more than Testing Library's one-second wait
+ * for the Start button, so the first test failed with "Unable to find role=button"
+ * on an idle machine and the others did whenever the machine was busy. The button is
+ * not late because of the screen's logic: it appears once the setup and the estimate
+ * have answered. One throw-away render pays the cold cost outside any test's wait.
+ */
+beforeAll(async () => {
+  engine();
+  const warm = render(<ScreeningProposals locale="en" />);
+  await screen.findByRole("button", { name: "Start agent proposals · 3 records" }, { timeout: 20_000 });
+  warm.unmount();
+  vi.unstubAllGlobals();
+}, 30_000);
 
 describe("proposals.consent-required", () => {
   it("keeps Start disabled until consent is ticked, and sends the consent with the run", async () => {

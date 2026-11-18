@@ -24,6 +24,39 @@ def _fresh_provider_budgets():
     reset_host_budgets()
 
 
+# --- a stale install is one clear failure, not five confusing ones (F10) ---------
+# The version is recorded in provenance, so every test that compares it with
+# pyproject.toml, and the screening API fixtures (their content hashes cover it),
+# fail together when the installed dist-info is older than pyproject.toml (an
+# editable install that was not refreshed after a version bump). `uv run`
+# refreshes it; a bare .venv python or `--no-sync` does not.
+# `test_version.py::test_the_installed_metadata_is_the_project_version` fails
+# once, with the fix; the tests that depend on it skip with the same reason.
+def _project_version() -> str:
+    import tomllib
+
+    pyproject = Path(__file__).resolve().parents[1] / "pyproject.toml"
+    return tomllib.loads(pyproject.read_text(encoding="utf-8"))["project"]["version"]
+
+
+def _installed_version() -> str:
+    from importlib.metadata import PackageNotFoundError, version
+
+    try:
+        return version("nexus-scholar")
+    except PackageNotFoundError:
+        return "not installed"
+
+
+PROJECT_VERSION = _project_version()
+INSTALLED_VERSION = _installed_version()
+STALE_INSTALL = INSTALLED_VERSION != PROJECT_VERSION
+skip_if_stale_install = pytest.mark.skipif(
+    STALE_INSTALL,
+    reason=f"installed nexus-scholar metadata is {INSTALLED_VERSION}, pyproject.toml says {PROJECT_VERSION}: run `uv sync`",
+)
+
+
 # --- the suite runs offline (M4c) ----------------------------------------------
 # Any socket connect to a non-loopback address fails the test that made it, so
 # a live provider call can never hide in the suite. Cassette replays (VCR) and
