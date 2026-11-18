@@ -500,6 +500,86 @@ def gate_import(
     )
 
 
+def _money(value: float | None) -> str:
+    return "not priced" if value is None else f"${value:,.2f}"
+
+
+@gate_app.command("measure")
+def gate_measure(
+    workspace: Path = typer.Option(_V03, "--workspace", help="A workspace with the researcher's screening decisions (read only)"),
+    scope: str = typer.Option("frozen", "--scope", help="`frozen`: the gate's 1,644-record sample; `all`: every decided record"),
+    model: str = typer.Option("claude-opus-5-5", "--model"),
+    provider: str = typer.Option("anthropic", "--provider"),
+    effort: str = typer.Option("low", "--effort"),
+    max_tokens: int = typer.Option(4096, "--max-tokens"),
+    limit: int = typer.Option(0, "--limit", help="Only the first N records (a smoke run)"),
+    base_url: str = typer.Option("", "--base-url", help="OpenAI-compatible endpoint"),
+    cost_ceiling: float = typer.Option(0.0, "--cost-ceiling", help="Stop once the measured cost passes this many dollars (default: 1.5 x the no-caching estimate)"),
+    out: Path = typer.Option(Path(".cache") / "m9a-measure", "--out", help="Folder for the report (never inside the workspace)"),
+    dry_run: bool = typer.Option(False, "--dry-run", help="Print records, batches, tokens and cost from the prompt sizes; no network call, no key"),
+    yes: bool = typer.Option(False, "--yes", help="Confirm: this spends your provider key"),
+) -> None:
+    """M9a: the screening agent against the researcher's decisions (recall, precision, cost, truncations)."""
+    from scholar_agent import measure as ms
+
+    try:
+        plan = ms.measure(
+            workspace, scope=scope, provider=provider, model=model, effort=effort, max_tokens=max_tokens,
+            driver=None, limit=limit,
+        )
+    except (ValueError, FileNotFoundError, KeyError) as exc:
+        console.print(f"[bold red]❌ {exc}[/bold red]")
+        raise typer.Exit(1) from exc
+    c, p, r = plan["cost_usd"], plan["prompt"], plan["requests"]
+    typer.echo(f"{plan['records']} records ({plan['labels']}) in {plan['workspace_batches']} workspace batches · scope {plan['scope']['scope']} · {provider}/{model} at {effort} effort")
+    typer.echo(f"calls: {r['calls']} ({r['mode']}, {r['records_per_call']} record(s) each) · prompt: system {p['system_tokens']} tokens, record {p['record_tokens_mean']} mean / {p['record_tokens_max']} max")
+    typer.echo(f"tokens (expected): {plan['tokens_expected']}")
+    typer.echo(f"estimated cost: expected {_money(c['expected'])} ({c['expected_note']})")
+    typer.echo(f"  no caching: {_money(c['no_cache_expected_output'])} · with {ms.HEAVY_OUTPUT_TOKENS} output tokens per record: {_money(c[f'no_cache_{ms.HEAVY_OUTPUT_TOKENS}_output_tokens'])} · hard ceiling: {_money(c['hard_ceiling'])}")
+    typer.echo(f"prices as of {plan['prices_as_of']}; an estimate, not a measurement. Network calls made: {plan['network_calls']}.")
+    if dry_run:
+        return
+    if not yes:
+        console.print("[yellow]Not run. Add --yes to spend your key, or --dry-run to only see the plan.[/yellow]")
+        raise typer.Exit(1)
+    from datetime import UTC, datetime
+
+    from scholar_agent.drivers import make_driver
+    from scholar_agent.keys import resolve_key
+
+    key = resolve_key(provider)
+    if key is None and provider != "openai_compatible":
+        console.print(f"[bold red]❌ No {provider} key. Run: nexus-scholar keys set {provider}[/bold red]")
+        raise typer.Exit(1)
+    if c["expected"] is None:
+        console.print(f"[bold red]❌ {provider}/{model} has no price in the price table, so a cost ceiling cannot be enforced.[/bold red]")
+        raise typer.Exit(1)
+    ceiling = cost_ceiling or round(c["no_cache_expected_output"] * 1.5, 2)
+    driver = make_driver(provider, api_key=key, base_url=base_url or None, **ms.driver_options(provider))
+    typer.echo(f"Running {plan['records']} records; the run stops past ${ceiling:,.2f} …")
+    started = datetime.now(UTC)
+    try:
+        report = ms.measure(
+            workspace, scope=scope, provider=provider, model=model, effort=effort, max_tokens=max_tokens,
+            driver=driver, cost_ceiling_usd=ceiling, limit=limit, out_dir=out,
+        )
+    except (ValueError, FileNotFoundError, KeyError) as exc:
+        console.print(f"[bold red]❌ {exc}[/bold red]")
+        raise typer.Exit(1) from exc
+    paths = report["paths"]
+    if not report["measured"]:
+        first = next((r["driver_detail"] for r in report["records_detail"] if r["driver_detail"]), "no result")
+        console.print(f"[bold red]Not measured: none of the calls succeeded. First error: {first}. Report {paths['markdown']}[/bold red]")
+        raise typer.Exit(1)
+    rc = report["include_recall"]
+    typer.echo(
+        f"include recall {rc['point']} (95% lower bound {rc['ci_low']}) · precision on includes {report['precision_on_includes']['agent_include']} · "
+        f"unclear {report['unclear_rate']} · statuses {report['answers_not_usable']['driver_statuses']} · cost {_money(report['cost_usd']['total'])}"
+        f"{' · STOPPED: ' + report['stopped'] if report['stopped'] else ''} · {int((datetime.now(UTC) - started).total_seconds())} s"
+    )
+    typer.echo(f"report {paths['markdown']} (every record: {paths['json']})")
+
+
 app.add_typer(gate_app, name="prompt-gate")
 
 

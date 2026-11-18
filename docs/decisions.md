@@ -4,6 +4,18 @@ One entry per decision that still shapes the code, newest first. The full
 records were removed in the 2026-11-03 docs cut; each entry names the commit
 history to read if you need the original reasoning (`git log --follow -- <path>`).
 
+## 2026-11-18 — M9a-measure: one command over the existing prompt gate (PROPOSED; M9a-measure)
+
+Record: `docs/roadmap/milestones/M9a-measure.md`. Proposed by the build session for the researcher's acceptance; none of it spends anything, and the measurement itself still waits for the researcher's approval of AI spend. None touches a Contract v1 model, schema or golden fixture.
+
+1. **`prompt-gate measure`, built on the gate.** A fifth command of the existing group and one module (`scholar_agent/measure.py`) that calls `prompt_gate` for the set, the text, the drivers, the outcome rule and the cost. No second driver or scorer. Changing it would mean a parallel scorer that can drift from the gate.
+2. **Default scope is the gate's frozen sample** (1,644 records: all 644 includes and 1,000 seeded excludes). `--scope all` (14,150) costs about 8.5 times as much and adds only excludes; the ladder gate counts includes. Changing it: pass `--scope all`.
+3. **A researcher's Unclear counts as an include** in the score, as the ladder says and `calibration_result` already did (fix to `prompt_gate.score`; the v03 labels have none, so no existing number moves).
+4. **A stopped run is not scored.** Records a run never reached (the cost ceiling stopped it) are listed and left out of every figure; a failed call (truncated, refused, invalid, error) is Unclear as in the product and is also shown as a miss in a second, strict recall. The alternative, counting the unreached as Unclear, would inflate recall.
+5. **The cost ceiling defaults to 1.5 x the no-caching estimate** ($22.80 for Opus on the frozen sample), checked between chunks of 200 as a product run does; `--cost-ceiling` overrides it. A model without a price cannot be run with a ceiling.
+6. **The blind check refuses a figure in the task's own words, and an outcome word in the criteria.** The v03 criteria state a sampling plan ("~10% random sample"), which is review method, not an outcome, so a percentage in the criteria is allowed; a word such as "recall", "agreement" or "most of these" is not. Ladder decision of 2026-11-11 and lesson 54.
+7. **The draft thresholds are constants** (`L1` 35 includes and 0.90, `L2` 75 and 0.95) in `measure.py`, evaluated review-wide; per-batch recall is descriptive. M9a decides the final numbers from the measurement and records them here.
+
 ## 2026-11-17 — M3i: the harvest stage marker, finishing a preparation, and stop between stages (accepted 2026-11-18; M3i-harvest-robustness)
 
 Record: `docs/roadmap/milestones/M3i-harvest-robustness.md`. The fix itself was accepted on 2026-11-15 (M10b spec answer R5: a stage marker `pipeline.json` with `verified_run`, "Finish preparing this corpus" without a new search, Stop honoured between the stages). The choices below were made while building it; the researcher accepted all ten as written on 2026-11-18 ("accept the decisions"). Each is built as its recommended option, and each names what changing it would cost. None touches a Contract v1 model, schema or golden fixture; `generate_contract_baseline.py --check` stays current.
