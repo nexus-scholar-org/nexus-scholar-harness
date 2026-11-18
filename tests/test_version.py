@@ -12,18 +12,29 @@ import re
 import tomllib
 from pathlib import Path
 
+from conftest import INSTALLED_VERSION, PROJECT_VERSION, STALE_INSTALL, skip_if_stale_install
 from typer.testing import CliRunner
 
 ROOT = Path(__file__).resolve().parents[1]
 VERSION = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))["project"]["version"]
 
 
+def test_the_installed_metadata_is_the_project_version():
+    """One clear failure for a stale install; the tests below skip instead of failing five ways."""
+    assert not STALE_INSTALL, (
+        f"installed nexus-scholar metadata is {INSTALLED_VERSION} but pyproject.toml says {PROJECT_VERSION}: "
+        "run uv sync (the editable install was not refreshed after the version changed)"
+    )
+
+
+@skip_if_stale_install
 def test_the_package_reports_the_project_version():
     import scholar_harness
 
     assert scholar_harness.__version__ == VERSION
 
 
+@skip_if_stale_install
 def test_the_cli_prints_its_version():
     from scholar_harness.cli import app
 

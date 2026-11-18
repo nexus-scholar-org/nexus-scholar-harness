@@ -72,11 +72,25 @@ function sourceFiles(dir: string): string[] {
   return found.sort();
 }
 
-/** `{ file, line, text }` for each line of `file`, 1-indexed. */
+/**
+ * `{ file, line, text }` for each line of `file`, 1-indexed.
+ *
+ * Read once per file. The N10 guard runs fourteen patterns over every UI file, and
+ * each pattern used to read and split every file again: with the screens added
+ * since, that is several thousand synchronous reads, which took longer than the
+ * default five seconds whenever the machine was busy (the test then timed out
+ * while the logic was fine). The source does not change during a run.
+ */
+const LINES_CACHE = new Map<string, Array<{ file: string; line: number; text: string }>>();
 function lines(file: string): Array<{ file: string; line: number; text: string }> {
-  return readFileSync(join(APP_ROOT, file), "utf8")
-    .split(/\r?\n/)
-    .map((text, index) => ({ file, line: index + 1, text }));
+  let cached = LINES_CACHE.get(file);
+  if (cached === undefined) {
+    cached = readFileSync(join(APP_ROOT, file), "utf8")
+      .split(/\r?\n/)
+      .map((text, index) => ({ file, line: index + 1, text }));
+    LINES_CACHE.set(file, cached);
+  }
+  return cached;
 }
 
 function hits(files: string[], pattern: RegExp): string[] {
