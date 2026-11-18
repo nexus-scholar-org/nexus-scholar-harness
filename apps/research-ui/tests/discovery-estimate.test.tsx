@@ -347,9 +347,13 @@ describe("discovery.estimate review fixes", () => {
     const user = await count(card);
     const pace = within(card).getByLabelText("Seconds per record");
     await user.clear(pace);
-    await user.type(pace, "45{Enter}");
-    await waitFor(() => expect(estimateCalls(engine)).toHaveLength(2));
+    await user.type(pace, "45");
+    // "Count again" with another pace is a what-if: answered from the cache, no refresh.
+    await count(card);
     expect(estimateCalls(engine)[1].body).toEqual({ pace_seconds: 45 });
+    // The same click with nothing changed refreshes past the recall check.
+    await count(card);
+    expect(estimateCalls(engine)[2].body).toEqual({ pace_seconds: 45, refresh: true });
   });
 
   it("says why a pace that is not a whole number is not sent, and sends nothing", async () => {
