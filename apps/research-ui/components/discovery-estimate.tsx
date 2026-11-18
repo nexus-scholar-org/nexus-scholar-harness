@@ -87,7 +87,7 @@ function EstimateRowView({ locale, row, cap }: Readonly<{ locale: Locale; row: E
       {row.fetch_is_upper_bound ? <p className="mt-1 text-xs text-ink-muted">{t("estimate.row.arxiv")}</p> : null}
       {row.status === "failed" && row.error ? (
         <details className="mt-1 text-xs">
-          <summary className="min-h-11 cursor-pointer py-3 leading-5 text-ink-muted">{t("estimate.row.details")}</summary>
+          <summary className="min-h-11 cursor-pointer py-3 leading-5 rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus text-ink-muted">{t("estimate.row.details")}</summary>
           <p className="text-ink" data-row-error>
             {row.error_code ? <DataCell>{row.error_code}</DataCell> : null} <bdi dir="ltr">{row.error}</bdi>
           </p>
@@ -242,7 +242,7 @@ export function EstimateCard({ locale, origin, fingerprint, providers, cap = nul
               ) : null}
               <p className="text-xs text-ink-muted">{t("estimate.rec.cap.help")}</p>
               <details className="text-xs">
-                <summary className="min-h-11 cursor-pointer py-3 leading-5 text-ink-muted">{t("estimate.rec.why")}</summary>
+                <summary className="min-h-11 cursor-pointer py-3 leading-5 rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus text-ink-muted">{t("estimate.rec.why")}</summary>
                 <p className="text-ink">
                   {planned
                     ? t("estimate.warn.why.planned", { low: works?.low ?? "", threshold: warn?.threshold_works ?? "" })
