@@ -71,4 +71,3 @@ def test_a_range_error_names_its_field(pair, loc):
     with pytest.raises(steps.StepRefused) as exc:
         steps.parse_draft({**ready_draft(), **pair})
     assert exc.value.details["errors"][0]["loc"] == loc
-

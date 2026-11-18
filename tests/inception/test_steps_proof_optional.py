@@ -84,4 +84,3 @@ def test_blank_answers_count_as_missing():
         steps.run_step("criteria", draft)
     assert exc.value.details["missing"] == ["proof"]
     assert steps.run_step("shape", {**ready_draft(), "extra_inclusions": ["  "]})["proof_required"] is True
-
