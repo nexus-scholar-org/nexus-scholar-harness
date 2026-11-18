@@ -1,6 +1,6 @@
 # Discovery providers: what they offer, what we use, what changed
 
-Date: 2026-11-10.
+Date: 2026-11-10. The "what our code does" cells describe `b6643a0` and are not rewritten as fixes land; "Hardening candidates" below lists what M3h-providers and M3h-b-resilience have fixed since (among them the Crossref and arXiv rates, the rate-limit headers, the User-Agent and the arXiv note).
 
 This is a reference, not a plan. The "what our code does" column is read from `main` at `b6643a0`. The "provider offers today" column is read from the providers' live documentation and from live test requests made on 2026-11-10. Every claim that could not be read from a live page or from the code is listed under "Unverified" at the end, not in the tables.
 

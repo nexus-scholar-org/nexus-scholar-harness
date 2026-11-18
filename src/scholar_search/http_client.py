@@ -48,6 +48,8 @@ class RateLimiter:
     def _take(self) -> float:
         """Take a token and return 0, or return how long to sleep before trying again."""
         with self._lock:
+            if self.rate <= 0:  # no limit (a client built with rate 0)
+                return 0.0
             now = time.time()
             elapsed = now - self.last_update
             self.tokens = min(self.capacity, self.tokens + elapsed * self.rate)
@@ -129,8 +131,11 @@ def _policy(url: str) -> tuple[str, float] | None:
     A provider counts its limit per caller (Semantic Scholar: cumulative across
     all endpoints; Crossref: per contact address), so every client in the
     process that reaches the host shares one budget: the search leg, the
-    abstract hydrator, the verifier and citation chasing. Crossref has two:
-    list requests and single-record lookups have different limits.
+    abstract hydrator, the harvest's verification stage
+    (``scholar_search.verifier.DocumentVerifier``, single-record lookups) and
+    citation chasing. Crossref has two: list requests and single-record
+    lookups have different limits. The post-screening ``scholar_verify`` kit
+    has its own HTTP client and is not counted here.
     """
     parts = urlsplit(url)
     host = (parts.hostname or "").lower()
@@ -171,12 +176,23 @@ def host_budget(url: str) -> RateLimiter | None:
     return budget
 
 
+#: The lowest rate a header can set (requests per second), unless the configured
+#: rate is lower still: a one-off throttle header must not stall a long-running
+#: console or MCP server until it restarts.
+HEADER_FLOOR = 1.0
+
+
+def _header_floor(configured: float) -> float:
+    return min(configured, HEADER_FLOOR) if configured > 0 else HEADER_FLOOR
+
+
 def _cap_from_headers(url: str, rate: float) -> bool:
     """Record a provider's announced rate for ``url``'s budget; False for a host without one."""
     policy = _policy(url)
     if policy is None:
         return False
     key = policy[0]
+    rate = max(rate, _header_floor(policy[1]))
     with _BUDGETS_LOCK:
         _HEADER_CAPS[key] = min(rate, _HEADER_CAPS.get(key, rate))
     return True
@@ -278,7 +294,7 @@ class AcademicHttpClient:
         if _cap_from_headers(url, rate):
             host_budget(url)  # applies the new cap
         else:
-            self.rate_limiter.lower(rate)
+            self.rate_limiter.lower(max(rate, _header_floor(current)))
 
     async def get(
         self,

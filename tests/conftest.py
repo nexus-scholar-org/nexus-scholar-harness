@@ -14,6 +14,16 @@ import pytest
 GENESIS_TS = "2026-09-06T12:00:00+00:00"
 
 
+@pytest.fixture(autouse=True)
+def _fresh_provider_budgets():
+    """M3h-b-resilience: the search kit's per-provider budgets are process-wide; no test inherits one."""
+    from scholar_search.http_client import reset_host_budgets
+
+    reset_host_budgets()
+    yield
+    reset_host_budgets()
+
+
 # --- the suite runs offline (M4c) ----------------------------------------------
 # Any socket connect to a non-loopback address fails the test that made it, so
 # a live provider call can never hide in the suite. Cassette replays (VCR) and

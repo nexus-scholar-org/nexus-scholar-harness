@@ -63,12 +63,15 @@ class Settings(BaseSettings):
     # client keeps to the public rate whatever this says.
     rate_limit_crossref: float = Field(
         default=3.0,
+        gt=0,
         description="Crossref list requests per second with a contact address (SCHOLAR_RATE_LIMIT_CROSSREF)",
     )
-    # Crossref single-record lookups (/works/{doi}, the verifier): 10 per
+    # Crossref single-record lookups (/works/{doi}, the harvest's verification
+    # stage, scholar_search.verifier): 10 per
     # second polite, 5 public (2026-07-21).
     rate_limit_crossref_single: float = Field(
         default=10.0,
+        gt=0,
         description="Crossref single-record requests per second with a contact address",
     )
     # Semantic Scholar keys get "1 request per second, cumulative across all
@@ -77,7 +80,7 @@ class Settings(BaseSettings):
     # in one second. The leg, the abstract hydrator and citation chasing share
     # this one budget (``http_client.host_budget``, M3h-b-resilience).
     rate_limit_s2: float = Field(
-        default=0.9, description="Semantic Scholar requests per second (SCHOLAR_RATE_LIMIT_S2)"
+        default=0.9, gt=0, description="Semantic Scholar requests per second (SCHOLAR_RATE_LIMIT_S2)"
     )
     rate_limit_pubmed: float = Field(
         default=3.0, description="PubMed requests per second (no key)"

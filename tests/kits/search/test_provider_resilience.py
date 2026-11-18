@@ -477,3 +477,60 @@ def test_the_mcp_discover_tool_searches_the_default_set(monkeypatch, tmp_path):
     monkeypatch.setattr(server, "_resolve_path", lambda p: str(tmp_path / p))
     asyncio.run(server.nexus_discover("drone"))
     assert seen["names"] == list(DEFAULT_DATABASES)
+
+
+# --------------------------------------------------------------------------- review repairs (M3h-b-resilience)
+
+
+@pytest.mark.asyncio
+async def test_the_harvest_verifier_waits_on_the_crossref_single_record_budget(monkeypatch):
+    from scholar_search.models import Document, ExternalIds
+    from scholar_search.providers.openalex import OpenAlexProvider
+    from scholar_search.verifier import DocumentVerifier
+
+    crossref, openalex = CrossrefProvider(), OpenAlexProvider()
+    seen = _mock(crossref.client, lambda r: httpx.Response(404, text="Resource not found."))
+    _mock(openalex.client, lambda r: httpx.Response(404, text="not found"))
+    single = http_mod.host_budget(CROSSREF + "/10.1000/xyz")
+    waits = []
+    original = single.wait
+
+    async def counted():
+        waits.append(1)
+        await original()
+
+    monkeypatch.setattr(single, "wait", counted)
+    doc = Document(title="T", provider="crossref", provider_id="x", external_ids=ExternalIds(doi="10.1000/xyz"))
+    await DocumentVerifier(crossref_provider=crossref, openalex_provider=openalex).verify_document(doc)
+    assert seen and seen[0].url.path == "/works/10.1000/xyz"
+    assert waits == [1]
+    await crossref.client.close()
+    await openalex.client.close()
+
+
+@pytest.mark.asyncio
+async def test_a_throttle_header_never_sets_a_budget_below_one_per_second():
+    client = AcademicHttpClient(name="crossref", rate_limit=3.0, cache_enabled=False)
+    _mock(client, lambda r: httpx.Response(
+        200, json={}, headers={"x-rate-limit-limit": "1", "x-rate-limit-interval": "100000h"}
+    ))
+    await client.get(CROSSREF, params={"query": "x"})
+    assert http_mod.host_budget(CROSSREF).rate == pytest.approx(1.0)
+    await client.close()
+
+
+def test_a_limiter_with_no_rate_never_waits_or_divides():
+    limiter = http_mod.RateLimiter(1.0)
+    limiter.set_rate(0)
+    limiter.tokens = 0.0  # an empty bucket: the old code divided by the rate here
+    assert limiter._take() == 0.0
+
+
+@pytest.mark.parametrize("field", ["rate_limit_crossref", "rate_limit_crossref_single", "rate_limit_s2"])
+def test_a_zero_rate_setting_is_refused(field):
+    from pydantic import ValidationError
+
+    from scholar_search.config import Settings
+
+    with pytest.raises(ValidationError):
+        Settings(**{field: 0})
