@@ -168,7 +168,7 @@ latent bug**, with the working path in parentheses.
 
 ### scholar-search-kit
 - **Re-checked 2026-11-10** against `main` and [`docs/kits/search/PROVIDERS_2026-11.md`](kits/search/PROVIDERS_2026-11.md) (the provider reference: limits, what the code sends, hardening candidates). The bullets below were corrected where they had drifted.
-- **Public API (importable from root):** `SearchEngine(providers=None)` (defaults 5: openalex, semanticscholar, crossref, arxiv, pubmed; `engine.py:86-93`),
+- **Public API (importable from root):** `SearchEngine(providers=None)` (the one default set, `models.DEFAULT_DATABASES`: openalex, semanticscholar, crossref, arxiv; M3h-b-resilience),
   `Deduplicator.deduplicate(docs) -> list[DocumentCluster]` (SCI-`%06d` ids),
   `DocumentVerifier`, `CitationChainer.chain(…)`, `evaluate_heuristic_screening`,
   `partition_screening_results`, `reconcile_multi_screener_decisions`,
@@ -181,11 +181,11 @@ latent bug**, with the working path in parentheses.
   `cli.py:195-201`); protocol search default DBs = openalex/semanticscholar/crossref/arxiv
   (`protocol_adapter.py:81-84`, `scholar_protocol/models.py:126-129`; the CLI's
   protocol path falls back to the same four, `cli.py:187-193`).
-  **Known inconsistency:** the engine, `plan.py:26` and the browser plan
-  (`console/api/discovery.py:53`) default to five with PubMed; the protocol model,
-  the protocol adapter, recon (`recon/engine.py:32`) and MCP `nexus_discover` default
-  to four. A protocol without `target_databases` therefore runs four databases while
-  the browser and a plain CLI search run five. Not fixed.
+  **One default set since M3h-b-resilience:** the engine, the plan, the browser
+  plan, the protocol adapter, the CLI, recon and MCP `nexus_discover` read
+  `scholar_search.models.DEFAULT_DATABASES` (the four above; the protocol model and
+  presets hold the same list, kept equal by a test). The choice of the four is a
+  proposed decision (`docs/decisions.md` 2026-11-18 item 1).
 - **Known bug, PubMed `[ab]`:** `providers/pubmed.py:33` maps the abstract field to
   `[ab]`, which is not a PubMed field tag; PubMed silently searches all fields and the
   leg's executed query still shows `[ab]`. `[tiab]` is the planned fix. Not fixed.
@@ -205,8 +205,10 @@ latent bug**, with the working path in parentheses.
   every 3 s. OpenAlex `per_page` max is 100 (200 deprecated; `openalex.py:160, 266, 297`
   ask for 200). Client = httpx+hishel, 4 transport retries, 429/5xx →
   3 retries with backoff (`http_client.py:60, 105-130`), 30 s timeout, user-agent
-  `scholar-search-kit/0.1.0 (mailto:…)` (`http_client.py:74-76`; the version string is
-  stale, the package is `nexus-scholar` 1.1.0b6);
+  `nexus-scholar/<installed version> (mailto:…)` (`http_client.user_agent`, M3h-b-resilience);
+  shared per-provider budgets (Crossref list 3/s and single-record 10/s polite,
+  arXiv one request per 3 s, Semantic Scholar `SCHOLAR_RATE_LIMIT_S2`), lowered by
+  `x-rate-limit-*` headers; a 4xx answer to a POST is not retried;
   dedup = PID tier → exact-normalized-title tier → fuzzy 0.97 / year±1 / first-author
   containment; verifier thresholds ≥0.90 bidirectional or ≥12-char containment
   (Crossref validate score > 40 + OpenAlex); snowball sandbox caps depth 5/500/2000,

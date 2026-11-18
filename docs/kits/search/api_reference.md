@@ -15,7 +15,7 @@ from scholar_search import SearchEngine, Query
 Orchestrates federated queries across multiple academic providers and handles deduplication and snowballing.
 
 ### `__init__(providers: Optional[List[SearchProvider]] = None)`
-Initializes the engine. If `providers` is `None`, loads the default suite (`OpenAlex`, `SemanticScholar`, `Crossref`, `Arxiv`, `PubMed`, `Biorxiv`).
+Initializes the engine. If `providers` is `None`, loads the default suite, `scholar_search.models.DEFAULT_DATABASES` (`OpenAlex`, `SemanticScholar`, `Crossref`, `Arxiv`). PubMed and bioRxiv are searched when named.
 
 ### `search_all(query: Query, dedup: bool = True) -> List[Document]`
 Executes the query across all active providers concurrently/sequentially and returns a deduplicated list of `Document` models.
