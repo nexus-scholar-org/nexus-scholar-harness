@@ -157,6 +157,10 @@ def test_concept_term_missing_uav(env):
     body = _checks(client, _create(client)["session_id"], "criteria")
     row = _one(body, "CONCEPT_TERM_MISSING", "UAV")
     assert row["level"] == "warning" and row["action"]["kind"] == "proposal"
+    # The first run already counts the suggestion it recorded.
+    sid = _create(client)["session_id"]
+    first = _checks(client, sid)
+    assert _one(first, "REVIEW_PROPOSALS_OPEN")["params"] == {"n": 1}
     # With "unmanned aerial vehicle" the proposal is a synonym of it.
     draft = uav_draft(concepts=[{"concept": "weed detection"}, {"concept": "unmanned aerial vehicle"}])
     sid = _create(client, draft)["session_id"]

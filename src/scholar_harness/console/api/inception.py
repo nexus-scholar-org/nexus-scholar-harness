@@ -294,6 +294,8 @@ def run_checks(session_id: str, body: ChecksBody, request: Request) -> dict[str,
                         proposals.add_open(current, proposal)
 
             record, _ = store.transact(session_id, add, answer=False)
+            # The open-suggestions note counts what this very run recorded.
+            items = [c for c in items if c["check_id"] != "REVIEW_PROPOSALS_OPEN"] + checks._proposals_open(record)
     except (DraftRefused, steps.StepRefused) as exc:
         raise _error(exc) from exc
     return _checks_answer(record, items, waiting, partial, body.step)
