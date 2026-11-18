@@ -70,15 +70,14 @@
         "boolean_operator": "OR"
       },
       {
-        "concept": "field trial",
+        "concept": "comparative field trial",
         "synonyms": [
+          "field trial",
           "field experiment",
           "plot trial",
           "randomized complete block",
           "comparative trial",
-          "uniform application",
-          "broadcast spraying",
-          "whole-field application"
+          "on-farm trial"
         ],
         "boolean_operator": "OR"
       }
@@ -107,7 +106,7 @@
     "inclusion": [
       {
         "id": "INC-01",
-        "criterion": "Compares herbicide application guided by a weed map made from UAV images with uniform whole-field application, in the same crop and field.",
+        "criterion": "Applies herbicide guided by a weed map made from UAV images, in an arable crop.",
         "maps_to_rqs": [
           "RQ1",
           "RQ2",
@@ -126,15 +125,6 @@
       },
       {
         "id": "INC-03",
-        "criterion": "Reports numerically, for both arms, the herbicide quantity used and at least one of weed control efficacy or crop yield.",
-        "maps_to_rqs": [
-          "RQ1",
-          "RQ2"
-        ],
-        "reason_category": null
-      },
-      {
-        "id": "INC-04",
         "criterion": "Was published in English in 2010 or later.",
         "maps_to_rqs": [
           "RQ1",

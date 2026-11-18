@@ -35,6 +35,22 @@ NONE = "none: critic only"
 SEVERITIES = {"critical", "major", "minor"}
 REJECTED_BY = {None, "intent_model", "compile", "validate_protocol"}
 # What the set must cover (the defect classes the M10c brief names).
+# Which fixed check should catch which defect ("<variant>#<defect index>"); pinned here so
+# a change of the manifest's assignments is a visible change of this file too.
+FIXED_CHECK_ASSIGNMENTS = {
+    "scoping-search-omits-weed-concept#0": ["CONCEPT_TERM_MISSING", "PLAN_QUERY_TERM_MISSING"],
+    "scoping-one-merged-concept#0": ["CONCEPTS_ONE_ONLY"],
+    "scoping-single-seed#0": ["DIRECTION_SEEDS_FEW"],
+    "scoping-planned-corpus-too-small#0": ["PLAN_ESTIMATE_ABOVE_TARGET", "HARVEST_ABOVE_TARGET"],
+    "scoping-unit-of-analysis-empty#0": ["SHAPE_REQUIRED_MISSING"],
+    "scoping-no-exclusion-criterion#0": ["CRITERIA_SIDE_MISSING", "REVIEW_COMPILER_REFUSED"],
+    "scoping-exclusion-reasons-uniform#0": ["CRITERIA_REASONS_UNIFORM"],
+    "sr-search-omits-uav-concept#0": ["CONCEPT_TERM_MISSING", "PLAN_QUERY_TERM_MISSING"],
+    "sr-start-year-missing#0": ["SCOPE_START_YEAR_DEFAULTED"],
+    "sr-planned-size-left-to-preset#0": ["SHAPE_PLANNED_SIZE_EMPTY"],
+    "sr-planned-size-small-and-query-flooding#0": ["CONCEPTS_ONE_ONLY"],
+    "sr-planned-size-small-and-query-flooding#1": ["PLAN_ESTIMATE_ABOVE_TARGET", "HARVEST_ABOVE_TARGET"],
+}
 REQUIRED_CATEGORIES = {
     "question-criteria-alignment",
     "criteria-consistency",
@@ -51,6 +67,19 @@ REQUIRED_CATEGORIES = {
 
 def _load(rel: str) -> Any:
     return json.loads((ROOT / rel).read_text(encoding="utf-8"))
+
+
+def _resolves(doc: Any, pointer: str) -> bool:
+    """True when the JSON pointer names something in ``doc`` (list indexes are integers)."""
+    node = doc
+    for part in pointer.strip("/").split("/"):
+        if isinstance(node, list) and part.isdigit() and int(part) < len(node):
+            node = node[int(part)]
+        elif isinstance(node, dict) and part in node:
+            node = node[part]
+        else:
+            return False
+    return True
 
 
 def _diff(a: Any, b: Any, path: str = "") -> list[str]:
@@ -152,7 +181,30 @@ def test_manifest_entry_is_complete(variant: dict[str, Any]) -> None:
         for other in defect.get("also_caught_by", []):
             assert other in catalogue
         union |= set(defect["fields"])
+        for locator in defect.get("accepted_locators", []):
+            assert locator not in defect["fields"]
     assert sorted(union) == variant["fields"]
+
+
+@pytest.mark.parametrize("variant", VARIANTS, ids=lambda v: v["id"])
+def test_accepted_locators_exist(variant: dict[str, Any]) -> None:
+    """A locator that is not an edited field (the other half of a pair) must still exist."""
+    base_key = "intent" if variant["format"] == "intent" else "protocol"
+    base = _load(MANIFEST["bases"][variant["base"]][base_key])
+    doc = _load(variant["file"])
+    for defect in variant["defects"]:
+        for locator in defect.get("accepted_locators", []):
+            assert _resolves(doc, locator) or _resolves(base, locator), locator
+
+
+def test_fixed_check_assignments_are_pinned() -> None:
+    actual = {
+        f"{v['id']}#{i}": [d["catching_check"], *d.get("also_caught_by", [])]
+        for v in VARIANTS
+        for i, d in enumerate(v["defects"])
+        if d["catching_check"] != NONE
+    }
+    assert actual == FIXED_CHECK_ASSIGNMENTS
 
 
 def test_the_catalogue_is_the_51_fixed_checks() -> None:
@@ -222,7 +274,9 @@ def test_existing_validation_says_what_the_manifest_says(variant: dict[str, Any]
         assert rejected_by is None and errors == []
 
 
-def test_most_variants_compile() -> None:
-    """The critic-only group compiles: the compiler cannot see these defects."""
-    compiling = [v for v in VARIANTS if v["existing_validation"]["rejected_by"] in (None, "validate_protocol")]
-    assert len(compiling) >= len(VARIANTS) - 3
+def test_the_compiler_refuses_almost_nothing() -> None:
+    """The compiler (intent model and compile step) refuses at most a few variants: the rest are for the critic."""
+    refused = [
+        v["id"] for v in VARIANTS if v["existing_validation"]["rejected_by"] in ("intent_model", "compile")
+    ]
+    assert len(refused) <= 3, refused
