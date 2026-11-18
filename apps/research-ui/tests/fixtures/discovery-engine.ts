@@ -80,6 +80,15 @@ export interface DiscoveryFakeOptions {
   holdAfterSearch?: boolean;
   /** M3i: a started "finish preparing" job stays running, in the abstracts step (no end). */
   holdPrepare?: boolean;
+  /**
+   * M10b Part D: the answer of `POST /discovery/estimate`, as a body or built from the request body.
+   * Absent: the fake counts `FETCHED`'s reported totals with the engine's arithmetic.
+   */
+  estimate?: Json | ((body: Json | null) => Json);
+  /** M10b Part D: databases whose count fails (the row is `failed` with this code). */
+  estimateFails?: Record<string, string>;
+  /** M10b Part D: the planned maximum stated in `intent.json` (default none: the general limit of 1,000). */
+  plannedMax?: number;
 }
 
 const PROVIDERS = ["openalex", "semanticscholar", "crossref", "arxiv", "pubmed", "biorxiv"] as const;
@@ -471,6 +480,51 @@ export function discoveryEngine(options: DiscoveryFakeOptions = {}) {
     };
   };
 
+  /** M10b Part D: the engine's estimate arithmetic (`scholar_search.estimate.summarize`) over `FETCHED`'s totals. */
+  const estimateOf = (names: string[], whatIf: number | null, pace: number): Json => {
+    const cap = whatIf ?? 500;
+    const limit = options.plannedMax ?? 1000;
+    const fails = options.estimateFails ?? {};
+    const rows: Json[] = names.map((name) => {
+      if (name === "biorxiv") return { name, status: "not_countable", reported_total: null, fetch_estimate: null, fetch_is_upper_bound: false, cap_binds: null, not_fetched: null, error: null, error_code: null, notes: [] };
+      if (fails[name]) return { name, status: "failed", reported_total: null, fetch_estimate: null, fetch_is_upper_bound: false, cap_binds: null, not_fetched: null, error: `[${name}] the count failed`, error_code: fails[name], notes: [] };
+      const total = FETCHED[name].reported;
+      return { name, status: "counted", reported_total: total, fetch_estimate: Math.min(total, cap), fetch_is_upper_bound: name === "arxiv", cap_binds: total > cap, not_fetched: total - Math.min(total, cap), error: null, error_code: null, notes: [] };
+    });
+    for (const name of PROVIDERS) {
+      if (!names.includes(name)) rows.push({ name, status: name === "biorxiv" ? "off_by_default" : "not_selected", reported_total: null, fetch_estimate: null, fetch_is_upper_bound: false, cap_binds: null, not_fetched: null, error: null, error_code: null, notes: [] });
+    }
+    const counted = rows.filter((r) => r.fetch_estimate !== null) as { fetch_estimate: number; fetch_is_upper_bound: boolean; reported_total: number }[];
+    const all = rows.every((r) => r.status === "counted" || r.status === "not_selected" || r.status === "off_by_default");
+    const exact = counted.filter((r) => !r.fetch_is_upper_bound).map((r) => r.fetch_estimate);
+    const sum = (list: number[]) => list.reduce((a, b) => a + b, 0);
+    const low = Math.max(0, ...exact);
+    const high = all ? sum(counted.map((r) => r.fetch_estimate)) : null;
+    const level = low > limit ? "warning" : high === null || high > limit ? "note" : "none";
+    const totals = counted.map((r) => r.reported_total);
+    let best = 0;
+    for (let c = 0; c <= cap; c++) if (sum(totals.map((t) => Math.min(t, c))) <= limit) best = c;
+    const recommendation =
+      level === "none"
+        ? { kind: null, cap: null, expected_works: null, cuts: null }
+        : all && best >= 100
+          ? {
+              kind: "cap", cap: best, cuts: totals.filter((t) => t > best).length,
+              expected_works: { low: Math.max(0, ...counted.filter((r) => !r.fetch_is_upper_bound).map((r) => Math.min(r.reported_total, best))), high: sum(totals.map((t) => Math.min(t, best))) },
+            }
+          : { kind: "narrow", cap: null, expected_works: null, cuts: null };
+    const hours = (works: number | null) => (works === null ? null : Math.round((works * pace) / 360) / 10);
+    return {
+      shape: "discovery.estimate-v1", protocol_fingerprint: fingerprint, counted_at: now(), served_from_cache: false, recall_check: null,
+      cap: { value: cap, source: whatIf === null ? "protocol" : "run_override", ceiling: 10000 },
+      providers: rows,
+      estimate: { counted_all: all, records: { low: sum(exact), high }, works: { low, high }, assumption: "low: every record of a smaller database is a duplicate of the largest; high: no duplicate" },
+      effort: { pace_seconds: pace, hours: { low: hours(low), high: hours(high) } },
+      warn: { level, threshold_works: limit, limit: { value: limit, source: options.plannedMax ? "planned" : "general" } },
+      recommendation,
+    };
+  };
+
   function handle(method: string, path: string, body: Json | null): Answer {
     calls.push({ method, path, body });
     const key = `${method} ${path.split("?")[0]}`;
@@ -603,6 +657,26 @@ export function discoveryEngine(options: DiscoveryFakeOptions = {}) {
         stages: { corpus_snapshot: { status: "NOT_ACCEPTED", reason: "awaiting the hand-off accept" } },
       });
       return { status: 202, body: { job } };
+    }
+    if (method === "POST" && route === "/api/v1/discovery/estimate") {
+      const cap = body?.cap as number | undefined;
+      const pace = body?.pace_seconds as number | undefined;
+      const checked = checkProviders(body?.providers as string[] | null | undefined);
+      const requested = "names" in checked ? checked.names : null;
+      const refused =
+        needProtocol() ??
+        (cap !== undefined && cap !== null && !(cap >= 1 && cap <= 10000) ? refuse(422, "CAP_INVALID", "A cap must be 1 to 10000 records per database.") : null) ??
+        (pace !== undefined && pace !== null && !(Number.isInteger(pace) && pace >= 5 && pace <= 600) ? refuse(422, "PACE_INVALID", "The pace must be a whole number of seconds from 5 to 600.") : null) ??
+        ("refused" in checked ? checked.refused : null) ??
+        (!mailto ? mailtoRefusal : null) ??
+        (!openalexKey && (requested ?? protocolProviders).includes("openalex")
+          ? refuse(409, "OPENALEX_KEY_NOT_SET", "OpenAlex needs an API key. Set SCHOLAR_OPENALEX_KEY for the console (environment or .env) and start it again, or leave OpenAlex out of this run.")
+          : null) ??
+        (accepted ? refuse(409, "CORPUS_ALREADY_ACCEPTED", "The corpus snapshot is accepted; a frozen corpus is never searched again from the browser.") : null) ??
+        busy();
+      if (refused) return refused;
+      if (options.estimate) return { status: 200, body: typeof options.estimate === "function" ? options.estimate(body) : options.estimate };
+      return { status: 200, body: estimateOf(requested ?? protocolProviders, cap ?? null, pace ?? 30) };
     }
     if (method === "POST" && route === "/api/v1/discovery/recall") {
       const seeds = (body?.seeds ?? []) as { id: string; kind: string; source: string }[];

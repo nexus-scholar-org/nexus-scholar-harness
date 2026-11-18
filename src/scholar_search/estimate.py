@@ -105,7 +105,8 @@ def summarize(
 ) -> dict[str, Any]:
     """The estimate of a list of count rows (one per database, in order).
 
-    Per database ``fetch_estimate = min(reported_total, cap)`` and ``cap_binds``.
+    Per database ``fetch_estimate = min(reported_total, cap)``, ``cap_binds`` and
+    ``not_fetched`` (what the cap leaves out).
     Records: high is the sum, low the same sum without an upper-bound count
     (arXiv with a year window). Works: low is the largest exact single
     estimate (every smaller database a duplicate of it), high the sum (no
@@ -120,13 +121,13 @@ def summarize(
         row = {"notes": [], "error": None, "error_code": None, **row}
         status, total = row.get("status"), row.get("reported_total")
         upper = bool(year_window) and row["name"] in UPPER_BOUND_WITH_YEARS
-        row.update(fetch_estimate=None, fetch_is_upper_bound=False, cap_binds=None)
+        row.update(fetch_estimate=None, fetch_is_upper_bound=False, cap_binds=None, not_fetched=None)
         if status in NOT_ASKED:
             out_rows.append(row)
             continue
         if status in COUNTED and isinstance(total, int):
             fetch = min(total, cap)
-            row.update(fetch_estimate=fetch, fetch_is_upper_bound=upper, cap_binds=total > cap)
+            row.update(fetch_estimate=fetch, fetch_is_upper_bound=upper, cap_binds=total > cap, not_fetched=total - fetch)
             every.append(fetch)
             totals.append(total)
             if not upper:

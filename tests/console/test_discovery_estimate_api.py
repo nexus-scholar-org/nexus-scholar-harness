@@ -102,8 +102,8 @@ def _rows(totals: dict[str, int | None], status: str = "counted") -> list[dict]:
 def test_each_database_fetches_at_most_the_cap_and_says_whether_the_cap_binds():
     answer = est.summarize(_rows({"openalex": 700, "crossref": 300}), cap=500, limit=1000, pace_seconds=30, year_window=True)
     oa, cr = answer["providers"]
-    assert (oa["fetch_estimate"], oa["cap_binds"]) == (500, True)
-    assert (cr["fetch_estimate"], cr["cap_binds"]) == (300, False)
+    assert (oa["fetch_estimate"], oa["cap_binds"], oa["not_fetched"]) == (500, True, 200)
+    assert (cr["fetch_estimate"], cr["cap_binds"], cr["not_fetched"]) == (300, False, 0)
 
 
 def test_works_range_is_the_largest_database_to_the_sum():
