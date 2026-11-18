@@ -74,12 +74,6 @@ from scholar_search.engine import SearchEngine
 from scholar_search.export import Exporter
 from scholar_search.importers import JSONImporter
 from scholar_search.models import Document, Query
-from scholar_search.providers import (
-    ArxivProvider,
-    CrossrefProvider,
-    OpenAlexProvider,
-    SemanticScholarProvider,
-)
 from scholar_search.screening import (
     evaluate_heuristic_screening,
     partition_screening_results,
@@ -507,13 +501,8 @@ async def nexus_discover(query: str, limit: int = 10, start_year: int = 2020) ->
     Query academic literature repositories (OpenAlex, Semantic Scholar, Crossref, arXiv).
     Returns the path to the resulting JSON file with real deduplicated results.
     """
-    providers = [
-        OpenAlexProvider(),
-        SemanticScholarProvider(),
-        CrossrefProvider(),
-        ArxivProvider(),
-    ]
-    engine = SearchEngine(providers=providers)
+    # The search kit's one default set (F15, M3h-b-resilience).
+    engine = SearchEngine()
     q = Query(text=query, max_results=limit, year_min=start_year)
     try:
         docs = await engine.search_all(q, dedup=True)

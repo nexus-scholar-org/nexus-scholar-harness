@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 from typing import Any
 
-from .models import Query
+from .models import DEFAULT_DATABASES, Query
 
 
 def compile_protocol_search(
@@ -78,10 +78,7 @@ def compile_protocol_search(
     max_results = method.get("retrieval_cap") if isinstance(method, dict) else None
     cap_source = "protocol" if max_results else "query"
 
-    target_databases = search_strategy.get(
-        "target_databases",
-        ["openalex", "semanticscholar", "crossref", "arxiv"],
-    )
+    target_databases = search_strategy.get("target_databases", list(DEFAULT_DATABASES))
 
     query = Query(
         text=query_text,

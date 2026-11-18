@@ -274,3 +274,23 @@ def test_the_report_does_not_claim_more_records_when_no_total_was_reported():
            "cap_source": "protocol", "cap_hit": True, "status": "ok", "notes": [], "request": {}}
     text = render_search_report({"run": "run_001", "legs": [leg]})
     assert "more may exist" in text and "more records exist" not in text
+
+
+def test_legs_json_records_the_client_and_each_legs_endpoint_auth_and_page_size(tmp_path, monkeypatch):
+    """M3h-b-resilience F16: a run's record names the client that sent it and each leg's channel."""
+    from scholar_search.http_client import package_version
+
+    monkeypatch.setattr(disc, "SearchEngine", _engine_factory({"openalex": ["A"]}, {"openalex": 1}))
+    ws, proto = _workspace(tmp_path)
+    asyncio.run(disc.run_discovery(protocol_path=proto, literature_dir=ws / "literature"))
+
+    manifest = json.loads((ws / "literature" / "search_runs" / "run_001" / "legs.json").read_text(encoding="utf-8"))
+    assert manifest["client"] == {
+        "package": "nexus-scholar",
+        "version": package_version(),
+        "user_agent": f"nexus-scholar/{package_version()}",
+    }
+    assert "tester@example.org" not in json.dumps(manifest)
+    leg = manifest["legs"][0]
+    assert {"endpoint", "auth", "page_size"} <= set(leg)
+    assert leg["auth"] == "none"

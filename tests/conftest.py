@@ -14,6 +14,16 @@ import pytest
 GENESIS_TS = "2026-09-06T12:00:00+00:00"
 
 
+@pytest.fixture(autouse=True)
+def _fresh_provider_budgets():
+    """M3h-b-resilience: the search kit's per-provider budgets are process-wide; no test inherits one."""
+    from scholar_search.http_client import reset_host_budgets
+
+    reset_host_budgets()
+    yield
+    reset_host_budgets()
+
+
 # --- a stale install is one clear failure, not five confusing ones (F10) ---------
 # The version is recorded in provenance, so every test that compares it with
 # pyproject.toml, and the screening API fixtures (their content hashes cover it),

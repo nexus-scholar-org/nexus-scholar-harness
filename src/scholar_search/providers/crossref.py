@@ -4,6 +4,7 @@ from collections.abc import AsyncIterator
 from typing import Any
 
 from ..config import settings
+from ..http_client import crossref_rate
 from ..models import Author, Document, ExternalIds, Query
 from ..query_translator import BooleanQueryTranslator, QueryField
 from .base import BaseAPIProvider
@@ -15,7 +16,10 @@ class CrossrefProvider(BaseAPIProvider):
     PAGE_SIZE = 1000  # Crossref's maximum rows per request
 
     def __init__(self) -> None:
-        super().__init__(name="crossref", rate_limit=settings.rate_limit_crossref)
+        # The client's own limiter allows the single-record rate; list
+        # requests also wait on Crossref's shared list budget (3 per second
+        # polite, 1 public), single lookups on its single-record budget.
+        super().__init__(name="crossref", rate_limit=crossref_rate(single=True))
         self.base_url = "https://api.crossref.org/works"
 
         # Crossref query syntax supports + for AND, - for NOT
@@ -23,6 +27,10 @@ class CrossrefProvider(BaseAPIProvider):
             field_map={QueryField.ANY: ""},
             operator_map={"AND": "+", "OR": "", "NOT": "-"},
         )
+
+    def auth_channel(self) -> str:
+        # The polite pool is joined by the address in the User-Agent.
+        return "mailto" if settings.mailto else "none"
 
     def _normalize_document(
         self, raw: dict[str, Any], query_id: str | None = None

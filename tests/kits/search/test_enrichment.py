@@ -591,14 +591,15 @@ async def test_hydrate_missing_abstracts_unmatched_openalex_work_not_credited(
 
 
 @pytest.mark.asyncio
-async def test_hydrate_from_s2_rejected_key_retries_unauthenticated_then_degrades(
+async def test_hydrate_from_s2_rejected_key_degrades_without_a_keyless_retry(
     hydrator, mock_http_client, monkeypatch
 ):
     """K0 NEGATIVE CASE 4: a rejected S2 key must not be reported as success.
 
-    Path exercised: the keyed request is rejected with HTTP 403 -> exactly one
-    unauthenticated retry -> that retry also fails -> the leg degrades
-    honestly to an empty result (no hydration is claimed).
+    Path exercised: the keyed request is rejected with HTTP 403 -> the batch
+    degrades honestly to an empty result (no hydration is claimed). Since
+    M3h-b-resilience it is never retried keyless, as the search leg since
+    M3h-providers; until then one unauthenticated retry followed.
     """
     from scholar_search.config import settings
     from scholar_search.exceptions import ProviderError
@@ -607,20 +608,14 @@ async def test_hydrate_from_s2_rejected_key_retries_unauthenticated_then_degrade
 
     mock_http_client.post.side_effect = [
         ProviderError("semanticscholar", "forbidden", status_code=403),
-        ProviderError("semanticscholar", "forbidden", status_code=403),
     ]
 
     result = await hydrator._hydrate_from_s2(["10.1234/test"])
 
     assert result == {}
-    assert mock_http_client.post.await_count == 2
-
-    first_call = mock_http_client.post.await_args_list[0]
-    second_call = mock_http_client.post.await_args_list[1]
-    # The keyed attempt carried the key ...
-    assert first_call.kwargs["headers"] == {"x-api-key": "rejected-key"}
-    # ... the single retry did not.
-    assert "headers" not in second_call.kwargs
+    assert mock_http_client.post.await_count == 1
+    # The one attempt carried the key.
+    assert mock_http_client.post.await_args_list[0].kwargs["headers"] == {"x-api-key": "rejected-key"}
 
 
 @pytest.mark.asyncio
