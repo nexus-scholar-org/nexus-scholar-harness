@@ -719,6 +719,25 @@ export const STATES: Record<string, StateEntry> = {
       ar: T("تغيّر البروتوكول بعد هذا البحث", "بحث هذا التشغيل باستعلام أو نطاق سنوات أو لغة أو حد أو قائمة قواعد بيانات لم تعد في البروتوكول. أعد البحث قبل قبول مجموعته. لم يُجمَّد شيء.", "التسليم", "ابحث مجددًا"),
     },
   },
+  // M3i-harvest-robustness: the steps after a search (duplicates, abstracts, checks) did not end.
+  PREPARATION_UNFINISHED: {
+    role: "unclear",
+    action: "harvest",
+    copy: {
+      en: T("The corpus is not prepared yet", "The search finished, but the steps after it (duplicates, abstracts, checks) did not end, so there are no works to accept. Finish preparing the corpus on the Harvest screen; no database is searched again. Nothing was frozen.", "The hand-off", "Open Harvest"),
+      fr: T("Le corpus n'est pas encore préparé", "La recherche est terminée, mais les étapes qui la suivent (doublons, résumés, vérifications) ne se sont pas terminées ; il n'y a donc aucun travail à accepter. Terminez la préparation du corpus dans l'écran de collecte ; aucune base n'est interrogée à nouveau. Rien n'a été figé.", "La remise", "Ouvrir la collecte"),
+      ar: T("المجموعة لم تُحضَّر بعد", "انتهى البحث، لكن الخطوات التي تليه (التكرارات والملخصات والفحوص) لم تنتهِ، فلا توجد أعمال تُقبل. أكمل تحضير المجموعة في شاشة الحصاد؛ لا يُعاد البحث في أي قاعدة بيانات. لم يُجمَّد شيء.", "التسليم", "افتح الحصاد"),
+    },
+  },
+  PREPARATION_NOT_AVAILABLE: {
+    role: "unclear",
+    action: "retry",
+    copy: {
+      en: T("There is nothing to finish for this run", "Its corpus is already prepared, a later run replaced it, its search was not kept, or its saved records cannot be read. The engine's reason is under Details. Nothing was changed.", "Finishing this run", "Check again"),
+      fr: T("Il n'y a rien à terminer pour cette exécution", "Son corpus est déjà préparé, une exécution ultérieure l'a remplacée, sa recherche n'a pas été conservée, ou ses notices enregistrées sont illisibles. La raison du moteur est dans les détails. Rien n'a été modifié.", "La fin de cette exécution", "Vérifier à nouveau"),
+      ar: T("لا يوجد ما يُكمَل لهذا التشغيل", "مجموعته محضَّرة بالفعل، أو حلّ محله تشغيل لاحق، أو لم يُحتفظ ببحثه، أو تتعذر قراءة سجلاته المحفوظة. سبب المحرك في التفاصيل. لم يتغير شيء.", "إكمال هذا التشغيل", "تحقق مجددًا"),
+    },
+  },
   // Review F2 (decision 2026-11-12): a flag on /summary and /queue, not a
   // refusal; Home shows it instead of a queue that starts over.
   PROTOCOL_CHANGED_SINCE_BATCH: {

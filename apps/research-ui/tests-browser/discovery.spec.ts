@@ -105,6 +105,9 @@ test("a choice made on Plan reaches Harvest in the address; the run asks the cho
 
   const post = fake.calls.find((c) => c.method === "POST" && c.path === "/api/v1/discovery/runs");
   expect(post?.body).toEqual({ providers: ["crossref", "arxiv"] });
+  // The heading follows the runs list; the asked list and the legs follow the run detail, read after it.
+  await expect(page.locator("[data-asked]")).toHaveCount(2);
+  await expect(page.locator("[data-leg]")).toHaveCount(2);
   expect(await page.locator("[data-asked]").evaluateAll((items) => items.map((i) => (i as HTMLElement).dataset.asked))).toEqual(["crossref", "arxiv"]);
   expect(await page.locator("[data-leg]").evaluateAll((rows) => rows.map((r) => (r as HTMLElement).dataset.leg))).toEqual(["crossref", "arxiv"]);
   await expect(page.locator('[data-not-asked="openalex"]')).toHaveText("OpenAlex · Not selected for this harvest.");
@@ -218,6 +221,90 @@ test("the hand-off refuses a run from an earlier protocol: PROTOCOL_CHANGED_SINC
   expect(fake.accepted).toBe(false);
 });
 
+// --------------------------------------------------------------------------- M3i-harvest-robustness
+
+test("M3i: the hand-off of an unfinished harvest says so and leads to Finish preparing; no search runs again; the accept follows", async ({ page }) => {
+  // The strict run's state: a published search (records saved), no job in memory, the later steps never ended.
+  const fake = await engine(page, { runs: 1, preparation: "interrupted", legacyRun: true });
+  await page.goto("/en/discovery/handoff/");
+  await expect(page.getByRole("heading", { level: 1, name: "The corpus is not ready to hand off yet." })).toBeVisible();
+  await expect(page.getByText("There is nothing to hand off yet.")).toHaveCount(0);
+  await expect(page.locator("[data-pending-body]")).toHaveText(
+    "The search of run_001 finished, but its corpus was not prepared. The console may have been closed while it ran.",
+  );
+  await expect(page.getByRole("button", { name: "Accept this corpus" })).toHaveCount(0);
+
+  await page.getByRole("link", { name: "Finish preparing this corpus on Harvest" }).click();
+  await expect(page).toHaveURL(/\/en\/discovery\/harvest\/?\?run=run_001/);
+  await expect(page.getByRole("heading", { level: 1, name: "The search finished, but the corpus was not prepared." })).toBeVisible();
+  const card = page.locator('[data-preparation="interrupted"]');
+  await expect(card.locator("[data-no-marker]")).toBeVisible();
+  await expect(page.locator('[data-leg="openalex"]')).toBeVisible();
+
+  await card.getByRole("button", { name: "Finish preparing this corpus" }).click();
+  await expect(page.getByRole("heading", { level: 1, name: "The harvest is finished. The corpus is not frozen yet." })).toBeVisible();
+  await expect(page.locator("[data-preparation]")).toHaveCount(0);
+  const posts = fake.calls.filter((c) => c.method === "POST").map((c) => c.path);
+  expect(posts).toEqual(["/api/v1/discovery/runs/run_001/prepare"]);
+
+  await page.getByRole("link", { name: "Go to the hand-off" }).click();
+  await expect(page.getByRole("heading", { level: 1, name: "Accept this corpus for screening?" })).toBeVisible();
+  await page.getByRole("button", { name: "Accept this corpus" }).click();
+  await expect(page.getByRole("heading", { level: 1, name: "This corpus is accepted." })).toBeVisible();
+  expect(fake.accepted).toBe(true);
+});
+
+test("M3i: a harvest that fails after its search says where, and says it again after a reload", async ({ page }) => {
+  await engine(page, { preparation: "failed" });
+  await page.goto("/en/discovery/harvest/");
+  await page.getByRole("button", { name: "Start the harvest" }).click();
+  await expect(page.getByRole("heading", { level: 1, name: "The search finished, but preparing the corpus failed." })).toBeVisible();
+  await expect(page.locator('[data-refusal="DISCOVERY_FAILED"]')).toHaveCount(0);
+  const card = page.locator('[data-preparation="failed"]');
+  await expect(card).toHaveAttribute("data-preparation-stage", "verification");
+  await expect(card.locator("[data-stage-ended]")).toHaveText(["Duplicates", "Abstracts"]);
+
+  // A reload has no job to read: the state comes from the engine's own record of the run.
+  await page.reload();
+  await expect(page.getByRole("heading", { level: 1, name: "The search finished, but preparing the corpus failed." })).toBeVisible();
+  await expect(page.locator('[data-preparation="failed"]').getByRole("button", { name: "Finish preparing this corpus" })).toBeEnabled();
+  await page.locator('[data-preparation="failed"]').getByText("Details").click();
+  await expect(page.locator("[data-preparation-message]")).toHaveText("RuntimeError: verifier down");
+});
+
+test("M3i: Stop stays after the search and ends the harvest as stopped before the next step", async ({ page }) => {
+  const fake = await engine(page, { holdAfterSearch: true });
+  await page.goto("/en/discovery/harvest/");
+  await page.getByRole("button", { name: "Start the harvest" }).click();
+  await expect(page.getByRole("heading", { level: 1, name: "The corpus is being prepared" })).toBeVisible();
+  await expect(page.locator("[data-stop-late]")).toContainText("A stop now takes effect when the current step ends");
+  await page.getByRole("button", { name: "Stop after the current step" }).click();
+  expect(fake.calls.some((c) => c.method === "POST" && c.path.endsWith("/cancel"))).toBe(true);
+  // The held stream of the fake has no live end: Retry reads the job as the engine left it.
+  await page.getByRole("button", { name: "Retry" }).click();
+  await expect(page.getByRole("heading", { level: 1, name: "You stopped the harvest before the corpus was prepared." })).toBeVisible();
+  await expect(page.locator('[data-preparation="stopped"]').getByText(/You stopped before the step “Checks”/)).toBeVisible();
+
+  await page.goto("/en/discovery/handoff/");
+  await expect(page.locator("[data-pending-body]")).toHaveText("You stopped the harvest of run_001 before the step “Checks”.");
+});
+
+test("M3i: the accept refuses an unfinished harvest with its typed code, and the hand-off offers no accept", async ({ page }) => {
+  const fake = await engine(page, { runs: 1, preparation: "failed", refuseOnce: {} });
+  const answer = fake.handle("POST", "/api/v1/screening/corpus/accept", null);
+  expect(answer.status).toBe(409);
+  expect((answer.body as { detail: { code: string; details: { run: string; state: string; stage: string } } }).detail).toMatchObject({
+    code: "PREPARATION_UNFINISHED", details: { run: "run_001", state: "failed", stage: "verification" },
+  });
+  expect(fake.accepted).toBe(false);
+  await page.goto("/en/discovery/handoff/");
+  await expect(page.getByRole("heading", { level: 1, name: "The corpus is not ready to hand off yet." })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Accept this corpus" })).toHaveCount(0);
+});
+
+const UNFINISHED: DiscoveryFakeOptions = { runs: 1, preparation: "failed" };
+const UNFINISHED_SCREENS = ["harvest/", "handoff/"] as const;
+
 const SCREENS = ["", "plan/", "recall/", "harvest/", "dedup/", "report/", "handoff/", "chase/"] as const;
 const SEEDED: DiscoveryFakeOptions = { runs: 1 };
 
@@ -266,6 +353,34 @@ for (const locale of ["en", "ar"] as const) {
         await expect(page.locator("h1")).toBeVisible();
         await page.waitForLoadState("networkidle");
         expectNoSidewaysScroll(await measureOverflow(page), `${locale}/discovery/${screen} ${name}`);
+      });
+    }
+  }
+}
+
+for (const locale of ["en", "ar"] as const) {
+  for (const screen of UNFINISHED_SCREENS) {
+    test(`M3i ${locale}/discovery/${screen} with an unfinished preparation: axe finds no violation, contrast included`, async ({ page }) => {
+      await engine(page, UNFINISHED);
+      await page.goto(`/${locale}/discovery/${screen}`);
+      await expect(page.locator("h1")).toBeVisible();
+      await expect(page.locator(screen === "harvest/" ? "[data-preparation]" : "[data-pending]")).toBeVisible();
+      await page.waitForLoadState("networkidle");
+      const result = await axe(page);
+      expect(result.violations).toEqual([]);
+      expect(result.passes).toContain("color-contrast");
+    });
+    for (const [name, viewport] of [
+      ["375px", MOBILE_VIEWPORT],
+      ["1440px", DESKTOP_VIEWPORT],
+    ] as const) {
+      test(`M3i ${locale}/discovery/${screen} ${name} with an unfinished preparation: nothing scrolls sideways`, async ({ page }) => {
+        await engine(page, UNFINISHED);
+        await page.setViewportSize(viewport);
+        await page.goto(`/${locale}/discovery/${screen}`);
+        await expect(page.locator(screen === "harvest/" ? "[data-preparation]" : "[data-pending]")).toBeVisible();
+        await page.waitForLoadState("networkidle");
+        expectNoSidewaysScroll(await measureOverflow(page), `${locale}/discovery/${screen} ${name} (unfinished)`);
       });
     }
   }

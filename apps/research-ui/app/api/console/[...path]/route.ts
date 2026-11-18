@@ -79,6 +79,9 @@ const POST_PATHS: ReadonlyArray<RegExp> = [
   // start a job in the console, which refuses MAILTO_NOT_SET, CORPUS_ALREADY_ACCEPTED
   // and a second job before anything starts; cancel keeps the fetched records.
   /^api\/v1\/discovery\/(runs|recall)$/,
+  // M3i-harvest-robustness: finish a harvest's remaining stages (duplicates, abstracts,
+  // verification) from the run's saved records; the console searches nothing again.
+  /^api\/v1\/discovery\/runs\/run_\d{3,}\/prepare$/,
   /^api\/v1\/discovery\/jobs\/[A-Za-z0-9_-]+\/cancel$/,
   // M3g: citation chasing. Start a chase (a job in the console process) and send
   // its new records to screening as the next round; the console checks the

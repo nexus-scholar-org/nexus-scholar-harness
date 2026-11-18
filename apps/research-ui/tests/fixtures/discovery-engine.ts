@@ -65,6 +65,21 @@ export interface DiscoveryFakeOptions {
   protocolProviders?: string[];
   /** M10a: a started run stays running (its stream sends each database's first event and no end). */
   holdRun?: boolean;
+  /**
+   * M3i: how the steps after the search ended for the newest run already in the workspace, and for
+   * every run started (its job then ends `failed` after the search). Default: they ended (`ready`).
+   */
+  preparation?: "failed" | "stopped" | "interrupted";
+  /** M3i: the step it failed in or stopped before (default `verification`); `null` with `legacyRun`. */
+  preparationStage?: "deduplication" | "hydration" | "verification";
+  /** M3i: the newest run was made before the stage marker existed (`marker: false`, no stage). */
+  legacyRun?: boolean;
+  /** M3i: the newest run's saved records are gone (`can_finish: false`). */
+  recordsMissing?: boolean;
+  /** M3i: a started run stays running after its search, in the abstracts step (no end). */
+  holdAfterSearch?: boolean;
+  /** M3i: a started "finish preparing" job stays running, in the abstracts step (no end). */
+  holdPrepare?: boolean;
 }
 
 const PROVIDERS = ["openalex", "semanticscholar", "crossref", "arxiv", "pubmed", "biorxiv"] as const;
@@ -258,14 +273,63 @@ export function discoveryEngine(options: DiscoveryFakeOptions = {}) {
   for (let i = 0; i < (options.runs ?? 0); i++) addRun();
 
   const fetchedTotal = (run: Json) => (run.legs as Json[]).reduce((n, l) => n + Number(l.fetched), 0);
+  const activeJob = () => [...jobs.values()].find((j) => j.job.state === "running")?.job ?? null;
+
+  // M3i: the steps after the search, per run, as the engine reads them from the run's stage marker
+  // (`literature/search_runs/run_NNN/pipeline.json`). A run not listed here ended them (`ready`).
+  type Prep = { state: "failed" | "stopped" | "interrupted" | "none"; stage: string | null; message: string | null; marker: boolean };
+  const prep = new Map<string, Prep>();
+  /** The engine's corpus run: the newest run whose search was kept as the corpus (a stopped search is not). */
+  const corpusRun = (): Json | undefined => runs.find((r) => prep.get(String(r.run))?.state !== "none");
+  const STAGES = ["deduplication", "hydration", "verification"];
+  const stageAt = "2026-11-10T09:30:00+00:00";
+  const unfinishedPrep = (): Prep => ({
+    state: options.preparation ?? "failed",
+    stage: options.legacyRun ? null : (options.preparationStage ?? "verification"),
+    message: (options.preparation ?? "failed") === "failed" ? "RuntimeError: verifier down" : null,
+    marker: !options.legacyRun,
+  });
+  const stagesDone = (stage: string | null, all = false): Json =>
+    Object.fromEntries(
+      STAGES.slice(0, all ? STAGES.length : stage ? STAGES.indexOf(stage) : 0).map((name) => [name, { status: name === "verification" ? "SUCCESS" : "DONE", at: stageAt }]),
+    );
+  /** The run's `preparation`, as `GET /discovery/runs`, `/runs/{run}` and `/handoff` carry it. */
+  const preparationOf = (run: Json): Json => {
+    const view = (state: string, stage: string | null, extra: Json = {}): Json => ({
+      state, stage, stages: stagesDone(stage, state === "ready" || state === "superseded"), ended_at: state === "running" ? null : stageAt,
+      message: null, marker: true, can_finish: false, cannot_finish: null, job_id: null, ...extra,
+    });
+    const stored = prep.get(String(run.run));
+    // A search that was stopped is not the corpus: it has nothing to prepare, and it supersedes nothing.
+    if (stored?.state === "none") return view("none", null, { stages: {}, marker: false });
+    if (run !== corpusRun()) return view("superseded", null);
+    const active = activeJob();
+    if (active && (active.kind === "prepare" || (active.kind === "run" && active.preparing_run === run.run))) {
+      return view("running", "hydration", { job_id: active.job_id });
+    }
+    if (!stored) return view("ready", null);
+    const reason = accepted ? "corpus_accepted" : options.recordsMissing ? "records_missing" : null;
+    return view(stored.state, stored.stage, {
+      message: stored.message, marker: stored.marker, stages: stored.marker ? stagesDone(stored.stage) : {},
+      can_finish: reason === null, cannot_finish: reason,
+    });
+  };
+  /** The corpus run's steps after the search have not ended: its works are not a corpus yet. */
+  const pending = (): Json | null => {
+    const run = corpusRun();
+    if (!run) return null;
+    const view = preparationOf(run);
+    return view.state === "ready" ? null : view;
+  };
+  if (runs.length && (options.preparation || options.legacyRun)) prep.set(String(runs[0].run), unfinishedPrep());
+
   const summaries = () =>
     runs.map((run, index) => ({
       run: run.run, status: run.status, started_at: (run.legs as Json[])[0]?.started_at ?? null,
       finished_at: (run.legs as Json[]).at(-1)?.finished_at ?? null, legs_total: (run.legs as Json[]).length,
       fetched_total: fetchedTotal(run), raw_published: true, cap_override: run.cap_override,
-      requested_providers: run.requested_providers ?? null, stale: index > 0,
+      requested_providers: run.requested_providers ?? null, stale: index > 0, preparation: preparationOf(run),
     }));
-  const activeJob = () => [...jobs.values()].find((j) => j.job.state === "running")?.job ?? null;
   const runsPayload = () => ({ shape: "discovery.runs-v1", runs: summaries(), active_job: activeJob() });
 
   const dedup = () => {
@@ -283,7 +347,8 @@ export function discoveryEngine(options: DiscoveryFakeOptions = {}) {
 
   const corpus = () => {
     const d = dedup();
-    const fromDiscovery = runs.length > 0;
+    // M3i: while the newest run's steps after the search have not ended, no discovery corpus is waiting.
+    const fromDiscovery = !!corpusRun() && (accepted || !pending());
     return {
       shape: "screening.corpus-v1",
       state: accepted ? "ACCEPTED" : fromDiscovery || staged ? "STAGED" : "EMPTY",
@@ -325,7 +390,7 @@ export function discoveryEngine(options: DiscoveryFakeOptions = {}) {
     };
   };
 
-  const startJob = (kind: "run" | "recall" | "chase", events: { event: string; data: unknown }[], result: Json | null, open = false, state = "succeeded", error: Json | null = null): Json => {
+  const startJob = (kind: "run" | "recall" | "chase" | "prepare", events: { event: string; data: unknown }[], result: Json | null, open = false, state = "succeeded", error: Json | null = null): Json => {
     const id = `djob_${String(nextJob++).padStart(16, "0")}`;
     const started = now();
     const running = { job_id: id, kind, state: "running", started_at: started, finished_at: null, result: null, error: null };
@@ -348,14 +413,19 @@ export function discoveryEngine(options: DiscoveryFakeOptions = {}) {
 
   const handoff = () => {
     const d = dedup();
-    const total = d?.unique_works ?? 0;
+    // M3i: an unfinished preparation counts none of verified.json's rows (unless exports are staged or the corpus is frozen).
+    const unfinished = !!pending() && !accepted && !staged;
+    const total = unfinished ? 0 : (d?.unique_works ?? 0);
     return {
-      shape: "discovery.handoff-v1", corpus: corpus(), run: runs[0]?.run ?? null,
-      provider_mix: [
+      shape: "discovery.handoff-v1", corpus: corpus(), run: corpusRun()?.run ?? null,
+      preparation: corpusRun() ? preparationOf(corpusRun()!) : null,
+      provider_mix: unfinished ? [] : [
         { provider: "openalex", records: 402, share: 0.3561 }, { provider: "semanticscholar", records: 371, share: 0.3286 },
         { provider: "crossref", records: 480, share: 0.4252 }, { provider: "pubmed", records: 90, share: 0.0797 }, { provider: "arxiv", records: 55, share: 0.0487 },
       ],
-      abstracts: { with_abstract: total - 84, title_only: 84, share_with_abstract: total ? Math.round(((total - 84) / total) * 10000) / 10000 : 0 },
+      abstracts: unfinished
+        ? { with_abstract: 0, title_only: 0, share_with_abstract: 0 }
+        : { with_abstract: total - 84, title_only: 84, share_with_abstract: total ? Math.round(((total - 84) / total) * 10000) / 10000 : 0 },
       outside_year_window: 6, near_twins_undecided: null,
       lower_bound_databases: capped && runs.length ? [capped] : [], protocol_fingerprint: FINGERPRINT,
       run_protocol_fingerprint: runs.length ? FINGERPRINT : null,
@@ -437,7 +507,7 @@ export function discoveryEngine(options: DiscoveryFakeOptions = {}) {
       const run = runs.find((r) => r.run === runMatch[1]);
       if (!run) return refuse(404, "RUN_NOT_FOUND", `No search run ${runMatch[1]} in this workspace.`);
       if (runMatch[2]) return { status: 200, body: `# Search report ${run.run}\n` };
-      return { status: 200, body: { ...run, report_path: `literature/search_runs/${run.run}/search_report.md`, recall_check: recall ? { check: "check_001", checked_at: recall.checked_at, found: recall.found, total: recall.total, missed_everywhere: recall.missed_everywhere } : null } };
+      return { status: 200, body: { ...run, preparation: preparationOf(run), report_path: `literature/search_runs/${run.run}/search_report.md`, recall_check: recall ? { check: "check_001", checked_at: recall.checked_at, found: recall.found, total: recall.total, missed_everywhere: recall.missed_everywhere } : null } };
     }
     if (method === "POST" && route === "/api/v1/discovery/runs") {
       const cap = body?.cap_override as number | undefined;
@@ -463,13 +533,31 @@ export function discoveryEngine(options: DiscoveryFakeOptions = {}) {
       const run = addRun(cap ?? null, "PENDING_CORPUS_ACCEPT", requested);
       protocolChanged = false;
       const legs = run.legs as Json[];
-      const events = [
+      const searched = [
         ...legs.flatMap((l) => [
           { event: "leg", data: { provider: l.provider, fetched: 1, reported_total: l.reported_total, cap: l.cap, cap_hit: false, status: "running", error_code: null } },
           { event: "leg", data: { provider: l.provider, fetched: l.fetched, reported_total: l.reported_total, cap: l.cap, cap_hit: l.cap_hit, status: l.status, error_code: l.error_code } },
         ]),
-        // The engine's own stage statuses (`pipeline/coordinator.py`: discovery SUCCESS or PARTIAL, deduplication and hydration DONE, verification the outcome status).
         { event: "stage", data: { stage: "discovery", status: options.failedLeg ? "PARTIAL" : "SUCCESS", detail: { count: fetchedTotal(run) } } },
+      ];
+      if (options.holdAfterSearch) {
+        // M3i: the search ended and was published; the job is now adding abstracts and has no end yet.
+        const held = startJob("run", [...searched, { event: "stage", data: { stage: "deduplication", status: "DONE", detail: {} } }], null, true);
+        const entry = jobs.get(String(held.job_id))!;
+        entry.job = { ...entry.job, preparing_run: run.run };
+        return { status: 202, body: { job: held } };
+      }
+      if (options.preparation === "failed") {
+        // M3i: a step after the search raised: the job fails, the run keeps its records and its marker says where.
+        const failure = unfinishedPrep();
+        prep.set(String(run.run), failure);
+        const done = STAGES.slice(0, STAGES.indexOf(failure.stage ?? "deduplication")).map((stage) => ({ event: "stage", data: { stage, status: "DONE", detail: null } }));
+        const job = startJob("run", [...searched, ...done], null, false, "failed", { code: "DISCOVERY_FAILED", message: String(failure.message) });
+        return { status: 202, body: { job } };
+      }
+      const events = [
+        ...searched,
+        // The engine's own stage statuses (`pipeline/coordinator.py`: discovery SUCCESS or PARTIAL, deduplication and hydration DONE, verification the outcome status).
         { event: "stage", data: { stage: "deduplication", status: "DONE", detail: {} } },
         { event: "stage", data: { stage: "hydration", status: "DONE", detail: null } },
         { event: "stage", data: { stage: "verification", status: "SUCCESS", detail: {} } },
@@ -477,6 +565,41 @@ export function discoveryEngine(options: DiscoveryFakeOptions = {}) {
       ];
       const job = startJob("run", events, {
         run: run.run, status: "PENDING_CORPUS_ACCEPT",
+        stages: { corpus_snapshot: { status: "NOT_ACCEPTED", reason: "awaiting the hand-off accept" } },
+      });
+      return { status: 202, body: { job } };
+    }
+    // M3i: finish the steps after a search from the run's saved records; nothing is searched again.
+    const prepareMatch = /^\/api\/v1\/discovery\/runs\/(run_\d{3,})\/prepare$/.exec(route);
+    if (method === "POST" && prepareMatch) {
+      const run = runs.find((r) => r.run === prepareMatch[1]);
+      if (!run) return refuse(404, "RUN_NOT_FOUND", `No search run ${prepareMatch[1]} in this workspace.`);
+      const stored = prep.get(String(run.run));
+      const unavailable = (reason: string, message: string) => refuse(409, "PREPARATION_NOT_AVAILABLE", message, { run: run.run, reason });
+      const refused =
+        needProtocol() ??
+        (accepted ? refuse(409, "CORPUS_ALREADY_ACCEPTED", "The corpus snapshot is accepted; a frozen corpus is never prepared again from the browser.") : null) ??
+        (staged ? refuse(409, "STAGED_IMPORT_PENDING", "Database exports are staged for import; accept or remove them before finishing a harvest.") : null) ??
+        busy() ??
+        (stored?.state === "none" ? unavailable("not_published", `The search of ${run.run} was stopped or failed, so it was not kept as the corpus; search again.`) : null) ??
+        (run !== corpusRun() ? unavailable("superseded", `A later search run is the corpus now; ${run.run} is kept as a record only.`) : null) ??
+        (!stored ? unavailable("already_prepared", `The corpus of ${run.run} is already prepared.`) : null) ??
+        (options.recordsMissing ? unavailable("records_missing", `The saved records of ${run.run} (raw.json) cannot be read; search again.`) : null) ??
+        (!mailto ? mailtoRefusal : null);
+      if (refused) return refused;
+      const from = stored!.stage && stored!.stage !== "deduplication" ? "hydration" : "deduplication";
+      if (options.holdPrepare) {
+        return { status: 202, body: { job: startJob("prepare", from === "deduplication" ? [{ event: "stage", data: { stage: "deduplication", status: "DONE", detail: {} } }] : [], null, true) } };
+      }
+      prep.delete(String(run.run));
+      const events = [
+        ...(from === "deduplication" ? [{ event: "stage", data: { stage: "deduplication", status: "DONE", detail: {} } }] : []),
+        { event: "stage", data: { stage: "hydration", status: "DONE", detail: null } },
+        { event: "stage", data: { stage: "verification", status: "SUCCESS", detail: {} } },
+        { event: "stage", data: { stage: "corpus_snapshot", status: "NOT_ACCEPTED", detail: { reason: "awaiting the hand-off accept" } } },
+      ];
+      const job = startJob("prepare", events, {
+        run: run.run, status: "PENDING_CORPUS_ACCEPT", resumed_from: from,
         stages: { corpus_snapshot: { status: "NOT_ACCEPTED", reason: "awaiting the hand-off accept" } },
       });
       return { status: 202, body: { job } };
@@ -509,10 +632,18 @@ export function discoveryEngine(options: DiscoveryFakeOptions = {}) {
       if (method === "GET" && jobMatch[2] === "/events") return { status: 200, body: sse(entry.events), sse: true };
       if (method === "POST" && jobMatch[2] === "/cancel") {
         if (entry.job.state === "running") {
-          entry.job = { ...entry.job, state: "cancelled", finished_at: now() };
+          // M3i: a stop after the search is read before the next step: the step that is running
+          // (abstracts) ends, the job ends cancelled, and the run's marker says it stopped before verification.
+          const preparing = entry.job.kind === "prepare" || (entry.job.kind === "run" && !!entry.job.preparing_run);
+          const run = preparing ? (entry.job.kind === "prepare" ? corpusRun() : runs.find((r) => r.run === entry.job.preparing_run)) : null;
+          if (run) {
+            entry.events.push({ event: "stage", data: { job_id: entry.job.job_id, stage: "hydration", status: "DONE", detail: null } });
+            prep.set(String(run.run), { state: "stopped", stage: "verification", message: null, marker: true });
+          }
+          entry.job = { ...entry.job, state: "cancelled", finished_at: now(), ...(run ? { result: { run: run.run, status: "CANCELLED" } } : {}) };
           entry.events.push({ event: "failed", data: { job: entry.job } });
           entry.open = false;
-          if (entry.job.kind === "run") addRun(null, "PARTIAL");
+          if (entry.job.kind === "run" && !run) prep.set(String(addRun(null, "PARTIAL").run), { state: "none", stage: null, message: null, marker: false });
           if (entry.job.kind === "chase") addChase(null, true);
         }
         return { status: 200, body: { job: entry.job } };
@@ -533,7 +664,14 @@ export function discoveryEngine(options: DiscoveryFakeOptions = {}) {
     if (method === "GET" && route === "/api/v1/screening/corpus") return { status: 200, body: corpus() };
     if (method === "POST" && route === "/api/v1/screening/corpus/accept") {
       if (accepted) return refuse(409, "CORPUS_ALREADY_ACCEPTED", "the corpus is already accepted");
-      if (!runs.length && !staged) return refuse(409, "NOTHING_STAGED", "add at least one database export first");
+      // M3i: an unfinished preparation is named before "nothing staged", and only when no export is staged.
+      const waiting = staged ? null : pending();
+      if (waiting) {
+        const state = waiting.state === "running" ? "interrupted" : waiting.state;
+        const run = corpusRun()!.run;
+        return refuse(409, "PREPARATION_UNFINISHED", `the corpus of ${run} is not prepared yet (${state}${waiting.stage ? ` at ${waiting.stage}` : ""}); finish preparing it on the Harvest screen, or search again`, { run, state, stage: waiting.stage });
+      }
+      if (!corpusRun() && !staged) return refuse(409, "NOTHING_STAGED", "add at least one database export first");
       if (protocolChanged) return refuse(409, "PROTOCOL_CHANGED_SINCE_RUN", `${runs[0]?.run ?? "the search run"} searched a query or year window the protocol no longer has; run the search again before accepting its corpus`);
       accepted = true;
       return { status: 200, body: corpus() };

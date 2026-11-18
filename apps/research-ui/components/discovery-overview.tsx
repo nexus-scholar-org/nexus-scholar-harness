@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import type { Locale } from "@/i18n";
 import { DecisionBadge } from "@/components/ui/base";
 import { DiscoveryFrame, DiscoveryRefusal, LINK, Loading, discoveryHref, refusalOf, useDiscoveryParams, type DiscoveryStep, type Refusal, type StepMarks } from "@/components/discovery-frame";
-import { getDedup, getPlan, getRecall, getReport, getRuns, type Dedup, type Plan, type RecallCheck, type Report, type Runs } from "@/lib/discovery-api";
+import { getDedup, getPlan, getRecall, getReport, getRuns, preparationUnfinished, type Dedup, type Plan, type RecallCheck, type Report, type Runs } from "@/lib/discovery-api";
 import { getCorpus, type Corpus } from "@/lib/screening-v1";
 import { discoveryT, type DiscoveryCopyKey } from "@/lib/discovery-copy";
 
@@ -71,9 +71,12 @@ export function DiscoveryOverview({ locale }: Readonly<{ locale: Locale }>) {
   }
 
   const { plan, recall, runs, corpus, dedup, report } = reads;
+  // M3i: a search or a "finish preparing" job is running; the steps after a search did not end.
+  const harvestRunning = runs?.active_job?.kind === "run" || runs?.active_job?.kind === "prepare";
+  const harvestUnfinished = corpus?.state !== "ACCEPTED" && !!runs?.runs.some((r) => preparationUnfinished(r.preparation));
   const marks: StepMarks = {
     recall: recall ? (recall.protocol_fingerprint === plan?.protocol_fingerprint ? "done" : "earlier") : "none",
-    harvest: runs?.runs.length ? "done" : "none",
+    harvest: runs?.runs.length && !harvestUnfinished ? "done" : "none",
     import: corpus && corpus.sources.length > 0 && !corpus.from_discovery ? "done" : "none",
     dedup: dedup ? "done" : "none",
     report: report?.methods_text.reviewed ? "done" : "none",
@@ -84,7 +87,13 @@ export function DiscoveryOverview({ locale }: Readonly<{ locale: Locale }>) {
     { step: "recall", key: marks.recall === "done" ? "overview.recall.done" : marks.recall === "earlier" ? "overview.recall.earlier" : "overview.recall.none" },
     {
       step: "harvest",
-      key: runs?.active_job?.kind === "run" ? "overview.harvest.running" : marks.harvest === "done" ? "overview.harvest.done" : "overview.harvest.none",
+      key: harvestRunning
+        ? "overview.harvest.running"
+        : harvestUnfinished
+          ? "overview.harvest.unfinished"
+          : marks.harvest === "done"
+            ? "overview.harvest.done"
+            : "overview.harvest.none",
     },
     { step: "import", key: marks.import === "done" ? "overview.import.done" : "overview.import.none" },
     { step: "dedup", key: marks.dedup === "done" ? "overview.dedup.done" : "overview.dedup.none", values: { run: dedup?.run ?? "" } },
@@ -92,7 +101,7 @@ export function DiscoveryOverview({ locale }: Readonly<{ locale: Locale }>) {
     { step: "handoff", key: marks.handoff === "done" ? "overview.handoff.done" : "overview.handoff.none" },
   ];
   const order: DiscoveryStep[] = ["recall", "harvest", "dedup", "report", "handoff"];
-  const next = runs?.active_job?.kind === "run" ? "harvest" : order.find((s) => marks[s] !== "done") ?? "handoff";
+  const next = harvestRunning || harvestUnfinished ? "harvest" : order.find((s) => marks[s] !== "done") ?? "handoff";
   const stepKey = (s: DiscoveryStep) => `steps.${s}` as DiscoveryCopyKey;
 
   return (

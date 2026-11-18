@@ -51,9 +51,13 @@ from .workspace.audit import append_event
 class AcceptCorpusRefused(Exception):
     """A precondition or the acceptance gate refused; nothing was published."""
 
-    def __init__(self, message: str, code: str = "ACCEPT_CORPUS_REFUSED") -> None:
+    def __init__(
+        self, message: str, code: str = "ACCEPT_CORPUS_REFUSED", details: dict[str, Any] | None = None
+    ) -> None:
         super().__init__(message)
         self.code = code
+        #: Typed facts beside the message (M3i: the unfinished run, its state and stage).
+        self.details = details
 
 
 RIS_DIR = Path("literature") / "raw" / "ris"
@@ -291,6 +295,31 @@ def refuse_if_run_protocol_changed(ws: Path, manifest: dict[str, Any]) -> None:
             "database list the protocol no longer has; run the search again before accepting its corpus",
             "PROTOCOL_CHANGED_SINCE_RUN",
         )
+
+
+def refuse_if_preparation_unfinished(ws: Path) -> None:
+    """Refuse a search run's corpus while the stages after its search have not ended.
+
+    M3i-harvest-robustness: a run is published right after its search, and
+    ``literature/verified.json`` is that run's only once its verification
+    ended (the run's stage marker says so). Until then the file is missing or
+    is an earlier run's, and nothing is frozen: ``PREPARATION_UNFINISHED``,
+    with the run, the state and the stage in ``details``. A run made before
+    the marker existed is not refused when a ``verified.json`` exists (its
+    state is not guessed); without one it is refused as ``interrupted``.
+    """
+    from .pipeline.harvest_marker import pending_preparation
+
+    pending = pending_preparation(ws)
+    if pending is None:
+        return
+    where = f" at {pending['stage']}" if pending.get("stage") else ""
+    raise AcceptCorpusRefused(
+        f"the corpus of {pending['run']} is not prepared yet ({pending['state']}{where}); "
+        "finish preparing it on the Harvest screen, or search again",
+        "PREPARATION_UNFINISHED",
+        {"run": pending["run"], "state": pending["state"], "stage": pending.get("stage")},
+    )
 
 
 def _refuse_if_frozen(ws: Path) -> None:
@@ -648,8 +677,13 @@ def corpus_status(workspace: Path | str) -> dict[str, Any]:
         }
         status["from_discovery"] = not sources
     else:
+        from .pipeline.harvest_marker import pending_preparation
+
         verified = ws / "literature" / "verified.json"
-        status["from_discovery"] = verified.is_file() and not _imported(ws)
+        # M3i-harvest-robustness: while the newest published run's later stages
+        # have not ended, verified.json is an earlier run's (or missing): no
+        # discovery corpus is waiting for the accept.
+        status["from_discovery"] = verified.is_file() and not _imported(ws) and pending_preparation(ws) is None
         if status["from_discovery"]:
             # M3d-engine: a discovery corpus waiting for the hand-off accept is
             # staged, as database exports are (decision 2026-11-10).

@@ -94,7 +94,12 @@ screen, is in [Getting started](getting-started.md):
 - **Discovery** (1.1.0b6): Plan, Recall, Harvest, Import,
   Duplicates, Report, Hand-off. A browser harvest does not freeze the corpus;
   **Accept this corpus** on Hand-off does. It needs `SCHOLAR_MAILTO` and, for
-  OpenAlex, `SCHOLAR_OPENALEX_KEY` (§8).
+  OpenAlex, `SCHOLAR_OPENALEX_KEY` (§8). A harvest is four steps: the search,
+  then duplicates, abstracts and checks; only the last makes the works the
+  Hand-off shows. If those later steps failed, were stopped, or the console
+  was closed while they ran, Harvest and Hand-off say so, and **Finish
+  preparing this corpus** on Harvest completes them from the saved records
+  without searching again (on `main` after 1.1.0b6; not in a tagged release yet).
 - **Screening**: Import, Prepare, Triage, Agent proposals, Agreement, Publish,
   Export and methods.
 
