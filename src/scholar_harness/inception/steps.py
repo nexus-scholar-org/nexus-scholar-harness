@@ -700,7 +700,7 @@ def grounding_preview(draft: Draft, grounding: dict[str, Any]) -> dict[str, Any]
 def _write_draft_records(target: Path, record: dict[str, Any] | None, agent: str) -> None:
     """The draft's proposals and check dismissals, as the workspace's record (M10b).
 
-    The files are the record; the journal rows only index them and are best-effort.
+    The files are the record; the journal rows index them.
     """
     from . import checks, proposals
 
@@ -708,22 +708,20 @@ def _write_draft_records(target: Path, record: dict[str, Any] | None, agent: str
     proposals.write_jsonl(target / proposals.PROPOSALS_FILE, lines)
     dismissals = checks.genesis_lines(record)
     proposals.write_jsonl(target / checks.DISMISSALS_FILE, dismissals)
-    try:
-        from scholar_harness.workspace.audit import append_event
+    # A failed journal write fails genesis (a new folder is then removed), as the journal rule asks.
+    from scholar_harness.workspace.audit import append_event
 
-        tally = proposals.counts(lines)
-        append_event(
-            target, "PROPOSALS_RECORDED",
-            f"{tally['proposed']} suggestions recorded from the draft; {tally['in_protocol']} applied and in the protocol",
-            agent=agent, parameters=tally, outputs=[proposals.PROPOSALS_FILE],
-        )
-        append_event(
-            target, "CHECK_DISMISSALS_RECORDED",
-            f"{len(dismissals)} check dismissals and restores carried from the draft",
-            agent=agent, parameters=checks.dismissal_counts(dismissals), outputs=[checks.DISMISSALS_FILE],
-        )
-    except OSError:
-        pass
+    tally = proposals.counts(lines)
+    append_event(
+        target, "PROPOSALS_RECORDED",
+        f"{tally['proposed']} suggestions recorded from the draft; {tally['in_protocol']} applied and in the protocol",
+        agent=agent, parameters=tally, outputs=[proposals.PROPOSALS_FILE],
+    )
+    append_event(
+        target, "CHECK_DISMISSALS_RECORDED",
+        f"{len(dismissals)} check dismissals and restores carried from the draft",
+        agent=agent, parameters=checks.dismissal_counts(dismissals), outputs=[checks.DISMISSALS_FILE],
+    )
 
 
 def planned_files(*, exists: bool) -> list[str]:

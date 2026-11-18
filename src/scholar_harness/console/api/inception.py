@@ -211,7 +211,7 @@ def save_draft(session_id: str, body: SaveBody, request: Request) -> dict[str, A
 
         def change(record: dict[str, Any]) -> list[dict[str, Any]]:
             # Judged on the stored draft, before this save replaces it (01-proposals, Data out).
-            missed = proposals.record_accepted(record, entries, pool=pool, directions=directions)
+            missed = proposals.record_accepted(record, entries, pool=pool, directions=directions, saved=body.draft)
             record["draft"] = body.draft
             return missed
 
@@ -315,16 +315,18 @@ class CheckRestoreBody(BaseModel):
 
 def _dismissal(request: Request, session_id: str, check_id: str, action: str, **kw: Any) -> dict[str, Any]:
     store = _store(request)
+
+    def append(current: dict[str, Any]) -> tuple:
+        # Judged on the record read inside the lock: a save landing between a read and
+        # this write cannot make a dismissal of the old evidence (review of Part B, finding 3).
+        computed = _compute_checks(request, session_id, current)
+        checks.with_dismissals(computed[0], current.get("check_dismissals") or [])
+        entry = checks.dismissal_entry(computed[0], current.get("check_dismissals") or [], check_id, action, **kw)
+        current["check_dismissals"] = [*(current.get("check_dismissals") or []), entry]
+        return computed
+
     try:
-        record = store.load(session_id)
-        items, waiting, partial, _made = _compute_checks(request, session_id, record)
-        checks.with_dismissals(items, record.get("check_dismissals") or [])
-        entry = checks.dismissal_entry(items, record.get("check_dismissals") or [], check_id, action, **kw)
-
-        def append(current: dict[str, Any]) -> None:
-            current["check_dismissals"] = [*(current.get("check_dismissals") or []), entry]
-
-        record, _ = store.transact(session_id, append, answer=False)
+        record, (items, waiting, partial, _made) = store.transact(session_id, append, answer=False)
     except (DraftRefused, steps.StepRefused, checks.CheckRefused) as exc:
         raise _error(exc) from exc
     for item in items:

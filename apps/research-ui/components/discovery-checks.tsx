@@ -61,7 +61,7 @@ export function EarlierChecksLine({ locale, origin }: Readonly<{ locale: Locale;
   }, [origin, version]);
   const byStep = all?.by_step;
   if (!byStep) return null;
-  const earlier = DISCOVERY_STEPS.filter((s) => s !== "handoff").map((s) => ({ step: s, n: (byStep[s]?.blocker ?? 0) + (byStep[s]?.warning ?? 0) + (byStep[s]?.note ?? 0) }));
+  const earlier = DISCOVERY_STEPS.filter((s) => s !== "handoff").map((s) => ({ step: s, n: (byStep[s]?.blocker ?? 0) + (byStep[s]?.warning ?? 0) }));
   const total = earlier.reduce((sum, e) => sum + e.n, 0);
   const first = earlier.find((e) => e.n > 0);
   if (!total || !first) return null;

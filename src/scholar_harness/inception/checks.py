@@ -445,12 +445,12 @@ def inception_checks(
     else:
         legs = [leg for leg in pool.get("legs") or [] if isinstance(leg, dict)]
         docs = [d for d in pool.get("docs") or [] if isinstance(d, dict)]
-        run("EXPLORE_DATABASE_EMPTY", lambda: _explore_empty(legs))
-        run("EXPLORE_DATABASE_FAILED", lambda: _explore_failed(legs))
-        run("EXPLORE_SAMPLE_ONE_SOURCE", lambda: _one_source(docs, legs))
+        run("EXPLORE_DATABASE_EMPTY", lambda: _explore_empty(legs, _pool_ev(pool)))
+        run("EXPLORE_DATABASE_FAILED", lambda: _explore_failed(legs, _pool_ev(pool)))
+        run("EXPLORE_SAMPLE_ONE_SOURCE", lambda: _one_source(docs, legs, _pool_ev(pool)))
         run("EXPLORE_POOL_THIN", lambda: [
             check("EXPLORE_POOL_THIN", "warning", params={"n": len(docs), "floor": POOL_THIN_FLOOR},
-                  evidence=[{"kind": "count", "name": "papers", "value": len(docs), "unit": "papers"}],
+                  evidence=[{"kind": "count", "name": "papers", "value": len(docs), "unit": "papers"}, _pool_ev(pool)],
                   threshold={"name": "POOL_THIN_FLOOR", "value": POOL_THIN_FLOOR, "default": POOL_THIN_FLOOR, "unit": "papers"},
                   action=_step("scope"))
         ] if len(docs) < POOL_THIN_FLOOR else [])
@@ -460,8 +460,12 @@ def inception_checks(
                 "databases": [str(leg.get("provider")) for leg in legs if leg.get("status") == "failed"],
             })
     # EXPLORE_SAMPLE_MOSTLY_LEFT_OUT reads the sample curation of Part C (02-explore "Sample curation").
+    from .grounding import scope_of
+
     run("EXPLORE_SCOPE_CHANGED", lambda: [
-        check("EXPLORE_SCOPE_CHANGED", "warning", evidence=[{"kind": "name", "name": "changed", "value": list(scope_changes)}],
+        check("EXPLORE_SCOPE_CHANGED", "warning",
+              evidence=[{"kind": "name", "name": "changed", "value": list(scope_changes)},
+                        {"kind": "name", "name": "draft_scope", "value": scope_of(draft)}, _pool_ev(pool)],
               action=_step("explore"))
     ] if scope_changes else [])
 
@@ -555,31 +559,38 @@ def inception_checks(
     return items, waiting, partial, proposals
 
 
-def _explore_empty(legs: list[dict[str, Any]]) -> list[dict[str, Any]]:
+def _pool_ev(pool: dict[str, Any] | None) -> dict[str, Any]:
+    """The pool a check was computed on: a new search makes a new digest, so its dismissals reopen."""
+    from scholar_harness.recon.session import pool_fingerprint
+
+    return {"kind": "name", "name": "pool", "value": pool_fingerprint(pool) if pool else None}
+
+
+def _explore_empty(legs: list[dict[str, Any]], pool_ev: dict[str, Any]) -> list[dict[str, Any]]:
     if not any((leg.get("fetched") or 0) > 0 for leg in legs):
         return []
     return [
         check("EXPLORE_DATABASE_EMPTY", "warning", subject=str(leg.get("provider")),
               params={"database": str(leg.get("provider"))},
-              evidence=[{"kind": "count", "name": str(leg.get("provider")), "value": 0, "unit": "records"}],
+              evidence=[{"kind": "count", "name": str(leg.get("provider")), "value": 0, "unit": "records"}, pool_ev],
               threshold={"name": "fetched", "value": 0, "default": 0, "unit": "records"},
               action=_field("scope", "topic"))
         for leg in legs if leg.get("status") != "failed" and (leg.get("fetched") or 0) == 0
     ]
 
 
-def _explore_failed(legs: list[dict[str, Any]]) -> list[dict[str, Any]]:
+def _explore_failed(legs: list[dict[str, Any]], pool_ev: dict[str, Any]) -> list[dict[str, Any]]:
     return [
         check("EXPLORE_DATABASE_FAILED", "warning", subject=str(leg.get("provider")),
               params={"database": str(leg.get("provider")), "code": str(leg.get("error_code") or "")},
               evidence=[{"kind": "name", "name": "error_code", "value": leg.get("error_code")},
-                        {"kind": "name", "name": "key_set", "value": leg.get("key_set")}],
+                        {"kind": "name", "name": "key_set", "value": leg.get("key_set")}, pool_ev],
               action=_step("explore"))
         for leg in legs if leg.get("status") == "failed"
     ]
 
 
-def _one_source(docs: list[dict[str, Any]], legs: list[dict[str, Any]]) -> list[dict[str, Any]]:
+def _one_source(docs: list[dict[str, Any]], legs: list[dict[str, Any]], pool_ev: dict[str, Any]) -> list[dict[str, Any]]:
     if len(legs) < 2 or len(docs) < ONE_SOURCE_MIN_DOCS:
         return []
     tally: dict[str, int] = {}
@@ -593,7 +604,7 @@ def _one_source(docs: list[dict[str, Any]], legs: list[dict[str, Any]]) -> list[
         "EXPLORE_SAMPLE_ONE_SOURCE", "warning",
         params={"share": f"{round(share * 100)}%", "n": len(docs), "database": database},
         evidence=[{"kind": "share", "name": database, "value": round(share, 4)},
-                  {"kind": "count", "name": "papers", "value": len(docs), "unit": "papers"}],
+                  {"kind": "count", "name": "papers", "value": len(docs), "unit": "papers"}, pool_ev],
         threshold={"name": "ONE_SOURCE_SHARE", "value": ONE_SOURCE_SHARE, "default": ONE_SOURCE_SHARE, "unit": "share"},
         action=_step("explore"),
     )]
@@ -606,7 +617,9 @@ def _own_ungrounded(grounding: dict[str, Any] | None) -> list[dict[str, Any]]:
     n = int(direction.get("observed_in") or 0)
     return [check(
         "DIRECTION_OWN_UNGROUNDED", "warning", params={"n": n},
-        evidence=[{"kind": "count", "name": "observed_in", "value": n, "unit": "papers"}],
+        evidence=[{"kind": "count", "name": "observed_in", "value": n, "unit": "papers"},
+                  {"kind": "words", "name": "direction", "value": direction.get("label")},
+                  {"kind": "name", "name": "pool", "value": ((grounding or {}).get("pool") or {}).get("fingerprint")}],
         threshold={"name": "OWN_DIRECTION_MIN_ANCHORS", "value": OWN_DIRECTION_MIN_ANCHORS,
                    "default": OWN_DIRECTION_MIN_ANCHORS, "unit": "papers"},
         action=_step("direction"),
@@ -640,7 +653,8 @@ def _not_anchored(draft: steps.Draft, pool: dict[str, Any]) -> list[dict[str, An
         check("CONCEPT_NOT_ANCHORED", "warning", subject=row["concept"],
               params={"concept": row["concept"], "n": n_docs},
               evidence=[{"kind": "count", "name": "anchored_in", "value": 0, "unit": "papers"},
-                        {"kind": "count", "name": "papers", "value": n_docs, "unit": "papers"}],
+                        {"kind": "count", "name": "papers", "value": n_docs, "unit": "papers"},
+                        {"kind": "words", "name": "terms", "value": [t["term"] for t in row["terms"]]}, _pool_ev(pool)],
               action=_field("criteria", "concepts"))
         for row in concept_report(pool, rows, "draft") if row["anchored_in"] == 0
     ]

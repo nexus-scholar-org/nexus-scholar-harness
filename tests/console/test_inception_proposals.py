@@ -369,6 +369,26 @@ def test_wizard_criterion_and_matrix_column_are_recorded_with_the_save(env):
     assert sorted(p["source"] for p in _record(root, sid)["proposals"]) == ["engine:matrix_column", "engine:wizard_criterion"]
 
 
+def test_an_entry_the_saved_draft_does_not_hold_is_not_recorded(env):
+    """Review of Part B, finding 1: whether a suggestion was accepted is the engine's call, on the saved draft.
+    A wizard criterion sent as dropped, with an accepted_from entry for it, is not recorded."""
+    client, root = env
+    record = _create(client, uav_draft(proof="field-validated accuracy"))
+    sid = record["session_id"]
+    wizard = next(c for c in client.post(f"{BASE}/steps/criteria", json={"draft": record["draft"]}).json()["criteria"] if c["generated"])
+    entry = {"mechanism": "wizard_criterion", "field": "criteria_decisions", "value": wizard["id"]}
+    dropped = {**record["draft"], "criteria_decisions": {wizard["id"]: False}}
+    saved = client.put(f"{BASE}/drafts/{sid}", json={"draft": dropped, "base_updated_at": record["updated_at"], "accepted_from": [entry]})
+    assert saved.status_code == 200, saved.text
+    assert saved.json()["not_recorded"] == [entry]
+    assert not _record(root, sid).get("proposals")
+    column = client.post(f"{BASE}/steps/matrix", json={"draft": record["draft"]}).json()["columns"][0]["name"]
+    unticked = client.put(f"{BASE}/drafts/{sid}", json={
+        "draft": dropped, "accepted_from": [{"mechanism": "matrix_column", "field": "matrix_columns", "value": column}],
+    })
+    assert unticked.json()["not_recorded"] == [{"mechanism": "matrix_column", "field": "matrix_columns", "value": column}]
+
+
 def test_an_unknown_mechanism_is_body_invalid(env):
     client, _root = env
     record = _create(client)

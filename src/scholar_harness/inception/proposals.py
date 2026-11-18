@@ -392,15 +392,26 @@ def engine_record(draft_id: str, mechanism: str, field: str, value: Any, base_ha
     }
 
 
+def holds(draft: dict[str, Any], mechanism: str, field: str, value: Any) -> bool:
+    """Does the saved draft hold the accepted value (review of Part B, finding 1)?"""
+    if mechanism == "wizard_criterion":
+        return (draft.get("criteria_decisions") or {}).get(value) is True
+    current = target_value(draft, field)
+    return isinstance(current, list) and any(_same(x, value, field) for x in current)
+
+
 def record_accepted(
     record: dict[str, Any], entries: list[dict[str, Any]], *,
     pool: dict[str, Any] | None = None, directions: list[dict[str, Any]] | None = None,
+    saved: dict[str, Any] | None = None,
 ) -> list[dict[str, Any]]:
     """Write one decided entry per offered value into ``record``; answer the ones not recorded.
 
     Called before the save replaces ``record["draft"]``: what was offered is
     judged on the stored draft, the one the screen read (a mechanism stops
-    offering a value once it is accepted, ``recon/vocabulary.py``).
+    offering a value once it is accepted, ``recon/vocabulary.py``); that it
+    was accepted is judged on ``saved``, the draft this save writes: an entry
+    the saved draft does not hold (a criterion sent as dropped) is not recorded.
     """
     not_recorded = []
     raw = record.get("draft") or {}
@@ -413,6 +424,7 @@ def record_accepted(
         if (
             mechanism == "direction"  # chosen by the bind, which writes its own record
             or stored is None
+            or (saved is not None and not holds(saved, mechanism, field, value))
             or not offered(mechanism, field, value, stored, pool=pool, directions=directions)
         ):
             not_recorded.append({"mechanism": mechanism, "field": field, "value": value})

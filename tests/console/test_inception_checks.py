@@ -204,12 +204,18 @@ def test_criteria_reasons_uniform(env):
         assert "CRITERIA_REASONS_UNIFORM" not in _ids(_checks(client, _create(client, draft)["session_id"], "criteria"))
 
 
+def _drop_wizard(draft: dict) -> dict:
+    """Every wizard-written criterion dropped, so the draft's only blocker is the missing side."""
+    items = steps.criteria_with_decisions(steps.parse_draft(draft))
+    return {**draft, "criteria_decisions": {i["id"]: False for i in items if i["generated"]}}
+
+
 BLOCKER_DRAFTS = {
     "SCOPE_TOPIC_MISSING": uav_draft(topic=""),
     "SHAPE_REQUIRED_MISSING": uav_draft(unit_of_analysis=""),
     "CONCEPTS_NONE": uav_draft(concepts=[]),
     "CRITERIA_UNDECIDED": uav_draft(proof="field-validated accuracy"),
-    "CRITERIA_SIDE_MISSING": uav_draft(extra_exclusions=[]),
+    "CRITERIA_SIDE_MISSING": _drop_wizard(uav_draft(extra_exclusions=[])),
     "REVIEW_PROJECT_MISSING": uav_draft(lead_researcher=""),
     "REVIEW_TITLE_NOT_A_FOLDER": uav_draft(title="!!!"),
 }
@@ -244,8 +250,8 @@ def test_blockers_name_existing_refusals(env, check_id):
     assert row["level"] == "blocker" and not row["dismissible"] and body["ready"] is False
     with pytest.raises(steps.StepRefused) as exc:
         steps.preview(draft, workspaces_root=root)
-    blocker_refusals = {c["refusal"] for c in body["checks"] if c["level"] == "blocker"}
-    assert row["refusal"] in blocker_refusals and exc.value.code in blocker_refusals
+    assert [c["check_id"] for c in body["checks"] if c["level"] == "blocker"] == [check_id]  # one blocker per draft
+    assert row["refusal"] == exc.value.code
 
 
 def test_the_target_checks_name_the_genesis_refusal_and_the_gate(env):
@@ -406,6 +412,57 @@ def test_dismissal_reopens_when_evidence_changes(env):
     reopened = _one(_checks(client, sid, "direction"), "DIRECTION_SEEDS_FEW")
     assert reopened["status"] == "open" and reopened["dismissal"] is None
     assert reopened["previously_dismissed"]["at"]
+
+
+def _dismiss_row(client, sid: str, row: dict) -> None:
+    done = _dismiss(client, sid, row["check_id"], subject=row["subject"], evidence_digest=row["evidence_digest"], reason="seen")
+    assert done.status_code == 200, done.text
+
+
+def test_a_scope_dismissal_reopens_when_the_question_changes_again(env):
+    """Review of Part B, finding 2: the digest holds the scope, not only the names of the changed parts."""
+    client, app, _root = env
+    sid = _probed(client, app, {"openalex": 25})
+    record = client.get(f"{BASE}/drafts/{sid}").json()
+    client.put(f"{BASE}/drafts/{sid}", json={"draft": {**record["draft"], "topic": "Weed detection from drones"}})
+    _dismiss_row(client, sid, _one(_checks(client, sid, "explore"), "EXPLORE_SCOPE_CHANGED"))
+    record = client.get(f"{BASE}/drafts/{sid}").json()
+    client.put(f"{BASE}/drafts/{sid}", json={"draft": {**record["draft"], "topic": "Weed detection from satellites"}})
+    row = _one(_checks(client, sid, "explore"), "EXPLORE_SCOPE_CHANGED")
+    assert row["status"] == "open" and row["previously_dismissed"]
+
+
+def test_a_concept_dismissal_reopens_when_its_terms_change(env):
+    client, app, _root = env
+    draft = uav_draft(concepts=[{"concept": "weed detection"}, {"concept": "hyperspectral"}])
+    sid = _probed(client, app, {"openalex": 25}, draft=draft)
+    _dismiss_row(client, sid, _one(_checks(client, sid, "criteria"), "CONCEPT_NOT_ANCHORED", "hyperspectral"))
+    record = client.get(f"{BASE}/drafts/{sid}").json()
+    concepts = [{"concept": "weed detection"}, {"concept": "hyperspectral", "synonyms": ["HSI"]}]
+    client.put(f"{BASE}/drafts/{sid}", json={"draft": {**record["draft"], "concepts": concepts}})
+    row = _one(_checks(client, sid, "criteria"), "CONCEPT_NOT_ANCHORED", "hyperspectral")
+    assert row["status"] == "open" and row["previously_dismissed"]
+
+
+def test_an_own_direction_dismissal_reopens_for_another_direction(env):
+    client, app, _root = env
+    sid = _probed(client, app, {"openalex": 25})
+    bound = client.post(f"{BASE}/drafts/{sid}/recon/bind", json={"own": "quantum sorting of seeds"})
+    assert bound.status_code == 200, bound.text
+    _dismiss_row(client, sid, _one(_checks(client, sid, "direction"), "DIRECTION_OWN_UNGROUNDED"))
+    client.post(f"{BASE}/drafts/{sid}/recon/bind", json={"own": "robotic laser weeding"})
+    row = _one(_checks(client, sid, "direction"), "DIRECTION_OWN_UNGROUNDED")
+    assert row["status"] == "open" and row["previously_dismissed"]
+
+
+def test_a_pool_dismissal_reopens_after_a_new_search(env):
+    client, app, _root = env
+    sid = _probed(client, app, {"openalex": 25, "crossref": 0})
+    _dismiss_row(client, sid, _one(_checks(client, sid, "explore"), "EXPLORE_DATABASE_EMPTY", "crossref"))
+    app.state.recon_search_fn = PoolSeam({"openalex": 20, "crossref": 0})
+    _probe(client, sid, databases=["openalex", "crossref"], refresh=True)
+    row = _one(_checks(client, sid, "explore"), "EXPLORE_DATABASE_EMPTY", "crossref")
+    assert row["status"] == "open" and row["previously_dismissed"]
 
 
 def test_restore(env):
