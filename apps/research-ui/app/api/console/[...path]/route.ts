@@ -74,6 +74,11 @@ const POST_PATHS: ReadonlyArray<RegExp> = [
   // M10b (09-start-from-protocol): start a draft from a protocol; mark an imported step opened.
   /^api\/v1\/inception\/drafts\/import$/,
   /^api\/v1\/inception\/drafts\/[A-Za-z0-9_-]+\/origin\/checked$/,
+  // M10b: proposal decisions and the checks (the checks POST records the proposals it recommends).
+  /^api\/v1\/inception\/drafts\/[A-Za-z0-9_-]+\/proposals\/prop_[0-9a-f]+\/(apply|apply-edited|reject|restore)$/,
+  /^api\/v1\/inception\/drafts\/[A-Za-z0-9_-]+\/checks$/,
+  /^api\/v1\/inception\/drafts\/[A-Za-z0-9_-]+\/checks\/[A-Z][A-Z0-9_]+\/(dismiss|restore)$/,
+  /^api\/v1\/discovery\/checks\/[A-Z][A-Z0-9_]+\/(dismiss|restore)$/,
   // M4c: recon over HTTP (Explore, Direction). Probe and delta start a job; the
   // console refuses MAILTO_NOT_SET before any request. Distill and bind write
   // only under the recon cache and the draft record.

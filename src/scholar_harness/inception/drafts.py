@@ -108,6 +108,40 @@ class DraftStore:
             record[key] = change(record.get(key))
             return self._write(record)
 
+    def transact(
+        self,
+        session_id: str,
+        change: Callable[[dict[str, Any]], Any],
+        *,
+        answer: bool,
+        base_updated_at: str | None = None,
+    ) -> tuple[dict[str, Any], Any]:
+        """One write of the record under the draft's lock (M10b, ``01-proposals``).
+
+        ``change(record)`` edits the record in place and returns what the route
+        answers. An *answer* write (it changes ``draft`` or what the answers rest
+        on) checks ``base_updated_at`` (``DRAFT_CONFLICT``) and sets a new
+        ``updated_at``; a *side* write does neither, so another tab's next save
+        is not refused. Both refuse ``DRAFT_EMITTED``. A ``change`` that raises
+        writes nothing.
+        """
+        with _lock_for(self._path(session_id)):
+            record = self.load(session_id)
+            if answer and base_updated_at is not None and base_updated_at != record["updated_at"]:
+                raise DraftRefused(
+                    "DRAFT_CONFLICT", "the draft changed since it was read; reload it",
+                    details={"updated_at": record["updated_at"]},
+                )
+            if record.get("emitted"):
+                raise DraftRefused(
+                    "DRAFT_EMITTED", "this draft already created a workspace", details={"emitted": record["emitted"]},
+                )
+            result = change(record)
+            if answer:
+                record["updated_at"] = _now()
+            self._write(record)
+            return record, result
+
     def load(self, session_id: str) -> dict[str, Any]:
         path = self._path(session_id)
         try:
@@ -135,15 +169,26 @@ class DraftStore:
         record["updated_at"] = _now()
         return self._write(record)
 
-    def bind_grounding(self, session_id: str, grounding: dict[str, Any], base_updated_at: str | None = None) -> dict[str, Any]:
+    def bind_grounding(
+        self,
+        session_id: str,
+        grounding: dict[str, Any],
+        base_updated_at: str | None = None,
+        *,
+        record_change: Callable[[dict[str, Any]], None] | None = None,
+    ) -> dict[str, Any]:
         """Write the grounded evidence of a chosen direction beside the draft (M4c).
 
         Only the recon bind route calls this; a ``save`` of the draft keeps it.
+        ``record_change`` adds to the same write (M10b: the ``engine:direction`` record).
         """
         with _lock_for(self._path(session_id)):
-            return self._bind(session_id, grounding, base_updated_at)
+            return self._bind(session_id, grounding, base_updated_at, record_change)
 
-    def _bind(self, session_id: str, grounding: dict[str, Any], base_updated_at: str | None) -> dict[str, Any]:
+    def _bind(
+        self, session_id: str, grounding: dict[str, Any], base_updated_at: str | None,
+        record_change: Callable[[dict[str, Any]], None] | None = None,
+    ) -> dict[str, Any]:
         record = self.load(session_id)
         if base_updated_at is not None and base_updated_at != record["updated_at"]:
             raise DraftRefused(
@@ -153,6 +198,8 @@ class DraftStore:
         if record.get("emitted"):
             raise DraftRefused("DRAFT_EMITTED", "this draft already created a workspace", details={"emitted": record["emitted"]})
         record["grounding"] = grounding
+        if record_change is not None:
+            record_change(record)
         record["updated_at"] = _now()
         return self._write(record)
 

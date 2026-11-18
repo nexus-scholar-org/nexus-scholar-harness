@@ -493,6 +493,25 @@ def seeds(session_id: str, request: Request) -> dict[str, Any]:
     }
 
 
+def _record_direction(grounding: dict[str, Any]):
+    """The ``engine:direction`` record of a proposed direction the researcher chose (M10b, R1).
+
+    Written in the bind's own write; the researcher's own words and a skip are
+    not engine suggestions and leave no record.
+    """
+    from scholar_harness.inception import proposals
+
+    label = (grounding.get("direction") or {}).get("label")
+    if grounding.get("choice") != "pool" or not label:
+        return None
+
+    def change(record: dict[str, Any]) -> None:
+        base = proposals.value_hash(None)
+        proposals.add_open(record, proposals.engine_record(record["session_id"], "direction", "grounding", label, base))
+
+    return change
+
+
 @router.post("/bind")
 def bind(session_id: str, body: BindBody, request: Request) -> dict[str, Any]:
     try:
@@ -501,6 +520,8 @@ def bind(session_id: str, body: BindBody, request: Request) -> dict[str, Any]:
             _sessions(request), session_id, direction=body.direction, own=body.own,
             accept_thin_pool=body.accept_thin_pool, scope=scope_of(draft), skip=body.skip,
         )
-        return _store(request).bind_grounding(session_id, grounding, base_updated_at=body.base_updated_at)
+        return _store(request).bind_grounding(
+            session_id, grounding, base_updated_at=body.base_updated_at, record_change=_record_direction(grounding),
+        )
     except (ReconRefused, DraftRefused, steps.StepRefused) as exc:
         raise _error(exc) from exc

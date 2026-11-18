@@ -118,6 +118,23 @@ IMPORT_SOURCE_TOO_LARGE = "IMPORT_SOURCE_TOO_LARGE"
 IMPORT_NOT_A_PROTOCOL = "IMPORT_NOT_A_PROTOCOL"
 IMPORT_PROTOCOL_VERSION_UNSUPPORTED = "IMPORT_PROTOCOL_VERSION_UNSUPPORTED"
 IMPORT_SOURCE_CHANGED = "IMPORT_SOURCE_CHANGED"
+#: M10b (``01-proposals``): no proposal with that id on the draft (404); the
+#: target changed since it was proposed (409); not open (apply, reject) or not
+#: rejected (restore), or an ``add`` already present (409); not a draft field or
+#: an ``op`` the field does not take (422); a source other than ``check:``/``import:`` (422).
+PROPOSAL_NOT_FOUND = "PROPOSAL_NOT_FOUND"
+PROPOSAL_STALE = "PROPOSAL_STALE"
+PROPOSAL_NOT_OPEN = "PROPOSAL_NOT_OPEN"
+PROPOSAL_TARGET_UNSUPPORTED = "PROPOSAL_TARGET_UNSUPPORTED"
+PROPOSAL_SOURCE_REFUSED = "PROPOSAL_SOURCE_REFUSED"
+#: M10b (``02-checks``): no such check or instance now (404); a blocker or a gate
+#: warning (409); a warning without a reason, or a reason over the limit (422);
+#: the evidence changed since the page read it (409); restore of one not dismissed (409).
+CHECK_NOT_FOUND = "CHECK_NOT_FOUND"
+CHECK_NOT_DISMISSIBLE = "CHECK_NOT_DISMISSIBLE"
+CHECK_REASON_REQUIRED = "CHECK_REASON_REQUIRED"
+CHECK_CHANGED = "CHECK_CHANGED"
+CHECK_NOT_DISMISSED = "CHECK_NOT_DISMISSED"
 
 # --- recon over HTTP (M4c, `console/api/recon.py`) ----------------------------
 #: Raised as ``ReconRefused`` (``recon/session.py``, ``inception/grounding.py``).
@@ -287,6 +304,16 @@ CONTRACT_ADDED = frozenset(
         IMPORT_NOT_A_PROTOCOL,
         IMPORT_PROTOCOL_VERSION_UNSUPPORTED,
         IMPORT_SOURCE_CHANGED,
+        PROPOSAL_NOT_FOUND,
+        PROPOSAL_STALE,
+        PROPOSAL_NOT_OPEN,
+        PROPOSAL_TARGET_UNSUPPORTED,
+        PROPOSAL_SOURCE_REFUSED,
+        CHECK_NOT_FOUND,
+        CHECK_NOT_DISMISSIBLE,
+        CHECK_REASON_REQUIRED,
+        CHECK_CHANGED,
+        CHECK_NOT_DISMISSED,
         MAILTO_NOT_SET,
         RECON_SESSION_INVALID,
         RECON_SESSION_NOT_FOUND,

@@ -1293,3 +1293,72 @@ def accept_chase(body: ChaseAcceptBody, request: Request) -> dict[str, Any]:
         "archived": accepted.archived,
         "archive_path": accepted.round_path,
     }
+
+
+# --------------------------------------------------------------------------- checks (M10b)
+
+
+def _discovery_checks(request: Request, step: str | None, run: str | None) -> dict[str, Any]:
+    from scholar_harness.inception import checks as C
+
+    from .. import discovery_checks as DC
+
+    if step is not None and step not in C.DISCOVERY_STEPS:
+        raise _http(Refused(404, refusals.STEP_UNKNOWN, f"unknown step {step!r}", details={"steps": list(C.DISCOVERY_STEPS)}))
+    if run is not None and not RUN_NAME.fullmatch(run):
+        raise _http(Refused(404, refusals.RUN_NOT_FOUND, f"No search run {run} in this workspace."))
+    try:
+        items, waiting, partial, scope = DC.compute(request, run)
+    except Refused as exc:
+        raise _http(exc) from exc
+    C.with_dismissals(items, DC.dismissals(_ws(request)))
+    return C.respond(items, steps_order=C.DISCOVERY_STEPS, step=step, scope=scope, waiting=waiting, partial=partial)
+
+
+@router.get("/checks")
+def discovery_checks(request: Request, step: str | None = None, run: str | None = None) -> dict[str, Any]:
+    """The discovery checks of the open workspace (02-checks); a pure read."""
+    return _discovery_checks(request, step, run)
+
+
+class CheckDismissBody(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    subject: str = Field(default="", max_length=2_000)
+    evidence_digest: str = Field(max_length=100)
+    reason: str | None = Field(default=None, max_length=4_000)
+
+
+class CheckRestoreBody(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    subject: str = Field(default="", max_length=2_000)
+
+
+def _decide_check(request: Request, check_id: str, action: str, **kw: Any) -> dict[str, Any]:
+    from scholar_harness.inception import checks as C
+
+    from .. import discovery_checks as DC
+
+    ws = _ws(request)
+    try:
+        items, _waiting, _partial, scope = DC.compute(request)
+    except Refused as exc:
+        raise _http(exc) from exc
+    record = DC.dismissals(ws)
+    C.with_dismissals(items, record)
+    try:
+        entry = C.dismissal_entry(items, record, check_id, action, **kw)
+    except C.CheckRefused as exc:
+        raise _http(Refused(exc.status, exc.code, exc.message, details=exc.details)) from exc
+    DC.append_dismissal(ws, entry, run=scope.get("run"), agent=AGENT)
+    return _discovery_checks(request, C.CATALOGUE.get(check_id), None)
+
+
+@router.post("/checks/{check_id}/dismiss")
+def dismiss_discovery_check(check_id: str, body: CheckDismissBody, request: Request) -> dict[str, Any]:
+    return _decide_check(request, check_id, "dismissed", subject=body.subject, evidence_digest=body.evidence_digest,
+                         reason=body.reason)
+
+
+@router.post("/checks/{check_id}/restore")
+def restore_discovery_check(check_id: str, body: CheckRestoreBody, request: Request) -> dict[str, Any]:
+    return _decide_check(request, check_id, "restored", subject=body.subject)
