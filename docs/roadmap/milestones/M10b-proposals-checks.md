@@ -199,5 +199,11 @@ hydration and verification in that order (`pipeline/coordinator.py:595, 677, 696
 ## Evidence
 | Stage | Commit | Command | Result | Duration |
 | :-- | :-- | :-- | :-- | :-- |
+| spec check | `3919a287` | `generate_contract_baseline.py --check`; `git diff --check` | current; clean (documentation only) | seconds |
+| inner (A1–A5) | `c36d9680` | the 5 new `tests/inception/*` files; on `origin/main`'s four source files | 36 passed on the branch; 29 failed, 7 passed on `origin/main` (fails-before) | 23 s |
+| inner (A6) | working tree before `fd9af0da` | `pytest tests/console tests/inception -m "not slow" -n auto`; `test_inception_import.py`, `test_console_refusals.py`, `test_browser_access.py`; vitest `inception-answers`, `inception-import`, `inception-copy`, `i18n-*` | 669 passed, 1 skipped; 39 passed; 15, 8, 39 passed | about 5 min |
+| checkpoint | `fd9af0da` + test fixes in `b07bc6c7` | `select_test_gate.py --changed origin/main --stage checkpoint` (console, authority, inception, recon, cli init, protocol kit; typecheck; `npm test`) | first run: 3 failures, all from Part A (the init test pins `project.json` keys; a disclosure without the focus ring; an older Criteria test adding an exclusion with no reason); fixed in `b07bc6c7` and re-run green (19 and 10 tests) | 239 s Python, 93 s UI |
+| browser (inception) | `b07bc6c7`, `e381f63b` | `playwright test tests-browser/inception.spec.ts tests-browser/hygiene.spec.ts` | first run 156 passed, 6 failed (the new import scenario's URL pattern; the file input's accessible name); fixed in `e381f63b`, the 16 affected tests then passed | 7.8 min, 46 s |
+| **pr** | **`e381f63b`** | `git diff --check origin/main...HEAD`; `generate_contract_baseline.py --check`; `ruff check scripts/`; `ruff check src/ --select F821,F811,F823,F632,F7,B023,B006,E9`; `pytest -q -n auto`; `typecheck`; `npm test`; `build`; `test:browser` | clean; current; clean; clean; **5,121 passed, 15 skipped, 0 failed**; clean; **658 passed (46 files)**; built; **507 passed, 13 skipped** (Playwright rewrote 10 tracked screenshots of screens Part A does not touch; restored) | 1,050 s in all (pytest 423 s, vitest 78 s, browser 529 s) |
 
 ## Deferred
