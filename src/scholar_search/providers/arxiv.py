@@ -3,10 +3,14 @@
 import re
 import xml.etree.ElementTree as ET
 from collections.abc import AsyncIterator
+from dataclasses import replace
 
 from ..models import Author, Document, ExternalIds, Query
-from ..query_translator import BooleanQueryTranslator, QueryField
+from ..query_translator import BooleanQueryTranslator, QueryField, QueryParser
 from .base import BaseAPIProvider
+
+# A word as QueryParser reads one: up to a space or a bracket.
+_WORD = re.compile(r"[^\s()]+")
 
 
 class ArxivProvider(BaseAPIProvider):
@@ -37,6 +41,8 @@ class ArxivProvider(BaseAPIProvider):
                 QueryField.AUTHOR: "au",
             },
             operator_map={"AND": "AND", "OR": "OR", "NOT": "ANDNOT"},
+            # arXiv has no default operator; spaces alone act as OR.
+            implicit_operator="AND",
         )
 
         # Domain-neutral compaction knobs. arXiv's Lucene layer does NO
@@ -141,8 +147,69 @@ class ArxivProvider(BaseAPIProvider):
         doc.mark_retrieved()
         return doc
 
+    @staticmethod
+    def _scan(text: str) -> list[tuple[str, str]]:
+        """Split ``text`` into ``(kind, piece)`` the way :class:`QueryParser` reads it.
+
+        Kinds: ``space``, ``paren``, ``field``, ``phrase``, ``operator``, ``word``.
+        The pieces join back to ``text``. Operators are matched case-insensitively,
+        a phrase only where the parser starts one (an unclosed quote is part of a
+        word), and a bracket ends a word, as in the parser.
+        """
+        pieces: list[tuple[str, str]] = []
+        pos = 0
+        while pos < len(text):
+            if text[pos].isspace():
+                end = pos
+                while end < len(text) and text[end].isspace():
+                    end += 1
+                pieces.append(("space", text[pos:end]))
+                pos = end
+                continue
+            if text[pos] in "()":
+                pieces.append(("paren", text[pos]))
+                pos += 1
+                continue
+            rest = text[pos:]
+            for kind, pattern in (
+                ("field", QueryParser.FIELD_PATTERN),
+                ("phrase", QueryParser.PHRASE_PATTERN),
+                ("operator", QueryParser.OPERATOR_PATTERN),
+                ("word", _WORD),
+            ):
+                match = pattern.match(rest)
+                if match:
+                    pieces.append((kind, match.group(0)))
+                    pos += match.end()
+                    break
+            else:  # unreachable: a word matches any other character
+                pieces.append(("word", rest))
+                break
+        return pieces
+
+    def _read_typed_andnot(self, text: str) -> str:
+        """Read a typed ANDNOT (arXiv's own operator) as NOT.
+
+        Only a word the parser reads as ANDNOT on its own changes, whatever
+        stands next to it (a space, a bracket, the start or the end); a phrase
+        or a longer word is left as written, and so is a word after a field
+        prefix, spaces aside: ``ti:ANDNOT`` is a title term.
+        """
+        out: list[str] = []
+        before = ""  # the kind of the nearest non-space piece so far
+        for kind, piece in self._scan(text):
+            if kind == "word" and piece.upper() == "ANDNOT" and before != "field":
+                piece = "NOT"
+            out.append(piece)
+            if kind != "space":
+                before = kind
+        return "".join(out)
+
     def translate(self, query: Query) -> tuple[str, dict, list[str]]:
         notes: list[str] = []
+        # Without this the parser keeps ANDNOT as a word and the implicit AND
+        # makes it a required term.
+        query = replace(query, text=self._read_typed_andnot(query.text))
         translated_query = self.translator.translate(query)
         # arXiv's negation is the single operator ANDNOT; "a AND NOT b"
         # translates to "a AND ANDNOT b", which arXiv cannot parse. Only that
@@ -164,31 +231,41 @@ class ArxivProvider(BaseAPIProvider):
         # was an inert no-op (arXiv ran the full multi-phrase query). Domain
         # stoplists/stem families arrive ONLY via constructor config from the
         # research layer; the kit default carries neither.
-        has_not = bool(re.search(r"\bNOT\b", query.text))
-        if len(translated_query) > 300 and " AND " in query.text and has_not:
+        # The gates and the clause split read operators as the parser does:
+        # in any case ("and not" is a negation too), never inside a phrase.
+        pieces = self._scan(query.text)
+        operators = {piece.upper() for kind, piece in pieces if kind == "operator"}
+        has_and = "AND" in operators
+        has_not = "NOT" in operators
+        if len(translated_query) > 300 and has_and and has_not:
             # Compaction reads clauses as bags of tokens, so a NOT term would
             # become a required one (SRCH-12). Send the full query instead.
             notes.append(
                 "arXiv query not compacted: it contains NOT, which compaction cannot keep; "
                 "the full translation was sent"
             )
-        elif len(translated_query) > 300 and " AND " in query.text:
-            import re as _re
-
+        elif len(translated_query) > 300 and has_and:
             original_translation = translated_query
             dropped_phrases: list[str] = []
             compact_clauses = []
-            for clause in query.text.split(" AND "):
-                phrases = _re.findall(r'"([^"]*)"', clause)
-                bare = _re.sub(r'"[^"]*"', " ", clause)
+            clauses: list[list[tuple[str, str]]] = [[]]
+            for kind, piece in pieces:
+                if kind == "operator" and piece.upper() == "AND":
+                    clauses.append([])
+                else:
+                    clauses[-1].append((kind, piece))
+            # Known limit: terms within one clause are ORed, not ANDed.
+            for clause in clauses:
+                phrases = [piece[1:-1] for kind, piece in clause if kind == "phrase"]
+                bare = " ".join(piece for kind, piece in clause if kind != "phrase")
                 tokens = []
                 for p in phrases:
-                    p_toks = _re.findall(r"[a-zA-Z0-9_-]{2,}", p)
+                    p_toks = re.findall(r"[a-zA-Z0-9_-]{2,}", p)
                     if len(p_toks) == 1:
                         tokens.append(p_toks[0])
                     elif p not in dropped_phrases:
                         dropped_phrases.append(p)
-                tokens.extend(_re.findall(r"[a-zA-Z0-9_-]{3,}", bare))
+                tokens.extend(re.findall(r"[a-zA-Z0-9_-]{3,}", bare))
                 seen = set()
                 deduped = []
                 for t in tokens:
@@ -220,7 +297,7 @@ class ArxivProvider(BaseAPIProvider):
                 note = (
                     f"arXiv query compacted from {len(original_translation)} characters to "
                     f"{len(translated_query)}: multi-word phrases dropped, at most 6 single "
-                    "tokens kept per clause"
+                    "tokens kept per clause and joined with OR"
                 )
                 if dropped_phrases:
                     note += "; dropped phrases: " + ", ".join(f'"{p}"' for p in dropped_phrases)

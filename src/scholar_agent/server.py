@@ -1798,6 +1798,12 @@ def recon_probe(
     ``created_at`` and the pool fingerprint. An empty or partial pool is never
     cached (INC-09); ``refresh=True`` probes again. Without ``SCHOLAR_MAILTO``
     the tool answers ``code: MAILTO_NOT_SET`` and sends no request.
+
+    M10a: a topic sentence is searched as its keyword query (adapter 1.2
+    ``keyword_query``: stopwords and question words dropped, at most six
+    words, the rule the console and the CLI wizard use); a topic with a double
+    quote or a standalone uppercase AND/OR/NOT is sent as written. The session
+    keeps ``topic``; each leg's ``executed_query`` is what that database received.
     """
     _ensure_harness_recon_loaded()
     if _recon_adapter is None:
@@ -1808,10 +1814,20 @@ def recon_probe(
                 "cache_key": None,
             }
         )
+    if not callable(getattr(_recon_adapter, "keyword_query", None)):
+        return json.dumps(
+            {
+                "status": "error",
+                "message": "harness recon adapter has no keyword_query (adapter 1.2 or later is needed)",
+                "cache_key": None,
+            }
+        )
     try:
+        # M10a OBS-1: a topic sentence is sent as its keyword query; the session keeps the topic.
+        query = _recon_adapter.keyword_query(topic)
         result = asyncio.run(
             _sessions().probe(
-                topic,
+                query,
                 session_id=session_id,
                 topic=topic,
                 year_min=start_year,

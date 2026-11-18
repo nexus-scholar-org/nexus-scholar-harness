@@ -201,6 +201,59 @@ test("a failed search names each database, and the next search brings the pool (
   await expect(page.getByRole("heading", { name: "Pool · 14 papers" })).toBeVisible();
 });
 
+test("the researcher unticks a database, moves another, edits the query, and each database shows the query it received (M10a)", async ({ page }) => {
+  const fake = await engine(page, { draft: decided() });
+  await page.goto(`/en/inception/explore/?draft=${SESSION}`);
+  const field = page.getByRole("textbox", { name: "Query sent to the databases" });
+  await expect(field).toHaveValue("on-device weed detection");
+  await page.getByRole("checkbox", { name: "Ask Semantic Scholar" }).uncheck();
+  const down = page.getByRole("button", { name: "Move OpenAlex down" });
+  await down.focus();
+  await page.keyboard.press("Enter");
+  await expect(down).toBeFocused();
+  await expect(page.locator("[data-picker-status]")).toHaveText("OpenAlex moved to position 2 of 3");
+  await field.fill("weed camera");
+  await page.getByRole("button", { name: "Search the literature" }).click();
+  await expect(page.getByRole("heading", { name: "Pool · 14 papers" })).toBeVisible();
+
+  const probes = fake.calls.filter((c) => c.method === "POST" && c.path === `${RECON}/probe`);
+  expect(probes.map((c) => c.body)).toEqual([{ refresh: false, semantic: false, databases: ["crossref", "openalex", "arxiv"], query: "weed camera" }]);
+  // The topic sentence is not changed by the query.
+  expect((fake.drafts.get(SESSION)!.draft as { topic: string }).topic).toBe("on-device weed detection");
+  const legs = page.locator("[data-databases] [data-leg]");
+  await expect(legs).toHaveCount(3);
+  await expect(page.locator("[data-databases] [data-leg='crossref'] [data-executed-query]")).toHaveText("weed camera");
+  await expect(page.locator("[data-databases] [data-leg='openalex'] [data-executed-query]")).toHaveText("weed camera");
+  await expect(page.locator("[data-databases] [data-leg='arxiv'] [data-executed-query]")).toHaveText("all:weed AND all:camera");
+  // A reload shows the last choice.
+  await page.reload();
+  await expect(page.getByRole("textbox", { name: "Query sent to the databases" })).toHaveValue("weed camera");
+  await expect(page.locator("[data-picker-row][data-selected='true']")).toHaveCount(3);
+  await expect(page.locator("[data-picker-row]").first()).toHaveAttribute("data-picker-row", "crossref");
+});
+
+for (const locale of ["en", "ar"] as const) {
+  test(`${locale}/inception/explore/ before the first search: the picker passes axe, and reads ${locale === "ar" ? "right to left" : "left to right"} (M10a)`, async ({ page }) => {
+    await engine(page, { draft: decided() });
+    await page.goto(`/${locale}/inception/explore/?draft=${SESSION}`);
+    const row = page.locator("[data-picker-row='crossref']");
+    await expect(row).toBeVisible();
+    await page.waitForLoadState("networkidle");
+    // Checkbox at the inline start, move buttons at the inline end.
+    const box = (await row.locator("input[type=checkbox]").boundingBox())!;
+    const up = (await row.locator("[data-move='up']").boundingBox())!;
+    if (locale === "ar") expect(up.x).toBeLessThan(box.x);
+    else expect(up.x).toBeGreaterThan(box.x);
+    // Up and down are vertical: never mirrored.
+    const transforms = await page.locator("[data-picker] svg").evaluateAll((svgs) => svgs.map((s) => getComputedStyle(s).transform));
+    expect(transforms.every((t) => t === "none")).toBe(true);
+    await expect(page.locator("#explore-query")).toHaveAttribute("dir", "ltr");
+    const result = await axe(page);
+    expect(result.violations).toEqual([]);
+    expect(result.passes).toContain("color-contrast");
+  });
+}
+
 test("a page opened during a running search re-attaches to it (M4d)", async ({ page }) => {
   const fake = await engine(page, { draft: decided(), recon: { holdStream: true } });
   fake.handle("POST", `${RECON}/probe`, { refresh: false, semantic: false });

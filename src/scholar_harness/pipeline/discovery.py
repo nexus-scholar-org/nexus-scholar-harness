@@ -79,6 +79,7 @@ from pathlib import Path
 from typing import Any
 
 from scholar_search.engine import SearchEngine
+from scholar_search.plan import run_providers
 from scholar_search.protocol_adapter import compile_protocol_search
 from scholar_search.providers import (
     ArxivProvider,
@@ -415,7 +416,10 @@ async def run_discovery(
         query.max_results = max_search_results
         query.cap_source = "run_override"
 
-    engine = SearchEngine(providers=_resolve_providers(providers or protocol_providers))
+    # M10a: without a list asked for, the protocol's list as ``run_providers``
+    # reads it (the plan's ``protocol_providers``): unknown names dropped, a
+    # repeat searched once, no known name the engine's default suite.
+    engine = SearchEngine(providers=_resolve_providers(providers or run_providers(protocol_providers)))
     probe = _ProviderProbe()
     observed_providers = _observe_providers(engine, probe)
     # Only what was asked is passed, so engine doubles with the older signature still run.
@@ -504,6 +508,7 @@ async def run_discovery(
         corpus_published=published,
         protocol_fingerprint=protocol_fingerprint,
         protocol_search=protocol_search,
+        requested_providers=_requested_names(providers),
     )
 
     outcome = DiscoveryOutcome(
@@ -537,6 +542,13 @@ async def run_discovery(
 
 
 SEARCH_RUNS_DIR = "search_runs"
+
+
+def _requested_names(providers: list[Any] | None) -> list[str] | None:
+    """The databases a run was asked for, in order; ``None`` when it used the protocol's list."""
+    if not providers:
+        return None
+    return [p if isinstance(p, str) else str(getattr(p, "name", type(p).__name__)) for p in providers]
 
 
 # --------------------------------------------------------------------------- protocol drift (review F3)
@@ -622,6 +634,7 @@ def _archive_search_run(
     corpus_published: bool | None = None,
     protocol_fingerprint: str | None = None,
     protocol_search: dict[str, Any] | None = None,
+    requested_providers: list[str] | None = None,
 ) -> tuple[str, list[str]]:
     """Write this run's legs (and raw records) to ``search_runs/run_NNN/``.
 
@@ -644,6 +657,16 @@ def _archive_search_run(
     if payload is not None:
         (run_dir / "raw.json").write_text(payload, encoding="utf-8")
         files.append(str(run_dir / "raw.json"))
+    published = payload is not None if corpus_published is None else corpus_published
+    if published:
+        # M3i-harvest-robustness: a run published as the corpus has its stage
+        # marker before its ``legs.json`` (the file that makes it a run), so no
+        # published run of this version is ever without one. A process that
+        # dies right after reads as interrupted, never as a run made before
+        # the marker existed.
+        from . import harvest_marker
+
+        harvest_marker.start(run_dir)
     manifest = {
         "run": run_dir.name,
         "status": status,
@@ -664,6 +687,9 @@ def _archive_search_run(
         # hand-off can say it changed before the accept.
         "protocol_fingerprint": protocol_fingerprint,
         "protocol_search": protocol_search,
+        # M10a: the databases asked for, in order (``None``: the protocol's
+        # list). A run record only; the drift and accept gates never read it.
+        "requested_providers": list(requested_providers) if requested_providers else None,
         "legs": legs,
     }
     (run_dir / "legs.json").write_text(

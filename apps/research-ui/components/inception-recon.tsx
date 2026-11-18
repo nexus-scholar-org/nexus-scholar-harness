@@ -169,6 +169,9 @@ export function LegsList({ locale, legs }: Readonly<{ locale: Locale; legs: Reco
     <ul className="mt-3 space-y-3" data-legs>
       {legs.map((leg) => {
         const failed = leg.status === "failed";
+        // "0 results" only when the database answered, nothing was fetched and it
+        // reported no papers (0 or no total); a reported total keeps "answered" (spec 02, M10a).
+        const none = leg.status === "ok" && !leg.fetched && !leg.reported_total;
         const special = refusedLine(locale, leg);
         const total = leg.reported_total == null ? null : leg.cap_hit ? t("explore.legs.atLeast", { n: String(leg.reported_total) }) : String(leg.reported_total);
         return (
@@ -180,6 +183,8 @@ export function LegsList({ locale, legs }: Readonly<{ locale: Locale; legs: Reco
               <dd>
                 {failed ? (
                   <DecisionBadge role="blocked">{t("explore.legs.failed")}</DecisionBadge>
+                ) : none ? (
+                  <DecisionBadge role="unclear">{t("explore.legs.zero")}</DecisionBadge>
                 ) : leg.status === "ok" ? (
                   <DecisionBadge role="include">{t("explore.legs.ok")}</DecisionBadge>
                 ) : (
@@ -191,6 +196,14 @@ export function LegsList({ locale, legs }: Readonly<{ locale: Locale; legs: Reco
                   <dt className="text-ink-muted">{t("explore.legs.col.fetched")}</dt>
                   <dd className="text-ink" data-fetched>
                     {total == null ? String(leg.fetched ?? 0) : t("explore.legs.fetchedOf", { fetched: String(leg.fetched ?? 0), total })}
+                  </dd>
+                </>
+              ) : null}
+              {leg.executed_query ? (
+                <>
+                  <dt className="text-ink-muted">{t("explore.legs.col.query")}</dt>
+                  <dd className="min-w-0" data-executed-query>
+                    <DataCell>{leg.executed_query}</DataCell>
                   </dd>
                 </>
               ) : null}
@@ -297,7 +310,18 @@ export function RefreshWarning({
   date,
   onGo,
   onKeep,
-}: Readonly<{ locale: Locale; direction: string; date: string; onGo: () => void; onKeep: () => void }>) {
+  goDisabled = false,
+  goDescribedBy,
+}: Readonly<{
+  locale: Locale;
+  direction: string;
+  date: string;
+  onGo: () => void;
+  onKeep: () => void;
+  /** The caller's own check (Explore: a database ticked, the query not too long); the reason is named by id. */
+  goDisabled?: boolean;
+  goDescribedBy?: string;
+}>) {
   const t = inceptionT(locale);
   const keep = useRef<HTMLButtonElement>(null);
   useEffect(() => keep.current?.focus(), []);
@@ -327,7 +351,7 @@ export function RefreshWarning({
           <Button ref={keep} onClick={onKeep}>
             {t("explore.refreshWarn.keep")}
           </Button>
-          <Button onClick={onGo} data-warn-go>
+          <Button onClick={onGo} disabled={goDisabled} aria-describedby={goDisabled ? goDescribedBy : undefined} data-warn-go>
             {t("explore.refreshWarn.go")}
           </Button>
         </div>

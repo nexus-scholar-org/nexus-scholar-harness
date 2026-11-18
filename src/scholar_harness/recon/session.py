@@ -40,7 +40,16 @@ from scholar_search.config import settings
 from scholar_search.engine import MailtoNotSet
 
 from .distiller import distill_pool
-from .engine import KEY_SETTINGS, POOL_COMPLETE, POOL_EMPTY, POOL_MAX, ProgressFn, ReconEngine, SearchFn
+from .engine import (
+    DEFAULT_PROVIDERS,
+    KEY_SETTINGS,
+    POOL_COMPLETE,
+    POOL_EMPTY,
+    POOL_MAX,
+    ProgressFn,
+    ReconEngine,
+    SearchFn,
+)
 from .gates import compute_pool_sufficiency, compute_topic_purity
 
 SESSION_ID_RE = re.compile(r"^rec_[0-9a-f]{6,64}$")
@@ -146,8 +155,9 @@ def _legs_summary(legs: list[dict[str, Any]]) -> list[dict[str, Any]]:
 
     ``key_set`` is ``True``/``False`` for a database that takes a key and
     ``None`` for one that does not, as it was when the probe ran.
+    ``executed_query`` is the query the database received (M10a), ``None`` when not recorded.
     """
-    keep = ("provider", "status", "reported_total", "fetched", "cap", "cap_hit", "error", "error_code")
+    keep = ("provider", "status", "executed_query", "reported_total", "fetched", "cap", "cap_hit", "error", "error_code")
     out = []
     for leg in legs:
         row = {k: leg.get(k) for k in keep}
@@ -259,10 +269,11 @@ class ReconSessions:
         """
         sid = session_id or new_session_id()
         self.session_root(sid)  # validate before any request
+        asked = list(DEFAULT_PROVIDERS) if providers is None else list(providers)
         try:
             pool, _cache_file, cached = await self.engine.probe_pool(
                 query,
-                providers=providers,
+                providers=asked,
                 year_min=year_min,
                 year_max=year_max,
                 max_results=max_results,
@@ -271,6 +282,21 @@ class ReconSessions:
                 progress=progress,
                 languages=languages,
             )
+            if cached and pool.get("query") != query:
+                # The cache key casefolds and collapses whitespace, but Semantic Scholar
+                # and arXiv read AND/OR/NOT only in capitals: a query that differs in
+                # letter case is another search (M10a review round 2, item 2).
+                pool, _cache_file, cached = await self.engine.probe_pool(
+                    query,
+                    providers=asked,
+                    year_min=year_min,
+                    year_max=year_max,
+                    max_results=max_results,
+                    semantic=semantic,
+                    refresh=True,
+                    progress=progress,
+                    languages=languages,
+                )
         except MailtoNotSet as exc:
             raise ReconRefused(
                 MAILTO_NOT_SET,
@@ -285,6 +311,7 @@ class ReconSessions:
         record = {
             "purpose": purpose,
             "query": query,
+            "providers": asked,  # M10a: the databases asked, in order
             "pool_path": str(artifact),
             "fingerprint": pool_fingerprint(pool),
             "created_at": pool.get("created_at"),
@@ -316,6 +343,10 @@ class ReconSessions:
         """The session, its latest probe and how many narrower searches are left."""
         session = self.load(session_id)
         probes = session.get("probes") or []
+        for probe in probes:  # a probe recorded before M10a reads back with these keys as null
+            probe.setdefault("providers", None)
+            for leg in probe.get("legs") or []:
+                leg.setdefault("executed_query", None)
         narrowed = sum(1 for p in probes if p.get("purpose") == "narrower")
         return {
             "session_id": session_id,
@@ -387,16 +418,27 @@ class ReconSessions:
         year_min: int = 2000,
         year_max: int | None = None,
     ) -> dict[str, Any]:
-        """The gap check: up to three follow-up probes for thin schools, merged into the pool."""
+        """The gap check: up to three follow-up probes for thin schools, merged into the pool.
+
+        The follow-ups (if any) ask the databases of the pool they extend
+        (:func:`pool_providers`), as the narrower search does: its recorded
+        ``providers``, or for a pool stored before M10a, which names none, those
+        of the latest probe that recorded them and found records, else the four
+        defaults. The delta record and the merged pool name exactly that list
+        (a pre-M10a pool gains it), with or without follow-ups. A later probe
+        that found nothing left the pool as it was, so its databases never count.
+        """
         from .adaptive import execute_followups
 
         session = self.load(session_id)
         pool, _path = self.latest_pool(session_id)
         distilled = distill_pool(pool)
         budget = max(0, min(int(followups), DELTA_BUDGET))
+        asked = pool_providers(pool, session)
         try:
             result = await execute_followups(
-                pool, distilled, self.engine, max_followups=budget, year_min=year_min, year_max=year_max
+                pool, distilled, self.engine, max_followups=budget, providers=asked,
+                year_min=year_min, year_max=year_max,
             )
         except MailtoNotSet as exc:
             raise ReconRefused(
@@ -427,6 +469,10 @@ class ReconSessions:
                     "followups": [{k: fp.get(k) for k in ("query", "status", "created_at", "cache_key")} for fp in followup_pools],
                 },
             }
+        if not pool.get("providers"):
+            # A pool stored before M10a names no databases: the merged pool names
+            # those asked, so the record, the merged pool and distill agree.
+            merged_pool = {**merged_pool, "providers": asked}
         pool_file = self.persist(session_id, "pool", merged_pool)
         terms_file = self.persist(session_id, "distilled", merged_terms)
         merged_keys: list[str] = []
@@ -436,11 +482,14 @@ class ReconSessions:
         for key in merged_keys:
             if key not in session["cache_keys"]:
                 session["cache_keys"].append(key)
-        if str(pool_file) not in session["pools"]:
-            session["pools"].append(str(pool_file))
+        if str(pool_file) in session["pools"]:  # the same pool again: make it the latest
+            session["pools"].remove(str(pool_file))
+        session["pools"].append(str(pool_file))
         session["probes"].append({
             "purpose": "delta",
             "query": None,
+            # The databases of the pool, which the follow-ups (if any) asked, in order.
+            "providers": asked,
             "pool_path": str(pool_file),
             "fingerprint": pool_fingerprint(merged_pool),
             "created_at": merged_pool.get("created_at"),
@@ -476,6 +525,30 @@ class ReconSessions:
         }
 
 
+def pool_providers(pool: dict[str, Any], session: dict[str, Any]) -> list[str]:
+    """The databases a narrower search or the gap check asks: those of the pool it narrows or extends.
+
+    A pool stored before M10a names none; then those of the latest probe that
+    recorded them and found records, else the four (:func:`latest_providers`).
+    """
+    if pool.get("providers"):
+        return list(pool["providers"])
+    return latest_providers(session)
+
+
+def latest_providers(session: dict[str, Any]) -> list[str]:
+    """The databases of the latest probe that recorded them and found records, in order; the four by default.
+
+    The fallback of :func:`pool_providers` for a pool stored before M10a. A
+    probe that found nothing (empty or failed) never became the session's
+    pool, so its databases do not count.
+    """
+    for probe in reversed(session.get("probes") or []):
+        if probe.get("providers") and probe.get("n_docs"):
+            return list(probe["providers"])
+    return list(DEFAULT_PROVIDERS)
+
+
 def _latest_query(session: dict[str, Any]) -> str | None:
     for probe in reversed(session.get("probes") or []):
         if probe.get("query"):
@@ -491,6 +564,7 @@ def _pool_summary(pool: dict[str, Any], path: Path) -> dict[str, Any]:
         "cache_key": str(pool.get("cache_key") or ""),
         "status": pool.get("status", POOL_COMPLETE),
         "query": pool.get("query"),
+        "providers": pool.get("providers"),
         "year_min": pool.get("year_min"),
         "year_max": pool.get("year_max"),
         "languages": pool.get("languages"),

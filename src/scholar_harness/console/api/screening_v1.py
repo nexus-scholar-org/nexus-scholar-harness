@@ -539,7 +539,8 @@ _CORPUS_STATUS = {
 
 
 def _corpus_error(exc: Any) -> HTTPException:
-    return _error(_CORPUS_STATUS.get(exc.code, 409), exc.code, str(exc))
+    details = getattr(exc, "details", None)
+    return _error(_CORPUS_STATUS.get(exc.code, 409), exc.code, str(exc), **({"details": details} if details else {}))
 
 
 def _corpus_view(ws: Path) -> dict[str, Any]:
@@ -616,6 +617,14 @@ def accept_corpus_route(request: Request) -> dict[str, Any]:
     if status["state"] == "ACCEPTED":
         raise _error(409, "CORPUS_ALREADY_ACCEPTED", "the corpus is already accepted")
     staged = staged_sources(ws)
+    if not staged:
+        # M3i-harvest-robustness: an unfinished harvest is named as such, before "nothing staged".
+        from ...corpus_accept import refuse_if_preparation_unfinished
+
+        try:
+            refuse_if_preparation_unfinished(ws)
+        except AcceptCorpusRefused as exc:
+            raise _corpus_error(exc) from exc
     if not staged and not status["from_discovery"]:
         raise _error(409, "NOTHING_STAGED", "add at least one database export first")
     try:

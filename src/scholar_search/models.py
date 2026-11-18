@@ -1,6 +1,6 @@
 """Normalized models for the SLR and scholarly search workflow."""
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, fields
 from datetime import UTC, datetime
 from typing import Any
 
@@ -246,3 +246,48 @@ class DocumentCluster:
             for member in self.members
         )
         return 1.0 if has_identifier else 0.95
+
+
+def _saved_datetime(value: Any) -> Any:
+    """A saved ``retrieved_at`` back as a ``datetime``; anything unreadable is kept as it is."""
+    if not isinstance(value, str):
+        return value
+    try:
+        return datetime.fromisoformat(value)
+    except ValueError:
+        return value
+
+
+def document_from_record(record: dict[str, Any]) -> Document:
+    """Rebuild a ``Document`` from its saved record (``asdict`` written as JSON).
+
+    The inverse of how the search stages save records (``json.dumps(asdict(doc),
+    default=str)``): every saved field is set as it was saved, with no second
+    pass of the constructors' clean-up, so saving the result again gives the
+    same record. A field the record does not carry keeps its default; a key the
+    model does not know is ignored.
+    """
+    doc = Document(title="Untitled")
+    names = {f.name for f in fields(Document)}
+    for name, value in record.items():
+        if name not in names:
+            continue
+        if name == "external_ids":
+            ids = ExternalIds()
+            for key, item in (value or {}).items():
+                if key in ExternalIds.__dataclass_fields__:
+                    setattr(ids, key, item)
+            value = ids
+        elif name == "authors":
+            authors = []
+            for item in value or []:
+                author = Author(family_name="")
+                for key, part in (item or {}).items():
+                    if key in Author.__dataclass_fields__:
+                        setattr(author, key, part)
+                authors.append(author)
+            value = authors
+        elif name == "retrieved_at":
+            value = _saved_datetime(value)
+        setattr(doc, name, value)
+    return doc

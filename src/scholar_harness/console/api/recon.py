@@ -9,7 +9,10 @@ store the CLI wizard and the MCP tools use (``scholar_harness.recon.session``).
   has a contact address, and the draft's binding with ``stale``.
 * ``POST .../recon/probe`` — start a probe as a job (202). Body:
   ``refresh``, ``semantic``, ``narrower`` (a direction label: the one narrower
-  search the wizard allows). The topic and years come from the saved draft.
+  search the wizard allows), and since M10a ``databases`` (the ordered list to
+  ask) and ``query`` (the researcher's edited query). The topic and years come
+  from the saved draft; the topic is sent as its keyword query unless
+  ``query`` is given.
 * ``POST .../recon/delta`` — start the gap check (up to 3 follow-ups) as a job.
 * ``GET  .../recon/jobs/{job_id}`` and ``.../events`` (SSE: ``snapshot``,
   ``leg``, ``done`` or ``failed``).
@@ -31,17 +34,20 @@ import uuid
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any
+from typing import Annotated, Any
 
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import StreamingResponse
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, StringConstraints, model_validator
 from scholar_search.config import settings
 
+from scholar_harness.console.refusals import PROVIDER_UNKNOWN
 from scholar_harness.inception import steps
 from scholar_harness.inception.drafts import DraftRefused, DraftStore
 from scholar_harness.inception.grounding import build_grounding, check_binding, scope_changes, scope_of
 from scholar_harness.inception.intent import draft_default_concepts
+from scholar_harness.recon.engine import DEFAULT_PROVIDERS
+from scholar_harness.recon.keywords import keyword_query
 from scholar_harness.recon.session import (
     DELTA_BUDGET,
     DIRECTION_UNKNOWN,
@@ -51,6 +57,7 @@ from scholar_harness.recon.session import (
     ReconSessions,
     key_state,
     pool_fingerprint,
+    pool_providers,
     refuse_unusable_pool,
     term_evidence,
 )
@@ -196,12 +203,46 @@ def _sse(event: dict[str, Any]) -> str:
 # --------------------------------------------------------------------------- routes
 
 
+#: The longest edited query a probe takes (M10a).
+QUERY_MAX = 2000
+
+
 class ProbeBody(BaseModel):
     model_config = ConfigDict(extra="forbid")
     refresh: bool = False
     semantic: bool = False
     #: A direction label of the current pool: run the one narrower search on it.
     narrower: str | None = None
+    #: M10a (decision 1a): the databases to ask, in order; the four by default.
+    databases: list[str] | None = None
+    #: M10a (decision 1a): the researcher's edited query, sent to every database as written.
+    query: Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=QUERY_MAX)] | None = None
+
+    @model_validator(mode="after")
+    def _narrower_alone(self) -> ProbeBody:
+        if self.narrower is not None and (self.query is not None or self.databases is not None):
+            raise ValueError("a narrower search takes no query or databases: it searches the direction label "
+                             "on the databases of the pool it narrows")
+        return self
+
+
+def _check_databases(names: list[str] | None) -> list[str]:
+    """The databases a topic probe asks, in order; ``PROVIDER_UNKNOWN`` for an unknown, empty or repeated list.
+
+    Ids are matched exactly (``OpenAlex`` is unknown): the screen sends the ids
+    of ``databases_available``. Discovery, which reads names a person typed in
+    a plan, canonicalises them; recon does not.
+    """
+    if names is None:
+        return list(DEFAULT_PROVIDERS)
+    unknown = [n for n in names if n not in DEFAULT_PROVIDERS]
+    repeated = sorted({n for n in names if names.count(n) > 1})
+    if unknown or repeated or not names:
+        raise ReconRefused(
+            PROVIDER_UNKNOWN, "Unknown, empty or repeated database list.", status=422,
+            details={"unknown": unknown, "repeated": repeated, "known": list(DEFAULT_PROVIDERS)},
+        )
+    return list(names)
 
 
 class DeltaBody(BaseModel):
@@ -244,6 +285,9 @@ def recon_state(session_id: str, request: Request) -> dict[str, Any]:
         "scope_changes": changes,
         "binding": check_binding(sessions, grounding, scope_of(_draft_model)) if grounding else None,
         "active_job": active.to_dict() if active else None,
+        # M10a (decision 1a): the query the topic gives, and the databases a probe may ask, in default order.
+        "derived_query": keyword_query(_draft_model.topic) if _draft_model.topic else None,
+        "databases_available": list(DEFAULT_PROVIDERS),
     }
 
 
@@ -264,15 +308,16 @@ async def start_probe(session_id: str, body: ProbeBody, request: Request) -> dic
     jobs = _jobs(request)
     try:
         _record, draft = _draft(request, session_id)
+        databases = _check_databases(body.databases)
         if not draft.topic:
             raise steps.StepRefused("DRAFT_INCOMPLETE", "a probe needs the draft's topic", details={"missing": ["topic"]})
         _require_mailto(request)
         sessions = _sessions(request)
-        query, purpose = draft.topic, "topic"
         if body.narrower is not None:
             if not sessions.exists(session_id):
                 raise ReconRefused("RECON_NO_POOL", "Run the first search before a narrower one.")
-            if sessions.current(session_id)["narrower_left"] <= 0:
+            current = sessions.current(session_id)
+            if current["narrower_left"] <= 0:
                 raise ReconRefused(NARROW_BUDGET_SPENT, "The one narrower search of this draft is used.")
             labels = [d["label"] for d in sessions.directions(session_id)["directions"]]
             if body.narrower not in labels:
@@ -280,7 +325,13 @@ async def start_probe(session_id: str, body: ProbeBody, request: Request) -> dic
                     DIRECTION_UNKNOWN, f"'{body.narrower}' is not one of the directions of the current pool.",
                     status=422, details={"directions": labels},
                 )
-            query, purpose = body.narrower, "narrower"
+            # The label is sent as it is, on the databases of the pool it narrows.
+            pool, _path = sessions.latest_pool(session_id)
+            query, purpose, databases = body.narrower, "narrower", pool_providers(pool, current)
+        else:
+            # M10a: the edited query as written, else the topic's keyword query; the topic itself is kept.
+            query = body.query if body.query is not None else keyword_query(draft.topic)
+            purpose = "topic"
         if jobs.active(session_id):
             raise ReconRefused(RECON_JOB_ACTIVE, "A search for this draft is already running.", details={"job": jobs.active(session_id).to_dict()})
     except (ReconRefused, DraftRefused, steps.StepRefused) as exc:
@@ -294,7 +345,7 @@ async def start_probe(session_id: str, body: ProbeBody, request: Request) -> dic
             query, session_id=session_id, topic=draft.topic, purpose=purpose,
             year_min=draft.start_year or 2000, year_max=draft.end_year,
             semantic=body.semantic, refresh=body.refresh, progress=progress,
-            languages=list(draft.languages),
+            languages=list(draft.languages), providers=databases,
         )
         refuse_unusable_pool(result)
         return result

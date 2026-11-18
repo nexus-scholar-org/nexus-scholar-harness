@@ -37,6 +37,15 @@ describe("discovery.overview", () => {
     expect(screen.getByText("Duplicates were removed in run_001.")).toBeInTheDocument();
   });
 
+  it("does not mark Harvest done while the steps after the search are unfinished (M3i, review finding 12)", async () => {
+    setUp({ runs: 1, preparation: "interrupted", legacyRun: true });
+    render(<DiscoveryOverview locale="en" />);
+    await screen.findByRole("heading", { level: 1, name: TITLE });
+    expect(mark("harvest")).toBeNull();
+    expect(screen.getByText("The search finished, but the corpus is not prepared yet. Finish preparing it on Harvest.")).toBeInTheDocument();
+    expect(screen.queryByText("This workspace has search runs; the newest is on Harvest.")).toBeNull();
+  });
+
   it("marks the hand-off done once the corpus is accepted", async () => {
     setUp({ runs: 1, accepted: true });
     render(<DiscoveryOverview locale="en" />);

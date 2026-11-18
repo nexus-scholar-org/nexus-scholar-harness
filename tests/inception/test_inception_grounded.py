@@ -30,6 +30,7 @@ from scholar_harness.inception import (
 )
 from scholar_harness.inception.grounded import _DELTA_PROBE_CHOICE
 from scholar_harness.recon import ReconEngine, distill_pool
+from scholar_harness.recon.keywords import keyword_query
 
 GENESIS_TS = "2026-09-06T12:00:00+00:00"
 
@@ -50,6 +51,8 @@ TOPIC = (
     "Can an on-device computer-vision weed-detection pipeline achieve real-time "
     "frame rates on embedded hardware without sacrificing classification accuracy?"
 )
+# M10a OBS-1: what the wizard's topic probe sends.
+TOPIC_KEYWORDS = "on-device computer-vision weed-detection pipeline real-time frame"
 
 GROUNDED_CONCEPT = "grape disease detection"
 GROUNDED_DOIS = [f"10.1000/ground-{i:03d}" for i in range(3)]
@@ -138,7 +141,7 @@ def _pool_anchored_defaults(engine: ReconEngine) -> list[str]:
     The wizard's own topic probe later hits the same cache entry, so the
     prediction is byte-deterministic and consumes no extra ``search_fn`` call.
     """
-    pool_path, _n = asyncio.run(engine.probe(TOPIC))
+    pool_path, _n = asyncio.run(engine.probe(TOPIC_KEYWORDS))
     pool = json.loads(pool_path.read_text(encoding="utf-8"))
     return _grounded_default_concepts(distill_pool(pool), GROUNDED_CONCEPT)
 
@@ -263,8 +266,8 @@ def test_grounded_wizard_presents_direction_and_records_recon_context(tmp_path):
         recon_engine=engine,
     )
 
-    # One probe on the exact topic text; no delta in this walk.
-    assert [c[0] for c in calls] == [TOPIC]
+    # One probe on the topic's keyword query (M10a); no delta in this walk.
+    assert [c[0] for c in calls] == [TOPIC_KEYWORDS]
 
     rc = result["recon_context"]
     assert rc is not None
@@ -593,7 +596,7 @@ def test_grounded_unanchored_synonym_dropped_with_warning(tmp_path, monkeypatch)
     )
 
     mapping = {
-        TOPIC.strip().lower(): _fake_docs(3),
+        TOPIC_KEYWORDS.lower(): _fake_docs(3),
         "vineyard blight detection": [
             _doc(
                 SYNONYM_A_DOI,
@@ -658,7 +661,7 @@ def test_grounded_unanchored_synonym_dropped_with_warning(tmp_path, monkeypatch)
 
 def test_grounded_unanchored_concept_exits_without_emitting(tmp_path):
     def search_fn(query: Query, providers: list[str]):
-        if query.text.strip().lower() == TOPIC.strip().lower():
+        if query.text == TOPIC_KEYWORDS:
             return _fake_docs(3)
         return []
 
@@ -681,7 +684,9 @@ def test_grounded_unanchored_concept_exits_without_emitting(tmp_path):
             grounded=True,
             recon_engine=engine,
         )
-    assert "literature evidence" in str(exc.value)
+    # The concept's own exit, not the topic's "No literature evidence was found under this topic".
+    assert f"Concept '{unanchored_concept}' has no literature evidence" in str(exc.value)
+    assert "under this topic" not in str(exc.value)
     assert "without --grounded" in str(exc.value)
     # Nothing was emitted: no scaffold, no intent, no cache under the root.
     assert not (tmp_path / "workspaces").exists()
@@ -713,7 +718,7 @@ def test_grounded_delta_probe_runs_once_and_merges(tmp_path):
     )
 
     # Exactly two probes: the topic plus one targeted delta on the direction.
-    assert calls == [TOPIC, GROUNDED_CONCEPT]
+    assert calls == [TOPIC_KEYWORDS, GROUNDED_CONCEPT]
     rc = result["recon_context"]
     assert len(rc["cache_keys"]) == 2
     assert rc["pool_sizes"] == [3, 3]
@@ -746,7 +751,7 @@ def _predicted_directions(tmp_path) -> list[dict]:
     from scholar_harness.recon import distill_pool as distiller_distill
 
     engine = _grounded_engine(tmp_path)
-    pool_path, _n = asyncio.run(engine.probe(TOPIC))
+    pool_path, _n = asyncio.run(engine.probe(TOPIC_KEYWORDS))
     pool = json.loads(pool_path.read_text(encoding="utf-8"))
     return _grounded_directions_for_terms(distiller_distill(pool))
 
@@ -819,3 +824,34 @@ def test_direction_id_zero_exits_without_emitting(tmp_path):
     assert "out of range" in str(exc.value)
     assert "nothing was emitted" in str(exc.value)
     assert not (tmp_path / "workspaces").exists()
+
+
+# ---------------------------------------------------------------------------
+# M10a OBS-1: the wizard probes the topic sentence as its keyword query
+# ---------------------------------------------------------------------------
+
+
+def test_grounded_wizard_probes_the_topic_as_keywords_and_keeps_the_sentence(tmp_path):
+    from scholar_harness.recon.session import ReconSessions
+
+    calls = []
+
+    def search_fn(query: Query, providers: list[str]):
+        calls.append(query.text)
+        return _fake_docs(3)
+
+    predict = ReconEngine(cache_root=tmp_path / "predict", search_fn=lambda q, p: _fake_docs(3))
+    n_concepts = len(_pool_anchored_defaults(predict))
+    engine = ReconEngine(cache_root=tmp_path / "cache", search_fn=search_fn)
+    result = run_wizard(
+        GroundedScriptedResponder(_grounded_answers(None, n_concepts)),
+        tmp_path,
+        genesis_timestamp=GENESIS_TS,
+        grounded=True,
+        recon_engine=engine,
+    )
+
+    assert calls == [TOPIC_KEYWORDS] == [keyword_query(TOPIC)]
+    session = ReconSessions(engine=engine).load(result["recon_context"]["session_id"])
+    assert session["topic"] == TOPIC
+    assert [(p["purpose"], p["query"]) for p in session["probes"]] == [("topic", TOPIC_KEYWORDS)]

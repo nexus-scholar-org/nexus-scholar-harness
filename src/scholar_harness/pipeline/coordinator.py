@@ -104,6 +104,8 @@ from scholar_protocol.models import ResearchProtocol
 
 from scholar_harness.workspace.audit import append_event, append_legacy_event
 
+from . import harvest_marker
+from .deduplication import current_method as current_dedup_method
 from .deduplication import run_deduplication
 from .discovery import run_discovery
 from .extraction import run_extraction
@@ -254,24 +256,13 @@ def _journal_snapshot_accepted(
 
 
 def discovery_corpus_run(ws: Path) -> Path | None:
-    """The newest search run whose records became ``verified.json``, or ``None``."""
-    runs_dir = Path(ws) / "literature" / "search_runs"
-    if not runs_dir.is_dir():
-        return None
-    runs = sorted(
-        (d for d in runs_dir.iterdir() if d.is_dir() and d.name.startswith("run_") and d.name[4:].isdigit()),
-        key=lambda d: int(d.name[4:]),
-        reverse=True,
-    )
-    for run_dir in runs:
-        try:
-            manifest = json.loads((run_dir / "legs.json").read_text(encoding="utf-8"))
-        except (OSError, ValueError):
-            continue
-        published = manifest.get("corpus_published", manifest.get("raw_published"))
-        if published:
-            return run_dir
-    return None
+    """The newest search run published as the corpus, or ``None``.
+
+    Published means its search was kept as the corpus (``legs.json``); whether
+    its later stages ended, so that ``verified.json`` is this run's, is the
+    run's stage marker's to say (``harvest_marker``, M3i).
+    """
+    return harvest_marker.corpus_run_dir(Path(ws) / "literature")
 
 
 def accept_discovery_corpus(workspace: Path | str, *, agent: str = "scholar-harness-console") -> Any:
@@ -287,6 +278,11 @@ def accept_discovery_corpus(workspace: Path | str, *, agent: str = "scholar-harn
     from scholar_harness.corpus_accept import accept_corpus
 
     ws = Path(workspace).resolve()
+    # M3i-harvest-robustness: verified.json is this run's only once its
+    # verification ended; until then nothing of it is frozen.
+    from scholar_harness.corpus_accept import refuse_if_preparation_unfinished
+
+    refuse_if_preparation_unfinished(ws)
     run_dir = discovery_corpus_run(ws)
     errors: dict[str, str] = {}
     if run_dir is not None:
@@ -447,6 +443,322 @@ def _pipeline_note(results: dict[str, Any]) -> str:
             + ", ".join(discovery.get("stale_artifacts") or [])
         )
     return ("; " + " | ".join(notes)) if notes else ""
+
+
+class PreparationRefused(Exception):
+    """A harvest's remaining stages cannot be run; ``reason`` is the typed cause.
+
+    Reasons: ``not_published`` (the search was stopped or failed, so nothing
+    follows it), ``superseded`` (a later run is the corpus),
+    ``already_prepared`` (``verified.json`` is this run's) and
+    ``records_missing`` (the run's ``raw.json`` cannot be read).
+    """
+
+    def __init__(self, reason: str, message: str) -> None:
+        super().__init__(message)
+        self.reason = reason
+
+
+def preparation_refusal(workspace: Path | str, run: str) -> PreparationRefused | None:
+    """Why ``finish_harvest_preparation`` would refuse this run, or ``None``."""
+    lit_dir = Path(workspace) / "literature"
+    run_dir = lit_dir / "search_runs" / run
+    try:
+        manifest = json.loads((run_dir / "legs.json").read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        manifest = {}
+    if not (isinstance(manifest, dict) and manifest.get("corpus_published", manifest.get("raw_published"))):
+        return PreparationRefused(
+            "not_published",
+            f"The search of {run} was stopped or failed, so it was not kept as the corpus; search again.",
+        )
+    corpus_run = harvest_marker.corpus_run_dir(lit_dir)
+    if corpus_run is None or corpus_run.name != run:
+        return PreparationRefused(
+            "superseded", f"A later search run is the corpus now; {run} is kept as a record only."
+        )
+    view = harvest_marker.preparation_view(lit_dir, run_dir, published=True, newest_published=True)
+    if view["state"] == harvest_marker.READY:
+        return PreparationRefused("already_prepared", f"The corpus of {run} is already prepared.")
+    try:
+        raw = json.loads((run_dir / "raw.json").read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        raw = None
+    if not isinstance(raw, list):
+        return PreparationRefused(
+            "records_missing", f"The saved records of {run} (raw.json) cannot be read; search again."
+        )
+    return None
+
+
+def _stopped(should_stop: Callable[[], bool] | None) -> bool:
+    return bool(should_stop is not None and should_stop())
+
+
+async def _prepare_corpus(
+    *,
+    ws: Path,
+    lit_dir: Path,
+    run_dir: Path | None,
+    documents: list[Any],
+    first_stage: str,
+    results: dict[str, Any],
+    emit_stage: Callable[[str, str, Any], None],
+    should_stop: Callable[[], bool] | None,
+    protocol_path: Path,
+) -> list[Any] | None:
+    """Run deduplication, hydration and verification from ``first_stage`` on.
+
+    The stages after the search, for a new run and for a run that is being
+    finished (M3i-harvest-robustness). Each stage is recorded in the run's
+    stage marker as it ends, then announced through ``emit_stage``. The
+    researcher's stop is read before each stage: a stop ends the run as
+    ``CANCELLED`` with the marker ``STOPPED`` at the stage that did not start,
+    one ``PIPELINE_RUN_ABORTED`` row, and ``None`` returned (a stage that is
+    already running is never interrupted). A stage that raises ends the marker
+    as ``FAILED`` at that stage, writes the same abort row, and the error
+    propagates as before: no fabricated mapping, no success claim.
+
+    Returns the verified documents; ``results["stages"]`` gets the same
+    mappings as before. ``run_dir`` is ``None`` when there is no archived run
+    to mark (a stage double in a test): the stages run and nothing is marked.
+    """
+    run_name = run_dir.name if run_dir is not None else "the run"
+    docs = documents
+    verified_docs: list[Any] = []
+    for stage in harvest_marker.PREPARATION_STAGES[harvest_marker.PREPARATION_STAGES.index(first_stage):]:
+        if _stopped(should_stop):
+            reason = f"stopped by the researcher before {stage}"
+            for name, shape in _ABORTED_STAGE_SHAPES.items():
+                if name not in results["stages"]:
+                    results["stages"][name] = {**shape, "status": "SKIPPED", "reason": reason}
+            results["status"] = "CANCELLED"
+            results["stopped_before"] = stage
+            harvest_marker.end(run_dir, harvest_marker.STOPPED, stage=stage)
+            append_legacy_event(
+                ws,
+                "PIPELINE_RUN_ABORTED",
+                "scholar-harness",
+                f"Pipeline stopped by the researcher before {stage}; {run_name} keeps its "
+                f"records and can be finished without a new search{_pipeline_note(results)}",
+                [str(protocol_path)],
+                [],
+                results["stages"],
+                # The row's own outcome: the preparation did not end. Never the
+                # search's SUCCESS; a failed or empty search keeps its own word.
+                status="PARTIAL" if _ledger_status(results) == "SUCCESS" else _ledger_status(results),
+            )
+            return None
+        try:
+            if stage == "deduplication":
+                # -----------------------------------------------------
+                # Stage 2: 2-Tier Deduplication & PID Cluster Assignment
+                # Dedup runs on ALL discovered documents combined (not a subset).
+                # workspace_ids (SCI-XXXXXX) are assigned by the Deduplicator here.
+                # -----------------------------------------------------
+                # HCM-04c: delegated to the neutral pipeline stage.
+                dedup_outcome = run_deduplication(
+                    discovered_documents=docs,
+                    literature_dir=lit_dir,
+                )
+                docs = dedup_outcome.representatives
+                results["stages"]["deduplication"] = {
+                    "unique": dedup_outcome.unique,
+                    "duplicates_removed": dedup_outcome.duplicates_removed,
+                }
+                status, detail = "DONE", results["stages"]["deduplication"]
+            elif stage == "hydration":
+                # -----------------------------------------------------
+                # Stage 2.5: Abstract Hydration (backfill missing abstracts)
+                # -----------------------------------------------------
+                # HCM-04d: delegated to the neutral pipeline stage.
+                hydration_outcome = await run_hydration(
+                    documents=docs,
+                    workspace_dir=ws,
+                )
+                docs = hydration_outcome.documents
+                status, detail = "DONE", None
+            else:
+                # -----------------------------------------------------
+                # Stage 3: Verification (HCM-04e-1 Option B bridge-or-refuse)
+                # -----------------------------------------------------
+                # HCM-04e: delegated to the neutral pipeline stage.
+                verification_outcome = await run_verification(
+                    documents=docs,
+                    literature_dir=lit_dir,
+                    workspace_dir=ws,
+                )
+                verified_docs = verification_outcome.documents
+                results["stages"]["verification"] = {
+                    "status": verification_outcome.status,
+                    "verified": verification_outcome.verified,
+                    "refused": verification_outcome.refused,
+                    "preserved": verification_outcome.preserved,
+                    "bridge_restored": verification_outcome.bridge_restored,
+                    "refusal_reasons": verification_outcome.refusal_reasons,
+                }
+                if verification_outcome.quarantine:
+                    results["stages"]["verification"]["quarantine"] = (
+                        verification_outcome.quarantine
+                    )
+                status = str(verification_outcome.status)
+                detail = {
+                    "verified": verification_outcome.verified, "refused": verification_outcome.refused,
+                }
+        except Exception as exc:
+            if run_dir is not None:
+                # Only an archived run is marked and journaled: the stage's own
+                # error still propagates, with no success claim.
+                message = f"{type(exc).__name__}: {str(exc)[:300]}"
+                harvest_marker.end(run_dir, harvest_marker.FAILED, stage=stage, message=message)
+                append_legacy_event(
+                    ws,
+                    "PIPELINE_RUN_ABORTED",
+                    "scholar-harness",
+                    f"Pipeline aborted: {stage} of {run_name} failed ({message}); the run keeps its "
+                    "records and can be finished without a new search",
+                    [str(protocol_path)],
+                    [],
+                    results["stages"],
+                    status="FAILED",
+                )
+            raise
+        if stage == "verification":
+            harvest_marker.complete(run_dir, status)
+        else:
+            harvest_marker.record_stage(run_dir, stage, status)
+        emit_stage(stage, status, detail)
+    return verified_docs
+
+
+def _pause_for_corpus_accept(
+    ws: Path, lit_dir: Path, results: dict[str, Any], emit_stage: Callable[[str, str, Any], None],
+    protocol_path: Path, discovery_status: str, discovery_reason: str,
+) -> dict[str, Any]:
+    """End a browser harvest before the snapshot (M3d-engine; decision 2026-11-10)."""
+    reason = "awaiting the hand-off accept"
+    results["stages"]["corpus_snapshot"] = {"status": "NOT_ACCEPTED", "reason": reason}
+    emit_stage("corpus_snapshot", "NOT_ACCEPTED", results["stages"]["corpus_snapshot"])
+    for stage in ("screening", "extraction", "indexing", "matrix_rows", "graph_nodes", "synthesis"):
+        results["stages"][stage] = {
+            **_ABORTED_STAGE_SHAPES[stage],
+            "status": "SKIPPED",
+            "reason": reason,
+        }
+    results["status"] = "PENDING_CORPUS_ACCEPT"
+    _apply_discovery_status(results, discovery_status, discovery_reason)
+    append_legacy_event(
+        ws,
+        "PIPELINE_RUN_PAUSED_FOR_CORPUS_ACCEPT",
+        "scholar-harness",
+        "Pipeline paused before the corpus snapshot; the researcher accepts "
+        f"literature/verified.json on the hand-off screen{_pipeline_note(results)}",
+        [str(protocol_path)],
+        [str(lit_dir / "verified.json")],
+        results["stages"],
+        status=_ledger_status(results),
+    )
+    return results
+
+
+async def finish_harvest_preparation(
+    *,
+    workspace_dir: Path | str,
+    run: str,
+    stage_callback: Callable[[str, str, Any], None] | None = None,
+    should_stop: Callable[[], bool] | None = None,
+) -> dict[str, Any]:
+    """Run the stages a published search run still lacks, without searching again.
+
+    M3i-harvest-robustness ("Finish preparing this corpus"). The run's stage
+    marker says where to start: when deduplication ended for this run and its
+    ``deduped.json`` is still this run's (``dedup/clusters.json`` names the
+    run) and was made with the tiers the protocol asks for now, hydration
+    starts from ``deduped.json``; otherwise deduplication starts from the
+    run's own ``raw.json``. Hydration keeps no file of its
+    own, so it is run again whenever verification did not end. A run without a
+    marker (made before it existed) starts from ``raw.json``.
+
+    The end is the end of a browser harvest: ``PENDING_CORPUS_ACCEPT``, no
+    snapshot, the hand-off accept freezes it. A stop between two stages ends
+    it ``CANCELLED``, as in ``run_pipeline``. Raises ``PreparationRefused``
+    when there is nothing to finish. No database is searched and no
+    ``DISCOVERY_SEARCH`` row is written; one ``HARVEST_PREPARATION_RESUMED``
+    row records the attempt.
+    """
+
+    def emit_stage(name: str, status: str, detail: Any = None) -> None:
+        if stage_callback is not None:
+            stage_callback(name, status, detail)
+
+    ws = Path(workspace_dir)
+    lit_dir = ws / "literature"
+    run_dir = lit_dir / "search_runs" / run
+    refusal = preparation_refusal(ws, run)
+    if refusal is not None:
+        raise refusal
+    p_path = (ws / "protocol.json").resolve()
+    manifest = json.loads((run_dir / "legs.json").read_text(encoding="utf-8"))
+
+    marker = harvest_marker.read(run_dir)
+    first_stage = "deduplication"
+    documents: list[Any] | None = None
+    if marker and "deduplication" in (marker.get("stages") or {}):
+        clusters = lit_dir / "dedup" / "clusters.json"
+        try:
+            record = json.loads(clusters.read_text(encoding="utf-8"))
+            # This run's deduplication, made with the tiers the protocol asks for today.
+            reusable = record.get("run") == run and record.get("method") == current_dedup_method(lit_dir)
+            documents = harvest_marker.load_saved_documents(lit_dir / "deduped.json") if reusable else None
+        except Exception:  # noqa: BLE001 - anything unreadable here means: start from the run's own records
+            documents = None
+        if documents is not None:
+            first_stage = "hydration"
+    if documents is None:
+        documents = harvest_marker.load_saved_documents(run_dir / "raw.json")
+
+    discovery_status = str(manifest.get("status") or "SUCCESS")
+    discovery_reason = f"the search of {run} was not run again; its saved records were used"
+    results: dict[str, Any] = {
+        "status": "SUCCESS",
+        "stages": {},
+        "degraded": False,
+        "degradation_reason": "",
+        "resumed_from": first_stage,
+        "discovery": {
+            "count": sum(int(leg.get("fetched") or 0) for leg in manifest.get("legs") or [] if isinstance(leg, dict)),
+            "status": discovery_status,
+            "reason": discovery_reason,
+            "corpus_published": True,
+            "search_run": run,
+        },
+    }
+    harvest_marker.start(run_dir, from_stage=first_stage)
+    append_legacy_event(
+        ws,
+        "HARVEST_PREPARATION_RESUMED",
+        "scholar-harness",
+        f"Finishing the corpus preparation of {run} from {first_stage}, from its saved records; "
+        "no database is searched again",
+        [str(lit_dir / "deduped.json") if first_stage == "hydration" else str(run_dir / "raw.json")],
+        [],
+        {"run": run, "from_stage": first_stage, "records": len(documents)},
+        status=_ledger_status(results),
+    )
+    verified_docs = await _prepare_corpus(
+        ws=ws,
+        lit_dir=lit_dir,
+        run_dir=run_dir,
+        documents=documents,
+        first_stage=first_stage,
+        results=results,
+        emit_stage=emit_stage,
+        should_stop=should_stop,
+        protocol_path=p_path,
+    )
+    if verified_docs is None:
+        return results
+    return _pause_for_corpus_accept(ws, lit_dir, results, emit_stage, p_path, discovery_status, discovery_reason)
 
 
 async def run_pipeline(
@@ -667,98 +979,45 @@ async def run_pipeline(
             return results
 
         # -------------------------------------------------------------
-        # Stage 2: 2-Tier Deduplication & PID Cluster Assignment
-        # Bug fix: Dedup now runs on ALL discovered_docs combined (not a subset).
-        # workspace_ids (SCI-XXXXXX) are assigned by the Deduplicator here.
+        # Stages 2, 2.5 and 3: deduplication, abstract hydration, verification
         # -------------------------------------------------------------
-        # HCM-04c: delegated to the neutral pipeline stage. run_deduplication
-        # owns 2-tier dedup, PID cluster assignment, and deduped publication;
-        # it writes no registry state and emits no audit event of its own.
-        dedup_outcome = run_deduplication(
-            discovered_documents=discovered_docs,
-            literature_dir=lit_dir,
+        # M3i-harvest-robustness: the three stages after the search run in
+        # ``_prepare_corpus``, which records each one in the run's stage marker
+        # (``search_runs/run_NNN/pipeline.json``), reads the researcher's stop
+        # before each stage, and ends the marker when a stage raises. The stage
+        # calls themselves are unchanged (HCM-04c, HCM-04d, HCM-04e).
+        search_run = results["discovery"]["search_run"]
+        run_dir = (lit_dir / "search_runs" / search_run) if search_run else None
+        if run_dir is not None and results["discovery"]["corpus_published"]:
+            # ``run_discovery`` writes the marker as it publishes the run; a
+            # stage double that archived a run without one gets it here.
+            if harvest_marker.read(run_dir) is None:
+                harvest_marker.start(run_dir)
+        else:
+            run_dir = None
+        verified_docs = await _prepare_corpus(
+            ws=ws,
+            lit_dir=lit_dir,
+            run_dir=run_dir,
+            documents=discovered_docs,
+            first_stage="deduplication",
+            results=results,
+            emit_stage=emit_stage,
+            should_stop=should_stop,
+            protocol_path=p_path,
         )
-        # Local binding retained: Stage 2.5 hydrates these documents.
-        unique_docs = dedup_outcome.representatives
-        results["stages"]["deduplication"] = {
-            "unique": dedup_outcome.unique,
-            "duplicates_removed": dedup_outcome.duplicates_removed,
-        }
-        emit_stage("deduplication", "DONE", results["stages"]["deduplication"])
-
-        # -------------------------------------------------------------
-        # Stage 2.5: Abstract Hydration (backfill missing abstracts)
-        # -------------------------------------------------------------
-        # HCM-04d: delegated to the neutral pipeline stage. run_hydration owns
-        # client construction, missing-abstract backfill, the
-        # ABSTRACT_HYDRATION audit event, and client close; the hydrated
-        # documents flow to Stage 3 unchanged.
-        hydration_outcome = await run_hydration(
-            documents=unique_docs,
-            workspace_dir=ws,
-        )
-        # Local binding retained: Stage 3 verifies these documents.
-        docs_for_verify = hydration_outcome.documents
-        emit_stage("hydration", "DONE", None)
-
-        # -------------------------------------------------------------
-        # Stage 3: Verification (HCM-04e-1 Option B bridge-or-refuse)
-        # -------------------------------------------------------------
-        # HCM-04e: delegated to the neutral pipeline stage. run_verification
-        # owns verifier construction, the DOI-bridge preserve/restore/refuse
-        # loop (enumerate, no SCI- mint), verified/quarantine publication,
-        # and the identity-resolved audit event; the identified documents
-        # flow to Stage 4 unchanged.
-        verification_outcome = await run_verification(
-            documents=docs_for_verify,
-            literature_dir=lit_dir,
-            workspace_dir=ws,
-        )
-        # Local binding retained: Stage 4 counts these documents.
-        verified_docs = verification_outcome.documents
-        results["stages"]["verification"] = {
-            "status": verification_outcome.status,
-            "verified": verification_outcome.verified,
-            "refused": verification_outcome.refused,
-            "preserved": verification_outcome.preserved,
-            "bridge_restored": verification_outcome.bridge_restored,
-            "refusal_reasons": verification_outcome.refusal_reasons,
-        }
-        if verification_outcome.quarantine:
-            results["stages"]["verification"]["quarantine"] = (
-                verification_outcome.quarantine
-            )
-        emit_stage("verification", str(verification_outcome.status), {
-            "verified": verification_outcome.verified, "refused": verification_outcome.refused,
-        })
+        if verified_docs is None:
+            # The researcher's stop, read between two stages: the run keeps its
+            # records and its marker; ``finish_harvest_preparation`` can end it.
+            return results
 
         if not freeze_corpus:
             # M3d-engine: a browser harvest does not freeze the corpus; the
             # hand-off screen does (decision 2026-11-10). Nothing past
             # verification is built, and another run or the accept may follow.
-            reason = "awaiting the hand-off accept"
-            results["stages"]["corpus_snapshot"] = {"status": "NOT_ACCEPTED", "reason": reason}
-            emit_stage("corpus_snapshot", "NOT_ACCEPTED", results["stages"]["corpus_snapshot"])
-            for stage in ("screening", "extraction", "indexing", "matrix_rows", "graph_nodes", "synthesis"):
-                results["stages"][stage] = {
-                    **_ABORTED_STAGE_SHAPES[stage],
-                    "status": "SKIPPED",
-                    "reason": reason,
-                }
-            results["status"] = "PENDING_CORPUS_ACCEPT"
-            _apply_discovery_status(results, discovery_status, discovery_reason)
-            append_legacy_event(
-                ws,
-                "PIPELINE_RUN_PAUSED_FOR_CORPUS_ACCEPT",
-                "scholar-harness",
-                "Pipeline paused before the corpus snapshot; the researcher accepts "
-                f"literature/verified.json on the hand-off screen{_pipeline_note(results)}",
-                [str(p_path)],
-                [str(lit_dir / "verified.json")],
-                results["stages"],
-                status=_ledger_status(results),
+            return _pause_for_corpus_accept(
+                ws, lit_dir, results, emit_stage, p_path, discovery_status, discovery_reason
             )
-            return results
 
         # -------------------------------------------------------------
         # Stage 3.5: Corpus snapshot (WP-01 Packet B runtime adoption, CORE-07)

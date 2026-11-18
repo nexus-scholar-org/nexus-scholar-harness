@@ -55,6 +55,8 @@ POST_PATHS: tuple[re.Pattern[str], ...] = tuple(
         r"api/v1/inception/drafts/[A-Za-z0-9_-]+/genesis",
         r"api/v1/inception/drafts/[A-Za-z0-9_-]+/recon/(probe|delta|distill|bind)",
         r"api/v1/discovery/(runs|recall)",
+        # M3i-harvest-robustness: finish a harvest's remaining stages without a new search.
+        r"api/v1/discovery/runs/run_\d{3,}/prepare",
         r"api/v1/discovery/jobs/[A-Za-z0-9_-]+/cancel",
         r"api/v1/discovery/chase/(runs|accept)",
     )

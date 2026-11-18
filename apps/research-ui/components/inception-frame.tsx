@@ -101,7 +101,23 @@ export function InceptionRefusal({
   origin = "",
   onRetry,
   command,
-}: Readonly<{ locale: Locale; refusal: Refusal; draftId?: string; origin?: string; onRetry?: () => void; command?: string }>) {
+  copyCode,
+  extraDetails,
+  hideActionLabel,
+}: Readonly<{
+  locale: Locale;
+  refusal: Refusal;
+  draftId?: string;
+  origin?: string;
+  onRetry?: () => void;
+  command?: string;
+  /** The card key, when a screen scopes it further than `inceptionStateKey` (Explore's probe refusals, M10a). */
+  copyCode?: string;
+  /** What else the refusal's details name, shown under Details after the shared lines. */
+  extraDetails?: ReactNode;
+  /** The screen supplies this card's action itself (see `StateCard`). */
+  hideActionLabel?: boolean;
+}>) {
   const t = inceptionT(locale);
   const details = (refusal.details ?? {}) as { missing?: unknown };
   const missing = Array.isArray(details.missing) ? details.missing.map(String) : [];
@@ -110,13 +126,19 @@ export function InceptionRefusal({
       <StateCard
         locale={locale}
         code={refusal.code}
-        copyCode={inceptionStateKey(refusal.code)}
+        copyCode={copyCode ?? inceptionStateKey(refusal.code)}
         actionHref={ACTION_STEP[refusal.code] ? inceptionHref(locale, ACTION_STEP[refusal.code], draftId, origin) : undefined}
         message={refusal.message}
         consoleOrigin={origin}
         onRetry={onRetry}
         command={command}
-        details={<RefusalDetails locale={locale} refusal={refusal} />}
+        hideActionLabel={hideActionLabel}
+        details={
+          <>
+            <RefusalDetails locale={locale} refusal={refusal} />
+            {extraDetails}
+          </>
+        }
       />
       {missing.length > 0 ? (
         <div className="rounded-lg border border-rule bg-leaf p-4" data-missing>

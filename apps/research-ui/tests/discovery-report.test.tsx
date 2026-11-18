@@ -43,6 +43,18 @@ describe("discovery.report", () => {
     expect(document.querySelector("[data-cap-override]")).toBeNull();
   });
 
+  it("says a protocol database left out of the run is not selected for this harvest, the same sentence as Harvest (M10a)", async () => {
+    const { engine } = setUp();
+    engine.handle("POST", "/api/v1/discovery/runs", { providers: ["crossref", "openalex"] });
+    render(<DiscoveryReport locale="en" />);
+    await screen.findByRole("heading", { level: 1, name: TITLE });
+    const notSearched = document.querySelector("[data-not-searched]") as HTMLElement;
+    expect(notSearched).toHaveTextContent("Semantic Scholar · Not selected for this harvest.");
+    expect(notSearched).toHaveTextContent("PubMed · Not selected for this harvest.");
+    expect(notSearched).toHaveTextContent("bioRxiv · off by default");
+    expect(notSearched).not.toHaveTextContent("not_selected_for_run");
+  });
+
   it("says the duplicate counts are not an older run's, never 0, and keeps the older run read only", async () => {
     setUp({ runs: 2, search: "?run=run_001" });
     render(<DiscoveryReport locale="en" />);

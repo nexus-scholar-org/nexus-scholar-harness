@@ -24,7 +24,24 @@ import {
   type LegView,
   type Refusal,
 } from "@/components/discovery-frame";
-import { cancelJob, getPlan, getRun, getRuns, startRun, type DiscoveryJob, type Plan, type RunDetail, type Runs, type SearchLeg } from "@/lib/discovery-api";
+import { DatabasePicker } from "@/components/database-picker";
+import { DiffersLine, ProviderUnknownCard, pickerItems, pickerLabels, protocolList, readDatabasesParam, sameList } from "@/components/discovery-plan";
+import {
+  cancelJob,
+  finishPreparation,
+  getPlan,
+  getRun,
+  getRuns,
+  preparationUnfinished,
+  startRun,
+  type DiscoveryJob,
+  type Plan,
+  type Preparation,
+  type RunDetail,
+  type RunRequest,
+  type Runs,
+  type SearchLeg,
+} from "@/lib/discovery-api";
 import { getCorpus, type Corpus } from "@/lib/screening-v1";
 import { discoveryT, providerName, type DiscoveryCopyKey } from "@/lib/discovery-copy";
 
@@ -34,20 +51,43 @@ import { discoveryT, providerName, type DiscoveryCopyKey } from "@/lib/discovery
  * the engine reports it, stop the whole harvest if needed, and read how each
  * database ended. One Cancel for the whole harvest: the engine has no stop for
  * a single database. A finished browser run is not frozen; the hand-off is.
+ *
+ * M10a (decided 2026-11-14, item 2a): the databases of this harvest are chosen
+ * and ordered with the picker, pre-filled from `?databases=` (the Plan's link)
+ * or the protocol. Start sends `providers` only once the picker was touched or
+ * the address carried a choice; untouched, the run uses the protocol's list.
+ *
+ * M3i-harvest-robustness: the search is one of four steps; duplicates, abstracts
+ * and checks follow it, and only the last makes the works the hand-off needs.
+ * The screen reads each run's `preparation` (the engine's stage marker, the same
+ * after the console restarted): it names the step while a job runs, says when
+ * those steps failed, were stopped or never ended, and offers "Finish preparing
+ * this corpus" (`POST /discovery/runs/{run}/prepare`), which searches nothing
+ * again. Stop stays available in every step; after the search it takes effect
+ * when the current step ends.
  */
 
 const LEG_CODES = new Set(["PROVIDER_RATE_LIMITED", "PROVIDER_TIMEOUT", "PROVIDER_UNAVAILABLE", "PROVIDER_REFUSED"]);
 
-function legRole(leg: { status: string; cap_hit: boolean }): DecisionRole {
+/**
+ * A database that finished `ok` with nothing fetched while it reported no
+ * results (0, or no total): "0 results", never "Done". A database that
+ * reported more than 0 but sent nothing keeps "Done" and its counts (M10a).
+ */
+export function isZeroLeg(leg: { status: string; fetched: number; reported_total?: number | null }): boolean {
+  return leg.status === "ok" && leg.fetched === 0 && (leg.reported_total == null || leg.reported_total === 0);
+}
+
+function legRole(leg: { status: string; cap_hit: boolean; fetched: number; reported_total: number | null }): DecisionRole {
   if (leg.status === "failed") return "blocked";
   if (leg.status === "stopped") return "exclude";
-  if (leg.cap_hit) return "unclear";
+  if (leg.cap_hit || isZeroLeg(leg)) return "unclear";
   return "include";
 }
 
 export function LegRow({ locale, leg, full }: Readonly<{ locale: Locale; leg: LegView; full?: SearchLeg }>) {
   const t = discoveryT(locale);
-  const statusKey = `harvest.leg.status.${leg.status}` as DiscoveryCopyKey;
+  const statusKey = `harvest.leg.status.${isZeroLeg(leg) ? "none" : leg.status}` as DiscoveryCopyKey;
   const known = ["ok", "running", "failed", "stopped"].includes(leg.status);
   const count = leg.cap_hit
     ? t("lowerBound", { n: leg.fetched })
@@ -100,6 +140,15 @@ export function LegRow({ locale, leg, full }: Readonly<{ locale: Locale; leg: Le
           <p className="text-xs text-ink-muted" data-cap-source={capSource}>
             {t(`harvest.leg.capSource.${capSource}` as DiscoveryCopyKey)}
           </p>
+        ) : null}
+        {/* M10a (PRISMA-S): the query this database received, as the leg recorded it. */}
+        {full?.executed_query ? (
+          <div className="mt-1">
+            <p className="text-xs text-ink-muted">{t("harvest.leg.query")}</p>
+            <code dir="ltr" className="block font-mono text-[0.8125rem] leading-[1.125rem] text-ink [overflow-wrap:anywhere]" data-leg-query>
+              {full.executed_query}
+            </code>
+          </div>
         ) : null}
       </td>
     </tr>
@@ -157,27 +206,66 @@ export function DiscoveryHarvest({ locale }: Readonly<{ locale: Locale }>) {
   const [starting, setStarting] = useState(false);
   const [stopping, setStopping] = useState(false);
   const [again, setAgain] = useState(false);
+  // M3i: a "finish preparing" request is being sent; the run the running job prepares (for its lede).
+  const [finishing, setFinishing] = useState(false);
+  const [jobRun, setJobRun] = useState<string | null>(null);
+  // M10a: `?databases=` read after hydration (like `?run=`); the picker's choice; whether it was touched.
+  const [address, setAddress] = useState<{ ready: boolean; value: string[] | null }>({ ready: false, value: null });
+  const [choice, setChoice] = useState<string[] | null>(null);
+  const [touched, setTouched] = useState(false);
+  // M10a: the databases this page's Start asked, in order (the `providers` sent, else the protocol's list); null after a reattach.
+  const [startedWith, setStartedWith] = useState<string[] | null>(null);
   const heading = useRef<HTMLHeadingElement>(null);
   const capField = useRef<HTMLInputElement>(null);
+  // "Reset to the protocol" removes the button pressed (the card, or the reset once nothing differs):
+  // focus goes to the h1, as soon as it is on the page (M10a).
+  const focusHeading = useRef(false);
+
+  useEffect(() => {
+    setAddress({ ready: true, value: readDatabasesParam() });
+  }, []);
+
+  useEffect(() => {
+    if (focusHeading.current && heading.current) {
+      focusHeading.current = false;
+      heading.current.focus();
+    }
+  });
 
   const load = useCallback(async () => {
     setLoadError(null);
     try {
-      const [nextRuns, nextPlan] = await Promise.all([getRuns(origin), getPlan(origin)]);
+      // A choice in the address is read through the plan, which checks it (`PROVIDER_UNKNOWN`).
+      const [nextRuns, nextPlan] = await Promise.all([getRuns(origin), getPlan(origin, address.value)]);
       setRuns(nextRuns);
       setPlan(nextPlan);
+      setChoice((current) => current ?? nextPlan.requested_providers ?? protocolList(nextPlan));
       const active = nextRuns.active_job;
-      if (active && active.kind === "run") setJobId(active.job_id);
-      setOtherJob(active && active.kind !== "run" ? active : null);
+      // M3i: a search and a "finish preparing" job are both followed here.
+      const harvestJob = !!active && (active.kind === "run" || active.kind === "prepare");
+      if (active && harvestJob) {
+        setJobId(active.job_id);
+        setJobRun(nextRuns.runs.find((r) => r.preparation?.job_id === active.job_id)?.run ?? null);
+      }
+      setOtherJob(active && !harvestJob ? active : null);
     } catch (error) {
       setLoadError(refusalOf(error));
     }
     getCorpus(origin).then(setCorpus, () => undefined);
-  }, [origin]);
+  }, [origin, address.value]);
 
   useEffect(() => {
-    if (ready) void load();
-  }, [ready, load]);
+    if (ready && address.ready) void load();
+  }, [ready, address.ready, load]);
+
+  /** "Reset to the protocol": the protocol's list, untouched, and no address choice (so no `providers`). */
+  const resetChoice = () => {
+    focusHeading.current = true;
+    setTouched(false);
+    setStartError(null);
+    setChoice(plan ? protocolList(plan) : null);
+    if (address.value) setAddress({ ready: true, value: null });
+  };
 
   const selected = wanted || runs?.runs[0]?.run || "";
   const newest = !!runs && runs.runs[0]?.run === selected;
@@ -198,6 +286,8 @@ export function DiscoveryHarvest({ locale }: Readonly<{ locale: Locale }>) {
     (job: DiscoveryJob | null) => {
       setLastJob(job);
       setJobId(null);
+      setJobRun(null);
+      setStartedWith(null);
       setStopping(false);
       setAgain(false);
       void load();
@@ -208,11 +298,16 @@ export function DiscoveryHarvest({ locale }: Readonly<{ locale: Locale }>) {
   const stream = useJobStream(origin, jobId, onEnd);
   const running = !!jobId && !stream.ended;
   const discoveryDone = stream.stages.some((s) => s.stage === "discovery");
+  // M3i: the job is in the steps after the search (a search that ended, or a "finish preparing" job).
+  const finishJob = stream.job?.kind === "prepare";
+  const preparingJob = running && (finishJob || discoveryDone);
 
   const start = async () => {
     setStartError(null);
     setCapError(false);
-    const body: { cap_override?: number; note?: string } = {};
+    const body: RunRequest = {};
+    // M10a: the chosen databases, in order, once touched or carried by the address; else the protocol's list.
+    if ((touched || address.value) && choice) body.providers = choice;
     if (cap.trim()) {
       if (!/^\d+$/.test(cap.trim())) {
         setCapError(true);
@@ -226,6 +321,7 @@ export function DiscoveryHarvest({ locale }: Readonly<{ locale: Locale }>) {
     try {
       const { job } = await startRun(origin, body);
       setLastJob(null);
+      setStartedWith(body.providers ?? (plan ? protocolList(plan) : null));
       setJobId(job.job_id);
     } catch (error) {
       const refusal = refusalOf(error);
@@ -251,10 +347,29 @@ export function DiscoveryHarvest({ locale }: Readonly<{ locale: Locale }>) {
     }
   };
 
+  /** "Finish preparing this corpus": the remaining steps from the run's saved records, no search. */
+  const finish = async () => {
+    if (!selected) return;
+    setStartError(null);
+    setFinishing(true);
+    try {
+      const { job } = await finishPreparation(origin, selected);
+      setLastJob(null);
+      setStartedWith(null);
+      setJobRun(selected);
+      setJobId(job.job_id);
+    } catch (error) {
+      setStartError(refusalOf(error));
+    } finally {
+      setFinishing(false);
+    }
+  };
+
   const follow = (refusal: Refusal) => {
     const job = (refusal.details as { job?: DiscoveryJob } | undefined)?.job;
-    if (job?.kind === "run") {
+    if (job?.kind === "run" || job?.kind === "prepare") {
       setStartError(null);
+      setStartedWith(null);
       setJobId(job.job_id);
     }
   };
@@ -266,11 +381,35 @@ export function DiscoveryHarvest({ locale }: Readonly<{ locale: Locale }>) {
   }));
   const changed =
     !!detail && !!plan && (detail.query_text !== plan.query.text || (detail.year_min ?? null) !== plan.query.year_min || (detail.year_max ?? null) !== plan.query.year_max);
-  const unselected = plan?.providers.filter((p) => !p.selected) ?? [];
-  const jobError = lastJob?.state === "failed" ? lastJob.error : null;
+  const protocol = plan ? protocolList(plan) : [];
+  // The databases the selected run asked: its `requested_providers` when it carries them (a stopped
+  // run's legs can be a strict prefix of that list), else the protocol's list and whatever legs it has.
+  // A protocol database it did not ask reads "Not selected for this harvest." (the report's `not_selected_for_run`).
+  const asked = new Set(detail?.requested_providers ?? [...protocol, ...(detail?.legs ?? []).map((l) => l.provider)]);
+  const notAsked = (plan?.providers ?? [])
+    .filter((p) => !asked.has(p.name))
+    .map((p) => ({
+      name: p.name,
+      text:
+        detail?.requested_providers && protocol.includes(p.name)
+          ? t("harvest.leg.notChosen")
+          : p.status === "off_by_default"
+            ? t("harvest.leg.offByDefault")
+            : t("harvest.leg.notSelected"),
+    }));
+  // M3i: the steps after the selected run's search, as the engine reads them from its marker. The
+  // runs list is read first after a job ends, so it wins over the run detail still on screen.
+  const preparation: Preparation | null = summary?.preparation ?? detail?.preparation ?? null;
+  const unfinished = !running && preparationUnfinished(preparation);
+  // A job that failed after its search is told by the preparation card, not as a failed search.
+  const jobError = lastJob?.state === "failed" && !unfinished ? lastJob.error : null;
   const title = running
-    ? t("harvest.title.running")
-    : lastJob?.state === "cancelled"
+    ? preparingJob
+      ? t("harvest.title.preparing")
+      : t("harvest.title.running")
+    : unfinished && preparation
+      ? t(`harvest.title.prep.${preparation.state}` as DiscoveryCopyKey)
+      : lastJob?.state === "cancelled"
       ? t("harvest.title.cancelled")
       : lastJob?.state === "failed"
         ? t("harvest.title.failed")
@@ -323,7 +462,7 @@ export function DiscoveryHarvest({ locale }: Readonly<{ locale: Locale }>) {
         {t("harvest.form.noteHelp")}
       </p>
       <div className="mt-4">
-        <Button variant={selected ? "secondary" : "primary"} onClick={() => void start()} disabled={starting} data-start>
+        <Button variant={selected ? "secondary" : "primary"} onClick={() => void start()} disabled={starting || !choice?.length} data-start>
           {selected ? t("harvest.again") : t("harvest.start")}
         </Button>
       </div>
@@ -339,10 +478,36 @@ export function DiscoveryHarvest({ locale }: Readonly<{ locale: Locale }>) {
     </section>
   );
 
+  // M10a: the database picker ("What will be searched"), the line naming how the choice differs, and the reset.
+  const picker =
+    plan && choice ? (
+      <div className="mt-3 space-y-3" data-harvest-picker>
+        <DatabasePicker
+          items={pickerItems(locale)}
+          value={choice}
+          onChange={(next) => {
+            setChoice(next);
+            setTouched(true);
+          }}
+          labels={pickerLabels(locale)}
+        />
+        <DiffersLine locale={locale} chosen={choice} protocol={protocol} />
+        {!sameList(choice, protocol) ? (
+          <Button onClick={resetChoice} data-picker-reset>
+            {t("plan.picker.reset")}
+          </Button>
+        ) : null}
+      </div>
+    ) : null;
+
   return (
     <DiscoveryFrame locale={locale} current="harvest" origin={origin} run={wanted}>
       {loadError && !runs ? (
-        <DiscoveryRefusal locale={locale} refusal={loadError} origin={origin} onRetry={() => void load()} pageHeading />
+        loadError.code === "PROVIDER_UNKNOWN" ? (
+          <ProviderUnknownCard locale={locale} refusal={loadError} origin={origin} onReset={resetChoice} pageHeading />
+        ) : (
+          <DiscoveryRefusal locale={locale} refusal={loadError} origin={origin} onRetry={() => void load()} pageHeading />
+        )
       ) : !runs || !plan ? (
         <Loading locale={locale} />
       ) : (
@@ -366,16 +531,17 @@ export function DiscoveryHarvest({ locale }: Readonly<{ locale: Locale }>) {
             {!selected && !running ? <p className="mt-2 max-w-2xl text-ink-muted">{t("harvest.lede.ready")}</p> : null}
             {running ? (
               <p className="mt-2">
-                <DecisionBadge role="include">{stopping ? t("harvest.badge.stopping") : t("harvest.badge.running")}</DecisionBadge>
+                <DecisionBadge role="include">{stopping ? t("harvest.badge.stopping") : preparingJob ? t("harvest.badge.preparing") : t("harvest.badge.running")}</DecisionBadge>
               </p>
             ) : summary ? (
               <p className="mt-2 flex flex-wrap items-center gap-2 text-ink" data-headline>
-                <DecisionBadge role={summary.status === "PARTIAL" ? "unclear" : "include"}>{statusText(locale, summary.status)}</DecisionBadge>
+                {/* M3i: the search's own status is not shown as a green badge under a title that says the corpus is not prepared. */}
+                {unfinished ? null : <DecisionBadge role={summary.status === "PARTIAL" ? "unclear" : "include"}>{statusText(locale, summary.status)}</DecisionBadge>}
                 <span>{t("harvest.headline", { fetched: summary.fetched_total, legs: summary.legs_total })}</span>
               </p>
             ) : null}
             {!running ? <RunSelector locale={locale} runs={runs.runs} selected={selected} origin={origin} step="harvest" /> : null}
-            {!running ? <OlderRunNote locale={locale} summary={summary} newest={newest} /> : null}
+            {!running && !unfinished ? <OlderRunNote locale={locale} summary={summary} newest={newest} /> : null}
           </header>
 
           {otherJob ? (
@@ -388,8 +554,12 @@ export function DiscoveryHarvest({ locale }: Readonly<{ locale: Locale }>) {
           ) : null}
           {startError ? (
             <div className="space-y-2">
-              <DiscoveryRefusal locale={locale} refusal={startError} origin={origin} onRetry={startError.code === "MAILTO_NOT_SET" || startError.code === "OPENALEX_KEY_NOT_SET" ? () => { setStartError(null); void load(); } : undefined} />
-              {startError.code === "DISCOVERY_JOB_ACTIVE" && (startError.details as { job?: DiscoveryJob } | undefined)?.job?.kind === "run" ? (
+              {startError.code === "PROVIDER_UNKNOWN" ? (
+                <ProviderUnknownCard locale={locale} refusal={startError} origin={origin} onReset={resetChoice} />
+              ) : (
+                <DiscoveryRefusal locale={locale} refusal={startError} origin={origin} onRetry={["MAILTO_NOT_SET", "OPENALEX_KEY_NOT_SET", "PREPARATION_NOT_AVAILABLE"].includes(startError.code) ? () => { setStartError(null); void load(); } : undefined} />
+              )}
+              {startError.code === "DISCOVERY_JOB_ACTIVE" && ["run", "prepare"].includes((startError.details as { job?: DiscoveryJob } | undefined)?.job?.kind ?? "") ? (
                 <Button onClick={() => follow(startError)}>{t("job.follow")}</Button>
               ) : null}
             </div>
@@ -406,21 +576,32 @@ export function DiscoveryHarvest({ locale }: Readonly<{ locale: Locale }>) {
           {running ? (
             <div className="grid gap-6 lg:grid-cols-3">
               <section className="space-y-4 rounded-lg border border-rule bg-leaf p-5 min-w-0 lg:col-span-2" data-live>
-                {stream.legs.length ? <LegTable locale={locale} legs={stream.legs} /> : <p role="status">{t("harvest.reading")}</p>}
+                {finishJob ? (
+                  <p role="status" className="text-ink" data-preparing>
+                    <bdi>{t("harvest.preparing.lede", { run: jobRun ?? selected })}</bdi>
+                  </p>
+                ) : stream.legs.length ? (
+                  <LegTable locale={locale} legs={stream.legs} />
+                ) : (
+                  <p role="status">{t("harvest.reading")}</p>
+                )}
+                {/* Picker Loading (M10a): while the run runs, the picker gives way to the databases asked, in order. */}
+                {startedWith?.length ? <AskedList locale={locale} names={startedWith} protocol={protocol} /> : null}
                 <Stages locale={locale} stages={stream.stages} />
               </section>
               <aside className="rounded-lg border border-rule bg-leaf p-5">
                 <h2 className="font-semibold text-ink">{t("harvest.stop.title")}</h2>
-                <p className="mt-2 text-sm text-ink">{t("harvest.stop.body")}</p>
-                {discoveryDone ? (
-                  <p className="mt-3 text-sm text-ink-muted" data-stop-late>
+                {/* M3i: Stop in every step. After the search the engine reads it before the next step starts. */}
+                {preparingJob ? (
+                  <p className="mt-2 text-sm text-ink" data-stop-late>
                     {t("harvest.stop.late")}
                   </p>
                 ) : (
-                  <Button className="mt-3" onClick={() => void stop()} disabled={stopping} data-stop>
-                    {t("harvest.stop")}
-                  </Button>
+                  <p className="mt-2 text-sm text-ink">{t("harvest.stop.body")}</p>
                 )}
+                <Button className="mt-3" onClick={() => void stop()} disabled={stopping} data-stop>
+                  {preparingJob ? t("harvest.stop.prepare") : t("harvest.stop")}
+                </Button>
               </aside>
             </div>
           ) : !selected ? (
@@ -429,14 +610,7 @@ export function DiscoveryHarvest({ locale }: Readonly<{ locale: Locale }>) {
                 <h2 id="harvest-will" className="font-semibold text-ink">
                   {t("harvest.willSearch")}
                 </h2>
-                <ul className="mt-3 space-y-1 text-ink">
-                  {plan.providers.map((p) => (
-                    <li key={p.name} data-will={p.name}>
-                      {providerName(p.name)}
-                      {!p.selected ? <span className="text-sm text-ink-muted"> · {p.status === "off_by_default" ? t("harvest.leg.offByDefault") : t("harvest.leg.notSelected")}</span> : null}
-                    </li>
-                  ))}
-                </ul>
+                {picker}
                 <p className="mt-3 text-sm text-ink-muted">
                   {t("plan.limits.cap")}: <bdi dir="ltr">{plan.cap.value}</bdi> ·{" "}
                   {plan.cap.source === "protocol" ? t("harvest.leg.capSource.protocol") : t("harvest.leg.capSource.engine_ceiling")}
@@ -472,11 +646,16 @@ export function DiscoveryHarvest({ locale }: Readonly<{ locale: Locale }>) {
                       : {t("harvest.failedList")}
                     </p>
                   ) : null}
-                  {unselected.length ? (
+                  {detail.requested_providers?.length ? (
+                    <div className="mt-3">
+                      <AskedList locale={locale} names={detail.requested_providers} protocol={protocol} />
+                    </div>
+                  ) : null}
+                  {notAsked.length ? (
                     <ul className="mt-3 space-y-1 text-sm text-ink-muted">
-                      {unselected.map((p) => (
-                        <li key={p.name}>
-                          {providerName(p.name)} · {p.status === "off_by_default" ? t("harvest.leg.offByDefault") : t("harvest.leg.notSelected")}
+                      {notAsked.map((p) => (
+                        <li key={p.name} data-not-asked={p.name}>
+                          {providerName(p.name)} · {p.text}
                         </li>
                       ))}
                     </ul>
@@ -503,7 +682,17 @@ export function DiscoveryHarvest({ locale }: Readonly<{ locale: Locale }>) {
                 </section>
               </div>
               <aside className="space-y-4">
-                {newest ? (
+                {unfinished && preparation ? (
+                  <>
+                    <PreparationCard locale={locale} preparation={preparation} onFinish={() => void finish()} busy={finishing} />
+                    <p>
+                      <a className={LINK} href={discoveryHref(locale, "report", origin, selected)}>
+                        {t("harvest.next.report")}
+                      </a>
+                    </p>
+                  </>
+                ) : null}
+                {newest && !unfinished ? (
                   <section className="rounded-lg border border-rule bg-leaf p-5" data-next-links>
                     <a className="inline-flex min-h-11 items-center rounded-md bg-brand px-4 font-medium text-on-brand" href={discoveryHref(locale, "dedup", origin)}>
                       {t("harvest.next.dedup")}
@@ -522,7 +711,15 @@ export function DiscoveryHarvest({ locale }: Readonly<{ locale: Locale }>) {
                 ) : null}
                 {newest && !accepted ? (
                   again ? (
-                    form
+                    <>
+                      <section aria-labelledby="harvest-again-will" className="rounded-lg border border-rule bg-leaf p-5">
+                        <h2 id="harvest-again-will" className="font-semibold text-ink">
+                          {t("harvest.willSearch")}
+                        </h2>
+                        {picker}
+                      </section>
+                      {form}
+                    </>
                   ) : (
                     <section className="rounded-lg border border-rule bg-leaf p-5">
                       <p className="text-sm text-ink-muted">{t("harvest.againHelp")}</p>
@@ -538,6 +735,102 @@ export function DiscoveryHarvest({ locale }: Readonly<{ locale: Locale }>) {
         </div>
       )}
     </DiscoveryFrame>
+  );
+}
+
+const PREPARATION_STAGES = ["deduplication", "hydration", "verification"];
+
+/**
+ * M3i: the steps after the search did not end (`failed`, `stopped` or `interrupted`). Says which
+ * step, in the engine's own record, shows the engine's message under Details, and offers the one
+ * action: finish from the saved records. Nothing here is computed by the browser.
+ */
+function PreparationCard({ locale, preparation, onFinish, busy }: Readonly<{ locale: Locale; preparation: Preparation; onFinish: () => void; busy: boolean }>) {
+  const t = discoveryT(locale);
+  const stageName = (stage: string | null): string | null =>
+    stage && PREPARATION_STAGES.includes(stage) ? t(`harvest.stage.${stage}` as DiscoveryCopyKey) : stage;
+  const state = preparation.state as "failed" | "stopped" | "interrupted";
+  const stage = stageName(preparation.stage);
+  const ended = PREPARATION_STAGES.filter((name) => name in preparation.stages);
+  return (
+    <section
+      aria-labelledby="harvest-prep"
+      className="rounded-lg border border-rule-strong bg-leaf p-5"
+      data-preparation={state}
+      data-preparation-stage={preparation.stage ?? ""}
+    >
+      <h2 id="harvest-prep" className="font-semibold text-ink">
+        {t("harvest.prep.card")}
+      </h2>
+      <p className="mt-2">
+        <DecisionBadge role={state === "failed" ? "blocked" : "unclear"}>{t(`harvest.prep.badge.${state}` as DiscoveryCopyKey)}</DecisionBadge>
+      </p>
+      <p className="mt-2 text-sm text-ink" data-preparation-body>
+        {state !== "interrupted" && stage ? t(`harvest.prep.${state}` as DiscoveryCopyKey, { stage }) : t("harvest.prep.interrupted")}
+      </p>
+      {state === "interrupted" && stage ? <p className="mt-1 text-sm text-ink">{t("harvest.prep.interruptedAt", { stage })}</p> : null}
+      {preparation.marker ? (
+        <div className="mt-3 text-sm">
+          <h3 className="text-ink-muted">{t("harvest.prep.ended")}</h3>
+          {ended.length ? (
+            <ul className="mt-1 list-disc ps-5 text-ink">
+              {ended.map((name) => (
+                <li key={name} data-stage-ended={name}>
+                  {stageName(name)}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="mt-1 text-ink">{t("harvest.prep.noneEnded")}</p>
+          )}
+        </div>
+      ) : (
+        <p className="mt-2 text-sm text-ink-muted" data-no-marker>
+          {t("harvest.prep.noMarker")}
+        </p>
+      )}
+      {preparation.message ? (
+        <details className="mt-2 text-xs">
+          <summary className="min-h-11 cursor-pointer py-3 leading-5 rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus text-ink-muted">{DETAILS_LABEL[locale]}</summary>
+          <p className="text-ink-muted">{t("harvest.prep.error")}</p>
+          <p className="font-mono text-blocked [overflow-wrap:anywhere]" dir="ltr" data-preparation-message>
+            {preparation.message}
+          </p>
+        </details>
+      ) : null}
+      {preparation.can_finish ? (
+        <>
+          <Button variant="primary" className="mt-4" onClick={onFinish} disabled={busy} data-finish>
+            {t("harvest.prep.finish")}
+          </Button>
+          <p className="mt-2 text-xs text-ink-muted">{t("harvest.prep.finishHelp")}</p>
+        </>
+      ) : (
+        <p className="mt-3 text-sm text-ink" data-cannot-finish={preparation.cannot_finish ?? ""}>
+          {preparation.cannot_finish === "corpus_accepted" ? t("harvest.prep.cannotFinishAccepted") : t("harvest.prep.cannotFinish")}
+        </p>
+      )}
+    </section>
+  );
+}
+
+/** "Databases asked, in order" (M10a): a run's asked list, and the line naming how it differs from the protocol. */
+function AskedList({ locale, names, protocol }: Readonly<{ locale: Locale; names: readonly string[]; protocol: readonly string[] }>) {
+  const t = discoveryT(locale);
+  return (
+    <div data-asked-list>
+      <h3 className="text-sm font-semibold text-ink">{t("harvest.asked.title")}</h3>
+      <ol className="mt-1 list-decimal space-y-1 ps-5 text-sm text-ink">
+        {names.map((name) => (
+          <li key={name} data-asked={name}>
+            {providerName(name)}
+          </li>
+        ))}
+      </ol>
+      <div className="mt-2">
+        <DiffersLine locale={locale} chosen={names} protocol={protocol} />
+      </div>
+    </div>
   );
 }
 

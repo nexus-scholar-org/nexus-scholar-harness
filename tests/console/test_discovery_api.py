@@ -911,3 +911,354 @@ def test_f4_a_corpus_of_imports_keeps_its_own_view(env):
     corpus = client.get("/api/v1/screening/corpus").json()
     assert corpus["origin"] == "imports" and [d["label"] for d in corpus["databases"]] == ["Scopus"]
     assert corpus["preview"]["identified"] == 1
+
+
+# --------------------------------------------------------------------------- M10a: the database choice per harvest
+
+
+GOLDEN_DATABASES = ["openalex", "semanticscholar", "crossref", "arxiv", "pubmed"]
+
+
+def test_m10a_the_plan_without_providers_keeps_its_order_and_names_the_protocol_list(env):
+    client, ws, _ = env
+    plan = client.get(f"{BASE}/plan").json()
+    assert [p["name"] for p in plan["providers"]] == GOLDEN_DATABASES + ["biorxiv"]
+    assert plan["protocol_providers"] == GOLDEN_DATABASES
+    assert plan["requested_providers"] is None
+
+
+def test_m10a_the_plan_lists_the_chosen_databases_first_in_the_chosen_order(env):
+    """Decision 2026-11-14 item 2a: the chosen rows first, in order, then the others in the known order."""
+    client, ws, _ = env
+    default = {p["name"]: p for p in client.get(f"{BASE}/plan").json()["providers"]}
+    plan = client.get(f"{BASE}/plan", params={"providers": "crossref,Semantic Scholar"}).json()
+    assert plan["requested_providers"] == ["crossref", "semanticscholar"]
+    assert plan["protocol_providers"] == GOLDEN_DATABASES  # the protocol stays the default
+    assert [p["name"] for p in plan["providers"]] == [
+        "crossref", "semanticscholar", "openalex", "arxiv", "pubmed", "biorxiv"]
+    rows = {p["name"]: p for p in plan["providers"]}
+    for name in ("crossref", "semanticscholar"):
+        assert rows[name]["selected"] is True and rows[name]["status"] == "translated"
+        # The same string a run with these databases sends: the query does not depend on the choice.
+        assert rows[name]["executed_query"] == default[name]["executed_query"]
+        assert rows[name]["request"] == default[name]["request"]
+    for name in ("openalex", "arxiv", "pubmed"):
+        assert rows[name]["selected"] is False and rows[name]["status"] == "not_selected", rows[name]
+        assert rows[name]["executed_query"] is None and rows[name]["request"] is None
+    assert rows["biorxiv"]["status"] == "off_by_default" and rows["biorxiv"]["selected"] is False
+
+
+def test_m10a_the_plan_translates_a_chosen_database_the_protocol_does_not_select(env):
+    client, ws, _ = env
+    _edit_protocol(ws, lambda p: p["search_strategy"].__setitem__("target_databases", ["openalex", "crossref"]))
+    plan = client.get(f"{BASE}/plan?providers=pubmed,openalex").json()
+    assert plan["protocol_providers"] == ["openalex", "crossref"]
+    assert plan["requested_providers"] == ["pubmed", "openalex"]
+    assert [p["name"] for p in plan["providers"]][:3] == ["pubmed", "openalex", "semanticscholar"]
+    rows = {p["name"]: p for p in plan["providers"]}
+    assert rows["pubmed"]["status"] == "translated" and "[pdat]" in rows["pubmed"]["executed_query"]
+    assert rows["crossref"]["status"] == "not_selected" and rows["crossref"]["executed_query"] is None
+
+
+@pytest.mark.parametrize("value", ["scopus", "openalex,scopus", "", "openalex,,crossref"])
+def test_m10a_the_plan_refuses_an_unknown_or_empty_database_list(env, value):
+    client, ws, _ = env
+    response = client.get(f"{BASE}/plan", params={"providers": value})
+    assert response.status_code == 422 and _code(response) == "PROVIDER_UNKNOWN", response.text
+    assert response.json()["detail"]["details"]["known"] == GOLDEN_DATABASES + ["biorxiv"]
+
+
+def test_m10a_a_run_records_the_databases_asked_for_in_order(env):
+    client, ws, providers = env
+    job, events = _run(client, {"providers": ["crossref", "openalex", "arxiv"]})
+    assert job["state"] == "succeeded", job
+    manifest = json.loads((ws / "literature" / "search_runs" / "run_001" / "legs.json").read_text(encoding="utf-8"))
+    assert manifest["requested_providers"] == ["crossref", "openalex", "arxiv"]
+    # The legs run and are listed in the order asked.
+    assert [leg["provider"] for leg in manifest["legs"]] == ["crossref", "openalex", "arxiv"]
+    detail = client.get(f"{BASE}/runs/run_001").json()
+    assert detail["requested_providers"] == ["crossref", "openalex", "arxiv"]
+    assert [leg["provider"] for leg in detail["legs"]] == ["crossref", "openalex", "arxiv"]
+    summary = client.get(f"{BASE}/runs").json()["runs"][0]
+    assert summary["requested_providers"] == ["crossref", "openalex", "arxiv"]
+    report = client.get(f"{BASE}/report").json()
+    assert [r["database"] for r in report["identification"]] == ["crossref", "openalex", "arxiv"]
+
+    # A run without a choice uses the protocol's list and records none.
+    second, _ = _run(client, {})
+    assert second["state"] == "succeeded", second
+    manifest = json.loads((ws / "literature" / "search_runs" / "run_002" / "legs.json").read_text(encoding="utf-8"))
+    assert "requested_providers" in manifest and manifest["requested_providers"] is None
+    assert [leg["provider"] for leg in manifest["legs"]] == GOLDEN_DATABASES
+    assert client.get(f"{BASE}/runs/run_002").json()["requested_providers"] is None
+    assert client.get(f"{BASE}/runs").json()["runs"][0]["requested_providers"] is None
+
+
+def test_m10a_a_run_from_before_m10a_has_no_requested_providers(env):
+    client, ws, _ = env
+    _write_run(ws, 1, started="2026-11-01T10:00:00+00:00")
+    assert client.get(f"{BASE}/runs").json()["runs"][0]["requested_providers"] is None
+    assert client.get(f"{BASE}/runs/run_001").json()["requested_providers"] is None
+
+
+def test_m10a_the_report_says_a_protocol_database_was_not_selected_for_the_run(env):
+    client, ws, _ = env
+    job, _ = _run(client, {"providers": ["pubmed", "openalex"]})
+    assert job["state"] == "succeeded", job
+    reasons = {n["database"]: n["reason"] for n in client.get(f"{BASE}/report").json()["not_searched"]}
+    assert reasons == {
+        "semanticscholar": "not_selected_for_run", "crossref": "not_selected_for_run",
+        "arxiv": "not_selected_for_run", "biorxiv": "off by default",
+    }
+
+
+def test_m10a_other_not_searched_reasons_are_unchanged(env):
+    """A database the protocol does not select keeps its reason, chosen run or not."""
+    client, ws, _ = env
+    _edit_protocol(ws, lambda p: p["search_strategy"].__setitem__("target_databases", ["openalex", "crossref"]))
+    first, _ = _run(client, {})
+    assert first["state"] == "succeeded", first
+    reasons = {n["database"]: n["reason"] for n in client.get(f"{BASE}/report").json()["not_searched"]}
+    assert reasons == {"semanticscholar": "not selected in the protocol", "arxiv": "not selected in the protocol",
+                       "pubmed": "not selected in the protocol", "biorxiv": "off by default"}
+    second, _ = _run(client, {"providers": ["crossref"]})
+    assert second["state"] == "succeeded", second
+    reasons = {n["database"]: n["reason"] for n in client.get(f"{BASE}/report").json()["not_searched"]}
+    assert reasons == {"openalex": "not_selected_for_run", "semanticscholar": "not selected in the protocol",
+                       "arxiv": "not selected in the protocol", "pubmed": "not selected in the protocol",
+                       "biorxiv": "off by default"}
+
+
+def test_m10a_the_database_order_never_changes_the_corpus(env):
+    """Decision 2026-11-14 item 1: deduplication sorts by stable_order, so the order asked changes nothing."""
+    client, ws, providers = env
+    shared = "10.1/shared.0"
+    providers.set("openalex", FakeProvider("openalex", [
+        _doc("openalex", 0, doi=shared, title="UAV weed mapping with a shared DOI"),
+        _doc("openalex", 1, doi="", title="Weed maps from drone imagery at field scale"),
+        _doc("openalex", 2),
+    ]))
+    providers.set("crossref", FakeProvider("crossref", [
+        _doc("crossref", 0, doi=shared, title="UAV Weed Mapping With A Shared DOI"),
+        _doc("crossref", 1, doi="", title="Weed maps from drone imagery at field scale"),
+        _doc("crossref", 2),
+    ]))
+    providers.set("arxiv", FakeProvider("arxiv", [_doc("arxiv", 0, doi=shared), _doc("arxiv", 1)]))
+
+    def harvest(order: list[str]) -> tuple[list, dict, list]:
+        job, _ = _run(client, {"providers": order})
+        assert job["state"] == "succeeded", job
+        lit = ws / "literature"
+        deduped = json.loads((lit / "deduped.json").read_text(encoding="utf-8"))
+        clusters = json.loads((lit / "dedup" / "clusters.json").read_text(encoding="utf-8"))
+        verified = json.loads((lit / "verified.json").read_text(encoding="utf-8"))
+        return deduped, clusters, verified
+
+    first, first_clusters, first_verified = harvest(["openalex", "crossref", "arxiv"])
+    second, second_clusters, second_verified = harvest(["arxiv", "crossref", "openalex"])
+    assert len(first) == 5  # 8 records: one DOI group of three, one title pair
+    assert first == second  # same records, same representatives, same ids
+    assert first_clusters["clusters"] == second_clusters["clusters"]
+    assert first_verified == second_verified  # what the corpus accept reads
+    legs = [json.loads((ws / "literature" / "search_runs" / r / "legs.json").read_text(encoding="utf-8"))["legs"]
+            for r in ("run_001", "run_002")]
+    assert [leg["provider"] for leg in legs[0]] == ["openalex", "crossref", "arxiv"]
+    assert [leg["provider"] for leg in legs[1]] == ["arxiv", "crossref", "openalex"]
+
+
+# --------------------------------------------------------------------------- M10a review round 2
+
+
+ADAPTER_DEFAULT = ["openalex", "semanticscholar", "crossref", "arxiv"]
+NOT_FOR_RUN = "not_selected_for_run"
+
+
+def _legs_json(ws: Path, run: str) -> dict:
+    return json.loads((ws / "literature" / "search_runs" / run / "legs.json").read_text(encoding="utf-8"))
+
+
+def _reasons(client) -> dict[str, str]:
+    return {n["database"]: n["reason"] for n in client.get(f"{BASE}/report").json()["not_searched"]}
+
+
+def test_m10a_a_protocol_without_a_database_list_offers_the_adapter_default(env):
+    """protocol_providers is the list a body-less run searches: the adapter's four when the protocol names none."""
+    client, ws, _ = env
+    _edit_protocol(ws, lambda p: p["search_strategy"].pop("target_databases"))
+    plan = client.get(f"{BASE}/plan").json()
+    assert plan["protocol_providers"] == ADAPTER_DEFAULT
+    assert [p["name"] for p in plan["providers"] if p["selected"]] == ADAPTER_DEFAULT
+    first, _ = _run(client, {})
+    assert first["state"] == "succeeded", first
+    assert [leg["provider"] for leg in _legs_json(ws, "run_001")["legs"]] == plan["protocol_providers"]
+
+    second, _ = _run(client, {"providers": ["semanticscholar"]})
+    assert second["state"] == "succeeded", second
+    assert _reasons(client) == {
+        "openalex": NOT_FOR_RUN, "crossref": NOT_FOR_RUN, "arxiv": NOT_FOR_RUN,
+        "pubmed": "not selected in the protocol", "biorxiv": "off by default",
+    }
+
+
+def test_m10a_an_explicit_empty_database_list_offers_what_the_engine_searches(env, monkeypatch):
+    """An empty list makes the engine fall back to its own default suite; the plan says so, and the key check sees it."""
+    client, ws, providers = env
+    _edit_protocol(ws, lambda p: p["search_strategy"].__setitem__("target_databases", []))
+    plan = client.get(f"{BASE}/plan").json()
+    assert plan["protocol_providers"] == GOLDEN_DATABASES
+    rows = {p["name"]: p for p in plan["providers"]}
+    assert [n for n, r in rows.items() if r["selected"]] == GOLDEN_DATABASES
+    assert all(rows[n]["status"] == "translated" for n in GOLDEN_DATABASES)
+
+    monkeypatch.setattr(settings, "openalex_key", None)
+    refused = client.post(f"{BASE}/runs", json={})  # the engine would search OpenAlex
+    assert refused.status_code == 409 and _code(refused) == "OPENALEX_KEY_NOT_SET"
+    monkeypatch.setattr(settings, "openalex_key", "console-test-key")
+
+    job, _ = _run(client, {})
+    assert job["state"] == "succeeded", job
+    assert [leg["provider"] for leg in _legs_json(ws, "run_001")["legs"]] == GOLDEN_DATABASES
+    second, _ = _run(client, {"providers": ["crossref"]})
+    assert second["state"] == "succeeded", second
+    assert _reasons(client) == {
+        "openalex": NOT_FOR_RUN, "semanticscholar": NOT_FOR_RUN, "arxiv": NOT_FOR_RUN, "pubmed": NOT_FOR_RUN,
+        "biorxiv": "off by default",
+    }
+
+
+def test_m10a_a_protocol_name_the_run_would_drop_is_not_offered(env):
+    """An unknown name is dropped by the run, and a repeated one runs once: protocol_providers never lists either."""
+    client, ws, providers = env
+    _edit_protocol(ws, lambda p: p["search_strategy"].__setitem__(
+        "target_databases", ["Scopus", "crossref", "Semantic Scholar", "crossref"]))
+    plan = client.get(f"{BASE}/plan").json()
+    assert plan["protocol_providers"] == ["crossref", "semanticscholar"]
+    job, _ = _run(client, {})
+    assert job["state"] == "succeeded", job
+    assert [leg["provider"] for leg in _legs_json(ws, "run_001")["legs"]] == plan["protocol_providers"]
+    assert "Scopus" not in providers.by_name and len(providers.by_name["crossref"].queries) == 1
+
+
+def test_m10a_a_database_named_twice_in_the_plan_is_asked_for_once(env):
+    client, ws, _ = env
+    plan = client.get(f"{BASE}/plan", params={"providers": "crossref,Crossref,openalex,crossref"}).json()
+    assert plan["requested_providers"] == ["crossref", "openalex"]
+    assert [p["name"] for p in plan["providers"]][:3] == ["crossref", "openalex", "semanticscholar"]
+    assert [p["name"] for p in plan["providers"]].count("crossref") == 1
+
+
+def test_m10a_a_database_named_twice_in_a_run_is_searched_once(env):
+    """A repeated database used to run twice; _check_providers keeps the first of each name, in order."""
+    client, ws, providers = env
+    job, _ = _run(client, {"providers": ["crossref", "openalex", "Crossref"]})
+    assert job["state"] == "succeeded", job
+    manifest = _legs_json(ws, "run_001")
+    assert manifest["requested_providers"] == ["crossref", "openalex"]
+    assert [leg["provider"] for leg in manifest["legs"]] == ["crossref", "openalex"]
+    assert len(providers.by_name["crossref"].queries) == 1
+
+
+def test_m10a_a_database_named_twice_in_a_chase_is_chased_once(env, monkeypatch):
+    from types import SimpleNamespace
+
+    from scholar_harness.pipeline import citation_chase as cc
+
+    client, ws, _ = env
+    for name in ("load_seeds", "require_published", "require_no_pending_accept"):
+        monkeypatch.setattr(cc, name, lambda *a, **k: None)
+    asked: list[list[str]] = []
+
+    async def chase(workspace, *, providers, **kwargs):
+        asked.append(list(providers))
+        return SimpleNamespace(chase="chase_001", status="SUCCESS", reason=None, counts=SimpleNamespace(),
+                               published=False, cancelled=False, legs=[])
+
+    monkeypatch.setattr(cc, "run_citation_chase", chase)
+    started = client.post(f"{BASE}/chase/runs", json={
+        "providers": ["semanticscholar", "Semantic Scholar", "openalex", "semanticscholar"]})
+    assert started.status_code == 202, started.text
+    _events(client, started.json()["job"]["job_id"])
+    assert asked == [["semanticscholar", "openalex"]]
+
+
+def test_m10a_a_run_records_the_canonical_name_of_a_database_it_was_sent(env):
+    client, ws, _ = env
+    job, _ = _run(client, {"providers": ["Semantic Scholar", "crossref"]})
+    assert job["state"] == "succeeded", job
+    assert _legs_json(ws, "run_001")["requested_providers"] == ["semanticscholar", "crossref"]
+    assert client.get(f"{BASE}/runs/run_001").json()["requested_providers"] == ["semanticscholar", "crossref"]
+    assert client.get(f"{BASE}/runs").json()["runs"][0]["requested_providers"] == ["semanticscholar", "crossref"]
+
+
+def test_m10a_the_plan_row_under_a_choice_is_the_string_that_runs_leg_received(env):
+    """The plan under ?providers=X and a run sent providers=X: the real Crossref translation, compared leg to row."""
+    from scholar_search.providers.crossref import CrossrefProvider
+
+    client, ws, providers = env
+    crossref = CrossrefProvider()
+
+    async def refuse(*args, **kwargs):
+        raise RuntimeError("no request leaves the test")
+
+    crossref.client.get = refuse
+    providers.set("crossref", crossref)
+    try:
+        plan = client.get(f"{BASE}/plan", params={"providers": "crossref,openalex"}).json()
+        row = next(p for p in plan["providers"] if p["name"] == "crossref")
+        assert row["status"] == "translated" and row["executed_query"]
+        job, _ = _run(client, {"providers": ["crossref", "openalex"]})
+        assert job["state"] == "succeeded", job
+        leg = next(leg for leg in _legs_json(ws, "run_001")["legs"] if leg["provider"] == "crossref")
+        assert leg["executed_query"] == row["executed_query"]
+    finally:
+        asyncio.run(crossref.client.close())  # the HTTP client this test made; closing twice is harmless
+
+
+def test_m10a_the_methods_text_names_the_protocol_databases_left_out(env):
+    client, ws, _ = env
+    job, _ = _run(client, {"providers": ["pubmed", "openalex"]})
+    assert job["state"] == "succeeded", job
+    text = client.get(f"{BASE}/report").json()["methods_text"]["text"]
+    assert "semanticscholar, crossref and arxiv" in text and "not selected for this run" in text
+    report = (ws / "literature" / "search_runs" / "run_001" / "search_report.md").read_text(encoding="utf-8")
+    assert "not selected for this run: semanticscholar, crossref and arxiv" in report
+
+    second, _ = _run(client, {})
+    assert second["state"] == "succeeded", second
+    assert "not selected for this run" not in client.get(f"{BASE}/report").json()["methods_text"]["text"]
+
+
+def _resolved_names(monkeypatch, providers) -> list[list[str]]:
+    """The lists of names the run or recall hands ``_resolve_providers``, in call order."""
+    seen: list[list[str]] = []
+
+    def resolve(names):
+        seen.append(list(names or []))
+        return providers(names)
+
+    monkeypatch.setattr(disc, "_resolve_providers", resolve)
+    return seen
+
+
+def test_m10a_a_recall_on_an_empty_protocol_list_asks_the_engines_default_suite(recall_env, monkeypatch):
+    """target_databases: [] and no providers: the recall asks the five the engine searches, not nothing."""
+    from scholar_search.plan import DEFAULT_PROVIDERS
+
+    client, ws, providers = recall_env
+    _edit_protocol(ws, lambda p: p["search_strategy"].__setitem__("target_databases", []))
+    seen = _resolved_names(monkeypatch, providers)
+    check = _recall(client)
+    assert seen == [list(DEFAULT_PROVIDERS)] and len(DEFAULT_PROVIDERS) == 5
+    assert [leg["provider"] for leg in check["legs"]] == list(DEFAULT_PROVIDERS)
+
+
+def test_m10a_a_protocol_list_that_only_repeats_one_database_runs_one_leg(env, monkeypatch):
+    client, ws, providers = env
+    _edit_protocol(ws, lambda p: p["search_strategy"].__setitem__("target_databases", ["crossref", "crossref"]))
+    seen = _resolved_names(monkeypatch, providers)
+    assert client.get(f"{BASE}/plan").json()["protocol_providers"] == ["crossref"]
+    job, _ = _run(client, {})
+    assert job["state"] == "succeeded", job
+    assert seen == [["crossref"]], "the run asks for crossref once, and for no other name"
+    assert set(providers.by_name) == {"crossref"} and len(providers.by_name["crossref"].queries) == 1
+    assert [leg["provider"] for leg in _legs_json(ws, "run_001")["legs"]] == ["crossref"]

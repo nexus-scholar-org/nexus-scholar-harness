@@ -719,6 +719,25 @@ export const STATES: Record<string, StateEntry> = {
       ar: T("تغيّر البروتوكول بعد هذا البحث", "بحث هذا التشغيل باستعلام أو نطاق سنوات أو لغة أو حد أو قائمة قواعد بيانات لم تعد في البروتوكول. أعد البحث قبل قبول مجموعته. لم يُجمَّد شيء.", "التسليم", "ابحث مجددًا"),
     },
   },
+  // M3i-harvest-robustness: the steps after a search (duplicates, abstracts, checks) did not end.
+  PREPARATION_UNFINISHED: {
+    role: "unclear",
+    action: "harvest",
+    copy: {
+      en: T("The corpus is not prepared yet", "The search finished, but the steps after it (duplicates, abstracts, checks) did not end, so there are no works to accept. Finish preparing the corpus on the Harvest screen; no database is searched again. Nothing was frozen.", "The hand-off", "Open Harvest"),
+      fr: T("Le corpus n'est pas encore préparé", "La recherche est terminée, mais les étapes qui la suivent (doublons, résumés, vérifications) ne se sont pas terminées ; il n'y a donc aucun travail à accepter. Terminez la préparation du corpus dans l'écran de collecte ; aucune base n'est interrogée à nouveau. Rien n'a été figé.", "La remise", "Ouvrir la collecte"),
+      ar: T("المجموعة لم تُحضَّر بعد", "انتهى البحث، لكن الخطوات التي تليه (التكرارات والملخصات والفحوص) لم تنتهِ، فلا توجد أعمال تُقبل. أكمل تحضير المجموعة في شاشة الحصاد؛ لا يُعاد البحث في أي قاعدة بيانات. لم يُجمَّد شيء.", "التسليم", "افتح الحصاد"),
+    },
+  },
+  PREPARATION_NOT_AVAILABLE: {
+    role: "unclear",
+    action: "retry",
+    copy: {
+      en: T("There is nothing to finish for this run", "Its corpus is already prepared, a later run replaced it, its search was not kept, or its saved records cannot be read. The engine's reason is under Details. Nothing was changed.", "Finishing this run", "Check again"),
+      fr: T("Il n'y a rien à terminer pour cette exécution", "Son corpus est déjà préparé, une exécution ultérieure l'a remplacée, sa recherche n'a pas été conservée, ou ses notices enregistrées sont illisibles. La raison du moteur est dans les détails. Rien n'a été modifié.", "La fin de cette exécution", "Vérifier à nouveau"),
+      ar: T("لا يوجد ما يُكمَل لهذا التشغيل", "مجموعته محضَّرة بالفعل، أو حلّ محله تشغيل لاحق، أو لم يُحتفظ ببحثه، أو تتعذر قراءة سجلاته المحفوظة. سبب المحرك في التفاصيل. لم يتغير شيء.", "إكمال هذا التشغيل", "تحقق مجددًا"),
+    },
+  },
   // Review F2 (decision 2026-11-12): a flag on /summary and /queue, not a
   // refusal; Home shows it instead of a queue that starts over.
   PROTOCOL_CHANGED_SINCE_BATCH: {
@@ -913,13 +932,15 @@ export const STATES: Record<string, StateEntry> = {
       ar: T("لم يستطع المحرك قراءة هذا الطلب", "شكل الطلب ليس ما يتوقعه المحرك، مثل رقم أُرسل كنص أو ملاحظة تتجاوز 2000 حرف. لم يتغيّر شيء. سبب المحرك أدناه.", "هذا الإجراء", "صحّح القيمة المذكورة وأعد المحاولة"),
     },
   },
+  // M10a (spec 03 Refusals; Plan and Harvest of discovery): the unknown names are under Details;
+  // the screens supply the button, "Reset to the protocol". Explore's probe has its own card (`inception.probe.`).
   PROVIDER_UNKNOWN: {
     role: "blocked",
     action: "none",
     copy: {
-      en: T("A database name is not one the engine knows", "Nothing was started. The engine's list is under Details.", "Starting", "Choose from the list"),
-      fr: T("Un nom de base est inconnu du moteur", "Rien n'a été lancé. La liste du moteur est dans les détails.", "Le lancement", "Choisir dans la liste"),
-      ar: T("اسم قاعدة بيانات لا يعرفه المحرك", "لم يبدأ شيء. قائمة المحرك في التفاصيل.", "البدء", "اختر من القائمة"),
+      en: T("The database list was refused", "That database is not one the engine knows. Nothing was started.", "This harvest", "Reset to the protocol"),
+      fr: T("La liste des bases a été refusée", "Cette base n'est pas connue du moteur. Rien n'a été lancé.", "Cette collecte", "Revenir au protocole"),
+      ar: T("رُفضت قائمة قواعد البيانات", "قاعدة البيانات هذه ليست مما يعرفه المحرك. لم يبدأ شيء.", "هذا الحصاد", "العودة إلى البروتوكول"),
     },
   },
   STAGED_IMPORT_PENDING: {
@@ -996,6 +1017,26 @@ export const STATES: Record<string, StateEntry> = {
       en: T("Every database failed to answer", "There is no pool. Nothing was cached; try again later. The table names each failure.", "This search", "Search again"),
       fr: T("Aucune base n'a répondu", "Il n'y a pas de corpus. Rien n'a été mis en cache ; réessayez plus tard. Le tableau indique chaque échec.", "Cette recherche", "Chercher à nouveau"),
       ar: T("لم تُجب أي قاعدة بيانات", "لا توجد مجموعة أوراق. لم يُخزَّن شيء مؤقتًا؛ حاول لاحقًا. يذكر الجدول كل إخفاق.", "هذا البحث", "ابحث مجددًا"),
+    },
+  },
+  // M10a (spec 02 Refusals): the probe's database list and query, for Explore's probe refusals only
+  // (`probeStateKey`); every other inception screen keeps the generic card. Explore supplies the button.
+  "inception.probe.PROVIDER_UNKNOWN": {
+    role: "blocked",
+    action: "none",
+    copy: {
+      en: T("That database list cannot be searched", "The engine accepts a non-empty list of OpenAlex, Semantic Scholar, Crossref and arXiv, each once. Nothing was sent.", "This search", "Reset the databases"),
+      fr: T("Cette liste de bases ne peut pas être interrogée", "Le moteur accepte une liste non vide d'OpenAlex, Semantic Scholar, Crossref et arXiv, chacune une seule fois. Rien n'a été envoyé.", "Cette recherche", "Réinitialiser les bases"),
+      ar: T("لا يمكن البحث في قائمة قواعد البيانات هذه", "يقبل المحرك قائمة غير فارغة من OpenAlex وSemantic Scholar وCrossref وarXiv، كل منها مرة واحدة. لم يُرسل شيء.", "هذا البحث", "أعد ضبط قواعد البيانات"),
+    },
+  },
+  "inception.probe.BODY_INVALID": {
+    role: "blocked",
+    action: "none",
+    copy: {
+      en: T("That search request was not valid", "The query must be 1 to 2000 characters and cannot be sent with a narrower search. Nothing was sent.", "This search", "Edit the query"),
+      fr: T("Cette requête de recherche n'était pas valide", "La requête doit compter de 1 à 2000 caractères et ne peut pas être envoyée avec une recherche plus étroite. Rien n'a été envoyé.", "Cette recherche", "Modifier la requête"),
+      ar: T("طلب البحث هذا غير صالح", "يجب أن يتراوح الاستعلام بين 1 و2000 حرف، ولا يمكن إرساله مع بحث أضيق. لم يُرسل شيء.", "هذا البحث", "عدّل الاستعلام"),
     },
   },
   RECON_JOB_ACTIVE: {
@@ -1136,6 +1177,19 @@ export const INCEPTION_SCOPE = "inception.";
 /** The card key for a code shown on an inception screen: the scoped one when it exists. */
 export function inceptionStateKey(code: string): string {
   return STATES[INCEPTION_SCOPE + code] ? INCEPTION_SCOPE + code : code;
+}
+
+/**
+ * Explore's probe refusals (M10a): `PROVIDER_UNKNOWN` and `BODY_INVALID` of
+ * `POST .../recon/probe` name the database list and the query. Their cards sit
+ * under `inception.probe.`, which `inceptionStateKey` never resolves to, so a
+ * `BODY_INVALID` on any other inception screen keeps the generic card.
+ */
+export const PROBE_SCOPE = "inception.probe.";
+
+/** The card key for a refusal of Explore's probe start: the probe card when one exists, else the inception key. */
+export function probeStateKey(code: string): string {
+  return STATES[PROBE_SCOPE + code] ? PROBE_SCOPE + code : inceptionStateKey(code);
 }
 
 /** The card for a code; an unknown code renders as itself, never as another card. */
