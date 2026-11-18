@@ -281,16 +281,22 @@ def execute(
 # --- the report ------------------------------------------------------------------
 
 
-def _gate(name_gate: Gate, includes: int, kept: int) -> dict[str, Any]:
-    lower = pg.wilson_lower(kept, includes)
+def _gate(name_gate: Gate, includes: int, kept: int, *, strict_kept: int | None = None, measured: bool = True) -> dict[str, Any]:
+    """A draft gate. `passes` is the product's rule (a failed call is Unclear, so kept) and needs a run that
+    measured something; `passes_if_failed_calls_were_misses` is the same gate with every failed call a miss."""
+    strict = kept if strict_kept is None else strict_kept
+    lower, strict_lower = pg.wilson_lower(kept, includes), pg.wilson_lower(strict, includes)
+    enough = includes >= name_gate.min_includes
     return {
         "gate": name_gate.name,
         "draft_min_includes": name_gate.min_includes,
         "draft_recall_ci_low": name_gate.recall_ci_low,
         "includes_compared": includes,
-        "enough_includes": includes >= name_gate.min_includes,
+        "enough_includes": enough,
         "include_recall_ci_low": round(lower, 4),
-        "passes": includes >= name_gate.min_includes and lower >= name_gate.recall_ci_low,
+        "include_recall_ci_low_if_failed_calls_were_misses": round(strict_lower, 4),
+        "passes": measured and enough and lower >= name_gate.recall_ci_low,
+        "passes_if_failed_calls_were_misses": measured and enough and strict_lower >= name_gate.recall_ci_low,
     }
 
 
@@ -392,6 +398,13 @@ def analyse(
             "below_l2": recall is not None and recall < L2.recall_ci_low,
         })
 
+    warnings = []
+    if not_reached and stopped is None:
+        warnings.append(f"{len(not_reached)} record(s) got no result although the run was not stopped; they are not scored. The driver dropped them.")
+    if not base["measured"]:
+        warnings.append("no call succeeded: nothing was measured, and no gate passes")
+    if scope.get("limit"):
+        warnings.append(f"SMOKE RUN: only the first {scope['limit']} records by study id; not a measurement of the set")
     report = {
         "milestone": "M9a-measure",
         "task_version": base["task_version"],
@@ -404,6 +417,7 @@ def analyse(
         "scored": n,
         "not_reached": {"count": len(not_reached), "study_ids": not_reached},
         "stopped": stopped,
+        "warnings": warnings,
         "measured": base["measured"],
         "include_recall": {
             "point": ratio(kept, human_includes),
@@ -419,7 +433,7 @@ def analyse(
         "exclusion_rate_on_human_excludes": ratio(confusion["EXCLUDE"]["EXCLUDE"], sum(confusion["EXCLUDE"].values())),
         "unclear_rate": ratio(sum(1 for r in rows if r["outcome"] == "MAYBE"), n),
         "confusion": {"rows": "researcher", "columns": "agent outcome", "table": confusion, "driver_failed": driver_failed},
-        "gates": [_gate(g, human_includes, kept) for g in GATES],
+        "gates": [_gate(g, human_includes, kept, strict_kept=strict_kept, measured=base["measured"]) for g in GATES],
         "agent_left_undecided": {
             "count": len(undecided),
             "by_reason": dict(reasons),
@@ -470,6 +484,7 @@ def render_markdown(report: dict[str, Any]) -> str:
         "",
         f"Task `{report['task_version']}`, prompt `{report['prompt_sha256']}`. Scope `{report['scope']['scope']}`, "
         f"set `{report['scope']['set_sha256']}`, researcher's decisions {report['scope']['human_confirmation']}.",
+        *[f"**WARNING: {w}**" for w in report["warnings"]],
         f"{report['scored']} of {report['records']} records scored; {report['not_reached']['count']} not reached"
         + (f" (run stopped: {report['stopped']})." if report["stopped"] else "."),
         "",
@@ -489,11 +504,12 @@ def render_markdown(report: dict[str, Any]) -> str:
     for label in ("INCLUDE", "EXCLUDE"):
         row = cm[label]
         lines.append(f"| {label} | {row['INCLUDE']} | {row['MAYBE']} | {row['EXCLUDE']} | {report['confusion']['driver_failed'][label]} |")
-    lines += ["", "## Draft ladder gates (review-wide)", "| gate | includes compared | needed | recall lower bound | needed | passes |", "| :-- | --: | --: | --: | --: | :-- |"]
+    lines += ["", "## Draft ladder gates (review-wide)", "| gate | includes compared | needed | recall lower bound | if failed calls were misses | needed | passes | passes if failed calls were misses |", "| :-- | --: | --: | --: | --: | --: | :-- | :-- |"]
     for g in report["gates"]:
         lines.append(
             f"| {g['gate']} | {g['includes_compared']} | {g['draft_min_includes']} | {pct(g['include_recall_ci_low'])} | "
-            f"{pct(g['draft_recall_ci_low'])} | {'yes' if g['passes'] else 'no'} |"
+            f"{pct(g['include_recall_ci_low_if_failed_calls_were_misses'])} | "
+            f"{pct(g['draft_recall_ci_low'])} | {'yes' if g['passes'] else 'no'} | {'yes' if g['passes_if_failed_calls_were_misses'] else 'no'} |"
         )
     au = report["answers_not_usable"]
     lines += [

@@ -547,12 +547,15 @@ def gate_measure(
     from scholar_agent.drivers import make_driver
     from scholar_agent.keys import resolve_key
 
+    if c["expected"] is None:
+        console.print(f"[bold red]❌ {provider}/{model} has no price in the price table, so a cost ceiling cannot be enforced; measure does not run unpriced models.[/bold red]")
+        raise typer.Exit(1)
+    if cost_ceiling and cost_ceiling < c["expected"]:
+        console.print(f"[bold red]❌ The ceiling (${cost_ceiling:,.2f}) is below the expected cost (${c['expected']:,.2f}); nothing was sent.[/bold red]")
+        raise typer.Exit(1)
     key = resolve_key(provider)
     if key is None and provider != "openai_compatible":
         console.print(f"[bold red]❌ No {provider} key. Run: nexus-scholar keys set {provider}[/bold red]")
-        raise typer.Exit(1)
-    if c["expected"] is None:
-        console.print(f"[bold red]❌ {provider}/{model} has no price in the price table, so a cost ceiling cannot be enforced.[/bold red]")
         raise typer.Exit(1)
     ceiling = cost_ceiling or round(c["no_cache_expected_output"] * 1.5, 2)
     driver = make_driver(provider, api_key=key, base_url=base_url or None, **ms.driver_options(provider))
@@ -577,6 +580,8 @@ def gate_measure(
         f"unclear {report['unclear_rate']} · statuses {report['answers_not_usable']['driver_statuses']} · cost {_money(report['cost_usd']['total'])}"
         f"{' · STOPPED: ' + report['stopped'] if report['stopped'] else ''} · {int((datetime.now(UTC) - started).total_seconds())} s"
     )
+    for warning in report["warnings"]:
+        console.print(f"[bold yellow]WARNING: {warning}[/bold yellow]")
     typer.echo(f"report {paths['markdown']} (every record: {paths['json']})")
 
 

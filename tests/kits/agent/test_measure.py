@@ -381,3 +381,62 @@ def test_cli_where_no_call_succeeded_is_not_measured(tmp_path, monkeypatch):
         app, ["prompt-gate", "measure", "--workspace", str(_workspace(tmp_path)), "--scope", "all", "--model", MODEL, "--yes", "--out", str(tmp_path / "r")]
     )
     assert result.exit_code == 1 and "Not measured" in result.output and "401" in result.output
+
+
+# --- review round 1 ----------------------------------------------------------------
+
+
+def _many_includes(n: int = 80):
+    records = [pg.EvalRecord(f"SCI-{i:06d}", "INCLUDE", f"UAV weeds {i}", f"Drone maize study {i}.", "2024") for i in range(n)]
+    spec = pg.run_spec(PROTOCOL, model=MODEL, effort="low", max_tokens=1024)
+    return records, spec
+
+
+def test_a_run_where_every_call_failed_passes_no_gate():
+    # A failed call is Unclear, so it is "kept": without this guard 80 of 80 includes kept gave recall 1.0 and a pass.
+    records, spec = _many_includes()
+    dead = [DriverResult(r.study_id, "error", detail="401", usage=Usage(), model=MODEL) for r in records]
+    report = ms.analyse(scope={"scope": "all", "set_sha256": "x", "human_confirmation": "absent"}, records=records, results=dead,
+                        protocol=PROTOCOL, provider="anthropic", spec=spec, batch_of={})
+    assert report["measured"] is False and report["include_recall"]["point"] == 1.0
+    assert all(g["passes"] is False and g["passes_if_failed_calls_were_misses"] is False for g in report["gates"])
+    assert any("nothing was measured" in w for w in report["warnings"])
+
+
+def test_a_gate_names_which_figure_passes_when_some_calls_failed():
+    # 80 includes, 60 answered Include, 20 calls failed: lenient 80/80, strict 60/80.
+    assert ms._gate(ms.L2, 80, 80, strict_kept=60)["passes"] is True
+    assert ms._gate(ms.L2, 80, 80, strict_kept=60)["passes_if_failed_calls_were_misses"] is False
+    assert ms._gate(ms.L2, 80, 80, measured=False)["passes"] is False
+
+
+def test_results_a_driver_dropped_without_a_stop_are_flagged(tmp_path):
+    class Dropping(ScriptedDriver):
+        def run(self, requests, spec, **kw):
+            return super().run(requests, spec, **kw)[:8]
+
+    _, report = _measure(tmp_path, Dropping())
+    assert report["not_reached"]["count"] == 4 and report["stopped"] is None
+    assert any("driver dropped them" in w for w in report["warnings"])
+
+
+def test_a_smoke_run_says_so_in_the_report(tmp_path):
+    _, report = _measure(tmp_path, ScriptedDriver(), limit=6)
+    assert report["scope"]["limit"] == 6 and any("SMOKE RUN" in w for w in report["warnings"])
+    assert "WARNING: SMOKE RUN" in Path(report["paths"]["markdown"]).read_text(encoding="utf-8")
+
+
+def test_cli_refuses_a_ceiling_below_the_estimate_and_an_unpriced_model_before_reading_a_key(tmp_path, monkeypatch):
+    import scholar_agent.drivers as drivers
+    import scholar_agent.keys as keys
+
+    def boom(*_a, **_k):
+        raise AssertionError("refused before a key is read or a driver built")
+
+    monkeypatch.setattr(keys, "resolve_key", boom)
+    monkeypatch.setattr(drivers, "make_driver", boom)
+    ws = str(_workspace(tmp_path))
+    low = CliRunner().invoke(app, ["prompt-gate", "measure", "--workspace", ws, "--scope", "all", "--model", "claude-opus-5-5", "--yes", "--cost-ceiling", "0.000001"])
+    assert low.exit_code == 1 and "below the expected cost" in low.output
+    unpriced = CliRunner().invoke(app, ["prompt-gate", "measure", "--workspace", ws, "--scope", "all", "--provider", "gemini", "--model", "gemini-x", "--yes"])
+    assert unpriced.exit_code == 1 and "no price" in unpriced.output
