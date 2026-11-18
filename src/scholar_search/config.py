@@ -56,15 +56,31 @@ class Settings(BaseSettings):
     rate_limit_openalex: float = Field(
         default=10.0, description="OpenAlex requests per second"
     )
+    # Crossref list requests (query, filter): 3 per second in the polite pool
+    # (a contact address), 1 in the public pool, counted per address since
+    # 2026-07-21; its answers say so in x-rate-limit-limit/-interval, which
+    # the client reads (F14, M3h-b-resilience). Without SCHOLAR_MAILTO the
+    # client keeps to the public rate whatever this says.
     rate_limit_crossref: float = Field(
-        default=5.0, description="Crossref requests per second (with mailto)"
+        default=3.0,
+        gt=0,
+        description="Crossref list requests per second with a contact address (SCHOLAR_RATE_LIMIT_CROSSREF)",
+    )
+    # Crossref single-record lookups (/works/{doi}, the harvest's verification
+    # stage, scholar_search.verifier): 10 per
+    # second polite, 5 public (2026-07-21).
+    rate_limit_crossref_single: float = Field(
+        default=10.0,
+        gt=0,
+        description="Crossref single-record requests per second with a contact address",
     )
     # Semantic Scholar keys get "1 request per second, cumulative across all
     # endpoints", and S2 asks callers to set their limit "below this
     # threshold" (key e-mail, 2026-11-11); exactly 1.0 lets two requests land
-    # in one second. The abstract hydrator has its own limiter (follow-up).
+    # in one second. The leg, the abstract hydrator and citation chasing share
+    # this one budget (``http_client.host_budget``, M3h-b-resilience).
     rate_limit_s2: float = Field(
-        default=0.9, description="Semantic Scholar requests per second (SCHOLAR_RATE_LIMIT_S2)"
+        default=0.9, gt=0, description="Semantic Scholar requests per second (SCHOLAR_RATE_LIMIT_S2)"
     )
     rate_limit_pubmed: float = Field(
         default=3.0, description="PubMed requests per second (no key)"

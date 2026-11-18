@@ -156,11 +156,14 @@ def test_the_scaffold_only_placeholder_fingerprint_does_not_move(tmp_path):
     """INC-22 changes the wizard, not the deterministic placeholder protocol.
 
     The golden value was computed at `a273fc6` (main before M4a) with the same
-    title and timestamp.
+    title and timestamp. It moved once, deliberately, in M10b (strict run
+    2026-11-13, finding 9): the rationale reads "Convincing evidence: ..." in
+    place of "Convincing evidence is ...", because the answer is pasted as
+    written ("is Quantitative telemetry"). Nothing else in the placeholder moved.
     """
     from scholar_harness.inception.genesis import scaffold_placeholder_workspace
 
     result = scaffold_placeholder_workspace(
         tmp_path / "ws", "Placeholder Golden", agent="test", timestamp="2026-09-06T12:00:00+00:00"
     )
-    assert result["protocol_fingerprint"] == "sha256:b7ea8b86a7fc4a2f69f325fca79953a8b9784e0cab02590722bd74dc4587f973"
+    assert result["protocol_fingerprint"] == "sha256:ac266d77996bbf448f4494efacd49bfc8fe7fa232532361ad570026bc3d305ad"

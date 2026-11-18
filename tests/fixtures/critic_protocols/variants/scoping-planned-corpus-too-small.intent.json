@@ -1,0 +1,197 @@
+{
+  "protocol_id": "proto-20261118-critic-scoping-base",
+  "genesis_timestamp": "2026-11-18T00:00:00+00:00",
+  "project_slug": "critic-scoping-uav-weed",
+  "playbook_type": "SCOPING_REVIEW",
+  "title": "Generalization in UAV crop-weed mapping: a scoping review of how studies evaluate it",
+  "lead_researcher": "Test Researcher",
+  "target_venue_type": "Agricultural informatics or remote sensing journal; PRISMA-ScR reporting",
+  "timeline_weeks": 6,
+  "primary_paradigm": "Pragmatist / Mixed Methods",
+  "unit_of_analysis": "Primary empirical studies and dataset reports of UAV crop-weed mapping (one study family per row)",
+  "trustworthiness_framework": "JBI Scoping Review Framework with PRISMA-ScR reporting",
+  "epistemological_rationale": "The question asks how evaluations are designed and reported, not how well the methods perform, so the review maps designs descriptively and does not pool effects. Facet words such as generalization are kept out of the search on purpose: studies that never test generalization must be retrieved so the map can show that gap.",
+  "incompatible_concepts": [
+    "satellite-only imagery",
+    "ground-robot-only imagery"
+  ],
+  "research_questions": [
+    {
+      "text": "How do studies that use UAV imagery for crop and weed mapping evaluate whether their models generalize beyond the data they were trained on (new fields, dates or sensors)?",
+      "target_facet": "generalization_evaluation",
+      "synthesis_type": "Descriptive evidence map and narrative comparison",
+      "required_evidence_type": "Primary empirical study or dataset report with methods described"
+    },
+    {
+      "text": "Which datasets, sensors and train-test split designs support the generalization claims that these studies report?",
+      "target_facet": "datasets_and_splits",
+      "synthesis_type": "Descriptive evidence map and narrative comparison",
+      "required_evidence_type": "Primary empirical study or dataset report with methods described"
+    },
+    {
+      "text": "How do these studies report performance loss or failure when the field, date or sensor changes?",
+      "target_facet": "failure_reporting",
+      "synthesis_type": "Descriptive evidence map and narrative comparison",
+      "required_evidence_type": "Primary empirical study or dataset report with methods described"
+    }
+  ],
+  "core_concepts": [
+    {
+      "concept": "UAV",
+      "synonyms": [
+        "UAS",
+        "drone",
+        "drones",
+        "unmanned aerial vehicle",
+        "unmanned aerial vehicles",
+        "unmanned aircraft system",
+        "uncrewed aerial vehicle",
+        "remotely piloted aircraft"
+      ],
+      "boolean_operator": "OR"
+    },
+    {
+      "concept": "weed",
+      "synonyms": [
+        "weeds",
+        "crop weed",
+        "crop-weed",
+        "site-specific weed management",
+        "precision weeding"
+      ],
+      "boolean_operator": "OR"
+    },
+    {
+      "concept": "mapping",
+      "synonyms": [
+        "detection",
+        "segmentation",
+        "classification",
+        "monitoring",
+        "localization",
+        "identification",
+        "discrimination"
+      ],
+      "boolean_operator": "OR"
+    }
+  ],
+  "target_databases": [
+    "openalex",
+    "semanticscholar",
+    "crossref",
+    "arxiv",
+    "pubmed"
+  ],
+  "start_year": 2020,
+  "end_year": 2026,
+  "languages": [
+    "en"
+  ],
+  "open_access_preferred": false,
+  "pool_min": 20,
+  "pool_max": 40,
+  "golden_seeds": [
+    "10.1016/j.biosystemseng.2020.10.001",
+    "10.1371/journal.pone.0251008",
+    "10.1109/metroagrifor63043.2024.10948819",
+    "10.82522/n1cq-bw62"
+  ],
+  "inclusion_criteria": [
+    {
+      "criterion": "Uses images taken from an unmanned aerial vehicle for crop and weed detection, segmentation, classification or spatial mapping in an agricultural field (arable, vegetable, orchard, vineyard or pasture).",
+      "maps_to_rqs": [
+        "RQ1",
+        "RQ2",
+        "RQ3"
+      ]
+    },
+    {
+      "criterion": "Is a primary empirical study or a dataset report, with methods described in enough detail to chart how the model or data were evaluated.",
+      "maps_to_rqs": [
+        "RQ1",
+        "RQ2",
+        "RQ3"
+      ]
+    },
+    {
+      "criterion": "Was published in English from 2020 to 2026.",
+      "maps_to_rqs": [
+        "RQ1",
+        "RQ2",
+        "RQ3"
+      ]
+    }
+  ],
+  "exclusion_criteria": [
+    {
+      "criterion": "Uses only satellite, ground-robot, handheld or laboratory images, with no UAV images that can be separated out.",
+      "maps_to_rqs": [
+        "RQ1",
+        "RQ2",
+        "RQ3"
+      ],
+      "reason_category": "WRONG_PLATFORM"
+    },
+    {
+      "criterion": "Addresses a UAV task other than crop or weed mapping (navigation, yield estimation only, crop disease or pest damage, forestry, urban or aquatic vegetation) with no separable agricultural crop or weed task.",
+      "maps_to_rqs": [
+        "RQ1",
+        "RQ2",
+        "RQ3"
+      ],
+      "reason_category": "WRONG_TASK"
+    },
+    {
+      "criterion": "Is a literature review, editorial, commentary, study protocol or conference abstract with no primary report.",
+      "maps_to_rqs": [
+        "RQ1",
+        "RQ2",
+        "RQ3"
+      ],
+      "reason_category": "WRONG_REPORT_TYPE"
+    }
+  ],
+  "two_tier_screening": true,
+  "matrix_dimensions": [
+    {
+      "id": "task_and_crop",
+      "name": "Task and crop",
+      "description": "Vision task (detection, segmentation, classification, density regression), crop species and weed classes, agricultural setting.",
+      "data_type": "free_text",
+      "required": false,
+      "fallback_value": "Not Reported"
+    },
+    {
+      "id": "sensor_and_flight",
+      "name": "Sensor and flight",
+      "description": "Sensor type, spectral bands, flight altitude and ground sampling distance.",
+      "data_type": "free_text",
+      "required": false,
+      "fallback_value": "Not Reported"
+    },
+    {
+      "id": "dataset_and_split",
+      "name": "Dataset and split",
+      "description": "Dataset name and size, fields and dates covered, and the train-validation-test split unit (random tile, field, date, location).",
+      "data_type": "free_text",
+      "required": false,
+      "fallback_value": "Not Reported"
+    },
+    {
+      "id": "generalization_test",
+      "name": "Generalization test",
+      "description": "What changed between training and testing: nothing, new field, new date, new sensor, new location.",
+      "data_type": "categorical",
+      "required": false,
+      "fallback_value": "Not Reported"
+    },
+    {
+      "id": "failure_reporting",
+      "name": "Failure reporting",
+      "description": "Whether performance loss or failed transfer is reported, and how it is described.",
+      "data_type": "free_text",
+      "required": false,
+      "fallback_value": "Not Reported"
+    }
+  ]
+}

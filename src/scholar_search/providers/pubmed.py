@@ -163,6 +163,13 @@ class PubMedProvider(BaseAPIProvider):
             doc.mark_retrieved()
             yield doc
 
+    def search_endpoint(self) -> str:
+        return f"{self.base_url}/esearch.fcgi"
+
+    def auth_channel(self) -> str:
+        # NCBI reads ``email`` and ``tool``; no API key is sent.
+        return "mailto" if settings.mailto else "none"
+
     def translate(self, query: Query) -> tuple[str, dict, list[str]]:
         pubmed_query = self.build_term(query.text)
 

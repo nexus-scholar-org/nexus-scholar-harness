@@ -667,6 +667,8 @@ def _archive_search_run(
         from . import harvest_marker
 
         harvest_marker.start(run_dir)
+    from scholar_search.http_client import client_identity
+
     manifest = {
         "run": run_dir.name,
         "status": status,
@@ -690,6 +692,9 @@ def _archive_search_run(
         # M10a: the databases asked for, in order (``None``: the protocol's
         # list). A run record only; the drift and accept gates never read it.
         "requested_providers": list(requested_providers) if requested_providers else None,
+        # M3h-b-resilience (F16): the client that sent the requests; each leg
+        # carries its endpoint, auth channel and page size.
+        "client": client_identity(),
         "legs": legs,
     }
     (run_dir / "legs.json").write_text(

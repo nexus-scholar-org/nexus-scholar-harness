@@ -205,6 +205,14 @@ class Survey:
     matrix_dimensions: list[dict] = field(default_factory=list)
     #: DOIs the discovery Recall check looks for (M4d): the pool anchors the researcher kept.
     golden_seeds: list[str] = field(default_factory=list)
+    #: The number of records the researcher plans to screen (M10b, R3); ``None``
+    #: keeps the playbook preset. ``pool_max`` alone means "up to", from 0.
+    pool_min: int | None = None
+    pool_max: int | None = None
+    #: The reason code of each out-of-scope line, keyed by the line's text (M10b).
+    out_of_scope_reasons: dict[str, str] = field(default_factory=dict)
+    #: The reason code of the paradigm's default exclusion (M10b); ``None`` is ``OUT_OF_SCOPE``.
+    default_exclusion_reason: str | None = None
 
 
 def draft_default_concepts(topic: str) -> list[str]:
@@ -237,6 +245,9 @@ def draft_rq(paradigm: str, topic: str, unit: str, proof: str) -> str:
     """The paradigm's RQ1 draft (Stage 4a), shared by the wizard and the step API."""
     return PARADIGM_PROFILE[paradigm]["rq_template"].format(topic=topic, unit=unit, proof=proof)
 
+
+#: The reason code an exclusion carries when the researcher chose none.
+DEFAULT_REASON = "OUT_OF_SCOPE"
 
 # INC-22: where a criterion came from. ``generated`` sources were written by the
 # wizard, not typed by the researcher; their acceptance prompt defaults to "no".
@@ -290,15 +301,37 @@ def draft_criteria(survey: Survey) -> list[CriterionDraft]:
     The rules are the historic ``make_intent`` rules: the proof answer becomes an
     inclusion criterion; out-of-scope items and manual exclusions become
     exclusions; with no exclusion at all, the paradigm's default is proposed.
+
+    M10b: an empty proof answer writes no proof criterion (the proof may be
+    empty when the draft holds a typed inclusion, ``04-shape``), and the reason
+    of an out-of-scope line or of the paradigm default is the researcher's when
+    set. The default reason stays ``OUT_OF_SCOPE``, so the ids of drafts that set
+    none are unchanged.
     """
-    drafts = [CriterionDraft("inclusion", f"Reports the gold-standard proof — {survey.proof}", "proof")]
+    drafts = []
+    if survey.proof.strip():
+        drafts.append(CriterionDraft("inclusion", f"Reports the gold-standard proof — {survey.proof}", "proof"))
     drafts += [CriterionDraft("inclusion", c, "manual") for c in survey.extra_inclusions]
-    exclusions = [CriterionDraft("exclusion", item, "out_of_scope", "OUT_OF_SCOPE") for item in survey.out_of_scope]
+    reasons = survey.out_of_scope_reasons or {}
+    exclusions = [
+        CriterionDraft("exclusion", item, "out_of_scope", reasons.get(item) or DEFAULT_REASON)
+        for item in survey.out_of_scope
+    ]
     exclusions += [CriterionDraft("exclusion", text, "manual", category) for text, category in survey.extra_exclusions]
     if not exclusions:
         default_exclusion = PARADIGM_PROFILE[survey.paradigm]["negative_exclusions"]
-        exclusions.append(CriterionDraft("exclusion", default_exclusion, "paradigm_default", "OUT_OF_SCOPE"))
+        exclusions.append(
+            CriterionDraft("exclusion", default_exclusion, "paradigm_default", survey.default_exclusion_reason or DEFAULT_REASON)
+        )
     return drafts + exclusions
+
+
+def _answer(text: str) -> str:
+    """An answer as it reads inside a sentence: trimmed, without one final full stop."""
+    text = (text or "").strip()
+    if text.endswith(".") and not text.endswith(".."):
+        text = text[:-1].rstrip()
+    return text
 
 
 def make_intent(
@@ -318,18 +351,22 @@ def make_intent(
 
     inclusion = [{"criterion": c.criterion, "maps_to_rqs": all_rqs} for c in chosen if c.kind == "inclusion"]
     exclusion = [
-        {"criterion": c.criterion, "reason_category": c.reason_category or "OUT_OF_SCOPE", "maps_to_rqs": all_rqs}
+        {"criterion": c.criterion, "reason_category": c.reason_category or DEFAULT_REASON, "maps_to_rqs": all_rqs}
         for c in chosen
         if c.kind == "exclusion"
     ]
     # The rationale names only the out-of-scope items the researcher accepted.
     out_of_scope = [c.criterion for c in chosen if c.source == "out_of_scope"]
 
+    # Strict run 2026-11-13 (finding 9): the answers are pasted as written, so
+    # each follows a colon and loses a final full stop of its own ("..." stays).
+    # M10b: an empty proof answer leaves its sentence out.
+    proof = _answer(survey.proof)
     rationale = (
         f"{survey.paradigm} stance via the {survey.playbook} playbook. "
-        f"Unit of analysis: {survey.unit_of_analysis}. "
-        f"Convincing evidence is {survey.proof}. "
-        f"Explicitly out of scope: {'; '.join(out_of_scope) or 'none specified'}."
+        f"Unit of analysis: {_answer(survey.unit_of_analysis)}. "
+        + (f"Convincing evidence: {proof}. " if proof else "")
+        + f"Explicitly out of scope: {'; '.join(_answer(o) for o in out_of_scope) or 'none specified'}."
     )
 
     languages = survey.languages or ["en"]
@@ -367,8 +404,11 @@ def make_intent(
         "end_year": survey.end_year,
         "languages": languages,
         "open_access_preferred": None,
-        "pool_min": None,
-        "pool_max": None,
+        # M10b (R3): the researcher's planned number, else the playbook preset
+        # (``None``). "Up to N" alone is from 0, so the preset's minimum can
+        # never exceed the stated maximum.
+        "pool_min": (survey.pool_min or 0) if survey.pool_max is not None else None,
+        "pool_max": survey.pool_max,
         "inclusion_criteria": inclusion,
         "exclusion_criteria": exclusion,
         "two_tier_screening": True,

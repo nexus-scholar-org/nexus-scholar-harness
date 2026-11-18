@@ -8,7 +8,7 @@ from datetime import UTC, datetime
 from .config import settings
 from .dedup import Deduplicator, stable_order
 from .exceptions import ProviderError, ProviderTimeoutError, RateLimitExceededError, ScholarSearchError
-from .models import Document, Query, SearchLeg, SearchRun
+from .models import DEFAULT_DATABASES, Document, Query, SearchLeg, SearchRun
 from .providers import (
     ArxivProvider,
     CrossrefProvider,
@@ -29,7 +29,8 @@ ENGINE_CEILING = 10_000
 
 # bioRxiv is not a default (SRCH-13): its API has no boolean search, so the
 # provider drops AND/OR/NOT. It stays available when a protocol names it.
-DEFAULT_PROVIDER_NAMES = ("openalex", "semanticscholar", "crossref", "arxiv", "pubmed")
+# PubMed is searched when named (F15, M3h-b-resilience: one default set).
+DEFAULT_PROVIDER_NAMES = DEFAULT_DATABASES
 
 
 class MailtoNotSet(ScholarSearchError):
@@ -84,13 +85,14 @@ class SearchEngine:
         If no providers are passed, loads a default production suite.
         """
         if providers is None:
-            self.providers = [
-                OpenAlexProvider(),
-                SemanticScholarProvider(),
-                CrossrefProvider(),
-                ArxivProvider(),
-                PubMedProvider(),
-            ]
+            suite = {
+                "openalex": OpenAlexProvider,
+                "semanticscholar": SemanticScholarProvider,
+                "crossref": CrossrefProvider,
+                "arxiv": ArxivProvider,
+                "pubmed": PubMedProvider,
+            }
+            self.providers = [suite[name]() for name in DEFAULT_PROVIDER_NAMES]
         else:
             self.providers = providers
 

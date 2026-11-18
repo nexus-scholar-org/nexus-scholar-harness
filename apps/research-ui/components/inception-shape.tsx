@@ -47,7 +47,8 @@ export function InceptionShape({ locale }: Readonly<{ locale: Locale }>) {
   }, [origin, record]);
 
   // The playbook and RQ template follow the chosen lens, unit and proof.
-  const shapeKey = JSON.stringify([draft.topic, draft.paradigm, draft.playbook, draft.unit_of_analysis, draft.proof]);
+  // M10b: the typed inclusions and their decisions decide whether the proof is still needed.
+  const shapeKey = JSON.stringify([draft.topic, draft.paradigm, draft.playbook, draft.unit_of_analysis, draft.proof, draft.extra_inclusions, draft.criteria_decisions]);
   useEffect(() => {
     if (!record || !draft.paradigm) {
       setShape(null);
@@ -55,7 +56,15 @@ export function InceptionShape({ locale }: Readonly<{ locale: Locale }>) {
     }
     const controller = new AbortController();
     const timer = setTimeout(() => {
-      const ask: Draft = { topic: draft.topic, paradigm: draft.paradigm, playbook: draft.playbook, unit_of_analysis: draft.unit_of_analysis, proof: draft.proof };
+      const ask: Draft = {
+        topic: draft.topic,
+        paradigm: draft.paradigm,
+        playbook: draft.playbook,
+        unit_of_analysis: draft.unit_of_analysis,
+        proof: draft.proof,
+        extra_inclusions: draft.extra_inclusions,
+        criteria_decisions: draft.criteria_decisions,
+      };
       runStep(origin, "shape", ask, controller.signal).then(
         (answer) => {
           setShape(answer);
@@ -79,7 +88,10 @@ export function InceptionShape({ locale }: Readonly<{ locale: Locale }>) {
 
   const setRq = (index: number, text: string) => update({ rqs: rqs.map((rq, i) => (i === index ? text : rq)) });
 
+  const planned = plannedProblem(draft.pool_min, draft.pool_max);
+
   const persist = async (next: "criteria" | "") => {
+    if (planned) return;
     const stored = await save({ ...draft, out_of_scope: lines(outText), rqs: rqs.map((rq) => rq.trim()).filter(Boolean) });
     if (stored) window.location.assign(inceptionHref(locale, next, next ? draftId : "", origin));
   };
@@ -91,6 +103,8 @@ export function InceptionShape({ locale }: Readonly<{ locale: Locale }>) {
   // Otherwise a click would insert a sentence with blanks, or one from before
   // the last edit (the shape step is debounced).
   const draftFilled = Boolean(draft.unit_of_analysis?.trim()) && Boolean(draft.proof?.trim());
+  // M10b (R4): the engine says whether the proof may stay empty.
+  const proofOptional = shape?.proof_required === false;
   const draftCurrent = shape !== null && shapeFor === shapeKey;
   const draftHint = !draftFilled ? t("shape.draftNeeds") : !draftCurrent ? t("shape.draftWaiting") : "";
 
@@ -172,6 +186,16 @@ export function InceptionShape({ locale }: Readonly<{ locale: Locale }>) {
           </fieldset>
         ) : null}
 
+        <PlannedRecords
+          locale={locale}
+          min={draft.pool_min ?? null}
+          max={draft.pool_max ?? null}
+          preset={shape?.pool_preset ?? null}
+          earlier={record?.origin?.earlier_pool ?? null}
+          problem={planned}
+          onChange={(min, max) => update({ pool_min: min, pool_max: max })}
+        />
+
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
             <label htmlFor="shape-unit" className="block text-sm font-medium text-ink">
@@ -191,6 +215,11 @@ export function InceptionShape({ locale }: Readonly<{ locale: Locale }>) {
           <div>
             <label htmlFor="shape-proof" className="block text-sm font-medium text-ink">
               {t("shape.proof")}
+              {proofOptional ? (
+                <span className="ms-1 font-normal text-ink-muted" data-proof-optional>
+                  {t("shape.proof.optional")}
+                </span>
+              ) : null}
             </label>
             <input
               id="shape-proof"
@@ -202,6 +231,11 @@ export function InceptionShape({ locale }: Readonly<{ locale: Locale }>) {
             <p id="shape-proof-help" className="mt-1 text-xs text-ink-muted">
               {t("shape.proofHelp")}
             </p>
+            {record?.origin?.report?.needs_you?.includes("proof") && !(draft.proof ?? "").trim() && !proofOptional ? (
+              <p className="mt-1 text-sm text-unclear" data-needs-proof>
+                {t("imported.needs.line", { field: t("imported.needs.proof") })}
+              </p>
+            ) : null}
           </div>
         </div>
 
@@ -228,14 +262,16 @@ export function InceptionShape({ locale }: Readonly<{ locale: Locale }>) {
               <p id="shape-rq-draft" className="text-xs font-semibold text-ink-muted">
                 {t("shape.rqDraft")}
               </p>
-              <p className={`mt-1 ${draftCurrent ? "text-ink" : "text-ink-muted"}`} dir="ltr">
-                {shape.rq_draft}
-              </p>
+              {shape.rq_draft ? (
+                <p className={`mt-1 ${draftCurrent ? "text-ink" : "text-ink-muted"}`} dir="ltr">
+                  {shape.rq_draft}
+                </p>
+              ) : null}
               <div className="mt-2">
                 <Button
-                  disabled={!draftFilled || !draftCurrent}
+                  disabled={!draftFilled || !draftCurrent || !shape.rq_draft}
                   aria-describedby={draftHint ? "shape-rq-draft-hint" : undefined}
-                  onClick={() => setRq(firstEmpty >= 0 ? firstEmpty : rqs.length, shape.rq_draft)}
+                  onClick={() => shape.rq_draft && setRq(firstEmpty >= 0 ? firstEmpty : rqs.length, shape.rq_draft)}
                 >
                   {t("shape.useDraft", { n: (firstEmpty >= 0 ? firstEmpty : rqs.length) + 1 })}
                 </Button>
@@ -280,10 +316,10 @@ export function InceptionShape({ locale }: Readonly<{ locale: Locale }>) {
         {saveError ? <InceptionRefusal locale={locale} refusal={saveError} draftId={draftId} origin={origin} onRetry={() => void persist("criteria")} /> : null}
 
         <div className="flex flex-wrap gap-3">
-          <Button variant="primary" type="submit" disabled={saving || !draft.paradigm} aria-describedby={draft.paradigm ? undefined : "shape-need-lens"}>
+          <Button variant="primary" type="submit" disabled={saving || !draft.paradigm || !!planned} aria-describedby={draft.paradigm ? undefined : "shape-need-lens"}>
             {saving ? t("saving") : t("shape.continue")}
           </Button>
-          <Button onClick={() => void persist("")} disabled={saving}>
+          <Button onClick={() => void persist("")} disabled={saving || !!planned}>
             {t("saveAndExit")}
           </Button>
           <a className="inline-flex min-h-11 items-center text-brand underline" href={inceptionHref(locale, "direction", draftId, origin)} data-back>
@@ -297,5 +333,110 @@ export function InceptionShape({ locale }: Readonly<{ locale: Locale }>) {
         </div>
       </form>
     </InceptionFrame>
+  );
+}
+
+/**
+ * Presentation-only checks of the two numbers as typed, so a sentence can say
+ * what to fix before the save; the engine's `DRAFT_INVALID` stays the authority.
+ */
+function plannedProblem(min: number | null | undefined, max: number | null | undefined): "order" | "range" | "max" | null {
+  const whole = (n: number) => Number.isInteger(n);
+  if (max == null) return min == null ? null : "max";
+  if (!whole(max) || max < 1 || max > 1_000_000) return "range";
+  if (min != null && (!whole(min) || min < 0)) return "range";
+  if (min != null && min > max) return "order";
+  return null;
+}
+
+function numberOrNull(text: string): number | null {
+  if (!text.trim()) return null;
+  const n = Number(text);
+  return Number.isFinite(n) ? n : NaN;
+}
+
+/** "How many records do you plan to screen?" (M10b, R3, `04-shape`). Never prefilled; the preset is offered, not marked. */
+function PlannedRecords({
+  locale,
+  min,
+  max,
+  preset,
+  earlier = null,
+  problem,
+  onChange,
+}: Readonly<{
+  locale: Locale;
+  min: number | null;
+  max: number | null;
+  preset: { min: number; max: number } | null;
+  earlier?: { min: number; max: number } | null;
+  problem: "order" | "range" | "max" | null;
+  onChange: (min: number | null, max: number | null) => void;
+}>) {
+  const t = inceptionT(locale);
+  const shown = (n: number | null) => (n == null || Number.isNaN(n) ? "" : String(n));
+  return (
+    <fieldset className="rounded-lg border border-rule bg-leaf p-4" data-planned>
+      <legend className="px-1 text-sm font-medium text-ink">{t("shape.planned.title")}</legend>
+      <p id="shape-planned-hint" className="text-xs text-ink-muted">
+        {t("shape.planned.hint")}
+      </p>
+      <div className="mt-2 flex flex-wrap items-end gap-3">
+        <div>
+          <label htmlFor="shape-planned-min" className="block text-sm text-ink">
+            {t("shape.planned.from")}
+          </label>
+          <input
+            id="shape-planned-min"
+            type="number"
+            inputMode="numeric"
+            min={0}
+            dir="ltr"
+            value={shown(min)}
+            onChange={(event) => onChange(numberOrNull(event.target.value), max)}
+            aria-describedby="shape-planned-hint"
+            aria-invalid={problem === "order" || problem === "max" || undefined}
+            className="mt-1 block min-h-11 w-32 rounded-md border border-rule bg-paper px-2 text-ink"
+          />
+        </div>
+        <div>
+          <label htmlFor="shape-planned-max" className="block text-sm text-ink">
+            {t("shape.planned.upTo")}
+          </label>
+          <input
+            id="shape-planned-max"
+            type="number"
+            inputMode="numeric"
+            min={1}
+            dir="ltr"
+            value={shown(max)}
+            onChange={(event) => onChange(min, numberOrNull(event.target.value))}
+            aria-describedby="shape-planned-hint"
+            aria-invalid={problem === "range" || problem === "max" || undefined}
+            className="mt-1 block min-h-11 w-32 rounded-md border border-rule bg-paper px-2 text-ink"
+          />
+        </div>
+      </div>
+      {problem ? (
+        <p className="mt-2 text-sm text-unclear" role="alert" data-planned-problem={problem}>
+          {t(problem === "order" ? "shape.planned.err.order" : problem === "max" ? "shape.planned.err.max" : "shape.planned.err.range")}
+        </p>
+      ) : null}
+      {preset ? (
+        <div className="mt-2 flex flex-wrap items-center gap-3 text-sm text-ink-muted" data-planned-preset>
+          <span>{t("shape.planned.preset", { min: String(preset.min), max: String(preset.max) })}</span>
+          <Button onClick={() => onChange(preset.min, preset.max)} data-use-preset>
+            {t("shape.planned.usePreset")}
+          </Button>
+        </div>
+      ) : null}
+      {earlier ? (
+        <div className="mt-2" data-planned-earlier>
+          <Button onClick={() => onChange(earlier.min, earlier.max)} data-use-earlier>
+            {t("shape.planned.useEarlier", { min: String(earlier.min), max: String(earlier.max) })}
+          </Button>
+        </div>
+      ) : null}
+    </fieldset>
   );
 }

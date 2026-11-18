@@ -50,11 +50,38 @@ class BaseAPIProvider(ABC):
         self.client = AcademicHttpClient(name=name, rate_limit=rate_limit)
         self.current_leg = None
 
+    #: Request parameters that set the page size, in the order they are looked for.
+    _PAGE_PARAMS = ("per-page", "per_page", "rows", "max_results", "retmax", "limit")
+
+    def search_endpoint(self) -> str | None:
+        """The URL a search leg sends its requests to, without parameters."""
+        return getattr(self, "base_url", None)
+
+    def auth_channel(self) -> str:
+        """How this provider identifies the caller (``models.AUTH_CHANNELS``); ``none`` by default."""
+        return "none"
+
+    def _page_size(self, params: dict | None) -> int | None:
+        for name in self._PAGE_PARAMS:
+            if params and name in params:
+                try:
+                    return int(params[name])
+                except (TypeError, ValueError):
+                    return None
+        return getattr(self, "PAGE_SIZE", None)
+
     def _record_executed(self, executed_query: str, params: dict | None = None) -> None:
         leg = self.current_leg
         if leg is not None and leg.executed_query is None:
             leg.executed_query = executed_query
             leg.request = public_request(params)
+            leg.endpoint = self.search_endpoint()
+            leg.page_size = self._page_size(params)
+            leg.auth = self.auth_channel()
+
+    def _record_auth(self, channel: str) -> None:
+        if self.current_leg is not None:
+            self.current_leg.auth = channel
 
     def _record_total(self, total) -> None:
         leg = self.current_leg

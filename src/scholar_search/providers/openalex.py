@@ -234,13 +234,22 @@ class OpenAlexProvider(BaseAPIProvider):
         ]
         return executed, params, notes
 
+    def auth_channel(self) -> str:
+        return "key" if settings.openalex_key else "none"
+
     async def _get(self, params: dict[str, Any]):
-        """One page; a key refusal (401/403/409) is named on the leg (F12)."""
+        """One page; a key refusal (401/403/409) is named on the leg (F12).
+
+        A 401 or 403 with a key sent records ``key_rejected`` on the leg; a 409
+        is a spent budget, not a rejected key (M3h-b-resilience).
+        """
         try:
             return await self.client.get(self.base_url, params=params)
         except ProviderError as exc:
             if exc.status_code in KEY_STATUSES:
                 self._record_note(key_note(exc.status_code))
+                if settings.openalex_key and exc.status_code in (401, 403):
+                    self._record_auth("key_rejected")
             raise
 
     async def search(self, query: Query) -> AsyncIterator[Document]:

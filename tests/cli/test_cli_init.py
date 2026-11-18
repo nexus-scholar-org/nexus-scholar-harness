@@ -79,7 +79,10 @@ def test_init_scaffold_only_full_layout(tmp_path):
         "$schema", "project_id", "registered_workspace_id", "title", "description",
         "created_at", "updated_at", "status", "paradigm", "research_questions",
         "keywords", "stats",
+        # M10b: where the protocol came from (`placeholder` for --scaffold-only).
+        "protocol_origin",
     }
+    assert manifest["protocol_origin"] == "placeholder"
     assert manifest["project_id"] == "on-device-weed-detection"
     # The registered identity is minted at inception; project_id stays the label.
     assert re.fullmatch(r"WSP-[0-9a-f]{32}", manifest["registered_workspace_id"])

@@ -29,7 +29,7 @@ export function parseLanguages(raw: string): string[] {
 export function InceptionScope({ locale }: Readonly<{ locale: Locale }>) {
   const t = inceptionT(locale);
   const state = useDraft();
-  const { draft, update, save, saving, saveError, origin, draftId } = state;
+  const { draft, update, save, saving, saveError, origin, draftId, record } = state;
   const [fromYear, setFromYear] = useState<string | null>(null);
   const [toYear, setToYear] = useState<string | null>(null);
   const [languages, setLanguages] = useState<string | null>(null);
@@ -77,6 +77,17 @@ export function InceptionScope({ locale }: Readonly<{ locale: Locale }>) {
           <p id="scope-topic-help" className="mt-1 text-xs text-ink-muted">
             {t("scope.topicHelp")}
           </p>
+          {/* M10b (spec 09): a protocol stores no topic; the first research question is offered, never copied unasked. */}
+          {record?.origin?.report?.needs_you?.includes("topic") && !(draft.topic ?? "").trim() ? (
+            <div className="mt-2 flex flex-wrap items-center gap-3 text-sm" data-needs-topic>
+              <span className="text-unclear">{t("imported.needs.line", { field: t("imported.needs.topic") })}</span>
+              {(draft.rqs ?? [])[0] ? (
+                <Button onClick={() => update({ topic: (draft.rqs ?? [])[0] })} data-use-rq1>
+                  {t("imported.useRq1")}
+                </Button>
+              ) : null}
+            </div>
+          ) : null}
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
           <div>

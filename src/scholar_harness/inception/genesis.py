@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import logging
 import os
 import re
 import secrets
@@ -68,6 +69,8 @@ INIT_MARKERS = (
     "audit/journal.jsonl",
     ".mcp.json",
 )
+
+_logger = logging.getLogger(__name__)
 
 _LOGIMPORT_NAME = "workspace_manager_log_event"
 # Deprecated cache variables retained so existing
@@ -376,7 +379,9 @@ def _default_matrix_dimensions(playbook: str, unit: str) -> list[dict]:
         "sample_size": {
             "id": "sample_size",
             "name": "Sample Size",
-            "description": f"Number of {unit} sampled / evaluated",
+            # Strict run 2026-11-13 (finding 7): the unit of analysis is an answer of
+            # any length, so it is quoted after the sentence, not pasted into it.
+            "description": f"How many were sampled or evaluated (unit of analysis: {unit})",
             "target_section_category": "methodology",
             "data_type": "numeric",
             "required": True,
@@ -575,15 +580,15 @@ def install_workspace_support_files(target: Path) -> dict:
     """Vendor skills, ``.env.example`` and ``.mcp.json`` into ``target`` (P7.3).
 
     Returns {"skills_source", "skill_records", "env_example", "mcp_config"} and
-    reports per-skill symlink vs copy-fallback on the console.
+    reports per-skill symlink vs copy-fallback through logging: it runs inside
+    API requests, so it never prints (``nexus-scholar init`` summarises the records).
     """
     target = target.resolve()
     skills_root = resolve_skills_root()
     if skills_root is None:
-        console.print(
-            "[yellow]\u26a0 warning: no skill source found "
-            "(NEXUS_SKILLS_SRC / wheel bundle / repo .agents/skills); "
-            ".agents/skills left empty[/yellow]"
+        _logger.warning(
+            "no skill source found (NEXUS_SKILLS_SRC / wheel bundle / repo .agents/skills); "
+            ".agents/skills left empty"
         )
     records = (
         install_skills(skills_root, target / ".agents" / "skills")
@@ -592,17 +597,15 @@ def install_workspace_support_files(target: Path) -> dict:
     )
     for rec in records:
         if rec["mode"] == "symlink":
-            console.print(
-                f"   [dim]skill {rec['name']}: symlinked from {rec['source']}[/dim]"
-            )
+            _logger.info("skill %s: symlinked from %s", rec["name"], rec["source"])
         elif rec["mode"] == "copy":
-            console.print(
-                f"   [dim]skill {rec['name']}: COPIED (symlink unavailable on this "
-                f"system; enable Developer Mode, delete the workspace, and re-run "
-                f"`nexus-scholar init` to symlink instead)[/dim]"
+            _logger.info(
+                "skill %s: COPIED (symlink unavailable on this system; enable Developer Mode, "
+                "delete the workspace, and re-run `nexus-scholar init` to symlink instead)",
+                rec["name"],
             )
         else:
-            console.print(f"   [dim]skill {rec['name']}: kept existing[/dim]")
+            _logger.info("skill %s: kept existing", rec["name"])
     env = write_env_example(target)
     mcp = write_mcp_json(target)
     gitignore = write_workspace_gitignore(target)
@@ -745,6 +748,7 @@ def scaffold_placeholder_workspace(target: Path, title: str, *, agent: str, time
             agent=agent,
             description=f"nexus-scholar init (--scaffold-only): '{title}'",
             fingerprint_label="placeholder protocol",
+            protocol_origin="placeholder",
         )
     except GenesisRefused as exc:
         raise WorkspaceScaffoldRefused("WORKSPACE_EXISTS", exc.message) from exc
