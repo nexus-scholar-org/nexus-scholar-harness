@@ -266,7 +266,7 @@ export function EstimateCard({ locale, origin, fingerprint, providers, cap = nul
               <EstimateRowView key={row.name} locale={locale} row={row} cap={estimate.cap.value} />
             ))}
           </ul>
-          <dl className="space-y-2 border-t border-rule pt-3 text-sm text-ink">
+          <div className="space-y-2 border-t border-rule pt-3 text-sm text-ink">
             <div data-estimate-records>
               {records?.high === null || records?.high === undefined
                 ? t("estimate.records.atLeast", { low: records?.low ?? "" })
@@ -331,7 +331,7 @@ export function EstimateCard({ locale, origin, fingerprint, providers, cap = nul
               {t("estimate.counted", { time: stamp(estimate.counted_at) })}
               {estimate.served_from_cache ? ` · ${t("estimate.cached")}` : ""}
             </p>
-          </dl>
+          </div>
         </div>
       )}
 
