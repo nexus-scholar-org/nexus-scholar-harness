@@ -15,6 +15,7 @@ import sys
 from pathlib import Path
 
 import pytest
+from conftest import skip_if_stale_install
 
 ROOT = Path(__file__).resolve().parents[2]
 FIXTURES = ROOT / "tests" / "fixtures" / "screening_api"
@@ -35,6 +36,9 @@ def _committed(name: str) -> dict:
     return json.loads((FIXTURES / name).read_text(encoding="utf-8"))
 
 
+# The fixtures' content hashes cover the package version (provenance), so a stale install
+# (see conftest.STALE_INSTALL) differs in every hash: skipped there, reported once by test_version.
+@skip_if_stale_install
 def test_the_committed_fixtures_are_what_the_engine_produces(produced):
     committed = {p.name for p in FIXTURES.glob("*.json")}
     assert committed == set(produced), "run scripts/generate_screening_api_fixtures.py and review the diff"

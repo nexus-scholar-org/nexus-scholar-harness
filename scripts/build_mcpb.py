@@ -9,7 +9,8 @@ the OS keychain (`nexus-scholar keys set`), which the server reads at start.
 Manifest format: MCPB `manifest_version` 0.4 (the schema shipped with
 `@anthropic-ai/mcpb` 2.1.2, `schemas/mcpb-manifest-v0.4.schema.json`).
 
-    uv build --wheel
+    uv build --wheel   # after `npm ci` and `npm run build:export` in apps/research-ui,
+                       # or with NEXUS_WHEEL_ALLOW_NO_UI=1 (the extension serves MCP only)
     python scripts/build_mcpb.py --wheel dist/nexus_scholar-<version>-py3-none-any.whl
 
 writes `dist/nexus-scholar-<version>.mcpb` (a zip with `manifest.json`, the

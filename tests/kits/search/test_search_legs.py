@@ -265,9 +265,12 @@ async def test_search_all_still_returns_documents_and_keeps_legs():
 
 def test_default_engine_excludes_biorxiv():
     """SRCH-13: bioRxiv drops boolean operators, so it is never a default."""
+    from scholar_search.models import DEFAULT_DATABASES
+
     names = {p.name for p in SearchEngine().providers}
     assert "biorxiv" not in names
-    assert {"openalex", "crossref", "pubmed", "semanticscholar", "arxiv"} <= names
+    # M3h-b-resilience (F15): the one default set; PubMed is searched when named.
+    assert names == set(DEFAULT_DATABASES) == {"openalex", "crossref", "semanticscholar", "arxiv"}
 
 
 # --------------------------------------------------------------- contact email (D7)

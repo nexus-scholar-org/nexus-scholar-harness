@@ -1,6 +1,6 @@
 # Discovery providers: what they offer, what we use, what changed
 
-Date: 2026-11-10.
+Date: 2026-11-10. The "what our code does" cells describe `b6643a0` and are not rewritten as fixes land; "Hardening candidates" below lists what M3h-providers and M3h-b-resilience have fixed since (among them the Crossref and arXiv rates, the rate-limit headers, the User-Agent and the arXiv note).
 
 This is a reference, not a plan. The "what our code does" column is read from `main` at `b6643a0`. The "provider offers today" column is read from the providers' live documentation and from live test requests made on 2026-11-10. Every claim that could not be read from a live page or from the code is listed under "Unverified" at the end, not in the tables.
 
@@ -181,7 +181,7 @@ Four different "default provider" lists exist in the code:
 | `src/scholar_search/protocol_adapter.py:81-84` (`target_databases` absent from the protocol) and `src/scholar_protocol/models.py:126-129` (the protocol model's default) | openalex, semanticscholar, crossref, arxiv |
 | `src/scholar_harness/recon/engine.py:32` and the MCP `nexus_discover` (surface matrix) | openalex, semanticscholar, crossref, arxiv |
 
-A protocol harvest therefore runs four databases unless the protocol names PubMed, while the CLI and the browser run five. bioRxiv is never a default (`engine.py:30-32`) and must be named in `target_databases`.
+A protocol harvest therefore runs four databases unless the protocol names PubMed, while the CLI and the browser run five. **Fixed in M3h-b-resilience (2026-11-18):** one constant, `scholar_search.models.DEFAULT_DATABASES` (the four), read by every place above; the choice is a proposed decision (`docs/decisions.md` 2026-11-18 item 1). bioRxiv is never a default (`engine.py:30-32`) and must be named in `target_databases`.
 
 Import formats (`src/scholar_search/importers.py`):
 
@@ -191,6 +191,8 @@ Import formats (`src/scholar_search/importers.py`):
 ---
 
 ## Hardening candidates
+
+Status 2026-11-18: M3h-providers (PR #221) fixed (a) 1, 2, 3 and 6 and the Semantic Scholar key handling. M3h-b-resilience fixed (b) 1 (Crossref rate, with a separate single-record budget), (b) 2 (arXiv rate), (b) 3 (rate-limit headers), (b) 7 (Semantic Scholar citation paging), (c) 1 (endpoint, auth channel and page size on the leg; the rate limit is not recorded), (c) 2 (client identity in `legs.json`, the User-Agent from the package version) and (d) 1 (one default list, the four). (a) 5 is half done: the note no longer denies the arXiv date filter, but the clause is not sent until the arXiv golden interactions are re-recorded (`docs/decisions.md` 2026-11-18 item 2). (b) 8 is superseded: the leg is never downgraded since M3h-providers, and a rejected key is recorded as `auth: key_rejected`.
 
 Ranked within each group; 1 is the most urgent. Each names the file to change and the test to add. Tests live in `tests/kits/search/`.
 

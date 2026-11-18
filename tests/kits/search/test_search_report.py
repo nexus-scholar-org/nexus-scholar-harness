@@ -37,7 +37,8 @@ def test_a_protocol_without_a_list_leaves_out_from_the_adapter_default():
 
 def test_an_explicit_empty_protocol_list_leaves_out_from_the_engine_default():
     left = protocol_databases_left_out(_manifest(["crossref"], databases=[]))
-    assert left == ["openalex", "semanticscholar", "arxiv", "pubmed"]
+    # M3h-b-resilience (F15): the engine default is the one default set, without PubMed.
+    assert left == ["openalex", "semanticscholar", "arxiv"]
 
 
 def test_nothing_is_left_out_without_a_choice_or_a_record():

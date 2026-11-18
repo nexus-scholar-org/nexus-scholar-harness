@@ -226,11 +226,13 @@ if __name__ == "__main__":
   their RIS exports instead). Set `SCHOLAR_MAILTO` (required), `SCHOLAR_OPENALEX_KEY`
   (required by OpenAlex since 2026-02-13; the code still calls it optional),
   `SCHOLAR_S2_KEY`, `SCHOLAR_CACHE_DIR`. Client = httpx + hishel, 4 transport retries,
-  429/5xx → 3 retries with backoff (`http_client.py:60, 105-130`), 30 s timeout, UA
-  `scholar-search-kit/0.1.0 (mailto:…)` (`http_client.py:74-76`; the version string is stale).
-- **Provider limits below our defaults** (from the repository's provider reference of 2026-11, cited in `docs/kits_surface_matrix.md`, not
-  fixed in code): Crossref list requests 3/s polite, 1/s public; arXiv one request every
-  3 s; OpenAlex `per_page` max 100 (we ask for 200). Expect 429 retries on long legs.
+  429/5xx → 3 retries with backoff (a 4xx answer to a POST is not retried), 30 s timeout,
+  UA `nexus-scholar/<installed version> (mailto:…)` (`http_client.user_agent`).
+- **Provider limits** (M3h-b-resilience): one process-wide budget per provider: Crossref
+  list requests 3/s polite and 1/s public, single-record lookups 10/s and 5/s; arXiv one
+  request every 3 s; Semantic Scholar `SCHOLAR_RATE_LIMIT_S2` (0.9/s) for the search, the
+  abstract step and citation chasing together. `x-rate-limit-*` headers can lower a
+  budget, never raise it. OpenAlex `per_page` is 100.
 - **Known bug, PubMed `[ab]`**: `providers/pubmed.py:33` maps the abstract field to `[ab]`,
   which PubMed does not know; it silently searches all fields while the leg still shows
   `[ab]`. Treat abstract-scoped PubMed terms as all-fields until `[tiab]` lands.

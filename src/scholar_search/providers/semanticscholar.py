@@ -49,6 +49,12 @@ class SemanticScholarProvider(BaseAPIProvider):
         )
         self.fields = "paperId,externalIds,title,abstract,year,authors,venue,url,referenceCount,citationCount"
 
+    #: The bulk search takes no page-size parameter: each call returns up to 1,000.
+    PAGE_SIZE = 1000
+
+    def auth_channel(self) -> str:
+        return "key" if settings.s2_key else "none"
+
     def _get_headers(self) -> dict[str, str]:
         headers = {}
         if settings.s2_key:
@@ -146,6 +152,8 @@ class SemanticScholarProvider(BaseAPIProvider):
             except ProviderError as exc:
                 if exc.status_code in REFUSED_STATUSES:
                     self._record_note(refused_note(exc.status_code, keyed))
+                    if keyed:
+                        self._record_auth("key_rejected")
                 raise
             self._record_page()
             response_data = resp.json()
@@ -165,35 +173,40 @@ class SemanticScholarProvider(BaseAPIProvider):
             if not token:
                 break
 
-    async def get_citations(self, document_id: str) -> AsyncIterator[Document]:
-        """Forward Snowballing: Get papers that cite this specific S2 ID."""
-        # Using the /citations endpoint
-        params = {"fields": self.fields + ",contexts,intents", "limit": 1000}
-        resp = await self.client.get(
-            f"{self.base_url.replace('/search/bulk', '')}/{document_id}/citations",
-            params=params,
-            headers=self._get_headers(),
-        )
-        response = resp.json()
+    #: The most records ``/citations`` and ``/references`` return per call.
+    LINK_PAGE = 1000
 
-        for item in response.get("data", []):
-            citing_paper = item.get("citingPaper")
-            intents = item.get("intents") or []
-            if citing_paper:
-                yield self._normalize_document(citing_paper, citation_intent=intents)
+    async def _linked(self, document_id: str, path: str, key: str) -> AsyncIterator[Document]:
+        """Every page of ``/paper/{id}/{path}``: ``offset`` paging until no ``next`` (F16).
+
+        Until M3h-b-resilience one call of 1,000 was made, so a paper with more
+        citations was cut silently at 1,000.
+        """
+        url = f"{self.base_url.replace('/search/bulk', '')}/{document_id}/{path}"
+        offset = 0
+        while True:
+            params = {"fields": self.fields + ",contexts,intents", "limit": self.LINK_PAGE}
+            if offset:
+                params["offset"] = offset
+            resp = await self.client.get(url, params=params, headers=self._get_headers())
+            response = resp.json()
+            data = response.get("data") or []
+            for item in data:
+                paper = item.get(key)
+                intents = item.get("intents") or []
+                if paper:
+                    yield self._normalize_document(paper, citation_intent=intents)
+            following = response.get("next")
+            if not data or not isinstance(following, int) or following <= offset:
+                return
+            offset = following
+
+    async def get_citations(self, document_id: str) -> AsyncIterator[Document]:
+        """Forward Snowballing: every paper that cites this S2 id."""
+        async for doc in self._linked(document_id, "citations", "citingPaper"):
+            yield doc
 
     async def get_references(self, document_id: str) -> AsyncIterator[Document]:
-        """Backward Snowballing: Get papers that this specific S2 ID cites."""
-        params = {"fields": self.fields + ",contexts,intents", "limit": 1000}
-        resp = await self.client.get(
-            f"{self.base_url.replace('/search/bulk', '')}/{document_id}/references",
-            params=params,
-            headers=self._get_headers(),
-        )
-        response = resp.json()
-
-        for item in response.get("data", []):
-            cited_paper = item.get("citedPaper")
-            intents = item.get("intents") or []
-            if cited_paper:
-                yield self._normalize_document(cited_paper, citation_intent=intents)
+        """Backward Snowballing: every paper this S2 id cites."""
+        async for doc in self._linked(document_id, "references", "citedPaper"):
+            yield doc

@@ -1510,8 +1510,11 @@ def ui(
     ui_dir = resolve_ui_dir()
     if ui_dir is None:
         console.print(
-            "[bold red]❌ This install has no app bundle. From a source checkout, build it with "
-            "`npm --prefix apps/research-ui run build:export`, or point NEXUS_UI_DIR at a static export.[/bold red]"
+            "[bold red]❌ This install has no app bundle (the app's screens).[/bold red]\n"
+            "[bold red]From a source checkout: build the UI with `npm ci` then `npm run build:export` in "
+            "apps/research-ui, run `uv build --wheel`, then reinstall with "
+            "`uv tool install --force dist/<the new wheel>`. Rebuilding alone does not change an installed "
+            "copy. Or point NEXUS_UI_DIR at a static export.[/bold red]"
         )
         raise typer.Exit(1)
     folder, _source = resolve_root(root)

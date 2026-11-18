@@ -241,6 +241,8 @@ STANDARD lane unless noted:
 5. **F14 + F15 + F16 provider resilience**: rate limits from the providers'
    current rules and headers, one default database set, the arXiv date
    filter, paged citations, a fuller leg record.
+   Status: built in M3h-b-resilience (`docs/roadmap/milestones/M3h-b-resilience.md`)
+   except sending the arXiv date clause (needs a cassette re-record); PR pending.
 6. **F4 corpus view** for discovery corpora, together with the two M3d
    reviewer follow-ups (`limits` used for two things, `selected` status).
 7. **F8, F9, F10** when a related file is next open.

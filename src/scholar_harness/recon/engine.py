@@ -20,7 +20,7 @@ from typing import Any
 from scholar_search.config import settings
 from scholar_search.dedup import Deduplicator, stable_order
 from scholar_search.engine import SearchEngine
-from scholar_search.models import Document, Query, SearchRun
+from scholar_search.models import DEFAULT_DATABASES, Document, Query, SearchRun
 from scholar_search.providers import (
     ArxivProvider,
     CrossrefProvider,
@@ -30,7 +30,9 @@ from scholar_search.providers import (
 
 from .cache_key import cache_key
 
-DEFAULT_PROVIDERS = ["openalex", "semanticscholar", "crossref", "arxiv"]
+# The search kit's one default set (F15, M3h-b-resilience); recon also reads
+# it as the databases a probe may ask.
+DEFAULT_PROVIDERS = list(DEFAULT_DATABASES)
 POOL_MAX = 25
 
 # Saturation thresholds (13_evaluation.md section 3.4, GAP B).

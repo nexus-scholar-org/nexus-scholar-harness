@@ -69,8 +69,7 @@ identifiers of your records** (DOIs, titles), never your decisions:
 With every search request the engine also sends who is asking:
 
 - **Your contact email** (`SCHOLAR_MAILTO`): in the User-Agent header to every
-  provider (`scholar-search-kit/0.1.0 (mailto:<address>)`, a stale version
-  string), as `mailto` to OpenAlex, which no longer uses it, and as `email` (with
+  provider (`nexus-scholar/<version> (mailto:<address>)`), as `mailto` to OpenAlex, which no longer uses it, and as `email` (with
   `tool=nexus-scholar`) to PubMed. A live search refuses to start without it.
 - **Your OpenAlex key** (`SCHOLAR_OPENALEX_KEY`), to OpenAlex only, when set.
   OpenAlex has required a key since 2026-02-13; without one, your requests share
