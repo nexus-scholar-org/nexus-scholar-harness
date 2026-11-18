@@ -233,7 +233,7 @@ What D1 delivers:
 - `POST /api/v1/discovery/estimate` (`console/api/discovery.py`), in both POST allow-lists; refuses `PROTOCOL_MISSING`/`PROTOCOL_INVALID`, `CAP_INVALID`, `PACE_INVALID` (new), `PROVIDER_UNKNOWN`, `MAILTO_NOT_SET`, `OPENALEX_KEY_NOT_SET`, `CORPUS_ALREADY_ACCEPTED`, `DISCOVERY_JOB_ACTIVE` before any request; uses a recall check for this protocol; caches counts 10 minutes; writes no file and no journal row. `PACE_INVALID` is in `console/refusals.py` and §7.
 - The Estimate card (`components/discovery-estimate.tsx`) on Plan (side column, under Limits) and Harvest (ready state, above "What will be searched"); `?cap=` fills Harvest's cap field after hydration; copy in en, fr, ar (`lib/discovery-copy.ts`, `PACE_INVALID` in `lib/screening-states.ts`); the fake engine answers the route.
 
-Proposed decisions: `docs/decisions.md`, "2026-11-18 — M10b Part D: the size estimate, where the spec is silent" (15 items, PROPOSED). Spec note: `01-plan.md` "As built (M10b Part D)".
+Decisions: `docs/decisions.md`, "2026-11-18 — M10b Part D: the size estimate, where the spec is silent" (17 items, accepted by the researcher 2026-11-18). Spec note: `01-plan.md` "As built (M10b Part D)".
 
 ### Part D tests
 | Test | What it shows | Fails before |

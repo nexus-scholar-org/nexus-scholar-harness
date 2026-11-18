@@ -4,7 +4,7 @@ One entry per decision that still shapes the code, newest first. The full
 records were removed in the 2026-11-03 docs cut; each entry names the commit
 history to read if you need the original reasoning (`git log --follow -- <path>`).
 
-## 2026-11-18 — M10b Part D: the size estimate, where the spec is silent (PROPOSED 2026-11-18, 17 items; not yet accepted; M10b-proposals-checks Part D)
+## 2026-11-18 — M10b Part D: the size estimate, where the spec is silent (17 items, accepted by the researcher 2026-11-18; M10b-proposals-checks Part D)
 
 Record: `docs/roadmap/milestones/M10b-proposals-checks.md` "Part D (size estimate)". Spec: `docs/ux/phase1-discovery/final/01-plan.md` "Size estimate (M10b)" (questions closed by the researcher 2026-11-15: pace 30 s, the limit, the count on a button, nothing recorded). The items below are the building session's choices where the spec is silent or could not be met as written; each took the smaller option. None touches a Contract v1 model, schema or golden fixture (`generate_contract_baseline.py --check` stays current). Each can be reversed without migrating anything: the estimate is never stored.
 
