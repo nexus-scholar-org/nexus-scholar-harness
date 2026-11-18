@@ -134,9 +134,9 @@ Arabic and French screens (check a few by eye), full-text retrieval, extraction,
 | # | Screen or command | What happened | What you expected | Severity | Status at `e7644a6c` |
 |---|---|---|---|---|---|
 | 1 | Runbook, "Before you start" | Asked for the workspace name `uav-crop-weed-strict-2026-11`; the app cannot set one | A name the app can set, or the real folder name | P3 | Fixed here (H-small-fixes-2026-11-18) |
-| 2 | Inception, Explore: topic field | The field asks for "one or two sentences"; a sentence returned 0 from OpenAlex and Semantic Scholar and noise from Crossref and arXiv, shown as "answered" | A keyword query from the topic; "0 results" said as such | P2 | Fixed by M10a (PR #233) |
+| 2 | Inception, Explore: topic field | The field asks for "one or two sentences"; a sentence returned 0 from OpenAlex and Semantic Scholar and noise from Crossref and arXiv, shown as "answered" | A keyword query from the topic; "0 results" said as such | P2 | Partly fixed by M10a (PR #233): keyword query, "0 results" said, arXiv terms combined; Crossref is left as it was |
 | 3 | Inception, Explore: the 25-paper pool | Cut by database-name order, not relevance (`probe_pool` kept `docs[:25]` after `stable_order`) | A sample chosen by relevance | P1 for Inception | Fixed by M10a (PR #233) |
-| 4 | Inception, Direction | The proposals were generic (follows from 3) | Directions anchored in on-topic records | P2 | Fixed by M10a (PR #233) |
+| 4 | Inception, Direction | The proposals were generic (follows from 3) | Directions anchored in on-topic records | P2 | Partly fixed by M10a (PR #233): the sample is relevance-chosen, so directions rest on on-topic records; the generic labels come from the direction scorer, which M10a did not tune: open |
 | 5 | Inception, criteria | Every exclusion is labelled `OUT_OF_SCOPE`; no reason category can be set. PRISMA "excluded by reason" counts are per criterion id (`EXC-nn`), not per `reason_category`; the label only reaches `SCREENING_CRITERIA.md` and the batch instructions | Not recorded | P3 | Open |
 | 6 | Inception, matrix columns | Only three suggested columns; none can be added | Not recorded | P3 | Open |
 | 7 | Inception, Shape | The "Sample Size" sentence reads badly with the unit of analysis pasted in | Not recorded | P3 | Open |

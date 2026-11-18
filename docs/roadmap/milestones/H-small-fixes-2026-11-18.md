@@ -1,9 +1,9 @@
 # H-small-fixes-2026-11-18 Runbook, wheel build guard, F9, F10 and load-sensitive tests
-Branch: dev/fix/runbook-build-flakes · Lane: **STANDARD** · Status: IN PROGRESS · Started: 2026-11-18
+Branch: dev/fix/runbook-build-flakes · Lane: **STANDARD** · Status: READY FOR PR · Started: 2026-11-18
 
 Base: `origin/main` at `e7644a6c`. No live API calls, no AI spend. Out of scope by agreement with the concurrent sessions: every Inception and Discovery screen component (M10b), `src/scholar_search` (provider resilience). No screen component was edited.
 
-**Lane.** STANDARD, from `docs/architecture/test_gate_policy.md`: no public HTTP, CLI-semantics or MCP change and no Contract v1 model, schema or fixture change. The user-visible changes are the wording of one error message and a local build that now refuses to produce a UI-less wheel. The CI and release workflows already set `NEXUS_WHEEL_REQUIRE_UI=1` and build the export first (`ci.yml` `build-wheel`, `release.yml`, `publish.yml`), so `build-wheel` and `wheel-e2e` are unaffected.
+**Lane.** STANDARD, from `docs/architecture/test_gate_policy.md`: no public HTTP, CLI-semantics or MCP change and no Contract v1 model, schema or fixture change. The user-visible changes are the wording of one error message and a local build that now refuses to produce a UI-less wheel. The CI and release workflows already set `NEXUS_WHEEL_REQUIRE_UI=1` and build the export first (`ci.yml` `build-wheel`, `release.yml`, `publish.yml`), so `build-wheel` and `wheel-e2e` are unaffected. **Local gate commands are affected**: `docs/architecture/test_gate_manifest.json` runs a bare `uv build --wheel` in the `closure` stage (area defaults, T-120) and in T-110 `inner`. On a checkout without `apps/research-ui/.next-export` those now fail by design; build the UI first or set `NEXUS_WHEEL_ALLOW_NO_UI=1`. The manifest was not edited here (it is baseline-adjacent and has its own gate implications): follow-up below. The `pr` stage for this diff does not include a wheel build.
 
 Source of the items: the strict acceptance run of 2026-11-13 (findings 1 and 13), `docs/assessment/three-phase-hardening-2026-11-10.md` (F9, F10), and the two load-sensitive UI tests named by the coordinating session.
 
@@ -13,7 +13,7 @@ Source of the items: the strict acceptance run of 2026-11-13 (findings 1 and 13)
 - [x] **3. F9.** The skill lines go through logging; `nexus-scholar init` prints one summary line.
 - [x] **4a. F10 (Python).** Four of the six are explained and handled (a stale editable install); two did not reproduce and are not changed (see below).
 - [x] **4b. UI load-sensitive tests.** Both reproduced, causes found, tests fixed, no screen component touched.
-- [ ] **5. Gates.** `/gate pr` once on the final executable commit; `generate_contract_baseline.py --check`; both ruff commands; `milestone-reviewer`.
+- [x] **5. Gates.** `/gate pr` once on the final executable commit (`2fc86cc6`; vitest needed a second run, see Evidence); `generate_contract_baseline.py --check`; both ruff commands; `milestone-reviewer` (CHANGES, repaired in documentation).
 
 ## Findings fixed
 | Item | Reproducing test | Fails before | Passes after |
@@ -45,6 +45,11 @@ Source of the items: the strict acceptance run of 2026-11-13 (findings 1 and 13)
 | pr | `2fc86cc6` | `select_test_gate.py --changed origin/main --stage pr`, run step by step with `RESEARCH_UI_PORT=3291` | `git diff --check` ok; ruff `scripts/` ok; typecheck ok; `pytest -q -n auto` exit 0 (the summary line is hidden by the double `-q`; the same suite counted 5 074 passed, 15 skipped in the baseline row); `next build` ok; Playwright 491 passed, 13 skipped (13 rewritten screenshots restored with `git checkout`). **Vitest: first run 6 failed, 629 passed** (5 files outside this change: `discovery-harvest`, `discovery-recall`, `inception-done`, `inception-explore`, `keyboard-traversal`; timeouts of 5 000 ms and role lookups that did not find their heading, while another session's suites were running on the same machine); the same five files alone 96 passed; a second full run **635 passed in 44 files** | ~35 min |
 | contract and lint | `2fc86cc6` | `generate_contract_baseline.py --check`; `ruff check scripts/`; `ruff check src/ --select F821,F811,F823,F632,F7,B023,B006,E9` | baseline current; both ruff runs clean | <1 min |
 
+## Follow-ups (not done here)
+- The manifest entries above should build the export first (or set the opt-out); a one-line change with its own gate.
+- `wizard.py` prints "1 skills were COPIED" for a single copied skill (P3, found in review; left so the gate evidence stays on one executable commit).
+- Five other vitest files timed out once under load (see Not verified): one pass of their own.
+
 ## Not verified
 - A wheel built from this branch was not installed and run, and the runbook's resume section was not tried against the strict run's real workspace (it lives on the second PC). Its wording is copied from the copy file at `e7644a6c`, not read from a running screen.
 - No CI run: the `build-wheel` and `wheel-e2e` jobs were read in `ci.yml`, `release.yml` and `publish.yml` (all three set `NEXUS_WHEEL_REQUIRE_UI=1` and run `npm ci` and `npm run build:export` before `uv build --wheel`), not executed.
@@ -54,4 +59,4 @@ Source of the items: the strict acceptance run of 2026-11-13 (findings 1 and 13)
 - Findings 2 to 4 of the strict run are marked "Fixed by M10a" from the M10a record, not re-run on a wheel.
 
 ## Review
-(milestone-reviewer result goes here)
+`milestone-reviewer` (Sonnet) on `e5d9413a`: **CHANGES**, two P2, no P1. (1) Findings rows 2 and 4 overclaimed "Fixed by M10a": reworded to "Partly fixed" with what M10a did and did not do. (2) The local gate commands that run a bare `uv build --wheel`: stated in the Lane paragraph and the follow-ups. Also confirmed: CI, release and publish build the export first; `uv sync` is unaffected; the new F9 tests fail on the old code; `skip_if_stale_install` is never true on a fresh install; the quoted UI sentences match `discovery-copy.ts`; the folder name equals `slugify` of the title. Not verified by the reviewer: a real wheel build, the UI tests, the full gate. The repair is documentation only.
