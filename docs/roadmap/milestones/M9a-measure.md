@@ -29,7 +29,7 @@ What did **not** exist: precision on includes, the confusion table, the list of 
 - [x] **D8 The exact command and its cost** are below.
 - [ ] **D9 The measurement run itself.** NOT RUN. Needs the researcher's approval of AI spend and a key set by the researcher (`nexus-scholar keys set anthropic`).
 - [ ] **D10 Thresholds decided from data** (ladder §4 numbers confirmed or changed) and recorded in `docs/decisions.md`. After D9.
-- [ ] **D11 Gates.** `/gate pr` once on the final executable commit, the contract baseline check, both ruff commands, `git diff --check`, the `milestone-reviewer` verdict: see Evidence (ticked when the rows are filled).
+- [x] **D11 Gates.** `/gate pr` once on the final executable commit, the contract baseline check, both ruff commands, `git diff --check`, the `milestone-reviewer` verdict: see Evidence (rows filled).
 
 ## Findings fixed
 | ID | Reproducing test | Fails before | Passes after |
@@ -75,14 +75,15 @@ Defaults: `--scope frozen`, `--provider anthropic`, `--model claude-opus-5-5`, `
 ## Evidence
 | Stage | Commit | Command | Result | Duration |
 | :-- | :-- | :-- | :-- | :-- |
-| inner | working tree | `pytest tests/kits/agent/test_measure.py tests/kits/agent/test_prompt_gate.py tests/kits/agent/test_driver_contract.py` | 49 passed | seconds |
+| inner (first build; superseded by the pr row, which ran the round-1 tests too) | working tree before `d4bb5ce7` | `pytest tests/kits/agent/test_measure.py tests/kits/agent/test_prompt_gate.py tests/kits/agent/test_driver_contract.py` | 49 passed | seconds |
 | dry run | working tree | `uv run nexus-scholar prompt-gate measure --workspace workspaces/uav-crop-weed-v03 --dry-run` (frozen and all; opus, sonnet, haiku) | the table above; 0 network calls; workspace unchanged (`git status` clean) | seconds |
 | pr (final executable commit) | `86ee6572` | `select_test_gate.py --changed origin/main --stage pr` (areas `harness-cli`, `agent-mcp`): `git diff --check`, `pytest -q -n auto`, `ruff check scripts/` | `git diff --check` clean; `ruff check scripts/` clean; full pytest: 1 failed under load, `tests/authority/test_ag04_interaction.py::test_low_il_worker_process_windows` (a Windows integrity-level test in a file this branch does not touch; passes alone, 32 of 32 in its file); the passed total was cut off by the log tail and is not recorded | 20 min 28 s |
 | baseline, ruff | `86ee6572` | `generate_contract_baseline.py --check`; `ruff check src/ --select F821,F811,F823,F632,F7,B023,B006,E9` | current; clean | seconds |
-| review | `d4bb5ce7`, then `86ee6572` | `milestone-reviewer` (Sonnet) | round 1 on `d4bb5ce7`: CHANGES (no P1; P2: gates passed on an all-failed run, D11 ticked early, lane unexplained; P3 x7); all fixed or recorded in `86ee6572`. Round 2: see below | |
+| review | `d4bb5ce7`, then `86ee6572` | `milestone-reviewer` (Sonnet) | round 1 on `d4bb5ce7`: CHANGES (no P1; P2: gates passed on an all-failed run, D11 ticked early, lane unexplained; P3 x7); all fixed or recorded in `86ee6572`. Round 2 on `86ee6572`: **APPROVE** (all round-1 findings verified fixed; five P3 notes: two evidence rows made precise here, three small items in Deferred) | |
 
 ## Deferred
 - The measurement run (D9) and the threshold decision (D10).
+- Review round 2 (P3, not fixed, no code change after the PR gate): a run with some failed calls shows the headline `passes` without a warning when it differs from `passes_if_failed_calls_were_misses` (the two columns are side by side); the dry-run text says "hard ceiling" where the record says "estimated hard ceiling".
 - `measure` runs only priced models (a ceiling is always set); an unpriced local or OpenAI-compatible endpoint is out of scope here.
 - `--limit` takes the first N by study id, not a random sample (the report says SMOKE RUN).
 - The score fix to `prompt_gate.score` is reached only by `calibration_result` and direct callers; `measure` maps a researcher Unclear to an include itself.
