@@ -68,6 +68,13 @@ Cassette matching is `method, scheme, host, path, query`; headers (the User-Agen
 ## Evidence
 | Stage | Commit | Command | Result | Duration |
 | :-- | :-- | :-- | :-- | :-- |
+| before | `e7644a6c` + the new test file | `uv run pytest tests/kits/search/test_provider_resilience.py` (then the leg-record and default-set tests, and the `legs.json` test, as each was written) | 23 failed, 1 passed; then 14 failed, 1 passed; `KeyError: 'client'` (table above) | |
+| inner | working tree | `select_test_gate.py --changed origin/main --stage inner` (`git diff --check`; pytest `tests/console`, `tests/recon`, `tests/pipeline tests/unit`, `tests/kits/search`, not slow) | 9 failures, all tests that pinned the old behaviour (the arXiv note, PubMed in the default set, the hydrator's keyless retry, the five-database fallback); updated to the new behaviour, see "Decisions" | 798 s |
+| inner | working tree | the updated files plus `tests/pipeline/test_golden_search_cassettes.py`, `test_golden_recon_cassette.py` | all passed; golden: 9 passed (no re-record) | 156 s + 102 s |
+| lint | working tree | `ruff check scripts/`; `ruff check src/ --select F821,F811,F823,F632,F7,B023,B006,E9`; broad `ruff check` on each touched kit file against `origin/main` | clean; clean; no new finding (counts equal before and after) | |
+| contract | working tree | `generate_contract_baseline.py --check` | current | |
+| closure (includes pr) | `c8b5ecd7` (executable code as `3c67d6fc`) | `select_test_gate.py --changed origin/main --stage closure`: contract baseline, schemas and two-study fixture `--check`; `ruff check scripts/`; ruff bug classes on `src/`; `git diff --check origin/main...HEAD`; `uv run pytest -q -n auto`; `uv build --wheel` | all exit 0; pytest 5110 passed, 15 skipped, 0 failed (counted from the progress output: this repo's `-q` prints no summary line); wheel `nexus_scholar-1.1.0b6` built | 739 s |
+| checkpoint | `5f0d55fe` | `select_test_gate.py --changed origin/main --stage checkpoint` (`git diff --check`; pytest console+authority, recon+inception+MCP recon, pipeline+unit+e2e+console pipelines/jobs, kits/search+identity+stages+http client+screening migration, kits/agent+mcp+parity+capability+agent CLI, each `-n auto`; `sync_skills_bundle.py --check`; `test_count_freshness.py`) | every command exit 0 | 1085 s |
 
 ## Deferred
 
