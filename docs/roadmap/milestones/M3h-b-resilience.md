@@ -1,5 +1,5 @@
 # M3h-b-resilience Provider resilience (F14, F15, F16)
-Branch: dev/m3h-b/provider-resilience · Lane: **RELEASE** (see "Lane") · Status: READY FOR PR · Started: 2026-11-18
+Branch: dev/m3h-b/provider-resilience · Lane: **RELEASE** (see "Lane") · Status: MERGED (PR #239, merge commit `09f293d3`, 2026-11-18) · Started: 2026-11-18
 
 The second package of the plan §6 M3h row: findings F14, F15 and F16 of
 [`three-phase-hardening-2026-11-10.md`](../../assessment/three-phase-hardening-2026-11-10.md)

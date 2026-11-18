@@ -4,6 +4,19 @@ One entry per decision that still shapes the code, newest first. The full
 records were removed in the 2026-11-03 docs cut; each entry names the commit
 history to read if you need the original reasoning (`git log --follow -- <path>`).
 
+## 2026-11-18 — M9a-measure: one command over the existing prompt gate (accepted 2026-11-18; M9a-measure)
+
+Record: `docs/roadmap/milestones/M9a-measure.md`. Proposed by the build session; the researcher accepted all eight on 2026-11-18 and kept the lane STANDARD; none of it spends anything, and the measurement itself still waits for the researcher's approval of AI spend. None touches a Contract v1 model, schema or golden fixture.
+
+1. **`prompt-gate measure`, built on the gate.** A fifth command of the existing group and one module (`scholar_agent/measure.py`) that calls `prompt_gate` for the set, the text, the drivers, the outcome rule and the cost. No second driver or scorer. Changing it would mean a parallel scorer that can drift from the gate.
+2. **Default scope is the gate's frozen sample** (1,644 records: all 644 includes and 1,000 seeded excludes). `--scope all` (14,150) costs about 8.5 times as much and adds only excludes; the ladder gate counts includes. Changing it: pass `--scope all`.
+3. **A researcher's Unclear counts as an include** in the score, as the ladder says and `calibration_result` already did (fix to `prompt_gate.score`; the v03 labels have none, so no existing number moves).
+4. **A stopped run is not scored.** Records a run never reached (the cost ceiling stopped it) are listed and left out of every figure; a failed call (truncated, refused, invalid, error) is Unclear as in the product and is also shown as a miss in a second, strict recall. The alternative, counting the unreached as Unclear, would inflate recall.
+5. **The cost ceiling defaults to 1.5 x the no-caching estimate** ($22.80 for Opus on the frozen sample), checked between chunks of 200 as a product run does; `--cost-ceiling` overrides it. An explicit ceiling below the expected cost is refused before anything is sent, as a product run does. A model without a price is not run by `measure` (a ceiling is always set).
+6. **The blind check refuses a figure in the task's own words, and an outcome word in the criteria.** The v03 criteria state a sampling plan ("~10% random sample"), which is review method, not an outcome, so a percentage in the criteria is allowed; a word such as "recall", "precision", "agreement" or "most of these" is not (conservative: a protocol about "precision agriculture" would be refused and the researcher would reword the criterion). Ladder decision of 2026-11-11 and lesson 54.
+7. **A gate passes only on a run that measured something**, and it is reported twice: with a failed call as Unclear (the product's rule) and with every failed call as a miss. A run whose calls all failed passes nothing.
+8. **The draft thresholds are constants** (`L1` 35 includes and 0.90, `L2` 75 and 0.95) in `measure.py`, evaluated review-wide; per-batch recall is descriptive. M9a decides the final numbers from the measurement and records them here.
+
 ## 2026-11-18 — M3h-b: one default database set, shared provider budgets, the leg's auth channel (accepted 2026-11-18; M3h-b-resilience)
 
 Record: `docs/roadmap/milestones/M3h-b-resilience.md`. Findings F14 to F16 of `docs/assessment/three-phase-hardening-2026-11-10.md`. The researcher accepted all seven on 2026-11-18: item 1 as option (a), the four; item 2 as option (a), the researcher re-records the two arXiv interactions later and a follow-up sends the date range; items 3 to 7 as written. Nothing here touches a Contract v1 artifact, the protocol schema or a protocol fingerprint.

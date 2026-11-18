@@ -1,5 +1,5 @@
 # M10c-critic-test-set: a test set of broken protocols for the M10c critic
-Branch: dev/m10c/critic-test-set · Lane: **STANDARD** (tests, fixtures and documentation only) · Status: READY FOR THE RESEARCHER; committed, not pushed; full-suite gate not clean here (see Evidence) · Started: 2026-11-18
+Branch: dev/m10c/critic-test-set · Lane: **STANDARD** (tests, fixtures and documentation only) · Status: MERGED (PR #238, merge commit `e3790639`, 2026-11-18; CI 12 of 12 green; the local full-suite gate was not clean, see Evidence) · Started: 2026-11-18
 
 Source: `docs/roadmap/production-plan.md` §6, row **M10c-assistant-mcp**: "an assistant and a critic over MCP … with a test set of deliberately broken protocols the critic must catch". The researcher approved this preparation on 2026-11-18. M10c itself cannot start until M10b (the proposal object and the 51 fixed, non-AI checks) is built; M10b is being built in another session. This milestone prepares only the test set, so M10c can start with it. It is not the first step of M10c and it does not decide M10c's design.
 
