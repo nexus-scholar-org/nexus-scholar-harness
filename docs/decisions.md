@@ -4,9 +4,9 @@ One entry per decision that still shapes the code, newest first. The full
 records were removed in the 2026-11-03 docs cut; each entry names the commit
 history to read if you need the original reasoning (`git log --follow -- <path>`).
 
-## 2026-11-18 — M9a-measure: one command over the existing prompt gate (PROPOSED; M9a-measure)
+## 2026-11-18 — M9a-measure: one command over the existing prompt gate (accepted 2026-11-18; M9a-measure)
 
-Record: `docs/roadmap/milestones/M9a-measure.md`. Proposed by the build session for the researcher's acceptance; none of it spends anything, and the measurement itself still waits for the researcher's approval of AI spend. None touches a Contract v1 model, schema or golden fixture.
+Record: `docs/roadmap/milestones/M9a-measure.md`. Proposed by the build session; the researcher accepted all eight on 2026-11-18 and kept the lane STANDARD; none of it spends anything, and the measurement itself still waits for the researcher's approval of AI spend. None touches a Contract v1 model, schema or golden fixture.
 
 1. **`prompt-gate measure`, built on the gate.** A fifth command of the existing group and one module (`scholar_agent/measure.py`) that calls `prompt_gate` for the set, the text, the drivers, the outcome rule and the cost. No second driver or scorer. Changing it would mean a parallel scorer that can drift from the gate.
 2. **Default scope is the gate's frozen sample** (1,644 records: all 644 includes and 1,000 seeded excludes). `--scope all` (14,150) costs about 8.5 times as much and adds only excludes; the ladder gate counts includes. Changing it: pass `--scope all`.
