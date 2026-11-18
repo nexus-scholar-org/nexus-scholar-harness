@@ -1311,7 +1311,7 @@ class WorkspaceLock:
                 handle.write(canonical_json_bytes(record))
                 handle.write(b"\n")
         except OSError as exc:
-            _delete_lock_file(self._path)
+            delete_waiting_out_readers(self._path)
             raise ReplacementValidationError(
                 f"replacement could not record the workspace lock holder: {type(exc).__name__}. A lock "
                 "whose holder is unrecorded is not a lock, so it is removed rather than left behind.",
@@ -1332,8 +1332,10 @@ class WorkspaceLock:
 
         if not self._held:
             return
+        # The file is the lock: the flag is cleared only once the file is gone, so
+        # a release that raised (an exhausted wait) can be tried again.
+        delete_waiting_out_readers(self._path)
         self._held = False
-        _delete_lock_file(self._path)
 
     def __enter__(self) -> WorkspaceLock:
         self.acquire()
@@ -1357,8 +1359,12 @@ class WorkspaceLock:
         return str(run_id) if isinstance(run_id, str) else None
 
 
-def _delete_lock_file(path: Path) -> None:
-    """Delete the lock file, waiting out a handle that briefly holds it open.
+def delete_waiting_out_readers(path: Path) -> None:
+    """Delete a workspace file, waiting out a handle that briefly holds it open.
+
+    Used for the lock file and for the commit intent: both can be read by
+    ``IndexRecovery.inspect`` without the lock, and Windows refuses to delete a file
+    another handle has open.
 
     Only ``ERROR_SHARING_VIOLATION`` is waited for, and only
     :data:`LOCK_RELEASE_ATTEMPTS` times (never fewer than once). A file that is
@@ -1529,7 +1535,7 @@ class IndexReplacement:
         if not absolute.exists():
             return FinalizeResult(state="INTENT_ABSENT", run_id=run_id, intent_path=relative, changed=False)
         CommitIntent.from_payload(_read_json_mapping(absolute))
-        absolute.unlink()
+        delete_waiting_out_readers(absolute)
         return FinalizeResult(state="INTENT_REMOVED", run_id=run_id, intent_path=relative, changed=True)
 
     # -- the protocol -----------------------------------------------------

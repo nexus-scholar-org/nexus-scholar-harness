@@ -84,6 +84,7 @@ from scholar_rag.replacement import (
     ReplacementResult,
     ReplacementValidationError,
     WorkspaceLock,
+    delete_waiting_out_readers,
 )
 
 #: Sidecar constant, not a Contract-v1 ``ErrorCode`` (4.5, L579). Imported by
@@ -771,7 +772,7 @@ class IndexRecovery:
                 # Re-verify before removing: 7.3's intent is a sealed record, and
                 # a tampered one is not a record of anything.
                 CommitIntent.from_payload(json.loads(absolute.read_text(encoding="utf-8")))
-                absolute.unlink()
+                delete_waiting_out_readers(absolute)
                 removed = True
         visible_after = tuple(sorted(str(item) for item in self._backend.visible_ids()))
         return RecoveryDecision(
