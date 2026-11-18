@@ -1,0 +1,210 @@
+{
+  "protocol_id": "proto-20261118-critic-sr-base",
+  "genesis_timestamp": "2026-11-18T00:00:00+00:00",
+  "project_slug": "critic-sr-uav-herbicide",
+  "playbook_type": "SCOPING_REVIEW",
+  "title": "Herbicide use and weed control with UAV-guided site-specific application versus uniform application: a systematic review of comparative field trials",
+  "lead_researcher": "Test Researcher",
+  "target_venue_type": "Weed science or agronomy journal; PRISMA 2020 reporting",
+  "timeline_weeks": 12,
+  "primary_paradigm": "Positivist",
+  "unit_of_analysis": "Comparative field trials (one site-season per trial)",
+  "trustworthiness_framework": "PRISMA 2020 with a risk-of-bias assessment of each trial",
+  "epistemological_rationale": "Pooling herbicide savings and efficacy across trials needs comparable quantitative outcomes, so a positivist stance with a random-effects synthesis is used.",
+  "research_questions": [
+    {
+      "text": "In arable crops, does herbicide application guided by UAV weed maps use less herbicide per hectare than uniform whole-field application?",
+      "target_facet": "herbicide_use",
+      "synthesis_type": "Random-effects meta-analysis of percentage herbicide saving",
+      "required_evidence_type": "Herbicide quantity per hectare for both arms"
+    },
+    {
+      "text": "Does map-guided application change weed control efficacy or crop yield compared with uniform application in the same trials?",
+      "target_facet": "efficacy_and_yield",
+      "synthesis_type": "Random-effects meta-analysis of weed control and yield differences",
+      "required_evidence_type": "Weed density, biomass or yield for both arms"
+    },
+    {
+      "text": "Which trial conditions (crop, weed density, flight altitude, map resolution) are associated with larger or smaller herbicide savings?",
+      "target_facet": "moderators",
+      "synthesis_type": "Subgroup analysis and meta-regression",
+      "required_evidence_type": "Trial-level covariates reported for each trial"
+    }
+  ],
+  "core_concepts": [
+    {
+      "concept": "UAV",
+      "synonyms": [
+        "UAS",
+        "drone",
+        "drones",
+        "unmanned aerial vehicle",
+        "unmanned aerial vehicles",
+        "unmanned aircraft system",
+        "uncrewed aerial vehicle"
+      ],
+      "boolean_operator": "OR"
+    },
+    {
+      "concept": "site-specific herbicide application",
+      "synonyms": [
+        "variable-rate herbicide application",
+        "patch spraying",
+        "spot spraying",
+        "precision spraying",
+        "weed map-based spraying",
+        "prescription map",
+        "map-based herbicide application"
+      ],
+      "boolean_operator": "OR"
+    },
+    {
+      "concept": "field trial",
+      "synonyms": [
+        "field experiment",
+        "plot trial",
+        "randomized complete block",
+        "comparative trial",
+        "uniform application",
+        "broadcast spraying",
+        "whole-field application"
+      ],
+      "boolean_operator": "OR"
+    }
+  ],
+  "target_databases": [
+    "openalex",
+    "semanticscholar",
+    "crossref",
+    "pubmed"
+  ],
+  "start_year": 2010,
+  "end_year": 2026,
+  "languages": [
+    "en"
+  ],
+  "open_access_preferred": false,
+  "pool_min": 100,
+  "pool_max": 800,
+  "golden_seeds": [],
+  "inclusion_criteria": [
+    {
+      "criterion": "Compares herbicide application guided by a weed map made from UAV images with uniform whole-field application, in the same crop and field.",
+      "maps_to_rqs": [
+        "RQ1",
+        "RQ2",
+        "RQ3"
+      ]
+    },
+    {
+      "criterion": "Is a field trial or field experiment with a uniform-application control arm run at the same time, randomized or not.",
+      "maps_to_rqs": [
+        "RQ1",
+        "RQ2"
+      ]
+    },
+    {
+      "criterion": "Reports numerically, for both arms, the herbicide quantity used and at least one of weed control efficacy or crop yield.",
+      "maps_to_rqs": [
+        "RQ1",
+        "RQ2"
+      ]
+    },
+    {
+      "criterion": "Was published in English in 2010 or later.",
+      "maps_to_rqs": [
+        "RQ1",
+        "RQ2",
+        "RQ3"
+      ]
+    }
+  ],
+  "exclusion_criteria": [
+    {
+      "criterion": "Builds the weed map from satellite, ground-vehicle or manned-aircraft images, with no UAV-derived map.",
+      "maps_to_rqs": [
+        "RQ1",
+        "RQ2",
+        "RQ3"
+      ],
+      "reason_category": "WRONG_INTERVENTION"
+    },
+    {
+      "criterion": "Has no uniform-application control arm (for example a simulation, a model-only study or a weed-detection accuracy study with no spraying trial).",
+      "maps_to_rqs": [
+        "RQ1",
+        "RQ2"
+      ],
+      "reason_category": "NO_COMPARATOR"
+    },
+    {
+      "criterion": "Is a review, editorial, commentary, study protocol or conference abstract with no trial data.",
+      "maps_to_rqs": [
+        "RQ1",
+        "RQ2",
+        "RQ3"
+      ],
+      "reason_category": "WRONG_REPORT_TYPE"
+    },
+    {
+      "criterion": "Reports a trial that is already included through another report (keep the most complete report).",
+      "maps_to_rqs": [
+        "RQ1",
+        "RQ2",
+        "RQ3"
+      ],
+      "reason_category": "DUPLICATE_REPORT"
+    }
+  ],
+  "two_tier_screening": true,
+  "matrix_dimensions": [
+    {
+      "id": "crop_and_site",
+      "name": "Crop and site",
+      "description": "Crop, location, year, soil, weed species and weed density at the start.",
+      "data_type": "free_text",
+      "required": false,
+      "fallback_value": "Not Reported"
+    },
+    {
+      "id": "uav_map_source",
+      "name": "UAV map source",
+      "description": "Sensor, flight altitude, map resolution and the rule that turned the weed map into a spraying map.",
+      "data_type": "free_text",
+      "required": false,
+      "fallback_value": "Not Reported"
+    },
+    {
+      "id": "herbicide_quantity_arms",
+      "name": "Herbicide quantity, both arms",
+      "description": "Herbicide quantity per hectare in the map-guided arm and in the uniform arm, with units.",
+      "data_type": "numeric",
+      "required": true,
+      "fallback_value": "Not Reported"
+    },
+    {
+      "id": "weed_control_efficacy",
+      "name": "Weed control efficacy",
+      "description": "Weed density or biomass reduction for both arms, with timing of assessment.",
+      "data_type": "numeric",
+      "required": false,
+      "fallback_value": "Not Reported"
+    },
+    {
+      "id": "crop_yield",
+      "name": "Crop yield",
+      "description": "Yield per hectare for both arms, with units.",
+      "data_type": "numeric",
+      "required": false,
+      "fallback_value": "Not Reported"
+    },
+    {
+      "id": "risk_of_bias",
+      "name": "Risk of bias",
+      "description": "Randomization, replication, blinding of assessment and attrition, rated low, some concerns or high.",
+      "data_type": "categorical",
+      "required": false,
+      "fallback_value": "Not Reported"
+    }
+  ]
+}
