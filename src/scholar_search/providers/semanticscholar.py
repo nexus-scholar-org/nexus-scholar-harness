@@ -129,6 +129,24 @@ class SemanticScholarProvider(BaseAPIProvider):
             params["year"] = f"-{query.year_max}"
         return translated_query, params, []
 
+    async def count(self, query: Query) -> int | None:
+        """``total`` of the bulk endpoint's first page, asked for the paper id only (M10b).
+
+        The bulk search takes no page size, so the first page is read with
+        ``fields=paperId`` and no second page is asked for. A rejected key is
+        named as in a search and never retried keyless.
+        """
+        _, params, _ = self.translate(query)
+        params["fields"] = "paperId"
+        try:
+            resp = await self.client.get(self.base_url, params=params, headers=self._get_headers())
+        except ProviderError as exc:
+            if exc.status_code in REFUSED_STATUSES:
+                raise ProviderError(self.name, refused_note(exc.status_code, bool(settings.s2_key)),
+                                    status_code=exc.status_code) from exc
+            raise
+        return self._as_count((resp.json() or {}).get("total"))
+
     async def search(self, query: Query) -> AsyncIterator[Document]:
         """Search Semantic Scholar using the bulk endpoint."""
         _, params, _ = self._record_translation(query)

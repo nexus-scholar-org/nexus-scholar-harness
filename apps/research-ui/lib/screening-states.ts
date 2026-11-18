@@ -923,6 +923,16 @@ export const STATES: Record<string, StateEntry> = {
       ar: T("هذا الحد غير مسموح", "حد التشغيل الواحد عدد صحيح من 1 إلى 10,000. لم يبدأ شيء.", "بدء البحث", "غيّر الحد"),
     },
   },
+  // M10b Part D (spec 01-plan "Size estimate", Refusals): the pace only turns records into hours.
+  PACE_INVALID: {
+    role: "blocked",
+    action: "none",
+    copy: {
+      en: T("Use a whole number of seconds between 5 and 600", "The pace is only used to turn a number of records into hours.", "The screening time shown", "Edit the pace"),
+      fr: T("Indiquez un nombre entier de secondes entre 5 et 600", "Le rythme sert seulement à convertir un nombre d'enregistrements en heures.", "Le temps de tri affiché", "Modifier le rythme"),
+      ar: T("استخدم عددًا صحيحًا من الثواني بين 5 و600", "تُستخدم الوتيرة فقط لتحويل عدد السجلات إلى ساعات.", "وقت الفرز المعروض", "عدّل الوتيرة"),
+    },
+  },
   BODY_INVALID: {
     role: "blocked",
     action: "none",

@@ -114,6 +114,14 @@ class CrossrefProvider(BaseAPIProvider):
             params["filter"] = ",".join(filters)
         return translated_query, params, []
 
+    async def count(self, query: Query) -> int | None:
+        """``message.total-results`` of the planned request with ``rows=0`` (M10b)."""
+        _, params, _ = self.translate(query)
+        params["rows"] = 0
+        resp = await self.client.get(self.base_url, params=params)
+        message = (resp.json() or {}).get("message", {}) or {}
+        return self._as_count(message.get("total-results"))
+
     async def search(self, query: Query) -> AsyncIterator[Document]:
         """Search Crossref works."""
         _, params, _ = self._record_translation(query)

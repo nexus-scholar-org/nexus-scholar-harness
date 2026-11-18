@@ -212,8 +212,8 @@ The UI reads proposals only through `GET /records/{study_id}/proposal`. The fiel
 | `CONFIRMATION_MISMATCH` | genesis | HTTP 422: the typed confirmation is not the workspace slug (M4a, INC-08) |
 | `WORKSPACE_JOB_ACTIVE` | genesis with `replace` | HTTP 409: a discovery or console job is still running in the workspace; nothing moved (M4d, F1) |
 | `ARCHIVE_INCOMPLETE` | genesis with `replace` | HTTP 409: archiving the old corpus stopped part way; `details {backup_dir, moved, not_moved}`, journaled as `PROTOCOL_REPLACE_INCOMPLETE`; the protocol was not replaced (M4d, F1) |
-| `MAILTO_NOT_SET` | recon probe, delta; discovery runs, recall | HTTP 409: the console has no contact email (`SCHOLAR_MAILTO`); no request was sent (M4c, M3b-api) |
-| `OPENALEX_KEY_NOT_SET` | discovery runs | HTTP 409: the run selects OpenAlex and the console has no `SCHOLAR_OPENALEX_KEY` (OpenAlex requires a key since 2026-02-13); no request was sent (M3h-providers) |
+| `MAILTO_NOT_SET` | recon probe, delta; discovery runs, recall, estimate | HTTP 409: the console has no contact email (`SCHOLAR_MAILTO`); no request was sent (M4c, M3b-api) |
+| `OPENALEX_KEY_NOT_SET` | discovery runs, estimate | HTTP 409: the run selects OpenAlex and the console has no `SCHOLAR_OPENALEX_KEY` (OpenAlex requires a key since 2026-02-13); no request was sent (M3h-providers) |
 | `RECON_SESSION_INVALID` | `/inception/drafts/{id}/recon/*` | HTTP 422: the id is not a recon session id, or its folder would be under `workspaces/` (M4c) |
 | `RECON_SESSION_NOT_FOUND` | `/inception/drafts/{id}/recon/*` | HTTP 404: the draft has no recon session yet; run a probe (M4c) |
 | `RECON_NO_POOL` | distill, directions, delta, bind, narrower probe | HTTP 409: the session has no usable pool; run a probe (M4c) |
@@ -228,13 +228,14 @@ The UI reads proposals only through `GET /records/{study_id}/proposal`. The fiel
 | `RECON_FAILED` | recon jobs | the job stopped on an unexpected error; `message` names it (M4c) |
 | `TERM_EMPTY` | recon evidence | HTTP 422: the phrase to check is empty (M4d) |
 | `PROTOCOL_MISSING` | discovery plan, runs, recall, report, handoff | HTTP 409: the workspace has no `protocol.json` (M3b-api) |
-| `DISCOVERY_JOB_ACTIVE` | discovery runs, recall | HTTP 409: a discovery job is already running for this workspace; `details.job` is it (M3b-api) |
+| `DISCOVERY_JOB_ACTIVE` | discovery runs, recall, estimate | HTTP 409: a discovery job is already running for this workspace; `details.job` is it (M3b-api) |
 | `DISCOVERY_JOB_NOT_FOUND` | `/discovery/jobs/{job_id}` | HTTP 404: no discovery job with that id in this workspace (M3b-api) |
 | `RUN_NOT_FOUND` | `/discovery/runs/{run}`, report, report methods | HTTP 404: no search run of that name, or no run yet (M3b-api) |
 | `RECALL_NOT_RUN` | `GET /discovery/recall` | HTTP 404: no recall check has been run (M3b-api) |
 | `SEEDS_INVALID` | discovery recall | HTTP 422: no seed, more than 25, or a malformed DOI or arXiv id (M3b-api) |
-| `CAP_INVALID` | discovery runs | HTTP 422: `cap_override` is not 1 to 10,000 (M3b-api) |
-| `PROVIDER_UNKNOWN` | discovery runs, recall | HTTP 422: a database name the engine does not know; `details.known` lists them (M3b-api) |
+| `CAP_INVALID` | discovery runs, estimate | HTTP 422: `cap_override` (a run) or `cap` (the size estimate's what-if, M10b) is not 1 to 10,000 (M3b-api) |
+| `PACE_INVALID` | discovery estimate | HTTP 422: the size estimate's `pace_seconds` is not a whole number from 5 to 600; no database was asked (M10b) |
+| `PROVIDER_UNKNOWN` | discovery runs, recall, estimate | HTTP 422: a database name the engine does not know; `details.known` lists them (M3b-api) |
 | `DISCOVERY_FAILED` | discovery jobs | the job stopped on an unexpected error; `message` names it (M3b-api) |
 | `PROTOCOL_CHANGED_SINCE_SNAPSHOT` | discovery run job `error` | the protocol no longer matches the accepted snapshot; resume refused (E5, M3b-api; also the reason's prefix) |
 | `BATCHES_INCOMPLETE` | discovery run job `error` | the accepted snapshot has studies in no screening batch; resume refused (E5, M3b-api; also the reason's prefix) |

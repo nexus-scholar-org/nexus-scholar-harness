@@ -269,6 +269,14 @@ class PubMedProvider(BaseAPIProvider):
                 + " (stop words); they were not searched"
             )
 
+    async def count(self, query: Query) -> int | None:
+        """``esearchresult.count`` of the planned ESearch with ``retmax=0`` (M10b); no EFetch."""
+        _, params, _ = self.translate(query)
+        params["retmax"] = 0
+        resp = await self.client.get(f"{self.base_url}/esearch.fcgi", params=params)
+        result = (resp.json() or {}).get("esearchresult", {}) or {}
+        return self._as_count(result.get("count"))
+
     async def search(self, query: Query) -> AsyncIterator[Document]:
         """Search PubMed using esearch and efetch."""
         _, params, _ = self._record_translation(query)
