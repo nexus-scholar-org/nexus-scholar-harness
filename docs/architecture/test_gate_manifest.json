@@ -84,7 +84,7 @@
       "paths": ["src/scholar_rag/index_service.py", "src/scholar_rag/cli.py", "tests/kits/rag/test_index_service.py"],
       "inner": ["uv run pytest tests/kits/rag/test_index_service.py -q"],
       "checkpoint": ["uv run pytest tests/kits/rag/test_index_service.py tests/kits/rag/test_index_manifest.py tests/kits/rag/test_index_verifier.py -q"],
-      "pr": ["uv run pytest tests/kits/rag -q", "uv run ruff check src/scholar_rag tests/kits/rag", "uv build --wheel"],
+      "pr": ["uv run pytest tests/kits/rag -q", "uv run ruff check src/scholar_rag tests/kits/rag", "uv run python -c \"import os, subprocess, sys; sys.exit(subprocess.call(['uv', 'build', '--wheel'], env=dict(os.environ, NEXUS_WHEEL_ALLOW_NO_UI='1')))\""],
       "closure": []
     },
     "T-95": {
@@ -106,7 +106,7 @@
     "T-110": {
       "repo": "kits",
       "paths": ["pyproject.toml", "uv.lock"],
-      "inner": ["uv build --wheel"],
+      "inner": ["uv run python -c \"import os, subprocess, sys; sys.exit(subprocess.call(['uv', 'build', '--wheel'], env=dict(os.environ, NEXUS_WHEEL_ALLOW_NO_UI='1')))\""],
       "checkpoint": ["uv run pytest tests/conformance/test_count_freshness.py -q"],
       "pr": ["uv run pytest tests/kits/rag -q", "uv run pytest tests/kits/agent -q"],
       "closure": []
@@ -117,7 +117,7 @@
       "inner": ["uv run pytest tests/conformance/test_count_freshness.py -q"],
       "checkpoint": ["uv run pytest tests/conformance -q"],
       "pr": ["uv run pytest -q", "uv run ruff check scripts/"],
-      "closure": ["uv run pytest -q", "uv build --wheel"]
+      "closure": ["uv run pytest -q", "npm --prefix apps/research-ui ci", "npm --prefix apps/research-ui run build:export", "uv build --wheel"]
     },
     "T-130": {
       "repo": "harness",
@@ -222,7 +222,7 @@
   "area_defaults": {
     "comment": "Areas map the post-merge source tree (one package, src/scholar_*) to the tests that exercise it. A path matched by an area takes that area's gate; E3 task path rules apply only to paths no area matches (explicit --task still works). The first matching area wins, so specific areas precede catch-alls. Inner skips @pytest.mark.slow; checkpoint and pr run everything.",
     "pr": ["uv run pytest -q -n auto", "uv run ruff check scripts/"],
-    "closure": ["uv run pytest -q -n auto", "uv build --wheel"]
+    "closure": ["uv run pytest -q -n auto", "npm --prefix apps/research-ui ci", "npm --prefix apps/research-ui run build:export", "uv build --wheel"]
   },
   "areas": [
     {
