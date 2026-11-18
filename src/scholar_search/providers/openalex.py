@@ -252,6 +252,13 @@ class OpenAlexProvider(BaseAPIProvider):
                     self._record_auth("key_rejected")
             raise
 
+    async def count(self, query: Query) -> int | None:
+        """``meta.count`` of the planned request with one record per page (M10b)."""
+        _, params, _ = self.translate(query)
+        params["per-page"] = 1
+        resp = await self._get(params)
+        return self._as_count((resp.json() or {}).get("meta", {}).get("count"))
+
     async def search(self, query: Query) -> AsyncIterator[Document]:
         """Search OpenAlex works."""
         _, params, _ = self._record_translation(query)

@@ -157,6 +157,8 @@ RECALL_NOT_RUN = "RECALL_NOT_RUN"
 OPENALEX_KEY_NOT_SET = "OPENALEX_KEY_NOT_SET"
 SEEDS_INVALID = "SEEDS_INVALID"
 CAP_INVALID = "CAP_INVALID"
+#: M10b Part D: the size estimate's screening pace is not 5 to 600 seconds per record.
+PACE_INVALID = "PACE_INVALID"
 #: A database name the engine does not know, in a run's or a check's ``providers``.
 PROVIDER_UNKNOWN = "PROVIDER_UNKNOWN"
 #: A discovery job stopped on an unexpected error; ``message`` names it.
@@ -311,6 +313,7 @@ CONTRACT_ADDED = frozenset(
         OPENALEX_KEY_NOT_SET,
         SEEDS_INVALID,
         CAP_INVALID,
+        PACE_INVALID,
         PROVIDER_UNKNOWN,
         DISCOVERY_FAILED,
         PROTOCOL_CHANGED_SINCE_SNAPSHOT,

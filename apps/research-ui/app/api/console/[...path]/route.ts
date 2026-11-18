@@ -82,6 +82,9 @@ const POST_PATHS: ReadonlyArray<RegExp> = [
   // start a job in the console, which refuses MAILTO_NOT_SET, CORPUS_ALREADY_ACCEPTED
   // and a second job before anything starts; cancel keeps the fetched records.
   /^api\/v1\/discovery\/(runs|recall)$/,
+  // M10b Part D: the size estimate. Count-only requests to the selected databases;
+  // nothing is written in the workspace and nothing is journaled.
+  /^api\/v1\/discovery\/estimate$/,
   // M3i-harvest-robustness: finish a harvest's remaining stages (duplicates, abstracts,
   // verification) from the run's saved records; the console searches nothing again.
   /^api\/v1\/discovery\/runs\/run_\d{3,}\/prepare$/,

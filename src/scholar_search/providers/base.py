@@ -117,6 +117,24 @@ class BaseAPIProvider(ABC):
             return [f"language ({query.language}): no language filter is sent to {self.name}"]
         return []
 
+    async def count(self, query: Query) -> int | None:
+        """How many records the database reports for ``query``, without fetching them (M10b).
+
+        One request, built from ``translate(query)`` (the string the plan shows
+        and the harvest sends), with the page size set so no record body is
+        asked for. ``None`` when the answer carries no total. A provider error
+        is raised as in a search; a database that never reports a total raises
+        ``NotImplementedError``.
+        """
+        raise NotImplementedError(f"{self.name} does not report how many records match")
+
+    @staticmethod
+    def _as_count(value) -> int | None:
+        try:
+            return int(value) if value is not None else None
+        except (TypeError, ValueError):
+            return None
+
     def _record_translation(self, query: Query) -> tuple[str, dict, list[str]]:
         """Translate, then record the executed string, the request and the notes on the leg."""
         executed, params, notes = self.translate(query)
