@@ -7,7 +7,7 @@ Boards: none. The rules restate and extend decisions already taken: BRAND_BOOK p
 **Changed from the canvas.**
 - The per-screen specs show help text inline under the field (`aria-describedby` paragraphs such as `inception-scope.tsx:74,106,128`, `inception-shape.tsx:184,199,217`, `discovery-harvest.tsx:301,317`, `discovery-chase.tsx:308,327,346`). This spec overrides **where** that text is shown, not **what** it says. A text that moves behind a hint keeps its copy key, so no translation changes and the specs' Copy sections stay the source of every string.
 - Spec 12 rule 4 fixes the summary "Details" for proof disclosures. This spec adds one more disclosure use, a collapsed secondary card (rule 4 below), which keeps the card's own title as its summary, as "Run from the terminal" does in 12.
-- The per-screen audit (section "Audit") is a snapshot of the copy catalogs on this branch (`apps/research-ui/lib/inception-copy.ts`, `apps/research-ui/lib/discovery-copy.ts`). **Inception 01 Scope, 02 Explore, 03 Direction and discovery 01 Plan and 03 Harvest are being amended on another branch (M10a); their text may change. Re-run the audit for those five rows when that branch merges** (test `guidance.audit.test.tsx` below fails on any key it does not know).
+- The per-screen audit (section "Audit") is a snapshot of the copy catalogs on this branch (`apps/research-ui/lib/inception-copy.ts`, `apps/research-ui/lib/discovery-copy.ts`). The snapshot was taken at `a0191cc6` and recounted on 2026-11-18, after M10a and M3i merged, for every screen whose keys changed since: Explore, Harvest, Plan, Hand-off and Chase (see "Counts per decision"). The test `guidance.audit.test.tsx` below fails on any key it does not know, so a later copy change cannot slip past the audit.
 
 ## Entry / exit
 - Entry: applies to every screen listed above when M10d builds it; no route of its own. Later phases (Screening, Synthesis) adopt it by adding rows to the audit.
@@ -284,7 +284,7 @@ Shared (the entry `/discovery/` and spec 07 "States"), then 01 Plan, 02 Recall, 
 | D-DS10 | `overview.title` | "Where the search stands" | STAYS | the question |
 | D-DS11 | `overview.lede` (sentence 1) | "Each line below is read from the engine." | REMOVED | X1 the "As of" caption carries the provenance |
 | D-DS12 | `overview.lede` (sentence 2) | "Every step stays open; nothing here is locked." | HINT | T3 definition of the page |
-| D-DS13 | `overview.recall.done`, `recall.earlier`, `recall.none`, `harvest.done`, `harvest.none`, `harvest.running`, `import.done`, `import.none`, `dedup.done`, `dedup.none`, `report.done`, `report.none`, `handoff.done`, `handoff.none` | one status line per step | STAYS | V3/V8 step status |
+| D-DS13 | `overview.recall.done`, `recall.earlier`, `recall.none`, `harvest.done`, `harvest.none`, `harvest.running`, `harvest.unfinished`, `import.done`, `import.none`, `dedup.done`, `dedup.none`, `report.done`, `report.none`, `handoff.done`, `handoff.none` | one status line per step | STAYS | V3/V8 step status |
 | D-DS14 | `overview.plan.line` | "The plan records nothing: starting a harvest is the record." | HINT | T4 background |
 | D-DS15 | `overview.continue` | "Continue at {step}" | STAYS | V7 the step-level recommendation; replaced by the what's-next bar (04-next-step) |
 | D-P1 | `plan.eyebrowName`, `plan.title` | "Search plan", "This is what each database will receive" | STAYS | V8 / the question |
@@ -303,6 +303,10 @@ Shared (the entry `/discovery/` and spec 07 "States"), then 01 Plan, 02 Recall, 
 | D-P14 | `plan.limits.openalexKey.help` | "Required by OpenAlex. Without it a run that includes OpenAlex is refused." | HINT | T3; when the key is missing the refusal card D-DS6 is visible |
 | D-P15 | `plan.limits.s2Key.help` | "Optional. Without it Semantic Scholar is searched in its shared keyless pool ..." | HINT | T3/T4 |
 | D-P16 | `plan.noneSelected`, `plan.next`, `plan.changed` | "The protocol selects no database to search.", "Continue to Recall", "The protocol changed since this page was read." | STAYS | V2/V7; main action "Continue to Recall" |
+| D-P17 | `plan.picker.title`, `picker.legend`, `picker.check.*`, `picker.up.*`, `picker.down.*`, `picker.moved`, `picker.none`, `picker.unknown`, `picker.reset`, `picker.loading` | "Databases for this harvest", the per-database controls, "Pick at least one database.", "Loading the plan for this choice" | STAYS | V7 controls and their names; V1 the "at least one" refusal; V8 loading (the same decision as I-E40) |
+| D-P18 | `plan.picker.orderHelp` | "The order only sets the order the databases are searched and listed; it never changes the corpus." | HINT | T3 what the order means (the same decision as I-E41) |
+| D-P19 | `plan.picker.differs`, `picker.differs.*` | "This harvest differs from the protocol: {list}" | STAYS | V5/V2 the harvest's choice against the protocol's, before it is sent |
+| D-P20 | `plan.next.harvest` | "Continue to Harvest with this choice" | STAYS | V7 the link that carries the choice to Harvest |
 | D-R1 | `recall.eyebrowName`, `recall.title`, `recall.titleNone` | "The query finds {found} of the {total} papers you gave it" | STAYS | V4 the result is the title |
 | D-R2 | `recall.lede` (sentence 1) | "Each seed is looked up and compared by title first." | STAYS | the one lede sentence |
 | D-R3 | `recall.lede` (sentence 2) | "A paper no database returns is listed; nothing is blocked." | REMOVED | X1 `recall.missedEverywhere` lists it and the miss hint says "nothing is blocked" |
@@ -389,6 +393,9 @@ Shared (the entry `/discovery/` and spec 07 "States"), then 01 Plan, 02 Recall, 
 | D-HO11 | `handoff.again`, `handoff.report`, `handoff.import` | "Search again", "Read the report", "Stage an export" | STAYS | V7 quiet links |
 | D-HO12 | `handoff.accepted.title`, `accepted.card`, `accepted.id`, `accepted.at`, `accepted.counts`, `accepted.go` | "This corpus is accepted." | STAYS | V5 |
 | D-HO13 | `handoff.empty.title`, `handoff.empty.body` | "There is nothing to hand off yet." | STAYS | V3 empty with its next step |
+| D-HO14 | `handoff.pending.title`, `pending.running`, `pending.runningNoStage`, `pending.failed`, `pending.stopped`, `pending.interrupted` | "The corpus is not ready to hand off yet." and one sentence by state ("... failed at the step “{stage}”.") | STAYS | V3/V2 the state of the preparation and the stage it stopped at (M3i) |
+| D-HO15 | `handoff.pending.kept` | "The records found are saved; nothing has to be searched again." | HINT | T1 reassurance; the link names the action (the same decision as D-H14) |
+| D-HO16 | `handoff.pending.finish`, `handoff.pending.follow` | "Finish preparing this corpus on Harvest", "Follow the harvest" | STAYS | V7 the main action of the Not ready state |
 | D-CH1 | `chase.eyebrow`, `chase.eyebrowRun`, `chase.title.*` | "Chase the citations of your included studies" and the run states | STAYS | V8 / the state in one sentence |
 | D-CH2 | `chase.lede` (sentence 1) | "The chase asks OpenAlex and Semantic Scholar which works cite your included studies and which works they cite." | STAYS | the one lede sentence; V6 what is asked, of whom |
 | D-CH3 | `chase.lede` (sentence 2) | "What is new is screened as a separate second round and counted in its own arm of the PRISMA flow." | REMOVED | X2 `chase.gate.body` says it, fully, at the gate |
@@ -402,7 +409,7 @@ Shared (the entry `/discovery/` and spec 07 "States"), then 01 Plan, 02 Recall, 
 | D-CH11 | `chase.start`, `chase.startDisabled.*`, `chase.again`, `chase.back`, `chase.stop`, `chase.stopping`, `chase.badge.running`, `chase.reading` | "Chase citations", "Set the OpenAlex key first." | STAYS | V7/V2; main action "Chase citations" |
 | D-CH12 | `chase.warn.console` | "Keep this window's console open until the chase ends; closing the console stops it ..." | STAYS | V2 warning |
 | D-CH13 | `chase.stop.title`, `chase.stop.body` | "If you stop: Fetched records are kept in the run folder. Nothing is published ..." | HINT | T1 reassurance; same decision as D-H14 |
-| D-CH14 | `chase.legs.title`, `legs.show`, `legs.perSeed`, `chase.col.*`, `chase.dir.*`, `chase.count.of`, `chase.leg.*`, `chase.partial.failedNote`, `chase.partial.ceiling` | the legs table | STAYS | V3/V4 failures and caps are results |
+| D-CH14 | `chase.legs.title`, `legs.show`, `legs.perSeed`, `chase.col.*`, `chase.dir.*`, `chase.count.of`, `chase.leg.*`, `chase.partial.failedNote`, `chase.partial.ceiling` | the legs table (with M10a's `chase.leg.zero` "0 results") | STAYS | V3/V4 failures and caps are results |
 | D-CH15 | `chase.counts.title`, `counts.raw`, `counts.dupes`, `counts.inCorpus`, `counts.window`, `counts.over`, `counts.new`, `chase.inCorpus.*`, `chase.notes` | "What the chase found" | STAYS | V4 |
 | D-CH16 | `chase.empty.noSeeds`, `chase.empty.nothingNewBody`, `chase.cancelled.body`, `chase.failed.body` | "The chase found nothing new." and the counts say which | STAYS | V3 |
 | D-CH17 | `chase.empty.noSeedsBody` | "A study needs a DOI, an OpenAlex id or a Semantic Scholar id; the list below says why each one cannot be chased." | REMOVED | X1 duplicates `chase.seeds.notChaseable.help` (D-CH5) and the list |
@@ -411,16 +418,16 @@ Shared (the entry `/discovery/` and spec 07 "States"), then 01 Plan, 02 Recall, 
 | D-CH20 | `chase.accepted.*`, `chase.notPublished.*`, `chase.status.*`, `chase.stale`, `chase.run.*` | "Round {round} corpus", "Publish the screening first." | STAYS | V1/V5 |
 
 ### Counts per decision
-(Counted by the test `guidance.audit.test.tsx` from the tables above; the five rows of the screens another branch amends are marked below because they may change.)
+(Counted by the test `guidance.audit.test.tsx` from the tables above.)
 
 | Phase | STAYS | HINT | REMOVED | Total blocks |
 | :-- | --: | --: | --: | --: |
 | Inception 01 to 07 (shared frame included) | 96 | 34 | 11 | 141 |
-| Discovery 01 to 09 (shared included) | 90 | 32 | 15 | 137 |
+| Discovery 01 to 09 (shared included) | 95 | 34 | 15 | 144 |
 
 A "block" is a row: one sentence or one group of keys that share a decision and a reason (for example `harvest.col.*`). Sentences of one key with different decisions are separate rows. The test derives the same counts by counting rows with prefix `I-` and `D-` per decision.
 
-Recounted on 2026-11-18 after M10a and M3i merged: Explore (I-E6 reworded; I-E37 to I-E43 added) and Harvest (D-H13 reworded; D-H17 to D-H23 added); the totals above include them. Not recounted: Scope, Direction and Plan, which M10a also touched (the Plan picker reuses the Explore picker's decisions: its controls stay, its order sentence is a hint); M10d recounts every screen it lightens, from the rendered DOM. Before the recount: inception 92 / 31 / 11 (134), discovery 84 / 31 / 15 (130).
+Recounted on 2026-11-18 after M10a and M3i merged, by counting rows (`grep -cE "^\| D-[A-Z0-9]+ \|.*\| STAYS \|"` and the same for `I-`, `HINT` and `REMOVED`): Explore (I-E6 reworded; I-E37 to I-E43 added), Harvest (D-H13 reworded; D-H17 to D-H23 added), Plan (D-P17 to D-P20 added: M10a's database picker and "Continue to Harvest with this choice"), Hand-off (D-HO14 to D-HO16 added: M3i's Not ready state) and the shared overview (D-DS13 gains M3i's `overview.harvest.unfinished`). Chase gained one key, M10a's `chase.leg.zero` "0 results", which falls under `chase.leg.*` in D-CH14, so no row was added. Scope and Direction have no key changed since `a0191cc6` and keep their rows. M10d recounts every screen it lightens, from the rendered DOM. Before the recount: inception 92 / 31 / 11 (134), discovery 84 / 31 / 15 (130).
 
 ### Per-screen header and action check
 | Screen | Lede after the audit (one sentence) | Main action (the one brand button) | Other actions |
@@ -433,13 +440,13 @@ Recounted on 2026-11-18 after M10a and M3i merged: Explore (I-E6 reworded; I-E37
 | 06 Review | "This is what will be written." | Create the workspace (the gate) | Check the protocol (secondary) |
 | 07 Done | "Next, open the workspace and import your search results." | Open the workspace | Start another review, All workspaces (quiet) |
 | discovery entry | none (title only) | Continue at {step} (until the what's-next bar) | step links |
-| 01 Plan | "The question comes from the frozen protocol." | Continue to Recall | Copy all executed strings |
+| 01 Plan | "The question comes from the frozen protocol." | Continue to Recall | Copy all executed strings, Continue to Harvest with this choice, Reset to the protocol |
 | 02 Recall | "Each seed is looked up and compared by title first." | Check these seeds, then Continue to Harvest | Cancel the check |
 | 03 Harvest | "Each database receives the string shown on the plan." | Start the harvest | Stop the harvest and keep what was fetched (secondary) |
 | 04 Import | none added by discovery | the screen 11 accept | Back to discovery, Go to the hand-off |
 | 05 Duplicates | "The harness merged records that are the same work by three rules." | Continue to the report | Back to Harvest |
 | 06 Report | none (the title says it) | I reviewed this text while unreviewed, then Continue to hand-off | Copy, Save as draft |
-| 08 Hand-off | "Accepting freezes a corpus snapshot with its own fingerprint." | Accept this corpus (the gate) | Search again, Read the report, Stage an export |
+| 08 Hand-off | "Accepting freezes a corpus snapshot with its own fingerprint." | Accept this corpus (the gate) | Search again, Read the report, Stage an export; in the Not ready state the one action is Finish preparing this corpus on Harvest (or Follow the harvest) |
 | 09 Chase | "The chase asks OpenAlex and Semantic Scholar which works cite your included studies and which works they cite." | Chase citations, then Send these {new} works to screening | Stop the chase |
 
 ## States
