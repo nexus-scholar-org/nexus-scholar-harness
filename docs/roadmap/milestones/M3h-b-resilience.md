@@ -62,7 +62,7 @@ Cassette matching is `method, scheme, host, path, query`; headers (the User-Agen
 | POST 4xx retries (audit) | `::test_a_post_answered_4xx_is_sent_once` (400, 403), `::test_a_post_answered_5xx_is_still_retried` (guard) | yes, both 4xx cases failed with only the retry condition reverted | yes |
 
 ## Decisions
-- [2026-11-18 — M3h-b: one default database set, shared provider budgets, the leg's auth channel](../../decisions.md) (seven items, all **proposed**). Item 1 (which default set) and item 2 (re-recording arXiv for its date filter) need the researcher's choice.
+- [2026-11-18 — M3h-b: one default database set, shared provider budgets, the leg's auth channel](../../decisions.md) (seven items, all **accepted 2026-11-18**: item 1 option (a), item 2 option (a), items 3 to 7 as written). Item 1 (which default set) and item 2 (re-recording arXiv for its date filter) need the researcher's choice.
 - The console is touched in one place: `console/api/discovery.py` imports the search kit's default set instead of its own copy (an import line and the assignment), because its "off by default" wording reads that list. No other console or UI change; the screens already show "Off by default" without a reason for any database with that status.
 
 ## Evidence
