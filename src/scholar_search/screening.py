@@ -275,6 +275,10 @@ _EXC_PHRASE_SIGNALS: dict[str, list[str]] = {
     ],
 }
 
+#: The reason codes the rule-based screener has phrase lists for (read by the
+#: inception criteria step, M10b, to mark which suggested codes it can match).
+PHRASE_REASON_CODES: frozenset[str] = frozenset(_EXC_PHRASE_SIGNALS)
+
 
 def evaluate_heuristic_screening(
     doc: Document,

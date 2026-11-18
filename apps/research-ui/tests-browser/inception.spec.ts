@@ -87,6 +87,50 @@ test("a researcher creates a workspace from the browser and lands on screening H
   expect(fake.calls.find((c) => c.path === "/api/v1/workspaces/open")?.body).toEqual({ slug: "weed-review" });
 });
 
+const EARLIER = {
+  playbook_type: "SCOPING_REVIEW",
+  metadata: { title: "UAV crop-weed mapping", lead_researcher: "M" },
+  epistemology: { primary_paradigm: "Pragmatist / Mixed Methods" },
+  research_questions: [{ id: "RQ1", text: "How reliable is UAV weed mapping across fields?" }],
+  search_strategy: {},
+  screening_criteria: {
+    inclusion: [{ id: "INC-01", criterion: "Field trials with UAV imagery" }],
+    exclusion: [{ id: "EXC-01", criterion: "Satellite only", reason_category: "WRONG_PLATFORM" }],
+  },
+};
+
+test("a researcher starts from an earlier review, writes the question, adds a reason and an own column (M10b)", async ({ page }) => {
+  const fake = await engine(page, { workspaces: [{ slug: "uav-crop-weed-v03", title: "UAV review v0.3", protocol: EARLIER }] });
+  await page.goto("/en/inception/");
+  await page.getByRole("link", { name: "Start from an existing review" }).click();
+  await page.getByRole("radio", { name: /UAV review v0.3/ }).check();
+  await expect(page.getByRole("heading", { name: "Comes across as you wrote it" })).toBeVisible();
+  await page.getByRole("button", { name: "Create the draft from this review" }).click();
+
+  await expect(page.locator("[data-imported-banner]")).toContainText("Started from uav-crop-weed-v03");
+  await expect(page.locator("[data-imported-mark='shape']")).toBeVisible();
+  await expect(page.locator("[data-imported-mark='scope']")).toHaveCount(0);
+  await page.getByRole("button", { name: "Use research question 1" }).click();
+  await page.getByRole("button", { name: "Save draft and exit" }).click();
+  await page.waitForURL(/\/en\/inception\/?(\?|$)/);
+  const id = [...fake.drafts.keys()].find((key) => key !== SESSION)!;
+  expect((fake.drafts.get(id)!.draft as { topic: string }).topic).toBe("How reliable is UAV weed mapping across fields?");
+
+  await page.goto(`/en/inception/criteria/?draft=${id}`);
+  const exclusion = page.locator("[data-criterion]", { hasText: "Satellite only" });
+  await expect(exclusion.getByText("Reason WRONG_PLATFORM")).toBeVisible();
+  const own = page.locator("[data-own-columns]");
+  await own.getByLabel("Column name").fill("Sensor");
+  await own.getByLabel("What should be extracted?").fill("Camera on the UAV");
+  await own.getByRole("button", { name: "Add column" }).click();
+  await expect(own.locator("[data-own-column='Sensor']")).toBeVisible();
+  await page.getByRole("button", { name: "Continue to review" }).click();
+  await page.waitForURL(/\/en\/inception\/review\/?\?draft=/);
+  const draft = fake.drafts.get(id)!.draft as { custom_matrix_columns: unknown[]; extra_exclusions: unknown[] };
+  expect(draft.custom_matrix_columns).toEqual([{ name: "Sensor", description: "Camera on the UAV", data_type: "free_text", required: false }]);
+  expect(draft.extra_exclusions).toEqual([{ criterion: "Satellite only", reason_category: "WRONG_PLATFORM" }]);
+});
+
 test("replacing a workspace with screening needs the typed name, and a wrong one is a sentence", async ({ page }) => {
   await engine(page, { draft: decided(), existing: "bound" });
   await page.goto(`/en/inception/review/?draft=${SESSION}`);
@@ -104,7 +148,7 @@ test("replacing a workspace with screening needs the typed name, and a wrong one
   await expect(page.locator("[data-backup]")).toContainText("audit");
 });
 
-const SCREENS = ["", "scope/", "explore/", "direction/", "shape/", "criteria/", "review/", "done/"] as const;
+const SCREENS = ["", "scope/", "explore/", "direction/", "shape/", "criteria/", "review/", "done/", "import/"] as const;
 
 /** Explore and Direction are drawn with a pool, and Direction with a bound choice, so the checks see their full screen. */
 function withPool(fake: Awaited<ReturnType<typeof engine>>, screen: string) {

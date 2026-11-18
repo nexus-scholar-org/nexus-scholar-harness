@@ -159,3 +159,18 @@ Defaults accepted, with three changes. Where this list and the text above differ
 
 ## Open questions
 None.
+
+## Accepting on the Hand-off (M10b, decided 2026-11-15, R6)
+Status of this section: FINAL, not built. Where this section and the text above differ, this section wins.
+
+**Why.** On 2026-11-13 nothing on the Discovery screens pointed to the Hand-off, and this screen had its own accept for staged exports. The researcher decided (M10b answer R6) that the Hand-off (`docs/ux/phase1-discovery/final/08-handoff.md`) is the one place a corpus is accepted, for a harvest and for staged exports alike. The Hand-off already accepts staged exports (its "Staged exports" state, built in M3c) and, since M3i, says when a harvest is not ready.
+
+**What changes on this screen.**
+- The brand button "Accept and freeze the corpus", its confirmation dialog and its side card "What happens when you accept" are removed. In their place, when at least one export is staged and the preview has loaded, a link styled as the brand button reads "Review and accept on the Hand-off" and opens `/[locale]/discovery/handoff` (with `?console=`). The Hand-off shows the same counts, the freeze explanation and the confirmation, so nothing the researcher read here is lost.
+- With nothing staged the link is not drawn; a line says why: "Add at least one database. You accept the corpus on the Hand-off." While a harvest's preparation is unfinished and nothing is staged, the line is the next-step bar's sentence for that state (`docs/ux/shared/final/04-next-step.md` row 14), read from the engine, never composed here.
+- Staging, the preview counts, Remove and the accepted (read-only) state stay as above. After the accept on the Hand-off, this screen shows its accepted state on the next load, with "Continue to Prepare".
+- The route `POST /screening/corpus/accept` is unchanged; only the button that called it from this screen goes. `NOTHING_STAGED` and `CORPUS_ALREADY_ACCEPTED` stay as refusals of the route; this screen no longer meets them from its own button.
+
+**Copy** (`screening.import.*`, en master; fr and ar written with the build): `toHandoff` "Review and accept on the Hand-off"; `toHandoff.help` "The Hand-off shows these counts again, explains the freeze and asks you to confirm."; `toHandoff.none` "Add at least one database. You accept the corpus on the Hand-off." Removed from use: `accept`, `sideTitle` and the dialog keys.
+
+**Acceptance tests.** Vitest (`screening-import` tests): no accept button and no confirmation dialog exist; with a staged export the link points to `/discovery/handoff` and carries `?console=`; with nothing staged the link is absent and the line shows; no `POST /screening/corpus/accept` is sent from this screen. Playwright: stage an export, follow the link, accept on the Hand-off, come back and see the accepted state.

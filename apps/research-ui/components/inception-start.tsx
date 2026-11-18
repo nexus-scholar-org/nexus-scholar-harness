@@ -63,6 +63,14 @@ export function InceptionStart({ locale }: Readonly<{ locale: Locale }>) {
           <Button variant="primary" onClick={() => void start()} disabled={starting || Boolean(loadError)} data-start>
             {starting ? t("start.creating") : t("start.new")}
           </Button>
+          {/* M10b (spec 09): a second way to begin, from a protocol the researcher already has. */}
+          <a
+            className="ms-3 inline-flex min-h-11 items-center justify-center rounded-md border border-rule-strong bg-leaf px-4 text-ink hover:bg-leaf-raised"
+            href={inceptionHref(locale, "import", "", origin)}
+            data-import-link
+          >
+            {t("import.open")}
+          </a>
         </div>
       </header>
 
@@ -107,6 +115,11 @@ export function InceptionStart({ locale }: Readonly<{ locale: Locale }>) {
                         </span>
                       ) : null}
                     </p>
+                    {item.origin_label ? (
+                      <p className="mt-1 text-xs text-ink-muted" data-started-from>
+                        {t("start.startedFrom", { label: item.origin_label })}
+                      </p>
+                    ) : null}
                     {item.emitted ? (
                       <p className="mt-1 text-sm text-include" data-emitted>
                         {t("start.emitted", { slug: "" })}

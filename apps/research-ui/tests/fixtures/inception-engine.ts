@@ -27,6 +27,35 @@ export interface FakeOptions {
   restarting?: boolean;
   /** The recon routes of the draft (M4d): contact address, keys, what each probe finds. */
   recon?: ReconOptions;
+  /** M10b: the workspaces `GET /workspaces` lists, and the protocol each holds for the import. */
+  workspaces?: { slug: string; title: string; protocol?: Json }[];
+}
+
+/** M10b: the import's test double. It keeps the engine's report shape; the mapping rules are the engine's (Python tests). */
+function importReport(protocol: Json, label: string, kind: "workspace" | "file", slug?: string): Json {
+  const meta = (protocol.metadata ?? {}) as Json;
+  const sc = (protocol.screening_criteria ?? {}) as { inclusion?: Json[]; exclusion?: Json[] };
+  const draft: Json = {
+    topic: "",
+    title: meta.title,
+    lead_researcher: meta.lead_researcher,
+    paradigm: ((protocol.epistemology ?? {}) as Json).primary_paradigm,
+    playbook: protocol.playbook_type,
+    rqs: ((protocol.research_questions ?? []) as Json[]).map((rq) => rq.text),
+    extra_inclusions: (sc.inclusion ?? []).map((c) => c.criterion),
+    extra_exclusions: (sc.exclusion ?? []).map((c) => ({ criterion: c.criterion, reason_category: c.reason_category ?? "OUT_OF_SCOPE" })),
+  };
+  return {
+    source: {
+      kind, label, read: "protocol", slug, protocol_created_at: "2026-10-12T14:12:24+00:00",
+      protocol_fingerprint: "sha256:" + "ef".repeat(32), target_slug: slugify(String(meta.title ?? "")), collides_with_source: false,
+    },
+    draft,
+    carried: [{ field: "rqs", from: "research_questions[].text", class: "exact" }],
+    lost: [{ what: "facets", count: (draft.rqs as unknown[]).length }, { what: "rationale" }, { what: "preset" }],
+    needs_you: ["topic"],
+    earlier_pool: { min: 0, max: 1000 },
+  };
 }
 
 const PARADIGMS = [
@@ -49,9 +78,9 @@ function slugify(title: string): string {
     .replace(/[-\s]+/g, "-");
 }
 
-function idOf(kind: string, source: string, text: string): string {
+function idOf(kind: string, source: string, text: string, reason: string | null = null): string {
   let h = 0;
-  for (const ch of `${kind}|${source}|${text}`) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+  for (const ch of `${kind}|${source}|${text}|${reason ?? ""}`) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
   return `crit_${h.toString(16).padStart(12, "0").slice(0, 12)}`;
 }
 
@@ -59,21 +88,37 @@ function criteriaOf(draft: Json) {
   const decisions = (draft.criteria_decisions ?? {}) as Record<string, boolean>;
   const items: Json[] = [];
   const push = (kind: string, text: string, source: string, generated: boolean, reason: string | null, label: string) => {
-    const id = idOf(kind, source, text);
+    const id = idOf(kind, source, text, kind === "exclusion" ? reason : null);
     const d = decisions[id];
     const status = d === undefined ? (generated ? "undecided" : "accepted") : d ? "accepted" : "rejected";
-    items.push({ id, kind, criterion: text, reason_category: reason, source, source_label: label, generated, status });
+    const extra = kind === "exclusion" ? { reason_valid: /^[A-Z][A-Z0-9_]{2,39}$/.test(reason ?? "") } : {};
+    items.push({ id, kind, criterion: text, reason_category: reason, source, source_label: label, generated, status, ...extra });
   };
+  const oosReasons = (draft.out_of_scope_reasons ?? {}) as Record<string, string>;
   if (draft.proof) push("inclusion", `Reports the gold-standard proof — ${String(draft.proof)}`, "proof", true, null, "written by the wizard from your proof answer");
   for (const c of (draft.extra_inclusions ?? []) as string[]) push("inclusion", c, "manual", false, null, "typed by you");
-  for (const c of (draft.out_of_scope ?? []) as string[]) push("exclusion", c, "out_of_scope", false, "OUT_OF_SCOPE", "your out-of-scope answer");
+  for (const c of (draft.out_of_scope ?? []) as string[]) push("exclusion", c, "out_of_scope", false, oosReasons[c] ?? "OUT_OF_SCOPE", "your out-of-scope answer");
   for (const c of (draft.extra_exclusions ?? []) as { criterion: string; reason_category?: string }[]) push("exclusion", c.criterion, "manual", false, c.reason_category ?? "OUT_OF_SCOPE", "typed by you");
+  if (!items.some((i) => i.kind === "exclusion") && draft.paradigm) {
+    push("exclusion", "Opinion pieces without data.", "paradigm_default", true, (draft.default_exclusion_reason as string | null) ?? "OUT_OF_SCOPE", "the {paradigm} paradigm's default exclusion, written by the wizard");
+  }
   const accepted = new Set(items.filter((i) => i.status === "accepted").map((i) => i.kind));
+  const used = [...new Set(items.filter((i) => i.kind === "exclusion").map((i) => String(i.reason_category)))];
   return {
     criteria: items,
     undecided: items.filter((i) => i.status === "undecided").map((i) => i.id),
     missing_sides: ["inclusion", "exclusion"].filter((k) => !accepted.has(k)),
+    reason_suggestions: [
+      ...used.map((code) => ({ code, source: "used", phrases: code === "NO_EMPIRICAL_EVALUATION" })),
+      ...["OUT_OF_SCOPE", "WRONG_POPULATION", "NO_EMPIRICAL_EVALUATION"].filter((c) => !used.includes(c)).map((code) => ({ code, source: "default", phrases: code === "NO_EMPIRICAL_EVALUATION" })),
+    ],
   };
+}
+
+/** The engine's `proof_required` (M10b): an undropped typed inclusion makes the proof optional. */
+export function proofRequired(draft: Json): boolean {
+  const decisions = (draft.criteria_decisions ?? {}) as Record<string, boolean>;
+  return !((draft.extra_inclusions ?? []) as string[]).some((c) => decisions[idOf("inclusion", "manual", c)] !== false);
 }
 
 const refuse = (status: number, code: string, message = code.toLowerCase(), details?: unknown): Answer => ({
@@ -86,15 +131,15 @@ export function inceptionEngine(options: FakeOptions = {}) {
   const now = () => `2026-11-09T10:${String(clock++).padStart(2, "0")}:00+00:00`;
   const drafts = new Map<string, Json>();
   const calls: { method: string; path: string; body: Json | null; search?: string }[] = [];
-  const refuseOnce = { ...(options.refuseOnce ?? {}) };
+  const refuseOnce = options.refuseOnce ?? {}; // the caller's object, so a test can add a refusal after the first read
   let existing = options.existing ?? "none";
   let current: string | null = null;
   let nextId = 0;
   const recon = reconEngine(options.recon ?? {}, () => now());
 
-  const seed = (draft: Json = {}, emitted: Json | null = null, id = SESSION): string => {
+  const seed = (draft: Json = {}, emitted: Json | null = null, id = SESSION, extra: Json = {}): string => {
     const at = now();
-    drafts.set(id, { session_id: id, created_at: at, updated_at: at, draft, emitted });
+    drafts.set(id, { session_id: id, created_at: at, updated_at: at, draft, emitted, ...extra });
     return id;
   };
 
@@ -118,7 +163,7 @@ export function inceptionEngine(options: FakeOptions = {}) {
       status: 200,
       body: {
         intent: { project_slug: slug },
-        protocol: {},
+        protocol: { search_strategy: { target_candidate_pool_size: draft.pool_max != null ? { min: draft.pool_min ?? 0, max: draft.pool_max } : { min: 50, max: 200 } } },
         protocol_fingerprint: "sha256:" + "ab".repeat(32),
         screening_criteria: "# Screening criteria\n",
         criteria: c.criteria.filter((i) => i.status === "accepted"),
@@ -159,8 +204,48 @@ export function inceptionEngine(options: FakeOptions = {}) {
         created_at: r.created_at,
         updated_at: r.updated_at,
         emitted: r.emitted,
+        origin_label: ((r.origin as Json | undefined)?.source as Json | undefined)?.label ?? null,
       }));
       return { status: 200, body: { root: ROOT, items } };
+    }
+    if (path === "/api/v1/inception/drafts/import" && method === "POST") {
+      const src = (body?.source ?? {}) as Json;
+      let protocol: Json | undefined;
+      let label = "";
+      if (src.kind === "workspace") {
+        const ws = (options.workspaces ?? []).find((w) => w.slug === src.slug);
+        if (!ws?.protocol) return refuse(404, "IMPORT_SOURCE_NOT_FOUND", "no protocol.json", { slug: src.slug });
+        protocol = ws.protocol;
+        label = String(src.slug);
+      } else {
+        try {
+          protocol = JSON.parse(Buffer.from(String(src.content_base64 ?? ""), "base64").toString("utf-8")) as Json;
+        } catch {
+          return refuse(422, "IMPORT_SOURCE_UNREADABLE", "not JSON", { reason: "not_json" });
+        }
+        if (!protocol.screening_criteria) return refuse(422, "IMPORT_NOT_A_PROTOCOL", "neither", { missing: ["screening_criteria"] });
+        label = String(src.file_name);
+      }
+      const report = importReport(protocol, label, src.kind === "workspace" ? "workspace" : "file", src.kind === "workspace" ? String(src.slug) : undefined);
+      if (body?.dry_run !== false) return { status: 200, body: report };
+      if (body.expect_fingerprint !== (report.source as Json).protocol_fingerprint) return refuse(409, "IMPORT_SOURCE_CHANGED", "changed");
+      nextId += 1;
+      const id = `rec_${String(nextId).padStart(32, "0")}`;
+      const checked = { scope: false, direction: false, shape: false, criteria: false, review: false };
+      seed(report.draft as Json, null, id, { origin: { kind: "import", source: report.source, imported_at: now(), checked, report: { carried: report.carried, lost: report.lost, needs_you: report.needs_you }, earlier_pool: report.earlier_pool } });
+      return { status: 201, body: drafts.get(id) };
+    }
+    const checkedPath = path.match(/^\/api\/v1\/inception\/drafts\/([^/]+)\/origin\/checked$/);
+    if (checkedPath && method === "POST") {
+      const record = drafts.get(checkedPath[1]);
+      if (!record) return refuse(404, "DRAFT_NOT_FOUND");
+      const originRec = record.origin as Json | undefined;
+      if (originRec) drafts.set(checkedPath[1], { ...record, origin: { ...originRec, checked: { ...(originRec.checked as Json), [String(body?.step)]: true } } });
+      return { status: 200, body: { session_id: checkedPath[1], origin: drafts.get(checkedPath[1])?.origin ?? null } };
+    }
+    if (path === "/api/v1/workspaces" && method === "GET") {
+      const items = (options.workspaces ?? []).map((w) => ({ slug: w.slug, title: w.title, path: `${ROOT}\\${w.slug}`, valid: true, last_event: { at: "2026-11-10T10:00:00+00:00", action: "GENESIS" } }));
+      return { status: 200, body: { root: ROOT, items, current: null } };
     }
     if (path === "/api/v1/inception/drafts" && method === "POST") {
       nextId += 1;
@@ -200,17 +285,46 @@ export function inceptionEngine(options: FakeOptions = {}) {
         if (lacking) return lacking;
         return {
           status: 200,
-          body: { step: "shape", recommended_playbook: "DESIGN_SCIENCE", playbooks: PLAYBOOKS, trustworthiness_framework: "Hevner DSR", rq_draft: `Can a novel ${String(draft.topic)} artifact achieve ${String(draft.proof ?? "its goal")} for ${String(draft.unit_of_analysis ?? "its users")}?`, lexicon: "Use DSR rigor vocabulary.", lexicon_warnings: [] },
+          body: {
+            step: "shape",
+            recommended_playbook: "DESIGN_SCIENCE",
+            playbooks: PLAYBOOKS,
+            trustworthiness_framework: "Hevner DSR",
+            rq_draft: draft.proof ? `Can a novel ${String(draft.topic)} artifact achieve ${String(draft.proof)} for ${String(draft.unit_of_analysis ?? "its users")}?` : null,
+            lexicon: "Use DSR rigor vocabulary.",
+            lexicon_warnings: [],
+            proof_required: proofRequired(draft),
+            pool_preset: { min: 50, max: 200 },
+          },
         };
       }
       if (step[1] === "criteria") {
-        const lacking = need(draft, ["paradigm", "proof"]);
+        const lacking = need(draft, proofRequired(draft) ? ["paradigm", "proof"] : ["paradigm"]);
         return lacking ?? { status: 200, body: { step: "criteria", ...criteriaOf(draft) } };
       }
       if (step[1] === "matrix") {
         const lacking = need(draft, ["playbook"]);
         const columns = [{ id: "performance", name: "Performance Metric", description: "Primary accuracy metric" }];
-        return lacking ?? { status: 200, body: { step: "matrix", columns, selected: columns.map((c) => c.name).filter((n) => ((draft.matrix_columns ?? []) as string[]).includes(n)) } };
+        const own = ((draft.custom_matrix_columns ?? []) as { name: string; description?: string; data_type?: string; required?: boolean }[]).map((c) => ({
+          id: c.name.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, ""),
+          name: c.name,
+          description: c.description ?? "",
+          data_type: c.data_type ?? "free_text",
+          required: !!c.required,
+          fallback_value: "Not Reported",
+          target_section_category: null,
+        }));
+        return (
+          lacking ?? {
+            status: 200,
+            body: {
+              step: "matrix",
+              columns,
+              custom_columns: own,
+              selected: [...columns.map((c) => c.name).filter((n) => ((draft.matrix_columns ?? []) as string[]).includes(n)), ...own.map((c) => c.name)],
+            },
+          }
+        );
       }
       return refuse(404, "STEP_UNKNOWN");
     }

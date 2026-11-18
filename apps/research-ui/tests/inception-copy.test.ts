@@ -27,6 +27,9 @@ describe("inception.copy", () => {
       "WORKSPACE_JOB_ACTIVE", "ARCHIVE_INCOMPLETE",
       // H-input-limits: a draft over its size limits (F6) and a body pydantic refuses (F5).
       "DRAFT_TOO_LARGE", "BODY_INVALID",
+      // M10b (spec 09): starting a draft from an earlier protocol.
+      "IMPORT_SOURCE_NOT_FOUND", "IMPORT_SOURCE_UNREADABLE", "IMPORT_SOURCE_TOO_LARGE", "IMPORT_NOT_A_PROTOCOL",
+      "IMPORT_PROTOCOL_VERSION_UNSUPPORTED", "IMPORT_SOURCE_CHANGED", "inception.PROTOCOL_INVALID",
     ];
     for (const locale of SUPPORTED_LOCALES) {
       for (const code of codes) expect(stateCopy(locale, code).known, `${locale} ${code}`).toBe(true);

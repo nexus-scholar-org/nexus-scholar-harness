@@ -49,6 +49,8 @@ describe("inception.criteria", () => {
     render(<InceptionCriteria locale="en" />);
     expect(await screen.findByText("No exclusion criterion is accepted yet. Accept one above or add your own.")).toBeInTheDocument();
     fireEvent.change(screen.getByLabelText("Add an exclusion criterion"), { target: { value: "Not peer reviewed" } });
+    // M10b: an exclusion is added only with a reason (05-criteria).
+    fireEvent.change(document.getElementById("criteria-new-exclusion-reason") as HTMLInputElement, { target: { value: "WRONG_REPORT_TYPE" } });
     fireEvent.click(within(screen.getByText("Exclusion criteria").closest("section")!).getByRole("button", { name: "Add" }));
     const typed = (await screen.findByText("Not peer reviewed")).closest("li")!;
     expect(within(typed).getByText("Typed by you")).toBeInTheDocument();

@@ -379,7 +379,9 @@ def _default_matrix_dimensions(playbook: str, unit: str) -> list[dict]:
         "sample_size": {
             "id": "sample_size",
             "name": "Sample Size",
-            "description": f"Number of {unit} sampled / evaluated",
+            # Strict run 2026-11-13 (finding 7): the unit of analysis is an answer of
+            # any length, so it is quoted after the sentence, not pasted into it.
+            "description": f"How many were sampled or evaluated (unit of analysis: {unit})",
             "target_section_category": "methodology",
             "data_type": "numeric",
             "required": True,
@@ -746,6 +748,7 @@ def scaffold_placeholder_workspace(target: Path, title: str, *, agent: str, time
             agent=agent,
             description=f"nexus-scholar init (--scaffold-only): '{title}'",
             fingerprint_label="placeholder protocol",
+            protocol_origin="placeholder",
         )
     except GenesisRefused as exc:
         raise WorkspaceScaffoldRefused("WORKSPACE_EXISTS", exc.message) from exc

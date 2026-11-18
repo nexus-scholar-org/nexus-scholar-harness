@@ -10,6 +10,7 @@ import { inceptionHref, InceptionFrame, InceptionRefusal, refusalOf, StepHeader,
 import { previewDraft, runGenesis, runStep, type Criterion, type DraftRecord, type GenesisRequest, type Preview, type ScreeningBinding } from "@/lib/inception-api";
 import { DoiLink } from "@/components/inception-recon";
 import { inceptionT, sourceText } from "@/lib/inception-copy";
+import { inceptionRichT } from "@/components/rich-copy";
 
 /**
  * Step 6, Review and create (spec 06, M4b): the only write gate. `POST /preview`
@@ -30,6 +31,7 @@ type Confirm = { kind: "replace"; path: string } | { kind: "bound"; path: string
 
 export function InceptionReview({ locale }: Readonly<{ locale: Locale }>) {
   const t = inceptionT(locale);
+  const rt = inceptionRichT(locale);
   const state = useDraft();
   const { draft, update, save, saving, saveError, origin, draftId, record } = state;
   const [preview, setPreview] = useState<Preview | null>(null);
@@ -272,8 +274,33 @@ export function InceptionReview({ locale }: Readonly<{ locale: Locale }>) {
                 </div>
                 <div className="sm:col-span-2">
                   <dt className="text-ink-muted">{t("review.concepts")}</dt>
-                  <dd className="text-ink" dir="auto">
-                    {(draft.concepts ?? []).map((c) => c.concept).join(" · ")}
+                  <dd>
+                    {/* Strict run 2026-11-13, finding 8: each concept with the synonyms the query will OR with it. */}
+                    <ul className="space-y-1 text-ink">
+                      {(draft.concepts ?? []).map((c) => (
+                        <li key={c.concept} data-review-concept={c.concept}>
+                          <bdi dir="auto" className="font-medium">
+                            {c.concept}
+                          </bdi>
+                          {(c.synonyms ?? []).length ? (
+                            <span className="text-ink-muted">
+                              {" "}
+                              · {t("review.synonyms")}: <bdi dir="auto">{(c.synonyms ?? []).join(", ")}</bdi>
+                            </span>
+                          ) : (
+                            <span className="text-ink-muted"> · {t("review.noSynonyms")}</span>
+                          )}
+                        </li>
+                      ))}
+                    </ul>
+                  </dd>
+                </div>
+                <div className="sm:col-span-2" data-review-planned>
+                  <dt className="text-ink-muted">{t("review.planned")}</dt>
+                  <dd className="text-ink">
+                    {draft.pool_max != null
+                      ? t("review.planned.stated", { min: String(draft.pool_min ?? 0), max: String(draft.pool_max) })
+                      : t("review.planned.notStated", plannedPreset(preview))}
                   </dd>
                 </div>
               </dl>
@@ -423,8 +450,8 @@ export function InceptionReview({ locale }: Readonly<{ locale: Locale }>) {
 
             <GatePanel label={confirm ? t("review.gateReplacing") : t("review.gate")} actions={gateActions}>
               <p>
-                {t("review.gateBody", { path: "" })}
-                <DataCell>{target?.path ?? ""}</DataCell>
+                {/* Strict run 2026-11-13, finding 9: the path sits inside the sentence, so no full stop is left before it. */}
+                {rt("review.gateBody", { path: <DataCell>{target?.path ?? ""}</DataCell> })}
               </p>
               {confirm?.kind === "bound" ? (
                 <div className="mt-3">
@@ -544,4 +571,11 @@ function ArchiveList({ locale, archive }: Readonly<{ locale: Locale; archive: st
       </p>
     </div>
   );
+}
+
+/** The protocol's planned size as the compiled preview holds it (the playbook preset when none is stated). */
+function plannedPreset(preview: Preview | null): { min: string; max: string } {
+  const strategy = (preview?.protocol as { search_strategy?: { target_candidate_pool_size?: { min?: number; max?: number } } } | undefined)?.search_strategy;
+  const pool = strategy?.target_candidate_pool_size ?? {};
+  return { min: String(pool.min ?? ""), max: String(pool.max ?? "") };
 }
