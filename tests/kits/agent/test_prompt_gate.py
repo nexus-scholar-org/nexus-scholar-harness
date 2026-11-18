@@ -227,3 +227,13 @@ def test_an_export_from_another_prompt_is_refused(tmp_path, monkeypatch):
     (out / "manifest.json").write_text(json.dumps(manifest), encoding="utf-8")
     result = CliRunner().invoke(app, ["prompt-gate", "import", "--export", str(out), "--model", "m", "--workspace", str(ws)])
     assert result.exit_code == 1 and "another set or prompt" in result.output
+
+
+def test_m9a_a_researcher_unclear_counts_as_an_include_in_the_score():
+    # Ladder §4: the researcher's Unclear goes to full text, so it counts as an include
+    # (as `calibration_result` already does). `score` used to drop such a label from
+    # both the includes and the excludes.
+    labels = {"a": "INCLUDE", "b": "MAYBE", "c": "EXCLUDE"}
+    missed = pg.score({"a": "INCLUDE", "b": "EXCLUDE", "c": "EXCLUDE"}, labels)
+    assert missed["missed_includes"] == ["b"] and missed["include_recall"] == 0.5
+    assert missed["exclusion_rate_on_confirmed_excludes"] == 1.0
