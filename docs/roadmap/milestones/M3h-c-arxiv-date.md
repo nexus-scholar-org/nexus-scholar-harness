@@ -44,8 +44,8 @@ This diff changes the request one provider sends and the notes its leg records. 
 | before | `088af7cf` + the new test file | `uv run pytest tests/kits/search/test_arxiv_date_filter.py` | 6 failed (no clause; the old note); then fixed two mistakes in the tests themselves (the default `language` in `cannot_express`, a query too short to compact) | |
 | after | working tree | the same file plus `tests/unit/test_record_golden_recon_arxiv.py` | all passed | |
 | golden replay | working tree | `uv run pytest tests/pipeline/test_golden_search_cassettes.py tests/pipeline/test_golden_recon_cassette.py tests/recon/test_direction_pool_quality.py -n 4 -rA` | **4 failed**, 7 passed; see "Red until the re-record" | |
-| full suite without the golden files | working tree | `uv run pytest tests -n auto --ignore=<the two golden files>` | FULL_SUITE_RESULT | |
-| contract (after) | HEAD_AFTER | `generate_contract_baseline.py --check` | CONTRACT_AFTER | |
+| full suite without the golden files | working tree | `uv run pytest tests -n auto --ignore=<the two golden files>` | 72 failed or errored, none in a search, console, recon, pipeline, harness or unit test: all in `tests/kits/rag`, `tests/kits/pdf`, `tests/kits/agent` (RAG tools), `tests/e2e` and `tests/conformance` index/extract tests, because this worktree was synced with `--extra dev` only (58 of them print `No module named 'chromadb'`; the rest are the `DEPENDENCY_ERROR` envelope of the same missing backends). Not caused by this change; the final gate runs with `--extra pdf --extra rag` | |
+| contract (after) | `e1bd0950` | `generate_contract_baseline.py --check` | "Contract baseline current" (exit 0) | |
 
 ## Red until the re-record
 Four tests fail on this branch, every one for the same reason: `CannotOverwriteExistingCassetteException`, the arXiv request now carries the clause and the recorded arXiv interaction does not (the cassettes match on method, scheme, host, path and query). Nothing was weakened, skipped, deleted or hand-edited.
