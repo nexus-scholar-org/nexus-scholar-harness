@@ -423,7 +423,7 @@ function ImportedBanner({ locale, origin }: Readonly<{ locale: Locale; origin: D
       </p>
       {lines.length ? (
         <details className="mt-1">
-          <summary className="min-h-11 cursor-pointer py-2 text-brand">{t("imported.bannerMore", { n: String(lines.length) })}</summary>
+          <summary className="min-h-11 cursor-pointer rounded-sm py-3 leading-5 text-brand focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus">{t("imported.bannerMore", { n: String(lines.length) })}</summary>
           <ul className="list-disc ps-5 text-ink-muted">
             {lines.map((line) => (
               <li key={line}>{line}</li>
