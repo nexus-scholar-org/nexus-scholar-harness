@@ -54,3 +54,13 @@ def test_the_command_line_says_once_that_skills_were_copied(tmp_path, monkeypatc
     out = capsys.readouterr().out
     assert out.count("COPIED") == 1
     assert "3 skills were COPIED" in " ".join(out.split())
+
+
+def test_the_summary_agrees_in_number_for_one_copied_skill(tmp_path, monkeypatch, capsys):
+    from scholar_harness.inception import init_command
+
+    monkeypatch.setattr(genesis, "install_skills", lambda source, dest: _records("copy"))
+    init_command("A title", tmp_path / "proj", scaffold_only=True)
+    text = " ".join(capsys.readouterr().out.split())
+    assert "1 skill was COPIED" in text
+    assert "1 skills" not in text and "were COPIED" not in text

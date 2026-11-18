@@ -555,7 +555,8 @@ def init_command(
     if copied:
         # Genesis logs each skill (F9); the command line says it once.
         console.print(
-            f"[dim]   {len(copied)} skills were COPIED because symlinks are unavailable on this system; "
+            f"[dim]   {len(copied)} {'skill was' if len(copied) == 1 else 'skills were'} COPIED because "
+            "symlinks are unavailable on this system; "
             "enable Developer Mode, delete the workspace, and re-run `nexus-scholar init` to symlink "
             "instead.[/dim]"
         )
