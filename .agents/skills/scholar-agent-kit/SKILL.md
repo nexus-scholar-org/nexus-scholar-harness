@@ -52,7 +52,7 @@ files — this page stays the small-footprint entrypoint.
 - Known gap: client auto-setup should set `NEXUS_RECON_ROOT` explicitly since
   `mcp_config.json` declares no `env`.
 
-## 2. Tool inventory — Exposed MCP Tools (27 total) — signature → return
+## 2. Tool inventory — Exposed MCP Tools (32 total) — signature → return
 
 | # | Tool | Key signature (defaults) | Returns |
 |---|------|--------------------------|---------|
@@ -83,8 +83,13 @@ files — this page stays the small-footprint entrypoint.
 | 25 | `nexus_screening_queue` | `(workspace_dir=".", view="needs_you", limit=50)`; views `needs_you`, `no_proposal`, `decided` | JSON `{status, items:[{study_id, title, has_proposal}]}`; never shows an agent outcome |
 | 26 | `nexus_screening_record` | `(study_id, workspace_dir=".")` | JSON `{status, study_id, title, abstract, criteria, answers}`; evidence offsets index into title + blank line + abstract |
 | 27 | `nexus_submit_proposal` | `(study_id, proposal_json, model, task_version="screen-v1", prompt_sha256=None, workspace_dir=".")`; one answer per criterion with a verbatim evidence span | JSON `{status, proposal_id, derived_outcome, validators}`; appends to the proposal store, journals, **never** writes a decision |
+| 28 | `nexus_assistant_drafts` | `(workspaces_root=None)`; the app's root (`NEXUS_WORKSPACES_ROOT` or the default) | JSON `{status, workspaces_root, drafts:[{session_id, topic, title, updated_at, emitted, open_proposals, findings}]}`; read-only |
+| 29 | `nexus_assistant_read_draft` | `(session_id, workspaces_root=None)` | JSON `{status, draft, intent, intent_refused, grounding, checks, proposals, pool}`; read-only (the checks are computed as the app does; nothing is recorded) |
+| 30 | `nexus_assistant_read_workspace` | `(workspace_dir)` a slug under the app's root, or a path inside the MCP anchor | JSON `{status, intent, protocol, plan, recall, checks, proposals}`; `plan.providers[]` carries each database's translation and `cannot_express`; read-only |
+| 31 | `nexus_assistant_propose` | `(session_id, field, op, value, why, model, task="suggest", evidence=None, workspaces_root=None)`; `task` ∈ `suggest\|synonyms\|translation\|recall_repair` | JSON `{status, created, proposal}`; one open proposal, source `agent:<model>`, on the app's card; a side write (no answer, no `updated_at` change); checked as a save of the field would be; refused after genesis (`DRAFT_EMITTED`); at most 30 open |
+| 32 | `nexus_assistant_report_finding` | `(locator, severity, finding, model, session_id=None, workspace_dir=None, why=None, workspaces_root=None)`; exactly one target; `locator` a JSON pointer into the intent (`draft:/…` into a draft's answers, `protocol:/…` into a workspace's `protocol.json`); `severity` ∈ `critical\|major\|minor` | JSON `{status, created, finding}`; an `ASSISTANT_FINDING` row (`source: "agent"`, never a blocker) in the app's checks panel; draft: record key `assistant_findings`; workspace: `audit/assistant_findings.jsonl` + `ASSISTANT_FINDING_REPORTED`; at most 50 open |
 
-Return rule of thumb: **JSON** = #1, #2, #7, #9–#11, #16–#27.
+Return rule of thumb: **JSON** = #1, #2, #7, #9–#11, #16–#32.
 **Prose** (`"Error: …"` prefixes, no envelope) = #3–#6, #8, #12–#16.
 
 ## 3. Declared-unsupported capabilities (E1, E2, E3)
@@ -166,6 +171,22 @@ Conformance: `test_e1_acquired_document_boundary.py`,
   without checking shapes.
 - **Absolute paths > defaults** (see §1): anything file-backed gets an explicit
   `<workspace>/…` path.
+- **The assistant and the critic (#28–#32, M10c)**: on the researcher's
+  drafts and workspaces, read freely and explain; suggest a change only with
+  #31 and raise a problem only with #32. Nothing you send is applied: the
+  researcher applies, edits or rejects each suggestion and dismisses each
+  finding in the app. Never start a search or a harvest for the app's draft
+  (`recon_probe`/`recon_delta` refuse its session id:
+  `RECON_SESSION_IS_A_DRAFT`); never accept a corpus, decide a screening
+  record or publish. Name your model in `model`. As a critic, report one
+  finding per problem, at the most specific locator (the criterion, the
+  concept's synonyms, the question), with a severity from §2 #32, and stay
+  quiet on what is sound. M9d's tasks: synonyms (`task="synonyms"`, field
+  `concepts[<name>].synonyms`), translation explanations (read
+  `plan.providers[].cannot_express` and explain it), recall repair (read
+  `recall`, propose the smallest change, `task="recall_repair"`). After
+  genesis a protocol change is not yet a proposal (decision item 9 of
+  2026-11-19 is open): report it as a finding.
 
 ## 6. Sources, limits, deferred pointers
 

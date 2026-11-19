@@ -2358,7 +2358,9 @@ def nexus_assistant_report_finding(
     intent you read (`/inclusion_criteria/1/criterion`,
     `/core_concepts/0/synonyms`, `/research_questions/2/text`, `/start_year`;
     point at a list to say something is missing from it); on a draft whose
-    intent does not compile yet, `draft:/<field>` points into its answers.
+    intent does not compile yet, `draft:/<field>` points into its answers; on a
+    workspace, `protocol:/…` points into `protocol.json` (criterion ids exist
+    only there).
     `severity`: `critical` (the review cannot answer its questions or cannot
     be screened as written), `major` (it would bias or lose evidence the
     questions need, or contradicts its own scope) or `minor`. `finding`: one
@@ -2448,6 +2450,11 @@ def main(argv: list[str] | None = None) -> None:
             "  - nexus_screening_queue: List records to screen (no agent outcomes shown)\n"
             "  - nexus_screening_record: One record with its criteria, to draft a proposal\n"
             "  - nexus_submit_proposal: Store one screening proposal (never a decision)\n"
+            "  - nexus_assistant_drafts: List the app's inception drafts (read-only)\n"
+            "  - nexus_assistant_read_draft: One draft's answers, intent, checks and suggestions (read-only)\n"
+            "  - nexus_assistant_read_workspace: A workspace's protocol, plan translations, recall and checks (read-only)\n"
+            "  - nexus_assistant_propose: Suggest one change to a draft; the researcher applies or rejects it in the app\n"
+            "  - nexus_assistant_report_finding: Report one problem in a protocol (the critic); listed in the app's checks\n"
             "  - nexus_verify_claims: Verify synthesis claim quotes against extracted fulltext\n"
             "  - nexus_verify_phase4: Run scholar-verify Phase-4 streams (retraction/open-science/coi/risk-of-bias/trust-context)\n"
             "  - nexus_critique_methodology: Evaluate methodological rigor via risk-of-bias scoring\n"

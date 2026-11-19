@@ -59,7 +59,7 @@ export function valueText(value: unknown): string {
   return String(value);
 }
 
-/** The source label (Copy); an unknown source, the reserved `agent:*` included, gets the generic label. */
+/** The source label (Copy); an unknown source gets the generic label; `agent:<model>` names the assistant (M10c). */
 export function SourceLabel({ locale, source }: Readonly<{ locale: Locale; source: string }>) {
   const t = proposalsT(locale);
   const at = source.indexOf(":");
@@ -69,6 +69,7 @@ export function SourceLabel({ locale, source }: Readonly<{ locale: Locale; sourc
   if (kind === "check" && name) label = fillNodes(PROPOSALS_COPY[locale]["proposals.source.check"], { name: <bdi dir="ltr">{name}</bdi> });
   else if (kind === "import" && name) label = fillNodes(PROPOSALS_COPY[locale]["proposals.source.import"], { name: <bdi dir="auto">{name}</bdi> });
   else if (kind === "engine" && hasProposalsKey(`proposals.source.engine.${name}`)) label = t(`proposals.source.engine.${name}` as "proposals.source.engine.pool_synonym");
+  else if (kind === "agent") label = name ? fillNodes(PROPOSALS_COPY[locale]["proposals.source.agentModel"], { model: <bdi dir="ltr">{name}</bdi> }) : t("proposals.source.agent");
   return (
     <span className="text-ink-muted" data-proposal-source={kind}>
       {label}

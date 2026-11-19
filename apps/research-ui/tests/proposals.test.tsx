@@ -297,14 +297,17 @@ describe("inception proposals (01-proposals)", () => {
     expect(saved.concepts[0].synonyms).toEqual(["embedded hardware", "real-time"]);
   });
 
-  it("agent source is not rendered in M10b", async () => {
-    // The engine refuses `agent:*` as a proposal source (PROPOSAL_SOURCE_REFUSED) until M10c; a stub
-    // that sends one anyway gets the generic label, never an assistant's.
+  it("an assistant's proposal names the assistant and its model, and is applied only by the researcher (M10c)", async () => {
+    // Since M10c an assistant creates proposals over MCP (`agent:<model>`); the card is the same card.
     const { engine } = setUp({ draft: decided() });
-    const made = engine.addProposal({ ...UAV, source: "agent:claude" });
+    const made = engine.addProposal({ ...UAV, source: "agent:claude-opus-5-5" });
     render(<InceptionCriteria locale="en" />);
     const li = await card(String(made.proposal_id));
-    expect(within(li).getByText("Suggested by the engine")).toBeInTheDocument();
-    expect(within(li).queryByText("Suggested by an assistant")).toBeNull();
+    const label = li.querySelector("[data-proposal-source='agent']") as HTMLElement;
+    expect(label.textContent).toBe("Suggested by an assistant (claude-opus-5-5)");
+    expect(label.querySelector("bdi")).toHaveAttribute("dir", "ltr");
+    expect(within(li).queryByText("Suggested by the engine")).toBeNull();
+    // Nothing was applied on load: no decision request was sent.
+    expect(engine.calls.filter((c) => c.method === "POST" && c.path.includes("/proposals/"))).toEqual([]);
   });
 });

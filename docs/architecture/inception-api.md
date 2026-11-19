@@ -96,6 +96,14 @@ Specs: `docs/ux/shared/final/01-proposals.md`, `02-checks.md`; decisions `docs/d
 
 The POST routes are in both POST allow-lists. The discovery checks (`GET /api/v1/discovery/checks`, dismiss, restore) are in `docs/architecture/research_ui/DISCOVERY_API_PACKET.md` §4.9.
 
+## M10c: the assistant over MCP
+
+Record: `docs/roadmap/milestones/M10c-assistant-mcp.md`; decisions `docs/decisions.md` 2026-11-19 (M10c, proposed). Code: `scholar_harness/assistant.py`, the `nexus_assistant_*` tools in `scholar_agent/server.py`. No new console route.
+
+- **An assistant's proposal** is the proposal object above with `source: "agent:<model>"` and one more key, `agent {model, task, task_version}`. It is created only by `nexus_assistant_propose` (the console's create path still refuses `agent:*`), by a side write: no field and no `updated_at` changes. Apply, apply-edited, reject and restore are the routes above; genesis writes it to `audit/proposals.jsonl` like any other and `PROPOSALS_RECORDED` counts it under `by_source.agent`.
+- **An assistant's finding** is a check row with `check_id: "ASSISTANT_FINDING"`, `subject: "find_" + 12 hex`, `source: "agent"`, plus `agent`, `severity` (`critical`, `major`, `minor`), `why` (its own text or `null`), `locator`, `outdated` (the located value changed since) and `reported_at`; `message` is the assistant's sentence (shown as written) and `message_key` and `why_key` are `null`. `level` is `warning` for critical and major, `note` for minor; never `blocker`, so `ready` is never changed by one. Its `step` comes from the locator. The checks POST and `GET /discovery/checks` list it beside the fixed checks and then answer `sources: ["check", "agent"]`; dismiss and restore take `ASSISTANT_FINDING` and its `subject` like any check (a warning needs a reason). On a draft the findings are kept in the record's `assistant_findings` key (a side write); on a workspace in `audit/assistant_findings.jsonl` (one `reported` line each, append-only) with an `ASSISTANT_FINDING_REPORTED` journal row. They are not carried at genesis.
+- **One lock across processes.** Every `DraftStore` write also takes an OS lock on `.drafts/.locks/<session id>.lock`, because the MCP server writes the same record from another process.
+
 ## Recon (M4c)
 
 Code: `src/scholar_harness/console/api/recon.py` (routes), `recon/session.py` (the recon session store the CLI wizard, the MCP `recon_*` tools and these routes share), `inception/grounding.py` (binding and `STALE_BINDING`). The draft's id is its recon session id. The probe runs the M3a providers through `ReconEngine` (`SearchEngine.run`); the contact address is the console process's `SCHOLAR_MAILTO` (environment or `.env`), with no default. Decision: [2026-11-09, Recon over HTTP](../decisions.md).

@@ -86,12 +86,15 @@ function slots(locale: Locale, params: Record<string, unknown>): Record<string, 
 
 /** The sentence of a check from this catalogue; a key the catalogue lacks shows the check id. */
 export function CheckSentence({ locale, check }: Readonly<{ locale: Locale; check: Check }>) {
+  // M10c: an assistant's finding is shown in its own words (the review's language), never translated.
+  if (check.source === "agent") return <bdi dir="auto">{check.message}</bdi>;
   const template = checksTemplate(locale, check.message_key);
   return template ? <>{fillNodes(template, slots(locale, check.params))}</> : <bdi dir="ltr">{check.check_id}</bdi>;
 }
 
 /** The sentence as plain text, for the polite announcements. */
 function sentenceText(locale: Locale, check: Check): string {
+  if (check.source === "agent") return check.message;
   const template = checksTemplate(locale, check.message_key);
   if (!template) return check.check_id;
   return fillText(template, Object.fromEntries(Object.entries(check.params ?? {}).map(([k, v]) => [k, String(v ?? "")])));
@@ -311,12 +314,23 @@ export function ChecksPanel(props: Readonly<ChecksPanelProps>) {
             </span>
           ) : null}
           <span className="text-ink-muted" data-source={check.source}>
-            {sourceKnown ? t("checks.source.check") : t("checks.source.generic")}
+            {sourceKnown
+              ? t("checks.source.check")
+              : check.source === "agent"
+                ? check.agent?.model
+                  ? fillNodes(CHECKS_COPY[locale]["checks.source.agentModel"], { model: <bdi dir="ltr">{check.agent.model}</bdi> })
+                  : t("checks.source.agent")
+                : t("checks.source.generic")}
           </span>
         </div>
         <p id={sentenceId} tabIndex={-1} className="mt-1 text-[0.9375rem] leading-[1.375rem] text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus" data-sentence>
           <CheckSentence locale={locale} check={check} />
         </p>
+        {check.outdated && !dismissedRow ? (
+          <p className="mt-1 text-xs text-unclear" data-outdated>
+            {t("checks.agent.outdated")}
+          </p>
+        ) : null}
         {check.previously_dismissed && !dismissedRow ? (
           <p className="mt-1 text-xs text-unclear" data-previously>
             {t("checks.previously", { date: dateOf(check.previously_dismissed.at) })}
@@ -393,7 +407,15 @@ export function ChecksPanel(props: Readonly<ChecksPanelProps>) {
         </div>
         {whyOpen ? (
           <div id={whyId} className="mt-1 space-y-1 text-sm text-ink-muted" data-why-text>
-            <p>{whyTemplate ? fillNodes(whyTemplate, slots(locale, check.why_params ?? check.params)) : null}</p>
+            <p>
+              {check.source === "agent"
+                ? check.why
+                  ? <bdi dir="auto">{check.why}</bdi>
+                  : null
+                : whyTemplate
+                  ? fillNodes(whyTemplate, slots(locale, check.why_params ?? check.params))
+                  : null}
+            </p>
             {check.threshold ? (
               <p data-threshold>
                 {fillNodes(CHECKS_COPY[locale]["checks.threshold"], {

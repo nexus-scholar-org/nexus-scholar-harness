@@ -37,7 +37,7 @@ The browser still cannot create a proposal (no create route); `PROPOSAL_SOURCE_R
 
 ### An assistant's finding (the critic)
 A finding is a check row (`02-checks` "The check object") with `check_id: "ASSISTANT_FINDING"`, `subject: "find_<12 hex>"` (content-derived from locator, sentence and model, so a re-send is a no-op), `source: "agent"`, `agent: {model, task: "critic", task_version}`, `severity`, `level` (`warning` for critical and major, `note` for minor, never `blocker`), `step` (computed by the engine from the locator), `message` (the assistant's sentence, shown as its words), `why` (optional), `evidence` (the locator, and the hash of the located value when it was made), `action` (a link to the field's screen), `dismissible: true`. It is listed by the same check endpoints in the same list, counted in `by_step`, dismissed and restored by the same routes into the same record (`check_dismissals`; a warning needs a reason). It never makes `ready` false. When the located value has changed since, the row says so (`outdated: true`) and stays until dismissed.
-- **Locator: a JSON pointer into the intent** (decision item 4): the same shape before genesis (the draft's `build_intent`) and after (the workspace's `intent.json`), and the shape the critic test set's manifest uses. A pointer must resolve in the current intent, or point at a missing element of a list or object that exists (to name what is absent).
+- **Locator: a JSON pointer into the intent** (decision item 4): the same shape before genesis (the draft's `build_intent`) and after (the workspace's `intent.json`), and the shape the critic test set's manifest uses. A pointer must resolve in the current intent, or point at a missing element of a list or object that exists (to name what is absent). `draft:/…` points into a draft's answers (an incomplete draft has no intent), `protocol:/…` into a workspace's `protocol.json`.
 - **Where a finding is kept** (decision item 5): on a draft, a new side key `assistant_findings` of the draft record, beside `proposals` and `check_dismissals`; on a workspace, `audit/assistant_findings.jsonl` (append-only, a `reported` line per finding), with an `ASSISTANT_FINDING_REPORTED` journal row. Findings are not carried at genesis (item 6).
 
 ### The discovery half (M9d over MCP)
@@ -57,14 +57,14 @@ A finding is a check row (`02-checks` "The check object") with `check_id: "ASSIS
 - [ ] D5 **Workspace proposals** (only as decided in item 9).
 - [ ] D6 **Limits.** No new tool starts a search or harvest, accepts, decides or publishes (a test lists the new tools against the forbidden actions); item 11 for the recon tools. Test: `test_mcp_assistant.py`.
 - [ ] D7 **UI**: a proposal card names an assistant and its model; a check row from an assistant shows "Assistant", its own words (`dir="auto"`) and the outdated line; nothing else on the screens changes. Vitest: `apps/research-ui/tests/proposals.test.tsx`, `checks-panel.test.tsx` (the M10b test "agent source is not rendered" is replaced).
-- [ ] D8 **The critic test set, no AI.** `scripts/critic_set.py prepare|score`; `tests/kits/agent/test_assistant_critic_set.py`: oracle locates 43 of 43 defects with no false alarm on the bases, silent 0, fixed-checks-only bounded; every finding stored and listed as an agent row.
+- [ ] D8 **The critic test set, no AI.** `scripts/critic_set.py prepare|score`; `tests/kits/agent/test_assistant_critic_set.py`: oracle locates 43 of 43 defects with no false alarm on the bases, silent 0, a noisy client's major finding on a base is counted as a false alarm; every finding stored and journaled as an agent row. (The design's "fixed-checks-only" client was dropped: the discovery checks that can run on a protocol alone point at `/core_concepts` as a whole, so the locator rule would credit them with defects they do not name; the README's "a critic that only restates the fixed checks catches at most 12" stays a statement, not a test.)
 - [ ] D9 **Docs.** `docs/architecture/inception-api.md` (agent rows, the record key), `docs/kits_surface_matrix.md` and `.agents/skills/scholar-agent-kit/SKILL.md` (tool count and the assistant tools, how a client should use them), the tool-count tests.
 - [ ] D10 **Gates.** `select_test_gate.py --changed origin/main` inner and checkpoint; `generate_contract_baseline.py --check`; ruff (both CI runs); the PR gate once on the final executable commit; `milestone-reviewer`; READY FOR PR, not pushed.
 
 ## Findings fixed
 | ID | Reproducing test | Fails before | Passes after |
 | :-- | :-- | :-- | :-- |
-| (D1) a second process's draft write can lose a key | `test_draft_store_lock.py` | | |
+| (D1) a second process's draft write can lose a key | `test_draft_store_lock.py::test_a_side_write_in_another_process_does_not_undo_a_save` | yes, at `418e56da`: the save was lost (`{'topic': 'first words'}`) | yes, at `eb5acc4a` |
 
 ## Decisions
 `docs/decisions.md`, "2026-11-19 — M10c: assistant and critic over MCP" (items 1 to 14, PROPOSED; item 9 is the open choice).

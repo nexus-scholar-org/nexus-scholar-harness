@@ -409,3 +409,12 @@ def test_the_recon_tools_refuse_a_session_that_is_an_app_draft(env, monkeypatch)
     for answer in (json.loads(server.recon_probe(topic="weeds", session_id=sid)),
                    json.loads(server.recon_delta(session_id=sid))):
         assert answer["code"] == "RECON_SESSION_IS_A_DRAFT"
+
+
+def test_the_help_lists_every_assistant_tool(capsys):
+    import contextlib
+
+    with contextlib.suppress(SystemExit):
+        server.main(["--help"])
+    out = capsys.readouterr().out
+    assert all(name in out for name in server.ASSISTANT_TOOLS)
