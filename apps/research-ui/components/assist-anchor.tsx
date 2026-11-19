@@ -71,10 +71,16 @@ function resolve(hash: string): HTMLElement | null {
   return selector ? (document.querySelector(selector) as HTMLElement | null) : null;
 }
 
+/** M10d: a link the researcher followed opens the folded sections around its target, so focus never lands on a closed one. */
+function reveal(element: HTMLElement) {
+  for (let d = element.closest("details"); d; d = d.parentElement?.closest("details") ?? null) d.open = true;
+}
+
 /** Focus the element a hash names when it is on this page now; answers whether it was. */
 export function tryFocus(hash: string): boolean {
   const element = resolve(hash);
   if (!element) return false;
+  reveal(element);
   if (element.tabIndex < 0 && !element.hasAttribute("tabindex")) element.setAttribute("tabindex", "-1");
   element.focus();
   return true;
@@ -87,6 +93,7 @@ export function focusAnchor(hash: string, tries = 1): () => void {
   const attempt = () => {
     const element = resolve(hash);
     if (element) {
+      reveal(element);
       if (element.tabIndex < 0 && !element.hasAttribute("tabindex")) element.setAttribute("tabindex", "-1");
       element.focus();
       return;

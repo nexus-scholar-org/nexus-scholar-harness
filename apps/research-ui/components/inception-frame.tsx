@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState, type ReactNode } from "react";
 
 import type { Locale } from "@/i18n";
-import { DataCell } from "@/components/ui/base";
+import { DataCell, Hint } from "@/components/ui/base";
 import { StateCard } from "@/components/screening-state-card";
 import { inceptionStateKey } from "@/lib/screening-states";
 import { isScreeningApiError } from "@/lib/screening-api";
@@ -449,6 +449,8 @@ export function InceptionFrame({
               {t("saved", { at: "" })}
               <Stamp at={record.updated_at} />
             </span>
+            {/* M10d (03-guidance I-F2): how drafts work is a hint beside the saved status; the one write is stated at Review's gate. */}
+            <Hint locale={locale} label={t("draftLabel")} text={t("nothingWritten")} textKey="nothingWritten" className="-ms-2" />
           </p>
           {draft.notRecorded.length ? (
             <p className="mb-4 text-sm text-ink-muted" role="status" data-not-recorded>
@@ -479,13 +481,16 @@ function AssistedSteps(props: Readonly<{ locale: Locale; current: InceptionStep;
 }
 
 /** The heading block every step opens with: the kicker, the question, the lede. */
-export function StepHeader({ kicker, title, lede, extra }: Readonly<{ kicker: string; title: string; lede: string; extra?: ReactNode }>) {
+export function StepHeader({ kicker, title, lede, extra, ledeHint }: Readonly<{ kicker: string; title: string; lede: string; extra?: ReactNode; ledeHint?: ReactNode }>) {
   return (
     <header className="mb-6">
       <p className="text-xs font-semibold uppercase tracking-[0.05em] text-brand rtl:tracking-normal">{kicker}</p>
       <h1 className="mt-2 font-display text-3xl text-ink">{title}</h1>
       {extra}
-      <p className="mt-2 max-w-2xl text-ink-muted">{lede}</p>
+      <p className="mt-2 max-w-2xl text-ink-muted" data-copy="lede">
+        {lede}
+        {ledeHint}
+      </p>
     </header>
   );
 }

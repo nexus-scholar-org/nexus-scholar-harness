@@ -28,4 +28,13 @@ describe("details.rule", () => {
     expect(seen).toBeGreaterThan(10); // anti-vacuity: the screens use Details
     expect(offenders).toEqual([]);
   });
+
+  it("gives the folded section's summary (03-guidance rule 4, M10d) the same 44 px target and focus ring", () => {
+    const text = readFileSync(join(COMPONENTS, "ui", "guidance.tsx"), "utf-8");
+    const summary = text.match(/const SUMMARY = `([^`]*)`/)?.[1] ?? "";
+    expect(summary.split(/\s+/)).toContain("min-h-11");
+    expect(text).toMatch(/const FOCUS = "[^"]*focus-visible:outline-2/);
+    expect(summary).toContain("${FOCUS}");
+    expect(text).toMatch(/<summary className=\{SUMMARY\}>/);
+  });
 });

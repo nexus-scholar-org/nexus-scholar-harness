@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
 
 import { formatNumber, type Locale } from "@/i18n";
-import { Button, DataCell, DecisionBadge } from "@/components/ui/base";
+import { Button, DataCell, DecisionBadge, Hint } from "@/components/ui/base";
 import { ScreeningSteps, StateCard, stepHref } from "@/components/screening-state-card";
 import { isScreeningApiError } from "@/lib/screening-api";
 import { localDate } from "@/lib/local-time";
@@ -398,6 +398,7 @@ function ImportReady({
           ) : null}
           {!accepted && !blockedByDiscovery ? (
             <AddForm
+              locale={locale}
               refusal={refusal?.code ?? null}
               corpus={corpus}
               busy={busy !== null}
@@ -462,6 +463,7 @@ function ImportReady({
                   {corpus.databases.map((db) => (
                     <DatabaseRow
                       key={db.label}
+                      locale={locale}
                       dt={dt}
                       db={db}
                       corpus={corpus}
@@ -581,8 +583,9 @@ function ImportReady({
                 </p>
               )}
               {fromDiscovery ? (
-                <p className="mt-2 text-xs text-ink-muted" data-import-rule>
-                  {dt("import.rule")}
+                <p className="mt-2 flex items-center gap-1 text-xs text-ink-muted" data-import-rule>
+                  {/* M10d (03-guidance D-I8): the rule is a hint; the refusal and the harvest's warning state it where it matters. */}
+                  <Hint locale={locale} label={dt("import.handoff")} text={dt("import.rule")} textKey="import.rule" />
                 </p>
               ) : null}
             </section>
@@ -594,6 +597,7 @@ function ImportReady({
 }
 
 function DatabaseRow({
+  locale,
   db,
   dt,
   corpus,
@@ -603,6 +607,7 @@ function DatabaseRow({
   n,
   onRemove,
 }: Readonly<{
+  locale: Locale;
   db: CorpusDatabase;
   dt: ReturnType<typeof discoveryT>;
   corpus: Corpus;
@@ -682,7 +687,9 @@ function DatabaseRow({
                       ))}
                     </tbody>
                   </table>
-                  <p className="mt-1 text-ink-muted">{dt("import.rejected.inReport")}</p>
+                  <p className="mt-1 flex justify-end">
+                    <Hint locale={locale} label={dt("import.rejected.title")} text={dt("import.rejected.inReport")} textKey="import.rejected.inReport" />
+                  </p>
                 </details>
               ) : null}
             </li>
@@ -703,6 +710,7 @@ function DatabaseRow({
 }
 
 function AddForm({
+  locale,
   refusal,
   corpus,
   busy,
@@ -712,6 +720,7 @@ function AddForm({
   onTooLarge,
   onAdd,
 }: Readonly<{
+  locale: Locale;
   refusal: string | null;
   corpus: Corpus;
   busy: boolean;
@@ -831,9 +840,7 @@ function AddForm({
                 data-limits
               />
             </label>
-            <p id="import-limits-help" className="text-xs text-ink-muted">
-              {dt("import.limits.help")}
-            </p>
+            <Hint locale={locale} label={dt("import.limits.label")} text={dt("import.limits.help")} textKey="import.limits.help" id="import-limits-help" />
           </div>
         </details>
         <Button type="submit" variant={primary ? "primary" : "secondary"} disabled={busy || !file || !label.trim()}>

@@ -120,7 +120,7 @@ export function DiscoveryProposals({
         ) : null}
         <div className="mt-2 flex flex-wrap gap-2">
           {stale ? null : (
-            <Button type="button" variant="primary" onClick={() => void act(proposal, "apply")} disabled={busy || blocked} aria-describedby={whatId} data-apply>
+            <Button type="button" variant="secondary" onClick={() => void act(proposal, "apply")} disabled={busy || blocked} aria-describedby={whatId} data-apply>
               {t("proposals.act.apply")}
             </Button>
           )}

@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import type { Locale } from "@/i18n";
-import { Button, DataCell, DecisionBadge, GatePanel, type DecisionRole } from "@/components/ui/base";
+import { Button, DataCell, DecisionBadge, GatePanel, Hint, PRIMARY_LINK, type DecisionRole } from "@/components/ui/base";
 import { DETAILS_LABEL, StateCard } from "@/components/screening-state-card";
 import {
   ConnectionLost,
@@ -300,9 +300,12 @@ export function DiscoveryChase({ locale }: Readonly<{ locale: Locale }>) {
       <p className="mt-3 text-sm text-ink">
         {t("chase.options.providers")}: {(defaults?.providers ?? []).map(providerName).join(", ")}
       </p>
-      <label className="mt-3 block text-sm text-ink" htmlFor="chase-cap">
-        {t("chase.options.cap")}
-      </label>
+      <div className="mt-3 flex items-center gap-1">
+        <label className="block text-sm text-ink" htmlFor="chase-cap">
+          {t("chase.options.cap")}
+        </label>
+        <Hint locale={locale} label={t("chase.options.cap")} text={t("chase.options.capHelp")} textKey="chase.options.capHelp" id="chase-cap-about" />
+      </div>
       <input
         id="chase-cap"
         ref={capField}
@@ -311,17 +314,22 @@ export function DiscoveryChase({ locale }: Readonly<{ locale: Locale }>) {
         placeholder={String(defaults?.forward_cap ?? "")}
         onChange={(e) => setCap(e.target.value)}
         aria-invalid={capError || undefined}
-        aria-describedby="chase-cap-help"
+        aria-describedby={capError ? "chase-cap-help chase-cap-about" : "chase-cap-about"}
         className="mt-1 min-h-11 w-40 rounded-md border border-rule-strong bg-paper px-3 text-ink"
         dir="ltr"
       />
-      <p id="chase-cap-help" className="mt-1 text-xs text-ink-muted">
-        {capError ? t("chase.options.invalid", { ceiling: CEILING_MAX }) + " " : ""}
-        {t("chase.options.capHelp")}
-      </p>
-      <label className="mt-3 block text-sm text-ink" htmlFor="chase-ceiling">
-        {t("chase.options.ceiling")}
-      </label>
+      {/* M10d (03-guidance D-CH8 to D-CH10): an error stays on the page; what each option does is a hint. */}
+      {capError ? (
+        <p id="chase-cap-help" className="mt-1 text-xs text-ink-muted">
+          {t("chase.options.invalid", { ceiling: CEILING_MAX })}
+        </p>
+      ) : null}
+      <div className="mt-3 flex items-center gap-1">
+        <label className="block text-sm text-ink" htmlFor="chase-ceiling">
+          {t("chase.options.ceiling")}
+        </label>
+        <Hint locale={locale} label={t("chase.options.ceiling")} text={t("chase.options.ceilingHelp", { ceiling: defaults?.run_ceiling ?? "" })} textKey="chase.options.ceilingHelp" id="chase-ceiling-about" />
+      </div>
       <input
         id="chase-ceiling"
         ref={ceilingField}
@@ -330,20 +338,24 @@ export function DiscoveryChase({ locale }: Readonly<{ locale: Locale }>) {
         placeholder={String(defaults?.run_ceiling ?? "")}
         onChange={(e) => setCeiling(e.target.value)}
         aria-invalid={ceilingError || undefined}
-        aria-describedby="chase-ceiling-help"
+        aria-describedby={ceilingError ? "chase-ceiling-help chase-ceiling-about" : "chase-ceiling-about"}
         className="mt-1 min-h-11 w-40 rounded-md border border-rule-strong bg-paper px-3 text-ink"
         dir="ltr"
       />
-      <p id="chase-ceiling-help" className="mt-1 text-xs text-ink-muted">
-        {ceilingError ? t("chase.options.invalid", { ceiling: CEILING_MAX }) + " " : ""}
-        {t("chase.options.ceilingHelp", { ceiling: defaults?.run_ceiling ?? "" })}
-      </p>
+      {ceilingError ? (
+        <p id="chase-ceiling-help" className="mt-1 text-xs text-ink-muted">
+          {t("chase.options.invalid", { ceiling: CEILING_MAX })}
+        </p>
+      ) : null}
       <p className="mt-3 text-xs text-ink-muted" data-seed-source>
         {t("chase.options.seedSource", { source: t(seeds?.source === "included+unclear" ? "chase.seeds.source.includedUnclear" : "chase.seeds.source.included") })}
       </p>
-      <label className="mt-3 block text-sm text-ink" htmlFor="chase-note">
-        {t("chase.options.note")}
-      </label>
+      <div className="mt-3 flex items-center gap-1">
+        <label className="block text-sm text-ink" htmlFor="chase-note">
+          {t("chase.options.note")}
+        </label>
+        <Hint locale={locale} label={t("chase.options.note")} text={t("chase.options.noteHelp")} textKey="chase.options.noteHelp" id="chase-note-help" />
+      </div>
       <textarea
         id="chase-note"
         value={note}
@@ -354,9 +366,6 @@ export function DiscoveryChase({ locale }: Readonly<{ locale: Locale }>) {
         rows={2}
         className="mt-1 w-full rounded-md border border-rule-strong bg-paper px-3 py-2 text-ink"
       />
-      <p id="chase-note-help" className="mt-1 text-xs text-ink-muted">
-        {t("chase.options.noteHelp")}
-      </p>
       <div className="mt-4">
         <Button
           variant={detail ? "secondary" : "primary"}
@@ -398,7 +407,9 @@ export function DiscoveryChase({ locale }: Readonly<{ locale: Locale }>) {
               </li>
             ))}
           </ul>
-          <p className="mt-1 text-xs text-ink-muted">{t("chase.seeds.notChaseable.help")}</p>
+          <p className="mt-1 flex justify-end">
+            <Hint locale={locale} label={t("chase.seeds.notChaseable.title")} text={t("chase.seeds.notChaseable.help")} textKey="chase.seeds.notChaseable.help" />
+          </p>
         </details>
       ) : null}
     </section>
@@ -654,11 +665,13 @@ export function DiscoveryChase({ locale }: Readonly<{ locale: Locale }>) {
               {stream.legs.length ? liveLegs(stream.legs) : <p role="status">{t("chase.reading")}</p>}
             </section>
             <aside className="rounded-lg border border-rule bg-leaf p-5">
-              <h2 className="font-semibold text-ink">{t("chase.stop.title")}</h2>
-              <p className="mt-2 text-sm text-ink">{t("chase.stop.body")}</p>
-              <Button className="mt-3" onClick={() => void stop()} disabled={stopping || offline} data-stop>
-                {t("chase.stop")}
-              </Button>
+              {/* M10d (03-guidance D-CH13): the reassurance is a hint; the button says what it does. */}
+              <div className="flex flex-wrap items-center gap-1">
+                <Button onClick={() => void stop()} disabled={stopping || offline} data-stop>
+                  {t("chase.stop")}
+                </Button>
+                <Hint locale={locale} label={t("chase.stop.title")} text={t("chase.stop.body")} textKey="chase.stop.body" />
+              </div>
             </aside>
           </div>
         </div>
@@ -717,7 +730,7 @@ export function DiscoveryChase({ locale }: Readonly<{ locale: Locale }>) {
               </div>
             </dl>
             <p className="mt-3 text-sm text-ink-muted">{t("chase.accepted.again", { round: accepted.round })}</p>
-            <a className="mt-4 inline-flex min-h-11 items-center rounded-md bg-brand px-4 font-medium text-on-brand" href={screeningHomeHref(locale, origin)} data-go-screening>
+            <a className={`mt-4 ${PRIMARY_LINK}`} href={screeningHomeHref(locale, origin)} data-variant="primary" data-go-screening>
               {t("chase.accepted.go")}
             </a>
           </section>
@@ -741,7 +754,7 @@ export function DiscoveryChase({ locale }: Readonly<{ locale: Locale }>) {
             <h1 ref={heading} tabIndex={-1} className="mt-2 font-display text-3xl text-ink">
               {title}
             </h1>
-            <p className="mt-2 max-w-2xl text-ink-muted">{t("chase.lede")}</p>
+            <p className="mt-2 max-w-2xl text-ink-muted" data-copy="lede">{t("chase.lede")}</p>
           </header>
           {detailError ? <DiscoveryRefusal locale={locale} refusal={detailError} origin={origin} /> : null}
           {otherJob ? (
@@ -763,7 +776,6 @@ export function DiscoveryChase({ locale }: Readonly<{ locale: Locale }>) {
           {seeds && seeds.chaseable === 0 ? (
             <section className="rounded-lg border border-rule bg-leaf p-5" data-empty="noSeeds">
               <h2 className="font-semibold text-ink">{t("chase.empty.noSeeds")}</h2>
-              <p className="mt-1 text-sm text-ink">{t("chase.empty.noSeedsBody")}</p>
             </section>
           ) : null}
           <div className="grid gap-6 lg:grid-cols-3">
@@ -861,7 +873,9 @@ export function DiscoveryChase({ locale }: Readonly<{ locale: Locale }>) {
                 >
                   <p className="font-semibold">{t("chase.gate.title", { new: counts!.new, round: round + 1 })}</p>
                   <p className="mt-2">{t("chase.gate.body", { round: round + 1, previous: round })}</p>
-                  <p className="mt-2 text-sm text-ink-muted">{t("chase.gate.record")}</p>
+                  <p className="mt-1 flex justify-end">
+                    <Hint locale={locale} label={t("chase.gate.label")} text={t("chase.gate.record")} textKey="chase.gate.record" />
+                  </p>
                   {offline ? (
                     <p id="chase-gate-offline" className="mt-2 text-sm text-ink-muted">
                       {t("chase.gate.offline")}

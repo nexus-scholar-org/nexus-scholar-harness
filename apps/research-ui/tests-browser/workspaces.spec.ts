@@ -47,7 +47,7 @@ test.describe("desktop", () => {
     await expect(page.getByRole("heading", { level: 1 })).toHaveText("Which review are you working on?");
     await expect(page.getByText("Demonstration data")).toHaveCount(0);
     await page.keyboard.press("n");
-    const field = page.getByLabel("Title of the review");
+    const field = page.getByLabel("Title of the review", { exact: true });
     await expect(field).toBeFocused();
     await field.fill("Weed Mapping");
     await expect(page.locator("[data-folder]")).toContainText(`${ROOT}/weed-mapping`);

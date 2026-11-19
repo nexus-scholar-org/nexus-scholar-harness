@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { DiscoveryChecksPanel } from "@/components/discovery-checks";
 
 import type { Locale } from "@/i18n";
-import { Button, DataCell, DecisionBadge, type DecisionRole } from "@/components/ui/base";
+import { Button, DataCell, DecisionBadge, Hint, PRIMARY_LINK, type DecisionRole } from "@/components/ui/base";
 import { DETAILS_LABEL } from "@/components/screening-state-card";
 import {
   ConnectionLost,
@@ -171,7 +171,7 @@ export function DiscoveryRecall({ locale }: Readonly<{ locale: Locale }>) {
             <h1 ref={heading} tabIndex={-1} className="mt-2 font-display text-3xl text-ink">
               {check ? t("recall.title", { found: check.found, total: check.total }) : t("recall.titleNone")}
             </h1>
-            <p className="mt-2 max-w-2xl text-ink-muted">{check ? t("recall.lede") : t("recall.ledeEmpty")}</p>
+            <p className="mt-2 max-w-2xl text-ink-muted" data-copy="lede">{check ? t("recall.lede") : t("recall.ledeEmpty")}</p>
           </header>
           {loadError ? <DiscoveryRefusal locale={locale} refusal={loadError} origin={origin} onRetry={() => void load()} /> : null}
           {otherJob ? (
@@ -290,7 +290,11 @@ export function DiscoveryRecall({ locale }: Readonly<{ locale: Locale }>) {
                       </tbody>
                     </table>
                   </div>
-                  <p className="mt-3 text-xs text-ink-muted">{t("recall.legend")}</p>
+                  {/* M10d (03-guidance D-R8, D-R9): what a miss means is one hint beside its title; the duplicate legend is removed. */}
+                  <p className="mt-3 flex items-center gap-1 text-xs text-ink-muted">
+                    <span>{t("recall.notFound")}</span>
+                    <Hint locale={locale} label={t("recall.notFound")} text={`${t("recall.mean.one")} ${t("recall.mean.all")}`} textKey="recall.mean.title" />
+                  </p>
                   <ul className="mt-3 space-y-1 text-sm" data-legs>
                     {check.legs.map((leg) => (
                       <li key={leg.provider} data-leg={leg.provider}>
@@ -325,17 +329,12 @@ export function DiscoveryRecall({ locale }: Readonly<{ locale: Locale }>) {
                 </p>
               ) : (
                 <section aria-labelledby="recall-form" className="rounded-lg border border-rule bg-leaf p-5" data-recall-form>
-                  <h2 id="recall-form" className="font-semibold text-ink">
-                    {t("recall.form.title")}
-                  </h2>
-                  <p id="recall-help" className="mt-1 text-sm text-ink-muted">
-                    {t("recall.form.help")}
-                  </p>
-                  {!check && rows.some((r) => r.anchor) ? (
-                    <p className="mt-1 text-sm text-ink" data-anchor-note>
-                      {t("recall.form.anchorNote")}
-                    </p>
-                  ) : null}
+                  <div className="flex items-center gap-1">
+                    <h2 id="recall-form" className="font-semibold text-ink">
+                      {t("recall.form.title")}
+                    </h2>
+                    <Hint locale={locale} label={t("recall.form.title")} text={t("recall.form.help")} textKey="recall.form.help" id="recall-help" />
+                  </div>
                   <ol className="mt-3 space-y-3">
                     {rows.map((row, index) => (
                       <li key={row.key} className="flex flex-wrap items-end gap-2" data-seed-row>
@@ -375,6 +374,10 @@ export function DiscoveryRecall({ locale }: Readonly<{ locale: Locale }>) {
                           {isAnchor(row) ? (
                             <p className="mt-1 flex flex-wrap items-center gap-2 text-xs text-ink-muted" data-anchor-row>
                               <DecisionBadge role="exclude">{t("recall.form.anchorRow")}</DecisionBadge>
+                              {/* M10d (03-guidance D-R13): the anchor note is one hint, on the first anchor row only. */}
+                              {!check && rows.findIndex((r) => isAnchor(r)) === index ? (
+                                <Hint locale={locale} label={t("recall.form.anchorRow")} text={t("recall.form.anchorNote")} textKey="recall.form.anchorNote" />
+                              ) : null}
                               {!check ? t("recall.form.anchorTitleLater") : null}
                             </p>
                           ) : null}
@@ -404,18 +407,13 @@ export function DiscoveryRecall({ locale }: Readonly<{ locale: Locale }>) {
                         {t("recall.cancel")}
                       </Button>
                     ) : (
-                      <Button variant="primary" disabled={filled < 1 || filled > MAX_SEEDS} onClick={() => void submit()} data-check>
+                      <Button variant={check ? "secondary" : "primary"} disabled={filled < 1 || filled > MAX_SEEDS} onClick={() => void submit()} data-check>
                         {check ? t("recall.submitAgain") : t("recall.submit")}
                       </Button>
                     )}
                   </div>
                 </section>
               )}
-              <section className="rounded-lg border border-rule bg-leaf p-5 text-sm">
-                <h2 className="font-semibold text-ink">{t("recall.mean.title")}</h2>
-                <p className="mt-2 text-ink">{t("recall.mean.one")}</p>
-                <p className="mt-1 text-ink">{t("recall.mean.all")}</p>
-              </section>
             </div>
             <aside className="space-y-4">
             <DiscoveryChecksPanel locale={locale} step="recall" origin={origin} />
@@ -434,12 +432,15 @@ export function DiscoveryRecall({ locale }: Readonly<{ locale: Locale }>) {
                 </section>
               ) : empty ? null : null}
               <section className="rounded-lg border border-rule bg-leaf p-5 text-sm">
-                <p className="text-ink-muted">{t("amend.help")}</p>
-                <a className={LINK} href={`/${locale}/inception/${origin ? `?console=${encodeURIComponent(origin)}` : ""}`}>
-                  {t("amend.link")}
-                </a>
+                <p className="flex items-center gap-1">
+                  <a className={LINK} href={`/${locale}/inception/${origin ? `?console=${encodeURIComponent(origin)}` : ""}`}>
+                    {t("amend.link")}
+                  </a>
+                  <Hint locale={locale} label={t("amend.link")} text={t("amend.help")} textKey="amend.help" />
+                </p>
                 <p className="mt-3">
-                  <a className={LINK} href={discoveryHref(locale, "harvest", origin)} data-next>
+                  {/* M10d (03-guidance rule 2): "Check these seeds" is the main action until a check exists, then "Continue to Harvest". */}
+                  <a className={check ? PRIMARY_LINK : LINK} href={discoveryHref(locale, "harvest", origin)} data-variant={check ? "primary" : undefined} data-next>
                     {t("recall.next")}
                   </a>
                 </p>

@@ -1,9 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, type ReactNode, type RefObject } from "react";
+import { useCallback, useEffect, useId, useRef, useState, type ReactNode, type RefObject } from "react";
 
 import type { Locale } from "@/i18n";
-import { Button, DataCell, DecisionBadge } from "@/components/ui/base";
+import { Button, DataCell, DecisionBadge, Fold, Hint, RecommendedBadge } from "@/components/ui/base";
+import { guidanceT } from "@/lib/guidance-copy";
 import { DatabasePicker } from "@/components/database-picker";
 import { inceptionHref, InceptionFrame, InceptionRefusal, refusalOf, StepHeader, useDraft, type Refusal } from "@/components/inception-frame";
 import { StepAssist } from "@/components/inception-assist";
@@ -353,11 +354,13 @@ export function InceptionExplore({ locale }: Readonly<{ locale: Locale }>) {
             <InceptionRefusal locale={locale} refusal={jobError} draftId={draftId} origin={origin} onRetry={searchAgain} />
             {failedLegs.length ? (
               <section className="rounded-lg border border-rule bg-leaf p-4" aria-labelledby="failed-legs">
-                <h2 id="failed-legs" className="font-semibold text-ink">
-                  {t("explore.legs.title")}
-                </h2>
+                <div className="flex items-center gap-1">
+                  <h2 id="failed-legs" className="font-semibold text-ink">
+                    {t("explore.legs.title")}
+                  </h2>
+                  <Hint locale={locale} label={t("explore.legs.title")} text={t("explore.legs.neverEmpty")} textKey="explore.legs.neverEmpty" />
+                </div>
                 <LegsList locale={locale} legs={failedLegs} />
-                <p className="mt-2 text-xs text-ink-muted">{t("explore.legs.neverEmpty")}</p>
                 {shorten && fieldShown ? (
                   <div className="mt-3 flex flex-wrap items-center gap-3" data-shorten>
                     <p className="text-sm text-ink">{t("explore.legs.shorten")}</p>
@@ -374,7 +377,7 @@ export function InceptionExplore({ locale }: Readonly<{ locale: Locale }>) {
         {running ? <ProgressCard locale={locale} legs={progress.legs} lost={progress.lost} headingRef={progressHeading} /> : null}
 
         {recon && !usable && !running ? (
-          <section aria-labelledby="first-title" className="rounded-lg border border-rule bg-leaf p-5" data-first-search>
+          <section aria-labelledby="first-title" className="rounded-lg border border-rule bg-leaf p-5" data-first-search data-card="first">
             <h2 id="first-title" className="font-semibold text-ink">
               {t("explore.first.title")}
             </h2>
@@ -449,20 +452,30 @@ export function InceptionExplore({ locale }: Readonly<{ locale: Locale }>) {
           </p>
         ) : null}
 
+        {/* M10d (03-guidance rule 4): the key lines stay on the page; the per-database list is folded, its failures named in the summary. */}
         {latest && !emptySearch ? (
-          <section aria-labelledby="legs-title" className="rounded-lg border border-rule bg-leaf p-5" data-databases>
-            <h2 id="legs-title" className="font-semibold text-ink">
-              {t("explore.legs.title")}
-            </h2>
-            <p className="text-xs text-ink-muted">
-              {rt("explore.legs.latest", { date: <Ltr>{stamp(latest.at ?? latest.created_at)}</Ltr> })}
-            </p>
-            <div className="mt-3">
-              <KeyLines locale={locale} keys={recon?.keys} />
-            </div>
-            <LegsList locale={locale} legs={latest.legs.map((l) => ({ ...l, notes: l.notes ?? [] }))} />
-            <p className="mt-2 text-xs text-ink-muted">{t("explore.legs.neverEmpty")}</p>
-          </section>
+          <div className="space-y-3">
+            {recon?.keys ? (
+              <div className="px-1" data-databases-keys>
+                <KeyLines locale={locale} keys={recon.keys} />
+              </div>
+            ) : null}
+            <Fold
+              locale={locale}
+              title={t("explore.legs.title")}
+              count={latest.legs.length}
+              failed={latest.legs.filter((l) => l.status === "failed").length}
+              empty={latest.legs.filter((l) => l.status === "ok" && !l.fetched && !l.reported_total).length}
+              headingId="legs-title"
+              data-databases
+            >
+              <p className="flex items-center gap-1 text-xs text-ink-muted">
+                <span>{rt("explore.legs.latest", { date: <Ltr>{stamp(latest.at ?? latest.created_at)}</Ltr> })}</span>
+                <Hint locale={locale} label={t("explore.legs.title")} text={t("explore.legs.neverEmpty")} textKey="explore.legs.neverEmpty" />
+              </p>
+              <LegsList locale={locale} legs={latest.legs.map((l) => ({ ...l, notes: l.notes ?? [] }))} />
+            </Fold>
+          </div>
         ) : null}
 
         {usable && concepts ? <ConceptsCard locale={locale} report={concepts} href={inceptionHref(locale, "criteria", draftId, origin)} /> : null}
@@ -549,9 +562,14 @@ function UnknownNames({ locale, details }: Readonly<{ locale: Locale; details: u
 
 function ModeControl({ locale, semantic, onChange }: Readonly<{ locale: Locale; semantic: boolean; onChange: (v: boolean) => void }>) {
   const t = inceptionT(locale);
+  const legendId = `mode-${useId().replace(/[^A-Za-z0-9_-]/g, "")}`;
+  // The group is named by the legend's words alone, not by the hint button inside the legend.
   return (
-    <fieldset className="mt-3" data-mode>
-      <legend className="text-sm text-ink-muted">{t("explore.mode.legend")}</legend>
+    <fieldset className="mt-3" aria-labelledby={legendId} data-mode>
+      <legend className="text-sm text-ink-muted">
+        <span id={legendId}>{t("explore.mode.legend")}</span>
+        <Hint locale={locale} label={t("explore.mode.legend")} text={t("explore.mode.help")} textKey="explore.mode.help" className="ms-1" />
+      </legend>
       <div role="radiogroup" className="mt-1 flex flex-wrap gap-4">
         {([false, true] as const).map((value) => (
           <label key={String(value)} className="inline-flex min-h-11 cursor-pointer items-center gap-2 text-sm text-ink">
@@ -560,7 +578,6 @@ function ModeControl({ locale, semantic, onChange }: Readonly<{ locale: Locale; 
           </label>
         ))}
       </div>
-      <p className="text-xs text-ink-muted">{t("explore.mode.help")}</p>
     </fieldset>
   );
 }
@@ -600,16 +617,23 @@ function SearchControls({
     const id = idOf(name);
     return KNOWN_DATABASES.includes(id) ? t(`explore.picker.${kind}.${id}` as InceptionCopyKey) : name;
   };
-  const describedBy = ["explore-query-help", derived == null ? "explore-query-hint" : "", tooLong ? "explore-query-long" : ""].filter(Boolean).join(" ");
+  const describedBy = ["explore-query-help", tooLong ? "explore-query-long" : ""].filter(Boolean).join(" ");
   return (
     <div className="mt-4 space-y-4" data-search-controls>
       <div>
-        <label htmlFor="explore-query" className="block text-sm text-ink-muted">
-          {t("explore.query.label")}
-        </label>
-        <p id="explore-query-help" className="text-xs text-ink-muted">
-          {t("explore.query.help")}
-        </p>
+        <div className="flex items-center gap-1">
+          <label htmlFor="explore-query" className="block text-sm text-ink-muted">
+            {t("explore.query.label")}
+          </label>
+          {/* One hint per label (rule 1.7): with no derived query, the how-to sentence follows the field's own. */}
+          <Hint
+            locale={locale}
+            label={t("explore.query.label")}
+            text={derived == null ? `${t("explore.query.help")} ${t("explore.query.emptyHint")}` : t("explore.query.help")}
+            textKey="explore.query.help"
+            id="explore-query-help"
+          />
+        </div>
         <input
           id="explore-query"
           ref={fieldRef}
@@ -623,11 +647,6 @@ function SearchControls({
           className="mt-1 block min-h-11 w-full min-w-0 rounded-md border border-rule-strong bg-paper px-3 font-mono text-[0.8125rem] text-ink disabled:cursor-not-allowed disabled:opacity-50"
           data-query
         />
-        {derived == null ? (
-          <p id="explore-query-hint" className="mt-1 text-xs text-ink-muted">
-            {t("explore.query.emptyHint")}
-          </p>
-        ) : null}
         {tooLong ? (
           <p id="explore-query-long" role="alert" className="mt-1 text-sm text-unclear" data-query-long>
             {t("explore.query.tooLong")}
@@ -647,6 +666,7 @@ function SearchControls({
         labels={{
           legend: t("explore.picker.legend"),
           orderHelp: t("explore.picker.orderHelp", { max: String(POOL_MAX) }),
+          orderHelpHint: { locale, textKey: "explore.picker.orderHelp" },
           check: (name) => rowText("check", name),
           up: (name) => rowText("up", name),
           down: (name) => rowText("down", name),
@@ -694,7 +714,7 @@ function PoolView({
   const qei = pool.qei;
   return (
     <>
-      <section aria-labelledby="pool-title" className="rounded-lg border border-rule bg-leaf p-5" data-pool data-pool-status={summary.status}>
+      <section aria-labelledby="pool-title" className="rounded-lg border border-rule bg-leaf p-5" data-pool data-pool-status={summary.status} data-card="pool">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="min-w-0">
             <h2 id="pool-title" ref={poolHeading} tabIndex={-1} className="font-semibold text-ink">
@@ -722,10 +742,11 @@ function PoolView({
               {offline && asOf ? <span>{t("explore.asOf", { time: stamp(asOf) })}</span> : null}
             </p>
           </div>
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-wrap items-center gap-1">
             <Button disabled={!canSearch} onClick={(event) => onRefresh(semantic, event.currentTarget)} aria-describedby={reasonIds} data-refresh>
               {t("explore.pool.refresh")}
             </Button>
+            <Hint locale={locale} label={t("explore.pool.refresh")} text={t("explore.pool.refreshNote")} textKey="explore.pool.refreshNote" />
           </div>
         </div>
         <ModeControl locale={locale} semantic={semantic} onChange={setSemantic} />
@@ -748,7 +769,11 @@ function PoolView({
                 <DecisionBadge role="unclear">{t("explore.tile.size.thin", { n: String(size.n_docs) })}</DecisionBadge>
                 <p className="mt-1 text-sm text-ink">{t("explore.tile.size.thinBody", { threshold: String(size.threshold) })}</p>
                 <p className="text-xs text-ink-muted">{t("explore.tile.size.thinRaw", { n: String(size.n_docs), threshold: String(size.threshold) })}</p>
-                <Button className="mt-2" disabled={!canSearch} onClick={(event) => onRefresh(true, event.currentTarget)} aria-describedby={reasonIds} data-thin-semantic>
+                {/* M10d (03-guidance rule 3): marked, never pressed for the researcher. */}
+                <p className="mt-2">
+                  <RecommendedBadge locale={locale} source={guidanceT(locale)("guidance.recommended.source.poolHealth")} />
+                </p>
+                <Button className="mt-1" disabled={!canSearch} onClick={(event) => onRefresh(true, event.currentTarget)} aria-describedby={reasonIds} data-thin-semantic>
                   {t("explore.thin.semantic")}
                 </Button>
               </>
@@ -781,17 +806,18 @@ function PoolView({
           </section>
           {qei != null ? (
             <section aria-labelledby="tile-echo" className="rounded-md border border-rule bg-paper p-3" data-tile="echo">
-              <h3 id="tile-echo" className="text-xs text-ink-muted">
-                {t("explore.tile.echo.title")}
-              </h3>
+              <div className="flex items-center gap-1">
+                <h3 id="tile-echo" className="text-xs text-ink-muted">
+                  {t("explore.tile.echo.title")}
+                </h3>
+                <Hint locale={locale} label={t("explore.tile.echo.title")} text={t("explore.tile.echo.body")} textKey="explore.tile.echo.body" />
+              </div>
               <p className="mt-1 text-ink">
                 {t("explore.tile.echo.value", { qei: String(qei) })}
               </p>
-              <p className="text-xs text-ink-muted">{t("explore.tile.echo.body")}</p>
             </section>
           ) : null}
         </div>
-        <p className="mt-3 text-xs text-ink-muted">{t("explore.pool.refreshNote")}</p>
       </section>
       {partial ? (
         <PartialBanner
@@ -812,10 +838,13 @@ function ConceptsCard({ locale, report, href }: Readonly<{ locale: Locale; repor
   const t = inceptionT(locale);
   const suggested = report.concepts.some((c) => c.source === "suggested");
   return (
-    <section aria-labelledby="concepts-title" className="rounded-lg border border-rule bg-leaf p-5" data-concepts>
-      <h2 id="concepts-title" className="font-semibold text-ink">
-        {t("explore.concepts.title")}
-      </h2>
+    <section aria-labelledby="concepts-title" className="rounded-lg border border-rule bg-leaf p-5" data-concepts data-card="concepts">
+      <div className="flex items-center gap-1">
+        <h2 id="concepts-title" className="font-semibold text-ink">
+          {t("explore.concepts.title")}
+        </h2>
+        <Hint locale={locale} label={t("explore.concepts.title")} text={t("explore.concepts.note")} textKey="explore.concepts.note" />
+      </div>
       {suggested ? <p className="text-sm text-ink-muted" data-suggested-concepts>{t("explore.concepts.suggested")}</p> : null}
       <ul className="mt-2 space-y-1 text-sm">
         {report.concepts.map((c) => (
@@ -830,7 +859,6 @@ function ConceptsCard({ locale, report, href }: Readonly<{ locale: Locale; repor
           </li>
         ))}
       </ul>
-      <p className="mt-2 text-xs text-ink-muted">{t("explore.concepts.note")}</p>
       <a className="inline-flex min-h-11 items-center text-brand underline" href={href}>
         {t("explore.concepts.edit")}
       </a>
@@ -844,12 +872,17 @@ function ReadingCard({ locale, pool, allTopics, setAllTopics }: Readonly<{ local
   const topics = allTopics ? pool.topics : pool.topics.slice(0, TOPICS_SHOWN);
   const chips = [...pool.metrics, ...pool.datasets];
   return (
-    <section aria-labelledby="reading-badge" className="min-w-0 rounded-lg border border-dashed border-ink-muted bg-leaf p-5" data-reading>
+    <section aria-labelledby="reading-badge" className="min-w-0 rounded-lg border border-dashed border-ink-muted bg-leaf p-5" data-reading data-card="reading">
       <p id="reading-badge" className="text-xs font-semibold text-ink-muted">
         {t("explore.reading.badge")}
       </p>
       <p className="text-xs text-ink-muted">{t("explore.reading.source")}</p>
-      <h2 className="mt-3 font-semibold text-ink">{t("explore.schools.title")}</h2>
+      <div className="mt-3 flex items-center gap-1">
+        <h2 className="font-semibold text-ink">{t("explore.schools.title")}</h2>
+        {pool.schools.some((s) => s.n === 1) ? (
+          <Hint locale={locale} label={t("explore.schools.title")} text={t("explore.schools.oneNote")} textKey="explore.schools.oneNote" />
+        ) : null}
+      </div>
       <ul className="mt-2 space-y-2">
         {pool.schools.map((s) => (
           <li key={s.label} className="text-sm" data-school={s.label}>
@@ -867,11 +900,9 @@ function ReadingCard({ locale, pool, allTopics, setAllTopics }: Readonly<{ local
           </li>
         ))}
       </ul>
-      {pool.schools.some((s) => s.n === 1) ? <p className="mt-2 text-xs text-ink-muted" data-one-paper-note>{t("explore.schools.oneNote")}</p> : null}
       {pool.gates.purity.label !== "indeterminate" && pool.topics.length ? (
-        <>
-          <h2 className="mt-4 font-semibold text-ink">{t("explore.topics.title")}</h2>
-          <ul className="mt-2 flex flex-wrap gap-2">
+        <Fold locale={locale} title={t("explore.topics.title")} count={pool.topics.length} className="mt-4 border-0 bg-transparent px-0" data-fold-topics>
+          <ul className="flex flex-wrap gap-2">
             {topics.map((topic) => (
               <li key={topic.label} className="rounded-sm border border-rule px-2 py-1 text-sm text-ink" dir="auto">
                 {topic.label} · <bdi dir="ltr">{String(topic.n)}</bdi>
@@ -883,19 +914,18 @@ function ReadingCard({ locale, pool, allTopics, setAllTopics }: Readonly<{ local
               {allTopics ? t("explore.papers.less") : t("explore.topics.more", { n: String(pool.topics.length - TOPICS_SHOWN) })}
             </Button>
           ) : null}
-        </>
+        </Fold>
       ) : null}
       {chips.length ? (
-        <>
-          <h2 className="mt-4 font-semibold text-ink">{t("explore.metrics.title")}</h2>
-          <ul className="mt-2 flex flex-wrap gap-2">
+        <Fold locale={locale} title={t("explore.metrics.title")} count={chips.length} className="border-0 bg-transparent px-0" data-fold-metrics>
+          <ul className="flex flex-wrap gap-2">
             {chips.map((chip) => (
               <li key={chip.label} className="rounded-sm border border-rule px-2 py-1 text-sm text-ink" dir="auto">
                 {chip.label} · <bdi dir="ltr">{String(chip.count)}</bdi>
               </li>
             ))}
           </ul>
-        </>
+        </Fold>
       ) : null}
     </section>
   );
@@ -954,11 +984,31 @@ function PapersCard({
     if (button) button.focus();
     else caption.current?.focus();
   };
+  // M10d (03-guidance rule 4): the papers are folded behind their title and count; a refusal, the
+  // empty sample and the Undo toast of the curation stay outside the fold, so none is one click away.
   return (
-    <section aria-labelledby="papers-title" className="min-w-0 rounded-lg border border-rule bg-leaf p-5" data-papers>
-      <h2 id="papers-title" tabIndex={-1} className="font-semibold text-ink">
-        {t("explore.papers.title", { n: String(pool.papers.length) })}
-      </h2>
+    <div className="min-w-0 space-y-3">
+      <SampleRefusal locale={locale} curation={curation} draftId={draftId} origin={origin} />
+      {empty ? (
+        <div className="rounded-md border border-rule bg-paper p-3" data-sample-empty>
+          <p className="text-sm text-ink">{t("sample.empty")}</p>
+          <Button className="mt-2" disabled={controlsOff} onClick={curation.putAll} data-put-all>
+            {t("sample.putAll")}
+          </Button>
+        </div>
+      ) : null}
+      {sample && !sample.has_reserve ? (
+        <p className="text-xs text-ink-muted" data-no-reserve>
+          {t("sample.noReserve")}
+        </p>
+      ) : null}
+      {curating && curation.offline ? (
+        <p className="text-xs text-ink-muted" data-sample-offline>
+          {t("explore.offline")}
+          {asOf ? ` · ${t("explore.asOf", { time: stamp(asOf) })}` : ""}
+        </p>
+      ) : null}
+    <Fold locale={locale} title={t("explore.papers.title", { n: String(pool.papers.length) })} headingId="papers-title" className="min-w-0" data-papers>
       {sample ? (
         <p className="text-sm text-ink" data-sample-count>
           {sample.excluded_in_pool
@@ -966,27 +1016,10 @@ function PapersCard({
             : t("sample.countNone", { n: String(sample.n_docs) })}
         </p>
       ) : null}
-      <p className="text-xs text-ink-muted">{t("explore.papers.sorted")}</p>
-      {sample && !sample.has_reserve ? (
-        <p className="mt-1 text-xs text-ink-muted" data-no-reserve>
-          {t("sample.noReserve")}
-        </p>
-      ) : null}
-      {curating && curation.offline ? (
-        <p className="mt-1 text-xs text-ink-muted" data-sample-offline>
-          {t("explore.offline")}
-          {asOf ? ` · ${t("explore.asOf", { time: stamp(asOf) })}` : ""}
-        </p>
-      ) : null}
-      <SampleRefusal locale={locale} curation={curation} draftId={draftId} origin={origin} />
-      {empty ? (
-        <div className="mt-3 rounded-md border border-rule bg-paper p-3" data-sample-empty>
-          <p className="text-sm text-ink">{t("sample.empty")}</p>
-          <Button className="mt-2" disabled={controlsOff} onClick={curation.putAll} data-put-all>
-            {t("sample.putAll")}
-          </Button>
-        </div>
-      ) : null}
+      <p className="flex items-center gap-1 text-xs text-ink-muted">
+        <span>{t("explore.papers.sorted")}</span>
+        <Hint locale={locale} label={t("explore.papers.title", { n: String(pool.papers.length) })} text={t("explore.papers.note")} textKey="explore.papers.note" />
+      </p>
       {rows.length ? (
         <table className="mt-2 w-full table-fixed text-sm">
           <caption ref={caption} tabIndex={-1} className="sr-only">
@@ -1055,10 +1088,10 @@ function PapersCard({
           {all ? t("explore.papers.less") : t("explore.papers.more", { n: String(rows.length - PAPERS_SHOWN) })}
         </Button>
       ) : null}
-      <p className="mt-2 text-xs text-ink-muted">{t("explore.papers.note")}</p>
       {sample ? <LeftOutList locale={locale} curation={curation} toggleRef={leftToggle} /> : null}
+    </Fold>
       {/* After the papers, so Undo is near when moving with Tab. */}
       <SampleToastView locale={locale} curation={curation} onClosed={() => setTimeout(() => document.getElementById("papers-title")?.focus(), 0)} />
-    </section>
+    </div>
   );
 }

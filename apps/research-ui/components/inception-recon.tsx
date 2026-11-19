@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, type ReactNode, type RefObject } from "react";
 
 import type { Locale } from "@/i18n";
-import { Button, DataCell, DecisionBadge } from "@/components/ui/base";
+import { Button, DataCell, DecisionBadge, Hint } from "@/components/ui/base";
 import { DETAILS_LABEL } from "@/components/screening-state-card";
 import { refusalOf, stamp } from "@/components/inception-frame";
 import { discoveryT } from "@/lib/discovery-copy";
@@ -132,7 +132,11 @@ export function KeyLines({ locale, keys, emptyNote = false }: Readonly<{ locale:
   return (
     <dl className="grid gap-3 text-sm sm:grid-cols-2" data-key-lines>
       <div data-openalex-key-set={keys.openalex_key_set ? "true" : "false"}>
-        <dt className="text-ink-muted">{d("openalexKey.title")}</dt>
+        <dt className="text-ink-muted">
+          {d("openalexKey.title")}
+          {/* M10d (03-guidance I-E30): the background note is a hint; the missing key stays on the page as the badge. */}
+          {!keys.openalex_key_set && emptyNote ? <Hint locale={locale} label={d("openalexKey.title")} text={t("explore.keys.openalex.emptyNote")} textKey="explore.keys.openalex.emptyNote" className="ms-1" /> : null}
+        </dt>
         <dd className="text-ink">
           {keys.openalex_key_set ? (
             <DecisionBadge role="include">{d("plan.limits.mailto.set")}</DecisionBadge>
@@ -142,12 +146,13 @@ export function KeyLines({ locale, keys, emptyNote = false }: Readonly<{ locale:
             </DecisionBadge>
           )}
         </dd>
-        {!keys.openalex_key_set && emptyNote ? <dd className="mt-1 text-xs text-ink-muted">{t("explore.keys.openalex.emptyNote")}</dd> : null}
       </div>
       <div data-s2-key-set={keys.s2_key_set ? "true" : "false"}>
-        <dt className="text-ink-muted">{d("s2Key.title")}</dt>
+        <dt className="text-ink-muted">
+          {d("s2Key.title")}
+          <Hint locale={locale} label={d("s2Key.title")} text={d("plan.limits.s2Key.help")} textKey="plan.limits.s2Key.help" className="ms-1" />
+        </dt>
         <dd className="text-ink">{keys.s2_key_set ? <DecisionBadge role="unclear">{d("plan.limits.s2Key.set")}</DecisionBadge> : t("explore.keys.s2.unset")}</dd>
-        <dd className="mt-1 text-xs text-ink-muted">{d("plan.limits.s2Key.help")}</dd>
       </div>
     </dl>
   );
@@ -254,12 +259,14 @@ export function PartialBanner({ locale, legs, action }: Readonly<{ locale: Local
   return (
     <section role="status" aria-labelledby="partial-title" className="rounded-lg border border-unclear bg-leaf p-4" data-partial>
       <DecisionBadge role="unclear">{t("explore.pool.partial")}</DecisionBadge>
-      <h2 id="partial-title" className="mt-2 font-semibold text-ink">
-        {t("explore.partial.title")}
-      </h2>
+      <div className="mt-2 flex items-center gap-1">
+        <h2 id="partial-title" className="font-semibold text-ink">
+          {t("explore.partial.title")}
+        </h2>
+        <Hint locale={locale} label={t("explore.partial.title")} text={t("explore.legs.neverEmpty")} textKey="explore.legs.neverEmpty" />
+      </div>
       <LegsList locale={locale} legs={failed} />
       <p className="mt-2 text-sm text-ink">{t("explore.partial.body")}</p>
-      <p className="mt-1 text-xs text-ink-muted">{t("explore.legs.neverEmpty")}</p>
       {action ? <div className="mt-3">{action}</div> : null}
     </section>
   );
@@ -275,9 +282,12 @@ export function ProgressCard({
   const t = inceptionT(locale);
   return (
     <section aria-busy="true" aria-labelledby="progress-title" className="rounded-lg border border-rule bg-leaf p-4" data-progress>
-      <h2 id="progress-title" ref={headingRef} tabIndex={-1} className="font-semibold text-ink">
-        {t("explore.progress.title")}
-      </h2>
+      <div className="flex items-center gap-1">
+        <h2 id="progress-title" ref={headingRef} tabIndex={-1} className="font-semibold text-ink">
+          {t("explore.progress.title")}
+        </h2>
+        <Hint locale={locale} label={t("explore.progress.title")} text={t("explore.progress.note")} textKey="explore.progress.note" />
+      </div>
       <ul role="status" aria-live="polite" className="mt-2 space-y-1 text-sm text-ink">
         {legs.map((leg) => (
           <li key={leg.provider} data-progress-leg={leg.provider}>
@@ -289,7 +299,6 @@ export function ProgressCard({
         <div className="h-3 w-2/3 rounded-sm bg-rule" />
         <div className="h-3 w-1/2 rounded-sm bg-rule" />
       </div>
-      <p className="mt-2 text-xs text-ink-muted">{t("explore.progress.note")}</p>
       {lost ? (
         <p className="mt-2 text-sm text-unclear" data-lost>
           {t("explore.progress.lost")}

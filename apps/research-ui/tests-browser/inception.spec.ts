@@ -42,7 +42,7 @@ test("a researcher creates a workspace from the browser and lands on screening H
 
   await expect(page.getByRole("heading", { name: "What is the review about?" })).toBeVisible();
   await expect(page.getByRole("link", { name: "2 Explore" })).toBeVisible();
-  await page.getByLabel("Research topic, in one or two sentences").fill("on-device weed detection");
+  await page.getByLabel("Research topic, in one or two sentences", { exact: true }).fill("on-device weed detection");
   await page.getByRole("button", { name: "Continue to Explore" }).click();
 
   // Explore (M4d): the first search, its databases, the pool.
@@ -64,9 +64,9 @@ test("a researcher creates a workspace from the browser and lands on screening H
 
   await page.getByRole("radio", { name: /Design Science/ }).check();
   await page.getByRole("radio", { name: /DESIGN_SCIENCE/ }).check();
-  await page.getByLabel("Unit of analysis").fill("embedded cameras");
-  await page.getByLabel("Proof a reviewer would accept").fill("mIoU and FPS on a public benchmark");
-  await page.getByLabel("Out of scope").fill("closed-source models");
+  await page.getByLabel("Unit of analysis", { exact: true }).fill("embedded cameras");
+  await page.getByLabel("Proof a reviewer would accept", { exact: true }).fill("mIoU and FPS on a public benchmark");
+  await page.getByLabel("Out of scope", { exact: true }).fill("closed-source models");
   await page.getByRole("button", { name: "Use this draft as RQ1" }).click();
   await page.getByRole("button", { name: "Continue to concepts and criteria" }).click();
 
@@ -77,7 +77,7 @@ test("a researcher creates a workspace from the browser and lands on screening H
   await expect(proof).toHaveAttribute("data-status", "accepted");
   await page.getByRole("button", { name: "Continue to review" }).click();
 
-  await page.getByLabel("Title of the review").fill("Weed review");
+  await page.getByLabel("Title of the review", { exact: true }).fill("Weed review");
   await page.getByLabel("Lead researcher").fill("Dr. R");
   await page.getByRole("button", { name: "Check the protocol" }).click();
   await expect(page.locator("[data-fingerprint]")).toContainText("sha256:");
@@ -377,7 +377,7 @@ test("seeds ticked on Direction survive a reload, a refresh warns and makes the 
   await expect(page.getByText("2 of 25 ticked")).toBeVisible();
 
   await page.goto(`/en/inception/explore/?draft=${SESSION}`);
-  await page.getByRole("button", { name: "Refresh pool" }).click();
+  await page.getByRole("button", { name: "Refresh pool", exact: true }).click();
   const dialog = page.getByRole("alertdialog");
   await expect(dialog.getByRole("button", { name: "Keep the current pool" })).toBeFocused();
   await dialog.getByRole("button", { name: "Search again" }).click();
@@ -397,7 +397,7 @@ test("changing the years after binding is shown as a stale choice naming the yea
   const record = fake.drafts.get(SESSION)!;
   fake.handle("POST", `${RECON}/bind`, { direction: "weed detection", accept_thin_pool: false, base_updated_at: record.updated_at });
   await page.goto(`/en/inception/scope/?draft=${SESSION}`);
-  await page.getByLabel("To year").fill("2025");
+  await page.getByLabel("To year", { exact: true }).fill("2025");
   await page.getByRole("button", { name: "Continue to Explore" }).click();
   await expect(page.locator("[data-scope-changed]")).toContainText("years");
   await page.goto(`/en/inception/direction/?draft=${SESSION}`);
@@ -409,7 +409,7 @@ test("your own phrase under two papers is checked and recorded as not grounded; 
   fake.handle("POST", `${RECON}/probe`, { refresh: false, semantic: false });
   await page.goto(`/en/inception/direction/?draft=${SESSION}`);
   await page.getByRole("button", { name: "Write my own direction" }).click();
-  await page.getByLabel("Your direction").fill("quantum sensing");
+  await page.getByLabel("Your direction", { exact: true }).fill("quantum sensing");
   await page.getByRole("button", { name: "Check my phrase" }).click();
   await expect(page.getByText(/This phrase occurs in 0 of 7 titles or abstracts. A grounded direction needs two./)).toBeVisible();
   const pursue = page.getByRole("button", { name: "Pursue quantum sensing" });
@@ -424,7 +424,7 @@ test("a narrower search recomputes the directions and the first search can be br
   fake.handle("POST", `${RECON}/probe`, { refresh: false, semantic: false });
   await page.goto(`/en/inception/direction/?draft=${SESSION}`);
   await page.getByRole("radio", { name: "weed segmentation" }).check();
-  await page.getByRole("button", { name: "Search again, narrower · 1 left" }).click();
+  await page.getByRole("button", { name: "Search again, narrower · 1 left", exact: true }).click();
   await expect(page.getByText("These directions come from the narrower search on “weed segmentation”.")).toBeVisible();
   await expect(page.getByRole("radio", { name: "embedded weed detection" })).toBeVisible();
   await page.getByRole("button", { name: "Go back to the first search" }).click();
@@ -471,12 +471,19 @@ async function curating(page: Page) {
 
 const notRelevant = (page: Page, title: string) => page.getByRole("button", { name: `Not relevant: ${title}` });
 const SEG = (i: number) => `Lightweight cnn weed segmentation ${i}`;
+/** M10d (03-guidance rule 4): the papers are folded behind "Papers · {n}"; one added step opens them. */
+async function openPapers(page: Page) {
+  const papers = page.locator("details[data-papers]");
+  await papers.waitFor({ state: "attached" });
+  if (!(await papers.evaluate((d) => (d as HTMLDetailsElement).open))) await papers.locator(":scope > summary").click();
+}
 
 test("a researcher leaves papers out, sees the directions and counts change, undoes one, and a bound direction goes out of date (M10b)", async ({ page }) => {
   const fake = await curating(page);
   await page.goto(`/en/inception/explore/?draft=${SESSION}`);
   await page.getByRole("button", { name: "Search the literature" }).click();
   await expect(page.getByRole("heading", { name: "Pool · 14 papers" })).toBeVisible();
+  await openPapers(page);
   await expect(page.getByText("14 papers · none left out")).toBeVisible();
   await page.getByRole("button", { name: /^\+ 9 more/ }).click();
 
@@ -503,6 +510,7 @@ test("a researcher leaves papers out, sees the directions and counts change, und
 
   // A reload keeps them left out.
   await page.reload();
+  await openPapers(page);
   await expect(page.getByText("11 papers · 5 left out")).toBeVisible();
 
   // Put one back from the Left out list.
@@ -518,6 +526,7 @@ test("a researcher leaves papers out, sees the directions and counts change, und
   await page.getByRole("button", { name: "Pursue weed detection" }).click();
   await expect(page.getByRole("heading", { name: "Your direction: weed detection" })).toBeFocused();
   await page.goto(`/en/inception/explore/?draft=${SESSION}`);
+  await openPapers(page);
   await notRelevant(page, "Real-time weed detection on embedded hardware 0").click();
   const dialog = page.getByRole("alertdialog", { name: "Leaving this paper out will make your chosen direction out of date" });
   await expect(dialog.getByRole("button", { name: "Keep the paper" })).toBeFocused();
@@ -540,6 +549,7 @@ test("a mark and its undo can be done with the keyboard alone (M10b)", async ({ 
   const fake = await curating(page);
   fake.handle("POST", `${RECON}/probe`, { refresh: false, semantic: false });
   await page.goto(`/en/inception/explore/?draft=${SESSION}`);
+  await openPapers(page);
   const first = notRelevant(page, "Real-time weed detection on embedded hardware 0");
   await first.focus();
   await page.keyboard.press("Enter");
@@ -564,6 +574,7 @@ for (const scheme of ["light", "dark"] as const) {
     const record = fake.drafts.get(SESSION)!;
     fake.handle("POST", `${RECON}/sample`, { add: ["10.1/s000"], base_updated_at: record.updated_at });
     await page.goto(`/ar/inception/explore/?draft=${SESSION}`);
+    await openPapers(page);
     const row = page.locator("[data-paper-key='10.1/w000']");
     await expect(row.locator("[data-mark]")).toBeVisible();
     const button = (await row.locator("[data-mark]").boundingBox())!;

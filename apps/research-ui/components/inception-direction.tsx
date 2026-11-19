@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 
 import type { Locale } from "@/i18n";
-import { Button, DataCell, DecisionBadge } from "@/components/ui/base";
+import { Button, DataCell, DecisionBadge, Hint } from "@/components/ui/base";
 import { DETAILS_LABEL } from "@/components/screening-state-card";
 import { inceptionHref, InceptionFrame, InceptionRefusal, refusalOf, StepHeader, useDraft, type Refusal } from "@/components/inception-frame";
 import { StepAssist } from "@/components/inception-assist";
@@ -295,7 +295,7 @@ export function InceptionDirection({ locale }: Readonly<{ locale: Locale }>) {
 
   return (
     <InceptionFrame locale={locale} current="direction" draft={state}>
-      <StepHeader kicker={t("direction.kicker")} title={t("direction.title")} lede={t("direction.lede")} />
+      <StepHeader kicker={t("direction.kicker")} title={t("direction.title")} lede={t("direction.lede")} ledeHint={<Hint locale={locale} label={t("direction.title")} text={t("direction.lede.order")} textKey="direction.lede.order" className="ms-1" />} />
       <div className="space-y-6">
         {!recon && !reconError ? (
           <p role="status" aria-busy="true" className="text-ink-muted">
@@ -438,11 +438,12 @@ export function InceptionDirection({ locale }: Readonly<{ locale: Locale }>) {
             ) : null}
 
             {directions.length ? (
-              <fieldset className="min-w-0" data-directions>
-                <legend>
+              <fieldset className="min-w-0" aria-labelledby="cards-title" data-directions>
+                <legend className="flex items-center gap-1">
                   <h2 id="cards-title" ref={cardsHeading} tabIndex={-1} className="font-semibold text-ink">
                     {t("direction.card.legend")}
                   </h2>
+                  <Hint locale={locale} label={t("direction.card.legend")} text={t("direction.card.note")} textKey="direction.card.note" />
                 </legend>
                 <div role="radiogroup" aria-labelledby="cards-title" className="mt-2 grid gap-4 md:grid-cols-3">
                   {directions.map((d, index) => (
@@ -463,7 +464,6 @@ export function InceptionDirection({ locale }: Readonly<{ locale: Locale }>) {
                     />
                   ))}
                 </div>
-                <p className="mt-2 text-xs text-ink-muted">{t("direction.card.note")}</p>
               </fieldset>
             ) : (
               <section aria-labelledby="none-dir" className="rounded-lg border border-rule bg-leaf p-5" data-no-direction>
@@ -486,7 +486,7 @@ export function InceptionDirection({ locale }: Readonly<{ locale: Locale }>) {
               <section className="space-y-3" data-actions>
                 <div className="flex flex-wrap items-start gap-3">
                   {directions.length ? (
-                    <div>
+                    <div className="flex flex-wrap items-center gap-1">
                       <Button
                         disabled={!choice || narrowerLeft <= 0 || busy || !mailto || conflict || offline}
                         onClick={(event) => choice && askProbe({ narrower: choice }, event.currentTarget)}
@@ -495,9 +495,14 @@ export function InceptionDirection({ locale }: Readonly<{ locale: Locale }>) {
                       >
                         {narrowerLeft <= 0 ? t("direction.narrow.button.spent") : t("direction.narrow.button", { n: String(narrowerLeft) })}
                       </Button>
-                      <p id="narrow-help" className="mt-1 text-xs text-ink-muted">
-                        {choice ? t("direction.narrow.help") : t("direction.narrow.chooseFirst")}
-                      </p>
+                      {/* M10d (03-guidance I-D16, I-D17): why the button is disabled stays on the page; what it does is a hint. */}
+                      {choice ? (
+                        <Hint locale={locale} label={t("direction.narrow.button", { n: String(narrowerLeft) })} text={t("direction.narrow.help")} textKey="direction.narrow.help" id="narrow-help" />
+                      ) : (
+                        <p id="narrow-help" className="w-full text-xs text-ink-muted">
+                          {t("direction.narrow.chooseFirst")}
+                        </p>
+                      )}
                     </div>
                   ) : null}
                   <Button
@@ -514,9 +519,12 @@ export function InceptionDirection({ locale }: Readonly<{ locale: Locale }>) {
                 </div>
                 {ownOpen ? (
                   <div className="rounded-lg border border-rule bg-leaf p-4" data-own>
-                    <label htmlFor="own-direction" className="block text-sm font-medium text-ink">
-                      {t("direction.own.label")}
-                    </label>
+                    <div className="flex items-center gap-1">
+                      <label htmlFor="own-direction" className="block text-sm font-medium text-ink">
+                        {t("direction.own.label")}
+                      </label>
+                      <Hint locale={locale} label={t("direction.own.label")} text={t("direction.own.help")} textKey="direction.own.help" id="own-help" />
+                    </div>
                     <input
                       id="own-direction"
                       dir="auto"
@@ -529,9 +537,6 @@ export function InceptionDirection({ locale }: Readonly<{ locale: Locale }>) {
                       }}
                       className="mt-1 block min-h-11 w-full rounded-md border border-rule bg-paper px-2 text-ink"
                     />
-                    <p id="own-help" className="mt-1 text-xs text-ink-muted">
-                      {t("direction.own.help")}
-                    </p>
                     <Button className="mt-2" disabled={!own.trim() || checking || offline} onClick={() => void check()} data-check-phrase>
                       {checking ? t("direction.own.checking") : t("direction.own.check")}
                     </Button>
@@ -803,10 +808,12 @@ function SeedsCard({
   };
   return (
     <section aria-labelledby="seeds-title" className="rounded-lg border border-rule bg-leaf p-5" data-seeds>
-      <h2 id="seeds-title" className="font-semibold text-ink">
-        {t("direction.seeds.title")}
-      </h2>
-      <p className="text-sm text-ink-muted">{t("direction.seeds.caption")}</p>
+      <div className="flex items-center gap-1">
+        <h2 id="seeds-title" className="font-semibold text-ink">
+          {t("direction.seeds.title")}
+        </h2>
+        <Hint locale={locale} label={t("direction.seeds.title")} text={t("direction.seeds.caption")} textKey="direction.seeds.caption" />
+      </div>
       <p className="mt-1 text-sm text-ink" aria-live="polite" data-seeds-count>
         {t("direction.seeds.count", { n: String(ticked.length) })}
       </p>
