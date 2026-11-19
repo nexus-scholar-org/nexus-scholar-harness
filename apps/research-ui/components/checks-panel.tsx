@@ -261,7 +261,7 @@ export function ChecksPanel(props: Readonly<ChecksPanelProps>) {
 
   if (loadError?.code === "STEP_UNKNOWN") {
     return (
-      <section className="rounded-lg border border-dashed border-ink-muted bg-leaf p-4 text-sm" data-checks-panel={name}>
+      <section className="rounded-lg border border-dashed border-ink-muted bg-leaf p-4 text-sm" data-checks-panel={name} data-card="checks">
         <p role="alert" className="text-ink">
           {t("checks.err.step")}
         </p>
@@ -546,6 +546,7 @@ export function ChecksPanel(props: Readonly<ChecksPanelProps>) {
       aria-busy={loading || busy}
       className="rounded-lg border border-dashed border-ink-muted bg-leaf p-4 text-sm"
       data-checks-panel={name}
+      data-card="checks"
       data-mode={mode}
     >
       {header}

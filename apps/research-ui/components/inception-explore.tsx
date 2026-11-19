@@ -377,7 +377,7 @@ export function InceptionExplore({ locale }: Readonly<{ locale: Locale }>) {
         {running ? <ProgressCard locale={locale} legs={progress.legs} lost={progress.lost} headingRef={progressHeading} /> : null}
 
         {recon && !usable && !running ? (
-          <section aria-labelledby="first-title" className="rounded-lg border border-rule bg-leaf p-5" data-first-search>
+          <section aria-labelledby="first-title" className="rounded-lg border border-rule bg-leaf p-5" data-first-search data-card="first">
             <h2 id="first-title" className="font-semibold text-ink">
               {t("explore.first.title")}
             </h2>
@@ -707,7 +707,7 @@ function PoolView({
   const qei = pool.qei;
   return (
     <>
-      <section aria-labelledby="pool-title" className="rounded-lg border border-rule bg-leaf p-5" data-pool data-pool-status={summary.status}>
+      <section aria-labelledby="pool-title" className="rounded-lg border border-rule bg-leaf p-5" data-pool data-pool-status={summary.status} data-card="pool">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="min-w-0">
             <h2 id="pool-title" ref={poolHeading} tabIndex={-1} className="font-semibold text-ink">
@@ -831,7 +831,7 @@ function ConceptsCard({ locale, report, href }: Readonly<{ locale: Locale; repor
   const t = inceptionT(locale);
   const suggested = report.concepts.some((c) => c.source === "suggested");
   return (
-    <section aria-labelledby="concepts-title" className="rounded-lg border border-rule bg-leaf p-5" data-concepts>
+    <section aria-labelledby="concepts-title" className="rounded-lg border border-rule bg-leaf p-5" data-concepts data-card="concepts">
       <div className="flex items-center gap-1">
         <h2 id="concepts-title" className="font-semibold text-ink">
           {t("explore.concepts.title")}
@@ -865,7 +865,7 @@ function ReadingCard({ locale, pool, allTopics, setAllTopics }: Readonly<{ local
   const topics = allTopics ? pool.topics : pool.topics.slice(0, TOPICS_SHOWN);
   const chips = [...pool.metrics, ...pool.datasets];
   return (
-    <section aria-labelledby="reading-badge" className="min-w-0 rounded-lg border border-dashed border-ink-muted bg-leaf p-5" data-reading>
+    <section aria-labelledby="reading-badge" className="min-w-0 rounded-lg border border-dashed border-ink-muted bg-leaf p-5" data-reading data-card="reading">
       <p id="reading-badge" className="text-xs font-semibold text-ink-muted">
         {t("explore.reading.badge")}
       </p>

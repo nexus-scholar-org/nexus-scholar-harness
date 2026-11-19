@@ -177,7 +177,7 @@ export function InceptionReview({ locale }: Readonly<{ locale: Locale }>) {
         }}
       >
         <div className="min-w-0 space-y-6">
-          <section aria-labelledby="review-about" className="rounded-lg border border-rule bg-leaf p-4">
+          <section aria-labelledby="review-about" className="rounded-lg border border-rule bg-leaf p-4" data-card="about">
             <h2 id="review-about" className="font-semibold text-ink">
               {t("review.about")}
             </h2>
@@ -238,7 +238,7 @@ export function InceptionReview({ locale }: Readonly<{ locale: Locale }>) {
 
           {preview ? (
             <div className="space-y-4" data-preview>
-              <dl className="grid gap-3 rounded-lg border border-rule bg-leaf p-4 text-sm sm:grid-cols-2">
+              <dl className="grid gap-3 rounded-lg border border-rule bg-leaf p-4 text-sm sm:grid-cols-2" data-card="summary">
                 <div>
                   <dt className="text-ink-muted">{t("review.lens")}</dt>
                   <dd className="text-ink">
@@ -311,7 +311,7 @@ export function InceptionReview({ locale }: Readonly<{ locale: Locale }>) {
 
               <DirectionSection locale={locale} record={record} draftId={draftId} origin={origin} />
 
-              <section aria-labelledby="review-criteria" className="rounded-lg border border-rule bg-leaf p-4">
+              <section aria-labelledby="review-criteria" className="rounded-lg border border-rule bg-leaf p-4" data-card="summary">
                 <h2 id="review-criteria" className="font-semibold text-ink">
                   {t("review.criteria")}
                 </h2>
@@ -489,7 +489,7 @@ function DirectionSection({ locale, record, draftId, origin }: Readonly<{ locale
   const direction = grounding?.direction;
   const skipped = !!grounding && (grounding.choice === "none" || direction?.source === "none");
   return (
-    <section aria-labelledby="review-direction" className="rounded-lg border border-rule bg-leaf p-4 text-sm" data-review-direction>
+    <section aria-labelledby="review-direction" className="rounded-lg border border-rule bg-leaf p-4 text-sm" data-review-direction data-card="direction">
       <h2 id="review-direction" className="font-semibold text-ink">
         {t("review.direction.title")}
       </h2>

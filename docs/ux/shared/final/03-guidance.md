@@ -129,6 +129,7 @@ Shared frame (`inception-frame.tsx`, every screen 01 to 07), then 01 Scope, 02 E
 | I-F2 | `nothingWritten` | "Nothing is written to a workspace before Review. The answers are saved as a draft ..." | HINT | T1/T4 how it works; the one write is stated at the gate (I-R19, V6). Hint beside the "Draft saved" status |
 | I-F3 | `fieldsMissing`, `missing.goTo` | "The engine needs these answers first:" and the links | STAYS | V1 refusal (DRAFT_INCOMPLETE) names what blocks |
 | I-F4 | `saving`, `loading`, `asking` | "Saving the draft...", "Reading the draft...", "Asking the engine..." | STAYS | V8 transient status |
+| I-F5 | `backToWorkspaces`, `backToDrafts`, `saveAndExit`, `draftLabel`, `noDraft`, `list.sep`, `field.*`, `refusal.*` | "All workspaces", "Save draft and exit", the field names of I-F3, the refusal words | STAYS | V7/V1 navigation, labels and refusals (row added by M10d, 2026-11-19: keys the snapshot did not list) |
 | I-S1 | `scope.kicker` | "Step 1 of 6 · Scope" | STAYS | V8 step header eyebrow |
 | I-S2 | `scope.title` | "What is the review about?" | STAYS | the question the screen answers |
 | I-S3 | `scope.lede` (sentence 1) | "The topic, years and languages set the review window." | STAYS | the one lede sentence (rule 2) |
@@ -138,6 +139,7 @@ Shared frame (`inception-frame.tsx`, every screen 01 to 07), then 01 Scope, 02 E
 | I-S7 | `scope.languagesHelp` | "Language codes separated by commas, for example en, fr." | HINT | T2 example |
 | I-S8 | `scope.yearInvalid` | "Write a year as four digits, or leave it empty." | STAYS | V1 field error |
 | I-S9 | `scope.needTopic` | "Write your topic first." | STAYS | V2 why the main action ("Continue to Explore") is disabled |
+| I-S10 | `scope.topic`, `fromYear`, `toYear`, `languages`, `continue` | the field labels and "Continue to Explore" | STAYS | V7 (row added by M10d) |
 | I-E1 | `explore.kicker` | "Step 2 of 6 · Explore · the first search" | STAYS | V8 eyebrow |
 | I-E2 | `explore.title` | "What do the first papers say about your question?" | STAYS | the question |
 | I-E3 | `explore.lede` (sentence 1) | "Pool health first, in plain words with the raw value underneath." | REMOVED | X3 describes the layout; the cards do it (principle 3) |
@@ -180,11 +182,13 @@ Shared frame (`inception-frame.tsx`, every screen 01 to 07), then 01 Scope, 02 E
 | I-E40 | `explore.picker.legend`, `picker.check.*`, `picker.up.*`, `picker.down.*`, `picker.moved`, `picker.none`, `picker.reset`, `picker.unknown` | "Databases to ask", the per-database controls, "Pick at least one database." | STAYS | V7 controls and their names; V1 the "at least one" refusal |
 | I-E41 | `explore.picker.orderHelp` | "The order decides which papers fill the sample of {max} first." | HINT | T3 what the order means |
 | I-E42 | `explore.legs.col.query`, `legs.zero`, `legs.editQuery` | "Query sent", "0 results", "Edit the query" | STAYS | V3 "0 results" is a result; V5 the query each database received |
+| I-E44 | `explore.pool.refresh`, `explore.thin.semantic` | "Refresh pool", "Search again with semantic search" | STAYS | V7; the second carries the Recommended mark on a thin pool (row added by M10d) |
+| I-E45 | `sample.*` | the sample curation (M10b Part C): "Not relevant", "{n} papers · {k} left out", the warnings before a bound direction or a seed is affected, "Left out · {k}", the Undo toast | STAYS | V3/V4/V6/V7 (row added by M10d, 2026-11-19: the keys came after the snapshot). The table and its controls sit in the folded Papers section; the curation's refusal, the empty sample and the toast stay outside it. `sample.left.help` is a candidate for a hint in a later pass |
 | I-E43 | `explore.legs.shorten` | "Six words joined by AND can find nothing; shorten the query above." | STAYS | V2 advice tied to an empty result; M10b shows it only when the engine says the empty result followed a query of several words joined by AND (it showed for any empty search) |
 | I-D1 | `direction.kicker` | "Step 3 of 6 · Direction · pick one" | STAYS | V8 eyebrow |
 | I-D2 | `direction.title` | "Which direction should this review pursue?" | STAYS | the question |
 | I-D3 | `direction.lede` (sentence 1) | "These directions come from phrases that occur in the titles or abstracts of at least two papers of your pool." | STAYS | the one lede sentence; V5 says where they come from |
-| I-D4 | `direction.lede` (sentence 2) | "They are listed in the engine's order (longer phrases first, then how often they occur), which is evidence, not a recommendation." | HINT | T3/T4; keeps the rule that nothing here is Recommended (rule 3) |
+| I-D4 | `direction.lede.order` (sentence 2 of the lede, its own key since M10d) | "They are listed in the engine's order (longer phrases first, then how often they occur), which is evidence, not a recommendation." | HINT | T3/T4; keeps the rule that nothing here is Recommended (rule 3) |
 | I-D5 | `direction.lede` (sentence 3) | "You can also write your own, or go on without one." | REMOVED | X1 the two controls say it (`direction.own.button`, `direction.skip.link`) |
 | I-D6 | `direction.card.legend`, `card.position`, `card.anchors*`, `card.occurs`, `card.schools`, `card.noSchools` | "Direction {n}", "{n} anchor papers", "Term occurs in {observed} of {total} ..." | STAYS | V4 evidence beside the choice |
 | I-D7 | `direction.card.detail.term`, `detail.vocab`, `card.showAll` | "Pool term observed in {n} papers", "Show all {n} DOIs" | STAYS | V5 provenance; already inside the card's Details (spec 12) |
@@ -218,6 +222,8 @@ Shared frame (`inception-frame.tsx`, every screen 01 to 07), then 01 Scope, 02 E
 | I-SH10 | `shape.outOfScopeHelp` | "One item per line. Each becomes an exclusion criterion you typed." | HINT | T1 how-to |
 | I-SH11 | `shape.rqDraft`, `shape.useDraft`, `shape.draftWaiting`, `shape.draftNeeds`, `shape.chooseLens` | "Template draft · not yet yours", "Use this draft as RQ{n}" | STAYS | V5/V8 |
 | I-SH12 | `shape.lexicon` | "Vocabulary for this lens" | HINT | T2 examples of the lens's words |
+| I-SH14 | `shape.planned.title`, `from`, `upTo`, `preset`, `usePreset`, `useEarlier`, `err.*` | "How many records do you plan to screen?", its fields, the preset and the range errors (M10b Part A) | STAYS | V7/V1 (row added by M10d) |
+| I-SH15 | `shape.planned.hint` | "Titles and abstracts you will read. The size warnings before and after a harvest compare with this number." | HINT | T3; `04-shape` "The field" names it a Hint (row added by M10d) |
 | I-SH13 | `shape.continue`, `shape.back`, `shape.needLens`, `shape.needPlaybook` | "Continue to concepts and criteria", "Back to Direction", "Choose a lens first.", "Choose a playbook first." | STAYS | V7/V2; main action "Continue to concepts and criteria" |
 | I-C1 | `criteria.kicker`, `criteria.title` | "Step 5 of 6 · Concepts and criteria", "Which concepts and criteria will screen this review?" | STAYS | V8 / the question |
 | I-C2 | `criteria.needYou`, `criteria.allDecided`, `criteria.sideCount` | "{n} still need you.", "{accepted} of {total} accepted" | STAYS | V3/V4 count of what waits |
@@ -240,6 +246,8 @@ Shared frame (`inception-frame.tsx`, every screen 01 to 07), then 01 Scope, 02 E
 | I-C19 | `criteria.verification` | "Run the post-screening verification checks (...)" | STAYS | V7 option label |
 | I-C20 | `criteria.verificationParked` | "Advisory: Phase 4 checks are parked; this choice is saved in the protocol, nothing runs them yet." | STAYS | V2 an honest "not in production" |
 | I-C21 | `criteria.continue` | "Continue to review" | STAYS | V7 main action |
+| I-C22 | `criteria.reason.*` | the reason category of each exclusion (M10b Part A) | STAYS | V7/V1/V2 (row added by M10d; `criteria.reason.hasPhrases` and `noPhrases` are candidates for a hint in a later pass) |
+| I-C23 | `criteria.mine.*` | the researcher's own matrix columns (M10b Part A) | STAYS | V7/V1/V5 (row added by M10d; `criteria.mine.descriptionHelp` is a candidate for a hint in a later pass) |
 | I-R1 | `review.kicker`, `review.title` | "Step 6 of 6 · Review and create", "Check the protocol, then create the workspace" | STAYS | V8 / the question |
 | I-R2 | `review.lede` (sentence 1) | "This is what will be written." | STAYS | the one lede sentence |
 | I-R3 | `review.lede` (sentence 2) | "Nothing is written until you create the workspace." | REMOVED | X1 the gate says it (`review.gateBody`, I-R22) |
@@ -259,12 +267,16 @@ Shared frame (`inception-frame.tsx`, every screen 01 to 07), then 01 Scope, 02 E
 | I-R17 | `review.boundTitle`, `review.boundBody`, `review.boundType`, `review.boundConfirm`, `review.boundPublished`, `review.boundNotPublished` | "Screening was done under the current protocol ..." | STAYS | V6/V2 |
 | I-R18 | `review.archive.title`, `review.archive.body` | "A replacement also archives ... These move into audit/replaced/<time>/" | STAYS | V6 what a replacement does |
 | I-R19 | `review.gate`, `review.gateReplacing`, `review.gateBody` | "Create the workspace", "Writes the protocol, the criteria and the first audit journal entries into {path}." | STAYS | V6 the one gate |
+| I-R21 | `review.synonyms`, `noSynonyms`, `planned`, `planned.stated`, `planned.notStated` | the concepts' synonyms and the planned records in the summary (M10b) | STAYS | V4/V5 what will be written (row added by M10d) |
 | I-R20 | `review.create`, `review.creating`, `review.replace`, `review.cancel` | the main action and its confirmations | STAYS | V7 main action "Create the workspace" |
 | I-DN1 | `done.kicker`, `done.title`, `done.titleReplaced` | "Done", "The workspace is created" | STAYS | V8 |
 | I-DN2 | `done.lede` (sentence 1) | "The protocol and the criteria are written, and GENESIS is in the audit journal." | REMOVED | X1 the title and the rows below state it (folder, fingerprint) |
 | I-DN3 | `done.lede` (sentence 2) | "Next, open the workspace and import your search results." | STAYS | the one lede sentence; replaced by the what's-next bar when 04-next-step ships |
 | I-DN4 | `done.folder`, `done.fingerprint`, `done.previous`, `done.backup`, `done.archived` | "Folder", "Protocol fingerprint", "Old protocol backed up in" | STAYS | V5 provenance |
 | I-DN5 | `done.archivedNote` | "The new protocol starts with no corpus; the earlier search results and decisions are in the backup folder." | STAYS | V6 consequence of the replacement |
+| I-IM1 | `imported.*` | the "Started from {label}" banner, the per-step marks and the "does not store" lines of a draft started from a protocol (M10b Part A, `09-start-from-protocol`) | STAYS | V5/V2 (row added by M10d) |
+| I-X1 | `start.*` | 08 Drafts and resume (`/inception`) | STAYS | screen outside this audit; it adopts the rules when it is audited (row added by M10d so every catalog key has a row) |
+| I-X2 | `import.*` | 09 Start from a protocol (`/inception/import`) | STAYS | screen outside this audit (row added by M10d) |
 | I-DN6 | `done.open`, `done.opening`, `done.another`, `done.allWorkspaces`, `done.notEmitted`, `done.toReview` | the actions and the not-created state | STAYS | V7/V8; main action "Open the workspace" |
 
 ### Discovery (phase 1)
@@ -286,6 +298,7 @@ Shared (the entry `/discovery/` and spec 07 "States"), then 01 Plan, 02 Recall, 
 | D-DS12 | `overview.lede` (sentence 2) | "Every step stays open; nothing here is locked." | HINT | T3 definition of the page |
 | D-DS13 | `overview.recall.done`, `recall.earlier`, `recall.none`, `harvest.done`, `harvest.none`, `harvest.running`, `harvest.unfinished`, `import.done`, `import.none`, `dedup.done`, `dedup.none`, `report.done`, `report.none`, `handoff.done`, `handoff.none` | one status line per step | STAYS | V3/V8 step status |
 | D-DS14 | `overview.plan.line` | "The plan records nothing: starting a harvest is the record." | HINT | T4 background |
+| D-DS16 | `overview.recall.earlier` | "The last recall check was made for an earlier protocol." | STAYS | V2 (row added by M10d: the D-DS13 group missed it) |
 | D-DS15 | `overview.continue` | "Continue at {step}" | STAYS | V7 the step-level recommendation; replaced by the what's-next bar (04-next-step) |
 | D-P1 | `plan.eyebrowName`, `plan.title` | "Search plan", "This is what each database will receive" | STAYS | V8 / the question |
 | D-P2 | `plan.lede` (sentence 1) | "The question comes from the frozen protocol." | STAYS | the one lede sentence; V5 where it comes from |
@@ -306,6 +319,7 @@ Shared (the entry `/discovery/` and spec 07 "States"), then 01 Plan, 02 Recall, 
 | D-P17 | `plan.picker.title`, `picker.legend`, `picker.check.*`, `picker.up.*`, `picker.down.*`, `picker.moved`, `picker.none`, `picker.unknown`, `picker.reset`, `picker.loading` | "Databases for this harvest", the per-database controls, "Pick at least one database.", "Loading the plan for this choice" | STAYS | V7 controls and their names; V1 the "at least one" refusal; V8 loading (the same decision as I-E40) |
 | D-P18 | `plan.picker.orderHelp` | "The order only sets the order the databases are searched and listed; it never changes the corpus." | HINT | T3 what the order means (the same decision as I-E41) |
 | D-P19 | `plan.picker.differs`, `picker.differs.*` | "This harvest differs from the protocol: {list}" | STAYS | V5/V2 the harvest's choice against the protocol's, before it is sent |
+| D-P21 | `estimate.*` | the size estimate (M10b Part D) on Plan and Harvest: the counts, the cap lines, the warnings, the suggested cap | STAYS | V4/V2/V5/V7 (row added by M10d, 2026-11-19); the suggested cap carries the Recommended mark (rule 3). `estimate.cap.order`, `estimate.works.assumption`, `estimate.effort.basis`, `estimate.pace.help` and `estimate.rec.cap.help` are candidates for a hint in a later pass |
 | D-P20 | `plan.next.harvest` | "Continue to Harvest with this choice" | STAYS | V7 the link that carries the choice to Harvest |
 | D-R1 | `recall.eyebrowName`, `recall.title`, `recall.titleNone` | "The query finds {found} of the {total} papers you gave it" | STAYS | V4 the result is the title |
 | D-R2 | `recall.lede` (sentence 1) | "Each seed is looked up and compared by title first." | STAYS | the one lede sentence |
@@ -334,7 +348,7 @@ Shared (the entry `/discovery/` and spec 07 "States"), then 01 Plan, 02 Recall, 
 | D-H10 | `harvest.form.capHelp` | "Overrides the protocol's cap of {value} for every database in this run. It is recorded ... Between 1 and {ceiling}." | HINT | T1/T3; the suggested cap is marked Recommended when the size estimate (`01-plan` "Size estimate (M10b)") exists |
 | D-H11 | `harvest.form.noteHelp` | "Kept with the run and printed in the report." | HINT | T1 how-to |
 | D-H12 | `harvest.start`, `harvest.again`, `harvest.againHelp`, `harvest.warn.imports` | "Start the harvest", "A new harvest replaces this run as the candidate corpus ...", "Starting a harvest means database exports can no longer be added ..." | STAYS | V6 consequence before the main action; main action "Start the harvest" |
-| D-H13 | `harvest.stop`, `harvest.stop.late`, `harvest.stop.prepare`, `harvest.stopping` | "Stop the harvest and keep what was fetched", "Stop after the current step", and since M3i "Fetching is finished. A stop now takes effect when the current step ends ..." | STAYS | V7 the button says what is kept; V6 when a stop takes effect, said before the click |
+| D-H13 | `harvest.stop`, `harvest.stop.late`, `harvest.stop.prepare` | "Stop the harvest and keep what was fetched", "Stop after the current step", and since M3i "Fetching is finished. A stop now takes effect when the current step ends ..." | STAYS | V7 the button says what is kept; V6 when a stop takes effect, said before the click |
 | D-H14 | `harvest.stop.title`, `harvest.stop.body` | "If you stop: Fetched records are kept and the run is marked partial ..." | HINT | T1 reassurance; the button label states the consequence |
 | D-H15 | `harvest.saved` | "The databases, queries and counts are saved with the run and printed in the search report." | HINT | T4 background |
 | D-H16 | `harvest.next.*`, `harvest.changed`, `harvest.accepted`, `harvest.reading` | "Go to Duplicates", "This run searched an earlier query or year window ..." | STAYS | V7/V2 |
@@ -344,6 +358,7 @@ Shared (the entry `/discovery/` and spec 07 "States"), then 01 Plan, 02 Recall, 
 | D-H20 | `harvest.prep.failed`, `prep.stopped`, `prep.interrupted`, `prep.interruptedAt`, `prep.noMarker`, `prep.error` | "The step “{stage}” then failed, so screening has nothing to receive yet.", "This run was made by an earlier version ..." | STAYS | V2 what failed and what is not known |
 | D-H21 | `harvest.prep.ended`, `prep.noneEnded` | "Steps that ended", "No step after the search ended." | STAYS | V4 the stages as recorded |
 | D-H22 | `harvest.prep.finish`, `prep.cannotFinish`, `prep.cannotFinishAccepted` | "Finish preparing this corpus", "The saved records of this run cannot be read, so it cannot be finished." | STAYS | V7 the main action of the state; V1 why it is not offered |
+| D-H24 | `harvest.capPrefilled` | "Filled in from the estimate. You can change it." | STAYS | V5 provenance of a filled value (row added by M10d) |
 | D-H23 | `harvest.prep.finishHelp` | "Removes duplicates, adds missing abstracts and checks the works, from the saved records. No database is searched again." | HINT | T1 how it works; the button names the action |
 | D-I1 | `import.eyebrow`, `import.back`, `import.handoff` | "Step 4 of 7 · Import", "Back to discovery", "Go to the hand-off" | STAYS | V8/V7 |
 | D-I2 | `import.limits.label`, `import.limits.row` | "Limits you applied there, if any", "Limits" | STAYS | V7/V5 the limits the researcher states are recorded |
@@ -379,10 +394,11 @@ Shared (the entry `/discovery/` and spec 07 "States"), then 01 Plan, 02 Recall, 
 | D-RP14 | `report.markdown` | "Open the report as markdown" | STAYS | V7 |
 | D-RP15 | `report.again` | "To fetch more, search again from Harvest (a higher cap can be chosen there)." | HINT | T1 how-to |
 | D-RP16 | `report.stringsNote` | "These are the strings sent in {run}; they may differ from today's plan." | STAYS | V2/V5 |
+| D-RP18 | `report.dedup.removed` | "Removed" | STAYS | V4 (row added by M10d: the D-RP8 group missed it) |
 | D-RP17 | `report.next`, `report.back`, `report.running`, `report.offline` | "Continue to hand-off" | STAYS | V7/V8; main action: "I reviewed this text" while unreviewed (the human gate), then "Continue to hand-off" |
 | D-HO1 | `handoff.eyebrowName`, `handoff.title`, `handoff.titleNoCount` | "Accept these {n} works as the corpus you will screen?" | STAYS | V6 the question the gate asks |
 | D-HO2 | `handoff.lede` (sentence 1) | "Accepting freezes a corpus snapshot with its own fingerprint." | STAYS | the one lede sentence; V6 |
-| D-HO3 | `handoff.lede` (sentence 2) | "Screening reads only that snapshot, so later runs cannot change what you screen." | HINT | T4 why the freeze exists; the gate says nothing is handed over before accepting |
+| D-HO3 | `handoff.lede.why` (sentence 2 of the lede, its own key since M10d) | "Screening reads only that snapshot, so later runs cannot change what you screen." | HINT | T4 why the freeze exists; the gate says nothing is handed over before accepting |
 | D-HO4 | `handoff.mix.title`, `mix.row`, `mix.none` | "Provider mix", "{records} records · {share}" | STAYS | V4 |
 | D-HO5 | `handoff.mix.note` | "A work found in two databases is counted in both, so shares can add up to more than 100 %." | HINT | T3 explains a number; each number stays |
 | D-HO6 | `handoff.receive.title`, `receive.identified`, `receive.duplicates`, `receive.works`, `receive.withAbstract`, `receive.titleOnly`, `receive.hard`, `receive.window`, `receive.lowerBound`, `receive.none` | "What screening will receive" | STAYS | V4 |
@@ -422,8 +438,8 @@ Shared (the entry `/discovery/` and spec 07 "States"), then 01 Plan, 02 Recall, 
 
 | Phase | STAYS | HINT | REMOVED | Total blocks |
 | :-- | --: | --: | --: | --: |
-| Inception 01 to 07 (shared frame included) | 96 | 34 | 11 | 141 |
-| Discovery 01 to 09 (shared included) | 95 | 34 | 15 | 144 |
+| Inception 01 to 07 (shared frame included) | 107 | 35 | 11 | 153 |
+| Discovery 01 to 09 (shared included) | 99 | 34 | 15 | 148 |
 
 A "block" is a row: one sentence or one group of keys that share a decision and a reason (for example `harvest.col.*`). Sentences of one key with different decisions are separate rows. The test derives the same counts by counting rows with prefix `I-` and `D-` per decision.
 
