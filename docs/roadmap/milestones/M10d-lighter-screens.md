@@ -12,9 +12,31 @@ Fourth milestone of "Assisted inception" (approved 2026-11-14). Plan §6 row **M
 ## Measurement
 The visible word count of each screen before and after, on the same fixture: `tests/guidance.words.test.tsx` renders each screen over the vitest fake engine in the state named in the table, waits for it to settle and counts the words a sighted reader sees (text outside `hidden`, closed `<details>` bodies, hint panels and `sr-only` text). "Before" is the same test run on `origin/main` (`17d7310d`) source.
 
+Counted on 2026-11-19: before at `59e12a6a` (the screens of `origin/main` 17d7310d, only the test added), after at `844a4a87`. A word is what a sighted reader sees with every hint and fold closed; the papers of Explore's folded Papers section count before and not after, because that is what folding removes from the first view.
+
 | Screen | Fixture state | Before | After | Removed or moved |
 | :-- | :-- | --: | --: | --: |
-| (filled in when the screen is built) | | | | |
+| inception 01 Scope | a complete draft | 127 | 67 | 60 (47 %) |
+| 02 Explore | a complete draft, never searched | 205 | 134 | 71 (35 %) |
+| 02 Explore | after the first search, 14 papers | 623 | 230 | 393 (63 %) |
+| 02 Explore | after a first search that found 7 papers | 645 | 247 | 398 (62 %) |
+| 03 Direction | after the first search, three directions | 299 | 236 | 63 (21 %) |
+| 04 Shape | a draft with a topic only | 256 | 165 | 91 (36 %) |
+| 05 Criteria | a complete draft, nothing decided | 386 | 335 | 51 (13 %) |
+| 06 Review | a complete draft, every criterion decided | 276 | 207 | 69 (25 %) |
+| 07 Done | the workspace created | 66 | 52 | 14 (21 %) |
+| discovery entry | one finished run | 118 | 92 | 26 (22 %) |
+| 01 Plan | the protocol's plan | 416 | 280 | 136 (33 %) |
+| 02 Recall | no recall check yet | 168 | 71 | 97 (58 %) |
+| 03 Harvest | ready, no run yet | 243 | 170 | 73 (30 %) |
+| 04 Import | the discovery visit, nothing staged | 185 | 150 | 35 (19 %) |
+| 05 Duplicates | one finished run | 135 | 109 | 26 (19 %) |
+| 06 Report | one finished run, a rate-limited database | 393 | 330 | 63 (16 %) |
+| 08 Hand-off | one finished run, not accepted | 210 | 163 | 47 (22 %) |
+| 09 Chase | screening published, no chase yet | 204 | 148 | 56 (27 %) |
+| **all 18 states** | | **4,955** | **3,186** | **1,769 (36 %)** |
+
+Nothing a refusal, a warning, a check or a gate says is hidden: `guidance.never-hidden.test.tsx` and the browser scenario "a warning is never inside a hint" hold it.
 
 ## Definition of done
 Shared parts (`03-guidance` rules 1 to 5):

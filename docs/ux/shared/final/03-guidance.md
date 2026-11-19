@@ -1,4 +1,4 @@
-# 03 Guidance (shared rules)    Status: FINAL, not built (questions closed by the researcher 2026-11-15; M10d builds it, Explore and Review first) | Shared (Phase 0 Inception and Phase 1 Discovery; later screens adopt it) | Applies to inception 01 to 07 and discovery 01 to 09 | Milestone M10b (this spec) + M10d (lighter screens, the build)
+# 03 Guidance (shared rules)    Status: FINAL, built (M10d-lighter-screens, 2026-11-19; questions closed by the researcher 2026-11-15; Criteria, Harvest, Report and Chase not folded yet, question 3) | Shared (Phase 0 Inception and Phase 1 Discovery; later screens adopt it) | Applies to inception 01 to 07 and discovery 01 to 09 | Milestone M10b (this spec) + M10d (lighter screens, the build)
 
 Boards: none. The rules restate and extend decisions already taken: BRAND_BOOK principles 3 ("plain words first, raw value underneath"), 4 ("the human is the gate") and 6 ("quiet by default"), the step-header pattern and "one brand button per screen"; the details-disclosure rule (`docs/ux/phase2-screening/final/12-details-disclosure.md`, decided 2026-11-07); and the researcher's request of 2026-11-14 ("tips and hints should be hidden in icons and pop up; controls and steps should be easy and have recommendations"). Contract: none; this spec changes no behaviour and adds no backend call.
 
@@ -499,6 +499,8 @@ New keys, en master (`guidance.*` in a new `lib/guidance-copy.ts`; fr and ar fal
 | `guidance.recommended.source.poolHealth` | pool size check |
 | `guidance.recommended.source.check` | check {id} |
 | `guidance.recommended.source.import` | imported protocol |
+| `guidance.recommended.source.estimate` | size estimate (added in M10d: the suggested cap of the size estimate) |
+| `guidance.recommended.source.lens` | matches your lens (added in M10d: the playbook that matches the lens) |
 | `guidance.section.count` | {title} · {n} |
 | `guidance.section.failed` | {n} failed |
 | `guidance.notStored` | Not stored |

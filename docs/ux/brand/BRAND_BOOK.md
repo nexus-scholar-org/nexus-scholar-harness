@@ -97,6 +97,8 @@ Structure comes from `hairline` borders and `surface` steps. A card is a `surfac
 
 Inline stroke icons at 1.5px, 16px or 20px, drawn in the text colour of their context (`currentColor`). No filled icons, no emoji, no icon without a visible label except in a toolbar where the `aria-label` names it. Status is shown by a badge with words, never by an icon alone.
 
+Two exceptions, accepted by the researcher on 2026-11-15 (R8, `docs/decisions.md`) and built in M10d: the hint button is an icon-only "i in a circle" (16px glyph, 44px target) named "About {label}" by its `aria-label`, beside the label it explains; and "Recommended · {source}" is a neutral word badge, `ink` on `surface-raised` with a dashed `ink-muted` border, never `brand` and never colour alone (`docs/ux/shared/final/03-guidance.md`, rules 1 and 3).
+
 There is no logo yet. The name is set in `title` or `display` style, in `ink`, and that is the mark.
 
 ## Accessibility
