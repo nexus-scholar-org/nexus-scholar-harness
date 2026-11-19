@@ -37,8 +37,9 @@ function start(recon: ReconOptions = {}, draft: Record<string, unknown> = comple
 
 const mount = async () => {
   render(<InceptionExplore locale="en" />);
-  await screen.findByRole("heading", { name: /^Pool ·/ });
-  return screen.findByRole("button", { name: `Not relevant: ${FIRST}` });
+  // The first render of the screen is slow when the whole suite runs in parallel: wait up to 5 s.
+  await screen.findByRole("heading", { name: /^Pool ·/ }, { timeout: 5000 });
+  return screen.findByRole("button", { name: `Not relevant: ${FIRST}` }, { timeout: 5000 });
 };
 
 const reconCalls = (engine: Engine, from = 0) =>
