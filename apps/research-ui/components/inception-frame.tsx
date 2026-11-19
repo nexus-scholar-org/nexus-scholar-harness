@@ -14,6 +14,7 @@ import { CHECKS_COPY } from "@/lib/checks-copy";
 import { PROPOSALS_COPY, proposalsT } from "@/lib/proposals-copy";
 import { AssistProvider, useAssist } from "@/components/assist-context";
 import { fillNodes, focusAnchor } from "@/components/assist-anchor";
+import { notifyReviewChanged } from "@/components/review-bus";
 
 /**
  * The frame every inception screen shares (specs 01–08, M4b): the draft id and
@@ -294,7 +295,11 @@ export function useDraft() {
   // M10b Part B: the checks and proposals re-read when this moves; `notRecorded` is the last save's answer.
   const [assistVersion, setAssistVersion] = useState(0);
   const [notRecorded, setNotRecorded] = useState<AcceptedFrom[]>([]);
-  const bumpAssist = useCallback(() => setAssistVersion((n) => n + 1), []);
+  // A write the page made (a save, a proposal decision, a dismissal, a sample change): the panel and the next-step bar re-read.
+  const bumpAssist = useCallback(() => {
+    setAssistVersion((n) => n + 1);
+    notifyReviewChanged();
+  }, []);
 
   const load = useCallback(async () => {
     setLoadError(null);
