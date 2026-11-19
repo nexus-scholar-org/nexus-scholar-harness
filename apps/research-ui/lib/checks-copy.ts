@@ -1,5 +1,6 @@
 import type { Locale } from "@/i18n";
 import { fillCopy } from "@/lib/inception-copy";
+import { pluralTemplate } from "@/lib/plural";
 
 /**
  * Copy of the checks panel and the Review readiness list
@@ -24,7 +25,8 @@ const EN = {
   "checks.need.recall": "a recall check",
   "checks.need.protocol": "a readable protocol",
   "checks.partialPool": "Computed on a partial pool: {databases} did not answer.",
-  "checks.unsaved": "Checks describe the saved draft. Save this page to update them.",
+  "checks.unsaved": "You have changes that are not saved yet. These checks describe the saved draft and update when you save.",
+  "checks.row.saved": "Before your changes",
   "checks.asOf": "As of {time}",
   "checks.offline": "needs the engine on this computer",
   "checks.stepBadge": "{n} to check",
@@ -139,7 +141,7 @@ const EN = {
   "checks.CONCEPTS_ONE_ONLY.sentence": "The search uses one concept only.",
   "checks.CONCEPTS_ONE_ONLY.why": "With one concept the query is one broad clause and will return a very large set.",
   "checks.CONCEPTS_ONE_ONLY.action": "Add a concept",
-  "checks.CRITERIA_UNDECIDED.sentence": "{n} criteria still need your Accept or Drop.",
+  "checks.CRITERIA_UNDECIDED.sentence": "{n} criteria still need your decision: Accept or Reject.",
   "checks.CRITERIA_UNDECIDED.why": "The wizard wrote them; nothing reaches the protocol until you decide.",
   "checks.CRITERIA_UNDECIDED.action": "Decide the first one",
   "checks.CRITERIA_SIDE_MISSING.sentence": "The protocol needs an accepted {side} criterion.",
@@ -252,7 +254,8 @@ const FR: Record<ChecksCopyKey, string> = {
   "checks.need.recall": "un contrôle de rappel",
   "checks.need.protocol": "un protocole lisible",
   "checks.partialPool": "Calculé sur un échantillon partiel : {databases} n'ont pas répondu.",
-  "checks.unsaved": "Les vérifications décrivent le brouillon enregistré. Enregistrez cette page pour les mettre à jour.",
+  "checks.unsaved": "Vous avez des modifications non enregistrées. Ces vérifications décrivent le brouillon enregistré et se mettent à jour à l'enregistrement.",
+  "checks.row.saved": "Avant vos modifications",
   "checks.asOf": "Au {time}",
   "checks.offline": "nécessite le moteur sur cet ordinateur",
   "checks.stepBadge": "{n} à vérifier",
@@ -361,7 +364,7 @@ const FR: Record<ChecksCopyKey, string> = {
   "checks.CONCEPTS_ONE_ONLY.sentence": "La recherche n'utilise qu'un seul concept.",
   "checks.CONCEPTS_ONE_ONLY.why": "Avec un seul concept, la requête est une seule clause large et renverra un très grand ensemble.",
   "checks.CONCEPTS_ONE_ONLY.action": "Ajouter un concept",
-  "checks.CRITERIA_UNDECIDED.sentence": "{n} critères attendent encore votre Accepter ou Écarter.",
+  "checks.CRITERIA_UNDECIDED.sentence": "{n} critères attendent encore votre décision : Accepter ou Rejeter.",
   "checks.CRITERIA_UNDECIDED.why": "L'assistant les a rédigés ; rien n'entre dans le protocole tant que vous n'avez pas décidé.",
   "checks.CRITERIA_UNDECIDED.action": "Décider du premier",
   "checks.CRITERIA_SIDE_MISSING.sentence": "Le protocole a besoin d'un critère {side} accepté.",
@@ -472,7 +475,8 @@ const AR: Record<ChecksCopyKey, string> = {
   "checks.need.recall": "فحص استدعاء",
   "checks.need.protocol": "بروتوكول مقروء",
   "checks.partialPool": "حُسب على عينة جزئية: لم تُجب {databases}.",
-  "checks.unsaved": "تصف الفحوص المسودة المحفوظة. احفظ هذه الصفحة لتحديثها.",
+  "checks.unsaved": "لديك تغييرات غير محفوظة. تصف هذه الفحوص المسودة المحفوظة وتتحدّث عند الحفظ.",
+  "checks.row.saved": "قبل تغييراتك",
   "checks.asOf": "حتى {time}",
   "checks.offline": "يحتاج إلى المحرك على هذا الحاسوب",
   "checks.stepBadge": "{n} للفحص",
@@ -581,7 +585,7 @@ const AR: Record<ChecksCopyKey, string> = {
   "checks.CONCEPTS_ONE_ONLY.sentence": "يستخدم البحث مفهومًا واحدًا فقط.",
   "checks.CONCEPTS_ONE_ONLY.why": "بمفهوم واحد يكون الاستعلام عبارة واسعة واحدة ويُرجع مجموعة كبيرة جدًا.",
   "checks.CONCEPTS_ONE_ONLY.action": "أضف مفهومًا",
-  "checks.CRITERIA_UNDECIDED.sentence": "{n} معايير ما زالت تنتظر قبولك أو استبعادك.",
+  "checks.CRITERIA_UNDECIDED.sentence": "{n} معايير ما زالت تنتظر قرارك: قبول أو رفض.",
   "checks.CRITERIA_UNDECIDED.why": "كتبها المعالج؛ ولا يصل شيء إلى البروتوكول حتى تقرر.",
   "checks.CRITERIA_UNDECIDED.action": "قرّر في أولها",
   "checks.CRITERIA_SIDE_MISSING.sentence": "يحتاج البروتوكول إلى معيار مقبول {side}.",
@@ -706,6 +710,11 @@ export function checksT(locale: Locale) {
 }
 
 /** The template of a key the engine named, or `null` when the catalogue has none (rendered as the generic line). */
-export function checksTemplate(locale: Locale, key: string): string | null {
-  return hasChecksKey(key) ? CHECKS_COPY[locale][key] : null;
+export function checksTemplate(locale: Locale, key: string, count?: number): string | null {
+  return hasChecksKey(key) ? pluralTemplate(locale, key, count, CHECKS_COPY[locale][key]) : null;
+}
+
+/** The template of a known key for a count (H-ui-findings F4: "1 check is", not "1 checks are"). */
+export function checksCountTemplate(locale: Locale, key: ChecksCopyKey, count: number): string {
+  return pluralTemplate(locale, key, count, CHECKS_COPY[locale][key]);
 }

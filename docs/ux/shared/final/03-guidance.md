@@ -208,7 +208,7 @@ Shared frame (`inception-frame.tsx`, every screen 01 to 07), then 01 Scope, 02 E
 | I-D25 | `direction.stale.*` | "The direction you chose was based on an earlier pool ..." | STAYS | V2 warning |
 | I-SH1 | `shape.kicker`, `shape.title` | "Step 4 of 6 · Shape", "Which lens fits, and what will you ask?" | STAYS | V8 / the question |
 | I-SH2 | `shape.lede` (sentence 1) | "A word scan of your topic leans one way; that lens is marked." | REMOVED | X1 the badge `shape.leaning` says it |
-| I-SH3 | `shape.lede` (sentence 2) | "Choosing a lens drafts the playbook and a first research question for you to edit." | STAYS | the one lede sentence |
+| I-SH3 | `shape.lede` (sentence 2) | "Choosing a lens marks the playbook that matches it and offers a first research question; you choose the playbook, and the question stays a draft until you use it." | STAYS | the one lede sentence |
 | I-SH4 | `shape.paradigm`, `shape.playbook`, `shape.unit`, `shape.proof`, `shape.outOfScope`, `shape.rq`, `shape.addRq`, `shape.removeRq` | field and option labels | STAYS | V7 |
 | I-SH5 | `shape.leaning` | "Leaning · word scan of your topic" | STAYS | V5 provenance and draft label (the mark's source, rule 3) |
 | I-SH6 | `shape.leaningNote` | "The leaning is a keyword scan, not a judgement. Four lenses only; frameworks such as PICO or SPIDER are not offered yet." | HINT | T4 background; the badge keeps "word scan" visible |
@@ -218,7 +218,7 @@ Shared frame (`inception-frame.tsx`, every screen 01 to 07), then 01 Scope, 02 E
 | I-SH10 | `shape.outOfScopeHelp` | "One item per line. Each becomes an exclusion criterion you typed." | HINT | T1 how-to |
 | I-SH11 | `shape.rqDraft`, `shape.useDraft`, `shape.draftWaiting`, `shape.draftNeeds`, `shape.chooseLens` | "Template draft · not yet yours", "Use this draft as RQ{n}" | STAYS | V5/V8 |
 | I-SH12 | `shape.lexicon` | "Vocabulary for this lens" | HINT | T2 examples of the lens's words |
-| I-SH13 | `shape.continue`, `shape.back`, `shape.needLens` | "Continue to concepts and criteria", "Back to Direction", "Choose a lens first." | STAYS | V7/V2; main action "Continue to concepts and criteria" |
+| I-SH13 | `shape.continue`, `shape.back`, `shape.needLens`, `shape.needPlaybook` | "Continue to concepts and criteria", "Back to Direction", "Choose a lens first.", "Choose a playbook first." | STAYS | V7/V2; main action "Continue to concepts and criteria" |
 | I-C1 | `criteria.kicker`, `criteria.title` | "Step 5 of 6 · Concepts and criteria", "Which concepts and criteria will screen this review?" | STAYS | V8 / the question |
 | I-C2 | `criteria.needYou`, `criteria.allDecided`, `criteria.sideCount` | "{n} still need you.", "{accepted} of {total} accepted" | STAYS | V3/V4 count of what waits |
 | I-C3 | `criteria.lede` (sentence 1) | "Every criterion is shown word for word with where it came from." | REMOVED | X1 each criterion carries its `source.*` label |
@@ -435,7 +435,7 @@ Recounted on 2026-11-18 after M10a and M3i merged, by counting rows (`grep -cE "
 | inception 01 Scope | "The topic, years and languages set the review window." | Continue to Explore | Save draft and exit (quiet) |
 | 02 Explore | "The schools, topics and papers below are what the later steps draw on." | Search the literature, then See {n} directions | Refresh pool, Change scope (secondary/quiet) |
 | 03 Direction | "These directions come from phrases that occur in the titles or abstracts of at least two papers of your pool." | Pursue {direction}, then Continue to Shape | Write my own, Search again narrower, Continue without a direction (quiet) |
-| 04 Shape | "Choosing a lens drafts the playbook and a first research question for you to edit." | Continue to concepts and criteria | Back to Direction, Use this draft (secondary) |
+| 04 Shape | "Choosing a lens marks the playbook that matches it and offers a first research question; you choose the playbook, and the question stays a draft until you use it." | Continue to concepts and criteria | Back to Direction, Use this draft (secondary) |
 | 05 Criteria | "A criterion the wizard wrote stays out of the protocol until you accept it." | Continue to review | Accept/Reject on each criterion are decision controls, not brand buttons |
 | 06 Review | "This is what will be written." | Create the workspace (the gate) | Check the protocol (secondary) |
 | 07 Done | "Next, open the workspace and import your search results." | Open the workspace | Start another review, All workspaces (quiet) |

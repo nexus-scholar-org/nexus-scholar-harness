@@ -8,7 +8,7 @@ import { fillNodes } from "@/components/assist-anchor";
 import { notifyDiscoveryChecks, useDiscoveryChecksVersion } from "@/components/checks-bus";
 import { ChecksPanel, type CheckLink } from "@/components/checks-panel";
 import { discoveryHref, LINK, type DiscoveryStep } from "@/components/discovery-frame";
-import { CHECKS_COPY } from "@/lib/checks-copy";
+import { checksCountTemplate } from "@/lib/checks-copy";
 import { dismissDiscoveryCheck, getDiscoveryChecks, restoreDiscoveryCheck } from "@/lib/discovery-api";
 import type { Check, CheckList } from "@/lib/inception-api";
 
@@ -68,7 +68,7 @@ export function EarlierChecksLine({ locale, origin }: Readonly<{ locale: Locale;
   return (
     <p className="mt-1 text-sm" data-earlier-checks>
       <a className={LINK} href={discoveryHref(locale, first.step, origin)}>
-        {fillNodes(CHECKS_COPY[locale]["checks.earlier"], { n: <bdi dir="ltr">{formatNumber(locale, total)}</bdi> })}
+        {fillNodes(checksCountTemplate(locale, "checks.earlier", total), { n: <bdi dir="ltr">{formatNumber(locale, total)}</bdi> })}
       </a>
     </p>
   );

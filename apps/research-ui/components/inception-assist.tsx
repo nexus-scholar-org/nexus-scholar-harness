@@ -25,6 +25,7 @@ import {
   type ProposalListing,
 } from "@/lib/inception-api";
 import { ScreeningApiError } from "@/lib/screening-api";
+import { localStamp } from "@/lib/local-time";
 import { PROPOSALS_COPY, hasProposalsKey, proposalsT } from "@/lib/proposals-copy";
 
 /**
@@ -483,7 +484,7 @@ export function ProposalList({ locale, step }: Readonly<{ locale: Locale; step: 
       </h2>
       {offline ? (
         <p id={offlineId} className="mt-1 text-ink-muted" data-proposals-offline>
-          {t("proposals.asOf", { time: asOf.slice(0, 16).replace("T", " ") })} · {t("proposals.offline")}
+          {t("proposals.asOf", { time: localStamp(asOf) })} · {t("proposals.offline")}
         </p>
       ) : null}
       {readOnly ? <p className="mt-1 text-ink-muted">{t("proposals.readOnly")}</p> : null}

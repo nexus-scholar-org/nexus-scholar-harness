@@ -181,7 +181,7 @@ describe("checks panel (02-checks)", () => {
     await waitFor(() => expect(row("EXPLORE_SCOPE_CHANGED")).not.toBeNull());
     const reads = engine.calls.filter((c) => c.path === CHECKS).length;
     fireEvent.change(screen.getByLabelText("Research topic, in one or two sentences"), { target: { value: "on-device weed detection with drones" } });
-    expect(await screen.findByText("Checks describe the saved draft. Save this page to update them.")).toBeInTheDocument();
+    expect(await screen.findByText("You have changes that are not saved yet. These checks describe the saved draft and update when you save.")).toBeInTheDocument();
     expect(row("EXPLORE_SCOPE_CHANGED")).not.toBeNull();
     expect(engine.calls.filter((c) => c.path === CHECKS).length).toBe(reads);
   });
@@ -345,5 +345,37 @@ describe("checks panel (02-checks)", () => {
     fireEvent.click(within(recall).getByRole("button", { name: "Dismiss" }));
     await waitFor(() => expect(engine.calls.some((c) => c.method === "POST" && c.path === "/api/v1/discovery/checks/RECALL_NOT_RUN/dismiss")).toBe(true));
     await waitFor(() => expect(recall.querySelector("[data-dismissed] summary")?.textContent).toBe("Dismissed (1)"));
+  });
+});
+
+describe("checks after a decision on the Concepts and criteria page (H-ui-findings F5)", () => {
+  const undecided: CheckIn = { check_id: "CRITERIA_UNDECIDED", step: "criteria", level: "blocker", params: { n: 1 }, action: { kind: "step", step: "criteria" } };
+  const criteriaRow = (id: string) => document.querySelector(`[data-checks-panel='criteria'] li[data-check='${id}']`) as HTMLElement | null;
+
+  it("Apply on a suggestion saves on the server, so the checks are read again and nothing says 'unsaved'", async () => {
+    const { engine } = setUp({ draft: completeDraft({ title: "UAV weed detection", concepts: [], criteria_decisions: { [proofId()]: true } }), checks: true });
+    render(<InceptionCriteria locale="en" />);
+    await waitFor(() => expect(criteriaRow("CONCEPT_TERM_MISSING")).not.toBeNull());
+    const reads = engine.calls.filter((c) => c.path === CHECKS).length;
+    fireEvent.click(within(document.querySelector("[data-proposals='criteria']") as HTMLElement).getByRole("button", { name: "Apply" }));
+    await waitFor(() => expect(criteriaRow("CONCEPT_TERM_MISSING")).toBeNull());
+    expect(engine.calls.filter((c) => c.path === CHECKS).length).toBeGreaterThan(reads);
+    expect(document.querySelector("[data-checks-unsaved]")).toBeNull();
+    expect(document.querySelector("[data-row-saved]")).toBeNull();
+  });
+
+  it("Accept on a criterion is not saved yet: each row says it describes the draft as saved, and the line says what to do", async () => {
+    setUp({ draft: completeDraft(), checks: () => [undecided] });
+    render(<InceptionCriteria locale="en" />);
+    await waitFor(() => expect(criteriaRow("CRITERIA_UNDECIDED")).not.toBeNull());
+    expect(document.querySelector("[data-row-saved]")).toBeNull();
+    fireEvent.click((await screen.findAllByRole("button", { name: /^Accept/ }))[0]);
+    const line = await waitFor(() => {
+      const el = document.querySelector("[data-checks-unsaved]");
+      expect(el).not.toBeNull();
+      return el as HTMLElement;
+    });
+    expect(line.textContent).toBe("You have changes that are not saved yet. These checks describe the saved draft and update when you save.");
+    expect(criteriaRow("CRITERIA_UNDECIDED")?.querySelector("[data-row-saved]")?.textContent).toContain("Before your changes");
   });
 });

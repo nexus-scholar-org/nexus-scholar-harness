@@ -63,3 +63,14 @@ describe("inception.copy", () => {
     expect(sourceText("fr", "something_new", "", "engine words")).toBe("engine words");
   });
 });
+
+describe("criteria wording (H-ui-findings F3)", () => {
+  it("names the two decisions with the words on the buttons, in every locale", async () => {
+    const { CHECKS_COPY } = await import("@/lib/checks-copy");
+    for (const locale of SUPPORTED_LOCALES) {
+      const sentence = CHECKS_COPY[locale]["checks.CRITERIA_UNDECIDED.sentence"];
+      expect(sentence, locale).toContain(INCEPTION_COPY[locale]["criteria.accept"]);
+      expect(sentence, locale).toContain(INCEPTION_COPY[locale]["criteria.reject"]);
+    }
+  });
+});

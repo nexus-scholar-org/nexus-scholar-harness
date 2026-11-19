@@ -1,4 +1,5 @@
 import type { Locale } from "@/i18n";
+import { pluralTemplate } from "@/lib/plural";
 
 /**
  * Copy of the inception screens (specs `docs/ux/phase0-inception/final/01–08`,
@@ -79,7 +80,7 @@ const EN = {
   // 04 Shape
   "shape.kicker": "Step 4 of 6 · Shape",
   "shape.title": "Which lens fits, and what will you ask?",
-  "shape.lede": "A word scan of your topic leans one way; that lens is marked. Choosing a lens drafts the playbook and a first research question for you to edit.",
+  "shape.lede": "A word scan of your topic leans one way; that lens is marked. Choosing a lens marks the playbook that matches it and offers a first research question; you choose the playbook, and the question stays a draft until you use it.",
   "shape.paradigm": "Paradigm",
   "shape.leaning": "Leaning · word scan of your topic",
   "shape.leaningNote": "The leaning is a keyword scan, not a judgement. Four lenses only; frameworks such as PICO or SPIDER are not offered yet.",
@@ -207,6 +208,7 @@ const EN = {
   "start.emptyDraft": "Empty draft",
   "scope.needTopic": "Write your topic first.",
   "shape.needLens": "Choose a lens first.",
+  "shape.needPlaybook": "Choose a playbook first.",
   "criteria.sideCount": "{accepted} of {total} accepted",
   "criteria.tickAll": "Tick all suggested columns",
   "review.gateReplacing": "Create the workspace · replacing",
@@ -700,7 +702,7 @@ const FR: Record<InceptionCopyKey, string> = {
   "scope.continue": "Continuer vers Explorer",
   "shape.kicker": "Étape 4 sur 6 · Forme",
   "shape.title": "Quelle perspective convient, et que demanderez-vous ?",
-  "shape.lede": "Un repérage des mots de votre sujet penche d'un côté ; cette perspective est signalée. Choisir une perspective propose la méthode et une première question de recherche à modifier.",
+  "shape.lede": "Un repérage des mots de votre sujet penche d'un côté ; cette perspective est signalée. Choisir une perspective signale la méthode correspondante et propose une première question de recherche ; vous choisissez la méthode, et la question reste un brouillon tant que vous ne l'utilisez pas.",
   "shape.paradigm": "Paradigme",
   "shape.leaning": "Tendance · repérage des mots de votre sujet",
   "shape.leaningNote": "La tendance est un repérage de mots, pas un jugement. Quatre perspectives seulement ; les cadres comme PICO ou SPIDER ne sont pas encore proposés.",
@@ -822,6 +824,7 @@ const FR: Record<InceptionCopyKey, string> = {
   "start.emptyDraft": "Brouillon vide",
   "scope.needTopic": "Écrivez d'abord votre sujet.",
   "shape.needLens": "Choisissez d'abord une perspective.",
+  "shape.needPlaybook": "Choisissez d'abord une méthode.",
   "criteria.sideCount": "{accepted} sur {total} acceptés",
   "criteria.tickAll": "Cocher toutes les colonnes proposées",
   "review.gateReplacing": "Créer l'espace · remplacement",
@@ -1301,7 +1304,7 @@ const AR: Record<InceptionCopyKey, string> = {
   "scope.continue": "المتابعة إلى الاستكشاف",
   "shape.kicker": "الخطوة 4 من 6 · الصياغة",
   "shape.title": "أي منظور يناسب، وماذا ستسأل؟",
-  "shape.lede": "يميل فحص كلمات موضوعك إلى جهة؛ وذلك المنظور معلَّم. اختيار منظور يقترح المنهج وسؤال بحث أول لتعدّله.",
+  "shape.lede": "يميل فحص كلمات موضوعك إلى جهة؛ وذلك المنظور معلَّم. اختيار منظور يعلّم المنهج المطابق ويقترح سؤال بحث أول؛ المنهج من اختيارك، ويبقى السؤال مسودة حتى تستخدمه.",
   "shape.paradigm": "النموذج المعرفي",
   "shape.leaning": "ميل · فحص كلمات موضوعك",
   "shape.leaningNote": "الميل فحص للكلمات، لا حكم. أربعة مناظير فقط؛ أطر مثل PICO أو SPIDER غير متاحة بعد.",
@@ -1423,6 +1426,7 @@ const AR: Record<InceptionCopyKey, string> = {
   "start.emptyDraft": "مسودة فارغة",
   "scope.needTopic": "اكتب موضوعك أولًا.",
   "shape.needLens": "اختر منظورًا أولًا.",
+  "shape.needPlaybook": "اختر منهجًا أولًا.",
   "criteria.sideCount": "{accepted} من {total} مقبولة",
   "criteria.tickAll": "تحديد كل الأعمدة المقترحة",
   "review.gateReplacing": "إنشاء مساحة العمل · استبدال",
@@ -1848,6 +1852,11 @@ export function fillCopy(template: string, values: Record<string, string | numbe
     if (!(k in values)) throw new Error(`inception copy needs {${k}}`);
     return String(values[k]);
   });
+}
+
+/** A message for a count: the plural form when the table has one (H-ui-findings F4). */
+export function inceptionCountT(locale: Locale) {
+  return (key: InceptionCopyKey, count: number, values?: Record<string, string | number>) => fillCopy(pluralTemplate(locale, key, count, INCEPTION_COPY[locale][key]), values);
 }
 
 export function inceptionT(locale: Locale) {
