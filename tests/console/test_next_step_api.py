@@ -390,6 +390,16 @@ def test_publication_and_chase_rows(env, monkeypatch, current, chase, state, par
     assert (body["state"], body["params"]) == (state, params)
 
 
+def test_a_chase_after_round_two_sends_round_three(env, monkeypatch):
+    """Review of the bar (UI agent): the round suffix overwrote the chase's own round."""
+    client, ws, _ = env
+    _accepted(client)
+    _summary(monkeypatch)
+    _published(ws, monkeypatch, True, {"round": 2, "runs": [{"published": True, "accepted": None, "counts": {"new": 5}}]})
+    body = _next(client)
+    assert (body["state"], body["round"], body["params"]) == ("CHASE_READY_TO_SEND", 2, {"new": 5, "round": 3})
+
+
 def test_round_two_not_prepared_is_round_accepted(env, monkeypatch):
     client, ws, _ = env
     _accepted(client)

@@ -327,7 +327,7 @@ def build_workspace(
 
     def at(state_: str, phase: str, **kw: Any) -> dict[str, Any]:
         if round_ > 1:
-            kw["params"] = {**(kw.get("params") or {}), "round": round_}
+            kw["params"] = {"round": round_, **(kw.get("params") or {})}  # a row's own round wins (the chase sends the next one)
         return answer("workspace", state_, phase=phase, unknown=unknown, fingerprint=fp, round_=round_, **kw)
 
     if chase_job is not None:
