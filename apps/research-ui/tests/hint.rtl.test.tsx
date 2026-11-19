@@ -2,7 +2,8 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
-import { Hint, hintPlacement } from "@/components/ui/base";
+import { Hint } from "@/components/ui/base";
+import { hintPlacement } from "@/components/ui/guidance";
 
 /** 03-guidance rule 1.5 and "Right-to-left (ar)": placement in the logical direction (M10d). */
 

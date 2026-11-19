@@ -100,7 +100,7 @@ export function EvidenceQuote({ children, source }: Readonly<{ children: ReactNo
 export const PRIMARY_LINK = "inline-flex min-h-11 items-center justify-center rounded-md bg-brand px-4 font-medium text-on-brand hover:opacity-90";
 
 /** The guidance components (03-guidance, M10d) live beside these, in `guidance.tsx`. */
-export { Fold, Hint, hintPlacement, RecommendedBadge } from "./guidance";
+export { Fold, Hint, RecommendedBadge } from "./guidance";
 
 export function DataCell({ children }: Readonly<{ children: ReactNode }>) {
   return (
