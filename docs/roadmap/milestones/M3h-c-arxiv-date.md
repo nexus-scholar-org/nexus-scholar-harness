@@ -1,5 +1,5 @@
 # M3h-c-arxiv-date The arXiv leg sends its year range (F16, second half)
-Branch: dev/m3h-c/arxiv-date-filter · Lane: **STANDARD** (see "Lane") · Status: **WAITING FOR THE RE-RECORD** (code and unit tests committed; the golden replay tests are red until the researcher re-records, see "For the researcher") · Started: 2026-11-18
+Branch: dev/m3h-c/arxiv-date-filter · Lane: **STANDARD** (see "Lane") · Status: **RE-RECORDED, IN GATE** (both golden cassettes re-recorded by the researcher 2026-11-19; golden replay green; the pr gate and the review run on the final commit) · Started: 2026-11-18
 
 The half of finding F16 of
 [`three-phase-hardening-2026-11-10.md`](../../assessment/three-phase-hardening-2026-11-10.md)
@@ -26,9 +26,9 @@ This diff changes the request one provider sends and the notes its leg records. 
 - [x] The clause is added after compaction, wrapped so the AND binds to the whole topic query, once.
 - [x] The leg record and the leg note say the range was sent; `cannot_express` no longer lists an arXiv year line; the local year check stays as a guard.
 - [x] The re-record is one step for the researcher: one script, the commands, what each sends and to whom, how to check (below).
-- [ ] The researcher re-records both arXiv answers (`scripts/record_golden_recon_arxiv.py`); the golden replay tests go green.
-- [ ] The pinned golden digests moved to the replayed values, and the number of arXiv records before and after is recorded here.
-- [ ] The open-ended range checked live once (`--check-open-ended`), result recorded here (decision item 1).
+- [x] The researcher re-records both arXiv answers (`scripts/record_golden_recon_arxiv.py`); the golden replay tests go green (9 passed, 0 failed).
+- [x] The pinned golden digests: **they did not move** (the replayed corpus is the same set, see "After the re-record"), so `GOLDEN_SCI_DIGEST` / `GOLDEN_REC_DIGEST` stay as they are; the arXiv record counts before and after are recorded below.
+- [ ] The open-ended range checked live once (`--check-open-ended`): **not run** (the researcher reported the re-record only); decision item 1 stays open and the bounds 1991 and 9999 stay unverified live.
 - [ ] Gates: inner after edits, the `pr` gate once on the final commit, contract baseline `--check`, both ruff commands; `milestone-reviewer` APPROVE.
 - [ ] Researcher's word before any push or PR.
 
@@ -47,8 +47,18 @@ This diff changes the request one provider sends and the notes its leg records. 
 | full suite without the golden files | working tree | `uv run pytest tests -n auto --ignore=<the two golden files>` | 72 failed or errored, none in a search, console, recon, pipeline, harness or unit test: all in `tests/kits/rag`, `tests/kits/pdf`, `tests/kits/agent` (RAG tools), `tests/e2e` and `tests/conformance` index/extract tests, because this worktree was synced with `--extra dev` only (58 of them print `No module named 'chromadb'`; the rest are the `DEPENDENCY_ERROR` envelope of the same missing backends). Not caused by this change; the final gate runs with `--extra pdf --extra rag` | |
 | contract (after) | `e1bd0950` | `generate_contract_baseline.py --check` | "Contract baseline current" (exit 0) | |
 
-## Red until the re-record
-Four tests fail on this branch, every one for the same reason: `CannotOverwriteExistingCassetteException`, the arXiv request now carries the clause and the recorded arXiv interaction does not (the cassettes match on method, scheme, host, path and query). Nothing was weakened, skipped, deleted or hand-edited.
+## After the re-record (2026-11-19)
+The researcher re-recorded both cassettes. The diff touches one request line and the arXiv answer in each file and nothing else (the number of address-like strings in each cassette is unchanged); the request now carries the clause: `(...) AND submittedDate:[202001010000 TO 202612312359]`, closed range, so the open-end bounds are not in these cassettes.
+
+| Cassette | arXiv entries before | after | `totalResults` before | after |
+| :-- | :-- | :-- | :-- | :-- |
+| `golden_recon_probe.yaml` (cap 25) | 9 | 6 | 9 | 6 |
+| `golden_uav_search.yaml` (cap 100) | 44 | 36 | 44 | 36 |
+
+arXiv now filters by year itself: the 3 and 8 records that fall away are the ones the leg used to drop after retrieval (the local guard). That is why the pinned digests do not move: the corpus after the local guard is the same. Replay: `uv run pytest tests/pipeline/test_golden_search_cassettes.py tests/pipeline/test_golden_recon_cassette.py` gives 9 passed.
+
+## Red until the re-record (history: all four are green now)
+Four tests failed on this branch, every one for the same reason: `CannotOverwriteExistingCassetteException`, the arXiv request now carries the clause and the recorded arXiv interaction does not (the cassettes match on method, scheme, host, path and query). Nothing was weakened, skipped, deleted or hand-edited.
 
 | Test | Why it fails now | After the re-record |
 | :-- | :-- | :-- |
