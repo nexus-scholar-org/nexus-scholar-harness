@@ -86,7 +86,7 @@ files — this page stays the small-footprint entrypoint.
 | 28 | `nexus_assistant_drafts` | `(workspaces_root=None)`; the app's root (`NEXUS_WORKSPACES_ROOT` or the default) | JSON `{status, workspaces_root, drafts:[{session_id, topic, title, updated_at, emitted, open_proposals, findings}]}`; read-only |
 | 29 | `nexus_assistant_read_draft` | `(session_id, workspaces_root=None)` | JSON `{status, draft, intent, intent_refused, grounding, checks, proposals, pool}`; read-only (the checks are computed as the app does; nothing is recorded) |
 | 30 | `nexus_assistant_read_workspace` | `(workspace_dir)` a slug under the app's root, or a path inside the MCP anchor | JSON `{status, intent, protocol, plan, recall, checks, proposals}`; `plan.providers[]` carries each database's translation and `cannot_express`; read-only |
-| 31 | `nexus_assistant_propose` | `(session_id, field, op, value, why, model, task="suggest", evidence=None, workspaces_root=None)`; `task` ∈ `suggest\|synonyms\|translation\|recall_repair` | JSON `{status, created, proposal}`; one open proposal, source `agent:<model>`, on the app's card; a side write (no answer, no `updated_at` change); checked as a save of the field would be; refused after genesis (`DRAFT_EMITTED`); at most 30 open |
+| 31 | `nexus_assistant_propose` | `(field, op, value, why, model, session_id=None, workspace_dir=None, task="suggest", evidence=None, workspaces_root=None)`; exactly one of `session_id`, `workspace_dir`; `task` ∈ `suggest\|synonyms\|translation\|recall_repair` | JSON `{status, created, proposal}`; one open proposal, source `agent:<model>`. On a draft: on the app's card for its step; a side write (no answer, no `updated_at` change); checked as a save of the field would be; refused after genesis (`DRAFT_EMITTED`). On a workspace: a card on Discovery Plan; only the search (`core_concepts` add, `core_concepts[<name>].synonyms` add/remove, `start_year`/`end_year` replace, `languages`); checked as an Apply would be; refused once a corpus is accepted (`CORPUS_ALREADY_ACCEPTED`). At most 30 open |
 | 32 | `nexus_assistant_report_finding` | `(locator, severity, finding, model, session_id=None, workspace_dir=None, why=None, workspaces_root=None)`; exactly one target; `locator` a JSON pointer into the intent (`draft:/…` into a draft's answers, `protocol:/…` into a workspace's `protocol.json`); `severity` ∈ `critical\|major\|minor` | JSON `{status, created, finding}`; an `ASSISTANT_FINDING` row (`source: "agent"`, never a blocker) in the app's checks panel; draft: record key `assistant_findings`; workspace: `audit/assistant_findings.jsonl` + `ASSISTANT_FINDING_REPORTED`; at most 50 open |
 
 Return rule of thumb: **JSON** = #1, #2, #7, #9–#11, #16–#32.
@@ -185,8 +185,12 @@ Conformance: `test_e1_acquired_document_boundary.py`,
   `concepts[<name>].synonyms`), translation explanations (read
   `plan.providers[].cannot_express` and explain it), recall repair (read
   `recall`, propose the smallest change, `task="recall_repair"`). After
-  genesis a protocol change is not yet a proposal (decision item 9 of
-  2026-11-19 is open): report it as a finding.
+  genesis, suggest a search change on the workspace (`workspace_dir`,
+  fields `core_concepts[<name>].synonyms`, `core_concepts`, `start_year`,
+  `end_year`, `languages`); anything else is a finding. When the researcher
+  applies one, the protocol's fingerprint moves and every other open
+  suggestion on that workspace goes out of date: send one change at a time
+  and read the workspace again before the next.
 
 ## 6. Sources, limits, deferred pointers
 
