@@ -308,18 +308,18 @@ def test_the_approver_name_is_set_on_the_desktop_and_journaled(client, ws, capsy
     the first approval refused OPERATOR_CONTEXT_MISSING. The Publish screen sets it."""
     assert client.get(f"{BASE}/approver").json() == {"name": None, "set_at": None, "basis": "typed-name"}
 
-    saved = client.put(f"{BASE}/approver", json={"name": "  Mouadh   Bekhouche "})
+    saved = client.put(f"{BASE}/approver", json={"name": "  Test   Researcher "})
     assert saved.status_code == 200, saved.text
-    assert saved.json()["name"] == "Mouadh Bekhouche" and saved.json()["set_at"]
+    assert saved.json()["name"] == "Test Researcher" and saved.json()["set_at"]
     context = json.loads((ws / "literature" / "screening" / "operator_context.json").read_text(encoding="utf-8"))
-    assert context["operator_identity"] == "Mouadh Bekhouche" and context["basis"] == "typed-name"
+    assert context["operator_identity"] == "Test Researcher" and context["basis"] == "typed-name"
     rows = [json.loads(line) for line in (ws / "audit" / "journal.jsonl").read_text(encoding="utf-8").splitlines()]
     assert [r["parameters"] for r in rows if r["action"] == "SCREENING_APPROVER_SET"] == [
-        {"before": None, "after": "Mouadh Bekhouche", "basis": "typed-name"}
+        {"before": None, "after": "Test Researcher", "basis": "typed-name"}
     ]
 
     # The same name again writes nothing new.
-    client.put(f"{BASE}/approver", json={"name": "Mouadh Bekhouche"})
+    client.put(f"{BASE}/approver", json={"name": "Test Researcher"})
     journal = (ws / "audit" / "journal.jsonl").read_text(encoding="utf-8")
     assert journal.count("SCREENING_APPROVER_SET") == 1
 

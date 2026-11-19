@@ -4,6 +4,15 @@ One entry per decision that still shapes the code, newest first. The full
 records were removed in the 2026-11-03 docs cut; each entry names the commit
 history to read if you need the original reasoning (`git log --follow -- <path>`).
 
+## 2026-11-19 — M9a: what the measurement says about the ladder gates (PROPOSED by the main session; not accepted; M9a-measure D10)
+
+Record: `docs/roadmap/milestones/M9a-measure.md`, "The measurement (run 2026-11-19)". The screening agent was run on the frozen 1,644-record sample with Opus 5.5, Sonnet 5.5 and Haiku 5.5 ($12.63). Recall lower bounds 93.1%, 93.6% and 96.8%; the agent excludes 6.4%, 1.7% and 1.9% of the researcher's excludes and leaves 67% to 77% of the records Unclear, mostly because the abstract does not report what a criterion asks.
+
+1. **No rung is unlocked on these results.** L1 passes for all three models and L2 for Haiku, but the pass comes from staying undecided, not from deciding well.
+2. **A gate needs a second condition besides recall:** a minimum share of the researcher's excludes that the agent takes off the pile, measured on the same calibration. The number is the researcher's to set; all three models are under 7% today.
+3. **The "not reported in the abstract" rule is settled before M9b**: either the criteria are worded so an abstract can answer them, or the protocol says what an unreported criterion means at title-and-abstract stage (today it always means Unclear). Then the measurement is repeated.
+4. **The draft thresholds (L1 0.90, L2 0.95) stay constants in `measure.py`** until items 2 and 3 are decided.
+
 ## 2026-11-19 — M10d: lighter screens, where the guidance spec is silent (items 1 to 12 accepted by the researcher 2026-11-19: 3, 4, 9 and 10 "as recommended", then the others; M10d-lighter-screens)
 
 Record: `docs/roadmap/milestones/M10d-lighter-screens.md`. Spec: `docs/ux/shared/final/03-guidance.md` (FINAL; R8 and its questions 1 to 5 closed by the researcher 2026-11-15, decision 2026-11-15 item 8). The two brand-book exceptions of R8 are built as accepted (an icon-only hint named "About {label}", a neutral dashed "Recommended · {source}" badge) and now have their line in `docs/ux/brand/BRAND_BOOK.md` "Iconography". The items below are the build's choices where the spec is silent or could not be met as written; each took the smaller option. No route, engine, stored field, refusal code or Contract v1 artefact changes; each item is copy or layout and can be reversed in the UI alone.

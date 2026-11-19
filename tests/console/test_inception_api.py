@@ -34,7 +34,7 @@ def _draft() -> dict:
         "out_of_scope": [s.strip() for s in a[6].split(",")], "rqs": [a[8]],
         "concepts": [{"concept": "weed detection"}, {"concept": "on-device inference"}],
         "criteria_decisions": {proof_id: True},
-        "title": "On-Device Weed Detection for Embedded Agriculture", "lead_researcher": "Dr. Mouadh",
+        "title": "On-Device Weed Detection for Embedded Agriculture", "lead_researcher": "Dr. Example",
     }
 
 

@@ -1,5 +1,5 @@
 # M9a-measure: measure the screening agent against the researcher's decisions
-Branch: dev/m9a/measure-harness · Lane: **STANDARD** (see the lane note) · Status: **HARNESS MERGED (PR #242, merge commit `f64cd82d`, 2026-11-18); THE MEASUREMENT HAS NOT BEEN RUN. It needs the researcher's approval of AI spend** (all AI spend is deferred, 2026-11-18) · Started: 2026-11-18
+Branch: dev/m9a/measure-harness · Lane: **STANDARD** (see the lane note) · Status: **HARNESS MERGED (PR #242, merge commit `f64cd82d`, 2026-11-18); MEASURED 2026-11-19 on three models ($12.63); THE THRESHOLDS ARE NOT DECIDED** (D10 waits for the researcher) · Started: 2026-11-18
 
 Plan: [`production-plan.md`](../production-plan.md) §6 row M9a-measure. Design: [`agent_autonomy_ladder.md`](../../architecture/agent_autonomy_ladder.md) §4 (the gate), §9 (decisions of 2026-11-10, amended 2026-11-11), §10. The screening drivers and the first evaluation came with [`M1b-2.md`](M1b-2.md) (the `prompt-gate` group).
 
@@ -27,7 +27,7 @@ What did **not** exist: precision on includes, the confusion table, the list of 
 - [x] **D6 Tested on a fake driver.** `tests/kits/agent/test_measure.py`: scripted answers that include a truncated, a refused, an invalid, a malformed-but-parsed, a `cannot_decide`, a quote-not-in-source, a missed include, a false include and a researcher Unclear; the scorer, every report section, the batches, the gates, the ceiling stop, the blind check, the dry run and the CLI (dry run, no `--yes`, `--yes` with a fake key and driver, a run where no call succeeded).
 - [x] **D7 Defects found in the existing evaluation code have a reproducing test first** (see Findings).
 - [x] **D8 The exact command and its cost** are below.
-- [ ] **D9 The measurement run itself.** NOT RUN. Needs the researcher's approval of AI spend and a key set by the researcher (`nexus-scholar keys set anthropic`).
+- [x] **D9 The measurement run itself.** RUN 2026-11-19 on Opus 5.5, Sonnet 5.5 and Haiku 5.5 (see "The measurement"). Before the run this line read: Needs the researcher's approval of AI spend and a key set by the researcher (`nexus-scholar keys set anthropic`).
 - [ ] **D10 Thresholds decided from data** (ladder §4 numbers confirmed or changed) and recorded in `docs/decisions.md`. After D9.
 - [x] **D11 Gates.** `/gate pr` once on the final executable commit, the contract baseline check, both ruff commands, `git diff --check`, the `milestone-reviewer` verdict: see Evidence (rows filled).
 
@@ -71,6 +71,39 @@ uv run nexus-scholar prompt-gate measure --workspace workspaces/uav-crop-weed-v0
 ```
 
 Defaults: `--scope frozen`, `--provider anthropic`, `--model claude-opus-5-5`, `--effort low`, `--max-tokens 4096`, report in `.cache/m9a-measure/`. To see the plan again at any time, with no key and no call, add `--dry-run` (or leave out `--yes`). Sonnet and Haiku are the same command with `--model claude-sonnet-5-5` / `claude-haiku-5-5` (about $5.70 and $0.38 expected); a cheaper model is adopted only if it meets the bar (decision 2026-11-05). A 20-record smoke run (`--limit 20 --yes`, a few cents on Haiku) checks the key and the pipe first.
+
+## The measurement (run 2026-11-19)
+
+The researcher approved the spend on 2026-11-19 with a ceiling per model ($32 Opus, $16 Sonnet, $2 Haiku). Each run scored all 1,644 records of the frozen sample (644 includes, 1,000 excludes), task `screen-v1`, low effort, through Message Batches; none was stopped by its ceiling. Total measured cost: **$12.63**. The summary reports are in [`M9a-measure-reports/`](M9a-measure-reports/); the per-record files stay in the local cache (`.cache/m9a-measure/`, not committed).
+
+| | Opus 5.5 | Sonnet 5.5 | Haiku 5.5 |
+| :-- | --: | --: | --: |
+| Measured cost | $8.10 | $4.16 | $0.37 |
+| Include recall (an Unclear is kept) | 95.0% | 95.5% | 98.1% |
+| Recall, 95% Wilson lower bound | 93.1% | 93.6% | 96.8% |
+| Researcher's includes: agent Include / Unclear / Exclude | 278 / 334 / 32 | 395 / 220 / 29 | 484 / 148 / 12 |
+| Researcher's excludes: agent Include / Unclear / Exclude | 2 / 934 / 64 | 3 / 980 / 17 | 24 / 957 / 19 |
+| Precision on the agent's Includes | 99.3% | 99.2% | 95.3% |
+| Excludes caught | 6.4% | 1.7% | 1.9% |
+| Unclear rate | 77.1% | 73.0% | 67.2% |
+| Unclear because a criterion is not reported in the abstract | 1,250 | 1,163 | 902 |
+| Answers whose quote is not in the source | 12 | 37 | 197 |
+| Refused calls | 0 | 0 | 5 |
+| Draft gate L1 (lower bound 0.90) | passes | passes | passes |
+| Draft gate L2 (lower bound 0.95) | does not pass | does not pass | passes |
+
+What the figures show (the main session's reading, for the researcher to accept or correct):
+- The agent is safe on recall and removes almost no work: every model leaves about 950 of the 1,000 excludes undecided. In the L1 mode ("the agent's excludes stand") Opus would have taken 96 records off a pile of 1,644, 32 of them includes it should have kept.
+- The dominant reason for Unclear is `criterion_not_reported`: the abstract does not say what a criterion asks. A stronger model does not change that; the criteria wording, or the rule for "not reported", does.
+- A recall threshold alone is passed by an agent that stays undecided. Haiku passes L2 because it excludes least, while it misquotes 197 times and marks 24 excludes as Include.
+- One review, one effort level. Not a general statement about the models.
+
+Proposed for D10 (not accepted; `docs/decisions.md`, 2026-11-19): unlock no rung on these results; add to each gate a minimum share of the researcher's excludes that the agent takes; settle the "not reported in the abstract" rule before M9b, then measure again (a Sonnet rerun costs about $4).
+
+How the run was started, and what went wrong first (no spend until the last step):
+- The `ai` extra was not installed: the command died with a traceback (`ModuleNotFoundError: anthropic`) instead of saying what to install.
+- `resolve_key` reads the keychain before `ANTHROPIC_API_KEY`: a stale keychain key was sent and refused (401) while a valid key sat in the environment; `keys status` said only "keychain". The researcher cleared the keychain entry.
+- The command prints nothing while batches run (33 to 56 minutes per model); progress was read from the provider's batch listing.
 
 ## Evidence
 | Stage | Commit | Command | Result | Duration |
