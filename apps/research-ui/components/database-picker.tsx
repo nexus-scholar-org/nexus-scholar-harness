@@ -31,7 +31,7 @@ export interface PickerItem {
 export interface PickerLabels {
   legend: string;
   orderHelp?: string;
-  /** M10d (03-guidance rule 1): with a locale and the catalog key, the order help is a hint beside the legend. */
+  /** M10d (03-guidance rule 1): with a locale and the catalog key, the help about the sequence is a hint beside the legend. */
   orderHelpHint?: { locale: Locale; textKey: string };
   check(name: string): string;
   up(name: string): string;

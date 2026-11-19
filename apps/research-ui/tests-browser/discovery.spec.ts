@@ -241,7 +241,7 @@ test("M3i: the hand-off of an unfinished harvest says so and leads to Finish pre
   await expect(card.locator("[data-no-marker]")).toBeVisible();
   await expect(page.locator('[data-leg="openalex"]')).toBeVisible();
 
-  await card.getByRole("button", { name: "Finish preparing this corpus" }).click();
+  await card.getByRole("button", { name: "Finish preparing this corpus", exact: true }).click();
   await expect(page.getByRole("heading", { level: 1, name: "The harvest is finished. The corpus is not frozen yet." })).toBeVisible();
   await expect(page.locator("[data-preparation]")).toHaveCount(0);
   const posts = fake.calls.filter((c) => c.method === "POST").map((c) => c.path);
@@ -267,7 +267,7 @@ test("M3i: a harvest that fails after its search says where, and says it again a
   // A reload has no job to read: the state comes from the engine's own record of the run.
   await page.reload();
   await expect(page.getByRole("heading", { level: 1, name: "The search finished, but preparing the corpus failed." })).toBeVisible();
-  await expect(page.locator('[data-preparation="failed"]').getByRole("button", { name: "Finish preparing this corpus" })).toBeEnabled();
+  await expect(page.locator('[data-preparation="failed"]').getByRole("button", { name: "Finish preparing this corpus", exact: true })).toBeEnabled();
   await page.locator('[data-preparation="failed"]').getByText("Details").click();
   await expect(page.locator("[data-preparation-message]")).toHaveText("RuntimeError: verifier down");
 });
@@ -436,7 +436,7 @@ test("M10b: count on Plan, see a capped database and the warning, follow the cap
   await use.click();
 
   await expect(page.getByRole("heading", { name: "Search the databases your protocol selects" })).toBeVisible();
-  const field = page.getByLabel("Cap for this harvest only");
+  const field = page.getByLabel("Cap for this harvest only", { exact: true });
   await expect(field).toHaveValue("282");
   await expect(page.getByText(/Filled in from the estimate\./)).toBeVisible();
   expect(fake.calls.some((c) => c.method === "POST" && c.path === "/api/v1/discovery/runs")).toBe(false);
@@ -447,7 +447,9 @@ test("M10b: count on Plan, see a capped database and the warning, follow the cap
   // A run exists: the card is gone, and a reload shows nothing stale as current.
   await expect(page.locator("[data-estimate]")).toHaveCount(0);
   await page.goto("/en/discovery/plan/");
-  await expect(page.locator("[data-imports-after-run]")).toBeVisible();
+  // M10d (03-guidance D-P7, D-P8): after a run the Import link and its hint are gone.
+  await expect(page.getByRole("link", { name: "Copy all executed strings" }).or(page.locator("[data-copy-all]"))).toBeVisible();
+  await expect(page.getByRole("link", { name: "Import", exact: true })).toHaveCount(0);
   await expect(page.locator("[data-estimate]")).toHaveCount(0);
 });
 

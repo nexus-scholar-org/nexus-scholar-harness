@@ -292,7 +292,7 @@ export function ChecksPanel(props: Readonly<ChecksPanelProps>) {
   const warnings = rows.filter((c) => c.status === "open" && c.level === "warning");
   const noteRows = rows.filter((c) => c.status === "open" && c.level === "note");
   const dismissedRows = rows.filter((c) => c.status === "dismissed");
-  // M10d (03-guidance rule 3, Review): the first open check that has a fix is marked; the order stays the engine's.
+  // M10d (03-guidance rule 3, Review): the first open check that has a fix is marked; the rows keep the engine's sequence.
   const firstFix = mode === "readiness" ? [...blockers, ...warnings, ...noteRows].find((c) => link(c) !== null) : undefined;
   const firstFixKey = firstFix ? keyOf(firstFix) : null;
   const disabled = busy || offline;

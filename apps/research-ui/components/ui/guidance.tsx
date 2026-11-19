@@ -14,7 +14,7 @@ import { guidanceT } from "@/lib/guidance-copy";
  *   opening anything. It holds a string, never markup: a warning, a refusal or
  *   a control cannot be put inside one.
  * - `RecommendedBadge` (rule 3): the word "Recommended" with its source, on a
- *   neutral dashed outline, followed by the hint that holds the why. It never
+ *   neutral dashed edge, followed by the hint that holds the why. It never
  *   selects anything.
  * - `Fold` (rule 4, use 2): a secondary card collapsed behind its own title and
  *   count; a failing item is named in the summary, so it is never one click away.
@@ -32,8 +32,8 @@ const MARGIN = 16;
 const MAX_WIDTH = 384;
 
 /**
- * Where the panel goes (rule 1.5): beside the button on its inline-end side,
- * else below it, else on its inline-start side. Sides are logical, so in a
+ * Where the panel goes (rule 1.5): beside the button on its end side (logical),
+ * else below it, else on its start side. Sides are logical, so in a
  * right-to-left page the first choice is the physical left. Below 640 px the
  * panel sits below the button and spans the content width.
  */
@@ -66,9 +66,9 @@ function InfoGlyph() {
 }
 
 /**
- * A hint (rule 1). `label` is the visible text of the label or heading it sits
+ * A hint (rule 1). `label` is the shown text of the label or heading it sits
  * beside, `text` the moved sentence, `textKey` its catalog key (written to
- * `data-hint-body` so the audit can check what is hidden). `id` lets a field
+ * `data-hint-body` so the audit can check what is kept behind a hint). `id` lets a field
  * keep its `aria-describedby` on the same id as the paragraph it replaces.
  * An empty `text` renders nothing (never an empty popover).
  */
@@ -175,7 +175,7 @@ export function Hint({
 
 /**
  * The Recommended mark (rule 3): a word, never a colour alone, with its source
- * always visible and the why behind a hint. It renders nothing without a source.
+ * always shown and the why behind a hint. It renders nothing without a source.
  */
 export function RecommendedBadge({
   locale,
