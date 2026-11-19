@@ -10,6 +10,7 @@ import { isOfflineCode, refusalFrom, type AssistRefusal } from "@/components/ass
 import { CHECKS_COPY, checksCountTemplate, checksT, checksTemplate, hasChecksKey } from "@/lib/checks-copy";
 import { fieldLabel, STEP_NUMBER, stepLabel } from "@/lib/assist-labels";
 import { providerName } from "@/lib/discovery-copy";
+import { localDate, localStamp } from "@/lib/local-time";
 import type { Check, CheckList } from "@/lib/inception-api";
 
 /**
@@ -58,11 +59,11 @@ const keyOf = (c: Check) => `${c.check_id}|${c.subject}`;
 const domId = (prefix: string, key: string) => `${prefix}-${key.replace(/[^A-Za-z0-9_-]/g, "_")}`;
 
 function dateOf(at: string | null | undefined): string {
-  return at ? at.slice(0, 10) : "";
+  return localDate(at);
 }
 
 function timeOf(at: string | null | undefined): string {
-  return at ? at.slice(0, 16).replace("T", " ") : "";
+  return localStamp(at);
 }
 
 /** One slot of a check sentence: numbers and identifiers left to right, the researcher's words as written. */

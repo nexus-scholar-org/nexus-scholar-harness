@@ -6,6 +6,7 @@ import { formatNumber, type Locale } from "@/i18n";
 import { Button, DataCell, DecisionBadge } from "@/components/ui/base";
 import { ScreeningSteps, StateCard, stepHref } from "@/components/screening-state-card";
 import { isScreeningApiError } from "@/lib/screening-api";
+import { localDate } from "@/lib/local-time";
 import { acceptCorpus, addCorpusSource, fileToBase64, getCorpus, removeCorpusSource, type Corpus, type CorpusDatabase } from "@/lib/screening-v1";
 import { DiscoverySteps, discoveryHref } from "@/components/discovery-frame";
 import { discoveryT } from "@/lib/discovery-copy";
@@ -563,7 +564,7 @@ function ImportReady({
                 {t("frozen")}
               </h2>
               {corpus.accepted.accepted_at ? (
-                <p className="mt-1 text-sm text-ink-muted">{t("frozenOn", { date: corpus.accepted.accepted_at.slice(0, 10) })}</p>
+                <p className="mt-1 text-sm text-ink-muted">{t("frozenOn", { date: localDate(corpus.accepted.accepted_at) })}</p>
               ) : null}
               <p className="mt-2 text-xs text-ink-muted">{t("fingerprint")}</p>
               <DataCell>

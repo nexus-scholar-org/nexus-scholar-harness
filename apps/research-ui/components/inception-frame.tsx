@@ -9,6 +9,10 @@ import { inceptionStateKey } from "@/lib/screening-states";
 import { isScreeningApiError } from "@/lib/screening-api";
 import { markStepChecked, readDraft, saveDraft, type AcceptedFrom, type Draft, type DraftOrigin, type DraftRecord } from "@/lib/inception-api";
 import { importLossLines } from "@/lib/inception-import";
+import { localStamp } from "@/lib/local-time";
+import { Stamp } from "@/components/stamp";
+
+export { Stamp };
 import { inceptionT, type InceptionCopyKey } from "@/lib/inception-copy";
 import { CHECKS_COPY } from "@/lib/checks-copy";
 import { proposalsCountTemplate, proposalsT } from "@/lib/proposals-copy";
@@ -431,7 +435,7 @@ export function InceptionFrame({
             </span>
             <span aria-live="polite" data-saved>
               {t("saved", { at: "" })}
-              <bdi dir="ltr">{stamp(record.updated_at)}</bdi>
+              <Stamp at={record.updated_at} />
             </span>
           </p>
           {draft.notRecorded.length ? (
@@ -474,9 +478,9 @@ export function StepHeader({ kicker, title, lede, extra }: Readonly<{ kicker: st
   );
 }
 
-/** An engine timestamp as `YYYY-MM-DD HH:MM`, as the other screens print it (UTC, as stored). */
+/** An engine timestamp as `YYYY-MM-DD HH:MM` on the researcher's clock (H-ui-findings F6; the engine stores UTC). */
 export function stamp(at: string | null | undefined): string {
-  return at ? at.slice(0, 16).replace("T", " ") : "";
+  return localStamp(at);
 }
 
 /** "Started from {label} ..." under the stepper of an imported draft, with what was not carried (M10b). */

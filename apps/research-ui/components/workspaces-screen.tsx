@@ -6,6 +6,7 @@ import { formatNumber, type Locale } from "@/i18n";
 import { Button, DecisionBadge } from "@/components/ui/base";
 import { StateCard } from "@/components/screening-state-card";
 import { isScreeningApiError } from "@/lib/screening-api";
+import { Stamp } from "@/components/stamp";
 import {
   createWorkspace,
   currentWorkspacePath,
@@ -485,7 +486,7 @@ export function WorkspacesScreen({ locale }: Readonly<{ locale: Locale }>) {
                       </td>
                       <td className="p-3 text-ink-muted">
                         {item.last_event?.at ? (
-                          <><bdi dir="ltr">{item.last_event.at.slice(0, 16).replace("T", " ")}</bdi> · <bdi dir="ltr">{item.last_event.action}</bdi></>
+                          <><Stamp at={item.last_event.at} /> · <bdi dir="ltr">{item.last_event.action}</bdi></>
                         ) : t("never")}
                       </td>
                       <td className="p-3">

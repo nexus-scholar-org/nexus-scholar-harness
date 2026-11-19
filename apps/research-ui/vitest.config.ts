@@ -11,6 +11,10 @@ import { defineConfig } from "vitest/config";
  * unverified in `GATES.md` and deferred to packet UI-00b.
  */
 
+// The screens print engine instants on the machine's clock (H-ui-findings F6); the tests read them in UTC
+// so a run does not depend on the developer's zone. Tests of the conversion set `TZ` themselves.
+process.env.TZ = "UTC";
+
 const appRoot = fileURLToPath(new URL(".", import.meta.url));
 
 export default defineConfig({
