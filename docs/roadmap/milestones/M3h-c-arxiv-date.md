@@ -1,5 +1,5 @@
 # M3h-c-arxiv-date The arXiv leg sends its year range (F16, second half)
-Branch: dev/m3h-c/arxiv-date-filter · Lane: **STANDARD** (see "Lane") · Status: **RE-RECORDED, IN GATE** (both golden cassettes re-recorded by the researcher 2026-11-19; golden replay green; the pr gate and the review run on the final commit) · Started: 2026-11-18
+Branch: dev/m3h-c/arxiv-date-filter · Lane: **STANDARD** (see "Lane") · Status: **READY FOR PR, NOT PUSHED** (both golden cassettes re-recorded by the researcher 2026-11-19; pr gate green; `milestone-reviewer` APPROVE; waiting for the researcher's word to push) · Started: 2026-11-18
 
 The half of finding F16 of
 [`three-phase-hardening-2026-11-10.md`](../../assessment/three-phase-hardening-2026-11-10.md)
@@ -29,7 +29,7 @@ This diff changes the request one provider sends and the notes its leg records. 
 - [x] The researcher re-records both arXiv answers (`scripts/record_golden_recon_arxiv.py`); the golden replay tests go green (9 passed, 0 failed).
 - [x] The pinned golden digests: **they did not move** (the replayed corpus is the same set, see "After the re-record"), so `GOLDEN_SCI_DIGEST` / `GOLDEN_REC_DIGEST` stay as they are; the arXiv record counts before and after are recorded below.
 - [ ] The open-ended range checked live once (`--check-open-ended`): **not run** (the researcher reported the re-record only); decision item 1 stays open and the bounds 1991 and 9999 stay unverified live.
-- [ ] Gates: inner after edits, the `pr` gate once on the final commit, contract baseline `--check`, both ruff commands; `milestone-reviewer` APPROVE.
+- [x] Gates: inner after edits, the `pr` gate once on the final executable commit `d89c4c99`, contract baseline `--check`, both ruff commands; `milestone-reviewer` APPROVE (2026-11-19, one P2 asking for this evidence row, done).
 - [ ] Researcher's word before any push or PR.
 
 ## Built
@@ -46,6 +46,11 @@ This diff changes the request one provider sends and the notes its leg records. 
 | golden replay | working tree | `uv run pytest tests/pipeline/test_golden_search_cassettes.py tests/pipeline/test_golden_recon_cassette.py tests/recon/test_direction_pool_quality.py -n 4 -rA` | **4 failed**, 7 passed; see "Red until the re-record" | |
 | full suite without the golden files | working tree | `uv run pytest tests -n auto --ignore=<the two golden files>` | 72 failed or errored, none in a search, console, recon, pipeline, harness or unit test: all in `tests/kits/rag`, `tests/kits/pdf`, `tests/kits/agent` (RAG tools), `tests/e2e` and `tests/conformance` index/extract tests, because this worktree was synced with `--extra dev` only (58 of them print `No module named 'chromadb'`; the rest are the `DEPENDENCY_ERROR` envelope of the same missing backends). Not caused by this change; the final gate runs with `--extra pdf --extra rag` | |
 | contract (after) | `e1bd0950` | `generate_contract_baseline.py --check` | "Contract baseline current" (exit 0) | |
+| golden replay (after re-record) | `d89c4c99` | `uv run pytest tests/pipeline/test_golden_search_cassettes.py tests/pipeline/test_golden_recon_cassette.py` | 9 passed, 0 failed | |
+| pr gate | `d89c4c99` | `uv run --extra dev --extra pdf --extra rag pytest -q -n auto` (the pr stage's pytest line; `git diff --check` and `ruff check scripts/` also clean) | exit 0, no failure or error in the progress output (about 5,377 passed, 17 skipped, counted from the dots: this run printed no summary line) | |
+| contract (after the re-record) | `d89c4c99` | `generate_contract_baseline.py --check` | "Contract baseline current" (exit 0) | |
+| lint | `d89c4c99` | `ruff check scripts/`; `ruff check src/ --select F821,F811,F823,F632,F7,B023,B006,E9` | both "All checks passed" | |
+| review | `d89c4c99` | `milestone-reviewer` | **APPROVE**; P2 (this row) done; P3: the common browser case is an open end (year_min only), first live use may refuse, fix is one constant | |
 
 ## After the re-record (2026-11-19)
 The researcher re-recorded both cassettes. The diff touches one request line and the arXiv answer in each file and nothing else (the number of address-like strings in each cassette is unchanged); the request now carries the clause: `(...) AND submittedDate:[202001010000 TO 202612312359]`, closed range, so the open-end bounds are not in these cassettes.
