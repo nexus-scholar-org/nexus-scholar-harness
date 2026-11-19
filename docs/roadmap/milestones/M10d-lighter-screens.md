@@ -1,5 +1,5 @@
 # M10d-lighter-screens: tips behind icons, one main action, the recommended choice marked
-Branch: `dev/m10d/lighter-screens` (from `origin/main` at `17d7310d`) · Lane: **STANDARD** (UI; plan §6) · Status: **READY FOR PR** (PR gate passed at `d7207665`, merged with `origin/main` c54e99f2; `milestone-reviewer` rounds 1 and 2 CHANGES, repaired; decision items 3, 4, 9 and 10 need the researcher's word before the PR) · Started: 2026-11-19 (the researcher: "start M10d")
+Branch: `dev/m10d/lighter-screens` (from `origin/main` at `17d7310d`) · Lane: **STANDARD** (UI; plan §6) · Status: **READY FOR PR** (PR gate passed at `d7207665`, merged with `origin/main` c54e99f2; `milestone-reviewer` rounds 1 and 2 CHANGES, repaired, round 3 APPROVE; decision items 3, 4, 9 and 10 need the researcher's word before the PR) · Started: 2026-11-19 (the researcher: "start M10d")
 
 Fourth milestone of "Assisted inception" (approved 2026-11-14). Plan §6 row **M10d-lighter-screens**: "Lighter screens: tips behind icons, one main action per step, the recommended choice marked. Specs written once, at the start of M10b."
 
@@ -40,7 +40,7 @@ Nothing a refusal, a warning, a check or a gate says is hidden: `guidance.never-
 
 ## Definition of done
 Shared parts (`03-guidance` rules 1 to 5):
-- [x] G1 `Hint` and `Details` in `components/ui/base.tsx`; the hint is a `<button type="button">` with a 16 px glyph in a 44 px hit area, `aria-expanded`, `aria-controls`, the name "About {label}", a `role="note"` panel kept in the DOM (`data-hint-body`, the field's `aria-describedby`), Escape / outside click / Tab away close it, one open at a time, inline-end placement with logical flipping. New keys in `lib/guidance-copy.ts`, en, fr and ar. Tests: `tests/hint.test.tsx`, `tests/hint.rtl.test.tsx`, `tests/guidance-copy.test.ts`. The `Details` wrapper is not built (see Deferred).
+- [x] G1 `Hint` (in `components/ui/guidance.tsx`, re-exported by `components/ui/base.tsx`; `Details` deferred); the hint is a `<button type="button">` with a 16 px glyph in a 44 px hit area, `aria-expanded`, `aria-controls`, the name "About {label}", a `role="note"` panel kept in the DOM (`data-hint-body`, the field's `aria-describedby`), Escape / outside click / Tab away close it, one open at a time, inline-end placement with logical flipping. New keys in `lib/guidance-copy.ts`, en, fr and ar. Tests: `tests/hint.test.tsx`, `tests/hint.rtl.test.tsx`, `tests/guidance-copy.test.ts`. The `Details` wrapper is not built (see Deferred).
 - [x] G2 `RecommendedBadge` ("Recommended · {source}", dashed `ink-muted` border, `ink` on `surface-raised`, followed by its hint when given a why); never preselects. Test: `tests/recommended.test.tsx`. **Exception, waiting for the researcher (decision item 10):** none of the five marks on the screens carries a hint of its own; their why is the lens legend's hint (Shape), the Search mode hint (Explore) or the row's own "Why" disclosure (Review, size estimate).
 - [x] G3 The audit fixture (`tests/fixtures/guidance-audit.ts`, one row per `03-guidance` Audit row) and `tests/guidance.audit.test.tsx`: every rendered hint body's key is a HINT row; no HINT text in the visible flow; no REMOVED sentence in the DOM; every catalog key of `inception-copy` and `discovery-copy` matched by a row (keys added after the audit snapshot are added to the spec's Audit with their decision).
 - [x] G4 `tests/guidance.never-hidden.test.tsx`: no alert, StateCard, blocked/unclear badge, check, provenance or gate element inside a hint, on every screen fixture; no V1/V2/V3/V5/V6 key and no `screening-states.ts` key passed as a hint's `textKey` (static check).
@@ -54,7 +54,7 @@ Every screen row below is built and tested in `tests/guidance.screens.test.tsx`,
 | :-- | :-- | :-- | :-- | :-- | :-- |
 | inception frame (every step) | I-F2 `nothingWritten` (beside "Draft saved") | none | (the step's own) | none | none |
 | 01 Scope | I-S5, I-S6, I-S7 | I-S4 (lede sentence 2) | Continue to Explore | none | none |
-| 02 Explore (first slice) | I-E8, E10, E19, E23, E26, E29, E30, E32, E35, E38, E39, E41 (9 hint buttons visible with a pool, over the budget of 6: decision item 3) | I-E3, I-E15 | Search the literature, then See {n} directions | "Search again with semantic search" on a thin pool, `Recommended · pool size check` | topics and metrics; papers; databases asked (summary "{n} failed") |
+| 02 Explore (first slice) | I-E8, E10, E19, E23, E26, E29, E30, E32, E35, E38, E39, E41 (9 hint buttons visible with a pool, over the budget of 6: decision item 3) | I-E3, I-E15 | Search the literature, then See {n} directions | "Search again with semantic search" on a thin pool, `Recommended · pool size check` | topics and metrics; papers; databases asked (summary "{n} failed" and "{n} found nothing") |
 | 03 Direction | I-D4, D8, D17, D19, D24 | I-D5, I-D14 | Pursue {direction}, then Continue to Shape | nothing (the spec says the order is evidence) | none |
 | 04 Shape | I-SH6, SH8, SH9, SH10, SH12, and the planned-records help (`04-shape` "The field") | I-SH2 | Continue to concepts and criteria | the leaning lens (`Recommended · word scan of your topic`) and the playbook that matches it | none |
 | 05 Criteria | I-C7, C9, C10, C14 (one hint on the list heading), C17 | I-C3, I-C13 | Continue to review | only when an M10b check proposes one (the proposal card) | none (question 3) |
@@ -84,6 +84,7 @@ None (no assessment finding is in scope).
 | review round 1 | `d0e134e9` | `milestone-reviewer` | CHANGES (12 findings; repaired in `70f74fce`) | |
 | review round 2 | `70f74fce` | `milestone-reviewer` | CHANGES (merge base moved; Direction group name; a regression test; docs; repaired in `2affee37`, merged in `ba38209f`) | |
 | pr (run 1) | `ba38209f` (merge of `origin/main` c54e99f2, the hydration fix #252) | `select_test_gate.py --changed origin/main --stage pr`: diff check, typecheck, `npm test`, build, `test:browser`; `generate_contract_baseline.py --check` | clean; current; clean; 934 passed (66 files); built; 598 passed, **2 failed** (hygiene: a comment word, "blur", compiled as a utility; fixed in `d7207665`) | browser 13.5 min |
+| review round 3 | `8b28251d` | `milestone-reviewer` | **APPROVE**; six P3 follow-ups (see the report), none blocking | |
 | **pr** | **`d7207665`** | the same commands | diff check clean; **contract baseline current**; typecheck clean; **934 passed (66 files)**; built; **600 passed, 12 skipped (612)**, light and dark | vitest 116 s, browser 12.7 min |
 
 ## Deferred
