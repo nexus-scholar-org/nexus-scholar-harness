@@ -4,7 +4,8 @@ import { useCallback, useEffect, useId, useRef, useState, type ReactNode } from 
 
 import type { Locale } from "@/i18n";
 import { formatNumber } from "@/i18n";
-import { Button, DecisionBadge } from "@/components/ui/base";
+import { Button, DecisionBadge, RecommendedBadge } from "@/components/ui/base";
+import { guidanceT } from "@/lib/guidance-copy";
 import { fillNodes, fillText, tryFocus } from "@/components/assist-anchor";
 import { isOfflineCode, refusalFrom, type AssistRefusal } from "@/components/assist-context";
 import { CHECKS_COPY, checksCountTemplate, checksT, checksTemplate, hasChecksKey } from "@/lib/checks-copy";
@@ -291,6 +292,9 @@ export function ChecksPanel(props: Readonly<ChecksPanelProps>) {
   const warnings = rows.filter((c) => c.status === "open" && c.level === "warning");
   const noteRows = rows.filter((c) => c.status === "open" && c.level === "note");
   const dismissedRows = rows.filter((c) => c.status === "dismissed");
+  // M10d (03-guidance rule 3, Review): the first open check that has a fix is marked; the order stays the engine's.
+  const firstFix = mode === "readiness" ? [...blockers, ...warnings, ...noteRows].find((c) => link(c) !== null) : undefined;
+  const firstFixKey = firstFix ? keyOf(firstFix) : null;
   const disabled = busy || offline;
   const n = (value: number) => <bdi dir="ltr">{formatNumber(locale, value)}</bdi>;
 
@@ -371,6 +375,9 @@ export function ChecksPanel(props: Readonly<ChecksPanelProps>) {
             </svg>
             {t("checks.why")}
           </button>
+          {!dismissedRow && key === firstFixKey ? (
+            <RecommendedBadge locale={locale} source={guidanceT(locale)("guidance.recommended.source.check", { id: check.check_id })} />
+          ) : null}
           {!dismissedRow && target?.proposal ? (
             <Button variant="quiet" className="px-0" disabled={offline} aria-describedby={offline ? offlineId : sentenceId} onClick={() => {
               if (!tryFocus(`proposal-${target.proposal}`) && target.href) window.location.assign(target.href);

@@ -219,7 +219,7 @@ export function Fold({
         <span aria-hidden="true" className="text-ink-muted transition-none group-open:rotate-90 rtl:-scale-x-100">
           ›
         </span>
-        <h2 id={headingId} className="font-semibold text-ink">
+        <h2 id={headingId} tabIndex={headingId ? -1 : undefined} className="font-semibold text-ink">
           {count === undefined ? title : t("guidance.section.count", { title, n: count })}
         </h2>
         {failed ? (

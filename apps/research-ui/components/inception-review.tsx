@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import type { Locale } from "@/i18n";
 import { formatNumber } from "@/i18n";
-import { Button, DataCell, DecisionBadge, GatePanel } from "@/components/ui/base";
+import { Button, DataCell, DecisionBadge, GatePanel, Hint } from "@/components/ui/base";
 import { DETAILS_LABEL } from "@/components/screening-state-card";
 import { inceptionHref, InceptionFrame, InceptionRefusal, refusalOf, StepHeader, useDraft, type Refusal } from "@/components/inception-frame";
 import { previewDraft, runGenesis, runStep, type Criterion, type DraftRecord, type GenesisRequest, type Preview, type ScreeningBinding } from "@/lib/inception-api";
@@ -183,9 +183,12 @@ export function InceptionReview({ locale }: Readonly<{ locale: Locale }>) {
             </h2>
             <div className="mt-3 grid gap-4 sm:grid-cols-2">
               <div className="sm:col-span-2">
-                <label htmlFor="review-title" className="block text-sm font-medium text-ink">
-                  {t("review.reviewTitle")}
-                </label>
+                <div className="flex items-center gap-1">
+                  <label htmlFor="review-title" className="block text-sm font-medium text-ink">
+                    {t("review.reviewTitle")}
+                  </label>
+                  <Hint locale={locale} label={t("review.reviewTitle")} text={t("review.reviewTitleHelp")} textKey="review.reviewTitleHelp" id="review-title-help" />
+                </div>
                 <input
                   id="review-title"
                   value={draft.title ?? ""}
@@ -193,9 +196,6 @@ export function InceptionReview({ locale }: Readonly<{ locale: Locale }>) {
                   aria-describedby="review-title-help"
                   className="mt-1 block min-h-11 w-full rounded-md border border-rule bg-paper px-2 text-ink"
                 />
-                <p id="review-title-help" className="mt-1 text-xs text-ink-muted">
-                  {t("review.reviewTitleHelp")}
-                </p>
               </div>
               <div>
                 <label htmlFor="review-lead" className="block text-sm font-medium text-ink">
@@ -362,8 +362,13 @@ export function InceptionReview({ locale }: Readonly<{ locale: Locale }>) {
         </div>
 
         <aside className="min-w-0 space-y-4">
+          {/* M10d (03-guidance I-R12, spec 12 use 1): the folder, the files and the fingerprint are identifiers, behind Details; the gate states the folder. */}
           {preview ? (
-            <dl className="grid gap-3 rounded-lg border border-rule bg-leaf p-4 text-sm">
+            <details className="rounded-lg border border-rule bg-leaf px-4 text-sm" data-review-files>
+              <summary className="min-h-11 cursor-pointer rounded-sm py-3 leading-5 text-ink-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus">
+                {DETAILS_LABEL[locale]} · {t("review.files")}
+              </summary>
+            <dl className="grid gap-3 pb-4">
               <div>
                 <dt className="text-ink-muted">{t("review.folder")}</dt>
                 <dd data-target-path>
@@ -383,15 +388,16 @@ export function InceptionReview({ locale }: Readonly<{ locale: Locale }>) {
                 </dd>
               </div>
               <div>
-                <dt className="text-ink-muted">{t("review.fingerprint")}</dt>
+                <dt className="flex items-center gap-1 text-ink-muted">
+                  <span>{t("review.fingerprint")}</span>
+                  <Hint locale={locale} label={t("review.fingerprint")} text={t("review.fingerprintNote")} textKey="review.fingerprintNote" />
+                </dt>
                 <dd data-fingerprint>
                   <DataCell>{preview.protocol_fingerprint}</DataCell>
                 </dd>
-                <dd className="mt-1 text-xs text-ink-muted" data-fingerprint-note>
-                  {t("review.fingerprintNote")}
-                </dd>
               </div>
             </dl>
+            </details>
           ) : null}
 
           {/* M10b (02-checks): "Ready to create?" replaces the Checks card; open warnings never disable Create. */}
@@ -494,7 +500,6 @@ function DirectionSection({ locale, record, draftId, origin }: Readonly<{ locale
       ) : skipped ? (
         <div className="mt-2" data-direction-line="skipped">
           <DecisionBadge role="unclear">{t("review.direction.skipped")}</DecisionBadge>
-          <p className="mt-1 text-ink">{t("review.direction.skippedBody")}</p>
         </div>
       ) : (
         <div className="mt-2" data-direction-line={direction.source === "researcher" ? "own" : "pool"}>
@@ -510,7 +515,10 @@ function DirectionSection({ locale, record, draftId, origin }: Readonly<{ locale
       </a>
       {seeds.length ? (
         <div data-review-seeds={seeds.length}>
-          <p className="text-ink">{t("review.seeds.count", { n: String(seeds.length) })}</p>
+          <p className="flex items-center gap-1 text-ink">
+            <span>{t("review.seeds.count", { n: String(seeds.length) })}</span>
+            <Hint locale={locale} label={t("review.seeds.count", { n: String(seeds.length) })} text={t("review.seeds.caption")} textKey="review.seeds.caption" />
+          </p>
           <details>
             <summary className="min-h-11 cursor-pointer rounded-sm py-3 leading-5 text-ink-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus">
               {DETAILS_LABEL[locale]} · {t("review.seeds.details")}
@@ -529,7 +537,6 @@ function DirectionSection({ locale, record, draftId, origin }: Readonly<{ locale
           {t("review.seeds.none")}
         </p>
       )}
-      <p className="mt-1 text-xs text-ink-muted">{t("review.seeds.caption")}</p>
     </section>
   );
 }
