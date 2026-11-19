@@ -20,8 +20,6 @@ import { changeSample, getSample, SAMPLE_CALL_MAX, type DistilledPaper, type Sam
  */
 
 const TOAST_MS = 8000;
-/** The next-step bar (another component) re-reads when the review changed. */
-const REVIEW_CHANGED = "nexus:review-changed";
 
 type Kind = "mark" | "put" | "putAll";
 
@@ -134,9 +132,9 @@ export function useSampleCuration({
   const locked = error?.code === "DRAFT_CONFLICT" || error?.code === "DRAFT_EMITTED";
   const disabled = offline || locked || searching;
 
+  // `bumpAssist` re-reads the checks panel and tells the next-step bar (one event per change).
   const notify = () => {
     latest.current.bumpAssist();
-    if (typeof window !== "undefined") window.dispatchEvent(new Event(REVIEW_CHANGED));
   };
 
   /** Re-read the pool, the directions and the concepts once; only the last change announces. */
