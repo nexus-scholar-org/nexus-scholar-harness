@@ -1,5 +1,5 @@
 # H-small-fixes-2-2026-11-18 Gate manifest wheel builds, Windows lock follow-ups, init wording, F8
-Branch: dev/fix/small-fixes-2 · Lane: **STANDARD** · Status: READY FOR PR · Started: 2026-11-18
+Branch: dev/fix/small-fixes-2 · Lane: **STANDARD** · Status: MERGED (PR #243, merge commit `1d478f4f`, 2026-11-18) · Started: 2026-11-18
 
 Base: `origin/main` at `6e39b00a`. Second bundle after `H-small-fixes-2026-11-18.md` (PR #237). No live API calls, no AI spend. Out of scope by agreement with the concurrent sessions: Inception screens, proposal and check objects, the console inception API, the Discovery plan screen, `src/scholar_search`. None of those files was edited.
 

@@ -1,5 +1,5 @@
 # M9a-measure: measure the screening agent against the researcher's decisions
-Branch: dev/m9a/measure-harness · Lane: **STANDARD** (see the lane note) · Status: **READY FOR PR. HARNESS BUILT; THE MEASUREMENT HAS NOT BEEN RUN. It needs the researcher's approval of AI spend** (all AI spend is deferred, 2026-11-18) · Started: 2026-11-18
+Branch: dev/m9a/measure-harness · Lane: **STANDARD** (see the lane note) · Status: **HARNESS MERGED (PR #242, merge commit `f64cd82d`, 2026-11-18); THE MEASUREMENT HAS NOT BEEN RUN. It needs the researcher's approval of AI spend** (all AI spend is deferred, 2026-11-18) · Started: 2026-11-18
 
 Plan: [`production-plan.md`](../production-plan.md) §6 row M9a-measure. Design: [`agent_autonomy_ladder.md`](../../architecture/agent_autonomy_ladder.md) §4 (the gate), §9 (decisions of 2026-11-10, amended 2026-11-11), §10. The screening drivers and the first evaluation came with [`M1b-2.md`](M1b-2.md) (the `prompt-gate` group).
 
