@@ -10,7 +10,7 @@ layer: domain
 # `scholar-agent-kit` Skill Instructions
 
 MCP front-door for most Nexus Scholar surfaces — **not** every API/CLI capability.
-27 tools: 24 `nexus_*` + 3 `recon_*` (`scholar-agent --help` lists all 27 registered tools; parity
+32 tools: 29 `nexus_*` + 3 `recon_*` (`scholar-agent --help` lists all 32 registered tools; parity
 enforced by `tests/conformance/test_mcp_tool_parity.py`). Pinned source:
 `{KIT_ROOT:agent}/src/scholar_agent/server.py` (tool list/signatures,
 `_resolve_path`, refusals) + `capabilities.py` (registry; pin: see `{CONFIG}`).
@@ -18,7 +18,7 @@ Detail pointers below route to `--help`, the surface matrix, and those two
 files — this page stays the small-footprint entrypoint.
 
 ## Preflight
-- `MCP nexus_*` availability, or `{CLI:agent} --help` resolves (lists all 25 registered tools) → else `BLOCKED_INPUT`.
+- `MCP nexus_*` availability, or `{CLI:agent} --help` resolves (lists all 32 registered tools) → else `BLOCKED_INPUT`.
 - `{WORKSPACE}` resolves — `protocol.json`/`project.json` where the tools require workspace input; `literature/extraction/merged/records.json` + `phase4/_manifest.json` for #19/#20.
 - `{CONFIG}` present (the pin manifest).
 
@@ -32,7 +32,7 @@ files — this page stays the small-footprint entrypoint.
 
 ```bash
 {CLI:agent} [--workspace <ws>]
-{CLI:agent} --help  # lists all 25 registered tools
+{CLI:agent} --help  # lists all 32 registered tools
 ```
 
 - Server CWD is `{KIT_ROOT:agent}/`; `mcp_config.json` ships no `env`/cwd.

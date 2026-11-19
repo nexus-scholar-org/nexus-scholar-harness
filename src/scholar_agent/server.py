@@ -2237,10 +2237,13 @@ def _assistant_workspace(workspace_dir: str) -> Path:
 
 
 def _recon_sessions():
-    from scholar_harness.recon.session import ReconSessions
-
+    """The recon session store the recon tools use (``_sessions``), for reading a draft's pool."""
     _ensure_harness_recon_loaded()
-    return ReconSessions(root=RECON_CACHE_ROOT, search_fn=RECON_SEARCH_FN)
+    if _recon_adapter is None:
+        from scholar_harness.recon.session import ReconSessions
+
+        return ReconSessions(root=RECON_CACHE_ROOT)
+    return _sessions()
 
 
 def _assistant_answer(fn, *args, **kwargs) -> str:
