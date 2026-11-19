@@ -6,6 +6,8 @@
 import { spawnSync } from "node:child_process";
 import { rmSync } from "node:fs";
 
+import { flattenSegmentFiles } from "./flatten-segment-files.mjs";
+
 // The route types other builds left behind (`next dev`, the browser-test
 // builds) are in tsconfig's include list, so a stale one fails this build's
 // type check with routes that no longer exist. Next regenerates each of them
@@ -23,3 +25,7 @@ for (const [command, args] of steps) {
   const result = spawnSync(command, args, { stdio: "inherit", env, shell: process.platform === "win32" });
   if (result.status !== 0) process.exit(result.status ?? 1);
 }
+
+// A build made on Windows nests the prefetch files the client asks for by a flat name (F9).
+const flattened = flattenSegmentFiles(process.env.NEXT_DIST_DIR ?? ".next-export");
+if (flattened) console.log(`Flattened ${flattened} prefetch file(s) that Next wrote in nested folders.`);

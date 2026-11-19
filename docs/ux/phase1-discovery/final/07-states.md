@@ -103,7 +103,7 @@ Role is the brand status role (`docs/ux/brand/tokens.json`), shown as words in t
 | **Partial run** | 03, 06 | status `PARTIAL`/`CANCELLED`, a leg `failed` or `stopped` | The status as written, with each database's own state |
 
 ## States
-- **Default**: this spec has no screen; the default of each state is its `StateCard`: the badge in the role (title as text), an `h2` (or `h1` with `pageHeading` when the card stands for the screen), the body sentence, a `Details` disclosure holding "Affects: ..." and the typed code in the role colour (LTR, selectable), one action. The code is behind Details (rule page 12).
+- **Default**: this spec has no screen; the default of each state is its `StateCard`: the title as an `h2` (or `h1` with `pageHeading` when the card stands for the screen; the role shows as the card's start-edge colour and `data-role`, not as a second copy of the title, H-ui-findings F7), the body sentence, a `Details` disclosure holding "Affects: ..." and the typed code in the role colour (LTR, selectable), one action. The code is behind Details (rule page 12).
 - **Empty**: `PROTOCOL_MISSING`, `RUN_NOT_FOUND` (no run), `RECALL_NOT_RUN`, `DEDUP_NOT_RUN`, `NOTHING_STAGED` are "nothing yet" states in the `exclude` role, not errors.
 - **Loading**: each screen's skeleton (`aria-busy`); the card appears only when a read has failed or a job has ended with an error.
 - **Error**: every row of the table. An unrecognised 5xx renders as its own code. A refusal on a write never alters the page's data.

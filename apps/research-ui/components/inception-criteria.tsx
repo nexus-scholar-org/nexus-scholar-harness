@@ -12,7 +12,7 @@ import { runStep, type AcceptedFrom, type CriteriaStep, type Criterion, type Dra
 import { getConcepts, getRecon, hasUsablePool, type ConceptReport, type ReconState } from "@/lib/recon-api";
 import { DETAILS_LABEL } from "@/components/screening-state-card";
 import { DoiLink } from "@/components/inception-recon";
-import { inceptionT, sourceText } from "@/lib/inception-copy";
+import { inceptionCountT, inceptionT, sourceText } from "@/lib/inception-copy";
 
 /**
  * Step 5, Concepts and criteria (spec 05, M4b; INC-22). Every criterion comes
@@ -318,7 +318,7 @@ export function InceptionCriteria({ locale }: Readonly<{ locale: Locale }>) {
         extra={
           criteria ? (
             <p className="mt-2 text-ink" aria-live="polite" data-need-you={undecided}>
-              {undecided > 0 ? t("criteria.needYou", { n: formatNumber(locale, undecided) }) : t("criteria.allDecided")}
+              {undecided > 0 ? inceptionCountT(locale)("criteria.needYou", undecided, { n: formatNumber(locale, undecided) }) : t("criteria.allDecided")}
             </p>
           ) : null
         }

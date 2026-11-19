@@ -7,9 +7,10 @@ import { formatNumber } from "@/i18n";
 import { Button, DecisionBadge } from "@/components/ui/base";
 import { fillNodes, fillText, tryFocus } from "@/components/assist-anchor";
 import { isOfflineCode, refusalFrom, type AssistRefusal } from "@/components/assist-context";
-import { CHECKS_COPY, checksT, checksTemplate, hasChecksKey } from "@/lib/checks-copy";
+import { CHECKS_COPY, checksCountTemplate, checksT, checksTemplate, hasChecksKey } from "@/lib/checks-copy";
 import { fieldLabel, STEP_NUMBER, stepLabel } from "@/lib/assist-labels";
 import { providerName } from "@/lib/discovery-copy";
+import { localDate, localStamp } from "@/lib/local-time";
 import type { Check, CheckList } from "@/lib/inception-api";
 
 /**
@@ -58,11 +59,11 @@ const keyOf = (c: Check) => `${c.check_id}|${c.subject}`;
 const domId = (prefix: string, key: string) => `${prefix}-${key.replace(/[^A-Za-z0-9_-]/g, "_")}`;
 
 function dateOf(at: string | null | undefined): string {
-  return at ? at.slice(0, 10) : "";
+  return localDate(at);
 }
 
 function timeOf(at: string | null | undefined): string {
-  return at ? at.slice(0, 16).replace("T", " ") : "";
+  return localStamp(at);
 }
 
 /** One slot of a check sentence: numbers and identifiers left to right, the researcher's words as written. */
@@ -80,6 +81,12 @@ function slot(locale: Locale, name: string, value: unknown): ReactNode {
   return <bdi dir="ltr">{text}</bdi>;
 }
 
+/** The count a sentence is about: its `n` parameter when it is a number (H-ui-findings F4). */
+function countOf(params: Record<string, unknown> | undefined): number | undefined {
+  const n = params?.n;
+  return typeof n === "number" ? n : undefined;
+}
+
 function slots(locale: Locale, params: Record<string, unknown>): Record<string, ReactNode> {
   return Object.fromEntries(Object.entries(params ?? {}).map(([k, v]) => [k, slot(locale, k, v)]));
 }
@@ -88,14 +95,14 @@ function slots(locale: Locale, params: Record<string, unknown>): Record<string, 
 export function CheckSentence({ locale, check }: Readonly<{ locale: Locale; check: Check }>) {
   // M10c: an assistant's finding is shown in its own words (the review's language), never translated.
   if (check.source === "agent") return <bdi dir="auto">{check.message}</bdi>;
-  const template = checksTemplate(locale, check.message_key);
+  const template = checksTemplate(locale, check.message_key, countOf(check.params));
   return template ? <>{fillNodes(template, slots(locale, check.params))}</> : <bdi dir="ltr">{check.check_id}</bdi>;
 }
 
 /** The sentence as plain text, for the polite announcements. */
 function sentenceText(locale: Locale, check: Check): string {
   if (check.source === "agent") return check.message;
-  const template = checksTemplate(locale, check.message_key);
+  const template = checksTemplate(locale, check.message_key, countOf(check.params));
   if (!template) return check.check_id;
   return fillText(template, Object.fromEntries(Object.entries(check.params ?? {}).map(([k, v]) => [k, String(v ?? "")])));
 }
@@ -322,6 +329,11 @@ export function ChecksPanel(props: Readonly<ChecksPanelProps>) {
                   : t("checks.source.agent")
                 : t("checks.source.generic")}
           </span>
+          {dirty && !dismissedRow ? (
+            <span className="text-unclear" data-row-saved>
+              · {t("checks.row.saved")}
+            </span>
+          ) : null}
         </div>
         <p id={sentenceId} tabIndex={-1} className="mt-1 text-[0.9375rem] leading-[1.375rem] text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus" data-sentence>
           <CheckSentence locale={locale} check={check} />
@@ -574,7 +586,7 @@ export function ChecksPanel(props: Readonly<ChecksPanelProps>) {
       {disclosure(fillNodes(CHECKS_COPY[locale]["checks.dismissed"], { n: n(counts.dismissed) }), dismissedRows, true, "data-dismissed")}
       {[...needs.entries()].map(([need, count]) => (
         <p key={need} className="mt-2 text-sm text-ink-muted" data-waiting={need}>
-          {fillNodes(CHECKS_COPY[locale]["checks.waiting"], {
+          {fillNodes(checksCountTemplate(locale, "checks.waiting", count), {
             n: n(count),
             need: hasChecksKey(`checks.need.${need}`) ? t(`checks.need.${need}` as "checks.need.pool") : <bdi dir="ltr">{need}</bdi>,
           })}

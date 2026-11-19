@@ -45,6 +45,24 @@ describe("inception.shape", () => {
     expect(put.body?.draft).toMatchObject({ paradigm: "Design Science", playbook: "DESIGN_SCIENCE", out_of_scope: ["closed models", "pre-2020"] });
   });
 
+  it("keeps Continue disabled until the researcher has chosen a playbook, and says so (H-ui-findings F2)", async () => {
+    setUp({ draft: { topic: "weed detection" } });
+    render(<InceptionShape locale="en" />);
+    const lens = (await screen.findByText("Design Science")).closest("label")!;
+    fireEvent.click(within(lens).getByRole("radio"));
+    const playbook = (await screen.findByText("DESIGN_SCIENCE")).closest("label")!;
+    // The matching playbook is marked, never selected for the researcher (spec 04).
+    expect(within(playbook).getByText("Matches the lens")).toBeInTheDocument();
+    expect(within(playbook).getByRole("radio")).not.toBeChecked();
+    const next = screen.getByRole("button", { name: "Continue to concepts and criteria" });
+    expect(next).toBeDisabled();
+    expect(screen.getByText("Choose a playbook first.")).toBeInTheDocument();
+    expect(next).toHaveAccessibleDescription("Choose a playbook first.");
+    fireEvent.click(within(playbook).getByRole("radio"));
+    expect(next).toBeEnabled();
+    expect(screen.queryByText("Choose a playbook first.")).toBeNull();
+  });
+
   it("offers the template only once the engine has answered for the answers on screen", async () => {
     setUp({ draft: { topic: "weed detection", paradigm: "Design Science", playbook: "DESIGN_SCIENCE", unit_of_analysis: "embedded cameras", proof: "mIoU" } });
     render(<InceptionShape locale="en" />);

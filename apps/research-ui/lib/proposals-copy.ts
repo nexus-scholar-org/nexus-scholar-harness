@@ -1,5 +1,6 @@
 import type { Locale } from "@/i18n";
 import { fillCopy } from "@/lib/inception-copy";
+import { pluralTemplate } from "@/lib/plural";
 
 /**
  * Copy of the proposal card and list (`docs/ux/shared/final/01-proposals.md`
@@ -255,6 +256,11 @@ const AR: Record<ProposalsCopyKey, string> = {
 };
 
 export const PROPOSALS_COPY: Record<Locale, Record<ProposalsCopyKey, string>> = { en: EN, fr: FR, ar: AR };
+
+/** The template of a key for a count (H-ui-findings F4). */
+export function proposalsCountTemplate(locale: Locale, key: ProposalsCopyKey, count: number): string {
+  return pluralTemplate(locale, key, count, PROPOSALS_COPY[locale][key]);
+}
 
 export function proposalsT(locale: Locale) {
   return (key: ProposalsCopyKey, values?: Record<string, string | number>) => fillCopy(PROPOSALS_COPY[locale][key], values);

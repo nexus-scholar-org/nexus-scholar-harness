@@ -3,7 +3,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 
 import type { Locale } from "@/i18n";
-import { Button, DecisionBadge } from "@/components/ui/base";
+import { Button } from "@/components/ui/base";
 import { AFFECTS_LABEL, stateCopy } from "@/lib/screening-states";
 import { getCorpus } from "@/lib/screening-v1";
 
@@ -124,6 +124,7 @@ export function StateCard({
 }>) {
   const Heading = pageHeading ? "h1" : "h2";
   const state = stateCopy(locale, copyCode ?? code);
+  const roleEdge = { include: "border-s-include", unclear: "border-s-unclear", blocked: "border-s-blocked", exclude: "border-s-exclude" }[state.role];
   const roleText = { include: "text-include", unclear: "text-unclear", blocked: "text-blocked", exclude: "text-exclude" }[state.role];
   const query = consoleOrigin ? `?console=${encodeURIComponent(consoleOrigin)}` : "";
   const href =
@@ -139,9 +140,9 @@ export function StateCard({
               ? (actionHref ?? `/${locale}/inception/${query}`)
               : null;
   return (
-    <section role="alert" aria-labelledby={`state-${code}`} className="rounded-lg border border-rule bg-leaf p-5" data-state={code}>
-      <DecisionBadge role={state.role}>{state.title}</DecisionBadge>
-      <Heading id={`state-${code}`} className="mt-2 font-semibold text-ink">
+    <section role="alert" aria-labelledby={`state-${code}`} className={`rounded-lg border border-rule border-s-4 bg-leaf p-5 ${roleEdge}`} data-state={code} data-role={state.role}>
+      {/* The title is the heading, once: a badge repeating it was read out and shown twice (H-ui-findings F7). The role shows as the edge colour and in the code line; the heading names the state in words. */}
+      <Heading id={`state-${code}`} className="font-semibold text-ink">
         {state.title}
       </Heading>
       <p className="mt-1 text-ink">{state.body}</p>
