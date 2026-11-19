@@ -17,6 +17,7 @@ const FIELD_KEY: Record<string, InceptionCopyKey> = {
   proof: "field.proof",
   rqs: "field.rqs",
   concepts: "field.concepts",
+  core_concepts: "field.concepts",
   title: "field.title",
   lead_researcher: "field.lead_researcher",
   start_year: "scope.fromYear",
@@ -30,9 +31,10 @@ const FIELD_KEY: Record<string, InceptionCopyKey> = {
   venue: "review.venue",
 };
 
-const SYNONYMS = /^concepts\[(.+)\]\.synonyms$/;
+/** A draft's `concepts[<name>].synonyms`, or a workspace proposal's `core_concepts[<name>].synonyms` (M10c). */
+const SYNONYMS = /^(?:core_)?concepts\[(.+)\]\.synonyms$/;
 
-/** The concept a `concepts[<name>].synonyms` target names, or `null`. */
+/** The concept a `concepts[<name>].synonyms` (or `core_concepts[…]`) target names, or `null`. */
 export function synonymConcept(field: string): string | null {
   return field.match(SYNONYMS)?.[1] ?? null;
 }

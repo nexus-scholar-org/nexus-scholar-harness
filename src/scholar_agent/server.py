@@ -2311,19 +2311,23 @@ def nexus_assistant_read_workspace(workspace_dir: str) -> str:
 
 @mcp.tool()
 def nexus_assistant_propose(
-    session_id: str,
     field: str,
     op: str,
     value: Any,
     why: str,
     model: str,
+    session_id: str | None = None,
+    workspace_dir: str | None = None,
     task: str = "suggest",
     evidence: list[dict] | None = None,
     workspaces_root: str | None = None,
 ) -> str:
-    """Suggest one change to an inception draft. It is never applied by this tool.
+    """Suggest one change to an inception draft or a workspace's search. It is never applied by this tool.
 
-    The suggestion appears on the app's card for that step; the researcher
+    Give exactly one target: `session_id` (an inception draft, before
+    genesis) or `workspace_dir` (a workspace, after genesis).
+
+    On a draft the suggestion appears on the app's card for that step; the researcher
     applies, edits or rejects it. `field` is a draft field (`concepts`,
     `rqs`, `extra_inclusions`, `extra_exclusions`, `golden_seeds`,
     `start_year`, …) or `concepts[<concept name>].synonyms`; `op` is `add` or
@@ -2334,9 +2338,26 @@ def nexus_assistant_propose(
     `{"kind": "doi", "value": "10.…"}` or `{"kind": "count", "name": …, "value": …, "unit": …}`.
     The value is checked as a save of the field would be; sending the same
     suggestion twice records it once.
+
+    On a workspace only the protocol's search can be suggested, as a card on
+    Discovery Plan: `core_concepts` (`add` a concept, `{"concept": …,
+    "synonyms": […]}`), `core_concepts[<concept name>].synonyms` (`add` or
+    `remove` one term), `start_year` or `end_year` (`replace`, a year or
+    null), `languages` (`add`, `remove` or `replace`). Refused once a corpus is
+    accepted. When the researcher applies it, the app amends the intent and
+    recompiles the protocol; a suggestion made before any other change to the
+    protocol goes out of date and cannot be applied.
     """
     from scholar_harness import assistant
 
+    if bool(session_id) == bool(workspace_dir):
+        return json.dumps({"status": "ERROR", "code": "TARGET_INVALID",
+                           "message": "give exactly one of session_id or workspace_dir"})
+    if workspace_dir:
+        return _assistant_answer(lambda: assistant.propose_on_workspace(
+            _assistant_workspace(workspace_dir), field=field, op=op, value=value,
+            why=why, evidence=evidence, model=model, task=task,
+        ))
     return _assistant_answer(lambda: assistant.propose_on_draft(
         _drafts_root(workspaces_root), session_id, field=field, op=op, value=value,
         why=why, evidence=evidence, model=model, task=task,

@@ -1492,3 +1492,58 @@ def dismiss_discovery_check(check_id: str, body: CheckDismissBody, request: Requ
 @router.post("/checks/{check_id}/restore")
 def restore_discovery_check(check_id: str, body: CheckRestoreBody, request: Request) -> dict[str, Any]:
     return _decide_check(request, check_id, "restored", subject=body.subject)
+
+
+# --------------------------------------------------------------------------- workspace proposals (M10c D5)
+
+
+def _proposals_answer(ws: Path, request: Request, fn) -> dict[str, Any]:
+    from scholar_harness.inception.proposals import ProposalRefused
+
+    try:
+        answer = fn()
+    except ProposalRefused as exc:
+        raise _http(Refused(exc.status, exc.code, exc.message, details=exc.details)) from exc
+    active = _jobs(request).active(ws)
+    answer["active_job"] = active.to_dict() if active else None
+    return answer
+
+
+@router.get("/proposals")
+def workspace_proposals(request: Request) -> dict[str, Any]:
+    """The open workspace's proposals (M10c D5): an assistant's suggested search changes; a pure read."""
+    from scholar_harness import workspace_proposals as WP
+
+    ws = _ws(request)
+    return _proposals_answer(ws, request, lambda: WP.listing(ws))
+
+
+class ProposalRejectBody(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    reason: str | None = Field(default=None, max_length=4_000)
+
+
+@router.post("/proposals/{proposal_id}/apply")
+def apply_workspace_proposal(proposal_id: str, request: Request) -> dict[str, Any]:
+    """The researcher applies one: the search fields of ``intent.json`` are amended and ``protocol.json`` recompiled.
+
+    Refused while a discovery job runs here (``DISCOVERY_JOB_ACTIVE``) and once
+    a corpus is accepted (``CORPUS_ALREADY_ACCEPTED``).
+    """
+    from scholar_harness import workspace_proposals as WP
+
+    ws = _ws(request)
+    active = _jobs(request).active(ws)
+    if active is not None:
+        raise _http(Refused(409, refusals.DISCOVERY_JOB_ACTIVE,
+                            "A discovery job is running for this workspace; the protocol is not changed under it.",
+                            details={"job": active.to_dict()}))
+    return _proposals_answer(ws, request, lambda: WP.decide(ws, proposal_id, "apply"))
+
+
+@router.post("/proposals/{proposal_id}/reject")
+def reject_workspace_proposal(proposal_id: str, request: Request, body: ProposalRejectBody | None = None) -> dict[str, Any]:
+    from scholar_harness import workspace_proposals as WP
+
+    ws = _ws(request)
+    return _proposals_answer(ws, request, lambda: WP.decide(ws, proposal_id, "reject", reason=(body.reason if body else None)))

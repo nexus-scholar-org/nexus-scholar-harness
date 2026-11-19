@@ -92,6 +92,10 @@ export interface DiscoveryFakeOptions {
   estimateFails?: Record<string, string>;
   /** M10b Part D: the planned maximum stated in `intent.json` (default none: the general limit of 1,000). */
   plannedMax?: number;
+  /** M10c D5: an assistant's suggestions on the workspace's search (default none). */
+  workspaceProposals?: { proposal_id: string; field: string; op: "add" | "remove" | "replace"; value: unknown; why?: string; source?: string; stale?: boolean }[];
+  /** M10c D5: the refusal the next Apply answers (`PROTOCOL_AMENDMENT_REFUSED` with its details, …). */
+  amendmentRefusal?: { status: number; code: string; details?: object };
 }
 
 const PROVIDERS = ["openalex", "semanticscholar", "crossref", "arxiv", "pubmed", "biorxiv"] as const;
@@ -485,6 +489,30 @@ export function discoveryEngine(options: DiscoveryFakeOptions = {}) {
 
   // M10b Part B: the discovery checks and the workspace's dismissal record.
   let checkRows: CheckIn[] = options.checks ?? [];
+  // M10c D5: the workspace's proposals; an Apply moves the fingerprint, which makes every other open one stale.
+  const wsProposals = (options.workspaceProposals ?? []).map((p) => ({
+    proposal_id: p.proposal_id,
+    target: { kind: "workspace", id: "uav", field: p.field },
+    op: p.op,
+    value: p.value,
+    why: p.why ?? "A seed paper uses this term.",
+    evidence: [],
+    source: p.source ?? "agent:claude-opus-5-5",
+    base: { hash: "sha256:00", shown: "weed mapping", protocol_fingerprint: p.stale ? "sha256:old" : FINGERPRINT },
+    status: "open" as string,
+    decided_at: null as string | null,
+    step: "plan",
+    current: "weed mapping",
+  }));
+  const proposalsAnswer = (amended: object | null = null) => {
+    const items = wsProposals.map((p) => ({ ...p, status: p.status === "open" && p.base.protocol_fingerprint !== fingerprint ? "stale" : p.status }));
+    const count = (s: string) => items.filter((i) => i.status === s).length;
+    return {
+      shape: "discovery.proposals-v1", protocol_fingerprint: fingerprint, frozen: accepted, proposals: items,
+      counts: { open: count("open"), stale: count("stale"), applied: count("applied"), rejected: count("rejected") },
+      active_job: activeJob() ?? null, amended,
+    };
+  };
   const checkDismissals: Json[] = [];
 
   /** M10b Part D: the engine's estimate arithmetic (`scholar_search.estimate.summarize`) over `FETCHED`'s totals. */
@@ -759,6 +787,32 @@ export function discoveryEngine(options: DiscoveryFakeOptions = {}) {
         return { status: 200, body: respond(rows(), { step: owner, steps: DISCOVERY_STEPS, scope, at: now() }) };
       }
       if (!checksMatch[1] && method === "GET") return { status: 200, body: respond(rows(), { step, steps: DISCOVERY_STEPS, scope, at: now() }) };
+    }
+    if (method === "GET" && route === "/api/v1/discovery/proposals") return needProtocol() ?? { status: 200, body: proposalsAnswer() };
+    const proposalMatch = /^\/api\/v1\/discovery\/proposals\/(prop_[0-9a-f]+)\/(apply|reject)$/.exec(route);
+    if (method === "POST" && proposalMatch) {
+      const item = wsProposals.find((p) => p.proposal_id === proposalMatch[1]);
+      if (!item) return refuse(404, "PROPOSAL_NOT_FOUND", `no proposal ${proposalMatch[1]} on this workspace`);
+      const stale = item.base.protocol_fingerprint !== fingerprint;
+      if (item.status !== "open") return refuse(409, "PROPOSAL_NOT_OPEN", `this suggestion is ${item.status}`);
+      if (proposalMatch[2] === "reject") {
+        item.status = "rejected";
+        item.decided_at = now();
+        return { status: 200, body: proposalsAnswer() };
+      }
+      if (stale) return refuse(409, "PROPOSAL_STALE", "the protocol changed after the suggestion was made");
+      if (accepted) return refuse(409, "CORPUS_ALREADY_ACCEPTED", "a corpus was accepted under this protocol; it is not amended");
+      const refusedBusy = busy();
+      if (refusedBusy) return refusedBusy;
+      if (options.amendmentRefusal) {
+        const r = options.amendmentRefusal;
+        return refuse(r.status, r.code, "the engine refused the amendment", r.details);
+      }
+      const previous = fingerprint;
+      fingerprint = "sha256:" + "ef".repeat(32);
+      item.status = "applied";
+      item.decided_at = now();
+      return { status: 200, body: proposalsAnswer({ previous_fingerprint: previous, protocol_fingerprint: fingerprint, changed: ["search_strategy.core_concepts"], backup: "audit/amended/x" }) };
     }
     if (method === "GET" && route === "/api/v1/discovery/handoff") return needProtocol() ?? { status: 200, body: handoff() };
     if (method === "GET" && route === "/api/v1/screening/corpus") return { status: 200, body: corpus() };

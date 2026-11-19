@@ -127,6 +127,9 @@ PROPOSAL_STALE = "PROPOSAL_STALE"
 PROPOSAL_NOT_OPEN = "PROPOSAL_NOT_OPEN"
 PROPOSAL_TARGET_UNSUPPORTED = "PROPOSAL_TARGET_UNSUPPORTED"
 PROPOSAL_SOURCE_REFUSED = "PROPOSAL_SOURCE_REFUSED"
+#: M10c D5 (decision 2026-11-19 item 9(a)): applying a workspace proposal would change the
+#: protocol outside its search fields, or compile to an invalid protocol (422); ``details.reason``.
+PROTOCOL_AMENDMENT_REFUSED = "PROTOCOL_AMENDMENT_REFUSED"
 #: M10b (``02-checks``): no such check or instance now (404); a blocker or a gate
 #: warning (409); a warning without a reason, or a reason over the limit (422);
 #: the evidence changed since the page read it (409); restore of one not dismissed (409).
@@ -311,6 +314,7 @@ CONTRACT_ADDED = frozenset(
         PROPOSAL_NOT_OPEN,
         PROPOSAL_TARGET_UNSUPPORTED,
         PROPOSAL_SOURCE_REFUSED,
+        PROTOCOL_AMENDMENT_REFUSED,
         CHECK_NOT_FOUND,
         CHECK_NOT_DISMISSIBLE,
         CHECK_REASON_REQUIRED,

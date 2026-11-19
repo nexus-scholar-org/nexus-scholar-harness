@@ -86,6 +86,14 @@ const EN = {
   "proposals.offline": "needs the engine on this computer",
   "proposals.asOf": "As of {time}",
   "proposals.notRecorded": "This choice was saved; its source could not be recorded.",
+
+  // Discovery Plan: an assistant's suggested change to the protocol's search (M10c D5)
+  "proposals.plan.title": "Suggested changes to the search · {n}",
+  "proposals.plan.intro": "Applying one changes the protocol's search and records it. Searches already run then show that the protocol changed.",
+  "proposals.plan.frozen": "The corpus is accepted, so the protocol's search is no longer changed here.",
+  "proposals.plan.running": "A search is running. Apply after it ends.",
+  "proposals.plan.outsideSearch": "Applying this would change more than the search, so nothing was written.",
+  "proposals.plan.invalid": "The protocol cannot take this change: {error}",
 } as const;
 
 export type ProposalsCopyKey = keyof typeof EN;
@@ -160,6 +168,12 @@ const FR: Record<ProposalsCopyKey, string> = {
   "proposals.offline": "nécessite le moteur sur cet ordinateur",
   "proposals.asOf": "Au {time}",
   "proposals.notRecorded": "Ce choix est enregistré ; sa source n'a pas pu être consignée.",
+  "proposals.plan.title": "Modifications proposées de la recherche · {n}",
+  "proposals.plan.intro": "En appliquer une modifie la recherche du protocole et l'enregistre. Les recherches déjà lancées indiquent alors que le protocole a changé.",
+  "proposals.plan.frozen": "Le corpus est accepté : la recherche du protocole n'est plus modifiée ici.",
+  "proposals.plan.running": "Une recherche est en cours. Appliquez après sa fin.",
+  "proposals.plan.outsideSearch": "L'appliquer modifierait plus que la recherche ; rien n'a été écrit.",
+  "proposals.plan.invalid": "Le protocole ne peut pas accepter cette modification : {error}",
 };
 
 const AR: Record<ProposalsCopyKey, string> = {
@@ -232,6 +246,12 @@ const AR: Record<ProposalsCopyKey, string> = {
   "proposals.offline": "يحتاج إلى المحرك على هذا الحاسوب",
   "proposals.asOf": "حتى {time}",
   "proposals.notRecorded": "حُفظ هذا الاختيار؛ تعذّر تسجيل مصدره.",
+  "proposals.plan.title": "تعديلات مقترحة على البحث · {n}",
+  "proposals.plan.intro": "تطبيق أحدها يغيّر بحث البروتوكول ويسجّله. وتُظهر عمليات البحث السابقة عندئذٍ أن البروتوكول تغيّر.",
+  "proposals.plan.frozen": "قُبلت المجموعة، فلا يُغيَّر بحث البروتوكول هنا بعد الآن.",
+  "proposals.plan.running": "يجري بحث الآن. طبّق بعد انتهائه.",
+  "proposals.plan.outsideSearch": "تطبيق هذا سيغيّر أكثر من البحث، فلم يُكتب شيء.",
+  "proposals.plan.invalid": "لا يقبل البروتوكول هذا التعديل: {error}",
 };
 
 export const PROPOSALS_COPY: Record<Locale, Record<ProposalsCopyKey, string>> = { en: EN, fr: FR, ar: AR };

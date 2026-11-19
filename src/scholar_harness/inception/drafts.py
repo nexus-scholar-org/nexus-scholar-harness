@@ -48,18 +48,27 @@ def _thread_lock(path: Path) -> threading.RLock:
 _DEPTH: dict[str, int] = {}
 
 
-@contextmanager
-def _lock_for(path: Path) -> Iterator[None]:
+def _lock_for(path: Path):
     """The draft's thread lock and, once per process, its OS lock (M10c, decision item 10).
 
     The MCP server writes the same record from a second process, so the
     thread lock alone cannot keep a read-then-write whole. The OS lock is a
     file in ``.drafts/.locks/`` (outside the draft's folder, which a discard
-    removes); it is taken once per process and re-entered by depth.
+    removes).
     """
-    lock = _thread_lock(path)
+    return file_lock(path.parent.parent / ".locks" / f"{path.parent.name}.lock")
+
+
+@contextmanager
+def file_lock(lock_path: Path) -> Iterator[None]:
+    """A thread lock and, once per process, an OS lock on ``lock_path``; re-entered by depth.
+
+    Shared by the drafts and the workspace proposals (M10c D5), which two
+    processes (the console and the MCP server) write.
+    """
+    lock = _thread_lock(lock_path)
     with lock:
-        key = str(path.absolute())
+        key = str(lock_path.absolute())
         if _DEPTH.get(key, 0):
             _DEPTH[key] += 1
             try:
@@ -67,7 +76,6 @@ def _lock_for(path: Path) -> Iterator[None]:
             finally:
                 _DEPTH[key] -= 1
             return
-        lock_path = path.parent.parent / ".locks" / f"{path.parent.name}.lock"
         lock_path.parent.mkdir(parents=True, exist_ok=True)
         with lock_path.open("a+b") as handle:
             _os_lock(handle)

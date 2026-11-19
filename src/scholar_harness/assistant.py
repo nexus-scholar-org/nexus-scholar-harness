@@ -474,6 +474,41 @@ def propose_on_draft(
     return {"status": "SUCCESS", "created": created, "proposal": out}
 
 
+def propose_on_workspace(
+    ws: Path, *, field: str, op: str, value: Any, why: str, evidence: Any, model: str, task: str,
+) -> dict[str, Any]:
+    """Add one open proposal to a workspace's search (M10c D5, decision item 9(a)); nothing is applied.
+
+    Listed as a card on Discovery Plan; only the researcher's Apply amends
+    ``intent.json`` and recompiles ``protocol.json``.
+    """
+    from scholar_harness import workspace_proposals as WP
+    from scholar_harness.workspace.audit import append_event
+
+    agent = agent_of(model, task, PROPOSAL_TASKS)
+    why_text = _text(why, "why", required=True)
+    items = _evidence(evidence)
+    ws = Path(ws)
+    if not (ws / "protocol.json").is_file() or not (ws / "intent.json").is_file():
+        raise AssistantRefused("WORKSPACE_NOT_FOUND", f"{ws} holds no protocol.json and intent.json", {"workspace": str(ws)})
+    source = f"agent:{agent['model']}"
+    limit = AssistantRefused("ASSISTANT_LIMIT_REACHED", f"this workspace holds {MAX_OPEN_PROPOSALS} open assistant suggestions",
+                             {"limit": MAX_OPEN_PROPOSALS, "kind": "proposals"})
+    out, created = WP.make(
+        ws, source=source, field=field, op=op, value=value, why=why_text, evidence=items, extra={"agent": agent},
+        open_limit=MAX_OPEN_PROPOSALS, limit_error=limit,
+    )
+    if created:
+        append_event(
+            ws, "ASSISTANT_PROPOSAL_RECORDED", f"{op} on {field} suggested by {source}",
+            agent=JOURNAL_AGENT, outputs=[WP.PROPOSALS_FILE],
+            parameters={"proposal_id": out["proposal_id"], "field": field, "op": op, "model": agent["model"],
+                        "task": agent["task"], "task_version": agent["task_version"], "method": "AGENT_PROPOSED",
+                        "protocol_fingerprint": out["base"]["protocol_fingerprint"]},
+        )
+    return {"status": "SUCCESS", "created": created, "proposal": out}
+
+
 # ---------------------------------------------------------------------------
 # Reads
 # ---------------------------------------------------------------------------
@@ -599,8 +634,20 @@ def read_workspace(ws: Path) -> dict[str, Any]:
         "plan": plan,
         "recall": recall,
         "checks": checks,
-        "proposals": _proposal_lines(ws),
+        # D5: the workspace's open and decided proposals, stale derived (the Plan cards' read).
+        "proposals": route(_workspace_proposals, ws),
+        # Every line of audit/proposals.jsonl, genesis's draft history included.
+        "proposal_history": _proposal_lines(ws),
     }
+
+
+def _workspace_proposals(ws: Path) -> Any:
+    from scholar_harness import workspace_proposals as WP
+
+    try:
+        return WP.listing(ws)
+    except P.ProposalRefused as exc:
+        return {"refused": {"code": exc.code, "message": exc.message}}
 
 
 def _proposal_lines(ws: Path) -> list[dict[str, Any]]:
