@@ -4,7 +4,7 @@ One entry per decision that still shapes the code, newest first. The full
 records were removed in the 2026-11-03 docs cut; each entry names the commit
 history to read if you need the original reasoning (`git log --follow -- <path>`).
 
-## 2026-11-19 — M10d: lighter screens, where the guidance spec is silent (items 3, 4, 9 and 10 accepted by the researcher 2026-11-19; items 1, 2, 5 to 8, 11 and 12 PROPOSED; M10d-lighter-screens)
+## 2026-11-19 — M10d: lighter screens, where the guidance spec is silent (items 1 to 12 accepted by the researcher 2026-11-19: 3, 4, 9 and 10 "as recommended", then the others; M10d-lighter-screens)
 
 Record: `docs/roadmap/milestones/M10d-lighter-screens.md`. Spec: `docs/ux/shared/final/03-guidance.md` (FINAL; R8 and its questions 1 to 5 closed by the researcher 2026-11-15, decision 2026-11-15 item 8). The two brand-book exceptions of R8 are built as accepted (an icon-only hint named "About {label}", a neutral dashed "Recommended · {source}" badge) and now have their line in `docs/ux/brand/BRAND_BOOK.md` "Iconography". The items below are the build's choices where the spec is silent or could not be met as written; each took the smaller option. No route, engine, stored field, refusal code or Contract v1 artefact changes; each item is copy or layout and can be reversed in the UI alone.
 

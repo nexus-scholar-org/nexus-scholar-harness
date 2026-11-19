@@ -1,5 +1,5 @@
 # M10d-lighter-screens: tips behind icons, one main action, the recommended choice marked
-Branch: `dev/m10d/lighter-screens` (from `origin/main` at `17d7310d`) · Lane: **STANDARD** (UI; plan §6) · Status: **READY FOR PR** (PR gate passed at `d7207665`, merged with `origin/main` c54e99f2; `milestone-reviewer` rounds 1 and 2 CHANGES, repaired, round 3 APPROVE; decision items 3, 4, 9 and 10 accepted by the researcher 2026-11-19) · Started: 2026-11-19 (the researcher: "start M10d")
+Branch: `dev/m10d/lighter-screens` (from `origin/main` at `17d7310d`) · Lane: **STANDARD** (UI; plan §6) · Status: **READY FOR PR** (PR gate passed at `d7207665`, merged with `origin/main` c54e99f2; `milestone-reviewer` rounds 1 and 2 CHANGES, repaired, round 3 APPROVE; decision items 1 to 12 accepted by the researcher 2026-11-19) · Started: 2026-11-19 (the researcher: "start M10d")
 
 Fourth milestone of "Assisted inception" (approved 2026-11-14). Plan §6 row **M10d-lighter-screens**: "Lighter screens: tips behind icons, one main action per step, the recommended choice marked. Specs written once, at the start of M10b."
 
@@ -74,7 +74,7 @@ Every screen row below is built and tested in `tests/guidance.screens.test.tsx`,
 None (no assessment finding is in scope).
 
 ## Decisions
-`docs/decisions.md` "2026-11-19 — M10d", items 1 to 12, all PROPOSED. Items 3, 4, 9 and 10 were accepted by the researcher on 2026-11-19 ("accept decisions 3, 4, 9 and 10 as recommended"): item 3 option (a), Explore's search settings folded after the researcher has tried Explore with real data; items 4, 9 and 10 as built. The other items stay PROPOSED.
+`docs/decisions.md` "2026-11-19 — M10d", items 1 to 12, all PROPOSED. Items 3, 4, 9 and 10 were accepted by the researcher on 2026-11-19 ("accept decisions 3, 4, 9 and 10 as recommended"): item 3 option (a), Explore's search settings folded after the researcher has tried Explore with real data; items 4, 9 and 10 as built. The other items (1, 2, 5 to 8, 11 and 12) were accepted the same day ("accept the other decisions and open the PR").
 
 ## Evidence
 | Stage | Commit | Command | Result | Duration |
