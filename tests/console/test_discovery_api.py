@@ -196,7 +196,9 @@ def test_plan_reports_the_protocol_cap_and_the_ceiling(env):
         assert not {"mailto", "email", "tool", "api_key"} & set(row["request"]), row
         assert any(c.startswith("language (en)") for c in row["cannot_express"]), row
     assert "[pdat]" in by_name["pubmed"]["executed_query"]
-    assert any("submittedDate range filter was not sent" in n for n in by_name["arxiv"]["notes"])  # F16, M3h-b
+    assert "submittedDate:[202001010000 TO 202612312359]" in by_name["arxiv"]["executed_query"]  # F16, M3h-c
+    assert any("sent as a submittedDate filter" in n for n in by_name["arxiv"]["notes"])
+    assert not any("year" in c for c in by_name["arxiv"]["cannot_express"])
     assert by_name["biorxiv"] == {**by_name["biorxiv"], "selected": False, "status": "off_by_default",
                                   "executed_query": None, "request": None}
     assert plan["imports_hint"] == ["scopus", "wos"]

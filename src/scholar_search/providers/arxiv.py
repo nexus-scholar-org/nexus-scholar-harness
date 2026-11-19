@@ -18,13 +18,11 @@ class ArxivProvider(BaseAPIProvider):
     """Searches arXiv API (http://export.arxiv.org/api/query)."""
 
     PAGE_SIZE = 1000  # arXiv recommends at most 2000 per call; 1000 keeps responses small
-    #: F16: arXiv does have a date filter (``submittedDate:[... TO ...]`` in
-    #: ``search_query``); sending it changes the recorded golden request, so
-    #: until that interaction is re-recorded the leg says it was not sent.
-    YEAR_NOTE = (
-        "arXiv's submittedDate range filter was not sent; years were filtered after "
-        "retrieval, so fetched can be below the reported total"
-    )
+    #: M3h-c (F16): arXiv's ``submittedDate:[YYYYMMDDTTTT TO YYYYMMDDTTTT]``
+    #: range (GMT, to the minute, user manual) carries the protocol's years.
+    #: arXiv opened in 1991; an open end of the range takes the bounds below.
+    DATE_OPEN_START = 1991
+    DATE_OPEN_END = 9999
 
     def __init__(
         self,
@@ -312,30 +310,33 @@ class ArxivProvider(BaseAPIProvider):
                     note += "; dropped phrases: " + ", ".join(f'"{p}"' for p in dropped_phrases)
                 notes.append(note)
 
+        if query.year_min or query.year_max:
+            # After compaction, so the clause is neither counted in the 300
+            # characters nor read as a term; the topic part is grouped so that
+            # the AND binds to all of it.
+            first = query.year_min or self.DATE_OPEN_START
+            last = query.year_max or self.DATE_OPEN_END
+            translated_query = (
+                f"({translated_query}) AND submittedDate:[{first}01010000 TO {last}12312359]"
+            )
+            notes.append(
+                f"arXiv year range sent as a submittedDate filter ({first} to {last}; an open "
+                "end takes the bound shown); years are also checked after retrieval"
+            )
+
         limit = query.max_results
         params = {
             "search_query": translated_query,
             "start": 0,
             "max_results": min(limit or self.PAGE_SIZE, self.PAGE_SIZE),
         }
-        if query.year_min or query.year_max:
-            notes.append(self.YEAR_NOTE)
         return translated_query, params, notes
-
-    def cannot_express(self, query: Query) -> list[str]:
-        out = super().cannot_express(query)
-        if query.year_min or query.year_max:
-            out.append(
-                "year window: not sent to arXiv (its submittedDate filter is not used yet); "
-                "years are filtered after retrieval"
-            )
-        return out
 
     async def count(self, query: Query) -> int | None:
         """``opensearch:totalResults`` of the planned request with ``max_results=1`` (M10b).
 
-        The year window is not sent to arXiv (``YEAR_NOTE``), so with a window
-        this count is an upper bound of what a harvest keeps.
+        The year window is sent to arXiv as a ``submittedDate`` clause
+        (M3h-c), so with a window this count is already filtered by years.
         """
         _, params, _ = self.translate(query)
         params["max_results"] = 1
@@ -350,8 +351,9 @@ class ArxivProvider(BaseAPIProvider):
         _, params, _ = self._record_translation(query)
         limit = query.max_results
 
-        # arXiv doesn't support direct year filtering in the query string well,
-        # so we fetch and filter locally. Page with ``start`` (SRCH-11).
+        # The year range goes to arXiv in ``translate`` (M3h-c); the check
+        # below stays as a guard for a record the filter let through. Page
+        # with ``start`` (SRCH-11).
         count = 0
         while True:
             response = await self.client.get(self.base_url, params=params)

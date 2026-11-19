@@ -113,3 +113,52 @@ def test_recording_without_a_contact_address_is_refused(monkeypatch, capsys):
     monkeypatch.delenv("SCHOLAR_MAILTO", raising=False)
     assert rec.main([]) == 2
     assert "SCHOLAR_MAILTO" in capsys.readouterr().err
+
+
+# --------------------------------------------------------------------------- M3h-c: the search cassette, the date clause
+
+SEARCH = ROOT / "tests" / "fixtures" / "cassettes" / "golden_uav_search.yaml"
+OK_LEG = {
+    "status": "ok",
+    "fetched": 12,
+    "reported_total": 40,
+    "executed_query": "(all:uav) AND submittedDate:[202001010000 TO 202612312359]",
+}
+
+
+def test_the_splice_replaces_only_the_arxiv_interaction_of_the_search_cassette():
+    rec = _script()
+    with SEARCH.open(encoding="utf-8", newline="") as fh:
+        golden = fh.read()
+    updated = rec.splice(golden, NEW_ARXIV)
+    _h, old, _t = rec.split_interactions(golden)
+    head, new, tail = rec.split_interactions(updated)
+    assert [b for b in old if not rec.is_arxiv(b)] == [b for b in new if not rec.is_arxiv(b)]
+    assert sum(map(rec.is_arxiv, new)) == 1
+    assert [rec.is_arxiv(b) for b in new] == [rec.is_arxiv(b) for b in old], "the new answer takes the old one's place"
+    assert updated.startswith(head) and updated.endswith(tail) and tail.startswith("version:")
+
+
+def test_a_recording_is_checked_before_it_is_spliced():
+    rec = _script()
+    assert rec.check_recording("fine", OK_LEG, "me@example.org") == []
+    assert any("contact address" in p for p in rec.check_recording("to me@example.org", OK_LEG, "me@example.org"))
+    assert any("not 'ok'" in p for p in rec.check_recording("x", {**OK_LEG, "status": "failed", "error": "429"}))
+    assert any("no record" in p for p in rec.check_recording("x", {**OK_LEG, "fetched": 0}))
+    assert any("submittedDate" in p for p in rec.check_recording("x", {**OK_LEG, "executed_query": "all:uav"}))
+    feed = "<id>http://arxiv.org/api/errors#incorrect_id_format</id>"
+    assert any("error feed" in p for p in rec.check_recording(feed, OK_LEG))
+    assert rec.check_recording("x", {}) != []
+
+
+def test_the_script_knows_both_golden_cassettes():
+    rec = _script()
+    assert set(rec.CASSETTES) == {"recon", "search"}
+    assert all(path.is_file() for path in rec.CASSETTES.values())
+
+
+def test_the_open_ended_check_needs_a_contact_address_too(monkeypatch, capsys):
+    rec = _script()
+    monkeypatch.delenv("SCHOLAR_MAILTO", raising=False)
+    assert rec.main(["--check-open-ended"]) == 2
+    assert "SCHOLAR_MAILTO" in capsys.readouterr().err

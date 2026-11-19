@@ -387,16 +387,17 @@ interactions:
       host:
       - export.arxiv.org
     method: GET
-    uri: https://export.arxiv.org/api/query?max_results=25&search_query=all%3AUAV+AND+all%3Acrop+AND+all%3Aweed+AND+all%3Amapping&start=0
+    uri: https://export.arxiv.org/api/query?max_results=25&search_query=%28all%3AUAV+AND+all%3Acrop+AND+all%3Aweed+AND+all%3Amapping%29+AND+submittedDate%3A%5B202001010000+TO+202612312359%5D&start=0
   response:
     body:
       string: "<?xml version='1.0' encoding='UTF-8'?>\n<feed xmlns:opensearch=\"http://a9.com/-/spec/opensearch/1.1/\"
         xmlns:arxiv=\"http://arxiv.org/schemas/atom\" xmlns=\"http://www.w3.org/2005/Atom\">\n
-        \ <id>https://arxiv.org/api/robNzC6Svsvzy8k7f6rtP0ZUa6M</id>\n  <title>arXiv
-        Query: search_query=all:UAV AND all:crop AND all:weed AND all:mapping&amp;id_list=&amp;start=0&amp;max_results=25</title>\n
-        \ <updated>2026-11-15T06:27:00Z</updated>\n  <link href=\"https://arxiv.org/api/query?search_query=all:UAV+AND+(all:crop+AND+(all:weed+AND+all:mapping))&amp;start=0&amp;max_results=25&amp;id_list=\"
+        \ <id>https://arxiv.org/api/nRElIcTeYlEnPI7qMNpwsIoIYW0</id>\n  <title>arXiv
+        Query: search_query=(all:UAV AND all:crop AND all:weed AND all:mapping) AND
+        submittedDate:\"202001010000 TO 202612312359\"&amp;id_list=&amp;start=0&amp;max_results=25</title>\n
+        \ <updated>2026-11-18T20:15:38Z</updated>\n  <link href=\"https://arxiv.org/api/query?search_query=(all:UAV+AND+(all:crop+AND+(all:weed+AND+all:mapping)))+AND+submittedDate:%22202001010000+TO+202612312359%22&amp;start=0&amp;max_results=25&amp;id_list=\"
         type=\"application/atom+xml\"/>\n  <opensearch:itemsPerPage>25</opensearch:itemsPerPage>\n
-        \ <opensearch:totalResults>9</opensearch:totalResults>\n  <opensearch:startIndex>0</opensearch:startIndex>\n
+        \ <opensearch:totalResults>6</opensearch:totalResults>\n  <opensearch:startIndex>0</opensearch:startIndex>\n
         \ <entry>\n    <id>http://arxiv.org/abs/2603.01932v2</id>\n    <title>BAWSeg:
         A UAV Multispectral Benchmark for Barley Weed Segmentation</title>\n    <updated>2026-03-17T17:55:38Z</updated>\n
         \   <link href=\"https://arxiv.org/abs/2603.01932v2\" rel=\"alternate\" type=\"text/html\"/>\n
@@ -525,65 +526,26 @@ interactions:
         \   </author>\n    <author>\n      <name>Vito Trianni</name>\n    </author>\n
         \   <arxiv:doi>10.1007/978-3-030-92790-5_24</arxiv:doi>\n    <link rel=\"related\"
         href=\"https://doi.org/10.1007/978-3-030-92790-5_24\" title=\"doi\"/>\n  </entry>\n
-        \ <entry>\n    <id>http://arxiv.org/abs/1808.00100v2</id>\n    <title>WeedMap:
-        A large-scale semantic weed mapping framework using aerial multispectral imaging
-        and deep neural network for precision farming</title>\n    <updated>2018-09-06T14:50:02Z</updated>\n
-        \   <link href=\"https://arxiv.org/abs/1808.00100v2\" rel=\"alternate\" type=\"text/html\"/>\n
-        \   <link href=\"https://arxiv.org/pdf/1808.00100v2\" rel=\"related\" type=\"application/pdf\"
-        title=\"pdf\"/>\n    <summary>We present a novel weed segmentation and mapping
-        framework that processes multispectral images obtained from an unmanned aerial
-        vehicle (UAV) using a deep neural network (DNN). Most studies on crop/weed
-        semantic segmentation only consider single images for processing and classification.
-        Images taken by UAVs often cover only a few hundred square meters with either
-        color only or color and near-infrared (NIR) channels. Computing a single large
-        and accurate vegetation map (e.g., crop/weed) using a DNN is non-trivial due
-        to difficulties arising from: (1) limited ground sample distances (GSDs) in
-        high-altitude datasets, (2) sacrificed resolution resulting from downsampling
-        high-fidelity images, and (3) multispectral image alignment. To address these
-        issues, we adopt a stand sliding window approach that operates on only small
-        portions of multispectral orthomosaic maps (tiles), which are channel-wise
-        aligned and calibrated radiometrically across the entire map. We define the
-        tile size to be the same as that of the DNN input to avoid resolution loss.
-        Compared to our baseline model (i.e., SegNet with 3 channel RGB inputs) yielding
-        an area under the curve (AUC) of [background=0.607, crop=0.681, weed=0.576],
-        our proposed model with 9 input channels achieves [0.839, 0.863, 0.782]. Additionally,
-        we provide an extensive analysis of 20 trained models, both qualitatively
-        and quantitatively, in order to evaluate the effects of varying input channels
-        and tunable network hyperparameters. Furthermore, we release a large sugar
-        beet/weed aerial dataset with expertly guided annotations for further research
-        in the fields of remote sensing, precision agriculture, and agricultural robotics.</summary>\n
-        \   <category term=\"cs.RO\" scheme=\"http://arxiv.org/schemas/atom\"/>\n
-        \   <published>2018-07-31T22:45:11Z</published>\n    <arxiv:comment>25 pages,
-        14 figures, MDPI Remote Sensing</arxiv:comment>\n    <arxiv:primary_category
-        term=\"cs.RO\"/>\n    <author>\n      <name>Inkyu Sa</name>\n    </author>\n
-        \   <author>\n      <name>Marija Popovic</name>\n    </author>\n    <author>\n
-        \     <name>Raghav Khanna</name>\n    </author>\n    <author>\n      <name>Zetao
-        Chen</name>\n    </author>\n    <author>\n      <name>Philipp Lottes</name>\n
-        \   </author>\n    <author>\n      <name>Frank Liebisch</name>\n    </author>\n
-        \   <author>\n      <name>Juan Nieto</name>\n    </author>\n    <author>\n
-        \     <name>Cyrill Stachniss</name>\n    </author>\n    <author>\n      <name>Achim
-        Walter</name>\n    </author>\n    <author>\n      <name>Roland Siegwart</name>\n
-        \   </author>\n  </entry>\n  <entry>\n    <id>http://arxiv.org/abs/2108.01884v1</id>\n
-        \   <title>Adaptive Path Planning for UAV-based Multi-Resolution Semantic
-        Segmentation</title>\n    <updated>2021-08-04T07:30:04Z</updated>\n    <link
-        href=\"https://arxiv.org/abs/2108.01884v1\" rel=\"alternate\" type=\"text/html\"/>\n
-        \   <link href=\"https://arxiv.org/pdf/2108.01884v1\" rel=\"related\" type=\"application/pdf\"
-        title=\"pdf\"/>\n    <summary>In this paper, we address the problem of adaptive
-        path planning for accurate semantic segmentation of terrain using unmanned
-        aerial vehicles (UAVs). The usage of UAVs for terrain monitoring and remote
-        sensing is rapidly gaining momentum due to their high mobility, low cost,
-        and flexible deployment. However, a key challenge is planning missions to
-        maximize the value of acquired data in large environments given flight time
-        limitations. To address this, we propose an online planning algorithm which
-        adapts the UAV paths to obtain high-resolution semantic segmentations necessary
-        in areas on the terrain with fine details as they are detected in incoming
-        images. This enables us to perform close inspections at low altitudes only
-        where required, without wasting energy on exhaustive mapping at maximum resolution.
-        A key feature of our approach is a new accuracy model for deep learning-based
-        architectures that captures the relationship between UAV altitude and semantic
-        segmentation accuracy. We evaluate our approach on the application of crop/weed
-        segmentation in precision agriculture using real-world field data.</summary>\n
-        \   <category term=\"cs.RO\" scheme=\"http://arxiv.org/schemas/atom\"/>\n
+        \ <entry>\n    <id>http://arxiv.org/abs/2108.01884v1</id>\n    <title>Adaptive
+        Path Planning for UAV-based Multi-Resolution Semantic Segmentation</title>\n
+        \   <updated>2021-08-04T07:30:04Z</updated>\n    <link href=\"https://arxiv.org/abs/2108.01884v1\"
+        rel=\"alternate\" type=\"text/html\"/>\n    <link href=\"https://arxiv.org/pdf/2108.01884v1\"
+        rel=\"related\" type=\"application/pdf\" title=\"pdf\"/>\n    <summary>In
+        this paper, we address the problem of adaptive path planning for accurate
+        semantic segmentation of terrain using unmanned aerial vehicles (UAVs). The
+        usage of UAVs for terrain monitoring and remote sensing is rapidly gaining
+        momentum due to their high mobility, low cost, and flexible deployment. However,
+        a key challenge is planning missions to maximize the value of acquired data
+        in large environments given flight time limitations. To address this, we propose
+        an online planning algorithm which adapts the UAV paths to obtain high-resolution
+        semantic segmentations necessary in areas on the terrain with fine details
+        as they are detected in incoming images. This enables us to perform close
+        inspections at low altitudes only where required, without wasting energy on
+        exhaustive mapping at maximum resolution. A key feature of our approach is
+        a new accuracy model for deep learning-based architectures that captures the
+        relationship between UAV altitude and semantic segmentation accuracy. We evaluate
+        our approach on the application of crop/weed segmentation in precision agriculture
+        using real-world field data.</summary>\n    <category term=\"cs.RO\" scheme=\"http://arxiv.org/schemas/atom\"/>\n
         \   <category term=\"cs.AI\" scheme=\"http://arxiv.org/schemas/atom\"/>\n
         \   <published>2021-08-04T07:30:04Z</published>\n    <arxiv:comment>6 pages,
         submission to European Conference on Mobile Robots (ECMR) 2021</arxiv:comment>\n
@@ -592,35 +554,8 @@ interactions:
         \   </author>\n    <author>\n      <name>Federico Magistri</name>\n    </author>\n
         \   <author>\n      <name>Marija Popovi\u0107</name>\n    </author>\n    <author>\n
         \     <name>Cyrill Stachniss</name>\n    </author>\n  </entry>\n  <entry>\n
-        \   <id>http://arxiv.org/abs/1906.02809v1</id>\n    <title>Scene and Environment
-        Monitoring Using Aerial Imagery and Deep Learning</title>\n    <updated>2019-06-06T20:58:39Z</updated>\n
-        \   <link href=\"https://arxiv.org/abs/1906.02809v1\" rel=\"alternate\" type=\"text/html\"/>\n
-        \   <link href=\"https://arxiv.org/pdf/1906.02809v1\" rel=\"related\" type=\"application/pdf\"
-        title=\"pdf\"/>\n    <summary>Unmanned Aerial vehicles (UAV) are a promising
-        technology for smart farming related applications. Aerial monitoring of agriculture
-        farms with UAV enables key decision-making pertaining to crop monitoring.
-        Advancements in deep learning techniques have further enhanced the precision
-        and reliability of aerial imagery based analysis. The capabilities to mount
-        various kinds of sensors (RGB, spectral cameras) on UAV allows remote crop
-        analysis applications such as vegetation classification and segmentation,
-        crop counting, yield monitoring and prediction, crop mapping, weed detection,
-        disease and nutrient deficiency detection and others. A significant amount
-        of studies are found in the literature that explores UAV for smart farming
-        applications. In this paper, a review of studies applying deep learning on
-        UAV imagery for smart farming is presented. Based on the application, we have
-        classified these studies into five major groups including: vegetation identification,
-        classification and segmentation, crop counting and yield predictions, crop
-        mapping, weed detection and crop disease and nutrient deficiency detection.
-        An in depth critical analysis of each study is provided.</summary>\n    <category
-        term=\"cs.CV\" scheme=\"http://arxiv.org/schemas/atom\"/>\n    <published>2019-06-06T20:58:39Z</published>\n
-        \   <arxiv:comment>8</arxiv:comment>\n    <arxiv:primary_category term=\"cs.CV\"/>\n
-        \   <arxiv:journal_ref>IoTI4 Workshop 2019</arxiv:journal_ref>\n    <author>\n
-        \     <name>Mahdi Maktabdar Oghaz</name>\n    </author>\n    <author>\n      <name>Manzoor
-        Razaak</name>\n    </author>\n    <author>\n      <name>Hamideh Kerdegari</name>\n
-        \   </author>\n    <author>\n      <name>Vasileios Argyriou</name>\n    </author>\n
-        \   <author>\n      <name>Paolo Remagnino</name>\n    </author>\n  </entry>\n
-        \ <entry>\n    <id>http://arxiv.org/abs/2205.11061v1</id>\n    <title>Vegetation
-        Mapping by UAV Visible Imagery and Machine Learning</title>\n    <updated>2022-05-23T05:59:25Z</updated>\n
+        \   <id>http://arxiv.org/abs/2205.11061v1</id>\n    <title>Vegetation Mapping
+        by UAV Visible Imagery and Machine Learning</title>\n    <updated>2022-05-23T05:59:25Z</updated>\n
         \   <link href=\"https://arxiv.org/abs/2205.11061v1\" rel=\"alternate\" type=\"text/html\"/>\n
         \   <link href=\"https://arxiv.org/pdf/2205.11061v1\" rel=\"related\" type=\"application/pdf\"
         title=\"pdf\"/>\n    <summary>An experimental field cropped with sugar-beet
@@ -635,71 +570,20 @@ interactions:
         scheme=\"http://arxiv.org/schemas/atom\"/>\n    <published>2022-05-23T05:59:25Z</published>\n
         \   <arxiv:comment>16 pages, numberedlines</arxiv:comment>\n    <arxiv:primary_category
         term=\"cs.CV\"/>\n    <author>\n      <name>Giuliano Vitali</name>\n    </author>\n
-        \ </entry>\n  <entry>\n    <id>http://arxiv.org/abs/1911.03098v4</id>\n    <title>Building
-        an Aerial-Ground Robotics System for Precision Farming: An Adaptable Solution</title>\n
-        \   <updated>2022-06-07T08:21:22Z</updated>\n    <link href=\"https://arxiv.org/abs/1911.03098v4\"
-        rel=\"alternate\" type=\"text/html\"/>\n    <link href=\"https://arxiv.org/pdf/1911.03098v4\"
-        rel=\"related\" type=\"application/pdf\" title=\"pdf\"/>\n    <summary>The
-        application of autonomous robots in agriculture is gaining increasing popularity
-        thanks to the high impact it may have on food security, sustainability, resource
-        use efficiency, reduction of chemical treatments, and the optimization of
-        human effort and yield. With this vision, the Flourish research project aimed
-        to develop an adaptable robotic solution for precision farming that combines
-        the aerial survey capabilities of small autonomous unmanned aerial vehicles
-        (UAVs) with targeted intervention performed by multi-purpose unmanned ground
-        vehicles (UGVs). This paper presents an overview of the scientific and technological
-        advances and outcomes obtained in the project. We introduce multi-spectral
-        perception algorithms and aerial and ground-based systems developed for monitoring
-        crop density, weed pressure, crop nitrogen nutrition status, and to accurately
-        classify and locate weeds. We then introduce the navigation and mapping systems
-        tailored to our robots in the agricultural environment, as well as the modules
-        for collaborative mapping. We finally present the ground intervention hardware,
-        software solutions, and interfaces we implemented and tested in different
-        field conditions and with different crops. We describe a real use case in
-        which a UAV collaborates with a UGV to monitor the field and to perform selective
-        spraying without human intervention.</summary>\n    <category term=\"cs.RO\"
-        scheme=\"http://arxiv.org/schemas/atom\"/>\n    <published>2019-11-08T07:19:47Z</published>\n
-        \   <arxiv:comment>Published in IEEE Robotics &amp; Automation Magazine, vol.
-        28, no. 3, pp. 29-49, Sept. 2021</arxiv:comment>\n    <arxiv:primary_category
-        term=\"cs.RO\"/>\n    <arxiv:journal_ref>IEEE Robotics &amp; Automation Magazine,
-        vol. 28, no. 3, pp. 29-49, Sept. 2021</arxiv:journal_ref>\n    <author>\n
-        \     <name>Alberto Pretto</name>\n    </author>\n    <author>\n      <name>St\xE9phanie
-        Aravecchia</name>\n    </author>\n    <author>\n      <name>Wolfram Burgard</name>\n
-        \   </author>\n    <author>\n      <name>Nived Chebrolu</name>\n    </author>\n
-        \   <author>\n      <name>Christian Dornhege</name>\n    </author>\n    <author>\n
-        \     <name>Tillmann Falck</name>\n    </author>\n    <author>\n      <name>Freya
-        Fleckenstein</name>\n    </author>\n    <author>\n      <name>Alessandra Fontenla</name>\n
-        \   </author>\n    <author>\n      <name>Marco Imperoli</name>\n    </author>\n
-        \   <author>\n      <name>Raghav Khanna</name>\n    </author>\n    <author>\n
-        \     <name>Frank Liebisch</name>\n    </author>\n    <author>\n      <name>Philipp
-        Lottes</name>\n    </author>\n    <author>\n      <name>Andres Milioto</name>\n
-        \   </author>\n    <author>\n      <name>Daniele Nardi</name>\n    </author>\n
-        \   <author>\n      <name>Sandro Nardi</name>\n    </author>\n    <author>\n
-        \     <name>Johannes Pfeifer</name>\n    </author>\n    <author>\n      <name>Marija
-        Popovi\u0107</name>\n    </author>\n    <author>\n      <name>Ciro Potena</name>\n
-        \   </author>\n    <author>\n      <name>C\xE9dric Pradalier</name>\n    </author>\n
-        \   <author>\n      <name>Elisa Rothacker-Feder</name>\n    </author>\n    <author>\n
-        \     <name>Inkyu Sa</name>\n    </author>\n    <author>\n      <name>Alexander
-        Schaefer</name>\n    </author>\n    <author>\n      <name>Roland Siegwart</name>\n
-        \   </author>\n    <author>\n      <name>Cyrill Stachniss</name>\n    </author>\n
-        \   <author>\n      <name>Achim Walter</name>\n    </author>\n    <author>\n
-        \     <name>Wera Winterhalter</name>\n    </author>\n    <author>\n      <name>Xiaolong
-        Wu</name>\n    </author>\n    <author>\n      <name>Juan Nieto</name>\n    </author>\n
-        \   <arxiv:doi>10.1109/MRA.2020.3012492</arxiv:doi>\n    <link rel=\"related\"
-        href=\"https://doi.org/10.1109/MRA.2020.3012492\" title=\"doi\"/>\n  </entry>\n</feed>\n"
+        \ </entry>\n</feed>\n"
     headers:
       accept-ranges:
       - bytes
       age:
-      - '82'
+      - '0'
       connection:
       - keep-alive
       content-length:
-      - '23657'
+      - '14498'
       content-type:
       - application/atom+xml; charset=utf-8
       date:
-      - Sun, 15 Nov 2026 06:28:23 GMT
+      - Wed, 18 Nov 2026 20:15:38 GMT
       server:
       - Google Frontend
       strict-transport-security:
@@ -707,16 +591,16 @@ interactions:
       via:
       - 1.1 google, 1.1 varnish, 1.1 varnish, 1.1 varnish
       x-cache:
-      - MISS, MISS, HIT
+      - MISS, MISS, MISS
       x-cache-hits:
       - 0, 0, 0
       x-cloud-trace-context:
-      - 60f79d6976bb46c1fd308aa35be9b35d
+      - e5f95461eba9789e714ca60490385850
       x-served-by:
-      - cache-lga-kjfk8660020-LGA, cache-lga-kjfk8660020-LGA, cache-lga-kjfk8660020-LGA,
-        cache-mrs1530052-MRS
+      - cache-lga-kjfk8660077-LGA, cache-lga-kjfk8660077-LGA, cache-lga-kjfk8660053-LGA,
+        cache-mrs1530030-MRS
       x-timer:
-      - S1794724103.069372,VS0,VE1
+      - S1795032938.403314,VS0,VE355
     status:
       code: 200
       message: OK
