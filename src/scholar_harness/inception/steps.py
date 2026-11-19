@@ -797,7 +797,7 @@ def genesis(
         if grounding:
             from .grounding import recon_context
 
-            context = recon_context(grounding, list(draft.rqs), [c.concept for c in draft.concepts])
+            context = recon_context(grounding, list(draft.rqs), [c.concept for c in draft.concepts], record=record)
         # M10b (09-start-from-protocol): a draft started from an earlier protocol
         # keeps the default GENESIS summary and adds one sentence naming the source.
         from .importer import genesis_sentence
