@@ -102,13 +102,18 @@ def documents(ws: Path) -> tuple[dict[str, Any], dict[str, Any], str]:
 
 
 def frozen(ws: Path) -> bool:
-    """A corpus was accepted: the protocol it was accepted under is never amended."""
+    """A corpus was accepted: the protocol it was accepted under is never amended.
+
+    Fails closed: a registry that cannot be read (half-written by an accept in
+    another process, corrupt) counts as accepted, so nothing is amended
+    without knowing (DEVELOPER_COMPASS §12).
+    """
     from .corpus_accept import _accepted_snapshot
 
     try:
         return bool(_accepted_snapshot(ws))
-    except (OSError, ValueError):
-        return False
+    except (OSError, ValueError, AttributeError, TypeError):
+        return True
 
 
 # --------------------------------------------------------------------------- targets and values

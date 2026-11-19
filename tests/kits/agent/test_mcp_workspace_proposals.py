@@ -224,3 +224,19 @@ def test_genesis_history_is_not_listed_and_the_routes_are_allowed_for_the_browse
 def test_a_workspace_proposal_needs_exactly_one_target(plan):
     _c, ws, _app = plan
     assert _propose(ws, session_id="rec_" + "0" * 32)["code"] == "TARGET_INVALID"
+
+
+@pytest.mark.parametrize("registry", ["{not json", "[]", '{"artifacts": []}'])
+def test_an_unreadable_registry_counts_as_an_accepted_corpus(plan, registry):
+    """Fail closed (review finding 2): Apply never amends a protocol whose acceptance it cannot read."""
+    c, ws, _app = plan
+    pid = _propose(ws)["proposal"]["proposal_id"]
+    (ws / "audit" / "artifact_registry.json").write_text(registry, encoding="utf-8")
+    before = _bytes(ws)
+    refused = c.post(f"{PLAN}/proposals/{pid}/apply")
+    assert refused.status_code == 409 and refused.json()["detail"]["code"] == "CORPUS_ALREADY_ACCEPTED"
+    assert _bytes(ws) == before and not (ws / WP.AMENDED_DIR).exists()
+
+
+def test_an_empty_workspace_name_is_refused_not_read_as_the_current_folder(plan):
+    assert _call(server.nexus_assistant_read_workspace, workspace_dir="  ")["code"] == "TARGET_INVALID"

@@ -2229,7 +2229,11 @@ def _drafts_root(workspaces_root: str | None) -> Path:
 def _assistant_workspace(workspace_dir: str) -> Path:
     """A workspace by its slug under the app's workspaces root, or a path inside the MCP anchor (AGT-01)."""
     name = str(workspace_dir or "").strip()
-    if name and "/" not in name and "\\" not in name and name not in (".", ".."):
+    if not name:
+        from scholar_harness.assistant import AssistantRefused
+
+        raise AssistantRefused("TARGET_INVALID", "name the workspace: its folder name or its path", {"field": "workspace_dir"})
+    if "/" not in name and "\\" not in name and name not in (".", ".."):
         candidate = _drafts_root(None) / name
         if (candidate / "protocol.json").is_file():
             return candidate
@@ -2477,7 +2481,7 @@ def main(argv: list[str] | None = None) -> None:
             "  - nexus_assistant_drafts: List the app's inception drafts (read-only)\n"
             "  - nexus_assistant_read_draft: One draft's answers, intent, checks and suggestions (read-only)\n"
             "  - nexus_assistant_read_workspace: A workspace's protocol, plan translations, recall and checks (read-only)\n"
-            "  - nexus_assistant_propose: Suggest one change to a draft; the researcher applies or rejects it in the app\n"
+            "  - nexus_assistant_propose: Suggest one change to a draft or a workspace's search; the researcher applies or rejects it in the app\n"
             "  - nexus_assistant_report_finding: Report one problem in a protocol (the critic); listed in the app's checks\n"
             "  - nexus_verify_claims: Verify synthesis claim quotes against extracted fulltext\n"
             "  - nexus_verify_phase4: Run scholar-verify Phase-4 streams (retraction/open-science/coi/risk-of-bias/trust-context)\n"

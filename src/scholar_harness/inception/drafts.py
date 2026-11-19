@@ -12,6 +12,7 @@ mints its session id here too.
 
 from __future__ import annotations
 
+import errno
 import json
 import os
 import re
@@ -87,6 +88,10 @@ def file_lock(lock_path: Path) -> Iterator[None]:
                 _os_unlock(handle)
 
 
+#: The errors ``msvcrt.locking`` raises while another process holds the lock.
+_CONTENDED = frozenset({errno.EACCES, errno.EDEADLK, getattr(errno, "EDEADLOCK", errno.EDEADLK)})
+
+
 def _os_lock(handle: Any) -> None:
     if os.name == "nt":
         import msvcrt
@@ -96,7 +101,9 @@ def _os_lock(handle: Any) -> None:
             try:
                 msvcrt.locking(handle.fileno(), msvcrt.LK_LOCK, 1)
                 return
-            except OSError:
+            except OSError as exc:
+                if exc.errno not in _CONTENDED:  # only another holder is waited out; any other error is raised
+                    raise
                 continue
     import fcntl
 

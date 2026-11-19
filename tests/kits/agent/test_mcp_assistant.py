@@ -186,6 +186,19 @@ def test_only_the_researcher_applies_it_and_genesis_counts_the_assistant(env):
     assert counts["by_source"]["agent"] == 1
 
 
+def test_the_researcher_may_apply_an_assistant_proposal_after_editing_it(env):
+    client, _root = env
+    record = _create(client)
+    sid = record["session_id"]
+    pid = _propose(sid)["proposal"]["proposal_id"]
+    edited = client.post(f"{BASE}/drafts/{sid}/proposals/{pid}/apply-edited",
+                         json={"base_updated_at": record["updated_at"], "value": "unmanned aerial vehicle"})
+    assert edited.status_code == 200, edited.text
+    assert edited.json()["draft"]["concepts"][0]["synonyms"] == ["weed mapping", "unmanned aerial vehicle"]
+    status = next(p for p in client.get(f"{BASE}/drafts/{sid}/proposals").json()["proposals"] if p["proposal_id"] == pid)
+    assert status["status"] == "applied_edited" and status["source"] == f"agent:{MODEL}"
+
+
 def test_a_rejected_assistant_proposal_changes_nothing(env):
     client, _root = env
     record = _create(client)
