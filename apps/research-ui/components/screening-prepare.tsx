@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { formatNumber, type Locale } from "@/i18n";
 import { Button, DataCell, DecisionBadge, GatePanel } from "@/components/ui/base";
 import { ScreeningSteps, StateCard } from "@/components/screening-state-card";
+import { notifyReviewChanged } from "@/components/review-bus";
 import { getScreeningBatches, isScreeningApiError, type ScreeningBatches } from "@/lib/screening-api";
 import { getJob, getSettings, prepare, putSettings, type JobView, type Settings } from "@/lib/screening-v1";
 
@@ -253,6 +254,7 @@ export function ScreeningPrepare({ locale }: Readonly<{ locale: Locale }>) {
     setRefusal(null);
     try {
       const started = await prepare(origin, size);
+      notifyReviewChanged();
       setJob(started.job_id);
       setJobView(null);
     } catch (e) {

@@ -12,11 +12,13 @@ transport-neutral (no FastAPI, no Typer, no console import):
   projection/INDEX failures are swallowed.
 
 * :func:`append_legacy_event` -- orchestrator/handoff byte-compatible writer:
-  preserves the observed ``hex(hash(action + description))[-6:]`` event-id
-  scheme, no uppercasing, ``json.dumps`` default encoding, no manifest update,
-  no INDEX refresh, returns ``None``. HCM-01 characterizes this odd scheme;
-  HCM-02 preserves it and regression-tests it. Do not "normalize" it without a
-  separate behavior-decision packet.
+  no uppercasing, ``json.dumps`` default encoding, no manifest update, no INDEX
+  refresh, returns ``None``. Its event-id limb was the observed
+  ``hex(hash(action + description))[-6:]`` scheme (HCM-01 characterized it, HCM-02
+  preserved it); F8 replaced the limb with six random hex digits because the old
+  one gave two same-text events in one second the same id. That is the behaviour
+  decision item 4 of "Small fixes 2" in ``docs/decisions.md`` (accepted by the
+  researcher on 2026-11-18); the ``EVT-<14 digits>-<6 hex>`` shape is unchanged.
 
 ``refresh_index`` (best-effort, void) and ``refresh_index_atomic``
 (orchestrator-compatible, backup/restore, ``bool``) share the portable loader
@@ -239,8 +241,10 @@ def append_legacy_event(
     """Append one legacy orchestrator/handoff event (byte-compatible).
 
     Replicates ``ResearchOrchestrator._log_audit_event`` / ``handoff._log_audit_event``
-    exactly: ``hex(hash(action + description))[-6:]`` event-id limb (observed odd
-    scheme, hash-randomized, preserved per HCM-02 packet), no uppercasing, plain
+    exactly, except the event-id limb: it was ``hex(hash(action + description))[-6:]``,
+    so two events with the same action and text in the same second shared an id
+    (F8); it is now six random hex digits like :func:`append_event`'s. The id shape
+    ``EVT-<14 digits>-<6 hex>`` is unchanged. No uppercasing, plain
     ``json.dumps`` (default ``ensure_ascii``), no ``project.json`` update, no
     ``INDEX.md`` refresh, returns ``None``. ``OSError`` from the append
     propagates (no silent success).
@@ -253,9 +257,10 @@ def append_legacy_event(
     audit_file = ws / "audit" / "journal.jsonl"
     audit_file.parent.mkdir(parents=True, exist_ok=True)
 
+    now = datetime.now(UTC)
     event = {
-        "timestamp": datetime.now(UTC).isoformat(),
-        "event_id": f"EVT-{datetime.now(UTC).strftime('%Y%m%d%H%M%S')}-{hex(hash(action + description))[-6:]}",
+        "timestamp": now.isoformat(),
+        "event_id": f"EVT-{now.strftime('%Y%m%d%H%M%S')}-{uuid.uuid4().hex[:6]}",
         "action": action,
         "agent_or_tool": agent,
         "description": description,

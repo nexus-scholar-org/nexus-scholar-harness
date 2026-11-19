@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 
 import { translate, type Locale } from "@/i18n";
 
+import { NextStepBar } from "./next-step-bar";
 import { SiteHeader } from "./site-header";
 
 /**
@@ -56,6 +57,9 @@ export function AppShell({
       ) : (
         <SiteHeader locale={locale} pathname={pathname} />
       )}
+
+      {/* M10b (04-next-step): what comes next, a labelled region between the banner and main; absent on the workspaces list and triage. */}
+      <NextStepBar locale={locale} pathname={pathname} />
 
       <main id={MAIN_CONTENT_ID} tabIndex={-1} className={oneScreen ? "flex-1 focus:outline-none lg:flex lg:min-h-0 lg:flex-col" : "flex-1 focus:outline-none"}>
         {children}

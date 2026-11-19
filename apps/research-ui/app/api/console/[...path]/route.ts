@@ -74,14 +74,22 @@ const POST_PATHS: ReadonlyArray<RegExp> = [
   // M10b (09-start-from-protocol): start a draft from a protocol; mark an imported step opened.
   /^api\/v1\/inception\/drafts\/import$/,
   /^api\/v1\/inception\/drafts\/[A-Za-z0-9_-]+\/origin\/checked$/,
+  // M10b: proposal decisions and the checks (the checks POST records the proposals it recommends).
+  /^api\/v1\/inception\/drafts\/[A-Za-z0-9_-]+\/proposals\/prop_[0-9a-f]+\/(apply|apply-edited|reject|restore)$/,
+  /^api\/v1\/inception\/drafts\/[A-Za-z0-9_-]+\/checks$/,
+  /^api\/v1\/inception\/drafts\/[A-Za-z0-9_-]+\/checks\/[A-Z][A-Z0-9_]+\/(dismiss|restore)$/,
+  /^api\/v1\/discovery\/checks\/[A-Z][A-Z0-9_]+\/(dismiss|restore)$/,
   // M4c: recon over HTTP (Explore, Direction). Probe and delta start a job; the
   // console refuses MAILTO_NOT_SET before any request. Distill and bind write
   // only under the recon cache and the draft record.
-  /^api\/v1\/inception\/drafts\/[A-Za-z0-9_-]+\/recon\/(probe|delta|distill|bind)$/,
+  /^api\/v1\/inception\/drafts\/[A-Za-z0-9_-]+\/recon\/(probe|delta|distill|bind|sample)$/,
   // M3b-api: discovery (DISCOVERY_API_PACKET §5). A search run and a recall check
   // start a job in the console, which refuses MAILTO_NOT_SET, CORPUS_ALREADY_ACCEPTED
   // and a second job before anything starts; cancel keeps the fetched records.
   /^api\/v1\/discovery\/(runs|recall)$/,
+  // M10b Part D: the size estimate. Count-only requests to the selected databases;
+  // nothing is written in the workspace and nothing is journaled.
+  /^api\/v1\/discovery\/estimate$/,
   // M3i-harvest-robustness: finish a harvest's remaining stages (duplicates, abstracts,
   // verification) from the run's saved records; the console searches nothing again.
   /^api\/v1\/discovery\/runs\/run_\d{3,}\/prepare$/,
@@ -90,6 +98,8 @@ const POST_PATHS: ReadonlyArray<RegExp> = [
   // its new records to screening as the next round; the console checks the
   // published screening, the keys, the one-job lock and the protocol.
   /^api\/v1\/discovery\/chase\/(runs|accept)$/,
+  // M10c D5: the researcher applies or rejects an assistant's suggested search change on Plan.
+  /^api\/v1\/discovery\/proposals\/prop_[0-9a-f]+\/(apply|reject)$/,
 ];
 
 /** The one GET with a side effect: the engine records a reveal when a draft is read. */

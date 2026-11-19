@@ -11,6 +11,7 @@
  */
 
 type Json = Record<string, unknown>;
+import { checkRow, dismissal, DISCOVERY_STEPS, respond, withDismissals, type CheckIn } from "./checks-engine";
 export type Answer = { status: number; body: unknown; sse?: boolean };
 
 export const FINGERPRINT = "sha256:" + "cd".repeat(32);
@@ -18,6 +19,8 @@ export const QUERY_TEXT = '("weed detection" OR "weed segmentation") AND ("edge 
 export const MAILTO_LINE = "SCHOLAR_MAILTO=you@university.edu";
 
 export interface DiscoveryFakeOptions {
+  /** M10b Part B: the rows `GET /discovery/checks` serves (default none). */
+  checks?: CheckIn[];
   protocol?: "ok" | "missing" | "invalid";
   /** `SCHOLAR_MAILTO` set for the console (default true). */
   mailto?: boolean;
@@ -80,6 +83,21 @@ export interface DiscoveryFakeOptions {
   holdAfterSearch?: boolean;
   /** M3i: a started "finish preparing" job stays running, in the abstracts step (no end). */
   holdPrepare?: boolean;
+  /**
+   * M10b Part D: the answer of `POST /discovery/estimate`, as a body or built from the request body.
+   * Absent: the fake counts `FETCHED`'s reported totals with the engine's arithmetic.
+   */
+  estimate?: object | ((body: Json | null) => object);
+  /** M10b Part D: databases whose count fails (the row is `failed` with this code). */
+  estimateFails?: Record<string, string>;
+  /** M10b Part D: the planned maximum stated in `intent.json` (default none: the general limit of 1,000). */
+  plannedMax?: number;
+  /** M10c D5: an assistant's suggestions on the workspace's search (default none). */
+  workspaceProposals?: { proposal_id: string; field: string; op: "add" | "remove" | "replace"; value: unknown; why?: string; source?: string; stale?: boolean }[];
+  /** M10c D5: the refusal the next Apply answers (`PROTOCOL_AMENDMENT_REFUSED` with its details, …). */
+  amendmentRefusal?: { status: number; code: string; details?: object };
+  /** M10b Part C: the step a held job is in after the search (the `preparation` stage while it runs; default `hydration`). */
+  preparingStage?: "deduplication" | "hydration" | "verification";
 }
 
 const PROVIDERS = ["openalex", "semanticscholar", "crossref", "arxiv", "pubmed", "biorxiv"] as const;
@@ -305,7 +323,7 @@ export function discoveryEngine(options: DiscoveryFakeOptions = {}) {
     if (run !== corpusRun()) return view("superseded", null);
     const active = activeJob();
     if (active && (active.kind === "prepare" || (active.kind === "run" && active.preparing_run === run.run))) {
-      return view("running", "hydration", { job_id: active.job_id });
+      return view("running", options.preparingStage ?? "hydration", { job_id: active.job_id });
     }
     if (!stored) return view("ready", null);
     const reason = accepted ? "corpus_accepted" : options.recordsMissing ? "records_missing" : null;
@@ -471,6 +489,170 @@ export function discoveryEngine(options: DiscoveryFakeOptions = {}) {
     };
   };
 
+  // M10b Part B: the discovery checks and the workspace's dismissal record.
+  let checkRows: CheckIn[] = options.checks ?? [];
+  // M10c D5: the workspace's proposals; an Apply moves the fingerprint, which makes every other open one stale.
+  const wsProposals = (options.workspaceProposals ?? []).map((p) => ({
+    proposal_id: p.proposal_id,
+    target: { kind: "workspace", id: "uav", field: p.field },
+    op: p.op,
+    value: p.value,
+    why: p.why ?? "A seed paper uses this term.",
+    evidence: [],
+    source: p.source ?? "agent:claude-opus-5-5",
+    base: { hash: "sha256:00", shown: "weed mapping", protocol_fingerprint: p.stale ? "sha256:old" : FINGERPRINT },
+    status: "open" as string,
+    decided_at: null as string | null,
+    step: "plan",
+    current: "weed mapping",
+  }));
+  const proposalsAnswer = (amended: object | null = null) => {
+    const items = wsProposals.map((p) => ({ ...p, status: p.status === "open" && p.base.protocol_fingerprint !== fingerprint ? "stale" : p.status }));
+    const count = (s: string) => items.filter((i) => i.status === s).length;
+    return {
+      shape: "discovery.proposals-v1", protocol_fingerprint: fingerprint, frozen: accepted, proposals: items,
+      counts: { open: count("open"), stale: count("stale"), applied: count("applied"), rejected: count("rejected") },
+      active_job: activeJob() ?? null, amended,
+    };
+  };
+  const checkDismissals: Json[] = [];
+
+  /** M10b Part D: the engine's estimate arithmetic (`scholar_search.estimate.summarize`) over `FETCHED`'s totals. */
+  const estimateOf = (names: string[], whatIf: number | null, pace: number): Json => {
+    const cap = whatIf ?? 500;
+    const limit = options.plannedMax ?? 1000;
+    const fails = options.estimateFails ?? {};
+    const rows: Json[] = names.map((name) => {
+      if (name === "biorxiv") return { name, status: "not_countable", reported_total: null, fetch_estimate: null, fetch_is_upper_bound: false, cap_binds: null, not_fetched: null, error: null, error_code: null, notes: [] };
+      if (fails[name]) return { name, status: "failed", reported_total: null, fetch_estimate: null, fetch_is_upper_bound: false, cap_binds: null, not_fetched: null, error: `[${name}] the count failed`, error_code: fails[name], notes: [] };
+      const total = FETCHED[name].reported;
+      return { name, status: "counted", reported_total: total, fetch_estimate: Math.min(total, cap), fetch_is_upper_bound: name === "arxiv", cap_binds: total > cap, not_fetched: total - Math.min(total, cap), error: null, error_code: null, notes: [] };
+    });
+    for (const name of PROVIDERS) {
+      if (!names.includes(name)) rows.push({ name, status: name === "biorxiv" ? "off_by_default" : "not_selected", reported_total: null, fetch_estimate: null, fetch_is_upper_bound: false, cap_binds: null, not_fetched: null, error: null, error_code: null, notes: [] });
+    }
+    const counted = rows.filter((r) => r.fetch_estimate !== null) as { fetch_estimate: number; fetch_is_upper_bound: boolean; reported_total: number }[];
+    const all = rows.every((r) => r.status === "counted" || r.status === "not_selected" || r.status === "off_by_default");
+    const exact = counted.filter((r) => !r.fetch_is_upper_bound).map((r) => r.fetch_estimate);
+    const sum = (list: number[]) => list.reduce((a, b) => a + b, 0);
+    const low = Math.max(0, ...exact);
+    const high = all ? sum(counted.map((r) => r.fetch_estimate)) : null;
+    const level = low > limit ? "warning" : high === null || high > limit ? "note" : "none";
+    const totals = counted.map((r) => r.reported_total);
+    let best = 0;
+    for (let c = 0; c <= cap; c++) if (sum(totals.map((t) => Math.min(t, c))) <= limit) best = c;
+    const recommendation =
+      level === "none"
+        ? { kind: null, cap: null, expected_works: null, cuts: null }
+        : all && best >= 100
+          ? {
+              kind: "cap", cap: best, cuts: totals.filter((t) => t > best).length,
+              expected_works: { low: Math.max(0, ...counted.filter((r) => !r.fetch_is_upper_bound).map((r) => Math.min(r.reported_total, best))), high: sum(totals.map((t) => Math.min(t, best))) },
+            }
+          : { kind: "narrow", cap: null, expected_works: null, cuts: null };
+    const hours = (works: number | null) => (works === null ? null : Math.round((works * pace) / 360) / 10);
+    return {
+      shape: "discovery.estimate-v1", protocol_fingerprint: fingerprint, counted_at: now(), served_from_cache: false, recall_check: null,
+      cap: { value: cap, source: whatIf === null ? "protocol" : "run_override", ceiling: 10000 },
+      providers: rows,
+      estimate: { counted_all: all, records: { low: sum(exact), high }, works: { low, high }, assumption: "low: every record of a smaller database is a duplicate of the largest; high: no duplicate" },
+      effort: { pace_seconds: pace, hours: { low: hours(low), high: hours(high) } },
+      warn: { level, threshold_works: limit, limit: { value: limit, source: options.plannedMax ? "planned" : "general" } },
+      recommendation,
+    };
+  };
+
+  /**
+   * M10b Part C: `GET /api/v1/review/next-step`, the first row of the spec's table 1 that holds, read from this
+   * fake's own state in the simplest way (the engine's rules are pinned by `tests/console/test_next_step_api.py`).
+   */
+  const STAGE_NAMES: Record<string, string> = { deduplication: "deduplicating", hydration: "adding_abstracts", verification: "verifying" };
+  const nextStep = (): Json => {
+    const action = (key: string, screen: string, query: Json = {}) => ({ key, to: { screen, query } });
+    const answer = (state: string, phase: string, extra: Json = {}): Json => ({
+      shape: "review.next-step-v1", scope: "workspace", phase, round, state, params: {}, waiting: null, action: null, also: [],
+      unknown: [], protocol_fingerprint: protocol === "ok" ? fingerprint : null, computed_at: new Date().toISOString(), ...extra,
+    });
+    if (protocol === "missing") return answer("NO_PROTOCOL", "inception", { action: action("goToInception", "inception.list") });
+    if (protocol === "invalid") return answer("PROTOCOL_INVALID", "inception", { action: action("goToInception", "inception.list") });
+    const active = activeJob();
+    const runJob = active && (active.kind === "run" || active.kind === "prepare") ? active : null;
+    const waiting = (kind: string, stage: string, job: Json | null, reason: Json | null = null, since: string | null = null): Json => ({
+      kind, stage, job: job ? { job_id: job.job_id, kind: job.kind, state: job.state, started_at: job.started_at } : null, reason,
+      since: since ?? ((job?.started_at as string | undefined) ?? null),
+    });
+    if (!accepted) {
+      if (!runs.length && !runJob && !staged) {
+        if (!mailto || (!openalexKey && protocolProviders.includes("openalex"))) {
+          const what = !mailto && !openalexKey ? "both" : !mailto ? "email" : "key";
+          return answer("SETUP_NEEDED", "discovery", { params: { what }, action: action("seeWhatToSet", "discovery.plan") });
+        }
+        return answer("READY_TO_SEARCH", "discovery", { action: action("goToHarvest", "discovery.harvest") });
+      }
+      if (staged) return answer("STAGED_EXPORTS", "discovery", { params: { n: 1 }, action: action("reviewExports", "discovery.handoff") });
+      const run = corpusRun();
+      if (runJob && runJob.kind === "run" && !runJob.preparing_run) {
+        return answer("SEARCH_UNFINISHED", "discovery", {
+          params: { answered: 0, databases: protocolProviders.length }, waiting: waiting("running", "searching", runJob),
+          action: action("followSearch", "discovery.harvest", { job: runJob.job_id }),
+        });
+      }
+      const d = dedup();
+      if (runJob && run) {
+        const view = preparationOf(run);
+        return answer("CORPUS_PENDING", "discovery", {
+          params: { run: run.run, records: fetchedTotal(run), works: d?.unique_works ?? null, databases: (run.legs as Json[]).length },
+          waiting: waiting("running", STAGE_NAMES[String(view.stage)] ?? "deduplicating", runJob),
+          action: action("followSearch", "discovery.harvest", { job: runJob.job_id }),
+        });
+      }
+      if (run) {
+        const view = preparationOf(run);
+        if (options.handoffProtocolChange === "search") return answer("SEARCH_CHANGED", "discovery", { params: { run: run.run }, action: action("goToHarvest", "discovery.harvest") });
+        if (view.state === "ready") {
+          return answer("CORPUS_READY", "discovery", {
+            params: { run: run.run, records: fetchedTotal(run), works: d?.unique_works ?? null, ...(options.handoffProtocolChange === "other" ? { protocol_changed: true } : {}) },
+            action: action("reviewCorpus", "discovery.handoff"),
+          });
+        }
+      }
+      const newest = runs[0];
+      if (newest && prep.get(String(newest.run))?.state === "none") {
+        return answer("SEARCH_UNFINISHED", "discovery", {
+          params: { run: newest.run }, waiting: waiting("stopped", "searching", null, { code: "STOPPED_BY_RESEARCHER", message: null }, stageAt),
+          action: action("searchAgain", "discovery.harvest"),
+        });
+      }
+      if (run) {
+        const view = preparationOf(run);
+        const stage = view.stage ? STAGE_NAMES[String(view.stage)] : null;
+        const finish = view.can_finish ? action("finishPreparing", "discovery.harvest", { run: run.run }) : action("searchAgain", "discovery.harvest");
+        const also = view.can_finish ? [action("searchAgain", "discovery.harvest")] : [];
+        const reason =
+          view.state === "failed" ? { code: "DISCOVERY_FAILED", message: view.message } : view.state === "stopped" ? { code: "STOPPED_BY_RESEARCHER", message: null } : { code: "INTERRUPTED", message: null };
+        return answer("CORPUS_PENDING", "discovery", {
+          params: { run: run.run, records: fetchedTotal(run), works: d?.unique_works ?? null, databases: (run.legs as Json[]).length, stage, ...(view.cannot_finish ? { cannot_finish: view.cannot_finish } : {}) },
+          waiting: { ...waiting(String(view.state), stage ?? (view.state === "stopped" ? "deduplicating" : "verifying"), null, reason, stageAt), ...(view.state === "interrupted" ? { details: { stage_known: stage !== null } } : {}) },
+          action: finish, also,
+        });
+      }
+      return answer("READY_TO_SEARCH", "discovery", { action: action("goToHarvest", "discovery.harvest") });
+    }
+    const withRound = (params: Json = {}): Json => (round > 1 ? { ...params, round } : params);
+    if (active?.kind === "chase") return answer("PUBLISHED", "screening", { params: withRound(), waiting: waiting("running", "chasing", active), action: action("followChase", "discovery.chase", { job: active.job_id }) });
+    // The fake keeps no screening batches: an accepted round waits for its batches until the screening is published.
+    if (!published) return answer(round > 1 ? "ROUND_ACCEPTED" : "NOT_PREPARED", "screening", { params: withRound(), action: action("goToScreening", "screening.home") });
+    const latest = chases[0];
+    if (!latest && !options.chaseNoSeeds) return answer("PUBLISHED", "published", { params: withRound(), action: action("goToChase", "discovery.chase") });
+    if (latest && latest.published && !latest.accepted) {
+      const fresh = Number((latest.counts as Json).new);
+      return fresh > 0
+        ? answer("CHASE_READY_TO_SEND", "published", { params: { new: fresh, round: round + 1 }, action: action("reviewChase", "discovery.chase") })
+        : answer("CHASE_NOTHING_NEW", "published", { params: withRound(), action: action("goToChase", "discovery.chase") });
+    }
+    return answer("DONE", "published", { params: withRound({ chaseable: options.chaseNoSeeds ? 0 : 1 }), action: action("goToPublish", "screening.publish") });
+  };
+
   function handle(method: string, path: string, body: Json | null): Answer {
     calls.push({ method, path, body });
     const key = `${method} ${path.split("?")[0]}`;
@@ -604,6 +786,27 @@ export function discoveryEngine(options: DiscoveryFakeOptions = {}) {
       });
       return { status: 202, body: { job } };
     }
+    if (method === "POST" && route === "/api/v1/discovery/estimate") {
+      const cap = body?.cap as number | undefined;
+      const pace = body?.pace_seconds as number | undefined;
+      const checked = checkProviders(body?.providers as string[] | null | undefined);
+      const requested = "names" in checked ? checked.names : null;
+      const refused =
+        needProtocol() ??
+        (cap !== undefined && cap !== null && !(cap >= 1 && cap <= 10000) ? refuse(422, "CAP_INVALID", "A cap must be 1 to 10000 records per database.") : null) ??
+        (pace !== undefined && pace !== null && !(Number.isInteger(pace) && pace >= 5 && pace <= 600) ? refuse(422, "PACE_INVALID", "The pace must be a whole number of seconds from 5 to 600.") : null) ??
+        ("refused" in checked ? checked.refused : null) ??
+        (!mailto ? mailtoRefusal : null) ??
+        (!openalexKey && (requested ?? protocolProviders).includes("openalex")
+          ? refuse(409, "OPENALEX_KEY_NOT_SET", "OpenAlex needs an API key. Set SCHOLAR_OPENALEX_KEY for the console (environment or .env) and start it again, or leave OpenAlex out of this run.")
+          : null) ??
+        (accepted ? refuse(409, "CORPUS_ALREADY_ACCEPTED", "The corpus snapshot is accepted; a frozen corpus is never searched again from the browser.") : null) ??
+        busy();
+      if (refused) return refused;
+      const stub = options.estimate;
+      if (stub) return { status: 200, body: typeof stub === "function" ? (stub as (b: Json | null) => object)(body) : stub };
+      return { status: 200, body: estimateOf(requested ?? protocolProviders, cap ?? null, pace ?? 30) };
+    }
     if (method === "POST" && route === "/api/v1/discovery/recall") {
       const seeds = (body?.seeds ?? []) as { id: string; kind: string; source: string }[];
       const refused =
@@ -660,7 +863,52 @@ export function discoveryEngine(options: DiscoveryFakeOptions = {}) {
       methods = { ...methods, [String(run.run)]: saved };
       return { status: 200, body: saved };
     }
+    const checksMatch = /^\/api\/v1\/discovery\/checks(?:\/([A-Z_]+)\/(dismiss|restore))?$/.exec(route);
+    if (checksMatch) {
+      const refused = needProtocol();
+      if (refused) return refused;
+      const step = params.get("step") ?? undefined;
+      if (step && !(DISCOVERY_STEPS as readonly string[]).includes(step)) return refuse(404, "STEP_UNKNOWN", `unknown step '${step}'`, { steps: DISCOVERY_STEPS });
+      const rows = () => withDismissals(checkRows.map((r) => checkRow(r)), checkDismissals);
+      const scope = { kind: "workspace", protocol_fingerprint: fingerprint, run: runs[0]?.run ?? null };
+      if (checksMatch[1] && method === "POST") {
+        const action = checksMatch[2] === "dismiss" ? "dismissed" : "restored";
+        const { entry, refused: no } = dismissal(rows(), checkDismissals, checksMatch[1], action, body, now());
+        if (no) return no;
+        checkDismissals.push(entry!);
+        const owner = String(checkRows.find((r) => r.check_id === checksMatch[1])?.step ?? "");
+        return { status: 200, body: respond(rows(), { step: owner, steps: DISCOVERY_STEPS, scope, at: now() }) };
+      }
+      if (!checksMatch[1] && method === "GET") return { status: 200, body: respond(rows(), { step, steps: DISCOVERY_STEPS, scope, at: now() }) };
+    }
+    if (method === "GET" && route === "/api/v1/discovery/proposals") return needProtocol() ?? { status: 200, body: proposalsAnswer() };
+    const proposalMatch = /^\/api\/v1\/discovery\/proposals\/(prop_[0-9a-f]+)\/(apply|reject)$/.exec(route);
+    if (method === "POST" && proposalMatch) {
+      const item = wsProposals.find((p) => p.proposal_id === proposalMatch[1]);
+      if (!item) return refuse(404, "PROPOSAL_NOT_FOUND", `no proposal ${proposalMatch[1]} on this workspace`);
+      const stale = item.base.protocol_fingerprint !== fingerprint;
+      if (item.status !== "open") return refuse(409, "PROPOSAL_NOT_OPEN", `this suggestion is ${item.status}`);
+      if (proposalMatch[2] === "reject") {
+        item.status = "rejected";
+        item.decided_at = now();
+        return { status: 200, body: proposalsAnswer() };
+      }
+      if (stale) return refuse(409, "PROPOSAL_STALE", "the protocol changed after the suggestion was made");
+      if (accepted) return refuse(409, "CORPUS_ALREADY_ACCEPTED", "a corpus was accepted under this protocol; it is not amended");
+      const refusedBusy = busy();
+      if (refusedBusy) return refusedBusy;
+      if (options.amendmentRefusal) {
+        const r = options.amendmentRefusal;
+        return refuse(r.status, r.code, "the engine refused the amendment", r.details);
+      }
+      const previous = fingerprint;
+      fingerprint = "sha256:" + "ef".repeat(32);
+      item.status = "applied";
+      item.decided_at = now();
+      return { status: 200, body: proposalsAnswer({ previous_fingerprint: previous, protocol_fingerprint: fingerprint, changed: ["search_strategy.core_concepts"], backup: "audit/amended/x" }) };
+    }
     if (method === "GET" && route === "/api/v1/discovery/handoff") return needProtocol() ?? { status: 200, body: handoff() };
+    if (method === "GET" && route === "/api/v1/review/next-step") return { status: 200, body: nextStep() };
     if (method === "GET" && route === "/api/v1/screening/corpus") return { status: 200, body: corpus() };
     if (method === "POST" && route === "/api/v1/screening/corpus/accept") {
       if (accepted) return refuse(409, "CORPUS_ALREADY_ACCEPTED", "the corpus is already accepted");
@@ -760,8 +1008,22 @@ export function discoveryEngine(options: DiscoveryFakeOptions = {}) {
     get accepted() {
       return accepted;
     },
+    /** M10b: replace the rows the checks route serves. */
+    setChecks: (rows: CheckIn[]) => {
+      checkRows = rows;
+    },
+    checkDismissals,
     chases,
     setPublished: (value: boolean) => (published = value),
+    /** M10b Part C: the job still running ends as succeeded (its run's steps after the search are then `ready`). */
+    finishHeldJob: () => {
+      for (const entry of jobs.values()) {
+        if (entry.job.state !== "running") continue;
+        entry.job = { ...entry.job, state: "succeeded", finished_at: now() };
+        entry.events.push({ event: "done", data: { job: entry.job } });
+        entry.open = false;
+      }
+    },
     get round() {
       return round;
     },

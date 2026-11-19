@@ -1,4 +1,5 @@
 import { ScreeningApiError, consoleBase, postJson, readJson } from "./screening-api";
+import type { CheckList, Proposal } from "./inception-api";
 import type { Corpus } from "./screening-v1";
 
 /**
@@ -295,6 +296,54 @@ export interface RunRequest {
 export function getPlan(origin: string, providers?: string[] | null, signal?: AbortSignal): Promise<Plan> {
   const query = providers ? `?providers=${providers.map(encodeURIComponent).join(",")}` : "";
   return readJson<Plan>(`${BASE}/plan${query}`, consoleBase(origin), signal);
+}
+
+/** M10b Part D: one database's row of the size estimate. */
+export interface EstimateRow {
+  name: ProviderName;
+  status: "counted" | "from_recall_check" | "not_countable" | "failed" | "not_selected" | "off_by_default" | string;
+  reported_total: number | null;
+  fetch_estimate: number | null;
+  fetch_is_upper_bound: boolean;
+  cap_binds: boolean | null;
+  /** What the cap leaves out (`reported_total - fetch_estimate`), written by the engine. */
+  not_fetched: number | null;
+  error: string | null;
+  error_code: string | null;
+  notes: string[];
+}
+
+/** M10b Part D: `POST /discovery/estimate`. Every figure is the engine's; the screen prints them. */
+export interface Estimate {
+  shape: "discovery.estimate-v1";
+  protocol_fingerprint: string;
+  counted_at: string;
+  served_from_cache: boolean;
+  /** The recall check whose totals were used, or `null`. */
+  recall_check: { check: string; checked_at: string | null } | null;
+  cap: { value: number; source: "protocol" | "engine_ceiling" | "run_override" | string; ceiling: number };
+  providers: EstimateRow[];
+  estimate: {
+    counted_all: boolean;
+    records: { low: number | null; high: number | null };
+    works: { low: number | null; high: number | null };
+    assumption: string;
+  };
+  effort: { pace_seconds: number; hours: { low: number | null; high: number | null } };
+  warn: { level: "none" | "note" | "warning" | string; threshold_works: number; limit?: { value: number; source: "planned" | "general" | string } };
+  recommendation: { kind: "cap" | "narrow" | null; cap: number | null; expected_works: { low: number; high: number } | null; cuts: number | null };
+}
+
+export interface EstimateRequest {
+  providers?: string[];
+  cap?: number;
+  pace_seconds?: number;
+  refresh?: boolean;
+}
+
+/** M10b Part D: count what the databases hold (count-only requests; the engine writes nothing). */
+export function postEstimate(origin: string, request: EstimateRequest = {}, signal?: AbortSignal): Promise<Estimate> {
+  return postJson<Estimate>(`${BASE}/estimate`, origin, request, signal);
 }
 
 export function getRuns(origin: string, signal?: AbortSignal): Promise<Runs> {
@@ -614,4 +663,54 @@ export function startChase(origin: string, request: ChaseRequest = {}, signal?: 
 
 export function acceptChase(origin: string, chase?: string, signal?: AbortSignal): Promise<ChaseAcceptAnswer> {
   return postJson<ChaseAcceptAnswer>(`${BASE}/chase/accept`, origin, chase ? { chase } : {}, signal);
+}
+
+// --- M10b: the discovery checks (`docs/ux/shared/final/02-checks.md`) -----------
+
+/** A pure read of the open workspace's checks; without `step`, every step and `by_step`. */
+export function getDiscoveryChecks(origin: string, step?: string, run?: string, signal?: AbortSignal): Promise<CheckList> {
+  const query = new URLSearchParams();
+  if (step) query.set("step", step);
+  if (run) query.set("run", run);
+  const q = query.toString();
+  return readJson<CheckList>(`${BASE}/checks${q ? `?${q}` : ""}`, consoleBase(origin), signal);
+}
+
+export function dismissDiscoveryCheck(origin: string, checkId: string, body: { subject: string; evidence_digest: string; reason?: string }, signal?: AbortSignal): Promise<CheckList> {
+  return postJson<CheckList>(`${BASE}/checks/${encodeURIComponent(checkId)}/dismiss`, origin, body, signal);
+}
+
+export function restoreDiscoveryCheck(origin: string, checkId: string, subject: string, signal?: AbortSignal): Promise<CheckList> {
+  return postJson<CheckList>(`${BASE}/checks/${encodeURIComponent(checkId)}/restore`, origin, { subject }, signal);
+}
+
+/** M10c D5: a proposal on the workspace's search; `base` names the protocol it was made against. */
+export interface WorkspaceProposal extends Omit<Proposal, "base" | "status"> {
+  base: { hash: string; shown: string; protocol_fingerprint: string };
+  status: "open" | "stale" | "applied" | "rejected";
+  agent?: { model: string; task: string; task_version: string };
+}
+
+export interface WorkspaceProposals {
+  shape: "discovery.proposals-v1";
+  protocol_fingerprint: string;
+  /** A corpus is accepted: nothing is applied. */
+  frozen: boolean;
+  proposals: WorkspaceProposal[];
+  counts: { open: number; stale: number; applied: number; rejected: number };
+  active_job: DiscoveryJob | null;
+  /** On an Apply: what the amendment changed. */
+  amended?: { previous_fingerprint: string; protocol_fingerprint: string; changed: string[]; backup: string } | null;
+}
+
+export function getWorkspaceProposals(origin: string, signal?: AbortSignal): Promise<WorkspaceProposals> {
+  return readJson<WorkspaceProposals>(`${BASE}/proposals`, consoleBase(origin), signal);
+}
+
+export function applyWorkspaceProposal(origin: string, proposalId: string, signal?: AbortSignal): Promise<WorkspaceProposals> {
+  return postJson<WorkspaceProposals>(`${BASE}/proposals/${encodeURIComponent(proposalId)}/apply`, origin, {}, signal);
+}
+
+export function rejectWorkspaceProposal(origin: string, proposalId: string, signal?: AbortSignal): Promise<WorkspaceProposals> {
+  return postJson<WorkspaceProposals>(`${BASE}/proposals/${encodeURIComponent(proposalId)}/reject`, origin, {}, signal);
 }

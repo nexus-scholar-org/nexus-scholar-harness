@@ -1,7 +1,7 @@
 """Surface count freshness.
 
 The repo documents cardinal numbers (7 kits, 12 mirrored skills, 16 console
-actions, 27 MCP tools) in ``docs/kits_surface_matrix.md`` / AGENTS.md.  These
+actions, 32 MCP tools) in ``docs/kits_surface_matrix.md`` / AGENTS.md.  These
 must match runtime reality so prose never silently corrodes.  The skill check
 also guards mirror completeness: the plugin bundle must contain every
 canonical skill except ``pull-request-gate`` (the sync script's one exclusion).
@@ -24,14 +24,19 @@ MANIFEST = REPO_ROOT / ".agents" / "plugins" / "nexus-scholar" / "plugins.json"
 
 EXPECTED_KITS = 7
 EXPECTED_ACTIONS = 16
-EXPECTED_MCP_TOOLS = 27
+EXPECTED_MCP_TOOLS = 32
 EXPECTED_MIRRORED_SKILLS = 12
 
-# Live-derived 27-tool surface via `{t.name for t in mcp._tool_manager.list_tools()}`.
+# Live-derived 32-tool surface via `{t.name for t in mcp._tool_manager.list_tools()}`.
 # Exact set (not a subset) so an added/removed/renamed tool fails loudly with
 # missing/unexpected lists instead of blessing whatever number prose carries.
 EXPECTED_MCP_TOOL_NAMES = frozenset(
     {
+        "nexus_assistant_drafts",
+        "nexus_assistant_propose",
+        "nexus_assistant_read_draft",
+        "nexus_assistant_read_workspace",
+        "nexus_assistant_report_finding",
         "nexus_critique_methodology",
         "nexus_dedup",
         "nexus_discover",

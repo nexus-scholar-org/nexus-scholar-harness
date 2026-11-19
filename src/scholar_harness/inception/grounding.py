@@ -38,6 +38,8 @@ STALE_BINDING = "STALE_BINDING"
 #: ``check_binding`` codes: the pool moved on, or the draft's scope moved away from it (M4d).
 POOL_CHANGED = "POOL_CHANGED"
 SCOPE_CHANGED = "SCOPE_CHANGED"
+#: M10b Part C: the researcher left papers out of (or put back into) the sample after the bind.
+SAMPLE_CHANGED = "SAMPLE_CHANGED"
 #: The probe's default from-year when the draft has none (``recon.py``).
 DEFAULT_YEAR_MIN = 2000
 
@@ -79,8 +81,14 @@ def build_grounding(
     accept_thin_pool: bool = False,
     scope: dict[str, Any] | None = None,
     skip: bool = False,
+    exclusions: list[str] | None = None,
 ) -> dict[str, Any]:
     """The grounding for one chosen direction on the session's latest pool.
+
+    ``exclusions`` (M10b Part C) are the papers the draft left out: the
+    directions, counts and evidence are those of the effective pool, and the
+    grounding records the keys and their digest, so a later change of the
+    sample makes the binding stale (``SAMPLE_CHANGED``).
 
     ``skip`` (M4d, spec 03 Q1) records that the researcher went on without a
     direction: ``choice`` is ``none``, the direction is not grounded and has
@@ -95,7 +103,10 @@ def build_grounding(
         raise ReconRefused(
             NO_DIRECTION, "Choose one of the proposed directions, write your own, or go on without one.", status=422
         )
-    found = sessions.directions(session_id)
+    from scholar_harness.recon.sample import exclusions_digest
+
+    keys = sorted(set(exclusions or ()))
+    found = sessions.directions(session_id, exclusions=keys)
     pool_summary = found["pool"]
     n_docs = pool_summary["n_docs"]
     if n_docs < POOL_THIN_FLOOR and not accept_thin_pool and not skip:
@@ -105,7 +116,7 @@ def build_grounding(
             "fragments. Widen the search, or confirm that you accept a thin pool.",
             details={"n_docs": n_docs, "floor": POOL_THIN_FLOOR},
         )
-    pool = json.loads(Path(pool_summary["path"]).read_text(encoding="utf-8"))
+    pool, _raw, _path = sessions.effective(session_id, keys)
     distilled = found["distilled"]
     if direction:
         chosen = next((d for d in found["directions"] if d["label"] == direction), None)
@@ -160,6 +171,8 @@ def build_grounding(
         "default_concepts": _grounded_default_concepts(distilled, chosen["concept"]) if chosen["concept"] else [],
         "anchored_terms": anchored_terms,
         "term_evidence": evidence,
+        "sample_exclusions_digest": exclusions_digest(keys),
+        "sample_exclusions_keys": keys,
     }
     if scope is not None:  # the draft's scope at bind time; a later change makes the binding stale (M4d)
         out["scope"] = dict(scope)
@@ -167,27 +180,39 @@ def build_grounding(
 
 
 def check_binding(
-    sessions: ReconSessions, grounding: dict[str, Any], draft_scope: dict[str, Any] | None = None
+    sessions: ReconSessions, grounding: dict[str, Any], draft_scope: dict[str, Any] | None = None,
+    exclusions: list[str] | None = None,
 ) -> dict[str, Any]:
     """``{"stale": False}``, or ``{"stale": True, "code", "reason", "bound", "current"}``.
 
     ``code`` is ``POOL_CHANGED`` when the pool moved on and ``SCOPE_CHANGED``
     (with ``changes``) when ``draft_scope`` differs from the scope recorded at
     bind time (M4d). A grounding bound before M4d has no scope and is compared
-    on its pool only.
+    on its pool only. ``SAMPLE_CHANGED`` (M10b Part C) when ``exclusions``, the
+    draft's left-out papers now, differ from those at bind time (a grounding
+    bound before M10b recorded none, so any exclusion makes it stale);
+    ``exclusions`` ``None`` skips that comparison.
     """
+    from scholar_harness.recon.sample import exclusions_digest
+
     state = _check_pool(sessions, grounding)
-    if state["stale"] or draft_scope is None or not grounding.get("scope"):
+    if state["stale"]:
         return state
-    changes = scope_changes(draft_scope, grounding["scope"])
-    if changes:
-        return {
-            **state,
-            "stale": True,
-            "code": SCOPE_CHANGED,
-            "reason": f"the draft's {', '.join(changes)} changed after this direction was chosen",
-            "changes": changes,
-        }
+    if draft_scope is not None and grounding.get("scope"):
+        changes = scope_changes(draft_scope, grounding["scope"])
+        if changes:
+            return {
+                **state,
+                "stale": True,
+                "code": SCOPE_CHANGED,
+                "reason": f"the draft's {', '.join(changes)} changed after this direction was chosen",
+                "changes": changes,
+            }
+    if exclusions is not None:
+        bound = grounding.get("sample_exclusions_digest") or exclusions_digest([])
+        if exclusions_digest(exclusions) != bound:
+            return {**state, "stale": True, "code": SAMPLE_CHANGED,
+                    "reason": "the sample changed after this direction was chosen"}
     return state
 
 
@@ -214,9 +239,10 @@ def _check_pool(sessions: ReconSessions, grounding: dict[str, Any]) -> dict[str,
 
 
 def refuse_stale(
-    sessions: ReconSessions, grounding: dict[str, Any], draft_scope: dict[str, Any] | None = None
+    sessions: ReconSessions, grounding: dict[str, Any], draft_scope: dict[str, Any] | None = None,
+    exclusions: list[str] | None = None,
 ) -> None:
-    state = check_binding(sessions, grounding, draft_scope)
+    state = check_binding(sessions, grounding, draft_scope, exclusions)
     if state["stale"]:
         raise ReconRefused(
             STALE_BINDING,
@@ -242,21 +268,43 @@ def rq_evidence(rqs: list[str], grounding: dict[str, Any]) -> list[dict[str, Any
     return out
 
 
-def concept_evidence(concepts: list[str], grounding: dict[str, Any]) -> dict[str, dict[str, Any]]:
-    """Each concept's occurrence in the bound pool (no new search)."""
+def _bound_pool(grounding: dict[str, Any]) -> tuple[dict[str, Any], dict[str, Any]] | None:
+    """The bound pool file as the bind read it: without the papers left out then (M10b Part C)."""
+    from scholar_harness.recon.sample import effective_pool
+
     path = Path((grounding.get("pool") or {}).get("path") or "")
     try:
         pool = json.loads(path.read_text(encoding="utf-8"))
     except (OSError, ValueError):
+        return None
+    return pool, effective_pool(pool, grounding.get("sample_exclusions_keys") or [])
+
+
+def concept_evidence(concepts: list[str], grounding: dict[str, Any]) -> dict[str, dict[str, Any]]:
+    """Each concept's occurrence in the bound (effective) pool (no new search)."""
+    pools = _bound_pool(grounding)
+    if pools is None:
         return {}
-    return {c: term_evidence(pool, c) for c in concepts if c}
+    return {c: term_evidence(pools[1], c) for c in concepts if c}
 
 
-def recon_context(grounding: dict[str, Any], rqs: list[str], concepts: list[str]) -> dict[str, Any]:
-    """The ``recon_context`` genesis writes to ``audit/recon_context.json`` for a bound draft."""
+def recon_context(
+    grounding: dict[str, Any], rqs: list[str], concepts: list[str], record: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """The ``recon_context`` genesis writes to ``audit/recon_context.json`` for a bound draft.
+
+    With the draft ``record`` (M10b Part C) it carries ``sample_exclusions``:
+    the papers the researcher left out, with the raw and effective pool sizes.
+    """
+    from scholar_harness.recon.sample import genesis_context
+
     pool = grounding.get("pool") or {}
     direction = grounding.get("direction") or {}
     evidence = {**(grounding.get("term_evidence") or {}), **concept_evidence(concepts, grounding)}
+    extra: dict[str, Any] = {}
+    if record is not None:
+        pools = _bound_pool(grounding)
+        extra["sample_exclusions"] = genesis_context(record, pools[0] if pools else None)
     return {
         "session_id": grounding.get("session_id"),
         "source": "console",
@@ -276,4 +324,5 @@ def recon_context(grounding: dict[str, Any], rqs: list[str], concepts: list[str]
         "term_evidence": evidence,
         "apr_observed": compute_apr_observed({c: evidence[c] for c in concepts if c in evidence}),
         "rq_evidence": rq_evidence(rqs, grounding),
+        **extra,
     }

@@ -212,8 +212,8 @@ The UI reads proposals only through `GET /records/{study_id}/proposal`. The fiel
 | `CONFIRMATION_MISMATCH` | genesis | HTTP 422: the typed confirmation is not the workspace slug (M4a, INC-08) |
 | `WORKSPACE_JOB_ACTIVE` | genesis with `replace` | HTTP 409: a discovery or console job is still running in the workspace; nothing moved (M4d, F1) |
 | `ARCHIVE_INCOMPLETE` | genesis with `replace` | HTTP 409: archiving the old corpus stopped part way; `details {backup_dir, moved, not_moved}`, journaled as `PROTOCOL_REPLACE_INCOMPLETE`; the protocol was not replaced (M4d, F1) |
-| `MAILTO_NOT_SET` | recon probe, delta; discovery runs, recall | HTTP 409: the console has no contact email (`SCHOLAR_MAILTO`); no request was sent (M4c, M3b-api) |
-| `OPENALEX_KEY_NOT_SET` | discovery runs | HTTP 409: the run selects OpenAlex and the console has no `SCHOLAR_OPENALEX_KEY` (OpenAlex requires a key since 2026-02-13); no request was sent (M3h-providers) |
+| `MAILTO_NOT_SET` | recon probe, delta; discovery runs, recall, estimate | HTTP 409: the console has no contact email (`SCHOLAR_MAILTO`); no request was sent (M4c, M3b-api) |
+| `OPENALEX_KEY_NOT_SET` | discovery runs, estimate | HTTP 409: the run selects OpenAlex and the console has no `SCHOLAR_OPENALEX_KEY` (OpenAlex requires a key since 2026-02-13); no request was sent (M3h-providers) |
 | `RECON_SESSION_INVALID` | `/inception/drafts/{id}/recon/*` | HTTP 422: the id is not a recon session id, or its folder would be under `workspaces/` (M4c) |
 | `RECON_SESSION_NOT_FOUND` | `/inception/drafts/{id}/recon/*` | HTTP 404: the draft has no recon session yet; run a probe (M4c) |
 | `RECON_NO_POOL` | distill, directions, delta, bind, narrower probe | HTTP 409: the session has no usable pool; run a probe (M4c) |
@@ -228,13 +228,14 @@ The UI reads proposals only through `GET /records/{study_id}/proposal`. The fiel
 | `RECON_FAILED` | recon jobs | the job stopped on an unexpected error; `message` names it (M4c) |
 | `TERM_EMPTY` | recon evidence | HTTP 422: the phrase to check is empty (M4d) |
 | `PROTOCOL_MISSING` | discovery plan, runs, recall, report, handoff | HTTP 409: the workspace has no `protocol.json` (M3b-api) |
-| `DISCOVERY_JOB_ACTIVE` | discovery runs, recall | HTTP 409: a discovery job is already running for this workspace; `details.job` is it (M3b-api) |
+| `DISCOVERY_JOB_ACTIVE` | discovery runs, recall, estimate | HTTP 409: a discovery job is already running for this workspace; `details.job` is it (M3b-api) |
 | `DISCOVERY_JOB_NOT_FOUND` | `/discovery/jobs/{job_id}` | HTTP 404: no discovery job with that id in this workspace (M3b-api) |
 | `RUN_NOT_FOUND` | `/discovery/runs/{run}`, report, report methods | HTTP 404: no search run of that name, or no run yet (M3b-api) |
 | `RECALL_NOT_RUN` | `GET /discovery/recall` | HTTP 404: no recall check has been run (M3b-api) |
 | `SEEDS_INVALID` | discovery recall | HTTP 422: no seed, more than 25, or a malformed DOI or arXiv id (M3b-api) |
-| `CAP_INVALID` | discovery runs | HTTP 422: `cap_override` is not 1 to 10,000 (M3b-api) |
-| `PROVIDER_UNKNOWN` | discovery runs, recall | HTTP 422: a database name the engine does not know; `details.known` lists them (M3b-api) |
+| `CAP_INVALID` | discovery runs, estimate | HTTP 422: `cap_override` (a run) or `cap` (the size estimate's what-if, M10b) is not 1 to 10,000 (M3b-api) |
+| `PACE_INVALID` | discovery estimate | HTTP 422: the size estimate's `pace_seconds` is not a whole number from 5 to 600; no database was asked (M10b) |
+| `PROVIDER_UNKNOWN` | discovery runs, recall, estimate | HTTP 422: a database name the engine does not know; `details.known` lists them (M3b-api) |
 | `DISCOVERY_FAILED` | discovery jobs | the job stopped on an unexpected error; `message` names it (M3b-api) |
 | `PROTOCOL_CHANGED_SINCE_SNAPSHOT` | discovery run job `error` | the protocol no longer matches the accepted snapshot; resume refused (E5, M3b-api; also the reason's prefix) |
 | `BATCHES_INCOMPLETE` | discovery run job `error` | the accepted snapshot has studies in no screening batch; resume refused (E5, M3b-api; also the reason's prefix) |
@@ -257,6 +258,19 @@ The UI reads proposals only through `GET /records/{study_id}/proposal`. The fiel
 | `IMPORT_NOT_A_PROTOCOL` | `POST /inception/drafts/import` | HTTP 422: a JSON object that is neither a protocol (`epistemology`, `search_strategy`, `screening_criteria`) nor an intent (`inclusion_criteria`, `research_questions`); `details.missing` (M10b) |
 | `IMPORT_PROTOCOL_VERSION_UNSUPPORTED` | `POST /inception/drafts/import` | HTTP 422: `$schema` is present and is not `schemas/v1/protocol.schema.json`; nothing is guessed; `details.found`, `details.supported` (M10b) |
 | `IMPORT_SOURCE_CHANGED` | `POST /inception/drafts/import` (creating) | HTTP 409: the source's fingerprint is not the `expect_fingerprint` the report showed; no draft is created; `details.expected`, `details.found` (M10b) |
+| `PROPOSAL_NOT_FOUND` | `POST /inception/drafts/{id}/proposals/{pid}/…` | HTTP 404: no proposal with that id on this draft; `details.proposal_id` (M10b, proposals) |
+| `PROPOSAL_STALE` | `POST /inception/drafts/{id}/proposals/{pid}/apply`, `…/apply-edited` | HTTP 409: the target field changed since the proposal was made; nothing is written; `details.base`, `details.current` (M10b) |
+| `PROPOSAL_NOT_OPEN` | `POST /inception/drafts/{id}/proposals/{pid}/…` | HTTP 409: apply, apply-edited or reject of a proposal that is not open, restore of one that is not rejected, or an `add` whose value is already there; `details.status` (M10b) |
+| `PROPOSAL_TARGET_UNSUPPORTED` | `POST /inception/drafts/{id}/proposals/{pid}/…` | HTTP 422: the target is not a draft field or the `op` does not fit it; `details.field`, `details.op` (M10b) |
+| `PROPOSAL_SOURCE_REFUSED` | proposal creation (engine) | HTTP 422: a source other than `check:*` or `import:*` (`agent:*` only through the assistant's MCP tools, M10c); `details.source` (M10b) |
+| `PROTOCOL_AMENDMENT_REFUSED` | workspace proposal apply (Plan) | HTTP 422: applying it would change the protocol outside its search fields (`details.reason: "outside_search"`, `details.paths`), or the amended intent does not compile (`"invalid"`, `details.errors`) (M10c) |
+| `CHECK_NOT_FOUND` | `/inception/drafts/{id}/checks…`, `/discovery/checks…` dismiss, restore | HTTP 404: the check id is not in the catalogue, or no instance has this `subject` now; `details.check_id`, `details.subject` (M10b, checks) |
+| `CHECK_NOT_DISMISSIBLE` | `/inception/drafts/{id}/checks…`, `/discovery/checks…` dismiss | HTTP 409: a `blocker`, or a warning answered by a confirmation in the gate; `details.level`, `details.refusal` (M10b) |
+| `CHECK_REASON_REQUIRED` | `/inception/drafts/{id}/checks…`, `/discovery/checks…` dismiss | HTTP 422: a warning dismissed with an empty reason, or a reason over the draft text limit; `details.limit`, `details.level` (M10b) |
+| `CHECK_CHANGED` | `/inception/drafts/{id}/checks…`, `/discovery/checks…` dismiss | HTTP 409: the instance's `evidence_digest` is not the one sent (the data changed); nothing is dismissed; `details.current` (M10b) |
+| `CHECK_NOT_DISMISSED` | `/inception/drafts/{id}/checks…`, `/discovery/checks…` restore | HTTP 409: restore of an instance that is not dismissed; `details.status` (M10b) |
+| `PAPER_UNKNOWN` | `/inception/drafts/{id}/recon/sample` | HTTP 422: a key to leave out that is not a paper of the current sample, or a key to put back that is neither left out nor in the pool; nothing is changed; `details.keys` (M10b Part C) |
+| `SAMPLE_EXCLUSIONS_FULL` | `/inception/drafts/{id}/recon/sample` | HTTP 422: the draft would hold more than 200 left-out papers; nothing is changed; `details.limit` (M10b Part C) |
 | `BODY_INVALID` | every route | HTTP 422: a body, query or path parameter pydantic refuses (wrong type, unknown field, a discovery note over 2 000 characters); `details.errors[]` gives `loc`, `msg` and `type`, never the client's value (H-input-limits, F5) |
 | `SCREENING_NOT_PUBLISHED` | `POST /discovery/chase/runs`, `POST /discovery/chase/accept` | HTTP 409: the screening of this workspace is not published and current (`literature/included.json` missing, or the generation is not `CURRENT`); the chase's seeds are the published includes (M3g-citation-chasing) |
 | `CHASE_NOT_RUN` | `POST /discovery/chase/accept`, `GET /discovery/chase/runs/{chase}` | HTTP 409 (404 on the read): no published chase run to send, or the named run does not exist or was not published (failed or cancelled) (M3g) |

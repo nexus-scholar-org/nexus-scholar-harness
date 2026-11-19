@@ -1659,6 +1659,76 @@ def test_a_delete_refused_for_another_reason_is_not_retried(workspace, monkeypat
     assert len(tries) == 1
 
 
+def test_a_second_release_after_an_exhausted_wait_tries_the_delete_again(workspace, monkeypatch):
+    """A release that could not delete the file has not released the lock.
+
+    ``release`` used to clear its held flag before the delete, so after an exhausted
+    wait the object reported itself as not holding a lock whose file was still
+    there, and a second ``release`` (an exit path that releases twice, or an
+    operator's retry in the same process) did nothing. The file is the lock, so the
+    flag follows the file.
+    """
+
+    manifest = payload()
+    lock = WorkspaceLock(
+        workspace_root=workspace,
+        workspace_id=manifest["workspace_id"],
+        run_id=manifest["run_id"],
+        created_at=CREATED_AT,
+    )
+    lock.acquire()
+    lock_path = workspace / INDEX_DIR / LOCK_FILENAME
+    unlink = os.unlink
+
+    def always_busy(target: Any, *args: Any, **kwargs: Any) -> None:
+        if Path(target) != lock_path:
+            return unlink(target, *args, **kwargs)
+        raise file_in_use()
+
+    monkeypatch.setattr(replacement_module, "LOCK_RELEASE_ATTEMPTS", 2)
+    monkeypatch.setattr(replacement_module, "LOCK_RELEASE_RETRY_INTERVAL_SECONDS", 0)
+    monkeypatch.setattr(os, "unlink", always_busy)
+    with pytest.raises(PermissionError):
+        lock.release()
+    monkeypatch.undo()
+
+    assert lock_path.exists()
+    assert lock.held, "the file is still there, so the lock is still held by this object"
+    lock.release()
+    assert not lock_path.exists(), "the second release deleted the file"
+    assert not lock.held
+    lock.release()  # still idempotent once released
+
+
+def test_7_3_finalize_removes_an_intent_a_reader_briefly_has_open(protocol, workspace, monkeypatch):
+    """The commit intent's delete waits out a handle the way the lock's does.
+
+    ``IndexRecovery.inspect`` reads the intent without taking the lock, so on
+    Windows a finalize that deletes it at that moment met WinError 32.
+    """
+
+    manifest = payload()
+    protocol.run(request_for(manifest))
+    path = workspace / INDEX_DIR / manifest["run_id"] / COMMIT_INTENT_FILENAME
+    unlink = os.unlink
+    refused: list[str] = []
+
+    def busy_three_times(target: Any, *args: Any, **kwargs: Any) -> None:
+        if Path(target) == path and len(refused) < 3:
+            refused.append(str(target))
+            raise file_in_use()
+        unlink(target, *args, **kwargs)
+
+    monkeypatch.setattr(replacement_module, "LOCK_RELEASE_RETRY_INTERVAL_SECONDS", 0)
+    monkeypatch.setattr(os, "unlink", busy_three_times)
+    removed = protocol.finalize(manifest["run_id"], publication_confirmed=True)
+    monkeypatch.undo()
+
+    assert removed.state == "INTENT_REMOVED"
+    assert len(refused) == 3, "the delete was retried until the file was free"
+    assert not path.exists()
+
+
 def test_two_runs_on_one_workspace_are_mutually_exclusive(protocol, backend, workspace):
     """A real interleaving, not a hand-placed lock: never two runs inside at once.
 

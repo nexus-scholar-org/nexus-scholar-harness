@@ -60,7 +60,8 @@ export interface ReconSession {
 
 export interface Binding {
   stale: boolean;
-  code?: "POOL_CHANGED" | "SCOPE_CHANGED" | string;
+  /** M10b Part C: `SAMPLE_CHANGED` when the papers left out changed after the bind. */
+  code?: "POOL_CHANGED" | "SCOPE_CHANGED" | "SAMPLE_CHANGED" | string;
   reason?: string;
   changes?: string[];
   bound?: string | null;
@@ -131,7 +132,20 @@ export interface Distilled {
   topics: Labelled[];
   metrics: { label: string; count: number }[];
   datasets: { label: string; count: number }[];
-  papers: { doi: string | null; title: string | null; year: number | null; provider: string | null; directions_anchored: number }[];
+  papers: DistilledPaper[];
+}
+
+/** One paper of the sample, as `distill` lists it (over the effective pool since M10b Part C). */
+export interface DistilledPaper {
+  /** M10b Part C: the engine's key (the DOI, else the pool id); the browser never derives it. */
+  key?: string;
+  doi: string | null;
+  title: string | null;
+  year: number | null;
+  provider: string | null;
+  directions_anchored: number;
+  /** M10b Part C: the key of the left-out paper this reserve paper replaced, or null. */
+  added_for?: string | null;
 }
 
 export interface Direction {
@@ -248,6 +262,58 @@ export function getSeeds(origin: string, draftId: string, signal?: AbortSignal):
 /** Bind a direction, your own phrase, or the skip; answers the whole draft record with its `grounding`. */
 export function bindDirection(origin: string, draftId: string, body: BindRequest, signal?: AbortSignal): Promise<DraftRecord> {
   return postJson<DraftRecord>(`${base(draftId)}/bind`, origin, body, signal);
+}
+
+/** One paper the draft left out of the sample (M10b Part C); `in_pool` is false once a later search no longer holds it. */
+export interface SampleExcluded {
+  key: string;
+  doi: string | null;
+  title: string | null;
+  year: number | null;
+  provider: string | null;
+  excluded_at: string | null;
+  in_pool: boolean;
+}
+
+/**
+ * The sample after the papers the draft left out (`GET`/`POST .../recon/sample`,
+ * M10b Part C, 02-explore "Sample curation"). Every count and the recommendation
+ * are the engine's; the two recommendations are rows of the checks panel.
+ */
+export interface Sample {
+  session_id: string;
+  /** The draft's `updated_at` after this answer: the next change's `base_updated_at`. */
+  updated_at: string;
+  pool_fingerprint: string;
+  n_docs: number;
+  n_docs_raw: number;
+  max_docs: number;
+  reserve_n: number;
+  /** False for a pool stored before replacements were kept: there is no refill. */
+  has_reserve: boolean;
+  excluded: SampleExcluded[];
+  excluded_in_pool: number;
+  recommend: { search: boolean; reason: string | null; reasons?: string[]; threshold: { floor: number; share: number }; marked_share: number };
+  exclusions_digest: string;
+}
+
+/** Leave papers out (`add`) or put them back (`remove`), by the engine's keys. */
+export interface SampleChange {
+  add?: string[];
+  remove?: string[];
+  base_updated_at?: string;
+}
+
+/** The most keys one change may carry (`SAMPLE_CALL_MAX` in `recon/sample.py`); "Put back all" sends several changes past it. */
+export const SAMPLE_CALL_MAX = 25;
+
+export function getSample(origin: string, draftId: string, signal?: AbortSignal): Promise<Sample> {
+  return readJson<Sample>(`${base(draftId)}/sample`, consoleBase(origin), signal);
+}
+
+/** One answer write on the draft record (`DRAFT_CONFLICT`, `DRAFT_EMITTED`, `PAPER_UNKNOWN`, `SAMPLE_EXCLUSIONS_FULL`). */
+export function changeSample(origin: string, draftId: string, body: SampleChange, signal?: AbortSignal): Promise<Sample> {
+  return postJson<Sample>(`${base(draftId)}/sample`, origin, body, signal);
 }
 
 /** A session has a usable pool when any of its probes kept papers (an empty probe never replaces it). */

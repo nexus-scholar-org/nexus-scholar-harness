@@ -140,6 +140,12 @@ M1A_SCREENING_TOOLS = frozenset(
     {"nexus_screening_queue", "nexus_screening_record", "nexus_submit_proposal"}
 )
 
+#: M10c: the assistant and the critic (docs/roadmap/milestones/M10c-assistant-mcp.md).
+M10C_ASSISTANT_TOOLS = frozenset(
+    {"nexus_assistant_drafts", "nexus_assistant_read_draft", "nexus_assistant_read_workspace",
+     "nexus_assistant_propose", "nexus_assistant_report_finding"}
+)
+
 #: Exact envelope shape. "No artifacts" is explicit, and the rejection carries no
 #: index/manifest/audit/success bookkeeping.
 ENVELOPE_KEYS = {"operation", "status", "artifacts", "warnings", "errors"}
@@ -749,8 +755,8 @@ def test_e3_neg_040_e3_adds_no_tool_and_drops_none():
     """E3 converts a tool; it adds none and drops none (M1a's three come later)."""
     registered = _registered_tool_names()
     assert PRE_EXISTING_TOOLS <= registered
-    assert registered == PRE_EXISTING_TOOLS | M1A_SCREENING_TOOLS
-    assert len(registered) == 27
+    assert registered == PRE_EXISTING_TOOLS | M1A_SCREENING_TOOLS | M10C_ASSISTANT_TOOLS
+    assert len(registered) == 32
 
 
 def _help_text() -> str:

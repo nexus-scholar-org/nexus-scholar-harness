@@ -6,11 +6,13 @@ import type { Locale } from "@/i18n";
 import { formatNumber } from "@/i18n";
 import { Button, DecisionBadge } from "@/components/ui/base";
 import { inceptionHref, InceptionFrame, InceptionRefusal, refusalOf, StepHeader, useDraft, type Refusal } from "@/components/inception-frame";
-import { runStep, type CriteriaStep, type Criterion, type Draft, type MatrixColumnIn, type MatrixStep, type ReasonSuggestion } from "@/lib/inception-api";
+import { StepAssist } from "@/components/inception-assist";
+
+import { runStep, type AcceptedFrom, type CriteriaStep, type Criterion, type Draft, type MatrixColumnIn, type MatrixStep, type ReasonSuggestion } from "@/lib/inception-api";
 import { getConcepts, getRecon, hasUsablePool, type ConceptReport, type ReconState } from "@/lib/recon-api";
 import { DETAILS_LABEL } from "@/components/screening-state-card";
 import { DoiLink } from "@/components/inception-recon";
-import { inceptionT, sourceText } from "@/lib/inception-copy";
+import { inceptionCountT, inceptionT, sourceText } from "@/lib/inception-copy";
 
 /**
  * Step 5, Concepts and criteria (spec 05, M4b; INC-22). Every criterion comes
@@ -43,6 +45,26 @@ const REASON_SHAPE = /^[A-Z][A-Z0-9_]{2,39}$/;
 
 const MATRIX_TYPES = ["free_text", "numeric", "categorical", "list"] as const;
 
+/**
+ * M10b (01-proposals, R1): the engine suggestions accepted on this page, sent
+ * with the save that writes them as `accepted_from`. Only what is still in the
+ * saved answers, exactly as offered, is sent; an edited value never is (the
+ * engine records only what its mechanism offered for the stored draft).
+ */
+function stillAccepted(entry: AcceptedFrom, draft: Draft): boolean {
+  const value = entry.value;
+  if (entry.mechanism === "wizard_criterion") return draft.criteria_decisions?.[String(value)] === true;
+  if (entry.mechanism === "suggested_concept") return (draft.concepts ?? []).some((c) => c.concept === value);
+  if (entry.mechanism === "matrix_column") return (draft.matrix_columns ?? []).includes(String(value));
+  if (entry.mechanism === "pool_synonym") {
+    const concept = entry.field.slice("concepts[".length, -"].synonyms".length);
+    return (draft.concepts ?? []).some((c) => c.concept === concept && (c.synonyms ?? []).includes(String(value)));
+  }
+  return false;
+}
+
+const sameEntry = (a: AcceptedFrom, b: AcceptedFrom) => a.mechanism === b.mechanism && a.field === b.field && JSON.stringify(a.value) === JSON.stringify(b.value);
+
 function synonymsOf(text: string): string[] {
   return text
     .split(",")
@@ -65,6 +87,9 @@ export function InceptionCriteria({ locale }: Readonly<{ locale: Locale }>) {
   const [allSuggestions, setAllSuggestions] = useState<Record<number, boolean>>({});
   const [newExclusionReason, setNewExclusionReason] = useState("");
   const [reasonEditing, setReasonEditing] = useState<string | null>(null);
+  const [accepted, setAccepted] = useState<AcceptedFrom[]>([]);
+  const mark = (entry: AcceptedFrom, on: boolean) =>
+    setAccepted((list) => (on ? [...list.filter((e) => !sameEntry(e, entry)), entry] : list.filter((e) => !sameEntry(e, entry))));
 
   // The counts describe the saved draft: read once per stored version.
   useEffect(() => {
@@ -125,8 +150,10 @@ export function InceptionCriteria({ locale }: Readonly<{ locale: Locale }>) {
     // `key` lists exactly what the two steps read.
   }, [origin, record, key]);
 
-  const decide = (item: Criterion, accepted: boolean) =>
-    setDraft((current) => ({ ...current, criteria_decisions: { ...(current.criteria_decisions ?? {}), [item.id]: accepted } }));
+  const decide = (item: Criterion, yes: boolean) => {
+    setDraft((current) => ({ ...current, criteria_decisions: { ...(current.criteria_decisions ?? {}), [item.id]: yes } }));
+    if (item.generated) mark({ mechanism: "wizard_criterion", field: "criteria_decisions", value: item.id }, yes);
+  };
 
   const removeManual = (item: Criterion) => {
     if (item.kind === "inclusion") update({ extra_inclusions: (draft.extra_inclusions ?? []).filter((c) => c !== item.criterion) });
@@ -140,7 +167,9 @@ export function InceptionCriteria({ locale }: Readonly<{ locale: Locale }>) {
 
   const persist = async (next: "review" | "") => {
     const cleaned = concepts.filter((c) => c.concept.trim()).map((c) => ({ concept: c.concept.trim(), synonyms: c.synonyms ?? [] }));
-    const stored = await save({ ...draft, concepts: cleaned });
+    const body = { ...draft, concepts: cleaned };
+    const stored = await save(body, accepted.filter((entry) => stillAccepted(entry, body)));
+    if (stored) setAccepted([]);
     if (stored) window.location.assign(inceptionHref(locale, next, next ? draftId : "", origin));
   };
 
@@ -289,7 +318,7 @@ export function InceptionCriteria({ locale }: Readonly<{ locale: Locale }>) {
         extra={
           criteria ? (
             <p className="mt-2 text-ink" aria-live="polite" data-need-you={undecided}>
-              {undecided > 0 ? t("criteria.needYou", { n: formatNumber(locale, undecided) }) : t("criteria.allDecided")}
+              {undecided > 0 ? inceptionCountT(locale)("criteria.needYou", undecided, { n: formatNumber(locale, undecided) }) : t("criteria.allDecided")}
             </p>
           ) : null
         }
@@ -340,7 +369,10 @@ export function InceptionCriteria({ locale }: Readonly<{ locale: Locale }>) {
                   synonyms={c.synonyms ?? []}
                   all={!!allSuggestions[index]}
                   onAll={() => setAllSuggestions((a) => ({ ...a, [index]: !a[index] }))}
-                  onTick={(term, on) => setConcept(index, { synonyms: on ? [...(c.synonyms ?? []), term] : (c.synonyms ?? []).filter((x) => x !== term) })}
+                  onTick={(term, on) => {
+                    setConcept(index, { synonyms: on ? [...(c.synonyms ?? []), term] : (c.synonyms ?? []).filter((x) => x !== term) });
+                    mark({ mechanism: "pool_synonym", field: `concepts[${c.concept.trim()}].synonyms`, value: term }, on);
+                  }}
                 />
               ) : null}
               </li>
@@ -373,7 +405,15 @@ export function InceptionCriteria({ locale }: Readonly<{ locale: Locale }>) {
                 {suggested
                   .filter((term) => !present.has(term.toLowerCase()))
                   .map((term) => (
-                    <Button key={term} variant="secondary" className="border-dashed" onClick={() => update({ concepts: [...concepts, { concept: term, synonyms: [] }] })}>
+                    <Button
+                      key={term}
+                      variant="secondary"
+                      className="border-dashed"
+                      onClick={() => {
+                        update({ concepts: [...concepts, { concept: term, synonyms: [] }] });
+                        mark({ mechanism: "suggested_concept", field: "concepts", value: term }, true);
+                      }}
+                    >
                       {t("criteria.suggestedAdd", { term })}
                     </Button>
                   ))}
@@ -401,7 +441,13 @@ export function InceptionCriteria({ locale }: Readonly<{ locale: Locale }>) {
               {t("criteria.matrixParked")}
             </p>
             <div className="mt-2">
-              <Button onClick={() => update({ matrix_columns: matrix.columns.map((c) => c.name) })} data-tick-all>
+              <Button
+                onClick={() => {
+                  update({ matrix_columns: matrix.columns.map((c) => c.name) });
+                  for (const c of matrix.columns) if (!(draft.matrix_columns ?? []).includes(c.name)) mark({ mechanism: "matrix_column", field: "matrix_columns", value: c.name }, true);
+                }}
+                data-tick-all
+              >
                 {t("criteria.tickAll")}
               </Button>
             </div>
@@ -414,11 +460,12 @@ export function InceptionCriteria({ locale }: Readonly<{ locale: Locale }>) {
                     <input
                       type="checkbox"
                       checked={checked}
-                      onChange={() =>
+                      onChange={() => {
                         update({
                           matrix_columns: checked ? (draft.matrix_columns ?? []).filter((n) => n !== column.name) : [...(draft.matrix_columns ?? []), column.name],
-                        })
-                      }
+                        });
+                        mark({ mechanism: "matrix_column", field: "matrix_columns", value: column.name }, !checked);
+                      }}
                       className="mt-1 h-5 w-5 shrink-0"
                     />
                     <span dir="ltr" className="min-w-0 text-sm">
@@ -455,6 +502,8 @@ export function InceptionCriteria({ locale }: Readonly<{ locale: Locale }>) {
 
         {stepError ? <InceptionRefusal locale={locale} refusal={stepError} draftId={draftId} origin={origin} /> : null}
         {saveError ? <InceptionRefusal locale={locale} refusal={saveError} draftId={draftId} origin={origin} onRetry={() => void persist("review")} /> : null}
+
+        <StepAssist locale={locale} step="criteria" />
 
         <div className="flex flex-wrap gap-3">
           <Button variant="primary" type="submit" disabled={saving}>

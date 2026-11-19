@@ -11,6 +11,7 @@
  */
 
 import { reconEngine, type ReconOptions } from "./recon-engine";
+import { checkRow, digestOf, dismissal, INCEPTION_STEPS, respond, withDismissals, type CheckIn } from "./checks-engine";
 
 export const ROOT = "C:\\Users\\r\\Documents\\Nexus Scholar\\workspaces";
 export const SESSION = "rec_0123456789abcdef0123456789abcdef";
@@ -29,6 +30,171 @@ export interface FakeOptions {
   recon?: ReconOptions;
   /** M10b: the workspaces `GET /workspaces` lists, and the protocol each holds for the import. */
   workspaces?: { slug: string; title: string; protocol?: Json }[];
+  /**
+   * M10b Part B: the checks the fake computes. Default: none, so a screen draws no panel. `true`
+   * computes a few of the catalogue's checks from the draft (a test double of `inception/checks.py`);
+   * a function gives the rows itself.
+   */
+  checks?: boolean | ((record: Json) => CheckIn[]);
+  /** M10b: the whole answer of `POST …/checks` (a test of what the panel shows, counts included). */
+  checksAnswer?: (step: string | undefined) => Json;
+  /** M10b: whether a mechanism offered an `accepted_from` value (default: each one). */
+  offered?: (entry: Json) => boolean;
+}
+
+// --- M10b Part B: proposals (test double of `inception/proposals.py`) -----------------
+
+const STEP_OF_FIELD: Record<string, string> = {
+  topic: "scope", start_year: "scope", end_year: "scope", languages: "scope",
+  golden_seeds: "direction", grounding: "direction",
+  paradigm: "shape", playbook: "shape", secondary_paradigm: "shape", unit_of_analysis: "shape", proof: "shape", rqs: "shape", pool_min: "shape", pool_max: "shape",
+  concepts: "criteria", extra_inclusions: "criteria", extra_exclusions: "criteria", out_of_scope: "criteria", out_of_scope_reasons: "criteria",
+  default_exclusion_reason: "criteria", criteria_decisions: "criteria", matrix_columns: "criteria", custom_matrix_columns: "criteria", verification_checks: "criteria",
+  title: "review", lead_researcher: "review", venue: "review", timeline_weeks: "review",
+};
+const LIST_FIELDS = new Set(["languages", "rqs", "concepts", "extra_inclusions", "extra_exclusions", "out_of_scope", "matrix_columns", "golden_seeds", "custom_matrix_columns"]);
+const SYNONYMS = /^concepts\[(.+)\]\.synonyms$/;
+
+const baseField = (field: string) => (SYNONYMS.test(field) ? "concepts" : field);
+export const proposalStep = (field: string) => STEP_OF_FIELD[baseField(field)] ?? "review";
+
+function conceptIndex(draft: Json, name: string): number {
+  return ((draft.concepts ?? []) as Json[]).findIndex((c) => String(c?.concept ?? "").toLowerCase() === name.toLowerCase());
+}
+
+function targetValue(draft: Json, field: string): unknown {
+  const m = field.match(SYNONYMS);
+  if (m) {
+    const i = conceptIndex(draft, m[1]);
+    return i < 0 ? null : [...((((draft.concepts as Json[])[i].synonyms ?? []) as unknown[]))];
+  }
+  if (field in draft) return draft[field];
+  return LIST_FIELDS.has(field) ? [] : null;
+}
+
+function shownOf(value: unknown): string {
+  const one = (v: unknown): string => (v && typeof v === "object" ? String((v as Json).concept ?? (v as Json).criterion ?? (v as Json).name ?? JSON.stringify(v)) : String(v));
+  if (value === null || value === undefined) return "";
+  if (typeof value === "string") return value;
+  if (Array.isArray(value)) return value.map(one).join(", ");
+  return one(value);
+}
+
+export interface ProposalIn {
+  source?: string;
+  field: string;
+  op?: "add" | "remove" | "replace";
+  value: unknown;
+  why?: string;
+  evidence?: Json[];
+  status?: string;
+  /** Made against this value of the target instead of the draft's own (a proposal that is out of date). */
+  baseValue?: unknown;
+}
+
+export function makeProposal(draftId: string, draft: Json, p: ProposalIn): Json {
+  const source = p.source ?? "check:CONCEPT_TERM_MISSING";
+  const op = p.op ?? "add";
+  const current = "baseValue" in p ? p.baseValue : targetValue(draft, p.field);
+  const base = { hash: digestOf(current), shown: shownOf(current) };
+  const target = { kind: "draft", id: draftId, field: p.field };
+  return {
+    proposal_id: "prop_" + digestOf([source, target, op, p.value, base.hash]).slice(-12).padStart(12, "0"),
+    target,
+    op,
+    value: p.value,
+    why: p.why ?? "",
+    evidence: p.evidence ?? [],
+    source,
+    base,
+    status: p.status ?? "open",
+    decided_at: null,
+    decided_value: null,
+    step: proposalStep(p.field),
+  };
+}
+
+function viewProposal(p: Json, draft: Json): Json {
+  const field = String((p.target as Json).field);
+  const current = targetValue(draft, field);
+  const out: Json = { ...p, step: proposalStep(field), current: shownOf(current) };
+  if (p.status === "open" && digestOf(current) !== (p.base as Json).hash) out.status = "stale";
+  return out;
+}
+
+function listingOf(record: Json, step?: string | null): Json {
+  const draft = (record.draft ?? {}) as Json;
+  const items = ((record.proposals ?? []) as Json[]).map((p) => viewProposal(p, draft));
+  const byStep = Object.fromEntries(INCEPTION_STEPS.map((s) => [s, { open: 0, stale: 0 }])) as Record<string, { open: number; stale: number }>;
+  for (const item of items) {
+    if ((item.status === "open" || item.status === "stale") && byStep[String(item.step)]) byStep[String(item.step)][item.status === "open" ? "open" : "stale"] += 1;
+  }
+  return { session_id: record.session_id, updated_at: record.updated_at, proposals: step ? items.filter((i) => i.step === step) : items, by_step: byStep };
+}
+
+/** `op value` applied to `field`, or the refusal the engine answers. */
+function applyOp(draft: Json, field: string, op: string, value: unknown): Json | { refused: Answer } {
+  const next = JSON.parse(JSON.stringify(draft)) as Json;
+  const m = field.match(SYNONYMS);
+  let holder: Json = next;
+  let key = field;
+  if (m) {
+    const i = conceptIndex(next, m[1]);
+    if (i < 0) return { refused: refuse(409, "PROPOSAL_STALE", "the concept is no longer in the draft") };
+    holder = (next.concepts as Json[])[i];
+    key = "synonyms";
+  }
+  if (op === "replace") {
+    holder[key] = value;
+    return next;
+  }
+  const items = [...(((holder[key] ?? []) as unknown[]))];
+  const same = (x: unknown) => JSON.stringify(x).toLowerCase() === JSON.stringify(value).toLowerCase() || (!!x && typeof x === "object" && !!value && typeof value === "object" && String((x as Json).concept ?? "").toLowerCase() === String((value as Json).concept ?? "").toLowerCase());
+  if (op === "add") {
+    if (items.some(same)) return { refused: refuse(409, "PROPOSAL_NOT_OPEN", "the value is already there", { status: "present" }) };
+    holder[key] = [...items, value];
+  } else {
+    holder[key] = items.filter((x) => !same(x));
+  }
+  return next;
+}
+
+/** The checks the fake computes with `checks: true` (a few rows of the catalogue, never the engine's rules). */
+function computedChecks(record: Json): CheckIn[] {
+  const draft = (record.draft ?? {}) as Json;
+  const rows: CheckIn[] = [];
+  const empty = (v: unknown) => v === undefined || v === null || v === "" || (Array.isArray(v) && v.length === 0);
+  if (empty(draft.topic)) rows.push({ check_id: "SCOPE_TOPIC_MISSING", step: "scope", level: "blocker", action: { kind: "field", step: "scope", field: "topic" } });
+  if (draft.start_year == null) rows.push({ check_id: "SCOPE_START_YEAR_DEFAULTED", step: "scope", level: "note", params: { year: 2000 }, action: { kind: "field", step: "scope", field: "start_year" } });
+  if (!record.grounding) rows.push({ check_id: "DIRECTION_NOT_CHOSEN", step: "direction", level: "note", action: { kind: "step", step: "direction" } });
+  if (draft.pool_max == null) rows.push({ check_id: "SHAPE_PLANNED_SIZE_EMPTY", step: "shape", level: "note", action: { kind: "field", step: "shape", field: "pool_max" } });
+  const concepts = (draft.concepts ?? []) as { concept: string; synonyms?: string[] }[];
+  if (!concepts.length) rows.push({ check_id: "CONCEPTS_NONE", step: "criteria", level: "blocker", action: { kind: "field", step: "criteria", field: "concepts" } });
+  const known = concepts.flatMap((c) => [c.concept, ...(c.synonyms ?? [])]);
+  const texts = [String(draft.title ?? ""), String(draft.topic ?? ""), ...((draft.rqs ?? []) as string[])];
+  const seen: string[] = [];
+  for (const text of texts) for (const m of text.matchAll(/\b([A-Z]{2,6})s?\b/g)) if (!seen.includes(m[1])) seen.push(m[1]);
+  for (const term of seen.filter((t) => !known.some((k) => new RegExp(`\\b${t}\\b`, "i").test(k))).slice(0, 5)) {
+    const initials = concepts.find((c) => {
+      const words = c.concept.match(/[A-Za-z0-9]+/g) ?? [];
+      return words.length >= 2 && words.map((w) => w[0]).join("").toUpperCase() === term;
+    });
+    const field = initials ? `concepts[${initials.concept}].synonyms` : "concepts";
+    const value = initials ? term : { concept: term, synonyms: [] };
+    const proposal = makeProposal(String(record.session_id), draft, { field, value, why: `Your title and questions use ${term}, but no concept or synonym does.`, evidence: [{ kind: "check", check_id: "CONCEPT_TERM_MISSING" }] });
+    rows.push({ check_id: "CONCEPT_TERM_MISSING", step: "criteria", level: "warning", subject: term, params: { term }, evidence: [{ kind: "words", name: "term", value: term }], action: { kind: "proposal", proposal_id: proposal.proposal_id }, __proposal: proposal } as CheckIn);
+  }
+  if (draft.paradigm && (draft.proof || (draft.extra_inclusions as unknown[] | undefined)?.length)) {
+    const c = criteriaOf(draft);
+    if (c.undecided.length) rows.push({ check_id: "CRITERIA_UNDECIDED", step: "criteria", level: "blocker", params: { n: c.undecided.length }, refusal: "CRITERIA_UNDECIDED", action: { kind: "field", step: "criteria", field: "criteria_decisions", criterion_id: c.undecided[0] } });
+    else for (const side of c.missing_sides) rows.push({ check_id: "CRITERIA_SIDE_MISSING", step: "criteria", level: "blocker", subject: side, params: { side }, refusal: "CRITERIA_MISSING", action: { kind: "field", step: "criteria", field: side === "inclusion" ? "extra_inclusions" : "extra_exclusions" } });
+  }
+  const project = ["title", "lead_researcher"].filter((f) => empty(draft[f]));
+  if (project.length) rows.push({ check_id: "REVIEW_PROJECT_MISSING", step: "review", level: "blocker", params: { fields: project.join(", ") }, action: { kind: "field", step: "review", field: project[0] } });
+  const open = listingOf(record).proposals as Json[];
+  const waiting = open.filter((p) => p.status === "open");
+  if (waiting.length) rows.push({ check_id: "REVIEW_PROPOSALS_OPEN", step: "review", level: "note", params: { n: waiting.length }, action: { kind: "step", step: String(waiting[0].step) } });
+  return rows;
 }
 
 /** M10b: the import's test double. It keeps the engine's report shape; the mapping rules are the engine's (Python tests). */
@@ -189,6 +355,103 @@ export function inceptionEngine(options: FakeOptions = {}) {
       delete refuseOnce[`${method} ${path}`];
       return once;
     }
+    // ---- M10b Part C (next-step bar): `GET /drafts/{id}/next-step`, rows 2 to 5 from this fake's draft, simplest reading. ----
+    const nextStepPath = path.match(/^\/api\/v1\/inception\/drafts\/([^/]+)\/next-step$/);
+    if (nextStepPath && method === "GET") {
+      const record = drafts.get(nextStepPath[1]);
+      if (!record) return refuse(404, "DRAFT_NOT_FOUND");
+      const draft = (record.draft ?? {}) as Json;
+      const sid = String(record.session_id);
+      const at = new Date().toISOString();
+      const answer = (state: string, params: Json, key: string, screen: string): Answer => ({
+        status: 200,
+        body: {
+          shape: "review.next-step-v1", scope: "draft", phase: "inception", round: 1, state, params, waiting: null,
+          action: { key, to: { screen, query: { draft: sid } } }, also: [], unknown: [], protocol_fingerprint: null, computed_at: at,
+        },
+      });
+      const emitted = record.emitted as Json | null;
+      if (emitted) return answer("DRAFT_CREATED", { title: draft.title ?? emitted.slug, slug: emitted.slug }, "goToDone", "inception.done");
+      const blank = (v: unknown) => v === undefined || v === null || v === "" || (Array.isArray(v) && v.length === 0);
+      if (blank(draft.topic)) return answer("DRAFT_STARTED", { step: "scope" }, "goToStep", "inception.scope");
+      const stepOf: Record<string, string> = { topic: "scope", paradigm: "shape", playbook: "shape", unit_of_analysis: "shape", proof: "shape", rqs: "shape", concepts: "criteria", criteria_decisions: "criteria", title: "review", lead_researcher: "review" };
+      const order = ["scope", "explore", "direction", "shape", "criteria", "review"];
+      const fields = ["paradigm", "playbook", "unit_of_analysis", "proof", "rqs", "concepts", "title", "lead_researcher"].filter((f) => (f !== "proof" || proofRequired(draft)) && blank(draft[f]));
+      if (!fields.length && draft.paradigm && criteriaOf(draft).undecided.length) fields.push("criteria_decisions");
+      if (fields.length) {
+        const step = fields.map((f) => stepOf[f]).sort((a, b) => order.indexOf(a) - order.indexOf(b))[0];
+        return answer("DRAFT_INCOMPLETE", { fields, step }, "goToStep", `inception.${step}`);
+      }
+      return answer("DRAFT_READY", {}, "goToReview", "inception.review");
+    }
+    // ---- end of the M10b Part C block ----
+    // M10b Part B: checks, dismissals and proposals on the draft record.
+    const checksPath = path.match(/^\/api\/v1\/inception\/drafts\/([^/]+)\/checks(?:\/([A-Z_]+)\/(dismiss|restore))?$/);
+    if (checksPath && method === "POST") {
+      const record = drafts.get(checksPath[1]);
+      if (!record) return refuse(404, "DRAFT_NOT_FOUND");
+      const step = checksPath[2] ? undefined : ((body?.step as string | undefined) ?? undefined);
+      if (step && !(INCEPTION_STEPS as readonly string[]).includes(step)) return refuse(404, "STEP_UNKNOWN", `unknown step '${step}'`, { steps: INCEPTION_STEPS });
+      const rowsIn = options.checks === true ? computedChecks(record) : typeof options.checks === "function" ? options.checks(record) : [];
+      // The checks that recommend a change record their proposal once (a side write: `updated_at` stays).
+      const made = rowsIn.map((r) => (r as unknown as Json).__proposal as Json | undefined).filter(Boolean) as Json[];
+      const known = new Set(((record.proposals ?? []) as Json[]).map((p) => p.proposal_id));
+      if (!checksPath[2] && !record.emitted && made.some((p) => !known.has(p.proposal_id))) {
+        record.proposals = [...((record.proposals ?? []) as Json[]), ...made.filter((p) => !known.has(p.proposal_id))];
+      }
+      const rows = withDismissals(rowsIn.map((r) => checkRow(r)), (record.check_dismissals ?? []) as Json[]);
+      if (checksPath[2]) {
+        if (record.emitted) return refuse(409, "DRAFT_EMITTED", "this draft already created a workspace");
+        const action = checksPath[3] === "dismiss" ? "dismissed" : "restored";
+        const { entry, refused } = dismissal(rows, (record.check_dismissals ?? []) as Json[], checksPath[2], action, body, now());
+        if (refused) return refused;
+        record.check_dismissals = [...((record.check_dismissals ?? []) as Json[]), entry!];
+        const again = withDismissals(rowsIn.map((r) => checkRow(r)), record.check_dismissals as Json[]);
+        const owner = String(rows.find((r) => r.check_id === checksPath[2])?.step ?? "");
+        return { status: 200, body: respond(again, { step: owner, steps: INCEPTION_STEPS, scope: { kind: "draft", id: record.session_id, updated_at: record.updated_at }, at: now(), ready: !again.some((r) => r.level === "blocker" && r.status === "open") }) };
+      }
+      if (options.checksAnswer) return { status: 200, body: options.checksAnswer(step) };
+      return { status: 200, body: respond(rows, { step, steps: INCEPTION_STEPS, scope: { kind: "draft", id: record.session_id, updated_at: record.updated_at }, at: now(), ready: !rows.some((r) => r.level === "blocker" && r.status === "open") }) };
+    }
+    const proposalsPath = path.match(/^\/api\/v1\/inception\/drafts\/([^/]+)\/proposals(?:\/([^/]+)\/(apply|apply-edited|reject|restore))?$/);
+    if (proposalsPath) {
+      const record = drafts.get(proposalsPath[1]);
+      if (!record) return refuse(404, "DRAFT_NOT_FOUND");
+      if (!proposalsPath[2] && method === "GET") {
+        const step = new URLSearchParams(search).get("step");
+        if (step && !(INCEPTION_STEPS as readonly string[]).includes(step)) return refuse(404, "STEP_UNKNOWN");
+        return { status: 200, body: listingOf(record, step) };
+      }
+      if (proposalsPath[2] && method === "POST") {
+        const action = proposalsPath[3];
+        const list = (record.proposals ?? []) as Json[];
+        const stored = list.find((p) => p.proposal_id === proposalsPath[2]);
+        if (!stored) return refuse(404, "PROPOSAL_NOT_FOUND", "no such proposal", { proposal_id: proposalsPath[2] });
+        if (record.emitted) return refuse(409, "DRAFT_EMITTED", "this draft already created a workspace");
+        const draft = (record.draft ?? {}) as Json;
+        const seen = viewProposal(stored, draft);
+        const answer = action === "apply" || action === "apply-edited";
+        if (answer && body?.base_updated_at !== record.updated_at) return refuse(409, "DRAFT_CONFLICT", "the draft changed since it was read");
+        if (action === "restore") {
+          if (stored.status !== "rejected") return refuse(409, "PROPOSAL_NOT_OPEN", "only a rejected proposal is restored", { status: stored.status });
+          Object.assign(stored, { status: "open", decided_at: null, decided_value: null });
+        } else {
+          if (stored.status !== "open") return refuse(409, "PROPOSAL_NOT_OPEN", "this proposal is decided", { status: stored.status });
+          if (seen.status === "stale" && answer) return refuse(409, "PROPOSAL_STALE", "the field changed", { base: (stored.base as Json).shown, current: seen.current });
+          if (action === "reject") Object.assign(stored, { status: "rejected", decided_at: now(), reason: body?.reason ?? null });
+          else {
+            const value = action === "apply" ? stored.value : body?.value;
+            const next = applyOp(draft, String((stored.target as Json).field), String(stored.op), value);
+            if ("refused" in next) return next.refused as Answer;
+            record.draft = next;
+            record.updated_at = now();
+            Object.assign(stored, { status: action === "apply" ? "applied" : "applied_edited", decided_at: now(), decided_value: value });
+          }
+        }
+        const listing = listingOf(record);
+        return { status: 200, body: { session_id: record.session_id, draft: record.draft, updated_at: record.updated_at, proposals: listing.proposals, by_step: listing.by_step } };
+      }
+    }
     const reconPath = path.match(/^\/api\/v1\/inception\/drafts\/([^/]+)\/recon(.*)$/);
     if (reconPath) {
       const record = drafts.get(reconPath[1]);
@@ -264,9 +527,21 @@ export function inceptionEngine(options: FakeOptions = {}) {
         if (body?.base_updated_at && body.base_updated_at !== record.updated_at) return refuse(409, "DRAFT_CONFLICT", "the draft changed since it was read");
         const seeds = ((body?.draft ?? {}) as Json).golden_seeds as unknown[] | undefined;
         if (seeds && (seeds.length > 25 || seeds.some((d) => !/^10\./.test(String(d))))) return refuse(422, "DRAFT_INVALID", "golden_seeds: at most 25 DOIs", { errors: ["golden_seeds"] });
-        const stored = { ...record, draft: body?.draft ?? {}, updated_at: now() };
+        // M10b: accepted engine suggestions are recorded decided, judged on the stored draft.
+        const accepted = (body?.accepted_from ?? []) as Json[];
+        const notRecorded: Json[] = [];
+        const proposals = [...((record.proposals ?? []) as Json[])];
+        for (const entry of accepted) {
+          if (entry.mechanism === "direction" || (options.offered && !options.offered(entry))) {
+            notRecorded.push(entry);
+            continue;
+          }
+          const made = makeProposal(one[1], (record.draft ?? {}) as Json, { source: `engine:${String(entry.mechanism)}`, field: String(entry.field), value: entry.value });
+          if (!proposals.some((p) => p.proposal_id === made.proposal_id)) proposals.push({ ...made, status: "applied", decided_at: now(), decided_value: entry.value });
+        }
+        const stored = { ...record, draft: body?.draft ?? {}, updated_at: now(), proposals };
         drafts.set(one[1], stored);
-        return { status: 200, body: stored };
+        return { status: 200, body: accepted.length ? { ...stored, not_recorded: notRecorded } : stored };
       }
     }
     const step = path.match(/^\/api\/v1\/inception\/steps\/(\w+)$/);
@@ -377,7 +652,15 @@ export function inceptionEngine(options: FakeOptions = {}) {
     refuseOnce[key] = answer;
   };
 
-  return { handle, calls, drafts, seed, recon, refuseNext };
+  /** M10b: put a proposal on a draft record as the engine would have made it; answers it. */
+  const addProposal = (p: ProposalIn, id = SESSION): Json => {
+    const record = drafts.get(id)!;
+    const made = makeProposal(id, (record.draft ?? {}) as Json, p);
+    record.proposals = [...((record.proposals ?? []) as Json[]), made];
+    return made;
+  };
+
+  return { handle, calls, drafts, seed, recon, refuseNext, addProposal };
 }
 
 /** A complete draft: every answer preview needs, the generated criterion still undecided. */

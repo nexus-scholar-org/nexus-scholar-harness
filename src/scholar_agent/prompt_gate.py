@@ -179,7 +179,8 @@ def wilson_lower(successes: int, total: int, z: float = 1.959964) -> float:
 
 
 def score(outcomes: dict[str, str], labels: dict[str, str]) -> dict[str, Any]:
-    includes = [s for s, label in labels.items() if label == "INCLUDE"]
+    # The researcher's Unclear goes to full text, so it counts as an include (ladder §4).
+    includes = [s for s, label in labels.items() if label in ("INCLUDE", "MAYBE")]
     excludes = [s for s, label in labels.items() if label == "EXCLUDE"]
     kept = [s for s in includes if outcomes.get(s, "MAYBE") != "EXCLUDE"]
     excluded_right = [s for s in excludes if outcomes.get(s) == "EXCLUDE"]
@@ -203,7 +204,7 @@ def price_for(provider: str, model: str) -> dict[str, float] | None:
     return (task_mod.load_prices().get(provider) or {}).get(model)
 
 
-def cost_usd(usage: dict[str, int], price: dict[str, float], *, batch: bool) -> float:
+def cost_usd(usage: dict[str, int], price: dict[str, float], *, batch: bool, ndigits: int = 4) -> float:
     factor = task_mod.load_prices()["batch_discount"] if batch else 1.0
     uncached = max(0, usage["input_tokens"] - usage["cache_read_tokens"] - usage["cache_write_tokens"])
     total = (
@@ -212,7 +213,7 @@ def cost_usd(usage: dict[str, int], price: dict[str, float], *, batch: bool) -> 
         + usage["cache_write_tokens"] * price["cache_write"]
         + usage["output_tokens"] * price["output"]
     ) / 1_000_000
-    return round(total * factor, 4)
+    return round(total * factor, ndigits)
 
 
 def estimate(
@@ -278,6 +279,7 @@ def report(
             "driver_status": result.status if result else "missing",
             "driver_detail": result.detail if result and result.status != "ok" else None,
             "failed_checks": [c["name"] for c in checks if not c["ok"]],
+            "usage": result.usage.as_dict() if result else None,
         })
     totals = {k: int(usage.get(k, 0)) for k in ("input_tokens", "output_tokens", "cache_read_tokens", "cache_write_tokens")}
     price = price_for(provider, spec.model)

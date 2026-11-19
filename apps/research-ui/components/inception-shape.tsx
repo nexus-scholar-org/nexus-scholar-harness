@@ -5,6 +5,8 @@ import { useEffect, useState } from "react";
 import type { Locale } from "@/i18n";
 import { Button } from "@/components/ui/base";
 import { inceptionHref, InceptionFrame, InceptionRefusal, refusalOf, StepHeader, useDraft, type Refusal } from "@/components/inception-frame";
+import { StepAssist } from "@/components/inception-assist";
+
 import { runStep, type Draft, type ScopeStep, type ShapeStep } from "@/lib/inception-api";
 import { inceptionT } from "@/lib/inception-copy";
 
@@ -96,6 +98,8 @@ export function InceptionShape({ locale }: Readonly<{ locale: Locale }>) {
     if (stored) window.location.assign(inceptionHref(locale, next, next ? draftId : "", origin));
   };
 
+  // Spec 04: Continue needs a lens and a playbook the researcher chose; the marked playbook is never chosen for them.
+  const needed = !draft.paradigm ? "lens" : !draft.playbook ? "playbook" : null;
   const leaning = scope?.recommended_paradigm;
   const firstEmpty = rqs.findIndex((rq) => rq.trim() === "");
   // The template is filled from the unit and the proof: it is offered only once
@@ -315,8 +319,10 @@ export function InceptionShape({ locale }: Readonly<{ locale: Locale }>) {
         {stepError ? <InceptionRefusal locale={locale} refusal={stepError} draftId={draftId} origin={origin} /> : null}
         {saveError ? <InceptionRefusal locale={locale} refusal={saveError} draftId={draftId} origin={origin} onRetry={() => void persist("criteria")} /> : null}
 
+        <StepAssist locale={locale} step="shape" />
+
         <div className="flex flex-wrap gap-3">
-          <Button variant="primary" type="submit" disabled={saving || !draft.paradigm || !!planned} aria-describedby={draft.paradigm ? undefined : "shape-need-lens"}>
+          <Button variant="primary" type="submit" disabled={saving || !draft.paradigm || !draft.playbook || !!planned} aria-describedby={needed ? "shape-need" : undefined}>
             {saving ? t("saving") : t("shape.continue")}
           </Button>
           <Button onClick={() => void persist("")} disabled={saving || !!planned}>
@@ -325,11 +331,11 @@ export function InceptionShape({ locale }: Readonly<{ locale: Locale }>) {
           <a className="inline-flex min-h-11 items-center text-brand underline" href={inceptionHref(locale, "direction", draftId, origin)} data-back>
             {t("shape.back")}
           </a>
-          {draft.paradigm ? null : (
-            <p id="shape-need-lens" className="self-center text-sm text-ink-muted">
-              {t("shape.needLens")}
+          {needed ? (
+            <p id="shape-need" className="self-center text-sm text-ink-muted" data-need={needed}>
+              {t(needed === "lens" ? "shape.needLens" : "shape.needPlaybook")}
             </p>
-          )}
+          ) : null}
         </div>
       </form>
     </InceptionFrame>

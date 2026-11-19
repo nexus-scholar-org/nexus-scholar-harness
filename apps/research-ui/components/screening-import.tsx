@@ -1,21 +1,26 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
 
 import { formatNumber, type Locale } from "@/i18n";
 import { Button, DataCell, DecisionBadge } from "@/components/ui/base";
 import { ScreeningSteps, StateCard, stepHref } from "@/components/screening-state-card";
 import { isScreeningApiError } from "@/lib/screening-api";
-import { acceptCorpus, addCorpusSource, fileToBase64, getCorpus, removeCorpusSource, type Corpus, type CorpusDatabase } from "@/lib/screening-v1";
+import { localDate } from "@/lib/local-time";
+import { addCorpusSource, fileToBase64, getCorpus, removeCorpusSource, type Corpus, type CorpusDatabase } from "@/lib/screening-v1";
 import { DiscoverySteps, discoveryHref } from "@/components/discovery-frame";
 import { discoveryT } from "@/lib/discovery-copy";
+import { notifyReviewChanged } from "@/components/review-bus";
+import { sentenceText } from "@/components/next-step-bar";
+import { getNextStep } from "@/lib/next-step";
 
 /** The importer's row codes (E3, M3d-engine) that have a sentence; any other code is shown as sent. */
 const REJECTION_CODES = new Set(["IMPORT_NO_TITLE", "IMPORT_BAD_TAG", "IMPORT_BAD_YEAR"]);
 
 /**
  * Import the corpus (spec 11, M5b): one RIS export per file, labelled with its
- * database, counted, then accepted and frozen. Every count comes from the
+ * database and counted. The corpus is accepted and frozen on the Hand-off, the
+ * one place a corpus is accepted (M10b, R6): this screen links there. Every count comes from the
  * engine (`GET /corpus`), which runs the snapshot's own deduplicator; the screen
  * adds nothing up. A label may repeat (a database exported in parts) and the
  * engine sums its files into one database row. Search details are optional and
@@ -66,16 +71,9 @@ const COPY = {
     sentence: "Records identified from: {sources}; duplicate records removed (n = {duplicates}). Studies to screen: {studies}.",
     duplicatesHelp: "A duplicate is the same article found in more than one database, or twice in one file. The app matches them by DOI, then by near-identical title, first author and year (one year either way).",
     notStatedNote: "Search details not stated for: {labels}. Add them in each file's search details, or report them as not stated.",
-    sideTitle: "What happens when you accept",
-    sideFreeze: "The corpus is frozen as the starting point of screening.",
-    sideNoChange: "No database can be added, removed or replaced afterwards.",
-    sideFiles: "Copies of your files stay in literature/raw/ris/, and every step is recorded in the audit journal.",
-    accept: "Accept and freeze the corpus",
-    confirmTitle: "Freeze this corpus?",
-    confirmBody: "You are about to freeze {studies} studies from {databases} databases. After this you cannot add, remove or replace a database. Check the counts first.",
-    confirm: "Freeze the corpus",
-    back: "Go back",
-    freezing: "Freezing the corpus…",
+    toHandoff: "Review and accept on the Hand-off",
+    toHandoffHelp: "The Hand-off shows these counts again, explains the freeze and asks you to confirm.",
+    toHandoffNone: "Add at least one database. You accept the corpus on the Hand-off.",
     frozen: "Corpus frozen",
     frozenOn: "Frozen on {date}",
     fingerprint: "Corpus fingerprint",
@@ -129,16 +127,9 @@ const COPY = {
     sentence: "Notices identifiées dans : {sources} ; doublons retirés (n = {duplicates}). Études à examiner : {studies}.",
     duplicatesHelp: "Un doublon est le même article trouvé dans plusieurs bases, ou deux fois dans un fichier. L'application les repère par DOI, puis par titre quasi identique, premier auteur et année (à un an près).",
     notStatedNote: "Détails de la recherche non indiqués pour : {labels}. Ajoutez-les dans les détails de chaque fichier, ou déclarez-les non indiqués.",
-    sideTitle: "Ce qui se passe quand vous acceptez",
-    sideFreeze: "Le corpus est figé comme point de départ de la sélection.",
-    sideNoChange: "Aucune base ne peut ensuite être ajoutée, retirée ou remplacée.",
-    sideFiles: "Des copies de vos fichiers restent dans literature/raw/ris/, et chaque étape est consignée dans le journal d'audit.",
-    accept: "Accepter et figer le corpus",
-    confirmTitle: "Figer ce corpus ?",
-    confirmBody: "Vous allez figer {studies} études issues de {databases} bases. Ensuite, vous ne pourrez plus ajouter, retirer ni remplacer de base. Vérifiez d'abord les totaux.",
-    confirm: "Figer le corpus",
-    back: "Revenir",
-    freezing: "Gel du corpus…",
+    toHandoff: "Examiner et accepter à la remise",
+    toHandoffHelp: "La remise affiche de nouveau ces totaux, explique le gel et vous demande de confirmer.",
+    toHandoffNone: "Ajoutez au moins une base. Vous acceptez le corpus à la remise.",
     frozen: "Corpus figé",
     frozenOn: "Figé le {date}",
     fingerprint: "Empreinte du corpus",
@@ -192,16 +183,9 @@ const COPY = {
     sentence: "سجلات محددة من: {sources}؛ سجلات مكررة مزالة (n = {duplicates}). دراسات للفرز: {studies}.",
     duplicatesHelp: "المكرر هو المقال نفسه موجودًا في أكثر من قاعدة بيانات، أو مرتين في ملف واحد. يطابقها التطبيق بالـ DOI، ثم بعنوان شبه مطابق والمؤلف الأول والسنة (بفارق سنة).",
     notStatedNote: "تفاصيل البحث غير مذكورة لـ: {labels}. أضفها في تفاصيل بحث كل ملف، أو صرّح بأنها غير مذكورة.",
-    sideTitle: "ما يحدث عند القبول",
-    sideFreeze: "تُجمَّد المجموعة نقطةَ بداية للفرز.",
-    sideNoChange: "لا يمكن بعد ذلك إضافة قاعدة بيانات أو إزالتها أو استبدالها.",
-    sideFiles: "تبقى نسخ ملفاتك في literature/raw/ris/، وتُسجَّل كل خطوة في سجل التدقيق.",
-    accept: "اقبل المجموعة وجمّدها",
-    confirmTitle: "أتجمّد هذه المجموعة؟",
-    confirmBody: "أنت على وشك تجميد {studies} دراسة من {databases} قاعدة بيانات. بعد ذلك لا يمكنك إضافة قاعدة بيانات أو إزالتها أو استبدالها. تحقق من الأعداد أولًا.",
-    confirm: "جمّد المجموعة",
-    back: "رجوع",
-    freezing: "تجميد المجموعة…",
+    toHandoff: "راجع المجموعة واقبلها في صفحة التسليم",
+    toHandoffHelp: "تعرض صفحة التسليم هذه الأعداد مجددًا، وتشرح التجميد، وتطلب تأكيدك.",
+    toHandoffNone: "أضف قاعدة بيانات واحدة على الأقل. تقبل المجموعة في صفحة التسليم.",
     frozen: "المجموعة مجمّدة",
     frozenOn: "جُمّدت في {date}",
     fingerprint: "بصمة المجموعة",
@@ -338,23 +322,19 @@ function ImportReady({
   const [refusal, setRefusal] = useState<Refusal>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [announce, setAnnounce] = useState("");
-  const [confirming, setConfirming] = useState(false);
-  const acceptRef = useRef<HTMLButtonElement>(null);
-  const goBackRef = useRef<HTMLButtonElement>(null);
-  const confirmRef = useRef<HTMLButtonElement>(null);
-  const frozenRef = useRef<HTMLHeadingElement>(null);
-  const justAccepted = useRef(false);
-
+  const staged = corpus.sources.length > 0;
+  // M10b (spec 11 "Accepting on the Hand-off"): with nothing staged, the line under the side card is the
+  // next-step bar's sentence while a harvest is unfinished, read from the engine and never composed here.
+  const [harvestLine, setHarvestLine] = useState<string | null>(null);
   useEffect(() => {
-    if (accepted && justAccepted.current) {
-      justAccepted.current = false;
-      frozenRef.current?.focus();
-    }
-  }, [accepted]);
-
-  useEffect(() => {
-    if (confirming) goBackRef.current?.focus();
-  }, [confirming]);
+    if (accepted || staged || blockedByDiscovery) return;
+    const controller = new AbortController();
+    getNextStep(origin, null, controller.signal).then(
+      (answer) => setHarvestLine(answer.state === "SEARCH_UNFINISHED" || answer.state === "CORPUS_PENDING" ? sentenceText(locale, answer) : null),
+      () => setHarvestLine(null),
+    );
+    return () => controller.abort();
+  }, [origin, locale, accepted, staged, blockedByDiscovery]);
 
   const act = useCallback(
     async (status: string, run: () => Promise<Corpus>, done: string) => {
@@ -363,6 +343,7 @@ function ImportReady({
       setAnnounce(status);
       try {
         onCorpus(await run());
+        notifyReviewChanged();
         setAnnounce(done);
         return true;
       } catch (error) {
@@ -559,11 +540,11 @@ function ImportReady({
           {accepted && corpus.accepted ? (
             <section aria-labelledby="import-frozen" className="rounded-lg border border-rule bg-leaf p-5" data-import-frozen>
               <DecisionBadge role="include">{t("frozen")}</DecisionBadge>
-              <h2 id="import-frozen" ref={frozenRef} className="mt-2 font-semibold text-ink" tabIndex={-1}>
+              <h2 id="import-frozen" className="mt-2 font-semibold text-ink">
                 {t("frozen")}
               </h2>
               {corpus.accepted.accepted_at ? (
-                <p className="mt-1 text-sm text-ink-muted">{t("frozenOn", { date: corpus.accepted.accepted_at.slice(0, 10) })}</p>
+                <p className="mt-1 text-sm text-ink-muted">{t("frozenOn", { date: localDate(corpus.accepted.accepted_at) })}</p>
               ) : null}
               <p className="mt-2 text-xs text-ink-muted">{t("fingerprint")}</p>
               <DataCell>
@@ -582,79 +563,28 @@ function ImportReady({
               ) : null}
             </section>
           ) : !blockedByDiscovery ? (
-            <section aria-labelledby="import-side" className="rounded-lg border border-rule bg-leaf p-5">
-              <h2 id="import-side" className="font-semibold text-ink">
-                {t("sideTitle")}
-              </h2>
-              <ul className="mt-2 list-disc space-y-1 ps-5 text-sm text-ink-muted">
-                <li>{t("sideFreeze")}</li>
-                <li>{t("sideNoChange")}</li>
-                <li>{t("sideFiles")}</li>
-              </ul>
+            <section className="rounded-lg border border-rule bg-leaf p-5" data-import-handoff>
+              {staged ? (
+                <>
+                  <a
+                    className="inline-flex min-h-11 items-center rounded-md bg-brand px-4 font-medium text-on-brand"
+                    href={discoveryHref(locale, "handoff", origin)}
+                    data-to-handoff
+                  >
+                    {t("toHandoff")}
+                  </a>
+                  <p className="mt-2 text-sm text-ink-muted">{t("toHandoffHelp")}</p>
+                </>
+              ) : (
+                <p className="text-sm text-ink" data-to-handoff-none>
+                  {harvestLine ?? t("toHandoffNone")}
+                </p>
+              )}
               {fromDiscovery ? (
                 <p className="mt-2 text-xs text-ink-muted" data-import-rule>
                   {dt("import.rule")}
                 </p>
               ) : null}
-              {confirming ? (
-                <div
-                  role="alertdialog"
-                  aria-labelledby="import-confirm"
-                  aria-describedby="import-confirm-body"
-                  className="mt-4 rounded-md border border-brand p-4"
-                  aria-modal="true"
-                  onKeyDown={(e) => {
-                    if (e.key === "Escape") {
-                      setConfirming(false);
-                      acceptRef.current?.focus();
-                    } else if (e.key === "Tab") {
-                      // Two controls: Tab and Shift+Tab move between them and never leave.
-                      e.preventDefault();
-                      (document.activeElement === goBackRef.current ? confirmRef : goBackRef).current?.focus();
-                    }
-                  }}
-                >
-                  <p id="import-confirm" className="font-semibold text-ink">
-                    {t("confirmTitle")}
-                  </p>
-                  <p id="import-confirm-body" className="mt-1 text-sm text-ink">
-                    {t("confirmBody", { studies: n(counts.studies), databases: n(corpus.databases.length) })}
-                  </p>
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    <Button
-                      ref={goBackRef}
-                      onClick={() => {
-                        setConfirming(false);
-                        acceptRef.current?.focus();
-                      }}
-                    >
-                      {t("back")}
-                    </Button>
-                    <Button
-                      ref={confirmRef}
-                      variant="primary"
-                      disabled={busy !== null}
-                      onClick={() => {
-                        setConfirming(false);
-                        justAccepted.current = true;
-                        void act(t("freezing"), () => acceptCorpus(origin), t("frozen"));
-                      }}
-                    >
-                      {t("confirm")}
-                    </Button>
-                  </div>
-                </div>
-              ) : (
-                <Button
-                  ref={acceptRef}
-                  variant={corpus.sources.length > 0 ? "primary" : "secondary"}
-                  className="mt-4"
-                  disabled={busy !== null || corpus.sources.length === 0}
-                  onClick={() => setConfirming(true)}
-                >
-                  {busy === t("freezing") ? t("freezing") : t("accept")}
-                </Button>
-              )}
             </section>
           ) : null}
         </aside>

@@ -135,7 +135,11 @@ def _state(ws: Path) -> tuple[ev.ScreeningContext, dict[str, Any], list[dict], d
 
 @router.get("/summary")
 def summary(request: Request) -> dict[str, Any]:
-    ws = _ws(request)
+    return summary_of(_ws(request))
+
+
+def summary_of(ws: Path) -> dict[str, Any]:
+    """The screening summary of a workspace (``GET /screening/summary``; the next-step builder reads it too)."""
     if (ws / "protocol.json").is_file() and not ev.load_context(ws).batches:
         # Nothing prepared yet is a state, not a refusal: the home shows it and
         # offers Prepare, whose own refusal names a missing snapshot.

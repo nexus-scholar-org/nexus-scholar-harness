@@ -12,13 +12,15 @@ mints its session id here too.
 
 from __future__ import annotations
 
+import errno
 import json
 import os
 import re
 import shutil
 import threading
 import uuid
-from collections.abc import Callable
+from collections.abc import Callable, Iterator
+from contextlib import contextmanager
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
@@ -35,12 +37,89 @@ _LOCKS: dict[str, threading.RLock] = {}
 _LOCKS_GUARD = threading.Lock()
 
 
-def _lock_for(path: Path) -> threading.RLock:
+def _thread_lock(path: Path) -> threading.RLock:
     # Always the absolute path, so one file has one key before and after it exists.
     # One lock per draft ever touched in this process: a small, bounded-by-use map.
     key = str(path.absolute())
     with _LOCKS_GUARD:
         return _LOCKS.setdefault(key, threading.RLock())
+
+
+#: How deep this process holds each draft's OS lock (guarded by the draft's thread lock).
+_DEPTH: dict[str, int] = {}
+
+
+def _lock_for(path: Path):
+    """The draft's thread lock and, once per process, its OS lock (M10c, decision item 10).
+
+    The MCP server writes the same record from a second process, so the
+    thread lock alone cannot keep a read-then-write whole. The OS lock is a
+    file in ``.drafts/.locks/`` (outside the draft's folder, which a discard
+    removes).
+    """
+    return file_lock(path.parent.parent / ".locks" / f"{path.parent.name}.lock")
+
+
+@contextmanager
+def file_lock(lock_path: Path) -> Iterator[None]:
+    """A thread lock and, once per process, an OS lock on ``lock_path``; re-entered by depth.
+
+    Shared by the drafts and the workspace proposals (M10c D5), which two
+    processes (the console and the MCP server) write.
+    """
+    lock = _thread_lock(lock_path)
+    with lock:
+        key = str(lock_path.absolute())
+        if _DEPTH.get(key, 0):
+            _DEPTH[key] += 1
+            try:
+                yield
+            finally:
+                _DEPTH[key] -= 1
+            return
+        lock_path.parent.mkdir(parents=True, exist_ok=True)
+        with lock_path.open("a+b") as handle:
+            _os_lock(handle)
+            _DEPTH[key] = 1
+            try:
+                yield
+            finally:
+                _DEPTH[key] = 0
+                _os_unlock(handle)
+
+
+#: The errors ``msvcrt.locking`` raises while another process holds the lock.
+_CONTENDED = frozenset({errno.EACCES, errno.EDEADLK, getattr(errno, "EDEADLOCK", errno.EDEADLK)})
+
+
+def _os_lock(handle: Any) -> None:
+    if os.name == "nt":
+        import msvcrt
+
+        handle.seek(0)
+        while True:  # LK_LOCK gives up after ten one-second retries; a held draft lock is short
+            try:
+                msvcrt.locking(handle.fileno(), msvcrt.LK_LOCK, 1)
+                return
+            except OSError as exc:
+                if exc.errno not in _CONTENDED:  # only another holder is waited out; any other error is raised
+                    raise
+                continue
+    import fcntl
+
+    fcntl.flock(handle, fcntl.LOCK_EX)
+
+
+def _os_unlock(handle: Any) -> None:
+    if os.name == "nt":
+        import msvcrt
+
+        handle.seek(0)
+        msvcrt.locking(handle.fileno(), msvcrt.LK_UNLCK, 1)
+        return
+    import fcntl
+
+    fcntl.flock(handle, fcntl.LOCK_UN)
 
 
 def new_session_id() -> str:
@@ -108,6 +187,40 @@ class DraftStore:
             record[key] = change(record.get(key))
             return self._write(record)
 
+    def transact(
+        self,
+        session_id: str,
+        change: Callable[[dict[str, Any]], Any],
+        *,
+        answer: bool,
+        base_updated_at: str | None = None,
+    ) -> tuple[dict[str, Any], Any]:
+        """One write of the record under the draft's lock (M10b, ``01-proposals``).
+
+        ``change(record)`` edits the record in place and returns what the route
+        answers. An *answer* write (it changes ``draft`` or what the answers rest
+        on) checks ``base_updated_at`` (``DRAFT_CONFLICT``) and sets a new
+        ``updated_at``; a *side* write does neither, so another tab's next save
+        is not refused. Both refuse ``DRAFT_EMITTED``. A ``change`` that raises
+        writes nothing.
+        """
+        with _lock_for(self._path(session_id)):
+            record = self.load(session_id)
+            if answer and base_updated_at is not None and base_updated_at != record["updated_at"]:
+                raise DraftRefused(
+                    "DRAFT_CONFLICT", "the draft changed since it was read; reload it",
+                    details={"updated_at": record["updated_at"]},
+                )
+            if record.get("emitted"):
+                raise DraftRefused(
+                    "DRAFT_EMITTED", "this draft already created a workspace", details={"emitted": record["emitted"]},
+                )
+            result = change(record)
+            if answer:
+                record["updated_at"] = _now()
+            self._write(record)
+            return record, result
+
     def load(self, session_id: str) -> dict[str, Any]:
         path = self._path(session_id)
         try:
@@ -135,15 +248,26 @@ class DraftStore:
         record["updated_at"] = _now()
         return self._write(record)
 
-    def bind_grounding(self, session_id: str, grounding: dict[str, Any], base_updated_at: str | None = None) -> dict[str, Any]:
+    def bind_grounding(
+        self,
+        session_id: str,
+        grounding: dict[str, Any],
+        base_updated_at: str | None = None,
+        *,
+        record_change: Callable[[dict[str, Any]], None] | None = None,
+    ) -> dict[str, Any]:
         """Write the grounded evidence of a chosen direction beside the draft (M4c).
 
         Only the recon bind route calls this; a ``save`` of the draft keeps it.
+        ``record_change`` adds to the same write (M10b: the ``engine:direction`` record).
         """
         with _lock_for(self._path(session_id)):
-            return self._bind(session_id, grounding, base_updated_at)
+            return self._bind(session_id, grounding, base_updated_at, record_change)
 
-    def _bind(self, session_id: str, grounding: dict[str, Any], base_updated_at: str | None) -> dict[str, Any]:
+    def _bind(
+        self, session_id: str, grounding: dict[str, Any], base_updated_at: str | None,
+        record_change: Callable[[dict[str, Any]], None] | None = None,
+    ) -> dict[str, Any]:
         record = self.load(session_id)
         if base_updated_at is not None and base_updated_at != record["updated_at"]:
             raise DraftRefused(
@@ -153,6 +277,8 @@ class DraftStore:
         if record.get("emitted"):
             raise DraftRefused("DRAFT_EMITTED", "this draft already created a workspace", details={"emitted": record["emitted"]})
         record["grounding"] = grounding
+        if record_change is not None:
+            record_change(record)
         record["updated_at"] = _now()
         return self._write(record)
 

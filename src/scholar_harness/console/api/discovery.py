@@ -24,6 +24,8 @@ running discovery job per workspace, ``MAILTO_NOT_SET`` and
   abstracts, verification) from the run's saved records, without a new search
   (M3i-harvest-robustness). Every run view carries ``preparation``, read from
   the run's stage marker, so it is the same after the console restarted.
+* ``POST /estimate`` — the size estimate before a harvest (M10b Part D): each
+  selected database's count only, no record fetched, nothing written.
 * ``GET /recall``, ``GET /jobs/{id}``, ``GET /jobs/{id}/events`` (SSE replayed
   on connect), ``POST /jobs/{id}/cancel``.
 """
@@ -33,6 +35,7 @@ from __future__ import annotations
 import asyncio
 import json
 import re
+import time
 import uuid
 from contextlib import asynccontextmanager
 from dataclasses import dataclass, field
@@ -1049,6 +1052,132 @@ async def start_recall(body: RecallBody, request: Request) -> dict[str, Any]:
     return {"job": jobs.start(ws, "recall", work).to_dict()}
 
 
+class EstimateBody(BaseModel):
+    """``POST /estimate`` (M10b Part D): ``cap`` is a what-if, never sent to a run."""
+
+    model_config = ConfigDict(extra="forbid")
+    providers: list[str] | None = None
+    cap: int | None = None
+    pace_seconds: int | None = None
+    #: Count again without the cache or a recall check's totals (the card's "Count again to refresh").
+    refresh: bool = False
+
+
+def _monotonic() -> float:
+    return time.monotonic()
+
+
+def _recall_totals(ws: Path, fingerprint: str) -> tuple[dict[str, Any] | None, dict[str, int]]:
+    """The newest recall check made for this protocol, and the totals its legs reported."""
+    for path in reversed(_checks(ws)):
+        check = _read_json(path, {})
+        if not isinstance(check, dict) or check.get("protocol_fingerprint") != fingerprint:
+            continue
+        totals = {}
+        for leg in check.get("legs") or []:
+            if isinstance(leg, dict) and leg.get("status") != "failed" and isinstance(leg.get("reported_total"), int):
+                totals[_canonical(leg.get("provider", ""))] = leg["reported_total"]
+        return {"check": path.stem, "checked_at": check.get("checked_at")}, totals
+    return None, {}
+
+
+@router.post("/estimate")
+async def size_estimate(body: EstimateBody, request: Request) -> dict[str, Any]:
+    """How many records the harvest is likely to produce, before any is fetched (M10b Part D).
+
+    Read-only for the workspace: it writes no file and journals nothing. Each
+    selected database is asked for its count only (``BaseAPIProvider.count``),
+    unless a recall check for this protocol already reported it or the counts
+    for the same protocol and databases are less than ``ESTIMATE_TTL`` old.
+    Refusals are for the workspace and the request, sent before any request.
+    """
+    from scholar_search import estimate as est
+    from scholar_search.plan import KNOWN_PROVIDERS as PLAN_PROVIDERS
+
+    from ...size_limit import size_limit
+
+    ws, jobs = _ws(request), _jobs(request)
+    try:
+        proto = _protocol(ws)
+        if body.cap is not None and not 1 <= body.cap <= ENGINE_CEILING:
+            raise Refused(422, refusals.CAP_INVALID, f"A cap must be 1 to {ENGINE_CEILING} records per database.")
+        pace = est.DEFAULT_PACE_SECONDS if body.pace_seconds is None else body.pace_seconds
+        if not est.PACE_MIN <= pace <= est.PACE_MAX:
+            raise Refused(422, refusals.PACE_INVALID,
+                          f"The pace must be a whole number of seconds from {est.PACE_MIN} to {est.PACE_MAX}.")
+        chosen = _check_providers(body.providers)
+        names = chosen if chosen is not None else list(proto.providers)
+        _require_mailto()
+        _require_openalex_key(names)
+        if _frozen(ws):
+            raise Refused(409, refusals.CORPUS_ALREADY_ACCEPTED,
+                          "The corpus snapshot is accepted; a frozen corpus is never searched again from the browser.")
+        # Counts are not sent while a harvest or a check runs: the rate limits are its.
+        _refuse_busy(jobs, ws)
+    except Refused as exc:
+        raise _http(exc) from exc
+
+    query = proto.query
+    if body.cap is not None:
+        cap = {"value": body.cap, "source": "run_override", "ceiling": ENGINE_CEILING}
+    elif query.max_results and query.cap_source == "protocol":
+        cap = {"value": int(query.max_results), "source": "protocol", "ceiling": ENGINE_CEILING}
+    else:
+        cap = {"value": ENGINE_CEILING, "source": "engine_ceiling", "ceiling": ENGINE_CEILING}
+
+    # The order of the databases never changes the estimate, so it shares the cache.
+    cache: dict[tuple, dict[str, Any]] | None = getattr(request.app.state, "estimate_cache", None)
+    if cache is None:
+        cache = request.app.state.estimate_cache = {}
+    key = (str(ws), proto.fingerprint, tuple(sorted(names)))
+    entry = cache.get(key)
+    if entry is not None and (body.refresh or _monotonic() - entry["at"] > est.ESTIMATE_TTL):
+        entry = None
+    known: dict[str, dict[str, Any]] = dict(entry["rows"]) if entry else {}
+    recall = entry["recall_check"] if entry else None
+    if entry is None and not body.refresh:
+        check, totals = _recall_totals(ws, proto.fingerprint)
+        used = {name: totals[name] for name in names if name in totals}
+        if used:
+            recall = check
+            for name, total in used.items():
+                known[name] = {"name": name, "status": "from_recall_check", "reported_total": total,
+                               "error": None, "error_code": None}
+    missing = [name for name in names if name not in known]
+    fresh = await est.count_providers(query, missing) if missing else {}
+    rows_by_name = {**known, **fresh}
+    if fresh or entry is None:
+        # Asking only the databases that failed keeps the entry's first time: the rows counted then
+        # are not shown as counted now, and nothing is served past ``ESTIMATE_TTL`` from its count.
+        counted_at = entry["counted_at"] if entry else _now()
+        cache[key] = {
+            "at": entry["at"] if entry else _monotonic(), "counted_at": counted_at, "recall_check": recall,
+            # A failed count is never kept: the next call asks that database again.
+            "rows": {n: r for n, r in rows_by_name.items() if r["status"] != "failed"},
+        }
+    else:
+        counted_at = entry["counted_at"]
+
+    rows = [rows_by_name[name] for name in names]
+    for name in PLAN_PROVIDERS:
+        if name not in names:
+            rows.append({"name": name, "status": "not_selected" if name in DEFAULT_PROVIDERS else "off_by_default",
+                         "reported_total": None})
+    limit = size_limit(ws)
+    summary = est.summarize(rows, cap=cap["value"], limit=limit["value"], pace_seconds=pace,
+                            year_window=bool(query.year_min or query.year_max))
+    summary["warn"]["limit"] = limit
+    return {
+        "shape": "discovery.estimate-v1",
+        "protocol_fingerprint": proto.fingerprint,
+        "counted_at": counted_at,
+        "served_from_cache": entry is not None and not fresh,
+        "recall_check": recall,
+        "cap": cap,
+        **summary,
+    }
+
+
 @router.get("/recall")
 def last_recall(request: Request) -> dict[str, Any]:
     checks = _checks(_ws(request))
@@ -1293,3 +1422,128 @@ def accept_chase(body: ChaseAcceptBody, request: Request) -> dict[str, Any]:
         "archived": accepted.archived,
         "archive_path": accepted.round_path,
     }
+
+
+# --------------------------------------------------------------------------- checks (M10b)
+
+
+def _discovery_checks(request: Request, step: str | None, run: str | None) -> dict[str, Any]:
+    from scholar_harness.inception import checks as C
+
+    from .. import discovery_checks as DC
+
+    if step is not None and step not in C.DISCOVERY_STEPS:
+        raise _http(Refused(404, refusals.STEP_UNKNOWN, f"unknown step {step!r}", details={"steps": list(C.DISCOVERY_STEPS)}))
+    if run is not None and not RUN_NAME.fullmatch(run):
+        raise _http(Refused(404, refusals.RUN_NOT_FOUND, f"No search run {run} in this workspace."))
+    try:
+        items, waiting, partial, scope = DC.compute(request, run)
+    except Refused as exc:
+        raise _http(exc) from exc
+    C.with_dismissals(items, DC.dismissals(_ws(request)))
+    return C.respond(items, steps_order=C.DISCOVERY_STEPS, step=step, scope=scope, waiting=waiting, partial=partial)
+
+
+@router.get("/checks")
+def discovery_checks(request: Request, step: str | None = None, run: str | None = None) -> dict[str, Any]:
+    """The discovery checks of the open workspace (02-checks); a pure read."""
+    return _discovery_checks(request, step, run)
+
+
+class CheckDismissBody(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    subject: str = Field(default="", max_length=2_000)
+    evidence_digest: str = Field(max_length=100)
+    reason: str | None = Field(default=None, max_length=4_000)
+
+
+class CheckRestoreBody(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    subject: str = Field(default="", max_length=2_000)
+
+
+def _decide_check(request: Request, check_id: str, action: str, **kw: Any) -> dict[str, Any]:
+    from scholar_harness.inception import checks as C
+
+    from .. import discovery_checks as DC
+
+    ws = _ws(request)
+    try:
+        items, _waiting, _partial, scope = DC.compute(request)
+    except Refused as exc:
+        raise _http(exc) from exc
+    record = DC.dismissals(ws)
+    C.with_dismissals(items, record)
+    try:
+        entry = C.dismissal_entry(items, record, check_id, action, **kw)
+    except C.CheckRefused as exc:
+        raise _http(Refused(exc.status, exc.code, exc.message, details=exc.details)) from exc
+    DC.append_dismissal(ws, entry, run=scope.get("run"), agent=AGENT)
+    step = C.CATALOGUE.get(check_id) or next((c["step"] for c in items if c["check_id"] == check_id), None)
+    return _discovery_checks(request, step, None)
+
+
+@router.post("/checks/{check_id}/dismiss")
+def dismiss_discovery_check(check_id: str, body: CheckDismissBody, request: Request) -> dict[str, Any]:
+    return _decide_check(request, check_id, "dismissed", subject=body.subject, evidence_digest=body.evidence_digest,
+                         reason=body.reason)
+
+
+@router.post("/checks/{check_id}/restore")
+def restore_discovery_check(check_id: str, body: CheckRestoreBody, request: Request) -> dict[str, Any]:
+    return _decide_check(request, check_id, "restored", subject=body.subject)
+
+
+# --------------------------------------------------------------------------- workspace proposals (M10c D5)
+
+
+def _proposals_answer(ws: Path, request: Request, fn) -> dict[str, Any]:
+    from scholar_harness.inception.proposals import ProposalRefused
+
+    try:
+        answer = fn()
+    except ProposalRefused as exc:
+        raise _http(Refused(exc.status, exc.code, exc.message, details=exc.details)) from exc
+    active = _jobs(request).active(ws)
+    answer["active_job"] = active.to_dict() if active else None
+    return answer
+
+
+@router.get("/proposals")
+def workspace_proposals(request: Request) -> dict[str, Any]:
+    """The open workspace's proposals (M10c D5): an assistant's suggested search changes; a pure read."""
+    from scholar_harness import workspace_proposals as WP
+
+    ws = _ws(request)
+    return _proposals_answer(ws, request, lambda: WP.listing(ws))
+
+
+class ProposalRejectBody(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    reason: str | None = Field(default=None, max_length=4_000)
+
+
+@router.post("/proposals/{proposal_id}/apply")
+def apply_workspace_proposal(proposal_id: str, request: Request) -> dict[str, Any]:
+    """The researcher applies one: the search fields of ``intent.json`` are amended and ``protocol.json`` recompiled.
+
+    Refused while a discovery job runs here (``DISCOVERY_JOB_ACTIVE``) and once
+    a corpus is accepted (``CORPUS_ALREADY_ACCEPTED``).
+    """
+    from scholar_harness import workspace_proposals as WP
+
+    ws = _ws(request)
+    active = _jobs(request).active(ws)
+    if active is not None:
+        raise _http(Refused(409, refusals.DISCOVERY_JOB_ACTIVE,
+                            "A discovery job is running for this workspace; the protocol is not changed under it.",
+                            details={"job": active.to_dict()}))
+    return _proposals_answer(ws, request, lambda: WP.decide(ws, proposal_id, "apply"))
+
+
+@router.post("/proposals/{proposal_id}/reject")
+def reject_workspace_proposal(proposal_id: str, request: Request, body: ProposalRejectBody | None = None) -> dict[str, Any]:
+    from scholar_harness import workspace_proposals as WP
+
+    ws = _ws(request)
+    return _proposals_answer(ws, request, lambda: WP.decide(ws, proposal_id, "reject", reason=(body.reason if body else None)))

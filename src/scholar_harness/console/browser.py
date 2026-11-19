@@ -56,12 +56,21 @@ POST_PATHS: tuple[re.Pattern[str], ...] = tuple(
         # M10b (09-start-from-protocol): start a draft from a protocol; mark an imported step opened.
         r"api/v1/inception/drafts/import",
         r"api/v1/inception/drafts/[A-Za-z0-9_-]+/origin/checked",
-        r"api/v1/inception/drafts/[A-Za-z0-9_-]+/recon/(probe|delta|distill|bind)",
+        # M10b: proposal decisions and the checks (the checks POST records the proposals it recommends).
+        r"api/v1/inception/drafts/[A-Za-z0-9_-]+/proposals/prop_[0-9a-f]+/(apply|apply-edited|reject|restore)",
+        r"api/v1/inception/drafts/[A-Za-z0-9_-]+/checks",
+        r"api/v1/inception/drafts/[A-Za-z0-9_-]+/checks/[A-Z][A-Z0-9_]+/(dismiss|restore)",
+        r"api/v1/discovery/checks/[A-Z][A-Z0-9_]+/(dismiss|restore)",
+        r"api/v1/inception/drafts/[A-Za-z0-9_-]+/recon/(probe|delta|distill|bind|sample)",
         r"api/v1/discovery/(runs|recall)",
+        # M10b Part D: the size estimate (count-only requests; nothing written).
+        r"api/v1/discovery/estimate",
         # M3i-harvest-robustness: finish a harvest's remaining stages without a new search.
         r"api/v1/discovery/runs/run_\d{3,}/prepare",
         r"api/v1/discovery/jobs/[A-Za-z0-9_-]+/cancel",
         r"api/v1/discovery/chase/(runs|accept)",
+        # M10c D5: the researcher applies or rejects an assistant's suggested search change on Plan.
+        r"api/v1/discovery/proposals/prop_[0-9a-f]+/(apply|reject)",
     )
 )
 PUT_PATHS: tuple[re.Pattern[str], ...] = (

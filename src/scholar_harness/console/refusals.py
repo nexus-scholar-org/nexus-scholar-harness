@@ -118,6 +118,30 @@ IMPORT_SOURCE_TOO_LARGE = "IMPORT_SOURCE_TOO_LARGE"
 IMPORT_NOT_A_PROTOCOL = "IMPORT_NOT_A_PROTOCOL"
 IMPORT_PROTOCOL_VERSION_UNSUPPORTED = "IMPORT_PROTOCOL_VERSION_UNSUPPORTED"
 IMPORT_SOURCE_CHANGED = "IMPORT_SOURCE_CHANGED"
+#: M10b (``01-proposals``): no proposal with that id on the draft (404); the
+#: target changed since it was proposed (409); not open (apply, reject) or not
+#: rejected (restore), or an ``add`` already present (409); not a draft field or
+#: an ``op`` the field does not take (422); a source other than ``check:``/``import:`` (422).
+PROPOSAL_NOT_FOUND = "PROPOSAL_NOT_FOUND"
+PROPOSAL_STALE = "PROPOSAL_STALE"
+PROPOSAL_NOT_OPEN = "PROPOSAL_NOT_OPEN"
+PROPOSAL_TARGET_UNSUPPORTED = "PROPOSAL_TARGET_UNSUPPORTED"
+PROPOSAL_SOURCE_REFUSED = "PROPOSAL_SOURCE_REFUSED"
+#: M10c D5 (decision 2026-11-19 item 9(a)): applying a workspace proposal would change the
+#: protocol outside its search fields, or compile to an invalid protocol (422); ``details.reason``.
+PROTOCOL_AMENDMENT_REFUSED = "PROTOCOL_AMENDMENT_REFUSED"
+#: M10b (``02-checks``): no such check or instance now (404); a blocker or a gate
+#: warning (409); a warning without a reason, or a reason over the limit (422);
+#: the evidence changed since the page read it (409); restore of one not dismissed (409).
+CHECK_NOT_FOUND = "CHECK_NOT_FOUND"
+CHECK_NOT_DISMISSIBLE = "CHECK_NOT_DISMISSIBLE"
+CHECK_REASON_REQUIRED = "CHECK_REASON_REQUIRED"
+CHECK_CHANGED = "CHECK_CHANGED"
+CHECK_NOT_DISMISSED = "CHECK_NOT_DISMISSED"
+#: M10b Part C (``02-explore`` "Sample curation"): a key to leave out or put back that is
+#: not a paper of the sample (422); a draft past 200 left-out papers (422).
+PAPER_UNKNOWN = "PAPER_UNKNOWN"
+SAMPLE_EXCLUSIONS_FULL = "SAMPLE_EXCLUSIONS_FULL"
 
 # --- recon over HTTP (M4c, `console/api/recon.py`) ----------------------------
 #: Raised as ``ReconRefused`` (``recon/session.py``, ``inception/grounding.py``).
@@ -157,6 +181,8 @@ RECALL_NOT_RUN = "RECALL_NOT_RUN"
 OPENALEX_KEY_NOT_SET = "OPENALEX_KEY_NOT_SET"
 SEEDS_INVALID = "SEEDS_INVALID"
 CAP_INVALID = "CAP_INVALID"
+#: M10b Part D: the size estimate's screening pace is not 5 to 600 seconds per record.
+PACE_INVALID = "PACE_INVALID"
 #: A database name the engine does not know, in a run's or a check's ``providers``.
 PROVIDER_UNKNOWN = "PROVIDER_UNKNOWN"
 #: A discovery job stopped on an unexpected error; ``message`` names it.
@@ -287,6 +313,19 @@ CONTRACT_ADDED = frozenset(
         IMPORT_NOT_A_PROTOCOL,
         IMPORT_PROTOCOL_VERSION_UNSUPPORTED,
         IMPORT_SOURCE_CHANGED,
+        PROPOSAL_NOT_FOUND,
+        PROPOSAL_STALE,
+        PROPOSAL_NOT_OPEN,
+        PROPOSAL_TARGET_UNSUPPORTED,
+        PROPOSAL_SOURCE_REFUSED,
+        PROTOCOL_AMENDMENT_REFUSED,
+        CHECK_NOT_FOUND,
+        CHECK_NOT_DISMISSIBLE,
+        CHECK_REASON_REQUIRED,
+        CHECK_CHANGED,
+        CHECK_NOT_DISMISSED,
+        PAPER_UNKNOWN,
+        SAMPLE_EXCLUSIONS_FULL,
         MAILTO_NOT_SET,
         RECON_SESSION_INVALID,
         RECON_SESSION_NOT_FOUND,
@@ -311,6 +350,7 @@ CONTRACT_ADDED = frozenset(
         OPENALEX_KEY_NOT_SET,
         SEEDS_INVALID,
         CAP_INVALID,
+        PACE_INVALID,
         PROVIDER_UNKNOWN,
         DISCOVERY_FAILED,
         PROTOCOL_CHANGED_SINCE_SNAPSHOT,

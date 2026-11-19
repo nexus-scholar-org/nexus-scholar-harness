@@ -6,6 +6,9 @@ import type { Locale } from "@/i18n";
 import { Button, DataCell, DecisionBadge } from "@/components/ui/base";
 import { DatabasePicker } from "@/components/database-picker";
 import { inceptionHref, InceptionFrame, InceptionRefusal, refusalOf, StepHeader, useDraft, type Refusal } from "@/components/inception-frame";
+import { StepAssist } from "@/components/inception-assist";
+import { LeftOutList, RowError, SampleDialogView, SampleRefusal, SampleToastView, useSampleCuration, type Curation, type PoolRead } from "@/components/inception-sample";
+
 import {
   DoiLink,
   isOffline,
@@ -31,6 +34,7 @@ import {
   getDirections,
   getRecon,
   hasUsablePool,
+  latestUsableProbe,
   QUERY_MAX,
   startProbe,
   type ConceptReport,
@@ -70,7 +74,7 @@ export function InceptionExplore({ locale }: Readonly<{ locale: Locale }>) {
   const t = inceptionT(locale);
   const rt = inceptionRichT(locale);
   const state = useDraft();
-  const { draft, origin, draftId, record } = state;
+  const { draft, origin, draftId, record, bumpAssist, adopt, adoptTime } = state;
   const [recon, setRecon] = useState<ReconState | null>(null);
   const [reconError, setReconError] = useState<Refusal | null>(null);
   const [pool, setPool] = useState<Distilled | null>(null);
@@ -113,14 +117,54 @@ export function InceptionExplore({ locale }: Readonly<{ locale: Locale }>) {
     setDatabases(asked.length ? asked : [...available]);
   }, []);
 
-  const readPool = useCallback(async () => {
-    setPoolError(null);
+  const readSeq = useRef(0);
+  /**
+   * The pool, its directions and the concepts, read together. A read that a
+   * later one overtook is dropped (M10b Part C: two sample changes in a row),
+   * so the screen never shows an older answer over a newer one.
+   */
+  const readPool = useCallback(async (): Promise<PoolRead> => {
+    const mine = ++readSeq.current;
     const [d, dirs, c] = await Promise.allSettled([distill(origin, draftId), getDirections(origin, draftId), getConcepts(origin, draftId)]);
-    if (d.status === "fulfilled") setPool(d.value);
-    else setPoolError(refusalOf(d.reason));
-    setNDirections(dirs.status === "fulfilled" ? dirs.value.directions.length : null);
+    if (mine !== readSeq.current) return null;
+    if (d.status === "fulfilled") {
+      setPool(d.value);
+      setPoolError(null);
+    } else setPoolError(refusalOf(d.reason));
+    const n = dirs.status === "fulfilled" ? dirs.value.directions.length : null;
+    setNDirections(n);
     setConcepts(c.status === "fulfilled" ? c.value : null);
+    return { directions: n, papers: d.status === "fulfilled" ? d.value.pool.n_docs : null };
   }, [origin, draftId]);
+
+  /** After a sample change: the binding may now be out of date (`SAMPLE_CHANGED`), read from the session. */
+  const rereadRecon = useCallback(async () => {
+    try {
+      setRecon(await getRecon(origin, draftId));
+    } catch {
+      // The pool on screen stays; the next read of the session says more.
+    }
+  }, [origin, draftId]);
+
+  const running = !!jobId;
+  const curation = useSampleCuration({
+    locale,
+    origin,
+    draftId,
+    record,
+    draft,
+    bound: !!recon?.grounding && !recon?.binding?.stale,
+    grounded: !!recon?.grounding,
+    directions: nDirections,
+    generation: latestUsableProbe(recon)?.fingerprint ?? "",
+    searching: running,
+    readPool,
+    rereadRecon,
+    adoptTime,
+    adopt,
+    bumpAssist,
+  });
+  const readSample = curation.read;
 
   const loadRecon = useCallback(async () => {
     try {
@@ -130,13 +174,13 @@ export function InceptionExplore({ locale }: Readonly<{ locale: Locale }>) {
       setReconError(null);
       setAsOf(new Date().toISOString());
       if (read.active_job && read.active_job.state === "running") setJobId(read.active_job.job_id);
-      if (hasUsablePool(read)) await readPool();
+      if (hasUsablePool(read)) await Promise.all([readPool(), readSample()]);
       return read;
     } catch (error) {
       setReconError(refusalOf(error));
       return null;
     }
-  }, [origin, draftId, readPool, prefill]);
+  }, [origin, draftId, readPool, readSample, prefill]);
 
   useEffect(() => {
     if (record) void loadRecon();
@@ -152,11 +196,11 @@ export function InceptionExplore({ locale }: Readonly<{ locale: Locale }>) {
       void loadRecon().then(() => {
         if (job?.state === "succeeded") poolHeading.current?.focus();
       });
+      bumpAssist();
     },
-    [loadRecon],
+    [loadRecon, bumpAssist],
   );
   const progress = useReconJob(origin, draftId, jobId, onEnd);
-  const running = !!jobId;
 
   const offline = isOffline(reconError?.code) || isOffline(startError?.code);
   const mailto = recon?.mailto_set !== false;
@@ -239,6 +283,10 @@ export function InceptionExplore({ locale }: Readonly<{ locale: Locale }>) {
   const nextLabel = nDirections === null || nDirections === 0 ? t("explore.next.none") : nDirections === 1 ? t("explore.next.one") : t("explore.next", { n: String(nDirections) });
 
   const failedLegs = ((jobError?.details as { legs?: ReconLeg[] } | undefined)?.legs ?? []).map((l) => ({ ...l, notes: l.notes ?? [] }));
+  // M10b Part C (C4): an empty or failed search shows one per-database list, its own; the earlier probe's card comes back with a pool.
+  const emptySearch = (jobError?.code === "POOL_EMPTY" || jobError?.code === "PROVIDERS_FAILED") && failedLegs.length > 0;
+  // The engine says when a shorter query may help (`details.shorten`); the browser never counts the words.
+  const shorten = jobError?.code === "POOL_EMPTY" && (jobError.details as { shorten?: unknown } | undefined)?.shorten === true;
 
   return (
     <InceptionFrame locale={locale} current="explore" draft={state}>
@@ -263,10 +311,11 @@ export function InceptionExplore({ locale }: Readonly<{ locale: Locale }>) {
           </section>
         ) : null}
         {recon?.binding?.stale ? (
-          <section className="rounded-lg border border-unclear bg-leaf p-4" data-stale-binding>
-            <p className="text-ink">{t("explore.stale.body")}</p>
+          <section className="rounded-lg border border-unclear bg-leaf p-4" data-stale-binding={recon.binding.code ?? ""}>
+            {/* M10b Part C: a direction made out of date by the papers left out says so in its own words. */}
+            <p className="text-ink">{recon.binding.code === "SAMPLE_CHANGED" ? t("sample.stale.body") : t("explore.stale.body")}</p>
             <a className="inline-flex min-h-11 items-center text-brand underline" href={inceptionHref(locale, "direction", draftId, origin)}>
-              {t("explore.stale.action")}
+              {recon.binding.code === "SAMPLE_CHANGED" ? t("sample.stale.action") : t("explore.stale.action")}
             </a>
           </section>
         ) : null}
@@ -309,7 +358,7 @@ export function InceptionExplore({ locale }: Readonly<{ locale: Locale }>) {
                 </h2>
                 <LegsList locale={locale} legs={failedLegs} />
                 <p className="mt-2 text-xs text-ink-muted">{t("explore.legs.neverEmpty")}</p>
-                {jobError.code === "POOL_EMPTY" && fieldShown ? (
+                {shorten && fieldShown ? (
                   <div className="mt-3 flex flex-wrap items-center gap-3" data-shorten>
                     <p className="text-sm text-ink">{t("explore.legs.shorten")}</p>
                     <Button onClick={editQuery} disabled={running} data-edit-query>
@@ -400,7 +449,7 @@ export function InceptionExplore({ locale }: Readonly<{ locale: Locale }>) {
           </p>
         ) : null}
 
-        {latest ? (
+        {latest && !emptySearch ? (
           <section aria-labelledby="legs-title" className="rounded-lg border border-rule bg-leaf p-5" data-databases>
             <h2 id="legs-title" className="font-semibold text-ink">
               {t("explore.legs.title")}
@@ -421,9 +470,27 @@ export function InceptionExplore({ locale }: Readonly<{ locale: Locale }>) {
         {usable && pool ? (
           <div className="grid gap-6 lg:grid-cols-[2fr_1fr]">
             <ReadingCard locale={locale} pool={pool} allTopics={allTopics} setAllTopics={setAllTopics} />
-            <PapersCard locale={locale} pool={pool} sort={sort} setSort={setSort} all={allPapers} setAll={setAllPapers} />
+            <PapersCard
+              locale={locale}
+              pool={pool}
+              sort={sort}
+              setSort={setSort}
+              all={allPapers}
+              setAll={setAllPapers}
+              curation={curation}
+              offline={offline}
+              asOf={asOf}
+              draftId={draftId}
+              origin={origin}
+            />
           </div>
         ) : null}
+        {/* M10b Part C: what a sample change moved, from the engine's two reads. */}
+        <p role="status" aria-live="polite" className="sr-only" data-sample-moved>
+          {curation.announce}
+        </p>
+
+        <StepAssist locale={locale} step="explore" />
 
         <div className="flex flex-wrap items-center justify-end gap-3">
           <a className="inline-flex min-h-11 items-center text-brand underline" href={inceptionHref(locale, "scope", draftId, origin)} data-change-scope>
@@ -451,6 +518,7 @@ export function InceptionExplore({ locale }: Readonly<{ locale: Locale }>) {
           goDescribedBy={reasonIds}
         />
       ) : null}
+      <SampleDialogView locale={locale} curation={curation} direction={groundingLabel} />
     </InceptionFrame>
   );
 }
@@ -840,8 +908,28 @@ function PapersCard({
   setSort,
   all,
   setAll,
-}: Readonly<{ locale: Locale; pool: Distilled; sort: PaperSort; setSort: (s: PaperSort) => void; all: boolean; setAll: (v: boolean) => void }>) {
+  curation,
+  offline,
+  asOf,
+  draftId,
+  origin,
+}: Readonly<{
+  locale: Locale;
+  pool: Distilled;
+  sort: PaperSort;
+  setSort: (s: PaperSort) => void;
+  all: boolean;
+  setAll: (v: boolean) => void;
+  /** M10b Part C: leaving papers out of the sample and putting them back. */
+  curation: Curation;
+  offline: boolean;
+  asOf: string;
+  draftId: string;
+  origin: string;
+}>) {
   const t = inceptionT(locale);
+  const leftToggle = useRef<HTMLButtonElement>(null);
+  const caption = useRef<HTMLTableCaptionElement>(null);
   const rows = [...pool.papers];
   if (sort === "year") rows.sort((a, b) => (b.year ?? 0) - (a.year ?? 0));
   else if (sort === "title") rows.sort((a, b) => String(a.title ?? "").localeCompare(String(b.title ?? "")));
@@ -854,48 +942,123 @@ function PapersCard({
       </button>
     </th>
   );
+  const sample = curation.sample;
+  // The controls need the engine's sample and its keys; an engine without them shows the table as before.
+  const curating = !!sample && pool.papers.every((p) => !!p.key);
+  const controlsOff = curation.disabled || offline;
+  const empty = !!sample && sample.n_docs === 0 && sample.excluded.length > 0;
+  /** After "Not relevant" focus goes to the next row's button, or to the table caption after the last row. */
+  const focusAfter = (index: number) => () => {
+    const next = shown[index + 1]?.key;
+    const button = next ? Array.from(document.querySelectorAll<HTMLButtonElement>("[data-mark]")).find((b) => b.dataset.mark === next) : undefined;
+    if (button) button.focus();
+    else caption.current?.focus();
+  };
   return (
     <section aria-labelledby="papers-title" className="min-w-0 rounded-lg border border-rule bg-leaf p-5" data-papers>
-      <h2 id="papers-title" className="font-semibold text-ink">
+      <h2 id="papers-title" tabIndex={-1} className="font-semibold text-ink">
         {t("explore.papers.title", { n: String(pool.papers.length) })}
       </h2>
+      {sample ? (
+        <p className="text-sm text-ink" data-sample-count>
+          {sample.excluded_in_pool
+            ? t("sample.count", { n: String(sample.n_docs), k: String(sample.excluded_in_pool) })
+            : t("sample.countNone", { n: String(sample.n_docs) })}
+        </p>
+      ) : null}
       <p className="text-xs text-ink-muted">{t("explore.papers.sorted")}</p>
-      <table className="mt-2 w-full table-fixed text-sm">
-        <caption className="sr-only">{t("explore.papers.title", { n: String(pool.papers.length) })}</caption>
-        <thead>
-          <tr className="text-ink-muted">
-            {header("title", t("explore.papers.col.paper"))}
-            <th scope="col" className="w-16 py-1 pe-2 text-start font-medium" aria-sort={sort === "year" ? "descending" : "none"}>
-              <button type="button" className="min-h-11 text-ink underline decoration-transparent hover:decoration-ink" onClick={() => setSort("year")}>
-                {t("explore.papers.col.year")}
-              </button>
-            </th>
-            {header("anchors", t("explore.papers.col.anchors"))}
-          </tr>
-        </thead>
-        <tbody>
-          {shown.map((paper, index) => (
-            <tr key={paper.doi ?? `${paper.title}-${index}`} className="border-t border-rule align-top" data-paper={paper.doi ?? ""}>
-              <td className="py-2 pe-2">
-                <span dir="auto" className="block text-ink [overflow-wrap:anywhere]">
-                  {paper.title}
-                </span>
-                {paper.doi ? <DoiLink locale={locale} doi={paper.doi} title={paper.title} /> : <span className="text-xs text-ink-muted">{t("explore.papers.noDoi")}</span>}
-              </td>
-              <td className="py-2 pe-2" dir="ltr">
-                {paper.year ?? ""}
-              </td>
-              <td className="py-2 pe-2 text-ink-muted">{anchors(paper.directions_anchored)}</td>
+      {sample && !sample.has_reserve ? (
+        <p className="mt-1 text-xs text-ink-muted" data-no-reserve>
+          {t("sample.noReserve")}
+        </p>
+      ) : null}
+      {curating && curation.offline ? (
+        <p className="mt-1 text-xs text-ink-muted" data-sample-offline>
+          {t("explore.offline")}
+          {asOf ? ` · ${t("explore.asOf", { time: stamp(asOf) })}` : ""}
+        </p>
+      ) : null}
+      <SampleRefusal locale={locale} curation={curation} draftId={draftId} origin={origin} />
+      {empty ? (
+        <div className="mt-3 rounded-md border border-rule bg-paper p-3" data-sample-empty>
+          <p className="text-sm text-ink">{t("sample.empty")}</p>
+          <Button className="mt-2" disabled={controlsOff} onClick={curation.putAll} data-put-all>
+            {t("sample.putAll")}
+          </Button>
+        </div>
+      ) : null}
+      {rows.length ? (
+        <table className="mt-2 w-full table-fixed text-sm">
+          <caption ref={caption} tabIndex={-1} className="sr-only">
+            {t("explore.papers.title", { n: String(pool.papers.length) })}
+          </caption>
+          <thead>
+            <tr className="text-ink-muted">
+              {header("title", t("explore.papers.col.paper"))}
+              <th scope="col" className="w-16 py-1 pe-2 text-start font-medium" aria-sort={sort === "year" ? "descending" : "none"}>
+                <button type="button" className="min-h-11 text-ink underline decoration-transparent hover:decoration-ink" onClick={() => setSort("year")}>
+                  {t("explore.papers.col.year")}
+                </button>
+              </th>
+              {header("anchors", t("explore.papers.col.anchors"))}
+              {curating ? (
+                <th scope="col" className="w-28 py-1 text-start font-medium">
+                  <span className="sr-only">{t("sample.mark")}</span>
+                </th>
+              ) : null}
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {shown.map((paper, index) => {
+              const key = paper.key ?? "";
+              const saving = curation.pending === key;
+              return (
+                <tr key={paper.key ?? paper.doi ?? `${paper.title}-${index}`} className="border-t border-rule align-top" data-paper={paper.doi ?? ""} data-paper-key={key}>
+                  <td className="py-2 pe-2">
+                    <span dir="auto" className="block text-ink [overflow-wrap:anywhere]">
+                      {paper.title}
+                    </span>
+                    {paper.doi ? <DoiLink locale={locale} doi={paper.doi} title={paper.title} /> : <span className="text-xs text-ink-muted">{t("explore.papers.noDoi")}</span>}
+                    {paper.added_for ? (
+                      <span className="mt-1 block" data-added-for={paper.added_for}>
+                        <DecisionBadge role="exclude">{t("sample.added")}</DecisionBadge>
+                      </span>
+                    ) : null}
+                  </td>
+                  <td className="py-2 pe-2" dir="ltr">
+                    {paper.year ?? ""}
+                  </td>
+                  <td className="py-2 pe-2 text-ink-muted">{anchors(paper.directions_anchored)}</td>
+                  {curating ? (
+                    <td className="py-2">
+                      <Button
+                        className="w-full whitespace-normal px-2 text-sm"
+                        disabled={controlsOff || saving}
+                        aria-busy={saving || undefined}
+                        aria-label={t("sample.mark.label", { title: paper.title ?? key })}
+                        onClick={(event) => curation.mark(paper, event.currentTarget, focusAfter(index))}
+                        data-mark={key}
+                      >
+                        {t("sample.mark")}
+                      </Button>
+                      <RowError locale={locale} curation={curation} rowKey={key} />
+                    </td>
+                  ) : null}
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      ) : null}
       {rows.length > PAPERS_SHOWN ? (
         <Button variant="quiet" className="px-0" onClick={() => setAll(!all)} aria-expanded={all}>
           {all ? t("explore.papers.less") : t("explore.papers.more", { n: String(rows.length - PAPERS_SHOWN) })}
         </Button>
       ) : null}
       <p className="mt-2 text-xs text-ink-muted">{t("explore.papers.note")}</p>
+      {sample ? <LeftOutList locale={locale} curation={curation} toggleRef={leftToggle} /> : null}
+      {/* After the papers, so Undo is near when moving with Tab. */}
+      <SampleToastView locale={locale} curation={curation} onClosed={() => setTimeout(() => document.getElementById("papers-title")?.focus(), 0)} />
     </section>
   );
 }

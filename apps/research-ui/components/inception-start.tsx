@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 
 import type { Locale } from "@/i18n";
 import { Button, DataCell } from "@/components/ui/base";
-import { inceptionHref, InceptionRefusal, refusalOf, stamp, useLocationParams, type Refusal } from "@/components/inception-frame";
+import { inceptionHref, InceptionRefusal, refusalOf, Stamp, useLocationParams, type Refusal } from "@/components/inception-frame";
 import { createDraft, listDrafts, type DraftListing } from "@/lib/inception-api";
 import { inceptionT } from "@/lib/inception-copy";
 
@@ -111,7 +111,7 @@ export function InceptionStart({ locale }: Readonly<{ locale: Locale }>) {
                       {item.updated_at ? (
                         <span>
                           {t("start.updated", { at: "" })}
-                          <bdi dir="ltr">{stamp(item.updated_at)}</bdi>
+                          <Stamp at={item.updated_at} />
                         </span>
                       ) : null}
                     </p>

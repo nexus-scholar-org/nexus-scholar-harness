@@ -61,6 +61,7 @@ from scholar_harness.recon.session import (
     refuse_unusable_pool,
     term_evidence,
 )
+from scholar_harness.recon import sample as sample_mod
 from scholar_harness.recon.vocabulary import concept_report, seed_candidates
 
 router = APIRouter(prefix="/api/v1/inception/drafts/{session_id}/recon", tags=["inception-recon"])
@@ -152,7 +153,7 @@ class ReconJobs:
 # --------------------------------------------------------------------------- helpers
 
 
-def _error(exc: ReconRefused | DraftRefused | steps.StepRefused) -> HTTPException:
+def _error(exc: ReconRefused | DraftRefused | steps.StepRefused | sample_mod.SampleRefused) -> HTTPException:
     detail: dict[str, Any] = {"code": exc.code, "message": exc.message}
     if exc.details:
         detail["details"] = exc.details
@@ -181,6 +182,11 @@ def _store(request: Request) -> DraftStore:
 def _draft(request: Request, session_id: str) -> tuple[dict[str, Any], steps.Draft]:
     record = _store(request).load(session_id)
     return record, steps.parse_draft(record.get("draft"))
+
+
+def _left_out(record: dict[str, Any]) -> list[str]:
+    """The papers this draft left out of the sample (M10b Part C); every recon read skips them."""
+    return sample_mod.keys_of(record.get("sample_exclusions"))
 
 
 def _mailto_set(request: Request) -> bool:
@@ -283,7 +289,7 @@ def recon_state(session_id: str, request: Request) -> dict[str, Any]:
         # M4d (spec 02 Q3, 03 Q3): the saved question, years or languages differ from the latest pool's.
         "scope_changed": bool(changes),
         "scope_changes": changes,
-        "binding": check_binding(sessions, grounding, scope_of(_draft_model)) if grounding else None,
+        "binding": check_binding(sessions, grounding, scope_of(_draft_model), _left_out(record)) if grounding else None,
         "active_job": active.to_dict() if active else None,
         # M10a (decision 1a): the query the topic gives, and the databases a probe may ask, in default order.
         "derived_query": keyword_query(_draft_model.topic) if _draft_model.topic else None,
@@ -307,7 +313,7 @@ def _scope_changes(sessions: ReconSessions, session_id: str, session: dict[str, 
 async def start_probe(session_id: str, body: ProbeBody, request: Request) -> dict[str, Any]:
     jobs = _jobs(request)
     try:
-        _record, draft = _draft(request, session_id)
+        record, draft = _draft(request, session_id)
         databases = _check_databases(body.databases)
         if not draft.topic:
             raise steps.StepRefused("DRAFT_INCOMPLETE", "a probe needs the draft's topic", details={"missing": ["topic"]})
@@ -319,7 +325,7 @@ async def start_probe(session_id: str, body: ProbeBody, request: Request) -> dic
             current = sessions.current(session_id)
             if current["narrower_left"] <= 0:
                 raise ReconRefused(NARROW_BUDGET_SPENT, "The one narrower search of this draft is used.")
-            labels = [d["label"] for d in sessions.directions(session_id)["directions"]]
+            labels = [d["label"] for d in sessions.directions(session_id, exclusions=_left_out(record))["directions"]]
             if body.narrower not in labels:
                 raise ReconRefused(
                     DIRECTION_UNKNOWN, f"'{body.narrower}' is not one of the directions of the current pool.",
@@ -347,7 +353,7 @@ async def start_probe(session_id: str, body: ProbeBody, request: Request) -> dic
             semantic=body.semantic, refresh=body.refresh, progress=progress,
             languages=list(draft.languages), providers=databases,
         )
-        refuse_unusable_pool(result)
+        refuse_unusable_pool(result, semantic=body.semantic)
         return result
 
     return {"job": jobs.start(session_id, "probe", work).to_dict()}
@@ -412,8 +418,8 @@ async def job_events(session_id: str, job_id: str, request: Request) -> Streamin
 @router.post("/distill")
 def distill(session_id: str, request: Request) -> dict[str, Any]:
     try:
-        _draft(request, session_id)
-        out = _sessions(request).distill(session_id)
+        record, _model = _draft(request, session_id)
+        out = _sessions(request).distill(session_id, exclusions=_left_out(record))
     except (ReconRefused, DraftRefused, steps.StepRefused) as exc:
         raise _error(exc) from exc
     terms = out.pop("distilled")
@@ -430,8 +436,8 @@ def distill(session_id: str, request: Request) -> dict[str, Any]:
 @router.get("/directions")
 def directions(session_id: str, request: Request) -> dict[str, Any]:
     try:
-        _draft(request, session_id)
-        out = _sessions(request).directions(session_id)
+        record, _model = _draft(request, session_id)
+        out = _sessions(request).directions(session_id, exclusions=_left_out(record))
     except (ReconRefused, DraftRefused, steps.StepRefused) as exc:
         raise _error(exc) from exc
     out.pop("distilled")
@@ -449,14 +455,14 @@ def _concept_rows(draft: steps.Draft) -> tuple[list[dict[str, Any]], str]:
 def concepts(session_id: str, request: Request) -> dict[str, Any]:
     """M4d DoD 3 and 4: per concept, the pool records anchoring it and co-occurring pool terms."""
     try:
-        _record, draft = _draft(request, session_id)
-        pool, _path = _sessions(request).latest_pool(session_id)
+        record, draft = _draft(request, session_id)
+        pool, raw, _path = _sessions(request).effective(session_id, _left_out(record))
     except (ReconRefused, DraftRefused, steps.StepRefused) as exc:
         raise _error(exc) from exc
     rows, source = _concept_rows(draft)
     return {
         "session_id": session_id,
-        "fingerprint": pool_fingerprint(pool),
+        "fingerprint": pool_fingerprint(raw),
         "n_docs": len(pool.get("docs") or []),
         "concepts": concept_report(pool, rows, source),
     }
@@ -466,10 +472,10 @@ def concepts(session_id: str, request: Request) -> dict[str, Any]:
 def evidence(session_id: str, request: Request, term: str = "") -> dict[str, Any]:
     """Spec 03 Q4 (M4d): does a phrase occur in the latest pool? Reads only."""
     try:
-        _draft(request, session_id)
+        record, _model = _draft(request, session_id)
         if not term.strip():
             raise ReconRefused(TERM_EMPTY, "Type a phrase to check.", status=422)
-        pool, _path = _sessions(request).latest_pool(session_id)
+        pool, _raw, _path = _sessions(request).effective(session_id, _left_out(record))
     except (ReconRefused, DraftRefused, steps.StepRefused) as exc:
         raise _error(exc) from exc
     return {"term": term, **term_evidence(pool, term.strip()), "n_docs": len(pool.get("docs") or [])}
@@ -479,28 +485,101 @@ def evidence(session_id: str, request: Request, term: str = "") -> dict[str, Any
 def seeds(session_id: str, request: Request) -> dict[str, Any]:
     """M4d DoD 5: the pool records that anchor a direction or a concept, offered as recall seeds."""
     try:
-        _record, draft = _draft(request, session_id)
+        record, draft = _draft(request, session_id)
         sessions = _sessions(request)
-        found = sessions.directions(session_id)
-        pool, _path = sessions.latest_pool(session_id)
+        found = sessions.directions(session_id, exclusions=_left_out(record))
+        pool, raw, _path = sessions.effective(session_id, _left_out(record))
     except (ReconRefused, DraftRefused, steps.StepRefused) as exc:
         raise _error(exc) from exc
     rows, _source = _concept_rows(draft)
     return {
         "session_id": session_id,
-        "fingerprint": pool_fingerprint(pool),
+        "fingerprint": pool_fingerprint(raw),
         "papers": seed_candidates(pool, found["directions"], [r["concept"] for r in rows]),
     }
+
+
+def _record_direction(grounding: dict[str, Any]):
+    """The ``engine:direction`` record of a proposed direction the researcher chose (M10b, R1).
+
+    Written in the bind's own write; the researcher's own words and a skip are
+    not engine suggestions and leave no record.
+    """
+    from scholar_harness.inception import proposals
+
+    label = (grounding.get("direction") or {}).get("label")
+    if grounding.get("choice") != "pool" or not label:
+        return None
+
+    def change(record: dict[str, Any]) -> None:
+        base = proposals.value_hash(None)
+        proposals.add_open(record, proposals.engine_record(record["session_id"], "direction", "grounding", label, base))
+
+    return change
 
 
 @router.post("/bind")
 def bind(session_id: str, body: BindBody, request: Request) -> dict[str, Any]:
     try:
-        _record, draft = _draft(request, session_id)
+        record, draft = _draft(request, session_id)
         grounding = build_grounding(
             _sessions(request), session_id, direction=body.direction, own=body.own,
             accept_thin_pool=body.accept_thin_pool, scope=scope_of(draft), skip=body.skip,
+            exclusions=_left_out(record),
         )
-        return _store(request).bind_grounding(session_id, grounding, base_updated_at=body.base_updated_at)
+        return _store(request).bind_grounding(
+            session_id, grounding, base_updated_at=body.base_updated_at, record_change=_record_direction(grounding),
+        )
     except (ReconRefused, DraftRefused, steps.StepRefused) as exc:
+        raise _error(exc) from exc
+
+
+# --------------------------------------------------------------------------- sample curation (M10b Part C)
+
+
+class SampleBody(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    #: Papers to leave out, by the engine's key (``papers[].key``).
+    add: list[Annotated[str, StringConstraints(min_length=1, max_length=500)]] = Field(
+        default_factory=list, max_length=sample_mod.SAMPLE_CALL_MAX)
+    #: Papers to put back.
+    remove: list[Annotated[str, StringConstraints(min_length=1, max_length=500)]] = Field(
+        default_factory=list, max_length=sample_mod.SAMPLE_CALL_MAX)
+    base_updated_at: str | None = None
+
+
+def _sample_answer(sessions: ReconSessions, session_id: str, record: dict[str, Any]) -> dict[str, Any]:
+    pool, _path = sessions.latest_pool(session_id)
+    return {"session_id": session_id, "updated_at": record.get("updated_at"),
+            "pool_fingerprint": pool_fingerprint(pool), **sample_mod.view(pool, record)}
+
+
+@router.get("/sample")
+def read_sample(session_id: str, request: Request) -> dict[str, Any]:
+    """``02-explore`` "Sample curation": the sample after the papers this draft left out, and the reserve."""
+    try:
+        record, _model = _draft(request, session_id)
+        return _sample_answer(_sessions(request), session_id, record)
+    except (ReconRefused, DraftRefused, steps.StepRefused) as exc:
+        raise _error(exc) from exc
+
+
+@router.post("/sample")
+def change_sample(session_id: str, body: SampleBody, request: Request) -> dict[str, Any]:
+    """Leave papers out (``add``) or put them back (``remove``); one answer write under the draft lock.
+
+    The pool file is never rewritten: the keys are kept on the draft record
+    (``sample_exclusions``) and every recon read applies them.
+    """
+    sessions = _sessions(request)
+    try:
+        pool, _path = sessions.latest_pool(session_id)
+        fingerprint = pool_fingerprint(pool)
+
+        def change(record: dict[str, Any]) -> None:
+            sample_mod.change(record, pool, fingerprint, add=list(body.add), remove=list(body.remove), now=_now())
+
+        record, _ = _store(request).transact(session_id, change, answer=True, base_updated_at=body.base_updated_at)
+        return _sample_answer(sessions, session_id, record)
+    except (ReconRefused, DraftRefused, steps.StepRefused, sample_mod.SampleRefused) as exc:
         raise _error(exc) from exc

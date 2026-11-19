@@ -697,6 +697,33 @@ def grounding_preview(draft: Draft, grounding: dict[str, Any]) -> dict[str, Any]
     }
 
 
+def _write_draft_records(target: Path, record: dict[str, Any] | None, agent: str) -> None:
+    """The draft's proposals and check dismissals, as the workspace's record (M10b).
+
+    The files are the record; the journal rows index them.
+    """
+    from . import checks, proposals
+
+    lines = proposals.genesis_lines(record)
+    proposals.write_jsonl(target / proposals.PROPOSALS_FILE, lines)
+    dismissals = checks.genesis_lines(record)
+    proposals.write_jsonl(target / checks.DISMISSALS_FILE, dismissals)
+    # A failed journal write fails genesis (a new folder is then removed), as the journal rule asks.
+    from scholar_harness.workspace.audit import append_event
+
+    tally = proposals.counts(lines)
+    append_event(
+        target, "PROPOSALS_RECORDED",
+        f"{tally['proposed']} suggestions recorded from the draft; {tally['in_protocol']} applied and in the protocol",
+        agent=agent, parameters=tally, outputs=[proposals.PROPOSALS_FILE],
+    )
+    append_event(
+        target, "CHECK_DISMISSALS_RECORDED",
+        f"{len(dismissals)} check dismissals and restores carried from the draft",
+        agent=agent, parameters=checks.dismissal_counts(dismissals), outputs=[checks.DISMISSALS_FILE],
+    )
+
+
 def planned_files(*, exists: bool) -> list[str]:
     """Every file :func:`genesis` writes: a new workspace, or a replacement of one."""
     return list(REPLACEMENT_FILES) if exists else [*NEW_WORKSPACE_FILES, *SUPPORT_FILES]
@@ -712,6 +739,7 @@ def genesis(
     grounding: dict[str, Any] | None = None,
     busy: Callable[[Path], str | None] | None = None,
     origin: dict[str, Any] | None = None,
+    record: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Create (or, with ``replace``, re-protocol) ``<workspaces_root>/<slug>`` from a draft.
 
@@ -724,6 +752,11 @@ def genesis(
     screening binding is discarded only when ``confirm_discard_screening_binding``
     equals the slug, typed by the researcher (decision 2026-11-08,
     re-inception). A new workspace that fails half-way is removed.
+
+    ``record`` is the draft record (M10b): its ``proposals`` and
+    ``check_dismissals`` become ``audit/proposals.jsonl`` and
+    ``audit/check_dismissals.jsonl``, written with the other genesis files
+    (always, empty when there is nothing, so the preview's file list is exact).
     """
     from scholar_harness.workspace import catalog
 
@@ -764,7 +797,7 @@ def genesis(
         if grounding:
             from .grounding import recon_context
 
-            context = recon_context(grounding, list(draft.rqs), [c.concept for c in draft.concepts])
+            context = recon_context(grounding, list(draft.rqs), [c.concept for c in draft.concepts], record=record)
         # M10b (09-start-from-protocol): a draft started from an earlier protocol
         # keeps the default GENESIS summary and adds one sentence naming the source.
         from .importer import genesis_sentence
@@ -774,6 +807,7 @@ def genesis(
             intent, target_dir=target, replace=replace, discard_screening_binding=discard,
             agent=agent, recon_context=context, source_note=added.strip(),
             protocol_origin="import" if added else "inception",
+            before_log=lambda ws: _write_draft_records(ws, record, agent),
         )
         if created:
             install_workspace_support_files(target)

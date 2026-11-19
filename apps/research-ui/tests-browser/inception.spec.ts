@@ -30,6 +30,8 @@ async function engine(page: Page, options: FakeOptions & { draft?: Record<string
 }
 
 const decided = () => completeDraft({ criteria_decisions: { [proofId()]: true } });
+/** M10b Part B: a question that names UAV, so the screens draw the checks panel and a proposal card (axe, overflow, hydration). */
+const assisted = () => completeDraft({ criteria_decisions: { [proofId()]: true }, rqs: ["Can on-device weed detection run in real time on a UAV?"] });
 
 test.use({ viewport: DESKTOP_VIEWPORT });
 
@@ -132,9 +134,11 @@ test("a researcher starts from an earlier review, writes the question, adds a re
 });
 
 test("replacing a workspace with screening needs the typed name, and a wrong one is a sentence", async ({ page }) => {
-  await engine(page, { draft: decided(), existing: "bound" });
+  // M10b: the old Checks card line is the engine's REVIEW_TARGET_HAS_SCREENING row of "Ready to create?".
+  const screening = { check_id: "REVIEW_TARGET_HAS_SCREENING", step: "review", level: "warning" as const, dismissible: false, params: { n: 4 }, action: { kind: "field", step: "review", field: "title" } };
+  await engine(page, { draft: decided(), existing: "bound", checks: () => [screening] });
   await page.goto(`/en/inception/review/?draft=${SESSION}`);
-  await expect(page.getByText("4 decision events and 0 batch decision files exist in this folder")).toBeVisible();
+  await expect(page.locator("[data-check='REVIEW_TARGET_HAS_SCREENING'] [data-sentence]")).toHaveText("That workspace has 4 screening decisions.");
   await page.getByRole("button", { name: "Create the workspace" }).click();
   await page.getByRole("button", { name: "Replace and back up" }).click();
   await expect(page.getByRole("heading", { name: "Screening was done under the current protocol" })).toBeFocused();
@@ -146,6 +150,56 @@ test("replacing a workspace with screening needs the typed name, and a wrong one
   await page.getByRole("button", { name: "Replace, and discard the screening link" }).click();
   await expect(page.getByRole("heading", { name: "The protocol is replaced" })).toBeVisible();
   await expect(page.locator("[data-backup]")).toContainText("audit");
+});
+
+test("a check proposes UAV on Concepts and criteria; Apply writes it; a dismissed warning survives a reload; Review reads Not ready, then Ready (M10b)", async ({ page }) => {
+    const fake = await engine(page, {
+      draft: completeDraft({ title: "UAV weed detection", rqs: ["Can RGB cameras on a UAV find weeds in real time?"] }),
+      checks: true,
+    });
+    await page.goto(`/en/inception/criteria/?draft=${SESSION}`);
+
+    // The check made a proposal; nothing is applied until the click.
+    const proposals = page.locator("[data-proposals='criteria']");
+    const uav = proposals.locator("li[data-proposal]", { hasText: "Add UAV to Concepts" });
+    await expect(uav).toHaveAttribute("data-status", "open");
+    await expect(page.locator("#concept-1")).toHaveCount(0);
+    await uav.getByRole("button", { name: "Apply" }).click();
+    await expect(page.locator("#concept-1")).toHaveValue("UAV");
+    expect((fake.drafts.get(SESSION)!.draft as { concepts: { concept: string }[] }).concepts.map((c) => c.concept)).toEqual(["weed detection", "UAV"]);
+    await page.reload();
+    await expect(page.locator("#concept-1")).toHaveValue("UAV");
+    await proposals.locator("[data-decided] summary").click();
+    await expect(proposals.locator("[data-decided]").getByText("Applied by you")).toBeVisible();
+
+    // A warning dismissed with a reason is kept across a reload, under Dismissed, and can be restored.
+    const panel = page.locator("[data-checks-panel='criteria']");
+    const rgb = panel.locator("[data-open-rows] li[data-check='CONCEPT_TERM_MISSING'][data-subject='RGB']");
+    await rgb.getByRole("button", { name: "Dismiss" }).click();
+    await panel.getByLabel("Why are you dismissing this? It is kept in the record.").fill("RGB is the camera type, not a search word.");
+    await panel.getByRole("button", { name: "Dismiss with this reason" }).click();
+    await expect(panel.locator("[data-dismissed] summary")).toHaveText("Dismissed (1)");
+    await page.reload();
+    const dismissed = page.locator("[data-checks-panel='criteria'] [data-dismissed]");
+    await dismissed.locator("summary").click();
+    await expect(dismissed.locator("[data-dismissal]")).toContainText("RGB is the camera type, not a search word.");
+    await dismissed.getByRole("button", { name: "Restore" }).click();
+    await expect(page.locator("[data-checks-panel='criteria'] [data-open-rows] li[data-check='CONCEPT_TERM_MISSING'][data-subject='RGB']")).toBeVisible();
+
+    // Review: the undecided wizard criterion is a blocker; once accepted, Ready.
+    await page.goto(`/en/inception/review/?draft=${SESSION}`);
+    const ready = page.locator("[data-checks-panel='review-ready']");
+    await expect(ready.locator("[data-ready-sentence]")).toHaveText("Not ready: 1 must be fixed first.");
+    await expect(ready.locator("li[data-check='CRITERIA_UNDECIDED'] [data-step-chip]")).toHaveText("Step 5");
+    await page.goto(`/en/inception/criteria/?draft=${SESSION}`);
+    const proof = page.locator("[data-criterion]", { hasText: "Reports the gold-standard proof" });
+    await proof.getByRole("button", { name: "Accept" }).click();
+    await page.getByRole("button", { name: "Continue to review" }).click();
+    await page.waitForURL(/\/en\/inception\/review\/?\?draft=/);
+    await expect(page.locator("[data-checks-panel='review-ready'] [data-ready-sentence]")).toHaveText(/^Ready to create\./);
+    // The Accept on a wizard criterion was recorded with the save.
+    const put = fake.calls.filter((c) => c.method === "PUT").at(-1)!;
+    expect(put.body?.accepted_from).toEqual([{ mechanism: "wizard_criterion", field: "criteria_decisions", value: proofId() }]);
 });
 
 const SCREENS = ["", "scope/", "explore/", "direction/", "shape/", "criteria/", "review/", "done/", "import/"] as const;
@@ -175,7 +229,7 @@ for (const locale of ["en", "ar"] as const) {
   for (const screen of SCREENS) {
     test(`${locale}/inception/${screen}: axe finds no violation, contrast included`, async ({ page }) => {
       const emitted = screen === "done/";
-      const fake = await engine(page, { draft: emitted ? undefined : decided() });
+      const fake = await engine(page, { draft: emitted ? undefined : assisted(), checks: true });
       if (emitted) fake.seed(decided(), { slug: "on-device-weed-detection", path: "C:\\w\\on-device-weed-detection", protocol_fingerprint: "sha256:" + "ab".repeat(32), replaced: false });
       withPool(fake, screen);
       await page.goto(`/${locale}/inception/${screen}${screen ? `?draft=${SESSION}` : ""}`);
@@ -196,7 +250,7 @@ for (const locale of ["en", "ar"] as const) {
     for (const screen of SCREENS) {
       test(`${locale}/inception/${screen} ${name}: nothing scrolls sideways`, async ({ page }) => {
         const emitted = screen === "done/";
-        const fake = await engine(page, { draft: emitted ? undefined : decided() });
+        const fake = await engine(page, { draft: emitted ? undefined : assisted(), checks: true });
         if (emitted) fake.seed(decided(), { slug: "on-device-weed-detection", path: "C:\\Users\\r\\Documents\\Nexus Scholar\\workspaces\\on-device-weed-detection", protocol_fingerprint: "sha256:" + "ab".repeat(32), replaced: false });
         withPool(fake, screen);
         await page.setViewportSize(viewport);
@@ -222,7 +276,7 @@ for (const screen of SCREENS) {
       if (/hydrat|did not match/i.test(error.message)) problems.push(`pageerror: ${error.message}`);
     });
     const emitted = screen === "done/";
-    const fake = await engine(page, { draft: emitted ? undefined : decided() });
+    const fake = await engine(page, { draft: emitted ? undefined : assisted(), checks: true });
     if (emitted) fake.seed(decided(), { slug: "on-device-weed-detection", path: "C:\w\on-device-weed-detection", protocol_fingerprint: "sha256:" + "ab".repeat(32), replaced: false });
     withPool(fake, screen);
     // Only `?draft=`: a `?console=` override would send the calls past the proxy the fake answers.
@@ -398,4 +452,139 @@ test("Direction can be completed with the keyboard alone (M4d)", async ({ page }
   await page.getByRole("button", { name: "Pursue weed detection" }).focus();
   await page.keyboard.press("Enter");
   await expect(page.getByRole("heading", { name: "Your direction: weed detection" })).toBeFocused();
+});
+
+// --- M10b Part C: sample curation on Explore (02-explore "Sample curation") ----------------
+
+/** The checks the fake answers: the thin-sample row from the engine's own `sample.recommend` (the screen compares nothing). */
+async function curating(page: Page) {
+  let fake: Awaited<ReturnType<typeof engine>> | null = null;
+  const thin = (record: Record<string, unknown>) => {
+    const sample = fake?.recon.sample(record) as { n_docs: number; recommend: { reasons: string[]; threshold: { floor: number } } } | null;
+    return sample?.recommend.reasons.includes("BELOW_FLOOR")
+      ? [{ check_id: "EXPLORE_POOL_THIN", step: "explore", level: "warning" as const, params: { n: sample.n_docs, floor: sample.recommend.threshold.floor }, action: { kind: "step", step: "scope" } }]
+      : [];
+  };
+  fake = await engine(page, { draft: decided(), checks: thin });
+  return fake;
+}
+
+const notRelevant = (page: Page, title: string) => page.getByRole("button", { name: `Not relevant: ${title}` });
+const SEG = (i: number) => `Lightweight cnn weed segmentation ${i}`;
+
+test("a researcher leaves papers out, sees the directions and counts change, undoes one, and a bound direction goes out of date (M10b)", async ({ page }) => {
+  const fake = await curating(page);
+  await page.goto(`/en/inception/explore/?draft=${SESSION}`);
+  await page.getByRole("button", { name: "Search the literature" }).click();
+  await expect(page.getByRole("heading", { name: "Pool · 14 papers" })).toBeVisible();
+  await expect(page.getByText("14 papers · none left out")).toBeVisible();
+  await page.getByRole("button", { name: /^\+ 9 more/ }).click();
+
+  // Three papers: two replaced from the reserve, the third makes the sample smaller.
+  for (const i of [0, 1, 2]) {
+    await notRelevant(page, SEG(i)).click();
+    await expect(notRelevant(page, SEG(i))).toHaveCount(0);
+  }
+  await expect(page.getByText("13 papers · 3 left out")).toBeVisible();
+  await expect(page.locator("[data-added-for]")).toHaveCount(2);
+  await expect(page.getByRole("button", { name: "See 3 directions" })).toBeVisible();
+
+  // Two more: the segmentation direction loses its anchors and the sample falls under the floor.
+  for (const i of [3, 4]) {
+    await notRelevant(page, SEG(i)).click();
+    await expect(notRelevant(page, SEG(i))).toHaveCount(0);
+  }
+  await expect(page.getByRole("button", { name: "See 2 directions" })).toBeEnabled();
+  await expect(page.getByText("11 papers · 5 left out")).toBeVisible();
+  await expect(page.locator("[data-sample-moved]")).toHaveText(`Left out: ${SEG(4)}. Directions: 3 to 2. Papers: 11.`);
+  const thinRow = page.locator("[data-checks-panel='explore'] [data-check='EXPLORE_POOL_THIN']");
+  await expect(thinRow).toContainText("The sample has only 11 papers. 12 or more gives steadier suggestions.");
+  await expect(thinRow.getByRole("link", { name: "Change scope" })).toBeVisible();
+
+  // A reload keeps them left out.
+  await page.reload();
+  await expect(page.getByText("11 papers · 5 left out")).toBeVisible();
+
+  // Put one back from the Left out list.
+  await page.getByRole("button", { name: "Left out · 5" }).click();
+  await page.getByRole("button", { name: `Put back: ${SEG(4)}` }).click();
+  await expect(page.getByText("12 papers · 4 left out")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Left out · 4" })).toBeFocused();
+  await expect(page.locator("[data-check='EXPLORE_POOL_THIN']")).toHaveCount(0);
+
+  // Bind a direction, then leave another paper out: the warning, then the stale note.
+  await page.getByRole("button", { name: "See 3 directions" }).click();
+  await page.getByRole("radio", { name: "weed detection" }).check();
+  await page.getByRole("button", { name: "Pursue weed detection" }).click();
+  await expect(page.getByRole("heading", { name: "Your direction: weed detection" })).toBeFocused();
+  await page.goto(`/en/inception/explore/?draft=${SESSION}`);
+  await notRelevant(page, "Real-time weed detection on embedded hardware 0").click();
+  const dialog = page.getByRole("alertdialog", { name: "Leaving this paper out will make your chosen direction out of date" });
+  await expect(dialog.getByRole("button", { name: "Keep the paper" })).toBeFocused();
+  await dialog.getByRole("button", { name: "Leave it out" }).click();
+  await expect(page.getByText("The direction you chose was based on an earlier sample.")).toBeVisible();
+  expect(fake.calls.filter((c) => c.method === "POST" && c.path === `${RECON}/sample`)).toHaveLength(7);
+
+  // Bind again: the sample is now under the floor, so the box is needed.
+  await page.getByRole("link", { name: "Choose a direction" }).click();
+  await page.getByRole("radio", { name: "weed detection" }).check();
+  await page.getByRole("checkbox", { name: "I accept a pool this small" }).check();
+  await page.getByRole("button", { name: "Pursue weed detection" }).click();
+  await expect(page.getByRole("heading", { name: "Your direction: weed detection" })).toBeVisible();
+  await page.goto(`/en/inception/explore/?draft=${SESSION}`);
+  await expect(page.getByRole("heading", { name: "Pool · 11 papers" })).toBeVisible();
+  await expect(page.locator("[data-stale-binding]")).toHaveCount(0);
+});
+
+test("a mark and its undo can be done with the keyboard alone (M10b)", async ({ page }) => {
+  const fake = await curating(page);
+  fake.handle("POST", `${RECON}/probe`, { refresh: false, semantic: false });
+  await page.goto(`/en/inception/explore/?draft=${SESSION}`);
+  const first = notRelevant(page, "Real-time weed detection on embedded hardware 0");
+  await first.focus();
+  await page.keyboard.press("Enter");
+  await expect(notRelevant(page, "Real-time weed detection on embedded hardware 1")).toBeFocused();
+  await expect(page.locator("[data-sample-toast='mark']")).toContainText("Left out: Real-time weed detection on embedded hardware 0");
+  const undo = page.locator("[data-sample-toast] [data-undo]");
+  for (let i = 0; i < 40 && !(await undo.evaluate((el) => el === document.activeElement)); i++) await page.keyboard.press("Tab");
+  await expect(undo).toBeFocused();
+  await page.keyboard.press("Enter");
+  await expect(page.getByText("14 papers · none left out")).toBeVisible();
+  expect(fake.calls.filter((c) => c.method === "POST" && c.path === `${RECON}/sample`).map((c) => c.body)).toEqual([
+    { add: ["10.1/w000"], base_updated_at: expect.any(String) },
+    { remove: ["10.1/w000"], base_updated_at: expect.any(String) },
+  ]);
+});
+
+for (const scheme of ["light", "dark"] as const) {
+  test(`ar/inception/explore/ with papers left out (${scheme}): the row button sits at the inline end, axe passes, nothing scrolls sideways (M10b)`, async ({ page }) => {
+    await page.emulateMedia({ colorScheme: scheme });
+    const fake = await curating(page);
+    fake.handle("POST", `${RECON}/probe`, { refresh: false, semantic: false });
+    const record = fake.drafts.get(SESSION)!;
+    fake.handle("POST", `${RECON}/sample`, { add: ["10.1/s000"], base_updated_at: record.updated_at });
+    await page.goto(`/ar/inception/explore/?draft=${SESSION}`);
+    const row = page.locator("[data-paper-key='10.1/w000']");
+    await expect(row.locator("[data-mark]")).toBeVisible();
+    const button = (await row.locator("[data-mark]").boundingBox())!;
+    const title = (await row.locator("td").first().boundingBox())!;
+    expect(button.x).toBeLessThan(title.x);
+    await page.locator("[data-left-out-toggle]").click();
+    await page.waitForLoadState("networkidle");
+    const result = await axe(page);
+    expect(result.violations).toEqual([]);
+    for (const viewport of [MOBILE_VIEWPORT, DESKTOP_VIEWPORT]) {
+      await page.setViewportSize(viewport);
+      expectNoSidewaysScroll(await measureOverflow(page), `ar/inception/explore/ ${viewport.width}px with papers left out`);
+    }
+  });
+}
+
+test("an empty search shows one Databases asked list and the shorten advice only when the engine says so (M10b)", async ({ page }) => {
+  await engine(page, { draft: decided(), recon: { outcomes: ["empty"] } });
+  await page.goto(`/en/inception/explore/?draft=${SESSION}`);
+  await page.getByRole("button", { name: "Search the literature" }).click();
+  await expect(page.getByRole("heading", { name: "The search found no papers" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Databases asked" })).toHaveCount(1);
+  await expect(page.getByText("Every word of the query must appear, so a long query can find nothing. Shorten the query above.")).toBeVisible();
 });

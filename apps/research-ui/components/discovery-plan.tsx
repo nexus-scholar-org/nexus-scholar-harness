@@ -1,10 +1,13 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { DiscoveryChecksPanel } from "@/components/discovery-checks";
 
 import type { Locale } from "@/i18n";
 import { Button, DataCell, DecisionBadge, type DecisionRole } from "@/components/ui/base";
 import { DatabasePicker, type PickerItem, type PickerLabels } from "@/components/database-picker";
+import { EstimateCard } from "@/components/discovery-estimate";
+import { DiscoveryProposals } from "@/components/discovery-proposals";
 import { StateCard } from "@/components/screening-state-card";
 import {
   DiscoveryFrame,
@@ -19,6 +22,7 @@ import {
   type Refusal,
 } from "@/components/discovery-frame";
 import { KNOWN_PROVIDERS, getPlan, getRuns, type Plan } from "@/lib/discovery-api";
+import { getCorpus } from "@/lib/screening-v1";
 import { discoveryT, providerName, type DiscoveryCopyKey } from "@/lib/discovery-copy";
 
 /**
@@ -158,11 +162,18 @@ export function readDatabasesParam(): string[] | null {
   return raw === null ? null : raw.split(",").map((part) => part.trim());
 }
 
-function harvestHref(locale: Locale, origin: string, databases: string[] | null): string {
-  const base = discoveryHref(locale, "harvest", origin);
-  if (!databases) return base;
-  const query = `databases=${databases.map(encodeURIComponent).join(",")}`;
-  return base.includes("?") ? `${base}&${query}` : `${base}?${query}`;
+function harvestHref(locale: Locale, origin: string, databases: string[] | null, cap?: number): string {
+  let href = discoveryHref(locale, "harvest", origin);
+  const add = (query: string) => (href = href.includes("?") ? `${href}&${query}` : `${href}?${query}`);
+  if (databases) add(`databases=${databases.map(encodeURIComponent).join(",")}`);
+  // M10b Part D: "Use {cap} for this harvest" opens Harvest with the cap field filled; nothing is sent.
+  if (cap !== undefined) add(`cap=${cap}`);
+  return href;
+}
+
+/** The inception drafts screen, where the protocol is changed (`?console=` kept). */
+function inceptionHref(locale: Locale, origin: string): string {
+  return `/${locale}/inception/${origin ? `?console=${encodeURIComponent(origin)}` : ""}`;
 }
 
 // --------------------------------------------------------------------------- the screen
@@ -174,6 +185,8 @@ export function DiscoveryPlan({ locale }: Readonly<{ locale: Locale }>) {
   const [ready, setReady] = useState(false);
   const [plan, setPlan] = useState<Plan | null>(null);
   const [hasRun, setHasRun] = useState(false);
+  // M10b Part D: the estimate card is removed (not disabled) once the corpus is accepted.
+  const [accepted, setAccepted] = useState(false);
   const [refusal, setRefusal] = useState<Refusal | null>(null);
   const [changed, setChanged] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -243,6 +256,10 @@ export function DiscoveryPlan({ locale }: Readonly<{ locale: Locale }>) {
     // Read once on load: "Check again" re-reads the plan and nothing else (spec 01 acceptance).
     getRuns(origin).then(
       (runs) => setHasRun(runs.runs.length > 0),
+      () => undefined,
+    );
+    getCorpus(origin).then(
+      (corpus) => setAccepted(corpus.state === "ACCEPTED"),
       () => undefined,
     );
   }, [ready, load, origin]);
@@ -425,6 +442,9 @@ export function DiscoveryPlan({ locale }: Readonly<{ locale: Locale }>) {
             </section>
           </div>
           <aside className="space-y-4">
+            {/* M10c D5: an assistant's suggested changes to the search; Apply re-reads the plan. */}
+            <DiscoveryProposals locale={locale} origin={origin} onAmended={() => void load(choice)} />
+            <DiscoveryChecksPanel locale={locale} step="plan" origin={origin} />
             <section aria-labelledby="plan-limits" className="rounded-lg border border-rule bg-leaf p-5">
               <h2 id="plan-limits" className="font-semibold text-ink">
                 {t("plan.limits.title")}
@@ -494,13 +514,24 @@ export function DiscoveryPlan({ locale }: Readonly<{ locale: Locale }>) {
                 )}
               </dl>
             </section>
+            {/* M10b Part D: the size estimate, under Limits; not drawn once a run exists or the corpus is accepted. */}
+            {!hasRun && !accepted && choice && choice.length && plan.providers.some((p) => p.selected) ? (
+              <EstimateCard
+                locale={locale}
+                origin={origin}
+                fingerprint={plan.protocol_fingerprint}
+                providers={current()}
+                harvestHref={(cap) => harvestHref(locale, origin, differs ? choice : null, cap)}
+                inceptionHref={inceptionHref(locale, origin)}
+              />
+            ) : null}
             {!plan.mailto_set ? <MailtoCard locale={locale} onCheck={() => void load(current(), true)} /> : null}
             {plan.openalex_key_set === false && plan.providers.some((p) => p.name === "openalex" && p.selected) ? (
               <OpenAlexKeyCard locale={locale} onCheck={() => void load(current(), true)} />
             ) : null}
             <section className="rounded-lg border border-rule bg-leaf p-5">
               <p className="text-sm text-ink-muted">{t("amend.help")}</p>
-              <a className={LINK} href={`/${locale}/inception/${origin ? `?console=${encodeURIComponent(origin)}` : ""}`} data-amend>
+              <a className={LINK} href={inceptionHref(locale, origin)} data-amend>
                 {t("amend.link")}
               </a>
               <p className="mt-3">

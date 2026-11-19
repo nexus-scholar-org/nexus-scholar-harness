@@ -1760,6 +1760,35 @@ def _recon_error(exc: Exception) -> str:
     return json.dumps(out)
 
 
+def _app_draft_refusal(session_id: str | None) -> str | None:
+    """M10c decision item 11: a recon session that is one of the app's drafts is searched in the app only.
+
+    A new probe or gap search of a draft's session changes its Explore sample
+    and can make its chosen direction stale; decision 2026-11-14 (item 3) says
+    a search starts only after the researcher confirms, and Explore is where.
+    """
+    if not session_id:
+        return None
+    try:
+        from scholar_harness.inception.drafts import DRAFTS_DIRNAME
+
+        is_draft = (_drafts_root(None) / DRAFTS_DIRNAME / str(session_id) / "draft.json").is_file()
+    except Exception:  # noqa: BLE001 - no harness or no root: nothing to protect
+        return None
+    if not is_draft:
+        return None
+    return json.dumps({
+        "status": "error",
+        "code": "RECON_SESSION_IS_A_DRAFT",
+        "message": (
+            f"{session_id} is a draft in the app; its sample is searched from the app's Explore step, "
+            "after the researcher confirms. Read it with nexus_assistant_read_draft, or suggest a change with "
+            "nexus_assistant_propose."
+        ),
+        "cache_key": None,
+    })
+
+
 @mcp.tool()
 def recon_probe(
     topic: str,
@@ -1811,6 +1840,9 @@ def recon_probe(
                 "cache_key": None,
             }
         )
+    refused = _app_draft_refusal(session_id)
+    if refused:
+        return refused
     try:
         # M10a OBS-1: a topic sentence is sent as its keyword query; the session keeps the topic.
         query = _recon_adapter.keyword_query(topic)
@@ -1998,6 +2030,9 @@ def recon_delta(session_id: str, followups: int = 3) -> str:
                 "cache_key": None,
             }
         )
+    refused = _app_draft_refusal(session_id)
+    if refused:
+        return refused
     try:
         return json.dumps(asyncio.run(_sessions().delta(str(session_id), followups=followups)), indent=2)
     except (RuntimeError, ValueError, OSError) as exc:
@@ -2166,6 +2201,216 @@ def nexus_submit_proposal(
         return json.dumps({"status": "ERROR", "error": str(getattr(e, "detail", e))})
 
 
+# --------------------------------------------------------------------------- #
+# The assistant and the critic (M10c, docs/roadmap/milestones/M10c-assistant-mcp.md)
+# --------------------------------------------------------------------------- #
+# The researcher's own client reads a draft or a workspace and may only add a
+# suggestion: a proposal (applied, edited or rejected on the app's card) or a
+# finding (a row of the app's checks panel). No tool here starts a search or a
+# harvest, accepts a corpus, decides a screening record or publishes.
+
+#: The assistant's tools (M10c); none of them may do what ASSISTANT_NEVER lists.
+ASSISTANT_TOOLS = (
+    "nexus_assistant_drafts",
+    "nexus_assistant_read_draft",
+    "nexus_assistant_read_workspace",
+    "nexus_assistant_propose",
+    "nexus_assistant_report_finding",
+)
+
+
+def _drafts_root(workspaces_root: str | None) -> Path:
+    from scholar_harness.workspace.catalog import resolve_root
+
+    given = _resolve_path(workspaces_root) if workspaces_root else None
+    return resolve_root(Path(given) if given else None)[0]
+
+
+def _assistant_workspace(workspace_dir: str) -> Path:
+    """A workspace by its slug under the app's workspaces root, or a path inside the MCP anchor (AGT-01)."""
+    name = str(workspace_dir or "").strip()
+    if not name:
+        from scholar_harness.assistant import AssistantRefused
+
+        raise AssistantRefused("TARGET_INVALID", "name the workspace: its folder name or its path", {"field": "workspace_dir"})
+    if "/" not in name and "\\" not in name and name not in (".", ".."):
+        candidate = _drafts_root(None) / name
+        if (candidate / "protocol.json").is_file():
+            return candidate
+    return Path(_resolve_path(name) or name).resolve()
+
+
+def _recon_sessions():
+    """The recon session store the recon tools use (``_sessions``), for reading a draft's pool."""
+    _ensure_harness_recon_loaded()
+    if _recon_adapter is None:
+        from scholar_harness.recon.session import ReconSessions
+
+        return ReconSessions(root=RECON_CACHE_ROOT)
+    return _sessions()
+
+
+def _assistant_answer(fn, *args, **kwargs) -> str:
+    from scholar_harness import assistant
+
+    try:
+        return json.dumps(fn(*args, **kwargs), indent=2, ensure_ascii=False, default=str)
+    except PathOutsideWorkspace as exc:
+        return json.dumps({"status": "ERROR", "code": "PATH_OUTSIDE_WORKSPACE", "message": str(exc)})
+    except Exception as exc:  # every refusal is a typed answer; nothing is half-written (one write per call)
+        if getattr(exc, "code", None):
+            return json.dumps(assistant.refusal(exc), indent=2, ensure_ascii=False, default=str)
+        return json.dumps({"status": "ERROR", "code": "INTERNAL", "message": f"{type(exc).__name__}: {exc}"})
+
+
+@mcp.tool()
+def nexus_assistant_drafts(workspaces_root: str | None = None) -> str:
+    """List the researcher's inception drafts (the app's Inception), newest first.
+
+    Read-only. Each has its id (`rec_…`), topic, title, `updated_at`, whether it
+    already created a workspace (`emitted`), its open suggestions and findings.
+    `workspaces_root` defaults to the one the app uses (NEXUS_WORKSPACES_ROOT or
+    the default folder).
+    """
+    from scholar_harness import assistant
+
+    return _assistant_answer(lambda: assistant.list_drafts(_drafts_root(workspaces_root)))
+
+
+@mcp.tool()
+def nexus_assistant_read_draft(session_id: str, workspaces_root: str | None = None) -> str:
+    """Read one inception draft: answers, intent, checks, suggestions, sample. Writes nothing.
+
+    Returns `draft` (the researcher's answers), `intent` (the protocol intent the
+    answers compile to; `null` with `intent_refused` while the draft is
+    incomplete), `checks` (the app's fixed checks and any assistant findings,
+    with dismissals), `proposals` (every suggestion with its status: open,
+    stale, applied, applied_edited, rejected) and `pool` (the Explore sample:
+    databases, legs, papers) when there is one. Explain freely; to suggest a
+    change use `nexus_assistant_propose`, to raise a problem
+    `nexus_assistant_report_finding`.
+    """
+    from scholar_harness import assistant
+
+    return _assistant_answer(
+        lambda: assistant.read_draft(_drafts_root(workspaces_root), session_id, sessions=_recon_sessions())
+    )
+
+
+@mcp.tool()
+def nexus_assistant_read_workspace(workspace_dir: str) -> str:
+    """Read a workspace's protocol and search state (the app's Discovery). Writes nothing.
+
+    Returns `intent` (`intent.json`), `protocol` (`protocol.json`), `plan` (each
+    database's translation of the query, with `cannot_express` naming what that
+    database cannot express, and the cap), `recall` (the last recall check:
+    which recall seeds each database found or missed), `checks` (the discovery
+    checks and any assistant findings) and `proposals` (`audit/proposals.jsonl`).
+    Use it to explain a translation or a missed seed in plain words.
+    """
+    from scholar_harness import assistant
+
+    return _assistant_answer(lambda: assistant.read_workspace(_assistant_workspace(workspace_dir)))
+
+
+@mcp.tool()
+def nexus_assistant_propose(
+    field: str,
+    op: str,
+    value: Any,
+    why: str,
+    model: str,
+    session_id: str | None = None,
+    workspace_dir: str | None = None,
+    task: str = "suggest",
+    evidence: list[dict] | None = None,
+    workspaces_root: str | None = None,
+) -> str:
+    """Suggest one change to an inception draft or a workspace's search. It is never applied by this tool.
+
+    Give exactly one target: `session_id` (an inception draft, before
+    genesis) or `workspace_dir` (a workspace, after genesis).
+
+    On a draft the suggestion appears on the app's card for that step; the researcher
+    applies, edits or rejects it. `field` is a draft field (`concepts`,
+    `rqs`, `extra_inclusions`, `extra_exclusions`, `golden_seeds`,
+    `start_year`, …) or `concepts[<concept name>].synonyms`; `op` is `add` or
+    `remove` (one element of a list) or `replace` (the whole value); `value` is
+    exactly what would be written; `why` is one plain sentence. `model` names
+    the model writing this (required). `task`: `suggest`, `synonyms`,
+    `translation` or `recall_repair`. `evidence`: up to 20 items such as
+    `{"kind": "doi", "value": "10.…"}` or `{"kind": "count", "name": …, "value": …, "unit": …}`.
+    The value is checked as a save of the field would be; sending the same
+    suggestion twice records it once.
+
+    On a workspace only the protocol's search can be suggested, as a card on
+    Discovery Plan: `core_concepts` (`add` a concept, `{"concept": …,
+    "synonyms": […]}`), `core_concepts[<concept name>].synonyms` (`add` or
+    `remove` one term), `start_year` or `end_year` (`replace`, a year or
+    null), `languages` (`add`, `remove` or `replace`). Refused once a corpus is
+    accepted. When the researcher applies it, the app amends the intent and
+    recompiles the protocol; a suggestion made before any other change to the
+    protocol goes out of date and cannot be applied.
+    """
+    from scholar_harness import assistant
+
+    if bool(session_id) == bool(workspace_dir):
+        return json.dumps({"status": "ERROR", "code": "TARGET_INVALID",
+                           "message": "give exactly one of session_id or workspace_dir"})
+    if workspace_dir:
+        return _assistant_answer(lambda: assistant.propose_on_workspace(
+            _assistant_workspace(workspace_dir), field=field, op=op, value=value,
+            why=why, evidence=evidence, model=model, task=task,
+        ))
+    return _assistant_answer(lambda: assistant.propose_on_draft(
+        _drafts_root(workspaces_root), session_id, field=field, op=op, value=value,
+        why=why, evidence=evidence, model=model, task=task,
+    ))
+
+
+@mcp.tool()
+def nexus_assistant_report_finding(
+    locator: str,
+    severity: str,
+    finding: str,
+    model: str,
+    session_id: str | None = None,
+    workspace_dir: str | None = None,
+    why: str | None = None,
+    workspaces_root: str | None = None,
+) -> str:
+    """Report one problem you found in a protocol (the critic). It changes nothing.
+
+    Give exactly one target: `session_id` (an inception draft) or
+    `workspace_dir` (a workspace). `locator` is a JSON pointer into the
+    intent you read (`/inclusion_criteria/1/criterion`,
+    `/core_concepts/0/synonyms`, `/research_questions/2/text`, `/start_year`;
+    point at a list to say something is missing from it); on a draft whose
+    intent does not compile yet, `draft:/<field>` points into its answers; on a
+    workspace, `protocol:/…` points into `protocol.json` (criterion ids exist
+    only there).
+    `severity`: `critical` (the review cannot answer its questions or cannot
+    be screened as written), `major` (it would bias or lose evidence the
+    questions need, or contradicts its own scope) or `minor`. `finding`: one
+    or two plain sentences naming the problem; `why`: optional. The finding is
+    listed in the app's checks panel as the assistant's, where the researcher
+    dismisses it or acts on it; it never blocks anything.
+    """
+    from scholar_harness import assistant
+
+    if bool(session_id) == bool(workspace_dir):
+        return json.dumps({"status": "ERROR", "code": "TARGET_INVALID",
+                           "message": "give exactly one of session_id or workspace_dir"})
+    if session_id:
+        return _assistant_answer(lambda: assistant.report_on_draft(
+            _drafts_root(workspaces_root), session_id, locator=locator, severity=severity,
+            finding=finding, why=why, model=model,
+        ))
+    return _assistant_answer(lambda: assistant.report_on_workspace(
+        _assistant_workspace(workspace_dir), locator=locator, severity=severity, finding=finding, why=why, model=model,
+    ))
+
+
 #: Tools over parked work (production plan §8, M5-slim): synthesis, the matrix,
 #: the graph, verification/trust, full text and the full pipeline. They keep
 #: working, and their description says first that they are not production, so
@@ -2233,6 +2478,11 @@ def main(argv: list[str] | None = None) -> None:
             "  - nexus_screening_queue: List records to screen (no agent outcomes shown)\n"
             "  - nexus_screening_record: One record with its criteria, to draft a proposal\n"
             "  - nexus_submit_proposal: Store one screening proposal (never a decision)\n"
+            "  - nexus_assistant_drafts: List the app's inception drafts (read-only)\n"
+            "  - nexus_assistant_read_draft: One draft's answers, intent, checks and suggestions (read-only)\n"
+            "  - nexus_assistant_read_workspace: A workspace's protocol, plan translations, recall and checks (read-only)\n"
+            "  - nexus_assistant_propose: Suggest one change to a draft or a workspace's search; the researcher applies or rejects it in the app\n"
+            "  - nexus_assistant_report_finding: Report one problem in a protocol (the critic); listed in the app's checks\n"
             "  - nexus_verify_claims: Verify synthesis claim quotes against extracted fulltext\n"
             "  - nexus_verify_phase4: Run scholar-verify Phase-4 streams (retraction/open-science/coi/risk-of-bias/trust-context)\n"
             "  - nexus_critique_methodology: Evaluate methodological rigor via risk-of-bias scoring\n"

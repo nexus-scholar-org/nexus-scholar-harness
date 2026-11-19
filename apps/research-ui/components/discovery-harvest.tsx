@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { DiscoveryChecksPanel } from "@/components/discovery-checks";
 
 import type { Locale } from "@/i18n";
 import { Button, DataCell, DecisionBadge, type DecisionRole } from "@/components/ui/base";
@@ -25,6 +26,7 @@ import {
   type Refusal,
 } from "@/components/discovery-frame";
 import { DatabasePicker } from "@/components/database-picker";
+import { EstimateCard } from "@/components/discovery-estimate";
 import { DiffersLine, ProviderUnknownCard, pickerItems, pickerLabels, protocolList, readDatabasesParam, sameList } from "@/components/discovery-plan";
 import {
   cancelJob,
@@ -44,6 +46,7 @@ import {
 } from "@/lib/discovery-api";
 import { getCorpus, type Corpus } from "@/lib/screening-v1";
 import { discoveryT, providerName, type DiscoveryCopyKey } from "@/lib/discovery-copy";
+import { notifyReviewChanged } from "@/components/review-bus";
 
 /**
  * 03 Harvest (spec `docs/ux/phase1-discovery/final/03-harvest.md`): start the
@@ -203,6 +206,8 @@ export function DiscoveryHarvest({ locale }: Readonly<{ locale: Locale }>) {
   const [cap, setCap] = useState("");
   const [note, setNote] = useState("");
   const [capError, setCapError] = useState(false);
+  // M10b Part D: the cap field was filled from the estimate (`?cap=` from Plan, or "Use {cap}" here).
+  const [capPrefilled, setCapPrefilled] = useState(false);
   const [starting, setStarting] = useState(false);
   const [stopping, setStopping] = useState(false);
   const [again, setAgain] = useState(false);
@@ -223,6 +228,13 @@ export function DiscoveryHarvest({ locale }: Readonly<{ locale: Locale }>) {
 
   useEffect(() => {
     setAddress({ ready: true, value: readDatabasesParam() });
+    // M10b Part D: `?cap=` from Plan's "Use {cap} for this harvest" fills the field after hydration;
+    // it submits nothing (the engine checks it at Start, `CAP_INVALID`).
+    const capParam = new URLSearchParams(window.location.search).get("cap");
+    if (capParam !== null) {
+      setCap(capParam);
+      setCapPrefilled(true);
+    }
   }, []);
 
   useEffect(() => {
@@ -320,6 +332,7 @@ export function DiscoveryHarvest({ locale }: Readonly<{ locale: Locale }>) {
     setStarting(true);
     try {
       const { job } = await startRun(origin, body);
+      notifyReviewChanged();
       setLastJob(null);
       setStartedWith(body.providers ?? (plan ? protocolList(plan) : null));
       setJobId(job.job_id);
@@ -341,6 +354,7 @@ export function DiscoveryHarvest({ locale }: Readonly<{ locale: Locale }>) {
     setStopping(true);
     try {
       await cancelJob(origin, jobId);
+      notifyReviewChanged();
     } catch (error) {
       setStartError(refusalOf(error));
       setStopping(false);
@@ -354,6 +368,7 @@ export function DiscoveryHarvest({ locale }: Readonly<{ locale: Locale }>) {
     setFinishing(true);
     try {
       const { job } = await finishPreparation(origin, selected);
+      notifyReviewChanged();
       setLastJob(null);
       setStartedWith(null);
       setJobRun(selected);
@@ -435,13 +450,17 @@ export function DiscoveryHarvest({ locale }: Readonly<{ locale: Locale }>) {
         ref={capField}
         inputMode="numeric"
         value={cap}
-        onChange={(e) => setCap(e.target.value)}
+        onChange={(e) => {
+          setCap(e.target.value);
+          setCapPrefilled(false);
+        }}
         aria-invalid={capError || undefined}
         aria-describedby="harvest-cap-help"
         className="mt-1 min-h-11 w-40 rounded-md border border-rule-strong bg-paper px-3 text-ink"
         dir="ltr"
       />
       <p id="harvest-cap-help" className="mt-1 text-xs text-ink-muted">
+        {capPrefilled ? <span data-cap-prefilled>{t("harvest.capPrefilled")} </span> : null}
         {capError ? t("harvest.form.capInvalid", { ceiling: plan?.cap.ceiling ?? 10000 }) + " " : ""}
         {t("harvest.form.capHelp", { value: plan?.cap.value ?? "", ceiling: plan?.cap.ceiling ?? 10000 })}
       </p>
@@ -606,7 +625,25 @@ export function DiscoveryHarvest({ locale }: Readonly<{ locale: Locale }>) {
             </div>
           ) : !selected ? (
             <div className="grid gap-6 lg:grid-cols-3">
-              <section aria-labelledby="harvest-will" className="rounded-lg border border-rule bg-leaf p-5 min-w-0 lg:col-span-2">
+              <div className="space-y-6 min-w-0 lg:col-span-2">
+              {/* M10b Part D: the size estimate, in the ready state only, above what will be searched and the cap field. */}
+              {showReadyForm && choice?.length ? (
+                <EstimateCard
+                  locale={locale}
+                  origin={origin}
+                  fingerprint={plan.protocol_fingerprint}
+                  providers={(touched || address.value) && choice ? choice : null}
+                  cap={/^\d+$/.test(cap.trim()) ? Number(cap.trim()) : null}
+                  onUseCap={(value) => {
+                    setCap(String(value));
+                    setCapPrefilled(true);
+                    setCapError(false);
+                    capField.current?.focus();
+                  }}
+                  inceptionHref={`/${locale}/inception/${origin ? `?console=${encodeURIComponent(origin)}` : ""}`}
+                />
+              ) : null}
+              <section aria-labelledby="harvest-will" className="rounded-lg border border-rule bg-leaf p-5">
                 <h2 id="harvest-will" className="font-semibold text-ink">
                   {t("harvest.willSearch")}
                 </h2>
@@ -621,6 +658,7 @@ export function DiscoveryHarvest({ locale }: Readonly<{ locale: Locale }>) {
                   </div>
                 ) : null}
               </section>
+              </div>
               <aside>{showReadyForm ? form : null}</aside>
             </div>
           ) : detailError && !detail ? (
@@ -682,6 +720,7 @@ export function DiscoveryHarvest({ locale }: Readonly<{ locale: Locale }>) {
                 </section>
               </div>
               <aside className="space-y-4">
+                <DiscoveryChecksPanel locale={locale} step="harvest" origin={origin} run={wanted} />
                 {unfinished && preparation ? (
                   <>
                     <PreparationCard locale={locale} preparation={preparation} onFinish={() => void finish()} busy={finishing} />

@@ -10,6 +10,14 @@
  * failed included) overwrites the session's `topic` with the draft's topic,
  * and the scope check compares the draft's question with that topic (the years
  * and languages with the latest usable pool).
+ *
+ * M10b Part C (sample curation): a pool keeps a small `reserve` (unless
+ * `noReserve`), the papers the draft left out are kept on the draft record
+ * (`sample_exclusions`, as the engine does), and every read applies them: the
+ * effective sample is the first papers of `docs + reserve` that are not left
+ * out, as many as the raw sample had (the engine caps at 25). A paper without a
+ * DOI is keyed by its pool id. An empty probe's `POOL_EMPTY` carries
+ * `details.shorten` by the engine's rule (`says_shorten`).
  */
 
 type Json = Record<string, unknown>;
@@ -28,6 +36,10 @@ export interface ReconOptions {
   noTopics?: boolean;
   /** The ids a probe can ask, in the engine's default order (`databases_available`); default the four. */
   databasesAvailable?: string[];
+  /** M10b Part C: the pool was stored before replacements were kept (no `reserve` key). */
+  noReserve?: boolean;
+  /** M10b Part C: the last paper of a pool has no DOI, so its key is its pool id. */
+  noDoiPaper?: boolean;
 }
 
 const PROVIDERS = ["openalex", "semanticscholar", "crossref", "arxiv"];
@@ -64,10 +76,14 @@ function executedQuery(provider: string, query: string): string {
 }
 
 interface Doc {
-  doi: string;
+  /** The pool id (`provider|provider_id`), the key of a paper without a DOI. */
+  id: string;
+  doi: string | null;
   title: string;
   year: number;
   provider: string;
+  /** M10b Part C: on a reserve paper in the effective sample, the key of the left-out paper it replaced. */
+  added_for?: string | null;
 }
 
 interface Pool {
@@ -82,6 +98,8 @@ interface Pool {
   languages: string[];
   semantic: boolean;
   docs: Doc[];
+  /** M10b Part C: the records fetched beyond the sample, in order; absent on a pool stored before replacements were kept. */
+  reserve?: Doc[];
   legs: Json[];
   kind: ProbeOutcome | "narrow";
 }
@@ -92,7 +110,26 @@ const refuse = (status: number, code: string, message = code.toLowerCase(), deta
 });
 
 function docs(prefix: string, title: string, n: number, start = 0): Doc[] {
-  return Array.from({ length: n }, (_, i) => ({ doi: `10.1/${prefix}${String(start + i).padStart(3, "0")}`, title: `${title} ${start + i}`, year: 2020 + (i % 5), provider: "openalex" }));
+  return Array.from({ length: n }, (_, i) => {
+    const id = `${prefix}${String(start + i).padStart(3, "0")}`;
+    return { id: `openalex|W${id}`, doi: `10.1/${id}`, title: `${title} ${start + i}`, year: 2020 + (i % 5), provider: "openalex" };
+  });
+}
+
+/** The engine's key of a paper (`sample.paper_key`): its DOI, else its pool id. */
+const keyOf = (doc: Doc) => doc.doi ?? doc.id;
+
+/** The draft's papers left out (`record.sample_exclusions.items`), in the order they were left out. */
+const leftOut = (record: Json): Json[] => (((record.sample_exclusions as Json | undefined)?.items ?? []) as Json[]).filter((i) => !!i && typeof i === "object");
+
+/** A stand-in for the engine's digest of the left-out keys: only compared, never shown. */
+const digestOf = (keys: string[]) => `keys:${[...new Set(keys)].sort().join(",")}`;
+
+/** The rule of the engine's `says_shorten`: a keyword query of 3 or more words, no OR, every database answered with nothing. */
+function saysShorten(query: string, legs: Json[], semantic: boolean): boolean {
+  const words = query.split(/[\s()"]+/).filter(Boolean);
+  if (semantic || words.includes("OR") || words.filter((w) => !["AND", "OR", "NOT"].includes(w)).length < 3) return false;
+  return legs.length > 0 && legs.every((l) => l.status !== "failed" && !l.fetched);
 }
 
 function occurs(term: string, doc: Doc): boolean {
@@ -138,6 +175,9 @@ export function reconEngine(options: ReconOptions, now: () => string) {
       if (kind === "noDirections") list = list.map((d, i) => ({ ...d, title: `Unrelated paper ${i}` }));
     } else if (kind === "thin") list = docs("t", "Real-time weed detection on embedded hardware", 7);
     else if (kind === "narrow") list = docs("n", "Embedded weed detection on a microcontroller", 10);
+    if (options.noDoiPaper && list.length) list[list.length - 1] = { ...list[list.length - 1], doi: null, title: "A paper without a DOI" };
+    // M10b Part C: what the databases returned beyond the sample (the engine keeps it from M10b on).
+    const reserve = list.length && kind !== "thin" ? docs("r", "Crop row following for field robots", 2) : [];
     // Every database answered and found nothing: 0 of 0.
     if (kind === "empty") legs = providers.map((p) => leg(p, 0));
     if (kind === "partial") legs = providers.map((p) => (p === "crossref" ? leg(p, 0, "ConnectError: offline") : leg(p, 6)));
@@ -158,6 +198,7 @@ export function reconEngine(options: ReconOptions, now: () => string) {
       languages: ((draft.languages as string[] | undefined) ?? ["en"]).slice().sort(),
       semantic,
       docs: list,
+      ...(options.noReserve ? {} : { reserve }),
       // Only a database that ran records the query it received.
       legs: legs.map((l) => ({ ...l, executed_query: l.status === "ok" ? executedQuery(String(l.provider), query) : null })),
       kind,
@@ -181,11 +222,54 @@ export function reconEngine(options: ReconOptions, now: () => string) {
     legs: pool.legs,
   });
 
+  /** The engine's `effective_pool`: the first papers of `docs + reserve` not left out (here as many as the raw sample had). */
+  const effective = (pool: Pool, keys: string[]): Pool => {
+    const left = new Set(keys);
+    const seen = new Set<string>();
+    const candidates = [...pool.docs, ...(pool.reserve ?? [])].filter((d) => !seen.has(keyOf(d)) && !!seen.add(keyOf(d)));
+    const inSample = new Set(pool.docs.map(keyOf));
+    const replaced = pool.docs.map(keyOf).filter((k) => left.has(k));
+    const kept = candidates.filter((d) => !left.has(keyOf(d))).slice(0, pool.docs.length);
+    return { ...pool, docs: kept.map((d) => (inSample.has(keyOf(d)) ? d : { ...d, added_for: replaced.shift() ?? null })) };
+  };
+
+  /** The pool every read of this draft sees: the latest pool after the papers the draft left out. */
+  const current = (record: Json): Pool => effective(latest!, leftOut(record).map((i) => String(i.key)));
+
+  /** The `sample` object of `GET`/`POST .../recon/sample` (`sample.view`). */
+  const sampleView = (record: Json) => {
+    if (!latest) return null;
+    const items = leftOut(record);
+    const keys = items.map((i) => String(i.key));
+    const pool = effective(latest, keys);
+    const known = new Set([...latest.docs, ...(latest.reserve ?? [])].map(keyOf));
+    const used = new Set(pool.docs.map(keyOf));
+    const excluded = items.map((i) => ({ key: i.key, doi: i.doi ?? null, title: i.title ?? null, year: i.year ?? null, provider: i.provider ?? null, excluded_at: i.excluded_at ?? null, in_pool: known.has(String(i.key)) }));
+    const n = pool.docs.length;
+    const marked = excluded.filter((e) => e.in_pool).length;
+    const share = marked + n ? Math.round((marked / (marked + n)) * 10000) / 10000 : 0;
+    const reasons = [...(n < FLOOR ? ["BELOW_FLOOR"] : []), ...(marked && share >= 0.5 ? ["MOSTLY_OFF_TOPIC"] : [])];
+    return {
+      session_id: record.session_id,
+      updated_at: record.updated_at,
+      pool_fingerprint: latest.fingerprint,
+      n_docs: n,
+      n_docs_raw: latest.docs.length,
+      max_docs: 25,
+      reserve_n: [...known].filter((k) => !used.has(k) && !keys.includes(k)).length,
+      has_reserve: latest.reserve !== undefined,
+      excluded,
+      excluded_in_pool: marked,
+      recommend: { search: reasons.length > 0, reason: reasons[0] ?? null, reasons, threshold: { floor: FLOOR, share: 0.5 }, marked_share: share },
+      exclusions_digest: digestOf(keys),
+    };
+  };
+
   const directionsOf = (pool: Pool) => {
     const labels = pool.kind === "noDirections" ? [] : pool.kind === "narrow" ? ["embedded weed detection", "microcontroller"] : ["weed detection", "weed segmentation", "embedded hardware"];
     return labels
       .map((label) => {
-        const anchors = pool.docs.filter((d) => occurs(label, d)).map((d) => d.doi);
+        const anchors = pool.docs.filter((d) => d.doi && occurs(label, d)).map((d) => d.doi as string);
         return { label, concept: label, anchor_dois: anchors, observed_in: anchors.length, n_docs: pool.docs.length, detail: `pool term observed in ${anchors.length} papers`, schools: anchors.length ? ["Edge inference"] : [] };
       })
       .filter((d) => d.observed_in >= 2);
@@ -209,12 +293,14 @@ export function reconEngine(options: ReconOptions, now: () => string) {
   const conceptReport = (pool: Pool, draft: Json) => {
     const { rows, source } = conceptRows(draft);
     const known = new Set(rows.flatMap((r) => [r.concept, ...r.synonyms].map((t) => t.toLowerCase())));
+    // As `concept_report`, over the papers with a DOI only.
+    const withDoi = pool.docs.filter((d) => d.doi);
     return rows.map((r) => {
       const terms = [r.concept, ...r.synonyms].map((term) => {
-        const anchors = pool.docs.filter((d) => occurs(term, d)).map((d) => d.doi);
+        const anchors = withDoi.filter((d) => occurs(term, d)).map((d) => d.doi as string);
         return { term, observed_in: anchors.length, anchor_dois: anchors };
       });
-      const anchoring = pool.docs.filter((d) => [r.concept, ...r.synonyms].some((term) => occurs(term, d)));
+      const anchoring = withDoi.filter((d) => [r.concept, ...r.synonyms].some((term) => occurs(term, d)));
       const suggestions = POOL_TERMS.filter((t) => !known.has(t))
         .map((term) => ({ term, observed_in: anchoring.filter((d) => occurs(term, d)).length }))
         .filter((s) => s.observed_in >= 2)
@@ -239,12 +325,16 @@ export function reconEngine(options: ReconOptions, now: () => string) {
     return out;
   };
 
-  const binding = (grounding: Json, draft: Json) => {
+  const binding = (grounding: Json, record: Json) => {
+    const draft = (record.draft ?? {}) as Json;
     const bound = (grounding.pool as Json).fingerprint as string;
     const current = latest?.fingerprint ?? null;
     if (bound !== current) return { stale: true, code: "POOL_CHANGED", reason: "the session searched again after this direction was chosen", bound, current };
     const changed = changes(scopeOf(draft), grounding.scope as Scope);
     if (changed.length) return { stale: true, code: "SCOPE_CHANGED", reason: `the draft's ${changed.join(", ")} changed after this direction was chosen`, changes: changed, bound, current };
+    // M10b Part C: a direction bound before the sample changed.
+    const digest = digestOf(leftOut(record).map((i) => String(i.key)));
+    if ((grounding.sample_exclusions_digest ?? digestOf([])) !== digest) return { stale: true, code: "SAMPLE_CHANGED", reason: "the sample changed after this direction was chosen", bound, current };
     return { stale: false, bound, current };
   };
 
@@ -268,7 +358,7 @@ export function reconEngine(options: ReconOptions, now: () => string) {
           scope_changes: scopeChanges,
           session: probes.length ? { session_id: sid, topic: sessionTopic, latest: probes[probes.length - 1], probes, narrower_left: Math.max(0, 1 - narrowed) } : null,
           grounding,
-          binding: grounding ? binding(grounding, draft) : null,
+          binding: grounding ? binding(grounding, record) : null,
           active_job: active(),
           derived_query: draft.topic ? keywordQuery(String(draft.topic)) : null,
           databases_available: [...available],
@@ -310,7 +400,7 @@ export function reconEngine(options: ReconOptions, now: () => string) {
       if (narrowerSent) {
         if (!latest) return refuse(409, "RECON_NO_POOL", "Run the first search before a narrower one.");
         if (narrowed >= 1) return refuse(409, "NARROW_BUDGET_SPENT", "The one narrower search of this draft is used.");
-        const labels = directionsOf(latest).map((d) => d.label);
+        const labels = directionsOf(current(record)).map((d) => d.label);
         if (!labels.includes(String(body!.narrower))) return refuse(422, "DIRECTION_UNKNOWN", "not a direction", { directions: labels });
         // The label as written, on the databases of the latest probe that recorded them.
         queryText = String(body!.narrower);
@@ -371,7 +461,7 @@ export function reconEngine(options: ReconOptions, now: () => string) {
           job.state = "failed";
           job.error = failed
             ? { code: "PROVIDERS_FAILED", message: "Every database failed to answer.", details: { legs: pool.legs } }
-            : { code: "POOL_EMPTY", message: "The search found no papers.", details: { legs: pool.legs, status: "empty" } };
+            : { code: "POOL_EMPTY", message: "The search found no papers.", details: { legs: pool.legs, status: "empty", shorten: saysShorten(pool.query, pool.legs, pool.semantic) } };
           events.push({ event: "failed", data: { job: { ...job } } });
         } else {
           job.state = "succeeded";
@@ -406,12 +496,12 @@ export function reconEngine(options: ReconOptions, now: () => string) {
     if (rest === "/distill" && method === "POST") {
       const missing = needPool();
       if (missing) return missing;
-      const pool = latest!;
+      const pool = current(record);
       const dirs = directionsOf(pool);
       const counts = new Map<string, number>();
       for (const d of dirs) for (const doi of d.anchor_dois) counts.set(doi, (counts.get(doi) ?? 0) + 1);
       const papers = pool.docs
-        .map((d) => ({ doi: d.doi, title: d.title, year: d.year, provider: d.provider, directions_anchored: counts.get(d.doi) ?? 0 }))
+        .map((d) => ({ key: keyOf(d), doi: d.doi, title: d.title, year: d.year, provider: d.provider, directions_anchored: counts.get(d.doi ?? "") ?? 0, added_for: d.added_for ?? null }))
         .sort((a, b) => b.directions_anchored - a.directions_anchored || a.title.localeCompare(b.title));
       return {
         status: 200,
@@ -436,27 +526,68 @@ export function reconEngine(options: ReconOptions, now: () => string) {
     if (rest === "/directions" && method === "GET") {
       const missing = needPool();
       if (missing) return missing;
-      return { status: 200, body: { session_id: sid, pool: summary(latest!), gates: gates(latest!), directions: directionsOf(latest!), narrower_left: Math.max(0, 1 - narrowed) } };
+      const pool = current(record);
+      return { status: 200, body: { session_id: sid, pool: summary(pool), gates: gates(pool), directions: directionsOf(pool), narrower_left: Math.max(0, 1 - narrowed) } };
     }
     if (rest === "/concepts" && method === "GET") {
       const missing = needPool();
       if (missing) return missing;
-      return { status: 200, body: { session_id: sid, fingerprint: latest!.fingerprint, n_docs: latest!.docs.length, concepts: conceptReport(latest!, draft) } };
+      const pool = current(record);
+      return { status: 200, body: { session_id: sid, fingerprint: latest!.fingerprint, n_docs: pool.docs.length, concepts: conceptReport(pool, draft) } };
+    }
+    if (rest === "/sample" && method === "GET") {
+      const missing = needPool();
+      if (missing) return missing;
+      return { status: 200, body: sampleView(record) };
+    }
+    if (rest === "/sample" && method === "POST") {
+      // The body first, as pydantic does (`SampleBody`, extra="forbid", at most 25 keys each).
+      const extra = Object.keys(body ?? {}).find((k) => !["add", "remove", "base_updated_at"].includes(k));
+      const add = (body?.add ?? []) as string[];
+      const remove = (body?.remove ?? []) as string[];
+      if (extra || !Array.isArray(add) || !Array.isArray(remove) || add.length > 25 || remove.length > 25)
+        return refuse(422, "BODY_INVALID", "The request body is not valid.", { errors: [{ loc: ["body", extra ?? "add"], msg: "not valid", type: "value_error" }] });
+      const missing = needPool();
+      if (missing) return missing;
+      if (record.emitted) return refuse(409, "DRAFT_EMITTED", "this draft already created a workspace");
+      if (body?.base_updated_at && body.base_updated_at !== record.updated_at) return refuse(409, "DRAFT_CONFLICT", "the draft changed since it was read");
+      const items = leftOut(record).map((i) => ({ ...i }));
+      const have = new Set(items.map((i) => String(i.key)));
+      const shown = new Map(current(record).docs.map((d) => [keyOf(d), d]));
+      const known = new Set([...latest!.docs, ...(latest!.reserve ?? [])].map(keyOf));
+      const unknown = [...new Set([...add.filter((k) => !shown.has(k) && !have.has(k)), ...remove.filter((k) => !have.has(k) && !known.has(k))])].sort();
+      if (unknown.length) return refuse(422, "PAPER_UNKNOWN", "That paper is not in this sample.", { keys: unknown });
+      const kept = items.filter((i) => !remove.includes(String(i.key)));
+      const keys = new Set(kept.map((i) => String(i.key)));
+      for (const key of add) {
+        if (keys.has(key) || remove.includes(key)) continue;
+        const doc = shown.get(key)!;
+        kept.push({ key, doi: doc.doi, title: doc.title, year: doc.year, provider: doc.provider, reason: "NOT_RELEVANT", excluded_at: now(), pool_fingerprint: latest!.fingerprint });
+        keys.add(key);
+      }
+      if (kept.length > 200) return refuse(422, "SAMPLE_EXCLUSIONS_FULL", "A draft can record 200 papers left out.", { limit: 200 });
+      const stored = { ...record, sample_exclusions: { items: kept }, updated_at: now() };
+      store(stored);
+      return { status: 200, body: sampleView(stored) };
     }
     if (rest === "/evidence" && method === "GET") {
       const term = query.get("term") ?? "";
       if (!term.trim()) return refuse(422, "TERM_EMPTY", "Type a phrase to check.");
       const missing = needPool();
       if (missing) return missing;
-      const anchors = latest!.docs.filter((d) => occurs(term, d)).map((d) => d.doi);
-      return { status: 200, body: { term, hits: anchors.length * 3, observed_in: anchors.length, anchor_dois: anchors, n_docs: latest!.docs.length } };
+      const pool = current(record);
+      const anchors = pool.docs.filter((d) => d.doi && occurs(term, d)).map((d) => d.doi as string);
+      return { status: 200, body: { term, hits: anchors.length * 3, observed_in: anchors.length, anchor_dois: anchors, n_docs: pool.docs.length } };
     }
     if (rest === "/seeds" && method === "GET") {
       const missing = needPool();
       if (missing) return missing;
-      const dirs = directionsOf(latest!);
+      const pool = current(record);
+      const dirs = directionsOf(pool);
       const { rows } = conceptRows(draft);
-      const papers = latest!.docs
+      // A seed is a DOI; a left-out paper is never offered (the effective pool).
+      const papers = pool.docs
+        .filter((d): d is Doc & { doi: string } => !!d.doi)
         .map((d) => ({
           doi: d.doi,
           title: d.title,
@@ -475,7 +606,7 @@ export function reconEngine(options: ReconOptions, now: () => string) {
       if (missing) return missing;
       if (record.emitted) return refuse(409, "DRAFT_EMITTED", "this draft already created a workspace");
       if (body?.base_updated_at && body.base_updated_at !== record.updated_at) return refuse(409, "DRAFT_CONFLICT", "the draft changed since it was read");
-      const pool = latest!;
+      const pool = current(record);
       const n = pool.docs.length;
       if (n < FLOOR && !body?.accept_thin_pool && !body?.skip) return refuse(409, "POOL_TOO_SMALL", `The pool has ${n} papers, under the floor of ${FLOOR}`, { n_docs: n, floor: FLOOR });
       let direction: Json;
@@ -487,7 +618,7 @@ export function reconEngine(options: ReconOptions, now: () => string) {
         direction = { label: "", concept: "", anchor_dois: [], observed_in: 0, n_docs: n, schools: [], detail: "no direction chosen; the protocol is not grounded", source: "none", grounded: false };
       } else {
         const own = String(body?.own ?? "").trim();
-        const anchors = pool.docs.filter((d) => occurs(own, d)).map((d) => d.doi);
+        const anchors = pool.docs.filter((d) => d.doi && occurs(own, d)).map((d) => d.doi as string);
         direction = { label: own, concept: own, anchor_dois: anchors, observed_in: anchors.length, n_docs: n, schools: [], detail: "your direction", source: "researcher", grounded: anchors.length >= 2 };
       }
       const grounding = {
@@ -498,6 +629,7 @@ export function reconEngine(options: ReconOptions, now: () => string) {
         anchors: [...(direction.anchor_dois as string[])].sort(),
         choice: body?.skip ? "none" : direction.source,
         scope: scopeOf(draft),
+        sample_exclusions_digest: digestOf(leftOut(record).map((i) => String(i.key))),
       };
       const stored = { ...record, grounding, updated_at: now() };
       store(stored);
@@ -511,9 +643,12 @@ export function reconEngine(options: ReconOptions, now: () => string) {
   const staleBinding = (record: Json): ReconAnswer | null => {
     const grounding = record.grounding as Json | undefined;
     if (!grounding) return null;
-    const state = binding(grounding, (record.draft ?? {}) as Json);
+    const state = binding(grounding, record);
     return state.stale ? refuse(409, "STALE_BINDING", `The direction was chosen on a pool that no longer matches (${state.reason}).`, state) : null;
   };
 
-  return { handle, staleBinding, jobs, probes };
+  /** The draft's `sample` object (null before a pool), for a test's own checks rows. */
+  const sample = (record: Json) => sampleView(record);
+
+  return { handle, staleBinding, jobs, probes, sample };
 }
