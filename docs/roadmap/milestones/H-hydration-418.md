@@ -1,10 +1,10 @@
 # H-hydration-418: React #418 on every full page load of the exported UI
-Branch: dev/fix/hydration-418 · Lane: **STANDARD** · Status: IN PROGRESS · Started: 2026-11-19
+Branch: dev/fix/hydration-418 · Lane: **STANDARD** · Status: READY FOR PR (reviewer: code approved, evidence item recorded; push and PR wait for the researcher's own word) · Started: 2026-11-19
 
 **Lane.** STANDARD, from `docs/architecture/test_gate_policy.md` ("a bounded behavior, packaging, or dependency change owned by one repository"): one UI module split in two (`apps/research-ui`), a new unit guard, a new browser spec and a hydration guard in the browser suite's shared `page` fixture. No engine, contract, API, route, persisted-file or MCP change. Gates: `inner` while editing, the `pr` set once on the final executable commit.
 
 ## What was observed
-The main session, 2026-11-19, ran the wheel built from `origin/main` at `2c4383e9` (`nexus-scholar ui`, opened through its `/launch` link on `localhost`) in the Claude desktop app's built-in browser (Chromium; dark scheme, `en-US`, `Africa/Lagos`, 1024 px). On every full page load (`/en/workspaces/`, the inception Scope, Explore and Shape steps, `/en/discovery/plan/`) the console showed twice: `Uncaught Error: Minified React error #418; visit https://react.dev/errors/418?args[]=HTML&args[]=`. The pages worked afterwards. The earlier build (`7cd5fdca`) showed it once, on Explore; H-ui-findings finding 8 could not reproduce it in Playwright.
+The main session, 2026-11-19, ran the wheel built from `origin/main` at `2c4383e9` (`nexus-scholar ui`, opened through its `/launch` link on `localhost`) in the Claude desktop app's built-in browser (Chromium; dark scheme, `en-US`, `Africa/Lagos`, 1024 px). On every full page load (`/en/workspaces/`, the inception Scope, Explore and Shape steps, `/en/discovery/plan/`) the console showed twice: `Uncaught Error: Minified React error #418; visit https://react.dev/errors/418?args[]=HTML&args[]=`. The pages worked afterwards. Later the same day the main session reported it in the researcher's own Chrome too (same wheel, `127.0.0.1:8791`, light scheme, a UTC+1 zone): one #418 on a full load of `/en/inception/explore/?draft=…` after `/en/discovery/plan/`. So it is tied to neither the desktop app's pane nor the dark scheme, as a timing race would not be. The earlier build (`7cd5fdca`) showed it once, on Explore; H-ui-findings finding 8 could not reproduce it in Playwright.
 
 `args[]=HTML` is React's word for an element mismatch (as opposed to `text`); it does not name the `<html>` element.
 
@@ -46,8 +46,22 @@ Updated for the move: `tests/theme.test.tsx` (imports), `tests/i18n-direction-so
 - Playwright on the fixed export, console-served, shell chunks held 800 ms, 10 loads (en, fr, ar): 0 errors (6 of 10 before).
 - Built-in browser, fresh origin, fixed export, the reproduction sequence plus the Start → Scope click flow and loads in fr and ar (9 loads): no #418. Weak evidence on its own, since that browser reproduced it only sometimes before the fix.
 
+Gate selection: `uv run python scripts/select_test_gate.py --changed origin/main --stage pr` → area `research-ui`: `git diff --check`, typecheck, vitest, build, `test:browser`. The executable code is `abc3a209`; the follow-up commit changes only a test pattern, a test comment and docs (the edited spec was rerun).
+
 | Stage | Commit | Command | Result | Duration |
 | :-- | :-- | :-- | :-- | :-- |
+| before fix | `abc3a209` with `locale-document.tsx` and `theme-toggle.tsx` reverted to `origin/main` | `npx playwright test tests-browser/hydration.spec.ts --project=chromium` | 6 failed of 6 (payload `"$f"`; #418 on several pages per locale) | about 2.5 min |
+| before fix | same | `npx vitest run tests/server-client-boundary.test.ts` | 2 failed of 3 (the one violation named) | 3 s |
+| inner | `abc3a209` | vitest on boundary, theme, i18n-direction-source, shell; `npm run typecheck` | 31 passed; clean | under 1 min |
+| pr | `abc3a209` | `npm --prefix apps/research-ui run test:browser` (both projects, new hydration guard in every test) | **572 passed, 12 skipped, 0 failed** (the 12 are the light-only committed-screenshot tests, skipped in `chromium-dark` by design); rewritten screenshots restored, not committed | 15.9 min |
+| pr | `abc3a209` | `npm --prefix apps/research-ui test` | 57 files, 806 passed | 2.5 min |
+| pr | final tree | `npx playwright test tests-browser/hydration.spec.ts` (after narrowing its reference pattern) | 12 passed (chromium, chromium-dark) | 2.7 min |
+| pr | final tree | `npm run typecheck`; `npm test`; `npm run build`; `git diff --check` | clean; 806 passed on the third run (see note); build OK; clean | 50 s; 2 min; 36 s |
+| contract | final tree | `uv run python scripts/generate_contract_baseline.py --check` | baseline current | seconds |
+
+Note on vitest: on the final tree two full runs failed one test, `tests/discovery-proposals.test.tsx` "names the assistant and its model…" (`findByRole` heading, default 1 s wait), and a third full run passed all 806. The file alone passed 3 of 3. Neither it nor the component it renders imports anything this change touches; it is a timing flake under the parallel full run, recorded here as a follow-up.
+
+Review: `milestone-reviewer` on `abc3a209`: **CHANGES**, one item and evidence only ("The code at abc3a209 is approved as written"): record the PR gate and the full browser run, and update the status. Done in this record. Its P3 notes taken: the `<head>` payload check now counts only references that can make React wait (`"$<id>"`, `"$L…"`, `"$@…"`), not literal encodings such as `"$undefined"`; the storage-guard comment says `lib/` is outside its scope; the decisions wording matches this record. Its other P3 notes are under Follow-ups.
 
 ## Not verified
 - The main session's exact setup (its wheel, its browser profile) was not rerun; the cause was reproduced with a build of the same commit on this machine.
@@ -55,6 +69,9 @@ Updated for the move: `tests/theme.test.tsx` (imports), `tests/i18n-direction-so
 - Other browsers (Firefox, Safari): not run.
 
 ## Follow-ups (not fixed here)
+- The boundary check does not parse `export … from` re-exports or follow a module without a directive that re-exports from a client module, and treats any PascalCase name as a component. None of these exists in the code today (reviewer, P3).
+- React gap: a replayed `<head>` does not get the hydration-cursor repair host components get (`replayBeginWork`), so any future wait inside `<head>` would bring #418 back. The payload check in `hydration.spec.ts` guards this app; reporting it upstream is optional.
+- `tests/discovery-proposals.test.tsx` "names the assistant and its model…" can time out under the parallel full vitest run (see the vitest note).
 - `components/triage-page.tsx:179` seeds `queueOpen` from `sessionStorage` in a `useState` initializer: a latent mismatch on Triage when the stored flag is `1`, if the first render shows it. Not observed; the new fixture guard would report it if a browser test reloads Triage with the flag set.
 
 ## Decisions

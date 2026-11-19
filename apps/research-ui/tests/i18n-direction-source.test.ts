@@ -206,9 +206,10 @@ describe("direction and literal-string source guards", () => {
     // `localStorage` (production plan §3, M0). A theme is not a locale and
     // changes no text, and it is read after render (an effect, and the boot
     // script that sets `data-theme` before paint), never during it. No other
-    // file may touch storage, and the theme files may not read the locale. The
-    // boot script and its storage key live in `lib/theme-boot.ts`, a module the
-    // server can inline (H-hydration-418).
+    // file in this scope (`app/`, `components/`) may touch storage, and the theme
+    // files may not read the locale. The boot script and its storage key live in
+    // `lib/theme-boot.ts`, a module the server can inline (H-hydration-418); `lib/`
+    // is outside the storage scope, so only the locale check applies to it.
     const THEME_FILES = ["components/theme-toggle.tsx", "lib/theme-boot.ts"];
     expect(hits(scope.filter((file) => !THEME_FILES.includes(file)), /localStorage/)).toEqual([]);
     expect(hits(THEME_FILES, /navigator\.|locale/i)).toEqual([]);

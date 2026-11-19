@@ -87,8 +87,10 @@ for (const locale of LOCALES) {
     test("the document's <head> reaches the browser as literal values", async ({ request }) => {
       for (const path of PATHS) {
         const head = headModel(flightPayload(await fetchPage(request, `/${locale}/${path}`)));
-        // `"$"` alone marks an element; `"$f"`, `"$L1"`, `"$@2"` are references to resolve later.
-        const references = head.match(/"\$[^"]+"/g) ?? [];
+        // `"$"` alone marks an element. A row reference (`"$f"`), a lazy one (`"$L1"`) or a promise
+        // (`"$@2"`) is resolved later and can make `<head>` wait; literal encodings such as
+        // `"$undefined"` or `"$S…"` cannot, and are not counted.
+        const references = head.match(/"\$(?:L|@)?[0-9a-f]+"/g) ?? [];
         expect(references, `/${locale}/${path}: <head> must not wait for a module`).toEqual([]);
         expect(head).toContain("nexus-scholar-theme");
       }
