@@ -243,7 +243,7 @@ def _compute_checks(request: Request, session_id: str, record: dict[str, Any]) -
     draft = steps.parse_draft(record.get("draft"))
     sessions = _recon(request)
     left = sample_mod.keys_of(record.get("sample_exclusions"))
-    pool = None
+    pool = raw = None
     sample = None
     changes: list[str] = []
     try:
@@ -266,7 +266,7 @@ def _compute_checks(request: Request, session_id: str, record: dict[str, Any]) -
 
     return checks.inception_checks(
         record, pool=pool, scope_changes=changes, binding=binding, workspaces_root=_root(request), make_proposal=make,
-        sample=sample,
+        sample=sample, raw_pool=raw,
     )
 
 

@@ -370,7 +370,10 @@ def build_workspace(
     except Exception:  # noqa: BLE001
         current, currentness, unknown = False, None, [*unknown, "publication"]
     if not current:
-        # The engine does not count the studies that changed, so the sentence names no number.
+        # Any status other than CURRENT (STALE, MISMATCHED, LEGACY_UNVERIFIED, SUPERSEDED, or a
+        # status that cannot be read, then also in ``unknown``) asks for a new publication; the code
+        # says which, and the Publish screen explains it (decision item 41). The engine does not
+        # count the studies that changed, so the sentence names no number.
         return at("PUBLISHED_STALE", "published", params={"code": getattr(currentness, "code", None)},
                   action=_action("publishAgain", "screening.publish"))
     seeds = (chase or {}).get("seeds") or {}

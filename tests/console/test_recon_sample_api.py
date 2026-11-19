@@ -314,3 +314,15 @@ def test_the_sample_post_is_in_both_allow_lists():
     assert any(p.fullmatch(path) for p in POST_PATHS)
     route = Path(__file__).resolve().parents[2] / "apps" / "research-ui" / "app" / "api" / "console" / "[...path]" / "route.ts"
     assert "probe|delta|distill|bind|sample" in route.read_text(encoding="utf-8")
+
+
+def test_the_checks_name_the_pool_by_its_stored_fingerprint(env):
+    """Review of Part C, finding 3: the evidence names the pool as stored, as every route does."""
+    client, _app, _root = env
+    sid = _searched(client)
+    _mark(client, sid, add=["10.1/w200", "10.1/w201"])  # the concept "hyperspectral canopy" is then anchored nowhere
+    stored = client.get(f"{BASE}/drafts/{sid}/recon/concepts").json()["fingerprint"]
+    checks = client.post(f"{BASE}/drafts/{sid}/checks", json={}).json()["checks"]
+    assert "CONCEPT_NOT_ANCHORED" in {c["check_id"] for c in checks}
+    named = {e["value"] for c in checks for e in c["evidence"] if e.get("name") == "pool"}
+    assert named == {stored}, (named, stored)

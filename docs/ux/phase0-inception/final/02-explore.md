@@ -376,7 +376,7 @@ Tests (reproducing first):
 - `tests/console/test_recon_api.py`: `test_pool_empty_after_a_long_keyword_query_says_shorten` (three words, every leg answered with 0: `details.shorten` true); `test_pool_empty_after_a_short_query_does_not_say_shorten` (two words); `test_providers_failed_never_says_shorten`.
 
 ## As built (M10b Part C)
-Engine (decisions `docs/decisions.md` M10b items 34 to 39, proposed): `GET …/recon` keeps `session.latest.n_docs` as the probe's own count; `marked_share` counts every paper shown, refills included; a key to leave out must be in the sample shown; the bind keeps the left-out keys beside their digest; the gap check reads the pool as stored; "shorten" needs a keyword query (not semantic, no `OR`) of three or more words that every database answered with nothing.
+Engine (decisions `docs/decisions.md` M10b items 34 to 39, proposed): `GET …/recon` keeps `session.latest.n_docs` as the probe's own count; `marked_share` counts every paper shown, refills included; a key to leave out must be in the sample shown; the bind keeps the left-out keys beside their digest; the gap check reads the pool as stored (its merged pool keeps the first pool's reserve); "shorten" needs a keyword query (not semantic, no `OR`) of three or more words that every database answered with nothing.
 
 The screen (`components/inception-sample.tsx`, the Papers card in `components/inception-explore.tsx`), where it departs from the text above:
 - The sample calls are in `lib/recon-api.ts`, with the other recon calls.

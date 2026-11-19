@@ -509,3 +509,22 @@ def test_every_state_and_stage_is_named_in_the_builder():
     assert len(next_step.STATES) == 26 and len(set(next_step.STATES)) == 26
     assert set(next_step.STAGE_NAMES.values()) <= set(next_step.WAITING_STAGES)
     assert shutil.which  # keep the import used on every platform
+
+
+def test_a_publication_status_that_cannot_be_read_asks_to_publish_again_and_says_so(env, monkeypatch):
+    """Review of Part C, finding 2 (decision item 41): never a guess of CURRENT."""
+    from scholar_harness.screening import currentness
+
+    client, ws, _ = env
+    _accepted(client)
+    _summary(monkeypatch)
+    path = ws / "literature" / "screening" / "generation.json"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text("{}", encoding="utf-8")
+
+    def unreadable(w):
+        raise OSError("disk")
+
+    monkeypatch.setattr(currentness, "screening_currentness", unreadable)
+    body = _next(client)
+    assert body["state"] == "PUBLISHED_STALE" and "publication" in body["unknown"] and body["params"] == {"code": None}

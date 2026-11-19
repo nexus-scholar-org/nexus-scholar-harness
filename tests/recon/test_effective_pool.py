@@ -150,3 +150,12 @@ def test_a_pool_cached_before_the_reserve_is_fetched_again_and_gains_one(tmp_pat
     path.write_text(json.dumps(old), encoding="utf-8")
     pool, _path, cached = asyncio.run(engine.probe_pool("weed mapping", providers=["openalex"]))
     assert (cached, calls["n"], len(pool["reserve"])) == (False, 1, 5)
+
+
+def test_two_papers_without_a_doi_or_an_id_keep_their_place_when_nothing_is_left_out():
+    """Review of Part C, finding 4: such papers share a key; with nothing left out the sample is the pool's own."""
+    pool = _pool()
+    for i in (3, 4):
+        pool["docs"][i] = {**_entry(i, doi=False), "id": "arxiv", "provider": "arxiv"}
+    assert effective_pool(pool, [])["docs"] == pool["docs"]
+    assert effective_pool(pool, ["10.1/w999"])["docs"] == pool["docs"], "a key the pool does not hold changes nothing"

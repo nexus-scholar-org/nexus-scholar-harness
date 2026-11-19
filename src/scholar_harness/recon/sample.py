@@ -81,6 +81,10 @@ def effective_pool(pool: dict[str, Any], exclusions: Iterable[str] | None) -> di
     left = set(exclusions or ())
     raw_docs = [d for d in pool.get("docs") or [] if isinstance(d, dict)]
     candidates = _candidates(pool)
+    if not left & {paper_key(d) for d in candidates}:
+        # Nothing of this pool is left out: its own sample, as stored (two papers without
+        # a DOI or a provider id share a key and must not replace each other; review of Part C, finding 4).
+        return {**{k: v for k, v in pool.items() if k != "reserve"}, "docs": raw_docs}
     kept = [d for d in candidates if paper_key(d) not in left][:POOL_MAX]
     in_sample = {paper_key(d) for d in raw_docs}
     replaced = [paper_key(d) for d in raw_docs if paper_key(d) in left]
