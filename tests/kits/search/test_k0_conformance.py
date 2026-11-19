@@ -142,7 +142,9 @@ class _CapturingClient:
 
 async def _emitted_search_query(provider: ArxivProvider) -> str:
     provider.client = _CapturingClient()
-    query = Query(text=_QUERY_TEXT, id="Q-CONFORMANCE", year_min=2020, year_max=2026)
+    # No year range: these tests pin the compaction. The date clause is
+    # added after it and is tested in test_arxiv_date_filter.py (M3h-c).
+    query = Query(text=_QUERY_TEXT, id="Q-CONFORMANCE")
     async for _ in provider.search(query):
         pass
     assert provider.client.params is not None
