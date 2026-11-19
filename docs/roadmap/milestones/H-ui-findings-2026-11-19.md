@@ -1,5 +1,5 @@
 # H-ui-findings-2026-11-19: nine problems from a browser walk-through of the wheel
-Branch: dev/fix/ui-findings-2026-11-19 · Lane: **STANDARD** · Status: READY FOR PR (reviewer APPROVE; decisions accepted 2026-11-19) · Started: 2026-11-19
+Branch: dev/fix/ui-findings-2026-11-19 · Lane: **STANDARD** · Status: MERGED (PR #248, merge commit `d6a1faef`, 2026-11-19; reviewer APPROVE; decisions accepted 2026-11-19) · Started: 2026-11-19
 
 Source: the main session ran the wheel built from `origin/main` at `7cd5fdca` in a browser on a scratch workspaces folder (no contact email, no keys, so no database request) and walked a test review from Inception into the Discovery plan. It reported nine problems; this record covers eight of them. Number 1 (after "Create the workspace", "Open the workspace" lands on Screening home) belongs to M10b Part C's next-step bar and is **not** touched here.
 

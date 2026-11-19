@@ -1,5 +1,5 @@
 # M10c-assistant-mcp: an assistant and a critic over MCP
-Branch: `dev/m10c/assistant-mcp` (from `origin/main` at `7cd5fdca`) · Lane: **RELEASE** · Status: **READY FOR PR** PR gate passed at `23df9a7d`; `milestone-reviewer` round 2 APPROVE; decision items 15 to 21 accepted by the researcher 2026-11-19 · Started: 2026-11-19
+Branch: `dev/m10c/assistant-mcp` (from `origin/main` at `7cd5fdca`) · Lane: **RELEASE** · Status: **MERGED** (PR #249, merge commit `2c4383e9`, 2026-11-19); PR gate passed at `23df9a7d`; `milestone-reviewer` round 2 APPROVE; decision items 15 to 21 accepted by the researcher 2026-11-19 · Started: 2026-11-19
 
 Third milestone of "Assisted inception" (approved 2026-11-14). Plan §6 row **M10c-assistant-mcp**: an assistant and a critic over MCP, no AI spend, with the test set of broken protocols (PR #238) the critic must catch; M9d-discovery-assistant's MCP half (synonyms, translation explanations, recall repair as proposals, `agent_autonomy_ladder.md` §8) is delivered here.
 
