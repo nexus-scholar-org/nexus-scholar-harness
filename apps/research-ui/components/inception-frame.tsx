@@ -94,6 +94,8 @@ const ACTION_STEP: Record<string, InceptionStep> = {
   POOL_EMPTY: "scope",
   RECON_NO_POOL: "explore",
   RECON_SESSION_NOT_FOUND: "explore",
+  // M10b Part C: the sample curation's full-draft refusal sends the researcher to a narrower question.
+  SAMPLE_EXCLUSIONS_FULL: "scope",
 };
 
 const ENGINE_REASON = new Set(["DRAFT_INVALID", "DRAFT_TOO_LARGE", "BODY_INVALID", "INTENT_INVALID", "WORKSPACE_ROOT_UNAVAILABLE", "WORKSPACE_EXISTS"]);
@@ -321,6 +323,11 @@ export function useDraft() {
     setAssistVersion((n) => n + 1);
   }, []);
 
+  /** An answer write that left the draft's answers as they were (M10b Part C, a sample change): only its time moves. */
+  const adoptTime = useCallback((updatedAt: string) => {
+    setRecord((current) => (current ? { ...current, updated_at: updatedAt } : current));
+  }, []);
+
   /**
    * A proposal decision's answer (M10b): the record takes the stored draft and
    * time; the page takes the decided field from it and keeps its other edits.
@@ -360,7 +367,7 @@ export function useDraft() {
   );
 
   return {
-    origin, draftId, ready, record, draft, setDraft, update, save, saving, loadError, saveError, setSaveError, reload: load, adopt,
+    origin, draftId, ready, record, draft, setDraft, update, save, saving, loadError, saveError, setSaveError, reload: load, adopt, adoptTime,
     assistVersion, bumpAssist, adoptDecision, notRecorded,
   };
 }
