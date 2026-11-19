@@ -32,6 +32,7 @@ from .api import audit as audit_api
 from .api import inception as inception_api
 from .api import jobs as jobs_api
 from .api import pipelines as pipelines_api
+from .api import review as review_api
 from .api import recon as recon_api
 from .api import discovery as discovery_api
 from .api import screening as screening_api
@@ -98,7 +99,10 @@ def _body_invalid(exc: RequestValidationError) -> JSONResponse:
 
 def _workspace_free(path: str) -> bool:
     """API routes that answer with no workspace open (workspaces API §2; inception, M4a)."""
-    return path == "/api/v1/workspaces" or path.startswith(("/api/v1/workspaces/", "/api/v1/inception/"))
+    # M10b Part C: the next-step route answers ``NO_REVIEW`` itself when no workspace is open.
+    return path in ("/api/v1/workspaces", "/api/v1/review/next-step") or path.startswith(
+        ("/api/v1/workspaces/", "/api/v1/inception/")
+    )
 
 
 def _no_workspace() -> JSONResponse:
@@ -267,6 +271,7 @@ def create_app(
     app.include_router(inception_api.router)
     app.include_router(recon_api.router)
     app.include_router(discovery_api.router)
+    app.include_router(review_api.router)
     app.include_router(jobs_api.router)
     app.include_router(screening_api.router)
     app.include_router(screening_v1_api.router)

@@ -366,6 +366,25 @@ def restore_check(session_id: str, check_id: str, body: CheckRestoreBody, reques
 # --- proposals (M10b, docs/ux/shared/final/01-proposals.md) -------------------
 
 
+@router.get("/drafts/{session_id}/next-step")
+def draft_next_step(session_id: str, request: Request) -> dict[str, Any]:
+    """The next-step bar of a draft (M10b Part C, ``04-next-step`` rows 2 to 5); a read that records nothing."""
+    from scholar_harness.console import next_step
+
+    try:
+        record = _store(request).load(session_id)
+    except DraftRefused as exc:
+        raise _error(exc) from exc
+    answer = None
+    if not record.get("emitted"):
+        try:
+            items, waiting, partial, _made = _compute_checks(request, session_id, record)
+            answer = _checks_answer(record, items, waiting, partial, None)
+        except Exception:  # noqa: BLE001 - checks that cannot be computed are "unknown", never a 5xx
+            answer = None
+    return next_step.build_draft(record, answer)
+
+
 @router.get("/drafts/{session_id}/proposals")
 def list_proposals(session_id: str, request: Request, step: str | None = None) -> dict[str, Any]:
     if step is not None and step not in proposals.PROPOSAL_STEPS:
