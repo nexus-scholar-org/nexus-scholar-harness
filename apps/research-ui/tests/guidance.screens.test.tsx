@@ -182,4 +182,46 @@ describe("guidance.screens", () => {
       expect(visible()).toContain("Next, open the workspace and import your search results.");
     });
   });
+
+  // Discovery: the hints present in each screen's fixture state, the sentences removed, the one main action.
+  const DISCOVERY: { name: string; hints: string[]; gone: string[]; primary: (string | RegExp)[] }[] = [
+    { name: "discovery entry", hints: ["overview.lede", "overview.plan.line"], gone: ["Each line below is read from the engine."], primary: [/^Continue at /] },
+    {
+      name: "01 Plan",
+      hints: ["plan.picker.orderHelp", "plan.imports.hint", "plan.limits.mailto.help", "amend.help"],
+      gone: ["Each string is sent exactly as written", "An export cannot be added after a harvest until combined corpora are built."],
+      primary: ["Continue to Recall"],
+    },
+    { name: "02 Recall", hints: ["recall.form.help", "amend.help"], gone: ["The check looks each one up and says which databases find it."], primary: ["Check these seeds"] },
+    { name: "03 Harvest", hints: ["harvest.form.capHelp", "harvest.form.noteHelp"], gone: ["Nothing is frozen by a harvest; the corpus is frozen on the hand-off screen."], primary: ["Start the harvest"] },
+    { name: "04 Import", hints: ["import.limits.help"], gone: ["These appear in the search report."], primary: ["Add this file"] },
+    { name: "05 Duplicates", hints: ["dedup.pairsNote"], gone: ["The rules and their settings are below."], primary: ["Continue to the report"] },
+    {
+      name: "06 Report",
+      hints: ["report.completeness.lowerBoundNote", "report.history.note"],
+      gone: ["Every row carries the exact string sent", "A count stopped at a cap is a lower bound."],
+      primary: ["I reviewed this text"],
+    },
+    { name: "08 Hand-off", hints: ["handoff.lede.why", "handoff.mix.note"], gone: ["If a database failed in the corpus run, the report names it."], primary: ["Accept this corpus"] },
+    {
+      name: "09 Chase",
+      hints: ["chase.options.capHelp", "chase.options.ceilingHelp", "chase.options.noteHelp"],
+      gone: ["What is new is screened as a separate second round"],
+      primary: ["Chase citations"],
+    },
+  ];
+
+  describe("discovery", () => {
+    for (const d of DISCOVERY) {
+      it(`${d.name}: hints closed, removed sentences gone, one main action`, async () => {
+        await mount(d.name);
+        expectHints(d.hints);
+        for (const key of d.hints) expect(document.querySelector(`[data-hint-body="${key}"]`)).toHaveAttribute("hidden");
+        expectGone(d.gone);
+        const names = primaries().map((b) => b.textContent?.trim() ?? "");
+        expect(names).toHaveLength(d.primary.length);
+        d.primary.forEach((p, i) => (typeof p === "string" ? expect(names[i]).toBe(p) : expect(names[i]).toMatch(p)));
+      }, 20000);
+    }
+  });
 });

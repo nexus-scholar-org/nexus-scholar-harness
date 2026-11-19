@@ -278,7 +278,8 @@ describe("discovery.estimate on Plan", () => {
     setUp({ runs: 1 });
     const first = render(<DiscoveryPlan locale="en" />);
     await screen.findByRole("heading", { level: 1, name: "This is what each database will receive" });
-    await waitFor(() => expect(document.querySelector("[data-imports-after-run]")).not.toBeNull());
+    // M10d (03-guidance D-P7, D-P8): after a run the Import link and its hint are gone.
+    await waitFor(() => expect(screen.queryByRole("link", { name: "Import" })).toBeNull());
     expect(document.querySelector("[data-estimate]")).toBeNull();
     first.unmount();
     vi.unstubAllGlobals();

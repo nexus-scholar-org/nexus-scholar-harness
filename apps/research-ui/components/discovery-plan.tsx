@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { DiscoveryChecksPanel } from "@/components/discovery-checks";
 
 import type { Locale } from "@/i18n";
-import { Button, DataCell, DecisionBadge, type DecisionRole } from "@/components/ui/base";
+import { Button, DataCell, DecisionBadge, Hint, PRIMARY_LINK, type DecisionRole } from "@/components/ui/base";
 import { DatabasePicker, type PickerItem, type PickerLabels } from "@/components/database-picker";
 import { EstimateCard } from "@/components/discovery-estimate";
 import { DiscoveryProposals } from "@/components/discovery-proposals";
@@ -67,6 +67,7 @@ export function pickerLabels(locale: Locale): PickerLabels {
   return {
     legend: t("plan.picker.legend"),
     orderHelp: t("plan.picker.orderHelp"),
+    orderHelpHint: { locale, textKey: "plan.picker.orderHelp" },
     check: (name) => row("check", name),
     up: (name) => row("up", name),
     down: (name) => row("down", name),
@@ -321,7 +322,7 @@ export function DiscoveryPlan({ locale }: Readonly<{ locale: Locale }>) {
               <h1 ref={heading} tabIndex={-1} className="mt-2 font-display text-3xl text-ink">
                 {t("plan.title")}
               </h1>
-              <p className="mt-2 max-w-2xl text-ink-muted">{t("plan.lede")}</p>
+              <p className="mt-2 max-w-2xl text-ink-muted" data-copy="lede">{t("plan.lede")}</p>
             </header>
             <section aria-labelledby="plan-picker" className="space-y-3 rounded-lg border border-rule bg-leaf p-5" data-plan-picker>
               <h2 id="plan-picker" className="font-semibold text-ink">
@@ -429,16 +430,15 @@ export function DiscoveryPlan({ locale }: Readonly<{ locale: Locale }>) {
                   {copied ? t("copied") : ""}
                 </span>
               </div>
-              <p className="mt-3 text-sm text-ink-muted">
-                {t("plan.imports.hint")}{" "}
-                {hasRun ? (
-                  <span data-imports-after-run>{t("plan.imports.afterRun")}</span>
-                ) : (
+              {/* M10d (03-guidance D-P7, D-P8): how to add Scopus or Web of Science is a hint on the Import link; after a run the harvest's own warning says it. */}
+              {hasRun ? null : (
+                <p className="mt-3 flex items-center gap-1 text-sm text-ink-muted">
                   <a className={LINK} href={discoveryHref(locale, "import", origin)}>
                     {t("steps.import")}
                   </a>
-                )}
-              </p>
+                  <Hint locale={locale} label={t("steps.import")} text={t("plan.imports.hint")} textKey="plan.imports.hint" />
+                </p>
+              )}
             </section>
           </div>
           <aside className="space-y-4">
@@ -467,16 +467,22 @@ export function DiscoveryPlan({ locale }: Readonly<{ locale: Locale }>) {
                   <dd className="text-ink">{plan.query.language ? <bdi dir="ltr">{plan.query.language}</bdi> : t("plan.limits.noLimit")}</dd>
                 </div>
                 <div data-cap={plan.cap.source}>
-                  <dt className="text-ink-muted">{t("plan.limits.cap")}</dt>
+                  <dt className="flex items-center gap-1 text-ink-muted">
+                    <span>{t("plan.limits.cap")}</span>
+                    {plan.cap.source === "protocol" ? <Hint locale={locale} label={t("plan.limits.cap")} text={t("plan.limits.cap.protocol")} textKey="plan.limits.cap.protocol" /> : null}
+                  </dt>
                   <dd className="text-ink">
                     <bdi dir="ltr">{plan.cap.value}</bdi>
                   </dd>
-                  <dd className="mt-1 text-xs text-ink-muted">
-                    {plan.cap.source === "protocol" ? t("plan.limits.cap.protocol") : t("plan.limits.cap.engine_ceiling", { ceiling: plan.cap.ceiling })}
-                  </dd>
+                  {plan.cap.source === "protocol" ? null : (
+                    <dd className="mt-1 text-xs text-ink-muted">{t("plan.limits.cap.engine_ceiling", { ceiling: plan.cap.ceiling })}</dd>
+                  )}
                 </div>
                 <div>
-                  <dt className="text-ink-muted">{t("mailto.title")}</dt>
+                  <dt className="flex items-center gap-1 text-ink-muted">
+                    <span>{t("mailto.title")}</span>
+                    <Hint locale={locale} label={t("mailto.title")} text={t("plan.limits.mailto.help")} textKey="plan.limits.mailto.help" />
+                  </dt>
                   <dd className="text-ink">
                     {plan.mailto_set ? (
                       <DecisionBadge role="include">{t("plan.limits.mailto.set")}</DecisionBadge>
@@ -484,11 +490,13 @@ export function DiscoveryPlan({ locale }: Readonly<{ locale: Locale }>) {
                       <DecisionBadge role="unclear">{t("plan.limits.mailto.notSet")}</DecisionBadge>
                     )}
                   </dd>
-                  <dd className="mt-1 text-xs text-ink-muted">{t("plan.limits.mailto.help")}</dd>
                 </div>
                 {plan.openalex_key_set === undefined ? null : (
                   <div data-openalex-key-set={plan.openalex_key_set ? "true" : "false"}>
-                    <dt className="text-ink-muted">{t("openalexKey.title")}</dt>
+                    <dt className="flex items-center gap-1 text-ink-muted">
+                      <span>{t("openalexKey.title")}</span>
+                      <Hint locale={locale} label={t("openalexKey.title")} text={t("plan.limits.openalexKey.help")} textKey="plan.limits.openalexKey.help" />
+                    </dt>
                     <dd className="text-ink">
                       {plan.openalex_key_set ? (
                         <DecisionBadge role="include">{t("plan.limits.mailto.set")}</DecisionBadge>
@@ -496,12 +504,14 @@ export function DiscoveryPlan({ locale }: Readonly<{ locale: Locale }>) {
                         <DecisionBadge role="unclear">{t("plan.limits.mailto.notSet")}</DecisionBadge>
                       )}
                     </dd>
-                    <dd className="mt-1 text-xs text-ink-muted">{t("plan.limits.openalexKey.help")}</dd>
                   </div>
                 )}
                 {plan.s2_key_set === undefined ? null : (
                   <div data-s2-key-set={plan.s2_key_set ? "true" : "false"}>
-                    <dt className="text-ink-muted">{t("s2Key.title")}</dt>
+                    <dt className="flex items-center gap-1 text-ink-muted">
+                      <span>{t("s2Key.title")}</span>
+                      <Hint locale={locale} label={t("s2Key.title")} text={t("plan.limits.s2Key.help")} textKey="plan.limits.s2Key.help" />
+                    </dt>
                     <dd className="text-ink">
                       {plan.s2_key_set ? (
                         <DecisionBadge role="unclear">{t("plan.limits.s2Key.set")}</DecisionBadge>
@@ -509,7 +519,6 @@ export function DiscoveryPlan({ locale }: Readonly<{ locale: Locale }>) {
                         t("plan.limits.mailto.notSet")
                       )}
                     </dd>
-                    <dd className="mt-1 text-xs text-ink-muted">{t("plan.limits.s2Key.help")}</dd>
                   </div>
                 )}
               </dl>
@@ -530,12 +539,14 @@ export function DiscoveryPlan({ locale }: Readonly<{ locale: Locale }>) {
               <OpenAlexKeyCard locale={locale} onCheck={() => void load(current(), true)} />
             ) : null}
             <section className="rounded-lg border border-rule bg-leaf p-5">
-              <p className="text-sm text-ink-muted">{t("amend.help")}</p>
-              <a className={LINK} href={inceptionHref(locale, origin)} data-amend>
-                {t("amend.link")}
-              </a>
+              <p className="flex items-center gap-1">
+                <a className={LINK} href={inceptionHref(locale, origin)} data-amend>
+                  {t("amend.link")}
+                </a>
+                <Hint locale={locale} label={t("amend.link")} text={t("amend.help")} textKey="amend.help" />
+              </p>
               <p className="mt-3">
-                <a className={LINK} href={discoveryHref(locale, "recall", origin)} data-next>
+                <a className={PRIMARY_LINK} href={discoveryHref(locale, "recall", origin)} data-variant="primary" data-next>
                   {t("plan.next")}
                 </a>
               </p>

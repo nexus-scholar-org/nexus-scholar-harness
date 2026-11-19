@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { DiscoveryChecksPanel } from "@/components/discovery-checks";
 
 import type { Locale } from "@/i18n";
-import { Button, DataCell, DecisionBadge, type DecisionRole } from "@/components/ui/base";
+import { Button, DataCell, DecisionBadge, Hint, PRIMARY_LINK, type DecisionRole } from "@/components/ui/base";
 import { DETAILS_LABEL } from "@/components/screening-state-card";
 import {
   DiscoveryFrame,
@@ -129,7 +129,6 @@ export function DiscoveryReport({ locale }: Readonly<{ locale: Locale }>) {
           <header>
             <Eyebrow locale={locale} step="report" name={t("report.eyebrowName")} />
             <h1 className="mt-2 font-display text-3xl text-ink">{t("report.title")}</h1>
-            <p className="mt-2 max-w-2xl text-ink-muted">{t("report.lede")}</p>
             <p className="mt-2 flex flex-wrap items-center gap-2 text-ink">
               <DataCell>{report.run}</DataCell>
               <DecisionBadge role={report.status === "PARTIAL" ? "unclear" : "include"}>{statusText(locale, report.status)}</DecisionBadge>
@@ -165,6 +164,10 @@ export function DiscoveryReport({ locale }: Readonly<{ locale: Locale }>) {
                         {(["database", "query", "reported", "fetched", "completeness", "noAbstract", "searched"] as const).map((c) => (
                           <th key={c} scope="col" className="pb-2 pe-3 text-start">
                             {t(`report.col.${c}` as DiscoveryCopyKey)}
+                            {/* M10d (03-guidance D-RP5, rule 1.6): one hint on the column heading, not one per capped row. */}
+                            {c === "completeness" && report.identification.some((r) => r.completeness === "lower_bound") ? (
+                              <Hint locale={locale} label={t("report.col.completeness")} text={t("report.completeness.lowerBoundNote")} textKey="report.completeness.lowerBoundNote" />
+                            ) : null}
                           </th>
                         ))}
                       </tr>
@@ -196,7 +199,6 @@ export function DiscoveryReport({ locale }: Readonly<{ locale: Locale }>) {
                             </td>
                             <td className="py-2 pe-3">
                               <DecisionBadge role={c.role}>{c.text}</DecisionBadge>
-                              {row.completeness === "lower_bound" ? <span className="block text-xs text-ink-muted">{t("report.completeness.lowerBoundNote")}</span> : null}
                               {row.error_code ? (
                                 <span className="block font-mono text-[0.8125rem] text-blocked" dir="ltr" data-error-code>
                                   {row.error_code}
@@ -220,11 +222,11 @@ export function DiscoveryReport({ locale }: Readonly<{ locale: Locale }>) {
                 </p>
                 <p className="mt-2 text-xs text-ink-muted">{t("report.stringsNote", { run: report.run })}</p>
                 {newest && !accepted && report.identification.some((r) => r.completeness === "lower_bound" || r.completeness === "failed") ? (
-                  <p className="mt-2 text-sm text-ink" data-again>
-                    {t("report.again")}{" "}
+                  <p className="mt-2 flex items-center gap-1 text-sm text-ink" data-again>
                     <a className={LINK} href={discoveryHref(locale, "harvest", origin)}>
                       {t("steps.harvest")}
                     </a>
+                    <Hint locale={locale} label={t("steps.harvest")} text={t("report.again")} textKey="report.again" />
                   </p>
                 ) : null}
               </section>
@@ -407,7 +409,8 @@ export function DiscoveryReport({ locale }: Readonly<{ locale: Locale }>) {
                       >
                         {t("report.methods.draft")}
                       </Button>
-                      <Button variant="primary" disabled={saving || tooLong || !shown.trim()} onClick={() => void save(true)} data-review>
+                      {/* M10d (03-guidance rule 2, question 4): the review is the one main action while the text is unreviewed; then Continue is. */}
+                      <Button variant={methods.reviewed && !edited ? "secondary" : "primary"} disabled={saving || tooLong || !shown.trim()} onClick={() => void save(true)} data-review>
                         {saving ? t("report.methods.saving") : t("report.methods.review")}
                       </Button>
                     </>
@@ -429,7 +432,10 @@ export function DiscoveryReport({ locale }: Readonly<{ locale: Locale }>) {
             <aside className="space-y-4">
             <DiscoveryChecksPanel locale={locale} step="report" origin={origin} run={wanted} />
               <section className="rounded-lg border border-rule bg-leaf p-5 text-sm">
-                <h2 className="font-semibold text-ink">{t("report.history.title")}</h2>
+                <div className="flex items-center gap-1">
+                  <h2 className="font-semibold text-ink">{t("report.history.title")}</h2>
+                  <Hint locale={locale} label={t("report.history.title")} text={t("report.history.note")} textKey="report.history.note" />
+                </div>
                 <ul className="mt-2 space-y-1">
                   {runs.map((r) => (
                     <li key={r.run}>
@@ -441,7 +447,6 @@ export function DiscoveryReport({ locale }: Readonly<{ locale: Locale }>) {
                     </li>
                   ))}
                 </ul>
-                <p className="mt-2 text-xs text-ink-muted">{t("report.history.note")}</p>
                 <p className="mt-3">
                   <a className={LINK} href={runReportHref(origin, report.run)} target="_blank" rel="noreferrer" data-markdown>
                     {t("report.markdown")}
@@ -455,7 +460,12 @@ export function DiscoveryReport({ locale }: Readonly<{ locale: Locale }>) {
                   </a>
                 </p>
                 <p>
-                  <a className={LINK} href={discoveryHref(locale, "handoff", origin)} data-next>
+                  <a
+                    className={methods.reviewed && !edited ? PRIMARY_LINK : LINK}
+                    href={discoveryHref(locale, "handoff", origin)}
+                    data-variant={methods.reviewed && !edited ? "primary" : undefined}
+                    data-next
+                  >
                     {t("report.next")}
                   </a>
                 </p>
