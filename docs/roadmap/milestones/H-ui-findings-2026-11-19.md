@@ -48,7 +48,7 @@ Browser: the real export built on this machine (`npm run build:export`, which pr
 | pr (repair) | `e6ea19b2` | `npx playwright test tests-browser/hygiene.spec.ts` (both colour profiles) | 8 passed | 40 s |
 | pr | `e6ea19b2` | `uv run python scripts/generate_contract_baseline.py --check` | "Contract baseline current" | |
 | pr | `e6ea19b2` | `npm run build:export` then the real export served by `nexus-scholar ui` and driven in a browser (see above) | pass; "Flattened 85 prefetch file(s)"; no 404 | |
-| review | `e6ea19b2` | `milestone-reviewer` | (verdict below) | |
+| review | `e6ea19b2` | `milestone-reviewer` | APPROVE, no P0 to P2; four P3 nits (stale spec lines for F2 and F7, a DoD sentence, a loose test, an unused helper) fixed in `c5fba40f` and `d3d76ba4`. Not re-run by the reviewer: the full vitest, test:browser, the export build, the browser checks | |
 
 ## Deferred
 - **A protocol with one one-word concept** produces a one-word query for every database and no check warns about it. Not built, as asked. Suggestion for the checks catalogue (`02-checks`): a warning `CONCEPTS_ONE_ONLY` already exists for one concept; extend its sentence or add a sibling check for "the whole query is one word", with the same non-blocking level.
