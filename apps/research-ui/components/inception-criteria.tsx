@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 
 import type { Locale } from "@/i18n";
 import { formatNumber } from "@/i18n";
-import { Button, DecisionBadge } from "@/components/ui/base";
+import { Button, DecisionBadge, Hint } from "@/components/ui/base";
 import { inceptionHref, InceptionFrame, InceptionRefusal, refusalOf, StepHeader, useDraft, type Refusal } from "@/components/inception-frame";
 import { StepAssist } from "@/components/inception-assist";
 
@@ -207,9 +207,15 @@ export function InceptionCriteria({ locale }: Readonly<{ locale: Locale }>) {
     };
     return (
       <section aria-labelledby={`criteria-${kind}`} className="rounded-lg border border-rule bg-leaf p-4" data-side={kind}>
-        <h2 id={`criteria-${kind}`} className="font-semibold text-ink">
-          {t(kind === "inclusion" ? "criteria.inclusion" : "criteria.exclusion")}
-        </h2>
+        <div className="flex items-center gap-1">
+          <h2 id={`criteria-${kind}`} className="font-semibold text-ink">
+            {t(kind === "inclusion" ? "criteria.inclusion" : "criteria.exclusion")}
+          </h2>
+          {/* M10d (03-guidance I-C14, rule 1.6): one hint on the list heading, not one per criterion. */}
+          {items.some((c) => c.generated) ? (
+            <Hint locale={locale} label={t(kind === "inclusion" ? "criteria.inclusion" : "criteria.exclusion")} text={t("criteria.editHint")} textKey="criteria.editHint" />
+          ) : null}
+        </div>
         <p className="text-xs text-ink-muted" data-side-count>
           {t("criteria.sideCount", { accepted: formatNumber(locale, items.filter((c) => c.status === "accepted").length), total: formatNumber(locale, items.length) })}
         </p>
@@ -233,7 +239,6 @@ export function InceptionCriteria({ locale }: Readonly<{ locale: Locale }>) {
                 <p className="mt-2 text-ink" dir="ltr" data-verbatim>
                   {item.criterion}
                 </p>
-                {item.generated && item.status === "undecided" ? <p className="mt-1 text-xs text-ink-muted">{t("criteria.defaultNo")}</p> : null}
                 <div role="group" aria-label={t("criteria.decision", { id: label })} className="mt-2 flex flex-wrap gap-2">
                   <Button aria-pressed={item.status === "accepted"} onClick={() => decide(item, true)} data-accept>
                     {t("criteria.accept")}
@@ -247,7 +252,6 @@ export function InceptionCriteria({ locale }: Readonly<{ locale: Locale }>) {
                     </Button>
                   ) : null}
                 </div>
-                {item.generated ? <p className="mt-1 text-xs text-ink-muted">{t("criteria.editHint")}</p> : null}
                 {kind === "exclusion" ? (
                   <ReasonControl
                     locale={locale}
@@ -331,9 +335,12 @@ export function InceptionCriteria({ locale }: Readonly<{ locale: Locale }>) {
         }}
       >
         <section aria-labelledby="criteria-concepts" className="rounded-lg border border-rule bg-leaf p-4">
-          <h2 id="criteria-concepts" className="font-semibold text-ink">
-            {t("criteria.concepts")}
-          </h2>
+          <div className="flex items-center gap-1">
+            <h2 id="criteria-concepts" className="font-semibold text-ink">
+              {t("criteria.concepts")}
+            </h2>
+            {report ? <Hint locale={locale} label={t("criteria.concepts")} text={t("criteria.anchor.note")} textKey="criteria.anchor.note" /> : null}
+          </div>
           <ol className="mt-3 space-y-3">
             {concepts.map((c, index) => (
               <li key={index} data-concept={index}>
@@ -378,7 +385,6 @@ export function InceptionCriteria({ locale }: Readonly<{ locale: Locale }>) {
               </li>
             ))}
           </ol>
-          {report ? <p className="mt-2 text-xs text-ink-muted" data-anchor-note>{t("criteria.anchor.note")}</p> : null}
           {recon && !hasUsablePool(recon) ? (
             <p className="mt-2 text-sm text-ink-muted" data-no-pool>
               {t("criteria.synonyms.noPool")}{" "}
@@ -435,8 +441,10 @@ export function InceptionCriteria({ locale }: Readonly<{ locale: Locale }>) {
 
         {matrix ? (
           <fieldset className="rounded-lg border border-rule bg-leaf p-4" data-matrix>
-            <legend className="px-1 font-semibold text-ink">{t("criteria.matrix")}</legend>
-            <p className="text-xs text-ink-muted">{t("criteria.matrixHelp")}</p>
+            <legend className="px-1 font-semibold text-ink">
+              {t("criteria.matrix")}
+              <Hint locale={locale} label={t("criteria.matrix")} text={t("criteria.matrixHelp")} textKey="criteria.matrixHelp" className="ms-1" />
+            </legend>
             <p className="mt-1 inline-block rounded-sm border border-dashed border-rule px-2 text-xs text-ink-muted" data-parked="matrix">
               {t("criteria.matrixParked")}
             </p>
@@ -585,8 +593,13 @@ function Anchoring({
         ))}
       </ul>
       <div role="group" aria-label={t("criteria.synonyms.group", { concept: row.concept })} className="rounded-md border border-dashed border-ink-muted p-3" data-suggestions={index}>
-        <p className="text-xs font-semibold text-ink-muted">{t("criteria.synonyms.title")}</p>
-        <p className="text-xs text-ink-muted">{t("criteria.synonyms.help")}</p>
+        <div className="flex items-center gap-1">
+          <p className="text-xs font-semibold text-ink-muted">{t("criteria.synonyms.title")}</p>
+          <Hint locale={locale} label={t("criteria.synonyms.title")} text={t("criteria.synonyms.help")} textKey="criteria.synonyms.help" />
+          {row.suggestions.some((sug) => synonyms.includes(sug.term)) ? (
+            <Hint locale={locale} label={t("criteria.synonyms.title")} text={t("criteria.synonyms.unsaved")} textKey="criteria.synonyms.unsaved" />
+          ) : null}
+        </div>
         {row.suggestions.length === 0 ? (
           <p className="mt-1 text-ink-muted">{t("criteria.synonyms.none")}</p>
         ) : (
@@ -609,7 +622,6 @@ function Anchoring({
             {all ? t("criteria.synonyms.less") : t("criteria.synonyms.more", { n: String(row.suggestions.length) })}
           </Button>
         ) : null}
-        {row.suggestions.some((sug) => synonyms.includes(sug.term)) ? <p className="text-xs text-ink-muted">{t("criteria.synonyms.unsaved")}</p> : null}
       </div>
     </div>
   );

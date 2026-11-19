@@ -121,9 +121,9 @@ describe("inception.import on the steps", () => {
     await waitFor(() => expect(document.querySelector("[data-imported-mark='scope']")).toBeNull());
     expect(engine.calls.some((c) => c.method === "POST" && c.path.endsWith("/origin/checked") && (c.body as { step: string }).step === "scope")).toBe(true);
     // The topic is not stored by a protocol: the first question is offered, never copied unasked.
-    expect(screen.getByLabelText(/topic/i)).toHaveValue("");
+    expect(screen.getByLabelText(/topic/i, { selector: "textarea" })).toHaveValue("");
     fireEvent.click(screen.getByRole("button", { name: "Use research question 1" }));
-    expect(screen.getByLabelText(/topic/i)).toHaveValue("How reliable is UAV weed mapping?");
+    expect(screen.getByLabelText(/topic/i, { selector: "textarea" })).toHaveValue("How reliable is UAV weed mapping?");
   });
 
   it("offers the earlier range on Shape, filled only when pressed", async () => {

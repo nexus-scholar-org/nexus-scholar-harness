@@ -62,7 +62,7 @@ describe("inception.shape optional proof (M10b)", () => {
     setUp({ draft: completeDraft({ proof: "", extra_inclusions: ["Field trials with UAV imagery"] }) });
     render(<InceptionShape locale="en" />);
     await waitFor(() => expect(document.querySelector("[data-proof-optional]")).not.toBeNull());
-    expect(screen.getByLabelText(/Proof a reviewer would accept/)).toHaveAccessibleName(/optional: this review already has an inclusion criterion/);
+    expect(screen.getByLabelText(/Proof a reviewer would accept/, { selector: "input" })).toHaveAccessibleName(/optional: this review already has an inclusion criterion/);
     // No proof answer: no template question is offered.
     expect(screen.getByRole("button", { name: /Use this draft as RQ/ })).toBeDisabled();
   });

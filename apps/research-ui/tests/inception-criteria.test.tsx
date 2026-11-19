@@ -23,7 +23,8 @@ describe("inception.criteria", () => {
     expect(proof).toHaveAttribute("data-status", "undecided");
     expect(within(proof).getByText("Written by the wizard from your proof answer")).toBeInTheDocument();
     expect(within(proof).getByText("Waiting for you")).toBeInTheDocument();
-    expect(within(proof).getByText("Written by the wizard: not in the protocol unless you accept it.")).toBeInTheDocument();
+    // M10d (03-guidance I-C13): the per-row sentence is removed; the source and "Waiting for you" say it.
+    expect(within(proof).queryByText("Written by the wizard: not in the protocol unless you accept it.")).toBeNull();
     expect(within(proof).getByRole("button", { name: "Accept" })).toHaveAttribute("aria-pressed", "false");
     const typed = screen.getByText("closed-source models").closest("li")!;
     expect(typed).toHaveAttribute("data-status", "accepted");

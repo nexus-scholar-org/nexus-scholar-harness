@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 
 import type { Locale } from "@/i18n";
-import { Button } from "@/components/ui/base";
+import { Button, Hint, RecommendedBadge } from "@/components/ui/base";
+import { guidanceT } from "@/lib/guidance-copy";
 import { inceptionHref, InceptionFrame, InceptionRefusal, refusalOf, StepHeader, useDraft, type Refusal } from "@/components/inception-frame";
 import { StepAssist } from "@/components/inception-assist";
 
@@ -26,6 +27,7 @@ function lines(text: string): string[] {
 
 export function InceptionShape({ locale }: Readonly<{ locale: Locale }>) {
   const t = inceptionT(locale);
+  const g = guidanceT(locale);
   const state = useDraft();
   const { draft, update, save, saving, saveError, origin, draftId, record } = state;
   const [scope, setScope] = useState<ScopeStep | null>(null);
@@ -123,7 +125,10 @@ export function InceptionShape({ locale }: Readonly<{ locale: Locale }>) {
         }}
       >
         <fieldset>
-          <legend className="text-sm font-medium text-ink">{t("shape.paradigm")}</legend>
+          <legend className="text-sm font-medium text-ink">
+            {t("shape.paradigm")}
+            <Hint locale={locale} label={t("shape.paradigm")} text={t("shape.leaningNote")} textKey="shape.leaningNote" className="ms-1" />
+          </legend>
           {scope ? (
             <div className="mt-2 grid gap-3 sm:grid-cols-2" data-paradigms>
               {scope.paradigms.map((p) => {
@@ -144,9 +149,10 @@ export function InceptionShape({ locale }: Readonly<{ locale: Locale }>) {
                     />
                     <span className="min-w-0">
                       <span className="block font-medium text-ink">{p.name}</span>
+                      {/* M10d (03-guidance rule 3): the lens the word scan leans to is marked, with its source; the why is the legend's hint (never in a label). Nothing is chosen. */}
                       {p.name === leaning ? (
-                        <span className="mt-1 inline-block rounded-sm border border-dashed border-rule px-2 text-xs text-ink-muted" data-leaning>
-                          {t("shape.leaning")}
+                        <span className="mt-1 block" data-leaning>
+                          <RecommendedBadge locale={locale} source={g("guidance.recommended.source.wordScan")} />
                         </span>
                       ) : null}
                       <span className="mt-1 block text-sm text-ink-muted" dir="ltr">
@@ -162,7 +168,6 @@ export function InceptionShape({ locale }: Readonly<{ locale: Locale }>) {
               {t("asking")}
             </p>
           ) : null}
-          <p className="mt-2 text-xs text-ink-muted">{t("shape.leaningNote")}</p>
         </fieldset>
 
         {shape ? (
@@ -181,7 +186,11 @@ export function InceptionShape({ locale }: Readonly<{ locale: Locale }>) {
                       <span className="text-sm text-ink-muted" dir="ltr">
                         · {p.framework}
                       </span>
-                      {p.name === shape.recommended_playbook ? <span className="ms-2 text-xs text-brand">{t("shape.recommended")}</span> : null}
+                      {p.name === shape.recommended_playbook ? (
+                        <span className="ms-2" data-recommended-playbook>
+                          <RecommendedBadge locale={locale} source={g("guidance.recommended.source.lens")} />
+                        </span>
+                      ) : null}
                     </span>
                   </label>
                 );
@@ -202,9 +211,12 @@ export function InceptionShape({ locale }: Readonly<{ locale: Locale }>) {
 
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
-            <label htmlFor="shape-unit" className="block text-sm font-medium text-ink">
-              {t("shape.unit")}
-            </label>
+            <div className="flex items-center gap-1">
+              <label htmlFor="shape-unit" className="block text-sm font-medium text-ink">
+                {t("shape.unit")}
+              </label>
+              <Hint locale={locale} label={t("shape.unit")} text={t("shape.unitHelp")} textKey="shape.unitHelp" id="shape-unit-help" />
+            </div>
             <input
               id="shape-unit"
               value={draft.unit_of_analysis ?? ""}
@@ -212,19 +224,19 @@ export function InceptionShape({ locale }: Readonly<{ locale: Locale }>) {
               aria-describedby="shape-unit-help"
               className="mt-1 block min-h-11 w-full rounded-md border border-rule bg-paper px-2 text-ink"
             />
-            <p id="shape-unit-help" className="mt-1 text-xs text-ink-muted">
-              {t("shape.unitHelp")}
-            </p>
           </div>
           <div>
-            <label htmlFor="shape-proof" className="block text-sm font-medium text-ink">
-              {t("shape.proof")}
-              {proofOptional ? (
-                <span className="ms-1 font-normal text-ink-muted" data-proof-optional>
-                  {t("shape.proof.optional")}
-                </span>
-              ) : null}
-            </label>
+            <div className="flex items-center gap-1">
+              <label htmlFor="shape-proof" className="block text-sm font-medium text-ink">
+                {t("shape.proof")}
+                {proofOptional ? (
+                  <span className="ms-1 font-normal text-ink-muted" data-proof-optional>
+                    {t("shape.proof.optional")}
+                  </span>
+                ) : null}
+              </label>
+              <Hint locale={locale} label={t("shape.proof")} text={t("shape.proofHelp")} textKey="shape.proofHelp" id="shape-proof-help" />
+            </div>
             <input
               id="shape-proof"
               value={draft.proof ?? ""}
@@ -232,9 +244,6 @@ export function InceptionShape({ locale }: Readonly<{ locale: Locale }>) {
               aria-describedby="shape-proof-help"
               className="mt-1 block min-h-11 w-full rounded-md border border-rule bg-paper px-2 text-ink"
             />
-            <p id="shape-proof-help" className="mt-1 text-xs text-ink-muted">
-              {t("shape.proofHelp")}
-            </p>
             {record?.origin?.report?.needs_you?.includes("proof") && !(draft.proof ?? "").trim() && !proofOptional ? (
               <p className="mt-1 text-sm text-unclear" data-needs-proof>
                 {t("imported.needs.line", { field: t("imported.needs.proof") })}
@@ -244,9 +253,12 @@ export function InceptionShape({ locale }: Readonly<{ locale: Locale }>) {
         </div>
 
         <div>
-          <label htmlFor="shape-out" className="block text-sm font-medium text-ink">
-            {t("shape.outOfScope")}
-          </label>
+          <div className="flex items-center gap-1">
+            <label htmlFor="shape-out" className="block text-sm font-medium text-ink">
+              {t("shape.outOfScope")}
+            </label>
+            <Hint locale={locale} label={t("shape.outOfScope")} text={t("shape.outOfScopeHelp")} textKey="shape.outOfScopeHelp" id="shape-out-help" />
+          </div>
           <textarea
             id="shape-out"
             rows={3}
@@ -255,17 +267,19 @@ export function InceptionShape({ locale }: Readonly<{ locale: Locale }>) {
             aria-describedby="shape-out-help"
             className="mt-1 block w-full rounded-md border border-rule bg-paper p-2 text-ink"
           />
-          <p id="shape-out-help" className="mt-1 text-xs text-ink-muted">
-            {t("shape.outOfScopeHelp")}
-          </p>
         </div>
 
         <section aria-labelledby="shape-rq-draft" className="space-y-3">
           {shape ? (
             <div className="rounded-lg border border-dashed border-rule p-4" data-rq-draft data-draft-current={draftCurrent ? "true" : "false"} aria-busy={!draftCurrent}>
-              <p id="shape-rq-draft" className="text-xs font-semibold text-ink-muted">
-                {t("shape.rqDraft")}
-              </p>
+              <div className="flex items-center gap-1">
+                <p id="shape-rq-draft" className="text-xs font-semibold text-ink-muted">
+                  {t("shape.rqDraft")}
+                </p>
+                {shape.lexicon ? (
+                  <Hint locale={locale} label={t("shape.rqDraft")} text={`${t("shape.lexicon")}: ${shape.lexicon}`} textKey="shape.lexicon" />
+                ) : null}
+              </div>
               {shape.rq_draft ? (
                 <p className={`mt-1 ${draftCurrent ? "text-ink" : "text-ink-muted"}`} dir="ltr">
                   {shape.rq_draft}
@@ -285,9 +299,6 @@ export function InceptionShape({ locale }: Readonly<{ locale: Locale }>) {
                   {draftHint}
                 </p>
               ) : null}
-              <p className="mt-2 text-xs text-ink-muted">
-                {t("shape.lexicon")}: <span dir="ltr">{shape.lexicon}</span>
-              </p>
             </div>
           ) : (
             <p id="shape-rq-draft" className="text-sm text-ink-muted">
@@ -383,10 +394,10 @@ function PlannedRecords({
   const shown = (n: number | null) => (n == null || Number.isNaN(n) ? "" : String(n));
   return (
     <fieldset className="rounded-lg border border-rule bg-leaf p-4" data-planned>
-      <legend className="px-1 text-sm font-medium text-ink">{t("shape.planned.title")}</legend>
-      <p id="shape-planned-hint" className="text-xs text-ink-muted">
-        {t("shape.planned.hint")}
-      </p>
+      <legend className="px-1 text-sm font-medium text-ink">
+        {t("shape.planned.title")}
+        <Hint locale={locale} label={t("shape.planned.title")} text={t("shape.planned.hint")} textKey="shape.planned.hint" id="shape-planned-hint" className="ms-1" />
+      </legend>
       <div className="mt-2 flex flex-wrap items-end gap-3">
         <div>
           <label htmlFor="shape-planned-min" className="block text-sm text-ink">
