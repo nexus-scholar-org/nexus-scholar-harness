@@ -326,3 +326,16 @@ def test_the_checks_name_the_pool_by_its_stored_fingerprint(env):
     assert "CONCEPT_NOT_ANCHORED" in {c["check_id"] for c in checks}
     named = {e["value"] for c in checks for e in c["evidence"] if e.get("name") == "pool"}
     assert named == {stored}, (named, stored)
+
+
+def test_an_assistant_reads_the_sample_without_the_papers_the_researcher_left_out(env, tmp_path):
+    """M10c: the MCP assistant reads the same sample the screens show (M10b Part C curation)."""
+    from scholar_harness import assistant
+    from scholar_harness.recon.session import ReconSessions
+
+    client, app, root = env
+    sid = _searched(client)
+    assert _mark(client, sid, add=["10.1/w200"]).status_code == 200
+    pool = assistant.read_draft(root, sid, sessions=ReconSessions(root=app.state.recon_root))["pool"]
+    assert "10.1/w200" not in [p["doi"] for p in pool["papers"]] and len(pool["papers"]) == 25
+    assert [p["doi"] for p in pool["left_out_by_researcher"]] == ["10.1/w200"]

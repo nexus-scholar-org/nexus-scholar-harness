@@ -7,6 +7,7 @@ import type { Locale } from "@/i18n";
 import { Button, DataCell, DecisionBadge, type DecisionRole } from "@/components/ui/base";
 import { DatabasePicker, type PickerItem, type PickerLabels } from "@/components/database-picker";
 import { EstimateCard } from "@/components/discovery-estimate";
+import { DiscoveryProposals } from "@/components/discovery-proposals";
 import { StateCard } from "@/components/screening-state-card";
 import {
   DiscoveryFrame,
@@ -441,6 +442,8 @@ export function DiscoveryPlan({ locale }: Readonly<{ locale: Locale }>) {
             </section>
           </div>
           <aside className="space-y-4">
+            {/* M10c D5: an assistant's suggested changes to the search; Apply re-reads the plan. */}
+            <DiscoveryProposals locale={locale} origin={origin} onAmended={() => void load(choice)} />
             <DiscoveryChecksPanel locale={locale} step="plan" origin={origin} />
             <section aria-labelledby="plan-limits" className="rounded-lg border border-rule bg-leaf p-5">
               <h2 id="plan-limits" className="font-semibold text-ink">

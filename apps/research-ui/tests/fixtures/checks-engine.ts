@@ -38,6 +38,8 @@ export interface CheckIn {
   refusal?: string | null;
   dismissible?: boolean;
   source?: string;
+  /** M10c: fields an assistant's finding adds or replaces (`message`, `agent`, `why`, `outdated`, …). */
+  extra?: Json;
 }
 
 /** One check object, as the engine builds it. */
@@ -66,6 +68,7 @@ export function checkRow(c: CheckIn): Json {
     dismissal: null,
     previously_dismissed: null,
     evidence_digest: digestOf([c.check_id, subject, evidence]),
+    ...(c.extra ?? {}),
   };
 }
 

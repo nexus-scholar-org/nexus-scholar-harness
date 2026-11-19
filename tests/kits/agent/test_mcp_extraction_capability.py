@@ -205,6 +205,12 @@ M1A_SCREENING_TOOLS = frozenset(
     {"nexus_screening_queue", "nexus_screening_record", "nexus_submit_proposal"}
 )
 
+#: M10c: the assistant and the critic (docs/roadmap/milestones/M10c-assistant-mcp.md).
+M10C_ASSISTANT_TOOLS = frozenset(
+    {"nexus_assistant_drafts", "nexus_assistant_read_draft", "nexus_assistant_read_workspace",
+     "nexus_assistant_propose", "nexus_assistant_report_finding"}
+)
+
 #: Exact envelope shape. "No artifacts" is explicit (never merely absent), and
 #: the rejection carries no manifest/sidecar/audit/success bookkeeping.
 ENVELOPE_KEYS = {"operation", "status", "artifacts", "warnings", "errors"}
@@ -726,11 +732,11 @@ def test_e2_neg_019_pre_existing_tools_are_untouched():
     """The 23 pre-existing tools plus two boundaries are exactly 25 tools."""
     registered = _registered_tool_names()
     assert PRE_EXISTING_TOOLS <= registered
-    assert sorted(registered - PRE_EXISTING_TOOLS - M1A_SCREENING_TOOLS) == [
+    assert sorted(registered - PRE_EXISTING_TOOLS - M1A_SCREENING_TOOLS - M10C_ASSISTANT_TOOLS) == [
         "nexus_pdf_acquire",
         "nexus_pdf_extraction",
     ]
-    assert len(registered) == len(PRE_EXISTING_TOOLS) + 2 + len(M1A_SCREENING_TOOLS) == 27
+    assert len(registered) == len(PRE_EXISTING_TOOLS) + 2 + len(M1A_SCREENING_TOOLS) + len(M10C_ASSISTANT_TOOLS) == 32
 
 
 # --------------------------------------------------------------------------- #

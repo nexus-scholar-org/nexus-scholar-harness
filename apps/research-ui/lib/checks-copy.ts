@@ -41,6 +41,9 @@ const EN = {
   "checks.level.note": "Note",
   "checks.source.check": "Fixed check",
   "checks.source.agent": "Assistant",
+  "checks.source.agentModel": "Assistant · {model}",
+  "checks.agent.outdated": "The field changed after this was written.",
+  "checks.ASSISTANT_FINDING.action": "Open this step",
   "checks.source.generic": "Other source",
 
   // Row
@@ -269,6 +272,9 @@ const FR: Record<ChecksCopyKey, string> = {
   "checks.level.note": "Remarque",
   "checks.source.check": "Vérification fixe",
   "checks.source.agent": "Assistant",
+  "checks.source.agentModel": "Assistant · {model}",
+  "checks.agent.outdated": "Le champ a changé depuis que ceci a été écrit.",
+  "checks.ASSISTANT_FINDING.action": "Ouvrir cette étape",
   "checks.source.generic": "Autre source",
 
   "checks.why": "Pourquoi",
@@ -490,6 +496,9 @@ const AR: Record<ChecksCopyKey, string> = {
   "checks.level.note": "ملاحظة",
   "checks.source.check": "فحص ثابت",
   "checks.source.agent": "مساعد",
+  "checks.source.agentModel": "مساعد · {model}",
+  "checks.agent.outdated": "تغيّر الحقل بعد كتابة هذا.",
+  "checks.ASSISTANT_FINDING.action": "افتح هذه الخطوة",
   "checks.source.generic": "مصدر آخر",
 
   "checks.why": "لماذا",
@@ -710,8 +719,8 @@ export function checksT(locale: Locale) {
 }
 
 /** The template of a key the engine named, or `null` when the catalogue has none (rendered as the generic line). */
-export function checksTemplate(locale: Locale, key: string, count?: number): string | null {
-  return hasChecksKey(key) ? pluralTemplate(locale, key, count, CHECKS_COPY[locale][key]) : null;
+export function checksTemplate(locale: Locale, key: string | null, count?: number): string | null {
+  return key !== null && hasChecksKey(key) ? pluralTemplate(locale, key, count, CHECKS_COPY[locale][key]) : null;
 }
 
 /** The template of a known key for a count (H-ui-findings F4: "1 check is", not "1 checks are"). */

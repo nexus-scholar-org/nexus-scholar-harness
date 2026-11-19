@@ -244,12 +244,42 @@ describe("checks panel (02-checks)", () => {
   });
 
   it("an unknown source renders with the generic label", async () => {
-    setUp({ draft: decided(), checks: () => [{ ...warning, source: "agent" }, note] });
+    setUp({ draft: decided(), checks: () => [{ ...warning, source: "chat" }, note] });
     render(<InceptionScope locale="en" />);
     await waitFor(() => expect(row("EXPLORE_SCOPE_CHANGED")).not.toBeNull());
     expect(within(row("EXPLORE_SCOPE_CHANGED")).getByText("Other source")).toBeInTheDocument();
     expect(within(row("EXPLORE_SCOPE_CHANGED")).queryByText("Assistant")).toBeNull();
     expect(within(row("SCOPE_START_YEAR_DEFAULTED")).getByText("Fixed check")).toBeInTheDocument();
+  });
+
+  it("an assistant's finding shows its model, its own words and the outdated line, and is dismissed like any warning (M10c)", async () => {
+    const finding: CheckIn = {
+      check_id: "ASSISTANT_FINDING", subject: "find_0123456789ab", step: "scope", level: "warning", source: "agent",
+      message_key: null as unknown as string, why_key: null as unknown as string, action: { kind: "step", step: "scope" },
+      evidence: [{ kind: "locator", value: "/start_year" }],
+      extra: {
+        message: "Les années ne couvrent pas les premiers drones agricoles.", why: "RQ1 asks about the whole history.",
+        agent: { model: "claude-opus-5-5", task: "critic", task_version: "assistant-v1" }, severity: "major", outdated: true,
+      },
+    };
+    const { engine } = setUp({ draft: decided(), checks: () => [finding, note] });
+    render(<InceptionScope locale="en" />);
+    await waitFor(() => expect(row("ASSISTANT_FINDING")).not.toBeNull());
+    const li = row("ASSISTANT_FINDING");
+    expect(li.querySelector("[data-source='agent']")?.textContent).toBe("Assistant · claude-opus-5-5");
+    const sentence = li.querySelector("[data-sentence] bdi") as HTMLElement;
+    expect(sentence).toHaveAttribute("dir", "auto");
+    expect(sentence.textContent).toBe("Les années ne couvrent pas les premiers drones agricoles.");
+    expect(within(li).getByText("The field changed after this was written.")).toBeInTheDocument();
+    fireEvent.click(within(li).getByRole("button", { name: /Why/ }));
+    expect(within(li).getByText("RQ1 asks about the whole history.")).toBeInTheDocument();
+    expect(within(li).getByText("Open this step")).toBeInTheDocument();
+    fireEvent.click(within(li).getByRole("button", { name: "Dismiss" }));
+    fireEvent.change(await screen.findByLabelText("Why are you dismissing this? It is kept in the record."), { target: { value: "Deliberate window." } });
+    fireEvent.click(screen.getByRole("button", { name: "Dismiss with this reason" }));
+    await waitFor(() => expect(dismissPosts(engine)).toHaveLength(1));
+    expect(dismissPosts(engine)[0].path.endsWith("/checks/ASSISTANT_FINDING/dismiss")).toBe(true);
+    expect(dismissPosts(engine)[0].body).toMatchObject({ subject: "find_0123456789ab", reason: "Deliberate window." });
   });
 
   it("level to role: blocker is text-only in the blocked role, warning unclear, note exclude, each with words", async () => {

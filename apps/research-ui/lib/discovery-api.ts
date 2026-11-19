@@ -1,5 +1,5 @@
 import { ScreeningApiError, consoleBase, postJson, readJson } from "./screening-api";
-import type { CheckList } from "./inception-api";
+import type { CheckList, Proposal } from "./inception-api";
 import type { Corpus } from "./screening-v1";
 
 /**
@@ -682,4 +682,35 @@ export function dismissDiscoveryCheck(origin: string, checkId: string, body: { s
 
 export function restoreDiscoveryCheck(origin: string, checkId: string, subject: string, signal?: AbortSignal): Promise<CheckList> {
   return postJson<CheckList>(`${BASE}/checks/${encodeURIComponent(checkId)}/restore`, origin, { subject }, signal);
+}
+
+/** M10c D5: a proposal on the workspace's search; `base` names the protocol it was made against. */
+export interface WorkspaceProposal extends Omit<Proposal, "base" | "status"> {
+  base: { hash: string; shown: string; protocol_fingerprint: string };
+  status: "open" | "stale" | "applied" | "rejected";
+  agent?: { model: string; task: string; task_version: string };
+}
+
+export interface WorkspaceProposals {
+  shape: "discovery.proposals-v1";
+  protocol_fingerprint: string;
+  /** A corpus is accepted: nothing is applied. */
+  frozen: boolean;
+  proposals: WorkspaceProposal[];
+  counts: { open: number; stale: number; applied: number; rejected: number };
+  active_job: DiscoveryJob | null;
+  /** On an Apply: what the amendment changed. */
+  amended?: { previous_fingerprint: string; protocol_fingerprint: string; changed: string[]; backup: string } | null;
+}
+
+export function getWorkspaceProposals(origin: string, signal?: AbortSignal): Promise<WorkspaceProposals> {
+  return readJson<WorkspaceProposals>(`${BASE}/proposals`, consoleBase(origin), signal);
+}
+
+export function applyWorkspaceProposal(origin: string, proposalId: string, signal?: AbortSignal): Promise<WorkspaceProposals> {
+  return postJson<WorkspaceProposals>(`${BASE}/proposals/${encodeURIComponent(proposalId)}/apply`, origin, {}, signal);
+}
+
+export function rejectWorkspaceProposal(origin: string, proposalId: string, signal?: AbortSignal): Promise<WorkspaceProposals> {
+  return postJson<WorkspaceProposals>(`${BASE}/proposals/${encodeURIComponent(proposalId)}/reject`, origin, {}, signal);
 }

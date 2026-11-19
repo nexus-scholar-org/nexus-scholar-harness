@@ -466,11 +466,12 @@ export interface Check {
   step: string;
   level: CheckLevel;
   source: string;
-  message_key: string;
+  /** `null` on an assistant's finding (M10c), whose `message` is shown as written. */
+  message_key: string | null;
   params: Record<string, unknown>;
   /** English, for logs only; never displayed. */
   message: string;
-  why_key: string;
+  why_key: string | null;
   why_params: Record<string, unknown>;
   evidence: Record<string, unknown>[];
   threshold: { name: string; value: unknown; default: unknown; unit: string } | null;
@@ -481,6 +482,12 @@ export interface Check {
   dismissal: CheckStamp | null;
   previously_dismissed: CheckStamp | null;
   evidence_digest: string;
+  /** M10c: an assistant's finding (`source: "agent"`) carries its own words in `message` and `why`. */
+  agent?: { model: string; task: string; task_version: string };
+  severity?: "critical" | "major" | "minor";
+  why?: string | null;
+  /** M10c: the located value changed after the finding was written. */
+  outdated?: boolean;
 }
 
 export interface CheckList {

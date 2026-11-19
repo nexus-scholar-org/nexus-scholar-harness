@@ -178,6 +178,10 @@ def compute(request: Request, run: str | None = None) -> tuple[list[dict[str, An
     # Hand-off
     handoff = D.handoff(request)
     run_check("HANDOFF_*", lambda: _handoff(handoff, chosen))
+    # M10c: an assistant's findings on the protocol, rows of the same object with ``source: "agent"``.
+    from scholar_harness import assistant
+
+    run_check(C.AGENT_CHECK_ID, lambda: assistant.workspace_rows(ws))
     scope = {"kind": "workspace", "protocol_fingerprint": plan["protocol_fingerprint"], "run": chosen["run"] if chosen else None}
     return items, waiting, partial, scope
 
