@@ -38,6 +38,7 @@ export function Button({
   return (
     <button
       type={type}
+      data-variant={variant}
       className={`${BUTTON_BASE} ${BUTTON_VARIANTS[variant]} ${className}`.trim()}
       {...props}
     />
@@ -90,6 +91,9 @@ export function EvidenceQuote({ children, source }: Readonly<{ children: ReactNo
     </figure>
   );
 }
+
+/** The guidance components (03-guidance, M10d) live beside these, in `guidance.tsx`. */
+export { Fold, Hint, hintPlacement, RecommendedBadge } from "./guidance";
 
 export function DataCell({ children }: Readonly<{ children: ReactNode }>) {
   return (
