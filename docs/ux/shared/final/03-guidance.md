@@ -86,6 +86,7 @@ A hint may repeat a number or a label that is also visible elsewhere; it is neve
   | 06 Review | the first open check's fix, when 02-checks exists | the Create button |
   | 03 Harvest | the suggested cap, when the size estimate (`01-plan` "Size estimate (M10b)") exists | the cap input is never pre-filled with it |
 - **Step-level recommendation** is the what's-next bar, not a badge on a button.
+- **As built (accepted 2026-11-19, decision M10d item 10).** No mark on the screens carries a hint of its own: Shape's why is the lens legend's hint (a button may not sit in a radio's label), Explore's is the Search mode hint just above it, and Review's first fix and the size estimate's cap keep the row's own "Why" disclosure.
 
 ### Rule 4: Collapsed details
 Reuse the details-disclosure pattern of spec 12 (native `<details>`/`<summary>`, closed by default, content stays in the DOM, 44 px summary, `focus` ring, no nesting). Two uses:
@@ -107,6 +108,8 @@ Before any interaction (hints closed, disclosures closed) a screen shows at most
 | B6 inline help paragraphs under fields | 0 | help is a hint (rule 1) |
 
 Not counted against the budget (and never to be removed to meet it): refusals, warnings, check results, numbers with their denominators, provenance and draft labels, gate text, field and button labels, and the tables that carry them. A screen over B2 folds secondary cards (rule 4, use 2); the fold plan below is indicative.
+
+Accepted exceptions (the researcher, 2026-11-19, decisions 2026-11-19 M10d items 3 and 4; held by `density.budget.test.tsx`, a count may only go down): B4, Explore with a pool shows up to 9 hint buttons until its repeated search controls are folded behind "Search settings" (after the researcher has tried Explore with real data), and Plan shows 7, one per key line under Limits; B1, Shape's lede may have up to 170 characters.
 
 | Screen | Cards today (from the copy, approximate; the implementer counts the rendered DOM) | Fold into collapsed sections |
 | :-- | :-- | :-- |

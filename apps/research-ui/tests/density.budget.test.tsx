@@ -33,7 +33,7 @@ afterEach(() => {
 /** Ledes the per-screen table of 03-guidance fixes at more than 130 characters (rule 2 says "about 130"). */
 const LONG_LEDE: Record<string, number> = { "04 Shape": 170 };
 /**
- * Over the B4 budget of 6, as built, waiting for the researcher (decision 2026-11-19 M10d, item 3):
+ * Over the B4 budget of 6, accepted by the researcher 2026-11-19 (decision 2026-11-19 M10d, item 3; 03-guidance rule 5):
  * Explore's pool state repeats the search controls (mode, query, order) for a new search, and
  * Plan's Limits card has one hint per key line. Each number here is the screen's count today; it
  * may only go down.
