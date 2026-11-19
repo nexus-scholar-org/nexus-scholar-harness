@@ -2,6 +2,7 @@ import { createRequire } from "node:module";
 
 import type { Page } from "@playwright/test";
 
+import { discoveryEngine, type DiscoveryFakeOptions } from "../tests/fixtures/discovery-engine";
 import { completeDraft, inceptionEngine, proofId, SESSION, type FakeOptions } from "../tests/fixtures/inception-engine";
 import { DESKTOP_VIEWPORT, expect, test } from "./helpers";
 
@@ -195,4 +196,79 @@ for (const locale of ["en", "ar"] as const) {
     });
     expect(violations).toEqual([]);
   });
+}
+
+async function discovery(page: Page, options: DiscoveryFakeOptions = {}) {
+  const fake = discoveryEngine(options);
+  await page.route("**/api/console/api/v1/**", async (route) => {
+    const url = new URL(route.request().url());
+    const path = url.pathname.replace("/api/console", "") + url.search;
+    const raw = route.request().postData();
+    const answer = fake.handle(route.request().method(), path, raw ? (JSON.parse(raw) as Record<string, unknown>) : null);
+    if (answer.sse) await route.fulfill({ status: answer.status, contentType: "text/event-stream", body: String(answer.body) });
+    else if (typeof answer.body === "string") await route.fulfill({ status: answer.status, contentType: "text/markdown", body: answer.body });
+    else await route.fulfill({ status: answer.status, json: answer.body });
+  });
+  return fake;
+}
+
+test("a warning is never inside a hint: Harvest with a capped and a failed database", async ({ page }) => {
+  await discovery(page, { runs: 1, failedLeg: { provider: "pubmed", code: "PROVIDER_RATE_LIMITED", error: "HTTPStatusError: 429 Too Many Requests" } });
+  await page.goto("/en/discovery/harvest/");
+  const pubmed = page.locator('[data-leg="pubmed"]');
+  await expect(pubmed).toContainText("The database limited the request rate.");
+  await openEveryHint(page);
+  await expect(pubmed).toContainText("The database limited the request rate.");
+  await expect(page.locator('[data-leg="crossref"] [data-count]')).toHaveText("at least 500");
+  await expect(page.locator('[data-leg="crossref"]')).toBeVisible();
+});
+
+test("hints work without a mouse: the Shape form is completed and every field hint opened and closed by keyboard", async ({ page }) => {
+  await engine(page, { draft: { topic: "weed detection" } });
+  await page.goto(`/en/inception/shape/?draft=${SESSION}`);
+  const lens = page.getByRole("radio", { name: /Design Science/ });
+  await lens.focus();
+  await page.keyboard.press("Space");
+  await expect(lens).toBeChecked();
+  const playbook = page.getByRole("radio", { name: /DESIGN_SCIENCE/ });
+  await playbook.focus();
+  await page.keyboard.press("Space");
+  await expect(playbook).toBeChecked();
+  for (const key of ["shape.leaningNote", "shape.planned.hint", "shape.unitHelp", "shape.proofHelp", "shape.outOfScopeHelp"]) {
+    const b = page.locator(`[data-hint-button="${key}"]`);
+    await b.focus();
+    await page.keyboard.press("Enter");
+    await expect(page.locator(`[data-hint-body="${key}"]`)).toBeVisible();
+    await page.keyboard.press("Escape");
+    await expect(page.locator(`[data-hint-body="${key}"]`)).toBeHidden();
+    await expect(b).toBeFocused();
+  }
+  await page.getByRole("textbox", { name: "Unit of analysis", exact: true }).focus();
+  await page.keyboard.type("embedded cameras");
+  await page.getByRole("textbox", { name: "Proof a reviewer would accept", exact: true }).focus();
+  await page.keyboard.type("mIoU and FPS");
+  await page.getByRole("button", { name: "Continue to concepts and criteria" }).focus();
+  await page.keyboard.press("Enter");
+  await expect(page.getByRole("heading", { name: "Which concepts and criteria will screen this review?" })).toBeVisible();
+});
+
+for (const locale of ["en", "ar"] as const) {
+  for (const [step, key] of [
+    ["shape", "shape.leaningNote"],
+    ["review", "review.reviewTitleHelp"],
+  ] as const) {
+    test(`axe on ${step} with a hint open and the details closed (${locale})`, async ({ page }) => {
+      await engine(page, { draft: decided() });
+      await page.goto(`/${locale}/inception/${step}/?draft=${SESSION}`);
+      await page.locator(`[data-hint-button="${key}"]`).click();
+      await expect(page.locator(`[data-hint-body="${key}"]`)).toBeVisible();
+      await page.addScriptTag({ path: AXE_PATH });
+      const violations = await page.evaluate(async () => {
+        const axe = (globalThis as unknown as { axe: { run: (ctx: Document) => Promise<{ violations: Array<{ id: string; nodes: unknown[] }> }> } }).axe;
+        const result = await axe.run(document);
+        return result.violations.map((v) => `${v.id} (${v.nodes.length})`);
+      });
+      expect(violations).toEqual([]);
+    });
+  }
 }

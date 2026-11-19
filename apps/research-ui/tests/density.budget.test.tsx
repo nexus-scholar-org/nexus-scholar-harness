@@ -14,14 +14,15 @@ import { SCREENS } from "./guidance-screens";
  * - B1: at most one lede (`data-copy="lede"`), one sentence, at most 130
  *   characters, except where the per-screen header table of 03-guidance fixes a
  *   longer sentence (`LONG_LEDE`).
- * - B2: at most 4 cards outside the folds, counted by distinct `data-card`; only
- *   on Explore and Review (question 3: the other screens are folded after the
- *   researcher has looked at these two).
+ * - B2: at most 4 cards outside the folds, counted by the distinct `data-card`
+ *   names the screens give their cards (so a card the build did not name is not
+ *   counted); only on Explore and Review (question 3: the other screens are
+ *   folded after the researcher has looked at these two).
  * - B4: at most 6 hint buttons reachable without opening a fold.
  * - B5: exactly one primary action (`data-variant="primary"`, button or link) and
  *   at most one gate.
- * - B6: no inline help paragraph under a field (`aria-describedby` pointing at a
- *   paragraph of muted help text that is not a hint, an error or a status).
+ * - B6: no sentence the audit moved behind a hint (a HINT row's text) is in the
+ *   page flow. Help text the audit never covered is not detected here.
  */
 
 afterEach(() => {

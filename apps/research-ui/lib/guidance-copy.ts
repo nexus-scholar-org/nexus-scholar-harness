@@ -21,6 +21,7 @@ const EN = {
   "guidance.recommended.source.lens": "matches your lens",
   "guidance.section.count": "{title} · {n}",
   "guidance.section.failed": "{n} failed",
+  "guidance.section.zero": "{n} found nothing",
   "guidance.notStored": "Not stored",
 } as const;
 
@@ -39,6 +40,7 @@ const FR: Record<GuidanceCopyKey, string> = {
   "guidance.recommended.source.lens": "correspond à votre perspective",
   "guidance.section.count": "{title} · {n}",
   "guidance.section.failed": "{n} en échec",
+  "guidance.section.zero": "{n} sans résultat",
   "guidance.notStored": "Non enregistré",
 };
 
@@ -55,6 +57,7 @@ const AR: Record<GuidanceCopyKey, string> = {
   "guidance.recommended.source.lens": "يوافق منظورك",
   "guidance.section.count": "{title} · {n}",
   "guidance.section.failed": "فشل {n}",
+  "guidance.section.zero": "{n} بلا نتائج",
   "guidance.notStored": "غير محفوظ",
 };
 

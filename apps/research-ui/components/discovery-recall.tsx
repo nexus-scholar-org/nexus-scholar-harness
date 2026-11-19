@@ -292,8 +292,8 @@ export function DiscoveryRecall({ locale }: Readonly<{ locale: Locale }>) {
                   </div>
                   {/* M10d (03-guidance D-R8, D-R9): what a miss means is one hint beside its title; the duplicate legend is removed. */}
                   <p className="mt-3 flex items-center gap-1 text-xs text-ink-muted">
-                    <span>{t("recall.mean.title")}</span>
-                    <Hint locale={locale} label={t("recall.mean.title")} text={`${t("recall.mean.one")} ${t("recall.mean.all")}`} textKey="recall.mean.title" />
+                    <span>{t("recall.notFound")}</span>
+                    <Hint locale={locale} label={t("recall.notFound")} text={`${t("recall.mean.one")} ${t("recall.mean.all")}`} textKey="recall.mean.title" />
                   </p>
                   <ul className="mt-3 space-y-1 text-sm" data-legs>
                     {check.legs.map((leg) => (

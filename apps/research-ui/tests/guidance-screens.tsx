@@ -80,6 +80,8 @@ export type GuidanceScreen = {
   name: string;
   /** The state, in the record's words. */
   state: string;
+  /** False for a state added after the before/after word count (it has no before). */
+  measure?: boolean;
   mount: (locale?: Locale) => Promise<void>;
 };
 
@@ -166,6 +168,17 @@ export const SCREENS: GuidanceScreen[] = [
     state: "a complete draft, nothing decided",
     mount: async (locale = "en") => {
       inceptionSetUp({ draft: completeDraft() });
+      render(<InceptionCriteria locale={locale} />);
+      await screen.findAllByRole("listitem", {}, { timeout: 5000 });
+      await settle();
+    },
+  },
+  {
+    name: "05 Criteria (pool)",
+    state: "a complete draft with two concepts, after the first search",
+    measure: false,
+    mount: async (locale = "en") => {
+      probed({}, completeDraft({ concepts: [{ concept: "weed detection", synonyms: [] }, { concept: "edge device", synonyms: [] }] }));
       render(<InceptionCriteria locale={locale} />);
       await screen.findAllByRole("listitem", {}, { timeout: 5000 });
       await settle();

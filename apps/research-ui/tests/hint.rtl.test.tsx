@@ -35,7 +35,7 @@ describe("hint.rtl", () => {
     expect(narrow).toEqual({ side: "below", left: 16, top: 148, width: 343 });
   });
 
-  it("reads the page direction when it opens, and keeps its text dir=auto with an LTR value inside", async () => {
+  it("reads the page direction when it opens and keeps its text dir=auto (a hint holds plain text, so a quoted value is ordered by the bidi algorithm, not isolated)", async () => {
     const user = userEvent.setup();
     render(
       <div dir="rtl">

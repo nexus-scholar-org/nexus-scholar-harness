@@ -50,6 +50,15 @@ describe("fold", () => {
     expect(summary.className).toContain("focus-visible:outline-2");
   });
 
+  it("names the databases that found nothing in the summary, as an unclear badge with words", () => {
+    render(
+      <Fold locale="en" title="Databases asked" count={4} empty={2}>
+        <p>row</p>
+      </Fold>,
+    );
+    expect(document.querySelector('summary [data-role="unclear"]')?.textContent).toBe("2 found nothing");
+  });
+
   it("shows no failure badge when nothing failed", () => {
     render(
       <Fold locale="en" title="Papers" count={25}>

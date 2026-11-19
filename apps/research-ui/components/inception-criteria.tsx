@@ -440,9 +440,9 @@ export function InceptionCriteria({ locale }: Readonly<{ locale: Locale }>) {
         ) : null}
 
         {matrix ? (
-          <fieldset className="rounded-lg border border-rule bg-leaf p-4" data-matrix>
+          <fieldset className="rounded-lg border border-rule bg-leaf p-4" aria-labelledby="criteria-matrix-legend" data-matrix>
             <legend className="px-1 font-semibold text-ink">
-              {t("criteria.matrix")}
+              <span id="criteria-matrix-legend">{t("criteria.matrix")}</span>
               <Hint locale={locale} label={t("criteria.matrix")} text={t("criteria.matrixHelp")} textKey="criteria.matrixHelp" className="ms-1" />
             </legend>
             <p className="mt-1 inline-block rounded-sm border border-dashed border-rule px-2 text-xs text-ink-muted" data-parked="matrix">
@@ -595,9 +595,9 @@ function Anchoring({
       <div role="group" aria-label={t("criteria.synonyms.group", { concept: row.concept })} className="rounded-md border border-dashed border-ink-muted p-3" data-suggestions={index}>
         <div className="flex items-center gap-1">
           <p className="text-xs font-semibold text-ink-muted">{t("criteria.synonyms.title")}</p>
-          <Hint locale={locale} label={t("criteria.synonyms.title")} text={t("criteria.synonyms.help")} textKey="criteria.synonyms.help" />
-          {row.suggestions.some((sug) => synonyms.includes(sug.term)) ? (
-            <Hint locale={locale} label={t("criteria.synonyms.title")} text={t("criteria.synonyms.unsaved")} textKey="criteria.synonyms.unsaved" />
+          {/* M10d (rule 1.6 and 1.7): one hint for the whole list of concepts, on the first group only. */}
+          {index === 0 ? (
+            <Hint locale={locale} label={t("criteria.synonyms.title")} text={`${t("criteria.synonyms.help")} ${t("criteria.synonyms.unsaved")}`} textKey="criteria.synonyms.help" />
           ) : null}
         </div>
         {row.suggestions.length === 0 ? (

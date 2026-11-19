@@ -25,7 +25,7 @@ afterAll(() => {
 });
 
 describe("guidance.words", () => {
-  for (const s of SCREENS) {
+  for (const s of SCREENS.filter((x) => x.measure !== false)) {
     it(`counts the visible words of ${s.name} (${s.state})`, async () => {
       await s.mount();
       counts[s.name] = visibleWords().length;

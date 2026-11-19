@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, type ReactNode, type RefObject } from "react";
+import { useCallback, useEffect, useId, useRef, useState, type ReactNode, type RefObject } from "react";
 
 import type { Locale } from "@/i18n";
 import { Button, DataCell, DecisionBadge, Fold, Hint, RecommendedBadge } from "@/components/ui/base";
@@ -465,6 +465,7 @@ export function InceptionExplore({ locale }: Readonly<{ locale: Locale }>) {
               title={t("explore.legs.title")}
               count={latest.legs.length}
               failed={latest.legs.filter((l) => l.status === "failed").length}
+              empty={latest.legs.filter((l) => l.status === "ok" && !l.fetched && !l.reported_total).length}
               headingId="legs-title"
               data-databases
             >
@@ -561,13 +562,15 @@ function UnknownNames({ locale, details }: Readonly<{ locale: Locale; details: u
 
 function ModeControl({ locale, semantic, onChange }: Readonly<{ locale: Locale; semantic: boolean; onChange: (v: boolean) => void }>) {
   const t = inceptionT(locale);
+  const legendId = `mode-${useId().replace(/[^A-Za-z0-9_-]/g, "")}`;
+  // The group is named by the legend's words alone, not by the hint button inside the legend.
   return (
-    <fieldset className="mt-3" data-mode>
+    <fieldset className="mt-3" aria-labelledby={legendId} data-mode>
       <legend className="text-sm text-ink-muted">
-        {t("explore.mode.legend")}
+        <span id={legendId}>{t("explore.mode.legend")}</span>
         <Hint locale={locale} label={t("explore.mode.legend")} text={t("explore.mode.help")} textKey="explore.mode.help" className="ms-1" />
       </legend>
-      <div role="radiogroup" className="mt-1 flex flex-wrap gap-4">
+      <div role="radiogroup" aria-labelledby={legendId} className="mt-1 flex flex-wrap gap-4">
         {([false, true] as const).map((value) => (
           <label key={String(value)} className="inline-flex min-h-11 cursor-pointer items-center gap-2 text-sm text-ink">
             <input type="radio" name="explore-mode" checked={semantic === value} onChange={() => onChange(value)} className="h-5 w-5" />
@@ -614,7 +617,7 @@ function SearchControls({
     const id = idOf(name);
     return KNOWN_DATABASES.includes(id) ? t(`explore.picker.${kind}.${id}` as InceptionCopyKey) : name;
   };
-  const describedBy = ["explore-query-help", derived == null ? "explore-query-hint" : "", tooLong ? "explore-query-long" : ""].filter(Boolean).join(" ");
+  const describedBy = ["explore-query-help", tooLong ? "explore-query-long" : ""].filter(Boolean).join(" ");
   return (
     <div className="mt-4 space-y-4" data-search-controls>
       <div>
@@ -622,10 +625,14 @@ function SearchControls({
           <label htmlFor="explore-query" className="block text-sm text-ink-muted">
             {t("explore.query.label")}
           </label>
-          <Hint locale={locale} label={t("explore.query.label")} text={t("explore.query.help")} textKey="explore.query.help" id="explore-query-help" />
-          {derived == null ? (
-            <Hint locale={locale} label={t("explore.query.label")} text={t("explore.query.emptyHint")} textKey="explore.query.emptyHint" id="explore-query-hint" />
-          ) : null}
+          {/* One hint per label (rule 1.7): with no derived query, the how-to sentence follows the field's own. */}
+          <Hint
+            locale={locale}
+            label={t("explore.query.label")}
+            text={derived == null ? `${t("explore.query.help")} ${t("explore.query.emptyHint")}` : t("explore.query.help")}
+            textKey="explore.query.help"
+            id="explore-query-help"
+          />
         </div>
         <input
           id="explore-query"
@@ -990,6 +997,17 @@ function PapersCard({
           </Button>
         </div>
       ) : null}
+      {sample && !sample.has_reserve ? (
+        <p className="text-xs text-ink-muted" data-no-reserve>
+          {t("sample.noReserve")}
+        </p>
+      ) : null}
+      {curating && curation.offline ? (
+        <p className="text-xs text-ink-muted" data-sample-offline>
+          {t("explore.offline")}
+          {asOf ? ` · ${t("explore.asOf", { time: stamp(asOf) })}` : ""}
+        </p>
+      ) : null}
     <Fold locale={locale} title={t("explore.papers.title", { n: String(pool.papers.length) })} headingId="papers-title" className="min-w-0" data-papers>
       {sample ? (
         <p className="text-sm text-ink" data-sample-count>
@@ -1002,17 +1020,6 @@ function PapersCard({
         <span>{t("explore.papers.sorted")}</span>
         <Hint locale={locale} label={t("explore.papers.title", { n: String(pool.papers.length) })} text={t("explore.papers.note")} textKey="explore.papers.note" />
       </p>
-      {sample && !sample.has_reserve ? (
-        <p className="mt-1 text-xs text-ink-muted" data-no-reserve>
-          {t("sample.noReserve")}
-        </p>
-      ) : null}
-      {curating && curation.offline ? (
-        <p className="mt-1 text-xs text-ink-muted" data-sample-offline>
-          {t("explore.offline")}
-          {asOf ? ` · ${t("explore.asOf", { time: stamp(asOf) })}` : ""}
-        </p>
-      ) : null}
       {rows.length ? (
         <table className="mt-2 w-full table-fixed text-sm">
           <caption ref={caption} tabIndex={-1} className="sr-only">

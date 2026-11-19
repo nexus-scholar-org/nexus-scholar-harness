@@ -89,9 +89,9 @@ export function DatabasePicker({
   const describedBy = [labels.orderHelp ? helpId : "", selected.length === 0 ? noneId : ""].filter(Boolean).join(" ") || undefined;
 
   return (
-    <fieldset className="min-w-0" disabled={disabled} aria-describedby={describedBy} data-picker>
+    <fieldset className="min-w-0" disabled={disabled} aria-labelledby={`${id}-legend`} aria-describedby={describedBy} data-picker>
       <legend className="text-sm text-ink-muted">
-        {labels.legend}
+        <span id={`${id}-legend`}>{labels.legend}</span>
         {labels.orderHelp && labels.orderHelpHint ? (
           <Hint locale={labels.orderHelpHint.locale} label={labels.legend} text={labels.orderHelp} textKey={labels.orderHelpHint.textKey} id={helpId} className="ms-1" />
         ) : null}

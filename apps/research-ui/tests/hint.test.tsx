@@ -100,6 +100,15 @@ describe("hint", () => {
     expect(button).toHaveAttribute("aria-expanded", "false");
   });
 
+  it("stays open when the researcher presses inside its panel to select the text (review M10d, finding 7)", async () => {
+    const user = userEvent.setup();
+    form();
+    const button = screen.getByRole("button", { name: "About Topic" });
+    await user.click(button);
+    await user.pointer({ keys: "[MouseLeft]", target: panel("About Topic") });
+    expect(button).toHaveAttribute("aria-expanded", "true");
+  });
+
   it("closes the open hint when another opens", async () => {
     const user = userEvent.setup();
     form();

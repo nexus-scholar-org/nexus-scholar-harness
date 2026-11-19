@@ -31,6 +31,17 @@ describe("guidance.never-hidden", () => {
       expect(inside.map((el) => el.outerHTML.slice(0, 120))).toEqual([]);
       // A hint panel holds text only: no element of any kind.
       for (const body of document.querySelectorAll("[data-hint-body]")) expect(body.children.length).toBe(0);
+      // A closed fold holds no alert or state card, and a blocked or unclear item inside it is
+      // named in its summary by a badge of the same role (rule 4; review M10d, finding 2).
+      const closed = [...document.querySelectorAll<HTMLDetailsElement>("details[data-fold]")].filter((d) => !d.open);
+      for (const fold of closed) {
+        const body = [...fold.children].filter((c) => c.tagName !== "SUMMARY");
+        const inBody = (sel: string) => body.flatMap((c) => [...c.querySelectorAll(sel)]);
+        expect(inBody('[role="alert"], [data-state]').length, "an alert inside a closed fold").toBe(0);
+        for (const role of ["blocked", "unclear"]) {
+          if (inBody(`[data-role="${role}"]`).length) expect(fold.querySelector(`summary [data-role="${role}"]`), `${role} item hidden in a fold without a summary badge`).not.toBeNull();
+        }
+      }
     }, 20000);
   }
 

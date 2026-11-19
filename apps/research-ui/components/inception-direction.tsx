@@ -295,7 +295,7 @@ export function InceptionDirection({ locale }: Readonly<{ locale: Locale }>) {
 
   return (
     <InceptionFrame locale={locale} current="direction" draft={state}>
-      <StepHeader kicker={t("direction.kicker")} title={t("direction.title")} lede={t("direction.lede")} ledeHint={<Hint locale={locale} label={t("direction.card.legend")} text={t("direction.lede.order")} textKey="direction.lede.order" className="ms-1" />} />
+      <StepHeader kicker={t("direction.kicker")} title={t("direction.title")} lede={t("direction.lede")} ledeHint={<Hint locale={locale} label={t("direction.title")} text={t("direction.lede.order")} textKey="direction.lede.order" className="ms-1" />} />
       <div className="space-y-6">
         {!recon && !reconError ? (
           <p role="status" aria-busy="true" className="text-ink-muted">

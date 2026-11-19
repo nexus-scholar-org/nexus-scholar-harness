@@ -124,9 +124,9 @@ export function InceptionShape({ locale }: Readonly<{ locale: Locale }>) {
           void persist("criteria");
         }}
       >
-        <fieldset>
+        <fieldset aria-labelledby="shape-paradigm-legend">
           <legend className="text-sm font-medium text-ink">
-            {t("shape.paradigm")}
+            <span id="shape-paradigm-legend">{t("shape.paradigm")}</span>
             <Hint locale={locale} label={t("shape.paradigm")} text={t("shape.leaningNote")} textKey="shape.leaningNote" className="ms-1" />
           </legend>
           {scope ? (
@@ -393,9 +393,9 @@ function PlannedRecords({
   const t = inceptionT(locale);
   const shown = (n: number | null) => (n == null || Number.isNaN(n) ? "" : String(n));
   return (
-    <fieldset className="rounded-lg border border-rule bg-leaf p-4" data-planned>
+    <fieldset className="rounded-lg border border-rule bg-leaf p-4" aria-labelledby="shape-planned-legend" data-planned>
       <legend className="px-1 text-sm font-medium text-ink">
-        {t("shape.planned.title")}
+        <span id="shape-planned-legend">{t("shape.planned.title")}</span>
         <Hint locale={locale} label={t("shape.planned.title")} text={t("shape.planned.hint")} textKey="shape.planned.hint" id="shape-planned-hint" className="ms-1" />
       </legend>
       <div className="mt-2 flex flex-wrap items-end gap-3">

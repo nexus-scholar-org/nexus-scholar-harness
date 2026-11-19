@@ -503,6 +503,7 @@ New keys, en master (`guidance.*` in a new `lib/guidance-copy.ts`; fr and ar fal
 | `guidance.recommended.source.lens` | matches your lens (added in M10d: the playbook that matches the lens) |
 | `guidance.section.count` | {title} · {n} |
 | `guidance.section.failed` | {n} failed |
+| `guidance.section.zero` | {n} found nothing (added in M10d: databases that answered with nothing, named in the summary of the Databases asked fold) |
 | `guidance.notStored` | Not stored |
 
 Every moved block keeps its existing key as the hint body (the Audit table's "Copy key" column is the list). The labels for hint buttons come from the label they sit beside (`guidance.hint.open` with `{label}`). No literal `aria-label`, `title`, `alt` or `placeholder` (N9 guard). Voice: a hint body is a plain sentence in the researcher's words; it never says "AI".

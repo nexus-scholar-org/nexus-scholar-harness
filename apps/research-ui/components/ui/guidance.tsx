@@ -88,6 +88,7 @@ export function Hint({
   const button = useRef<HTMLButtonElement>(null);
   const panel = useRef<HTMLSpanElement>(null);
   const wrapper = useRef<HTMLSpanElement>(null);
+  const pressedInside = useRef(false);
 
   const measure = useCallback(() => {
     const b = button.current;
@@ -140,7 +141,15 @@ export function Hint({
           button.current?.focus();
         }
       }}
+      onPointerDown={() => {
+        // A press inside the pair (to select the panel's text) blurs the button with no target; keep it open.
+        pressedInside.current = true;
+        setTimeout(() => {
+          pressedInside.current = false;
+        }, 0);
+      }}
       onBlur={(event) => {
+        if (pressedInside.current) return;
         if (open && !wrapper.current?.contains(event.relatedTarget as Node | null)) setOpen(false);
       }}
     >
@@ -207,11 +216,12 @@ export function Fold({
   title,
   count,
   failed,
+  empty,
   headingId,
   children,
   className = "",
   ...rest
-}: Readonly<{ locale: Locale; title: string; count?: number; failed?: number; headingId?: string; children: ReactNode; className?: string } & Record<`data-${string}`, string | boolean | undefined>>) {
+}: Readonly<{ locale: Locale; title: string; count?: number; failed?: number; empty?: number; headingId?: string; children: ReactNode; className?: string } & Record<`data-${string}`, string | boolean | undefined>>) {
   const t = guidanceT(locale);
   return (
     <details className={`group rounded-lg border border-rule bg-leaf px-4 ${className}`.trim()} data-fold {...rest}>
@@ -225,6 +235,11 @@ export function Fold({
         {failed ? (
           <span data-role="blocked" className="inline-flex items-center rounded-sm bg-blocked-soft px-2 py-0.5 text-xs font-semibold leading-4 text-blocked">
             {t("guidance.section.failed", { n: failed })}
+          </span>
+        ) : null}
+        {empty ? (
+          <span data-role="unclear" className="inline-flex items-center rounded-sm bg-unclear-soft px-2 py-0.5 text-xs font-semibold leading-4 text-unclear">
+            {t("guidance.section.zero", { n: empty })}
           </span>
         ) : null}
       </summary>
