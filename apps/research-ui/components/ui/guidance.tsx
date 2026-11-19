@@ -88,7 +88,7 @@ export function Hint({
   const button = useRef<HTMLButtonElement>(null);
   const panel = useRef<HTMLSpanElement>(null);
   const wrapper = useRef<HTMLSpanElement>(null);
-  const pressedInside = useRef(false);
+  const pressedAt = useRef(0);
 
   const measure = useCallback(() => {
     const b = button.current;
@@ -141,15 +141,8 @@ export function Hint({
           button.current?.focus();
         }
       }}
-      onPointerDown={() => {
-        // A press inside the pair (to select the panel's text) blurs the button with no target; keep it open.
-        pressedInside.current = true;
-        setTimeout(() => {
-          pressedInside.current = false;
-        }, 0);
-      }}
       onBlur={(event) => {
-        if (pressedInside.current) return;
+        if (Date.now() - pressedAt.current < 1000) return;
         if (open && !wrapper.current?.contains(event.relatedTarget as Node | null)) setOpen(false);
       }}
     >
@@ -170,6 +163,13 @@ export function Hint({
         id={panelId}
         role="note"
         dir="auto"
+        // Not in the tab order; a click lands focus here, inside the pair, so Escape still closes the hint.
+        tabIndex={-1}
+        // A press or tap on the text (to select it) must not read as leaving the pair. On a phone the
+        // blur comes after the tap ends, so the press is remembered for a moment, not one tick.
+        onPointerDown={() => {
+          pressedAt.current = Date.now();
+        }}
         hidden={!open}
         data-hint-body={textKey}
         data-placement={open && place ? place.side : undefined}

@@ -161,6 +161,7 @@ export function InceptionCriteria({ locale }: Readonly<{ locale: Locale }>) {
   };
 
   const concepts = draft.concepts ?? [];
+  const firstAnchored = report ? concepts.findIndex((c) => report.concepts.some((r) => r.source === "draft" && r.concept === (c.concept ?? "").trim())) : -1;
   const setConcept = (index: number, patch: { concept?: string; synonyms?: string[] }) =>
     update({ concepts: concepts.map((c, i) => (i === index ? { ...c, ...patch } : c)) });
   const present = new Set(concepts.map((c) => c.concept.trim().toLowerCase()));
@@ -371,6 +372,7 @@ export function InceptionCriteria({ locale }: Readonly<{ locale: Locale }>) {
                 <Anchoring
                   locale={locale}
                   index={index}
+                  hintHere={index === firstAnchored}
                   report={report}
                   concept={c.concept}
                   synonyms={c.synonyms ?? []}
@@ -536,6 +538,7 @@ function Anchoring({
   all,
   onAll,
   onTick,
+  hintHere,
 }: Readonly<{
   locale: Locale;
   index: number;
@@ -545,6 +548,8 @@ function Anchoring({
   all: boolean;
   onAll: () => void;
   onTick: (term: string, on: boolean) => void;
+  /** The one hint of the synonym suggestions sits on the first group drawn (rule 1.6). */
+  hintHere: boolean;
 }>) {
   const t = inceptionT(locale);
   const row = report.concepts.find((r) => r.source === "draft" && r.concept === concept.trim());
@@ -596,7 +601,7 @@ function Anchoring({
         <div className="flex items-center gap-1">
           <p className="text-xs font-semibold text-ink-muted">{t("criteria.synonyms.title")}</p>
           {/* M10d (rule 1.6 and 1.7): one hint for the whole list of concepts, on the first group only. */}
-          {index === 0 ? (
+          {hintHere ? (
             <Hint locale={locale} label={t("criteria.synonyms.title")} text={`${t("criteria.synonyms.help")} ${t("criteria.synonyms.unsaved")}`} textKey="criteria.synonyms.help" />
           ) : null}
         </div>

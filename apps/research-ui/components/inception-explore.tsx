@@ -570,7 +570,7 @@ function ModeControl({ locale, semantic, onChange }: Readonly<{ locale: Locale; 
         <span id={legendId}>{t("explore.mode.legend")}</span>
         <Hint locale={locale} label={t("explore.mode.legend")} text={t("explore.mode.help")} textKey="explore.mode.help" className="ms-1" />
       </legend>
-      <div role="radiogroup" aria-labelledby={legendId} className="mt-1 flex flex-wrap gap-4">
+      <div role="radiogroup" className="mt-1 flex flex-wrap gap-4">
         {([false, true] as const).map((value) => (
           <label key={String(value)} className="inline-flex min-h-11 cursor-pointer items-center gap-2 text-sm text-ink">
             <input type="radio" name="explore-mode" checked={semantic === value} onChange={() => onChange(value)} className="h-5 w-5" />

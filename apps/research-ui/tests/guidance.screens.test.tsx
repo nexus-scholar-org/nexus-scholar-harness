@@ -64,6 +64,14 @@ describe("guidance.screens", () => {
       expect(document.querySelector("[data-recommended]")).toBeNull();
     });
 
+    it("one database found nothing: the closed Databases asked fold names it in its summary", async () => {
+      await mount("02 Explore (one database found nothing)");
+      const fold = document.querySelector("details[data-databases]") as HTMLDetailsElement;
+      expect(fold.open).toBe(false);
+      expect(fold.querySelector('summary [data-role="unclear"]')?.textContent).toBe("1 found nothing");
+      expect(fold.querySelector('[data-leg="arxiv"]')?.textContent).toContain("0 results");
+    });
+
     it("thin pool: semantic search is marked Recommended with its source, nothing is chosen for the researcher", async () => {
       await mount("02 Explore (thin pool)");
       const tile = document.querySelector('[data-tile="size"]') as HTMLElement;

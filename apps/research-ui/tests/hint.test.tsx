@@ -107,6 +107,10 @@ describe("hint", () => {
     await user.click(button);
     await user.pointer({ keys: "[MouseLeft]", target: panel("About Topic") });
     expect(button).toHaveAttribute("aria-expanded", "true");
+    // Focus is inside the pair, so Escape still closes it and returns to the button (round 2 follow-up).
+    await user.keyboard("{Escape}");
+    expect(button).toHaveAttribute("aria-expanded", "false");
+    expect(document.activeElement).toBe(button);
   });
 
   it("closes the open hint when another opens", async () => {

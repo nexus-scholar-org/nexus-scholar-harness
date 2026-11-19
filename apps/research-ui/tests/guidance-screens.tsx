@@ -144,6 +144,17 @@ export const SCREENS: GuidanceScreen[] = [
     },
   },
   {
+    name: "02 Explore (one database found nothing)",
+    state: "after a first search where arXiv answered with nothing",
+    measure: false,
+    mount: async (locale = "en") => {
+      probed({ outcomes: ["someEmpty"] });
+      render(<InceptionExplore locale={locale} />);
+      await screen.findAllByRole("table", {}, { timeout: 5000 }).catch(() => undefined);
+      await settle();
+    },
+  },
+  {
     name: "03 Direction",
     state: "after the first search, three directions",
     mount: async (locale = "en") => {

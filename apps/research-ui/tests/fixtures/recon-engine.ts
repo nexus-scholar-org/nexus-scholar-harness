@@ -23,7 +23,7 @@
 type Json = Record<string, unknown>;
 export type ReconAnswer = { status: number; body: unknown; sse?: boolean };
 
-export type ProbeOutcome = "ok" | "thin" | "partial" | "empty" | "failed" | "noDirections" | "keyRefused";
+export type ProbeOutcome = "ok" | "thin" | "partial" | "empty" | "failed" | "noDirections" | "keyRefused" | "someEmpty";
 
 export interface ReconOptions {
   mailto?: boolean;
@@ -170,7 +170,7 @@ export function reconEngine(options: ReconOptions, now: () => string) {
     poolCount += 1;
     let list: Doc[] = [];
     let legs = providers.map((p) => leg(p, 6));
-    if (kind === "ok" || kind === "partial" || kind === "noDirections" || kind === "keyRefused") {
+    if (kind === "ok" || kind === "partial" || kind === "noDirections" || kind === "keyRefused" || kind === "someEmpty") {
       list = [...docs("w", "Real-time weed detection on embedded hardware", 8), ...docs("s", "Lightweight cnn weed segmentation", 6)];
       if (kind === "noDirections") list = list.map((d, i) => ({ ...d, title: `Unrelated paper ${i}` }));
     } else if (kind === "thin") list = docs("t", "Real-time weed detection on embedded hardware", 7);
@@ -180,6 +180,8 @@ export function reconEngine(options: ReconOptions, now: () => string) {
     const reserve = list.length && kind !== "thin" ? docs("r", "Crop row following for field robots", 2) : [];
     // Every database answered and found nothing: 0 of 0.
     if (kind === "empty") legs = providers.map((p) => leg(p, 0));
+    // M10d: one database answered with nothing while the others found papers.
+    if (kind === "someEmpty") legs = providers.map((p) => (p === "arxiv" ? leg(p, 0) : leg(p, 6)));
     if (kind === "partial") legs = providers.map((p) => (p === "crossref" ? leg(p, 0, "ConnectError: offline") : leg(p, 6)));
     if (kind === "keyRefused")
       legs = providers.map((p) =>

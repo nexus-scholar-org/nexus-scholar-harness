@@ -38,7 +38,7 @@ const LONG_LEDE: Record<string, number> = { "04 Shape": 170 };
  * Plan's Limits card has one hint per key line. Each number here is the screen's count today; it
  * may only go down.
  */
-const HINT_BUDGET: Record<string, number> = { "02 Explore (pool)": 9, "02 Explore (thin pool)": 9, "01 Plan": 7 };
+const HINT_BUDGET: Record<string, number> = { "02 Explore (pool)": 9, "02 Explore (thin pool)": 9, "02 Explore (one database found nothing)": 9, "01 Plan": 7 };
 const EN: Record<string, string> = { ...(INCEPTION_COPY.en as Record<string, string>), ...(DISCOVERY_COPY.en as Record<string, string>) };
 const ROWS = auditRows();
 const STAYS = new Set(ROWS.filter((r) => r.decision === "STAYS").flatMap((r) => r.keys));
@@ -49,7 +49,7 @@ const HINT_TEXT = new Set(
     .map((k) => (EN[k] ?? "").split("{")[0].replace(/\s+/g, " ").trim())
     .filter((t) => t.split(" ").length >= 4),
 );
-const FOLDED_FIRST = new Set(["02 Explore (first search)", "02 Explore (pool)", "02 Explore (thin pool)", "06 Review"]);
+const FOLDED_FIRST = new Set(["02 Explore (first search)", "02 Explore (pool)", "02 Explore (thin pool)", "02 Explore (one database found nothing)", "06 Review"]);
 
 const open = (el: Element) => !el.closest("details:not([open])") || el.closest("details:not([open]) > summary") !== null;
 

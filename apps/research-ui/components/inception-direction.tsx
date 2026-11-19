@@ -438,7 +438,7 @@ export function InceptionDirection({ locale }: Readonly<{ locale: Locale }>) {
             ) : null}
 
             {directions.length ? (
-              <fieldset className="min-w-0" data-directions>
+              <fieldset className="min-w-0" aria-labelledby="cards-title" data-directions>
                 <legend className="flex items-center gap-1">
                   <h2 id="cards-title" ref={cardsHeading} tabIndex={-1} className="font-semibold text-ink">
                     {t("direction.card.legend")}
