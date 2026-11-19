@@ -319,6 +319,11 @@ export function ChecksPanel(props: Readonly<ChecksPanelProps>) {
           <span className="text-ink-muted" data-source={check.source}>
             {sourceKnown ? t("checks.source.check") : t("checks.source.generic")}
           </span>
+          {dirty && !dismissedRow ? (
+            <span className="text-unclear" data-row-saved>
+              · {t("checks.row.saved")}
+            </span>
+          ) : null}
         </div>
         <p id={sentenceId} tabIndex={-1} className="mt-1 text-[0.9375rem] leading-[1.375rem] text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus" data-sentence>
           <CheckSentence locale={locale} check={check} />
