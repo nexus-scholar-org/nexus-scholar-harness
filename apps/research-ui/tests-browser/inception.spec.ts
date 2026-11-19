@@ -453,3 +453,138 @@ test("Direction can be completed with the keyboard alone (M4d)", async ({ page }
   await page.keyboard.press("Enter");
   await expect(page.getByRole("heading", { name: "Your direction: weed detection" })).toBeFocused();
 });
+
+// --- M10b Part C: sample curation on Explore (02-explore "Sample curation") ----------------
+
+/** The checks the fake answers: the thin-sample row from the engine's own `sample.recommend` (the screen compares nothing). */
+async function curating(page: Page) {
+  let fake: Awaited<ReturnType<typeof engine>> | null = null;
+  const thin = (record: Record<string, unknown>) => {
+    const sample = fake?.recon.sample(record) as { n_docs: number; recommend: { reasons: string[]; threshold: { floor: number } } } | null;
+    return sample?.recommend.reasons.includes("BELOW_FLOOR")
+      ? [{ check_id: "EXPLORE_POOL_THIN", step: "explore", level: "warning" as const, params: { n: sample.n_docs, floor: sample.recommend.threshold.floor }, action: { kind: "step", step: "scope" } }]
+      : [];
+  };
+  fake = await engine(page, { draft: decided(), checks: thin });
+  return fake;
+}
+
+const notRelevant = (page: Page, title: string) => page.getByRole("button", { name: `Not relevant: ${title}` });
+const SEG = (i: number) => `Lightweight cnn weed segmentation ${i}`;
+
+test("a researcher leaves papers out, sees the directions and counts change, undoes one, and a bound direction goes out of date (M10b)", async ({ page }) => {
+  const fake = await curating(page);
+  await page.goto(`/en/inception/explore/?draft=${SESSION}`);
+  await page.getByRole("button", { name: "Search the literature" }).click();
+  await expect(page.getByRole("heading", { name: "Pool · 14 papers" })).toBeVisible();
+  await expect(page.getByText("14 papers · none left out")).toBeVisible();
+  await page.getByRole("button", { name: /^\+ 9 more/ }).click();
+
+  // Three papers: two replaced from the reserve, the third makes the sample smaller.
+  for (const i of [0, 1, 2]) {
+    await notRelevant(page, SEG(i)).click();
+    await expect(notRelevant(page, SEG(i))).toHaveCount(0);
+  }
+  await expect(page.getByText("13 papers · 3 left out")).toBeVisible();
+  await expect(page.locator("[data-added-for]")).toHaveCount(2);
+  await expect(page.getByRole("button", { name: "See 3 directions" })).toBeVisible();
+
+  // Two more: the segmentation direction loses its anchors and the sample falls under the floor.
+  for (const i of [3, 4]) {
+    await notRelevant(page, SEG(i)).click();
+    await expect(notRelevant(page, SEG(i))).toHaveCount(0);
+  }
+  await expect(page.getByRole("button", { name: "See 2 directions" })).toBeEnabled();
+  await expect(page.getByText("11 papers · 5 left out")).toBeVisible();
+  await expect(page.locator("[data-sample-moved]")).toHaveText(`Left out: ${SEG(4)}. Directions: 3 to 2. Papers: 11.`);
+  const thinRow = page.locator("[data-checks-panel='explore'] [data-check='EXPLORE_POOL_THIN']");
+  await expect(thinRow).toContainText("The sample has only 11 papers. 12 or more gives steadier suggestions.");
+  await expect(thinRow.getByRole("link", { name: "Change scope" })).toBeVisible();
+
+  // A reload keeps them left out.
+  await page.reload();
+  await expect(page.getByText("11 papers · 5 left out")).toBeVisible();
+
+  // Put one back from the Left out list.
+  await page.getByRole("button", { name: "Left out · 5" }).click();
+  await page.getByRole("button", { name: `Put back: ${SEG(4)}` }).click();
+  await expect(page.getByText("12 papers · 4 left out")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Left out · 4" })).toBeFocused();
+  await expect(page.locator("[data-check='EXPLORE_POOL_THIN']")).toHaveCount(0);
+
+  // Bind a direction, then leave another paper out: the warning, then the stale note.
+  await page.getByRole("button", { name: "See 3 directions" }).click();
+  await page.getByRole("radio", { name: "weed detection" }).check();
+  await page.getByRole("button", { name: "Pursue weed detection" }).click();
+  await expect(page.getByRole("heading", { name: "Your direction: weed detection" })).toBeFocused();
+  await page.goto(`/en/inception/explore/?draft=${SESSION}`);
+  await notRelevant(page, "Real-time weed detection on embedded hardware 0").click();
+  const dialog = page.getByRole("alertdialog", { name: "Leaving this paper out will make your chosen direction out of date" });
+  await expect(dialog.getByRole("button", { name: "Keep the paper" })).toBeFocused();
+  await dialog.getByRole("button", { name: "Leave it out" }).click();
+  await expect(page.getByText("The direction you chose was based on an earlier sample.")).toBeVisible();
+  expect(fake.calls.filter((c) => c.method === "POST" && c.path === `${RECON}/sample`)).toHaveLength(7);
+
+  // Bind again: the sample is now under the floor, so the box is needed.
+  await page.getByRole("link", { name: "Choose a direction" }).click();
+  await page.getByRole("radio", { name: "weed detection" }).check();
+  await page.getByRole("checkbox", { name: "I accept a pool this small" }).check();
+  await page.getByRole("button", { name: "Pursue weed detection" }).click();
+  await expect(page.getByRole("heading", { name: "Your direction: weed detection" })).toBeVisible();
+  await page.goto(`/en/inception/explore/?draft=${SESSION}`);
+  await expect(page.getByRole("heading", { name: "Pool · 11 papers" })).toBeVisible();
+  await expect(page.locator("[data-stale-binding]")).toHaveCount(0);
+});
+
+test("a mark and its undo can be done with the keyboard alone (M10b)", async ({ page }) => {
+  const fake = await curating(page);
+  fake.handle("POST", `${RECON}/probe`, { refresh: false, semantic: false });
+  await page.goto(`/en/inception/explore/?draft=${SESSION}`);
+  const first = notRelevant(page, "Real-time weed detection on embedded hardware 0");
+  await first.focus();
+  await page.keyboard.press("Enter");
+  await expect(notRelevant(page, "Real-time weed detection on embedded hardware 1")).toBeFocused();
+  await expect(page.locator("[data-sample-toast='mark']")).toContainText("Left out: Real-time weed detection on embedded hardware 0");
+  const undo = page.locator("[data-sample-toast] [data-undo]");
+  for (let i = 0; i < 40 && !(await undo.evaluate((el) => el === document.activeElement)); i++) await page.keyboard.press("Tab");
+  await expect(undo).toBeFocused();
+  await page.keyboard.press("Enter");
+  await expect(page.getByText("14 papers · none left out")).toBeVisible();
+  expect(fake.calls.filter((c) => c.method === "POST" && c.path === `${RECON}/sample`).map((c) => c.body)).toEqual([
+    { add: ["10.1/w000"], base_updated_at: expect.any(String) },
+    { remove: ["10.1/w000"], base_updated_at: expect.any(String) },
+  ]);
+});
+
+for (const scheme of ["light", "dark"] as const) {
+  test(`ar/inception/explore/ with papers left out (${scheme}): the row button sits at the inline end, axe passes, nothing scrolls sideways (M10b)`, async ({ page }) => {
+    await page.emulateMedia({ colorScheme: scheme });
+    const fake = await curating(page);
+    fake.handle("POST", `${RECON}/probe`, { refresh: false, semantic: false });
+    const record = fake.drafts.get(SESSION)!;
+    fake.handle("POST", `${RECON}/sample`, { add: ["10.1/s000"], base_updated_at: record.updated_at });
+    await page.goto(`/ar/inception/explore/?draft=${SESSION}`);
+    const row = page.locator("[data-paper-key='10.1/w000']");
+    await expect(row.locator("[data-mark]")).toBeVisible();
+    const button = (await row.locator("[data-mark]").boundingBox())!;
+    const title = (await row.locator("td").first().boundingBox())!;
+    expect(button.x).toBeLessThan(title.x);
+    await page.locator("[data-left-out-toggle]").click();
+    await page.waitForLoadState("networkidle");
+    const result = await axe(page);
+    expect(result.violations).toEqual([]);
+    for (const viewport of [MOBILE_VIEWPORT, DESKTOP_VIEWPORT]) {
+      await page.setViewportSize(viewport);
+      expectNoSidewaysScroll(await measureOverflow(page), `ar/inception/explore/ ${viewport.width}px with papers left out`);
+    }
+  });
+}
+
+test("an empty search shows one Databases asked list and the shorten advice only when the engine says so (M10b)", async ({ page }) => {
+  await engine(page, { draft: decided(), recon: { outcomes: ["empty"] } });
+  await page.goto(`/en/inception/explore/?draft=${SESSION}`);
+  await page.getByRole("button", { name: "Search the literature" }).click();
+  await expect(page.getByRole("heading", { name: "The search found no papers" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Databases asked" })).toHaveCount(1);
+  await expect(page.getByText("Every word of the query must appear, so a long query can find nothing. Shorten the query above.")).toBeVisible();
+});

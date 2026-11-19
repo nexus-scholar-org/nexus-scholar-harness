@@ -51,6 +51,7 @@ from .engine import (
     SearchFn,
 )
 from .gates import compute_pool_sufficiency, compute_topic_purity
+from .sample import effective_pool, paper_key
 
 SESSION_ID_RE = re.compile(r"^rec_[0-9a-f]{6,64}$")
 
@@ -244,6 +245,15 @@ class ReconSessions:
         path = Path(session["pools"][-1])
         return json.loads(path.read_text(encoding="utf-8")), path
 
+    def effective(self, session_id: str, exclusions: Any = None) -> tuple[dict[str, Any], dict[str, Any], Path]:
+        """``(effective pool, raw pool, pool file)`` of the latest pool (M10b Part C).
+
+        ``exclusions`` are the keys the draft left out (``sample.keys_of``);
+        ``None`` or empty reads the sample as the probe stored it.
+        """
+        pool, path = self.latest_pool(session_id)
+        return effective_pool(pool, exclusions), pool, path
+
     # -- probe --------------------------------------------------------------
 
     async def probe(
@@ -356,10 +366,16 @@ class ReconSessions:
             "narrower_left": max(0, NARROW_BUDGET - narrowed),
         }
 
-    def distill(self, session_id: str, lexicon: Any | None = None, artifact_prefix: str = "distilled") -> dict[str, Any]:
-        """Distill the latest pool and score it: the Explore screen's data."""
+    def distill(
+        self, session_id: str, lexicon: Any | None = None, artifact_prefix: str = "distilled", exclusions: Any = None,
+    ) -> dict[str, Any]:
+        """Distill the latest pool and score it: the Explore screen's data.
+
+        Over the effective pool (M10b Part C): the papers the draft left out
+        (``exclusions``) are not read, and the reserve refills the sample.
+        """
         session = self.load(session_id)
-        pool, pool_path = self.latest_pool(session_id)
+        pool, raw, pool_path = self.effective(session_id, exclusions)
         query = _latest_query(session) or session.get("topic")
         distilled = distill_pool(pool, lexicon=lexicon, query_text=query)
         terms_file = self.persist(session_id, artifact_prefix, distilled)
@@ -371,18 +387,21 @@ class ReconSessions:
                 anchors[doi] = anchors.get(doi, 0) + 1
         papers = [
             {
+                # M10b Part C: the engine's key (DOI, else the pool id) and the left-out paper it replaced.
+                "key": paper_key(doc),
                 "doi": doc.get("doi"),
                 "title": doc.get("title"),
                 "year": doc.get("year"),
                 "provider": doc.get("provider"),
                 "directions_anchored": anchors.get(doc.get("doi") or "", 0),
+                "added_for": doc.get("added_for"),
             }
             for doc in docs
         ]
         papers.sort(key=lambda p: (-p["directions_anchored"], str(p["title"] or "")))
         return {
             "session_id": session_id,
-            "pool": _pool_summary(pool, pool_path),
+            "pool": _pool_summary(raw, pool_path, pool),
             "terms_path": str(terms_file),
             "distilled": distilled,
             "qei": distilled.get("qei"),
@@ -393,15 +412,15 @@ class ReconSessions:
             "papers": papers,
         }
 
-    def directions(self, session_id: str) -> dict[str, Any]:
-        """Up to three directions with >= 2 anchor papers each, from the latest pool."""
-        pool, pool_path = self.latest_pool(session_id)
+    def directions(self, session_id: str, exclusions: Any = None) -> dict[str, Any]:
+        """Up to three directions with >= 2 anchor papers each, from the latest (effective) pool."""
+        pool, raw, pool_path = self.effective(session_id, exclusions)
         session = self.load(session_id)
         distilled = distill_pool(pool, query_text=_latest_query(session) or session.get("topic"))
         docs = pool.get("docs") or []
         return {
             "session_id": session_id,
-            "pool": _pool_summary(pool, pool_path),
+            "pool": _pool_summary(raw, pool_path, pool),
             "gates": {
                 "pool": compute_pool_sufficiency(len(docs)),
                 "purity": compute_topic_purity(distilled.get("topics") or []),
@@ -556,7 +575,9 @@ def _latest_query(session: dict[str, Any]) -> str | None:
     return None
 
 
-def _pool_summary(pool: dict[str, Any], path: Path) -> dict[str, Any]:
+def _pool_summary(pool: dict[str, Any], path: Path, effective: dict[str, Any] | None = None) -> dict[str, Any]:
+    """The pool's summary; ``fingerprint`` is the raw pool's, ``n_docs`` the effective pool's (M10b Part C)."""
+    counted = effective if effective is not None else pool
     return {
         "path": str(path),
         "fingerprint": pool_fingerprint(pool),
@@ -569,7 +590,9 @@ def _pool_summary(pool: dict[str, Any], path: Path) -> dict[str, Any]:
         "year_max": pool.get("year_max"),
         "languages": pool.get("languages"),
         "semantic": pool.get("semantic"),
-        "n_docs": len(pool.get("docs") or []),
+        "n_docs": len(counted.get("docs") or []),
+        "n_docs_raw": len(pool.get("docs") or []),
+        "reserve_n": len(pool.get("reserve") or []),
         "max_docs": POOL_MAX,
         "legs": _legs_summary(pool.get("legs") or []),
     }
@@ -603,8 +626,31 @@ def directions_for(distilled: dict[str, Any], pool: dict[str, Any]) -> list[dict
     return out
 
 
-def refuse_unusable_pool(summary: dict[str, Any]) -> None:
-    """Refuse a pool that cannot carry directions: empty, or every provider failed."""
+#: A keyword query of at least this many words that every database answered with nothing
+#: may be too long: every word must appear (M10b Part C, ``02-explore`` "Explore on an empty search").
+SHORTEN_MIN_WORDS = 3
+_OPERATORS = {"AND", "OR", "NOT"}
+
+
+def says_shorten(summary: dict[str, Any], semantic: bool = False) -> bool:
+    """Whether an empty search should advise a shorter query.
+
+    True when the query was a keyword query (not semantic, no ``OR``) of
+    :data:`SHORTEN_MIN_WORDS` or more words and every database answered (none
+    failed) with no record. The browser never counts the words.
+    """
+    words = [w for w in re.split(r"[\s()\"]+", str(summary.get("query") or "")) if w]
+    if semantic or "OR" in words or len([w for w in words if w not in _OPERATORS]) < SHORTEN_MIN_WORDS:
+        return False
+    legs = summary.get("legs") or []
+    return bool(legs) and all(leg.get("status") != "failed" and not leg.get("fetched") for leg in legs)
+
+
+def refuse_unusable_pool(summary: dict[str, Any], semantic: bool = False) -> None:
+    """Refuse a pool that cannot carry directions: empty, or every provider failed.
+
+    A ``POOL_EMPTY`` refusal carries ``details.shorten`` (:func:`says_shorten`).
+    """
     legs = summary.get("legs") or []
     if summary.get("n_docs", 0) == 0:
         failed = [leg for leg in legs if leg.get("status") == "failed"]
@@ -617,5 +663,6 @@ def refuse_unusable_pool(summary: dict[str, Any]) -> None:
         raise ReconRefused(
             POOL_EMPTY_REFUSED,
             "The search found no papers. Nothing was cached; widen the years or rephrase the topic.",
-            details={"legs": legs, "status": summary.get("status", POOL_EMPTY)},
+            details={"legs": legs, "status": summary.get("status", POOL_EMPTY),
+                     "shorten": says_shorten(summary, semantic)},
         )

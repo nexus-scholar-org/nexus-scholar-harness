@@ -159,6 +159,12 @@ The board's `CONTACT_EMAIL_MISSING` is `MAILTO_NOT_SET` (one code, as the engine
 | `POST /discovery/checks/{check_id}/dismiss` | J | `{subject, evidence_digest, reason?}` → the list for the check's step; appends one line `{check_id, subject, evidence_digest, action, reason, at, run}` to `audit/check_dismissals.jsonl` and a `CHECK_DISMISSED` journal row (`parameters.method: "HUMAN"`). `CHECK_NOT_FOUND`, `CHECK_NOT_DISMISSIBLE`, `CHECK_REASON_REQUIRED`, `CHECK_CHANGED` |
 | `POST /discovery/checks/{check_id}/restore` | J | `{subject}` → as dismiss, with `CHECK_RESTORED`; `CHECK_NOT_DISMISSED` |
 
+### 4.10 Next step (M10b Part C, `docs/ux/shared/final/04-next-step.md`)
+
+| Method and path | Layer | Answer |
+| :-- | :-- | :-- |
+| `GET /review/next-step` | R | Workspace-free (`console/serve.py` `_workspace_free`): with no workspace open it answers the state `NO_REVIEW` (action `chooseReview` to `workspaces`, or to `inception.list` when no workspace exists), never `409 WORKSPACE_NOT_VALID`. Otherwise `{shape: "review.next-step-v1", scope: "workspace", phase, round, state, params, waiting, action {key, to {screen, query}}, also[], unknown[], protocol_fingerprint, computed_at}`, the first row of `04-next-step` table 1 that holds, computed by `console/next_step.py` from the engine's own functions (`_run_summaries` with the live job and each run's `preparation`, `_corpus_view`, `screening_v1.summary_of`, `screening_currentness`, `_chase_view`, the console job runner). `waiting` is `{kind, stage, job, reason {code, message} or null, since}` (table 2; `accepting_chase` is not computed). A source that cannot be read goes to `unknown[]` (`runs`, `corpus`, `screening`, `jobs`, `publication`, `chase`), never a 5xx. No ETag, no file, no journal row. Not a phone route (`TOKEN_SCOPE_REFUSED`). The draft's route is in `docs/architecture/inception-api.md` "M10b Part C" |
+
 ## 5. Allowlists and transport
 
 Both lists change together (`console/browser.py:40-65`, `apps/research-ui/app/api/console/[...path]/route.ts:48-102`, kept equal by `tests/console/test_browser_access.py`):

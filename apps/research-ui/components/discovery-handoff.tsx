@@ -21,6 +21,7 @@ import {
 } from "@/components/discovery-frame";
 import { getHandoff, getRuns, preparationUnfinished, type Handoff } from "@/lib/discovery-api";
 import { acceptCorpus } from "@/lib/screening-v1";
+import { notifyReviewChanged } from "@/components/review-bus";
 import { discoveryT, providerName, type DiscoveryCopyKey } from "@/lib/discovery-copy";
 
 /**
@@ -78,6 +79,7 @@ export function DiscoveryHandoff({ locale }: Readonly<{ locale: Locale }>) {
     setAcceptError(null);
     try {
       await acceptCorpus(origin);
+      notifyReviewChanged();
       await load();
       heading.current?.focus();
     } catch (error) {

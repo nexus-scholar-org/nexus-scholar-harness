@@ -161,7 +161,7 @@ Defaults accepted, with three changes. Where this list and the text above differ
 None.
 
 ## Accepting on the Hand-off (M10b, decided 2026-11-15, R6)
-Status of this section: FINAL, not built. Where this section and the text above differ, this section wins.
+Status of this section: FINAL, built in M10b Part C (item C2; the three copy keys sit in the screen's own copy map as `toHandoff`, `toHandoffHelp`, `toHandoffNone`). Where this section and the text above differ, this section wins.
 
 **Why.** On 2026-11-13 nothing on the Discovery screens pointed to the Hand-off, and this screen had its own accept for staged exports. The researcher decided (M10b answer R6) that the Hand-off (`docs/ux/phase1-discovery/final/08-handoff.md`) is the one place a corpus is accepted, for a harvest and for staged exports alike. The Hand-off already accepts staged exports (its "Staged exports" state, built in M3c) and, since M3i, says when a harvest is not ready.
 

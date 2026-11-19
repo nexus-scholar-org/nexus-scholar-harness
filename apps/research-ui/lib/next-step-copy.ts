@@ -1,0 +1,355 @@
+import type { Locale } from "@/i18n";
+
+/**
+ * Copy of the next-step bar (`docs/ux/shared/final/04-next-step.md` "Copy",
+ * M10b Part C). English is the master; French and Arabic carry every key (a
+ * missing key fails the type check).
+ *
+ * The engine sends a state code, a waiting variant, an action key and the
+ * params it wrote; each one selects a key here. The bar fills the holes with
+ * the engine's values and computes none of them.
+ */
+
+const EN = {
+  // Frame
+  "next.region": "What comes next",
+  "next.details": "Details",
+  "next.asOf": "As of {time}",
+  "next.unknown": "Some information could not be read.",
+  "next.here": "Next: {label}. The button is on this page.",
+  "next.offline": "The page cannot reach the engine, so what comes next is not known.",
+  "next.offline.last": "Last answer: {sentence}",
+  "next.word.running": "Running",
+  "next.word.stopped": "Stopped",
+  "next.word.failed": "Failed",
+  "next.word.interrupted": "Interrupted",
+  "next.protocolChanged": "The protocol changed outside the search; accepting binds the records to it as it is now.",
+  "next.inRound": " in round {round}",
+
+  // Details labels
+  "next.details.state": "State",
+  "next.details.stage": "Stage",
+  "next.details.run": "Run",
+  "next.details.job": "Job",
+  "next.details.since": "Since",
+  "next.details.reason": "Reason",
+  "next.details.cannotFinish": "Why it cannot be finished",
+  "next.details.notRead": "Not read",
+
+  // Sentences by state
+  "next.state.NO_REVIEW": "No review is open.",
+  "next.state.DRAFT_STARTED": "Your draft has no topic yet.",
+  "next.state.DRAFT_INCOMPLETE": "Your draft still needs {fields}.",
+  "next.state.DRAFT_READY": "Your draft is complete. Create the workspace when you are ready.",
+  "next.state.DRAFT_CREATED": "The workspace {title} exists. Open it to continue.",
+  "next.state.NO_PROTOCOL": "This review has no protocol yet.",
+  "next.state.PROTOCOL_INVALID": "The protocol file cannot be read, so nothing can be searched.",
+  "next.state.PROTOCOL_PLACEHOLDER": "This protocol is a placeholder. Write your own with New review.",
+  "next.state.SETUP_NEEDED": "A search needs {what}.",
+  "next.state.SETUP_NEEDED.what.email": "a contact email",
+  "next.state.SETUP_NEEDED.what.key": "an OpenAlex key",
+  "next.state.SETUP_NEEDED.what.both": "a contact email and an OpenAlex key",
+  "next.state.READY_TO_SEARCH": "Your protocol is ready. Run the search.",
+  "next.state.STAGED_EXPORTS": "{n} database exports are staged. Accept them to start screening.",
+  "next.state.SEARCH_CHANGED": "You changed the search after run {run}. Search again before you accept.",
+  "next.state.CORPUS_READY": "Your corpus is ready: {works} works from {records} records. Accept it to start screening.",
+  "next.state.SEARCH_UNFINISHED": "The search has not finished.",
+  "next.state.CORPUS_PENDING": "The corpus is not prepared yet.",
+  "next.state.NOT_PREPARED": "The corpus is accepted. Prepare the screening batches.",
+  "next.state.PROTOCOL_CHANGED_AFTER_BATCHES": "The protocol changed after screening started, so earlier decisions count nowhere.",
+  "next.state.CONFLICTS": "{n} decisions conflict. Resolve them before you go on.",
+  "next.state.SCREENING": "{needs_you} of {total} records still need you.",
+  "next.state.READY_TO_PUBLISH": "Every record is decided. Check the agreement, then publish.",
+  "next.state.PUBLISHED_STALE": "The screening changed since you published.",
+  "next.state.PUBLISHED": "Screening is published. You can chase the citations of your included studies.",
+  "next.state.CHASE_READY_TO_SEND": "The chase found {new} new works. Send them to screening as round {round}.",
+  "next.state.CHASE_NOTHING_NEW": "The chase found nothing new.",
+  "next.state.ROUND_ACCEPTED": "Round {round} is with screening. Prepare its batches.",
+  "next.state.DONE": "Nothing is waiting for you. Export and methods are on Publish.",
+
+  // Waiting variants
+  "next.waiting.searching": "The search is running. {answered} of {databases} databases have answered.",
+  "next.waiting.deduplicating": "The search found {records} records. Removing duplicates.",
+  "next.waiting.adding_abstracts": "{works} works remain after duplicates. Adding missing abstracts.",
+  "next.waiting.verifying": "Checking {works} works against the databases. The hand-off opens when this ends.",
+  "next.waiting.preparing": "Preparing the screening batches.",
+  "next.waiting.chasing": "The citation chase is running.",
+  "next.waiting.accepting_chase": "Wait for the running job to end, then send these works.",
+  "next.stopped.searching": "You stopped the search. What was fetched is kept, but no corpus was made.",
+  "next.stopped.stage": "You stopped the search while {stage}. The corpus was not made.",
+  "next.failed.searching": "No database answered, so nothing was kept.",
+  "next.failed.stage": "The search finished, but preparing the corpus failed at {stage}. {message}",
+  "next.interrupted": "The search finished, but the corpus was not prepared. The console may have been closed while it ran.",
+  "next.reason.STOPPED_BY_RESEARCHER": "Stopped by you.",
+  "next.reason.INTERRUPTED": "The search ended before the corpus was written. The cause is not recorded.",
+  "next.stage.deduplicating": "removing duplicates",
+  "next.stage.adding_abstracts": "adding abstracts",
+  "next.stage.verifying": "checking the works",
+
+  // Field names the inception copy has no label for
+  "next.field.criteria_decisions": "decisions on the criteria",
+  "next.field.extra_inclusions": "an inclusion criterion",
+  "next.field.extra_exclusions": "an exclusion criterion",
+
+  // Buttons
+  "next.action.chooseReview": "Choose or start a review",
+  "next.action.goToStep": "Go to {step}",
+  "next.action.goToReview": "Go to Review",
+  "next.action.goToDone": "Go to the finished workspace",
+  "next.action.goToInception": "Go to inception",
+  "next.action.seeWhatToSet": "See what to set",
+  "next.action.goToHarvest": "Go to Harvest",
+  "next.action.reviewExports": "Review and accept the exports",
+  "next.action.reviewCorpus": "Review and accept the corpus",
+  "next.action.followSearch": "Follow the search",
+  "next.action.searchAgain": "Search again",
+  "next.action.goToScreening": "Go to screening",
+  "next.action.openInception": "Open inception",
+  "next.action.goToScreeningHome": "Go to screening home",
+  "next.action.openTriage": "Open triage",
+  "next.action.goToPublish": "Go to Publish",
+  "next.action.publishAgain": "Publish again",
+  "next.action.goToChase": "Go to Chase",
+  "next.action.reviewChase": "Review and send the works",
+  "next.action.followPreparation": "Follow the preparation",
+  "next.action.followChase": "Follow the chase",
+  "next.action.finishPreparing": "Finish preparing this corpus",
+} as const;
+
+export type NextStepCopyKey = keyof typeof EN;
+
+const FR: Record<NextStepCopyKey, string> = {
+  "next.region": "Et ensuite",
+  "next.details": "Détails",
+  "next.asOf": "État au {time}",
+  "next.unknown": "Certaines informations n'ont pas pu être lues.",
+  "next.here": "Étape suivante : {label}. Le bouton est sur cette page.",
+  "next.offline": "La page ne joint pas le moteur ; la suite n'est donc pas connue.",
+  "next.offline.last": "Dernière réponse : {sentence}",
+  "next.word.running": "En cours",
+  "next.word.stopped": "Arrêté",
+  "next.word.failed": "Échec",
+  "next.word.interrupted": "Interrompu",
+  "next.protocolChanged": "Le protocole a changé hors de la recherche ; accepter lie les notices au protocole tel qu'il est maintenant.",
+  "next.inRound": " au tour {round}",
+
+  "next.details.state": "État",
+  "next.details.stage": "Étape",
+  "next.details.run": "Exécution",
+  "next.details.job": "Tâche",
+  "next.details.since": "Depuis",
+  "next.details.reason": "Raison",
+  "next.details.cannotFinish": "Pourquoi elle ne peut pas être terminée",
+  "next.details.notRead": "Non lu",
+
+  "next.state.NO_REVIEW": "Aucune revue n'est ouverte.",
+  "next.state.DRAFT_STARTED": "Votre brouillon n'a pas encore de sujet.",
+  "next.state.DRAFT_INCOMPLETE": "Il manque encore à votre brouillon : {fields}.",
+  "next.state.DRAFT_READY": "Votre brouillon est complet. Créez l'espace de travail quand vous êtes prêt.",
+  "next.state.DRAFT_CREATED": "L'espace de travail {title} existe. Ouvrez-le pour continuer.",
+  "next.state.NO_PROTOCOL": "Cette revue n'a pas encore de protocole.",
+  "next.state.PROTOCOL_INVALID": "Le fichier du protocole est illisible ; rien ne peut donc être cherché.",
+  "next.state.PROTOCOL_PLACEHOLDER": "Ce protocole est provisoire. Écrivez le vôtre avec Nouvelle revue.",
+  "next.state.SETUP_NEEDED": "Une recherche demande {what}.",
+  "next.state.SETUP_NEEDED.what.email": "une adresse de contact",
+  "next.state.SETUP_NEEDED.what.key": "une clé OpenAlex",
+  "next.state.SETUP_NEEDED.what.both": "une adresse de contact et une clé OpenAlex",
+  "next.state.READY_TO_SEARCH": "Votre protocole est prêt. Lancez la recherche.",
+  "next.state.STAGED_EXPORTS": "{n} exports de bases attendent. Acceptez-les pour commencer la sélection.",
+  "next.state.SEARCH_CHANGED": "Vous avez modifié la recherche après l'exécution {run}. Relancez-la avant d'accepter.",
+  "next.state.CORPUS_READY": "Votre corpus est prêt : {works} travaux issus de {records} notices. Acceptez-le pour commencer la sélection.",
+  "next.state.SEARCH_UNFINISHED": "La recherche n'est pas terminée.",
+  "next.state.CORPUS_PENDING": "Le corpus n'est pas encore préparé.",
+  "next.state.NOT_PREPARED": "Le corpus est accepté. Préparez les lots de sélection.",
+  "next.state.PROTOCOL_CHANGED_AFTER_BATCHES": "Le protocole a changé après le début de la sélection ; les décisions antérieures ne comptent donc nulle part.",
+  "next.state.CONFLICTS": "{n} décisions sont en conflit. Résolvez-les avant de continuer.",
+  "next.state.SCREENING": "{needs_you} notices sur {total} vous attendent encore.",
+  "next.state.READY_TO_PUBLISH": "Chaque notice est décidée. Vérifiez l'accord, puis publiez.",
+  "next.state.PUBLISHED_STALE": "La sélection a changé depuis votre publication.",
+  "next.state.PUBLISHED": "La sélection est publiée. Vous pouvez suivre les citations de vos études incluses.",
+  "next.state.CHASE_READY_TO_SEND": "Le suivi des citations a trouvé {new} nouveaux travaux. Envoyez-les à la sélection comme tour {round}.",
+  "next.state.CHASE_NOTHING_NEW": "Le suivi des citations n'a rien trouvé de nouveau.",
+  "next.state.ROUND_ACCEPTED": "Le tour {round} est en sélection. Préparez ses lots.",
+  "next.state.DONE": "Rien ne vous attend. L'export et la méthode sont sur Publier.",
+
+  "next.waiting.searching": "La recherche est en cours. {answered} bases sur {databases} ont répondu.",
+  "next.waiting.deduplicating": "La recherche a trouvé {records} notices. Retrait des doublons.",
+  "next.waiting.adding_abstracts": "Il reste {works} travaux après les doublons. Ajout des résumés manquants.",
+  "next.waiting.verifying": "Vérification de {works} travaux auprès des bases. La remise s'ouvre à la fin.",
+  "next.waiting.preparing": "Préparation des lots de sélection.",
+  "next.waiting.chasing": "Le suivi des citations est en cours.",
+  "next.waiting.accepting_chase": "Attendez la fin de la tâche en cours, puis envoyez ces travaux.",
+  "next.stopped.searching": "Vous avez arrêté la recherche. Ce qui a été récupéré est gardé, mais aucun corpus n'a été constitué.",
+  "next.stopped.stage": "Vous avez arrêté la recherche pendant l'étape : {stage}. Le corpus n'a pas été constitué.",
+  "next.failed.searching": "Aucune base n'a répondu ; rien n'a donc été gardé.",
+  "next.failed.stage": "La recherche est terminée, mais la préparation du corpus a échoué à l'étape : {stage}. {message}",
+  "next.interrupted": "La recherche est terminée, mais le corpus n'a pas été préparé. La console a peut-être été fermée pendant l'opération.",
+  "next.reason.STOPPED_BY_RESEARCHER": "Arrêté par vous.",
+  "next.reason.INTERRUPTED": "La recherche s'est terminée avant l'écriture du corpus. La cause n'est pas enregistrée.",
+  "next.stage.deduplicating": "retrait des doublons",
+  "next.stage.adding_abstracts": "ajout des résumés",
+  "next.stage.verifying": "vérification des travaux",
+
+  "next.field.criteria_decisions": "les décisions sur les critères",
+  "next.field.extra_inclusions": "un critère d'inclusion",
+  "next.field.extra_exclusions": "un critère d'exclusion",
+
+  "next.action.chooseReview": "Choisir ou commencer une revue",
+  "next.action.goToStep": "Aller à {step}",
+  "next.action.goToReview": "Aller à Vérifier",
+  "next.action.goToDone": "Aller à l'espace de travail créé",
+  "next.action.goToInception": "Aller à la conception",
+  "next.action.seeWhatToSet": "Voir quoi configurer",
+  "next.action.goToHarvest": "Aller à la collecte",
+  "next.action.reviewExports": "Examiner et accepter les exports",
+  "next.action.reviewCorpus": "Examiner et accepter le corpus",
+  "next.action.followSearch": "Suivre la recherche",
+  "next.action.searchAgain": "Chercher à nouveau",
+  "next.action.goToScreening": "Aller à la sélection",
+  "next.action.openInception": "Ouvrir la conception",
+  "next.action.goToScreeningHome": "Aller à l'accueil de la sélection",
+  "next.action.openTriage": "Ouvrir le tri",
+  "next.action.goToPublish": "Aller à Publier",
+  "next.action.publishAgain": "Publier de nouveau",
+  "next.action.goToChase": "Aller au suivi des citations",
+  "next.action.reviewChase": "Examiner et envoyer les travaux",
+  "next.action.followPreparation": "Suivre la préparation",
+  "next.action.followChase": "Suivre le suivi des citations",
+  "next.action.finishPreparing": "Terminer la préparation de ce corpus",
+};
+
+const AR: Record<NextStepCopyKey, string> = {
+  "next.region": "ما التالي",
+  "next.details": "التفاصيل",
+  "next.asOf": "حتى {time}",
+  "next.unknown": "تعذّرت قراءة بعض المعلومات.",
+  "next.here": "التالي: {label}. الزر في هذه الصفحة.",
+  "next.offline": "لا تستطيع الصفحة الوصول إلى المحرك، لذا لا يُعرف ما التالي.",
+  "next.offline.last": "آخر إجابة: {sentence}",
+  "next.word.running": "قيد التشغيل",
+  "next.word.stopped": "متوقف",
+  "next.word.failed": "فشل",
+  "next.word.interrupted": "انقطع",
+  "next.protocolChanged": "تغيّر البروتوكول خارج البحث؛ وقبول المجموعة يربط السجلات به كما هو الآن.",
+  "next.inRound": " في الجولة {round}",
+
+  "next.details.state": "الحالة",
+  "next.details.stage": "المرحلة",
+  "next.details.run": "التشغيل",
+  "next.details.job": "المهمة",
+  "next.details.since": "منذ",
+  "next.details.reason": "السبب",
+  "next.details.cannotFinish": "لماذا لا يمكن إكمالها",
+  "next.details.notRead": "لم يُقرأ",
+
+  "next.state.NO_REVIEW": "لا توجد مراجعة مفتوحة.",
+  "next.state.DRAFT_STARTED": "لا موضوع لمسودتك بعد.",
+  "next.state.DRAFT_INCOMPLETE": "ما زالت مسودتك تحتاج إلى: {fields}.",
+  "next.state.DRAFT_READY": "مسودتك مكتملة. أنشئ مساحة العمل حين تكون جاهزًا.",
+  "next.state.DRAFT_CREATED": "مساحة العمل {title} موجودة. افتحها للمتابعة.",
+  "next.state.NO_PROTOCOL": "لا بروتوكول لهذه المراجعة بعد.",
+  "next.state.PROTOCOL_INVALID": "تتعذّر قراءة ملف البروتوكول، لذا لا يمكن البحث عن شيء.",
+  "next.state.PROTOCOL_PLACEHOLDER": "هذا البروتوكول مؤقت. اكتب بروتوكولك عبر مراجعة جديدة.",
+  "next.state.SETUP_NEEDED": "يحتاج البحث إلى {what}.",
+  "next.state.SETUP_NEEDED.what.email": "بريد إلكتروني للتواصل",
+  "next.state.SETUP_NEEDED.what.key": "مفتاح OpenAlex",
+  "next.state.SETUP_NEEDED.what.both": "بريد إلكتروني للتواصل ومفتاح OpenAlex",
+  "next.state.READY_TO_SEARCH": "بروتوكولك جاهز. شغّل البحث.",
+  "next.state.STAGED_EXPORTS": "توجد {n} صادرات قواعد بيانات بانتظار القبول. اقبلها لبدء الفرز.",
+  "next.state.SEARCH_CHANGED": "غيّرت البحث بعد التشغيل {run}. ابحث مجددًا قبل القبول.",
+  "next.state.CORPUS_READY": "مجموعتك جاهزة: {works} عملًا من {records} سجلًا. اقبلها لبدء الفرز.",
+  "next.state.SEARCH_UNFINISHED": "لم ينتهِ البحث.",
+  "next.state.CORPUS_PENDING": "لم تُحضَّر المجموعة بعد.",
+  "next.state.NOT_PREPARED": "قُبلت المجموعة. حضّر دفعات الفرز.",
+  "next.state.PROTOCOL_CHANGED_AFTER_BATCHES": "تغيّر البروتوكول بعد بدء الفرز، لذا لا تُحتسب القرارات السابقة.",
+  "next.state.CONFLICTS": "يتعارض {n} قرارًا. احسمها قبل المتابعة.",
+  "next.state.SCREENING": "ما زال {needs_you} من {total} سجلًا بانتظارك.",
+  "next.state.READY_TO_PUBLISH": "حُسم كل سجل. تحقق من الاتفاق ثم انشر.",
+  "next.state.PUBLISHED_STALE": "تغيّر الفرز منذ أن نشرته.",
+  "next.state.PUBLISHED": "نُشر الفرز. يمكنك تتبّع استشهادات دراساتك المضمّنة.",
+  "next.state.CHASE_READY_TO_SEND": "وجد تتبّع الاستشهادات {new} عملًا جديدًا. أرسلها إلى الفرز بوصفها الجولة {round}.",
+  "next.state.CHASE_NOTHING_NEW": "لم يجد تتبّع الاستشهادات شيئًا جديدًا.",
+  "next.state.ROUND_ACCEPTED": "الجولة {round} لدى الفرز. حضّر دفعاتها.",
+  "next.state.DONE": "لا شيء بانتظارك. التصدير والمنهجية في صفحة النشر.",
+
+  "next.waiting.searching": "البحث قيد التشغيل. أجابت {answered} من {databases} قواعد بيانات.",
+  "next.waiting.deduplicating": "وجد البحث {records} سجلًا. تجري إزالة المكررات.",
+  "next.waiting.adding_abstracts": "بقي {works} عملًا بعد إزالة المكررات. تجري إضافة الملخصات الناقصة.",
+  "next.waiting.verifying": "يجري التحقق من {works} عملًا مقابل قواعد البيانات. يُفتح التسليم عند انتهاء ذلك.",
+  "next.waiting.preparing": "يجري تحضير دفعات الفرز.",
+  "next.waiting.chasing": "تتبّع الاستشهادات قيد التشغيل.",
+  "next.waiting.accepting_chase": "انتظر انتهاء المهمة الجارية، ثم أرسل هذه الأعمال.",
+  "next.stopped.searching": "أوقفت البحث. ما جُلب محفوظ، لكن لم تتكوّن مجموعة.",
+  "next.stopped.stage": "أوقفت البحث أثناء مرحلة {stage}. لم تتكوّن المجموعة.",
+  "next.failed.searching": "لم تُجب أي قاعدة بيانات، فلم يُحفظ شيء.",
+  "next.failed.stage": "انتهى البحث، لكن تحضير المجموعة فشل عند مرحلة {stage}. {message}",
+  "next.interrupted": "انتهى البحث، لكن المجموعة لم تُحضَّر. ربما أُغلقت وحدة التحكم أثناء التشغيل.",
+  "next.reason.STOPPED_BY_RESEARCHER": "أوقفته أنت.",
+  "next.reason.INTERRUPTED": "انتهى البحث قبل كتابة المجموعة. السبب غير مسجّل.",
+  "next.stage.deduplicating": "إزالة المكررات",
+  "next.stage.adding_abstracts": "إضافة الملخصات",
+  "next.stage.verifying": "التحقق من الأعمال",
+
+  "next.field.criteria_decisions": "القرارات بشأن المعايير",
+  "next.field.extra_inclusions": "معيار إدراج",
+  "next.field.extra_exclusions": "معيار استبعاد",
+
+  "next.action.chooseReview": "اختر مراجعة أو ابدأ واحدة",
+  "next.action.goToStep": "انتقل إلى {step}",
+  "next.action.goToReview": "انتقل إلى المراجعة",
+  "next.action.goToDone": "انتقل إلى مساحة العمل المنشأة",
+  "next.action.goToInception": "انتقل إلى التأسيس",
+  "next.action.seeWhatToSet": "اعرض ما يجب ضبطه",
+  "next.action.goToHarvest": "انتقل إلى الجمع",
+  "next.action.reviewExports": "راجع الصادرات واقبلها",
+  "next.action.reviewCorpus": "راجع المجموعة واقبلها",
+  "next.action.followSearch": "تابع البحث",
+  "next.action.searchAgain": "ابحث مجددًا",
+  "next.action.goToScreening": "انتقل إلى الفرز",
+  "next.action.openInception": "افتح التأسيس",
+  "next.action.goToScreeningHome": "انتقل إلى رئيسية الفرز",
+  "next.action.openTriage": "افتح المراجعة السريعة",
+  "next.action.goToPublish": "انتقل إلى النشر",
+  "next.action.publishAgain": "انشر مجددًا",
+  "next.action.goToChase": "انتقل إلى تتبّع الاستشهادات",
+  "next.action.reviewChase": "راجع الأعمال وأرسلها",
+  "next.action.followPreparation": "تابع التحضير",
+  "next.action.followChase": "تابع تتبّع الاستشهادات",
+  "next.action.finishPreparing": "أكمل تحضير هذه المجموعة",
+};
+
+export const NEXT_STEP_COPY: Record<Locale, Record<NextStepCopyKey, string>> = { en: EN, fr: FR, ar: AR };
+
+/** Table 1 of the spec, in order (the engine's `STATES`). */
+export const NEXT_STATES = [
+  "NO_REVIEW", "DRAFT_STARTED", "DRAFT_INCOMPLETE", "DRAFT_READY", "DRAFT_CREATED", "NO_PROTOCOL",
+  "PROTOCOL_INVALID", "PROTOCOL_PLACEHOLDER", "SETUP_NEEDED", "READY_TO_SEARCH", "STAGED_EXPORTS",
+  "SEARCH_CHANGED", "CORPUS_READY", "SEARCH_UNFINISHED", "CORPUS_PENDING", "NOT_PREPARED",
+  "PROTOCOL_CHANGED_AFTER_BATCHES", "CONFLICTS", "SCREENING", "READY_TO_PUBLISH", "PUBLISHED_STALE",
+  "PUBLISHED", "CHASE_READY_TO_SEND", "CHASE_NOTHING_NEW", "ROUND_ACCEPTED", "DONE",
+] as const;
+
+/** Table 2's `waiting.stage` values (the engine's `WAITING_STAGES`). */
+export const WAITING_STAGES = ["searching", "deduplicating", "adding_abstracts", "verifying", "preparing", "chasing", "accepting_chase"] as const;
+
+/** Table 2's `waiting.kind` values. */
+export const WAITING_KINDS = ["running", "stopped", "failed", "interrupted"] as const;
+
+/** Every `action.key` the engine sends. */
+export const ACTION_KEYS = [
+  "chooseReview", "goToStep", "goToReview", "goToDone", "goToInception", "seeWhatToSet", "goToHarvest", "reviewExports",
+  "reviewCorpus", "followSearch", "searchAgain", "goToScreening", "openInception", "goToScreeningHome", "openTriage",
+  "goToPublish", "publishAgain", "goToChase", "reviewChase", "followPreparation", "followChase", "finishPreparing",
+] as const;
+
+/** The states whose sentence gains " in round {round}" when the engine sends `params.round` (rows 16 to 21). */
+export const ROUND_STATES = new Set(["NOT_PREPARED", "PROTOCOL_CHANGED_AFTER_BATCHES", "CONFLICTS", "SCREENING", "READY_TO_PUBLISH", "PUBLISHED_STALE"]);
+
+export function hasNextStepKey(key: string): key is NextStepCopyKey {
+  return key in EN;
+}
+
+/** The template of a key, or `null` when the copy has none (an engine newer than this page). */
+export function nextStepTemplate(locale: Locale, key: string): string | null {
+  return hasNextStepKey(key) ? NEXT_STEP_COPY[locale][key] : null;
+}
