@@ -12,6 +12,7 @@ import { getDiscoveryChecks } from "@/lib/discovery-api";
 import { CHECKS_COPY } from "@/lib/checks-copy";
 import { fillNodes } from "@/components/assist-anchor";
 import { notifyDiscoveryChecks, useDiscoveryChecksVersion } from "@/components/checks-bus";
+import { notifyReviewChanged } from "@/components/review-bus";
 
 /**
  * What every discovery screen shares (spec 01 "Shared by 01–08", M3c-screens):
@@ -399,6 +400,8 @@ export function useJobStream(origin: string, jobId: string | null, onEnd?: (job:
         } else if (event.event === "stage") stages.set(event.data.stage, { stage: event.data.stage, status: event.data.status, detail: event.data.detail });
         view = { ...view, legs: [...legs.values()], stages: [...stages.values()], lastAt: now(), lost: false, error: null };
         if (!cancelled) setState(view);
+        // M10b (04-next-step): the bar re-reads on connect and on each stage and end; `leg` events are too frequent.
+        if (!cancelled && event.event !== "leg") notifyReviewChanged();
       };
       try {
         const result = await streamJob(origin, jobId, apply, controller.signal);
@@ -426,6 +429,7 @@ export function useJobStream(origin: string, jobId: string | null, onEnd?: (job:
             setState((s) => ({ ...s, job, ended: true, lost: false }));
             endRef.current?.(job);
             notifyDiscoveryChecks();
+            notifyReviewChanged();
             return;
           }
         } catch (readError) {

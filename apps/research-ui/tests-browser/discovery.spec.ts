@@ -73,7 +73,7 @@ test("a researcher goes from the plan to the hand-off accept and lands on screen
   await expect(page.locator("[data-lower-bound-note]")).toContainText("Crossref");
   await page.getByRole("button", { name: "Accept this corpus" }).click();
   await expect(page.getByRole("heading", { name: "This corpus is accepted." })).toBeVisible();
-  await page.getByRole("link", { name: "Go to screening" }).click();
+  await page.locator("main").getByRole("link", { name: "Go to screening" }).click();
   await page.waitForURL(/\/en\/screening\/home\/?$/);
   expect(fake.accepted).toBe(true);
 });
@@ -198,7 +198,7 @@ test("a published screening is chased, one database fails and one is capped, the
   await page.getByRole("button", { name: /Send these \d+ works to screening/ }).click();
   await expect(page.getByRole("heading", { name: "These works are with screening as round 2." })).toBeVisible();
   expect(fake.round).toBe(2);
-  await page.getByRole("link", { name: "Go to screening" }).click();
+  await page.locator("main").getByRole("link", { name: "Go to screening" }).click();
   await page.waitForURL(/\/en\/screening\/home\/?$/);
 });
 

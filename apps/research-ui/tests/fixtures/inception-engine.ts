@@ -355,6 +355,36 @@ export function inceptionEngine(options: FakeOptions = {}) {
       delete refuseOnce[`${method} ${path}`];
       return once;
     }
+    // ---- M10b Part C (next-step bar): `GET /drafts/{id}/next-step`, rows 2 to 5 from this fake's draft, simplest reading. ----
+    const nextStepPath = path.match(/^\/api\/v1\/inception\/drafts\/([^/]+)\/next-step$/);
+    if (nextStepPath && method === "GET") {
+      const record = drafts.get(nextStepPath[1]);
+      if (!record) return refuse(404, "DRAFT_NOT_FOUND");
+      const draft = (record.draft ?? {}) as Json;
+      const sid = String(record.session_id);
+      const at = new Date().toISOString();
+      const answer = (state: string, params: Json, key: string, screen: string): Answer => ({
+        status: 200,
+        body: {
+          shape: "review.next-step-v1", scope: "draft", phase: "inception", round: 1, state, params, waiting: null,
+          action: { key, to: { screen, query: { draft: sid } } }, also: [], unknown: [], protocol_fingerprint: null, computed_at: at,
+        },
+      });
+      const emitted = record.emitted as Json | null;
+      if (emitted) return answer("DRAFT_CREATED", { title: draft.title ?? emitted.slug, slug: emitted.slug }, "goToDone", "inception.done");
+      const blank = (v: unknown) => v === undefined || v === null || v === "" || (Array.isArray(v) && v.length === 0);
+      if (blank(draft.topic)) return answer("DRAFT_STARTED", { step: "scope" }, "goToStep", "inception.scope");
+      const stepOf: Record<string, string> = { topic: "scope", paradigm: "shape", playbook: "shape", unit_of_analysis: "shape", proof: "shape", rqs: "shape", concepts: "criteria", criteria_decisions: "criteria", title: "review", lead_researcher: "review" };
+      const order = ["scope", "explore", "direction", "shape", "criteria", "review"];
+      const fields = ["paradigm", "playbook", "unit_of_analysis", "proof", "rqs", "concepts", "title", "lead_researcher"].filter((f) => (f !== "proof" || proofRequired(draft)) && blank(draft[f]));
+      if (!fields.length && draft.paradigm && criteriaOf(draft).undecided.length) fields.push("criteria_decisions");
+      if (fields.length) {
+        const step = fields.map((f) => stepOf[f]).sort((a, b) => order.indexOf(a) - order.indexOf(b))[0];
+        return answer("DRAFT_INCOMPLETE", { fields, step }, "goToStep", `inception.${step}`);
+      }
+      return answer("DRAFT_READY", {}, "goToReview", "inception.review");
+    }
+    // ---- end of the M10b Part C block ----
     // M10b Part B: checks, dismissals and proposals on the draft record.
     const checksPath = path.match(/^\/api\/v1\/inception\/drafts\/([^/]+)\/checks(?:\/([A-Z_]+)\/(dismiss|restore))?$/);
     if (checksPath && method === "POST") {

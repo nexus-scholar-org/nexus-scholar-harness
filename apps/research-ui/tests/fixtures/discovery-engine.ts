@@ -92,6 +92,8 @@ export interface DiscoveryFakeOptions {
   estimateFails?: Record<string, string>;
   /** M10b Part D: the planned maximum stated in `intent.json` (default none: the general limit of 1,000). */
   plannedMax?: number;
+  /** M10b Part C: the step a held job is in after the search (the `preparation` stage while it runs; default `hydration`). */
+  preparingStage?: "deduplication" | "hydration" | "verification";
 }
 
 const PROVIDERS = ["openalex", "semanticscholar", "crossref", "arxiv", "pubmed", "biorxiv"] as const;
@@ -317,7 +319,7 @@ export function discoveryEngine(options: DiscoveryFakeOptions = {}) {
     if (run !== corpusRun()) return view("superseded", null);
     const active = activeJob();
     if (active && (active.kind === "prepare" || (active.kind === "run" && active.preparing_run === run.run))) {
-      return view("running", "hydration", { job_id: active.job_id });
+      return view("running", options.preparingStage ?? "hydration", { job_id: active.job_id });
     }
     if (!stored) return view("ready", null);
     const reason = accepted ? "corpus_accepted" : options.recordsMissing ? "records_missing" : null;
@@ -530,6 +532,97 @@ export function discoveryEngine(options: DiscoveryFakeOptions = {}) {
       warn: { level, threshold_works: limit, limit: { value: limit, source: options.plannedMax ? "planned" : "general" } },
       recommendation,
     };
+  };
+
+  /**
+   * M10b Part C: `GET /api/v1/review/next-step`, the first row of the spec's table 1 that holds, read from this
+   * fake's own state in the simplest way (the engine's rules are pinned by `tests/console/test_next_step_api.py`).
+   */
+  const STAGE_NAMES: Record<string, string> = { deduplication: "deduplicating", hydration: "adding_abstracts", verification: "verifying" };
+  const nextStep = (): Json => {
+    const action = (key: string, screen: string, query: Json = {}) => ({ key, to: { screen, query } });
+    const answer = (state: string, phase: string, extra: Json = {}): Json => ({
+      shape: "review.next-step-v1", scope: "workspace", phase, round, state, params: {}, waiting: null, action: null, also: [],
+      unknown: [], protocol_fingerprint: protocol === "ok" ? fingerprint : null, computed_at: new Date().toISOString(), ...extra,
+    });
+    if (protocol === "missing") return answer("NO_PROTOCOL", "inception", { action: action("goToInception", "inception.list") });
+    if (protocol === "invalid") return answer("PROTOCOL_INVALID", "inception", { action: action("goToInception", "inception.list") });
+    const active = activeJob();
+    const runJob = active && (active.kind === "run" || active.kind === "prepare") ? active : null;
+    const waiting = (kind: string, stage: string, job: Json | null, reason: Json | null = null, since: string | null = null): Json => ({
+      kind, stage, job: job ? { job_id: job.job_id, kind: job.kind, state: job.state, started_at: job.started_at } : null, reason,
+      since: since ?? ((job?.started_at as string | undefined) ?? null),
+    });
+    if (!accepted) {
+      if (!runs.length && !runJob && !staged) {
+        if (!mailto || (!openalexKey && protocolProviders.includes("openalex"))) {
+          const what = !mailto && !openalexKey ? "both" : !mailto ? "email" : "key";
+          return answer("SETUP_NEEDED", "discovery", { params: { what }, action: action("seeWhatToSet", "discovery.plan") });
+        }
+        return answer("READY_TO_SEARCH", "discovery", { action: action("goToHarvest", "discovery.harvest") });
+      }
+      if (staged) return answer("STAGED_EXPORTS", "discovery", { params: { n: 1 }, action: action("reviewExports", "discovery.handoff") });
+      const run = corpusRun();
+      if (runJob && runJob.kind === "run" && !runJob.preparing_run) {
+        return answer("SEARCH_UNFINISHED", "discovery", {
+          params: { answered: 0, databases: protocolProviders.length }, waiting: waiting("running", "searching", runJob),
+          action: action("followSearch", "discovery.harvest", { job: runJob.job_id }),
+        });
+      }
+      const d = dedup();
+      if (runJob && run) {
+        const view = preparationOf(run);
+        return answer("CORPUS_PENDING", "discovery", {
+          params: { run: run.run, records: fetchedTotal(run), works: d?.unique_works ?? null, databases: (run.legs as Json[]).length },
+          waiting: waiting("running", STAGE_NAMES[String(view.stage)] ?? "deduplicating", runJob),
+          action: action("followSearch", "discovery.harvest", { job: runJob.job_id }),
+        });
+      }
+      if (run) {
+        const view = preparationOf(run);
+        if (options.handoffProtocolChange === "search") return answer("SEARCH_CHANGED", "discovery", { params: { run: run.run }, action: action("goToHarvest", "discovery.harvest") });
+        if (view.state === "ready") {
+          return answer("CORPUS_READY", "discovery", {
+            params: { run: run.run, records: fetchedTotal(run), works: d?.unique_works ?? null, ...(options.handoffProtocolChange === "other" ? { protocol_changed: true } : {}) },
+            action: action("reviewCorpus", "discovery.handoff"),
+          });
+        }
+      }
+      const newest = runs[0];
+      if (newest && prep.get(String(newest.run))?.state === "none") {
+        return answer("SEARCH_UNFINISHED", "discovery", {
+          params: { run: newest.run }, waiting: waiting("stopped", "searching", null, { code: "STOPPED_BY_RESEARCHER", message: null }, stageAt),
+          action: action("searchAgain", "discovery.harvest"),
+        });
+      }
+      if (run) {
+        const view = preparationOf(run);
+        const stage = view.stage ? STAGE_NAMES[String(view.stage)] : null;
+        const finish = view.can_finish ? action("finishPreparing", "discovery.harvest", { run: run.run }) : action("searchAgain", "discovery.harvest");
+        const also = view.can_finish ? [action("searchAgain", "discovery.harvest")] : [];
+        const reason =
+          view.state === "failed" ? { code: "DISCOVERY_FAILED", message: view.message } : view.state === "stopped" ? { code: "STOPPED_BY_RESEARCHER", message: null } : { code: "INTERRUPTED", message: null };
+        return answer("CORPUS_PENDING", "discovery", {
+          params: { run: run.run, records: fetchedTotal(run), works: d?.unique_works ?? null, databases: (run.legs as Json[]).length, stage, ...(view.cannot_finish ? { cannot_finish: view.cannot_finish } : {}) },
+          waiting: { ...waiting(String(view.state), stage ?? (view.state === "stopped" ? "deduplicating" : "verifying"), null, reason, stageAt), ...(view.state === "interrupted" ? { details: { stage_known: stage !== null } } : {}) },
+          action: finish, also,
+        });
+      }
+      return answer("READY_TO_SEARCH", "discovery", { action: action("goToHarvest", "discovery.harvest") });
+    }
+    const withRound = (params: Json = {}): Json => (round > 1 ? { ...params, round } : params);
+    if (active?.kind === "chase") return answer("PUBLISHED", "screening", { params: withRound(), waiting: waiting("running", "chasing", active), action: action("followChase", "discovery.chase", { job: active.job_id }) });
+    // The fake keeps no screening batches: an accepted round waits for its batches until the screening is published.
+    if (!published) return answer(round > 1 ? "ROUND_ACCEPTED" : "NOT_PREPARED", "screening", { params: withRound(), action: action("goToScreening", "screening.home") });
+    const latest = chases[0];
+    if (!latest && !options.chaseNoSeeds) return answer("PUBLISHED", "published", { params: withRound(), action: action("goToChase", "discovery.chase") });
+    if (latest && latest.published && !latest.accepted) {
+      const fresh = Number((latest.counts as Json).new);
+      return fresh > 0
+        ? answer("CHASE_READY_TO_SEND", "published", { params: { new: fresh, round: round + 1 }, action: action("reviewChase", "discovery.chase") })
+        : answer("CHASE_NOTHING_NEW", "published", { params: withRound(), action: action("goToChase", "discovery.chase") });
+    }
+    return answer("DONE", "published", { params: withRound({ chaseable: options.chaseNoSeeds ? 0 : 1 }), action: action("goToPublish", "screening.publish") });
   };
 
   function handle(method: string, path: string, body: Json | null): Answer {
@@ -761,6 +854,7 @@ export function discoveryEngine(options: DiscoveryFakeOptions = {}) {
       if (!checksMatch[1] && method === "GET") return { status: 200, body: respond(rows(), { step, steps: DISCOVERY_STEPS, scope, at: now() }) };
     }
     if (method === "GET" && route === "/api/v1/discovery/handoff") return needProtocol() ?? { status: 200, body: handoff() };
+    if (method === "GET" && route === "/api/v1/review/next-step") return { status: 200, body: nextStep() };
     if (method === "GET" && route === "/api/v1/screening/corpus") return { status: 200, body: corpus() };
     if (method === "POST" && route === "/api/v1/screening/corpus/accept") {
       if (accepted) return refuse(409, "CORPUS_ALREADY_ACCEPTED", "the corpus is already accepted");
@@ -867,6 +961,15 @@ export function discoveryEngine(options: DiscoveryFakeOptions = {}) {
     checkDismissals,
     chases,
     setPublished: (value: boolean) => (published = value),
+    /** M10b Part C: the job still running ends as succeeded (its run's steps after the search are then `ready`). */
+    finishHeldJob: () => {
+      for (const entry of jobs.values()) {
+        if (entry.job.state !== "running") continue;
+        entry.job = { ...entry.job, state: "succeeded", finished_at: now() };
+        entry.events.push({ event: "done", data: { job: entry.job } });
+        entry.open = false;
+      }
+    },
     get round() {
       return round;
     },
