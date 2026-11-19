@@ -1,9 +1,10 @@
 import type { ReactNode } from "react";
 
 import { LOCALE_METADATA, translate, type Locale } from "@/i18n";
+// From a module with no directive, so the script reaches `<head>` as text (H-hydration-418).
+import { THEME_BOOT_SCRIPT } from "@/lib/theme-boot";
 
 import { AppShell } from "./app-shell";
-import { THEME_BOOT_SCRIPT } from "./theme-toggle";
 
 /**
  * The document owner (packet UI-01d, D-I18N-01a).
