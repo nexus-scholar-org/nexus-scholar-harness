@@ -1,5 +1,5 @@
 # M3h-c-arxiv-date The arXiv leg sends its year range (F16, second half)
-Branch: dev/m3h-c/arxiv-date-filter · Lane: **STANDARD** (see "Lane") · Status: **READY FOR PR, NOT PUSHED** (both golden cassettes re-recorded by the researcher 2026-11-19; pr gate green; `milestone-reviewer` APPROVE; waiting for the researcher's word to push) · Started: 2026-11-18
+Branch: dev/m3h-c/arxiv-date-filter · Lane: **STANDARD** (see "Lane") · Status: **MERGED** (PR #251, merge commit `95cc6233`, 2026-11-19; both golden cassettes re-recorded by the researcher 2026-11-19; `milestone-reviewer` APPROVE) · Started: 2026-11-18
 
 The half of finding F16 of
 [`three-phase-hardening-2026-11-10.md`](../../assessment/three-phase-hardening-2026-11-10.md)

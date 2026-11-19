@@ -4,6 +4,15 @@ One entry per decision that still shapes the code, newest first. The full
 records were removed in the 2026-11-03 docs cut; each entry names the commit
 history to read if you need the original reasoning (`git log --follow -- <path>`).
 
+## 2026-11-19 — M9a: what the measurement says about the ladder gates (PROPOSED by the main session; not accepted; M9a-measure D10)
+
+Record: `docs/roadmap/milestones/M9a-measure.md`, "The measurement (run 2026-11-19)". The screening agent was run on the frozen 1,644-record sample with Opus 5.5, Sonnet 5.5 and Haiku 5.5 ($12.63). Recall lower bounds 93.1%, 93.6% and 96.8%; the agent excludes 6.4%, 1.7% and 1.9% of the researcher's excludes and leaves 67% to 77% of the records Unclear, mostly because the abstract does not report what a criterion asks.
+
+1. **No rung is unlocked on these results.** L1 passes for all three models and L2 for Haiku, but the pass comes from staying undecided, not from deciding well.
+2. **A gate needs a second condition besides recall:** a minimum share of the researcher's excludes that the agent takes off the pile, measured on the same calibration. The number is the researcher's to set; all three models are under 7% today.
+3. **The "not reported in the abstract" rule is settled before M9b**: either the criteria are worded so an abstract can answer them, or the protocol says what an unreported criterion means at title-and-abstract stage (today it always means Unclear). Then the measurement is repeated.
+4. **The draft thresholds (L1 0.90, L2 0.95) stay constants in `measure.py`** until items 2 and 3 are decided.
+
 ## 2026-11-19 — H-hydration-418: React #418 on every page of the export (PROPOSED; H-hydration-418)
 
 Record: `docs/roadmap/milestones/H-hydration-418.md`. Supersedes item 8 of "H-ui-findings" below (the error is now reproduced and its cause found).

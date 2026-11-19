@@ -1,5 +1,5 @@
 # H-hydration-418: React #418 on every full page load of the exported UI
-Branch: dev/fix/hydration-418 · Lane: **STANDARD** · Status: READY FOR PR (reviewer: code approved, evidence item recorded; push and PR wait for the researcher's own word) · Started: 2026-11-19
+Branch: dev/fix/hydration-418 · Lane: **STANDARD** · Status: MERGED (PR #252, merge commit `c54e99f2`, 2026-11-19; reviewer: code approved) · Started: 2026-11-19
 
 **Lane.** STANDARD, from `docs/architecture/test_gate_policy.md` ("a bounded behavior, packaging, or dependency change owned by one repository"): one UI module split in two (`apps/research-ui`), a new unit guard, a new browser spec and a hydration guard in the browser suite's shared `page` fixture. No engine, contract, API, route, persisted-file or MCP change. Gates: `inner` while editing, the `pr` set once on the final executable commit.
 
