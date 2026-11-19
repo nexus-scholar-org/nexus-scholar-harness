@@ -112,6 +112,7 @@ describe("plural wording on screen", () => {
     setUp({ draft: completeDraft() });
     render(<InceptionCriteria locale="en" />);
     const line = await screen.findByText(/still needs? you\./);
-    expect(line.textContent).toMatch(/^(\d+ still need you\.|1 still needs you\.)$/);
+    const count = Number(/^d+/.exec(line.textContent ?? "")?.[0]);
+    expect(line.textContent).toBe(count === 1 ? "1 still needs you." : `${count} still need you.`);
   });
 });

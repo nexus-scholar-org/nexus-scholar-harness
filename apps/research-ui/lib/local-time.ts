@@ -5,7 +5,7 @@
  * printed the first 16 characters showed UTC with no label, an hour or more off
  * the researcher's clock. These print the same instant in the browser's time
  * zone, as `YYYY-MM-DD HH:MM` (24 hours, Latin digits, like the other screens),
- * and `instant` keeps the ISO string for a `title` or `dateTime` attribute.
+ * The ISO string stays available to the caller for a `title` or `dateTime` attribute (`components/stamp.tsx`).
  *
  * Hydration: every caller formats a value read from the engine after the page
  * mounted (a draft, a list, a job), never one in the prerendered HTML, which has
@@ -35,9 +35,4 @@ export function localStamp(at: string | null | undefined): string {
 /** `YYYY-MM-DD` in the browser's zone. */
 export function localDate(at: string | null | undefined): string {
   return localStamp(at).slice(0, 10);
-}
-
-/** The instant as the engine sent it, for `title` and `dateTime`; empty when there is none. */
-export function instant(at: string | null | undefined): string {
-  return at ?? "";
 }

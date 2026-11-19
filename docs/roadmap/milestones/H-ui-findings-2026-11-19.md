@@ -7,7 +7,7 @@ Source: the main session ran the wheel built from `origin/main` at `7cd5fdca` in
 
 ## Definition of done
 - [x] Each finding is fixed with a test that fails before and passes after, shown not real, or deferred with a reason (table below).
-- [x] One finding per commit (F4 and F5 each touch a spec line; F3 changes one spec line).
+- [x] One finding per commit (F3 and F5 touch `02-checks`; F2, F3 and F7 touch the shape, guidance and states specs).
 - [x] The fixed screens were checked in the browser against the real export served by the console (evidence below).
 - [x] `/gate pr` once on the final executable commit, contract baseline check, `milestone-reviewer` verdict (recorded under Evidence).
 - [x] Proposed decisions are in `docs/decisions.md`, for the researcher.
