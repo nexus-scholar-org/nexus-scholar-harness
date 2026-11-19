@@ -36,6 +36,7 @@ import {
 } from "@/lib/discovery-api";
 import { discoveryT, providerName, type DiscoveryCopyKey } from "@/lib/discovery-copy";
 import { isZeroLeg } from "@/components/discovery-harvest";
+import { notifyReviewChanged } from "@/components/review-bus";
 
 /**
  * 09 Citation chase (spec `docs/ux/phase1-discovery/final/09-chase.md`, M3g):
@@ -179,6 +180,7 @@ export function DiscoveryChase({ locale }: Readonly<{ locale: Locale }>) {
     setStarting(true);
     try {
       const { job } = await startChase(origin, body);
+      notifyReviewChanged();
       setLastJob(null);
       setAnswer(null);
       setJobId(job.job_id);
@@ -197,6 +199,7 @@ export function DiscoveryChase({ locale }: Readonly<{ locale: Locale }>) {
     setStopping(true);
     try {
       await cancelJob(origin, jobId);
+      notifyReviewChanged();
     } catch (error) {
       setStartError(refusalOf(error));
       setStopping(false);
@@ -217,6 +220,7 @@ export function DiscoveryChase({ locale }: Readonly<{ locale: Locale }>) {
     setAcceptError(null);
     try {
       const result = await acceptChase(origin, detail.chase);
+      notifyReviewChanged();
       setAnswer(result);
       await load();
       heading.current?.focus();

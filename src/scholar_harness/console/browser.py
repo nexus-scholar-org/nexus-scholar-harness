@@ -61,7 +61,7 @@ POST_PATHS: tuple[re.Pattern[str], ...] = tuple(
         r"api/v1/inception/drafts/[A-Za-z0-9_-]+/checks",
         r"api/v1/inception/drafts/[A-Za-z0-9_-]+/checks/[A-Z][A-Z0-9_]+/(dismiss|restore)",
         r"api/v1/discovery/checks/[A-Z][A-Z0-9_]+/(dismiss|restore)",
-        r"api/v1/inception/drafts/[A-Za-z0-9_-]+/recon/(probe|delta|distill|bind)",
+        r"api/v1/inception/drafts/[A-Za-z0-9_-]+/recon/(probe|delta|distill|bind|sample)",
         r"api/v1/discovery/(runs|recall)",
         # M10b Part D: the size estimate (count-only requests; nothing written).
         r"api/v1/discovery/estimate",

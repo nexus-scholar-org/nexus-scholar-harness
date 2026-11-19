@@ -532,21 +532,26 @@ def list_drafts(root: Path) -> dict[str, Any]:
     return {"status": "SUCCESS", "workspaces_root": str(Path(root)), "drafts": items}
 
 
-def _pool_summary(sessions: Any, session_id: str) -> dict[str, Any] | None:
+def _pool_summary(sessions: Any, session_id: str, record: dict[str, Any]) -> dict[str, Any] | None:
+    """The sample as the app shows it: the papers the researcher left out are not in it (M10b Part C)."""
+    from scholar_harness.recon import sample as sample_mod
     from scholar_harness.recon.session import ReconRefused
 
     try:
         if not sessions.exists(session_id):
             return None
-        pool, _path = sessions.latest_pool(session_id)
+        pool, raw, _path = sessions.effective(session_id, sample_mod.keys_of(record.get("sample_exclusions")))
     except ReconRefused:
         return None
     docs = [d for d in pool.get("docs") or [] if isinstance(d, dict)]
+    left_out = (record.get("sample_exclusions") or {}).get("items") or []
     return {
         "providers": pool.get("providers"),
         "legs": [{k: leg.get(k) for k in ("provider", "status", "fetched", "total", "executed_query", "error_code")}
-                 for leg in pool.get("legs") or [] if isinstance(leg, dict)],
+                 for leg in raw.get("legs") or [] if isinstance(leg, dict)],
         "papers": [{k: d.get(k) for k in ("title", "doi", "year", "provider")} for d in docs],
+        "left_out_by_researcher": [{k: i.get(k) for k in ("doi", "title", "year", "provider")}
+                                   for i in left_out if isinstance(i, dict)],
     }
 
 
@@ -571,7 +576,7 @@ def read_draft(root: Path, session_id: str, *, sessions: Any) -> dict[str, Any]:
         "checks": C.respond(items, steps_order=C.INCEPTION_STEPS, step=None, waiting=waiting, partial=partial,
                             scope={"kind": "draft", "id": session_id, "updated_at": record.get("updated_at")}),
         "proposals": listing["proposals"],
-        "pool": _pool_summary(sessions, session_id),
+        "pool": _pool_summary(sessions, session_id, record),
     }
 
 

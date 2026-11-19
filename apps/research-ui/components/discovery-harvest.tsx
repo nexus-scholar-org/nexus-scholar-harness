@@ -46,6 +46,7 @@ import {
 } from "@/lib/discovery-api";
 import { getCorpus, type Corpus } from "@/lib/screening-v1";
 import { discoveryT, providerName, type DiscoveryCopyKey } from "@/lib/discovery-copy";
+import { notifyReviewChanged } from "@/components/review-bus";
 
 /**
  * 03 Harvest (spec `docs/ux/phase1-discovery/final/03-harvest.md`): start the
@@ -331,6 +332,7 @@ export function DiscoveryHarvest({ locale }: Readonly<{ locale: Locale }>) {
     setStarting(true);
     try {
       const { job } = await startRun(origin, body);
+      notifyReviewChanged();
       setLastJob(null);
       setStartedWith(body.providers ?? (plan ? protocolList(plan) : null));
       setJobId(job.job_id);
@@ -352,6 +354,7 @@ export function DiscoveryHarvest({ locale }: Readonly<{ locale: Locale }>) {
     setStopping(true);
     try {
       await cancelJob(origin, jobId);
+      notifyReviewChanged();
     } catch (error) {
       setStartError(refusalOf(error));
       setStopping(false);
@@ -365,6 +368,7 @@ export function DiscoveryHarvest({ locale }: Readonly<{ locale: Locale }>) {
     setFinishing(true);
     try {
       const { job } = await finishPreparation(origin, selected);
+      notifyReviewChanged();
       setLastJob(null);
       setStartedWith(null);
       setJobRun(selected);

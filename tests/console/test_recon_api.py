@@ -634,7 +634,7 @@ def test_a_narrower_search_is_never_keyworded(env, monkeypatch):
 
     label = "weed detection in the field using lightweight models"  # stopwords and framing words
     monkeypatch.setattr(
-        recon_api.ReconSessions, "directions", lambda self, sid: {"directions": [{"label": label}]}
+        recon_api.ReconSessions, "directions", lambda self, sid, **_kw: {"directions": [{"label": label}]}
     )
     job = _probe(client, sid, narrower=label)
     assert job["state"] == "succeeded", job
@@ -880,3 +880,53 @@ def test_another_database_order_is_a_new_pool_and_makes_the_bound_direction_stal
     assert state["binding"]["stale"] is True and state["binding"]["code"] == "POOL_CHANGED"
     refused = client.post(f"{BASE}/drafts/{sid}/genesis", json={})
     assert (refused.status_code, refused.json()["detail"]["code"]) == (409, "STALE_BINDING")
+
+
+# --------------------------------------------------------------------------- M10b Part C, C4
+
+
+def test_pool_empty_after_a_long_keyword_query_says_shorten(env):
+    """Reproducing (2026-11-13, 02-explore "Explore on an empty search"): the advice showed on every empty search."""
+    client, app, _root, _recon = env
+    app.state.recon_search_fn = Seam(docs=[])
+    sid = _new_draft(client)
+    job = _probe(client, sid, query="weed detection drone imagery")
+    assert job["state"] == "failed" and job["error"]["code"] == "POOL_EMPTY"
+    assert job["error"]["details"]["shorten"] is True
+
+
+def test_pool_empty_after_a_short_query_does_not_say_shorten(env):
+    client, app, _root, _recon = env
+    app.state.recon_search_fn = Seam(docs=[])
+    sid = _new_draft(client)
+    for query in ("weed detection", "weed OR drone OR imagery"):
+        job = _probe(client, sid, query=query)
+        assert job["error"]["code"] == "POOL_EMPTY"
+        assert job["error"]["details"].get("shorten") is not True, query
+
+
+def test_pool_empty_with_a_failed_database_does_not_say_shorten(env):
+    client, app, _root, _recon = env
+    app.state.recon_search_fn = Seam(docs=[], failed=["crossref"])
+    sid = _new_draft(client)
+    job = _probe(client, sid, query="weed detection drone imagery")
+    assert job["error"]["code"] == "POOL_EMPTY"
+    assert job["error"]["details"].get("shorten") is not True
+
+
+def test_providers_failed_never_says_shorten(env):
+    client, app, _root, _recon = env
+    app.state.recon_search_fn = Seam(docs=[], failed=["openalex", "semanticscholar", "crossref", "arxiv"])
+    sid = _new_draft(client)
+    job = _probe(client, sid, query="weed detection drone imagery")
+    assert job["error"]["code"] == "PROVIDERS_FAILED"
+    assert "shorten" not in job["error"]["details"]
+
+
+def test_a_semantic_search_that_finds_nothing_does_not_say_shorten(env):
+    client, app, _root, _recon = env
+    app.state.recon_search_fn = Seam(docs=[])
+    sid = _new_draft(client)
+    job = _probe(client, sid, query="weed detection drone imagery", semantic=True)
+    assert job["error"]["code"] == "POOL_EMPTY"
+    assert job["error"]["details"].get("shorten") is not True

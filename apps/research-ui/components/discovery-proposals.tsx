@@ -7,6 +7,7 @@ import { formatNumber } from "@/i18n";
 import { Button } from "@/components/ui/base";
 import { fillNodes } from "@/components/assist-anchor";
 import { refusalOf } from "@/components/discovery-frame";
+import { notifyReviewChanged } from "@/components/review-bus";
 import { SourceLabel, valueText } from "@/components/inception-assist";
 import { fieldLabel } from "@/lib/assist-labels";
 import {
@@ -65,7 +66,10 @@ export function DiscoveryProposals({
       const answer = action === "apply" ? await applyWorkspaceProposal(origin, proposal.proposal_id) : await rejectWorkspaceProposal(origin, proposal.proposal_id);
       setListing(answer);
       setAnnounce(action === "apply" ? t("proposals.act.announceApplied", { field }) : t("proposals.act.announceRejected", { field }));
-      if (action === "apply") onAmended?.();
+      if (action === "apply") {
+        onAmended?.();
+        notifyReviewChanged(); // 04-next-step: a write the page made (the protocol changed)
+      }
     } catch (error) {
       const refusal = refusalOf(error);
       const details = (refusal.details ?? {}) as { reason?: string; errors?: unknown[] };

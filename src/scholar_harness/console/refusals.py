@@ -138,6 +138,10 @@ CHECK_NOT_DISMISSIBLE = "CHECK_NOT_DISMISSIBLE"
 CHECK_REASON_REQUIRED = "CHECK_REASON_REQUIRED"
 CHECK_CHANGED = "CHECK_CHANGED"
 CHECK_NOT_DISMISSED = "CHECK_NOT_DISMISSED"
+#: M10b Part C (``02-explore`` "Sample curation"): a key to leave out or put back that is
+#: not a paper of the sample (422); a draft past 200 left-out papers (422).
+PAPER_UNKNOWN = "PAPER_UNKNOWN"
+SAMPLE_EXCLUSIONS_FULL = "SAMPLE_EXCLUSIONS_FULL"
 
 # --- recon over HTTP (M4c, `console/api/recon.py`) ----------------------------
 #: Raised as ``ReconRefused`` (``recon/session.py``, ``inception/grounding.py``).
@@ -320,6 +324,8 @@ CONTRACT_ADDED = frozenset(
         CHECK_REASON_REQUIRED,
         CHECK_CHANGED,
         CHECK_NOT_DISMISSED,
+        PAPER_UNKNOWN,
+        SAMPLE_EXCLUSIONS_FULL,
         MAILTO_NOT_SET,
         RECON_SESSION_INVALID,
         RECON_SESSION_NOT_FOUND,

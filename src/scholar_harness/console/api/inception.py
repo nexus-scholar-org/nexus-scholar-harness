@@ -181,19 +181,29 @@ def read_draft(session_id: str, request: Request) -> dict[str, Any]:
         raise _error(exc) from exc
 
 
+def _left_out(record: dict[str, Any]) -> list[str]:
+    """The papers the draft left out of the sample (M10b Part C)."""
+    from scholar_harness.recon.sample import keys_of
+
+    return keys_of(record.get("sample_exclusions"))
+
+
 def _pool_facts(request: Request, session_id: str, mechanisms: set[str]) -> tuple[dict | None, list | None]:
     """The draft's latest pool (and directions) when an accepted entry needs them; none without a pool."""
     if not mechanisms & {"pool_synonym", "anchor_seed"}:
         return None, None
+    from scholar_harness.recon.sample import keys_of
+
     sessions = _recon(request)
+    left = keys_of((_store(request).load(session_id)).get("sample_exclusions"))
     try:
-        pool, _path = sessions.latest_pool(session_id)
+        pool, _raw, _path = sessions.effective(session_id, left)
     except ReconRefused:
         return None, None
     directions = None
     if "anchor_seed" in mechanisms:
         try:
-            directions = sessions.directions(session_id)["directions"]
+            directions = sessions.directions(session_id, exclusions=left)["directions"]
         except ReconRefused:
             directions = []
     return pool, directions
@@ -245,13 +255,17 @@ def draft_checks(
     from scholar_harness import assistant
     from scholar_harness.console.api.recon import _scope_changes
     from scholar_harness.inception.grounding import check_binding
+    from scholar_harness.recon import sample as sample_mod
 
     draft = steps.parse_draft(record.get("draft"))
-    pool = None
+    left = sample_mod.keys_of(record.get("sample_exclusions"))
+    pool = raw = None
+    sample = None
     changes: list[str] = []
     try:
         if sessions.exists(session_id):
-            pool, _path = sessions.latest_pool(session_id)
+            pool, raw, _path = sessions.effective(session_id, left)
+            sample = sample_mod.view(raw, record)
             changes = _scope_changes(sessions, session_id, sessions.current(session_id), draft)
     except ReconRefused:
         pool = None
@@ -259,12 +273,13 @@ def draft_checks(
     binding = None
     if grounding:
         try:
-            binding = check_binding(sessions, grounding, scope_of(draft))
+            binding = check_binding(sessions, grounding, scope_of(draft), left)
         except ReconRefused:
             binding = None
 
     items, waiting, partial, made = checks.inception_checks(
         record, pool=pool, scope_changes=changes, binding=binding, workspaces_root=root, make_proposal=make_proposal,
+        sample=sample, raw_pool=raw,
     )
     try:
         items.extend(assistant.draft_rows(record))
@@ -372,6 +387,25 @@ def restore_check(session_id: str, check_id: str, body: CheckRestoreBody, reques
 # --- proposals (M10b, docs/ux/shared/final/01-proposals.md) -------------------
 
 
+@router.get("/drafts/{session_id}/next-step")
+def draft_next_step(session_id: str, request: Request) -> dict[str, Any]:
+    """The next-step bar of a draft (M10b Part C, ``04-next-step`` rows 2 to 5); a read that records nothing."""
+    from scholar_harness.console import next_step
+
+    try:
+        record = _store(request).load(session_id)
+    except DraftRefused as exc:
+        raise _error(exc) from exc
+    answer = None
+    if not record.get("emitted"):
+        try:
+            items, waiting, partial, _made = _compute_checks(request, session_id, record)
+            answer = _checks_answer(record, items, waiting, partial, None)
+        except Exception:  # noqa: BLE001 - checks that cannot be computed are "unknown", never a 5xx
+            answer = None
+    return next_step.build_draft(record, answer)
+
+
 @router.get("/drafts/{session_id}/proposals")
 def list_proposals(session_id: str, request: Request, step: str | None = None) -> dict[str, Any]:
     if step is not None and step not in proposals.PROPOSAL_STEPS:
@@ -466,9 +500,10 @@ def preview(body: PreviewBody, request: Request) -> dict[str, Any]:
     try:
         grounding = None
         if body.session_id is not None:
-            grounding = _store(request).load(body.session_id).get("grounding")
+            stored = _store(request).load(body.session_id)
+            grounding = stored.get("grounding")
             if grounding:
-                refuse_stale(_recon(request), grounding, scope_of(steps.parse_draft(body.draft)))
+                refuse_stale(_recon(request), grounding, scope_of(steps.parse_draft(body.draft)), _left_out(stored))
         return steps.preview(body.draft, workspaces_root=_root(request), grounding=grounding)
     except (DraftRefused, steps.StepRefused, ReconRefused) as exc:
         raise _error(exc) from exc
@@ -499,7 +534,7 @@ def genesis(session_id: str, body: GenesisBody, request: Request) -> dict[str, A
             raise DraftRefused("DRAFT_EMITTED", "this draft already created a workspace", details={"emitted": record["emitted"]})
         grounding = record.get("grounding")
         if grounding:
-            refuse_stale(_recon(request), grounding, scope_of(steps.parse_draft(record["draft"])))
+            refuse_stale(_recon(request), grounding, scope_of(steps.parse_draft(record["draft"])), _left_out(record))
         result = steps.genesis(
             record["draft"],
             grounding=grounding,

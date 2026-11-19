@@ -12,6 +12,7 @@ import { DoiLink } from "@/components/inception-recon";
 import { inceptionT, sourceText } from "@/lib/inception-copy";
 import { inceptionRichT } from "@/components/rich-copy";
 import { ProposalList, ReadinessList } from "@/components/inception-assist";
+import { notifyReviewChanged } from "@/components/review-bus";
 
 /**
  * Step 6, Review and create (spec 06, M4b): the only write gate. `POST /preview`
@@ -99,6 +100,7 @@ export function InceptionReview({ locale }: Readonly<{ locale: Locale }>) {
     setRefusal(null);
     try {
       const made = await runGenesis(origin, record.session_id, request);
+      notifyReviewChanged();
       try {
         window.sessionStorage.setItem(genesisStorageKey(record.session_id), JSON.stringify(made));
       } catch {

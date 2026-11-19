@@ -6,6 +6,7 @@ import { formatNumber, type Locale } from "@/i18n";
 import { Button, DataCell, DecisionBadge, GatePanel } from "@/components/ui/base";
 import { DETAILS_LABEL } from "@/components/screening-state-card";
 import { ScreeningSteps, StateCard, exportHref, stepHref } from "@/components/screening-state-card";
+import { notifyReviewChanged } from "@/components/review-bus";
 import {
   getBatchReview,
   getPublicationStatus,
@@ -591,7 +592,10 @@ export function ScreeningPublish({ locale }: Readonly<{ locale: Locale }>) {
             <GatePanel
               label={t("publishGate")}
               actions={
-                <Button variant="primary" disabled={busy || !allPass || !allApproved} onClick={() => void act(async () => setPublished(await postPublishScreening(origin)))}>
+                <Button variant="primary" disabled={busy || !allPass || !allApproved} onClick={() => void act(async () => {
+                  setPublished(await postPublishScreening(origin));
+                  notifyReviewChanged();
+                })}>
                   {t("publish")}
                 </Button>
               }

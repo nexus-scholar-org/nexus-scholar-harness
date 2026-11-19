@@ -411,13 +411,19 @@ def inception_checks(
     binding: dict[str, Any] | None = None,
     workspaces_root: Path | None = None,
     make_proposal: Callable[..., dict[str, Any]] | None = None,
+    sample: dict[str, Any] | None = None,
+    raw_pool: dict[str, Any] | None = None,
 ) -> tuple[list[dict[str, Any]], list[dict[str, Any]], list[dict[str, Any]], list[dict[str, Any]]]:
     """Every inception check of a saved draft record.
 
     Returns ``(checks, waiting, partial, proposals)``; ``proposals`` are the
     open proposals the checks recommend (recorded by the caller, idempotently).
-    ``pool`` is the draft's latest recon pool, ``scope_changes`` what differs
-    from it, ``binding`` the result of ``check_binding`` for a bound draft.
+    ``pool`` is the draft's latest recon pool as the later steps read it (the
+    effective pool, M10b Part C), ``scope_changes`` what differs from it,
+    ``binding`` the result of ``check_binding`` for a bound draft and
+    ``sample`` the sample object of ``recon/sample.py`` (``view``) and
+    ``raw_pool`` the pool as stored, whose fingerprint the evidence names
+    (review of Part C, finding 3).
     """
     raw = record.get("draft") or {}
     draft = steps.parse_draft(raw)
@@ -442,17 +448,18 @@ def inception_checks(
 
     # Explore
     if pool is None:
-        for cid in ("EXPLORE_DATABASE_EMPTY", "EXPLORE_DATABASE_FAILED", "EXPLORE_SAMPLE_ONE_SOURCE", "EXPLORE_POOL_THIN"):
+        for cid in ("EXPLORE_DATABASE_EMPTY", "EXPLORE_DATABASE_FAILED", "EXPLORE_SAMPLE_ONE_SOURCE", "EXPLORE_POOL_THIN",
+                    "EXPLORE_SAMPLE_MOSTLY_LEFT_OUT"):
             waiting.append({"check_id": cid, "step": "explore", "needs": "pool"})
     else:
         legs = [leg for leg in pool.get("legs") or [] if isinstance(leg, dict)]
         docs = [d for d in pool.get("docs") or [] if isinstance(d, dict)]
-        run("EXPLORE_DATABASE_EMPTY", lambda: _explore_empty(legs, _pool_ev(pool)))
-        run("EXPLORE_DATABASE_FAILED", lambda: _explore_failed(legs, _pool_ev(pool)))
-        run("EXPLORE_SAMPLE_ONE_SOURCE", lambda: _one_source(docs, legs, _pool_ev(pool)))
+        run("EXPLORE_DATABASE_EMPTY", lambda: _explore_empty(legs, _pool_ev(raw_pool if raw_pool is not None else pool)))
+        run("EXPLORE_DATABASE_FAILED", lambda: _explore_failed(legs, _pool_ev(raw_pool if raw_pool is not None else pool)))
+        run("EXPLORE_SAMPLE_ONE_SOURCE", lambda: _one_source(docs, legs, _pool_ev(raw_pool if raw_pool is not None else pool)))
         run("EXPLORE_POOL_THIN", lambda: [
             check("EXPLORE_POOL_THIN", "warning", params={"n": len(docs), "floor": POOL_THIN_FLOOR},
-                  evidence=[{"kind": "count", "name": "papers", "value": len(docs), "unit": "papers"}, _pool_ev(pool)],
+                  evidence=[{"kind": "count", "name": "papers", "value": len(docs), "unit": "papers"}, _pool_ev(raw_pool if raw_pool is not None else pool)],
                   threshold={"name": "POOL_THIN_FLOOR", "value": POOL_THIN_FLOOR, "default": POOL_THIN_FLOOR, "unit": "papers"},
                   action=_step("scope"))
         ] if len(docs) < POOL_THIN_FLOOR else [])
@@ -461,13 +468,13 @@ def inception_checks(
                 "kind": "pool_partial",
                 "databases": [str(leg.get("provider")) for leg in legs if leg.get("status") == "failed"],
             })
-    # EXPLORE_SAMPLE_MOSTLY_LEFT_OUT reads the sample curation of Part C (02-explore "Sample curation").
+        run("EXPLORE_SAMPLE_MOSTLY_LEFT_OUT", lambda: _mostly_left_out(sample, pool, raw_pool))
     from .grounding import scope_of
 
     run("EXPLORE_SCOPE_CHANGED", lambda: [
         check("EXPLORE_SCOPE_CHANGED", "warning",
               evidence=[{"kind": "name", "name": "changed", "value": list(scope_changes)},
-                        {"kind": "name", "name": "draft_scope", "value": scope_of(draft)}, _pool_ev(pool)],
+                        {"kind": "name", "name": "draft_scope", "value": scope_of(draft)}, _pool_ev(raw_pool if raw_pool is not None else pool)],
               action=_step("explore"))
     ] if scope_changes else [])
 
@@ -534,7 +541,7 @@ def inception_checks(
     if pool is None:
         waiting.append({"check_id": "CONCEPT_NOT_ANCHORED", "step": "criteria", "needs": "pool"})
     else:
-        run("CONCEPT_NOT_ANCHORED", lambda: _not_anchored(draft, pool))
+        run("CONCEPT_NOT_ANCHORED", lambda: _not_anchored(draft, pool, raw_pool))
     run("CONCEPTS_ONE_ONLY", lambda: [
         check("CONCEPTS_ONE_ONLY", "note", action=_field("criteria", "concepts"))
     ] if len(draft.concepts) == 1 else [])
@@ -566,6 +573,28 @@ def _pool_ev(pool: dict[str, Any] | None) -> dict[str, Any]:
     from scholar_harness.recon.session import pool_fingerprint
 
     return {"kind": "name", "name": "pool", "value": pool_fingerprint(pool) if pool else None}
+
+
+def _mostly_left_out(
+    sample: dict[str, Any] | None, pool: dict[str, Any], ev_pool: dict[str, Any] | None = None,
+) -> list[dict[str, Any]]:
+    """``EXPLORE_SAMPLE_MOSTLY_LEFT_OUT`` (M10b Part C): from the engine's ``sample.recommend``."""
+    from scholar_harness.recon.sample import MOSTLY_OFF_TOPIC, SAMPLE_OFFTOPIC_SHARE
+
+    recommend = (sample or {}).get("recommend") or {}
+    if MOSTLY_OFF_TOPIC not in (recommend.get("reasons") or []):
+        return []
+    k = int(sample.get("excluded_in_pool") or 0)
+    total = k + int(sample.get("n_docs") or 0)
+    return [check(
+        "EXPLORE_SAMPLE_MOSTLY_LEFT_OUT", "warning", params={"k": k, "total": total},
+        evidence=[{"kind": "count", "name": "left_out", "value": k, "unit": "papers"},
+                  {"kind": "count", "name": "papers", "value": total, "unit": "papers"},
+                  {"kind": "name", "name": "left_out_keys", "value": sample.get("exclusions_digest")}, _pool_ev(ev_pool if ev_pool is not None else pool)],
+        threshold={"name": "SAMPLE_OFFTOPIC_SHARE", "value": SAMPLE_OFFTOPIC_SHARE, "default": SAMPLE_OFFTOPIC_SHARE,
+                   "unit": "share"},
+        action=_step("scope"),
+    )]
 
 
 def _explore_empty(legs: list[dict[str, Any]], pool_ev: dict[str, Any]) -> list[dict[str, Any]]:
@@ -644,7 +673,7 @@ def _lexicon(draft: steps.Draft) -> list[dict[str, Any]]:
     )]
 
 
-def _not_anchored(draft: steps.Draft, pool: dict[str, Any]) -> list[dict[str, Any]]:
+def _not_anchored(draft: steps.Draft, pool: dict[str, Any], ev_pool: dict[str, Any] | None = None) -> list[dict[str, Any]]:
     from scholar_harness.recon.vocabulary import concept_report
 
     n_docs = len(pool.get("docs") or [])
@@ -656,7 +685,7 @@ def _not_anchored(draft: steps.Draft, pool: dict[str, Any]) -> list[dict[str, An
               params={"concept": row["concept"], "n": n_docs},
               evidence=[{"kind": "count", "name": "anchored_in", "value": 0, "unit": "papers"},
                         {"kind": "count", "name": "papers", "value": n_docs, "unit": "papers"},
-                        {"kind": "words", "name": "terms", "value": [t["term"] for t in row["terms"]]}, _pool_ev(pool)],
+                        {"kind": "words", "name": "terms", "value": [t["term"] for t in row["terms"]]}, _pool_ev(ev_pool if ev_pool is not None else pool)],
               action=_field("criteria", "concepts"))
         for row in concept_report(pool, rows, "draft") if row["anchored_in"] == 0
     ]
