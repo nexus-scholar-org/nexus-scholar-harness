@@ -4,7 +4,7 @@ One entry per decision that still shapes the code, newest first. The full
 records were removed in the 2026-11-03 docs cut; each entry names the commit
 history to read if you need the original reasoning (`git log --follow -- <path>`).
 
-## 2026-11-19 — H-ui-findings: eight UI and build fixes (PROPOSED, for the researcher; H-ui-findings-2026-11-19)
+## 2026-11-19 — H-ui-findings: eight UI and build fixes (accepted by the researcher 2026-11-19; H-ui-findings-2026-11-19)
 
 Record: `docs/roadmap/milestones/H-ui-findings-2026-11-19.md`.
 
