@@ -122,7 +122,7 @@ E2E_ANSWERS = [
     False,                     # configure matrix?
     True,                      # verification flags all-on?
     "On-Device Weed Detection for Embedded Agriculture",
-    "Dr. Mouadh",              # lead researcher
+    "Dr. Example",              # lead researcher
     "",                        # venue
     "",                        # timeline
     None,                      # num_if_valid(timeline)

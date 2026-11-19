@@ -107,10 +107,10 @@ describe("publish.approver", () => {
     expect(screen.getByRole("button", { name: "Save name" })).toBeDisabled();
     expect(screen.getByText(/not a verified sign-in/)).toBeInTheDocument();
 
-    fireEvent.change(screen.getByLabelText("Your name"), { target: { value: "Mouadh Bekhouche" } });
+    fireEvent.change(screen.getByLabelText("Your name"), { target: { value: "Test Researcher" } });
     fireEvent.click(screen.getByRole("button", { name: "Save name" }));
-    await screen.findByText("Approvals are recorded as Mouadh Bekhouche.");
-    expect(log.find((l) => l.method === "PUT" && l.path === "/approver")?.body).toEqual({ name: "Mouadh Bekhouche" });
+    await screen.findByText("Approvals are recorded as Test Researcher.");
+    expect(log.find((l) => l.method === "PUT" && l.path === "/approver")?.body).toEqual({ name: "Test Researcher" });
     expect(screen.getByRole("status")).toHaveTextContent("Name saved.");
     expect(screen.getByRole("button", { name: "Show a code in the terminal" })).toBeEnabled();
   });

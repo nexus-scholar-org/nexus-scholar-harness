@@ -33,7 +33,7 @@ def _e2e_draft() -> dict:
         "criteria_decisions": {proof_id: True},
         "verification_checks": True,
         "title": "On-Device Weed Detection for Embedded Agriculture",
-        "lead_researcher": "Dr. Mouadh",
+        "lead_researcher": "Dr. Example",
     }
 
 

@@ -72,7 +72,7 @@ def _answers(out_of_scope, criteria_answers, tail_extra=()):
         False,                      # matrix?
         True,                       # verification?
         "Weed Detection Criteria Test",
-        "Dr. Mouadh",
+        "Dr. Example",
         "",
         "",
         None,
