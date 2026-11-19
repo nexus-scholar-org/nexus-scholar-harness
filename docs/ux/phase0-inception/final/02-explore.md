@@ -203,7 +203,7 @@ Two more, from the last M10a UI review:
 - **The field alone has no search button.** When the pool exists but cannot be read (`distill` refused), the query field and the picker are shown on their own below the pool's refusal card, so "Edit the query" has a field to focus. That state has no search button of its own: a search from it goes only through "Refresh pool for the new scope" when the scope changed; otherwise the card's "Try again" reads the pool again, and the pool card's search buttons come back with the pool.
 
 ## Sample curation (M10b)
-Status of this section: FINAL, not built (questions closed by the researcher 2026-11-15). Folded on 2026-11-18 from `10-sample-curation.md` (deleted) after M10a merged; references to `02` below mean the sections above. Milestone M10b-proposals-checks (removing a paper from the Explore sample). Everything below is ✗ M10b unless marked ✓.
+Status of this section: FINAL, built in M10b Part C (questions closed by the researcher 2026-11-15; see "As built (M10b Part C)" at the end of this file). Folded on 2026-11-18 from `10-sample-curation.md` (deleted) after M10a merged; references to `02` below mean the sections above. Milestone M10b-proposals-checks (removing a paper from the Explore sample). Everything below is ✗ M10b unless marked ✓.
 Board: `Explore` (D3, `docs/ux/phase0-inception/final/project/Explore.dc.html`) is the base; no board shows a per-paper control, so this spec adds one and cites no new board. Contract: `docs/architecture/inception-api.md`. Code read for this spec (source of truth): `src/scholar_harness/recon/engine.py` (`POOL_MAX` 25 at `:33`, `probe_pool` `:321`, the cut `docs[:POOL_MAX]` at `:394`), `src/scholar_search/engine.py` (`run`, per-database cap `:133-138`, dedup `:213-220`), `src/scholar_harness/recon/session.py` (`probe` `:239`, `distill` `:328`, `directions` `:365`, `term_evidence` `:107`, `directions_for` `:504`), `src/scholar_harness/recon/distiller.py` (`_evidence_docs` `:67`, `_micro_taxonomy` `:105`, `_schools` `:166`, `_topic_layer` `:192`, `distill_pool` `:249`), `src/scholar_harness/recon/directions.py` (`_grounded_directions_for_terms` `:126`), `src/scholar_harness/recon/vocabulary.py` (`concept_report` `:43`, `seed_candidates` `:82`), `src/scholar_harness/recon/gates.py` (`POOL_THIN_FLOOR` 12 at `:23`), `src/scholar_harness/inception/grounding.py` (`build_grounding` `:73`, `check_binding` `:166`, `recon_context` `:252`), `src/scholar_harness/inception/drafts.py` (`DraftStore`, `bind_grounding` `:95`), `src/scholar_harness/inception/steps.py` (`Draft`, `extra="forbid"` `:152`), `src/scholar_harness/console/api/recon.py` (routes), `apps/research-ui/components/inception-explore.tsx` (I read the first 150 lines only: state, `readPool`, `search`; I did not read the Papers card markup, so its present layout is taken from `02-explore.md`). The load/save protocol, stepper, conflict handling, phone rule and shared refusal copy are in `01-scope.md` "Shared by 01, 04, 05, 06 and 07" and `08`; `02-explore.md` and `03-direction.md` say how the pool, directions and seeds are shown and are not repeated.
 
 **Purpose.** Tell the engine which papers of the first sample do not belong to the question, so the directions, counts, synonym suggestions and seeds are drawn from the papers that do, and see at once whether the sample is still enough to go on.
@@ -365,7 +365,7 @@ Closed by the researcher on 2026-11-15 (record: `docs/roadmap/milestones/M10b-pr
 4. A paper with no DOI can be left out, keyed by its pool `id`.
 
 ## Explore on an empty search (M10b)
-Status of this section: FINAL, not built (M10b Part C, item C4; decision 2026-11-15 item 17). Two faults seen on 2026-11-13, when a first search found nothing.
+Status of this section: FINAL, built in M10b Part C (item C4; decision 2026-11-15 item 17; the engine rule is decision item 39). Two faults seen on 2026-11-13, when a first search found nothing.
 
 **"Databases asked" once.** On a `POOL_EMPTY` or `PROVIDERS_FAILED` refusal the screen shows one per-database list: the refusal card's legs table from `details.legs` (see "Refusals (M4c codes this screen can hit)"). The Databases asked card of an earlier probe is not drawn beside it as a second copy; it comes back when a later search leaves a pool.
 
@@ -374,3 +374,16 @@ Status of this section: FINAL, not built (M10b Part C, item C4; decision 2026-11
 Tests (reproducing first):
 - `apps/research-ui/tests/inception-explore.test.tsx`: `POOL_EMPTY shows one Databases asked list`; `PROVIDERS_FAILED shows one Databases asked list`; `the shorten advice shows with details.shorten true`; `no shorten advice on POOL_EMPTY without the flag, whatever the query length`; `no shorten advice when the query field is not shown`.
 - `tests/console/test_recon_api.py`: `test_pool_empty_after_a_long_keyword_query_says_shorten` (three words, every leg answered with 0: `details.shorten` true); `test_pool_empty_after_a_short_query_does_not_say_shorten` (two words); `test_providers_failed_never_says_shorten`.
+
+## As built (M10b Part C)
+Engine (decisions `docs/decisions.md` M10b items 34 to 39, proposed): `GET …/recon` keeps `session.latest.n_docs` as the probe's own count; `marked_share` counts every paper shown, refills included; a key to leave out must be in the sample shown; the bind keeps the left-out keys beside their digest; the gap check reads the pool as stored; "shorten" needs a keyword query (not semantic, no `OR`) of three or more words that every database answered with nothing.
+
+The screen (`components/inception-sample.tsx`, the Papers card in `components/inception-explore.tsx`), where it departs from the text above:
+- The sample calls are in `lib/recon-api.ts`, with the other recon calls.
+- After a change the POST answer is the new sample; the screen re-reads `distill`, `directions` and `concepts`, and `GET …/recon` only when a direction is bound (for `SAMPLE_CHANGED`).
+- The checks panel re-reads through the inception assist refresh; the screen also dispatches `nexus:review-changed`.
+- `PAPER_UNKNOWN`'s "Reload the papers" is the card's existing retry action. The `SAMPLE_EXCLUSIONS_FULL` card has no placeholders, so the limit is printed under it from `details.limit`.
+- Extra copy keys `sample.movedAll` (after "Put back all") and `sample.notSaved` (beside a refused row); a put-back shows a short toast without Undo; "Put back all" sends changes of at most 25 keys each.
+- The card title stays "Papers · {n}"; the count of papers left out is a line under it and counts only papers in the current pool.
+- A second click on the row being saved is ignored; another row's change waits; what waits is dropped after a refusal or a new search.
+- Not built: the stacked-card list below 640 px (the table stays; no sideways scroll at 375 px); the scope-changed note's count and "Put back all"; a visible close button on the toast (Escape closes it).
