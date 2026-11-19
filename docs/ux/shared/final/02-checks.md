@@ -262,7 +262,7 @@ Panel and list:
 | `CONCEPT_TERM_MISSING` | "Your title and questions use {term}, but no concept or synonym does." | "The search query is made only from the concepts and their synonyms. A word that is not there is not searched, so papers that use it may be missed." |
 | `CONCEPT_NOT_ANCHORED` | "None of the {concept} terms appears in the {n} sample papers." | "Either the wording differs from how papers write it, or the sample does not cover it. A concept that finds nothing narrows the whole query to nothing." |
 | `CONCEPTS_ONE_ONLY` | "The search uses one concept only." | "With one concept the query is one broad clause and will return a very large set." |
-| `CRITERIA_UNDECIDED` | "{n} criteria still need your Accept or Drop." | "The wizard wrote them; nothing reaches the protocol until you decide." |
+| `CRITERIA_UNDECIDED` | "{n} criteria still need your decision: Accept or Reject." (built with the buttons' words, H-ui-findings F3) | "The wizard wrote them; nothing reaches the protocol until you decide." |
 | `CRITERIA_SIDE_MISSING` | "The protocol needs an accepted {side} criterion." | "Screening needs at least one criterion on each side." |
 | `CRITERIA_REASONS_UNIFORM` | "All {n} exclusion criteria carry the same reason, {code}." | "Every exclusion at screening is then recorded with one reason, which tells you nothing about why papers were left out. Choose a reason for each exclusion." |
 | `REVIEW_PROJECT_MISSING` | "Still needed: {fields}." | "They name the workspace and the protocol." |
