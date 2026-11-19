@@ -15,6 +15,10 @@ afterEach(() => vi.unstubAllGlobals());
 
 const decided = (extra: Record<string, unknown> = {}) => completeDraft({ criteria_decisions: { [proofId()]: true }, ...extra });
 const brandButtons = () => document.querySelectorAll("button.bg-brand");
+// M10b (02-checks): the folder lines of the old Checks card are the engine's REVIEW_TARGET_* rows of "Ready to create?".
+const target = (check_id: string, level: "blocker" | "warning") => () => [
+  { check_id, step: "review", level, dismissible: false, refusal: level === "blocker" ? "WORKSPACE_EXISTS" : null, action: { kind: "field", step: "review", field: "title" } },
+];
 
 describe("inception.review", () => {
   it("previews the saved draft: criteria verbatim, files, fingerprint, folder, checks", async () => {
@@ -25,9 +29,11 @@ describe("inception.review", () => {
     expect(document.querySelector("[data-fingerprint]")?.textContent).toBe("sha256:" + "ab".repeat(32));
     expect(document.querySelector("[data-target-path]")?.textContent).toContain("on-device-weed-detection");
     expect(within(document.querySelector("[data-files]") as HTMLElement).getByText("protocol.json")).toBeInTheDocument();
-    expect(screen.getByText("The folder is free")).toBeInTheDocument();
+    // M10b: the Checks card is now "Ready to create?"; a passing check is not listed.
+    expect(await screen.findByText("Ready to create. Nothing is open.")).toBeInTheDocument();
     expect(brandButtons()).toHaveLength(1);
-    expect(sent(engine).filter((c) => c.startsWith("POST /api/v1/inception/drafts/"))).toEqual([]);
+    // The checks POST describes the saved draft and writes no field; nothing else is posted on the draft.
+    expect(sent(engine).filter((c) => c.startsWith("POST /api/v1/inception/drafts/") && !c.endsWith("/checks"))).toEqual([]);
   });
 
   it("creates the workspace and goes to Done", async () => {
@@ -58,9 +64,10 @@ describe("inception.review", () => {
   });
 
   it("asks before replacing an existing workspace, then sends replace", async () => {
-    const { engine, assign } = setUp({ draft: decided(), existing: "workspace" });
+    const { engine, assign } = setUp({ draft: decided(), existing: "workspace", checks: target("REVIEW_TARGET_HAS_WORKSPACE", "warning") });
     render(<InceptionReview locale="en" />);
-    expect(await screen.findByText("A workspace exists in this folder")).toBeInTheDocument();
+    expect(await screen.findByText("A workspace with this name exists.")).toBeInTheDocument();
+    expect(document.querySelector("[data-ready-sentence]")?.textContent).toBe("Ready to create. 1 still to look at.");
     fireEvent.click(screen.getByRole("button", { name: "Create the workspace" }));
     const confirm = await screen.findByRole("heading", { name: "Replace the protocol of the existing workspace?" });
     expect(confirm.closest("section")?.textContent).toContain("audit/replaced/");
@@ -79,9 +86,9 @@ describe("inception.review", () => {
   });
 
   it("does not offer Replace when the folder is not a workspace", async () => {
-    setUp({ draft: decided(), existing: "folder" });
+    setUp({ draft: decided(), existing: "folder", checks: target("REVIEW_TARGET_NOT_WORKSPACE", "blocker") });
     render(<InceptionReview locale="en" />);
-    expect(await screen.findByText("A folder with this name exists and is not a workspace")).toBeInTheDocument();
+    expect(await screen.findByText("A folder with this name exists and is not a workspace.")).toBeInTheDocument();
     fireEvent.click(await screen.findByRole("button", { name: "Create the workspace" }));
     expect(await screen.findByRole("heading", { name: "A workspace for this title already exists" })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Replace and back up" })).toBeNull();
@@ -123,8 +130,7 @@ describe("inception.review", () => {
   it("lists what a replacement archives beside the old protocol (M4d, F1)", async () => {
     setUp({ draft: decided(), existing: "workspace" });
     render(<InceptionReview locale="en" />);
-    await screen.findByText("A workspace exists in this folder");
-    fireEvent.click(screen.getByRole("button", { name: "Create the workspace" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Create the workspace" }));
     const confirm = (await screen.findByRole("heading", { name: "Replace the protocol of the existing workspace?" })).closest("section") as HTMLElement;
     const archive = confirm.querySelector("[data-archive]") as HTMLElement;
     expect(within(archive).getByText("literature/")).toBeInTheDocument();

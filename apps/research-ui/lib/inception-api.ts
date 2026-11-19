@@ -304,12 +304,23 @@ export function readDraft(origin: string, sessionId: string, signal?: AbortSigna
   return readJson<DraftRecord>(`${BASE}/drafts/${encodeURIComponent(sessionId)}`, consoleBase(origin), signal);
 }
 
-/** Save the whole draft; the engine refuses `DRAFT_CONFLICT` when `baseUpdatedAt` is not the stored one. */
-export function saveDraft(origin: string, sessionId: string, draft: Draft, baseUpdatedAt: string, signal?: AbortSignal): Promise<DraftRecord> {
-  return postJson<DraftRecord>(
+/**
+ * Save the whole draft; the engine refuses `DRAFT_CONFLICT` when `baseUpdatedAt` is not the stored one.
+ * M10b: `acceptedFrom` names the engine suggestions the researcher accepted in this save. The engine
+ * records each one it offered and lists the others under `not_recorded`; the save succeeds either way.
+ */
+export function saveDraft(
+  origin: string,
+  sessionId: string,
+  draft: Draft,
+  baseUpdatedAt: string,
+  signal?: AbortSignal,
+  acceptedFrom: AcceptedFrom[] = [],
+): Promise<SavedDraft> {
+  return postJson<SavedDraft>(
     `${BASE}/drafts/${encodeURIComponent(sessionId)}`,
     origin,
-    { draft, base_updated_at: baseUpdatedAt },
+    acceptedFrom.length ? { draft, base_updated_at: baseUpdatedAt, accepted_from: acceptedFrom } : { draft, base_updated_at: baseUpdatedAt },
     signal,
     "PUT",
   );
@@ -345,4 +356,163 @@ export function createImportedDraft(origin: string, source: ImportSourceRequest,
 /** M10b: mark an imported step as opened; the draft's `updated_at` does not change. */
 export function markStepChecked(origin: string, sessionId: string, step: string, signal?: AbortSignal): Promise<{ session_id: string; origin: DraftOrigin | null }> {
   return postJson(`${BASE}/drafts/${encodeURIComponent(sessionId)}/origin/checked`, origin, { step }, signal);
+}
+
+// --- M10b: proposals (`docs/ux/shared/final/01-proposals.md`) -------------------
+
+/** The six engine mechanisms whose accepted suggestion a draft save records (`accepted_from`). */
+export type Mechanism = "wizard_criterion" | "pool_synonym" | "suggested_concept" | "matrix_column" | "direction" | "anchor_seed";
+
+export interface AcceptedFrom {
+  mechanism: Mechanism;
+  field: string;
+  value: unknown;
+}
+
+/** A save's answer: the stored record, plus the accepted entries the engine could not record. */
+export type SavedDraft = DraftRecord & { not_recorded?: AcceptedFrom[] };
+
+export type InceptionStepId = "scope" | "explore" | "direction" | "shape" | "criteria" | "review";
+
+export type ProposalStatus = "open" | "stale" | "applied" | "applied_edited" | "rejected";
+
+export interface ProposalEvidence {
+  kind: "doi" | "count" | "check" | "file" | string;
+  [key: string]: unknown;
+}
+
+/** One proposal as the engine reads it: `stale` and `current` are derived by the engine on every read. */
+export interface Proposal {
+  proposal_id: string;
+  target: { kind: "draft" | string; id: string; field: string };
+  op: "add" | "remove" | "replace";
+  value: unknown;
+  why: string;
+  evidence: ProposalEvidence[];
+  source: string;
+  base: { hash: string; shown: string };
+  status: ProposalStatus;
+  decided_at: string | null;
+  decided_value?: unknown;
+  step: InceptionStepId | string;
+  current?: string;
+  reason?: string | null;
+}
+
+export type ProposalCounts = Record<string, { open: number; stale: number }>;
+
+export interface ProposalListing {
+  session_id: string;
+  updated_at: string;
+  proposals: Proposal[];
+  by_step: ProposalCounts;
+}
+
+/** A decision's answer: the draft as stored after it, and the proposals again. */
+export interface ProposalDecision extends ProposalListing {
+  draft: Draft;
+}
+
+const proposalPath = (sessionId: string, proposalId: string, action: string) =>
+  `${BASE}/drafts/${encodeURIComponent(sessionId)}/proposals/${encodeURIComponent(proposalId)}/${action}`;
+
+export function listProposals(origin: string, sessionId: string, step?: string, signal?: AbortSignal): Promise<ProposalListing> {
+  const q = step ? `?step=${encodeURIComponent(step)}` : "";
+  return readJson<ProposalListing>(`${BASE}/drafts/${encodeURIComponent(sessionId)}/proposals${q}`, consoleBase(origin), signal);
+}
+
+/** An answer write: the engine applies the stored value to the stored draft (`DRAFT_CONFLICT` on an older `baseUpdatedAt`). */
+export function applyProposal(origin: string, sessionId: string, proposalId: string, baseUpdatedAt: string, signal?: AbortSignal): Promise<ProposalDecision> {
+  return postJson<ProposalDecision>(proposalPath(sessionId, proposalId, "apply"), origin, { base_updated_at: baseUpdatedAt }, signal);
+}
+
+export function applyEditedProposal(origin: string, sessionId: string, proposalId: string, baseUpdatedAt: string, value: unknown, signal?: AbortSignal): Promise<ProposalDecision> {
+  return postJson<ProposalDecision>(proposalPath(sessionId, proposalId, "apply-edited"), origin, { base_updated_at: baseUpdatedAt, value }, signal);
+}
+
+/** A side write: no field changes and `updated_at` stays. */
+export function rejectProposal(origin: string, sessionId: string, proposalId: string, reason?: string, signal?: AbortSignal): Promise<ProposalDecision> {
+  return postJson<ProposalDecision>(proposalPath(sessionId, proposalId, "reject"), origin, reason ? { reason } : {}, signal);
+}
+
+export function restoreProposal(origin: string, sessionId: string, proposalId: string, signal?: AbortSignal): Promise<ProposalDecision> {
+  return postJson<ProposalDecision>(proposalPath(sessionId, proposalId, "restore"), origin, {}, signal);
+}
+
+// --- M10b: checks (`docs/ux/shared/final/02-checks.md`) ------------------------
+
+export type CheckLevel = "blocker" | "warning" | "note";
+
+export interface CheckAction {
+  kind: "field" | "proposal" | "step" | string;
+  step?: string;
+  field?: string;
+  proposal_id?: string;
+  criterion_id?: string;
+  /** Discovery hand-off: the preparation can be finished without a new search. */
+  finish?: boolean;
+  label_key: string;
+}
+
+export interface CheckStamp {
+  reason: string;
+  at: string | null;
+}
+
+/** One check as the engine computed it; the browser renders it and derives nothing. */
+export interface Check {
+  check_id: string;
+  subject: string;
+  step: string;
+  level: CheckLevel;
+  source: string;
+  message_key: string;
+  params: Record<string, unknown>;
+  /** English, for logs only; never displayed. */
+  message: string;
+  why_key: string;
+  why_params: Record<string, unknown>;
+  evidence: Record<string, unknown>[];
+  threshold: { name: string; value: unknown; default: unknown; unit: string } | null;
+  action: CheckAction;
+  refusal: string | null;
+  dismissible: boolean;
+  status: "open" | "dismissed";
+  dismissal: CheckStamp | null;
+  previously_dismissed: CheckStamp | null;
+  evidence_digest: string;
+}
+
+export interface CheckList {
+  shape: "checks-v1";
+  scope: { kind: "draft"; id: string; updated_at: string } | { kind: "workspace"; protocol_fingerprint: string; run: string | null };
+  computed_at: string;
+  sources: string[];
+  checks: Check[];
+  waiting: { check_id: string; step: string; needs: "pool" | "run" | "recall" | "protocol" | string }[];
+  counts: { blocker: number; warning: number; note: number; dismissed: number };
+  partial: Record<string, unknown>[];
+  /** Inception only. */
+  ready?: boolean;
+  /** Only when no step was asked. */
+  by_step?: Record<string, { blocker: number; warning: number; note: number }>;
+}
+
+/** A POST: the checks that recommend a change record their proposal, once (02-checks, question 4). */
+export function runChecks(origin: string, sessionId: string, step?: string, signal?: AbortSignal): Promise<CheckList> {
+  return postJson<CheckList>(`${BASE}/drafts/${encodeURIComponent(sessionId)}/checks`, origin, step ? { step } : {}, signal);
+}
+
+export function dismissCheck(
+  origin: string,
+  sessionId: string,
+  checkId: string,
+  body: { subject: string; evidence_digest: string; reason?: string },
+  signal?: AbortSignal,
+): Promise<CheckList> {
+  return postJson<CheckList>(`${BASE}/drafts/${encodeURIComponent(sessionId)}/checks/${encodeURIComponent(checkId)}/dismiss`, origin, body, signal);
+}
+
+export function restoreCheck(origin: string, sessionId: string, checkId: string, subject: string, signal?: AbortSignal): Promise<CheckList> {
+  return postJson<CheckList>(`${BASE}/drafts/${encodeURIComponent(sessionId)}/checks/${encodeURIComponent(checkId)}/restore`, origin, { subject }, signal);
 }

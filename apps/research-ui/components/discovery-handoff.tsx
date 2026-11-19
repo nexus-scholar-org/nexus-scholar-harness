@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { DiscoveryChecksPanel, EarlierChecksLine } from "@/components/discovery-checks";
 
 import type { Locale } from "@/i18n";
 import { Button, DataCell, DecisionBadge, GatePanel } from "@/components/ui/base";
@@ -316,6 +317,8 @@ export function DiscoveryHandoff({ locale }: Readonly<{ locale: Locale }>) {
               </section>
             </div>
             <aside className="space-y-4">
+            <EarlierChecksLine locale={locale} origin={origin} />
+            <DiscoveryChecksPanel locale={locale} step="handoff" origin={origin} />
               <section aria-labelledby="handoff-from" className="rounded-lg border border-rule bg-leaf p-5 text-sm">
                 <h2 id="handoff-from" className="font-semibold text-ink">
                   {t("handoff.from.title")}

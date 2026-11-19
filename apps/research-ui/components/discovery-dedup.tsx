@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { DiscoveryChecksPanel } from "@/components/discovery-checks";
 
 import type { Locale } from "@/i18n";
 import { DataCell, DecisionBadge } from "@/components/ui/base";
@@ -69,6 +70,7 @@ export function DiscoveryDedup({ locale }: Readonly<{ locale: Locale }>) {
             ) : null}
           </header>
           {refusal ? <DiscoveryRefusal locale={locale} refusal={refusal} origin={origin} onRetry={() => void load()} /> : null}
+          <DiscoveryChecksPanel locale={locale} step="dedup" origin={origin} />
           <section aria-labelledby="dedup-counts" className="rounded-lg border border-rule bg-leaf p-5">
             <h2 id="dedup-counts" className="font-semibold text-ink">
               {t("dedup.counts")}

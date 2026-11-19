@@ -27,7 +27,7 @@ import json
 import shutil
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 from .genesis import (
     INIT_MARKERS,
@@ -50,6 +50,9 @@ ARCHIVED_ON_REPLACE = (
     "literature/",
     "artifacts/",
     "audit/artifact_registry.json",
+    # M10b: the old draft's proposals and check dismissals belong to the old protocol.
+    "audit/proposals.jsonl",
+    "audit/check_dismissals.jsonl",
     ".harness-console/",
     "pdfs/",
     "extracted/",
@@ -59,6 +62,8 @@ ARCHIVED_ON_REPLACE = (
     "chroma_db/",
     "run-reports/",
 )
+#: Records genesis always writes, empty when there was nothing (M10b): an empty one is not archived.
+EMPTY_HOLDS_NOTHING = ("audit/proposals.jsonl", "audit/check_dismissals.jsonl")
 #: The canonical folders a workspace starts with, made again after an archive.
 CANONICAL_DIRS = ("literature", "pdfs", "extracted", "synthesis")
 #: Kept in place: the researcher's own review notes, which every workspace starts with.
@@ -68,6 +73,8 @@ KEPT_ON_REPLACE = ("synthesis/literature_review.md",)
 def _corpus_files(ws_dir: Path, rel: str) -> list[Path]:
     """The files under one :data:`ARCHIVED_ON_REPLACE` entry, without the kept ones."""
     path = Path(ws_dir) / rel.rstrip("/")
+    if rel in EMPTY_HOLDS_NOTHING and path.is_file() and path.stat().st_size == 0:
+        return []  # an empty record (no proposal, no dismissal) holds nothing to archive
     files = [path] if path.is_file() else [p for p in path.rglob("*") if p.is_file()] if path.is_dir() else []
     return [f for f in files if f.relative_to(ws_dir).as_posix() not in KEPT_ON_REPLACE]
 
@@ -81,6 +88,8 @@ NEW_WORKSPACE_FILES = (
     "SCREENING_CRITERIA.md",
     "INDEX.md",
     "audit/journal.jsonl",
+    "audit/proposals.jsonl",
+    "audit/check_dismissals.jsonl",
     "synthesis/literature_review.md",
 )
 
@@ -95,6 +104,8 @@ REPLACEMENT_FILES = (
     "project.json",
     "INDEX.md",
     "audit/journal.jsonl",
+    "audit/proposals.jsonl",
+    "audit/check_dismissals.jsonl",
     "audit/replaced/<UTC stamp>/",
 )
 
@@ -312,6 +323,7 @@ def emit_workspace(
     fingerprint_label: str = "protocol",
     protocol_origin: str = "inception",
     source_note: str = "",
+    before_log: Callable[[Path], None] | None = None,
 ) -> dict[str, Any]:
     """Write ``intent`` as a workspace's protocol through the overwrite guard.
 
@@ -319,6 +331,10 @@ def emit_workspace(
     route); otherwise the workspace is ``root/workspaces/<slug>``. Returns
     ``workspace_dir``, ``protocol_fingerprint``, ``replaced`` and, for a
     replacement, ``previous_fingerprint`` and ``backup_dir``.
+
+    ``before_log(ws_dir)`` writes what belongs with the protocol (M10b: the
+    draft's proposal and dismissal records) before the GENESIS row, so that row
+    stays the last one genesis writes.
     """
     slug = intent["project_slug"]
     ws_dir = workspace_dir_for(slug, root=root, target_dir=target_dir)
@@ -335,6 +351,8 @@ def emit_workspace(
             scaffold_project(Path(root), title, slug, paradigm, rqs)
         compiled = compile_protocol_files(ws_dir, intent)
         _write_origin(ws_dir, protocol_origin)
+        if before_log is not None:
+            before_log(ws_dir)
         # M10b: a draft started from an earlier protocol adds one sentence naming it.
         tail = f". {source_note}" if source_note else ""
         log_genesis(
@@ -357,6 +375,8 @@ def emit_workspace(
     compiled = compile_protocol_files(ws_dir, intent)
     _refresh_manifest(ws_dir, intent, protocol_origin)
     write_review_notes(ws_dir, title, rqs)
+    if before_log is not None:
+        before_log(ws_dir)
     state = guard["screening"] or {}
     backup_rel = backup.relative_to(ws_dir).as_posix()
     note = (
@@ -375,7 +395,7 @@ def emit_workspace(
     log_genesis(
         ws_dir,
         f"{summary} compiled {fingerprint_label} fingerprint {compiled['protocol_fingerprint']}.{note}"
-        + (f" {source_note}" if source_note else ""),
+        + (f". {source_note}" if source_note else ""),
         recon_context=recon_context,
         agent=agent,
     )

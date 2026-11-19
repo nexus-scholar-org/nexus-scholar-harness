@@ -1,4 +1,5 @@
 import { ScreeningApiError, consoleBase, postJson, readJson } from "./screening-api";
+import type { CheckList } from "./inception-api";
 import type { Corpus } from "./screening-v1";
 
 /**
@@ -662,4 +663,23 @@ export function startChase(origin: string, request: ChaseRequest = {}, signal?: 
 
 export function acceptChase(origin: string, chase?: string, signal?: AbortSignal): Promise<ChaseAcceptAnswer> {
   return postJson<ChaseAcceptAnswer>(`${BASE}/chase/accept`, origin, chase ? { chase } : {}, signal);
+}
+
+// --- M10b: the discovery checks (`docs/ux/shared/final/02-checks.md`) -----------
+
+/** A pure read of the open workspace's checks; without `step`, every step and `by_step`. */
+export function getDiscoveryChecks(origin: string, step?: string, run?: string, signal?: AbortSignal): Promise<CheckList> {
+  const query = new URLSearchParams();
+  if (step) query.set("step", step);
+  if (run) query.set("run", run);
+  const q = query.toString();
+  return readJson<CheckList>(`${BASE}/checks${q ? `?${q}` : ""}`, consoleBase(origin), signal);
+}
+
+export function dismissDiscoveryCheck(origin: string, checkId: string, body: { subject: string; evidence_digest: string; reason?: string }, signal?: AbortSignal): Promise<CheckList> {
+  return postJson<CheckList>(`${BASE}/checks/${encodeURIComponent(checkId)}/dismiss`, origin, body, signal);
+}
+
+export function restoreDiscoveryCheck(origin: string, checkId: string, subject: string, signal?: AbortSignal): Promise<CheckList> {
+  return postJson<CheckList>(`${BASE}/checks/${encodeURIComponent(checkId)}/restore`, origin, { subject }, signal);
 }

@@ -22,13 +22,14 @@ They answer with or without an open workspace, like the workspaces routes.
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
 from fastapi import APIRouter, HTTPException, Request, Response
 from pydantic import BaseModel, ConfigDict, Field
 
 from scholar_harness.inception import steps
 from scholar_harness.inception import importer
+from scholar_harness.inception import checks, proposals
 from scholar_harness.inception.drafts import DraftRefused, DraftStore
 from scholar_harness.inception.grounding import refuse_stale, scope_of
 from scholar_harness.recon.session import ReconRefused, ReconSessions
@@ -39,7 +40,8 @@ router = APIRouter(prefix="/api/v1/inception", tags=["inception"])
 UI_AGENT = "nexus-scholar/ui"
 
 
-def _error(exc: DraftRefused | steps.StepRefused | ReconRefused) -> HTTPException:
+def _error(exc: Any) -> HTTPException:
+    """``{code, message, details}`` for every refusal these routes answer."""
     detail: dict[str, Any] = {"code": exc.code, "message": exc.message}
     if exc.details:
         detail["details"] = exc.details
@@ -59,9 +61,20 @@ class DraftBody(BaseModel):
     draft: dict[str, Any] = Field(default_factory=dict)
 
 
+class AcceptedFrom(BaseModel):
+    """An engine suggestion the researcher accepted with this save (M10b, R1)."""
+
+    model_config = ConfigDict(extra="forbid")
+    mechanism: Literal[proposals.MECHANISMS]  # type: ignore[valid-type]
+    field: str = Field(max_length=steps.MAX_NAME_CHARS + 20)
+    value: Any
+
+
 class SaveBody(DraftBody):
     #: The ``updated_at`` the client last read; a newer save on disk refuses with DRAFT_CONFLICT.
     base_updated_at: str | None = None
+    #: Engine suggestions this save accepts; recorded as ``engine:<mechanism>`` (M10b).
+    accepted_from: list[AcceptedFrom] = Field(default_factory=list, max_length=steps.MAX_LIST_ITEMS)
 
 
 class PreviewBody(DraftBody):
@@ -168,13 +181,246 @@ def read_draft(session_id: str, request: Request) -> dict[str, Any]:
         raise _error(exc) from exc
 
 
+def _pool_facts(request: Request, session_id: str, mechanisms: set[str]) -> tuple[dict | None, list | None]:
+    """The draft's latest pool (and directions) when an accepted entry needs them; none without a pool."""
+    if not mechanisms & {"pool_synonym", "anchor_seed"}:
+        return None, None
+    sessions = _recon(request)
+    try:
+        pool, _path = sessions.latest_pool(session_id)
+    except ReconRefused:
+        return None, None
+    directions = None
+    if "anchor_seed" in mechanisms:
+        try:
+            directions = sessions.directions(session_id)["directions"]
+        except ReconRefused:
+            directions = []
+    return pool, directions
+
+
 @router.put("/drafts/{session_id}")
 def save_draft(session_id: str, body: SaveBody, request: Request) -> dict[str, Any]:
     try:
         steps.parse_draft(body.draft, saving=True)
-        return _store(request).save(session_id, body.draft, base_updated_at=body.base_updated_at)
+        store = _store(request)
+        if not body.accepted_from:
+            return store.save(session_id, body.draft, base_updated_at=body.base_updated_at)
+        entries = [e.model_dump() for e in body.accepted_from]
+        pool, directions = _pool_facts(request, session_id, {e["mechanism"] for e in entries})
+
+        def change(record: dict[str, Any]) -> list[dict[str, Any]]:
+            # Judged on the stored draft, before this save replaces it (01-proposals, Data out).
+            missed = proposals.record_accepted(record, entries, pool=pool, directions=directions, saved=body.draft)
+            record["draft"] = body.draft
+            return missed
+
+        record, not_recorded = store.transact(session_id, change, answer=True, base_updated_at=body.base_updated_at)
+        return {**record, "not_recorded": not_recorded}
     except (DraftRefused, steps.StepRefused) as exc:
         raise _error(exc) from exc
+
+
+# --- checks (M10b, docs/ux/shared/final/02-checks.md) -------------------------
+
+
+def _compute_checks(request: Request, session_id: str, record: dict[str, Any]) -> tuple[list, list, list, list]:
+    """Every inception check of the saved draft, from the draft record and its recon session."""
+    from scholar_harness.console.api.recon import _scope_changes
+    from scholar_harness.inception.grounding import check_binding
+
+    draft = steps.parse_draft(record.get("draft"))
+    sessions = _recon(request)
+    pool = None
+    changes: list[str] = []
+    try:
+        if sessions.exists(session_id):
+            pool, _path = sessions.latest_pool(session_id)
+            changes = _scope_changes(sessions, session_id, sessions.current(session_id), draft)
+    except ReconRefused:
+        pool = None
+    grounding = record.get("grounding")
+    binding = None
+    if grounding:
+        try:
+            binding = check_binding(sessions, grounding, scope_of(draft))
+        except ReconRefused:
+            binding = None
+
+    def make(**kw: Any) -> dict[str, Any]:
+        return proposals.make(draft_id=session_id, draft=record.get("draft") or {}, **kw)
+
+    return checks.inception_checks(
+        record, pool=pool, scope_changes=changes, binding=binding, workspaces_root=_root(request), make_proposal=make,
+    )
+
+
+def _checks_answer(record: dict[str, Any], items: list, waiting: list, partial: list, step: str | None) -> dict[str, Any]:
+    checks.with_dismissals(items, record.get("check_dismissals") or [])
+    ready = not any(c["level"] == "blocker" and c["status"] == "open" for c in items)
+    return checks.respond(
+        items, steps_order=checks.INCEPTION_STEPS, step=step, waiting=waiting, partial=partial, ready=ready,
+        scope={"kind": "draft", "id": record["session_id"], "updated_at": record["updated_at"]},
+    )
+
+
+class ChecksBody(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    step: str | None = None
+
+
+def _check_step(step: str | None) -> None:
+    if step is not None and step not in checks.INCEPTION_STEPS:
+        raise _error(steps.StepRefused(
+            "STEP_UNKNOWN", f"unknown step {step!r}", status=404, details={"steps": list(checks.INCEPTION_STEPS)},
+        ))
+
+
+@router.post("/drafts/{session_id}/checks")
+def run_checks(session_id: str, body: ChecksBody, request: Request) -> dict[str, Any]:
+    """The checks of the saved draft (a POST: it records the proposals the checks recommend, once)."""
+    _check_step(body.step)
+    store = _store(request)
+    try:
+        record = store.load(session_id)
+        items, waiting, partial, made = _compute_checks(request, session_id, record)
+        known = {p["proposal_id"] for p in record.get("proposals") or []}
+        if [p for p in made if p["proposal_id"] not in known] and not record.get("emitted"):
+            seen = record.get("draft")
+
+            def add(current: dict[str, Any]) -> None:
+                if current.get("draft") == seen:  # made against this draft; a newer save waits for the next run
+                    for proposal in made:
+                        proposals.add_open(current, proposal)
+
+            record, _ = store.transact(session_id, add, answer=False)
+            # The open-suggestions note counts what this very run recorded.
+            items = [c for c in items if c["check_id"] != "REVIEW_PROPOSALS_OPEN"] + checks._proposals_open(record)
+    except (DraftRefused, steps.StepRefused) as exc:
+        raise _error(exc) from exc
+    return _checks_answer(record, items, waiting, partial, body.step)
+
+
+class DismissBody(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    subject: str = Field(default="", max_length=steps.MAX_TEXT_CHARS)
+    evidence_digest: str = Field(max_length=100)
+    reason: str | None = Field(default=None, max_length=steps.MAX_TEXT_CHARS * 2)
+
+
+class CheckRestoreBody(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    subject: str = Field(default="", max_length=steps.MAX_TEXT_CHARS)
+
+
+def _dismissal(request: Request, session_id: str, check_id: str, action: str, **kw: Any) -> dict[str, Any]:
+    store = _store(request)
+
+    def append(current: dict[str, Any]) -> tuple:
+        # Judged on the record read inside the lock: a save landing between a read and
+        # this write cannot make a dismissal of the old evidence (review of Part B, finding 3).
+        computed = _compute_checks(request, session_id, current)
+        checks.with_dismissals(computed[0], current.get("check_dismissals") or [])
+        entry = checks.dismissal_entry(computed[0], current.get("check_dismissals") or [], check_id, action, **kw)
+        current["check_dismissals"] = [*(current.get("check_dismissals") or []), entry]
+        return computed
+
+    try:
+        record, (items, waiting, partial, _made) = store.transact(session_id, append, answer=False)
+    except (DraftRefused, steps.StepRefused, checks.CheckRefused) as exc:
+        raise _error(exc) from exc
+    for item in items:
+        item.update(status="open", dismissal=None, previously_dismissed=None)
+    return _checks_answer(record, items, waiting, partial, checks.CATALOGUE.get(check_id))
+
+
+@router.post("/drafts/{session_id}/checks/{check_id}/dismiss")
+def dismiss_check(session_id: str, check_id: str, body: DismissBody, request: Request) -> dict[str, Any]:
+    """A side write: only ``check_dismissals`` changes, ``updated_at`` does not."""
+    return _dismissal(
+        request, session_id, check_id, "dismissed",
+        subject=body.subject, evidence_digest=body.evidence_digest, reason=body.reason,
+    )
+
+
+@router.post("/drafts/{session_id}/checks/{check_id}/restore")
+def restore_check(session_id: str, check_id: str, body: CheckRestoreBody, request: Request) -> dict[str, Any]:
+    return _dismissal(request, session_id, check_id, "restored", subject=body.subject)
+
+
+# --- proposals (M10b, docs/ux/shared/final/01-proposals.md) -------------------
+
+
+@router.get("/drafts/{session_id}/proposals")
+def list_proposals(session_id: str, request: Request, step: str | None = None) -> dict[str, Any]:
+    if step is not None and step not in proposals.PROPOSAL_STEPS:
+        raise _error(steps.StepRefused(
+            "STEP_UNKNOWN", f"unknown step {step!r}", status=404, details={"steps": list(proposals.PROPOSAL_STEPS)},
+        ))
+    try:
+        return proposals.listing(_store(request).load(session_id), step)
+    except DraftRefused as exc:
+        raise _error(exc) from exc
+
+
+class ApplyBody(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    base_updated_at: str
+
+
+class ApplyEditedBody(ApplyBody):
+    value: Any
+
+
+class RejectBody(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    reason: str | None = Field(default=None, max_length=steps.MAX_TEXT_CHARS)
+
+
+class RestoreBody(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+
+def _decide(
+    request: Request, session_id: str, proposal_id: str, action: str, *, answer: bool,
+    base_updated_at: str | None = None, value: Any = None, reason: str | None = None,
+) -> dict[str, Any]:
+    def change(record: dict[str, Any]) -> None:
+        proposals.decide(record, proposal_id, action, value=value, reason=reason)
+
+    try:
+        record, _ = _store(request).transact(session_id, change, answer=answer, base_updated_at=base_updated_at)
+    except (DraftRefused, steps.StepRefused, proposals.ProposalRefused) as exc:
+        raise _error(exc) from exc
+    return {
+        "session_id": session_id, "draft": record["draft"], "updated_at": record["updated_at"],
+        **{k: v for k, v in proposals.listing(record).items() if k in ("proposals", "by_step")},
+    }
+
+
+@router.post("/drafts/{session_id}/proposals/{proposal_id}/apply")
+def apply_proposal(session_id: str, proposal_id: str, body: ApplyBody, request: Request) -> dict[str, Any]:
+    """An answer write: the value goes through the same validation as a save of the field."""
+    return _decide(request, session_id, proposal_id, "apply", answer=True, base_updated_at=body.base_updated_at)
+
+
+@router.post("/drafts/{session_id}/proposals/{proposal_id}/apply-edited")
+def apply_edited_proposal(session_id: str, proposal_id: str, body: ApplyEditedBody, request: Request) -> dict[str, Any]:
+    return _decide(
+        request, session_id, proposal_id, "apply_edited", answer=True,
+        base_updated_at=body.base_updated_at, value=body.value,
+    )
+
+
+@router.post("/drafts/{session_id}/proposals/{proposal_id}/reject")
+def reject_proposal(session_id: str, proposal_id: str, body: RejectBody, request: Request) -> dict[str, Any]:
+    """A side write: no field and no ``updated_at`` change."""
+    return _decide(request, session_id, proposal_id, "reject", answer=False, reason=body.reason)
+
+
+@router.post("/drafts/{session_id}/proposals/{proposal_id}/restore")
+def restore_proposal(session_id: str, proposal_id: str, body: RestoreBody, request: Request) -> dict[str, Any]:
+    return _decide(request, session_id, proposal_id, "restore", answer=False)
 
 
 @router.delete("/drafts/{session_id}", status_code=204)
@@ -242,6 +488,7 @@ def genesis(session_id: str, body: GenesisBody, request: Request) -> dict[str, A
             confirm_discard_screening_binding=body.confirm_discard_screening_binding,
             busy=lambda target: _running_job(request, target),
             origin=record.get("origin"),
+            record=record,
         )
         # The backup and the previous fingerprint too, so Done shows them after a reload (M4b).
         kept = ("slug", "path", "protocol_fingerprint", "replaced", "previous_fingerprint", "backup_dir", "archived")

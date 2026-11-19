@@ -245,6 +245,27 @@ def test_genesis_names_origin_and_project_records_it(root):
     assert "Started from uav, protocol sha256:" in text
 
 
+def test_a_replacement_from_an_imported_draft_puts_a_full_stop_before_started_from(root):
+    """Part A review round 2, P3 (deferred to Part B): the replacement's GENESIS row read
+    "... (backup at audit/replaced/...) Started from ..." with no full stop between."""
+    client = _client(root)
+    body = _import(client, {"kind": "workspace", "slug": "uav"}).json()
+    fingerprint = body["source"]["protocol_fingerprint"]
+    paths = []
+    for _ in range(2):
+        created = _import(client, {"kind": "workspace", "slug": "uav"}, dry_run=False, expect_fingerprint=fingerprint).json()
+        sid = created["session_id"]
+        draft = {**created["draft"], "topic": "UAV crop-weed mapping", "title": "UAV weed mapping, second review"}
+        client.put(f"{BASE}/drafts/{sid}", json={"draft": draft, "base_updated_at": created["updated_at"]})
+        made = client.post(f"{BASE}/drafts/{sid}/genesis", json={"replace": bool(paths)})
+        assert made.status_code == 201, made.text
+        paths.append(Path(made.json()["path"]))
+    rows = [json.loads(line) for line in (paths[1] / "audit" / "journal.jsonl").read_text(encoding="utf-8").splitlines() if line.strip()]
+    description = [r for r in rows if r.get("action") == "GENESIS"][-1]["description"]
+    assert "REPLACED protocol fingerprint" in description
+    assert "). Started from uav, protocol sha256:" in description
+
+
 def test_the_two_routes_are_in_the_allowlist():
     assert any(p.fullmatch("api/v1/inception/drafts/import") for p in POST_PATHS)
     assert any(p.fullmatch("api/v1/inception/drafts/rec_0123abcd/origin/checked") for p in POST_PATHS)

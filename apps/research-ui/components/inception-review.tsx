@@ -11,6 +11,7 @@ import { previewDraft, runGenesis, runStep, type Criterion, type DraftRecord, ty
 import { DoiLink } from "@/components/inception-recon";
 import { inceptionT, sourceText } from "@/lib/inception-copy";
 import { inceptionRichT } from "@/components/rich-copy";
+import { ProposalList, ReadinessList } from "@/components/inception-assist";
 
 /**
  * Step 6, Review and create (spec 06, M4b): the only write gate. `POST /preview`
@@ -230,6 +231,7 @@ export function InceptionReview({ locale }: Readonly<{ locale: Locale }>) {
           </section>
 
           {saveError ? <InceptionRefusal locale={locale} refusal={saveError} draftId={draftId} origin={origin} /> : null}
+          <ProposalList locale={locale} step="review" />
           {previewError ? <InceptionRefusal locale={locale} refusal={previewError} draftId={draftId} origin={origin} onRetry={() => void check(true)} /> : null}
 
           {preview ? (
@@ -357,8 +359,8 @@ export function InceptionReview({ locale }: Readonly<{ locale: Locale }>) {
           ) : null}
         </div>
 
-        {preview ? (
-          <aside className="min-w-0 space-y-4">
+        <aside className="min-w-0 space-y-4">
+          {preview ? (
             <dl className="grid gap-3 rounded-lg border border-rule bg-leaf p-4 text-sm">
               <div>
                 <dt className="text-ink-muted">{t("review.folder")}</dt>
@@ -388,36 +390,13 @@ export function InceptionReview({ locale }: Readonly<{ locale: Locale }>) {
                 </dd>
               </div>
             </dl>
+          ) : null}
 
-            <section aria-labelledby="review-checks" className="rounded-lg border border-rule bg-leaf p-4 text-sm">
-              <h2 id="review-checks" className="font-semibold text-ink">
-                {t("review.checks")}
-              </h2>
-              <ul className="mt-2 space-y-1" data-checks>
-                <li className="text-include">{t("review.check.decided")}</li>
-                <li className="text-include">{t("review.check.sides")}</li>
-                <li className="text-include">{t("review.check.compiler")}</li>
-                {!target?.exists ? (
-                  <li className="text-include">{t("review.check.free")}</li>
-                ) : !target.workspace ? (
-                  <li className="text-blocked" data-target-folder>
-                    {t("review.check.folder")}
-                  </li>
-                ) : target.screening?.bound ? (
-                  <li className="text-blocked" data-target-bound>
-                    {t("review.check.bound", {
-                      events: formatNumber(locale, target.screening.decision_events),
-                      files: formatNumber(locale, target.screening.decision_files),
-                    })}
-                  </li>
-                ) : (
-                  <li className="text-unclear" data-target-exists>
-                    {t("review.check.exists")}
-                  </li>
-                )}
-              </ul>
-            </section>
+          {/* M10b (02-checks): "Ready to create?" replaces the Checks card; open warnings never disable Create. */}
+          <ReadinessList locale={locale} />
 
+          {preview ? (
+            <>
             {confirm?.kind === "replace" ? (
               <section role="alert" aria-labelledby="confirm-title" className="rounded-lg border border-unclear bg-leaf p-4" data-confirm="replace">
                 <h2 id="confirm-title" ref={confirmHeading} tabIndex={-1} className="font-semibold text-ink">
@@ -482,8 +461,9 @@ export function InceptionReview({ locale }: Readonly<{ locale: Locale }>) {
               {stale ? <p className="mt-2 text-sm text-unclear">{t("review.stale")}</p> : null}
             </GatePanel>
             {refusal ? <InceptionRefusal locale={locale} refusal={refusal} draftId={draftId} origin={origin} /> : null}
-          </aside>
-        ) : null}
+            </>
+          ) : null}
+        </aside>
       </div>
     </InceptionFrame>
   );

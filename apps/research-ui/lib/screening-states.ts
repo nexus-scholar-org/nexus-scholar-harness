@@ -1001,6 +1001,100 @@ export const STATES: Record<string, StateEntry> = {
   // Inception recon (specs 02 Explore and 03 Direction, M4d). Three codes that
   // discovery or screening also use carry their inception meaning under the
   // `inception.` prefix (`inceptionStateKey`).
+  // M10b Part B (`docs/ux/shared/final/01-proposals.md`): a decision on a
+  // proposal. The card itself is the next step (it re-reads, or offers Edit).
+  PROPOSAL_NOT_FOUND: {
+    role: "unclear",
+    action: "none",
+    copy: {
+      en: T("That suggestion is no longer there", "The engine has no suggestion with this id on this draft. Nothing was changed.", "This suggestion", "Read the suggestions again"),
+      fr: T("Cette suggestion n'existe plus", "Le moteur n'a aucune suggestion avec cet identifiant sur ce brouillon. Rien n'a été changé.", "Cette suggestion", "Relire les suggestions"),
+      ar: T("لم يعد ذلك الاقتراح موجودًا", "لا يملك المحرك اقتراحًا بهذا المعرّف في هذه المسودة. لم يتغير شيء.", "هذا الاقتراح", "اقرأ الاقتراحات مجددًا"),
+    },
+  },
+  PROPOSAL_STALE: {
+    role: "unclear",
+    action: "none",
+    copy: {
+      en: T("This field changed after the suggestion was made", "Applying it now could overwrite your own words, so nothing was applied.", "This suggestion", "Dismiss it; the check offers a new one if it still holds"),
+      fr: T("Ce champ a changé après la suggestion", "L'appliquer maintenant pourrait écraser vos propres mots ; rien n'a été appliqué.", "Cette suggestion", "L'écarter ; la vérification en propose une nouvelle si elle tient toujours"),
+      ar: T("تغيّر هذا الحقل بعد تقديم الاقتراح", "تطبيقه الآن قد يكتب فوق كلماتك، لذا لم يُطبَّق شيء.", "هذا الاقتراح", "تجاهله؛ يقدّم الفحص اقتراحًا جديدًا إن ظل قائمًا"),
+    },
+  },
+  PROPOSAL_NOT_OPEN: {
+    role: "unclear",
+    action: "none",
+    copy: {
+      en: T("This suggestion is already decided", "It was applied or rejected already, or its value is already in the field. Nothing was changed.", "This suggestion", "Read its state again"),
+      fr: T("Cette suggestion est déjà décidée", "Elle a déjà été appliquée ou rejetée, ou sa valeur est déjà dans le champ. Rien n'a été changé.", "Cette suggestion", "Relire son état"),
+      ar: T("تقرّر في هذا الاقتراح مسبقًا", "طُبّق أو رُفض من قبل، أو قيمته موجودة في الحقل. لم يتغير شيء.", "هذا الاقتراح", "اقرأ حالته مجددًا"),
+    },
+  },
+  PROPOSAL_TARGET_UNSUPPORTED: {
+    role: "blocked",
+    action: "none",
+    copy: {
+      en: T("The engine cannot apply a suggestion to this field", "The field is not one of the draft's answers, or the change does not fit it. Nothing was changed.", "This suggestion", "Reject it, or change the field yourself"),
+      fr: T("Le moteur ne peut pas appliquer de suggestion à ce champ", "Ce champ ne fait pas partie des réponses du brouillon, ou le changement ne lui convient pas. Rien n'a été changé.", "Cette suggestion", "La rejeter, ou modifier le champ vous-même"),
+      ar: T("لا يستطيع المحرك تطبيق اقتراح على هذا الحقل", "الحقل ليس من إجابات المسودة، أو التغيير لا يناسبه. لم يتغير شيء.", "هذا الاقتراح", "ارفضه، أو غيّر الحقل بنفسك"),
+    },
+  },
+  PROPOSAL_SOURCE_REFUSED: {
+    role: "blocked",
+    action: "none",
+    copy: {
+      en: T("This version does not take suggestions from that source", "Only the fixed checks and an imported protocol may suggest changes here. Nothing was recorded.", "This suggestion", "Reject it, or change the field yourself"),
+      fr: T("Cette version n'accepte pas de suggestions de cette source", "Seules les vérifications fixes et un protocole importé peuvent suggérer des changements ici. Rien n'a été enregistré.", "Cette suggestion", "La rejeter, ou modifier le champ vous-même"),
+      ar: T("لا يقبل هذا الإصدار اقتراحات من ذلك المصدر", "وحدها الفحوص الثابتة والبروتوكول المستورد تستطيع اقتراح تغييرات هنا. لم يُسجَّل شيء.", "هذا الاقتراح", "ارفضه، أو غيّر الحقل بنفسك"),
+    },
+  },
+  // M10b Part B (`docs/ux/shared/final/02-checks.md`): dismissing and restoring a
+  // check, on the inception and the discovery screens alike.
+  CHECK_NOT_FOUND: {
+    role: "unclear",
+    action: "none",
+    copy: {
+      en: T("That check is no longer there", "The data changed and the engine no longer finds this check. Nothing was dismissed.", "This check", "Read the checks again"),
+      fr: T("Cette vérification n'existe plus", "Les données ont changé et le moteur ne trouve plus cette vérification. Rien n'a été écarté.", "Cette vérification", "Relire les vérifications"),
+      ar: T("لم يعد ذلك الفحص موجودًا", "تغيّرت البيانات ولم يعد المحرك يجد هذا الفحص. لم يُتجاهل شيء.", "هذا الفحص", "اقرأ الفحوص مجددًا"),
+    },
+  },
+  CHECK_NOT_DISMISSIBLE: {
+    role: "blocked",
+    action: "none",
+    copy: {
+      en: T("This check cannot be dismissed", "It is a refusal the engine will repeat, or it is answered by the confirmation in the gate. Nothing was dismissed.", "This check", "Fix what it names"),
+      fr: T("Cette vérification ne peut pas être écartée", "C'est un refus que le moteur répétera, ou la confirmation de la validation y répond. Rien n'a été écarté.", "Cette vérification", "Corriger ce qu'elle nomme"),
+      ar: T("لا يمكن تجاهل هذا الفحص", "إنه رفض سيكرره المحرك، أو يُجاب عنه بالتأكيد في البوابة. لم يُتجاهل شيء.", "هذا الفحص", "أصلح ما يذكره"),
+    },
+  },
+  CHECK_REASON_REQUIRED: {
+    role: "unclear",
+    action: "none",
+    copy: {
+      en: T("A warning is dismissed with a reason", "The reason is empty, or longer than the draft's text limit. Nothing was dismissed.", "This check", "Write a short reason"),
+      fr: T("Un avertissement s'écarte avec une raison", "La raison est vide, ou plus longue que la limite de texte du brouillon. Rien n'a été écarté.", "Cette vérification", "Écrire une courte raison"),
+      ar: T("يُتجاهل التحذير مع سبب", "السبب فارغ، أو أطول من حد النص في المسودة. لم يُتجاهل شيء.", "هذا الفحص", "اكتب سببًا قصيرًا"),
+    },
+  },
+  CHECK_CHANGED: {
+    role: "unclear",
+    action: "none",
+    copy: {
+      en: T("The data changed since the page read this check", "Its numbers are not the ones you saw, so nothing was dismissed.", "This check", "Read it again"),
+      fr: T("Les données ont changé depuis la lecture de cette vérification", "Ses nombres ne sont plus ceux que vous avez vus ; rien n'a été écarté.", "Cette vérification", "La relire"),
+      ar: T("تغيّرت البيانات منذ قرأت الصفحة هذا الفحص", "أرقامه ليست التي رأيتها، لذا لم يُتجاهل شيء.", "هذا الفحص", "اقرأه مجددًا"),
+    },
+  },
+  CHECK_NOT_DISMISSED: {
+    role: "unclear",
+    action: "none",
+    copy: {
+      en: T("This check is not dismissed", "It is open already, so there is nothing to restore.", "This check", "Read the checks again"),
+      fr: T("Cette vérification n'est pas écartée", "Elle est déjà ouverte ; il n'y a rien à rétablir.", "Cette vérification", "Relire les vérifications"),
+      ar: T("هذا الفحص غير متجاهَل", "إنه مفتوح أصلًا، فلا شيء لاستعادته.", "هذا الفحص", "اقرأ الفحوص مجددًا"),
+    },
+  },
   // M10b (spec 09): starting a draft from an earlier protocol. The screen's own
   // buttons ("Choose a different source", "Read it again") are the next step.
   IMPORT_SOURCE_NOT_FOUND: {

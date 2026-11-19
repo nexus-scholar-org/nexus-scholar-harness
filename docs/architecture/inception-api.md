@@ -65,6 +65,37 @@ The draft listing adds `origin_label`. Genesis of an imported draft keeps the de
 
 **Draft lock.** Every write to a draft record runs under one lock per draft (`inception/drafts.py`). A side write (an origin mark) re-reads the record inside the lock and changes only its own key, so it never writes an older `draft` back over a save made in between.
 
+## M10b Part B: proposals and fixed checks
+
+Specs: `docs/ux/shared/final/01-proposals.md`, `02-checks.md`; decisions `docs/decisions.md` 2026-11-15 (M10b). Code: `inception/proposals.py`, `inception/checks.py`, `inception/drafts.py` (`transact`), `console/api/inception.py`, `console/discovery_checks.py`.
+
+**Proposals.** A proposal suggests one change to the draft: `{proposal_id ("prop_" + 12 hex, content-derived from source, target, op, value and base), target {kind: "draft", id, field}, op ("add" | "remove" | "replace"), value, why, evidence[], source, base {hash, shown}, status, decided_at, decided_value, step}`. `field` is a `Draft` field or `concepts[<concept>].synonyms`; a scalar field takes only `replace`. Stored statuses are `open`, `applied`, `applied_edited`, `rejected`; `stale` is derived on every read (open, and the target's current hash is not `base.hash`), and each read adds `current` (the target now, short). Open proposals are created only by the engine: in M10b by the checks POST (`CONCEPT_TERM_MISSING`); the sources are `check:<id>` and `import:<name>` (`PROPOSAL_SOURCE_REFUSED` for any other). They live in the draft record's `proposals` key beside `draft`, so every `PUT` keeps them.
+
+**One rule for every write to a draft record** (`DraftStore.transact`, under the per-draft lock): an *answer* write (`PUT`, apply, apply-edited, bind) checks `base_updated_at` (`DRAFT_CONFLICT`) and sets a new `updated_at`; a *side* write (reject, restore, the checks POST recording proposals, a check dismissal or restore, a step mark) does neither. Both refuse `DRAFT_EMITTED`.
+
+**`accepted_from` on the draft `PUT`.** `[{mechanism, field, value}]`, `mechanism` one of `wizard_criterion` (`criteria_decisions`, the criterion id), `pool_synonym` (`concepts[<concept>].synonyms`, the term), `suggested_concept` (`concepts`), `matrix_column` (`matrix_columns`), `anchor_seed` (`golden_seeds`), `direction` (never recorded by a save); another name is `BODY_INVALID`. Each entry the mechanism offered for the **stored** draft (before this save) is recorded in the same write as a decided `engine:<mechanism>` entry (`status: "applied"`, same content-derived id, so a second save is a no-op); the answer adds `not_recorded[]` for the rest, and the save succeeds. The recon bind records the chosen proposed direction as `engine:direction` (`target.field: "grounding"`, `op: "replace"`).
+
+**Fixed checks.** `POST …/checks` reads the saved draft, its recon session and the target folder and answers `{shape: "checks-v1", scope {kind: "draft", id, updated_at}, computed_at, sources: ["check"], checks[], waiting[{check_id, step, needs}], counts {blocker, warning, note, dismissed}, partial[], ready, by_step?}`. A check is `{check_id, subject, step, level, source, message_key, params, message (en, for logs), why_key, why_params, evidence[], threshold, action {kind: "field" | "proposal" | "step", …, label_key}, refusal, dismissible, status, dismissal, previously_dismissed, evidence_digest}`. A `blocker` exists only where the engine already refuses (`refusal` names the code); `ready` is true when no blocker is open. A check that raises is named in `partial` (`{kind: "check_failed", check_id, error}`) and never hides the others. `EXPLORE_SAMPLE_MOSTLY_LEFT_OUT` is not computed until Part C adds sample curation. The term checks (`CONCEPT_TERM_MISSING`, `PLAN_QUERY_TERM_MISSING`) look for all-capitals acronyms of 2 to 6 letters only (decision item 27, proposed).
+
+**Dismissal.** A `warning` (reason required) or `note` (reason optional) with `dismissible: true`; the entry `{check_id, subject, evidence_digest, action: "dismissed" | "restored", reason, at}` is appended to the record's `check_dismissals`. A dismissal belongs to one `evidence_digest`: when the data changes the check is open again with `previously_dismissed`.
+
+**Genesis** writes `audit/proposals.jsonl` (`proposed` lines, then `applied` / `applied_edited` / `rejected` with `in_protocol` on applied ones) and `audit/check_dismissals.jsonl` (the draft's entries with `carried_from: "draft"`), always, empty when there is nothing, before the GENESIS row, with one `PROPOSALS_RECORDED` and one `CHECK_DISMISSALS_RECORDED` journal row. Both are in the preview's `files` and in `ARCHIVED_ON_REPLACE` (an empty one is not archived).
+
+**Routes:**
+
+| Route | Purpose | Request → response |
+| :-- | :-- | :-- |
+| `GET /api/v1/inception/drafts/{id}/proposals?step=` | the draft's proposals | `→ {session_id, updated_at, proposals[], by_step {step: {open, stale}}}`; `404 STEP_UNKNOWN` |
+| `POST …/proposals/{pid}/apply` | apply as proposed (answer write) | `{base_updated_at}` → `{session_id, draft, updated_at, proposals, by_step}`. The new draft goes through the save validation (`DRAFT_INVALID`, `DRAFT_TOO_LARGE`). `404 PROPOSAL_NOT_FOUND`, `409 PROPOSAL_STALE` (`details.base`, `details.current`), `409 PROPOSAL_NOT_OPEN` (`details.status`; also an `add` already present), `422 PROPOSAL_TARGET_UNSUPPORTED`, `409 DRAFT_CONFLICT`, `409 DRAFT_EMITTED` |
+| `POST …/proposals/{pid}/apply-edited` | apply the researcher's value | `{base_updated_at, value}` → as apply; `status: "applied_edited"`, `decided_value` = the value |
+| `POST …/proposals/{pid}/reject` | reject (side write) | `{reason?}` → as apply; an open or stale proposal; `409 PROPOSAL_NOT_OPEN` otherwise |
+| `POST …/proposals/{pid}/restore` | a rejected one back to open (side write) | `{}` → as apply; `409 PROPOSAL_NOT_OPEN` for any other status |
+| `POST /api/v1/inception/drafts/{id}/checks` | the checks of the saved draft | `{step?}` → the list above; records the proposals its checks recommend (side write, once); `404 STEP_UNKNOWN` |
+| `POST …/checks/{check_id}/dismiss` | dismiss one instance (side write) | `{subject, evidence_digest, reason?}` → the list for the check's step. `404 CHECK_NOT_FOUND`, `409 CHECK_NOT_DISMISSIBLE` (`details.level`, `refusal`), `422 CHECK_REASON_REQUIRED` (`details.limit`, `level`), `409 CHECK_CHANGED` (`details.current`), `409 DRAFT_EMITTED` |
+| `POST …/checks/{check_id}/restore` | restore a dismissed instance (side write) | `{subject}` → as dismiss; `409 CHECK_NOT_DISMISSED` |
+
+The POST routes are in both POST allow-lists. The discovery checks (`GET /api/v1/discovery/checks`, dismiss, restore) are in `docs/architecture/research_ui/DISCOVERY_API_PACKET.md` §4.9.
+
 ## Recon (M4c)
 
 Code: `src/scholar_harness/console/api/recon.py` (routes), `recon/session.py` (the recon session store the CLI wizard, the MCP `recon_*` tools and these routes share), `inception/grounding.py` (binding and `STALE_BINDING`). The draft's id is its recon session id. The probe runs the M3a providers through `ReconEngine` (`SearchEngine.run`); the contact address is the console process's `SCHOLAR_MAILTO` (environment or `.env`), with no default. Decision: [2026-11-09, Recon over HTTP](../decisions.md).

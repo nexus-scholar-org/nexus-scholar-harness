@@ -135,6 +135,8 @@ No route. The codes every discovery route may return, with HTTP status, all regi
 | `DECISION_SUPERSEDED` | 409 | dedup decisions |
 | `PROTOCOL_CHANGED_SINCE_SNAPSHOT`, `BATCHES_INCOMPLETE` | 409 | **E5** turns these reason prefixes (`pipeline/coordinator.py:248-283`) into typed codes on the run job's `error` |
 | `PROVIDER_RATE_LIMITED`, `PROVIDER_TIMEOUT`, `PROVIDER_UNAVAILABLE`, `PROVIDER_REFUSED` | leg field | **E5**, `leg.error_code`; never an HTTP refusal (a failed leg is a `PARTIAL` run) |
+| `CHECK_NOT_FOUND`, `CHECK_NOT_DISMISSED` | 404, 409 | checks dismiss and restore (M10b) |
+| `CHECK_NOT_DISMISSIBLE`, `CHECK_CHANGED`, `CHECK_REASON_REQUIRED` | 409, 409, 422 | checks dismiss (M10b) |
 | `ENGINE_UNREACHABLE` | client | the proxy's `CONSOLE_UNREACHABLE` 502 / `CONSOLE_TIMEOUT` 504, shown by the shared state card |
 
 The board's `CONTACT_EMAIL_MISSING` is `MAILTO_NOT_SET` (one code, as the engine, the CLI and recon already use it). The board's `IMPORT_LINE_*` is the `rejected[].code` list of §4.4.
@@ -149,11 +151,20 @@ The board's `CONTACT_EMAIL_MISSING` is `MAILTO_NOT_SET` (one code, as the engine
 - Accept and prepare are the existing `POST /screening/corpus/accept` and `POST /screening/prepare`; acceptance already journals `ARTIFACT_ACCEPTED` and `CORPUS_SNAPSHOT_ACCEPTED`. The board's two options are not new routes: "Fill missing abstracts" is the hydration stage that `run` already performs (`ABSTRACT_HYDRATION`), so the screen states whether it ran; "Hide the database of origin while screening" is the existing screening blinding setting (`PUT /screening/settings`), linked, not duplicated.
 - "Export RIS for Zotero" reuses the screening export route when it lands for the corpus; out of this packet.
 
+### 4.9 Checks (M10b Part B, `docs/ux/shared/final/02-checks.md`)
+
+| Method and path | Layer | Answer |
+| :-- | :-- | :-- |
+| `GET /discovery/checks?step=&run=run_NNN` | R | `step` is `plan`, `recall`, `harvest`, `dedup`, `report` or `handoff`. `{shape: "checks-v1", scope {kind: "workspace", protocol_fingerprint, run}, computed_at, sources: ["check"], checks[], waiting[], counts, partial[], by_step?}`, the check object of `docs/architecture/inception-api.md` "M10b Part B". A pure read, computed from the answers of `plan`, `runs`, `recall`, `dedup`, `report` and `handoff`, so the panel and the screen agree. `run` defaults to the newest. `PLAN_ESTIMATE_ABOVE_TARGET` is not served (the estimate card, Part D). The size check compares the run's `fetched_total` with the researcher's planned maximum from `intent.json` (`pool_max`), else 1,000; a preset in `protocol.json` is never read as the plan. The two hand-off checks that mirror an accept refusal (`HANDOFF_PREPARATION_UNFINISHED` names `PREPARATION_UNFINISHED`, `HANDOFF_SEARCH_CHANGED` names `PROTOCOL_CHANGED_SINCE_RUN`) are blockers when nothing is staged and notes when exports are staged. Refusals: `404 STEP_UNKNOWN`, `404 RUN_NOT_FOUND`, the protocol refusals |
+| `POST /discovery/checks/{check_id}/dismiss` | J | `{subject, evidence_digest, reason?}` → the list for the check's step; appends one line `{check_id, subject, evidence_digest, action, reason, at, run}` to `audit/check_dismissals.jsonl` and a `CHECK_DISMISSED` journal row (`parameters.method: "HUMAN"`). `CHECK_NOT_FOUND`, `CHECK_NOT_DISMISSIBLE`, `CHECK_REASON_REQUIRED`, `CHECK_CHANGED` |
+| `POST /discovery/checks/{check_id}/restore` | J | `{subject}` → as dismiss, with `CHECK_RESTORED`; `CHECK_NOT_DISMISSED` |
+
 ## 5. Allowlists and transport
 
 Both lists change together (`console/browser.py:40-65`, `apps/research-ui/app/api/console/[...path]/route.ts:48-102`, kept equal by `tests/console/test_browser_access.py`):
 
 - POST: `api/v1/discovery/(runs|recall)`, `api/v1/discovery/jobs/[A-Za-z0-9_-]+/cancel`, `api/v1/discovery/dedup/decisions` (Stage 2).
+- POST (M10b): `api/v1/discovery/checks/<CHECK_ID>/dismiss` and `/restore`.
 - PUT: `api/v1/discovery/report/methods`.
 - Stream paths (proxy `STREAM_PATHS`): `api/v1/discovery/jobs/<id>/events`.
 - `/jobs/start` stays `405` from the browser. Discovery runs go through their own typed route, as recon does, so the proxy never becomes a general job starter.
