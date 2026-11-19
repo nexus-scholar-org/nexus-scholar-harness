@@ -7,7 +7,7 @@ import { formatNumber } from "@/i18n";
 import { Button, DecisionBadge } from "@/components/ui/base";
 import { fillNodes, fillText, tryFocus } from "@/components/assist-anchor";
 import { isOfflineCode, refusalFrom, type AssistRefusal } from "@/components/assist-context";
-import { CHECKS_COPY, checksT, checksTemplate, hasChecksKey } from "@/lib/checks-copy";
+import { CHECKS_COPY, checksCountTemplate, checksT, checksTemplate, hasChecksKey } from "@/lib/checks-copy";
 import { fieldLabel, STEP_NUMBER, stepLabel } from "@/lib/assist-labels";
 import { providerName } from "@/lib/discovery-copy";
 import type { Check, CheckList } from "@/lib/inception-api";
@@ -80,19 +80,25 @@ function slot(locale: Locale, name: string, value: unknown): ReactNode {
   return <bdi dir="ltr">{text}</bdi>;
 }
 
+/** The count a sentence is about: its `n` parameter when it is a number (H-ui-findings F4). */
+function countOf(params: Record<string, unknown> | undefined): number | undefined {
+  const n = params?.n;
+  return typeof n === "number" ? n : undefined;
+}
+
 function slots(locale: Locale, params: Record<string, unknown>): Record<string, ReactNode> {
   return Object.fromEntries(Object.entries(params ?? {}).map(([k, v]) => [k, slot(locale, k, v)]));
 }
 
 /** The sentence of a check from this catalogue; a key the catalogue lacks shows the check id. */
 export function CheckSentence({ locale, check }: Readonly<{ locale: Locale; check: Check }>) {
-  const template = checksTemplate(locale, check.message_key);
+  const template = checksTemplate(locale, check.message_key, countOf(check.params));
   return template ? <>{fillNodes(template, slots(locale, check.params))}</> : <bdi dir="ltr">{check.check_id}</bdi>;
 }
 
 /** The sentence as plain text, for the polite announcements. */
 function sentenceText(locale: Locale, check: Check): string {
-  const template = checksTemplate(locale, check.message_key);
+  const template = checksTemplate(locale, check.message_key, countOf(check.params));
   if (!template) return check.check_id;
   return fillText(template, Object.fromEntries(Object.entries(check.params ?? {}).map(([k, v]) => [k, String(v ?? "")])));
 }
@@ -552,7 +558,7 @@ export function ChecksPanel(props: Readonly<ChecksPanelProps>) {
       {disclosure(fillNodes(CHECKS_COPY[locale]["checks.dismissed"], { n: n(counts.dismissed) }), dismissedRows, true, "data-dismissed")}
       {[...needs.entries()].map(([need, count]) => (
         <p key={need} className="mt-2 text-sm text-ink-muted" data-waiting={need}>
-          {fillNodes(CHECKS_COPY[locale]["checks.waiting"], {
+          {fillNodes(checksCountTemplate(locale, "checks.waiting", count), {
             n: n(count),
             need: hasChecksKey(`checks.need.${need}`) ? t(`checks.need.${need}` as "checks.need.pool") : <bdi dir="ltr">{need}</bdi>,
           })}

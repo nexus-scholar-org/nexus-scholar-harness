@@ -11,7 +11,7 @@ import { markStepChecked, readDraft, saveDraft, type AcceptedFrom, type Draft, t
 import { importLossLines } from "@/lib/inception-import";
 import { inceptionT, type InceptionCopyKey } from "@/lib/inception-copy";
 import { CHECKS_COPY } from "@/lib/checks-copy";
-import { PROPOSALS_COPY, proposalsT } from "@/lib/proposals-copy";
+import { proposalsCountTemplate, proposalsT } from "@/lib/proposals-copy";
 import { AssistProvider, useAssist } from "@/components/assist-context";
 import { fillNodes, focusAnchor } from "@/components/assist-anchor";
 
@@ -266,7 +266,7 @@ export function InceptionSteps({
               ) : null}
               {badges[step]?.suggestions ? (
                 <span className="ms-2 text-xs text-ink-muted" data-step-suggestions={step}>
-                  · {fillNodes(PROPOSALS_COPY[locale]["proposals.badge"], { n: <bdi dir="ltr">{badges[step]?.suggestions}</bdi> })}
+                  · {fillNodes(proposalsCountTemplate(locale, "proposals.badge", badges[step]?.suggestions ?? 0), { n: <bdi dir="ltr">{badges[step]?.suggestions}</bdi> })}
                 </span>
               ) : null}
             </a>

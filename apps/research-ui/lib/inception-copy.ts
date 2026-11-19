@@ -1,4 +1,5 @@
 import type { Locale } from "@/i18n";
+import { pluralTemplate } from "@/lib/plural";
 
 /**
  * Copy of the inception screens (specs `docs/ux/phase0-inception/final/01–08`,
@@ -1751,6 +1752,11 @@ export function fillCopy(template: string, values: Record<string, string | numbe
     if (!(k in values)) throw new Error(`inception copy needs {${k}}`);
     return String(values[k]);
   });
+}
+
+/** A message for a count: the plural form when the table has one (H-ui-findings F4). */
+export function inceptionCountT(locale: Locale) {
+  return (key: InceptionCopyKey, count: number, values?: Record<string, string | number>) => fillCopy(pluralTemplate(locale, key, count, INCEPTION_COPY[locale][key]), values);
 }
 
 export function inceptionT(locale: Locale) {

@@ -28,7 +28,7 @@ describe("inception.criteria", () => {
     const typed = screen.getByText("closed-source models").closest("li")!;
     expect(typed).toHaveAttribute("data-status", "accepted");
     expect(within(typed).getByText("Your out-of-scope answer")).toBeInTheDocument();
-    expect(screen.getByText("1 still need you.")).toBeInTheDocument();
+    expect(screen.getByText("1 still needs you.")).toBeInTheDocument();
   });
 
   it("records Accept by the engine's id, then saves and goes to Review", async () => {

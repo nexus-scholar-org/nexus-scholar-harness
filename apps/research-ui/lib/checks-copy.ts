@@ -1,5 +1,6 @@
 import type { Locale } from "@/i18n";
 import { fillCopy } from "@/lib/inception-copy";
+import { pluralTemplate } from "@/lib/plural";
 
 /**
  * Copy of the checks panel and the Review readiness list
@@ -706,6 +707,11 @@ export function checksT(locale: Locale) {
 }
 
 /** The template of a key the engine named, or `null` when the catalogue has none (rendered as the generic line). */
-export function checksTemplate(locale: Locale, key: string): string | null {
-  return hasChecksKey(key) ? CHECKS_COPY[locale][key] : null;
+export function checksTemplate(locale: Locale, key: string, count?: number): string | null {
+  return hasChecksKey(key) ? pluralTemplate(locale, key, count, CHECKS_COPY[locale][key]) : null;
+}
+
+/** The template of a known key for a count (H-ui-findings F4: "1 check is", not "1 checks are"). */
+export function checksCountTemplate(locale: Locale, key: ChecksCopyKey, count: number): string {
+  return pluralTemplate(locale, key, count, CHECKS_COPY[locale][key]);
 }
