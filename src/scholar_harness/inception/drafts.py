@@ -18,7 +18,8 @@ import re
 import shutil
 import threading
 import uuid
-from collections.abc import Callable
+from collections.abc import Callable, Iterator
+from contextlib import contextmanager
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
@@ -35,12 +36,75 @@ _LOCKS: dict[str, threading.RLock] = {}
 _LOCKS_GUARD = threading.Lock()
 
 
-def _lock_for(path: Path) -> threading.RLock:
+def _thread_lock(path: Path) -> threading.RLock:
     # Always the absolute path, so one file has one key before and after it exists.
     # One lock per draft ever touched in this process: a small, bounded-by-use map.
     key = str(path.absolute())
     with _LOCKS_GUARD:
         return _LOCKS.setdefault(key, threading.RLock())
+
+
+#: How deep this process holds each draft's OS lock (guarded by the draft's thread lock).
+_DEPTH: dict[str, int] = {}
+
+
+@contextmanager
+def _lock_for(path: Path) -> Iterator[None]:
+    """The draft's thread lock and, once per process, its OS lock (M10c, decision item 10).
+
+    The MCP server writes the same record from a second process, so the
+    thread lock alone cannot keep a read-then-write whole. The OS lock is a
+    file in ``.drafts/.locks/`` (outside the draft's folder, which a discard
+    removes); it is taken once per process and re-entered by depth.
+    """
+    lock = _thread_lock(path)
+    with lock:
+        key = str(path.absolute())
+        if _DEPTH.get(key, 0):
+            _DEPTH[key] += 1
+            try:
+                yield
+            finally:
+                _DEPTH[key] -= 1
+            return
+        lock_path = path.parent.parent / ".locks" / f"{path.parent.name}.lock"
+        lock_path.parent.mkdir(parents=True, exist_ok=True)
+        with lock_path.open("a+b") as handle:
+            _os_lock(handle)
+            _DEPTH[key] = 1
+            try:
+                yield
+            finally:
+                _DEPTH[key] = 0
+                _os_unlock(handle)
+
+
+def _os_lock(handle: Any) -> None:
+    if os.name == "nt":
+        import msvcrt
+
+        handle.seek(0)
+        while True:  # LK_LOCK gives up after ten one-second retries; a held draft lock is short
+            try:
+                msvcrt.locking(handle.fileno(), msvcrt.LK_LOCK, 1)
+                return
+            except OSError:
+                continue
+    import fcntl
+
+    fcntl.flock(handle, fcntl.LOCK_EX)
+
+
+def _os_unlock(handle: Any) -> None:
+    if os.name == "nt":
+        import msvcrt
+
+        handle.seek(0)
+        msvcrt.locking(handle.fileno(), msvcrt.LK_UNLCK, 1)
+        return
+    import fcntl
+
+    fcntl.flock(handle, fcntl.LOCK_UN)
 
 
 def new_session_id() -> str:
