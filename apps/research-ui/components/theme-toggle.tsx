@@ -3,13 +3,15 @@
 import { ComputerDesktopIcon, MoonIcon, SunIcon } from "@heroicons/react/24/outline";
 import { useEffect, useState, type ComponentType, type SVGProps } from "react";
 
+import { THEME_STORAGE_KEY } from "@/lib/theme-boot";
+
 /**
  * The light/dark selector (production plan §3, M0).
  *
  * `system` follows `prefers-color-scheme`; `light` and `dark` set
  * `data-theme` on `<html>`, which the generated `app/theme.css` honours. The
  * choice is stored in `localStorage` and restored before paint by
- * {@link THEME_BOOT_SCRIPT}, so a forced theme never flashes the other one.
+ * `THEME_BOOT_SCRIPT` (`lib/theme-boot.ts`), so a forced theme never flashes the other one.
  *
  * Two presentations of the same three buttons: `compact` is the header's
  * icon toolbar (each button named by `aria-label`, as the brand book allows in
@@ -18,8 +20,6 @@ import { useEffect, useState, type ComponentType, type SVGProps } from "react";
 
 export type ThemeChoice = "system" | "light" | "dark";
 
-export const THEME_STORAGE_KEY = "nexus-scholar-theme";
-
 const CHOICES: readonly ThemeChoice[] = ["system", "light", "dark"];
 
 const ICONS: Readonly<Record<ThemeChoice, ComponentType<SVGProps<SVGSVGElement>>>> = {
@@ -27,11 +27,6 @@ const ICONS: Readonly<Record<ThemeChoice, ComponentType<SVGProps<SVGSVGElement>>
   light: SunIcon,
   dark: MoonIcon,
 };
-
-/** Runs in `<head>` before the body paints. */
-export const THEME_BOOT_SCRIPT = `(function(){try{var t=localStorage.getItem(${JSON.stringify(
-  THEME_STORAGE_KEY,
-)});if(t==="light"||t==="dark"){document.documentElement.setAttribute("data-theme",t);}}catch(e){}})();`;
 
 function applyTheme(choice: ThemeChoice): void {
   const root = document.documentElement;

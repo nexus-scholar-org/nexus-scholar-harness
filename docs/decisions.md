@@ -4,6 +4,14 @@ One entry per decision that still shapes the code, newest first. The full
 records were removed in the 2026-11-03 docs cut; each entry names the commit
 history to read if you need the original reasoning (`git log --follow -- <path>`).
 
+## 2026-11-19 — H-hydration-418: React #418 on every page of the export (PROPOSED; H-hydration-418)
+
+Record: `docs/roadmap/milestones/H-hydration-418.md`. Supersedes item 8 of "H-ui-findings" below (the error is now reproduced and its cause found).
+
+1. **A server module takes only components from a `"use client"` module; shared values live in a module with no directive.** The theme boot script moves to `lib/theme-boot.ts`. Imported from the client module, the string reached the page as a module reference, and `<head>` waited for it during hydration. Enforced by `tests/server-client-boundary.test.ts` over `app/`, `components/`, `lib/` and `i18n/` (PascalCase names and default exports count as components; constants in capitals do not). Not chosen: `suppressHydrationWarning` on `<body>` (hides every future mismatch and leaves the client re-render in place), or keeping the import and preloading the chunks (still a race).
+2. **The browser suite fails any page that does not hydrate.** The shared `page` fixture in `tests-browser/helpers.ts` collects React #418, #423 and #425 (and the development wording) from page errors and the console and fails the test, as it already does for a non-localhost request.
+3. **The race is tested by holding the shell's chunks back**, 800 ms, chosen from the payload's `AppShell` row (`tests-browser/hydration.spec.ts`), alongside a deterministic check that `<head>` in the payload has no reference. The race check is probabilistic in principle (before the fix it reported #418 on several of the six pages in every locale; on the console-served export, 6 of 10 loads); the payload check is not.
+
 ## 2026-11-19 — M10c: assistant and critic over MCP (items 1 to 14 accepted by the researcher 2026-11-19, item 9 as option (a); items 15 to 21 accepted 2026-11-19; M10c-assistant-mcp)
 
 Record: `docs/roadmap/milestones/M10c-assistant-mcp.md`. Builds on the decisions of 2026-11-14 (what an assistant may execute) and the M10b specs `docs/ux/shared/final/01-proposals.md` (the `agent:<model>` source reserved for M10c; workspace proposal routes deferred to M10c) and `02-checks.md` ("The slot for M10c"). Each item below is a choice those specs leave open. None changes a Contract v1 model, schema or golden fixture (`generate_contract_baseline.py --check` current before and after D5). The researcher accepted items 1 to 14 on 2026-11-19 ("Go with your recommendations", relayed word for word by the main session with the recommendation: item 9 option (a), the others as written). Items 15 to 21 are the D5 build's choices where item 9(a) is silent; they are PROPOSED.

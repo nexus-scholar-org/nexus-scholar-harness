@@ -63,14 +63,32 @@ export const test = base.extend({
       if (url.hostname === "localhost" || url.hostname === "127.0.0.1") return;
       external.push(request.url());
     });
+    // A second inherited guard (H-hydration-418): no page load in this suite may fail to hydrate.
+    const hydration: string[] = [];
+    page.on("pageerror", (error) => {
+      if (HYDRATION_ERROR.test(String(error))) hydration.push(`${page.url()}: ${String(error).slice(0, 160)}`);
+    });
+    page.on("console", (message) => {
+      if (message.type() === "error" && HYDRATION_ERROR.test(message.text())) hydration.push(`${page.url()}: ${message.text().slice(0, 160)}`);
+    });
     await use(page);
     if (external.length > 0) {
       throw new Error(
         `the running app requested a non-localhost origin: ${external.join(", ")}`,
       );
     }
+    if (hydration.length > 0) {
+      throw new Error(`a page failed to hydrate:\n${hydration.join("\n")}`);
+    }
   },
 });
+
+/**
+ * A React hydration failure, minified or not: #418 (the markup did not match), #423 (the
+ * root was rendered again on the client), #425 (text did not match), or the development
+ * wording. The console line and the page error both carry it.
+ */
+export const HYDRATION_ERROR = /Minified React error #(418|423|425)\b|Hydration failed|didn't match the client|hydration mismatch/i;
 
 export { expect } from "@playwright/test";
 

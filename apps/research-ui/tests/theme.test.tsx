@@ -6,7 +6,8 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it } from "vitest";
 
-import { THEME_BOOT_SCRIPT, THEME_STORAGE_KEY, ThemeToggle } from "@/components/theme-toggle";
+import { ThemeToggle } from "@/components/theme-toggle";
+import { THEME_BOOT_SCRIPT, THEME_STORAGE_KEY } from "@/lib/theme-boot";
 
 /**
  * The design-system pipeline (production plan §3, M0).
