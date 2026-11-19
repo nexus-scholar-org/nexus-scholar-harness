@@ -13,6 +13,7 @@ afterEach(() => vi.unstubAllGlobals());
 
 const RECON = `/api/v1/inception/drafts/${SESSION}/recon`;
 const ALL = ["openalex", "semanticscholar", "crossref", "arxiv"];
+const SHORTEN = "Every word of the query must appear, so a long query can find nothing. Shorten the query above.";
 
 function start(recon: ReconOptions = {}, draft: Record<string, unknown> = completeDraft(), probed = false) {
   const set = setUp({ draft, recon });
@@ -125,10 +126,70 @@ describe("inception.explore", () => {
       expect(within(leg).queryByText("answered")).toBeNull();
       expect(leg.querySelector("[data-executed-query] [dir='ltr']")?.textContent).toBeTruthy();
     }
-    expect(within(table).getByText("Six words joined by AND can find nothing; shorten the query above.")).toBeInTheDocument();
+    // M10b Part C (C4): the three-word keyword query found nothing in every database, so the engine says shorten.
+    expect(within(table).getByText(SHORTEN)).toBeInTheDocument();
     expect(screen.queryByRole("heading", { name: /^Pool ·/ })).toBeNull();
     fireEvent.click(within(table).getByRole("button", { name: "Edit the query" }));
     expect(screen.getByRole("textbox", { name: "Query sent to the databases" })).toHaveFocus();
+  });
+
+  // M10b Part C (C4, 02-explore "Explore on an empty search").
+  it("POOL_EMPTY shows one Databases asked list", async () => {
+    start({ outcomes: ["ok", "empty"] }, completeDraft(), true);
+    fireEvent.click(await screen.findByRole("button", { name: "Refresh pool" }));
+    await screen.findByRole("heading", { name: "The search found no papers" });
+    expect(screen.getAllByRole("heading", { name: "Databases asked" })).toHaveLength(1);
+    expect(document.querySelector("[data-databases]")).toBeNull();
+    expect(document.querySelectorAll("[data-job-error='POOL_EMPTY'] [data-leg]")).toHaveLength(4);
+  });
+
+  it("PROVIDERS_FAILED shows one Databases asked list", async () => {
+    start({ outcomes: ["ok", "failed"] }, completeDraft(), true);
+    fireEvent.click(await screen.findByRole("button", { name: "Refresh pool" }));
+    await screen.findByRole("heading", { name: "Every database failed to answer" });
+    expect(screen.getAllByRole("heading", { name: "Databases asked" })).toHaveLength(1);
+    expect(document.querySelector("[data-databases]")).toBeNull();
+    expect(screen.queryByText(SHORTEN)).toBeNull();
+  });
+
+  it("the shorten advice shows with details.shorten true", async () => {
+    const { engine } = start({ outcomes: ["empty"] });
+    fireEvent.click(await screen.findByRole("button", { name: "Search the literature" }));
+    await screen.findByRole("heading", { name: "The search found no papers" });
+    const job = [...engine.recon.jobs.values()][0].job as { error: { details: { shorten: boolean } } };
+    expect(job.error.details.shorten).toBe(true);
+    expect(document.querySelector("[data-shorten]")?.textContent).toContain(SHORTEN);
+  });
+
+  it("no shorten advice on POOL_EMPTY without the flag, whatever the query length", async () => {
+    // A semantic search of eight words: the engine does not say shorten, so the screen does not either.
+    const { engine } = start({ outcomes: ["empty"] });
+    fireEvent.click(await screen.findByRole("radio", { name: "Semantic" }));
+    const field = screen.getByRole("textbox", { name: "Query sent to the databases" });
+    fireEvent.change(field, { target: { value: "real time weed detection on embedded edge hardware" } });
+    fireEvent.click(screen.getByRole("button", { name: "Search the literature" }));
+    await screen.findByRole("heading", { name: "The search found no papers" });
+    const job = [...engine.recon.jobs.values()][0].job as { error: { details: { shorten: boolean } } };
+    expect(job.error.details.shorten).toBe(false);
+    expect(screen.getByRole("textbox", { name: "Query sent to the databases" })).toBeInTheDocument();
+    expect(screen.queryByText(SHORTEN)).toBeNull();
+    expect(document.querySelector("[data-shorten]")).toBeNull();
+  });
+
+  it("no shorten advice when the query field is not shown", async () => {
+    const set = setUp({ draft: completeDraft(), recon: { outcomes: ["ok", "empty"] } });
+    set.engine.handle("POST", `${RECON}/probe`, { refresh: false, semantic: false });
+    const record = set.engine.drafts.get(SESSION)!;
+    set.engine.handle("PUT", `/api/v1/inception/drafts/${SESSION}`, { draft: { ...(record.draft as object), end_year: 2025 }, base_updated_at: record.updated_at });
+    // The pool read never answers, so neither the pool card nor the field alone is on screen.
+    holdDistill();
+    render(<InceptionExplore locale="en" />);
+    fireEvent.click(await screen.findByRole("button", { name: "Refresh pool for the new scope" }));
+    await screen.findByRole("heading", { name: "The search found no papers" });
+    const job = [...set.engine.recon.jobs.values()].at(-1)!.job as { error: { details: { shorten: boolean } } };
+    expect(job.error.details.shorten).toBe(true);
+    expect(screen.queryByRole("textbox", { name: "Query sent to the databases" })).toBeNull();
+    expect(screen.queryByText(SHORTEN)).toBeNull();
   });
 
   it("names the failed database of a partial pool with its error, its code under Details and its notes", async () => {

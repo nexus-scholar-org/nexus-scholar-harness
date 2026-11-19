@@ -65,6 +65,21 @@ async function engine(page: Page, start: { sources?: Source[]; accepted?: boolea
     }
     return route.fulfill({ status: 404, json: { detail: { code: "NOT_FOUND", message: path } } });
   });
+  // M10b (spec 11, R6): the corpus is accepted on the Hand-off; the fake answers its read with the staged exports.
+  await page.route("**/api/console/api/v1/discovery/**", async (route) => {
+    const path = new URL(route.request().url()).pathname.replace("/api/console/api/v1/discovery", "");
+    if (path === "/handoff" && route.request().method() === "GET") {
+      return route.fulfill({
+        json: {
+          shape: "discovery.handoff-v1", corpus: corpus(), run: null, preparation: null, provider_mix: [],
+          abstracts: { with_abstract: 0, title_only: 0, share_with_abstract: 0 }, outside_year_window: 0, near_twins_undecided: null,
+          lower_bound_databases: [], protocol_fingerprint: "sha256:" + "cd".repeat(32), run_protocol_fingerprint: null, protocol_changed: null, search_changed: null,
+        },
+      });
+    }
+    return route.fulfill({ status: 404, json: { detail: { code: "NOT_FOUND", message: path } } });
+  });
+  await page.route("**/api/console/api/v1/review/**", (route) => route.fulfill({ status: 404, json: { detail: { code: "NOT_FOUND", message: "review" } } }));
   return posts;
 }
 
@@ -86,7 +101,7 @@ async function addFile(page: Page, name: string, label: string, details?: { date
 
 test.use({ viewport: DESKTOP_VIEWPORT });
 
-test("two parts of one database and a second database are counted, then frozen", async ({ page }) => {
+test("two parts of one database and a second database are counted, then accepted on the Hand-off (M10b)", async ({ page }) => {
   const posts = await engine(page);
   await page.goto("/en/screening/import");
   await expect(page.getByRole("link", { name: "Import", exact: true })).toHaveAttribute("aria-current", "page");
@@ -106,9 +121,16 @@ test("two parts of one database and a second database are counted, then frozen",
   expect(posts[0].body).toMatchObject({ label: "Scopus", file_name: "scopus-1.ris", searched_on: "2026-11-06", query: "uav AND weed" });
   expect(posts[2].body).toMatchObject({ label: "Web of Science", searched_on: null, query: null });
 
-  await page.getByRole("button", { name: "Accept and freeze the corpus" }).click();
-  await expect(page.getByRole("button", { name: "Go back" })).toBeFocused();
-  await page.getByRole("button", { name: "Freeze the corpus" }).click();
+  // M10b: no accept here; the link leads to the Hand-off, which accepts and freezes.
+  await expect(page.getByRole("button", { name: /Accept|Freeze/ })).toHaveCount(0);
+  await page.getByRole("link", { name: "Review and accept on the Hand-off" }).click();
+  await expect(page).toHaveURL(/\/en\/discovery\/handoff\/?$/);
+  expect(posts.some((p) => p.path === "/corpus/accept")).toBe(false);
+  await page.getByRole("button", { name: "Accept this corpus" }).click();
+  await expect(page.getByRole("heading", { level: 1, name: "This corpus is accepted." })).toBeVisible();
+  expect(posts.filter((p) => p.path === "/corpus/accept")).toHaveLength(1);
+
+  await page.goto("/en/screening/import");
   await expect(page.getByRole("heading", { level: 1, name: "What was imported" })).toBeVisible();
   await expect(page.locator("[data-import-form]")).toHaveCount(0);
   await expect(page.getByRole("link", { name: "Continue to Prepare" })).toHaveAttribute("href", "/en/screening/prepare");
@@ -181,15 +203,6 @@ test.describe("committed screenshots", () => {
       await page.screenshot({ path: shot(`1440-screening-import-staged${locale === "en" ? "" : "-ar"}.png`), fullPage: true });
     });
   }
-
-  test("1440-screening-import-confirm.png", async ({ page }) => {
-    await page.setViewportSize({ width: 1440, height: 1100 });
-    await engine(page, { sources: STAGED });
-    await page.goto("/en/screening/import");
-    await page.getByRole("button", { name: "Accept and freeze the corpus" }).click();
-    await expect(page.getByRole("alertdialog")).toBeVisible();
-    await page.screenshot({ path: shot("1440-screening-import-confirm.png"), fullPage: true });
-  });
 
   test("1440-screening-import-accepted.png", async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 1100 });

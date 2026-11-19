@@ -54,7 +54,7 @@ function engine(routes: Record<string, unknown | ((body: unknown) => Response)>)
   vi.stubGlobal(
     "fetch",
     vi.fn(async (url: string, init?: RequestInit) => {
-      const path = new URL(url, "http://localhost").pathname.replace("/api/console/api/v1/screening", "");
+      const path = new URL(url, "http://localhost").pathname.replace(/^(\/api\/console)?\/api\/v1\/screening/, "");
       const method = init?.method ?? "GET";
       const body = init?.body ? JSON.parse(String(init.body)) : null;
       log.push({ method, path, body });
@@ -83,7 +83,7 @@ describe("import.copy", () => {
 });
 
 describe("import.empty", () => {
-  it("opens with the form, search details closed, and Accept disabled", async () => {
+  it("opens with the form, search details closed, and the line that the corpus is accepted on the Hand-off (no link, no accept)", async () => {
     engine({ "/corpus": EMPTY });
     render(<ScreeningImport locale="en" />);
     await screen.findByRole("heading", { level: 1, name: "Import your search results" });
@@ -91,7 +91,9 @@ describe("import.empty", () => {
     const details = document.querySelector("[data-search-details]") as HTMLDetailsElement;
     expect(details.open).toBe(false);
     expect(within(details).getByText("Search details (optional)")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Accept and freeze the corpus" })).toBeDisabled();
+    expect(await screen.findByText("Add at least one database. You accept the corpus on the Hand-off.")).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Review and accept on the Hand-off" })).toBeNull();
+    expect(screen.queryByRole("button", { name: /Accept/ })).toBeNull();
     expect(screen.getByRole("button", { name: "Add this file" })).toBeDisabled();
   });
 });
@@ -193,32 +195,54 @@ describe("import.add", () => {
 });
 
 describe("import.accept", () => {
-  it("asks first with Go back focused, Escape cancels, then freezing shows the read-only state", async () => {
+  afterEach(() => window.history.replaceState({}, "", "/"));
+
+  it("M10b: a staged export links to the Hand-off with ?console=; no accept button, no dialog, no accept sent from here", async () => {
+    window.history.replaceState({}, "", "/en/screening/import?console=http://127.0.0.1:8765");
     const log = engine({ "/corpus": STAGED, "POST /corpus/accept": ACCEPTED });
     render(<ScreeningImport locale="en" />);
-    const accept = await screen.findByRole("button", { name: "Accept and freeze the corpus" });
-    fireEvent.click(accept);
-    const dialog = screen.getByRole("alertdialog", { name: "Freeze this corpus?" });
-    expect(dialog).toHaveTextContent("You are about to freeze 30 studies from 2 databases.");
-    await waitFor(() => expect(within(dialog).getByRole("button", { name: "Go back" })).toHaveFocus());
-    fireEvent.keyDown(dialog, { key: "Escape" });
+    const link = await screen.findByRole("link", { name: "Review and accept on the Hand-off" });
+    expect(link).toHaveAttribute("href", "/en/discovery/handoff/?console=http%3A%2F%2F127.0.0.1%3A8765");
+    expect(screen.getByText("The Hand-off shows these counts again, explains the freeze and asks you to confirm.")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Accept|Freeze/ })).toBeNull();
     expect(screen.queryByRole("alertdialog")).toBeNull();
-    expect(log.some((c) => c.path === "/corpus/accept")).toBe(false);
+    expect(screen.queryByText("What happens when you accept")).toBeNull();
+    expect(screen.queryByText("Add at least one database. You accept the corpus on the Hand-off.")).toBeNull();
+    fireEvent.click(link);
+    await new Promise((r) => setTimeout(r, 0));
+    expect(log.some((c) => c.method === "POST" && c.path === "/corpus/accept")).toBe(false);
+    expect(log.some((c) => c.path.endsWith("/review/next-step"))).toBe(false);
+  });
 
-    fireEvent.click(screen.getByRole("button", { name: "Accept and freeze the corpus" }));
-    const open = screen.getByRole("alertdialog");
-    const goBack = within(open).getByRole("button", { name: "Go back" });
-    const freeze = within(open).getByRole("button", { name: "Freeze the corpus" });
-    await waitFor(() => expect(goBack).toHaveFocus());
-    fireEvent.keyDown(open, { key: "Tab" });
-    expect(freeze).toHaveFocus();
-    fireEvent.keyDown(open, { key: "Tab", shiftKey: true });
-    expect(goBack).toHaveFocus();
-    fireEvent.click(freeze);
-    await screen.findByRole("heading", { level: 1, name: "What was imported" });
-    await waitFor(() => expect(screen.getByRole("heading", { level: 2, name: "Corpus frozen" })).toHaveFocus());
-    expect(screen.getByRole("link", { name: "Continue to Prepare" })).toHaveAttribute("href", "/en/screening/prepare");
-    expect(screen.getByText("ART-corpus-0123456789abcdef")).toBeInTheDocument();
+  it("M10b: with nothing staged while a harvest is unfinished, the line is the next-step bar's sentence from the engine", async () => {
+    engine({
+      "/corpus": EMPTY,
+      "/api/console/api/v1/review/next-step": {
+        shape: "review.next-step-v1", scope: "workspace", phase: "discovery", round: 1, state: "CORPUS_PENDING",
+        params: { run: "run_003", records: 1074, works: 1050, databases: 5, stage: "verifying" },
+        waiting: { kind: "interrupted", stage: "verifying", job: null, reason: { code: "INTERRUPTED", message: null }, since: null, details: { stage_known: true } },
+        action: { key: "finishPreparing", to: { screen: "discovery.harvest", query: { run: "run_003" } } }, also: [], unknown: [],
+        protocol_fingerprint: null, computed_at: "2026-11-13T09:52:41+00:00",
+      },
+    });
+    render(<ScreeningImport locale="en" />);
+    expect(await screen.findByText("The search finished, but the corpus was not prepared. The console may have been closed while it ran.")).toBeInTheDocument();
+    expect(screen.queryByText("Add at least one database. You accept the corpus on the Hand-off.")).toBeNull();
+    expect(screen.queryByRole("link", { name: "Review and accept on the Hand-off" })).toBeNull();
+  });
+
+  it("adding or removing a file tells the next-step bar to read again", async () => {
+    engine({ "/corpus": STAGED, "POST /corpus/sources/scopus-bbbb2222/remove": STAGED });
+    let heard = 0;
+    const listener = () => (heard += 1);
+    window.addEventListener("nexus:review-changed", listener);
+    try {
+      render(<ScreeningImport locale="en" />);
+      fireEvent.click(await screen.findByRole("button", { name: "Remove scopus-2.ris" }));
+      await waitFor(() => expect(heard).toBe(1));
+    } finally {
+      window.removeEventListener("nexus:review-changed", listener);
+    }
   });
 
   it("has no add, remove or accept control once accepted", async () => {

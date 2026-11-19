@@ -131,7 +131,7 @@ Review follow-up (M3c): `POST /screening/corpus/accept` does not check a running
 
 **Acceptance tests.** Vitest `apps/research-ui/tests/discovery-preparation.test.tsx` (failed, interrupted, running then stopped, ready after finishing, staged exports beside an unfinished harvest, fr and ar). Playwright `tests-browser/discovery.spec.ts`, tests named "M3i". Engine: `tests/console/test_harvest_preparation_api.py`.
 ## The next-step bar (M10b)
-Status of this section: FINAL, not built (M10b Part C, item C1; `docs/ux/shared/final/04-next-step.md`).
+Status of this section: FINAL, built in M10b Part C (item C1; `docs/ux/shared/final/04-next-step.md`).
 
 The shell draws the next-step bar above this screen. The screen's own states, copy and accept are unchanged; the bar adds one engine-written line:
 - **Not ready** (M3i): the bar says the same engine state as the page (`CORPUS_PENDING`, waiting variants B to D, G(b), I and J of `04-next-step` table 2) and shows its own button to Harvest ("Follow the search" while running, "Finish preparing this corpus" when `can_finish`, else "Search again"). The page keeps its brand link to Harvest; both go to the same screen. Both read `preparation` through the same engine function, so they cannot disagree.

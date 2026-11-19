@@ -96,7 +96,9 @@ POOL_COMPLETE, POOL_PARTIAL, POOL_EMPTY = "complete", "partial", "empty"
 
 #: Pool ``sample`` marker a cache hit requires: change it whenever the sampling rule or a
 #: database's query translation changes, so older cached pools are fetched again.
-POOL_SAMPLE = "relevance-1"
+#: ``relevance-2`` (M10b Part C): the pool also keeps ``reserve``, the deduplicated records
+#: beyond the first 25 in the order the sample would take them next (sample curation).
+POOL_SAMPLE = "relevance-2"
 
 
 def _atomic_write_json(path: Path, payload: dict[str, Any]) -> None:
@@ -400,7 +402,8 @@ class ReconEngine:
         M10a): it is fetched again and overwritten.
 
         Pool size is ``min(25, len(deduped_docs))``; a sparse pool is not
-        padded. The 25 are taken by rank across the databases in the order
+        padded. The records beyond the 25 are kept as ``reserve`` in the same
+        order (M10b Part C), so a sample the researcher curates can be refilled. The 25 are taken by rank across the databases in the order
         given (each database's first record, then each second, ...), so each
         database's own relevance order decides (M10a); see :func:`relevance_sample`.
         A duplicate group sits where its first record falls and shows the
@@ -453,6 +456,9 @@ class ReconEngine:
             "semantic": semantic,
             "legs": legs,
             "docs": [_doc_to_pool_entry(d) for d in docs[:POOL_MAX]],
+            # M10b Part C: what the probe fetched beyond the sample, kept to refill it when
+            # the researcher leaves papers out (02-explore "Refill"); no extra request.
+            "reserve": [_doc_to_pool_entry(d) for d in docs[POOL_MAX:]],
             "fulltexts": {},
         }
         if status != POOL_COMPLETE:

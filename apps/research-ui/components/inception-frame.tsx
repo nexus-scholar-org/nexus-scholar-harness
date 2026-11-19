@@ -18,6 +18,7 @@ import { CHECKS_COPY } from "@/lib/checks-copy";
 import { proposalsCountTemplate, proposalsT } from "@/lib/proposals-copy";
 import { AssistProvider, useAssist } from "@/components/assist-context";
 import { fillNodes, focusAnchor } from "@/components/assist-anchor";
+import { notifyReviewChanged } from "@/components/review-bus";
 
 /**
  * The frame every inception screen shares (specs 01–08, M4b): the draft id and
@@ -98,6 +99,8 @@ const ACTION_STEP: Record<string, InceptionStep> = {
   POOL_EMPTY: "scope",
   RECON_NO_POOL: "explore",
   RECON_SESSION_NOT_FOUND: "explore",
+  // M10b Part C: the sample curation's full-draft refusal sends the researcher to a narrower question.
+  SAMPLE_EXCLUSIONS_FULL: "scope",
 };
 
 const ENGINE_REASON = new Set(["DRAFT_INVALID", "DRAFT_TOO_LARGE", "BODY_INVALID", "INTENT_INVALID", "WORKSPACE_ROOT_UNAVAILABLE", "WORKSPACE_EXISTS"]);
@@ -296,7 +299,11 @@ export function useDraft() {
   // M10b Part B: the checks and proposals re-read when this moves; `notRecorded` is the last save's answer.
   const [assistVersion, setAssistVersion] = useState(0);
   const [notRecorded, setNotRecorded] = useState<AcceptedFrom[]>([]);
-  const bumpAssist = useCallback(() => setAssistVersion((n) => n + 1), []);
+  // A write the page made (a save, a proposal decision, a dismissal, a sample change): the panel and the next-step bar re-read.
+  const bumpAssist = useCallback(() => {
+    setAssistVersion((n) => n + 1);
+    notifyReviewChanged();
+  }, []);
 
   const load = useCallback(async () => {
     setLoadError(null);
@@ -323,6 +330,11 @@ export function useDraft() {
     setRecord(next);
     setDraft(next.draft ?? {});
     setAssistVersion((n) => n + 1);
+  }, []);
+
+  /** An answer write that left the draft's answers as they were (M10b Part C, a sample change): only its time moves. */
+  const adoptTime = useCallback((updatedAt: string) => {
+    setRecord((current) => (current ? { ...current, updated_at: updatedAt } : current));
   }, []);
 
   /**
@@ -364,7 +376,7 @@ export function useDraft() {
   );
 
   return {
-    origin, draftId, ready, record, draft, setDraft, update, save, saving, loadError, saveError, setSaveError, reload: load, adopt,
+    origin, draftId, ready, record, draft, setDraft, update, save, saving, loadError, saveError, setSaveError, reload: load, adopt, adoptTime,
     assistVersion, bumpAssist, adoptDecision, notRecorded,
   };
 }

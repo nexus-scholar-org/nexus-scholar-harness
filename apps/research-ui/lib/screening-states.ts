@@ -1307,6 +1307,27 @@ export const STATES: Record<string, StateEntry> = {
       ar: T("استُخدم البحث الأضيق الوحيد لهذه المسودة", "لا يمكن إجراؤه مرة أخرى.", "البحث الأضيق", "العودة إلى الاتجاهات"),
     },
   },
+  // M10b Part C (02-explore "Sample curation"): leaving papers out of the Explore sample.
+  // The screen's own "Try again" re-reads the papers and the sample (action `retry`).
+  PAPER_UNKNOWN: {
+    role: "unclear",
+    action: "retry",
+    copy: {
+      en: T("That paper is not in this sample", "The sample may have changed since you opened the page. Nothing was changed.", "Leaving a paper out", "Reload the papers"),
+      fr: T("Cet article n'est pas dans cet échantillon", "L'échantillon a peut-être changé depuis l'ouverture de la page. Rien n'a été modifié.", "L'écartement d'un article", "Recharger les articles"),
+      ar: T("هذه الورقة ليست في هذه العيّنة", "ربما تغيّرت العيّنة منذ فتحت الصفحة. لم يتغيّر شيء.", "استبعاد ورقة", "أعد تحميل الأوراق"),
+    },
+  },
+  // The limit (`details.limit`) is printed by the screen under the card, from the engine's details.
+  SAMPLE_EXCLUSIONS_FULL: {
+    role: "unclear",
+    action: "inception-step",
+    copy: {
+      en: T("You have left out as many papers as this draft can record", "Put some back, or search again with a narrower question.", "Leaving papers out", "Change scope"),
+      fr: T("Vous avez écarté autant d'articles que ce brouillon peut en enregistrer", "Remettez-en, ou relancez une recherche avec une question plus étroite.", "L'écartement d'articles", "Modifier la portée"),
+      ar: T("استبعدت أكبر عدد من الأوراق يمكن لهذه المسودة تسجيله", "أعد بعضها، أو ابحث مجددًا بسؤال أضيق.", "استبعاد الأوراق", "غيّر النطاق"),
+    },
+  },
   TERM_EMPTY: {
     role: "unclear",
     action: "none",

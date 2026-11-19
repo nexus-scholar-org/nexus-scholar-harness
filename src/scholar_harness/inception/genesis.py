@@ -359,6 +359,9 @@ def log_genesis(
             "anchored_term_count": len(recon_context.get("anchored_terms") or {}),
             "provenance_file": str(rc_file.relative_to(ws_dir)).replace("\\", "/"),
         }
+        if isinstance(recon_context.get("sample_exclusions"), dict):
+            # M10b Part C: how many papers the researcher left out of the sample.
+            summary["sample_exclusions_n"] = int(recon_context["sample_exclusions"].get("n") or 0)
         description = f"{description} recon_context=" + json.dumps(
             summary, ensure_ascii=False, separators=(",", ":")
         )

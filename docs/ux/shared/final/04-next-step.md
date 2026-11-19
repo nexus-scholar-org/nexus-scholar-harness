@@ -1,4 +1,4 @@
-# 04 Next step    Status: FINAL, not built (questions closed by the researcher 2026-11-15) | Shared (every screen of a review) | Route none (a bar in the shell, `AppShell`) | Milestone M10b (engine state, endpoint and bar), Part C of the build; the per-run stage marker, resume and Stop came first in their own fix, M3i-harvest-robustness (merged, PR #235)
+# 04 Next step    Status: FINAL, built in M10b Part C (questions closed by the researcher 2026-11-15; see "As built (M10b Part C)") | Shared (every screen of a review) | Route none (a bar in the shell, `AppShell`) | Milestone M10b (engine state, endpoint and bar), Part C of the build; the per-run stage marker, resume and Stop came first in their own fix, M3i-harvest-robustness (merged, PR #235)
 
 **Order of work (decided 2026-11-15; reconciled 2026-11-18).** The harvest's robustness was fixed on its own before the M10b build: M3i-harvest-robustness merged on 2026-11-18 (PR #235). It writes the per-run stage marker `literature/search_runs/run_NNN/pipeline.json` (with `verified_run`), offers "Finish preparing this corpus" on Harvest (`POST /discovery/runs/{run}/prepare`, job kind `prepare`), honours Stop between the stages, and serves a `preparation` view (`pipeline/harvest_marker.py::preparation_view`: `state` one of `none`, `superseded`, `ready`, `running`, `failed`, `stopped`, `interrupted`; `stage`; `can_finish`; `cannot_finish`) on `GET /discovery/runs`, `/runs/{run}` and `/handoff`. The bar reads that view through the engine's own function; it never reads `pipeline.json` itself. Where this spec still says "✗ M3i-harvest-robustness", read "✓ M3i, PR #235".
 
@@ -305,3 +305,15 @@ Closed by the researcher on 2026-11-15 (record: `docs/roadmap/milestones/M10b-pr
 3. A placeholder protocol is marked by `protocol_origin` in `project.json` (M10b).
 4. The bar also serves the inception screens, through the draft route with the same response shape; `missing[]` is computed by the existing `_require` rules without a genesis attempt (M10b).
 5. Staged exports are accepted on the Hand-off, as harvests are; the Import step links to it.
+
+## As built (M10b Part C)
+Engine (`console/next_step.py`; decisions `docs/decisions.md` M10b items 40 to 44, proposed): rows 9 and 10 also need an empty corpus; a live harvest or preparation job answers before rows 12 and 13; `PUBLISHED_STALE` names no number ("The screening changed since you published."); a later round with no batches is `ROUND_ACCEPTED`, row 16 is round 1's; variant K is not computed and a running chase is variant F on `PUBLISHED`; `DRAFT_INCOMPLETE` sends `params.fields` as field ids and `params.step` as a step id, and the browser labels them.
+
+The bar (`components/next-step-bar.tsx`, `lib/next-step.ts`, `lib/next-step-copy.ts`), where it departs from the text above:
+- Offline with no earlier answer it renders nothing (the screen's own card says the engine is unreachable); with an earlier answer it keeps that sentence "as of" its time, with no button. `CONSOLE_UNREACHABLE`, `CONSOLE_TIMEOUT`, `ENGINE_UNREACHABLE`, `MALFORMED_JSON` and any 5xx count as unreachable; any other refusal hides the bar.
+- Extra copy keys: fallback sentences for `SEARCH_UNFINISHED` and `CORPUS_PENDING` without a waiting variant, `next.protocolChanged`, the Details labels `next.details.*`, and labels for three draft fields the inception copy has none for.
+- Numbers use the locale's grouping with Latin digits ("1,050"); the round suffix sits before the sentence's first full stop.
+- No bar on the drafts list (`/inception`) or on an inception step without `?draft=`.
+- Details is a native disclosure and an `also` link is a second link, so the bar can have more than one tab stop.
+- The bar's root carries `data-next-state`, not `data-state` (the state cards use that).
+- The bar re-reads on `nexus:review-changed` (`components/review-bus.ts`), dispatched by the discovery job stream (snapshot, stage, done, failed), by the discovery, screening and workspace writes, and by the inception writes (save, proposal and check decisions, a sample change, genesis).

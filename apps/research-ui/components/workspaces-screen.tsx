@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { formatNumber, type Locale } from "@/i18n";
 import { Button, DecisionBadge } from "@/components/ui/base";
 import { StateCard } from "@/components/screening-state-card";
+import { notifyReviewChanged } from "@/components/review-bus";
 import { isScreeningApiError } from "@/lib/screening-api";
 import { Stamp } from "@/components/stamp";
 import {
@@ -317,6 +318,7 @@ export function WorkspacesScreen({ locale }: Readonly<{ locale: Locale }>) {
     setRefusal(null);
     try {
       const answer = await openWorkspace(origin, item.slug);
+      notifyReviewChanged();
       const landing = `/${locale}/screening/${origin ? `?console=${encodeURIComponent(origin)}` : ""}`;
       if (!answer.restarting) {
         window.location.assign(landing);
