@@ -1479,7 +1479,8 @@ def _decide_check(request: Request, check_id: str, action: str, **kw: Any) -> di
     except C.CheckRefused as exc:
         raise _http(Refused(exc.status, exc.code, exc.message, details=exc.details)) from exc
     DC.append_dismissal(ws, entry, run=scope.get("run"), agent=AGENT)
-    return _discovery_checks(request, C.CATALOGUE.get(check_id), None)
+    step = C.CATALOGUE.get(check_id) or next((c["step"] for c in items if c["check_id"] == check_id), None)
+    return _discovery_checks(request, step, None)
 
 
 @router.post("/checks/{check_id}/dismiss")

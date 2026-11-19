@@ -170,6 +170,8 @@ CATALOGUE: dict[str, str] = {
 }
 #: ``PLAN_ESTIMATE_ABOVE_TARGET`` lives on the estimate card only (Part D) and is not served here.
 ORDER = {cid: i for i, cid in enumerate(CATALOGUE)}
+#: An assistant's finding (M10c): a row of the same object with ``source: "agent"``; its step is its own.
+AGENT_CHECK_ID = "ASSISTANT_FINDING"
 #: Answered by a confirmation in the gate (06), so never dismissed here.
 NOT_DISMISSIBLE = frozenset({"REVIEW_TARGET_HAS_WORKSPACE", "REVIEW_TARGET_HAS_SCREENING"})
 
@@ -267,7 +269,7 @@ def dismissal_entry(
 ) -> dict[str, Any]:
     """The entry a dismiss or restore appends, or the refusal (02-checks "New refusal codes")."""
     instance = next((c for c in items if c["check_id"] == check_id and c["subject"] == subject), None)
-    if check_id not in CATALOGUE or instance is None:
+    if (check_id not in CATALOGUE and check_id != AGENT_CHECK_ID) or instance is None:
         raise CheckRefused(
             "CHECK_NOT_FOUND", f"no check {check_id} for {subject!r} now", 404,
             {"check_id": check_id, "subject": subject},
@@ -317,7 +319,7 @@ def respond(
         "shape": "checks-v1",
         "scope": scope,
         "computed_at": _now(),
-        "sources": ["check"],
+        "sources": ["check", *(["agent"] if any(c.get("source") == "agent" for c in items) else [])],
     }
     by_step = {s: {"blocker": 0, "warning": 0, "note": 0} for s in steps_order}
     for item in items:

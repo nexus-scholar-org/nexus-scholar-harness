@@ -226,11 +226,27 @@ def save_draft(session_id: str, body: SaveBody, request: Request) -> dict[str, A
 
 def _compute_checks(request: Request, session_id: str, record: dict[str, Any]) -> tuple[list, list, list, list]:
     """Every inception check of the saved draft, from the draft record and its recon session."""
+
+    def make(**kw: Any) -> dict[str, Any]:
+        return proposals.make(draft_id=session_id, draft=record.get("draft") or {}, **kw)
+
+    return draft_checks(_root(request), _recon(request), session_id, record, make_proposal=make)
+
+
+def draft_checks(
+    root: Path, sessions: ReconSessions, session_id: str, record: dict[str, Any], *, make_proposal: Any = None,
+) -> tuple[list, list, list, list]:
+    """The checks of a saved draft record without a request (the routes and the MCP assistant, M10c).
+
+    The fixed checks, then the assistant's findings (``source: "agent"``). With
+    ``make_proposal=None`` a recommending check links to its field and nothing
+    is made, so a read records nothing (M10c decision item 12).
+    """
+    from scholar_harness import assistant
     from scholar_harness.console.api.recon import _scope_changes
     from scholar_harness.inception.grounding import check_binding
 
     draft = steps.parse_draft(record.get("draft"))
-    sessions = _recon(request)
     pool = None
     changes: list[str] = []
     try:
@@ -247,12 +263,14 @@ def _compute_checks(request: Request, session_id: str, record: dict[str, Any]) -
         except ReconRefused:
             binding = None
 
-    def make(**kw: Any) -> dict[str, Any]:
-        return proposals.make(draft_id=session_id, draft=record.get("draft") or {}, **kw)
-
-    return checks.inception_checks(
-        record, pool=pool, scope_changes=changes, binding=binding, workspaces_root=_root(request), make_proposal=make,
+    items, waiting, partial, made = checks.inception_checks(
+        record, pool=pool, scope_changes=changes, binding=binding, workspaces_root=root, make_proposal=make_proposal,
     )
+    try:
+        items.extend(assistant.draft_rows(record))
+    except Exception as exc:  # noqa: BLE001 - a broken finding must not hide the fixed checks
+        partial.append({"kind": "check_failed", "check_id": checks.AGENT_CHECK_ID, "error": type(exc).__name__})
+    return items, waiting, partial, made
 
 
 def _checks_answer(record: dict[str, Any], items: list, waiting: list, partial: list, step: str | None) -> dict[str, Any]:
@@ -331,7 +349,10 @@ def _dismissal(request: Request, session_id: str, check_id: str, action: str, **
         raise _error(exc) from exc
     for item in items:
         item.update(status="open", dismissal=None, previously_dismissed=None)
-    return _checks_answer(record, items, waiting, partial, checks.CATALOGUE.get(check_id))
+    step = checks.CATALOGUE.get(check_id) or next(
+        (c["step"] for c in items if c["check_id"] == check_id and c["subject"] == kw.get("subject", "")), None,
+    )
+    return _checks_answer(record, items, waiting, partial, step)
 
 
 @router.post("/drafts/{session_id}/checks/{check_id}/dismiss")

@@ -165,9 +165,13 @@ def proposal_id(source: str, target: dict[str, Any], op: str, value: Any, base_h
     return "prop_" + hashlib.sha256(raw.encode("utf-8")).hexdigest()[:12]
 
 
-def check_source(source: str) -> None:
+#: Who may create an open proposal. ``agent`` only through the assistant (M10c, ``scholar_harness/assistant.py``).
+CREATING_SOURCES = ("check", "import")
+
+
+def check_source(source: str, kinds: tuple[str, ...] = CREATING_SOURCES) -> None:
     kind = source.split(":", 1)[0]
-    if kind not in ("check", "import") or ":" not in source or not source.split(":", 1)[1]:
+    if kind not in kinds or ":" not in source or not source.split(":", 1)[1]:
         raise ProposalRefused(
             "PROPOSAL_SOURCE_REFUSED", f"the source {source!r} cannot create a proposal in this version", 422,
             {"source": source},
@@ -176,10 +180,10 @@ def check_source(source: str) -> None:
 
 def make(
     *, draft_id: str, draft: dict[str, Any], source: str, field: str, op: str, value: Any, why: str,
-    evidence: list[dict[str, Any]] | None = None,
+    evidence: list[dict[str, Any]] | None = None, sources: tuple[str, ...] = CREATING_SOURCES,
 ) -> dict[str, Any]:
-    """An open proposal against ``draft`` as it is now (the engine is the only creator)."""
-    check_source(source)
+    """An open proposal against ``draft`` as it is now (the engine and, since M10c, an assistant create them)."""
+    check_source(source, sources)
     check_target(field, op)
     current = target_value(draft, field)
     base = {"hash": value_hash(current), "shown": shown(current)}
