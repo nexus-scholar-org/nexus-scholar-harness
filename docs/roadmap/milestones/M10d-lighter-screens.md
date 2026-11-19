@@ -1,5 +1,5 @@
 # M10d-lighter-screens: tips behind icons, one main action, the recommended choice marked
-Branch: `dev/m10d/lighter-screens` (from `origin/main` at `17d7310d`) · Lane: **STANDARD** (UI; plan §6) · Status: **IN PROGRESS** · Started: 2026-11-19 (the researcher: "start M10d")
+Branch: `dev/m10d/lighter-screens` (from `origin/main` at `17d7310d`) · Lane: **STANDARD** (UI; plan §6) · Status: **READY FOR PR** (PR gate passed at `d7207665`, merged with `origin/main` c54e99f2; `milestone-reviewer` rounds 1 and 2 CHANGES, repaired; decision items 3, 4, 9 and 10 need the researcher's word before the PR) · Started: 2026-11-19 (the researcher: "start M10d")
 
 Fourth milestone of "Assisted inception" (approved 2026-11-14). Plan §6 row **M10d-lighter-screens**: "Lighter screens: tips behind icons, one main action per step, the recommended choice marked. Specs written once, at the start of M10b."
 
@@ -79,6 +79,12 @@ None (no assessment finding is in scope).
 ## Evidence
 | Stage | Commit | Command | Result | Duration |
 | :-- | :-- | :-- | :-- | :-- |
+| inner (each slice) | `8c308370` to `844a4a87` | typecheck; vitest of the changed screens and the new tests | clean; green after each slice (two load timeouts in the full run, both pass alone; one sample test given 15 s, decision item 12) | |
+| browser, targeted | `b747b452` | Playwright `guidance`, `discovery`, `inception`, `next-step`, `workspaces` (light) | 202 passed | 7.5 min |
+| review round 1 | `d0e134e9` | `milestone-reviewer` | CHANGES (12 findings; repaired in `70f74fce`) | |
+| review round 2 | `70f74fce` | `milestone-reviewer` | CHANGES (merge base moved; Direction group name; a regression test; docs; repaired in `2affee37`, merged in `ba38209f`) | |
+| pr (run 1) | `ba38209f` (merge of `origin/main` c54e99f2, the hydration fix #252) | `select_test_gate.py --changed origin/main --stage pr`: diff check, typecheck, `npm test`, build, `test:browser`; `generate_contract_baseline.py --check` | clean; current; clean; 934 passed (66 files); built; 598 passed, **2 failed** (hygiene: a comment word, "blur", compiled as a utility; fixed in `d7207665`) | browser 13.5 min |
+| **pr** | **`d7207665`** | the same commands | diff check clean; **contract baseline current**; typecheck clean; **934 passed (66 files)**; built; **600 passed, 12 skipped (612)**, light and dark | vitest 116 s, browser 12.7 min |
 
 ## Deferred
 - The six existing suggestion mechanisms (pool synonyms, anchor seeds, wizard criteria, the RQ draft, suggested concepts, the derived query) keep their own look (decision item 9: `03-guidance` does not specify adopting the proposal card's look, and it changes controls on four screens; it needs a spec of its own).
