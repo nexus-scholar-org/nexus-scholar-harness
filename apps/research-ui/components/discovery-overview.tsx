@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 
 import type { Locale } from "@/i18n";
-import { DecisionBadge } from "@/components/ui/base";
+import { DecisionBadge, Hint } from "@/components/ui/base";
 import { DiscoveryFrame, DiscoveryRefusal, LINK, Loading, discoveryHref, refusalOf, useDiscoveryParams, type DiscoveryStep, type Refusal, type StepMarks } from "@/components/discovery-frame";
 import { getDedup, getPlan, getRecall, getReport, getRuns, preparationUnfinished, type Dedup, type Plan, type RecallCheck, type Report, type Runs } from "@/lib/discovery-api";
 import { getCorpus, type Corpus } from "@/lib/screening-v1";
@@ -106,9 +106,10 @@ export function DiscoveryOverview({ locale }: Readonly<{ locale: Locale }>) {
 
   return (
     <DiscoveryFrame locale={locale} origin={origin} marks={marks}>
-      <header>
+      {/* M10d (03-guidance D-DS10 to D-DS12): the title alone; that every step stays open is a hint. */}
+      <header className="flex items-center gap-1">
         <h1 className="font-display text-3xl text-ink">{t("overview.title")}</h1>
-        <p className="mt-2 max-w-2xl text-ink-muted">{t("overview.lede")}</p>
+        <Hint locale={locale} label={t("overview.title")} text={t("overview.lede")} textKey="overview.lede" />
       </header>
       <ol className="mt-6 space-y-3">
         {lines.map((line) => {
@@ -125,13 +126,18 @@ export function DiscoveryOverview({ locale }: Readonly<{ locale: Locale }>) {
               ) : line.step !== "plan" ? (
                 <DecisionBadge role="exclude">{t("steps.notYet")}</DecisionBadge>
               ) : null}
-              <span className="text-ink">{t(line.key, line.values)}</span>
+              {/* M10d (03-guidance D-DS14): the plan line is background, a hint on the Plan link. */}
+              {line.key === "overview.plan.line" ? (
+                <Hint locale={locale} label={t(stepKey(line.step))} text={t(line.key)} textKey={line.key} />
+              ) : (
+                <span className="text-ink">{t(line.key, line.values)}</span>
+              )}
             </li>
           );
         })}
       </ol>
       <p className="mt-6">
-        <a className="inline-flex min-h-11 items-center rounded-md bg-brand px-4 font-medium text-on-brand" href={discoveryHref(locale, next, origin)} data-continue>
+        <a className="inline-flex min-h-11 items-center rounded-md bg-brand px-4 font-medium text-on-brand" href={discoveryHref(locale, next, origin)} data-variant="primary" data-continue>
           {t("overview.continue", { step: t(stepKey(next)) })}
         </a>
       </p>

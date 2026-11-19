@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { DiscoveryChecksPanel, EarlierChecksLine } from "@/components/discovery-checks";
 
 import type { Locale } from "@/i18n";
-import { Button, DataCell, DecisionBadge, GatePanel } from "@/components/ui/base";
+import { Button, DataCell, DecisionBadge, GatePanel, Hint, PRIMARY_LINK } from "@/components/ui/base";
 import {
   DiscoveryFrame,
   DiscoveryRefusal,
@@ -164,7 +164,7 @@ export function DiscoveryHandoff({ locale }: Readonly<{ locale: Locale }>) {
                 </dd>
               </div>
             </dl>
-            <a className="mt-4 inline-flex min-h-11 items-center rounded-md bg-brand px-4 font-medium text-on-brand" href={screeningHomeHref(locale, origin)} data-go-screening>
+            <a className={`mt-4 ${PRIMARY_LINK}`} href={screeningHomeHref(locale, origin)} data-variant="primary" data-go-screening>
               {t("handoff.accepted.go")}
             </a>
           </section>
@@ -178,15 +178,16 @@ export function DiscoveryHandoff({ locale }: Readonly<{ locale: Locale }>) {
           <p className="max-w-2xl text-ink" role="status" data-pending-body>
             <bdi>{pendingBody}</bdi>
           </p>
-          {preparation.state !== "running" ? <p className="max-w-2xl text-ink-muted">{t("handoff.pending.kept")}</p> : null}
           <p className="flex flex-wrap items-center gap-4">
-            <a
-              className="inline-flex min-h-11 items-center rounded-md bg-brand px-4 font-medium text-on-brand"
-              href={discoveryHref(locale, "harvest", origin, pendingRun)}
-              data-pending-link
-            >
-              {preparation.state === "running" ? t("handoff.pending.follow") : preparation.can_finish ? t("handoff.pending.finish") : t("job.openHarvest")}
-            </a>
+            <span className="inline-flex items-center gap-1">
+              <a className={PRIMARY_LINK} href={discoveryHref(locale, "harvest", origin, pendingRun)} data-variant="primary" data-pending-link>
+                {preparation.state === "running" ? t("handoff.pending.follow") : preparation.can_finish ? t("handoff.pending.finish") : t("job.openHarvest")}
+              </a>
+              {/* M10d (03-guidance D-HO15): the reassurance is a hint on the link that names the action. */}
+              {preparation.state !== "running" ? (
+                <Hint locale={locale} label={t("handoff.pending.title")} text={t("handoff.pending.kept")} textKey="handoff.pending.kept" />
+              ) : null}
+            </span>
             <Button onClick={() => void load()} data-pending-check>
               {t("mailto.check")}
             </Button>
@@ -217,7 +218,11 @@ export function DiscoveryHandoff({ locale }: Readonly<{ locale: Locale }>) {
             <h1 ref={heading} tabIndex={-1} className="mt-2 font-display text-3xl text-ink">
               {works != null ? t("handoff.title", { n: works }) : t("handoff.titleNoCount")}
             </h1>
-            <p className="mt-2 max-w-2xl text-ink-muted">{t("handoff.lede")}</p>
+            <p className="mt-2 max-w-2xl text-ink-muted" data-copy="lede">
+              {t("handoff.lede")}
+              {/* M10d (03-guidance D-HO3): why the snapshot is frozen is a hint on the lede. */}
+              <Hint locale={locale} label={t("handoff.gate.label")} text={t("handoff.lede.why")} textKey="handoff.lede.why" className="ms-1" />
+            </p>
             {wanted && handoff.run && wanted !== handoff.run ? (
               <p className="mt-2 text-sm text-ink" data-run-differs>
                 {t("run.describes", { run: handoff.run })}
@@ -228,9 +233,14 @@ export function DiscoveryHandoff({ locale }: Readonly<{ locale: Locale }>) {
           <div className="grid gap-6 lg:grid-cols-3">
             <div className="min-w-0 space-y-6 lg:col-span-2">
               <section aria-labelledby="handoff-mix" className="rounded-lg border border-rule bg-leaf p-5" data-mix>
-                <h2 id="handoff-mix" className="font-semibold text-ink">
-                  {t("handoff.mix.title")}
-                </h2>
+                <div className="flex items-center gap-1">
+                  <h2 id="handoff-mix" className="font-semibold text-ink">
+                    {t("handoff.mix.title")}
+                  </h2>
+                  {handoff.provider_mix.length ? (
+                    <Hint locale={locale} label={t("handoff.mix.title")} text={t("handoff.mix.note")} textKey="handoff.mix.note" />
+                  ) : null}
+                </div>
                 {handoff.provider_mix.length === 0 ? (
                   <p className="mt-2 text-ink-muted">{t("handoff.mix.none")}</p>
                 ) : (
@@ -250,7 +260,6 @@ export function DiscoveryHandoff({ locale }: Readonly<{ locale: Locale }>) {
                         </li>
                       ))}
                     </ul>
-                    <p className="mt-3 text-xs text-ink-muted">{t("handoff.mix.note")}</p>
                   </>
                 )}
               </section>
@@ -310,12 +319,6 @@ export function DiscoveryHandoff({ locale }: Readonly<{ locale: Locale }>) {
                     </a>
                   </p>
                 ) : null}
-                <p className="mt-2 text-xs text-ink-muted">
-                  {t("handoff.failedNote")}{" "}
-                  <a className={LINK} href={discoveryHref(locale, "report", origin)}>
-                    {t("handoff.report")}
-                  </a>
-                </p>
               </section>
             </div>
             <aside className="space-y-4">

@@ -14,7 +14,7 @@ describe("inception.shape", () => {
     const { engine, assign } = setUp({ draft: { topic: "weed detection" } });
     render(<InceptionShape locale="en" />);
     const card = (await screen.findByText("Design Science")).closest("label")!;
-    expect(within(card).getByText("Leaning · word scan of your topic")).toBeInTheDocument();
+    expect(within(card).getByText("Recommended · word scan of your topic")).toBeInTheDocument();
     expect(within(card).getByRole("radio")).not.toBeChecked();
     expect(screen.getByRole("button", { name: "Continue to concepts and criteria" })).toBeDisabled();
     expect(screen.getByText("Choose a lens to see the draft question.")).toBeInTheDocument();
@@ -23,7 +23,7 @@ describe("inception.shape", () => {
     const draftCard = await screen.findByText("Template draft · not yet yours");
     expect(screen.getByLabelText("Research question 1")).toHaveValue("");
     const playbook = screen.getByText("DESIGN_SCIENCE").closest("label")!;
-    expect(within(playbook).getByText("Matches the lens")).toBeInTheDocument();
+    expect(within(playbook).getByText("Recommended · matches your lens")).toBeInTheDocument();
     expect(within(playbook).getByRole("radio")).not.toBeChecked();
     fireEvent.click(within(playbook).getByRole("radio"));
 
@@ -52,7 +52,7 @@ describe("inception.shape", () => {
     fireEvent.click(within(lens).getByRole("radio"));
     const playbook = (await screen.findByText("DESIGN_SCIENCE")).closest("label")!;
     // The matching playbook is marked, never selected for the researcher (spec 04).
-    expect(within(playbook).getByText("Matches the lens")).toBeInTheDocument();
+    expect(within(playbook).getByText("Recommended · matches your lens")).toBeInTheDocument();
     expect(within(playbook).getByRole("radio")).not.toBeChecked();
     const next = screen.getByRole("button", { name: "Continue to concepts and criteria" });
     expect(next).toBeDisabled();

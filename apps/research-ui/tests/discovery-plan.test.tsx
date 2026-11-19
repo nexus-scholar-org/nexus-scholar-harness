@@ -44,9 +44,11 @@ describe("discovery.plan", () => {
     const cap = document.querySelector('[data-cap="protocol"]') as HTMLElement;
     expect(within(cap).getByText("500")).toBeInTheDocument();
     expect(within(cap).getByText(/Set in the protocol\./)).toBeInTheDocument();
+    // M10d (03-guidance D-P10): the sentence is the cap's hint, closed.
+    expect(within(cap).getByText(/Set in the protocol\./).closest("[data-hint-body]")).toHaveAttribute("hidden");
     expect(screen.queryAllByRole("textbox")).toHaveLength(0);
     expect(screen.queryAllByRole("spinbutton")).toHaveLength(0);
-    expect(screen.queryByLabelText(/cap/i)).toBeNull();
+    expect(screen.queryByLabelText(/cap/i, { selector: "input" })).toBeNull();
   });
 
   it("prints the SCHOLAR_MAILTO line and Check again re-reads the plan only", async () => {
@@ -271,7 +273,9 @@ describe("discovery.plan database picker (M10a)", () => {
     await user.click(screen.getByRole("button", { name: "Move Crossref up" }));
     await waitFor(() => expect(harvest()).toHaveAttribute("href", "/en/discovery/harvest/?databases=openalex,crossref,semanticscholar,arxiv,pubmed"));
     expect(recall()).toHaveAttribute("href", "/en/discovery/recall/");
-    for (const link of [harvest(), recall()]) expect(link.className).not.toMatch(/\bbg-brand\b/);
+    // M10d (03-guidance rule 2, per-screen check): "Continue to Recall" is the Plan's one main action; the Harvest exit is not.
+    expect(harvest().className).not.toMatch(/\bbg-brand\b/);
+    expect(recall()).toHaveAttribute("data-variant", "primary");
   });
 
   it("maps PROVIDER_UNKNOWN from the address to its card with the id under Details, and Reset to the protocol reads the protocol's plan", async () => {

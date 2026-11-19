@@ -3,6 +3,9 @@
 import { useId, useLayoutEffect, useRef, useState } from "react";
 import { ChevronDownIcon, ChevronUpIcon } from "@heroicons/react/24/outline";
 
+import type { Locale } from "@/i18n";
+import { Hint } from "@/components/ui/guidance";
+
 /**
  * The databases to ask, ticked and ordered (M10a, decided 2026-11-14; spec 02
  * Explore, specs 01 Plan and 03 Harvest of Discovery). Shared by Explore and
@@ -28,6 +31,8 @@ export interface PickerItem {
 export interface PickerLabels {
   legend: string;
   orderHelp?: string;
+  /** M10d (03-guidance rule 1): with a locale and the catalog key, the help about the sequence is a hint beside the legend. */
+  orderHelpHint?: { locale: Locale; textKey: string };
   check(name: string): string;
   up(name: string): string;
   down(name: string): string;
@@ -84,9 +89,14 @@ export function DatabasePicker({
   const describedBy = [labels.orderHelp ? helpId : "", selected.length === 0 ? noneId : ""].filter(Boolean).join(" ") || undefined;
 
   return (
-    <fieldset className="min-w-0" disabled={disabled} aria-describedby={describedBy} data-picker>
-      <legend className="text-sm text-ink-muted">{labels.legend}</legend>
-      {labels.orderHelp ? (
+    <fieldset className="min-w-0" disabled={disabled} aria-labelledby={`${id}-legend`} aria-describedby={describedBy} data-picker>
+      <legend className="text-sm text-ink-muted">
+        <span id={`${id}-legend`}>{labels.legend}</span>
+        {labels.orderHelp && labels.orderHelpHint ? (
+          <Hint locale={labels.orderHelpHint.locale} label={labels.legend} text={labels.orderHelp} textKey={labels.orderHelpHint.textKey} id={helpId} className="ms-1" />
+        ) : null}
+      </legend>
+      {labels.orderHelp && !labels.orderHelpHint ? (
         <p id={helpId} className="text-xs text-ink-muted">
           {labels.orderHelp}
         </p>

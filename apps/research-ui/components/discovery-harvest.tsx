@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { DiscoveryChecksPanel } from "@/components/discovery-checks";
 
 import type { Locale } from "@/i18n";
-import { Button, DataCell, DecisionBadge, type DecisionRole } from "@/components/ui/base";
+import { Button, DataCell, DecisionBadge, Hint, PRIMARY_LINK, type DecisionRole } from "@/components/ui/base";
 import { DETAILS_LABEL } from "@/components/screening-state-card";
 import {
   ConnectionLost,
@@ -442,9 +442,18 @@ export function DiscoveryHarvest({ locale }: Readonly<{ locale: Locale }>) {
       <h2 id="harvest-form" className="font-semibold text-ink">
         {t("harvest.form.title")}
       </h2>
-      <label className="mt-3 block text-sm text-ink" htmlFor="harvest-cap">
-        {t("harvest.form.cap")}
-      </label>
+      <div className="mt-3 flex items-center gap-1">
+        <label className="block text-sm text-ink" htmlFor="harvest-cap">
+          {t("harvest.form.cap")}
+        </label>
+        <Hint
+          locale={locale}
+          label={t("harvest.form.cap")}
+          text={t("harvest.form.capHelp", { value: plan?.cap.value ?? "", ceiling: plan?.cap.ceiling ?? 10000 })}
+          textKey="harvest.form.capHelp"
+          id="harvest-cap-about"
+        />
+      </div>
       <input
         id="harvest-cap"
         ref={capField}
@@ -455,18 +464,23 @@ export function DiscoveryHarvest({ locale }: Readonly<{ locale: Locale }>) {
           setCapPrefilled(false);
         }}
         aria-invalid={capError || undefined}
-        aria-describedby="harvest-cap-help"
+        aria-describedby={capPrefilled || capError ? "harvest-cap-help harvest-cap-about" : "harvest-cap-about"}
         className="mt-1 min-h-11 w-40 rounded-md border border-rule-strong bg-paper px-3 text-ink"
         dir="ltr"
       />
-      <p id="harvest-cap-help" className="mt-1 text-xs text-ink-muted">
-        {capPrefilled ? <span data-cap-prefilled>{t("harvest.capPrefilled")} </span> : null}
-        {capError ? t("harvest.form.capInvalid", { ceiling: plan?.cap.ceiling ?? 10000 }) + " " : ""}
-        {t("harvest.form.capHelp", { value: plan?.cap.value ?? "", ceiling: plan?.cap.ceiling ?? 10000 })}
-      </p>
-      <label className="mt-3 block text-sm text-ink" htmlFor="harvest-note">
-        {t("harvest.form.note")}
-      </label>
+      {/* M10d (03-guidance D-H9, D-H10): the prefilled line and the error stay on the page; what the cap does is a hint. */}
+      {capPrefilled || capError ? (
+        <p id="harvest-cap-help" className="mt-1 text-xs text-ink-muted">
+          {capPrefilled ? <span data-cap-prefilled>{t("harvest.capPrefilled")} </span> : null}
+          {capError ? t("harvest.form.capInvalid", { ceiling: plan?.cap.ceiling ?? 10000 }) : ""}
+        </p>
+      ) : null}
+      <div className="mt-3 flex items-center gap-1">
+        <label className="block text-sm text-ink" htmlFor="harvest-note">
+          {t("harvest.form.note")}
+        </label>
+        <Hint locale={locale} label={t("harvest.form.note")} text={t("harvest.form.noteHelp")} textKey="harvest.form.noteHelp" id="harvest-note-help" />
+      </div>
       <textarea
         id="harvest-note"
         value={note}
@@ -477,9 +491,6 @@ export function DiscoveryHarvest({ locale }: Readonly<{ locale: Locale }>) {
         rows={2}
         className="mt-1 w-full rounded-md border border-rule-strong bg-paper px-3 py-2 text-ink"
       />
-      <p id="harvest-note-help" className="mt-1 text-xs text-ink-muted">
-        {t("harvest.form.noteHelp")}
-      </p>
       <div className="mt-4">
         <Button variant={selected ? "secondary" : "primary"} onClick={() => void start()} disabled={starting || !choice?.length} data-start>
           {selected ? t("harvest.again") : t("harvest.start")}
@@ -547,7 +558,7 @@ export function DiscoveryHarvest({ locale }: Readonly<{ locale: Locale }>) {
             <h1 ref={heading} tabIndex={-1} className="mt-2 font-display text-3xl text-ink" aria-live="polite">
               {title}
             </h1>
-            {!selected && !running ? <p className="mt-2 max-w-2xl text-ink-muted">{t("harvest.lede.ready")}</p> : null}
+            {!selected && !running ? <p className="mt-2 max-w-2xl text-ink-muted" data-copy="lede">{t("harvest.lede.ready")}</p> : null}
             {running ? (
               <p className="mt-2">
                 <DecisionBadge role="include">{stopping ? t("harvest.badge.stopping") : preparingJob ? t("harvest.badge.preparing") : t("harvest.badge.running")}</DecisionBadge>
@@ -609,18 +620,19 @@ export function DiscoveryHarvest({ locale }: Readonly<{ locale: Locale }>) {
                 <Stages locale={locale} stages={stream.stages} />
               </section>
               <aside className="rounded-lg border border-rule bg-leaf p-5">
-                <h2 className="font-semibold text-ink">{t("harvest.stop.title")}</h2>
                 {/* M3i: Stop in every step. After the search the engine reads it before the next step starts. */}
+                {/* M10d (03-guidance D-H13, D-H14): when a stop takes effect stays on the page; the reassurance is a hint, the button says what is kept. */}
                 {preparingJob ? (
-                  <p className="mt-2 text-sm text-ink" data-stop-late>
+                  <p className="text-sm text-ink" data-stop-late>
                     {t("harvest.stop.late")}
                   </p>
-                ) : (
-                  <p className="mt-2 text-sm text-ink">{t("harvest.stop.body")}</p>
-                )}
-                <Button className="mt-3" onClick={() => void stop()} disabled={stopping} data-stop>
-                  {preparingJob ? t("harvest.stop.prepare") : t("harvest.stop")}
-                </Button>
+                ) : null}
+                <div className={`flex flex-wrap items-center gap-1 ${preparingJob ? "mt-3" : ""}`.trim()}>
+                  <Button onClick={() => void stop()} disabled={stopping} data-stop>
+                    {preparingJob ? t("harvest.stop.prepare") : t("harvest.stop")}
+                  </Button>
+                  {preparingJob ? null : <Hint locale={locale} label={t("harvest.stop.title")} text={t("harvest.stop.body")} textKey="harvest.stop.body" />}
+                </div>
               </aside>
             </div>
           ) : !selected ? (
@@ -698,7 +710,9 @@ export function DiscoveryHarvest({ locale }: Readonly<{ locale: Locale }>) {
                       ))}
                     </ul>
                   ) : null}
-                  <p className="mt-3 text-xs text-ink-muted">{t("harvest.saved")}</p>
+                  <p className="mt-1 flex justify-end">
+                    <Hint locale={locale} label={t("harvest.legs.title")} text={t("harvest.saved")} textKey="harvest.saved" />
+                  </p>
                 </section>
                 {stream.stages.length ? <Stages locale={locale} stages={stream.stages} /> : null}
                 <section className="rounded-lg border border-rule bg-leaf p-5 text-sm text-ink">
@@ -733,7 +747,7 @@ export function DiscoveryHarvest({ locale }: Readonly<{ locale: Locale }>) {
                 ) : null}
                 {newest && !unfinished ? (
                   <section className="rounded-lg border border-rule bg-leaf p-5" data-next-links>
-                    <a className="inline-flex min-h-11 items-center rounded-md bg-brand px-4 font-medium text-on-brand" href={discoveryHref(locale, "dedup", origin)}>
+                    <a className={PRIMARY_LINK} href={discoveryHref(locale, "dedup", origin)} data-variant="primary">
                       {t("harvest.next.dedup")}
                     </a>
                     <p className="mt-2">
@@ -839,10 +853,12 @@ function PreparationCard({ locale, preparation, onFinish, busy }: Readonly<{ loc
       ) : null}
       {preparation.can_finish ? (
         <>
-          <Button variant="primary" className="mt-4" onClick={onFinish} disabled={busy} data-finish>
-            {t("harvest.prep.finish")}
-          </Button>
-          <p className="mt-2 text-xs text-ink-muted">{t("harvest.prep.finishHelp")}</p>
+          <div className="mt-4 flex flex-wrap items-center gap-1">
+            <Button variant="primary" onClick={onFinish} disabled={busy} data-finish>
+              {t("harvest.prep.finish")}
+            </Button>
+            <Hint locale={locale} label={t("harvest.prep.finish")} text={t("harvest.prep.finishHelp")} textKey="harvest.prep.finishHelp" />
+          </div>
         </>
       ) : (
         <p className="mt-3 text-sm text-ink" data-cannot-finish={preparation.cannot_finish ?? ""}>
@@ -890,7 +906,6 @@ function Stages({ locale, stages }: Readonly<{ locale: Locale; stages: { stage: 
               <span className="font-mono text-[0.8125rem] text-ink-muted" dir="ltr">
                 {s.status}
               </span>
-              {s.stage === "corpus_snapshot" ? <span className="block text-ink-muted">{t("harvest.stage.corpusNotFrozen")}</span> : null}
             </li>
           );
         })}

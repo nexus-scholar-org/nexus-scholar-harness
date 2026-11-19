@@ -3,7 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 
 import type { Locale } from "@/i18n";
-import { Button, DataCell, DecisionBadge } from "@/components/ui/base";
+import { Button, DataCell, DecisionBadge, RecommendedBadge } from "@/components/ui/base";
+import { guidanceT } from "@/lib/guidance-copy";
 import { DiscoveryRefusal, LINK, refusalOf, stamp, type Refusal } from "@/components/discovery-frame";
 import { postEstimate, type Estimate, type EstimateRequest, type EstimateRow } from "@/lib/discovery-api";
 import { discoveryT, providerName, type DiscoveryCopyKey } from "@/lib/discovery-copy";
@@ -229,6 +230,10 @@ export function EstimateCard({ locale, origin, fingerprint, providers, cap = nul
           ) : null}
           {rec && rec.kind === "cap" && rec.cap !== null ? (
             <div className="space-y-2 rounded-md border border-rule bg-paper p-3 text-sm" data-estimate-rec="cap">
+              {/* M10d (03-guidance rule 3): the suggested cap is marked; the field is never filled until the researcher uses it. */}
+              <p>
+                <RecommendedBadge locale={locale} source={guidanceT(locale)("guidance.recommended.source.estimate")} />
+              </p>
               <p className="text-ink">{t("estimate.rec.cap", { cap: rec.cap, high: rec.expected_works?.high ?? "", k: rec.cuts ?? "" })}</p>
               <p className="text-xs text-ink-muted">{t("estimate.cap.order")}</p>
               {harvestHref ? (

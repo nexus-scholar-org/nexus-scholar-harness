@@ -131,7 +131,7 @@ describe("inception.sample", () => {
     expect(moved()).toBe("Left out: Lightweight cnn weed segmentation 4. Directions: 3 to 2. Papers: 11.");
     expect(samplePosts(engine)).toHaveLength(5);
     expect(screen.getByRole("button", { name: "See 2 directions" })).toBeEnabled();
-  });
+  }, 15000); // five removals in a row: 1.5 s alone, past 5 s when the whole suite runs in parallel (M10d)
 
   it("Undo on the toast and Put back each send remove with the key", async () => {
     const { engine } = start();

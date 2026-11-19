@@ -70,7 +70,7 @@ test("interrupted: the bar offers Finish preparing this corpus, which leads to H
   await expect(region.getByRole("link", { name: "Search again" })).toHaveAttribute("href", "/en/discovery/harvest/");
   await region.getByRole("link", { name: "Finish preparing this corpus" }).click();
   await expect(page).toHaveURL(/\/en\/discovery\/harvest\/?\?run=run_001/);
-  await expect(page.locator('[data-preparation="interrupted"]').getByRole("button", { name: "Finish preparing this corpus" })).toBeVisible();
+  await expect(page.locator('[data-preparation="interrupted"]').getByRole("button", { name: "Finish preparing this corpus", exact: true })).toBeVisible();
 
   const other = await page.context().newPage();
   await engine(other, { runs: 1, preparation: "interrupted", recordsMissing: true });

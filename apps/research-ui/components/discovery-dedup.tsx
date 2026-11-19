@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { DiscoveryChecksPanel } from "@/components/discovery-checks";
 
 import type { Locale } from "@/i18n";
-import { DataCell, DecisionBadge } from "@/components/ui/base";
+import { DataCell, DecisionBadge, Hint, PRIMARY_LINK } from "@/components/ui/base";
 import { DETAILS_LABEL } from "@/components/screening-state-card";
 import { DiscoveryFrame, DiscoveryRefusal, Eyebrow, LINK, Loading, discoveryHref, percent, refusalOf, useDiscoveryParams, type Refusal } from "@/components/discovery-frame";
 import { getDedup, type Dedup } from "@/lib/discovery-api";
@@ -42,11 +42,11 @@ export function DiscoveryDedup({ locale }: Readonly<{ locale: Locale }>) {
         <div className="space-y-3">
           <DiscoveryRefusal locale={locale} refusal={refusal} origin={origin} onRetry={() => void load()} pageHeading />
           {refusal.code === "DEDUP_NOT_RUN" ? (
-            <p className="text-sm text-ink-muted" data-import-note>
-              {t("dedup.importNote")}{" "}
+            <p className="flex items-center gap-1 text-sm text-ink-muted" data-import-note>
               <a className={LINK} href={discoveryHref(locale, "handoff", origin)}>
                 {t("steps.handoff")}
               </a>
+              <Hint locale={locale} label={t("steps.handoff")} text={t("dedup.importNote")} textKey="dedup.importNote" />
             </p>
           ) : null}
         </div>
@@ -56,10 +56,14 @@ export function DiscoveryDedup({ locale }: Readonly<{ locale: Locale }>) {
         <div className="space-y-6">
           <header>
             <Eyebrow locale={locale} step="dedup" name={t("dedup.eyebrowName")} />
-            <h1 className="mt-2 font-display text-3xl text-ink">
-              <bdi>{t("dedup.title", { input: dedup.input_records, unique: dedup.unique_works })}</bdi>
-            </h1>
-            <p className="mt-2 max-w-2xl text-ink-muted">{t("dedup.lede")}</p>
+            <div className="mt-2 flex items-center gap-1">
+              <h1 className="font-display text-3xl text-ink">
+                <bdi>{t("dedup.title", { input: dedup.input_records, unique: dedup.unique_works })}</bdi>
+              </h1>
+              {/* M10d (03-guidance D-DD8): what the rules did not merge is a hint beside the result. */}
+              <Hint locale={locale} label={t("dedup.title", { input: dedup.input_records, unique: dedup.unique_works })} text={t("dedup.pairsNote")} textKey="dedup.pairsNote" />
+            </div>
+            <p className="mt-2 max-w-2xl text-ink-muted" data-copy="lede">{t("dedup.lede")}</p>
             <p className="mt-2 text-sm text-ink-muted" data-dedup-run>
               {t("dedup.run", { run: dedup.run ?? "" })}
             </p>
@@ -141,14 +145,11 @@ export function DiscoveryDedup({ locale }: Readonly<{ locale: Locale }>) {
               </p>
             </section>
           ) : null}
-          <p className="text-ink" data-pairs-note>
-            {t("dedup.pairsNote")}
-          </p>
           <p className="flex flex-wrap gap-4">
             <a className={LINK} href={discoveryHref(locale, "harvest", origin)}>
               {t("dedup.back")}
             </a>
-            <a className={LINK} href={discoveryHref(locale, "report", origin, wanted)} data-next>
+            <a className={PRIMARY_LINK} href={discoveryHref(locale, "report", origin, wanted)} data-variant="primary" data-next>
               {t("dedup.next")}
             </a>
           </p>

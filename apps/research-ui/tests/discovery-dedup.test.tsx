@@ -66,7 +66,8 @@ describe("discovery.dedup", () => {
     setUp({ runs: 1 });
     render(<DiscoveryDedup locale="en" />);
     await screen.findByText("Records the rules did not prove to be the same work are not listed here and stay separate works.");
-    expect(screen.queryAllByRole("button")).toHaveLength(0);
+    // M10d: the only buttons are hints (03-guidance D-DD8).
+    expect(screen.queryAllByRole("button").filter((b) => !b.hasAttribute("data-hint-button"))).toHaveLength(0);
     expect(screen.queryByRole("link", { name: /merge|keep|undo/i })).toBeNull();
     expect(screen.queryByRole("checkbox")).toBeNull();
   });

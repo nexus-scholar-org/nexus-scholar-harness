@@ -365,7 +365,8 @@ describe("inception.explore query and databases", () => {
     start({}, {});
     await screen.findByRole("heading", { name: "Your first search" });
     expect(field().value).toBe("");
-    expect(screen.getByText("Leave empty and the engine derives a keyword query from your question.")).toBeInTheDocument();
+    // M10d (rule 1.7): the how-to sentence is part of the one hint on the field, and so its description.
+    expect(field()).toHaveAccessibleDescription(/Leave empty and the engine derives a keyword query from your question./);
     expect(screen.queryByRole("button", { name: "Use the derived query" })).toBeNull();
   });
 

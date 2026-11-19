@@ -3,7 +3,7 @@
 import { useState } from "react";
 
 import type { Locale } from "@/i18n";
-import { Button } from "@/components/ui/base";
+import { Button, Hint } from "@/components/ui/base";
 import { inceptionHref, InceptionFrame, InceptionRefusal, StepHeader, useDraft } from "@/components/inception-frame";
 import { StepAssist } from "@/components/inception-assist";
 
@@ -65,9 +65,12 @@ export function InceptionScope({ locale }: Readonly<{ locale: Locale }>) {
         }}
       >
         <div>
-          <label htmlFor="scope-topic" className="block text-sm font-medium text-ink">
-            {t("scope.topic")}
-          </label>
+          <div className="flex items-center gap-1">
+            <label htmlFor="scope-topic" className="block text-sm font-medium text-ink">
+              {t("scope.topic")}
+            </label>
+            <Hint locale={locale} label={t("scope.topic")} text={t("scope.topicHelp")} textKey="scope.topicHelp" id="scope-topic-help" />
+          </div>
           <textarea
             id="scope-topic"
             rows={3}
@@ -76,9 +79,6 @@ export function InceptionScope({ locale }: Readonly<{ locale: Locale }>) {
             aria-describedby="scope-topic-help"
             className="mt-1 block w-full rounded-md border border-rule bg-paper p-2 text-ink"
           />
-          <p id="scope-topic-help" className="mt-1 text-xs text-ink-muted">
-            {t("scope.topicHelp")}
-          </p>
           {/* M10b (spec 09): a protocol stores no topic; the first research question is offered, never copied unasked. */}
           {record?.origin?.report?.needs_you?.includes("topic") && !(draft.topic ?? "").trim() ? (
             <div className="mt-2 flex flex-wrap items-center gap-3 text-sm" data-needs-topic>
@@ -107,9 +107,12 @@ export function InceptionScope({ locale }: Readonly<{ locale: Locale }>) {
             />
           </div>
           <div>
-            <label htmlFor="scope-to" className="block text-sm font-medium text-ink">
-              {t("scope.toYear")}
-            </label>
+            <div className="flex items-center gap-1">
+              <label htmlFor="scope-to" className="block text-sm font-medium text-ink">
+                {t("scope.toYear")}
+              </label>
+              <Hint locale={locale} label={t("scope.toYear")} text={t("scope.toYearHelp")} textKey="scope.toYearHelp" id="scope-to-help" />
+            </div>
             <input
               id="scope-to"
               inputMode="numeric"
@@ -119,9 +122,6 @@ export function InceptionScope({ locale }: Readonly<{ locale: Locale }>) {
               aria-describedby={to === "invalid" ? "scope-year-error scope-to-help" : "scope-to-help"}
               className="mt-1 block min-h-11 w-full rounded-md border border-rule bg-paper px-2 text-ink"
             />
-            <p id="scope-to-help" className="mt-1 text-xs text-ink-muted">
-              {t("scope.toYearHelp")}
-            </p>
           </div>
         </div>
         {!yearsValid ? (
@@ -130,9 +130,12 @@ export function InceptionScope({ locale }: Readonly<{ locale: Locale }>) {
           </p>
         ) : null}
         <div>
-          <label htmlFor="scope-languages" className="block text-sm font-medium text-ink">
-            {t("scope.languages")}
-          </label>
+          <div className="flex items-center gap-1">
+            <label htmlFor="scope-languages" className="block text-sm font-medium text-ink">
+              {t("scope.languages")}
+            </label>
+            <Hint locale={locale} label={t("scope.languages")} text={t("scope.languagesHelp")} textKey="scope.languagesHelp" id="scope-languages-help" />
+          </div>
           <input
             id="scope-languages"
             dir="ltr"
@@ -141,9 +144,6 @@ export function InceptionScope({ locale }: Readonly<{ locale: Locale }>) {
             aria-describedby="scope-languages-help"
             className="mt-1 block min-h-11 w-full max-w-sm rounded-md border border-rule bg-paper px-2 text-ink"
           />
-          <p id="scope-languages-help" className="mt-1 text-xs text-ink-muted">
-            {t("scope.languagesHelp")}
-          </p>
         </div>
 
         {saveError ? <InceptionRefusal locale={locale} refusal={saveError} draftId={draftId} origin={origin} onRetry={() => void persist("explore")} /> : null}
@@ -163,7 +163,6 @@ export function InceptionScope({ locale }: Readonly<{ locale: Locale }>) {
             </p>
           )}
         </div>
-        <p className="text-xs text-ink-muted">{t("nothingWritten")}</p>
       </form>
     </InceptionFrame>
   );
