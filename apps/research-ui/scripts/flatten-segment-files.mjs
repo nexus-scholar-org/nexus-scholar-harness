@@ -1,4 +1,4 @@
-// Next's static export writes each page's prefetch ("segment") files next to the page,
+// Next's packaged export writes each page's prefetch ("segment") files next to the page,
 // and the client asks for them by a flat name: `__next.$d$locale.workspaces.__PAGE__.txt`
 // (`convertSegmentPathToStaticExportFilename`, which swaps "/" for "."). The exporter
 // builds that name from the segment's file path with a regular expression that swaps only

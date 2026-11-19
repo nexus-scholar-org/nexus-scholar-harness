@@ -6,7 +6,7 @@ import { pathToFileURL } from "node:url";
 import { afterEach, describe, expect, it } from "vitest";
 
 /**
- * H-ui-findings F9: a static export built on Windows nests the prefetch files
+ * H-ui-findings F9: an export built on Windows nests the prefetch files
  * (`__next.$d$locale/workspaces/__PAGE__.txt`) where the client asks for the flat
  * name (`__next.$d$locale.workspaces.__PAGE__.txt`) and every request is a 404.
  */
