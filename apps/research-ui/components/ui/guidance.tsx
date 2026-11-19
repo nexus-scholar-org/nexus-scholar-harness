@@ -166,7 +166,7 @@ export function Hint({
         // Not in the tab order; a click lands focus here, inside the pair, so Escape still closes the hint.
         tabIndex={-1}
         // A press or tap on the text (to select it) must not read as leaving the pair. On a phone the
-        // blur comes after the tap ends, so the press is remembered for a moment, not one tick.
+        // focus leaves only after the tap ends, so the press is remembered for a moment, not one tick.
         onPointerDown={() => {
           pressedAt.current = Date.now();
         }}
