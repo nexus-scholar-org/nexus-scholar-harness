@@ -10,14 +10,22 @@ history to read if you need the original reasoning (`git log --follow -- <path>`
 
 | Entry | Item | What is open |
 | :-- | :-- | :-- |
-| 2026-11-19 — M9a: what the measurement says about the ladder gates | 2 | The minimum share of the researcher's excludes an agent must take before a rung unlocks: the principle is accepted, the number is not set. |
-| 2026-11-18 — M3h-c: the arXiv leg sends its year range | 1 | The fixed bounds for an open-ended year range (`1991`, `9999`) are not yet checked against arXiv live (`--check-open-ended` was not run). |
-| 2026-11-18 — M10b Part D: the size estimate | 4 | Since M3h-c arXiv applies the year window itself, but the estimate still counts arXiv as an upper bound when a year is set: decide whether its count is exact. |
-| 2026-11-05 — M1b-2 merges before its live prompt gate | gate | The API route was measured on 2026-11-19 (M9a; Opus 5.5 include-recall lower bound 93.1% against the bar of 0.90). No entry says whether the gate is now met. |
-| 2026-11-20 — Which provider key is used, and saying so | 1 to 5 | Proposed by the build session; merged in PR #255 before acceptance. |
-| 2026-11-20 — H-quota-hang: a used-up quota ends the checks with a message | 3 | Items 1 to 9 are accepted as built. Still open: the contract question item 3 names (how a record that was not checked is represented in Contract v1). |
+| 2026-11-19 — M9a: what the measurement says about the ladder gates | 2 | The minimum share of the researcher's excludes an agent must take before a rung unlocks: the principle is accepted; the researcher decided on 2026-11-20 to set the number when M9b is built. |
 
-## 2026-11-20 — H-quota-hang: a used-up quota ends the checks with a message; only the unchecked records are checked again (items 1 to 9 accepted by the researcher 2026-11-20, as built; the contract question in item 3 stays open; H-quota-hang)
+## 2026-11-20 — Six open decisions settled by the researcher (accepted 2026-11-20)
+
+The researcher answered these in the main session on 2026-11-20. Each one closes a row of the open-decisions table above, except item 4.
+
+1. **Which provider key is used (H-key-precedence, PR #255):** items 1 to 5 accepted as built. A key set in the environment wins over one saved in the keychain.
+2. **The size estimate counts arXiv as exact when years are set (M10b Part D, item 4).** Since M3h-c arXiv applies the year window itself, so its count is no longer an upper limit. The estimate and its note still say "upper limit" at `f6ddafac`: a small fix, not yet built.
+3. **The M1b-2 prompt gate is met, on recall only.** The API route was measured on 2026-11-19 (M9a): include-recall lower bounds of 93.1% (Opus 5.5), 93.6% (Sonnet 5.5) and 96.8% (Haiku 5.5) against the bar of 0.90. The gate says nothing about the share of the researcher's excludes an agent takes; that is M9a item 2.
+4. **M9a item 2: the minimum share of excludes is set when M9b is built.** Nothing uses the number before then. Measured shares: 6.4% (Opus), 1.7% (Sonnet), 1.9% (Haiku); no rung unlocks today.
+5. **H-quota-hang item 3: "not checked" stays outside Contract v1.** The marks live in `literature/verification_checks.json`. A corpus whose checks did not finish cannot be handed off, so no accepted snapshot holds such a record. The contract question is closed; no contract change is planned.
+6. **M3h-c item 1 accepted: the fixed bounds for an open-ended year range work.** Checked against arXiv on 2026-11-20 with three direct requests for `(all:weed AND all:multispectral)`: `submittedDate:[202401010000 TO 999912312359]` returned 11 results, `[199101010000 TO 202312312359]` returned 3, and the query without a date returned 14. The project's own check (`scripts/record_golden_recon_arxiv.py --check-open-ended`) was not used, because it needs the contact address from the environment.
+
+The Inception redesign decisions (D1 to D15) were settled the same day and are recorded with the proposal on `dev/ux/inception-redesign` (not on `main`): direction A, quick fixes first, the Shape and Criteria part before Explore and Direction, and no larger build until the current review is screened.
+
+## 2026-11-20 — H-quota-hang: a used-up quota ends the checks with a message; only the unchecked records are checked again (items 1 to 9 accepted by the researcher 2026-11-20, as built; the contract question in item 3 closed the same day: it stays outside the contract; H-quota-hang)
 
 Record: `docs/roadmap/milestones/H-quota-hang.md`. Found by the acceptance run of 2026-11-20 (`docs/roadmap/acceptance-run-sensor-stress-2026-11-20.md` on `dev/docs/acceptance-run-sensor-stress`, findings 12, 15, 16): OpenAlex answered 429 with `Retry-After: 50000` during "Checks", each record cost three 60 s waits, the screen said "Preparing", and the stop was read only between stages. Contract v1 baseline current before and after; no schema, model, identity algorithm or fixture changes.
 
@@ -40,7 +48,7 @@ Record: `docs/roadmap/milestones/H-provenance-s2-2026-11-20.md`. Contract v1 bas
 3. **Each recon leg carries `shorten`**, decided by the engine with the existing word rule (keyword query, no `OR`, three or more words) for a leg that answered with nothing; Explore's list of the latest search shows the existing sentence on that leg. The failed-search card keeps giving it once. *Alternative:* a database-specific sentence for Semantic Scholar and arXiv only (whose searches need every word); not chosen, no new copy.
 4. **A Semantic Scholar 200 answer with neither `total` nor `data` fails the leg** with its message; it is never "0 results".
 
-## 2026-11-20 — Which provider key is used, and saying so (PROPOSED; H-key-precedence-2026-11-20)
+## 2026-11-20 — Which provider key is used, and saying so (items 1 to 5 accepted by the researcher 2026-11-20, after the merge in PR #255; H-key-precedence-2026-11-20)
 
 Record: `docs/roadmap/milestones/H-key-precedence-2026-11-20.md`. Found by the paid M9a run of 2026-11-19: a valid `ANTHROPIC_API_KEY` was set, `resolve_key` returned an old OS-keychain key first, the provider answered 401 three times, and `keys status` printed only "anthropic: keychain".
 
@@ -50,7 +58,7 @@ Record: `docs/roadmap/milestones/H-key-precedence-2026-11-20.md`. Found by the p
 4. **A missing Anthropic SDK is said first.** `drivers.ensure_sdk` (Anthropic only; the other two drivers use httpx) raises one sentence that names `uv sync --extra ai` and the wheel's `uv tool install --force "nexus-scholar[ai]>=<installed version>"`. `prompt-gate run` and `measure` call it before any estimate, "add --yes to spend" line or key lookup; `--dry-run` and `estimate` spend nothing and need no SDK. `make_driver` calls it too, so any caller gets the sentence instead of `ModuleNotFoundError`.
 5. **Agent-kit tests never touch the real keychain.** `tests/kits/agent/conftest.py` puts a fake `keyring` and no provider variable in every test there, and stubs `ensure_sdk` (the test environment has no `anthropic`). One console test that depended on the researcher's shell not setting `ANTHROPIC_API_KEY` now removes it.
 
-## 2026-11-19 — M9a: what the measurement says about the ladder gates (proposed by the main session; accepted by the researcher 2026-11-20, the number in item 2 not yet set; M9a-measure D10)
+## 2026-11-19 — M9a: what the measurement says about the ladder gates (proposed by the main session; accepted by the researcher 2026-11-20; the number in item 2 is set when M9b is built; M9a-measure D10)
 
 Record: `docs/roadmap/milestones/M9a-measure.md`, "The measurement (run 2026-11-19)". The screening agent was run on the frozen 1,644-record sample with Opus 5.5, Sonnet 5.5 and Haiku 5.5 ($12.63). Recall lower bounds 93.1%, 93.6% and 96.8%; the agent excludes 6.4%, 1.7% and 1.9% of the researcher's excludes and leaves 67% to 77% of the records Unclear, mostly because the abstract does not report what a criterion asks.
 
@@ -133,7 +141,7 @@ Record: `docs/roadmap/milestones/M10b-proposals-checks.md` "Part D (size estimat
 1. **A recall check's totals are used on the button only.** The spec's Empty state says the card "is instead shown from" a recall check for this protocol, and its acceptance test says the card "sends no request" before a count. Built: nothing is read on load; when the researcher presses "Count what the databases hold", the engine takes each database's total from the newest recall check made for the current protocol fingerprint (`status: from_recall_check`, `recall_check: {check, checked_at}` in the answer) and asks only the databases the check could not answer. Showing the check's totals on load would add one read to every Plan load.
 2. **`refresh` in the body.** `POST /discovery/estimate` takes `refresh: bool` (default false; not in the spec's body). "Count again" sends it only when the shown estimate came from a recall check ("Count again to refresh") and neither the cap nor the pace changed since; then the cache and the check are skipped. A what-if (another cap or pace) is answered from the cache, as the spec says. Otherwise "Count again" is answered from the 10-minute cache and asks again only the databases whose count failed (the spec's Partial state).
 3. **The cache.** In the console process's memory, per (workspace, protocol fingerprint, the set of databases): the order never changes the estimate, so `[a, b]` and `[b, a]` share it. Only answered counts are kept (`counted`, `from_recall_check`, `not_countable`); a failed one is asked again on the next call, and the entry keeps its first `counted_at` and its first time for `ESTIMATE_TTL`, so a row counted earlier is never shown as counted at the retry and nothing is served more than 10 minutes after its count. `served_from_cache` is true only when no database was asked. A restart of the console empties it.
-4. **arXiv is an upper bound only with a year window, and the works low end ignores it.** (Out of date since M3h-c, PR #251: arXiv now applies the year window itself; see Open decisions at the top.) The spec makes arXiv's count an upper bound because the year window is applied after retrieval; without a window the count is exact, so `fetch_is_upper_bound` is true only when the query has a year. The works range's low end ("the largest single estimate") is the largest *exact* estimate, so it is never above `records.low`, which already leaves arXiv out.
+4. **arXiv is an upper bound only with a year window, and the works low end ignores it.** (Out of date since M3h-c, PR #251: arXiv now applies the year window itself; decided 2026-11-20: its count is exact, see "Six open decisions settled".) The spec makes arXiv's count an upper bound because the year window is applied after retrieval; without a window the count is exact, so `fetch_is_upper_bound` is true only when the query has a year. The works range's low end ("the largest single estimate") is the largest *exact* estimate, so it is never above `records.low`, which already leaves arXiv out.
 5. **Four answer fields beyond the spec's shape.** `providers[].not_fetched` (what the cap leaves out, so the browser does no subtraction for "{rest} will not"), `recommendation.cuts` (the `{k}` of "It cuts {k} databases short"), `recall_check`, and `warn.limit {value, source}` (named in the spec's prose, not its shape). Additive.
 6. **A changed choice of databases clears the shown estimate.** On Plan, changing the picker returns the card to its empty state ("Count what the databases hold") instead of a separate "out of date" sentence; no new copy key. A changed protocol fingerprint shows the spec's "The protocol changed since this was counted." with no figure.
 7. **Offline.** The spec disables the button with "needs the engine on this computer". Built: the refusal card for an unreachable engine (`CONSOLE_UNREACHABLE` from the proxy client, with Try again) above the last estimate, which stays with "As of {time}". The button stays usable, so Try again and the button do the same thing.
@@ -171,7 +179,7 @@ Record: `docs/roadmap/milestones/H-small-fixes-2-2026-11-18.md`. Nothing here ch
 4. **(Accepted by the researcher on 2026-11-18.) F8-1 (publish retry journals once) and F8-3 (legacy event ids are distinct).** The publish handler reuses the journal row that already records the same `generation_id` and appends only when there is none, so a first publish whose row could not be written still gets it on retry. `append_legacy_event` now takes the id limb from `uuid4` (like `append_event`) and one clock reading instead of two. The old limb was `hash()` of the text, random per process, so it never matched a fixture and the "HCM-02 parity" it was kept for did not exist across processes; the id shape `EVT-<14 digits>-<6 hex>` is unchanged. Alternative: leave the id alone and document it.
 5. **F8-2 (`ARTIFACT_ACCEPTED` once per batch) is not changed.** The rows are the Contract v1 acceptance gate's per-artifact provenance (`contracts/acceptance.py`), and `scripts/check_golden_workspace.py` requires one with `artifact_type == screening_batch`. Collapsing them would be a contract decision; a display-level grouping in the UI would not be.
 
-## 2026-11-18 — M3h-c: the arXiv leg sends its year range (items 2 to 5 accepted by the researcher 2026-11-20; item 1 open until the open-ended range is checked live; merged in PR #251 before acceptance; M3h-c-arxiv-date)
+## 2026-11-18 — M3h-c: the arXiv leg sends its year range (items 1 to 5 accepted by the researcher 2026-11-20; item 1 after a live check of the open-ended range the same day; merged in PR #251 before acceptance; M3h-c-arxiv-date)
 
 Record: `docs/roadmap/milestones/M3h-c-arxiv-date.md`. Builds the half of F16 that decision 2026-11-18 item 2 (M3h-b) deferred; item 2 itself (the researcher re-records the arXiv answers) is accepted. Nothing here touches a Contract v1 artifact, the protocol schema or a protocol fingerprint. All five items below are proposed and wait for the researcher.
 
@@ -994,8 +1002,8 @@ credit balance too low); neither was billed. M1b-2 therefore merges as
 
 **Later (note 2026-11-20):** the gate was relaxed to accept an MCP-route pass
 (2026-11-05, entry above), parked for the beta (2026-11-07), and M5-slim shipped
-with it open. The API route was measured on 2026-11-19 (M9a). Whether the gate is
-met is listed under Open decisions at the top.
+with it open. The API route was measured on 2026-11-19 (M9a). Decided 2026-11-20: the gate is met, on recall only
+(entry "Six open decisions settled").
 
 **Superseded paragraph (kept for history, 2026-11-20 note):** the paragraph below describes a marker that
 was removed on 2026-11-05 (entry "The demonstration screens are removed; a new header
