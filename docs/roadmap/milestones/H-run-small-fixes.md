@@ -5,7 +5,7 @@ Item agreed by the researcher on 2026-11-20 (second in the order of work after t
 | Part | Branch | Lane | Status |
 | :-- | :-- | :-- | :-- |
 | A, approve every decided batch with one paste (finding 38, the blocker) | `dev/h/run-fixes-approval` | RELEASE | READY FOR PR; its section is in this file on that branch |
-| B, Discovery and the search command (findings 9, 10, 13, 14, 17, 24, 29; decision 2026-11-20 item 2) | `dev/h/run-fixes-discovery` | RELEASE | {STATUS} |
+| B, Discovery and the search command (findings 9, 10, 13, 14, 17, 24, 29; decision 2026-11-20 item 2) | `dev/h/run-fixes-discovery` | RELEASE | READY FOR PR (review round 3 APPROVE; PR gate green on `3b5642fd` + UI gates on `2762ca4b`); decisions 1 to 8 PROPOSED |
 | C, Inception and screening small defects (findings 1 to 7, 23, 35, 39; redesign D15 quick fixes) | `dev/h/run-fixes-inception` | — | not started |
 
 Each part branches from `origin/main` (`2436fe66`) and is complete on its own. This file and the top of `docs/decisions.md` exist on each branch with that part's section: the second and third PR to merge need a one-line conflict resolution (keep both sections, both entries).
@@ -34,7 +34,7 @@ Branch `dev/h/run-fixes-discovery` from `origin/main` `2436fe66`. Choices: `docs
 - [x] The UI test fake (`tests/fixtures/discovery-engine.ts`) follows the engine (plan fields, arXiv exact, the one-database rule).
 - [x] Specs amended: `docs/ux/phase1-discovery/final/01-plan.md`, `02-recall.md`, `03-harvest.md`.
 - [x] Reproducing tests written first and seen failing (Evidence).
-- [ ] PR gate green; `milestone-reviewer` APPROVE (Evidence).
+- [x] PR gate green; `milestone-reviewer` APPROVE (Evidence).
 
 ### What changed
 
@@ -69,10 +69,10 @@ Follow-ups also done: a 429 pace expires after 10 minutes, a burst of 429s halve
 | :-- | :-- |
 | Reproducing tests before the fix | 15 of the new or changed engine and CLI tests failed on the unfixed code (run 2026-11-20, `tests/kits/search/test_cli_search_outcome.py`, `test_crossref_pacing.py`, `tests/console/test_discovery_estimate_api.py`, `tests/console/test_discovery_api.py`); the one that passed was the "complete result" control |
 | After the fix and the review repairs | `tests/kits/search` (all), `tests/console/test_discovery_estimate_api.py`, `test_discovery_api.py`: 576 passed; `test_crossref_pacing.py` run three times: 5 passed each |
-| UI | `tests/discovery-plan.test.tsx`, `discovery-harvest.test.tsx`, `discovery-estimate.test.tsx`: 77 passed; all `tests/discovery*`: {UI_ALL}; `tsc` clean |
-| PR gate | {PR} |
-| Contract baseline | {BASELINE} |
-| Review | {REVIEW} |
+| UI | `tests/discovery-plan.test.tsx`, `discovery-harvest.test.tsx`, `discovery-estimate.test.tsx`: 77 passed; all `tests/discovery*`: 209 passed; `tsc` clean |
+| PR gate | On `3b5642fd` (`select_test_gate.py --changed origin/main --stage pr`): `git diff --check` clean; `uv run pytest -n auto`: 5844 passed, 15 skipped; ruff `scripts/` and the CI `src/` selection clean; skills bundle in sync; `tsc` clean; `build` ok. Vitest then failed one test (the guidance audit had no row for `plan.ignoresAnd`, `plan.defaultWithout`) and Playwright two (`discovery.spec.ts` "a database that fails its count" expected "at least 1008", now 1065 because arXiv counts exactly): fixed in `2762ca4b` (audit row D-P22, counts 101 / 35 / 15; the expectation). On `2762ca4b` (only a spec and a browser test changed, no Python): `tsc` clean, vitest 965 passed (66 files), `build` ok, Playwright 606 passed, 12 skipped (six tracked screenshots rewritten and restored) |
+| Contract baseline | `generate_contract_baseline.py --check`: current (on `3b5642fd`) |
+| Review | `milestone-reviewer`: round 1 CHANGES (1 P1, 2 P2, 2 P3) on `006eb7e9`; round 2 CHANGES (one new P1, N1, and one P3) on `7bcd29c3`; round 3 APPROVE on `3b5642fd` (no new finding) |
 
 ### Not verified
 
