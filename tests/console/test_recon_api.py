@@ -1029,5 +1029,9 @@ def test_an_own_direction_grounded_on_its_words_says_so_in_the_binding_and_the_c
     assert direction["grounded"] is True and "its words occur together" in direction["detail"]
     assert words["term_evidence"]["detection of weed"]["match"] == "words"
     assert words["term_evidence"]["detection of weed"]["observed_in"] == direction["observed_in"]
+    from scholar_harness.inception.grounding import recon_context
+
+    assert recon_context(words, [], [])["direction_match"] == "words"
     phrase = client.post(f"{BASE}/drafts/{sid}/recon/bind", json={"own": "weed detection"}).json()["grounding"]
     assert phrase["direction"]["match"] == "phrase" and "words" not in phrase["direction"]
+    assert recon_context(phrase, [], [])["direction_match"] == "phrase"

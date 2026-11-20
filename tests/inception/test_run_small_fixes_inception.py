@@ -121,7 +121,8 @@ def test_finding_3_a_typed_direction_is_grounded_when_its_words_occur_together()
     )
     phrase = "sensor noise robustness of weed segmentation"
     evidence = own_direction_evidence(pool, phrase)
-    assert evidence["match"] == "words" and evidence["observed_in"] == 1
+    # Its words are together in one paper only: under the grounding threshold, so the answer is the phrase's (0).
+    assert evidence["match"] == "phrase" and evidence["observed_in"] == 0
     natural = own_direction_evidence(pool, "weed segmentation under sensor noise")
     assert natural["match"] == "words" and natural["observed_in"] == 2
     exact = own_direction_evidence(pool, "weed segmentation")

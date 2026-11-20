@@ -139,6 +139,10 @@ _STOP_WORDS = frozenset(
 )
 
 
+#: The words rule answers only from this many papers: the grounding threshold of a typed direction.
+_WORDS_MIN_ANCHORS = 2
+
+
 def content_words(term: str) -> list[str]:
     """The words of a phrase that carry meaning: no stop words, no repeats, in order."""
     words: list[str] = []
@@ -169,7 +173,9 @@ def own_direction_evidence(pool: dict[str, Any], term: str) -> dict[str, Any]:
         text = f"{doc.get('title') or ''} {doc.get('abstract') or ''}"
         if doi and all(term_occurs(w, text) for w in words) and doi not in dois:
             dois.append(str(doi))
-    if len(dois) <= exact["observed_in"]:
+    # Only when it grounds the direction (two papers, as a typed direction needs): under that the
+    # answer is the phrase's own count, so nothing on screen calls word matches phrase matches (review round 2, A).
+    if len(dois) < _WORDS_MIN_ANCHORS or len(dois) <= exact["observed_in"]:
         return {**exact, "match": "phrase"}
     return {"hits": exact["hits"], "observed_in": len(dois), "anchor_dois": sorted(dois), "match": "words", "words": words}
 

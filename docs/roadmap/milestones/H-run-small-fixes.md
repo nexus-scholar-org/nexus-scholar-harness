@@ -207,6 +207,8 @@ Round 1 (`milestone-reviewer`, on `495a9248`): **CHANGES**, three P2, six P3. Re
 | P3 | The record's before-the-fix count was wrong | Corrected (7 of 12 failed) | (docs) |
 | P3 | No test for "Notes ({n})" | Added | `tests/checks-panel.test.tsx` "checks panel notes count" |
 
+Round 2 (on `a012152d`): **APPROVE**, all round-1 findings repaired; three P3 points, also done: the words rule answers only from two papers, so an ungrounded direction is never called a phrase match it is not (A); `recon_context.direction_match` asserted (B); the UI fake uses the engine's stop list (C). The PR gate on `a012152d` failed one vitest (the guidance audit lacked the two new direction keys) and two Playwright tests in each theme (`tests-browser/inception.spec.ts`: they accepted only the proof criterion; the out-of-scope item now waits for Accept too): fixed with the audit row I-D18 and the two tests.
+
 Follow-ups noted, not done: the CLI wizard and the browser now compile different protocols for the same answers when a typed inclusion exists (decision item 1; no test pins it); importing a protocol made under the new rule does not recover the proof answer from the rationale; Review may show the same refusal twice (the new card and the preview's).
 
 ### Evidence
