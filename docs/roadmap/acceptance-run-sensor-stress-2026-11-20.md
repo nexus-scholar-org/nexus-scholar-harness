@@ -74,6 +74,8 @@ The likely cause (the side session's inference; the papers were not opened): the
 
 The morning's recall check passed 4 of 4, and the main session read that as "OpenAlex alone is enough". That was wrong: all four seeds contain every concept, so they could not show this gap.
 
+The researcher's product view, recorded on 2026-11-20: these checks belong to Inception, which should help the researcher test and iterate the query before the protocol freezes, and several queries per review should come back.
+
 **Decision by the researcher:** widen to three concepts, (UAV or multispectral terms) AND weed AND segmentation or mapping, in a new workspace; import the Scopus and IEEE Xplore exports first, then harvest.
 
 **Second workspace** (created 2026-11-20, 14:37 local, on the build from `b9c7dc0b`): `sensor-stress-in-uav-and-multispectral-weed-segmentation-a-scoping-review`. Same questions, criteria and charting columns. Five recall seeds, one of which the strict query had missed ("CLIP Meets DINOv3 for Effective Crop and Weed Multispectral Semantic Segmentation"). Estimate without Crossref: OpenAlex 781, Semantic Scholar 539, arXiv 30; 781 to 1,350 works after duplicates. Recall check: 5 of 5. The first workspace is left as it is.
@@ -98,6 +100,35 @@ The researcher replaced the OpenAlex key the same afternoon; with it OpenAlex an
 | 27 | Discovery, Hand-off | For a corpus of imported files the Hand-off shows "With an abstract: 0 (0 %)" and "Title only: 0"; the real figures were 1,012 and 50 | P2 |
 | 28 | Screening, Agent proposals | Before batches are prepared, the screen says "No accepted corpus … Import your search results and accept them first" although the corpus is accepted | P3 |
 | 29 | `scholar-search search` | The command stops at 100 records by default and prints "Saved 100 documents" with no word that more exist; arXiv timed out once after 30 s and the command saved an empty file with exit code 0 | P2 |
+
+## Screening and agent drafts (late afternoon of 2026-11-20)
+
+The researcher stored the Anthropic key with `nexus-scholar keys set anthropic`. Agent drafts on the 1,062 records, in order: a dry run and one chunk on Haiku 5.5 (220 drafts, $0.05); a run on Opus 5.5 started by the researcher and cancelled after its first chunk (200 drafts, $1.20); a trial of 20 drafts written by the main session and submitted with the MCP tool `nexus_submit_proposal` (driver `mcp`, task version `mcp-confident-trial-1`, no API cost).
+
+| Drafts | Records | Unclear | Exclude | Include |
+| :-- | --: | --: | --: | --: |
+| Haiku 5.5, rule `unclear` | 220 | 187 (85%) | 16 | 17 |
+| Opus 5.5, rule `unclear` | 200 | 165 (83%) | 22 | 13 |
+| Same Haiku drafts, re-derived with a decisive answer first | 220 | 96 (44%) | 107 | 17 |
+| Same Opus drafts, re-derived with a decisive answer first | 200 | 102 (51%) | 85 | 13 |
+| Main session over MCP, rule `unclear`, an instruction that infers more | 20 | 10 (50%) | 8 | 2 |
+
+The rule, not the model, made the unclear pile: one `not_reported` answer among nine criteria made the draft Unclear before a decisive answer was read. The criteria written for this review made it worse: the exclusion criteria mirror the inclusion ones ("RGB only" against "multispectral from a UAV"), which doubles the chances of a `not_reported`, and "uses a learned model" sits beside "or a dataset paper", so a dataset paper cannot satisfy both.
+
+Fixed the same day by H-screening-drafts (PR #261, merged at `2436fe66`): the rule `decisive_first`, method amendments recorded beside the signed protocol, drafts derived under the rule in force, and a safer run screen. On the rebuilt app the researcher's review received two amendments (drafts shown beside the record; `decisive_first`), and Haiku was started on the 622 records without a draft (estimate $0.13). The effect of `decisive_first` and of the candidate prompt `screen-v2` on recall is being measured on the frozen 1,644-record set (Haiku); the result is not in this record yet.
+
+### Findings from this part
+
+| # | Screen | What happened | Severity | Status |
+| :-- | :-- | :-- | :-- | :-- |
+| 30 | Screening, drafts | 83 to 85% of drafts Unclear whatever the model, because any `not_reported` answer decided the outcome first | P1 for the value of drafts | Fixed by H-screening-drafts (rule `decisive_first`, by amendment) |
+| 31 | Screening, Prepare | "Show beside the record" could be clicked and did nothing: the protocol written at genesis fixes `blinding`, and Inception never asks | P2 | Fixed by H-screening-drafts (amendment); Inception still does not ask (M10f-3) |
+| 32 | Screening, Agent proposals | The model went back to Opus on every reload and the confirmation named neither the model nor the cost: $7.59 where $0.22 was meant, one click away | P1 (money) | Fixed by H-screening-drafts |
+| 33 | Screening, Agent proposals | A Batch run showed "0 of N proposed" for about six minutes; the researcher cancelled two runs as stuck | P2 | Fixed by H-screening-drafts (the screen says it waits on the batch service) |
+| 34 | Screening, Agent proposals | "No run yet" for about 40 seconds after "Start the run" | P3 | Message fixed; the cause of the delay is not investigated |
+| 35 | Screening, Agent proposals | The browser console showed HTTP 409 and 404 answers during this step with nothing on screen | P3, unverified | Open |
+| 36 | Inception, Criteria | Nothing warns that mirrored exclusion criteria, or criteria that cannot both hold, will make agent drafts Unclear. The wizard's own lumped exclusion (finding 2) pushes the researcher to write mirrors | P2 | Open (M10f-3) |
+| 37 | Built-in browser automation (not the product) | The automation could not pick a file for the Import screen, and files it downloaded did not land in Downloads; the researcher did both by hand | n/a | Recorded for whoever drives the app this way |
 
 ## What to fix first
 
