@@ -723,6 +723,14 @@ def report(request: Request, run: str | None = None) -> dict[str, Any]:
         prisma = prisma_preview(request)
     except Exception:  # noqa: BLE001 - no prepared screening yet: the preview is absent, not an error
         prisma = None
+    window_rows = _verified(ws)
+    if newest_corpus == run_dir and imports:
+        # M3f: with exports in the corpus, count works (each work's representative), as the Hand-off does.
+        from ...corpus_accept import corpus_works
+
+        works = corpus_works(ws)
+        if works is not None:
+            window_rows = works[1]
     stored = _stored_methods(run_dir)
     if stored is not None:
         methods = {"text": stored["text"], "built_from": run_dir.name, "reviewed": stored["reviewed"],
@@ -753,7 +761,7 @@ def report(request: Request, run: str | None = None) -> dict[str, Any]:
         "not_searched": not_searched,
         "imports": imports,
         "dedup": dedup,
-        "outside_year_window": _outside_window(_verified(ws), proto.query),
+        "outside_year_window": _outside_window(window_rows, proto.query),
         "prisma": prisma,
         "methods_text": methods,
         "runs": _runs_payload(request),

@@ -153,12 +153,12 @@ New files are harness run records outside Contract v1, as `verification_checks.j
 - **Amended by an addendum.** The Hand-off spec's line "no separate imports row" in the provider mix (`08-handoff.md`), a spec choice from when the two could not coexist.
 
 ## Definition of done
-- [ ] **D1 Order.** Staging after a harvest, a harvest after staging, repeating both and removing exports work before the accept. `VERIFIED_EXISTS` is kept only for `verified.json` of unknown origin, and `STAGED_IMPORT_PENDING` is no longer raised by run, prepare or the CLI `run`. Tests: `tests/cli/test_combined_corpus.py`, `tests/console/test_combined_corpus_api.py`.
-- [ ] **D2 One deduplication.** The accept builds one snapshot from the harvest part plus the staged records: one pass, a fixed order, every record kept under its study, and the combined manifest and PRISMA identification. The harvest's file is copied to its run folder and restored on a refused gate. Harvest-only and import-only snapshots are byte-identical to before (golden digests). Tests: `tests/cli/test_combined_corpus.py`, `tests/pipeline/test_golden_search_cassettes.py`.
-- [ ] **D3 Unfinished or stale harvest.** An unfinished harvest plus exports accepts the exports only and says so. Without exports it refuses `PREPARATION_UNFINISHED`. A superseded run never enters. A changed protocol refuses `PROTOCOL_CHANGED_SINCE_RUN`. Tests: `tests/console/test_combined_corpus_api.py`.
-- [ ] **D4 The Hand-off and corpus views.** Counts from the combined preview, a provider mix with database labels and `kind`, abstracts per work (finding 27), and `corpus.origin` `combined` with `corpus.harvest`. Tests: the API tests above; `apps/research-ui/tests/discovery-handoff.test.tsx`.
-- [ ] **D5 The report and methods text.** Combined `dedup`, export sentences with their stated details, the unchecked-imports sentence, and the screening export's database sentence. Tests: `tests/kits/search/test_methods_text_combined.py`, `tests/console/test_combined_corpus_api.py`, `tests/console/test_methods_api.py`.
-- [ ] **D6 Screens and copy.** Specs addenda FINAL before UI work. Harvest and Plan copy (finding 26), the Import line, the Hand-off mix, abstract and warning lines, en/fr/ar, and guidance audit rows. Vitest and Playwright.
+- [x] **D1 Order.** Staging after a harvest, a harvest after staging, repeating both and removing exports work before the accept. `VERIFIED_EXISTS` is kept only for `verified.json` of unknown origin, and `STAGED_IMPORT_PENDING` is no longer raised by run, prepare or the CLI `run`. Tests: `tests/cli/test_combined_corpus.py`, `tests/console/test_combined_corpus_api.py`.
+- [x] **D2 One deduplication.** The accept builds one snapshot from the harvest part plus the staged records: one pass, a fixed order, every record kept under its study, and the combined manifest and PRISMA identification. The harvest's file is copied to its run folder and restored on a refused gate. Harvest-only and import-only snapshots are byte-identical to before (golden digests). Tests: `tests/cli/test_combined_corpus.py`, `tests/pipeline/test_golden_search_cassettes.py`.
+- [x] **D3 Unfinished or stale harvest.** An unfinished harvest plus exports accepts the exports only and says so. Without exports it refuses `PREPARATION_UNFINISHED`. A superseded run never enters. A changed protocol refuses `PROTOCOL_CHANGED_SINCE_RUN`. Tests: `tests/console/test_combined_corpus_api.py`.
+- [x] **D4 The Hand-off and corpus views.** Counts from the combined preview, a provider mix with database labels and `kind`, abstracts per work (finding 27), and `corpus.origin` `combined` with `corpus.harvest`. Tests: the API tests above; `apps/research-ui/tests/discovery-handoff.test.tsx`.
+- [x] **D5 The report and methods text.** Combined `dedup`, export sentences with their stated details, the unchecked-imports sentence, and the screening export's database sentence. Tests: `tests/kits/search/test_methods_text_combined.py`, `tests/console/test_combined_corpus_api.py`, `tests/console/test_methods_api.py`.
+- [x] **D6 Screens and copy.** Specs addenda FINAL before UI work. Harvest and Plan copy (finding 26), the Import line, the Hand-off mix, abstract and warning lines, en/fr/ar, and guidance audit rows. Vitest and Playwright.
 - [ ] **Gate.** `/gate inner` after edits and `/gate checkpoint` per item. `/gate pr` once on the final commit. Contract, schema, fixture and protocol `--check`. `milestone-reviewer` APPROVE.
 
 ## Tests written first
@@ -190,7 +190,15 @@ Added after the engine: `tests/console/test_methods_api.py::test_a_combined_corp
 | :-- | :-- | :-- | :-- |
 
 ## Decisions
-`docs/decisions.md`, entry "2026-11-20 — M3f-combined-corpus" (PROPOSED).
+`docs/decisions.md`, entry "2026-11-20 — M3f-combined-corpus" (items 1 to 8, PROPOSED). Item 3 is the one to confirm: as built, an unfinished harvest beside staged exports is left out at the accept after a warning, which keeps M3i item 10. The alternative is to refuse the accept until the harvest is finished.
+
+Made while building, inside the design:
+- The CLI `run` refuses `PREPARATION_UNFINISHED` rather than freeze the exports without its own records. The run exists to freeze its own harvest; the Hand-off may still accept the exports alone.
+- The next-step bar's `CORPUS_READY` counts the combined corpus (`corpus.preview`).
+- The screening `/prisma/preview` reads the same counts as the published report for a combined corpus.
+- The `VERIFIED_EXISTS` card is reworded in `lib/screening-states.ts` as well as in the catalog.
+
+Spec addenda (FINAL, no open questions): 01-plan, 03-harvest, 04-import, 06-report and 08-handoff, plus the guidance audit rows (`docs/ux/shared/final/03-guidance.md`).
 
 ## Evidence
 | Stage | Commit | Command | Result | Duration |

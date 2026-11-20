@@ -231,6 +231,8 @@ def test_the_report_and_methods_text_name_both_parts(env):
     assert "IEEE Xplore (1 record; date searched not stated; search string not stated)" in text
     assert "The 4 imported records were not checked against Crossref or OpenAlex." in text
     assert "Deduplication across the 3 sources removed 1 record, leaving 7 unique works." in text
+    # Works outside the protocol's years are counted once each, as on the Hand-off.
+    assert report["outside_year_window"] == client.get(f"{BASE}/handoff").json()["outside_year_window"]
 
 
 # --------------------------------------------------------------------------- the next-step bar
