@@ -209,7 +209,19 @@ export interface PairingBegun {
   snapshot_fingerprint: string;
   code_expires_at: string;
   attempt_cap: number;
-  code_shown_on: "terminal";
+  /** "desktop": also in a window on this computer's desktop (finding 38); the terminal always has it. */
+  code_shown_on: "terminal" | "desktop";
+}
+
+/** Why a batch got no code from the bulk begin (H-run-small-fixes Part A). */
+export type BulkSkipReason = "ALREADY_APPROVED" | "DEFERRED" | "NOT_DECIDED" | (string & {});
+
+export interface PairingBegunAll {
+  batches: { batch_index: number; snapshot_fingerprint: string }[];
+  skipped: { batch_index: number; reason: BulkSkipReason }[];
+  code_expires_at: string;
+  attempt_cap: number;
+  code_shown_on: "terminal" | "desktop";
 }
 
 export const MAX_EVENTS_PER_REQUEST = 200;
@@ -422,6 +434,14 @@ export function acceptCorpus(origin: string, signal?: AbortSignal): Promise<Corp
 /** Stage approval for one batch. The code is printed in the engine's terminal, never returned. */
 export function beginApproval(origin: string, batchIndex: number, signal?: AbortSignal): Promise<PairingBegun> {
   return postJson<PairingBegun>(`${BASE}/actions/pairing/begin`, origin, { batch: batchIndex }, signal);
+}
+
+/**
+ * Stage one fresh code for every decided, not yet approved batch (finding 38).
+ * The codes are shown together on the engine's terminal (and its desktop window), never returned.
+ */
+export function beginApprovalAll(origin: string, signal?: AbortSignal): Promise<PairingBegunAll> {
+  return postJson<PairingBegunAll>(`${BASE}/actions/pairing/begin-all`, origin, {}, signal);
 }
 
 /** A UUIDv7 (RFC 9562): 48-bit Unix milliseconds, then random bits. */
