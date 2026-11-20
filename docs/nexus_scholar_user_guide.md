@@ -344,7 +344,7 @@ starts this server on your workspace.
 | `SCHOLAR_S2_KEY` | Semantic Scholar API key (optional; without it the bulk search runs in Semantic Scholar's shared keyless pool). Sent as the `x-api-key` header. A key Semantic Scholar rejects (HTTP 401 or 403; keys unused for about 60 days are pruned, and a key pasted with quotes is refused) fails the Semantic Scholar leg with `PROVIDER_REFUSED` and a note naming the variable; the search is never retried without the key. The Plan screen shows "Set, not yet verified". A key allows 1 request per second across all endpoints; the search, the abstract step and citation chasing together send at most 0.9 per second (`SCHOLAR_RATE_LIMIT_S2`). |
 | `NEXUS_WORKSPACES_ROOT` | Folder holding your workspaces for `nexus-scholar ui` (else `~/Documents/Nexus Scholar/workspaces`). |
 | `NEXUS_CONSOLE_TOKEN` | The per-launch token of `nexus-scholar serve` (it prints one if unset). |
-| `OPENAI_API_KEY` / `ANTHROPIC_API_KEY` / `GEMINI_API_KEY` | Provider keys for synthesis/verification steps |
+| `OPENAI_API_KEY` / `ANTHROPIC_API_KEY` / `GEMINI_API_KEY` | Provider keys for the screening agent and the other model steps. A variable that is set is used before a key stored in the OS keychain (see "Provider keys" below). |
 | `NEXUS_RECON_ROOT` | Where the inception recon cache pools live (default repo `.cache/inception_recon`); makes caching CWD-independent. The CLI wizard, the MCP tools and the console's recon routes share it |
 | `NEXUS_MCP_CONFIG_HOME` | Where `setup-mcp` writes configs (hermetic setups) |
 | `NEXUS_SKILLS_SRC` | Override the skill-bundle source root (`init` picks it first) |
@@ -357,6 +357,43 @@ values into an MCP config file: it adds `--env-file <path>` to the server
 command, and `scholar-agent` loads the keys from that file when it starts
 (variables already set in your environment win). `.env`, `.mcp.json` and
 `.cursor/mcp.json` are gitignored.
+
+### Provider keys: which one is used
+
+A provider key (Anthropic, an OpenAI-compatible service, Gemini) can live in two
+places, and the order is the same for every command that sends records to a
+provider (`prompt-gate run`, `prompt-gate measure`, the screening agent in the
+app) and for the MCP server:
+
+1. **The environment variable**, if it is set and not blank: `ANTHROPIC_API_KEY`,
+   `OPENAI_API_KEY` or `GEMINI_API_KEY` (from your shell, or from a `.env` the
+   process loaded). It is your explicit choice for this run, so it wins.
+2. **The OS keychain**, where `nexus-scholar keys set <provider>` stores a key
+   (typed at a hidden prompt; never written to a file). It is the default when no
+   variable is set.
+
+`nexus-scholar keys status` shows which one is in use for each provider, and says
+when the other also holds a key, without printing any part of either key:
+
+```
+anthropic: environment (ANTHROPIC_API_KEY; a keychain key also exists and is not used)
+  to use the keychain key instead, unset ANTHROPIC_API_KEY; to remove it, run: nexus-scholar keys clear anthropic
+openai_compatible: none
+gemini: keychain
+```
+
+If a provider refuses the key (HTTP 401), the command stops with one sentence that
+names where that key came from and how to replace it: put a valid key in the
+variable, or run `nexus-scholar keys set <provider>` (replace) or
+`nexus-scholar keys clear <provider>` (remove) for the keychain entry. Nothing is
+retried with the other key.
+
+Anthropic calls and the keychain need the `ai` extra. Without it
+`nexus-scholar keys status` says the keychain cannot be read, and a command that
+would call Anthropic stops before it shows any estimate or cost, with the line to
+run: `uv sync --extra ai` in a source checkout, or, for the installed wheel,
+`uv tool install --force "nexus-scholar[ai]>=<your version>"` (or
+`pip install -U "nexus-scholar[ai]"`).
 
 ---
 
@@ -387,6 +424,8 @@ Run any with `--help` for full options.
 | --- | --- |
 | `doctor` exits non-zero with a `kits` FAIL | Reinstall the wheel: the kits are part of the one `nexus-scholar` package and share its version |
 | `log batch` exits 1 but the journal looks fine | One or more records were skipped (invalid JSON or missing `action`/`description`); the error lines show which |
+| `prompt-gate measure` or `run` stops with "anthropic refused the key" (401) | The sentence names where the refused key came from (the variable or the keychain). `nexus-scholar keys status` shows which is in use and whether the other one also exists; replace or clear that key |
+| A command says "The Anthropic SDK is not installed" | Install the `ai` extra (§8, "Provider keys") |
 | `doctor` reports `keys` as `Missing` | No `.env` present; create one from `.env.example` (optional — `doctor` WARNs/SKIPs, not FAILs) |
 | `init` refuses a folder | It already looks like a workspace (or is a git repo / a file target). Point `--dir` at a fresh folder |
 | Skills were `COPIED` and you want symlinks | Enable Developer Mode (Windows) / re-run `init` into a fresh folder per the CLI hint |

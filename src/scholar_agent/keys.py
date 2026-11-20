@@ -1,17 +1,22 @@
-"""Provider API keys: the OS keychain first, the environment second (CORE-17).
+"""Provider API keys: the environment first, the OS keychain second (CORE-17, H-key-precedence).
 
-A key is read from the OS keychain (`keyring`, extra `ai`) under the service
-`nexus-scholar`, else from the provider's environment variable, which is how
-`.env` users already work (decision 2026-11-04, CORE-17). Nothing here writes
-a key to a file, a workspace, a config or the journal, and nothing returns a
-key except `resolve_key`, which hands it to a driver in memory.
+A key is read from the provider's environment variable (the shell, or the
+`.env` the process loaded), else from the OS keychain (`keyring`, extra `ai`)
+under the service `nexus-scholar`. A variable that is set is the explicit,
+per-run choice, so it beats the stored default; the MCP server already worked
+this way (`_apply_keychain_keys`). Nothing here writes a key to a file, a
+workspace, a config or the journal, and nothing returns a key except
+`resolve_key`, which hands it to a driver in memory.
 
-`key_status` says only where a key was found, never its value.
+`key_status` says only where the key in use was found and whether the other
+source also holds one, never a value. `refusal_note` says, after a provider
+refused a key (401), which source it came from and how to replace it.
 """
 
 from __future__ import annotations
 
 import os
+import re
 from dataclasses import dataclass
 
 SERVICE = "nexus-scholar"
@@ -25,11 +30,19 @@ ENV_VARS = {
 @dataclass(frozen=True)
 class KeyStatus:
     provider: str
-    source: str  # "keychain" | "environment" | "none"
+    source: str  # the source in use: "environment" | "keychain" | "none"
+    also_in_keychain: bool = False  # a keychain key exists too, and is not used (the environment wins)
 
     @property
     def present(self) -> bool:
         return self.source != "none"
+
+    def describe(self) -> str:
+        """One line for `keys status`: the source in use, the variable's name, the shadowed key; never a value."""
+        if self.source == "environment":
+            note = "; a keychain key also exists and is not used" if self.also_in_keychain else ""
+            return f"environment ({ENV_VARS[self.provider]}{note})"
+        return self.source
 
 
 def _keyring():
@@ -56,18 +69,58 @@ def _from_keychain(provider: str) -> str | None:
     return value or None
 
 
+def _from_environment(provider: str) -> str | None:
+    return os.environ.get(ENV_VARS[provider], "").strip() or None
+
+
+def keychain_available() -> bool:
+    """Whether the keychain library is installed (extra `ai`); without it no keychain key can be read."""
+    return _keyring() is not None
+
+
 def resolve_key(provider: str) -> str | None:
+    """The key to use: the environment variable if set, else the keychain entry, else None."""
     _check(provider)
-    return _from_keychain(provider) or (os.environ.get(ENV_VARS[provider], "").strip() or None)
+    return _from_environment(provider) or _from_keychain(provider)
 
 
 def key_status(provider: str) -> KeyStatus:
     _check(provider)
-    if _from_keychain(provider):
-        return KeyStatus(provider, "keychain")
-    if os.environ.get(ENV_VARS[provider], "").strip():
-        return KeyStatus(provider, "environment")
-    return KeyStatus(provider, "none")
+    in_keychain = bool(_from_keychain(provider))
+    if _from_environment(provider):
+        return KeyStatus(provider, "environment", also_in_keychain=in_keychain)
+    return KeyStatus(provider, "keychain" if in_keychain else "none")
+
+
+_REFUSAL = re.compile(r"(?<!\d)401(?!\d)|AuthenticationError", re.IGNORECASE)
+
+
+def is_refusal(error: object) -> bool:
+    """True when a provider refused the key (HTTP 401): an exception that carries status 401, or the text of one."""
+    if isinstance(error, BaseException):
+        if getattr(error, "status_code", None) == 401:
+            return True
+        error = f"{type(error).__name__}: {error}"
+    return bool(_REFUSAL.search(str(error)))
+
+
+def refusal_note(provider: str) -> str:
+    """After a 401: which source the refused key came from and how to replace it (no key value)."""
+    status = key_status(provider)
+    var = ENV_VARS[provider]
+    if status.source == "environment":
+        other = (
+            f" A keychain key also exists and is not used; unset {var} to use it, or replace it with `nexus-scholar keys set {provider}`."
+            if status.also_in_keychain
+            else ""
+        )
+        return f"{provider} refused the key from the environment variable {var}. Put a valid key in {var} (the shell or the .env file).{other}"
+    if status.source == "keychain":
+        return (
+            f"{provider} refused the key stored in the OS keychain. Replace it with `nexus-scholar keys set {provider}`, "
+            f"or remove it with `nexus-scholar keys clear {provider}` and set {var} instead."
+        )
+    return f"{provider} refused the key it was given; no stored key or {var} is set now, so the key came from elsewhere in this process."
 
 
 def store_key(provider: str, value: str) -> None:

@@ -1,4 +1,4 @@
-"""Provider keys: keychain first, environment second, never a file (CORE-17, M1b-2).
+"""Provider keys: environment first, keychain second, never a file (CORE-17, M1b-2, H-key-precedence).
 
 A fake keyring stands in for the OS keychain, so no test touches the real one.
 """
@@ -36,13 +36,17 @@ def keychain(monkeypatch):
     return store
 
 
-def test_keychain_wins_over_the_environment(keychain, monkeypatch):
+def test_the_environment_wins_over_the_keychain_which_is_the_default(keychain, monkeypatch):
+    # H-key-precedence-2026-11-20: an explicit variable beats the stored default (it used to be the reverse).
     monkeypatch.setenv("ANTHROPIC_API_KEY", "from-env")
     assert keys.resolve_key("anthropic") == "from-env"
     assert keys.key_status("anthropic").source == "environment"
     keys.store_key("anthropic", SECRET)
     assert keychain[(keys.SERVICE, "anthropic")] == SECRET
+    assert keys.resolve_key("anthropic") == "from-env" and keys.key_status("anthropic").also_in_keychain
+    monkeypatch.delenv("ANTHROPIC_API_KEY")
     assert keys.resolve_key("anthropic") == SECRET and keys.key_status("anthropic").source == "keychain"
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "from-env")
     assert keys.clear_key("anthropic") is True and keys.resolve_key("anthropic") == "from-env"
 
 
