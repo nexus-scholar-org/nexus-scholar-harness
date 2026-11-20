@@ -47,7 +47,7 @@ const READ_METHODS = new Set(["GET", "HEAD"]);
 /** POST targets the browser may reach: screening actions, decisions and prepare. */
 const POST_PATHS: ReadonlyArray<RegExp> = [
   /^api\/v1\/screening\/batch\/\d+\/decisions$/,
-  /^api\/v1\/screening\/actions\/(pairing\/(begin|redeem)|defer|publish)$/,
+  /^api\/v1\/screening\/actions\/(pairing\/(begin|redeem)(-all)?|defer|publish)$/,
   // M1b-1: the screening API (contract §4). Each route runs its own checks in
   // the console (binding, reason codes, coverage, an accepted snapshot).
   /^api\/v1\/screening\/decisions\/events$/,
