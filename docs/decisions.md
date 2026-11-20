@@ -12,6 +12,18 @@ history to read if you need the original reasoning (`git log --follow -- <path>`
 | :-- | :-- | :-- |
 | 2026-11-19 — M9a: what the measurement says about the ladder gates | 2 | The minimum share of the researcher's excludes an agent must take before a rung unlocks: the principle is accepted; the researcher decided on 2026-11-20 to set the number when M9b is built. |
 
+## 2026-11-20 — The order of work after the acceptance run (accepted by the researcher 2026-11-20)
+
+Record: `docs/roadmap/production-plan.md` §6, "After the acceptance run"; motivation: `docs/roadmap/what-a-researcher-does.md`; evidence: `docs/roadmap/acceptance-run-sensor-stress-2026-11-20.md` (37 findings).
+
+1. **The order is: M3f-combined-corpus, the small fixes from the run, a query workbench (M11a), a criteria pilot (M11b), a minimal charting table (M12a), search updates with several queries (M3j), then release b7.** Sources, the query and the criteria come before agent autonomy and the in-app chat. *Why:* the run's serious findings were about what a researcher does first (develop the search, bring exports, revise criteria), and three of the six were born in Inception and found downstream.
+2. **The Inception redesign is no longer a track of its own.** Its quick fixes join the small fixes; its Explore and Direction part becomes the query workbench; its Shape and Criteria part becomes the criteria pilot. Direction A and decisions D1 to D15 (2026-11-20) still say how those screens look.
+3. **M9d-discovery-assistant is split:** synonyms and recall repair join the query workbench; the rest waits with M10e. **M3h-providers closes** with the small fixes, which take what is left of it.
+4. **The query checks belong to Inception** (the researcher's view): the researcher must be able to test and iterate the query before the protocol freezes, and the same tool serves amendments on Discovery's Plan. **Several queries per review come back** (M3j); the researcher recalls that an earlier version had them.
+5. **Specifications first for M11a and M11b:** neither has one; each is written and read by the researcher before anything is built, as for M10b.
+6. **At most two milestones in flight,** because the researcher's decisions and reviews are the bottleneck. **One outside researcher uses the app without help before b7.**
+7. **Waiting:** M9b and M9c (the M9a measurement is read again under `decisive_first` first), M10e, M3e (conditional), M2. The Matrix beyond the charting table, synthesis, the graph and the risk-of-bias trust score stay parked.
+
 ## 2026-11-20 — H-screening-drafts: a decisive answer first, the method amended after genesis, drafts derived under the rule in force (items 1 to 10 accepted by the researcher 2026-11-20, including the spend to measure `screen-v2` on Haiku 5.5; item 2 changes the 2026-11-08 decision "Method parameters move into the protocol")
 
 Record: `docs/roadmap/milestones/H-screening-drafts.md`. Found by the acceptance run of 2026-11-20 (`docs/roadmap/acceptance-run-sensor-stress-2026-11-20.md`): 85% (Haiku 5.5, 220 drafts) and 83% (Opus 5.5, 200 drafts) of the agent's drafts were Unclear, because the `unclear` rule returns Unclear as soon as one criterion is not reported, before it looks at a decisive answer. Re-derived outside the app with a decisive-answer-first rule the same drafts gave Haiku 96 Unclear, 107 Exclude, 17 Include and Opus 102, 85, 13. The rule, not the model, made the unclear pile (M9a item 3 asked for this rule to be settled first). On the same screen, "Show beside the record" silently did nothing because the protocol written at genesis sets blinding, and the run screen cost $7.59 where $0.22 was meant. Contract v1 baseline current before and after.
