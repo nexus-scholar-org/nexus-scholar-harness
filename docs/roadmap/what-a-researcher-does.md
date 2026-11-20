@@ -54,7 +54,7 @@ This note describes the work of a literature review as it is really done, and wh
 
 The run of 2026-11-20 was the first real review taken through the app. It produced 37 findings; the ones that would have stopped or misled a researcher working alone were the quota hang, the Crossref noise, a query too narrow with no warning, no way to combine Scopus with a harvest, 85% of agent drafts marked unclear, and a default that would have cost $7.59 where $0.22 was meant. The test suite passed throughout: the tests show that the code does what was specified, not that the specification serves a researcher. Three of the six were born in Inception and discovered downstream.
 
-## Consequences proposed by the main session (not decided)
+## Consequences (order agreed with the researcher on 2026-11-20)
 
 In this order, each sized so the researcher's own review can use it:
 
