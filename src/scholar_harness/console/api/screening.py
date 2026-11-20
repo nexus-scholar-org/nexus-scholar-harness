@@ -1062,6 +1062,20 @@ def action_pairing_status(
 @router.post("/actions/pairing/redeem", status_code=200)
 def action_pairing_redeem(body: RedeemBody, request: Request) -> dict[str, Any]:
     """Verify a transcribed pairing code; mint the approval via AG-03B."""
+    _require_action_origin(request)
+    _ui07_refuse_caller_identity(request)
+    ws = _ui07_ws(request)
+    req = _action_request_id(body.request_id)
+    return _redeem_one(ws, body.batch, body.code or "", req)
+
+
+def _redeem_one(ws: Path, batch: int, code: str, req: str, *, bulk: bool = False) -> dict[str, Any]:
+    """Redeem one batch's code and journal it, or roll the approval back.
+
+    Shared by the single redeem and the bulk redeem (finding 38): the bulk
+    path is this, once per batch, so each approval, journal row and rollback
+    is exactly what a single redeem makes.
+    """
     from scholar_harness.authority import pairing as _pairing
     from scholar_harness.authority.binding import AuthorityRefused
     from scholar_harness.authority.review import (
@@ -1074,27 +1088,20 @@ def action_pairing_redeem(body: RedeemBody, request: Request) -> dict[str, Any]:
     from scholar_harness.screening.worker import WorkerRefused
     from scholar_harness.verification_identity import VerificationIdentityRefused
 
-    _require_action_origin(request)
-    _ui07_refuse_caller_identity(request)
-    ws = _ui07_ws(request)
-    req = _action_request_id(body.request_id)
-
     # Fail-closed rollback set: every file the mint may create, replace, or
     # lift, snapshotted before the mint so a journal failure restores the
     # pre-request state (the staged challenge bytes included).
     watched = [
-        review_path(ws, body.batch),
-        batch_approval_path(ws, body.batch),
+        review_path(ws, batch),
+        batch_approval_path(ws, batch),
         ws / "literature" / "screening" / "publication_approval.json",
-        deferral_path(ws, body.batch),
-        _pairing.pairing_path(ws, body.batch),
+        deferral_path(ws, batch),
+        _pairing.pairing_path(ws, batch),
     ]
     backup = {path: _snapshot_file(path) for path in watched}
 
     try:
-        result = _pairing.redeem_pairing(
-            ws, body.batch, body.code or "", request_id=req
-        )
+        result = _pairing.redeem_pairing(ws, batch, code, request_id=req)
     except (
         AuthorityRefused,
         ReviewRefused,
@@ -1104,25 +1111,28 @@ def action_pairing_redeem(body: RedeemBody, request: Request) -> dict[str, Any]:
     ) as exc:
         raise _action_http_error(exc, req) from exc
 
+    parameters = {
+        "batch_index": batch,
+        "snapshot_fingerprint": result["snapshot_fingerprint"],
+        "approval_fingerprint": result["approval_fingerprint"],
+        "operator_identity": result["operator_identity"],
+        "superseded": result["superseded"],
+    }
+    if bulk:
+        parameters["bulk"] = True
     try:
         event = _journal_action(
             ws,
             action="SCREENING_PAIRING_REDEEMED",
             description=(
-                f"Redeemed pairing challenge for batch {body.batch} "
+                f"Redeemed pairing challenge for batch {batch} "
                 f"(approval {result['approval_fingerprint']})"
             ),
             request_id=req,
-            inputs=[f"batch_{body.batch:03d}.json"],
-            outputs=[f"batch_{body.batch:03d}_approval.json"],
-            parameters={
-                "batch_index": body.batch,
-                "snapshot_fingerprint": result["snapshot_fingerprint"],
-                "approval_fingerprint": result["approval_fingerprint"],
-                "operator_identity": result["operator_identity"],
-                "superseded": result["superseded"],
-            },
-            metrics={"batch_index": body.batch},
+            inputs=[f"batch_{batch:03d}.json"],
+            outputs=[f"batch_{batch:03d}_approval.json"],
+            parameters=parameters,
+            metrics={"batch_index": batch},
         )
     except OSError as exc:
         for path, blob in backup.items():
@@ -1139,6 +1149,85 @@ def action_pairing_redeem(body: RedeemBody, request: Request) -> dict[str, Any]:
         "request_id": req,
         "journal_event_id": event["event_id"],
         **result,
+    }
+
+
+class RedeemAllBody(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+
+    codes: str
+    request_id: str | None = None
+
+
+#: A pasted block longer than this is not a block of codes (54 batches is ~2 KB).
+REDEEM_ALL_MAX_CHARS = 200_000
+
+
+@router.post("/actions/pairing/redeem-all", status_code=200)
+def action_pairing_redeem_all(body: RedeemAllBody, request: Request) -> dict[str, Any]:
+    """Redeem a pasted block of codes, one approval per batch (finding 38).
+
+    Each ``batch n: CODE`` line goes through the single redeem unchanged, in
+    batch order. A line that fails (a stale batch, an expired or wrong code)
+    is reported and the others still count: each approval binds only its own
+    batch (CON-03). When no line approves anything, the first refusal is the
+    answer, so a wrong paste is never an empty success.
+    """
+    from scholar_harness.authority import pairing as _pairing
+
+    _require_action_origin(request)
+    _ui07_refuse_caller_identity(request)
+    ws = _ui07_ws(request)
+    req = _action_request_id(body.request_id)
+    text = body.codes or ""
+    pairs = _pairing.parse_code_block(text) if len(text) <= REDEEM_ALL_MAX_CHARS else []
+    if not pairs:
+        raise _ui07_error(
+            403,
+            "PAIRING_CODE_INVALID",
+            "no approval code found in the pasted text; copy the lines that read "
+            "'batch n: CODE'",
+            reason="unknown",
+            request_id=req,
+        )
+    approved: list[dict[str, Any]] = []
+    refused: list[dict[str, Any]] = []
+    first_error: HTTPException | None = None
+    publication: str | None = None
+    for batch, code in pairs:
+        try:
+            result = _redeem_one(ws, batch, code, f"{req}-b{batch}", bulk=True)
+        except HTTPException as exc:
+            detail = exc.detail if isinstance(exc.detail, dict) else {}
+            refused.append(
+                {
+                    "batch_index": batch,
+                    "code": str(detail.get("code") or "ACTION_FAILED"),
+                    "message": str(detail.get("message") or ""),
+                }
+            )
+            first_error = first_error or exc
+            if exc.status_code >= 500:
+                break  # provenance could not be written: stop, nothing more
+            continue
+        approved.append(
+            {
+                "batch_index": batch,
+                "approval_fingerprint": result["approval_fingerprint"],
+                "journal_event_id": result["journal_event_id"],
+            }
+        )
+        # The last approval's answer: staged only once every batch holds a
+        # current approval (CON-03), so a refused batch leaves it None.
+        publication = result.get("publication_approval_fingerprint")
+    if not approved and first_error is not None:
+        raise first_error
+    return {
+        "shape": "screening-action-redeem-all-v1",
+        "request_id": req,
+        "approved": approved,
+        "refused": refused,
+        "publication_approval_fingerprint": publication,
     }
 
 

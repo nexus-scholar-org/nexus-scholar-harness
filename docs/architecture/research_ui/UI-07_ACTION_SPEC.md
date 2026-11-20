@@ -73,6 +73,16 @@ The operator act happens where the authority already lives (their Medium
 terminal); the browser only carries a short, single-use, time-bound code
 that is useless to anyone who did not see the terminal.
 
+**Amendment proposed 2026-11-20 (H-run-small-fixes Part A, finding 38; not accepted yet).**
+Two changes, neither touching the floors of §3.1: (1) the packaged app
+(`nexus-scholar ui`) may also show a code in a window owned by the engine's
+own process on this computer's desktop, beside its terminal, for a
+researcher who cannot see the terminal; the code is never in the window
+title and never over HTTP, and the window closes at expiry; (2) the
+codes of several batches may be staged in one request and pasted as one
+block of `batch n: CODE` lines, each line redeemed by the unchanged
+single-batch path. Each code still binds one batch's snapshot.
+
 ### 3.1 Flow
 
 1. Operator runs `approve --begin --batch <n>` in their Medium terminal.

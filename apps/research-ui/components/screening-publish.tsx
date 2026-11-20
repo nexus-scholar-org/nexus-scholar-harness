@@ -14,18 +14,33 @@ import {
   isScreeningApiError,
   postDeferBatch,
   postPairingRedeem,
+  postPairingRedeemAll,
   postPublishScreening,
+  type RedeemAllResult,
   type PublishResult,
   type ReviewState,
   type ScreeningBatches,
 } from "@/lib/screening-api";
-import { beginApproval, getApprover, getPrismaPreview, getSettings, putApprover, type Approver, type PairingBegun, type PrismaPreview } from "@/lib/screening-v1";
+import {
+  beginApproval,
+  beginApprovalAll,
+  getApprover,
+  getPrismaPreview,
+  getSettings,
+  putApprover,
+  type Approver,
+  type PairingBegun,
+  type PairingBegunAll,
+  type PrismaPreview,
+} from "@/lib/screening-v1";
 
 /**
  * Publish (spec 09): the PRISMA screening preview with its checks, one
- * approval per batch with the code the engine prints in its terminal (never
- * sent over HTTP, decision 2026-11-04), then the gated publish. Phone pairing
- * by QR is M2.
+ * approval per batch with the code the engine shows on this computer (its
+ * terminal, and its desktop window when the app has one; never sent over
+ * HTTP, decision 2026-11-04), then the gated publish. Phone pairing by QR is
+ * M2. Finding 38: one action stages the codes of every decided batch and one
+ * paste redeems them; the per-batch controls are folded below it.
  *
  * Every gate is the engine's: Publish is offered only when every preview check
  * passes, and the publish call itself still runs collect's own gates
@@ -63,14 +78,27 @@ const COPY = {
     "check.projections_current": "Every decisions file matches the decision log",
     pass: "Passes",
     fail: "Fails",
-    batches: "Approval, one batch at a time",
-    batchesBody: "Approval needs the one-time code the engine prints in its terminal. Ask for it, read it there, and type it here. A decision changed after approval makes the approval stale.",
+    batches: "Approval",
+    batchesBody: "Approval needs one-time codes that appear only on this computer: in a Nexus Scholar window on the desktop when the app opened one, and always in the engine's terminal. Each code approves one batch, once. A decision changed after approval makes the approval stale.",
+    bulkReady: "Batches fully decided and not approved yet: {ready} of {total}.",
+    bulkAsk: "Show the codes for every decided batch",
+    bulkShownDesktop: "The codes (batches: {n}) are in a Nexus Scholar window on this computer's desktop, and in the engine's terminal. They expire at {time}.",
+    bulkShownTerminal: "The codes (batches: {n}) are printed in the engine's terminal. They expire at {time}.",
+    bulkSkipped: "Left out: {approved} already approved, {deferred} deferred, {undecided} not fully decided.",
+    bulkLabel: "Paste the codes (the lines that read “batch n: code”)",
+    bulkApprove: "Approve the batches",
+    bulkWorking: "Approving the batches… with many batches this takes up to a minute.",
+    bulkPreparing: "Preparing the codes… with many batches this takes up to a minute.",
+    bulkDone: "Batches approved: {n}.",
+    bulkRefused: "Not approved: {batch} ({code}). Show the codes again for it.",
+    oneByOne: "Approve one batch at a time",
     approved: "Approval on file",
     approvedNote: "A decision changed after this approval makes it stale; approve again. Publish refuses a stale approval.",
     notApproved: "Not approved",
     deferred: "Deferred",
-    askCode: "Show a code in the terminal",
+    askCode: "Show a code for {batch}",
     codeShown: "Code printed in the terminal; it expires at {time}.",
+    codeShownDesktop: "Code shown in a Nexus Scholar window on this desktop and in the terminal; it expires at {time}.",
     codeLabel: "Approval code for {batch}",
     approve: "Approve {batch}",
     defer: "Defer",
@@ -122,14 +150,27 @@ const COPY = {
     "check.projections_current": "Chaque fichier de décisions correspond au journal",
     pass: "Satisfait",
     fail: "Échoue",
-    batches: "Approbation, lot par lot",
-    batchesBody: "L'approbation exige le code à usage unique que le moteur affiche dans son terminal. Demandez-le, lisez-le là-bas et saisissez-le ici. Une décision modifiée après approbation rend l'approbation périmée.",
+    batches: "Approbation",
+    batchesBody: "L'approbation exige des codes à usage unique qui n'apparaissent que sur cet ordinateur : dans une fenêtre Nexus Scholar sur le bureau quand l'application en a ouvert une, et toujours dans le terminal du moteur. Chaque code approuve un lot, une seule fois. Une décision modifiée après approbation rend l'approbation périmée.",
+    bulkReady: "Lots entièrement décidés et pas encore approuvés : {ready} sur {total}.",
+    bulkAsk: "Afficher les codes de tous les lots décidés",
+    bulkShownDesktop: "Les codes (lots : {n}) sont dans une fenêtre Nexus Scholar sur le bureau de cet ordinateur, et dans le terminal du moteur. Ils expirent à {time}.",
+    bulkShownTerminal: "Les codes (lots : {n}) sont affichés dans le terminal du moteur. Ils expirent à {time}.",
+    bulkSkipped: "Laissés de côté : {approved} déjà approuvés, {deferred} reportés, {undecided} pas entièrement décidés.",
+    bulkLabel: "Collez les codes (les lignes « batch n: code »)",
+    bulkApprove: "Approuver les lots",
+    bulkWorking: "Approbation des lots… avec beaucoup de lots, cela prend jusqu'à une minute.",
+    bulkPreparing: "Préparation des codes… avec beaucoup de lots, cela prend jusqu'à une minute.",
+    bulkDone: "Lots approuvés : {n}.",
+    bulkRefused: "Non approuvé : {batch} ({code}). Affichez de nouveau les codes pour ce lot.",
+    oneByOne: "Approuver un lot à la fois",
     approved: "Approbation enregistrée",
     approvedNote: "Une décision modifiée après cette approbation la rend périmée ; approuvez à nouveau. La publication refuse une approbation périmée.",
     notApproved: "Non approuvé",
     deferred: "Reporté",
-    askCode: "Afficher un code dans le terminal",
+    askCode: "Afficher un code pour {batch}",
     codeShown: "Code affiché dans le terminal ; il expire à {time}.",
+    codeShownDesktop: "Code affiché dans une fenêtre Nexus Scholar sur ce bureau et dans le terminal ; il expire à {time}.",
     codeLabel: "Code d'approbation pour {batch}",
     approve: "Approuver {batch}",
     defer: "Reporter",
@@ -181,14 +222,27 @@ const COPY = {
     "check.projections_current": "كل ملف قرارات مطابق للسجل",
     pass: "ناجح",
     fail: "فاشل",
-    batches: "الاعتماد، دفعة تلو الأخرى",
-    batchesBody: "يحتاج الاعتماد إلى رمز لمرة واحدة يطبعه المحرك في طرفيته. اطلبه واقرأه هناك ثم اكتبه هنا. أي قرار يتغيّر بعد الاعتماد يجعل الاعتماد قديمًا.",
+    batches: "الاعتماد",
+    batchesBody: "يحتاج الاعتماد إلى رموز لمرة واحدة لا تظهر إلا على هذا الحاسوب: في نافذة Nexus Scholar على سطح المكتب إن فتحها التطبيق، ودائمًا في طرفية المحرك. كل رمز يعتمد دفعة واحدة مرة واحدة. أي قرار يتغيّر بعد الاعتماد يجعل الاعتماد قديمًا.",
+    bulkReady: "الدفعات المحسومة بالكامل وغير المعتمدة بعد: {ready} من {total}.",
+    bulkAsk: "عرض الرموز لكل الدفعات المحسومة",
+    bulkShownDesktop: "الرموز (عدد الدفعات: {n}) في نافذة Nexus Scholar على سطح مكتب هذا الحاسوب، وفي طرفية المحرك. تنتهي صلاحيتها في {time}.",
+    bulkShownTerminal: "طُبعت الرموز (عدد الدفعات: {n}) في طرفية المحرك. تنتهي صلاحيتها في {time}.",
+    bulkSkipped: "تُركت جانبًا: {approved} معتمدة من قبل، {deferred} مؤجلة، {undecided} غير محسومة بالكامل.",
+    bulkLabel: "الصق الرموز (الأسطر التي تبدأ بـ «batch n: code»)",
+    bulkApprove: "اعتماد الدفعات",
+    bulkWorking: "جارٍ اعتماد الدفعات… مع دفعات كثيرة قد يستغرق ذلك دقيقة.",
+    bulkPreparing: "جارٍ تحضير الرموز… مع دفعات كثيرة قد يستغرق ذلك دقيقة.",
+    bulkDone: "الدفعات المعتمدة: {n}.",
+    bulkRefused: "لم تُعتمد: {batch} ({code}). اعرض الرموز من جديد لها.",
+    oneByOne: "اعتماد دفعة واحدة في كل مرة",
     approved: "اعتماد مسجّل",
     approvedNote: "أي قرار يتغيّر بعد هذا الاعتماد يجعله قديمًا؛ اعتمد من جديد. يرفض النشر الاعتماد القديم.",
     notApproved: "غير معتمدة",
     deferred: "مؤجلة",
-    askCode: "عرض رمز في الطرفية",
+    askCode: "عرض رمز لـ{batch}",
     codeShown: "طُبع الرمز في الطرفية؛ تنتهي صلاحيته في {time}.",
+    codeShownDesktop: "ظهر الرمز في نافذة Nexus Scholar على سطح المكتب وفي الطرفية؛ تنتهي صلاحيته في {time}.",
     codeLabel: "رمز اعتماد {batch}",
     approve: "اعتماد {batch}",
     defer: "تأجيل",
@@ -250,6 +304,11 @@ export function ScreeningPublish({ locale }: Readonly<{ locale: Locale }>) {
   const [state, setState] = useState<{ status: "loading" } | { status: "ready"; data: Loaded } | { status: "error"; code: string; message: string }>({ status: "loading" });
   const [codes, setCodes] = useState<Record<number, string>>({});
   const [begun, setBegun] = useState<Record<number, PairingBegun>>({});
+  const [begunAll, setBegunAll] = useState<PairingBegunAll | null>(null);
+  // The pasted block is memory-only (UI-07 §3.6): cleared on submit, never stored.
+  const [block, setBlock] = useState("");
+  const [bulkResult, setBulkResult] = useState<RedeemAllResult | null>(null);
+  const [bulkWorking, setBulkWorking] = useState<"preparing" | "approving" | null>(null);
   const [deferring, setDeferring] = useState<Record<number, string>>({});
   const [refusal, setRefusal] = useState<{ code: string; message: string } | null>(null);
   const [published, setPublished] = useState<PublishResult | null>(null);
@@ -311,6 +370,12 @@ export function ScreeningPublish({ locale }: Readonly<{ locale: Locale }>) {
     const { preview, batches, reviews, current, staleChanged, approver, reporting } = state.data;
     const allPass = preview.checks.every((c) => c.ok);
     const allApproved = batches.batches.every((b) => reviews[b.batch_index]?.review.present);
+    // Decided and not approved, as the screen can see it; the engine's own count
+    // (which also re-offers a stale approval) comes back from the begin call.
+    const ready = batches.batches.filter((b) => {
+      const r = reviews[b.batch_index];
+      return b.coverage === "COMPLETE" && b.unresolved_rows.length === 0 && r && !r.review.present && !r.deferral.present;
+    }).length;
     const reasons = Object.entries(preview.excluded.by_reason).sort(([a], [b]) => a.localeCompare(b));
 
     return (
@@ -500,93 +565,186 @@ export function ScreeningPublish({ locale }: Readonly<{ locale: Locale }>) {
                 {t("batches")}
               </h2>
               <p className="mt-1 text-sm text-ink-muted">{t("batchesBody")}</p>
-              <ul className="mt-4 space-y-4">
-                {batches.batches.map((b) => {
-                  const review = reviews[b.batch_index];
-                  const label = t("batchN", { n: n(b.batch_index) });
-                  const approved = review?.review.present === true;
-                  return (
-                    <li key={b.batch_index} className="border-t border-rule pt-3" data-batch={b.batch_index}>
-                      <p className="flex flex-wrap items-center gap-2">
-                        <span className="inline-block font-medium text-ink first-letter:uppercase">{label}</span>
-                        {approved ? (
-                          <DecisionBadge role="include">{t("approved")}</DecisionBadge>
-                        ) : review?.deferral.present ? (
-                          <DecisionBadge role="unclear">{t("deferred")}</DecisionBadge>
-                        ) : (
-                          <DecisionBadge role="unclear">{t("notApproved")}</DecisionBadge>
-                        )}
+              <div className="mt-4 space-y-3" data-bulk-approval>
+                <p className="text-sm text-ink" data-bulk-ready>
+                  {t("bulkReady", { ready: n(ready), total: n(batches.batches.length) })}
+                </p>
+                <Button
+                  disabled={busy || !approver.name}
+                  onClick={() =>
+                    void act(async () => {
+                      setBulkResult(null);
+                      setBulkWorking("preparing");
+                      try {
+                        setBegunAll(await beginApprovalAll(origin));
+                      } finally {
+                        setBulkWorking(null);
+                      }
+                    })
+                  }
+                >
+                  {t("bulkAsk")}
+                </Button>
+                {begunAll ? (
+                  <div className="space-y-1 text-xs text-ink-muted" role="status" data-bulk-begun>
+                    <p>
+                      {t(begunAll.code_shown_on === "desktop" ? "bulkShownDesktop" : "bulkShownTerminal", {
+                        n: n(begunAll.batches.length),
+                        time: new Date(begunAll.code_expires_at).toLocaleTimeString(locale),
+                      })}
+                    </p>
+                    {begunAll.skipped.length ? (
+                      <p>
+                        {t("bulkSkipped", {
+                          approved: n(begunAll.skipped.filter((x) => x.reason === "ALREADY_APPROVED").length),
+                          deferred: n(begunAll.skipped.filter((x) => x.reason === "DEFERRED").length),
+                          undecided: n(begunAll.skipped.filter((x) => x.reason !== "ALREADY_APPROVED" && x.reason !== "DEFERRED").length),
+                        })}
                       </p>
-                      <details className="mt-1 text-xs text-ink-muted">
-                        <summary className="min-h-11 cursor-pointer py-3 leading-5 rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus">{DETAILS_LABEL[locale]}</summary>
-                        <DataCell>{b.batch_file}</DataCell>
-                      </details>
-                      {approved ? <p className="mt-1 text-xs text-ink-muted">{t("approvedNote")}</p> : null}
-                      {(
-                        <div className="mt-2 space-y-2">
-                          <Button
-                            disabled={busy || !approver.name}
-                            onClick={() =>
-                              void act(async () => {
-                                const staged = await beginApproval(origin, b.batch_index);
-                                setBegun((p) => ({ ...p, [b.batch_index]: staged }));
-                              })
-                            }
-                          >
-                            {t("askCode")}
-                          </Button>
-                          {begun[b.batch_index] ? (
-                            <p className="text-xs text-ink-muted">{t("codeShown", { time: new Date(begun[b.batch_index].code_expires_at).toLocaleTimeString(locale) })}</p>
-                          ) : null}
-                          <label className="block text-sm text-ink">
-                            {t("codeLabel", { batch: label })}
-                            <input
-                              type="text"
-                              autoComplete="off"
-                              spellCheck={false}
-                              dir="ltr"
-                              value={codes[b.batch_index] ?? ""}
-                              onChange={(e) => setCodes((p) => ({ ...p, [b.batch_index]: e.target.value }))}
-                              className="mt-1 block w-full rounded-md border border-rule bg-paper p-2 font-mono text-ink"
-                            />
-                          </label>
-                          <Button
-                            disabled={busy || !approver.name || !(codes[b.batch_index] ?? "").trim()}
-                            onClick={() =>
-                              void act(async () => {
-                                const code = (codes[b.batch_index] ?? "").trim();
-                                setCodes((p) => ({ ...p, [b.batch_index]: "" }));
-                                await postPairingRedeem(origin, b.batch_index, code);
-                              })
-                            }
-                          >
-                            {t("approve", { batch: label })}
-                          </Button>
-                          <details className="text-sm">
-                            <summary className="min-h-11 cursor-pointer py-3 leading-5 rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus text-brand">{t("defer")}</summary>
-                            <label className="mt-2 block text-ink">
-                              {t("deferReason", { batch: label })}
-                              <textarea
-                                rows={2}
-                                value={deferring[b.batch_index] ?? ""}
-                                onChange={(e) => setDeferring((p) => ({ ...p, [b.batch_index]: e.target.value }))}
-                                className="mt-1 block w-full rounded-md border border-rule bg-paper p-2 text-ink"
+                    ) : null}
+                  </div>
+                ) : null}
+                <label className="block text-sm text-ink">
+                  {t("bulkLabel")}
+                  <textarea
+                    rows={4}
+                    autoComplete="off"
+                    spellCheck={false}
+                    dir="ltr"
+                    value={block}
+                    onChange={(e) => setBlock(e.target.value)}
+                    className="mt-1 block w-full rounded-md border border-rule bg-paper p-2 font-mono text-xs text-ink"
+                  />
+                </label>
+                <Button
+                  disabled={busy || !approver.name || !block.trim()}
+                  onClick={() =>
+                    void act(async () => {
+                      const text = block;
+                      setBlock("");
+                      setBulkWorking("approving");
+                      try {
+                        const result = await postPairingRedeemAll(origin, text);
+                        setBulkResult(result);
+                        setBegunAll(null);
+                      } finally {
+                        setBulkWorking(null);
+                      }
+                    })
+                  }
+                >
+                  {t("bulkApprove")}
+                </Button>
+                {bulkWorking ? (
+                  <p className="text-xs text-ink-muted" role="status">
+                    {t(bulkWorking === "preparing" ? "bulkPreparing" : "bulkWorking")}
+                  </p>
+                ) : null}
+                {bulkResult ? (
+                  <div className="space-y-1 text-sm" role="status" data-bulk-result>
+                    <p className="text-include">{t("bulkDone", { n: n(bulkResult.approved.length) })}</p>
+                    {bulkResult.refused.map((r) => (
+                      <p key={r.batch_index} className="text-ink">
+                        {t("bulkRefused", { batch: t("batchN", { n: n(r.batch_index) }), code: r.code })}
+                      </p>
+                    ))}
+                  </div>
+                ) : null}
+              </div>
+              <details className="mt-4" data-one-by-one>
+                <summary className="min-h-11 cursor-pointer py-3 leading-5 rounded-sm text-brand focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus">{t("oneByOne")}</summary>
+                <ul className="mt-2 space-y-4">
+                  {batches.batches.map((b) => {
+                    const review = reviews[b.batch_index];
+                    const label = t("batchN", { n: n(b.batch_index) });
+                    const approved = review?.review.present === true;
+                    return (
+                      <li key={b.batch_index} className="border-t border-rule pt-3" data-batch={b.batch_index}>
+                        <p className="flex flex-wrap items-center gap-2">
+                          <span className="inline-block font-medium text-ink first-letter:uppercase">{label}</span>
+                          {approved ? (
+                            <DecisionBadge role="include">{t("approved")}</DecisionBadge>
+                          ) : review?.deferral.present ? (
+                            <DecisionBadge role="unclear">{t("deferred")}</DecisionBadge>
+                          ) : (
+                            <DecisionBadge role="unclear">{t("notApproved")}</DecisionBadge>
+                          )}
+                        </p>
+                        <details className="mt-1 text-xs text-ink-muted">
+                          <summary className="min-h-11 cursor-pointer py-3 leading-5 rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus">{DETAILS_LABEL[locale]}</summary>
+                          <DataCell>{b.batch_file}</DataCell>
+                        </details>
+                        {approved ? <p className="mt-1 text-xs text-ink-muted">{t("approvedNote")}</p> : null}
+                        {(
+                          <div className="mt-2 space-y-2">
+                            <Button
+                              disabled={busy || !approver.name}
+                              onClick={() =>
+                                void act(async () => {
+                                  const staged = await beginApproval(origin, b.batch_index);
+                                  setBegun((p) => ({ ...p, [b.batch_index]: staged }));
+                                })
+                              }
+                            >
+                              {t("askCode", { batch: label })}
+                            </Button>
+                            {begun[b.batch_index] ? (
+                              <p className="text-xs text-ink-muted">
+                                {t(begun[b.batch_index].code_shown_on === "desktop" ? "codeShownDesktop" : "codeShown", {
+                                  time: new Date(begun[b.batch_index].code_expires_at).toLocaleTimeString(locale),
+                                })}
+                              </p>
+                            ) : null}
+                            <label className="block text-sm text-ink">
+                              {t("codeLabel", { batch: label })}
+                              <input
+                                type="text"
+                                autoComplete="off"
+                                spellCheck={false}
+                                dir="ltr"
+                                value={codes[b.batch_index] ?? ""}
+                                onChange={(e) => setCodes((p) => ({ ...p, [b.batch_index]: e.target.value }))}
+                                className="mt-1 block w-full rounded-md border border-rule bg-paper p-2 font-mono text-ink"
                               />
                             </label>
                             <Button
-                              className="mt-2"
-                              disabled={busy || !(deferring[b.batch_index] ?? "").trim()}
-                              onClick={() => void act(() => postDeferBatch(origin, b.batch_index, (deferring[b.batch_index] ?? "").trim()))}
+                              disabled={busy || !approver.name || !(codes[b.batch_index] ?? "").trim()}
+                              onClick={() =>
+                                void act(async () => {
+                                  const code = (codes[b.batch_index] ?? "").trim();
+                                  setCodes((p) => ({ ...p, [b.batch_index]: "" }));
+                                  await postPairingRedeem(origin, b.batch_index, code);
+                                })
+                              }
                             >
-                              {t("deferSave")}
+                              {t("approve", { batch: label })}
                             </Button>
-                          </details>
-                        </div>
-                      )}
-                    </li>
-                  );
-                })}
-              </ul>
+                            <details className="text-sm">
+                              <summary className="min-h-11 cursor-pointer py-3 leading-5 rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus text-brand">{t("defer")}</summary>
+                              <label className="mt-2 block text-ink">
+                                {t("deferReason", { batch: label })}
+                                <textarea
+                                  rows={2}
+                                  value={deferring[b.batch_index] ?? ""}
+                                  onChange={(e) => setDeferring((p) => ({ ...p, [b.batch_index]: e.target.value }))}
+                                  className="mt-1 block w-full rounded-md border border-rule bg-paper p-2 text-ink"
+                                />
+                              </label>
+                              <Button
+                                className="mt-2"
+                                disabled={busy || !(deferring[b.batch_index] ?? "").trim()}
+                                onClick={() => void act(() => postDeferBatch(origin, b.batch_index, (deferring[b.batch_index] ?? "").trim()))}
+                              >
+                                {t("deferSave")}
+                              </Button>
+                            </details>
+                          </div>
+                        )}
+                      </li>
+                    );
+                  })}
+                </ul>
+              </details>
             </section>
 
             <GatePanel

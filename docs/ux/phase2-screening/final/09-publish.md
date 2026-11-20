@@ -2,6 +2,14 @@
 
 Boards: `Publish` (D8), `MobilePair` (M2), `MobileApprove` (M7). Contract: `screening-api-contract.md` §4, §6.
 
+## Amended 2026-11-20 (H-run-small-fixes Part A, finding 38; PROPOSED until the researcher accepts it)
+
+- **One action approves every decided batch.** The Batches card is titled "Approval". Under its lede it says "Batches fully decided and not approved yet: {ready} of {total}." and offers "Show the codes for every decided batch" (`POST /actions/pairing/begin-all`, disabled without an approver name). The engine shows one fresh code per batch on this computer only: in a Nexus Scholar window on the desktop when the app opened one (`nexus-scholar ui`), and always in its terminal. The card then says where the codes are and when they expire, and which batches were left out (already approved, deferred, not fully decided). A text area "Paste the codes (the lines that read “batch n: code”)" and "Approve the batches" send the block once (`POST /actions/pairing/redeem-all`); the field is emptied on submit and kept nowhere. While the engine works the card says it can take up to a minute; then "Batches approved: {n}." and one line per refused batch with its code ("Show the codes again for it").
+- **The one-batch controls stay, folded.** They sit under a closed `<details>` "Approve one batch at a time", with the button "Show a code for batch n" (it no longer names the terminal: the code may also be in the desktop window).
+- **What does not change:** decision 1 below (a fresh code per batch generation), one approval file per batch, the staleness rule, the publish gate and the published files.
+- en/fr/ar: `bulkReady`, `bulkAsk`, `bulkShownDesktop`, `bulkShownTerminal`, `bulkSkipped`, `bulkLabel`, `bulkApprove`, `bulkWorking`, `bulkDone`, `bulkRefused`, `oneByOne`, `codeShownDesktop` in `components/screening-publish.tsx`.
+- Tests: `tests/screening-publish.test.tsx` "publish.approve-all (finding 38)"; engine `tests/console/test_approve_all.py`.
+
 ## Amended 2026-11-07 (M6-beta)
 Source: `docs/roadmap/milestones/M6-beta.md` sections B and D; decisions "Details on demand" and "Published means current". The rule is in [12](12-details-disclosure.md).
 - **Checks are one line each.** A pass mark (the `include` badge "Pass", text plus icon) and the check's plain name, nothing else (`screening-publish.tsx`, the `publish-checks` list). The `detail` text of passing checks moves into the Checks card's Details. A failing check keeps its count on the line, with the `blocked` badge "Fail", and the existing "Go to triage" or Protocol-changed card below it.
