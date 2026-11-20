@@ -174,7 +174,7 @@ def test_agreement_counts_only_decisions_made_before_the_reveal(ws):
 
 def test_setup_names_key_sources_never_keys_and_the_latest_run(ws, monkeypatch):
     monkeypatch.setattr("scholar_agent.keys._from_keychain", lambda provider: "sk-secret" if provider == "anthropic" else None)
-    for var in ("OPENAI_API_KEY", "GEMINI_API_KEY"):
+    for var in ("ANTHROPIC_API_KEY", "OPENAI_API_KEY", "GEMINI_API_KEY"):  # a set variable now wins over the keychain
         monkeypatch.delenv(var, raising=False)
     client = _client(ws)
     empty = client.get(f"{BASE}/proposals/setup").json()

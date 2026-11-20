@@ -299,7 +299,11 @@ app.add_typer(log_app, name="log")
 
 keys_app = typer.Typer(
     name="keys",
-    help="Store provider API keys in the OS keychain (never in a file).",
+    help=(
+        "Provider API keys. A key set in the environment (ANTHROPIC_API_KEY, OPENAI_API_KEY, GEMINI_API_KEY) "
+        "is used first; the OS keychain, where `keys set` stores one (never in a file), is the default "
+        "when no variable is set. `keys status` says which one is in use."
+    ),
     add_completion=False,
     no_args_is_help=True,
 )
@@ -322,12 +326,26 @@ def keys_set(provider: str = typer.Argument(..., help=_PROVIDER_HELP)) -> None:
 
 @keys_app.command("status")
 def keys_status() -> None:
-    """Say where each provider's key is found (keychain, environment, none); never the key."""
-    from scholar_agent.keys import ENV_VARS, key_status
+    """Say which source each provider's key comes from (environment, keychain, none) and whether the other also holds one; never a key."""
+    from scholar_agent.keys import ENV_VARS, key_status, keychain_available
 
     for provider in ENV_VARS:
         status = key_status(provider)
-        console.print(f"{provider}: {status.source}")
+        console.print(f"{provider}: {status.describe()}", markup=False, highlight=False)
+        if status.also_in_keychain:
+            console.print(
+                f"  to use the keychain key instead, unset {ENV_VARS[provider]}; "
+                f"to remove it, run: nexus-scholar keys clear {provider}",
+                markup=False,
+                highlight=False,
+            )
+    if not keychain_available():
+        console.print(
+            "keychain: not available, because the `ai` extra is not installed; a key stored there cannot be read "
+            "(uv sync --extra ai, or reinstall with the `ai` extra)",
+            markup=False,
+            highlight=False,
+        )
 
 
 @keys_app.command("clear")
@@ -344,6 +362,46 @@ def keys_clear(provider: str = typer.Argument(..., help=_PROVIDER_HELP)) -> None
 
 
 app.add_typer(keys_app, name="keys")
+
+
+def _need_sdk(provider: str) -> None:
+    """Say, before any estimate or spend is shown, that the provider SDK must be installed first (extra `ai`)."""
+    from scholar_agent import drivers
+
+    try:
+        drivers.ensure_sdk(provider)
+    except drivers.ProviderSdkMissing as exc:
+        # No markup: the install line holds "[ai]", which Rich would read as a style tag and drop.
+        console.print(f"❌ {exc}", style="bold red", markup=False, highlight=False)
+        raise typer.Exit(1) from exc
+
+
+def _key_refused(provider: str) -> None:
+    """Print which source a refused (401) key came from and how to replace it; never the key."""
+    from scholar_agent.keys import refusal_note
+
+    console.print(f"❌ {refusal_note(provider)}", style="bold red", markup=False, highlight=False)
+
+
+def _run_driver(provider: str, call):
+    """Run `call()` (a driver run); a provider's 401 becomes the refusal note and exit 1, anything else is raised as it was."""
+    from scholar_agent.keys import is_refusal
+
+    try:
+        return call()
+    except Exception as exc:
+        if not is_refusal(exc):
+            raise
+        _key_refused(provider)
+        raise typer.Exit(1) from exc
+
+
+def _not_measured(provider: str, first_error: str) -> None:
+    """After a run where no call succeeded: if the first error was a 401, add the key-source note."""
+    from scholar_agent.keys import is_refusal
+
+    if is_refusal(first_error):
+        _key_refused(provider)
 
 
 gate_app = typer.Typer(
@@ -413,6 +471,7 @@ def gate_run(
     from scholar_agent.drivers import make_driver
     from scholar_agent.keys import resolve_key
 
+    _need_sdk(provider)
     frozen, records, protocol, spec = _gate_inputs(workspace, limit or None, model, effort, max_tokens)
     batch = provider == "anthropic" and len(records) > pg.DIRECT_LIMIT
     estimate = pg.estimate(records, spec, provider=provider, batch=batch)
@@ -426,7 +485,7 @@ def gate_run(
     options = {"direct_limit": pg.DIRECT_LIMIT} if provider == "anthropic" else {}
     driver = make_driver(provider, api_key=key, base_url=base_url or None, **options)
     console.print(f"Running {len(records)} records on {provider}/{model} …")
-    results = driver.run(pg.requests_for(records), spec)
+    results = _run_driver(provider, lambda: driver.run(pg.requests_for(records), spec))
     out = pg.report(frozen=frozen, records=records, results=results, protocol=protocol, provider=provider, spec=spec, batch=batch)
     out["estimate"] = estimate
     out["smoke_run"] = bool(limit)
@@ -438,6 +497,7 @@ def gate_run(
     if not out["measured"]:
         first = next((r["driver_detail"] for r in out["records"] if r["driver_detail"]), "no result")
         console.print(f"[bold red]Not measured: none of the {len(records)} calls succeeded. First error: {first}. Report {path}[/bold red]")
+        _not_measured(provider, first)
         raise typer.Exit(1)
     s = out["score"]
     console.print(
@@ -522,6 +582,8 @@ def gate_measure(
     """M9a: the screening agent against the researcher's decisions (recall, precision, cost, truncations)."""
     from scholar_agent import measure as ms
 
+    if not dry_run:
+        _need_sdk(provider)  # first, before an estimate or a "--yes to spend" line is shown
     try:
         plan = ms.measure(
             workspace, scope=scope, provider=provider, model=model, effort=effort, max_tokens=max_tokens,
@@ -562,10 +624,10 @@ def gate_measure(
     typer.echo(f"Running {plan['records']} records; the run stops past ${ceiling:,.2f} …")
     started = datetime.now(UTC)
     try:
-        report = ms.measure(
+        report = _run_driver(provider, lambda: ms.measure(
             workspace, scope=scope, provider=provider, model=model, effort=effort, max_tokens=max_tokens,
             driver=driver, cost_ceiling_usd=ceiling, limit=limit, out_dir=out,
-        )
+        ))
     except (ValueError, FileNotFoundError, KeyError) as exc:
         console.print(f"[bold red]❌ {exc}[/bold red]")
         raise typer.Exit(1) from exc
@@ -573,6 +635,7 @@ def gate_measure(
     if not report["measured"]:
         first = next((r["driver_detail"] for r in report["records_detail"] if r["driver_detail"]), "no result")
         console.print(f"[bold red]Not measured: none of the calls succeeded. First error: {first}. Report {paths['markdown']}[/bold red]")
+        _not_measured(provider, first)
         raise typer.Exit(1)
     rc = report["include_recall"]
     typer.echo(
