@@ -7,7 +7,7 @@ import { Button, DataCell, DecisionBadge, GatePanel } from "@/components/ui/base
 import { ScreeningSteps, StateCard } from "@/components/screening-state-card";
 import { notifyReviewChanged } from "@/components/review-bus";
 import { getScreeningBatches, isScreeningApiError, type ScreeningBatches } from "@/lib/screening-api";
-import { getJob, getSettings, prepare, putSettings, type JobView, type Settings } from "@/lib/screening-v1";
+import { amendMethod, getJob, getSettings, prepare, putSettings, type JobView, type MethodAmendment, type NotReportedPolicy, type Settings } from "@/lib/screening-v1";
 
 /**
  * Prepare (spec 02): the reveal and mode settings, the rule table (read-only:
@@ -32,11 +32,26 @@ const COPY = {
     ruleUnclearExcludePolicy: "First, Unclear → full text: a check on the draft failed or the agent could not decide.",
     ruleExcludeExcludePolicy: "Otherwise exclude: any exclusion criterion answered yes, any inclusion criterion answered no, or any inclusion criterion not reported.",
     ruleIncludeExcludePolicy: "Otherwise include: every inclusion yes and no exclusion yes.",
-    setByProtocol: "Set by your protocol",
+    ruleExcludeDecisive: "Then exclude: any exclusion criterion answered yes, or any inclusion criterion answered no, even when other criteria are not reported.",
+    ruleIncludeDecisive: "Then Unclear → full text: any criterion not reported. Otherwise include: every inclusion yes and every exclusion no.",
+    setByProtocol: "Set by your protocol. A change is recorded as an amendment.",
     settings: "While screening",
     blinding: "The agent's draft",
     blindingAfter: "Reveal after my decision (recommended)",
     blindingShow: "Show beside the record",
+    notReported: "A criterion the title and abstract do not report",
+    notReportedUnclear: "It sends the record to Unclear (full text), even beside a decisive answer",
+    notReportedDecisive: "A decisive answer first: an exclusion met or an inclusion not met excludes; otherwise Unclear",
+    notReportedExclude: "An unreported inclusion criterion excludes the record",
+    notReportedNote: "This rule shapes the agent's drafts and the reason the screen offers you; your own decision is never overridden. A change is recorded as an amendment.",
+    amendTitle: "Amend the protocol's method?",
+    amendChange: "{field}: from “{from}” to “{to}”.",
+    amendBody: "The change is recorded as an amendment: who, when, from and to go into the audit journal and into the methods paragraph of the export. The signed protocol, the corpus and your decisions are not changed.",
+    amendDrafts: "Existing agent drafts keep their answers and are shown and counted under the new rule; each keeps the outcome first recorded.",
+    amendConfirm: "Record the amendment",
+    amendCancel: "Keep the protocol's value",
+    amended: "Amended on {date} by {who}: {field}, from “{from}” to “{to}”.",
+    amendedStatus: "Amendment recorded",
     advance: "After I decide",
     advanceDraft: "Show the draft, then N (default)",
     advanceNow: "Move on at once (drafts stay in the record's details)",
@@ -75,11 +90,26 @@ const COPY = {
     ruleUnclearExcludePolicy: "D'abord, Incertain → texte intégral : un contrôle du brouillon a échoué ou l'agent n'a pas pu décider.",
     ruleExcludeExcludePolicy: "Sinon exclure : un critère d'exclusion répondu oui, un critère d'inclusion répondu non, ou un critère d'inclusion non rapporté.",
     ruleIncludeExcludePolicy: "Sinon inclure : toutes les inclusions à oui et aucune exclusion à oui.",
-    setByProtocol: "Défini par votre protocole",
+    ruleExcludeDecisive: "Ensuite exclure : un critère d'exclusion répondu oui, ou un critère d'inclusion répondu non, même si d'autres critères ne sont pas rapportés.",
+    ruleIncludeDecisive: "Ensuite Incertain → texte intégral : un critère non rapporté. Sinon inclure : toutes les inclusions à oui et toutes les exclusions à non.",
+    setByProtocol: "Défini par votre protocole. Un changement est enregistré comme amendement.",
     settings: "Pendant la sélection",
     blinding: "Le brouillon de l'agent",
     blindingAfter: "L'afficher après ma décision (recommandé)",
     blindingShow: "L'afficher à côté de la notice",
+    notReported: "Un critère que le titre et le résumé ne rapportent pas",
+    notReportedUnclear: "Il envoie la notice en Incertain (texte intégral), même à côté d'une réponse décisive",
+    notReportedDecisive: "Une réponse décisive d'abord : une exclusion remplie ou une inclusion non remplie exclut ; sinon Incertain",
+    notReportedExclude: "Un critère d'inclusion non rapporté exclut la notice",
+    notReportedNote: "Cette règle façonne les brouillons de l'agent et le motif que l'écran vous propose ; votre propre décision n'est jamais remplacée. Un changement est enregistré comme amendement.",
+    amendTitle: "Amender la méthode du protocole ?",
+    amendChange: "{field} : de « {from} » à « {to} ».",
+    amendBody: "Le changement est enregistré comme amendement : qui, quand, avant et après vont dans le journal d'audit et dans le paragraphe de méthode de l'export. Le protocole signé, le corpus et vos décisions ne changent pas.",
+    amendDrafts: "Les brouillons existants de l'agent gardent leurs réponses et sont affichés et comptés selon la nouvelle règle ; chacun garde l'issue enregistrée d'abord.",
+    amendConfirm: "Enregistrer l'amendement",
+    amendCancel: "Garder la valeur du protocole",
+    amended: "Amendé le {date} par {who} : {field}, de « {from} » à « {to} ».",
+    amendedStatus: "Amendement enregistré",
     advance: "Après ma décision",
     advanceDraft: "Afficher le brouillon, puis N (par défaut)",
     advanceNow: "Passer tout de suite à la suivante (le brouillon reste dans les détails de la notice)",
@@ -118,11 +148,26 @@ const COPY = {
     ruleUnclearExcludePolicy: "أولًا، غير واضح ← النص الكامل: فشل فحص على المسودة أو لم يتمكن الوكيل من القرار.",
     ruleExcludeExcludePolicy: "وإلا فاستبعاد: أي معيار استبعاد أجيب بنعم، أو أي معيار إدراج أجيب بلا، أو أي معيار إدراج غير مذكور.",
     ruleIncludeExcludePolicy: "وإلا فإدراج: كل معايير الإدراج نعم ولا معيار استبعاد بنعم.",
-    setByProtocol: "محدَّد في بروتوكولك",
+    ruleExcludeDecisive: "ثم استبعاد: أي معيار استبعاد أجيب بنعم، أو أي معيار إدراج أجيب بلا، حتى لو كانت معايير أخرى غير مذكورة.",
+    ruleIncludeDecisive: "ثم غير واضح ← النص الكامل: أي معيار غير مذكور. وإلا فإدراج: كل معايير الإدراج نعم وكل معايير الاستبعاد لا.",
+    setByProtocol: "محدَّد في بروتوكولك. يُسجَّل أي تغيير كتعديل.",
     settings: "أثناء الفرز",
     blinding: "مسودة الوكيل",
     blindingAfter: "اعرضها بعد قراري (موصى به)",
     blindingShow: "اعرضها بجانب السجل",
+    notReported: "معيار لا يذكره العنوان والملخص",
+    notReportedUnclear: "يرسل السجل إلى غير واضح (النص الكامل)، حتى بجانب إجابة حاسمة",
+    notReportedDecisive: "الإجابة الحاسمة أولًا: استبعاد متحقق أو إدراج غير متحقق يستبعد؛ وإلا فغير واضح",
+    notReportedExclude: "معيار إدراج غير مذكور يستبعد السجل",
+    notReportedNote: "تحدد هذه القاعدة مسودات الوكيل والسبب الذي تقترحه الشاشة؛ ولا يُتجاوز قرارك أبدًا. يُسجَّل أي تغيير كتعديل.",
+    amendTitle: "تعديل منهج البروتوكول؟",
+    amendChange: "{field}: من «{from}» إلى «{to}».",
+    amendBody: "يُسجَّل التغيير كتعديل: من ومتى والقيمة السابقة والجديدة تُكتب في سجل التدقيق وفي فقرة المنهج في التصدير. لا يتغير البروتوكول الموقَّع ولا المجموعة ولا قراراتك.",
+    amendDrafts: "تحتفظ مسودات الوكيل الموجودة بإجاباتها وتُعرض وتُحسب وفق القاعدة الجديدة؛ وتحتفظ كل مسودة بالنتيجة المسجلة أولًا.",
+    amendConfirm: "سجّل التعديل",
+    amendCancel: "أبقِ قيمة البروتوكول",
+    amended: "عُدِّل في {date} بواسطة {who}: {field}، من «{from}» إلى «{to}».",
+    amendedStatus: "سُجِّل التعديل",
     advance: "بعد قراري",
     advanceDraft: "اعرض المسودة ثم N (الافتراضي)",
     advanceNow: "انتقل فورًا إلى التالي (تبقى المسودة في تفاصيل السجل)",
@@ -183,6 +228,9 @@ export function ScreeningPrepare({ locale }: Readonly<{ locale: Locale }>) {
   const [job, setJob] = useState<string | null>(null);
   const [jobView, setJobView] = useState<JobView | null>(null);
   const [message, setMessage] = useState("");
+  // H-screening-drafts: a method change waiting for its confirmation (nothing is sent before).
+  const [pendingAmendment, setPendingAmendment] = useState<{ field: MethodAmendment["field"]; value: string } | null>(null);
+  const [amendRefusal, setAmendRefusal] = useState<{ code: string; message: string } | null>(null);
 
   const load = useCallback(async () => {
     setError(null);
@@ -219,6 +267,21 @@ export function ScreeningPrepare({ locale }: Readonly<{ locale: Locale }>) {
       setMessage(t("saved"));
     } catch (e) {
       setRefusal(codeOf(e));
+    }
+  }
+
+  async function recordAmendment() {
+    if (!pendingAmendment) return;
+    setAmendRefusal(null);
+    try {
+      const { settings: next } = await amendMethod(origin, pendingAmendment);
+      setSettings(next);
+      // Only the method fields follow the engine; other unsaved choices stay as drafted.
+      setDraft((d) => (d ? { ...d, blinding: next.blinding, not_reported_policy: next.not_reported_policy, method_amendments: next.method_amendments } : next));
+      setPendingAmendment(null);
+      setMessage(t("amendedStatus"));
+    } catch (e) {
+      setAmendRefusal(codeOf(e));
     }
   }
 
@@ -268,9 +331,22 @@ export function ScreeningPrepare({ locale }: Readonly<{ locale: Locale }>) {
     const aiNeedsConfirm = draft.mode === "ai_agreed_exclusion" && settings.mode !== "ai_agreed_exclusion";
     const canSave = !aiNeedsConfirm || (aiConfirmed && (draft.sample_audit_size ?? 0) > 0);
     const stale = batches.batches.some((b) => b.binding?.state === "STALE_BINDING");
-    // M7-method: the protocol's method block may set blinding and the not-reported policy.
+    // M7-method: the protocol's method block may set blinding and the not-reported policy;
+    // H-screening-drafts: either can be changed after genesis, as a recorded amendment.
     const blindingFromProtocol = settings.blinding_source === "protocol";
-    const excludePolicy = settings.not_reported_policy === "exclude";
+    const policy: NotReportedPolicy = settings.not_reported_policy ?? "unclear";
+    const rules =
+      policy === "exclude"
+        ? (["ruleUnclearExcludePolicy", "ruleExcludeExcludePolicy", "ruleIncludeExcludePolicy"] as const)
+        : policy === "decisive_first"
+          ? (["ruleUnclearExcludePolicy", "ruleExcludeDecisive", "ruleIncludeDecisive"] as const)
+          : (["ruleUnclear", "ruleExclude", "ruleInclude"] as const);
+    const policyLabel: Record<NotReportedPolicy, PrepareCopyKey> = { unclear: "notReportedUnclear", decisive_first: "notReportedDecisive", exclude: "notReportedExclude" };
+    const blindingLabel = (value: string) => t(value === "show" ? "blindingShow" : "blindingAfter");
+    const fieldLabel = (field: string) => t(field === "blinding" ? "blinding" : "notReported");
+    const valueLabel = (field: string, value: string) =>
+      field === "blinding" ? blindingLabel(value) : value in policyLabel ? t(policyLabel[value as NotReportedPolicy]) : value;
+    const amendments = settings.method_amendments ?? [];
 
     return (
       <div className="space-y-6">
@@ -293,9 +369,9 @@ export function ScreeningPrepare({ locale }: Readonly<{ locale: Locale }>) {
               </h2>
               <p className="mt-1 text-sm text-ink-muted">{t("rulesBody")}</p>
               <ol className="mt-3 grid gap-3 sm:grid-cols-3">
-                <li className="rounded-md bg-unclear-soft p-3 text-sm text-ink">{t(excludePolicy ? "ruleUnclearExcludePolicy" : "ruleUnclear")}</li>
-                <li className="rounded-md bg-exclude-soft p-3 text-sm text-ink">{t(excludePolicy ? "ruleExcludeExcludePolicy" : "ruleExclude")}</li>
-                <li className="rounded-md bg-include-soft p-3 text-sm text-ink">{t(excludePolicy ? "ruleIncludeExcludePolicy" : "ruleInclude")}</li>
+                <li className="rounded-md bg-unclear-soft p-3 text-sm text-ink">{t(rules[0])}</li>
+                <li className="rounded-md bg-exclude-soft p-3 text-sm text-ink">{t(rules[1])}</li>
+                <li className="rounded-md bg-include-soft p-3 text-sm text-ink">{t(rules[2])}</li>
               </ol>
             </section>
 
@@ -303,11 +379,7 @@ export function ScreeningPrepare({ locale }: Readonly<{ locale: Locale }>) {
               <h2 id="prepare-settings" className="font-semibold text-ink">
                 {t("settings")}
               </h2>
-              <fieldset
-                className="mt-3"
-                aria-readonly={blindingFromProtocol ? "true" : undefined}
-                aria-describedby={blindingFromProtocol ? "blinding-protocol" : undefined}
-              >
+              <fieldset className="mt-3" aria-describedby={blindingFromProtocol ? "blinding-protocol" : undefined}>
                 <legend className="text-sm font-semibold text-ink">{t("blinding")}</legend>
                 {blindingFromProtocol ? (
                   <p id="blinding-protocol" className="mt-1 text-sm text-ink-muted">
@@ -320,15 +392,93 @@ export function ScreeningPrepare({ locale }: Readonly<{ locale: Locale }>) {
                       type="radio"
                       name="blinding"
                       checked={draft.blinding === value}
-                      // Read-only, not disabled (spec 02 amendment): the protocol's value stays selected.
+                      // H-screening-drafts: the protocol's value changes only through a confirmed
+                      // amendment; until it is recorded the protocol's value stays selected.
                       onChange={() => {
                         if (!blindingFromProtocol) setDraft({ ...draft, blinding: value });
+                        else if (value !== settings.blinding) setPendingAmendment({ field: "blinding", value });
                       }}
                     />
                     {value === "show" ? t("blindingShow") : t("blindingAfter")}
                   </label>
                 ))}
               </fieldset>
+              <fieldset className="mt-4" aria-describedby="not-reported-note">
+                <legend className="text-sm font-semibold text-ink">{t("notReported")}</legend>
+                <p id="not-reported-note" className="mt-1 text-sm text-ink-muted">
+                  {t("notReportedNote")}
+                </p>
+                {(["unclear", "decisive_first", "exclude"] as const).map((value) => (
+                  <label key={value} className="mt-2 flex min-h-11 items-center gap-2 text-ink">
+                    <input
+                      type="radio"
+                      name="not_reported"
+                      checked={policy === value}
+                      onChange={() => {
+                        if (value !== policy) setPendingAmendment({ field: "not_reported", value });
+                      }}
+                    />
+                    {t(policyLabel[value])}
+                  </label>
+                ))}
+              </fieldset>
+              {pendingAmendment ? (
+                <div
+                  role="alertdialog"
+                  aria-labelledby="amend-title"
+                  aria-describedby="amend-body"
+                  className="mt-4 rounded-md border border-brand p-4"
+                  onKeyDown={(e) => e.key === "Escape" && setPendingAmendment(null)}
+                >
+                  <p id="amend-title" className="font-semibold text-ink">
+                    {t("amendTitle")}
+                  </p>
+                  <p className="mt-1 text-sm text-ink">
+                    {t("amendChange", {
+                      field: fieldLabel(pendingAmendment.field),
+                      from: valueLabel(pendingAmendment.field, pendingAmendment.field === "blinding" ? settings.blinding : policy),
+                      to: valueLabel(pendingAmendment.field, pendingAmendment.value),
+                    })}
+                  </p>
+                  <p id="amend-body" className="mt-1 text-sm text-ink-muted">
+                    {t("amendBody")}
+                  </p>
+                  {pendingAmendment.field === "not_reported" ? <p className="mt-1 text-sm text-ink-muted">{t("amendDrafts")}</p> : null}
+                  {amendRefusal ? (
+                    <div className="mt-3">
+                      <StateCard locale={locale} code={amendRefusal.code} message={amendRefusal.message} consoleOrigin={origin} />
+                    </div>
+                  ) : null}
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <Button variant="primary" autoFocus onClick={() => void recordAmendment()}>
+                      {t("amendConfirm")}
+                    </Button>
+                    <Button
+                      onClick={() => {
+                        setPendingAmendment(null);
+                        setAmendRefusal(null);
+                      }}
+                    >
+                      {t("amendCancel")}
+                    </Button>
+                  </div>
+                </div>
+              ) : null}
+              {amendments.length > 0 ? (
+                <ul className="mt-3 space-y-1 text-sm text-ink-muted" data-amendments>
+                  {amendments.map((a) => (
+                    <li key={a.amendment_id}>
+                      {t("amended", {
+                        date: a.amended_at.slice(0, 10),
+                        who: a.amended_by,
+                        field: fieldLabel(a.field),
+                        from: valueLabel(a.field, a.from),
+                        to: valueLabel(a.field, a.to),
+                      })}
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
               <fieldset className="mt-4" disabled={draft.blinding === "show"} aria-describedby={draft.blinding === "show" ? "advance-shown" : undefined}>
                 <legend className="text-sm font-semibold text-ink">{t("advance")}</legend>
                 {draft.blinding === "show" ? (

@@ -1,7 +1,10 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 
-import { PROPOSALS_COPY, ScreeningProposals } from "@/components/screening-proposals";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
+
+import { CHEAPEST_ANTHROPIC_MODEL, LISTED_ANTHROPIC_MODELS, PROPOSALS_COPY, ScreeningProposals } from "@/components/screening-proposals";
 import { SUPPORTED_LOCALES } from "@/i18n";
 
 /**
@@ -273,5 +276,18 @@ describe("proposals.not-prepared (H-screening-drafts)", () => {
     render(<ScreeningProposals locale="en" />);
     expect(await screen.findByRole("heading", { name: "Batches not prepared yet" })).toBeInTheDocument();
     expect(screen.queryByText("No accepted corpus")).toBeNull();
+  });
+});
+
+describe("proposals.cheapest-model (H-screening-drafts)", () => {
+  it("is the listed model with the lowest input and output prices in the engine's price table", () => {
+    const toml = readFileSync(resolve(process.cwd(), "../../src/scholar_agent/tasks/screening/prices.toml"), "utf-8");
+    const price = (model: string, field: "input" | "output") => {
+      const block = toml.split(`[anthropic."${model}"]`)[1].split(/\r?\n\[/)[0];
+      return Number(new RegExp(`^${field} = ([0-9.]+)`, "m").exec(block)![1]);
+    };
+    const total = (model: string) => price(model, "input") + price(model, "output");
+    const cheapest = [...LISTED_ANTHROPIC_MODELS].sort((a, b) => total(a) - total(b))[0];
+    expect(CHEAPEST_ANTHROPIC_MODEL).toBe(cheapest);
   });
 });
