@@ -1,5 +1,5 @@
 # H-quota-hang A used-up provider quota during "Checks" ends the step with a message, not hours of retries
-Branch: `dev/fix/quota-hang` (from `origin/main` `f05cd29a`) · Lane: **RELEASE** (see "Lane") · Status: **READY FOR PR** (review round 2 APPROVE; gates green on `d5210739`; not pushed; decisions 1 to 9 wait for the researcher) · Started: 2026-11-20
+Branch: `dev/fix/quota-hang` (from `origin/main` `f05cd29a`) · Lane: **RELEASE** (see "Lane") · Status: **READY FOR PR** (review round 2 APPROVE; gates green on `d5210739`; decisions 1 to 9 accepted by the researcher 2026-11-20) · Started: 2026-11-20
 
 The one blocker of the acceptance run of 2026-11-20 (a real scoping review through the wheel built from `f05cd29a`; record `docs/roadmap/acceptance-run-sensor-stress-2026-11-20.md` on the local branch `dev/docs/acceptance-run-sensor-stress`, commit `ae41a35b`, not on `main`). Three findings of that run are one defect:
 
@@ -7,7 +7,7 @@ The one blocker of the acceptance run of 2026-11-20 (a real scoping review throu
 - **(15)** "Stop after the current step" was not read inside "Checks": `should_stop` was tested between stages only (`pipeline/coordinator.py::_prepare_corpus`).
 - **(16)** `DocumentVerifier.process_batch` asks OpenAlex once per record (`hydrate_metadata`, and `verify_document`'s fallbacks), and `AcademicHttpClient.get` retried a 429 three times, sleeping `min(Retry-After, 60)` each time: with `Retry-After: 50000` that is about three minutes per record, nine hours for 166 records.
 
-Choices: `docs/decisions.md`, entry "2026-11-20 — H-quota-hang" (items 1 to 9, all PROPOSED).
+Choices: `docs/decisions.md`, entry "2026-11-20 — H-quota-hang" (items 1 to 9, accepted by the researcher 2026-11-20).
 
 ## Lane
 

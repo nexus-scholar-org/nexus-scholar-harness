@@ -15,9 +15,9 @@ history to read if you need the original reasoning (`git log --follow -- <path>`
 | 2026-11-18 — M10b Part D: the size estimate | 4 | Since M3h-c arXiv applies the year window itself, but the estimate still counts arXiv as an upper bound when a year is set: decide whether its count is exact. |
 | 2026-11-05 — M1b-2 merges before its live prompt gate | gate | The API route was measured on 2026-11-19 (M9a; Opus 5.5 include-recall lower bound 93.1% against the bar of 0.90). No entry says whether the gate is now met. |
 | 2026-11-20 — Which provider key is used, and saying so | 1 to 5 | Proposed by the build session; merged in PR #255 before acceptance. |
-| 2026-11-20 — H-quota-hang: a used-up quota ends the checks with a message | 1 to 9 | Proposed by the build session; item 3 names an open contract question; item 4 asks whether a gap that is only enrichment should block the Hand-off. |
+| 2026-11-20 — H-quota-hang: a used-up quota ends the checks with a message | 3 | Items 1 to 9 are accepted as built. Still open: the contract question item 3 names (how a record that was not checked is represented in Contract v1). |
 
-## 2026-11-20 — H-quota-hang: a used-up quota ends the checks with a message; only the unchecked records are checked again (PROPOSED; H-quota-hang)
+## 2026-11-20 — H-quota-hang: a used-up quota ends the checks with a message; only the unchecked records are checked again (items 1 to 9 accepted by the researcher 2026-11-20, as built; the contract question in item 3 stays open; H-quota-hang)
 
 Record: `docs/roadmap/milestones/H-quota-hang.md`. Found by the acceptance run of 2026-11-20 (`docs/roadmap/acceptance-run-sensor-stress-2026-11-20.md` on `dev/docs/acceptance-run-sensor-stress`, findings 12, 15, 16): OpenAlex answered 429 with `Retry-After: 50000` during "Checks", each record cost three 60 s waits, the screen said "Preparing", and the stop was read only between stages. Contract v1 baseline current before and after; no schema, model, identity algorithm or fixture changes.
 
