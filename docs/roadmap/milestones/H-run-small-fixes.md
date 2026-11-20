@@ -4,7 +4,7 @@ Item agreed by the researcher on 2026-11-20 (second in the order of work after t
 
 | Part | Branch | Lane | Status |
 | :-- | :-- | :-- | :-- |
-| A, approve every decided batch with one paste (finding 38, the blocker) | `dev/h/run-fixes-approval` | RELEASE | READY FOR PR (review round 2 repaired, PR gate green on `0a1f7d25`); decisions 1 to 7 PROPOSED |
+| A, approve every decided batch with one paste (finding 38, the blocker) | `dev/h/run-fixes-approval` | RELEASE | READY FOR PR (review round 2 repaired, PR gate green on `0a1f7d25`); decisions 1 to 7 accepted 2026-11-20 |
 | B, Discovery and the search command (findings 9, 10, 13, 14, 17, 24, 29; decision 2026-11-20 item 2) | `dev/h/run-fixes-discovery` | not started | — |
 | C, Inception and screening small defects (findings 1 to 7, 23, 35, 39; redesign D15 quick fixes) | `dev/h/run-fixes-inception` | not started | — |
 
@@ -16,7 +16,7 @@ Each part branches from `origin/main` and is complete on its own; this file exis
 
 ## Part A: approve every decided batch with one paste (finding 38)
 
-Branch `dev/h/run-fixes-approval` from `origin/main` `2436fe66`. Choices: `docs/decisions.md`, entry "2026-11-20 — H-run-small-fixes Part A" (items 1 to 7, PROPOSED).
+Branch `dev/h/run-fixes-approval` from `origin/main` `2436fe66`. Choices: `docs/decisions.md`, entry "2026-11-20 — H-run-small-fixes Part A" (items 1 to 7, accepted by the researcher 2026-11-20).
 
 **The finding.** On Publish, approval was one batch at a time, each with a one-time code the engine printed in its terminal. The real review has 54 batches of 20: 54 requests, 54 codes of 26 characters typed by hand, and the terminal is not visible to a researcher for whom the app was started.
 

@@ -10,10 +10,9 @@ history to read if you need the original reasoning (`git log --follow -- <path>`
 
 | Entry | Item | What is open |
 | :-- | :-- | :-- |
-| 2026-11-20 — H-run-small-fixes Part A | 1 to 7 | Proposed: one fresh code per batch, shown and pasted together (not one code for all; alternatives in item 1), and the codes shown in a desktop window of the engine (item 4 rewords the 2026-11-04 "terminal-only" rule). |
 | 2026-11-19 — M9a: what the measurement says about the ladder gates | 2 | The minimum share of the researcher's excludes an agent must take before a rung unlocks: the principle is accepted; the researcher decided on 2026-11-20 to set the number when M9b is built. |
 
-## 2026-11-20 — H-run-small-fixes Part A: approve every decided batch from one paste; the codes also shown in a desktop window (PROPOSED, items 1 to 7; item 4 changes the wording of the 2026-11-04 decision "Approval: terminal-only code")
+## 2026-11-20 — H-run-small-fixes Part A: approve every decided batch from one paste; the codes also shown in a desktop window (items 1 to 7 accepted by the researcher 2026-11-20; item 4 changes the wording of the 2026-11-04 decision "Approval: terminal-only code")
 
 Record: `docs/roadmap/milestones/H-run-small-fixes.md`, Part A. Found by the acceptance run of 2026-11-20 (finding 38): approval was one batch at a time, each with a one-time code printed in the engine's terminal; the real review has 54 batches of 20, so 54 codes, and the terminal is not visible to a researcher for whom the app was started. Contract v1 baseline current before and after; no Contract v1 schema, model, identity or artifact changes.
 
@@ -26,6 +25,18 @@ Record: `docs/roadmap/milestones/H-run-small-fixes.md`, Part A. Found by the acc
 7. **Speed.** Each code is still hashed with PBKDF2 at 210,000 rounds when staged and when checked (about 0.24 s each on the researcher's PC), and each approval is written as before. Measured on this PC with 54 batches of 20 decided records: the codes were ready after 34.9 s and the 54 approvals took 40.3 s (one run, while the test suite ran on the same PC, so an idle PC is likely faster). The screen says "Preparing the codes…" and "Approving the batches…", each "with many batches this takes up to a minute", while it works. *Not done:* hashing the codes in parallel.
 
 **Lane RELEASE** (`test_gate_policy.md`): two new public routes on the approval path, an additive public value (`code_shown_on: "desktop"`), and a change to how an approval act is shown.
+
+## 2026-11-20 — The order of work after the acceptance run (accepted by the researcher 2026-11-20)
+
+Record: `docs/roadmap/production-plan.md` §6, "After the acceptance run"; motivation: `docs/roadmap/what-a-researcher-does.md`; evidence: `docs/roadmap/acceptance-run-sensor-stress-2026-11-20.md` (37 findings).
+
+1. **The order is: M3f-combined-corpus, the small fixes from the run, a query workbench (M11a), a criteria pilot (M11b), a minimal charting table (M12a), search updates with several queries (M3j), then release b7.** Sources, the query and the criteria come before agent autonomy and the in-app chat. *Why:* the run's serious findings were about what a researcher does first (develop the search, bring exports, revise criteria), and three of the six were born in Inception and found downstream.
+2. **The Inception redesign is no longer a track of its own.** Its quick fixes join the small fixes; its Explore and Direction part becomes the query workbench; its Shape and Criteria part becomes the criteria pilot. Direction A and decisions D1 to D15 (2026-11-20) still say how those screens look.
+3. **M9d-discovery-assistant is split:** synonyms and recall repair join the query workbench; the rest waits with M10e. **M3h-providers closes** with the small fixes, which take what is left of it.
+4. **The query checks belong to Inception** (the researcher's view): the researcher must be able to test and iterate the query before the protocol freezes, and the same tool serves amendments on Discovery's Plan. **Several queries per review come back** (M3j); the researcher recalls that an earlier version had them.
+5. **Specifications first for M11a and M11b:** neither has one; each is written and read by the researcher before anything is built, as for M10b.
+6. **At most two milestones in flight,** because the researcher's decisions and reviews are the bottleneck. **One outside researcher uses the app without help before b7.**
+7. **Waiting:** M9b and M9c (the M9a measurement is read again under `decisive_first` first), M10e, M3e (conditional), M2. The Matrix beyond the charting table, synthesis, the graph and the risk-of-bias trust score stay parked.
 
 ## 2026-11-20 — H-screening-drafts: a decisive answer first, the method amended after genesis, drafts derived under the rule in force (items 1 to 10 accepted by the researcher 2026-11-20, including the spend to measure `screen-v2` on Haiku 5.5; item 2 changes the 2026-11-08 decision "Method parameters move into the protocol")
 
