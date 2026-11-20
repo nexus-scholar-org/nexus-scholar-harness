@@ -11,12 +11,8 @@ history to read if you need the original reasoning (`git log --follow -- <path>`
 | Entry | Item | What is open |
 | :-- | :-- | :-- |
 | 2026-11-19 — M9a: what the measurement says about the ladder gates | 2 | The minimum share of the researcher's excludes an agent must take before a rung unlocks: the principle is accepted; the researcher decided on 2026-11-20 to set the number when M9b is built. |
-| 2026-11-20 — H-screening-drafts | 1 | The third not-reported rule, `decisive_first` (name and table), as an additive protocol schema value. |
-| 2026-11-20 — H-screening-drafts | 2 | The method amendment beside the signed protocol (no fingerprint change); it changes the 2026-11-08 rule that the signed protocol alone covers the method values. Alternatives (b) re-prepare and (c) a contract change are written down, not built. |
-| 2026-11-20 — H-screening-drafts | 3 to 9 | Read-time derivation of stored drafts; who may amend what; the Prepare confirmation; the run screen's model memory, dialog, waiting and not-prepared message; Inception left to M10f-3. |
-| 2026-11-20 — H-screening-drafts | 10 | Approve (or not) the spend to measure `screen-v2` (Haiku: expected $0.40, ceiling $1.83). |
 
-## 2026-11-20 — H-screening-drafts: a decisive answer first, the method amended after genesis, drafts derived under the rule in force (PROPOSED; items 1 to 10 wait for the researcher; item 2 changes the 2026-11-08 decision "Method parameters move into the protocol")
+## 2026-11-20 — H-screening-drafts: a decisive answer first, the method amended after genesis, drafts derived under the rule in force (items 1 to 10 accepted by the researcher 2026-11-20, including the spend to measure `screen-v2` on Haiku 5.5; item 2 changes the 2026-11-08 decision "Method parameters move into the protocol")
 
 Record: `docs/roadmap/milestones/H-screening-drafts.md`. Found by the acceptance run of 2026-11-20 (`docs/roadmap/acceptance-run-sensor-stress-2026-11-20.md`): 85% (Haiku 5.5, 220 drafts) and 83% (Opus 5.5, 200 drafts) of the agent's drafts were Unclear, because the `unclear` rule returns Unclear as soon as one criterion is not reported, before it looks at a decisive answer. Re-derived outside the app with a decisive-answer-first rule the same drafts gave Haiku 96 Unclear, 107 Exclude, 17 Include and Opus 102, 85, 13. The rule, not the model, made the unclear pile (M9a item 3 asked for this rule to be settled first). On the same screen, "Show beside the record" silently did nothing because the protocol written at genesis sets blinding, and the run screen cost $7.59 where $0.22 was meant. Contract v1 baseline current before and after.
 

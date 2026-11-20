@@ -1,5 +1,5 @@
 # H-screening-drafts Agent drafts a decisive answer can decide; the method changed after genesis as an amendment; a safer run screen
-Branch: `dev/h/screening-drafts` (from `origin/main` `b9c7dc0b`) · Lane: **RELEASE** (see "Lane") · Status: **READY FOR PR** (head `48d29df9` before this record update; review round 2 APPROVE; PR gate green on `48d29df9`; not pushed; decisions 1 to 10 PROPOSED) · Started: 2026-11-20
+Branch: `dev/h/screening-drafts` (from `origin/main` `b9c7dc0b`) · Lane: **RELEASE** (see "Lane") · Status: **READY FOR PR** (head `48d29df9` before this record update; review round 2 APPROVE; PR gate green on `48d29df9`; decisions 1 to 10 accepted by the researcher 2026-11-20) · Started: 2026-11-20
 
 Found by the acceptance run of 2026-11-20 (a real scoping review through the installed wheel; record `docs/roadmap/acceptance-run-sensor-stress-2026-11-20.md`; corpus of 1,062 works):
 
@@ -7,7 +7,7 @@ Found by the acceptance run of 2026-11-20 (a real scoping review through the ins
 - **The silent radio.** The researcher wanted the draft beside the record; Prepare offered "Show beside the record", but the protocol written at genesis sets `blinding`, `PUT /settings` refuses a change then (`BLINDING_SET_BY_PROTOCOL`), and the screen never sent one: the click did nothing. The not-reported policy, also written at genesis, could not be changed at all.
 - **The run screen.** The model went back to `claude-opus-5-5` on every reload and the confirmation named neither the model nor the estimate (one click cost $7.59 where $0.22 was meant); a Batch run showed "0 of N proposed" for about six minutes (two runs were cancelled as stuck); "No run yet" for about 40 seconds after "Start the run"; "No accepted corpus" before batches were prepared although the corpus was accepted.
 
-Choices: `docs/decisions.md`, entry "2026-11-20 — H-screening-drafts" (items 1 to 10, **PROPOSED**; item 2 changes the accepted 2026-11-08 decision "Method parameters move into the protocol").
+Choices: `docs/decisions.md`, entry "2026-11-20 — H-screening-drafts" (items 1 to 10, accepted by the researcher 2026-11-20; item 2 changes the accepted 2026-11-08 decision "Method parameters move into the protocol").
 
 ## Lane
 
