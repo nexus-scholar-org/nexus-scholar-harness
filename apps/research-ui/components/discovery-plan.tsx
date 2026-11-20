@@ -51,6 +51,38 @@ export function protocolList(plan: Plan): string[] {
   return plan.protocol_providers ?? plan.providers.filter((p) => p.selected).map((p) => p.name);
 }
 
+/** The list the screens start from (H-run-small-fixes, finding 9); an older console's protocol list. */
+export function defaultList(plan: Plan): string[] {
+  return plan.default_providers ?? protocolList(plan);
+}
+
+/**
+ * H-run-small-fixes (finding 9): a warning for each chosen database that drops the AND
+ * between concepts, and a line when the default left one out. The engine names them.
+ */
+export function IgnoresAndNotes({ locale, plan, choice }: Readonly<{ locale: Locale; plan: Plan; choice: readonly string[] }>) {
+  const t = discoveryT(locale);
+  const n = plan.concepts ?? 0;
+  const ignores = plan.ignores_and ?? [];
+  const chosen = ignores.filter((p) => choice.includes(p));
+  const leftOut = plan.default_reason ? ignores.filter((p) => !choice.includes(p) && protocolList(plan).includes(p)) : [];
+  if (!chosen.length && !leftOut.length) return null;
+  return (
+    <div className="space-y-2">
+      {chosen.map((p) => (
+        <p key={p} role="status" className="rounded-md bg-unclear-soft p-3 text-sm text-ink" data-ignores-and={p}>
+          {t("plan.ignoresAnd", { name: providerName(p), n })}
+        </p>
+      ))}
+      {leftOut.map((p) => (
+        <p key={p} className="text-sm text-ink-muted" data-default-without={p}>
+          {t("plan.defaultWithout", { name: providerName(p), n })}
+        </p>
+      ))}
+    </div>
+  );
+}
+
 /** The six databases the engine knows, in its order; bioRxiv keeps its "Off by default" note. */
 export function pickerItems(locale: Locale): PickerItem[] {
   const t = discoveryT(locale);
@@ -197,6 +229,7 @@ export function DiscoveryPlan({ locale }: Readonly<{ locale: Locale }>) {
   const fingerprint = useRef<string | null>(null);
   const protocolRef = useRef<string[] | null>(null);
   const sequence = useRef(0);
+  const started = useRef(false);
   // "Reset to the protocol" removes the button pressed (the card, or the reset once nothing differs):
   // focus goes to the h1, as soon as it is on the page (M10a).
   const focusHeading = useRef(false);
@@ -237,8 +270,18 @@ export function DiscoveryPlan({ locale }: Readonly<{ locale: Locale }>) {
             if (id !== sequence.current) return;
           }
         }
+        // H-run-small-fixes: the first read starts from the default choice (the
+        // protocol's list, without Crossref for a joined query), previewed as such.
+        const start = next.requested_providers ?? defaultList(next);
+        if (!started.current) {
+          started.current = true;
+          if (!providers && !sameList(start, protocol)) {
+            next = await getPlan(origin, start);
+            if (id !== sequence.current) return;
+          }
+        }
         setPlan(next);
-        setChoice((current) => current ?? next.requested_providers ?? protocol);
+        setChoice((current) => current ?? start);
         if (focus) heading.current?.focus();
       } catch (error) {
         if (id !== sequence.current) return;
@@ -330,6 +373,7 @@ export function DiscoveryPlan({ locale }: Readonly<{ locale: Locale }>) {
               </h2>
               {choice ? <DatabasePicker items={pickerItems(locale)} value={choice} onChange={choose} labels={pickerLabels(locale)} /> : null}
               {plan.requested_providers ? <DiffersLine locale={locale} chosen={plan.requested_providers} protocol={protocol} /> : null}
+              {choice ? <IgnoresAndNotes locale={locale} plan={plan} choice={choice} /> : null}
               {differs ? (
                 <Button onClick={reset} data-picker-reset>
                   {t("plan.picker.reset")}

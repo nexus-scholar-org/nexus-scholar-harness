@@ -185,6 +185,19 @@ describe("discovery.estimate on Plan", () => {
     expect(sent(engine).filter((c) => c.startsWith("POST /api/v1/discovery/runs"))).toHaveLength(0);
   });
 
+  it("names the one database that is the size and offers no cap (H-run-small-fixes, finding 10)", async () => {
+    const estimate = answer({
+      warn: { level: "warning", threshold_works: 1000, limit: { value: 1000, source: "general" } },
+      recommendation: { kind: "one_database", cap: null, expected_works: null, cuts: null, provider: "crossref", provider_total: 6221, others_total: 1350 },
+    });
+    const { card } = await planCard({ estimate });
+    await count(card);
+    const rec = card.querySelector('[data-estimate-rec="one_database"]') as HTMLElement;
+    expect(within(rec).getByText(/Most of the records come from Crossref \(6221 of 7571\)\. A cap per database would trim only Crossref/)).toBeInTheDocument();
+    expect(within(rec).getByRole("link", { name: "Change the protocol through inception" })).toBeInTheDocument();
+    expect(card.querySelector("[data-estimate-use-cap]")).toBeNull();
+  });
+
   it("advises narrowing with the inception link and no cap button", async () => {
     const estimate = answer({
       warn: { level: "warning", threshold_works: 1000, limit: { value: 1000, source: "general" } },

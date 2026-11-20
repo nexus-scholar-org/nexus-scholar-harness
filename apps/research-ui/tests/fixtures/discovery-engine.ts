@@ -66,6 +66,8 @@ export interface DiscoveryFakeOptions {
   activeChase?: boolean;
   /** M10a: the protocol's own database list, in its order (`protocol_providers`; default the five defaults). */
   protocolProviders?: string[];
+  /** H-run-small-fixes: the concepts the query joins with AND (default 2, as `QUERY_TEXT`). */
+  concepts?: number;
   /** M10a: a started run stays running (its stream sends each database's first event and no end). */
   holdRun?: boolean;
   /**
@@ -404,6 +406,13 @@ export function discoveryEngine(options: DiscoveryFakeOptions = {}) {
     };
   };
 
+  const concepts = options.concepts ?? 2;
+  /** The protocol's list, without Crossref for a joined query when it is the default four (`DEFAULT_DATABASES`). */
+  const defaultChoice = () => {
+    const tookDefault = [...protocolProviders].sort().join() === ["arxiv", "crossref", "openalex", "semanticscholar"].join();
+    return concepts > 1 && tookDefault ? protocolProviders.filter((n) => n !== "crossref") : [...protocolProviders];
+  };
+
   // M10a: `?providers=` lists the chosen databases first, in order, as the selected rows; the others follow in the known order.
   const plan = (requested: string[] | null = null) => {
     const chosen = requested ? [...new Set(requested)] : protocolProviders;
@@ -425,6 +434,12 @@ export function discoveryEngine(options: DiscoveryFakeOptions = {}) {
       protocol_providers: [...protocolProviders],
       requested_providers: requested,
       imports_hint: ["scopus", "wos"],
+      // H-run-small-fixes (finding 9), as `scholar_search.plan.default_choice` and `and_warnings`.
+      concepts,
+      default_providers: defaultChoice(),
+      default_reason: defaultChoice().length !== protocolProviders.length ? "CROSSREF_IGNORES_AND" : null,
+      warnings: concepts > 1 && chosen.includes("crossref") ? [{ code: "CROSSREF_IGNORES_AND", provider: "crossref", concepts }] : [],
+      ignores_and: concepts > 1 ? ["crossref"] : [],
     };
   };
 
@@ -546,7 +561,8 @@ export function discoveryEngine(options: DiscoveryFakeOptions = {}) {
       if (name === "biorxiv") return { name, status: "not_countable", reported_total: null, fetch_estimate: null, fetch_is_upper_bound: false, cap_binds: null, not_fetched: null, error: null, error_code: null, notes: [] };
       if (fails[name]) return { name, status: "failed", reported_total: null, fetch_estimate: null, fetch_is_upper_bound: false, cap_binds: null, not_fetched: null, error: `[${name}] the count failed`, error_code: fails[name], notes: [] };
       const total = FETCHED[name].reported;
-      return { name, status: "counted", reported_total: total, fetch_estimate: Math.min(total, cap), fetch_is_upper_bound: name === "arxiv", cap_binds: total > cap, not_fetched: total - Math.min(total, cap), error: null, error_code: null, notes: [] };
+      // Decision 2026-11-20 item 2: arXiv applies the year window itself, so its count is exact.
+      return { name, status: "counted", reported_total: total, fetch_estimate: Math.min(total, cap), fetch_is_upper_bound: false, cap_binds: total > cap, not_fetched: total - Math.min(total, cap), error: null, error_code: null, notes: [] };
     });
     for (const name of PROVIDERS) {
       if (!names.includes(name)) rows.push({ name, status: name === "biorxiv" ? "off_by_default" : "not_selected", reported_total: null, fetch_estimate: null, fetch_is_upper_bound: false, cap_binds: null, not_fetched: null, error: null, error_code: null, notes: [] });
@@ -561,10 +577,17 @@ export function discoveryEngine(options: DiscoveryFakeOptions = {}) {
     const totals = counted.map((r) => r.reported_total);
     let best = 0;
     for (let c = 0; c <= cap; c++) if (sum(totals.map((t) => Math.min(t, c))) <= limit) best = c;
+    // H-run-small-fixes (finding 10): one database holding more than all the others together is named, not capped.
+    const fetched = rows.filter((r) => r.fetch_estimate !== null) as { name: string; fetch_estimate: number }[];
+    const top = fetched.length >= 2 ? fetched.reduce((a, b) => (b.fetch_estimate > a.fetch_estimate ? b : a)) : null;
+    const others = top ? sum(fetched.filter((r) => r.name !== top.name).map((r) => r.fetch_estimate)) : 0;
+    const dominant = all && top && top.fetch_estimate > others ? { provider: top.name, provider_total: top.fetch_estimate, others_total: others } : null;
     const recommendation =
       level === "none"
         ? { kind: null, cap: null, expected_works: null, cuts: null }
-        : all && best >= 100
+        : dominant
+          ? { kind: "one_database", cap: null, expected_works: null, cuts: null, ...dominant }
+          : all && best >= 100
           ? {
               kind: "cap", cap: best, cuts: totals.filter((t) => t > best).length,
               expected_works: { low: Math.max(0, ...counted.filter((r) => !r.fetch_is_upper_bound).map((r) => Math.min(r.reported_total, best))), high: sum(totals.map((t) => Math.min(t, best))) },

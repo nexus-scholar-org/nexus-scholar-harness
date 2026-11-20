@@ -139,7 +139,11 @@ def search(
         help="Specific provider (openalex, crossref, pubmed, arxiv, semanticscholar, biorxiv) or all",
     ),
     limit: int | None = typer.Option(
-        None, "--limit", "-l", help="Maximum documents to retrieve"
+        None,
+        "--limit",
+        "-l",
+        help="Maximum documents per database (default: the protocol's retrieval cap, else 100; 20 without a protocol). "
+        "The command says when a database stopped at it.",
     ),
     year_min: int | None = typer.Option(
         None, "--year-min", help="Earliest publication year"
@@ -223,14 +227,42 @@ def search(
                 q, dedup=dedup, progress_callback=update_progress
             )
             await engine.close()
-            return res
+            return res, list(getattr(engine, "last_legs", []) or [])
 
-    results = asyncio.run(run_search())
+    results, legs = asyncio.run(run_search())
 
     _display_documents_table(results, title=f"Search Results for: '{search_str}'")
 
+    # H-run-small-fixes, finding 29: say when a database was cut at the limit,
+    # and never report a failed search as a clean, empty success.
+    failed = _report_legs(legs)
+    if failed and not results:
+        names = ", ".join(leg.provider for leg in failed)
+        console.print(f"[bold red]Nothing was saved: {names} failed and no record was found.[/bold red]")
+        raise typer.Exit(1)
+
     if output:
         _save_output(results, output, format)
+    if failed:
+        # Some records were saved, but not every database answered: a partial result.
+        raise typer.Exit(2)
+
+
+def _report_legs(legs: list) -> list:
+    """Print a line per database cut at the limit or failed; return the failed legs."""
+    for leg in legs:
+        if getattr(leg, "cap_hit", False):
+            total = getattr(leg, "reported_total", None)
+            more = f"it reports {total}" if isinstance(total, int) else "it may have more"
+            console.print(
+                f"[yellow]{leg.provider} stopped at the limit of {leg.cap} records; {more}. "
+                f"Raise --limit to fetch more.[/yellow]"
+            )
+    failed = [leg for leg in legs if getattr(leg, "status", None) == "failed"]
+    for leg in failed:
+        code = getattr(leg, "error_code", None) or "ERROR"
+        console.print(f"[red]{leg.provider} failed ({code}): {leg.error or 'no detail'}[/red]")
+    return failed
 
 
 @app.command()

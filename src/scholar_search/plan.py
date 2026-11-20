@@ -27,6 +27,15 @@ KNOWN_PROVIDERS: tuple[str, ...] = ("openalex", "semanticscholar", "crossref", "
 DEFAULT_PROVIDERS: tuple[str, ...] = DEFAULT_DATABASES
 
 
+#: Databases whose search matches records holding any of the words: the AND
+#: between concepts is not applied (Crossref's ``query`` parameter is a
+#: relevance search). Finding 9: 6,221 matches in Crossref against 166 in
+#: OpenAlex for the same three-concept query.
+IGNORES_AND: frozenset[str] = frozenset({"crossref"})
+#: The warning and the reason a default choice leaves such a database out.
+IGNORES_AND_CODE = "CROSSREF_IGNORES_AND"
+
+
 def canonical_provider(name: str) -> str:
     key = str(name).lower().strip().replace("-", "_").replace(" ", "_")
     return "semanticscholar" if key == "semantic_scholar" else key
@@ -47,6 +56,34 @@ def run_providers(names: Sequence[str] | None) -> list[str]:
 def protocol_default_providers() -> list[str]:
     """The list the protocol adapter gives a protocol without ``search_strategy.target_databases``."""
     return list(compile_protocol_search({"search_strategy": {}})[1])
+
+
+def default_choice(protocol_list: Sequence[str], concepts: int, *, named: bool) -> tuple[list[str], str | None]:
+    """The databases the Plan, Harvest and Recall screens start from, and why it differs.
+
+    The protocol's list (``run_providers``), except that a database that
+    ignores AND is left out when the query joins two or more concepts and the
+    protocol took the default list (it names no list, or exactly the four
+    genesis writes). A protocol that names another list keeps every database
+    it names: that list was a choice. The run itself is unchanged: a harvest
+    sent no ``providers`` still searches the protocol's list (CLI ``run``).
+    """
+    chosen = run_providers(protocol_list)
+    took_default = not named or set(chosen) == set(DEFAULT_PROVIDERS)
+    if concepts > 1 and took_default and any(n in IGNORES_AND for n in chosen):
+        return [n for n in chosen if n not in IGNORES_AND], IGNORES_AND_CODE
+    return chosen, None
+
+
+def and_warnings(selected: Sequence[str], concepts: int) -> list[dict[str, Any]]:
+    """One warning per selected database that would drop the AND of a joined query."""
+    if concepts < 2:
+        return []
+    return [
+        {"code": IGNORES_AND_CODE, "provider": name, "concepts": concepts}
+        for name in dict.fromkeys(canonical_provider(n) for n in selected)
+        if name in IGNORES_AND
+    ]
 
 
 def leg_query(query: Query) -> Query:

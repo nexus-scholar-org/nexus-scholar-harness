@@ -44,6 +44,16 @@ export interface Plan {
   protocol_providers?: string[];
   /** M10a: the `?providers=` list after canonicalisation, or `null` when the plan was read without it. */
   requested_providers?: string[] | null;
+  /** H-run-small-fixes (finding 9): the concepts the query joins with AND. Absent from older consoles. */
+  concepts?: number;
+  /** The list Plan and Harvest start from: the protocol's, without Crossref for a joined query when the protocol took the default list. */
+  default_providers?: string[];
+  /** Why the default differs from the protocol's list (`CROSSREF_IGNORES_AND`), else `null`. */
+  default_reason?: string | null;
+  /** One warning per selected database that would drop the AND between concepts. */
+  warnings?: { code: string; provider: string; concepts: number }[];
+  /** The databases that would drop this query's AND, chosen or not (empty for a one-concept query). */
+  ignores_and?: string[];
   imports_hint: string[];
 }
 
@@ -355,7 +365,16 @@ export interface Estimate {
   };
   effort: { pace_seconds: number; hours: { low: number | null; high: number | null } };
   warn: { level: "none" | "note" | "warning" | string; threshold_works: number; limit?: { value: number; source: "planned" | "general" | string } };
-  recommendation: { kind: "cap" | "narrow" | null; cap: number | null; expected_works: { low: number; high: number } | null; cuts: number | null };
+  recommendation: {
+    kind: "cap" | "narrow" | "one_database" | null;
+    cap: number | null;
+    expected_works: { low: number; high: number } | null;
+    cuts: number | null;
+    /** H-run-small-fixes (finding 10): the one database holding more records than all the others together. */
+    provider?: string;
+    provider_total?: number;
+    others_total?: number;
+  };
 }
 
 export interface EstimateRequest {

@@ -235,13 +235,23 @@ class _Protocol:
     query: Any
     providers: list[str]
     fingerprint: str
+    #: H-run-small-fixes (finding 9): the concepts the query joins with AND, and
+    #: whether the protocol names its own database list.
+    concepts: int = 0
+    named: bool = False
+
+    def default_choice(self) -> tuple[list[str], str | None]:
+        """What Plan, Harvest and Recall start from (``scholar_search.plan.default_choice``)."""
+        from scholar_search.plan import default_choice
+
+        return default_choice(self.providers, self.concepts, named=self.named)
 
 
 def _protocol(ws: Path) -> _Protocol:
     from pydantic import ValidationError
     from scholar_protocol.canonical import canonical_fingerprint
     from scholar_protocol.models import ResearchProtocol
-    from scholar_search.protocol_adapter import compile_protocol_search
+    from scholar_search.protocol_adapter import compile_protocol_search, concept_count
 
     path = ws / "protocol.json"
     if not path.is_file():
@@ -253,7 +263,11 @@ def _protocol(ws: Path) -> _Protocol:
         raise Refused(422, refusals.PROTOCOL_INVALID, f"protocol.json is not a valid protocol: {str(exc)[:300]}") from exc
     # M10a: the list a run sent no ``providers`` searches (unknown names dropped, a
     # repeat once, no known name the engine's default suite), not the raw field.
-    return _Protocol(path, query, run_providers(providers), canonical_fingerprint(model))
+    raw = json.loads(path.read_text(encoding="utf-8"))
+    strategy = raw.get("search_strategy") if isinstance(raw, dict) else None
+    named = isinstance(strategy, dict) and strategy.get("target_databases") is not None
+    return _Protocol(path, query, run_providers(providers), canonical_fingerprint(model),
+                     concepts=concept_count(raw), named=named)
 
 
 def _mailto_set() -> bool:
@@ -473,6 +487,9 @@ def plan(request: Request, providers: str | None = None) -> dict[str, Any]:
     # E1 (M3d-engine): each selected database's translation, made without a request.
     # M10a: a chosen list replaces the protocol's and is listed first, in its order.
     rows = compile_plan(proto.path, KNOWN_PROVIDERS, selected=requested)["providers"]
+    from scholar_search.plan import IGNORES_AND, and_warnings
+
+    default, reason = proto.default_choice()
     return {
         "shape": "discovery.plan-v1",
         "protocol_fingerprint": proto.fingerprint,
@@ -488,6 +505,17 @@ def plan(request: Request, providers: str | None = None) -> dict[str, Any]:
         # ``providers``) and the list this plan was asked for, or ``None``.
         "protocol_providers": list(proto.providers),
         "requested_providers": requested,
+        # H-run-small-fixes (finding 9): the list the screens start from (the
+        # protocol's, without Crossref for a joined query when the protocol took
+        # the default list), why it differs, and a warning per selected database
+        # that drops the AND between concepts.
+        "concepts": proto.concepts,
+        "default_providers": default,
+        "default_reason": reason,
+        "warnings": and_warnings([r["name"] for r in rows if r["selected"]], proto.concepts),
+        # The databases that would drop this query's AND, whether chosen or not
+        # (empty for a one-concept query): Harvest warns from it as its choice changes.
+        "ignores_and": sorted(IGNORES_AND) if proto.concepts > 1 else [],
         "imports_hint": ["scopus", "wos"],
         # M4d: the recall seeds inception kept from its pool; Recall pre-fills them as "anchor".
         "golden_seeds": _golden_seeds(proto.path),
@@ -1021,7 +1049,10 @@ async def start_recall(body: RecallBody, request: Request) -> dict[str, Any]:
             seeds = recall_mod.validate_seeds(body.seeds)
         except recall_mod.SeedsInvalid as exc:
             raise Refused(422, refusals.SEEDS_INVALID, str(exc)) from exc
-        names = _check_providers(body.providers) or proto.providers
+        # Finding 24: without a list the check asks the screens' default choice,
+        # not every database the protocol names (it counted Crossref where the
+        # estimate and the harvest had left it out).
+        names = _check_providers(body.providers) or proto.default_choice()[0]
         _require_mailto()
         _refuse_busy(jobs, ws)
     except Refused as exc:

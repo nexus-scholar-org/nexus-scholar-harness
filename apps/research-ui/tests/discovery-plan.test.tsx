@@ -20,6 +20,20 @@ function enginePlan(): Plan {
   return discoveryEngine().handle("GET", "/api/v1/discovery/plan", null).body as Plan;
 }
 
+describe("discovery.plan Crossref and a joined query (H-run-small-fixes, finding 9)", () => {
+  it("previews the default choice without Crossref and warns when it is ticked again", async () => {
+    const user = userEvent.setup();
+    const { engine } = setUp({ protocolProviders: ["openalex", "semanticscholar", "crossref", "arxiv"] });
+    render(<DiscoveryPlan locale="en" />);
+    await screen.findByRole("heading", { level: 1, name: "This is what each database will receive" });
+    await waitFor(() => expect(sent(engine)).toContain("GET /api/v1/discovery/plan?providers=openalex,semanticscholar,arxiv"));
+    expect(screen.getByRole("checkbox", { name: "Search Crossref" })).not.toBeChecked();
+    expect(document.querySelector('[data-default-without="crossref"]')).not.toBeNull();
+    await user.click(screen.getByRole("checkbox", { name: "Search Crossref" }));
+    await waitFor(() => expect(document.querySelector('[data-ignores-and="crossref"]')).not.toBeNull());
+  });
+});
+
 describe("discovery.plan", () => {
   it("renders one block per provider in the engine's order with the executed strings verbatim, and no approve control", async () => {
     setUp();

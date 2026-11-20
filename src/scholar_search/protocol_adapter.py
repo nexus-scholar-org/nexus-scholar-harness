@@ -7,6 +7,25 @@ from typing import Any
 from .models import DEFAULT_DATABASES, Query
 
 
+def concept_count(protocol_input: dict[str, Any] | str | Path) -> int:
+    """How many concepts the compiled query joins with AND (H-run-small-fixes, finding 9).
+
+    A concept counts when it has at least one non-empty term, exactly as
+    :func:`compile_protocol_search` builds its clauses.
+    """
+    if isinstance(protocol_input, (str, Path)):
+        data = json.loads(Path(protocol_input).read_text(encoding="utf-8"))
+    elif isinstance(protocol_input, dict):
+        data = protocol_input
+    else:
+        data = protocol_input.model_dump()
+    count = 0
+    for item in (data.get("search_strategy") or {}).get("core_concepts") or []:
+        terms = [str(item.get("concept") or "").strip()] + [str(s).strip() for s in item.get("synonyms") or []]
+        count += any(terms)
+    return count
+
+
 def compile_protocol_search(
     protocol_input: dict[str, Any] | str | Path,
 ) -> tuple[Query, list[str]]:

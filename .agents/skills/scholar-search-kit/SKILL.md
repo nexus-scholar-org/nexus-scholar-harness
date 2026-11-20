@@ -46,6 +46,9 @@ All commands should use the `{CLI:search}` placeholders below (preflight: `{CLI:
 # 1. Search Literature (Protocol-Driven or Query String)
 {CLI:search} search --protocol {WORKSPACE}/protocol.json --output raw_search.json
 {CLI:search} search "transformer attention mechanism" --limit 30 --output results.json
+# --limit is per database (default: the protocol's retrieval cap, else 100); the command names each
+# database that stopped at it. Exit 1: a database failed and nothing was found (no file written);
+# exit 2: records saved, but a database failed.
 
 # 2. 2-Tier Deduplication & Canonical Workspace ID Assignment
 # (dedup takes a positional input file and only --output/--format — no --export/--csv-output)

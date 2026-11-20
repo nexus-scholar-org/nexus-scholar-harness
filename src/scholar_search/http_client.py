@@ -206,6 +206,26 @@ def _cap_from_headers(url: str, rate: float) -> bool:
     return True
 
 
+def slow_down(url: str) -> bool:
+    """Halve the shared budget of ``url``'s host after a 429 that named no lower rate.
+
+    H-run-small-fixes, finding 14: Crossref answered 429 to almost every
+    per-record check; the client waited out each one and went on at the
+    configured rate, so the next record met the same limit. Halving the pace
+    (never below one request per second, or the configured rate if lower)
+    lets the retries stop once the pace fits. Kept for the process, like a
+    rate a provider's headers announce. False for a host without a shared budget.
+    """
+    policy = _policy(url)
+    if policy is None:
+        return False
+    budget = host_budget(url)
+    current = budget.rate if budget is not None and budget.rate > 0 else policy[1]
+    _cap_from_headers(url, current / 2)
+    host_budget(url)  # applies the new cap
+    return True
+
+
 def reset_host_budgets() -> None:
     """Forget every shared budget and announced rate (tests; a new process starts empty anyway)."""
     with _BUDGETS_LOCK:
@@ -412,6 +432,9 @@ class AcademicHttpClient:
             wait = retry_after_seconds(response.headers.get("retry-after"))
             if wait is not None and wait > RETRY_AFTER_CAP:
                 raise _paused(self.name, url, response.status_code, wait)
+            if response.status_code == 429 and header_rate(response.headers) is None and slow_down(url):
+                budget = host_budget(url)
+                logger.info(f"[{self.name}] throttled: pacing {urlsplit(url).hostname} at {budget.rate:g} requests per second")
             if attempt >= self.max_retries:
                 break
             delay = wait if wait is not None else self.base_delay * (2**attempt)
