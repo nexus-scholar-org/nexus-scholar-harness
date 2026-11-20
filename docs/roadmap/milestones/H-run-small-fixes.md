@@ -4,7 +4,7 @@ Item agreed by the researcher on 2026-11-20 (second in the order of work after t
 
 | Part | Branch | Lane | Status |
 | :-- | :-- | :-- | :-- |
-| A, approve every decided batch with one paste (finding 38, the blocker) | `dev/h/run-fixes-approval` | RELEASE | in review (see Part A) |
+| A, approve every decided batch with one paste (finding 38, the blocker) | `dev/h/run-fixes-approval` | RELEASE | READY FOR PR (review round 2 repaired, PR gate green on `0a1f7d25`); decisions 1 to 7 PROPOSED |
 | B, Discovery and the search command (findings 9, 10, 13, 14, 17, 24, 29; decision 2026-11-20 item 2) | `dev/h/run-fixes-discovery` | not started | — |
 | C, Inception and screening small defects (findings 1 to 7, 23, 35, 39; redesign D15 quick fixes) | `dev/h/run-fixes-inception` | not started | — |
 
@@ -39,7 +39,7 @@ The screening API contract §9.1 (researcher, 2026-11-04) says "a fresh one-time
 - [x] Publish screen: "Show the codes for every decided batch", the paste field, "Approve the batches", the result per batch; the one-batch controls folded under "Approve one batch at a time"; en/fr/ar. Tests: `apps/research-ui/tests/screening-publish.test.tsx`, "publish.approve-all (finding 38)" (4 tests); the existing one-batch tests pass with the folded controls.
 - [x] Specs amended: `docs/ux/phase2-screening/final/09-publish.md` (amendment 2026-11-20), `docs/architecture/screening-api-contract.md` (route rows, §9.1 note), `docs/architecture/research_ui/UI-07_ACTION_SPEC.md` (proposed amendment note above §3.1).
 - [x] Reproducing test written first and seen failing (Evidence).
-- [ ] Contract baseline current; PR gate green; `milestone-reviewer` APPROVE (Evidence).
+- [x] Contract baseline current; PR gate green on `0a1f7d25`; `milestone-reviewer` round 1 CHANGES (all repaired), round 2 CHANGES on one stray file only (removed in `0a1f7d25`; the reviewer said that removal makes it an APPROVE; not re-run after it).
 
 ### What changed
 
@@ -70,15 +70,15 @@ Follow-ups from the review also done: a batch refused a code for another reason 
 | Check | Result |
 | :-- | :-- |
 | Reproducing test before the fix | `test_finding_38_one_action_approves_54_decided_batches` and the other route tests failed (no `begin-all` route; `create_app` had no `code_window`); run 2026-11-20 on the unfixed tree |
-| New engine tests | `tests/console/test_approve_all.py`: 17 passed |
+| New engine tests | `tests/console/test_approve_all.py`: 25 passed (17, then 8 from the review) |
 | Neighbouring tests | `tests/console/test_approve_all.py tests/console/test_screening_api_v1.py tests/authority/test_pairing.py`: 104 passed |
-| UI | `tests/screening-publish.test.tsx`: 20 passed; `tsc --noEmit` clean |
+| UI | `tests/screening-publish.test.tsx`: 21 passed; `tsc --noEmit` clean |
 | Real window on this PC (Windows 11) | Before the repair (thread): `reveal` returned `True`, the thread ended at expiry. After it (child process): `reveal` returned `True` in 0.76 s; first attempt with `python -m` timed out at 5 s because importing the console package takes about 9 s, hence `python -I <file>` |
 | Timing, 54 batches of 20, real PBKDF2 rounds | Codes ready after 34.9 s, 54 approvals in 40.3 s (one run, `begin-all` then `redeem-all` over the test client, while the gate ran on the same PC) |
-| Inner gate | {INNER} |
-| PR gate | {PR} |
+| Inner gate (on the first commit) | authority, console and UI-related tests; one unrelated test (`tests/console/test_methods_method_block.py::test_without_a_block_the_paragraph_names_the_defaults`) failed once under parallel load and passed alone (9 of 9); it did not fail in the PR gate |
+| PR gate on `0a1f7d25` (`select_test_gate.py --changed origin/main --stage pr`) | `git diff --check` clean; `uv run pytest -n auto`: 5842 passed, 15 skipped; ruff `scripts/` and the CI `src/` selection clean; `tsc` clean; vitest 962 passed (66 files); `build` ok; Playwright 606 passed, 12 skipped (it rewrites six tracked screenshots, restored with `git checkout`) |
 | Contract baseline | `generate_contract_baseline.py --check`: current |
-| Review | {REVIEW} |
+| Review | `milestone-reviewer`: round 1 CHANGES (1 P1, 3 P2, 3 P3) on `9286b175`, repaired in `9c39c4b4`; round 2 on the repair delta: every finding fixed, one new P3 (a vitest cache file committed under the root `node_modules/`), removed in `0a1f7d25`, root `node_modules/` now ignored |
 
 ### Not verified
 
