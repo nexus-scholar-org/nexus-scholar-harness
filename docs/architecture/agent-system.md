@@ -75,6 +75,8 @@ The role model in `roles/*.json` (generated permissions, write deny-globs, prote
 - any exclusion criterion `yes`, or an inclusion criterion `no` → EXCLUDE, with that criterion as the reason code;
 - any `not_reported`, `cannot_decide`, failed check, refusal or truncation → Unclear.
 
+*Since M7-method (2026-11-08) the not-reported line is the protocol's `method.not_reported` rule (`unclear`, the table above; `exclude`). H-screening-drafts (2026-11-20, PROPOSED) adds `decisive_first`, where an exclusion yes or an inclusion no excludes before a gap gives Unclear, and lets the rule be amended after genesis; a stored draft keeps the outcome first derived and is shown and counted under the rule in force (`docs/decisions.md`).*
+
 The model never chooses the outcome, so a prompt change cannot alter the rule. Unclear is stored as the existing `ScreeningDecisionValue.MAYBE` (`contracts/models.py:93`) and labelled "Unclear → full text" in the UI and provenance; no contract version bump is needed (`decisions.md`, 2026-11-03).
 
 **Screening has no agent loop.** It is high-volume classification. A single call with a fixed schema is cheaper, reproducible and auditable.

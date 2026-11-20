@@ -15,6 +15,15 @@ Board: `Proposals` (D3). Contract: `screening-api-contract.md` §4-§5; agent de
 - Output is machine output and is styled as a draft everywhere. This screen shows no proposal content.
 - The run never excludes a record you have not seen; unproposed records stay in your queue.
 
+## Amended 2026-11-20 (H-screening-drafts; decisions PROPOSED)
+Source: `docs/decisions.md` 2026-11-20 "H-screening-drafts", items 6 to 8. Acceptance run 2026-11-20: one click cost $7.59 where $0.22 was meant, and a Batch run looked stuck.
+- **Model.** Starts from `last_model` of `GET /proposals/setup` (the newest run of any kind in the workspace), else the cheapest listed model (`claude-haiku-5-5`, pinned to `prices.toml` by a test); never the first of the list.
+- **Confirmation.** "Send N records to <provider> with <model>?" and "Estimated cost: $X (prices as of <date>)." (a dry run's own estimate, fetched when the dialog opens; "Start the run" waits for it).
+- **Starting.** "Starting the run…" from the click until the engine answers.
+- **Batch.** While a run with `batch: true` is active: "Sent to the batch service; results arrive in chunks of 200, usually within minutes. Waiting 2 min 5 s." (ticking).
+- **Not prepared.** `BATCHES_NOT_PREPARED` has its own card ("Batches not prepared yet", link to Prepare); "No accepted corpus" is only for a workspace without one.
+- Tests: `tests/screening-proposals.test.tsx`, the `(H-screening-drafts)` describes.
+
 ## Entry / exit
 - Entry: step bar "2 Agent proposals"; Home "Run settings"; after Prepare (02). The step is optional ("You can screen without any proposals at all").
 - Exit: "Open triage while it runs" or run complete → 03. Gate: Run gate panel; nothing leaves the machine until Start, and `CONSENT_REQUIRED` refuses a run without recorded consent.
