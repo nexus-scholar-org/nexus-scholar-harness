@@ -4,6 +4,15 @@ One entry per decision that still shapes the code, newest first. The full
 records were removed in the 2026-11-03 docs cut; each entry names the commit
 history to read if you need the original reasoning (`git log --follow -- <path>`).
 
+## 2026-11-20 — H-provenance-s2: a verifying lookup never replaces a record; the shorten advice per database (PROPOSED; H-provenance-s2)
+
+Record: `docs/roadmap/milestones/H-provenance-s2-2026-11-20.md`. Contract v1 baseline current before and after; no schema, identity algorithm or fixture changes.
+
+1. **Verification confirms and fills; it never replaces.** A record confirmed by a Crossref or OpenAlex lookup (DOI, arXiv id or title) keeps its `provider`, `provider_id`, `sources`, `workspace_id` and every field it has; the lookup fills only what is missing. A non-empty identifier is never overwritten; a missing DOI is still filled from a title match. The lookup is not added to `sources` (it did not find the work in a search). *Alternative:* keep the lookup's metadata (Crossref's title, authors, venue) and carry over only the provenance fields; not chosen, because the record in `verified.json` would then not be what any searched database returned.
+2. **Consequence accepted with item 1:** a corpus snapshot built from a run verified after this fix has other `REC-`/`STU-`/`COR-` ids than one built from the same harvest before it (the record identity hashes provider, provider id, title and year). Accepted snapshots in existing workspaces are not rewritten; a workspace accepted before the fix keeps the wrong attribution until it is harvested again.
+3. **Each recon leg carries `shorten`**, decided by the engine with the existing word rule (keyword query, no `OR`, three or more words) for a leg that answered with nothing; Explore's list of the latest search shows the existing sentence on that leg. The failed-search card keeps giving it once. *Alternative:* a database-specific sentence for Semantic Scholar and arXiv only (whose searches need every word); not chosen, no new copy.
+4. **A Semantic Scholar 200 answer with neither `total` nor `data` fails the leg** with its message; it is never "0 results".
+
 ## 2026-11-19 — M9a: what the measurement says about the ladder gates (PROPOSED by the main session; not accepted; M9a-measure D10)
 
 Record: `docs/roadmap/milestones/M9a-measure.md`, "The measurement (run 2026-11-19)". The screening agent was run on the frozen 1,644-record sample with Opus 5.5, Sonnet 5.5 and Haiku 5.5 ($12.63). Recall lower bounds 93.1%, 93.6% and 96.8%; the agent excludes 6.4%, 1.7% and 1.9% of the researcher's excludes and leaves 67% to 77% of the records Unclear, mostly because the abstract does not report what a criterion asks.
