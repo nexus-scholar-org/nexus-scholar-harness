@@ -361,3 +361,15 @@ Built in `src/scholar_search/providers/*` (`count`), `src/scholar_search/estimat
 - The duplicates reference line is not built: the card is removed once a run exists, and a deduplication exists only after a run, so the line could never appear (a contradiction in this section).
 - Focus order in the card: the recommendation's action and "Why this", the rows' Details, the pace field, then "Count what the databases hold" / "Count again" at the end of the card (the Keyboard section puts the button first). Focus is not moved after a count; after a refusal it moves to the card heading.
 - Not built: the skeleton rows while counting (the button reads "Counting" and the last figures are dimmed); `<bdi>` around the numbers inside translated sentences and `dir="ltr"` on the counts and hours (the numbers are Latin digits in every locale; the error text and codes under Details are `dir="ltr"`).
+
+## Addendum M3f-combined-corpus (2026-11-20)    Status: FINAL (M3f-combined-corpus)
+Only the copy of one key changes; nothing on this screen is added or moved. `plan.imports.afterRun` said "An export cannot be added after a harvest until combined corpora are built." It is reworded because it is now false (finding 26). It stays unrendered on Plan (D-P8, REMOVED, X2: `harvest.warn.imports` says the same at the harvest, where it matters; see `03-harvest.md` addendum), so no layout, count or hint changes here. `plan.imports.hint` ("Scopus and Web of Science have no connection ...") is unchanged.
+| Locale | `plan.imports.afterRun` |
+| :-- | :-- |
+| en | You can still add database exports; they are combined with this harvest when you accept the corpus. |
+| fr | Vous pouvez encore ajouter des exports de bases de données ; ils sont combinés avec cette collecte quand vous acceptez le corpus. |
+| ar | لا يزال بإمكانك إضافة صادرات قواعد البيانات؛ تُدمج مع هذا الحصاد عند قبول المجموعة. |
+
+**Tests.** `apps/research-ui/tests/discovery-copy.test.ts`: the key exists in en, fr and ar and no catalog string says exports "cannot be added after a harvest"; `apps/research-ui/tests/guidance.audit.test.tsx`: D-P8 stays REMOVED (the key is absent from the rendered Plan).
+
+**Open questions:** none.

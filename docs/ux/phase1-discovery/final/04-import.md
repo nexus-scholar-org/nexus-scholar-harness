@@ -97,3 +97,54 @@ None.
 
 ## As built (M3c)
 Built in `apps/research-ui/components/screening-import.tsx`. The `limits` field, the per-file limits and the "Lines the importer noted" table show on every visit (they are engine data), the step bar, "Back to discovery", the rule line and "Go to the hand-off" only with `?return=discovery` (read after mount). The `VERIFIED_EXISTS` card copy changed for every visit: since M3d-engine a harvest waits for the hand-off accept, so its next step is "Accept the harvest's corpus" (the hand-off), not Prepare. Not built: the "{file} was added; some lines were noted" announcement.
+
+## Addendum M3f-combined-corpus (2026-11-20)    Status: FINAL (M3f-combined-corpus)
+Where this addendum contradicts the text above (items 4 and 5 of "What discovery adds", the `refused.VERIFIED_EXISTS.*` and `rule` copy, the "Error", "Empty" and "Default" states), the addendum wins. Source: `docs/roadmap/milestones/M3f-combined-corpus.md` "Design" §1, §4 and §6; finding 26.
+
+**What changes.** Exports can be staged before or after a harvest. Until the accept, the corpus has two parts: the harvest (the newest published run, included only when its preparation is `ready`) and the staged exports; the accept deduplicates both together. The screen therefore says which parts the accept will take, and `VERIFIED_EXISTS` is no longer the answer to "a harvest exists".
+
+**Data in (added).** `harvest {run, state, included} | null` and `origin` (now also `"combined"`) on `GET /api/v1/screening/corpus` ✓ M3f-combined-corpus (`src/scholar_harness/console/api/screening_v1.py:656`). `state` is the run's preparation state (`ready`, `incomplete`, `failed`, `stopped`, `interrupted`, `running`, ...); `included` is true only when `ready`. For a combined corpus `preview {identified, duplicates, unique_studies}` counts both parts and `databases[]` lists the harvest's rows (`provider`, `status`, `cap_hit`) then the export rows. `staging_refused` is `null` after a harvest; it is `VERIFIED_EXISTS` only for a `verified.json` of unknown origin, and `CORPUS_ALREADY_ACCEPTED` after the accept. `lib/screening-v1.ts` `Corpus` gains `harvest` and the `"combined"` origin.
+
+**One line above the file list** (the add form when no file is staged), shown while the corpus is not accepted. It is a status line in text (V2/V6, never a hint), one at a time:
+- `harvest` not null and `included` true: `import.combined.with`.
+- `harvest` not null and `included` false: `import.combined.notReady`, with `{state}` as the word from `combined.state.<state>` (an unknown state is printed verbatim), in the `unclear` role, plus the link `import.combined.openHarvest` to `/discovery/harvest?run={run}` (`import.handoff` keeps its own link). It blocks nothing: the add form stays.
+- `harvest` null: no line.
+- Accepted corpus (`accepted` not null): the source list as for imports, and when `harvest` is not null and `included` true the line `import.combined.accepted`. The add form stays absent (`CORPUS_ALREADY_ACCEPTED`).
+
+**The `VERIFIED_EXISTS` card** stays for its one remaining case and is reworded (`import.refused.title`, `import.refused.body`; `affects` and `action` unchanged). It is shown only when the engine sends `staging_refused: {code: "VERIFIED_EXISTS"}`, which no longer happens after a harvest or an import made by this app. The add form is absent while it shows, as before.
+
+**`import.rule`** (the hint on the "Go to the hand-off" label, D-I8) is reworded because "not both" is no longer true.
+
+**Copy** (keys in `lib/discovery-copy.ts`, en master, fr and ar from the start):
+| Key | en | fr | ar |
+| :-- | :-- | :-- | :-- |
+| `import.combined.with` | These exports will be combined with the harvest {run} when you accept the corpus on the Hand-off. | Ces exports seront combinés avec la collecte {run} quand vous accepterez le corpus à la Remise. | ستُدمج هذه الصادرات مع الحصاد {run} عند قبول المجموعة في التسليم. |
+| `import.combined.notReady` | The harvest {run} is not prepared ({state}), so it is not part of this corpus yet. Finish preparing it on the Harvest step, or accept the exports alone on the Hand-off. | La collecte {run} n'est pas préparée ({state}) ; elle ne fait donc pas encore partie de ce corpus. Terminez sa préparation à l'étape Collecte, ou acceptez les exports seuls à la Remise. | الحصاد {run} غير مُحضَّر ({state})، فليس جزءًا من هذه المجموعة بعد. أكمل تحضيره في خطوة الحصاد، أو اقبل الصادرات وحدها في التسليم. |
+| `import.combined.accepted` | Combined with the harvest {run}. | Combiné avec la collecte {run}. | مُدمج مع الحصاد {run}. |
+| `import.combined.openHarvest` | Open Harvest | Ouvrir la collecte | افتح الحصاد |
+| `combined.state.running` | being prepared | en préparation | قيد التحضير |
+| `combined.state.incomplete` | not fully checked | vérifications incomplètes | فحص غير مكتمل |
+| `combined.state.failed` | preparation failed | échec de la préparation | فشل التحضير |
+| `combined.state.stopped` | stopped | arrêtée | أوقفتَه |
+| `combined.state.interrupted` | interrupted | interrompue | انقطع |
+| `import.refused.title` (reworded) | These records have an unknown origin | Ces notices ont une origine inconnue | لهذه السجلات أصل غير معروف |
+| `import.refused.body` (reworded) | This workspace holds records whose origin the app does not know (no search and no import of this app made them), so a database export is not added to them. | Cet espace contient des notices dont l'application ne connaît pas l'origine (aucune recherche ni aucun import de cette application ne les a produites) ; un export de base ne leur est donc pas ajouté. | تحتوي مساحة العمل هذه على سجلات لا يعرف التطبيق أصلها (لم ينتجها أي بحث ولا أي استيراد في هذا التطبيق)، لذلك لا تُضاف إليها صادرات قواعد البيانات. |
+| `import.rule` (reworded) | Add exports before or after a harvest; they are combined with it when you accept the corpus on the Hand-off. You can remove a staged export any time before the accept. | Ajoutez des exports avant ou après une collecte ; ils sont combinés avec elle quand vous acceptez le corpus à la Remise. Vous pouvez retirer un export en attente avant l'acceptation. | أضف الصادرات قبل الحصاد أو بعده؛ تُدمج معه عند قبول المجموعة في التسليم. يمكنك إزالة صادر منتظر في أي وقت قبل القبول. |
+
+**States.**
+- **Default**: as above, with the harvest line when `harvest` is not null.
+- **Empty (`EMPTY`)**: the add form with the harvest line above it when a harvest exists; otherwise as 11.
+- **Loading**: skeleton only; no harvest line before the read finishes (it appears with the data).
+- **Error** (typed): as above; `VERIFIED_EXISTS` only for unknown origin (reworded card, code under Details); `CORPUS_ALREADY_ACCEPTED` shows 11's frozen state; `PROTOCOL_CHANGED_SINCE_RUN` and `PREPARATION_UNFINISHED` are the engine's accept refusals and use the shared cards of `lib/screening-states.ts` (no new copy).
+- **Partial**: the harvest is not `ready`: the `notReady` line in the `unclear` role; the exports remain addable and acceptable alone.
+- **Offline**: as 11 (last read "As of", write actions disabled); the harvest line stays with the last read.
+- **Protocol-changed**: the engine refuses the accept with `PROTOCOL_CHANGED_SINCE_RUN` when the harvest's search changed; this screen shows the shared card and adds no comparison of its own.
+- **Accepted**: the source list and, for a combined corpus, `import.combined.accepted`.
+
+**Accessibility.** The line is a `<p>` with `role="status"` text, the state word is text (not colour alone), `{run}` is in `bdi` and `dir="ltr"` in ar; the "Open Harvest" link is a 44 px target.
+
+**Backend calls.** None new: `GET /api/v1/screening/corpus` ✓ (`screening_v1.py:656`, additions ✓ M3f-combined-corpus), `POST /api/v1/screening/corpus/sources` ✓ (`:662`, no longer refuses after a harvest), `POST /api/v1/screening/corpus/accept` ✓ (`:696`, builds the combined snapshot when the harvest is `ready`, accepts the exports alone otherwise).
+
+**Tests.** `apps/research-ui/tests/discovery-import.test.tsx`: with `harvest {run: "run_003", state: "ready", included: true}` and a staged file, the line "combined with the harvest run_003" shows above the file list and the add form is present; with `included: false` and `state: "failed"` the not-prepared line shows the word "preparation failed", a link to Harvest, and the add form stays; with `harvest: null` no line shows; with `staging_refused: null` after a harvest the add form is present and no `VERIFIED_EXISTS` card renders; `VERIFIED_EXISTS` renders the reworded card (the old sentence "An export can be added only before the first harvest" is absent); an accepted combined corpus shows the source list and "Combined with the harvest run_003."; an unknown `state` prints verbatim. `apps/research-ui/tests/screening-import.test.tsx`: the 11 tests keep passing for `harvest: null`. `apps/research-ui/tests/discovery-copy.test.ts`: the keys above in en, fr and ar; N9 guard. `apps/research-ui/tests/guidance.audit.test.tsx`: D-I7 STAYS, D-I8 HINT, D-I9 and D-DS17 STAYS. Playwright `tests-browser/discovery.spec.ts`: stage an export after a fake harvest and see the combined line; RTL (ar); axe in light and dark.
+
+**Open questions:** none.

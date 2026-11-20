@@ -107,3 +107,41 @@ Playwright `discovery.spec.ts` (this screen's part): a partial run (one failed, 
 
 ## As built (M3c)
 Built in `apps/research-ui/components/discovery-report.tsx`. Reviewed is shown only from the `PUT` answer; editing a reviewed text shows "Edited, not saved" and Save as draft warns first (answer 6); the latest run's text can be reviewed after the accept and older runs are read-only (answer 7). Not built: disabling the methods buttons while the engine is unreachable (a failed save shows its card and keeps the text), the "{run} differs" line (the report always reads the run it names).
+
+## Addendum M3f-combined-corpus (2026-11-20)    Status: FINAL (M3f-combined-corpus)
+Where this addendum contradicts the text above (the identification table, the "Imports" card and "Duplicates" card descriptions, and the methods text), the addendum wins. Source: `docs/roadmap/milestones/M3f-combined-corpus.md` "Design" §5.
+
+**What changes.** For the run the corpus uses, with exports staged, the report lists both parts of the corpus and counts duplicates over both.
+
+**Data in (added)** from `GET /api/v1/discovery/report` ✓ M3f-combined-corpus (`src/scholar_harness/console/api/discovery.py:658`):
+- `identification[]` rows carry `kind: "search"` (one per database the app searched, as today) then `kind: "import"` (one per export; `executed_query` is the search string the researcher stated, `searched_at` the date stated, both `null` when not given).
+- For the corpus run with exports staged, `dedup.removed` and `dedup.unique_works` are the combined ones and `dedup.by_tier` is `null`.
+- The methods text (engine-rendered, still a draft) adds: "We also searched N databases ourselves and imported their exports: Scopus (618 records; searched on 2026-11-20; search string: `...`; limits: ...) and IEEE Xplore (208 records; date searched not stated; search string not stated).", then "The N imported records were not checked against Crossref or OpenAlex.", then "Deduplication across the N sources removed X records, leaving Y unique works." The screen prints it as the engine wrote it and adds nothing; the draft badge, "Check every number against the rows above" and the review gate are unchanged.
+- `imports[]` (the "Database exports" card with the noted lines) is unchanged.
+
+**Identification table (amended).** Each row shows its kind in words under the database name: `report.kind.search` "searched by the app" for a search row, `report.kind.import` "your export" for an export row (the key's text changes from "export"). Search rows are listed first, then export rows. An export row prints the date searched in the "Searched (UTC)" column, the stated search string in the "Executed string" column (mono, `dir="ltr"`, with its copy button) and, under the name, its limits with the existing `report.imports.limits` ("Limits: {limits}"), each exactly as the researcher gave it, and `report.import.notStated` ("not stated") where a value is absent. The "Reported" column keeps "not reported"; the browser computes no total.
+
+**Duplicates (amended).** When `dedup.by_tier` is `null` but `removed` and `unique_works` are present (a combined corpus), the three tier rows are not shown (not zero, not "not this run's") and one line states what the count covers: `report.dedup.combinedNote`. When the whole `dedup` is `null` the existing `report.dedup.notThisRun` stays.
+
+**Copy** (`lib/discovery-copy.ts`):
+| Key | en | fr | ar |
+| :-- | :-- | :-- | :-- |
+| `report.kind.search` | searched by the app | recherché par l'application | بحث أجراه التطبيق |
+| `report.kind.import` (changed) | your export | votre export | صادرك |
+| `report.import.notStated` | not stated | non indiqué | غير مذكور |
+| `report.dedup.combinedNote` | This count covers the harvest and your exports together, so it is not broken down by rule. | Ce nombre couvre la collecte et vos exports ensemble ; il n'est donc pas ventilé par règle. | يشمل هذا العدد الحصاد وصادراتك معًا، فلا يُفصَّل بحسب القاعدة. |
+
+**States.**
+- **Default**: as above, with export rows and the combined duplicates line for a combined corpus.
+- **Empty**, **Loading**, **Offline**, **Running job**, **Stale run**: unchanged. (An import-only corpus still has no run, so the report answers `RUN_NOT_FOUND` as before: an M3d-engine deferred item, not this addendum.)
+- **Error**: `PROTOCOL_MISSING`, `PROTOCOL_INVALID`, `RUN_NOT_FOUND`, `ENGINE_UNREACHABLE`, `TOKEN_SCOPE_REFUSED` as above; no new typed refusal.
+- **Partial**: an export row with no date, string or limits prints "not stated" in that cell; a harvest part that is not prepared adds no row and no text here (the Hand-off says it); `by_tier` `null` is the combined note, never a zero.
+- **Protocol-changed**: unchanged (the `stringsNote` stands; an export's string is the researcher's, not the plan's).
+
+**Accessibility.** The kind word is text under the name (not colour alone); the table keeps its caption, `th scope` and the focusable scroll container; strings, dates and counts are `dir="ltr"` with Latin digits in ar; the combined note is a plain caption.
+
+**Backend calls.** `GET /api/v1/discovery/report` ✓ (`discovery.py:658`, M3f-combined-corpus fields); `PUT /api/v1/discovery/report/methods` ✓ (`discovery.py:627` before this change, unchanged). Nothing is ✗.
+
+**Tests.** `apps/research-ui/tests/discovery-report.test.tsx`: search rows print "searched by the app" and export rows "your export", search rows first; an export row prints its date, string and limits as given and "not stated" for each absent value; no total or sum is rendered; `dedup.by_tier: null` with `removed` 1,114 prints the removed and unique numbers, no tier rows and the combined note; a whole-null `dedup` still prints "not this run's"; the engine-written methods text is printed unchanged inside the draft card and stays a draft until "I reviewed this text". `apps/research-ui/tests/discovery-copy.test.ts` (keys in en, fr, ar; N9 guard); `apps/research-ui/tests/guidance.audit.test.tsx`: D-RP19 and D-RP20 STAYS. Playwright `tests-browser/discovery.spec.ts`: a combined corpus's report with two export rows; RTL (ar); axe in light and dark.
+
+**Open questions:** none.
