@@ -160,8 +160,9 @@ def _legs_summary(
     ``None`` for one that does not, as it was when the probe ran.
     ``executed_query`` is the query the database received (M10a), ``None`` when not recorded.
     ``shorten`` (H-provenance-s2) says whether this database's empty answer may come
-    from a long keyword query (:func:`leg_says_shorten`); a leg's own ``query`` (a
-    follow-up of a delta) wins over ``query``.
+    from a long keyword query (:func:`leg_says_shorten`) the researcher sent. A leg
+    with its own ``query`` is a follow-up of a gap check, a term the engine chose,
+    so it never says shorten (the advice is to edit the query above).
     """
     keep = ("provider", "status", "executed_query", "reported_total", "fetched", "cap", "cap_hit", "error", "error_code")
     out = []
@@ -173,7 +174,7 @@ def _legs_summary(
             row["key_set"] = leg["key_set"]
         else:
             row["key_set"] = bool(getattr(settings, setting, None)) if setting else None
-        row["shorten"] = leg_says_shorten(leg.get("query") or query, leg, semantic)
+        row["shorten"] = "query" not in leg and leg_says_shorten(query, leg, semantic)
         out.append(row)
     return out
 
@@ -522,7 +523,7 @@ class ReconSessions:
             "status": merged_pool.get("status", POOL_COMPLETE),
             "n_docs": len(merged_pool.get("docs") or []),
             "served_from_cache": False,
-            "legs": _legs_summary(merged_pool.get("legs") or [], semantic=bool(merged_pool.get("semantic"))),
+            "legs": _legs_summary(merged_pool.get("legs") or [], pool.get("query"), bool(pool.get("semantic"))),
             "at": _now(),
         })
         self.save(session)

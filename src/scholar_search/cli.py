@@ -577,7 +577,7 @@ def verify(
         help="Hydrate missing abstracts, venues, and citations from OpenAlex",
     ),
 ):
-    """Verify citation authenticity against Crossref and OpenAlex, resolve canonical DOIs, and hydrate metadata."""
+    """Verify citation authenticity against Crossref and OpenAlex, fill a missing DOI from a title match, and hydrate metadata."""
     suffix = input_file.suffix.lower()
     if suffix == ".ris":
         documents = list(RISImporter().parse(input_file))

@@ -23,7 +23,7 @@ Two defects from the live run of 2026-11-19 (installed wheel from `origin/main` 
 **Readers checked.**
 - Hand-off provider mix (`console/api/discovery.py::handoff`): counts each row once per database in its `sources`, so it now gives each database the works its leg fetched after duplicates; the shares can add up to more than 100 % when databases overlap (unchanged rule). The "one database dominates" check reads the same mix.
 - PRISMA-S counts, the run report and the methods text (`scholar_search/search_report.py`, the methods route) read the legs (`legs.json`), not the rows: they were not wrong and do not change.
-- RIS export `DB` tag and JSON/CSV `provider` (`scholar_search/export.py`) read `provider`: now the database that found the work instead of `crossref`.
+- RIS export `DB` tag (`scholar_search/export.py`, from `sources[0]`) and the CSV `provider` column (from `provider`): now the first database that found the work instead of `crossref`. RIS still writes one `DB` line although `sources` now lists every database (follow-up).
 - Corpus snapshot: see "Lane".
 
 ## Defect 2: Semantic Scholar "0 results" on an Explore keyword search
@@ -36,6 +36,12 @@ Two defects from the live run of 2026-11-19 (installed wheel from `origin/main` 
 - Each recon leg carries `shorten` (`recon/session.py::leg_says_shorten`, in `_legs_summary`): true when the leg answered (`status: ok`), fetched nothing and reported no total above zero, and the query is a keyword query (not semantic, no `OR`) of three or more words, the same word rule as `says_shorten`. The engine decides; the browser does not count words.
 - Explore's "Databases asked" list of the latest search shows the existing sentence on that leg (`LegsList` `shorten` prop, `data-leg-shorten`); the failed-search card, which gives the advice once, passes no prop. No new copy.
 - A Semantic Scholar 200 answer with neither `total` nor `data` (a message only) now fails the leg with that message instead of reading as "0 results" (`providers/semanticscholar.py::search`). A 401/403 (refused), an exhausted 429 and 5xx were already failures.
+
+## Repairs after the review (round 1, CHANGES; code approved, P3s)
+- Finding 2: a title match that carries another DOI than the record's own keeps the record's DOI and names the other in the verification note (`_doi_kept`); the `scholar-search verify` help no longer says it resolves canonical DOIs. Test `test_a_title_match_with_another_doi_names_it_in_the_note`.
+- Finding 3: the gap check's record passes the original pool's query; a follow-up leg (a term the engine chose) never says shorten. Test `test_a_gap_check_follow_up_leg_never_says_shorten`.
+- Finding 4: the RIS sentence above corrected.
+- Finding 5: the per-leg advice shows only when another database found papers, so an all-empty search reloaded later does not repeat it per database. Test "is not repeated on every leg when no database found anything".
 
 ## Tests (each failed before the fix and passes after)
 - `tests/kits/search/test_verifier.py`: `test_a_doi_lookup_does_not_replace_the_databases_that_found_the_work`, `test_process_batch_keeps_each_records_provider_and_leaves_the_input_untouched`, `test_a_title_match_fills_a_missing_doi_but_never_overwrites_a_different_one` (the real `CrossrefProvider` normalizer, the HTTP answer faked); `test_an_untitled_probe_takes_the_resolved_title` guards the recall seed check and passed before as well.

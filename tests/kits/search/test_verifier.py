@@ -330,3 +330,29 @@ async def test_an_untitled_probe_takes_the_resolved_title():
     ok, out, _ = await verifier.verify_document(probe)
     assert ok is True
     assert out.title == "Weed detection in cereal crops from UAV imagery"
+
+
+@pytest.mark.asyncio
+async def test_a_title_match_with_another_doi_names_it_in_the_note():
+    """Review finding 2: the record keeps its DOI, and the conflict stays visible."""
+    from scholar_search.providers.crossref import CrossrefProvider
+
+    resolved = CrossrefProvider()._normalize_document({
+        "title": ["Weed detection in cereal crops from UAV imagery"], "DOI": "10.9999/other",
+    })
+    crossref = MagicMock()
+    crossref.base_url = "https://api.crossref.org/works"
+    unresolved = MagicMock()
+    unresolved.status_code = 404
+    crossref.client.get = AsyncMock(return_value=unresolved)
+    crossref.validate_reference = AsyncMock(return_value=resolved)
+    openalex = MagicMock()
+    openalex.base_url = "https://api.openalex.org/works"
+    openalex.client.get = AsyncMock(return_value=unresolved)
+    verifier = DocumentVerifier(crossref_provider=crossref, openalex_provider=openalex)
+
+    doc = _harvested("openalex", "W9", openalex_id="W9")
+    doc.external_ids.doi = "10.3390/typo"
+    ok, out, note = await verifier.verify_document(doc)
+    assert ok is True and out.external_ids.doi == "10.3390/typo"
+    assert "10.9999/other differs, the record keeps 10.3390/typo" in note

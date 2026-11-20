@@ -996,3 +996,13 @@ def test_a_leg_that_failed_or_a_short_query_never_says_shorten(env):
     job = _probe(client, sid, query="UAV imagery weed detection cereal crops", semantic=True,
                  databases=["openalex", "semanticscholar"])
     assert _legs(job)["semanticscholar"]["shorten"] is False
+
+
+def test_a_gap_check_follow_up_leg_never_says_shorten():
+    """Review finding 3: a follow-up term is the engine's, not a query the researcher can shorten."""
+    from scholar_harness.recon.session import _legs_summary
+
+    empty = {"provider": "semanticscholar", "status": "ok", "fetched": 0, "reported_total": 0}
+    rows = _legs_summary([dict(empty), {**empty, "query": "weed detection cereal fields"}],
+                         "UAV imagery weed detection cereal crops")
+    assert [r["shorten"] for r in rows] == [True, False]

@@ -106,3 +106,11 @@ describe("inception.legs shorten", () => {
     expect(once.container.querySelector("[data-leg-shorten]")).toBeNull();
   });
 });
+
+describe("inception.legs shorten when nothing was found", () => {
+  it("is not repeated on every leg when no database found anything (review finding 5)", () => {
+    const legs = ["openalex", "semanticscholar", "crossref"].map((provider) => leg({ provider, shorten: true }));
+    const { container } = render(<LegsList locale="en" legs={legs} shorten />);
+    expect(container.querySelector("[data-leg-shorten]")).toBeNull();
+  });
+});

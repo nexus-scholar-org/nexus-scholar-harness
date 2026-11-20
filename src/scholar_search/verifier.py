@@ -83,6 +83,19 @@ def confirmed(doc: Document, resolved: Document) -> Document:
     return out
 
 
+
+def _doi_kept(doc: Document, resolved: Document) -> str:
+    """The note's tail when a title match carries another DOI than the record's own.
+
+    ``confirmed`` keeps the record's DOI; the match's DOI is named here so the
+    conflict stays visible in the verification audit.
+    """
+    own, other = doc.external_ids.doi, resolved.external_ids.doi
+    if own and other and own.strip().lower() != other.strip().lower():
+        return f"; the match's DOI {other} differs, the record keeps {own}"
+    return ""
+
+
 class DocumentVerifier:
     """
     Verifies the existence of documents against Crossref & OpenAlex
@@ -191,7 +204,7 @@ class DocumentVerifier:
                         return (
                             True,
                             confirmed(doc, matched_doc),
-                            f"Verified via Crossref matching ({ratio:.0%} title match)",
+                            f"Verified via Crossref matching ({ratio:.0%} title match)" + _doi_kept(doc, matched_doc),
                         )
             except Exception as e:
                 logger.debug(f"Crossref title search failed: {e}")
@@ -214,7 +227,7 @@ class DocumentVerifier:
                             return (
                                 True,
                                 confirmed(doc, candidate),
-                                f"Verified via OpenAlex matching ({ratio:.0%} title match)",
+                                f"Verified via OpenAlex matching ({ratio:.0%} title match)" + _doi_kept(doc, candidate),
                             )
             except Exception as e:
                 logger.debug(f"OpenAlex title search failed: {e}")
