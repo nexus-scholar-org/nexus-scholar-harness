@@ -123,9 +123,9 @@ export const STATES: Record<string, StateEntry> = {
     role: "unclear",
     action: "handoff",
     copy: {
-      en: T("Exports cannot be added after a harvest", "A search in this workspace already made the records, so a database export cannot be added to them. An export can be added only before the first harvest; combining the two is planned.", "No file can be added to this workspace.", "Accept the harvest's corpus"),
-      fr: T("Impossible d'ajouter des exports après une collecte", "Une recherche dans cet espace a déjà produit les notices ; un export de base ne peut pas s'y ajouter. Un export ne s'ajoute qu'avant la première collecte ; la combinaison des deux est prévue.", "Aucun fichier ne peut être ajouté à cet espace.", "Accepter le corpus de la collecte"),
-      ar: T("لا يمكن إضافة صادرات بعد الحصاد", "أنتج بحث في مساحة العمل هذه السجلات بالفعل، فلا يمكن إضافة صادرات قاعدة بيانات إليها. تُضاف الصادرات قبل الحصاد الأول فقط؛ والجمع بين الاثنين مخطط له.", "لا يمكن إضافة أي ملف إلى مساحة العمل هذه.", "اقبل مجموعة الحصاد"),
+      en: T("These records have an unknown origin", "This workspace holds records whose origin the app does not know (no search and no import of this app made them), so a database export is not added to them.", "No file can be added to this workspace.", "Accept the harvest's corpus"),
+      fr: T("Ces notices ont une origine inconnue", "Cet espace contient des notices dont l'application ne connaît pas l'origine (aucune recherche ni aucun import de cette application ne les a produites) ; un export de base ne leur est donc pas ajouté.", "Aucun fichier ne peut être ajouté à cet espace.", "Accepter le corpus de la collecte"),
+      ar: T("لهذه السجلات أصل غير معروف", "تحتوي مساحة العمل هذه على سجلات لا يعرف التطبيق أصلها (لم ينتجها أي بحث ولا أي استيراد في هذا التطبيق)، لذلك لا تُضاف إليها صادرات قواعد البيانات.", "لا يمكن إضافة أي ملف إلى مساحة العمل هذه.", "اقبل مجموعة الحصاد"),
     },
   },
   CORPUS_ALREADY_ACCEPTED: {

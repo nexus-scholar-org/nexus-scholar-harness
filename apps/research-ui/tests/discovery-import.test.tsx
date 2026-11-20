@@ -103,7 +103,7 @@ describe("discovery.import", () => {
     expect(screen.queryByRole("link", { name: "Back to discovery" })).toBeNull();
   });
 
-  it("replaces the add form with the VERIFIED_EXISTS card and posts nothing", async () => {
+  it("replaces the add form with the VERIFIED_EXISTS card (records of unknown origin, M3f) and posts nothing", async () => {
     const calls = fake(
       { ...EMPTY, from_discovery: true, staging_refused: { code: "VERIFIED_EXISTS", message: "literature/verified.json already exists" } },
       "?return=discovery",
@@ -111,7 +111,7 @@ describe("discovery.import", () => {
     render(<ScreeningImport locale="en" />);
     const card = await screen.findByRole("alert");
     expect(card).toHaveAttribute("data-state", "VERIFIED_EXISTS");
-    expect(within(card).getByText("Exports cannot be added after a harvest", { selector: "h2" })).toBeInTheDocument();
+    expect(within(card).getByText("These records have an unknown origin", { selector: "h2" })).toBeInTheDocument();
     expect(within(card.querySelector("details") as HTMLElement).getByText("VERIFIED_EXISTS")).toBeInTheDocument();
     expect(document.querySelector("[data-import-form]")).toBeNull();
     expect(calls.some((c) => c.method === "POST")).toBe(false);

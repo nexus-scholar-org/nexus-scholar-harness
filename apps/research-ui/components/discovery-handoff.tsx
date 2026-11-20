@@ -23,7 +23,7 @@ import { getHandoff, getRuns, preparationUnfinished, type Handoff } from "@/lib/
 import { IncompleteChecks } from "@/components/incomplete-checks";
 import { acceptCorpus } from "@/lib/screening-v1";
 import { notifyReviewChanged } from "@/components/review-bus";
-import { discoveryT, providerName, type DiscoveryCopyKey } from "@/lib/discovery-copy";
+import { discoveryT, harvestStateWord, providerName, type DiscoveryCopyKey } from "@/lib/discovery-copy";
 
 /**
  * 08 Hand-off (spec `docs/ux/phase1-discovery/final/08-handoff.md`): what
@@ -129,7 +129,12 @@ export function DiscoveryHandoff({ locale }: Readonly<{ locale: Locale }>) {
   // For a harvest the engine's preview (review F4) counts works after deduplication, before verification,
   // so it can differ from the accepted count: the headline carries no number then (H-protocol-signals
   // Deferred). The browser adds nothing up.
-  const works = fromDiscovery ? null : preview?.unique_studies;
+  // M3f: a combined corpus (harvest plus exports) is counted by the engine over both parts, so its
+  // headline carries the number; a harvest alone keeps the M3c headline without one.
+  const combined = corpus?.origin === "combined";
+  const harvestOnly = fromDiscovery && !combined;
+  const works = harvestOnly ? null : preview?.unique_studies;
+  const harvestOut = !accepted && !!corpus?.harvest && !corpus.harvest.included && corpus.sources.length > 0 ? corpus.harvest : null;
 
   return (
     <DiscoveryFrame locale={locale} current="handoff" origin={origin} run={wanted}>
@@ -256,9 +261,16 @@ export function DiscoveryHandoff({ locale }: Readonly<{ locale: Locale }>) {
                   <>
                     <ul className="mt-3 space-y-2 text-sm">
                       {handoff.provider_mix.map((m) => (
-                        <li key={m.provider} data-mix-row={m.provider}>
+                        <li key={`${m.kind ?? "search"}:${m.provider}`} data-mix-row={m.provider} data-mix-kind={m.kind ?? "search"}>
                           <div className="flex flex-wrap justify-between gap-2">
-                            <span className="text-ink">{providerName(m.provider)}</span>
+                            <span className="text-ink">
+                              {providerName(m.provider)}{" "}
+                              {m.kind ? (
+                                <span className="text-xs text-ink-muted" data-mix-kind-word>
+                                  ({t(m.kind === "import" ? "handoff.mix.kind.import" : "handoff.mix.kind.search")})
+                                </span>
+                              ) : null}
+                            </span>
                             <bdi className="text-ink-muted">
                               {t("handoff.mix.row", { records: m.records, share: percent(m.share) })}
                             </bdi>
@@ -276,9 +288,9 @@ export function DiscoveryHandoff({ locale }: Readonly<{ locale: Locale }>) {
                 <h2 id="handoff-receive" className="font-semibold text-ink">
                   {t("handoff.receive.title")}
                 </h2>
-                {!fromDiscovery && !preview ? <p className="mt-2 text-ink-muted">{t("handoff.receive.noPreview")}</p> : null}
+                {!harvestOnly && !preview ? <p className="mt-2 text-ink-muted">{t("handoff.receive.noPreview")}</p> : null}
                 <dl className="mt-3 grid gap-3 text-sm sm:grid-cols-2">
-                  {!fromDiscovery && preview ? (
+                  {!harvestOnly && preview ? (
                     <>
                       <div>
                         <dt className="text-ink-muted">{t("handoff.receive.identified")}</dt>
@@ -328,6 +340,11 @@ export function DiscoveryHandoff({ locale }: Readonly<{ locale: Locale }>) {
                     </a>
                   </p>
                 ) : null}
+                {(handoff.imports_unchecked ?? 0) > 0 ? (
+                  <p className="mt-3 text-sm text-ink-muted" data-imports-unchecked>
+                    {t("handoff.imports.unchecked", { n: handoff.imports_unchecked ?? 0 })}
+                  </p>
+                ) : null}
               </section>
             </div>
             <aside className="space-y-4">
@@ -338,7 +355,7 @@ export function DiscoveryHandoff({ locale }: Readonly<{ locale: Locale }>) {
                   {t("handoff.from.title")}
                 </h2>
                 {handoff.run ? <p className="mt-2 text-ink">{t("handoff.from.run", { run: handoff.run })}</p> : null}
-                {!fromDiscovery && corpus.sources.length ? (
+                {!harvestOnly && corpus.sources.length ? (
                   <p className="mt-2 text-ink">
                     {t("handoff.from.sources")}: {corpus.sources.map((s) => s.label).join(", ")}
                   </p>
@@ -357,7 +374,8 @@ export function DiscoveryHandoff({ locale }: Readonly<{ locale: Locale }>) {
                     {t("handoff.report")}
                   </a>
                 </p>
-                {fromDiscovery ? (
+                {/* M3f: a harvest can follow exports, so "Search again" is offered with exports staged too. */}
+                {fromDiscovery || corpus.sources.length ? (
                   <p>
                     <a className={LINK} href={discoveryHref(locale, "harvest", origin)} data-search-again>
                       {t("handoff.again")}
@@ -377,6 +395,15 @@ export function DiscoveryHandoff({ locale }: Readonly<{ locale: Locale }>) {
                 <div data-protocol-changed="search">
                   <DiscoveryRefusal locale={locale} refusal={{ code: "PROTOCOL_CHANGED_SINCE_RUN", message: "" }} origin={origin} />
                 </div>
+              ) : null}
+              {harvestOut ? (
+                <section role="status" className="rounded-md border border-rule bg-paper p-3 text-sm text-ink" data-harvest-out={harvestOut.state}>
+                  <DecisionBadge role="unclear">{harvestStateWord(locale, harvestOut.state)}</DecisionBadge>{" "}
+                  <bdi>{t("handoff.harvestOut.note", { run: harvestOut.run, state: harvestStateWord(locale, harvestOut.state) })}</bdi>{" "}
+                  <a className={LINK} href={discoveryHref(locale, "harvest", origin, harvestOut.run)} data-harvest-out-open>
+                    {t("handoff.harvestOut.open")}
+                  </a>
+                </section>
               ) : null}
               {acceptError ? (
                 <div className="space-y-2">
