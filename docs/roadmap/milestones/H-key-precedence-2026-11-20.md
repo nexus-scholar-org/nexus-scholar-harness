@@ -1,5 +1,5 @@
 # H-key-precedence-2026-11-20 The provider key in use is predictable and visible
-Branch: dev/fix/key-precedence · Lane: **RELEASE** · Status: READY FOR REVIEW (not pushed) · Started: 2026-11-20
+Branch: dev/fix/key-precedence · Lane: **RELEASE** · Status: READY FOR PR (not pushed; the researcher's word is needed to push) · Started: 2026-11-20
 
 Base: `origin/main` at `88e3d6fb`. No AI call, no paid API call, no real key and no real keychain in any test or command run for this change. Out of scope by agreement with the concurrent sessions: harvest provider attribution and the Semantic Scholar search in `src/scholar_search`; none of those files was edited.
 
@@ -36,10 +36,14 @@ Before the fix the new tests were run against the old code (the file collected w
 | Stage | Commit | Command | Result | Duration |
 | :-- | :-- | :-- | :-- | :-- |
 | inner | working tree before `8a1528fe` | `pytest` on the new file, `test_keys.py`, `test_measure.py`, `test_prompt_gate.py`, `tests/console/test_agent_runs_api.py`, `tests/mcp/test_mcp_setup.py`, `tests/cli` (`-m "not slow"`) | 175 passed | 1 min |
-| pr (final executable commit) | `8a1528fe` | `git diff --check`; `uv run --extra dev --extra pdf --extra rag pytest -q -n auto`; `ruff check scripts/` | `git diff --check` clean; full suite exit 0 (5,734 passed dots, 20 skipped, 1 xfail; the log's summary line was not captured); `ruff check scripts/` clean | about 20 min |
+| pr (first candidate, superseded by the review repair) | `8a1528fe` | `git diff --check`; `uv run --extra dev --extra pdf --extra rag pytest -q -n auto`; `ruff check scripts/` | `git diff --check` clean; full suite exit 0 (5,734 passed dots, 20 skipped, 1 xfail; the log's summary line was not captured); `ruff check scripts/` clean | about 20 min |
 | ruff, real-bug classes | `8a1528fe` | `ruff check src/ --select F821,F811,F823,F632,F7,B023,B006,E9` | clean | seconds |
 | baseline, smoke | `8a1528fe` | `generate_contract_baseline.py --check`; `uv run nexus-scholar --help`; `uv run scholar-agent --help` (base environment, no `ai` extra) | baseline current; both answer | seconds |
 | lint, gate's agent-kit line | `8a1528fe` | `ruff check src/scholar_agent tests/kits/agent` | still red: 27 pre-existing findings in files this change does not own (unused imports in `test_server.py` and others); the two findings in files this change touched were fixed. Not a CI gate | |
+| review round 1 | `8a1528fe`, `047d141d` | `milestone-reviewer` (Sonnet) | **CHANGES**, no P1. P2: Rich read `[ai]` in the printed wheel install line as a style tag and dropped it, so a user copying the line installed no extra (tests only checked the raw exception text). P3: `is_refusal` blamed the key for any exception with "401" in its text; a whitespace typo in a test (not in the committed diff); the pr row's weak summary line | |
+| repair | `a9c8d2c5` | the install line and the refusal note print with `markup=False`; CLI tests assert `nexus-scholar[ai]` in the output of `measure` (with and without `--yes`) and `run`; `is_refusal` judges an exception by `status_code` 401 or the type name `AuthenticationError`, text only for per-record error strings (new asserts, incl. a `RuntimeError` with a URL containing 401) | `tests/kits/agent`, `tests/console/test_agent_runs_api.py`, `tests/cli` (without the two chromadb files): 377 passed | 2 min |
+| pr (final executable commit) | `a9c8d2c5` | `uv run --extra dev --extra pdf --extra rag pytest -q -n auto`; `ruff check scripts/`; `ruff check src/ --select F821,...`; `generate_contract_baseline.py --check`; `nexus-scholar --help`, `scholar-agent --help` | full suite exit 0 (5,734 passed dots, 17 skipped, 1 xfail; no summary line captured); both ruff commands clean; baseline current; both entrypoints answer | about 20 min |
+| review round 2 | `a9c8d2c5` | not run: the repair is bounded to the round-1 findings (policy: a new broad review only when a repair widens scope); the reviewer's P2 was reproduced and its fix is covered by the new CLI assertions | | |
 
 ## Deferred / not changed
 - The app's run API (`POST /proposals/runs`) still records the provider's per-record error text, and the Run screen does not show where a refused key came from; the sentence is CLI-only. The setup screen's `key` field reads `environment` where it read `keychain` when both exist.
