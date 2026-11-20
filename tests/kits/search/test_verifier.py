@@ -205,3 +205,128 @@ async def test_doi_with_matching_title_still_verifies():
                    external_ids=ExternalIds(doi="10.1/x"))
     ok, _, note = await verifier.verify_document(doc)
     assert ok is True and "DOI" in note
+
+
+# --- H-provenance-s2 (2026-11-20): a verifying lookup keeps the record's own databases --
+
+
+def _crossref_resolving_every_doi():
+    """A Crossref that answers every DOI lookup, normalized by the real provider.
+
+    The live harvest of 2026-11-19 showed 61 of 64 works as ``crossref`` in
+    ``verified.json``: the DOI lookup's record replaced the harvested one.
+    """
+    from scholar_search.providers.crossref import CrossrefProvider
+
+    crossref = CrossrefProvider()
+
+    async def get(url, **_kwargs):
+        doi = url.rsplit("/works/", 1)[-1]
+        resp = MagicMock()
+        resp.status_code = 200
+        resp.json.return_value = {"message": {
+            "title": ["Weed detection in cereal crops from UAV imagery"],
+            "DOI": doi,
+            "published-print": {"date-parts": [[2021]]},
+            "container-title": ["Remote Sensing"],
+            "author": [{"family": "Smith", "given": "Ann"}],
+        }}
+        return resp
+
+    crossref.client = MagicMock()
+    crossref.client.get = get
+    openalex = MagicMock()
+    openalex.base_url = "https://api.openalex.org/works"
+    notfound = MagicMock()
+    notfound.status_code = 404
+    openalex.client.get = AsyncMock(return_value=notfound)
+    return DocumentVerifier(crossref_provider=crossref, openalex_provider=openalex)
+
+
+def _harvested(provider: str, provider_id: str, **ids) -> Document:
+    return Document(
+        title="Weed detection in cereal crops from UAV imagery",
+        year=2021,
+        provider=provider,
+        provider_id=provider_id,
+        workspace_id="SCI-000007",
+        external_ids=ExternalIds(doi="10.3390/rs13010001", **ids),
+    )
+
+
+@pytest.mark.asyncio
+async def test_a_doi_lookup_does_not_replace_the_databases_that_found_the_work():
+    verifier = _crossref_resolving_every_doi()
+    doc = _harvested("openalex", "W42", openalex_id="W42")
+    # Deduplication merged a Semantic Scholar copy of the same work.
+    doc.sources.append({"provider": "semanticscholar", "id": "abc123"})
+    doc.external_ids.s2_id = "abc123"
+
+    ok, out, note = await verifier.verify_document(doc)
+
+    assert ok is True and "Crossref" in note
+    assert out.provider == "openalex"
+    assert out.provider_id == "W42"
+    assert [s["provider"] for s in out.sources] == ["openalex", "semanticscholar"]
+    assert out.workspace_id == "SCI-000007"
+    assert out.external_ids.openalex_id == "W42" and out.external_ids.s2_id == "abc123"
+    # The lookup still fills what the record lacked.
+    assert out.venue == "Remote Sensing"
+    assert [a.family_name for a in out.authors] == ["Smith"]
+
+
+@pytest.mark.asyncio
+async def test_process_batch_keeps_each_records_provider_and_leaves_the_input_untouched():
+    verifier = _crossref_resolving_every_doi()
+    docs = [
+        _harvested("openalex", "W1", openalex_id="W1"),
+        _harvested("semanticscholar", "s2-1", s2_id="s2-1"),
+        _harvested("arxiv", "2101.00001", arxiv_id="2101.00001"),
+        _harvested("crossref", "10.3390/rs13010001"),
+    ]
+    processed, audit = await verifier.process_batch(docs, verify=True, enrich=False)
+
+    assert [d.provider for d in processed] == ["openalex", "semanticscholar", "arxiv", "crossref"]
+    assert [[s["provider"] for s in d.sources] for d in processed] == [
+        ["openalex"], ["semanticscholar"], ["arxiv"], ["crossref"],
+    ]
+    assert all(d.workspace_id == "SCI-000007" for d in processed)
+    assert all(a["code"] == "VERIFIED" for a in audit)
+    # The input records are not changed by the verification.
+    assert docs[0].venue is None and docs[0].authors == []
+
+
+@pytest.mark.asyncio
+async def test_a_title_match_fills_a_missing_doi_but_never_overwrites_a_different_one():
+    from scholar_search.providers.crossref import CrossrefProvider
+
+    resolved = CrossrefProvider()._normalize_document({
+        "title": ["Weed detection in cereal crops from UAV imagery"],
+        "DOI": "10.9999/resolved",
+        "published-print": {"date-parts": [[2021]]},
+    })
+    crossref = MagicMock()
+    crossref.base_url = "https://api.crossref.org/works"
+    crossref.validate_reference = AsyncMock(return_value=resolved)
+    openalex = MagicMock()
+    verifier = DocumentVerifier(crossref_provider=crossref, openalex_provider=openalex)
+
+    no_doi = Document(title="Weed detection in cereal crops from UAV imagery",
+                      provider="arxiv", provider_id="2101.00002",
+                      external_ids=ExternalIds(arxiv_id="2101.00002"))
+    ok, out, _ = await verifier.verify_document(no_doi)
+    assert ok is True
+    assert out.provider == "arxiv" and [s["provider"] for s in out.sources] == ["arxiv"]
+    assert out.external_ids.doi == "10.9999/resolved"  # a canonical DOI is still resolved
+    assert out.external_ids.arxiv_id == "2101.00002"
+    assert no_doi.external_ids.doi is None
+
+
+@pytest.mark.asyncio
+async def test_an_untitled_probe_takes_the_resolved_title():
+    """``recall._title_check`` sends an ``Untitled`` probe and reads the title back."""
+    verifier = _crossref_resolving_every_doi()
+    probe = Document(title="Untitled", external_ids=ExternalIds(doi="10.3390/rs13010001"))
+    ok, out, _ = await verifier.verify_document(probe)
+    assert ok is True
+    assert out.title == "Weed detection in cereal crops from UAV imagery"

@@ -1,5 +1,6 @@
 """Verification and metadata hydration engine for academic literature."""
 
+import copy
 import logging
 from difflib import SequenceMatcher
 from typing import Any
@@ -42,10 +43,53 @@ def bidirectional_title_similarity(a: str, b: str) -> tuple[float, bool]:
     return ratio, False
 
 
+#: Placeholder titles a record carries when it has none.
+_NO_TITLE = ("", "Untitled", "Unknown Title")
+
+#: Identifier fields a lookup may fill when the record has none.
+_ID_FIELDS = ("doi", "arxiv_id", "pubmed_id", "openalex_id", "s2_id")
+
+
+def confirmed(doc: Document, resolved: Document) -> Document:
+    """``doc`` as verified by ``resolved``: a copy that keeps the record and its provenance.
+
+    H-provenance-s2 (2026-11-20). A lookup that confirms a record (Crossref or
+    OpenAlex by DOI, arXiv id or title) is not a database that found it. Until
+    this fix the lookup's own record replaced the harvested one, so a work
+    found by OpenAlex and Semantic Scholar reached ``verified.json`` as one
+    ``crossref`` record. The copy keeps ``provider``, ``provider_id``,
+    ``sources``, ``workspace_id`` and every field it already has; the lookup
+    only fills what is missing (including a DOI resolved by title). A
+    non-empty identifier is never replaced by a different one. ``doc`` itself
+    is not changed.
+    """
+    out = copy.deepcopy(doc)
+    if (out.title or "").strip() in _NO_TITLE and resolved.title not in _NO_TITLE:
+        out.title = resolved.title
+    for name in _ID_FIELDS:
+        if not getattr(out.external_ids, name) and getattr(resolved.external_ids, name):
+            setattr(out.external_ids, name, getattr(resolved.external_ids, name))
+    for name in ("abstract", "venue", "url", "year", "tldr"):
+        if not getattr(out, name) and getattr(resolved, name):
+            setattr(out, name, getattr(resolved, name))
+    if not out.authors and resolved.authors:
+        out.authors = copy.deepcopy(resolved.authors)
+    for name in ("citations_count", "references_count"):
+        if getattr(out, name) is None and getattr(resolved, name) is not None:
+            setattr(out, name, getattr(resolved, name))
+    for oa in resolved.oa_locations:
+        if oa not in out.oa_locations:
+            out.oa_locations.append(copy.deepcopy(oa))
+    return out
+
+
 class DocumentVerifier:
     """
     Verifies the existence of documents against Crossref & OpenAlex
     to detect hallucinations and hydates missing metadata.
+
+    A verified record is the input record, filled where it lacks data; the
+    lookup's record never replaces it (``confirmed``).
     """
 
     def __init__(
@@ -80,6 +124,9 @@ class DocumentVerifier:
         An identifier that resolves to a record with a different title is
         ``DOI_TITLE_MISMATCH``: not verified, and the input record is returned
         unchanged; it is never replaced by the resolved one (SRCH-10).
+
+        A verified record is a copy of the input, filled where it lacks data
+        (``confirmed``): its provider, sources and workspace id stay its own.
         """
         # 1. Verification by existing DOI (Crossref first, then OpenAlex fallback for arXiv/DataCite)
         if doc.external_ids.doi:
@@ -96,7 +143,7 @@ class DocumentVerifier:
                         mismatch = self._title_mismatch(doc, verified_doc, f"DOI {clean_doi} (Crossref)")
                         if mismatch:
                             return False, doc, mismatch
-                        return True, verified_doc, f"Verified via Crossref DOI ({clean_doi})"
+                        return True, confirmed(doc, verified_doc), f"Verified via Crossref DOI ({clean_doi})"
             except Exception as e:
                 logger.debug(f"Crossref DOI verification failed for {clean_doi}: {e}")
 
@@ -111,7 +158,7 @@ class DocumentVerifier:
                         mismatch = self._title_mismatch(doc, verified_doc, f"DOI {clean_doi} (OpenAlex)")
                         if mismatch:
                             return False, doc, mismatch
-                        return True, verified_doc, f"Verified via OpenAlex DOI ({clean_doi})"
+                        return True, confirmed(doc, verified_doc), f"Verified via OpenAlex DOI ({clean_doi})"
             except Exception as e:
                 logger.debug(f"OpenAlex DOI verification failed for {clean_doi}: {e}")
 
@@ -128,7 +175,7 @@ class DocumentVerifier:
                         mismatch = self._title_mismatch(doc, verified_doc, f"arXiv {clean_arxiv} (OpenAlex)")
                         if mismatch:
                             return False, doc, mismatch
-                        return True, verified_doc, f"Verified via OpenAlex arXiv ({clean_arxiv})"
+                        return True, confirmed(doc, verified_doc), f"Verified via OpenAlex arXiv ({clean_arxiv})"
             except Exception as e:
                 logger.debug(f"OpenAlex arXiv verification failed for {clean_arxiv}: {e}")
 
@@ -143,7 +190,7 @@ class DocumentVerifier:
                     if ratio >= 0.90:
                         return (
                             True,
-                            matched_doc,
+                            confirmed(doc, matched_doc),
                             f"Verified via Crossref matching ({ratio:.0%} title match)",
                         )
             except Exception as e:
@@ -166,7 +213,7 @@ class DocumentVerifier:
                         if ratio >= 0.90:
                             return (
                                 True,
-                                candidate,
+                                confirmed(doc, candidate),
                                 f"Verified via OpenAlex matching ({ratio:.0%} title match)",
                             )
             except Exception as e:
