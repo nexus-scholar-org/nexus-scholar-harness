@@ -708,15 +708,14 @@ def report(request: Request, run: str | None = None) -> dict[str, Any]:
         "near_twins": None,  # E4b (M3e-neartwins)
         "unique_works": unique,
     }
-    if newest_corpus == run_dir and imports:
-        # M3f: this run's works and the exports, deduplicated together. The tiers
-        # describe the harvest's own pass only, so they are not given here.
-        from ...corpus_accept import corpus_status
+    # M3f: this run's works and the exports, deduplicated together. Decided by the corpus's parts
+    # (review F2): an export beside a harvest the accept leaves out is not combined with this run.
+    # The tiers describe the harvest's own pass only, so they are not given for a combined corpus.
+    from ...corpus_accept import combined_counts
 
-        corpus = corpus_status(ws)
-        if corpus.get("origin") == "combined":
-            preview = corpus["preview"]
-            dedup.update(removed=preview["duplicates"], unique_works=preview["unique_studies"], by_tier=None)
+    combined = combined_counts(ws) if newest_corpus == run_dir and imports else None
+    if combined is not None:
+        dedup.update(removed=combined["duplicates"], unique_works=combined["unique_studies"], by_tier=None)
     try:
         from .screening_v1 import prisma_preview
 
@@ -724,7 +723,7 @@ def report(request: Request, run: str | None = None) -> dict[str, Any]:
     except Exception:  # noqa: BLE001 - no prepared screening yet: the preview is absent, not an error
         prisma = None
     window_rows = _verified(ws)
-    if newest_corpus == run_dir and imports:
+    if combined is not None:
         # M3f: with exports in the corpus, count works (each work's representative), as the Hand-off does.
         from ...corpus_accept import corpus_works
 
@@ -738,7 +737,8 @@ def report(request: Request, run: str | None = None) -> dict[str, Any]:
     else:
         methods = {
             "text": render_methods_text(
-                legs, imports, dedup, query_text=manifest.get("query_text"),
+                # M3f review F2: the exports are named in this run's text only when they are combined with it.
+                legs, imports if combined is not None else [], dedup, query_text=manifest.get("query_text"),
                 years=(manifest.get("year_min"), manifest.get("year_max")), cap_override=manifest.get("cap_override"),
                 not_selected_for_run=left_out,
             ),

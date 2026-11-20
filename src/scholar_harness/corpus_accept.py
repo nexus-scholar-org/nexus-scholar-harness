@@ -289,7 +289,9 @@ def harvest_part(ws: Path) -> dict[str, Any] | None:
     never frozen, M3i item 7). ``rows_path`` is where its works are: the run's
     own copy when an earlier combined accept made one, else ``verified.json``.
     A ready run whose ``verified.json`` was written over by an import accept
-    the gate refused (before M3f) has no rows left, so it is not included.
+    the gate refused (before M3f) has no rows left, so it is not included,
+    unless the run's verification wrote ``verified.json`` after that manifest
+    (review F1: the file is then the run's own and the manifest is stale).
     """
     from .pipeline.harvest_marker import READY, corpus_run_dir, preparation_view
 
@@ -299,13 +301,21 @@ def harvest_part(ws: Path) -> dict[str, Any] | None:
         return None
     view = preparation_view(lit, run_dir, published=True, newest_published=True)
     own = run_dir / "verified.json"
-    included = view["state"] == READY and (own.is_file() or not _imported(ws))
+    included = view["state"] == READY and (own.is_file() or not _imported(ws) or _verified_after_manifest(ws))
     manifest = _read_json(run_dir / "legs.json")
     return {
         "run": run_dir.name, "state": view["state"], "included": included, "run_dir": run_dir,
         "manifest": manifest if isinstance(manifest, dict) else {},
         "rows_path": own if own.is_file() else lit / "verified.json",
     }
+
+
+def _verified_after_manifest(ws: Path) -> bool:
+    """True when ``verified.json`` was written after the provenance manifest (a search's, not the import's)."""
+    try:
+        return (ws / "literature" / "verified.json").stat().st_mtime_ns > (ws / MANIFEST_FILE).stat().st_mtime_ns
+    except OSError:
+        return False
 
 
 def public_harvest(harvest: dict[str, Any] | None) -> dict[str, Any] | None:
@@ -827,8 +837,12 @@ def _manifest_sources(sources: list[dict[str, Any]]) -> list[dict[str, Any]]:
     ]
 
 
-def _materialise_staged(ws: Path) -> None:
-    """Write ``verified.json`` and the provenance manifest from the staged sources."""
+def _materialise_staged(ws: Path, *, left_out: dict[str, Any] | None = None) -> None:
+    """Write ``verified.json`` and the provenance manifest from the staged sources.
+
+    M3f review F5: ``left_out`` ({run, state}) is the unfinished harvest the
+    accept leaves out; it is journaled with ``CORPUS_IMPORTED``.
+    """
     sources, rows = _staged_rows(ws)
     if not rows:
         raise AcceptCorpusRefused("no database export is staged", "NOTHING_STAGED")
@@ -853,6 +867,7 @@ def _materialise_staged(ws: Path) -> None:
         parameters={
             "formats": sorted({s.get("format", "ris") for s in sources}),
             "sources": [s["id"] for s in sources],
+            **({"left_out": left_out} if left_out else {}),
         },
         metrics={"records": len(documents), "by_source": {d["label"]: d["records"] for d in databases(sources)}},
     )
@@ -886,7 +901,7 @@ def _materialise_combined(ws: Path, harvest: dict[str, Any]) -> Any:
     harvest_rows = _harvest_rows(harvest)
     verified = ws / "literature" / "verified.json"
     manifest_path = ws / MANIFEST_FILE
-    before = {path: path.read_bytes() if path.is_file() else None for path in (verified, manifest_path)}
+    restore = _restorer(ws)
     own = Path(harvest["run_dir"]) / "verified.json"
     if not own.is_file():
         atomic_write_text(own, json.dumps(harvest_rows, indent=2))
@@ -906,6 +921,13 @@ def _materialise_combined(ws: Path, harvest: dict[str, Any]) -> Any:
     manifest_path.parent.mkdir(parents=True, exist_ok=True)
     atomic_write_text(verified, json.dumps([*harvest_rows, *staged], indent=2))
     atomic_write_text(manifest_path, json.dumps(manifest, indent=2))
+    return restore
+
+
+def _restorer(ws: Path) -> Any:
+    """A function that puts ``verified.json`` and the provenance manifest back as they are now."""
+    paths = (ws / "literature" / "verified.json", ws / MANIFEST_FILE)
+    before = {path: path.read_bytes() if path.is_file() else None for path in paths}
 
     def restore() -> None:
         for path, content in before.items():
@@ -917,8 +939,8 @@ def _materialise_combined(ws: Path, harvest: dict[str, Any]) -> Any:
     return restore
 
 
-#: (input file stamps, preview) of the last ``corpus_preview``; the screens read it on every poll.
-_PREVIEW_CACHE: dict[str, Any] = {}
+#: ``(workspace, input file stamps, preview)`` of the last ``corpus_preview``; the screens read it on every poll.
+_PREVIEW_CACHE: list[Any] = [None]
 
 
 def _stamp(paths: list[Path]) -> tuple[Any, ...]:
@@ -966,12 +988,13 @@ def corpus_preview(workspace: Path | str) -> dict[str, Any] | None:
     if not sources:
         return None
     harvest = harvest_part(ws)
-    paths = [ws / SOURCES_FILE, ws / "protocol.json", ws / "literature" / "verified.json"]
+    paths = [ws / SOURCES_FILE, ws / "protocol.json", ws / "literature" / "verified.json", ws / MANIFEST_FILE]
     if harvest is not None:
         paths += [Path(harvest["run_dir"]) / name for name in ("legs.json", "pipeline.json", "verified.json")]
     key = _stamp(paths)
-    if _PREVIEW_CACHE.get("key") == key and _PREVIEW_CACHE.get("ws") == str(ws):
-        return _PREVIEW_CACHE["value"]
+    cached = _PREVIEW_CACHE[0]
+    if cached is not None and cached[0] == str(ws) and cached[1] == key:
+        return cached[2]
     included = harvest is not None and harvest["included"]
     harvest_rows = _harvest_rows(harvest) if included else []
     _, staged = _staged_rows(ws)
@@ -987,8 +1010,41 @@ def corpus_preview(workspace: Path | str) -> dict[str, Any] | None:
         "works": works,
         "representatives": representatives,
     }
-    _PREVIEW_CACHE.update(key=key, ws=str(ws), value=value)
+    _PREVIEW_CACHE[0] = (str(ws), key, value)
     return value
+
+
+def combined_counts(workspace: Path | str) -> dict[str, int] | None:
+    """``{identified, duplicates, unique_studies}`` of a corpus built from a harvest and exports, else ``None``.
+
+    Before the accept: the preview, only when a ready harvest is included with
+    the staged exports. After it: the combined manifest (what was fetched and
+    imported) and the first accepted snapshot (round 1, also after an M3g
+    chase round replaced ``verified.json``). Review F2: decided by the parts,
+    not by ``origin``, which says ``imports`` when an unfinished harvest was
+    left out and ``citation_searching`` in a chase round.
+    """
+    ws = Path(workspace).resolve()
+    if not _accepted_snapshot(ws):
+        harvest = harvest_part(ws)
+        if not staged_sources(ws) or harvest is None or not harvest["included"]:
+            return None
+        preview = corpus_preview(ws)
+        return {k: preview[k] for k in ("identified", "duplicates", "unique_studies")}
+    manifest = _manifest(ws) or {}
+    if manifest.get("schema") != COMBINED_MANIFEST_SCHEMA:
+        return None
+    registry = _read_json(ws / "audit" / "artifact_registry.json") or {}
+    corpora = sorted(
+        (e for e in (registry.get("artifacts") or {}).values() if e.get("artifact_type") == "corpus_snapshot"),
+        key=lambda e: str(e.get("accepted_at") or ""),
+    )
+    artifact = _read_json(ws / corpora[0]["path"]) if corpora else None
+    if not isinstance(artifact, dict):
+        return None
+    studies = len(artifact["data"]["studies"])
+    identified = int(manifest.get("total_raw_harvested") or 0)
+    return {"identified": identified, "duplicates": max(0, identified - studies), "unique_studies": studies}
 
 
 def corpus_works(workspace: Path | str) -> tuple[list[list[dict[str, Any]]], list[dict[str, Any]]] | None:
@@ -1016,9 +1072,14 @@ def corpus_works(workspace: Path | str) -> tuple[list[list[dict[str, Any]]], lis
     if not isinstance(artifact, dict) or not isinstance(rows, list):
         return None
     by_id = {row.get("workspace_id"): row for row in rows if isinstance(row, dict)}
-    works = [[by_id[a] for a in study.get("alias_ids") or [] if a in by_id] for study in artifact["data"]["studies"]]
-    works = [work for work in works if work]
-    return works, [work[0] for work in works]
+    pairs = [
+        ([by_id[a] for a in study.get("alias_ids") or [] if a in by_id],
+         {"title": study.get("title"), "year": study.get("publication_year")})
+        for study in artifact["data"]["studies"]
+    ]
+    pairs = [(work, representative) for work, representative in pairs if work]
+    # Review F7: the representative is the builder's (the study's title and year), as before the accept.
+    return [work for work, _ in pairs], [representative for _, representative in pairs]
 
 
 def import_ris(ws: Path, sources: list[tuple[str | None, Path]]) -> int:
@@ -1080,7 +1141,8 @@ def accept_corpus(
                 if harvest is not None:
                     left_out = {"run": harvest["run"], "state": harvest["state"]}
                 harvest = None
-                _materialise_staged(ws)
+                restore = _restorer(ws)
+                _materialise_staged(ws, left_out=left_out)
         elif _imported(ws):
             raise AcceptCorpusRefused(
                 "every database file was removed; add at least one before accepting",

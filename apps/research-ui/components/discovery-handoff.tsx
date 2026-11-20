@@ -23,7 +23,7 @@ import { getHandoff, getRuns, preparationUnfinished, type Handoff } from "@/lib/
 import { IncompleteChecks } from "@/components/incomplete-checks";
 import { acceptCorpus } from "@/lib/screening-v1";
 import { notifyReviewChanged } from "@/components/review-bus";
-import { discoveryT, harvestStateWord, providerName, type DiscoveryCopyKey } from "@/lib/discovery-copy";
+import { discoveryCountT, discoveryT, harvestStateWord, providerName, type DiscoveryCopyKey } from "@/lib/discovery-copy";
 
 /**
  * 08 Hand-off (spec `docs/ux/phase1-discovery/final/08-handoff.md`): what
@@ -342,7 +342,7 @@ export function DiscoveryHandoff({ locale }: Readonly<{ locale: Locale }>) {
                 ) : null}
                 {(handoff.imports_unchecked ?? 0) > 0 ? (
                   <p className="mt-3 text-sm text-ink-muted" data-imports-unchecked>
-                    {t("handoff.imports.unchecked", { n: handoff.imports_unchecked ?? 0 })}
+                    {discoveryCountT(locale)("handoff.imports.unchecked", handoff.imports_unchecked ?? 0, { n: handoff.imports_unchecked ?? 0 })}
                   </p>
                 ) : null}
               </section>

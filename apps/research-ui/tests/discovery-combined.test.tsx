@@ -225,3 +225,14 @@ describe("discovery.combined: Harvest (03 addendum)", () => {
     expect(document.querySelector('[data-state="STAGED_IMPORT_PENDING"]')).toBeNull();
   });
 });
+
+describe("discovery.combined: counted copy (review F8)", () => {
+  it("says one record in the singular", async () => {
+    const { discoveryCountT } = await import("@/lib/discovery-copy");
+    expect(discoveryCountT("en")("handoff.imports.unchecked", 1, { n: 1 })).toBe(
+      "1 record comes from your exports. It was not checked against Crossref or OpenAlex, and a missing abstract was not filled in.",
+    );
+    expect(discoveryCountT("en")("handoff.imports.unchecked", 618, { n: 618 })).toMatch(/^618 records come from your exports\./);
+    expect(discoveryCountT("ar")("handoff.imports.unchecked", 2, { n: 2 })).toMatch(/^سجلان/);
+  });
+});

@@ -249,3 +249,63 @@ def test_the_next_step_bar_counts_the_combined_corpus(env):
     body = client.get("/api/v1/review/next-step").json()
     assert body["state"] == "CORPUS_READY"
     assert (body["params"]["records"], body["params"]["works"]) == (7, 6)
+
+
+# --------------------------------------------------------------------------- review repairs (milestone-reviewer CHANGES on 2fc90e14)
+
+
+def test_review_f1_a_harvest_after_a_refused_exports_accept_is_still_combined(env, monkeypatch):
+    """F1 (P1): an exports-only accept the gate refused left verified.json and an import manifest behind, and
+    the next accept froze the exports alone, leaving out a ready harvest made afterwards."""
+    from scholar_harness import corpus_accept
+    from scholar_harness.contracts.acceptance import AcceptanceResult
+
+    client, ws, _ = env
+    assert _stage(client, "Scopus", SCOPUS, "scopus.ris").status_code == 201
+    with monkeypatch.context() as m:
+        m.setattr(corpus_accept, "accept_artifact", lambda *a, **k: AcceptanceResult(accepted=False, payload_hash="sha256:" + "0" * 64))
+        refused = client.post(ACCEPT)
+    assert refused.status_code == 409
+    # Nothing of the refused accept is left behind.
+    assert not (ws / "literature" / "verified.json").exists()
+    assert not (ws / "literature" / "raw" / "provenance_manifest.json").exists()
+    _harvest(client)
+    corpus = client.get(CORPUS).json()
+    assert corpus["harvest"] == {"run": "run_001", "state": "ready", "included": True} and corpus["origin"] == "combined"
+    assert client.post(ACCEPT).status_code == 200
+    assert len(_snapshot(ws)["data"]["record_to_study"]) == 7
+
+
+def test_review_f1_a_stale_import_manifest_does_not_exclude_a_newer_harvest(env):
+    """F1: a workspace left in that state by an older build (import manifest, then a harvest's verified.json)."""
+    client, ws, _ = env
+    raw = ws / "literature" / "raw"
+    raw.mkdir(parents=True, exist_ok=True)
+    (raw / "provenance_manifest.json").write_text(json.dumps({"schema": "nexus.corpus-import.v1"}), encoding="utf-8")
+    _harvest(client)  # writes verified.json after the manifest
+    assert _stage(client, "Scopus", SCOPUS, "scopus.ris").status_code == 201
+    assert client.get(CORPUS).json()["harvest"]["included"] is True
+
+
+def test_review_f2_a_left_out_harvest_is_not_reported_as_combined(env, monkeypatch):
+    """F2a: the report of a run the accept leaves out names no export and no cross-source deduplication."""
+    client, ws, _ = env
+    monkeypatch.setattr(ver_mod, "DocumentVerifier", _VerifierDown)
+    job, _ = h._run(client, {"providers": ["openalex"]})
+    assert job["state"] == "failed", job
+    assert _stage(client, "Scopus", SCOPUS, "scopus.ris").status_code == 201
+    report = client.get(f"{BASE}/report").json()
+    text = report["methods_text"]["text"]
+    assert "imported" not in text and "across the" not in text
+    assert [row["kind"] for row in report["identification"]][-1] == "import"  # the export is still listed as staged
+
+
+def test_review_f5_the_journal_names_the_harvest_an_exports_only_accept_left_out(env, monkeypatch):
+    client, ws, _ = env
+    monkeypatch.setattr(ver_mod, "DocumentVerifier", _VerifierDown)
+    job, _ = h._run(client, {"providers": ["openalex"]})
+    assert job["state"] == "failed", job
+    assert _stage(client, "Scopus", SCOPUS, "scopus.ris").status_code == 201
+    assert client.post(ACCEPT).status_code == 200
+    event = next(e for e in h._journal(ws) if e["action"] == "CORPUS_IMPORTED")
+    assert event["parameters"]["left_out"] == {"run": "run_001", "state": "failed"}

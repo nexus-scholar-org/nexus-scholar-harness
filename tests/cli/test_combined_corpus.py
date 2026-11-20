@@ -227,3 +227,75 @@ def test_the_workspace_copy_is_not_needed_to_reproduce(tmp_path):
     twin = tmp_path / "twin"
     shutil.copytree(ws, twin)
     assert accept_corpus(ws, now=NOW).artifact_id == accept_corpus(twin, now=NOW).artifact_id
+
+
+# --------------------------------------------------------------------------- review repairs (Compass §7, F4)
+
+
+def test_review_f4_a_changed_harvest_row_changes_the_artifact(tmp_path):
+    """Negative mutation: one harvested title changed gives another snapshot, never the same id."""
+    from scholar_harness.corpus_accept import accept_corpus
+
+    ws = _workspace(tmp_path, "a")
+    _ready_harvest(ws)
+    _stage(ws, "Scopus", SCOPUS, "scopus.ris")
+    other = _workspace(tmp_path, "b")
+    _ready_harvest(other)
+    rows = json.loads((other / "literature" / "verified.json").read_text(encoding="utf-8"))
+    rows[1]["title"] += " (corrected)"
+    (other / "literature" / "verified.json").write_text(json.dumps(rows), encoding="utf-8")
+    _stage(other, "Scopus", SCOPUS, "scopus.ris")
+    assert accept_corpus(ws, now=NOW).artifact_id != accept_corpus(other, now=NOW).artifact_id
+
+
+def test_review_f4_a_refused_gate_publishes_nothing(tmp_path, monkeypatch):
+    from scholar_harness import corpus_accept
+    from scholar_harness.contracts.acceptance import AcceptanceResult
+
+    ws = _workspace(tmp_path)
+    _ready_harvest(ws)
+    _stage(ws, "Scopus", SCOPUS, "scopus.ris")
+    monkeypatch.setattr(corpus_accept, "accept_artifact",
+                        lambda *a, **k: AcceptanceResult(accepted=False, payload_hash="sha256:" + "0" * 64))
+    with pytest.raises(corpus_accept.AcceptCorpusRefused):
+        corpus_accept.accept_corpus(ws, now=NOW)
+    registry = ws / "audit" / "artifact_registry.json"
+    assert not registry.exists() or "corpus_snapshot" not in registry.read_text(encoding="utf-8")
+    journal = (ws / "audit" / "journal.jsonl").read_text(encoding="utf-8")
+    assert "CORPUS_COMBINED" not in journal
+
+
+def test_review_f4_the_cli_run_never_freezes_the_exports_alone(tmp_path):
+    """The end of a CLI run with staged exports refuses when its own preparation did not end."""
+    from scholar_harness.pipeline.coordinator import _accept_run_corpus
+
+    ws = _workspace(tmp_path)
+    _ready_harvest(ws, ended="INCOMPLETE")  # H-quota-hang: verified.json is the run's, some records unchecked
+    _stage(ws, "Scopus", SCOPUS, "scopus.ris")
+    stage = _accept_run_corpus(ws, {})
+    assert stage["status"] == "REFUSED" and stage["code"] == "PREPARATION_UNFINISHED"
+    assert "incomplete" in stage["reason"]
+    assert not (ws / "audit" / "artifact_registry.json").exists()
+    assert json.loads((ws / "literature" / "verified.json").read_text(encoding="utf-8")) == HARVEST
+
+
+def test_review_f2b_the_combined_counts_stay_round_ones_after_a_later_snapshot(tmp_path):
+    """F2b: an M3g chase round registers a later snapshot of the new records only; the combined
+    counts (report, methods text) keep describing round 1, read from its own snapshot."""
+    from scholar_harness.corpus_accept import accept_corpus, combined_counts
+
+    ws = _workspace(tmp_path)
+    _ready_harvest(ws)
+    _stage(ws, "Scopus", SCOPUS, "scopus.ris")
+    accept_corpus(ws, now=NOW)
+    before = combined_counts(ws)
+    assert before == {"identified": 5, "duplicates": 2, "unique_studies": 3}
+    registry_path = ws / "audit" / "artifact_registry.json"
+    registry = json.loads(registry_path.read_text(encoding="utf-8"))
+    (entry,) = [e for e in registry["artifacts"].values() if e["artifact_type"] == "corpus_snapshot"]
+    round2 = json.loads((ws / entry["path"]).read_text(encoding="utf-8"))
+    round2["data"]["studies"] = round2["data"]["studies"][:1]
+    (ws / "round2.json").write_text(json.dumps(round2), encoding="utf-8")
+    registry["artifacts"]["ART-corpus-round2"] = {**entry, "path": "round2.json", "accepted_at": "2099-01-01T00:00:00Z"}
+    registry_path.write_text(json.dumps(registry), encoding="utf-8")
+    assert combined_counts(ws) == before

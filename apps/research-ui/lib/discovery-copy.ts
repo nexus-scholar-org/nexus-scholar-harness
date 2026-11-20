@@ -1,3 +1,4 @@
+import { pluralTemplate } from "@/lib/plural";
 import type { Locale } from "@/i18n";
 
 /**
@@ -327,7 +328,7 @@ const EN = {
   "import.refused.title": "These records have an unknown origin",
   "import.refused.body": "This workspace holds records whose origin the app does not know (no search and no import of this app made them), so a database export is not added to them.",
   "import.refused.affects": "No file can be added to this workspace.",
-  "import.refused.action": "Accept the harvest's corpus",
+  "import.refused.action": "Review these records on the Hand-off",
   "import.rule": "Add exports before or after a harvest; they are combined with it when you accept the corpus on the Hand-off. You can remove a staged export any time before the accept.",
   "import.combined.with": "These exports will be combined with the harvest {run} when you accept the corpus on the Hand-off.",
   "import.combined.notReady": "The harvest {run} is not prepared ({state}), so it is not part of this corpus yet. Finish preparing it on the Harvest step, or accept the exports alone on the Hand-off.",
@@ -994,7 +995,7 @@ const FR: Record<DiscoveryCopyKey, string> = {
   "import.refused.title": "Ces notices ont une origine inconnue",
   "import.refused.body": "Cet espace contient des notices dont l'application ne connaît pas l'origine (aucune recherche ni aucun import de cette application ne les a produites) ; un export de base ne leur est donc pas ajouté.",
   "import.refused.affects": "Aucun fichier ne peut être ajouté à cet espace.",
-  "import.refused.action": "Accepter le corpus de la collecte",
+  "import.refused.action": "Examiner ces notices à la remise",
   "import.rule": "Ajoutez des exports avant ou après une collecte ; ils sont combinés avec elle quand vous acceptez le corpus à la Remise. Vous pouvez retirer un export en attente avant l'acceptation.",
   "import.combined.with": "Ces exports seront combinés avec la collecte {run} quand vous accepterez le corpus à la Remise.",
   "import.combined.notReady": "La collecte {run} n'est pas préparée ({state}) ; elle ne fait donc pas encore partie de ce corpus. Terminez sa préparation à l'étape Collecte, ou acceptez les exports seuls à la Remise.",
@@ -1659,7 +1660,7 @@ const AR: Record<DiscoveryCopyKey, string> = {
   "import.refused.title": "لهذه السجلات أصل غير معروف",
   "import.refused.body": "تحتوي مساحة العمل هذه على سجلات لا يعرف التطبيق أصلها (لم ينتجها أي بحث ولا أي استيراد في هذا التطبيق)، لذلك لا تُضاف إليها صادرات قواعد البيانات.",
   "import.refused.affects": "لا يمكن إضافة أي ملف إلى مساحة العمل هذه.",
-  "import.refused.action": "اقبل مجموعة الحصاد",
+  "import.refused.action": "راجع هذه السجلات في التسليم",
   "import.rule": "أضف الصادرات قبل الحصاد أو بعده؛ تُدمج معه عند قبول المجموعة في التسليم. يمكنك إزالة صادر منتظر في أي وقت قبل القبول.",
   "import.combined.with": "ستُدمج هذه الصادرات مع الحصاد {run} عند قبول المجموعة في التسليم.",
   "import.combined.notReady": "الحصاد {run} غير مُحضَّر ({state})، فليس جزءًا من هذه المجموعة بعد. أكمل تحضيره في خطوة الحصاد، أو اقبل الصادرات وحدها في التسليم.",
@@ -2017,6 +2018,12 @@ function fillCopy(text: string, values?: Record<string, string | number>): strin
 
 export function discoveryT(locale: Locale) {
   return (key: DiscoveryCopyKey, values?: Record<string, string | number>) => fillCopy(DISCOVERY_COPY[locale][key], values);
+}
+
+/** A counted message: the plural table's form for `count` when it has one (lib/plural.ts), else the catalog's string. */
+export function discoveryCountT(locale: Locale) {
+  return (key: DiscoveryCopyKey, count: number, values?: Record<string, string | number>) =>
+    fillCopy(pluralTemplate(locale, key, count, DISCOVERY_COPY[locale][key]), values);
 }
 
 /** Database display names: product names, never translated; an unknown name is shown as sent. */
