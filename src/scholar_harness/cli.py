@@ -579,10 +579,16 @@ def gate_measure(
     dry_run: bool = typer.Option(False, "--dry-run", help="Print records, batches, tokens and cost from the prompt sizes; no network call, no key"),
     yes: bool = typer.Option(False, "--yes", help="Confirm: this spends your provider key"),
     task_version: str = typer.Option("", "--task-version", help="Measure a candidate task version (e.g. screen-v2); default: the task product runs use"),
+    not_reported: str = typer.Option("", "--not-reported", help="Derive outcomes under this not-reported policy (unclear, exclude, decisive_first); default: the protocol's"),
 ) -> None:
     """M9a: the screening agent against the researcher's decisions (recall, precision, cost, truncations)."""
     from scholar_agent import measure as ms
 
+    from scholar_harness.screening.proposals import NOT_REPORTED_POLICIES
+
+    if not_reported and not_reported not in NOT_REPORTED_POLICIES:
+        console.print(f"[bold red]❌ --not-reported must be one of {', '.join(NOT_REPORTED_POLICIES)}[/bold red]")
+        raise typer.Exit(1)
     if not dry_run:
         _need_sdk(provider)  # first, before an estimate or a "--yes to spend" line is shown
     try:
@@ -628,6 +634,7 @@ def gate_measure(
         report = _run_driver(provider, lambda: ms.measure(
             workspace, scope=scope, provider=provider, model=model, effort=effort, max_tokens=max_tokens,
             driver=driver, cost_ceiling_usd=ceiling, limit=limit, out_dir=out, task_version=task_version or None,
+            not_reported=not_reported or None,
         ))
     except (ValueError, FileNotFoundError, KeyError) as exc:
         console.print(f"[bold red]❌ {exc}[/bold red]")

@@ -274,13 +274,18 @@ def report(
     provider: str,
     spec: RunSpec,
     batch: bool,
+    not_reported: str | None = None,
 ) -> dict[str, Any]:
+    """``not_reported``: the policy outcomes are derived under; ``None`` is the protocol's (H-screening-drafts)."""
+    from scholar_harness.screening.method import method_from_protocol
+
+    policy = not_reported or method_from_protocol(protocol).config.not_reported
     by_id = {r.custom_id: r for r in results}
     outcomes, per_record = {}, []
     usage = Counter()
     for record in records:
         result = by_id.get(record.study_id)
-        outcome, reason, checks = derive(record, result, protocol)
+        outcome, reason, checks = derive(record, result, protocol, not_reported=policy)
         outcomes[record.study_id] = outcome
         if result is not None:
             usage.update(result.usage.as_dict())
@@ -301,6 +306,7 @@ def report(
     return {
         "task_version": task.task_version,
         "prompt_sha256": task.prompt_sha256,
+        "not_reported_policy": policy,
         "provider": provider,
         "model": spec.model,
         "effort": spec.effort,

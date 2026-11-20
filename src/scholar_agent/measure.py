@@ -314,6 +314,7 @@ def analyse(
     batch_of: dict[str, str],
     stopped: str | None = None,
     plan_: dict[str, Any] | None = None,
+    not_reported: str | None = None,
 ) -> dict[str, Any]:
     """The M9a report. Records without a result are `not_reached` and are not scored."""
     got = {r.custom_id for r in results}
@@ -328,6 +329,7 @@ def analyse(
         provider=provider,
         spec=spec,
         batch=use_batches,
+        not_reported=not_reported,
     )
     rows = base["records"]
     label_of = {r["study_id"]: r["label"] for r in rows}
@@ -412,6 +414,7 @@ def analyse(
         "milestone": "M9a-measure",
         "task_version": base["task_version"],
         "prompt_sha256": base["prompt_sha256"],
+        "not_reported_policy": base["not_reported_policy"],
         "provider": provider,
         "model": spec.model,
         "effort": spec.effort,
@@ -485,7 +488,8 @@ def render_markdown(report: dict[str, Any]) -> str:
     lines = [
         f"# M9a-measure report: {report['provider']}/{report['model']} ({report['effort']} effort)",
         "",
-        f"Task `{report['task_version']}`, prompt `{report['prompt_sha256']}`. Scope `{report['scope']['scope']}`, "
+        f"Task `{report['task_version']}`, prompt `{report['prompt_sha256']}`, outcomes derived under the "
+        f"`{report.get('not_reported_policy', 'unclear')}` not-reported rule. Scope `{report['scope']['scope']}`, "
         f"set `{report['scope']['set_sha256']}`, researcher's decisions {report['scope']['human_confirmation']}.",
         *[f"**WARNING: {w}**" for w in report["warnings"]],
         f"{report['scored']} of {report['records']} records scored; {report['not_reached']['count']} not reached"
@@ -563,8 +567,12 @@ def measure(
     out_dir: Path = OUT_DIR,
     now: Callable[[], datetime] = lambda: datetime.now(UTC),
     task_version: str | None = None,
+    not_reported: str | None = None,
 ) -> dict[str, Any]:
     """Plan (`driver` None: dry run, no network) or run and write the report.
+
+    ``not_reported`` derives the outcomes under that policy instead of the
+    protocol's own (H-screening-drafts: to see ``decisive_first`` on the frozen set).
 
     ``task_version`` measures a candidate task version (H-screening-drafts, ``screen-v2``);
     ``None`` is the default task, the one product runs use.
@@ -588,7 +596,7 @@ def measure(
     results, stopped = execute(driver, records, spec, provider=provider, protocol=protocol, cost_ceiling_usd=cost_ceiling_usd)
     report = analyse(
         scope=scope_info, records=records, results=results, protocol=protocol, provider=provider,
-        spec=spec, batch_of=batch_of, stopped=stopped, plan_=the_plan,
+        spec=spec, batch_of=batch_of, stopped=stopped, plan_=the_plan, not_reported=not_reported,
     )
     report["finished_at"] = now().isoformat()
     stamp = now().strftime("%Y%m%dT%H%M%SZ")

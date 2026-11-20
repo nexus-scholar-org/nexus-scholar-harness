@@ -101,3 +101,26 @@ def test_the_gate_spec_of_the_default_is_unchanged():
     spec = pg.run_spec({"screening_criteria": {"inclusion": [{"id": "INC-01", "description": "x"}]}},
                        model="m", effort="low", max_tokens=10)
     assert spec.task_version == ""
+
+
+def test_the_measurement_can_derive_under_another_not_reported_policy(tmp_path):
+    """The frozen set's protocol says nothing (`unclear`); `--not-reported decisive_first` re-derives offline."""
+    ws = _workspace(tmp_path)
+    as_is = ms.measure(ws, scope="all", provider="anthropic", model=MODEL, effort="low", max_tokens=1024,
+                       driver=ScriptedDriver(), out_dir=tmp_path / "a")
+    decisive = ms.measure(ws, scope="all", provider="anthropic", model=MODEL, effort="low", max_tokens=1024,
+                          driver=ScriptedDriver(), out_dir=tmp_path / "b", not_reported="decisive_first")
+    assert (as_is["not_reported_policy"], decisive["not_reported_policy"]) == ("unclear", "decisive_first")
+    assert "`decisive_first` not-reported rule" in (tmp_path / "b").joinpath(
+        next(p.name for p in (tmp_path / "b").glob("*.md"))).read_text(encoding="utf-8")
+    # A decisive answer beside a gap is Unclear as-is and decided under decisive_first: never more Unclear.
+    unclear = lambda r: sum(row["MAYBE"] for row in r["confusion"]["table"].values())  # noqa: E731
+    assert unclear(decisive) <= unclear(as_is)
+
+
+def test_the_cli_refuses_an_unknown_not_reported_policy(tmp_path, monkeypatch):
+    _no_secrets(monkeypatch)
+    ws = _workspace(tmp_path)
+    result = CliRunner().invoke(app, ["prompt-gate", "measure", "--workspace", str(ws), "--scope", "all",
+                                      "--not-reported", "include", "--dry-run"])
+    assert result.exit_code == 1 and "--not-reported must be one of" in result.output
