@@ -151,6 +151,18 @@ def test_a_used_up_quota_during_the_checks_ends_the_run_and_says_when_it_resets(
     refused = client.post(ACCEPT)
     assert refused.status_code == 409 and h._code(refused) == "PREPARATION_UNFINISHED", refused.text
 
+    # The next-step bar and the hand-off checks read the same state. The double scaffolds a placeholder
+    # workspace; genesis would record that the protocol came from inception (as test_next_step_api does).
+    manifest = json.loads((ws / "project.json").read_text(encoding="utf-8"))
+    (ws / "project.json").write_text(json.dumps({**manifest, "protocol_origin": "inception"}), encoding="utf-8")
+    bar = client.get("/api/v1/review/next-step").json()
+    assert bar["state"] == "CORPUS_PENDING" and bar["action"]["key"] == "finishPreparing"
+    assert bar["waiting"]["kind"] == "failed" and bar["waiting"]["stage"] == "verifying"
+    assert bar["waiting"]["reason"] == {"code": "PROVIDER_QUOTA_EXHAUSTED", "message": preparation["message"]}
+    checks = client.get(f"{BASE}/checks", params={"step": "handoff"}).json()
+    row = next(c for c in checks["checks"] if c["check_id"] == "HANDOFF_PREPARATION_UNFINISHED")
+    assert row["params"]["state"] == "incomplete" and row["action"]["finish"] is True
+
 
 def test_finish_preparing_after_the_reset_checks_only_the_records_not_checked(env, world):
     client, ws, _ = env

@@ -294,7 +294,7 @@ def build_workspace(
             return done("SEARCH_UNFINISHED", "discovery", params={"run": run}, waiting=wait,
                         action=_action("searchAgain", "discovery.harvest"))
         # Row 15: the corpus run's preparation failed, stopped or never ended (the Hand-off case).
-        if corpus_run is not None and prep.get("state") in ("failed", "stopped", "interrupted"):
+        if corpus_run is not None and prep.get("state") in ("failed", "stopped", "interrupted", "incomplete"):
             run = corpus_run["run"]
             stage = STAGE_NAMES.get(str(prep.get("stage")))
             params = {"run": run, "records": corpus_run.get("fetched_total"), "works": _works(ws),
@@ -308,6 +308,14 @@ def build_workspace(
             elif prep["state"] == "stopped":
                 wait = _waiting("stopped", stage or "deduplicating", since=prep.get("ended_at"),
                                 reason={"code": STOPPED_BY_RESEARCHER, "message": None})
+            elif prep["state"] == "incomplete":
+                # H-quota-hang: the checks ended early (a used-up quota, or the researcher's stop
+                # between two records); the engine's sentence names the database, the reset and the count.
+                checks = prep.get("checks") or {}
+                code = str(checks.get("reason") or "PROVIDER_QUOTA_EXHAUSTED")
+                kind = "stopped" if code == STOPPED_BY_RESEARCHER else "failed"
+                wait = _waiting(kind, "verifying", since=prep.get("ended_at"),
+                                reason={"code": code, "message": prep.get("message")})
             else:
                 # The cause of an interruption is not recorded; the stage is named only when the marker has one.
                 wait = _waiting("interrupted", stage or "verifying", since=corpus_run.get("finished_at"),
