@@ -307,6 +307,13 @@ def test_the_methods_paragraph_reports_a_method_amendment(tmp_path, field):
     text = body["paragraph"]
     label = {"blinding": "the reveal of the agent's drafts", "not_reported": "the not-reported rule"}[field]
     assert f"after the protocol was signed, the reviewer changed {label}" in text
+    # Review F1: the source sentence says the values are amended; no drafts, no drafts sentence.
+    sentences = [x.strip() for x in text.split(". ")]
+    source_at = next(i for i, x in enumerate(sentences) if x.startswith("These values are set in the signed protocol"))
+    assert sentences[source_at].rstrip(".") == "These values are set in the signed protocol except as amended below"
+    assert sentences[source_at + 1].startswith("On ") and label in sentences[source_at + 1]
+    assert "The agent's drafts are counted" not in text and "No AI model proposed decisions for this screening" in text
+    assert "audit/method_amendments.jsonl" in [src["path"] for src in body["sources"]]  # review F6
     [figure] = body["figures"]["method_amendments"]
     assert (figure["field"], figure["to"]) == (field, value)
     from test_methods_api import _assert_no_forbidden, _assert_numbers_trace
@@ -321,3 +328,68 @@ def test_the_methods_paragraph_reports_a_method_amendment(tmp_path, field):
             "An exclusion criterion met or an inclusion criterion not met in the title and abstract excluded the record; "
             "otherwise a criterion they did not report sent it to full-text assessment."
         ) in text
+
+
+# --- review round 1 (F1, F4): boundary tests ---------------------------------------
+
+
+def test_an_amendment_after_publication_is_not_in_that_publications_methods(tmp_path):
+    from test_export_api import BASE as EXPORT_BASE
+    from test_export_api import client_for, decide, publish
+    from test_screening_events import _build
+
+    ws = _build(tmp_path, method=dict(BLOCK))
+    decide(ws)
+    publish(ws)
+    before = client_for(ws).get(f"{EXPORT_BASE}/methods").json()
+    amended = client_for(ws).post(f"{EXPORT_BASE}/method/amendments", json={"field": "not_reported", "value": "decisive_first", "confirm": True})
+    assert amended.status_code == 200
+    after = client_for(ws).get(f"{EXPORT_BASE}/methods").json()
+    assert after["paragraph"] == before["paragraph"] and after["figures"]["method_amendments"] == []
+    assert after["figures"]["method"]["not_reported"] == "unclear"
+
+
+def test_a_failed_journal_write_takes_the_amendment_line_back_out(tmp_path, monkeypatch):
+    from scholar_harness.screening import method as m
+
+    ws = _workspace_with_block(tmp_path, monkeypatch)
+    path = ws / m.AMENDMENTS_FILE
+
+    def refuse(*args, **kwargs):
+        raise OSError("journal is read-only")
+
+    monkeypatch.setattr("scholar_harness.workspace.audit.append_event", refuse)
+    with pytest.raises(OSError):
+        m.amend_method(ws, field="blinding", value="show", amended_by="researcher:local", amended_at="2026-11-20T10:00:00Z")
+    assert path.read_text(encoding="utf-8") == ""
+    assert m.effective_method(ws).config.blinding == "reveal_after_decision"
+
+
+CRITERIA = pr.Criteria(inclusion=("INC-01",), exclusion=("EXC-01",))
+
+
+def _stored(**over) -> dict:
+    stored = {
+        "protocol_fingerprint": "sha256:" + "1" * 64,
+        "output": {"criteria": [{"id": "INC-01", "answer": "not_reported"}, {"id": "EXC-01", "answer": "yes"}], "cannot_decide": False},
+        "validators": [{"name": "schema", "ok": True}],
+        "derived_outcome": "MAYBE",
+        "reason_code": None,
+    }
+    return {**stored, **over}
+
+
+def test_outcome_in_force_keeps_a_draft_from_another_protocol_as_stored():
+    draft = _stored()
+    assert pr.outcome_in_force(draft, CRITERIA, not_reported="decisive_first", protocol_fingerprint="sha256:" + "1" * 64) == ("EXCLUDE", "EXC-01")
+    assert pr.outcome_in_force(draft, CRITERIA, not_reported="decisive_first", protocol_fingerprint="sha256:" + "2" * 64) == ("MAYBE", None)
+
+
+def test_outcome_in_force_keeps_a_failed_or_empty_draft_unclear():
+    same = "sha256:" + "1" * 64
+    failed = _stored(validators=[{"name": "schema", "ok": False}])
+    assert pr.outcome_in_force(failed, CRITERIA, not_reported="decisive_first", protocol_fingerprint=same) == ("MAYBE", None)
+    empty = _stored(output=None, validators=[{"name": "schema", "ok": False}])
+    assert pr.outcome_in_force(empty, CRITERIA, not_reported="decisive_first", protocol_fingerprint=same) == ("MAYBE", None)
+    no_checks = _stored(validators=[])
+    assert pr.outcome_in_force(no_checks, CRITERIA, not_reported="decisive_first", protocol_fingerprint=same) == ("MAYBE", None)

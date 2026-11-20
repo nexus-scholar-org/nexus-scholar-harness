@@ -630,7 +630,7 @@ def build_methods(ws: Path) -> dict[str, Any]:
             f"{c['unclear']} were unclear and went to full-text assessment; {c['included']} were included."
         )
     # M7-method: the dedup tiers in force (always stated; spec 10 amendment).
-    from .method import MethodInvalid, effective_method
+    from .method import AMENDMENTS_FILE, MethodInvalid, effective_method
 
     try:
         # H-screening-drafts: the values at publication, with the amendments made before it.
@@ -665,11 +665,15 @@ def build_methods(ws: Path) -> dict[str, Any]:
         not_stated.append("Screener: the published decisions are not all human decisions by one reviewer.")
     # M7-method: the not-reported policy and where the values come from.
     sentences.append(NOT_REPORTED_SENTENCES[method.config.not_reported])
+    # H-screening-drafts (review F1): with an amendment, the values stated are not all the signed ones.
+    amended = " except as amended below" if method.amendments else ""
     sentences.append(
-        "These values are set in the signed protocol."
+        f"These values are set in the signed protocol{amended}."
         if method.source == "protocol"
-        else f"These are the harness defaults ({method.config.rules_version}); the protocol does not set them."
+        else f"These are the harness defaults ({method.config.rules_version}); the protocol does not set them{amended}."
     )
+    if method.amendments:
+        source(AMENDMENTS_FILE)  # review F6: a source of this statement
     # H-screening-drafts: each method amendment made before publication, who, when, from, to.
     figures["method_amendments"] = [
         {"field": a["field"], "from": a.get("from"), "to": a["to"], "date": _date(a.get("amended_at")),
@@ -682,10 +686,6 @@ def build_methods(ws: Path) -> dict[str, Any]:
             f"On {amendment['date']}, after the protocol was signed, the reviewer changed "
             f"{AMENDED_LABELS[amendment['field']]} from “{words.get(amendment['from'], amendment['from'])}” "
             f"to “{words[amendment['to']]}”; the signed protocol and every decision are unchanged."
-        )
-    if any(a["field"] == "not_reported" for a in method.amendments):
-        sentences.append(
-            "The agent's drafts are counted under the rule in force; each keeps the outcome first derived as a record."
         )
     # M7b-guideline: the reporting guideline (none states nothing).
     if method.reporting in GUIDELINE_SENTENCES:
@@ -713,6 +713,12 @@ def build_methods(ws: Path) -> dict[str, Any]:
         except ValueError:
             caveats.append("agent_consent.json cannot be read.")
     figures["n_proposed"] = len({p["study_id"] for p in proposals})
+    # H-screening-drafts (review F1): only when there are drafts, and the rule at publication.
+    if proposals and any(a["field"] == "not_reported" for a in method.amendments):
+        sentences.append(
+            "The agent's drafts are counted under the not-reported rule in force at publication; "
+            "each keeps the outcome first derived as a record."
+        )
     agents: list[dict[str, Any]] = []
     if not proposals:
         sentences.append("No AI model proposed decisions for this screening.")

@@ -588,6 +588,11 @@ def measure(
         records = inc + exc
         scope_info = {**scope_info, "limit": limit}
     protocol = json.loads((workspace / "protocol.json").read_text(encoding="utf-8"))
+    if not_reported is None:
+        # H-screening-drafts (review F5): the rule in force, with the workspace's method amendments.
+        from scholar_harness.screening.method import effective_method
+
+        not_reported = effective_method(workspace).config.not_reported
     spec = pg.run_spec(protocol, model=model, effort=effort, max_tokens=max_tokens, task_version=task_version)
     batch_of = batch_index(workspace)
     the_plan = plan(records, spec, provider=provider, chunk=CHUNK, scope=scope_info, batch_of=batch_of, max_tokens=max_tokens, protocol=protocol)

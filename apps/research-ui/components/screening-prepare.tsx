@@ -371,7 +371,8 @@ export function ScreeningPrepare({ locale }: Readonly<{ locale: Locale }>) {
               <ol className="mt-3 grid gap-3 sm:grid-cols-3">
                 <li className="rounded-md bg-unclear-soft p-3 text-sm text-ink">{t(rules[0])}</li>
                 <li className="rounded-md bg-exclude-soft p-3 text-sm text-ink">{t(rules[1])}</li>
-                <li className="rounded-md bg-include-soft p-3 text-sm text-ink">{t(rules[2])}</li>
+                {/* Review F8: under decisive_first the last cell holds an Unclear rule too, so it is not green. */}
+                <li className={`rounded-md p-3 text-sm text-ink ${policy === "decisive_first" ? "border border-rule bg-paper" : "bg-include-soft"}`}>{t(rules[2])}</li>
               </ol>
             </section>
 

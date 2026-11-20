@@ -665,6 +665,12 @@ export function ScreeningProposals({ locale }: Readonly<{ locale: Locale }>) {
               <h2 id="run-progress" className="font-semibold text-ink">
                 {t("whileItRuns")}
               </h2>
+              {/* Review F2: shown whenever a start is in flight, above an earlier run's panel too. */}
+              {starting && run ? (
+                <p className="mt-2 text-sm text-ink" role="status" data-starting>
+                  {t("starting")}
+                </p>
+              ) : null}
               {run ? (
                 <div className="mt-2 space-y-2 text-sm">
                   <p className="flex flex-wrap items-center gap-2">

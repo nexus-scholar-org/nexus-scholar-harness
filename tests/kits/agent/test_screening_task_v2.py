@@ -10,7 +10,8 @@ from __future__ import annotations
 
 import pytest
 from fastapi.testclient import TestClient
-from kits.agent.test_measure import MODEL, ScriptedDriver, _no_secrets, _workspace
+from kits.agent.test_measure import MODEL, USAGE, ScriptedDriver, _answer, _no_secrets, _script, _workspace
+from scholar_agent.drivers import DriverResult
 from typer.testing import CliRunner
 
 from scholar_agent import measure as ms
@@ -106,16 +107,43 @@ def test_the_gate_spec_of_the_default_is_unchanged():
 def test_the_measurement_can_derive_under_another_not_reported_policy(tmp_path):
     """The frozen set's protocol says nothing (`unclear`); `--not-reported decisive_first` re-derives offline."""
     ws = _workspace(tmp_path)
+    # One record answers EXC-01 yes beside an unreported INC-01: Unclear as-is, Exclude under decisive_first.
+    script = {**_script(), "SCI-000009": lambda s: DriverResult(
+        s, "ok", output=_answer("UAV weeds 9", inc="not_reported", exc="yes"), usage=USAGE, model=MODEL)}
     as_is = ms.measure(ws, scope="all", provider="anthropic", model=MODEL, effort="low", max_tokens=1024,
-                       driver=ScriptedDriver(), out_dir=tmp_path / "a")
+                       driver=ScriptedDriver(script), out_dir=tmp_path / "a")
     decisive = ms.measure(ws, scope="all", provider="anthropic", model=MODEL, effort="low", max_tokens=1024,
-                          driver=ScriptedDriver(), out_dir=tmp_path / "b", not_reported="decisive_first")
+                          driver=ScriptedDriver(script), out_dir=tmp_path / "b", not_reported="decisive_first")
     assert (as_is["not_reported_policy"], decisive["not_reported_policy"]) == ("unclear", "decisive_first")
     assert "`decisive_first` not-reported rule" in (tmp_path / "b").joinpath(
         next(p.name for p in (tmp_path / "b").glob("*.md"))).read_text(encoding="utf-8")
     # A decisive answer beside a gap is Unclear as-is and decided under decisive_first: never more Unclear.
     unclear = lambda r: sum(row["MAYBE"] for row in r["confusion"]["table"].values())  # noqa: E731
     assert unclear(decisive) <= unclear(as_is)
+    # Review: the rule changes an outcome here, it is not only a label.
+    assert as_is["confusion"]["table"]["EXCLUDE"]["MAYBE"] == decisive["confusion"]["table"]["EXCLUDE"]["MAYBE"] + 1
+    assert decisive["confusion"]["table"]["EXCLUDE"]["EXCLUDE"] == as_is["confusion"]["table"]["EXCLUDE"]["EXCLUDE"] + 1
+
+
+def test_the_measurement_reads_the_workspaces_amended_rule(tmp_path, monkeypatch):
+    """Review F5: without --not-reported the rule is the workspace's rule in force (amendments included)."""
+    from dataclasses import replace
+
+    from scholar_harness.screening import method as m
+
+    real = m.effective_method
+    asked = []
+
+    def amended(ws, **kw):
+        asked.append(ws)
+        method = real(ws, **kw)
+        return replace(method, config=method.config.model_copy(update={"not_reported": "decisive_first"}))
+
+    monkeypatch.setattr(m, "effective_method", amended)
+    ws = _workspace(tmp_path)
+    report = ms.measure(ws, scope="all", provider="anthropic", model=MODEL, effort="low", max_tokens=1024,
+                        driver=ScriptedDriver(), out_dir=tmp_path / "c")
+    assert asked == [ws] and report["not_reported_policy"] == "decisive_first"
 
 
 def test_the_cli_refuses_an_unknown_not_reported_policy(tmp_path, monkeypatch):

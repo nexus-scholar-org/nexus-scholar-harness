@@ -244,6 +244,21 @@ describe("proposals.run-starting (H-screening-drafts)", () => {
   });
 });
 
+describe("proposals.run-starting-again (H-screening-drafts, review F2)", () => {
+  it("shows the run as starting above an earlier run's panel", async () => {
+    let release: (r: Response) => void = () => {};
+    const earlier = view({ run_id: "RUN-0", state: "completed", done: 3 });
+    engine({ setup: setup({ consent: true, latest: earlier }), start: () => new Promise<Response>((resolve) => (release = resolve)) as unknown as Response });
+    render(<ScreeningProposals locale="en" />);
+    await screen.findByText("3 of 3 proposed");
+    fireEvent.click(await screen.findByRole("button", { name: /Start agent proposals|Resume/ }));
+    fireEvent.click(await screen.findByRole("button", { name: "Start the run" }));
+    expect(await screen.findByText("Starting the run…")).toBeInTheDocument();
+    release(new Response(JSON.stringify({ run_id: "RUN-1", estimate: ESTIMATE }), { status: 200, headers: { "content-type": "application/json" } }));
+    await waitFor(() => expect(screen.queryByText("Starting the run…")).toBeNull());
+  });
+});
+
 describe("proposals.batch-waiting (H-screening-drafts)", () => {
   it("says a Batch run is waiting on the batch service, with the time waited", async () => {
     const started = new Date(Date.now() - 125_000).toISOString();

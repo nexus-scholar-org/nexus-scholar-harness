@@ -335,7 +335,12 @@ def record_proposal(study_id: str, request: Request) -> dict[str, Any]:
             "criteria": output.get("criteria", []),
             "derived_outcome": outcome,
             "reason_code": reason_code,
-            "not_reported_policy": settings["not_reported_policy"],
+            # Review F9: a draft from another protocol shows its stored outcome, under its stored rule.
+            "not_reported_policy": (
+                settings["not_reported_policy"]
+                if proposal.get("protocol_fingerprint") == context.protocol_fingerprint
+                else proposal.get("not_reported_policy")
+            ),
             "recorded": {
                 "derived_outcome": proposal["derived_outcome"],
                 "reason_code": proposal.get("reason_code"),
