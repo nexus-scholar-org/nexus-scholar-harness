@@ -269,3 +269,5 @@ Also found: the console's browser allow-list (`console/browser.py:39-75`) must n
 ## Open questions
 
 In [`M11a-query-workbench-for-review.md`](M11a-query-workbench-for-review.md), with recommendations and costs; the PROPOSED entry in `docs/decisions.md` holds the same items.
+
+The two screen drafts (written by the `ux-spec-writer` agent) carry their own screen-level questions (11 on the Inception screen, 10 on Plan): which button is brand while a version is unsaved, how a merged concept is named, which databases Count asks at Inception, whether years and languages are editable in the workbench, route names beyond `counts` and `amend`, refusal codes for a refused comparison file and a missing reason, how Plan reads the protocol's concepts and seeds, what the engine refuses when the protocol changed under the page, and whether other screens' links now point to "Change the search". They are layout and build choices under the ten questions above; they are settled when each spec is made FINAL, at the start of its part. Their state sentences beyond the row-state table above are the agent's wording and need the researcher's read.
