@@ -414,7 +414,9 @@ test("en/screening/import: no hydration mismatch with ?return=discovery in the a
   await engine(page, SEEDED);
   await page.goto("/en/screening/import?return=discovery");
   await expect(page.locator("[data-back-to-discovery]")).toBeVisible();
-  await expect(page.locator('[data-staging-refused="VERIFIED_EXISTS"]')).toBeVisible();
+  // M3f: after a harvest an export can still be added; the screen says it will be combined with the harvest.
+  await expect(page.locator('[data-import-combined="with"]')).toBeVisible();
+  await expect(page.locator('[data-staging-refused="VERIFIED_EXISTS"]')).toHaveCount(0);
   await page.waitForLoadState("networkidle");
   expect(problems).toEqual([]);
 });
