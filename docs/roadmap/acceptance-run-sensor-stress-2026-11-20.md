@@ -1,6 +1,6 @@
 # Acceptance run on a real review: sensor stress in multispectral UAV weed segmentation
 
-Date: 2026-11-20 · Status: IN PROGRESS, stopped at Harvest (the corpus is not prepared) · Build: wheel from `main` at `f05cd29a` (version string `1.1.0b6`), installed with the `ai` extra, opened with `nexus-scholar ui`
+Date: 2026-11-20 · Status: IN PROGRESS. The first workspace stopped at Harvest and is superseded; a second workspace with a wider query is created and waits for the database exports (see "The search was too narrow") · Build: wheel from `main` at `f05cd29a` (version string `1.1.0b6`), installed with the `ai` extra, opened with `nexus-scholar ui`
 
 This run replaces the unfinished strict UAV run (`acceptance-run-uav-strict.md`) as the end-to-end check on an installed wheel. It is a real review for the researcher's thesis, so its output is kept. The main session drove the browser at the researcher's request; the researcher made the scope decisions.
 
@@ -58,6 +58,41 @@ Severity: P1 blocks a real user, P2 misleads or costs time, P3 is cosmetic. Stat
 
 Not counted as a defect: three concepts first lost their synonyms. The cause was the automation tool filling the fields without the events a keyboard sends; typing saved them.
 
+## The search was too narrow (afternoon of 2026-11-20)
+
+A side session compared the first workspace's 166 records with other databases, through the researcher's institutional sign-in, using the same strict query (UAV AND multispectral AND weed AND segmentation or mapping, 2013 to 2026). Overlap was computed by DOI and normalised title, so near-duplicates are undercounted; relevance was judged from titles only.
+
+| Source | Records | Compared with the app's 166 |
+| :-- | --: | :-- |
+| App harvest (OpenAlex and arXiv) | 166 | |
+| Scopus (title, abstract, keywords) | 130 | 99 shared, 31 only in Scopus, 66 only in the app |
+| IEEE Xplore (all metadata) | 45 | 17 in the app, 19 in Scopus, 25 in neither |
+| ScienceDirect (shortened query) | 30 | 1 new |
+| SpringerLink (full text) | 1,713 | of the 20 most relevant titles, 16 are in no other source; several are on topic |
+
+The likely cause (the side session's inference; the papers were not opened): the query requires both "UAV" and "multispectral" in the title, abstract or keywords, and relevant papers that use only one of them are missed by every abstract-based source. Scopus counts when one concept is dropped: 130 strict, 236 without UAV, 512 without multispectral.
+
+The morning's recall check passed 4 of 4, and the main session read that as "OpenAlex alone is enough". That was wrong: all four seeds contain every concept, so they could not show this gap.
+
+**Decision by the researcher:** widen to three concepts, (UAV or multispectral terms) AND weed AND segmentation or mapping, in a new workspace; import the Scopus and IEEE Xplore exports first, then harvest.
+
+**Second workspace** (created 2026-11-20, 14:37 local, on the build from `b9c7dc0b`): `sensor-stress-in-uav-and-multispectral-weed-segmentation-a-scoping-review`. Same questions, criteria and charting columns. Five recall seeds, one of which the strict query had missed ("CLIP Meets DINOv3 for Effective Crop and Weed Multispectral Semantic Segmentation"). Estimate without Crossref: OpenAlex 781, Semantic Scholar 539, arXiv 30; 781 to 1,350 works after duplicates. Recall check: 5 of 5. Nothing is harvested yet. The first workspace is left as it is.
+
+The researcher replaced the OpenAlex key the same afternoon; with it OpenAlex answered again. Semantic Scholar answered the first search, the estimate and the recall check with the key that had been refused in the morning, so finding 11 was throttling, not a bad key.
+
+### Findings from this part
+
+| # | Screen | What happened | Severity |
+| :-- | :-- | :-- | :-- |
+| 18 | Inception, Concepts; Discovery, Plan | Nothing shows what each concept costs. A four-concept AND returned 166 records where a three-concept one returns 781, and no screen hints at it. Counts with one concept dropped would have shown it | P1 for the review's quality |
+| 19 | Inception to Discovery | The first counts for the real query appear on Discovery's Plan, after the protocol is frozen. Changing a concept then means going back through Inception | P1 |
+| 20 | Discovery, Recall | The recall check gives false comfort when every seed contains every concept. No warning says the seeds cannot test the query | P2 |
+| 21 | Discovery, Recall and Import | A database export cannot be used as a comparison set ("31 of these 130 are missing from your harvest"). The comparison was done by hand outside the app | P2 |
+| 22 | Protocol | One query per review: one list of concepts joined by AND. Several named queries, each reported, cannot be expressed. The researcher recalls that an earlier version supported several queries; not checked in the history | P2, a milestone of its own (needs a contract decision) |
+| 23 | Inception, Direction | One of the three proposed directions was "blue green red" | P3 (same cause as finding 3) |
+| 24 | Discovery, Recall | The result lists "Crossref: 6221" in the second workspace, where Crossref was not counted. The number equals the first workspace's count; whether it is a real count or a carried value was not checked | P3, unverified |
+| 25 | Discovery, Import | Scopus RIS exports can carry a malformed type (`label.ris.referenceType.BOOK_CHAPTER`); IEEE Xplore's quick export is CSV only. Neither file has been through the Import screen | untested |
+
 ## What to fix first
 
 Findings 12, 15 and 16 are one defect seen from three sides, and the one real blocker of this run:
@@ -67,6 +102,8 @@ Findings 12, 15 and 16 are one defect seen from three sides, and the one real bl
 - test the stop request between records.
 
 Then finding 9 (warn on Plan that Crossref cannot express the AND, or leave it out by default for multi-concept queries) and finding 13 (retry one database).
+
+After the afternoon's part, findings 18 to 21 come before both: a loop that lets the researcher edit concepts and see counts (full query, one concept dropped, seeds found) before the protocol freezes, shared by Inception's Concepts step and Discovery's Plan; a warning when the seeds cannot test the query; and a database export as a comparison set. The researcher's view, recorded on 2026-11-20: these checks belong to Inception, and several queries per review (finding 22) should come back.
 
 ## Not verified
 
