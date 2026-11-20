@@ -101,3 +101,55 @@ def test_submit_proposal_applies_the_protocols_policy(tmp_path: Path) -> None:
     assert record["rules_version"] == "screening-rules-v1"
     stored = [json.loads(line) for line in (tmp_path / pr.PROPOSALS_FILE).read_text(encoding="utf-8").splitlines()]
     assert stored[-1]["derived_outcome"] == "EXCLUDE"
+
+
+# --- H-screening-drafts: a third policy where a decisive answer wins --------------
+#
+# The acceptance run of 2026-11-20 left 85% (Haiku) and 83% (Opus) of the agent's
+# drafts Unclear because `unclear` returns MAYBE before it looks at a decisive
+# answer. `decisive_first`: a failed check or cannot_decide stays MAYBE; then any
+# exclusion yes or inclusion no excludes, with that criterion as the reason; then
+# any not_reported gives MAYBE; otherwise INCLUDE.
+
+DECISIVE_CELLS = [
+    (("yes", "yes", "no"), ("INCLUDE", None)),
+    (("yes", "yes", "yes"), ("EXCLUDE", "EXC-01")),
+    (("no", "yes", "no"), ("EXCLUDE", "FAILS-INC-01")),
+    # The acceptance-run case: one decisive answer beside not-reported gaps.
+    (("not_reported", "no", "not_reported"), ("EXCLUDE", "FAILS-INC-02")),
+    (("not_reported", "yes", "yes"), ("EXCLUDE", "EXC-01")),
+    (("not_reported", "no", "no"), ("EXCLUDE", "FAILS-INC-02")),
+    # Gaps alone stay Unclear: an unreported inclusion never excludes here.
+    (("not_reported", "yes", "no"), ("MAYBE", None)),
+    (("yes", "yes", "not_reported"), ("MAYBE", None)),
+    (("not_reported", "not_reported", "not_reported"), ("MAYBE", None)),
+]
+
+
+@pytest.mark.parametrize(("answers", "expected"), DECISIVE_CELLS)
+def test_every_cell_of_the_decisive_first_table(answers, expected) -> None:
+    assert pr.derive_outcome(_out(*answers), CRITERIA, OK, not_reported="decisive_first") == expected
+
+
+def test_one_decisive_answer_among_gaps_is_unclear_today_and_excluded_under_decisive_first() -> None:
+    """The 85%-unclear case of the acceptance run, in one draft."""
+    draft = _out("not_reported", "no", "not_reported")
+    assert pr.derive_outcome(draft, CRITERIA, OK, not_reported="unclear") == ("MAYBE", None)
+    assert pr.derive_outcome(draft, CRITERIA, OK, not_reported="decisive_first") == ("EXCLUDE", "FAILS-INC-02")
+
+
+def test_a_broken_draft_stays_unclear_under_decisive_first() -> None:
+    failed = [{"name": "schema", "ok": False}]
+    decisive = _out("no", "no", "yes")
+    assert pr.derive_outcome(decisive, CRITERIA, failed, not_reported="decisive_first") == ("MAYBE", None)
+    cannot = _out("no", "no", "yes", cannot_decide=True)
+    assert pr.derive_outcome(cannot, CRITERIA, OK, not_reported="decisive_first") == ("MAYBE", None)
+
+
+def test_the_policy_names_are_the_protocol_models_names() -> None:
+    from typing import get_args
+
+    from scholar_protocol.models import MethodConfig
+
+    assert pr.NOT_REPORTED_POLICIES == get_args(MethodConfig.model_fields["not_reported"].annotation)
+    assert MethodConfig().not_reported == "unclear"  # the default for existing protocols

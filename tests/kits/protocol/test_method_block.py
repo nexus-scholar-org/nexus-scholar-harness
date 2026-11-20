@@ -142,3 +142,15 @@ def test_retrieval_cap_is_hashed_when_set_and_must_be_positive() -> None:
     for bad in (0, -1, 2.5, "500"):
         with pytest.raises(ValidationError):
             _with({**DEFAULT_BLOCK, "retrieval_cap": bad})
+
+
+def test_decisive_first_is_a_valid_policy_hashed_like_the_others() -> None:
+    """H-screening-drafts: the third not-reported policy; existing protocols keep theirs."""
+    decisive = copy.deepcopy(DEFAULT_BLOCK)
+    decisive["not_reported"] = "decisive_first"
+    protocol = _with(decisive)
+    assert protocol.method is not None and protocol.method.not_reported == "decisive_first"
+    assert canonical_fingerprint(protocol) not in (BASE_FINGERPRINT, canonical_fingerprint(_with(DEFAULT_BLOCK)))
+    # A protocol without the block, or with today's block, is not touched.
+    assert canonical_fingerprint(_with(None)) == BASE_FINGERPRINT
+    assert MethodConfig().not_reported == "unclear"
