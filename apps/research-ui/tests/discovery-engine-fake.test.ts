@@ -117,7 +117,7 @@ describe("discovery engine fake (M10a)", () => {
  * `tests/console/test_harvest_preparation_api.py`.
  */
 describe("discovery engine fake (M3i)", () => {
-  const KEYS = ["can_finish", "cannot_finish", "ended_at", "job_id", "marker", "message", "stage", "stages", "state"];
+  const KEYS = ["can_finish", "cannot_finish", "checks", "ended_at", "job_id", "marker", "message", "stage", "stages", "state"];
   const preparation = (fake: ReturnType<typeof discoveryEngine>, route: string) => {
     const body = fake.handle("GET", route, null).body as Json;
     return (route.endsWith("/runs") ? (body.runs as Json[])[0].preparation : body.preparation) as Json;
