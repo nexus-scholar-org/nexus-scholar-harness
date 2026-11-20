@@ -6,7 +6,8 @@ import logging
 import re
 import threading
 import time
-from datetime import timedelta
+from datetime import UTC, datetime, timedelta
+from email.utils import parsedate_to_datetime
 from typing import Any
 from urllib.parse import urlsplit
 
@@ -14,7 +15,13 @@ import hishel
 import httpx
 
 from .config import settings
-from .exceptions import ProviderError, ProviderTimeoutError, RateLimitExceededError
+from .exceptions import (
+    ProviderError,
+    ProviderPausedError,
+    ProviderTimeoutError,
+    QuotaExhaustedError,
+    RateLimitExceededError,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -231,6 +238,65 @@ def header_rate(headers: httpx.Headers) -> float | None:
     return count / seconds
 
 
+# --------------------------------------------------------------------------- Retry-After
+
+#: The longest ``Retry-After`` the client waits out (seconds). A longer one is
+#: not a throttle but a closed door (a used-up daily quota, an announced
+#: outage): the request ends at once with ``ProviderPausedError`` (H-quota-hang).
+RETRY_AFTER_CAP = 60.0
+
+#: Display names of the provider hosts, for the researcher's message.
+_DATABASES = {
+    "api.openalex.org": "OpenAlex",
+    "api.crossref.org": "Crossref",
+    "api.semanticscholar.org": "Semantic Scholar",
+    "export.arxiv.org": "arXiv",
+    "eutils.ncbi.nlm.nih.gov": "PubMed",
+}
+
+
+def database_name(url: str, fallback: str) -> str:
+    """The display name of ``url``'s provider; ``fallback`` (the client's name) for another host."""
+    host = (urlsplit(url).hostname or "").lower()
+    return _DATABASES.get(host, fallback)
+
+
+def retry_after_seconds(value: str | None, now: datetime | None = None) -> float | None:
+    """Seconds from a ``Retry-After`` header (delta-seconds or an HTTP date); None when absent or unreadable."""
+    if not value or not value.strip():
+        return None
+    text = value.strip()
+    try:
+        return max(0.0, float(text))
+    except ValueError:
+        pass
+    try:
+        when = parsedate_to_datetime(text)
+    except (TypeError, ValueError, IndexError):
+        return None
+    if when is None:
+        return None
+    if when.tzinfo is None:
+        when = when.replace(tzinfo=UTC)
+    return max(0.0, (when - (now or datetime.now(UTC))).total_seconds())
+
+
+def _paused(name: str, url: str, status: int, wait: float) -> ProviderPausedError:
+    """The typed error for an answer that asks to wait ``wait`` seconds, beyond the cap."""
+    database = database_name(url, name)
+    resets_at = (datetime.now(UTC) + timedelta(seconds=wait)).replace(microsecond=0).isoformat()
+    if status == 429:
+        return QuotaExhaustedError(name, database=database, retry_after=wait, resets_at=resets_at)
+    return ProviderPausedError(
+        name,
+        f"{database} is unavailable (HTTP {status}); it asks to come back at {resets_at}",
+        status_code=status,
+        database=database,
+        retry_after=wait,
+        resets_at=resets_at,
+    )
+
+
 class AcademicHttpClient:
     """
     A robust HTTP client wrapped around hishel (httpx caching).
@@ -309,6 +375,11 @@ class AcademicHttpClient:
         HTTP 429 and 5xx answers are retried up to ``max_retries`` times with
         backoff (honouring ``Retry-After``), because a paginated leg makes many
         requests and one throttled page must not end it (M3a-discovery).
+
+        H-quota-hang: an answer whose ``Retry-After`` exceeds ``RETRY_AFTER_CAP``
+        is not retried: it raises ``QuotaExhaustedError`` (429) or
+        ``ProviderPausedError`` (5xx) with the reset time. Before, a 14-hour
+        ``Retry-After`` cost three sleeps of 60 s per request.
         """
         req_timeout = timeout if timeout is not None else self.DEFAULT_TIMEOUT
 
@@ -328,13 +399,14 @@ class AcademicHttpClient:
 
             self._read_rate_headers(url, response)
             retryable = response.status_code == 429 or response.status_code >= 500
-            if not retryable or attempt >= self.max_retries:
+            if not retryable:
                 break
-            retry_after = response.headers.get("retry-after")
-            try:
-                delay = float(retry_after) if retry_after else self.base_delay * (2**attempt)
-            except ValueError:
-                delay = self.base_delay * (2**attempt)
+            wait = retry_after_seconds(response.headers.get("retry-after"))
+            if wait is not None and wait > RETRY_AFTER_CAP:
+                raise _paused(self.name, url, response.status_code, wait)
+            if attempt >= self.max_retries:
+                break
+            delay = wait if wait is not None else self.base_delay * (2**attempt)
             logger.warning(
                 f"[{self.name}] HTTP {response.status_code} on attempt {attempt + 1}, retry after {delay}s"
             )
@@ -424,10 +496,15 @@ class AcademicHttpClient:
                 ) from exc
 
             self._read_rate_headers(url, response)
+            if response.status_code == 429 or response.status_code >= 500:
+                # H-quota-hang: a wait beyond the cap ends the request (before,
+                # this loop slept the whole Retry-After, without any cap).
+                wait = retry_after_seconds(response.headers.get("retry-after"))
+                if wait is not None and wait > RETRY_AFTER_CAP:
+                    raise _paused(self.name, url, response.status_code, wait)
             # Handle HTTP error status codes
             if response.status_code == 429:
-                retry_after = response.headers.get("retry-after")
-                delay = float(retry_after) if retry_after else self.base_delay * (2 ** attempt)
+                delay = wait if wait is not None else self.base_delay * (2 ** attempt)
                 logger.warning(
                     f"[{self.name}] 429 on attempt {attempt + 1}, retry after {delay}s"
                 )
