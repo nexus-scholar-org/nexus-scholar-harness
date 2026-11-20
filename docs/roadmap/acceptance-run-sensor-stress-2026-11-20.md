@@ -34,7 +34,7 @@ Next: press "Finish preparing this corpus" after the OpenAlex quota resets (midn
 
 ## Findings
 
-Severity: P1 blocks a real user, P2 misleads or costs time, P3 is cosmetic. Status is at `f05cd29a`. None is fixed.
+Severity: P1 blocks a real user, P2 misleads or costs time, P3 is cosmetic. Status is at `f05cd29a`. Findings 12, 15 and 16 are fixed by H-quota-hang (`docs/roadmap/milestones/H-quota-hang.md`, its own PR); the others are open.
 
 | # | Screen | What happened | Severity |
 | :-- | :-- | :-- | :-- |
@@ -54,6 +54,7 @@ Severity: P1 blocks a real user, P2 misleads or costs time, P3 is cosmetic. Stat
 | 14 | Discovery, Harvest | The per-record check is rate-limited by Crossref on almost every record (one retry each), which slows preparation | P3 |
 | 15 | Discovery, Harvest | "Stop after the current step" is not read inside "Checks" (`should_stop` is tested between stages only), so a stop can take hours | P1 |
 | 16 | Discovery, Harvest | "Checks" calls OpenAlex once per record (`DocumentVerifier.hydrate_metadata`). With the quota gone, each record costs three refused attempts of 60 seconds (`http_client.get` caps the wait at 60 s and ignores that `Retry-After` is 14 hours): about nine hours for 166 records | P1 |
+| 17 | Discovery, Recall | The line "Checked 2026-11-20 10:58 UTC" shows the researcher's local time with the label UTC (the journal has the harvest that followed at 10:01 UTC) | P3 |
 
 Not counted as a defect: three concepts first lost their synonyms. The cause was the automation tool filling the fields without the events a keyboard sends; typing saved them.
 
