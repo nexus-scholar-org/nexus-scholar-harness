@@ -1008,6 +1008,12 @@ _PIPELINE_STATUS_PRESENTATION: dict[str, tuple[str, str, str]] = {
         "cyan",
         "bold cyan",
     ),
+    # H-quota-hang: the checks ended before every record was checked; the run can be finished later.
+    "INCOMPLETE": (
+        "⏸ Research Pipeline Stopped Early — not every record could be checked",
+        "yellow",
+        "bold yellow",
+    ),
     "FAILED": (
         "❌ Research Pipeline FAILED",
         "red",
@@ -1117,6 +1123,11 @@ def _pipeline_summary_panel(results: object) -> tuple[Panel, str]:
             harvest_reason = str(discovery.get("reason") or "").strip()
             suffix = f" ({harvest_reason})" if harvest_reason else ""
             lines.append(f"Discovery harvest: {harvest}{suffix}")
+
+    verification_stage = stages.get("verification")
+    incomplete = verification_stage.get("incomplete") if isinstance(verification_stage, Mapping) else None
+    if isinstance(incomplete, Mapping) and incomplete.get("message"):
+        lines.append(f"[bold yellow]⚠ {incomplete['message']}[/bold yellow]")
 
     if degraded:
         lines.append(

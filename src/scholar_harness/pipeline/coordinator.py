@@ -717,7 +717,8 @@ def _end_incomplete(
     reason_text = "stopped by the researcher" if reason == VERIFY_STOPPED else "a database's quota is used up"
     results["stages"]["verification"]["incomplete"] = {**checks, "message": message}
     results["status"] = "CANCELLED" if outcome.stopped else "INCOMPLETE"
-    results["stopped_in"] = "verification" if outcome.stopped else None
+    if outcome.stopped:
+        results["stopped_in"] = "verification"
     for name, shape in _ABORTED_STAGE_SHAPES.items():
         if name not in results["stages"]:
             results["stages"][name] = {
