@@ -40,7 +40,9 @@ DEFAULT_PACE_SECONDS = 30
 PACE_MIN, PACE_MAX = 5, 600
 
 #: The databases whose count ignores the year window (it is filtered after retrieval).
-UPPER_BOUND_WITH_YEARS = frozenset({"arxiv"})
+#: Empty since M3h-c: arXiv applies the year window in its own query, so its
+#: count is exact (decision 2026-11-20, "Six open decisions settled", item 2).
+UPPER_BOUND_WITH_YEARS: frozenset[str] = frozenset()
 #: A row's status when a total is known.
 COUNTED = ("counted", "from_recall_check")
 #: Rows that are not part of this harvest.
@@ -107,6 +109,24 @@ def _suggested_cap(totals: Iterable[int], cap: int, limit: int) -> int:
     return low
 
 
+def _dominant(rows: Sequence[dict[str, Any]]) -> dict[str, Any] | None:
+    """The one database whose reported total is larger than all the others' together, if any.
+
+    Judged on what each database reports, not on what a cap would fetch: a
+    cap keeps the first records a database returns, so it cannot tell its
+    on-topic records from its off-topic ones whatever its value (review P2).
+    """
+    counted = [(r["name"], int(r["reported_total"])) for r in rows
+               if r.get("fetch_estimate") is not None and isinstance(r.get("reported_total"), int)]
+    if len(counted) < 2:
+        return None
+    name, top = max(counted, key=lambda item: item[1])
+    others = sum(n for other, n in counted if other != name)
+    if top <= others:
+        return None
+    return {"provider": name, "provider_total": top, "others_total": others}
+
+
 def summarize(
     rows: Sequence[dict[str, Any]], *, cap: int, limit: int, pace_seconds: int, year_window: bool,
 ) -> dict[str, Any]:
@@ -155,7 +175,12 @@ def summarize(
         level = "none"
 
     recommendation: dict[str, Any] = {"kind": None, "cap": None, "expected_works": None, "cuts": None}
-    if level != "none":
+    dominant = _dominant(out_rows) if counted_all else None
+    if level != "none" and dominant is not None:
+        # Finding 10: a per-database cap would trim only this database, keep its
+        # first records (not the most relevant) and every record of the others.
+        recommendation = {"kind": "one_database", "cap": None, "expected_works": None, "cuts": None, **dominant}
+    elif level != "none":
         suggested = _suggested_cap(totals, cap, limit) if counted_all else 0
         if counted_all and suggested >= SUGGESTED_CAP_MIN:
             kept = [min(t, suggested) for t in totals]

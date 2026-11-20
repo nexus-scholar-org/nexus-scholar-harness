@@ -1,5 +1,8 @@
 # 03 Harvest    Status: FINAL, built (M3c-screens, PR #216) | Phase 1 Discovery | Route `/[locale]/discovery/harvest?run=run_NNN` (desktop only) | Milestone M3c-screens (browser screens over the M3b-api routes and the M3d-engine hand-off accept)
 
+**Amended 2026-11-20 (H-run-small-fixes Part B, finding 9; PROPOSED).** The picker starts from the engine's `default_providers` (see 01 Plan, amendment 2026-11-20); when that differs from the protocol's list the start sends it as `providers`, untouched or not; the estimate always sends the choice on screen (the engine counts the default choice for an estimate sent no list). The default-choice line and the Crossref warning show under the picker as on Plan. Tests: `tests/discovery-harvest.test.tsx` "discovery.harvest Crossref and a joined query".
+
+
 Amended 2026-11-14 for M10a; questions closed by the researcher 2026-11-14. Decided (entry "M10a: where the database choice lives, the probe query, the arXiv cassette" in `docs/decisions.md`, item 2a): the Discovery database choice is per harvest; the protocol's list stays the default and is never written. Where this amendment contradicts the text below (no `providers`, `PROVIDER_UNKNOWN` cannot occur), the amendment wins.
 
 Amended 2026-11-17 for M3i-harvest-robustness (accepted by the researcher 2026-11-15 as answer R5 of the M10b spec questions; the choices made while building it are in `docs/decisions.md`, 2026-11-17, accepted 2026-11-18). Where this amendment contradicts the text below, the amendment wins. In short: the search is the first of four steps; the screen names the step, says when the later steps did not end, and offers "Finish preparing this corpus". The full text is the section **"The steps after the search (M3i)"** at the end of this file.

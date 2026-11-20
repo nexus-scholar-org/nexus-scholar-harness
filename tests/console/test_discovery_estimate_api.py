@@ -113,12 +113,13 @@ def test_works_range_is_the_largest_database_to_the_sum():
     assert answer["estimate"]["counted_all"] is True
 
 
-def test_arxiv_is_an_upper_bound_that_adds_nothing_to_the_low_end():
+def test_decision_2026_11_20_item_2_arxiv_with_a_year_window_is_counted_exactly():
+    """Since M3h-c arXiv applies the year window itself, so its count is exact (no "upper limit")."""
     answer = est.summarize(_rows({"openalex": 300, "arxiv": 900}), cap=10_000, limit=1000, pace_seconds=30, year_window=True)
-    assert _row(answer, "arxiv")["fetch_is_upper_bound"] is True
+    assert _row(answer, "arxiv")["fetch_is_upper_bound"] is False
     assert _row(answer, "openalex")["fetch_is_upper_bound"] is False
-    assert answer["estimate"]["records"] == {"low": 300, "high": 1200}
-    assert answer["estimate"]["works"] == {"low": 300, "high": 1200}
+    assert answer["estimate"]["records"] == {"low": 1200, "high": 1200}
+    assert answer["estimate"]["works"] == {"low": 900, "high": 1200}
 
 
 def test_arxiv_without_a_year_window_is_counted_exactly():
@@ -163,12 +164,43 @@ def test_the_warning_level_at_its_boundaries(totals, level):
 
 
 def test_the_suggested_cap_is_the_largest_that_keeps_the_sum_at_the_limit():
-    """The spec's own example: 5,000, 400 and 100 against 1,000 give 500 (500 + 400 + 100)."""
+    """No database holds most of the records: 3,000, 3,000 and 100 against 1,000 give 450."""
+    answer = est.summarize(_rows({"openalex": 3000, "crossref": 3000, "pubmed": 100}), cap=10_000, limit=1000, pace_seconds=30, year_window=True)
+    rec = answer["recommendation"]
+    assert rec["kind"] == "cap" and rec["cap"] == 450
+    assert rec["expected_works"] == {"low": 450, "high": 1000}
+    assert rec["cuts"] == 2
+
+
+def test_finding_10_a_cap_that_would_trim_one_database_is_not_offered():
+    """The spec's earlier example (5,000, 400, 100 against 1,000) offered "500 per
+    database": it trims only the large database, keeps its first 500 records (not
+    the most relevant) and every record of the others. When one database is the
+    size, the estimate names it instead (finding 10: Crossref 6,221 beside 166)."""
     answer = est.summarize(_rows({"openalex": 5000, "crossref": 400, "pubmed": 100}), cap=10_000, limit=1000, pace_seconds=30, year_window=True)
     rec = answer["recommendation"]
-    assert rec["kind"] == "cap" and rec["cap"] == 500
-    assert rec["expected_works"] == {"low": 500, "high": 1000}
-    assert rec["cuts"] == 1
+    assert rec["kind"] == "one_database"
+    assert rec["provider"] == "openalex" and rec["provider_total"] == 5000 and rec["others_total"] == 500
+    assert rec["cap"] is None
+
+
+@pytest.mark.parametrize("cap", [10_000, 1000])
+def test_finding_10_the_acceptance_run_numbers(cap):
+    """Judged on the reported totals, so a cap in force (1,000) does not bring the cap advice back (review P2)."""
+    answer = est.summarize(_rows({"openalex": 781, "semanticscholar": 539, "crossref": 6221, "arxiv": 30}),
+                           cap=cap, limit=2000, pace_seconds=30, year_window=True)
+    rec = answer["recommendation"]
+    assert rec["kind"] == "one_database" and rec["provider"] == "crossref" and rec["cap"] is None
+    assert (rec["provider_total"], rec["others_total"]) == (6221, 1350)
+
+
+def test_two_large_databases_where_one_is_slightly_larger_is_still_named():
+    """1,500 against 1,400: the rule is "more than all the others together"; the copy no longer
+    claims a cap would trim only that one (it would trim both here)."""
+    answer = est.summarize(_rows({"openalex": 1500, "semanticscholar": 1400}), cap=10_000, limit=1000, pace_seconds=30, year_window=True)
+    assert answer["recommendation"]["kind"] == "one_database"
+    even = est.summarize(_rows({"openalex": 1400, "semanticscholar": 1400}), cap=10_000, limit=1000, pace_seconds=30, year_window=True)
+    assert even["recommendation"]["kind"] == "cap"
 
 
 def test_narrowing_is_advised_when_the_needed_cap_is_under_100():
@@ -472,3 +504,30 @@ def test_asking_a_failed_database_again_keeps_the_first_count_time(env):
     second = client.post(URL, json={}).json()
     assert _row(second, "crossref")["status"] == "counted"
     assert second["counted_at"] == first["counted_at"]
+
+
+
+def test_review_an_estimate_sent_no_list_counts_the_default_choice(env):
+    """H-run-small-fixes review P1: the card must not count a database the harvest leaves out."""
+    import json as _json
+
+    client, ws, doubles = env
+    data = _json.loads((ws / "protocol.json").read_text(encoding="utf-8"))
+    data["search_strategy"]["target_databases"] = ["openalex", "semanticscholar", "crossref", "arxiv"]
+    (ws / "protocol.json").write_text(_json.dumps(data), encoding="utf-8")
+    answer = client.post(URL, json={}).json()
+    assert "crossref" not in doubles.asked()
+    assert next(r for r in answer["providers"] if r["name"] == "crossref")["status"] == "not_selected"
+
+
+
+def test_review_an_estimate_sent_the_protocol_list_counts_crossref(env):
+    """Review N1: the protocol's own list, sent explicitly ("Reset to the protocol"), keeps Crossref in the count."""
+    import json as _json
+
+    client, ws, doubles = env
+    data = _json.loads((ws / "protocol.json").read_text(encoding="utf-8"))
+    data["search_strategy"]["target_databases"] = ["openalex", "semanticscholar", "crossref", "arxiv"]
+    (ws / "protocol.json").write_text(_json.dumps(data), encoding="utf-8")
+    client.post(URL, json={"providers": ["openalex", "semanticscholar", "crossref", "arxiv"]})
+    assert "crossref" in doubles.asked()

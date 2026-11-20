@@ -1256,15 +1256,20 @@ def _resolved_names(monkeypatch, providers) -> list[list[str]]:
 
 
 def test_m10a_a_recall_on_an_empty_protocol_list_asks_the_engines_default_suite(recall_env, monkeypatch):
-    """target_databases: [] and no providers: the recall asks the default set the engine searches, not nothing."""
+    """target_databases: [] and no providers: the recall asks the default set the engine searches, not nothing.
+
+    H-run-small-fixes (finding 24): the golden query joins three concepts, so
+    the default choice leaves Crossref out, as the Plan and Harvest screens do.
+    """
     from scholar_search.plan import DEFAULT_PROVIDERS
 
     client, ws, providers = recall_env
     _edit_protocol(ws, lambda p: p["search_strategy"].__setitem__("target_databases", []))
     seen = _resolved_names(monkeypatch, providers)
     check = _recall(client)
-    assert seen == [list(DEFAULT_PROVIDERS)] and list(DEFAULT_PROVIDERS) == ADAPTER_DEFAULT  # F15
-    assert [leg["provider"] for leg in check["legs"]] == list(DEFAULT_PROVIDERS)
+    expected = [n for n in DEFAULT_PROVIDERS if n != "crossref"]
+    assert seen == [expected] and list(DEFAULT_PROVIDERS) == ADAPTER_DEFAULT  # F15
+    assert [leg["provider"] for leg in check["legs"]] == expected
 
 
 def test_m10a_a_protocol_list_that_only_repeats_one_database_runs_one_leg(env, monkeypatch):
@@ -1277,3 +1282,102 @@ def test_m10a_a_protocol_list_that_only_repeats_one_database_runs_one_leg(env, m
     assert seen == [["crossref"]], "the run asks for crossref once, and for no other name"
     assert set(providers.by_name) == {"crossref"} and len(providers.by_name["crossref"].queries) == 1
     assert [leg["provider"] for leg in _legs_json(ws, "run_001")["legs"]] == ["crossref"]
+
+
+# --------------------------------------------------------------------------- H-run-small-fixes Part B
+
+
+def _with_databases(ws: Path, databases: list[str] | None, concepts: int | None = None) -> None:
+    """The protocol with another database list (None: the field removed) and, optionally, fewer concepts."""
+    data = json.loads((ws / "protocol.json").read_text(encoding="utf-8"))
+    strategy = data["search_strategy"]
+    if databases is None:
+        strategy.pop("target_databases", None)
+    else:
+        strategy["target_databases"] = databases
+    if concepts is not None:
+        strategy["core_concepts"] = strategy["core_concepts"][:concepts]
+    (ws / "protocol.json").write_text(json.dumps(data, indent=2), encoding="utf-8")
+
+
+DEFAULT_FOUR = ["openalex", "semanticscholar", "crossref", "arxiv"]
+
+
+def test_finding_9_crossref_is_left_out_by_default_when_the_query_joins_concepts(env):
+    """Crossref drops the AND between concepts (6,221 matches against 166 in OpenAlex).
+
+    A protocol that took the default list (the four genesis writes) gets a
+    default choice without Crossref, and the plan says why.
+    """
+    client, ws, _ = env
+    _with_databases(ws, DEFAULT_FOUR)
+    plan = client.get(f"{BASE}/plan").json()
+    assert plan["concepts"] == 3
+    assert plan["protocol_providers"] == DEFAULT_FOUR
+    assert plan["default_providers"] == ["openalex", "semanticscholar", "arxiv"]
+    assert plan["default_reason"] == "CROSSREF_IGNORES_AND"
+    # The plan read without a choice previews the protocol's list, Crossref included: warn.
+    assert plan["warnings"] == [{"code": "CROSSREF_IGNORES_AND", "provider": "crossref", "concepts": 3}]
+    assert plan["ignores_and"] == ["crossref"]
+
+    chosen = client.get(f"{BASE}/plan", params={"providers": "openalex,arxiv"}).json()
+    assert chosen["warnings"] == []
+    with_crossref = client.get(f"{BASE}/plan", params={"providers": "openalex,crossref"}).json()
+    assert [w["code"] for w in with_crossref["warnings"]] == ["CROSSREF_IGNORES_AND"]
+
+
+def test_a_protocol_that_names_its_own_list_keeps_crossref_with_the_warning(env):
+    """The golden protocol names five databases (not the default four): its list is a choice."""
+    client, _ws, _ = env
+    plan = client.get(f"{BASE}/plan").json()
+    assert plan["default_providers"] == plan["protocol_providers"]
+    assert "crossref" in plan["default_providers"] and plan["default_reason"] is None
+    assert [w["code"] for w in plan["warnings"]] == ["CROSSREF_IGNORES_AND"]
+
+
+@pytest.mark.parametrize("databases", [DEFAULT_FOUR, None])
+def test_a_single_concept_query_keeps_crossref_without_a_warning(env, databases):
+    client, ws, _ = env
+    _with_databases(ws, databases, concepts=1)
+    plan = client.get(f"{BASE}/plan").json()
+    assert plan["concepts"] == 1
+    assert plan["ignores_and"] == []
+    assert "crossref" in plan["default_providers"] and plan["default_reason"] is None
+    assert plan["warnings"] == []
+
+
+def test_a_protocol_without_a_list_also_leaves_crossref_out_for_a_joined_query(env):
+    client, ws, _ = env
+    _with_databases(ws, None)
+    plan = client.get(f"{BASE}/plan").json()
+    assert plan["default_providers"] == ["openalex", "semanticscholar", "arxiv"]
+
+
+def test_finding_24_the_recall_check_asks_the_default_databases_not_crossref(recall_env):
+    """The Recall card listed "Crossref: 6221" where Crossref was not counted: the
+    check asked every database the protocol names. Without a list it now asks the
+    same default the Plan and Harvest screens offer."""
+    client, ws, providers = recall_env
+    _with_databases(ws, DEFAULT_FOUR)
+    check = _recall(client)
+    assert sorted(leg["provider"] for leg in check["legs"]) == ["arxiv", "openalex", "semanticscholar"]
+    assert "crossref" not in providers.by_name or providers.by_name["crossref"].queries == []
+    asked = _recall(client, providers=["openalex", "crossref"])
+    assert sorted(leg["provider"] for leg in asked["legs"]) == ["crossref", "openalex"]
+
+
+
+@pytest.mark.parametrize(
+    ("databases", "kept"),
+    [
+        (["openalex", "semanticscholar", "crossref", "arxiv", "scopus", "wos"], True),  # an imported list
+        (["openalex", "semanticscholar", "crossref", "crossref", "arxiv"], True),  # a repeat: written by someone
+        (["arxiv", "crossref", "openalex", "semantic_scholar"], False),  # the four, another order and spelling
+        ([], False),
+    ],
+)
+def test_review_took_the_default_list_is_judged_on_the_list_as_written(env, databases, kept):
+    client, ws, _ = env
+    _with_databases(ws, databases)
+    plan = client.get(f"{BASE}/plan").json()
+    assert ("crossref" in plan["default_providers"]) is kept

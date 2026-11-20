@@ -127,3 +127,14 @@ def test_protocol_default_databases_exclude_biorxiv():
     protocol = {"protocol_id": "p1", "search_strategy": {"core_concepts": [{"concept": "weed", "synonyms": []}]}}
     _, providers = compile_protocol_search(protocol)
     assert "biorxiv" not in providers
+
+
+
+def test_concept_count_counts_each_term_of_an_and_concept():
+    """H-run-small-fixes (finding 9, review follow-up): a concept joined inside with AND is several concepts."""
+    from scholar_search.protocol_adapter import concept_count
+
+    one_or = {"search_strategy": {"core_concepts": [{"concept": "weed", "synonyms": ["weeds"], "boolean_operator": "OR"}]}}
+    one_and = {"search_strategy": {"core_concepts": [{"concept": "weed", "synonyms": ["uav"], "boolean_operator": "AND"}]}}
+    empty = {"search_strategy": {"core_concepts": [{"concept": " ", "synonyms": []}]}}
+    assert (concept_count(one_or), concept_count(one_and), concept_count(empty)) == (1, 2, 0)

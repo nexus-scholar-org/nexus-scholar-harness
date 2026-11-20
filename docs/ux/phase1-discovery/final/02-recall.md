@@ -1,5 +1,8 @@
 # 02 Recall check    Status: FINAL, built (M3c-screens, PR #216); amended 2026-11-11 for M4d (anchor seeds pre-filled, not yet built) | Phase 1 Discovery | Route `/[locale]/discovery/recall` (desktop only) | Milestone M3c-screens (browser screens over the M3b-api routes)
 
+**Amended 2026-11-20 (H-run-small-fixes Part B, findings 17 and 24; PROPOSED).** "Checked {date}" has no "UTC": the date is the researcher's local time (`stamp`, H-ui-findings F6). A check sent no list asks the plan's default choice (the protocol's list, without Crossref for a joined query when the protocol took the default list), so the card no longer lists a database the estimate and the harvest left out.
+
+
 Boards: `Recall` (D2, `docs/ux/phase1-discovery/final/project/Recall.dc.html`); no phone board (see Mobile layout). Contract: `docs/architecture/research_ui/DISCOVERY_API_PACKET.md` §4.2, §4.7, §6 decisions 3 and 5. Records: `docs/roadmap/milestones/M3b-api.md` decision 10 (recall details), decision 11 (thinned leg events); `M3d-engine.md`. Code: `src/scholar_harness/console/api/discovery.py` (`POST /discovery/recall` at `:798`, `GET /discovery/recall` at `:840`, jobs at `:855`, `:864`, `:887`), `SearchLeg` at `src/scholar_search/models.py:194`. Shared rules: **01-plan.md "Shared by 01–08"** (step bar, `?console=`, run selector, job streams, refusals, hard rules). Brand: `docs/ux/brand/BRAND_BOOK.md`, `tokens.json`.
 
 **Purpose.** Check, before the harvest, whether the frozen query reaches papers the researcher already knows are relevant, database by database, and read where it does not.

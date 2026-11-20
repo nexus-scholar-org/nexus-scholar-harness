@@ -255,6 +255,20 @@ export function EstimateCard({ locale, origin, fingerprint, providers, cap = nul
                 </p>
               </details>
             </div>
+          ) : rec && rec.kind === "one_database" && rec.provider ? (
+            <div className="space-y-2 rounded-md border border-rule bg-paper p-3 text-sm" data-estimate-rec="one_database">
+              {/* H-run-small-fixes (finding 10): no cap is offered when one database is the size. */}
+              <p className="text-ink">
+                {t("estimate.rec.oneDatabase", {
+                  name: providerName(rec.provider),
+                  n: rec.provider_total ?? "",
+                  total: (rec.provider_total ?? 0) + (rec.others_total ?? 0),
+                })}
+              </p>
+              <a className={LINK} href={inceptionHref} data-estimate-narrow>
+                {t("amend.link")}
+              </a>
+            </div>
           ) : rec && rec.kind === "narrow" ? (
             <div className="space-y-2 rounded-md border border-rule bg-paper p-3 text-sm" data-estimate-rec="narrow">
               <p className="text-ink">{t("estimate.rec.narrow")}</p>

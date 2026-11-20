@@ -462,7 +462,8 @@ test("M10b: a database that fails its count leaves the rest readable", async ({ 
   await card.getByRole("button", { name: "Count what the databases hold" }).click();
   await expect(card.locator('[data-estimate-row="semanticscholar"]')).toContainText("Not counted: The database limited the request rate.");
   await expect(card.locator('[data-estimate-row="openalex"]')).toContainText("412 found");
-  await expect(card.locator("[data-estimate-records]")).toHaveText("Records: at least 1008");
+  // Decision 2026-11-20 item 2: arXiv (57) is exact with a year window, so it counts in the low end (1008 before).
+  await expect(card.locator("[data-estimate-records]")).toHaveText("Records: at least 1065");
   await expect(card.locator('[data-estimate-rec="narrow"]')).toBeVisible();
 });
 

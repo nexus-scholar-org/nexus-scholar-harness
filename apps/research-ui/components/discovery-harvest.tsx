@@ -27,7 +27,7 @@ import {
 } from "@/components/discovery-frame";
 import { DatabasePicker } from "@/components/database-picker";
 import { EstimateCard } from "@/components/discovery-estimate";
-import { DiffersLine, ProviderUnknownCard, pickerItems, pickerLabels, protocolList, readDatabasesParam, sameList } from "@/components/discovery-plan";
+import { DiffersLine, IgnoresAndNotes, ProviderUnknownCard, defaultList, pickerItems, pickerLabels, protocolList, readDatabasesParam, sameList } from "@/components/discovery-plan";
 import {
   cancelJob,
   finishPreparation,
@@ -252,7 +252,7 @@ export function DiscoveryHarvest({ locale }: Readonly<{ locale: Locale }>) {
       const [nextRuns, nextPlan] = await Promise.all([getRuns(origin), getPlan(origin, address.value)]);
       setRuns(nextRuns);
       setPlan(nextPlan);
-      setChoice((current) => current ?? nextPlan.requested_providers ?? protocolList(nextPlan));
+      setChoice((current) => current ?? nextPlan.requested_providers ?? defaultList(nextPlan));
       const active = nextRuns.active_job;
       // M3i: a search and a "finish preparing" job are both followed here.
       const harvestJob = !!active && (active.kind === "run" || active.kind === "prepare");
@@ -320,7 +320,8 @@ export function DiscoveryHarvest({ locale }: Readonly<{ locale: Locale }>) {
     setCapError(false);
     const body: RunRequest = {};
     // M10a: the chosen databases, in order, once touched or carried by the address; else the protocol's list.
-    if ((touched || address.value) && choice) body.providers = choice;
+    // H-run-small-fixes: also when the default choice is not the protocol's list (Crossref left out).
+    if (choice && (touched || address.value || (plan && !sameList(choice, protocolList(plan))))) body.providers = choice;
     if (cap.trim()) {
       if (!/^\d+$/.test(cap.trim())) {
         setCapError(true);
@@ -523,6 +524,7 @@ export function DiscoveryHarvest({ locale }: Readonly<{ locale: Locale }>) {
           labels={pickerLabels(locale)}
         />
         <DiffersLine locale={locale} chosen={choice} protocol={protocol} />
+        <IgnoresAndNotes locale={locale} plan={plan} choice={choice} />
         {!sameList(choice, protocol) ? (
           <Button onClick={resetChoice} data-picker-reset>
             {t("plan.picker.reset")}
@@ -645,7 +647,7 @@ export function DiscoveryHarvest({ locale }: Readonly<{ locale: Locale }>) {
                   locale={locale}
                   origin={origin}
                   fingerprint={plan.protocol_fingerprint}
-                  providers={(touched || address.value) && choice ? choice : null}
+                  providers={choice && choice.length ? choice : null}
                   cap={/^\d+$/.test(cap.trim()) ? Number(cap.trim()) : null}
                   onUseCap={(value) => {
                     setCap(String(value));

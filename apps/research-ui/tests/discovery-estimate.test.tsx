@@ -9,6 +9,9 @@ import type { Estimate } from "@/lib/discovery-api";
 import { FINGERPRINT, refuse } from "./fixtures/discovery-engine";
 import { sent, setUp } from "./discovery-helpers";
 
+/** The fake protocol's own list (it names five, so the default choice keeps Crossref). */
+const PROTOCOL_LIST = ["openalex", "semanticscholar", "crossref", "arxiv", "pubmed"];
+
 /**
  * M10b Part D: the size estimate card on Plan and Harvest (spec docs/ux/phase1-discovery/final/01-plan.md
  * "Size estimate (M10b)"; 03-harvest.md "Size estimate (M10b)"). The engine is the stateful fake; the
@@ -82,11 +85,12 @@ describe("discovery.estimate on Plan", () => {
     expect(screen.queryAllByRole("textbox")).toHaveLength(0);
   });
 
-  it("sends exactly one POST with an empty body for the protocol's databases", async () => {
+  it("sends exactly one POST with the databases on screen (the protocol's here)", async () => {
     const { engine, card } = await planCard();
     await count(card);
     expect(estimateCalls(engine)).toHaveLength(1);
-    expect(estimateCalls(engine)[0].body).toEqual({});
+    // H-run-small-fixes (review N1): the choice is always sent; no list would count the default choice.
+    expect(estimateCalls(engine)[0].body).toEqual({ providers: PROTOCOL_LIST });
   });
 
   it("prints the answer's figures, none computed in the browser", async () => {
@@ -185,6 +189,19 @@ describe("discovery.estimate on Plan", () => {
     expect(sent(engine).filter((c) => c.startsWith("POST /api/v1/discovery/runs"))).toHaveLength(0);
   });
 
+  it("names the one database that is the size and offers no cap (H-run-small-fixes, finding 10)", async () => {
+    const estimate = answer({
+      warn: { level: "warning", threshold_works: 1000, limit: { value: 1000, source: "general" } },
+      recommendation: { kind: "one_database", cap: null, expected_works: null, cuts: null, provider: "crossref", provider_total: 6221, others_total: 1350 },
+    });
+    const { card } = await planCard({ estimate });
+    await count(card);
+    const rec = card.querySelector('[data-estimate-rec="one_database"]') as HTMLElement;
+    expect(within(rec).getByText(/Most of the records come from Crossref \(6221 of 7571\)\. A cap per database keeps the first records each database returns, which are not the most relevant, so it cannot remove Crossref's off-topic records/)).toBeInTheDocument();
+    expect(within(rec).getByRole("link", { name: "Change the protocol through inception" })).toBeInTheDocument();
+    expect(card.querySelector("[data-estimate-use-cap]")).toBeNull();
+  });
+
   it("advises narrowing with the inception link and no cap button", async () => {
     const estimate = answer({
       warn: { level: "warning", threshold_works: 1000, limit: { value: 1000, source: "general" } },
@@ -208,7 +225,7 @@ describe("discovery.estimate on Plan", () => {
     await user.clear(pace);
     await user.type(pace, "60{Enter}");
     await waitFor(() => expect(within(card).getByText("Screening: 99.5 to 100.5 hours")).toBeInTheDocument());
-    expect(estimateCalls(engine).map((c) => c.body)).toEqual([{}, { pace_seconds: 60 }]);
+    expect(estimateCalls(engine).map((c) => c.body)).toEqual([{ providers: PROTOCOL_LIST }, { providers: PROTOCOL_LIST, pace_seconds: 60 }]);
     expect(within(card).getByText("At 60 seconds per record, for one reviewer. Two reviewers double it.")).toBeInTheDocument();
   });
 
@@ -255,7 +272,7 @@ describe("discovery.estimate on Plan", () => {
     expect(within(card).getByText("Records: about 7002")).toBeInTheDocument();
   });
 
-  it("sends the chosen databases when the run would send them, and clears the estimate when the choice changes", async () => {
+  it("sends the chosen databases, and clears the estimate when the choice changes", async () => {
     const { engine, card } = await planCard({ estimate: answer() });
     const user = await count(card);
     expect(card.querySelector("[data-estimate-figures]")).not.toBeNull();
@@ -263,7 +280,7 @@ describe("discovery.estimate on Plan", () => {
     await waitFor(() => expect(document.querySelector("[data-estimate-figures]")).toBeNull());
     const fresh = document.querySelector("[data-estimate]") as HTMLElement;
     await count(fresh);
-    expect(estimateCalls(engine).map((c) => c.body)).toEqual([{}, { providers: ["openalex", "semanticscholar", "crossref", "arxiv"] }]);
+    expect(estimateCalls(engine).map((c) => c.body)).toEqual([{ providers: PROTOCOL_LIST }, { providers: ["openalex", "semanticscholar", "crossref", "arxiv"] }]);
   });
 
   it("uses a recall check's totals and refreshes past them on Count again", async () => {
@@ -271,7 +288,7 @@ describe("discovery.estimate on Plan", () => {
     await count(card);
     expect(within(card).getByText("From your recall check of 2026-11-17 10:00. Count again to refresh.")).toBeInTheDocument();
     await count(card);
-    expect(estimateCalls(engine).map((c) => c.body)).toEqual([{}, { refresh: true }]);
+    expect(estimateCalls(engine).map((c) => c.body)).toEqual([{ providers: PROTOCOL_LIST }, { providers: PROTOCOL_LIST, refresh: true }]);
   });
 
   it("is not drawn once a run exists or the corpus is accepted", async () => {
@@ -331,7 +348,7 @@ describe("discovery.estimate on Harvest", () => {
     const { engine, card } = await harvest({ search: "?cap=250" });
     await waitFor(() => expect(screen.getByLabelText("Cap for this harvest only")).toHaveValue("250"));
     await count(card);
-    expect(estimateCalls(engine)[0].body).toEqual({ cap: 250 });
+    expect(estimateCalls(engine)[0].body).toEqual({ providers: PROTOCOL_LIST, cap: 250 });
   });
 
   it("is removed once the corpus is accepted", async () => {
@@ -351,10 +368,10 @@ describe("discovery.estimate review fixes", () => {
     await user.type(pace, "45");
     // "Count again" with another pace is a what-if: answered from the cache, no refresh.
     await count(card);
-    expect(estimateCalls(engine)[1].body).toEqual({ pace_seconds: 45 });
+    expect(estimateCalls(engine)[1].body).toEqual({ providers: PROTOCOL_LIST, pace_seconds: 45 });
     // The same click with nothing changed refreshes past the recall check.
     await count(card);
-    expect(estimateCalls(engine)[2].body).toEqual({ pace_seconds: 45, refresh: true });
+    expect(estimateCalls(engine)[2].body).toEqual({ providers: PROTOCOL_LIST, pace_seconds: 45, refresh: true });
   });
 
   it("says why a pace that is not a whole number is not sent, and sends nothing", async () => {

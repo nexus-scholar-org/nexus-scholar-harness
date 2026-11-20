@@ -153,6 +153,71 @@ function legRow(leg: Partial<SearchLeg> & { provider: string }, full?: Partial<S
   return { row: container.querySelector(`[data-leg="${leg.provider}"]`) as HTMLElement, unmount };
 }
 
+describe("discovery.harvest Crossref and a joined query (H-run-small-fixes, finding 9)", () => {
+  it("starts without Crossref when the protocol took the default list, says why, and sends the list", async () => {
+    const user = userEvent.setup();
+    const { engine } = setUp({ protocolProviders: ["openalex", "semanticscholar", "crossref", "arxiv"] });
+    render(<DiscoveryHarvest locale="en" />);
+    await screen.findByRole("heading", { name: READY });
+    expect(ticked()).toEqual(["openalex", "semanticscholar", "arxiv"]);
+    expect(document.querySelector('[data-default-without="crossref"]')).toHaveTextContent(
+      "Crossref is left out by default: this query joins 2 concepts and Crossref would not apply the AND.",
+    );
+    expect(document.querySelector("[data-ignores-and]")).toBeNull();
+    // Review P1: the estimate counts the same databases the harvest will search.
+    const card = document.querySelector("[data-estimate]") as HTMLElement;
+    await user.click(within(card).getByRole("button", { name: /count/i }));
+    await waitFor(() => expect(engine.calls.some((c) => c.method === "POST" && c.path === "/api/v1/discovery/estimate")).toBe(true));
+    expect(engine.calls.find((c) => c.method === "POST" && c.path === "/api/v1/discovery/estimate")?.body).toMatchObject({
+      providers: ["openalex", "semanticscholar", "arxiv"],
+    });
+    await user.click(screen.getByRole("button", { name: "Start the harvest" }));
+    await screen.findByRole("heading", { name: FINISHED });
+    expect(runPost(engine)[0].body).toEqual({ providers: ["openalex", "semanticscholar", "arxiv"] });
+  });
+
+  it("after Reset to the protocol, the estimate counts Crossref (review N1)", async () => {
+    const user = userEvent.setup();
+    const { engine } = setUp({ protocolProviders: ["openalex", "semanticscholar", "crossref", "arxiv"] });
+    render(<DiscoveryHarvest locale="en" />);
+    await screen.findByRole("heading", { name: READY });
+    await user.click(screen.getByRole("button", { name: "Reset to the protocol" }));
+    expect(ticked()).toContain("crossref");
+    const card = document.querySelector("[data-estimate]") as HTMLElement;
+    await user.click(within(card).getByRole("button", { name: /count/i }));
+    await waitFor(() => expect(engine.calls.some((c) => c.method === "POST" && c.path === "/api/v1/discovery/estimate")).toBe(true));
+    const body = engine.calls.filter((c) => c.method === "POST" && c.path === "/api/v1/discovery/estimate").at(-1)?.body as { providers?: string[] };
+    expect(body.providers).toContain("crossref");
+  });
+
+  it("warns as soon as Crossref is ticked for a joined query", async () => {
+    const user = userEvent.setup();
+    setUp({ protocolProviders: ["openalex", "semanticscholar", "crossref", "arxiv"] });
+    render(<DiscoveryHarvest locale="en" />);
+    await screen.findByRole("heading", { name: READY });
+    await user.click(screen.getByRole("checkbox", { name: "Search Crossref" }));
+    expect(document.querySelector('[data-ignores-and="crossref"]')).toHaveTextContent(
+      "Crossref does not apply the AND between the 2 concepts of this query",
+    );
+  });
+
+  it("keeps Crossref for a protocol that names its own list, with the warning", async () => {
+    setUp();
+    render(<DiscoveryHarvest locale="en" />);
+    await screen.findByRole("heading", { name: READY });
+    expect(ticked()).toContain("crossref");
+    expect(document.querySelector('[data-ignores-and="crossref"]')).not.toBeNull();
+  });
+
+  it("neither warns nor leaves Crossref out for a one-concept query", async () => {
+    setUp({ protocolProviders: ["openalex", "semanticscholar", "crossref", "arxiv"], concepts: 1 });
+    render(<DiscoveryHarvest locale="en" />);
+    await screen.findByRole("heading", { name: READY });
+    expect(ticked()).toContain("crossref");
+    expect(document.querySelector("[data-ignores-and], [data-default-without]")).toBeNull();
+  });
+});
+
 describe("discovery.harvest database picker (M10a)", () => {
   it("offers the six databases, the protocol's ticked first in its order, and an untouched picker sends no providers", async () => {
     const user = userEvent.setup();

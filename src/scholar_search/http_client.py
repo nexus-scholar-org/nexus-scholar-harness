@@ -41,11 +41,11 @@ class RateLimiter:
         self.last_update = time.time()
         self._lock = threading.Lock()
 
-    def set_rate(self, rate: float) -> None:
-        """Change the rate; the burst follows it, and tokens never exceed the new burst."""
+    def set_rate(self, rate: float, burst: float | None = None) -> None:
+        """Change the rate; the burst follows it (or ``burst``), and tokens never exceed the new burst."""
         with self._lock:
             self.rate = rate
-            self.capacity = max(1.0, rate)
+            self.capacity = max(1.0, rate if burst is None else burst)
             self.tokens = min(self.tokens, self.capacity)
 
     def lower(self, rate: float) -> None:
@@ -161,6 +161,13 @@ def _policy(url: str) -> tuple[str, float] | None:
 _HOST_BUDGETS: dict[str, RateLimiter] = {}
 #: The lowest rate a budget's provider has announced in its headers, per budget key.
 _HEADER_CAPS: dict[str, float] = {}
+#: Paces set by a 429 (``slow_down``): budget key -> (rate, set at, monotonic seconds).
+_THROTTLES: dict[str, tuple[float, float]] = {}
+#: How long a pace set by a 429 holds before the configured rate returns (review
+#: follow-up: a long-running console must not stay slow after one throttled burst).
+THROTTLE_HOLD_S = 600.0
+#: 429s closer together than this are one throttle (concurrent requests answered at once).
+THROTTLE_DEBOUNCE_S = 1.0
 _BUDGETS_LOCK = threading.Lock()
 
 
@@ -176,11 +183,22 @@ def host_budget(url: str) -> RateLimiter | None:
     key, rate = policy
     with _BUDGETS_LOCK:
         rate = min(rate, _HEADER_CAPS.get(key, rate))
+        throttle = _THROTTLES.get(key)
+        if throttle is not None:
+            if time.monotonic() - throttle[1] < THROTTLE_HOLD_S:
+                rate = min(rate, throttle[0])
+            else:
+                del _THROTTLES[key]
+                throttle = None
+        # While a 429 pace holds, no burst: the requests are evenly spaced.
+        burst = 1.0 if throttle is not None else None
         budget = _HOST_BUDGETS.get(key)
         if budget is None:
             budget = _HOST_BUDGETS[key] = RateLimiter(rate)
-        elif budget.rate != rate:
-            budget.set_rate(rate)
+            if burst is not None:
+                budget.set_rate(rate, burst=burst)
+        elif budget.rate != rate or budget.capacity != max(1.0, rate if burst is None else burst):
+            budget.set_rate(rate, burst=burst)
     return budget
 
 
@@ -206,11 +224,41 @@ def _cap_from_headers(url: str, rate: float) -> bool:
     return True
 
 
+def slow_down(url: str) -> bool:
+    """Halve the shared budget of ``url``'s host after a 429 that named no lower rate.
+
+    H-run-small-fixes, finding 14: Crossref answered 429 to almost every
+    per-record check; the client waited out each one and went on at the
+    configured rate, so the next record met the same limit. Halving the pace
+    (never below one request per second, or the configured rate if lower)
+    lets the retries stop once the pace fits. The pace holds for
+    ``THROTTLE_HOLD_S`` and then the configured rate returns; 429s that arrive
+    within ``THROTTLE_DEBOUNCE_S`` of the last cut count once, so a burst of
+    concurrent requests halves the pace once, not once each. False for a host
+    without a shared budget.
+    """
+    policy = _policy(url)
+    if policy is None:
+        return False
+    key = policy[0]
+    budget = host_budget(url)
+    now = time.monotonic()
+    with _BUDGETS_LOCK:
+        last = _THROTTLES.get(key)
+        if last is not None and now - last[1] < THROTTLE_DEBOUNCE_S:
+            return True
+        current = budget.rate if budget is not None and budget.rate > 0 else policy[1]
+        _THROTTLES[key] = (max(current / 2, _header_floor(policy[1])), now)
+    host_budget(url)  # applies the new pace
+    return True
+
+
 def reset_host_budgets() -> None:
     """Forget every shared budget and announced rate (tests; a new process starts empty anyway)."""
     with _BUDGETS_LOCK:
         _HOST_BUDGETS.clear()
         _HEADER_CAPS.clear()
+        _THROTTLES.clear()
 
 
 _INTERVAL = re.compile(r"^\s*(\d+(?:\.\d+)?)\s*(ms|s|m|h)?\s*$", re.IGNORECASE)
@@ -357,8 +405,13 @@ class AcademicHttpClient:
         rate = header_rate(response.headers)
         if rate is None:
             return
-        budget = host_budget(url)
-        current = (budget or self.rate_limiter).rate
+        policy = _policy(url)
+        if policy is not None:
+            # Compared with the configured and announced rate, not with a pace a 429
+            # holds for a while: a lower header is kept after that pace expires.
+            current = min(policy[1], _HEADER_CAPS.get(policy[0], policy[1]))
+        else:
+            current = self.rate_limiter.rate
         if current > 0 and rate >= current:
             return
         logger.info(
@@ -412,6 +465,9 @@ class AcademicHttpClient:
             wait = retry_after_seconds(response.headers.get("retry-after"))
             if wait is not None and wait > RETRY_AFTER_CAP:
                 raise _paused(self.name, url, response.status_code, wait)
+            if response.status_code == 429 and header_rate(response.headers) is None and slow_down(url):
+                budget = host_budget(url)
+                logger.info(f"[{self.name}] throttled: pacing {urlsplit(url).hostname} at {budget.rate:g} requests per second")
             if attempt >= self.max_retries:
                 break
             delay = wait if wait is not None else self.base_delay * (2**attempt)
