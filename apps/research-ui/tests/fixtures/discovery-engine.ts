@@ -72,7 +72,9 @@ export interface DiscoveryFakeOptions {
    * M3i: how the steps after the search ended for the newest run already in the workspace, and for
    * every run started (its job then ends `failed` after the search). Default: they ended (`ready`).
    */
-  preparation?: "failed" | "stopped" | "interrupted";
+  preparation?: "failed" | "stopped" | "interrupted" | "incomplete";
+  /** H-quota-hang: why an `incomplete` preparation's checks ended early (default `quota`: OpenAlex's quota is used up). */
+  incompleteReason?: "quota" | "stopped";
   /** M3i: the step it failed in or stopped before (default `verification`); `null` with `legacyRun`. */
   preparationStage?: "deduplication" | "hydration" | "verification";
   /** M3i: the newest run was made before the stage marker existed (`marker: false`, no stage). */
@@ -295,18 +297,34 @@ export function discoveryEngine(options: DiscoveryFakeOptions = {}) {
 
   // M3i: the steps after the search, per run, as the engine reads them from the run's stage marker
   // (`literature/search_runs/run_NNN/pipeline.json`). A run not listed here ended them (`ready`).
-  type Prep = { state: "failed" | "stopped" | "interrupted" | "none"; stage: string | null; message: string | null; marker: boolean };
+  type Prep = { state: "failed" | "stopped" | "interrupted" | "incomplete" | "none"; stage: string | null; message: string | null; marker: boolean; checks?: Json | null };
   const prep = new Map<string, Prep>();
   /** The engine's corpus run: the newest run whose search was kept as the corpus (a stopped search is not). */
   const corpusRun = (): Json | undefined => runs.find((r) => prep.get(String(r.run))?.state !== "none");
   const STAGES = ["deduplication", "hydration", "verification"];
   const stageAt = "2026-11-10T09:30:00+00:00";
-  const unfinishedPrep = (): Prep => ({
-    state: options.preparation ?? "failed",
-    stage: options.legacyRun ? null : (options.preparationStage ?? "verification"),
-    message: (options.preparation ?? "failed") === "failed" ? "RuntimeError: verifier down" : null,
-    marker: !options.legacyRun,
-  });
+  // H-quota-hang: the engine's `checks` of an `incomplete` preparation (`pipeline/harvest_marker.py::preparation_view`).
+  const quotaPaused = {
+    provider: "openalex", database: "OpenAlex", status_code: 429, retry_after: 50000,
+    resets_at: "2026-11-21T00:00:00+00:00", reason: "PROVIDER_QUOTA_EXHAUSTED",
+  };
+  const incompleteChecks = (): Json =>
+    options.incompleteReason === "stopped"
+      ? { unchecked: 7, unverified: 7, unenriched: 0, records: 10, reason: "STOPPED_BY_RESEARCHER", paused: [] }
+      : { unchecked: 120, unverified: 20, unenriched: 100, records: 166, reason: "PROVIDER_QUOTA_EXHAUSTED", paused: [quotaPaused] };
+  const incompleteMessage = (): string =>
+    options.incompleteReason === "stopped"
+      ? "You stopped the checks between two records. 7 of 10 records were not fully checked: 7 could not be verified and are marked as not checked. All are kept as they were found; none was dropped. Finish preparing this corpus: only those records are checked again."
+      : "The OpenAlex quota is used up; it resets at 2026-11-21 00:00 UTC. 120 of 166 records were not fully checked: 20 could not be verified and are marked as not checked; 100 were verified but their missing details were not filled in. All are kept as they were found; none was dropped. Finish preparing this corpus after the reset: only those records are checked again.";
+  const unfinishedPrep = (): Prep =>
+    options.preparation === "incomplete"
+      ? { state: "incomplete", stage: "verification", message: incompleteMessage(), marker: true, checks: incompleteChecks() }
+      : {
+          state: options.preparation ?? "failed",
+          stage: options.legacyRun ? null : (options.preparationStage ?? "verification"),
+          message: (options.preparation ?? "failed") === "failed" ? "RuntimeError: verifier down" : null,
+          marker: !options.legacyRun,
+        };
   const stagesDone = (stage: string | null, all = false): Json =>
     Object.fromEntries(
       STAGES.slice(0, all ? STAGES.length : stage ? STAGES.indexOf(stage) : 0).map((name) => [name, { status: name === "verification" ? "SUCCESS" : "DONE", at: stageAt }]),
@@ -315,7 +333,7 @@ export function discoveryEngine(options: DiscoveryFakeOptions = {}) {
   const preparationOf = (run: Json): Json => {
     const view = (state: string, stage: string | null, extra: Json = {}): Json => ({
       state, stage, stages: stagesDone(stage, state === "ready" || state === "superseded"), ended_at: state === "running" ? null : stageAt,
-      message: null, marker: true, can_finish: false, cannot_finish: null, job_id: null, ...extra,
+      message: null, marker: true, can_finish: false, cannot_finish: null, checks: null, job_id: null, ...extra,
     });
     const stored = prep.get(String(run.run));
     // A search that was stopped is not the corpus: it has nothing to prepare, and it supersedes nothing.
@@ -328,8 +346,10 @@ export function discoveryEngine(options: DiscoveryFakeOptions = {}) {
     if (!stored) return view("ready", null);
     const reason = accepted ? "corpus_accepted" : options.recordsMissing ? "records_missing" : null;
     return view(stored.state, stored.stage, {
-      message: stored.message, marker: stored.marker, stages: stored.marker ? stagesDone(stored.stage) : {},
-      can_finish: reason === null, cannot_finish: reason,
+      message: stored.message, marker: stored.marker,
+      // An `incomplete` preparation's verification ended (early): every step is recorded.
+      stages: stored.marker ? stagesDone(stored.stage, stored.state === "incomplete") : {},
+      can_finish: reason === null, cannot_finish: reason, checks: stored.checks ?? null,
     });
   };
   /** The corpus run's steps after the search have not ended: its works are not a corpus yet. */
@@ -628,11 +648,15 @@ export function discoveryEngine(options: DiscoveryFakeOptions = {}) {
         const stage = view.stage ? STAGE_NAMES[String(view.stage)] : null;
         const finish = view.can_finish ? action("finishPreparing", "discovery.harvest", { run: run.run }) : action("searchAgain", "discovery.harvest");
         const also = view.can_finish ? [action("searchAgain", "discovery.harvest")] : [];
+        const checks = (view.checks ?? null) as Json | null;
         const reason =
-          view.state === "failed" ? { code: "DISCOVERY_FAILED", message: view.message } : view.state === "stopped" ? { code: "STOPPED_BY_RESEARCHER", message: null } : { code: "INTERRUPTED", message: null };
+          view.state === "incomplete" ? { code: String(checks?.reason ?? "PROVIDER_QUOTA_EXHAUSTED"), message: view.message }
+          : view.state === "failed" ? { code: "DISCOVERY_FAILED", message: view.message } : view.state === "stopped" ? { code: "STOPPED_BY_RESEARCHER", message: null } : { code: "INTERRUPTED", message: null };
+        // H-quota-hang (`console/next_step.py`): a stop between records reads `stopped`, a used-up quota `failed`.
+        const kind = view.state === "incomplete" ? (reason.code === "STOPPED_BY_RESEARCHER" ? "stopped" : "failed") : String(view.state);
         return answer("CORPUS_PENDING", "discovery", {
           params: { run: run.run, records: fetchedTotal(run), works: d?.unique_works ?? null, databases: (run.legs as Json[]).length, stage, ...(view.cannot_finish ? { cannot_finish: view.cannot_finish } : {}) },
-          waiting: { ...waiting(String(view.state), stage ?? (view.state === "stopped" ? "deduplicating" : "verifying"), null, reason, stageAt), ...(view.state === "interrupted" ? { details: { stage_known: stage !== null } } : {}) },
+          waiting: { ...waiting(kind, stage ?? (view.state === "stopped" ? "deduplicating" : "verifying"), null, reason, stageAt), ...(view.state === "interrupted" ? { details: { stage_known: stage !== null } } : {}) },
           action: finish, also,
         });
       }

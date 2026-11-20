@@ -24,17 +24,28 @@ codes, messages, counts, and audit order/payload are unchanged.
 Failure propagates with no fabricated documents, audit rows, or success
 claims: a verifier raise publishes nothing; an audit raise propagates after
 the files are written. Stage 3 has no client resource to close.
+
+H-quota-hang (2026-11-20). The stage reads the researcher's stop between
+records (``should_stop``, set on the verifier) and the verifier stops asking
+a database whose quota is used up. Every record is still published (none is
+dropped); the ones not checked are listed in
+``literature/verification_checks.json`` (one row per published or refused
+row: its code, ``not_done`` and ``reason``), and the outcome says how many.
+``keep`` lets a later attempt check only those: the rows it names (by
+workspace id, from an earlier checks file) are published as they are.
 """
 
 from __future__ import annotations
 
 import json
 import logging
-from dataclasses import asdict, dataclass
+from collections.abc import Callable
+from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any
 
-from scholar_search.verifier import DocumentVerifier
+from scholar_search.verifier import QUOTA_EXHAUSTED, DocumentVerifier
+from scholar_search.verifier import STOPPED as STOPPED_BY_RESEARCHER
 
 from scholar_harness.verification_identity import (
     AUDIT_ACTION as _VERIFICATION_AUDIT_ACTION,
@@ -68,6 +79,54 @@ class VerificationOutcome:
     bridge_restored: int
     refusal_reasons: dict[str, int]
     quarantine: str | None
+    #: H-quota-hang: records published without a complete check, and why.
+    unchecked: int = 0
+    unchecked_reasons: dict[str, int] = field(default_factory=dict)
+    #: Of ``unchecked``: records no lookup could confirm (``NOT_CHECKED``) and
+    #: records confirmed whose missing details were not filled in (review F1).
+    unverified: int = 0
+    unenriched: int = 0
+    #: The databases the verifier stopped asking, with their reset time.
+    paused: list[dict[str, Any]] = field(default_factory=list)
+    #: The researcher's stop ended the checks between two records.
+    stopped: bool = False
+    #: Records checked by this attempt (all of them unless ``keep`` named some).
+    checked: int = 0
+
+
+#: Read by the coordinator through this module, which imports no kit module itself (HCM-04).
+__all__ = [
+    "CHECKS_FILENAME", "QUOTA_EXHAUSTED", "STOPPED_BY_RESEARCHER", "VerificationOutcome", "read_checks",
+    "run_verification",
+]
+
+#: The per-record check record beside ``verified.json`` (a run record, not a Contract v1 artifact).
+CHECKS_FILENAME = "verification_checks.json"
+CHECKS_SCHEMA = "nexus.verification-checks.v1"
+
+
+def _check_row(position: int, doc: Any, row: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "position": position,
+        "workspace_id": getattr(doc, "workspace_id", None),
+        "code": row.get("code"),
+        "verified": row.get("verified"),
+        "not_done": [str(part) for part in (row.get("not_done") or [])],
+        "reason": row.get("reason"),
+        "status": row.get("status"),
+    }
+
+
+def read_checks(literature_dir: Path | str) -> dict[str, Any] | None:
+    """The checks record of the last verification, or ``None`` when absent or unreadable."""
+    path = Path(literature_dir) / CHECKS_FILENAME
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return None
+    if not isinstance(data, dict) or data.get("schema") != CHECKS_SCHEMA or not isinstance(data.get("rows"), list):
+        return None
+    return data
 
 
 async def run_verification(
@@ -75,6 +134,8 @@ async def run_verification(
     documents: list[Any],
     literature_dir: Path | str,
     workspace_dir: Path | str,
+    should_stop: Callable[[], bool] | None = None,
+    keep: dict[str, dict[str, Any]] | None = None,
 ) -> VerificationOutcome:
     """Verify documents, resolve identity via the DOI bridge, publish results.
 
@@ -91,14 +152,55 @@ async def run_verification(
     Only mechanical parameterization: ``documents`` / ``literature_dir`` /
     ``workspace_dir`` inputs. No logic edits, no renames of codes/messages/
     filenames.
+
+    H-quota-hang: ``should_stop`` is read before each record; ``keep`` maps
+    a workspace id to its row of an earlier checks file, and such a record is
+    published as it is, without asking any database again.
     """
     lit_dir = Path(literature_dir)
     lit_dir.mkdir(parents=True, exist_ok=True)
 
     verifier = DocumentVerifier()
-    verified_docs, audit = await verifier.process_batch(
-        documents, verify=True, enrich=True
+    # Set on the instance, so a verifier double with the historical
+    # ``process_batch(docs, verify, enrich)`` signature still runs.
+    verifier.should_stop = should_stop
+    keep = keep or {}
+    kept = [bool(keep) and getattr(doc, "workspace_id", None) in keep for doc in documents]
+    to_check = [doc for doc, is_kept in zip(documents, kept, strict=True) if not is_kept]
+    checked_docs, audit = await verifier.process_batch(
+        to_check, verify=True, enrich=True
     )
+    audit = audit if isinstance(audit, list) else []
+    if any(kept) and len(checked_docs) != len(to_check):
+        raise ValueError(
+            f"the verifier returned {len(checked_docs)} records for {len(to_check)}; the kept rows cannot be placed"
+        )
+    if any(kept):
+        # Merge the kept rows back in their places; the verifier's rows follow in order.
+        verified_docs, rows = [], []
+        fresh = iter(zip(checked_docs, audit + [{}] * (len(checked_docs) - len(audit)), strict=False))
+        for doc, is_kept in zip(documents, kept, strict=True):
+            if is_kept:
+                verified_docs.append(doc)
+                rows.append(dict(keep[doc.workspace_id]))
+            else:
+                checked, row = next(fresh)
+                verified_docs.append(checked)
+                rows.append(row if isinstance(row, dict) else {})
+    else:
+        verified_docs = list(checked_docs)
+        rows = [audit[i] if i < len(audit) and isinstance(audit[i], dict) else {} for i in range(len(verified_docs))]
+    unchecked_reasons: dict[str, int] = {}
+    for row in rows:
+        if row.get("not_done"):
+            key = str(row.get("reason") or "UNKNOWN")
+            unchecked_reasons[key] = unchecked_reasons.get(key, 0) + 1
+    unchecked_n = sum(unchecked_reasons.values())
+    unverified_n = sum(1 for row in rows if "verification" in (row.get("not_done") or []))
+    unenriched_n = unchecked_n - unverified_n
+    paused = getattr(verifier, "paused", None)
+    paused = [dict(p) for p in paused if isinstance(p, dict)] if isinstance(paused, list) else []
+    stopped = getattr(verifier, "stopped", False) is True
 
     wsid_by_doi, ambiguous_dois = build_doi_bridge(documents)
     identified_docs: list[Any] = []
@@ -166,6 +268,8 @@ async def run_verification(
             }
         )
 
+    # One check row per published or refused row, with the id the bridge left it (H-quota-hang).
+    check_rows = [_check_row(pos, doc, row) for pos, (doc, row) in enumerate(zip(verified_docs, rows, strict=True))]
     # Refused rows never enter the authoritative verified.json.
     verified_docs = identified_docs
 
@@ -210,6 +314,28 @@ async def run_verification(
         _stale_quarantine = lit_dir / _VERIFICATION_QUARANTINE_FILENAME
         if _stale_quarantine.exists():
             _stale_quarantine.unlink()
+    if unchecked_n and _verification_status == "SUCCESS":
+        # Compass §3: degraded work is PARTIAL and says why (the checks file, the metrics).
+        _verification_status = "PARTIAL"
+    (lit_dir / CHECKS_FILENAME).write_text(
+        json.dumps(
+            {
+                "schema": CHECKS_SCHEMA,
+                "records": len(check_rows),
+                "unchecked": unchecked_n,
+                "unverified": unverified_n,
+                "unenriched": unenriched_n,
+                "unchecked_reasons": unchecked_reasons,
+                "paused": paused,
+                "stopped": stopped,
+                "checked_now": len(to_check),
+                "rows": check_rows,
+            },
+            indent=2,
+            default=str,
+        ),
+        encoding="utf-8",
+    )
     _quarantine_rel = (
         f"literature/{_VERIFICATION_QUARANTINE_FILENAME}" if refused_entries else None
     )
@@ -221,6 +347,14 @@ async def run_verification(
             "Stage 3 verification identity bridge-or-refuse: "
             f"{preserved_n} preserved, {bridge_restored_n} bridge-restored, "
             f"{len(refused_entries)} refused"
+            + (
+                f"; {unchecked_n} not fully checked ({unverified_n} not verified, "
+                f"{unenriched_n} verified but not enriched; "
+                + ", ".join(f"{k}: {v}" for k, v in sorted(unchecked_reasons.items()))
+                + ")"
+                if unchecked_n
+                else ""
+            )
         ),
         [str(lit_dir / "deduped.json")],
         (
@@ -230,6 +364,7 @@ async def run_verification(
                 if refused_entries
                 else []
             )
+            + ([str(lit_dir / CHECKS_FILENAME)] if unchecked_n or keep else [])
         ),
         {
             "preserved": preserved_n,
@@ -238,6 +373,19 @@ async def run_verification(
             "verified": len(verified_docs),
             "refusal_reasons": _refusal_counts,
             "status": _verification_status,
+            **(
+                {
+                    "unchecked": unchecked_n,
+                    "unverified": unverified_n,
+                    "unenriched": unenriched_n,
+                    "unchecked_reasons": unchecked_reasons,
+                    "paused": paused,
+                    "stopped": stopped,
+                    "checked_now": len(to_check),
+                }
+                if unchecked_n or keep
+                else {}
+            ),
         },
         status=_verification_status,
     )
@@ -250,4 +398,11 @@ async def run_verification(
         bridge_restored=bridge_restored_n,
         refusal_reasons=_refusal_counts,
         quarantine=_quarantine_rel,
+        unchecked=unchecked_n,
+        unchecked_reasons=unchecked_reasons,
+        unverified=unverified_n,
+        unenriched=unenriched_n,
+        paused=paused,
+        stopped=stopped,
+        checked=len(to_check),
     )

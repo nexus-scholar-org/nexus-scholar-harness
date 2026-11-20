@@ -33,7 +33,8 @@ DEDUP_MIN_RECORDS = 200
 ABSTRACT_SHARE_FLOOR = 0.8
 #: ⚑ ``HANDOFF_ONE_DATABASE_DOMINATES``: the largest share above this.
 DOMINATES_SHARE = 0.8
-UNFINISHED = ("failed", "stopped", "interrupted")
+#: H-quota-hang adds ``incomplete``: the checks ended early, some works not checked.
+UNFINISHED = ("failed", "stopped", "interrupted", "incomplete")
 
 
 def _field_free(step: str) -> dict[str, Any]:

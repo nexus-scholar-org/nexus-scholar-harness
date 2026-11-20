@@ -795,6 +795,14 @@ def accept_corpus(
                 "NOTHING_STAGED",
             )
 
+    if not _accepted_snapshot(ws) and not _imported(ws):
+        # H-quota-hang review F2: a search run's corpus is frozen only once its
+        # preparation ended, also from the CLI (``accept-corpus``), as on the
+        # hand-off. An ``incomplete`` run has its own verified.json with records
+        # that were not checked; a failed or stopped run may leave an earlier
+        # run's file in place.
+        refuse_if_preparation_unfinished(ws)
+
     verified = ws / "literature" / "verified.json"
     if not verified.is_file():
         raise AcceptCorpusRefused(

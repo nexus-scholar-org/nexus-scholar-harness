@@ -493,3 +493,39 @@ for (const locale of ["en", "ar"] as const) {
     }
   }
 }
+
+test("H-quota-hang: a used-up quota during the checks is named with its reset on Harvest and the Hand-off, and finishing checks only those records", async ({ page }) => {
+  const fake = await engine(page, { runs: 1, preparation: "incomplete" });
+  await page.goto("/en/discovery/handoff/");
+  await expect(page.getByRole("heading", { level: 1, name: "The corpus is not ready to hand off yet." })).toBeVisible();
+  await expect(page.locator("[data-pending-body]")).toHaveText("The checks of run_001 ended early: 120 of 166 records were not fully checked.");
+  await expect(page.locator('[data-pending] [data-paused="openalex"]')).toContainText("The OpenAlex quota is used up. It resets at");
+  await expect(page.getByRole("button", { name: "Accept this corpus" })).toHaveCount(0);
+
+  await page.getByRole("link", { name: "Finish preparing this corpus on Harvest" }).click();
+  await expect(page.getByRole("heading", { level: 1, name: "The search finished, but not every work could be fully checked." })).toBeVisible();
+  const card = page.locator('[data-preparation="incomplete"]');
+  await expect(card.locator("[data-unchecked]")).toContainText("120 of 166 records were not fully checked.");
+  await expect(card.locator("[data-unverified]")).toContainText("20 could not be verified");
+  await expect(card.locator("[data-unenriched]")).toContainText("100 were verified");
+  await expect(card.locator("[data-incomplete-todo]")).toHaveText(
+    "After the reset, press “Finish preparing this corpus”: only those records are checked again.",
+  );
+  await expect(card.locator("[data-stage-ended]")).toHaveText(["Duplicates", "Abstracts", "Checks"]);
+  await card.getByRole("button", { name: "Finish preparing this corpus", exact: true }).click();
+  await expect(page.getByRole("heading", { level: 1, name: "The harvest is finished. The corpus is not frozen yet." })).toBeVisible();
+  expect(fake.calls.filter((c) => c.method === "POST").map((c) => c.path)).toEqual(["/api/v1/discovery/runs/run_001/prepare"]);
+});
+
+for (const locale of ["en", "ar"] as const) {
+  test(`H-quota-hang: the incomplete card has no sideways scroll on a phone (${locale})`, async ({ page }, testInfo) => {
+    await page.setViewportSize(MOBILE_VIEWPORT);
+    await engine(page, { runs: 1, preparation: "incomplete" });
+    await page.goto(`/${locale}/discovery/harvest/`);
+    await expect(page.locator('[data-preparation="incomplete"] [data-paused="openalex"]')).toBeVisible();
+    expectNoSidewaysScroll(await measureOverflow(page), `${locale}/discovery/harvest incomplete`);
+    if (process.env.H_QUOTA_SHOTS) {
+      await page.locator('[data-preparation="incomplete"]').screenshot({ path: `${process.env.H_QUOTA_SHOTS}/incomplete-${locale}-${testInfo.project.name}.png` });
+    }
+  });
+}

@@ -97,6 +97,7 @@ from __future__ import annotations
 import json
 import logging
 from collections.abc import Callable
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -495,6 +496,48 @@ def _stopped(should_stop: Callable[[], bool] | None) -> bool:
     return bool(should_stop is not None and should_stop())
 
 
+def _when(stamp: str | None) -> str:
+    """An ISO time as ``2026-11-21 00:00 UTC`` for a message; the text itself when it is not one."""
+    if not stamp:
+        return "an unknown time"
+    try:
+        moment = datetime.fromisoformat(str(stamp))
+    except ValueError:
+        return str(stamp)
+    if moment.tzinfo is not None:
+        moment = moment.astimezone(UTC)
+    return moment.strftime("%Y-%m-%d %H:%M UTC")
+
+
+def _incomplete_message(outcome: Any, records: int, reason: str) -> str:
+    """The researcher's sentence for a verification that ended early (H-quota-hang)."""
+    from .verification import STOPPED_BY_RESEARCHER as VERIFY_STOPPED
+
+    parts: list[str] = []
+    if reason == VERIFY_STOPPED:
+        parts.append("You stopped the checks between two records.")
+    for paused in outcome.paused:
+        if paused.get("reason") == "PROVIDER_QUOTA_EXHAUSTED":
+            parts.append(f"The {paused.get('database')} quota is used up; it resets at {_when(paused.get('resets_at'))}.")
+        else:
+            parts.append(
+                f"{paused.get('database')} is unavailable (HTTP {paused.get('status_code')}) "
+                f"until {_when(paused.get('resets_at'))}."
+            )
+    detail = []
+    if outcome.unverified:
+        detail.append(f"{outcome.unverified} could not be verified and are marked as not checked")
+    if outcome.unenriched:
+        detail.append(f"{outcome.unenriched} were verified but their missing details were not filled in")
+    parts.append(
+        f"{outcome.unchecked} of {records} records were not fully checked: " + "; ".join(detail) + ". "
+        "All are kept as they were found; none was dropped. Finish preparing this corpus"
+        + (" after the reset" if outcome.paused else "")
+        + ": only those records are checked again."
+    )
+    return " ".join(parts)
+
+
 async def _prepare_corpus(
     *,
     ws: Path,
@@ -506,6 +549,7 @@ async def _prepare_corpus(
     emit_stage: Callable[[str, str, Any], None],
     should_stop: Callable[[], bool] | None,
     protocol_path: Path,
+    keep: dict[str, dict[str, Any]] | None = None,
 ) -> list[Any] | None:
     """Run deduplication, hydration and verification from ``first_stage`` on.
 
@@ -522,6 +566,16 @@ async def _prepare_corpus(
     Returns the verified documents; ``results["stages"]`` gets the same
     mappings as before. ``run_dir`` is ``None`` when there is no archived run
     to mark (a stage double in a test): the stages run and nothing is marked.
+
+    H-quota-hang: the stop is also read between two records of verification,
+    and a database whose quota is used up is not asked again. When records
+    were left unchecked, verification still writes ``verified.json`` with
+    every record, the marker ends ``INCOMPLETE`` (state ``incomplete``, which
+    the hand-off refuses), one ``HARVEST_PREPARATION_INCOMPLETE`` row is
+    written, ``results["status"]`` is ``CANCELLED`` (a stop) or
+    ``INCOMPLETE``, and ``None`` is returned. ``keep`` (workspace id to an
+    earlier check row) is passed to verification: those records are not
+    checked again.
     """
     run_name = run_dir.name if run_dir is not None else "the run"
     docs = documents
@@ -583,10 +637,14 @@ async def _prepare_corpus(
                 # Stage 3: Verification (HCM-04e-1 Option B bridge-or-refuse)
                 # -----------------------------------------------------
                 # HCM-04e: delegated to the neutral pipeline stage.
+                # H-quota-hang: the stop and ``keep`` are passed only when set, so a
+                # stage double with the historical keyword set still runs.
+                extra = {name: value for name, value in (("should_stop", should_stop), ("keep", keep)) if value}
                 verification_outcome = await run_verification(
                     documents=docs,
                     literature_dir=lit_dir,
                     workspace_dir=ws,
+                    **extra,
                 )
                 verified_docs = verification_outcome.documents
                 results["stages"]["verification"] = {
@@ -601,6 +659,16 @@ async def _prepare_corpus(
                     results["stages"]["verification"]["quarantine"] = (
                         verification_outcome.quarantine
                     )
+                if getattr(verification_outcome, "unchecked", 0) or keep:
+                    results["stages"]["verification"].update({
+                        "unchecked": verification_outcome.unchecked,
+                        "unverified": verification_outcome.unverified,
+                        "unenriched": verification_outcome.unenriched,
+                        "unchecked_reasons": verification_outcome.unchecked_reasons,
+                        "paused": verification_outcome.paused,
+                        "stopped": verification_outcome.stopped,
+                        "checked_now": verification_outcome.checked,
+                    })
                 status = str(verification_outcome.status)
                 detail = {
                     "verified": verification_outcome.verified, "refused": verification_outcome.refused,
@@ -623,12 +691,67 @@ async def _prepare_corpus(
                     status="FAILED",
                 )
             raise
+        if stage == "verification" and getattr(verification_outcome, "unchecked", 0):
+            _end_incomplete(
+                ws, lit_dir, run_dir, run_name, verification_outcome, status, results, emit_stage, protocol_path
+            )
+            return None
         if stage == "verification":
             harvest_marker.complete(run_dir, status)
         else:
             harvest_marker.record_stage(run_dir, stage, status)
         emit_stage(stage, status, detail)
     return verified_docs
+
+
+def _end_incomplete(
+    ws: Path, lit_dir: Path, run_dir: Path | None, run_name: str, outcome: Any, status: str,
+    results: dict[str, Any], emit_stage: Callable[[str, str, Any], None], protocol_path: Path,
+) -> None:
+    """Verification ended with records not checked (H-quota-hang): say so, keep everything, hand nothing off."""
+    from .verification import CHECKS_FILENAME, QUOTA_EXHAUSTED
+    from .verification import STOPPED_BY_RESEARCHER as VERIFY_STOPPED
+
+    records = int(outcome.verified) + int(outcome.refused)
+    reasons = outcome.unchecked_reasons
+    reason = (
+        VERIFY_STOPPED if outcome.stopped
+        else QUOTA_EXHAUSTED if QUOTA_EXHAUSTED in reasons
+        else max(reasons, key=reasons.get)
+    )
+    message = _incomplete_message(outcome, records, reason)
+    checks = {
+        "unchecked": outcome.unchecked, "unverified": outcome.unverified, "unenriched": outcome.unenriched,
+        "records": records, "reason": reason, "paused": outcome.paused,
+    }
+    harvest_marker.incomplete(run_dir, status, message=message, **checks)
+    reason_text = "stopped by the researcher" if reason == VERIFY_STOPPED else "a database's quota is used up"
+    results["stages"]["verification"]["incomplete"] = {**checks, "message": message}
+    results["status"] = "CANCELLED" if outcome.stopped else "INCOMPLETE"
+    if outcome.stopped:
+        results["stopped_in"] = "verification"
+    for name, shape in _ABORTED_STAGE_SHAPES.items():
+        if name not in results["stages"]:
+            results["stages"][name] = {
+                **shape, "status": "SKIPPED",
+                "reason": f"the checks ended before every record was checked ({reason_text})",
+            }
+    emit_stage("verification", "INCOMPLETE", {
+        "verified": outcome.verified, "refused": outcome.refused, **checks, "message": message,
+    })
+    append_legacy_event(
+        ws,
+        "HARVEST_PREPARATION_INCOMPLETE",
+        "scholar-harness",
+        f"The checks of {run_name} ended before every record was checked ({reason_text}): "
+        f"{outcome.unchecked} of {records} records not fully checked ({outcome.unverified} not verified, "
+        f"{outcome.unenriched} verified but not enriched), kept as found; {run_name} can be "
+        f"finished without a new search{_pipeline_note(results)}",
+        [str(protocol_path)],
+        [str(lit_dir / "verified.json"), str(lit_dir / CHECKS_FILENAME)],
+        {**checks, "verification_status": status},
+        status="PARTIAL" if _ledger_status(results) == "SUCCESS" else _ledger_status(results),
+    )
 
 
 def _pause_for_corpus_accept(
@@ -703,7 +826,12 @@ async def finish_harvest_preparation(
     marker = harvest_marker.read(run_dir)
     first_stage = "deduplication"
     documents: list[Any] | None = None
-    if marker and "deduplication" in (marker.get("stages") or {}):
+    keep, recheck = _partly_checked(lit_dir, run_dir, marker)
+    if recheck is not None:
+        # H-quota-hang: verification ended early and wrote verified.json; only
+        # the records it did not check are checked again.
+        documents, first_stage = recheck, "verification"
+    elif marker and "deduplication" in (marker.get("stages") or {}):
         clusters = lit_dir / "dedup" / "clusters.json"
         try:
             record = json.loads(clusters.read_text(encoding="utf-8"))
@@ -734,15 +862,26 @@ async def finish_harvest_preparation(
         },
     }
     harvest_marker.start(run_dir, from_stage=first_stage)
+    if first_stage == "verification":
+        results["recheck"] = {"records": len(documents), "kept": len(keep), "checked_again": len(documents) - len(keep)}
     append_legacy_event(
         ws,
         "HARVEST_PREPARATION_RESUMED",
         "scholar-harness",
         f"Finishing the corpus preparation of {run} from {first_stage}, from its saved records; "
-        "no database is searched again",
-        [str(lit_dir / "deduped.json") if first_stage == "hydration" else str(run_dir / "raw.json")],
+        "no database is searched again"
+        + (
+            f"; only the {len(documents) - len(keep)} records not checked are checked again"
+            if first_stage == "verification" else ""
+        ),
+        [
+            str(lit_dir / "verified.json") if first_stage == "verification"
+            else str(lit_dir / "deduped.json") if first_stage == "hydration"
+            else str(run_dir / "raw.json")
+        ],
         [],
-        {"run": run, "from_stage": first_stage, "records": len(documents)},
+        {"run": run, "from_stage": first_stage, "records": len(documents),
+         **({"kept": len(keep)} if first_stage == "verification" else {})},
         status=_ledger_status(results),
     )
     verified_docs = await _prepare_corpus(
@@ -755,10 +894,46 @@ async def finish_harvest_preparation(
         emit_stage=emit_stage,
         should_stop=should_stop,
         protocol_path=p_path,
+        keep=keep if first_stage == "verification" else None,
     )
     if verified_docs is None:
         return results
     return _pause_for_corpus_accept(ws, lit_dir, results, emit_stage, p_path, discovery_status, discovery_reason)
+
+
+def _partly_checked(
+    lit_dir: Path, run_dir: Path, marker: dict[str, Any] | None
+) -> tuple[dict[str, dict[str, Any]], list[Any] | None]:
+    """``(keep, documents)`` to check again only what an ``INCOMPLETE`` verification left (H-quota-hang).
+
+    Only when the marker ended ``INCOMPLETE`` for this run, ``verified.json``
+    is this run's, no row was refused (no quarantine file) and the checks
+    file lists exactly the rows of ``verified.json`` with their workspace
+    ids. Otherwise ``({}, None)``: the preparation runs again as before.
+    """
+    from scholar_harness.verification_identity import QUARANTINE_FILENAME
+
+    from .verification import read_checks
+
+    ended = (marker or {}).get("ended")
+    if not (isinstance(ended, dict) and ended.get("status") == harvest_marker.INCOMPLETE):
+        return {}, None
+    if (marker or {}).get("verified_run") != run_dir.name or (lit_dir / QUARANTINE_FILENAME).exists():
+        return {}, None
+    checks = read_checks(lit_dir)
+    try:
+        documents = harvest_marker.load_saved_documents(lit_dir / "verified.json")
+    except (OSError, ValueError):
+        return {}, None
+    rows = (checks or {}).get("rows") or []
+    ids = [getattr(doc, "workspace_id", None) for doc in documents]
+    if (
+        checks is None or len(rows) != len(documents) or not all(ids) or len(set(ids)) != len(ids)
+        or [row.get("workspace_id") if isinstance(row, dict) else None for row in rows] != ids
+    ):
+        return {}, None
+    keep = {row["workspace_id"]: row for row in rows if not row.get("not_done")}
+    return keep, documents
 
 
 async def run_pipeline(

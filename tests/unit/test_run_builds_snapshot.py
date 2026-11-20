@@ -226,3 +226,46 @@ def test_the_snapshot_outcome_is_journalled_with_provider_warnings(tmp_path, mon
     rows = [r for r in _journal_rows(ws) if r.get("action") == "CORPUS_SNAPSHOT_ACCEPTED"]
     assert rows and rows[-1]["status"] == "PARTIAL"
     assert rows[-1]["parameters"]["provider_warnings"] == ["crossref: ProviderError: HTTP 500"]
+
+
+class _QuotaVerifier:
+    """The real verifier's shape when OpenAlex's quota ran out: every record kept, none confirmed (H-quota-hang)."""
+
+    paused = [{"provider": "openalex", "database": "OpenAlex", "status_code": 429, "retry_after": 50000.0,
+               "resets_at": "2026-11-21T00:00:00+00:00", "reason": "PROVIDER_QUOTA_EXHAUSTED"}]
+    stopped = False
+
+    async def process_batch(self, docs, verify=True, enrich=True):
+        rows = [{"code": "NOT_CHECKED", "verified": False, "not_done": ["verification"],
+                 "reason": "PROVIDER_QUOTA_EXHAUSTED", "status": "Not checked: OpenAlex was not asked"} for _ in docs]
+        return list(docs), rows
+
+
+def test_a_cli_run_whose_checks_ended_early_builds_no_snapshot_and_the_accept_refuses(tmp_path, monkeypatch):
+    """H-quota-hang review F2 and F6: the CLI path (freeze_corpus) stops before the snapshot, and
+    ``accept-corpus`` refuses the run's verified.json until its preparation is finished."""
+    from scholar_harness.corpus_accept import AcceptCorpusRefused, accept_corpus
+
+    _install_passthrough_hydration(monkeypatch)
+    _install_fake_engine(monkeypatch, _make_two_distinct_docs())
+    monkeypatch.setattr(ver_mod, "DocumentVerifier", _QuotaVerifier)
+    ws = _workspace(tmp_path)
+
+    results = asyncio.run(orch.ResearchOrchestrator(ws).run_pipeline_async())
+
+    assert results["status"] == "INCOMPLETE"
+    assert results["stages"]["verification"]["incomplete"]["unverified"] == 2
+    assert "corpus_snapshot" not in results["stages"] or results["stages"]["corpus_snapshot"].get("status") != "ACCEPTED"
+    registry = ws / "audit" / "artifact_registry.json"
+    snapshots = [e for e in _registry(ws)["artifacts"].values() if e["artifact_type"] == "corpus_snapshot"] if registry.exists() else []
+    assert snapshots == []
+    actions = [row["action"] for row in _journal_rows(ws)]
+    assert "HARVEST_PREPARATION_INCOMPLETE" in actions and "CORPUS_SNAPSHOT_ACCEPTED" not in actions
+    assert len(json.loads((ws / "literature" / "verified.json").read_text(encoding="utf-8"))) == 2
+
+    try:
+        accept_corpus(ws)
+    except AcceptCorpusRefused as exc:
+        assert exc.code == "PREPARATION_UNFINISHED", exc
+    else:  # pragma: no cover - the defect
+        raise AssertionError("accept-corpus froze a corpus whose records were not checked")

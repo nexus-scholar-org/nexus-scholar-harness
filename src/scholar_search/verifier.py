@@ -2,10 +2,12 @@
 
 import copy
 import logging
+from collections.abc import Callable
 from difflib import SequenceMatcher
 from typing import Any
 
 from .dedup import _title_key
+from .exceptions import ProviderPausedError, QuotaExhaustedError
 from .models import Document
 from .providers.crossref import CrossrefProvider
 from .providers.openalex import OpenAlexProvider
@@ -96,6 +98,16 @@ def _doi_kept(doc: Document, resolved: Document) -> str:
     return ""
 
 
+#: Why a record, or part of its check, was not done (H-quota-hang).
+QUOTA_EXHAUSTED = "PROVIDER_QUOTA_EXHAUSTED"
+PROVIDER_PAUSED = "PROVIDER_UNAVAILABLE_UNTIL"
+STOPPED = "STOPPED_BY_RESEARCHER"
+
+
+class _Skipped(Exception):
+    """A lookup was not made: its provider is paused for the rest of the batch."""
+
+
 class DocumentVerifier:
     """
     Verifies the existence of documents against Crossref & OpenAlex
@@ -103,6 +115,13 @@ class DocumentVerifier:
 
     A verified record is the input record, filled where it lacks data; the
     lookup's record never replaces it (``confirmed``).
+
+    H-quota-hang: when a provider answers with a wait beyond the HTTP
+    client's cap (``ProviderPausedError``: a used-up quota, an announced
+    outage), this verifier does not ask it again; ``paused`` lists those
+    providers with their reset time. ``should_stop`` (an attribute, or the
+    ``process_batch`` argument) is read before each record; ``stopped`` says
+    whether it ended a batch early.
     """
 
     def __init__(
@@ -112,6 +131,45 @@ class DocumentVerifier:
     ):
         self.crossref = crossref_provider or CrossrefProvider()
         self.openalex = openalex_provider or OpenAlexProvider()
+        self.should_stop: Callable[[], bool] | None = None
+        self.stopped = False
+        self._paused: dict[str, ProviderPausedError] = {}
+        self._skipped: set[str] = set()
+
+    @property
+    def paused(self) -> list[dict[str, Any]]:
+        """The providers not asked any more, each with its database name, HTTP status and reset time."""
+        return [
+            {
+                "provider": key,
+                "database": error.database,
+                "status_code": error.status_code,
+                "retry_after": error.retry_after,
+                "resets_at": error.resets_at,
+                "reason": QUOTA_EXHAUSTED if isinstance(error, QuotaExhaustedError) else PROVIDER_PAUSED,
+            }
+            for key, error in self._paused.items()
+        ]
+
+    def _pause(self, key: str, exc: ProviderPausedError) -> None:
+        if key not in self._paused:
+            logger.warning("%s is not asked again in this batch: %s", exc.database, exc)
+            self._paused[key] = exc
+        self._skipped.add(key)
+
+    def _skip_if_paused(self, key: str) -> None:
+        if key in self._paused:
+            self._skipped.add(key)
+            raise _Skipped(key)
+
+    async def _get(self, key: str, provider: Any, url: str, **kwargs: Any) -> Any:
+        """``provider.client.get``, unless ``key`` is paused; an answer that pauses it raises ``_Skipped``."""
+        self._skip_if_paused(key)
+        try:
+            return await provider.client.get(url, **kwargs)
+        except ProviderPausedError as exc:
+            self._pause(key, exc)
+            raise _Skipped(key) from exc
 
     @staticmethod
     def _title_mismatch(doc: Document, resolved: Document, via: str) -> str | None:
@@ -147,7 +205,7 @@ class DocumentVerifier:
             # Try Crossref
             try:
                 url = f"{self.crossref.base_url}/{clean_doi}"
-                resp = await self.crossref.client.get(url)
+                resp = await self._get("crossref", self.crossref, url)
                 if resp.status_code == 200:
                     response = resp.json()
                     item = response.get("message", {})
@@ -163,7 +221,7 @@ class DocumentVerifier:
             # Try OpenAlex for non-Crossref / DataCite / arXiv DOIs
             try:
                 url = f"{self.openalex.base_url}/https://doi.org/{clean_doi}"
-                resp = await self.openalex.client.get(url)
+                resp = await self._get("openalex", self.openalex, url)
                 if resp.status_code == 200:
                     item = resp.json()
                     if item and item.get("id"):
@@ -180,7 +238,7 @@ class DocumentVerifier:
             clean_arxiv = doc.external_ids.arxiv_id.strip()
             try:
                 url = f"{self.openalex.base_url}/https://arxiv.org/abs/{clean_arxiv}"
-                resp = await self.openalex.client.get(url)
+                resp = await self._get("openalex", self.openalex, url)
                 if resp.status_code == 200:
                     item = resp.json()
                     if item and item.get("id"):
@@ -195,7 +253,12 @@ class DocumentVerifier:
         # 3. Verification by Title in Crossref
         if doc.title and doc.title != "Untitled":
             try:
-                matched_doc = await self.crossref.validate_reference(doc.title)
+                self._skip_if_paused("crossref")
+                try:
+                    matched_doc = await self.crossref.validate_reference(doc.title)
+                except ProviderPausedError as exc:
+                    self._pause("crossref", exc)
+                    raise _Skipped("crossref") from exc
                 if matched_doc:
                     ratio = SequenceMatcher(
                         None, _title_key(doc.title), _title_key(matched_doc.title)
@@ -214,7 +277,7 @@ class DocumentVerifier:
             try:
                 url = f"{self.openalex.base_url}"
                 params = {"search": doc.title, "per-page": 1}
-                resp = await self.openalex.client.get(url, params=params)
+                resp = await self._get("openalex", self.openalex, url, params=params)
                 if resp.status_code == 200:
                     response = resp.json()
                     results = response.get("results", [])
@@ -242,7 +305,7 @@ class DocumentVerifier:
 
         try:
             url = f"{self.openalex.base_url}/https://doi.org/{doi}"
-            resp = await self.openalex.client.get(url)
+            resp = await self._get("openalex", self.openalex, url)
             response = resp.json()
             if response:
                 openalex_doc = self.openalex._normalize_document(response)
@@ -294,41 +357,101 @@ class DocumentVerifier:
         return doc
 
     async def process_batch(
-        self, documents: list[Document], verify: bool = True, enrich: bool = True
+        self,
+        documents: list[Document],
+        verify: bool = True,
+        enrich: bool = True,
+        should_stop: Callable[[], bool] | None = None,
     ) -> tuple[list[Document], list[dict[str, Any]]]:
         """
         Processes a batch of documents with verification and hydration.
-        Returns (processed_documents, audit_log).
+        Returns (processed_documents, audit_log): one record and one audit row
+        per input document, in order; no record is ever dropped.
+
+        H-quota-hang. Each audit row carries ``not_done`` (the parts of the
+        check that were not made: ``verification``, ``enrichment``) and
+        ``reason`` (``PROVIDER_QUOTA_EXHAUSTED``, ``PROVIDER_UNAVAILABLE_UNTIL``
+        or ``STOPPED_BY_RESEARCHER``; ``None`` when everything was done). A
+        record that no lookup confirmed while a paused provider was not asked
+        is ``NOT_CHECKED``, never ``UNVERIFIED``: no database said it does not
+        exist. A confirmation stays ``VERIFIED`` when only the enrichment was
+        not done. ``should_stop`` (default: the ``should_stop`` attribute) is
+        read before each record; after a stop the remaining records are kept
+        as they are, ``NOT_CHECKED`` with ``STOPPED_BY_RESEARCHER``.
         """
+        stop = should_stop if should_stop is not None else self.should_stop
+        # A pause and a stop hold for one batch (decision H-quota-hang item 2).
+        self._paused, self.stopped = {}, False
         processed_docs: list[Document] = []
         audit_log: list[dict[str, Any]] = []
 
         for doc in documents:
+            if not self.stopped and stop is not None and stop():
+                self.stopped = True
+            if self.stopped:
+                processed_docs.append(doc)
+                audit_log.append(self._row(
+                    doc, doc, False, "Not checked: stopped by the researcher", "NOT_CHECKED",
+                    not_done=[part for part, asked in (("verification", verify), ("enrichment", enrich)) if asked],
+                    reason=STOPPED,
+                ))
+                continue
+
             is_verified = True
             note = "Not checked"
             current_doc = doc
+            not_done: list[str] = []
+            skipped: set[str] = set()
 
             if verify:
+                self._skipped = set()
                 is_verified, current_doc, note = await self.verify_document(doc)
+                if not is_verified and self._skipped and not note.startswith("DOI_TITLE_MISMATCH"):
+                    skipped |= self._skipped
+                    not_done.append("verification")
+                    note = "Not checked: " + "; ".join(
+                        f"{self._paused[key].database} was not asked ({self._paused[key]})"
+                        for key in sorted(self._skipped)
+                    )
 
-            if is_verified and enrich:
+            if is_verified and enrich and current_doc.external_ids.doi:
+                self._skipped = set()
                 current_doc = await self.hydrate_metadata(current_doc)
+                if self._skipped:
+                    skipped |= self._skipped
+                    not_done.append("enrichment")
 
-            processed_docs.append(current_doc)
-            audit_log.append(
-                {
-                    "title": doc.title,
-                    "input_doi": doc.external_ids.doi,
-                    "verified": is_verified,
-                    "resolved_doi": current_doc.external_ids.doi,
-                    "status": note,
-                    "code": (
-                        "DOI_TITLE_MISMATCH" if note.startswith("DOI_TITLE_MISMATCH")
-                        else "VERIFIED" if is_verified and verify
-                        else "UNVERIFIED" if verify
-                        else "NOT_CHECKED"
-                    ),
-                }
+            code = (
+                "NOT_CHECKED" if "verification" in not_done
+                else "DOI_TITLE_MISMATCH" if note.startswith("DOI_TITLE_MISMATCH")
+                else "VERIFIED" if is_verified and verify
+                else "UNVERIFIED" if verify
+                else "NOT_CHECKED"
             )
+            reason = None
+            if skipped:
+                quota = any(isinstance(self._paused[key], QuotaExhaustedError) for key in skipped)
+                reason = QUOTA_EXHAUSTED if quota else PROVIDER_PAUSED
+            processed_docs.append(current_doc)
+            audit_log.append(self._row(
+                doc, current_doc, is_verified and code != "NOT_CHECKED", note, code,
+                not_done=not_done, reason=reason,
+            ))
 
         return processed_docs, audit_log
+
+    @staticmethod
+    def _row(
+        doc: Document, current_doc: Document, verified: bool, note: str, code: str,
+        *, not_done: list[str], reason: str | None,
+    ) -> dict[str, Any]:
+        return {
+            "title": doc.title,
+            "input_doi": doc.external_ids.doi,
+            "verified": verified,
+            "resolved_doi": current_doc.external_ids.doi,
+            "status": note,
+            "code": code,
+            "not_done": not_done,
+            "reason": reason,
+        }

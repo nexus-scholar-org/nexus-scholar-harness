@@ -462,3 +462,30 @@ def test_pipeline_spec_path_is_unaffected(monkeypatch, tmp_path):
     plain = _plain(result.stdout)
     assert "Pipeline Execution Summary" not in plain
     assert "PipelineSpec" in plain
+
+
+# --------------------------------------------------------------------------
+# INCOMPLETE (H-quota-hang)
+# --------------------------------------------------------------------------
+
+
+def test_incomplete_checks_name_the_quota_and_never_claim_success(monkeypatch, tmp_path):
+    """The checks ended early (a used-up quota): the panel says so with the engine's sentence."""
+    message = (
+        "The OpenAlex quota is used up; it resets at 2026-11-21 00:00 UTC. 120 of 166 records were not "
+        "checked; they are kept as they were found and marked as not checked. Finish preparing this corpus "
+        "after the reset: only those records are checked again."
+    )
+    stages = _normal_stages()
+    stages["verification"] = {"status": "PARTIAL", "verified": 166, "unchecked": 120, "incomplete": {"message": message}}
+    result = _invoke_run(
+        monkeypatch,
+        {"status": "INCOMPLETE", "stages": stages, "degraded": False, "degradation_reason": ""},
+        tmp_path,
+    )
+
+    plain = _plain(result.stdout)
+    assert "Successfully" not in plain and "unknown" not in plain.lower()
+    assert "Stopped Early" in plain and "Status: INCOMPLETE" in plain
+    assert "The OpenAlex quota is used up" in " ".join(plain.split())
+    _assert_border_style(result.stdout, "yellow")
