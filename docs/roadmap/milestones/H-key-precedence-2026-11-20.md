@@ -35,7 +35,11 @@ Before the fix the new tests were run against the old code (the file collected w
 ## Evidence
 | Stage | Commit | Command | Result | Duration |
 | :-- | :-- | :-- | :-- | :-- |
-| inner | working tree | `pytest tests/kits/agent/test_key_precedence.py tests/kits/agent/test_keys.py tests/kits/agent/test_measure.py tests/kits/agent/test_prompt_gate.py tests/console/test_agent_runs_api.py tests/mcp/test_mcp_setup.py` | 19 new tests pass; the rest pass | seconds to a minute |
+| inner | working tree before `8a1528fe` | `pytest` on the new file, `test_keys.py`, `test_measure.py`, `test_prompt_gate.py`, `tests/console/test_agent_runs_api.py`, `tests/mcp/test_mcp_setup.py`, `tests/cli` (`-m "not slow"`) | 175 passed | 1 min |
+| pr (final executable commit) | `8a1528fe` | `git diff --check`; `uv run --extra dev --extra pdf --extra rag pytest -q -n auto`; `ruff check scripts/` | `git diff --check` clean; full suite exit 0 (5,734 passed dots, 20 skipped, 1 xfail; the log's summary line was not captured); `ruff check scripts/` clean | about 20 min |
+| ruff, real-bug classes | `8a1528fe` | `ruff check src/ --select F821,F811,F823,F632,F7,B023,B006,E9` | clean | seconds |
+| baseline, smoke | `8a1528fe` | `generate_contract_baseline.py --check`; `uv run nexus-scholar --help`; `uv run scholar-agent --help` (base environment, no `ai` extra) | baseline current; both answer | seconds |
+| lint, gate's agent-kit line | `8a1528fe` | `ruff check src/scholar_agent tests/kits/agent` | still red: 27 pre-existing findings in files this change does not own (unused imports in `test_server.py` and others); the two findings in files this change touched were fixed. Not a CI gate | |
 
 ## Deferred / not changed
 - The app's run API (`POST /proposals/runs`) still records the provider's per-record error text, and the Run screen does not show where a refused key came from; the sentence is CLI-only. The setup screen's `key` field reads `environment` where it read `keychain` when both exist.
