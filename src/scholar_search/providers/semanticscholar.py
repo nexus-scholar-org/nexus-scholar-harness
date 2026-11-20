@@ -175,6 +175,14 @@ class SemanticScholarProvider(BaseAPIProvider):
                 raise
             self._record_page()
             response_data = resp.json()
+            # H-provenance-s2: an answer with neither a total nor a result list
+            # (a message only) is not "0 results"; the leg fails with it.
+            if not isinstance(response_data, dict) or not ({"total", "data"} & response_data.keys()):
+                message = response_data.get("message") if isinstance(response_data, dict) else None
+                raise ProviderError(
+                    self.name,
+                    f"Semantic Scholar answered without a result list: {message or str(response_data)[:200]}",
+                )
             self._record_total(response_data.get("total"))
             data = response_data.get("data", [])
             token = response_data.get("token")

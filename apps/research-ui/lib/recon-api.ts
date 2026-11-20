@@ -29,6 +29,8 @@ export interface ReconLeg {
   key_set?: boolean | null;
   /** The query this database received, as the engine recorded it. */
   executed_query?: string | null;
+  /** The engine says this database's empty answer may come from a long keyword query (H-provenance-s2). */
+  shorten?: boolean;
 }
 
 export interface Probe {
