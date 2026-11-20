@@ -1,6 +1,6 @@
 # Acceptance run on a real review: sensor stress in multispectral UAV weed segmentation
 
-Date: 2026-11-20 · Status: IN PROGRESS. The first workspace stopped at Harvest and is superseded; a second workspace with a wider query is created and waits for the database exports (see "The search was too narrow") · Build: wheel from `main` at `f05cd29a` (version string `1.1.0b6`), installed with the `ai` extra, opened with `nexus-scholar ui`
+Date: 2026-11-20 · Status: IN PROGRESS. The first workspace stopped at Harvest and is superseded; a second workspace with a wider query holds an accepted corpus of 1,062 works from five databases and is ready for screening (see "The search was too narrow") · Build: wheel from `main` at `f05cd29a` (version string `1.1.0b6`), installed with the `ai` extra, opened with `nexus-scholar ui`
 
 This run replaces the unfinished strict UAV run (`acceptance-run-uav-strict.md`) as the end-to-end check on an installed wheel. It is a real review for the researcher's thesis, so its output is kept. The main session drove the browser at the researcher's request; the researcher made the scope decisions.
 
@@ -76,7 +76,9 @@ The morning's recall check passed 4 of 4, and the main session read that as "Ope
 
 **Decision by the researcher:** widen to three concepts, (UAV or multispectral terms) AND weed AND segmentation or mapping, in a new workspace; import the Scopus and IEEE Xplore exports first, then harvest.
 
-**Second workspace** (created 2026-11-20, 14:37 local, on the build from `b9c7dc0b`): `sensor-stress-in-uav-and-multispectral-weed-segmentation-a-scoping-review`. Same questions, criteria and charting columns. Five recall seeds, one of which the strict query had missed ("CLIP Meets DINOv3 for Effective Crop and Weed Multispectral Semantic Segmentation"). Estimate without Crossref: OpenAlex 781, Semantic Scholar 539, arXiv 30; 781 to 1,350 works after duplicates. Recall check: 5 of 5. Nothing is harvested yet. The first workspace is left as it is.
+**Second workspace** (created 2026-11-20, 14:37 local, on the build from `b9c7dc0b`): `sensor-stress-in-uav-and-multispectral-weed-segmentation-a-scoping-review`. Same questions, criteria and charting columns. Five recall seeds, one of which the strict query had missed ("CLIP Meets DINOv3 for Effective Crop and Weed Multispectral Semantic Segmentation"). Estimate without Crossref: OpenAlex 781, Semantic Scholar 539, arXiv 30; 781 to 1,350 works after duplicates. Recall check: 5 of 5. The first workspace is left as it is.
+
+**Corpus of the second workspace** (accepted 2026-11-20, 15:21 local, snapshot `ART-corpus-f679e82b9933f5bf7e14821d659330e0`). All five sources came in through the Import screen, because this build cannot combine a harvest with imported files (finding 26). Scopus (618, RIS with abstracts) and IEEE Xplore (208, CSV converted to RIS) were exported by the researcher through their institutional sign-in. OpenAlex (781), Semantic Scholar (539) and arXiv (30) were retrieved with `scholar-search search --protocol <workspace>/protocol.json --provider <name> --limit 5000 --no-dedup --format ris`; each count equals the app's estimate. Total 2,176 records, 1,114 duplicates removed, 1,062 works; 50 of them have no abstract (counted outside the app with `Deduplicator`). SpringerLink (full-text search, two exports capped at 1,000, 1,332 records not in the corpus, 291 of them with "weed" in the title, no abstracts) was looked at and left out by the researcher. Batches of 20 are prepared. Agent proposals are not started: the app shows no Anthropic key, and the estimate for 1,062 records is about $0.22 on Haiku 5.5 and $7.59 on Opus 5.5 (batch pricing).
 
 The researcher replaced the OpenAlex key the same afternoon; with it OpenAlex answered again. Semantic Scholar answered the first search, the estimate and the recall check with the key that had been refused in the morning, so finding 11 was throttling, not a bad key.
 
@@ -91,7 +93,11 @@ The researcher replaced the OpenAlex key the same afternoon; with it OpenAlex an
 | 22 | Protocol | One query per review: one list of concepts joined by AND. Several named queries, each reported, cannot be expressed. The researcher recalls that an earlier version supported several queries; not checked in the history | P2, a milestone of its own (needs a contract decision) |
 | 23 | Inception, Direction | One of the three proposed directions was "blue green red" | P3 (same cause as finding 3) |
 | 24 | Discovery, Recall | The result lists "Crossref: 6221" in the second workspace, where Crossref was not counted. The number equals the first workspace's count; whether it is a real count or a carried value was not checked | P3, unverified |
-| 25 | Discovery, Import | Scopus RIS exports can carry a malformed type (`label.ris.referenceType.BOOK_CHAPTER`); IEEE Xplore's quick export is CSV only. Neither file has been through the Import screen | untested |
+| 25 | Discovery, Import | Scopus RIS exports can carry a malformed type (`label.ris.referenceType.BOOK_CHAPTER`); IEEE Xplore's quick export is CSV only. Tested on 2026-11-20: the importer reads 31 such records without error (the type is ignored), and the converted IEEE file imports | P3 (CSV is not accepted) |
+| 26 | Discovery, Harvest and Import | A corpus is either a harvest or imported files; one snapshot from both is M3f-combined-corpus, not built. The Harvest warning says "If you have exports, import them first", which reads as if the two then combine. A researcher with a Scopus export cannot use the app's own harvest in the same review | P1 |
+| 27 | Discovery, Hand-off | For a corpus of imported files the Hand-off shows "With an abstract: 0 (0 %)" and "Title only: 0"; the real figures were 1,012 and 50 | P2 |
+| 28 | Screening, Agent proposals | Before batches are prepared, the screen says "No accepted corpus … Import your search results and accept them first" although the corpus is accepted | P3 |
+| 29 | `scholar-search search` | The command stops at 100 records by default and prints "Saved 100 documents" with no word that more exist; arXiv timed out once after 30 s and the command saved an empty file with exit code 0 | P2 |
 
 ## What to fix first
 
