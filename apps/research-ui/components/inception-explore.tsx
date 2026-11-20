@@ -473,7 +473,7 @@ export function InceptionExplore({ locale }: Readonly<{ locale: Locale }>) {
                 <span>{rt("explore.legs.latest", { date: <Ltr>{stamp(latest.at ?? latest.created_at)}</Ltr> })}</span>
                 <Hint locale={locale} label={t("explore.legs.title")} text={t("explore.legs.neverEmpty")} textKey="explore.legs.neverEmpty" />
               </p>
-              <LegsList locale={locale} legs={latest.legs.map((l) => ({ ...l, notes: l.notes ?? [] }))} />
+              <LegsList locale={locale} legs={latest.legs.map((l) => ({ ...l, notes: l.notes ?? [] }))} shorten />
             </Fold>
           </div>
         ) : null}

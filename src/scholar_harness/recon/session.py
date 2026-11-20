@@ -151,12 +151,18 @@ def key_state() -> dict[str, bool]:
     }
 
 
-def _legs_summary(legs: list[dict[str, Any]]) -> list[dict[str, Any]]:
+def _legs_summary(
+    legs: list[dict[str, Any]], query: str | None = None, semantic: bool = False
+) -> list[dict[str, Any]]:
     """One line per database: its status, counts, failure code and notes (INC-09, M4d DoD 1).
 
     ``key_set`` is ``True``/``False`` for a database that takes a key and
     ``None`` for one that does not, as it was when the probe ran.
     ``executed_query`` is the query the database received (M10a), ``None`` when not recorded.
+    ``shorten`` (H-provenance-s2) says whether this database's empty answer may come
+    from a long keyword query (:func:`leg_says_shorten`) the researcher sent. A leg
+    with its own ``query`` is a follow-up of a gap check, a term the engine chose,
+    so it never says shorten (the advice is to edit the query above).
     """
     keep = ("provider", "status", "executed_query", "reported_total", "fetched", "cap", "cap_hit", "error", "error_code")
     out = []
@@ -168,6 +174,7 @@ def _legs_summary(legs: list[dict[str, Any]]) -> list[dict[str, Any]]:
             row["key_set"] = leg["key_set"]
         else:
             row["key_set"] = bool(getattr(settings, setting, None)) if setting else None
+        row["shorten"] = "query" not in leg and leg_says_shorten(query, leg, semantic)
         out.append(row)
     return out
 
@@ -332,7 +339,7 @@ class ReconSessions:
             "year_min": pool.get("year_min"),
             "year_max": pool.get("year_max"),
             "languages": pool.get("languages"),
-            "legs": _legs_summary(pool.get("legs") or []),
+            "legs": _legs_summary(pool.get("legs") or [], pool.get("query"), bool(pool.get("semantic"))),
             "at": _now(),
         }
         session["probes"].append(record)
@@ -516,7 +523,7 @@ class ReconSessions:
             "status": merged_pool.get("status", POOL_COMPLETE),
             "n_docs": len(merged_pool.get("docs") or []),
             "served_from_cache": False,
-            "legs": _legs_summary(merged_pool.get("legs") or []),
+            "legs": _legs_summary(merged_pool.get("legs") or [], pool.get("query"), bool(pool.get("semantic"))),
             "at": _now(),
         })
         self.save(session)
@@ -594,7 +601,7 @@ def _pool_summary(pool: dict[str, Any], path: Path, effective: dict[str, Any] | 
         "n_docs_raw": len(pool.get("docs") or []),
         "reserve_n": len(pool.get("reserve") or []),
         "max_docs": POOL_MAX,
-        "legs": _legs_summary(pool.get("legs") or []),
+        "legs": _legs_summary(pool.get("legs") or [], pool.get("query"), bool(pool.get("semantic"))),
     }
 
 
@@ -632,6 +639,12 @@ SHORTEN_MIN_WORDS = 3
 _OPERATORS = {"AND", "OR", "NOT"}
 
 
+def _long_keyword_query(query: str | None, semantic: bool) -> bool:
+    """A keyword query (not semantic, no ``OR``) of :data:`SHORTEN_MIN_WORDS` or more words."""
+    words = [w for w in re.split(r"[\s()\"]+", str(query or "")) if w]
+    return not (semantic or "OR" in words or len([w for w in words if w not in _OPERATORS]) < SHORTEN_MIN_WORDS)
+
+
 def says_shorten(summary: dict[str, Any], semantic: bool = False) -> bool:
     """Whether an empty search should advise a shorter query.
 
@@ -639,11 +652,25 @@ def says_shorten(summary: dict[str, Any], semantic: bool = False) -> bool:
     :data:`SHORTEN_MIN_WORDS` or more words and every database answered (none
     failed) with no record. The browser never counts the words.
     """
-    words = [w for w in re.split(r"[\s()\"]+", str(summary.get("query") or "")) if w]
-    if semantic or "OR" in words or len([w for w in words if w not in _OPERATORS]) < SHORTEN_MIN_WORDS:
+    if not _long_keyword_query(summary.get("query"), semantic):
         return False
     legs = summary.get("legs") or []
     return bool(legs) and all(leg.get("status") != "failed" and not leg.get("fetched") for leg in legs)
+
+
+def leg_says_shorten(query: str | None, leg: dict[str, Any], semantic: bool = False) -> bool:
+    """Whether one database's empty answer should advise a shorter query (H-provenance-s2).
+
+    True when the query was a long keyword query (:func:`_long_keyword_query`)
+    and this database answered (it did not fail) with no record and no
+    reported total above zero. Another database may have found papers: on
+    2026-11-19 OpenAlex answered a six-word query while Semantic Scholar, whose
+    search needs every word, reported 0 (a live check gave 2 papers for four
+    of the words). A failed leg never says shorten: a refusal is not "nothing found".
+    """
+    if leg.get("status") != "ok" or leg.get("fetched") or leg.get("reported_total"):
+        return False
+    return _long_keyword_query(query, semantic)
 
 
 def refuse_unusable_pool(summary: dict[str, Any], semantic: bool = False) -> None:

@@ -16,6 +16,15 @@ history to read if you need the original reasoning (`git log --follow -- <path>`
 | 2026-11-05 — M1b-2 merges before its live prompt gate | gate | The API route was measured on 2026-11-19 (M9a; Opus 5.5 include-recall lower bound 93.1% against the bar of 0.90). No entry says whether the gate is now met. |
 | 2026-11-20 — Which provider key is used, and saying so | 1 to 5 | Proposed by the build session; merged in PR #255 before acceptance. |
 
+## 2026-11-20 — H-provenance-s2: a verifying lookup never replaces a record; the shorten advice per database (items 1 to 4 accepted by the researcher 2026-11-20, "accept decisions 1-4"; H-provenance-s2)
+
+Record: `docs/roadmap/milestones/H-provenance-s2-2026-11-20.md`. Contract v1 baseline current before and after; no schema, identity algorithm or fixture changes.
+
+1. **Verification confirms and fills; it never replaces.** A record confirmed by a Crossref or OpenAlex lookup (DOI, arXiv id or title) keeps its `provider`, `provider_id`, `sources`, `workspace_id` and every field it has; the lookup fills only what is missing. A non-empty identifier is never overwritten; a missing DOI is still filled from a title match. The lookup is not added to `sources` (it did not find the work in a search). *Alternative:* keep the lookup's metadata (Crossref's title, authors, venue) and carry over only the provenance fields; not chosen, because the record in `verified.json` would then not be what any searched database returned.
+2. **Consequence accepted with item 1:** a corpus snapshot built from a run verified after this fix has other `REC-`/`STU-`/`COR-` ids than one built from the same harvest before it (the record identity hashes provider, provider id, title and year). Accepted snapshots in existing workspaces are not rewritten; a workspace accepted before the fix keeps the wrong attribution until it is harvested again.
+3. **Each recon leg carries `shorten`**, decided by the engine with the existing word rule (keyword query, no `OR`, three or more words) for a leg that answered with nothing; Explore's list of the latest search shows the existing sentence on that leg. The failed-search card keeps giving it once. *Alternative:* a database-specific sentence for Semantic Scholar and arXiv only (whose searches need every word); not chosen, no new copy.
+4. **A Semantic Scholar 200 answer with neither `total` nor `data` fails the leg** with its message; it is never "0 results".
+
 ## 2026-11-20 — Which provider key is used, and saying so (PROPOSED; H-key-precedence-2026-11-20)
 
 Record: `docs/roadmap/milestones/H-key-precedence-2026-11-20.md`. Found by the paid M9a run of 2026-11-19: a valid `ANTHROPIC_API_KEY` was set, `resolve_key` returned an old OS-keychain key first, the provider answered 401 three times, and `keys status` printed only "anthropic: keychain".

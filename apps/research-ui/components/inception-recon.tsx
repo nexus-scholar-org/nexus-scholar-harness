@@ -167,9 +167,15 @@ function refusedLine(locale: Locale, leg: ReconLeg): string | null {
   return null;
 }
 
-/** One row per database: name, the result in words, fetched of reported, the reason and the notes verbatim. */
-export function LegsList({ locale, legs }: Readonly<{ locale: Locale; legs: ReconLeg[] }>) {
+/**
+ * One row per database: name, the result in words, fetched of reported, the reason and the notes verbatim.
+ * With `shorten`, a database that found nothing gives the shorten advice when the engine flags its leg
+ * (H-provenance-s2) and another database found papers. Off where the screen gives it once.
+ */
+export function LegsList({ locale, legs, shorten = false }: Readonly<{ locale: Locale; legs: ReconLeg[]; shorten?: boolean }>) {
   const t = inceptionT(locale);
+  // When no database found anything, the search card gives the advice once, not once per database.
+  const someFound = legs.some((l) => (l.fetched ?? 0) > 0);
   return (
     <ul className="mt-3 space-y-3" data-legs>
       {legs.map((leg) => {
@@ -202,6 +208,11 @@ export function LegsList({ locale, legs }: Readonly<{ locale: Locale; legs: Reco
                   <dd className="text-ink" data-fetched>
                     {total == null ? String(leg.fetched ?? 0) : t("explore.legs.fetchedOf", { fetched: String(leg.fetched ?? 0), total })}
                   </dd>
+                  {shorten && none && leg.shorten === true && someFound ? (
+                    <dd className="text-ink sm:col-start-2" data-leg-shorten>
+                      {t("explore.legs.shorten")}
+                    </dd>
+                  ) : null}
                 </>
               ) : null}
               {leg.executed_query ? (

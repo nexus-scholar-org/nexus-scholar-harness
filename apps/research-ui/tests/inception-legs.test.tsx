@@ -85,3 +85,32 @@ describe("inception.legs", () => {
     expect(bare.textContent).not.toContain(t("explore.legs.col.query"));
   });
 });
+
+/** H-provenance-s2 (2026-11-20): one database found nothing for a long keyword query while another answered. */
+describe("inception.legs shorten", () => {
+  const empty = leg({ provider: "semanticscholar", shorten: true });
+
+  it("gives the shorten advice on the leg the engine flags", () => {
+    const t = inceptionT("en");
+    const { container } = render(<LegsList locale="en" legs={[leg({ provider: "openalex", fetched: 25, reported_total: 1637, cap_hit: true }), empty]} shorten />);
+    const s2 = container.querySelector('[data-leg="semanticscholar"]') as HTMLElement;
+    expect(s2.querySelector('[data-role="unclear"]')?.textContent).toBe(t("explore.legs.zero"));
+    expect(s2.querySelector("[data-leg-shorten]")?.textContent).toBe(t("explore.legs.shorten"));
+    expect(container.querySelector('[data-leg="openalex"] [data-leg-shorten]')).toBeNull();
+  });
+
+  it("never on a leg the engine does not flag, nor where the screen gives the advice once", () => {
+    const { container } = render(<LegsList locale="en" legs={[leg({ provider: "semanticscholar", shorten: false })]} shorten />);
+    expect(container.querySelector("[data-leg-shorten]")).toBeNull();
+    const once = render(<LegsList locale="en" legs={[empty]} />);
+    expect(once.container.querySelector("[data-leg-shorten]")).toBeNull();
+  });
+});
+
+describe("inception.legs shorten when nothing was found", () => {
+  it("is not repeated on every leg when no database found anything (review finding 5)", () => {
+    const legs = ["openalex", "semanticscholar", "crossref"].map((provider) => leg({ provider, shorten: true }));
+    const { container } = render(<LegsList locale="en" legs={legs} shorten />);
+    expect(container.querySelector("[data-leg-shorten]")).toBeNull();
+  });
+});

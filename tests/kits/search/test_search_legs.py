@@ -224,6 +224,31 @@ async def test_semanticscholar_reports_total():
     assert leg.executed_query == provider.client.get.calls[0][1]["query"]
 
 
+@pytest.mark.asyncio
+async def test_semanticscholar_zero_for_a_long_keyword_query_is_an_answer_with_its_total():
+    """H-provenance-s2: a genuine 0 (live, 2026-11-20: ``total: 0`` for the six-word query)
+    is an ``ok`` leg with ``reported_total`` 0, and the request sends the words as written."""
+    provider = SemanticScholarProvider()
+    provider.client.get = _Recorder(lambda url, params: _json({"total": 0, "offset": 0, "data": []}))
+    run = await _run(provider, Query(text="UAV imagery weed detection cereal crops", year_min=2020))
+    leg = run.legs[0]
+    sent = provider.client.get.calls[0][1]
+    assert sent["query"] == "UAV imagery weed detection cereal crops" and sent["year"] == "2020-"
+    assert (leg.status, leg.reported_total, leg.fetched) == ("ok", 0, 0)
+
+
+@pytest.mark.asyncio
+async def test_semanticscholar_answer_without_a_result_list_fails_the_leg():
+    """H-provenance-s2: a 200 that carries only a message is not "0 results"."""
+    provider = SemanticScholarProvider()
+    provider.client.get = _Recorder(lambda url, params: _json({"message": "Internal server error"}))
+    run = await _run(provider, Query(text="UAV imagery weed detection cereal crops"))
+    leg = run.legs[0]
+    assert leg.status == "failed"
+    assert "Internal server error" in leg.error
+    assert leg.reported_total is None
+
+
 # --------------------------------------------------------------- engine
 
 

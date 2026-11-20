@@ -930,3 +930,79 @@ def test_a_semantic_search_that_finds_nothing_does_not_say_shorten(env):
     job = _probe(client, sid, query="weed detection drone imagery", semantic=True)
     assert job["error"]["code"] == "POOL_EMPTY"
     assert job["error"]["details"].get("shorten") is not True
+
+
+# --------------------------------------------------------------------------- H-provenance-s2 (2026-11-20)
+
+
+class _OneDatabaseEmpty:
+    """OpenAlex answers; Semantic Scholar answers with no record (or fails), as on 2026-11-19."""
+
+    def __init__(self, s2_failed: bool = False):
+        self.s2_failed = s2_failed
+
+    def __call__(self, query: Query, providers: list[str]) -> SearchRun:
+        docs = _pool()
+        legs = [
+            SearchLeg(provider="openalex", query_id=query.id, status="ok", fetched=len(docs),
+                      reported_total=1637, cap=25, cap_hit=True, executed_query=query.text),
+            SearchLeg(provider="semanticscholar", query_id=query.id,
+                      status="failed" if self.s2_failed else "ok",
+                      error="HTTP 429" if self.s2_failed else None,
+                      error_code="PROVIDER_RATE_LIMITED" if self.s2_failed else None,
+                      fetched=0, reported_total=None if self.s2_failed else 0, executed_query=query.text),
+        ]
+        return SearchRun(documents=docs, legs=legs)
+
+
+def _legs(job: dict) -> dict[str, dict]:
+    return {leg["provider"]: leg for leg in job["result"]["legs"]}
+
+
+def test_one_database_empty_on_a_long_keyword_query_says_shorten_on_its_leg(env):
+    """Reproducing (live run 2026-11-19): Semantic Scholar "0 results" on a six-word query
+    while OpenAlex answered. Its bulk search needs every word; the advice was only given
+    when every database was empty, so it never showed here."""
+    client, app, _root, _recon = env
+    app.state.recon_search_fn = _OneDatabaseEmpty()
+    sid = _new_draft(client)
+    job = _probe(client, sid, query="UAV imagery weed detection cereal crops",
+                 databases=["openalex", "semanticscholar"])
+    assert job["state"] == "succeeded"
+    legs = _legs(job)
+    assert legs["semanticscholar"]["status"] == "ok" and legs["semanticscholar"]["reported_total"] == 0
+    assert legs["semanticscholar"]["shorten"] is True
+    assert legs["openalex"]["shorten"] is False
+    # The session's record of the probe carries the same legs.
+    probes = client.get(f"{BASE}/drafts/{sid}/recon").json()["session"]["probes"]
+    assert {leg["provider"]: leg["shorten"] for leg in probes[-1]["legs"]} == {
+        "openalex": False, "semanticscholar": True,
+    }
+
+
+def test_a_leg_that_failed_or_a_short_query_never_says_shorten(env):
+    client, app, _root, _recon = env
+    app.state.recon_search_fn = _OneDatabaseEmpty(s2_failed=True)
+    sid = _new_draft(client)
+    job = _probe(client, sid, query="UAV imagery weed detection cereal crops",
+                 databases=["openalex", "semanticscholar"])
+    assert _legs(job)["semanticscholar"]["status"] == "failed"
+    assert _legs(job)["semanticscholar"]["shorten"] is False
+
+    app.state.recon_search_fn = _OneDatabaseEmpty()
+    for query in ("weed detection", "UAV OR drone OR imagery"):
+        job = _probe(client, sid, query=query, databases=["openalex", "semanticscholar"])
+        assert _legs(job)["semanticscholar"]["shorten"] is False, query
+    job = _probe(client, sid, query="UAV imagery weed detection cereal crops", semantic=True,
+                 databases=["openalex", "semanticscholar"])
+    assert _legs(job)["semanticscholar"]["shorten"] is False
+
+
+def test_a_gap_check_follow_up_leg_never_says_shorten():
+    """Review finding 3: a follow-up term is the engine's, not a query the researcher can shorten."""
+    from scholar_harness.recon.session import _legs_summary
+
+    empty = {"provider": "semanticscholar", "status": "ok", "fetched": 0, "reported_total": 0}
+    rows = _legs_summary([dict(empty), {**empty, "query": "weed detection cereal fields"}],
+                         "UAV imagery weed detection cereal crops")
+    assert [r["shorten"] for r in rows] == [True, False]
