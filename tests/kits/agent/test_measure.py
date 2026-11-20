@@ -258,7 +258,7 @@ def test_a_prior_in_the_prompt_is_refused_before_anything_is_sent(tmp_path, monk
     # 2. A prior written into the task's own template is refused by name.
     real = pg.task_mod.load_task()
     prior = dataclasses.replace(real, template=real.template + "\nMost of these records are excluded (about 95 to 100% exclusion).")
-    monkeypatch.setattr(pg.task_mod, "load_task", lambda: prior)
+    monkeypatch.setattr(pg.task_mod, "load_task", lambda version=None: prior)
     with pytest.raises(ValueError, match="outcome statistic"):
         ms.execute(driver, records, pg.run_spec(PROTOCOL, model=MODEL, effort="low", max_tokens=1024), provider="anthropic", protocol=PROTOCOL)
     monkeypatch.undo()

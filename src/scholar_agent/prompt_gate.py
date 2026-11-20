@@ -140,8 +140,11 @@ def load_set(workspace: Path, frozen: dict[str, Any]) -> list[EvalRecord]:
 # --- run, score, cost ---------------------------------------------------------
 
 
-def run_spec(protocol: dict[str, Any], *, model: str, effort: str, max_tokens: int) -> RunSpec:
-    task = task_mod.load_task()
+def run_spec(
+    protocol: dict[str, Any], *, model: str, effort: str, max_tokens: int, task_version: str | None = None
+) -> RunSpec:
+    """``task_version`` loads a candidate version (H-screening-drafts); ``None`` is the default task."""
+    task = task_mod.load_task(task_version)
     criteria = task_mod.criteria_from_protocol(protocol)
     return RunSpec(
         system=task_mod.system_prompt(task, criteria),
@@ -149,6 +152,7 @@ def run_spec(protocol: dict[str, Any], *, model: str, effort: str, max_tokens: i
         model=model,
         effort=effort,
         max_tokens=max_tokens,
+        task_version=task.task_version if task_version else "",
     )
 
 
@@ -293,7 +297,7 @@ def report(
     totals = {k: int(usage.get(k, 0)) for k in ("input_tokens", "output_tokens", "cache_read_tokens", "cache_write_tokens")}
     price = price_for(provider, spec.model)
     measured = cost_usd(totals, price, batch=batch) if price else None
-    task = task_mod.load_task()
+    task = task_mod.load_task(spec.task_version or None)
     return {
         "task_version": task.task_version,
         "prompt_sha256": task.prompt_sha256,

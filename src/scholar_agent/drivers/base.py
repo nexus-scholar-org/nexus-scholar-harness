@@ -72,6 +72,8 @@ class RunSpec:
     model: str
     effort: str
     max_tokens: int
+    #: The task version whose prompt `system` is (H-screening-drafts); empty means the default.
+    task_version: str = ""
 
 
 class Driver(Protocol):

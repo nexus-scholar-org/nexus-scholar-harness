@@ -149,8 +149,11 @@ def assert_blind(spec: RunSpec, requests: list[ScreeningRequest], records: list[
     """
     # The criteria are the researcher's protocol text (the product sends them too) and may state a
     # sampling plan; the task's own words around them may carry no figure at all.
-    task = pg.task_mod.load_task()
-    if spec.system != pg.run_spec(protocol, model=spec.model, effort=spec.effort, max_tokens=spec.max_tokens).system:
+    task = pg.task_mod.load_task(spec.task_version or None)
+    expected_spec = pg.run_spec(
+        protocol, model=spec.model, effort=spec.effort, max_tokens=spec.max_tokens, task_version=spec.task_version or None
+    )
+    if spec.system != expected_spec.system:
         raise ValueError("the system prompt is not the task's prompt with the protocol's criteria")
     prefix, _, suffix = task.template.partition("{criteria}")
     block = " ".join(c.text for c in pg.task_mod.criteria_from_protocol(protocol))
@@ -559,8 +562,12 @@ def measure(
     frozen: dict[str, Any] | None = None,
     out_dir: Path = OUT_DIR,
     now: Callable[[], datetime] = lambda: datetime.now(UTC),
+    task_version: str | None = None,
 ) -> dict[str, Any]:
     """Plan (`driver` None: dry run, no network) or run and write the report.
+
+    ``task_version`` measures a candidate task version (H-screening-drafts, ``screen-v2``);
+    ``None`` is the default task, the one product runs use.
 
     Returns the plan for a dry run, else the report with its `paths`.
     """
@@ -573,7 +580,7 @@ def measure(
         records = inc + exc
         scope_info = {**scope_info, "limit": limit}
     protocol = json.loads((workspace / "protocol.json").read_text(encoding="utf-8"))
-    spec = pg.run_spec(protocol, model=model, effort=effort, max_tokens=max_tokens)
+    spec = pg.run_spec(protocol, model=model, effort=effort, max_tokens=max_tokens, task_version=task_version)
     batch_of = batch_index(workspace)
     the_plan = plan(records, spec, provider=provider, chunk=CHUNK, scope=scope_info, batch_of=batch_of, max_tokens=max_tokens, protocol=protocol)
     if driver is None:
@@ -585,6 +592,7 @@ def measure(
     )
     report["finished_at"] = now().isoformat()
     stamp = now().strftime("%Y%m%dT%H%M%SZ")
-    json_path, md_path = write_report(report, out_dir, f"measure_{stamp}_{provider}_{model}_{effort}")
+    version = f"_{spec.task_version}" if spec.task_version else ""
+    json_path, md_path = write_report(report, out_dir, f"measure_{stamp}_{provider}_{model}_{effort}{version}")
     report["paths"] = {"json": str(json_path), "markdown": str(md_path)}
     return report
