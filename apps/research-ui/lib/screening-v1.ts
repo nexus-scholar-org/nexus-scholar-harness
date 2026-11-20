@@ -122,10 +122,15 @@ export interface Proposal {
   model: string | null;
   prompt_sha256: string | null;
   criteria: { id: string; answer: Answer; evidence?: { start: number; end: number; text: string } }[];
+  /** Derived when read, under the not-reported policy in force (H-screening-drafts). */
   derived_outcome: Outcome;
   reason_code: string | null;
   validators: Validator[];
   cannot_decide: boolean;
+  /** H-screening-drafts: the policy the outcome above is derived under; older engines omit it. */
+  not_reported_policy?: NotReportedPolicy;
+  /** H-screening-drafts: what the store holds (policy null for a draft stored before it was recorded). */
+  recorded?: { derived_outcome: Outcome; reason_code: string | null; not_reported_policy: NotReportedPolicy | null };
 }
 
 export interface Refusal {
@@ -156,15 +161,31 @@ export interface Settings {
   advance_on_decide?: "show_draft_then_next" | "next_at_once";
   /** Read-only (M7-method): "protocol" when the protocol's method block sets blinding. */
   blinding_source?: "protocol" | "settings";
-  /** Read-only (M7-method): the protocol's not-reported policy. */
+  /** Read-only (M7-method): the not-reported policy in force. */
   not_reported_policy?: NotReportedPolicy;
+  /** Read-only (H-screening-drafts): where the policy comes from. */
+  not_reported_source?: "protocol" | "defaults" | "amendment";
+  /** Read-only (H-screening-drafts): the method amendments in force, oldest first. */
+  method_amendments?: MethodAmendment[];
   /** Read-only (M7b-guideline): the reporting guideline in force and its source. */
   reporting?: "prisma-2020" | "prisma-scr" | "none";
   reporting_source?: "protocol" | "playbook" | "defaults";
 }
 
-/** M7-method: what a criterion the abstract does not report does to the outcome. */
-export type NotReportedPolicy = "unclear" | "exclude";
+/** M7-method: what a criterion the abstract does not report does to the outcome (`decisive_first`: H-screening-drafts). */
+export type NotReportedPolicy = "unclear" | "exclude" | "decisive_first";
+
+/** H-screening-drafts: a change of the method after genesis; the signed protocol is not changed. */
+export interface MethodAmendment {
+  amendment_id: string;
+  field: "blinding" | "not_reported";
+  from: string;
+  to: string;
+  amended_by: string;
+  amended_at: string;
+  protocol_fingerprint: string;
+  note: string | null;
+}
 
 export interface PrismaCheck {
   name: string;
@@ -258,6 +279,15 @@ export async function resolveConflict(
 
 export function getSettings(origin: string, signal?: AbortSignal): Promise<Settings> {
   return readJson<Settings>(`${BASE}/settings`, consoleBase(origin), signal);
+}
+
+/** H-screening-drafts: change blinding or the not-reported policy after genesis, as a recorded amendment. */
+export function amendMethod(
+  origin: string,
+  amendment: { field: MethodAmendment["field"]; value: string; note?: string },
+  signal?: AbortSignal,
+): Promise<{ amendment: MethodAmendment; settings: Settings }> {
+  return postJson<{ amendment: MethodAmendment; settings: Settings }>(`${BASE}/method/amendments`, origin, { ...amendment, confirm: true }, signal);
 }
 
 export function putSettings(
@@ -480,6 +510,9 @@ export interface RunView {
   cost_ceiling_usd: number | null;
   started_at: string | null;
   finished_at: string | null;
+  /** H-screening-drafts: sent to the provider's batch service; answers arrive in chunks of `chunk_size`. */
+  batch?: boolean;
+  chunk_size?: number;
   calibration?: Calibration;
 }
 
@@ -489,6 +522,8 @@ export interface ProposalSetup {
   data_flow: string;
   active_run: string | null;
   latest_run: RunView | null;
+  /** H-screening-drafts: the model of the newest run in this workspace; older engines omit it. */
+  last_model?: { provider: Provider; model: string } | null;
 }
 
 export interface RunRequest {

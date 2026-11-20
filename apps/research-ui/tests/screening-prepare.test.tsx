@@ -25,6 +25,13 @@ function engine(job?: { state: string; error?: string | null }, settings: Record
       const json = (b: unknown, status = 200) => new Response(JSON.stringify(b), { status, headers: { "content-type": "application/json" } });
       if (path === "/settings" && method === "GET") return json({ ...fixture("settings_default").body, ...settings });
       if (path === "/settings" && method === "PUT") return json({ ...fixture("settings_default").body, ...settings, ...body });
+      if (path === "/method/amendments" && method === "POST") {
+        // H-screening-drafts: the engine records the amendment and answers with the settings in force.
+        const field = body.field as "blinding" | "not_reported";
+        const amendment = { amendment_id: "AMD-1", field, from: field === "blinding" ? "reveal_after_decision" : "unclear", to: body.value, amended_by: "researcher:local", amended_at: "2026-11-20T10:00:00Z", protocol_fingerprint: "sha256:x", note: null };
+        const next = { ...fixture("settings_default").body, ...settings, ...(field === "blinding" ? { blinding: body.value } : { not_reported_policy: body.value, not_reported_source: "amendment" }), method_amendments: [amendment] };
+        return json({ amendment, settings: next });
+      }
       if (path === "/ui/batches") return json({ shape: "ui07.screening-batches-v1", run_id: null, count: 0, batches: [], missing: [] });
       if (path === "/prepare") {
         if (job) return json({ job_id: "job_1" });
@@ -174,34 +181,103 @@ describe("prepare.advance-setting (review fixes)", () => {
 // M7-method (spec 02 amendment 2026-11-08): blinding set by the protocol, and
 // the rule table follows the protocol's not-reported policy.
 describe("prepare.blinding-from-protocol", () => {
-  it("shows the protocol's value read-only with its reason, and never sends a blinding change", async () => {
-    const log = engine(undefined, { blinding: "show", blinding_source: "protocol" });
+  // H-screening-drafts (acceptance run 2026-11-20): "Show beside the record" did
+  // nothing on a workspace whose protocol sets blinding. Now it is a recorded
+  // amendment, confirmed first; it never goes through PUT /settings.
+  it("changes blinding set by the protocol only through a confirmed, recorded amendment", async () => {
+    const log = engine(undefined, { blinding: "reveal_after_decision", blinding_source: "protocol" });
     render(<ScreeningPrepare locale="en" />);
     const group = (await screen.findByText("The agent's draft")).closest("fieldset")!;
-    expect(group).toHaveAttribute("aria-readonly", "true");
-    const reason = screen.getByText("Set by your protocol");
-    expect(group.getAttribute("aria-describedby")).toContain(reason.id);
+    expect(screen.getByText("Set by your protocol. A change is recorded as an amendment.")).toBeInTheDocument();
     const radios = [...group.querySelectorAll('input[type="radio"]')] as HTMLInputElement[];
-    expect(radios.map((r) => r.checked)).toEqual([false, true]);
-    expect(radios.every((r) => !r.disabled)).toBe(true); // read-only, not a dimmed disabled control
-    fireEvent.click(radios[0]);
-    expect(radios[0].checked).toBe(false); // the other value cannot be chosen
+    expect(radios.map((r) => r.checked)).toEqual([true, false]);
+    fireEvent.click(radios[1]);
+    const confirm = await screen.findByRole("alertdialog", { name: /Amend the protocol's method/ });
+    expect(confirm).toHaveTextContent("The agent's draft: from “Reveal after my decision (recommended)” to “Show beside the record”.");
+    expect(confirm).toHaveTextContent("The signed protocol, the corpus and your decisions are not changed.");
+    expect(log.some((l) => l.path === "/method/amendments")).toBe(false); // nothing before the confirmation
+    fireEvent.click(screen.getByRole("button", { name: "Record the amendment" }));
+    await screen.findByText(/Amended on 2026-11-20 by researcher:local: The agent's draft/);
+    expect(log.find((l) => l.path === "/method/amendments")?.body).toEqual({ field: "blinding", value: "show", confirm: true });
+    expect(radios[1].checked).toBe(true);
     fireEvent.click(screen.getByRole("button", { name: /^Save/ }));
     await screen.findByText(/saved/i);
-    const put = log.find((l) => l.method === "PUT" && l.path === "/settings");
-    expect(put?.body).not.toHaveProperty("blinding");
+    expect(log.find((l) => l.method === "PUT" && l.path === "/settings")?.body).not.toHaveProperty("blinding");
   });
 
-  it("stays editable when the setting is the source", async () => {
+  it("cancelling the amendment keeps the protocol's value and sends nothing", async () => {
+    const log = engine(undefined, { blinding: "reveal_after_decision", blinding_source: "protocol" });
+    render(<ScreeningPrepare locale="en" />);
+    const group = (await screen.findByText("The agent's draft")).closest("fieldset")!;
+    const radios = [...group.querySelectorAll('input[type="radio"]')] as HTMLInputElement[];
+    fireEvent.click(radios[1]);
+    fireEvent.click(await screen.findByRole("button", { name: "Keep the protocol's value" }));
+    expect(radios.map((r) => r.checked)).toEqual([true, false]);
+    expect(log.some((l) => l.path === "/method/amendments")).toBe(false);
+  });
+
+  it("stays a plain setting when the protocol does not set blinding", async () => {
     engine(undefined, { blinding_source: "settings" });
     render(<ScreeningPrepare locale="en" />);
     const group = (await screen.findByText("The agent's draft")).closest("fieldset")!;
-    expect(group).not.toHaveAttribute("aria-readonly");
-    expect(screen.queryByText("Set by your protocol")).toBeNull();
+    expect(screen.queryByText(/Set by your protocol/)).toBeNull();
+    fireEvent.click(group.querySelectorAll('input[type="radio"]')[1]);
+    expect(screen.queryByRole("alertdialog")).toBeNull();
+  });
+});
+
+describe("prepare.not-reported-amendment (H-screening-drafts)", () => {
+  it("offers the three not-reported rules and changes the rule through a confirmed amendment", async () => {
+    const log = engine(undefined, { not_reported_policy: "unclear", not_reported_source: "protocol" });
+    render(<ScreeningPrepare locale="en" />);
+    const group = (await screen.findByText("A criterion the title and abstract do not report")).closest("fieldset")!;
+    const labels = [...group.querySelectorAll("label")].map((l) => l.textContent);
+    expect(labels).toEqual([
+      "It sends the record to Unclear (full text), even beside a decisive answer",
+      "A decisive answer first: an exclusion met or an inclusion not met excludes; otherwise Unclear",
+      "An unreported inclusion criterion excludes the record",
+    ]);
+    fireEvent.click(group.querySelectorAll('input[type="radio"]')[1]);
+    const confirm = await screen.findByRole("alertdialog", { name: /Amend the protocol's method/ });
+    expect(confirm).toHaveTextContent("Existing agent drafts keep their answers and are shown and counted under the new rule");
+    fireEvent.click(screen.getByRole("button", { name: "Record the amendment" }));
+    await screen.findByText(/Amended on 2026-11-20 by researcher:local: A criterion the title and abstract do not report/);
+    expect(log.find((l) => l.path === "/method/amendments")?.body).toEqual({ field: "not_reported", value: "decisive_first", confirm: true });
+    // The rule table follows the amended policy.
+    const rules = screen.getByRole("heading", { name: "How an agent draft's outcome is derived" }).closest("section")!;
+    expect(rules.querySelectorAll("li")[0]).toHaveTextContent("First, Unclear → full text: a check on the draft failed or the agent could not decide.");
+  });
+
+  it("says why it refused when the engine refuses the amendment", async () => {
+    engine(undefined, { not_reported_policy: "unclear" });
+    const real = globalThis.fetch;
+    vi.stubGlobal("fetch", vi.fn(async (url: string, init?: RequestInit) => {
+      if (String(url).includes("/method/amendments")) {
+        return new Response(JSON.stringify({ detail: { code: "METHOD_AMENDMENT_INVALID", message: "not_reported is already decisive_first" } }), { status: 422 });
+      }
+      return real(url, init);
+    }));
+    render(<ScreeningPrepare locale="en" />);
+    const group = (await screen.findByText("A criterion the title and abstract do not report")).closest("fieldset")!;
+    fireEvent.click(group.querySelectorAll('input[type="radio"]')[1]);
+    fireEvent.click(await screen.findByRole("button", { name: "Record the amendment" }));
+    expect(await screen.findByText("not_reported is already decisive_first")).toBeInTheDocument();
   });
 });
 
 describe("prepare.rule-table-policy", () => {
+  it("describes the decisive-first table (H-screening-drafts)", async () => {
+    engine(undefined, { not_reported_policy: "decisive_first" });
+    render(<ScreeningPrepare locale="en" />);
+    const rules = await screen.findByRole("heading", { name: "How an agent draft's outcome is derived" });
+    const items = [...rules.closest("section")!.querySelectorAll("li")].map((li) => li.textContent);
+    expect(items).toEqual([
+      "First, Unclear → full text: a check on the draft failed or the agent could not decide.",
+      "Then exclude: any exclusion criterion answered yes, or any inclusion criterion answered no, even when other criteria are not reported.",
+      "Then Unclear → full text: any criterion not reported. Otherwise include: every inclusion yes and every exclusion no.",
+    ]);
+  });
+
   it("describes the exclude policy's table when the protocol sets it", async () => {
     engine(undefined, { not_reported_policy: "exclude" });
     render(<ScreeningPrepare locale="en" />);
