@@ -1,5 +1,5 @@
 # M3f-combined-corpus One corpus from a harvest and database exports, deduplicated together
-Branch: `dev/m3f/combined-corpus` (from `origin/main` `2436fe66`) · Lane: **RELEASE** (plan §6: Packet B inputs; see "Lane") · Status: IN PROGRESS · Started: 2026-11-20
+Branch: `dev/m3f/combined-corpus` (from `origin/main` `2436fe66`) · Lane: **RELEASE** (plan §6: Packet B inputs; see "Lane") · Status: **READY FOR PR** (not pushed) · Started: 2026-11-20
 
 Plan §6 row: "One snapshot from a harvest plus staged exports, deduplicated together. Until then `VERIFIED_EXISTS` keeps them apart." Sources: `M3d-engine.md` Deferred and decision 12; `DISCOVERY_API_PACKET.md` §4.4. The researcher approved the start on 2026-11-20.
 
@@ -115,7 +115,7 @@ An import-only corpus keeps today's report and paragraph. Its report still answe
 
 - `harvest.warn.imports` becomes: "Database exports you add on the Import step, before or after this harvest, are combined with it when you accept the corpus on the Hand-off, and duplicates across both are removed."
 - `plan.imports.afterRun` becomes: "You can still add database exports; they are combined with this harvest when you accept the corpus."
-- The Import screen gains one line while a harvest part exists: "These exports will be combined with the harvest {run} ({works} works) when you accept on the Hand-off."
+- The Import screen gains one line while a harvest part exists: "These exports will be combined with the harvest {run} when you accept the corpus on the Hand-off." (The FINAL spec dropped the works count this design first had: the Hand-off gives the counts.)
 - The `VERIFIED_EXISTS` card stays for the one case it still covers, reworded to say why: "records of unknown origin".
 - Every new key gets its row in the guidance audit (`docs/ux/shared/final/03-guidance.md`).
 
@@ -154,12 +154,12 @@ New files are harness run records outside Contract v1, as `verification_checks.j
 
 ## Definition of done
 - [x] **D1 Order.** Staging after a harvest, a harvest after staging, repeating both and removing exports work before the accept. `VERIFIED_EXISTS` is kept only for `verified.json` of unknown origin, and `STAGED_IMPORT_PENDING` is no longer raised by run, prepare or the CLI `run`. Tests: `tests/cli/test_combined_corpus.py`, `tests/console/test_combined_corpus_api.py`.
-- [x] **D2 One deduplication.** The accept builds one snapshot from the harvest part plus the staged records: one pass, a fixed order, every record kept under its study, and the combined manifest and PRISMA identification. The harvest's file is copied to its run folder and restored on a refused gate. Harvest-only and import-only snapshots are byte-identical to before (golden digests). Tests: `tests/cli/test_combined_corpus.py`, `tests/pipeline/test_golden_search_cassettes.py`.
+- [x] **D2 One deduplication.** The accept builds one snapshot from the harvest part plus the staged records: one pass, a fixed order, every record kept under its study, and the combined manifest and PRISMA identification. The harvest's file is copied to its run folder and restored on a refused gate. Harvest-only and import-only snapshots are byte-identical to before: the artifact ids are pinned at `2436fe66`, and the golden cassette digests in `tests/pipeline/test_golden_search_cassettes.py` pass unchanged. Tests: `tests/cli/test_combined_corpus.py`.
 - [x] **D3 Unfinished or stale harvest.** An unfinished harvest plus exports accepts the exports only and says so. Without exports it refuses `PREPARATION_UNFINISHED`. A superseded run never enters. A changed protocol refuses `PROTOCOL_CHANGED_SINCE_RUN`. Tests: `tests/console/test_combined_corpus_api.py`.
-- [x] **D4 The Hand-off and corpus views.** Counts from the combined preview, a provider mix with database labels and `kind`, abstracts per work (finding 27), and `corpus.origin` `combined` with `corpus.harvest`. Tests: the API tests above; `apps/research-ui/tests/discovery-handoff.test.tsx`.
-- [x] **D5 The report and methods text.** Combined `dedup`, export sentences with their stated details, the unchecked-imports sentence, and the screening export's database sentence. Tests: `tests/kits/search/test_methods_text_combined.py`, `tests/console/test_combined_corpus_api.py`, `tests/console/test_methods_api.py`.
-- [x] **D6 Screens and copy.** Specs addenda FINAL before UI work. Harvest and Plan copy (finding 26), the Import line, the Hand-off mix, abstract and warning lines, en/fr/ar, and guidance audit rows. Vitest and Playwright.
-- [ ] **Gate.** `/gate inner` after edits and `/gate checkpoint` per item. `/gate pr` once on the final commit. Contract, schema, fixture and protocol `--check`. `milestone-reviewer` APPROVE.
+- [x] **D4 The Hand-off and corpus views.** Counts from the combined preview, a provider mix with database labels and `kind`, abstracts per work (finding 27), and `corpus.origin` `combined` with `corpus.harvest`. Tests: the API tests above; `apps/research-ui/tests/discovery-combined.test.tsx`; `tests/console/test_combined_corpus_api.py::test_the_next_step_bar_counts_the_combined_corpus`.
+- [x] **D5 The report and methods text.** Combined `dedup`, export sentences with their stated details, the unchecked-imports sentence, and the screening export's database sentence. Tests: `tests/console/test_combined_corpus_api.py::test_the_report_and_methods_text_name_both_parts`, `::test_review_f2_a_left_out_harvest_is_not_reported_as_combined`, `tests/console/test_methods_api.py::test_a_combined_corpus_publishes_fetched_plus_imported_and_names_every_source`.
+- [x] **D6 Screens and copy.** Specs addenda FINAL before UI work. Harvest and Plan copy (finding 26), the Import line, the Hand-off mix, abstract and warning lines, en/fr/ar, and guidance audit rows. Vitest `apps/research-ui/tests/discovery-combined.test.tsx`; Playwright `tests-browser/discovery.spec.ts` (the "M3f" cases).
+- [x] **Gate.** `/gate inner` after edits and `/gate checkpoint` per item. `/gate pr` once on the final commit. Contract, schema, fixture and protocol `--check`. `milestone-reviewer` APPROVE.
 
 ## Tests written first
 Committed in `1eb12173` before any engine change and run on `2436fe66`'s code. Each failed for the reason named.
@@ -188,6 +188,10 @@ Added after the engine: `tests/console/test_methods_api.py::test_a_combined_corp
 ## Findings fixed
 | ID | Reproducing test | Fails before | Passes after |
 | :-- | :-- | :-- | :-- |
+| 26 (acceptance run 2026-11-20): a corpus is a harvest or exports, not both; the Harvest warning misleads | `tests/console/test_combined_corpus_api.py::test_an_export_staged_after_a_harvest_is_combined_at_the_accept`, `::test_a_harvest_after_staging_is_combined_and_both_can_be_repeated`; copy: `apps/research-ui/tests/discovery-combined.test.tsx` "copy (finding 26)" | yes: 409 `VERIFIED_EXISTS`, 409 `STAGED_IMPORT_PENDING` | yes |
+| 27 (acceptance run 2026-11-20): Hand-off shows 0 with an abstract for imported files | `tests/console/test_combined_corpus_api.py::test_the_handoff_counts_abstracts_of_staged_exports_per_work` | yes: 0 and 0 | yes |
+| Review F1 (P1): a ready harvest after a refused exports-only accept was left out | `::test_review_f1_a_harvest_after_a_refused_exports_accept_is_still_combined` | yes on `2fc90e14` (reviewer's probe; the test was written with the repair) | yes |
+| Review F2 (P2): the report called a left-out harvest "combined" | `::test_review_f2_a_left_out_harvest_is_not_reported_as_combined` | yes on `2fc90e14` (reviewer's probe) | yes |
 
 ## Decisions
 `docs/decisions.md`, entry "2026-11-20 — M3f-combined-corpus" (items 1 to 8, PROPOSED). Item 3 is the one to confirm: as built, an unfinished harvest beside staged exports is left out at the accept after a warning, which keeps M3i item 10. The alternative is to refuse the accept until the harvest is finished.
@@ -204,6 +208,32 @@ Spec addenda (FINAL, no open questions): 01-plan, 03-harvest, 04-import, 06-repo
 | Stage | Commit | Command | Result | Duration |
 | :-- | :-- | :-- | :-- | :-- |
 | start | `2436fe66` | `uv run python scripts/generate_contract_baseline.py --check` | Contract baseline current (phase-auditor) | |
+| reproducing tests | `1eb12173` on `2436fe66` code | `uv run pytest tests/cli/test_combined_corpus.py tests/console/test_combined_corpus_api.py` | every new test failed for the reason named in "Tests written first"; the 2 id pins and the unknown-origin test passed | |
+| inner | `8031194d` (working tree) | `/gate inner`: `pytest tests/console -m "not slow" -n auto`; `pytest tests/pipeline tests/unit tests/cli tests/test_handoff.py tests/mcp/test_mcp_setup.py tests/kits/search -m "not slow" -n auto` | 776 passed, 1 skipped; 1398 passed, 3 skipped | 2.3 min + 2.5 min |
+| inner (UI) | `2fc90e14` | `npm run typecheck`; `npx vitest run`; `npx playwright test tests-browser/discovery.spec.ts -g M3f` | clean; 969 passed; 16 passed (light and dark, en and ar, axe with contrast) | 1.3 min (Playwright) |
+| checkpoint | `2fc90e14` | `pytest tests --ignore=tests/kits -n auto`; `pytest tests/kits/search tests/test_search_identity_conformance.py -n auto` | 3434 passed, 7 failed, 1 error, 8 skipped; 447 passed. The failures came from the worktree's venv lacking the `rag`/`pdf` extras (`chromadb` missing; extraction e2e). The error, `test_chase_api.py::test_a_failed_chase_…`, passed alone. Fixed by `uv sync --extra dev --extra pdf --extra rag`; the PR gate below is on the full environment | 9.7 min |
+| review | `2fc90e14` | `milestone-reviewer` | CHANGES (1 P1, 3 P2, 5 P3) | |
+| review | `6eb0e494` | `milestone-reviewer`, round 2 | APPROVE, on condition the PR gate is recorded green (F3); one new P3 (Deferred) | |
+| pr | `6eb0e494` | `git diff --check`; `uv run pytest -n auto` | clean; **5846 passed, 15 skipped, 0 failed** | 10.7 min |
+| pr | `6eb0e494` | `ruff check scripts/`; `ruff check src/ --select F821,F811,F823,F632,F7,B023,B006,E9` | both clean | |
+| pr | `6eb0e494` | `generate_contract_baseline.py`, `generate_contract_schemas.py`, `generate_two_study_contract_fixture.py`, `generate_protocol_schema.py`, each `--check` | all exit 0 (baseline current; nothing regenerated) | |
+| pr | `6eb0e494` | `npm --prefix apps/research-ui run typecheck`; `npm … test`; `npm … run build` | clean; **972 passed**; build OK | |
+| pr | `6eb0e494` | `npm … run test:browser` | 620 passed, 12 skipped, **2 failed**: `discovery.spec.ts:409` "no hydration mismatch with ?return=discovery" in light and dark. It waited for the `VERIFIED_EXISTS` card the new rule retires after a harvest. Fixed in `62d87f47` (test only) | 16.2 min |
+| pr | `62d87f47` (final; test-only change over `6eb0e494`) | `npm --prefix apps/research-ui run test:browser` | **622 passed, 12 skipped, 0 failed**. No Python, engine or UI source changed after `6eb0e494`, so its pytest, ruff, contract, typecheck, vitest and build results stand for the final commit | 17.5 min |
+| build | `b2ed146e` | `npm … run build:export`; `uv build --wheel`; `uvx --isolated --from <wheel> nexus-scholar --help`, `scholar-agent --help` | export OK; wheel built; both entry points answer `--help` on the base install | |
+
+## Review
+- Round 1, `milestone-reviewer` on `2fc90e14`: **CHANGES**, 1 P1, 3 P2, 5 P3. Repaired in `6eb0e494`; see the commit message for each item.
+- Not done, on purpose:
+  - `combined.state.ready` and `combined.state.superseded` words: after F1 a ready harvest is always included, and a superseded run is never the harvest part. An unknown state still prints verbatim.
+  - The works count on the Import line: the FINAL spec has none.
 
 ## Deferred
+- Review round 2, P3 (read from the code, not run): after an M3g chase round on a combined round 1, the report's `dedup` describes round 1 (`combined_counts` reads the first snapshot), while its `outside_year_window` counts the newest snapshot's works (`corpus_works` reads the last snapshot and round 2's `verified.json`). Fix: read the same snapshot for both, or leave the window count to the chase screen.
+- Reviewer follow-ups, older than this milestone:
+  - The exports-only path journals `CORPUS_IMPORTED` before the gate. After a refused gate the files are now rolled back, but the journal row stays.
+  - `_materialise_staged` writes its two files one after the other, not atomically.
+  - `_verified_after_manifest` compares file times. A restore that does not keep those times can reorder them; only the legacy stale-manifest state is affected.
+- Found while building: a harvest-only corpus's PRISMA "records identified" counts works, with 0 duplicates. Read from the code, not run.
+- The Duplicates screen (`/discovery/dedup`) still shows the harvest's own pass. The combined count is on the Hand-off and the Report.
 - Retrying one failed database (finding 13), several queries (22), the recall comparison set (21), checking imported records, late imports after the accept, the harvest-only PRISMA count, and the import-only report and Duplicates 404s: see Design §7.
