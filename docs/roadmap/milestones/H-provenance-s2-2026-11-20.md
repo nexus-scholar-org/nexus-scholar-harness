@@ -69,6 +69,7 @@ Two defects from the live run of 2026-11-19 (installed wheel from `origin/main` 
 | | `80fea855` | `npm --prefix apps/research-ui run typecheck`; `test`; `build`; `test:browser`; `build:export` | exit 0; 937 passed (66 files); exit 0; **600 passed, 12 skipped** (13.2 m); exit 0 |
 | | `80fea855` | `uv build --wheel`, installed in a fresh Python 3.12 venv; `nexus-scholar --help`, `scholar-agent --help` | built; both exit 0 |
 | review round 2 | `c1d7fe63` | `milestone-reviewer`, limited to the round-1 findings and the delta `72fd878e..c1d7fe63` | **APPROVE**: F1 to F5 resolved; reran the targeted tests and the legs vitest; follow-up: three blank lines before `_doi_kept` in `verifier.py` (E303, outside CI's ruff selection) |
+| merge of `origin/main` | `b3c158c3` (merges `618c6cf8`, PR #255 key precedence; only `docs/decisions.md` overlapped, both entries kept) | `uv run --extra dev --extra pdf --extra rag pytest -n auto`; contract baseline `--check`; both ruff; `git diff --check` | **5739 passed, 15 skipped, 0 failed** (9 m 1 s); current; clean; clean. The merged commits change no UI file, so the UI rows above stand |
 | note | `5ec74b8a` | `npm test` run while the checkpoint loaded the machine | 8 files failed on 5 s waits in screens this change does not touch; 7 passed when rerun alone, the 8th (`discovery-proposals`) passed twice alone; the final run above is clean |
 | note | `80fea855` | `test:browser` rewrites six tracked screenshots under `apps/research-ui/screenshots/` | restored with `git checkout`, not committed |
 
