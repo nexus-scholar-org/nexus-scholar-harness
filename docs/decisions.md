@@ -4,7 +4,7 @@ One entry per decision that still shapes the code, newest first. The full
 records were removed in the 2026-11-03 docs cut; each entry names the commit
 history to read if you need the original reasoning (`git log --follow -- <path>`).
 
-## 2026-11-20 — H-provenance-s2: a verifying lookup never replaces a record; the shorten advice per database (PROPOSED; H-provenance-s2)
+## 2026-11-20 — H-provenance-s2: a verifying lookup never replaces a record; the shorten advice per database (items 1 to 4 accepted by the researcher 2026-11-20, "accept decisions 1-4"; H-provenance-s2)
 
 Record: `docs/roadmap/milestones/H-provenance-s2-2026-11-20.md`. Contract v1 baseline current before and after; no schema, identity algorithm or fixture changes.
 

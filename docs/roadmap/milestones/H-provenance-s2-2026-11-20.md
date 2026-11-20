@@ -1,7 +1,7 @@
 # H-provenance-s2 Provider attribution after verification; Semantic Scholar "0 results" in Explore
-Branch: `dev/fix/provenance-s2` (from `origin/main` `88e3d6fb`) · Lane: **RELEASE** (see "Lane") · Status: **ready for PR (review APPROVE), not pushed; decisions PROPOSED** · Started: 2026-11-20
+Branch: `dev/fix/provenance-s2` (from `origin/main` `88e3d6fb`) · Lane: **RELEASE** (see "Lane") · Status: **PR opened 2026-11-20 (review APPROVE); decisions 1 to 4 accepted by the researcher 2026-11-20** · Started: 2026-11-20
 
-Two defects from the live run of 2026-11-19 (installed wheel from `origin/main` `2c4383e9`, the researcher's keys, a scratch workspace not available to this session). The researcher asked for both fixes on 2026-11-20. Choices: `docs/decisions.md`, top entry (2026-11-20, H-provenance-s2, PROPOSED).
+Two defects from the live run of 2026-11-19 (installed wheel from `origin/main` `2c4383e9`, the researcher's keys, a scratch workspace not available to this session). The researcher asked for both fixes on 2026-11-20. Choices: `docs/decisions.md`, top entry (2026-11-20, H-provenance-s2, items 1 to 4 accepted by the researcher 2026-11-20).
 
 ## Lane
 
