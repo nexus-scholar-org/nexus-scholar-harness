@@ -1,6 +1,6 @@
 # M11a Query workbench: for your review
 
-Date: 2026-11-20 · Status: for the researcher to read and decide; nothing is built · Full record: [`M11a-query-workbench.md`](M11a-query-workbench.md) · Screens (drafts): `docs/ux/phase0-inception/final/10-query-workbench.md`, `docs/ux/phase1-discovery/final/10-plan-amend-search.md`
+Date: 2026-11-20 · Status: **questions answered** (the researcher accepted all ten recommendations on 2026-11-20 and approved the specification for building; build not started) · Full record: [`M11a-query-workbench.md`](M11a-query-workbench.md) · Screens (drafts): `docs/ux/phase0-inception/final/10-query-workbench.md`, `docs/ux/phase1-discovery/final/10-plan-amend-search.md`
 
 ## What you will be able to do
 
