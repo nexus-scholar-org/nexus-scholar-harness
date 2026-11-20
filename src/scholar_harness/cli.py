@@ -371,7 +371,8 @@ def _need_sdk(provider: str) -> None:
     try:
         drivers.ensure_sdk(provider)
     except drivers.ProviderSdkMissing as exc:
-        console.print(f"[bold red]❌ {exc}[/bold red]", markup=True, highlight=False)
+        # No markup: the install line holds "[ai]", which Rich would read as a style tag and drop.
+        console.print(f"❌ {exc}", style="bold red", markup=False, highlight=False)
         raise typer.Exit(1) from exc
 
 
@@ -379,7 +380,7 @@ def _key_refused(provider: str) -> None:
     """Print which source a refused (401) key came from and how to replace it; never the key."""
     from scholar_agent.keys import refusal_note
 
-    console.print(f"[bold red]❌ {refusal_note(provider)}[/bold red]", highlight=False)
+    console.print(f"❌ {refusal_note(provider)}", style="bold red", markup=False, highlight=False)
 
 
 def _run_driver(provider: str, call):

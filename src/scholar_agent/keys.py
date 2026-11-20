@@ -96,11 +96,13 @@ _REFUSAL = re.compile(r"(?<!\d)401(?!\d)|AuthenticationError", re.IGNORECASE)
 
 
 def is_refusal(error: object) -> bool:
-    """True when a provider refused the key (HTTP 401): an exception that carries status 401, or the text of one."""
+    """True when a provider refused the key (HTTP 401).
+
+    An exception counts by what it is (status 401, or the SDK's `AuthenticationError`), never by a "401" that
+    happens to sit in its text (a URL, an id); a driver's per-record error string is text, so it is matched.
+    """
     if isinstance(error, BaseException):
-        if getattr(error, "status_code", None) == 401:
-            return True
-        error = f"{type(error).__name__}: {error}"
+        return getattr(error, "status_code", None) == 401 or type(error).__name__ == "AuthenticationError"
     return bool(_REFUSAL.search(str(error)))
 
 

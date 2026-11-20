@@ -177,7 +177,7 @@ def test_setup_names_key_sources_never_keys_and_the_latest_run(ws, monkeypatch):
     for var in ("ANTHROPIC_API_KEY", "OPENAI_API_KEY", "GEMINI_API_KEY"):  # a set variable now wins over the keychain
         monkeypatch.delenv(var, raising=False)
     client = _client(ws)
-    empty =client.get(f"{BASE}/proposals/setup").json()
+    empty = client.get(f"{BASE}/proposals/setup").json()
     assert empty["active_run"] is None and empty["latest_run"] is None
     assert empty["task"]["prompt_sha256"] == task_mod.load_task().prompt_sha256
     started = client.post(f"{BASE}/proposals/runs", json={"consent": CONSENT}).json()

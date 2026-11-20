@@ -198,6 +198,8 @@ def test_is_refusal_recognises_a_401_and_nothing_wider():
         status_code = 401
 
     assert keys.is_refusal(Unauthorized("x")) and keys.is_refusal(UNAUTHORIZED) and keys.is_refusal("HTTP 401")
+    assert keys.is_refusal(type("AuthenticationError", (Exception,), {})("bad key"))
+    assert not keys.is_refusal(RuntimeError("GET https://x/401/y failed")) and not keys.is_refusal(Exception("status 401 in text"))
     assert not keys.is_refusal("HTTP 429") and not keys.is_refusal("overloaded_error: try again")
     assert not keys.is_refusal(RuntimeError("1401 records")) and not keys.is_refusal("")
 
@@ -239,6 +241,7 @@ def test_measure_without_the_sdk_says_so_before_any_spend_is_announced(tmp_path,
         assert "Traceback" not in result.output and not isinstance(result.exception, ImportError)
         # Nothing about money before the sentence: no estimate, no "add --yes to spend".
         assert "estimated cost" not in text and "to spend your key" not in text
+        assert 'nexus-scholar[ai]' in text, text  # Rich must not read "[ai]" as markup and drop it
     assert no_sdk == []
 
 
@@ -257,3 +260,4 @@ def test_gate_run_without_the_sdk_says_so_before_the_estimate(tmp_path, keychain
     result = CliRunner().invoke(app, ["prompt-gate", "run", "--workspace", str(ws)])
     text = _flat(result.output)
     assert result.exit_code == 1 and "uv sync --extra ai" in text and "Estimate" not in text and "Traceback" not in result.output
+    assert "nexus-scholar[ai]" in text
