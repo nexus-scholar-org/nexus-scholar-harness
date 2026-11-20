@@ -1,5 +1,5 @@
 # H-quota-hang A used-up provider quota during "Checks" ends the step with a message, not hours of retries
-Branch: `dev/fix/quota-hang` (from `origin/main` `f05cd29a`) · Lane: **RELEASE** (see "Lane") · Status: **IN PROGRESS** · Started: 2026-11-20
+Branch: `dev/fix/quota-hang` (from `origin/main` `f05cd29a`) · Lane: **RELEASE** (see "Lane") · Status: **READY FOR PR** (review round 2 APPROVE; gates green on `d5210739`; not pushed; decisions 1 to 9 wait for the researcher) · Started: 2026-11-20
 
 The one blocker of the acceptance run of 2026-11-20 (a real scoping review through the wheel built from `f05cd29a`; record `docs/roadmap/acceptance-run-sensor-stress-2026-11-20.md` on the local branch `dev/docs/acceptance-run-sensor-stress`, commit `ae41a35b`, not on `main`). Three findings of that run are one defect:
 
@@ -29,8 +29,8 @@ Choices: `docs/decisions.md`, entry "2026-11-20 — H-quota-hang" (items 1 to 9,
 - [x] Reproducing tests written first and seen failing on the unfixed code (Evidence).
 - [x] Contract baseline current; CI's two ruff runs clean.
 - [x] Review round 1 (CHANGES, no P0/P1) repaired: P2 F1 to F3, P3 F4 to F7 (see "Repairs after the review").
-- [ ] PR gate green on the final executable commit; closure gate (RELEASE).
-- [ ] `milestone-reviewer` APPROVE.
+- [x] PR gate green on the final executable commit; closure gate (RELEASE): Python on `d31e6cee` (no Python file changed after it), UI on `d5210739`.
+- [x] `milestone-reviewer` APPROVE (round 2).
 
 ## What changed
 
@@ -58,7 +58,8 @@ Choices: `docs/decisions.md`, entry "2026-11-20 — H-quota-hang" (items 1 to 9,
 - **F6 (P3) no test of the CLI path.** Same test as F2: `run_pipeline_async` ends `INCOMPLETE`, no corpus snapshot in the registry, no `CORPUS_SNAPSHOT_ACCEPTED` row.
 - **F7 (P3) the gate ran on an uncommitted tree.** That run was stopped; the browser tests are committed and the gates below are on the final commit.
 - **Follow-ups taken:** a pause and a stop are reset at the start of each `process_batch` (test `test_a_pause_holds_for_one_batch_only`); the `keep` merge raises a clear `ValueError` when a verifier returns another number of records than it was given.
-- **Follow-ups left:** the kit CLI `scholar-search verify` / `import` still prints a `NOT_CHECKED` record as "could not be verified in Crossref/OpenAlex" without naming the quota; decision item 3's contract question.
+- **Found by the closure gate after round 2 (`d5210739`):** three vitest checks the targeted runs had not covered failed on `d31e6cee`: the fake engine's pinned preparation keys (`checks` added) and the guidance audit (`docs/ux/shared/final/03-guidance.md`: rows D-H26 (STAYS) and D-H27 (HINT), `pending.incomplete` in D-HO14, discovery counts 100 / 35 / 15, 150 blocks; D-H24 and D-H25 were already taken). The Playwright screenshot of the Arabic card showed the reset time reversed ("21-11-2026"); it is now the shared `Stamp` (`<time dir="ltr">`) inside the sentence. No Python file changed.
+- **Follow-ups left:** the CLI has no command to finish a preparation, yet the `run` panel prints "Finish preparing this corpus" and the `accept-corpus` refusal points to the Harvest screen: a CLI-only user must open the app (`nexus-scholar ui`) or search again (review round 2, P3); the kit CLI `scholar-search verify` / `import` still prints a `NOT_CHECKED` record as "could not be verified in Crossref/OpenAlex" without naming the quota; decision item 3's contract question.
 
 ## Tests (each failed before the fix and passes after, unless noted)
 
@@ -86,9 +87,15 @@ Choices: `docs/decisions.md`, entry "2026-11-20 — H-quota-hang" (items 1 to 9,
 | repairs before | the repair tests on the pre-repair `src/` (`5bdbbd26`) | the new kit, pipeline, unit and API tests | 18 failed, 2 passed (the `nan` and far-date Retry-After cases) |
 | repairs after | working tree | `test_quota_hang.py`, `test_partly_checked.py`, `test_quota_hang_api.py`, `test_run_builds_snapshot.py`, `test_verifier.py`; every test file that mentions `accept_corpus` (9 files, `-m "not slow"`); `npm run typecheck`; vitest preparation, copy and next-step files | 58 passed; 262 passed; clean; 61 passed |
 
+| review round 2 | `d31e6cee` | `milestone-reviewer`, limited to the round-1 findings and `5bdbbd26..d31e6cee` | **APPROVE**, on condition that the gate below is green; reran `test_partly_checked.py` (12), `test_quota_hang.py` (18), `test_run_builds_snapshot.py` (11), `test_quota_hang_api.py` (4), `tests/cli/test_accept_corpus.py` (39), all passed |
+| closure gate, Python | `d31e6cee` | `generate_contract_baseline.py`, `generate_contract_schemas.py`, `generate_two_study_contract_fixture.py`, `generate_protocol_schema.py` `--check`; `ruff check scripts/`; `ruff check src/ --select F821,F811,F823,F632,F7,B023,B006,E9`; `git diff --check origin/main...HEAD`; `uv run pytest -n auto` (dev, pdf and rag extras installed); `uv build --wheel` | all exit 0 ("current", "in sync"); **5775 passed, 15 skipped, 0 failed** (10 m 34 s); wheel `nexus_scholar-1.1.0b6-py3-none-any.whl` built |
+| closure gate, UI (first) | `d31e6cee` | `npm ci` failed (EPERM, `next-swc` native module held by a process); after it, vitest | the npm steps did not run; rerun: vitest **3 failed** (see "Found by the closure gate"), everything else green |
+| closure gate, UI | `d5210739` (final) | `npm --prefix apps/research-ui ci`; `run build:export`; `run typecheck`; `test`; `run build`; `run test:browser` | all exit 0; vitest **942 passed** (66 files); Playwright **606 passed, 12 skipped** (12.8 m), including the three H-quota-hang browser tests; screenshots of the `incomplete` card (en, ar; light, dark) checked by eye |
+| note | `d5210739` | `test:browser` rewrites six tracked screenshots under `apps/research-ui/screenshots/` | restored with `git checkout`, not committed |
+
 ## Not verified
 
 - **Nothing was run against live OpenAlex** (its quota for the researcher's key is used up today, and the task forbids live calls). The 429 answer with `Retry-After: 50000` is a test double built from the run's record; whether OpenAlex also sends `x-ratelimit-*` headers or a body the client should read was not checked.
 - The researcher's real workspace (waiting on "Finish preparing this corpus") was not touched. Its run was prepared by the old code, which recorded no checks file: "Finish preparing" there runs the whole preparation again from the saved records (not the cheap re-check), and with this fix it ends quickly with a message if the quota is still used up.
-- The screens were not looked at in a browser with an `incomplete` run (the fake engine and the component tests carry it); the closure gate's `test:browser` runs the existing browser tests, none of which shows this state.
+- The `incomplete` card was seen only in Playwright screenshots against the fake engine (Harvest card, phone width, en and ar, light and dark), not in the running app with a real `incomplete` run.
 - CI matrix (Linux, macOS, Python 3.11) not run.
