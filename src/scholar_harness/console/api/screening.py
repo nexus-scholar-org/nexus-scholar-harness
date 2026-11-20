@@ -1243,6 +1243,8 @@ def action_pairing_redeem_all(body: RedeemAllBody, request: Request) -> dict[str
     if not approved and first_error is not None:
         detail = dict(first_error.detail) if isinstance(first_error.detail, dict) else {}
         detail["request_id"] = req  # the request's own id, not the per-batch one
+        if isinstance(detail.get("details"), dict):
+            detail["details"] = {**detail["details"], "request_id": req}
         raise HTTPException(status_code=first_error.status_code, detail=detail)
     return {
         "shape": "screening-action-redeem-all-v1",

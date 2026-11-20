@@ -388,6 +388,9 @@ export function ScreeningPublish({ locale }: Readonly<{ locale: Locale }>) {
       await load();
     } catch (error) {
       setRefusal(codeOf(error));
+      // A refused bulk paste may still have approved the batches before it (a 500
+      // after a journal failure): read the batch states again so they show.
+      await load();
     } finally {
       setBusy(false);
     }
