@@ -142,6 +142,7 @@ def create_app(
     browser_session: str | None = None,
     launch_codes: browser.LaunchCodes | None = None,
     ui_dir: str | Path | None = None,
+    code_window: Callable[..., bool] | None = None,
 ) -> FastAPI:
     """Build the console app for one workspace.
 
@@ -160,6 +161,11 @@ def create_app(
     ``launch_codes`` and ``ui_dir``: the static UI is served from this process,
     and the browser reaches the API under ``/api/console`` with a session
     cookie and the proxy's allowlist (``console/browser.py``).
+
+    ``code_window`` (the launcher passes ``code_window.reveal``) also shows the
+    approval codes in a window on this computer's desktop, for a researcher
+    who cannot see the terminal (finding 38). The codes still never travel
+    over HTTP.
     """
     # ``None``: no workspace open yet (``nexus-scholar ui`` on an empty root).
     # Then only the workspaces routes, the static UI and /healthz answer.
@@ -182,6 +188,7 @@ def create_app(
     runner = JobRunner(ws, on_event=on_job_event) if ws is not None else None
 
     app.state.workspace = ws
+    app.state.code_window = code_window
     app.state.job_runner = runner
     app.state.job_broadcast = broadcast
     from scholar_harness.workspace.catalog import resolve_root

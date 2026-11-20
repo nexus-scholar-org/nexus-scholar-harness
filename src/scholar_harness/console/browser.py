@@ -41,7 +41,7 @@ POST_PATHS: tuple[re.Pattern[str], ...] = tuple(
     re.compile(p)
     for p in (
         r"api/v1/screening/batch/\d+/decisions",
-        r"api/v1/screening/actions/(pairing/(begin|redeem)|defer|publish)",
+        r"api/v1/screening/actions/(pairing/(begin|redeem)(-all)?|defer|publish)",
         r"api/v1/screening/decisions/events",
         r"api/v1/screening/decisions/conflicts/[A-Za-z0-9_-]+/resolve",
         r"api/v1/screening/prepare",

@@ -41,6 +41,7 @@ import hashlib
 import hmac
 import json
 import os
+import re
 import secrets
 import threading
 import uuid
@@ -806,3 +807,147 @@ def redeem_pairing(
             }
         finally:
             _release_pairing_lock(ws)
+
+
+# --------------------------------------------------------------------------- #
+# H-run-small-fixes Part A (finding 38): stage the codes of every decided
+# batch at once. Nothing below changes what one code proves or binds: each
+# batch generation still gets its own fresh code (contract §9.1), staged by
+# :func:`begin_pairing` and redeemed by :func:`redeem_pairing`, unchanged.
+# The only new thing is that the codes are staged, shown and pasted together.
+# --------------------------------------------------------------------------- #
+
+#: Why a batch got no code from :func:`begin_pairing_all`.
+BULK_ALREADY_APPROVED = "ALREADY_APPROVED"
+BULK_DEFERRED = "DEFERRED"
+BULK_NOT_DECIDED = "NOT_DECIDED"
+
+#: One line of the block of codes: ``batch 12: ABCD...``. The code has a fixed
+#: length from a fixed alphabet, so a paste that lost its line breaks (a
+#: single-line field drops them) still reads one pair at a time.
+#: The batch number is bounded (six digits) so a long run of digits cannot
+#: make the match backtrack quadratically (review P3).
+_BLOCK_PAIR = re.compile(
+    rf"(\d{{1,6}})[ \t]*:[ \t]*([{PAIRING_CODE_ALPHABET}]{{{PAIRING_CODE_LENGTH}}})",
+    re.IGNORECASE,
+)
+
+
+def _manifest_batches(ws: Path) -> list[int]:
+    manifest = _screening_dir(ws) / "MANIFEST.json"
+    try:
+        payload = json.loads(manifest.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return []
+    return sorted(
+        int(b["batch_index"])
+        for b in payload.get("batches", [])
+        if isinstance(b, dict) and isinstance(b.get("batch_index"), int)
+    )
+
+
+def bulk_skip_reason(workspace_dir: Path, batch_index: int) -> str | None:
+    """Why one batch is not ready for a code, or ``None`` when it is.
+
+    Ready means: every candidate has a terminal decision and the batch has no
+    *current* approval (none, or one made before a decision changed: the
+    staleness rule of CON-03). A deferred batch is left alone: deferring is
+    the researcher's own "not yet".
+    """
+    from scholar_harness.screening.integrity import (
+        ScreeningIntegrityRefused,
+        check_exact_coverage,
+    )
+
+    ws = Path(workspace_dir).resolve()
+    if _review_mod.deferral_path(ws, batch_index).is_file():
+        return BULK_DEFERRED
+    decisions = _review_mod.default_decisions_path(ws, batch_index)
+    if not decisions.is_file():
+        return BULK_NOT_DECIDED
+    final_bytes = decisions.read_bytes()
+    approval = _review_mod.batch_approval_path(ws, batch_index)
+    if approval.is_file():
+        try:
+            stored = json.loads(approval.read_text(encoding="utf-8"))["approval"]
+        except (OSError, ValueError, KeyError, TypeError):
+            stored = {}
+        if isinstance(stored, dict) and stored.get("final_decision_sha256") == content_sha256(final_bytes):
+            return BULK_ALREADY_APPROVED
+    try:
+        entries = _review_mod._parse_decisions(decisions)
+        batch_env = _review_mod._resolve_batch_env(ws, batch_index)
+        candidates = {
+            str(c.get("study_id")) for c in batch_env.get("data", {}).get("candidates", [])
+        }
+        check_exact_coverage(candidates, entries)
+        _review_mod._require_resolved(entries)
+    except (AuthorityRefused, ScreeningIntegrityRefused, _review_mod.ReviewRefused):
+        return BULK_NOT_DECIDED
+    return None
+
+
+def format_code_block(staged: list[dict[str, Any]]) -> str:
+    """The codes as the researcher copies them: one ``batch n: CODE`` line each."""
+    return "\n".join(f"batch {s['batch_index']}: {s['code']}" for s in staged)
+
+
+def parse_code_block(text: str) -> list[tuple[int, str]]:
+    """``(batch, code)`` pairs from a pasted block, first occurrence of each batch."""
+    seen: dict[int, str] = {}
+    for batch, code in _BLOCK_PAIR.findall(str(text or "")):
+        seen.setdefault(int(batch), code.upper())
+    return sorted(seen.items())
+
+
+def begin_pairing_all(
+    workspace_dir: Path,
+    *,
+    lifetime_s: int = PAIRING_CODE_LIFETIME_S,
+) -> dict[str, Any]:
+    """Stage one fresh code per decided, not currently approved batch.
+
+    Each code is staged by :func:`begin_pairing` exactly as a single request
+    would stage it (same snapshot binding, hash-only store, lifetime cap). The
+    plaintext codes are returned to the caller for the terminal (and the
+    desktop window) only, like :func:`begin_pairing`'s. Refuses
+    ``APPROVAL_MISSING`` when no batch is ready: nothing to approve is not an
+    empty success.
+    """
+    if _review_mod._is_low_integrity_process():
+        raise AuthorityRefused(
+            APPROVAL_NOT_OPERATOR,
+            "pairing begin refused: this process runs at Low integrity (worker "
+            "level); the operator act requires the publisher context",
+        )
+    ws = Path(workspace_dir).resolve()
+    _review_mod.load_operator_context(ws)
+    staged: list[dict[str, Any]] = []
+    skipped: list[dict[str, Any]] = []
+    for index in _manifest_batches(ws):
+        # One broken batch (a missing parent, an unreadable file) is listed with
+        # its refusal and never stops the others (review P2).
+        try:
+            reason = bulk_skip_reason(ws, index)
+            if reason is not None:
+                skipped.append({"batch_index": index, "reason": reason})
+                continue
+            staged.append(begin_pairing(ws, index, lifetime_s=lifetime_s))
+        except Exception as exc:  # typed refusals (authority, review, worker) carry a code
+            code = getattr(exc, "code", None)
+            if code is None:
+                raise
+            skipped.append({"batch_index": index, "reason": str(code)})
+    if not staged:
+        raise AuthorityRefused(
+            APPROVAL_MISSING,
+            "no batch is ready for approval: every batch is approved, deferred "
+            "or not fully decided",
+            skipped=skipped,
+        )
+    return {
+        "staged": staged,
+        "skipped": skipped,
+        "block": format_code_block(staged),
+        "expires_at": min(s["expires_at"] for s in staged),
+    }
