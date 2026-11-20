@@ -309,6 +309,12 @@ def test_the_methods_paragraph_reports_a_method_amendment(tmp_path, field):
     assert f"after the protocol was signed, the reviewer changed {label}" in text
     [figure] = body["figures"]["method_amendments"]
     assert (figure["field"], figure["to"]) == (field, value)
+    from test_methods_api import _assert_no_forbidden, _assert_numbers_trace
+
+    _assert_numbers_trace(body)  # the amendment's date traces to its figure
+    _assert_no_forbidden(text)
+    if field == "blinding":
+        assert body["figures"]["blinding"]["at_publish"] == "show"
     if field == "not_reported":
         assert body["figures"]["method"]["not_reported"] == "decisive_first"
         assert (

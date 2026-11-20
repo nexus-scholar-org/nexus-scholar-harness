@@ -443,6 +443,9 @@ def start_run(
         "cost_so_far": 0.0 if priced else None,
         "cost_ceiling_usd": cost_ceiling_usd,
         "estimate": estimate,
+        # H-screening-drafts: a Batch run answers in chunks of CHUNK; the screen says it waits.
+        "batch": batch,
+        "chunk_size": CHUNK,
         "code": None,
         "started_at": _now(),
         "finished_at": None,
@@ -591,8 +594,14 @@ def calibration_result(ws: Path, study_ids: list[str]) -> dict[str, Any]:
     """Include-recall of the latest proposals against the researcher's decisions (advisory)."""
     from scholar_agent import prompt_gate as pg
 
+    from scholar_harness.screening.method import effective_method
+
     context = ev.load_context(ws)
     events = ev.current_events(ev.read_events(ws), context)
+    # H-screening-drafts: scored under the not-reported policy in force, like every screen.
+    protocol = json.loads((ws / "protocol.json").read_text(encoding="utf-8"))
+    criteria = pr.Criteria.from_protocol(protocol)
+    policy = effective_method(ws).config.not_reported
     labels, outcomes = {}, {}
     for study in study_ids:
         screener = next((e["screener_id"] for e in events if e["study_id"] == study), None)
@@ -601,7 +610,9 @@ def calibration_result(ws: Path, study_ids: list[str]) -> dict[str, Any]:
         if winner is None or proposal is None:
             continue
         labels[study] = "INCLUDE" if winner["outcome"] in ("INCLUDE", "MAYBE") else "EXCLUDE"
-        outcomes[study] = proposal["derived_outcome"]
+        outcomes[study] = pr.outcome_in_force(
+            proposal, criteria, not_reported=policy, protocol_fingerprint=context.protocol_fingerprint
+        )[0]
     scored = pg.score(outcomes, labels)
     return {
         "include_recall": scored["include_recall"],

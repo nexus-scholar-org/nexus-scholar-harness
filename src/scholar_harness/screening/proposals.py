@@ -18,7 +18,19 @@ M7-method (decision 2026-11-08): the not-reported rule is the protocol's
 `method.not_reported` policy. `unclear` (the default) is the table above.
 `exclude` makes an inclusion criterion answered `not_reported` an EXCLUDE
 (`FAILS-INC-n`) after any definite failure; an exclusion criterion that is not
-reported never fails. A failed check or `cannot_decide` stays MAYBE under both.
+reported never fails. A failed check or `cannot_decide` stays MAYBE under every
+policy.
+
+H-screening-drafts (decision 2026-11-20, PROPOSED): `decisive_first` lets a
+decisive answer win. Any exclusion `yes` or inclusion `no` gives EXCLUDE with
+that criterion as the reason; only then does any `not_reported` give MAYBE;
+otherwise INCLUDE. Under `unclear` 85% of the acceptance run's drafts were
+Unclear because one gap hid a decisive answer.
+
+The policy in force can be changed after genesis by a method amendment
+(`method.py`). A stored proposal keeps the outcome first derived and the policy
+it was derived under (`not_reported_policy`); `outcome_in_force` re-derives the
+outcome shown and counted from its stored answers under the policy in force.
 
 Plain-code validators run on every proposal: the schema, one answer per
 criterion, and each evidence quote found verbatim at its offsets in the
@@ -125,7 +137,8 @@ def validate_output(output: Any, criteria: Criteria, text: str) -> list[dict[str
     return checks
 
 
-NOT_REPORTED_POLICIES = ("unclear", "exclude")
+#: The protocol's `method.not_reported` values, in the model's order (a test pins them).
+NOT_REPORTED_POLICIES = ("unclear", "exclude", "decisive_first")
 
 
 def derive_outcome(
@@ -133,7 +146,8 @@ def derive_outcome(
 ) -> tuple[str, str | None]:
     """The rule table (`RULES_VERSION`): (outcome, reason_code).
 
-    ``not_reported`` is the protocol's policy (``unclear`` or ``exclude``).
+    ``not_reported`` is the policy in force (``unclear``, ``exclude`` or
+    ``decisive_first``).
     """
     if not_reported not in NOT_REPORTED_POLICIES:
         raise ValueError(f"not_reported must be one of {NOT_REPORTED_POLICIES}, got {not_reported!r}")
@@ -154,7 +168,30 @@ def derive_outcome(
         for inclusion in criteria.inclusion:
             if answers[inclusion] == "not_reported":
                 return "EXCLUDE", f"FAILS-{inclusion}"
+    if not_reported == "decisive_first" and any(answers[c] == "not_reported" for c in criteria.all):
+        return "MAYBE", None
     return "INCLUDE", None
+
+
+def outcome_in_force(
+    proposal: dict[str, Any], criteria: Criteria, *, not_reported: str, protocol_fingerprint: str
+) -> tuple[str, str | None]:
+    """The outcome a stored proposal shows and counts under the policy in force.
+
+    Derived at read time from the stored answers and checks (H-screening-drafts);
+    the stored ``derived_outcome`` stays as provenance. A proposal made under
+    another protocol keeps its stored outcome: its criteria may not be these.
+    """
+    stored = (str(proposal.get("derived_outcome") or "MAYBE"), proposal.get("reason_code"))
+    if proposal.get("protocol_fingerprint") != protocol_fingerprint:
+        return stored
+    # Always re-derived (deterministic): a record from before this field has no
+    # `not_reported_policy`, and the stored outcome of one that has it is the same.
+    output = proposal.get("output")
+    checks = proposal.get("validators") or []
+    if not isinstance(output, dict) or not checks:
+        return "MAYBE", None
+    return derive_outcome(output, criteria, checks, not_reported=not_reported)
 
 
 class ProvenanceMissing(ValueError):
@@ -191,11 +228,12 @@ def submit_proposal(
     criteria = Criteria.from_protocol(protocol)
     text = record_text(title, abstract, published)
     checks = validate_output(output, criteria, text)
-    # M7-method: the protocol's not-reported policy. The record's
-    # protocol_fingerprint covers the method block, so no extra field is needed.
-    from .method import method_from_protocol
+    # M7-method: the protocol's not-reported policy; H-screening-drafts: with
+    # any method amendment recorded under this protocol. The fingerprint no longer
+    # covers an amended value, so the policy is stored on the record.
+    from .method import apply_amendments, method_from_protocol
 
-    policy = method_from_protocol(protocol).config.not_reported
+    policy = apply_amendments(method_from_protocol(protocol), ws, protocol_fingerprint).config.not_reported
     outcome, reason_code = derive_outcome(output, criteria, checks, not_reported=policy)
     in_hash = input_sha256(title, abstract, published)
     task_version = str(provenance.get("task_version") or "")
@@ -216,6 +254,7 @@ def submit_proposal(
         "validators": checks,
         "derived_outcome": outcome,
         "reason_code": reason_code,
+        "not_reported_policy": policy,
         "cannot_decide": bool(isinstance(output, dict) and output.get("cannot_decide")),
         "created_at": created_at,
     }

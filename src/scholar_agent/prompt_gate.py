@@ -156,16 +156,25 @@ def requests_for(records: list[EvalRecord]) -> list[ScreeningRequest]:
     return [ScreeningRequest(r.study_id, task_mod.record_message(r.title, r.abstract, r.published)) for r in records]
 
 
-def derive(record: EvalRecord, result: DriverResult | None, protocol: dict[str, Any]) -> tuple[str, str | None, list[dict[str, Any]]]:
-    """The engine's outcome for one record; any non-ok or missing result is Unclear."""
+def derive(
+    record: EvalRecord, result: DriverResult | None, protocol: dict[str, Any], *, not_reported: str | None = None
+) -> tuple[str, str | None, list[dict[str, Any]]]:
+    """The engine's outcome for one record; any non-ok or missing result is Unclear.
+
+    ``not_reported`` is the policy to derive under; ``None`` (the default) is the
+    protocol's own (H-screening-drafts: before, the gate always used ``unclear``,
+    whatever the protocol said).
+    """
     from scholar_harness.screening import proposals as pr
+    from scholar_harness.screening.method import method_from_protocol
 
     criteria = pr.Criteria.from_protocol(protocol)
+    policy = not_reported or method_from_protocol(protocol).config.not_reported
     if result is None or result.status != "ok":
         return "MAYBE", None, [{"name": "driver", "ok": False, "detail": result.status if result else "no result"}]
     output = task_mod.to_proposal_output(result.output, record.title, record.abstract, record.published)
     checks = pr.validate_output(output, criteria, pr.record_text(record.title, record.abstract, record.published))
-    outcome, reason = pr.derive_outcome(output, criteria, checks)
+    outcome, reason = pr.derive_outcome(output, criteria, checks, not_reported=policy)
     return outcome, reason, checks
 
 

@@ -69,7 +69,9 @@ def _workspace_id(ws: Path) -> str:
 
 
 #: Read-only fields the settings report but never store (M7-method).
-DERIVED_SETTINGS = ("blinding_source", "not_reported_policy", "reporting", "reporting_source")
+DERIVED_SETTINGS = (
+    "blinding_source", "not_reported_policy", "not_reported_source", "method_amendments", "reporting", "reporting_source",
+)
 
 
 def _stored_settings(ws: Path) -> dict[str, Any]:
@@ -92,6 +94,12 @@ def load_settings(ws: Path) -> dict[str, Any]:
         settings["blinding"] = method.config.blinding
     settings["blinding_source"] = "protocol" if method.source == "protocol" else "settings"
     settings["not_reported_policy"] = method.config.not_reported
+    # H-screening-drafts: an amendment recorded after genesis, and where the policy comes from.
+    settings["not_reported_source"] = method.source_of("not_reported")
+    settings["method_amendments"] = [
+        {k: a.get(k) for k in ("amendment_id", "field", "from", "to", "amended_by", "amended_at", "protocol_fingerprint", "note")}
+        for a in method.amendments
+    ]
     # M7b-guideline: the reporting guideline in force, for the screens' labels.
     settings["reporting"] = method.reporting
     settings["reporting_source"] = method.reporting_source
@@ -114,11 +122,33 @@ def _has_abstract(paper: dict[str, Any]) -> bool:
     return bool(abstract) and abstract != "No abstract available."
 
 
+def _corpus_accepted(ws: Path) -> bool:
+    registry = ws / "audit" / "artifact_registry.json"
+    try:
+        entries = json.loads(registry.read_text(encoding="utf-8")).get("artifacts", {}) if registry.is_file() else {}
+    except (OSError, ValueError):
+        return False
+    return any(isinstance(e, dict) and e.get("artifact_type") == "corpus_snapshot" for e in entries.values())
+
+
+def _in_force(ws: Path, context: ev.ScreeningContext, settings: dict[str, Any]):
+    """``proposal -> (outcome, reason_code)`` under the not-reported policy in force (H-screening-drafts)."""
+    protocol = json.loads((ws / "protocol.json").read_text(encoding="utf-8"))
+    criteria = pr.Criteria.from_protocol(protocol)
+    policy = settings["not_reported_policy"]
+    return lambda proposal: pr.outcome_in_force(
+        proposal, criteria, not_reported=policy, protocol_fingerprint=context.protocol_fingerprint
+    )
+
+
 def _state(ws: Path) -> tuple[ev.ScreeningContext, dict[str, Any], list[dict], dict[str, dict]]:
     if not (ws / "protocol.json").is_file():
         raise _error(409, refusals.SNAPSHOT_NOT_ACCEPTED, "no protocol.json in this workspace")
     context = ev.load_context(ws)
     if not context.batches:
+        # H-screening-drafts: an accepted corpus without batches is not a missing corpus.
+        if _corpus_accepted(ws):
+            raise _error(409, refusals.BATCHES_NOT_PREPARED, "the corpus is accepted; prepare the screening batches")
         raise _error(409, refusals.SNAPSHOT_NOT_ACCEPTED, "no prepared batches; accept the corpus and prepare")
     settings = load_settings(ws)
     events = [
@@ -206,12 +236,15 @@ def queue(
     if order == "agent_uncertainty":
         # How unsure the agent was, never its call: Unclear drafts first, then
         # drafts with failed checks; the methods paragraph discloses this order.
+        # H-screening-drafts: Unclear under the policy in force.
+        outcome = _in_force(ws, context, settings)
+
         def unsure(study: str) -> tuple[int, int]:
             proposal = latest.get(study)
             if proposal is None:
                 return (2, 0)
             failed = sum(1 for c in proposal.get("validators", []) if not c.get("ok"))
-            return (0 if proposal.get("derived_outcome") == "MAYBE" else 1, -failed)
+            return (0 if outcome(proposal)[0] == "MAYBE" else 1, -failed)
 
         chosen.sort(key=unsure)
     page = chosen[cursor : cursor + max(1, min(limit, 200))]
@@ -290,6 +323,9 @@ def record_proposal(study_id: str, request: Request) -> dict[str, Any]:
     except ev.LockBusy as exc:
         raise _error(503, ev.ATOMIC_COMMIT_FAILED, "the event log is busy; retry") from exc
     output = proposal.get("output") if isinstance(proposal.get("output"), dict) else {}
+    # H-screening-drafts: the outcome shown is derived under the policy in force;
+    # the outcome first recorded, and its policy, stay beside it as provenance.
+    outcome, reason_code = _in_force(ws, context, settings)(proposal)
     return {
         "proposal": {
             "proposal_id": proposal["proposal_id"],
@@ -297,8 +333,15 @@ def record_proposal(study_id: str, request: Request) -> dict[str, Any]:
             "model": proposal.get("model"),
             "prompt_sha256": proposal.get("prompt_sha256"),
             "criteria": output.get("criteria", []),
-            "derived_outcome": proposal["derived_outcome"],
-            "reason_code": proposal.get("reason_code"),
+            "derived_outcome": outcome,
+            "reason_code": reason_code,
+            "not_reported_policy": settings["not_reported_policy"],
+            "recorded": {
+                "derived_outcome": proposal["derived_outcome"],
+                "reason_code": proposal.get("reason_code"),
+                # A record from before H-screening-drafts was derived under the protocol's own policy.
+                "not_reported_policy": proposal.get("not_reported_policy"),
+            },
             "validators": proposal.get("validators", []),
             "cannot_decide": proposal.get("cannot_decide", False),
         }
@@ -412,7 +455,8 @@ def put_settings(body: SettingsBody, request: Request) -> dict[str, Any]:
         raise _error(
             409,
             refusals.BLINDING_SET_BY_PROTOCOL,
-            f"the protocol's method block sets blinding to {current['blinding']!r}; change the protocol to change it",
+            f"the protocol's method block sets blinding to {current['blinding']!r}; "
+            "change it with a method amendment (POST /screening/method/amendments)",
         )
     if current["blinding_source"] == "protocol":
         update.pop("blinding", None)  # the same value: nothing to record
@@ -445,6 +489,39 @@ def put_settings(body: SettingsBody, request: Request) -> dict[str, Any]:
         refresh_index=False,
     )
     return load_settings(ws)
+
+
+class AmendmentBody(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    field: str
+    value: str
+    confirm: bool = False
+    note: str | None = Field(None, max_length=500)
+
+
+@router.post("/method/amendments")
+def amend_method(body: AmendmentBody, request: Request) -> dict[str, Any]:
+    """Change blinding or the not-reported policy after genesis, as a recorded amendment.
+
+    H-screening-drafts (decision 2026-11-20, PROPOSED): ``protocol.json`` and its
+    fingerprint are not touched, so the corpus, the batches and every decision keep
+    their binding; the amendment is a line of ``audit/method_amendments.jsonl`` and a
+    ``PROTOCOL_METHOD_AMENDED`` journal row, and the methods paragraph reports it.
+    """
+    from ...screening import method as m
+
+    ws = _ws(request)
+    if not body.confirm:
+        raise _error(422, refusals.METHOD_AMENDMENT_INVALID, "an amendment needs confirm=true")
+    current = load_settings(ws)
+    try:
+        row = m.amend_method(
+            ws, field=body.field, value=body.value, amended_by=str(current["screener_id"]), amended_at=_now(),
+            note=(body.note or "").strip() or None,
+        )
+    except m.AmendmentInvalid as exc:
+        raise _error(422, exc.code, str(exc)) from exc
+    return {"amendment": row, "settings": load_settings(ws)}
 
 
 #: What the approver name is: a name typed on this computer, not a verified
@@ -907,6 +984,10 @@ def _run_view(run: dict[str, Any]) -> dict[str, Any]:
     keys = ("run_id", "kind", "state", "code", "provider", "model", "effort", "records", "done", "failed", "refused",
             "truncated", "invalid", "check_failures", "cost_so_far", "cost_ceiling_usd", "started_at", "finished_at")
     view = {k: run.get(k) for k in keys}
+    # H-screening-drafts: a Batch run answers in chunks, so the screen can say it is waiting.
+    # A run recorded before this field is read from its estimate.
+    view["batch"] = bool(run.get("batch", (run.get("estimate") or {}).get("batch", False)))
+    view["chunk_size"] = run.get("chunk_size") or 200
     if "calibration" in run:
         view["calibration"] = run["calibration"]
     return view
@@ -929,7 +1010,11 @@ def proposal_setup(request: Request) -> dict[str, Any]:
     ]
     recorded = runs.list_runs(ws)
     latest = max(recorded, key=lambda r: (r.get("started_at") or "", r["run_id"]), default=None)
+    # H-screening-drafts: the model of the last run in this workspace (any kind), so the
+    # screen does not fall back to the most expensive model on every reload.
+    last_model = {"provider": latest.get("provider"), "model": latest.get("model")} if latest and latest.get("model") else None
     return {
+        "last_model": last_model,
         "task": {
             "task_version": task.task_version,
             "prompt_sha256": task.prompt_sha256,
@@ -1019,6 +1104,7 @@ def agreement(request: Request) -> dict[str, Any]:
             reveals[r["study_id"]] = min(first, r["revealed_at"]) if first else r["revealed_at"]
     current = [p for p in pr.read_proposals(ws) if p.get("protocol_fingerprint") == context.protocol_fingerprint]
     latest = {p["study_id"]: p for p in sorted(current, key=lambda p: (p.get("created_at") or "", p["proposal_id"]))}
+    in_force = _in_force(ws, context, settings)  # H-screening-drafts
     table = dict.fromkeys(_PAIRS.values(), 0)
     unclear, compared, after_seeing = 0, 0, 0
     splits: Counter[str] = Counter()
@@ -1035,7 +1121,7 @@ def agreement(request: Request) -> dict[str, Any]:
             continue
         decision = max(before, key=lambda e: str(e.get("received_at") or ""))
         compared += 1
-        you, agent = decision["outcome"], proposal["derived_outcome"]
+        you, agent = decision["outcome"], in_force(proposal)[0]
         if "MAYBE" in (you, agent):
             unclear += 1
         else:

@@ -339,11 +339,13 @@ class MethodConfig(BaseModel):
     rules_version: Literal["screening-rules-v1"] = Field(
         "screening-rules-v1", description="Rule table turning criterion answers into an outcome"
     )
-    not_reported: Literal["unclear", "exclude"] = Field(
+    not_reported: Literal["unclear", "exclude", "decisive_first"] = Field(
         "unclear",
         description=(
             "unclear: any criterion not reported gives Unclear (full text); "
-            "exclude: an inclusion criterion not reported gives Exclude (FAILS-INC-n)"
+            "exclude: an inclusion criterion not reported gives Exclude (FAILS-INC-n); "
+            "decisive_first: an exclusion criterion answered yes or an inclusion criterion answered no "
+            "gives Exclude, and only then does a criterion not reported give Unclear"
         ),
     )
     blinding: Literal["reveal_after_decision", "show"] = Field(

@@ -85,8 +85,13 @@ BATCH_SIZE_INVALID = "BATCH_SIZE_INVALID"
 # --- the protocol's method block (M7-method, decision 2026-11-08) ------------
 #: The protocol's ``method`` block is outside the checked limits.
 PROTOCOL_METHOD_INVALID = "PROTOCOL_METHOD_INVALID"
-#: Blinding is set by the protocol; the settings cannot change it.
+#: Blinding is set by the protocol; the settings cannot change it (a method amendment can).
 BLINDING_SET_BY_PROTOCOL = "BLINDING_SET_BY_PROTOCOL"
+#: H-screening-drafts: a method amendment outside the amendable fields and values,
+#: one that changes nothing, or one sent without its confirmation.
+METHOD_AMENDMENT_INVALID = "METHOD_AMENDMENT_INVALID"
+#: H-screening-drafts: the corpus is accepted but no screening batch is prepared yet.
+BATCHES_NOT_PREPARED = "BATCHES_NOT_PREPARED"
 
 # --- the inception routes (M4a, `docs/architecture/inception-api.md`) ---------
 #: Raised as ``DraftRefused`` (``inception/drafts.py``), ``StepRefused``
@@ -292,6 +297,8 @@ CONTRACT_ADDED = frozenset(
         BATCH_SIZE_INVALID,
         PROTOCOL_METHOD_INVALID,
         BLINDING_SET_BY_PROTOCOL,
+        METHOD_AMENDMENT_INVALID,
+        BATCHES_NOT_PREPARED,
         DRAFT_ID_INVALID,
         DRAFT_NOT_FOUND,
         DRAFT_UNREADABLE,
