@@ -713,10 +713,16 @@ def accept_corpus_route(request: Request) -> dict[str, Any]:
             raise _corpus_error(exc) from exc
     if not staged and not status["from_discovery"]:
         raise _error(409, "NOTHING_STAGED", "add at least one database export first")
+    from ...corpus_accept import harvest_part
+
+    harvest = harvest_part(ws)
     try:
-        if staged:
+        if staged and not (harvest is not None and harvest["included"]):
+            # Exports alone; an unfinished harvest is left out (M3i item 10, M3f decision 3).
             accept_corpus(ws)
         else:
+            # M3f: with staged exports beside a ready harvest, the same accept
+            # combines both parts and journals the run.
             # M3d-engine: a browser run's verified.json, frozen on the hand-off
             # screen exactly as the end of a CLI run freezes it (decision 2026-11-10).
             from ...pipeline.coordinator import accept_discovery_corpus
@@ -821,6 +827,11 @@ def prisma_preview(request: Request) -> dict[str, Any]:
         "not_yet_decided": screened - len(winners),
         "checks": checks,
     }
+    from ...corpus_accept import COMBINED_MANIFEST_SCHEMA, _manifest, prisma_identification
+
+    if (_manifest(ws) or {}).get("schema") == COMBINED_MANIFEST_SCHEMA:
+        # M3f: the same counts as the published report (identified = fetched + imported).
+        preview["identified"], preview["duplicates_removed"] = prisma_identification(ws, len(corpus["studies"]))
     # M3g: a citation-searching round identifies what the chase fetched and
     # carries the earlier rounds' published counts (the databases arm).
     from ...screening import rounds as _rounds
@@ -886,12 +897,78 @@ def pairing_begin(body: PairingBeginBody, request: Request) -> dict[str, Any]:
             raise
         raise _error(409, str(code), str(getattr(exc, "message", exc))) from exc
     print(f"[nexus-scholar] approval code for batch {body.batch}: {staged['code']} (expires {staged['expires_at']})", flush=True)
+    shown = _show_on_desktop(
+        request, codes=f"batch {staged['batch_index']}: {staged['code']}", batches=[staged["batch_index"]],
+        expires_at=staged["expires_at"],
+    )
     return {
         "batch_index": staged["batch_index"],
         "snapshot_fingerprint": staged["snapshot_fingerprint"],
         "code_expires_at": staged["expires_at"],
         "attempt_cap": staged["attempt_cap"],
-        "code_shown_on": "terminal",
+        "code_shown_on": "desktop" if shown else "terminal",
+    }
+
+
+def _show_on_desktop(request: Request, *, codes: str, batches: list[int], expires_at: str) -> bool:
+    """Also show the codes in the engine's desktop window, when the app has one (finding 38).
+
+    The window is the engine's own, on this computer, like its terminal; the
+    codes are never part of an HTTP response. A failure to open it leaves the
+    codes on the terminal and says so.
+    """
+    window = getattr(request.app.state, "code_window", None)
+    if window is None:
+        return False
+    try:
+        return bool(window(codes=codes, batches=batches, expires_at=expires_at))
+    except Exception:  # noqa: BLE001 - the terminal still has the codes
+        return False
+
+
+class PairingBeginAllBody(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+
+@router.post("/actions/pairing/begin-all")
+def pairing_begin_all(request: Request, body: PairingBeginAllBody | None = None) -> dict[str, Any]:
+    """Stage one fresh code for every decided, not yet approved batch (desktop only).
+
+    Finding 38: approving 54 batches took 54 requests and 54 codes typed from
+    the terminal. Each batch still gets its own one-time code, bound to its
+    own bytes (contract §9.1, CON-03); the codes are printed together on the
+    terminal (and shown in the desktop window when the app has one) as one
+    block the researcher copies into the Publish screen. Never returned here.
+    """
+    from ...authority.pairing import begin_pairing_all
+
+    ws = _ws(request)
+    try:
+        staged = begin_pairing_all(ws)
+    except Exception as exc:  # typed authority refusals carry a stable code
+        code = getattr(exc, "code", None)
+        if code is None:
+            raise
+        details = dict(getattr(exc, "details", None) or {})
+        raise _error(409, str(code), str(getattr(exc, "message", exc)), **details) from exc
+    batches = [s["batch_index"] for s in staged["staged"]]
+    count = len(batches)
+    print(
+        f"[nexus-scholar] approval codes for {count} batch{'es' if count != 1 else ''} "
+        f"(expire {staged['expires_at']}); copy the lines below into the Publish screen:",
+        flush=True,
+    )
+    print(staged["block"], flush=True)
+    shown = _show_on_desktop(request, codes=staged["block"], batches=batches, expires_at=staged["expires_at"])
+    return {
+        "batches": [
+            {"batch_index": s["batch_index"], "snapshot_fingerprint": s["snapshot_fingerprint"]}
+            for s in staged["staged"]
+        ],
+        "skipped": staged["skipped"],
+        "code_expires_at": staged["expires_at"],
+        "attempt_cap": staged["staged"][0]["attempt_cap"],
+        "code_shown_on": "desktop" if shown else "terminal",
     }
 
 

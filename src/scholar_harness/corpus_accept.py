@@ -21,6 +21,14 @@ ids) and ``literature/raw/provenance_manifest.json`` (records per database, the
 total identified). Duplicates within and across files are left to the snapshot
 builder's deduplicator, so the PRISMA counts read: identified = every record,
 duplicates removed = identified - studies.
+
+M3f-combined-corpus: until the accept a corpus has two parts, the harvest (the
+newest search run published as the corpus, once its preparation is ready) and
+the staged exports, changed on their own and in any order. The accept hands
+the builder the harvest's ``verified.json`` rows, then every staged record, and
+the deduplicator runs once over both (``_materialise_combined``); the harvest's
+own file is kept in its run folder. A harvest-only or import-only accept is
+unchanged.
 """
 
 from __future__ import annotations
@@ -29,7 +37,7 @@ import copy
 import hashlib
 import json
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import UTC, date, datetime
 from pathlib import Path
 from typing import Any
@@ -79,6 +87,10 @@ class AcceptCorpusResult:
     # warnings were passed) and those warnings (M3a review finding 5).
     outcome_status: str = "SUCCESS"
     warnings: tuple[str, ...] = ()
+    # M3f: the harvest run combined with the staged exports, or the unfinished
+    # harvest the accept left out because exports were staged ({run, state}).
+    combined_run: str | None = None
+    left_out: dict[str, Any] | None = None
 
 
 def _workspace_id(ws: Path) -> str:
@@ -242,21 +254,92 @@ def _imported(ws: Path) -> bool:
     A discovery harvest also writes ``provenance_manifest.json`` (legacy
     workspaces have one), so the file's presence alone proves nothing.
     """
+    return _manifest_schema(ws) in (IMPORT_MANIFEST_SCHEMA, COMBINED_MANIFEST_SCHEMA)
+
+
+def _manifest(ws: Path) -> dict[str, Any] | None:
     path = ws / MANIFEST_FILE
     if not path.is_file():
-        return False
+        return None
     try:
-        return json.loads(path.read_text(encoding="utf-8")).get("schema") == IMPORT_MANIFEST_SCHEMA
-    except (OSError, ValueError, AttributeError):
+        value = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return None
+    return value if isinstance(value, dict) else None
+
+
+def _manifest_schema(ws: Path) -> str | None:
+    manifest = _manifest(ws)
+    return manifest.get("schema") if manifest else None
+
+
+def _read_json(path: Path) -> Any:
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return None
+
+
+def harvest_part(ws: Path) -> dict[str, Any] | None:
+    """The harvest part of a corpus not yet accepted (M3f), or ``None`` without a published run.
+
+    The newest search run published as the corpus, with its preparation state
+    (``ready``, ``incomplete``, ``failed``, ...) and whether the accept would
+    include it: only a ready preparation is included (an unfinished one is
+    never frozen, M3i item 7). ``rows_path`` is where its works are: the run's
+    own copy when an earlier combined accept made one, else ``verified.json``.
+    A ready run whose ``verified.json`` was written over by an import accept
+    the gate refused (before M3f) has no rows left, so it is not included,
+    unless the run's verification wrote ``verified.json`` after that manifest
+    (review F1: the file is then the run's own and the manifest is stale).
+    """
+    from .pipeline.harvest_marker import READY, corpus_run_dir, preparation_view
+
+    lit = ws / "literature"
+    run_dir = corpus_run_dir(lit)
+    if run_dir is None:
+        return None
+    view = preparation_view(lit, run_dir, published=True, newest_published=True)
+    own = run_dir / "verified.json"
+    included = view["state"] == READY and (own.is_file() or not _imported(ws) or _verified_after_manifest(ws))
+    manifest = _read_json(run_dir / "legs.json")
+    return {
+        "run": run_dir.name, "state": view["state"], "included": included, "run_dir": run_dir,
+        "manifest": manifest if isinstance(manifest, dict) else {},
+        "rows_path": own if own.is_file() else lit / "verified.json",
+    }
+
+
+def _verified_after_manifest(ws: Path) -> bool:
+    """True when ``verified.json`` was written after the provenance manifest (a search's, not the import's)."""
+    try:
+        return (ws / "literature" / "verified.json").stat().st_mtime_ns > (ws / MANIFEST_FILE).stat().st_mtime_ns
+    except OSError:
         return False
+
+
+def public_harvest(harvest: dict[str, Any] | None) -> dict[str, Any] | None:
+    """What the corpus view says of the harvest part: ``{run, state, included}``."""
+    return None if harvest is None else {k: harvest[k] for k in ("run", "state", "included")}
+
+
+def failed_leg_warnings(manifest: dict[str, Any]) -> list[str]:
+    """The snapshot warnings of a run's failed databases, as the pipeline passes them (M3d decision 3)."""
+    errors = {
+        str(leg.get("provider")): str(leg.get("error") or "failed")
+        for leg in manifest.get("legs") or []
+        if isinstance(leg, dict) and leg.get("status") == "failed"
+    }
+    return [f"{name}: {error}" for name, error in sorted(errors.items())]
 
 
 def _staging_refusal(ws: Path) -> AcceptCorpusRefused | None:
     """Why a database export cannot be staged now, or ``None`` when it can.
 
-    Researcher, 2026-11-10 ("keep the rule for now, combine later"): an export
-    is staged only before any search run. A snapshot built from a harvest plus
-    staged exports is M3f-combined-corpus (RELEASE: it changes the snapshot's inputs).
+    M3f-combined-corpus: an export can be staged before or after a search run;
+    the accept combines the two. Refused once the corpus is accepted, and for a
+    ``verified.json`` that no search run and no import of this app made
+    (records of unknown origin, which are never mixed with an export).
     """
     if _accepted_snapshot(ws):
         return AcceptCorpusRefused(
@@ -264,13 +347,15 @@ def _staging_refusal(ws: Path) -> AcceptCorpusRefused | None:
             "CORPUS_ALREADY_ACCEPTED",
         )
     if (ws / "literature" / "verified.json").exists() and not _imported(ws):
-        return AcceptCorpusRefused(
-            "literature/verified.json already exists and holds the corpus of a search run; database exports are "
-            "imported only before any search run, so one corpus is never replaced by another. "
-            "Accept the search corpus on the hand-off screen, or remove literature/verified.json "
-            "to import exports instead",
-            "VERIFIED_EXISTS",
-        )
+        from .pipeline.harvest_marker import corpus_run_dir
+
+        if corpus_run_dir(ws / "literature") is None:
+            return AcceptCorpusRefused(
+                "literature/verified.json holds records that no search run and no import of this app made, "
+                "so their origin is unknown and a database export is not mixed with them. Accept them as "
+                "they are, or remove literature/verified.json to import exports instead",
+                "VERIFIED_EXISTS",
+            )
     return None
 
 
@@ -542,7 +627,7 @@ def prisma_identification(ws: Path, screened_docs: int) -> tuple[int, int]:
             manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         except (OSError, ValueError):
             manifest = {}
-    if manifest.get("schema") == IMPORT_MANIFEST_SCHEMA:
+    if manifest.get("schema") in (IMPORT_MANIFEST_SCHEMA, COMBINED_MANIFEST_SCHEMA):
         registry = json.loads((ws / "audit" / "artifact_registry.json").read_text(encoding="utf-8"))
         corpora = sorted(
             (e for e in registry.get("artifacts", {}).values() if e.get("artifact_type") == "corpus_snapshot"),
@@ -550,6 +635,9 @@ def prisma_identification(ws: Path, screened_docs: int) -> tuple[int, int]:
         )
         data = json.loads((ws / corpora[-1]["path"]).read_text(encoding="utf-8"))["data"]
         records = len(data["record_to_study"])
+        if manifest.get("schema") == COMBINED_MANIFEST_SCHEMA:
+            # M3f: the harvest's records fetched (its own duplicates included) plus every imported record.
+            records = int(manifest.get("total_raw_harvested") or records)
         return records, records - len(data["studies"])
     total = manifest.get("total_raw_harvested", screened_docs) if manifest else screened_docs
     return total, max(0, total - screened_docs)
@@ -660,6 +748,8 @@ def corpus_status(workspace: Path | str) -> dict[str, Any]:
         "limits": {"max_source_bytes": MAX_SOURCE_BYTES, "label_max_length": LABEL_MAX_LENGTH},
         # M3d-engine: why staging an export is refused now ({code, message}), else None.
         "staging_refused": None,
+        # M3f: the harvest part ({run, state, included}), or None without a published search run.
+        "harvest": None,
     }
     refusal = _staging_refusal(ws)
     if refusal is not None:
@@ -675,7 +765,19 @@ def corpus_status(workspace: Path | str) -> dict[str, Any]:
             "studies": studies,
             "duplicates": records - studies,
         }
-        status["from_discovery"] = not sources
+        manifest = _manifest(ws) or {}
+        if manifest.get("schema") == COMBINED_MANIFEST_SCHEMA and isinstance(manifest.get("harvest"), dict):
+            # M3f: an accepted combined corpus names both parts.
+            part = manifest["harvest"]
+            status["from_discovery"] = True
+            status["origin"] = "combined"
+            status["harvest"] = {"run": part.get("run"), "state": "ready", "included": True}
+            status["databases"] = [*(part.get("databases") or []), *preview["databases"]]
+            identified = int(manifest.get("total_raw_harvested") or records)
+            status["preview"] = {"identified": identified, "duplicates": max(0, identified - studies),
+                                 "unique_studies": studies}
+        else:
+            status["from_discovery"] = not sources
     else:
         from .pipeline.harvest_marker import pending_preparation
 
@@ -688,10 +790,19 @@ def corpus_status(workspace: Path | str) -> dict[str, Any]:
             # M3d-engine: a discovery corpus waiting for the hand-off accept is
             # staged, as database exports are (decision 2026-11-10).
             status["state"] = "STAGED"
+        harvest = harvest_part(ws)
+        status["harvest"] = public_harvest(harvest)
+        if sources and harvest is not None and harvest["included"]:
+            # M3f: the corpus the accept would build from both parts.
+            combined = corpus_preview(ws)
+            status["origin"] = "combined"
+            status["preview"] = {k: combined[k] for k in ("identified", "duplicates", "unique_studies")}
+            status["databases"] = [*_harvest_databases(harvest["manifest"]), *preview["databases"]]
+            return status
     from .screening.rounds import ARM_CITATION_SEARCHING, current_round
 
     chase_round = snapshot is not None and current_round(ws).get("arm") == ARM_CITATION_SEARCHING
-    if status["from_discovery"] or chase_round:
+    if (status["from_discovery"] and status["origin"] != "combined") or chase_round:
         # Review F4: a corpus from a search shows its databases and counts, not zeros;
         # an M3g round shows its chase, also after a first round built from imports.
         # In an M3g round only ``origin`` and ``preview`` change: the database
@@ -704,33 +815,48 @@ def corpus_status(workspace: Path | str) -> dict[str, Any]:
     return status
 
 
-def _materialise_staged(ws: Path) -> None:
-    """Write ``verified.json`` and the provenance manifest from the staged sources."""
+def _staged_rows(ws: Path) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    """The staged sources and their records as ``verified.json`` rows, each with its ``source_database``."""
     sources, documents = _staged_documents(ws)
-    if not documents:
-        raise AcceptCorpusRefused("no database export is staged", "NOTHING_STAGED")
-    verified = ws / "literature" / "verified.json"
-    verified.parent.mkdir(parents=True, exist_ok=True)
     label_of = {s["id"]: s["label"] for s in sources}
     rows = []
     for document in documents:
         row = _verified_row(document)
         row["source_database"] = label_of[document.provider_id.rsplit("#", 1)[0]]
         rows.append(row)
+    return sources, rows
+
+
+def _manifest_sources(sources: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    return [
+        {
+            **{k: s[k] for k in ("id", "label", "file_name", "stored_as", "sha256", "records", "searched_on", "query")},
+            "format": s.get("format", "ris"),
+        }
+        for s in sources
+    ]
+
+
+def _materialise_staged(ws: Path, *, left_out: dict[str, Any] | None = None) -> None:
+    """Write ``verified.json`` and the provenance manifest from the staged sources.
+
+    M3f review F5: ``left_out`` ({run, state}) is the unfinished harvest the
+    accept leaves out; it is journaled with ``CORPUS_IMPORTED``.
+    """
+    sources, rows = _staged_rows(ws)
+    if not rows:
+        raise AcceptCorpusRefused("no database export is staged", "NOTHING_STAGED")
+    verified = ws / "literature" / "verified.json"
+    verified.parent.mkdir(parents=True, exist_ok=True)
     verified.write_text(json.dumps(rows, indent=2), encoding="utf-8")
     manifest = {
         "schema": IMPORT_MANIFEST_SCHEMA,
-        "total_raw_harvested": len(documents),
-        "sources": [
-            {
-                **{k: s[k] for k in ("id", "label", "file_name", "stored_as", "sha256", "records", "searched_on", "query")},
-                "format": s.get("format", "ris"),
-            }
-            for s in sources
-        ],
+        "total_raw_harvested": len(rows),
+        "sources": _manifest_sources(sources),
         "databases": databases(sources),
     }
     (ws / MANIFEST_FILE).write_text(json.dumps(manifest, indent=2), encoding="utf-8")
+    documents = rows
     append_event(
         ws,
         "CORPUS_IMPORTED",
@@ -741,9 +867,219 @@ def _materialise_staged(ws: Path) -> None:
         parameters={
             "formats": sorted({s.get("format", "ris") for s in sources}),
             "sources": [s["id"] for s in sources],
+            **({"left_out": left_out} if left_out else {}),
         },
         metrics={"records": len(documents), "by_source": {d["label"]: d["records"] for d in databases(sources)}},
     )
+
+
+COMBINED_MANIFEST_SCHEMA = "nexus.corpus-combined.v1"
+
+
+def _harvest_rows(harvest: dict[str, Any]) -> list[dict[str, Any]]:
+    rows = _read_json(Path(harvest["rows_path"]))
+    if not isinstance(rows, list) or not rows:
+        raise AcceptCorpusRefused(f"the works of {harvest['run']} cannot be read ({harvest['rows_path']})")
+    return rows
+
+
+def _harvest_databases(manifest: dict[str, Any]) -> list[dict[str, Any]]:
+    return _leg_rows(list(manifest.get("legs") or []))
+
+
+def _materialise_combined(ws: Path, harvest: dict[str, Any]) -> Any:
+    """Write the combined ``verified.json`` and manifest: the harvest's rows, then the staged records (M3f).
+
+    The order is fixed by the parts, never by what the researcher did first,
+    so the same parts give the same ``run_id`` and artifact id. The harvest's
+    own file is copied to its run folder first (kept for good). Returns the
+    function that puts both files back as they were, for a refused gate.
+    """
+    from .workspace.atomic import atomic_write_text
+
+    sources, staged = _staged_rows(ws)
+    harvest_rows = _harvest_rows(harvest)
+    verified = ws / "literature" / "verified.json"
+    manifest_path = ws / MANIFEST_FILE
+    restore = _restorer(ws)
+    own = Path(harvest["run_dir"]) / "verified.json"
+    if not own.is_file():
+        atomic_write_text(own, json.dumps(harvest_rows, indent=2))
+    legs = _harvest_databases(harvest["manifest"])
+    fetched = sum(int(row["records"]) for row in legs)
+    manifest = {
+        "schema": COMBINED_MANIFEST_SCHEMA,
+        "total_raw_harvested": fetched + len(staged),
+        "harvest": {
+            "run": harvest["run"], "identified": fetched, "works": len(harvest_rows),
+            "query_text": harvest["manifest"].get("query_text"), "databases": legs,
+            "stored_as": own.relative_to(ws).as_posix(),
+        },
+        "sources": _manifest_sources(sources),
+        "databases": databases(sources),
+    }
+    manifest_path.parent.mkdir(parents=True, exist_ok=True)
+    atomic_write_text(verified, json.dumps([*harvest_rows, *staged], indent=2))
+    atomic_write_text(manifest_path, json.dumps(manifest, indent=2))
+    return restore
+
+
+def _restorer(ws: Path) -> Any:
+    """A function that puts ``verified.json`` and the provenance manifest back as they are now."""
+    paths = (ws / "literature" / "verified.json", ws / MANIFEST_FILE)
+    before = {path: path.read_bytes() if path.is_file() else None for path in paths}
+
+    def restore() -> None:
+        for path, content in before.items():
+            if content is None:
+                path.unlink(missing_ok=True)
+            else:
+                path.write_bytes(content)
+
+    return restore
+
+
+#: ``(workspace, input file stamps, preview)`` of the last ``corpus_preview``; the screens read it on every poll.
+_PREVIEW_CACHE: list[Any] = [None]
+
+
+def _stamp(paths: list[Path]) -> tuple[Any, ...]:
+    out = []
+    for path in paths:
+        try:
+            stat = path.stat()
+            out.append((str(path), stat.st_mtime_ns, stat.st_size))
+        except OSError:
+            out.append((str(path), None, None))
+    return tuple(out)
+
+
+def row_sources(row: dict[str, Any]) -> set[tuple[str, str]]:
+    """Where one ``verified.json`` row came from: ``{(name, kind)}``, kind ``search`` or ``import``."""
+    if row.get("source_database"):
+        return {(str(row["source_database"]), "import")}
+    names = {str(s.get("provider")) for s in (row.get("sources") or []) if isinstance(s, dict) and s.get("provider")}
+    if not names and row.get("provider") and row.get("provider") != "unknown":
+        names = {str(row["provider"])}
+    return {(name, "search") for name in names}
+
+
+def _works_of(ws: Path, rows: list[dict[str, Any]]) -> tuple[list[list[dict[str, Any]]], list[dict[str, Any]]]:
+    """The works the snapshot builder would make of ``rows``: each work's rows, and its representative's row."""
+    documents = [_rebuild_doc(row, f"SCI-{i:06d}") for i, row in enumerate(rows, start=1)]
+    index = {id(document): i for i, document in enumerate(documents)}
+    clusters = _deduplicator(ws).deduplicate(documents)
+    works = [[rows[index[id(member)]] for member in cluster.members] for cluster in clusters]
+    return works, [rows[index[id(cluster.representative)]] for cluster in clusters]
+
+
+def corpus_preview(workspace: Path | str) -> dict[str, Any] | None:
+    """The corpus the accept would build now from the staged exports and the harvest part (M3f).
+
+    ``None`` when nothing is staged (a harvest alone keeps its own view).
+    Nothing is written. ``identified`` counts what each source returned (the
+    harvest's records fetched per leg, every staged record), ``duplicates`` =
+    identified - works, as PRISMA reads them after the accept. ``works`` holds
+    each work's rows and ``representatives`` its representative's row, from
+    the same deduplication the accept runs.
+    """
+    ws = Path(workspace).resolve()
+    sources = staged_sources(ws)
+    if not sources:
+        return None
+    harvest = harvest_part(ws)
+    paths = [ws / SOURCES_FILE, ws / "protocol.json", ws / "literature" / "verified.json", ws / MANIFEST_FILE]
+    if harvest is not None:
+        paths += [Path(harvest["run_dir"]) / name for name in ("legs.json", "pipeline.json", "verified.json")]
+    key = _stamp(paths)
+    cached = _PREVIEW_CACHE[0]
+    if cached is not None and cached[0] == str(ws) and cached[1] == key:
+        return cached[2]
+    included = harvest is not None and harvest["included"]
+    harvest_rows = _harvest_rows(harvest) if included else []
+    _, staged = _staged_rows(ws)
+    works, representatives = _works_of(ws, [*harvest_rows, *staged])
+    fetched = sum(int(row["records"]) for row in _harvest_databases(harvest["manifest"])) if included else 0
+    identified = fetched + len(staged)
+    value = {
+        "harvest": harvest,
+        "identified": identified,
+        "duplicates": max(0, identified - len(works)),
+        "unique_studies": len(works),
+        "imported": len(staged),
+        "works": works,
+        "representatives": representatives,
+    }
+    _PREVIEW_CACHE[0] = (str(ws), key, value)
+    return value
+
+
+def combined_counts(workspace: Path | str) -> dict[str, int] | None:
+    """``{identified, duplicates, unique_studies}`` of a corpus built from a harvest and exports, else ``None``.
+
+    Before the accept: the preview, only when a ready harvest is included with
+    the staged exports. After it: the combined manifest (what was fetched and
+    imported) and the first accepted snapshot (round 1, also after an M3g
+    chase round replaced ``verified.json``). Review F2: decided by the parts,
+    not by ``origin``, which says ``imports`` when an unfinished harvest was
+    left out and ``citation_searching`` in a chase round.
+    """
+    ws = Path(workspace).resolve()
+    if not _accepted_snapshot(ws):
+        harvest = harvest_part(ws)
+        if not staged_sources(ws) or harvest is None or not harvest["included"]:
+            return None
+        preview = corpus_preview(ws)
+        return {k: preview[k] for k in ("identified", "duplicates", "unique_studies")}
+    manifest = _manifest(ws) or {}
+    if manifest.get("schema") != COMBINED_MANIFEST_SCHEMA:
+        return None
+    registry = _read_json(ws / "audit" / "artifact_registry.json") or {}
+    corpora = sorted(
+        (e for e in (registry.get("artifacts") or {}).values() if e.get("artifact_type") == "corpus_snapshot"),
+        key=lambda e: str(e.get("accepted_at") or ""),
+    )
+    artifact = _read_json(ws / corpora[0]["path"]) if corpora else None
+    if not isinstance(artifact, dict):
+        return None
+    studies = len(artifact["data"]["studies"])
+    identified = int(manifest.get("total_raw_harvested") or 0)
+    return {"identified": identified, "duplicates": max(0, identified - studies), "unique_studies": studies}
+
+
+def corpus_works(workspace: Path | str) -> tuple[list[list[dict[str, Any]]], list[dict[str, Any]]] | None:
+    """The works screening will receive, each as its rows, and their representatives (M3f, finding 27).
+
+    Before the accept, when exports are staged: the combined preview's works.
+    After the accept of a corpus built from exports (alone or with a harvest):
+    the snapshot's studies, each with the ``verified.json`` rows of its records.
+    ``None`` otherwise (a harvest alone counts its ``verified.json`` rows,
+    which are already works).
+    """
+    ws = Path(workspace).resolve()
+    if not _accepted_snapshot(ws):
+        preview = corpus_preview(ws)
+        return None if preview is None else (preview["works"], preview["representatives"])
+    if not _imported(ws):
+        return None
+    registry = _read_json(ws / "audit" / "artifact_registry.json") or {}
+    corpora = sorted(
+        (e for e in (registry.get("artifacts") or {}).values() if e.get("artifact_type") == "corpus_snapshot"),
+        key=lambda e: str(e.get("accepted_at") or ""),
+    )
+    artifact = _read_json(ws / corpora[-1]["path"]) if corpora else None
+    rows = _read_json(ws / "literature" / "verified.json")
+    if not isinstance(artifact, dict) or not isinstance(rows, list):
+        return None
+    by_id = {row.get("workspace_id"): row for row in rows if isinstance(row, dict)}
+    pairs = [
+        ([by_id[a] for a in study.get("alias_ids") or [] if a in by_id],
+         {"title": study.get("title"), "year": study.get("publication_year")})
+        for study in artifact["data"]["studies"]
+    ]
+    pairs = [(work, representative) for work, representative in pairs if work]
+    # Review F7: the representative is the builder's (the study's title and year), as before the accept.
+    return [work for work, _ in pairs], [representative for _, representative in pairs]
 
 
 def import_ris(ws: Path, sources: list[tuple[str | None, Path]]) -> int:
@@ -786,15 +1122,70 @@ def accept_corpus(
     if ris:
         _refuse_if_frozen(ws)
         import_ris(ws, [r if isinstance(r, tuple) else (None, Path(r)) for r in ris])
+    restore = None
+    harvest: dict[str, Any] | None = None
+    left_out: dict[str, Any] | None = None
     if not _accepted_snapshot(ws):
         if staged_sources(ws):
-            _materialise_staged(ws)
+            harvest = harvest_part(ws)
+            if harvest is not None and harvest["included"]:
+                # M3f: the harvest part and the staged exports, deduplicated together.
+                # The accept binds the run's works to the current protocol (M3d review F3).
+                refuse_if_run_protocol_changed(ws, harvest["manifest"])
+                if provider_warnings is None:
+                    provider_warnings = failed_leg_warnings(harvest["manifest"])
+                restore = _materialise_combined(ws, harvest)
+            else:
+                # M3i item 10, kept: an unfinished harvest is never frozen; the
+                # exports are accepted alone and the result names what was left out.
+                if harvest is not None:
+                    left_out = {"run": harvest["run"], "state": harvest["state"]}
+                harvest = None
+                restore = _restorer(ws)
+                _materialise_staged(ws, left_out=left_out)
         elif _imported(ws):
             raise AcceptCorpusRefused(
                 "every database file was removed; add at least one before accepting",
                 "NOTHING_STAGED",
             )
 
+    try:
+        result = _freeze_rows(
+            ws, workspace_id=workspace_id, fingerprint=fingerprint, deduplicator=deduplicator,
+            now=now, provider_warnings=provider_warnings,
+        )
+    except BaseException:
+        # Compass §7: a refused gate publishes nothing and leaves the harvest part as it was.
+        if restore is not None:
+            restore()
+        raise
+    if harvest is not None and not result.already_accepted:
+        sources = staged_sources(ws)
+        append_event(
+            ws,
+            "CORPUS_COMBINED",
+            f"Combined the works of {harvest['run']} with {sum(int(s['records']) for s in sources)} records "
+            f"from {len(sources)} export file(s) into literature/verified.json",
+            inputs=[Path(harvest["run_dir"]).relative_to(ws).as_posix() + "/verified.json",
+                    *[s["stored_as"] for s in sources]],
+            outputs=["literature/verified.json", MANIFEST_FILE.as_posix()],
+            parameters={"run": harvest["run"], "sources": [s["id"] for s in sources],
+                        "artifact_id": result.artifact_id},
+            metrics={"records": result.record_count, "studies": result.study_count},
+        )
+    return replace(result, combined_run=harvest["run"] if harvest is not None else None, left_out=left_out)
+
+
+def _freeze_rows(
+    ws: Path,
+    *,
+    workspace_id: str,
+    fingerprint: str,
+    deduplicator: Deduplicator,
+    now: datetime | None,
+    provider_warnings: list[str] | None,
+) -> AcceptCorpusResult:
+    """Build the snapshot from ``verified.json`` and pass it through the acceptance gate."""
     if not _accepted_snapshot(ws) and not _imported(ws):
         # H-quota-hang review F2: a search run's corpus is frozen only once its
         # preparation ended, also from the CLI (``accept-corpus``), as on the

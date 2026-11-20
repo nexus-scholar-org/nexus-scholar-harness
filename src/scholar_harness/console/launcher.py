@@ -22,7 +22,7 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import urlencode
 
-from . import browser
+from . import browser, code_window
 
 UI_DIR_ENV = "NEXUS_UI_DIR"
 DEFAULT_PORT = 8770
@@ -97,6 +97,9 @@ class Launcher:
             browser_session=self.session,
             launch_codes=self.codes,
             ui_dir=self.ui_dir,
+            # Finding 38: the app may have been started for the researcher, with
+            # its terminal out of sight; the codes also show in a desktop window.
+            code_window=code_window.reveal,
         )
 
     def request_open(self, path: Path) -> None:

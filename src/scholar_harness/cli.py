@@ -1453,6 +1453,15 @@ def accept_corpus_command(
         f"{result.study_count} studies from {result.record_count} records",
         soft_wrap=True,
     )
+    # M3f: say which parts the corpus holds.
+    if result.combined_run:
+        console.print(f"Combined the search run {result.combined_run} with the staged database exports.", soft_wrap=True)
+    if result.left_out:
+        console.print(
+            f"[yellow]The search run {result.left_out['run']} is not prepared ({result.left_out['state']}), "
+            "so its records were left out: the corpus holds the staged database exports only.[/yellow]",
+            soft_wrap=True,
+        )
     console.print(f"[dim]{result.artifact_id}[/dim]")
     console.print("[dim]Next: prepare the screening batches.[/dim]")
 

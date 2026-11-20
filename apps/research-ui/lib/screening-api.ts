@@ -424,6 +424,15 @@ export interface RedeemResult {
   superseded: boolean;
 }
 
+/** The bulk redeem (finding 38): one approval per batch line of the pasted block. */
+export interface RedeemAllResult {
+  shape: "screening-action-redeem-all-v1";
+  request_id: string;
+  approved: { batch_index: number; approval_fingerprint: string; journal_event_id: string }[];
+  refused: { batch_index: number; code: string; message: string }[];
+  publication_approval_fingerprint: string | null;
+}
+
 export interface DeferResult {
   shape: "screening-action-defer-v1";
   request_id: string;
@@ -522,6 +531,21 @@ export function postPairingRedeem(
     "/api/v1/screening/actions/pairing/redeem",
     consoleBase(origin),
     { batch: batchIndex, code, request_id: options?.requestId ?? null },
+    signal,
+  );
+}
+
+/** Redeem a pasted block of `batch n: CODE` lines; the text is sent once and kept nowhere. */
+export function postPairingRedeemAll(
+  origin: string,
+  codes: string,
+  options?: { requestId?: string },
+  signal?: AbortSignal,
+): Promise<RedeemAllResult> {
+  return postJson<RedeemAllResult>(
+    "/api/v1/screening/actions/pairing/redeem-all",
+    consoleBase(origin),
+    { codes, request_id: options?.requestId ?? null },
     signal,
   );
 }

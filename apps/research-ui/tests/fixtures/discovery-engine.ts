@@ -32,7 +32,7 @@ export interface DiscoveryFakeOptions {
   runs?: number;
   /** The corpus is frozen already. */
   accepted?: boolean;
-  /** Database exports staged for import (a run answers `STAGED_IMPORT_PENDING`). */
+  /** Database exports staged for import (M3f: combined with a ready harvest at the accept; a run is no longer refused). */
   staged?: boolean;
   /** A run is in progress; its stream has no end yet. */
   activeJob?: boolean;
@@ -389,20 +389,26 @@ export function discoveryEngine(options: DiscoveryFakeOptions = {}) {
     const d = dedup();
     // M3i: while the newest run's steps after the search have not ended, no discovery corpus is waiting.
     const fromDiscovery = !!corpusRun() && (accepted || !pending());
+    // M3f: the harvest part, and a corpus combined from it and the staged exports.
+    const run = corpusRun();
+    const harvest = run ? { run: run.run, state: String(preparationOf(run).state), included: !pending() } : null;
+    const combined = staged && fromDiscovery;
     return {
       shape: "screening.corpus-v1",
       state: accepted ? "ACCEPTED" : fromDiscovery || staged ? "STAGED" : "EMPTY",
       sources: staged ? [{ id: "src_1", label: "Scopus", file_name: "scopus.ris", format: "ris", records: 120, searched_on: "2026-11-01", query: null, limits: null, rejected: [] }] : [],
       databases: [],
-      preview: { identified: 0, duplicates: 0, unique_studies: 0 },
+      preview: combined
+        ? { identified: (d?.input_records ?? 0) + 120, duplicates: (d?.removed ?? 0) + 40, unique_studies: (d?.unique_works ?? 0) + 80 }
+        : { identified: 0, duplicates: 0, unique_studies: 0 },
       accepted: accepted ? { artifact_id: "ART-corpus-" + "1".repeat(12), accepted_at: now(), records: d?.input_records ?? 0, studies: d?.unique_works ?? 0, duplicates: d?.removed ?? 0 } : null,
-      from_discovery: fromDiscovery && !staged,
+      from_discovery: fromDiscovery,
+      origin: combined ? "combined" : staged ? "imports" : fromDiscovery ? "discovery" : null,
+      harvest,
       limits: { max_source_bytes: 52428800, label_max_length: 40 },
       staging_refused: accepted
         ? { code: "CORPUS_ALREADY_ACCEPTED", message: "the corpus is already accepted; its sources can no longer change" }
-        : fromDiscovery
-          ? { code: "VERIFIED_EXISTS", message: "literature/verified.json already exists and holds the corpus of a search run; database exports are imported only before any search run" }
-          : null,
+        : null,
     };
   };
 
@@ -473,9 +479,14 @@ export function discoveryEngine(options: DiscoveryFakeOptions = {}) {
       shape: "discovery.handoff-v1", corpus: corpus(), run: corpusRun()?.run ?? null,
       preparation: corpusRun() ? preparationOf(corpusRun()!) : null,
       provider_mix: unfinished ? [] : [
-        { provider: "openalex", records: 402, share: 0.3561 }, { provider: "semanticscholar", records: 371, share: 0.3286 },
-        { provider: "crossref", records: 480, share: 0.4252 }, { provider: "pubmed", records: 90, share: 0.0797 }, { provider: "arxiv", records: 55, share: 0.0487 },
+        ...(pending() && staged ? [] : [
+          { provider: "openalex", kind: "search", records: 402, share: 0.3561 }, { provider: "semanticscholar", kind: "search", records: 371, share: 0.3286 },
+          { provider: "crossref", kind: "search", records: 480, share: 0.4252 }, { provider: "pubmed", kind: "search", records: 90, share: 0.0797 }, { provider: "arxiv", kind: "search", records: 55, share: 0.0487 },
+        ]),
+        ...(staged ? [{ provider: "Scopus", kind: "import", records: 110, share: 0.0974 }] : []),
       ],
+      // M3f: records from staged exports are not checked.
+      imports_unchecked: staged ? 120 : 0,
       abstracts: unfinished
         ? { with_abstract: 0, title_only: 0, share_with_abstract: 0 }
         : { with_abstract: total - 84, title_only: 84, share_with_abstract: total ? Math.round(((total - 84) / total) * 10000) / 10000 : 0 },
@@ -502,15 +513,23 @@ export function discoveryEngine(options: DiscoveryFakeOptions = {}) {
           database: l.provider, kind: "search", executed_query: l.executed_query, reported_total: l.reported_total, fetched: l.fetched,
           completeness: l.status === "failed" ? "failed" : l.status === "stopped" ? "stopped" : l.cap_hit ? "lower_bound" : "full",
           no_abstract_rate: l.status === "failed" ? null : 0.0712, cache: null, error_code: l.error_code, searched_at: l.started_at, notes: l.notes,
-        })),
+        })).concat(staged ? [{
+          // M3f: a staged export is listed after the searched databases, with what the researcher stated.
+          database: "Scopus", kind: "import", executed_query: null, reported_total: null, fetched: 120, completeness: "full",
+          no_abstract_rate: null, cache: null, error_code: null, searched_at: null, notes: [],
+        }] : []),
         // M10a: a protocol database the run's requested_providers left out is "not_selected_for_run".
         not_searched: PROVIDERS.filter((name) => !legs.some((l) => l.provider === name)).map((name) => {
           const requested = run.requested_providers as string[] | null | undefined;
           const leftOut = Array.isArray(requested) && protocolProviders.includes(name) && !requested.includes(name);
           return { database: name, reason: leftOut ? "not_selected_for_run" : name === "biorxiv" ? "off by default" : "not selected in the protocol" };
         }),
-        imports: [],
-        dedup: newest && d ? { removed: d.removed, by_tier: d.tiers, near_twins: null, unique_works: d.unique_works } : { removed: null, by_tier: null, near_twins: null, unique_works: null },
+        imports: staged ? [{ label: "Scopus", searched_on: null, query: null, limits: null, records: 120, rejected: [] }] : [],
+        dedup: newest && d
+          ? staged && !pending()
+            ? { removed: d.removed + 40, by_tier: null, near_twins: null, unique_works: d.unique_works + 80 }
+            : { removed: d.removed, by_tier: d.tiers, near_twins: null, unique_works: d.unique_works }
+          : { removed: null, by_tier: null, near_twins: null, unique_works: null },
         outside_year_window: 6,
         prisma: null,
         methods_text: stored
@@ -751,7 +770,6 @@ export function discoveryEngine(options: DiscoveryFakeOptions = {}) {
           ? refuse(409, "OPENALEX_KEY_NOT_SET", "OpenAlex needs an API key. Set SCHOLAR_OPENALEX_KEY for the console (environment or .env) and start it again, or leave OpenAlex out of this run.")
           : null) ??
         (accepted ? refuse(409, "CORPUS_ALREADY_ACCEPTED", "The corpus snapshot is accepted; a frozen corpus is never searched again from the browser.") : null) ??
-        (staged ? refuse(409, "STAGED_IMPORT_PENDING", "Database exports are staged for import; accept or remove them before a search run.") : null) ??
         busy();
       if (refused) return refused;
       if (options.holdRun) {
@@ -808,7 +826,6 @@ export function discoveryEngine(options: DiscoveryFakeOptions = {}) {
       const refused =
         needProtocol() ??
         (accepted ? refuse(409, "CORPUS_ALREADY_ACCEPTED", "The corpus snapshot is accepted; a frozen corpus is never prepared again from the browser.") : null) ??
-        (staged ? refuse(409, "STAGED_IMPORT_PENDING", "Database exports are staged for import; accept or remove them before finishing a harvest.") : null) ??
         busy() ??
         (stored?.state === "none" ? unavailable("not_published", `The search of ${run.run} was stopped or failed, so it was not kept as the corpus; search again.`) : null) ??
         (run !== corpusRun() ? unavailable("superseded", `A later search run is the corpus now; ${run.run} is kept as a record only.`) : null) ??

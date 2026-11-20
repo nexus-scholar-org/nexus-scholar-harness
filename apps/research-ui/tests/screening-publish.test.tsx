@@ -38,7 +38,7 @@ function review(approved: boolean) {
   };
 }
 
-function engine(options: { preview?: unknown; approved?: boolean; redeem?: Response; publication?: string; approver?: string | null; reporting?: string } = {}) {
+function engine(options: { preview?: unknown; approved?: boolean; redeem?: Response; redeemAll?: Response; publication?: string; approver?: string | null; reporting?: string; shownOn?: "terminal" | "desktop"; beginAll?: unknown } = {}) {
   let approved = options.approved ?? false;
   let approver = options.approver === undefined ? "Researcher" : options.approver;
   const log: { method: string; path: string; body: unknown }[] = [];
@@ -61,6 +61,14 @@ function engine(options: { preview?: unknown; approved?: boolean; redeem?: Respo
       }
       if (path === "/ui/batch/1/review") return ok(review(approved));
       if (path === "/actions/pairing/begin") return ok({ batch_index: 1, snapshot_fingerprint: "sha256:s", code_expires_at: "2026-11-05T10:05:00Z", attempt_cap: 5, code_shown_on: "terminal" });
+      if (path === "/actions/pairing/begin-all" && options.beginAll) return ok(options.beginAll);
+      if (path === "/actions/pairing/begin-all")
+        return ok({ batches: [{ batch_index: 1, snapshot_fingerprint: "sha256:s" }], skipped: [{ batch_index: 2, reason: "DEFERRED" }], code_expires_at: "2026-11-05T10:05:00Z", attempt_cap: 5, code_shown_on: options.shownOn ?? "desktop" });
+      if (path === "/actions/pairing/redeem-all") {
+        if (options.redeemAll) return options.redeemAll;
+        approved = true;
+        return ok({ shape: "screening-action-redeem-all-v1", request_id: "r", approved: [{ batch_index: 1, approval_fingerprint: "sha256:a", journal_event_id: "e" }], refused: [], publication_approval_fingerprint: "sha256:p" });
+      }
       if (path === "/actions/pairing/redeem") {
         if (options.redeem) return options.redeem;
         approved = true;
@@ -103,7 +111,7 @@ describe("publish.approver", () => {
     const log = engine({ approver: null });
     render(<ScreeningPublish locale="en" />);
     await screen.findByText("No name yet. Approving a batch needs your name first.");
-    expect(screen.getByRole("button", { name: "Show a code in the terminal" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Show a code for batch 1" })).toBeDisabled();
     expect(screen.getByRole("button", { name: "Save name" })).toBeDisabled();
     expect(screen.getByText(/not a verified sign-in/)).toBeInTheDocument();
 
@@ -112,7 +120,7 @@ describe("publish.approver", () => {
     await screen.findByText("Approvals are recorded as Test Researcher.");
     expect(log.find((l) => l.method === "PUT" && l.path === "/approver")?.body).toEqual({ name: "Test Researcher" });
     expect(screen.getByRole("status")).toHaveTextContent("Name saved.");
-    expect(screen.getByRole("button", { name: "Show a code in the terminal" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "Show a code for batch 1" })).toBeEnabled();
   });
 
   it("names the approver in every locale", () => {
@@ -132,7 +140,7 @@ describe("publish approval and publish", () => {
     await screen.findByText("Approve each batch, then publish the screening.");
     expect(screen.getByRole("button", { name: "Publish the screening" })).toBeDisabled();
 
-    fireEvent.click(screen.getByRole("button", { name: "Show a code in the terminal" }));
+    fireEvent.click(screen.getByRole("button", { name: "Show a code for batch 1" }));
     await screen.findByText(/Code printed in the terminal/);
     const begin = log.find((l) => l.path === "/actions/pairing/begin");
     expect(begin?.body).toEqual({ batch: 1 });
@@ -167,6 +175,82 @@ describe("publish approval and publish", () => {
     fireEvent.click(screen.getByRole("button", { name: "Approve batch 1" }));
     await screen.findByText("PAIRING_CODE_INVALID");
     expect(screen.getByText("Wrong approval code", { selector: "h2" })).toBeInTheDocument();
+  });
+});
+
+describe("publish.approve-all (finding 38)", () => {
+  it("stages every decided batch's code in one action and redeems one pasted block", async () => {
+    const log = engine();
+    render(<ScreeningPublish locale="en" />);
+    await screen.findByText("Batches fully decided and not approved yet: 1 of 1.");
+    fireEvent.click(screen.getByRole("button", { name: "Show the codes for every decided batch" }));
+    await screen.findByText(/The codes \(batches: 1\) are in a Nexus Scholar window on this computer's desktop/);
+    expect(screen.getByText("Left out: 0 already approved, 1 deferred, 0 not fully decided.")).toBeInTheDocument();
+    expect(log.find((l) => l.path === "/actions/pairing/begin-all")?.body).toEqual({});
+
+    const field = screen.getByLabelText(/Paste the codes/);
+    const pasted = "batch 1: ABCDEFGHJKMNPQRSTUVWXYZ234";
+    fireEvent.change(field, { target: { value: pasted } });
+    fireEvent.click(screen.getByRole("button", { name: "Approve the batches" }));
+    await screen.findByText("Batches approved: 1.");
+    expect(log.filter((l) => l.path === "/actions/pairing/redeem-all").map((l) => l.body)).toEqual([{ codes: pasted, request_id: null }]);
+    // The pasted codes are kept nowhere once sent (UI-07 §3.6).
+    expect(field).toHaveValue("");
+    await screen.findByText("Approval on file");
+  });
+
+  it("says when the codes are on the terminal only, and names each batch the engine refused", async () => {
+    engine({
+      shownOn: "terminal",
+      redeemAll: new Response(
+        JSON.stringify({ shape: "screening-action-redeem-all-v1", request_id: "r", approved: [], refused: [{ batch_index: 1, code: "STALE_VIEW", message: "changed" }], publication_approval_fingerprint: null }),
+        { status: 200, headers: { "content-type": "application/json" } },
+      ),
+    });
+    render(<ScreeningPublish locale="en" />);
+    fireEvent.click(await screen.findByRole("button", { name: "Show the codes for every decided batch" }));
+    await screen.findByText(/The codes \(batches: 1\) are printed in the engine's terminal/);
+    fireEvent.change(screen.getByLabelText(/Paste the codes/), { target: { value: "batch 1: X" } });
+    fireEvent.click(screen.getByRole("button", { name: "Approve the batches" }));
+    await screen.findByText("Not approved: batch 1 (STALE_VIEW). Show the codes again for it.");
+  });
+
+  it("shows the engine's refusal when the paste holds no valid code", async () => {
+    engine({ redeemAll: new Response(JSON.stringify({ detail: { code: "PAIRING_CODE_INVALID", message: "no" } }), { status: 403, headers: { "content-type": "application/json" } }) });
+    render(<ScreeningPublish locale="en" />);
+    fireEvent.change(await screen.findByLabelText(/Paste the codes/), { target: { value: "hello" } });
+    fireEvent.click(screen.getByRole("button", { name: "Approve the batches" }));
+    await screen.findByText("PAIRING_CODE_INVALID");
+  });
+
+  it("names a batch the engine refused a code, and clears the pasted codes when they expire", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    try {
+      const soon = new Date(Date.now() + 60_000).toISOString();
+      engine({
+        beginAll: { batches: [{ batch_index: 1, snapshot_fingerprint: "s" }], skipped: [{ batch_index: 2, reason: "WORKER_BATCH_MISSING" }], code_expires_at: soon, attempt_cap: 5, code_shown_on: "terminal" },
+      });
+      render(<ScreeningPublish locale="en" />);
+      fireEvent.click(await screen.findByRole("button", { name: "Show the codes for every decided batch" }));
+      await screen.findByText("No code for batch 2 (WORKER_BATCH_MISSING).");
+      const field = screen.getByLabelText(/Paste the codes/);
+      fireEvent.change(field, { target: { value: "batch 1: CODE" } });
+      await vi.advanceTimersByTimeAsync(61_000);
+      await waitFor(() => expect(field).toHaveValue(""));
+      expect(document.querySelector("[data-bulk-begun]")).toBeNull();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("keeps the one-batch controls folded under their own heading", async () => {
+    engine();
+    render(<ScreeningPublish locale="en" />);
+    const summary = await screen.findByText("Approve one batch at a time");
+    const details = summary.closest("details");
+    expect(details).not.toBeNull();
+    expect(details).not.toHaveAttribute("open");
+    expect(within(details as HTMLElement).getByLabelText("Approval code for batch 1")).toBeInTheDocument();
   });
 });
 

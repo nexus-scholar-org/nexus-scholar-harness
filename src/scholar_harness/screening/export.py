@@ -563,14 +563,21 @@ def build_methods(ws: Path) -> dict[str, Any]:
     manifest_path = Path("literature") / "raw" / "provenance_manifest.json"
     if source(manifest_path):
         try:
-            imported = json.loads((ws / manifest_path).read_text(encoding="utf-8")).get("sources") or []
+            provenance = json.loads((ws / manifest_path).read_text(encoding="utf-8"))
+            imported = provenance.get("sources") or []
         except ValueError:
-            imported = []
+            provenance, imported = {}, []
             caveats.append("provenance_manifest.json cannot be read.")
         if imported:
             from ..corpus_accept import databases
 
-            per_database = databases(imported)
+            # M3f: a combined corpus names the databases its harvest searched first.
+            harvest = provenance.get("harvest") if isinstance(provenance.get("harvest"), dict) else {}
+            per_database = [
+                {"label": str(d.get("label")), "records": int(d.get("records") or 0),
+                 "searched_on": list(d.get("searched_on") or [])}
+                for d in harvest.get("databases") or [] if isinstance(d, dict)
+            ] + databases(imported)
             parts = [
                 f"{d['label']} (n = {d['records']}"
                 + (f", searched {' and '.join(d['searched_on'])}" if d["searched_on"] else "")

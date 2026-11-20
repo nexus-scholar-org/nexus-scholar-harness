@@ -737,12 +737,28 @@ def report(request: Request, run: str | None = None) -> dict[str, Any]:
         "near_twins": None,  # E4b (M3e-neartwins)
         "unique_works": unique,
     }
+    # M3f: this run's works and the exports, deduplicated together. Decided by the corpus's parts
+    # (review F2): an export beside a harvest the accept leaves out is not combined with this run.
+    # The tiers describe the harvest's own pass only, so they are not given for a combined corpus.
+    from ...corpus_accept import combined_counts
+
+    combined = combined_counts(ws) if newest_corpus == run_dir and imports else None
+    if combined is not None:
+        dedup.update(removed=combined["duplicates"], unique_works=combined["unique_studies"], by_tier=None)
     try:
         from .screening_v1 import prisma_preview
 
         prisma = prisma_preview(request)
     except Exception:  # noqa: BLE001 - no prepared screening yet: the preview is absent, not an error
         prisma = None
+    window_rows = _verified(ws)
+    if combined is not None:
+        # M3f: with exports in the corpus, count works (each work's representative), as the Hand-off does.
+        from ...corpus_accept import corpus_works
+
+        works = corpus_works(ws)
+        if works is not None:
+            window_rows = works[1]
     stored = _stored_methods(run_dir)
     if stored is not None:
         methods = {"text": stored["text"], "built_from": run_dir.name, "reviewed": stored["reviewed"],
@@ -750,7 +766,8 @@ def report(request: Request, run: str | None = None) -> dict[str, Any]:
     else:
         methods = {
             "text": render_methods_text(
-                legs, imports, dedup, query_text=manifest.get("query_text"),
+                # M3f review F2: the exports are named in this run's text only when they are combined with it.
+                legs, imports if combined is not None else [], dedup, query_text=manifest.get("query_text"),
                 years=(manifest.get("year_min"), manifest.get("year_max")), cap_override=manifest.get("cap_override"),
                 not_selected_for_run=left_out,
             ),
@@ -773,7 +790,7 @@ def report(request: Request, run: str | None = None) -> dict[str, Any]:
         "not_searched": not_searched,
         "imports": imports,
         "dedup": dedup,
-        "outside_year_window": _outside_window(_verified(ws), proto.query),
+        "outside_year_window": _outside_window(window_rows, proto.query),
         "prisma": prisma,
         "methods_text": methods,
         "runs": _runs_payload(request),
@@ -842,30 +859,43 @@ def handoff(request: Request) -> dict[str, Any]:
         preparation is not None and preparation["state"] != harvest_marker.READY
         and corpus.get("state") != "ACCEPTED" and not corpus.get("sources")
     )
-    rows = [] if unfinished else _verified(ws)
-    mix: dict[str, int] = {}
-    for row in rows:
-        names = {str(s.get("provider")) for s in (row.get("sources") or []) if isinstance(s, dict) and s.get("provider")}
-        if not names and row.get("provider") and row.get("provider") != "unknown":
-            names = {str(row["provider"])}
-        for name in names:
-            mix[name] = mix.get(name, 0) + 1
-    total = len(rows)
-    with_abstract = sum(1 for row in rows if str(row.get("abstract") or "").strip())
+    from ...corpus_accept import corpus_works, row_sources
+
+    # M3f (finding 27): with database exports in the corpus, count the works the
+    # accept builds (or built), each from all its records; a harvest alone keeps
+    # counting its verified.json rows, which are already works.
+    combined = None if unfinished else corpus_works(ws)
+    if combined is not None:
+        works, representatives = combined
+    else:
+        representatives = [] if unfinished else _verified(ws)
+        works = [[row] for row in representatives]
+    mix: dict[tuple[str, str], int] = {}
+    for work in works:
+        for source in set().union(*(row_sources(row) for row in work)):
+            mix[source] = mix.get(source, 0) + 1
+    total = len(works)
+    with_abstract = sum(1 for work in works if any(str(row.get("abstract") or "").strip() for row in work))
+    imports_unchecked = sum(1 for work in works for row in work if row.get("source_database"))
+    rows = representatives
     legs = corpus_manifest["legs"] if corpus_manifest else []
     return {
         "shape": "discovery.handoff-v1",
         "corpus": corpus,
         "run": corpus_run.name if corpus_run else None,
         "preparation": preparation,
+        # M3f: one row per source, ``kind`` "search" (a database the app searched)
+        # or "import" (an export, by its label); ``records`` counts the works it found.
         "provider_mix": [
-            {"provider": name, "records": n, "share": round(n / total, 4) if total else 0.0}
-            for name, n in sorted(mix.items(), key=lambda kv: (-kv[1], kv[0]))
+            {"provider": name, "kind": kind, "records": n, "share": round(n / total, 4) if total else 0.0}
+            for (name, kind), n in sorted(mix.items(), key=lambda kv: (-kv[1], kv[0]))
         ],
         "abstracts": {
             "with_abstract": with_abstract, "title_only": total - with_abstract,
             "share_with_abstract": round(with_abstract / total, 4) if total else 0.0,
         },
+        # M3f decision 4: records from exports are not checked and keep the abstracts they came with.
+        "imports_unchecked": imports_unchecked,
         "outside_year_window": _outside_window(rows, proto.query),
         "near_twins_undecided": None,  # E4b (M3e-neartwins)
         "lower_bound_databases": sorted(str(leg.get("provider")) for leg in legs if leg.get("cap_hit")),
@@ -917,7 +947,7 @@ def _run_error(results: dict[str, Any]) -> dict[str, Any]:
 
 @router.post("/runs", status_code=202)
 async def start_run(body: RunBody, request: Request) -> dict[str, Any]:
-    from ...corpus_accept import _accepted_snapshot, staged_sources
+    from ...corpus_accept import _accepted_snapshot
     from ...pipeline.coordinator import run_pipeline
 
     ws, jobs = _ws(request), _jobs(request)
@@ -931,11 +961,8 @@ async def start_run(body: RunBody, request: Request) -> dict[str, Any]:
         if _accepted_snapshot(ws):
             raise Refused(409, refusals.CORPUS_ALREADY_ACCEPTED,
                           "The corpus snapshot is accepted; a frozen corpus is never searched again from the browser.")
-        if staged_sources(ws):
-            # The run would end at the snapshot with this refusal (M3a review
-            # finding 2); say it before any request instead.
-            raise Refused(409, refusals.STAGED_IMPORT_PENDING,
-                          "Database exports are staged for import; accept or remove them before a search run.")
+        # M3f-combined-corpus: staged exports no longer stop a run; the accept
+        # combines them with its works (STAGED_IMPORT_PENDING is not raised here).
         _refuse_busy(jobs, ws)
     except Refused as exc:
         raise _http(exc) from exc
@@ -981,7 +1008,7 @@ async def finish_preparation(run: str, request: Request) -> dict[str, Any]:
     same ``stage`` events as a search run and ends as a browser run does,
     before the snapshot.
     """
-    from ...corpus_accept import _accepted_snapshot, staged_sources
+    from ...corpus_accept import _accepted_snapshot
     from ...pipeline.coordinator import finish_harvest_preparation, preparation_refusal
 
     ws, jobs = _ws(request), _jobs(request)
@@ -991,9 +1018,6 @@ async def finish_preparation(run: str, request: Request) -> dict[str, Any]:
         if _accepted_snapshot(ws):
             raise Refused(409, refusals.CORPUS_ALREADY_ACCEPTED,
                           "The corpus snapshot is accepted; a frozen corpus is never prepared again from the browser.")
-        if staged_sources(ws):
-            raise Refused(409, refusals.STAGED_IMPORT_PENDING,
-                          "Database exports are staged for import; accept or remove them before finishing a harvest.")
         _refuse_busy(jobs, ws)
         refusal = preparation_refusal(ws, run)
         if refusal is not None:

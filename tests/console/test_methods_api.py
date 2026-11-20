@@ -270,6 +270,56 @@ def test_an_imported_corpus_publishes_the_snapshot_counts_and_names_its_database
     assert "provenance_manifest.json" in {s["name"] for s in body["sources"]}
 
 
+def test_a_combined_corpus_publishes_fetched_plus_imported_and_names_every_source(tmp_path):
+    """M3f-combined-corpus: a harvest (3 records fetched, 2 works) plus Scopus (3 records), one shared DOI."""
+    from scholar_harness.corpus_accept import accept_corpus, stage_ris_source
+    from scholar_harness.pipeline.discovery import protocol_search_record
+    from scholar_harness.screening.batcher import cmd_prepare
+
+    ws = tmp_path / "ws"
+    run = ws / "literature" / "search_runs" / "run_001"
+    run.mkdir(parents=True)
+    (ws / "audit").mkdir()
+    (ws / "audit" / "journal.jsonl").write_text("", encoding="utf-8")
+    (ws / "project.json").write_text(json.dumps({"project_id": "m3f", "registered_workspace_id": se.WS_ID}), encoding="utf-8")
+    (ws / "protocol.json").write_text(se.PROTOCOL.read_text(encoding="utf-8"), encoding="utf-8")
+    fingerprint, search = protocol_search_record(ws / "protocol.json")
+    legs = [{"provider": "openalex", "fetched": 3, "status": "ok", "started_at": "2026-11-20T09:00:00Z"}]
+    (run / "legs.json").write_text(json.dumps({
+        "run": "run_001", "corpus_published": True, "legs": legs, "protocol_fingerprint": fingerprint,
+        "protocol_search": search, "query_text": search["query_text"],
+    }), encoding="utf-8")
+    (run / "pipeline.json").write_text(json.dumps({
+        "schema": "nexus.harvest-pipeline.v1", "run": "run_001", "stages": {}, "resumed": [],
+        "ended": {"status": "DONE", "at": "2026-11-20T09:05:00Z", "stage": None, "message": None},
+        "verified_run": "run_001",
+    }), encoding="utf-8")
+    (ws / "literature" / "verified.json").write_text(json.dumps([
+        {"workspace_id": "SCI-200000000000001", "title": "UAV weed mapping in maize", "year": 2024,
+         "provider": "openalex", "provider_id": "W1", "external_ids": {"doi": "10.1000/m5b-1"}},
+        {"workspace_id": "SCI-200000000000002", "title": "Weed seedling counts from drones", "year": 2020,
+         "provider": "openalex", "provider_id": "W2", "external_ids": {"doi": "10.1000/m3f-9"}},
+    ]), encoding="utf-8")
+    stage_ris_source(ws, "Scopus", SCOPUS_RIS.encode(), file_name="scopus.ris", searched_on="2026-11-20")
+    accept_corpus(ws)
+    cmd_prepare(ws, batch_size=20)
+    studies = se._studies(ws)
+    assert len(studies) == 4  # Scopus #1 is the harvest's W1
+    se._intake(ws, [se._event(ws, study, "INCLUDE") for study in studies])
+    publish(ws)
+
+    prisma = json.loads((ws / "literature" / "prisma_report.json").read_text(encoding="utf-8"))
+    preview = client_for(ws).get(f"{BASE}/prisma/preview").json()
+    # Identified = 3 fetched by the harvest + 3 imported; 4 works.
+    assert (prisma["total_identified"], prisma["duplicates_removed"], prisma["records_screened"]) == (6, 2, 4)
+    assert (preview["identified"], preview["duplicates_removed"], preview["screened"]) == (6, 2, 4)
+    body = _methods(ws)
+    assert body["paragraph"].startswith(
+        "Records were identified from OpenAlex (n = 3, searched 2026-11-20) and Scopus (n = 3, searched 2026-11-20). "
+        "6 records were identified; 2 duplicates were removed;"
+    )
+
+
 # --- M6-beta: the paragraph reads as prose (review U-2, S-P1-1), on the 2026-11-06 evidence run ---
 
 EVIDENCE = Path(__file__).resolve().parents[2] / "workspaces" / "golden-uav-30-run-2026-11-06"

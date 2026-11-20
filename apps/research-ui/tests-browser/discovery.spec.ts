@@ -414,7 +414,9 @@ test("en/screening/import: no hydration mismatch with ?return=discovery in the a
   await engine(page, SEEDED);
   await page.goto("/en/screening/import?return=discovery");
   await expect(page.locator("[data-back-to-discovery]")).toBeVisible();
-  await expect(page.locator('[data-staging-refused="VERIFIED_EXISTS"]')).toBeVisible();
+  // M3f: after a harvest an export can still be added; the screen says it will be combined with the harvest.
+  await expect(page.locator('[data-import-combined="with"]')).toBeVisible();
+  await expect(page.locator('[data-staging-refused="VERIFIED_EXISTS"]')).toHaveCount(0);
   await page.waitForLoadState("networkidle");
   expect(problems).toEqual([]);
 });
@@ -528,5 +530,51 @@ for (const locale of ["en", "ar"] as const) {
     if (process.env.H_QUOTA_SHOTS) {
       await page.locator('[data-preparation="incomplete"]').screenshot({ path: `${process.env.H_QUOTA_SHOTS}/incomplete-${locale}-${testInfo.project.name}.png` });
     }
+  });
+}
+
+// M3f-combined-corpus: a ready harvest plus a staged export, and an unfinished harvest beside one.
+const COMBINED: DiscoveryFakeOptions = { runs: 1, staged: true };
+const HARVEST_OUT: DiscoveryFakeOptions = { runs: 1, staged: true, preparation: "failed" };
+
+test("M3f: the hand-off shows both parts, the export's kind and the unchecked line, and accepts once", async ({ page }) => {
+  const fake = await engine(page, COMBINED);
+  await page.goto("/en/discovery/handoff/");
+  await expect(page.getByRole("heading", { level: 1, name: "Accept these 1140 works as the corpus you will screen?" })).toBeVisible();
+  await expect(page.locator('[data-mix-row="Scopus"]')).toContainText("your export");
+  await expect(page.locator('[data-mix-row="openalex"]')).toContainText("searched by the app");
+  await expect(page.locator("[data-imports-unchecked]")).toContainText("120 records come from your exports.");
+  await page.getByRole("button", { name: "Accept this corpus" }).click();
+  await expect(page.getByRole("heading", { level: 1, name: "This corpus is accepted." })).toBeVisible();
+  expect(fake.calls.filter((c) => c.method === "POST" && c.path === "/api/v1/screening/corpus/accept")).toHaveLength(1);
+});
+
+test("M3f: the import step says the exports will be combined with the harvest", async ({ page }) => {
+  await engine(page, COMBINED);
+  await page.goto("/en/screening/import?return=discovery");
+  await expect(page.locator('[data-import-combined="with"]')).toContainText("These exports will be combined with the harvest run_001");
+});
+
+for (const locale of ["en", "ar"] as const) {
+  for (const [label, options, selector] of [
+    ["combined", COMBINED, "[data-imports-unchecked]"],
+    ["harvest left out", HARVEST_OUT, "[data-harvest-out]"],
+  ] as const) {
+    test(`M3f ${locale}/discovery/handoff/ (${label}): axe finds no violation, contrast included`, async ({ page }) => {
+      await engine(page, options);
+      await page.goto(`/${locale}/discovery/handoff/`);
+      await expect(page.locator(selector)).toBeVisible();
+      await page.waitForLoadState("networkidle");
+      const result = await axe(page);
+      expect(result.violations).toEqual([]);
+      expect(result.passes).toContain("color-contrast");
+    });
+  }
+  test(`M3f ${locale}/screening/import?return=discovery (combined): axe finds no violation`, async ({ page }) => {
+    await engine(page, COMBINED);
+    await page.goto(`/${locale}/screening/import?return=discovery`);
+    await expect(page.locator('[data-import-combined="with"]')).toBeVisible();
+    await page.waitForLoadState("networkidle");
+    expect((await axe(page)).violations).toEqual([]);
   });
 }

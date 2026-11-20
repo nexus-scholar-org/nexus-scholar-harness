@@ -310,16 +310,23 @@ def test_a_run_cannot_start_on_an_accepted_snapshot(env):
     assert not (ws / "literature" / "search_runs").exists()
 
 
-def test_a_run_cannot_start_over_staged_exports(env):
-    """A run would end at the snapshot with STAGED_IMPORT_PENDING; it is refused before any request."""
-    from scholar_harness.corpus_accept import stage_ris_source
+def test_a_run_starts_over_staged_exports_and_leaves_them_staged(env):
+    """M3f-combined-corpus: staged exports no longer stop a run (before: 409 STAGED_IMPORT_PENDING).
+
+    The run never touches them; the accept combines both parts
+    (``tests/console/test_combined_corpus_api.py``).
+    """
+    from scholar_harness.corpus_accept import stage_ris_source, staged_sources
 
     client, ws, providers = env
     ris = b"TY  - JOUR\nTI  - A staged record\nPY  - 2023\nDO  - 10.1/staged\nER  - \n"
     stage_ris_source(ws, "Scopus", ris, file_name="export.ris", searched_on="2026-11-01")
-    response = client.post(f"{BASE}/runs", json={})
-    assert response.status_code == 409 and _code(response) == "STAGED_IMPORT_PENDING"
-    assert not (ws / "literature" / "search_runs").exists() and not providers.by_name
+    before = staged_sources(ws)
+    job, _ = _run(client, {"providers": ["openalex"]})
+    assert job["state"] == "succeeded", job
+    assert staged_sources(ws) == before
+    corpus = client.get("/api/v1/screening/corpus").json()
+    assert corpus["origin"] == "combined" and corpus["staging_refused"] is None
 
 
 def test_a_run_refuses_a_cap_outside_the_ceiling_and_an_unknown_provider(env):
@@ -725,9 +732,9 @@ def test_dedup_reports_the_counts_per_tier_of_the_newest_deduplication(env):
     assert client.get(f"{BASE}/report").json()["dedup"]["by_tier"] == dedup["tiers"]
 
 
-def test_after_a_browser_run_the_corpus_says_why_an_export_cannot_be_staged(env):
-    """Researcher, 2026-11-10 ("keep the rule for now, combine later"): an export is staged only
-    before any run; the corpus view names the refusal so the Import and hand-off screens can show it."""
+def test_after_a_browser_run_an_export_can_still_be_staged_until_the_accept(env):
+    """M3f-combined-corpus replaces the rule of 2026-11-10 ("keep the rule for now, combine later"):
+    after a run the corpus view refuses nothing until the accept; then CORPUS_ALREADY_ACCEPTED."""
     import base64
 
     client, ws, _ = env
@@ -735,15 +742,13 @@ def test_after_a_browser_run_the_corpus_says_why_an_export_cannot_be_staged(env)
     job, _ = _run(client, {"providers": ["openalex"]})
     assert job["state"] == "succeeded", job
     corpus = client.get("/api/v1/screening/corpus").json()
-    assert corpus["staging_refused"]["code"] == "VERIFIED_EXISTS"
-    assert "search run" in corpus["staging_refused"]["message"]
-    assert client.get(f"{BASE}/handoff").json()["corpus"]["staging_refused"] == corpus["staging_refused"]
+    assert corpus["staging_refused"] is None
+    assert client.get(f"{BASE}/handoff").json()["corpus"]["staging_refused"] is None
     ris = b"TY  - JOUR\nTI  - A record\nPY  - 2023\nER  -\n"
     staged = client.post("/api/v1/screening/corpus/sources", json={
         "label": "Scopus", "file_name": "scopus.ris", "content_base64": base64.b64encode(ris).decode("ascii"),
     })
-    assert staged.status_code == 409 and _code(staged) == "VERIFIED_EXISTS"
-    assert staged.json()["detail"]["message"] == corpus["staging_refused"]["message"]
+    assert staged.status_code == 201, staged.text
 
     assert client.post("/api/v1/screening/corpus/accept").status_code == 200
     assert client.get("/api/v1/screening/corpus").json()["staging_refused"]["code"] == "CORPUS_ALREADY_ACCEPTED"
