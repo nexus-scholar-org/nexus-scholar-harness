@@ -393,3 +393,31 @@ def test_outcome_in_force_keeps_a_failed_or_empty_draft_unclear():
     assert pr.outcome_in_force(empty, CRITERIA, not_reported="decisive_first", protocol_fingerprint=same) == ("MAYBE", None)
     no_checks = _stored(validators=[])
     assert pr.outcome_in_force(no_checks, CRITERIA, not_reported="decisive_first", protocol_fingerprint=same) == ("MAYBE", None)
+
+
+def test_with_drafts_the_methods_paragraph_says_how_they_are_counted_once(tmp_path):
+    """Review round 2: the positive case of the drafts sentence (drafts and a rule amendment)."""
+    from test_export_api import BASE as EXPORT_BASE
+    from test_export_api import client_for, decide, publish
+    from test_screening_events import _build
+
+    ws = _build(tmp_path, method=dict(BLOCK))
+    client = client_for(ws)
+    assert client.post(f"{EXPORT_BASE}/method/amendments",
+                       json={"field": "not_reported", "value": "decisive_first", "confirm": True}).status_code == 200
+    context = ev.load_context(ws)
+    protocol = json.loads((ws / "protocol.json").read_text(encoding="utf-8"))
+    study = sorted(context.study_batch)[0]
+    pr.submit_proposal(
+        ws, study_id=study, title="t", abstract="a", output={"criteria": [], "cannot_decide": True},
+        protocol=protocol, protocol_fingerprint=context.protocol_fingerprint,
+        provenance={"task_version": "screen-v1", "model": "m", "driver": "mcp", "prompt_sha256": "sha256:" + "0" * 64},
+        created_at="2026-11-20T10:00:00Z",
+    )
+    decide(ws)
+    publish(ws)
+    text = client_for(ws).get(f"{EXPORT_BASE}/methods").json()["paragraph"]
+    sentence = "The agent's drafts are counted under the not-reported rule in force at publication"
+    assert text.count(sentence) == 1
+    assert "No AI model proposed decisions for this screening" not in text
+    assert text.index("after the protocol was signed") < text.index(sentence)

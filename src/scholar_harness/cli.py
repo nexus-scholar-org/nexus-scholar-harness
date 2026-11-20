@@ -579,7 +579,7 @@ def gate_measure(
     dry_run: bool = typer.Option(False, "--dry-run", help="Print records, batches, tokens and cost from the prompt sizes; no network call, no key"),
     yes: bool = typer.Option(False, "--yes", help="Confirm: this spends your provider key"),
     task_version: str = typer.Option("", "--task-version", help="Measure a candidate task version (e.g. screen-v2); default: the task product runs use"),
-    not_reported: str = typer.Option("", "--not-reported", help="Derive outcomes under this not-reported policy (unclear, exclude, decisive_first); default: the protocol's"),
+    not_reported: str = typer.Option("", "--not-reported", help="Derive outcomes under this not-reported policy (unclear, exclude, decisive_first); default: the workspace's rule in force (amendments included)"),
 ) -> None:
     """M9a: the screening agent against the researcher's decisions (recall, precision, cost, truncations)."""
     from scholar_agent import measure as ms
