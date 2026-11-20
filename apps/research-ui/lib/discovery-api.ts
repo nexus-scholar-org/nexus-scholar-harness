@@ -108,7 +108,10 @@ export interface PausedDatabase {
 }
 /** H-quota-hang: an `incomplete` preparation's checks; `null` in every other state. */
 export interface PreparationChecks {
+  /** Records not fully checked: `unverified` (no lookup could confirm them) plus `unenriched` (confirmed, details not filled in). */
   unchecked: number;
+  unverified: number;
+  unenriched: number;
   records: number;
   reason: "PROVIDER_QUOTA_EXHAUSTED" | "PROVIDER_UNAVAILABLE_UNTIL" | "STOPPED_BY_RESEARCHER" | string | null;
   paused: PausedDatabase[];

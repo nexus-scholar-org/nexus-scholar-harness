@@ -122,6 +122,8 @@ def test_a_used_up_quota_during_the_checks_ends_the_run_and_says_when_it_resets(
     assert len(verified) == WORKS and all(row["workspace_id"] for row in verified)
     checks = _checks(ws)
     assert checks["records"] == WORKS and checks["unchecked"] == WORKS
+    # Crossref confirmed them all: none is "not verified", all are "not enriched" (review F1).
+    assert checks["unverified"] == 0 and checks["unenriched"] == WORKS
     assert checks["unchecked_reasons"] == {"PROVIDER_QUOTA_EXHAUSTED": WORKS}
     assert all(row["not_done"] == ["enrichment"] and row["code"] == "VERIFIED" for row in checks["rows"])
     assert [row["workspace_id"] for row in checks["rows"]] == [row["workspace_id"] for row in verified]
@@ -132,10 +134,13 @@ def test_a_used_up_quota_during_the_checks_ends_the_run_and_says_when_it_resets(
     assert preparation["can_finish"] is True
     found = preparation["checks"]
     assert found["unchecked"] == WORKS and found["records"] == WORKS and found["reason"] == "PROVIDER_QUOTA_EXHAUSTED"
+    assert found["unverified"] == 0 and found["unenriched"] == WORKS
     assert [paused["database"] for paused in found["paused"]] == ["OpenAlex"]
     resets = datetime.fromisoformat(found["paused"][0]["resets_at"])
     assert before + timedelta(seconds=49_990) <= resets <= datetime.now(UTC) + timedelta(seconds=50_010)
-    assert "OpenAlex quota is used up" in preparation["message"] and f"{WORKS} of {WORKS} records" in preparation["message"]
+    assert "OpenAlex quota is used up" in preparation["message"]
+    assert f"{WORKS} of {WORKS} records were not fully checked: {WORKS} were verified but" in preparation["message"]
+    assert "could not be verified" not in preparation["message"]
     assert "Finish preparing this corpus after the reset" in preparation["message"]
 
     # The job said it as it ended, and the journal has one row for it.
@@ -227,3 +232,20 @@ def test_a_stop_during_the_checks_ends_them_within_one_record(env, world):
     assert preparation["state"] == "incomplete" and preparation["checks"]["reason"] == "STOPPED_BY_RESEARCHER"
     assert preparation["message"].startswith("You stopped the checks between two records.")
     assert "after the reset" not in preparation["message"]
+
+
+def test_a_checks_file_that_does_not_match_makes_finishing_run_the_whole_preparation_again(env, world):
+    """Review F3: with a checks file that no longer matches verified.json, nothing is kept from it."""
+    client, ws, _ = env
+    job, _ = h._run(client, PROVIDERS)
+    assert job["result"]["status"] == "INCOMPLETE", job
+    checks = _checks(ws)
+    checks["rows"].reverse()
+    (ws / "literature" / "verification_checks.json").write_text(json.dumps(checks), encoding="utf-8")
+
+    world.openalex_quota = False
+    world.crossref.clear()
+    job, _ = p._finish(client)
+    assert job["state"] == "succeeded" and job["result"]["resumed_from"] != "verification", job
+    assert len(world.crossref) == WORKS  # every record checked again
+    assert _checks(ws)["unchecked"] == 0

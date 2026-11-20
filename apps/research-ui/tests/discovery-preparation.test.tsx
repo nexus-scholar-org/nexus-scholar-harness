@@ -277,7 +277,7 @@ describe("H-quota-hang: the checks ended before every record was checked", () =>
     const user = userEvent.setup();
     const { engine } = setUp({ runs: 1, preparation: "incomplete" });
     render(<DiscoveryHarvest locale="en" />);
-    await screen.findByRole("heading", { level: 1, name: "The search finished, but not every work could be checked." });
+    await screen.findByRole("heading", { level: 1, name: "The search finished, but not every work could be fully checked." });
     const card = await preparationCard();
     expect(card).toHaveAttribute("data-preparation", "incomplete");
     expect(within(card).getByText("Checks unfinished")).toBeInTheDocument();
@@ -285,7 +285,12 @@ describe("H-quota-hang: the checks ended before every record was checked", () =>
     expect(paused).toHaveAttribute("data-resets-at", RESET);
     expect(paused).toHaveTextContent(`The OpenAlex quota is used up. It resets at ${localStamp(RESET)}.`);
     expect(card.querySelector("[data-unchecked]")).toHaveTextContent(
-      "120 of 166 records were not checked. They are kept as they were found and marked as not checked; none was dropped.",
+      "120 of 166 records were not fully checked. All are kept as they were found; none was dropped.",
+    );
+    // The two kinds are counted apart (review F1): not verified, and verified but not completed.
+    expect(card.querySelector("[data-unverified]")).toHaveTextContent("20 could not be verified; they are marked as not checked.");
+    expect(card.querySelector("[data-unenriched]")).toHaveTextContent(
+      "100 were verified, but their missing details (abstract, venue, counts) were not filled in.",
     );
     expect(card.querySelector("[data-incomplete-todo]")).toHaveTextContent(
       "After the reset, press “Finish preparing this corpus”: only those records are checked again.",
@@ -306,7 +311,9 @@ describe("H-quota-hang: the checks ended before every record was checked", () =>
     const card = await preparationCard();
     expect(card.querySelector("[data-incomplete-stopped]")).toHaveTextContent("You stopped the checks between two records.");
     expect(card.querySelector("[data-paused]")).toBeNull();
-    expect(card.querySelector("[data-unchecked]")).toHaveTextContent("7 of 10 records were not checked.");
+    expect(card.querySelector("[data-unchecked]")).toHaveTextContent("7 of 10 records were not fully checked.");
+    expect(card.querySelector("[data-unverified]")).toHaveTextContent("7 could not be verified");
+    expect(card.querySelector("[data-unenriched]")).toBeNull();
     expect(card.querySelector("[data-incomplete-todo]")).toHaveTextContent(
       "Press “Finish preparing this corpus” to check them: only those records are checked again.",
     );

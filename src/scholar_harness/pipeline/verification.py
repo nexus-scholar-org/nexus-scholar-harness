@@ -82,6 +82,10 @@ class VerificationOutcome:
     #: H-quota-hang: records published without a complete check, and why.
     unchecked: int = 0
     unchecked_reasons: dict[str, int] = field(default_factory=dict)
+    #: Of ``unchecked``: records no lookup could confirm (``NOT_CHECKED``) and
+    #: records confirmed whose missing details were not filled in (review F1).
+    unverified: int = 0
+    unenriched: int = 0
     #: The databases the verifier stopped asking, with their reset time.
     paused: list[dict[str, Any]] = field(default_factory=list)
     #: The researcher's stop ended the checks between two records.
@@ -167,6 +171,10 @@ async def run_verification(
         to_check, verify=True, enrich=True
     )
     audit = audit if isinstance(audit, list) else []
+    if any(kept) and len(checked_docs) != len(to_check):
+        raise ValueError(
+            f"the verifier returned {len(checked_docs)} records for {len(to_check)}; the kept rows cannot be placed"
+        )
     if any(kept):
         # Merge the kept rows back in their places; the verifier's rows follow in order.
         verified_docs, rows = [], []
@@ -188,6 +196,8 @@ async def run_verification(
             key = str(row.get("reason") or "UNKNOWN")
             unchecked_reasons[key] = unchecked_reasons.get(key, 0) + 1
     unchecked_n = sum(unchecked_reasons.values())
+    unverified_n = sum(1 for row in rows if "verification" in (row.get("not_done") or []))
+    unenriched_n = unchecked_n - unverified_n
     paused = getattr(verifier, "paused", None)
     paused = [dict(p) for p in paused if isinstance(p, dict)] if isinstance(paused, list) else []
     stopped = getattr(verifier, "stopped", False) is True
@@ -313,6 +323,8 @@ async def run_verification(
                 "schema": CHECKS_SCHEMA,
                 "records": len(check_rows),
                 "unchecked": unchecked_n,
+                "unverified": unverified_n,
+                "unenriched": unenriched_n,
                 "unchecked_reasons": unchecked_reasons,
                 "paused": paused,
                 "stopped": stopped,
@@ -336,7 +348,8 @@ async def run_verification(
             f"{preserved_n} preserved, {bridge_restored_n} bridge-restored, "
             f"{len(refused_entries)} refused"
             + (
-                f"; {unchecked_n} not checked ("
+                f"; {unchecked_n} not fully checked ({unverified_n} not verified, "
+                f"{unenriched_n} verified but not enriched; "
                 + ", ".join(f"{k}: {v}" for k, v in sorted(unchecked_reasons.items()))
                 + ")"
                 if unchecked_n
@@ -363,6 +376,8 @@ async def run_verification(
             **(
                 {
                     "unchecked": unchecked_n,
+                    "unverified": unverified_n,
+                    "unenriched": unenriched_n,
                     "unchecked_reasons": unchecked_reasons,
                     "paused": paused,
                     "stopped": stopped,
@@ -385,6 +400,8 @@ async def run_verification(
         quarantine=_quarantine_rel,
         unchecked=unchecked_n,
         unchecked_reasons=unchecked_reasons,
+        unverified=unverified_n,
+        unenriched=unenriched_n,
         paused=paused,
         stopped=stopped,
         checked=len(to_check),

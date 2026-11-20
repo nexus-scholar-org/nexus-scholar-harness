@@ -4,6 +4,7 @@ from collections.abc import AsyncIterator
 from typing import Any
 
 from ..config import settings
+from ..exceptions import ProviderPausedError
 from ..http_client import crossref_rate
 from ..models import Author, Document, ExternalIds, Query
 from ..query_translator import BooleanQueryTranslator, QueryField
@@ -175,6 +176,9 @@ class CrossrefProvider(BaseAPIProvider):
                 match = items[0]
                 if match.get("score", 0) > 40:  # Arbitrary confidence threshold
                     return self._normalize_document(match)
+        except ProviderPausedError:
+            # H-quota-hang review F4: a used-up quota is said, not read as "no match".
+            raise
         except Exception:
             pass
         return None

@@ -7,7 +7,7 @@ The one blocker of the acceptance run of 2026-11-20 (a real scoping review throu
 - **(15)** "Stop after the current step" was not read inside "Checks": `should_stop` was tested between stages only (`pipeline/coordinator.py::_prepare_corpus`).
 - **(16)** `DocumentVerifier.process_batch` asks OpenAlex once per record (`hydrate_metadata`, and `verify_document`'s fallbacks), and `AcademicHttpClient.get` retried a 429 three times, sleeping `min(Retry-After, 60)` each time: with `Retry-After: 50000` that is about three minutes per record, nine hours for 166 records.
 
-Choices: `docs/decisions.md`, entry "2026-11-20 — H-quota-hang" (items 1 to 8, all PROPOSED).
+Choices: `docs/decisions.md`, entry "2026-11-20 — H-quota-hang" (items 1 to 9, all PROPOSED).
 
 ## Lane
 
@@ -28,6 +28,7 @@ Choices: `docs/decisions.md`, entry "2026-11-20 — H-quota-hang" (items 1 to 8,
 - [x] "Finish preparing this corpus" after such a run checks only the records still not checked (it was cheap: the checks file names them). Test: `test_finish_preparing_after_the_reset_checks_only_the_records_not_checked`.
 - [x] Reproducing tests written first and seen failing on the unfixed code (Evidence).
 - [x] Contract baseline current; CI's two ruff runs clean.
+- [x] Review round 1 (CHANGES, no P0/P1) repaired: P2 F1 to F3, P3 F4 to F7 (see "Repairs after the review").
 - [ ] PR gate green on the final executable commit; closure gate (RELEASE).
 - [ ] `milestone-reviewer` APPROVE.
 
@@ -43,9 +44,21 @@ Choices: `docs/decisions.md`, entry "2026-11-20 — H-quota-hang" (items 1 to 8,
 
 **Console.** The next-step bar maps `incomplete` to its row 15 (`CORPUS_PENDING`): kind `failed` at "verifying" with reason `PROVIDER_QUOTA_EXHAUSTED` and the engine's sentence, or `stopped` for a stop; action "Finish preparing". The Hand-off check `HANDOFF_PREPARATION_UNFINISHED` fires for `incomplete`. The CLI `run` panel has an `INCOMPLETE` headline and prints the sentence.
 
-**UI** (`apps/research-ui`). `PreparationState` gains `incomplete`, `Preparation.checks`; `preparationUnfinished` includes it. A shared `IncompleteChecks` component (Harvest's preparation card and the Hand-off's pending block) says the stop, each paused database with its reset time in the researcher's clock (`localStamp`), "N of M records were not checked ... none was dropped", and "After the reset, press “Finish preparing this corpus”: only those records are checked again" (or "Press ... to check them" after a stop). New copy in en/fr/ar: `harvest.title.prep.incomplete`, `harvest.prep.badge.incomplete`, `harvest.prep.incomplete.*`, `handoff.pending.incomplete`, `checks.state.incomplete`, `next.reason.PROVIDER_QUOTA_EXHAUSTED`, `next.reason.PROVIDER_UNAVAILABLE_UNTIL`. The fake engine (`tests/fixtures/discovery-engine.ts`) serves an `incomplete` preparation (quota or stop) and `checks: null` otherwise.
+**UI** (`apps/research-ui`). `PreparationState` gains `incomplete`, `Preparation.checks`; `preparationUnfinished` includes it. A shared `IncompleteChecks` component (Harvest's preparation card and the Hand-off's pending block) says the stop, each paused database with its reset time in the researcher's clock (`localStamp`), "N of M records were not fully checked ... none was dropped" with the two kinds apart ("X could not be verified", "Y were verified, but their missing details ... were not filled in"), and "After the reset, press “Finish preparing this corpus”: only those records are checked again" (or "Press ... to check them" after a stop). New copy in en/fr/ar: `harvest.title.prep.incomplete`, `harvest.prep.badge.incomplete`, `harvest.prep.incomplete.*`, `handoff.pending.incomplete`, `checks.state.incomplete`, `next.reason.PROVIDER_QUOTA_EXHAUSTED`, `next.reason.PROVIDER_UNAVAILABLE_UNTIL`. The fake engine (`tests/fixtures/discovery-engine.ts`) serves an `incomplete` preparation (quota or stop) and `checks: null` otherwise.
 
 **Unchanged on purpose.** The abstracts stage (`AbstractHydrator`) is not changed: its OpenAlex and Semantic Scholar batch requests now fail at once on a quota answer (item 1) and it moves on, as it already did for any error, so it no longer waits either; the works it could not give an abstract are not marked (follow-up). Search legs and Explore get the same fast failure with the reset in the message; their codes do not change.
+
+## Repairs after the review (round 1, CHANGES; no P0 or P1)
+
+- **F1 (P2) "not checked" said of records Crossref verified.** The unchecked count mixed records no lookup confirmed with records confirmed but not enriched. Now counted and said apart everywhere: `unverified` and `unenriched` in the stage outcome, the checks file, the marker, `preparation.checks`, the engine's sentence ("N of M records were not fully checked: X could not be verified and are marked as not checked; Y were verified but their missing details were not filled in") and the en/fr/ar copy (`harvest.prep.incomplete.unverified`, `.unenriched`; `count`, the title and `handoff.pending.incomplete` reworded). Whether an enrichment-only gap should block the Hand-off is put to the researcher (decision item 4); as built it blocks. Tests: the API quota test asserts `unverified == 0`, `unenriched == 8` and the sentence; the UI tests assert both lines.
+- **F2 (P2) the CLI could freeze a partly checked corpus.** `accept_corpus` (the `accept-corpus` command) now calls `refuse_if_preparation_unfinished` when the corpus is a search run's (not imported, not yet accepted), as the Hand-off does. Test: `tests/unit/test_run_builds_snapshot.py::test_a_cli_run_whose_checks_ended_early_builds_no_snapshot_and_the_accept_refuses`. Side effect, fail-closed: the CLI accept now also refuses after a failed or stopped run whose `verified.json` is an earlier run's.
+- **F3 (P2) the fallback of "Finish preparing" had no test.** `tests/pipeline/test_partly_checked.py`: the happy path and eleven spoiled inputs (rows reordered, missing, extra; other schema; garbled; missing file; duplicate ids; quarantine file; marker ended DONE; marker names another run; `verified.json` missing), each `({}, None)`; and `tests/console/test_quota_hang_api.py::test_a_checks_file_that_does_not_match_makes_finishing_run_the_whole_preparation_again` (all 8 records checked again, not resumed at verification). The fallback logic itself did not change; on the pre-repair code these tests fail only because `harvest_marker.incomplete` lacked the new count arguments.
+- **F4 (P3) a Crossref quota in the title search was invisible.** `CrossrefProvider.validate_reference` re-raises `ProviderPausedError`. Test: `test_a_used_up_crossref_quota_in_the_title_search_pauses_crossref`.
+- **F5 (P3) an absurd `Retry-After` crashed the client.** Clamped to one year (`RETRY_AFTER_MAX`); `nan` reads as absent; an HTTP date past year 9999 as unreadable. Test: `test_an_absurd_retry_after_never_crashes_the_client` (`1e20` and `inf` failed before; `nan` and the far date passed before as well).
+- **F6 (P3) no test of the CLI path.** Same test as F2: `run_pipeline_async` ends `INCOMPLETE`, no corpus snapshot in the registry, no `CORPUS_SNAPSHOT_ACCEPTED` row.
+- **F7 (P3) the gate ran on an uncommitted tree.** That run was stopped; the browser tests are committed and the gates below are on the final commit.
+- **Follow-ups taken:** a pause and a stop are reset at the start of each `process_batch` (test `test_a_pause_holds_for_one_batch_only`); the `keep` merge raises a clear `ValueError` when a verifier returns another number of records than it was given.
+- **Follow-ups left:** the kit CLI `scholar-search verify` / `import` still prints a `NOT_CHECKED` record as "could not be verified in Crossref/OpenAlex" without naming the quota; decision item 3's contract question.
 
 ## Tests (each failed before the fix and passes after, unless noted)
 
@@ -68,6 +81,10 @@ Choices: `docs/decisions.md`, entry "2026-11-20 — H-quota-hang" (items 1 to 8,
 | UI after | `b44e57a5` | `npx vitest run tests/discovery-preparation.test.tsx`; `npm run typecheck` | 25 passed; clean |
 | contract | `e6904008` | `uv run python scripts/generate_contract_baseline.py --check` | "Contract baseline current" (run after the edits only; no contract file is in the diff) |
 | lint | `a85fee82` | `ruff check scripts/`; `ruff check src/ --select F821,F811,F823,F632,F7,B023,B006,E9` | both "All checks passed!" |
+
+| review round 1 | `5bdbbd26` | `milestone-reviewer` | **CHANGES**: no P0/P1; P2 F1 to F3, P3 F4 to F7 (repaired, see above). The reviewer reran the kit and API tests on `origin/main` sources: 12 of 14 failed with the defect's numbers |
+| repairs before | the repair tests on the pre-repair `src/` (`5bdbbd26`) | the new kit, pipeline, unit and API tests | 18 failed, 2 passed (the `nan` and far-date Retry-After cases) |
+| repairs after | working tree | `test_quota_hang.py`, `test_partly_checked.py`, `test_quota_hang_api.py`, `test_run_builds_snapshot.py`, `test_verifier.py`; every test file that mentions `accept_corpus` (9 files, `-m "not slow"`); `npm run typecheck`; vitest preparation, copy and next-step files | 58 passed; 262 passed; clean; 61 passed |
 
 ## Not verified
 

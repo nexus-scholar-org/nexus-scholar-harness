@@ -28,6 +28,8 @@ export function IncompleteChecks({
         </p>
       ))}
       <p data-unchecked={checks.unchecked}>{t("harvest.prep.incomplete.count", { unchecked: checks.unchecked, records: checks.records })}</p>
+      {checks.unverified ? <p data-unverified={checks.unverified}>{t("harvest.prep.incomplete.unverified", { n: checks.unverified })}</p> : null}
+      {checks.unenriched ? <p data-unenriched={checks.unenriched}>{t("harvest.prep.incomplete.unenriched", { n: checks.unenriched })}</p> : null}
       {canFinish ? (
         <p data-incomplete-todo>{t(checks.paused.length ? "harvest.prep.incomplete.afterReset" : "harvest.prep.incomplete.now")}</p>
       ) : null}

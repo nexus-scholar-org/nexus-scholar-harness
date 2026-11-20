@@ -3,6 +3,7 @@
 import asyncio
 import importlib.metadata
 import logging
+import math
 import re
 import threading
 import time
@@ -245,6 +246,10 @@ def header_rate(headers: httpx.Headers) -> float | None:
 #: outage): the request ends at once with ``ProviderPausedError`` (H-quota-hang).
 RETRY_AFTER_CAP = 60.0
 
+#: The longest wait a reset time is computed from (one year): an absurd header
+#: (``1e20``, ``inf``) must not overflow the date arithmetic (review F5).
+RETRY_AFTER_MAX = 365 * 24 * 3600.0
+
 #: Display names of the provider hosts, for the researcher's message.
 _DATABASES = {
     "api.openalex.org": "OpenAlex",
@@ -267,18 +272,21 @@ def retry_after_seconds(value: str | None, now: datetime | None = None) -> float
         return None
     text = value.strip()
     try:
-        return max(0.0, float(text))
+        seconds = float(text)
     except ValueError:
-        pass
-    try:
-        when = parsedate_to_datetime(text)
-    except (TypeError, ValueError, IndexError):
+        try:
+            when = parsedate_to_datetime(text)
+        except (TypeError, ValueError, IndexError, OverflowError):
+            return None
+        if when is None:
+            return None
+        if when.tzinfo is None:
+            when = when.replace(tzinfo=UTC)
+        seconds = (when - (now or datetime.now(UTC))).total_seconds()
+    if math.isnan(seconds):
         return None
-    if when is None:
-        return None
-    if when.tzinfo is None:
-        when = when.replace(tzinfo=UTC)
-    return max(0.0, (when - (now or datetime.now(UTC))).total_seconds())
+    # Clamped: a value beyond a year (or infinite) is read as a year.
+    return min(max(0.0, seconds), RETRY_AFTER_MAX)
 
 
 def _paused(name: str, url: str, status: int, wait: float) -> ProviderPausedError:

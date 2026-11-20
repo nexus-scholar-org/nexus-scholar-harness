@@ -380,6 +380,8 @@ class DocumentVerifier:
         as they are, ``NOT_CHECKED`` with ``STOPPED_BY_RESEARCHER``.
         """
         stop = should_stop if should_stop is not None else self.should_stop
+        # A pause and a stop hold for one batch (decision H-quota-hang item 2).
+        self._paused, self.stopped = {}, False
         processed_docs: list[Document] = []
         audit_log: list[dict[str, Any]] = []
 

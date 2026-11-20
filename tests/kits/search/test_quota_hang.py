@@ -292,3 +292,45 @@ def test_a_paused_provider_error_is_a_provider_error():
     error = QuotaExhaustedError("openalex", database="OpenAlex", retry_after=50000.0, resets_at="2026-11-21T00:00:00+00:00")
     assert isinstance(error, ProviderPausedError) and isinstance(error, RateLimitExceededError)
     assert isinstance(error, ProviderError) and error.status_code == 429
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("header", ["1e20", "inf", "Fri, 31 Dec 99999 23:59:59 GMT", "nan"])
+async def test_an_absurd_retry_after_never_crashes_the_client(slept, header):
+    """Review F5: an overflowing or unreadable value is clamped or ignored, never an OverflowError."""
+    from scholar_search.exceptions import QuotaExhaustedError
+
+    client = AcademicHttpClient(name="openalex", rate_limit=0, cache_enabled=False, base_delay=0)
+    _mock(client, lambda r: httpx.Response(429, headers={"Retry-After": header}))
+    with pytest.raises(RateLimitExceededError) as caught:
+        await client.get("https://api.openalex.org/works/W1")
+    if header in ("1e20", "inf"):
+        assert isinstance(caught.value, QuotaExhaustedError) and caught.value.retry_after == http_mod.RETRY_AFTER_MAX
+    else:  # unreadable: today's backoff, then the plain rate-limit error
+        assert not isinstance(caught.value, QuotaExhaustedError) and len(slept) == 3
+    await client.close()
+
+
+@pytest.mark.asyncio
+async def test_a_used_up_crossref_quota_in_the_title_search_pauses_crossref(slept):
+    """Review F4: ``validate_reference`` swallowed every error, so a record without a DOI read UNVERIFIED."""
+    def crossref_quota(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(429, headers={"Retry-After": QUOTA_WAIT})
+
+    verifier, crossref_seen, _ = _verifier(crossref_quota, lambda r: httpx.Response(200, json={"results": []}))
+    records = _records(3)
+    for record in records:
+        record.external_ids.doi = None
+    _, audit = await verifier.process_batch(records, verify=True, enrich=True)
+    assert len(crossref_seen) == 1
+    assert [p["database"] for p in verifier.paused] == ["Crossref"]
+    assert all(row["code"] == "NOT_CHECKED" and row["reason"] == "PROVIDER_QUOTA_EXHAUSTED" for row in audit)
+
+
+@pytest.mark.asyncio
+async def test_a_pause_holds_for_one_batch_only(slept):
+    """Decision item 2: a new batch on the same verifier asks the database again."""
+    verifier, _, openalex_seen = _verifier(_crossref_work, _quota)
+    await verifier.process_batch(_records(2), verify=True, enrich=True)
+    await verifier.process_batch(_records(2), verify=True, enrich=True)
+    assert len(openalex_seen) == 2

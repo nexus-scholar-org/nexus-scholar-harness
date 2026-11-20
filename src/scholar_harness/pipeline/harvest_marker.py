@@ -24,7 +24,8 @@ stop, read before ``stage`` started) or ``INCOMPLETE`` (H-quota-hang:
 verification ended early and wrote ``verified.json`` with every record, but
 some were not checked, because a database's quota was used up or the
 researcher stopped between two records; the end record then also carries
-``unchecked``, ``records``, ``reason`` and ``paused``). ``verified_run`` names
+``unchecked`` (of which ``unverified`` and ``unenriched``), ``records``,
+``reason`` and ``paused``). ``verified_run`` names
 the run whose records are in ``verified.json``: this run, once its
 verification ended (completely or not). ``resumed`` lists each later attempt
 to finish the preparation.
@@ -167,6 +168,8 @@ def incomplete(
     *,
     unchecked: int,
     records: int,
+    unverified: int = 0,
+    unenriched: int = 0,
     reason: str,
     paused: list[dict[str, Any]],
     message: str,
@@ -187,7 +190,8 @@ def incomplete(
     marker["stages"]["verification"] = {"status": verification_status, "at": now}
     marker["ended"] = {
         "status": INCOMPLETE, "at": now, "stage": "verification", "message": message,
-        "unchecked": unchecked, "records": records, "reason": reason, "paused": paused,
+        "unchecked": unchecked, "unverified": unverified, "unenriched": unenriched,
+        "records": records, "reason": reason, "paused": paused,
     }
     marker["verified_run"] = run_dir.name
     _write(run_dir, marker)
@@ -246,7 +250,9 @@ def preparation_view(
 
     H-quota-hang: ``incomplete`` (verification ended early, ``verified.json``
     is this run's but some records were not checked) adds ``checks``:
-    ``{"unchecked", "records", "reason", "paused"}``; every other state has
+    ``{"unchecked", "unverified", "unenriched", "records", "reason", "paused"}``
+    (``unverified``: no lookup could confirm them; ``unenriched``: confirmed,
+    their missing details not filled in); every other state has
     ``checks: None``.
     """
     marker = read(run_dir)
@@ -279,6 +285,8 @@ def preparation_view(
                 paused = ended.get("paused")
                 view["checks"] = {
                     "unchecked": int(ended.get("unchecked") or 0),
+                    "unverified": int(ended.get("unverified") or 0),
+                    "unenriched": int(ended.get("unenriched") or 0),
                     "records": int(ended.get("records") or 0),
                     "reason": ended.get("reason"),
                     "paused": paused if isinstance(paused, list) else [],

@@ -524,9 +524,14 @@ def _incomplete_message(outcome: Any, records: int, reason: str) -> str:
                 f"{paused.get('database')} is unavailable (HTTP {paused.get('status_code')}) "
                 f"until {_when(paused.get('resets_at'))}."
             )
+    detail = []
+    if outcome.unverified:
+        detail.append(f"{outcome.unverified} could not be verified and are marked as not checked")
+    if outcome.unenriched:
+        detail.append(f"{outcome.unenriched} were verified but their missing details were not filled in")
     parts.append(
-        f"{outcome.unchecked} of {records} records were not checked; they are kept as they were found and "
-        "marked as not checked. Finish preparing this corpus"
+        f"{outcome.unchecked} of {records} records were not fully checked: " + "; ".join(detail) + ". "
+        "All are kept as they were found; none was dropped. Finish preparing this corpus"
         + (" after the reset" if outcome.paused else "")
         + ": only those records are checked again."
     )
@@ -657,6 +662,8 @@ async def _prepare_corpus(
                 if getattr(verification_outcome, "unchecked", 0) or keep:
                     results["stages"]["verification"].update({
                         "unchecked": verification_outcome.unchecked,
+                        "unverified": verification_outcome.unverified,
+                        "unenriched": verification_outcome.unenriched,
                         "unchecked_reasons": verification_outcome.unchecked_reasons,
                         "paused": verification_outcome.paused,
                         "stopped": verification_outcome.stopped,
@@ -713,7 +720,10 @@ def _end_incomplete(
         else max(reasons, key=reasons.get)
     )
     message = _incomplete_message(outcome, records, reason)
-    checks = {"unchecked": outcome.unchecked, "records": records, "reason": reason, "paused": outcome.paused}
+    checks = {
+        "unchecked": outcome.unchecked, "unverified": outcome.unverified, "unenriched": outcome.unenriched,
+        "records": records, "reason": reason, "paused": outcome.paused,
+    }
     harvest_marker.incomplete(run_dir, status, message=message, **checks)
     reason_text = "stopped by the researcher" if reason == VERIFY_STOPPED else "a database's quota is used up"
     results["stages"]["verification"]["incomplete"] = {**checks, "message": message}
@@ -734,7 +744,8 @@ def _end_incomplete(
         "HARVEST_PREPARATION_INCOMPLETE",
         "scholar-harness",
         f"The checks of {run_name} ended before every record was checked ({reason_text}): "
-        f"{outcome.unchecked} of {records} records not checked, kept as found; {run_name} can be "
+        f"{outcome.unchecked} of {records} records not fully checked ({outcome.unverified} not verified, "
+        f"{outcome.unenriched} verified but not enriched), kept as found; {run_name} can be "
         f"finished without a new search{_pipeline_note(results)}",
         [str(protocol_path)],
         [str(lit_dir / "verified.json"), str(lit_dir / CHECKS_FILENAME)],

@@ -310,12 +310,12 @@ export function discoveryEngine(options: DiscoveryFakeOptions = {}) {
   };
   const incompleteChecks = (): Json =>
     options.incompleteReason === "stopped"
-      ? { unchecked: 7, records: 10, reason: "STOPPED_BY_RESEARCHER", paused: [] }
-      : { unchecked: 120, records: 166, reason: "PROVIDER_QUOTA_EXHAUSTED", paused: [quotaPaused] };
+      ? { unchecked: 7, unverified: 7, unenriched: 0, records: 10, reason: "STOPPED_BY_RESEARCHER", paused: [] }
+      : { unchecked: 120, unverified: 20, unenriched: 100, records: 166, reason: "PROVIDER_QUOTA_EXHAUSTED", paused: [quotaPaused] };
   const incompleteMessage = (): string =>
     options.incompleteReason === "stopped"
-      ? "You stopped the checks between two records. 7 of 10 records were not checked; they are kept as they were found and marked as not checked. Finish preparing this corpus: only those records are checked again."
-      : "The OpenAlex quota is used up; it resets at 2026-11-21 00:00 UTC. 120 of 166 records were not checked; they are kept as they were found and marked as not checked. Finish preparing this corpus after the reset: only those records are checked again.";
+      ? "You stopped the checks between two records. 7 of 10 records were not fully checked: 7 could not be verified and are marked as not checked. All are kept as they were found; none was dropped. Finish preparing this corpus: only those records are checked again."
+      : "The OpenAlex quota is used up; it resets at 2026-11-21 00:00 UTC. 120 of 166 records were not fully checked: 20 could not be verified and are marked as not checked; 100 were verified but their missing details were not filled in. All are kept as they were found; none was dropped. Finish preparing this corpus after the reset: only those records are checked again.";
   const unfinishedPrep = (): Prep =>
     options.preparation === "incomplete"
       ? { state: "incomplete", stage: "verification", message: incompleteMessage(), marker: true, checks: incompleteChecks() }
