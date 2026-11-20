@@ -230,3 +230,16 @@ describe("inception.review", () => {
     expect(assign).not.toHaveBeenCalled();
   });
 });
+
+
+describe("inception.review refused checks (H-run-small-fixes, finding 7)", () => {
+  it("shows a refused all-steps checks read instead of drawing nothing", async () => {
+    const { engine } = setUp({ draft: decided() });
+    engine.refuseNext(`POST /api/v1/inception/drafts/${SESSION}/checks`, {
+      status: 422,
+      body: { detail: { code: "DRAFT_INVALID", message: "the stored draft does not parse" } },
+    });
+    render(<InceptionReview locale="en" />);
+    expect(await screen.findByText("DRAFT_INVALID")).toBeInTheDocument();
+  });
+});

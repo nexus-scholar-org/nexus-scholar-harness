@@ -121,6 +121,7 @@ const COPY = {
     "state.cancelled": "Cancelled",
     "state.failed": "Failed",
     cancel: "Cancel the run",
+    stopping: "Stopping the run… it ends when the engine notices, at the latest after the current chunk.",
     partial: "The agent run stopped at {done} of {records}. {left} records have no draft. You can decide them without one.",
     resume: "Resume over the records without a draft",
     retention: "Proposals are kept in this workspace as provenance.",
@@ -200,6 +201,7 @@ const COPY = {
     "state.cancelled": "Annulé",
     "state.failed": "Échoué",
     cancel: "Annuler le passage",
+    stopping: "Arrêt du passage… il s'arrête quand le moteur le remarque, au plus tard après le lot en cours.",
     partial: "Le passage de l'agent s'est arrêté à {done} sur {records}. {left} notices n'ont pas de brouillon. Vous pouvez les décider sans.",
     resume: "Reprendre sur les notices sans brouillon",
     retention: "Les propositions sont conservées dans cet espace comme provenance.",
@@ -279,6 +281,7 @@ const COPY = {
     "state.cancelled": "أُلغي",
     "state.failed": "فشل",
     cancel: "ألغِ التشغيل",
+    stopping: "جارٍ إيقاف التشغيل… يتوقف حين يلاحظ المحرك ذلك، على الأكثر بعد الدفعة الجارية.",
     partial: "توقف تشغيل الوكيل عند {done} من {records}. {left} سجلًا دون مسودة. يمكنك حسمها دونها.",
     resume: "استأنف على السجلات التي بلا مسودة",
     retention: "تُحفظ المقترحات في هذه المساحة كمصدر موثّق.",
@@ -694,7 +697,11 @@ export function ScreeningProposals({ locale }: Readonly<{ locale: Locale }>) {
                     {t("counts", { refused: n(run.refused), truncated: n(run.truncated), invalid: n(run.invalid), failed: n(run.failed), checks: n(run.check_failures) })}
                   </p>
                   <p className="text-xs text-ink-muted">{t("countsNote")}</p>
-                  {active ? (
+                  {active && run.cancel_requested ? (
+                    <p className="text-sm text-ink" role="status" data-stopping>
+                      {t("stopping")}
+                    </p>
+                  ) : active ? (
                     <Button disabled={busy} onClick={() => void act(async () => setRun({ ...run, ...(await cancelRun(origin, run.run_id)) }))}>
                       {t("cancel")}
                     </Button>

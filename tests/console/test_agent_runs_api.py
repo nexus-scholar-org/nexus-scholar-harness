@@ -109,7 +109,11 @@ def test_one_run_at_a_time_and_cancel_keeps_finished_proposals(ws):
     first = client.post(f"{BASE}/proposals/runs", json={"consent": CONSENT}).json()
     second = client.post(f"{BASE}/proposals/runs", json={})
     assert second.status_code == 409 and second.json()["detail"]["code"] == "RUN_ALREADY_ACTIVE"
-    assert client.post(f"{BASE}/proposals/runs/{first['run_id']}/cancel").json()["state"] == "cancelled"
+    cancelled = client.post(f"{BASE}/proposals/runs/{first['run_id']}/cancel").json()
+    # H-run-small-fixes (finding 35): still running until the worker notices; a new run is refused meanwhile.
+    assert cancelled == {"run_id": first["run_id"], "state": "running", "cancel_requested": True}
+    again = client.post(f"{BASE}/proposals/runs", json={})
+    assert again.status_code == 409 and again.json()["detail"]["code"] == "RUN_ALREADY_ACTIVE"
     pending[0]()  # the run notices the cancel before its first record
     status = client.get(f"{BASE}/proposals/runs/{first['run_id']}").json()
     assert status["state"] == "cancelled" and status["done"] == 0
@@ -309,7 +313,10 @@ def test_a_real_threaded_run_survives_concurrent_reads_and_keeps_a_mid_run_cance
     readers = [threading.Thread(target=poll) for _ in range(4)]
     for t in readers:
         t.start()
-    assert client.post(f"{BASE}/proposals/runs/{run_id}/cancel").json()["state"] == "cancelled"
+    # H-run-small-fixes (finding 35): the answer is the run's state while it stops.
+    answer = client.post(f"{BASE}/proposals/runs/{run_id}/cancel").json()
+    assert answer["state"] == "running" and answer["cancel_requested"] is True
+    assert client.get(f"{BASE}/proposals/runs/{run_id}").json()["cancel_requested"] is True
     gate.set()
     deadline = time.time() + 10
     while runs.active_run(ws) is not None and time.time() < deadline:
@@ -320,6 +327,7 @@ def test_a_real_threaded_run_survives_concurrent_reads_and_keeps_a_mid_run_cance
     status = client.get(f"{BASE}/proposals/runs/{run_id}").json()
     assert errors == []
     assert status["state"] == "cancelled" and status["done"] == 1 and runs.active_run(ws) is None
+    assert status["cancel_requested"] is False
     assert json.loads((ws / runs.RUNS_DIR / f"{run_id}.json").read_text(encoding="utf-8"))["state"] == "cancelled"
 
 
