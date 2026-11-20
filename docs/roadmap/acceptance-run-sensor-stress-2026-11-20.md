@@ -34,7 +34,7 @@ Next: press "Finish preparing this corpus" after the OpenAlex quota resets (midn
 
 ## Findings
 
-Severity: P1 blocks a real user, P2 misleads or costs time, P3 is cosmetic. Status is at `f05cd29a`. Findings 12, 15 and 16 are fixed by H-quota-hang (`docs/roadmap/milestones/H-quota-hang.md`, its own PR); the others are open.
+Severity: P1 blocks a real user, P2 misleads or costs time, P3 is cosmetic. Status is at `f05cd29a`. Findings 12, 15 and 16 are fixed by H-quota-hang (`docs/roadmap/milestones/H-quota-hang.md`, PR #259, merged 2026-11-20); the others are open.
 
 | # | Screen | What happened | Severity |
 | :-- | :-- | :-- | :-- |

@@ -1,5 +1,5 @@
 # H-quota-hang A used-up provider quota during "Checks" ends the step with a message, not hours of retries
-Branch: `dev/fix/quota-hang` (from `origin/main` `f05cd29a`) · Lane: **RELEASE** (see "Lane") · Status: **READY FOR PR** (review round 2 APPROVE; gates green on `d5210739`; decisions 1 to 9 accepted by the researcher 2026-11-20) · Started: 2026-11-20
+Branch: `dev/fix/quota-hang` (from `origin/main` `f05cd29a`) · Lane: **RELEASE** (see "Lane") · Status: **MERGED 2026-11-20** (PR #259, merge commit `49cbc25f`; review round 2 APPROVE; gates green on `d5210739`; decisions 1 to 9 accepted by the researcher 2026-11-20) · Started: 2026-11-20
 
 The one blocker of the acceptance run of 2026-11-20 (a real scoping review through the wheel built from `f05cd29a`; record `docs/roadmap/acceptance-run-sensor-stress-2026-11-20.md` on the local branch `dev/docs/acceptance-run-sensor-stress`, commit `ae41a35b`, not on `main`). Three findings of that run are one defect:
 
