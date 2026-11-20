@@ -19,10 +19,15 @@ beside the run's other files, ``literature/search_runs/run_NNN/pipeline.json``:
 
 ``stages`` holds the stages that ended, in order. ``ended`` is ``null`` until
 the preparation ends, then ``{"status", "at", "stage", "message"}`` with status
-``DONE``, ``FAILED`` (an error in ``stage``) or ``STOPPED`` (the researcher's
-stop, read before ``stage`` started). ``verified_run`` names the run whose
-records are in ``verified.json``: this run, once its verification ended.
-``resumed`` lists each later attempt to finish the preparation.
+``DONE``, ``FAILED`` (an error in ``stage``), ``STOPPED`` (the researcher's
+stop, read before ``stage`` started) or ``INCOMPLETE`` (H-quota-hang:
+verification ended early and wrote ``verified.json`` with every record, but
+some were not checked, because a database's quota was used up or the
+researcher stopped between two records; the end record then also carries
+``unchecked``, ``records``, ``reason`` and ``paused``). ``verified_run`` names
+the run whose records are in ``verified.json``: this run, once its
+verification ended (completely or not). ``resumed`` lists each later attempt
+to finish the preparation.
 
 The file is written with the workspace's atomic writer, so a reader never sees
 half of it. A process that dies leaves ``ended`` as ``null``; the reading
@@ -51,10 +56,12 @@ MARKER_NAME = "pipeline.json"
 SCHEMA = "nexus.harvest-pipeline.v1"
 #: The stages after the search, in the order they run.
 PREPARATION_STAGES = ("deduplication", "hydration", "verification")
-DONE, FAILED, STOPPED = "DONE", "FAILED", "STOPPED"
+DONE, FAILED, STOPPED, INCOMPLETE = "DONE", "FAILED", "STOPPED", "INCOMPLETE"
 #: ``preparation.state`` values of the public run views.
 READY, RUNNING, INTERRUPTED, SUPERSEDED, NONE = "ready", "running", "interrupted", "superseded", "none"
-UNFINISHED_STATES = ("failed", "stopped", INTERRUPTED)
+#: H-quota-hang: verification ended early; ``verified.json`` holds every record, some not checked.
+PARTLY_CHECKED = "incomplete"
+UNFINISHED_STATES = ("failed", "stopped", INTERRUPTED, PARTLY_CHECKED)
 
 
 def _now() -> str:
@@ -154,6 +161,38 @@ def complete(run_dir: Path | None, verification_status: str) -> None:
     _write(run_dir, marker)
 
 
+def incomplete(
+    run_dir: Path | None,
+    verification_status: str,
+    *,
+    unchecked: int,
+    records: int,
+    reason: str,
+    paused: list[dict[str, Any]],
+    message: str,
+) -> None:
+    """Verification ended early (H-quota-hang): ``verified.json`` is this run's, ``unchecked`` records not checked.
+
+    ``reason`` is ``PROVIDER_QUOTA_EXHAUSTED``, ``PROVIDER_UNAVAILABLE_UNTIL``
+    or ``STOPPED_BY_RESEARCHER``; ``paused`` lists the databases not asked
+    any more, with their reset time. The preparation is unfinished: the
+    hand-off refuses the corpus until "Finish preparing this corpus" checks
+    the remaining records.
+    """
+    if not _usable(run_dir):
+        return
+    run_dir = Path(run_dir)
+    marker = _current(run_dir)
+    now = _now()
+    marker["stages"]["verification"] = {"status": verification_status, "at": now}
+    marker["ended"] = {
+        "status": INCOMPLETE, "at": now, "stage": "verification", "message": message,
+        "unchecked": unchecked, "records": records, "reason": reason, "paused": paused,
+    }
+    marker["verified_run"] = run_dir.name
+    _write(run_dir, marker)
+
+
 def end(run_dir: Path | None, status: str, *, stage: str, message: str | None = None) -> None:
     """The preparation ended without a ``verified.json``: ``FAILED`` in ``stage`` or ``STOPPED`` before it."""
     if not _usable(run_dir):
@@ -204,11 +243,17 @@ def preparation_view(
     there is no marker to say. ``can_finish`` says whether the remaining stages
     can be run from the run's saved records; when they cannot, ``cannot_finish``
     says why (``corpus_accepted`` or ``records_missing``).
+
+    H-quota-hang: ``incomplete`` (verification ended early, ``verified.json``
+    is this run's but some records were not checked) adds ``checks``:
+    ``{"unchecked", "records", "reason", "paused"}``; every other state has
+    ``checks: None``.
     """
     marker = read(run_dir)
     view: dict[str, Any] = {
         "state": NONE, "stage": None, "stages": dict(_stages(marker)), "ended_at": None,
         "message": None, "marker": marker is not None, "can_finish": False, "cannot_finish": None,
+        "checks": None,
     }
     if not published:
         return view
@@ -229,6 +274,15 @@ def preparation_view(
             view["ended_at"] = ended.get("at")
             if status == DONE and marker.get("verified_run") == Path(run_dir).name and verified:
                 view["state"] = READY
+            elif status == INCOMPLETE and marker.get("verified_run") == Path(run_dir).name and verified:
+                view["state"], view["stage"], view["message"] = PARTLY_CHECKED, "verification", ended.get("message")
+                paused = ended.get("paused")
+                view["checks"] = {
+                    "unchecked": int(ended.get("unchecked") or 0),
+                    "records": int(ended.get("records") or 0),
+                    "reason": ended.get("reason"),
+                    "paused": paused if isinstance(paused, list) else [],
+                }
             elif status == FAILED:
                 view["state"], view["stage"], view["message"] = "failed", ended.get("stage"), ended.get("message")
             elif status == STOPPED:

@@ -132,8 +132,9 @@ def test_pipeline_marker_written_by_each_stage(env, monkeypatch):
     preparation = _preparation(client)
     # The public shape (packet "preparation"); the UI's fake engine carries the same keys.
     assert sorted(preparation) == [
-        "can_finish", "cannot_finish", "ended_at", "job_id", "marker", "message", "stage", "stages", "state",
+        "can_finish", "cannot_finish", "checks", "ended_at", "job_id", "marker", "message", "stage", "stages", "state",
     ]
+    assert preparation["checks"] is None  # H-quota-hang: set only for an `incomplete` preparation
     assert preparation["state"] == "ready" and preparation["stage"] is None and preparation["marker"] is True
     assert preparation["can_finish"] is False
     assert client.get(f"{BASE}/runs").json()["runs"][0]["preparation"]["state"] == "ready"
