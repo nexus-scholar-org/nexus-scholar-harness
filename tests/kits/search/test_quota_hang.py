@@ -214,7 +214,7 @@ def _verifier(crossref_handler, openalex_handler) -> tuple[DocumentVerifier, lis
 @pytest.mark.asyncio
 async def test_a_used_up_quota_ends_the_checks_in_bounded_time_and_keeps_every_record(slept):
     n = 12
-    verifier, crossref_seen, openalex_seen = _verifier(_crossref_work, _quota)
+    verifier, _, openalex_seen = _verifier(_crossref_work, _quota)
     records = _records(n)
     docs, audit = await verifier.process_batch(records, verify=True, enrich=True)
 
@@ -280,7 +280,7 @@ async def test_a_stop_request_ends_the_checks_within_one_record(slept):
 @pytest.mark.asyncio
 async def test_without_a_quota_or_a_stop_the_audit_rows_say_everything_was_done(slept):
     verifier, _, openalex_seen = _verifier(_crossref_work, lambda r: httpx.Response(200, json={}))
-    docs, audit = await verifier.process_batch(_records(3), verify=True, enrich=True)
+    _, audit = await verifier.process_batch(_records(3), verify=True, enrich=True)
     assert len(openalex_seen) == 3 and slept == []
     assert all(row["code"] == "VERIFIED" and row["not_done"] == [] and row["reason"] is None for row in audit)
     assert verifier.paused == [] and verifier.stopped is False

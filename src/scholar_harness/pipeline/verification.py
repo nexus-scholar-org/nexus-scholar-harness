@@ -47,9 +47,6 @@ from typing import Any
 from scholar_search.verifier import QUOTA_EXHAUSTED, DocumentVerifier
 from scholar_search.verifier import STOPPED as STOPPED_BY_RESEARCHER
 
-#: Re-exported for the coordinator, which imports no kit module (HCM-04 neutrality).
-__all__ = ["CHECKS_FILENAME", "QUOTA_EXHAUSTED", "STOPPED_BY_RESEARCHER", "VerificationOutcome", "read_checks", "run_verification"]
-
 from scholar_harness.verification_identity import (
     AUDIT_ACTION as _VERIFICATION_AUDIT_ACTION,
     QUARANTINE_FILENAME as _VERIFICATION_QUARANTINE_FILENAME,
@@ -92,6 +89,12 @@ class VerificationOutcome:
     #: Records checked by this attempt (all of them unless ``keep`` named some).
     checked: int = 0
 
+
+#: Read by the coordinator through this module, which imports no kit module itself (HCM-04).
+__all__ = [
+    "CHECKS_FILENAME", "QUOTA_EXHAUSTED", "STOPPED_BY_RESEARCHER", "VerificationOutcome", "read_checks",
+    "run_verification",
+]
 
 #: The per-record check record beside ``verified.json`` (a run record, not a Contract v1 artifact).
 CHECKS_FILENAME = "verification_checks.json"

@@ -96,8 +96,8 @@ from __future__ import annotations
 
 import json
 import logging
-from datetime import UTC, datetime
 from collections.abc import Callable
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -685,9 +685,10 @@ async def _prepare_corpus(
                 )
             raise
         if stage == "verification" and getattr(verification_outcome, "unchecked", 0):
-            return _end_incomplete(
+            _end_incomplete(
                 ws, lit_dir, run_dir, run_name, verification_outcome, status, results, emit_stage, protocol_path
             )
+            return None
         if stage == "verification":
             harvest_marker.complete(run_dir, status)
         else:
@@ -740,7 +741,6 @@ def _end_incomplete(
         {**checks, "verification_status": status},
         status="PARTIAL" if _ledger_status(results) == "SUCCESS" else _ledger_status(results),
     )
-    return None
 
 
 def _pause_for_corpus_accept(
@@ -900,8 +900,9 @@ def _partly_checked(
     file lists exactly the rows of ``verified.json`` with their workspace
     ids. Otherwise ``({}, None)``: the preparation runs again as before.
     """
-    from .verification import read_checks
     from scholar_harness.verification_identity import QUARANTINE_FILENAME
+
+    from .verification import read_checks
 
     ended = (marker or {}).get("ended")
     if not (isinstance(ended, dict) and ended.get("status") == harvest_marker.INCOMPLETE):
