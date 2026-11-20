@@ -829,3 +829,31 @@ describe("triage.not-reported-policy", () => {
     expect(postedEvents()[0].criteria).toEqual([{ id: "INC-01", answer: "not_reported" }]);
   });
 });
+
+// H-screening-drafts: after a not-reported rule amendment, a draft is shown under the
+// rule in force, and says what it was first recorded as (the store keeps that outcome).
+describe("record-detail.first-recorded (H-screening-drafts)", () => {
+  it("names the first recorded outcome when the outcome in force differs", async () => {
+    engine.blinding = "show";
+    engine.proposal = {
+      ...PROPOSAL,
+      recorded: { derived_outcome: "MAYBE", reason_code: null, not_reported_policy: "unclear" },
+    } as unknown as typeof PROPOSAL;
+    await ready();
+    await waitFor(() => expect(screen.getByTestId("proposal-aside")).toHaveTextContent("Not a decision"));
+    expect(document.querySelector("[data-first-recorded]")).toHaveTextContent(
+      "First recorded as Unclear → full text under the earlier not-reported rule; shown under the rule in force since its amendment.",
+    );
+  });
+
+  it("says nothing when the outcome is the one first recorded", async () => {
+    engine.blinding = "show";
+    engine.proposal = {
+      ...PROPOSAL,
+      recorded: { derived_outcome: "EXCLUDE", reason_code: "EXC-01", not_reported_policy: "unclear" },
+    } as unknown as typeof PROPOSAL;
+    await ready();
+    await waitFor(() => expect(screen.getByTestId("proposal-aside")).toHaveTextContent("Not a decision"));
+    expect(document.querySelector("[data-first-recorded]")).toBeNull();
+  });
+});
