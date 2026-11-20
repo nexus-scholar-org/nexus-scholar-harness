@@ -1,5 +1,5 @@
 # M3f-combined-corpus One corpus from a harvest and database exports, deduplicated together
-Branch: `dev/m3f/combined-corpus` (from `origin/main` `2436fe66`) · Lane: **RELEASE** (plan §6: Packet B inputs; see "Lane") · Status: **READY FOR PR** (not pushed) · Started: 2026-11-20
+Branch: `dev/m3f/combined-corpus` (from `origin/main` `2436fe66`) · Lane: **RELEASE** (plan §6: Packet B inputs; see "Lane") · Status: **READY FOR PR** (decisions 1 to 8 accepted by the researcher 2026-11-20) · Started: 2026-11-20
 
 Plan §6 row: "One snapshot from a harvest plus staged exports, deduplicated together. Until then `VERIFIED_EXISTS` keeps them apart." Sources: `M3d-engine.md` Deferred and decision 12; `DISCOVERY_API_PACKET.md` §4.4. The researcher approved the start on 2026-11-20.
 
@@ -194,7 +194,7 @@ Added after the engine: `tests/console/test_methods_api.py::test_a_combined_corp
 | Review F2 (P2): the report called a left-out harvest "combined" | `::test_review_f2_a_left_out_harvest_is_not_reported_as_combined` | yes on `2fc90e14` (reviewer's probe) | yes |
 
 ## Decisions
-`docs/decisions.md`, entry "2026-11-20 — M3f-combined-corpus" (items 1 to 8, PROPOSED). Item 3 is the one to confirm: as built, an unfinished harvest beside staged exports is left out at the accept after a warning, which keeps M3i item 10. The alternative is to refuse the accept until the harvest is finished.
+`docs/decisions.md`, entry "2026-11-20 — M3f-combined-corpus" (items 1 to 8, accepted by the researcher 2026-11-20). Item 3 was the one to confirm, and was confirmed: as built, an unfinished harvest beside staged exports is left out at the accept after a warning, which keeps M3i item 10. The alternative is to refuse the accept until the harvest is finished.
 
 Made while building, inside the design:
 - The CLI `run` refuses `PREPARATION_UNFINISHED` rather than freeze the exports without its own records. The run exists to freeze its own harvest; the Hand-off may still accept the exports alone.

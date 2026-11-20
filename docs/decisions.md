@@ -11,9 +11,8 @@ history to read if you need the original reasoning (`git log --follow -- <path>`
 | Entry | Item | What is open |
 | :-- | :-- | :-- |
 | 2026-11-19 — M9a: what the measurement says about the ladder gates | 2 | The minimum share of the researcher's excludes an agent must take before a rung unlocks: the principle is accepted; the researcher decided on 2026-11-20 to set the number when M9b is built. |
-| 2026-11-20 — M3f-combined-corpus | 1 to 8 | Proposed while building; item 3 (an unfinished harvest beside staged exports) is the one to confirm. |
 
-## 2026-11-20 — M3f-combined-corpus: a harvest and database exports make one corpus, deduplicated together at the accept (PROPOSED; M3f-combined-corpus)
+## 2026-11-20 — M3f-combined-corpus: a harvest and database exports make one corpus, deduplicated together at the accept (items 1 to 8 accepted by the researcher 2026-11-20, item 3 confirmed; M3f-combined-corpus)
 
 Record and full design: `docs/roadmap/milestones/M3f-combined-corpus.md`. Found by the acceptance run of 2026-11-20 (findings 26, 27). No Contract v1 schema, identity algorithm, fingerprint rule or fixture changes: the snapshot builder receives other rows (Packet B inputs), hence the RELEASE lane.
 
@@ -449,7 +448,7 @@ Also decided in the milestone, not asked: the primary navigation is Workspaces �
 
 ## 2026-11-10 — A browser harvest does not freeze the corpus; the hand-off screen does (accepted; M3b-api, engine change in M3d-engine)
 
-**Superseded in part (2026-11-20, M3f-combined-corpus, PROPOSED):** "an import is allowed only before any harvest" is replaced by M3f item 1 (exports can be staged before or after a harvest; the accept combines both). The rest of this entry stands.
+**Superseded in part (2026-11-20, M3f-combined-corpus, accepted 2026-11-20):** "an import is allowed only before any harvest" is replaced by M3f item 1 (exports can be staged before or after a harvest; the accept combines both). The rest of this entry stands.
 
 The researcher chose this on 2026-11-10 (option a of the M3b-api open question): "I press Accept on the hand-off screen". A search run started from the browser stops after deduplication and verification; it builds no corpus snapshot and prepares no screening batches. The corpus is frozen only by the hand-off screen's accept, the existing `POST /screening/corpus/accept`. Until then another harvest is allowed; an import is allowed only before any harvest (researcher, 2026-11-10, in M3d-engine: "Keep the rule for now, combine later"; `VERIFIED_EXISTS` keeps a harvest and imports apart, and one snapshot from both, deduplicated together, is M3f-combined-corpus, a RELEASE-lane milestone of its own because it changes the snapshot's inputs). The CLI `scholar-harness run` is unchanged (it still accepts the snapshot at the end of a run, as since M3a). The engine change (the browser run skipping `_accept_run_corpus` and the screening prepare) is M3d-engine, not M3b-api: in M3b-api a successful browser run still accepts the snapshot as M3a does. Built in M3d-engine: the browser run ends `PENDING_CORPUS_ACCEPT` with `corpus_snapshot` `NOT_ACCEPTED`, and the accept builds the artifact the CLI run's accept step builds from the same records (`docs/roadmap/milestones/M3d-engine.md`).
 
