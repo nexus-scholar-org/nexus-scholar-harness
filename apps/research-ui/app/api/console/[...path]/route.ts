@@ -53,6 +53,8 @@ const POST_PATHS: ReadonlyArray<RegExp> = [
   /^api\/v1\/screening\/decisions\/events$/,
   /^api\/v1\/screening\/decisions\/conflicts\/[A-Za-z0-9_-]+\/resolve$/,
   /^api\/v1\/screening\/prepare$/,
+  // H-screening-drafts: a method amendment (blinding, not-reported policy).
+  /^api\/v1\/screening\/method\/amendments$/,
   // M5b: the corpus import (stage a RIS export, remove one, accept). The console
   // refuses once the corpus is accepted, and a phone token reaches none of them.
   /^api\/v1\/screening\/corpus\/(sources|accept)$/,

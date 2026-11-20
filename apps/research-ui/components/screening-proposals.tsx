@@ -33,6 +33,14 @@ import {
  */
 
 const ANTHROPIC_MODELS = ["claude-opus-5-5", "claude-sonnet-5-5", "claude-haiku-5-5"] as const;
+/**
+ * H-screening-drafts: the model a workspace without a run starts from, the cheapest
+ * listed one in the engine's price table (a test reads prices.toml and pins it).
+ * The acceptance run spent $7.59 where $0.22 was meant: the select went back to
+ * the first, most expensive, model on every reload.
+ */
+export const CHEAPEST_ANTHROPIC_MODEL = "claude-haiku-5-5";
+export const LISTED_ANTHROPIC_MODELS: readonly string[] = ANTHROPIC_MODELS;
 const PROVIDERS: Provider[] = ["anthropic", "openai_compatible", "gemini"];
 const FINISHED = new Set(["completed", "stopped", "cancelled", "failed"]);
 const POLL_MS = 2000;
@@ -87,13 +95,20 @@ const COPY = {
     gateBody: "Nothing leaves this machine until you start.",
     start: "Start agent proposals · {n} records",
     dryRun: "Dry run on 20 records",
-    confirmTitle: "Send {n} records to {provider}?",
+    confirmTitle: "Send {n} records to {provider} with {model}?",
+    confirmEstimate: "Estimated cost: {cost} (prices as of {date}).",
+    confirmEstimateNone: "No price on file for this model: its cost cannot be estimated.",
+    confirmEstimateLoading: "Estimating the cost of this run…",
     confirmCeiling: "The run stops at {ceiling}.",
     confirmNoCeiling: "No cost ceiling is set.",
     confirm: "Start the run",
     back: "Back",
     whileItRuns: "While it runs",
     idle: "No run yet.",
+    starting: "Starting the run…",
+    batchWaiting: "Sent to the batch service; results arrive in chunks of {chunk}, usually within minutes.",
+    waitedMinutes: "Waiting {m} min {s} s.",
+    waitedSeconds: "Waiting {s} s.",
     progress: "{done} of {records} proposed",
     costSoFar: "Cost so far: {cost}",
     costUnmeasured: "Cost so far: not measured (no price on file for this model)",
@@ -159,13 +174,20 @@ const COPY = {
     gateBody: "Rien ne quitte cette machine avant que vous lanciez.",
     start: "Lancer les propositions · {n} notices",
     dryRun: "Essai sur 20 notices",
-    confirmTitle: "Envoyer {n} notices à {provider} ?",
+    confirmTitle: "Envoyer {n} notices à {provider} avec {model} ?",
+    confirmEstimate: "Coût estimé : {cost} (prix au {date}).",
+    confirmEstimateNone: "Aucun prix enregistré pour ce modèle : son coût ne peut pas être estimé.",
+    confirmEstimateLoading: "Estimation du coût de ce passage…",
     confirmCeiling: "Le passage s'arrête à {ceiling}.",
     confirmNoCeiling: "Aucun plafond de coût n'est fixé.",
     confirm: "Lancer le passage",
     back: "Retour",
     whileItRuns: "Pendant le passage",
     idle: "Aucun passage pour l'instant.",
+    starting: "Lancement du passage…",
+    batchWaiting: "Envoyé au service de lots ; les résultats arrivent par tranches de {chunk}, en général en quelques minutes.",
+    waitedMinutes: "En attente depuis {m} min {s} s.",
+    waitedSeconds: "En attente depuis {s} s.",
     progress: "{done} sur {records} proposées",
     costSoFar: "Coût à ce stade : {cost}",
     costUnmeasured: "Coût à ce stade : non mesuré (aucun prix enregistré pour ce modèle)",
@@ -231,13 +253,20 @@ const COPY = {
     gateBody: "لا يغادر شيء هذا الجهاز حتى تبدأ.",
     start: "ابدأ مقترحات الوكيل · {n} سجلًا",
     dryRun: "تجربة على 20 سجلًا",
-    confirmTitle: "إرسال {n} سجلًا إلى {provider}؟",
+    confirmTitle: "إرسال {n} سجلًا إلى {provider} باستخدام {model}؟",
+    confirmEstimate: "التكلفة المقدرة: {cost} (الأسعار بتاريخ {date}).",
+    confirmEstimateNone: "لا يوجد سعر مسجّل لهذا النموذج: لا يمكن تقدير تكلفته.",
+    confirmEstimateLoading: "جارٍ تقدير تكلفة هذا التشغيل…",
     confirmCeiling: "يتوقف التشغيل عند {ceiling}.",
     confirmNoCeiling: "لم يُحدَّد سقف للتكلفة.",
     confirm: "ابدأ التشغيل",
     back: "رجوع",
     whileItRuns: "أثناء التشغيل",
     idle: "لا تشغيل بعد.",
+    starting: "جارٍ بدء التشغيل…",
+    batchWaiting: "أُرسل إلى خدمة الدفعات؛ تصل النتائج على دفعات من {chunk}، عادةً خلال دقائق.",
+    waitedMinutes: "قيد الانتظار منذ {m} د {s} ث.",
+    waitedSeconds: "قيد الانتظار منذ {s} ث.",
     progress: "{done} من {records} مقترحة",
     costSoFar: "التكلفة حتى الآن: {cost}",
     costUnmeasured: "التكلفة حتى الآن: غير مقيسة (لا سعر مسجّل لهذا النموذج)",
@@ -288,12 +317,17 @@ export function ScreeningProposals({ locale }: Readonly<{ locale: Locale }>) {
   const origin = useMemo(consoleOrigin, []);
   const [state, setState] = useState<{ status: "loading" } | { status: "ready"; data: Loaded } | { status: "error"; code: string; message: string }>({ status: "loading" });
   const [provider, setProvider] = useState<Provider>("anthropic");
-  const [model, setModel] = useState<string>(ANTHROPIC_MODELS[0]);
+  // Empty until the setup is read: then the last model used here, or the cheapest (H-screening-drafts).
+  const [model, setModel] = useState<string>("");
   const [baseUrl, setBaseUrl] = useState("");
   const [ceiling, setCeiling] = useState("");
   const [consent, setConsent] = useState(false);
   const [estimate, setEstimate] = useState<RunEstimate | null>(null);
   const [confirming, setConfirming] = useState<null | { dryRun: boolean }>(null);
+  // H-screening-drafts: the estimate the dialog names (a dry run's is its own), and the start in flight.
+  const [dialogEstimate, setDialogEstimate] = useState<RunEstimate | null>(null);
+  const [starting, setStarting] = useState(false);
+  const [now, setNow] = useState(() => Date.now());
   const [run, setRun] = useState<RunView | null>(null);
   const [calibration, setCalibration] = useState<RunView | null>(null);
   const [refusal, setRefusal] = useState<{ code: string; message: string } | null>(null);
@@ -304,7 +338,14 @@ export function ScreeningProposals({ locale }: Readonly<{ locale: Locale }>) {
     try {
       const [setup, decided] = await Promise.all([getProposalSetup(origin), getQueue(origin, { view: "decided", limit: CALIBRATION_SIZE })]);
       setState({ status: "ready", data: { setup, decided: decided.items.map((i) => i.study_id) } });
-      setModel((m) => m || setup.task.model);
+      // H-screening-drafts: the model of the last run in this workspace, else the cheapest listed one.
+      const last = setup.last_model;
+      if (last && last.model && (last.provider !== "anthropic" || (ANTHROPIC_MODELS as readonly string[]).includes(last.model))) {
+        setProvider((p) => (p === "anthropic" ? last.provider : p));
+        setModel((m) => m || last.model);
+      } else {
+        setModel((m) => m || CHEAPEST_ANTHROPIC_MODEL);
+      }
       if (setup.latest_run && setup.latest_run.kind !== "calibration") setRun(setup.latest_run);
     } catch (error) {
       setState({ status: "error", ...codeOf(error) });
@@ -372,6 +413,35 @@ export function ScreeningProposals({ locale }: Readonly<{ locale: Locale }>) {
     if (run && !FINISHED.has(run.state)) poll(run.run_id, setRun);
   }, [run, poll]);
 
+  // H-screening-drafts: the dialog names the estimate of what it sends; a dry run has its own.
+  useEffect(() => {
+    if (!confirming) {
+      setDialogEstimate(null);
+      return;
+    }
+    if (!confirming.dryRun) {
+      setDialogEstimate(estimate);
+      return;
+    }
+    let live = true;
+    setDialogEstimate(null);
+    estimateRun(origin, { ...request({ dry_run: true }), cost_ceiling_usd: null })
+      .then((e) => live && setDialogEstimate(e))
+      .catch((error: unknown) => live && setRefusal(codeOf(error)));
+    return () => {
+      live = false;
+    };
+    // `request` is rebuilt on every keystroke; the dialog's estimate follows what it opened with.
+  }, [confirming, estimate, origin]);
+
+  // H-screening-drafts: a Batch run that waits on the batch service shows the time waited.
+  const batchWaiting = run !== null && !FINISHED.has(run.state) && run.batch === true;
+  useEffect(() => {
+    if (!batchWaiting) return;
+    const timer = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(timer);
+  }, [batchWaiting]);
+
   useEffect(() => {
     if (!confirming) return;
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && setConfirming(null);
@@ -394,11 +464,17 @@ export function ScreeningProposals({ locale }: Readonly<{ locale: Locale }>) {
   const begin = (dryRun: boolean) =>
     act(async () => {
       setConfirming(null);
-      const consentBody = consent ? { provider, accepted_at: new Date().toISOString() } : undefined;
-      const started = await startRun(origin, request({ dry_run: dryRun, consent: consentBody }));
-      const view = await getRun(origin, started.run_id);
-      setRun(view);
-      setConsent(false);
+      // H-screening-drafts: the run shows as starting at once; the engine's answer can take a while.
+      setStarting(true);
+      try {
+        const consentBody = consent ? { provider, accepted_at: new Date().toISOString() } : undefined;
+        const started = await startRun(origin, request({ dry_run: dryRun, consent: consentBody }));
+        const view = await getRun(origin, started.run_id);
+        setRun(view);
+        setConsent(false);
+      } finally {
+        setStarting(false);
+      }
       await load();
     });
 
@@ -419,6 +495,12 @@ export function ScreeningProposals({ locale }: Readonly<{ locale: Locale }>) {
     const active = run !== null && !FINISHED.has(run.state);
     const ready = !keyMissing && !active && !busy && model.trim() !== "" && (consent || consentOnFile !== null) && (provider !== "openai_compatible" || baseUrl.trim() !== "");
     const ceilingValue = request().cost_ceiling_usd;
+    const waited = (startedAt: string | null) => {
+      const since = startedAt ? Date.parse(startedAt) : NaN;
+      if (Number.isNaN(since)) return "";
+      const seconds = Math.max(0, Math.floor((now - since) / 1000));
+      return seconds >= 60 ? t("waitedMinutes", { m: n(Math.floor(seconds / 60)), s: n(seconds % 60) }) : t("waitedSeconds", { s: n(seconds) });
+    };
     const providerName = t(`provider.${provider}` as ProposalsCopyKey);
 
     return (
@@ -453,7 +535,7 @@ export function ScreeningProposals({ locale }: Readonly<{ locale: Locale }>) {
                       checked={provider === p.provider}
                       onChange={() => {
                         setProvider(p.provider);
-                        setModel(p.provider === "anthropic" ? ANTHROPIC_MODELS[0] : "");
+                        setModel(p.provider === "anthropic" ? CHEAPEST_ANTHROPIC_MODEL : "");
                         setConsent(false);
                         setRefusal(null);
                       }}
@@ -583,6 +665,12 @@ export function ScreeningProposals({ locale }: Readonly<{ locale: Locale }>) {
               <h2 id="run-progress" className="font-semibold text-ink">
                 {t("whileItRuns")}
               </h2>
+              {/* Review F2: shown whenever a start is in flight, above an earlier run's panel too. */}
+              {starting && run ? (
+                <p className="mt-2 text-sm text-ink" role="status" data-starting>
+                  {t("starting")}
+                </p>
+              ) : null}
               {run ? (
                 <div className="mt-2 space-y-2 text-sm">
                   <p className="flex flex-wrap items-center gap-2">
@@ -590,6 +678,11 @@ export function ScreeningProposals({ locale }: Readonly<{ locale: Locale }>) {
                     <DataCell>{run.run_id}</DataCell>
                   </p>
                   <p className="text-ink">{t("progress", { done: n(run.done), records: n(run.records) })}</p>
+                  {batchWaiting ? (
+                    <p className="rounded-md bg-unclear-soft px-3 py-2 text-ink" role="status" data-batch-waiting>
+                      {t("batchWaiting", { chunk: n(run.chunk_size ?? 200) })} {waited(run.started_at)}
+                    </p>
+                  ) : null}
                   <div role="img" aria-label={t("progress", { done: n(run.done), records: n(run.records) })} className="h-2 w-full overflow-hidden rounded-full bg-paper">
                     <div className="h-full bg-brand" style={{ width: `${run.records ? Math.round((100 * run.done) / run.records) : 0}%` }} />
                   </div>
@@ -616,6 +709,10 @@ export function ScreeningProposals({ locale }: Readonly<{ locale: Locale }>) {
                     {t("toTriage")}
                   </a>
                 </div>
+              ) : starting ? (
+                <p className="mt-2 text-sm text-ink" role="status">
+                  {t("starting")}
+                </p>
               ) : (
                 <p className="mt-2 text-sm text-ink-muted">{t("idle")}</p>
               )}
@@ -649,12 +746,19 @@ export function ScreeningProposals({ locale }: Readonly<{ locale: Locale }>) {
             {confirming ? (
               <div role="dialog" aria-modal="true" aria-labelledby="run-confirm" className="rounded-lg border border-brand bg-leaf p-5">
                 <h2 id="run-confirm" className="font-semibold text-ink">
-                  {t("confirmTitle", { n: n(confirming.dryRun ? Math.min(20, records) : records), provider: providerName })}
+                  {t("confirmTitle", { n: n(confirming.dryRun ? Math.min(20, records) : records), provider: providerName, model })}
                 </h2>
+                <p className="mt-2 text-sm text-ink" data-confirm-estimate>
+                  {dialogEstimate === null
+                    ? t("confirmEstimateLoading")
+                    : dialogEstimate.cost_usd === null
+                      ? t("confirmEstimateNone")
+                      : t("confirmEstimate", { cost: usd(locale, dialogEstimate.cost_usd), date: dialogEstimate.prices_as_of })}
+                </p>
                 <p className="mt-2 text-sm text-ink">{t("dataFlow", { flow: setup.data_flow })}</p>
                 <p className="mt-1 text-sm text-ink-muted">{typeof ceilingValue === "number" ? t("confirmCeiling", { ceiling: usd(locale, ceilingValue) }) : t("confirmNoCeiling")}</p>
                 <div className="mt-4 flex flex-wrap gap-2">
-                  <Button variant="primary" autoFocus disabled={busy} onClick={() => void begin(confirming.dryRun)}>
+                  <Button variant="primary" autoFocus disabled={busy || dialogEstimate === null} onClick={() => void begin(confirming.dryRun)}>
                     {t("confirm")}
                   </Button>
                   <Button onClick={() => setConfirming(null)}>{t("back")}</Button>

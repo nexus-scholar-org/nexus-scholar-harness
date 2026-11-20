@@ -52,6 +52,7 @@ Rules that hold on every rung:
   failed, or whose outcome is `MAYBE`. Those are the researcher's.
 - The researcher may override any agent decision at any time; the override is
   a normal human event that supersedes the agent's.
+- *(Note 2026-11-20, H-screening-drafts, PROPOSED: a method amendment changes the not-reported rule or blinding without moving the fingerprint. If it is accepted, M9b binds calibration validity and the rung to the method in force as well, and an amendment resets the review to L0 like a protocol change.)*
 - A protocol change (fingerprint) resets the review to L0 and invalidates the
   calibration, because the agent was measured against criteria that no
   longer exist.

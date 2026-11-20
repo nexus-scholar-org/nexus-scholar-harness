@@ -17,6 +17,15 @@ max_tokens = 4096
 use_batches = true
 max_requests_per_batch = 10000
 
+# H-screening-drafts: a candidate version, measured before any use. It is never the
+# default (`task_version` above), a product run always loads the default, and only
+# `prompt-gate measure --task-version` can load it. Its only change from screen-v1 is
+# guidance to answer yes or no when the abstract gives reasonable grounds; the quote
+# rule is unchanged. `measured = false` until the researcher has a measurement.
+[versions."screen-v2"]
+prompt = "prompt-screen-v2.md"
+measured = false
+
 [openai_compatible]
 # Requests in flight at once when the endpoint has no batch API.
 concurrency = 4

@@ -304,10 +304,11 @@
         },
         "not_reported": {
           "default": "unclear",
-          "description": "unclear: any criterion not reported gives Unclear (full text); exclude: an inclusion criterion not reported gives Exclude (FAILS-INC-n)",
+          "description": "unclear: any criterion not reported gives Unclear (full text); exclude: an inclusion criterion not reported gives Exclude (FAILS-INC-n); decisive_first: an exclusion criterion answered yes or an inclusion criterion answered no gives Exclude, and only then does a criterion not reported give Unclear",
           "enum": [
             "unclear",
-            "exclude"
+            "exclude",
+            "decisive_first"
           ],
           "title": "Not Reported",
           "type": "string"

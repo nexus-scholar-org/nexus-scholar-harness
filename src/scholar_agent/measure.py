@@ -149,8 +149,11 @@ def assert_blind(spec: RunSpec, requests: list[ScreeningRequest], records: list[
     """
     # The criteria are the researcher's protocol text (the product sends them too) and may state a
     # sampling plan; the task's own words around them may carry no figure at all.
-    task = pg.task_mod.load_task()
-    if spec.system != pg.run_spec(protocol, model=spec.model, effort=spec.effort, max_tokens=spec.max_tokens).system:
+    task = pg.task_mod.load_task(spec.task_version or None)
+    expected_spec = pg.run_spec(
+        protocol, model=spec.model, effort=spec.effort, max_tokens=spec.max_tokens, task_version=spec.task_version or None
+    )
+    if spec.system != expected_spec.system:
         raise ValueError("the system prompt is not the task's prompt with the protocol's criteria")
     prefix, _, suffix = task.template.partition("{criteria}")
     block = " ".join(c.text for c in pg.task_mod.criteria_from_protocol(protocol))
@@ -311,6 +314,7 @@ def analyse(
     batch_of: dict[str, str],
     stopped: str | None = None,
     plan_: dict[str, Any] | None = None,
+    not_reported: str | None = None,
 ) -> dict[str, Any]:
     """The M9a report. Records without a result are `not_reached` and are not scored."""
     got = {r.custom_id for r in results}
@@ -325,6 +329,7 @@ def analyse(
         provider=provider,
         spec=spec,
         batch=use_batches,
+        not_reported=not_reported,
     )
     rows = base["records"]
     label_of = {r["study_id"]: r["label"] for r in rows}
@@ -409,6 +414,7 @@ def analyse(
         "milestone": "M9a-measure",
         "task_version": base["task_version"],
         "prompt_sha256": base["prompt_sha256"],
+        "not_reported_policy": base["not_reported_policy"],
         "provider": provider,
         "model": spec.model,
         "effort": spec.effort,
@@ -482,7 +488,8 @@ def render_markdown(report: dict[str, Any]) -> str:
     lines = [
         f"# M9a-measure report: {report['provider']}/{report['model']} ({report['effort']} effort)",
         "",
-        f"Task `{report['task_version']}`, prompt `{report['prompt_sha256']}`. Scope `{report['scope']['scope']}`, "
+        f"Task `{report['task_version']}`, prompt `{report['prompt_sha256']}`, outcomes derived under the "
+        f"`{report.get('not_reported_policy', 'unclear')}` not-reported rule. Scope `{report['scope']['scope']}`, "
         f"set `{report['scope']['set_sha256']}`, researcher's decisions {report['scope']['human_confirmation']}.",
         *[f"**WARNING: {w}**" for w in report["warnings"]],
         f"{report['scored']} of {report['records']} records scored; {report['not_reached']['count']} not reached"
@@ -559,8 +566,16 @@ def measure(
     frozen: dict[str, Any] | None = None,
     out_dir: Path = OUT_DIR,
     now: Callable[[], datetime] = lambda: datetime.now(UTC),
+    task_version: str | None = None,
+    not_reported: str | None = None,
 ) -> dict[str, Any]:
     """Plan (`driver` None: dry run, no network) or run and write the report.
+
+    ``not_reported`` derives the outcomes under that policy instead of the
+    protocol's own (H-screening-drafts: to see ``decisive_first`` on the frozen set).
+
+    ``task_version`` measures a candidate task version (H-screening-drafts, ``screen-v2``);
+    ``None`` is the default task, the one product runs use.
 
     Returns the plan for a dry run, else the report with its `paths`.
     """
@@ -573,7 +588,12 @@ def measure(
         records = inc + exc
         scope_info = {**scope_info, "limit": limit}
     protocol = json.loads((workspace / "protocol.json").read_text(encoding="utf-8"))
-    spec = pg.run_spec(protocol, model=model, effort=effort, max_tokens=max_tokens)
+    if not_reported is None:
+        # H-screening-drafts (review F5): the rule in force, with the workspace's method amendments.
+        from scholar_harness.screening.method import effective_method
+
+        not_reported = effective_method(workspace).config.not_reported
+    spec = pg.run_spec(protocol, model=model, effort=effort, max_tokens=max_tokens, task_version=task_version)
     batch_of = batch_index(workspace)
     the_plan = plan(records, spec, provider=provider, chunk=CHUNK, scope=scope_info, batch_of=batch_of, max_tokens=max_tokens, protocol=protocol)
     if driver is None:
@@ -581,10 +601,11 @@ def measure(
     results, stopped = execute(driver, records, spec, provider=provider, protocol=protocol, cost_ceiling_usd=cost_ceiling_usd)
     report = analyse(
         scope=scope_info, records=records, results=results, protocol=protocol, provider=provider,
-        spec=spec, batch_of=batch_of, stopped=stopped, plan_=the_plan,
+        spec=spec, batch_of=batch_of, stopped=stopped, plan_=the_plan, not_reported=not_reported,
     )
     report["finished_at"] = now().isoformat()
     stamp = now().strftime("%Y%m%dT%H%M%SZ")
-    json_path, md_path = write_report(report, out_dir, f"measure_{stamp}_{provider}_{model}_{effort}")
+    version = f"_{spec.task_version}" if spec.task_version else ""
+    json_path, md_path = write_report(report, out_dir, f"measure_{stamp}_{provider}_{model}_{effort}{version}")
     report["paths"] = {"json": str(json_path), "markdown": str(md_path)}
     return report

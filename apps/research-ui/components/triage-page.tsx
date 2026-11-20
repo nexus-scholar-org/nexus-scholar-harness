@@ -1018,6 +1018,16 @@ function TriageScreen({ locale }: Readonly<{ locale: Locale }>) {
                       </span>
                       <span className="text-xs text-ink-muted">{t("notADecision")}</span>
                     </p>
+                    {/* H-screening-drafts: re-derived under an amended rule; the first outcome stays as provenance. */}
+                    {visibleProposal!.recorded &&
+                    (visibleProposal!.recorded.derived_outcome !== visibleProposal!.derived_outcome ||
+                      visibleProposal!.recorded.reason_code !== visibleProposal!.reason_code) ? (
+                      <p className="text-xs text-ink-muted" data-first-recorded>
+                        {t("firstRecorded", {
+                          outcome: t(OUTCOME_KEY[visibleProposal!.recorded.derived_outcome]) + (visibleProposal!.recorded.reason_code ? ` · ${visibleProposal!.recorded.reason_code}` : ""),
+                        })}
+                      </p>
+                    ) : null}
                     {failed.length > 0 ? (
                       <p className="text-blocked">
                         {t("proposalRejected")} · {t("failedChecks", { checks: failed.join(", ") })}

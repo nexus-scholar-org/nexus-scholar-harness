@@ -140,8 +140,11 @@ def load_set(workspace: Path, frozen: dict[str, Any]) -> list[EvalRecord]:
 # --- run, score, cost ---------------------------------------------------------
 
 
-def run_spec(protocol: dict[str, Any], *, model: str, effort: str, max_tokens: int) -> RunSpec:
-    task = task_mod.load_task()
+def run_spec(
+    protocol: dict[str, Any], *, model: str, effort: str, max_tokens: int, task_version: str | None = None
+) -> RunSpec:
+    """``task_version`` loads a candidate version (H-screening-drafts); ``None`` is the default task."""
+    task = task_mod.load_task(task_version)
     criteria = task_mod.criteria_from_protocol(protocol)
     return RunSpec(
         system=task_mod.system_prompt(task, criteria),
@@ -149,6 +152,7 @@ def run_spec(protocol: dict[str, Any], *, model: str, effort: str, max_tokens: i
         model=model,
         effort=effort,
         max_tokens=max_tokens,
+        task_version=task.task_version if task_version else "",
     )
 
 
@@ -156,16 +160,25 @@ def requests_for(records: list[EvalRecord]) -> list[ScreeningRequest]:
     return [ScreeningRequest(r.study_id, task_mod.record_message(r.title, r.abstract, r.published)) for r in records]
 
 
-def derive(record: EvalRecord, result: DriverResult | None, protocol: dict[str, Any]) -> tuple[str, str | None, list[dict[str, Any]]]:
-    """The engine's outcome for one record; any non-ok or missing result is Unclear."""
+def derive(
+    record: EvalRecord, result: DriverResult | None, protocol: dict[str, Any], *, not_reported: str | None = None
+) -> tuple[str, str | None, list[dict[str, Any]]]:
+    """The engine's outcome for one record; any non-ok or missing result is Unclear.
+
+    ``not_reported`` is the policy to derive under; ``None`` (the default) is the
+    protocol's own (H-screening-drafts: before, the gate always used ``unclear``,
+    whatever the protocol said).
+    """
     from scholar_harness.screening import proposals as pr
+    from scholar_harness.screening.method import method_from_protocol
 
     criteria = pr.Criteria.from_protocol(protocol)
+    policy = not_reported or method_from_protocol(protocol).config.not_reported
     if result is None or result.status != "ok":
         return "MAYBE", None, [{"name": "driver", "ok": False, "detail": result.status if result else "no result"}]
     output = task_mod.to_proposal_output(result.output, record.title, record.abstract, record.published)
     checks = pr.validate_output(output, criteria, pr.record_text(record.title, record.abstract, record.published))
-    outcome, reason = pr.derive_outcome(output, criteria, checks)
+    outcome, reason = pr.derive_outcome(output, criteria, checks, not_reported=policy)
     return outcome, reason, checks
 
 
@@ -261,13 +274,18 @@ def report(
     provider: str,
     spec: RunSpec,
     batch: bool,
+    not_reported: str | None = None,
 ) -> dict[str, Any]:
+    """``not_reported``: the policy outcomes are derived under; ``None`` is the protocol's (H-screening-drafts)."""
+    from scholar_harness.screening.method import method_from_protocol
+
+    policy = not_reported or method_from_protocol(protocol).config.not_reported
     by_id = {r.custom_id: r for r in results}
     outcomes, per_record = {}, []
     usage = Counter()
     for record in records:
         result = by_id.get(record.study_id)
-        outcome, reason, checks = derive(record, result, protocol)
+        outcome, reason, checks = derive(record, result, protocol, not_reported=policy)
         outcomes[record.study_id] = outcome
         if result is not None:
             usage.update(result.usage.as_dict())
@@ -284,10 +302,11 @@ def report(
     totals = {k: int(usage.get(k, 0)) for k in ("input_tokens", "output_tokens", "cache_read_tokens", "cache_write_tokens")}
     price = price_for(provider, spec.model)
     measured = cost_usd(totals, price, batch=batch) if price else None
-    task = task_mod.load_task()
+    task = task_mod.load_task(spec.task_version or None)
     return {
         "task_version": task.task_version,
         "prompt_sha256": task.prompt_sha256,
+        "not_reported_policy": policy,
         "provider": provider,
         "model": spec.model,
         "effort": spec.effort,

@@ -1,7 +1,10 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 
-import { PROPOSALS_COPY, ScreeningProposals } from "@/components/screening-proposals";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
+
+import { CHEAPEST_ANTHROPIC_MODEL, LISTED_ANTHROPIC_MODELS, PROPOSALS_COPY, ScreeningProposals } from "@/components/screening-proposals";
 import { SUPPORTED_LOCALES } from "@/i18n";
 
 /**
@@ -189,5 +192,117 @@ describe("proposals copy", () => {
   it("has every key in every locale", () => {
     const keys = Object.keys(PROPOSALS_COPY.en).sort();
     for (const locale of SUPPORTED_LOCALES) expect(Object.keys(PROPOSALS_COPY[locale]).sort()).toEqual(keys);
+  });
+});
+
+// H-screening-drafts (acceptance run 2026-11-20): one click cost $7.59 where $0.22
+// was meant, because the model went back to Opus on every reload and the dialog
+// named neither the model nor the estimate; a Batch run looked stuck for minutes.
+describe("proposals.model-remembered (H-screening-drafts)", () => {
+  it("defaults to the cheapest listed model when the workspace has no run", async () => {
+    engine({ setup: setup({ consent: true }) });
+    render(<ScreeningProposals locale="en" />);
+    await startButton();
+    expect(screen.getByLabelText("Model")).toHaveValue("claude-haiku-5-5");
+  });
+
+  it("starts from the last model used in this workspace, after every reload", async () => {
+    const remembered = { ...setup({ consent: true }), last_model: { provider: "anthropic", model: "claude-sonnet-5-5" } };
+    const log = engine({ setup: remembered });
+    const first = render(<ScreeningProposals locale="en" />);
+    await startButton();
+    expect(screen.getByLabelText("Model")).toHaveValue("claude-sonnet-5-5");
+    first.unmount();
+    render(<ScreeningProposals locale="en" />);
+    await startButton();
+    expect(screen.getByLabelText("Model")).toHaveValue("claude-sonnet-5-5");
+    await waitFor(() => expect(log.filter((c) => c.body?.estimate_only).every((c) => c.body?.model === "claude-sonnet-5-5")).toBe(true));
+  });
+
+  it("names the model, the record count and the estimate in the confirmation", async () => {
+    engine({ setup: setup({ consent: true }) });
+    render(<ScreeningProposals locale="en" />);
+    await screen.findByText(/prices as of 2026-11-05/);
+    fireEvent.click(await startButton());
+    const dialog = await screen.findByRole("dialog");
+    expect(dialog).toHaveTextContent("Send 3 records to Anthropic with claude-haiku-5-5?");
+    expect(dialog).toHaveTextContent("Estimated cost: $0.0512 (prices as of 2026-11-05).");
+  });
+});
+
+describe("proposals.run-starting (H-screening-drafts)", () => {
+  it("shows the run as starting as soon as Start the run is pressed", async () => {
+    let release: (r: Response) => void = () => {};
+    engine({ setup: setup({ consent: true }), start: () => new Promise<Response>((resolve) => (release = resolve)) as unknown as Response });
+    render(<ScreeningProposals locale="en" />);
+    fireEvent.click(await startButton());
+    fireEvent.click(await screen.findByRole("button", { name: "Start the run" }));
+    expect(await screen.findByText("Starting the run…")).toBeInTheDocument();
+    expect(screen.queryByText("No run yet.")).toBeNull();
+    release(new Response(JSON.stringify({ run_id: "RUN-1", estimate: ESTIMATE }), { status: 200, headers: { "content-type": "application/json" } }));
+    await screen.findByText("3 of 3 proposed");
+  });
+});
+
+describe("proposals.run-starting-again (H-screening-drafts, review F2)", () => {
+  it("shows the run as starting above an earlier run's panel", async () => {
+    let release: (r: Response) => void = () => {};
+    const earlier = view({ run_id: "RUN-0", state: "completed", done: 3 });
+    engine({ setup: setup({ consent: true, latest: earlier }), start: () => new Promise<Response>((resolve) => (release = resolve)) as unknown as Response });
+    render(<ScreeningProposals locale="en" />);
+    await screen.findByText("3 of 3 proposed");
+    fireEvent.click(await screen.findByRole("button", { name: /Start agent proposals|Resume/ }));
+    fireEvent.click(await screen.findByRole("button", { name: "Start the run" }));
+    expect(await screen.findByText("Starting the run…")).toBeInTheDocument();
+    release(new Response(JSON.stringify({ run_id: "RUN-1", estimate: ESTIMATE }), { status: 200, headers: { "content-type": "application/json" } }));
+    await waitFor(() => expect(screen.queryByText("Starting the run…")).toBeNull());
+  });
+});
+
+describe("proposals.batch-waiting (H-screening-drafts)", () => {
+  it("says a Batch run is waiting on the batch service, with the time waited", async () => {
+    const started = new Date(Date.now() - 125_000).toISOString();
+    const running = view({ state: "running", done: 0, records: 450, batch: true, chunk_size: 200, started_at: started, finished_at: null, cost_so_far: 0 });
+    engine({ setup: setup({ consent: true, latest: running }), run: running });
+    render(<ScreeningProposals locale="en" />);
+    const note = await screen.findByText(/Sent to the batch service; results arrive in chunks of 200, usually within minutes\./);
+    expect(note).toHaveTextContent(/Waiting 2 min \d+ s\./);
+  });
+
+  it("says nothing of a batch for a direct run", async () => {
+    const running = view({ state: "running", done: 0, batch: false, finished_at: null });
+    engine({ setup: setup({ consent: true, latest: running }), run: running });
+    render(<ScreeningProposals locale="en" />);
+    await screen.findByText("0 of 3 proposed");
+    expect(screen.queryByText(/batch service/)).toBeNull();
+  });
+});
+
+describe("proposals.not-prepared (H-screening-drafts)", () => {
+  it("says the batches are not prepared, never that the corpus is missing", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (url: string) => {
+        const path = new URL(url, "http://localhost").pathname.replace("/api/console/api/v1/screening", "");
+        if (path === "/proposals/setup") return new Response(JSON.stringify(setup()), { status: 200, headers: { "content-type": "application/json" } });
+        return new Response(JSON.stringify({ detail: { code: "BATCHES_NOT_PREPARED", message: "the corpus is accepted; prepare the screening batches" } }), { status: 409 });
+      }),
+    );
+    render(<ScreeningProposals locale="en" />);
+    expect(await screen.findByRole("heading", { name: "Batches not prepared yet" })).toBeInTheDocument();
+    expect(screen.queryByText("No accepted corpus")).toBeNull();
+  });
+});
+
+describe("proposals.cheapest-model (H-screening-drafts)", () => {
+  it("is the listed model with the lowest input and output prices in the engine's price table", () => {
+    const toml = readFileSync(resolve(process.cwd(), "../../src/scholar_agent/tasks/screening/prices.toml"), "utf-8");
+    const price = (model: string, field: "input" | "output") => {
+      const block = toml.split(`[anthropic."${model}"]`)[1].split(/\r?\n\[/)[0];
+      return Number(new RegExp(`^${field} = ([0-9.]+)`, "m").exec(block)![1]);
+    };
+    const total = (model: string) => price(model, "input") + price(model, "output");
+    const cheapest = [...LISTED_ANTHROPIC_MODELS].sort((a, b) => total(a) - total(b))[0];
+    expect(CHEAPEST_ANTHROPIC_MODEL).toBe(cheapest);
   });
 });

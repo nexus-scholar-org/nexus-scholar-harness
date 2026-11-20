@@ -578,22 +578,29 @@ def gate_measure(
     out: Path = typer.Option(Path(".cache") / "m9a-measure", "--out", help="Folder for the report (never inside the workspace)"),
     dry_run: bool = typer.Option(False, "--dry-run", help="Print records, batches, tokens and cost from the prompt sizes; no network call, no key"),
     yes: bool = typer.Option(False, "--yes", help="Confirm: this spends your provider key"),
+    task_version: str = typer.Option("", "--task-version", help="Measure a candidate task version (e.g. screen-v2); default: the task product runs use"),
+    not_reported: str = typer.Option("", "--not-reported", help="Derive outcomes under this not-reported policy (unclear, exclude, decisive_first); default: the workspace's rule in force (amendments included)"),
 ) -> None:
     """M9a: the screening agent against the researcher's decisions (recall, precision, cost, truncations)."""
     from scholar_agent import measure as ms
 
+    from scholar_harness.screening.proposals import NOT_REPORTED_POLICIES
+
+    if not_reported and not_reported not in NOT_REPORTED_POLICIES:
+        console.print(f"[bold red]❌ --not-reported must be one of {', '.join(NOT_REPORTED_POLICIES)}[/bold red]")
+        raise typer.Exit(1)
     if not dry_run:
         _need_sdk(provider)  # first, before an estimate or a "--yes to spend" line is shown
     try:
         plan = ms.measure(
             workspace, scope=scope, provider=provider, model=model, effort=effort, max_tokens=max_tokens,
-            driver=None, limit=limit,
+            driver=None, limit=limit, task_version=task_version or None,
         )
     except (ValueError, FileNotFoundError, KeyError) as exc:
         console.print(f"[bold red]❌ {exc}[/bold red]")
         raise typer.Exit(1) from exc
     c, p, r = plan["cost_usd"], plan["prompt"], plan["requests"]
-    typer.echo(f"{plan['records']} records ({plan['labels']}) in {plan['workspace_batches']} workspace batches · scope {plan['scope']['scope']} · {provider}/{model} at {effort} effort")
+    typer.echo(f"{plan['records']} records ({plan['labels']}) in {plan['workspace_batches']} workspace batches · scope {plan['scope']['scope']} · {provider}/{model} at {effort} effort · task {task_version or 'default'}")
     typer.echo(f"calls: {r['calls']} ({r['mode']}, {r['records_per_call']} record(s) each) · prompt: system {p['system_tokens']} tokens, record {p['record_tokens_mean']} mean / {p['record_tokens_max']} max")
     typer.echo(f"tokens (expected): {plan['tokens_expected']}")
     typer.echo(f"estimated cost: expected {_money(c['expected'])} ({c['expected_note']})")
@@ -626,7 +633,8 @@ def gate_measure(
     try:
         report = _run_driver(provider, lambda: ms.measure(
             workspace, scope=scope, provider=provider, model=model, effort=effort, max_tokens=max_tokens,
-            driver=driver, cost_ceiling_usd=ceiling, limit=limit, out_dir=out,
+            driver=driver, cost_ceiling_usd=ceiling, limit=limit, out_dir=out, task_version=task_version or None,
+            not_reported=not_reported or None,
         ))
     except (ValueError, FileNotFoundError, KeyError) as exc:
         console.print(f"[bold red]❌ {exc}[/bold red]")

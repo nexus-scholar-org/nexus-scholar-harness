@@ -52,15 +52,41 @@ class Task:
         return "sha256:" + hashlib.sha256(payload.encode("utf-8")).hexdigest()
 
 
-def load_task() -> Task:
+def load_task(version: str | None = None) -> Task:
+    """The task; ``version`` names a candidate version (H-screening-drafts), ``None`` the default.
+
+    A candidate version is listed under ``[versions]`` in ``task.toml``. Product runs
+    (``agent_runs.start_run``) always load the default; only the measurement loads
+    a candidate. An unknown version is refused.
+    """
     config = tomllib.loads((HERE / "task.toml").read_text(encoding="utf-8"))
+    versions = config.get("versions") or {}
+    settings = {k: v for k, v in config.items() if isinstance(v, dict) and k not in ("defaults", "versions")}
+    if version is None or version == config["task_version"]:
+        return Task(
+            task_id=config["task_id"],
+            task_version=config["task_version"],
+            template=(HERE / "prompt.md").read_text(encoding="utf-8"),
+            defaults=dict(config["defaults"]),
+            settings=settings,
+        )
+    if version not in versions:
+        known = ", ".join([config["task_version"], *versions])
+        raise ValueError(f"unknown screening task version {version!r}; known: {known}")
+    entry = versions[version]
     return Task(
         task_id=config["task_id"],
-        task_version=config["task_version"],
-        template=(HERE / "prompt.md").read_text(encoding="utf-8"),
+        task_version=version,
+        template=(HERE / str(entry["prompt"])).read_text(encoding="utf-8"),
         defaults=dict(config["defaults"]),
-        settings={k: v for k, v in config.items() if isinstance(v, dict) and k != "defaults"},
+        settings={**settings, "candidate": {"measured": bool(entry.get("measured", False))}},
     )
+
+
+def candidate_versions() -> dict[str, dict[str, Any]]:
+    """The candidate versions in ``task.toml`` (never the default), with ``measured``."""
+    config = tomllib.loads((HERE / "task.toml").read_text(encoding="utf-8"))
+    return {k: dict(v) for k, v in (config.get("versions") or {}).items()}
 
 
 def load_prices() -> dict[str, Any]:

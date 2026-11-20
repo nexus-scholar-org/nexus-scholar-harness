@@ -155,6 +155,27 @@ export const STATES: Record<string, StateEntry> = {
       ar: T("لا توجد دفعات بعد", "حضّر دفعات الفرز للبدء.", "كل مراحل الفرز", "تحضير الدفعات"),
     },
   },
+  // H-screening-drafts: an accepted corpus whose batches are not prepared yet (the
+  // run screen said "No accepted corpus" here before).
+  BATCHES_NOT_PREPARED: {
+    role: "unclear",
+    action: "prepare",
+    copy: {
+      en: T("Batches not prepared yet", "The corpus is accepted. Prepare the screening batches before an agent run or triage.", "Agent runs, triage and agreement", "Prepare batches"),
+      fr: T("Lots pas encore préparés", "Le corpus est accepté. Préparez les lots de sélection avant un passage de l'agent ou le tri.", "Passages de l'agent, tri et accord", "Préparer les lots"),
+      ar: T("لم تُحضَّر الدفعات بعد", "قُبلت المجموعة. حضّر دفعات الفرز قبل تشغيل الوكيل أو المراجعة.", "تشغيل الوكيل والمراجعة والاتفاق", "تحضير الدفعات"),
+    },
+  },
+  // H-screening-drafts: a method amendment the engine refused; nothing was changed.
+  METHOD_AMENDMENT_INVALID: {
+    role: "blocked",
+    action: "none",
+    copy: {
+      en: T("The amendment was not recorded", "The engine refused this method change, and nothing was changed. The details say why.", "This change only", "Choose again or keep the value"),
+      fr: T("L'amendement n'a pas été enregistré", "Le moteur a refusé ce changement de méthode, et rien n'a changé. Les détails disent pourquoi.", "Ce changement seulement", "Choisir à nouveau ou garder la valeur"),
+      ar: T("لم يُسجَّل التعديل", "رفض المحرك تغيير المنهج هذا، ولم يتغير شيء. التفاصيل تذكر السبب.", "هذا التغيير فقط", "اختر من جديد أو أبقِ القيمة"),
+    },
+  },
   ENGINE_UNREACHABLE: {
     role: "blocked",
     action: "retry",
@@ -323,9 +344,9 @@ export const STATES: Record<string, StateEntry> = {
     role: "blocked",
     action: "reload",
     copy: {
-      en: T("Set by your protocol", "Your protocol sets this. Change the protocol to change it.", "The draft setting", "Reload"),
-      fr: T("Défini par votre protocole", "Votre protocole fixe ce réglage. Modifiez le protocole pour le changer.", "Le réglage du brouillon", "Recharger"),
-      ar: T("محدَّد في بروتوكولك", "يحدد بروتوكولك هذا الإعداد. عدّل البروتوكول لتغييره.", "إعداد المسودة", "إعادة التحميل"),
+      en: T("Set by your protocol", "Your protocol sets this. Change it on Prepare, where the change is recorded as an amendment.", "The draft setting", "Reload"),
+      fr: T("Défini par votre protocole", "Votre protocole fixe ce réglage. Changez-le dans Préparer, où le changement est enregistré comme amendement.", "Le réglage du brouillon", "Recharger"),
+      ar: T("محدَّد في بروتوكولك", "يحدد بروتوكولك هذا الإعداد. غيّره في التحضير، حيث يُسجَّل التغيير كتعديل.", "إعداد المسودة", "إعادة التحميل"),
     },
   },
   PROTOCOL_METHOD_INVALID: {

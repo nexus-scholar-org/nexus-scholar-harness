@@ -45,6 +45,8 @@ POST_PATHS: tuple[re.Pattern[str], ...] = tuple(
         r"api/v1/screening/decisions/events",
         r"api/v1/screening/decisions/conflicts/[A-Za-z0-9_-]+/resolve",
         r"api/v1/screening/prepare",
+        # H-screening-drafts: a method amendment (blinding, not-reported policy).
+        r"api/v1/screening/method/amendments",
         r"api/v1/screening/corpus/(sources|accept)",
         r"api/v1/screening/corpus/sources/[A-Za-z0-9_-]+/remove",
         r"api/v1/screening/proposals/(runs|calibrations)",
