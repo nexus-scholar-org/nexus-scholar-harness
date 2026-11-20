@@ -713,10 +713,16 @@ def accept_corpus_route(request: Request) -> dict[str, Any]:
             raise _corpus_error(exc) from exc
     if not staged and not status["from_discovery"]:
         raise _error(409, "NOTHING_STAGED", "add at least one database export first")
+    from ...corpus_accept import harvest_part
+
+    harvest = harvest_part(ws)
     try:
-        if staged:
+        if staged and not (harvest is not None and harvest["included"]):
+            # Exports alone; an unfinished harvest is left out (M3i item 10, M3f decision 3).
             accept_corpus(ws)
         else:
+            # M3f: with staged exports beside a ready harvest, the same accept
+            # combines both parts and journals the run.
             # M3d-engine: a browser run's verified.json, frozen on the hand-off
             # screen exactly as the end of a CLI run freezes it (decision 2026-11-10).
             from ...pipeline.coordinator import accept_discovery_corpus
@@ -821,6 +827,11 @@ def prisma_preview(request: Request) -> dict[str, Any]:
         "not_yet_decided": screened - len(winners),
         "checks": checks,
     }
+    from ...corpus_accept import COMBINED_MANIFEST_SCHEMA, _manifest, prisma_identification
+
+    if (_manifest(ws) or {}).get("schema") == COMBINED_MANIFEST_SCHEMA:
+        # M3f: the same counts as the published report (identified = fetched + imported).
+        preview["identified"], preview["duplicates_removed"] = prisma_identification(ws, len(corpus["studies"]))
     # M3g: a citation-searching round identifies what the chase fetched and
     # carries the earlier rounds' published counts (the databases arm).
     from ...screening import rounds as _rounds

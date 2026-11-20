@@ -219,7 +219,7 @@ def test_the_report_and_methods_text_name_both_parts(env):
     client, ws, _ = env
     _harvest(client)
     assert _stage(client, "Scopus", SCOPUS, "scopus.ris", searched_on="2026-11-20", query="uav AND weed",
-                  limits="English").status_code == 200
+                  limits="English").status_code == 201
     assert _stage(client, "IEEE Xplore", IEEE, "ieee.ris").status_code == 201
     report = client.get(f"{BASE}/report").json()
     kinds = [(row["database"], row["kind"]) for row in report["identification"]]
@@ -231,3 +231,19 @@ def test_the_report_and_methods_text_name_both_parts(env):
     assert "IEEE Xplore (1 record; date searched not stated; search string not stated)" in text
     assert "The 4 imported records were not checked against Crossref or OpenAlex." in text
     assert "Deduplication across the 3 sources removed 1 record, leaving 7 unique works." in text
+
+
+# --------------------------------------------------------------------------- the next-step bar
+
+
+def test_the_next_step_bar_counts_the_combined_corpus(env):
+    """Row 13 (CORPUS_READY) reads the corpus the accept would build, not the harvest alone."""
+    client, ws, _ = env
+    manifest = json.loads((ws / "project.json").read_text(encoding="utf-8"))
+    manifest["protocol_origin"] = "inception"  # the golden protocol is a real one, as genesis would say
+    (ws / "project.json").write_text(json.dumps(manifest), encoding="utf-8")
+    _harvest(client)
+    assert _stage(client, "Scopus", SCOPUS, "scopus.ris").status_code == 201
+    body = client.get("/api/v1/review/next-step").json()
+    assert body["state"] == "CORPUS_READY"
+    assert (body["params"]["records"], body["params"]["works"]) == (7, 6)

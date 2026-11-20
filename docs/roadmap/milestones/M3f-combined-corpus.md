@@ -162,8 +162,28 @@ New files are harness run records outside Contract v1, as `verification_checks.j
 - [ ] **Gate.** `/gate inner` after edits and `/gate checkpoint` per item. `/gate pr` once on the final commit. Contract, schema, fixture and protocol `--check`. `milestone-reviewer` APPROVE.
 
 ## Tests written first
+Committed in `1eb12173` before any engine change and run on `2436fe66`'s code. Each failed for the reason named.
+
 | Test | Fails before | Passes after |
 | :-- | :-- | :-- |
+| `tests/console/test_combined_corpus_api.py::test_an_export_staged_after_a_harvest_is_combined_at_the_accept` | yes: 409 `VERIFIED_EXISTS` | yes |
+| `::test_a_harvest_after_staging_is_combined_and_both_can_be_repeated` | yes: 409 `STAGED_IMPORT_PENDING` | yes |
+| `::test_an_unfinished_harvest_beside_exports_is_left_out_and_said_so` | yes: no `harvest` field | yes |
+| `::test_a_changed_protocol_refuses_the_combined_accept` | yes: staging refused (409) | yes |
+| `::test_the_handoff_counts_abstracts_of_staged_exports_per_work` (finding 27) | yes: `with_abstract` 0, `title_only` 0 | yes |
+| `::test_the_handoff_shows_the_combined_corpus` | yes: staging refused (409) | yes |
+| `::test_the_report_and_methods_text_name_both_parts` | yes: staging refused (409) | yes |
+| `::test_records_of_unknown_origin_still_refuse_an_export` | no, by design: it pins the case `VERIFIED_EXISTS` keeps | yes |
+| `tests/cli/test_combined_corpus.py` (8 tests: combine, order-independence, idempotence, refused gate restores, PRISMA identification, unfinished harvest left out, `--ris` after a harvest, determinism across folders) | yes: `VERIFIED_EXISTS`; the CLI did not name the left-out run | yes |
+| `tests/cli/test_combined_corpus.py::test_an_import_only_accept_gives_the_snapshot_it_gave_before`, `::test_a_verified_only_accept_gives_the_snapshot_it_gave_before` | no, by design: artifact ids taken at `2436fe66` (`ART-corpus-8ddb6e7a…`, `ART-corpus-37531fd3…`) | yes, ids unchanged |
+
+Tests changed because they pinned the rule this milestone lifts (each now pins the new rule):
+- `tests/console/test_discovery_api.py::test_a_run_cannot_start_over_staged_exports` became `test_a_run_starts_over_staged_exports_and_leaves_them_staged`.
+- `::test_after_a_browser_run_the_corpus_says_why_an_export_cannot_be_staged` became `test_after_a_browser_run_an_export_can_still_be_staged_until_the_accept`.
+- `tests/unit/test_run_builds_snapshot.py::test_staged_imports_are_never_silently_swapped_for_the_run` now expects the combined snapshot and `combined_with`.
+- `tests/cli/test_accept_corpus.py::test_accept_corpus_from_ris_refuses_to_overwrite_verified` keeps its refusal; the message is reworded ("origin is unknown").
+
+Added after the engine: `tests/console/test_methods_api.py::test_a_combined_corpus_publishes_fetched_plus_imported_and_names_every_source`. It checks the published PRISMA counts, the preview, and the "Records were identified from" sentence after a real publish.
 
 ## Findings fixed
 | ID | Reproducing test | Fails before | Passes after |
