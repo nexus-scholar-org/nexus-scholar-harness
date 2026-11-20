@@ -69,12 +69,19 @@ def test_a_draft_without_a_typed_inclusion_still_needs_the_proof():
     assert exc.value.code == "DRAFT_INCOMPLETE" and exc.value.details["missing"] == ["proof"]
 
 
-def test_a_typed_proof_still_writes_the_wizard_criterion_waiting_for_the_researcher():
+def test_a_typed_proof_beside_a_typed_inclusion_writes_no_criterion():
+    """H-run-small-fixes (finding 1): the proof answer is not a screening rule; beside a typed
+    inclusion it writes no criterion, and still drafts the template question."""
     draft = {**ready_draft(), "proof": "field-validated accuracy"}
     criteria = steps.run_step("criteria", draft)
-    proof_rows = [c for c in criteria["criteria"] if c["source"] == "proof"]
-    assert len(proof_rows) == 1 and proof_rows[0]["status"] == "undecided"
+    assert [c for c in criteria["criteria"] if c["source"] == "proof"] == []
     assert steps.run_step("shape", draft)["rq_draft"]
+
+
+def test_a_typed_proof_alone_still_writes_the_fallback_criterion_waiting_for_the_researcher():
+    draft = {**ready_draft(), "extra_inclusions": [], "proof": "field-validated accuracy"}
+    proof_rows = [c for c in steps.run_step("criteria", draft)["criteria"] if c["source"] == "proof"]
+    assert len(proof_rows) == 1 and proof_rows[0]["status"] == "undecided"
 
 
 def test_blank_answers_count_as_missing():

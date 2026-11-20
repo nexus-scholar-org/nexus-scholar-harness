@@ -58,6 +58,15 @@ class Seam:
         return SearchRun(documents=list(self.docs), legs=legs)
 
 
+def _accept_out_of_scope(answer: str) -> dict:
+    """H-run-small-fixes (finding 2): each out-of-scope item waits for Accept; this draft accepts them."""
+    return {
+        CriterionDraft("exclusion", item.strip(), "out_of_scope", "OUT_OF_SCOPE").id: True
+        for item in answer.split(",")
+        if item.strip()
+    }
+
+
 def _draft() -> dict:
     a = E2E_ANSWERS
     proof_id = CriterionDraft("inclusion", f"Reports the gold-standard proof — {a[5]}", "proof").id
@@ -65,7 +74,7 @@ def _draft() -> dict:
         "topic": a[0], "paradigm": a[1], "playbook": a[2], "unit_of_analysis": a[4], "proof": a[5],
         "out_of_scope": [s.strip() for s in a[6].split(",")], "rqs": [a[8]],
         "concepts": [{"concept": "weed detection"}, {"concept": "on-device inference"}],
-        "criteria_decisions": {proof_id: True},
+        "criteria_decisions": {proof_id: True, **_accept_out_of_scope(a[6])},
         "title": "On-Device Weed Detection for Embedded Agriculture", "lead_researcher": "Dr. Example",
     }
 

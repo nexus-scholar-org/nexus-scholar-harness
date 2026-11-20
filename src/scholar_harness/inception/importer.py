@@ -269,7 +269,11 @@ def map_source(source: Source) -> dict[str, Any]:
         # The researcher's own earlier proof answer, written back word for word.
         draft["proof"] = str(inclusions[0]["criterion"])[len(PROOF_PREFIX):]
         carry("proof", "the wizard's proof criterion")
-        inclusions = inclusions[1:]
+        # H-run-small-fixes (finding 1): with other inclusions the proof writes no
+        # criterion, so the protocol's criterion is kept as a typed inclusion
+        # (the import keeps every inclusion; the researcher may drop it).
+        if len(inclusions) == 1:
+            inclusions = inclusions[1:]
     draft["extra_inclusions"] = [c.get("criterion", "") for c in inclusions]
     exclusions = []
     for i, c in enumerate(v["exclusions"]):

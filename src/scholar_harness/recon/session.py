@@ -129,6 +129,51 @@ def term_evidence(pool: dict[str, Any], term: str) -> dict[str, Any]:
     return {"hits": len(docs), "observed_in": len(dois), "anchor_dois": sorted(dois)}
 
 
+#: Words a typed direction is read without (H-run-small-fixes, finding 3).
+_STOP_WORDS = frozenset(
+    {
+        "a", "an", "the", "and", "or", "of", "for", "in", "on", "at", "to", "by", "with", "from", "into",
+        "under", "over", "between", "via", "as", "its", "their", "is", "are", "be", "using", "based",
+        "how", "what", "which", "does", "do", "can", "than", "that", "this", "these", "those",
+    }
+)
+
+
+def content_words(term: str) -> list[str]:
+    """The words of a phrase that carry meaning: no stop words, no repeats, in order."""
+    words: list[str] = []
+    for word in _NON_WORD.sub(" ", (term or "").casefold()).split():
+        if word not in _STOP_WORDS and word not in words:
+            words.append(word)
+    return words
+
+
+def own_direction_evidence(pool: dict[str, Any], term: str) -> dict[str, Any]:
+    """Evidence for a direction the researcher typed (finding 3): the phrase, else its words together.
+
+    The exact phrase is asked first (``term_evidence``). When it anchors fewer
+    than two records and the phrase has two or more content words, a record
+    whose title or abstract holds every one of them (each as a whole word)
+    anchors it instead: "weed segmentation under sensor noise" is grounded by
+    "Sensor noise and multispectral weed segmentation". ``match`` says which.
+    """
+    exact = term_evidence(pool, term)
+    words = content_words(term)
+    if exact["observed_in"] >= 2 or len(words) < 2:
+        return {**exact, "match": "phrase"}
+    dois: list[str] = []
+    for doc in pool.get("docs") or []:
+        if not isinstance(doc, dict):
+            continue
+        doi = doc.get("doi")
+        text = f"{doc.get('title') or ''} {doc.get('abstract') or ''}"
+        if doi and all(term_occurs(w, text) for w in words) and doi not in dois:
+            dois.append(str(doi))
+    if len(dois) <= exact["observed_in"]:
+        return {**exact, "match": "phrase"}
+    return {"hits": exact["hits"], "observed_in": len(dois), "anchor_dois": sorted(dois), "match": "words", "words": words}
+
+
 # --------------------------------------------------------------------------- store
 
 

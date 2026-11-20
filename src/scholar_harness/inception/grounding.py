@@ -30,6 +30,7 @@ from ..recon.session import (
     ReconRefused,
     ReconSessions,
     pool_fingerprint,
+    own_direction_evidence,
     term_evidence,
     term_occurs,
 )
@@ -135,7 +136,9 @@ def build_grounding(
         }
     else:
         own = (own or "").strip()
-        ev = term_evidence(pool, own)
+        # H-run-small-fixes (finding 3): the phrase, else its words together in one record.
+        ev = own_direction_evidence(pool, own)
+        where = "it occurs" if ev.get("match") != "words" else "its words occur together"
         chosen = {
             "label": own,
             "concept": own,
@@ -143,7 +146,7 @@ def build_grounding(
             "observed_in": ev["observed_in"],
             "n_docs": n_docs,
             "schools": [],
-            "detail": f"your direction; it occurs in {ev['observed_in']} of {n_docs} titles or abstracts",
+            "detail": f"your direction; {where} in {ev['observed_in']} of {n_docs} titles or abstracts",
             "source": "researcher",
             "grounded": ev["observed_in"] >= OWN_DIRECTION_MIN_ANCHORS,
         }

@@ -377,6 +377,9 @@ def _survey(draft: Draft) -> Survey:
         pool_max=draft.pool_max,
         out_of_scope_reasons=dict(draft.out_of_scope_reasons),
         default_exclusion_reason=draft.default_exclusion_reason,
+        # H-run-small-fixes (finding 1): the proof answer writes its criterion only
+        # when it is the draft's only inclusion (no typed inclusion left).
+        proof_criterion=proof_required(draft),
     )
 
 
@@ -505,7 +508,8 @@ def criteria_with_decisions(draft: Draft) -> list[dict[str, Any]]:
     """Each drafted criterion, verbatim, with its source and the researcher's decision.
 
     ``status`` is ``accepted``, ``rejected`` or ``undecided``. A criterion the
-    researcher typed is accepted unless rejected; one the wizard wrote stays
+    researcher typed is accepted unless rejected; one the wizard wrote, and
+    each item of the out-of-scope answer (H-run-small-fixes, finding 2), stays
     ``undecided`` until the researcher accepts or rejects it (INC-22).
     """
     out = []
@@ -516,7 +520,9 @@ def criteria_with_decisions(draft: Draft) -> list[dict[str, Any]]:
             item["reason_valid"] = reason_code_ok(c.reason_category)
         decision = draft.criteria_decisions.get(c.id)
         if decision is None:
-            item["status"] = "undecided" if c.generated else "accepted"
+            # H-run-small-fixes (finding 2): an out-of-scope item is the researcher's
+            # words, but it becomes a screening rule only once they accept it here.
+            item["status"] = "undecided" if c.generated or c.source == "out_of_scope" else "accepted"
         else:
             item["status"] = "accepted" if decision else "rejected"
         out.append(item)

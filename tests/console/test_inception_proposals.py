@@ -350,7 +350,7 @@ def test_a_value_the_mechanism_did_not_offer_is_saved_but_not_recorded(env):
 
 def test_wizard_criterion_and_matrix_column_are_recorded_with_the_save(env):
     client, root = env
-    record = _create(client, uav_draft(proof="field-validated accuracy"))
+    record = _create(client, uav_draft(proof="field-validated accuracy", extra_inclusions=[]))
     sid = record["session_id"]
     criteria = client.post(f"{BASE}/steps/criteria", json={"draft": record["draft"]}).json()
     wizard = next(c for c in criteria["criteria"] if c["generated"])
@@ -373,7 +373,7 @@ def test_an_entry_the_saved_draft_does_not_hold_is_not_recorded(env):
     """Review of Part B, finding 1: whether a suggestion was accepted is the engine's call, on the saved draft.
     A wizard criterion sent as dropped, with an accepted_from entry for it, is not recorded."""
     client, root = env
-    record = _create(client, uav_draft(proof="field-validated accuracy"))
+    record = _create(client, uav_draft(proof="field-validated accuracy", extra_inclusions=[]))
     sid = record["session_id"]
     wizard = next(c for c in client.post(f"{BASE}/steps/criteria", json={"draft": record["draft"]}).json()["criteria"] if c["generated"])
     entry = {"mechanism": "wizard_criterion", "field": "criteria_decisions", "value": wizard["id"]}

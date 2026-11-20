@@ -26,6 +26,10 @@ def test_out_of_scope_lines_carry_their_own_reason_into_the_protocol():
         "out_of_scope": ["Satellite imagery", "Greenhouse trials"],
         "out_of_scope_reasons": {"Satellite imagery": "WRONG_PLATFORM"},
     }
+    # H-run-small-fixes (finding 2): each out-of-scope line is accepted on its own.
+    draft["criteria_decisions"] = {
+        c["id"]: True for c in steps.run_step("criteria", draft)["criteria"] if c["source"] == "out_of_scope"
+    }
     assert _exclusions(draft) == [("Satellite imagery", "WRONG_PLATFORM"), ("Greenhouse trials", "OUT_OF_SCOPE")]
     protocol = steps.preview(draft, genesis_timestamp=TS)["protocol"]
     assert [e["reason_category"] for e in protocol["screening_criteria"]["exclusion"]] == ["WRONG_PLATFORM", "OUT_OF_SCOPE"]
