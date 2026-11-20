@@ -10,7 +10,7 @@ import { InceptionReview } from "@/components/inception-review";
 import { InceptionScope } from "@/components/inception-scope";
 import { CHECK_IDS, CHECKS_COPY } from "@/lib/checks-copy";
 import { checkRow, type CheckIn } from "./fixtures/checks-engine";
-import { completeDraft, proofId, SESSION } from "./fixtures/inception-engine";
+import { completeDraft, outOfScopeId, proofId, SESSION } from "./fixtures/inception-engine";
 import { setUp } from "./inception-helpers";
 import { setUp as setUpDiscovery } from "./discovery-helpers";
 
@@ -23,7 +23,7 @@ import { setUp as setUpDiscovery } from "./discovery-helpers";
 afterEach(() => vi.unstubAllGlobals());
 
 const CHECKS = `/api/v1/inception/drafts/${SESSION}/checks`;
-const decided = (extra: Record<string, unknown> = {}) => completeDraft({ criteria_decisions: { [proofId()]: true }, ...extra });
+const decided = (extra: Record<string, unknown> = {}) => completeDraft({ criteria_decisions: { [proofId()]: true, [outOfScopeId()]: true }, ...extra });
 
 const blocker: CheckIn = { check_id: "SCOPE_TOPIC_MISSING", step: "scope", level: "blocker", action: { kind: "field", step: "scope", field: "topic" } };
 const warning: CheckIn = { check_id: "EXPLORE_SCOPE_CHANGED", step: "scope", level: "warning", action: { kind: "step", step: "explore" } };
@@ -383,7 +383,7 @@ describe("checks after a decision on the Concepts and criteria page (H-ui-findin
   const criteriaRow = (id: string) => document.querySelector(`[data-checks-panel='criteria'] li[data-check='${id}']`) as HTMLElement | null;
 
   it("Apply on a suggestion saves on the server, so the checks are read again and nothing says 'unsaved'", async () => {
-    const { engine } = setUp({ draft: completeDraft({ title: "UAV weed detection", concepts: [], criteria_decisions: { [proofId()]: true } }), checks: true });
+    const { engine } = setUp({ draft: completeDraft({ title: "UAV weed detection", concepts: [], criteria_decisions: { [proofId()]: true, [outOfScopeId()]: true } }), checks: true });
     render(<InceptionCriteria locale="en" />);
     await waitFor(() => expect(criteriaRow("CONCEPT_TERM_MISSING")).not.toBeNull());
     const reads = engine.calls.filter((c) => c.path === CHECKS).length;

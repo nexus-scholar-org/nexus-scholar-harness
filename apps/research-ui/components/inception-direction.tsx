@@ -710,6 +710,7 @@ function DirectionCard({
           <input
             type="radio"
             name="direction"
+            value={direction.label}
             checked={chosen}
             disabled={disabled}
             onChange={onChoose}

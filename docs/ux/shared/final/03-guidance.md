@@ -167,7 +167,7 @@ Shared frame (`inception-frame.tsx`, every screen 01 to 07), then 01 Scope, 02 E
 | I-E22 | `explore.schools.title`, `schools.count`, `schools.one` | "Schools of thought", "{n} papers", "1 paper" | STAYS | V4 |
 | I-E23 | `explore.schools.oneNote` | "A school with one paper cannot become a direction on its own ..." | HINT | T3 definition |
 | I-E24 | `explore.topics.title`, `topics.more`, `metrics.title` | "OpenAlex topics", "+ {n} more", "Metrics and datasets seen" | STAYS | V4 data (folded in a collapsed section, rule 4) |
-| I-E25 | `explore.papers.title`, `papers.sorted`, `papers.col.*`, `papers.anchors*`, `papers.noDoi`, `papers.newTab`, `papers.link`, `papers.more`, `papers.less` | the Papers table | STAYS | V4/V5 DOI and anchor counts (folded in a collapsed section) |
+| I-E25 | `explore.papers.title`, `papers.sorted`, `papers.col.*`, `papers.anchors*`, `papers.noDoi`, `papers.newTab`, `papers.link`, `papers.linkDoi`, `papers.more`, `papers.less` | the Papers table | STAYS | V4/V5 DOI and anchor counts (folded in a collapsed section) |
 | I-E26 | `explore.papers.note` | "A paper anchors a direction only when the direction's term occurs in its title or abstract." | HINT | T3 definition; one hint body shared with I-D8, I-C7, I-E32 |
 | I-E27 | `explore.legs.title`, `legs.latest`, `legs.none`, `legs.col.*`, `legs.ok`, `legs.failed`, `legs.fetchedOf`, `legs.atLeast`, `provider.*` | the "Databases asked" table | STAYS | V3 a failed database is a result (summary carries "{n} failed") |
 | I-E28 | `explore.legs.refused.*`, `keys.openalex.unset`, `keys.s2.unset` | "OpenAlex refused the request; set SCHOLAR_OPENALEX_KEY", "Not set" | STAYS | V1/V2 refusal and missing key |

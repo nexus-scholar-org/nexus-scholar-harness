@@ -4,7 +4,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { InceptionCriteria, normaliseReason } from "@/components/inception-criteria";
 import { InceptionReview } from "@/components/inception-review";
 import { InceptionShape } from "@/components/inception-shape";
-import { completeDraft, proofId, SESSION } from "./fixtures/inception-engine";
+import { completeDraft, outOfScopeId, proofId, SESSION } from "./fixtures/inception-engine";
 import { setUp } from "./inception-helpers";
 
 /**
@@ -82,7 +82,7 @@ describe("inception.criteria reasons (M10b)", () => {
   });
 
   it("shows every exclusion's reason and lets the researcher change an out-of-scope line's", async () => {
-    const { engine, assign } = setUp({ draft: completeDraft({ criteria_decisions: { [proofId()]: true } }) });
+    const { engine, assign } = setUp({ draft: completeDraft({ criteria_decisions: { [proofId()]: true, [outOfScopeId()]: true } }) });
     render(<InceptionCriteria locale="en" />);
     const row = (await screen.findByText("closed-source models")).closest("li") as HTMLElement;
     expect(within(row).getByText("Reason OUT_OF_SCOPE")).toBeInTheDocument();
@@ -96,7 +96,7 @@ describe("inception.criteria reasons (M10b)", () => {
   });
 
   it("adds an exclusion only with a reason, and the reason list is the engine's with nothing chosen", async () => {
-    const { engine } = setUp({ draft: completeDraft({ criteria_decisions: { [proofId()]: true } }) });
+    const { engine } = setUp({ draft: completeDraft({ criteria_decisions: { [proofId()]: true, [outOfScopeId()]: true } }) });
     render(<InceptionCriteria locale="en" />);
     const side = (await screen.findByText("closed-source models")).closest("[data-side]") as HTMLElement;
     fireEvent.change(within(side).getByLabelText("Add an exclusion criterion"), { target: { value: "Simulation only" } });
@@ -116,7 +116,7 @@ describe("inception.criteria reasons (M10b)", () => {
   });
 
   it("offers no Change reason on a dropped row and flags a saved code that breaks the rule", async () => {
-    setUp({ draft: completeDraft({ out_of_scope: [], extra_exclusions: [{ criterion: "Old", reason_category: "old" }], criteria_decisions: { [proofId()]: true } }) });
+    setUp({ draft: completeDraft({ out_of_scope: [], extra_exclusions: [{ criterion: "Old", reason_category: "old" }], criteria_decisions: { [proofId()]: true, [outOfScopeId()]: true } }) });
     render(<InceptionCriteria locale="en" />);
     const row = (await screen.findByText("Old")).closest("li") as HTMLElement;
     expect(within(row).getByText("This code does not follow the rule; fix it before you save.")).toBeInTheDocument();
@@ -128,7 +128,7 @@ describe("inception.criteria reasons (M10b)", () => {
 
 describe("inception.criteria own matrix columns (M10b)", () => {
   it("adds a column apart from the suggestions, without a checkbox, and saves it", async () => {
-    const { engine, assign } = setUp({ draft: completeDraft({ criteria_decisions: { [proofId()]: true } }) });
+    const { engine, assign } = setUp({ draft: completeDraft({ criteria_decisions: { [proofId()]: true, [outOfScopeId()]: true } }) });
     render(<InceptionCriteria locale="en" />);
     const group = (await screen.findByText("Your columns")).closest("[data-own-columns]") as HTMLElement;
     expect(within(group).getByText("None yet. Add the columns your review needs.")).toBeInTheDocument();
@@ -150,7 +150,7 @@ describe("inception.criteria own matrix columns (M10b)", () => {
   });
 
   it("refuses a second column of the same name before the engine does, and removes one", async () => {
-    setUp({ draft: completeDraft({ custom_matrix_columns: [{ name: "Sensor", description: "d" }], criteria_decisions: { [proofId()]: true } }) });
+    setUp({ draft: completeDraft({ custom_matrix_columns: [{ name: "Sensor", description: "d" }], criteria_decisions: { [proofId()]: true, [outOfScopeId()]: true } }) });
     render(<InceptionCriteria locale="en" />);
     const group = (await screen.findByText("Your columns")).closest("[data-own-columns]") as HTMLElement;
     fireEvent.change(within(group).getByLabelText("Column name"), { target: { value: "sensor" } });
@@ -161,7 +161,7 @@ describe("inception.criteria own matrix columns (M10b)", () => {
 });
 
 describe("inception.review wording (M10b, strict run findings 8 and 9)", () => {
-  const decided = (extra: Record<string, unknown> = {}) => completeDraft({ criteria_decisions: { [proofId()]: true }, ...extra });
+  const decided = (extra: Record<string, unknown> = {}) => completeDraft({ criteria_decisions: { [proofId()]: true, [outOfScopeId()]: true }, ...extra });
 
   it("lists each concept with its synonyms", async () => {
     setUp({ draft: decided({ concepts: [{ concept: "weed detection", synonyms: ["weed mapping", "weed segmentation"] }, { concept: "UAV", synonyms: [] }] }) });

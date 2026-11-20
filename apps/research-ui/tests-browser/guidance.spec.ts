@@ -3,7 +3,7 @@ import { createRequire } from "node:module";
 import type { Page } from "@playwright/test";
 
 import { discoveryEngine, type DiscoveryFakeOptions } from "../tests/fixtures/discovery-engine";
-import { completeDraft, inceptionEngine, proofId, SESSION, type FakeOptions } from "../tests/fixtures/inception-engine";
+import { completeDraft, inceptionEngine, outOfScopeId, proofId, SESSION, type FakeOptions } from "../tests/fixtures/inception-engine";
 import { DESKTOP_VIEWPORT, expect, test } from "./helpers";
 
 /**
@@ -31,7 +31,7 @@ async function engine(page: Page, options: FakeOptions & { draft?: Record<string
   return fake;
 }
 
-const decided = () => completeDraft({ criteria_decisions: { [proofId()]: true } });
+const decided = () => completeDraft({ criteria_decisions: { [proofId()]: true, [outOfScopeId()]: true } });
 
 test.use({ viewport: DESKTOP_VIEWPORT });
 

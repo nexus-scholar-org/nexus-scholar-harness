@@ -2,7 +2,7 @@ import { createRequire } from "node:module";
 
 import type { Page } from "@playwright/test";
 
-import { completeDraft, inceptionEngine, proofId, SESSION, type FakeOptions } from "../tests/fixtures/inception-engine";
+import { completeDraft, inceptionEngine, outOfScopeId, proofId, SESSION, type FakeOptions } from "../tests/fixtures/inception-engine";
 import { DESKTOP_VIEWPORT, expect, MOBILE_VIEWPORT, test } from "./helpers";
 import { expectNoSidewaysScroll, measureOverflow } from "./overflow-recipe";
 
@@ -29,9 +29,9 @@ async function engine(page: Page, options: FakeOptions & { draft?: Record<string
   return fake;
 }
 
-const decided = () => completeDraft({ criteria_decisions: { [proofId()]: true } });
+const decided = () => completeDraft({ criteria_decisions: { [proofId()]: true, [outOfScopeId()]: true } });
 /** M10b Part B: a question that names UAV, so the screens draw the checks panel and a proposal card (axe, overflow, hydration). */
-const assisted = () => completeDraft({ criteria_decisions: { [proofId()]: true }, rqs: ["Can on-device weed detection run in real time on a UAV?"] });
+const assisted = () => completeDraft({ criteria_decisions: { [proofId()]: true, [outOfScopeId()]: true }, rqs: ["Can on-device weed detection run in real time on a UAV?"] });
 
 test.use({ viewport: DESKTOP_VIEWPORT });
 

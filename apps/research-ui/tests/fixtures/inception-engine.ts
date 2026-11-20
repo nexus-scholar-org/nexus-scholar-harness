@@ -256,14 +256,18 @@ function criteriaOf(draft: Json) {
   const push = (kind: string, text: string, source: string, generated: boolean, reason: string | null, label: string) => {
     const id = idOf(kind, source, text, kind === "exclusion" ? reason : null);
     const d = decisions[id];
-    const status = d === undefined ? (generated ? "undecided" : "accepted") : d ? "accepted" : "rejected";
+    const status = d === undefined ? (generated || source === "out_of_scope" ? "undecided" : "accepted") : d ? "accepted" : "rejected";
     const extra = kind === "exclusion" ? { reason_valid: /^[A-Z][A-Z0-9_]{2,39}$/.test(reason ?? "") } : {};
     items.push({ id, kind, criterion: text, reason_category: reason, source, source_label: label, generated, status, ...extra });
   };
   const oosReasons = (draft.out_of_scope_reasons ?? {}) as Record<string, string>;
-  if (draft.proof) push("inclusion", `Reports the gold-standard proof — ${String(draft.proof)}`, "proof", true, null, "written by the wizard from your proof answer");
+  // H-run-small-fixes (finding 1): the proof writes its criterion only when no typed inclusion is left.
+  const typedLeft = ((draft.extra_inclusions ?? []) as string[]).some((c) => c.trim() && decisions[idOf("inclusion", "manual", c)] !== false);
+  if (draft.proof && String(draft.proof).trim() && !typedLeft) push("inclusion", `Reports the gold-standard proof — ${String(draft.proof)}`, "proof", true, null, "written by the wizard from your proof answer");
   for (const c of (draft.extra_inclusions ?? []) as string[]) push("inclusion", c, "manual", false, null, "typed by you");
-  for (const c of (draft.out_of_scope ?? []) as string[]) push("exclusion", c, "out_of_scope", false, oosReasons[c] ?? "OUT_OF_SCOPE", "your out-of-scope answer");
+  // H-run-small-fixes (finding 2): one candidate per item; semicolons and line breaks separate items.
+  const items_ = [...new Set(((draft.out_of_scope ?? []) as string[]).flatMap((c) => c.split(/[;\n]/)).map((c) => c.trim()).filter(Boolean))];
+  for (const c of items_) push("exclusion", c, "out_of_scope", false, oosReasons[c] ?? "OUT_OF_SCOPE", "your out-of-scope answer");
   for (const c of (draft.extra_exclusions ?? []) as { criterion: string; reason_category?: string }[]) push("exclusion", c.criterion, "manual", false, c.reason_category ?? "OUT_OF_SCOPE", "typed by you");
   if (!items.some((i) => i.kind === "exclusion") && draft.paradigm) {
     push("exclusion", "Opinion pieces without data.", "paradigm_default", true, (draft.default_exclusion_reason as string | null) ?? "OUT_OF_SCOPE", "the {paradigm} paradigm's default exclusion, written by the wizard");
@@ -683,6 +687,11 @@ export function completeDraft(overrides: Json = {}): Json {
 /** The id the fake gives the proof criterion of {@link completeDraft}. */
 export function proofId(proof = "mIoU and FPS on a public benchmark"): string {
   return idOf("inclusion", "proof", `Reports the gold-standard proof — ${proof}`);
+}
+
+/** The id the fake gives an out-of-scope item of {@link completeDraft} (H-run-small-fixes: each waits for Accept). */
+export function outOfScopeId(text = "closed-source models", reason = "OUT_OF_SCOPE"): string {
+  return idOf("exclusion", "out_of_scope", text, reason);
 }
 
 /** Stub `fetch` (vitest) with the fake; returns the engine for assertions. */

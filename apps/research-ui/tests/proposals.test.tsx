@@ -6,7 +6,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { InceptionCriteria } from "@/components/inception-criteria";
 import { PROPOSALS_COPY } from "@/lib/proposals-copy";
-import { completeDraft, proofId, SESSION } from "./fixtures/inception-engine";
+import { completeDraft, outOfScopeId, proofId, SESSION } from "./fixtures/inception-engine";
 import { setUp } from "./inception-helpers";
 
 /**
@@ -18,7 +18,7 @@ import { setUp } from "./inception-helpers";
 afterEach(() => vi.unstubAllGlobals());
 
 const PROPOSALS = `/api/v1/inception/drafts/${SESSION}/proposals`;
-const decided = (extra: Record<string, unknown> = {}) => completeDraft({ criteria_decisions: { [proofId()]: true }, title: "UAV weed detection", ...extra });
+const decided = (extra: Record<string, unknown> = {}) => completeDraft({ criteria_decisions: { [proofId()]: true, [outOfScopeId()]: true }, title: "UAV weed detection", ...extra });
 const UAV = { field: "concepts", value: { concept: "UAV", synonyms: [] }, why: "Your title and questions use UAV, but no concept or synonym does.", evidence: [{ kind: "check", check_id: "CONCEPT_TERM_MISSING" }, { kind: "doi", doi: "10.1234/uav.1" }] };
 
 const posts = (engine: ReturnType<typeof setUp>["engine"]) => engine.calls.filter((c) => c.method === "POST" && c.path.startsWith(`${PROPOSALS}/`));

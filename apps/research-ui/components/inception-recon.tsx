@@ -388,7 +388,7 @@ export function DoiLink({ locale, doi, title }: Readonly<{ locale: Locale; doi: 
       href={`https://doi.org/${doi}`}
       target="_blank"
       rel="noopener noreferrer"
-      aria-label={`${t("explore.papers.link", { title: title ?? "", doi })} · ${t("explore.papers.newTab")}`}
+      aria-label={`${title?.trim() ? t("explore.papers.link", { title: title.trim(), doi }) : t("explore.papers.linkDoi", { doi })} · ${t("explore.papers.newTab")}`}
       className="inline-flex min-h-11 items-center text-brand underline"
       data-doi={doi}
     >

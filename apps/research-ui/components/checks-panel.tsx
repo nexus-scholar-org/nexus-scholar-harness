@@ -590,7 +590,8 @@ export function ChecksPanel(props: Readonly<ChecksPanelProps>) {
           {[...blockers, ...warnings].map((c) => row(c))}
         </ul>
       ) : null}
-      {mode === "panel" ? disclosure(fillNodes(CHECKS_COPY[locale]["checks.notes"], { n: n(counts.note) }), noteRows, false, "data-notes") : null}
+      {/* H-run-small-fixes (finding 5): "Notes ()" was read with an empty count; the count is the rows shown, as text. */}
+      {mode === "panel" ? disclosure(fillText(CHECKS_COPY[locale]["checks.notes"], { n: formatNumber(locale, noteRows.length) }), noteRows, false, "data-notes") : null}
       {disclosure(fillNodes(CHECKS_COPY[locale]["checks.dismissed"], { n: n(counts.dismissed) }), dismissedRows, true, "data-dismissed")}
       {[...needs.entries()].map(([need, count]) => (
         <p key={need} className="mt-2 text-sm text-ink-muted" data-waiting={need}>

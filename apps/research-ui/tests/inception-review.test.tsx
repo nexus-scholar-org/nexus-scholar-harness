@@ -2,7 +2,7 @@ import { fireEvent, render, screen, waitFor, within } from "@testing-library/rea
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { InceptionReview } from "@/components/inception-review";
-import { completeDraft, proofId, SESSION } from "./fixtures/inception-engine";
+import { completeDraft, outOfScopeId, proofId, SESSION } from "./fixtures/inception-engine";
 import { sent, setUp } from "./inception-helpers";
 
 /**
@@ -13,7 +13,7 @@ import { sent, setUp } from "./inception-helpers";
 
 afterEach(() => vi.unstubAllGlobals());
 
-const decided = (extra: Record<string, unknown> = {}) => completeDraft({ criteria_decisions: { [proofId()]: true }, ...extra });
+const decided = (extra: Record<string, unknown> = {}) => completeDraft({ criteria_decisions: { [proofId()]: true, [outOfScopeId()]: true }, ...extra });
 const brandButtons = () => document.querySelectorAll("button.bg-brand");
 // M10b (02-checks): the folder lines of the old Checks card are the engine's REVIEW_TARGET_* rows of "Ready to create?".
 const target = (check_id: string, level: "blocker" | "warning") => () => [
