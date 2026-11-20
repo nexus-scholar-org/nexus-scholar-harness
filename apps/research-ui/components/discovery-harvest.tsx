@@ -647,7 +647,7 @@ export function DiscoveryHarvest({ locale }: Readonly<{ locale: Locale }>) {
                   locale={locale}
                   origin={origin}
                   fingerprint={plan.protocol_fingerprint}
-                  providers={choice && (touched || address.value || (plan && !sameList(choice, protocolList(plan)))) ? choice : null}
+                  providers={choice && choice.length ? choice : null}
                   cap={/^\d+$/.test(cap.trim()) ? Number(cap.trim()) : null}
                   onUseCap={(value) => {
                     setCap(String(value));

@@ -574,7 +574,9 @@ export function DiscoveryPlan({ locale }: Readonly<{ locale: Locale }>) {
                 locale={locale}
                 origin={origin}
                 fingerprint={plan.protocol_fingerprint}
-                providers={current()}
+                // H-run-small-fixes (review N1): the estimate always counts the choice on screen;
+                // an estimate sent no list counts the default choice, which may leave Crossref out.
+                providers={choice && choice.length ? choice : null}
                 harvestHref={(cap) => harvestHref(locale, origin, differs ? choice : null, cap)}
                 inceptionHref={inceptionHref(locale, origin)}
               />

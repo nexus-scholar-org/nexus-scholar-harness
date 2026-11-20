@@ -405,8 +405,13 @@ class AcademicHttpClient:
         rate = header_rate(response.headers)
         if rate is None:
             return
-        budget = host_budget(url)
-        current = (budget or self.rate_limiter).rate
+        policy = _policy(url)
+        if policy is not None:
+            # Compared with the configured and announced rate, not with a pace a 429
+            # holds for a while: a lower header is kept after that pace expires.
+            current = min(policy[1], _HEADER_CAPS.get(policy[0], policy[1]))
+        else:
+            current = self.rate_limiter.rate
         if current > 0 and rate >= current:
             return
         logger.info(

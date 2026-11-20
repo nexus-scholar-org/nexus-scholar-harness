@@ -43,7 +43,8 @@ Branch `dev/h/run-fixes-discovery` from `origin/main` `2436fe66`. Choices: `docs
 - `src/scholar_search/estimate.py`: `UPPER_BOUND_WITH_YEARS` empty; `_dominant` and the `one_database` recommendation.
 - `src/scholar_search/http_client.py`: `slow_down(url)`, called on a 429 without a rate header in the GET retry path (the POST path is unchanged).
 - `src/scholar_search/cli.py`: `_report_legs`, the exit codes, the `--limit` help.
-- `src/scholar_harness/console/api/discovery.py`: `_Protocol.concepts`, `.named`, `.default_choice()`; the plan's new fields; the recall default.
+- `src/scholar_search/plan.py` also: `took_default_list` (the protocol's list as written).
+- `src/scholar_harness/console/api/discovery.py`: `_Protocol.concepts`, `.raw_databases`, `.default_choice()`; the plan's new fields; the recall and estimate default (no list = the default choice). Plan and Harvest always send their choice to the estimate (review N1).
 - UI: `lib/discovery-api.ts` (types), `lib/discovery-copy.ts` (three keys, `recall.checkedAt`), `components/discovery-plan.tsx` (`defaultList`, `IgnoresAndNotes`, the first read), `components/discovery-harvest.tsx`, `components/discovery-estimate.tsx`.
 
 ### Review
@@ -57,6 +58,8 @@ Round 1 (`milestone-reviewer`, on `006eb7e9`): **CHANGES**, one P1, two P2, two 
 | P2 | "Took the default list" was judged after unknown names were dropped (an imported list with `scopus`, `wos` lost Crossref) | Judged on the list as written (`plan.took_default_list`) | `test_review_took_the_default_list_is_judged_on_the_list_as_written` (4 cases) |
 | P3 | A refused second plan read left the Plan picker and preview out of step | The default read counts as done only once it succeeded | (code) |
 | P3 | The skill line omitted the 20-record default without a protocol | Fixed | (docs) |
+
+Round 2 (on `7bcd29c3`): **CHANGES**, every round-1 finding repaired; one new P1 (N1: after "Reset to the protocol" the estimate, sent no list, would leave a ticked Crossref out, since no list now means the default choice) and one P3 (N2, this record's "What changed"). Repaired in the next commit: both screens always send the choice to the estimate; the fake counts the default choice for an estimate sent no list; tests `tests/discovery-plan.test.tsx` and `tests/discovery-harvest.test.tsx` "after Reset to the protocol, the estimate counts Crossref (review N1)", engine `test_review_an_estimate_sent_the_protocol_list_counts_crossref`; six estimate tests that pinned an empty body updated. Its follow-up also done: a header rate is compared with the configured and announced rate, not a held 429 pace (`test_a_lower_header_rate_is_kept_while_a_429_pace_holds`).
 
 Follow-ups also done: a 429 pace expires after 10 minutes, a burst of 429s halves once, and the bucket allows no burst while the pace holds (`test_a_burst_of_429s_halves_the_pace_once`, `test_the_pace_set_by_a_429_expires`); a concept whose terms are joined with AND counts per term (`tests/kits/search/test_protocol_adapter.py::test_concept_count_counts_each_term_of_an_and_concept`); exit codes in the search skill's reference. Not done: the unused `scholar_search.cli.search` import in `scholar_agent/server.py` (harmless, outside this item).
 

@@ -518,3 +518,16 @@ def test_review_an_estimate_sent_no_list_counts_the_default_choice(env):
     answer = client.post(URL, json={}).json()
     assert "crossref" not in doubles.asked()
     assert next(r for r in answer["providers"] if r["name"] == "crossref")["status"] == "not_selected"
+
+
+
+def test_review_an_estimate_sent_the_protocol_list_counts_crossref(env):
+    """Review N1: the protocol's own list, sent explicitly ("Reset to the protocol"), keeps Crossref in the count."""
+    import json as _json
+
+    client, ws, doubles = env
+    data = _json.loads((ws / "protocol.json").read_text(encoding="utf-8"))
+    data["search_strategy"]["target_databases"] = ["openalex", "semanticscholar", "crossref", "arxiv"]
+    (ws / "protocol.json").write_text(_json.dumps(data), encoding="utf-8")
+    client.post(URL, json={"providers": ["openalex", "semanticscholar", "crossref", "arxiv"]})
+    assert "crossref" in doubles.asked()

@@ -176,6 +176,20 @@ describe("discovery.harvest Crossref and a joined query (H-run-small-fixes, find
     expect(runPost(engine)[0].body).toEqual({ providers: ["openalex", "semanticscholar", "arxiv"] });
   });
 
+  it("after Reset to the protocol, the estimate counts Crossref (review N1)", async () => {
+    const user = userEvent.setup();
+    const { engine } = setUp({ protocolProviders: ["openalex", "semanticscholar", "crossref", "arxiv"] });
+    render(<DiscoveryHarvest locale="en" />);
+    await screen.findByRole("heading", { name: READY });
+    await user.click(screen.getByRole("button", { name: "Reset to the protocol" }));
+    expect(ticked()).toContain("crossref");
+    const card = document.querySelector("[data-estimate]") as HTMLElement;
+    await user.click(within(card).getByRole("button", { name: /count/i }));
+    await waitFor(() => expect(engine.calls.some((c) => c.method === "POST" && c.path === "/api/v1/discovery/estimate")).toBe(true));
+    const body = engine.calls.filter((c) => c.method === "POST" && c.path === "/api/v1/discovery/estimate").at(-1)?.body as { providers?: string[] };
+    expect(body.providers).toContain("crossref");
+  });
+
   it("warns as soon as Crossref is ticked for a joined query", async () => {
     const user = userEvent.setup();
     setUp({ protocolProviders: ["openalex", "semanticscholar", "crossref", "arxiv"] });

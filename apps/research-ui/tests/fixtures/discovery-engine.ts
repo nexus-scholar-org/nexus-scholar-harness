@@ -852,7 +852,8 @@ export function discoveryEngine(options: DiscoveryFakeOptions = {}) {
       if (refused) return refused;
       const stub = options.estimate;
       if (stub) return { status: 200, body: typeof stub === "function" ? (stub as (b: Json | null) => object)(body) : stub };
-      return { status: 200, body: estimateOf(requested ?? protocolProviders, cap ?? null, pace ?? 30) };
+      // H-run-small-fixes: an estimate sent no list counts the default choice, as the engine does.
+      return { status: 200, body: estimateOf(requested ?? defaultChoice(), cap ?? null, pace ?? 30) };
     }
     if (method === "POST" && route === "/api/v1/discovery/recall") {
       const seeds = (body?.seeds ?? []) as { id: string; kind: string; source: string }[];

@@ -32,6 +32,20 @@ describe("discovery.plan Crossref and a joined query (H-run-small-fixes, finding
     await user.click(screen.getByRole("checkbox", { name: "Search Crossref" }));
     await waitFor(() => expect(document.querySelector('[data-ignores-and="crossref"]')).not.toBeNull());
   });
+
+  it("after Reset to the protocol, the estimate counts Crossref (review N1)", async () => {
+    const user = userEvent.setup();
+    const { engine } = setUp({ protocolProviders: ["openalex", "semanticscholar", "crossref", "arxiv"] });
+    render(<DiscoveryPlan locale="en" />);
+    await screen.findByRole("heading", { level: 1, name: "This is what each database will receive" });
+    await user.click(await screen.findByRole("button", { name: "Reset to the protocol" }));
+    await waitFor(() => expect(screen.getByRole("checkbox", { name: "Search Crossref" })).toBeChecked());
+    const card = document.querySelector("[data-estimate]") as HTMLElement;
+    await user.click(within(card).getByRole("button", { name: /count/i }));
+    await waitFor(() => expect(engine.calls.some((c) => c.method === "POST" && c.path === "/api/v1/discovery/estimate")).toBe(true));
+    const body = engine.calls.filter((c) => c.method === "POST" && c.path === "/api/v1/discovery/estimate").at(-1)?.body as { providers?: string[] };
+    expect(body.providers).toContain("crossref");
+  });
 });
 
 describe("discovery.plan", () => {

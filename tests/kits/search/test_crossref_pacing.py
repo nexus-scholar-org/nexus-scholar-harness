@@ -99,3 +99,13 @@ def test_the_pace_set_by_a_429_expires(monkeypatch):
     assert http_mod.host_budget(SINGLE).rate < crossref_rate(single=True)
     monkeypatch.setattr(http_mod, "THROTTLE_HOLD_S", 0.0)
     assert http_mod.host_budget(SINGLE).rate == pytest.approx(crossref_rate(single=True))
+
+
+
+def test_a_lower_header_rate_is_kept_while_a_429_pace_holds(monkeypatch):
+    """Review follow-up: a header seen during a held pace is recorded, so it survives the pace's expiry."""
+    client = AcademicHttpClient(name="crossref", rate_limit=crossref_rate(single=True))
+    http_mod.slow_down(SINGLE)  # pace 5 per second, held
+    client._read_rate_headers(SINGLE, httpx.Response(200, headers={"x-rate-limit-limit": "8", "x-rate-limit-interval": "1s"}))
+    monkeypatch.setattr(http_mod, "THROTTLE_HOLD_S", 0.0)
+    assert http_mod.host_budget(SINGLE).rate == pytest.approx(8.0)
