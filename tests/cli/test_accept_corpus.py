@@ -154,7 +154,8 @@ def test_accept_corpus_from_ris_refuses_to_overwrite_verified(tmp_path):
     ris.write_text("TY  - JOUR\nTI  - X\nER  - \n", encoding="utf-8")
     result = runner.invoke(app, ["accept-corpus", "--workspace", str(ws), "--ris", str(ris)])
     assert result.exit_code == 1
-    assert "verified.json already exists" in _plain(result.stdout)
+    # M3f: still refused for records of unknown origin (no search run, no import made them).
+    assert "origin is unknown" in " ".join(_plain(result.stdout).split())
 
 
 @pytest.mark.parametrize(

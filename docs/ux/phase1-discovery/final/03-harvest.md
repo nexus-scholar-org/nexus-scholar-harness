@@ -160,3 +160,25 @@ In the three "Not prepared" states the links "Go to Duplicates" and "Go to the h
 
 ## Size estimate (M10b)
 Status of this section: FINAL, built (M10b Part D, 2026-11-18; see `01-plan.md` "As built (M10b Part D)"). The estimate card of `01-plan.md` "Size estimate (M10b)" is also drawn on this screen, in the main column above "This harvest", in the ready state only (no run yet, corpus not accepted). Here "Use {cap} for this harvest" fills the "Cap for this harvest only" field and sends nothing; `?cap=` from Plan's link fills the same field after hydration and does not submit (copy `harvest.capPrefilled`). Start stays a separate click; the cap reaches the engine only as `cap_override` on Start, as today. Everything else (the call, the figures, the states, the copy and the tests) is in `01-plan.md`.
+
+## Addendum M3f-combined-corpus (2026-11-20)    Status: FINAL (M3f-combined-corpus)
+Where this addendum contradicts the text above, the addendum wins. Source: `docs/roadmap/milestones/M3f-combined-corpus.md` "Design" §1 and §6; `docs/decisions.md` 2026-11-20 "M3f-combined-corpus"; finding 26.
+
+**What changes.** One warning. Until now the line above "Start the harvest" said exports could no longer be added once a harvest started. That is no longer true: exports can be staged before or after a harvest, a harvest can run while exports are staged, and the Hand-off accept deduplicates both together. Nothing else on this screen changes: the layout, the picker, the cap, the estimate, the preparation states and the one brand button stay as above.
+
+**Copy.** `harvest.warn.imports` (replaced; shown where it is today, V6, STAYS: D-H12 in `docs/ux/shared/final/03-guidance.md`):
+| Locale | Text |
+| :-- | :-- |
+| en | Database exports you add on the Import step, before or after this harvest, are combined with it when you accept the corpus on the Hand-off, and duplicates across both are removed. |
+| fr | Les exports de bases de données que vous ajoutez à l'étape Import, avant ou après cette collecte, sont combinés avec elle quand vous acceptez le corpus à la Remise, et les doublons entre les deux sont retirés. |
+| ar | تُدمج صادرات قواعد البيانات التي تضيفها في خطوة الاستيراد، قبل هذا الحصاد أو بعده، معه عند قبول المجموعة في التسليم، وتُزال التكرارات بين الاثنين. |
+
+**Refusal removed.** `STAGED_IMPORT_PENDING` is no longer raised by "Start the harvest" or by "Finish preparing this corpus" (✓ built, `src/scholar_harness/console/api/discovery.py:927`). Its card stays in `lib/screening-states.ts` (an older engine can still answer it), but the refusal lists above and in the M3i section no longer name it as a code this screen expects.
+
+**States.** Default, empty, loading, error, partial, offline and protocol-changed are as above. The line is static copy, so it has no state of its own: it shows in the ready state (before a run) and, as today, wherever "Start the harvest" or "Harvest again" is shown; it is absent when the corpus is accepted (Start is removed). It is not a hint (V6: read before the action).
+
+**Backend calls.** None new. `POST /api/v1/discovery/runs` ✓ and `POST /api/v1/discovery/runs/{run}/prepare` ✓ (M3f-combined-corpus: no `STAGED_IMPORT_PENDING`).
+
+**Tests.** `apps/research-ui/tests/discovery-harvest.test.tsx`: the warning prints the new sentence and no longer contains "can no longer be added"; it sits before the Start button (V6) and is outside any `[data-hint-body]`; with staged exports in the fixture, Start posts `POST /discovery/runs` and no `STAGED_IMPORT_PENDING` card appears. `apps/research-ui/tests/discovery-copy.test.ts`: `harvest.warn.imports` in en, fr and ar; N9 guard. `apps/research-ui/tests/guidance.audit.test.tsx`: D-H12 stays STAYS.
+
+**Open questions:** none.

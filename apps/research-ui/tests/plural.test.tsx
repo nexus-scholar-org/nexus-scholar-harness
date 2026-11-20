@@ -6,6 +6,7 @@ import { InceptionCriteria } from "@/components/inception-criteria";
 import { InceptionScope } from "@/components/inception-scope";
 import { SUPPORTED_LOCALES, type Locale } from "@/i18n";
 import { CHECKS_COPY } from "@/lib/checks-copy";
+import { DISCOVERY_COPY } from "@/lib/discovery-copy";
 import { INCEPTION_COPY } from "@/lib/inception-copy";
 import { PLURALS, pluralForm, pluralTemplate } from "@/lib/plural";
 import { PROPOSALS_COPY } from "@/lib/proposals-copy";
@@ -20,7 +21,7 @@ afterEach(() => vi.unstubAllGlobals());
 const holes = (s: string) => [...s.matchAll(/\{(\w+)\}/g)].map((m) => m[1]).filter((h) => h !== "n").sort();
 const catalogs = { ...INCEPTION_COPY, } as Record<Locale, Record<string, string>>;
 const general = (locale: Locale, key: string): string =>
-  (CHECKS_COPY[locale] as Record<string, string>)[key] ?? (PROPOSALS_COPY[locale] as Record<string, string>)[key] ?? catalogs[locale][key];
+  (CHECKS_COPY[locale] as Record<string, string>)[key] ?? (PROPOSALS_COPY[locale] as Record<string, string>)[key] ?? catalogs[locale][key] ?? (DISCOVERY_COPY[locale] as Record<string, string>)[key];
 
 describe("plural forms", () => {
   it("picks the CLDR form of a count in each language", () => {

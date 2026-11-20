@@ -9,7 +9,7 @@ import { isScreeningApiError } from "@/lib/screening-api";
 import { localDate } from "@/lib/local-time";
 import { addCorpusSource, fileToBase64, getCorpus, removeCorpusSource, type Corpus, type CorpusDatabase } from "@/lib/screening-v1";
 import { DiscoverySteps, discoveryHref } from "@/components/discovery-frame";
-import { discoveryT } from "@/lib/discovery-copy";
+import { discoveryT, harvestStateWord } from "@/lib/discovery-copy";
 import { notifyReviewChanged } from "@/components/review-bus";
 import { sentenceText } from "@/components/next-step-bar";
 import { getNextStep } from "@/lib/next-step";
@@ -319,6 +319,9 @@ function ImportReady({
         ? { code: "VERIFIED_EXISTS", message: "" }
         : null;
   const blockedByDiscovery = !accepted && stagingRefused !== null;
+  // M3f: a corpus from a harvest alone; a combined corpus (harvest plus exports) lists its exports as imports do.
+  const harvestOnly = corpus.from_discovery && corpus.origin !== "combined";
+  const harvest = corpus.harvest ?? null;
   const [refusal, setRefusal] = useState<Refusal>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [announce, setAnnounce] = useState("");
@@ -396,6 +399,26 @@ function ImportReady({
           {refusal ? (
             <StateCard locale={locale} code={refusal.code} message={refusal.message} consoleOrigin={origin} onRetry={() => setRefusal(null)} />
           ) : null}
+          {harvest && !accepted ? (
+            harvest.included ? (
+              <p className="text-sm text-ink" role="status" data-import-combined="with">
+                <bdi>{dt("import.combined.with", { run: harvest.run })}</bdi>
+              </p>
+            ) : (
+              <p className="text-sm text-ink" role="status" data-import-combined="not-ready">
+                <DecisionBadge role="unclear">{harvestStateWord(locale, harvest.state)}</DecisionBadge>{" "}
+                <bdi>{dt("import.combined.notReady", { run: harvest.run, state: harvestStateWord(locale, harvest.state) })}</bdi>{" "}
+                <a className="inline-flex min-h-11 items-center text-brand underline" href={discoveryHref(locale, "harvest", origin, harvest.run)} data-import-open-harvest>
+                  {dt("import.combined.openHarvest")}
+                </a>
+              </p>
+            )
+          ) : null}
+          {accepted && harvest?.included && corpus.origin === "combined" ? (
+            <p className="text-sm text-ink" data-import-combined="accepted">
+              <bdi>{dt("import.combined.accepted", { run: harvest.run })}</bdi>
+            </p>
+          ) : null}
           {!accepted && !blockedByDiscovery ? (
             <AddForm
               locale={locale}
@@ -426,7 +449,7 @@ function ImportReady({
             />
           ) : null}
 
-          {accepted && corpus.from_discovery && corpus.accepted ? (
+          {accepted && harvestOnly && corpus.accepted ? (
             <section aria-labelledby="import-discovery" className="rounded-lg border border-rule bg-leaf p-5" data-import-discovery>
               <h2 id="import-discovery" className="font-semibold text-ink">
                 {t("discovery")}
@@ -440,7 +463,7 @@ function ImportReady({
               </p>
             </section>
           ) : null}
-          {accepted && corpus.from_discovery ? null : (
+          {accepted && harvestOnly ? null : (
           <section aria-labelledby="import-databases" className="rounded-lg border border-rule bg-leaf p-5" data-import-databases>
             <h2 id="import-databases" className="font-semibold text-ink">
               {t("databases")}

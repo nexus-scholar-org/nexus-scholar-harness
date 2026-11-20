@@ -140,3 +140,52 @@ The shell draws the next-step bar above this screen. The screen's own states, co
 - **Accepted**: the bar names the next screening step (`NOT_PREPARED` and later rows).
 
 Tests: `apps/research-ui/tests/next-step-bar.test.tsx` and `tests-browser/next-step.spec.ts` (`04-next-step` "Acceptance tests"); this screen's own tests are unchanged.
+
+## Addendum M3f-combined-corpus (2026-11-20)    Status: FINAL (M3f-combined-corpus)
+Where this addendum contradicts the text above (the cut "Imports 0%" line in "Changed from the canvas", the Default and Staged-exports states, the "As built (M3c)" headline note, and the M3i accept paragraph), the addendum wins. Source: `docs/roadmap/milestones/M3f-combined-corpus.md` "Design" §1 to §4; finding 27.
+
+**What changes.** Until the accept, a corpus has two parts: the harvest (the newest published run, included only when its preparation is `ready`) and the staged exports. This screen shows the corpus as the accept would build it, with both parts counted together. The gate, its text and the one brand button are unchanged.
+
+**Data in (added).** All from `GET /api/v1/discovery/handoff` ✓ M3f-combined-corpus (`src/scholar_harness/console/api/discovery.py:800`):
+| Field | Use |
+| :-- | :-- |
+| `corpus.harvest {run, state, included} \| null`, `corpus.origin` (now also `"combined"`) | the not-prepared note; the From card |
+| `corpus.preview {identified, duplicates, unique_studies}` | for a combined corpus it counts both parts (identified = records the harvest fetched + every imported record); the headline and table print it as written. For a harvest-only corpus `preview` is as in "As built (M3c)" (no number in the headline) |
+| `provider_mix[] {provider, kind: "search" \| "import", records, share}` | one row per database searched and one per export label; `records` = works that source found (a work found in two places counts in both) |
+| `abstracts {with_abstract, title_only, share_with_abstract}` | now counts works for every corpus (a work has an abstract if any of its records has one); this fixes finding 27, where exports showed 0 of 0 |
+| `imports_unchecked` (int) | records from exports in the corpus; 0 when none |
+
+**Provider mix (amended).** The line "no separate imports row" is withdrawn: the mix now includes one row per export. Each row shows the name, then `kind` in words (`handoff.mix.kind.search` "searched by the app" or `handoff.mix.kind.import` "your export"), then `handoff.mix.row` ("{records} records · {share}"). The kind is text beside the name, never a colour or a segment style alone; the bar segments keep their printed names and the `role="img"` label adds the kind. The caption `handoff.mix.note` (shares can add up to more than 100 %) stays unchanged. `handoff.mix.none` ("No harvest records.") shows only when the mix has no row at all.
+
+**With an abstract / Title only (amended).** The two lines count works for every corpus, exports included. Their labels do not change.
+
+**Unchecked imports line.** When `imports_unchecked` > 0, one neutral line (ink-muted, no role colour, not a warning card) under the "What screening will receive" table: `handoff.imports.unchecked`. It blocks nothing and is not a hint (V2: a "not checked" the researcher must read).
+
+**Harvest not prepared, exports staged (new note).** When `corpus.harvest` is not null, `included` is false and exports are staged, a note in the `unclear` role above the gate: `handoff.harvestOut.note` with `{state}` as the word from `combined.state.<state>` (an unknown state is printed verbatim), and a link `handoff.harvestOut.open` to `/discovery/harvest?run={run}`. It is a consequence read before the gate (V6), so it is not behind a hint. "Accept this corpus" stays enabled (accepting freezes the exports alone; M3i item 10 kept). With no exports staged the state is "Not ready" as in M3i; with a harvest `running` the accept stays disabled by the existing active-job rule.
+
+**From card.** For a combined corpus it shows `from.run` ("Search run {run}") and the staged export labels (`from.sources`), both with existing keys.
+
+**Copy** (`lib/discovery-copy.ts`; `combined.state.*` are the keys of the Import addendum, shared):
+| Key | en | fr | ar |
+| :-- | :-- | :-- | :-- |
+| `handoff.mix.kind.search` | searched by the app | recherché par l'application | بحث أجراه التطبيق |
+| `handoff.mix.kind.import` | your export | votre export | صادرك |
+| `handoff.imports.unchecked` | {n} records come from your exports. They were not checked against Crossref or OpenAlex, and missing abstracts were not filled in. | {n} notices proviennent de vos exports. Elles n'ont pas été vérifiées auprès de Crossref ou d'OpenAlex, et les résumés manquants n'ont pas été complétés. | {n} سجلًا من صادراتك. لم يُتحقق منها لدى Crossref أو OpenAlex، ولم تُستكمل الملخصات الناقصة. |
+| `handoff.harvestOut.note` | The harvest {run} is not prepared ({state}). If you accept now, the corpus holds your exports only and the harvest's records are left out for good. Finish preparing it first to include them. | La collecte {run} n'est pas préparée ({state}). Si vous acceptez maintenant, le corpus ne contiendra que vos exports et les notices de la collecte seront définitivement laissées de côté. Terminez d'abord sa préparation pour les inclure. | الحصاد {run} غير مُحضَّر ({state}). إن قبلت الآن فستضم المجموعة صادراتك فقط، وتُترك سجلات الحصاد خارجها نهائيًا. أكمل تحضيره أولًا لتضمينها. |
+| `handoff.harvestOut.open` | Open Harvest | Ouvrir la collecte | افتح الحصاد |
+
+**States.**
+- **Default** (`STAGED`, combined): headline "Accept these {n} works ..." now carries the number from `preview.unique_studies` (the engine counts both parts); mix with search and export rows; table; unchecked line when `imports_unchecked` > 0; the From card; the gate.
+- **Empty**, **Loading**, **Error**, **Offline**, **Protocol-changed**, **Stale run**: as above. `PROTOCOL_CHANGED_SINCE_RUN` still refuses the accept when the harvest's search changed (a stale run is never the harvest part); `PREPARATION_UNFINISHED` still refuses without exports (the "Not ready" state is shown instead, as in M3i).
+- **Partial**: adds the not-prepared note above; `lower_bound_databases` note, `title_only` count and `preview: null` are as above and none blocks the accept.
+- **Accepted**: the Accepted card as above; for a combined corpus the From card still lists the run and the export labels, and the mix rows are those of the frozen corpus.
+- **Staged exports only** (`harvest` null): the mix lists the export rows (it is no longer empty), the same layout; "Search again" is shown (a harvest can now follow exports) instead of the old `staging_refused` sentence.
+- **Protocol-changed / offline**: unchanged.
+
+**Accessibility.** The note is a `section` with `role="status"` and words (state in text, not colour alone); the unchecked line is a plain paragraph; the mix `role="img"` label includes each kind in words; `{run}` is in `bdi` and `dir="ltr"` in ar; the "Open Harvest" link is a 44 px target after the note and before the gate in focus order.
+
+**Backend calls.** `GET /api/v1/discovery/handoff` ✓ (`discovery.py:800`, M3f-combined-corpus fields); `POST /api/v1/screening/corpus/accept` ✓ (`screening_v1.py:696`: ready harvest plus exports builds the combined snapshot, unfinished harvest plus exports accepts the exports alone, refusals unchanged). Nothing is ✗.
+
+**Tests.** `apps/research-ui/tests/discovery-handoff.test.tsx`: the mix prints one row per `provider_mix` entry with `kind` in words ("searched by the app", "your export") and the shares as written; the caption about more than 100 % stays; the "no separate imports row" assertion is removed; with an import row and `abstracts` counting works, "With an abstract" and "Title only" print those numbers (no 0 of 0); `imports_unchecked: 618` shows the unchecked line and `imports_unchecked: 0` shows none; the unchecked line does not disable Accept and has no `[data-hint-body]` ancestor; `harvest {state: "failed", included: false}` with staged exports shows the not-prepared note with the word "preparation failed", a link to Harvest with `?run=`, and Accept enabled; `harvest {included: true}` shows no note; an unknown `state` prints verbatim; the headline prints `preview.unique_studies` for a combined corpus. `apps/research-ui/tests/discovery-preparation.test.tsx`: "staged exports beside an unfinished harvest" shows the note. `apps/research-ui/tests/discovery-copy.test.ts` (keys in en, fr, ar; N9 guard); `apps/research-ui/tests/guidance.audit.test.tsx`: D-HO17, D-HO18, D-HO19 STAYS. Playwright `tests-browser/discovery.spec.ts`: ready harvest plus two exports, read the mix and accept; unfinished harvest plus export, read the note, accept, see the exports-only corpus; RTL (ar); axe in light and dark.
+
+**Open questions:** none.

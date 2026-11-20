@@ -294,8 +294,11 @@ export interface Handoff {
   run: string | null;
   /** M3i: the corpus run's steps after its search; `null` without a run. */
   preparation?: Preparation | null;
-  provider_mix: { provider: string; records: number; share: number }[];
+  /** M3f: one row per source; `kind` says whether the app searched it or it is the researcher's export; `records` counts works. */
+  provider_mix: { provider: string; kind?: "search" | "import"; records: number; share: number }[];
   abstracts: { with_abstract: number; title_only: number; share_with_abstract: number };
+  /** M3f: records from exports in the corpus (not checked, abstracts as exported); 0 when none. */
+  imports_unchecked?: number;
   outside_year_window: number;
   near_twins_undecided: null;
   lower_bound_databases: string[];

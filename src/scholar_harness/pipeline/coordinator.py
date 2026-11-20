@@ -200,25 +200,36 @@ def _accept_run_corpus(ws: Path, provider_errors: dict[str, str]) -> dict[str, A
         }
     from scholar_harness.corpus_accept import staged_sources
 
-    if staged_sources(ws):
-        # accept_corpus would materialise the staged database exports over the
-        # verified.json this run just wrote, dropping the searched records
-        # (M3a review finding 2). Two corpora are never merged silently.
-        return {
-            "status": "REFUSED",
-            "code": "STAGED_IMPORT_PENDING",
-            "reason": (
-                "database exports are staged for import in this workspace; accept or "
-                "remove them before building a corpus from a search run"
-            ),
-        }
-    warnings = [f"{name}: {error}" for name, error in sorted(provider_errors.items())]
+    # M3f-combined-corpus: staged database exports are combined with this run's
+    # works and deduplicated together (before, M3a review finding 2 refused the
+    # snapshot so that two corpora were never merged silently; the merge is now
+    # deliberate and named in the stage mapping).
+    combined_with = sorted({str(s["label"]) for s in staged_sources(ws)})
+    if combined_with:
+        from scholar_harness.corpus_accept import harvest_part
+
+        part = harvest_part(ws)
+        if part is None or not part["included"]:
+            # The run freezes its own works; it never freezes the exports alone
+            # because its preparation did not end (the Hand-off may, M3i item 10).
+            state = part["state"] if part else "missing"
+            return {
+                "status": "REFUSED",
+                "code": "PREPARATION_UNFINISHED",
+                "reason": (
+                    f"the search run's preparation did not end ({state}); the staged database exports "
+                    "were not accepted without its records"
+                ),
+            }
+    warnings =[f"{name}: {error}" for name, error in sorted(provider_errors.items())]
     try:
         accepted = accept_corpus(ws, provider_warnings=warnings)
     except AcceptCorpusRefused as exc:
         return {"status": "REFUSED", "code": exc.code, "reason": str(exc)}
-    _journal_snapshot_accepted(ws, accepted, "from the search run", agent="scholar-harness")
+    origin = "from the search run" + (f" combined with the exports of {', '.join(combined_with)}" if combined_with else "")
+    _journal_snapshot_accepted(ws, accepted, origin, agent="scholar-harness")
     return {
+        **({"combined_with": combined_with} if combined_with else {}),
         "status": "ALREADY_ACCEPTED" if accepted.already_accepted else "ACCEPTED",
         "artifact_id": accepted.artifact_id,
         "study_count": accepted.study_count,

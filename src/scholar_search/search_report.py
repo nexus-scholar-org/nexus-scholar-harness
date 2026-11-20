@@ -198,12 +198,57 @@ def render_methods_text(
                 sentence += f"; the cap of {leg.get('cap')} records was reached, so the count is a lower bound"
             parts.append(sentence + ".")
     imports = imports or []
-    if imports:
-        rows = [f"{imp.get('label')} ({imp.get('records')} records" + (
-            f", searched on {imp.get('searched_on')}" if imp.get("searched_on") else "") + ")" for imp in imports]
-        parts.append(f"We imported {len(imports)} database export{'s' if len(imports) != 1 else ''}: {_names(rows)}.")
-    if dedup and dedup.get("unique_works") is not None:
+    groups = _import_groups(imports)
+    if groups:
+        # M3f-combined-corpus (PRISMA-S): each database the researcher searched
+        # and exported, with the search details they stated, "not stated" otherwise.
+        rows = []
+        for group in groups:
+            n = group["records"]
+            details = [f"{n} record{'s' if n != 1 else ''}"]
+            details.append(f"searched on {' and '.join(group['dates'])}" if group["dates"] else "date searched not stated")
+            details.append(
+                "search string: " + "; ".join(f"`{q}`" for q in group["queries"]) if group["queries"]
+                else "search string not stated"
+            )
+            if group["limits"]:
+                details.append("limits: " + "; ".join(group["limits"]))
+            rows.append(f"{group['label']} ({'; '.join(details)})")
+        k = len(groups)
+        lead = "We also searched" if searched else "We searched"
         parts.append(
-            f"Deduplication removed {dedup.get('removed')} records, leaving {dedup.get('unique_works')} unique works."
+            f"{lead} {k} database{'s' if k != 1 else ''} ourselves and imported "
+            f"{'their exports' if k != 1 else 'its export'}: {_names(rows)}."
         )
+        total = sum(group["records"] for group in groups)
+        parts.append(
+            f"The {total} imported record{'s were' if total != 1 else ' was'} not checked against Crossref or OpenAlex."
+        )
+    if dedup and dedup.get("unique_works") is not None:
+        if groups:
+            sources = len({str(leg.get("provider")) for leg in searched}) + len(groups)
+            removed = dedup.get("removed")
+            parts.append(
+                f"Deduplication across the {sources} sources removed {removed} record{'s' if removed != 1 else ''}, "
+                f"leaving {dedup.get('unique_works')} unique works."
+            )
+        else:
+            parts.append(
+                f"Deduplication removed {dedup.get('removed')} records, leaving {dedup.get('unique_works')} unique works."
+            )
     return " ".join(parts)
+
+
+def _import_groups(imports: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Staged export files summed per database label, in the order the labels first appear."""
+    groups: dict[str, dict[str, Any]] = {}
+    for imp in imports:
+        label = str(imp.get("label"))
+        group = groups.setdefault(label, {"label": label, "records": 0, "dates": [], "queries": [], "limits": []})
+        group["records"] += int(imp.get("records") or 0)
+        for key, value in (("dates", imp.get("searched_on")), ("queries", imp.get("query")), ("limits", imp.get("limits"))):
+            if value and value not in group[key]:
+                group[key].append(value)
+    for group in groups.values():
+        group["dates"].sort()
+    return list(groups.values())

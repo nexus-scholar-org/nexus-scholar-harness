@@ -173,13 +173,24 @@ export function DiscoveryReport({ locale }: Readonly<{ locale: Locale }>) {
                       </tr>
                     </thead>
                     <tbody>
-                      {report.identification.map((row) => {
+                      {report.identification.map((row, index) => {
                         const c = completeness(locale, row);
+                        // M3f: an export row says what the researcher stated, and "not stated" where nothing was given.
+                        const imported = row.kind === "import";
+                        const limits = imported ? report.imports.find((imp) => imp.label === row.database)?.limits : null;
                         return (
-                          <tr key={`${row.kind}-${row.database}`} className="border-t border-rule align-top" data-ident={row.database} data-completeness={row.completeness}>
+                          <tr key={`${row.kind}-${row.database}-${index}`} className="border-t border-rule align-top" data-ident={row.database} data-kind={row.kind} data-completeness={row.completeness}>
                             <th scope="row" className="py-2 pe-3 text-start font-medium text-ink">
-                              {row.kind === "import" ? row.database : providerName(row.database)}
-                              {row.kind === "import" ? <span className="block text-xs text-ink-muted">{t("report.kind.import")}</span> : null}
+                              {imported ? row.database : providerName(row.database)}
+                              <span className="block text-xs text-ink-muted" data-kind-word>
+                                {t(imported ? "report.kind.import" : "report.kind.search")}
+                              </span>
+                              {imported ? (
+                                <span className="block text-xs font-normal text-ink-muted" data-import-limits>
+                                  {t("report.imports.limits", { limits: "" })}
+                                  <bdi dir="ltr">{limits || t("report.import.notStated")}</bdi>
+                                </span>
+                              ) : null}
                             </th>
                             <td className="max-w-[18rem] py-2 pe-3">
                               {row.executed_query ? (
@@ -189,6 +200,8 @@ export function DiscoveryReport({ locale }: Readonly<{ locale: Locale }>) {
                                     {t("report.copy", { database: providerName(row.database) })}
                                   </Button>
                                 </>
+                              ) : imported ? (
+                                <span className="text-ink-muted" data-not-stated="query">{t("report.import.notStated")}</span>
                               ) : null}
                             </td>
                             <td className="py-2 pe-3">
@@ -209,7 +222,11 @@ export function DiscoveryReport({ locale }: Readonly<{ locale: Locale }>) {
                               <bdi>{row.no_abstract_rate == null ? t("report.noAbstractNone") : percent(row.no_abstract_rate)}</bdi>
                             </td>
                             <td className="py-2 pe-3">
-                              <bdi dir="ltr">{stamp(row.searched_at)}</bdi>
+                              {imported && !row.searched_at ? (
+                                <span className="text-ink-muted" data-not-stated="date">{t("report.import.notStated")}</span>
+                              ) : (
+                                <bdi dir="ltr">{stamp(row.searched_at)}</bdi>
+                              )}
                             </td>
                           </tr>
                         );
@@ -317,6 +334,11 @@ export function DiscoveryReport({ locale }: Readonly<{ locale: Locale }>) {
                     </div>
                   </dl>
                 )}
+                {report.dedup.removed != null && !report.dedup.by_tier && report.imports.length ? (
+                  <p className="mt-2 text-ink-muted" data-dedup-combined>
+                    {t("report.dedup.combinedNote")}
+                  </p>
+                ) : null}
                 <p className="mt-3 text-ink" data-window>
                   {t("report.window", { n: report.outside_year_window })}
                 </p>
