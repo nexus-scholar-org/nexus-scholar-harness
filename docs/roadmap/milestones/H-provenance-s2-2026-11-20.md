@@ -60,9 +60,16 @@ Two defects from the live run of 2026-11-19 (installed wheel from `origin/main` 
 | defect 2 before | `0710c38a` + tests | `pytest tests/console/test_recon_api.py -k shorten`; `vitest run tests/inception-legs.test.tsx`; `pytest tests/kits/search/test_search_legs.py -k semanticscholar` | 2 failed (`KeyError: 'shorten'`); 1 failed; 1 failed (`'ok' == 'failed'`) |
 | defect 2 after | working tree | `tests/console/test_recon_api.py tests/recon tests/console/test_recon_sample_api.py -m "not slow"`; `tests/kits/search -m "not slow"`; vitest legs + explore; `npm run typecheck` | 265 passed; 426 passed; 64 passed; clean |
 | contract (after) | `5ec74b8a` | `generate_contract_baseline.py --check` | "Contract baseline current" |
-| checkpoint | `5ec74b8a` | the selector's checkpoint pytest lines plus `tests/console tests/unit tests/pipeline`, `-n auto` | PENDING |
-| pr gate | PENDING | `select_test_gate.py --changed origin/main --stage pr` | PENDING |
-| review | PENDING | `milestone-reviewer` | PENDING |
+| checkpoint | `5ec74b8a` | the selector's checkpoint pytest lines plus `tests/console tests/unit tests/pipeline`, `-n auto`; `git diff --check` | 2392 passed, 4 skipped, 0 failed (9 m 18 s); clean |
+| review round 1 | `72fd878e` | `milestone-reviewer` | **CHANGES**: code approved as it stands; P2 = evidence rows and closure; P3s 2 to 5 (repaired in `80fea855`, see "Repairs after the review") |
+| repairs | `80fea855` | targeted: verifier, recon API, recon, provenance stage, recall tests; vitest legs + explore; typecheck | 265 passed; 65 passed; clean |
+| pr + closure gate | `80fea855` (final executable commit) | `select_test_gate.py --changed origin/main --stage closure` (includes the pr stage): `uv run --extra dev --extra pdf --extra rag pytest -n auto` | **5720 passed, 15 skipped, 0 failed** (10 m 46 s) |
+| | `80fea855` | `generate_contract_baseline.py`, `generate_contract_schemas.py`, `generate_two_study_contract_fixture.py`, `generate_protocol_schema.py` `--check` | all exit 0 ("current", "in sync") |
+| | `80fea855` | `ruff check scripts/`; `ruff check src/ --select F821,F811,F823,F632,F7,B023,B006,E9`; `git diff --check origin/main...HEAD` | all clean |
+| | `80fea855` | `npm --prefix apps/research-ui run typecheck`; `test`; `build`; `test:browser`; `build:export` | exit 0; 937 passed (66 files); exit 0; **600 passed, 12 skipped** (13.2 m); exit 0 |
+| | `80fea855` | `uv build --wheel`, installed in a fresh Python 3.12 venv; `nexus-scholar --help`, `scholar-agent --help` | built; both exit 0 |
+| note | `5ec74b8a` | `npm test` run while the checkpoint loaded the machine | 8 files failed on 5 s waits in screens this change does not touch; 7 passed when rerun alone, the 8th (`discovery-proposals`) passed twice alone; the final run above is clean |
+| note | `80fea855` | `test:browser` rewrites six tracked screenshots under `apps/research-ui/screenshots/` | restored with `git checkout`, not committed |
 
 ## Not verified
 - No live harvest was re-run: the Hand-off numbers after the fix are shown by the stage test with faked lookups, not observed on the researcher's scratch workspace (not available here). A re-run of the same harvest should give each database about its 20 records after duplicates.
@@ -70,4 +77,4 @@ Two defects from the live run of 2026-11-19 (installed wheel from `origin/main` 
 - The Semantic Scholar check was keyless; the 2026-11-19 search was keyed. Both reach the same index; a keyed answer of `total: 0` was not reproduced.
 - Whether OpenAlex's `search` also needs every word is not checked; the shared sentence ("Every word of the query must appear") is shown on any leg the rule flags, as it already was for an all-empty search.
 - The Explore screen with a flagged leg was not looked at in a browser (the leg list sits in the "Databases asked" fold, which the researcher must open).
-- CI matrix (Linux, macOS, Python 3.11) not run.
+- CI matrix (Linux, macOS, Python 3.11) not run; the closure gate ran on Windows, Python 3.12, only.
