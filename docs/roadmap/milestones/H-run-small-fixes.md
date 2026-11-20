@@ -46,12 +46,26 @@ Branch `dev/h/run-fixes-discovery` from `origin/main` `2436fe66`. Choices: `docs
 - `src/scholar_harness/console/api/discovery.py`: `_Protocol.concepts`, `.named`, `.default_choice()`; the plan's new fields; the recall default.
 - UI: `lib/discovery-api.ts` (types), `lib/discovery-copy.ts` (three keys, `recall.checkedAt`), `components/discovery-plan.tsx` (`defaultList`, `IgnoresAndNotes`, the first read), `components/discovery-harvest.tsx`, `components/discovery-estimate.tsx`.
 
+### Review
+
+Round 1 (`milestone-reviewer`, on `006eb7e9`): **CHANGES**, one P1, two P2, two P3. All repaired:
+
+| # | Finding | Repair | Test |
+| :-- | :-- | :-- | :-- |
+| P1 | The Harvest estimate counted the protocol's list (Crossref included) while the harvest would search the default choice: finding 24 again | Harvest sends its choice to the estimate as it does to the run; the engine counts the default choice for an estimate sent no list | `tests/console/test_discovery_estimate_api.py::test_review_an_estimate_sent_no_list_counts_the_default_choice`; UI "starts without Crossref…" checks the estimate body |
+| P2 | The one-database rule was judged on capped numbers (a cap of 1,000 brought the cap advice back for the run's numbers), and the copy said a cap trims "only" that database | Judged on reported totals; copy says a cap cannot remove that database's off-topic records (en/fr/ar) | `test_finding_10_the_acceptance_run_numbers[10000\|1000]`, `test_two_large_databases_where_one_is_slightly_larger_is_still_named` |
+| P2 | "Took the default list" was judged after unknown names were dropped (an imported list with `scopus`, `wos` lost Crossref) | Judged on the list as written (`plan.took_default_list`) | `test_review_took_the_default_list_is_judged_on_the_list_as_written` (4 cases) |
+| P3 | A refused second plan read left the Plan picker and preview out of step | The default read counts as done only once it succeeded | (code) |
+| P3 | The skill line omitted the 20-record default without a protocol | Fixed | (docs) |
+
+Follow-ups also done: a 429 pace expires after 10 minutes, a burst of 429s halves once, and the bucket allows no burst while the pace holds (`test_a_burst_of_429s_halves_the_pace_once`, `test_the_pace_set_by_a_429_expires`); a concept whose terms are joined with AND counts per term (`tests/kits/search/test_protocol_adapter.py::test_concept_count_counts_each_term_of_an_and_concept`); exit codes in the search skill's reference. Not done: the unused `scholar_search.cli.search` import in `scholar_agent/server.py` (harmless, outside this item).
+
 ### Evidence
 
 | Check | Result |
 | :-- | :-- |
 | Reproducing tests before the fix | 15 of the new or changed engine and CLI tests failed on the unfixed code (run 2026-11-20, `tests/kits/search/test_cli_search_outcome.py`, `test_crossref_pacing.py`, `tests/console/test_discovery_estimate_api.py`, `tests/console/test_discovery_api.py`); the one that passed was the "complete result" control |
-| After the fix | the same files plus `tests/kits/search/test_cli.py` and `test_provider_resilience.py`: 176 passed (after the M10a recall test was updated) |
+| After the fix and the review repairs | `tests/kits/search` (all), `tests/console/test_discovery_estimate_api.py`, `test_discovery_api.py`: 576 passed; `test_crossref_pacing.py` run three times: 5 passed each |
 | UI | `tests/discovery-plan.test.tsx`, `discovery-harvest.test.tsx`, `discovery-estimate.test.tsx`: 77 passed; all `tests/discovery*`: {UI_ALL}; `tsc` clean |
 | PR gate | {PR} |
 | Contract baseline | {BASELINE} |

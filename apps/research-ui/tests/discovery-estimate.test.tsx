@@ -193,7 +193,7 @@ describe("discovery.estimate on Plan", () => {
     const { card } = await planCard({ estimate });
     await count(card);
     const rec = card.querySelector('[data-estimate-rec="one_database"]') as HTMLElement;
-    expect(within(rec).getByText(/Most of the records come from Crossref \(6221 of 7571\)\. A cap per database would trim only Crossref/)).toBeInTheDocument();
+    expect(within(rec).getByText(/Most of the records come from Crossref \(6221 of 7571\)\. A cap per database keeps the first records each database returns, which are not the most relevant, so it cannot remove Crossref's off-topic records/)).toBeInTheDocument();
     expect(within(rec).getByRole("link", { name: "Change the protocol through inception" })).toBeInTheDocument();
     expect(card.querySelector("[data-estimate-use-cap]")).toBeNull();
   });

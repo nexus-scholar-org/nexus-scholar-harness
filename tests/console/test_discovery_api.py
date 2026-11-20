@@ -1359,3 +1359,20 @@ def test_finding_24_the_recall_check_asks_the_default_databases_not_crossref(rec
     assert "crossref" not in providers.by_name or providers.by_name["crossref"].queries == []
     asked = _recall(client, providers=["openalex", "crossref"])
     assert sorted(leg["provider"] for leg in asked["legs"]) == ["crossref", "openalex"]
+
+
+
+@pytest.mark.parametrize(
+    ("databases", "kept"),
+    [
+        (["openalex", "semanticscholar", "crossref", "arxiv", "scopus", "wos"], True),  # an imported list
+        (["openalex", "semanticscholar", "crossref", "crossref", "arxiv"], True),  # a repeat: written by someone
+        (["arxiv", "crossref", "openalex", "semantic_scholar"], False),  # the four, another order and spelling
+        ([], False),
+    ],
+)
+def test_review_took_the_default_list_is_judged_on_the_list_as_written(env, databases, kept):
+    client, ws, _ = env
+    _with_databases(ws, databases)
+    plan = client.get(f"{BASE}/plan").json()
+    assert ("crossref" in plan["default_providers"]) is kept

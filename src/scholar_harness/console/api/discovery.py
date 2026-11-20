@@ -238,13 +238,14 @@ class _Protocol:
     #: H-run-small-fixes (finding 9): the concepts the query joins with AND, and
     #: whether the protocol names its own database list.
     concepts: int = 0
-    named: bool = False
+    #: The protocol's ``target_databases`` as written (None when absent).
+    raw_databases: list[str] | None = None
 
     def default_choice(self) -> tuple[list[str], str | None]:
-        """What Plan, Harvest and Recall start from (``scholar_search.plan.default_choice``)."""
+        """What Plan, Harvest, Recall and the estimate start from (``scholar_search.plan.default_choice``)."""
         from scholar_search.plan import default_choice
 
-        return default_choice(self.providers, self.concepts, named=self.named)
+        return default_choice(self.providers, self.concepts, raw=self.raw_databases)
 
 
 def _protocol(ws: Path) -> _Protocol:
@@ -265,9 +266,9 @@ def _protocol(ws: Path) -> _Protocol:
     # repeat once, no known name the engine's default suite), not the raw field.
     raw = json.loads(path.read_text(encoding="utf-8"))
     strategy = raw.get("search_strategy") if isinstance(raw, dict) else None
-    named = isinstance(strategy, dict) and strategy.get("target_databases") is not None
+    listed = strategy.get("target_databases") if isinstance(strategy, dict) else None
     return _Protocol(path, query, run_providers(providers), canonical_fingerprint(model),
-                     concepts=concept_count(raw), named=named)
+                     concepts=concept_count(raw), raw_databases=list(listed) if isinstance(listed, list) else None)
 
 
 def _mailto_set() -> bool:
@@ -1137,7 +1138,9 @@ async def size_estimate(body: EstimateBody, request: Request) -> dict[str, Any]:
             raise Refused(422, refusals.PACE_INVALID,
                           f"The pace must be a whole number of seconds from {est.PACE_MIN} to {est.PACE_MAX}.")
         chosen = _check_providers(body.providers)
-        names = chosen if chosen is not None else list(proto.providers)
+        # H-run-small-fixes (review P1): without a list, count the screens' default
+        # choice, so the card never counts a database the harvest leaves out.
+        names = chosen if chosen is not None else proto.default_choice()[0]
         _require_mailto()
         _require_openalex_key(names)
         if _frozen(ws):

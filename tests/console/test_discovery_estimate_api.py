@@ -184,11 +184,23 @@ def test_finding_10_a_cap_that_would_trim_one_database_is_not_offered():
     assert rec["cap"] is None
 
 
-def test_finding_10_the_acceptance_run_numbers():
+@pytest.mark.parametrize("cap", [10_000, 1000])
+def test_finding_10_the_acceptance_run_numbers(cap):
+    """Judged on the reported totals, so a cap in force (1,000) does not bring the cap advice back (review P2)."""
     answer = est.summarize(_rows({"openalex": 781, "semanticscholar": 539, "crossref": 6221, "arxiv": 30}),
-                           cap=10_000, limit=2000, pace_seconds=30, year_window=True)
+                           cap=cap, limit=2000, pace_seconds=30, year_window=True)
     rec = answer["recommendation"]
     assert rec["kind"] == "one_database" and rec["provider"] == "crossref" and rec["cap"] is None
+    assert (rec["provider_total"], rec["others_total"]) == (6221, 1350)
+
+
+def test_two_large_databases_where_one_is_slightly_larger_is_still_named():
+    """1,500 against 1,400: the rule is "more than all the others together"; the copy no longer
+    claims a cap would trim only that one (it would trim both here)."""
+    answer = est.summarize(_rows({"openalex": 1500, "semanticscholar": 1400}), cap=10_000, limit=1000, pace_seconds=30, year_window=True)
+    assert answer["recommendation"]["kind"] == "one_database"
+    even = est.summarize(_rows({"openalex": 1400, "semanticscholar": 1400}), cap=10_000, limit=1000, pace_seconds=30, year_window=True)
+    assert even["recommendation"]["kind"] == "cap"
 
 
 def test_narrowing_is_advised_when_the_needed_cap_is_under_100():
@@ -492,3 +504,17 @@ def test_asking_a_failed_database_again_keeps_the_first_count_time(env):
     second = client.post(URL, json={}).json()
     assert _row(second, "crossref")["status"] == "counted"
     assert second["counted_at"] == first["counted_at"]
+
+
+
+def test_review_an_estimate_sent_no_list_counts_the_default_choice(env):
+    """H-run-small-fixes review P1: the card must not count a database the harvest leaves out."""
+    import json as _json
+
+    client, ws, doubles = env
+    data = _json.loads((ws / "protocol.json").read_text(encoding="utf-8"))
+    data["search_strategy"]["target_databases"] = ["openalex", "semanticscholar", "crossref", "arxiv"]
+    (ws / "protocol.json").write_text(_json.dumps(data), encoding="utf-8")
+    answer = client.post(URL, json={}).json()
+    assert "crossref" not in doubles.asked()
+    assert next(r for r in answer["providers"] if r["name"] == "crossref")["status"] == "not_selected"

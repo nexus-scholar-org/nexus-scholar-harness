@@ -164,6 +164,13 @@ describe("discovery.harvest Crossref and a joined query (H-run-small-fixes, find
       "Crossref is left out by default: this query joins 2 concepts and Crossref would not apply the AND.",
     );
     expect(document.querySelector("[data-ignores-and]")).toBeNull();
+    // Review P1: the estimate counts the same databases the harvest will search.
+    const card = document.querySelector("[data-estimate]") as HTMLElement;
+    await user.click(within(card).getByRole("button", { name: /count/i }));
+    await waitFor(() => expect(engine.calls.some((c) => c.method === "POST" && c.path === "/api/v1/discovery/estimate")).toBe(true));
+    expect(engine.calls.find((c) => c.method === "POST" && c.path === "/api/v1/discovery/estimate")?.body).toMatchObject({
+      providers: ["openalex", "semanticscholar", "arxiv"],
+    });
     await user.click(screen.getByRole("button", { name: "Start the harvest" }));
     await screen.findByRole("heading", { name: FINISHED });
     expect(runPost(engine)[0].body).toEqual({ providers: ["openalex", "semanticscholar", "arxiv"] });

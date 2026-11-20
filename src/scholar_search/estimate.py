@@ -110,9 +110,14 @@ def _suggested_cap(totals: Iterable[int], cap: int, limit: int) -> int:
 
 
 def _dominant(rows: Sequence[dict[str, Any]]) -> dict[str, Any] | None:
-    """The one database holding more records than all the others together, if any."""
-    # What each database would fetch under the cap in force (min(total, cap)).
-    counted = [(r["name"], int(r["fetch_estimate"])) for r in rows if r.get("fetch_estimate") is not None]
+    """The one database whose reported total is larger than all the others' together, if any.
+
+    Judged on what each database reports, not on what a cap would fetch: a
+    cap keeps the first records a database returns, so it cannot tell its
+    on-topic records from its off-topic ones whatever its value (review P2).
+    """
+    counted = [(r["name"], int(r["reported_total"])) for r in rows
+               if r.get("fetch_estimate") is not None and isinstance(r.get("reported_total"), int)]
     if len(counted) < 2:
         return None
     name, top = max(counted, key=lambda item: item[1])

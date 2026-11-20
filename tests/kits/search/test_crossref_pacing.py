@@ -71,7 +71,8 @@ def test_finding_14_after_a_throttle_the_lookups_are_paced_and_stop_being_retrie
     assert state["throttled"] <= 3, state
 
 
-def test_a_throttle_never_paces_a_host_below_one_request_per_second():
+def test_a_throttle_never_paces_a_host_below_one_request_per_second(monkeypatch):
+    monkeypatch.setattr(http_mod, "THROTTLE_DEBOUNCE_S", 0.0)
     url = SINGLE
     budget = http_mod.host_budget(url)
     for _ in range(20):
@@ -82,3 +83,19 @@ def test_a_throttle_never_paces_a_host_below_one_request_per_second():
 
 def test_a_host_without_a_shared_budget_is_not_paced():
     assert http_mod.slow_down("https://example.org/x") is False
+
+
+
+def test_a_burst_of_429s_halves_the_pace_once():
+    """Concurrent requests answered 429 together are one throttle (review follow-up)."""
+    for _ in range(4):
+        http_mod.slow_down(SINGLE)
+    assert http_mod.host_budget(SINGLE).rate == pytest.approx(crossref_rate(single=True) / 2)
+
+
+def test_the_pace_set_by_a_429_expires(monkeypatch):
+    """A long-running console is not left slow after one throttled burst (review follow-up)."""
+    http_mod.slow_down(SINGLE)
+    assert http_mod.host_budget(SINGLE).rate < crossref_rate(single=True)
+    monkeypatch.setattr(http_mod, "THROTTLE_HOLD_S", 0.0)
+    assert http_mod.host_budget(SINGLE).rate == pytest.approx(crossref_rate(single=True))

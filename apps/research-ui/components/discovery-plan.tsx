@@ -274,11 +274,12 @@ export function DiscoveryPlan({ locale }: Readonly<{ locale: Locale }>) {
         // protocol's list, without Crossref for a joined query), previewed as such.
         const start = next.requested_providers ?? defaultList(next);
         if (!started.current) {
-          started.current = true;
           if (!providers && !sameList(start, protocol)) {
             next = await getPlan(origin, start);
             if (id !== sequence.current) return;
           }
+          // Only once the default choice was read: a refused second read is tried again on retry (review P3).
+          started.current = true;
         }
         setPlan(next);
         setChoice((current) => current ?? start);

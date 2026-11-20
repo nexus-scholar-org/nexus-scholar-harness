@@ -21,8 +21,11 @@ def concept_count(protocol_input: dict[str, Any] | str | Path) -> int:
         data = protocol_input.model_dump()
     count = 0
     for item in (data.get("search_strategy") or {}).get("core_concepts") or []:
-        terms = [str(item.get("concept") or "").strip()] + [str(s).strip() for s in item.get("synonyms") or []]
-        count += any(terms)
+        terms = [t for t in [str(item.get("concept") or "").strip()] + [str(s).strip() for s in item.get("synonyms") or []] if t]
+        if not terms:
+            continue
+        # A concept whose own terms are joined with AND adds one per term (review follow-up).
+        count += len(terms) if str(item.get("boolean_operator") or "OR").upper() == "AND" else 1
     return count
 
 

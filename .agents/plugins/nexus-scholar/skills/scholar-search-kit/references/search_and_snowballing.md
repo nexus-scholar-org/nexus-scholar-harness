@@ -35,6 +35,9 @@ uv run scholar-search search 'title:"machine learning" AND healthcare' --provide
 
 # Export to CSV without deduplication
 uv run scholar-search search "quantum computing" --no-dedup --output quantum.csv --format csv
+# --limit is per database; the command names each database that stopped at it or failed.
+# Exit 0: done. Exit 1: a database failed and nothing was found (no file written).
+# Exit 2: records saved, but a database failed (a partial result, not an error to retry blindly).
 ```
 
 ### Citation Snowballing

@@ -58,18 +58,31 @@ def protocol_default_providers() -> list[str]:
     return list(compile_protocol_search({"search_strategy": {}})[1])
 
 
-def default_choice(protocol_list: Sequence[str], concepts: int, *, named: bool) -> tuple[list[str], str | None]:
-    """The databases the Plan, Harvest and Recall screens start from, and why it differs.
+def took_default_list(raw: Sequence[str] | None) -> bool:
+    """Whether a protocol's ``target_databases`` is the default: absent, empty, or exactly the four genesis writes.
+
+    Compared as written (canonical spelling, any order), unknown names and
+    repeats included: a list that adds ``scopus`` or names a database twice is
+    a list someone wrote, not the preset (review P2).
+    """
+    if raw is None:
+        return True
+    names = sorted(canonical_provider(n) for n in raw)
+    return not names or names == sorted(DEFAULT_PROVIDERS)
+
+
+def default_choice(protocol_list: Sequence[str], concepts: int, *, raw: Sequence[str] | None) -> tuple[list[str], str | None]:
+    """The databases the Plan, Harvest, Recall and estimate start from, and why it differs.
 
     The protocol's list (``run_providers``), except that a database that
     ignores AND is left out when the query joins two or more concepts and the
-    protocol took the default list (it names no list, or exactly the four
-    genesis writes). A protocol that names another list keeps every database
-    it names: that list was a choice. The run itself is unchanged: a harvest
-    sent no ``providers`` still searches the protocol's list (CLI ``run``).
+    protocol took the default list (:func:`took_default_list` on its raw
+    ``target_databases``). A protocol that names another list keeps every
+    database it names: that list was a choice. The run itself is unchanged: a
+    harvest sent no ``providers`` still searches the protocol's list (CLI ``run``).
     """
     chosen = run_providers(protocol_list)
-    took_default = not named or set(chosen) == set(DEFAULT_PROVIDERS)
+    took_default = took_default_list(raw)
     if concepts > 1 and took_default and any(n in IGNORES_AND for n in chosen):
         return [n for n in chosen if n not in IGNORES_AND], IGNORES_AND_CODE
     return chosen, None
