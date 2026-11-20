@@ -20,6 +20,7 @@ import {
   type Refusal,
 } from "@/components/discovery-frame";
 import { getHandoff, getRuns, preparationUnfinished, type Handoff } from "@/lib/discovery-api";
+import { IncompleteChecks } from "@/components/incomplete-checks";
 import { acceptCorpus } from "@/lib/screening-v1";
 import { notifyReviewChanged } from "@/components/review-bus";
 import { discoveryT, providerName, type DiscoveryCopyKey } from "@/lib/discovery-copy";
@@ -114,9 +115,11 @@ export function DiscoveryHandoff({ locale }: Readonly<{ locale: Locale }>) {
       ? pendingStage
         ? t("handoff.pending.running", { run: pendingRun, stage: pendingStage })
         : t("handoff.pending.runningNoStage", { run: pendingRun })
-      : (preparation.state === "failed" || preparation.state === "stopped") && pendingStage
-        ? t(`handoff.pending.${preparation.state}` as DiscoveryCopyKey, { run: pendingRun, stage: pendingStage })
-        : t("handoff.pending.interrupted", { run: pendingRun });
+      : preparation.state === "incomplete" && preparation.checks
+        ? t("handoff.pending.incomplete", { run: pendingRun, unchecked: preparation.checks.unchecked, records: preparation.checks.records })
+        : (preparation.state === "failed" || preparation.state === "stopped") && pendingStage
+          ? t(`handoff.pending.${preparation.state}` as DiscoveryCopyKey, { run: pendingRun, stage: pendingStage })
+          : t("handoff.pending.interrupted", { run: pendingRun });
   const empty = !!corpus && (corpus.state === "EMPTY" || (corpus.state === "STAGED" && !corpus.from_discovery && corpus.sources.length === 0));
   const preview = corpus?.preview ?? null;
   const fromDiscovery = !!corpus?.from_discovery;
@@ -178,6 +181,12 @@ export function DiscoveryHandoff({ locale }: Readonly<{ locale: Locale }>) {
           <p className="max-w-2xl text-ink" role="status" data-pending-body>
             <bdi>{pendingBody}</bdi>
           </p>
+          {/* H-quota-hang: which database, when it resets, and what to do. */}
+          {preparation.state === "incomplete" && preparation.checks ? (
+            <div className="max-w-2xl">
+              <IncompleteChecks locale={locale} checks={preparation.checks} canFinish={preparation.can_finish} />
+            </div>
+          ) : null}
           <p className="flex flex-wrap items-center gap-4">
             <span className="inline-flex items-center gap-1">
               <a className={PRIMARY_LINK} href={discoveryHref(locale, "harvest", origin, pendingRun)} data-variant="primary" data-pending-link>

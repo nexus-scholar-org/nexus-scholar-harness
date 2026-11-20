@@ -85,6 +85,7 @@ const EN = {
   "checks.state.failed": "failed",
   "checks.state.stopped": "was stopped",
   "checks.state.interrupted": "was interrupted",
+  "checks.state.incomplete": "ended before every work was checked",
 
   // Per check: the sentence, the why, the action's link text
   "checks.SCOPE_TOPIC_MISSING.sentence": "Your question is empty.",
@@ -312,6 +313,7 @@ const FR: Record<ChecksCopyKey, string> = {
   "checks.state.failed": "a échoué",
   "checks.state.stopped": "a été arrêtée",
   "checks.state.interrupted": "a été interrompue",
+  "checks.state.incomplete": "s'est arrêtée avant que chaque travail soit vérifié",
 
   "checks.SCOPE_TOPIC_MISSING.sentence": "Votre question est vide.",
   "checks.SCOPE_TOPIC_MISSING.why": "La première recherche, les questions de recherche et les concepts en partent tous.",
@@ -536,6 +538,7 @@ const AR: Record<ChecksCopyKey, string> = {
   "checks.state.failed": "فشل",
   "checks.state.stopped": "أُوقف",
   "checks.state.interrupted": "انقطع",
+  "checks.state.incomplete": "انتهى قبل التحقق من كل الأعمال",
 
   "checks.SCOPE_TOPIC_MISSING.sentence": "سؤالك فارغ.",
   "checks.SCOPE_TOPIC_MISSING.why": "ينطلق منه البحث الأول وأسئلة البحث والمفاهيم جميعًا.",

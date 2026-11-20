@@ -47,6 +47,7 @@ import {
 import { getCorpus, type Corpus } from "@/lib/screening-v1";
 import { discoveryT, providerName, type DiscoveryCopyKey } from "@/lib/discovery-copy";
 import { notifyReviewChanged } from "@/components/review-bus";
+import { IncompleteChecks } from "@/components/incomplete-checks";
 
 /**
  * 03 Harvest (spec `docs/ux/phase1-discovery/final/03-harvest.md`): start the
@@ -797,12 +798,16 @@ const PREPARATION_STAGES = ["deduplication", "hydration", "verification"];
  * M3i: the steps after the search did not end (`failed`, `stopped` or `interrupted`). Says which
  * step, in the engine's own record, shows the engine's message under Details, and offers the one
  * action: finish from the saved records. Nothing here is computed by the browser.
+ *
+ * H-quota-hang: `incomplete` (the checks ended before every record was checked: a database's quota
+ * is used up, or the researcher stopped between two records) says why, when the database resets,
+ * how many records were not checked, and that finishing checks only those.
  */
 function PreparationCard({ locale, preparation, onFinish, busy }: Readonly<{ locale: Locale; preparation: Preparation; onFinish: () => void; busy: boolean }>) {
   const t = discoveryT(locale);
   const stageName = (stage: string | null): string | null =>
     stage && PREPARATION_STAGES.includes(stage) ? t(`harvest.stage.${stage}` as DiscoveryCopyKey) : stage;
-  const state = preparation.state as "failed" | "stopped" | "interrupted";
+  const state = preparation.state as "failed" | "stopped" | "interrupted" | "incomplete";
   const stage = stageName(preparation.stage);
   const ended = PREPARATION_STAGES.filter((name) => name in preparation.stages);
   return (
@@ -818,9 +823,13 @@ function PreparationCard({ locale, preparation, onFinish, busy }: Readonly<{ loc
       <p className="mt-2">
         <DecisionBadge role={state === "failed" ? "blocked" : "unclear"}>{t(`harvest.prep.badge.${state}` as DiscoveryCopyKey)}</DecisionBadge>
       </p>
-      <p className="mt-2 text-sm text-ink" data-preparation-body>
-        {state !== "interrupted" && stage ? t(`harvest.prep.${state}` as DiscoveryCopyKey, { stage }) : t("harvest.prep.interrupted")}
-      </p>
+      {state === "incomplete" && preparation.checks ? (
+        <IncompleteChecks locale={locale} checks={preparation.checks} canFinish={preparation.can_finish} />
+      ) : (
+        <p className="mt-2 text-sm text-ink" data-preparation-body>
+          {state !== "interrupted" && state !== "incomplete" && stage ? t(`harvest.prep.${state}` as DiscoveryCopyKey, { stage }) : t("harvest.prep.interrupted")}
+        </p>
+      )}
       {state === "interrupted" && stage ? <p className="mt-1 text-sm text-ink">{t("harvest.prep.interruptedAt", { stage })}</p> : null}
       {preparation.marker ? (
         <div className="mt-3 text-sm">
@@ -857,7 +866,11 @@ function PreparationCard({ locale, preparation, onFinish, busy }: Readonly<{ loc
             <Button variant="primary" onClick={onFinish} disabled={busy} data-finish>
               {t("harvest.prep.finish")}
             </Button>
-            <Hint locale={locale} label={t("harvest.prep.finish")} text={t("harvest.prep.finishHelp")} textKey="harvest.prep.finishHelp" />
+            {state === "incomplete" ? (
+              <Hint locale={locale} label={t("harvest.prep.finish")} text={t("harvest.prep.incomplete.finishHelp")} textKey="harvest.prep.incomplete.finishHelp" />
+            ) : (
+              <Hint locale={locale} label={t("harvest.prep.finish")} text={t("harvest.prep.finishHelp")} textKey="harvest.prep.finishHelp" />
+            )}
           </div>
         </>
       ) : (

@@ -527,7 +527,7 @@ def _incomplete_message(outcome: Any, records: int, reason: str) -> str:
     parts.append(
         f"{outcome.unchecked} of {records} records were not checked; they are kept as they were found and "
         "marked as not checked. Finish preparing this corpus"
-        + (" after the reset" if outcome.paused and reason != VERIFY_STOPPED else "")
+        + (" after the reset" if outcome.paused else "")
         + ": only those records are checked again."
     )
     return " ".join(parts)

@@ -96,7 +96,23 @@ export interface DiscoveryJob {
  * `interrupted` (they never ended: the console was closed). `stage` is the step it is in, or
  * where it failed or stopped; `null` when ready or when the run has no marker.
  */
-export type PreparationState = "none" | "superseded" | "ready" | "running" | "failed" | "stopped" | "interrupted";
+export type PreparationState = "none" | "superseded" | "ready" | "running" | "failed" | "stopped" | "interrupted" | "incomplete";
+/** H-quota-hang: a database the checks stopped asking, and when it said to come back. */
+export interface PausedDatabase {
+  provider: string;
+  database: string;
+  status_code: number;
+  retry_after: number;
+  resets_at: string;
+  reason: "PROVIDER_QUOTA_EXHAUSTED" | "PROVIDER_UNAVAILABLE_UNTIL" | string;
+}
+/** H-quota-hang: an `incomplete` preparation's checks; `null` in every other state. */
+export interface PreparationChecks {
+  unchecked: number;
+  records: number;
+  reason: "PROVIDER_QUOTA_EXHAUSTED" | "PROVIDER_UNAVAILABLE_UNTIL" | "STOPPED_BY_RESEARCHER" | string | null;
+  paused: PausedDatabase[];
+}
 export interface Preparation {
   state: PreparationState;
   stage: string | null;
@@ -109,12 +125,17 @@ export interface Preparation {
   can_finish: boolean;
   /** Why they cannot, for an unfinished run: the corpus is frozen already, or the run's records are gone. */
   cannot_finish?: "corpus_accepted" | "records_missing" | null;
+  /** H-quota-hang: set for `incomplete` (the checks ended early, some records not checked). */
+  checks?: PreparationChecks | null;
   job_id: string | null;
 }
 
 /** The states in which the steps after the search did not end and no job is running them. */
 export function preparationUnfinished(preparation: Preparation | null | undefined): boolean {
-  return !!preparation && (preparation.state === "failed" || preparation.state === "stopped" || preparation.state === "interrupted");
+  return (
+    !!preparation &&
+    (preparation.state === "failed" || preparation.state === "stopped" || preparation.state === "interrupted" || preparation.state === "incomplete")
+  );
 }
 
 export interface RunSummary {

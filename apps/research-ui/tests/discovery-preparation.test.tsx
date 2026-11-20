@@ -5,6 +5,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { DiscoveryHandoff } from "@/components/discovery-handoff";
 import { DiscoveryHarvest } from "@/components/discovery-harvest";
 import { discoveryT } from "@/lib/discovery-copy";
+import { localStamp } from "@/lib/local-time";
 import { stateCopy } from "@/lib/screening-states";
 
 import { sent, setUp } from "./discovery-helpers";
@@ -266,5 +267,65 @@ describe("the two M3i refusals have their own cards", () => {
       expect(copy.title.length).toBeGreaterThan(5);
       expect(copy.actionLabel.length).toBeGreaterThan(2);
     }
+  });
+});
+
+describe("H-quota-hang: the checks ended before every record was checked", () => {
+  const RESET = "2026-11-21T00:00:00+00:00";
+
+  it("Harvest says which database's quota is used up, when it resets, how many records, and what to do", async () => {
+    const user = userEvent.setup();
+    const { engine } = setUp({ runs: 1, preparation: "incomplete" });
+    render(<DiscoveryHarvest locale="en" />);
+    await screen.findByRole("heading", { level: 1, name: "The search finished, but not every work could be checked." });
+    const card = await preparationCard();
+    expect(card).toHaveAttribute("data-preparation", "incomplete");
+    expect(within(card).getByText("Checks unfinished")).toBeInTheDocument();
+    const paused = card.querySelector('[data-paused="openalex"]');
+    expect(paused).toHaveAttribute("data-resets-at", RESET);
+    expect(paused).toHaveTextContent(`The OpenAlex quota is used up. It resets at ${localStamp(RESET)}.`);
+    expect(card.querySelector("[data-unchecked]")).toHaveTextContent(
+      "120 of 166 records were not checked. They are kept as they were found and marked as not checked; none was dropped.",
+    );
+    expect(card.querySelector("[data-incomplete-todo]")).toHaveTextContent(
+      "After the reset, press “Finish preparing this corpus”: only those records are checked again.",
+    );
+    // Every step is recorded as ended: the checks ended, early.
+    expect([...card.querySelectorAll("[data-stage-ended]")].map((li) => li.textContent)).toEqual(["Duplicates", "Abstracts", "Checks"]);
+    expect(screen.queryByRole("link", { name: "Go to the hand-off" })).toBeNull();
+
+    await user.click(within(card).getByRole("button", { name: FINISH }));
+    await screen.findByRole("heading", { level: 1, name: "The harvest is finished. The corpus is not frozen yet." });
+    expect(sent(engine)).toContain(PREPARE);
+    expect(sent(engine)).not.toContain(SEARCH);
+  });
+
+  it("a stop between two records says so, with no reset to wait for", async () => {
+    setUp({ runs: 1, preparation: "incomplete", incompleteReason: "stopped" });
+    render(<DiscoveryHarvest locale="en" />);
+    const card = await preparationCard();
+    expect(card.querySelector("[data-incomplete-stopped]")).toHaveTextContent("You stopped the checks between two records.");
+    expect(card.querySelector("[data-paused]")).toBeNull();
+    expect(card.querySelector("[data-unchecked]")).toHaveTextContent("7 of 10 records were not checked.");
+    expect(card.querySelector("[data-incomplete-todo]")).toHaveTextContent(
+      "Press “Finish preparing this corpus” to check them: only those records are checked again.",
+    );
+  });
+
+  it.each(["en", "fr", "ar"] as const)("the Hand-off says it in %s and points to finishing", async (locale) => {
+    const t = discoveryT(locale);
+    setUp({ runs: 1, preparation: "incomplete" });
+    render(<DiscoveryHandoff locale={locale} />);
+    await screen.findByRole("heading", { level: 1, name: t("handoff.pending.title") });
+    const pending = document.querySelector("[data-pending]") as HTMLElement;
+    expect(pending).toHaveAttribute("data-pending", "incomplete");
+    expect(pending.querySelector("[data-pending-body]")).toHaveTextContent(
+      t("handoff.pending.incomplete", { run: "run_001", unchecked: 120, records: 166 }),
+    );
+    expect(pending.querySelector('[data-paused="openalex"]')).toHaveTextContent(
+      t("harvest.prep.incomplete.quota", { database: "OpenAlex", time: localStamp(RESET) }),
+    );
+    expect(pending.querySelector("[data-incomplete-todo]")).toHaveTextContent(t("harvest.prep.incomplete.afterReset"));
+    expect(screen.getByRole("link", { name: t("handoff.pending.finish") })).toBeInTheDocument();
   });
 });
