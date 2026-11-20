@@ -1,5 +1,5 @@
 # H-screening-drafts Agent drafts a decisive answer can decide; the method changed after genesis as an amendment; a safer run screen
-Branch: `dev/h/screening-drafts` (from `origin/main` `b9c7dc0b`) · Lane: **RELEASE** (see "Lane") · Status: **IN PROGRESS** · Started: 2026-11-20
+Branch: `dev/h/screening-drafts` (from `origin/main` `b9c7dc0b`) · Lane: **RELEASE** (see "Lane") · Status: **READY FOR PR** (head `48d29df9` before this record update; review round 2 APPROVE; PR gate green on `48d29df9`; not pushed; decisions 1 to 10 PROPOSED) · Started: 2026-11-20
 
 Found by the acceptance run of 2026-11-20 (a real scoping review through the installed wheel; record `docs/roadmap/acceptance-run-sensor-stress-2026-11-20.md`; corpus of 1,062 works):
 
@@ -31,8 +31,8 @@ Choices: `docs/decisions.md`, entry "2026-11-20 — H-screening-drafts" (items 1
 - [x] Optional item 6 built: `screen-v2` candidate prompt, never the default, not loadable by a run; the measurement command and its estimate prepared for the researcher. Tests: `tests/kits/agent/test_screening_task_v2.py` (9).
 - [x] Reproducing tests written first and seen failing on the unfixed code (Evidence).
 - [x] Contract baseline current; protocol schema in sync; contract schemas and two-study fixture current; CI's two ruff runs clean.
-- [ ] PR gate green on the final commit.
-- [ ] `milestone-reviewer` APPROVE.
+- [x] PR gate green on the final executable commit (`48d29df9`; the commit after it changes this record only).
+- [x] `milestone-reviewer`: round 1 CHANGES (3 P2, 6 P3, all repaired in `f6bed826`), round 2 APPROVE; its two P3 follow-ups done in `48d29df9`.
 
 ## What changed
 
@@ -91,12 +91,20 @@ Choices: `docs/decisions.md`, entry "2026-11-20 — H-screening-drafts" (items 1
 | agent kit | `9181f67c` | `uv run pytest tests/kits/agent -n auto` (after `5454f537`: 339 passed) | passed |
 | contract | `9181f67c` | `generate_contract_baseline.py --check`; `generate_contract_schemas.py --check`; `generate_two_study_contract_fixture.py --check`; `generate_protocol_schema.py --check` | "Contract baseline current"; exit 0; exit 0; "OK Schema is in sync with models.py" |
 | lint | `9181f67c` | `ruff check scripts/`; `ruff check src/ --select F821,F811,F823,F632,F7,B023,B006,E9` | both "All checks passed!" |
+| review round 1 | `805b7c76` | `milestone-reviewer` | **CHANGES**: no P0/P1; P2 F1 to F3, P3 F4 to F9 (repaired, see "Repairs after the review") |
+| repairs | `f6bed826` | targeted: `test_screening_drafts_api.py`, `test_screening_task_v2.py`, `test_methods_method_block.py`; vitest Prepare and proposals; the new F2 vitest on the pre-repair component | 28 + 36 passed; 33 passed; the F2 test **failed** on the pre-repair component, passes after |
+| review round 2 | `f6bed826` | `milestone-reviewer`, limited to F1 to F9 and `805b7c76..f6bed826` | **APPROVE**; reran 91 Python and 33 vitest tests, the baseline check and the CI ruff run. Two P3 follow-ups (the `--not-reported` help text; a test of the drafts sentence when there are drafts) done in `48d29df9` |
+| PR gate, Python | `48d29df9` | `git diff --check origin/main...HEAD`; `ruff check scripts/`; `generate_contract_baseline.py`, `generate_contract_schemas.py`, `generate_two_study_contract_fixture.py`, `generate_protocol_schema.py` `--check`; `uv run pytest -n auto` (dev, pdf and rag extras) | clean; "All checks passed!"; all four exit 0; **5817 passed, 15 skipped, 0 failed** (8 m 10 s) |
+| PR gate, UI | `48d29df9` | `npm --prefix apps/research-ui test`; `run typecheck`; `run build:export`; `run build`; `run test:browser` | vitest **957 passed** (66 files); typecheck, both builds exit 0; Playwright **606 passed, 12 skipped** (12.7 m) |
+| wheel | `48d29df9` | `uv build --wheel` (after `build:export`) | `nexus_scholar-1.1.0b6-py3-none-any.whl` built; `scholar_agent/tasks/screening/prompt-screen-v2.md` is in it (checked on a no-UI wheel at `805b7c76`) |
+| note | `48d29df9` | `test:browser` rewrites six tracked screenshots under `apps/research-ui/screenshots/` | restored with `git checkout`, not committed |
+| earlier PR gate run | `f4011023` | `uv run pytest -n auto` | 5811 passed, 15 skipped (before the review; superseded by the run above) |
 | screen-v2 dry run | `5454f537` | `uv run nexus-scholar prompt-gate measure --model <m> [--task-version screen-v2] --dry-run` (frozen 1,644 records, no network, no key) | Haiku: v1 $0.38, v2 $0.40 expected, ceiling $1.82 / $1.83; Opus: $11.39 / $11.42, ceiling $72.68 / $73.31; "Network calls made: 0" |
 
 ## Not verified
 
 - **Nothing was run against a provider** (no spend, no live call): the decisive-first counts quoted above come from the researcher's own re-derivation of the acceptance run's drafts, not from this code on that workspace; `screen-v2` is not measured.
 - **The researcher's real workspace was not opened or touched.** The amendment, the re-derivation and the run-screen fixes were checked against test workspaces and the fake engines only; how many of its 420 drafts change outcome under `decisive_first` through this code was not checked here (it should match the researcher's re-derivation, since the rule is the same, but that was not run).
-- The UI changes were seen only in jsdom (vitest); no browser screenshot of Prepare's confirmation or the batch note was taken by eye (the Playwright suite runs in the PR gate; its screenshots are not new for these states).
+- The UI changes were seen only in jsdom (vitest). The Playwright suite passed, but none of its specs drives Prepare's amendment confirmation, the not-reported group, the batch note or the starting line, and no screenshot of them was looked at.
 - The 40 s start delay's cause; concurrent amendments (see Follow-ups).
 - CI matrix (Linux, macOS, Python 3.11/3.12) not run.
