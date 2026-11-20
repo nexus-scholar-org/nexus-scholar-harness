@@ -388,9 +388,11 @@ export interface Corpus {
   accepted: { artifact_id: string; accepted_at: string | null; records: number; studies: number; duplicates: number } | null;
   from_discovery: boolean;
   /** Review F4: where the corpus comes from; `null` while nothing is there. */
-  origin?: "imports" | "discovery" | "citation_searching" | null;
+  origin?: "imports" | "discovery" | "citation_searching" | "combined" | null;
+  /** M3f: the harvest part (newest published search run), its preparation state and whether the accept includes it. */
+  harvest?: { run: string; state: string; included: boolean } | null;
   limits: { max_source_bytes: number; label_max_length: number };
-  /** M3d-engine: why staging an export is refused now (`VERIFIED_EXISTS`, `CORPUS_ALREADY_ACCEPTED`), else `null`. */
+  /** Why staging an export is refused now (`CORPUS_ALREADY_ACCEPTED`; `VERIFIED_EXISTS` only for records of unknown origin since M3f), else `null`. */
   staging_refused?: { code: string; message: string } | null;
 }
 

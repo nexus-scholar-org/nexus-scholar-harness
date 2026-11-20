@@ -278,6 +278,10 @@ def build_workspace(
             if prep.get("state") == "ready" and state == "STAGED" and from_discovery:
                 params = {"run": run, "records": corpus_run.get("fetched_total"),
                           "works": _verified_works(ws) if _verified_works(ws) is not None else _works(ws)}
+                if corpus.get("origin") == "combined":
+                    # M3f: the harvest and the staged exports, deduplicated together.
+                    preview = corpus.get("preview") or {}
+                    params.update(records=preview.get("identified"), works=preview.get("unique_studies"))
                 if corpus_run.get("protocol_changed"):
                     params["protocol_changed"] = True
                 return done("CORPUS_READY", "discovery", params=params,

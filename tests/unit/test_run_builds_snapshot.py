@@ -120,7 +120,11 @@ _RIS = "TY  - JOUR\nTI  - An imported study of weeds\nPY  - 2021\nDO  - 10.9/ris
 
 
 def test_staged_imports_are_never_silently_swapped_for_the_run(tmp_path, monkeypatch):
-    """Finding 2: accept_corpus would materialise staged RIS over the run's records."""
+    """Finding 2 (M3a): staged RIS must never replace the run's records.
+
+    M3f-combined-corpus: they are combined with them, deduplicated together,
+    and the stage says so (before, the snapshot was refused STAGED_IMPORT_PENDING).
+    """
     from scholar_harness.corpus_accept import stage_ris_source
 
     _install(monkeypatch)
@@ -131,11 +135,14 @@ def test_staged_imports_are_never_silently_swapped_for_the_run(tmp_path, monkeyp
 
     results = asyncio.run(orch.ResearchOrchestrator(ws).run_pipeline_async())
 
-    assert results["status"] == "FAILED"
     snap = results["stages"]["corpus_snapshot"]
-    assert snap["status"] == "REFUSED" and snap["code"] == "STAGED_IMPORT_PENDING"
-    assert not (ws / "audit" / "artifact_registry.json").exists()
-    assert _aborted(ws)
+    assert snap["status"] == "ACCEPTED", snap
+    assert snap["combined_with"] == ["Scopus"]
+    rows = json.loads((ws / "literature" / "verified.json").read_text(encoding="utf-8"))
+    # The run's two works, then the export's record, each saying where it came from.
+    assert [r.get("source_database") for r in rows] == [None, None, "Scopus"]
+    assert snap["record_count"] == 3
+    assert not _aborted(ws)
 
 
 def test_resume_refuses_an_edited_protocol(tmp_path, monkeypatch):

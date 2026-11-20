@@ -25,6 +25,7 @@ const EN: Record<string, PluralForms> = {
   "checks.EXPLORE_POOL_THIN.sentence": { one: "The sample has only {n} paper. {floor} or more gives steadier suggestions." },
   "checks.REVIEW_TARGET_HAS_SCREENING.sentence": { one: "That workspace has {n} screening decision." },
   "criteria.needYou": { one: "{n} still needs you." },
+  "handoff.imports.unchecked": { one: "{n} record comes from your exports. It was not checked against Crossref or OpenAlex, and a missing abstract was not filled in." },
 };
 
 const FR: Record<string, PluralForms> = {
@@ -37,6 +38,7 @@ const FR: Record<string, PluralForms> = {
   "checks.EXPLORE_POOL_THIN.sentence": { one: "L'échantillon ne compte que {n} article. À partir de {floor}, les suggestions sont plus stables." },
   "checks.REVIEW_TARGET_HAS_SCREENING.sentence": { one: "Cet espace de travail a {n} décision de sélection." },
   "criteria.needYou": { one: "{n} attend encore votre décision." },
+  "handoff.imports.unchecked": { one: "{n} notice provient de vos exports. Elle n'a pas été vérifiée auprès de Crossref ou d'OpenAlex, et un résumé manquant n'a pas été complété." },
 };
 
 const AR: Record<string, PluralForms> = {
@@ -82,6 +84,12 @@ const AR: Record<string, PluralForms> = {
     few: "ما زالت {n} معايير بانتظار قرارك.",
     many: "ما زال {n} معيارًا بانتظار قرارك.",
     other: "ما زال {n} معيار بانتظار قرارك.",
+  },
+  "handoff.imports.unchecked": {
+    one: "سجل واحد من صادراتك. لم يُتحقق منه لدى Crossref أو OpenAlex، ولم يُستكمل ملخصه إن كان ناقصًا.",
+    two: "سجلان من صادراتك. لم يُتحقق منهما لدى Crossref أو OpenAlex، ولم تُستكمل الملخصات الناقصة.",
+    few: "{n} سجلات من صادراتك. لم يُتحقق منها لدى Crossref أو OpenAlex، ولم تُستكمل الملخصات الناقصة.",
+    other: "{n} سجل من صادراتك. لم يُتحقق منها لدى Crossref أو OpenAlex، ولم تُستكمل الملخصات الناقصة.",
   },
 };
 
