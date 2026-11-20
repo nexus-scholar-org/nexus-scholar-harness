@@ -91,6 +91,7 @@ const COPY = {
     bulkPreparing: "Preparing the codes… with many batches this takes up to a minute.",
     bulkDone: "Batches approved: {n}.",
     bulkRefused: "Not approved: {batch} ({code}). Show the codes again for it.",
+    bulkSkippedOther: "No code for {batches}.",
     oneByOne: "Approve one batch at a time",
     approved: "Approval on file",
     approvedNote: "A decision changed after this approval makes it stale; approve again. Publish refuses a stale approval.",
@@ -163,6 +164,7 @@ const COPY = {
     bulkPreparing: "Préparation des codes… avec beaucoup de lots, cela prend jusqu'à une minute.",
     bulkDone: "Lots approuvés : {n}.",
     bulkRefused: "Non approuvé : {batch} ({code}). Affichez de nouveau les codes pour ce lot.",
+    bulkSkippedOther: "Pas de code pour {batches}.",
     oneByOne: "Approuver un lot à la fois",
     approved: "Approbation enregistrée",
     approvedNote: "Une décision modifiée après cette approbation la rend périmée ; approuvez à nouveau. La publication refuse une approbation périmée.",
@@ -235,6 +237,7 @@ const COPY = {
     bulkPreparing: "جارٍ تحضير الرموز… مع دفعات كثيرة قد يستغرق ذلك دقيقة.",
     bulkDone: "الدفعات المعتمدة: {n}.",
     bulkRefused: "لم تُعتمد: {batch} ({code}). اعرض الرموز من جديد لها.",
+    bulkSkippedOther: "لا رمز لـ{batches}.",
     oneByOne: "اعتماد دفعة واحدة في كل مرة",
     approved: "اعتماد مسجّل",
     approvedNote: "أي قرار يتغيّر بعد هذا الاعتماد يجعله قديمًا؛ اعتمد من جديد. يرفض النشر الاعتماد القديم.",
@@ -269,6 +272,9 @@ const COPY = {
 
 export type PublishCopyKey = keyof (typeof COPY)["en"];
 export const PUBLISH_COPY: Record<Locale, Record<PublishCopyKey, string>> = COPY;
+
+/** The skip reasons the summary line counts; any other is the engine's refusal, named per batch. */
+const SKIP_KINDS: ReadonlySet<string> = new Set(["ALREADY_APPROVED", "DEFERRED", "NOT_DECIDED"]);
 
 function fill(template: string, values: Record<string, string | number> = {}): string {
   return template.replace(/\{(\w+)\}/g, (_, k: string) => {
@@ -350,6 +356,29 @@ export function ScreeningPublish({ locale }: Readonly<{ locale: Locale }>) {
   useEffect(() => {
     void load();
   }, [load]);
+
+  // UI-07 §3.6: a typed or pasted code is cleared on expiry, not only on submit.
+  useEffect(() => {
+    const ends = [begunAll?.code_expires_at, ...Object.values(begun).map((b) => b.code_expires_at)]
+      .filter((x): x is string => Boolean(x))
+      .map((x) => new Date(x).getTime())
+      .filter((x) => Number.isFinite(x));
+    if (!ends.length) return;
+    const wait = Math.max(0, Math.min(...ends) - Date.now());
+    const timer = window.setTimeout(() => {
+      const now = Date.now();
+      if (begunAll && new Date(begunAll.code_expires_at).getTime() <= now) {
+        setBlock("");
+        setBegunAll(null);
+      }
+      const expired = Object.values(begun).filter((b) => new Date(b.code_expires_at).getTime() <= now).map((b) => b.batch_index);
+      if (expired.length) {
+        setCodes((p) => Object.fromEntries(Object.entries(p).filter(([k]) => !expired.includes(Number(k)))));
+        setBegun((p) => Object.fromEntries(Object.entries(p).filter(([k]) => !expired.includes(Number(k)))));
+      }
+    }, wait + 50);
+    return () => window.clearTimeout(timer);
+  }, [begunAll, begun]);
 
   async function act(run: () => Promise<unknown>) {
     setBusy(true);
@@ -598,7 +627,17 @@ export function ScreeningPublish({ locale }: Readonly<{ locale: Locale }>) {
                         {t("bulkSkipped", {
                           approved: n(begunAll.skipped.filter((x) => x.reason === "ALREADY_APPROVED").length),
                           deferred: n(begunAll.skipped.filter((x) => x.reason === "DEFERRED").length),
-                          undecided: n(begunAll.skipped.filter((x) => x.reason !== "ALREADY_APPROVED" && x.reason !== "DEFERRED").length),
+                          undecided: n(begunAll.skipped.filter((x) => x.reason === "NOT_DECIDED").length),
+                        })}
+                      </p>
+                    ) : null}
+                    {begunAll.skipped.some((x) => !SKIP_KINDS.has(x.reason)) ? (
+                      <p data-bulk-skipped-other>
+                        {t("bulkSkippedOther", {
+                          batches: begunAll.skipped
+                            .filter((x) => !SKIP_KINDS.has(x.reason))
+                            .map((x) => `${t("batchN", { n: n(x.batch_index) })} (${x.reason})`)
+                            .join(", "),
                         })}
                       </p>
                     ) : null}

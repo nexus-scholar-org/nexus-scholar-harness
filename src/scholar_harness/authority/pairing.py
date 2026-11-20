@@ -825,8 +825,10 @@ BULK_NOT_DECIDED = "NOT_DECIDED"
 #: One line of the block of codes: ``batch 12: ABCD...``. The code has a fixed
 #: length from a fixed alphabet, so a paste that lost its line breaks (a
 #: single-line field drops them) still reads one pair at a time.
+#: The batch number is bounded (six digits) so a long run of digits cannot
+#: make the match backtrack quadratically (review P3).
 _BLOCK_PAIR = re.compile(
-    rf"(\d+)\s*:\s*([{PAIRING_CODE_ALPHABET}]{{{PAIRING_CODE_LENGTH}}})",
+    rf"(\d{{1,6}})[ \t]*:[ \t]*([{PAIRING_CODE_ALPHABET}]{{{PAIRING_CODE_LENGTH}}})",
     re.IGNORECASE,
 )
 
@@ -837,7 +839,11 @@ def _manifest_batches(ws: Path) -> list[int]:
         payload = json.loads(manifest.read_text(encoding="utf-8"))
     except (OSError, ValueError):
         return []
-    return sorted(int(b["batch_index"]) for b in payload.get("batches", []) if isinstance(b, dict))
+    return sorted(
+        int(b["batch_index"])
+        for b in payload.get("batches", [])
+        if isinstance(b, dict) and isinstance(b.get("batch_index"), int)
+    )
 
 
 def bulk_skip_reason(workspace_dir: Path, batch_index: int) -> str | None:
@@ -919,11 +925,13 @@ def begin_pairing_all(
     staged: list[dict[str, Any]] = []
     skipped: list[dict[str, Any]] = []
     for index in _manifest_batches(ws):
-        reason = bulk_skip_reason(ws, index)
-        if reason is not None:
-            skipped.append({"batch_index": index, "reason": reason})
-            continue
+        # One broken batch (a missing parent, an unreadable file) is listed with
+        # its refusal and never stops the others (review P2).
         try:
+            reason = bulk_skip_reason(ws, index)
+            if reason is not None:
+                skipped.append({"batch_index": index, "reason": reason})
+                continue
             staged.append(begin_pairing(ws, index, lifetime_s=lifetime_s))
         except Exception as exc:  # typed refusals (authority, review, worker) carry a code
             code = getattr(exc, "code", None)

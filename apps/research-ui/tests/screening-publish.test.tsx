@@ -38,7 +38,7 @@ function review(approved: boolean) {
   };
 }
 
-function engine(options: { preview?: unknown; approved?: boolean; redeem?: Response; redeemAll?: Response; publication?: string; approver?: string | null; reporting?: string; shownOn?: "terminal" | "desktop" } = {}) {
+function engine(options: { preview?: unknown; approved?: boolean; redeem?: Response; redeemAll?: Response; publication?: string; approver?: string | null; reporting?: string; shownOn?: "terminal" | "desktop"; beginAll?: unknown } = {}) {
   let approved = options.approved ?? false;
   let approver = options.approver === undefined ? "Researcher" : options.approver;
   const log: { method: string; path: string; body: unknown }[] = [];
@@ -61,6 +61,7 @@ function engine(options: { preview?: unknown; approved?: boolean; redeem?: Respo
       }
       if (path === "/ui/batch/1/review") return ok(review(approved));
       if (path === "/actions/pairing/begin") return ok({ batch_index: 1, snapshot_fingerprint: "sha256:s", code_expires_at: "2026-11-05T10:05:00Z", attempt_cap: 5, code_shown_on: "terminal" });
+      if (path === "/actions/pairing/begin-all" && options.beginAll) return ok(options.beginAll);
       if (path === "/actions/pairing/begin-all")
         return ok({ batches: [{ batch_index: 1, snapshot_fingerprint: "sha256:s" }], skipped: [{ batch_index: 2, reason: "DEFERRED" }], code_expires_at: "2026-11-05T10:05:00Z", attempt_cap: 5, code_shown_on: options.shownOn ?? "desktop" });
       if (path === "/actions/pairing/redeem-all") {
@@ -220,6 +221,26 @@ describe("publish.approve-all (finding 38)", () => {
     fireEvent.change(await screen.findByLabelText(/Paste the codes/), { target: { value: "hello" } });
     fireEvent.click(screen.getByRole("button", { name: "Approve the batches" }));
     await screen.findByText("PAIRING_CODE_INVALID");
+  });
+
+  it("names a batch the engine refused a code, and clears the pasted codes when they expire", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    try {
+      const soon = new Date(Date.now() + 60_000).toISOString();
+      engine({
+        beginAll: { batches: [{ batch_index: 1, snapshot_fingerprint: "s" }], skipped: [{ batch_index: 2, reason: "WORKER_BATCH_MISSING" }], code_expires_at: soon, attempt_cap: 5, code_shown_on: "terminal" },
+      });
+      render(<ScreeningPublish locale="en" />);
+      fireEvent.click(await screen.findByRole("button", { name: "Show the codes for every decided batch" }));
+      await screen.findByText("No code for batch 2 (WORKER_BATCH_MISSING).");
+      const field = screen.getByLabelText(/Paste the codes/);
+      fireEvent.change(field, { target: { value: "batch 1: CODE" } });
+      await vi.advanceTimersByTimeAsync(61_000);
+      await waitFor(() => expect(field).toHaveValue(""));
+      expect(document.querySelector("[data-bulk-begun]")).toBeNull();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("keeps the one-batch controls folded under their own heading", async () => {

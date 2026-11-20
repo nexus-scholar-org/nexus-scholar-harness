@@ -1,6 +1,6 @@
 # H-run-small-fixes The small defects of the 2026-11-20 acceptance run
 
-Item agreed by the researcher on 2026-11-20 (plan §6, "After the acceptance run": second, after M3f-combined-corpus). Source: `docs/roadmap/acceptance-run-sensor-stress-2026-11-20.md` (findings 1 to 17 on `main`; 18 to 39 on `dev/docs/acceptance-run-part-2`, PR #262). Delivered as three branches, one PR each, in this order:
+Item agreed by the researcher on 2026-11-20 (second in the order of work after the acceptance run, after M3f-combined-corpus; that order is in plan §6 on `dev/docs/acceptance-run-part-2`, PR #262, not yet on `main`). Source: `docs/roadmap/acceptance-run-sensor-stress-2026-11-20.md` (findings 1 to 17 on `main`; 18 to 39 on `dev/docs/acceptance-run-part-2`, PR #262). Delivered as three branches, one PR each, in this order:
 
 | Part | Branch | Lane | Status |
 | :-- | :-- | :-- | :-- |
@@ -46,8 +46,24 @@ The screening API contract §9.1 (researcher, 2026-11-04) says "a fresh one-time
 - `src/scholar_harness/authority/pairing.py`: `begin_pairing_all` (calls `begin_pairing` per ready batch), `bulk_skip_reason`, `format_code_block`, `parse_code_block`. `begin_pairing` and `redeem_pairing` are unchanged.
 - `src/scholar_harness/console/api/screening_v1.py`: `POST /actions/pairing/begin-all`; `begin` and `begin-all` also call the desktop window when the app has one (`_show_on_desktop`).
 - `src/scholar_harness/console/api/screening.py`: the single redeem's body moved into `_redeem_one` (same rollback, same journal row); `POST /actions/pairing/redeem-all` loops over it.
-- `src/scholar_harness/console/code_window.py` (new): the Tk window. `serve.py` takes `code_window`; `launcher.py` passes `code_window.reveal`.
+- `src/scholar_harness/console/code_window.py` (new): the Tk window, run as a child process (`python -I code_window.py`, codes on stdin; the file imports the standard library only, so the child starts in under a second). `serve.py` takes `code_window`; `launcher.py` passes `code_window.reveal`.
 - UI: `lib/screening-v1.ts` (`beginApprovalAll`, `PairingBegunAll`), `lib/screening-api.ts` (`postPairingRedeemAll`, `RedeemAllResult`), `components/screening-publish.tsx`, the dev proxy allowlist.
+
+### Review
+
+Round 1 (`milestone-reviewer`, on `9286b175`): **CHANGES**, one P1, three P2, three P3. All repaired:
+
+| # | Finding | Repair | Test |
+| :-- | :-- | :-- | :-- |
+| P1 | Tk was created in a thread of the engine; on macOS a first Tk load off the main thread aborts the whole process (not catchable) | The window runs in a child process (`python -I code_window.py`, codes on stdin, never argv); a crash stays in the child | `test_review_the_window_gets_the_codes_on_stdin_never_on_its_command_line`, `test_review_a_child_that_cannot_show_a_window_leaves_the_terminal`, `test_review_the_window_script_imports_the_standard_library_only` |
+| P2 | One batch with a missing parent (`WorkerRefused` in `bulk_skip_reason`) stopped `begin-all` for all, after earlier codes were already replaced | The skip check moved inside the per-batch `try`; the batch is listed with its refusal | `test_review_one_broken_batch_does_not_block_the_others` |
+| P2 | A journal failure mid-paste answered 200 and left the later batches unlisted | 500 `ACTION_AUDIT_FAILED` with `details.approved` and `details.refused` (later batches `NOT_ATTEMPTED`) | `test_review_a_journal_failure_mid_paste_is_a_500_that_names_every_batch` |
+| P2 | Decision item 4 understated the residual: a token holder can make the window appear; the clipboard is now the normal path | Item 4 names both risks for the researcher to accept; the window names the batches and says to close it and copy nothing if the codes were not asked for | `test_review_the_window_says_which_batches_and_to_close_it_if_not_asked` |
+| P3 | `(\d+)\s*:` backtracked quadratically (47 s on 40,000 digits); the paste cap was 200,000 characters | Batch number bounded to 6 digits; cap 64,000 characters | `test_review_a_long_run_of_digits_is_read_quickly` |
+| P3 | No test that codes stay out of the redeem answer, the journal and the workspace files | Added | `test_review_the_codes_are_nowhere_but_the_terminal_after_a_bulk_run` |
+| P3 | Decision and contract texts did not describe the 500 case and the per-batch begin refusals | Items 2, 3 and the contract rows updated | (docs) |
+
+Follow-ups from the review also done: a batch refused a code for another reason is named with its code (not counted as "not fully decided"); the pasted block and a typed one-batch code are cleared on expiry (UI-07 §3.6); the re-raised refusal carries the request's own id; `_manifest_batches` skips an entry without a batch number; spec 09's key list. UI test: "names a batch the engine refused a code, and clears the pasted codes when they expire". Left as follow-ups: `bulkRefused` shows the engine's code untranslated (as the state cards do); the dev proxy's 120 s timeout would cut a paste of roughly 150 or more batches at the measured speed (the packaged app has no proxy).
 
 ### Evidence
 
@@ -57,7 +73,7 @@ The screening API contract §9.1 (researcher, 2026-11-04) says "a fresh one-time
 | New engine tests | `tests/console/test_approve_all.py`: 17 passed |
 | Neighbouring tests | `tests/console/test_approve_all.py tests/console/test_screening_api_v1.py tests/authority/test_pairing.py`: 104 passed |
 | UI | `tests/screening-publish.test.tsx`: 20 passed; `tsc --noEmit` clean |
-| Real window on this PC (Windows 11) | `code_window.reveal` returned `True`; its thread ended at the 3-second expiry |
+| Real window on this PC (Windows 11) | Before the repair (thread): `reveal` returned `True`, the thread ended at expiry. After it (child process): `reveal` returned `True` in 0.76 s; first attempt with `python -m` timed out at 5 s because importing the console package takes about 9 s, hence `python -I <file>` |
 | Timing, 54 batches of 20, real PBKDF2 rounds | Codes ready after 34.9 s, 54 approvals in 40.3 s (one run, `begin-all` then `redeem-all` over the test client, while the gate ran on the same PC) |
 | Inner gate | {INNER} |
 | PR gate | {PR} |
@@ -66,6 +82,7 @@ The screening API contract §9.1 (researcher, 2026-11-04) says "a fresh one-time
 
 ### Not verified
 
-- The window was opened once on this PC by a script and closed itself at expiry; nobody looked at it, and the Copy button, the clipboard after the window closes, and how it looks on a high-DPI screen were not checked. On macOS and Linux it was not run at all (Tk needs a display; without one the codes stay on the terminal).
+- The window was opened on this PC by a script and closed itself at expiry; nobody looked at it, and the Copy button, the clipboard after the window closes, and how it looks on a high-DPI screen were not checked. On macOS and Linux it was not run at all (the child process is meant to make a Tk failure harmless there; without a display the codes stay on the terminal).
+- Whether a window opened from a `pythonw` engine (no console) shows the same way was not tried; the child is started with `CREATE_NO_WINDOW` so no console window appears.
 - Not run against the researcher's real workspace (`C:\Users\mouadh\Documents\Nexus Scholar\workspaces\` was not touched) nor through the installed wheel; not clicked in a browser (Playwright was not extended for this screen).
 - Whether a program at Windows Low integrity can read the Tk window's text was not tested; the reasoning (UIPI blocks reading a higher-integrity window; the text is drawn by Tk, not held in a native edit control) is the same as for the terminal.

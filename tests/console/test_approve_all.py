@@ -396,9 +396,9 @@ def test_the_window_words_never_carry_a_code_and_the_title_is_fixed():
     from scholar_harness.console import code_window
 
     words = code_window.message([3, 4, 5], "2026-11-20T10:05:00+00:00")
-    assert "3 batches" in words and "expire" in words
+    assert "batches 3, 4, 5" in words and "expire" in words
     assert code_window.TITLE == "Nexus Scholar: approval"
-    assert code_window.message([7], "not-a-time").startswith("Approval code for batch 7.")
+    assert code_window.message([7], "not-a-time").startswith("Approval codes for batch 7.")
 
 
 def test_the_window_can_be_turned_off(monkeypatch):
@@ -431,3 +431,165 @@ def test_the_packaged_app_passes_the_desktop_window(tmp_path):
     (ui / "en" / "index.html").write_text("<html></html>", encoding="utf-8")
     app = launcher.Launcher(root=tmp_path, workspace=None, ui_dir=ui, open_browser=False, say=lambda _m: None)
     assert app.build_app(None).state.code_window is code_window.reveal
+
+
+# --- review round 1 repairs -------------------------------------------------
+
+
+def test_review_one_broken_batch_does_not_block_the_others(tmp_path, capsys):
+    """A batch whose parent file is gone is listed with its refusal; the others get codes."""
+    ws = _workspace(tmp_path, records=9, batch_size=3)
+    client = _client(ws)
+    by_batch = _studies_by_batch(client)
+    _decide(client, [s for studies in by_batch.values() for s in studies])
+    (ws / "literature" / "screening" / "batch_003.json").unlink()
+    capsys.readouterr()
+
+    response = client.post(f"{BASE}/actions/pairing/begin-all", json={})
+    assert response.status_code == 200, response.text
+    body = response.json()
+    assert [b["batch_index"] for b in body["batches"]] == [1, 2]
+    assert [s["batch_index"] for s in body["skipped"]] == [3]
+    assert body["skipped"][0]["reason"] not in ("ALREADY_APPROVED", "DEFERRED", "NOT_DECIDED")
+    bundle = _bundle(capsys.readouterr().out)
+    result = client.post(f"{BASE}/actions/pairing/redeem-all", json={"codes": bundle}).json()
+    assert [r["batch_index"] for r in result["approved"]] == [1, 2]
+
+
+def test_review_a_journal_failure_mid_paste_is_a_500_that_names_every_batch(tmp_path, capsys, monkeypatch):
+    from scholar_harness.console.api import screening as screening_api
+
+    ws = _workspace(tmp_path, records=9, batch_size=3)
+    client = _client(ws)
+    by_batch = _studies_by_batch(client)
+    _decide(client, [s for studies in by_batch.values() for s in studies])
+    capsys.readouterr()
+    client.post(f"{BASE}/actions/pairing/begin-all", json={})
+    bundle = _bundle(capsys.readouterr().out)
+
+    real = screening_api._journal_action
+    calls = {"n": 0}
+
+    def flaky(*args: Any, **kwargs: Any) -> dict:
+        calls["n"] += 1
+        if calls["n"] == 2:
+            raise OSError("disk full")
+        return real(*args, **kwargs)
+
+    monkeypatch.setattr(screening_api, "_journal_action", flaky)
+    response = client.post(f"{BASE}/actions/pairing/redeem-all", json={"codes": bundle})
+    assert response.status_code == 500
+    detail = response.json()["detail"]
+    assert detail["code"] == "ACTION_AUDIT_FAILED"
+    assert [a["batch_index"] for a in detail["details"]["approved"]] == [1]
+    assert [(r["batch_index"], r["code"]) for r in detail["details"]["refused"]] == [
+        (2, "ACTION_AUDIT_FAILED"),
+        (3, "NOT_ATTEMPTED"),
+    ]
+    # Batch 2 was rolled back; batch 1 keeps its approval and its journal row.
+    assert sorted(_approvals(ws)) == [1]
+    rows = [r for r in _journal(ws) if r["action"] == "SCREENING_PAIRING_REDEEMED"]
+    assert [r["parameters"]["batch_index"] for r in rows] == [1]
+
+
+def test_review_a_long_run_of_digits_is_read_quickly():
+    import time
+
+    start = time.perf_counter()
+    assert pairing_mod.parse_code_block("9" * 64_000) == []
+    assert time.perf_counter() - start < 2.0
+
+
+def test_review_the_codes_are_nowhere_but_the_terminal_after_a_bulk_run(tmp_path, capsys):
+    """No code in the redeem-all answer, the journal, or any file of the workspace."""
+    ws = _workspace(tmp_path, records=9, batch_size=3)
+    client = _client(ws)
+    by_batch = _studies_by_batch(client)
+    _decide(client, [s for studies in by_batch.values() for s in studies])
+    capsys.readouterr()
+    begun = client.post(f"{BASE}/actions/pairing/begin-all", json={})
+    bundle = _bundle(capsys.readouterr().out)
+    codes = [line.split(":", 1)[1].strip() for line in bundle.splitlines()]
+    # One wrong line too, so a refusal message is in the answer.
+    redeemed = client.post(f"{BASE}/actions/pairing/redeem-all", json={"codes": bundle + "\nbatch 9: " + "C" * 26})
+    assert redeemed.status_code == 200
+    for code in codes:
+        assert code not in begun.text and code not in redeemed.text
+        for path in ws.rglob("*"):
+            if path.is_file():
+                assert code not in path.read_text(encoding="utf-8", errors="ignore"), path
+
+
+def test_review_the_window_gets_the_codes_on_stdin_never_on_its_command_line(monkeypatch):
+    """The window is a child process (Tk off the engine's main thread aborts on macOS)."""
+    import subprocess
+
+    from scholar_harness.console import code_window
+
+    seen: dict[str, Any] = {}
+
+    class FakeChild:
+        def __init__(self, args, **kwargs):
+            seen["args"], seen["kwargs"] = args, kwargs
+            import io
+
+            self.stdin = io.StringIO()
+            self.stdout = io.StringIO("ready\n")
+            seen["stdin"] = self.stdin
+            self.stdin.close = lambda: seen.setdefault("payload", self.stdin.getvalue())  # type: ignore[method-assign]
+
+        def poll(self):
+            return None
+
+        def kill(self):
+            seen["killed"] = True
+
+    monkeypatch.setenv(code_window.WINDOW_ENV, "1")
+    monkeypatch.setattr(subprocess, "Popen", FakeChild)
+    code = "batch 1: " + "D" * 26
+    assert code_window.reveal(codes=code, batches=[1], expires_at="2026-11-20T10:05:00+00:00") is True
+    assert seen["args"][1] == "-I" and seen["args"][2].endswith("code_window.py")
+    assert all("D" * 26 not in str(a) for a in seen["args"])
+    assert json.loads(seen["payload"])["codes"] == code
+
+
+def test_review_a_child_that_cannot_show_a_window_leaves_the_terminal(monkeypatch):
+    import io
+    import subprocess
+
+    from scholar_harness.console import code_window
+
+    class Unavailable:
+        def __init__(self, *_a, **_k):
+            self.stdin, self.stdout = io.StringIO(), io.StringIO("unavailable\n")
+
+        def poll(self):
+            return 0
+
+        def kill(self):
+            pass
+
+    monkeypatch.setenv(code_window.WINDOW_ENV, "1")
+    monkeypatch.setattr(subprocess, "Popen", Unavailable)
+    assert code_window.reveal(codes="batch 1: X", batches=[1], expires_at="2026-11-20T10:05:00+00:00") is False
+
+
+def test_review_the_window_script_imports_the_standard_library_only():
+    """The child runs the file alone (`python -I`): it must not need the package."""
+    import ast
+    import sys as _sys
+
+    from scholar_harness.console import code_window
+
+    tree = ast.parse(Path(code_window.__file__).read_text(encoding="utf-8"))
+    names = {a.name.split(".")[0] for n in ast.walk(tree) if isinstance(n, ast.Import) for a in n.names}
+    names |= {n.module.split(".")[0] for n in ast.walk(tree) if isinstance(n, ast.ImportFrom) and n.module}
+    assert names <= set(_sys.stdlib_module_names) | {"__future__"}, names
+
+
+def test_review_the_window_says_which_batches_and_to_close_it_if_not_asked():
+    from scholar_harness.console import code_window
+
+    words = code_window.message(list(range(1, 55)), "2026-11-20T10:05:00+00:00")
+    assert "batches 1, 2, 3" in words and "and 42 more" in words
+    assert "If you did not just ask for codes on the Publish screen, close this window" in words

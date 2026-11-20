@@ -1159,8 +1159,12 @@ class RedeemAllBody(BaseModel):
     request_id: str | None = None
 
 
-#: A pasted block longer than this is not a block of codes (54 batches is ~2 KB).
-REDEEM_ALL_MAX_CHARS = 200_000
+#: A pasted block longer than this is not a block of codes (54 batches is ~2 KB;
+#: 64 KB holds about 1,800 batches).
+REDEEM_ALL_MAX_CHARS = 64_000
+
+#: A pair not tried because an earlier one could not write its journal row.
+NOT_ATTEMPTED = "NOT_ATTEMPTED"
 
 
 @router.post("/actions/pairing/redeem-all", status_code=200)
@@ -1171,7 +1175,11 @@ def action_pairing_redeem_all(body: RedeemAllBody, request: Request) -> dict[str
     batch order. A line that fails (a stale batch, an expired or wrong code)
     is reported and the others still count: each approval binds only its own
     batch (CON-03). When no line approves anything, the first refusal is the
-    answer, so a wrong paste is never an empty success.
+    answer, so a wrong paste is never an empty success. When a journal row
+    cannot be written, that batch is rolled back (as a single redeem does),
+    the pairs after it are not tried, and the answer is the 500
+    ``ACTION_AUDIT_FAILED`` carrying what was approved before it and what was
+    not tried: a provenance failure is never a 200.
     """
     from scholar_harness.authority import pairing as _pairing
 
@@ -1194,7 +1202,7 @@ def action_pairing_redeem_all(body: RedeemAllBody, request: Request) -> dict[str
     refused: list[dict[str, Any]] = []
     first_error: HTTPException | None = None
     publication: str | None = None
-    for batch, code in pairs:
+    for position, (batch, code) in enumerate(pairs):
         try:
             result = _redeem_one(ws, batch, code, f"{req}-b{batch}", bulk=True)
         except HTTPException as exc:
@@ -1208,7 +1216,19 @@ def action_pairing_redeem_all(body: RedeemAllBody, request: Request) -> dict[str
             )
             first_error = first_error or exc
             if exc.status_code >= 500:
-                break  # provenance could not be written: stop, nothing more
+                # Provenance could not be written: stop, and say what was not tried.
+                refused.extend(
+                    {"batch_index": later, "code": NOT_ATTEMPTED, "message": "not tried after the journal failure"}
+                    for later, _ in pairs[position + 1 :]
+                )
+                raise _ui07_error(
+                    exc.status_code,
+                    str(detail.get("code") or ACTION_AUDIT_FAILED),
+                    str(detail.get("message") or "provenance could not be recorded"),
+                    request_id=req,
+                    approved=approved,
+                    refused=refused,
+                ) from exc
             continue
         approved.append(
             {
@@ -1221,7 +1241,9 @@ def action_pairing_redeem_all(body: RedeemAllBody, request: Request) -> dict[str
         # current approval (CON-03), so a refused batch leaves it None.
         publication = result.get("publication_approval_fingerprint")
     if not approved and first_error is not None:
-        raise first_error
+        detail = dict(first_error.detail) if isinstance(first_error.detail, dict) else {}
+        detail["request_id"] = req  # the request's own id, not the per-batch one
+        raise HTTPException(status_code=first_error.status_code, detail=detail)
     return {
         "shape": "screening-action-redeem-all-v1",
         "request_id": req,
