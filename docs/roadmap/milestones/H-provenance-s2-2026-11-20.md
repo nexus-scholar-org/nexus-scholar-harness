@@ -1,5 +1,5 @@
 # H-provenance-s2 Provider attribution after verification; Semantic Scholar "0 results" in Explore
-Branch: `dev/fix/provenance-s2` (from `origin/main` `88e3d6fb`) · Lane: **RELEASE** (see "Lane") · Status: **built, not pushed** · Started: 2026-11-20
+Branch: `dev/fix/provenance-s2` (from `origin/main` `88e3d6fb`) · Lane: **RELEASE** (see "Lane") · Status: **ready for PR (review APPROVE), not pushed; decisions PROPOSED** · Started: 2026-11-20
 
 Two defects from the live run of 2026-11-19 (installed wheel from `origin/main` `2c4383e9`, the researcher's keys, a scratch workspace not available to this session). The researcher asked for both fixes on 2026-11-20. Choices: `docs/decisions.md`, top entry (2026-11-20, H-provenance-s2, PROPOSED).
 
@@ -68,6 +68,7 @@ Two defects from the live run of 2026-11-19 (installed wheel from `origin/main` 
 | | `80fea855` | `ruff check scripts/`; `ruff check src/ --select F821,F811,F823,F632,F7,B023,B006,E9`; `git diff --check origin/main...HEAD` | all clean |
 | | `80fea855` | `npm --prefix apps/research-ui run typecheck`; `test`; `build`; `test:browser`; `build:export` | exit 0; 937 passed (66 files); exit 0; **600 passed, 12 skipped** (13.2 m); exit 0 |
 | | `80fea855` | `uv build --wheel`, installed in a fresh Python 3.12 venv; `nexus-scholar --help`, `scholar-agent --help` | built; both exit 0 |
+| review round 2 | `c1d7fe63` | `milestone-reviewer`, limited to the round-1 findings and the delta `72fd878e..c1d7fe63` | **APPROVE**: F1 to F5 resolved; reran the targeted tests and the legs vitest; follow-up: three blank lines before `_doi_kept` in `verifier.py` (E303, outside CI's ruff selection) |
 | note | `5ec74b8a` | `npm test` run while the checkpoint loaded the machine | 8 files failed on 5 s waits in screens this change does not touch; 7 passed when rerun alone, the 8th (`discovery-proposals`) passed twice alone; the final run above is clean |
 | note | `80fea855` | `test:browser` rewrites six tracked screenshots under `apps/research-ui/screenshots/` | restored with `git checkout`, not committed |
 
