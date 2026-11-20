@@ -351,3 +351,16 @@ describe("inception.direction accessibility (H-run-small-fixes, finding 6)", () 
     expect(radios.some((r) => r.value === "on")).toBe(false);
   });
 });
+
+
+describe("inception.direction words grounding (H-run-small-fixes, finding 3)", () => {
+  it("says when a typed direction is grounded on its words, not on the exact phrase", async () => {
+    prepare();
+    render(<InceptionDirection locale="en" />);
+    await cards();
+    fireEvent.click(screen.getByRole("button", { name: "Write my own direction" }));
+    fireEvent.change(screen.getByLabelText("Your direction"), { target: { value: "detection of weed" } });
+    fireEvent.click(screen.getByRole("button", { name: "Check my phrase" }));
+    expect(await screen.findByText(/The exact phrase is rare, but all its words occur together in \d+ of 14 titles or abstracts/)).toBeInTheDocument();
+  });
+});

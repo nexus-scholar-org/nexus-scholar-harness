@@ -1015,3 +1015,19 @@ def test_a_gap_check_follow_up_leg_never_says_shorten():
     rows = _legs_summary([dict(empty), {**empty, "query": "weed detection cereal fields"}],
                          "UAV imagery weed detection cereal crops")
     assert [r["shorten"] for r in rows] == [True, False]
+
+
+
+def test_an_own_direction_grounded_on_its_words_says_so_in_the_binding_and_the_context(env):
+    """H-run-small-fixes review P2: the record names the rule that grounded the direction."""
+    client, _app, _root, _recon = env
+    sid = _new_draft(client)
+    _probe(client, sid)
+    words = client.post(f"{BASE}/drafts/{sid}/recon/bind", json={"own": "detection of weed"}).json()["grounding"]
+    direction = words["direction"]
+    assert direction["match"] == "words" and direction["words"] == ["detection", "weed"]
+    assert direction["grounded"] is True and "its words occur together" in direction["detail"]
+    assert words["term_evidence"]["detection of weed"]["match"] == "words"
+    assert words["term_evidence"]["detection of weed"]["observed_in"] == direction["observed_in"]
+    phrase = client.post(f"{BASE}/drafts/{sid}/recon/bind", json={"own": "weed detection"}).json()["grounding"]
+    assert phrase["direction"]["match"] == "phrase" and "words" not in phrase["direction"]

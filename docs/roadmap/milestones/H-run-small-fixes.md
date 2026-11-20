@@ -191,11 +191,29 @@ Branch `dev/h/run-fixes-inception`, rebased on `origin/main` `bbcaf288` (Parts A
 - `src/scholar_harness/console/api/screening_v1.py`: `_stopping`, the cancel answer, the run view's `cancel_requested`.
 - UI: `components/stamp.tsx`, `checks-panel.tsx`, `inception-direction.tsx`, `inception-explore.tsx`, `inception-import.tsx`, `inception-recon.tsx`, `inception-assist.tsx` (ReadinessList refusal), `screening-proposals.tsx` (Stopping), `lib/inception-copy.ts`, `lib/screening-v1.ts`; test fakes follow the engine (`tests/fixtures/inception-engine.ts`: proof criterion rule, out-of-scope split and status, `outOfScopeId`).
 
+### Review
+
+Round 1 (`milestone-reviewer`, on `495a9248`): **CHANGES**, three P2, six P3. Repaired:
+
+| # | Finding | Repair | Test |
+| :-- | :-- | :-- | :-- |
+| P2 | The Direction screen ignored `match`: a direction grounded on its words read "This phrase occurs in 2 of 25" | New copy `direction.own.check.groundedWords`, `direction.own.groundedWords` (en/fr/ar); the recon fake follows the words rule | `tests/inception-direction.test.tsx` "inception.direction words grounding" |
+| P2 | The binding and `recon_context` did not say which rule grounded the direction; `term_evidence` for it was the phrase's | `direction.match`, `words`; `term_evidence[own]` is the grounding evidence; `recon_context.direction_match` | `tests/console/test_recon_api.py::test_an_own_direction_grounded_on_its_words_says_so_in_the_binding_and_the_context` |
+| P2 | `docs/architecture/inception-api.md` not amended | Criteria status, `out_of_scope_reasons{item}`, `/recon/evidence` rows | (docs) |
+| P3 | `_acronym_fragment` dropped "tree height growth", "small seeded grass" | An acronym is at most one letter longer than the words before it | kept cases in `test_finding_3_and_23_…` |
+| P3 | The words rule grounds loose phrases | Risk written in decision item 4 for the researcher | (decision) |
+| P3 | The Playwright fake answered a cancel with `cancelled` at once | Stopping, then cancelled on the next poll; the spec asserts `[data-stopping]` | `tests-browser/screening-proposals.spec.ts` |
+| P3 | `CRITERIA_UNDECIDED.why` said "The wizard wrote them" | Neutral en/fr/ar; spec 02-checks updated | (copy) |
+| P3 | The record's before-the-fix count was wrong | Corrected (7 of 12 failed) | (docs) |
+| P3 | No test for "Notes ({n})" | Added | `tests/checks-panel.test.tsx` "checks panel notes count" |
+
+Follow-ups noted, not done: the CLI wizard and the browser now compile different protocols for the same answers when a typed inclusion exists (decision item 1; no test pins it); importing a protocol made under the new rule does not recover the proof answer from the rationale; Review may show the same refusal twice (the new card and the preview's).
+
 ### Evidence
 
 | Check | Result |
 | :-- | :-- |
-| Reproducing tests before the fix | `tests/inception/test_run_small_fixes_inception.py`: 9 of 11 failed on the unfixed code (the two controls passed); the cancel and Review refusal UI tests fail on the old components by construction (the old cancel answer and an empty panel) |
+| Reproducing tests before the fix | `tests/inception/test_run_small_fixes_inception.py` (12 tests): 7 failed on the `origin/main` source (findings 1, 2 twice, 3/23, 3, the one-word case, 4) and 5 passed (the controls; checked by the reviewer against a copy of the base source); the cancel and Review refusal UI tests fail on the old components by construction (the old cancel answer and an empty panel) |
 | After the fix | `tests/inception tests/console tests/recon tests/kits` (without `-m slow` filter): 3,572 passed, 8 skipped before the 7/35 repairs; `tests/console/test_agent_runs_api.py tests/console/test_screening_drafts_api.py`: 39 passed after them |
 | UI | vitest: 977 tests, 976 passed and one Explore test failed once under full parallel load and passed 3 of 3 alone; `tsc` clean |
 | PR gate | {PR} |

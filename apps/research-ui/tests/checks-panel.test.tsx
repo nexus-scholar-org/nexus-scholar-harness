@@ -226,6 +226,8 @@ describe("checks panel (02-checks)", () => {
     expect(list.querySelector("[data-group='blocker'] h3")?.textContent).toBe("Must fix");
     expect(list.querySelector("[data-group='warning'] h3")?.textContent).toBe("Look at");
     expect(list.querySelector("[data-group-note] summary")?.textContent).toBe("Notes (1)");
+    // H-run-small-fixes (finding 5): the count is part of the summary's text, never empty.
+    expect(list.querySelector("[data-group-note] summary")?.textContent).not.toContain("()");
     expect(list.querySelector("[data-dismissed] summary")?.textContent).toBe("Dismissed (1)");
     expect(row("SCOPE_TOPIC_MISSING", list).querySelector("[data-step-chip]")?.textContent).toBe("Step 1");
     expect(row("CONCEPT_TERM_MISSING", list).querySelector("[data-step-chip]")?.textContent).toBe("Step 5");
@@ -407,5 +409,18 @@ describe("checks after a decision on the Concepts and criteria page (H-ui-findin
     });
     expect(line.textContent).toBe("You have changes that are not saved yet. These checks describe the saved draft and update when you save.");
     expect(criteriaRow("CRITERIA_UNDECIDED")?.querySelector("[data-row-saved]")?.textContent).toContain("Before your changes");
+  });
+});
+
+describe("checks panel notes count (H-run-small-fixes, finding 5)", () => {
+  it("names the number of notes in a step panel, never an empty count", async () => {
+    setUp({ draft: completeDraft({ start_year: null }), checks: true });
+    render(<InceptionScope locale="en" />);
+    const summary = await waitFor(() => {
+      const el = document.querySelector("[data-notes] summary");
+      expect(el).not.toBeNull();
+      return el as HTMLElement;
+    });
+    expect(summary.textContent).toMatch(/^Notes \(\d+\)$/);
   });
 });

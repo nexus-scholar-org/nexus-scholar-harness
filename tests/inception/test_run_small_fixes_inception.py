@@ -102,7 +102,8 @@ def test_an_out_of_scope_item_without_semicolons_is_unchanged():
 def test_finding_3_and_23_a_phrase_of_generic_or_colour_words_is_never_proposed():
     for junk in ("blue green red", "red green", "rgb nir", "aerial vehicle uav", "unmanned aerial vehicle uav"):
         assert directions._is_junk_term_label(junk), junk
-    for kept in ("weed segmentation", "multispectral imagery", "sugar beet", "uav weed mapping", "red edge band"):
+    for kept in ("weed segmentation", "multispectral imagery", "sugar beet", "uav weed mapping", "red edge band",
+                 "tree height growth", "early season images", "small seeded grass"):
         assert not directions._is_junk_term_label(kept), kept
 
 

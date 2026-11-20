@@ -70,7 +70,9 @@ def _acronym_fragment(tokens: list[str]) -> bool:
     if len(tokens) < 2:
         return False
     acronym, words = tokens[-1], tokens[:-1]
-    if not (2 <= len(acronym) <= 6 and acronym.isalpha()):
+    # At most one letter more than the words before it ("aerial vehicle uav"):
+    # "tree height growth" ends with "th" but "growth" is no acronym (review P4).
+    if not (2 <= len(acronym) <= len(words) + 1 and acronym.isalpha()):
         return False
     initials = "".join(w[0] for w in words if w)
     return len(initials) >= 2 and acronym.endswith(initials)

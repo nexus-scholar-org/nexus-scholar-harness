@@ -100,6 +100,7 @@ def build_grounding(
     two records of the pool. A pool under the floor of 12 refuses
     ``POOL_TOO_SMALL`` unless ``accept_thin_pool``.
     """
+    own_evidence: dict[str, Any] | None = None
     if sum((bool(direction), bool(own), bool(skip))) != 1:
         raise ReconRefused(
             NO_DIRECTION, "Choose one of the proposed directions, write your own, or go on without one.", status=422
@@ -138,6 +139,7 @@ def build_grounding(
         own = (own or "").strip()
         # H-run-small-fixes (finding 3): the phrase, else its words together in one record.
         ev = own_direction_evidence(pool, own)
+        own_evidence = ev
         where = "it occurs" if ev.get("match") != "words" else "its words occur together"
         chosen = {
             "label": own,
@@ -149,6 +151,9 @@ def build_grounding(
             "detail": f"your direction; {where} in {ev['observed_in']} of {n_docs} titles or abstracts",
             "source": "researcher",
             "grounded": ev["observed_in"] >= OWN_DIRECTION_MIN_ANCHORS,
+            # Which rule found the anchors: the exact phrase, or every content word in one record.
+            "match": ev.get("match", "phrase"),
+            **({"words": list(ev["words"])} if ev.get("match") == "words" else {}),
         }
     anchored_terms: dict[str, list[str]] = {}
     if chosen["anchor_dois"]:
@@ -157,7 +162,13 @@ def build_grounding(
         if t["anchor_dois"]:
             anchored_terms.setdefault(t["term"], list(t["anchor_dois"]))
     session = sessions.load(session_id)
-    evidence = {chosen["concept"]: term_evidence(pool, chosen["concept"])} if chosen["concept"] else {}
+    if not chosen["concept"]:
+        evidence = {}
+    elif own_evidence is not None:
+        # The own direction's evidence is the evidence that grounded it (with its ``match``).
+        evidence = {chosen["concept"]: own_evidence}
+    else:
+        evidence = {chosen["concept"]: term_evidence(pool, chosen["concept"])}
     topic = session.get("topic")
     if topic:
         evidence[topic] = term_evidence(pool, topic)
@@ -321,6 +332,8 @@ def recon_context(
         "direction": direction.get("label"),
         "direction_source": direction.get("source"),
         "direction_grounded": direction.get("grounded"),
+        # H-run-small-fixes: how an own direction was grounded ("phrase" or "words"; None for a proposed one).
+        "direction_match": direction.get("match"),
         "concept": direction.get("concept"),
         "default_concepts": list(grounding.get("default_concepts") or []),
         "anchored_terms": dict(grounding.get("anchored_terms") or {}),
