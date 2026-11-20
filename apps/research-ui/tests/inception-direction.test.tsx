@@ -341,3 +341,13 @@ describe("inception.direction", () => {
     if (anchors) expect(anchors).not.toHaveAttribute("dir");
   });
 });
+
+describe("inception.direction accessibility (H-run-small-fixes, finding 6)", () => {
+  it("gives each direction radio its label as value, never the default 'on'", async () => {
+    prepare();
+    render(<InceptionDirection locale="en" />);
+    const radios = (await cards()) as HTMLInputElement[];
+    expect(radios.map((r) => r.value)).toEqual(["weed detection", "weed segmentation", "embedded hardware"]);
+    expect(radios.some((r) => r.value === "on")).toBe(false);
+  });
+});
