@@ -214,6 +214,8 @@ type GridActions = {
   cancel: (rowId: string, col: number) => void;
   studyCell: (row: ChartingRow) => ReactNode;
   decisionBadge: (row: ChartingRow) => ReactNode;
+  statusBadge: (row: ChartingRow) => ReactNode;
+  roundWords: (row: ChartingRow) => string;
   t: (key: ChartingCopyKey, values?: Record<string, string | number>) => string;
 };
 
@@ -310,6 +312,67 @@ const ChartingGridRow = memo(function ChartingGridRow({
   );
 });
 
+/** One card of the phone list (spec 01 "Mobile layout"): a link to the one-study view; memoised like the rows of the Charting view. */
+const PhoneCard = memo(function PhoneCard({
+  row,
+  columns,
+  locale,
+  origin,
+  view,
+  show,
+  excluded,
+  actions,
+}: Readonly<{ row: ChartingRow; columns: FormColumn[]; locale: Locale; origin: string; view: TableView; show: ShowFilter; excluded: boolean; actions: MutableRefObject<GridActions> }>) {
+  const a = actions.current;
+  const href = chartingStudyHref(locale, row.study_id, origin, { view, show, excluded });
+  const filled = columns.filter((c) => cellOf(row, c.column_id).state !== null);
+  return (
+    <li className={`rounded-md border border-rule bg-leaf ${row.kept ? "" : "opacity-70"}`} data-phone-card>
+      <a href={href} className={`flex min-h-11 flex-col gap-2 rounded-md px-3 py-2 ${FOCUS_RING}`} data-phone-link>
+        {a.studyCell(row)}
+        <span className="flex flex-wrap items-center gap-2 text-xs text-ink-muted">
+          <span>{a.roundWords(row)}</span>
+          {a.statusBadge(row)}
+          {a.decisionBadge(row)}
+        </span>
+        {filled.length ? (
+          <dl className="space-y-0.5 text-xs" data-phone-values>
+            {filled.map((c) => (
+              <div key={c.column_id} className="flex flex-wrap gap-1">
+                <dt className="font-medium text-ink">
+                  <bdi>{c.name}</bdi>:
+                </dt>
+                <dd className="text-ink-muted">
+                  <bdi>{cellWords(locale, c, cellOf(row, c.column_id))}</bdi>
+                </dd>
+              </div>
+            ))}
+          </dl>
+        ) : null}
+      </a>
+    </li>
+  );
+});
+
+/**
+ * Which of the two layouts this window shows: the phone list below 640 px, the
+ * desktop screen above. Both are drawn (and CSS picks one) until the window says,
+ * and always where it cannot (the first paint, a test page without matchMedia);
+ * drawing only the one shown keeps a key press from reconciling the other.
+ */
+function useViewport(): "phone" | "desktop" | "both" {
+  const [viewport, setViewport] = useState<"phone" | "desktop" | "both">("both");
+  useEffect(() => {
+    if (typeof window.matchMedia !== "function") return;
+    const query = window.matchMedia("(min-width: 640px)");
+    const update = () => setViewport(query.matches ? "desktop" : "phone");
+    update();
+    query.addEventListener?.("change", update);
+    return () => query.removeEventListener?.("change", update);
+  }, []);
+  return viewport;
+}
+
 export function ChartingPage({ locale }: Readonly<{ locale: Locale }>) {
   return (
     <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
@@ -322,6 +385,7 @@ function ChartingScreen({ locale }: Readonly<{ locale: Locale }>) {
   const t = useCallback((key: ChartingCopyKey, values?: Record<string, string | number>) => cc(locale, key, values), [locale]);
   const n = useCallback((value: number) => formatNumber(locale, value), [locale]);
   const origin = useMemo(consoleOrigin, []);
+  const viewport = useViewport();
 
   const [load, setLoad] = useState<Load>({ status: "loading" });
   const [table, setTable] = useState<ChartingTable | null>(null);
@@ -1399,15 +1463,18 @@ function ChartingScreen({ locale }: Readonly<{ locale: Locale }>) {
     ) : null;
 
   gridActions.current = {
+    // A focus that lands where the screen already is changes nothing (no second render per key press).
     focusCell: (rowId, col) => {
-      setFocusId(rowId);
-      setFocusCol(col);
+      if (rowId !== focusId) setFocusId(rowId);
+      if (col !== focusCol) setFocusCol(col);
     },
     startEdit,
     commit: commitEdit,
     cancel: cancelEdit,
     studyCell,
     decisionBadge,
+    statusBadge,
+    roundWords,
     t,
   };
 
@@ -1528,44 +1595,16 @@ function ChartingScreen({ locale }: Readonly<{ locale: Locale }>) {
       <section className="space-y-3 sm:hidden" data-phone>
         <p className="rounded-md border border-rule bg-leaf px-4 py-3 text-ink">{t("charting.mobile")}</p>
         {showSelect("charting-show-phone")}
-        {loading ? null : (
+        {loading || viewport === "desktop" ? null : (
           <ul className="space-y-2" data-phone-list>
             {rows.map((row) => (
-              <li key={row.study_id} className={`rounded-md border border-rule bg-leaf ${row.kept ? "" : "opacity-70"}`} data-phone-card>
-                <a
-                  href={chartingStudyHref(locale, row.study_id, origin, { view, show, excluded: showExcluded })}
-                  className={`flex min-h-11 flex-col gap-2 rounded-md px-3 py-2 ${FOCUS_RING}`}
-                  data-phone-link
-                >
-                  {studyCell(row)}
-                  <span className="flex flex-wrap items-center gap-2 text-xs text-ink-muted">
-                    <span>{roundWords(row)}</span>
-                    {statusBadge(row)}
-                    {decisionBadge(row)}
-                  </span>
-                  {columns.some((c) => cellOf(row, c.column_id).state !== null) ? (
-                    <dl className="space-y-0.5 text-xs" data-phone-values>
-                      {columns
-                        .filter((c) => cellOf(row, c.column_id).state !== null)
-                        .map((c) => (
-                          <div key={c.column_id} className="flex flex-wrap gap-1">
-                            <dt className="font-medium text-ink">
-                              <bdi>{c.name}</bdi>:
-                            </dt>
-                            <dd className="text-ink-muted">
-                              <bdi>{cellWords(locale, c, cellOf(row, c.column_id))}</bdi>
-                            </dd>
-                          </div>
-                        ))}
-                    </dl>
-                  ) : null}
-                </a>
-              </li>
+              <PhoneCard key={row.study_id} row={row} columns={columns} locale={locale} origin={origin} view={view} show={show} excluded={showExcluded} actions={gridActions} />
             ))}
           </ul>
         )}
       </section>
 
+      {viewport === "phone" ? null : (
       <div className="hidden space-y-4 sm:block" data-desktop>
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2" data-toolbar>
           <div role="radiogroup" aria-label={t("charting.table.view.label")} className="inline-flex rounded-md border border-rule-strong p-0.5" data-view-switch>
@@ -1862,6 +1901,7 @@ function ChartingScreen({ locale }: Readonly<{ locale: Locale }>) {
           data-file-input
         />
       </div>
+      )}
     </div>
   );
 }
