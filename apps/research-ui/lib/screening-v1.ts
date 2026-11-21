@@ -108,6 +108,26 @@ export interface RecordDetail {
   history: StoredEvent[];
   /** The protocol's not-reported policy (M7-method); older engines omit it. */
   not_reported_policy?: NotReportedPolicy;
+  /** M8b: the protocol's concepts and where their words occur; older engines omit it. */
+  search_terms?: SearchTerms;
+}
+
+export type MarkedField = "title" | "abstract";
+
+/** M8b: offsets count UTF-16 code units in the title or abstract as served. */
+export interface SearchTerms {
+  concepts: { concept: string; terms: string[]; mentions: number }[];
+  marks: { field: MarkedField; start: number; end: number; concept: number }[];
+}
+
+/** M8b: where a draft's quote shows in the record, or that it is not at its offsets. */
+export interface QuotePlace {
+  criterion_id: string;
+  answer: Answer;
+  found: boolean;
+  field: MarkedField | null;
+  start: number | null;
+  end: number | null;
 }
 
 export interface Validator {
@@ -131,6 +151,8 @@ export interface Proposal {
   not_reported_policy?: NotReportedPolicy;
   /** H-screening-drafts: what the store holds (policy null for a draft stored before it was recorded). */
   recorded?: { derived_outcome: Outcome; reason_code: string | null; not_reported_policy: NotReportedPolicy | null };
+  /** M8b: the place of each quote; older engines omit it. */
+  quotes?: QuotePlace[];
 }
 
 export interface Refusal {

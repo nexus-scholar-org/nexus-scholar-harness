@@ -2,6 +2,9 @@
 
 Boards: `Triage` (D4), `TriageRevealed` (D5), `MobileTriage` (M3), `MobileRevealed` (M5). Brand components: `EvidenceQuote`, `DataCell`, `StatusBadge`. Contract: `screening-api-contract.md` §3-§5.
 
+## Amended 2026-11-21 (M8b)
+The record pane carries the marks of 03, section "Amended 2026-11-21 (M8b-triage-highlights)": a marks bar with a search-terms legend above the title, search-term underlines and the agent's quotes (only once the draft is shown) in the title and abstract. The year line and venue are not marked; the phone card (04) is unchanged. `highlights` (criterion highlights, `{start,end,criterion_id}`) stays empty and is not filled by M8b. New read fields: `search_terms` on the record, `quotes` on the proposal (03, point 7).
+
 ## Amended 2026-11-09 (M8-triage)
 The checklist is optional and collapsed by default on desktop; Include needs no answers and is disabled only while an answer fails a criterion. The sentence below "Include needs every inclusion yes and no exclusion yes" and the "Include needs …" status lines are superseded; see 03, section "Amended 2026-11-09 (M8-triage)" (points 2 to 4). Exclude is always enabled and takes its reason from the checklist when a criterion fails, else from the chips. Event shape unchanged.
 

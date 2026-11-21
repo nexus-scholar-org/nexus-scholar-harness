@@ -124,6 +124,22 @@ const en = {
   helpTitle: "Keyboard",
   helpBody: "I include · E exclude · U unclear → full text · S skip · Z undo · N next · J/K move in the queue · 1/2/3 yes / no / not reported on the focused criterion · ? this help",
   close: "Close",
+  // M8b-triage-highlights (spec 03, M8b point 9)
+  "marks.region": "Marks in the record",
+  "marks.terms.switch": "Search terms",
+  "marks.quotes.switch": "Agent's quotes",
+  "marks.legend.title": "Search terms in this record",
+  "marks.legend.summary": "Mentions {n} of {m} concepts",
+  "marks.legend.mentions": "{n} mentions",
+  "marks.legend.absent": "not in this record",
+  "marks.legend.item": "{name}: {status}",
+  "marks.legend.other": "Other concepts",
+  "marks.hint.label": "How marks are matched",
+  "marks.hint.text": "Marks show whole words and phrases from your search concepts, in any case; plurals count as the same word, and so do a hyphen and a space. A database matches in its own way, so a record the search found can show no mark.",
+  "marks.noConcepts": "The protocol has no search concepts.",
+  "marks.quote.suffix": "agent's quote for {id} ({answer})",
+  "marks.quote.show": "Show in the text",
+  "marks.quote.notFound": "Not found at its place in the record, so it is not marked.",
 } as const;
 
 export type TriageCopyKey = keyof typeof en;
@@ -244,6 +260,21 @@ const fr: Record<TriageCopyKey, string> = {
   helpTitle: "Clavier",
   helpBody: "I inclure · E exclure · U incertain → texte intégral · S passer · Z annuler · N suivante · J/K se déplacer dans la file · 1/2/3 oui / non / non rapporté sur le critère actif · ? cette aide",
   close: "Fermer",
+  "marks.region": "Marques dans la notice",
+  "marks.terms.switch": "Termes de recherche",
+  "marks.quotes.switch": "Citations de l'agent",
+  "marks.legend.title": "Termes de recherche dans cette notice",
+  "marks.legend.summary": "Mentionne {n} concepts sur {m}",
+  "marks.legend.mentions": "{n} mentions",
+  "marks.legend.absent": "absent de cette notice",
+  "marks.legend.item": "{name} : {status}",
+  "marks.legend.other": "Autres concepts",
+  "marks.hint.label": "Comment les marques sont trouvées",
+  "marks.hint.text": "Les marques montrent les mots et expressions entiers de vos concepts de recherche, sans tenir compte de la casse ; le pluriel, le trait d'union et l'espace comptent pour équivalents. Chaque base cherche à sa façon : une notice trouvée par la recherche peut donc n'avoir aucune marque.",
+  "marks.noConcepts": "Le protocole n'a aucun concept de recherche.",
+  "marks.quote.suffix": "citation de l'agent pour {id} ({answer})",
+  "marks.quote.show": "Voir dans le texte",
+  "marks.quote.notFound": "Introuvable à sa place dans la notice, elle n'est donc pas marquée.",
 };
 
 const ar: Record<TriageCopyKey, string> = {
@@ -362,6 +393,21 @@ const ar: Record<TriageCopyKey, string> = {
   helpTitle: "لوحة المفاتيح",
   helpBody: "I إدراج · E استبعاد · U غير واضح ← النص الكامل · S تخطٍّ · Z تراجع · N التالي · J/K التنقل في القائمة · 1/2/3 نعم / لا / غير مذكور للمعيار المحدد · ? هذه المساعدة",
   close: "إغلاق",
+  "marks.region": "العلامات في السجل",
+  "marks.terms.switch": "مصطلحات البحث",
+  "marks.quotes.switch": "اقتباسات الوكيل",
+  "marks.legend.title": "مصطلحات البحث في هذا السجل",
+  "marks.legend.summary": "يذكر {n} من أصل {m} مفاهيم",
+  "marks.legend.mentions": "{n} إشارة",
+  "marks.legend.absent": "غير موجود في هذا السجل",
+  "marks.legend.item": "{name}: {status}",
+  "marks.legend.other": "مفاهيم أخرى",
+  "marks.hint.label": "كيف تُطابَق العلامات",
+  "marks.hint.text": "تُظهر العلامات الكلمات والعبارات الكاملة من مفاهيم بحثك دون اعتبار لحالة الأحرف؛ ويُعدّ الجمع والواصلة والمسافة متكافئة. وكل قاعدة بيانات تطابق بطريقتها، لذا قد لا تظهر أي علامة في سجل عثر عليه البحث.",
+  "marks.noConcepts": "لا يتضمن البروتوكول أي مفاهيم بحث.",
+  "marks.quote.suffix": "اقتباس الوكيل لـ {id} ({answer})",
+  "marks.quote.show": "إظهار في النص",
+  "marks.quote.notFound": "غير موجود في موضعه في السجل، لذا لم يُعلَّم.",
 };
 
 export const TRIAGE_COPY: Record<Locale, Record<TriageCopyKey, string>> = { en, fr, ar };

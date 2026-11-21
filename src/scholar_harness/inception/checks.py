@@ -81,6 +81,11 @@ SENTENCES: dict[str, str] = {
     "CONCEPT_TERM_MISSING": "Your title and questions use {term}, but no concept or synonym does.",
     "CONCEPT_NOT_ANCHORED": "None of the {concept} terms appears in the {n} sample papers.",
     "CONCEPTS_ONE_ONLY": "The search uses one concept only.",
+    # M11a Part B: the query workbench (never blockers).
+    "QUERY_NOT_COUNTED": "This search has not been counted in any database yet.",
+    "SEEDS_CANNOT_TEST.all": "Your {n} known papers each use a term of every concept, so they cannot show a paper this query misses.",
+    "SEEDS_CANNOT_TEST.concept": "No known paper lacks '{concept}'; the seeds cannot test it.",
+    "SEEDS_CANNOT_TEST.few": "Too few known papers to test the query.",
     "CRITERIA_UNDECIDED": "{n} criteria still need your Accept or Drop.",
     "CRITERIA_SIDE_MISSING": "The protocol needs an accepted {side} criterion.",
     "CRITERIA_REASONS_UNIFORM": "All {n} exclusion criteria carry the same reason, {code}.",
@@ -136,6 +141,8 @@ CATALOGUE: dict[str, str] = {
     "CONCEPT_TERM_MISSING": "criteria",
     "CONCEPT_NOT_ANCHORED": "criteria",
     "CONCEPTS_ONE_ONLY": "criteria",
+    "QUERY_NOT_COUNTED": "criteria",
+    "SEEDS_CANNOT_TEST": "criteria",
     "CRITERIA_UNDECIDED": "criteria",
     "CRITERIA_SIDE_MISSING": "criteria",
     "CRITERIA_REASONS_UNIFORM": "criteria",
@@ -543,6 +550,12 @@ def inception_checks(
         waiting.append({"check_id": "CONCEPT_NOT_ANCHORED", "step": "criteria", "needs": "pool"})
     else:
         run("CONCEPT_NOT_ANCHORED", lambda: _not_anchored(draft, pool, raw_pool))
+    # M11a Part B: the query workbench's checks (a note and a warning; never blockers).
+    if workspaces_root is not None and record.get("session_id"):
+        run("QUERY_NOT_COUNTED", lambda: _query_not_counted(record, draft, Path(workspaces_root)))
+        # Review B5: the pool as stored, as the workbench panel reads it.
+        run("SEEDS_CANNOT_TEST", lambda: _seeds_cannot_test(record, draft, Path(workspaces_root),
+                                                             raw_pool if raw_pool is not None else pool))
     run("CONCEPTS_ONE_ONLY", lambda: [
         check("CONCEPTS_ONE_ONLY", "note", action=_field("criteria", "concepts"))
     ] if len(draft.concepts) == 1 else [])
@@ -567,6 +580,67 @@ def inception_checks(
     run("REVIEW_PROPOSALS_OPEN", lambda: _proposals_open(record))
     run("REVIEW_IMPORT_STEP_NOT_OPENED", lambda: _import_not_opened(record))
     return items, waiting, partial, proposals
+
+
+def _workbench_version(draft: steps.Draft) -> Any:
+    from scholar_search import workbench as wb
+
+    return wb.parse_version({
+        "concepts": [{"concept": c.concept, "synonyms": list(c.synonyms)} for c in draft.concepts],
+        "start_year": draft.start_year, "end_year": draft.end_year, "languages": list(draft.languages),
+    })
+
+
+def _query_not_counted(record: dict[str, Any], draft: steps.Draft, root: Path) -> list[dict[str, Any]]:
+    """M11a: the saved version of the search was never counted in the workbench (a note)."""
+    from scholar_search import workbench as wb
+
+    from scholar_harness import query_workbench as qw
+
+    from .drafts import DraftStore
+
+    try:
+        version = _workbench_version(draft)
+    except wb.VersionInvalid:
+        return []  # no concept: CONCEPTS_NONE speaks
+    log = qw.CountLog(qw.draft_log_path(DraftStore(root).dir, record["session_id"]))
+    if qw.version_counted(log, version):
+        return []
+    return [check("QUERY_NOT_COUNTED", "note", action=_field("criteria", "concepts"))]
+
+
+def _seeds_cannot_test(record: dict[str, Any], draft: steps.Draft, root: Path,
+                       pool: dict[str, Any] | None) -> list[dict[str, Any]]:
+    """M11a: the known papers' words cannot show a paper the query misses (a warning).
+
+    Read without a request: the first search's pool and the texts the
+    workbench looked up earlier. A seed whose words are not known is not read.
+    """
+    if not draft.golden_seeds:
+        return []
+    from scholar_search import workbench as wb
+
+    from scholar_harness import query_workbench as qw
+    from scholar_harness import query_workbench_sets as qs
+
+    from .drafts import DraftStore
+
+    try:
+        version = _workbench_version(draft)
+    except wb.VersionInvalid:
+        return []
+    log = qw.CountLog(qw.draft_log_path(DraftStore(root).dir, record["session_id"]))
+    known = [qs.row_record(d) for d in (pool or {}).get("docs") or [] if isinstance(d, dict)]
+    result = qs.local_seed_check(version, list(draft.golden_seeds), log=log, known=known)
+    if result["read"] == 0 or result["warning"] is None:
+        return []
+    level = result["warning"]["level"]
+    untested = result["warning"]["untested"]
+    params = {"n": result["read"], "concept": untested[0] if untested else "", "concepts": ", ".join(untested)}
+    evidence = [{"kind": "count", "name": "known papers read", "value": result["read"], "unit": "papers"},
+                {"kind": "count", "name": "known papers not read", "value": result["not_read"], "unit": "papers"}]
+    return [check("SEEDS_CANNOT_TEST", "warning", subject=level, params=params, evidence=evidence,
+                  sentence=f"SEEDS_CANNOT_TEST.{level}", action=_step("direction"))]
 
 
 def _pool_ev(pool: dict[str, Any] | None) -> dict[str, Any]:
