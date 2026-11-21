@@ -87,6 +87,8 @@ test("keyboard: Enter in the reason never records, Escape returns to Record, Ctr
   await expect(page.locator("[data-amend-confirm]")).toBeVisible();
   await expect(reason).toBeFocused();
   await reason.fill("Edge devices and weed detection are one idea in this review.");
+  // Record is disabled until the consequences have been read, and Tab skips a disabled button.
+  await expect(page.locator("[data-record]")).toBeEnabled();
   await page.keyboard.press("Tab"); // the consequences are text: Cancel, then Record
   await expect(page.locator("[data-record-cancel]")).toBeFocused();
   await page.keyboard.press("Tab");
