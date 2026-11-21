@@ -99,6 +99,43 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
+describe("next-step.charting (M12a DoD 9)", () => {
+  it("after Publish the bar says what comes next and opens the charting table, in en, fr and ar", async () => {
+    const done = answer({
+      phase: "published",
+      state: "DONE",
+      action: { key: "openCharting", to: { screen: "charting", query: {} } },
+      also: [{ key: "goToPublish", to: { screen: "screening.publish", query: {} } }],
+    });
+    engine(done);
+    at("/en/screening/home");
+    render(<NextStepBar locale="en" pathname="/en/screening/home" />);
+    expect(await screen.findByRole("link", { name: "Open charting" })).toHaveAttribute("href", "/en/charting");
+    expect(sentence()).toBe("Screening is done. Next: get the full texts and chart the studies.");
+    expect(NEXT_STEP_COPY.en["next.state.DONE"]).not.toMatch(/Export and methods/);
+    for (const locale of ["fr", "ar"] as const) {
+      expect(NEXT_STEP_COPY[locale]["next.state.DONE"]).not.toBe(NEXT_STEP_COPY.en["next.state.DONE"]);
+      expect(NEXT_STEP_COPY[locale]["next.action.openCharting"]).toBeTruthy();
+    }
+  });
+
+  it("announces a published answer to the header", async () => {
+    const heard: unknown[] = [];
+    const listener = (event: Event) => heard.push((event as CustomEvent).detail);
+    window.addEventListener("nexus:next-step-answer", listener);
+    try {
+      engine(answer({ phase: "published", state: "PUBLISHED", round: 1, action: { key: "goToChase", to: { screen: "discovery.chase", query: {} } }, also: [{ key: "openCharting", to: { screen: "charting", query: {} } }] }));
+      at("/en/screening/home");
+      render(<NextStepBar locale="en" pathname="/en/screening/home" />);
+      await screen.findByRole("link", { name: "Go to Chase" });
+      expect(heard).toEqual([{ scope: "workspace", phase: "published", state: "PUBLISHED", round: 1 }]);
+    } finally {
+      window.removeEventListener("nexus:next-step-answer", listener);
+      window.sessionStorage.clear();
+    }
+  });
+});
+
 describe("next-step.i18n", () => {
   const en = NEXT_STEP_COPY.en as Record<string, string>;
   const holes = (s: string) => [...s.matchAll(/\{(\w+)\}/g)].map((m) => m[1]).sort();
@@ -127,7 +164,7 @@ describe("next-step.i18n", () => {
   });
 
   it("routes every screen the engine names, and the bar's source carries no literal accessible name (N9)", () => {
-    for (const screen of ["workspaces", "inception.list", "inception.scope", "inception.explore", "inception.direction", "inception.shape", "inception.criteria", "inception.review", "inception.done", "discovery.plan", "discovery.harvest", "discovery.handoff", "discovery.chase", "screening.home", "screening.triage", "screening.publish"]) {
+    for (const screen of ["workspaces", "inception.list", "inception.scope", "inception.explore", "inception.direction", "inception.shape", "inception.criteria", "inception.review", "inception.done", "discovery.plan", "discovery.harvest", "discovery.handoff", "discovery.chase", "screening.home", "screening.triage", "screening.publish", "charting"]) {
       expect(SCREEN_ROUTES, screen).toHaveProperty([screen]);
     }
     for (const file of ["components/next-step-bar.tsx", "components/review-bus.ts", "lib/next-step.ts", "lib/next-step-copy.ts"]) {

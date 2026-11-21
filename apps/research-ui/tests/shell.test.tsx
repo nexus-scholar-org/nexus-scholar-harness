@@ -1,4 +1,4 @@
-import { cleanup, render, screen, within } from "@testing-library/react";
+import { act, cleanup, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import axe from "axe-core";
 import type { AxeResults, Result } from "axe-core";
@@ -7,6 +7,7 @@ import { describe, expect, it, vi } from "vitest";
 import { generateMetadata } from "@/app/[locale]/layout";
 import { AppShell, MAIN_CONTENT_ID } from "@/components/app-shell";
 import { NAV_ITEMS, currentNavId } from "@/components/site-header";
+import { CHARTING_OPEN_KEY, announceNextStep } from "@/components/review-bus";
 import { LOCALE_METADATA, SUPPORTED_LOCALES, type Locale } from "@/i18n";
 import { CATALOGS } from "@/messages";
 
@@ -127,8 +128,39 @@ describe("primary navigation", () => {
     expect(currentNavId("/en/screeningx", "en")).toBeUndefined();
     expect(currentNavId("/en/corpus", "en")).toBeUndefined();
     expect(currentNavId("/fr/workspaces", "en")).toBeUndefined();
-    expect(NAV_ITEMS.map((item) => item.id)).toEqual(["workspaces", "discovery", "screening"]);
+    expect(NAV_ITEMS.map((item) => item.id)).toEqual(["workspaces", "discovery", "screening", "charting"]);
     expect(currentNavId("/fr/discovery/harvest/", "fr")).toBe("discovery");
+    expect(currentNavId("/ar/charting/", "ar")).toBe("charting");
+  });
+
+  it("offers Charting once the next-step bar says a round is published, and on the charting route (M12a DoD 9)", async () => {
+    const linksOf = (locale: Locale) =>
+      within(screen.getByRole("navigation", { name: t(locale, "nav.landmark.primary") }))
+        .getAllByRole("link")
+        .map((link) => link.textContent);
+    try {
+      window.sessionStorage.removeItem(CHARTING_OPEN_KEY);
+      renderShell("en", "/en/screening/home");
+      expect(linksOf("en")).not.toContain(t("en", "nav.charting"));
+      act(() => announceNextStep({ scope: "workspace", phase: "published", state: "DONE", round: 1 }));
+      expect(linksOf("en")).toEqual([t("en", "nav.workspaces"), t("en", "nav.discovery"), t("en", "nav.screening"), t("en", "nav.charting")]);
+      act(() => announceNextStep({ scope: "workspace", phase: "screening", state: "SCREENING", round: 1 }));
+      expect(linksOf("en")).not.toContain(t("en", "nav.charting"));
+      // A chased round being screened: the first round's table stays open.
+      act(() => announceNextStep({ scope: "workspace", phase: "screening", state: "NOT_PREPARED", round: 2 }));
+      expect(linksOf("en")).toContain(t("en", "nav.charting"));
+      // Remembered for the browser session, on a route where the bar does not read.
+      renderShell("fr", "/fr/workspaces");
+      expect(await within(screen.getByRole("navigation", { name: t("fr", "nav.landmark.primary") })).findByRole("link", { name: t("fr", "nav.charting") })).toHaveAttribute("href", "/fr/charting");
+      window.sessionStorage.removeItem(CHARTING_OPEN_KEY);
+      renderShell("ar", "/ar/charting");
+      const current = within(screen.getByRole("navigation", { name: t("ar", "nav.landmark.primary") }))
+        .getAllByRole("link")
+        .filter((link) => link.getAttribute("aria-current") === "page");
+      expect(current.map((link) => link.textContent)).toEqual([t("ar", "nav.charting")]);
+    } finally {
+      window.sessionStorage.removeItem(CHARTING_OPEN_KEY);
+    }
   });
 
   it("sends the wordmark to the workspaces screen", () => {

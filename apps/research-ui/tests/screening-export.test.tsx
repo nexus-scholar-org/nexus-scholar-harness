@@ -78,6 +78,7 @@ describe("export.states", () => {
     render(<ScreeningExport locale="en" />);
     await screen.findByRole("heading", { level: 1, name: "Take your screening with you." });
     expect(screen.getByText("Published · current")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Chart the included studies" })).toHaveAttribute("href", "/en/charting");
     expect(screen.getByText("Draft · check before you submit")).toBeInTheDocument();
     expect(screen.getByText(PARAGRAPH)).toBeInTheDocument();
     const counts = screen.getByRole("table", { name: "PRISMA 2020 counts of the published screening" });

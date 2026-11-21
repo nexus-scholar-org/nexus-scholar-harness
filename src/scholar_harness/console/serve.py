@@ -29,6 +29,7 @@ from fastapi.staticfiles import StaticFiles
 from . import browser
 
 from .api import audit as audit_api
+from .api import charting as charting_api
 from .api import inception as inception_api
 from .api import jobs as jobs_api
 from .api import pipelines as pipelines_api
@@ -280,6 +281,7 @@ def create_app(
     app.include_router(recon_api.router)
     app.include_router(discovery_api.router)
     app.include_router(workbench_api.router)
+    app.include_router(charting_api.router)
     app.include_router(review_api.router)
     app.include_router(jobs_api.router)
     app.include_router(screening_api.router)
