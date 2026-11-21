@@ -73,4 +73,3 @@ def test_records_shown_again_come_first_in_needs_you_tagged(tmp_path):
     items = client.get(f"{BASE}/queue", params={"view": "needs_you"}).json()["items"]
     assert [i["study_id"] for i in items] == [order[2], order[0], order[1]]
     assert [i["shown_again"] for i in items] == [True, False, False]
-

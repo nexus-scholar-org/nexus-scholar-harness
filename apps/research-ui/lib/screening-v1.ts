@@ -974,4 +974,3 @@ export interface PilotResult {
 export function getPilotResult(origin: string, pilotId: string, signal?: AbortSignal): Promise<PilotResult> {
   return readJson<PilotResult>(`${BASE}/pilot/${encodeURIComponent(pilotId)}/result`, consoleBase(origin), signal);
 }
-

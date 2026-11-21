@@ -780,4 +780,3 @@ def test_part_c_the_pilot_view_carries_your_pilot_decision_and_the_main_views_do
     _ok(client.post(f"{BASE}/pilot/{drawn['pilot_id']}/close"))
     main = _ok(client.get(f"{BASE}/queue", params={"view": "needs_you", "limit": 200}))["items"]
     assert all("pilot_decision" not in i for i in main)
-
