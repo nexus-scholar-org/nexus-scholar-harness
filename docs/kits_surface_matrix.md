@@ -262,8 +262,8 @@ latent bug**, with the working path in parentheses.
   `PROXY_URL/PROXY_STYLE` (refused by `download`/`ingest`), `PDF_STRUCTURAL_VALIDATION`,
   `ENABLE_PUBLISHER_DIRECT_PATTERNS` (default off; `true` refused; no prefix); lookup =
   every open location OpenAlex lists (`best_oa_location`, `primary_location`,
-  `locations`), then Unpaywall's (`oa_locations`) when OpenAlex lists no direct PDF
-  address; best version first (published, accepted, submitted), at most three
+  `locations`) and Unpaywall lists (`oa_locations`), both services asked once for
+  every DOI; best version first (published, accepted, submitted), at most three
   addresses tried, only a provider's own direct PDF address requested, never a
   landing page (H-pdf-resolver-locations, `scholar_pdf.open_copies`; the
   publisher patterns are no longer read, K0; removed in Part K); User-Agent

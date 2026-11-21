@@ -9,7 +9,7 @@ layer: domain
 ---
 # `scholar-pdf-kit` Skill Instructions
 
-You are an expert academic research agent equipped with `scholar-pdf-kit`. This toolkit resolves DOIs to legal Open Access PDFs from the providers' own open-access locations (every open location OpenAlex lists, then Unpaywall's), validates binary `%PDF-` magic-byte integrity, and extracts structured section Markdown with standard YAML frontmatter.
+You are an expert academic research agent equipped with `scholar-pdf-kit`. This toolkit resolves DOIs to legal Open Access PDFs from the providers' own open-access locations (every open location OpenAlex and Unpaywall list), validates binary `%PDF-` magic-byte integrity, and extracts structured section Markdown with standard YAML frontmatter.
 
 > **Status (decision 2026-11-21, M12a items 21 to 27; K0).** `download` and
 > `ingest` are **production**. `extract`, `extract-run` and `acquire` are
@@ -27,8 +27,9 @@ You are an expert academic research agent equipped with `scholar-pdf-kit`. This 
 >   (`PROXY_REFUSED`, item 25); the proxy code stays, parked.
 >
 > Since H-pdf-resolver-locations (2026-11-21) `download` **takes the best open
-> copy listed with a direct PDF address**: every open location in OpenAlex
-> `locations` and Unpaywall `oa_locations` is read, not only the "best" one;
+> copy listed with a direct PDF address**: both services are asked for every
+> DOI, and every open location in OpenAlex `locations` and Unpaywall
+> `oa_locations` is read, not only the "best" one;
 > published version first, then accepted manuscript, then submitted version or
 > preprint (M12a answer F3); at most three addresses are tried; a landing page
 > is never requested. The summary names the copy taken (version, licence,
@@ -47,7 +48,7 @@ You are an expert academic research agent equipped with `scholar-pdf-kit`. This 
 > by hand until then.
 
 ## Core Capabilities
-1. **Open Access Lookup**: Resolves legal OA full-text from every open location OpenAlex lists (`best_oa_location`, `primary_location`, `locations`), then from Unpaywall's (`best_oa_location`, `oa_locations`) when OpenAlex lists no direct PDF address. Only an address a provider gives is requested, best version first (published, accepted manuscript, submitted or preprint), at most three per DOI; a landing page is never requested. The publisher direct-PDF patterns are off and are removed in Part K (M12a item 24); the institutional proxy is refused by `download` and `ingest` (item 25).
+1. **Open Access Lookup**: Resolves legal OA full-text from every open location OpenAlex lists (`best_oa_location`, `primary_location`, `locations`) and Unpaywall lists (`best_oa_location`, `oa_locations`); both services are asked once for every DOI and the best copy across both lists is taken. Only an address a provider gives is requested, best version first (published, accepted manuscript, submitted or preprint), at most three per DOI; a landing page is never requested. The publisher direct-PDF patterns are off and are removed in Part K (M12a item 24); the institutional proxy is refused by `download` and `ingest` (item 25).
 2. **Concurrent & Resilient Downloading**: Asynchronous staged retrieval (per-candidate temp file, validated before atomic promotion) with exponential backoff (tenacity: min 2 s, max 10 s, 3 attempts). Paywall/error HTML is rejected post-download by binary-signature validation, never by trusting HTTP success.
 3. **Strict Binary Signature Validation**: Requires `%PDF-<major>.<minor>` magic bytes within the first 1024 bytes, a `%%EOF` trailer within the final 8 KB, and a 10 KB size floor; unvalidated bytes are never promoted and staging files are unlinked. Optional `--strict-validate` runs pypdf structural parsing (encryption-tolerant) as a second gate.
 4. **Content-Addressed Output Naming**: Discovery `download` and manual `ingest` promote validated bytes to identity-addressed `DOC-<32 hex>.pdf` paths derived from content hash, never from a title, filename, or HTTP success. The `--smart-names` flag is still accepted on the CLI but does not control the final filename in the pinned implementation (see deferred defect D1). Structured metadata logs are exported via `--export json|bibtex`.
@@ -319,8 +320,8 @@ if __name__ == "__main__":
 
 ## Verified surface, MCP mapping & knowledge
 
-- **Lookup**: every open location OpenAlex lists, then Unpaywall's
-  (`scholar_pdf.open_copies`); only a provider's own direct PDF address is
+- **Lookup**: every open location OpenAlex and Unpaywall list, both asked once
+  for every DOI (`scholar_pdf.open_copies`); only a provider's own direct PDF address is
   requested, best version first, at most three per DOI (no guessed publisher URL,
   item 24; no proxy, item 25). `DownloadResult` carries `outcome`, `open_copy`
   (version, licence, host, source, provider) and `lookups`.

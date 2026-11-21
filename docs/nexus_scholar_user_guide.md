@@ -25,7 +25,8 @@ GitHub Releases — no source checkout, no per-kit installs.
 > (`SCHOLAR_MAILTO`, or the kit's `MAILTO`; refused `MAILTO_NOT_SET` without),
 > name the app in their User-Agent, request only the providers' own open-access
 > locations (no guessed publisher URL), and refuse an institutional proxy.
-> `download` takes the best open copy listed with a direct PDF address
+> `download` asks both services for every DOI and takes the best open copy
+> either lists with a direct PDF address
 > (published version first, then accepted manuscript, then submitted version or
 > preprint), names that copy in its summary, and says why a DOI has no file, in
 > words and in its exit code: 3 a lookup failed (run again later), 1 a listed
