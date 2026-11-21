@@ -356,7 +356,7 @@ def download(
         help="Refused: an institutional proxy is not used (decision 2026-11-21, M12a item 25).",
     ),
     proxy_style: str = typer.Option(
-        "auto", "--proxy-style", help="Proxy style: auto | ezproxy | subdomain | prefix"
+        "auto", "--proxy-style", help="Parked; a proxy is refused (M12a item 25)."
     ),
     strict_validate: bool = typer.Option(
         False,
@@ -514,7 +514,7 @@ def ingest(
         help="Refused: an institutional proxy is not used (decision 2026-11-21, M12a item 25).",
     ),
     proxy_style: str = typer.Option(
-        "auto", "--proxy-style", help="Proxy style: auto | ezproxy | subdomain | prefix"
+        "auto", "--proxy-style", help="Parked; a proxy is refused (M12a item 25)."
     ),
     strict_validate: bool = typer.Option(
         False, "--strict-validate", help="Require pypdf structural validation on ingest"

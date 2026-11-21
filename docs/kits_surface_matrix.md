@@ -267,7 +267,7 @@ latent bug**, with the working path in parentheses.
   encryption-tolerant pypdf gate); invalid files auto-deleted; frontmatter keys =
   `workspace_id|doi|title|authors|year|extraction_engine|extracted_at` (empty keys
   dropped); smart filename `{year}_{author}_{title}.pdf` (title ≤50 alnum); PDF bytes
-  stream via aiohttp (Chrome UA) while metadata uses search-kit's httpx+hishel client;
+  stream via aiohttp (the app's user agent) while metadata uses search-kit's httpx+hishel client;
   `import fitz` (PyMuPDF); `pyyaml` is an undeclared transitive dep; extraction
   writes a stub line on parse failure — "success" ≠ content.
 

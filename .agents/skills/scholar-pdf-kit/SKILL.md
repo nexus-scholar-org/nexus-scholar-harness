@@ -278,8 +278,8 @@ async def main():
     dois = ["10.1371/journal.pbio.3000246", "10.7717/peerj.4375"]
 
     # 1. Initialize Downloader (needs SCHOLAR_MAILTO or MAILTO: process_doi
-    #    raises MailtoNotSetError before any request without one; no proxy,
-    #    M12a item 25; optional pypdf gate via structural_validation=True)
+    #    raises MailtoNotSetError before any request without one; PROXY_URL is
+    #    not read, M12a item 25; optional pypdf gate via structural_validation=True)
     downloader = AsyncPDFDownloader(
         output_dir=Path("{WORKSPACE}/pdfs"),
         structural_validation=True,

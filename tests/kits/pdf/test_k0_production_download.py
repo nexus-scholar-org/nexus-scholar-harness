@@ -284,3 +284,9 @@ def test_a_download_with_contact_and_no_proxy_still_runs(app_contact_only, tmp_p
     assert result.exit_code == 0, result.output
     process_doi.assert_called_once()
 
+
+def test_the_library_does_not_read_proxy_url(monkeypatch, tmp_path):
+    """Review finding 2: PROXY_URL in the environment or .env never reaches the library."""
+    monkeypatch.setattr(pdf_config.settings, "proxy_url", "https://proxy.example.edu")
+    downloader = AsyncPDFDownloader(output_dir=tmp_path)
+    assert downloader.institutional_gateway_url == "" and downloader.proxy_url == ""

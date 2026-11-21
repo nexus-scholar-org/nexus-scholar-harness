@@ -20,8 +20,8 @@ GitHub Releases — no source checkout, no per-kit installs.
 > tools say so in their descriptions, and the app labels any screen that shows
 > them. Do not rely on them for a review.
 >
-> **The PDF kit's downloading is production** (decision 2026-11-21, M12a items 21
-> and 27, K0): `scholar-pdf download` and `ingest` need a contact e-mail
+> **The PDF kit's downloading is production** from the release after 1.1.0b6
+> (decision 2026-11-21, M12a items 21 and 27, K0): `scholar-pdf download` and `ingest` need a contact e-mail
 > (`SCHOLAR_MAILTO`, or the kit's `MAILTO`; refused `MAILTO_NOT_SET` without),
 > name the app in their User-Agent, request only the providers' own open-access
 > locations (no guessed publisher URL), and refuse an institutional proxy. Known
@@ -349,7 +349,7 @@ starts this server on your workspace.
 
 | Variable | Purpose |
 | --- | --- |
-| `SCHOLAR_MAILTO` | Contact email sent to Crossref (in the User-Agent) and to NCBI for PubMed. OpenAlex no longer reads an email and is not sent one. **Required for a live search**: without it `run`, a browser harvest and a recall check refuse with `MAILTO_NOT_SET`. |
+| `SCHOLAR_MAILTO` | Contact email sent to Crossref (in the User-Agent) and to NCBI for PubMed. OpenAlex no longer reads an email and a search does not send it one; `scholar-pdf download` and `ingest` do send it to Unpaywall and OpenAlex (as a parameter and in the User-Agent) and refuse without it. **Required for a live search**: without it `run`, a browser harvest and a recall check refuse with `MAILTO_NOT_SET`. |
 | `SCHOLAR_OPENALEX_KEY` | OpenAlex API key (free, from openalex.org). **Required to search OpenAlex: OpenAlex has required a key since 2026-02-13.** A browser harvest that includes OpenAlex refuses with `OPENALEX_KEY_NOT_SET` until it is set, and the Plan screen shows whether it is set. Without it, a CLI `run` still sends OpenAlex keyless requests, which share a small daily budget with everyone on your network address; paging past the first page is refused, and the OpenAlex leg then fails with `PROVIDER_REFUSED` and a note naming the key. |
 | `SCHOLAR_S2_KEY` | Semantic Scholar API key (optional; without it the bulk search runs in Semantic Scholar's shared keyless pool). Sent as the `x-api-key` header. A key Semantic Scholar rejects (HTTP 401 or 403; keys unused for about 60 days are pruned, and a key pasted with quotes is refused) fails the Semantic Scholar leg with `PROVIDER_REFUSED` and a note naming the variable; the search is never retried without the key. The Plan screen shows "Set, not yet verified". A key allows 1 request per second across all endpoints; the search, the abstract step and citation chasing together send at most 0.9 per second (`SCHOLAR_RATE_LIMIT_S2`). |
 | `NEXUS_WORKSPACES_ROOT` | Folder holding your workspaces for `nexus-scholar ui` (else `~/Documents/Nexus Scholar/workspaces`). |

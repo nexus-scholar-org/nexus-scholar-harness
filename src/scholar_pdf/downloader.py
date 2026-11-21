@@ -63,12 +63,14 @@ class AsyncPDFDownloader:
         self.semaphore = asyncio.Semaphore(settings.max_concurrent_downloads)
         self.use_smart_names = use_smart_names
         # ``proxy_url`` is retained as a deprecated alias for the historical
-        # gateway configuration.  Transport proxying is now explicit.
+        # gateway configuration.  Parked code (M12a item 25): only a gateway the
+        # caller passes is used; ``PROXY_URL`` is never read here (K0), and the
+        # production commands refuse one.
         self.institutional_gateway_url = (
             institutional_gateway_url
             if institutional_gateway_url is not None
-            else (proxy_url if proxy_url is not None else settings.proxy_url) or ""
-        )
+            else proxy_url
+        ) or ""
         self.forward_proxy_url = forward_proxy_url or ""
         self.proxy_url = self.institutional_gateway_url
         self.proxy_style = proxy_style or settings.proxy_style or "auto"
