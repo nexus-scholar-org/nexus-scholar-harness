@@ -732,3 +732,59 @@ def test_item5_a_stored_event_replays_as_a_duplicate_and_still_counts_after_a_re
     assert _post(client, [stored])[0]["result"] == "duplicate"
     # The binding check is at intake only: decisions made under version 1 still count.
     assert client.get(f"{BASE}/summary").json()["decided"] == 1
+
+
+# --- review round 3, F1: a conflict from before a revision can still be resolved ----------------------
+
+
+def _conflict(client: TestClient, study: str) -> tuple[dict, dict]:
+    first = _event(client, study, "INCLUDE")
+    second = _event(client, study, "EXCLUDE", reason_code="EXC-01")
+    assert _post(client, [first])[0]["result"] == "accepted"
+    assert _post(client, [second])[0]["result"] == "conflict"
+    return first, second
+
+
+def test_round3_a_conflict_resolved_after_a_wording_change_is_shown_again(ws, client):
+    study = _studies(client)[0]
+    first, _second = _conflict(client, study)
+    _ok(_amend(client, "add", "exclusion", text="Simulation-only studies"))
+    resolved = client.post(f"{BASE}/decisions/conflicts/{study}/resolve", json={"keep_event_id": first["event_id"]})
+    assert resolved.status_code == 200, resolved.text
+    assert resolved.json()["results"][0]["result"] == "accepted"
+    stored = _stored(ws)[-1]
+    # The resolution keeps the decision it keeps, with the version it was made under, so the revision
+    # that could change it shows the record again instead of counting it under the new wording.
+    assert stored["criteria_version"] == 1 and stored["binding"]["criteria_version"] == 2
+    recheck = [i["study_id"] for i in client.get(f"{BASE}/queue", params={"view": "recheck"}).json()["items"]]
+    assert recheck == [study] and client.get(f"{BASE}/decisions/conflicts").json()["items"] == []
+    earlier = client.get(f"{BASE}/records/{study}").json()["shown_again"]["decision"]
+    [again] = _post(client, [_event(client, study, "INCLUDE", supersedes=earlier["event_id"])])
+    assert again["result"] == "accepted"
+    assert client.get(f"{BASE}/summary").json()["decided"] == 1
+
+
+def test_round3_a_conflict_resolved_after_a_category_change_counts(ws, client):
+    study = _studies(client)[0]
+    first, _second = _conflict(client, study)
+    _ok(_amend(client, "reason_category", "exclusion", ["EXC-01"], reason_category="WRONG_FORMAT"))
+    resolved = client.post(f"{BASE}/decisions/conflicts/{study}/resolve", json={"keep_event_id": first["event_id"]})
+    assert resolved.json()["results"][0]["result"] == "accepted"
+    assert client.get(f"{BASE}/queue", params={"view": "recheck"}).json()["items"] == []
+    assert client.get(f"{BASE}/summary").json()["decided"] == 1
+
+
+def test_round3_keeping_an_exclusion_whose_criterion_was_retired_resolves_and_is_shown_again(ws, client):
+    study = _studies(client)[0]
+    _first, second = _conflict(client, study)
+    _ok(_amend(client, "split", "exclusion", ["EXC-01"], text=["Malformed documents", "Non-canonical documents"]))
+    resolved = client.post(f"{BASE}/decisions/conflicts/{study}/resolve", json={"keep_event_id": second["event_id"]})
+    assert resolved.json()["results"][0]["result"] == "accepted"
+    assert [i["study_id"] for i in client.get(f"{BASE}/queue", params={"view": "recheck"}).json()["items"]] == [study]
+
+
+def test_round3_a_bound_version_must_be_an_integer(ws, client):
+    study = _studies(client)[0]
+    event = _event(client, study)
+    event["binding"]["criteria_version"] = True
+    assert _post(client, [event])[0]["refusal"]["code"] == "STALE_BINDING"

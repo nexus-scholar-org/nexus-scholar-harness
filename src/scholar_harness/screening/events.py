@@ -331,7 +331,10 @@ def validate_event(
 
 
 def _criteria_refusal(
-    event: dict[str, Any], context: ScreeningContext, live: list[dict[str, Any]]
+    event: dict[str, Any],
+    context: ScreeningContext,
+    live: list[dict[str, Any]],
+    resolution_version: int | None = None,
 ) -> dict[str, str] | None:
     """M11b part A: the checks against the criteria in force, on new events only.
 
@@ -342,7 +345,8 @@ def _criteria_refusal(
       (an equal outcome is a confirmation, and the earliest head wins).
     """
     code = event.get("reason_code")
-    if event.get("outcome") == "EXCLUDE" and context.retired_reason(code):
+    kept_earlier = resolution_version is not None and resolution_version < context.criteria_version
+    if event.get("outcome") == "EXCLUDE" and context.retired_reason(code) and not kept_earlier:
         return _refuse(
             REASON_CODE_RETIRED,
             f"{code} cites a criterion retired by a revision of the criteria; choose a criterion in force",
@@ -353,7 +357,7 @@ def _criteria_refusal(
     # the new version; its record stays in the queue. A binding without it reads as version 1.
     # Checked on new events only, and not by `is_current`, so stored decisions keep counting.
     bound = (event.get("binding") or {}).get("criteria_version", 1)
-    if bound != context.criteria_version:
+    if type(bound) is not int or bound != context.criteria_version:  # a bool or a float is not a version
         return _refuse(
             STALE_BINDING,
             f"the decision was made under criteria version {bound}; the criteria in force are version "
@@ -614,8 +618,14 @@ def intake(
     device: str | None = None,
     context: ScreeningContext | None = None,
     after_commit: Any = None,
+    resolution_version: int | None = None,
 ) -> list[IntakeResult]:
     """Judge and store a request's events (contract §3.4).
+
+    ``resolution_version`` is for the engine's own conflict resolution only (review round 3 of
+    M11b part A, decision item 11): the resolution keeps a decision made under that criteria
+    version, so it is stamped with it (a revision since then shows the record again) and may cite
+    a criterion retired since then. A client cannot set it.
 
     `after_commit`, when given, is called with the stored events while the
     event lock is still held (the console regenerates projections there).
@@ -624,7 +634,9 @@ def intake(
     context = context or load_context(ws)
     try:
         with _locked(ws):
-            return _intake_locked(ws, events, token_scope, received_at, device, context, after_commit)
+            return _intake_locked(
+                ws, events, token_scope, received_at, device, context, after_commit, resolution_version
+            )
     except LockBusy:
         # Review B: only a failure to take the lock means nothing was stored.
         return [
@@ -637,7 +649,7 @@ def intake(
         ]
 
 
-def _intake_locked(ws, events, token_scope, received_at, device, context, after_commit):
+def _intake_locked(ws, events, token_scope, received_at, device, context, after_commit, resolution_version=None):
     # M11b part A: the criteria in force are read under the lock, so a revision
     # recorded while this request waited is the one checked and stamped (and
     # the projection after the commit, which shares this context, sees it too).
@@ -663,7 +675,7 @@ def _intake_locked(ws, events, token_scope, received_at, device, context, after_
             parent = known.get(str(raw.get("supersedes") or ""))
             copied = parent.get("note") if parent is not None and isinstance(parent.get("note"), str) else None
             refusal = _limit_refusal(raw, token_scope, received_at, copied_note=copied) or _criteria_refusal(
-                raw, context, counted + pending
+                raw, context, counted + pending, resolution_version
             )
             if refusal is not None:
                 results.append(IntakeResult(event_id, "refused", refusal))
@@ -701,7 +713,9 @@ def _intake_locked(ws, events, token_scope, received_at, device, context, after_
         record = {
             **raw, "received_at": received_at, "token_scope": token_scope, "changed_after_reveal": after_reveal,
             # M11b part A: the criteria version in force when the event arrived.
-            "criteria_version": context.criteria_version,
+            "criteria_version": (
+                resolution_version if resolution_version is not None else context.criteria_version
+            ),
         }
         pending.append(record)
         known[event_id] = record
