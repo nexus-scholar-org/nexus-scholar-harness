@@ -63,10 +63,10 @@ Each item is checked by a test named in the build record, unless it says "live".
 - [x] DoD 15. At genesis the draft's query development (count log rows of the versions tried, the seed checks, the comparison sets) is copied into the workspace under `audit/query_development/`, listed in the preview's `files`.
 
 **Inception screen (part C)**
-- [ ] DoD 16. The workbench is on Inception's step 5 as the concepts block and an evidence column, laid out as direction A's blocks (D10, D13); every state in the screen spec has its words in en, fr and ar; axe passes in light and dark.
-- [ ] DoD 17. Concept edits in the workbench: add, rename, remove a concept; add or remove a synonym; merge two concepts into one (OR); split a term out into a new concept. Operators stay OR within a concept and AND between concepts.
-- [ ] DoD 18. "Use this version" writes the draft's `concepts` through the normal save; counts shown for an earlier version say so until counted again.
-- [ ] DoD 19. Two fixed checks, never blockers: `QUERY_NOT_COUNTED` (note) and `SEEDS_CANNOT_TEST` (warning), in the M10b catalogue, shown at the field and at Review.
+- [x] DoD 16. The workbench is on Inception's step 5 as the concepts block and an evidence column, laid out as direction A's blocks (D10, D13); every state in the screen spec has its words in en, fr and ar; axe passes in light and dark.
+- [x] DoD 17. Concept edits in the workbench: add, rename, remove a concept; add or remove a synonym; merge two concepts into one (OR); split a term out into a new concept. Operators stay OR within a concept and AND between concepts.
+- [x] DoD 18. "Use this version" writes the draft's `concepts` through the normal save; counts shown for an earlier version say so until counted again.
+- [x] DoD 19. Two fixed checks, never blockers: `QUERY_NOT_COUNTED` (note) and `SEEDS_CANNOT_TEST` (warning), in the M10b catalogue, shown at the field and at Review.
 
 **Amendment from Plan (part D)**
 - [ ] DoD 20. On Plan, the workbench opens on the protocol's query. "Record this amendment" requires a one-sentence reason and writes through the M10c item 9(a) path (intent search fields, protocol recompiled with the genesis compiler, backup under `audit/amended/`, `PROTOCOL_AMENDED`), extended to replace the whole concept list; the journal row carries the reason, the source `researcher` and the counts before and after.
@@ -430,4 +430,26 @@ Evidence (Part B):
 Vitest, build and Playwright were not repeated on `dde504f3`: the commits after `559c3063` change Python and docs only (no file under `apps/`). The six screenshots the Playwright run regenerated are restored to the branch's own.
 
 **Part B: READY FOR PR** (not pushed). Branch `dev/m11a/part-b-seeds-comparison`, to be merged after Part A.
+
+### Part C: the workbench on Inception's step 5
+
+Branch `dev/m11a/part-c-screen`, **from Part B's branch** (`dev/m11a/part-b-seeds-comparison` at `23c57bc1`; merge A, then B, then C) · Lane **RELEASE**, not the STANDARD proposed: the screen needed the Scopus and Web of Science strings, which the engine now builds (an additive field `external` on the counts answer, decision C item 10) · Decisions: `docs/decisions.md` "2026-11-21 — M11a Part C" items 1 to 10 (PROPOSED).
+
+What was built:
+- `apps/research-ui/components/query-workbench.tsx`: the concepts block (concept rows with wrapping term chips, OR inside and AND between in words, rename, add and remove a term, Split, Remove concept, Merge into one with the name chosen among its terms, the topic's suggested concepts, the pool's suggestions in the D5 look, the cost line, Count, Use this version, Discard edits) and the evidence column (Counts: the table with each concept left out, the largest effect in words, the note on a concept, the exact string, every row state in words, Count anyway for Crossref, the budget line, the size line with the estimate's keys, the last counted version beside this one, "What does each synonym add?", "Read what this concept removes"; Known papers; Compare with an export; the strings for Scopus and Web of Science). One card per database on narrow windows.
+- `apps/research-ui/lib/workbench-api.ts` (the routes of parts A and B), `lib/workbench-copy.ts` (every sentence in en, fr and ar, 199 keys).
+- `components/inception-criteria.tsx`: the concepts card is replaced by the workbench; "Use this version" saves through the normal save with `accepted_from`; the leave question ("Use it" or "Leave it") before Continue or Save with unused edits; Continue is secondary while edits are unused.
+- The guidance audit (`docs/ux/shared/final/03-guidance.md`): a "Query workbench" table, rows W-B1 to W-X1 (15 STAYS, 4 HINT), counted by `guidance.audit.test.tsx`, which now reads the workbench catalog too.
+- Test fakes: `tests/fixtures/workbench-engine.ts`, plugged into the inception fake.
+
+| DoD | Test | State |
+| :-- | :-- | :-- |
+| 16 | `apps/research-ui/tests/inception-workbench.test.tsx` (26 cases: every row state, Crossref, largest effect and note, exact string, sizes, seeds, comparison, D5 keys, refusals, copy en/fr/ar with equal placeholders and the N9 guard); `tests-browser/workbench.spec.ts` (axe with contrast in en and ar, light and dark; no sideways scroll at 375, 1024, 1280 and 1440 px); the existing axe and overflow loops over `criteria/` | done |
+| 17 | `inception-workbench.test.tsx` "concept edits …", "merges two concepts …"; `workbench.spec.ts` "develop the search …" | done |
+| 18 | "Use this version sends one PUT …", "asks once before leaving …"; the row reads "for the previous version" after any edit; `inception-criteria.test.tsx` (pool term applied, saved with its source) | done |
+| 19 | `inception-workbench.test.tsx` "inception.workbench checks (DoD 19)": both checks at the concepts field with their words, Continue enabled; the existing Review checks list shows every open check | done |
+
+Screenshots looked at (`workbench.spec.ts` with `M11A_SHOTS`), the filled region (counted, sections open, a Scopus export compared): `C:\Users\mouadh\AppData\Local\Claude-Data\claude_pzs8sxrjxfjjc\side-session-notes\local_51fc9825-32a2-4ed5-a19b-92c9aea969a5\m11a-screenshots\workbench-en-chromium.png`, `workbench-en-chromium-dark.png`, `workbench-ar-chromium.png`, `workbench-ar-chromium-dark.png`. What the first look found and the build changed: negative numbers from the fake's default counts, a squeezed concept name field, chips made large by the split sentence (now "Split" with the full sentence as its accessible name), the Crossref sentence wrapped in one column (now spanning the row), the counts table and the comparison form wider than a phone (cards, and a shrinkable form grid).
+
+Not verified: the wording (decision 2026-11-21 item 4: it waits for the researcher's read); a real engine behind the screen (every UI test runs against the fake; the engine side is parts A and B's tests); the screen with a real review's 24 synonyms.
 

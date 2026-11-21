@@ -389,7 +389,7 @@ export function QueryWorkbench({
                   value={mergeName}
                   autoFocus
                   onChange={(event) => setMergeName(event.target.value)}
-                  className="mt-1 block min-h-11 rounded-md border border-rule bg-paper px-2 text-ink"
+                  className="mt-1 block min-h-11 max-w-full rounded-md border border-rule bg-paper px-2 text-ink"
                 >
                   {selected
                     .slice()
@@ -526,7 +526,7 @@ function ConceptRow({
   return (
     <div className="rounded-md border border-rule bg-paper p-3" data-concept={index}>
       <div className="flex flex-wrap items-end gap-2">
-        <div className="min-w-0 flex-1">
+        <div className="w-full min-w-0">
           <label htmlFor={`wb-concept-${index}`} className="block text-xs text-ink-muted">
             {t("workbench.concept.label", { n: formatNumber(locale, index + 1) })}
           </label>
@@ -564,7 +564,7 @@ function ConceptRow({
                   {t("workbench.op.or")}
                 </span>
               ) : null}
-              <span className="inline-flex flex-wrap items-center gap-1 rounded-sm border border-rule px-2 py-1 text-sm">
+              <span className="inline-flex flex-wrap items-center gap-x-1 rounded-sm border border-rule ps-2 text-sm">
                 <bdi dir="auto" className="text-ink">
                   {x}
                 </bdi>
@@ -581,8 +581,8 @@ function ConceptRow({
                   ×
                 </Button>
                 {i > 0 ? (
-                  <Button variant="quiet" className="min-h-11 px-1 text-xs" onClick={() => onSplit(x)} data-split={x}>
-                    {t("workbench.term.split", { term: x })}
+                  <Button variant="quiet" className="min-h-11 px-1 text-xs" onClick={() => onSplit(x)} aria-label={t("workbench.term.split", { term: x })} data-split={x}>
+                    {t("workbench.term.splitShort")}
                   </Button>
                 ) : null}
               </span>
@@ -822,7 +822,43 @@ function CountsSection({
               {t("workbench.oneConcept")}
             </p>
           ) : null}
-          <div className="mt-2 overflow-x-auto" data-counts-scroll>
+          {/* Narrow windows (mobile layout): one card per database, the same words. */}
+          <ul className="mt-2 space-y-2 sm:hidden" data-counts-cards>
+            {rows.map((row) => {
+              const words = rowWords(locale, row, stale, answer.budget?.[row.name] ?? null);
+              const drops = concepts.length > 1 && !row.any_words ? row.drops ?? [] : [];
+              return (
+                <li key={row.name} className="rounded-sm border border-rule p-2 text-sm" data-card={row.name}>
+                  <p className="font-medium text-ink" dir="ltr">
+                    {nameOf(row.name)}
+                  </p>
+                  <p className={words.role === "blocked" ? "text-blocked" : words.role === "unclear" ? "text-unclear" : "text-ink"}>
+                    <bdi dir="auto">{words.text}</bdi>
+                  </p>
+                  {drops.map((cell) => (
+                    <p key={cell.concept_index ?? 0} className="text-ink">
+                      <bdi dir="auto">{t("workbench.col.without", { concept: cell.concept ?? "" })}</bdi>: {cellText(locale, cell)}
+                      {cell.largest ? <span className="ms-1 text-xs font-semibold">{t("workbench.largest")}</span> : null}
+                    </p>
+                  ))}
+                  {row.status === "not_comparable" ? (
+                    <Button className="mt-1" onClick={onCountAnyway}>
+                      {t("workbench.crossref.anyway")}
+                    </Button>
+                  ) : null}
+                  {row.string ? (
+                    <details className="mt-1 text-xs">
+                      <summary className="min-h-11 cursor-pointer py-3 text-ink-muted rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus">{t("workbench.string.show")}</summary>
+                      <code dir="ltr" className="block whitespace-pre-wrap break-all select-all text-ink">
+                        {row.string}
+                      </code>
+                    </details>
+                  ) : null}
+                </li>
+              );
+            })}
+          </ul>
+          <div className="mt-2 hidden max-w-full overflow-x-auto sm:block" data-counts-scroll>
             <table className="min-w-full text-sm" data-counts>
               <caption className="sr-only">{t("workbench.caption")}</caption>
               <thead>
@@ -852,7 +888,7 @@ function CountsSection({
                       <th scope="row" className="sticky start-0 bg-paper p-2 text-start font-medium" dir="ltr">
                         {nameOf(row.name)}
                       </th>
-                      <td className="p-2" data-cell="query">
+                      <td className="p-2" data-cell="query" colSpan={row.status === "not_comparable" || row.any_words ? 1 + (concepts.length > 1 ? concepts.length : 0) : 1}>
                         <span className={`block ${words.role === "blocked" ? "text-blocked" : words.role === "unclear" ? "text-unclear" : "text-ink"}`}>
                           <bdi dir="auto">{words.text}</bdi>
                         </span>
@@ -880,16 +916,16 @@ function CountsSection({
                           </details>
                         ) : null}
                       </td>
-                      {concepts.length > 1
+                      {concepts.length > 1 && !(row.status === "not_comparable" || row.any_words)
                         ? concepts.map((_, i) => {
                             const cell = drops.find((d) => d.concept_index === i);
                             return (
                               <td key={i} className="p-2" data-cell={`drop-${i}`}>
                                 {showDrops && cell ? (
                                   <>
-                                    <bdi dir="ltr" className="block text-ink" aria-label={typeof cell.total === "number" && typeof cell.gain === "number" && typeof cell.ratio === "number" ? t("workbench.cell.gainSpoken", { count: formatNumber(locale, cell.total), gain: formatNumber(locale, cell.gain), ratio: formatNumber(locale, cell.ratio) }) : undefined}>
+                                    <span className="block text-ink" aria-label={typeof cell.total === "number" && typeof cell.gain === "number" && typeof cell.ratio === "number" ? t("workbench.cell.gainSpoken", { count: formatNumber(locale, cell.total), gain: formatNumber(locale, cell.gain), ratio: formatNumber(locale, cell.ratio) }) : undefined}>
                                       {cellText(locale, cell)}
-                                    </bdi>
+                                    </span>
                                     {cell.largest ? (
                                       <span className="text-xs font-semibold text-ink" data-largest>
                                         {t("workbench.largest")}
@@ -1012,7 +1048,7 @@ function ConceptTools({ locale, origin, place, version, providers }: Readonly<{ 
           <label htmlFor="wb-tools-concept" className="block text-xs text-ink-muted">
             {t("workbench.tools.concept")}
           </label>
-          <select id="wb-tools-concept" value={index} onChange={(e) => { setIndex(Number(e.target.value)); setSynDry(null); setSyn(null); setRemoved(null); }} className="mt-1 min-h-11 rounded-md border border-rule bg-paper px-2 text-ink">
+          <select id="wb-tools-concept" value={index} onChange={(e) => { setIndex(Number(e.target.value)); setSynDry(null); setSyn(null); setRemoved(null); }} className="mt-1 min-h-11 max-w-full rounded-md border border-rule bg-paper px-2 text-ink">
             {version.concepts.map((c, i) => (
               <option key={i} value={i}>
                 {c.concept}
@@ -1251,6 +1287,7 @@ function ComparisonSection({
   const t = workbenchT(locale);
   const [sets, setSets] = useState<ComparisonSet[]>([]);
   const [file, setFile] = useState<File | null>(null);
+  const [fileKey, setFileKey] = useState(0);
   const [database, setDatabase] = useState("");
   const [string, setString] = useState("");
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
@@ -1278,6 +1315,7 @@ function ComparisonSection({
       const added = await stageSet(origin, place, { file_name: file.name, content_base64: btoa(binary), database: database.trim(), string: string.trim() || null, exported_on: date || null });
       setSets((list) => [...list, added]);
       setFile(null);
+      setFileKey((n) => n + 1);
       setDatabase("");
       setString("");
     } catch (e) {
@@ -1318,11 +1356,11 @@ function ComparisonSection({
               </p>
               {s.string ? <code dir="ltr" className="block break-all text-xs text-ink-muted">{s.string}</code> : null}
               <div className="mt-2 flex flex-wrap items-end gap-2">
-                <div>
+                <div className="min-w-0 max-w-full">
                   <label htmlFor={`wb-measure-${s.id}`} className="block text-xs text-ink-muted">
                     {t("workbench.cmp.measureChoice")}
                   </label>
-                  <select id={`wb-measure-${s.id}`} value={measure[s.id] ?? "words"} onChange={(e) => setMeasure((m) => ({ ...m, [s.id]: e.target.value }))} className="mt-1 min-h-11 rounded-md border border-rule bg-paper px-2 text-ink">
+                  <select id={`wb-measure-${s.id}`} value={measure[s.id] ?? "words"} onChange={(e) => setMeasure((m) => ({ ...m, [s.id]: e.target.value }))} className="mt-1 min-h-11 w-full max-w-full rounded-md border border-rule bg-paper px-2 text-ink">
                     <option value="words">{t("workbench.cmp.measure.words")}</option>
                     <option value="openalex">{t("workbench.cmp.measure.openalex")}</option>
                     {place.kind === "workspace" ? <option value="harvest">{t("workbench.cmp.measure.harvest")}</option> : null}
@@ -1409,11 +1447,11 @@ function ComparisonSection({
           );
         })}
       </ul>
-      <fieldset className="mt-3 grid gap-2 sm:grid-cols-2" data-cmp-form>
+      <fieldset className="mt-3 grid min-w-0 grid-cols-1 gap-2 sm:grid-cols-2" data-cmp-form>
         <legend className="text-sm font-semibold text-ink">{t("workbench.cmp.add")}</legend>
         <div className="sm:col-span-2">
           <label htmlFor="wb-cmp-file" className="block text-xs text-ink-muted">{t("workbench.cmp.file")}</label>
-          <input id="wb-cmp-file" type="file" accept=".ris,.nbib,.txt" onChange={(e) => setFile(e.target.files?.[0] ?? null)} className="mt-1 block min-h-11 text-sm text-ink" />
+          <input key={fileKey} id="wb-cmp-file" type="file" accept=".ris,.nbib,.txt" onChange={(e) => setFile(e.target.files?.[0] ?? null)} className="mt-1 block min-h-11 w-full max-w-full text-sm text-ink" />
         </div>
         <div>
           <label htmlFor="wb-cmp-db" className="block text-xs text-ink-muted">{t("workbench.cmp.database")}</label>

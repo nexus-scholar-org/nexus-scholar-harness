@@ -336,6 +336,24 @@ describe("inception.workbench", () => {
   });
 });
 
+describe("inception.workbench checks (DoD 19)", () => {
+  it("shows QUERY_NOT_COUNTED and SEEDS_CANNOT_TEST at the concepts field with their words; neither blocks Continue", async () => {
+    const rows = [
+      { check_id: "QUERY_NOT_COUNTED", step: "criteria", level: "note" as const, action: { kind: "field", step: "criteria", field: "concepts" } },
+      { check_id: "SEEDS_CANNOT_TEST", step: "criteria", level: "warning" as const, subject: "all", params: { n: 4, concept: "UAV", concepts: "UAV" }, message_key: "checks.SEEDS_CANNOT_TEST_all.sentence", action: { kind: "step", step: "direction" } },
+    ];
+    setUp({ draft: completeDraft({ concepts: FOUR }), checks: () => rows });
+    render(<InceptionCriteria locale="en" />);
+    expect(await screen.findByText("This search has not been counted in any database yet.")).toBeInTheDocument();
+    await waitFor(() =>
+      expect(document.querySelector("[data-check='SEEDS_CANNOT_TEST']")?.textContent).toContain(
+        "known papers each use a term of every concept, so they cannot show a paper this query misses.",
+      ),
+    );
+    expect(screen.getByRole("button", { name: "Continue to review" })).not.toBeDisabled();
+  });
+});
+
 describe("workbench copy", () => {
   it("has every key in en, fr and ar with the same placeholders, and no literal labels in the component (N9)", () => {
     const holes = (s: string) => [...s.matchAll(/\{(\w+)\}/g)].map((m) => m[1]).sort();

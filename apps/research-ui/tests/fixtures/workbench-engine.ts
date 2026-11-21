@@ -46,7 +46,10 @@ const has = (text: string, term: string) => {
 export function workbenchEngine(options: WorkbenchOptions = {}, now: () => string = () => "2026-11-21T10:15:00+00:00") {
   const counted = new Set<string>();
   const sets: Json[] = [];
-  const total = options.total ?? ((db: string, concepts: Concept[]) => Math.max(1, 900 - 200 * concepts.length - 7 * termsOfAll(concepts)) + ({ openalex: 0, semanticscholar: -50, arxiv: -150, crossref: 5000 } as Record<string, number>)[db]!);
+  const total = options.total ?? ((db: string, concepts: Concept[]) => {
+    const base = Math.max(40, 1000 - 150 * concepts.length - 5 * termsOfAll(concepts));
+    return db === "crossref" ? 6000 + base : db === "semanticscholar" ? Math.round(base * 0.7) : db === "arxiv" ? Math.max(1, Math.round(base / 20)) : base;
+  });
   function termsOfAll(concepts: Concept[]) {
     return concepts.reduce((n, c) => n + termsOf(c).length, 0);
   }

@@ -10,9 +10,25 @@ history to read if you need the original reasoning (`git log --follow -- <path>`
 
 | Entry | Item | What is open |
 | :-- | :-- | :-- |
+| 2026-11-21 — M11a Part C: the workbench screen | 1 to 10 | Proposed with the build; the researcher's answer is pending. |
 | 2026-11-21 — M11a Part B: known papers and comparison sets | 1 to 10 | Proposed with the build; the researcher's answer is pending. |
 | 2026-11-21 — M11a Part A: the workbench's counts | 1 to 13 | Proposed with the build; the researcher's answer is pending. |
 | 2026-11-19 — M9a: what the measurement says about the ladder gates | 2 | The minimum share of the researcher's excludes an agent must take before a rung unlocks: the principle is accepted; the researcher decided on 2026-11-20 to set the number when M9b is built. |
+
+## 2026-11-21 — M11a Part C: the query workbench on Inception's step 5 (items 1 to 10 PROPOSED)
+
+Record: `docs/roadmap/milestones/M11a-query-workbench.md`, "Part C". Branch `dev/m11a/part-c-screen`, built on Part B's branch. The FINAL screen specification (`10-query-workbench.md`, questions closed 2026-11-21) is built as written; these are the choices it left to the build, and three places where the build differs from its words, each for a stated reason.
+
+1. **The merged concept's name is one of its terms** (a select, opening on the first concept's name), not a free text field. In the protocol a concept's name is its first search term, so a typed name such as "UAV or multispectral" would be searched as a phrase. *Differs from* the spec's "a field that opens with the first concept's name". *Alternative:* a free name plus a separate label field, which the protocol does not have.
+2. **Numbers follow the app's own Arabic rule** (`docs/I18N.md`: locale-native digits, generated numerals not wrapped in a left-to-right element), not the spec's "numerals Latin … inside `bdi`". Strings, DOIs and database names stay `dir="ltr"`. One rule for the whole app; the spec's sentence predates that check.
+3. **The pool's term suggestions use the one D5 look** (Apply and Reject per term) and replace the M4d tick boxes, as the spec says; "Use this version" saves them with `accepted_from` (`pool_synonym`), and the topic's suggested concepts with `suggested_concept`. The two existing tests that ticked boxes now apply and use.
+4. **The dry call is sent when an edit is committed**: Enter or Add in a term field, leaving or Enter in a concept name, Merge, Split, Remove, Discard, after a Count. Never on a keystroke.
+5. **One brand button**: on Inception, "Use this version" while edits are unused; otherwise the page's Continue (Count stays secondary). On Plan (part D, no "Use"), Count is the region's primary action until the caller's own action takes over.
+6. **"Read what this concept removes" states its one request on the button** and sends on click (no separate confirmation); "What does each synonym add?" asks its dry call first and sends on a second click, because its cost varies with the concept.
+7. **The known-papers panel reads without a request** (a dry seed check, nothing written) and offers the lookup ("Read their titles and abstracts (n requests)") and "Check seeds in OpenAlex" as buttons; the switch-off sentence appears after the OpenAlex button is pressed. A DOI added in the panel is saved with "Use this version" (at most 25).
+8. **Narrow windows get one card per database** instead of the table (the spec's mobile layout), from the `sm` breakpoint down.
+9. **The databases counted at Inception are those of the latest first search** (`session.latest.providers`), else the engine's default; the line "Databases ticked on Explore: …" names them. Decision 2026-11-21 item 2 says "ticked on Explore"; the latest search's list is what the page can read.
+10. **The Scopus and Web of Science strings are built by the engine** (`scholar_search.workbench.external_strings`, field `external` on the counts answer, decision 2026-11-20 item 10): every term quoted, years as `PUBYEAR` and `PY=`. Building them in the browser would be a domain decision in the screen (`apps/research-ui/AGENTS.md`). This adds a field to a public answer: **the part's lane is RELEASE**, not the STANDARD the specification proposed.
 
 ## 2026-11-21 — M11a Part B: known papers, comparison sets and the search development at genesis (items 1 to 10 PROPOSED)
 
