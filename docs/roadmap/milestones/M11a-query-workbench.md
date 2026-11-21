@@ -490,3 +490,18 @@ Review round 3 (on `2cef66f7`): **CHANGES**, 1 P2, 1 P3 (R1, R2, R5 confirmed; R
 | P2-R6 | After one real seed check, every later dry answer was ignored, even for an edited version: the panel showed the old version's seed check | a real check's answer stays only while the seeds and version are the ones it was for | `"after a real seed check, an edit shows the seed check of the new version"` |
 | P3-R7 | "Check again" on a refused cost read only cleared the message; the button stayed disabled | the cost read has its own refusal, its "Check again" reads again, and a later success clears it | `"a refused cost read says why, and Check again reads it again"` |
 
+Review round 4 (on `f72edec8`): **APPROVE** (the reviewer's lane line says STANDARD for that UI-only commit; the part is RELEASE as declared above). Follow-up, not repaired: when the concepts drop below two, an old cost refusal can stay on screen until the next read.
+
+Evidence (Part C):
+
+| Stage | Commit | Command | Result | Duration |
+| :-- | :-- | :-- | :-- | :-- |
+| pr (round 0) | `7f920872` | `pytest -n auto`; ruff; baseline; protocol schema; typecheck; vitest; build; `test:browser` | 6027 passed, 15 skipped; clean; current; in sync; clean; 1022 passed; ok; Playwright 628 passed, 4 failed (two existing inception browser tests still typed into the old concepts card; updated in round 1), 12 skipped | 559 s; 99 s; 18 s; 958 s |
+| pr (round 1) | `71f14450` | the same | 6027 passed; clean; current; in sync; 1025 passed; ok; Playwright 632 passed, 12 skipped | 519 s; 109 s; 21 s; 835 s |
+| pr (final, Python) | `2cef66f7` | `pytest -n auto`; ruff `scripts/` and `src/` (real-bug classes); `generate_contract_baseline.py --check`; `generate_protocol_schema.py --check` | 6027 passed, 15 skipped; clean; current; in sync | 581 s |
+| pr (final, UI) | `f72edec8` | typecheck; `npm test`; build; `test:browser` | clean; 1027 passed, 1 failed (`screening-proposals.test.tsx` "shows the run as starting above an earlier run's panel", H-screening-drafts' area, not touched here; passes 18 of 18 when its file runs alone, and the whole suite then 1028 passed: a timing flake under load); ok; Playwright 632 passed, 12 skipped | 101 s; 21 s; 784 s |
+
+Python did not change after `2cef66f7` (`git diff 2cef66f7 f72edec8` touches the workbench component, its tests and this record). The six screenshots the Playwright runs regenerate are restored after each run.
+
+**Part C: READY FOR PR** (not pushed). Branch `dev/m11a/part-c-screen`, to be merged after Parts A and B.
+
