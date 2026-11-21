@@ -40,6 +40,7 @@ from .api import screening_v1 as screening_v1_api
 from .api import streams as streams_api
 from .api import workspace as workspace_api
 from .api import workspaces as workspaces_api
+from .api import workbench as workbench_api
 from .refusals import BODY_INVALID
 from .runtimes.job_runner import JobRunner
 
@@ -278,6 +279,7 @@ def create_app(
     app.include_router(inception_api.router)
     app.include_router(recon_api.router)
     app.include_router(discovery_api.router)
+    app.include_router(workbench_api.router)
     app.include_router(review_api.router)
     app.include_router(jobs_api.router)
     app.include_router(screening_api.router)

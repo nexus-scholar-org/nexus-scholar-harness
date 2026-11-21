@@ -66,21 +66,34 @@ async def _close(provider: Any) -> None:
         await result
 
 
-async def count_one(name: str, query: Query) -> dict[str, Any]:
-    """One database's count row: ``counted``, ``not_countable`` or ``failed`` with the harvest's codes."""
+async def count_one(name: str, query: Query, *, timeout: float | None = None) -> dict[str, Any]:
+    """One database's count row: ``counted``, ``not_countable`` or ``failed`` with the harvest's codes.
+
+    A failed row also says the HTTP status when the database answered one
+    (``http_status``) and, for a used-up quota (``QuotaExhaustedError``), when
+    it resets (``quota_exhausted``, ``resets_at``; M11a). Its code stays
+    ``PROVIDER_RATE_LIMITED``, as on a search leg.
+    """
+    from .exceptions import ProviderError, QuotaExhaustedError
+
+    timeout = COUNT_TIMEOUT if timeout is None else timeout
     provider = _provider(name)
     row: dict[str, Any] = {"name": name, "status": "counted", "reported_total": None, "error": None, "error_code": None}
     try:
-        row["reported_total"] = await asyncio.wait_for(provider.count(leg_query(query)), timeout=COUNT_TIMEOUT)
+        row["reported_total"] = await asyncio.wait_for(provider.count(leg_query(query)), timeout=timeout)
         if row["reported_total"] is None:
             row.update(status="failed", error=f"{name} answered without a total")
     except NotImplementedError:
         row["status"] = "not_countable"
     except (TimeoutError, asyncio.TimeoutError):
-        row.update(status="failed", error=f"{name} did not answer the count within {COUNT_TIMEOUT:g} s",
+        row.update(status="failed", error=f"{name} did not answer the count within {timeout:g} s",
                    error_code="PROVIDER_TIMEOUT")
     except Exception as exc:  # noqa: BLE001 - a database's failure is its row, never the estimate's
         row.update(status="failed", error=str(exc)[:300], error_code=provider_error_code(exc))
+        if isinstance(exc, ProviderError) and exc.status_code is not None:
+            row["http_status"] = exc.status_code
+        if isinstance(exc, QuotaExhaustedError):
+            row.update(quota_exhausted=True, resets_at=exc.resets_at)
     finally:
         await _close(provider)
     return row

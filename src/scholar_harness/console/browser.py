@@ -67,6 +67,10 @@ POST_PATHS: tuple[re.Pattern[str], ...] = tuple(
         r"api/v1/discovery/(runs|recall)",
         # M10b Part D: the size estimate (count-only requests; nothing written).
         r"api/v1/discovery/estimate",
+        # M11a Part A: the query workbench (counts, what each synonym adds, what a concept removes);
+        # count-only requests on Count, a dry run that sends nothing; only the count log is written.
+        r"api/v1/inception/drafts/[A-Za-z0-9_-]+/workbench/(counts|synonyms|removed)",
+        r"api/v1/discovery/workbench/(counts|synonyms|removed)",
         # M3i-harvest-robustness: finish a harvest's remaining stages without a new search.
         r"api/v1/discovery/runs/run_\d{3,}/prepare",
         r"api/v1/discovery/jobs/[A-Za-z0-9_-]+/cancel",
