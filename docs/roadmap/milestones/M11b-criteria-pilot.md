@@ -617,3 +617,13 @@ What was built (engine):
 Fails before: on part C's head the two new files stop at collection (no `criteria_wording` module, no `method_choice`); the scripted-wizard and intent tests have no `not_reported` parameter.
 
 Not verified: the screen (DoD 20); whether the wording checks find anything in a real review's criteria (record, "What cannot be verified"); the terminal wizard by hand in a real terminal (tested through the responder and the refusal function).
+
+Evidence, part D engine side (`-n 4`):
+
+| Stage | Commit | Command | Result | Duration |
+| :-- | :-- | :-- | :-- | :-- |
+| targeted | `694c131a` (working tree) | `tests/inception`, `tests/cli`, the inception console tests, `tests/kits/protocol`, `tests/kits/agent`, `-m "not slow"` | 1076 passed | 84 s |
+| full | `438d6a72` | contract baseline, protocol schema, contract schemas, two-study fixture, both ruff commands, `select_test_gate.py --check`, `git diff --check`; `uv run pytest -q -n 4 --junitxml` | current; in sync; exit 0; exit 0; clean; clean; OK; clean; 6260 tests: 6230 passed, 15 skipped, 15 failed: 14 tests whose drafts reach preview or genesis without a chosen rule (now refused, as answer 8 requires) or compare a new draft exactly, and the known `test_draft_store_lock` comparison; their drafts now choose the rule and the two lock tests compare the draft apart from the method fields | 936 s |
+| targeted | next commit | the five failing files | 119 passed | 52 s |
+
+The PR gate for part D runs once its screen is built.

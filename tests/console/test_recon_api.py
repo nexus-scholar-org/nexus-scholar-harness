@@ -72,6 +72,7 @@ def _draft() -> dict:
     proof_id = CriterionDraft("inclusion", f"Reports the gold-standard proof — {a[5]}", "proof").id
     return {
         "topic": a[0], "paradigm": a[1], "playbook": a[2], "unit_of_analysis": a[4], "proof": a[5],
+        "method_not_reported": "unclear",  # M11b part D: the rule is chosen (no default)
         "out_of_scope": [s.strip() for s in a[6].split(",")], "rqs": [a[8]],
         "concepts": [{"concept": "weed detection"}, {"concept": "on-device inference"}],
         "criteria_decisions": {proof_id: True, **_accept_out_of_scope(a[6])},
