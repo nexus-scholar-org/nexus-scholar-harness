@@ -341,11 +341,92 @@ def test_dod5_a_published_screening_refuses_while_a_record_waits(tmp_path):
         workspace, op="add", side="exclusion", ids=[], text="Simulation-only studies", reason_category=None,
         reason_category_given=False, reason="Found in the pilot.", confirm=True, amended_by="r", amended_at="2026-11-21T10:00:00Z",
     )
-    # The two records shown again are out of the decisions file, so collect refuses it as incomplete.
-    with pytest.raises(Exception) as refused:
+    # The two records shown again are out of the decisions file, so collect refuses it as incomplete
+    # (review round 1, F8: the refusal names batch 1, and no projection is stale).
+    assert ev.stale_projections(workspace) == []
+    with pytest.raises(RuntimeError, match=r"missing, invalid, or rejected decision artifacts for batches \[1\]"):
         publish(workspace)
-    assert "collection blocked" in str(refused.value) or "COVERAGE" in str(getattr(refused.value, "code", ""))
     assert not (workspace / "literature" / "screening" / "generation.json").exists()
+
+
+# --- review round 1 -------------------------------------------------------------------------
+
+
+def test_review_f1_a_batch_decided_through_the_file_handoff_blocks_a_revision(tmp_path):
+    """F1: hand-off decisions are not in the event log; a revision could not show them again,
+    and the batch would be approved under the old wording. The revision is refused instead."""
+    import test_screening_actions as sa
+
+    workspace, studies = sa._scaffold(tmp_path)
+    sa._write_operator_context(workspace)
+    sa.run_recommend(workspace, 1, produced_at=sa.NOW)
+    sa._write_decisions(workspace, studies)  # decided through the hand-off, signed wording
+    inc = cr.criteria_in_force(workspace).inclusion[0].id
+    for confirm in (False, True):
+        with pytest.raises(cr.AmendmentRefused) as refused:
+            cr.amend_criteria(
+                workspace, op="reword", side="inclusion", ids=[inc], text="A different test entirely",
+                reason_category=None, reason_category_given=False, reason="probe", confirm=confirm,
+                amended_by="r", amended_at="2026-11-21T10:00:00Z")
+        assert (refused.value.code, refused.value.status) == ("CRITERIA_AMENDMENT_HANDOFF", 409)
+    assert not (workspace / cr.AMENDMENTS_FILE).exists()
+    assert cr.criteria_in_force(workspace).version == 1
+    assert "CRITERIA_AMENDMENT_HANDOFF" in CONSOLE_REFUSALS
+
+
+def test_review_f1_a_worker_recommendation_alone_blocks_a_revision(tmp_path):
+    import test_screening_actions as sa
+
+    workspace, _studies = sa._scaffold(tmp_path)
+    sa.run_recommend(workspace, 1, produced_at=sa.NOW)
+    assert cr.handoff_batches(workspace, ev.load_context(workspace)) == [1]
+
+
+def test_review_f1_event_decided_batches_do_not_block_a_revision(ws, client):
+    _decide_four_ways(client)
+    assert cr.handoff_batches(ws, ev.load_context(ws)) == []
+    _ok(_amend(client, "add", "exclusion", text="Simulation-only studies"))
+
+
+def test_review_f2_a_reword_that_keeps_the_text_is_refused_and_points_to_reason_category(ws, client):
+    _decide_four_ways(client)
+    response = _amend(client, "reword", "exclusion", ["EXC-01"], text=EXC_TEXT, reason_category="WRONG_FORMAT")
+    assert _code(response) == "CRITERIA_AMENDMENT_INVALID"
+    assert "reason_category" in response.json()["detail"]["message"]
+    assert not (ws / cr.AMENDMENTS_FILE).exists()
+
+
+def test_review_f4_agreement_compares_a_decision_and_a_draft_of_the_same_version_only(ws, client):
+    studies = _studies(client)
+    _draft(ws, studies[0], "2026-11-21T09:00:00Z")
+    first = _event(client, studies[0], "INCLUDE")
+    _post(client, [first])  # decided under v1, before any reveal
+    assert client.get(f"{BASE}/agreement").json()["decided_with_proposal"] == 1
+    assert client.get(f"{BASE}/records/{studies[0]}/proposal").status_code == 200  # revealed
+    _ok(_amend(client, "reword", "inclusion", ["INC-01"], text="Explicit research questions"))
+    _post(client, [_event(client, studies[0], "INCLUDE", supersedes=first["event_id"])])  # decided again, v2
+    _draft(ws, studies[0], "2026-11-21T11:00:00Z")  # a v2 draft
+    # The only decision before the reveal is the v1 one: not compared with the v2 draft.
+    body = client.get(f"{BASE}/agreement").json()
+    assert body["decided_with_proposal"] == 0
+
+
+def test_review_f5_a_split_takes_at_most_ten_texts(ws, client):
+    response = _amend(client, "split", "exclusion", ["EXC-01"], text=[f"part {i}" for i in range(11)], confirm=False)
+    assert _code(response) == "CRITERIA_AMENDMENT_INVALID"
+    ten = _ok(_amend(client, "split", "exclusion", ["EXC-01"], text=[f"part {i}" for i in range(10)], confirm=False))
+    assert len(ten["new_ids"]) == 10
+    long_text = _ok(_amend(client, "reword", "exclusion", ["EXC-01"], text="x" * 40, confirm=False))
+    assert long_text["recorded"] is False  # a single text is not capped at ten characters
+
+
+def test_review_f7_validate_event_refuses_a_retired_reason(ws, client):
+    _ok(_amend(client, "add", "exclusion", text="Simulation-only studies"))
+    _ok(_amend(client, "remove", "exclusion", ["EXC-01"]))
+    study = _studies(client)[0]
+    refusal = ev.validate_event(_event(client, study, "EXCLUDE", reason_code="EXC-01"), ev.load_context(ws))
+    assert refusal is not None and refusal["code"] == "REASON_CODE_RETIRED"
+    assert ev.validate_event(_event(client, study, "EXCLUDE", reason_code="EXC-02"), ev.load_context(ws)) is None
 
 
 # --- DoD 6 and 7: refusals and the dry call -----------------------------------------------

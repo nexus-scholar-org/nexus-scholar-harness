@@ -10,6 +10,7 @@ history to read if you need the original reasoning (`git log --follow -- <path>`
 
 | Entry | Item | What is open |
 | :-- | :-- | :-- |
+| 2026-11-21 — M11b part A: criteria in force, the build's choices | 1 to 10 | Proposed with the build; the researcher's answer is pending. |
 | 2026-11-21 — M11a Part C: the workbench screen | 1 to 10 | Proposed with the build; the researcher's answer is pending. |
 | 2026-11-21 — M11a Part B: known papers and comparison sets | 1 to 10 | Proposed with the build; the researcher's answer is pending. |
 | 2026-11-21 — M11a Part A: the workbench's counts | 1 to 13 | Proposed with the build; the researcher's answer is pending. |
@@ -28,6 +29,8 @@ Record: `docs/roadmap/milestones/M11b-criteria-pilot.md`, "Build record, part A"
 7. **A record shown again is also in "needs you"** (`GET /queue?view=needs_you`, and `needs_you` on `/summary`), besides `view=recheck`; `/summary.decided` does not count it. As the screen draft `13-criteria-pilot.md` question 6 recommends.
 8. **The shape of a split.** `text` is one string for reword, merge and add, and a list of at least two strings for split; new criteria of a split or merge keep the first replaced criterion's reason category and research-question links unless `reason_category` is sent.
 9. **A later citation-chasing round counts as "after approval"**: a round after the first starts from a published screening (M3g), so a revision there is refused `CRITERIA_AMENDMENT_AFTER_APPROVAL`, as the record's "In and out" puts revising in a chase round out of scope.
+
+10. **A batch decided through the file hand-off blocks a revision** (review round 1, F1). A worker recommendation, or a decisions file not built from decision events, lives outside the event log, so a revision could neither count those decisions nor show them again, and the batch would be approved under the old wording while the methods paragraph said no record had been decided. While any current batch holds one, a revision (and its dry call) is refused `CRITERIA_AMENDMENT_HANDOFF` (409), a new code. Item 1 already stops the worker after a revision. *Alternative:* let the revision through and refuse approval of such a batch once the criteria version is above 1 (the methods sentence would then need the hand-off decisions counted, which the engine cannot see).
 
 Not a choice, recorded for the reviewer: `REASON_CODE_RETIRED` is checked on new events only, as the F7 limits are, so a retry of a stored event stays a `duplicate`.
 

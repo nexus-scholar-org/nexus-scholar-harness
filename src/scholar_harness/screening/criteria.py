@@ -51,6 +51,11 @@ CRITERIA_AMENDMENT_INVALID = "CRITERIA_AMENDMENT_INVALID"
 CRITERIA_AMENDMENT_NO_BATCHES = "CRITERIA_AMENDMENT_NO_BATCHES"
 CRITERIA_AMENDMENT_AFTER_APPROVAL = "CRITERIA_AMENDMENT_AFTER_APPROVAL"
 CRITERIA_SIDE_EMPTY = "CRITERIA_SIDE_EMPTY"
+#: A current batch was decided through the file hand-off (a worker recommendation or a
+#: decisions file not built from events): a revision could not show those decisions again.
+CRITERIA_AMENDMENT_HANDOFF = "CRITERIA_AMENDMENT_HANDOFF"
+#: At most this many texts in a split (review round 1, F5).
+MAX_SPLIT_TEXTS = 10
 #: The file hand-off worker reads the signed wording from the batch file; once
 #: the criteria are amended it refuses (decision 2026-11-21, M11b part A, item 1).
 CRITERIA_AMENDED_USE_ENGINE = "CRITERIA_AMENDED_USE_ENGINE"
@@ -498,8 +503,11 @@ def plan_amendment(
         new_text = _clean_text(text, "text")
         old = olds[0]
         new_category = category if reason_category_given else old.reason_category
-        if new_text == old.text and new_category == old.reason_category:
-            raise AmendmentRefused(CRITERIA_AMENDMENT_INVALID, f"{old.id} already reads so; nothing changes")
+        if new_text == old.text:
+            # Review round 1, F2: a change of reason category alone is its own op, which
+            # shows nothing again and reads as what it is in the methods paragraph.
+            hint = "; to change only its reason category use op reason_category" if new_category != old.reason_category else ""
+            raise AmendmentRefused(CRITERIA_AMENDMENT_INVALID, f"{old.id} already reads so; nothing is reworded{hint}")
         to = [{"id": old.id, "text": new_text, "reason_category": new_category, "maps_to_rqs": list(old.maps_to_rqs)}]
     elif op == "reason_category":
         old = olds[0]
@@ -510,8 +518,10 @@ def plan_amendment(
         to = [{**_item(old), "reason_category": category}]
     elif op == "split":
         texts = text if isinstance(text, list) else None
-        if not texts or len(texts) < 2:
-            raise AmendmentRefused(CRITERIA_AMENDMENT_INVALID, "split takes a list of at least two texts")
+        if not texts or len(texts) < 2 or len(texts) > MAX_SPLIT_TEXTS:
+            raise AmendmentRefused(
+                CRITERIA_AMENDMENT_INVALID, f"split takes a list of 2 to {MAX_SPLIT_TEXTS} texts"
+            )
         old = olds[0]
         cleaned = [_clean_text(t, "each text") for t in texts]
         made: list[str] = []
@@ -604,6 +614,30 @@ def any_batch_approved(workspace: Path | str) -> bool:
         return True
     approvals = ws / "literature" / "screening" / "approvals"
     return approvals.is_dir() and any(approvals.glob("batch_[0-9][0-9][0-9]_approval.json"))
+
+
+def handoff_batches(workspace: Path | str, context: Any) -> list[int]:
+    """Current batches with a worker recommendation, or a decisions file not built from events.
+
+    Those decisions live outside the event log, so an amendment can neither count
+    them nor show them again (review round 1, F1).
+    """
+    from .worker import recommendation_path
+
+    ws = Path(workspace)
+    found = []
+    for index in sorted(context.batches):
+        decisions = ws / "literature" / "screening" / f"batch_{index:03d}_decisions.json"
+        from_events = False
+        if decisions.is_file():
+            try:
+                payload = json.loads(decisions.read_text(encoding="utf-8"))
+                from_events = isinstance(payload, dict) and payload.get("source") == "decision-events"
+            except (OSError, ValueError):
+                from_events = False
+        if recommendation_path(ws, index).is_file() or (decisions.is_file() and not from_events):
+            found.append(index)
+    return found
 
 
 def winners(context: Any, events: list[dict[str, Any]]) -> dict[tuple[str, str], dict[str, Any]]:
@@ -709,6 +743,18 @@ def amend_criteria(
                 CRITERIA_AMENDMENT_AFTER_APPROVAL,
                 "a batch is approved: the criteria its decisions were made under are fixed; "
                 "changing them now is a new screening",
+                status=409,
+            )
+        handoff = handoff_batches(ws, context)
+        if handoff:
+            # Review round 1, F1 (decision item 10): a batch decided through the file
+            # hand-off is not in the event log, so a revision could neither show its
+            # decisions again nor count them; it would be approved under the old wording.
+            raise AmendmentRefused(
+                CRITERIA_AMENDMENT_HANDOFF,
+                f"batch(es) {', '.join(str(i) for i in handoff)} hold a worker recommendation or decisions "
+                "not made in the app; a revision could not show those decisions again. Decide them in the "
+                "app's Triage (or start a new screening) before revising the criteria",
                 status=409,
             )
         current = context.criteria if context.criteria is not None else signed_criteria(None)

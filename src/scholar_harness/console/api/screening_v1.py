@@ -25,6 +25,7 @@ from typing import Any
 from fastapi import APIRouter, HTTPException, Request, Response
 from pydantic import BaseModel, ConfigDict, Field
 
+from ...screening import criteria as cr
 from ...screening import events as ev
 from ...workspace.atomic import atomic_write_text
 from ...screening import proposals as pr
@@ -600,8 +601,8 @@ class CriteriaAmendmentBody(BaseModel):
     op: str
     side: str
     ids: list[str] = Field(default_factory=list, max_length=20)
-    #: One text (reword, merge, add) or a list of at least two (split).
-    text: str | list[str] | None = None
+    #: One text (reword, merge, add) or a list of 2 to 10 (split).
+    text: str | list[str] | None = None  # the 2-to-10 rule for a split is plan_amendment's
     reason_category: str | None = None
     reason: str | None = None
     #: ``false`` is the dry call; it must be given either way.
@@ -1343,6 +1344,10 @@ def agreement(request: Request) -> dict[str, Any]:
             after_seeing += 1  # decided with the draft already in view (blinding off)
             continue
         decision = max(before, key=lambda e: str(e.get("received_at") or ""))
+        # Review round 1, F4 (M11b part A): a decision made under an earlier criteria
+        # version answered other criteria than the draft (a current one); not compared.
+        if cr.event_version(decision) != context.criteria_version:
+            continue
         compared += 1
         you, agent = decision["outcome"], in_force(proposal)[0]
         if "MAYBE" in (you, agent):

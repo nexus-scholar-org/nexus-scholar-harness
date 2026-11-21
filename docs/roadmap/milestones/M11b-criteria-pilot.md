@@ -1,6 +1,6 @@
 # M11b Criteria pilot
 
-Branch: `dev/m11b/criteria-pilot-spec` (from `origin/main` at `1f218054`) · Lane: declared per part (proposed below: A, B and D **RELEASE**, C **STANDARD**) · Status: **SPECIFICATION; the researcher answered the ten questions on 2026-11-21** (1 to 4, 7, 9 and 10 as recommended; **5, 6 and 8 against the recommendation**). Questions 11 and 12, which came from those answers, were answered the same day, both as recommended. The rework of answers 5, 6 and 8 is PROPOSED. Nothing is built and the build start is not approved · Fourth in the agreed order (plan §6, "After the acceptance run"); its build waits for M11a part C (see "What it assumes from M11a")
+Branch: `dev/m11b/criteria-pilot-spec` (from `origin/main` at `1f218054`) · Lane: declared per part (proposed below: A, B and D **RELEASE**, C **STANDARD**) · Status: **SPECIFICATION; the researcher answered the ten questions on 2026-11-21** (1 to 4, 7, 9 and 10 as recommended; **5, 6 and 8 against the recommendation**). Questions 11 and 12, which came from those answers, were answered the same day, both as recommended. The rework of answers 5, 6 and 8 is PROPOSED. **Build started 2026-11-21 (approved by the researcher; building, not pushing): part A in review on `dev/m11b/part-a-criteria-in-force` (see "Build record"); parts B, C and D not started** · Fourth in the agreed order (plan §6, "After the acceptance run"); M11a part C is merged (PR 272), so part D is no longer blocked by it
 
 Short page for the researcher: [`M11b-criteria-pilot-for-review.md`](M11b-criteria-pilot-for-review.md). Screens (both `Status: DRAFT`): [`docs/ux/phase2-screening/final/13-criteria-pilot.md`](../../ux/phase2-screening/final/13-criteria-pilot.md) (draw the pilot, its result, revise a criterion) and [`docs/ux/phase0-inception/final/11-criteria-block.md`](../../ux/phase0-inception/final/11-criteria-block.md) (the change to Inception's step 5). Choices: `docs/decisions.md`, "2026-11-21 — M11b criteria pilot: the specification's choices" (answered 2026-11-21; the rework of 5, 6 and 8 and questions 11 and 12 PROPOSED).
 
@@ -382,7 +382,7 @@ The two screen drafts carry their own screen-level questions, settled when each 
 
 - Plan §6, row 4 (M11b): status "specification answered 2026-11-21 (answers 5, 6, 8 against the recommendation; 11 and 12 as recommended)" and the build state as the main session knows it; lane "A, B, D RELEASE; C STANDARD" instead of "to be declared".
 - Plan §8: nothing.
-- `docs/decisions.md`, the "Open decisions" table at the top: nothing for M11b (questions 11 and 12 are answered).
+- `docs/decisions.md`, the "Open decisions" table at the top: nothing for the specification (questions 11 and 12 are answered); part A's build adds its row ("M11b part A: criteria in force, the build's choices", items 1 to 10, PROPOSED).
 - At build time, not now: `docs/architecture/screening-api-contract.md` (parts A and B), `docs/ux/shared/final/02-checks.md` (the five checks and `METHOD_RULE_UNCHOSEN`, part D), `docs/ux/phase2-screening/final/03-triage-desktop.md` (pilot mode, part C).
 
 ## Build record
@@ -391,7 +391,7 @@ The researcher approved the build start on 2026-11-21 (building, not pushing). P
 
 ### Part A: criteria in force
 
-Branch `dev/m11b/part-a-criteria-in-force` from the specification's final head `9f7666db`, with `origin/main` merged (`dacabd94`, then `86da80f4`, M11a part C) · Lane **RELEASE** (as declared: public routes, refusal codes, a persisted record, an engine-stamped field on decision events and drafts, decision intake changes) · Decisions: `docs/decisions.md` "2026-11-21 — M11b part A: criteria in force, the build's choices" items 1 to 9 (PROPOSED).
+Branch `dev/m11b/part-a-criteria-in-force` from the specification's final head `9f7666db`, with `origin/main` merged (`dacabd94`, then `86da80f4`, M11a part C) · Lane **RELEASE** (as declared: public routes, refusal codes, a persisted record, an engine-stamped field on decision events and drafts, decision intake changes) · Decisions: `docs/decisions.md` "2026-11-21 — M11b part A: criteria in force, the build's choices" items 1 to 10 (PROPOSED).
 
 What was built:
 - `src/scholar_harness/screening/criteria.py`, the one reader: `criteria_in_force` (the signed list plus the amendments under the current fingerprint, oldest first; `until` for the methods paragraph), `CriteriaInForce` (version, criteria with the version each wording dates from, retired ids, every id ever used), `plan_amendment` (pure: reword, split, merge, remove, add, reason category, and the refusals), `shown_again` (Include, Unclear, and an Exclude citing a touched criterion, for a decision made under an earlier version; a reason-category change shows nothing), `amend_criteria` (under the events lock: the dry call; one line of `audit/criteria_amendments.jsonl`; `SCREENING_CRITERIA.md` rewritten through the protocol kit's renderer with an "Amendments" section, the earlier file backed up under `audit/amended/<stamp>/`; every projected batch file rebuilt; one `PROTOCOL_CRITERIA_AMENDED` row; any failure before the journal row takes every write back).
@@ -422,6 +422,21 @@ Fails before: on `origin/main`, `src/scholar_harness/screening/criteria.py` does
 Contract v1: unchanged. No file under the baseline globs is touched. The projected batch decisions files keep their shape (a record shown again is left out, as a record in conflict already is). `criteria_version` lives in the harness event log and `proposals.jsonl` only.
 
 Not verified: no live run and no model call (the agent run is tested with the existing fake driver); the methods sentences' wording is a proposal (record (h)); how many records a real revision shows again and how long the re-check takes (needs the researcher's review); the phone's offline queue across a revision (decision item 5), tested only as the rule it is; the screens (part C).
+
+Review round 1 (`milestone-reviewer`, on `7ce756ef`): **CHANGES**, 1 P2, 5 P3, 2 P4, all taken:
+
+| # | Finding | Repair | Test (fails before: the reviewer's probes on `7ce756ef`) |
+| :-- | :-- | :-- | :-- |
+| P2-1 | A batch decided through the file hand-off was invisible to an amendment (counted 0, shown again 0) and was then approved under the old wording; the methods paragraph would say no record had been decided | a revision (and its dry call) is refused `CRITERIA_AMENDMENT_HANDOFF` (409) while a current batch holds a worker recommendation or a decisions file not built from events (decision item 10); contract §4 and §7 | `test_review_f1_a_batch_decided_through_the_file_handoff_blocks_a_revision`, `test_review_f1_a_worker_recommendation_alone_blocks_a_revision`, `test_review_f1_event_decided_batches_do_not_block_a_revision` |
+| P3-2 | A reword with the same text and another reason category was recorded as a reword and showed records again | a reword must change the text; the refusal points to `op: reason_category` | `test_review_f2_a_reword_that_keeps_the_text_is_refused_and_points_to_reason_category` |
+| P3-3 | The DoD 2 guard matched only the quoted key | the scan also matches `.screening_criteria`, `Criteria.from_protocol(` and the agent kit's `criteria_from_protocol(protocol`; `measure.py` and `prompt_gate.py` allow-listed with their reasons; each pattern must find a file | `tests/unit/test_criteria_readers.py::test_each_pattern_finds_a_known_reader` and the widened scan |
+| P3-4 | `/agreement` could compare a v1 decision with a v2 draft | a decision is compared only when its version is the version in force (the drafts compared already are) | `test_review_f4_agreement_compares_a_decision_and_a_draft_of_the_same_version_only` |
+| P3-5 | A split had no cap (300 texts accepted) | 2 to 10 texts (`MAX_SPLIT_TEXTS`) | `test_review_f5_a_split_takes_at_most_ten_texts` |
+| P3-6 | Stale status line, no open-decisions row, a stale line in "What the main session must change" | updated | (none) |
+| P4-7 | `validate_event` accepted a retired reason | it refuses `REASON_CODE_RETIRED` (intake still lets a stored event replay as a duplicate) | `test_review_f7_validate_event_refuses_a_retired_reason` |
+| P4-8 | A loose assertion on the collect refusal | asserts the refusal names batch 1 and that no projection is stale | `test_dod5_a_published_screening_refuses_while_a_record_waits` |
+
+Follow-ups from round 1, not repaired here: the browser POST allowlist (`console/browser.py`) and the UI proxy list need `api/v1/screening/criteria/amendments` (part C); an MCP draft submitted after a revision is stamped at receipt (the class of decision item 5); a study in conflict at the time of a revision is not counted, and resolving it keeps the earlier outcome under the new version without a recheck; `append_event` writes the journal row before `project.json` (repo-wide pattern); approval does not take the events lock, so a revision and an approval could interleave (read, not run).
 
 Evidence (every Python run with `-n 4`, after the machine stopped on 2026-11-21 with three suites running at once):
 

@@ -320,7 +320,14 @@ def validate_event(
     ``token_scope`` (``desktop`` or ``phone``) the event's ``device`` must be
     that scope; a ``note`` is text of at most :data:`MAX_NOTE_CHARS`.
     """
-    return _shape_refusal(event, context) or _limit_refusal(event, token_scope, received_at)
+    refusal = _shape_refusal(event, context) or _limit_refusal(event, token_scope, received_at)
+    if refusal is None and isinstance(event, dict) and event.get("outcome") == "EXCLUDE" and context.retired_reason(
+        event.get("reason_code")
+    ):
+        # Review round 1, F7: judged as a new event, a retired reason is refused (intake
+        # lets a stored event citing it replay as a duplicate).
+        return _refuse(REASON_CODE_RETIRED, f"{event.get('reason_code')} cites a criterion retired by a revision")
+    return refusal
 
 
 def _criteria_refusal(
