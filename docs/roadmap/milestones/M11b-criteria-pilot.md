@@ -458,3 +458,35 @@ Review round 2 (on `6fa05b7e`): **APPROVE**. The eight round-1 repairs confirmed
 - The `CRITERIA_AMENDMENT_HANDOFF` message says to decide the batches in Triage first, but a worker recommendation file stays and keeps the refusal; the message (and the §7 row) should not promise that way out, or a way to clear a hand-off batch should be defined.
 
 **Part A: READY FOR PR** (not pushed). Branch `dev/m11b/part-a-criteria-in-force`. The PR gate on `2e1874f8` stands for the later commits, which change this record only.
+
+### Part B: the pilot
+
+Branch `dev/m11b/part-b-pilot`, stacked on part A (`f1968ccd`), with `origin/main` merged (`62bac271`, M11a part D) · Lane **RELEASE** (as declared: public routes, a second decision intake, persisted records, an additive field on a public answer) · Decisions: `docs/decisions.md` "2026-11-21 — M11b part B: the pilot, the build's choices" items 1 to 10 (PROPOSED). The researcher's answers bind it: pilot decisions are not counted and the records are screened again (5); the checklist stays collapsed (6); the agent check on the pilot with an explicit model (9); counts only, never one record's draft (11).
+
+What was built:
+- `src/scholar_harness/screening/pilot.py`: the draw (records with no main decision and in no earlier pilot, in snapshot order, `random.Random(seed).sample` with a seed the engine draws and records; the dry call); the pilot decisions file `pilot_NNN_decisions.jsonl` and its intake (the event intake's reason and input checks; `PLD-` ids derived from the client's `event_id`; engine-stamped `received_at`, `criteria_version`, `protocol_fingerprint`; one journal row per request, counts only); the end of a pilot (`pilot_NNN_closed.json`, by "End the pilot" or when the last record is decided; `SCREENING_PILOT_CLOSED`); the result, recomputed when read: counts per outcome, per criterion the exclusions it was the reason for, the checklist's and the drafts' `not_reported`, "read differently" against the checklist answers or what a decision implies, the seven readings of (f) as fixed rules with their counts, the readings not computed with what they need, and the previous pilot beside it. All writes run under the events lock.
+- `screening/events.py`: a new main decision on a record of the open pilot is refused `PILOT_OPEN` (new events only; the open pilot's records are re-read under the lock).
+- `console/api/screening_v1.py`: `POST /screening/pilot`, `POST /screening/pilot/{id}/decisions`, `POST /screening/pilot/{id}/close`, `GET /screening/pilot/{id}/result` (desktop only); `/summary` gains `pilot`; `GET /queue?view=pilot` (drawn order, `checklist_default: "collapsed"`), and the open pilot's records leave the other views; `POST /proposals/calibrations` takes an additive `pilot_id` (labels from the pilot file); `/agreement`'s `splits_by_criterion` rows gain `answered_by_both`; a revision made during a pilot records its `pilot_id`.
+- `screening/agent_runs.py`: a run records `pilot_id`; its drafts carry it; the calibration score reads the pilot's labels, comparing a draft only with a pilot decision of the same criteria version.
+- `screening/export.py`: the methods paragraph states the pilots (records decided, seed, the corpus size) and that their decisions were not counted; an amendment with no counted decision says it was made during or after the pilot.
+- Refusal codes `PILOT_OPEN`, `PILOT_RECORD_UNKNOWN`, `PILOT_CLOSED`, `PILOT_NOT_FOUND`, `PILOT_SIZE_INVALID` in `console/refusals.py` and `screening-api-contract.md` §7; §3.4 and §4 amended; the fixtures regenerated (`/summary` gains `"pilot": null`, two files, additive only).
+
+| DoD | Test (`tests/console/test_criteria_pilot_api.py` unless named) | State |
+| :-- | :-- | :-- |
+| 11 | `test_dod11_the_dry_call_answers_n_the_pool_and_the_time_and_writes_nothing`; `test_dod11_a_draw_writes_the_file_and_one_journal_row`; `test_dod11_the_same_seed_on_the_same_snapshot_gives_the_same_list`; `test_dod11_records_with_a_main_decision_or_in_an_earlier_pilot_are_not_drawn`; `test_dod11_a_size_outside_20_to_100_in_tens_is_refused`; `test_dod11_more_than_the_records_left_is_refused`; `test_dod11_refused_before_batches_after_approval_and_while_a_pilot_is_open`; `test_dod11_the_pilot_routes_are_desktop_only` | done |
+| 11b | `test_dod11b_the_summary_names_the_open_or_last_pilot` | done |
+| 11c | `test_dod11c_a_pilot_decision_is_a_line_of_its_own_file_with_engine_fields`; `test_dod11c_the_event_intakes_checks_apply` (9 cases); `test_dod11c_a_retired_reason_is_refused_in_the_pilot`; `test_dod11c_a_record_outside_the_pilot_and_an_unknown_pilot_are_refused`; `test_dod11c_pilot_decisions_reach_no_counted_reader` (0 decided, no event, no batch decisions file, empty decided view and agreement, an empty PRISMA preview, collect refuses) | done |
+| 11d | `test_dod11d_a_main_decision_on_an_open_pilot_record_is_refused`; `test_dod11d_ending_the_pilot_returns_its_records_blind_to_the_pilot_decision` (queue and record carry nothing of the pilot; the main decision is accepted, no conflict); `test_dod11d_a_pilot_closes_by_itself_when_its_last_record_is_decided` | done |
+| 12 | `test_dod12_the_pilot_view_lists_the_drawn_records_in_drawn_order`; `test_dod12_the_pilot_view_is_empty_without_a_pilot` | done (engine; Triage is part C) |
+| 13 | `test_dod13_from_the_decisions_alone_three_readings_and_the_four_it_could_not_compute`; `test_dod13_with_the_agent_check_the_mirror_and_the_unreadable_criterion_show` (and no per-record draft in the answer); `test_dod13_read_differently_against_checklist_answers`; `test_dod13_a_second_pilot_has_the_first_beside_it`; `test_dod13_a_revision_during_the_pilot_labels_the_versions_and_shows_nothing_again` | done |
+| 14 | `test_dod14_the_agent_check_on_a_pilot_reads_its_labels_from_the_pilot_file` (explicit model, the fake driver, labels and drafts, the refusals; the route without `pilot_id` is unchanged, its own tests pass) | done (engine; the UI test that the body always has a model is part C) |
+| 15 | `test_dod15_splits_by_criterion_carry_answered_by_both` | done |
+| (h) | `test_methods_state_the_pilot_and_that_its_decisions_were_not_counted` (every number traced to a figure; the amendment during the pilot) | done |
+| 21 | the contract checks before and after (Evidence) | done for part B |
+
+Fails before: on part A's head `f1968ccd`, `screening/pilot.py` does not exist and the routes answer 404/405, so `tests/console/test_criteria_pilot_api.py` stops at collection (`ImportError`).
+
+Contract v1: unchanged. Pilot decisions are not decision events and are never handed to the Contract v1 collector; the projected batch decisions files are untouched by a pilot (tested); no file under the baseline globs changes.
+
+Not verified: no live run and no model call (the agent check runs on the fake driver); whether the observation thresholds and the minimum counts (decision item 4) are useful on a real pilot (DoD 22, the researcher's own pilot); the screens (part C).
+
