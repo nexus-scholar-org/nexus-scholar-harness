@@ -633,14 +633,20 @@ def get_criteria(request: Request) -> dict[str, Any]:
     ws = _ws(request)
     if not (ws / "protocol.json").is_file():
         raise _error(409, refusals.SNAPSHOT_NOT_ACCEPTED, "no protocol.json in this workspace")
+    from ...screening.criteria import handoff_batches
+
     current = criteria_in_force(ws)
     context = ev.load_context(ws)
+    approved = any_batch_approved(ws)
+    handoff = handoff_batches(ws, context) if context.batches else []
     return {
         **current.as_dict(),
-        # What the revise dialog needs to know before it offers anything.
-        "can_amend": bool(context.batches) and not any_batch_approved(ws),
+        # What the revise dialog needs to know before it offers anything (part A review round 2:
+        # a hand-off batch refuses every revision, so the dialog is not offered then).
+        "can_amend": bool(context.batches) and not approved and not handoff,
         "batches_prepared": bool(context.batches),
-        "batch_approved": any_batch_approved(ws),
+        "batch_approved": approved,
+        "handoff_batches": handoff,
     }
 
 

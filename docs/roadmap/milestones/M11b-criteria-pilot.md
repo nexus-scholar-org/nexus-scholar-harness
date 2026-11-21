@@ -574,3 +574,20 @@ A gate started on `3a92daa2` was stopped when part A's branch moved (it brought 
 Review round 2 of part B (on `0cdf80aa`): **APPROVE**. The twelve round-1 repairs and the three follow-ups confirmed by the reviewer's probes (11 probes, 366 targeted tests, 0 failed, `-n 4`); the merges of part A and `origin/main` did not break part B (in `_criteria_refusal`, `PILOT_OPEN`, then the retired reason with `resolution_version`, then the bound version, all on new events only); decision items 11 to 13 match the code. One P4, taken (documents only): the `GET /agreement` shape in contract §4 lists the new top-level `answered_by_both`.
 
 **Part B: READY FOR PR** (not pushed). Branch `dev/m11b/part-b-pilot`, stacked on part A. The PR gate on `fbf8887d` (6219 tests, 0 failed) stands for the later commits, which change documents only. Decision items 1 to 13 of part B wait for the researcher.
+
+### Part C: the screening screens
+
+Branch `dev/m11b/part-c-screens`, stacked on part B (`5d13e86c`) · Lane **STANDARD** (UI over parts A and B) · Status: **IN PROGRESS: the engine side only.** The screens wait for `docs/ux/phase2-screening/final/13-criteria-pilot.md` to be FINAL (open questions 5 to 8 put to the researcher on 2026-11-21; 10 and 11 answered by the build: the result carries each record's outcome, reason code and criteria version; pilot routes are desktop-only; a pilot closes by itself when its last record is decided).
+
+Built so far (the follow-ups the part A and B reviews left for part C):
+- The browser may POST to `api/v1/screening/criteria/amendments`, `api/v1/screening/pilot` and `api/v1/screening/pilot/pilot_NNN/(decisions|close)` (`console/browser.py` and the development proxy `route.ts`, kept equal).
+- `GET /screening/criteria` answers `can_amend: false` and `handoff_batches` while a batch was decided through the file hand-off, so the revise dialog is not offered and then refused.
+- The `CRITERIA_AMENDMENT_HANDOFF` message names the only way to revised criteria (a new screening from this protocol) instead of suggesting Triage, which does not clear a worker recommendation; contract §7.
+
+| Item | Test | Result (`-n 4`) |
+| :-- | :-- | :-- |
+| the POST allowlist | `tests/console/test_criteria_pilot_plumbing.py::test_the_browser_may_post_to_the_new_routes_only` (7 cases); `test_browser_access.py` (parity with `route.ts`); `vitest related route.ts` | 77 Python tests passed with part A's file; vitest 69 passed; `tsc` clean |
+| `can_amend` and `handoff_batches` | `test_the_criteria_route_offers_no_revision_while_a_handoff_batch_exists` | passed (fails on `5d13e86c`: `can_amend` true, no `handoff_batches`) |
+| the refusal's wording | `test_the_handoff_refusal_names_the_only_way_to_revised_criteria` | passed (fails on `5d13e86c`: the message names Triage) |
+
+The UI dependencies of this worktree were installed with `npm ci --offline` from the local cache (no network).

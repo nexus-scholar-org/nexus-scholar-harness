@@ -756,8 +756,9 @@ def amend_criteria(
             raise AmendmentRefused(
                 CRITERIA_AMENDMENT_HANDOFF,
                 f"batch(es) {', '.join(str(i) for i in handoff)} hold a worker recommendation or decisions "
-                "not made in the app; a revision could not show those decisions again. Decide them in the "
-                "app's Triage (or start a new screening) before revising the criteria",
+                "not made in the app; a revision could not show those decisions again, so the criteria of "
+                "this screening cannot be revised. To screen under revised criteria, start a new screening "
+                "from this protocol",
                 status=409,
             )
         if pilot_id is OPEN_PILOT:
