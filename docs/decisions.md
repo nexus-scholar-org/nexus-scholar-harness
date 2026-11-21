@@ -10,7 +10,25 @@ history to read if you need the original reasoning (`git log --follow -- <path>`
 
 | Entry | Item | What is open |
 | :-- | :-- | :-- |
+| 2026-11-21 — M11a Part A: the workbench's counts | 1 to 10 | Proposed with the build; the researcher's answer is pending. |
 | 2026-11-19 — M9a: what the measurement says about the ladder gates | 2 | The minimum share of the researcher's excludes an agent must take before a rung unlocks: the principle is accepted; the researcher decided on 2026-11-20 to set the number when M9b is built. |
+
+## 2026-11-21 — M11a Part A: the workbench's counts, the count log, the budget and the quota memory (items 1 to 10 PROPOSED)
+
+Record: `docs/roadmap/milestones/M11a-query-workbench.md`, "Part A". Branch `dev/m11a/part-a-counts`. These are the choices the specification and the FINAL screen specifications leave open; what they decided (counts only on Count, the budgets, the 24-hour log, Crossref, the ×2 note) is built as decided. No Contract v1 model, schema, identity or fingerprint changes; the new files are side files outside the baseline.
+
+1. **Where the shared budget and quota memory live: `<workspaces root>/.query_workbench/state.json`.** "Shared by every draft and workspace on this computer" is read as "under the workspaces root the console serves", the folder drafts (`.drafts/`) already live in; the catalog skips dot folders. *Alternative:* a per-user folder (outside every root), which two roots on one computer would share.
+2. **OpenAlex without a key is its row (`key_missing`); the other databases are still counted.** The estimate refuses the whole call (`OPENALEX_KEY_NOT_SET`); the workbench does not, because a database's failure is its row (spec (a)). `MAILTO_NOT_SET` and `DISCOVERY_JOB_ACTIVE` refuse a real call only; the dry call answers `mailto_set` so the screen can show the setting before Count.
+3. **A database's first failure stops its other requests in that Count.** After a refusal, a used-up quota, a throttle, a timeout or no answer, its remaining variants are not sent and not charged; each cell says the same status. Sending four more requests to a database that just said "slow down" would spend its quota for nothing.
+4. **A whole Count lasts at most 100 seconds** (under the browser proxy's 120 s); each request at most 45 s (`COUNT_TIMEOUT`). Databases are asked in parallel, each database's requests one after another. A request not started in time is `timeout` and not sent.
+5. **Databases counted when the screen names none:** at Inception the four of the preset (the screen sends the databases ticked on Explore, decision 2026-11-21 item 2); on Plan the protocol's list as written (Crossref is then drawn `not_comparable`, not hidden).
+6. **The log's key is the database, the exact string sent, the years and the language;** a log answers for its own draft or workspace (the draft's log becomes the workspace's at genesis, part B). Not across drafts: two drafts counting the same string count it twice, which keeps each draft's development complete.
+7. **The workbench's word match (whole words, English plurals), stated once in `scholar_search.workbench.fold_word`:** text is case-folded and every character outside `0-9a-z` separates words (as INC-21's `term_occurs`); a term matches as consecutive words; each word on both sides is folded: `-ies` to `-y` (over 4 letters), `-sses`, `-xes`, `-zes`, `-ches`, `-shes` lose `-es`, else a final `-s` goes unless the word ends in `ss`, `us` or `is` (over 3 letters). M8b-triage-highlights writes its browser matcher to this rule (note left in the shared notes); the two are separate code and must stay equal.
+8. **The size estimate on Plan reads the workbench's log and writes nothing to it.** A string counted in the last 24 hours is a `counted` row with `from_count_log` (when it was counted); "Count again to refresh" (`refresh`) bypasses it. The estimate's own in-memory cache is unchanged.
+9. **`estimate.count_one` rows gain `http_status`, `quota_exhausted` and `resets_at`** (additive; the code stays `PROVIDER_RATE_LIMITED`). The estimate answer carries them too.
+10. **Only the query key `main` is taken** (`WORKBENCH_VERSION_INVALID` otherwise), and "Read what this concept removes" is OpenAlex only, one request of 25 records, charged to the budget and logged as a `removed` row that never answers a count.
+
+**Lane RELEASE** (`test_gate_policy.md`): six new public POST routes, two new refusal codes, a persisted file under `audit/`, additive fields on the estimate's rows.
 
 ## 2026-11-21 — The M11a screen questions closed; H-run-small-fixes Part C accepted (accepted by the researcher 2026-11-21)
 

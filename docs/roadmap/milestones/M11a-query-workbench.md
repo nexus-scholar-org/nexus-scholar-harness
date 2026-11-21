@@ -1,10 +1,27 @@
 # M11a Query workbench
 
-Branch: `dev/m11a/query-workbench-spec` (from `origin/main` at `2436fe66`) · Lane: to be declared per part (proposed below: A, B and D **RELEASE**, C **STANDARD**) · Status: **SPECIFICATION APPROVED 2026-11-20; the two screen specifications FINAL since 2026-11-21 (their questions closed as proposed); build not started** (the researcher accepted questions 1 to 10 as recommended, "yes to all", relayed by the main session; decision "2026-11-20 — The order of work after the acceptance run", item 5) · Third in the agreed order (plan §6, "After the acceptance run")
+Branches: `dev/m11a/part-a-counts`, `dev/m11a/part-b-seeds-comparison`, `dev/m11a/part-c-screen`, `dev/m11a/part-d-plan-amend` (each from the then-current `origin/main`, or from the part before it while that part is not merged) · Lanes: A, B and D **RELEASE**, C **STANDARD** (as proposed; see each part's section) · Status: **BUILD IN PROGRESS** (build started 2026-11-21 on the researcher's "start the M11a build", from `origin/main` at `1f218054`; specification approved 2026-11-20, screens FINAL 2026-11-21) · Third in the agreed order (plan §6, "After the acceptance run")
 
-Short page for the researcher: [`M11a-query-workbench-for-review.md`](M11a-query-workbench-for-review.md). Screens: [`docs/ux/phase0-inception/final/10-query-workbench.md`](../../ux/phase0-inception/final/10-query-workbench.md) and [`docs/ux/phase1-discovery/final/10-plan-amend-search.md`](../../ux/phase1-discovery/final/10-plan-amend-search.md) (both `Status: DRAFT`). Decisions: `docs/decisions.md`, "2026-11-20 — M11a query workbench: the specification's choices" (accepted 2026-11-20).
+Short page for the researcher: [`M11a-query-workbench-for-review.md`](M11a-query-workbench-for-review.md). Screens: [`docs/ux/phase0-inception/final/10-query-workbench.md`](../../ux/phase0-inception/final/10-query-workbench.md) and [`docs/ux/phase1-discovery/final/10-plan-amend-search.md`](../../ux/phase1-discovery/final/10-plan-amend-search.md) (both `Status: FINAL` since 2026-11-21). Decisions: `docs/decisions.md`, "2026-11-20 — M11a query workbench: the specification's choices" (accepted 2026-11-20).
 
 Sources: `docs/roadmap/acceptance-run-sensor-stress-2026-11-20.md` ("The search was too narrow", findings 3, 9, 18 to 21, 23, 24), `docs/roadmap/what-a-researcher-does.md` (step 2), plan §6 "After the acceptance run", `docs/decisions.md` "2026-11-20 — The order of work after the acceptance run" (those four are on PR #262, not yet on `main`), the Inception redesign proposal on the local branch `dev/ux/inception-redesign` (direction A, D1 to D15, decided 2026-11-20), and the code at `2436fe66`.
+
+## What changed for the design since the specification (re-audit at `1f218054`, 2026-11-21)
+
+The specification was written at `2436fe66`. Before part A the `phase-auditor` agent re-read every "reused" claim at `1f218054` (51 commits later: M3f-combined-corpus PR #263, H-run-small-fixes Parts B and C PRs #266 and #267, H-screening-drafts PR #261, H-quota-hang PR #259); read only, no network. What it changes for the build:
+
+1. **Crossref is already left out of a joined query** for the harvest, Plan, Recall and the estimate (`scholar_search/plan.py`: `IGNORES_AND`, `default_choice`, `and_warnings`; `protocol_adapter.concept_count`). The workbench reads the same constant `IGNORES_AND` for its own counts (DoD 7) and adds no second rule. Nothing of the harvest side is redone.
+2. **The default database choice has one function** (`plan.default_choice`). The workbench's Plan route starts from the protocol's list as written, so the Crossref row is drawn with its sentence (`not_comparable`) instead of disappearing; the screen sends the Plan picker's choice.
+3. **arXiv's count is exact with a year window** (`estimate.UPPER_BOUND_WITH_YEARS` is empty since H-run-small-fixes Part B item 4). The row state `upper_bound` is kept as a field (`upper_bound`, always false today); no row says "at most" for arXiv any more. The comment the specification called stale was already corrected.
+4. **A typed direction already matches on its words** (`recon.session.content_words`, `own_direction_evidence`, `match: "phrase" | "words"`). That is the direction rule (whole words, no plural folding) and stays as it is; the workbench's matcher is its own (`scholar_search.workbench.term_matches`, plurals folded), as decided (item 8).
+5. **A used-up quota still becomes a failed row coded `PROVIDER_RATE_LIMITED`**, with the reset time only in the message: part A adds `quota_exhausted`, `resets_at` and `http_status` to `estimate.count_one`'s row (additive) and keeps the code.
+6. **`GET /discovery/plan` now returns `concepts` as a number** (the concepts the query joins), not the list: part D still needs a read of the concept list for "Change the search".
+7. **A staged export records the string the researcher stated** (`query` in `literature/raw/ris/sources.json`, M3f): part D's consequences list reads it; the screen specification's question 3 on Plan is answered by the code.
+8. **M3f's staging is `literature/raw/ris/`**: comparison sets (part B) stay out of `literature/` entirely (`audit/query_development/comparison/` and beside the draft).
+9. **`dedup._title_key` is still private**: part B makes it public, as planned.
+10. The amendment path (`workspace_proposals.FIELD_OPS`, `decide`, `PROTOCOL_AMENDED`) and the method amendment (`screening/method.py`) are as the specification read them; line numbers moved.
+
+Done items adjusted: DoD 7's harvest half is merged work (H-run-small-fixes Part B); DoD 7 here covers only the workbench's counts. DoD 1's row states: `upper_bound` cannot occur today (point 3). No other done item is already met by merged code.
 
 ## Goal
 
@@ -271,3 +288,44 @@ Also found: the console's browser allow-list (`console/browser.py:39-75`) must n
 In [`M11a-query-workbench-for-review.md`](M11a-query-workbench-for-review.md), with recommendations and costs; the entry in `docs/decisions.md` holds the same items; all ten were accepted as recommended on 2026-11-20.
 
 The two screen drafts (written by the `ux-spec-writer` agent) carry their own screen-level questions (11 on the Inception screen, 10 on Plan): which button is brand while a version is unsaved, how a merged concept is named, which databases Count asks at Inception, whether years and languages are editable in the workbench, route names beyond `counts` and `amend`, refusal codes for a refused comparison file and a missing reason, how Plan reads the protocol's concepts and seeds, what the engine refuses when the protocol changed under the page, and whether other screens' links now point to "Change the search". They are layout and build choices under the ten questions above; they are settled when each spec is made FINAL, at the start of its part. Their state sentences beyond the row-state table above are the agent's wording and need the researcher's read.
+
+## Build record
+
+### Part A: counts, the request budget and the cache
+
+Branch `dev/m11a/part-a-counts` from `origin/main` at `1f218054` · Lane **RELEASE** (as proposed; `test_gate_policy.md`: new public routes, new refusal codes, a persisted file, additive fields on a public answer) · Decisions: `docs/decisions.md` "2026-11-21 — M11a Part A" items 1 to 10 (PROPOSED).
+
+What was built:
+- `src/scholar_search/workbench.py` (pure): `parse_version` (refuses `WORKBENCH_VERSION_INVALID` cases), `compile_version` through `compile_protocol_search`, `count_variants` (full plus each concept left out), `synonym_variants`, `gain`, `doubles` (×2), `largest`, and the word match `fold_word`/`term_matches`/`concepts_found`/`lacking`/`matches` (whole words, English plurals; decision item 7).
+- `src/scholar_harness/query_workbench.py`: `CountLog` (append-only `counts.jsonl`, 24-hour answers, failed rows never answer), `SharedState` (daily budget per database, UTC day; quota memory until `resets_at`), `run` (counts and "what each synonym adds"), `read_removed` ("read what this concept removes", OpenAlex, 25 records, one request), `logged_rows` (the estimate reads the log).
+- `src/scholar_harness/console/api/workbench.py`: `POST /api/v1/inception/drafts/{id}/workbench/{counts,synonyms,removed}` and `POST /api/v1/discovery/workbench/{counts,synonyms,removed}`, each with `dry_run`; in `console/browser.py` `POST_PATHS` and the proxy's list; no phone route.
+- `estimate.count_one` rows gain `http_status`, `quota_exhausted`, `resets_at`; its timeout is read when called. `POST /discovery/estimate` reads the workbench log (`from_count_log`).
+- Refusal codes `WORKBENCH_BUDGET_SPENT` (409) and `WORKBENCH_VERSION_INVALID` (422) in `console/refusals.py` and `screening-api-contract.md` §7.
+
+| DoD | Test (`tests/console/test_workbench_counts_api.py` unless named) | State |
+| :-- | :-- | :-- |
+| 1 | `test_a_count_answers_each_database_with_its_exact_string_and_each_concept_left_out` (string equals `translate_provider`'s), `test_a_repeated_string_is_answered_from_the_log_for_24_hours` (counted_at, from_cache); the version is the body's, the draft is not saved (`test_the_log_writes_nothing_in_a_workspace_and_journals_nothing`) | done |
+| 2 | same first test (drops, gain, ratio, `largest`); `test_the_note_is_on_a_concept_whose_absence_at_least_doubles_a_count`; `test_one_concept_has_no_drop_column`; `tests/kits/search/test_workbench.py` (variants, gains) | done |
+| 3 | `test_what_each_synonym_adds_states_its_requests_and_answers_gains` (cost before, `adds_nothing` at gain 0) | done |
+| 4 | `test_the_dry_call_states_the_cost_per_database_and_sends_nothing`; `test_a_count_that_would_pass_a_budget_is_refused_before_any_request`; `test_the_budget_is_shared_by_drafts_and_the_workspace_and_renews_each_utc_day` ("nothing on a keystroke" is the screen's, part C) | done (engine) |
+| 5 | `test_a_repeated_string_is_answered_from_the_log_for_24_hours`; `test_a_merge_asks_only_the_strings_not_yet_counted`; `test_every_request_is_a_log_row_and_a_failed_one_never_answers`; `test_on_plan_the_log_is_under_audit_and_the_estimate_reuses_it` | done |
+| 6 | `test_a_used_up_quota_is_remembered_across_drafts_until_it_resets`; `test_the_last_count_is_shown_beside_a_used_up_quota`; `test_throttling_refusal_unavailability_and_timeout_keep_their_codes` | done |
+| 7 | `test_crossref_is_not_counted_for_two_concepts_unless_asked_and_then_only_the_full_query`; `test_crossref_counts_like_any_database_for_one_concept` (seed and comparison exclusions are part B) | done (counts) |
+| 8 | `test_the_size_line_is_the_estimates_arithmetic_for_the_version` (Inception, the draft's `pool_max`); on Plan the same function with `size_limit` | done |
+| 23 | every answer and log row carries `query_key: "main"` (tests above); another key is refused (`tests/kits/search/test_workbench.py`) | done for part A |
+| 24 | `generate_contract_baseline.py --check` before and after (Evidence) | see Evidence |
+
+Fails before: on the source at `1f218054` the two new test files stop at collection (`ImportError: cannot import name 'workbench'`; 2 errors), seen 2026-11-21.
+
+Not verified (needs a live run, not run): the budget defaults against the providers' published limits; how many requests a real session sends; whether OpenAlex and Semantic Scholar show the dropped-concept pattern. Prepared command (researcher's approval needed; it sends 15 count requests, 5 each to OpenAlex, Semantic Scholar and arXiv, from the console of the real review's workspace or a draft):
+
+```
+POST /api/v1/discovery/workbench/counts  {"version": <the protocol's four concepts>, "providers": ["openalex","semanticscholar","arxiv"]}
+```
+
+then the same with UAV and multispectral merged (4 requests per database, 12 in all). The dry call (`"dry_run": true`) shows the count first and sends nothing.
+
+Evidence:
+
+| Stage | Commit | Command | Result | Duration |
+| :-- | :-- | :-- | :-- | :-- |
