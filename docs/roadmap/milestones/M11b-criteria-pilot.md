@@ -491,3 +491,8 @@ Review round 3 (on `bb32cd80`, the item 5 delta): **CHANGES**, 1 P2 and 1 P4, bo
 | :-- | :-- | :-- | :-- |
 | P2-1 | After any revision, a conflict from before it could not be resolved in the app: the resolve route copied the kept event's binding (version 1), which item 5 refuses, so its batch stayed blocked | the resolution is bound to the record as it is now and stamped with the criteria version of the decision it keeps (decision item 11, PROPOSED); a revision that could change it shows the record again; contract §4 resolve row | `test_round3_a_conflict_resolved_after_a_wording_change_is_shown_again`, `test_round3_a_conflict_resolved_after_a_category_change_counts`, `test_round3_keeping_an_exclusion_whose_criterion_was_retired_resolves_and_is_shown_again` |
 | P4-2 | `binding.criteria_version: true` (or `1.0`) read as version 1 | the bound version must be an int (not a bool); anything else is `STALE_BINDING` | `test_round3_a_bound_version_must_be_an_integer` |
+
+| Stage | Commit | Command | Result | Duration |
+| :-- | :-- | :-- | :-- | :-- |
+| targeted | `58ce7bd7` (working tree) | the four round-3 tests first on `bb32cd80`: 4 of 4 failed; then `test_criteria_amendments_api.py`, `test_screening_api_v1.py`, `test_screening_events.py`, `test_screening_api_contract.py` | 159 passed | 46 s |
+| pr | `58ce7bd7` | contract baseline, protocol schema, contract schemas, two-study fixture; `ruff check scripts/` and the `src/` real-bug set; `git diff --check origin/main...HEAD`; `uv run pytest -q -n 4 --junitxml` (full suite) | current; in sync; exit 0; exit 0; clean; clean; clean; 6128 tests: 6113 passed, 15 skipped, 0 failed, 0 errors | 648 s |
