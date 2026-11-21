@@ -403,6 +403,16 @@ Review round 1 (`milestone-reviewer`, on `559c3063`): **CHANGES**, 1 P2, 4 P3, 2
 | P4-B6 | `WORKBENCH_COMPARISON_MEASURE` 422 could not happen (an unknown measure is `BODY_INVALID`) | contract table and decision item 4 corrected | (none) |
 | P4-B7 | A call that sends nothing (switch off) was refused for the contact email | the guards run only when a request will be sent | `test_an_openalex_call_that_would_send_nothing_is_not_refused_for_the_contact_email` |
 
+Review round 2 (on `fc6b5832`): **CHANGES**, 1 P2, 2 P3 (B1, B3 to B7 confirmed), all about the new genesis copy:
+
+| # | Finding | Repair | Test |
+| :-- | :-- | :-- | :-- |
+| P2-R1 | The copy swapped folders in two renames; a failure between them left no `audit/query_development/` and a retry deleted the earlier record | no swap: nothing already there is moved or deleted; logs get only the lines they lack (under the count log's lock), texts are rewritten through a temporary file, each set is renamed into its number in one step and skipped if the same draft's set is there | `test_a_failed_genesis_copy_moves_nothing_and_a_retry_completes_it_once`, `test_a_replacement_numbers_another_drafts_sets_after_the_existing_ones` |
+| P3-R2 | Rows the Plan workbench appended during the copy were lost | follows from R1: appends in place under the same lock as `CountLog.append` | (as above) |
+| P3-R3 | A failed `copytree` left a hidden temporary folder | each set's temporary folder is removed on failure | (as above) |
+
+Also: the staging and removal rows of the count log now carry the draft or workspace (`scope`), as every other row (two drafts' identical staging lines were merged by the dedupe).
+
 Round-1 follow-ups, not repaired: with 1 or 2 seeds `SEEDS_CANNOT_TEST` (few) and `DIRECTION_SEEDS_FEW` both fire; `SEEDS_CANNOT_TEST`'s action goes to Direction although its sentence also offers an export comparison (part C puts that link in the panel); staging or removing a set on Plan writes under `audit/` without a journal row (as decision item 12 of Part A reads "records"); a DOI holding `,` or `|` would break its batch of 50 in the OpenAlex filter; an unreadable `artifact_registry.json` turns Plan's seed and report calls into a 500.
 
 Not verified (needs a live run, not run): whether OpenAlex answers `filter=…,doi:a|b|…` combined with `search.title_and_abstract` in one request and returns exactly the matching works (DoD 11 and the comparison's OpenAlex measure); how many DOIs one request takes in practice. Prepared check, one request, for the researcher's approval: with `NEXUS_WORKBENCH_OPENALEX_IDS=1` set for the console, on Plan of the real review, `POST /api/v1/discovery/workbench/seeds {"version": <the protocol's query>, "openalex": true}` (its dry run states "openalex: 1"); then compare its `found` with the recall check's result for the same seeds. Whether the local word match would have flagged the run's gap is also unverified (the 2026-11-20 Scopus export used the strict query).

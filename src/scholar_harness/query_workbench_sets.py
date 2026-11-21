@@ -335,6 +335,7 @@ def list_sets(log: qw.CountLog) -> list[dict[str, Any]]:
 
 def stage_set(
     log: qw.CountLog, *, file_name: str, content: bytes, database: str, string: str | None, exported_on: str | None,
+    scope: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Store one export as a comparison set; refused before anything is kept (``WORKBENCH_COMPARISON_*``)."""
     root = _sets_dir(log)
@@ -342,12 +343,12 @@ def stage_set(
     # Review B4: the limit check, the number and the rename are one step per folder.
     with qw._lock(root):
         return _stage_locked(log, root, file_name=file_name, content=content, database=database, string=string,
-                             exported_on=exported_on)
+                             exported_on=exported_on, scope=scope or {})
 
 
 def _stage_locked(
     log: qw.CountLog, root: Path, *, file_name: str, content: bytes, database: str, string: str | None,
-    exported_on: str | None,
+    exported_on: str | None, scope: dict[str, Any],
 ) -> dict[str, Any]:
     from .corpus_accept import _IMPORTERS, detect_import_format
 
@@ -392,7 +393,7 @@ def _stage_locked(
         raise
     log.append([{"shape": qw.LOG_SHAPE, "kind": "comparison_staged", "comparison": set_id, "database": data["database"],
                  "records": len(records), "status": "staged", "counted_at": data["staged_at"], "requests": 0,
-                 "key": None}])
+                 "key": None, **scope}])
     return _summary(data)
 
 
@@ -403,14 +404,14 @@ def _set_path(log: qw.CountLog, set_id: str) -> Path:
     return path
 
 
-def remove_set(log: qw.CountLog, set_id: str) -> None:
+def remove_set(log: qw.CountLog, set_id: str, scope: dict[str, Any] | None = None) -> None:
     """Delete one set and leave one line in the count log."""
     path = _set_path(log, set_id)
     data = _read_set(path) or {}
     shutil.rmtree(path)
     log.append([{"shape": qw.LOG_SHAPE, "kind": "comparison_removed", "comparison": set_id,
                  "database": data.get("database"), "records": data.get("records_count"), "status": "removed",
-                 "counted_at": qw.utcnow().isoformat(), "requests": 0, "key": None}])
+                 "counted_at": qw.utcnow().isoformat(), "requests": 0, "key": None, **(scope or {})}])
 
 
 # --------------------------------------------------------------------------- the report
@@ -557,47 +558,44 @@ def development_files(source: Path | None) -> list[str]:
 def copy_development(source: Path | None, workspace: Path) -> dict[str, Any]:
     """Copy a draft's count log, seed checks, looked-up texts and comparison sets under ``audit/query_development/``.
 
-    A replacement keeps what the workspace already holds: the logs are
-    appended, the texts merged, the comparison sets numbered after the
-    existing ones (each keeps its draft id as ``draft_id``).
+    Nothing the workspace already holds is moved or deleted (review B2, round 2):
+    the logs get the draft's lines they do not hold yet (a retry adds nothing
+    twice), the texts are merged and rewritten through a temporary file, and
+    each comparison set is copied aside and renamed into the next free number
+    in one step, skipped when the same draft's set is already there
+    (``from_draft``, ``draft_id``). A failure half way leaves what was there
+    plus the pieces already finished; running it again completes the rest.
     """
     copied: dict[str, Any] = {"counts": 0, "seed_checks": 0, "comparison_sets": 0, "files": []}
     if source is None or not Path(source).is_dir() or not development_files(source):
         return copied
     source = Path(source)
-    final = Path(workspace) / "audit" / qw.DEVELOPMENT_DIR
-    # Review B2: the result is built in a folder beside it (the existing development
-    # copied first on a replacement) and moved in whole, so a failure half way
-    # leaves the workspace's development as it was and a retry adds nothing twice.
-    target = final.with_name(f".{qw.DEVELOPMENT_DIR}.{os.getpid()}.tmp")
-    shutil.rmtree(target, ignore_errors=True)
-    if final.is_dir():
-        shutil.copytree(final, target)
-    else:
-        target.mkdir(parents=True)
-    try:
-        _merge_development(source, target, copied)
-        old = final.with_name(f".{qw.DEVELOPMENT_DIR}.{os.getpid()}.old")
-        shutil.rmtree(old, ignore_errors=True)
-        if final.is_dir():
-            os.replace(final, old)
-        os.replace(target, final)
-        shutil.rmtree(old, ignore_errors=True)
-    except BaseException:
-        shutil.rmtree(target, ignore_errors=True)
-        raise
+    target = Path(workspace) / "audit" / qw.DEVELOPMENT_DIR
+    target.mkdir(parents=True, exist_ok=True)
+    _merge_development(source, target, copied, draft=source.parent.name)
     return copied
 
 
-def _merge_development(source: Path, target: Path, copied: dict[str, Any]) -> None:
-    for name, key in ((qw.COUNTS_FILE, "counts"), (SEED_CHECKS_FILE, "seed_checks")):
-        path = source / name
-        if path.is_file():
-            lines = [line for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
-            with open(target / name, "a", encoding="utf-8") as handle:
-                for line in lines:
+def _append_new_lines(source: Path, target: Path) -> int:
+    """Append the lines of ``source`` that ``target`` does not hold, under the count log's lock."""
+    lines = [line for line in source.read_text(encoding="utf-8").splitlines() if line.strip()]
+    with qw._lock(target):
+        try:
+            have = set(target.read_text(encoding="utf-8").splitlines())
+        except FileNotFoundError:
+            have = set()
+        fresh = [line for line in lines if line not in have]
+        if fresh:
+            with open(target, "a", encoding="utf-8") as handle:
+                for line in fresh:
                     handle.write(line + "\n")
-            copied[key] = len(lines)
+    return len(lines)
+
+
+def _merge_development(source: Path, target: Path, copied: dict[str, Any], *, draft: str) -> None:
+    for name, key in ((qw.COUNTS_FILE, "counts"), (SEED_CHECKS_FILE, "seed_checks")):
+        if (source / name).is_file():
+            copied[key] = _append_new_lines(source / name, target / name)
             copied["files"].append(f"audit/{qw.DEVELOPMENT_DIR}/{name}")
     if (source / SEED_TEXTS_FILE).is_file():
         try:
@@ -609,21 +607,35 @@ def _merge_development(source: Path, target: Path, copied: dict[str, Any]) -> No
         except (OSError, ValueError):
             old = {}
         merged = {**(old if isinstance(old, dict) else {}), **(new if isinstance(new, dict) else {})}
-        (target / SEED_TEXTS_FILE).write_text(json.dumps(merged, indent=2, ensure_ascii=False), encoding="utf-8")
+        tmp = target / f".{SEED_TEXTS_FILE}.{os.getpid()}.tmp"
+        tmp.write_text(json.dumps(merged, indent=2, ensure_ascii=False), encoding="utf-8")
+        os.replace(tmp, target / SEED_TEXTS_FILE)
         copied["files"].append(f"audit/{qw.DEVELOPMENT_DIR}/{SEED_TEXTS_FILE}")
     sets = source / COMPARISON_DIR
-    if sets.is_dir():
-        out = target / COMPARISON_DIR
-        out.mkdir(exist_ok=True)
-        number = max((int(p.name[4:]) for p in out.iterdir() if p.is_dir() and CMP_ID.fullmatch(p.name)), default=0)
+    if not sets.is_dir():
+        return
+    out = target / COMPARISON_DIR
+    out.mkdir(exist_ok=True)
+    with qw._lock(out):
+        folders = [p for p in out.iterdir() if p.is_dir() and CMP_ID.fullmatch(p.name)]
+        done = {((_read_set(p) or {}).get("from_draft"), (_read_set(p) or {}).get("draft_id")) for p in folders}
+        number = max((int(p.name[4:]) for p in folders), default=0)
         for path in sorted(p for p in sets.iterdir() if p.is_dir() and CMP_ID.fullmatch(p.name)):
+            data = _read_set(path)
+            if data is None or (draft, data.get("id")) in done:
+                continue
             number += 1
             new_id = f"cmp_{number:03d}"
-            shutil.copytree(path, out / new_id)
-            data = _read_set(out / new_id)
-            if data is not None and data.get("id") != new_id:
-                data["draft_id"], data["id"] = data.get("id"), new_id
-                (out / new_id / SET_FILE).write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
+            tmp = out / f".{new_id}.{os.getpid()}.tmp"
+            shutil.rmtree(tmp, ignore_errors=True)
+            try:
+                shutil.copytree(path, tmp)
+                data.update(draft_id=data.get("id"), from_draft=draft, id=new_id)
+                (tmp / SET_FILE).write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
+                os.replace(tmp, out / new_id)
+            except BaseException:
+                shutil.rmtree(tmp, ignore_errors=True)
+                raise
             copied["comparison_sets"] += 1
-        if copied["comparison_sets"]:
-            copied["files"].append(f"audit/{qw.DEVELOPMENT_DIR}/{COMPARISON_DIR}/")
+    if any(p.is_dir() and CMP_ID.fullmatch(p.name) for p in out.iterdir()):
+        copied["files"].append(f"audit/{qw.DEVELOPMENT_DIR}/{COMPARISON_DIR}/")

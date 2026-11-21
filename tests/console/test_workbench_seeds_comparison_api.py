@@ -492,48 +492,51 @@ def test_a_lookup_that_meets_a_used_up_quota_sends_nothing_more(env, monkeypatch
     assert state.spent("openalex", qw.utcnow()) == 1
 
 
-def test_a_failed_genesis_copy_leaves_the_development_as_it_was(env, monkeypatch, tmp_path):
-    """Review B2: the copy is built aside and moved in whole."""
-    client, root, ws, draft, openalex, _ = env
-    folder = DraftStore(root).dir / draft / "query_development"
-    folder.mkdir(parents=True)
-    (folder / "counts.jsonl").write_text('{"kind": "full"}\n', encoding="utf-8")
-    target = tmp_path / "ws"
-    (target / "audit" / "query_development").mkdir(parents=True)
-    (target / "audit" / "query_development" / "counts.jsonl").write_text('{"kind": "old"}\n', encoding="utf-8")
-    import shutil as sh
-
-    def broken(*_a, **_k):
-        raise OSError("disk full")
-
-    monkeypatch.setattr(qs, "_merge_development", broken)
-    with pytest.raises(OSError):
-        qs.copy_development(folder, target)
-    assert (target / "audit" / "query_development" / "counts.jsonl").read_text(encoding="utf-8") == '{"kind": "old"}\n'
-    assert [p.name for p in (target / "audit").iterdir()] == ["query_development"]
-    monkeypatch.undo()
-    copied = qs.copy_development(folder, target)
-    assert copied["counts"] == 1
-    lines = (target / "audit" / "query_development" / "counts.jsonl").read_text(encoding="utf-8").splitlines()
-    assert lines == ['{"kind": "old"}', '{"kind": "full"}']
-    _ = sh
-
-
-def test_a_replacement_appends_the_logs_and_numbers_the_sets_after_the_existing_ones(env, tmp_path):
-    """Review B2: decision item 9 on a workspace that already holds a development."""
+def test_a_failed_genesis_copy_moves_nothing_and_a_retry_completes_it_once(env, monkeypatch, tmp_path):
+    """Review B2: nothing the workspace holds is moved or deleted; a retry adds nothing twice."""
     client, root, ws, draft, openalex, _ = env
     _stage(client, draft)
     folder = DraftStore(root).dir / draft / "query_development"
     target = tmp_path / "ws"
-    first = qs.copy_development(folder, target)
-    second = qs.copy_development(folder, target)
-    assert first["comparison_sets"] == second["comparison_sets"] == 1
-    sets = sorted(p.name for p in (target / "audit" / "query_development" / "comparison").iterdir())
-    assert sets == ["cmp_001", "cmp_002"]
-    data = json.loads((target / "audit" / "query_development" / "comparison" / "cmp_002" / "set.json").read_text(encoding="utf-8"))
-    assert (data["id"], data["draft_id"]) == ("cmp_002", "cmp_001")
+    dev = target / "audit" / "query_development"
+    dev.mkdir(parents=True)
+    (dev / "counts.jsonl").write_text('{"kind": "old"}\n', encoding="utf-8")
+    real = qs.shutil.copytree
+
+    def broken(*_a, **_k):
+        raise OSError("sharing violation")
+
+    monkeypatch.setattr(qs.shutil, "copytree", broken)
+    with pytest.raises(OSError):
+        qs.copy_development(folder, target)
+    # The earlier record is still there, the log line was added once, no set and no leftover folder.
+    lines = (dev / "counts.jsonl").read_text(encoding="utf-8").splitlines()
+    assert lines[0] == '{"kind": "old"}' and len(lines) == 2
+    assert [p.name for p in (dev / "comparison").iterdir()] == []
+    monkeypatch.setattr(qs.shutil, "copytree", real)
+    again = qs.copy_development(folder, target)
+    assert again["comparison_sets"] == 1
+    assert (dev / "counts.jsonl").read_text(encoding="utf-8").splitlines() == lines
+    assert sorted(p.name for p in (dev / "comparison").iterdir()) == ["cmp_001"]
+    third = qs.copy_development(folder, target)  # the same draft again: nothing twice
+    assert third["comparison_sets"] == 0 and sorted(p.name for p in (dev / "comparison").iterdir()) == ["cmp_001"]
+
+
+def test_a_replacement_numbers_another_drafts_sets_after_the_existing_ones(env, tmp_path):
+    """Review B2: decision item 9 on a workspace that already holds a development."""
+    client, root, ws, draft, openalex, _ = env
+    other = DraftStore(root).create({"topic": "weeds", "concepts": FOUR})["session_id"]
+    _stage(client, draft)
+    _stage(client, other)
+    target = tmp_path / "ws"
+    qs.copy_development(DraftStore(root).dir / draft / "query_development", target)
+    qs.copy_development(DraftStore(root).dir / other / "query_development", target)
+    out = target / "audit" / "query_development" / "comparison"
+    assert sorted(p.name for p in out.iterdir()) == ["cmp_001", "cmp_002"]
+    data = json.loads((out / "cmp_002" / "set.json").read_text(encoding="utf-8"))
+    assert (data["id"], data["draft_id"], data["from_draft"]) == ("cmp_002", "cmp_001", other)
     log = (target / "audit" / "query_development" / "counts.jsonl").read_text(encoding="utf-8").splitlines()
-    assert len(log) == 2  # the staging line, once per copy
+    assert len(log) == 2  # one staging line from each draft
 
 
 def test_seeds_none_of_which_can_be_read_raise_no_warning(env):

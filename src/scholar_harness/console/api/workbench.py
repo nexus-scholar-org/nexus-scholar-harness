@@ -345,14 +345,14 @@ def _stage(place: _Place, body: StageBody) -> dict[str, Any]:
         raise _refusal(422, refusals.WORKBENCH_COMPARISON_FORMAT, f"{body.file_name} did not arrive as base64 file content") from exc
     try:
         return qs.stage_set(place.log, file_name=body.file_name, content=content, database=body.database,
-                            string=body.string, exported_on=body.exported_on)
+                            string=body.string, exported_on=body.exported_on, scope=place.scope)
     except qw.WorkbenchRefused as exc:
         raise _refusal(exc.status, exc.code, exc.message, exc.details) from exc
 
 
 def _remove(place: _Place, set_id: str) -> dict[str, Any]:
     try:
-        qs.remove_set(place.log, set_id)
+        qs.remove_set(place.log, set_id, place.scope)
     except qw.WorkbenchRefused as exc:
         raise _refusal(exc.status, exc.code, exc.message, exc.details) from exc
     return {"sets": qs.list_sets(place.log)}
