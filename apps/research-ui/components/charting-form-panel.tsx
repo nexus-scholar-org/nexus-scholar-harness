@@ -138,9 +138,14 @@ export function ChartingFormPanel({
     setDraft((current) => (sameColumns(current, before.columns) ? clean(form.columns) : current));
   }, [form]);
 
-  const save = useCallback(
-    async (columns: FormColumn[], withReason: string | null) => {
+  // Saves run one after another, each from the version the one before it answered.
+  const queue = useRef<Promise<unknown>>(Promise.resolve());
+
+  const saveNow = useCallback(
+    async (given: FormColumn[] | null, withReason: string | null) => {
       if (readOnly) return;
+      // A change saved at once sends the newest draft, so quick changes in a row are one save each, in order.
+      const columns = given ?? draftRef.current;
       if (columns.some((c) => !c.name.trim())) {
         setLine(t("charting.form.needsName"));
         return;
@@ -152,7 +157,11 @@ export function ChartingFormPanel({
       try {
         const sent = clean(columns);
         const answer = await putChartingForm(origin, { baseVersion: formRef.current.version, columns: sent, reason: withReason });
-        if (sameColumns(draftRef.current, sent)) setDraft(clean(answer.columns));
+        formRef.current = answer;
+        if (sameColumns(draftRef.current, sent)) {
+          draftRef.current = clean(answer.columns);
+          setDraft(draftRef.current);
+        }
         setReason("");
         setNeedsReason(false);
         onSaved(answer);
@@ -172,21 +181,32 @@ export function ChartingFormPanel({
     [origin, readOnly, onSaved, onAnnounce, onReload, t],
   );
 
+  const save = useCallback(
+    (columns: FormColumn[] | null, withReason: string | null) => {
+      const run = () => saveNow(columns, withReason);
+      const next = queue.current.then(run, run);
+      queue.current = next.catch(() => undefined);
+      return next;
+    },
+    [saveNow],
+  );
+
   /** A change: saved at once before any value exists, else kept for the amendment. */
   function change(next: FormColumn[], immediate: boolean) {
+    draftRef.current = next;
     setDraft(next);
     setLine("");
-    if (immediate && !amend) void save(next, null);
+    if (immediate && !amend) void save(null, null);
   }
 
   function update(index: number, patch: Partial<FormColumn>, immediate: boolean) {
-    change(draft.map((c, i) => (i === index ? { ...c, ...patch } : c)), immediate);
+    change(draftRef.current.map((c, i) => (i === index ? { ...c, ...patch } : c)), immediate);
   }
 
   function addColumn() {
     const column: FormColumn = {
       column_id: newColumnId(),
-      name: t("charting.form.newColumn", { n: draft.length + 1 }),
+      name: t("charting.form.newColumn", { n: draftRef.current.length + 1 }),
       definition: "",
       type: "text",
       options: [],
@@ -195,7 +215,7 @@ export function ChartingFormPanel({
       derived_from: [],
     };
     focusNext.current = column.column_id;
-    change([...draft, column], true);
+    change([...draftRef.current, column], true);
   }
 
   const added = useRef(false);
@@ -215,19 +235,21 @@ export function ChartingFormPanel({
   }, [draft]);
 
   function move(index: number, delta: number) {
+    const current = draftRef.current;
     const to = index + delta;
-    if (to < 0 || to >= draft.length) return;
-    const next = [...draft];
+    if (to < 0 || to >= current.length) return;
+    const next = [...current];
     [next[index], next[to]] = [next[to], next[index]];
     change(next, true);
   }
 
   function remove(index: number) {
-    change(draft.filter((_, i) => i !== index), true);
+    change(draftRef.current.filter((_, i) => i !== index), true);
   }
 
   function split(index: number) {
-    const source = draft[index];
+    const current = draftRef.current;
+    const source = current[index];
     const parts = [1, 2].map((n) => ({
       ...source,
       column_id: newColumnId() + n,
@@ -237,17 +259,17 @@ export function ChartingFormPanel({
       options: [...source.options],
     }));
     focusNext.current = parts[0].column_id;
-    change([...draft.slice(0, index), ...parts, ...draft.slice(index + 1)], true);
+    change([...current.slice(0, index), ...parts, ...current.slice(index + 1)], true);
   }
 
   function setType(index: number, type: ColumnType) {
-    const current = draft[index];
+    const current = draftRef.current[index];
     const options = type === "one" || type === "several" ? (current.type === "one" || current.type === "several" ? current.options : []) : [];
     update(index, { type, options }, true);
   }
 
   function addOption(index: number) {
-    const column = draft[index];
+    const column = draftRef.current[index];
     const text = (optionText[column.column_id] ?? "").trim();
     if (!text || column.options.includes(text)) return;
     setOptionText({ ...optionText, [column.column_id]: "" });
@@ -274,7 +296,7 @@ export function ChartingFormPanel({
   }, [form.amendments]);
 
   const input = `min-h-11 w-full rounded-md border border-rule-strong bg-leaf px-2 text-sm text-ink disabled:opacity-60 ${FOCUS_RING}`;
-  const locked = readOnly || saving;
+  const locked = readOnly;
 
   return (
     <aside
@@ -349,7 +371,7 @@ export function ChartingFormPanel({
                   dir="auto"
                   onChange={(event) => update(index, { name: event.target.value }, false)}
                   onBlur={() => {
-                    if (!amend) void save(draftRef.current, null);
+                    if (!amend) void save(null, null);
                   }}
                   className={input}
                   data-form-name
@@ -368,7 +390,7 @@ export function ChartingFormPanel({
                   dir="auto"
                   onChange={(event) => update(index, { definition: event.target.value }, false)}
                   onBlur={() => {
-                    if (!amend) void save(draftRef.current, null);
+                    if (!amend) void save(null, null);
                   }}
                   className={`${input} py-2`}
                   data-form-definition
