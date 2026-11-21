@@ -387,6 +387,10 @@ def record_proposal(study_id: str, request: Request) -> dict[str, Any]:
             },
             "validators": proposal.get("validators", []),
             "cannot_decide": proposal.get("cannot_decide", False),
+            # M11b part A (DoD 9): the criteria version the draft answered, and whether that
+            # wording is no longer in force (the screen labels it "made under the earlier wording").
+            "criteria_version": pr.draft_version(proposal),
+            "earlier_wording": pr.draft_version(proposal) != context.criteria_version,
             # M8b: where each quote shows in the record, or that it is not at its offsets.
             "quotes": quote_places(output.get("criteria", []), _papers(ws, context).get(study_id, {})),
         }
