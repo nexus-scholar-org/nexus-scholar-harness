@@ -103,24 +103,6 @@ type UndoEntry = { steps: UndoStep[] };
 /** The focused place in the Charting view: column 0 is the study, 1 to n the form's columns. */
 type Editing = { row: string; col: number } | null;
 
-const FIRST_VISIT_KEY = "nexus.charting.firstVisitCard";
-
-function readDismissed(): boolean {
-  try {
-    return window.localStorage.getItem(FIRST_VISIT_KEY) === "closed";
-  } catch {
-    return false;
-  }
-}
-
-function writeDismissed() {
-  try {
-    window.localStorage.setItem(FIRST_VISIT_KEY, "closed");
-  } catch {
-    /* no storage here: the card closes for this visit only */
-  }
-}
-
 /** The screen's place from the address (view, filter, row, form), read after mounting so the first paint matches the server's. */
 function readPlace(): { view: TableView; show: ShowFilter; excluded: boolean; row: string | null; form: boolean } {
   const query = new URLSearchParams(window.location.search);
@@ -413,7 +395,7 @@ function ChartingScreen({ locale }: Readonly<{ locale: Locale }>) {
   const [panelOpen, setPanelOpen] = useState(false);
   const [panelAdd, setPanelAdd] = useState(false);
   const [exportOpen, setExportOpen] = useState(false);
-  const [cardClosed, setCardClosed] = useState(true);
+  const [cardClosed, setCardClosed] = useState(false);
   const undoStack = useRef<UndoEntry[]>([]);
   const fileInput = useRef<HTMLInputElement>(null);
   const attachFor = useRef<string | null>(null);
@@ -439,7 +421,6 @@ function ChartingScreen({ locale }: Readonly<{ locale: Locale }>) {
         setPanelOpen(true);
         setPanelAdd(true);
       }
-      setCardClosed(readDismissed());
     }
     try {
       const answer = await getCharting(origin);
@@ -708,10 +689,7 @@ function ChartingScreen({ locale }: Readonly<{ locale: Locale }>) {
     setPanelAdd(addFirst);
     setPanelOpen(true);
     setExportOpen(false);
-    if (!cardClosed) {
-      setCardClosed(true);
-      writeDismissed();
-    }
+    if (!cardClosed) setCardClosed(true);
     setTimeout(() => document.querySelector<HTMLElement>("[data-form-panel] [data-form-name], [data-form-panel] [data-end-pilot], [data-form-panel] [data-form-add]")?.focus(), 0);
   }
 
@@ -1489,10 +1467,7 @@ function ChartingScreen({ locale }: Readonly<{ locale: Locale }>) {
         </Button>
         <Button
           variant="quiet"
-          onClick={() => {
-            setCardClosed(true);
-            writeDismissed();
-          }}
+          onClick={() => setCardClosed(true)}
           data-first-visit-close
         >
           {t("charting.pilot.notNow")}

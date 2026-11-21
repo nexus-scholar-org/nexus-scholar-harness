@@ -156,7 +156,7 @@ describe("charting.charting-view", () => {
     expect(document.querySelector("[data-chart-next]")).toHaveAttribute("data-variant", "primary");
   });
 
-  it("first visit: Not now closes the card and it stays closed on the next visit", async () => {
+  it("first visit: Not now closes the card for this page load; it is not stored in the browser (N12)", async () => {
     installEngine(makeChartingTable([makeRow(1)]));
     const view = await renderCharting("en", "?view=charting");
     fireEvent.click(within(document.querySelector("[data-first-visit]") as HTMLElement).getByRole("button", { name: "Not now" }));
@@ -164,7 +164,7 @@ describe("charting.charting-view", () => {
     view.unmount();
     installEngine(makeChartingTable([makeRow(1)]));
     await renderCharting("en", "?view=charting");
-    expect(document.querySelector("[data-first-visit]")).toBeNull();
+    expect(document.querySelector("[data-first-visit]")).not.toBeNull();
   });
 
   it("no charting columns: the sentence and a brand button that opens the form with one new column", async () => {
