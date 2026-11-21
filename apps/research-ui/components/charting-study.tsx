@@ -1248,7 +1248,7 @@ function Field({
             >
               <IconOf aria-hidden="true" className="size-4" />
               {t(state === "not_reported" ? "charting.cell.notReported" : "charting.cell.notApplicable")}
-              <kbd className="text-xs opacity-80">{state === "not_reported" ? "Alt+N" : "Alt+A"}</kbd>
+              <kbd className="text-xs">{state === "not_reported" ? "Alt+N" : "Alt+A"}</kbd>
             </button>
           );
         })}
