@@ -12,13 +12,13 @@ Why: the researcher's request of 2026-11-21 (plan §6, "Requested by the researc
 - M11a's accepted question 8 (`M11a-query-workbench-for-review.md:39`): the workbench's matcher treats English plurals as one word; INC-21 (`recon/session.term_occurs`) stays as it is.
 
 ## Definition of done
-- [ ] **Decisions recorded** in `docs/decisions.md` (items 1 to 9 accepted 2026-11-21 on the main session's recommendation; this milestone's own choices PROPOSED).
-- [ ] **Spec FINAL**: the M8b amendment to `docs/ux/phase2-screening/final/03-triage-desktop.md` (and the alignment line in 05), every state and sentence in en/fr/ar, through the `ux-spec-writer` agent; open questions listed, none guessed.
-- [ ] **Matcher**: one pure function `scholar_harness.term_match` (whole words and phrases, case-insensitive, English plurals, space and hyphen variants, no partial words, overlapping terms resolved). Pytest `tests/test_term_match.py`.
-- [ ] **Record read** `search_terms` on `GET /records/{study_id}`: concepts in protocol order with their terms and mentions, and marks per field in UTF-16 offsets. Pytest in `tests/test_screening_highlights.py`; contract doc and fixtures regenerated.
-- [ ] **Draft read** `quotes` on `GET /records/{study_id}/proposal`: per answer, where its quote sits in the shown title or abstract, or that it is not at its offsets; hidden exactly as the draft is (blinding). Pytest.
-- [ ] **Highlighter component** `components/highlighted-text.tsx` taking any text and a span list (reusable for full text, M12a); overlap layering. Vitest `highlighted-text.test.tsx`.
-- [ ] **Triage**: the two switches (remembered on this computer), the legend (present and absent concepts, the cap), quote marks tied to criteria both ways, a failed quote not highlighted and said so in the draft, no quote mark before the draft is shown. Vitest `triage.highlights.test.tsx`.
+- [x] **Decisions recorded** in `docs/decisions.md` (items 1 to 9 accepted 2026-11-21 on the main session's recommendation; this milestone's own choices PROPOSED).
+- [x] **Spec FINAL** (2026-11-21; the draft's three open points settled as decisions 12, 14, 20, PROPOSED): the M8b amendment to `docs/ux/phase2-screening/final/03-triage-desktop.md` (and the alignment line in 05), every state and sentence in en/fr/ar, through the `ux-spec-writer` agent; open questions listed, none guessed.
+- [x] **Matcher**: one pure function `scholar_harness.term_match` (whole words and phrases, case-insensitive, English plurals, space and hyphen variants, no partial words, overlapping terms resolved). Pytest `tests/test_term_match.py`.
+- [x] **Record read** `search_terms` on `GET /records/{study_id}`: concepts in protocol order with their terms and mentions, and marks per field in UTF-16 offsets. Pytest in `tests/test_screening_highlights.py`; contract doc and fixtures regenerated.
+- [x] **Draft read** `quotes` on `GET /records/{study_id}/proposal`: per answer, where its quote sits in the shown title or abstract, or that it is not at its offsets; hidden exactly as the draft is (blinding). Pytest.
+- [x] **Highlighter component** `components/highlighted-text.tsx` taking any text and a span list (reusable for full text, M12a); overlap layering. Vitest `highlighted-text.test.tsx`.
+- [x] **Triage**: the two switches (remembered on this computer), the legend (present and absent concepts, the cap), quote marks tied to criteria both ways, a failed quote not highlighted and said so in the draft, no quote mark before the draft is shown. Vitest `triage.highlights.test.tsx`. Guidance audit: rows S-TM1 to S-TM7 in `docs/ux/shared/final/03-guidance.md`, read by the audit test (a hint's key must be a HINT row) but not counted, because Screening has not adopted the audit.
 - [ ] **Browser**: no page scroll at 1440×900 and 1280×720 with marks on; marks do not move text; axe light and dark, en and ar; RTL. Playwright `tests-browser/triage-highlights.spec.ts`; screenshots looked at.
 - [ ] **Gates**: `/gate inner` after edits; `/gate checkpoint` per item; PR gate once on the final commit; `generate_contract_baseline.py --check`; `milestone-reviewer` APPROVE. No push, no PR.
 
