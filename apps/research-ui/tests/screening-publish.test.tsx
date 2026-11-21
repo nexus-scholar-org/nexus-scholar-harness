@@ -343,6 +343,8 @@ describe("publish.reporting", () => {
   it("has the three variants in every locale", () => {
     for (const locale of SUPPORTED_LOCALES) {
       for (const key of ["prisma", "prismaScr", "prismaNone", "publishBodyNone"] as const) expect(PUBLISH_COPY[locale][key]).toBeTruthy();
+      // M12a DoD 9: Publish no longer says it writes a full-text list.
+      for (const key of ["publishBody", "publishBodyNone"] as const) expect(PUBLISH_COPY[locale][key]).not.toMatch(/full-text lists|texte intégral ainsi|والنص الكامل وتقرير/);
     }
   });
 });

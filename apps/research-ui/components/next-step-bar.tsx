@@ -6,7 +6,7 @@ import { ArrowPathIcon, ArrowRightIcon, ExclamationTriangleIcon, PauseCircleIcon
 import { LOCALE_METADATA, type Locale } from "@/i18n";
 import { DataCell } from "@/components/ui/base";
 import { stamp } from "@/components/inception-frame";
-import { REVIEW_CHANGED_EVENT } from "@/components/review-bus";
+import { REVIEW_CHANGED_EVENT, announceNextStep } from "@/components/review-bus";
 import { INCEPTION_COPY } from "@/lib/inception-copy";
 import { isScreeningApiError } from "@/lib/screening-api";
 import { stateCopy } from "@/lib/screening-states";
@@ -261,6 +261,7 @@ function Bar({ locale, pathname, scope }: Readonly<{ locale: Locale; pathname: s
           } else if (!shown.current || !isOlder(answer.computed_at, shown.current.computed_at)) {
             shown.current = answer;
             setView({ status: "ready", answer });
+            announceNextStep({ scope: answer.scope, phase: answer.phase, state: answer.state, round: answer.round });
           }
         } catch (error) {
           lastRead.current = Date.now();

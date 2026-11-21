@@ -6,6 +6,7 @@ import { formatNumber, type Locale } from "@/i18n";
 import { DataCell, DecisionBadge } from "@/components/ui/base";
 import { DETAILS_LABEL, ScreeningSteps, StateCard, exportHref, stepHref } from "@/components/screening-state-card";
 import { getPublicationStatus, getScreeningBatches, isScreeningApiError, type ScreeningBatches } from "@/lib/screening-api";
+import { chartingHref } from "@/lib/charting-api";
 import { getConflicts, getCorpus, getSettings, getSummary, type Conflict, type Corpus, type Settings, type Summary } from "@/lib/screening-v1";
 
 /**
@@ -28,6 +29,7 @@ const COPY = {
     live: "Live data from this workspace's screening engine",
     exportLink: "Export and methods",
     chaseLink: "Chase citations",
+    chartingLink: "Chart the included studies",
     openTriage: "Open triage · {n} need you",
     seeChange: "See the change",
     loading: "Counts appear only once every file is read; no partial number is shown as final.",
@@ -84,6 +86,7 @@ const COPY = {
     live: "Données en direct du moteur de sélection de cet espace",
     exportLink: "Export et méthodes",
     chaseLink: "Chasser les citations",
+    chartingLink: "Extraire les données des études incluses",
     openTriage: "Ouvrir le tri · {n} à traiter",
     seeChange: "Voir la modification",
     loading: "Les totaux n'apparaissent qu'une fois tous les fichiers lus ; aucun chiffre partiel n'est présenté comme définitif.",
@@ -140,6 +143,7 @@ const COPY = {
     live: "بيانات حية من محرك الفرز لهذه المساحة",
     exportLink: "التصدير والمنهجية",
     chaseLink: "طارد الاستشهادات",
+    chartingLink: "استخرج بيانات الدراسات المُدرجة",
     openTriage: "فتح المراجعة · {n} بانتظارك",
     seeChange: "عرض التغيير",
     loading: "لا تظهر الأعداد إلا بعد قراءة كل الملفات؛ ولا يُعرض رقم جزئي على أنه نهائي.",
@@ -343,6 +347,10 @@ function HomeReady({
             {/* M3g (spec 09): citation chasing starts from the published includes. */}
             <a className="inline-flex min-h-11 items-center text-brand underline" href={`/${locale}/discovery/chase/${origin ? `?console=${encodeURIComponent(origin)}` : ""}`} data-chase-link>
               {t("chaseLink")}
+            </a>
+            {/* M12a (spec 01 "Entry"): the full texts and the charting come after the screening. */}
+            <a className="inline-flex min-h-11 items-center text-brand underline" href={chartingHref(locale, origin)} data-charting-link>
+              {t("chartingLink")}
             </a>
           </p>
         ) : publishedStale ? (
