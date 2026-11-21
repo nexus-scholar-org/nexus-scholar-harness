@@ -18,13 +18,16 @@ const BASE = "/api/v1/screening";
 
 export type Outcome = "INCLUDE" | "EXCLUDE" | "MAYBE";
 export type Answer = "yes" | "no" | "not_reported";
-export type QueueView = "needs_you" | "proposal_ready" | "no_proposal" | "title_only" | "decided";
+/** M11b: `recheck` (decisions a criteria revision shows again) and `pilot` (the open, else the last, pilot). */
+export type QueueView = "needs_you" | "proposal_ready" | "no_proposal" | "title_only" | "decided" | "recheck" | "pilot";
 export type EventResult = "accepted" | "duplicate" | "conflict" | "refused";
 
 export interface Binding {
   protocol_fingerprint: string;
   batch_id: string;
   batch_sha256: string;
+  /** M11b part A (item 5): the criteria version the record was shown under; the engine checks it. */
+  criteria_version?: number;
 }
 
 export interface Summary {
@@ -38,6 +41,22 @@ export interface Summary {
   lanes: { agent: number; you: number; second_screener: "PARKED" };
   /** Review F2: the batches were prepared under another protocol; earlier decisions count nowhere. */
   protocol_changed?: boolean;
+  /** M11b part A: the criteria version in force, and how many decisions a revision shows again. */
+  criteria_version?: number;
+  recheck?: number;
+  /** M11b part B: the open, else the last, pilot; null when none was drawn. */
+  pilot?: PilotBlock | null;
+}
+
+export interface PilotBlock {
+  pilot_id: string;
+  n: number;
+  decided: number;
+  open: boolean;
+  closed_at: string | null;
+  closed_reason: "ended" | "complete" | null;
+  pilots: number;
+  recheck: number;
 }
 
 export interface QueueItem {
@@ -49,6 +68,8 @@ export interface QueueItem {
   has_proposal: boolean;
   decided: boolean;
   flags: string[];
+  /** M11b part C: a decision a criteria revision shows again (first in "Needs you"). */
+  shown_again?: boolean;
 }
 
 export interface QueuePage {
@@ -56,12 +77,17 @@ export interface QueuePage {
   next_cursor: number | null;
   /** Review F2, as on the summary. */
   protocol_changed?: boolean;
+  /** M11b part B, `view=pilot` only: the pilot listed, and the checklist's default (collapsed). */
+  pilot?: { pilot_id: string; open: boolean } | null;
+  checklist_default?: "collapsed";
 }
 
 export interface Criterion {
   id: string;
   text: string;
   kind: "inclusion" | "exclusion";
+  /** M11b part A: the criteria version this wording dates from. */
+  since_version?: number;
 }
 
 export interface CriterionAnswer {
@@ -90,6 +116,8 @@ export interface StoredEvent extends DecisionEvent {
   received_at: string;
   token_scope: string;
   changed_after_reveal: boolean;
+  /** M11b part A: the criteria version the decision was made under (absent: 1). */
+  criteria_version?: number;
 }
 
 export interface RecordDetail {
@@ -110,6 +138,10 @@ export interface RecordDetail {
   not_reported_policy?: NotReportedPolicy;
   /** M8b: the protocol's concepts and where their words occur; older engines omit it. */
   search_terms?: SearchTerms;
+  /** M11b part A: the criteria version in force. */
+  criteria_version?: number;
+  /** M11b part A: the earlier decision a criteria revision shows again (then `my_decision` is null). */
+  shown_again?: { decision: StoredEvent; criteria_version: number } | null;
 }
 
 export type MarkedField = "title" | "abstract";
@@ -153,6 +185,9 @@ export interface Proposal {
   recorded?: { derived_outcome: Outcome; reason_code: string | null; not_reported_policy: NotReportedPolicy | null };
   /** M8b: the place of each quote; older engines omit it. */
   quotes?: QuotePlace[];
+  /** M11b part A: the criteria version the draft answered, and whether that wording is no longer in force. */
+  criteria_version?: number;
+  earlier_wording?: boolean;
 }
 
 export interface Refusal {
@@ -531,6 +566,8 @@ export interface Calibration {
   include_recall: number | null;
   ci_low: number | null;
   missed_includes: string[];
+  /** M11b part B: the number; with a pilot the list above is always empty (no pilot record is named). */
+  missed_includes_count?: number;
   compared: number;
   advisory: true;
 }
@@ -570,6 +607,8 @@ export interface ProposalSetup {
   latest_run: RunView | null;
   /** H-screening-drafts: the model of the newest run in this workspace; older engines omit it. */
   last_model?: { provider: Provider; model: string } | null;
+  /** M11b part A: the records whose latest draft predates the criteria version in force. */
+  earlier_wording_drafts?: { criteria_version: number; count: number; study_ids: string[] };
 }
 
 export interface RunRequest {
@@ -588,7 +627,9 @@ export interface Agreement {
   decided_after_seeing_the_draft: number;
   agreement_pct: number | null;
   table_2x2: { both_include: number; you_include_agent_exclude: number; you_exclude_agent_include: number; both_exclude: number };
-  splits_by_criterion: { criterion_id: string; n: number }[];
+  /** M11b part B: each split row also carries `answered_by_both`, its denominator. */
+  splits_by_criterion: { criterion_id: string; n: number; answered_by_both?: number }[];
+  answered_by_both?: { criterion_id: string; n: number }[];
   unclear_either_side: number;
   kappa: null;
   kappa_note: string;
@@ -621,7 +662,16 @@ export function cancelRun(origin: string, runId: string, signal?: AbortSignal): 
 /** Check the agent on records you have decided. Advisory: it never blocks a run. */
 export function startCalibration(
   origin: string,
-  input: { study_ids: string[]; provider: Provider; model: string; effort: string; cost_ceiling_usd?: number | null },
+  input: {
+    /** Without `pilot_id`, the records you decided; with it, optional (the pilot's decided records). */
+    study_ids?: string[];
+    /** M11b part B: check the agent on a pilot; its decisions are the labels. */
+    pilot_id?: string;
+    provider: Provider;
+    model: string;
+    effort: string;
+    cost_ceiling_usd?: number | null;
+  },
   signal?: AbortSignal,
 ): Promise<{ run_id: string }> {
   return postJson<{ run_id: string }>(`${BASE}/proposals/calibrations`, origin, input, signal);
@@ -715,3 +765,205 @@ export async function downloadExport(
   const filename = /filename="([^"]+)"/.exec(disposition)?.[1] ?? `screening.${format}`;
   return { blob: await response.blob(), filename };
 }
+
+// --- M11b: the criteria in force and the pilot (contract §4) ---------------------
+
+export type CriteriaSide = "inclusion" | "exclusion";
+export type AmendmentOp = "reword" | "split" | "merge" | "remove" | "add" | "reason_category";
+
+export interface CriterionInForce {
+  id: string;
+  side: CriteriaSide;
+  text: string;
+  reason_category: string | null;
+  since_version: number;
+}
+
+export interface CriteriaAmendment {
+  amendment_id: string;
+  op: AmendmentOp;
+  side: CriteriaSide;
+  from: { id: string; text: string; reason_category: string | null }[];
+  to: { id: string; text: string; reason_category: string | null }[];
+  reason: string;
+  criteria_version_before: number;
+  criteria_version_after: number;
+  pilot_id: string | null;
+  decided_at_time: number;
+  shown_again: OutcomeCounts;
+  amended_by: string;
+  amended_at: string;
+}
+
+export interface OutcomeCounts {
+  INCLUDE: number;
+  MAYBE: number;
+  EXCLUDE: number;
+  total: number;
+}
+
+export interface CriteriaView {
+  criteria_version: number;
+  criteria: CriterionInForce[];
+  retired: string[];
+  amendments: CriteriaAmendment[];
+  can_amend: boolean;
+  batches_prepared: boolean;
+  batch_approved: boolean;
+  handoff_batches?: number[];
+}
+
+export interface AmendmentRequest {
+  op: AmendmentOp;
+  side: CriteriaSide;
+  ids: string[];
+  text?: string | string[];
+  reason_category?: string | null;
+  reason?: string;
+}
+
+export interface AmendmentAnswer {
+  recorded: boolean;
+  op: AmendmentOp;
+  side: CriteriaSide;
+  new_ids: string[];
+  retired_ids: string[];
+  criteria_version_before: number;
+  criteria_version_after: number;
+  decided: number;
+  shown_again: OutcomeCounts;
+  waiting_after: number;
+  amendment?: CriteriaAmendment;
+}
+
+export function getCriteria(origin: string, signal?: AbortSignal): Promise<CriteriaView> {
+  return readJson<CriteriaView>(`${BASE}/criteria`, consoleBase(origin), signal);
+}
+
+/** A revision of the criteria; `confirm: false` is the dry call and writes nothing. */
+export function amendCriteria(origin: string, request: AmendmentRequest, confirm: boolean, signal?: AbortSignal): Promise<AmendmentAnswer> {
+  return postJson<AmendmentAnswer>(`${BASE}/criteria/amendments`, origin, { ...request, confirm }, signal);
+}
+
+export interface PilotDraw {
+  recorded: boolean;
+  n: number;
+  available: number;
+  expected_minutes: number;
+  pilot_id?: string;
+  seed?: number;
+  drawn_at?: string;
+}
+
+/** Draw a pilot; `confirm: false` is the dry call (the records left to draw from, the expected time). */
+export function drawPilot(origin: string, n: number, confirm: boolean, signal?: AbortSignal): Promise<PilotDraw> {
+  return postJson<PilotDraw>(`${BASE}/pilot`, origin, { n, confirm }, signal);
+}
+
+/** A pilot decision: a decision event's client fields, without a binding (it is part of no batch). */
+export type PilotDecision = Omit<DecisionEvent, "binding" | "proposal_shown">;
+
+export interface PilotIntakeResult {
+  event_id: string;
+  result: "accepted" | "duplicate" | "refused";
+  pilot_decision_id?: string;
+  refusal?: Refusal;
+}
+
+export async function postPilotDecisions(
+  origin: string,
+  pilotId: string,
+  decisions: PilotDecision[],
+  signal?: AbortSignal,
+): Promise<{ results: PilotIntakeResult[]; pilot: Omit<PilotBlock, "pilots" | "recheck"> }> {
+  return postJson(`${BASE}/pilot/${encodeURIComponent(pilotId)}/decisions`, origin, { decisions }, signal);
+}
+
+export function closePilot(origin: string, pilotId: string, signal?: AbortSignal): Promise<Omit<PilotBlock, "pilots" | "recheck">> {
+  return postJson(`${BASE}/pilot/${encodeURIComponent(pilotId)}/close`, origin, {}, signal);
+}
+
+export interface Share {
+  count: number;
+  of: number;
+}
+
+export interface PilotCriterionRow {
+  id: string;
+  side: CriteriaSide;
+  text: string;
+  retired: boolean;
+  exclusions: Share;
+  checklist_not_reported: Share | null;
+  draft_not_reported: Share | null;
+  read_differently: (Share & { source: "answers" | "implied" | "mixed" }) | null;
+}
+
+export type ObservationKind =
+  | "many_unclear"
+  | "does_most_work"
+  | "never_used"
+  | "hard_to_judge"
+  | "fire_together"
+  | "mirrored_pair"
+  | "read_differently";
+
+export interface Observation {
+  kind: ObservationKind;
+  criteria: string[];
+  counts: Record<string, number>;
+  source?: string;
+  form?: "full" | "weaker";
+}
+
+export interface NotComputed {
+  kind: ObservationKind;
+  needs: string[];
+  have?: number;
+  min?: number;
+}
+
+export interface PilotRecord {
+  study_id: string;
+  title: string;
+  outcome: Outcome;
+  reason_code: string | null;
+  criteria_version: number;
+}
+
+export interface PilotResult {
+  pilot_id: string;
+  n: number;
+  decided: number;
+  open: boolean;
+  closed_at: string | null;
+  closed_reason: "ended" | "complete" | null;
+  seed: number;
+  drawn_at: string;
+  snapshot_id: string | null;
+  protocol_fingerprint: string;
+  criteria_version_drawn: number;
+  criteria_versions_decided: number[];
+  criteria_version: number;
+  counted: false;
+  by_outcome: Record<Outcome, number>;
+  criteria: PilotCriterionRow[];
+  drafts: { records: number; of: number };
+  checklist: { records: number; of: number };
+  observations: Observation[];
+  not_computed: NotComputed[];
+  records: PilotRecord[];
+  previous: {
+    pilot_id: string;
+    n: number;
+    decided: number;
+    by_outcome: Record<Outcome, number>;
+    criteria: PilotCriterionRow[];
+    criteria_versions_decided: number[];
+  } | null;
+}
+
+export function getPilotResult(origin: string, pilotId: string, signal?: AbortSignal): Promise<PilotResult> {
+  return readJson<PilotResult>(`${BASE}/pilot/${encodeURIComponent(pilotId)}/result`, consoleBase(origin), signal);
+}
+
