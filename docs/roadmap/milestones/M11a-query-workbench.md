@@ -577,4 +577,4 @@ Evidence (Part D):
 
 Python did not change after `7019848b` (`git diff 7019848b 669856e0 -- src tests/console` is empty). The six screenshots the Playwright runs regenerate are restored after each run.
 
-**Part D: READY FOR PR** (not pushed). Branch `dev/m11a/part-d-plan-amend`, to be merged after Parts A, B and C. Before a merge: the researcher's answer to decision D item 7.
+**Part D: READY FOR PR** (not pushed). Branch `dev/m11a/part-d-plan-amend`, to be merged after Parts A, B and C. Decision D item 7 was accepted by the researcher on 2026-11-21 (`HANDOFF_SEARCH_CHANGED` keeps "Search again"); items 1 to 6 and 8 to 13 stay PROPOSED.
