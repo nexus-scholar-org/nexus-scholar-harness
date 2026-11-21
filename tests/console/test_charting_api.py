@@ -293,6 +293,7 @@ def test_a_pdf_is_stored_by_study_with_its_size_and_hash_and_a_to_get_row_become
     assert attachment == {"name": "Sa 2018.pdf", "size": len(MINI_PDF), "sha256": hashlib.sha256(MINI_PDF).hexdigest(),
                           "path": f"pdfs/{ids['included']}.pdf", "origin": "attached"}
     assert payload["row"]["fulltext"]["status"] == "retrieved" and len(payload["event_ids"]) == 2
+    assert [e["kind"] for e in payload["events"]] == ["attachment", "fulltext_status"]  # each id with its kind
     row = _journal(ws, "CHARTING_ATTACHMENT_ADDED")[-1]
     assert row["parameters"]["sha256"] == attachment["sha256"]
     served = client.get(f"{BASE}/records/{ids['included']}/attachment")

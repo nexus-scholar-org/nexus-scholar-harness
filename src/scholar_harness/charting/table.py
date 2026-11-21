@@ -260,7 +260,8 @@ def attach_staged(
                     (known.get("value") or {}).get("sha256") == sha256)
                 if not same:
                     raise ChartingRefused(409, ev.IDEMPOTENCY_CONFLICT, "event_id reused with different content")
-                return {"result": "duplicate", "event_ids": [known["event_id"]], **_one(ws, study_id)}
+                return {"result": "duplicate", "event_ids": [known["event_id"]],
+                        "events": [{"event_id": known["event_id"], "kind": "attachment"}], **_one(ws, study_id)}
             before = ev.current(stored, study_id, ctx.screener_id, "attachment")
             pending = [{**first, "method": "HUMAN", "binding": dict(ctx.binding), "received_at": at}]
             previous_status = ev.current(stored, study_id, ctx.screener_id, "fulltext_status")
@@ -292,7 +293,8 @@ def attach_staged(
         raise ChartingRefused(503, ev.ATOMIC_COMMIT_FAILED, "the charting log is busy; retry") from exc
     finally:
         staging.unlink(missing_ok=True)
-    return {"result": "accepted", "event_ids": [p["event_id"] for p in pending], **_one(ws, study_id)}
+    return {"result": "accepted", "event_ids": [p["event_id"] for p in pending],
+            "events": [{"event_id": p["event_id"], "kind": p["kind"]} for p in pending], **_one(ws, study_id)}
 
 
 def set_link(ws: Path | str, study_id: str, url: str | None, *, event_id: str | None, supersedes: str | None = None) -> dict[str, Any]:
@@ -310,7 +312,8 @@ def set_link(ws: Path | str, study_id: str, url: str | None, *, event_id: str | 
         code = result.refusal["code"]
         status = 409 if code in (ev.RECORD_NOT_KEPT, ev.IDEMPOTENCY_CONFLICT) else 422
         raise ChartingRefused(status, code, result.refusal["message"])
-    return {"result": result.result, "event_ids": [result.event_id], **_one(ws, study_id)}
+    return {"result": result.result, "event_ids": [result.event_id],
+            "events": [{"event_id": result.event_id, "kind": "link"}], **_one(ws, study_id)}
 
 
 def _one(ws: Path, study_id: str) -> dict[str, Any]:
