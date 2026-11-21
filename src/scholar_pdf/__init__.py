@@ -131,6 +131,7 @@ from .frontmatter import (
     parse_bound_frontmatter,
     verify_bound_frontmatter,
 )
+from .open_copies import LookupOutcome, OpenCopy, open_copies
 from .publisher_patterns import (
     PROXY_STYLES,
     compute_direct_pdf_from_landing_url,
@@ -225,9 +226,11 @@ __all__ = [
     "GrobidEngine",
     "GrobidProviderEngine",
     "InMemoryAuditSink",
+    "LookupOutcome",
     "ManifestOperation",
     "ManifestReference",
     "MethodProvenance",
+    "OpenCopy",
     "OperationStatus",
     "PDFAcquisitionService",
     "PDFExtractionService",
@@ -266,6 +269,7 @@ __all__ = [
     "is_valid_pdf",
     "measure_extracted_body",
     "normalize_doi",
+    "open_copies",
     "parse_bound_frontmatter",
     "project_content_status",
     "proxy_style",

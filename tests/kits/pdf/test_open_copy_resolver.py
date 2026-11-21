@@ -394,6 +394,40 @@ def test_copies_are_ranked_published_then_accepted_then_submitted_then_unlabelle
     ]
 
 
+def test_a_publishers_own_copy_is_labelled_as_the_publishers():
+    from scholar_pdf.open_copies import open_copies
+
+    openalex = {
+        "best_oa_location": {
+            "is_oa": True,
+            "pdf_url": "https://journal.example.org/a.pdf",
+            "version": "publishedVersion",
+            "license": "cc-by",
+            "source": {"display_name": "Journal of Examples", "type": "journal"},
+        }
+    }
+    unpaywall = {
+        "journal_name": "Journal of Examples",
+        "publisher": "Example Press",
+        "oa_locations": [
+            {"host_type": "publisher", "url_for_pdf": "https://press.example.org/a.pdf", "version": "publishedVersion"},
+            # A listed location that says it is not open is left out.
+            {"is_oa": False, "host_type": "repository", "url_for_pdf": "https://closed.example.org/a.pdf"},
+        ],
+    }
+
+    copies = open_copies(openalex, unpaywall)
+
+    assert [(c.provider, c.host_type, c.source_name) for c in copies] == [
+        ("openalex", "publisher", "Journal of Examples"),
+        ("unpaywall", "publisher", "Journal of Examples"),
+    ]
+    assert copies[0].label() == "publishedVersion, cc-by, Journal of Examples, listed by OpenAlex"
+    assert copies[1].label() == (
+        "publishedVersion, licence not given, Journal of Examples, listed by Unpaywall"
+    )
+
+
 @pytest.mark.asyncio
 async def test_the_first_address_failing_leads_to_the_second(downloader):
     lookups = FakeLookups(openalex_answer(), unpaywall_answer())
