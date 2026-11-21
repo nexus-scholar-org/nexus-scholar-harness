@@ -5,6 +5,9 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } fr
 import { translate, type Locale } from "@/i18n";
 import { Button, DataCell, DecisionBadge, EvidenceQuote, type DecisionRole } from "@/components/ui/base";
 import { ScreeningSteps, stepHref } from "@/components/screening-state-card";
+import { HighlightedText } from "@/components/highlighted-text";
+import { MarksBar, quoteSpans, termSpans } from "@/components/triage-marks";
+import { QUOTES_KEY, TERMS_KEY, rememberOn, rememberedOn } from "@/lib/triage-marks-memory";
 import { isScreeningApiError } from "@/lib/screening-api";
 import {
   decisionEvent,
@@ -21,6 +24,7 @@ import {
   type IntakeResult,
   type Outcome,
   type Proposal,
+  type QuotePlace,
   type QueueItem,
   type QueueView,
   type RecordDetail,
@@ -103,27 +107,35 @@ function codeOf(error: unknown): string {
   return isScreeningApiError(error) ? error.code : "ENGINE_UNREACHABLE";
 }
 
-/** The abstract with criterion highlights as `<mark>` (spec 05); text is never altered. */
-function Abstract({ text, highlights }: Readonly<{ text: string; highlights: RecordDetail["highlights"] }>) {
-  const spans = [...highlights].filter((h) => h.start >= 0 && h.end <= text.length && h.start < h.end).sort((a, b) => a.start - b.start);
-  const parts: React.ReactNode[] = [];
-  let at = 0;
-  for (const h of spans) {
-    if (h.start < at) continue;
-    parts.push(text.slice(at, h.start));
-    parts.push(
-      <mark key={`${h.start}-${h.end}`} className="bg-anchor-soft text-ink underline decoration-anchor">
-        {text.slice(h.start, h.end)}
-        <span className="sr-only"> ({h.criterion_id})</span>
-      </mark>,
+/** Under an answer's quote (M8b point 5): the "Show in the text" button, or why the quote is not marked. */
+function QuotePlaceLine({
+  place,
+  id,
+  onShow,
+  t,
+}: Readonly<{
+  place: QuotePlace | undefined;
+  id: string;
+  onShow: (id: string) => void;
+  t: (key: TriageCopyKey, values?: Record<string, string | number>) => string;
+}>) {
+  if (!place) return null;
+  if (!place.found)
+    return (
+      <p className="text-xs text-ink-muted" data-quote-not-found>
+        {t("marks.quote.notFound")}
+      </p>
     );
-    at = h.end;
-  }
-  parts.push(text.slice(at));
+  if (place.field === null) return null;
   return (
-    <p dir="auto" className="text-[0.9375rem] leading-[1.5rem] text-ink">
-      {parts}
-    </p>
+    <button
+      type="button"
+      data-show-quote={id}
+      onClick={() => onShow(id)}
+      className="inline-flex min-h-11 items-center text-xs text-anchor underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+    >
+      {t("marks.quote.show")}
+    </button>
   );
 }
 
@@ -192,6 +204,26 @@ function TriageScreen({ locale }: Readonly<{ locale: Locale }>) {
       return !open;
     });
   }, []);
+  // M8b: the two kinds of mark, each switch remembered on this computer (spec 03, M8b point 2).
+  // Read after render (N12): both on first, then what this computer remembers.
+  const [termsOn, setTermsOnState] = useState(true);
+  const [quotesOn, setQuotesOnState] = useState(true);
+  useEffect(() => {
+    setTermsOnState(rememberedOn(TERMS_KEY));
+    setQuotesOnState(rememberedOn(QUOTES_KEY));
+  }, []);
+  const setTermsOn = useCallback((on: boolean) => {
+    setTermsOnState(on);
+    rememberOn(TERMS_KEY, on);
+  }, []);
+  const setQuotesOn = useCallback((on: boolean) => {
+    setQuotesOnState(on);
+    rememberOn(QUOTES_KEY, on);
+  }, []);
+  // The answer whose quote has the active frame (hover or focus in the draft, or "Show in the text").
+  const [activeQuote, setActiveQuote] = useState<string | null>(null);
+  const scrollToQuote = useRef<string | null>(null);
+  const [scrollTick, setScrollTick] = useState(0);
   const cache = useRef(new Map<string, RecordDetail>());
   const recordHeading = useRef<HTMLParagraphElement>(null);
   const revealedHeading = useRef<HTMLHeadingElement>(null);
@@ -495,6 +527,49 @@ function TriageScreen({ locale }: Readonly<{ locale: Locale }>) {
     (record.my_decision !== null || settings?.blinding === "show")
       ? proposal.proposal
       : null;
+
+  // M8b: the quotes are marked only with the draft on screen (blinding decides that above).
+  const quotes = visibleProposal?.quotes ?? [];
+  const quotesAvailable = visibleProposal !== null && Array.isArray(visibleProposal.quotes);
+  const studyOnScreen = record?.study_id ?? null;
+  useEffect(() => setActiveQuote(null), [studyOnScreen]);
+  useEffect(() => {
+    const id = scrollToQuote.current;
+    if (!id) return;
+    scrollToQuote.current = null;
+    const reduce = typeof window.matchMedia === "function" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const target = document.querySelector(`[data-record-pane] [data-quote~="${CSS.escape(id)}"]`);
+    target?.scrollIntoView?.({ block: "center", behavior: reduce ? "auto" : "smooth" });
+  }, [scrollTick]);
+  function showQuote(id: string) {
+    scrollToQuote.current = id;
+    setScrollTick((n) => n + 1);
+    setActiveQuote(id);
+  }
+  function quoteLink(keys: string[], children: React.ReactNode, _at: number, quoted: string) {
+    const active = activeQuote !== null && keys.includes(activeQuote);
+    if (!quotesOn && !active) return children;
+    const names = keys.map((id) => {
+      const q = quotes.find((x) => x.criterion_id === id);
+      return t("marks.quote.suffix", { id, answer: q ? t(ANSWER_KEY[q.answer]).toLowerCase() : "" });
+    });
+    return (
+      <a
+        href={`#answer-${keys[0]}`}
+        data-quote={keys.join(" ")}
+        data-active={active ? "" : undefined}
+        aria-label={`${quoted} (${names.join("; ")})`}
+        onClick={(event) => {
+          event.preventDefault();
+          setActiveQuote(keys[0]);
+          document.getElementById(`answer-${keys[0]}`)?.focus();
+        }}
+        className={`rounded-[2px] border-b-2 border-solid border-anchor bg-anchor-soft text-ink no-underline [box-decoration-break:clone] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus ${active ? "ring-2 ring-anchor" : ""}`}
+      >
+        {children}
+      </a>
+    );
+  }
 
   function answer(value: Answer) {
     if (!record || !deciding) return;
@@ -808,8 +883,25 @@ function TriageScreen({ locale }: Readonly<{ locale: Locale }>) {
                   <h2 id="triage-record" className="sr-only">
                     {t("recordHeading")}
                   </h2>
-                  <p ref={recordHeading} tabIndex={-1} className="font-display text-[1.375rem] leading-[1.75rem] text-ink">
-                    <bdi>{record.title}</bdi>
+                  <MarksBar
+                    locale={locale}
+                    terms={record.search_terms}
+                    termsOn={termsOn}
+                    onTerms={setTermsOn}
+                    quotesAvailable={quotesAvailable}
+                    quotesOn={quotesOn}
+                    onQuotes={setQuotesOn}
+                  />
+                  <p ref={recordHeading} tabIndex={-1} className="font-display text-[1.375rem] leading-[1.75rem] text-ink" data-record-title>
+                    <bdi>
+                      <HighlightedText
+                        text={record.title}
+                        terms={termSpans(record.search_terms, "title")}
+                        quotes={quoteSpans(quotes, "title")}
+                        showTerms={termsOn}
+                        renderQuote={quoteLink}
+                      />
+                    </bdi>
                   </p>
                   <p className="mt-1 flex flex-wrap gap-x-3 text-sm text-ink-muted">
                     <span>{record.year ?? t("notStored")}</span>
@@ -828,7 +920,15 @@ function TriageScreen({ locale }: Readonly<{ locale: Locale }>) {
                   </details>
                   <div className="mt-3">
                     {record.abstract && record.abstract.trim() && record.abstract !== "No abstract available." ? (
-                      <Abstract text={record.abstract} highlights={record.highlights} />
+                      <p dir="auto" className="text-[0.9375rem] leading-[1.5rem] text-ink" data-record-abstract>
+                        <HighlightedText
+                          text={record.abstract}
+                          terms={termSpans(record.search_terms, "abstract")}
+                          quotes={quoteSpans(quotes, "abstract")}
+                          showTerms={termsOn}
+                          renderQuote={quoteLink}
+                        />
+                      </p>
                     ) : (
                       <div className="space-y-2">
                         <DecisionBadge role="unclear">{t("titleOnly")}</DecisionBadge>
@@ -1041,7 +1141,21 @@ function TriageScreen({ locale }: Readonly<{ locale: Locale }>) {
                       </p>
                       <ul className="space-y-2">
                         {proposalAnswersOpenFirst(visibleProposal!.criteria).map((c) => (
-                          <li key={c.id} data-criterion={c.id} data-answer={c.answer} className="space-y-1">
+                          <li
+                            key={c.id}
+                            id={`answer-${c.id}`}
+                            tabIndex={-1}
+                            data-criterion={c.id}
+                            data-answer={c.answer}
+                            data-active={activeQuote === c.id ? "" : undefined}
+                            onMouseEnter={() => setActiveQuote(c.id)}
+                            onMouseLeave={() => setActiveQuote((id) => (id === c.id ? null : id))}
+                            onFocus={() => setActiveQuote(c.id)}
+                            onBlur={(event) => {
+                              if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setActiveQuote((id) => (id === c.id ? null : id));
+                            }}
+                            className="space-y-1 rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+                          >
                             <p className="flex flex-wrap items-center gap-2 text-xs">
                               <span className="font-mono text-ink-muted" dir="ltr">
                                 {c.id}
@@ -1053,9 +1167,12 @@ function TriageScreen({ locale }: Readonly<{ locale: Locale }>) {
                               </span>
                             </p>
                             {c.evidence?.text ? (
-                              <EvidenceQuote>
-                                <bdi>{c.evidence.text}</bdi>
-                              </EvidenceQuote>
+                              <>
+                                <EvidenceQuote>
+                                  <bdi>{c.evidence.text}</bdi>
+                                </EvidenceQuote>
+                                <QuotePlaceLine place={quotes.find((q) => q.criterion_id === c.id)} id={c.id} onShow={showQuote} t={t} />
+                              </>
                             ) : (
                               <p className="text-xs text-ink-muted">{t(c.answer === "not_reported" ? "recordSilent" : "noQuote")}</p>
                             )}
