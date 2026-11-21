@@ -6,7 +6,7 @@ Item agreed by the researcher on 2026-11-20 (second in the order of work after t
 | :-- | :-- | :-- | :-- |
 | A, approve every decided batch with one paste (finding 38, the blocker) | `dev/h/run-fixes-approval` | RELEASE | MERGED 2026-11-20 (PR #264, merge commit `fdbc0c5f`); decisions 1 to 7 accepted by the researcher 2026-11-20 |
 | B, Discovery and the search command (findings 9, 10, 13, 14, 17, 24, 29; decision 2026-11-20 item 2) | `dev/h/run-fixes-discovery` | RELEASE | MERGED 2026-11-20 (PR #266, merge commit `bbcaf288`); decisions 1 to 8 accepted by the researcher 2026-11-20 |
-| C, Inception and screening small defects (findings 1 to 7, 23, 35, 39; redesign D15 quick fixes) | `dev/h/run-fixes-inception` | RELEASE | {STATUS} |
+| C, Inception and screening small defects (findings 1 to 7, 23, 35, 39; redesign D15 quick fixes) | `dev/h/run-fixes-inception` | RELEASE | READY FOR PR (review round 2 APPROVE; PR gate green on `17892e9e`); decisions 1 to 10 PROPOSED |
 
 Not in this item, already done the same day: the quota hang (H-quota-hang, PR #259); the agent-draft rule, method amendments and run screen (H-screening-drafts, PR #261). In another session, not touched here: M3f-combined-corpus (findings 26, 27; `corpus_accept.py`, the Import and Hand-off screens).
 
@@ -178,7 +178,7 @@ Branch `dev/h/run-fixes-inception`, rebased on `origin/main` `bbcaf288` (Parts A
 - [x] D15 quick fixes: reported (decision item 10); none built.
 - [x] en/fr/ar for new copy (`explore.papers.linkDoi`, `stopping`); specs amended: `docs/ux/phase0-inception/final/01-scope.md`, `03-direction.md`, `05-criteria.md`, `docs/ux/shared/final/02-checks.md` (the start-year row), `docs/ux/shared/final/03-guidance.md` (I-E25 key), `docs/architecture/screening-api-contract.md` (run status and cancel rows).
 - [x] Reproducing tests written first and seen failing (Evidence).
-- [ ] PR gate green; `milestone-reviewer` APPROVE (Evidence).
+- [x] PR gate green; `milestone-reviewer` APPROVE (Evidence).
 
 ### What changed
 
@@ -218,9 +218,9 @@ Follow-ups noted, not done: the CLI wizard and the browser now compile different
 | Reproducing tests before the fix | `tests/inception/test_run_small_fixes_inception.py` (12 tests): 7 failed on the `origin/main` source (findings 1, 2 twice, 3/23, 3, the one-word case, 4) and 5 passed (the controls; checked by the reviewer against a copy of the base source); the cancel and Review refusal UI tests fail on the old components by construction (the old cancel answer and an empty panel) |
 | After the fix | `tests/inception tests/console tests/recon tests/kits` (without `-m slow` filter): 3,572 passed, 8 skipped before the 7/35 repairs; `tests/console/test_agent_runs_api.py tests/console/test_screening_drafts_api.py`: 39 passed after them |
 | UI | vitest: 977 tests, 976 passed and one Explore test failed once under full parallel load and passed 3 of 3 alone; `tsc` clean |
-| PR gate | {PR} |
-| Contract baseline | {BASELINE} |
-| Review | {REVIEW} |
+| PR gate | On `17892e9e` (`select_test_gate.py --changed origin/main --stage pr`): `git diff --check` clean; `uv run pytest -n auto`: 5912 passed, 15 skipped; ruff `scripts/` and the CI `src/` selection clean; screening API fixtures current; skills bundle in sync; `tsc` clean; vitest 995 passed (68 files); `build` ok; Playwright 622 passed, 12 skipped (six tracked screenshots rewritten and restored). The run before it, on `a012152d`, failed the guidance audit and four browser tests (repaired in `17892e9e`, see Review) |
+| Contract baseline | `generate_contract_baseline.py --check`: current (on `17892e9e`) |
+| Review | `milestone-reviewer`: round 1 CHANGES (3 P2, 6 P3) on `495a9248`; round 2 APPROVE on `a012152d` with three P3 points, done in `17892e9e` |
 
 ### Not verified
 
