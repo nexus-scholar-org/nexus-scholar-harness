@@ -1,6 +1,6 @@
 # H-pdf-resolver-locations The open-access resolver reads every listed location
 
-Branch: `dev/h/pdf-resolver-locations` (from `origin/main` `46371f45`; `origin/main` `64fd8212` merged in at `e9d492c1`) · Lane: **RELEASE** (a production command's network behaviour changes) · Status: **IN REVIEW** (round 1 CHANGES, repaired) · Started: 2026-11-21
+Branch: `dev/h/pdf-resolver-locations` (from `origin/main` `46371f45`; `origin/main` `64fd8212` merged in at `e9d492c1`) · Lane: **RELEASE** (a production command's network behaviour changes) · Status: **READY FOR PR** (review round 2 APPROVE; not pushed; decision items 13 and 14 PROPOSED) · Started: 2026-11-21
 
 A defect found by the live check after M12a K0 (PR 274). The researcher asked on 2026-11-21 for it to be fixed now, as a small PR of its own, ahead of M12a Part K. Choices the brief left open: `docs/decisions.md`, top entry (2026-11-21, H-pdf-resolver-locations). The researcher answered items 1 to 12 on 2026-11-21 in the main session, which passed the answers to this build: item 4 changed to "Always ask both services", item 3 "Three addresses", the other ten accepted as built, subject to the review. Item 13 follows from the changed item 4 and item 14 from the review's repairs; both are PROPOSED.
 
@@ -32,7 +32,7 @@ The two answers of that check are the test fixtures `tests/kits/pdf/fixtures/ope
 
 ## Definition of done
 
-Each item names its test in `tests/kits/pdf/test_open_copy_resolver.py` (36 tests). Seen failing first: the 29 tests of the first commit on `origin/main`'s code (`7d299aaa`: junit 29 tests, 29 failures); the item 4 tests on the first version of the fix (`6cd34546`: junit 34 tests, 7 failures); the review's repair tests before the repairs (4 failures of 43 in the two files).
+Each item names its test in `tests/kits/pdf/test_open_copy_resolver.py` (36 tests). Seen failing first: the 29 tests of the first commit on `origin/main`'s code (`7d299aaa`: junit 29 tests, 29 failures); the item 4 tests on the first version of the fix (`6cd34546`: junit 34 tests, 7 failures); the review's repair tests before the repairs (4 failures of 43 in the two files when run; 5 of 44 as committed, since one more repair test was added after that run, and the reviewer measured all five failing on the round 1 code).
 
 - [x] 1. With the two real answers, the resolver chooses the PubMed Central published-version address and records `publishedVersion`, `cc-by`, the repository host and the provider. `test_the_resolver_ranks_the_real_answers_pubmed_central_first`, `test_the_real_answers_download_the_pubmed_central_published_version`, `test_the_resolver_reads_unpaywalls_list_when_it_is_the_only_answer`, `test_unpaywalls_list_is_used_when_openalex_fails`.
 - [x] 2. With only the submitted-version location carrying an address, it is taken and labelled. `test_only_a_submitted_version_with_an_address_is_taken_and_labelled`.
@@ -76,7 +76,7 @@ Each item names its test in `tests/kits/pdf/test_open_copy_resolver.py` (36 test
 | | `f42b6b00` | `uv run python scripts/generate_contract_baseline.py --check` | "Contract baseline current" |
 | | `f42b6b00` | `git diff --name-only origin/main...HEAD -- apps/`; `git diff --check origin/main...HEAD` | empty (no UI file); clean |
 | review round 1 | `aa2127af` | `milestone-reviewer` | **CHANGES**: one P2 (the kit skill still read `UNRESOLVED` as "no open copy"), three P3, two P4; see "Review rounds" |
-| red, repairs | `aa2127af` plus the repair tests | `uv run pytest tests/kits/pdf/test_open_copy_resolver.py tests/kits/pdf/test_downloader.py --junitxml …` | junit: 43 tests, **4 failures**, 0 errors |
+| red, repairs | `aa2127af` plus the repair tests | `uv run pytest tests/kits/pdf/test_open_copy_resolver.py tests/kits/pdf/test_downloader.py --junitxml …` | junit: 43 tests, **4 failures**, 0 errors (one more repair test was added after this run; the reviewer ran the committed files of `737e4aed` on `aa2127af`'s code in round 2: 44 tests, **5 failures**) |
 | green, kit, repairs | `737e4aed` | `uv run pytest tests/kits/pdf tests/test_parked_labels.py -n 4 --junitxml …` | junit: 262 tests, 0 failures, 0 errors, 7 skipped |
 | **pr gate (final)** | `a77055be` (the final code commit `737e4aed` plus documents) | `uv run pytest -q -n 4 -p no:cacheprovider --junitxml …` (full suite, 4 workers, from the build worktree; started after another session's Playwright run had ended) | junit: **6243 tests, 0 failures, 0 errors, 15 skipped** (936 s); exit code 0 |
 | | `a77055be` | `uv run ruff check scripts/`; `uv run ruff check src/ --select F821,F811,F823,F632,F7,B023,B006,E9` | "All checks passed!" twice |
@@ -102,7 +102,9 @@ The repairs changed code, so the kit's tests and the full gate were run again on
 
 **Follow-ups the reviewer named (not part of this change):** a repository test that drives the real `AcademicHttpClient` error mapping through an in-memory transport (Part K); malformed provider metadata such as `authorships: [null]` raises inside `process_doi`, so the result has no `outcome` and shows a raw message (older than this branch); "Run the command again later" is also said for a definitive 4xx such as Unpaywall's 422 for a rejected e-mail (Part K item 10 could split these); two addresses that differ only by scheme or letter case count separately against the cap of three; an Unpaywall answer's top-level `is_oa: false` is not consulted when a location is listed; the HTTP library's own INFO log line may print the full request address, e-mail included, if an embedding app turns INFO logging on (not checked; the command does not).
 
-**Round 2**: pending.
+**Round 2** (`milestone-reviewer`, on `edf1675b`, the delta `aa2127af..edf1675b` only): **APPROVE**. In its words: "All six findings are repaired, the repairs introduce no new defect, and decision item 14 and the record describe them truthfully, with one number to correct." That number (R2-1, P4) was the red run of the repair tests, corrected above in this same edit. It checked the changed `_lookup` flow (a 404 is still "not known" on both paths; the body is parsed only for a 200; no path keeps an error's text) and the order of the failure words (a status other than 200 wins first, so a 503 never reads "network error"). It ran the four targeted files (68 tests, 0 failures), the kit's tests (262, 0 failures, 7 skipped), both lint runs, the contract baseline, the bundle check, and its offline probe of the real lookup client (nine cases, no contact address anywhere). It did not rerun the full suite; head differs from the gate's commit `a77055be` by this record only. It stated that the APPROVE stands without a further round once this line carries the verdict, provided the edit touches only this file. One imprecision it noted without asking for a change: a body that is not JSON at all now stores the kind `NotAJsonObject` with status 200, where the first version stored `JSONDecodeError` with no status.
+
+**READY FOR PR** (not pushed). The researcher approved the push, the PR and one live download after the merge on 2026-11-21, on condition of a clean full gate and the reviewer's APPROVE (relayed by the main session, which does all three). Decision items 13 and 14 are PROPOSED and wait for the researcher.
 
 ## Not verified
 
