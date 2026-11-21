@@ -69,11 +69,11 @@ Each item names its test in `tests/kits/pdf/test_open_copy_resolver.py` (34 test
 | green, kit | `ab0c3860` | `uv run pytest tests/kits/pdf tests/test_parked_labels.py -n 4 --junitxml …` | junit: 256 tests, 0 failures, 0 errors, 7 skipped (the Windows symlink tests) |
 | merge of `origin/main` | `e9d492c1` (merges `64fd8212`, PR 276; only `docs/decisions.md` conflicted, both entries kept) | `git diff --name-only fba1d4a3 e9d492c1 -- src/scholar_pdf tests/kits/pdf` | empty: the merge changes no file of the PDF kit |
 | red, item 4 | `6cd34546` (tests only) | `uv run pytest tests/kits/pdf/test_open_copy_resolver.py --junitxml …` | junit: 34 tests, **7 failures**, 0 errors |
-| green, kit, item 4 | KIT_COMMIT | `uv run pytest tests/kits/pdf tests/test_parked_labels.py -n 4 --junitxml …` | junit: 260 tests, 0 failures, 0 errors, 7 skipped |
-| pr gate | GATE_COMMIT | `uv run pytest -q -n 4 --junitxml …` (full suite, 4 workers) | GATE_RESULT |
-| | GATE_COMMIT | `uv run ruff check scripts/`; `uv run ruff check src/ --select F821,F811,F823,F632,F7,B023,B006,E9` | LINT_RESULT |
-| | GATE_COMMIT | `uv run python scripts/generate_contract_baseline.py --check` | BASELINE_RESULT |
-| | GATE_COMMIT | `git diff --name-only origin/main...HEAD -- apps/` | UI_RESULT |
+| green, kit, item 4 | `c3616899` | `uv run pytest tests/kits/pdf tests/test_parked_labels.py -n 4 --junitxml …` | junit: 260 tests, 0 failures, 0 errors, 7 skipped |
+| pr gate | `f42b6b00` (the final code commit `c3616899` plus documents) | `uv run pytest -q -n 4 -p no:cacheprovider --junitxml …` (full suite, 4 workers, from the build worktree) | junit: **6241 tests, 0 failures, 0 errors, 15 skipped** (623 s); exit code 0 |
+| | `f42b6b00` | `uv run ruff check scripts/`; `uv run ruff check src/ --select F821,F811,F823,F632,F7,B023,B006,E9` | "All checks passed!" twice |
+| | `f42b6b00` | `uv run python scripts/generate_contract_baseline.py --check` | "Contract baseline current" |
+| | `f42b6b00` | `git diff --name-only origin/main...HEAD -- apps/`; `git diff --check origin/main...HEAD` | empty (no UI file); clean |
 
 No UI file changes, so typecheck, vitest, build and Playwright do not apply.
 
