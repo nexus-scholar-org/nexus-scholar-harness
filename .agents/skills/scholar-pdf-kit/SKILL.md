@@ -9,10 +9,33 @@ layer: domain
 ---
 # `scholar-pdf-kit` Skill Instructions
 
-You are an expert academic research agent equipped with `scholar-pdf-kit`. This toolkit automatically resolves DOIs to legal Open Access PDFs via a multi-stage cascade (OpenAlex `best_oa_location` → Unpaywall → publisher direct-PDF patterns → optional institutional-proxy rewrite), validates binary `%PDF-` magic-byte integrity, and extracts structured section Markdown with standard YAML frontmatter.
+You are an expert academic research agent equipped with `scholar-pdf-kit`. This toolkit resolves DOIs to legal Open Access PDFs from the providers' own open-access locations (OpenAlex `best_oa_location` → Unpaywall), validates binary `%PDF-` magic-byte integrity, and extracts structured section Markdown with standard YAML frontmatter.
+
+> **Status (decision 2026-11-21, M12a items 21 to 27; K0).** `download` and
+> `ingest` are **production**. `extract`, `extract-run` and `acquire` are
+> **parked**: their `--help` says so first (reading PDFs waits for M12b-read;
+> E1 `acquire` stays parked), and the MCP tools keep their typed refusal or
+> parked description. Since K0 the production commands:
+> - **need a contact e-mail**: `SCHOLAR_MAILTO` (the app's setting) or the kit's
+>   `MAILTO`; without either they refuse with `MAILTO_NOT_SET`, exit 1, and send
+>   nothing. There is no default address;
+> - **name the app**, `nexus-scholar/<version> (mailto:<address>)`, never a browser;
+> - **request no guessed publisher URL**: the direct-PDF patterns are off and no
+>   longer read; `ENABLE_PUBLISHER_DIRECT_PATTERNS=true` is refused
+>   (`PUBLISHER_PATTERNS_REFUSED`, item 24);
+> - **refuse an institutional proxy**: `--proxy` or `PROXY_URL` is refused
+>   (`PROXY_REFUSED`, item 25); the proxy code stays, parked.
+>
+> **Known defects Part K still repairs** (M12a record (d3)): OpenAlex is asked
+> without `SCHOLAR_OPENALEX_KEY` (keyless budget, then 409); 403/404/410 are
+> retried (PDF-06); a closed `is_oa` does not override a `pdf_url` (PDF-12); no
+> manifest says which `DOC-<sha>.pdf` belongs to which DOI (PDF-07); `ingest` and
+> `download --input <missing>` exit 0 on failure (PDF-15); the size floor, exports
+> and `--smart-names` (PDF-17, -18, -05); hard links only (PDF-03). Check outputs
+> by hand until then.
 
 ## Core Capabilities
-1. **Multi-Stage Open Access Cascade**: Resolves legal OA full-text across OpenAlex `best_oa_location` → Unpaywall → publisher direct-PDF patterns (IEEE/Elsevier/Springer/arXiv/MDPI) → optional institutional-proxy rewrite (`auto | subdomain | ezproxy | prefix`).
+1. **Open Access Lookup**: Resolves legal OA full-text from OpenAlex `best_oa_location` → Unpaywall, and requests only the location the provider gives. The publisher direct-PDF patterns are off and are removed in Part K (M12a item 24); the institutional proxy is refused by `download` and `ingest` (item 25).
 2. **Concurrent & Resilient Downloading**: Asynchronous staged retrieval (per-candidate temp file, validated before atomic promotion) with exponential backoff (tenacity: min 2 s, max 10 s, 3 attempts). Paywall/error HTML is rejected post-download by binary-signature validation, never by trusting HTTP success.
 3. **Strict Binary Signature Validation**: Requires `%PDF-<major>.<minor>` magic bytes within the first 1024 bytes, a `%%EOF` trailer within the final 8 KB, and a 10 KB size floor; unvalidated bytes are never promoted and staging files are unlinked. Optional `--strict-validate` runs pypdf structural parsing (encryption-tolerant) as a second gate.
 4. **Content-Addressed Output Naming**: Discovery `download` and manual `ingest` promote validated bytes to identity-addressed `DOC-<32 hex>.pdf` paths derived from content hash, never from a title, filename, or HTTP success. The `--smart-names` flag is still accepted on the CLI but does not control the final filename in the pinned implementation (see deferred defect D1). Structured metadata logs are exported via `--export json|bibtex`.
@@ -213,13 +236,8 @@ authoritative E1/E2 boundaries → the sections above (not the refs).
 {CLI:pdf} ingest my_paper.pdf --doi 10.1038/35057062
 # NOTE: like download, ingest promotes validated bytes to DOC-<32hex>.pdf.
 
-# 5. Download Through an Institutional Proxy (Cloudflare/WAF bypass)
-#    attempt 3 automatically re-runs OA + direct-PDF candidates through the proxy
-{CLI:pdf} download \
-  --input {WORKSPACE}/literature/included.json \
-  --output {WORKSPACE}/pdfs/ \
-  --proxy https://www.sndl1.arn.dz \
-  --proxy-style subdomain      # auto | subdomain | ezproxy | prefix
+# 5. No institutional proxy: `--proxy` (or PROXY_URL) is refused with
+#    PROXY_REFUSED (decision 2026-11-21, M12a item 25). The proxy code is parked.
 
 # 6. WP01-E1 Acquired-Document Boundary (API/CLI only; NOT on MCP)
 #    Parent-bound, fail-closed acquisition publishing a deterministic
@@ -259,12 +277,11 @@ from scholar_pdf.extract import PyMuPDFEngine
 async def main():
     dois = ["10.1371/journal.pbio.3000246", "10.7717/peerj.4375"]
 
-    # 1. Initialize Downloader (add proxy_url/proxy_style to append
-    #    proxied candidates; optional pypdf gate via structural_validation=True)
+    # 1. Initialize Downloader (needs SCHOLAR_MAILTO or MAILTO: process_doi
+    #    raises MailtoNotSetError before any request without one; PROXY_URL is
+    #    not read, M12a item 25; optional pypdf gate via structural_validation=True)
     downloader = AsyncPDFDownloader(
         output_dir=Path("{WORKSPACE}/pdfs"),
-        proxy_url="https://www.sndl1.arn.dz",
-        proxy_style="subdomain",      # auto | subdomain | ezproxy | prefix
         structural_validation=True,
     )
 
@@ -290,8 +307,8 @@ if __name__ == "__main__":
 
 ## Verified surface, MCP mapping & knowledge
 
-- **Cascade**: OpenAlex `best_oa_location` → Unpaywall → publisher direct-PDF
-  (IEEE/Elsevier/Springer/arXiv/MDPI patterns) → optional institutional proxy rewrite.
+- **Lookup**: OpenAlex `best_oa_location` → Unpaywall; only the provider's own
+  location is requested (no guessed publisher URL, item 24; no proxy, item 25).
 - **Validation**: ≥ 10 KB size floor + versioned `%PDF-<major>.<minor>` regex
   within first 1024 bytes + `%%EOF` within final 8 KB; optional pypdf structural
   gate (`--strict-validate`, encryption-tolerant). Candidates download to staging
@@ -318,9 +335,10 @@ if __name__ == "__main__":
   metadata); anything else uses PyMuPDF. Re-verify frontmatter before citing it,
   and never write MCP output into the authoritative `extracted/<document_id>.md`
   identity paths.
-- **Env**: `MAILTO`, `DOWNLOAD_DIR`, `MAX_CONCURRENT_DOWNLOADS`, `DOWNLOAD_TIMEOUT`,
-  `PROXY_URL`/`PROXY_STYLE`, `PDF_STRUCTURAL_VALIDATION`,
-  `ENABLE_PUBLISHER_DIRECT_PATTERNS` (pydantic-settings names; the `Settings` fields
+- **Env**: `SCHOLAR_MAILTO` (read first) or `MAILTO` (required, no default),
+  `DOWNLOAD_DIR`, `MAX_CONCURRENT_DOWNLOADS`, `DOWNLOAD_TIMEOUT`,
+  `PROXY_URL`/`PROXY_STYLE` (refused by `download`/`ingest`), `PDF_STRUCTURAL_VALIDATION`,
+  `ENABLE_PUBLISHER_DIRECT_PATTERNS` (default off; `true` is refused) (pydantic-settings names; the `Settings` fields
   are lowercase equivalents in `{KIT_ROOT:pdf}/src/scholar_pdf/config.py`).
 - **PyMuPDF is imported as `fitz`** (function-local, like all heavy engine imports).
   `pyyaml` and `pypdf` are **declared** dependencies; `docling` ships only with the

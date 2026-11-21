@@ -65,27 +65,16 @@ def test_cli_no_input():
 
 
 @patch("scholar_pdf.cli.AsyncPDFDownloader.process_doi", new_callable=AsyncMock)
-def test_cli_download_with_proxy_flags(mock_process_doi, tmp_path):
+def test_cli_download_with_proxy_style_and_strict_validate(mock_process_doi, tmp_path):
+    """The options other than --proxy still parse (K0 review finding 7)."""
     mock_process_doi.return_value = DownloadResult(
         doi="10.1234/test", success=True, file_path=tmp_path / "test.pdf", was_oa=True
     )
-
     result = runner.invoke(
         app,
-        [
-            "download",
-            "--doi",
-            "10.1234/test",
-            "--output",
-            str(tmp_path),
-            "--proxy",
-            "https://www.sndl1.arn.dz",
-            "--proxy-style",
-            "subdomain",
-            "--strict-validate",
-        ],
+        ["download", "--doi", "10.1234/test", "--output", str(tmp_path),
+         "--proxy-style", "subdomain", "--strict-validate"],
     )
-
     assert result.exit_code == 0
     assert "Success" in result.stdout
 
