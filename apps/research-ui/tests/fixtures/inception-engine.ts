@@ -12,6 +12,7 @@
 
 import { reconEngine, type ReconOptions } from "./recon-engine";
 import { checkRow, digestOf, dismissal, INCEPTION_STEPS, respond, withDismissals, type CheckIn } from "./checks-engine";
+import { workbenchEngine, type WorkbenchOptions } from "./workbench-engine";
 
 export const ROOT = "C:\\Users\\r\\Documents\\Nexus Scholar\\workspaces";
 export const SESSION = "rec_0123456789abcdef0123456789abcdef";
@@ -40,6 +41,8 @@ export interface FakeOptions {
   checksAnswer?: (step: string | undefined) => Json;
   /** M10b: whether a mechanism offered an `accepted_from` value (default: each one). */
   offered?: (entry: Json) => boolean;
+  /** M11a: the query workbench routes of a draft (`…/workbench/…`). */
+  workbench?: WorkbenchOptions;
 }
 
 // --- M10b Part B: proposals (test double of `inception/proposals.py`) -----------------
@@ -306,6 +309,7 @@ export function inceptionEngine(options: FakeOptions = {}) {
   let current: string | null = null;
   let nextId = 0;
   const recon = reconEngine(options.recon ?? {}, () => now());
+  const workbench = workbenchEngine(options.workbench ?? {});
 
   const seed = (draft: Json = {}, emitted: Json | null = null, id = SESSION, extra: Json = {}): string => {
     const at = now();
@@ -648,6 +652,16 @@ export function inceptionEngine(options: FakeOptions = {}) {
       return { status: 202, body: { slug, path: current, restarting: options.restarting ?? false } };
     }
     if (path === "/api/v1/workspace/meta") return { status: 200, body: { workspace: current } };
+    // M11a: the query workbench of a draft.
+    const bench = path.match(/^\/api\/v1\/inception\/drafts\/([^/]+)\/workbench(\/.*)$/);
+    if (bench) {
+      const record = drafts.get(bench[1]);
+      if (!record) return refuse(404, "DRAFT_NOT_FOUND");
+      if (record.emitted) return refuse(409, "DRAFT_EMITTED", "this draft already created a workspace");
+      const seeds = (((record.draft ?? {}) as Json).golden_seeds ?? []) as string[];
+      const answer = workbench.handle(method, bench[2], body, seeds);
+      if (answer) return answer;
+    }
     return refuse(404, "NOT_FOUND", path);
   };
 
@@ -664,7 +678,7 @@ export function inceptionEngine(options: FakeOptions = {}) {
     return made;
   };
 
-  return { handle, calls, drafts, seed, recon, refuseNext, addProposal };
+  return { handle, calls, drafts, seed, recon, refuseNext, addProposal, workbench };
 }
 
 /** A complete draft: every answer preview needs, the generated criterion still undecided. */
