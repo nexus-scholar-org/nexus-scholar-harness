@@ -1,6 +1,6 @@
 # M11b Criteria pilot
 
-Branch: `dev/m11b/criteria-pilot-spec` (from `origin/main` at `1f218054`) · Lane: declared per part (proposed below: A, B and D **RELEASE**, C **STANDARD**) · Status: **SPECIFICATION; the researcher answered the ten questions on 2026-11-21** (1 to 4, 7, 9 and 10 as recommended; **5, 6 and 8 against the recommendation**). Questions 11 and 12, which came from those answers, were answered the same day, both as recommended. The rework of answers 5, 6 and 8 is PROPOSED. **Build started 2026-11-21 (approved by the researcher; building, not pushing): part A READY FOR PR on `dev/m11b/part-a-criteria-in-force` (see "Build record"); parts B, C and D not started** · Fourth in the agreed order (plan §6, "After the acceptance run"); M11a part C is merged (PR 272), so part D is no longer blocked by it
+Branch: `dev/m11b/criteria-pilot-spec` (from `origin/main` at `1f218054`) · Lane: declared per part (proposed below: A, B and D **RELEASE**, C **STANDARD**) · Status: **SPECIFICATION; the researcher answered the ten questions on 2026-11-21** (1 to 4, 7, 9 and 10 as recommended; **5, 6 and 8 against the recommendation**). Questions 11 and 12, which came from those answers, were answered the same day, both as recommended. The rework of answers 5, 6 and 8 is PROPOSED. **Build started 2026-11-21 (approved by the researcher; building, not pushing): part A READY FOR PR again on `dev/m11b/part-a-criteria-in-force` (item 5 built as decided; item 11 PROPOSED) (see "Build record"); parts B, C and D not started** · Fourth in the agreed order (plan §6, "After the acceptance run"); M11a part C is merged (PR 272), so part D is no longer blocked by it
 
 Short page for the researcher: [`M11b-criteria-pilot-for-review.md`](M11b-criteria-pilot-for-review.md). Screens (both `Status: DRAFT`): [`docs/ux/phase2-screening/final/13-criteria-pilot.md`](../../ux/phase2-screening/final/13-criteria-pilot.md) (draw the pilot, its result, revise a criterion) and [`docs/ux/phase0-inception/final/11-criteria-block.md`](../../ux/phase0-inception/final/11-criteria-block.md) (the change to Inception's step 5). Choices: `docs/decisions.md`, "2026-11-21 — M11b criteria pilot: the specification's choices" (answered 2026-11-21; the rework of 5, 6 and 8 and questions 11 and 12 PROPOSED).
 
@@ -457,7 +457,50 @@ Review round 2 (on `6fa05b7e`): **APPROVE**. The eight round-1 repairs confirmed
 - `GET /screening/criteria` answers `can_amend: true` while every revision would be refused `CRITERIA_AMENDMENT_HANDOFF`; it should add `not handoff_batches(...)` and name the batches, so the dialog is not offered and then refused.
 - The `CRITERIA_AMENDMENT_HANDOFF` message says to decide the batches in Triage first, but a worker recommendation file stays and keeps the refusal; the message (and the §7 row) should not promise that way out, or a way to clear a hand-off batch should be defined.
 
-**Part A: READY FOR PR** (not pushed). Branch `dev/m11b/part-a-criteria-in-force`. The PR gate on `2e1874f8` stands for the later commits, which change this record only.
+~~**Part A: READY FOR PR**~~ (superseded below: item 5 changed on 2026-11-21; not pushed). Branch `dev/m11b/part-a-criteria-in-force`. The PR gate on `2e1874f8` stands for the later commits, which change this record only.
+
+#### Part A, after the researcher's answers (2026-11-21)
+
+The researcher accepted items 1 to 4 and 6 to 10 as built and decided item 5 as **"bind the version"** (decision entry, item 5). Part A went back to IN PROGRESS for it.
+
+What changed:
+- `GET /records/{id}` hands out `binding.criteria_version`; `events._criteria_refusal` refuses a new event bound under another version with `STALE_BINDING`, naming both versions. A binding without the field reads as version 1. Not in `is_current`, so stored decisions keep counting and a stored event replays as a `duplicate`. The projected batch decisions file keeps its own binding (unchanged).
+- `tests/test_screening_events.py` builds its events with the binding the record route hands out (`criteria_version`).
+- Contract §3.1 amended; the fixtures regenerated: the event bindings in nine fixture files gain `"criteria_version": 1` (additive).
+- The desktop Triage already echoes the record's `binding` object unchanged and shows `STALE_BINDING` as its stale state, so no UI change is needed for it to work; the TypeScript `Binding` type gains the field in part C. There is no phone client in this repository (no offline queue in `apps/research-ui`); the engine answers a refused result per event, never drops it, which is what a phone flush must show.
+
+| Item 5 | Test (`tests/console/test_criteria_amendments_api.py`) | Fails before (on `f1968ccd`) |
+| :-- | :-- | :-- |
+| the binding names the version | `test_item5_the_record_binding_names_the_criteria_version` | yes |
+| a decision bound under version 1, received after a revision, is refused `STALE_BINDING`; nothing stored; the record stays in `needs_you`; decided again it is accepted as version 2 | `test_item5_a_decision_bound_under_the_earlier_wording_is_refused_and_the_record_stays_queued` | yes (it was accepted and stamped 2) |
+| a binding without the field is version 1 | `test_item5_a_binding_without_a_version_reads_as_version_1` | yes |
+| a stored event replays as `duplicate` and still counts | `test_item5_a_stored_event_replays_as_a_duplicate_and_still_counts_after_a_revision` | no (already held; kept as a guard) |
+
+Pilot decisions (part B) carry no binding, so this change does not reach them; see part B's decision entry.
+
+Evidence for the item 5 change (`-n 4`):
+
+| Stage | Commit | Command | Result | Duration |
+| :-- | :-- | :-- | :-- | :-- |
+| targeted | `c100e314` (working tree) | the item 5 tests first on `f1968ccd`'s code: 3 of 4 failed as expected; then `test_criteria_amendments_api.py`, `test_screening_events.py`, `test_screening_api_v1.py`, `test_screening_api_contract.py` | 155 tests, 1 failed (the committed fixtures, regenerated: additive `criteria_version` in nine event bindings); then 62 passed | 62 s; 52 s |
+| pr | `c100e314` | contract baseline, protocol schema, contract schemas, two-study fixture; both ruff commands; `git diff --check origin/main...HEAD`; `uv run pytest -q -n 4 --junitxml` (full suite) | current; in sync; exit 0; exit 0; clean; clean; one finding (a blank line at the end of this record, fixed in the next commit, documents only); 6124 tests: 6109 passed, 15 skipped, 0 failed, 0 errors | 558 s |
+
+Review round 3 (on `bb32cd80`, the item 5 delta): **CHANGES**, 1 P2 and 1 P4, both taken:
+
+| # | Finding | Repair | Test (fails before: on `bb32cd80`) |
+| :-- | :-- | :-- | :-- |
+| P2-1 | After any revision, a conflict from before it could not be resolved in the app: the resolve route copied the kept event's binding (version 1), which item 5 refuses, so its batch stayed blocked | the resolution is bound to the record as it is now and stamped with the criteria version of the decision it keeps (decision item 11, PROPOSED); a revision that could change it shows the record again; contract §4 resolve row | `test_round3_a_conflict_resolved_after_a_wording_change_is_shown_again`, `test_round3_a_conflict_resolved_after_a_category_change_counts`, `test_round3_keeping_an_exclusion_whose_criterion_was_retired_resolves_and_is_shown_again` |
+| P4-2 | `binding.criteria_version: true` (or `1.0`) read as version 1 | the bound version must be an int (not a bool); anything else is `STALE_BINDING` | `test_round3_a_bound_version_must_be_an_integer` |
+
+| Stage | Commit | Command | Result | Duration |
+| :-- | :-- | :-- | :-- | :-- |
+| targeted | `58ce7bd7` (working tree) | the four round-3 tests first on `bb32cd80`: 4 of 4 failed; then `test_criteria_amendments_api.py`, `test_screening_api_v1.py`, `test_screening_events.py`, `test_screening_api_contract.py` | 159 passed | 46 s |
+| pr | `58ce7bd7` | contract baseline, protocol schema, contract schemas, two-study fixture; `ruff check scripts/` and the `src/` real-bug set; `git diff --check origin/main...HEAD`; `uv run pytest -q -n 4 --junitxml` (full suite) | current; in sync; exit 0; exit 0; clean; clean; clean; 6128 tests: 6113 passed, 15 skipped, 0 failed, 0 errors | 648 s |
+
+Review round 4 (on `0a47f3b3`): **APPROVE**. Both round-3 repairs confirmed; the intake parameter is reachable only from the engine's resolve route (a client field is refused); its stamp and retired-reason exemption apply only there, and a retired id kept by a resolution is always shown again; conflicts without a revision behave as before; 199 targeted tests, 0 failed. Follow-ups carried to part C: read a decision's `criteria_version` (not its binding) to label it; `can_amend` and the `CRITERIA_AMENDMENT_HANDOFF` message (round 2); the round-1 list.
+
+**Part A: READY FOR PR** (not pushed). Branch `dev/m11b/part-a-criteria-in-force`. The PR gate on `58ce7bd7` (6128 tests, 0 failed) stands for the later commits, which change this record only. Decision item 11 waits for the researcher's answer.
+
 
 ### Part B: the pilot
 
@@ -499,4 +542,3 @@ Evidence (Python runs with `-n 4`):
 | pr | `ada92bc1` | `generate_contract_baseline.py --check`; `generate_protocol_schema.py --check`; `generate_contract_schemas.py --check`; `generate_two_study_contract_fixture.py --check`; both ruff commands; `git diff --check origin/main...HEAD`; `uv run pytest -q -n 4 --junitxml` (full suite) | current; in sync; exit 0; exit 0; clean; clean; clean; 6176 tests: 6161 passed, 15 skipped, 0 failed, 0 errors | 691 s |
 
 The commit after `ada92bc1` (`68e1e783`) is this record only. No UI file changed (`git diff origin/main...HEAD -- apps` is empty), so the UI gates were not run.
-

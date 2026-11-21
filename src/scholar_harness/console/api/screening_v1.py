@@ -362,6 +362,9 @@ def record(study_id: str, request: Request) -> dict[str, Any]:
             "protocol_fingerprint": context.protocol_fingerprint,
             "batch_id": batch.batch_id,
             "batch_sha256": batch.batch_sha256,
+            # M11b part A, decision item 5 (decided 2026-11-21): the criteria version the record
+            # is shown under; intake refuses a decision bound under another (STALE_BINDING).
+            "criteria_version": context.criteria_version,
         },
         "my_decision": winners.get(study_id),
         "history": [e for e in events if e["study_id"] == study_id],
@@ -500,9 +503,21 @@ def resolve_conflict(study_id: str, body: ResolveBody, request: Request) -> dict
         "resolves": [e["event_id"] for e in match["events"] if e["event_id"] != kept["event_id"]],
         "note": kept.get("note") or f"Conflict resolved: kept {kept['event_id']}",
     }
+    # M11b part A, review round 3 (decision item 11): the resolution is bound to the record as it is
+    # now (a binding from before a criteria revision would be refused), and it keeps the criteria
+    # version of the decision it keeps, so a revision that could change that decision shows the
+    # record again rather than counting it under the new wording.
+    batch = context.batches[context.study_batch[study_id]]
+    resolution["binding"] = {
+        "protocol_fingerprint": context.protocol_fingerprint,
+        "batch_id": batch.batch_id,
+        "batch_sha256": batch.batch_sha256,
+        "criteria_version": context.criteria_version,
+    }
     results = ev.intake(
         ws, [resolution], token_scope=scope, received_at=_now(), device=scope, context=context,
         after_commit=lambda stored: _project(ws, context, stored),
+        resolution_version=cr.event_version(kept),
     )
     return {"results": [r.as_dict() for r in results]}
 
