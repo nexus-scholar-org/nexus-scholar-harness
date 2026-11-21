@@ -1,6 +1,6 @@
 # M11b Criteria pilot: for your review
 
-Date: 2026-11-21 · Status: **your ten answers recorded (2026-11-21); two new questions open; nothing built, build start not approved** · Full record: [`M11b-criteria-pilot.md`](M11b-criteria-pilot.md) · Screens (drafts): `docs/ux/phase2-screening/final/13-criteria-pilot.md`, `docs/ux/phase0-inception/final/11-criteria-block.md`
+Date: 2026-11-21 · Status: **your twelve answers recorded (2026-11-21); no question open** · Full record: [`M11b-criteria-pilot.md`](M11b-criteria-pilot.md) · Screens (drafts): `docs/ux/phase2-screening/final/13-criteria-pilot.md`, `docs/ux/phase0-inception/final/11-criteria-block.md`
 
 ## What you will be able to do
 
@@ -50,9 +50,11 @@ You remove EXC-02 (reason: "mirror of INC-02") and reword INC-03 to "uses a lear
 - **6:** without per-criterion answers, three readings come from your decisions alone (many Unclear, does most of the work, never used). Four need the agent check: hard to judge, fire together, mirrors, read differently. The mirror in your review is caught only with the agent check.
 - **8:** step 5 has a new blocker until you choose. Drafts started before the change meet it too, and so does an imported protocol without a method block. Existing reviews are not touched. One fix found while reworking: the choice must be kept in `intent.json`, or a later search change on a review that chose a non-default rule would be refused.
 
-## Two new questions
+## Two further questions (answered 2026-11-21, both as recommended)
 
-| # | Question | My recommendation | What it costs |
+| # | Question | My recommendation (chosen) | What it costs |
 | :-- | :-- | :-- | :-- |
 | 11 | **Can the pilot result show the agent's draft for one record?** Your pilot records come back in the main screening. If you saw the agent's draft for a record during the pilot, your later decision on it is not blind. Yet the screening contract of 4 November records it as blind: `proposal_shown` "is always `null` at decision time" with blinding on, and a reveal is only "the first time `GET /records/{id}/proposal` returns a proposal". | **Counts only:** the pilot result shows the agent per criterion, never per record, and the main screening shows nothing of your pilot decision. The contract is unchanged. | You cannot see which records the agent read differently. The alternatives each amend the contract's reveal rules: show a draft on request and record it as a reveal (up to 50 records leave the blind comparison), or report pilot records as decided with the draft visible. |
 | 12 | **Does "I must choose" also apply to the terminal wizard** (`scholar-harness inception`)? It writes `unclear` without asking today (H-screening-drafts item 1: "`unclear` stays the default and the value genesis writes"). | **Yes:** the wizard asks with no default, and a scripted run needs `--not-reported <rule>`. | A small CLI change in part D. If you say no, a review made in the terminal still gets `unclear` silently. |
+
+Your answers: 11 "Counts only"; 12 "Yes, it asks too".
