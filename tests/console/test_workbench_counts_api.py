@@ -329,6 +329,7 @@ def test_throttling_refusal_unavailability_and_timeout_keep_their_codes(env, err
     doubles.fail["semanticscholar"] = error
     ss = _row(_count(client, draft).json(), "semanticscholar")
     assert ss["status"] == status and ss["http_status"] == http and ss["total"] is None
+    assert ss["timeout_seconds"] == est.COUNT_TIMEOUT  # the screen prints the engine's seconds (review C round 2)
 
 
 def test_openalex_without_a_key_is_its_row_and_the_others_count(env, monkeypatch):
@@ -380,6 +381,9 @@ def test_the_size_line_is_the_estimates_arithmetic_for_the_version(env):
     assert size["estimate"]["works"] == {"low": 166, "high": 280}
     assert size["warn"]["limit"] == {"value": 400, "source": "planned"}  # the draft's pool_max
     assert size["effort"]["pace_seconds"] == est.DEFAULT_PACE_SECONDS
+    # Decision 2026-11-20, M11a item 10: the version written for Scopus and Web of Science, to copy (part C).
+    assert answer["external"]["scopus"].startswith('TITLE-ABS-KEY(("UAV" OR "unmanned aerial vehicle") AND')
+    assert answer["external"]["wos"].endswith("AND PY=(2015-2025)")
 
 
 # --------------------------------------------------------------------------- DoD 3: what each synonym adds

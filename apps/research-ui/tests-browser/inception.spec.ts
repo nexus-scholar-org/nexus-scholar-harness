@@ -71,6 +71,9 @@ test("a researcher creates a workspace from the browser and lands on screening H
   await page.getByRole("button", { name: "Continue to concepts and criteria" }).click();
 
   await page.getByRole("button", { name: "Add weed" }).click();
+  // M11a: the concept is added to the workbench's version; "Use this version" saves it into the draft.
+  await page.getByRole("button", { name: "Use this version" }).click();
+  await expect(page.getByText("This version is now the draft's search.")).toBeVisible();
   const proof = page.locator("[data-criterion]", { hasText: "Reports the gold-standard proof" });
   await expect(proof).toHaveAttribute("data-status", "undecided");
   await proof.getByRole("button", { name: "Accept" }).click();
@@ -169,12 +172,12 @@ test("a check proposes UAV on Concepts and criteria; Apply writes it; a dismisse
     const proposals = page.locator("[data-proposals='criteria']");
     const uav = proposals.locator("li[data-proposal]", { hasText: "Add UAV to Concepts" });
     await expect(uav).toHaveAttribute("data-status", "open");
-    await expect(page.locator("#concept-1")).toHaveCount(0);
+    await expect(page.locator("#wb-concept-1")).toHaveCount(0);
     await uav.getByRole("button", { name: "Apply" }).click();
-    await expect(page.locator("#concept-1")).toHaveValue("UAV");
+    await expect(page.locator("#wb-concept-1")).toHaveValue("UAV");
     expect((fake.drafts.get(SESSION)!.draft as { concepts: { concept: string }[] }).concepts.map((c) => c.concept)).toEqual(["weed detection", "UAV"]);
     await page.reload();
-    await expect(page.locator("#concept-1")).toHaveValue("UAV");
+    await expect(page.locator("#wb-concept-1")).toHaveValue("UAV");
     await proposals.locator("[data-decided] summary").click();
     await expect(proposals.locator("[data-decided]").getByText("Applied by you")).toBeVisible();
 

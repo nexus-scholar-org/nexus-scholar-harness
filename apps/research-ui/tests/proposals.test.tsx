@@ -273,15 +273,16 @@ describe("inception proposals (01-proposals)", () => {
     }
   });
 
-  it("ticking a pool synonym sends accepted_from with the save", async () => {
+  it("applying a pool synonym sends accepted_from with the save", async () => {
     const { engine } = setUp({ draft: decided({ concepts: [{ concept: "weed detection", synonyms: [] }] }), offered: (entry) => entry.value !== "real-time" });
     engine.handle("POST", `/api/v1/inception/drafts/${SESSION}/recon/probe`, { refresh: false, semantic: false });
     render(<InceptionCriteria locale="en" />);
-    const group = await screen.findByRole("group", { name: "Terms from your first search for weed detection" });
-    fireEvent.click(within(group).getByRole("checkbox", { name: "embedded hardware · 8 papers" }));
-    fireEvent.click(within(group).getByRole("checkbox", { name: "real-time · 8 papers" }));
+    // M11a (10-query-workbench, D5): a pool term is applied with Apply and saved with "Use this version".
+    const list = (await screen.findByText("Suggested by your first search · not yet yours")).closest("[data-suggestions]") as HTMLElement;
+    fireEvent.click(within(list.querySelector("[data-suggestion-row='embedded hardware']") as HTMLElement).getByRole("button", { name: "Apply" }));
+    fireEvent.click(within(list.querySelector("[data-suggestion-row='real-time']") as HTMLElement).getByRole("button", { name: "Apply" }));
     const before = engine.calls.length;
-    fireEvent.click(screen.getByRole("button", { name: "Continue to review" }));
+    fireEvent.click(screen.getByRole("button", { name: "Use this version" }));
     await waitFor(() => expect(engine.calls.some((c) => c.method === "PUT")).toBe(true));
     const put = engine.calls.find((c) => c.method === "PUT")!;
     expect(put.body?.accepted_from).toEqual([
