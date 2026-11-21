@@ -301,11 +301,11 @@ describe("checks panel (02-checks)", () => {
 
   it("copy: every checks.* key and every checks.<ID>.* key exists in en; fr and ar fall back; no literal aria-label (N9 guard)", () => {
     const holes = (s: string) => [...s.matchAll(/\{(\w+)\}/g)].map((m) => m[1]).sort();
-    expect(CHECK_IDS).toHaveLength(50);
+    expect(CHECK_IDS).toHaveLength(52);
     for (const id of CHECK_IDS) {
       for (const part of ["sentence", "why", "action"]) expect(CHECKS_COPY.en, `${id}.${part}`).toHaveProperty([`checks.${id}.${part}`]);
     }
-    for (const key of ["checks.HARVEST_ABOVE_TARGET_general.sentence", "checks.HARVEST_ABOVE_TARGET_general.why", "checks.counts", "checks.ready.blocked", "checks.dismiss.label", "checks.earlier"]) {
+    for (const key of ["checks.HARVEST_ABOVE_TARGET_general.sentence", "checks.HARVEST_ABOVE_TARGET_general.why", "checks.SEEDS_CANNOT_TEST_all.sentence", "checks.SEEDS_CANNOT_TEST_concept.why", "checks.SEEDS_CANNOT_TEST_few.sentence", "checks.counts", "checks.ready.blocked", "checks.dismiss.label", "checks.earlier"]) {
       expect(CHECKS_COPY.en).toHaveProperty([key]);
     }
     for (const [key, en] of Object.entries(CHECKS_COPY.en)) {
