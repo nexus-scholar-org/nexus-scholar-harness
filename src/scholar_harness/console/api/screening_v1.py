@@ -333,6 +333,9 @@ def record(study_id: str, request: Request) -> dict[str, Any]:
             "protocol_fingerprint": context.protocol_fingerprint,
             "batch_id": batch.batch_id,
             "batch_sha256": batch.batch_sha256,
+            # M11b part A, decision item 5 (decided 2026-11-21): the criteria version the record
+            # is shown under; intake refuses a decision bound under another (STALE_BINDING).
+            "criteria_version": context.criteria_version,
         },
         "my_decision": winners.get(study_id),
         "history": [e for e in events if e["study_id"] == study_id],

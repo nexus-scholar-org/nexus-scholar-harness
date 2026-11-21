@@ -685,3 +685,50 @@ def test_dod10_the_publish_journal_row_carries_the_amendments_digest(tmp_path):
     [row] = [r for r in _journal(workspace) if r["action"] == "SCREENING_PUBLISH_COMPLETED"]
     digest = "sha256:" + hashlib.sha256((workspace / cr.AMENDMENTS_FILE).read_bytes()).hexdigest()
     assert row["parameters"]["criteria_amendments_sha256"] == digest
+
+
+# --- decision item 5 as the researcher decided it (2026-11-21): bind the version ---------------------
+
+
+def test_item5_the_record_binding_names_the_criteria_version(ws, client):
+    study = _studies(client)[0]
+    assert client.get(f"{BASE}/records/{study}").json()["binding"]["criteria_version"] == 1
+    _ok(_amend(client, "add", "exclusion", text="Simulation-only studies"))
+    assert client.get(f"{BASE}/records/{study}").json()["binding"]["criteria_version"] == 2
+
+
+def test_item5_a_decision_bound_under_the_earlier_wording_is_refused_and_the_record_stays_queued(ws, client):
+    studies = _studies(client)
+    offline = _event(client, studies[0], "INCLUDE")  # bound under version 1, kept on a device offline
+    _ok(_amend(client, "reword", "inclusion", ["INC-01"], text="Explicit research questions"))
+    before = list(_stored(ws))
+    [result] = _post(client, [offline])
+    assert result["result"] == "refused" and result["refusal"]["code"] == "STALE_BINDING"
+    assert "criteria" in result["refusal"]["message"]
+    assert _stored(ws) == before  # nothing stored, so nothing is counted under the new wording
+    queued = [i["study_id"] for i in client.get(f"{BASE}/queue", params={"view": "needs_you"}).json()["items"]]
+    assert studies[0] in queued
+    # Decided again under the binding the record now hands out: accepted, stamped version 2.
+    [again] = _post(client, [_event(client, studies[0], "INCLUDE")])
+    assert again["result"] == "accepted" and _stored(ws)[-1]["criteria_version"] == 2
+
+
+def test_item5_a_binding_without_a_version_reads_as_version_1(ws, client):
+    study = _studies(client)[0]
+    event = _event(client, study)
+    event["binding"] = {k: v for k, v in event["binding"].items() if k != "criteria_version"}
+    assert _post(client, [event])[0]["result"] == "accepted"  # before any revision: version 1
+    _ok(_amend(client, "add", "exclusion", text="Simulation-only studies"))
+    other = _event(client, _studies(client)[0])
+    other["binding"] = {k: v for k, v in other["binding"].items() if k != "criteria_version"}
+    assert _post(client, [other])[0]["refusal"]["code"] == "STALE_BINDING"
+
+
+def test_item5_a_stored_event_replays_as_a_duplicate_and_still_counts_after_a_revision(ws, client):
+    studies = _studies(client)
+    stored = _event(client, studies[2], "EXCLUDE", reason_code="EXC-01")
+    assert _post(client, [stored])[0]["result"] == "accepted"
+    _ok(_amend(client, "add", "inclusion", text="Peer-reviewed"))
+    assert _post(client, [stored])[0]["result"] == "duplicate"
+    # The binding check is at intake only: decisions made under version 1 still count.
+    assert client.get(f"{BASE}/summary").json()["decided"] == 1

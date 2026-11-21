@@ -1,6 +1,6 @@
 # M11b Criteria pilot
 
-Branch: `dev/m11b/criteria-pilot-spec` (from `origin/main` at `1f218054`) · Lane: declared per part (proposed below: A, B and D **RELEASE**, C **STANDARD**) · Status: **SPECIFICATION; the researcher answered the ten questions on 2026-11-21** (1 to 4, 7, 9 and 10 as recommended; **5, 6 and 8 against the recommendation**). Questions 11 and 12, which came from those answers, were answered the same day, both as recommended. The rework of answers 5, 6 and 8 is PROPOSED. **Build started 2026-11-21 (approved by the researcher; building, not pushing): part A READY FOR PR on `dev/m11b/part-a-criteria-in-force` (see "Build record"); parts B, C and D not started** · Fourth in the agreed order (plan §6, "After the acceptance run"); M11a part C is merged (PR 272), so part D is no longer blocked by it
+Branch: `dev/m11b/criteria-pilot-spec` (from `origin/main` at `1f218054`) · Lane: declared per part (proposed below: A, B and D **RELEASE**, C **STANDARD**) · Status: **SPECIFICATION; the researcher answered the ten questions on 2026-11-21** (1 to 4, 7, 9 and 10 as recommended; **5, 6 and 8 against the recommendation**). Questions 11 and 12, which came from those answers, were answered the same day, both as recommended. The rework of answers 5, 6 and 8 is PROPOSED. **Build started 2026-11-21 (approved by the researcher; building, not pushing): part A IN PROGRESS again on `dev/m11b/part-a-criteria-in-force` (decision item 5 changed by the researcher; READY FOR PR once its gate and review pass) (see "Build record"); parts B, C and D not started** · Fourth in the agreed order (plan §6, "After the acceptance run"); M11a part C is merged (PR 272), so part D is no longer blocked by it
 
 Short page for the researcher: [`M11b-criteria-pilot-for-review.md`](M11b-criteria-pilot-for-review.md). Screens (both `Status: DRAFT`): [`docs/ux/phase2-screening/final/13-criteria-pilot.md`](../../ux/phase2-screening/final/13-criteria-pilot.md) (draw the pilot, its result, revise a criterion) and [`docs/ux/phase0-inception/final/11-criteria-block.md`](../../ux/phase0-inception/final/11-criteria-block.md) (the change to Inception's step 5). Choices: `docs/decisions.md`, "2026-11-21 — M11b criteria pilot: the specification's choices" (answered 2026-11-21; the rework of 5, 6 and 8 and questions 11 and 12 PROPOSED).
 
@@ -457,4 +457,24 @@ Review round 2 (on `6fa05b7e`): **APPROVE**. The eight round-1 repairs confirmed
 - `GET /screening/criteria` answers `can_amend: true` while every revision would be refused `CRITERIA_AMENDMENT_HANDOFF`; it should add `not handoff_batches(...)` and name the batches, so the dialog is not offered and then refused.
 - The `CRITERIA_AMENDMENT_HANDOFF` message says to decide the batches in Triage first, but a worker recommendation file stays and keeps the refusal; the message (and the §7 row) should not promise that way out, or a way to clear a hand-off batch should be defined.
 
-**Part A: READY FOR PR** (not pushed). Branch `dev/m11b/part-a-criteria-in-force`. The PR gate on `2e1874f8` stands for the later commits, which change this record only.
+~~**Part A: READY FOR PR**~~ (superseded below: item 5 changed on 2026-11-21; not pushed). Branch `dev/m11b/part-a-criteria-in-force`. The PR gate on `2e1874f8` stands for the later commits, which change this record only.
+
+#### Part A, after the researcher's answers (2026-11-21)
+
+The researcher accepted items 1 to 4 and 6 to 10 as built and decided item 5 as **"bind the version"** (decision entry, item 5). Part A went back to IN PROGRESS for it.
+
+What changed:
+- `GET /records/{id}` hands out `binding.criteria_version`; `events._criteria_refusal` refuses a new event bound under another version with `STALE_BINDING`, naming both versions. A binding without the field reads as version 1. Not in `is_current`, so stored decisions keep counting and a stored event replays as a `duplicate`. The projected batch decisions file keeps its own binding (unchanged).
+- `tests/test_screening_events.py` builds its events with the binding the record route hands out (`criteria_version`).
+- Contract §3.1 amended; the fixtures regenerated: the event bindings in nine fixture files gain `"criteria_version": 1` (additive).
+- The desktop Triage already echoes the record's `binding` object unchanged and shows `STALE_BINDING` as its stale state, so no UI change is needed for it to work; the TypeScript `Binding` type gains the field in part C. There is no phone client in this repository (no offline queue in `apps/research-ui`); the engine answers a refused result per event, never drops it, which is what a phone flush must show.
+
+| Item 5 | Test (`tests/console/test_criteria_amendments_api.py`) | Fails before (on `f1968ccd`) |
+| :-- | :-- | :-- |
+| the binding names the version | `test_item5_the_record_binding_names_the_criteria_version` | yes |
+| a decision bound under version 1, received after a revision, is refused `STALE_BINDING`; nothing stored; the record stays in `needs_you`; decided again it is accepted as version 2 | `test_item5_a_decision_bound_under_the_earlier_wording_is_refused_and_the_record_stays_queued` | yes (it was accepted and stamped 2) |
+| a binding without the field is version 1 | `test_item5_a_binding_without_a_version_reads_as_version_1` | yes |
+| a stored event replays as `duplicate` and still counts | `test_item5_a_stored_event_replays_as_a_duplicate_and_still_counts_after_a_revision` | no (already held; kept as a guard) |
+
+Pilot decisions (part B) carry no binding, so this change does not reach them; see part B's decision entry.
+

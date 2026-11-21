@@ -347,6 +347,18 @@ def _criteria_refusal(
             REASON_CODE_RETIRED,
             f"{code} cites a criterion retired by a revision of the criteria; choose a criterion in force",
         )
+    # Decision item 5 (decided 2026-11-21): the event names the criteria version the record was
+    # shown under (the binding the record route hands out). A decision made under an earlier
+    # wording, e.g. queued offline on a phone across a revision, is refused, never stamped with
+    # the new version; its record stays in the queue. A binding without it reads as version 1.
+    # Checked on new events only, and not by `is_current`, so stored decisions keep counting.
+    bound = (event.get("binding") or {}).get("criteria_version", 1)
+    if bound != context.criteria_version:
+        return _refuse(
+            STALE_BINDING,
+            f"the decision was made under criteria version {bound}; the criteria in force are version "
+            f"{context.criteria_version}. Read the record again and decide it under the current wording",
+        )
     for head in heads(live, str(event.get("study_id")), str(event.get("screener_id"))):
         answered = {event.get("supersedes"), *(event.get("resolves") or [])}
         if context.awaiting_recheck(head) and head["event_id"] not in answered:

@@ -46,7 +46,7 @@
   "supersedes": "<event_id> | null",
   "proposal_shown": {"proposal_id": "…", "revealed_after_decision": true},
   "changed_after_reveal": false,
-  "binding": {"protocol_fingerprint": "sha256:…", "batch_id": "…", "batch_sha256": "sha256:…"}
+  "binding": {"protocol_fingerprint": "sha256:…", "batch_id": "…", "batch_sha256": "sha256:…", "criteria_version": 1}
 }
 ```
 
@@ -59,6 +59,7 @@
   - **The stamp** is `true` on a superseding event from the same screener received after a current-generation reveal of that study's proposal, whether or not the outcome changes; the event chain shows what changed. A reveal from an earlier protocol or batch does not count.
   - Events stored before M1b-0 carry `false`, which for them means "not tracked".
 - **Skip** is client-side deferral. It writes no event.
+- `binding.criteria_version` (M11b part A, decision item 5 of 2026-11-21) is echoed from `GET /records/{id}`: the criteria version the record was shown under. Intake refuses a new event whose bound version is not the one in force with `STALE_BINDING`, so a decision made under an earlier wording (an offline phone queue across a revision) is refused and its record stays in the queue; the client shows the refusal. A binding without it reads as version 1. It is checked at intake only: `is_current` (which events count) compares the protocol fingerprint, the batch id and the batch hash as before, and a stored event replays as a `duplicate`.
 - `criteria_version` (M11b part A) is set by the engine, not the client: the version of the screening criteria in force when the event was received (1 is the signed protocol's list; each criteria amendment raises it, `audit/criteria_amendments.jsonl`). An event that sends it is refused `INVALID_OUTPUT`; an event stored before M11b has none and reads as version 1. It is a field of this harness event log only, never of the Contract v1 `ScreeningDecision`, and it is not projected (§3.3).
 - `screener_id` is an unauthenticated local attestation (CON-02 relabel). The engine stamps `received_at` and the `device` token scope on intake; the client cannot set them. Since H-input-limits (F7) intake also refuses, as `INVALID_OUTPUT`, a `device` that is not the token's scope (a desktop token sends `desktop`, a phone token `phone`) and a `note` that is not text or is longer than 2 000 characters.
 
