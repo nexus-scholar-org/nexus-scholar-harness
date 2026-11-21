@@ -114,7 +114,7 @@ export function MarksBar({
           </Switch>
         ) : null}
         {concepts.length > 0 ? (
-          <Hint locale={locale} label={t("marks.hint.label")} text={t("marks.hint.text")} textKey="screening.triage.marks.hint.text" />
+          <Hint locale={locale} label={t("marks.hint.label")} text={t("marks.hint.text")} textKey="marks.hint.text" />
         ) : null}
       </div>
       {terms && concepts.length === 0 ? (
