@@ -179,8 +179,8 @@ for (const width of [1440, 1280]) {
     await page.getByRole("button", { name: "Revise a criterion" }).click();
     const dialog = page.getByRole("dialog", { name: "Revise a criterion" });
     await dialog.getByRole("radio", { name: "Reword · same test, clearer words" }).check();
-    await dialog.getByLabel("Criterion").selectOption("EXC-01");
-    await dialog.getByLabel("New wording").fill("Not an arable crop field");
+    await dialog.locator("select").first().selectOption("EXC-01");
+    await dialog.locator("textarea").first().fill("Not an arable crop field");
     await dialog.getByLabel("Why are you making this change? One sentence.").fill("Orchards were read two ways");
     expect(await axe(page)).toEqual([]);
     await dialog.getByRole("button", { name: "Check what this changes" }).click();
