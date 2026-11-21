@@ -16,6 +16,7 @@ from __future__ import annotations
 from typing import Any
 
 from fastapi import APIRouter, HTTPException, Request, Response
+from starlette.concurrency import run_in_threadpool
 from fastapi.responses import FileResponse
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -75,8 +76,10 @@ async def post_attachment(
     try:
         if content_type == "application/json":
             body = LinkBody.model_validate_json(await request.body())
-            return tb.set_link(ws, study_id, body.link, event_id=body.event_id, supersedes=body.supersedes)
-        tb.check_attach(ws, study_id, (event_id, status_event_id))
+            return await run_in_threadpool(
+                tb.set_link, ws, study_id, body.link, event_id=body.event_id, supersedes=body.supersedes)
+        # Review finding 5: the lock, the hashing and the file moves run off the event loop.
+        await run_in_threadpool(tb.check_attach, ws, study_id, (event_id, status_event_id))
         declared = request.headers.get("content-length")
         stager = att.Stager(ws, declared_size=int(declared) if declared and declared.isdigit() else None)
         try:
@@ -86,7 +89,8 @@ async def post_attachment(
             stager.abort()
             raise
         staged = stager.finish()
-        return tb.attach_staged(ws, study_id, staged, name=name, event_id=event_id, status_event_id=status_event_id)
+        return await run_in_threadpool(
+            tb.attach_staged, ws, study_id, staged, name=name, event_id=event_id, status_event_id=status_event_id)
     except ChartingRefused as exc:
         raise _error(exc) from exc
     except ValueError as exc:  # a link body pydantic refuses

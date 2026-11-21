@@ -304,7 +304,7 @@ The UI reads proposals only through `GET /records/{study_id}/proposal`. The fiel
 | `ATTACHMENT_NOT_PDF` | `POST /charting/records/{id}/attachment` | HTTP 422: the body has no `%PDF-` header in its first 1 024 bytes; nothing is stored (M12a) |
 | `ATTACHMENT_TOO_LARGE` | `POST /charting/records/{id}/attachment` | HTTP 413: the body (or its declared length) is over 100 MB; nothing is stored (M12a) |
 | `ATTACHMENT_MISSING` | `GET /charting/records/{id}/attachment` | HTTP 404: no PDF is attached to this record now (M12a) |
-| `LINK_INVALID` | `POST /charting/records/{id}/attachment` (JSON) | HTTP 422: a link that is not one http or https address (M12a) |
+| `LINK_INVALID` | `POST /charting/records/{id}/attachment` (JSON), `POST /charting/events` (per event, kind `link`) | HTTP 422: a link that is not one http or https address (M12a) |
 | `CHARTING_EXPORT_FORMAT_INVALID` | `GET /charting/export` | HTTP 422: a format or view the table does not export (Part A: `format=csv&view=fulltext`) (M12a) |
 | `CHARTING_PROTOCOL_REPLACED` | every charting write | HTTP 409: `protocol.json` differs from the protocol the newest published round was screened under; the table is read-only (M12a) |
 | `STALE_BINDING` (inception) | preview with `session_id`, genesis | HTTP 409: the draft's direction was chosen on a pool that is no longer its recon session's latest (M4c), or the draft's question, years or languages changed after it was chosen (`details.code: SCOPE_CHANGED`, `details.changes`; M4d); choose it again. The code predates M4c and is listed in the console set. |

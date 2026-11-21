@@ -390,15 +390,81 @@ def test_the_full_text_csv_has_a_bom_crlf_and_is_journaled_with_its_hash(env):
 
 
 def test_a_replaced_protocol_makes_the_table_read_only(env):
+    """Review of Part A, finding 2: the read-only path is asserted exactly."""
     client, ws, ids = env
     protocol = json.loads((ws / "protocol.json").read_text(encoding="utf-8"))
     protocol["metadata"] = {**(protocol.get("metadata") or {}), "replaced_by": "a re-inception"}
     (ws / "protocol.json").write_text(json.dumps(protocol), encoding="utf-8")
     table = client.get(BASE)
-    if table.status_code == 200:
-        assert table.json()["read_only"] is True
+    assert table.status_code == 200
+    assert table.json()["read_only"] is True and table.json()["read_only_code"] == "CHARTING_PROTOCOL_REPLACED"
     response = client.post(f"{BASE}/events", json={"events": [_event(ids["included"], "fulltext_status", {"status": "retrieved"})]})
-    assert _code(response) in ("CHARTING_PROTOCOL_REPLACED", "SCREENING_NOT_PUBLISHED")
+    assert response.status_code == 409 and _code(response) == "CHARTING_PROTOCOL_REPLACED"
+    attach = _attach(client, ids["included"], MINI_PDF)
+    assert attach.status_code == 409 and _code(attach) == "CHARTING_PROTOCOL_REPLACED"
+    assert not cev.screener_file(ws, WHO).exists()
+    assert not (ws / "pdfs" / f"{ids['included']}.pdf").exists()
+
+
+def test_a_hand_edited_included_file_is_never_read_as_published(env):
+    """Review of Part A, finding 1: only the bytes the publication recorded are read."""
+    client, ws, ids = env
+    path = ws / "literature" / "included.json"
+    rows = json.loads(path.read_text(encoding="utf-8"))
+    forged = {**rows[0], "workspace_id": "STU-forged", "title": "Not published"}
+    forged["screening"] = {**rows[0]["screening"], "workspace_id": "STU-forged"}
+    path.write_text(json.dumps([*rows, forged]), encoding="utf-8")
+    response = client.get(BASE)
+    assert response.status_code == 409 and _code(response) == "SCREENING_NOT_PUBLISHED"
+    assert "not the file" in response.json()["detail"]["message"]
+    refused = client.post(f"{BASE}/events", json={"events": [_event("STU-forged", "fulltext_status", {"status": "retrieved"})]})
+    assert refused.status_code == 409 and _code(refused) == "SCREENING_NOT_PUBLISHED"
+    assert not cev.screener_file(ws, WHO).exists()
+
+
+def test_an_archived_round_whose_file_was_edited_is_refused(env):
+    client, ws, ids = env
+    from scholar_harness.screening import rounds
+
+    record = rounds.archive_round(ws, number=1, arm=rounds.ARM_DATABASES, generation_id="g1", corpus_artifact_id=None)
+    rounds.start_round(ws, record, number=2, arm=rounds.ARM_CITATION_SEARCHING, chase="chase_001", corpus_artifact_id=None)
+    assert client.get(BASE).status_code == 200
+    archived = ws / record["path"] / "included.json"
+    archived.write_text(archived.read_text(encoding="utf-8").replace("Event record", "Edited record"), encoding="utf-8")
+    response = client.get(BASE)
+    assert response.status_code == 409 and _code(response) == "SCREENING_NOT_PUBLISHED"
+
+
+def test_a_busy_history_lock_still_answers_the_table(env, monkeypatch):
+    """Review finding 7: a lock that cannot be taken reads the history instead of failing."""
+    client, ws, ids = env
+    from scholar_harness.charting import kept
+    from scholar_harness.charting.lock import LockBusy
+
+    def busy(*args, **kwargs):
+        raise LockBusy("held by another program")
+
+    monkeypatch.setattr(kept, "_remember", busy)
+    table = client.get(BASE)
+    assert table.status_code == 200 and table.json()["counts"]["kept"] == 2
+
+
+def test_an_earlier_pdf_that_cannot_be_moved_aside_is_a_typed_refusal(env, monkeypatch):
+    """Review finding 9: an OSError while placing the file stores nothing and answers a typed code."""
+    client, ws, ids = env
+    first = _attach(client, ids["included"], MINI_PDF)
+    assert first.status_code == 200
+
+    def locked_file(*args, **kwargs):
+        raise PermissionError("the file is open in another program")
+
+    monkeypatch.setattr(att, "place", locked_file)
+    lines_before = cev.screener_file(ws, WHO).read_text(encoding="utf-8").count("\n")
+    second = _attach(client, ids["included"], MINI_PDF + b"other")
+    assert second.status_code == 503 and _code(second) == "ATOMIC_COMMIT_FAILED"
+    assert cev.screener_file(ws, WHO).read_text(encoding="utf-8").count("\n") == lines_before
+    assert (ws / "pdfs" / f"{ids['included']}.pdf").read_bytes() == MINI_PDF
+    assert not list((ws / "pdfs").glob(".attach-*.tmp"))
 
 
 def test_the_new_routes_are_in_both_post_allow_lists():

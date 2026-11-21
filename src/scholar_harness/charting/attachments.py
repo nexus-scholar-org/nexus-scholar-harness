@@ -161,7 +161,8 @@ def serve_path(ws: Path, study_id: str, value: dict[str, Any] | None) -> Path | 
     if value is None:
         return None
     final = attached_path(ws, study_id)
-    if final.is_file() and final.stat().st_size == int(value.get("size") or -1):
+    want = str(value.get("sha256") or "")
+    if final.is_file() and final.stat().st_size == int(value.get("size") or -1) and _sha256(final) == want:
         return final
     kept = _replaced_path(ws, study_id, str(value.get("sha256") or ""))
     return kept if kept.is_file() else None

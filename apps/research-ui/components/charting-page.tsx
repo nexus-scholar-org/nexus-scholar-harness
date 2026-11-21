@@ -373,8 +373,10 @@ function ChartingScreen({ locale }: Readonly<{ locale: Locale }>) {
       const answer = await attachPdf(origin, id, file, { eventId: newEventId(), statusEventId: newEventId() });
       if (answer.row) merge([answer.row], answer.counts);
       if (answer.result === "accepted") {
-        const [attachmentEvent, statusEvent] = answer.event_ids;
-        const steps: UndoStep[] = [{ studyId: id, kind: "attachment", value: previousAttachment, supersedes: attachmentEvent }];
+        const attachmentEvent = answer.events.find((event) => event.kind === "attachment")?.event_id;
+        const statusEvent = answer.events.find((event) => event.kind === "fulltext_status")?.event_id;
+        const steps: UndoStep[] = [];
+        if (attachmentEvent) steps.push({ studyId: id, kind: "attachment", value: previousAttachment, supersedes: attachmentEvent });
         if (statusEvent) steps.push({ studyId: id, kind: "fulltext_status", value: previousStatus, supersedes: statusEvent });
         pushUndo({ steps });
       }
@@ -399,7 +401,7 @@ function ChartingScreen({ locale }: Readonly<{ locale: Locale }>) {
     try {
       const answer = await postLink(origin, id, url, eventId);
       if (answer.row) merge([answer.row], answer.counts);
-      if (answer.result === "accepted") pushUndo({ steps: [{ studyId: id, kind: "link", value: previous, supersedes: answer.event_ids[0] ?? eventId }] });
+      if (answer.result === "accepted") pushUndo({ steps: [{ studyId: id, kind: "link", value: previous, supersedes: answer.events.find((event) => event.kind === "link")?.event_id ?? eventId }] });
       setLinkFor(null);
       setLinkText("");
       saved(1);

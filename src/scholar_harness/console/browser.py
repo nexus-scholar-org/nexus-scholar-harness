@@ -97,6 +97,8 @@ PUT_PATHS: tuple[re.Pattern[str], ...] = (
 )
 #: The one GET with an effect: reading a draft records a reveal.
 READ_PROPOSAL = re.compile(r"api/v1/screening/records/[A-Za-z0-9_-]+/proposal")
+#: M12a Part A (review finding 4): an export journals ``CHARTING_EXPORTED``.
+READ_CHARTING_EXPORT = re.compile(r"api/v1/charting/export")
 
 
 class BrowserRefused(Exception):
@@ -156,6 +158,8 @@ def check(method: str, path: str, *, origin: str | None, host: str, fetch_site: 
         raise BrowserRefused(405, "CONSOLE_METHOD_REFUSED", "POST is served only for the screening actions, the workspaces, inception and discovery")
     if READ_PROPOSAL.fullmatch(inner) and fetch_site not in (None, "same-origin", "none"):
         raise BrowserRefused(403, "CONSOLE_ORIGIN_REFUSED", "the agent's draft is read only from this app's own pages")
+    if READ_CHARTING_EXPORT.fullmatch(inner) and fetch_site not in (None, "same-origin", "none"):
+        raise BrowserRefused(403, "CONSOLE_ORIGIN_REFUSED", "the charting export is made only from this app's own pages")
     return "/" + inner
 
 

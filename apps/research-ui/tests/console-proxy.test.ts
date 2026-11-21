@@ -476,6 +476,21 @@ describe("console proxy — writes", () => {
     expect(fetchSpy).toHaveBeenCalledTimes(1);
   });
 
+  it("refuses a cross-site charting export, which would write a journal row", async () => {
+    vi.stubEnv("NEXUS_CONSOLE_URL", CONSOLE);
+    const fetchSpy = vi.fn(() => Promise.resolve(jsonResponse({ shape: "x" })));
+    vi.stubGlobal("fetch", fetchSpy);
+    const path = ["api", "v1", "charting", "export"];
+
+    const crossSite = await GET(request(path.join("/"), { headers: { "sec-fetch-site": "cross-site" } }), context(...path));
+    expect(crossSite.status).toBe(403);
+    expect(fetchSpy).not.toHaveBeenCalled();
+
+    const own = await GET(request(path.join("/"), { headers: { "sec-fetch-site": "same-origin" } }), context(...path));
+    expect(own.status).toBe(200);
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+  });
+
   it("refuses the non-existent bare redeem action", async () => {
     vi.stubEnv("NEXUS_CONSOLE_URL", CONSOLE);
     const fetchSpy = vi.fn(() => Promise.resolve(jsonResponse({ shape: "x" })));

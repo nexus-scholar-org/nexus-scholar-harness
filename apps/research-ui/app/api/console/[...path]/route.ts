@@ -127,6 +127,9 @@ const POST_PATHS: ReadonlyArray<RegExp> = [
 /** The one GET with a side effect: the engine records a reveal when a draft is read. */
 const READ_PROPOSAL = /^api\/v1\/screening\/records\/[A-Za-z0-9_-]+\/proposal$/;
 
+/** M12a Part A: an export writes a journal row, so it is made only from this app's pages. */
+const READ_CHARTING_EXPORT = /^api\/v1\/charting\/export$/;
+
 /**
  * PUT targets: the screening settings and approver (journaled by the console),
  * and saving an inception draft (M4b; the console checks `base_updated_at`).
@@ -286,6 +289,9 @@ async function forward(request: NextRequest, segments: string[] | undefined): Pr
   const site = request.headers.get("sec-fetch-site");
   if (READ_PROPOSAL.test(path) && site !== null && site !== "same-origin" && site !== "none") {
     return typedError(403, "CONSOLE_ORIGIN_REFUSED", "the agent's draft is read only from this app's own pages");
+  }
+  if (READ_CHARTING_EXPORT.test(path) && site !== null && site !== "same-origin" && site !== "none") {
+    return typedError(403, "CONSOLE_ORIGIN_REFUSED", "the charting export is made only from this app's own pages");
   }
   if (method === "POST" && !POST_PATHS.some((pattern) => pattern.test(path))) {
     return typedError(

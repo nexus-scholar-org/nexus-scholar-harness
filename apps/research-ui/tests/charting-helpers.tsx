@@ -158,19 +158,23 @@ export function installEngine(table: ChartingTable, over: Partial<FakeEngine> = 
           if (!/^https?:\/\//.test(link.link)) return json({ detail: { code: "LINK_INVALID", message: "bad link" } }, 422);
           apply(engine, { event_id: link.event_id, study_id: row.study_id, screener_id: "researcher:local", at: "", kind: "link", value: { url: link.link } });
           engine.table.counts = counts(engine.table.rows);
-          return json({ result: "accepted", event_ids: [link.event_id], row: structuredClone(row), counts: engine.table.counts });
+          return json({ result: "accepted", event_ids: [link.event_id], events: [{ event_id: link.event_id, kind: "link" }], row: structuredClone(row), counts: engine.table.counts });
         }
         const eventId = url.searchParams.get("event_id")!;
         const statusId = url.searchParams.get("status_event_id")!;
         const ids = [eventId];
+        // The kinds are listed status first on purpose: the screen must read each event's kind, not its position.
+        const events: { event_id: string; kind: string }[] = [];
         const wasToGet = row.fulltext.status === "to_get";
         apply(engine, { event_id: eventId, study_id: row.study_id, screener_id: "researcher:local", at: "", kind: "attachment", value: { name: url.searchParams.get("name"), size: 2048, sha256: "a".repeat(64), path: `pdfs/${row.study_id}.pdf`, origin: "attached" } });
         if (wasToGet) {
           apply(engine, { event_id: statusId, study_id: row.study_id, screener_id: "researcher:local", at: "", kind: "fulltext_status", value: { status: "retrieved" } });
           ids.push(statusId);
+          events.push({ event_id: statusId, kind: "fulltext_status" });
         }
+        events.push({ event_id: eventId, kind: "attachment" });
         engine.table.counts = counts(engine.table.rows);
-        return json({ result: "accepted", event_ids: ids, row: structuredClone(row), counts: engine.table.counts });
+        return json({ result: "accepted", event_ids: ids, events, row: structuredClone(row), counts: engine.table.counts });
       }
       if (method === "GET" && path === "/api/v1/charting/export") {
         return new Response("﻿study_id\r\n", { status: 200, headers: { "content-type": "text/csv; charset=utf-8", "content-disposition": 'attachment; filename="charting-fulltext-20261121T100000Z.csv"' } });

@@ -29,7 +29,7 @@ from pathlib import Path
 from typing import Any
 
 from . import CHARTING_DIR, ChartingRefused
-from .lock import locked
+from .lock import LockBusy, locked
 
 HISTORY_FILE = CHARTING_DIR / "kept_history.jsonl"
 KEPT_DECISIONS = ("INCLUDE", "MAYBE")
@@ -71,6 +71,8 @@ class Source:
     published_at: str | None
     protocol_fingerprint: str | None
     generation_sha256: str | None
+    #: The digest the publication recorded for ``included.json`` (``sha256:<hex>``).
+    included_digest: str | None = None
 
 
 @dataclass
@@ -162,6 +164,7 @@ def _source(number: int, arm: str, included: Path, generation: Path) -> Source |
         return None
     found = _generation(generation)
     data, digest = found if found else ({}, None)
+    outputs = data.get("outputs") if isinstance(data.get("outputs"), dict) else {}
     return Source(
         round=number,
         arm=arm,
@@ -171,6 +174,7 @@ def _source(number: int, arm: str, included: Path, generation: Path) -> Source |
         published_at=_text(data.get("published_at")),
         protocol_fingerprint=_text(data.get("protocol_fingerprint")),
         generation_sha256=digest,
+        included_digest=_text(outputs.get("included.json")),
     )
 
 
@@ -202,9 +206,18 @@ def _sources(ws: Path) -> tuple[list[Source], dict[str, Any], bool]:
     if status in READABLE and result.record is not None:
         source = _source(number, arm, included, ws / "literature" / "screening" / "generation.json")
         if source is not None:
+            source.included_digest = result.record.output_digests.get("included.json")
             found.append(source)
     elif number > 1 and not included.is_file() and found:
         pending = True  # a chased round is being screened; earlier rounds stay readable
+    elif included.is_file():
+        # Review of Part A, follow-up: a current round whose publication is neither
+        # current nor stale refuses the table, rather than showing its rows as left.
+        raise ChartingRefused(
+            409, SCREENING_NOT_PUBLISHED,
+            "The screening publication cannot be read as published now. Publish it again.",
+            publication=publication,
+        )
     return found, publication, pending
 
 
@@ -268,13 +281,15 @@ def read_kept(ws: Path | str, *, remember: bool = True) -> KeptState:
     seen_ids: set[str] = set()
     for source in sorted(sources, key=lambda s: s.round):
         try:
-            rows = json.loads(source.included.read_text(encoding="utf-8"))
+            raw = source.included.read_bytes()
+            rows = json.loads(raw.decode("utf-8"))
         except (OSError, ValueError) as exc:
             raise ChartingRefused(
                 409, SCREENING_NOT_PUBLISHED,
                 f"The published file {source.included.relative_to(ws).as_posix()} cannot be read ({type(exc).__name__}).",
                 publication=publication,
             ) from exc
+        _require_published_bytes(ws, source, raw, publication)
         for entry in rows if isinstance(rows, list) else []:
             record = _record(entry, source) if isinstance(entry, dict) else None
             if record is None or record.study_id in seen_ids:
@@ -283,9 +298,33 @@ def read_kept(ws: Path | str, *, remember: bool = True) -> KeptState:
             records.append(record)
             by_source.setdefault(source.round, []).append(record)
     state = KeptState(records=records, sources=sources, publication=publication, chasing_pending=pending)
-    history = _remember(ws, sources, by_source) if remember else _read_history(ws)
+    try:
+        history = _remember(ws, sources, by_source) if remember else _read_history(ws)
+    except LockBusy:
+        history = _read_history(ws)  # review finding 7: a busy lock reads, never fails the table
     _mark_changes(state, history)
     return state
+
+
+def _require_published_bytes(ws: Path, source: Source, raw: bytes, publication: dict[str, Any]) -> None:
+    """Read only the bytes the publication recorded (review of Part A, finding 1).
+
+    A STALE generation can mean "a decision changed after publishing" (the
+    published files are intact) or "an output no longer matches its digest";
+    an archived round is never checked by the gate. Each source's
+    ``included.json`` must equal the digest its own ``generation.json``
+    recorded, else the table refuses.
+    """
+    from scholar_harness.authority.binding import content_sha256
+
+    if source.included_digest and content_sha256(raw) == source.included_digest:
+        return
+    rel = source.included.relative_to(ws).as_posix()
+    raise ChartingRefused(
+        409, SCREENING_NOT_PUBLISHED,
+        f"{rel} is not the file round {source.round}'s publication recorded. Publish the screening again.",
+        publication=publication, file=rel, round=source.round,
+    )
 
 
 def _mark_changes(state: KeptState, history: list[dict[str, Any]]) -> None:

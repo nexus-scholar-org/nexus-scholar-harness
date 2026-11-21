@@ -136,6 +136,8 @@ export interface EventsAnswer {
 export interface AttachAnswer {
   result: "accepted" | "duplicate";
   event_ids: string[];
+  /** Each event the answer wrote, with its kind: an undo goes by kind, never by position. */
+  events: { event_id: string; kind: string }[];
   row: ChartingRow | null;
   counts: ChartingCounts;
 }

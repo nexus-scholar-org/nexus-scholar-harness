@@ -11,6 +11,7 @@ import csv
 import hashlib
 import io
 import json
+import logging
 import uuid
 from collections.abc import Iterable
 from datetime import UTC, datetime
@@ -24,6 +25,8 @@ from . import attachments as att
 from . import events as ev
 from .kept import CHARTING_PROTOCOL_REPLACED, KeptState, as_dict, protocol_replaced, read_kept
 from .lock import LockBusy, locked
+
+logger = logging.getLogger(__name__)
 
 SHAPE = "charting.table-v1"
 EXPORT_ACTION = "CHARTING_EXPORTED"
@@ -189,7 +192,12 @@ def _after_commit(ws: Path):
     def sync(stored: list[dict[str, Any]]) -> None:
         for record in stored:
             if record["kind"] == "attachment":
-                att.sync_file(ws, record["study_id"], record.get("value"))
+                try:
+                    att.sync_file(ws, record["study_id"], record.get("value"))
+                except OSError as exc:
+                    # Review finding 9: the events stand; the file is put in step on its
+                    # next read (``attachment_file``), and is served by its hash meanwhile.
+                    logger.warning("attachment file of %s not moved yet: %s", record["study_id"], exc)
     return sync
 
 
@@ -276,7 +284,14 @@ def attach_staged(
                 })
             if before is not None:
                 pending[0]["supersedes"] = before["event_id"]
-            att.place(ws, study_id, staging, sha256)
+            try:
+                att.place(ws, study_id, staging, sha256)
+            except OSError as exc:  # review finding 9: e.g. the earlier PDF is open in a viewer
+                raise ChartingRefused(
+                    503, ev.ATOMIC_COMMIT_FAILED,
+                    "The earlier PDF of this study could not be moved aside (is it open in another program?). "
+                    "Close it and attach again.",
+                ) from exc
             results = [ev.Result(p["event_id"], "accepted") for p in pending]
             ev.commit(
                 ws, pending, results, action=att.JOURNAL_ACTION,
@@ -328,6 +343,10 @@ def attachment_file(ws: Path | str, study_id: str) -> tuple[Path, str] | None:
     if study_id not in state.kept_ids and study_id not in state.no_longer_kept:
         raise ChartingRefused(409, ev.RECORD_NOT_KEPT, "That study is not in the kept set.")
     value, _ = _value(ev.read_events(ws), study_id, screener_id(ws), "attachment")
+    try:
+        att.sync_file(ws, study_id, value)  # finish a move an earlier undo could not make
+    except OSError:
+        pass
     path = att.serve_path(ws, study_id, value)
     return (path, str(value.get("name") or f"{study_id}.pdf")) if path is not None and value else None
 
@@ -380,7 +399,7 @@ def export(ws: Path | str, *, fmt: str, view: str) -> tuple[bytes, str]:
     digest = hashlib.sha256(body).hexdigest()
     name = f"charting-fulltext-{datetime.now(UTC).strftime('%Y%m%dT%H%M%SZ')}.csv"
     append_event(
-        ws, EXPORT_ACTION, f"Exported the Full text view ({len(data['rows'])} rows) as CSV",
+        ws, EXPORT_ACTION, f"Exported the Full text view ({sum(1 for r in data['rows'] if r['kept'])} rows) as CSV",
         agent="scholar-harness/charting",
         parameters={"format": "csv", "view": "fulltext", "file_name": name, "sha256": digest},
         metrics={"rows": sum(1 for r in data["rows"] if r["kept"])},
