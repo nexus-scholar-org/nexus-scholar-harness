@@ -574,3 +574,5 @@ A gate started on `3a92daa2` was stopped when part A's branch moved (it brought 
 Review round 2 of part B (on `0cdf80aa`): **APPROVE**. The twelve round-1 repairs and the three follow-ups confirmed by the reviewer's probes (11 probes, 366 targeted tests, 0 failed, `-n 4`); the merges of part A and `origin/main` did not break part B (in `_criteria_refusal`, `PILOT_OPEN`, then the retired reason with `resolution_version`, then the bound version, all on new events only); decision items 11 to 13 match the code. One P4, taken (documents only): the `GET /agreement` shape in contract §4 lists the new top-level `answered_by_both`.
 
 **Part B: READY FOR PR** (not pushed). Branch `dev/m11b/part-b-pilot`, stacked on part A. The PR gate on `fbf8887d` (6219 tests, 0 failed) stands for the later commits, which change documents only. Decision items 1 to 13 of part B wait for the researcher.
+
+Part B's decision items 1 to 13 were accepted by the researcher on 2026-11-21 (main session), and the push of part B was approved; the main session pushes it.
