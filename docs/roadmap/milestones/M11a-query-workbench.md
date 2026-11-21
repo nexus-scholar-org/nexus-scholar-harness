@@ -563,3 +563,18 @@ Review round 2 (on `7019848b`): **CHANGES**, no P1, 1 P2, 3 P3; 13 of the 15 rou
 Round-2 follow-ups, not repaired: a concept whose `boolean_operator` is not OR is kept as such in the protocol but shown and counted as OR in the workbench (`search_view` does not carry the operator; genesis always writes OR, so only an imported or hand-written protocol has one); the `estimate` consequence reads the console's memory, so after a console restart it is false until the estimate is counted again (as the card itself).
 
 Round-1 follow-ups, not repaired: `amend_search` and `decide` write intent, protocol and criteria, then the journal, with no rollback (a failure part-way leaves the files ahead of the journal); the backup and write block is now in two places and could be one helper that restores from the backup. The job check runs outside the proposals lock and the corpus accept does not take that lock (both as on the `decide` path; both fail closed through the drift and snapshot gates). The discovery screens have no desktop pointer for a phone-scoped token (every discovery screen; the amend route itself is refused to a phone token by the engine, `test_the_route_is_in_both_allow_lists_and_not_a_phone_route`).
+
+Review round 3 (on `669856e0`): **APPROVE**. Before a merge it names the researcher's answer to decision D item 7 (`HANDOFF_SEARCH_CHANGED` kept on Harvest, against the letter of decision 2026-11-21 item 3) and the gate evidence below. Its two P3 notes are follow-ups, not repaired: closing the section with the header's "Change the search" toggle (not the region's Close) leaves `#change-search` in the address, so a reload opens it again; the vitest "after a recorded amendment …" also holds in the moment before Plan's re-read lands (the final state was traced by the reviewer and the test fails without the remount). Also unverified: if Plan's re-read fails after a successful Record, the workbench shows the earlier protocol until a reload (the success line and the new fingerprint are shown).
+
+Evidence (Part D):
+
+| Stage | Commit | Command | Result | Duration |
+| :-- | :-- | :-- | :-- | :-- |
+| pr (round 0) | `0a4e3d27` | `pytest -n auto`; ruff `scripts/` and `src/` (real-bug classes); baseline; protocol schema; typecheck; vitest; build; `test:browser` | pytest passed; clean; current; in sync; clean; vitest 1033 passed, 2 failed (`discovery-proposals` and `inception-workbench`, both passing when rerun alone while the round-1 repairs were being written in the same tree: the UI stages of this run are not counted); ok; Playwright 640 passed, 12 skipped (same caveat) | 785 s; 234 s; 56 s; 993 s |
+| pr (Python, final) | `7019848b` | `pytest -n auto` (counted from a JUnit file); ruff `scripts/` and `src/` (real-bug classes); `generate_contract_baseline.py --check`; `generate_protocol_schema.py --check` | 6060 tests: 0 failures, 0 errors, 15 skipped; clean; current; in sync | 595 s |
+| pr (UI, round 1) | `7019848b` | typecheck; vitest; build; `test:browser` | clean; 1041 passed, 1 failed (`details-rule`: the new Details summary had no focus ring; repaired in round 2); ok; Playwright 642 passed, 12 skipped | 116 s; 20 s; 831 s |
+| pr (UI, final) | `669856e0` | baseline; protocol schema; typecheck; `npm test`; build; `test:browser` | current; in sync; clean; 1044 passed (70 files); ok; Playwright 644 passed, 12 skipped | 128 s; 25 s; 850 s |
+
+Python did not change after `7019848b` (`git diff 7019848b 669856e0 -- src tests/console` is empty). The six screenshots the Playwright runs regenerate are restored after each run.
+
+**Part D: READY FOR PR** (not pushed). Branch `dev/m11a/part-d-plan-amend`, to be merged after Parts A, B and C. Before a merge: the researcher's answer to decision D item 7.
