@@ -250,7 +250,9 @@ def queue(
         raise _error(403, "TOKEN_SCOPE_REFUSED", "the pilot is screened on the desktop")
     ws = _ws(request)
     context, settings, events, winners = _state(ws)
-    recheck = _recheck(context, events, settings["screener_id"]) if view == "recheck" else {}
+    # M11b part A; part C (spec 13 question 6, settled 2026-11-21): a record shown again is also in
+    # "Needs you", first and tagged ``shown_again``.
+    recheck = _recheck(context, events, settings["screener_id"])
     # The order is the journaled setting; a request for another one is
     # refused, so the order shown is always the order recorded.
     if order is not None and order != settings["queue_order"]:
@@ -294,6 +296,8 @@ def queue(
             return (0 if outcome(proposal)[0] == "MAYBE" else 1, -failed)
 
         chosen.sort(key=unsure)
+    if view == "needs_you" and recheck:
+        chosen.sort(key=lambda study: study not in recheck)  # stable: shown again first, each order kept
     page = chosen[cursor : cursor + max(1, min(limit, 200))]
     items = [
         {
@@ -306,6 +310,7 @@ def queue(
             # In the pilot view, decided in the pilot (never counted); elsewhere, a main decision.
             "decided": (s in pilot_view["decided"]) if pilot_view is not None else s in winners,
             "flags": [] if _has_abstract(papers.get(s, {})) else ["title_only"],
+            "shown_again": s in recheck,
         }
         for s in page
     ]

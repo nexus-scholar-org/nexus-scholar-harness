@@ -56,3 +56,21 @@ def test_the_handoff_refusal_names_the_only_way_to_revised_criteria(tmp_path):
                           amended_at="2026-11-21T10:00:00Z")
     message = refused.value.message
     assert "start a new screening from this protocol" in message and "Triage" not in message
+
+
+def test_records_shown_again_come_first_in_needs_you_tagged(tmp_path):
+    """Spec 13 question 6 (settled 2026-11-21): first in "Needs you", tagged "Shown again"."""
+    import test_screening_api_v1 as api
+    from test_screening_api_v1 import BASE, _event, _post
+
+    ws = api._workspace(tmp_path)
+    client = TestClient(create_app(ws, token="t"), base_url="http://127.0.0.1", headers={"Authorization": "Bearer t"})
+    order = [i["study_id"] for i in client.get(f"{BASE}/queue", params={"view": "needs_you"}).json()["items"]]
+    _post(client, [_event(client, order[2], "INCLUDE")])
+    amended = client.post(f"{BASE}/criteria/amendments", json={
+        "op": "add", "side": "exclusion", "text": "Simulation-only studies", "reason": "r", "confirm": True})
+    assert amended.status_code == 200, amended.text
+    items = client.get(f"{BASE}/queue", params={"view": "needs_you"}).json()["items"]
+    assert [i["study_id"] for i in items] == [order[2], order[0], order[1]]
+    assert [i["shown_again"] for i in items] == [True, False, False]
+
