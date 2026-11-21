@@ -35,6 +35,7 @@ const fr: Record<MessageKey, string> = {
     "Chaque décision est consignée dans le journal d'audit de l'espace de travail.",
   "nav.discovery": "Recherche",
   "nav.screening": "Sélection",
+  "nav.charting": "Extraction",
   "nav.workspaces": "Espaces de travail",
   "nav.landmark.primary": "Principal",
   "a11y.openMainNavigation": "Ouvrir la navigation principale",

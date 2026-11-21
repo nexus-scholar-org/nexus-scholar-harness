@@ -65,7 +65,7 @@ const EN = {
   "next.state.CHASE_READY_TO_SEND": "The chase found {new} new works. Send them to screening as round {round}.",
   "next.state.CHASE_NOTHING_NEW": "The chase found nothing new.",
   "next.state.ROUND_ACCEPTED": "Round {round} is with screening. Prepare its batches.",
-  "next.state.DONE": "Nothing is waiting for you. Export and methods are on Publish.",
+  "next.state.DONE": "Screening is done. Next: get the full texts and chart the studies.",
 
   // Waiting variants
   "next.waiting.searching": "The search is running. {answered} of {databases} databases have answered.",
@@ -116,6 +116,7 @@ const EN = {
   "next.action.followPreparation": "Follow the preparation",
   "next.action.followChase": "Follow the chase",
   "next.action.finishPreparing": "Finish preparing this corpus",
+  "next.action.openCharting": "Open charting",
 } as const;
 
 export type NextStepCopyKey = keyof typeof EN;
@@ -172,7 +173,7 @@ const FR: Record<NextStepCopyKey, string> = {
   "next.state.CHASE_READY_TO_SEND": "Le suivi des citations a trouvé {new} nouveaux travaux. Envoyez-les à la sélection comme tour {round}.",
   "next.state.CHASE_NOTHING_NEW": "Le suivi des citations n'a rien trouvé de nouveau.",
   "next.state.ROUND_ACCEPTED": "Le tour {round} est en sélection. Préparez ses lots.",
-  "next.state.DONE": "Rien ne vous attend. L'export et la méthode sont sur Publier.",
+  "next.state.DONE": "La sélection est terminée. Ensuite : obtenir les textes intégraux et extraire les données des études.",
 
   "next.waiting.searching": "La recherche est en cours. {answered} bases sur {databases} ont répondu.",
   "next.waiting.deduplicating": "La recherche a trouvé {records} notices. Retrait des doublons.",
@@ -220,6 +221,7 @@ const FR: Record<NextStepCopyKey, string> = {
   "next.action.followPreparation": "Suivre la préparation",
   "next.action.followChase": "Suivre le suivi des citations",
   "next.action.finishPreparing": "Terminer la préparation de ce corpus",
+  "next.action.openCharting": "Ouvrir l'extraction",
 };
 
 const AR: Record<NextStepCopyKey, string> = {
@@ -274,7 +276,7 @@ const AR: Record<NextStepCopyKey, string> = {
   "next.state.CHASE_READY_TO_SEND": "وجد تتبّع الاستشهادات {new} عملًا جديدًا. أرسلها إلى الفرز بوصفها الجولة {round}.",
   "next.state.CHASE_NOTHING_NEW": "لم يجد تتبّع الاستشهادات شيئًا جديدًا.",
   "next.state.ROUND_ACCEPTED": "الجولة {round} لدى الفرز. حضّر دفعاتها.",
-  "next.state.DONE": "لا شيء بانتظارك. التصدير والمنهجية في صفحة النشر.",
+  "next.state.DONE": "اكتمل الفرز. التالي: احصل على النصوص الكاملة واستخرج بيانات الدراسات.",
 
   "next.waiting.searching": "البحث قيد التشغيل. أجابت {answered} من {databases} قواعد بيانات.",
   "next.waiting.deduplicating": "وجد البحث {records} سجلًا. تجري إزالة المكررات.",
@@ -322,6 +324,7 @@ const AR: Record<NextStepCopyKey, string> = {
   "next.action.followPreparation": "تابع التحضير",
   "next.action.followChase": "تابع تتبّع الاستشهادات",
   "next.action.finishPreparing": "أكمل تحضير هذه المجموعة",
+  "next.action.openCharting": "افتح جدول الاستخراج",
 };
 
 export const NEXT_STEP_COPY: Record<Locale, Record<NextStepCopyKey, string>> = { en: EN, fr: FR, ar: AR };
@@ -346,6 +349,7 @@ export const ACTION_KEYS = [
   "chooseReview", "goToStep", "goToReview", "goToDone", "goToInception", "seeWhatToSet", "goToHarvest", "reviewExports",
   "reviewCorpus", "followSearch", "searchAgain", "goToScreening", "openInception", "goToScreeningHome", "openTriage",
   "goToPublish", "publishAgain", "goToChase", "reviewChase", "followPreparation", "followChase", "finishPreparing",
+  "openCharting",
 ] as const;
 
 /** The states whose sentence gains " in round {round}" when the engine sends `params.round` (rows 16 to 21). */
