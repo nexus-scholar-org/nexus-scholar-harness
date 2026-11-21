@@ -34,6 +34,7 @@ def uav_draft(**changes) -> dict:
     """A draft that compiles, whose title and question say UAV while no concept does."""
     draft = {
         "topic": "Weed detection from UAV imagery",
+        "method_not_reported": "unclear",  # M11b part D: the rule is chosen (no default)
         "paradigm": "Positivist",
         "playbook": "PRISMA_SLR",
         "unit_of_analysis": "field trials",

@@ -218,7 +218,7 @@ def test_without_grounded_never_constructs_engine_or_cache(tmp_path, monkeypatch
     result = run_wizard(
         GroundedScriptedResponder(_plain_answers()),
         tmp_path,
-        genesis_timestamp=GENESIS_TS,
+        genesis_timestamp=GENESIS_TS, not_reported="unclear",
     )
 
     assert result["recon_context"] is None
@@ -234,7 +234,7 @@ def test_without_grounded_byte_identical_summary(tmp_path):
     result = run_wizard(
         GroundedScriptedResponder(_plain_answers()),
         tmp_path,
-        genesis_timestamp=GENESIS_TS,
+        genesis_timestamp=GENESIS_TS, not_reported="unclear",
     )
     assert result["slug"] == "on-device-weed-detection-for-embedded-agriculture"
     assert result["playbook"] == "DESIGN_SCIENCE"
@@ -263,7 +263,7 @@ def test_grounded_wizard_presents_direction_and_records_recon_context(tmp_path):
         tmp_path,
         genesis_timestamp=GENESIS_TS,
         grounded=True,
-        recon_engine=engine,
+        recon_engine=engine, not_reported="unclear",
     )
 
     # One probe on the topic's keyword query (M10a); no delta in this walk.
@@ -529,7 +529,7 @@ def test_grounded_empty_pool_hard_aborts_with_guidance(tmp_path):
             tmp_path,
             genesis_timestamp=GENESIS_TS,
             grounded=True,
-            recon_engine=engine,
+            recon_engine=engine, not_reported="unclear",
         )
     assert "literature evidence" in str(exc.value)
     assert "without --grounded" in str(exc.value)
@@ -562,7 +562,7 @@ def test_grounded_default_concepts_are_pool_anchored_only(tmp_path):
         tmp_path,
         genesis_timestamp=GENESIS_TS,
         grounded=True,
-        recon_engine=engine,
+        recon_engine=engine, not_reported="unclear",
     )
     rc = result["recon_context"]
     assert rc["default_concepts"] == expected
@@ -623,7 +623,7 @@ def test_grounded_unanchored_synonym_dropped_with_warning(tmp_path, monkeypatch)
         tmp_path,
         genesis_timestamp=GENESIS_TS,
         grounded=True,
-        recon_engine=engine,
+        recon_engine=engine, not_reported="unclear",
     )
     rc = result["recon_context"]
 
@@ -682,7 +682,7 @@ def test_grounded_unanchored_concept_exits_without_emitting(tmp_path):
             tmp_path,
             genesis_timestamp=GENESIS_TS,
             grounded=True,
-            recon_engine=engine,
+            recon_engine=engine, not_reported="unclear",
         )
     # The concept's own exit, not the topic's "No literature evidence was found under this topic".
     assert f"Concept '{unanchored_concept}' has no literature evidence" in str(exc.value)
@@ -714,7 +714,7 @@ def test_grounded_delta_probe_runs_once_and_merges(tmp_path):
         tmp_path,
         genesis_timestamp=GENESIS_TS,
         grounded=True,
-        recon_engine=engine,
+        recon_engine=engine, not_reported="unclear",
     )
 
     # Exactly two probes: the topic plus one targeted delta on the direction.
@@ -765,7 +765,7 @@ def test_auto_select_picks_first_direction_without_prompt(tmp_path):
         genesis_timestamp=GENESIS_TS,
         grounded=True,
         recon_engine=engine,
-        auto_select=True,
+        auto_select=True, not_reported="unclear",
     )
     rc = result["recon_context"]
     assert rc["concept"] == GROUNDED_CONCEPT
@@ -786,7 +786,7 @@ def test_direction_id_selects_nth_direction_without_prompt(tmp_path):
         genesis_timestamp=GENESIS_TS,
         grounded=True,
         recon_engine=engine,
-        direction_id=2,
+        direction_id=2, not_reported="unclear",
     )
     rc = result["recon_context"]
     assert rc["concept"] == second
@@ -803,7 +803,7 @@ def test_direction_id_out_of_range_exits_without_emitting(tmp_path):
             genesis_timestamp=GENESIS_TS,
             grounded=True,
             recon_engine=engine,
-            direction_id=len(directions) + 1,
+            direction_id=len(directions) + 1, not_reported="unclear",
         )
     assert "out of range" in str(exc.value)
     assert "nothing was emitted" in str(exc.value)
@@ -819,7 +819,7 @@ def test_direction_id_zero_exits_without_emitting(tmp_path):
             genesis_timestamp=GENESIS_TS,
             grounded=True,
             recon_engine=engine,
-            direction_id=0,
+            direction_id=0, not_reported="unclear",
         )
     assert "out of range" in str(exc.value)
     assert "nothing was emitted" in str(exc.value)
@@ -848,7 +848,7 @@ def test_grounded_wizard_probes_the_topic_as_keywords_and_keeps_the_sentence(tmp
         tmp_path,
         genesis_timestamp=GENESIS_TS,
         grounded=True,
-        recon_engine=engine,
+        recon_engine=engine, not_reported="unclear",
     )
 
     assert calls == [TOPIC_KEYWORDS] == [keyword_query(TOPIC)]

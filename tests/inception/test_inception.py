@@ -258,7 +258,7 @@ E2E_ANSWERS = [
 
 def test_run_wizard_scripted_e2e(tmp_path):
     responder = ScriptedResponder(E2E_ANSWERS)
-    result = run_wizard(responder, tmp_path, genesis_timestamp=GENESIS_TS)
+    result = run_wizard(responder, tmp_path, genesis_timestamp=GENESIS_TS, not_reported="unclear")
 
     assert result["slug"] == "on-device-weed-detection-for-embedded-agriculture"
     assert result["playbook"] == "DESIGN_SCIENCE"
@@ -294,7 +294,7 @@ def test_run_wizard_scripted_e2e(tmp_path):
 def test_run_wizard_no_scaffold_aborts_without_writing(tmp_path):
     answers = E2E_ANSWERS[:-1] + [True]  # last confirm is the emit gate
     with pytest.raises(typer.Exit):
-        run_wizard(ScriptedResponder(answers), tmp_path, genesis_timestamp=GENESIS_TS, no_scaffold=True)
+        run_wizard(ScriptedResponder(answers), tmp_path, genesis_timestamp=GENESIS_TS, no_scaffold=True, not_reported="unclear")
     assert not (tmp_path / "workspaces").exists()
 
 

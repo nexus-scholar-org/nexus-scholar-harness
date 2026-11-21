@@ -32,7 +32,7 @@ def _journal(ws):
 
 
 def _first_run(root, **kwargs):
-    run_wizard(ScriptedResponder(list(E2E_ANSWERS)), root, genesis_timestamp=GENESIS_TS, **kwargs)
+    run_wizard(ScriptedResponder(list(E2E_ANSWERS)), root, genesis_timestamp=GENESIS_TS, **kwargs, not_reported="unclear")
 
 
 def _make_live(ws):
@@ -81,7 +81,7 @@ def test_replace_backs_up_the_old_protocol_and_keeps_the_manifest(tmp_path):
     # The sentinel is not a protocol, so it is named by a labelled byte hash.
     old_fingerprint = "file-sha256:" + hashlib.sha256(SENTINEL).hexdigest()
 
-    result = run_wizard(ScriptedResponder(list(E2E_ANSWERS)), tmp_path, genesis_timestamp=GENESIS_TS, replace=True)
+    result = run_wizard(ScriptedResponder(list(E2E_ANSWERS)), tmp_path, genesis_timestamp=GENESIS_TS, replace=True, not_reported="unclear")
 
     backups = list((ws / "audit" / "replaced").iterdir())
     assert len(backups) == 1
@@ -139,7 +139,7 @@ def test_replace_refuses_a_workspace_bound_to_screening(tmp_path, bind, expected
     assert {k: v for k, v in screening_state(ws).items() if k != "bound"} == expected
 
     with pytest.raises(typer.Exit) as exc:
-        run_wizard(ScriptedResponder(list(E2E_ANSWERS)), tmp_path, genesis_timestamp=GENESIS_TS, replace=True)
+        run_wizard(ScriptedResponder(list(E2E_ANSWERS)), tmp_path, genesis_timestamp=GENESIS_TS, replace=True, not_reported="unclear")
 
     assert exc.value.exit_code == 1
     assert (ws / "protocol.json").read_bytes() == SENTINEL
@@ -154,7 +154,7 @@ def test_replace_with_discard_confirmation_proceeds_on_a_bound_workspace(tmp_pat
 
     run_wizard(
         ScriptedResponder(list(E2E_ANSWERS)), tmp_path, genesis_timestamp=GENESIS_TS,
-        replace=True, discard_screening_binding=True,
+        replace=True, discard_screening_binding=True, not_reported="unclear",
     )
 
     assert (ws / "protocol.json").read_bytes() != SENTINEL

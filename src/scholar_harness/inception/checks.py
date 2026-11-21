@@ -89,6 +89,15 @@ SENTENCES: dict[str, str] = {
     "CRITERIA_UNDECIDED": "{n} criteria still need your Accept or Drop.",
     "CRITERIA_SIDE_MISSING": "The protocol needs an accepted {side} criterion.",
     "CRITERIA_REASONS_UNIFORM": "All {n} exclusion criteria carry the same reason, {code}.",
+    # M11b part D (record (f), (g); spec 11-criteria-block).
+    "CRITERIA_DUPLICATE": "Two {side} criteria say the same thing: \u201c{a}\u201d and \u201c{b}\u201d.",
+    "CRITERIA_CONTRADICT": "\u201c{inclusion}\u201d is an inclusion and \u201c{exclusion}\u201d is an exclusion with the same words.",
+    "CRITERIA_MIRRORED": "The exclusion \u201c{exclusion}\u201d mostly repeats the inclusion \u201c{inclusion}\u201d with a negation.",
+    "CRITERIA_LUMPED": "\u201c{criterion}\u201d may be several tests in one.",
+    "CRITERIA_NEEDS_FULL_TEXT": "\u201c{criterion}\u201d may need the full text: it names {words}.",
+    "CRITERIA_WORDING_NOT_CHECKED": "The criteria are not in English, so three wording checks did not run: {checks}.",
+    "METHOD_RULE_UNCHOSEN": "Choose what the agent's draft does when a criterion is not reported.",
+    "METHOD_RULE_UNCHOSEN.older": "Choose what the agent's draft does when a criterion is not reported. This draft was started before this question existed.",
     "REVIEW_PROJECT_MISSING": "Still needed: {fields}.",
     "REVIEW_TITLE_NOT_A_FOLDER": "This title cannot name a folder.",
     "REVIEW_COMPILER_REFUSED": "The compiler refused these answers.",
@@ -146,6 +155,13 @@ CATALOGUE: dict[str, str] = {
     "CRITERIA_UNDECIDED": "criteria",
     "CRITERIA_SIDE_MISSING": "criteria",
     "CRITERIA_REASONS_UNIFORM": "criteria",
+    "CRITERIA_DUPLICATE": "criteria",
+    "CRITERIA_CONTRADICT": "criteria",
+    "CRITERIA_MIRRORED": "criteria",
+    "CRITERIA_LUMPED": "criteria",
+    "CRITERIA_NEEDS_FULL_TEXT": "criteria",
+    "CRITERIA_WORDING_NOT_CHECKED": "criteria",
+    "METHOD_RULE_UNCHOSEN": "criteria",
     "REVIEW_PROJECT_MISSING": "review",
     "REVIEW_TITLE_NOT_A_FOLDER": "review",
     "REVIEW_COMPILER_REFUSED": "review",
@@ -798,6 +814,73 @@ def _criteria_checks(draft: steps.Draft) -> list[dict[str, Any]]:
                        "unit": "criteria"},
             action=_field("criteria", "extra_exclusions"),
         ))
+    out.extend(_wording_checks(result["criteria"]))
+    method = result["method"]
+    if not method["chosen"]:
+        # M11b part D (answer 8): a blocker, like CRITERIA_UNDECIDED; genesis refuses it too.
+        out.append(check(
+            "METHOD_RULE_UNCHOSEN", "blocker",
+            params={"started_before_question": method["started_before_question"]},
+            action=_field("criteria", "method_not_reported"),
+            refusal="METHOD_RULE_UNCHOSEN",
+            sentence="METHOD_RULE_UNCHOSEN.older" if method["started_before_question"] else None,
+        ))
+    return out
+
+
+def _wording_checks(items: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """The five wording checks of M11b (f) on the accepted criteria: warnings and notes, never
+    blockers; an instance is a pair of ids or one id, so each is dismissed alone."""
+    from . import criteria_wording as cw
+
+    accepted = [cw.Item(str(i["id"]), str(i["kind"]), str(i.get("criterion") or "")) for i in items
+                if i.get("status") == "accepted"]
+    field = {"inclusion": "extra_inclusions", "exclusion": "extra_exclusions"}
+    out: list[dict[str, Any]] = []
+    for a, b in cw.duplicates(accepted):
+        out.append(check(
+            "CRITERIA_DUPLICATE", "warning", subject=f"{a.id}|{b.id}", params={"side": a.side, "a": a.text, "b": b.text},
+            evidence=[{"kind": "words", "name": "normalised", "value": list(cw.normalised(a.text))}],
+            action={**_field("criteria", field[a.side]), "criterion_id": a.id},
+        ))
+    for inc, exc in cw.contradictions(accepted):
+        out.append(check(
+            "CRITERIA_CONTRADICT", "warning", subject=f"{inc.id}|{exc.id}",
+            params={"inclusion": inc.text, "exclusion": exc.text},
+            evidence=[{"kind": "words", "name": "normalised", "value": list(cw.normalised(inc.text))}],
+            action={**_field("criteria", "extra_exclusions"), "criterion_id": exc.id},
+        ))
+    english = cw.is_english(accepted)
+    if not english:
+        if accepted:
+            out.append(check(
+                "CRITERIA_WORDING_NOT_CHECKED", "note",
+                params={"checks": "CRITERIA_MIRRORED, CRITERIA_LUMPED, CRITERIA_NEEDS_FULL_TEXT"},
+                action=_field("criteria", "extra_inclusions"),
+            ))
+        return out
+    for exc, inc, share, shared in cw.mirrors(accepted):
+        out.append(check(
+            "CRITERIA_MIRRORED", "warning", subject=f"{exc.id}|{inc.id}", params={"exclusion": exc.text, "inclusion": inc.text},
+            evidence=[{"kind": "words", "name": "shared", "value": sorted(shared)},
+                      {"kind": "share", "name": "covered", "value": share}],
+            threshold={"name": "MIRROR_SHARE", "value": cw.MIRROR_SHARE, "default": cw.MIRROR_SHARE, "unit": "share"},
+            action={**_field("criteria", "extra_exclusions"), "criterion_id": exc.id},
+        ))
+    for item in accepted:
+        if cw.lumped(item):
+            out.append(check(
+                "CRITERIA_LUMPED", "note", subject=item.id, params={"criterion": item.text},
+                action={**_field("criteria", field[item.side]), "criterion_id": item.id},
+            ))
+        found = cw.needs_full_text(item)
+        if found:
+            out.append(check(
+                "CRITERIA_NEEDS_FULL_TEXT", "note", subject=item.id,
+                params={"criterion": item.text, "words": ", ".join(found)},
+                evidence=[{"kind": "words", "name": "names", "value": found}],
+                action=_field("criteria", "method_not_reported"),
+            ))
     return out
 
 
