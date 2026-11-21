@@ -504,4 +504,3 @@ Evidence (Part C):
 Python did not change after `2cef66f7` (`git diff 2cef66f7 f72edec8` touches the workbench component, its tests and this record). The six screenshots the Playwright runs regenerate are restored after each run.
 
 **Part C: READY FOR PR** (not pushed). Branch `dev/m11a/part-c-screen`, to be merged after Parts A and B.
-
