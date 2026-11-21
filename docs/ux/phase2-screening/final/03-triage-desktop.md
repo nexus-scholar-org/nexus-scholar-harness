@@ -1,9 +1,9 @@
-# 03 Triage queue, desktop    Status: FINAL, built (M1b-1; rebuilt in M6-beta and M8-triage); amended M8b-triage-highlights (FINAL, 2026-11-21, on decisions 1 to 9 accepted and 10 to 20 proposed) | Phase 2 Screening | Route `/screening/triage` | Milestone M1a (events, queue) + M1b (UI); amended M6-beta, M7-method, M8-triage, M8b-triage-highlights
+# 03 Triage queue, desktop    Status: FINAL, built (M1b-1; rebuilt in M6-beta and M8-triage); amended M8b-triage-highlights (FINAL, 2026-11-21, on decisions 1 to 20 accepted) | Phase 2 Screening | Route `/screening/triage` | Milestone M1a (events, queue) + M1b (UI); amended M6-beta, M7-method, M8-triage, M8b-triage-highlights
 
 Boards: `Triage` (D4, proposal hidden), `TriageRevealed` (D5, after deciding). Contract: `docs/architecture/screening-api-contract.md` §3-§4.
 
 ## Amended 2026-11-21 (M8b-triage-highlights)
-Source: `docs/roadmap/milestones/M8b-triage-highlights.md`; `docs/decisions.md` "2026-11-21 — M8b-triage-highlights" (items 1 to 9 accepted, 10 to 20 proposed by the milestone; cited below as "decision n"). Where a sentence further down says otherwise, this section wins. The existing sentence "Highlighted words are tied to a criterion" (05) stays for the criterion highlights, which stay empty. Event contract: no change.
+Source: `docs/roadmap/milestones/M8b-triage-highlights.md`; `docs/decisions.md` "2026-11-21 — M8b-triage-highlights" (items 1 to 9 accepted, 10 to 20 proposed by the milestone and accepted as built on 2026-11-21; cited below as "decision n"; decision 10's matching rule is replaced by the rule shared with M11a in a follow-up PR). Where a sentence further down says otherwise, this section wins. The existing sentence "Highlighted words are tied to a criterion" (05) stays for the criterion highlights, which stay empty. Event contract: no change.
 
 **0. Rule.** "A mark says where to look; it never says what to decide."
 
@@ -106,7 +106,7 @@ Lane RELEASE (decisions: two additive fields on public console routes; no Contra
 - pytest `tests/test_term_match.py`: the rule of decision 10 (whole words, case, `s`/`es`/`ies`, three-letter floor, hyphen and space, "multispectral" apart, comma ends a phrase, longest then earliest then first concept, per-concept counts, UTF-16 offsets); `tests/test_screening_highlights.py`: `search_terms` on the record read; `quotes` on the draft read; `found` recomputed against the rebuilt record text; year-line and cross-boundary cases (`field: null`); `not_reported` no quote; `PROPOSAL_HIDDEN` hides `quotes`.
 - Playwright `tests-browser/triage-highlights.spec.ts`: no page scroll at 1440×900 and 1280×720 with the marks on; toggling a switch does not move the first line of the abstract (its bounding box is equal before and after); axe with no violation in light and dark, en and ar; screenshots of both themes and of Arabic, looked at.
 
-**12. Open questions.** None. Three points the draft left open were settled as this milestone's PROPOSED choices (decisions 12, 14 and 20): the colours come from `brand` and `ink` only; `search_terms.concepts` carries no `mark` field (the style follows the concept's place); "Show in the text" works with the quotes switch off.
+**12. Open questions.** None. Three points the draft left open were settled as this milestone's choices (decisions 12, 14 and 20, accepted 2026-11-21): the colours come from `brand` and `ink` only; `search_terms.concepts` carries no `mark` field (the style follows the concept's place); "Show in the text" works with the quotes switch off.
 
 ## Amended 2026-11-09 (M8-triage)
 Source: `docs/roadmap/milestones/M8-triage.md`; the three decisions of 2026-11-09 tagged M8-triage in `docs/decisions.md` (not reopened here); mockup `.taste-skill/triage-inspect/desktop-fold.jpg`. Where a sentence further down, or in the M6-beta and M7-method sections, says otherwise, this section wins; the old sentences are struck or rewritten in place. Engine and event contract: no change.
