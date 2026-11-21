@@ -26,7 +26,7 @@ if sys.platform == "win32":
 
 from .acquisition import PDFAcquisitionService, WorkspaceManagerCliAuditSink
 from .acquisition_models import AcquisitionRunConfig, OperationStatus
-from .config import settings
+from .config import DECISION, MailtoNotSetError, contact_email, settings
 from .downloader import AsyncPDFDownloader
 from .extract import DoclingEngine, GrobidEngine
 from .extraction import PDFExtractionService
@@ -35,12 +35,36 @@ from .publisher_patterns import PROXY_STYLES
 
 app = typer.Typer(
     help=(
-        "PARKED, not production (Nexus Scholar 1.0 ships screening only). "
-        "Scholar PDF Kit: automated PDF discovery, deterministic acquisition, "
-        "and parent-bound text extraction."
+        "Scholar PDF Kit. Production: 'download' (open-access PDFs by DOI) and "
+        "'ingest' (a PDF you already have). Reading PDFs ('extract', "
+        "'extract-run') and E1 'acquire' are parked; their help says so."
     )
 )
 console = Console()
+
+
+def _refuse(code: str, message: str) -> None:
+    """Print a refusal that names its decision and stop with exit code 1."""
+    console.print(f"[bold red]{code}:[/bold red] {message}", soft_wrap=True)
+    raise typer.Exit(1)
+
+
+def _production_preflight(proxy: str | None) -> None:
+    """What ``download`` and ``ingest`` refuse before any request (K0, M12a item 27)."""
+    if (proxy or "").strip() or settings.proxy_url.strip():
+        _refuse(
+            "PROXY_REFUSED",
+            "an institutional proxy is not used by the production download commands "
+            f"({DECISION} item 25). Remove --proxy and PROXY_URL and run again.",
+        )
+    if settings.enable_publisher_direct_patterns:
+        _refuse(
+            "PUBLISHER_PATTERNS_REFUSED",
+            "guessed publisher URLs are not requested "
+            f"({DECISION} item 24). Remove ENABLE_PUBLISHER_DIRECT_PATTERNS and run again.",
+        )
+    if not contact_email():
+        _refuse("MAILTO_NOT_SET", str(MailtoNotSetError()).split(": ", 1)[1])
 
 _ACQUISITION_EXIT_CODES = {
     OperationStatus.SUCCESS: 0,
@@ -170,7 +194,7 @@ def extract_run(
         False, "--human", help="Render a human table in addition to JSON output."
     ),
 ) -> None:
-    """Extract screened PDF text through the E2 domain service (authoritative)."""
+    """PARKED, not production (reading PDFs waits for M12b-read). Extract screened PDF text through the E2 domain service (authoritative)."""
 
     try:
         run_config = ExtractionRunConfig.model_validate_json(
@@ -218,7 +242,7 @@ def acquire(
         False, "--human", help="Render a human table in addition to JSON output."
     ),
 ) -> None:
-    """Acquire one or more parent-bound PDFs through the E1 domain service."""
+    """PARKED, not production (E1 acquisition stays parked, M12a item 23). Acquire parent-bound PDFs through the E1 domain service."""
 
     try:
         run_config = AcquisitionRunConfig.model_validate_json(
@@ -329,10 +353,10 @@ def download(
     proxy: str = typer.Option(
         None,
         "--proxy",
-        help="Institutional proxy URL (overrides PROXY_URL / .env), e.g. https://www.sndl1.arn.dz",
+        help="Refused: an institutional proxy is not used (decision 2026-11-21, M12a item 25).",
     ),
     proxy_style: str = typer.Option(
-        "auto", "--proxy-style", help="Proxy style: auto | ezproxy | subdomain | prefix"
+        "auto", "--proxy-style", help="Parked; a proxy is refused (M12a item 25)."
     ),
     strict_validate: bool = typer.Option(
         False,
@@ -340,8 +364,9 @@ def download(
         help="Require pypdf structural validation of downloads",
     ),
 ):
-    """Resolve DOIs via OpenAlex and download Open Access PDFs."""
+    """Download open-access PDFs by DOI (OpenAlex and Unpaywall locations). Needs SCHOLAR_MAILTO."""
 
+    _production_preflight(proxy)
     if proxy_style not in PROXY_STYLES:
         raise typer.BadParameter(
             f"--proxy-style must be one of {', '.join(PROXY_STYLES)}"
@@ -484,16 +509,19 @@ def ingest(
         None, "--export", help="Export successfully ingested metadata (json or bibtex)"
     ),
     proxy: str = typer.Option(
-        None, "--proxy", help="Institutional proxy URL (overrides PROXY_URL / .env)"
+        None,
+        "--proxy",
+        help="Refused: an institutional proxy is not used (decision 2026-11-21, M12a item 25).",
     ),
     proxy_style: str = typer.Option(
-        "auto", "--proxy-style", help="Proxy style: auto | ezproxy | subdomain | prefix"
+        "auto", "--proxy-style", help="Parked; a proxy is refused (M12a item 25)."
     ),
     strict_validate: bool = typer.Option(
         False, "--strict-validate", help="Require pypdf structural validation on ingest"
     ),
 ):
-    """Manually ingest a PDF into the toolkit, bypassing download."""
+    """Ingest a PDF you already have for a DOI (metadata looked up). Needs SCHOLAR_MAILTO."""
+    _production_preflight(proxy)
     if proxy_style not in PROXY_STYLES:
         raise typer.BadParameter(
             f"--proxy-style must be one of {', '.join(PROXY_STYLES)}"
@@ -546,7 +574,7 @@ def extract(
         "http://localhost:8070", help="Grobid service URL if using grobid"
     ),
 ):
-    """LEGACY, NON-AUTHORITATIVE: extract raw Markdown from a PDF.
+    """PARKED, not production (reading PDFs waits for M12b-read). LEGACY, NON-AUTHORITATIVE: extract raw Markdown from a PDF.
 
     This command writes to an arbitrary output directory and produces no
     acquisition/extraction lineage, no bound frontmatter, and no sidecar

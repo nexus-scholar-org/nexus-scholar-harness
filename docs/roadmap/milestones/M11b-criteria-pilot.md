@@ -382,7 +382,7 @@ The two screen drafts carry their own screen-level questions, settled when each 
 
 - Plan §6, row 4 (M11b): status "specification answered 2026-11-21 (answers 5, 6, 8 against the recommendation; 11 and 12 as recommended)" and the build state as the main session knows it; lane "A, B, D RELEASE; C STANDARD" instead of "to be declared".
 - Plan §8: nothing.
-- `docs/decisions.md`, the "Open decisions" table at the top: nothing for the specification (questions 11 and 12 are answered); part A's build adds its row ("M11b part A: criteria in force, the build's choices", items 1 to 10, PROPOSED).
+- `docs/decisions.md`, the "Open decisions" table at the top: nothing for the specification (questions 11 and 12 are answered); part A's build added its row; items 1 to 11 were answered by the researcher on 2026-11-21, so the row is gone.
 - At build time, not now: `docs/architecture/screening-api-contract.md` (parts A and B), `docs/ux/shared/final/02-checks.md` (the five checks and `METHOD_RULE_UNCHOSEN`, part D), `docs/ux/phase2-screening/final/03-triage-desktop.md` (pilot mode, part C).
 
 ## Build record
@@ -499,7 +499,7 @@ Review round 3 (on `bb32cd80`, the item 5 delta): **CHANGES**, 1 P2 and 1 P4, bo
 
 Review round 4 (on `0a47f3b3`): **APPROVE**. Both round-3 repairs confirmed; the intake parameter is reachable only from the engine's resolve route (a client field is refused); its stamp and retired-reason exemption apply only there, and a retired id kept by a resolution is always shown again; conflicts without a revision behave as before; 199 targeted tests, 0 failed. Follow-ups carried to part C: read a decision's `criteria_version` (not its binding) to label it; `can_amend` and the `CRITERIA_AMENDMENT_HANDOFF` message (round 2); the round-1 list.
 
-**Part A: READY FOR PR** (not pushed). Branch `dev/m11b/part-a-criteria-in-force`. The PR gate on `58ce7bd7` (6128 tests, 0 failed) stands for the later commits, which change this record only. Decision item 11 waits for the researcher's answer.
+**Part A: READY FOR PR** (not pushed). Branch `dev/m11b/part-a-criteria-in-force`. The PR gate on `58ce7bd7` (6128 tests, 0 failed) stands for the later commits, which change this record only. Decision item 11 was accepted by the researcher on 2026-11-21, as built, and the push was approved the same day.
 
 
 ### Part B: the pilot

@@ -1,8 +1,12 @@
 """Parked kits say so (production plan §8, M5-slim).
 
-Synthesis, the matrix, the graph, risk-of-bias/trust and full text are parked:
-their commands stay, and `--help` says in its first line that they are not
-production, so nobody mistakes a working command for a supported one.
+Synthesis, the matrix, the graph, risk-of-bias/trust and reading PDFs are
+parked: their commands stay, and `--help` says in its first line that they are
+not production, so nobody mistakes a working command for a supported one.
+
+The PDF kit is split (decision 2026-11-21, M12a items 21 to 23 and 27, K0):
+`download` and `ingest` are production; `extract`, `extract-run` and `acquire`
+keep the notice in their own help.
 """
 
 from __future__ import annotations
@@ -13,7 +17,7 @@ from typer.testing import CliRunner
 NOTICE = "PARKED, not production"
 
 
-@pytest.mark.parametrize("module", ["scholar_rag.cli", "scholar_graph.cli", "scholar_verify.cli", "scholar_pdf.cli"])
+@pytest.mark.parametrize("module", ["scholar_rag.cli", "scholar_graph.cli", "scholar_verify.cli"])
 def test_a_parked_kit_says_so_in_help(module):
     import importlib
 
@@ -21,6 +25,33 @@ def test_a_parked_kit_says_so_in_help(module):
     result = CliRunner().invoke(app, ["--help"])
     assert result.exit_code == 0
     assert NOTICE in " ".join(result.output.split())
+
+
+@pytest.mark.parametrize("command", ["extract", "extract-run", "acquire"])
+def test_the_parked_pdf_commands_say_so_in_their_help(command):
+    from scholar_pdf.cli import app
+
+    result = CliRunner().invoke(app, [command, "--help"])
+    assert result.exit_code == 0
+    assert NOTICE in " ".join(result.output.split())
+
+
+@pytest.mark.parametrize("command", ["download", "ingest"])
+def test_the_pdf_download_commands_are_production(command):
+    from scholar_pdf.cli import app
+
+    result = CliRunner().invoke(app, [command, "--help"])
+    assert result.exit_code == 0
+    assert NOTICE not in " ".join(result.output.split())
+
+
+def test_the_pdf_kit_group_help_names_download_and_ingest_as_production():
+    from scholar_pdf.cli import app
+
+    text = app.info.help
+    assert NOTICE not in text
+    assert "Production: 'download'" in text and "'ingest'" in text
+    assert "parked" in text
 
 
 def test_the_screening_commands_are_not_labelled_parked():
