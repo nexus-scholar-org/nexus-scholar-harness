@@ -8,6 +8,7 @@ import { Button, DecisionBadge } from "@/components/ui/base";
 import { fieldHash, fillNodes, proposalHash } from "@/components/assist-anchor";
 import { isOfflineCode, refusalFrom, useAssist, type AssistRefusal } from "@/components/assist-context";
 import { ChecksPanel, type CheckLink } from "@/components/checks-panel";
+import { InceptionRefusal } from "@/components/inception-frame";
 import { DETAILS_LABEL } from "@/components/screening-state-card";
 import { fieldLabel, synonymConcept } from "@/lib/assist-labels";
 import {
@@ -583,6 +584,10 @@ export function ReadinessList({ locale }: Readonly<{ locale: Locale }>) {
   }, [all, allError, loaded]);
   if (!assist) return null;
   const { origin, sessionId } = assist;
+  // H-run-small-fixes (finding 7): the panel draws nothing for a refusal; a refused read is shown.
+  if (allError && !isOfflineCode(allError.code)) {
+    return <InceptionRefusal locale={locale} refusal={allError} draftId={sessionId} origin={origin} />;
+  }
   return (
     <ChecksPanel
       locale={locale}

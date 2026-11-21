@@ -167,7 +167,7 @@ Shared frame (`inception-frame.tsx`, every screen 01 to 07), then 01 Scope, 02 E
 | I-E22 | `explore.schools.title`, `schools.count`, `schools.one` | "Schools of thought", "{n} papers", "1 paper" | STAYS | V4 |
 | I-E23 | `explore.schools.oneNote` | "A school with one paper cannot become a direction on its own ..." | HINT | T3 definition |
 | I-E24 | `explore.topics.title`, `topics.more`, `metrics.title` | "OpenAlex topics", "+ {n} more", "Metrics and datasets seen" | STAYS | V4 data (folded in a collapsed section, rule 4) |
-| I-E25 | `explore.papers.title`, `papers.sorted`, `papers.col.*`, `papers.anchors*`, `papers.noDoi`, `papers.newTab`, `papers.link`, `papers.more`, `papers.less` | the Papers table | STAYS | V4/V5 DOI and anchor counts (folded in a collapsed section) |
+| I-E25 | `explore.papers.title`, `papers.sorted`, `papers.col.*`, `papers.anchors*`, `papers.noDoi`, `papers.newTab`, `papers.link`, `papers.linkDoi`, `papers.more`, `papers.less` | the Papers table | STAYS | V4/V5 DOI and anchor counts (folded in a collapsed section) |
 | I-E26 | `explore.papers.note` | "A paper anchors a direction only when the direction's term occurs in its title or abstract." | HINT | T3 definition; one hint body shared with I-D8, I-C7, I-E32 |
 | I-E27 | `explore.legs.title`, `legs.latest`, `legs.none`, `legs.col.*`, `legs.ok`, `legs.failed`, `legs.fetchedOf`, `legs.atLeast`, `provider.*` | the "Databases asked" table | STAYS | V3 a failed database is a result (summary carries "{n} failed") |
 | I-E28 | `explore.legs.refused.*`, `keys.openalex.unset`, `keys.s2.unset` | "OpenAlex refused the request; set SCHOLAR_OPENALEX_KEY", "Not set" | STAYS | V1/V2 refusal and missing key |
@@ -205,7 +205,7 @@ Shared frame (`inception-frame.tsx`, every screen 01 to 07), then 01 Scope, 02 E
 | I-D15 | `direction.skip.link`, `skip.note`, `skip.none.*` | "Continue without a direction", "The draft is recorded as not grounded, and Review and the protocol say so." | STAYS | V6 consequence before the choice is recorded |
 | I-D16 | `direction.narrow.button`, `narrow.chooseFirst` | "Search again, narrower · {n} left", "Choose a direction first." | STAYS | V7/V2 |
 | I-D17 | `direction.narrow.help` | "Searches the literature for the direction you have chosen." | HINT | T1 how-to |
-| I-D18 | `direction.own.button`, `own.label`, `own.check`, `own.checking`, `own.check.grounded`, `own.check.under`, `own.grounded`, `own.ungrounded`, `own.dois` | "Your direction", "This phrase occurs in {observed} of {total} ... recorded as not grounded." | STAYS | V3 check result |
+| I-D18 | `direction.own.button`, `own.label`, `own.check`, `own.checking`, `own.check.grounded`, `own.check.groundedWords`, `own.check.under`, `own.grounded`, `own.groundedWords`, `own.ungrounded`, `own.dois` | "Your direction", "This phrase occurs in {observed} of {total} ... recorded as not grounded." | STAYS | V3 check result |
 | I-D19 | `direction.own.help` | "Check my phrase counts how many titles or abstracts of the pool contain it. Under two, it is recorded as not grounded." | HINT | T1/T3; the result is I-D18 |
 | I-D20 | `direction.pursue`, `pursue.empty`, `reason.choose`, `reason.thin`, `reason.busy`, `continue`, `back` | "Pursue {direction}", "Choose a direction, or write your own." | STAYS | V7/V2; main action: "Pursue {direction}", then "Continue to Shape" |
 | I-D21 | `direction.bound.*` | "Your direction: {label}", "Grounded", "Bound {date} on the pool of {pooldate}" | STAYS | V5 provenance |

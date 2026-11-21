@@ -46,6 +46,38 @@ _LEADING_FUNCTIONAL_TOKENS = frozenset(
 )
 
 
+#: H-run-small-fixes (findings 3, 23): a phrase made only of these words is no
+#: research direction ("blue green red", "rgb nir"): colour names, band and
+#: image words, and general words of method sections.
+_GENERIC_TOKENS = frozenset(
+    {
+        "red", "green", "blue", "yellow", "black", "white", "colour", "color", "colours", "colors",
+        "rgb", "nir", "band", "bands", "image", "images", "imagery", "pixel", "pixels",
+        "data", "dataset", "datasets", "method", "methods", "approach", "approaches", "model", "models",
+        "system", "systems", "result", "results", "study", "studies", "analysis", "paper", "proposed",
+        "performance", "accuracy", "high", "low", "new", "different", "various", "several",
+    }
+)
+
+
+def _acronym_fragment(tokens: list[str]) -> bool:
+    """"aerial vehicle uav": words that spell the end of an acronym that follows them.
+
+    A distiller n-gram cut out of "unmanned aerial vehicle (UAV)"; the full
+    expansion followed by its acronym ("unmanned aerial vehicle uav") is the
+    same repetition and is dropped too.
+    """
+    if len(tokens) < 2:
+        return False
+    acronym, words = tokens[-1], tokens[:-1]
+    # At most one letter more than the words before it ("aerial vehicle uav"):
+    # "tree height growth" ends with "th" but "growth" is no acronym (review P4).
+    if not (2 <= len(acronym) <= len(words) + 1 and acronym.isalpha()):
+        return False
+    initials = "".join(w[0] for w in words if w)
+    return len(initials) >= 2 and acronym.endswith(initials)
+
+
 def _is_junk_term_label(label: str | None) -> bool:
     """True for non-direction lexical artifacts (P1 junk filter).
 
@@ -62,6 +94,11 @@ def _is_junk_term_label(label: str | None) -> bool:
     if re.fullmatch(r"\d+(?:st|nd|rd|th)", first):  # "62nd annual meeting"
         return True
     if first in _LEADING_FUNCTIONAL_TOKENS:  # "reduces default probability"
+        return True
+    tokens = [t for t in re.split(r"[^0-9a-z]+", text.casefold()) if t]
+    if tokens and all(t in _GENERIC_TOKENS for t in tokens):  # "blue green red"
+        return True
+    if _acronym_fragment(tokens):  # "aerial vehicle uav"
         return True
     return any(tok in text.casefold() for tok in _VENUE_NOISE_TOKENS)
 

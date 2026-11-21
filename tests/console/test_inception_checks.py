@@ -214,7 +214,8 @@ BLOCKER_DRAFTS = {
     "SCOPE_TOPIC_MISSING": uav_draft(topic=""),
     "SHAPE_REQUIRED_MISSING": uav_draft(unit_of_analysis=""),
     "CONCEPTS_NONE": uav_draft(concepts=[]),
-    "CRITERIA_UNDECIDED": uav_draft(proof="field-validated accuracy"),
+    # H-run-small-fixes: an out-of-scope item waiting for Accept (the proof beside a typed inclusion writes none).
+    "CRITERIA_UNDECIDED": uav_draft(out_of_scope=["Satellite imagery"]),
     "CRITERIA_SIDE_MISSING": _drop_wizard(uav_draft(extra_exclusions=[])),
     "REVIEW_PROJECT_MISSING": uav_draft(lead_researcher=""),
     "REVIEW_TITLE_NOT_A_FOLDER": uav_draft(title="!!!"),
@@ -293,7 +294,7 @@ def test_shape_proof_not_required_with_a_typed_inclusion(env):
 
 def test_the_wizard_draft_trips_the_undecided_blocker_with_the_first_row(env):
     client, _app, _root = env
-    draft = uav_draft(proof="field-validated accuracy")
+    draft = uav_draft(proof="field-validated accuracy", extra_inclusions=[])
     proof_id = CriterionDraft("inclusion", "Reports the gold-standard proof — field-validated accuracy", "proof").id
     row = _one(_checks(client, _create(client, draft)["session_id"], "criteria"), "CRITERIA_UNDECIDED")
     assert row["params"] == {"n": 1} and row["action"]["criterion_id"] in (proof_id, row["action"]["criterion_id"])

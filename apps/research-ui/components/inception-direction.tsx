@@ -399,7 +399,7 @@ export function InceptionDirection({ locale }: Readonly<{ locale: Locale }>) {
                 </DecisionBadge>
                 <p className="mt-2 text-sm text-ink" data-bound-sentence>
                   {grounding.direction.source === "researcher"
-                    ? t(grounding.direction.grounded ? "direction.own.grounded" : "direction.own.ungrounded", {
+                    ? t(!grounding.direction.grounded ? "direction.own.ungrounded" : grounding.direction.match === "words" ? "direction.own.groundedWords" : "direction.own.grounded", {
                         observed: String(grounding.direction.observed_in),
                         total: String(grounding.direction.n_docs),
                       })
@@ -544,7 +544,7 @@ export function InceptionDirection({ locale }: Readonly<{ locale: Locale }>) {
                       {evidence && evidence.term.trim() === own.trim() ? (
                         <div className="mt-2 text-sm">
                           <p className={evidence.observed_in >= 2 ? "text-include" : "text-unclear"}>
-                            {t(evidence.observed_in >= 2 ? "direction.own.check.grounded" : "direction.own.check.under", {
+                            {t(evidence.observed_in < 2 ? "direction.own.check.under" : evidence.match === "words" ? "direction.own.check.groundedWords" : "direction.own.check.grounded", {
                               observed: String(evidence.observed_in),
                               total: String(evidence.n_docs),
                             })}
@@ -710,6 +710,7 @@ function DirectionCard({
           <input
             type="radio"
             name="direction"
+            value={direction.label}
             checked={chosen}
             disabled={disabled}
             onChange={onChoose}

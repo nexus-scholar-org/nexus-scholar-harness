@@ -1062,6 +1062,11 @@ def start_proposal_run(body: RunBody, request: Request) -> dict[str, Any]:
     return {"run_id": run["run_id"], "estimate": run["estimate"]}
 
 
+def _stopping(run: dict[str, Any]) -> bool:
+    """A cancel was asked and the run has not stopped yet."""
+    return bool(run.get("cancel_requested")) and run.get("state") in ("running", "queued")
+
+
 def _run_view(run: dict[str, Any]) -> dict[str, Any]:
     keys = ("run_id", "kind", "state", "code", "provider", "model", "effort", "records", "done", "failed", "refused",
             "truncated", "invalid", "check_failures", "cost_so_far", "cost_ceiling_usd", "started_at", "finished_at")
@@ -1070,6 +1075,8 @@ def _run_view(run: dict[str, Any]) -> dict[str, Any]:
     # A run recorded before this field is read from its estimate.
     view["batch"] = bool(run.get("batch", (run.get("estimate") or {}).get("batch", False)))
     view["chunk_size"] = run.get("chunk_size") or 200
+    # H-run-small-fixes (finding 35): a cancelled run that has not stopped yet says so.
+    view["cancel_requested"] = _stopping(run)
     if "calibration" in run:
         view["calibration"] = run["calibration"]
     return view
@@ -1128,7 +1135,10 @@ def cancel_proposal_run(run_id: str, request: Request) -> dict[str, Any]:
         run = runs.request_cancel(_ws(request), run_id)
     except runs.RunRefused as exc:
         raise _run_error(exc) from exc
-    return {"run_id": run_id, "state": "cancelled" if run["state"] == "running" else run["state"]}
+    # H-run-small-fixes (finding 35): the run is still running until its worker notices the
+    # cancel (a Batch run checks between chunks); answering "cancelled" made the screen offer
+    # Start, which the engine then refused RUN_ALREADY_ACTIVE (409) with the card out of view.
+    return {"run_id": run_id, "state": run["state"], "cancel_requested": _stopping(run)}
 
 
 class CalibrationBody(BaseModel):

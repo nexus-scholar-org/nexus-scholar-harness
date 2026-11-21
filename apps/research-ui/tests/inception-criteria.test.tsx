@@ -2,7 +2,7 @@ import { fireEvent, render, screen, waitFor, within } from "@testing-library/rea
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { InceptionCriteria } from "@/components/inception-criteria";
-import { completeDraft, proofId, SESSION } from "./fixtures/inception-engine";
+import { completeDraft, outOfScopeId, proofId, SESSION } from "./fixtures/inception-engine";
 import { setUp } from "./inception-helpers";
 
 /**
@@ -26,10 +26,11 @@ describe("inception.criteria", () => {
     // M10d (03-guidance I-C13): the per-row sentence is removed; the source and "Waiting for you" say it.
     expect(within(proof).queryByText("Written by the wizard: not in the protocol unless you accept it.")).toBeNull();
     expect(within(proof).getByRole("button", { name: "Accept" })).toHaveAttribute("aria-pressed", "false");
+    // H-run-small-fixes (finding 2): an out-of-scope item waits for Accept too.
     const typed = screen.getByText("closed-source models").closest("li")!;
-    expect(typed).toHaveAttribute("data-status", "accepted");
+    expect(typed).toHaveAttribute("data-status", "undecided");
     expect(within(typed).getByText("Your out-of-scope answer")).toBeInTheDocument();
-    expect(screen.getByText("1 still needs you.")).toBeInTheDocument();
+    expect(screen.getByText("2 still need you.")).toBeInTheDocument();
   });
 
   it("records Accept by the engine's id, then saves and goes to Review", async () => {
@@ -38,11 +39,13 @@ describe("inception.criteria", () => {
     const proof = (await screen.findByText(PROOF)).closest("li")!;
     fireEvent.click(within(proof).getByRole("button", { name: "Accept" }));
     await waitFor(() => expect(screen.getByText(PROOF).closest("li")).toHaveAttribute("data-status", "accepted"));
-    expect(screen.getByText("Every criterion has your decision.")).toBeInTheDocument();
+    const out = screen.getByText("closed-source models").closest("li")!;
+    fireEvent.click(within(out).getByRole("button", { name: "Accept" }));
+    await waitFor(() => expect(screen.getByText("Every criterion has your decision.")).toBeInTheDocument());
     fireEvent.click(screen.getByRole("button", { name: "Continue to review" }));
     await waitFor(() => expect(assign).toHaveBeenCalledWith(`/en/inception/review/?draft=${SESSION}`));
     const put = engine.calls.find((c) => c.method === "PUT")!;
-    expect(put.body?.draft).toMatchObject({ criteria_decisions: { [proofId()]: true } });
+    expect(put.body?.draft).toMatchObject({ criteria_decisions: { [proofId()]: true, [outOfScopeId()]: true } });
   });
 
   it("adds and removes a typed criterion, names a missing side, and ticks every matrix column", async () => {

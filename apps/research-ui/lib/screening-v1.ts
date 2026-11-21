@@ -517,6 +517,8 @@ export interface RunView {
   run_id: string;
   kind: "proposals" | "calibration";
   state: RunState;
+  /** Set by the cancel answer until a poll reports the run finished (H-run-small-fixes, finding 35). */
+  cancel_requested?: boolean;
   code: string | null;
   provider: Provider;
   model: string;
@@ -589,7 +591,8 @@ export function getRun(origin: string, runId: string, signal?: AbortSignal): Pro
   return readJson<RunView>(`${BASE}/proposals/runs/${encodeURIComponent(runId)}`, consoleBase(origin), signal);
 }
 
-export function cancelRun(origin: string, runId: string, signal?: AbortSignal): Promise<{ run_id: string; state: RunState }> {
+/** H-run-small-fixes (finding 35): the run's real state; `cancel_requested` while it is still stopping. */
+export function cancelRun(origin: string, runId: string, signal?: AbortSignal): Promise<{ run_id: string; state: RunState; cancel_requested?: boolean }> {
   return postJson<{ run_id: string; state: RunState }>(`${BASE}/proposals/runs/${encodeURIComponent(runId)}/cancel`, origin, {}, signal);
 }
 

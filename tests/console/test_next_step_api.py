@@ -449,7 +449,7 @@ def test_draft_rows(tmp_path):
 def test_draft_ready_follows_the_checks_ready_flag(tmp_path):
     """All fields present and one undecided wizard criterion: not ready, as Review's "Must fix" row says."""
     with _draft_client(tmp_path) as client:
-        draft = uav_draft(proof="field-validated accuracy")
+        draft = uav_draft(proof="field-validated accuracy", extra_inclusions=[])
         sid = client.post("/api/v1/inception/drafts", json={"draft": draft}).json()["session_id"]
         crit = client.post("/api/v1/inception/steps/criteria", json={"draft": draft}).json()["criteria"]
         wizard = [c["id"] for c in crit if c["generated"]]

@@ -5,8 +5,8 @@ Item agreed by the researcher on 2026-11-20 (second in the order of work after t
 | Part | Branch | Lane | Status |
 | :-- | :-- | :-- | :-- |
 | A, approve every decided batch with one paste (finding 38, the blocker) | `dev/h/run-fixes-approval` | RELEASE | MERGED 2026-11-20 (PR #264, merge commit `fdbc0c5f`); decisions 1 to 7 accepted by the researcher 2026-11-20 |
-| B, Discovery and the search command (findings 9, 10, 13, 14, 17, 24, 29; decision 2026-11-20 item 2) | `dev/h/run-fixes-discovery` | RELEASE | READY FOR PR (review round 3 APPROVE; PR gate green on `3b5642fd` + UI gates on `2762ca4b`); decisions 1 to 8 PROPOSED |
-| C, Inception and screening small defects (findings 1 to 7, 23, 35, 39; redesign D15 quick fixes) | `dev/h/run-fixes-inception` | not started | — |
+| B, Discovery and the search command (findings 9, 10, 13, 14, 17, 24, 29; decision 2026-11-20 item 2) | `dev/h/run-fixes-discovery` | RELEASE | MERGED 2026-11-20 (PR #266, merge commit `bbcaf288`); decisions 1 to 8 accepted by the researcher 2026-11-20 |
+| C, Inception and screening small defects (findings 1 to 7, 23, 35, 39; redesign D15 quick fixes) | `dev/h/run-fixes-inception` | RELEASE | READY FOR PR (review round 2 APPROVE; PR gate green on `17892e9e`); decisions 1 to 10 PROPOSED |
 
 Not in this item, already done the same day: the quota hang (H-quota-hang, PR #259); the agent-draft rule, method amendments and run screen (H-screening-drafts, PR #261). In another session, not touched here: M3f-combined-corpus (findings 26, 27; `corpus_accept.py`, the Import and Hand-off screens).
 
@@ -154,3 +154,76 @@ Follow-ups also done: a 429 pace expires after 10 minutes, a burst of 429s halve
 - Nothing was sent to a real database: whether Crossref's 429s in the run were the kind the pacing removes, and whether a real Crossref count for the acceptance run's query is still 6,221, were not checked.
 - The finding 24 explanation is read from the code; the second workspace's recall check file was not opened.
 - Not run through the installed wheel or on the researcher's workspaces; the screens were not looked at in a browser beyond the Playwright suite.
+
+---
+
+## Part C: Inception and screening small defects
+
+Branch `dev/h/run-fixes-inception`, rebased on `origin/main` `bbcaf288` (Parts A and B merged). Choices: `docs/decisions.md`, entry "2026-11-20 — H-run-small-fixes Part C" (items 1 to 10, PROPOSED).
+
+### Lane
+
+**RELEASE** (`docs/architecture/test_gate_policy.md`): what a new protocol contains (the proof criterion, out-of-scope items), additive public fields (`match` on `GET /recon/evidence`, `cancel_requested` on the run view) and a changed public answer (the cancel route's `state`). No Contract v1, protocol schema, identity or fingerprint change.
+
+### Definition of done
+
+- [x] Finding 1 (narrowed, decision item 1): beside a typed inclusion the proof answer writes no criterion; alone it stays the fallback inclusion, undecided. Tests: `tests/inception/test_run_small_fixes_inception.py::test_finding_1_the_proof_answer_writes_no_criterion`, `test_finding_1_the_proof_answer_still_reaches_the_rationale_and_the_rq_draft`, `test_without_a_typed_inclusion_the_proof_is_still_the_fallback_inclusion_and_waits_for_accept`, `test_dropping_every_typed_inclusion_brings_the_proof_criterion_back`; `tests/inception/test_steps_proof_optional.py::test_a_typed_proof_beside_a_typed_inclusion_writes_no_criterion`; `tests/console/test_inception_import.py::test_import_wizard_protocol_recovers_proof` (updated: the criterion stays as a typed inclusion).
+- [x] Finding 2: one candidate per out-of-scope item (semicolons, line breaks), each undecided until accepted. Tests: `test_finding_2_an_out_of_scope_line_of_items_becomes_one_candidate_each`, `test_finding_2_no_out_of_scope_candidate_is_accepted_before_the_researcher_accepts_it`, `test_an_out_of_scope_item_without_semicolons_is_unchanged`; UI `tests/inception-criteria.test.tsx`.
+- [x] Findings 3 and 23: colour/generic-only phrases and acronym-expansion cuts are not proposed; a typed direction is grounded on its words together. Tests: `test_finding_3_and_23_a_phrase_of_generic_or_colour_words_is_never_proposed`, `test_finding_3_a_typed_direction_is_grounded_when_its_words_occur_together`, `test_a_one_word_direction_still_needs_the_word_itself`.
+- [x] Finding 4: the start-year note only after a search. Tests: `test_finding_4_no_start_year_note_before_any_search`, `test_after_a_search_without_a_start_year_the_note_shows`.
+- [x] Finding 5: no raw instant in a `title`; "Notes ({n})" from the rows shown. Test: `tests/local-time.test.tsx` (updated: no `title`).
+- [x] Finding 6: radio values; DOI link names. Tests: `tests/inception-direction.test.tsx` "inception.direction accessibility", `tests/doi-link-name.test.tsx` (4).
+- [x] Findings 7 and 35: traced; the two silent refusals found are fixed (decision item 8). Tests: `tests/console/test_agent_runs_api.py::test_one_run_at_a_time_and_cancel_keeps_finished_proposals`, `test_a_real_threaded_run_survives_concurrent_reads_and_keeps_a_mid_run_cancel` (updated: the cancel says `running` + `cancel_requested`); UI `tests/screening-proposals.test.tsx` "proposals cancel (H-run-small-fixes, finding 35)", `tests/inception-review.test.tsx` "inception.review refused checks (H-run-small-fixes, finding 7)".
+- [x] Finding 39: analysed, nothing changed (decision item 9); follow-up proposed.
+- [x] D15 quick fixes: reported (decision item 10); none built.
+- [x] en/fr/ar for new copy (`explore.papers.linkDoi`, `stopping`); specs amended: `docs/ux/phase0-inception/final/01-scope.md`, `03-direction.md`, `05-criteria.md`, `docs/ux/shared/final/02-checks.md` (the start-year row), `docs/ux/shared/final/03-guidance.md` (I-E25 key), `docs/architecture/screening-api-contract.md` (run status and cancel rows).
+- [x] Reproducing tests written first and seen failing (Evidence).
+- [x] PR gate green; `milestone-reviewer` APPROVE (Evidence).
+
+### What changed
+
+- `src/scholar_harness/inception/intent.py`: `split_out_of_scope`, `Survey.proof_criterion`, `draft_criteria`.
+- `src/scholar_harness/inception/steps.py`: the survey's `proof_criterion`; out-of-scope items undecided until decided.
+- `src/scholar_harness/inception/importer.py`: the proof criterion kept as a typed inclusion beside others.
+- `src/scholar_harness/recon/directions.py`: `_GENERIC_TOKENS`, `_acronym_fragment`.
+- `src/scholar_harness/recon/session.py`: `content_words`, `own_direction_evidence`; used by `inception/grounding.py` (typed direction) and `console/api/recon.py` (`GET /recon/evidence`).
+- `src/scholar_harness/inception/checks.py`: the start-year condition.
+- `src/scholar_harness/console/api/screening_v1.py`: `_stopping`, the cancel answer, the run view's `cancel_requested`.
+- UI: `components/stamp.tsx`, `checks-panel.tsx`, `inception-direction.tsx`, `inception-explore.tsx`, `inception-import.tsx`, `inception-recon.tsx`, `inception-assist.tsx` (ReadinessList refusal), `screening-proposals.tsx` (Stopping), `lib/inception-copy.ts`, `lib/screening-v1.ts`; test fakes follow the engine (`tests/fixtures/inception-engine.ts`: proof criterion rule, out-of-scope split and status, `outOfScopeId`).
+
+### Review
+
+Round 1 (`milestone-reviewer`, on `495a9248`): **CHANGES**, three P2, six P3. Repaired:
+
+| # | Finding | Repair | Test |
+| :-- | :-- | :-- | :-- |
+| P2 | The Direction screen ignored `match`: a direction grounded on its words read "This phrase occurs in 2 of 25" | New copy `direction.own.check.groundedWords`, `direction.own.groundedWords` (en/fr/ar); the recon fake follows the words rule | `tests/inception-direction.test.tsx` "inception.direction words grounding" |
+| P2 | The binding and `recon_context` did not say which rule grounded the direction; `term_evidence` for it was the phrase's | `direction.match`, `words`; `term_evidence[own]` is the grounding evidence; `recon_context.direction_match` | `tests/console/test_recon_api.py::test_an_own_direction_grounded_on_its_words_says_so_in_the_binding_and_the_context` |
+| P2 | `docs/architecture/inception-api.md` not amended | Criteria status, `out_of_scope_reasons{item}`, `/recon/evidence` rows | (docs) |
+| P3 | `_acronym_fragment` dropped "tree height growth", "small seeded grass" | An acronym is at most one letter longer than the words before it | kept cases in `test_finding_3_and_23_…` |
+| P3 | The words rule grounds loose phrases | Risk written in decision item 4 for the researcher | (decision) |
+| P3 | The Playwright fake answered a cancel with `cancelled` at once | Stopping, then cancelled on the next poll; the spec asserts `[data-stopping]` | `tests-browser/screening-proposals.spec.ts` |
+| P3 | `CRITERIA_UNDECIDED.why` said "The wizard wrote them" | Neutral en/fr/ar; spec 02-checks updated | (copy) |
+| P3 | The record's before-the-fix count was wrong | Corrected (7 of 12 failed) | (docs) |
+| P3 | No test for "Notes ({n})" | Added | `tests/checks-panel.test.tsx` "checks panel notes count" |
+
+Round 2 (on `a012152d`): **APPROVE**, all round-1 findings repaired; three P3 points, also done: the words rule answers only from two papers, so an ungrounded direction is never called a phrase match it is not (A); `recon_context.direction_match` asserted (B); the UI fake uses the engine's stop list (C). The PR gate on `a012152d` failed one vitest (the guidance audit lacked the two new direction keys) and two Playwright tests in each theme (`tests-browser/inception.spec.ts`: they accepted only the proof criterion; the out-of-scope item now waits for Accept too): fixed with the audit row I-D18 and the two tests.
+
+Follow-ups noted, not done: the CLI wizard and the browser now compile different protocols for the same answers when a typed inclusion exists (decision item 1; no test pins it); importing a protocol made under the new rule does not recover the proof answer from the rationale; Review may show the same refusal twice (the new card and the preview's).
+
+### Evidence
+
+| Check | Result |
+| :-- | :-- |
+| Reproducing tests before the fix | `tests/inception/test_run_small_fixes_inception.py` (12 tests): 7 failed on the `origin/main` source (findings 1, 2 twice, 3/23, 3, the one-word case, 4) and 5 passed (the controls; checked by the reviewer against a copy of the base source); the cancel and Review refusal UI tests fail on the old components by construction (the old cancel answer and an empty panel) |
+| After the fix | `tests/inception tests/console tests/recon tests/kits` (without `-m slow` filter): 3,572 passed, 8 skipped before the 7/35 repairs; `tests/console/test_agent_runs_api.py tests/console/test_screening_drafts_api.py`: 39 passed after them |
+| UI | vitest: 977 tests, 976 passed and one Explore test failed once under full parallel load and passed 3 of 3 alone; `tsc` clean |
+| PR gate | On `17892e9e` (`select_test_gate.py --changed origin/main --stage pr`): `git diff --check` clean; `uv run pytest -n auto`: 5912 passed, 15 skipped; ruff `scripts/` and the CI `src/` selection clean; screening API fixtures current; skills bundle in sync; `tsc` clean; vitest 995 passed (68 files); `build` ok; Playwright 622 passed, 12 skipped (six tracked screenshots rewritten and restored). The run before it, on `a012152d`, failed the guidance audit and four browser tests (repaired in `17892e9e`, see Review) |
+| Contract baseline | `generate_contract_baseline.py --check`: current (on `17892e9e`) |
+| Review | `milestone-reviewer`: round 1 CHANGES (3 P2, 6 P3) on `495a9248`; round 2 APPROVE on `a012152d` with three P3 points, done in `17892e9e` |
+
+### Not verified
+
+- The exact requests behind the run's 422 (finding 7) and 409/404 (finding 35): the fixes cover the silent paths found in the code; the run's network log was not kept.
+- Finding 39's cause: the failing quotes were not available (not stored in the measurement; the real review's drafts were not opened).
+- Not run through the installed wheel or on the researcher's workspaces; no live provider call (direction grounding was tested on built pools).

@@ -16,6 +16,15 @@ from scholar_harness.inception import run_wizard, steps
 from scholar_harness.inception.intent import CriterionDraft
 
 
+def _accept_out_of_scope(answer: str) -> dict:
+    """H-run-small-fixes (finding 2): each out-of-scope item waits for Accept; this draft accepts them."""
+    return {
+        CriterionDraft("exclusion", item.strip(), "out_of_scope", "OUT_OF_SCOPE").id: True
+        for item in answer.split(",")
+        if item.strip()
+    }
+
+
 def _e2e_draft() -> dict:
     """The conftest E2E interview, as a web-wizard draft."""
     a = E2E_ANSWERS
@@ -30,7 +39,7 @@ def _e2e_draft() -> dict:
         "out_of_scope": [s.strip() for s in a[6].split(",")],
         "rqs": [a[8]],
         "concepts": [{"concept": "weed detection"}, {"concept": "on-device inference"}],
-        "criteria_decisions": {proof_id: True},
+        "criteria_decisions": {proof_id: True, **_accept_out_of_scope(a[6])},
         "verification_checks": True,
         "title": "On-Device Weed Detection for Embedded Agriculture",
         "lead_researcher": "Dr. Example",
@@ -63,13 +72,14 @@ def test_criteria_step_lists_each_criterion_with_source_and_status():
     items = out["criteria"]
     assert [(i["kind"], i["source"], i["status"]) for i in items] == [
         ("inclusion", "proof", "undecided"),
-        ("exclusion", "out_of_scope", "accepted"),
-        ("exclusion", "out_of_scope", "accepted"),
+        # H-run-small-fixes (finding 2): an out-of-scope item waits for Accept too.
+        ("exclusion", "out_of_scope", "undecided"),
+        ("exclusion", "out_of_scope", "undecided"),
     ]
     assert items[0]["criterion"].startswith("Reports the gold-standard proof — ")
-    assert items[0]["generated"] is True
-    assert out["undecided"] == [items[0]["id"]]
-    assert out["missing_sides"] == ["inclusion"]
+    assert items[0]["generated"] is True and items[1]["generated"] is False
+    assert out["undecided"] == [i["id"] for i in items]
+    assert out["missing_sides"] == ["inclusion", "exclusion"]
 
 
 def test_a_step_refuses_an_incomplete_draft_and_an_unknown_step():
@@ -123,7 +133,8 @@ def test_preview_refuses_an_empty_side():
     with pytest.raises(steps.StepRefused) as exc:
         steps.preview(draft)
     assert exc.value.code == "CRITERIA_MISSING"
-    assert exc.value.details["missing_sides"] == ["inclusion"]
+    # Every decision is "drop", out-of-scope items included (H-run-small-fixes, finding 2).
+    assert exc.value.details["missing_sides"] == ["inclusion", "exclusion"]
 
 
 def test_a_rejected_criterion_leaves_the_preview():

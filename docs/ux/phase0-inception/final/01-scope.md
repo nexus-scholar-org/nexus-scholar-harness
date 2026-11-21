@@ -1,5 +1,8 @@
 # 01 Scope    Status: FINAL, built (M4b, PR #209) | Phase 0 Inception | Route `/[locale]/inception/scope?draft=rec_<32 hex>` (desktop only) | Milestone M4b (browser screens over the M4a step API)
 
+**Amended 2026-11-20 (H-run-small-fixes Part C, finding 4; PROPOSED).** The note `SCOPE_START_YEAR_DEFAULTED` ("No start year is set. The first search used {year}.") is shown only once the draft has a search (a pool): before any search it spoke of a search that did not exist. Times in the drafts list and "Draft saved" are the researcher's local time; the `<time>` keeps the engine's instant in `dateTime` only (no `title`, which readers announced raw).
+
+
 Boards: `Scope` (D2, `docs/ux/phase0-inception/final/project/Scope.dc.html`), `MobileScope` (M2, `.../MobileScope.dc.html`). Contract: `docs/architecture/inception-api.md` (Draft, Routes, Steps). Code: `src/scholar_harness/console/api/inception.py`, `src/scholar_harness/inception/steps.py` (`Draft` at `:84`, `_scope` at `:165`), `src/scholar_harness/inception/drafts.py`. Decisions: `docs/decisions.md`, 2026-11-08 "Inception drafts live under the workspaces root, with one session id". Brand: `docs/ux/brand/BRAND_BOOK.md` (principles 4 and 5, step header pattern), `docs/ux/brand/tokens.json`.
 
 **Purpose.** Write down what the review is about (the question, the years, the languages) in a draft that is saved but writes no workspace, and see what the wizard's rules read from the question.

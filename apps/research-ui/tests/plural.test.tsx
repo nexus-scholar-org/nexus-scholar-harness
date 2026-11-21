@@ -11,7 +11,7 @@ import { INCEPTION_COPY } from "@/lib/inception-copy";
 import { PLURALS, pluralForm, pluralTemplate } from "@/lib/plural";
 import { PROPOSALS_COPY } from "@/lib/proposals-copy";
 import { checkRow } from "./fixtures/checks-engine";
-import { completeDraft, proofId } from "./fixtures/inception-engine";
+import { completeDraft, outOfScopeId, proofId } from "./fixtures/inception-engine";
 import { setUp } from "./inception-helpers";
 
 /** H-ui-findings F4: a count of one reads "1 suggestion", not "1 suggestions"; Arabic has six forms. */
@@ -83,7 +83,7 @@ describe("plural wording on screen", () => {
 
   it("the step bar says '1 suggestion', and the checks panel '1 check is waiting'", async () => {
     const { engine } = setUp({
-      draft: completeDraft({ criteria_decisions: { [proofId()]: true } }),
+      draft: completeDraft({ criteria_decisions: { [proofId()]: true, [outOfScopeId()]: true } }),
       checks: () => [],
       checksAnswer: (step) => ({
         shape: "checks-v1", scope: { kind: "draft", id: "x", updated_at: "x" }, computed_at: "2026-11-18T10:00:00+00:00", sources: ["check"],

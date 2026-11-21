@@ -10,7 +10,7 @@ import { InceptionReview } from "@/components/inception-review";
 import { InceptionScope } from "@/components/inception-scope";
 import { CHECK_IDS, CHECKS_COPY } from "@/lib/checks-copy";
 import { checkRow, type CheckIn } from "./fixtures/checks-engine";
-import { completeDraft, proofId, SESSION } from "./fixtures/inception-engine";
+import { completeDraft, outOfScopeId, proofId, SESSION } from "./fixtures/inception-engine";
 import { setUp } from "./inception-helpers";
 import { setUp as setUpDiscovery } from "./discovery-helpers";
 
@@ -23,7 +23,7 @@ import { setUp as setUpDiscovery } from "./discovery-helpers";
 afterEach(() => vi.unstubAllGlobals());
 
 const CHECKS = `/api/v1/inception/drafts/${SESSION}/checks`;
-const decided = (extra: Record<string, unknown> = {}) => completeDraft({ criteria_decisions: { [proofId()]: true }, ...extra });
+const decided = (extra: Record<string, unknown> = {}) => completeDraft({ criteria_decisions: { [proofId()]: true, [outOfScopeId()]: true }, ...extra });
 
 const blocker: CheckIn = { check_id: "SCOPE_TOPIC_MISSING", step: "scope", level: "blocker", action: { kind: "field", step: "scope", field: "topic" } };
 const warning: CheckIn = { check_id: "EXPLORE_SCOPE_CHANGED", step: "scope", level: "warning", action: { kind: "step", step: "explore" } };
@@ -226,6 +226,8 @@ describe("checks panel (02-checks)", () => {
     expect(list.querySelector("[data-group='blocker'] h3")?.textContent).toBe("Must fix");
     expect(list.querySelector("[data-group='warning'] h3")?.textContent).toBe("Look at");
     expect(list.querySelector("[data-group-note] summary")?.textContent).toBe("Notes (1)");
+    // H-run-small-fixes (finding 5): the count is part of the summary's text, never empty.
+    expect(list.querySelector("[data-group-note] summary")?.textContent).not.toContain("()");
     expect(list.querySelector("[data-dismissed] summary")?.textContent).toBe("Dismissed (1)");
     expect(row("SCOPE_TOPIC_MISSING", list).querySelector("[data-step-chip]")?.textContent).toBe("Step 1");
     expect(row("CONCEPT_TERM_MISSING", list).querySelector("[data-step-chip]")?.textContent).toBe("Step 5");
@@ -383,7 +385,7 @@ describe("checks after a decision on the Concepts and criteria page (H-ui-findin
   const criteriaRow = (id: string) => document.querySelector(`[data-checks-panel='criteria'] li[data-check='${id}']`) as HTMLElement | null;
 
   it("Apply on a suggestion saves on the server, so the checks are read again and nothing says 'unsaved'", async () => {
-    const { engine } = setUp({ draft: completeDraft({ title: "UAV weed detection", concepts: [], criteria_decisions: { [proofId()]: true } }), checks: true });
+    const { engine } = setUp({ draft: completeDraft({ title: "UAV weed detection", concepts: [], criteria_decisions: { [proofId()]: true, [outOfScopeId()]: true } }), checks: true });
     render(<InceptionCriteria locale="en" />);
     await waitFor(() => expect(criteriaRow("CONCEPT_TERM_MISSING")).not.toBeNull());
     const reads = engine.calls.filter((c) => c.path === CHECKS).length;
@@ -407,5 +409,18 @@ describe("checks after a decision on the Concepts and criteria page (H-ui-findin
     });
     expect(line.textContent).toBe("You have changes that are not saved yet. These checks describe the saved draft and update when you save.");
     expect(criteriaRow("CRITERIA_UNDECIDED")?.querySelector("[data-row-saved]")?.textContent).toContain("Before your changes");
+  });
+});
+
+describe("checks panel notes count (H-run-small-fixes, finding 5)", () => {
+  it("names the number of notes in a step panel, never an empty count", async () => {
+    setUp({ draft: completeDraft({ start_year: null }), checks: true });
+    render(<InceptionScope locale="en" />);
+    const summary = await waitFor(() => {
+      const el = document.querySelector("[data-notes] summary");
+      expect(el).not.toBeNull();
+      return el as HTMLElement;
+    });
+    expect(summary.textContent).toMatch(/^Notes \(\d+\)$/);
   });
 });

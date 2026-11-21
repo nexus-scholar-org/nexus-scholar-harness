@@ -19,7 +19,7 @@ import { DiscoveryChase } from "@/components/discovery-chase";
 import { ScreeningImport } from "@/components/screening-import";
 import type { Locale } from "@/i18n";
 
-import { completeDraft, proofId, ROOT, SESSION } from "./fixtures/inception-engine";
+import { completeDraft, outOfScopeId, proofId, ROOT, SESSION } from "./fixtures/inception-engine";
 import type { ReconOptions } from "./fixtures/recon-engine";
 import { setUp as inceptionSetUp } from "./inception-helpers";
 import { setUp as discoverySetUp } from "./discovery-helpers";
@@ -39,7 +39,7 @@ function probed(recon: ReconOptions = {}, draft: Record<string, unknown> = compl
   return set;
 }
 
-const decided = () => completeDraft({ criteria_decisions: { [proofId()]: true } });
+const decided = () => completeDraft({ criteria_decisions: { [proofId()]: true, [outOfScopeId()]: true } });
 
 const emitted = () => ({
   slug: "weed-review",

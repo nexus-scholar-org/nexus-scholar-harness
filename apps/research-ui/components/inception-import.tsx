@@ -141,6 +141,7 @@ export function InceptionImport({ locale }: Readonly<{ locale: Locale }>) {
                   <input
                     type="radio"
                     name="import-workspace"
+                    value={item.slug}
                     checked={chosenSlug === item.slug}
                     onChange={() => void read({ kind: "workspace", slug: item.slug })}
                     className="mt-1 h-5 w-5 shrink-0"

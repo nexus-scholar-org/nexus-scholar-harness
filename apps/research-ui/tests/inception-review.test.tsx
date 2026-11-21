@@ -2,7 +2,7 @@ import { fireEvent, render, screen, waitFor, within } from "@testing-library/rea
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { InceptionReview } from "@/components/inception-review";
-import { completeDraft, proofId, SESSION } from "./fixtures/inception-engine";
+import { completeDraft, outOfScopeId, proofId, SESSION } from "./fixtures/inception-engine";
 import { sent, setUp } from "./inception-helpers";
 
 /**
@@ -13,7 +13,7 @@ import { sent, setUp } from "./inception-helpers";
 
 afterEach(() => vi.unstubAllGlobals());
 
-const decided = (extra: Record<string, unknown> = {}) => completeDraft({ criteria_decisions: { [proofId()]: true }, ...extra });
+const decided = (extra: Record<string, unknown> = {}) => completeDraft({ criteria_decisions: { [proofId()]: true, [outOfScopeId()]: true }, ...extra });
 const brandButtons = () => document.querySelectorAll("button.bg-brand");
 // M10b (02-checks): the folder lines of the old Checks card are the engine's REVIEW_TARGET_* rows of "Ready to create?".
 const target = (check_id: string, level: "blocker" | "warning") => () => [
@@ -228,5 +228,18 @@ describe("inception.review", () => {
     expect(within(details.querySelector("[data-not-moved]") as HTMLElement).getByText("artifacts/")).toBeInTheDocument();
     expect(card.textContent).toContain("Close the program holding the file, then try again");
     expect(assign).not.toHaveBeenCalled();
+  });
+});
+
+
+describe("inception.review refused checks (H-run-small-fixes, finding 7)", () => {
+  it("shows a refused all-steps checks read instead of drawing nothing", async () => {
+    const { engine } = setUp({ draft: decided() });
+    engine.refuseNext(`POST /api/v1/inception/drafts/${SESSION}/checks`, {
+      status: 422,
+      body: { detail: { code: "DRAFT_INVALID", message: "the stored draft does not parse" } },
+    });
+    render(<InceptionReview locale="en" />);
+    expect(await screen.findByText("DRAFT_INVALID")).toBeInTheDocument();
   });
 });

@@ -26,6 +26,15 @@ BASE = "/api/v1/inception"
 SLUG = "on-device-weed-detection-for-embedded-agriculture"
 
 
+def _accept_out_of_scope(answer: str) -> dict:
+    """H-run-small-fixes (finding 2): each out-of-scope item waits for Accept; this draft accepts them."""
+    return {
+        CriterionDraft("exclusion", item.strip(), "out_of_scope", "OUT_OF_SCOPE").id: True
+        for item in answer.split(",")
+        if item.strip()
+    }
+
+
 def _draft() -> dict:
     a = E2E_ANSWERS
     proof_id = CriterionDraft("inclusion", f"Reports the gold-standard proof — {a[5]}", "proof").id
@@ -33,7 +42,7 @@ def _draft() -> dict:
         "topic": a[0], "paradigm": a[1], "playbook": a[2], "unit_of_analysis": a[4], "proof": a[5],
         "out_of_scope": [s.strip() for s in a[6].split(",")], "rqs": [a[8]],
         "concepts": [{"concept": "weed detection"}, {"concept": "on-device inference"}],
-        "criteria_decisions": {proof_id: True},
+        "criteria_decisions": {proof_id: True, **_accept_out_of_scope(a[6])},
         "title": "On-Device Weed Detection for Embedded Agriculture", "lead_researcher": "Dr. Example",
     }
 
@@ -277,6 +286,7 @@ def test_preview_names_every_file_genesis_writes(root):
     snapshot = _state(ws)
     # A changed answer, so every rewritten file differs from the first genesis.
     changed = {**_draft(), "out_of_scope": ["pre-2020 studies"]}
+    changed["criteria_decisions"] = {**changed["criteria_decisions"], **_accept_out_of_scope("pre-2020 studies")}
     replan = client.post(f"{BASE}/preview", json={"draft": changed}).json()["files"]
     second = client.post(f"{BASE}/drafts", json={"draft": changed}).json()["session_id"]
     assert client.post(f"{BASE}/drafts/{second}/genesis", json={"replace": True}).status_code == 201

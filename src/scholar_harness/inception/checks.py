@@ -444,7 +444,8 @@ def inception_checks(
         check("SCOPE_START_YEAR_DEFAULTED", "note", params={"year": 2000},
               evidence=[{"kind": "count", "name": "year", "value": 2000, "unit": "year"}],
               action=_field("scope", "start_year"))
-    ] if draft.start_year is None else [])
+    # H-run-small-fixes (finding 4): the note speaks of "the first search", so only after one.
+    ] if draft.start_year is None and pool is not None else [])
 
     # Explore
     if pool is None:

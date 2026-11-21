@@ -185,6 +185,9 @@ export interface Evidence {
   observed_in: number;
   anchor_dois: string[];
   n_docs: number;
+  /** H-run-small-fixes (finding 3): "words" when the phrase's content words occur together. */
+  match?: "phrase" | "words";
+  words?: string[];
 }
 
 export interface SeedPaper {

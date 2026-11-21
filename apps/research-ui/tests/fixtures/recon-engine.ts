@@ -579,7 +579,21 @@ export function reconEngine(options: ReconOptions, now: () => string) {
       if (missing) return missing;
       const pool = current(record);
       const anchors = pool.docs.filter((d) => d.doi && occurs(term, d)).map((d) => d.doi as string);
-      return { status: 200, body: { term, hits: anchors.length * 3, observed_in: anchors.length, anchor_dois: anchors, n_docs: pool.docs.length } };
+      // H-run-small-fixes (finding 3), as the engine: the phrase, else its content words together.
+      // The engine's stop list (`recon/session.py::_STOP_WORDS`).
+      const STOP = new Set([
+        "a", "an", "the", "and", "or", "of", "for", "in", "on", "at", "to", "by", "with", "from", "into",
+        "under", "over", "between", "via", "as", "its", "their", "is", "are", "be", "using", "based",
+        "how", "what", "which", "does", "do", "can", "than", "that", "this", "these", "those",
+      ]);
+      const words = [...new Set(term.toLowerCase().split(/[^0-9a-z]+/).filter((w) => w && !STOP.has(w)))];
+      if (anchors.length < 2 && words.length >= 2) {
+        const byWords = pool.docs.filter((d) => d.doi && words.every((w) => occurs(w, d))).map((d) => d.doi as string);
+        if (byWords.length >= 2 && byWords.length > anchors.length) {
+          return { status: 200, body: { term, hits: byWords.length * 3, observed_in: byWords.length, anchor_dois: byWords, n_docs: pool.docs.length, match: "words", words } };
+        }
+      }
+      return { status: 200, body: { term, hits: anchors.length * 3, observed_in: anchors.length, anchor_dois: anchors, n_docs: pool.docs.length, match: "phrase" } };
     }
     if (rest === "/seeds" && method === "GET") {
       const missing = needPool();

@@ -91,6 +91,9 @@ export interface GroundingDirection {
   detail?: string;
   source: "pool" | "researcher" | "none" | string;
   grounded: boolean;
+  /** H-run-small-fixes: how an own direction was grounded (the exact phrase, or its words together). */
+  match?: "phrase" | "words";
+  words?: string[];
 }
 
 export interface Grounding {

@@ -46,7 +46,7 @@ function view(overrides: Record<string, unknown> = {}) {
   };
 }
 
-function engine(options: { setup?: unknown; start?: (body: Record<string, unknown>) => Response; run?: unknown; decided?: string[] } = {}) {
+function engine(options: { setup?: unknown; start?: (body: Record<string, unknown>) => Response; run?: unknown; decided?: string[]; cancel?: unknown } = {}) {
   const log: { method: string; path: string; body: Record<string, unknown> | null }[] = [];
   vi.stubGlobal(
     "fetch",
@@ -60,6 +60,7 @@ function engine(options: { setup?: unknown; start?: (body: Record<string, unknow
       if (path === "/queue") return ok({ items: (options.decided ?? []).map((s) => ({ study_id: s, title: "t", batch_id: "b", has_proposal: false, decided: true, flags: [] })), next_cursor: null });
       if (path === "/proposals/runs" && body?.estimate_only) return ok({ run_id: null, estimate: ESTIMATE });
       if (path === "/proposals/runs") return options.start ? options.start(body ?? {}) : ok({ run_id: "RUN-1", estimate: ESTIMATE });
+      if (path === "/proposals/runs/RUN-1/cancel") return ok(options.cancel ?? { run_id: "RUN-1", state: "running", cancel_requested: true });
       if (path === "/proposals/runs/RUN-1") return ok(options.run ?? view());
       return new Response(JSON.stringify({ detail: { code: "NOT_FOUND" } }), { status: 404 });
     }),
@@ -304,5 +305,22 @@ describe("proposals.cheapest-model (H-screening-drafts)", () => {
     const total = (model: string) => price(model, "input") + price(model, "output");
     const cheapest = [...LISTED_ANTHROPIC_MODELS].sort((a, b) => total(a) - total(b))[0];
     expect(CHEAPEST_ANTHROPIC_MODEL).toBe(cheapest);
+  });
+});
+
+
+describe("proposals cancel (H-run-small-fixes, finding 35)", () => {
+  it("says the run is stopping until a poll reports it finished, and offers no Start meanwhile", async () => {
+    const running = view({ state: "running", done: 1, finished_at: null });
+    const log = engine({ setup: setup({ latest: running }), run: { ...running, cancel_requested: true } });
+    render(<ScreeningProposals locale="en" />);
+    fireEvent.click(await screen.findByRole("button", { name: "Cancel the run" }));
+    await screen.findByText(/Stopping the run/);
+    expect(screen.queryByRole("button", { name: "Cancel the run" })).toBeNull();
+    expect(log.filter((c) => c.method === "POST" && c.path === "/proposals/runs" && !c.body?.estimate_only)).toHaveLength(0);
+  });
+
+  it("has the stopping sentence in every locale", () => {
+    for (const locale of SUPPORTED_LOCALES) expect(PROPOSALS_COPY[locale].stopping, locale).toBeTruthy();
   });
 });

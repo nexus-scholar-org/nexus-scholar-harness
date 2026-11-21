@@ -116,8 +116,10 @@ def test_import_wizard_protocol_recovers_proof(root):
     proto["screening_criteria"]["inclusion"].insert(0, {"id": "INC-00", "criterion": first, "maps_to_rqs": ["RQ1", "RQ2", "RQ3", "RQ4"]})
     body = _import(_client(root), _file("protocol.json", proto)).json()
     assert body["draft"]["proof"] == "field-validated weed maps"
-    assert first not in body["draft"]["extra_inclusions"]
-    assert len(body["draft"]["extra_inclusions"]) == 3
+    # H-run-small-fixes (finding 1): beside other inclusions the proof writes no criterion,
+    # so the protocol's criterion stays as a typed inclusion: every inclusion is kept.
+    assert body["draft"]["extra_inclusions"][0] == first
+    assert len(body["draft"]["extra_inclusions"]) == 4
 
 
 def test_import_intent_file(root):

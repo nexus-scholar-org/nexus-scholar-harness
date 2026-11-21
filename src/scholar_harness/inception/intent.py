@@ -1,3 +1,4 @@
+import re
 from dataclasses import dataclass, field
 
 # ---------------------------------------------------------------------------
@@ -213,6 +214,10 @@ class Survey:
     out_of_scope_reasons: dict[str, str] = field(default_factory=dict)
     #: The reason code of the paradigm's default exclusion (M10b); ``None`` is ``OUT_OF_SCOPE``.
     default_exclusion_reason: str | None = None
+    #: H-run-small-fixes (finding 1): whether the proof answer writes the inclusion
+    #: "Reports the gold-standard proof — …". The browser draft sets it only when
+    #: no typed inclusion is left (``steps.proof_required``); the CLI wizard keeps it.
+    proof_criterion: bool = True
 
 
 def draft_default_concepts(topic: str) -> list[str]:
@@ -295,12 +300,34 @@ class CriterionDraft:
         }
 
 
+def split_out_of_scope(items: list[str]) -> list[str]:
+    """Each out-of-scope item on its own (finding 2): semicolons and line breaks separate items.
+
+    Commas do not: "satellite, aerial or ground imagery" is one item. Blank
+    pieces are dropped and a repeat is kept once, in order.
+    """
+    out: list[str] = []
+    for item in items:
+        for piece in re.split(r"[;\n]", item or ""):
+            piece = piece.strip()
+            if piece and piece not in out:
+                out.append(piece)
+    return out
+
+
 def draft_criteria(survey: Survey) -> list[CriterionDraft]:
     """Every criterion the wizard proposes, in order, each tagged with its source.
 
     The rules are the historic ``make_intent`` rules: the proof answer becomes an
     inclusion criterion; out-of-scope items and manual exclusions become
     exclusions; with no exclusion at all, the paradigm's default is proposed.
+    H-run-small-fixes (finding 1): the proof answer ("what would a reviewer
+    accept as proof") is not a screening rule, so it writes its criterion only
+    as the fallback inclusion of a draft without a typed one
+    (``survey.proof_criterion``); it still feeds the rationale and the template
+    research question. (finding 2): an out-of-scope answer typed as one line
+    of items separated by semicolons gives one candidate per item, each
+    undecided until accepted.
 
     M10b: an empty proof answer writes no proof criterion (the proof may be
     empty when the draft holds a typed inclusion, ``04-shape``), and the reason
@@ -309,13 +336,13 @@ def draft_criteria(survey: Survey) -> list[CriterionDraft]:
     none are unchanged.
     """
     drafts = []
-    if survey.proof.strip():
+    if survey.proof.strip() and survey.proof_criterion:
         drafts.append(CriterionDraft("inclusion", f"Reports the gold-standard proof — {survey.proof}", "proof"))
     drafts += [CriterionDraft("inclusion", c, "manual") for c in survey.extra_inclusions]
     reasons = survey.out_of_scope_reasons or {}
     exclusions = [
         CriterionDraft("exclusion", item, "out_of_scope", reasons.get(item) or DEFAULT_REASON)
-        for item in survey.out_of_scope
+        for item in split_out_of_scope(survey.out_of_scope)
     ]
     exclusions += [CriterionDraft("exclusion", text, "manual", category) for text, category in survey.extra_exclusions]
     if not exclusions:
@@ -356,7 +383,7 @@ def make_intent(
         if c.kind == "exclusion"
     ]
     # The rationale names only the out-of-scope items the researcher accepted.
-    out_of_scope = [c.criterion for c in chosen if c.source == "out_of_scope"]
+    out_of_scope = [c.criterion for c in chosen if c.source == "out_of_scope"]  # each accepted item
 
     # Strict run 2026-11-13 (finding 9): the answers are pasted as written, so
     # each follows a colon and loses a final full stop of its own ("..." stays).

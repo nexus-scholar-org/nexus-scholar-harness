@@ -62,11 +62,16 @@ async function engine(page: Page, plan: { first: "running" | "stopped" }) {
       return route.fulfill({ json: { run_id: id, estimate: ESTIMATE } });
     }
     const status = path.match(/^\/proposals\/runs\/(RUN-\d+)$/);
-    if (status) return route.fulfill({ json: runs[status[1]] });
+    if (status) {
+      const current = runs[status[1]];
+      // H-run-small-fixes (finding 35): a cancelled run stops at the worker's next check.
+      if (current.cancel_requested) runs[status[1]] = { ...current, state: "cancelled", cancel_requested: false, finished_at: "2026-11-05T10:02:00Z" };
+      return route.fulfill({ json: current });
+    }
     const cancel = path.match(/^\/proposals\/runs\/(RUN-\d+)\/cancel$/);
     if (cancel) {
-      runs[cancel[1]] = { ...runs[cancel[1]], state: "cancelled", finished_at: "2026-11-05T10:02:00Z" };
-      return route.fulfill({ json: { run_id: cancel[1], state: "cancelled" } });
+      runs[cancel[1]] = { ...runs[cancel[1]], cancel_requested: true };
+      return route.fulfill({ json: { run_id: cancel[1], state: "running", cancel_requested: true } });
     }
     return route.fulfill({ status: 404, json: { detail: { code: "NOT_FOUND", message: path } } });
   });
@@ -97,6 +102,8 @@ test("a dry run needs consent, states the data flow, then polls and cancels", as
   await expect(page.getByText("1 of 3 proposed").first()).toBeVisible();
   expect(runPosts(sent)[0].body).toMatchObject({ dry_run: true, consent: { provider: "anthropic" } });
   await page.getByRole("button", { name: "Cancel the run" }).click();
+  // H-run-small-fixes (finding 35): "Stopping" until a poll reports the run cancelled.
+  await expect(page.locator("[data-stopping]")).toBeVisible();
   await expect(page.locator("[data-run]")).toContainText("Cancelled");
   await expect(page.locator("[data-partial]")).toContainText("2 records have no draft");
 });

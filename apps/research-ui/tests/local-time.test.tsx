@@ -34,7 +34,7 @@ describe("local time", () => {
     expect(localStamp(null)).toBe("");
   });
 
-  it("the draft header shows the local time and keeps the ISO instant in title and dateTime", async () => {
+  it("the draft header shows the local time and keeps the ISO instant in dateTime only", async () => {
     process.env.TZ = "Asia/Tokyo";
     setUp({ draft: completeDraft() });
     render(<InceptionScope locale="en" />);
@@ -45,7 +45,8 @@ describe("local time", () => {
     });
     const iso = saved.getAttribute("datetime") ?? "";
     expect(iso).toMatch(/^2\d{3}-\d\d-\d\dT/);
-    expect(saved).toHaveAttribute("title", iso);
+    // H-run-small-fixes (finding 5): no title: readers announced the raw instant beside the local time.
+    expect(saved).not.toHaveAttribute("title");
     expect(saved.textContent).toBe(localStamp(iso));
     expect(screen.getByText(/Draft saved/)).toBeInTheDocument();
   });

@@ -573,7 +573,7 @@ function ModeControl({ locale, semantic, onChange }: Readonly<{ locale: Locale; 
       <div role="radiogroup" className="mt-1 flex flex-wrap gap-4">
         {([false, true] as const).map((value) => (
           <label key={String(value)} className="inline-flex min-h-11 cursor-pointer items-center gap-2 text-sm text-ink">
-            <input type="radio" name="explore-mode" checked={semantic === value} onChange={() => onChange(value)} className="h-5 w-5" />
+            <input type="radio" name="explore-mode" value={String(value)} checked={semantic === value} onChange={() => onChange(value)} className="h-5 w-5" />
             {value ? t("explore.mode.semantic") : t("explore.mode.keyword")}
           </label>
         ))}

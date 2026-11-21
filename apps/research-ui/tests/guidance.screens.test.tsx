@@ -2,7 +2,7 @@ import { cleanup, render, screen, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { InceptionReview } from "@/components/inception-review";
-import { completeDraft, proofId } from "./fixtures/inception-engine";
+import { completeDraft, outOfScopeId, proofId } from "./fixtures/inception-engine";
 import { setUp as inceptionSetUp } from "./inception-helpers";
 import { SCREENS } from "./guidance-screens";
 import { visibleWords } from "./guidance-words";
@@ -105,7 +105,7 @@ describe("guidance.screens", () => {
         { check_id: "REVIEW_TARGET_HAS_WORKSPACE", step: "review", level: "warning" as const, dismissible: true, action: { kind: "field", step: "review", field: "title" } },
         { check_id: "CRITERIA_FEW_INCLUSIONS", step: "criteria", level: "warning" as const, dismissible: true, action: { kind: "field", step: "criteria", field: "criteria_decisions" } },
       ];
-      inceptionSetUp({ draft: completeDraft({ criteria_decisions: { [proofId()]: true } }), existing: "workspace", checks: rows });
+      inceptionSetUp({ draft: completeDraft({ criteria_decisions: { [proofId()]: true, [outOfScopeId()]: true } }), existing: "workspace", checks: rows });
       render(<InceptionReview locale="en" />);
       const first = await screen.findByText("Recommended · check REVIEW_TARGET_HAS_WORKSPACE", {}, { timeout: 5000 });
       expect(first.closest("[data-check]")?.getAttribute("data-check")).toBe("REVIEW_TARGET_HAS_WORKSPACE");

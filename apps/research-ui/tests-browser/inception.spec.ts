@@ -2,7 +2,7 @@ import { createRequire } from "node:module";
 
 import type { Page } from "@playwright/test";
 
-import { completeDraft, inceptionEngine, proofId, SESSION, type FakeOptions } from "../tests/fixtures/inception-engine";
+import { completeDraft, inceptionEngine, outOfScopeId, proofId, SESSION, type FakeOptions } from "../tests/fixtures/inception-engine";
 import { DESKTOP_VIEWPORT, expect, MOBILE_VIEWPORT, test } from "./helpers";
 import { expectNoSidewaysScroll, measureOverflow } from "./overflow-recipe";
 
@@ -29,9 +29,9 @@ async function engine(page: Page, options: FakeOptions & { draft?: Record<string
   return fake;
 }
 
-const decided = () => completeDraft({ criteria_decisions: { [proofId()]: true } });
+const decided = () => completeDraft({ criteria_decisions: { [proofId()]: true, [outOfScopeId()]: true } });
 /** M10b Part B: a question that names UAV, so the screens draw the checks panel and a proposal card (axe, overflow, hydration). */
-const assisted = () => completeDraft({ criteria_decisions: { [proofId()]: true }, rqs: ["Can on-device weed detection run in real time on a UAV?"] });
+const assisted = () => completeDraft({ criteria_decisions: { [proofId()]: true, [outOfScopeId()]: true }, rqs: ["Can on-device weed detection run in real time on a UAV?"] });
 
 test.use({ viewport: DESKTOP_VIEWPORT });
 
@@ -75,6 +75,11 @@ test("a researcher creates a workspace from the browser and lands on screening H
   await expect(proof).toHaveAttribute("data-status", "undecided");
   await proof.getByRole("button", { name: "Accept" }).click();
   await expect(proof).toHaveAttribute("data-status", "accepted");
+  // H-run-small-fixes (finding 2): the out-of-scope item waits for Accept too.
+  const outOfScope = page.locator("[data-criterion]", { hasText: "closed-source models" });
+  await expect(outOfScope).toHaveAttribute("data-status", "undecided");
+  await outOfScope.getByRole("button", { name: "Accept" }).click();
+  await expect(outOfScope).toHaveAttribute("data-status", "accepted");
   await page.getByRole("button", { name: "Continue to review" }).click();
 
   await page.getByLabel("Title of the review", { exact: true }).fill("Weed review");
@@ -154,7 +159,8 @@ test("replacing a workspace with screening needs the typed name, and a wrong one
 
 test("a check proposes UAV on Concepts and criteria; Apply writes it; a dismissed warning survives a reload; Review reads Not ready, then Ready (M10b)", async ({ page }) => {
     const fake = await engine(page, {
-      draft: completeDraft({ title: "UAV weed detection", rqs: ["Can RGB cameras on a UAV find weeds in real time?"] }),
+      // The out-of-scope item accepted (H-run-small-fixes, finding 2), so the wizard's proof criterion is the one blocker.
+      draft: completeDraft({ title: "UAV weed detection", rqs: ["Can RGB cameras on a UAV find weeds in real time?"], criteria_decisions: { [outOfScopeId()]: true } }),
       checks: true,
     });
     await page.goto(`/en/inception/criteria/?draft=${SESSION}`);

@@ -59,6 +59,7 @@ from scholar_harness.recon.session import (
     pool_fingerprint,
     pool_providers,
     refuse_unusable_pool,
+    own_direction_evidence,
     term_evidence,
 )
 from scholar_harness.recon import sample as sample_mod
@@ -478,7 +479,8 @@ def evidence(session_id: str, request: Request, term: str = "") -> dict[str, Any
         pool, _raw, _path = _sessions(request).effective(session_id, _left_out(record))
     except (ReconRefused, DraftRefused, steps.StepRefused) as exc:
         raise _error(exc) from exc
-    return {"term": term, **term_evidence(pool, term.strip()), "n_docs": len(pool.get("docs") or [])}
+    # H-run-small-fixes (finding 3): the check a typed direction gets when it is bound.
+    return {"term": term, **own_direction_evidence(pool, term.strip()), "n_docs": len(pool.get("docs") or [])}
 
 
 @router.get("/seeds")

@@ -58,6 +58,15 @@ class Seam:
         return SearchRun(documents=list(self.docs), legs=legs)
 
 
+def _accept_out_of_scope(answer: str) -> dict:
+    """H-run-small-fixes (finding 2): each out-of-scope item waits for Accept; this draft accepts them."""
+    return {
+        CriterionDraft("exclusion", item.strip(), "out_of_scope", "OUT_OF_SCOPE").id: True
+        for item in answer.split(",")
+        if item.strip()
+    }
+
+
 def _draft() -> dict:
     a = E2E_ANSWERS
     proof_id = CriterionDraft("inclusion", f"Reports the gold-standard proof — {a[5]}", "proof").id
@@ -65,7 +74,7 @@ def _draft() -> dict:
         "topic": a[0], "paradigm": a[1], "playbook": a[2], "unit_of_analysis": a[4], "proof": a[5],
         "out_of_scope": [s.strip() for s in a[6].split(",")], "rqs": [a[8]],
         "concepts": [{"concept": "weed detection"}, {"concept": "on-device inference"}],
-        "criteria_decisions": {proof_id: True},
+        "criteria_decisions": {proof_id: True, **_accept_out_of_scope(a[6])},
         "title": "On-Device Weed Detection for Embedded Agriculture", "lead_researcher": "Dr. Example",
     }
 
@@ -1006,3 +1015,23 @@ def test_a_gap_check_follow_up_leg_never_says_shorten():
     rows = _legs_summary([dict(empty), {**empty, "query": "weed detection cereal fields"}],
                          "UAV imagery weed detection cereal crops")
     assert [r["shorten"] for r in rows] == [True, False]
+
+
+
+def test_an_own_direction_grounded_on_its_words_says_so_in_the_binding_and_the_context(env):
+    """H-run-small-fixes review P2: the record names the rule that grounded the direction."""
+    client, _app, _root, _recon = env
+    sid = _new_draft(client)
+    _probe(client, sid)
+    words = client.post(f"{BASE}/drafts/{sid}/recon/bind", json={"own": "detection of weed"}).json()["grounding"]
+    direction = words["direction"]
+    assert direction["match"] == "words" and direction["words"] == ["detection", "weed"]
+    assert direction["grounded"] is True and "its words occur together" in direction["detail"]
+    assert words["term_evidence"]["detection of weed"]["match"] == "words"
+    assert words["term_evidence"]["detection of weed"]["observed_in"] == direction["observed_in"]
+    from scholar_harness.inception.grounding import recon_context
+
+    assert recon_context(words, [], [])["direction_match"] == "words"
+    phrase = client.post(f"{BASE}/drafts/{sid}/recon/bind", json={"own": "weed detection"}).json()["grounding"]
+    assert phrase["direction"]["match"] == "phrase" and "words" not in phrase["direction"]
+    assert recon_context(phrase, [], [])["direction_match"] == "phrase"
