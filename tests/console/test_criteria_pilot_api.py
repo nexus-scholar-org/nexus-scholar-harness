@@ -569,11 +569,20 @@ def test_methods_state_the_pilot_and_that_its_decisions_were_not_counted(tmp_pat
     pl.intake(workspace, "pilot_001", [
         {**_decision(s), "screener_id": se.SCREENER, "decided_at": "2026-11-04T09:30:00.000Z"} for s in studies[:2]
     ], token_scope="desktop", received_at="2026-11-04T09:30:05Z")
+    from scholar_harness.screening import criteria as cr
+
+    cr.amend_criteria(
+        workspace, op="reword", side="exclusion", ids=["EXC-01"], text="Malformed protocol documents",
+        reason_category=None, reason_category_given=False, reason="Unclear in the pilot.", confirm=True,
+        amended_by="r", amended_at="2026-11-04T09:35:00Z", pilot_id="pilot_001",
+    )
     pl.close(workspace, "pilot_001", closed_by="r", closed_at="2026-11-04T09:40:00Z")
     decide(workspace)
     publish(workspace)
     body = _methods(workspace)
     assert "The screening criteria were piloted on 2 records (seed 777), drawn at random from the 3 records" in body["paragraph"]
     assert "The pilot decisions were not counted" in body["paragraph"]
+    assert "It was made during the pilot, before the main screening." in body["paragraph"]
+    assert body["paragraph"].index("piloted on") < body["paragraph"].index("criteria were amended")
     assert body["figures"]["pilots"] == [{"pilot_id": "pilot_001", "drawn": 3, "decided": 2, "seed": 777, "date": "2026-11-04"}]
     _assert_numbers_trace(body)

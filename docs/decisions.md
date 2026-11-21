@@ -10,8 +10,24 @@ history to read if you need the original reasoning (`git log --follow -- <path>`
 
 | Entry | Item | What is open |
 | :-- | :-- | :-- |
+| 2026-11-21 — M11b part B: the pilot, the build's choices | 1 to 10 | Proposed with the build; the researcher's answer is pending. |
 | 2026-11-21 — M11b part A: criteria in force, the build's choices | 1 to 10 | Proposed with the build; the researcher's answer is pending. |
 | 2026-11-19 — M9a: what the measurement says about the ladder gates | 2 | The minimum share of the researcher's excludes an agent must take before a rung unlocks: the principle is accepted; the researcher decided on 2026-11-20 to set the number when M9b is built. |
+
+## 2026-11-21 — M11b part B: the pilot, the build's choices (PROPOSED; M11b-criteria-pilot, part B)
+
+Record: `docs/roadmap/milestones/M11b-criteria-pilot.md`, "Build record", "Part B". Choices the specification leaves open (answers 5, 6, 9 and 11 of 2026-11-21 bind the rest). Each is the build's proposal; none is decided.
+
+1. **A pilot decision's id is derived, so a replay is a duplicate.** The client mints an `event_id` (a UUID, as for a decision event); the engine's `pilot_decision_id` is `PLD-` + the first 24 hex of sha256(pilot id, event id). A replay of a stored decision answers `duplicate`, also after the pilot ended or a criterion was retired; the same id with other content is refused `IDEMPOTENCY_CONFLICT`. *Alternative:* an engine-minted random id (no idempotency for an offline retry).
+2. **Two refusal codes beyond the specification's three:** `PILOT_NOT_FOUND` (404, an unknown pilot id; spec 13 question 1 left the code to the engine) and `PILOT_SIZE_INVALID` (422: `n` outside 20 to 100 in tens, more than the records left, or no `confirm`). The draw reuses `BATCHES_NOT_PREPARED` before batches and `CRITERIA_AMENDMENT_AFTER_APPROVAL` after an approval (one rule for the draw and the revision).
+3. **A pilot's end is its own file**, `pilot_NNN_closed.json` (reason `ended` or `complete`), so the draw file is never rewritten. The decision that decides the last record writes it (`complete`); "End the pilot" writes it with `ended`.
+4. **Minimum counts for the readings that the record states as shares only:** "many Unclear" and "never used" are read from 10 pilot decisions on; "does most of the work" from 5 exclusions. The other minimums are the record's (10 records for a mirror, a hard-to-judge or a read-differently; 5 for exclusions that fire together). *Why:* in a pilot just begun, one Unclear of two is "50%".
+5. **"Read differently" compares yes and no only.** A `not_reported` on either side, or an Unclear (which implies nothing), is not compared; the denominator is the records where both sides said yes or no. The source is `answers`, `implied` or `mixed` per criterion.
+6. **Every pilot route is desktop-only, the result included.** Spec 13 question 8 suggests a read-only result on the phone; the engine keeps it on the desktop until part C settles that screen.
+7. **The open pilot's records leave every main queue view, but `/summary.needs_you` still counts them** (they are undecided). The pilot block of `/summary` says how many are in the pilot.
+8. **The methods sentence counts the pilot records decided, not drawn**, and names each pilot's seed ("piloted on 38 records (seed …)"), so a pilot ended early is not overstated; the drawn count is in the figures. An amendment made with no counted decision reads "It was made during the pilot, before the main screening." (the amendment row names the open pilot) or "… after the pilot, …".
+9. **The agent check on a pilot compares a draft with a pilot decision only when both were made under the same criteria version**, as the main calibration does since part A.
+10. **The agent check's drafts and runs name the pilot** (`pilot_id` on the run record and on each draft), so the pilot result can tell them apart later; nothing reads it for counting today.
 
 ## 2026-11-21 — M11b part A: criteria in force, the build's choices (PROPOSED; M11b-criteria-pilot, part A)
 

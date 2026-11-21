@@ -413,8 +413,6 @@ def _check(raw: Any, context: Any, studies: set[str], token_scope: str, received
             return _refusal(
                 ev.REASON_CODE_INCONSISTENT, f"{code} contradicts this decision's own answer: {criterion} is answered {contradiction}"
             )
-    elif code:
-        return _refusal(ev.REASON_CODE_INVALID, "only an EXCLUDE carries a reason code")
     criteria = raw.get("criteria")
     if criteria is not None and (
         not isinstance(criteria, list)
