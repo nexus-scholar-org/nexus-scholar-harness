@@ -441,15 +441,15 @@ function ChartingScreen({ locale }: Readonly<{ locale: Locale }>) {
   }
 
   /** The rows a status key acts on: the selection when there is one, else the focused row. */
-  function statusTargets(): string[] {
+  function statusTargets(here: string | null): string[] {
     if (selected.size > 0) return rows.filter((r) => selected.has(r.study_id) && r.kept).map((r) => r.study_id);
-    const row = focusId ? byId.get(focusId) : undefined;
+    const row = here ? byId.get(here) : undefined;
     return row && row.kept ? [row.study_id] : [];
   }
 
-  function askStatus(status: FulltextStatus) {
+  function askStatus(status: FulltextStatus, here: string | null) {
     if (!changesAllowed()) return;
-    const ids = statusTargets();
+    const ids = statusTargets(here);
     if (ids.length === 0) return;
     if (status === "not_retrieved") {
       setMode({ kind: "notRetrieved", ids, reason: null, words: "" });
@@ -531,10 +531,10 @@ function ChartingScreen({ locale }: Readonly<{ locale: Locale }>) {
     });
   }
 
-  function step(delta: number, extend = false) {
+  function step(delta: number, extend: boolean, here: string | null) {
     const list = rowsRef.current;
     if (list.length === 0) return;
-    const at = Math.max(0, list.findIndex((r) => r.study_id === focusId));
+    const at = Math.max(0, list.findIndex((r) => r.study_id === here));
     const next = list[Math.min(list.length - 1, Math.max(0, at + delta))];
     if (extend) {
       setSelected((current) => new Set([...current, list[at].study_id, next.study_id]));
@@ -568,12 +568,16 @@ function ChartingScreen({ locale }: Readonly<{ locale: Locale }>) {
       if (typeof window.matchMedia === "function" && !window.matchMedia("(min-width: 640px)").matches) return;
       const target = event.target as HTMLElement | null;
       const inWords = target instanceof HTMLElement && target.dataset.modeWords !== undefined;
+      // The row that has the keyboard's focus is the focused row, whatever the last click said.
+      const rowTarget = target instanceof HTMLElement ? target.closest<HTMLElement>("[data-study-row]")?.dataset.studyRow ?? null : null;
+      const here = rowTarget ?? focusId;
+      if (rowTarget && rowTarget !== focusId) setFocusId(rowTarget);
       if (event.key === "Escape") {
         if (help) setHelp(false);
         else if (mode) setMode(null);
         else if (linkFor) setLinkFor(null);
         else if (selected.size > 0) setSelected(new Set());
-        if (mode && focusId) moveFocus(focusId);
+        if (mode && here) moveFocus(here);
         return;
       }
       if (mode) {
@@ -592,18 +596,18 @@ function ChartingScreen({ locale }: Readonly<{ locale: Locale }>) {
       if (key === null) return;
       event.preventDefault();
       if (key === "help") setHelp((h) => !h);
-      else if (key === "down" || key === "up") step(key === "down" ? 1 : -1);
-      else if (key === "extendDown" || key === "extendUp") step(key === "extendDown" ? 1 : -1, true);
-      else if (key === "toggle" && focusId) toggle(focusId);
+      else if (key === "down" || key === "up") step(key === "down" ? 1 : -1, false, here);
+      else if (key === "extendDown" || key === "extendUp") step(key === "extendDown" ? 1 : -1, true, here);
+      else if (key === "toggle" && here) toggle(here);
       else if (key === "selectAll") selectAll();
-      else if (key === "toGet") askStatus("to_get");
-      else if (key === "requested") askStatus("requested");
-      else if (key === "retrieved") askStatus("retrieved");
-      else if (key === "notRetrieved") askStatus("not_retrieved");
-      else if (key === "include") askDecision("INCLUDE");
-      else if (key === "exclude") askDecision("EXCLUDE");
-      else if (key === "attach" && focusId) startAttach(focusId);
-      else if (key === "open" && focusId) open(focusId);
+      else if (key === "toGet") askStatus("to_get", here);
+      else if (key === "requested") askStatus("requested", here);
+      else if (key === "retrieved") askStatus("retrieved", here);
+      else if (key === "notRetrieved") askStatus("not_retrieved", here);
+      else if (key === "include") askDecision("INCLUDE", here);
+      else if (key === "exclude") askDecision("EXCLUDE", here);
+      else if (key === "attach" && here) startAttach(here);
+      else if (key === "open" && here) open(here);
       else if (key === "undo") void undo();
       else if (key === "export") void runExport();
     };
@@ -767,7 +771,17 @@ function ChartingScreen({ locale }: Readonly<{ locale: Locale }>) {
   const confirmLine = (() => {
     if (!mode) return null;
     if (mode.kind === "bulk") {
-      return <p className="font-medium text-ink">{t("charting.bulk.confirm", { n: n(mode.ids.length), status: t(STATUS_KEY[mode.status]) })}</p>;
+      return (
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+          <p className="font-medium text-ink">{t("charting.bulk.confirm", { n: n(mode.ids.length), status: t(STATUS_KEY[mode.status]) })}</p>
+          <Button onClick={confirmMode} disabled={busy}>
+            {t("charting.reason.confirm")}
+          </Button>
+          <Button variant="quiet" onClick={() => setMode(null)}>
+            {t("charting.reason.cancel")}
+          </Button>
+        </div>
+      );
     }
     const chips =
       mode.kind === "notRetrieved"

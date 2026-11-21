@@ -6,6 +6,7 @@ import { formatNumber, type Locale } from "@/i18n";
 import { Button, DataCell, DecisionBadge, type DecisionRole } from "@/components/ui/base";
 import { DETAILS_LABEL, ScreeningSteps, StateCard, stepHref } from "@/components/screening-state-card";
 import { getPublicationStatus, isScreeningApiError, type PublicationStatus } from "@/lib/screening-api";
+import { chartingHref } from "@/lib/charting-api";
 import {
   DEFAULT_EXPORT_SETS,
   downloadExport,
@@ -35,6 +36,7 @@ const COPY = {
     title: "Take your screening with you.",
     lede: "Download the published decisions for a reference manager or a spreadsheet, and copy a methods paragraph that states what the workspace files show.",
     published: "Published · current",
+    chartingLink: "Chart the included studies",
     generation: "Generation",
     loading: "Reading the published screening…",
     differs: "Your current decisions differ from the published ones. The file and paragraph describe the published screening.",
@@ -95,6 +97,7 @@ const COPY = {
     title: "Emportez votre sélection.",
     lede: "Téléchargez les décisions publiées pour un gestionnaire de références ou un tableur, et copiez un paragraphe de méthodes qui dit ce que montrent les fichiers de l'espace de travail.",
     published: "Publiée · à jour",
+    chartingLink: "Extraire les données des études incluses",
     generation: "Génération",
     loading: "Lecture de la sélection publiée…",
     differs: "Vos décisions actuelles diffèrent des décisions publiées. Le fichier et le paragraphe décrivent la sélection publiée.",
@@ -155,6 +158,7 @@ const COPY = {
     title: "خذ فرزك معك.",
     lede: "نزّل القرارات المنشورة لبرنامج إدارة المراجع أو لجدول بيانات، وانسخ فقرة منهجية تذكر ما تُظهره ملفات مساحة العمل.",
     published: "منشور · محدَّث",
+    chartingLink: "استخرج بيانات الدراسات المُدرجة",
     generation: "الجيل",
     loading: "جارٍ قراءة الفرز المنشور…",
     differs: "قراراتك الحالية تختلف عن القرارات المنشورة. يصف الملف والفقرة الفرز المنشور.",
@@ -397,6 +401,10 @@ export function ScreeningExport({ locale }: Readonly<{ locale: Locale }>) {
           <p className="mt-1 max-w-3xl text-ink-muted">{t("lede")}</p>
           <p className="mt-3 flex flex-wrap items-center gap-2 text-sm">
             <DecisionBadge role="include">{t("published")}</DecisionBadge>
+            {/* M12a (spec 01 "Entry"): the full texts and the charting come after the screening. */}
+            <a className="inline-flex min-h-11 items-center text-brand underline" href={chartingHref(locale, origin)} data-charting-link>
+              {t("chartingLink")}
+            </a>
           </p>
         </header>
 
