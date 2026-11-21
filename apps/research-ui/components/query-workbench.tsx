@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent, 
 
 import type { Locale } from "@/i18n";
 import { formatNumber } from "@/i18n";
-import { Button, DecisionBadge } from "@/components/ui/base";
+import { Button, DecisionBadge, Hint } from "@/components/ui/base";
 import { refusalOf, type Refusal } from "@/components/inception-frame";
 import { discoveryT } from "@/lib/discovery-copy";
 import type { ConceptReport } from "@/lib/recon-api";
@@ -132,6 +132,17 @@ export function QueryWorkbench({
     [concepts, startYear, endYear, languages],
   );
   const key = versionKey(version.concepts);
+  const savedKey = versionKey(saved);
+  useEffect(() => {
+    // The saved search moved (an assistant's proposal applied, another save): an untouched workbench follows it.
+    if (savedKey === usedKey) return;
+    if (key === usedKey) {
+      setConcepts(saved.map((c) => ({ concept: c.concept, synonyms: [...(c.synonyms ?? [])] })));
+      commit();
+    }
+    setUsedKey(savedKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [savedKey]);
   const changed = key !== usedKey || seeds.join("|") !== savedSeeds.join("|");
   const stale = answer !== null && answerKey !== key;
   useEffect(() => onDirty?.(changed), [changed, onDirty]);
@@ -298,6 +309,7 @@ export function QueryWorkbench({
         <span className="text-xs text-ink-muted" data-query-key>
           {t("workbench.queryKey", { key: "main" })}
         </span>
+        <Hint locale={locale} label={t("workbench.title")} text={t("workbench.keys")} textKey="workbench.keys" />
         <span className="text-xs text-ink-muted" data-written>
           {t("workbench.written", { n: formatNumber(locale, version.concepts.length), t: formatNumber(locale, termTotal(version.concepts)) })}
         </span>
@@ -371,20 +383,25 @@ export function QueryWorkbench({
                 <label htmlFor="workbench-merge-name" className="block text-xs text-ink-muted">
                   {t("workbench.concept.mergeName")}
                 </label>
-                <input
+                {/* A concept's name is also searched (the protocol's first term), so the merged name is one of its terms. */}
+                <select
                   id="workbench-merge-name"
                   value={mergeName}
                   autoFocus
                   onChange={(event) => setMergeName(event.target.value)}
-                  onKeyDown={(event) => {
-                    if (event.key === "Enter") {
-                      event.preventDefault();
-                      merge();
-                    }
-                  }}
-                  dir="auto"
                   className="mt-1 block min-h-11 rounded-md border border-rule bg-paper px-2 text-ink"
-                />
+                >
+                  {selected
+                    .slice()
+                    .sort((x, y) => x - y)
+                    .flatMap((i) => termsOf(concepts[i]))
+                    .map((term) => (
+                      <option key={term} value={term}>
+                        {term}
+                      </option>
+                    ))}
+                </select>
+                <Hint locale={locale} label={t("workbench.concept.mergeName")} text={t("workbench.concept.mergeNameHelp")} textKey="workbench.concept.mergeNameHelp" />
               </div>
               <Button onClick={merge} data-merge-do>
                 {t("workbench.concept.mergeDo")}
@@ -403,8 +420,10 @@ export function QueryWorkbench({
             </p>
           ) : null}
           <div className="flex flex-wrap gap-2" data-decision-bar>
+            {/* One brand button per screen: on Inception it is "Use this version" while edits are unused, else the page's own;
+                on Plan (no "Use"), Count is the region's primary action until the caller's own action takes over. */}
             <Button
-              variant={primaryKind === "count" || !onUse ? "primary" : "secondary"}
+              variant={!onUse && !changed ? "primary" : "secondary"}
               onClick={() => void count()}
               disabled={counting || offline || !version.concepts.length}
               data-count
@@ -470,9 +489,6 @@ export function QueryWorkbench({
           />
           <ComparisonSection locale={locale} origin={origin} place={place} version={version} onApply={(index, term) => addTerm(index, term)} onFail={fail} />
           {answer?.external ? <ExternalStrings locale={locale} strings={answer.external} /> : dry?.external ? <ExternalStrings locale={locale} strings={dry.external} /> : null}
-          <p className="text-xs text-ink-muted" data-keys>
-            {t("workbench.keys")}
-          </p>
         </div>
       </div>
     </section>
@@ -788,7 +804,7 @@ function CountsSection({
   const budgets = Object.entries(answer?.budget ?? {}).filter(([, b]) => b?.low);
   return (
     <details open className="rounded-md border border-rule bg-paper p-3" data-section="counts">
-      <summary className="min-h-11 cursor-pointer py-2 font-semibold text-ink">{t("workbench.section.counts")}</summary>
+      <summary className="min-h-11 cursor-pointer py-2 font-semibold text-ink rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus">{t("workbench.section.counts")}</summary>
       {counting ? (
         <p role="status" aria-busy="true" className="text-sm text-ink-muted" data-counting>
           {t("workbench.row.counting")}
@@ -857,7 +873,7 @@ function CountsSection({
                         ) : null}
                         {row.string ? (
                           <details className="mt-1 text-xs">
-                            <summary className="min-h-11 cursor-pointer py-3 text-ink-muted">{t("workbench.string.show")}</summary>
+                            <summary className="min-h-11 cursor-pointer py-3 text-ink-muted rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus">{t("workbench.string.show")}</summary>
                             <code dir="ltr" className="block whitespace-pre-wrap break-all select-all text-ink" data-string>
                               {row.string}
                             </code>
@@ -1134,7 +1150,7 @@ function SeedsSection({
     .filter((s, i, all) => s.concept >= 0 && !rejected.includes(s.term) && all.findIndex((x) => x.term === s.term) === i);
   return (
     <details className="rounded-md border border-rule bg-paper p-3" data-section="seeds">
-      <summary className="min-h-11 cursor-pointer py-2 font-semibold text-ink">
+      <summary className="min-h-11 cursor-pointer py-2 font-semibold text-ink rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus">
         {t("workbench.seeds.title")} · <span className="font-normal text-ink-muted" data-seeds-summary>{summary}</span>
       </summary>
       {seeds.length === 0 ? <p className="text-sm text-ink-muted">{t("workbench.seeds.none")}</p> : null}
@@ -1193,7 +1209,7 @@ function SeedsSection({
           {oa?.status === "switch_off" ? t("workbench.seeds.db.switchOff") : null} {t("workbench.seeds.db.notChecked")}
         </p>
       ) : null}
-      <p className="mt-1 text-xs text-ink-muted">{t("workbench.seeds.measure")}</p>
+      <Hint locale={locale} label={t("workbench.seeds.title")} text={t("workbench.seeds.measure")} textKey="workbench.seeds.measure" />
       {seedSuggestions.length ? (
         <SuggestionList
           locale={locale}
@@ -1285,7 +1301,7 @@ function ComparisonSection({
     : t("workbench.cmp.summary.none");
   return (
     <details className="rounded-md border border-rule bg-paper p-3" data-section="comparison">
-      <summary className="min-h-11 cursor-pointer py-2 font-semibold text-ink">
+      <summary className="min-h-11 cursor-pointer py-2 font-semibold text-ink rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus">
         {t("workbench.cmp.title")} · <bdi dir="auto" className="font-normal text-ink-muted" data-cmp-summary>{summary}</bdi>
       </summary>
       {sets.length === 0 ? <p className="text-sm text-ink-muted">{t("workbench.cmp.empty")}</p> : null}
@@ -1336,7 +1352,7 @@ function ComparisonSection({
                   <p className="text-xs text-ink-muted" data-measure={r.measure}>
                     {t("workbench.cmp.measure", { name: t(`workbench.cmp.measure.${r.measure}` as WorkbenchCopyKey) })}
                   </p>
-                  {r.measure === "words" ? <p className="text-xs text-ink-muted">{t("workbench.cmp.measure.words.help")}</p> : null}
+                  {r.measure === "words" ? <Hint locale={locale} label={t("workbench.cmp.measureChoice")} text={t("workbench.cmp.measure.words.help")} textKey="workbench.cmp.measure.words.help" /> : null}
                   {r.status === "switch_off" ? <p className="text-sm text-ink-muted">{t("workbench.cmp.measure.openalex.off")}</p> : null}
                   {r.missing_count === null ? null : r.missing_count === 0 ? (
                     <p className="text-ink">{t("workbench.cmp.none", { database: s.database })}</p>
@@ -1433,7 +1449,7 @@ function ExternalStrings({ locale, strings }: Readonly<{ locale: Locale; strings
   const t = workbenchT(locale);
   return (
     <details className="rounded-md border border-rule bg-paper p-3" data-section="external">
-      <summary className="min-h-11 cursor-pointer py-2 font-semibold text-ink">{t("workbench.external.title")}</summary>
+      <summary className="min-h-11 cursor-pointer py-2 font-semibold text-ink rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus">{t("workbench.external.title")}</summary>
       <p className="text-xs text-unclear">{t("workbench.external.check")}</p>
       {Object.entries(strings).map(([db, text]) => (
         <div key={db} className="mt-2">

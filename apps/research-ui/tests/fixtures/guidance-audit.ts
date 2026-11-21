@@ -3,6 +3,7 @@ import { join } from "node:path";
 
 import { DISCOVERY_COPY } from "@/lib/discovery-copy";
 import { INCEPTION_COPY } from "@/lib/inception-copy";
+import { WORKBENCH_COPY } from "@/lib/workbench-copy";
 
 /**
  * The Audit of `docs/ux/shared/final/03-guidance.md` (M10d), read from the spec
@@ -33,6 +34,8 @@ function specPath(): string {
 
 export const INCEPTION_KEYS = Object.keys(INCEPTION_COPY.en);
 export const DISCOVERY_KEYS = Object.keys(DISCOVERY_COPY.en);
+/** M11a: the query workbench's catalog (`W-` rows). */
+export const WORKBENCH_KEYS = Object.keys(WORKBENCH_COPY.en);
 
 /** A token as written, then relative to each leading part of the row's first key (`size.ok` after `explore.tile.size.title`). */
 function resolve(token: string, first: string, catalog: string[]): string[] {
@@ -58,11 +61,11 @@ export function auditRows(): AuditRow[] {
   const text = readFileSync(specPath(), "utf-8");
   const rows: AuditRow[] = [];
   for (const line of text.split(/\r?\n/)) {
-    const m = line.match(/^\| ((?:I|D)-[A-Z]*\d+) \| (.*?) \| (.*?) \| (STAYS|HINT|REMOVED) \| (.*) \|$/);
+    const m = line.match(/^\| ((?:I|D|W)-[A-Z]*\d+) \| (.*?) \| (.*?) \| (STAYS|HINT|REMOVED) \| (.*) \|$/);
     if (!m) continue;
     const [, id, keyCell, textCell, decision, reason] = m;
     const tokens = [...keyCell.matchAll(/`([^`]+)`/g)].map((t) => t[1]);
-    const catalog = id.startsWith("I-") ? INCEPTION_KEYS : DISCOVERY_KEYS;
+    const catalog = id.startsWith("I-") ? INCEPTION_KEYS : id.startsWith("W-") ? WORKBENCH_KEYS : DISCOVERY_KEYS;
     const first = tokens[0] ?? "";
     const keys = new Set<string>();
     const unresolved: string[] = [];
