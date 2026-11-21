@@ -1,14 +1,14 @@
 # M12a Charting table
 
-Branch: `dev/m12a/charting-table-spec` (from `origin/main` at `1f218054`) · Lane: declared per part (proposed below: A, B and C **RELEASE**) · Status: **SPECIFICATION DRAFT, for the researcher to read and decide on; nothing built** (decision "2026-11-20 — The order of work after the acceptance run", item 5: a specification is written and read before anything is built) · Fifth in the agreed order (plan §6, "After the acceptance run", row 5)
+Branch: `dev/m12a/charting-table-spec` (from `origin/main` at `1f218054`) · Lane: declared per part (A, F, B and C **RELEASE**) · Status: **SPECIFICATION; questions 1 to 10 answered by the researcher on 2026-11-21** (eight as recommended; question 6 changed: open-access copies are fetched, in a Part F of its own after A; question 9 changed: the agent-cells specification is written now, [`M12c-agent-cells.md`](M12c-agent-cells.md)). Part F's details and three items not asked separately wait for the researcher (the page's second table). **Nothing built; the start of the build is the researcher's to approve separately.** (Decision "2026-11-20 — The order of work after the acceptance run", item 5: a specification is written and read before anything is built.) · Fifth in the agreed order (plan §6, "After the acceptance run", row 5)
 
-Short page for the researcher: [`M12a-charting-table-for-review.md`](M12a-charting-table-for-review.md). Screens (drafts): [`docs/ux/phase3-extraction/final/01-charting-table.md`](../../ux/phase3-extraction/final/01-charting-table.md) and [`docs/ux/phase3-extraction/final/02-one-study.md`](../../ux/phase3-extraction/final/02-one-study.md). Decisions: `docs/decisions.md`, "2026-11-21 — M12a charting table: the specification's choices" (PROPOSED).
+Short page for the researcher: [`M12a-charting-table-for-review.md`](M12a-charting-table-for-review.md). Screens (drafts; their own questions are still open): [`docs/ux/phase3-extraction/final/01-charting-table.md`](../../ux/phase3-extraction/final/01-charting-table.md) and [`docs/ux/phase3-extraction/final/02-one-study.md`](../../ux/phase3-extraction/final/02-one-study.md). Decisions: `docs/decisions.md`, "2026-11-21 — M12a charting table: the specification's choices" (answered 2026-11-21; Part F items PROPOSED).
 
 Sources: `docs/roadmap/what-a-researcher-does.md` (steps 7 to 10), plan §6 row 5 and §8, `docs/roadmap/acceptance-run-sensor-stress-2026-11-20.md`, the Phase 3 wireframes and findings X1 to X10 of 2026-11-02 (`docs/ux/phase3-extraction/README.md`, design history), and the code at `1f218054`, checked by the `phase-auditor` agent on 2026-11-21 (every "today" statement below carries its file reference).
 
 ## Goal
 
-Take the researcher from the records kept at title and abstract to a filled charting table they can export and write from, in the app, without a spreadsheet kept on the side. Per kept record: get the full text and record whether it was retrieved; decide at full text (include, or exclude with exactly one reason, counted for PRISMA 2020); chart one row per included study in the protocol's own columns, where "not reported" is a value and every change is saved, undoable and journaled. Export a CSV and a spreadsheet with the full-text counts and a methods text, and leave automation (fetching PDFs, reading them, an agent proposing cells) for later milestones that this one makes possible.
+Take the researcher from the records kept at title and abstract to a filled charting table they can export and write from, in the app, without a spreadsheet kept on the side. Per kept record: get the full text (attached by the researcher, or fetched as an open-access copy that the researcher confirms) and record whether it was retrieved; decide at full text (include, or exclude with exactly one reason, counted for PRISMA 2020); chart one row per included study in the protocol's own columns, where "not reported" is a value and every change is saved, undoable and journaled. Export a CSV and a spreadsheet with the full-text counts and a methods text, and leave reading PDFs (M12b) and an agent proposing cells (M12c, specified now as a plan) for later milestones that this one makes possible.
 
 ## What a researcher does at this stage
 
@@ -57,48 +57,92 @@ The first user is the researcher's own scoping review (sensor stress in UAV mult
 - No xlsx writer is a dependency in any extra (`pyproject.toml`).
 - Contract v1 has no model for a retrieval record, a full-text decision or a charting cell (`contracts/models.py`); `ScreeningDecisionValue` has no full-text stage.
 
-## Scope decisions (each argued both ways; the recommendation is the PROPOSED decision)
+## Scope decisions (each argued both ways)
+
+**Answered by the researcher on 2026-11-21** (questions of the researcher's page, quoted as chosen): 1 "Outside for now"; 2 "Beside the protocol"; 3 "Yes"; 4 "Only after publication"; 5 "Yes, smallest form"; 6 **"Fetch open-access PDFs"**, placed as **"Own part after A"** (not as recommended; see (d) and the new (d2)); 7 "Yes to both"; 8 "Add openpyxl"; 9 **"Plan it now"** (not as recommended; see (g)); 10 "A, B, C; CSV in B". Items (b), (f) and (i) were described on the page but not asked as questions; they stand as written until the researcher says otherwise (new question 1 on the page).
 
 ### (a) Which records enter the table
 
-**Recommendation: every record published as Include or as Unclear → full text, from every published round, read from the published files only.** In PRISMA 2020 both are "reports sought for retrieval": a title-and-abstract Include is not a final include. Each row shows its round (Databases, or Citation chasing) because PRISMA 2020 reports "other methods" in a separate column. A new engine reader joins the current `included.json` with each archived `round_NNN/included.json`.
+**Decided 2026-11-21 (answer 4, as recommended): every record published as Include or as Unclear → full text, from every published round, read from the published files only.** In PRISMA 2020 both are "reports sought for retrieval": a title-and-abstract Include is not a final include. Each row shows its round (Databases, or Citation chasing) because PRISMA 2020 reports "other methods" in a separate column. A new engine reader joins the current `included.json` with each archived `round_NNN/included.json`.
 - *For included only:* a smaller table (74 rows, not several hundred); the Unclear records could wait. *Against:* "Unclear → full text" means exactly "decide at full text"; leaving them out makes the full-text counts wrong and pushes several hundred decisions back into a spreadsheet.
-- *For reading current, unpublished decisions:* the researcher could start before finishing screening. *Against:* publication is the only point where the kept set is approved and fingerprinted; rows would appear and vanish as decisions change, and the counts in the paper would not match the published screening. **Cost to the researcher:** the remaining title-and-abstract records must be decided and their batches approved before the table opens (open question 4).
+- *For reading current, unpublished decisions:* the researcher could start before finishing screening. *Against:* publication is the only point where the kept set is approved and fingerprinted; rows would appear and vanish as decisions change, and the counts in the paper would not match the published screening. **Cost to the researcher:** the remaining title-and-abstract records must be decided and their batches approved before the table opens (accepted with answer 4).
 - **Screening published again** (a decision changed after charting began): a row whose record left the kept set is not deleted; it is marked "No longer kept at title and abstract", keeps its values, and is left out of exports and counts. A new kept record appears marked "New since <date>".
 - **A second, chased round:** its records join when that round is published; until then the table says a round is in progress. Records are keyed by `study_id`; one study in two rounds is impossible by construction (the chase screens only what is new; M3g).
 
 ### (b) Full-text status per record
 
-**Recommendation: four states.** `To get` (the default for every row), `Requested` (asked the library or the authors; optional date), `Retrieved`, `Not retrieved` with exactly one reason from a short fixed list (No access; Not found; Authors did not reply; Other, with words). "Sought" is not a state: every kept record is sought, as PRISMA counts it.
+**Recommendation (described on the page, not asked): four states.** Part F adds a fifth, `Fetched, to confirm`, which is not counted as retrieved ((d2)). `To get` (the default for every row), `Requested` (asked the library or the authors; optional date), `Retrieved`, `Not retrieved` with exactly one reason from a short fixed list (No access; Not found; Authors did not reply; Other, with words). "Sought" is not a state: every kept record is sought, as PRISMA counts it.
 - **Many at once:** select rows (X; Shift+J/K extends; A selects every row shown), one key, an inline confirmation ("Mark 23 records as Retrieved? Enter to confirm"). One event per record, one journal row per action.
 - *Against a richer model (request dates, reminders, library ticket numbers):* useful, but a tracker; a note per row covers it.
 
 ### (c) Full-text screening: here, or its own milestone
 
-**Recommendation: here, in its smallest form.** Per row: `Include` or `Exclude` with exactly one reason: the protocol's exclusion criteria and failed inclusion criteria (the codes screening already uses, `EXC-n`, `FAILS-INC-n`, with their `reason_category` when set) plus "Other" with words. No per-criterion checklist, no agent, no batches, no approval code. **One record at a time** (no bulk full-text decision): PRISMA reports each as assessed. Undo as in triage.
+**Decided 2026-11-21 (answer 5, as recommended): here, in its smallest form.** Per row: `Include` or `Exclude` with exactly one reason: the protocol's exclusion criteria and failed inclusion criteria (the codes screening already uses, `EXC-n`, `FAILS-INC-n`, with their `reason_category` when set) plus "Other" with words. No per-criterion checklist, no agent, no batches, no approval code. **One record at a time** (no bulk full-text decision): PRISMA reports each as assessed. Undo as in triage.
 - *For a milestone of its own:* full-text screening deserves the triage treatment (criterion answers, the agent, blinding, a publish step) and would keep M12a small. *Against:* without it the table holds every excluded-at-full-text record, the PRISMA full-text box stays empty, and the researcher keeps the decisions in a spreadsheet anyway; the protocol already promises a second tier (`two_tier_screening: true`). The smallest form is one field and one reason list on a row the table already has.
 - *What it does not do (later):* link several reports of one study (PRISMA 2020's reports vs studies). M12a counts **reports** and says so in the export and the methods text; a note can say "same study as …".
-- **No approval step** for full-text decisions: the researcher is the only reviewer, and the export carries the state and the bindings. A publish-like step can be added when a second reviewer exists (open question 9).
+- **No approval step** for full-text decisions: the researcher is the only reviewer, and the export carries the state and the bindings. A publish-like step can be added when a second reviewer exists (a later decision).
 
-### (d) Attaching a PDF or a link; the app fetches nothing
+### (d) Attaching a PDF or a link (Part A)
 
-**Recommendation: the researcher attaches a local PDF or pastes a link, or neither; the app sends no request.** An attached PDF is copied into the workspace's `pdfs/` (already gitignored) as `pdfs/<study_id>.pdf`, with its size and SHA-256 recorded; "Open" serves it from the local console in a new browser tab. A pasted link is stored as text. The record's DOI link is shown. Attaching a PDF to a row in `To get` sets it to `Retrieved` (undoable). Size limit 100 MB (a constant), PDF only (checked by its first bytes).
-- *For fetching open-access copies:* most of this review's papers are open (MDPI, arXiv); a fetch would save clicks. *Against:* the fetcher is parked, PDF-07 is live, a wrong PDF silently attached is worse than none, Unpaywall needs the e-mail on every request, and no fetch has been measured on this review. The honest minimum is the researcher's own copy. A later milestone (M12b) can fetch, then show each fetched PDF for confirmation.
-- *Not here:* reading the PDF (text, pages), a viewer inside the app, highlights in the full text (M8b's component on extracted text comes with M12b).
+**Decided 2026-11-21 (answer 6), not as recommended.** The recommendation was that the app fetches nothing. The researcher chose "Fetch open-access PDFs", in "Own part after A": **Part A ships with attach-your-own exactly as below and sends no request; Part F, specified in (d2), fetches.** The arguments below are kept as written; the "against" points are the conditions (d2) has to meet.
+
+**Part A: the researcher attaches a local PDF or pastes a link, or neither; no Part A route sends a request.** An attached PDF is copied into the workspace's `pdfs/` (already gitignored) as `pdfs/<study_id>.pdf`, with its size and SHA-256 recorded; "Open" serves it from the local console in a new browser tab. A pasted link is stored as text. The record's DOI link is shown. Attaching a PDF to a row in `To get` sets it to `Retrieved` (undoable). Size limit 100 MB (a constant), PDF only (checked by its first bytes).
+- *For fetching open-access copies:* most of this review's papers are open (MDPI, arXiv); a fetch would save clicks. *Against:* the fetcher is parked, PDF-07 is live, a wrong PDF silently attached is worse than none, Unpaywall needs the e-mail on every request, and no fetch has been measured on this review. The honest minimum is the researcher's own copy. *(Answered: fetching comes in Part F, after A, with each fetched PDF shown for confirmation.)*
+- *Not in M12a:* reading the PDF (text, pages), a viewer inside the app, highlights in the full text (M8b's component on extracted text comes with M12b-read).
+
+### (d2) Part F: fetching open-access copies (researcher's answer 6; the details below are PROPOSED)
+
+**What was asked.** A part of its own after A that fetches open-access copies, records each file in a manifest, and shows every fetched PDF as "to confirm" before it counts as Retrieved. Fetching stays out of Part A.
+
+**What the researcher does.** In the Full text view they select rows, or choose "every row To get that has a DOI", and press `L` (look up; `F` already opens the form panel in screen 01). The status line asks: "Look up open-access copies of 214 records? The app asks Unpaywall and OpenAlex with your contact e-mail (shown) and downloads only the PDFs they list as open access. 37 selected records have no DOI and are skipped." Enter starts one run for the workspace; it can be cancelled and shows its progress. Each file found lands on its row as **Fetched, to confirm**, with its source, its version (published, accepted manuscript, preprint) and its licence as the provider gives them. That status is not Retrieved and is not counted as retrieved. The researcher opens the file (`O`) and either confirms it (`C`, "This is the full text of this record": the row becomes Retrieved) or discards it (`D`, with one reason: Wrong paper; Not the full text (abstract, supplement, landing page); Unreadable; Other, with words), and the row returns to its earlier status. Deciding the record at full text (`I` or `E`) on a row with a file to confirm asks first "Confirm this PDF as the full text? Enter", so the two take one step. There is no bulk confirmation: confirming means having looked.
+
+**The manifest first (what PDF-07 requires).** PDF-07 is that the kit stores its files as `DOC-<sha256>.pdf` and keeps no record of which study a file belongs to (`downloader.py:111-114`; `docs/assessment/kit-pdf.md` §3), so nothing downstream can tell. Part F never stores a file without its manifest row:
+- `charting/fetch_manifest.jsonl`, append-only, one row per record reached in a run: fetch run id; `study_id`; DOI; each provider asked and its answer (an open-access location, none, or an error with its HTTP status); the location used (URL as given, host type, version, licence); the final URL after redirects, each redirect, the HTTP status and content type; bytes and SHA-256; each check by name with its result; the stored path; the time; the app version.
+- The file is stored by content as `pdfs/fetched/<sha256>.pdf` (under `pdfs/`, so gitignored; outside the non-recursive `pdfs/*.pdf` listing of `GET /harvest/corpus`). On confirmation, Part A's attachment event names the study, the manifest row and the hash, with `origin: fetched`, and the file is copied to `pdfs/<study_id>.pdf`, Part A's name. Confirm and discard are events in Part A's events file (`kind` `fetched_confirm`, `fetched_discard`), undoable like any other.
+- Journal: `CHARTING_FETCH_STARTED` (records asked, providers, the e-mail used, whether the OpenAlex key is set but never its value) and `CHARTING_FETCH_FINISHED` (asked, found, downloaded, failed checks, errors, skipped without DOI, cancelled); confirmations ride in `CHARTING_EVENTS_RECEIVED`.
+- PDF-07 itself (stage 5 of the parked `run` looking for slug and DOI names, `pipeline/extraction.py:79-95`) stays open: Part F does not go through `run`, stage 5 or `scholar-pdf download`. The manifest and the confirmed attachment are the mapping M12b-read will use. Part F does not write the legacy `literature/pdf_manifest.json` that `GET /harvest/corpus` reads and nothing writes (a follow-up).
+
+**How a fetched file is checked before it is shown.** In this order; a failure stops the file and is written to the manifest:
+1. The location came from Unpaywall or OpenAlex as an open-access PDF location; landing pages are not followed or scraped.
+2. The answer is HTTP 200 after at most five redirects, each recorded.
+3. The body is streamed to a staging file with a hard stop at 100 MB (Part A's limit).
+4. The kit's `is_valid_pdf` (`scholar_pdf/validator.py:20-…`): a `%PDF-` header in the first 1,024 bytes, `%%EOF` in the last 8 KB, at least 10 KB. This catches an HTML page named `.pdf` and a `%PDF-`-prefixed HTML page.
+5. The same SHA-256 as a file already fetched or attached for another record (a shared supplement, a publisher's error page) is shown as a warning on both rows.
+6. With the `pdf` extra installed, the text of the first two pages is searched for the record's DOI and its title words ("Title found on page 1", or "Title not found: check it"); without the extra the row says "Not checked: open it". The base install does not parse PDFs.
+
+None of these proves the file is the right paper, which is why only the researcher's confirmation makes it Retrieved.
+
+**What the providers need.**
+- **Unpaywall:** one request per DOI with `email=` on every request. Part F uses `SCHOLAR_MAILTO`; without it the run is refused `MAILTO_NOT_SET`, the existing code and wording from discovery (`console/api/discovery.py:278-284`; decision 2026-11-08, "A live search needs a real contact email"). The kit's default `student@university.edu` (`scholar_pdf/config.py:8`) is never sent. Unpaywall's published guidance, as recalled and to be checked again when building: an e-mail on every call and at most about 100,000 calls a day; one review is a few hundred.
+- **OpenAlex:** an API key is required since 2026-02-13; keyless calls share a small daily budget, then answer 409 (`scholar_search/providers/openalex.py:17-27`, decision 2026-11-10, "OpenAlex needs its API key"). The kit's lookup (`scholar_pdf/downloader.py:239-249`) sends only `mailto`, which OpenAlex no longer reads, so it is stale and not reused as it is. With `SCHOLAR_OPENALEX_KEY` set, Part F asks OpenAlex as well (its open-access locations); without it, Part F asks Unpaywall alone and says so before the run. OpenAlex calls draw on the same daily budget as a harvest.
+- **The PDF hosts** named by those locations (publishers, repositories, arXiv). The app names itself (`nexus-scholar/<version> (mailto:<SCHOLAR_MAILTO>)`), not a browser (the kit sends a Chrome user agent, `downloader.py:200-201`). One request at a time per host, with a pause between requests to the same host; a 429 waits out `Retry-After` within the existing client's cap (`scholar_search/http_client.py:290-…`), otherwise the record is marked "Try later"; 403, 404 and 410 are written to the manifest and never retried (the kit retries them, `docs/assessment/kit-pdf.md` §2).
+- **Records without a DOI** are not looked up; the run says how many and they stay with the researcher (question F7).
+
+**What is never done.** No paywall bypass of any kind: no shadow library, no login or cookies, no browser automation, no scraping of landing pages, no guessed publisher URLs (the kit's `enable_publisher_direct_patterns`, on by default in `scholar_pdf/config.py:30`, is not used). No institutional proxy or gateway in Part F (the kit supports one, `downloader.py:53-89, :365-379`; question F5). No fetch in the background or on a schedule: every run is started by the researcher, with its count and the services named. Fetched files stay in `pdfs/`, which is not in git, and are never exported.
+
+**Reused and not reused.** Reused from `scholar_pdf`, moved or wrapped into a production module (for example `src/scholar_harness/charting/fetch.py`) with its own tests: `is_valid_pdf`, the staging and atomic promotion, and the reading of Unpaywall and OpenAlex locations (`extract_metadata`, `_provider_access_status`). Not reused: `PDFDownloader.process_doi` and `download_batch` as they are (browser user agent, guessed URLs, proxy, the retry policy, the stale OpenAlex call, no manifest), the `scholar-pdf` CLI and its MCP tools, which stay parked with their notice (question F1).
+
+**Refusals.** Reused: `MAILTO_NOT_SET`, `SCREENING_NOT_PUBLISHED`, `RECORD_NOT_KEPT`, `BODY_INVALID`. New: `FETCH_ALREADY_ACTIVE` (one run per workspace), `FETCH_NOT_PENDING` (confirm or discard of a file not waiting), `DISCARD_REASON_REQUIRED`.
+
+**Screen.** The Full text view gains the `L` action and its confirmation, the "Fetched, to confirm" status with source, version and licence, `C` and `D`, the fetch progress line, and a "To confirm" filter. Screen 01 points here; its fetch states are drafted in screen 01 before Part F is built.
+
+**Lane and size.** **RELEASE**: outgoing provider calls, a new persisted manifest, new routes and refusal codes, and parts of a parked kit becoming production. Size M.
+
+**Where it sits.** After A, as the researcher chose: **A, F, B, C**. F and B share the table screen, so they are built one after the other, not in parallel. If the one-to-two-week need presses, B can go before F, since charting needs no fetch (question F2).
 
 ### (e) The charting itself
 
-**Recommendation:** one row per record not excluded at full text; one column per `matrix_dimensions` item, in protocol order.
+**Decided 2026-11-21 (answers 2 and 7, as recommended):** one row per record not excluded at full text; one column per `matrix_dimensions` item, in protocol order.
 - **Types:** Text (`free_text`), Number (`numeric`), One of a list (`categorical`), Several of a list (`list`), and Yes/No (a One of with two fixed options). The **options** of a list column live in the charting form (below), because the protocol model has no field for them.
 - **Every cell is one of:** empty (not charted yet), a value, **Not reported** (a value of its own, shown with words, never colour alone; it matches the protocol's `fallback_value`), or **Not applicable**.
 - **Per cell, optional:** a note, and "Where from" (page, table or a short quote, free text, never checked by the app in this milestone).
 - **Required columns** (`required: true`) are marked; the export counts their uncharted cells. Nothing blocks.
-- **Charting without a retrieved full text is allowed** (scoping reviews sometimes chart from abstracts) and the row says "No full text" everywhere, including the export and the methods count (open question 10).
+- **Charting without a retrieved full text is allowed** (scoping reviews sometimes chart from abstracts) and the row says "No full text" everywhere, including the export and the methods count (answer 7).
 - *Against types:* free text everywhere is simpler and is what a spreadsheet gives. *For:* the researcher's first column is a list of three problems; typed options make the export countable (how many studies simulate a change of camera) without cleaning text later.
 
 ### (f) Piloting the columns, then changing them
 
-**Recommendation: a charting form beside the protocol, changed by recorded amendments, with a pilot switch.**
+**The form beside the protocol is decided (answer 2); the pilot and amendments were described on the page, not asked. Recommendation: a charting form beside the protocol, changed by recorded amendments, with a pilot switch.**
 - The form (`charting/form.json`) is seeded once from `matrix_dimensions` (id, name, description, type, required) and adds what the protocol cannot hold: options, Yes/No, the order. **The protocol is never changed**, so its fingerprint, the corpus, the screening and every binding stay as they are.
 - **Pilot:** a switch, on by default at first visit ("Try the form on about five studies, then revise it"); rows charted while it is on are marked Pilot. "End pilot" is one recorded click.
 - **Amendments:** once any value exists, a change of a column (rename, definition, type, options added or removed, split into several, merged, added, removed) needs a one-sentence reason and writes one row of `charting/form_amendments.jsonl` (amendment id, what changed, from, to, reason, pilot or not, who, when, the protocol fingerprint and screening generation it was made under) and a `CHARTING_FORM_AMENDED` journal row. The methods text lists them ("The charting form was piloted on 5 studies and revised: …").
@@ -107,13 +151,15 @@ The first user is the researcher's own scoping review (sensor stress in UAV mult
 
 ### (g) An agent proposing cell values: later
 
-**Recommendation: not in M12a.** The storage leaves room for it: every event records who made it (`researcher:local` today; `agent:<model>` later) and the method (`HUMAN`).
-What must exist first, in this order: (1) full text as text with page anchors (the PDF kit's parse, PDF-07 and PDF-08 fixed, a text-quality flag, X2); (2) a quote check over the full text, reusing screening's `quote_in_source` rule (the quote equals the text at its offsets), so a proposal without a checkable quote cannot be adopted; (3) the M8b highlighter on that text, to show the quote; (4) a measurement on the researcher's own charted rows (agreement per column, as M9a did for screening) and a spend approval; (5) the decision on Contract v1 types for cells (open question 1); (6) an adoption that records `AGENT_ADOPTED`-like provenance, never `HUMAN`. The parked `scholar_rag` matrix extractor is not a starting point (X3, X4).
+**Decided 2026-11-21 (answer 9), not as recommended:** the researcher chose "Plan it now". The agent stays out of M12a's build, but its specification is written now, in parallel with the build: [`M12c-agent-cells.md`](M12c-agent-cells.md) and its page [`M12c-agent-cells-for-review.md`](M12c-agent-cells-for-review.md), a plan only, built on the list below. Nothing in it is approved to build, and any AI spend needs the researcher's approval.
+
+**The recommendation, kept: not in M12a's build.** The storage leaves room for it: every event records who made it (`researcher:local` today; `agent:<model>` later) and the method (`HUMAN`).
+What must exist first, in this order: (1) full text as text with page anchors (the PDF kit's parse, PDF-07 and PDF-08 fixed, a text-quality flag, X2); (2) a quote check over the full text, reusing screening's `quote_in_source` rule (the quote equals the text at its offsets), so a proposal without a checkable quote cannot be adopted; (3) the M8b highlighter on that text, to show the quote; (4) a measurement on the researcher's own charted rows (agreement per column, as M9a did for screening) and a spend approval; (5) the decision on Contract v1 types for cells (answer 1: a contract decision comes first; M12c question 1); (6) an adoption that records `AGENT_ADOPTED`-like provenance, never `HUMAN`. The parked `scholar_rag` matrix extractor is not a starting point (X3, X4).
 - *For now:* the researcher's columns are judgement-heavy (what counts as "simulating" a camera change); an agent would save time only on cameras and splits. *Against now:* none of (1) to (4) exists, and a wrong cell in a scoping review's table is a wrong finding.
 
 ### (h) Export, PRISMA counts and the methods text
 
-**Recommendation:**
+**Decided 2026-11-21 (answers 8 and 10, as recommended; the plain CSV of the Charting view comes with B):** With Part F the Full text sheet also carries each row's file origin (attached or fetched), the fetched version and licence, and the methods text adds "Open-access copies of F reports were located with Unpaywall [and OpenAlex] and each was checked by the reviewer before use; D were discarded (reasons)."
 - **CSV**: the charting table (one row per record not excluded at full text), with columns study id, first author, year, title, DOI, round, full-text status, then per charting column its value, note and where-from; UTF-8 with BOM, CRLF (reusing `render_csv`).
 - **Spreadsheet (.xlsx)**, sheets: Charting (as the CSV), Full text (every kept record: round, status, reason, decision, reason), PRISMA counts, Charting form (columns, definitions, types, options, amendments), About (workspace, protocol fingerprint, corpus snapshot, screening generation and its publication date, export time, app version, "working export"). Written with `openpyxl` added to the base install (pure Python; open question 8).
 - **PRISMA counts this stage adds**, per round (Databases / Citation chasing) and in total: reports sought for retrieval; reports not retrieved (with reasons); reports assessed for eligibility; reports excluded (with reasons, one each); reports included. Written to the export and to a new `charting/prisma_fulltext.json`; the screening's `prisma_report.json` is not rewritten.
@@ -122,7 +168,7 @@ What must exist first, in this order: (1) full text as text with page anchors (t
 
 ### (i) Saving, undo, audit, and a second reviewer later
 
-**Recommendation:**
+**Recommendation (described on the page, not asked):**
 - **Every change is saved at once** as an append-only event in `charting/events/<screener_id>.jsonl`, the screening pattern: client `event_id`, `screener_id`, `at`, `method: "HUMAN"`, `study_id`, `kind` (`fulltext_status`, `fulltext_decision`, `attachment`, `link`, `cell`), the value, an optional note and where-from, and a binding (protocol fingerprint, screening generation id and fingerprint, form version). No Save button.
 - **Undo** is a later event that `supersedes` the earlier one and restores the previous value (`Z`, as in triage). Nothing is overwritten.
 - **Journal:** one row per save request (`CHARTING_EVENTS_RECEIVED`, counts by kind), committed with its events; plus `CHARTING_FORM_CREATED`, `CHARTING_FORM_AMENDED`, `CHARTING_PILOT_ENDED`, `CHARTING_ATTACHMENT_ADDED` (with the SHA-256), `CHARTING_EXPORTED`. A field is sent when it loses focus or on Enter (screen 02), never per keystroke; so a fully charted study of two columns costs a few journal rows. If that proves too noisy on 150 rows, the build may group a study's fields into one request; the event store is unchanged either way.
@@ -141,9 +187,19 @@ Each item is checked by a test named in the build record, unless it says "live".
 - [ ] DoD 4. A status set on many records is one request, one event per record and one journal row; a record not in the kept set is refused per item (`RECORD_NOT_KEPT`, new).
 - [ ] DoD 5. A full-text decision (Include, or Exclude with exactly one reason from the protocol's exclusion and failed-inclusion codes or Other with words) is one record per request; a bulk decision is refused.
 - [ ] DoD 6. Undo: an event with `supersedes` restores the previous value; the chain rule of screening applies (same study, same screener).
-- [ ] DoD 7. A PDF upload (PDF signature, at most 100 MB) is stored as `pdfs/<study_id>.pdf` with its size and SHA-256 in the event and a `CHARTING_ATTACHMENT_ADDED` journal row; it is served back by `GET …/attachment`; anything else is refused (`ATTACHMENT_NOT_PDF`, `ATTACHMENT_TOO_LARGE`, new). A link is stored as text. No outgoing request is made by any M12a route (a test with the network guard).
+- [ ] DoD 7. A PDF upload (PDF signature, at most 100 MB) is stored as `pdfs/<study_id>.pdf` with its size and SHA-256 in the event and a `CHARTING_ATTACHMENT_ADDED` journal row; it is served back by `GET …/attachment`; anything else is refused (`ATTACHMENT_NOT_PDF`, `ATTACHMENT_TOO_LARGE`, new). A link is stored as text. No outgoing request is made by any Part A route (a test with the network guard).
 - [ ] DoD 8. The table screen, Full text view, as in `01-charting-table.md`: every state has its words in en, fr and ar; keyboard as specified; axe passes in light and dark.
 - [ ] DoD 9. A fourth header item and a next-step state after Publish lead to the table; Publish no longer says it writes a full-text list; Inception's "Parked: the Matrix phase…" line is replaced by "These columns are filled on the Charting step." (and its test).
+
+**Fetching open-access copies (part F, after A; details PROPOSED in (d2))**
+- [ ] DoD F1. Without `SCHOLAR_MAILTO` a fetch is refused `MAILTO_NOT_SET` and no socket is opened; without `SCHOLAR_OPENALEX_KEY` OpenAlex is not asked and the run says so before it starts; the kit's default e-mail is never sent (tests on recorded cassettes, the suite's network guard).
+- [ ] DoD F2. Every record a run reaches has a row in `charting/fetch_manifest.jsonl` (append-only; provider answers, location, version, licence, redirects, status, bytes, SHA-256, each check), including records skipped without a DOI, failed, or reached before a cancel; no file is stored without its row.
+- [ ] DoD F3. The checks of (d2), each on a local stub server: a real small PDF passes; an HTML page named `.pdf` and a `%PDF-`-prefixed HTML page fail; a body over the limit is cut and fails (limit lowered in the test); redirects are recorded and capped; 403, 404 and 410 are not retried; a 429 waits out `Retry-After` within the cap or ends as "Try later"; the same bytes for two records warn on both.
+- [ ] DoD F4. Requests carry the app's own user agent with the e-mail; no proxy and no guessed publisher URL is used even when the kit's settings ask for them (a test sets both).
+- [ ] DoD F5. A fetched file is `Fetched, to confirm` and counts as neither retrieved nor assessed; the PRISMA full-text counts do not move until it is confirmed (a test). Confirm writes the attachment with `origin: fetched` and the manifest row, and copies the file to `pdfs/<study_id>.pdf`; discard needs one reason (`DISCARD_REASON_REQUIRED`); both are undoable; confirm or discard of a file not waiting is refused `FETCH_NOT_PENDING`; a full-text decision on such a row asks for the confirmation first.
+- [ ] DoD F6. One run per workspace (`FETCH_ALREADY_ACTIVE`); a cancel stops between records; a second run skips records that have a confirmed or waiting file; `CHARTING_FETCH_STARTED` and `CHARTING_FETCH_FINISHED` carry the counts and never the key.
+- [ ] DoD F7. The Full text view's fetch states, as drafted in screen 01 before the build: words in en, fr and ar, keyboard, axe light and dark.
+- [ ] DoD F8. Live, once, by the researcher on their review: a fetch run, with found, confirmed and discarded-as-wrong counted in the build record.
 
 **The charting form and cells (part B)**
 - [ ] DoD 10. At first visit the form is seeded from `matrix_dimensions` (`charting/form.json`, version 1, `CHARTING_FORM_CREATED`); `protocol.json` and its fingerprint are unchanged (a test compares bytes).
@@ -163,19 +219,20 @@ Each item is checked by a test named in the build record, unless it says "live".
 
 ## In and out
 
-**In:** the table and the one-study view; the kept records of every published round; full-text status with reasons, set in bulk; a PDF attached or a link; the full-text decision with one reason; the charting form seeded from the protocol, with types, options, Not reported, Not applicable, notes and where-from; pilot and amendments; undo; journal rows; CSV and xlsx export; PRISMA full-text counts; the methods block; the navigation step after Publish.
+**In:** the table and the one-study view; the kept records of every published round; full-text status with reasons, set in bulk; a PDF attached or a link; open-access copies fetched with a manifest and confirmed by the researcher (Part F); the full-text decision with one reason; the charting form seeded from the protocol, with types, options, Not reported, Not applicable, notes and where-from; pilot and amendments; undo; journal rows; CSV and xlsx export; PRISMA full-text counts; the methods block; the navigation step after Publish.
 
-**Out (later, or another milestone):** fetching PDFs (M12b); reading PDFs, extracted text, page anchors and the in-app viewer (M12b); highlights in the full text (M8b's component, applied in M12b); an agent proposing cells (M12c, after (g)'s list); a second reviewer and reconciliation; linking reports of one study; per-criterion full-text answers; risk of bias or quality appraisal; synthesis, the graph, the trust score (parked); importing a spreadsheet charted elsewhere; changing the protocol's `matrix_dimensions` from the table; the phone.
+**Out (later, or another milestone):** fetching through an institutional proxy, guessed publisher URLs, records without a DOI; reading PDFs, extracted text, page anchors and the in-app viewer (M12b-read); highlights in the full text (M8b's component, applied in M12b-read); an agent proposing cells (M12c, specified now as a plan, built after (g)'s list); a second reviewer and reconciliation; linking reports of one study; per-criterion full-text answers; risk of bias or quality appraisal; synthesis, the graph, the trust score (parked); importing a spreadsheet charted elsewhere; changing the protocol's `matrix_dimensions` from the table; the phone.
 
 ## Parts, one PR each
 
 | Part | Content | Lane | Size | Why this lane |
 | :-- | :-- | :-- | :-- | :-- |
 | **A. Rows and full text** | The cross-round reader, events store, status, decisions, attachments, links, undo, the table's Full text view, the nav step, the Publish and Inception wording, a CSV of the Full text view | **RELEASE** | M–L | New public routes and refusal codes, a new persisted record, a new reader of published artifacts |
+| **F. Open-access fetching** | The fetch run, the manifest, the checks, `Fetched, to confirm`, confirm and discard, the Full text view's fetch states, the fetch journal rows | **RELEASE** | M | Outgoing provider calls, a new persisted manifest, new routes and refusal codes, pieces of a parked kit become production |
 | **B. Charting form and cells** | `form.json`, amendments, pilot, cell events, the Charting view, the one-study view | **RELEASE** | L | New persisted records and routes |
 | **C. Export and reporting** | CSV and xlsx, PRISMA full-text counts, methods block, export journal | **RELEASE** | M | New public route, a new published file (`prisma_fulltext.json`), a new base dependency |
 
-Order A, B, C. After A the researcher can track retrieval and decide at full text; after B they can chart; C makes the files for the paper. If the one-to-two-week need cannot wait for C, Part B can carry the plain CSV of the Charting view (small) and C the rest. A spreadsheet charted elsewhere cannot be brought back in (out of scope), so starting outside the app before B lands means typing twice.
+Order **A, F, B, C** (the researcher's answers 6 and 10). After A the researcher can track retrieval, attach their own PDFs and decide at full text; after F the open-access copies come in for confirmation; after B they can chart; C makes the files for the paper. If the one-to-two-week need cannot wait for C, Part B can carry the plain CSV of the Charting view (small) and C the rest. A spreadsheet charted elsewhere cannot be brought back in (out of scope), so starting outside the app before B lands means typing twice. F and B share the table screen, so they are built one after the other; if charting cannot wait, B goes before F (question F2).
 
 ## Reused and new
 
@@ -189,17 +246,20 @@ Order A, B, C. After A the researcher can track retrieval and decide at full tex
 | CSV | `render_csv` | xlsx writer (`openpyxl`) |
 | Reason codes | `EXC-n`, `FAILS-INC-n`, `reason_category` | The four not-retrieved reasons |
 | Highlights | — (M8b builds the component; M12a shows the abstract as plain text) | — |
-| PDF kit, extraction, matrix extractor | **Not used** (parked, PDF-07, PDF-08, X3) | — |
+| Fetching (Part F) | From `scholar_pdf`: `is_valid_pdf`, staging and atomic promotion, the reading of Unpaywall and OpenAlex locations; `MAILTO_NOT_SET`; the `Retry-After` cap of `scholar_search/http_client.py`; the agent-run lock pattern for one run per workspace | A fetch module, `charting/fetch_manifest.jsonl`, `FETCH_ALREADY_ACTIVE`, `FETCH_NOT_PENDING`, `DISCARD_REASON_REQUIRED`, two journal actions |
+| PDF kit downloader as is, extraction, matrix extractor | **Not used** (browser user agent, guessed URLs, proxy, stale OpenAlex call, no manifest; parked, PDF-07, PDF-08, X3) | — |
 
 ## Risks
 
-1. **The table waits for publication.** The researcher must decide every remaining title-and-abstract record and approve the batches first. If that takes longer than building, the table is ready before the data is (open question 4).
+1. **The table waits for publication.** The researcher must decide every remaining title-and-abstract record and approve the batches first. If that takes longer than building, the table is ready before the data is (accepted with answer 4).
 2. **Several hundred Unclear rows** make the Full text view long. Mitigation: the filter "To decide at full text", bulk status, and the one-study view moving with J/K. If the Unclear pile is mostly agent-adopted noise, the real fix is upstream (M11b).
 3. **The bulk adoption of 2026-11-20** (439 exclusions and 69 inclusions recorded from drafts, each with a note) is invisible to the generated methods text; M12a's methods block does not fix that and must not repeat the pattern: full-text decisions are one at a time.
 4. **`nexus-scholar run` runs the parked stages 5 to 9** once `included.json` exists, with no parked notice, writing `literature/synthesis_matrix.*` with truncated values (X3). A researcher could mistake that file for the charting table. Follow-up (outside M12a, small): print the parked notice in `run` and `extract`, or skip those stages unless asked.
 5. **Two places for columns.** After an amendment, the form and the protocol's `matrix_dimensions` differ. The protocol shows what was planned, the form what was charted, and the methods text says how they differ. A re-inception starts a new form.
 6. **Copyright.** Attached PDFs stay in `pdfs/`, which is gitignored; the export never includes them.
-7. **Size.** Three RELEASE PRs in one to two weeks is tight. Cut order if needed: the xlsx (CSV stays), then Not applicable, then the merge of columns (split stays).
+7. **Size.** Four RELEASE PRs in one to two weeks is tight. Cut order if needed: Part F moves after B (the researcher downloads by hand meanwhile), then the xlsx (CSV stays), then Not applicable, then the merge of columns (split stays).
+8. **A wrong file confirmed.** A preprint or an accepted manuscript can differ from the published paper, and a fetched file can be the wrong paper. The version is shown and exported, the title check runs when the `pdf` extra is there, and only the researcher's confirmation counts; a wrong confirmation is undoable.
+9. **Provider limits.** OpenAlex's keyless budget is small and shared with a harvest; Unpaywall's guidance is recalled, not checked. A run that meets a limit marks the affected records "Try later" rather than retrying.
 
 ## What cannot be verified without real PDFs and the real review
 
@@ -208,14 +268,15 @@ Order A, B, C. After A the researcher can track retrieval and decide at full tex
 - Whether the two columns as typed fit the form's types, or need splitting (that is what the pilot is for).
 - How the xlsx opens in Excel and LibreOffice (the test reads it back with `openpyxl`, not with Excel).
 - How many of the kept records end up "Not retrieved", and whether the four reasons are enough.
+- How many of this review's records Unpaywall and OpenAlex find an open-access PDF for, how many of those download as a valid PDF, and how many the researcher discards as wrong (DoD F8, live). No fetch was run for this specification.
 
 ## What this un-parks in plan §8, and what stays parked
 
-If decision item 3 is accepted (the plan itself is not edited by this specification; the main session updates §6 row 5 and §8 when the researcher decides):
+Decision item 3 was accepted on 2026-11-21 (answer 3); answer 6 adds the fetch. The plan itself is not edited by this specification; the main session updates §6 row 5 and §8.
 
 | Plan §8 item | After M12a |
 | :-- | :-- |
-| "full-text" (UI) and full text in the parked docs list (`scholar_pdf`, PDF-07/08) | **Split.** Full-text *status* (retrieval accounting) and the *full-text decision* become production, typed by the researcher. Fetching and reading PDFs (`scholar_pdf`) stays parked, with PDF-07 and PDF-08 open. |
+| "full-text" (UI) and full text in the parked docs list (`scholar_pdf`, PDF-07/08) | **Split.** Full-text *status* (retrieval accounting) and the *full-text decision* become production, typed by the researcher. With Part F, fetching open-access copies with a manifest and the researcher's confirmation becomes production, in a new module that reuses three pieces of `scholar_pdf` (question F1). The `scholar_pdf` downloader as it is, its CLI and MCP tools, the institutional proxy, and reading PDFs stay parked, with PDF-07 and PDF-08 open. |
 | "matrix" (UI) | **Split.** The hand-filled charting table and its export become production. The automatic matrix (`scholar_rag` extractor, `nexus_matrix_extract`, stage 7 of `run`) stays parked. |
 | `scholar_rag` (indexing, retrieval), synthesis | Parked. |
 | `scholar_graph` | Parked. |
@@ -228,7 +289,9 @@ If decision item 3 is accepted (the plan itself is not edited by this specificat
 - `src/scholar_protocol/models.py:193-195` says no pipeline reads `matrix_dimensions`; `scholar_rag/matrix.py:47` and `scholar_protocol/extraction.py:31` do.
 - `src/scholar_search/screening.py:134` says included records are "advanced to PDF harvesting"; no such step follows.
 - `nexus-scholar run` and `extract` carry no parked notice (risk 4).
+- `GET /harvest/corpus` reads `literature/pdf_manifest.json`, which nothing writes (`console/api/workspace.py:256-262`).
+- The parked `scholar_pdf` downloader sends a placeholder e-mail by default (`config.py:8`), a browser user agent (`downloader.py:200-201`), and an OpenAlex request without the key OpenAlex now requires (`downloader.py:239-249`); if it is ever un-parked as it is, those three go first.
 
 ## Open questions
 
-The researcher's page lists them in the order to decide: [`M12a-charting-table-for-review.md`](M12a-charting-table-for-review.md). The screen-level questions are in each screen spec.
+Questions 1 to 10 were answered on 2026-11-21 (top of the scope section). The new questions (the three items not asked, and Part F's details, F1 to F7) are on the researcher's page: [`M12a-charting-table-for-review.md`](M12a-charting-table-for-review.md). The screen-level questions are in each screen spec and are still open. The agent's questions are on [`M12c-agent-cells-for-review.md`](M12c-agent-cells-for-review.md).
