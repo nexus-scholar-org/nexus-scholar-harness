@@ -71,16 +71,38 @@ Each item names its test in `tests/kits/pdf/test_open_copy_resolver.py` (36 test
 | merge of `origin/main` | `e9d492c1` (merges `64fd8212`, PR 276; only `docs/decisions.md` conflicted, both entries kept) | `git diff --name-only fba1d4a3 e9d492c1 -- src/scholar_pdf tests/kits/pdf` | empty: the merge changes no file of the PDF kit |
 | red, item 4 | `6cd34546` (tests only) | `uv run pytest tests/kits/pdf/test_open_copy_resolver.py --junitxml …` | junit: 34 tests, **7 failures**, 0 errors |
 | green, kit, item 4 | `c3616899` | `uv run pytest tests/kits/pdf tests/test_parked_labels.py -n 4 --junitxml …` | junit: 260 tests, 0 failures, 0 errors, 7 skipped |
-| pr gate | `f42b6b00` (the final code commit `c3616899` plus documents) | `uv run pytest -q -n 4 -p no:cacheprovider --junitxml …` (full suite, 4 workers, from the build worktree) | junit: **6241 tests, 0 failures, 0 errors, 15 skipped** (623 s); exit code 0 |
+| pr gate (before the review) | `f42b6b00` (code commit `c3616899` plus documents) | `uv run pytest -q -n 4 -p no:cacheprovider --junitxml …` (full suite, 4 workers, from the build worktree) | junit: **6241 tests, 0 failures, 0 errors, 15 skipped** (623 s); exit code 0 |
 | | `f42b6b00` | `uv run ruff check scripts/`; `uv run ruff check src/ --select F821,F811,F823,F632,F7,B023,B006,E9` | "All checks passed!" twice |
 | | `f42b6b00` | `uv run python scripts/generate_contract_baseline.py --check` | "Contract baseline current" |
 | | `f42b6b00` | `git diff --name-only origin/main...HEAD -- apps/`; `git diff --check origin/main...HEAD` | empty (no UI file); clean |
+| review round 1 | `aa2127af` | `milestone-reviewer` | **CHANGES**: one P2 (the kit skill still read `UNRESOLVED` as "no open copy"), three P3, two P4; see "Review rounds" |
+| red, repairs | `aa2127af` plus the repair tests | `uv run pytest tests/kits/pdf/test_open_copy_resolver.py tests/kits/pdf/test_downloader.py --junitxml …` | junit: 43 tests, **4 failures**, 0 errors |
+| green, kit, repairs | `737e4aed` | `uv run pytest tests/kits/pdf tests/test_parked_labels.py -n 4 --junitxml …` | junit: 262 tests, 0 failures, 0 errors, 7 skipped |
+| **pr gate (final)** | `a77055be` (the final code commit `737e4aed` plus documents) | `uv run pytest -q -n 4 -p no:cacheprovider --junitxml …` (full suite, 4 workers, from the build worktree; started after another session's Playwright run had ended) | junit: **6243 tests, 0 failures, 0 errors, 15 skipped** (936 s); exit code 0 |
+| | `a77055be` | `uv run ruff check scripts/`; `uv run ruff check src/ --select F821,F811,F823,F632,F7,B023,B006,E9` | "All checks passed!" twice |
+| | `a77055be` | `uv run python scripts/generate_contract_baseline.py --check`; `uv run python scripts/sync_skills_bundle.py --check` | "Contract baseline current"; exit 0, 12 skills OK (the bundled copy of `scholar-pdf-kit` is identical) |
+| | `a77055be` | `git diff --name-only origin/main...HEAD -- apps/`; `git diff --check origin/main...HEAD` | empty (no UI file); clean |
 
-No UI file changes, so typecheck, vitest, build and Playwright do not apply.
+No UI file changes, so typecheck, vitest, build and Playwright do not apply. The gate selector (`scripts/select_test_gate.py --changed origin/main --stage pr`, area `pdf`) names `git diff --check`, the full suite, `ruff check scripts/` and `sync_skills_bundle.py --check`; all four are in the rows above, the suite with 4 workers instead of `-n auto` (the machine's rule since 2026-11-21).
 
 ## Review rounds
 
-REVIEW_ROUNDS
+**Round 1** (`milestone-reviewer`, on `aa2127af`, the whole diff against `origin/main` `64fd8212`): **CHANGES**. In its words: "The code does what the decisions say; I found no path that requests a guessed address, a landing page or a closed location, and no e-mail leak." It reproduced both red runs (29 of 29; 7 of 34), ran the kit's tests (260, 0 failures), both lint runs, the contract baseline and the bundle check, and drove the real lookup client over an in-memory transport in a scratch script (404 is "not known"; 409, 429 and 503 are failed lookups with their status; a timeout reads "timed out"). It did not rerun the full suite. Findings and repairs:
+
+| # | Sev | Finding | Repair | Test |
+| :-- | :-- | :-- | :-- | :-- |
+| 1 | P2 | The kit skill's guideline and refusal list still said `UNRESOLVED` means no open copy, which a failed lookup now also is | both lines read `outcome` and name the four cases; the bundled copy synced | `sync_skills_bundle.py --check` |
+| 2 | P3 | Re-exporting the function `open_copies` from the package hid the module of the same name | the function is no longer re-exported; `OpenCopy` and `LookupOutcome` are | `test_the_package_does_not_hide_the_open_copies_module` |
+| 3 | P3 | The record's request count for the live check was not an upper bound (the lookup client asks again on 429 and 5xx; redirects are followed) | "What the command sends now" and "Not verified" state the real worst case and the redirects | (record) |
+| 4 | P3 | On the parked gateway path the result labelled the file with the open location's version and licence although the bytes came through the gateway | `open_copy` is left empty there; decision item 14(b), PROPOSED | `test_process_doi_proxy_subdomain_attempt` (new assertions) |
+| 5 | P4 | "failed (HTTP 200)" and "failed (ProviderError)" told the researcher little | "unreadable answer" and "network error"; a body that is not JSON is a failed lookup with status 200; decision item 14(a), PROPOSED | `test_an_answer_that_is_not_a_json_object_is_a_failed_lookup`, `test_an_answer_that_is_not_json_at_all_is_a_failed_lookup`, `test_a_failed_lookup_never_puts_the_contact_address_in_a_message` |
+| 6 | P4 | The "Review rounds" placeholder; the bundle check missing from the evidence; other readings of the old code not listed | filled; row added; one sentence under "One behaviour that narrows" | (record) |
+
+The repairs changed code, so the kit's tests and the full gate were run again on the new final commit (rows "green, kit, repairs" and "pr gate (final)").
+
+**Follow-ups the reviewer named (not part of this change):** a repository test that drives the real `AcademicHttpClient` error mapping through an in-memory transport (Part K); malformed provider metadata such as `authorships: [null]` raises inside `process_doi`, so the result has no `outcome` and shows a raw message (older than this branch); "Run the command again later" is also said for a definitive 4xx such as Unpaywall's 422 for a rejected e-mail (Part K item 10 could split these); two addresses that differ only by scheme or letter case count separately against the cap of three; an Unpaywall answer's top-level `is_oa: false` is not consulted when a location is listed; the HTTP library's own INFO log line may print the full request address, e-mail included, if an embedding app turns INFO logging on (not checked; the command does not).
+
+**Round 2**: pending.
 
 ## Not verified
 
