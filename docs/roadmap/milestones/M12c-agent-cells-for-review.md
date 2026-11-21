@@ -1,31 +1,36 @@
 # M12c Agent-proposed cells: for your review
 
-Date: 2026-11-21 · Status: **draft, a plan only, waiting for your answers; nothing is approved to build and nothing will be spent without your approval** · Full record: [`M12c-agent-cells.md`](M12c-agent-cells.md) · Decisions: `docs/decisions.md`, "2026-11-21 — M12c agent-proposed cells" (PROPOSED)
+Date: 2026-11-21 · Status: **your nine answers recorded (2026-11-21); two new questions where they meet decisions already taken; a plan only, nothing is approved to build and nothing will be spent without your approval** · Full record: [`M12c-agent-cells.md`](M12c-agent-cells.md) · Decisions: `docs/decisions.md`, "2026-11-21 — M12c agent-proposed cells"
 
 ## What you would be able to do
 
-After charting your first 20 or so studies by hand, you run a measurement: the agent charts the same studies without seeing your values, and a report shows, column by column, how often it agreed with you, where it said "not reported" when you found a value, and what it cost. You open the agent only to the columns whose numbers you accept. On the remaining studies, each proposal appears beside its empty cell with the passage it relies on, highlighted on its page in the full text. You adopt it with one key, edit it or reject it; an agent's "not reported" you always type yourself. The export and the methods text say which cells came from the agent and how many you changed.
+When you chart, you turn the agent on for the whole form with one switch. On each study, every column gets a proposal beside its empty cell, with the passage it relies on highlighted on its page in the full text. You adopt it with one key, edit it or reject it; an agent's "not reported" you always type yourself. Proposals come from the app with your API key (with an estimate and a ceiling you type before any spend), or from your own AI client over MCP, from the first release. As you work, the app counts per column how many proposals you adopted unchanged, edited or rejected, and how often the agent said "not reported" where you found a value. The export and the methods text say which cells came from the agent, those counts, and that the agent's accuracy was not measured.
 
-## Before any of it, in order
+## Your answers (2026-11-21)
 
-1. **M12b-read**: the PDFs you attached or confirmed (M12a Parts A and F) read into text page by page, with a failed parse shown as a failure (today it passes as success) and scanned papers marked "needs OCR".
-2. A check that every quote is really in that text, on the page it names.
-3. The highlighter from M8b, on the full text.
-4. The measurement on your rows, with a spend you approve.
-5. The contract decision (question 1).
+| # | Question | Your answer |
+| :-- | :-- | :-- |
+| 1 | Contract v1 | "Yes, contract first" (as recommended) |
+| 2 | Provenance | "Yes" (as recommended); see N2 |
+| 3 | How the agent runs | **"Both from the start"** (recommended: the app first). Adds a part of its own for the MCP path (size M). Over MCP the app does not see the cost or the model behind your client; it records the model your client declares. |
+| 4 | What may be sent | "All, after consent" (as recommended) |
+| 5 | When a proposal is shown | "Beside the cell, never in it" (as recommended) |
+| 6 | Which columns | **"All columns at once"** (recommended: one by one after measuring). One switch for the whole form. No decision taken earlier is affected. |
+| 7 | The measurement | **"no time to chart by hand just do it without measuring"** (recommended: 20 studies first), then "Count as I work". The measurement part is dropped. See below for what this leaves unknown, and N1. |
+| 8 | An agent's "not reported" | "Yes, I type it" (as recommended) |
+| 9 | Order | "After M12a, before M9b–M9d" (as recommended) |
 
-## Questions (the first two touch the contract or an accepted decision)
+## What "count as I work" tells you, and what it does not
+
+It tells you how much of your table came from the agent and how much you changed, per column. It does **not** tell you how often the agent is right: a value you adopted after seeing it and its quote counts as adopted even if it was wrong and looked right, and nobody charted those studies without the agent to compare. A value the agent missed is caught only if you look for it while typing its "not reported"; if you type Not reported on the agent's word, the miss stays invisible. The methods text will say: "The model's accuracy was not measured against independent charting, and the reviewer saw each proposal before recording a value."
+
+## The plan now
+
+**M12b-read** (reading the PDFs as text, page by page; large), then **M12c-0** (the contract; medium), then **M12c-2** (proposals from the app, adopt/edit/reject, the counts, the screens; large), then **M12c-3** (the MCP path; medium). All four are reviewed in the RELEASE lane. They come after M12a and before the screening ladder work (M9b to M9d). The agent is offered once M12c-3 is in, so both paths start together.
+
+## New questions (each meets a decision already taken)
 
 | # | Question | My recommendation | What it costs |
 | :-- | :-- | :-- | :-- |
-| 1 | **Contract v1.** You decided that charting stays outside the contract "for now", with a contract decision before an agent proposes cells. Make proposals and cells typed Contract v1 records as the first part of M12c? | **Yes**, a part of its own (M12c-0) before any proposal is adopted. | One RELEASE PR: models, schemas, golden fixtures, a negative test, an independent review. |
-| 2 | **Provenance.** Record an adopted value as `AGENT_ADOPTED` with the agent as its author and the proposal named, as the ladder decision of 2026-11-10 (item 1) does for screening, and an edited value as yours, naming the proposal it replaced? | **Yes.** | Nothing beyond M12c-2. |
-| 3 | **How the agent runs.** From the app with your API key, the cost ceiling and the batches that screening uses; or through your own AI client over MCP (the M10c path, not yet tried with a real client), where the app checks the quotes but does not see the cost; or both? | **From the app first**: the measurement must be repeatable and its cost measured. MCP later. | The app path needs a key you create and a spend you approve. |
-| 4 | **What may be sent to a provider.** Full texts are copyrighted unless openly licensed. Send every confirmed full text after a consent that names the provider and lists each study's licence; or only openly licensed texts (the licence the M12a fetch records); or ask per run? | **Every confirmed full text after a per-provider consent that lists the licences**, with the openly licensed-only choice offered on the run screen. Your institution's rules decide. | The consent screen and the licence column. |
-| 5 | **When a proposal is shown.** Beside the empty cell as soon as you open the study; or hidden until you have typed your own value (no anchoring, but no time saved)? | **Beside the cell, never in it**, after the measurement; hidden during the measurement. | Anchoring risk, reported in the methods text as the share adopted unchanged. |
-| 6 | **Which columns.** Each column opened to the agent by you, off by default, only after its measurement? | **Yes.** For your review the agent may help with cameras and data split, less with "sensor problems addressed". | Nothing. |
-| 7 | **The measurement.** On at least 20 of your charted studies (the pilot and the next ones), each threshold set by you after reading the numbers (as for screening, where the thresholds are still open)? | **Yes, 20 at least.** | One measurement run, at a spend you approve; you chart 20 studies by hand first, which you would do anyway. |
-| 8 | **An agent's "not reported".** Never adoptable with one key; you type it yourself? | **Yes.** An absence cannot be checked by quote. | A keystroke per such cell. |
-| 9 | **Order.** M12b-read (reading full texts) first, then M12c-0 contract, M12c-1 measure, M12c-2 propose and adopt; all after M12a is built and you have charted by hand. Where does this sit against M9b to M9d and M10e in plan §6? | **After M12a and your first charted rows; before M9b to M9d**, since charting is where your time goes. | A planning decision for the main session. |
-
-Nothing in this page asks to build or spend now. The rough cost in the record (one pass over 150 full texts at about three times one model's share of the M9a screening run) is a guess to be replaced by the estimate before any run.
+| N1 | **An eval set for the charting task.** Your decision of 2026-11-03 says each AI task has "a prompt, an output schema, a model and effort setting, and an eval set", and that a change "needs a new task version and an eval re-run". It names Phases 0–2; charting is Phase 3. With no measurement, the charting task has no eval set. (a) Give it a small one that needs none of your charting: about five open-access papers outside your review, their values written by the developer for a two-column test form, run once per task version, checking that answers parse, quotes pass and values fit; it shows the task works, not that it is right on your review. Or (b) no eval set for this task, the counts standing in, with a note on the 2026-11-03 decision. | **(a).** It is the only check before the agent touches your review, and it costs none of your time. | (a) A small STANDARD part and a run of a few dollars, which you approve. (b) Nothing. |
+| N2 | **How an adopted cell is recorded.** You said yes to `AGENT_ADOPTED` with the agent as author. The ladder decision of 2026-11-10 says such an event is "minted by the engine only, carrying the proposal, the mode, the calibration run and the human who set the mode. A client can never post one." Here there is no autonomy mode and, with answer 7, no calibration run. (a) Keep `AGENT_ADOPTED` for cells: the engine mints it when you press Adopt (you never post it), and it carries the proposal, you as the adopter, "adopted one at a time" in place of a mode, and "none" in place of a calibration run; screening's rule stays as it is. Or (b) record an adopted cell as yours (`HUMAN`) naming the proposal, as a screening decision taken after seeing a draft is recorded today. | **(a).** It keeps what you chose in answer 2, says plainly that nothing was calibrated, and changes nothing in screening. | (a) Part of M12c-0, no extra size. |
