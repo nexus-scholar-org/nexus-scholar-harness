@@ -354,3 +354,13 @@ Evidence:
 
 | Stage | Commit | Command | Result | Duration |
 | :-- | :-- | :-- | :-- | :-- |
+| inner | `526599b4` (working tree) | `select_test_gate.py --changed origin/main --stage inner`: `pytest tests/console -m "not slow" -n auto`; `pytest tests/unit tests/test_handoff.py tests/kits/search -m "not slow" -n auto`; ruff (real-bug classes); typecheck; `vitest related route.ts` | 859 passed, 1 skipped; 1204 passed; ruff clean; tsc clean; 69 passed | 261 s; 60 s |
+| contract | `4ff5d37d`, `52399d67` | `generate_contract_baseline.py --check`; `generate_protocol_schema.py --check` | current; in sync | |
+| pr (round 0) | `4ff5d37d` | `pytest -n auto`; `ruff check scripts/`; vitest; build; `test:browser` | 5977 passed, 15 skipped; clean; vitest 993 passed, 2 failed (both near the 5 s limit while Playwright ran; a rerun under the same load failed 5 other tests; on `52399d67` alone: 995 passed); build ok; Playwright 622 passed | 1142 s; 177 s; 52 s; 1229 s |
+| pr (final) | `52399d67` | `pytest -n auto`; `ruff check scripts/`; typecheck; vitest (alone); baseline; protocol schema | 5985 passed, 15 skipped, 1 failed: `test_approve_all.py::test_a_decision_changed_after_approval_makes_the_batch_need_a_code_again` (H-run-small-fixes Part A's area, not touched here; passes 3 of 3 alone and its file 25 of 25: a timing flake under `-n auto`); clean; clean; 995 passed; current; in sync | 1055 s; 214 s |
+
+Build and Playwright were not repeated on `52399d67`: the repairs after `4ff5d37d` changed Python only (`git diff 4ff5d37d 52399d67 -- apps` is empty apart from six screenshots the Playwright run regenerated, which are restored to `origin/main`).
+
+Review: round 1 CHANGES (8), round 2 CHANGES (5), round 3 **APPROVE** on `52399d67` (the reviewer's lane line in round 3 said STANDARD; the part is RELEASE as declared above). Round 3 follow-ups, not repaired: no regression test for the provider-build failure of "read what this concept removes"; after a short state-file failure a pause may not be stored, so the next Count can send once to a database whose quota is used up; a drop answered `not_countable` is reported as `stopped` although sending goes on.
+
+**Part A: READY FOR PR** (not pushed). Branch `dev/m11a/part-a-counts`.
