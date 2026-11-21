@@ -69,6 +69,8 @@ export const SCREEN_ROUTES: Record<string, string> = {
   "screening.home": "screening/home",
   "screening.triage": "screening/triage",
   "screening.publish": "screening/publish",
+  // M12a Part A: the charting screen, after Publish (DoD 9).
+  charting: "charting",
 };
 
 /** The ids a destination may carry (`action.to.query`); the browser adds only `console`. */

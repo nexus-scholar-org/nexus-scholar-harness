@@ -528,3 +528,18 @@ def test_a_publication_status_that_cannot_be_read_asks_to_publish_again_and_says
     monkeypatch.setattr(currentness, "screening_currentness", unreadable)
     body = _next(client)
     assert body["state"] == "PUBLISHED_STALE" and "publication" in body["unknown"] and body["params"] == {"code": None}
+
+
+def test_after_publish_the_next_step_opens_the_charting_table(env, monkeypatch):
+    """M12a DoD 9: DONE leads to the charting table (Publish stays as a second link); PUBLISHED offers it too."""
+    client, ws, _ = env
+    _accepted(client)
+    _summary(monkeypatch)
+    _published(ws, monkeypatch, True, {"chaseable": 0})
+    body = _next(client)
+    assert body["state"] == "DONE"
+    assert body["action"] == {"key": "openCharting", "to": {"screen": "charting", "query": {}}}
+    assert {"key": "goToPublish", "to": {"screen": "screening.publish", "query": {}}} in body["also"]
+    _published(ws, monkeypatch, True, {})
+    body = _next(client)
+    assert body["state"] == "PUBLISHED" and body["also"][0]["key"] == "openCharting"
