@@ -230,8 +230,12 @@ async def test_the_real_answers_download_the_pubmed_central_published_version(do
         "openalex",
     )
     assert (result.copies_listed, result.copies_tried) == (2, 1)
-    # Nothing but the services and the chosen address was asked.
-    assert set(lookups.hosts) <= LOOKUP_HOSTS
+    # Nothing but the two services, once each, and the chosen address was asked.
+    assert lookups.hosts == ["api.openalex.org", "api.unpaywall.org"]
+    assert [(look.provider, look.state) for look in result.lookups] == [
+        ("openalex", "ANSWERED"),
+        ("unpaywall", "ANSWERED"),
+    ]
     assert hosts.requested == [PMC_PDF]
 
 
@@ -625,22 +629,125 @@ async def test_an_answer_that_is_not_a_json_object_is_a_failed_lookup(downloader
     assert "OpenAlex failed" in result.error_message
 
 
-# -------------------------------------------- 4. what the command sends is unchanged
+# ------------------------------- 4. both services are asked for every DOI
+
+
+def _location(address: str, version: str) -> dict:
+    return {"is_oa": True, "pdf_url": address, "version": version}
+
+
+def _unpaywall_listing(*locations: tuple[str, str]) -> dict:
+    return {
+        "is_oa": True,
+        "oa_status": "green",
+        "best_oa_location": None,
+        "oa_locations": [
+            {"host_type": "repository", "url_for_pdf": address, "version": version}
+            for address, version in locations
+        ],
+    }
 
 
 @pytest.mark.asyncio
-async def test_unpaywall_is_asked_only_when_openalex_lists_no_address(downloader):
+async def test_both_services_are_asked_once_for_every_doi(downloader):
+    """Decision item 4 as answered ("Always ask both services"): one request each."""
     with_address = FakeLookups(openalex_answer(), unpaywall_answer())
     await downloader.process_doi(FakePdfHosts({PMC_PDF: pdf_bytes()}), with_address, DOI)
-    assert with_address.hosts == ["api.openalex.org"]
+    assert with_address.calls == [
+        f"https://api.openalex.org/works/https://doi.org/{DOI}",
+        f"https://api.unpaywall.org/v2/{DOI}",
+    ]
 
     without = FakeLookups(closed_openalex(), closed_unpaywall())
     await downloader.process_doi(FakePdfHosts(), without, "10.1/closed")
-    assert without.hosts == ["api.openalex.org", "api.unpaywall.org"]
-    # One request per service and DOI, to these two addresses.
     assert without.calls == [
         "https://api.openalex.org/works/https://doi.org/10.1/closed",
         "https://api.unpaywall.org/v2/10.1/closed",
+    ]
+
+
+@pytest.mark.asyncio
+async def test_a_published_version_only_unpaywall_lists_is_taken_over_openalexs_submitted_one(downloader):
+    submitted = "https://preprints.example.org/paper-v1.pdf"
+    published = "https://repository.example.org/paper-published.pdf"
+    openalex = {"open_access": {"is_oa": True}, "locations": [_location(submitted, "submittedVersion")]}
+    unpaywall = _unpaywall_listing((submitted, "submittedVersion"), (published, "publishedVersion"))
+    lookups = FakeLookups(openalex, unpaywall)
+    hosts = FakePdfHosts({published: pdf_bytes(), submitted: pdf_bytes("y")})
+
+    result = await downloader.process_doi(hosts, lookups, "10.1/two-lists")
+
+    assert result.success is True, result.error_message
+    assert hosts.requested == [published]  # the best copy across both lists
+    assert (result.open_copy.url, result.open_copy.version) == (published, "publishedVersion")
+    assert result.open_copy.provider == "unpaywall"
+    assert (result.copies_listed, result.copies_tried) == (2, 1)
+
+
+@pytest.mark.asyncio
+async def test_an_address_only_unpaywall_lists_is_tried_after_openalexs_fail(downloader):
+    first, second = "https://a.example.org/1.pdf", "https://b.example.org/2.pdf"
+    third, fourth = "https://c.example.org/3.pdf", "https://d.example.org/4.pdf"
+    openalex = {
+        "open_access": {"is_oa": True},
+        "locations": [_location(first, "acceptedVersion"), _location(second, "acceptedVersion")],
+    }
+    unpaywall = _unpaywall_listing(
+        (second, "acceptedVersion"),
+        (first, "acceptedVersion"),
+        (third, "acceptedVersion"),
+        (fourth, "acceptedVersion"),
+    )
+    lookups = FakeLookups(openalex, unpaywall)
+    hosts = FakePdfHosts({third: pdf_bytes(), fourth: pdf_bytes("y")})  # the first two give HTML
+
+    result = await downloader.process_doi(hosts, lookups, "10.1/fallback")
+
+    # Within one version OpenAlex's order comes first, then what only Unpaywall lists;
+    # three addresses at most, so the fourth is never asked.
+    assert hosts.requested == [first, second, third]
+    assert result.success is True, result.error_message
+    assert (result.open_copy.url, result.open_copy.provider) == (third, "unpaywall")
+    assert (result.copies_listed, result.copies_tried) == (4, 3)
+
+
+@pytest.mark.asyncio
+async def test_a_failed_lookup_is_named_when_the_listed_addresses_give_no_pdf(downloader):
+    """One service failed, the other listed an address that gave no PDF: the row says both."""
+    lookups = FakeLookups(
+        openalex_answer(),
+        ProviderError("openalex-pdf", "HTTP request failed", status_code=503),
+    )
+    hosts = FakePdfHosts()  # every address answers HTML
+
+    result = await downloader.process_doi(hosts, lookups, DOI)
+
+    assert hosts.requested == [PMC_PDF, REPOSITORY_PDF]
+    assert result.outcome == "PDF_NOT_FETCHED" and result.status == "FAILED"
+    assert "2 of 2 listed addresses tried" in result.error_message
+    assert "Unpaywall failed (HTTP 503), so its list was not read" in result.error_message
+    assert [(look.provider, look.state) for look in result.lookups] == [
+        ("openalex", "ANSWERED"),
+        ("unpaywall", "FAILED"),
+    ]
+
+
+@pytest.mark.asyncio
+async def test_a_lookup_failing_does_not_stop_a_copy_the_other_lists(downloader):
+    """Item 7: the download goes ahead; the failure stays on the result."""
+    lookups = FakeLookups(
+        openalex_answer(),
+        ProviderTimeoutError("openalex-pdf", "Request timed out after 30s"),
+    )
+    hosts = FakePdfHosts({PMC_PDF: pdf_bytes()})
+
+    result = await downloader.process_doi(hosts, lookups, DOI)
+
+    assert result.success is True and result.outcome == "ACQUIRED"
+    assert result.error_message is None
+    assert [(look.provider, look.state, look.error_kind) for look in result.lookups] == [
+        ("openalex", "ANSWERED", None),
+        ("unpaywall", "FAILED", "ProviderTimeoutError"),
     ]
 
 
@@ -713,7 +820,7 @@ def test_the_command_downloads_the_real_answers_offline_and_labels_the_copy(tmp_
     assert len(list((tmp_path / "out").glob("DOC-*.pdf"))) == 1
     assert "publishedVersion" in text and "cc-by" in text
     assert hosts.requested == [PMC_PDF]
-    assert set(lookups.hosts) <= LOOKUP_HOSTS
+    assert lookups.hosts == ["api.openalex.org", "api.unpaywall.org"]
 
 
 def test_the_command_reports_a_failed_lookup_offline_with_exit_code_3(tmp_path, monkeypatch):
