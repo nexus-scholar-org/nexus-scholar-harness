@@ -2,6 +2,7 @@ import { act, render, screen } from "@testing-library/react";
 import { vi } from "vitest";
 
 import { ChartingPage } from "@/components/charting-page";
+import { ChartingStudyPage } from "@/components/charting-study";
 import type { Locale } from "@/i18n";
 import type { Amendment, Cell, ChartingEvent, ChartingForm, ChartingRow, ChartingTable, FormColumn } from "@/lib/charting-api";
 
@@ -397,12 +398,27 @@ export async function flush() {
   });
 }
 
-/** Render the screen and wait for the table's first answer. */
-export async function renderCharting(locale: Locale = "en") {
+/** Render the screen and wait for the table's first answer; `query` is the address's place (`?view=charting`). */
+export async function renderCharting(locale: Locale = "en", query = "") {
+  if (query) window.history.replaceState(null, "", `/${locale}/charting${query}`);
   const view = render(<ChartingPage locale={locale} />);
   await flush();
   await flush();
   return view;
+}
+
+/** Render the one-study view of `id` (spec 02) and wait for the table and the record. */
+export async function renderStudy(id: string, locale: Locale = "en", query = "") {
+  window.history.replaceState(null, "", `/${locale}/charting/study?id=${encodeURIComponent(id)}${query}`);
+  const view = render(<ChartingStudyPage locale={locale} />);
+  await flush();
+  await flush();
+  await flush();
+  return view;
+}
+
+export function cellEvents(engine: FakeEngine): ChartingEvent[] {
+  return postedEvents(engine).flat().filter((e) => e.kind === "cell");
 }
 
 export function grid(): HTMLElement {
