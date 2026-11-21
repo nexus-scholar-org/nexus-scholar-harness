@@ -1131,7 +1131,8 @@ class PilotDrawBody(BaseModel):
 
 
 def _pilot_error(exc: Any) -> HTTPException:
-    return _error(exc.status, exc.code, exc.message, **(exc.details or {}))
+    # The contract's error shape (§4, Errors): what the refusal is about goes under `details`.
+    return _error(exc.status, exc.code, exc.message, **({"details": exc.details} if exc.details else {}))
 
 
 @router.post("/pilot")

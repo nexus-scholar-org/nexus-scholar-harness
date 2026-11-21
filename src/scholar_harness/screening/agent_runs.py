@@ -536,6 +536,8 @@ def _execute(live: _Live, driver, requests, spec, papers, protocol, batch, crite
                     "usage": result.usage.as_dict(),
                     "cost_estimate": cost,
                     "request_id": result.request_id,
+                    # M11b part B: a draft of the agent check on a pilot names the pilot.
+                    "pilot_id": run.get("pilot_id"),
                     "batch_id": result.batch_id,
                     "driver_status": result.status,
                     "driver_detail": result.detail,
