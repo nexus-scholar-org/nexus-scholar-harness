@@ -256,6 +256,18 @@ describe("triage.shown-again (spec 13)", () => {
     expect(screen.getByRole("link", { name: "Go to the pilot" }).getAttribute("href")).toContain("view=pilot");
   });
 
+  it("a REASON_CODE_RETIRED refusal reads the record's criteria in force again", async () => {
+    fake.refuseMain = "REASON_CODE_RETIRED";
+    render(<TriagePage locale="en" />);
+    await screen.findByText("Drone weed mapping", { selector: "p bdi" });
+    const reads = () => fake.log.filter((l) => l.method === "GET" && l.path === "/records/STU-a").length;
+    const before = reads();
+    fireEvent.click(screen.getByRole("button", { name: /^Include/ }));
+    expect(await screen.findByRole("alert")).toHaveTextContent("That reason was replaced");
+    await waitFor(() => expect(reads()).toBeGreaterThan(before));
+    expect(mainPosts()).toHaveLength(1);
+  });
+
   it("offers the pilot view only while a pilot is open", async () => {
     render(<TriagePage locale="en" />);
     await screen.findByText("Drone weed mapping", { selector: "p bdi" });

@@ -412,6 +412,17 @@ function TriageScreen({ locale }: Readonly<{ locale: Locale }>) {
     void open(next.study_id, list, settings);
   }
 
+  // Spec 13 (REASON_CODE_RETIRED): the reason chips come from the record's criteria in force, read again.
+  async function refreshCriteria(study: string) {
+    try {
+      const detail = await fetchRecord(study, true);
+      if (current.current === study) setRecord(detail);
+      setCriteriaView(await getCriteria(origin));
+    } catch {
+      // The refusal card stays; the next record read brings the criteria in force.
+    }
+  }
+
   async function submitPilot(outcome: Outcome, reasonCode: string | null) {
     if (!record || !settings || !pilotInfo || busy) return;
     const study = record.study_id;
@@ -432,7 +443,9 @@ function TriageScreen({ locale }: Readonly<{ locale: Locale }>) {
       const answer = await postPilotDecisions(origin, pilotInfo.pilot_id, [{ ...decision, supersedes: head?.pilot_decision_id ?? null }]);
       const [result] = answer.results;
       if (!result || result.result === "refused") {
-        setRefusal(result?.refusal?.code ?? "REFUSED");
+        const code = result?.refusal?.code ?? "REFUSED";
+        setRefusal(code);
+        if (code === "REASON_CODE_RETIRED") await refreshCriteria(study);
         return;
       }
       void getSummary(origin).then(setSummary, () => undefined);
@@ -494,6 +507,7 @@ function TriageScreen({ locale }: Readonly<{ locale: Locale }>) {
     if (result.result === "refused") {
       const code = result.refusal?.code ?? "REFUSED";
       if (code === "STALE_BINDING") setStale(true);
+      if (code === "REASON_CODE_RETIRED") void refreshCriteria(study);
       setRefusal(code);
       setMessage(t("refused", { code }));
       return;
