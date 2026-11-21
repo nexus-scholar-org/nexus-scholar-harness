@@ -225,6 +225,8 @@ function apply(engine: FakeEngine, event: ChartingEvent): { event_id: string; re
     if (filled) form.has_values = true;
     derive(row, form.columns);
   }
+  // The row's charted, pilot and "no full text" follow every event, as the engine computes them.
+  if (engine.table.form && row.cells) derive(row, engine.table.form.columns);
   return { event_id: event.event_id, result: "accepted" };
 }
 
