@@ -82,6 +82,9 @@ def without_address(payload: dict, address: str) -> dict:
 # ----------------------------------------------------------------- the fakes
 
 
+NOT_JSON = object()  # a 200 answer whose body is not JSON (an HTML error page)
+
+
 class FakeLookups:
     """Stands for the lookup client. Answers the two services only."""
 
@@ -100,7 +103,10 @@ class FakeLookups:
             raise answer
         response = MagicMock()
         response.status_code = 200
-        response.json.return_value = answer
+        if answer is NOT_JSON:
+            response.json.side_effect = ValueError("Expecting value: line 1 column 1 (char 0)")
+        else:
+            response.json.return_value = answer
         return response
 
     async def close(self):
@@ -175,6 +181,20 @@ def closed_unpaywall() -> dict:
 @pytest.fixture
 def downloader(tmp_path):
     return AsyncPDFDownloader(output_dir=tmp_path / "out")
+
+
+def test_the_package_does_not_hide_the_open_copies_module():
+    """Review finding 2: ``scholar_pdf.open_copies`` is the module, for importers and patches."""
+    import inspect
+
+    import scholar_pdf
+    import scholar_pdf.open_copies as module
+
+    assert inspect.ismodule(module)
+    assert inspect.ismodule(scholar_pdf.open_copies)
+    assert module.MAX_OPEN_COPIES_TRIED == 3
+    assert scholar_pdf.OpenCopy is module.OpenCopy
+    assert scholar_pdf.LookupOutcome is module.LookupOutcome
 
 
 # ----------------------------------------------- 1. every listed location is walked
@@ -616,6 +636,8 @@ async def test_a_failed_lookup_never_puts_the_contact_address_in_a_message(downl
     assert result.outcome == "LOOKUP_FAILED"
     assert TEST_CONTACT not in result.error_message
     assert all(TEST_CONTACT not in str(look) for look in result.lookups)
+    # The client raises a ProviderError with no status for a network error.
+    assert "OpenAlex failed (network error)" in result.error_message
 
 
 @pytest.mark.asyncio
@@ -626,7 +648,22 @@ async def test_an_answer_that_is_not_a_json_object_is_a_failed_lookup(downloader
 
     assert result.outcome == "LOOKUP_FAILED"
     assert result.lookups[0].state == "FAILED"
-    assert "OpenAlex failed" in result.error_message
+    assert "OpenAlex failed (unreadable answer)" in result.error_message
+    assert "HTTP 200" not in result.error_message
+
+
+@pytest.mark.asyncio
+async def test_an_answer_that_is_not_json_at_all_is_a_failed_lookup(downloader):
+    lookups = FakeLookups(NOT_JSON, NOT_JSON)
+
+    result = await downloader.process_doi(FakePdfHosts(), lookups, "10.1/x")
+
+    assert result.outcome == "LOOKUP_FAILED"
+    assert [(look.state, look.http_status, look.error_kind) for look in result.lookups] == [
+        ("FAILED", 200, "NotAJsonObject"),
+        ("FAILED", 200, "NotAJsonObject"),
+    ]
+    assert "OpenAlex failed (unreadable answer); Unpaywall failed (unreadable answer)" in result.error_message
 
 
 # ------------------------------- 4. both services are asked for every DOI

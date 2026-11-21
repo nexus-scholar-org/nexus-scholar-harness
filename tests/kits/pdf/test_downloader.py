@@ -191,6 +191,10 @@ async def test_process_doi_proxy_subdomain_attempt(
     assert urls[0] == "https://ieeexplore.ieee.org/document/10209481"
     assert "ieeexplore-ieee-org.www.sndl1.arn.dz" in urls[1], urls
     assert not any("stampPDF" in u for u in urls), urls
+    # The bytes came through the gateway, not from the open location: the
+    # result must not carry that location's version and licence as its label.
+    assert result.open_copy is None
+    assert result.outcome == "ACQUIRED"
 
 
 @pytest.mark.asyncio

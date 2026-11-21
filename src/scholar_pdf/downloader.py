@@ -286,7 +286,6 @@ class AsyncPDFDownloader:
                 url, params=params, headers={"User-Agent": user_agent()}
             )
             status = response.status_code
-            payload = response.json() if status == 200 else None
         except Exception as error:  # noqa: BLE001 - provider adapters vary
             status = getattr(error, "status_code", None)
             status = status if isinstance(status, int) else None
@@ -296,6 +295,12 @@ class AsyncPDFDownloader:
             return _Lookup(LookupOutcome(provider, state, status, kind))
         if status == 404:
             return _Lookup(LookupOutcome(provider, NOT_FOUND, status))
+        payload = None
+        if status == 200:
+            try:
+                payload = response.json()
+            except ValueError:  # a body that is not JSON
+                payload = None
         if not isinstance(payload, dict):
             kind = None if status != 200 else "NotAJsonObject"
             return _Lookup(LookupOutcome(provider, FAILED, status, kind))
@@ -444,7 +449,9 @@ class AsyncPDFDownloader:
                             file_path=final_path,
                             status="ACQUIRED",
                             outcome=ACQUIRED,
-                            open_copy=copy,
+                            # The label follows the bytes: a file fetched through
+                            # the parked gateway is not that open location's copy.
+                            open_copy=copy if candidate == copy.url else None,
                             copies_tried=tried,
                         )
                     except Exception as error:  # noqa: BLE001 - provider adapters vary

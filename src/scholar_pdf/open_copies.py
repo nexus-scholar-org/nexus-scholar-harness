@@ -83,11 +83,20 @@ class LookupOutcome:
         return PROVIDER_NAMES.get(self.provider, self.provider)
 
     def failure(self) -> str:
-        """``failed (HTTP 503)``, ``failed (timed out)`` or ``failed (<error kind>)``."""
-        if self.http_status is not None:
+        """Why the lookup failed, in words: the HTTP status, or the kind of error.
+
+        ``failed (HTTP 503)``, ``failed (timed out)``, ``failed (network error)``
+        (the lookup client's error with no status), ``failed (unreadable answer)``
+        (a 200 whose body is not a JSON object), else the error's class name.
+        """
+        if self.http_status is not None and self.http_status != 200:
             return f"failed (HTTP {self.http_status})"
         if self.error_kind and "Timeout" in self.error_kind:
             return "failed (timed out)"
+        if self.error_kind == "ProviderError":
+            return "failed (network error)"
+        if self.http_status == 200:
+            return "failed (unreadable answer)"
         return f"failed ({self.error_kind or 'no answer'})"
 
 
