@@ -1,12 +1,12 @@
 # M12a Charting table: for your review
 
-Date: 2026-11-21 · Status: **your ten answers and your eight follow-up answers recorded (2026-11-21); five new questions below, all on what "un-park the whole kit" covers; nothing built, and the start of the build is yours to approve** · Full record: [`M12a-charting-table.md`](M12a-charting-table.md) · Screens (drafts, their own questions still open): `docs/ux/phase3-extraction/final/01-charting-table.md`, `02-one-study.md` · Decisions: `docs/decisions.md`, "2026-11-21 — M12a charting table" · The agent's plan: [`M12c-agent-cells-for-review.md`](M12c-agent-cells-for-review.md)
+Date: 2026-11-21 · Status: **all your answers recorded (2026-11-21): the ten, the eight follow-ups and G1 to G5; one item below was written but never asked; nothing built, and the start of the build is yours to approve** · Full record: [`M12a-charting-table.md`](M12a-charting-table.md) · Screens (drafts, their own questions still open): `docs/ux/phase3-extraction/final/01-charting-table.md`, `02-one-study.md` · Decisions: `docs/decisions.md`, "2026-11-21 — M12a charting table" · The agent's plan: [`M12c-agent-cells-for-review.md`](M12c-agent-cells-for-review.md)
 
 ## What you will be able to do
 
 After you publish screening, a new **Charting** step lists every record you kept: your Includes and your "Unclear → full text" records, from the database search and from a citation-chasing round, each marked with where it came from. In a **Full text** view you mark many records at once as To get, Requested, Retrieved or Not retrieved (with one reason), attach the PDF you downloaded or paste a link, and decide each one at full text: Include, or Exclude with exactly one reason. In a **Charting** view you fill your two columns, one row per study still included, by keyboard. "Not reported" and "Not applicable" are values of their own, and each cell can have a note and a "where from" (page or quote). You try the form on about five studies, change the columns, and the change is recorded beside the protocol, which itself is never edited. Every change saves at once and can be undone with `Z`. **From Part F on**, you can also ask the app to look up open-access copies: it asks Unpaywall (and OpenAlex if your key is set) with your contact e-mail, and arXiv for records that have only an arXiv id, downloads only what they list as open, records every file in a manifest, and shows each one as "Fetched, to confirm" until you have opened it and confirmed it is the paper. You export a CSV, or a spreadsheet with the table, the full-text decisions, the PRISMA full-text counts, the form and its changes, and a methods paragraph you can adapt.
 
-The parts come in the order **A** (rows, full text, attach your own), **B** (form and cells, with a plain CSV of the table), **F** (fetching open-access copies), **C** (spreadsheet, counts, methods text). A new part, **K**, makes the PDF kit's downloading production-ready (your answer F1); it touches different files from B and can be built beside it, and F needs it. Each part is reviewed in the RELEASE lane.
+The parts come in the order **A** (rows, full text, attach your own), **B** (form and cells, with a plain CSV of the table), **F** (fetching open-access copies), **C** (spreadsheet, counts, methods text). A new part, **K**, makes the PDF kit's downloading production-ready (your answer F1, narrowed to downloading by G1 to G5); it touches different files from B and can be built beside it, and F needs it. Each part is reviewed in the RELEASE lane.
 
 ## Your review, as an illustration
 
@@ -59,9 +59,25 @@ The PDF kit is two systems side by side: an older downloader with the commands `
 
 **Size.** Part K is one large RELEASE PR (about the size of Part A) if it covers downloading only. Reading PDFs would be another large PR; the newer `acquire` another medium one. With K, the milestone is five RELEASE PRs instead of three: A and B (the charting) still fit one to two weeks, K, F and C do not.
 
-**F1 and F5 together.** The kit becomes production; the proxy does not. Part F neither uses it nor offers it. In the kit, setting a proxy is refused with a message, rather than quietly ignored, until you decide otherwise (question G4).
+**F1 and F5 together.** The kit becomes production; the proxy does not. Part F neither uses it nor offers it. In the kit, setting a proxy is refused with a message, rather than quietly ignored, until you decide otherwise (G4).
 
-## New questions (each touches an accepted decision or the plan's parked list)
+**After G1 to G5 (below), Part K covers downloading only:** the downloader and the `download` and `ingest` commands, with the thirteen repairs of the record's section (d3), the address patterns deleted and a proxy refused. One large RELEASE PR, built beside B. Reading, `acquire` and the old pipeline buttons stay parked.
+
+## Your answers on what "the whole kit" covers (2026-11-21, all as recommended)
+
+| # | Question | Your answer |
+| :-- | :-- | :-- |
+| G1 | Reading PDFs | "Reading waits for M12b-read" |
+| G2 | The newer `acquire` command | "Keep it parked" |
+| G3 | The publisher address patterns | "Remove them" |
+| G4 | The proxy in the kit | "Refuse with a message" (code kept parked) |
+| G5 | The old pipeline buttons | "Yes, they stay parked" |
+
+## One item written but never asked
+
+Decision item 21, **Part K's bar**: the kit's downloading is called production only when the thirteen repairs are done with their tests and an independent RELEASE review approves; its first live use is Part F's live run; until then `download` and `ingest` keep their parked notice. My recommendation: accept it with the build start. It costs nothing beyond Part K.
+
+## The questions G1 to G5 as they were asked (kept for the record)
 
 | # | Question | My recommendation | What it costs |
 | :-- | :-- | :-- | :-- |

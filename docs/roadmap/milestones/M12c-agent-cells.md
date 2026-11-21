@@ -30,7 +30,7 @@ When the researcher charts, an agent may propose a value for every column of the
 
 ## The prerequisites, in order
 
-1. **M12b-read: the full text as text with page anchors.** (M12a question G1, open: if the researcher puts reading PDFs into M12a, this step moves there.) One confirmed PDF per study parsed into text per page with offsets, PDF-08 fixed, X2 fixed, a text-quality flag per study (parsed, partial, mostly table or image, needs OCR, failed). Without OCR a scanned paper is "needs OCR" and gets no proposals. M12b-read also shows the full text beside the form and applies the M8b highlighter to it. Its own specification, not written yet.
+1. **M12b-read: the full text as text with page anchors.** (M12a G1, answered 2026-11-21: "Reading waits for M12b-read", so reading PDFs is this step, not M12a's.) One confirmed PDF per study parsed into text per page with offsets, PDF-08 fixed, X2 fixed, a text-quality flag per study (parsed, partial, mostly table or image, needs OCR, failed). Without OCR a scanned paper is "needs OCR" and gets no proposals. M12b-read also shows the full text beside the form and applies the M8b highlighter to it. Its own specification, not written yet.
 2. **The contract decision** for proposals and cells (answer 1, M12c-0), with the provenance shape (answer 2, question N2).
 3. **A quote check over the full text:** a proposal's quote must equal the text at its offsets on the page it names; a proposal without a checkable quote cannot be adopted.
 4. **Adoption with agent provenance**, never `HUMAN`.
@@ -102,7 +102,7 @@ Proposals and adopted cells become typed artifacts before the first adoption (M1
 
 | Part | Content | Lane | Size | Depends on |
 | :-- | :-- | :-- | :-- | :-- |
-| **M12b-read** | Text per page with offsets from the confirmed PDF, PDF-08 and X2 fixed, a quality flag, the full text beside the form, the M8b highlighter on it | RELEASE | L | M12a A, B and F; M8b merged; M12a question G1 |
+| **M12b-read** | Text per page with offsets from the confirmed PDF, PDF-08 and X2 fixed, a quality flag, the full text beside the form, the M8b highlighter on it | RELEASE | L | M12a A, B and F; M8b merged |
 | **M12c-0 contract** | The contract decision, typed proposal and cell records, the provenance shape (N2), schemas, fixtures, negative tests | RELEASE | M | Answers 1 and 2; N2 |
 | ~~M12c-1 measure~~ | **Dropped** (answer 7) | — | — | — |
 | **M12c-2 propose and adopt, from the app** | The charting task, the checks, the consent, app runs with estimate and ceiling, the all-columns switch, adopt/edit/reject, the counts as the researcher works, the methods text, the screens | RELEASE | L | M12b-read, M12c-0; N1 |
@@ -137,7 +137,7 @@ How well text comes out of this review's PDFs; how often the agent's values are 
 
 - **§6, "After the acceptance run":** add M12b-read and M12c (parts M12c-0, M12c-2, M12c-3, each RELEASE; no measurement part) after M12a and before M9b to M9d (answer 9); the "Waiting" line that names M9b and M9c first moves them after M12c.
 - **§6, M10c row:** note that M12c-3 is a second MCP path that, like M10c, has not been tried with a real client.
-- **§8:** no change for M12c itself (the automatic matrix stays parked); M12b-read's reading of PDFs changes §8's `scholar_pdf` lines as M12a question G1 decides.
+- **§8:** no change for M12c itself (the automatic matrix stays parked); M12b-read, when built, takes reading PDFs out of §8's parked `scholar_pdf` lines (M12a G1).
 - **If N1 is answered (b):** the 2026-11-03 decision needs a note that the charting task has no eval set.
 
 ## Open questions
