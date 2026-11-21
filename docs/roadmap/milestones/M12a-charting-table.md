@@ -386,3 +386,30 @@ Decision item 3 was accepted on 2026-11-21 (answer 3); answer 6 adds the fetch, 
 ## Open questions
 
 Questions 1 to 10 and the follow-up questions 1 and F1 to F7 were answered on 2026-11-21 (top of the scope section). G1 to G5 were answered the same day, all as recommended. Item 21 was answered "Production from now" and K0 "Label plus four repairs". The screen specs' questions were closed on 2026-11-21 except screen 01 question 12 (Part F's fetch states, drafted before Part F) and screen 02 question 5 (the highlighter, left to the M8b amendment), so both specs stay DRAFT. Still open: those two items and the start of each build. The page: [`M12a-charting-table-for-review.md`](M12a-charting-table-for-review.md). The screens' closed questions are listed in each spec under "Questions closed (M12a, 2026-11-21)". The agent's questions are on [`M12c-agent-cells-for-review.md`](M12c-agent-cells-for-review.md).
+
+## Build record
+
+The build start was approved by the researcher on 2026-11-21 in the main session (building, not pushing). Each part is its own branch and its own PR, RELEASE lane, in the order K0, A, B (with K beside it), F, C.
+
+### Part K0: `download` and `ingest` production, with four repairs
+
+Branch `dev/m12a/k0-notice-off`, from `dev/m12a/charting-table-spec` (`2ea4a965`) with `origin/main` (`dacabd94`) merged in (`391fec9d`; the conflict at the top of `docs/decisions.md` kept both sides), so the specification documents travel with K0 · Lane **RELEASE** (a public command's network behaviour changes; item 27) · Decisions: `docs/decisions.md` "2026-11-21 — M12a K0" items 1 to 9 (PROPOSED).
+
+What was built:
+- `src/scholar_pdf/config.py`: no default contact address; `contact_email()` reads the app's `SCHOLAR_MAILTO` first, then the kit's `MAILTO`; `require_contact_email()` raises `MailtoNotSetError` (`MAILTO_NOT_SET`); `user_agent()` is `nexus-scholar/<version> (mailto:<address>)`; `enable_publisher_direct_patterns` defaults to false.
+- `src/scholar_pdf/downloader.py`: `process_doi` and `ingest_pdf` refuse a missing e-mail before any request; the PDF request and the OpenAlex and Unpaywall lookups send the app's user agent (the Chrome string and its `Accept-Language` are gone); the publisher-pattern candidates are no longer computed, whatever the setting says. The parked proxy code is unchanged.
+- `src/scholar_pdf/cli.py`: the group help names `download` and `ingest` as production and the others as parked; `extract`, `extract-run` and `acquire` carry "PARKED, not production" in their own help; `download` and `ingest` refuse, before any request and with exit code 1, a set proxy (`PROXY_REFUSED`, item 25), the pattern setting (`PUBLISHER_PATTERNS_REFUSED`, item 24) and a missing e-mail (`MAILTO_NOT_SET`).
+- Docs: the banners of `docs/nexus_scholar_user_guide.md` and `docs/kits_surface_matrix.md` (and the matrix's pdf rows and environment table) and the kit skill `.agents/skills/scholar-pdf-kit/SKILL.md` with its bundle copy say downloading is production and reading is parked, and name the defects Part K still repairs. Plan §8 is left to the main session (record, "What this un-parks").
+
+| DoD | Test | State |
+| :-- | :-- | :-- |
+| K0 (label) | `tests/test_parked_labels.py`: `test_the_parked_pdf_commands_say_so_in_their_help` (extract, extract-run, acquire), `test_the_pdf_download_commands_are_production` (download, ingest), `test_the_pdf_kit_group_help_names_download_and_ingest_as_production`; the docs as listed above | done |
+| K1 (early) | `tests/kits/pdf/test_k0_production_download.py`: `test_the_placeholder_contact_email_is_gone_from_the_kit` (greps the package), `test_download_refuses_without_a_contact_email`, `test_ingest_refuses_without_a_contact_email`, `test_the_library_refuses_before_any_request_without_a_contact_email`, `test_the_apps_scholar_mailto_is_what_the_providers_receive`, `test_scholar_mailto_wins_over_the_kits_own_mailto` | done |
+| K2 (early) | `test_no_browser_user_agent_remains_in_the_kit`, `test_a_download_names_the_app_and_its_contact_on_a_stub_server` (aiohttp stub on 127.0.0.1 reads the header), `test_the_provider_lookups_name_the_app_and_its_contact` | done |
+| K3 (early) | `test_the_publisher_patterns_are_off_by_default`, `test_no_guessed_publisher_url_is_requested_even_when_the_setting_asks`, `test_a_production_command_refuses_the_publisher_pattern_setting`, `test_a_production_command_refuses_a_set_proxy_with_a_message` (flag and setting, both commands); `test_a_download_with_contact_and_no_proxy_still_runs` | done |
+
+Fails before: on the source at `391fec9d` the new file fails 17 of 18 (2026-11-21; the one passing test was a placeholder, removed); `test_parked_labels.py`'s new tests fail on the group-level notice.
+
+Replaced tests: `test_downloader.py::test_process_doi_publisher_pattern_fallback` (asserted the guessed IEEE URL; replaced by `test_no_guessed_publisher_url_is_requested_even_when_the_setting_asks`); `test_cli.py::test_cli_download_with_proxy_flags` (asserted a proxied download through the command; replaced by the refusal test); `test_downloader.py::test_process_doi_proxy_subdomain_attempt` kept for the parked library proxy, without the guessed-URL step. `tests/kits/pdf/conftest.py` gives the kit's tests a test contact (decision item 8).
+
+Not verified: no live request was sent (the brief forbids it). What a live check would settle: that Unpaywall and OpenAlex accept the app's user agent and the researcher's address as they did the browser string. Prepared (needs the researcher's approval; one Unpaywall request, one OpenAlex request, and one PDF download from the open-access location they name): `SCHOLAR_MAILTO=<the researcher's address> uv run scholar-pdf download --doi 10.7717/peerj.4375 --output <a scratch folder>`. The two orphan cassettes in `tests/kits/pdf/cassettes/` (no test reads them) still carry the old placeholder address in their recorded URLs; Part K replaces the downloader's tests.

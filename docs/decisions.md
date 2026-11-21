@@ -10,9 +10,26 @@ history to read if you need the original reasoning (`git log --follow -- <path>`
 
 | Entry | Item | What is open |
 | :-- | :-- | :-- |
+| 2026-11-21 — M12a K0: `download` and `ingest` production | 1 to 9 | Proposed with the build; the researcher's answer is pending. |
 | 2026-11-21 — M11a Part B: known papers and comparison sets | 1 to 10 | Proposed with the build; the researcher's answer is pending. |
 | 2026-11-21 — M11a Part A: the workbench's counts | 1 to 13 | Proposed with the build; the researcher's answer is pending. |
 | 2026-11-19 — M9a: what the measurement says about the ladder gates | 2 | The minimum share of the researcher's excludes an agent must take before a rung unlocks: the principle is accepted; the researcher decided on 2026-11-20 to set the number when M9b is built. |
+
+## 2026-11-21 — M12a K0: `download` and `ingest` production, the four repairs as built (items 1 to 9 PROPOSED)
+
+Record: `docs/roadmap/milestones/M12a-charting-table.md`, "Build record", Part K0. Builds items 21 and 27 of the M12a entry below ("Production from now"; "Label plus four repairs"). These are the build's own choices where the specification left the detail open; none is accepted until the researcher answers. Nothing here changes a Contract v1 file or `protocol.json`.
+
+1. **`SCHOLAR_MAILTO` wins over the kit's `MAILTO`** when both are set (`scholar_pdf.config.contact_email`): the app's setting is the one the researcher keeps; `MAILTO` stays for kit-only users. *Alternative:* `MAILTO` first (the kit's own name).
+2. **`ingest` needs the e-mail too.** It looks the DOI up in OpenAlex and Unpaywall for metadata, so it sends the address; without one it is refused like `download`. *Alternative:* let `ingest` run without the lookups.
+3. **The publisher patterns: further than "off by default".** The setting defaults to false *and* the downloader no longer reads it (only the providers' own open-access location is requested, whatever the setting says); `download` and `ingest` refuse the setting when it is true (`PUBLISHER_PATTERNS_REFUSED`, naming item 24), as item 25 does for the proxy, rather than ignoring it silently. This makes DoD K3 ("even when the settings ask for them") true from K0. The module, its exports and its own tests stay until Part K deletes them (item 24); the downloader test that asserted the guessed IEEE URL is replaced by one that asserts no such request. *Alternative:* default false only, the setting still honoured when true.
+4. **The refusals are messages of the command, not console refusals:** `MAILTO_NOT_SET` (the code discovery uses), `PROXY_REFUSED`, `PUBLISHER_PATTERNS_REFUSED`; printed with the decision item, exit code 1, checked before any request in the order proxy, patterns, e-mail. No console route reaches the kit in K0, so `console/refusals.py` is unchanged.
+5. **The proxy refusal is at the commands only.** The library's `AsyncPDFDownloader` keeps the parked proxy code (its test is kept, without the guessed-URL step); Part K decides the library (item 25: "the code stays parked"). The library does refuse a missing e-mail (`MailtoNotSetError` from `process_doi` and `ingest_pdf` before any request).
+6. **The user agent is `nexus-scholar/<version> (mailto:<address>)` on every kit request**, the PDF download and the OpenAlex and Unpaywall lookups alike (the lookups pass it per request, since the shared HTTP client only knows `SCHOLAR_MAILTO`). The browser-like `Accept` and `Accept-Language` headers go with the browser user agent; `Accept` is `application/pdf,*/*;q=0.8`.
+7. **The help words.** Group: "Production: 'download' (open-access PDFs by DOI) and 'ingest' (a PDF you already have). Reading PDFs ('extract', 'extract-run') and E1 'acquire' are parked". `extract` and `extract-run` begin "PARKED, not production (reading PDFs waits for M12b-read)."; `acquire` begins "PARKED, not production (E1 acquisition stays parked, M12a item 23)." The parked-label test checks each command's own help.
+8. **The kit's tests run with a test contact** (`tests/kits/pdf/conftest.py`, autouse), so a developer's own `SCHOLAR_MAILTO` or `MAILTO` never decides a result; the refusal tests blank both.
+9. **The parked console pipeline buttons** (G5, item 26), which run `scholar-pdf download`, now refuse without a contact e-mail like any other caller. They stay parked; no change to them.
+
+**Lane RELEASE** (a public command's network behaviour changes).
 
 ## 2026-11-21 — M12c agent-proposed cells: the specification's choices (items 1 to 9 answered by the researcher 2026-11-21: 1, 2, 4, 5, 8 and 9 accepted as recommended; 3, 6 and 7 changed; items 10 and 11 accepted 2026-11-21 on N1 and N2, as recommended; a plan only, nothing approved to build or spend)
 
