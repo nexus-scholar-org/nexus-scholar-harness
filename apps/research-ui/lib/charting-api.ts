@@ -4,12 +4,12 @@ import { ScreeningApiError, consoleBase, postJson, readJson } from "./screening-
 import { newEventId } from "./screening-v1";
 
 /**
- * The charting routes of M12a Part A (`docs/ux/phase3-extraction/final/01-charting-table.md`,
+ * The charting routes of M12a Part A (screen spec 01 of the extraction phase,
  * `src/scholar_harness/console/api/charting.py`), typed as the engine answers them.
  *
  * The engine computes the rows, their state, the counts and every refusal; this
  * file only types the answers, sends the researcher's events and carries bytes.
- * Event ids are minted here (`newEventId`, a lowercase UUID); the engine judges
+ * Event ids are minted here (`newEventId`, a UUID in small letters); the engine judges
  * each event and answers accepted, duplicate or refused.
  */
 

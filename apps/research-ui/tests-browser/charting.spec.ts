@@ -142,8 +142,9 @@ test("the Full text view: status by keyboard on one row and on all, a decision w
   await page.keyboard.press("e");
   await page.keyboard.press("1");
   await page.keyboard.press("Enter");
-  await expect(rowOf(page, "STU-001").locator("[data-badge^=decision]")).toHaveText("Exclude");
   await expect(countsLine(page)).toContainText("1 excluded");
+  // A study excluded at full text leaves the view unless Show excluded is on.
+  await expect(rowOf(page, "STU-001")).toHaveCount(0);
 
   // Undo takes the exclusion back; the row is undecided again.
   await page.keyboard.press("z");
