@@ -563,3 +563,11 @@ Review round 1 of part B (`milestone-reviewer`, on `36de9009`): **CHANGES**, 1 P
 Follow-ups taken: the open pilot's id is read under the events lock when a revision is recorded (`test_followup_a_revision_records_the_pilot_open_at_that_moment`); a pilot number is never reused, even when a draw file is unreadable (`test_followup_a_pilot_number_is_never_reused_even_if_a_draw_file_is_unreadable`); `/summary` computes the recheck count once. Not taken: another batch can be approved while a pilot is open (the pilot result's revise would then be refused; the screen in part C shows the fixed state).
 
 Part A's item 5 ("bind the version") does not reach pilot decisions: they carry no binding and are labelled with the version in force when received (decision item 11, PROPOSED, with the binding alternative).
+
+| Stage | Commit | Command | Result | Duration |
+| :-- | :-- | :-- | :-- | :-- |
+| targeted | `3a92daa2` (working tree) | `tests/console/test_criteria_pilot_api.py` with the new review tests; part A's file, `test_agent_runs_api.py`, `test_screening_drafts_api.py` | 50 passed; 132 tests, 0 failed after the agreement test took the new shape | 55 s; 63 s |
+| pr (round 1 repairs) | `fbf8887d` (part A's `c65a48f2` and `origin/main` `b36303b8` merged in) | contract baseline, protocol schema, contract schemas, two-study fixture; both ruff commands; `git diff --check origin/main...HEAD`; `uv run pytest -q -n 4 --junitxml` (full suite) | current; in sync; exit 0; exit 0; clean; clean; clean; 6219 tests: 6204 passed, 15 skipped, 0 failed, 0 errors | 689 s |
+
+A gate started on `3a92daa2` was stopped when part A's branch moved (it brought code from `origin/main`); the run above is on the merged head.
+
