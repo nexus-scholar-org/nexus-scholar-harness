@@ -1,14 +1,31 @@
 # M11b Criteria pilot
 
-Branch: `dev/m11b/criteria-pilot-spec` (from `origin/main` at `1f218054`) · Lane: declared per part (proposed below: A, B and D **RELEASE**, C **STANDARD**) · Status: **SPECIFICATION, DRAFT for the researcher (2026-11-21); nothing decided, nothing built** · Fourth in the agreed order (plan §6, "After the acceptance run"); its build waits for M11a part C (see "What it assumes from M11a")
+Branch: `dev/m11b/criteria-pilot-spec` (from `origin/main` at `1f218054`) · Lane: declared per part (proposed below: A, B and D **RELEASE**, C **STANDARD**) · Status: **SPECIFICATION; the researcher answered the ten questions on 2026-11-21** (1 to 4, 7, 9 and 10 as recommended; **5, 6 and 8 against the recommendation**). The rework those three answers need, and questions 11 and 12, are PROPOSED. Nothing is built and the build start is not approved · Fourth in the agreed order (plan §6, "After the acceptance run"); its build waits for M11a part C (see "What it assumes from M11a")
 
-Short page for the researcher: [`M11b-criteria-pilot-for-review.md`](M11b-criteria-pilot-for-review.md). Screens (both `Status: DRAFT`): [`docs/ux/phase2-screening/final/13-criteria-pilot.md`](../../ux/phase2-screening/final/13-criteria-pilot.md) (draw the pilot, its result, revise a criterion) and [`docs/ux/phase0-inception/final/11-criteria-block.md`](../../ux/phase0-inception/final/11-criteria-block.md) (the change to Inception's step 5). Choices: `docs/decisions.md`, "2026-11-21 — M11b criteria pilot: the specification's choices" (PROPOSED).
+Short page for the researcher: [`M11b-criteria-pilot-for-review.md`](M11b-criteria-pilot-for-review.md). Screens (both `Status: DRAFT`): [`docs/ux/phase2-screening/final/13-criteria-pilot.md`](../../ux/phase2-screening/final/13-criteria-pilot.md) (draw the pilot, its result, revise a criterion) and [`docs/ux/phase0-inception/final/11-criteria-block.md`](../../ux/phase0-inception/final/11-criteria-block.md) (the change to Inception's step 5). Choices: `docs/decisions.md`, "2026-11-21 — M11b criteria pilot: the specification's choices" (answered 2026-11-21; the rework of 5, 6 and 8 and questions 11 and 12 PROPOSED).
+
+## The researcher's answers (2026-11-21)
+
+Given in the main session and relayed to this branch. The option the researcher picked is quoted as it read.
+
+| # | Question | Answer | As recommended? | Where this record follows it |
+| :-- | :-- | :-- | :-- | :-- |
+| 1 | How a revised criterion is recorded | "Amendment beside the protocol" | yes | (a), A1 |
+| 2 | Decisions already made | "Kept; affected ones return" | yes | (a); since answer 5 it applies to the main screening's decisions only |
+| 3 | Criterion numbers | "Reworded keeps it; others retire"; a number is never reused | yes | (b) |
+| 4 | Until when criteria can be revised | "Until the first batch is approved" | yes | (a), "When a revision is allowed" |
+| 5 | The pilot sample | **"Pilot decisions not counted"**: "Pilot records are screened again in the main screening. Cleaner separation, double work on those records." Size (50, 20 to 100), the random draw and the recorded seed were not questioned and stay as proposed | **no** | (d) reworked; (a), (e), (h), (i) follow; question 11 |
+| 6 | The checklist during the pilot | **"Closed as today"**: "The result then leans on the agent's answers only." | **no** | (d), (e) and (f) reworked: which readings remain |
+| 7 | Warnings without a model | "Rules only" | yes | (f) |
+| 8 | Defaults of the two method questions at step 5 | **"No default; I must choose"**: no not-reported rule is pre-selected, and step 5 cannot be passed until one is picked. Draft visibility was not asked separately: "after you decide the record" stays pre-selected, **as a proposal** | **no** | (g) reworked; question 12 |
+| 9 | "Check the agent on these 50 records" | "Yes" | yes | (i); since answer 5 the check compares the agent with the pilot decisions, which are not decision events |
+| 10 | Build order | "A, B, C, then D" | yes | "Parts": the order still holds. M11a part C is not merged yet (about to be pushed); part D waits for it |
 
 Sources: `docs/roadmap/what-a-researcher-does.md` (step 3: "The criteria change after a pilot: 50 to 100 records are screened, the criteria turn out ambiguous, they are rewritten, and only then fixed"); `docs/roadmap/acceptance-run-sensor-stress-2026-11-20.md` (findings 1, 2, 31, 36 and the section "Screening and agent drafts"); plan §6, row 4; `docs/decisions.md` entries "2026-11-20 — H-screening-drafts" (item 2: the method amendment beside the signed protocol; item 9: Inception does not ask) and "2026-11-19 — M10c" (items 9(a), 16, 21: what a moved fingerprint does); the Inception redesign decisions D1 to D15 (local branch `dev/ux/inception-redesign`, `04-recommendation.md`); `docs/architecture/DEVELOPER_COMPASS.md` §3; and the code at `1f218054`, checked by two `phase-auditor` runs (see "What exists, checked against the code").
 
 ## Goal
 
-Let the researcher screen a small random sample of the accepted corpus under their criteria before the full screening, and show them where the criteria worked and where they did not. Let them revise a criterion with a recorded reason, as an amendment beside the signed protocol, so the decisions already made stay bound and the records a revision could change are shown again. Warn about criteria that mirror or contradict each other before any record is read, and ask the two method settings where the criteria are accepted rather than after screening has started.
+Let the researcher screen a small random sample of the accepted corpus under their criteria before the full screening, as a pilot whose decisions are kept apart and not counted, and show them where the criteria worked and where they did not. Let them revise a criterion with a recorded reason, as an amendment beside the signed protocol, so the decisions already made stay bound and the counted records a revision could change are shown again. Warn about criteria that mirror or contradict each other before any record is read, and have the researcher choose the two method settings where the criteria are accepted rather than after screening has started.
 
 ## What a researcher does at this stage, and what the app offers today
 
@@ -18,7 +35,7 @@ Let the researcher screen a small random sample of the accepted corpus under the
 
 ### What exists, checked against the code
 
-Two `phase-auditor` runs at `1f218054` (read only, no network). Every line below was read in the code; "inferred" marks the two that were not run.
+Two `phase-auditor` runs at `1f218054` (read only, no network). Every line below was read in the code; "inferred" marks the two that were not run. E19 to E22 were read by hand on 2026-11-21 for the rework after the researcher's answers (the same code; `origin/main` has since gained M8b, which touches Triage only).
 
 | # | Fact | Evidence |
 | :-- | :-- | :-- |
@@ -40,6 +57,10 @@ Two `phase-auditor` runs at `1f218054` (read only, no network). Every line below
 | E16 | Contract v1 locks `src/scholar_harness/contracts/**`, the ten schemas under `contracts/schemas/v1/` (among them corpus-snapshot, screening-batch, screening-decisions, artifact-envelope), their fixtures and tests, and the listed docs. The protocol schema, `models.py` and `canonical.py` are not in that list (inferred from the globs; the drift check was not run, docs only). The locked `ScreeningDecision` has a free-text `reason` and no reason-code field; `reason_code` lives in the harness event log | `scripts/generate_contract_baseline.py:14-45`; `contracts/schemas/v1/screening-decisions.schema.json:81-92,150-154,177-183,251-276` |
 | E17 | A citation-chasing round archives the whole `literature/screening/` folder (`round_NNN`); a round is a folder, not a field on events | `screening/rounds.py:68-73,110,193` |
 | E18 | No pilot, sample or criteria revision exists in `src/scholar_harness` (the legacy `report.py` `cmd_calibration` is a 20-paper heuristic pre-flight, not tied to human decisions) | auditor grep; `screening/report.py:25` |
+| E19 | *Read on 2026-11-21 for the rework.* The screening API contract (ACCEPTED 2026-11-04, a harness contract, not Contract v1) says: a second non-superseding event for the same study and screener whose outcome differs is a `conflict`, and the study is left out of the projection, so collect refuses it (`BATCH_INCOMPLETE`); `proposal_shown` "is `null` when the researcher decided before any proposal was revealed. With blinding on (the default) it is always `null` at decision time"; "A reveal (M1b-0) is the first time `GET /records/{id}/proposal` returns a proposal to a screener". The methods paragraph's blinding sentences read these | `docs/architecture/screening-api-contract.md` §3.1, §3.3, §3.4; `console/api/screening_v1.py:306-322`; `screening/export.py:813-870` |
+| E20 | *Read on 2026-11-21.* `POST /proposals/calibrations` refuses a study that has no decision in the event log ("calibration uses records you have already decided", `INVALID_OUTPUT`, 422) | `console/api/screening_v1.py:1154-1160` |
+| E21 | *Read on 2026-11-21.* The intent packet has no `method` field; `compile_intent` fills the model defaults whenever the compiled protocol has no method block. The search amendment of M10c 9(a), which M11a's "Change the search" also uses, recompiles the intent and refuses any change outside the search fields (`outside_search`) | `scholar_protocol/intent.py:126-175`; `inception/genesis.py:146-181`; `workspace_proposals.py:247-270` |
+| E22 | *Read on 2026-11-21.* The terminal wizard (`scholar-harness inception`, `inception/wizard.py`) reaches genesis through `emit_workspace` and `compile_protocol_files` without step 5's screen, so it writes the model defaults | `inception/wizard.py:34-40,200`; `inception/emit.py:352,375`; `inception/genesis.py:184` |
 
 ## The contract questions (they decide whether this is small or large)
 
@@ -58,9 +79,13 @@ A pilot needs records, so it runs after the corpus is accepted and the batches a
 
 **A3. Both:** the amendment record, and a new fingerprint computed over the signed protocol plus the amendments, carried on new decisions. It keeps a fingerprint for the wording but has A2's cost wherever that fingerprint must bind (batches, the corpus), and A1's where it does not. No advantage over A1 with the criteria version.
 
-**Recommendation: A1, with the criteria version stamped by the engine.** **What happens to the pilot's decisions afterwards:** they are ordinary decisions, kept and counted, except those a revision could change, which are **shown again**: every Include, every Unclear (MAYBE), and every Exclude whose reason cites a criterion the revision touched. An Exclude for a criterion left untouched still holds, because one failed criterion is enough. A record shown again keeps its earlier decision in the log; the new decision supersedes it (`supersedes`, E8). Until it is decided again, its batch counts as not fully decided, so it cannot be approved (fail closed: compass §3). "Kept as pilot decisions, apart" was rejected: they are real decisions on real records, and putting them aside would make the researcher read 50 records twice. "Carried over unchanged" was rejected: an Include made under the old wording is not an Include under the new one.
+**Recommendation: A1, with the criteria version stamped by the engine. Accepted by the researcher on 2026-11-21 (answer 1).**
 
-**When a revision is allowed.** From the moment batches are prepared until the first batch is approved. The same rule (shown again) applies to every decided record, pilot or not, and the confirmation states how many records it will show again. After a batch is approved, a revision is refused (`CRITERIA_AMENDMENT_AFTER_APPROVAL`); changing criteria after publication stays a new screening (start from this protocol), as today. Before batches exist there is nothing to protect: a criterion is changed by going back to Inception.
+**What happens to decisions afterwards (answers 2 and 5).** The pilot's decisions are not counted (answer 5): they are kept apart, outside the event log, and the pilot's records are screened again in the main screening ((d)). So a revision made during the pilot, or after it and before any record is decided in the main screening, **touches no counted decision**: nothing is shown again, and the dry call says "No record will be shown again." The pilot decisions made under the earlier wording stay in the pilot file with their criteria version, and the result screen labels them; they are never shown again, because their records come back in the main screening anyway.
+
+Counted decisions exist only once the main screening has started. A revision then, still before the first approval (answer 4), works as accepted in answer 2: decisions are kept, and the ones a revision could change are **shown again**: every Include, every Unclear (MAYBE), and every Exclude whose reason cites a criterion the revision touched. An Exclude for a criterion left untouched still holds, because one failed criterion is enough. A record shown again keeps its earlier decision in the log; the new decision supersedes it (`supersedes`, E8). Until it is decided again, its batch counts as not fully decided, so it cannot be approved (fail closed: compass §3). "Carried over unchanged" was rejected: an Include made under the old wording is not an Include under the new one. ("Kept apart" was the option first argued against, because it reads 50 records twice; the researcher chose it for the cleaner separation.)
+
+**When a revision is allowed (answer 4).** From the moment batches are prepared until the first batch is approved. Shown again applies to every counted decision; pilot decisions are not counted decisions for this rule. The confirmation states how many records it will show again. After a batch is approved, a revision is refused (`CRITERIA_AMENDMENT_AFTER_APPROVAL`); changing criteria after publication stays a new screening (start from this protocol), as today. Before batches exist a revision is refused (`CRITERIA_AMENDMENT_NO_BATCHES`); the pilot needs prepared batches too ((d)).
 
 ### (b) What happens to `EXC-03`
 
@@ -75,6 +100,8 @@ A pilot needs records, so it runs after the corpus is accepted and the batches a
 
 - **Ids are never reused.** A new id takes the next number on its side after every id ever used, retired ones included (`EXC-06` after `EXC-01`…`EXC-05`, even when `EXC-03` was retired). The same for inclusions, whose failure reason is `FAILS-INC-nn`.
 - **A retired id is refused on a new decision** (`REASON_CODE_RETIRED`, a new refusal), and stays valid in the log on the decisions made before. After every record shown again is decided, no final decision cites a retired id, so the PRISMA "excluded, by reason" counts name only criteria in force.
+- "Shown again" in the table means counted decisions (answer 5). A pilot decision citing a retired id stays valid in the pilot file and is labelled with its criteria version on the result screen; it is never shown again.
+- Accepted by the researcher on 2026-11-21 (answer 3).
 - *Alternative:* a new id on every change of wording, rewording included. Simpler to state, but a clarification after a pilot is the common case, and the PRISMA counts would then split one criterion across two labels. Not recommended.
 
 ### (c) Contract decision or not
@@ -83,7 +110,9 @@ Under A1 nothing in Contract v1 changes (E16):
 - `protocol.json` is not written after genesis, so the protocol schema and the fingerprint algorithm do not change.
 - The reason code is a harness field of the event log; the locked `ScreeningDecision` keeps a free-text `reason`. The criteria version is a new engine-stamped field of the harness event log and of `proposals.jsonl`, not of a Contract v1 schema.
 - The corpus snapshot and the batch files are not rewritten. The batch file still embeds the signed wording (E10); it stays as it is because it is hashed into every binding, and every reader takes the wording in force from the engine instead.
-- `audit/criteria_amendments.jsonl` and the pilot file are side files outside the baseline, like `audit/method_amendments.jsonl`.
+- `audit/criteria_amendments.jsonl` and the pilot files are side files outside the baseline, like `audit/method_amendments.jsonl`.
+- **Answer 5 adds nothing to Contract v1.** Pilot decisions are not decision events and are never handed to the Contract v1 collector, so the minimum screening provenance (compass §6) does not apply to them. The main decision on a pilot record is an ordinary single-screener `HUMAN` decision with no parent: the pilot decision is not its parent, and it is not a second screener's decision, so the dual-screening and adjudication rules (compass §3) do not apply. Pilot decisions get their own id prefix (`PLD-`), distinct from event ids (compass §3, Identity). No conflict with Contract v1 was found; one with the harness screening API contract is question 11.
+- **The harness screening API contract** (`docs/architecture/screening-api-contract.md`, accepted 2026-11-04; not baseline-locked) is amended by parts A and B: the engine-stamped `criteria_version` on events (§3.1), the refusal codes (§7), the pilot and amendment routes (§4), and `PILOT_OPEN` on intake (§3.4). Each part amends that document in its own PR.
 
 `generate_contract_baseline.py --check` must still answer "current" before and after each part.
 
@@ -91,26 +120,51 @@ Under A1 nothing in Contract v1 changes (E16):
 
 ## Scope recommendations
 
-### (d) The pilot sample
+### (d) The pilot sample (answers 5 and 6, 2026-11-21)
 
+**Unchanged by the answers (not questioned):**
 - **Size 50** by default; the researcher can choose 20 to 100 (step 10). The note "50 to 100 records" is the usual practice; 50 keeps a solo reviewer's pilot to about half an hour at 30 seconds a record.
-- **Drawn how:** simple random from the accepted snapshot's studies, with a seed the engine draws and records (`random.Random(seed).sample`, the snapshot id and the order of its studies as input, so the same seed on the same snapshot gives the same list). Records already decided are not drawn. Not stratified: a stratified draw needs strata the app does not have; records without an abstract are drawn like the others and labelled, because the full screening meets them too.
-- **Stored:** `literature/screening/pilot/pilot_NNN.json` (`pilot_id`, `seed`, `n`, the snapshot id, the protocol fingerprint, the criteria version, `drawn_at`, `drawn_by`, and the list of `{study_id, batch_id}`), journal row `SCREENING_PILOT_DRAWN`. Inside `literature/screening/`, so a chase round archives it with the rest (E17).
-- **Back to the main queue?** The pilot records stay in their batches; their decisions are ordinary decision events in those batches. When the pilot ends they are decided, so the main queue skips them, except those a revision shows again. There is no separate pilot store and nothing to merge.
-- **A second pilot** after a revision is allowed: 50 more records not yet decided, a new seed, `pilot_002`. The result screen compares the two.
-- **During the pilot the checklist opens by default** (E9: today it is closed by default and optional). It stays optional; the screen says "In the pilot your answers per criterion show which criteria are hard to judge." This is what lets the result say where the researcher chose Unclear and why.
+- **Drawn how:** simple random from the accepted snapshot's studies, with a seed the engine draws and records (`random.Random(seed).sample`, the snapshot id and the order of its studies as input, so the same seed on the same snapshot gives the same list). Drawn from records that have no decision in the main screening and are in no earlier pilot. Not stratified: a stratified draw needs strata the app does not have; records without an abstract are drawn like the others and labelled, because the full screening meets them too.
+- **The draw file:** `literature/screening/pilot/pilot_NNN.json` (`pilot_id`, `seed`, `n`, the snapshot id, the protocol fingerprint, the criteria version, `drawn_at`, `drawn_by`, and the list of `{study_id, batch_id}`), journal row `SCREENING_PILOT_DRAWN`. Inside `literature/screening/`, so a chase round archives it with the rest (E17).
+- **A second pilot** after a revision is allowed: 50 more records, a new seed, `pilot_002`. The result screen compares the two.
+
+**Where pilot decisions go (answer 5: not counted).** They are **not decision events**. Each one is a line of `literature/screening/pilot/pilot_NNN_decisions.jsonl`, append-only: `pilot_decision_id` ("PLD-" + 24 hex), `pilot_id`, `study_id`, `screener_id`, `decided_at`, `outcome`, `reason_code` (the same rule as an event: required on Exclude, one id in force or `FAILS-INC-nn`), optional `criteria[{id, answer}]`, `note`, `supersedes` (a change of mind inside the pilot); the engine stamps `received_at`, `criteria_version` and `protocol_fingerprint`. There is no batch binding, because a pilot decision is not part of any batch's decided set.
+- **Intake:** `POST /api/v1/screening/pilot/{pilot_id}/decisions`, which reuses the event intake's checks (`valid_reason`, `REASON_CODE_INCONSISTENT`, `REASON_CODE_RETIRED`, the input limits of H-input-limits) and refuses a study outside the pilot (`PILOT_RECORD_UNKNOWN`) or a closed pilot (`PILOT_CLOSED`). One journal row per request (`SCREENING_PILOT_DECISIONS_RECEIVED`, counts only), as the event intake does.
+- **Never read by:** the winning-event projection and `batch_NNN_decisions.json`, the queue's main views and "decided" counts, the batch "fully decided" rule and approval, collect and the Contract v1 collector, PRISMA, the methods paragraph's decision counts, `GET /agreement`, and (when it is built) the ladder's calibration gate (M9b). A test: a workspace whose only decisions are pilot decisions has 0 decided records, nothing to approve, nothing collected and an empty agreement.
+- **Why a separate file, not events with a "pilot" flag.** (1) The screening API contract (E19, §3.4) makes a second non-superseding event for the same study and screener with another outcome a `conflict`, which leaves the study out of the projection and blocks collect; a pilot Exclude followed by a main Include would be one. (2) Every reader of events would have to skip pilot events, and a reader that forgot would count a pilot decision: that fails open. A separate file fails closed, because a reader that does not know it never sees it.
+- **While a pilot is open** (it has undecided records and was not ended): Triage opens on the pilot view, and a main decision event on one of the pilot's records is refused (`PILOT_OPEN`), so no record is decided in both places at once. The other records can be decided in the main screening meanwhile, and the main queue leaves the open pilot's records out (the refusal is the guard, not the usual path). A pilot whose records are all decided closes by itself. "End the pilot" closes it early with its undecided records left as ordinary undecided records; closing writes `SCREENING_PILOT_CLOSED` (pilot id, n, decided).
+- **Back to the main screening.** When the pilot closes, its records are ordinary undecided records in their batches, in batch order. **Proposed: blind to the pilot decision.** Triage shows nothing of the pilot decision, before or after the main decision, and the main queue does not tag pilot records; the pilot result keeps them. Showing the pilot decision beside the record would invite copying it, and the second reading would then buy nothing for its time. Showing it after the main decision would be a consistency check, but it teaches the researcher to expect it. The agent's drafts made on the pilot raise the same question for blinding to the agent: question 11.
+- **The cost of answer 5:** every pilot record is read twice, about 25 minutes for 50 records at 30 seconds a record, once per pilot. In exchange, no pilot decision made under an earlier wording ever reaches the published screening, and a revision during the pilot shows nothing again.
+
+**The checklist during the pilot (answer 6: closed as today).** The pilot uses Triage's checklist as the main screening does: collapsed, optional, opened on E, a number key or its toggle (decision 2026-11-09, "the checklist is a tool for the reason"). There is no pilot-specific default and no pilot-specific prompt to open it. Absent answers stay absent. What the result can then show is set out in (e).
 
 ### (e) What the researcher sees after the pilot
 
 One screen, read from the engine (`GET /screening/pilot/{pilot_id}/result`), counts only, each with its denominator:
 
-1. **The decisions:** n decided of N drawn; Include, Exclude, Unclear.
-2. **Per criterion,** in protocol order, a row: how many exclusions it decided (as `EXC-nn` or `FAILS-INC-nn`); how often the researcher's checklist answered it "not reported" (of the records where the checklist was used); when agent drafts exist for the pilot records, how often the draft answered it `not_reported`, and how often the draft and the researcher disagreed on it (of the records where both answered).
-3. **What this suggests,** a short list of observations, each from a fixed rule ((f), the pilot rules), each naming the criterion and the counts behind it, never an instruction: "EXC-05 decided no record in this pilot of 50. It may be rare, or covered by another criterion." Each has one action "Revise {id}" per criterion it names (two for a pair) and nothing else.
-4. **Records,** filterable by criterion, by outcome, by "the agent disagreed": the titles, opening Triage on the record.
-5. **The action bar:** "Revise a criterion" (opens the revise dialog), "Pilot 50 more records", "Screen the rest". "Screen the rest" records nothing; it goes to the queue.
+1. **The decisions:** n decided of N drawn; Include, Exclude, Unclear. These are pilot decisions: the screen says once that they are not counted and that the records come back in the main screening.
+2. **Per criterion,** in protocol order, a row: how many exclusions it was the reason for (`EXC-nn` or `FAILS-INC-nn`; always shown). When at least one pilot decision carries checklist answers: how often the checklist answered it "not reported", of the records where it was answered. When the agent check has run on the pilot (answer 9): how often the draft answered it `not_reported`, and how often the draft and the researcher's decision read it differently ((f), "Read differently"), each of its own denominator.
+3. **What this suggests,** a short list of observations, each from a fixed rule ((f), the pilot rules), each naming the criterion and the counts behind it, never an instruction: "EXC-05 was the reason for none of the 30 exclusions in this pilot of 50. It may be rare, or covered by another criterion." Each has one action "Revise {id}" per criterion it names (two for a pair) and nothing else. The readings that could not be computed are listed by name with what they need (below).
+4. **Records,** filterable by criterion (the reason code) and by your pilot outcome: the titles, opening the record read-only with its pilot decision. Not filterable by the agent, and no per-record draft is shown (question 11).
+5. **The action bar:** "Revise a criterion" (opens the revise dialog), "Pilot 50 more records", "Screen the rest". "Screen the rest" records nothing; it goes to the main queue, where the pilot records wait like any other.
 
-**After a revision** the result keeps each pilot's numbers with the criteria version its decisions were made under, and counts a record shown again under the new version once it is decided again; it is recomputed when read, never stored. **There is no undo:** a revision is reversed by another revision (a reword back, an add), and both stay in the record.
+**What can be shown with the checklist closed (answer 6).** Each pilot decision always gives an outcome and, for an Exclude, exactly one reason code. Per-criterion answers come only from the checklist when the researcher opens it, or from the agent check on the pilot (answer 9). So:
+
+| Reading ((f)) | From the decisions alone | Needs the agent check | With checklist answers, when given |
+| :-- | :-- | :-- | :-- |
+| Many Unclear | yes | | |
+| Does most of the work | yes (reason codes) | | |
+| Never used | weaker form: "was the reason for none of the exclusions" | full form: and the agent never answered it against | full form, on the answered records |
+| Hard to judge from the abstract | no: an Unclear names no criterion | yes (the draft's `not_reported`) | yes (the checklist's "not reported") |
+| Exclusions that fire together | no: an Exclude cites one reason only | yes | yes |
+| Mirrored pair | no | yes (only from the draft's answers) | no (too few answers for the rule) |
+| Read differently | no | yes, against what your decision implies (below) | yes, against your answers |
+
+**When the researcher neither opens the checklist nor runs the agent check**, the result shows the decision counts, per criterion the exclusions it was the reason for, and at most three readings: many Unclear, does most of the work, and never used in its weaker form. Under them one line names the four it could not compute: "Four readings need answers per criterion: hard to judge, fire together, mirrored pair, read differently. Let the agent check these {n} records ({estimate}), or open the checklist while you screen a second pilot." The mirror of the 2026-11-20 review (EXC-02 against INC-02) is **not** shown in that case; the screen says so in Details, not as a warning.
+
+**"What your decision implies"** (used by "Read differently" without checklist answers): an Exclude citing `EXC-n` implies `EXC-n` met; one citing `FAILS-INC-n` implies `INC-n` not met; an Include implies every inclusion met and no exclusion met; an Unclear implies nothing. The column says "against your decisions, not answers per criterion". It is an inference from the outcome, labelled as such; a disagreement read this way is weaker evidence than one against an answer.
+
+**After a revision** the result keeps each pilot's numbers with the criteria version its decisions were made under; it is recomputed when read, never stored. Pilot decisions are not shown again (answer 5). **There is no undo:** a revision is reversed by another revision (a reword back, an add), and both stay in the record.
 
 A pilot of 50 is small: a criterion that applies to 2% of records is expected once. The screen says so once, under the table: "Counts from 50 records. A criterion that decided nothing here may still matter in the full corpus."
 
@@ -134,50 +188,59 @@ What these rules cannot do: "RGB only" against "multispectral imagery from a UAV
 
 **After the pilot (on the answers), the observations of (e):**
 
-| Observation | Rule (constants; n is the number of records where both answers exist) |
-| :-- | :-- |
-| Mirrored pair | Agent drafts: an exclusion answered `yes` exactly when an inclusion is answered `no`, in at least 90% of n ≥ 10 records |
-| Exclusions that fire together | Agent drafts or checklist: two exclusions both `yes` in at least 90% of the records where either is `yes` (at least 5) |
-| Hard to judge from the abstract | A criterion answered `not_reported` in at least half of the drafts, or of the checklist answers (n ≥ 10) |
-| Never used | A criterion that decided no exclusion and was never answered against (exclusion never `yes`, inclusion never `no`) |
-| Does most of the work | One criterion decided at least 60% of the exclusions (informative; says "check it is worded as you mean") |
-| Many Unclear | At least 30% of the pilot decided Unclear |
-| Read differently | The draft and the researcher disagree on a criterion in at least 25% of n ≥ 10 records |
+| Observation | Rule (constants; n is the number of records where both answers exist) | Needs (answer 6) |
+| :-- | :-- | :-- |
+| Mirrored pair | Agent drafts: an exclusion answered `yes` exactly when an inclusion is answered `no`, in at least 90% of n ≥ 10 records | the agent check |
+| Exclusions that fire together | Agent drafts or checklist: two exclusions both `yes` in at least 90% of the records where either is `yes` (at least 5) | the agent check, or checklist answers |
+| Hard to judge from the abstract | A criterion answered `not_reported` in at least half of the drafts, or of the checklist answers (n ≥ 10) | the agent check, or checklist answers |
+| Never used | A criterion that was the reason for no exclusion; in its full form also never answered against (exclusion never `yes`, inclusion never `no`) | nothing (weaker form); the agent check or checklist (full form) |
+| Does most of the work | One criterion was the reason for at least 60% of the exclusions (informative; says "check it is worded as you mean") | nothing |
+| Many Unclear | At least 30% of the pilot decided Unclear | nothing |
+| Read differently | The draft and the researcher disagree on a criterion in at least 25% of n ≥ 10 records; the researcher's side is a checklist answer when given, else what the decision implies ((e)) | the agent check |
 
-The pilot rules catch the run's mirror without a model, from answers the agent already gives per criterion (E11). **Recommendation: rules only in M11b.** A meaning check would need a model call at Inception, its spend approved, its errors measured; the M10c critic over MCP can already be asked by the researcher's own AI client (not yet tried with a real client), and an in-app critic belongs with M10e. There is no strong reason to bring a model into this milestone.
+With the checklist closed (answer 6) the pilot rules catch the run's mirror only through the agent check (answer 9), from answers the agent already gives per criterion (E11): a model call, about $0.01 for 50 records on Haiku 5.5, behind its own confirmation. Without it, nothing in M11b sees a mirror of meaning. **Recommendation: rules only in M11b** (accepted, answer 7). A meaning check would need a model call at Inception, its spend approved, its errors measured; the M10c critic over MCP can already be asked by the researcher's own AI client (not yet tried with a real client), and an in-app critic belongs with M10e. There is no strong reason to bring a model into this milestone.
 
 ### (g) Inception asks the two method settings
 
-On step 5, in the criteria block after the two lists, a short section "How you will screen", two questions, each with a default selected and words that say what it costs. Stored in the draft (`method_blinding`, `method_not_reported`, new), written by genesis into the protocol's `method` block (today genesis writes the defaults, E2). Both can still be amended later from Prepare (E7).
+On step 5, in the criteria block after the two lists, a short section "How you will screen", two questions with words that say what each choice costs. Stored in the draft (`method_blinding`, `method_not_reported`, new), written by genesis into the protocol's `method` block (today genesis writes the defaults, E2). Both can still be amended later from Prepare (E7).
 
-1. **"When should the agent's draft for a record be shown to you?"**
-   - "After you decide the record" (`reveal_after_decision`) · default, as today. Help: "You read each record without the agent's view first, and the app can measure how often the agent agrees with you."
+1. **"When should the agent's draft for a record be shown to you?"** (not questioned separately by the researcher; **the pre-selection below is a proposal**)
+   - "After you decide the record" (`reveal_after_decision`) · pre-selected, as today. Help: "You read each record without the agent's view first, and the app can measure how often the agent agrees with you."
    - "Beside the record, while you decide" (`show`). Help: "Faster to screen. The app can then not measure the agent against your own reading, because you saw its draft first."
-2. **"When the title and abstract do not report a criterion, the agent's draft should…"**
-   - "Exclude only on a clear failure; otherwise mark it Unclear" (`decisive_first`) · **recommended default for new reviews.** Help: "A record that clearly fails one criterion is excluded even if another is not reported."
-   - "Mark it Unclear whenever a criterion is not reported" (`unclear`). Help: "The most cautious. In the 2026-11-20 review, 85% of drafts were Unclear under this rule."
-   - "Exclude when an inclusion criterion is not reported" (`exclude`). Help: "The strictest. A record is excluded when its abstract is silent on something it must show." (The model's definition: an inclusion criterion not reported gives Exclude, `FAILS-INC-n`; `scholar_protocol/models.py:342-347`.)
+2. **"When the title and abstract do not report a criterion, the agent's draft should…"** · **no option pre-selected (answer 8).** Listed from the most cautious to the strictest, each with the same kind of cost words:
+   - "Mark it Unclear whenever a criterion is not reported" (`unclear`). Help: "The most cautious. On the measured set of 1,644 records the agent's include recall (lower bound) was 96.8% and it caught 1.9% of the excludes; in the 2026-11-20 review 85% of drafts were Unclear."
+   - "Exclude only on a clear failure; otherwise mark it Unclear" (`decisive_first`). Help: "A record that clearly fails one criterion is excluded even if another is not reported. On the measured set: include recall (lower bound) 92.2%, 78.6% of the excludes caught."
+   - "Exclude when an inclusion criterion is not reported" (`exclude`). Help: "The strictest. A record is excluded when its abstract is silent on something it must show. Not measured." (The model's definition: an inclusion criterion not reported gives Exclude, `FAILS-INC-n`; `scholar_protocol/models.py:342-347`.)
 
-**Who owns the default.** The engine, not the screen: a draft created after part D is created with `method_blinding: reveal_after_decision` and `method_not_reported: decisive_first` stored, so the screen shows what genesis will write. A draft created before part D has neither field; the screen shows the values genesis would write for it (the model defaults, `unclear`) with the note "This draft was started before this question existed; choose to change it", and genesis writes what is stored or, when nothing is, the model defaults. An imported protocol (`09-start-from-protocol`) that carries a `method` block fills the two questions from it.
+**What "no rule chosen" means (answer 8).**
+- **A new draft** stores `method_not_reported: null`. Step 5 shows no selection, and a new blocker check, `METHOD_RULE_UNCHOSEN`, sits in the M10b catalogue at the field and at Review, like `CRITERIA_UNDECIDED`: step 5 cannot be passed and genesis is refused through the existing blocker path until one of the three is chosen. A blocker, so not dismissible.
+- **A draft started before part D** has no rule either and meets the same blocker, with one extra sentence: "This draft was started before this question existed." One choice clears it. (This replaces the first draft's "shows the model defaults until you choose".)
+- **An imported protocol** (`09-start-from-protocol`) with a `method` block fills both questions from it, shown as chosen with "From the imported protocol"; without a block the rule is unchosen and blocks.
+- **The step API:** `GET` of the draft answers `method_not_reported: null` until chosen; the draft write accepts only the three values (not `null` once chosen); the preview's checks list the blocker; genesis is refused with the existing blocker refusal naming `METHOD_RULE_UNCHOSEN`. The M10c assistant over MCP only proposes (`nexus_assistant_propose`, `src/scholar_agent/server.py:2317`) and gets no proposal kind for the rule: the choice is the researcher's.
+- **The value travels in the intent, not only in genesis (found in the rework, E21).** `compile_intent` fills the model defaults whenever the intent carries no method, and the search amendment of M10c 9(a), which M11a's "Change the search" uses, recompiles the intent and refuses any change outside the search fields. A review whose researcher chose `decisive_first` would therefore have every later search amendment refused (`outside_search`, the method block differs). Part D writes the two choices into `intent.json` as an additive `method` entry that the compiler copies, so genesis and every recompile give the same block. This also held for the first draft's recommendation and was missed there.
+- **Existing reviews** (a protocol already signed) do not change and are not asked: their rule is the signed value, or the model default `unclear` for a protocol without a block (decision 2026-11-08), and it stays changeable by the method amendment on Prepare (H-screening-drafts item 2). The model's default in `MethodConfig` stays `unclear`, so no fingerprint moves.
+- **The terminal wizard** (`scholar-harness inception`, E22) reaches genesis without step 5's screen. Proposed: it asks the same question with no default (a numbered choice, asked again until answered), and a non-interactive run needs `--not-reported <rule>` and refuses without it. Question 12.
 
-The cost of the recommended default: on the frozen 1,644-record set (Haiku 5.5), the lower bound of the agent's include recall was 92.2% under `decisive_first` and 96.8% under `unclear`; the excludes the agent caught went from 1.9% to 78.6%. Existing protocols do not change; the model's default stays `unclear`; only the Inception screen pre-selects `decisive_first`.
+**Accepted decisions answer 8 meets.** H-screening-drafts (2026-11-20) item 1: "`unclear` stays the default and the value genesis writes, so no existing protocol changes"; item 9: "Inception does not ask. Genesis still writes `blinding: reveal_after_decision` and `not_reported: unclear` without asking"; and 2026-11-08, "New workspaces are written with the block, filled with today's values." Answer 8 changes the genesis half of item 1 and the 2026-11-08 sentence for the not-reported value of reviews made at step 5 (genesis writes the researcher's choice), and closes the follow-up of item 9. "No existing protocol changes" still holds. The researcher's answer is the decision that changes them; the decisions entry records it as a change. Whether it also reaches the terminal wizard is question 12.
 
 ### (h) How a revision is recorded and reported
 
 **The amendment row** (`audit/criteria_amendments.jsonl`, one line per revision): `amendment_id` ("CRA-" + 24 hex), `op` (`reword`, `split`, `merge`, `remove`, `add`, `reason_category`), `side`, `from` (list of `{id, text, reason_category}`), `to` (same), `reason` (one sentence, required, at most 500 characters), `criteria_version_before`, `criteria_version_after`, `protocol_fingerprint`, `pilot_id` (the pilot in progress, or null), `decided_at_time` (how many decided records existed), `shown_again` (how many, by outcome), `amended_by`, `amended_at`.
 
-**Journal rows:** `SCREENING_PILOT_DRAWN` (pilot id, n, seed), `PROTOCOL_CRITERIA_AMENDED` (amendment id, op, from and to ids, the reason, the versions, the counts), and on publish the sha256 of `audit/criteria_amendments.jsonl` in the publish row. `SCREENING_CRITERIA.md` is rewritten as the criteria in force with a section "Amendments" listing each one; the earlier file is backed up to `audit/amended/<UTC stamp>/` as M10c 9(a) does.
+Under answer 5, `shown_again` counts counted decisions only, and is zero for a revision made before the main screening starts.
+
+**Journal rows:** `SCREENING_PILOT_DRAWN` (pilot id, n, seed), `SCREENING_PILOT_DECISIONS_RECEIVED` (counts), `SCREENING_PILOT_CLOSED` (pilot id, n, decided), `PROTOCOL_CRITERIA_AMENDED` (amendment id, op, from and to ids, the reason, the versions, the counts), and on publish the sha256 of `audit/criteria_amendments.jsonl` in the publish row. `SCREENING_CRITERIA.md` is rewritten as the criteria in force with a section "Amendments" listing each one; the earlier file is backed up to `audit/amended/<UTC stamp>/` as M10c 9(a) does.
 
 **The methods paragraph** (`screening/export.py` `build_methods`, E14) gains, after the method sentences:
-- with a pilot: "The screening criteria were piloted on {n} records drawn at random from the {N} records of the corpus (seed {seed}){, and on {n2} more after the first revision}."
-- per amendment: "On {date}, {criterion} was {reworded | split into … | merged with … | removed | added}: '{from}' became '{to}'. Reason: {reason}. {k} records already decided were screened again." When it came after the pilot: "… after {d} records had been decided …".
+- with a pilot (answer 5): "The screening criteria were piloted on {n} records drawn at random from the {N} records of the corpus (seed {seed}){, and on {n2} more after the first revision}. The pilot decisions were not counted; these records were screened again with the rest of the corpus{, without the pilot decision in view}." (The last clause only if question 11 keeps the main screening blind to the pilot decision.)
+- per amendment: "On {date}, {criterion} was {reworded | split into … | merged with … | removed | added}: '{from}' became '{to}'. Reason: {reason}." Then, when counted decisions existed: "{k} records already decided were screened again." When none did: "It was made after the pilot and before the main screening." When it came during the main screening: "… after {d} records had been decided …".
 - with no amendment: "The criteria were not changed after the protocol was signed."
 
 The PRISMA figure is unchanged in shape; its "excluded, by reason" counts name the criteria in force (b).
 
 ### (i) What "check the agent on your labels" reuses from the pilot
 
-The pilot's decisions are the labels. "Check the agent on these 50 records" on the result screen calls the existing calibration route (E13) with the pilot's decided `study_ids`, and always sends a model: the setup's `last_model` (`GET /proposals/setup`), else the run screen's constant `claude-haiku-5-5` (H-screening-drafts item 6). The route's body defaults to Opus 5.5, and the screen must never rely on that default (the $7.59 of finding 32). The dialog names the model, the count and the estimate, which comes from the existing `POST /proposals/runs {estimate_only: true, scope: {study_ids}}` (`console/api/screening_v1.py:987-1042`); about $0.01 for 50 records on Haiku 5.5 (scaled from the run's $0.22 for 1,062). The result fills the agent columns of (e) and the per-criterion disagreement. `splits_by_criterion` (E12) gains its denominator. `prompt-gate measure --scope all` stays the command-line route and is unchanged. Drafts made under an earlier criteria version are labelled "made under the earlier wording" and are not counted in agreement, calibration or the queue's order; the run screen offers "Draft again the {n} records whose draft predates the revision", with its estimate. No spend happens without that dialog.
+Accepted (answer 9). The pilot's decisions are the labels. Under answer 5 they are not decision events, and the calibration route refuses a study with no decision in the event log (E20). So the route gains an additive body field `pilot_id`: with it, the study ids are the pilot's decided records and the reference labels are read from the pilot file; without it, the route is unchanged. The drafts are stored as today (`kind: calibration`) with the `pilot_id`. "Check the agent on these 50 records" on the result screen calls it, and always sends a model: the setup's `last_model` (`GET /proposals/setup`), else the run screen's constant `claude-haiku-5-5` (H-screening-drafts item 6). The route's body defaults to Opus 5.5, and the screen must never rely on that default (the $7.59 of finding 32). The dialog names the model, the count and the estimate, which comes from the existing `POST /proposals/runs {estimate_only: true, scope: {study_ids}}` (`console/api/screening_v1.py:987-1042`); about $0.01 for 50 records on Haiku 5.5 (scaled from the run's $0.22 for 1,062). The result fills the agent columns of (e) and the per-criterion disagreement, as counts; no per-record draft is shown on the pilot result (question 11). These drafts are the latest drafts of the pilot records, so in the main screening they are shown as any draft is, under the blinding in force. `splits_by_criterion` (E12) gains its denominator. `prompt-gate measure --scope all` stays the command-line route and is unchanged. Drafts made under an earlier criteria version are labelled "made under the earlier wording" and are not counted in agreement, calibration or the queue's order; the run screen offers "Draft again the {n} records whose draft predates the revision", with its estimate. No spend happens without that dialog.
 
 ## Definition of done
 
@@ -188,7 +251,7 @@ Each item is checked by a test named in the build record, unless it says "live".
 - [ ] DoD 2. The criteria in force are the signed list plus the amendments under the current fingerprint, oldest first, with a version number; one function reads them, and every reader uses it: the agent run, the draft reader, the reason check at intake, Triage's criteria and checklist, the batch instructions shown to an agent, the agreement read, the export. A test lists the readers of `screening_criteria` and fails on a new one that bypasses the function.
 - [ ] DoD 3. Ids follow (b): reword keeps the id; split, merge and remove retire; a new id takes the next number on its side, never a used one; `REASON_CODE_RETIRED` on a new decision citing a retired id; earlier events stay valid.
 - [ ] DoD 4. Every new decision event and every new draft carries the engine-stamped `criteria_version`; an event without it is version 1. A browser cannot send it.
-- [ ] DoD 5. After an amendment, the records shown again are exactly: Include, MAYBE, and Exclude citing a touched criterion, for decisions made under an earlier version; the queue lists them (`view=recheck`); a batch holding one is not fully decided for approval.
+- [ ] DoD 5. After an amendment, the records shown again are exactly: Include, MAYBE, and Exclude citing a touched criterion, for counted decisions (event log, never pilot decisions) made under an earlier version; the queue lists them (`view=recheck`); a batch holding one is not fully decided for approval.
 - [ ] DoD 6. A revision is refused before batches exist (`CRITERIA_AMENDMENT_NO_BATCHES`), after a batch is approved (`CRITERIA_AMENDMENT_AFTER_APPROVAL`), without a reason or `confirm`, for an unknown or retired id, or one that changes nothing (`CRITERIA_AMENDMENT_INVALID`). A dry call (`confirm: false`) answers what it would change: the new ids and how many records it would show again, by outcome.
 - [ ] DoD 7. A revision that leaves a side with no criterion in force is refused (`CRITERIA_SIDE_EMPTY`), as genesis refuses a missing side.
 - [ ] DoD 7b. `GET /api/v1/screening/criteria` answers the criteria in force (id, side, text, reason category, the version each wording dates from), the retired ids, the current version and the amendments; the revise dialog and Triage read it.
@@ -197,11 +260,13 @@ Each item is checked by a test named in the build record, unless it says "live".
 - [ ] DoD 10. The methods paragraph reports each amendment and, with no amendment, says the criteria were not changed; the publish journal row carries the sha256 of the amendments file.
 
 **The pilot (part B)**
-- [ ] DoD 11. `POST /api/v1/screening/pilot {n, confirm}` draws n (20 to 100, default 50) undecided records at random with a recorded seed; the same seed on the same snapshot gives the same list; the file and `SCREENING_PILOT_DRAWN` are written. Refused before batches exist, after a batch is approved, while a pilot has undecided records (`PILOT_OPEN`), or when fewer undecided records remain than asked. A dry call (`confirm: false`) answers n, the undecided count and the expected time, and writes nothing.
-- [ ] DoD 11b. `GET /summary` gains a `pilot` block (the open or last pilot's id, n, decided, and how many records wait to be shown again), so every screen knows a pilot is open without a new route.
-- [ ] DoD 12. `GET /queue?view=pilot` lists the pilot's records in the drawn order; during a pilot the checklist opens by default (a setting the queue answers, not a browser guess).
-- [ ] DoD 13. `GET /screening/pilot/{id}/result` answers (e): counts per outcome; per criterion the exclusions it decided, the checklist's `not_reported`, and with drafts the draft's `not_reported` and the disagreements, each with its denominator; the observations of (f) with their counts; for a second pilot, the first one beside it.
-- [ ] DoD 14. "Check the agent on these records" sends the pilot's decided ids to `POST /proposals/calibrations` with an explicit model, always (a UI test fails when the body has no `model`); the estimate comes from `POST /proposals/runs` with `estimate_only` and the same ids. The route's own Opus default is not changed here (a public default; changing it is a separate decision).
+- [ ] DoD 11. `POST /api/v1/screening/pilot {n, confirm}` draws n (20 to 100, default 50) records with no main decision and in no earlier pilot, at random with a recorded seed; the same seed on the same snapshot gives the same list; the draw file and `SCREENING_PILOT_DRAWN` are written. Refused before batches exist, after a batch is approved, while another pilot is open (`PILOT_OPEN`), or when fewer such records remain than asked. A dry call (`confirm: false`) answers n, the count left to draw from and the expected time, and writes nothing.
+- [ ] DoD 11b. `GET /summary` gains a `pilot` block (the open or last pilot's id, n, decided, open or closed, and how many counted records wait to be shown again), so every screen knows a pilot is open without a new route.
+- [ ] DoD 11c (answer 5). `POST /api/v1/screening/pilot/{id}/decisions` writes pilot decisions to `pilot_NNN_decisions.jsonl` (fields of (d), ids `PLD-…`, engine-stamped `criteria_version`, fingerprint, `received_at`), with the event intake's reason checks; refuses `PILOT_RECORD_UNKNOWN`, `PILOT_CLOSED`. A test shows a workspace with only pilot decisions has 0 decided records, nothing approvable, nothing collected, an empty `/agreement` and no change to any `batch_NNN_decisions.json`.
+- [ ] DoD 11d (answer 5). While a pilot is open, a main decision event on one of its records is refused `PILOT_OPEN`; "End the pilot" (`POST /pilot/{id}/close`) closes it and writes `SCREENING_PILOT_CLOSED`; afterwards the pilot records are ordinary undecided records, and no main-screening answer (queue, record, Triage) carries their pilot decision (if question 11 is answered as recommended).
+- [ ] DoD 12. `GET /queue?view=pilot` lists the pilot's records in the drawn order. The checklist keeps the 03 default (collapsed) in the pilot (answer 6).
+- [ ] DoD 13. `GET /screening/pilot/{id}/result` answers (e): counts per outcome; per criterion the exclusions it was the reason for; the checklist's `not_reported` when answers exist; with the agent check the draft's `not_reported` and "read differently", each with its denominator and its source (answers or implied); the observations of (f) with their counts, and the names of those not computed with what they need; for a second pilot, the first one beside it. No per-record draft (question 11).
+- [ ] DoD 14. "Check the agent on these records" calls `POST /proposals/calibrations` with `pilot_id` (new, additive) and an explicit model, always (a UI test fails when the body has no `model`); without `pilot_id` the route is unchanged; the estimate comes from `POST /proposals/runs` with `estimate_only` and the same ids. The route's own Opus default is not changed here (a public default; changing it is a separate decision).
 - [ ] DoD 15. `splits_by_criterion` gains `answered_by_both` per criterion; old clients still read the count.
 
 **Screens (part C)**
@@ -209,13 +274,15 @@ Each item is checked by a test named in the build record, unless it says "live".
 - [ ] DoD 17. The revise dialog shows, before anything is recorded, the new ids and the records it will show again by outcome, and needs the reason.
 
 **Inception (part D)**
-- [ ] DoD 18. Step 5's criteria block asks the two method settings with the defaults and words of (g); a new draft is created with the defaults stored, so the screen and genesis agree; genesis writes them into `method`; the preview lists them; a draft from before part D shows and compiles the model defaults (`unclear`) until the researcher chooses.
+- [ ] DoD 18. Step 5's criteria block asks the two method settings with the words of (g): draft visibility pre-selected "after you decide" (proposed), the not-reported rule with **no option pre-selected** (answer 8). `METHOD_RULE_UNCHOSEN` blocks step 5, Review and genesis for a new draft, a draft from before part D and an import without a method block; the draft write accepts only the three values; genesis writes the choice into `method`; the preview lists it.
+- [ ] DoD 18b. The two choices are stored in `intent.json` and copied by the compiler, so a search amendment (M10c 9(a), M11a) of a review that chose `decisive_first` or `exclude` is not refused `outside_search` (a regression test). A protocol without the choice keeps its fingerprint.
+- [ ] DoD 18c (if question 12 is answered as recommended). The terminal wizard asks the rule with no default; a non-interactive run without `--not-reported` is refused before anything is written.
 - [ ] DoD 19. The five wording checks of (f) in the catalogue, at the field and at Review, never blockers, dismissible with a reason (M10b rule).
 - [ ] DoD 20. The criteria are laid out as direction A's criteria block (D13) inside today's step 5, as M11a did for the concepts block; the out-of-scope question is asked in this block (D6).
 
 **Closure**
 - [ ] DoD 21. `generate_contract_baseline.py --check` current before and after each part; `generate_protocol_schema.py --check` unchanged.
-- [ ] DoD 22 (live). The researcher pilots the criteria of a real review (50 records), revises at least one criterion, and reports in this record what the pilot showed and whether the observations were right.
+- [ ] DoD 22 (live). The researcher pilots the criteria of a real review (50 records), revises at least one criterion, screens the pilot records again in the main screening, and reports in this record what the pilot showed, whether the observations were right, and how many pilot records were decided differently the second time.
 
 ## In and out
 
@@ -230,15 +297,19 @@ Each item is checked by a test named in the build record, unless it says "live".
 - Changing the concepts or the search: M11a (Plan's "Change the search", before a corpus is accepted).
 - The frame of direction A (M10f-1), D4 (checks with proposals) and the rest of M10f-3 beyond the criteria block.
 - `prompt-gate measure` changes; per-criterion output there.
+- A figure comparing each pilot decision with the later main decision on the same record (a same-reader consistency check): possible from the two files after answer 5, not shown in M11b; DoD 22 asks for it once, by hand.
+- Prompting existing reviews to choose the not-reported rule (answer 8 applies to drafts, not to signed protocols).
 
 ## Parts, one PR each
 
-| Part | Contents | Lane | Why that lane | Depends on |
-| :-- | :-- | :-- | :-- | :-- |
-| **A. Criteria in force** | `screening/criteria.py` (criteria in force, versions, retired ids, shown-again set), the amendment route and file, refusal codes `CRITERIA_AMENDMENT_INVALID`, `CRITERIA_AMENDMENT_NO_BATCHES`, `CRITERIA_AMENDMENT_AFTER_APPROVAL`, `CRITERIA_SIDE_EMPTY`, `REASON_CODE_RETIRED`; every reader moved to it; `criteria_version` on events and drafts; `view=recheck` and the approval gate; `SCREENING_CRITERIA.md`; the methods sentences | RELEASE | public route and refusals, persisted record, new engine field on events, decision intake changes | none |
-| **B. The pilot** | `screening/pilot.py` (draw, file, result, observations), routes `POST /pilot`, `GET /pilot/{id}/result`, `view=pilot`, the checklist default during a pilot, refusal `PILOT_OPEN`, `SCREENING_PILOT_DRAWN`, the calibration call with an explicit model, `answered_by_both` | RELEASE | public routes, persisted record, an additive field on a public answer | A |
-| **C. Screening screens** | Prepare's entry, Triage's pilot banner and recheck view, the result and revise screen (spec `13-criteria-pilot`), the run screen's "Draft again", en/fr/ar, axe | STANDARD (UI) | browser only, over A and B | A, B; M8b-triage-highlights if it is merged first (both touch Triage) |
-| **D. Inception step 5** | the criteria block (D13), the out-of-scope question in it (D6), the method questions, draft fields and genesis, the five wording checks (spec `11-criteria-block`) | RELEASE | the inception draft API and the protocol genesis writes change; new check ids in a public preview | M11a part C merged |
+| Part | Contents | Lane | Why that lane | Size after the answers | Depends on |
+| :-- | :-- | :-- | :-- | :-- | :-- |
+| **A. Criteria in force** | `screening/criteria.py` (criteria in force, versions, retired ids, shown-again set), the amendment route and file, refusal codes `CRITERIA_AMENDMENT_INVALID`, `CRITERIA_AMENDMENT_NO_BATCHES`, `CRITERIA_AMENDMENT_AFTER_APPROVAL`, `CRITERIA_SIDE_EMPTY`, `REASON_CODE_RETIRED`; every reader moved to it; `criteria_version` on events and drafts; `view=recheck` and the approval gate; `SCREENING_CRITERIA.md`; the methods sentences; the screening API contract amended | RELEASE | public route and refusals, persisted record, new engine field on events, decision intake changes | **Large, unchanged.** Answers 1 to 4 were as recommended. Answer 5 makes the shown-again path rarer (only after the main screening starts), not smaller: it must still be built and tested | none |
+| **B. The pilot** | `screening/pilot.py` (draw, result, observations with their sources, implied answers), the pilot decision file and its intake route (reusing the event checks), `PILOT_OPEN` on main intake, `POST /pilot/{id}/close`, `PILOT_RECORD_UNKNOWN`, `PILOT_CLOSED`, the journal rows, `pilot_id` on the calibration route, `answered_by_both`, the methods sentence; the test that pilot decisions reach no counted reader | RELEASE | public routes, a second decision intake, persisted records, an additive field on a public route | **Large (was medium).** Answer 5 adds a second decision store and intake, the main-intake refusal, the close and the calibration's second label source; answer 6 adds the source column and implied answers and removes the checklist setting | A |
+| **C. Screening screens** | Prepare's entry, Triage in pilot mode (posting to the pilot route, banner, End the pilot), the recheck view, the result and revise screen with the "not computed" line (spec `13-criteria-pilot`), the run screen's "Draft again", en/fr/ar, axe | STANDARD (UI) | browser only, over A and B | **Medium, a little larger.** Triage gains a second posting target; it loses the checklist default | A, B; M8b-triage-highlights is merged (PR #271), so C builds on it |
+| **D. Inception step 5** | the criteria block (D13), the out-of-scope question in it (D6), the method questions with no rule pre-selected, `METHOD_RULE_UNCHOSEN`, the method in `intent.json` and the compiler, genesis, the five wording checks (spec `11-criteria-block`); the terminal wizard's question if question 12 says so | RELEASE | the inception draft API, the intent packet and the protocol genesis writes change; new check ids in a public preview | **Medium (was small to medium).** Answer 8 adds a blocker, the intent field and its recompile test, and possibly the terminal wizard | M11a part C merged |
+
+**The order A, B, C, D still holds.** B's pilot decisions carry A's criteria version and its "Revise" needs A's route; C draws over A and B; D waits for M11a part C, which is not merged yet. Answer 5 would allow one other order: B before A, as a pilot without revision. It is not proposed: a pilot that shows a problem and offers no way to fix it sends the researcher to "archive and start clean". In all, the milestone is somewhat larger than about M10b, mostly in B.
 
 Inner and checkpoint gates by `scripts/select_test_gate.py --changed main`; the full suite once per PR. No live call and no model call in any test: drafts and calibration through the existing doubles.
 
@@ -248,6 +319,7 @@ Inner and checkpoint gates by `scripts/select_test_gate.py --changed main`; the 
 | :-- | :-- | :-- |
 | An amendment beside the signed protocol | the method amendment pattern: file, journal row, fingerprint filter, values in force, methods sentence (E7) | `criteria_amendments.jsonl`, ops on criteria, versions, retired ids |
 | Superseding a decision | `supersedes` on decision events (E8) | the shown-again set and `view=recheck` |
+| Pilot decisions (answer 5) | the event intake's checks (`valid_reason`, `REASON_CODE_INCONSISTENT`, input limits), the append-only line format, the journal row per request | the pilot decision file, its route, `PILOT_OPEN` on main intake |
 | Fail closed before approval | the "fully decided" rule of approval (09-publish) | a record shown again counts as undecided |
 | Reason codes | `valid_reason` (E8), `FAILS-INC-nn` | reads the criteria in force; `REASON_CODE_RETIRED` |
 | Draft outcome under the rule in force | `outcome_in_force` (E11) | criteria version on drafts; earlier-wording label |
@@ -255,7 +327,7 @@ Inner and checkpoint gates by `scripts/select_test_gate.py --changed main`; the 
 | Agreement per criterion | `splits_by_criterion` (E12) | its denominator |
 | Check the agent on your labels | `POST /proposals/calibrations` (E13) | called with the pilot's ids and an explicit model |
 | Checks at Inception | the M10b catalogue and `_criteria_checks` (E15) | five wording checks |
-| Method at genesis | `MethodConfig` and genesis's method block (E2) | two draft fields and two questions |
+| Method at genesis | `MethodConfig` and genesis's method block (E2) | two draft fields, two questions, `METHOD_RULE_UNCHOSEN`, a `method` entry in the intent (E21) |
 | Backup of a rewritten criteria file | M10c 9(a) `audit/amended/<stamp>/` | none |
 | Layout | M11a part C's block, evidence column and suggestion look (D5, D13) | the criteria block |
 
@@ -277,7 +349,10 @@ Part D edits the same component and the same copy file as M11a part C; building 
 4. **Re-checking costs time.** An Include or Unclear is shown again after any revision; a revision late in the screening could show hundreds. The dry call states the number before the researcher records it.
 5. **Spend.** The calibration on the pilot and "Draft again" cost money; the calibration route defaults to Opus 5.5 (E13). The screen must always send a model and show the estimate.
 6. **Collisions.** Part C touches Triage, which M8b-triage-highlights is changing; part D touches step 5, which M11a part C is changing; the approval gate touches the approve-all flow of H-run-small-fixes Part A (merged).
-7. **The method default.** Pre-selecting `decisive_first` trades some of the agent's include recall (lower bound 96.8% to 92.2% on the measured set) for drafts that decide; on a different review the trade may differ.
+7. **The method choice (answer 8).** No rule is pre-selected, so the researcher weighs the trade (include recall lower bound 96.8% under `unclear` against 92.2% under `decisive_first` on the measured set; drafts that decide) without a recommendation on the screen; on a different review the trade may differ.
+8. **A pilot decision counted by mistake (answer 5).** A reader that read the pilot file as decisions would count records twice. The pilot file is apart and DoD 11c's test is the defence.
+9. **The pilot without answers (answer 6).** With the checklist closed and no agent check, the result shows three readings and misses a mirror of meaning; the screen names what it could not compute.
+10. **Search amendments refused after a chosen rule (E21).** Without DoD 18b, a review that chose a rule other than the model default could no longer change its search.
 
 ## What cannot be verified without a real review
 
@@ -290,4 +365,20 @@ Part D edits the same component and the same copy file as M11a part C; building 
 
 ## Open questions
 
-In [`M11b-criteria-pilot-for-review.md`](M11b-criteria-pilot-for-review.md), in order, contract questions first, with recommendations and costs; the PROPOSED entry in `docs/decisions.md` holds the same items. The two screen drafts carry their own screen-level questions, settled when each spec is made FINAL at the start of its part.
+Questions 1 to 10 were answered on 2026-11-21 (table at the top). Two new questions come from the answers; both are on the researcher's page and in the decisions entry.
+
+**11. Blinding of the pilot records in the main screening (answers 5 and 9).** Answer 5 sends the pilot records back to the main screening; answer 9 lets the agent check them during the pilot. The texts this meets, in the accepted screening API contract (2026-11-04, §3.1): "`proposal_shown` is `null` when the researcher decided before any proposal was revealed. With blinding on (the default) it is always `null` at decision time" and "A reveal (M1b-0) is the first time `GET /records/{id}/proposal` returns a proposal to a screener." If the pilot result showed the agent's draft for a record, the later main decision on it would be made after seeing a draft, yet its event would say `proposal_shown: null` and no reveal would be recorded; the methods paragraph would count it as blind ("Drafts were hidden until the reviewer decided"). Options:
+- (a) **Recommended:** the pilot result shows the agent per criterion as counts only, never per record, and the records list cannot be filtered by the agent; the main screening shows nothing of the pilot decision either. Nothing in the contract changes. Cost: the researcher cannot see which records the agent read differently.
+- (b) The pilot result shows a record's draft on request and records that as a reveal (a second reveal route), so the main decision counts as made after a reveal. This amends the contract's definition of a reveal; up to 50 records leave the blind comparison.
+- (c) Show freely and report pilot records as decided with the draft visible. Amends the contract's `proposal_shown` rule for these records.
+
+**12. The terminal wizard (answer 8).** Does "No default; I must choose" also apply to `scholar-harness inception` (E22)? It meets H-screening-drafts item 1 ("`unclear` stays the default and the value genesis writes") and the 2026-11-08 sentence "New workspaces are written with the block, filled with today's values." Recommended: yes; the wizard asks with no default, and a scripted run needs `--not-reported <rule>` (DoD 18c). Otherwise a review made in the terminal still gets `unclear` without a question.
+
+The two screen drafts carry their own screen-level questions, settled when each spec is made FINAL at the start of its part.
+
+## What the main session must change (not edited on this branch)
+
+- Plan §6, row 4 (M11b): status "specification answered 2026-11-21 (answers 5, 6, 8 against the recommendation); questions 11 and 12 open; build start not approved"; lane "A, B, D RELEASE; C STANDARD" instead of "to be declared".
+- Plan §8: nothing.
+- `docs/decisions.md`, the "Open decisions" table at the top: rows for M11b questions 11 and 12 (left to the main session, because every branch edits that table's neighbourhood).
+- At build time, not now: `docs/architecture/screening-api-contract.md` (parts A and B), `docs/ux/shared/final/02-checks.md` (the five checks and `METHOD_RULE_UNCHOSEN`, part D), `docs/ux/phase2-screening/final/03-triage-desktop.md` (pilot mode, part C).
