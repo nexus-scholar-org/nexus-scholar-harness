@@ -343,3 +343,28 @@ def seed_check(version: Version, seeds: list[dict[str, Any]], *, candidates: Any
         "warning": {"level": level, "untested": untested} if level else None,
         "measure": "words",
     }
+
+
+# --------------------------------------------------------------------------- strings to copy into other databases (M11a part C)
+
+
+def _quoted(term: str) -> str:
+    return '"' + term.replace('"', "").strip() + '"'
+
+
+def external_strings(version: Version) -> dict[str, str]:
+    """The version written for Scopus (``TITLE-ABS-KEY``) and Web of Science (``TS=``), to copy.
+
+    Decision 2026-11-20, M11a item 10: shown so a comparison export uses the
+    same search; never sent anywhere and not tried in those databases. Every
+    term is quoted as a phrase; concepts are joined by AND, terms by OR.
+    """
+    groups = " AND ".join("(" + " OR ".join(_quoted(t) for t in c.terms) + ")" for c in version.concepts)
+    scopus, wos = f"TITLE-ABS-KEY({groups})", f"TS=({groups})"
+    if version.start_year is not None:
+        scopus += f" AND PUBYEAR > {version.start_year - 1}"
+    if version.end_year is not None:
+        scopus += f" AND PUBYEAR < {version.end_year + 1}"
+    if version.start_year is not None or version.end_year is not None:
+        wos += f" AND PY=({version.start_year or 1900}-{version.end_year or 2100})"
+    return {"scopus": scopus, "wos": wos}

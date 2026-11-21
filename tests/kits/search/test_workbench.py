@@ -231,3 +231,17 @@ def test_seeds_none_of_which_can_be_read_are_not_checked():
     unread = [{"doi": "10.1/x", "title": None, "abstract": None}, {"doi": "10.1/y", "title": "", "abstract": ""}]
     check = wb.seed_check(_version(*FOUR), unread)
     assert (check["read"], check["not_read"], check["warning"]) == (0, 2, None)
+
+
+# --------------------------------------------------------------------------- Part C: strings to copy (decision 2026-11-20, item 10)
+
+
+def test_the_query_is_written_for_scopus_and_web_of_science_to_copy():
+    strings = wb.external_strings(_version(*FOUR[:2]))
+    assert strings["scopus"] == ('TITLE-ABS-KEY(("aerial" OR "unmanned aerial vehicle") AND ("multispectral" OR "multi-spectral")) '
+                                 "AND PUBYEAR > 2014 AND PUBYEAR < 2026")
+    assert strings["wos"] == 'TS=(("aerial" OR "unmanned aerial vehicle") AND ("multispectral" OR "multi-spectral")) AND PY=(2015-2025)'
+    open_years = wb.external_strings(_version(("plant",), start=None, end=None))
+    assert open_years == {"scopus": 'TITLE-ABS-KEY(("plant"))', "wos": 'TS=(("plant"))'}
+    quoted = wb.external_strings(_version(('say "hi"',), start=None, end=None))
+    assert quoted["scopus"] == 'TITLE-ABS-KEY(("say hi"))'
