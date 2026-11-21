@@ -2,7 +2,7 @@ import { fireEvent, render, screen, waitFor, within } from "@testing-library/rea
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { TriagePage } from "@/components/triage-page";
-import { QUOTES_KEY, TERMS_KEY } from "@/components/triage-marks";
+import { QUOTES_KEY, TERMS_KEY } from "@/lib/triage-marks-memory";
 import type { Locale } from "@/i18n";
 import type { DecisionEvent, QuotePlace, SearchTerms, StoredEvent } from "@/lib/screening-v1";
 

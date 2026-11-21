@@ -15,26 +15,6 @@ import { TRIAGE_COPY, tc } from "@/lib/triage-copy";
  * The engine finds the words; this file only lays them out.
  */
 
-export const TERMS_KEY = "nexus.triage.marks.terms";
-export const QUOTES_KEY = "nexus.triage.marks.quotes";
-
-/** A switch is on unless this computer remembers it off ("0"). */
-export function rememberedOn(key: string): boolean {
-  try {
-    return typeof window === "undefined" || window.localStorage.getItem(key) !== "0";
-  } catch {
-    return true;
-  }
-}
-
-export function rememberOn(key: string, on: boolean) {
-  try {
-    window.localStorage.setItem(key, on ? "1" : "0");
-  } catch {
-    /* storage refused: the choice lasts this page only */
-  }
-}
-
 /** The mark style of the concept at `index`: its own for the first four, then one shared. */
 export function styleOf(index: number): number {
   return Math.min(index, OTHER_STYLE);

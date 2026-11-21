@@ -3,7 +3,7 @@
 Boards: `Triage` (D4, proposal hidden), `TriageRevealed` (D5, after deciding). Contract: `docs/architecture/screening-api-contract.md` §3-§4.
 
 ## Amended 2026-11-21 (M8b-triage-highlights)
-Source: `docs/roadmap/milestones/M8b-triage-highlights.md`; `docs/decisions.md` "2026-11-21 — M8b-triage-highlights" (items 1 to 9 accepted, 10 to 19 proposed by the milestone; cited below as "decision n"). Where a sentence further down says otherwise, this section wins. The existing sentence "Highlighted words are tied to a criterion" (05) stays for the criterion highlights, which stay empty. Event contract: no change.
+Source: `docs/roadmap/milestones/M8b-triage-highlights.md`; `docs/decisions.md` "2026-11-21 — M8b-triage-highlights" (items 1 to 9 accepted, 10 to 20 proposed by the milestone; cited below as "decision n"). Where a sentence further down says otherwise, this section wins. The existing sentence "Highlighted words are tied to a criterion" (05) stays for the criterion highlights, which stay empty. Event contract: no change.
 
 **0. Rule.** "A mark says where to look; it never says what to decide."
 
@@ -13,7 +13,7 @@ Source: `docs/roadmap/milestones/M8b-triage-highlights.md`; `docs/decisions.md` 
 
 **2. The marks bar.** The first element of the record pane, above the title, inside the scrolling pane (`data-marks-bar`, a `role="group"` named `screening.triage.marks.region`).
 - Two switches, toggle buttons with `aria-pressed`, each a 44 px target with the focus ring: "Search terms" and "Agent's quotes". The second appears only once a draft is shown (point 5); with no draft there is only the first, and the bar has no gap for it.
-- Both are on by default and remembered on this computer: `localStorage` keys `nexus.triage.marks.terms` and `nexus.triage.marks.quotes`, on unless the value is "0" (decision 18). Not stored in the workspace, not in `sessionStorage`. A storage that cannot be read means on.
+- Both are on by default and remembered on this computer: `localStorage` keys `nexus.triage.marks.terms` and `nexus.triage.marks.quotes`, on unless the value is "0" (decision 18). Not stored in the workspace, not in `sessionStorage`. A storage that cannot be read means on. The choice is read after the first render, in an effect (the N12 guard: no screen reads storage while it renders), so the first render shows both on; the record arrives later, so no mark flashes. The helpers live in `lib/triage-marks-memory.ts`.
 - Turning a switch off or on never moves the text (decision 17): the bar and the legend keep their size, only the marks in the text and the swatches change.
 
 **3. The legend (search terms).** Below the switches, a list (`<ul>`, labelled by its title "Search terms in this record").
@@ -39,7 +39,7 @@ Source: `docs/roadmap/milestones/M8b-triage-highlights.md`; `docs/decisions.md` 
 - **Found, but with no place** (`found: true`, `field: null`: in the year line, or across the end of the title and the start of the abstract, decision 13): nothing is marked, there is no button and no sentence; the draft shows the quote as it does today. A `not_reported` answer carries no quote.
 - **Overlapping quotes of two criteria:** one mark that names both: the link's name lists both ("agent's quote for INC-01 (yes)" and "agent's quote for INC-02 (no)"), activating it moves focus to the first answer, and either answer's hover or focus gives it the active frame.
 - **With search terms:** the underline of a concept is drawn inside the tinted quote, above its bottom border, so both read (decision 5). The tint never replaces the underline.
-- **Switch off** (`Agent's quotes`): the quotes are not marked; the draft is unchanged. "Show in the text" stays on the answers and, pressed, marks that one quote with the active frame and scrolls to it, so the button always does what it says (decision 20).
+- **Switch off** (`Agent's quotes`): the quotes are not marked; the draft is unchanged. "Show in the text" stays on the answers and, pressed, marks that one quote with the active frame and scrolls to it, so the button always does what it says (decision 20). Hovering or focusing an answer marks its quote the same way while the pointer or focus stays there; it never turns the switch on.
 
 **6. States.**
 | State | What the pane shows |

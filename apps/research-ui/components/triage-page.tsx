@@ -6,7 +6,8 @@ import { translate, type Locale } from "@/i18n";
 import { Button, DataCell, DecisionBadge, EvidenceQuote, type DecisionRole } from "@/components/ui/base";
 import { ScreeningSteps, stepHref } from "@/components/screening-state-card";
 import { HighlightedText } from "@/components/highlighted-text";
-import { MarksBar, QUOTES_KEY, TERMS_KEY, quoteSpans, rememberOn, rememberedOn, termSpans } from "@/components/triage-marks";
+import { MarksBar, quoteSpans, termSpans } from "@/components/triage-marks";
+import { QUOTES_KEY, TERMS_KEY, rememberOn, rememberedOn } from "@/lib/triage-marks-memory";
 import { isScreeningApiError } from "@/lib/screening-api";
 import {
   decisionEvent,
@@ -204,8 +205,13 @@ function TriageScreen({ locale }: Readonly<{ locale: Locale }>) {
     });
   }, []);
   // M8b: the two kinds of mark, each switch remembered on this computer (spec 03, M8b point 2).
-  const [termsOn, setTermsOnState] = useState<boolean>(() => rememberedOn(TERMS_KEY));
-  const [quotesOn, setQuotesOnState] = useState<boolean>(() => rememberedOn(QUOTES_KEY));
+  // Read after render (N12): both on first, then what this computer remembers.
+  const [termsOn, setTermsOnState] = useState(true);
+  const [quotesOn, setQuotesOnState] = useState(true);
+  useEffect(() => {
+    setTermsOnState(rememberedOn(TERMS_KEY));
+    setQuotesOnState(rememberedOn(QUOTES_KEY));
+  }, []);
   const setTermsOn = useCallback((on: boolean) => {
     setTermsOnState(on);
     rememberOn(TERMS_KEY, on);
