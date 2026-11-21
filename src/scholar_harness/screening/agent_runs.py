@@ -388,7 +388,10 @@ def start_run(
     unknown = [s for s in study_ids if s not in context.study_batch]
     if unknown:
         raise RunRefused("UNKNOWN_STUDY", f"{unknown[0]} is not in the bound corpus", status=422)
-    protocol = json.loads((ws / "protocol.json").read_text(encoding="utf-8"))
+    # M11b part A: the prompt names the criteria in force (signed + amendments),
+    # and every draft of this run is labelled with that version.
+    criteria = context.criteria
+    protocol = criteria.protocol_in_force(json.loads((ws / "protocol.json").read_text(encoding="utf-8")))
     task = task_mod.load_task()
     spec = pg.run_spec(protocol, model=model, effort=effort, max_tokens=int(task.defaults["max_tokens"]))
     papers = _papers(ws, context)
@@ -432,6 +435,7 @@ def start_run(
         "task_version": task.task_version,
         "prompt_sha256": task.prompt_sha256,
         "protocol_fingerprint": context.protocol_fingerprint,
+        "criteria_version": criteria.version,
         "records": len(study_ids),
         "study_ids": study_ids,
         "done": 0,
@@ -475,7 +479,7 @@ def start_run(
     def work() -> None:
         error = None
         try:
-            _execute(live, driver, requests, spec, papers, protocol, batch)
+            _execute(live, driver, requests, spec, papers, protocol, batch, criteria)
         except BaseException as exc:  # noqa: BLE001 - a crashed run is recorded, never left running
             error = f"{type(exc).__name__}: {exc}"
         finally:
@@ -485,7 +489,7 @@ def start_run(
     return read_run(ws, run_id)
 
 
-def _execute(live: _Live, driver, requests, spec, papers, protocol, batch) -> None:
+def _execute(live: _Live, driver, requests, spec, papers, protocol, batch, criteria=None) -> None:
     from scholar_agent import prompt_gate as pg
 
     ws, run_id = live.ws, live.run["run_id"]
@@ -517,6 +521,7 @@ def _execute(live: _Live, driver, requests, spec, papers, protocol, batch) -> No
                 output=output,
                 protocol=protocol,
                 protocol_fingerprint=context.protocol_fingerprint,
+                criteria=criteria,
                 provenance={
                     "task_id": "screening",
                     "task_version": run["task_version"],
@@ -599,19 +604,22 @@ def calibration_result(ws: Path, study_ids: list[str]) -> dict[str, Any]:
     context = ev.load_context(ws)
     events = ev.current_events(ev.read_events(ws), context)
     # H-screening-drafts: scored under the not-reported policy in force, like every screen.
-    protocol = json.loads((ws / "protocol.json").read_text(encoding="utf-8"))
-    criteria = pr.Criteria.from_protocol(protocol)
+    # M11b part A: the criteria in force; a draft made under an earlier version is not counted (DoD 9).
+    criteria = pr.Criteria.from_in_force(context.criteria)
     policy = effective_method(ws).config.not_reported
     labels, outcomes = {}, {}
     for study in study_ids:
         screener = next((e["screener_id"] for e in events if e["study_id"] == study), None)
         winner = ev.winning_event(events, study, screener) if screener else None
         proposal = pr.latest_proposal(ws, study)
-        if winner is None or proposal is None:
+        if winner is None or proposal is None or context.awaiting_recheck(winner):
+            continue
+        if pr.draft_version(proposal) != context.criteria_version:
             continue
         labels[study] = "INCLUDE" if winner["outcome"] in ("INCLUDE", "MAYBE") else "EXCLUDE"
         outcomes[study] = pr.outcome_in_force(
-            proposal, criteria, not_reported=policy, protocol_fingerprint=context.protocol_fingerprint
+            proposal, criteria, not_reported=policy, protocol_fingerprint=context.protocol_fingerprint,
+            criteria_version=context.criteria_version,
         )[0]
     scored = pg.score(outcomes, labels)
     return {

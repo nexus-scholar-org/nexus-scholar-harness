@@ -2108,8 +2108,6 @@ def nexus_screening_record(study_id: str, workspace_dir: str = ".") -> str:
         if study_id not in context.study_batch:
             return json.dumps({"status": "ERROR", "error": "UNKNOWN_STUDY"})
         paper = _papers(ws, context).get(study_id, {})
-        protocol = json.loads((ws / "protocol.json").read_text(encoding="utf-8"))
-        criteria = protocol.get("screening_criteria") or {}
         abstract = paper.get("abstract") if _has_abstract(paper) else None
         return json.dumps(
             {
@@ -2119,12 +2117,9 @@ def nexus_screening_record(study_id: str, workspace_dir: str = ".") -> str:
                 "abstract": abstract,
                 "published": paper.get("year"),
                 "text": pr.record_text(paper.get("title"), abstract, paper.get("year")),
-                "criteria": [
-                    {"id": c["id"], "kind": kind, "text": c.get("description") or c.get("text") or c.get("criterion") or ""}
-                    for kind in ("inclusion", "exclusion")
-                    for c in criteria.get(kind) or []
-                    if isinstance(c, dict) and c.get("id")
-                ],
+                # M11b part A: the criteria in force (signed + amendments), as the app's agent run reads them.
+                "criteria": [{"id": c.id, "kind": c.side, "text": c.text} for c in context.criteria.all],
+                "criteria_version": context.criteria_version,
                 "answers": ["yes", "no", "not_reported"],
             },
             indent=2,

@@ -35,6 +35,7 @@ from typing import Any
 
 from scholar_harness.contracts.canonical import deterministic_id
 from scholar_harness.contracts.identifiers import IdentifierKind
+from scholar_harness.screening.criteria import CriteriaInForce, criteria_from_protocol, shown_again
 from scholar_harness.screening.integrity import PROVENANCE_MISSING, STALE_BINDING
 from scholar_harness.workspace.audit import append_event
 
@@ -63,9 +64,14 @@ ATOMIC_COMMIT_FAILED = "ATOMIC_COMMIT_FAILED"
 INVALID_OUTPUT = "INVALID_OUTPUT"
 PROJECTION_STALE = "PROJECTION_STALE"
 
+#: A new EXCLUDE citing a criterion a revision retired (M11b part A); events
+#: stored before the revision keep it.
+REASON_CODE_RETIRED = "REASON_CODE_RETIRED"
+
 #: Fields the engine stamps on intake; the client cannot set them, and they do
 #: not count when an `event_id` is replayed (idempotency compares the rest).
-ENGINE_FIELDS = frozenset({"received_at", "token_scope", "changed_after_reveal"})
+#: M11b part A: ``criteria_version``, the criteria in force when the event was received.
+ENGINE_FIELDS = frozenset({"received_at", "token_scope", "changed_after_reveal", "criteria_version"})
 
 _UUID = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$")
 _SAFE_SCREENER = re.compile(r"[^A-Za-z0-9._-]+")
@@ -103,6 +109,28 @@ class ScreeningContext:
     inclusion_ids: frozenset[str]
     batches: dict[int, BatchBinding] = field(default_factory=dict)
     study_batch: dict[str, int] = field(default_factory=dict)
+    #: The criteria in force (M11b part A); ``None`` only for a context built by hand.
+    criteria: CriteriaInForce | None = None
+
+    @property
+    def criteria_version(self) -> int:
+        return self.criteria.version if self.criteria is not None else 1
+
+    def refresh_criteria(self, workspace: Path) -> None:
+        """Re-read the criteria in force (under the events lock, so a revision cannot slip between)."""
+        protocol = json.loads((Path(workspace) / "protocol.json").read_text(encoding="utf-8"))
+        self.criteria = criteria_from_protocol(workspace, protocol, self.protocol_fingerprint)
+        self.exclusion_ids = self.criteria.ids("exclusion")
+        self.inclusion_ids = self.criteria.ids("inclusion")
+
+    def retired_reason(self, code: str | None) -> bool:
+        return self.criteria is not None and self.criteria.retired_reason(code)
+
+    def awaiting_recheck(self, event: dict[str, Any] | None) -> bool:
+        """M11b part A: a counted decision a later criteria revision shows again."""
+        if event is None or self.criteria is None:
+            return False
+        return shown_again(event, self.criteria)
 
     @property
     def protocol_changed(self) -> bool:
@@ -131,17 +159,15 @@ def load_context(workspace: Path) -> ScreeningContext:
 
     ws = Path(workspace)
     protocol = json.loads((ws / "protocol.json").read_text(encoding="utf-8"))
-    criteria = protocol.get("screening_criteria") or {}
-
-    def _ids(kind: str) -> frozenset[str]:
-        return frozenset(
-            str(item.get("id")) for item in criteria.get(kind) or [] if isinstance(item, dict)
-        )
-
+    fingerprint = protocol_fingerprint(ResearchProtocol.model_validate(protocol))
+    # M11b part A: the criteria in force (signed + amendments under this
+    # fingerprint), never the protocol's list read here.
+    criteria = criteria_from_protocol(ws, protocol, fingerprint)
     context = ScreeningContext(
-        protocol_fingerprint=protocol_fingerprint(ResearchProtocol.model_validate(protocol)),
-        exclusion_ids=_ids("exclusion"),
-        inclusion_ids=_ids("inclusion"),
+        protocol_fingerprint=fingerprint,
+        exclusion_ids=criteria.ids("exclusion"),
+        inclusion_ids=criteria.ids("inclusion"),
+        criteria=criteria,
     )
     registry_path = ws / "audit" / "artifact_registry.json"
     if not registry_path.is_file():
@@ -294,7 +320,58 @@ def validate_event(
     ``token_scope`` (``desktop`` or ``phone``) the event's ``device`` must be
     that scope; a ``note`` is text of at most :data:`MAX_NOTE_CHARS`.
     """
-    return _shape_refusal(event, context) or _limit_refusal(event, token_scope, received_at)
+    refusal = _shape_refusal(event, context) or _limit_refusal(event, token_scope, received_at)
+    if refusal is None and isinstance(event, dict) and event.get("outcome") == "EXCLUDE" and context.retired_reason(
+        event.get("reason_code")
+    ):
+        # Review round 1, F7: judged as a new event, a retired reason is refused (intake
+        # lets a stored event citing it replay as a duplicate).
+        return _refuse(REASON_CODE_RETIRED, f"{event.get('reason_code')} cites a criterion retired by a revision")
+    return refusal
+
+
+def _criteria_refusal(
+    event: dict[str, Any],
+    context: ScreeningContext,
+    live: list[dict[str, Any]],
+    resolution_version: int | None = None,
+) -> dict[str, str] | None:
+    """M11b part A: the checks against the criteria in force, on new events only.
+
+    - A reason citing a retired criterion is refused (``REASON_CODE_RETIRED``);
+      events stored before the revision keep it.
+    - A record shown again is decided again by an event that supersedes the
+      decision shown again: a second head would leave the earlier one in place
+      (an equal outcome is a confirmation, and the earliest head wins).
+    """
+    code = event.get("reason_code")
+    kept_earlier = resolution_version is not None and resolution_version < context.criteria_version
+    if event.get("outcome") == "EXCLUDE" and context.retired_reason(code) and not kept_earlier:
+        return _refuse(
+            REASON_CODE_RETIRED,
+            f"{code} cites a criterion retired by a revision of the criteria; choose a criterion in force",
+        )
+    # Decision item 5 (decided 2026-11-21): the event names the criteria version the record was
+    # shown under (the binding the record route hands out). A decision made under an earlier
+    # wording, e.g. queued offline on a phone across a revision, is refused, never stamped with
+    # the new version; its record stays in the queue. A binding without it reads as version 1.
+    # Checked on new events only, and not by `is_current`, so stored decisions keep counting.
+    bound = (event.get("binding") or {}).get("criteria_version", 1)
+    if type(bound) is not int or bound != context.criteria_version:  # a bool or a float is not a version
+        return _refuse(
+            STALE_BINDING,
+            f"the decision was made under criteria version {bound}; the criteria in force are version "
+            f"{context.criteria_version}. Read the record again and decide it under the current wording",
+        )
+    for head in heads(live, str(event.get("study_id")), str(event.get("screener_id"))):
+        answered = {event.get("supersedes"), *(event.get("resolves") or [])}
+        if context.awaiting_recheck(head) and head["event_id"] not in answered:
+            return _refuse(
+                INVALID_OUTPUT,
+                f"{event.get('study_id')} is shown again after a criteria revision; "
+                f"the new decision must supersede {head['event_id']}",
+            )
+    return None
 
 
 def _limit_refusal(
@@ -353,7 +430,11 @@ def _shape_refusal(event: Any, context: ScreeningContext) -> dict[str, str] | No
     study = str(event.get("study_id") or "")
     if study not in context.study_batch:
         return _refuse(UNKNOWN_STUDY, f"{study!r} is not in the bound corpus")
-    if event["outcome"] == "EXCLUDE" and not context.valid_reason(event.get("reason_code")):
+    # M11b part A: a code a revision retired passes the shape check, so a stored
+    # event replays as a duplicate; a new event citing it is refused at intake.
+    if event["outcome"] == "EXCLUDE" and not (
+        context.valid_reason(event.get("reason_code")) or context.retired_reason(event.get("reason_code"))
+    ):
         return _refuse(
             REASON_CODE_INVALID,
             "an EXCLUDE needs a protocol exclusion code or FAILS-<inclusion id>",
@@ -537,8 +618,14 @@ def intake(
     device: str | None = None,
     context: ScreeningContext | None = None,
     after_commit: Any = None,
+    resolution_version: int | None = None,
 ) -> list[IntakeResult]:
     """Judge and store a request's events (contract §3.4).
+
+    ``resolution_version`` is for the engine's own conflict resolution only (review round 3 of
+    M11b part A, decision item 11): the resolution keeps a decision made under that criteria
+    version, so it is stamped with it (a revision since then shows the record again) and may cite
+    a criterion retired since then. A client cannot set it.
 
     `after_commit`, when given, is called with the stored events while the
     event lock is still held (the console regenerates projections there).
@@ -547,7 +634,9 @@ def intake(
     context = context or load_context(ws)
     try:
         with _locked(ws):
-            return _intake_locked(ws, events, token_scope, received_at, device, context, after_commit)
+            return _intake_locked(
+                ws, events, token_scope, received_at, device, context, after_commit, resolution_version
+            )
     except LockBusy:
         # Review B: only a failure to take the lock means nothing was stored.
         return [
@@ -560,11 +649,16 @@ def intake(
         ]
 
 
-def _intake_locked(ws, events, token_scope, received_at, device, context, after_commit):
+def _intake_locked(ws, events, token_scope, received_at, device, context, after_commit, resolution_version=None):
+    # M11b part A: the criteria in force are read under the lock, so a revision
+    # recorded while this request waited is the one checked and stamped (and
+    # the projection after the commit, which shares this context, sees it too).
+    context.refresh_criteria(ws)
     results: list[IntakeResult] = []
     stored = read_events(ws)
     reveals = read_reveals(ws)
     known = {e["event_id"]: e for e in stored}
+    counted = current_events(stored, context)
     pending: list[dict[str, Any]] = []
     for raw in events:
         event_id = str(raw.get("event_id") or "") if isinstance(raw, dict) else ""
@@ -580,7 +674,9 @@ def _intake_locked(ws, events, token_scope, received_at, device, context, after_
         if previous is None:
             parent = known.get(str(raw.get("supersedes") or ""))
             copied = parent.get("note") if parent is not None and isinstance(parent.get("note"), str) else None
-            refusal = _limit_refusal(raw, token_scope, received_at, copied_note=copied)
+            refusal = _limit_refusal(raw, token_scope, received_at, copied_note=copied) or _criteria_refusal(
+                raw, context, counted + pending, resolution_version
+            )
             if refusal is not None:
                 results.append(IntakeResult(event_id, "refused", refusal))
                 continue
@@ -616,6 +712,10 @@ def _intake_locked(ws, events, token_scope, received_at, device, context, after_
         after_reveal = bool(supersedes) and _revealed(reveals, raw["study_id"], raw["screener_id"], context)
         record = {
             **raw, "received_at": received_at, "token_scope": token_scope, "changed_after_reveal": after_reveal,
+            # M11b part A: the criteria version in force when the event arrived.
+            "criteria_version": (
+                resolution_version if resolution_version is not None else context.criteria_version
+            ),
         }
         pending.append(record)
         known[event_id] = record
@@ -802,6 +902,11 @@ def project_batch(
         winner = winning_event(events, study, screener_id)
         if winner is None:
             continue  # undecided or in conflict: the coverage gate refuses collect
+        if context.awaiting_recheck(winner):
+            # M11b part A (decision 2026-11-21, part A item 4): shown again after a
+            # criteria revision, so not decided; the coverage gate refuses approval
+            # and collect until it is decided again.
+            continue
         parents: list[str] = []
         for link in _chain(events, winner)[:-1]:
             parents = [decision_id_for(workspace_id, batch.batch_id, link, parents)]
