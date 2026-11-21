@@ -372,6 +372,7 @@ def start_run(
     driver_factory: Callable[[str, str | None], Any] | None = None,
     executor: Callable[[Callable[[], None]], None] | None = None,
     base_url: str | None = None,
+    pilot_id: str | None = None,
 ) -> dict[str, Any]:
     """Refuse or start a run; returns the run record (state `running`)."""
     from scholar_agent import prompt_gate as pg
@@ -436,6 +437,8 @@ def start_run(
         "prompt_sha256": task.prompt_sha256,
         "protocol_fingerprint": context.protocol_fingerprint,
         "criteria_version": criteria.version,
+        # M11b part B: a calibration on a pilot reads its labels from the pilot file.
+        "pilot_id": pilot_id,
         "records": len(study_ids),
         "study_ids": study_ids,
         "done": 0,
@@ -579,7 +582,7 @@ def _finish(live: _Live, error: str | None) -> None:
             run["finished_at"] = _now()
             if run["kind"] == "calibration":
                 try:
-                    run["calibration"] = calibration_result(ws, run["study_ids"])
+                    run["calibration"] = calibration_result(ws, run["study_ids"], pilot_id=run.get("pilot_id"))
                 except Exception as exc:  # noqa: BLE001 - the run's end is still recorded
                     run["calibration_error"] = f"{type(exc).__name__}: {exc}"
             _write_run(ws, run)
@@ -595,7 +598,7 @@ def _finish(live: _Live, error: str | None) -> None:
         _write_run(ws, run)
 
 
-def calibration_result(ws: Path, study_ids: list[str]) -> dict[str, Any]:
+def calibration_result(ws: Path, study_ids: list[str], *, pilot_id: str | None = None) -> dict[str, Any]:
     """Include-recall of the latest proposals against the researcher's decisions (advisory)."""
     from scholar_agent import prompt_gate as pg
 
@@ -608,6 +611,22 @@ def calibration_result(ws: Path, study_ids: list[str]) -> dict[str, Any]:
     criteria = pr.Criteria.from_in_force(context.criteria)
     policy = effective_method(ws).config.not_reported
     labels, outcomes = {}, {}
+    if pilot_id is not None:
+        # M11b part B (record (i)): the pilot's decisions are the labels; they are not events.
+        from scholar_harness.screening.pilot import decided_labels, heads, read_decisions
+
+        pilot_labels = decided_labels(ws, pilot_id, study_ids)
+        versions = {s: int(d.get("criteria_version") or 1) for s, d in heads(read_decisions(ws, pilot_id)).items()}
+        for study, label in pilot_labels.items():
+            proposal = pr.latest_proposal(ws, study)
+            if proposal is None or pr.draft_version(proposal) != versions.get(study, 1):
+                continue
+            labels[study] = label
+            outcomes[study] = pr.outcome_in_force(
+                proposal, criteria, not_reported=policy, protocol_fingerprint=context.protocol_fingerprint,
+                criteria_version=pr.draft_version(proposal),
+            )[0]
+        study_ids = []
     for study in study_ids:
         screener = next((e["screener_id"] for e in events if e["study_id"] == study), None)
         winner = ev.winning_event(events, study, screener) if screener else None
