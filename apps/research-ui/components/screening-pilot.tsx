@@ -282,7 +282,7 @@ export function ScreeningPilot({ locale }: Readonly<{ locale: Locale }>) {
                     <Button disabled={changed} onClick={() => open({ kind: "check" })}>
                       {t("actions.check", { n: n(r.decided) })}
                     </Button>
-                    <Hint locale={locale} label={t("actions.checkHint")} text={t("checkHint")} textKey="screening.pilot.checkHint" />
+                    <Hint locale={locale} label={t("actions.checkHint")} text={t("checkHint")} textKey="checkHint" />
                   </span>
                 ) : null}
               </div>
@@ -294,7 +294,7 @@ export function ScreeningPilot({ locale }: Readonly<{ locale: Locale }>) {
 
           <aside className="w-full flex-[1_1_280px] space-y-4">
             <details className="rounded-lg border border-rule bg-leaf p-4 text-sm" data-side-details>
-              <summary className="min-h-11 cursor-pointer py-2 font-semibold text-ink">{t("side.title")}</summary>
+              <summary className="min-h-11 cursor-pointer rounded-sm py-2 font-semibold text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus">{t("side.title")}</summary>
               <dl className="space-y-2">
                 <Pair label={t("side.pilot")} value={r.pilot_id} />
                 <Pair label={t("side.seed")} value={String(r.seed)} />
@@ -499,7 +499,7 @@ function CriteriaTable({ t, n, result, criteria, soFar }: Readonly<{ t: T; n: N;
                     {shown.retired || !row ? <span className="block text-xs text-ink-muted">{retiredLabel(t, n, id, criteria)}</span> : null}
                     {shown.text.length > 60 ? (
                       <details className="text-xs text-ink-muted">
-                        <summary className="cursor-pointer">{t("fullWording")}</summary>
+                        <summary className="min-h-11 cursor-pointer rounded-sm py-3 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus">{t("fullWording")}</summary>
                         <span dir="auto">{shown.text}</span>
                       </details>
                     ) : null}
@@ -607,7 +607,7 @@ function Suggests({
             ) : null}
           </p>
           <details className="text-ink-muted">
-            <summary className="min-h-11 cursor-pointer py-2">{t("details")}</summary>
+            <summary className="min-h-11 cursor-pointer rounded-sm py-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus">{t("details")}</summary>
             <p>{t("notComputedDetails")}</p>
           </details>
         </div>

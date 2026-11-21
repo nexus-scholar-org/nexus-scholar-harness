@@ -492,6 +492,13 @@ Triage has not adopted this audit (no Screening screen is in `tests/guidance-scr
 | S-TM6 | `marks.quote.show` | "Show in the text" | STAYS | an action |
 | S-TM7 | `marks.quote.notFound` | "Not found at its place in the record, so it is not marked." | STAYS | V3 says why a quote is not marked |
 
+### Screening (phase 2): the pilot result (M11b part C, 2026-11-22), not counted yet
+The result of `13-criteria-pilot` (`components/screening-pilot-copy.ts`). Only its hint is listed; the rest of the screen is not audited yet, as for Triage above.
+
+| ID | Keys | Sentence (en) | Decision | Reason |
+| :-- | :-- | :-- | :-- | :-- |
+| S-PL1 | `checkHint`, `actions.checkHint` | "It sends the titles and abstracts of these records to the provider you choose, and it costs money. …" | HINT | T1 what the agent check does is explanation, one tap away; the dialog it opens names the provider, the model and the cost before anything is sent |
+
 
 ### Counts per decision
 (Counted by the test `guidance.audit.test.tsx` from the tables above.)
