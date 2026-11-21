@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { formatNumber, type Locale } from "@/i18n";
 import { Button, DataCell, DecisionBadge, GatePanel } from "@/components/ui/base";
+import { PilotCard } from "@/components/screening-pilot-card";
 import { ScreeningSteps, StateCard } from "@/components/screening-state-card";
 import { notifyReviewChanged } from "@/components/review-bus";
 import { getScreeningBatches, isScreeningApiError, type ScreeningBatches } from "@/lib/screening-api";
@@ -573,6 +574,7 @@ export function ScreeningPrepare({ locale }: Readonly<{ locale: Locale }>) {
               ) : null}
             </section>
 
+            {batches.count > 0 ? <PilotCard locale={locale} origin={origin} /> : null}
             <GatePanel
               label={t("prepare")}
               actions={
