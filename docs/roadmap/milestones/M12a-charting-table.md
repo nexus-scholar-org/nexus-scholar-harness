@@ -393,7 +393,7 @@ The build start was approved by the researcher on 2026-11-21 in the main session
 
 ### Part K0: `download` and `ingest` production, with four repairs
 
-Branch `dev/m12a/k0-notice-off`, from `dev/m12a/charting-table-spec` (`2ea4a965`) with `origin/main` (`dacabd94`) merged in (`391fec9d`; the conflict at the top of `docs/decisions.md` kept both sides), so the specification documents travel with K0 · Lane **RELEASE** (a public command's network behaviour changes; item 27) · Decisions: `docs/decisions.md` "2026-11-21 — M12a K0" items 1 to 9 (PROPOSED).
+Branch `dev/m12a/k0-notice-off`, from `dev/m12a/charting-table-spec` (`2ea4a965`) with `origin/main` (`dacabd94`) merged in (`391fec9d`; the conflict at the top of `docs/decisions.md` kept both sides), so the specification documents travel with K0 · Lane **RELEASE** (a public command's network behaviour changes; item 27) · Decisions: `docs/decisions.md` "2026-11-21 — M12a K0" items 1 to 9 (accepted by the researcher 2026-11-21).
 
 What was built:
 - `src/scholar_pdf/config.py`: no default contact address; `contact_email()` reads the app's `SCHOLAR_MAILTO` first, then the kit's `MAILTO`; `require_contact_email()` raises `MailtoNotSetError` (`MAILTO_NOT_SET`); `user_agent()` is `nexus-scholar/<version> (mailto:<address>)`; `enable_publisher_direct_patterns` defaults to false.
