@@ -563,4 +563,3 @@ Review round 1 of part B (`milestone-reviewer`, on `36de9009`): **CHANGES**, 1 P
 Follow-ups taken: the open pilot's id is read under the events lock when a revision is recorded (`test_followup_a_revision_records_the_pilot_open_at_that_moment`); a pilot number is never reused, even when a draw file is unreadable (`test_followup_a_pilot_number_is_never_reused_even_if_a_draw_file_is_unreadable`); `/summary` computes the recheck count once. Not taken: another batch can be approved while a pilot is open (the pilot result's revise would then be refused; the screen in part C shows the fixed state).
 
 Part A's item 5 ("bind the version") does not reach pilot decisions: they carry no binding and are labelled with the version in force when received (decision item 11, PROPOSED, with the binding alternative).
-

@@ -767,4 +767,3 @@ def test_followup_a_revision_records_the_pilot_open_at_that_moment(ws, client):
     later = _ok(client.post(f"{BASE}/criteria/amendments", json={
         "op": "add", "side": "exclusion", "text": "Review articles", "reason": "r", "confirm": True}))
     assert later["amendment"]["pilot_id"] is None
-
