@@ -558,7 +558,7 @@ function TriageScreen({ locale }: Readonly<{ locale: Locale }>) {
           setActiveQuote(keys[0]);
           document.getElementById(`answer-${keys[0]}`)?.focus();
         }}
-        className={`rounded-[2px] bg-anchor-soft text-ink no-underline [box-decoration-break:clone] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus ${active ? "ring-2 ring-anchor" : "ring-1 ring-anchor"}`}
+        className={`rounded-[2px] border-b-2 border-solid border-anchor bg-anchor-soft text-ink no-underline [box-decoration-break:clone] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus ${active ? "ring-2 ring-anchor" : ""}`}
       >
         {children}
       </a>
