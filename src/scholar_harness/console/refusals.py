@@ -100,6 +100,12 @@ CRITERIA_SIDE_EMPTY = "CRITERIA_SIDE_EMPTY"
 CRITERIA_AMENDMENT_HANDOFF = "CRITERIA_AMENDMENT_HANDOFF"
 #: M11b part A: a new EXCLUDE citing a criterion a revision retired.
 REASON_CODE_RETIRED = "REASON_CODE_RETIRED"
+#: M11b part B: the criteria pilot (`screening/pilot.py`).
+PILOT_OPEN = "PILOT_OPEN"
+PILOT_RECORD_UNKNOWN = "PILOT_RECORD_UNKNOWN"
+PILOT_CLOSED = "PILOT_CLOSED"
+PILOT_NOT_FOUND = "PILOT_NOT_FOUND"
+PILOT_SIZE_INVALID = "PILOT_SIZE_INVALID"
 
 # --- the inception routes (M4a, `docs/architecture/inception-api.md`) ---------
 #: Raised as ``DraftRefused`` (``inception/drafts.py``), ``StepRefused``
@@ -345,6 +351,11 @@ CONTRACT_ADDED = frozenset(
         CRITERIA_SIDE_EMPTY,
         CRITERIA_AMENDMENT_HANDOFF,
         REASON_CODE_RETIRED,
+        PILOT_OPEN,
+        PILOT_RECORD_UNKNOWN,
+        PILOT_CLOSED,
+        PILOT_NOT_FOUND,
+        PILOT_SIZE_INVALID,
         DRAFT_ID_INVALID,
         DRAFT_NOT_FOUND,
         DRAFT_UNREADABLE,

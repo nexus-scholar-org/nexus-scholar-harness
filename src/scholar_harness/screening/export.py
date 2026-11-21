@@ -517,6 +517,46 @@ def _quoted(items: list[dict[str, Any]]) -> str:
     return parts[0] if len(parts) == 1 else f"{', '.join(parts[:-1])} and {parts[-1]}"
 
 
+def _pilot_sentences(ws: Path, published: datetime | None, corpus: int) -> tuple[list[str], list[dict[str, Any]], list[Path]]:
+    """M11b part B (record (h), answer 5): the pilots drawn before publication, with how many of
+    their records were decided, and that those decisions were not counted."""
+    from .pilot import decisions_path, draw_path, heads, list_pilots, read_decisions
+
+    figures, paths = [], []
+    for draw in list_pilots(ws):
+        when = _time(draw.get("drawn_at"))
+        if published is not None and (when is None or when > published):
+            continue
+        studies = {str(r.get("study_id")) for r in draw.get("records") or [] if isinstance(r, dict)}
+        decided = len(set(heads(read_decisions(ws, str(draw["pilot_id"])))) & studies)
+        if not decided:
+            continue  # review F2: a pilot with no decision piloted nothing
+        figures.append({"pilot_id": draw["pilot_id"], "drawn": int(draw.get("n") or len(studies)),
+                        "decided": decided, "seed": draw.get("seed"), "date": _date(draw.get("drawn_at"))})
+        paths += [draw_path(ws, str(draw["pilot_id"])), decisions_path(ws, str(draw["pilot_id"]))]
+    if not figures:
+        return [], [], []
+    from .criteria import criteria_in_force
+
+    amended = [str(a.get("amended_at") or "") for a in criteria_in_force(ws, until=published).amendments]
+    drawn_at = {str(d["pilot_id"]): str(d.get("drawn_at") or "") for d in list_pilots(ws)}
+    parts = []
+    for i, f in enumerate(figures):
+        noun = "record" if f["decided"] == 1 else "records"
+        part = f"{f['decided']} {noun} (seed {f['seed']})" if i == 0 else f"on {f['decided']} more (seed {f['seed']})"
+        # Record (h): a pilot drawn after a revision of the criteria says so.
+        if i > 0 and any(drawn_at[figures[i - 1]["pilot_id"]] < when <= drawn_at[f["pilot_id"]] for when in amended):
+            part += " after a revision of the criteria"
+        parts.append(part)
+    listed = parts[0] if len(parts) == 1 else ", ".join(parts[:-1]) + " and " + parts[-1]
+    sentences = [
+        f"The screening criteria were piloted on {listed}, drawn at random from the {corpus} records of the corpus.",
+        "The pilot decisions were not counted; these records were screened again with the rest of the corpus, "
+        "without the pilot decision in view.",
+    ]
+    return sentences, figures, [p.relative_to(ws) for p in paths if p.is_file()]
+
+
 def _criteria_amendment_sentences(
     ws: Path, published: datetime | None
 ) -> tuple[list[str], list[dict[str, Any]], bool]:
@@ -525,6 +565,9 @@ def _criteria_amendment_sentences(
     sentences, their figures, and whether the amendments file is a source."""
     from .criteria import criteria_in_force
 
+    from .pilot import list_pilots
+
+    pilots = list_pilots(ws)
     current = criteria_in_force(ws, until=published)
     if not current.amendments:
         return ["The criteria were not changed after the protocol was signed."], [], False
@@ -557,7 +600,12 @@ def _criteria_amendment_sentences(
         if decided:
             sentence += f" {again} records already decided were screened again."
         else:
-            sentence += " No record had been decided under the earlier wording."
+            if row.get("pilot_id"):
+                sentence += " It was made during the pilot, before the main screening."
+            elif any(str(d.get("drawn_at") or "") <= str(row.get("amended_at") or "") for d in pilots):
+                sentence += " It was made after the pilot, before the main screening."
+            else:
+                sentence += " No record had been decided under the earlier wording."
         sentences.append(sentence)
         figures.append({
             "amendment_id": row.get("amendment_id"), "op": op, "side": side, "date": _date(row.get("amended_at")),
@@ -755,6 +803,12 @@ def build_methods(ws: Path) -> dict[str, Any]:
             f"to “{words[amendment['to']]}”; the signed protocol and every decision are unchanged."
         )
     # M11b part A (DoD 10): the criteria amendments made before publication, or that there were none.
+    # M11b part B: the pilots, before the amendments they led to.
+    pilot_sentences, pilot_figures, pilot_sources = _pilot_sentences(ws, published, figures_counts["screened"])
+    sentences.extend(pilot_sentences)
+    figures["pilots"] = pilot_figures
+    for path in pilot_sources:
+        source(path)
     criteria_sentences, criteria_figures, criteria_sourced = _criteria_amendment_sentences(ws, published)
     sentences.extend(criteria_sentences)
     figures["criteria_amendments"] = criteria_figures

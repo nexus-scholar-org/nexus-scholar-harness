@@ -1,6 +1,6 @@
 # M11b Criteria pilot
 
-Branch: `dev/m11b/criteria-pilot-spec` (from `origin/main` at `1f218054`) · Lane: declared per part (proposed below: A, B and D **RELEASE**, C **STANDARD**) · Status: **SPECIFICATION; the researcher answered the ten questions on 2026-11-21** (1 to 4, 7, 9 and 10 as recommended; **5, 6 and 8 against the recommendation**). Questions 11 and 12, which came from those answers, were answered the same day, both as recommended. The rework of answers 5, 6 and 8 is PROPOSED. **Build started 2026-11-21 (approved by the researcher; building, not pushing): part A READY FOR PR again on `dev/m11b/part-a-criteria-in-force` (item 5 built as decided; item 11 PROPOSED) (see "Build record"); parts B, C and D not started** · Fourth in the agreed order (plan §6, "After the acceptance run"); M11a part C is merged (PR 272), so part D is no longer blocked by it
+Branch: `dev/m11b/criteria-pilot-spec` (from `origin/main` at `1f218054`) · Lane: declared per part (proposed below: A, B and D **RELEASE**, C **STANDARD**) · Status: **SPECIFICATION; the researcher answered the ten questions on 2026-11-21** (1 to 4, 7, 9 and 10 as recommended; **5, 6 and 8 against the recommendation**). Questions 11 and 12, which came from those answers, were answered the same day, both as recommended. The rework of answers 5, 6 and 8 is PROPOSED. **Build started 2026-11-21 (approved by the researcher; building, not pushing): part A READY FOR PR again on `dev/m11b/part-a-criteria-in-force` (item 5 built as decided; item 11 PROPOSED) (see "Build record"); part B READY FOR PR on `dev/m11b/part-b-pilot`; parts C and D not started** · Fourth in the agreed order (plan §6, "After the acceptance run"); M11a part C is merged (PR 272), so part D is no longer blocked by it
 
 Short page for the researcher: [`M11b-criteria-pilot-for-review.md`](M11b-criteria-pilot-for-review.md). Screens (both `Status: DRAFT`): [`docs/ux/phase2-screening/final/13-criteria-pilot.md`](../../ux/phase2-screening/final/13-criteria-pilot.md) (draw the pilot, its result, revise a criterion) and [`docs/ux/phase0-inception/final/11-criteria-block.md`](../../ux/phase0-inception/final/11-criteria-block.md) (the change to Inception's step 5). Choices: `docs/decisions.md`, "2026-11-21 — M11b criteria pilot: the specification's choices" (answered 2026-11-21; the rework of 5, 6 and 8 and questions 11 and 12 PROPOSED).
 
@@ -500,3 +500,79 @@ Review round 3 (on `bb32cd80`, the item 5 delta): **CHANGES**, 1 P2 and 1 P4, bo
 Review round 4 (on `0a47f3b3`): **APPROVE**. Both round-3 repairs confirmed; the intake parameter is reachable only from the engine's resolve route (a client field is refused); its stamp and retired-reason exemption apply only there, and a retired id kept by a resolution is always shown again; conflicts without a revision behave as before; 199 targeted tests, 0 failed. Follow-ups carried to part C: read a decision's `criteria_version` (not its binding) to label it; `can_amend` and the `CRITERIA_AMENDMENT_HANDOFF` message (round 2); the round-1 list.
 
 **Part A: READY FOR PR** (not pushed). Branch `dev/m11b/part-a-criteria-in-force`. The PR gate on `58ce7bd7` (6128 tests, 0 failed) stands for the later commits, which change this record only. Decision item 11 was accepted by the researcher on 2026-11-21, as built, and the push was approved the same day.
+
+
+### Part B: the pilot
+
+Branch `dev/m11b/part-b-pilot`, stacked on part A (`f1968ccd`), with `origin/main` merged (`62bac271`, M11a part D) · Lane **RELEASE** (as declared: public routes, a second decision intake, persisted records, an additive field on a public answer) · Decisions: `docs/decisions.md` "2026-11-21 — M11b part B: the pilot, the build's choices" items 1 to 10 (PROPOSED). The researcher's answers bind it: pilot decisions are not counted and the records are screened again (5); the checklist stays collapsed (6); the agent check on the pilot with an explicit model (9); counts only, never one record's draft (11).
+
+What was built:
+- `src/scholar_harness/screening/pilot.py`: the draw (records with no main decision and in no earlier pilot, in snapshot order, `random.Random(seed).sample` with a seed the engine draws and records; the dry call); the pilot decisions file `pilot_NNN_decisions.jsonl` and its intake (the event intake's reason and input checks; `PLD-` ids derived from the client's `event_id`; engine-stamped `received_at`, `criteria_version`, `protocol_fingerprint`; one journal row per request, counts only); the end of a pilot (`pilot_NNN_closed.json`, by "End the pilot" or when the last record is decided; `SCREENING_PILOT_CLOSED`); the result, recomputed when read: counts per outcome, per criterion the exclusions it was the reason for, the checklist's and the drafts' `not_reported`, "read differently" against the checklist answers or what a decision implies, the seven readings of (f) as fixed rules with their counts, the readings not computed with what they need, and the previous pilot beside it. All writes run under the events lock.
+- `screening/events.py`: a new main decision on a record of the open pilot is refused `PILOT_OPEN` (new events only; the open pilot's records are re-read under the lock).
+- `console/api/screening_v1.py`: `POST /screening/pilot`, `POST /screening/pilot/{id}/decisions`, `POST /screening/pilot/{id}/close`, `GET /screening/pilot/{id}/result` (desktop only); `/summary` gains `pilot`; `GET /queue?view=pilot` (drawn order, `checklist_default: "collapsed"`), and the open pilot's records leave the other views; `POST /proposals/calibrations` takes an additive `pilot_id` (labels from the pilot file); `/agreement`'s `splits_by_criterion` rows gain `answered_by_both`; a revision made during a pilot records its `pilot_id`.
+- `screening/agent_runs.py`: a run records `pilot_id`; its drafts carry it; the calibration score reads the pilot's labels, comparing a draft only with a pilot decision of the same criteria version.
+- `screening/export.py`: the methods paragraph states the pilots (records decided, seed, the corpus size) and that their decisions were not counted; an amendment with no counted decision says it was made during or after the pilot.
+- Refusal codes `PILOT_OPEN`, `PILOT_RECORD_UNKNOWN`, `PILOT_CLOSED`, `PILOT_NOT_FOUND`, `PILOT_SIZE_INVALID` in `console/refusals.py` and `screening-api-contract.md` §7; §3.4 and §4 amended; the fixtures regenerated (`/summary` gains `"pilot": null`, two files, additive only).
+
+| DoD | Test (`tests/console/test_criteria_pilot_api.py` unless named) | State |
+| :-- | :-- | :-- |
+| 11 | `test_dod11_the_dry_call_answers_n_the_pool_and_the_time_and_writes_nothing`; `test_dod11_a_draw_writes_the_file_and_one_journal_row`; `test_dod11_the_same_seed_on_the_same_snapshot_gives_the_same_list`; `test_dod11_records_with_a_main_decision_or_in_an_earlier_pilot_are_not_drawn`; `test_dod11_a_size_outside_20_to_100_in_tens_is_refused`; `test_dod11_more_than_the_records_left_is_refused`; `test_dod11_refused_before_batches_after_approval_and_while_a_pilot_is_open`; `test_dod11_the_pilot_routes_are_desktop_only` | done |
+| 11b | `test_dod11b_the_summary_names_the_open_or_last_pilot` | done |
+| 11c | `test_dod11c_a_pilot_decision_is_a_line_of_its_own_file_with_engine_fields`; `test_dod11c_the_event_intakes_checks_apply` (9 cases); `test_dod11c_a_retired_reason_is_refused_in_the_pilot`; `test_dod11c_a_record_outside_the_pilot_and_an_unknown_pilot_are_refused`; `test_dod11c_pilot_decisions_reach_no_counted_reader` (0 decided, no event, no batch decisions file, empty decided view and agreement, an empty PRISMA preview, collect refuses) | done |
+| 11d | `test_dod11d_a_main_decision_on_an_open_pilot_record_is_refused`; `test_dod11d_ending_the_pilot_returns_its_records_blind_to_the_pilot_decision` (queue and record carry nothing of the pilot; the main decision is accepted, no conflict); `test_dod11d_a_pilot_closes_by_itself_when_its_last_record_is_decided` | done |
+| 12 | `test_dod12_the_pilot_view_lists_the_drawn_records_in_drawn_order`; `test_dod12_the_pilot_view_is_empty_without_a_pilot` | done (engine; Triage is part C) |
+| 13 | `test_dod13_from_the_decisions_alone_three_readings_and_the_four_it_could_not_compute`; `test_dod13_with_the_agent_check_the_mirror_and_the_unreadable_criterion_show` (and no per-record draft in the answer); `test_dod13_read_differently_against_checklist_answers`; `test_dod13_a_second_pilot_has_the_first_beside_it`; `test_dod13_a_revision_during_the_pilot_labels_the_versions_and_shows_nothing_again` | done |
+| 14 | `test_dod14_the_agent_check_on_a_pilot_reads_its_labels_from_the_pilot_file` (explicit model, the fake driver, labels and drafts, the refusals; the route without `pilot_id` is unchanged, its own tests pass) | done (engine; the UI test that the body always has a model is part C) |
+| 15 | `test_dod15_splits_by_criterion_carry_answered_by_both` | done |
+| (h) | `test_methods_state_the_pilot_and_that_its_decisions_were_not_counted` (every number traced to a figure; the amendment during the pilot) | done |
+| 21 | the contract checks before and after (Evidence) | done for part B |
+
+Fails before: on part A's head `f1968ccd`, `screening/pilot.py` does not exist and the routes answer 404/405, so `tests/console/test_criteria_pilot_api.py` stops at collection (`ImportError`).
+
+Contract v1: unchanged. Pilot decisions are not decision events and are never handed to the Contract v1 collector; the projected batch decisions files are untouched by a pilot (tested); no file under the baseline globs changes.
+
+Not verified: no live run and no model call (the agent check runs on the fake driver); whether the observation thresholds and the minimum counts (decision item 4) are useful on a real pilot (DoD 22, the researcher's own pilot); the screens (part C).
+
+Evidence (Python runs with `-n 4`):
+
+| Stage | Commit | Command | Result | Duration |
+| :-- | :-- | :-- | :-- | :-- |
+| targeted | `24e69596` | the new file with `test_console_refusals.py`, `test_screening_api_contract.py`, part A's two files | 101 tests, 0 failed (after the §7 rows for the five codes) | 51 s |
+| targeted | `ada92bc1` (working tree) | `tests/console/test_criteria_pilot_api.py` | 38 passed | 35 s |
+| pr | `ada92bc1` | `generate_contract_baseline.py --check`; `generate_protocol_schema.py --check`; `generate_contract_schemas.py --check`; `generate_two_study_contract_fixture.py --check`; both ruff commands; `git diff --check origin/main...HEAD`; `uv run pytest -q -n 4 --junitxml` (full suite) | current; in sync; exit 0; exit 0; clean; clean; clean; 6176 tests: 6161 passed, 15 skipped, 0 failed, 0 errors | 691 s |
+
+The commit after `ada92bc1` (`68e1e783`) is this record only. No UI file changed (`git diff origin/main...HEAD -- apps` is empty), so the UI gates were not run.
+
+Review round 1 of part B (`milestone-reviewer`, on `36de9009`): **CHANGES**, 1 P2, 6 P3, 5 P4, all taken (on `fc90db07`, after part A's item 5 and round 3/4 were merged in):
+
+| # | Finding | Repair | Test (`tests/console/test_criteria_pilot_api.py`; fails before: the reviewer's probes on `36de9009`) |
+| :-- | :-- | :-- | :-- |
+| P2-1 | The agent check on a pilot answered `missed_includes` with the ids of pilot records, undecided in the main screening (answer 11; contract §4) | with `pilot_id` the list is always empty; `missed_includes_count` gives the number (also for the main calibration) | `test_review_f1_the_agent_check_on_a_pilot_names_no_record`, `test_review_f1_a_main_calibration_still_names_its_missed_records` |
+| P3-2 | The methods paragraph could say "piloted on 0 records" | a pilot with no decision is left out | `test_review_f2_a_pilot_with_no_decision_is_not_in_the_methods` |
+| P3-3 | `splits_by_criterion` gained rows with `n: 0`, so today's Agreement screen showed zero bars | split rows stay real splits, each with `answered_by_both`; a new top-level `answered_by_both` lists every criterion | `test_dod15_splits_by_criterion_carry_answered_by_both`, `test_review_f3_old_clients_see_no_zero_split` |
+| P3-4 | Readings below their minimum vanished silently | named in `not_computed` with `have` and `min` | `test_review_f4_readings_below_their_minimum_are_named` |
+| P3-5 | "Never used" took its full form for a criterion nobody answered | full form only for an answered criterion | `test_review_f5_never_used_takes_its_full_form_only_for_an_answered_criterion` |
+| P3-6 | The draw ignored records decided through the file hand-off | the draw is refused `CRITERIA_AMENDMENT_HANDOFF` (decision item 13) | `test_review_f6_a_draw_is_refused_while_a_batch_was_decided_through_the_handoff` |
+| P3-7 | A second pilot decision without `supersedes` silently won | refused `INVALID_OUTPUT` (decision item 12) | `test_review_f7_a_second_pilot_decision_must_supersede_the_first` |
+| P4-8 | A catch-all assertion; "nothing approvable" not exercised | the collect refusal is asserted by message; the coverage check refuses each batch | `test_dod11c_pilot_decisions_reach_no_counted_reader` |
+| P4-9 | `study_ids` became optional without `pilot_id` (422 `BODY_INVALID` became `INVALID_OUTPUT`) | required again unless `pilot_id` is given (a model validator) | `test_dod14_the_agent_check_on_a_pilot_reads_its_labels_from_the_pilot_file` |
+| P4-10 | `view=pilot` answered phone tokens | refused `TOKEN_SCOPE_REFUSED` | `test_review_f10_the_pilot_view_is_desktop_only` |
+| P4-11 | "1 records"; three pilots read badly; "after the first revision" not built | wording fixed; a later pilot drawn after a revision says so | `test_review_f11_the_pilot_sentence_reads_well_for_one_record_and_three_pilots` |
+| P4-12 | A blank line at the end of this record | removed | (`git diff --check`) |
+
+Follow-ups taken: the open pilot's id is read under the events lock when a revision is recorded (`test_followup_a_revision_records_the_pilot_open_at_that_moment`); a pilot number is never reused, even when a draw file is unreadable (`test_followup_a_pilot_number_is_never_reused_even_if_a_draw_file_is_unreadable`); `/summary` computes the recheck count once. Not taken: another batch can be approved while a pilot is open (the pilot result's revise would then be refused; the screen in part C shows the fixed state).
+
+Part A's item 5 ("bind the version") does not reach pilot decisions: they carry no binding and are labelled with the version in force when received (decision item 11, PROPOSED, with the binding alternative).
+
+| Stage | Commit | Command | Result | Duration |
+| :-- | :-- | :-- | :-- | :-- |
+| targeted | `3a92daa2` (working tree) | `tests/console/test_criteria_pilot_api.py` with the new review tests; part A's file, `test_agent_runs_api.py`, `test_screening_drafts_api.py` | 50 passed; 132 tests, 0 failed after the agreement test took the new shape | 55 s; 63 s |
+| pr (round 1 repairs) | `fbf8887d` (part A's `c65a48f2` and `origin/main` `b36303b8` merged in) | contract baseline, protocol schema, contract schemas, two-study fixture; both ruff commands; `git diff --check origin/main...HEAD`; `uv run pytest -q -n 4 --junitxml` (full suite) | current; in sync; exit 0; exit 0; clean; clean; clean; 6219 tests: 6204 passed, 15 skipped, 0 failed, 0 errors | 689 s |
+
+A gate started on `3a92daa2` was stopped when part A's branch moved (it brought code from `origin/main`); the run above is on the merged head.
+
+Review round 2 of part B (on `0cdf80aa`): **APPROVE**. The twelve round-1 repairs and the three follow-ups confirmed by the reviewer's probes (11 probes, 366 targeted tests, 0 failed, `-n 4`); the merges of part A and `origin/main` did not break part B (in `_criteria_refusal`, `PILOT_OPEN`, then the retired reason with `resolution_version`, then the bound version, all on new events only); decision items 11 to 13 match the code. One P4, taken (documents only): the `GET /agreement` shape in contract §4 lists the new top-level `answered_by_both`.
+
+**Part B: READY FOR PR** (not pushed). Branch `dev/m11b/part-b-pilot`, stacked on part A. The PR gate on `fbf8887d` (6219 tests, 0 failed) stands for the later commits, which change documents only. Decision items 1 to 13 of part B wait for the researcher.
+
+Part B's decision items 1 to 13 were accepted by the researcher on 2026-11-21 (main session), and the push of part B was approved; the main session pushes it.
