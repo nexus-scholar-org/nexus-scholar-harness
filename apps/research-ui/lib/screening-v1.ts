@@ -70,6 +70,14 @@ export interface QueueItem {
   flags: string[];
   /** M11b part C: a decision a criteria revision shows again (first in "Needs you"). */
   shown_again?: boolean;
+  /** M11b part C, `view=pilot` only: your pilot decision on the record, or null. */
+  pilot_decision?: {
+    pilot_decision_id: string;
+    outcome: Outcome;
+    reason_code: string | null;
+    criteria: CriterionAnswer[] | null;
+    criteria_version: number;
+  } | null;
 }
 
 export interface QueuePage {

@@ -767,3 +767,17 @@ def test_followup_a_revision_records_the_pilot_open_at_that_moment(ws, client):
     later = _ok(client.post(f"{BASE}/criteria/amendments", json={
         "op": "add", "side": "exclusion", "text": "Review articles", "reason": "r", "confirm": True}))
     assert later["amendment"]["pilot_id"] is None
+
+
+def test_part_c_the_pilot_view_carries_your_pilot_decision_and_the_main_views_do_not(ws, client):
+    drawn = _draw(client, 20)
+    records = _pilot_records(client)
+    [first] = _decide(client, drawn["pilot_id"], [_decision(records[0], "EXCLUDE")])
+    items = {i["study_id"]: i for i in _ok(client.get(f"{BASE}/queue", params={"view": "pilot", "limit": 200}))["items"]}
+    head = items[records[0]]["pilot_decision"]
+    assert (head["pilot_decision_id"], head["outcome"], head["reason_code"]) == (first["pilot_decision_id"], "EXCLUDE", "EXC-01")
+    assert items[records[1]]["pilot_decision"] is None
+    _ok(client.post(f"{BASE}/pilot/{drawn['pilot_id']}/close"))
+    main = _ok(client.get(f"{BASE}/queue", params={"view": "needs_you", "limit": 200}))["items"]
+    assert all("pilot_decision" not in i for i in main)
+

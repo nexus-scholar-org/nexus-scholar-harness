@@ -311,6 +311,9 @@ def queue(
             "decided": (s in pilot_view["decided"]) if pilot_view is not None else s in winners,
             "flags": [] if _has_abstract(papers.get(s, {})) else ["title_only"],
             "shown_again": s in recheck,
+            # M11b part C, view=pilot only: your pilot decision on the record (a change of mind
+            # supersedes it); the main views never carry it (answer 11).
+            **({"pilot_decision": pilot_view["heads"].get(s)} if pilot_view is not None else {}),
         }
         for s in page
     ]
@@ -329,8 +332,12 @@ def _pilot_queue(ws: Path) -> dict[str, Any] | None:
     current = pl.open_pilot(ws) or pl.last_pilot(ws)
     if current is None:
         return None
-    decided = set(pl.heads(pl.read_decisions(ws, current.pilot_id)))
-    return {"pilot_id": current.pilot_id, "open": current.open, "studies": list(current.studies), "decided": decided}
+    heads = {
+        study: {k: d.get(k) for k in ("pilot_decision_id", "outcome", "reason_code", "criteria", "criteria_version")}
+        for study, d in pl.heads(pl.read_decisions(ws, current.pilot_id)).items()
+    }
+    return {"pilot_id": current.pilot_id, "open": current.open, "studies": list(current.studies), "decided": set(heads),
+            "heads": heads}
 
 
 @router.get("/records/{study_id}")
