@@ -25,6 +25,7 @@ const EN: Record<string, PluralForms> = {
   "checks.EXPLORE_POOL_THIN.sentence": { one: "The sample has only {n} paper. {floor} or more gives steadier suggestions." },
   "checks.REVIEW_TARGET_HAS_SCREENING.sentence": { one: "That workspace has {n} screening decision." },
   "criteria.needYou": { one: "{n} still needs you." },
+  "marks.legend.mentions": { one: "{n} mention" },
   "handoff.imports.unchecked": { one: "{n} record comes from your exports. It was not checked against Crossref or OpenAlex, and a missing abstract was not filled in." },
 };
 
@@ -38,10 +39,12 @@ const FR: Record<string, PluralForms> = {
   "checks.EXPLORE_POOL_THIN.sentence": { one: "L'échantillon ne compte que {n} article. À partir de {floor}, les suggestions sont plus stables." },
   "checks.REVIEW_TARGET_HAS_SCREENING.sentence": { one: "Cet espace de travail a {n} décision de sélection." },
   "criteria.needYou": { one: "{n} attend encore votre décision." },
+  "marks.legend.mentions": { one: "{n} mention" },
   "handoff.imports.unchecked": { one: "{n} notice provient de vos exports. Elle n'a pas été vérifiée auprès de Crossref ou d'OpenAlex, et un résumé manquant n'a pas été complété." },
 };
 
 const AR: Record<string, PluralForms> = {
+  "marks.legend.mentions": { one: "إشارة واحدة", two: "إشارتان", few: "{n} إشارات", many: "{n} إشارةً", other: "{n} إشارة" },
   "proposals.badge": { one: "اقتراح واحد", two: "اقتراحان", few: "{n} اقتراحات", many: "{n} اقتراحًا", other: "{n} اقتراح" },
   "checks.waiting": {
     one: "فحص واحد بانتظار {need}",
