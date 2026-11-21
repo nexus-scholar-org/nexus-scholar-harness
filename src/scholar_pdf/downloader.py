@@ -367,26 +367,22 @@ class AsyncPDFDownloader:
         """Resolve OA evidence and atomically acquire a PDF for one DOI."""
         require_contact_email()  # refused before any request (MAILTO_NOT_SET)
         try:
-            # The same requests as before: OpenAlex once, then Unpaywall once
-            # only when OpenAlex lists no open copy with a direct PDF address.
+            # Both services are asked for every DOI, once each (decision
+            # 2026-11-21, H-pdf-resolver-locations item 4, "Always ask both
+            # services"), so the best copy is chosen across both lists.
             openalex = await self._lookup("openalex", http_client, doi)
-            openalex_data = openalex.payload
-            lookups: tuple[LookupOutcome, ...] = (openalex.outcome,)
+            unpaywall = await self._lookup("unpaywall", http_client, doi)
+            openalex_data, unpaywall_data = openalex.payload, unpaywall.payload
+            lookups: tuple[LookupOutcome, ...] = (openalex.outcome, unpaywall.outcome)
             metadata: dict = {}
             if openalex_data:
                 metadata = self.extract_metadata(openalex_data, "openalex")
+            if unpaywall_data and not metadata.get("title"):
+                metadata = self.extract_metadata(unpaywall_data, "unpaywall")
 
             # Every listed open location with a direct address, best version
             # first (M12a answer F3); a landing page is never an address.
-            copies = open_copies(openalex_data, None)
-            unpaywall_data = None
-            if not copies:
-                unpaywall = await self._lookup("unpaywall", http_client, doi)
-                unpaywall_data = unpaywall.payload
-                lookups = (*lookups, unpaywall.outcome)
-                copies = open_copies(openalex_data, unpaywall_data)
-                if unpaywall_data and not metadata.get("title"):
-                    metadata = self.extract_metadata(unpaywall_data, "unpaywall")
+            copies = open_copies(openalex_data, unpaywall_data)
 
             access_status = self._provider_access_status(openalex_data, unpaywall_data)
             if copies and access_status == "UNRESOLVED":
@@ -464,6 +460,13 @@ class AsyncPDFDownloader:
             message = last_error or "Failed to download or invalid PDF"
             if len(copies) > 1:
                 message = f"{message} ({tried} of {len(copies)} listed addresses tried)"
+            for lookup in lookups:
+                if lookup.state == FAILED:
+                    # The other service may list an address this run never saw.
+                    message = (
+                        f"{message}; {lookup.name} {lookup.failure()}, "
+                        "so its list was not read"
+                    )
             return replace(
                 result,
                 status="FAILED",
