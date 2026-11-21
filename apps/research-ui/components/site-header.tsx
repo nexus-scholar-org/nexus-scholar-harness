@@ -16,6 +16,7 @@ import { useEffect, useState } from "react";
 
 import { LOCALE_METADATA, SUPPORTED_LOCALES, navKey, swapLocale, translate, type Locale } from "@/i18n";
 
+import { CHARTING_OPEN_KEY, NEXT_STEP_ANSWER_EVENT, chartingOpen, type NextStepSignal } from "./review-bus";
 import { ThemeToggle } from "./theme-toggle";
 
 /**
@@ -35,9 +36,35 @@ export const NAV_ITEMS = [
   { id: "workspaces", href: "/workspaces" },
   { id: "discovery", href: "/discovery" },
   { id: "screening", href: "/screening/home" },
+  // M12a Part A (DoD 9): offered once screening is published (`useChartingShown`).
+  { id: "charting", href: "/charting" },
 ] as const;
 
 export type NavId = (typeof NAV_ITEMS)[number]["id"];
+
+/**
+ * Whether "Charting" is offered: on the charting route itself, and once the
+ * next-step bar has said a round is published (its last word is remembered for
+ * the browser session). The header makes no read of its own. Read after mount,
+ * so the prerendered page and the first render agree.
+ */
+export function useChartingShown(current: NavId | undefined): boolean {
+  const [open, setOpen] = useState(false);
+  useEffect(() => {
+    try {
+      setOpen(window.sessionStorage.getItem(CHARTING_OPEN_KEY) === "1");
+    } catch {
+      /* private window: the event below still arrives */
+    }
+    const listener = (event: Event) => {
+      const signal = (event as CustomEvent<NextStepSignal>).detail;
+      if (signal && signal.scope === "workspace") setOpen(chartingOpen(signal));
+    };
+    window.addEventListener(NEXT_STEP_ANSWER_EVENT, listener);
+    return () => window.removeEventListener(NEXT_STEP_ANSWER_EVENT, listener);
+  }, []);
+  return open || current === "charting";
+}
 
 /**
  * Which destination the pathname belongs to: `/screening/<step>` is all one
@@ -48,6 +75,7 @@ export function currentNavId(pathname: string, locale: Locale): NavId | undefine
   if (path === `/${locale}/workspaces`) return "workspaces";
   if (path === `/${locale}/discovery` || path.startsWith(`/${locale}/discovery/`)) return "discovery";
   if (path === `/${locale}/screening` || path.startsWith(`/${locale}/screening/`)) return "screening";
+  if (path === `/${locale}/charting` || path.startsWith(`/${locale}/charting/`)) return "charting";
   return undefined;
 }
 
@@ -75,6 +103,8 @@ const MOBILE_NAV_LINK =
 export function SiteHeader({ locale, pathname }: Readonly<{ locale: Locale; pathname: string }>) {
   const query = useConsoleQuery();
   const current = currentNavId(pathname, locale);
+  const charting = useChartingShown(current);
+  const items = NAV_ITEMS.filter((item) => item.id !== "charting" || charting);
   const t = (key: Parameters<typeof translate>[1]) => translate(locale, key);
   const themeLabels = { system: t("theme.system"), light: t("theme.light"), dark: t("theme.dark") };
 
@@ -96,7 +126,7 @@ export function SiteHeader({ locale, pathname }: Readonly<{ locale: Locale; path
 
         <nav aria-label={t("nav.landmark.primary")} data-nav-region="primary" className="hidden lg:block">
           <ul className="flex items-center gap-1">
-            {NAV_ITEMS.map((item) => (
+            {items.map((item) => (
               <li key={item.id}>
                 <Link
                   href={`/${locale}${item.href}${query}`}
@@ -115,7 +145,7 @@ export function SiteHeader({ locale, pathname }: Readonly<{ locale: Locale; path
             <LocaleMenu locale={locale} pathname={pathname} query={query} />
             <ThemeToggle selectorLabel={t("theme.selectorLabel")} labels={themeLabels} />
           </div>
-          <MobileMenu locale={locale} pathname={pathname} query={query} current={current} themeLabels={themeLabels} />
+          <MobileMenu locale={locale} pathname={pathname} query={query} current={current} items={items} themeLabels={themeLabels} />
         </div>
       </div>
     </header>
@@ -169,12 +199,14 @@ function MobileMenu({
   pathname,
   query,
   current,
+  items,
   themeLabels,
 }: Readonly<{
   locale: Locale;
   pathname: string;
   query: string;
   current: NavId | undefined;
+  items: ReadonlyArray<(typeof NAV_ITEMS)[number]>;
   themeLabels: Readonly<Record<"system" | "light" | "dark", string>>;
 }>) {
   const [open, setOpen] = useState(false);
@@ -217,7 +249,7 @@ function MobileMenu({
           <div className="flex flex-1 flex-col gap-8 px-4 py-6 sm:px-6">
             <nav aria-label={t("nav.landmark.primaryMobile")} data-nav-region="mobile">
               <ul className="flex flex-col gap-1">
-                {NAV_ITEMS.map((item) => (
+                {items.map((item) => (
                   <li key={item.id}>
                     <Link
                       href={`/${locale}${item.href}${query}`}
