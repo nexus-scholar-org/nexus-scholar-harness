@@ -115,7 +115,9 @@ def compute(request: Request, run: str | None = None) -> tuple[list[dict[str, An
     else:
         run_check("RECALL_SEED_MISSED", lambda: [
             C.check("RECALL_SEED_MISSED", "warning", subject=str(seed), params={"seed": str(seed)},
-                    evidence=[{"kind": "doi", "value": str(seed)}], action=_field_free("inception"))
+                    evidence=[{"kind": "doi", "value": str(seed)}],
+                    # M11a part D (decision 2026-11-21 item 3): the query is changed by Plan's "Change the search".
+                    action={"kind": "step", "step": "plan", "section": "change-search"})
             for seed in recall.get("missed_everywhere") or []
         ])
         run_check("RECALL_CHECK_STALE", lambda: [

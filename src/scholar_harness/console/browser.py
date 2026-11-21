@@ -76,6 +76,8 @@ POST_PATHS: tuple[re.Pattern[str], ...] = tuple(
         r"api/v1/inception/drafts/[A-Za-z0-9_-]+/workbench/comparison/cmp_\d{3}/(remove|report)",
         r"api/v1/discovery/workbench/(seeds|comparison)",
         r"api/v1/discovery/workbench/comparison/cmp_\d{3}/(remove|report)",
+        # M11a Part D: the researcher's amendment of the search from Plan (the M10c 9(a) path).
+        r"api/v1/discovery/workbench/amend",
         # M3i-harvest-robustness: finish a harvest's remaining stages without a new search.
         r"api/v1/discovery/runs/run_\d{3,}/prepare",
         r"api/v1/discovery/jobs/[A-Za-z0-9_-]+/cancel",

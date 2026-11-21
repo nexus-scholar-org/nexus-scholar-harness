@@ -55,6 +55,15 @@ export interface Plan {
   /** The databases that would drop this query's AND, chosen or not (empty for a one-concept query). */
   ignores_and?: string[];
   imports_hint: string[];
+  /** M11a part D: the protocol's search as the workbench edits it ("Change the search"). Absent from older consoles. */
+  search?: {
+    query_key: string;
+    concepts: { concept: string; synonyms: string[] }[];
+    start_year: number | null;
+    end_year: number | null;
+    languages: string[];
+    golden_seeds: string[];
+  };
 }
 
 /** The databases the engine knows, in its own order (`KNOWN_PROVIDERS`); the pickers show all six (M10a). */
