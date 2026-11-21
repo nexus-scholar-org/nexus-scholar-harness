@@ -309,6 +309,7 @@ def test_the_one_study_route_answers_the_row_and_the_form(env):
     client, _, ids = env
     answer = client.get(f"{BASE}/records/{ids['included']}").json()
     assert answer["row"]["study_id"] == ids["included"] and answer["form"]["version"] == 1
+    assert answer["screener_id"] == WHO
     refused = client.get(f"{BASE}/records/{ids['excluded']}")
     assert refused.status_code == 409 and refused.json()["detail"]["code"] == "RECORD_NOT_KEPT"
 

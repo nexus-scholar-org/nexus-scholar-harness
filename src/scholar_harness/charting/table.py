@@ -509,7 +509,8 @@ def record(ws: Path | str, study_id: str) -> dict[str, Any]:
     found = next((r for r in view["rows"] if r["study_id"] == study_id), None)
     if found is None:
         raise ChartingRefused(409, ev.RECORD_NOT_KEPT, "That study is not in the kept set any more. Back to the table.")
-    return {"shape": "charting.record-v1", "row": found, "form": view["form"], "read_only": view["read_only"],
+    return {"shape": "charting.record-v1", "screener_id": view["screener_id"], "row": found, "form": view["form"],
+            "read_only": view["read_only"],
             "reason_options": view["reason_options"], "not_retrieved_reasons": view["not_retrieved_reasons"],
             "publication": view["publication"], "counts": view["counts"]}
 

@@ -10,7 +10,49 @@ history to read if you need the original reasoning (`git log --follow -- <path>`
 
 | Entry | Item | What is open |
 | :-- | :-- | :-- |
+| 2026-11-21 — M12a Part B: the charting form, cells, pilot and amendments | 1 to 34 | Proposed with the build; items 30 and 31 change or read accepted Part A items 29 and 18; the researcher's answer is pending. |
 | 2026-11-19 — M9a: what the measurement says about the ladder gates | 2 | The minimum share of the researcher's excludes an agent must take before a rung unlocks: the principle is accepted; the researcher decided on 2026-11-20 to set the number when M9b is built. |
+
+## 2026-11-21 — M12a Part B: the charting form, cells, pilot and amendments (items 1 to 34 PROPOSED)
+
+Record: `docs/roadmap/milestones/M12a-charting-table.md`, "Build record", Part B. The build's own choices where the specification left the detail open; none is accepted until the researcher answers. Nothing here changes a Contract v1 file or `protocol.json`.
+
+1. **The form is seeded at the table's first read** (`GET /api/v1/charting` or `/form`), from `matrix_dimensions` in order: `free_text` → Text, `numeric` → Number, `categorical` → One of a list, `list` → Several of a list, with no options (the protocol holds none); Yes/No exists only in the form, its options fixed to Yes and No. A column id is the protocol's id made safe. While the table is read-only (protocol replaced) nothing is seeded.
+2. **One route for every form change: `PUT /api/v1/charting/form` with the version it was made from**, instead of spec 01's separate `POST …/form/amendments`: before any value it saves at once (`CHARTING_FORM_CHANGED`, a journal action of its own); after, the same call needs the one-sentence reason and becomes the amendment. A change made from an old version is refused `CHARTING_FORM_STALE` (409, a new code).
+3. **What an amendment row is**: one row per change in `charting/form_amendments.jsonl`, sharing one amendment id: added, removed, renamed, definition, type, options added, options removed, required, order, split, merged, replaced; with from, to, the reason, pilot on or not, who, when, the form versions, the protocol fingerprint and the generation id.
+4. **A split or a merge is said by the new columns**: a new column names the column(s) it comes from (`derived_from`); one old column into several is a split, several into one a merge, one into one a replacement. The old column's cells stay in the log.
+5. **What "Chart again" marks**: a cell saved before a type change or a replacement of its column; a cell whose value uses an option removed after it was saved (a cell using kept options is not marked); an empty cell of a column made by a split or merge when the old column held something for that study (its value shown as history). A rename, a new definition, an added option, a required change or a reorder marks nothing. Charting the cell again clears the mark; the history keeps the last five earlier values.
+6. **Cell values**: Text is non-empty, at most 5,000 characters; Number is a JSON number (no units; a unit belongs in the column's name or the note); One of and Yes/No one option; Several of a non-empty list of distinct options. Not reported and Not applicable hold no value. A note (2,000) and a where-from (500) are optional on any cell.
+7. **A cell's undo chain is its column**: an undo names an earlier cell event of the same study and column.
+8. **The pilot**: each cell event records whether the pilot was on when it was saved; "End pilot" is recorded once (`CHARTING_PILOT_ENDED`); values charted in the pilot stay final (spec 01 question 6, "Kept as final"). The pilot is not restarted.
+9. **"Charted"**: a kept row not excluded at full text whose every column holds a value, Not reported or Not applicable, and none marked Chart again. Counts gain charted, not charted (rows excluded at full text in neither) and pilot (rows with a pilot value).
+10. **Cells on a row excluded at full text are not refused by the engine**; the screens make them read-only (spec 02, "Excluded at full text").
+11. **The Charting CSV** (`view=charting`): study id, first author, year, title, DOI, round, full-text status, "No full text", "Pilot", then per column its value, note and where-from; Not reported and Not applicable as words, a cell not charted empty, a "several" value joined with "; "; rows excluded at full text and rows no longer kept left out; `CHARTING_EXPORTED` with the SHA-256 and the not-charted count.
+12. **`GET /api/v1/charting/records/{study_id}`** answers one row with the form for the one-study view (it reads the whole table; fast enough at a few hundred rows, see DoD 14).
+13. **The one-study view is `/[locale]/charting/study?id=STU-…`**, a query parameter rather than spec 02's path segment: the static export cannot prerender a page per study, and the app's other dynamic screens avoid it the same way.
+14. **The table's place lives in the address**: the table writes `view`, `show` and `excluded` (replacing the address, not adding history) and reads `row` and `form=open` once; Esc and "Back to the table" return to the same view, filter and row. In the one-study view J and K replace the address, so the browser's Back goes to the table, not through every study.
+15. **The one-study view's neighbours** are the table's Show list as it was when the study was opened, kept fixed; if the study is not in it, all rows. "Study k of n" counts in that list.
+16. **Keys in the Charting view**: arrows (inside the grid only; left and right mirror in Arabic), J/K, Enter, Alt+N, Alt+A (read from the physical key, so they work on macOS), 1, 2, F, O, Z, Ctrl+E and ?; the Full text keys (G Q R N I E P X A, Shift+J/K) do nothing there. L, C and D stay free for Part F.
+17. **Alt+N and Alt+A toggle**: the same key again clears the cell; Z undoes that.
+18. **In-cell editors**: Text and Number on one line; One of and Yes/No as radios; Several of as checkboxes; Enter saves and moves down, Esc cancels, leaving the editor saves, a double-click opens it; an unchanged value sends nothing (a "Chart again" cell confirmed as it is does send).
+19. **A number that does not read as one is not sent**: the cell says "Type a number, for example 1260 or 2.5." (a new key); "1 260" is read as 1260 and "2,5" as 2.5.
+20. **Notes and where-from are edited in the one-study view only**; a value saved from the table keeps the cell's note and where-from; on an empty cell they wait for a value (the engine keeps no note on a cleared cell).
+21. **Enter in a one-study field** saves it and moves to the next column's value; Shift+Enter in Note adds a line.
+22. **The toolbar's Pilot switch only turns off** (the same recorded "End pilot" as the panel's button) and is then disabled: the engine has no way to restart the pilot (engine item 8). Rows charted in the pilot carry a "Pilot" mark.
+23. **The first-visit card** shows while the pilot is on, no value exists, the form has columns and the table is not read-only; "Not now" is remembered in this browser; while it shows, its button is the one brand button.
+24. **"Chart the next study"** opens the first kept row, not excluded at full text and not charted, in the engine's order (not the filtered list); once none is left it becomes Export and downloads the Charting CSV.
+25. **The form panel**: a new column is "New column {n}", Text, saved at once; a column with an empty name is not sent; "Split into two" makes "{name} (1)" and "{name} (2)" from the old column; saves are sent in order; if the engine asks for a reason the screen did not expect, the panel shows the amendment prompt; on `CHARTING_FORM_STALE` the table is read again. Merging columns in the panel is not built (the engine supports it).
+26. **The amendments list**: grouped by amendment, newest first, one sentence per change with its own words (new keys `charting.form.change.*`), the column name for definition, type, options and required changes, the reason under each group; "who" is the screener id as stored.
+27. **Export is a small menu**: CSV of the Full text view and CSV of the Charting view (no xlsx until Part C); Ctrl+E opens it; after the Charting CSV the status line adds "{n} cells are not charted yet.", counted on the screen.
+28. **"No full text" in the table** shows only on rows with at least one charted cell; in the one-study view, whenever there is no full text.
+29. **The one-study view's full-text block**: the status as a group of four radio buttons; the decision as Include / Exclude toggle buttons; on a study excluded at full text the focus goes to Include.
+30. **Phone cards are links to the one-study view and list the charted values.** *This changes Part A's item 29 ("On a phone the cards are not links (the one-study view comes with Part B)"), accepted 2026-11-21; it goes back to the researcher.*
+31. **Undo is per page load**, in the table and in the one-study view separately; it does not carry between the two. Part A's item 18 says "per browser session"; Part A's screen already worked per page load. *A reading of an accepted item; goes back to the researcher with item 30.*
+32. **The first accepted cell reads the table once more**, so "has values" (which makes form changes amendments) comes from the engine, not from the screen.
+33. **The one-study view is a focus screen**: from 1,024 px its own bar replaces the site header, as triage's does.
+34. **The one-study route answers the screener id too** (`GET /api/v1/charting/records/{study_id}`), so the one-study view does not need the table's answer for it; it still reads the table once for its neighbours.
+
+**Lane RELEASE** (new persisted records `charting/form.json` and `charting/form_amendments.jsonl`, new routes and refusal codes).
 
 ## 2026-11-21 — M12a Part A: rows, full-text status and decision, attachments (items 1 to 36 accepted by the researcher 2026-11-21 as built; items 2 and 8 as reworded after the review, items 34 to 36 as added by it)
 
