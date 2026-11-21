@@ -85,6 +85,7 @@ Record: `docs/roadmap/milestones/M12a-charting-table.md`; the researcher's page:
 24. *(Accepted 2026-11-21, G3 "Remove them".)* **The publisher direct-PDF patterns are removed from the kit**, arXiv's included (F7 uses arXiv's API), with their setting and tests; `rewrite_via_proxy`, in the same module and imported by the parked E1, stays as parked proxy code (added "for Cloudflare/WAF bypass", commit `39123d67`; on by default, `config.py:30`; the IEEE rule addresses another paper, PDF-11), in line with "no guessed URLs" (item 19).
 25. *(Accepted 2026-11-21, G4 "Refuse with a message".)* **The proxy in the production kit:** a proxy setting is refused by the production commands with a message naming this decision; the code stays parked until a decision of its own, under which any file it fetches would be recorded as institutional access, never as open access (PDF-12), and never exported.
 26. *(Accepted 2026-11-21, G5 "Yes, they stay parked".)* **The console's legacy pipeline templates** (`download`, `extract`, stages 5 to 9; `console/runtimes/actions.py:84,91`, `console/api/pipelines.py:221-352`) stay parked with the matrix and synthesis.
+
 ## 2026-11-21 — M11a Part C: the query workbench on Inception's step 5 (items 1 to 10 PROPOSED)
 
 Record: `docs/roadmap/milestones/M11a-query-workbench.md`, "Part C". Branch `dev/m11a/part-c-screen`, built on Part B's branch. The FINAL screen specification (`10-query-workbench.md`, questions closed 2026-11-21) is built as written; these are the choices it left to the build, and three places where the build differs from its words, each for a stated reason.
@@ -132,7 +133,6 @@ This milestone's choices (accepted by the researcher 2026-11-21, as built):
 20. **"Show in the text" works with the quotes switch off**: it marks that one quote and scrolls to it, and the switch stays off, so the button always does what it says. Hovering or focusing an answer marks its quote too while the pointer or focus stays (as built; review P3 #2 chose to say so rather than change it).
 
 **Lane RELEASE** (`test_gate_policy.md`): two additive fields on public console routes. No Contract v1 schema, protocol schema, identity, fingerprint, event or publication change.
-
 
 ## 2026-11-21 — M11a Part B: known papers, comparison sets and the search development at genesis (items 1 to 10 PROPOSED)
 
