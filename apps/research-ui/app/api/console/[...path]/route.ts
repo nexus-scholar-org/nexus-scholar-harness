@@ -96,6 +96,12 @@ const POST_PATHS: ReadonlyArray<RegExp> = [
   // sends nothing); only the count log beside the draft or under audit/ is written.
   /^api\/v1\/inception\/drafts\/[A-Za-z0-9_-]+\/workbench\/(counts|synonyms|removed)$/,
   /^api\/v1\/discovery\/workbench\/(counts|synonyms|removed)$/,
+  // M11a Part B: the seed check and comparison sets (stage, remove, report). A comparison set is
+  // stored beside the count log, never in the corpus staging, and never accepted into a corpus.
+  /^api\/v1\/inception\/drafts\/[A-Za-z0-9_-]+\/workbench\/(seeds|comparison)$/,
+  /^api\/v1\/inception\/drafts\/[A-Za-z0-9_-]+\/workbench\/comparison\/cmp_\d{3}\/(remove|report)$/,
+  /^api\/v1\/discovery\/workbench\/(seeds|comparison)$/,
+  /^api\/v1\/discovery\/workbench\/comparison\/cmp_\d{3}\/(remove|report)$/,
   // M3i-harvest-robustness: finish a harvest's remaining stages (duplicates, abstracts,
   // verification) from the run's saved records; the console searches nothing again.
   /^api\/v1\/discovery\/runs\/run_\d{3,}\/prepare$/,

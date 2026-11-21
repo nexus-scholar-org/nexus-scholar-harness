@@ -10,7 +10,11 @@ Two places, one engine (``scholar_harness.query_workbench``):
   Counting still works after the corpus is accepted: it changes nothing in the
   protocol or the corpus; the count log under ``audit/`` still gets its rows (DoD 22).
 
-Every route takes ``dry_run``: it sends nothing and states the requests a real
+Part B adds ``…/workbench/seeds`` (the seed check), ``…/workbench/comparison``
+(``GET`` the sets, ``POST`` stage one) and ``…/workbench/comparison/{cmp}/remove``
+and ``…/report``.
+
+Every route that can send a request takes ``dry_run``: it sends nothing and states the requests a real
 call would send. Nothing is counted on a keystroke: the browser sends a real
 call only on Count. Refusals are sent before any request: ``BODY_INVALID``,
 ``WORKBENCH_VERSION_INVALID`` (422), ``PROVIDER_UNKNOWN`` (422),
@@ -20,9 +24,12 @@ call only on Count. Refusals are sent before any request: ``BODY_INVALID``,
 
 from __future__ import annotations
 
+import base64
+import binascii
+import json
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel, ConfigDict, Field
@@ -32,6 +39,7 @@ from scholar_search.estimate import SIZE_WARN_WORKS
 from scholar_search.plan import DEFAULT_PROVIDERS
 
 from ... import query_workbench as qw
+from ... import query_workbench_sets as qs
 from ...inception.drafts import DraftRefused, DraftStore
 from .. import refusals
 from . import discovery as disc_api
@@ -244,3 +252,172 @@ async def workspace_synonyms(body: SynonymsBody, request: Request) -> dict[str, 
 @router.post("/api/v1/discovery/workbench/removed")
 async def workspace_removed(body: RemovedBody, request: Request) -> dict[str, Any]:
     return await _removed(request, _workspace_place(request), body)
+
+
+# --------------------------------------------------------------------------- Part B: known papers and comparison sets
+
+
+class SeedsBody(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    version: VersionBody
+    #: The known papers' DOIs; default: the draft's saved ``golden_seeds`` (Inception) or the protocol's (Plan).
+    seeds: list[str] | None = Field(default=None, max_length=25)
+    #: Read the title and abstract of a seed this computer has not seen, from OpenAlex (one request per 50).
+    lookup: bool = False
+    #: "Check seeds in OpenAlex": found or not by the query (one request per 50; behind the switch).
+    openalex: bool = False
+    dry_run: bool = False
+
+
+class StageBody(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    file_name: str = Field(max_length=300)
+    content_base64: str
+    database: str = Field(min_length=1, max_length=200)
+    string: str | None = Field(default=None, max_length=20_000)
+    exported_on: str | None = Field(default=None, pattern=r"^\d{4}-\d{2}-\d{2}$")
+
+
+class ReportBody(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    version: VersionBody
+    measure: Literal["harvest", "words", "openalex"] = "words"
+    page: int = Field(default=1, ge=1, le=1000)
+    #: The run to compare with on Plan (``run_NNN``); default the newest, or the accepted corpus.
+    run: str | None = Field(default=None, pattern=r"^run_\d{3,}$")
+    dry_run: bool = False
+
+
+def _known_for_draft(request: Request, session_id: str) -> tuple[list[dict[str, Any]], list[str]]:
+    """The first search's pool records (title, abstract, DOI) and the draft's saved seeds."""
+    from ...recon.session import ReconRefused, ReconSessions
+
+    record = DraftStore(Path(request.app.state.workspaces_root)).load(session_id)
+    seeds = list((record.get("draft") or {}).get("golden_seeds") or [])
+    sessions = ReconSessions(root=getattr(request.app.state, "recon_root", None),
+                             search_fn=getattr(request.app.state, "recon_search_fn", None))
+    docs: list[dict[str, Any]] = []
+    try:
+        if sessions.exists(session_id):
+            _pool, raw, _path = sessions.effective(session_id, None)
+            docs = [d for d in (raw.get("docs") or []) if isinstance(d, dict)]
+    except ReconRefused:
+        docs = []
+    return [qs.row_record(d) for d in docs], seeds
+
+
+def _known_for_workspace(ws: Path) -> tuple[list[dict[str, Any]], list[str]]:
+    try:
+        protocol = json.loads((ws / "protocol.json").read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        protocol = {}
+    seeds = [str(s) for s in ((protocol.get("search_strategy") or {}).get("golden_seeds") or [])]
+    _label, records = qs.harvest_records(ws)
+    return records, seeds
+
+
+async def _seeds(request: Request, place: _Place, body: SeedsBody, known: list[dict[str, Any]], saved: list[str]) -> dict[str, Any]:
+    version = _version(body.version)
+    dois = list(body.seeds) if body.seeds is not None else saved
+    if not body.dry_run and (body.lookup or body.openalex):
+        _guard_send(request, place)
+    try:
+        answer = await qs.seeds(version, dois, log=place.log, state=_state(request), known=known, lookup=body.lookup,
+                                openalex=body.openalex, openalex_key=bool(settings.openalex_key),
+                                dry_run=body.dry_run, scope=place.scope)
+    except qw.WorkbenchRefused as exc:
+        raise _refusal(exc.status, exc.code, exc.message, exc.details) from exc
+    return answer | {"mailto_set": bool(settings.mailto)}
+
+
+def _stage(place: _Place, body: StageBody) -> dict[str, Any]:
+    try:
+        content = base64.b64decode(body.content_base64, validate=True)
+    except (binascii.Error, ValueError) as exc:
+        raise _refusal(422, refusals.WORKBENCH_COMPARISON_FORMAT, f"{body.file_name} did not arrive as base64 file content") from exc
+    try:
+        return qs.stage_set(place.log, file_name=body.file_name, content=content, database=body.database,
+                            string=body.string, exported_on=body.exported_on)
+    except qw.WorkbenchRefused as exc:
+        raise _refusal(exc.status, exc.code, exc.message, exc.details) from exc
+
+
+def _remove(place: _Place, set_id: str) -> dict[str, Any]:
+    try:
+        qs.remove_set(place.log, set_id)
+    except qw.WorkbenchRefused as exc:
+        raise _refusal(exc.status, exc.code, exc.message, exc.details) from exc
+    return {"sets": qs.list_sets(place.log)}
+
+
+async def _report(request: Request, place: _Place, set_id: str, body: ReportBody) -> dict[str, Any]:
+    version = _version(body.version)
+    harvest = qs.harvest_records(place.workspace, body.run) if place.workspace is not None else None
+    if body.measure == "openalex" and not body.dry_run:
+        _guard_send(request, place)
+    try:
+        return await qs.report(place.log, set_id, version, measure=body.measure, page=body.page, state=_state(request),
+                               harvest=harvest, openalex_key=bool(settings.openalex_key), dry_run=body.dry_run,
+                               scope=place.scope)
+    except qw.WorkbenchRefused as exc:
+        raise _refusal(exc.status, exc.code, exc.message, exc.details) from exc
+
+
+# Inception (a draft)
+
+
+@router.post("/api/v1/inception/drafts/{session_id}/workbench/seeds")
+async def draft_seeds(session_id: str, body: SeedsBody, request: Request) -> dict[str, Any]:
+    place = _draft_place(request, session_id)
+    known, saved = _known_for_draft(request, session_id)
+    return await _seeds(request, place, body, known, saved)
+
+
+@router.get("/api/v1/inception/drafts/{session_id}/workbench/comparison")
+def draft_sets(session_id: str, request: Request) -> dict[str, Any]:
+    return {"sets": qs.list_sets(_draft_place(request, session_id).log)}
+
+
+@router.post("/api/v1/inception/drafts/{session_id}/workbench/comparison", status_code=201)
+def draft_stage(session_id: str, body: StageBody, request: Request) -> dict[str, Any]:
+    return _stage(_draft_place(request, session_id), body)
+
+
+@router.post("/api/v1/inception/drafts/{session_id}/workbench/comparison/{set_id}/remove")
+def draft_remove(session_id: str, set_id: str, request: Request) -> dict[str, Any]:
+    return _remove(_draft_place(request, session_id), set_id)
+
+
+@router.post("/api/v1/inception/drafts/{session_id}/workbench/comparison/{set_id}/report")
+async def draft_report(session_id: str, set_id: str, body: ReportBody, request: Request) -> dict[str, Any]:
+    return await _report(request, _draft_place(request, session_id), set_id, body)
+
+
+# Plan (the open workspace)
+
+
+@router.post("/api/v1/discovery/workbench/seeds")
+async def workspace_seeds(body: SeedsBody, request: Request) -> dict[str, Any]:
+    place = _workspace_place(request)
+    known, saved = _known_for_workspace(place.workspace)
+    return await _seeds(request, place, body, known, saved)
+
+
+@router.get("/api/v1/discovery/workbench/comparison")
+def workspace_sets(request: Request) -> dict[str, Any]:
+    return {"sets": qs.list_sets(_workspace_place(request).log)}
+
+
+@router.post("/api/v1/discovery/workbench/comparison", status_code=201)
+def workspace_stage(body: StageBody, request: Request) -> dict[str, Any]:
+    return _stage(_workspace_place(request), body)
+
+
+@router.post("/api/v1/discovery/workbench/comparison/{set_id}/remove")
+def workspace_remove(set_id: str, request: Request) -> dict[str, Any]:
+    return _remove(_workspace_place(request), set_id)
+
+
+@router.post("/api/v1/discovery/workbench/comparison/{set_id}/report")
+async def workspace_report(set_id: str, body: ReportBody, request: Request) -> dict[str, Any]:
+    return await _report(request, _workspace_place(request), set_id, body)

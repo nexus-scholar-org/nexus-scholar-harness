@@ -703,10 +703,14 @@ def grounding_preview(draft: Draft, grounding: dict[str, Any]) -> dict[str, Any]
     }
 
 
-def _write_draft_records(target: Path, record: dict[str, Any] | None, agent: str) -> None:
+def _write_draft_records(
+    target: Path, record: dict[str, Any] | None, agent: str, query_development: Path | None = None,
+) -> None:
     """The draft's proposals and check dismissals, as the workspace's record (M10b).
 
-    The files are the record; the journal rows index them.
+    With ``query_development`` (M11a, DoD 15), the draft's count log, seed
+    checks and comparison sets are copied under ``audit/query_development/``
+    and one journal row indexes them. The files are the record; the journal rows index them.
     """
     from . import checks, proposals
 
@@ -728,6 +732,18 @@ def _write_draft_records(target: Path, record: dict[str, Any] | None, agent: str
         f"{len(dismissals)} check dismissals and restores carried from the draft",
         agent=agent, parameters=checks.dismissal_counts(dismissals), outputs=[checks.DISMISSALS_FILE],
     )
+    if query_development is not None:
+        from scholar_harness import query_workbench_sets as qs
+
+        copied = qs.copy_development(query_development, target)
+        if copied["files"]:
+            append_event(
+                target, "QUERY_DEVELOPMENT_RECORDED",
+                f"The search's development carried from the draft: {copied['counts']} count rows, "
+                f"{copied['seed_checks']} seed checks, {copied['comparison_sets']} comparison sets",
+                agent=agent, outputs=copied["files"],
+                metrics={k: copied[k] for k in ("counts", "seed_checks", "comparison_sets")},
+            )
 
 
 def planned_files(*, exists: bool) -> list[str]:
@@ -746,6 +762,7 @@ def genesis(
     busy: Callable[[Path], str | None] | None = None,
     origin: dict[str, Any] | None = None,
     record: dict[str, Any] | None = None,
+    query_development: Path | None = None,
 ) -> dict[str, Any]:
     """Create (or, with ``replace``, re-protocol) ``<workspaces_root>/<slug>`` from a draft.
 
@@ -813,7 +830,7 @@ def genesis(
             intent, target_dir=target, replace=replace, discard_screening_binding=discard,
             agent=agent, recon_context=context, source_note=added.strip(),
             protocol_origin="import" if added else "inception",
-            before_log=lambda ws: _write_draft_records(ws, record, agent),
+            before_log=lambda ws: _write_draft_records(ws, record, agent, query_development),
         )
         if created:
             install_workspace_support_files(target)

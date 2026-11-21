@@ -122,6 +122,20 @@ def _lock(path: Path) -> threading.Lock:
         return _LOCKS.setdefault(str(Path(path).resolve()), threading.Lock())
 
 
+def version_key(version: wb.Version) -> str:
+    """A short digest of one version (concepts, years, languages, query key), on every count log row (M11a Part B)."""
+    import hashlib
+
+    text = json.dumps(version.to_dict(), sort_keys=True, ensure_ascii=False)
+    return "v_" + hashlib.sha256(text.encode("utf-8")).hexdigest()[:16]
+
+
+def version_counted(log: "CountLog", version: wb.Version) -> bool:
+    """Whether a Count of this very version reached a database (any age): the check ``QUERY_NOT_COUNTED``."""
+    key = version_key(version)
+    return any(r.get("version_key") == key and r.get("kind") == "full" and r.get("status") == "counted" for r in log.rows())
+
+
 def cache_key(name: str, executed: str, query: Query) -> str:
     """The log's key: the database, the exact string sent, the years and the language."""
     return json.dumps([name, executed, query.year_min, query.year_max, query.language], ensure_ascii=False)
@@ -400,14 +414,15 @@ def _plan_rows(
 
 
 async def _send(row: Row, *, log: CountLog, state: SharedState, deadline: float, scope: dict[str, Any],
-                query_key: str) -> None:
+                query_key: str, counted_version: str | None = None) -> None:
     """Ask one database its cells in order; stop at its first failure (the rest are not sent).
 
     What was sent is logged even when something fails half-way (review P3).
     """
     logged: list[dict[str, Any]] = []
     try:
-        await _send_cells(row, logged, state=state, deadline=deadline, scope=scope, query_key=query_key)
+        await _send_cells(row, logged, state=state, deadline=deadline, scope=scope, query_key=query_key,
+                          counted_version=counted_version)
     except Exception as exc:  # noqa: BLE001 - one database's error is its row, never the Count's
         for cell in row.cells:
             if cell.status == "to_count":
@@ -417,7 +432,7 @@ async def _send(row: Row, *, log: CountLog, state: SharedState, deadline: float,
 
 
 async def _send_cells(row: Row, logged: list[dict[str, Any]], *, state: SharedState, deadline: float,
-                      scope: dict[str, Any], query_key: str) -> None:
+                      scope: dict[str, Any], query_key: str, counted_version: str | None = None) -> None:
     stop: Cell | None = None
     for cell in row.cells:
         if cell.status != "to_count":
@@ -453,7 +468,8 @@ async def _send_cells(row: Row, logged: list[dict[str, Any]], *, state: SharedSt
             "year_min": cell.query.year_min, "year_max": cell.query.year_max, "language": cell.query.language,
             "status": "counted" if cell.status == "counted" else ("not_countable" if cell.status == "not_countable" else "failed"),
             "total": cell.total, "error_code": cell.error_code, "http_status": cell.http_status,
-            "resets_at": cell.resets_at, "counted_at": cell.counted_at, "requests": 1, "key": cell.key, **scope,
+            "resets_at": cell.resets_at, "counted_at": cell.counted_at, "requests": 1, "key": cell.key,
+            "version_key": counted_version, **scope,
         })
         if cell.status == "quota_used_up" and cell.resets_at:
             _quietly(state.pause, row.name, cell.resets_at, now)
@@ -570,7 +586,8 @@ async def run(
         sending = [r for r in rows if r.status is None and r.planned]
         try:
             await asyncio.gather(*(_send(r, log=log, state=state, deadline=deadline, scope=scope or {},
-                                         query_key=version.query_key) for r in sending))
+                                         query_key=version.query_key, counted_version=version_key(version))
+                                   for r in sending))
         finally:
             # A reserved request that was not sent (a stopped database) is given back.
             back = utcnow()
