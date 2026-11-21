@@ -10,11 +10,52 @@ history to read if you need the original reasoning (`git log --follow -- <path>`
 
 | Entry | Item | What is open |
 | :-- | :-- | :-- |
+| 2026-11-21 — M12a Part A: rows, full-text status and decision, attachments | 1 to 33 | Proposed with the build; the researcher's answer is pending. |
 | 2026-11-21 — M12a K0: `download` and `ingest` production | 1 to 9 | Proposed with the build; the researcher's answer is pending. |
 | 2026-11-21 — M11a Part C: the workbench screen | 1 to 10 | Proposed with the build; the researcher's answer is pending. |
 | 2026-11-21 — M11a Part B: known papers and comparison sets | 1 to 10 | Proposed with the build; the researcher's answer is pending. |
 | 2026-11-21 — M11a Part A: the workbench's counts | 1 to 13 | Proposed with the build; the researcher's answer is pending. |
 | 2026-11-19 — M9a: what the measurement says about the ladder gates | 2 | The minimum share of the researcher's excludes an agent must take before a rung unlocks: the principle is accepted; the researcher decided on 2026-11-20 to set the number when M9b is built. |
+
+## 2026-11-21 — M12a Part A: rows, full-text status and decision, attachments (items 1 to 33 PROPOSED)
+
+Record: `docs/roadmap/milestones/M12a-charting-table.md`, "Build record", Part A. The build's own choices where the specification left the detail open; none is accepted until the researcher answers. Nothing here changes a Contract v1 file or `protocol.json` (decision item 1 of the M12a entry: outside the contract).
+
+1. **What "published" means for the table.** The current round's publication is read when its status is CURRENT or STALE (decisions changed after publishing: the table follows the published files and says so, spec 01 "Stale"). Any other status refuses `SCREENING_NOT_PUBLISHED`, except while a citation-chasing round is being screened: the earlier rounds stay readable and the table says a round is in progress. *Alternative:* CURRENT only.
+2. **`charting/kept_history.jsonl` remembers each published kept set.** A re-publication overwrites `included.json`, so the table writes one row per round and generation the first time it reads it (under a lock; not journaled: it repeats what the publication already recorded). "No longer kept" and "New since <date>" come from it; the first visit marks nothing new. *Alternative:* keep a copy of each published `included.json`.
+3. **The study id** is the record's `study_id`, else the published `workspace_id` (`STU-…`), as the collector reads it.
+4. **Events are recorded for the workspace's screener only** (`literature/screening/settings.json`, default `researcher:local`); another screener id is refused `BODY_INVALID`. The engine stamps `method: "HUMAN"` and the binding (protocol fingerprint, the newest round's generation id and the SHA-256 of its `generation.json`, the round, `form_version: null` until Part B).
+5. **Undo** names an earlier event of the same study, screener **and kind**; the value of a (study, kind) is the last stored event no later event supersedes.
+6. **A reason where none is allowed is `FULLTEXT_REASON_INVALID`** (DoD 3 names only `FULLTEXT_REASON_REQUIRED`; spec 01 defines `_INVALID` for a reason that is not an option, and a reason on Retrieved or on an Include is not one).
+7. **The PDF is the raw request body** (`application/pdf`; the file name and the client's event ids in the query), not multipart: no new dependency. The check by first bytes is a `%PDF-` header in the first 1,024 bytes (the kit's header rule); a retried upload with the same event id and the same bytes is a duplicate, other bytes `IDEMPOTENCY_CONFLICT`.
+8. **Nothing is deleted.** A file replaced by another, or taken off by an undo, moves to `pdfs/replaced/<study_id>.<sha256[:16]>.pdf` and comes back when an undo restores it; `pdfs/<study_id>.pdf` always holds the file the current attachment event names.
+9. **A link does not change the status**; only a PDF turns To get into Retrieved.
+10. **`ATTACHMENT_MISSING` (404)**, a new code, for opening a record with no PDF attached.
+11. **`CHARTING_PROTOCOL_REPLACED`** when `protocol.json` differs from the protocol the newest published round was screened under: the table stays readable, writes are refused. A re-inception archives `charting/` with the old protocol (added to the archive list); the archived table's own read-only view is not built (after a re-inception the workspace has no publication, so it shows "not published").
+12. **The Full text CSV in Part A**: `GET /api/v1/charting/export?format=csv&view=fulltext` (study id, first author, year, title, DOI, round, title-and-abstract decision, status, request date, not-retrieved reason, file name and SHA-256, link, full-text decision and reason; records no longer kept left out), UTF-8 with BOM and CRLF, journaled `CHARTING_EXPORTED` with the file's SHA-256; any other format or view `CHARTING_EXPORT_FORMAT_INVALID` until Parts B and C.
+13. **The next step after Publish**: state DONE now opens the charting table (Publish's export stays as a second link); PUBLISHED (a chase is possible) offers the table as a second link.
+14. **The header's "Charting" item** shows once the next-step answer says screening is published (phase `published`, state `PUBLISHED`, or round above 1), remembered for the browser session, and always on `/charting` itself. The header has no publication read of its own; adding one would change the reads other screens make. *Gap:* on a first visit straight to the workspaces list, the item appears only after a screen has shown the next-step bar. *Alternative:* a publication read in the header.
+15. **No `g c` shortcut**: the app has no g-prefix shortcuts.
+16. **No next-step bar on `/charting` itself** (the screen is mapped, the bar is not drawn there).
+17. **Event ids are UUIDv7** from the app's existing minting (as triage; spec 01 says UUIDv7); the engine accepts any lowercase UUID.
+18. **A change supersedes the row's current event of that kind; undo supersedes your own event and carries the earlier value.** The undo stack is per browser session; one entry covers a bulk action, or an attachment and its Retrieved status.
+19. **Bulk targets**: a status key acts on the selection (kept rows only) when there is one, else on the focused row; the confirmation line appears for more than one row only.
+20. **Not retrieved on several rows** is one line: the bulk sentence and the reason chips; one Enter confirms both.
+21. **Selection keys**: `A` selects every kept row shown, or clears them when all are selected; `Esc` with nothing open clears the selection; changing Show clears the selection.
+22. **Rows no longer kept** appear under "All" only; every other filter and every action leaves them out.
+23. **Requested has no date control in Part A**: `Q` saves Requested without a date; a stored date is shown.
+24. **Export is one button** (one format in Part A) that downloads the Full text CSV; the status line then says "Exported {when}: {n} rows…".
+25. **Offline before any change this session** says "The console is not answering. Nothing is lost." (new key); changes are refused locally; Export is off; "Try again" reloads.
+26. **Dates** ("New since", the changes banner) print as `YYYY-MM-DD` (the app's `localDate`), not "21 Nov".
+27. **To get has a neutral badge** (outline and an inbox icon; the spec gives it no role); Requested and "To decide" use `unclear`, Retrieved `include`, Not retrieved `blocked`.
+28. **Two sticky columns** (select and Study); the grid scrolls inside its own box (70 % of the window's height).
+29. **On a phone the cards are not links** (the one-study view comes with Part B), and keys do nothing below 640 px.
+30. **Copy keys beyond spec §Copy** (column headers, select labels, the words prompts, confirm and cancel, file labels, help, and refusal keys for `ATTACHMENT_MISSING`, `BODY_INVALID`, `IDEMPOTENCY_CONFLICT`, `ATOMIC_COMMIT_FAILED`, offline and unknown), in en, fr and ar.
+31. **Names**: the French header item is "Extraction", the Arabic "استخراج البيانات"; Inception's key `criteria.matrixParked` is renamed `criteria.matrixCharting` and loses its dashed "parked" look; Publish reads "Writes the kept studies (Include and Unclear), the excluded records and the … report … Full texts are handled on the Charting step."
+32. **"Chart the included studies"** sits beside Export and Chase on Home (only while the publication is CURRENT) and beside the "Published" badge on Export.
+33. **An attachment's answer lists each event with its kind** (`events: [{event_id, kind}]`, beside `event_ids`), so an undo does not rely on the order of the ids.
+
+**Lane RELEASE** (new public routes and refusal codes, a new persisted record, a new reader of published artifacts, a change to the same-origin proxy).
 
 ## 2026-11-21 — M12a K0: `download` and `ingest` production, the four repairs as built (items 1 to 9 PROPOSED)
 
