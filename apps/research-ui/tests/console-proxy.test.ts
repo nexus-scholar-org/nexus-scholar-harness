@@ -495,6 +495,123 @@ describe("console proxy — writes", () => {
   });
 });
 
+describe("console proxy — files (M12a Part A)", () => {
+  // Bytes that are not valid UTF-8: a decode to text would replace them.
+  const PDF = new Uint8Array([0x25, 0x50, 0x44, 0x46, 0x2d, 0x31, 0x2e, 0x34, 0x0a, 0xff, 0xfe, 0x00, 0x80, 0xc3, 0x28, 0x9f]);
+  const ATTACH = ["api", "v1", "charting", "records", "STU-abc_1", "attachment"];
+
+  it("forwards a PDF posted to a charting attachment as its raw bytes", async () => {
+    vi.stubEnv("NEXUS_CONSOLE_URL", CONSOLE);
+    const fetchSpy = vi.fn(() => Promise.resolve(jsonResponse({ result: "accepted", event_ids: [] })));
+    vi.stubGlobal("fetch", fetchSpy);
+
+    const response = await POST(
+      request("api/v1/charting/records/STU-abc_1/attachment?name=a.pdf&event_id=x", {
+        method: "POST",
+        headers: { "content-type": "application/pdf" },
+        body: PDF,
+      }),
+      context(...ATTACH),
+    );
+
+    expect(response.status).toBe(200);
+    const call = fetchSpy.mock.calls[0] as unknown as [unknown, RequestInit | undefined];
+    expect(String(call[0])).toBe(`${CONSOLE}/api/v1/charting/records/STU-abc_1/attachment?name=a.pdf&event_id=x`);
+    expect((call[1]?.headers as Record<string, string>)["content-type"]).toBe("application/pdf");
+    expect(new Uint8Array(call[1]?.body as ArrayBuffer)).toEqual(PDF);
+  });
+
+  it("still forwards a link posted to the same path as text", async () => {
+    vi.stubEnv("NEXUS_CONSOLE_URL", CONSOLE);
+    const fetchSpy = vi.fn(() => Promise.resolve(jsonResponse({ result: "accepted" })));
+    vi.stubGlobal("fetch", fetchSpy);
+    await POST(
+      request("api/v1/charting/records/STU-abc_1/attachment", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ link: "https://example.org/a" }),
+      }),
+      context(...ATTACH),
+    );
+    const call = fetchSpy.mock.calls[0] as unknown as [unknown, RequestInit | undefined];
+    expect(call[1]?.body).toBe(JSON.stringify({ link: "https://example.org/a" }));
+  });
+
+  it("does not forward a PDF body on any other POST path as bytes", async () => {
+    vi.stubEnv("NEXUS_CONSOLE_URL", CONSOLE);
+    const fetchSpy = vi.fn(() => Promise.resolve(jsonResponse({})));
+    vi.stubGlobal("fetch", fetchSpy);
+    await POST(
+      request("api/v1/charting/events", { method: "POST", headers: { "content-type": "application/pdf" }, body: "x" }),
+      context("api", "v1", "charting", "events"),
+    );
+    const call = fetchSpy.mock.calls[0] as unknown as [unknown, RequestInit | undefined];
+    expect(typeof call[1]?.body).toBe("string");
+  });
+
+  it("returns the attached PDF as bytes with its content type and disposition", async () => {
+    vi.stubEnv("NEXUS_CONSOLE_URL", CONSOLE);
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(() =>
+        Promise.resolve(
+          new Response(PDF, {
+            status: 200,
+            headers: { "content-type": "application/pdf", "content-disposition": 'inline; filename="Sa 2018.pdf"' },
+          }),
+        ),
+      ),
+    );
+    const response = await GET(request("api/v1/charting/records/STU-abc_1/attachment"), context(...ATTACH));
+    expect(response.status).toBe(200);
+    expect(response.headers.get("content-type")).toBe("application/pdf");
+    expect(response.headers.get("content-disposition")).toBe('inline; filename="Sa 2018.pdf"');
+    expect(response.headers.get("cache-control")).toBe("no-store");
+    expect(new Uint8Array(await response.arrayBuffer())).toEqual(PDF);
+  });
+
+  it("returns the charting CSV with its BOM and file name", async () => {
+    vi.stubEnv("NEXUS_CONSOLE_URL", CONSOLE);
+    const csv = new Uint8Array([0xef, 0xbb, 0xbf, 0x61, 0x2c, 0x62, 0x0d, 0x0a]);
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(() =>
+        Promise.resolve(
+          new Response(csv, {
+            status: 200,
+            headers: { "content-type": "text/csv; charset=utf-8", "content-disposition": 'attachment; filename="charting-fulltext.csv"' },
+          }),
+        ),
+      ),
+    );
+    const response = await GET(
+      request("api/v1/charting/export?format=csv&view=fulltext"),
+      context("api", "v1", "charting", "export"),
+    );
+    expect(response.headers.get("content-disposition")).toBe('attachment; filename="charting-fulltext.csv"');
+    expect(new Uint8Array(await response.arrayBuffer())).toEqual(csv);
+  });
+
+  it("keeps a refused file read as the typed JSON answer, and other reads without a disposition", async () => {
+    vi.stubEnv("NEXUS_CONSOLE_URL", CONSOLE);
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(() => Promise.resolve(jsonResponse({ detail: { code: "ATTACHMENT_MISSING", message: "No PDF is attached." } }, 404))),
+    );
+    const refused = await GET(request("api/v1/charting/records/STU-abc_1/attachment"), context(...ATTACH));
+    expect(refused.status).toBe(404);
+    expect((await refused.json()).detail.code).toBe("ATTACHMENT_MISSING");
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(() =>
+        Promise.resolve(new Response("{}", { status: 200, headers: { "content-type": "application/json", "content-disposition": "attachment" } })),
+      ),
+    );
+    const other = await GET(request("api/v1/charting"), context("api", "v1", "charting"));
+    expect(other.headers.get("content-disposition")).toBeNull();
+  });
+});
+
 describe("console proxy — event streams", () => {
   it("hands an SSE body through without waiting for it to end", async () => {
     vi.stubEnv("NEXUS_CONSOLE_URL", CONSOLE);

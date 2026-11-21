@@ -415,3 +415,25 @@ def test_the_protocol_file_is_never_written(env):
     client.post(f"{BASE}/events", json={"events": [_event(ids["included"], "fulltext_decision", {"outcome": "INCLUDE"})]})
     _attach(client, ids["unclear"], MINI_PDF)
     assert (ws / "protocol.json").read_bytes() == before
+
+
+def test_the_packaged_browser_path_carries_the_pdf_and_the_csv_as_bytes(tmp_path):
+    """The console's own `/api/console` path (static export) passes the raw PDF body and serves bytes back."""
+    from scholar_harness.console import browser
+
+    ws, ids = tea.published_workspace(tmp_path)
+    app = create_app(ws, token=TOKEN, browser_session="session-secret",
+                     launch_codes=browser.LaunchCodes("session-secret"), workspaces_root=ws.parent)
+    raw = MINI_PDF + bytes([0xFF, 0xFE, 0x00, 0x80, 0xC3, 0x28])  # not UTF-8: a text decode would change it
+    with TestClient(app, base_url="http://127.0.0.1:8765") as client:
+        client.cookies.set(browser.SESSION_COOKIE, "session-secret")
+        same = {"Origin": "http://127.0.0.1:8765", "content-type": "application/pdf"}
+        posted = client.post(f"/api/console{BASE}/records/{ids['included']}/attachment",
+                             content=raw, headers=same, params={"name": "a.pdf"})
+        assert posted.status_code == 200, posted.text
+        assert (ws / "pdfs" / f"{ids['included']}.pdf").read_bytes() == raw
+        served = client.get(f"/api/console{BASE}/records/{ids['included']}/attachment")
+        assert served.content == raw and served.headers["content-type"] == "application/pdf"
+        csv_body = client.get(f"/api/console{BASE}/export", params={"format": "csv", "view": "fulltext"})
+        assert csv_body.content.startswith(b"\xef\xbb\xbf")
+        assert csv_body.headers["content-disposition"].startswith("attachment")
