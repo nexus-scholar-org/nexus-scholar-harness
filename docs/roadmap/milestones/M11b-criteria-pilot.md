@@ -448,4 +448,7 @@ Evidence (every Python run with `-n 4`, after the machine stopped on 2026-11-21 
 | contract (after) | `0695dd2a` | `generate_contract_baseline.py --check`; `generate_contract_schemas.py --check`; `generate_two_study_contract_fixture.py --check`; `generate_protocol_schema.py --check`; `git diff --check origin/main...HEAD`; both ruff commands; `select_test_gate.py --check`; `sync_skills_bundle.py --check` | current; exit 0; exit 0; in sync; clean; clean; OK; OK | |
 | pr | `0695dd2a` | `uv run pytest -q -n 4 --junitxml` (full suite, `--extra dev --extra pdf --extra rag` installed); both ruff commands and the contract checks above | 6112 tests: 6097 passed, 15 skipped, 0 failed, 0 errors (from the `<testsuite>` attributes) | 1042 s |
 
-The commits after `0695dd2a` (`6d0bec68`, `eae629f2`) change documents only (this record, `docs/decisions.md`, the specification's answers 11 and 12), so the PR gate on `0695dd2a` stands (`test_gate_policy.md`, evidence reuse). No UI file changed in part A, so typecheck, vitest, build and Playwright were not run.
+| targeted (round 1 repairs) | `2e1874f8` (working tree) | the two new files and `test_console_refusals.py`, `-n 4` | 57 passed (after the §7 row for `CRITERIA_AMENDMENT_HANDOFF`) | 33 s |
+| pr (final) | `2e1874f8` | `generate_contract_baseline.py --check`; `generate_protocol_schema.py --check`; both ruff commands; `git diff --check origin/main...HEAD`; `uv run pytest -q -n 4 --junitxml` (full suite) | current; in sync; clean; clean; clean; 6120 tests: 6105 passed, 15 skipped, 0 failed, 0 errors | 831 s |
+
+No UI file changed in part A (`git diff origin/main...HEAD -- apps` is empty), so typecheck, vitest, build and Playwright were not run.
