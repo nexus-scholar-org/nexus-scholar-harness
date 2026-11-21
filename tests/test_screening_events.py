@@ -110,6 +110,8 @@ def _event(ws: Path, study: str, outcome: str = "INCLUDE", **overrides) -> dict:
             "protocol_fingerprint": context.protocol_fingerprint,
             "batch_id": batch.batch_id,
             "batch_sha256": batch.batch_sha256,
+            # M11b part A, decision item 5: as `GET /records/{id}` hands it out.
+            "criteria_version": context.criteria_version,
         },
     }
     event.update(overrides)
