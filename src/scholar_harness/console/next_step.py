@@ -392,7 +392,9 @@ def build_workspace(
     chase_runs = (chase or {}).get("runs") or []
     latest = chase_runs[0] if chase_runs else None
     if chase is not None and not chase_runs and int(seeds.get("chaseable") or 0) > 0:
-        return at("PUBLISHED", "published", action=_action("goToChase", "discovery.chase"))
+        # M12a: the charting table follows publication (DoD 9); the chase stays the first action.
+        return at("PUBLISHED", "published", action=_action("goToChase", "discovery.chase"),
+                  also=[_action("openCharting", "charting")])
     if latest is not None and latest.get("published") and not latest.get("accepted"):
         new = int(((latest.get("counts") or {}).get("new")) or 0)
         if new > 0:
@@ -400,4 +402,7 @@ def build_workspace(
                       action=_action("reviewChase", "discovery.chase"))
         return at("CHASE_NOTHING_NEW", "published", action=_action("goToChase", "discovery.chase"))
     params = {"chaseable": int(seeds.get("chaseable") or 0)} if chase is not None else {}
-    return at("DONE", "published", params=params, action=_action("goToPublish", "screening.publish"))
+    # M12a (DoD 9): after Publish, the next step is the full texts and the charting table;
+    # export and methods stay on Publish.
+    return at("DONE", "published", params=params, action=_action("openCharting", "charting"),
+              also=[_action("goToPublish", "screening.publish")])
