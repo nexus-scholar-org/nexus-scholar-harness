@@ -14,10 +14,20 @@ GitHub Releases — no source checkout, no per-kit installs.
 > proposals), **inception in the browser** (Scope, Shape, Concepts and criteria,
 > Review and create, Done; Explore and Direction have no screen yet) and, on
 > 1.1.0b6, **discovery in the browser** (Plan to Hand-off). The retrieval and synthesis kit (`scholar_rag`), the citation
-> graph (`scholar_graph`), verification and trust (`scholar_verify`) and full
-> text (`scholar_pdf`, findings PDF-07/08) still work, but are parked: their
-> `--help` says so first, their MCP tools say so in their descriptions, and the
-> app labels any screen that shows them. Do not rely on them for a review.
+> graph (`scholar_graph`), verification and trust (`scholar_verify`) and reading
+> PDFs (`scholar_pdf` `extract`, `extract-run`, and E1 `acquire`; findings
+> PDF-07/08) still work, but are parked: their `--help` says so first, their MCP
+> tools say so in their descriptions, and the app labels any screen that shows
+> them. Do not rely on them for a review.
+>
+> **The PDF kit's downloading is production** (decision 2026-11-21, M12a items 21
+> and 27, K0): `scholar-pdf download` and `ingest` need a contact e-mail
+> (`SCHOLAR_MAILTO`, or the kit's `MAILTO`; refused `MAILTO_NOT_SET` without),
+> name the app in their User-Agent, request only the providers' own open-access
+> locations (no guessed publisher URL), and refuse an institutional proxy. Known
+> defects that Part K of M12a still repairs: OpenAlex asked without its key,
+> 403/404/410 retried (PDF-06), no manifest of which file is which DOI (PDF-07),
+> exit 0 on some failures (PDF-15); check the downloaded files by hand.
 
 - Works on **Windows, macOS, Linux** (Python 3.11+ via `uv` or `pip`).
 - The wheel bundles the harness CLI **plus the seven scholar kits**, the

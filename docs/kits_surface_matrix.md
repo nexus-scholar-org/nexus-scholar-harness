@@ -9,10 +9,20 @@
 > **Parked, not production (M5-slim, production plan §8).** The beta ships
 > **screening** (import → prepare → screen → publish, with optional agent
 > proposals). The retrieval and synthesis kit (`scholar_rag`), the citation
-> graph (`scholar_graph`), verification and trust (`scholar_verify`) and full
-> text (`scholar_pdf`, findings PDF-07/08) still work, but are parked: their
-> `--help` says so first, their MCP tools say so in their descriptions, and the
-> app labels any screen that shows them. Do not rely on them for a review.
+> graph (`scholar_graph`), verification and trust (`scholar_verify`) and reading
+> PDFs (`scholar_pdf` `extract`, `extract-run`, and E1 `acquire`; findings
+> PDF-07/08) still work, but are parked: their `--help` says so first, their MCP
+> tools say so in their descriptions, and the app labels any screen that shows
+> them. Do not rely on them for a review.
+>
+> **The PDF kit's downloading is production** (decision 2026-11-21, M12a items 21
+> and 27, K0): `scholar-pdf download` and `ingest` need a contact e-mail
+> (`SCHOLAR_MAILTO`, or the kit's `MAILTO`; refused `MAILTO_NOT_SET` without),
+> name the app in their User-Agent, request only the providers' own open-access
+> locations (no guessed publisher URL), and refuse an institutional proxy. Known
+> defects that Part K of M12a still repairs: OpenAlex asked without its key,
+> 403/404/410 retried (PDF-06), no manifest of which file is which DOI (PDF-07),
+> exit 0 on some failures (PDF-15); check the downloaded files by hand.
 
 ## Purpose
 
@@ -29,7 +39,7 @@ that no single skill covers.
 | Kit (package) | Public API anchor | CLI | MCP tool(s) | Harness role |
 | :-- | :-- | :-- | :-- | :-- |
 | search (`scholar_search`) | `SearchEngine`, `Deduplicator`, `DocumentVerifier`, `CitationChainer`, screening fns, `Exporter` | `scholar-search` (search/snowball/chain/import/dedup/verify/export/screen) | `nexus_discover`, `nexus_dedup`, `nexus_screen`, `nexus_screen_reconcile` | Phase-1 discovery/prepare (`compile_protocol_search`) |
-| pdf (`scholar_pdf`) | `AsyncPDFDownloader`, `PyMuPDFEngine`/`DoclingEngine`/`GrobidEngine`, validators, **`scholar_pdf.acquisition`** (WP01-E1, parent-bound), **`scholar_pdf.extraction`** (WP01-E2, parent-bound) | `scholar-pdf` (download/ingest/**acquire**/**extract-run**/extract) | `nexus_extract_pdf` (PyMuPDF only, non-authoritative); acquisition: **UNSUPPORTED** (`pdf_acquisition`, `mcp_supported=false`); extraction: **UNSUPPORTED** (`pdf_extraction`, `mcp_supported=false`) | Phase-2 fulltext + E1 acquired-document + E2 extracted-text boundary |
+| pdf (`scholar_pdf`) | `AsyncPDFDownloader`, `PyMuPDFEngine`/`DoclingEngine`/`GrobidEngine`, validators, **`scholar_pdf.acquisition`** (WP01-E1, parent-bound), **`scholar_pdf.extraction`** (WP01-E2, parent-bound) | `scholar-pdf` (download/ingest: **production** since K0; **acquire**/**extract-run**/extract: parked) | `nexus_extract_pdf` (PyMuPDF only, non-authoritative); acquisition: **UNSUPPORTED** (`pdf_acquisition`, `mcp_supported=false`); extraction: **UNSUPPORTED** (`pdf_extraction`, `mcp_supported=false`) | Phase-2 fulltext + E1 acquired-document + E2 extracted-text boundary |
 | rag (`scholar_rag`) | `ScholarIndexer`, `ScholarRetriever`, `GroundedSynthesisEngine`, `ConsensusCartographer`, `MatrixExtractor` | `scholar-rag` (index/query/synthesize/consensus/matrix/stats) | `nexus_rag_index/query/synthesize`, `nexus_matrix_extract` | Phase-3 retrieval + synthesis |
 | graph (`scholar_graph`) | `CitationGraphBuilder`, `GraphVisualizer` | `scholar-graph` (build/pagerank) | `nexus_graph_build` | Phase-3 knowledge-graph |
 | protocol (`scholar_protocol`) | `ResearchProtocol`, `compile_protocol`, `canonical_json/fingerprint`, `validate_protocol`, `render_screening_criteria`, `build_extraction_model` | `scholar-protocol` (compile/validate/fingerprint/canon/render-criteria/extraction-schema/extraction-prompt) | `nexus_protocol_compile/validate/render_criteria` (+ matrix via rag) | Phase-0 protocol |
@@ -227,7 +237,10 @@ latent bug**, with the working path in parentheses.
   `is_valid_pdf`/`validate_pdf_structure`/`clean_invalid_pdf`, publisher direct-PDF
   + proxy-rewrite helpers.
 - **CLI:** `download` (`--doi` repeatable / `--input` JSON, `--output`, `--smart-names`,
-  `--export json|bibtex`, `--proxy*`, `--strict-validate`, `-c`) / `ingest` / `extract`
+  `--export json|bibtex`, `--proxy*` (refused, `PROXY_REFUSED`), `--strict-validate`, `-c`) /
+  `ingest` (production since K0, decision 2026-11-21, M12a items 21 and 27: a contact
+  e-mail required, `MAILTO_NOT_SET` without; the app's own User-Agent; no guessed
+  publisher URL; no proxy) / `extract`
   (**positional** `pdf_path` — no `--input`; `--engine` accepts only **docling|grobid**;
   pymupdf is API/MCP only).
 - **MCP:** `nexus_extract_pdf(pdf_path, output_dir="./extracted", engine="pymupdf")`
@@ -243,10 +256,13 @@ latent bug**, with the working path in parentheses.
   non-parent-bound raw-path convenience); typed models in
   `scholar_pdf.extraction_models`; candidate builder in
   `scholar_pdf.contract_candidate`.
-- **Knowledge:** env `MAILTO`, `DOWNLOAD_DIR`, `MAX_CONCURRENT_DOWNLOADS`,
-  `DOWNLOAD_TIMEOUT`, `PROXY_URL/PROXY_STYLE`, `PDF_STRUCTURAL_VALIDATION`,
-  `ENABLE_PUBLISHER_DIRECT_PATTERNS` (no prefix); cascade = OpenAlex best_oa →
-  Unpaywall → publisher direct-PDF (IEEE/Springer/arXiv patterns) → proxy rewrite;
+- **Knowledge:** env `SCHOLAR_MAILTO` (read first) or `MAILTO` (required, no default),
+  `DOWNLOAD_DIR`, `MAX_CONCURRENT_DOWNLOADS`, `DOWNLOAD_TIMEOUT`,
+  `PROXY_URL/PROXY_STYLE` (refused by `download`/`ingest`), `PDF_STRUCTURAL_VALIDATION`,
+  `ENABLE_PUBLISHER_DIRECT_PATTERNS` (default off; `true` refused; no prefix); lookup =
+  OpenAlex best_oa → Unpaywall, only the provider's own location requested (the
+  publisher patterns are no longer read, K0; removed in Part K); User-Agent
+  `nexus-scholar/<version> (mailto:…)`;
   validation = ≥10 KB + `%PDF-` in first 1 KB + `%%EOF` in last 8 KB (+ optional
   encryption-tolerant pypdf gate); invalid files auto-deleted; frontmatter keys =
   `workspace_id|doi|title|authors|year|extraction_engine|extracted_at` (empty keys
@@ -513,7 +529,7 @@ scholar-agent-kit ──adapter import──► scholar_harness.recon.adapter (g
 | :-- | :-- | :-- |
 | Polite pool / keys | `SCHOLAR_MAILTO` (required, no default), `SCHOLAR_OPENALEX_KEY` (required by OpenAlex since 2026-02-13; the code still calls it optional), `SCHOLAR_S2_KEY`. No NCBI key setting exists. | search |
 | Cache | `SCHOLAR_CACHE_DIR` (`.cache`, hishel TTL 30d unused) | search |
-| PDF | `MAILTO`, `DOWNLOAD_DIR`, `MAX_CONCURRENT_DOWNLOADS`, `DOWNLOAD_TIMEOUT`, `PROXY_URL`, `PROXY_STYLE`, `PDF_STRUCTURAL_VALIDATION`, `ENABLE_PUBLISHER_DIRECT_PATTERNS` | pdf |
+| PDF | `SCHOLAR_MAILTO` or `MAILTO` (required since K0), `DOWNLOAD_DIR`, `MAX_CONCURRENT_DOWNLOADS`, `DOWNLOAD_TIMEOUT`, `PROXY_URL`, `PROXY_STYLE` (refused by `download`/`ingest`), `PDF_STRUCTURAL_VALIDATION`, `ENABLE_PUBLISHER_DIRECT_PATTERNS` (default off, `true` refused) | pdf |
 | Embedder | `OPENAI_API_KEY` | rag |
 | MCP/harness | `NEXUS_RECON_ROOT`, `NEXUS_SKILLS_SRC`, `NEXUS_MCP_CONFIG_HOME` (P7.4 `setup-mcp` config root override, mirrors `NEXUS_RECON_ROOT`) | agent/harness |
 | LLM screening | `GEMINI_API_KEY` | search (`LLMBatchScreener`) |
