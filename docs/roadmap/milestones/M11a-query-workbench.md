@@ -301,7 +301,7 @@ What was built:
 - `src/scholar_harness/console/api/workbench.py`: `POST /api/v1/inception/drafts/{id}/workbench/{counts,synonyms,removed}` and `POST /api/v1/discovery/workbench/{counts,synonyms,removed}`, each with `dry_run`; in `console/browser.py` `POST_PATHS` and the proxy's list; no phone route.
 - `estimate.count_one` rows gain `http_status`, `quota_exhausted`, `resets_at`; its timeout is read when called. `POST /discovery/estimate` reads the workbench log (`from_count_log`).
 - Refusal codes `WORKBENCH_BUDGET_SPENT` (409), `WORKBENCH_VERSION_INVALID` (422) and `WORKBENCH_STATE_UNREADABLE` (503, review round 1) in `console/refusals.py` and `screening-api-contract.md` §7.
-- A row whose database answered the full query and then failed carries `stopped` (`status`, `error_code`, `http_status`, `resets_at`, `resets_in`); the screen says it beside the number.
+- A row whose database answered the full query and then failed carries `stopped` (`status`, `error_code`, `http_status`, `resets_at`, `resets_in`); Part C's screen will show it beside the number.
 
 | DoD | Test (`tests/console/test_workbench_counts_api.py` unless named) | State |
 | :-- | :-- | :-- |
@@ -330,6 +330,16 @@ Review round 1 (`milestone-reviewer`, on `4ff5d37d`): **CHANGES**, 2 P2, 4 P3, 2
 | P3-6 | The routes' docstring said counting after the accept records nothing; it writes the log | docstring fixed; decision item 12 | (none) |
 | P4-7 | DoD 5's wording ("never kept") against (a) ("kept as a record, never answers") | DoD 5 aligned with (a) | (none) |
 | P4-8 | "What each synonym adds" costs the full query too | decision item 11 | (existing synonyms test) |
+
+Review round 2 (on `5602e3b6`): **CHANGES**, 2 P3, 3 P4 (the round-1 repairs confirmed), all taken:
+
+| # | Finding | Repair | Test |
+| :-- | :-- | :-- | :-- |
+| P3-1 | `stopped` ignored drops that were never sent because the Count's 100 s ran out | any drop that neither counted nor waits to be counted is a stop | `test_a_database_stopped_by_the_counts_deadline_says_so_on_its_row` |
+| P3-2 | After requests were sent, a state file failing (refund, budget line, pause) answered 503 "nothing was sent" and lost the numbers | every shared-state call after sending is best effort (`_quietly`): the answer keeps its numbers, the budget line is `null` | `test_numbers_already_counted_survive_a_state_file_that_breaks_after_sending` |
+| P4-3 | A pause that failed to store lost the sent request's log row | the log row is written first, then the pause | `test_a_quota_hit_is_logged_even_when_the_pause_cannot_be_stored` |
+| P4-4 | "Read what this concept removes" kept its reservation when the provider could not be built | the reservation is given back on that path | (code path; no test) |
+| P4-5 | The record said the screen shows `stopped`; the screen is Part C | wording | (none) |
 
 
 Not verified (needs a live run, not run): the budget defaults against the providers' published limits; how many requests a real session sends; whether OpenAlex and Semantic Scholar show the dropped-concept pattern. Prepared command (researcher's approval needed; it sends 15 count requests, 5 each to OpenAlex, Semantic Scholar and arXiv, from the console of the real review's workspace or a draft):

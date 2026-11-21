@@ -274,6 +274,19 @@ class SharedState:
         return entry["until"] if until is not None and until > now else None
 
 
+def _quietly(fn: Any, *args: Any) -> Any:
+    """A shared-state call made after requests were sent: its failure must not lose the answer (review round 2).
+
+    The answer then carries ``None`` where the call's value would be (the budget
+    line is left out); a refund or a pause not stored is the cost of an
+    unreadable file, which the next Count refuses before sending anything.
+    """
+    try:
+        return fn(*args)
+    except (WorkbenchRefused, OSError):
+        return None
+
+
 # --------------------------------------------------------------------------- one Count
 
 
@@ -431,8 +444,6 @@ async def _send_cells(row: Row, logged: list[dict[str, Any]], *, state: SharedSt
             cell.error, cell.error_code, cell.http_status = answer.get("error"), code, answer.get("http_status")
             if answer.get("quota_exhausted"):
                 cell.status, cell.resets_at = "quota_used_up", answer.get("resets_at")
-                if cell.resets_at:
-                    state.pause(row.name, cell.resets_at, now)
             else:
                 cell.status = STATUS_BY_CODE.get(code or "", "failed")
             stop = cell
@@ -444,6 +455,8 @@ async def _send_cells(row: Row, logged: list[dict[str, Any]], *, state: SharedSt
             "total": cell.total, "error_code": cell.error_code, "http_status": cell.http_status,
             "resets_at": cell.resets_at, "counted_at": cell.counted_at, "requests": 1, "key": cell.key, **scope,
         })
+        if cell.status == "quota_used_up" and cell.resets_at:
+            _quietly(state.pause, row.name, cell.resets_at, now)
 
 
 def _row_public(row: Row, now: datetime, mode: str, year_window: bool) -> dict[str, Any]:
@@ -463,7 +476,7 @@ def _row_public(row: Row, now: datetime, mode: str, year_window: bool) -> dict[s
     }
     # Review P3: a database that answered the full query and then failed is stopped; the row says so.
     if row.status is None and full is not None and full.status in NUMBERED:
-        failed = next((c for c in row.cells[1:] if c.sent and c.status not in NUMBERED), None)
+        failed = next((c for c in row.cells[1:] if c.status not in NUMBERED and c.status != "to_count"), None)
         if failed is not None:
             out["stopped"] = {"status": failed.status, "error_code": failed.error_code,
                               "http_status": failed.http_status, "resets_at": failed.resets_at,
@@ -564,7 +577,7 @@ async def run(
             for r in sending:
                 unused = r.planned - sum(c.sent for c in r.cells)
                 if unused:
-                    state.spend(r.name, -unused, back)
+                    _quietly(state.spend, r.name, -unused, back)
     later = utcnow()
     year_window = bool(version.start_year or version.end_year)
     public = [_row_public(r, later, mode, year_window) for r in rows]
@@ -587,7 +600,7 @@ async def run(
                  "cached": sum(cost.values()) == 0 and any(r.status is None for r in rows)},
         "requests": sum(p["requests"] for p in public),
         "databases": public,
-        "budget": {r.name: state.budget(r.name, later) for r in rows},
+        "budget": {r.name: _quietly(state.budget, r.name, later) for r in rows},
     }
     if mode == "counts":
         answer["notes"] = [
@@ -643,7 +656,11 @@ async def read_removed(
     from scholar_search.engine import provider_error_code
     from scholar_search.exceptions import ProviderError, QuotaExhaustedError
 
-    provider = est._provider(name)
+    try:
+        provider = est._provider(name)
+    except BaseException:
+        _quietly(state.spend, name, -1, utcnow())  # nothing was sent: the reservation is given back
+        raise
     docs: list[Any] = []
     try:
         async def collect() -> None:
@@ -661,7 +678,6 @@ async def read_removed(
             answer["http_status"] = exc.status_code
         if isinstance(exc, QuotaExhaustedError):
             answer.update(status="quota_used_up", resets_at=exc.resets_at, resets_in=resets_in(exc.resets_at, utcnow()))
-            state.pause(name, exc.resets_at, utcnow())
     finally:
         await est._close(provider)
     later = utcnow()
@@ -673,7 +689,7 @@ async def read_removed(
             continue
         records.append({"title": doc.title, "doi": getattr(doc.external_ids, "doi", None), "year": doc.year,
                         "lacks": wb.lacking(version, text)})
-    answer.update(read=len(docs), records=records, budget={name: state.budget(name, later)})
+    answer.update(read=len(docs), records=records, budget={name: _quietly(state.budget, name, later)})
     log.append([{
         "shape": LOG_SHAPE, "query_key": version.query_key, "provider": name, "kind": "removed",
         "concept": version.concepts[index].name, "term": None, "string": string, "year_min": query.year_min,
@@ -682,6 +698,8 @@ async def read_removed(
         "error_code": answer["error_code"], "http_status": answer["http_status"], "resets_at": answer["resets_at"],
         "counted_at": later.isoformat(), "requests": 1, "key": None, **(scope or {}),
     }])
+    if answer["status"] == "quota_used_up" and answer["resets_at"]:
+        _quietly(state.pause, name, answer["resets_at"], later)
     return answer
 
 

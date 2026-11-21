@@ -63,6 +63,10 @@ class Provider:
 
     async def count(self, query):
         self.doubles.calls.append((self.name, query.text))
+        if self.doubles.delay:
+            import asyncio
+
+            await asyncio.sleep(self.doubles.delay)
         fail = self.doubles.fail.get(self.name)
         if fail is not None:
             raise fail
@@ -80,6 +84,7 @@ class Doubles:
         self.fail: dict[str, Exception] = {}
         self.total = _default_total
         self.docs: list[Document] = []
+        self.delay = 0.0
 
     def __call__(self, name: str) -> Provider:
         return Provider(self, name)
@@ -596,3 +601,52 @@ def test_what_was_sent_is_logged_when_a_database_fails_unexpectedly(env, monkeyp
     oa = _row(answer, "openalex")
     assert oa["status"] == "counted" and all(d["status"] == "failed" for d in oa["drops"][1:])
     assert len(_log(root, draft)) == 1
+
+
+# --------------------------------------------------------------------------- review of Part A (round 2)
+
+
+def test_a_database_stopped_by_the_counts_deadline_says_so_on_its_row(env, monkeypatch):
+    """Round 2, P3-1: drops not sent because the Count ran out of time are a stop too."""
+    client, root, ws, draft, doubles, _ = env
+    monkeypatch.setattr(qw, "DEADLINE_SECONDS", 1.5)
+    doubles.delay = 0.7  # the full query answers; the next request would not start in time
+    oa = _row(_count(client, draft, providers=["openalex"]).json(), "openalex")
+    assert (oa["status"], oa["total"]) == ("counted", 166)
+    assert oa["stopped"]["status"] == "timeout" and oa["requests"] == 1
+    assert qw.SharedState(root).spent("openalex", qw.utcnow()) == 1
+
+
+def test_numbers_already_counted_survive_a_state_file_that_breaks_after_sending(env, monkeypatch):
+    """Round 2, P3-2: after a request was sent, the answer is never replaced by "nothing was sent"."""
+    client, root, ws, draft, doubles, _ = env
+    real_budget = qw.SharedState.budget
+    calls = {"n": 0}
+
+    def flaky(self, name, now):
+        calls["n"] += 1
+        if calls["n"] > 1:  # the planning read works; the answer's budget line fails
+            raise qw.WorkbenchRefused(503, qw.WORKBENCH_STATE_UNREADABLE, "unreadable")
+        return real_budget(self, name, now)
+
+    monkeypatch.setattr(qw.SharedState, "budget", flaky)
+    response = _count(client, draft, concepts=[FOUR[2]], providers=["openalex"])
+    assert response.status_code == 200
+    answer = response.json()
+    assert _row(answer, "openalex")["total"] == 300 and answer["budget"]["openalex"] is None
+    assert len(_log(root, draft)) == 1
+
+
+def test_a_quota_hit_is_logged_even_when_the_pause_cannot_be_stored(env, monkeypatch):
+    """Round 2, P4-3: the sent request's log row comes before the pause."""
+    client, root, ws, draft, doubles, _ = env
+    doubles.fail["openalex"] = QuotaExhaustedError("openalex", database="OpenAlex", retry_after=3600,
+                                                    resets_at="2026-11-22T00:00:00+00:00")
+
+    def broken(*_args):
+        raise OSError("locked")
+
+    monkeypatch.setattr(qw.SharedState, "pause", broken)
+    oa = _row(_count(client, draft, providers=["openalex"]).json(), "openalex")
+    assert oa["status"] == "quota_used_up"
+    assert [r["status"] for r in _log(root, draft)] == ["failed"]
