@@ -591,3 +591,29 @@ Built so far (the follow-ups the part A and B reviews left for part C):
 | the refusal's wording | `test_the_handoff_refusal_names_the_only_way_to_revised_criteria` | passed (fails on `5d13e86c`: the message names Triage) |
 
 The UI dependencies of this worktree were installed with `npm ci --offline` from the local cache (no network).
+
+### Part D: Inception step 5
+
+Branch `dev/m11b/part-d-step5`, stacked on part C (`238dce96`), with `origin/main` `46371f45` (part A merged, PR 275) brought in through B and C · Lane **RELEASE** (the inception draft API, the intent packet and the protocol genesis writes change; new check ids in a public preview) · Decisions: `docs/decisions.md` "2026-11-21 — M11b part D" items 1 to 10 (PROPOSED). Status: **IN PROGRESS: the engine side only.** The screen (DoD 20, the criteria block of direction A, and the checks' copy in en/fr/ar) waits for `docs/ux/phase0-inception/final/11-criteria-block.md` to be FINAL (questions 3, 7, 8).
+
+What was built (engine):
+- `inception/steps.py`: the draft fields `method_blinding` (pre-selected "after you decide") and `method_not_reported` (no default); `method_choice`, `method_options` on `steps/criteria`; `build_intent` refuses `METHOD_RULE_UNCHOSEN` (preview and genesis) and writes `method` into the intent; `keep_method_choice` on every save (omitted fields kept; `null` after a choice is `DRAFT_INVALID`). `inception/drafts.py`: a new draft stores the rule unchosen.
+- `scholar_protocol/intent.py` and `compiler.py`: `IntentPacket.method` (optional), copied into the protocol's `method` block; `inception/genesis.py` still states the playbook's guideline.
+- `inception/importer.py`: a protocol's or an intent's `method` block fills the two questions.
+- `inception/checks.py` and the new `inception/criteria_wording.py`: `METHOD_RULE_UNCHOSEN` (blocker) and the five wording checks of (f) plus `CRITERIA_WORDING_NOT_CHECKED` (note), never blockers, each instance its own subject.
+- `inception/wizard.py` and `cli.py`: the terminal wizard asks the rule with no default; `--not-reported` on `inception` and `init`; a scripted run without it is refused before anything is written.
+- `console/refusals.py` and `screening-api-contract.md` §7: `METHOD_RULE_UNCHOSEN`. `docs/ux/shared/final/02-checks.md`: the seven catalogue and copy rows (engine wording; the screen's copy is part D's UI work).
+- Existing tests: the 24 scripted `run_wizard` calls give `not_reported="unclear"` (a question would shift their answers); the shared complete drafts of the inception and MCP-assistant tests carry `method_not_reported`.
+
+| DoD | Test | State |
+| :-- | :-- | :-- |
+| 18 (engine) | `tests/inception/test_method_questions.py`: `test_a_new_draft_stores_the_rule_unchosen_and_visibility_after_you_decide`, `test_the_two_fields_round_trip_and_a_value_outside_the_enums_is_refused`, `test_a_chosen_rule_cannot_be_unset_and_a_save_without_the_field_keeps_it`, `test_the_unchosen_rule_blocks_step_5_review_and_genesis_and_nothing_is_written`, `test_a_draft_from_before_the_question_says_so`, `test_genesis_writes_the_choice_into_the_method_block_and_the_preview_lists_it`, `test_the_criteria_step_answers_the_options_in_the_engines_order`, `test_an_imported_protocol_with_a_method_block_fills_the_two_questions`, `test_the_assistant_has_no_proposal_kind_for_the_rule` | done (engine; the radios are UI) |
+| 18b | `tests/inception/test_method_questions.py`: `test_a_search_amendment_of_a_review_that_chose_decisive_first_is_not_refused`, `test_without_the_method_in_the_intent_the_same_amendment_is_refused` (the failure it prevents), `test_a_protocol_without_the_choice_keeps_its_fingerprint` | done |
+| 18c | `tests/inception/test_method_questions.py`: `test_the_wizard_asks_the_rule_with_no_default_until_one_is_chosen`, `test_a_scripted_run_without_the_rule_is_refused_before_anything_is_written`, `test_the_cli_names_the_option`, `test_the_wizard_writes_the_rule_into_the_intent` | done |
+| 19 (engine) | `tests/inception/test_criteria_wording_checks.py` (16 tests: each rule at and below its constant, accepted criteria only, never a blocker, a subject per instance, a changed text a new subject, the other-language note, and the honesty fixture: the 2026-11-20 mirror and the contradiction of meaning are not caught) | done (engine; the panel's copy is UI) |
+| 20 | (UI) | waits for spec 11 FINAL |
+| 21 | `generate_contract_baseline.py --check` current; `generate_protocol_schema.py --check` in sync (Evidence) | done for the engine side |
+
+Fails before: on part C's head the two new files stop at collection (no `criteria_wording` module, no `method_choice`); the scripted-wizard and intent tests have no `not_reported` parameter.
+
+Not verified: the screen (DoD 20); whether the wording checks find anything in a real review's criteria (record, "What cannot be verified"); the terminal wizard by hand in a real terminal (tested through the responder and the refusal function).

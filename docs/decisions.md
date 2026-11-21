@@ -10,8 +10,24 @@ history to read if you need the original reasoning (`git log --follow -- <path>`
 
 | Entry | Item | What is open |
 | :-- | :-- | :-- |
+| 2026-11-21 — M11b part D: step 5's method questions and wording checks, the build's choices | 1 to 10 | Proposed with the engine side of the build; the researcher's answer is pending. |
 | 2026-11-21 — M11b part B: the pilot, the build's choices | 1 to 13 | Proposed with the build; the researcher's answer is pending. |
 | 2026-11-19 — M9a: what the measurement says about the ladder gates | 2 | The minimum share of the researcher's excludes an agent must take before a rung unlocks: the principle is accepted; the researcher decided on 2026-11-20 to set the number when M9b is built. |
+
+## 2026-11-21 — M11b part D: step 5's method questions and wording checks, the build's choices (PROPOSED; M11b-criteria-pilot, part D, engine side)
+
+Record: `docs/roadmap/milestones/M11b-criteria-pilot.md`, "Build record", "Part D". Answers 8 (no default for the not-reported rule) and 12 (the terminal wizard asks too) bind the rest. The screen (DoD 20 and the copy) waits for `11-criteria-block.md` questions 3, 7 and 8. Each item is the build's proposal.
+
+1. **A new draft stores `method_blinding: "reveal_after_decision"` and `method_not_reported: null`.** The pre-selection of draft visibility is the record's proposal, not asked separately; the rule is unchosen (answer 8).
+2. **A save that does not name the two fields keeps the stored values; an explicit `null` after a choice is refused `DRAFT_INVALID`.** Today's step-5 screen sends no method fields, so without the first half every save would drop the choice. *Alternative:* a separate route for the two questions.
+3. **"Started before this question" means the stored draft has no `method_not_reported` key** (a draft from before part D); the blocker then carries `started_before_question: true` and its longer sentence.
+4. **The intent carries `method: {blinding, not_reported}`; the protocol kit's `IntentPacket` gains an optional `method`, which the compiler copies** into the protocol's `method` block; `compile_intent` still adds the guideline the playbook implies. An intent without it compiles as before, so no existing protocol's fingerprint moves, and "unclear" with "after you decide" gives the same bytes as the defaults (tested). Not a Contract v1 change (the protocol kit is outside the baseline; `generate_protocol_schema.py --check` unchanged, the intent has no generated schema).
+5. **An imported protocol's `method` block fills both questions** (carried, "From the imported protocol"); its other settings (dedup, the rule table, the retrieval cap) are not carried, and the "method not carried" line appears only when one of them differs from today's defaults.
+6. **The terminal wizard asks the rule after the criteria are accepted**, with no default, again until one of the three is chosen. A run is "scripted" when standard input is not a terminal or `--auto-select` / `--direction-id` is given; it is refused (exit 2) before anything is asked or written without `--not-reported`. The option is on `inception` and on `init` (which runs the same wizard).
+7. **A sixth check id, `CRITERIA_WORDING_NOT_CHECKED` (note)**, says that the three English-only checks did not run for criteria in another language, as record (f) asks the panel to say.
+8. **"In English" is read from the criteria themselves:** English when any criterion holds an English function word; otherwise not English when one holds a function word of another language (a short French, German or Spanish list) or a letter outside ASCII; otherwise English. Short criteria such as "UAV imagery; field trials" are read as English. *Alternative:* the review's search languages (they say what papers are searched, not what the criteria are written in).
+9. **The word rules' details:** stop words and negation words are fixed English lists (negations: not, no, without, only, non, except, excluding, and "other than" as two words); the mirror share is the larger of the two coverages; a criterion equal to another is a duplicate or a contradiction, never a mirror; a full-text phrase matches whole words only ("table" does not match "tabletop").
+10. **A pair's subject is "id|id"**, so each pair is dismissed alone; criterion ids come from the text, so a reworded criterion is a new subject and a dismissal does not carry over.
 
 ## 2026-11-21 — M11b part B: the pilot, the build's choices (PROPOSED; M11b-criteria-pilot, part B)
 
