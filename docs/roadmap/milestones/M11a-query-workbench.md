@@ -470,4 +470,3 @@ Review round 1 (`milestone-reviewer`, on `7f920872`): **CHANGES**, 1 P1, 4 P2, 6
 | P3-C11 | Row state and rejected pool terms followed the index | rows keyed by position and name; rejections by the concept's name | (code path) |
 
 Round-1 follow-ups, not repaired: the old card's per-term DOI lists and the concept-level "in n of m" line are not in the workbench (the chips carry each term's count); the browser's `languages ?? ["en"]` default; a term made only of quotes becomes an empty phrase in the Scopus string.
-

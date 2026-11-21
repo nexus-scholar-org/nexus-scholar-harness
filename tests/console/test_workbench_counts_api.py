@@ -329,6 +329,7 @@ def test_throttling_refusal_unavailability_and_timeout_keep_their_codes(env, err
     doubles.fail["semanticscholar"] = error
     ss = _row(_count(client, draft).json(), "semanticscholar")
     assert ss["status"] == status and ss["http_status"] == http and ss["total"] is None
+    assert ss["timeout_seconds"] == est.COUNT_TIMEOUT  # the screen prints the engine's seconds (review C round 2)
 
 
 def test_openalex_without_a_key_is_its_row_and_the_others_count(env, monkeypatch):

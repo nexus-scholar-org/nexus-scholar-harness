@@ -46,6 +46,12 @@ export type WorkbenchUse = {
   accepted: { mechanism: "pool_synonym" | "suggested_concept"; field: string; value: string }[];
 };
 
+/** A concept as the tab holds it: with a stable id for its row (never sent to the engine). */
+type Held = VersionConcept & { _id: number };
+let NEXT_ID = 1;
+const hold = (c: VersionConcept): Held => ({ concept: c.concept, synonyms: [...(c.synonyms ?? [])], _id: NEXT_ID++ });
+const bare = (c: Held): VersionConcept => ({ concept: c.concept, synonyms: c.synonyms });
+
 const versionKey = (concepts: VersionConcept[]) => JSON.stringify(concepts.map((c) => [c.concept.trim(), c.synonyms]));
 const termsOf = (c: VersionConcept) => [c.concept, ...c.synonyms].filter((t) => t.trim());
 const termTotal = (concepts: VersionConcept[]) => concepts.reduce((n, c) => n + termsOf(c).length, 0);
@@ -109,7 +115,7 @@ export function QueryWorkbench({
 }>) {
   const t = workbenchT(locale);
   const dt = discoveryT(locale);
-  const [concepts, setConcepts] = useState<VersionConcept[]>(() => saved.map((c) => ({ concept: c.concept, synonyms: [...(c.synonyms ?? [])] })));
+  const [concepts, setConcepts] = useState<Held[]>(() => saved.map(hold));
   const [seeds, setSeeds] = useState<string[]>(savedSeeds);
   const [usedKey, setUsedKey] = useState(() => versionKey(saved));
   const [poolTerms, setPoolTerms] = useState<{ concept: string; term: string }[]>([]);
@@ -128,7 +134,7 @@ export function QueryWorkbench({
   const [usedNote, setUsedNote] = useState(false);
 
   const version: Version = useMemo(
-    () => ({ query_key: "main", concepts: concepts.filter((c) => c.concept.trim()), start_year: startYear ?? null, end_year: endYear ?? null, languages: languages ?? ["en"] }),
+    () => ({ query_key: "main", concepts: concepts.filter((c) => c.concept.trim()).map(bare), start_year: startYear ?? null, end_year: endYear ?? null, languages: languages ?? ["en"] }),
     [concepts, startYear, endYear, languages],
   );
   const key = versionKey(version.concepts);
@@ -137,7 +143,7 @@ export function QueryWorkbench({
     // The saved search moved (an assistant's proposal applied, another save): an untouched workbench follows it.
     if (savedKey === usedKey) return;
     if (key === usedKey) {
-      setConcepts(saved.map((c) => ({ concept: c.concept, synonyms: [...(c.synonyms ?? [])] })));
+      setConcepts(saved.map(hold));
       commit();
     }
     setUsedKey(savedKey);
@@ -180,7 +186,7 @@ export function QueryWorkbench({
     window.setTimeout(() => (document.querySelector(selector) as HTMLElement | null)?.focus(), 0);
   };
 
-  const edit = (next: VersionConcept[]) => {
+  const edit = (next: Held[]) => {
     // A change of the concept list's indices clears the merge selection (review C2: a stale index crashed Merge).
     if (next.length !== concepts.length) {
       setSelected([]);
@@ -237,7 +243,7 @@ export function QueryWorkbench({
   useEffect(() => bindUse?.(use));
 
   const discard = () => {
-    setConcepts(saved.map((c) => ({ concept: c.concept, synonyms: [...(c.synonyms ?? [])] })));
+    setConcepts(saved.map(hold));
     setSeeds(savedSeeds);
     setPoolTerms([]);
     setTopicTaken([]);
@@ -261,7 +267,7 @@ export function QueryWorkbench({
     if (term === c.concept) {
       const [first, ...rest] = c.synonyms;
       if (first === undefined) return edit(concepts.filter((_, i) => i !== index));
-      return edit(concepts.map((x, i) => (i === index ? { concept: first, synonyms: rest } : x)));
+      return edit(concepts.map((x, i) => (i === index ? { ...x, concept: first, synonyms: rest } : x)));
     }
     edit(concepts.map((x, i) => (i === index ? { ...x, synonyms: x.synonyms.filter((s) => s !== term) } : x)));
     focusSoon(`#wb-term-${index}`);
@@ -269,7 +275,7 @@ export function QueryWorkbench({
 
   const splitTerm = (index: number, term: string) => {
     const without = concepts.map((x, i) => (i === index ? { ...x, synonyms: x.synonyms.filter((s) => s !== term) } : x));
-    edit([...without, { concept: term, synonyms: [] }]);
+    edit([...without, hold({ concept: term, synonyms: [] })]);
     setAnnounce(t("workbench.announce.split", { term }));
     focusSoon(`#wb-concept-${without.length}`);
   };
@@ -281,7 +287,7 @@ export function QueryWorkbench({
     const terms = [...termsOf(concepts[a]), ...termsOf(concepts[b])];
     const name = mergeName.trim() || concepts[a].concept;
     const rest = terms.filter((x, i) => x.toLowerCase() !== name.toLowerCase() && terms.findIndex((y) => y.toLowerCase() === x.toLowerCase()) === i);
-    const merged = { concept: name, synonyms: rest };
+    const merged = { ...concepts[a], concept: name, synonyms: rest };
     edit(concepts.flatMap((c, i) => (i === a ? [merged] : i === b ? [] : [c])));
     setSelected([]);
     setMergeName(null);
@@ -346,7 +352,7 @@ export function QueryWorkbench({
                       variant="secondary"
                       className="border-dashed"
                       onClick={() => {
-                        edit([...concepts, { concept: word, synonyms: [] }]);
+                        edit([...concepts, hold({ concept: word, synonyms: [] })]);
                         setTopicTaken((list) => [...list, word]);
                       }}
                       data-topic-concept={word}
@@ -359,7 +365,7 @@ export function QueryWorkbench({
           ) : null}
           <ol className="space-y-3">
             {concepts.map((c, index) => (
-              <li key={`${index}:${c.concept}`} data-concept-row={index}>
+              <li key={c._id} data-concept-row={index}>
                 {index > 0 ? (
                   <p className="mb-2 text-xs font-semibold text-ink-muted" data-op="and">
                     {t("workbench.op.and")}
@@ -386,7 +392,7 @@ export function QueryWorkbench({
             ))}
           </ol>
           <div className="flex flex-wrap gap-2">
-            <Button onClick={() => edit([...concepts, { concept: t("workbench.concept.newName"), synonyms: [] }])} data-add-concept>
+            <Button onClick={() => edit([...concepts, hold({ concept: t("workbench.concept.newName"), synonyms: [] })])} data-add-concept>
               {t("workbench.concept.add")}
             </Button>
             <Button onClick={() => setMergeName(concepts[Math.min(...selected)]?.concept ?? "")} disabled={selected.length !== 2} data-merge>
@@ -496,6 +502,7 @@ export function QueryWorkbench({
             onCountAnyway={() => void count({ crossref_anyway: true, providers: ["crossref"] })}
             dt={dt}
             offline={offline}
+            refresh={committed}
           />
           <SeedsSection
             locale={locale}
@@ -504,6 +511,7 @@ export function QueryWorkbench({
             version={version}
             seeds={seeds}
             editable={!!editableSeeds}
+            refresh={committed}
             onAdd={(doi) => setSeeds((list) => (list.length >= MAX_SEEDS || list.includes(doi) ? list : [...list, doi]))}
             onApply={(index, term) => addTerm(index, term)}
             onFail={fail}
@@ -824,7 +832,7 @@ function stateKey(status: string): WorkbenchCopyKey {
 }
 
 function CountsSection({
-  locale, origin, place, version, answer, prior, stale, counting, providers, onCountAnyway, dt, offline,
+  locale, origin, place, version, answer, prior, stale, counting, providers, onCountAnyway, dt, offline, refresh,
 }: Readonly<{
   locale: Locale;
   origin: string;
@@ -838,6 +846,7 @@ function CountsSection({
   onCountAnyway: () => void;
   dt: ReturnType<typeof discoveryT>;
   offline: boolean;
+  refresh: number;
 }>) {
   const t = workbenchT(locale);
   const concepts = answer?.version.concepts ?? version.concepts;
@@ -996,7 +1005,7 @@ function CountsSection({
       )}
       <Versions locale={locale} answer={answer} prior={prior} stale={stale} version={version} />
       {answer && !stale && version.concepts.length ? (
-        <ConceptTools locale={locale} origin={origin} place={place} version={version} providers={providers} offline={offline} />
+        <ConceptTools locale={locale} origin={origin} place={place} version={version} providers={providers} offline={offline} refresh={refresh} />
       ) : null}
     </details>
   );
@@ -1060,7 +1069,7 @@ function Versions({ locale, answer, prior, stale, version }: Readonly<{ locale: 
 }
 
 /** "What does each synonym add?" and "Read what this concept removes", on one concept at a time. */
-function ConceptTools({ locale, origin, place, version, providers, offline }: Readonly<{ locale: Locale; origin: string; place: Place; version: Version; providers: string[] | null; offline: boolean }>) {
+function ConceptTools({ locale, origin, place, version, providers, offline, refresh }: Readonly<{ locale: Locale; origin: string; place: Place; version: Version; providers: string[] | null; offline: boolean; refresh: number }>) {
   const t = workbenchT(locale);
   const [index, setIndex] = useState(0);
   const [database, setDatabase] = useState("openalex");
@@ -1076,10 +1085,14 @@ function ConceptTools({ locale, origin, place, version, providers, offline }: Re
   useEffect(() => {
     if (version.concepts.length < 2) return setRemovedDry(null);
     const controller = new AbortController();
-    postRemoved(origin, place, { version, concept_index: index, dry_run: true }, controller.signal).then(setRemovedDry, () => setRemovedDry(null));
+    postRemoved(origin, place, { version, concept_index: index, dry_run: true }, controller.signal).then(setRemovedDry, (e) => {
+      if (controller.signal.aborted) return;
+      setRemovedDry(null);
+      setError(refusalOf(e));
+    });
     return () => controller.abort();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [toolsKey, origin]);
+  }, [toolsKey, origin, refresh]);
   const run = async <T,>(fn: () => Promise<T>, done: (v: T) => void) => {
     setBusy(true);
     setError(null);
@@ -1191,7 +1204,7 @@ function ConceptTools({ locale, origin, place, version, providers, offline }: Re
 }
 
 function SeedsSection({
-  locale, origin, place, version, seeds, editable, onAdd, onApply, onFail, offline,
+  locale, origin, place, version, seeds, editable, onAdd, onApply, onFail, offline, refresh,
 }: Readonly<{
   locale: Locale;
   origin: string;
@@ -1203,9 +1216,12 @@ function SeedsSection({
   onApply: (concept: number, term: string) => void;
   onFail: (error: unknown) => void;
   offline: boolean;
+  refresh: number;
 }>) {
   const t = workbenchT(locale);
   const [check, setCheck] = useState<SeedsAnswer | null>(null);
+  const [costs, setCosts] = useState<SeedsAnswer["cost"] | null>(null);
+  const [sent, setSent] = useState(0);
   const [busy, setBusy] = useState(false);
   const [doi, setDoi] = useState("");
   const [rejected, setRejected] = useState<string[]>([]);
@@ -1213,16 +1229,24 @@ function SeedsSection({
   useEffect(() => {
     if (!version.concepts.length) return;
     const controller = new AbortController();
-    postSeeds(origin, place, { version, seeds, lookup: true, openalex: true, dry_run: true }, controller.signal).then(setCheck, (e) => {
-      if (!controller.signal.aborted) onFail(e);
-    });
+    postSeeds(origin, place, { version, seeds, lookup: true, openalex: true, dry_run: true }, controller.signal).then(
+      (read) => {
+        setCosts(read.cost);
+        // After a real check its answer stays shown; the dry call only renews the costs.
+        setCheck((current) => (current && !current.dry_run && sent ? current : read));
+      },
+      (e) => {
+        if (!controller.signal.aborted) onFail(e);
+      },
+    );
     return () => controller.abort();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [seedKey, origin]);
+  }, [seedKey, origin, refresh, sent]);
   const send = async (opts: { lookup: boolean; openalex: boolean }) => {
     setBusy(true);
     try {
       setCheck(await postSeeds(origin, place, { version, seeds, ...opts, dry_run: false }));
+      setSent((n) => n + 1);
     } catch (e) {
       onFail(e);
     } finally {
@@ -1253,15 +1277,15 @@ function SeedsSection({
       ) : null}
       {check && check.total > 0 && check.read === 0 ? <p className="mt-2 text-sm text-ink-muted">{t("workbench.seeds.notReadAll")}</p> : null}
       <div className="mt-2 flex flex-wrap gap-2">
-        {check && check.dry_run && check.cost.lookup > 0 ? (
+        {costs && costs.lookup > 0 ? (
           <Button disabled={busy || offline} onClick={() => void send({ lookup: true, openalex: false })} data-seeds-lookup>
-            {t("workbench.seeds.lookup", { n: formatNumber(locale, check.cost.lookup) })}
+            {t("workbench.seeds.lookup", { n: formatNumber(locale, costs.lookup) })}
           </Button>
         ) : null}
         {seeds.length ? (
           <Button disabled={busy || offline || oa?.status === "switch_off"} onClick={() => void send({ lookup: false, openalex: true })} data-seeds-openalex>
             {t("workbench.seeds.check")}
-            {check?.dry_run && check.cost.openalex ? ` (${t("workbench.removed.cost", { n: formatNumber(locale, check.cost.openalex) })})` : ""}
+            {costs?.openalex ? ` (${t("workbench.removed.cost", { n: formatNumber(locale, costs.openalex) })})` : ""}
           </Button>
         ) : null}
       </div>

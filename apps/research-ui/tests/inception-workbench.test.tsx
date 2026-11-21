@@ -345,6 +345,17 @@ describe("inception.workbench", () => {
     expect(document.querySelectorAll("[data-concept-row]")).toHaveLength(3);
   });
 
+  it("a rename keeps the row: the same checkbox node, focus where it went (review C round 2)", async () => {
+    open();
+    const name = await screen.findByLabelText("Concept 2");
+    const box = screen.getByRole("checkbox", { name: "Select multispectral to merge" });
+    fireEvent.change(name, { target: { value: "spectral" } });
+    box.focus();
+    fireEvent.blur(name);
+    await waitFor(() => expect(screen.getByRole("checkbox", { name: "Select spectral to merge" })).toBe(box));
+    expect(document.activeElement).toBe(box);
+  });
+
   it("does not offer Count anyway on counts of a previous version (review C3)", async () => {
     open();
     await counted();
