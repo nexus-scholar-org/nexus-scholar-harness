@@ -19,6 +19,7 @@ import {
   OpenAlexKeyCard,
   PLAN_SEARCH_ANCHOR,
   discoveryHref,
+  planSearchHref,
   refusalOf,
   type Refusal,
 } from "@/components/discovery-frame";
@@ -401,6 +402,13 @@ export function DiscoveryPlan({ locale }: Readonly<{ locale: Locale }>) {
               onClose={() => {
                 focusToggle.current = true;
                 setSearchOpen(false);
+                if (window.location.hash === `#${PLAN_SEARCH_ANCHOR}`) {
+                  try {
+                    window.history.replaceState(window.history.state, "", window.location.pathname + window.location.search);
+                  } catch {
+                    // An address that cannot be rewritten only keeps the anchor.
+                  }
+                }
               }}
               onRecorded={(answer) => {
                 // The researcher's own amendment is not "changed since this page was read" (review D-R1 #11).
@@ -636,6 +644,9 @@ export function DiscoveryPlan({ locale }: Readonly<{ locale: Locale }>) {
                 providers={choice && choice.length ? choice : null}
                 harvestHref={(cap) => harvestHref(locale, origin, differs ? choice : null, cap)}
                 inceptionHref={inceptionHref(locale, origin)}
+                // M11a part D (question 7): narrowing the query is "Change the search", opened here.
+                searchHref={planSearchHref(locale, origin)}
+                onSearch={() => setSearchOpen(true)}
               />
             ) : null}
             {!plan.mailto_set ? <MailtoCard locale={locale} onCheck={() => void load(current(), true)} /> : null}

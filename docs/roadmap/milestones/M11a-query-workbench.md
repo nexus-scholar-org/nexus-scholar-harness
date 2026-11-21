@@ -550,4 +550,16 @@ Review round 1 (`milestone-reviewer`, on `0a4e3d27`): **CHANGES**, no P1, 8 P2, 
 
 Also taken from the reviewer's follow-ups: `search_view` lost its unused argument; a concept kept under its name keeps its `boolean_operator` (`test_a_concept_kept_under_its_name_keeps_its_operator`); run ids and database names are isolated in Arabic. The workbench is no longer remounted on a new fingerprint, so edits in the tab survive a change made elsewhere (decision D item 13).
 
+Review round 2 (on `7019848b`): **CHANGES**, no P1, 1 P2, 3 P3; 13 of the 15 round-1 findings confirmed repaired, #6 (the brand-button variant) and #8's `HANDOFF_SEARCH_CHANGED` choice judged acceptable (the latter still needs the researcher's answer to decision D item 7 before a merge), #14's phone test accepted as a follow-up. Taken:
+
+| # | Finding | Repair | Test |
+| :-- | :-- | :-- | :-- |
+| P2-R1 | Plan's own estimate card still linked to inception | Plan passes `searchHref`; on Plan the link opens the section directly | `discovery-estimate.test.tsx` "advises narrowing with Change the search, which opens the section on Plan itself …" and, on Harvest, "advises narrowing with a link to Plan's Change the search" |
+| P3-R2 | Once `#change-search` was in the address, a second same-page link did nothing | closing the section clears the anchor | `plan-amend.spec.ts` "the #change-search anchor opens the section; closing clears it …" |
+| P3-R3 | 02-checks still sent `RECALL_SEED_MISSED` to inception | the catalogue row names step `plan`, section `change-search` | (document) |
+| unverified | Whether the compiler tidies the recorded concepts, so the tab would read as changed after Record | it does (probe: `"  Weed  detection "` with three cases of one synonym is recorded as `"Weed detection"` and one synonym); after the researcher's own amendment the workbench starts again from the protocol as recorded (decision D item 13) | `"after a recorded amendment the workbench shows the protocol as the engine recorded it …"` (fails without the remount) |
+| gate | The round-1 gate's vitest failed `details-rule`: the new "Details" summary had no focus ring | the shared summary classes | `details-rule.test.ts` |
+
+Round-2 follow-ups, not repaired: a concept whose `boolean_operator` is not OR is kept as such in the protocol but shown and counted as OR in the workbench (`search_view` does not carry the operator; genesis always writes OR, so only an imported or hand-written protocol has one); the `estimate` consequence reads the console's memory, so after a console restart it is false until the estimate is counted again (as the card itself).
+
 Round-1 follow-ups, not repaired: `amend_search` and `decide` write intent, protocol and criteria, then the journal, with no rollback (a failure part-way leaves the files ahead of the journal); the backup and write block is now in two places and could be one helper that restores from the backup. The job check runs outside the proposals lock and the corpus accept does not take that lock (both as on the `decide` path; both fail closed through the drift and snapshot gates). The discovery screens have no desktop pointer for a phone-scoped token (every discovery screen; the amend route itself is refused to a phone token by the engine, `test_the_route_is_in_both_allow_lists_and_not_a_phone_route`).

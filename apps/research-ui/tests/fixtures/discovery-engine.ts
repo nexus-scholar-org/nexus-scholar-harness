@@ -1063,7 +1063,13 @@ export function discoveryEngine(options: DiscoveryFakeOptions = {}) {
     if (method === "POST" && route === "/api/v1/discovery/workbench/amend") {
       const refused = needProtocol();
       if (refused) return refused;
-      const concepts = ((body?.concepts as { concept: string; synonyms?: string[] }[]) ?? []).map((c) => ({ concept: c.concept, synonyms: c.synonyms ?? [] }));
+      // As the genesis compiler: spaces collapsed, a synonym repeated in another case kept once.
+      const tidy = (text: string) => text.split(/\s+/).filter(Boolean).join(" ");
+      const concepts = ((body?.concepts as { concept: string; synonyms?: string[] }[]) ?? []).map((c) => {
+        const seen = new Set<string>();
+        const synonyms = (c.synonyms ?? []).map(tidy).filter((s) => s && !seen.has(s.toLowerCase()) && seen.add(s.toLowerCase()));
+        return { concept: tidy(c.concept), synonyms };
+      });
       const reason = String(body?.reason ?? "").trim();
       if (body?.protocol_fingerprint !== fingerprint) return refuse(409, "WORKBENCH_PROTOCOL_CHANGED", "the protocol changed since this page read it", { protocol_fingerprint: fingerprint });
       if (accepted) return refuse(409, "CORPUS_ALREADY_ACCEPTED", "a corpus was accepted under this protocol; it is not amended");

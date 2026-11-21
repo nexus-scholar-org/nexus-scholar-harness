@@ -97,6 +97,20 @@ test("keyboard: Enter in the reason never records, Escape returns to Record, Ctr
   expect(fake.amendments).toHaveLength(1);
 });
 
+test("the #change-search anchor opens the section; closing clears it, so the next link to it opens the section again", async ({ page }) => {
+  await engine(page, OPTIONS);
+  await page.goto("/en/discovery/plan/#change-search");
+  await expect(page.locator("[data-workbench]")).toBeVisible();
+  await page.locator("[data-plan-search-close]").click();
+  await expect(page.locator("[data-workbench]")).toHaveCount(0);
+  await expect(page.locator("[data-plan-search-open]")).toBeFocused();
+  expect(new URL(page.url()).hash).toBe("");
+  await page.evaluate(() => {
+    window.location.hash = "change-search";
+  });
+  await expect(page.locator("[data-workbench]")).toBeVisible();
+});
+
 test("after the corpus is accepted, the section counts but records nothing", async ({ page }) => {
   await engine(page, { ...OPTIONS, accepted: true });
   await page.goto("/en/discovery/plan/");

@@ -198,11 +198,12 @@ describe("discovery.estimate on Plan", () => {
     await count(card);
     const rec = card.querySelector('[data-estimate-rec="one_database"]') as HTMLElement;
     expect(within(rec).getByText(/Most of the records come from Crossref \(6221 of 7571\)\. A cap per database keeps the first records each database returns, which are not the most relevant, so it cannot remove Crossref's off-topic records/)).toBeInTheDocument();
-    expect(within(rec).getByRole("link", { name: "Change the protocol through inception" })).toBeInTheDocument();
+    // M11a part D (decision 2026-11-21 item 3): narrowing the query is Plan's "Change the search".
+    expect(within(rec).getByRole("link", { name: "Change the search" })).toHaveAttribute("href", "/en/discovery/plan/#change-search");
     expect(card.querySelector("[data-estimate-use-cap]")).toBeNull();
   });
 
-  it("advises narrowing with the inception link and no cap button", async () => {
+  it("advises narrowing with Change the search, which opens the section on Plan itself; no cap button", async () => {
     const estimate = answer({
       warn: { level: "warning", threshold_works: 1000, limit: { value: 1000, source: "general" } },
       recommendation: { kind: "narrow", cap: null, expected_works: null, cuts: null },
@@ -211,8 +212,14 @@ describe("discovery.estimate on Plan", () => {
     await count(card);
     const rec = card.querySelector('[data-estimate-rec="narrow"]') as HTMLElement;
     expect(within(rec).getByText(/Narrowing the question will help more than a cap/)).toBeInTheDocument();
-    expect(within(rec).getByRole("link", { name: "Change the protocol through inception" }).getAttribute("href")).toBe("/en/inception/");
+    const link = within(rec).getByRole("link", { name: "Change the search" });
+    expect(link.getAttribute("href")).toBe("/en/discovery/plan/#change-search");
     expect(card.querySelector("[data-estimate-use-cap]")).toBeNull();
+    // On Plan the link opens the section beside it, whatever the address already holds (review D-R2 #1, #2).
+    const user = userEvent.setup();
+    await user.click(link);
+    await waitFor(() => expect(document.querySelector("[data-workbench]")).not.toBeNull());
+    expect(screen.getByRole("button", { name: "Change the search" })).toHaveAttribute("aria-expanded", "true");
   });
 
   it("re-sends the estimate with the edited pace and prints the engine's new hours", async () => {
@@ -319,6 +326,18 @@ describe("discovery.estimate on Harvest", () => {
     })) as HTMLElement;
     return { ...ctx, card };
   }
+
+  it("advises narrowing with a link to Plan's Change the search (M11a part D, question 7)", async () => {
+    const { card } = await harvest({
+      estimate: answer({
+        warn: { level: "warning", threshold_works: 1000, limit: { value: 1000, source: "general" } },
+        recommendation: { kind: "narrow", cap: null, expected_works: null, cuts: null },
+      }),
+    });
+    await count(card);
+    const rec = card.querySelector('[data-estimate-rec="narrow"]') as HTMLElement;
+    expect(within(rec).getByRole("link", { name: "Change the search" })).toHaveAttribute("href", "/en/discovery/plan/#change-search");
+  });
 
   it("fills the cap field from ?cap= after hydration and submits nothing", async () => {
     const { engine } = await harvest({ search: "?cap=300" });

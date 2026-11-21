@@ -106,6 +106,24 @@ describe("discovery.plan change the search", () => {
     await waitFor(() => expect(document.activeElement).toBe(screen.getByRole("heading", { level: 1 })));
   });
 
+  it("after a recorded amendment the workbench shows the protocol as the engine recorded it, so Record waits for a new change", async () => {
+    setUp(PROVIDERS);
+    render(<DiscoveryPlan locale="en" />);
+    await openSearch();
+    fireEvent.change(screen.getByLabelText("Concept 1"), { target: { value: "weed  detection" } });
+    fireEvent.click(screen.getAllByRole("button", { name: "Remove concept" })[1]);
+    const box = await (async () => {
+      fireEvent.click(await screen.findByRole("button", { name: "Record this amendment" }));
+      await waitFor(() => expect(confirmation()?.querySelector("[data-consequences]")).not.toBeNull());
+      return confirmation() as HTMLElement;
+    })();
+    fireEvent.change(within(box).getByLabelText("Why are you changing the search?"), { target: { value: "One concept is enough." } });
+    fireEvent.click(within(box).getByRole("button", { name: "Record this amendment" }));
+    await screen.findByText(/Amendment recorded./);
+    await waitFor(() => expect((screen.getByLabelText("Concept 1") as HTMLInputElement).value).toBe("weed detection"));
+    expect(screen.getByRole("button", { name: "Record this amendment" })).toBeDisabled();
+  });
+
   it("an edit while the confirmation is open closes it, so the version recorded is always the one on screen", async () => {
     const { engine } = setUp(PROVIDERS);
     render(<DiscoveryPlan locale="en" />);

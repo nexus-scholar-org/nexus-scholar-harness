@@ -85,6 +85,10 @@ export function PlanChangeSearch({
   const [refusal, setRefusal] = useState<Refusal | null>(null);
   const [recording, setRecording] = useState(false);
   const [done, setDone] = useState<AmendAnswer | null>(null);
+  // The engine may tidy what it records (spaces, repeated synonyms): after the researcher's own
+  // amendment the workbench starts again from the protocol as recorded (review D-R2). A change made
+  // elsewhere does not remount it, so edits in this tab stay (decision D item 13).
+  const [recorded, setRecorded] = useState(0);
   const [reasonMissing, setReasonMissing] = useState(false);
   const [focus, setFocus] = useState<Focus>("region");
   const versionKeyRef = useRef("");
@@ -152,6 +156,7 @@ export function PlanChangeSearch({
     try {
       const answer = await postAmend(origin, { query_key: "main", concepts: confirming.version.concepts, reason: reason.trim(), protocol_fingerprint: fingerprint, dry_run: false });
       setDone(answer);
+      setRecorded((n) => n + 1);
       setConfirming(null);
       setDry(null);
       setReason("");
@@ -212,7 +217,7 @@ export function PlanChangeSearch({
           {t("plan.search.err.outside")}
           {r.message ? (
             <details className="mt-1 text-xs text-ink-muted">
-              <summary className="min-h-11 cursor-pointer py-3 leading-5">{t("plan.search.details")}</summary>
+              <summary className="min-h-11 cursor-pointer rounded-sm py-3 leading-5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus">{t("plan.search.details")}</summary>
               <bdi dir="ltr">{r.message}</bdi>
             </details>
           ) : null}
@@ -276,6 +281,7 @@ export function PlanChangeSearch({
               {t("plan.search.version")}
             </p>
             <QueryWorkbench
+              key={recorded}
               locale={locale}
               origin={origin}
               place={{ kind: "workspace" }}
