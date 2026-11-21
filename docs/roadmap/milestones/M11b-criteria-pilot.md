@@ -490,3 +490,13 @@ Contract v1: unchanged. Pilot decisions are not decision events and are never ha
 
 Not verified: no live run and no model call (the agent check runs on the fake driver); whether the observation thresholds and the minimum counts (decision item 4) are useful on a real pilot (DoD 22, the researcher's own pilot); the screens (part C).
 
+Evidence (Python runs with `-n 4`):
+
+| Stage | Commit | Command | Result | Duration |
+| :-- | :-- | :-- | :-- | :-- |
+| targeted | `24e69596` | the new file with `test_console_refusals.py`, `test_screening_api_contract.py`, part A's two files | 101 tests, 0 failed (after the §7 rows for the five codes) | 51 s |
+| targeted | `ada92bc1` (working tree) | `tests/console/test_criteria_pilot_api.py` | 38 passed | 35 s |
+| pr | `ada92bc1` | `generate_contract_baseline.py --check`; `generate_protocol_schema.py --check`; `generate_contract_schemas.py --check`; `generate_two_study_contract_fixture.py --check`; both ruff commands; `git diff --check origin/main...HEAD`; `uv run pytest -q -n 4 --junitxml` (full suite) | current; in sync; exit 0; exit 0; clean; clean; clean; 6176 tests: 6161 passed, 15 skipped, 0 failed, 0 errors | 691 s |
+
+The commit after `ada92bc1` (`68e1e783`) is this record only. No UI file changed (`git diff origin/main...HEAD -- apps` is empty), so the UI gates were not run.
+
