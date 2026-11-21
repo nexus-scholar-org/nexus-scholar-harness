@@ -59,6 +59,8 @@ ARCHIVED_ON_REPLACE = (
     "rag/",
     "phase4/",
     "synthesis/",
+    # M12a: the charting table belongs to the protocol it was charted under.
+    "charting/",
     "chroma_db/",
     "run-reports/",
 )

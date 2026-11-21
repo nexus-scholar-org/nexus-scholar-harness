@@ -112,6 +112,8 @@ const POST_PATHS: ReadonlyArray<RegExp> = [
   /^api\/v1\/discovery\/chase\/(runs|accept)$/,
   // M10c D5: the researcher applies or rejects an assistant's suggested search change on Plan.
   /^api\/v1\/discovery\/proposals\/prop_[0-9a-f]+\/(apply|reject)$/,
+  /^api\/v1\/charting\/events$/,
+  /^api\/v1\/charting\/records\/[A-Za-z0-9_-]+\/attachment$/,
 ];
 
 /** The one GET with a side effect: the engine records a reveal when a draft is read. */

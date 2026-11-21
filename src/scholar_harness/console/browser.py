@@ -82,6 +82,9 @@ POST_PATHS: tuple[re.Pattern[str], ...] = tuple(
         r"api/v1/discovery/chase/(runs|accept)",
         # M10c D5: the researcher applies or rejects an assistant's suggested search change on Plan.
         r"api/v1/discovery/proposals/prop_[0-9a-f]+/(apply|reject)",
+        # M12a Part A: charting events (status, decision, link, undo) and a PDF or link per record.
+        r"api/v1/charting/events",
+        r"api/v1/charting/records/[A-Za-z0-9_-]+/attachment",
     )
 )
 PUT_PATHS: tuple[re.Pattern[str], ...] = (

@@ -249,6 +249,22 @@ CHASE_SEEDS_INVALID = "CHASE_SEEDS_INVALID"
 CHASE_ACCEPT_PENDING = "CHASE_ACCEPT_PENDING"
 PROTOCOL_CHANGED_SINCE_PUBLISH = "PROTOCOL_CHANGED_SINCE_PUBLISH"
 
+# --- the charting table (M12a Part A, `charting/`, `console/api/charting.py`) ----------
+#: An event or a file for a study that is not in the published kept set (or left it).
+RECORD_NOT_KEPT = "RECORD_NOT_KEPT"
+#: Not retrieved or Exclude without its one reason; Other without words.
+FULLTEXT_REASON_REQUIRED = "FULLTEXT_REASON_REQUIRED"
+#: A reason that is not one of the options, or a reason where none is allowed.
+FULLTEXT_REASON_INVALID = "FULLTEXT_REASON_INVALID"
+ATTACHMENT_NOT_PDF = "ATTACHMENT_NOT_PDF"
+ATTACHMENT_TOO_LARGE = "ATTACHMENT_TOO_LARGE"
+#: ``GET …/attachment`` for a record with no PDF attached.
+ATTACHMENT_MISSING = "ATTACHMENT_MISSING"
+LINK_INVALID = "LINK_INVALID"
+CHARTING_EXPORT_FORMAT_INVALID = "CHARTING_EXPORT_FORMAT_INVALID"
+#: The protocol differs from the one the newest published round was screened under: read-only.
+CHARTING_PROTOCOL_REPLACED = "CHARTING_PROTOCOL_REPLACED"
+
 # --- request validation (H-input-limits, F5) ----------------------------------
 #: A body, query or path parameter pydantic refuses on any route (HTTP 422);
 #: ``details.errors`` lists ``loc``, ``msg`` and ``type`` for each error.
@@ -396,6 +412,15 @@ CONTRACT_ADDED = frozenset(
         CHASE_SEEDS_INVALID,
         CHASE_ACCEPT_PENDING,
         PROTOCOL_CHANGED_SINCE_PUBLISH,
+        RECORD_NOT_KEPT,
+        FULLTEXT_REASON_REQUIRED,
+        FULLTEXT_REASON_INVALID,
+        ATTACHMENT_NOT_PDF,
+        ATTACHMENT_TOO_LARGE,
+        ATTACHMENT_MISSING,
+        LINK_INVALID,
+        CHARTING_EXPORT_FORMAT_INVALID,
+        CHARTING_PROTOCOL_REPLACED,
         BODY_INVALID,
     }
     | LEG_ERROR_CODES
