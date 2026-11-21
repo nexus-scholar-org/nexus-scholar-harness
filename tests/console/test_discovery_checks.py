@@ -221,7 +221,10 @@ def test_recall_missed_and_stale(env):
     path.write_text(json.dumps({"shape": "discovery.recall-v1", "protocol_fingerprint": "sha256:old",
                                 "missed_everywhere": ["10.1/missed"], "found": 1, "total": 2}), encoding="utf-8")
     body = _checks(client, "recall")
-    assert _one(body, "RECALL_SEED_MISSED", "10.1/missed")["level"] == "warning"
+    missed = _one(body, "RECALL_SEED_MISSED", "10.1/missed")
+    assert missed["level"] == "warning"
+    # M11a part D (decision 2026-11-21 item 3, the spec's question 7): the query is changed on Plan now.
+    assert {k: missed["action"][k] for k in ("kind", "step", "section")} == {"kind": "step", "step": "plan", "section": "change-search"}
     assert "RECALL_CHECK_STALE" in _ids(body) and "RECALL_NOT_RUN" not in _ids(body)
 
 

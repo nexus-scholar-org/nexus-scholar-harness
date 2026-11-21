@@ -24,6 +24,7 @@ import {
   useJobStream,
   type LegView,
   type Refusal,
+  planSearchHref,
 } from "@/components/discovery-frame";
 import { DatabasePicker } from "@/components/database-picker";
 import { EstimateCard } from "@/components/discovery-estimate";
@@ -656,6 +657,7 @@ export function DiscoveryHarvest({ locale }: Readonly<{ locale: Locale }>) {
                     capField.current?.focus();
                   }}
                   inceptionHref={`/${locale}/inception/${origin ? `?console=${encodeURIComponent(origin)}` : ""}`}
+                  searchHref={planSearchHref(locale, origin)}
                 />
               ) : null}
               <section aria-labelledby="harvest-will" className="rounded-lg border border-rule bg-leaf p-5">

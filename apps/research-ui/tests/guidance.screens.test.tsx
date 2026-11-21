@@ -196,11 +196,11 @@ describe("guidance.screens", () => {
     { name: "discovery entry", hints: ["overview.lede", "overview.plan.line"], gone: ["Each line below is read from the engine."], primary: [/^Continue at /] },
     {
       name: "01 Plan",
-      hints: ["plan.picker.orderHelp", "plan.imports.hint", "plan.limits.mailto.help", "amend.help"],
+      hints: ["plan.picker.orderHelp", "plan.imports.hint", "plan.limits.mailto.help", "plan.search.help"],
       gone: ["Each string is sent exactly as written", "An export cannot be added after a harvest until combined corpora are built."],
       primary: ["Continue to Recall"],
     },
-    { name: "02 Recall", hints: ["recall.form.help", "amend.help"], gone: ["The check looks each one up and says which databases find it."], primary: ["Check these seeds"] },
+    { name: "02 Recall", hints: ["recall.form.help", "plan.search.help"], gone: ["The check looks each one up and says which databases find it."], primary: ["Check these seeds"] },
     { name: "03 Harvest", hints: ["harvest.form.capHelp", "harvest.form.noteHelp"], gone: ["Nothing is frozen by a harvest; the corpus is frozen on the hand-off screen."], primary: ["Start the harvest"] },
     { name: "04 Import", hints: ["import.limits.help"], gone: ["These appear in the search report."], primary: ["Add this file"] },
     { name: "05 Duplicates", hints: ["dedup.pairsNote"], gone: ["The rules and their settings are below."], primary: ["Continue to the report"] },
