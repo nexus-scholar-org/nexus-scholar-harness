@@ -575,6 +575,8 @@ Review round 2 of part B (on `0cdf80aa`): **APPROVE**. The twelve round-1 repair
 
 **Part B: READY FOR PR** (not pushed). Branch `dev/m11b/part-b-pilot`, stacked on part A. The PR gate on `fbf8887d` (6219 tests, 0 failed) stands for the later commits, which change documents only. Decision items 1 to 13 of part B wait for the researcher.
 
+Part B's decision items 1 to 13 were accepted by the researcher on 2026-11-21 (main session), and the push of part B was approved; the main session pushes it.
+
 ### Part C: the screening screens
 
 Branch `dev/m11b/part-c-screens`, stacked on part B (`5d13e86c`) · Lane **STANDARD** (UI over parts A and B) · Status: **IN PROGRESS: the engine side only.** The screens wait for `docs/ux/phase2-screening/final/13-criteria-pilot.md` to be FINAL (open questions 5 to 8 put to the researcher on 2026-11-21; 10 and 11 answered by the build: the result carries each record's outcome, reason code and criteria version; pilot routes are desktop-only; a pilot closes by itself when its last record is decided).
