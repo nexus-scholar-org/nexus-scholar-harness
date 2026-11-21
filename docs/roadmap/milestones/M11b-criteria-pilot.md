@@ -570,4 +570,3 @@ Part A's item 5 ("bind the version") does not reach pilot decisions: they carry 
 | pr (round 1 repairs) | `fbf8887d` (part A's `c65a48f2` and `origin/main` `b36303b8` merged in) | contract baseline, protocol schema, contract schemas, two-study fixture; both ruff commands; `git diff --check origin/main...HEAD`; `uv run pytest -q -n 4 --junitxml` (full suite) | current; in sync; exit 0; exit 0; clean; clean; clean; 6219 tests: 6204 passed, 15 skipped, 0 failed, 0 errors | 689 s |
 
 A gate started on `3a92daa2` was stopped when part A's branch moved (it brought code from `origin/main`); the run above is on the merged head.
-
