@@ -46,6 +46,7 @@ from scholar_harness.authority.generations import (
 )
 from scholar_harness.screening import events as ev
 from scholar_harness.screening import proposals as pr
+from scholar_harness.screening.criteria import AMENDMENTS_FILE as CRITERIA_AMENDMENTS_FILE
 
 EXPORT_NOT_PUBLISHED = "EXPORT_NOT_PUBLISHED"
 EXPORT_FORMAT_INVALID = "EXPORT_FORMAT_INVALID"
@@ -511,6 +512,65 @@ def _published_events(ws: Path, view: Published, published: datetime | None) -> 
     return out
 
 
+def _quoted(items: list[dict[str, Any]]) -> str:
+    parts = [f"{i.get('id')} (“{_clean(i.get('text'))}”)" for i in items]
+    return parts[0] if len(parts) == 1 else f"{', '.join(parts[:-1])} and {parts[-1]}"
+
+
+def _criteria_amendment_sentences(
+    ws: Path, published: datetime | None
+) -> tuple[list[str], list[dict[str, Any]], bool]:
+    """M11b part A (DoD 10, record (h)): one sentence per criteria amendment made
+    before publication, or that the criteria were not changed. Returns the
+    sentences, their figures, and whether the amendments file is a source."""
+    from .criteria import criteria_in_force
+
+    current = criteria_in_force(ws, until=published)
+    if not current.amendments:
+        return ["The criteria were not changed after the protocol was signed."], [], False
+    sentences: list[str] = []
+    figures: list[dict[str, Any]] = []
+    for row in current.amendments:
+        olds, news = list(row.get("from") or []), list(row.get("to") or [])
+        op, side = str(row.get("op")), str(row.get("side"))
+        if op == "reword":
+            change = f"{olds[0]['id']} was reworded: “{_clean(olds[0].get('text'))}” became “{_clean(news[0].get('text'))}”."
+        elif op == "split":
+            change = f"{_quoted(olds)} was split into {_quoted(news)}."
+        elif op == "merge":
+            change = f"{_quoted(olds)} were merged into {_quoted(news)}."
+        elif op == "remove":
+            change = f"{_quoted(olds)} was removed."
+        elif op == "add":
+            change = f"{_quoted(news)} was added as an {side} criterion."
+        else:  # reason_category
+            change = (
+                f"The reason category of {olds[0]['id']} changed from {olds[0].get('reason_category') or 'none'} "
+                f"to {news[0].get('reason_category') or 'none'}."
+            )
+        decided = int(row.get("decided_at_time") or 0)
+        again = int((row.get("shown_again") or {}).get("total") or 0)
+        when = f"On {_date(row.get('amended_at'))}"
+        when += f", after {decided} records had been decided," if decided else ","
+        sentence = f"{when} the screening criteria were amended: {change} Reason: {_clean(row.get('reason'))}"
+        sentence = sentence.rstrip(".") + "."
+        if decided:
+            sentence += f" {again} records already decided were screened again."
+        else:
+            sentence += " No record had been decided under the earlier wording."
+        sentences.append(sentence)
+        figures.append({
+            "amendment_id": row.get("amendment_id"), "op": op, "side": side, "date": _date(row.get("amended_at")),
+            "from_ids": [i.get("id") for i in olds], "to_ids": [i.get("id") for i in news],
+            "from": [{"id": i.get("id"), "text": _clean(i.get("text"))} for i in olds],
+            "to": [{"id": i.get("id"), "text": _clean(i.get("text"))} for i in news],
+            "reason": _clean(row.get("reason")),
+            "categories": [i.get("reason_category") or "none" for i in (*olds, *news)],
+            "criteria_version_after": row.get("criteria_version_after"), "decided": decided, "screened_again": again,
+        })
+    return sentences, figures, True
+
+
 def build_methods(ws: Path) -> dict[str, Any]:
     """The methods paragraph of the published screening. Pure read."""
     ws = Path(ws)
@@ -694,6 +754,12 @@ def build_methods(ws: Path) -> dict[str, Any]:
             f"{AMENDED_LABELS[amendment['field']]} from “{words.get(amendment['from'], amendment['from'])}” "
             f"to “{words[amendment['to']]}”; the signed protocol and every decision are unchanged."
         )
+    # M11b part A (DoD 10): the criteria amendments made before publication, or that there were none.
+    criteria_sentences, criteria_figures, criteria_sourced = _criteria_amendment_sentences(ws, published)
+    sentences.extend(criteria_sentences)
+    figures["criteria_amendments"] = criteria_figures
+    if criteria_sourced:
+        source(CRITERIA_AMENDMENTS_FILE)
     # M7b-guideline: the reporting guideline (none states nothing).
     if method.reporting in GUIDELINE_SENTENCES:
         sentences.append(GUIDELINE_SENTENCES[method.reporting])

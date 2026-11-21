@@ -25,6 +25,7 @@ from typing import Any
 from fastapi import APIRouter, HTTPException, Request, Response
 from pydantic import BaseModel, ConfigDict, Field
 
+from ...screening import criteria as cr
 from ...screening import events as ev
 from ...workspace.atomic import atomic_write_text
 from ...screening import proposals as pr
@@ -49,7 +50,8 @@ DEFAULT_SETTINGS: dict[str, Any] = {
 }
 ADVANCE_MODES = ("show_draft_then_next", "next_at_once")
 QUEUE_ORDERS = ("seeded", "agent_uncertainty")
-VIEWS = ("needs_you", "proposal_ready", "no_proposal", "title_only", "decided")
+#: M11b part A: ``recheck``, the decisions a criteria revision shows again.
+VIEWS = ("needs_you", "proposal_ready", "no_proposal", "title_only", "decided", "recheck")
 
 
 def _error(status: int, code: str, message: str, **extra: Any) -> HTTPException:
@@ -134,11 +136,12 @@ def _corpus_accepted(ws: Path) -> bool:
 
 def _in_force(ws: Path, context: ev.ScreeningContext, settings: dict[str, Any]):
     """``proposal -> (outcome, reason_code)`` under the not-reported policy in force (H-screening-drafts)."""
-    protocol = json.loads((ws / "protocol.json").read_text(encoding="utf-8"))
-    criteria = pr.Criteria.from_protocol(protocol)
+    # M11b part A: the criteria in force, and a draft of an earlier criteria version keeps its stored outcome.
+    criteria = pr.Criteria.from_in_force(context.criteria)
     policy = settings["not_reported_policy"]
     return lambda proposal: pr.outcome_in_force(
-        proposal, criteria, not_reported=policy, protocol_fingerprint=context.protocol_fingerprint
+        proposal, criteria, not_reported=policy, protocol_fingerprint=context.protocol_fingerprint,
+        criteria_version=context.criteria_version,
     )
 
 
@@ -156,12 +159,23 @@ def _state(ws: Path) -> tuple[ev.ScreeningContext, dict[str, Any], list[dict], d
         e for e in ev.current_events(ev.read_events(ws), context)
         if e.get("screener_id") == settings["screener_id"]
     ]
+    # M11b part A: a decision a criteria revision shows again is not decided until it is decided again.
     winners = {
         study: winner
         for study in context.study_batch
         if (winner := ev.winning_event(events, study, settings["screener_id"])) is not None
+        and not context.awaiting_recheck(winner)
     }
     return context, settings, events, winners
+
+
+def _recheck(context: ev.ScreeningContext, events: list[dict[str, Any]], screener: str) -> dict[str, dict[str, Any]]:
+    """The screener's decisions a criteria revision shows again, by study (M11b part A)."""
+    return {
+        study: winner
+        for study in context.study_batch
+        if (winner := ev.winning_event(events, study, screener)) is not None and context.awaiting_recheck(winner)
+    }
 
 
 @router.get("/summary")
@@ -178,7 +192,7 @@ def summary_of(ws: Path) -> dict[str, Any]:
         lanes = {"agent": 0, "you": 0, "second_screener": "PARKED"}
         return {
             "total": 0, "decided": 0, "by_outcome": empty, "agent_proposed": 0, "needs_you": 0, "conflicts": 0,
-            "lanes": lanes, "protocol_changed": False,
+            "lanes": lanes, "protocol_changed": False, "criteria_version": _criteria(ws).version, "recheck": 0,
         }
     context, settings, events, winners = _state(ws)
     proposed = {p["study_id"] for p in pr.read_proposals(ws)}
@@ -198,7 +212,16 @@ def summary_of(ws: Path) -> dict[str, Any]:
         # Review F2 (decision 2026-11-12): the batches were prepared under
         # another protocol, so earlier decisions count nowhere; Home says so.
         "protocol_changed": context.protocol_changed,
+        # M11b part A: the criteria version in force, and how many decisions a revision shows again.
+        "criteria_version": context.criteria_version,
+        "recheck": len(_recheck(context, events, settings["screener_id"])),
     }
+
+
+def _criteria(ws: Path):
+    from ...screening.criteria import criteria_in_force
+
+    return criteria_in_force(ws)
 
 
 @router.get("/queue")
@@ -212,7 +235,8 @@ def queue(
     if view not in VIEWS:
         raise _error(422, "INVALID_OUTPUT", f"view must be one of {VIEWS}")
     ws = _ws(request)
-    context, settings, _events, winners = _state(ws)
+    context, settings, events, winners = _state(ws)
+    recheck = _recheck(context, events, settings["screener_id"]) if view == "recheck" else {}
     # The order is the journaled setting; a request for another one is
     # refused, so the order shown is always the order recorded.
     if order is not None and order != settings["queue_order"]:
@@ -220,6 +244,10 @@ def queue(
     order = settings["queue_order"]
     papers = _papers(ws, context)
     latest = {p["study_id"]: p for p in sorted(pr.read_proposals(ws), key=lambda p: p.get("created_at") or "")}
+    # M11b part A (DoD 9): a draft made under an earlier criteria version does not order the queue.
+    current_drafts = {
+        s: p for s, p in latest.items() if pr.draft_version(p) == context.criteria_version
+    }
     order_ids = [s for index in sorted(context.batches) for s in context.batches[index].candidates]
 
     def keep(study: str) -> bool:
@@ -231,6 +259,7 @@ def queue(
             "no_proposal": not decided and not has_proposal,
             "title_only": not decided and not _has_abstract(papers.get(study, {})),
             "decided": decided,
+            "recheck": study in recheck,
         }[view]
 
     chosen = [s for s in order_ids if keep(s)]
@@ -241,7 +270,7 @@ def queue(
         outcome = _in_force(ws, context, settings)
 
         def unsure(study: str) -> tuple[int, int]:
-            proposal = latest.get(study)
+            proposal = current_drafts.get(study)
             if proposal is None:
                 return (2, 0)
             failed = sum(1 for c in proposal.get("validators", []) if not c.get("ok"))
@@ -274,8 +303,8 @@ def record(study_id: str, request: Request) -> dict[str, Any]:
         raise _error(404, refusals.UNKNOWN_STUDY, f"{study_id} is not in the bound corpus")
     paper = _papers(ws, context).get(study_id, {})
     protocol = json.loads((ws / "protocol.json").read_text(encoding="utf-8"))
-    criteria = protocol.get("screening_criteria") or {}
     batch = context.batches[context.study_batch[study_id]]
+    earlier = _recheck(context, events, settings["screener_id"]).get(study_id)
     return {
         "study_id": study_id,
         "title": paper.get("title", ""),
@@ -289,16 +318,24 @@ def record(study_id: str, request: Request) -> dict[str, Any]:
         "search_terms": search_terms(
             protocol, paper.get("title", ""), paper.get("abstract") if _has_abstract(paper) else None
         ),
+        # M11b part A: the criteria in force (signed + amendments), with the version each wording dates from.
         "criteria": [
-            {"id": c["id"], "text": c.get("description") or c.get("text") or c.get("criterion") or "", "kind": kind}
-            for kind in ("inclusion", "exclusion")
-            for c in criteria.get(kind) or []
-            if isinstance(c, dict) and c.get("id")
+            {"id": c.id, "text": c.text, "kind": c.side, "since_version": c.since_version}
+            for c in context.criteria.all
         ],
+        "criteria_version": context.criteria_version,
+        # The decision a criteria revision shows again, made under an earlier version (null otherwise).
+        "shown_again": None if earlier is None else {
+            "decision": earlier,
+            "criteria_version": earlier.get("criteria_version") or 1,
+        },
         "binding": {
             "protocol_fingerprint": context.protocol_fingerprint,
             "batch_id": batch.batch_id,
             "batch_sha256": batch.batch_sha256,
+            # M11b part A, decision item 5 (decided 2026-11-21): the criteria version the record
+            # is shown under; intake refuses a decision bound under another (STALE_BINDING).
+            "criteria_version": context.criteria_version,
         },
         "my_decision": winners.get(study_id),
         "history": [e for e in events if e["study_id"] == study_id],
@@ -354,6 +391,10 @@ def record_proposal(study_id: str, request: Request) -> dict[str, Any]:
             },
             "validators": proposal.get("validators", []),
             "cannot_decide": proposal.get("cannot_decide", False),
+            # M11b part A (DoD 9): the criteria version the draft answered, and whether that
+            # wording is no longer in force (the screen labels it "made under the earlier wording").
+            "criteria_version": pr.draft_version(proposal),
+            "earlier_wording": pr.draft_version(proposal) != context.criteria_version,
             # M8b: where each quote shows in the record, or that it is not at its offsets.
             "quotes": quote_places(output.get("criteria", []), _papers(ws, context).get(study_id, {})),
         }
@@ -433,9 +474,21 @@ def resolve_conflict(study_id: str, body: ResolveBody, request: Request) -> dict
         "resolves": [e["event_id"] for e in match["events"] if e["event_id"] != kept["event_id"]],
         "note": kept.get("note") or f"Conflict resolved: kept {kept['event_id']}",
     }
+    # M11b part A, review round 3 (decision item 11): the resolution is bound to the record as it is
+    # now (a binding from before a criteria revision would be refused), and it keeps the criteria
+    # version of the decision it keeps, so a revision that could change that decision shows the
+    # record again rather than counting it under the new wording.
+    batch = context.batches[context.study_batch[study_id]]
+    resolution["binding"] = {
+        "protocol_fingerprint": context.protocol_fingerprint,
+        "batch_id": batch.batch_id,
+        "batch_sha256": batch.batch_sha256,
+        "criteria_version": context.criteria_version,
+    }
     results = ev.intake(
         ws, [resolution], token_scope=scope, received_at=_now(), device=scope, context=context,
         after_commit=lambda stored: _project(ws, context, stored),
+        resolution_version=cr.event_version(kept),
     )
     return {"results": [r.as_dict() for r in results]}
 
@@ -534,6 +587,72 @@ def amend_method(body: AmendmentBody, request: Request) -> dict[str, Any]:
     except m.AmendmentInvalid as exc:
         raise _error(422, exc.code, str(exc)) from exc
     return {"amendment": row, "settings": load_settings(ws)}
+
+
+# --- M11b part A: the criteria in force and their amendments ----------------------
+
+
+@router.get("/criteria")
+def get_criteria(request: Request) -> dict[str, Any]:
+    """The criteria in force (signed + amendments), the retired ids, the version and the amendments (DoD 7b)."""
+    from ...screening.criteria import any_batch_approved, criteria_in_force
+
+    ws = _ws(request)
+    if not (ws / "protocol.json").is_file():
+        raise _error(409, refusals.SNAPSHOT_NOT_ACCEPTED, "no protocol.json in this workspace")
+    current = criteria_in_force(ws)
+    context = ev.load_context(ws)
+    return {
+        **current.as_dict(),
+        # What the revise dialog needs to know before it offers anything.
+        "can_amend": bool(context.batches) and not any_batch_approved(ws),
+        "batches_prepared": bool(context.batches),
+        "batch_approved": any_batch_approved(ws),
+    }
+
+
+class CriteriaAmendmentBody(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    op: str
+    side: str
+    ids: list[str] = Field(default_factory=list, max_length=20)
+    #: One text (reword, merge, add) or a list of 2 to 10 (split).
+    text: str | list[str] | None = None  # the 2-to-10 rule for a split is plan_amendment's
+    reason_category: str | None = None
+    reason: str | None = None
+    #: ``false`` is the dry call; it must be given either way.
+    confirm: bool | None = None
+
+
+@router.post("/criteria/amendments")
+def amend_criteria(body: CriteriaAmendmentBody, request: Request) -> dict[str, Any]:
+    """Revise a criterion as an amendment beside the signed protocol (desktop only; DoD 1, 6, 7).
+
+    ``protocol.json``, the corpus snapshot and the batch files keep their bytes.
+    ``confirm: false`` answers the new ids and the records it would show again
+    and writes nothing.
+    """
+    from ...screening import criteria as cr
+
+    ws = _ws(request)
+    if body.confirm is None:
+        raise _error(422, cr.CRITERIA_AMENDMENT_INVALID, "confirm is required: false for a dry call, true to record")
+    if not (ws / "protocol.json").is_file():
+        raise _error(409, refusals.SNAPSHOT_NOT_ACCEPTED, "no protocol.json in this workspace")
+    current = load_settings(ws)
+    try:
+        answer = cr.amend_criteria(
+            ws, op=body.op, side=body.side, ids=body.ids, text=body.text,
+            reason_category=body.reason_category,
+            reason_category_given="reason_category" in body.model_fields_set,
+            reason=body.reason, confirm=body.confirm,
+            amended_by=str(current["screener_id"]), amended_at=_now(),
+        )
+    except cr.AmendmentRefused as exc:
+        raise _error(exc.status, exc.code, exc.message) from exc
+    except ev.LockBusy as exc:
+        raise _error(503, "ATOMIC_COMMIT_FAILED", "the event log is busy; retry") from exc
+    return answer
 
 
 #: What the approver name is: a name typed on this computer, not a verified
@@ -1038,9 +1157,10 @@ def start_proposal_run(body: RunBody, request: Request) -> dict[str, Any]:
     if body.dry_run:
         ids = ids[: pg.DIRECT_LIMIT]
     if body.estimate_only:
-        protocol = json.loads((ws / "protocol.json").read_text(encoding="utf-8"))
-        spec = pg.run_spec(protocol, model=body.model, effort=body.effort, max_tokens=4096)
         context = ev.load_context(ws)
+        # M11b part A: the prompt a run would send names the criteria in force.
+        protocol = context.criteria.protocol_in_force(json.loads((ws / "protocol.json").read_text(encoding="utf-8")))
+        spec = pg.run_spec(protocol, model=body.model, effort=body.effort, max_tokens=4096)
         papers = runs._papers(ws, context)
         records = [pg.EvalRecord(s, "", *runs._text(papers.get(s, {}))) for s in ids]
         batch = body.provider == "anthropic" and len(ids) > pg.DIRECT_LIMIT
@@ -1089,6 +1209,19 @@ def _run_view(run: dict[str, Any]) -> dict[str, Any]:
     return view
 
 
+def _earlier_wording_drafts(ws: Path) -> dict[str, Any]:
+    """How many records' latest draft predates the criteria version in force (and which)."""
+    if not (ws / "protocol.json").is_file():
+        return {"criteria_version": 1, "count": 0, "study_ids": []}
+    context = ev.load_context(ws)
+    latest: dict[str, dict[str, Any]] = {}
+    for p in sorted(pr.read_proposals(ws), key=lambda p: (p.get("created_at") or "", p.get("proposal_id") or "")):
+        if p.get("protocol_fingerprint") == context.protocol_fingerprint and p.get("study_id") in context.study_batch:
+            latest[p["study_id"]] = p
+    stale = sorted(s for s, p in latest.items() if pr.draft_version(p) != context.criteria_version)
+    return {"criteria_version": context.criteria_version, "count": len(stale), "study_ids": stale}
+
+
 @router.get("/proposals/setup")
 def proposal_setup(request: Request) -> dict[str, Any]:
     """What the run screen needs before a run: key presence (never a key), the task, consent, runs."""
@@ -1111,6 +1244,8 @@ def proposal_setup(request: Request) -> dict[str, Any]:
     last_model = {"provider": latest.get("provider"), "model": latest.get("model")} if latest and latest.get("model") else None
     return {
         "last_model": last_model,
+        # M11b part A (DoD 9): the latest drafts made under an earlier criteria version.
+        "earlier_wording_drafts": _earlier_wording_drafts(ws),
         "task": {
             "task_version": task.task_version,
             "prompt_sha256": task.prompt_sha256,
@@ -1201,7 +1336,12 @@ def agreement(request: Request) -> dict[str, Any]:
         if r.get("screener_id") == screener and ev.is_current(r, context):
             first = reveals.get(r["study_id"])
             reveals[r["study_id"]] = min(first, r["revealed_at"]) if first else r["revealed_at"]
-    current = [p for p in pr.read_proposals(ws) if p.get("protocol_fingerprint") == context.protocol_fingerprint]
+    # M11b part A (DoD 9): a draft made under an earlier criteria version is not counted.
+    current = [
+        p for p in pr.read_proposals(ws)
+        if p.get("protocol_fingerprint") == context.protocol_fingerprint
+        and pr.draft_version(p) == context.criteria_version
+    ]
     latest = {p["study_id"]: p for p in sorted(current, key=lambda p: (p.get("created_at") or "", p["proposal_id"]))}
     in_force = _in_force(ws, context, settings)  # H-screening-drafts
     table = dict.fromkeys(_PAIRS.values(), 0)
@@ -1219,6 +1359,10 @@ def agreement(request: Request) -> dict[str, Any]:
             after_seeing += 1  # decided with the draft already in view (blinding off)
             continue
         decision = max(before, key=lambda e: str(e.get("received_at") or ""))
+        # Review round 1, F4 (M11b part A): a decision made under an earlier criteria
+        # version answered other criteria than the draft (a current one); not compared.
+        if cr.event_version(decision) != context.criteria_version:
+            continue
         compared += 1
         you, agent = decision["outcome"], in_force(proposal)[0]
         if "MAYBE" in (you, agent):

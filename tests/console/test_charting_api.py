@@ -64,6 +64,33 @@ def _row(table: dict, study: str) -> dict:
 # ------------------------------------------------------------------ DoD 1: rows of every published round
 
 
+def test_the_full_text_reasons_are_the_criteria_in_force(env, monkeypatch):
+    """The reasons follow the criteria in force, not the signed list read on its own (M11b part A, DoD 2)."""
+    from scholar_harness.charting import table as tb
+    from scholar_harness.screening import criteria as cr
+
+    _client, ws, _ids = env
+    signed = cr.criteria_in_force(ws)
+    assert signed.exclusion and signed.inclusion, "anti-vacuity: the fixture has criteria on both sides"
+    reworded = cr.CriteriaInForce(
+        2,
+        signed.inclusion,
+        tuple(cr.Criterion(c.id, c.side, "Reworded: " + c.text, c.reason_category, c.maps_to_rqs, 2) for c in signed.exclusion),
+        (),
+        (),
+        signed.protocol_fingerprint,
+        signed.used,
+    )
+    monkeypatch.setattr(cr, "criteria_in_force", lambda workspace, **_kw: reworded)
+    options = tb.reason_options(ws)
+    labels = {o["code"]: o["label"] for o in options}
+    for c in signed.exclusion:
+        assert labels[c.id] == "Reworded: " + c.text
+    for c in signed.inclusion:
+        assert f"FAILS-{c.id}" in labels
+    assert options[-1]["code"] == "OTHER"
+
+
 def test_the_table_lists_the_published_include_and_unclear_records_with_their_round(env):
     client, ws, ids = env
     table = client.get(BASE).json()

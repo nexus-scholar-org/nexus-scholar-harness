@@ -162,6 +162,23 @@ def run_recommend(
             requested=str(output_path),
         )
 
+    # M11b part A (decision 2026-11-21, part A item 1): the batch file embeds the
+    # signed wording and is hashed into every binding, so it is never rewritten.
+    # Once the criteria are amended this path would recommend under the old
+    # wording and ids; it refuses, and the engine's agent run is the path.
+    from .criteria import CRITERIA_AMENDED_USE_ENGINE, criteria_in_force
+
+    in_force = criteria_in_force(ws)
+    if in_force.version > 1:
+        raise WorkerRefused(
+            CRITERIA_AMENDED_USE_ENGINE,
+            f"the screening criteria were amended (version {in_force.version}); the batch file "
+            "holds the signed wording, so this worker would recommend under it. "
+            "Draft with the agent run in the app, which reads the criteria in force",
+            batch_index=batch_index,
+            criteria_version=in_force.version,
+        )
+
     batch_file = _batch_file(ws, batch_index)
     if not batch_file.is_file():
         raise WorkerRefused(
