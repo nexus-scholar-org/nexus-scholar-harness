@@ -1079,20 +1079,28 @@ function ConceptTools({ locale, origin, place, version, providers, offline, refr
   const [removedDry, setRemovedDry] = useState<RemovedAnswer | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<Refusal | null>(null);
+  const [costError, setCostError] = useState<Refusal | null>(null);
+  const [retry, setRetry] = useState(0);
   const names = (providers?.length ? providers : ["openalex", "semanticscholar", "arxiv"]).filter((n) => n !== "crossref");
   const concept = version.concepts[Math.min(index, version.concepts.length - 1)];
   const toolsKey = `${index}|${JSON.stringify(version.concepts)}`;
   useEffect(() => {
     if (version.concepts.length < 2) return setRemovedDry(null);
     const controller = new AbortController();
-    postRemoved(origin, place, { version, concept_index: index, dry_run: true }, controller.signal).then(setRemovedDry, (e) => {
-      if (controller.signal.aborted) return;
-      setRemovedDry(null);
-      setError(refusalOf(e));
-    });
+    postRemoved(origin, place, { version, concept_index: index, dry_run: true }, controller.signal).then(
+      (read) => {
+        setRemovedDry(read);
+        setCostError(null);
+      },
+      (e) => {
+        if (controller.signal.aborted) return;
+        setRemovedDry(null);
+        setCostError(refusalOf(e));
+      },
+    );
     return () => controller.abort();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [toolsKey, origin, refresh]);
+  }, [toolsKey, origin, refresh, retry]);
   const run = async <T,>(fn: () => Promise<T>, done: (v: T) => void) => {
     setBusy(true);
     setError(null);
@@ -1199,6 +1207,7 @@ function ConceptTools({ locale, origin, place, version, providers, offline, refr
         </div>
       ) : null}
       {error ? <WorkbenchRefusal locale={locale} refusal={error} onRetry={() => setError(null)} /> : null}
+      {costError ? <WorkbenchRefusal locale={locale} refusal={costError} onRetry={() => setRetry((n) => n + 1)} /> : null}
     </div>
   );
 }
@@ -1222,6 +1231,8 @@ function SeedsSection({
   const [check, setCheck] = useState<SeedsAnswer | null>(null);
   const [costs, setCosts] = useState<SeedsAnswer["cost"] | null>(null);
   const [sent, setSent] = useState(0);
+  /** The seeds and version the last real check was for (review C round 3). */
+  const realKey = useRef<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [doi, setDoi] = useState("");
   const [rejected, setRejected] = useState<string[]>([]);
@@ -1233,7 +1244,7 @@ function SeedsSection({
       (read) => {
         setCosts(read.cost);
         // After a real check its answer stays shown; the dry call only renews the costs.
-        setCheck((current) => (current && !current.dry_run && sent ? current : read));
+        setCheck((current) => (current && !current.dry_run && realKey.current === seedKey ? current : read));
       },
       (e) => {
         if (!controller.signal.aborted) onFail(e);
@@ -1246,6 +1257,7 @@ function SeedsSection({
     setBusy(true);
     try {
       setCheck(await postSeeds(origin, place, { version, seeds, ...opts, dry_run: false }));
+      realKey.current = seedKey;
       setSent((n) => n + 1);
     } catch (e) {
       onFail(e);

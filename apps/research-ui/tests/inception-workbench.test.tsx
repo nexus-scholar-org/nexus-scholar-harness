@@ -216,6 +216,22 @@ describe("inception.workbench", () => {
     expect(real(engine, "/removed")).toHaveLength(1);
   });
 
+  it("a refused cost read says why, and Check again reads it again (review C round 3)", async () => {
+    const { engine } = open();
+    await counted();
+    engine.refuseNext(`POST ${BENCH}/removed`, { status: 409, body: { detail: { code: "DISCOVERY_JOB_ACTIVE", message: "busy" } } });
+    fireEvent.change(screen.getByLabelText("Concept"), { target: { value: "1" } });
+    const card = await waitFor(() => {
+      const el = document.querySelector("[data-concept-tools] [data-workbench-refusal='DISCOVERY_JOB_ACTIVE']") as HTMLElement | null;
+      if (!el) throw new Error("no refusal yet");
+      return el;
+    });
+    expect(screen.getByRole("button", { name: /Read what this concept removes/ })).toBeDisabled();
+    fireEvent.click(within(card).getByRole("button", { name: "Check again" }));
+    await waitFor(() => expect(screen.getByRole("button", { name: "Read what this concept removes (1 request)" })).not.toBeDisabled());
+    expect(document.querySelector("[data-concept-tools] [data-workbench-refusal]")).toBeNull();
+  });
+
   it("known papers: each seed's concepts in words, the warning when they cannot test the query, and other databases not checked here", async () => {
     const strict = "Weed segmentation from UAV multispectral imagery";
     open({ seedTitles: { "10.1/a": strict, "10.1/b": strict, "10.1/c": strict } }, { golden_seeds: ["10.1/a", "10.1/b", "10.1/c"] });
@@ -226,6 +242,19 @@ describe("inception.workbench", () => {
     expect(screen.getByText(/Not checked here\. The recall check on Plan runs the full query\./)).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Check seeds in OpenAlex" }));
     expect(await screen.findByText(/OpenAlex is not asked yet: this check waits for a first test with the real database\./)).toBeInTheDocument();
+  });
+
+  it("after a real seed check, an edit shows the seed check of the new version (review C round 3)", async () => {
+    const strict = "Weed segmentation from UAV multispectral imagery";
+    open({ seedTitles: { "10.1/a": strict }, openalexIds: true }, { golden_seeds: ["10.1/a"] });
+    await section("seeds");
+    fireEvent.click(await screen.findByRole("button", { name: /Check seeds in OpenAlex/ }));
+    await waitFor(() => expect(screen.getByText("multispectral · found")).toBeInTheDocument());
+    const name = screen.getByLabelText("Concept 2");
+    fireEvent.change(name, { target: { value: "hyperspectral" } });
+    fireEvent.blur(name);
+    await waitFor(() => expect(screen.getByText("hyperspectral · lacks")).toBeInTheDocument());
+    expect(screen.queryByText("multispectral · found")).toBeNull();
   });
 
   it("a seed that lacks a concept is missed by the words, with its own term offered; too few readable seeds say so", async () => {

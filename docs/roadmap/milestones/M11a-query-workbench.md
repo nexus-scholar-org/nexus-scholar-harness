@@ -483,3 +483,10 @@ Review round 2 (on `71f14450`): **CHANGES**, 1 P2, 4 P3 (C1 to C11 confirmed rep
 
 Round-2 follow-ups, not repaired: a `timeout` row can also mean "not started in time" (decision A item 4), which "did not answer within 45 s" does not say; with the OpenAlex key missing the removed read's button says "(0 requests)".
 
+Review round 3 (on `2cef66f7`): **CHANGES**, 1 P2, 1 P3 (R1, R2, R5 confirmed; R3 partly), both taken:
+
+| # | Finding | Repair | Test |
+| :-- | :-- | :-- | :-- |
+| P2-R6 | After one real seed check, every later dry answer was ignored, even for an edited version: the panel showed the old version's seed check | a real check's answer stays only while the seeds and version are the ones it was for | `"after a real seed check, an edit shows the seed check of the new version"` |
+| P3-R7 | "Check again" on a refused cost read only cleared the message; the button stayed disabled | the cost read has its own refusal, its "Check again" reads again, and a later success clears it | `"a refused cost read says why, and Check again reads it again"` |
+
