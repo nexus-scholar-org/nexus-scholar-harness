@@ -24,7 +24,13 @@ GitHub Releases — no source checkout, no per-kit installs.
 > (decision 2026-11-21, M12a items 21 and 27, K0): `scholar-pdf download` and `ingest` need a contact e-mail
 > (`SCHOLAR_MAILTO`, or the kit's `MAILTO`; refused `MAILTO_NOT_SET` without),
 > name the app in their User-Agent, request only the providers' own open-access
-> locations (no guessed publisher URL), and refuse an institutional proxy. Known
+> locations (no guessed publisher URL), and refuse an institutional proxy.
+> `download` takes the best open copy listed with a direct PDF address
+> (published version first, then accepted manuscript, then submitted version or
+> preprint), names that copy in its summary, and says why a DOI has no file, in
+> words and in its exit code: 3 a lookup failed (run again later), 1 a listed
+> address gave no PDF, 4 open access but no direct PDF address listed, 5 no open
+> copy listed. Known
 > defects that Part K of M12a still repairs: OpenAlex asked without its key,
 > 403/404/410 retried (PDF-06), no manifest of which file is which DOI (PDF-07),
 > exit 0 on some failures (PDF-15); check the downloaded files by hand.

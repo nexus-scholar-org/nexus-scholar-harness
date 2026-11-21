@@ -237,7 +237,8 @@ latent bug**, with the working path in parentheses.
   `is_valid_pdf`/`validate_pdf_structure`/`clean_invalid_pdf`, publisher direct-PDF
   + proxy-rewrite helpers.
 - **CLI:** `download` (`--doi` repeatable / `--input` JSON, `--output`, `--smart-names`,
-  `--export json|bibtex`, `--proxy*` (refused, `PROXY_REFUSED`), `--strict-validate`, `-c`) /
+  `--export json|bibtex`, `--proxy*` (refused, `PROXY_REFUSED`), `--strict-validate`, `-c`;
+  exit codes: 0 every DOI has its file; 3 a lookup failed (run again later); 1 a listed address gave no PDF; 4 open access but no direct PDF address listed; 5 no open copy listed) /
   `ingest` (production since K0, decision 2026-11-21, M12a items 21 and 27: a contact
   e-mail required, `MAILTO_NOT_SET` without; the app's own User-Agent; no guessed
   publisher URL; no proxy) / `extract`
@@ -260,7 +261,11 @@ latent bug**, with the working path in parentheses.
   `DOWNLOAD_DIR`, `MAX_CONCURRENT_DOWNLOADS`, `DOWNLOAD_TIMEOUT`,
   `PROXY_URL/PROXY_STYLE` (refused by `download`/`ingest`), `PDF_STRUCTURAL_VALIDATION`,
   `ENABLE_PUBLISHER_DIRECT_PATTERNS` (default off; `true` refused; no prefix); lookup =
-  OpenAlex best_oa → Unpaywall, only the provider's own location requested (the
+  every open location OpenAlex lists (`best_oa_location`, `primary_location`,
+  `locations`), then Unpaywall's (`oa_locations`) when OpenAlex lists no direct PDF
+  address; best version first (published, accepted, submitted), at most three
+  addresses tried, only a provider's own direct PDF address requested, never a
+  landing page (H-pdf-resolver-locations, `scholar_pdf.open_copies`; the
   publisher patterns are no longer read, K0; removed in Part K); User-Agent
   `nexus-scholar/<version> (mailto:…)`;
   validation = ≥10 KB + `%PDF-` in first 1 KB + `%%EOF` in last 8 KB (+ optional
