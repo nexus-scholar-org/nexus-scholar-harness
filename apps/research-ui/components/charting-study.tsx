@@ -205,7 +205,7 @@ function StudyScreen({ locale }: Readonly<{ locale: Locale }>) {
     [origin],
   );
 
-  // The study, the table's place and the neighbours, read once after mounting.
+  // The study, the list's place and the neighbours, read once after mounting.
   useEffect(() => {
     const query = new URLSearchParams(window.location.search);
     const id = query.get("id");
@@ -221,7 +221,7 @@ function StudyScreen({ locale }: Readonly<{ locale: Locale }>) {
       try {
         const table = await getCharting(origin);
         setScreener(table.screener_id);
-        // The list is the table's "Show" list when the study was opened, kept as it was then.
+        // The list is the charting screen's "Show" list when the study was opened, kept as it was then.
         let ids = visibleRows(table.rows, next.show, next.excluded).map((r) => r.study_id);
         if (!ids.includes(id)) ids = visibleRows(table.rows, "all", true).map((r) => r.study_id);
         setList(ids);
@@ -403,7 +403,7 @@ function StudyScreen({ locale }: Readonly<{ locale: Locale }>) {
     setDrafts((current) => ({ ...current, [cid]: { ...(current[cid] ?? { value: "", note: "", whereFrom: "" }), ...patch } }));
   }
 
-  /** Move to the next or previous study of the list, saving first; past the last one, back to the table. */
+  /** Move to the next or previous study of the list, saving first; past the last one, back to the charting screen. */
   async function move(delta: number) {
     if (switching || !studyId) return;
     await commitAll();
