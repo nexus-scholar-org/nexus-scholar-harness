@@ -270,3 +270,76 @@ def lacking(version: Version, text: str) -> list[str]:
 def matches(version: Version, text: str) -> bool:
     """Whether ``text`` holds a term of every concept (the query's AND by words)."""
     return all(concepts_found(version, text))
+
+
+# --------------------------------------------------------------------------- the seed check (M11a part B)
+
+#: Fewer readable known papers than this cannot test a query (the checks' ``SEEDS_FEW``).
+SEEDS_FEW = 3
+#: Terms of a known paper's title offered in a missing concept's place.
+SEED_SUGGEST_MAX = 5
+
+
+def record_text(record: dict[str, Any]) -> str:
+    """The title, the abstract and the keywords of a record, as one text to match."""
+    keywords = record.get("keywords") or []
+    words_ = " ".join(str(k) for k in keywords) if isinstance(keywords, list) else str(keywords)
+    return " ".join(str(p) for p in (record.get("title") or "", record.get("abstract") or "", words_))
+
+
+def readable(record: dict[str, Any]) -> bool:
+    """A record can be read when its title or its abstract is known."""
+    return bool(str(record.get("title") or "").strip() or str(record.get("abstract") or "").strip())
+
+
+def related(candidate: str, version: Version) -> bool:
+    """Whether a candidate term shares a folded word with a term of the query."""
+    cand = set(words(candidate))
+    return any(cand & set(words(t)) for c in version.concepts for t in c.terms)
+
+
+def seed_check(version: Version, seeds: list[dict[str, Any]], *, candidates: Any = None) -> dict[str, Any]:
+    """Which concepts each known paper's words contain, and whether the papers can test the query.
+
+    ``seeds`` are ``{doi, title, abstract, keywords}``; a seed with neither a
+    title nor an abstract is ``not read`` and counts neither way. The warning:
+    ``few`` (fewer than :data:`SEEDS_FEW` readable), ``all`` (every readable
+    seed uses a term of every concept), ``concept`` (some concepts no readable
+    seed lacks; listed in ``untested``). A match by words is a lower bound:
+    databases also match keywords and word stems. ``candidates(text)`` gives
+    the 1 to 3 word terms a seed's title offers in a missing concept's place.
+    """
+    rows: list[dict[str, Any]] = []
+    for seed in seeds:
+        row: dict[str, Any] = {"doi": seed.get("doi"), "title": seed.get("title") or None, "read": readable(seed)}
+        if row["read"]:
+            found = concepts_found(version, record_text(seed))
+            row["concepts"] = [{"concept": c.name, "found": f} for c, f in zip(version.concepts, found)]
+            row["lacks"] = [c.name for c, f in zip(version.concepts, found) if not f]
+            row["missed"] = bool(row["lacks"])
+            title = str(seed.get("title") or "")
+            terms = sorted((t for t in (candidates(title) if candidates else []) if not related(t, version)),
+                           key=lambda t: (-len(t.split()), title.casefold().find(t), t))
+            row["suggestions"] = terms[:SEED_SUGGEST_MAX] if row["missed"] else []
+        else:
+            row.update(concepts=[], lacks=[], missed=False, suggestions=[])
+        rows.append(row)
+    read = [r for r in rows if r["read"]]
+    untested = [c.name for i, c in enumerate(version.concepts) if read and all(r["concepts"][i]["found"] for r in read)]
+    if not read:
+        level = None  # nothing could be read: "not checked", never a warning (review B3)
+    elif len(read) < SEEDS_FEW:
+        level = "few"
+    elif len(untested) == len(version.concepts):
+        level = "all"
+    elif untested:
+        level = "concept"
+    else:
+        level = None
+    return {
+        "seeds": rows, "total": len(rows), "read": len(read), "not_read": len(rows) - len(read),
+        "use_every_concept": sum(1 for r in read if not r["missed"]),
+        "missed": sum(1 for r in read if r["missed"]),
+        "warning": {"level": level, "untested": untested} if level else None,
+        "measure": "words",
+    }

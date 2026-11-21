@@ -44,23 +44,23 @@ What went wrong is that a decision with the largest effect on the review (four c
 Each item is checked by a test named in the build record, unless it says "live".
 
 **Counts (part A)**
-- [ ] DoD 1. For a version of the query (concepts, synonyms, years, languages) and a set of databases, the engine answers per database: the exact string sent (the E1 translation), the total, its status, when it was counted and whether it came from the cache. The draft's version is sent by the browser and need not be saved first.
-- [ ] DoD 2. The same answer includes, for a query of two or more concepts, the count with each concept dropped, per database, and the gain against the full query.
-- [ ] DoD 3. On request, for one concept and one database, the count with each synonym of that concept removed ("what each synonym adds"). The number of requests is stated before it is sent.
-- [ ] DoD 4. Before any request, the answer to a dry call states how many requests a count would send per database, and refuses with `WORKBENCH_BUDGET_SPENT` when a database's daily budget would be passed. Nothing is sent on a keystroke.
-- [ ] DoD 5. Counts are kept in a persisted count log keyed by database and exact string; a repeated string is answered from it for 24 hours without a request. A failed count is kept as a record but never answers (wording aligned with (a), review of Part A).
-- [ ] DoD 6. A database whose quota is used up (`QuotaExhaustedError`) gets the row status `quota_used_up` with `resets_at`; the engine sends nothing more to it from the workbench until that time, across drafts and workspaces. Throttling, refusal, timeout and unavailability keep their existing codes.
-- [ ] DoD 7. For a query of two or more concepts Crossref is not counted by default; its row says it cannot combine concepts with AND. "Count anyway" counts it and the row is labelled "any of the words". Crossref is never part of the drop test, the seed check or the comparison.
-- [ ] DoD 8. The size line of M10b Part D (records, works range, screening hours, the warning against the planned size) is computed by `estimate.summarize` for the version shown, before and after the freeze.
+- [x] DoD 1. For a version of the query (concepts, synonyms, years, languages) and a set of databases, the engine answers per database: the exact string sent (the E1 translation), the total, its status, when it was counted and whether it came from the cache. The draft's version is sent by the browser and need not be saved first.
+- [x] DoD 2. The same answer includes, for a query of two or more concepts, the count with each concept dropped, per database, and the gain against the full query.
+- [x] DoD 3. On request, for one concept and one database, the count with each synonym of that concept removed ("what each synonym adds"). The number of requests is stated before it is sent.
+- [x] DoD 4. Before any request, the answer to a dry call states how many requests a count would send per database, and refuses with `WORKBENCH_BUDGET_SPENT` when a database's daily budget would be passed. Nothing is sent on a keystroke.
+- [x] DoD 5. Counts are kept in a persisted count log keyed by database and exact string; a repeated string is answered from it for 24 hours without a request. A failed count is kept as a record but never answers (wording aligned with (a), review of Part A).
+- [x] DoD 6. A database whose quota is used up (`QuotaExhaustedError`) gets the row status `quota_used_up` with `resets_at`; the engine sends nothing more to it from the workbench until that time, across drafts and workspaces. Throttling, refusal, timeout and unavailability keep their existing codes.
+- [x] DoD 7. For a query of two or more concepts Crossref is not counted by default; its row says it cannot combine concepts with AND. "Count anyway" counts it and the row is labelled "any of the words". Crossref is never part of the drop test, the seed check or the comparison.
+- [x] DoD 8. The size line of M10b Part D (records, works range, screening hours, the warning against the planned size) is computed by `estimate.summarize` for the version shown, before and after the freeze.
 
 **Seeds and comparison sets (part B)**
-- [ ] DoD 9. Seed check, without a database request: for each seed whose title and abstract are known, which concepts its words contain and which it lacks; a seed lacking a concept is "missed by the words of this query".
-- [ ] DoD 10. The warning "seeds cannot test this query" when every seed that could be read uses a term of every concept, and per concept when no seed lacks it. A seed with no readable text is "not read" and does not count either way.
+- [x] DoD 9. Seed check, without a database request: for each seed whose title and abstract are known, which concepts its words contain and which it lacks; a seed lacking a concept is "missed by the words of this query".
+- [x] DoD 10. The warning "seeds cannot test this query" when every seed that could be read uses a term of every concept, and per concept when no seed lacks it. A seed with no readable text is "not read" and does not count either way.
 - [ ] DoD 11. Seed check per database where one request can answer it (OpenAlex, by an identifier filter combined with the search; to be confirmed live). Other databases say "not checked here; the recall check on Plan runs the full query".
-- [ ] DoD 12. A RIS or NBIB export can be staged as a comparison set, with its database name, the string used there (optional) and the export date. It is stored apart from the corpus staging, is never accepted into a corpus, and can be removed.
-- [ ] DoD 13. The comparison report: "{n} of {m} {database} records are missing from what your query finds", with the missing titles listed, for each the concepts it lacks, and the terms (1 to 3 words) found in at least two missing records and in no concept, with their record counts, offered as synonym suggestions that are never applied without a click.
-- [ ] DoD 14. "What your query finds" is said in the report's own words and in this order of strength: found in the harvest (after a harvest, by DOI or normalised title, no request); found by OpenAlex (records with a DOI, one request per 50); matched by the query's words (title, abstract and keywords, no request).
-- [ ] DoD 15. At genesis the draft's query development (count log rows of the versions tried, the seed checks, the comparison sets) is copied into the workspace under `audit/query_development/`, listed in the preview's `files`.
+- [x] DoD 12. A RIS or NBIB export can be staged as a comparison set, with its database name, the string used there (optional) and the export date. It is stored apart from the corpus staging, is never accepted into a corpus, and can be removed.
+- [x] DoD 13. The comparison report: "{n} of {m} {database} records are missing from what your query finds", with the missing titles listed, for each the concepts it lacks, and the terms (1 to 3 words) found in at least two missing records and in no concept, with their record counts, offered as synonym suggestions that are never applied without a click.
+- [x] DoD 14. "What your query finds" is said in the report's own words and in this order of strength: found in the harvest (after a harvest, by DOI or normalised title, no request); found by OpenAlex (records with a DOI, one request per 50); matched by the query's words (title, abstract and keywords, no request).
+- [x] DoD 15. At genesis the draft's query development (count log rows of the versions tried, the seed checks, the comparison sets) is copied into the workspace under `audit/query_development/`, listed in the preview's `files`.
 
 **Inception screen (part C)**
 - [ ] DoD 16. The workbench is on Inception's step 5 as the concepts block and an evidence column, laid out as direction A's blocks (D10, D13); every state in the screen spec has its words in en, fr and ar; axe passes in light and dark.
@@ -364,3 +364,70 @@ Build and Playwright were not repeated on `52399d67`: the repairs after `4ff5d37
 Review: round 1 CHANGES (8), round 2 CHANGES (5), round 3 **APPROVE** on `52399d67` (the reviewer's lane line in round 3 said STANDARD; the part is RELEASE as declared above). Round 3 follow-ups, not repaired: no regression test for the provider-build failure of "read what this concept removes"; after a short state-file failure a pause may not be stored, so the next Count can send once to a database whose quota is used up; a drop answered `not_countable` is reported as `stopped` although sending goes on.
 
 **Part A: READY FOR PR** (not pushed). Branch `dev/m11a/part-a-counts`.
+
+### Part B: seeds and comparison sets
+
+Branch `dev/m11a/part-b-seeds-comparison`, **from Part A's branch** (`dev/m11a/part-a-counts` at `0267d071`, not merged yet: merge Part A first) · Lane **RELEASE** (as proposed: new routes and refusal codes, new genesis files in the preview answer, new check ids) · Decisions: `docs/decisions.md` "2026-11-21 — M11a Part B" items 1 to 10 (PROPOSED).
+
+What was built:
+- `scholar_search.workbench`: `seed_check` (per seed the concepts found and lacking, "not read", the warning levels `all`, `concept`, `few`), `record_text`, `readable`, `related`. `scholar_search.dedup.title_key` is public. `OpenAlexProvider.find_dois` and `works_by_doi`: one request per 50 DOIs (`DOI_FILTER_MAX`), the identifier filter with or without the planned search.
+- `scholar_harness/query_workbench_sets.py`: the seed check with its sources and the opt-in lookup (`seed_texts.json`, `seed_checks.jsonl`), the OpenAlex check behind `NEXUS_WORKBENCH_OPENALEX_IDS`, comparison sets (stage, list, remove), the report (three measures, missing records 20 per page with the concepts each lacks, terms), the genesis copy and the preview's file list. Budget: reserved before sending, unsent requests given back (Part A's rule).
+- Routes: `POST …/workbench/seeds`, `GET`/`POST …/workbench/comparison`, `POST …/workbench/comparison/{cmp}/remove` and `…/report`, at Inception (`/api/v1/inception/drafts/{id}/…`) and on Plan (`/api/v1/discovery/…`); every POST in both allow-lists, none a phone route.
+- Genesis: the draft's `query_development/` is copied to `audit/query_development/` with a `QUERY_DEVELOPMENT_RECORDED` journal row; the preview lists the files.
+- Checks `QUERY_NOT_COUNTED` (note) and `SEEDS_CANNOT_TEST` (warning, three sentences), step `criteria`, in the catalogue, `02-checks.md` and `checks-copy.ts` (en, fr, ar; 52 ids). Count log rows carry `version_key`.
+
+| DoD | Test (`tests/console/test_workbench_seeds_comparison_api.py` unless named) | State |
+| :-- | :-- | :-- |
+| 9 | `test_seeds_whose_words_hold_every_concept_cannot_test_the_query`, `test_a_seed_that_lacks_a_concept_is_missed_by_the_words_with_its_own_terms_offered`, `test_the_first_searchs_pool_gives_the_words_without_a_request`; `tests/kits/search/test_workbench.py` (seed check) | done |
+| 10 | `test_an_unread_seed_counts_neither_way_and_too_few_readable_seeds_say_so`, `test_no_seed_raises_no_warning`; the pure tests | done |
+| 11 | `test_the_openalex_seed_check_is_off_until_switched_on`; `test_the_openalex_identifier_request_combines_the_doi_filter_with_the_search_in_one_page` | done offline; **live confirmation pending** |
+| 12 | `test_an_export_is_staged_as_a_comparison_set_apart_from_the_corpus`, `test_a_set_is_removed_and_leaves_a_line_in_the_log`, `test_a_file_that_is_not_an_export_too_large_or_one_set_too_many_is_refused` | done |
+| 13 | `test_the_report_by_the_words_lists_the_missing_records_and_their_shared_terms`, `test_the_report_pages_by_twenty` | done |
+| 14 | `test_on_plan_the_report_compares_with_the_harvest_by_doi_or_title`, `test_the_openalex_measure_costs_two_requests_per_fifty_and_names_records_not_in_openalex`, `test_the_openalex_measure_is_off_until_switched_on`, and the words measure above | done (OpenAlex measure offline only) |
+| 15 | `test_genesis_copies_the_development_and_the_preview_lists_it`, `test_a_draft_with_no_development_lists_no_such_file` | done |
+| 19 | `test_query_not_counted_is_a_note_until_the_saved_version_is_counted`, `test_seeds_cannot_test_is_a_warning_with_the_panels_words_and_never_blocks`, `test_seeds_cannot_test_names_a_concept_no_seed_lacks`; `apps/research-ui/tests/checks-panel.test.tsx` (copy) | done (engine and copy; shown at the field by part C) |
+| 7 (rest) | Crossref is never part of the seed or comparison checks: they ask OpenAlex only | done |
+| 23 | seed checks and reports carry `query_key` | done for part B |
+
+Fails before: on Part A's head the new API file stops at collection (`ImportError: query_workbench_sets`) and 5 of the new pure tests fail (no `seed_check`, `related`), seen 2026-11-21.
+
+Review round 1 (`milestone-reviewer`, on `559c3063`): **CHANGES**, 1 P2, 4 P3, 2 P4, all taken:
+
+| # | Finding | Repair | Test (fails before: the reviewer's probe `rvB/test_probe_b.py` for B1; code reading for the others) |
+| :-- | :-- | :-- | :-- |
+| P2-B1 | The seed check still sent the OpenAlex check after the lookup met a used-up quota | a failed lookup stops OpenAlex for the call; the check's cost is given back and its row takes the lookup's status | `test_a_lookup_that_meets_a_used_up_quota_sends_nothing_more` |
+| P3-B2 | A genesis copy failing half way (a replacement) left a re-protocoled workspace with a partial development; a retry appended twice | the development is built in a folder beside it (the existing one copied first) and moved in whole | `test_a_failed_genesis_copy_leaves_the_development_as_it_was`, `test_a_replacement_appends_the_logs_and_numbers_the_sets_after_the_existing_ones` |
+| P3-B3 | The seed check warned "few" when no seed could be read | no warning when none is readable ("not checked") | `test_seeds_none_of_which_can_be_read_raise_no_warning`, `tests/kits/search/test_workbench.py::test_seeds_none_of_which_can_be_read_are_not_checked` |
+| P3-B4 | Two uploads at once could take the same set number | the limit check, the number and the rename are one locked step per folder | (code path) |
+| P3-B5 | The fixed check read the pool minus the left-out sample; the panel read the stored pool | both read the stored pool | (code path; the checks tests above) |
+| P4-B6 | `WORKBENCH_COMPARISON_MEASURE` 422 could not happen (an unknown measure is `BODY_INVALID`) | contract table and decision item 4 corrected | (none) |
+| P4-B7 | A call that sends nothing (switch off) was refused for the contact email | the guards run only when a request will be sent | `test_an_openalex_call_that_would_send_nothing_is_not_refused_for_the_contact_email` |
+
+Review round 2 (on `fc6b5832`): **CHANGES**, 1 P2, 2 P3 (B1, B3 to B7 confirmed), all about the new genesis copy:
+
+| # | Finding | Repair | Test |
+| :-- | :-- | :-- | :-- |
+| P2-R1 | The copy swapped folders in two renames; a failure between them left no `audit/query_development/` and a retry deleted the earlier record | no swap: nothing already there is moved or deleted; logs get only the lines they lack (under the count log's lock), texts are rewritten through a temporary file, each set is renamed into its number in one step and skipped if the same draft's set is there | `test_a_failed_genesis_copy_moves_nothing_and_a_retry_completes_it_once`, `test_a_replacement_numbers_another_drafts_sets_after_the_existing_ones` |
+| P3-R2 | Rows the Plan workbench appended during the copy were lost | follows from R1: appends in place under the same lock as `CountLog.append` | (as above) |
+| P3-R3 | A failed `copytree` left a hidden temporary folder | each set's temporary folder is removed on failure | (as above) |
+
+Also: the staging and removal rows of the count log now carry the draft or workspace (`scope`), as every other row (two drafts' identical staging lines were merged by the dedupe).
+
+Round-1 follow-ups, not repaired: with 1 or 2 seeds `SEEDS_CANNOT_TEST` (few) and `DIRECTION_SEEDS_FEW` both fire; `SEEDS_CANNOT_TEST`'s action goes to Direction although its sentence also offers an export comparison (part C puts that link in the panel); staging or removing a set on Plan writes under `audit/` without a journal row (as decision item 12 of Part A reads "records"); a DOI holding `,` or `|` would break its batch of 50 in the OpenAlex filter; an unreadable `artifact_registry.json` turns Plan's seed and report calls into a 500.
+
+Not verified (needs a live run, not run): whether OpenAlex answers `filter=…,doi:a|b|…` combined with `search.title_and_abstract` in one request and returns exactly the matching works (DoD 11 and the comparison's OpenAlex measure); how many DOIs one request takes in practice. Prepared check, one request, for the researcher's approval: with `NEXUS_WORKBENCH_OPENALEX_IDS=1` set for the console, on Plan of the real review, `POST /api/v1/discovery/workbench/seeds {"version": <the protocol's query>, "openalex": true}` (its dry run states "openalex: 1"); then compare its `found` with the recall check's result for the same seeds. Whether the local word match would have flagged the run's gap is also unverified (the 2026-11-20 Scopus export used the strict query).
+
+Review round 3 (on `dde504f3`): **APPROVE**. Follow-ups, not repaired: the merge of looked-up texts at genesis is not locked against a lookup running at the same moment (a cache: the cost is one repeated lookup); a replacement can leave more than 5 comparison sets (staging is then refused until some are removed); a draft set whose `set.json` cannot be read is skipped without a note; on a retry the journal row repeats the draft's full line counts, not the lines added.
+
+Evidence (Part B):
+
+| Stage | Commit | Command | Result | Duration |
+| :-- | :-- | :-- | :-- | :-- |
+| inner | `0f052c04` | `pytest tests/console -m "not slow" -n auto`; `pytest tests/inception tests/unit tests/test_handoff.py tests/kits/search -m "not slow" -n auto`; vitest related (route, checks copy) | 896 passed, 1 skipped; 1381 passed; 709 passed | 164 s; 57 s |
+| pr (round 0) | `559c3063` | `pytest -n auto`; ruff `scripts/`; typecheck; vitest; build; `test:browser` | 6020 passed, 15 skipped; clean; clean; 995 passed; ok; Playwright 622 passed, 12 skipped | 584 s; 120 s; 34 s; 851 s |
+| pr (final) | `dde504f3` | `pytest -n auto`; ruff `scripts/`; `generate_contract_baseline.py --check`; `generate_protocol_schema.py --check` | 6026 passed, 15 skipped; clean; current; in sync | 550 s |
+
+Vitest, build and Playwright were not repeated on `dde504f3`: the commits after `559c3063` change Python and docs only (no file under `apps/`). The six screenshots the Playwright run regenerated are restored to the branch's own.
+
+**Part B: READY FOR PR** (not pushed). Branch `dev/m11a/part-b-seeds-comparison`, to be merged after Part A.
+

@@ -162,3 +162,72 @@ def test_the_fold_is_stated_once():
     assert wb.fold_word("glass") == "glass"
     assert wb.fold_word("bus") == "bus"
     assert wb.fold_word("cats") == "cat"
+
+
+# --------------------------------------------------------------------------- Part B: the seed check by the words
+
+
+STRICT = "Plant segmentation from aerial multispectral imagery"
+
+
+def _seeds(*titles):
+    return [{"doi": f"10.1/s{i}", "title": t, "abstract": None} for i, t in enumerate(titles)]
+
+
+def test_seeds_that_use_every_concept_cannot_test_the_query():
+    check = wb.seed_check(_version(*FOUR), _seeds(STRICT, STRICT, STRICT))
+    assert (check["read"], check["use_every_concept"], check["missed"]) == (3, 3, 0)
+    assert check["warning"] == {"level": "all", "untested": ["aerial", "multispectral", "plant", "segmentation"]}
+    assert check["measure"] == "words"
+
+
+def test_a_seed_lacking_a_concept_is_missed_and_offers_its_own_words():
+    def candidates(text):
+        return {"rgb", "rgb orthophotos", "orthophotos", "plant"}
+
+    check = wb.seed_check(_version(*FOUR), _seeds(STRICT, STRICT, "Plant segmentation from aerial RGB orthophotos"),
+                          candidates=candidates)
+    missed = check["seeds"][2]
+    assert missed["missed"] and missed["lacks"] == ["multispectral"]
+    assert missed["suggestions"][0] == "rgb orthophotos" and "plant" not in missed["suggestions"]
+    assert check["warning"] == {"level": "concept", "untested": ["aerial", "plant", "segmentation"]}
+
+
+def test_an_unread_seed_counts_neither_way_and_fewer_than_three_read_are_too_few():
+    check = wb.seed_check(_version(*FOUR), _seeds(STRICT, STRICT) + [{"doi": "10.1/x", "title": None, "abstract": None}])
+    assert (check["read"], check["not_read"]) == (2, 1)
+    assert check["seeds"][2]["read"] is False and check["seeds"][2]["missed"] is False
+    assert check["warning"]["level"] == "few"
+
+
+def test_no_seed_no_warning_and_a_seed_matched_by_its_abstract_or_keywords():
+    assert wb.seed_check(_version(*FOUR), [])["warning"] is None
+    seed = {"doi": "10.1/k", "title": "Plant segmentation", "abstract": "from aerial images", "keywords": ["multispectral"]}
+    assert wb.seed_check(_version(*FOUR), [seed])["seeds"][0]["lacks"] == []
+
+
+def test_a_term_related_to_the_query_is_not_a_suggestion():
+    version = _version(*FOUR)
+    assert wb.related("plant height", version) and wb.related("Plants", version)
+    assert not wb.related("hyperspectral", version)
+
+
+def test_the_openalex_identifier_request_combines_the_doi_filter_with_the_search_in_one_page():
+    from scholar_search.providers.openalex import DOI_FILTER_MAX, OpenAlexProvider
+
+    provider = OpenAlexProvider()
+    query = wb.compile_version(_version(*FOUR))
+    params = provider._doi_params(query, ["10.1/a", "10.1/b"])
+    assert params["filter"] == "from_publication_date:2015-01-01,to_publication_date:2025-12-31,doi:10.1/a|10.1/b"
+    assert params["per-page"] == DOI_FILTER_MAX == 50 and "cursor" not in params
+    assert "multispectral" in params["search.title_and_abstract"]
+    alone = provider._doi_params(None, ["10.1/a"])
+    assert alone["filter"] == "doi:10.1/a" and not any(k.startswith("search") for k in alone)
+    with pytest.raises(ValueError):
+        provider._doi_params(query, [f"10.1/{i}" for i in range(51)])
+
+
+def test_seeds_none_of_which_can_be_read_are_not_checked():
+    unread = [{"doi": "10.1/x", "title": None, "abstract": None}, {"doi": "10.1/y", "title": "", "abstract": ""}]
+    check = wb.seed_check(_version(*FOUR), unread)
+    assert (check["read"], check["not_read"], check["warning"]) == (0, 2, None)
