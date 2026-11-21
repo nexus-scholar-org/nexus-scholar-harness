@@ -94,6 +94,7 @@ Record: `docs/roadmap/milestones/M12a-charting-table.md`, "Build record", Part A
 
 **Lane RELEASE** (new public routes and refusal codes, a new persisted record, a new reader of published artifacts, a change to the same-origin proxy).
 
+
 ## 2026-11-21 — M11b part A: criteria in force, the build's choices (items 1 to 11 answered by the researcher 2026-11-21: ten accepted as built, item 5 changed to "bind the version"; M11b-criteria-pilot, part A)
 
 Record: `docs/roadmap/milestones/M11b-criteria-pilot.md`, "Build record, part A". Choices the specification leaves open, found when the code was read at `dacabd94` (step 0 of the build). The researcher answered them in the main session on 2026-11-21: items 1 and 10 "Accept as built"; item 9 "Accept"; items 2, 3, 4, 6, 7 and 8 "Accept as built" (asked together); item 5 "Bind the version" (the alternative the question recommended), built before part A's PR.
