@@ -1,4 +1,4 @@
-# 02 One study    Status: DRAFT | Phase 3 Extraction | Route `/charting/study/{study_id}` (desktop; usable for a single study on a phone) | Milestone M12a-charting-table (one-study charting)
+# 02 One study    Status: DRAFT (every question for M12a closed by the researcher 2026-11-21; the one open item is question 5, what the highlighter marks here, left to the M8b-triage-highlights amendment; M12a shows the abstract as plain text; a spec is FINAL only when its open questions are empty) | Phase 3 Extraction | Route `/charting/study/{study_id}` (desktop; usable for a single study on a phone) | Milestone M12a-charting-table (one-study charting)
 
 Boards (design history, not redrawn): `Matrix` (the source quote beside a cell), `Eligibility` (the study on the left, the decision on the right), `Retrieval` (full-text row), `States` (no full text). The README of `docs/ux/phase3-extraction/` (2026-11-02). Same events, form and refusals as 01; this page repeats none of them.
 
@@ -79,9 +79,12 @@ Two labelled regions ("Study", "Charting form"), each scrollable with `tabindex=
 Vitest `charting-study.keymap.test.tsx` (J/K and Ctrl+arrows save and move; Esc returns to the same row; Alt+N and Alt+A set the two special values); `charting-study.readonly.test.tsx` (excluded at full text, no longer kept and archived are read-only with their words); `charting-study.no-fulltext.test.tsx` (mark and count wording); `charting-study.history.test.tsx` (Chart again keeps the earlier value visible); `charting-study.mobile.test.tsx` (stacked, 44 px targets, no bulk actions); `charting-study.i18n.test.ts` (keys, N9). Playwright `charting/study.spec.ts` (chart 5 studies from the abstract by keyboard, attach a PDF and Open it in a new tab, undo, no page scroll at 1440x900 and 1280x720, axe in light and dark).
 
 ## Open questions
-1. Route: `/charting/study/{study_id}` (a path, so Back works) or a panel of 01 on the same URL? I chose its own page because Enter, J and K behave like triage.
-2. `Ctrl+↓`/`Ctrl+↑` can clash with some screen readers; is `J`/`K` alone enough, with the Ctrl keys only inside fields?
-3. In the one-study view the full-text decision sits on the left under the file. Should it come after the abstract instead, since you read the abstract first?
-4. When a study is excluded at full text and the form turns read-only, should its already typed values stay visible (my choice, read-only) or fold away?
 5. The abstract is plain text now. When the highlighter arrives, should it mark the title and abstract only, or also open the full text here? Left to the amendment of M8b-triage-highlights.
-6. On a phone, should Attach (the file picker) exist, or is attaching desktop only like the form panel?
+
+## Questions closed (M12a, 2026-11-21)
+The researcher closed the questions below in the main session on 2026-11-21, all together and each as this spec proposed ("Close as proposed"). The wording and the layout stay open to change when the researcher sees the built screens, as for M11a.
+1. Route: `/charting/study/{study_id}` (a path, so Back works) or a panel of 01 on the same URL? I chose its own page because Enter, J and K behave like triage. *(Closed 2026-11-21 as proposed.)*
+2. `Ctrl+↓`/`Ctrl+↑` can clash with some screen readers; is `J`/`K` alone enough, with the Ctrl keys only inside fields? *(Closed 2026-11-21 as proposed: `J`/`K` and `Ctrl+↓`/`Ctrl+↑` both kept, the Ctrl keys also inside a field.)*
+3. In the one-study view the full-text decision sits on the left under the file. Should it come after the abstract instead, since you read the abstract first? *(Closed 2026-11-21 as proposed.)*
+4. When a study is excluded at full text and the form turns read-only, should its already typed values stay visible (my choice, read-only) or fold away? *(Closed 2026-11-21 as proposed.)*
+6. On a phone, should Attach (the file picker) exist, or is attaching desktop only like the form panel? *(Closed 2026-11-21 as proposed.)*
