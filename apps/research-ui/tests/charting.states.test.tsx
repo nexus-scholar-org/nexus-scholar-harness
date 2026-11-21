@@ -15,26 +15,26 @@ const rowOf = (id: string) => document.querySelector(`[data-study-row="${id}"]`)
 const desktop = () => document.querySelector("[data-desktop]") as HTMLElement;
 
 describe("charting.states", () => {
-  it("default: the heading, the counts line without a charted part, the toolbar and the columns", async () => {
+  it("default: the heading, the counts line with its charted part, the toolbar and the columns", async () => {
     const rows = [makeRow(1, { fulltext: { ...makeRow(1).fulltext, status: "retrieved" } }), makeRow(2), makeRow(3, { ft_decision: { outcome: "INCLUDE" } })];
     installEngine(makeTable(rows));
     await renderCharting();
     expect(screen.getByRole("heading", { level: 1, name: "Charting" })).toBeInTheDocument();
     const line = document.querySelector("[data-counts]")!.textContent;
-    expect(line).toBe("3 kept · 1 retrieved · 0 not retrieved · 2 to get · 1 included at full text · 0 excluded");
-    expect(line).not.toMatch(/charted/);
+    expect(line).toBe("3 kept · 1 retrieved · 0 not retrieved · 2 to get · 1 included at full text · 0 excluded · 0 charted");
     const grid = within(desktop()).getByRole("grid", { name: "Kept studies, full text" });
     expect(grid).toHaveAttribute("aria-rowcount", "4");
     expect(within(grid).getAllByRole("columnheader").map((h) => h.textContent)).toEqual(["", "Study", "Round", "Full text", "File", "Decision"]);
     const select = within(desktop()).getByRole("combobox", { name: "Show" });
     expect(within(select).getAllByRole("option").map((o) => o.textContent)).toEqual([
-      "All", "To get", "Requested", "Not retrieved", "To decide at full text", "Included at full text", "Excluded at full text",
+      "All", "To get", "Requested", "Not retrieved", "To decide at full text", "Included at full text", "Excluded at full text", "Not charted", "Pilot",
     ]);
     expect(within(desktop()).getByRole("checkbox", { name: "Show excluded" })).not.toBeChecked();
-    expect(within(desktop()).getByRole("button", { name: /Export/ })).toBeEnabled();
-    // No Charting view in Part A, not even switched off.
-    expect(screen.queryByRole("radio", { name: "Charting" })).toBeNull();
-    expect(screen.queryByText("Full text", { selector: "[role=radiogroup] *" })).toBeNull();
+    expect(within(desktop()).getByRole("button", { name: "Export" })).toBeEnabled();
+    // Part B: the two views as a radio group, the Full text view chosen.
+    const views = within(desktop()).getByRole("radiogroup", { name: "View" });
+    expect(within(views).getByRole("radio", { name: /Full text/ })).toBeChecked();
+    expect(within(views).getByRole("radio", { name: /Charting/ })).not.toBeChecked();
     // DOIs are left to right.
     expect(within(rowOf("STU-001")).getByText("10.3390/rs1001")).toHaveAttribute("dir", "ltr");
     expect(within(rowOf("STU-001")).getByText("Databases")).toBeInTheDocument();
@@ -134,7 +134,8 @@ describe("charting.states", () => {
     rowOf("STU-001").focus();
     for (const key of ["r", "i", "e", "p"]) await press(key);
     expect(postedEvents(engine)).toHaveLength(0);
-    fireEvent.click(within(desktop()).getByRole("button", { name: /Export/ }));
+    fireEvent.click(within(desktop()).getByRole("button", { name: "Export" }));
+    fireEvent.click(within(desktop()).getByRole("button", { name: "CSV of the Full text view" }));
     await flush();
     expect(engine.calls.some((c) => c.path.startsWith("/api/v1/charting/export"))).toBe(true);
   });
@@ -198,7 +199,7 @@ describe("charting.states", () => {
     expect(document.querySelector("[data-status-line]")).toHaveTextContent("Decide at full text one study at a time.");
     await press("e");
     expect(postedEvents(engine)).toHaveLength(0);
-    expect(screen.queryByRole("radiogroup")).toBeNull();
+    expect(document.querySelector("[data-chip]")).toBeNull();
   });
 
   it("a pasted link is saved as text and opens from the File column", async () => {
