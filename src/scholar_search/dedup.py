@@ -7,9 +7,16 @@ from .completeness import compute_total_score
 from .models import Document, DocumentCluster
 
 
-def _title_key(title: str) -> str:
-    """Normalizes a title by removing non-alphanumeric characters and extra whitespace."""
+def title_key(title: str) -> str:
+    """Normalizes a title by removing non-alphanumeric characters and extra whitespace.
+
+    The dedup identity's title (public since M11a: the query workbench matches
+    a comparison export to a harvest with it; no second definition).
+    """
     return re.sub(r"[^a-z0-9]+", " ", title.lower()).strip()
+
+
+_title_key = title_key
 
 
 def _first_author_surname(doc: Document) -> str | None:

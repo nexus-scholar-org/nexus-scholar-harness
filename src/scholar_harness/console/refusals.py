@@ -188,6 +188,18 @@ SEEDS_INVALID = "SEEDS_INVALID"
 CAP_INVALID = "CAP_INVALID"
 #: M10b Part D: the size estimate's screening pace is not 5 to 600 seconds per record.
 PACE_INVALID = "PACE_INVALID"
+#: M11a Part A: a workbench Count would pass a database's daily request budget; nothing was sent.
+WORKBENCH_BUDGET_SPENT = "WORKBENCH_BUDGET_SPENT"
+#: M11a Part A: a workbench version that cannot be searched (no concept with a term, years, query key).
+WORKBENCH_VERSION_INVALID = "WORKBENCH_VERSION_INVALID"
+#: M11a Part A (review P3): the workbench's shared budget file cannot be read; nothing was sent and nothing overwritten.
+WORKBENCH_STATE_UNREADABLE = "WORKBENCH_STATE_UNREADABLE"
+#: M11a Part B: comparison sets (an export from a database the app cannot query) and their report.
+WORKBENCH_COMPARISON_FORMAT = "WORKBENCH_COMPARISON_FORMAT"
+WORKBENCH_COMPARISON_TOO_LARGE = "WORKBENCH_COMPARISON_TOO_LARGE"
+WORKBENCH_COMPARISON_FULL = "WORKBENCH_COMPARISON_FULL"
+WORKBENCH_COMPARISON_NOT_FOUND = "WORKBENCH_COMPARISON_NOT_FOUND"
+WORKBENCH_COMPARISON_MEASURE = "WORKBENCH_COMPARISON_MEASURE"
 #: A database name the engine does not know, in a run's or a check's ``providers``.
 PROVIDER_UNKNOWN = "PROVIDER_UNKNOWN"
 #: A discovery job stopped on an unexpected error; ``message`` names it.
@@ -358,6 +370,14 @@ CONTRACT_ADDED = frozenset(
         SEEDS_INVALID,
         CAP_INVALID,
         PACE_INVALID,
+        WORKBENCH_BUDGET_SPENT,
+        WORKBENCH_VERSION_INVALID,
+        WORKBENCH_STATE_UNREADABLE,
+        WORKBENCH_COMPARISON_FORMAT,
+        WORKBENCH_COMPARISON_TOO_LARGE,
+        WORKBENCH_COMPARISON_FULL,
+        WORKBENCH_COMPARISON_NOT_FOUND,
+        WORKBENCH_COMPARISON_MEASURE,
         PROVIDER_UNKNOWN,
         DISCOVERY_FAILED,
         PROTOCOL_CHANGED_SINCE_SNAPSHOT,

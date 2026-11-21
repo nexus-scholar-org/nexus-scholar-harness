@@ -28,6 +28,10 @@ def key_note(status: int | None) -> str:
     )
 
 
+#: The most DOIs one identifier-filter request names (M11a: one request per 50 records).
+DOI_FILTER_MAX = 50
+
+
 class OpenAlexProvider(BaseAPIProvider):
     """Searches the OpenAlex API (https://api.openalex.org/works)."""
 
@@ -258,6 +262,45 @@ class OpenAlexProvider(BaseAPIProvider):
         params["per-page"] = 1
         resp = await self._get(params)
         return self._as_count((resp.json() or {}).get("meta", {}).get("count"))
+
+    def _doi_params(self, query: Query | None, dois: list[str]) -> dict[str, Any]:
+        """One page of at most 50 works whose DOI is one of ``dois``, with ``query``'s search when given (M11a)."""
+        if len(dois) > DOI_FILTER_MAX:
+            raise ValueError(f"at most {DOI_FILTER_MAX} DOIs per request")
+        params = self.translate(query)[1] if query is not None else (
+            {"api_key": settings.openalex_key} if settings.openalex_key else {})
+        params.pop("cursor", None)
+        params["per-page"] = DOI_FILTER_MAX
+        doi_filter = "doi:" + "|".join(dois)
+        params["filter"] = f"{params['filter']},{doi_filter}" if params.get("filter") else doi_filter
+        return params
+
+    async def find_dois(self, query: Query | None, dois: list[str]) -> list[str]:
+        """Which of ``dois`` (at most 50) the search ``query`` finds; with ``query=None``, which OpenAlex holds.
+
+        One request: the identifier filter combined with the planned search
+        (M11a, DoD 11). Whether OpenAlex combines the two as expected is
+        checked by a live run before the workbench uses it.
+        """
+        if not dois:
+            return []
+        resp = await self._get(self._doi_params(query, dois))
+        found = []
+        for item in (resp.json() or {}).get("results") or []:
+            doi = str(item.get("doi") or "")
+            for prefix in ("https://doi.org/", "http://doi.org/"):
+                if doi.lower().startswith(prefix):
+                    doi = doi[len(prefix):]
+            if doi:
+                found.append(doi.lower())
+        return found
+
+    async def works_by_doi(self, dois: list[str]) -> list[Document]:
+        """The works of ``dois`` (at most 50) with title and abstract, in one request (M11a seed lookup)."""
+        if not dois:
+            return []
+        resp = await self._get(self._doi_params(None, dois))
+        return [self._normalize_document(item, "workbench-seeds") for item in (resp.json() or {}).get("results") or []]
 
     async def search(self, query: Query) -> AsyncIterator[Document]:
         """Search OpenAlex works."""
