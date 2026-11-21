@@ -28,6 +28,7 @@ from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel, ConfigDict, field_validator
 
 from ...workspace.atomic import replace_with_retry
+from ...screening.criteria import file_sha256 as criteria_amendments_sha256
 from .audit import log_event
 
 logger = logging.getLogger(__name__)
@@ -1386,6 +1387,9 @@ def action_publish_screening(
                 "generation_id": record.generation_id,
                 "generation_fingerprint": record.fingerprint(),
                 "approval_fingerprint": record.approval_fingerprint,
+                # M11b part A (DoD 10): the criteria amendments the published decisions were
+                # made under; a later edit of the file is visible against this digest.
+                "criteria_amendments_sha256": criteria_amendments_sha256(ws),
             },
             metrics={"output_count": len(record.output_digests)},
         )

@@ -92,6 +92,13 @@ BLINDING_SET_BY_PROTOCOL = "BLINDING_SET_BY_PROTOCOL"
 METHOD_AMENDMENT_INVALID = "METHOD_AMENDMENT_INVALID"
 #: H-screening-drafts: the corpus is accepted but no screening batch is prepared yet.
 BATCHES_NOT_PREPARED = "BATCHES_NOT_PREPARED"
+#: M11b part A: a criteria revision that is not recorded (`screening/criteria.py`).
+CRITERIA_AMENDMENT_INVALID = "CRITERIA_AMENDMENT_INVALID"
+CRITERIA_AMENDMENT_NO_BATCHES = "CRITERIA_AMENDMENT_NO_BATCHES"
+CRITERIA_AMENDMENT_AFTER_APPROVAL = "CRITERIA_AMENDMENT_AFTER_APPROVAL"
+CRITERIA_SIDE_EMPTY = "CRITERIA_SIDE_EMPTY"
+#: M11b part A: a new EXCLUDE citing a criterion a revision retired.
+REASON_CODE_RETIRED = "REASON_CODE_RETIRED"
 
 # --- the inception routes (M4a, `docs/architecture/inception-api.md`) ---------
 #: Raised as ``DraftRefused`` (``inception/drafts.py``), ``StepRefused``
@@ -311,6 +318,11 @@ CONTRACT_ADDED = frozenset(
         BLINDING_SET_BY_PROTOCOL,
         METHOD_AMENDMENT_INVALID,
         BATCHES_NOT_PREPARED,
+        CRITERIA_AMENDMENT_INVALID,
+        CRITERIA_AMENDMENT_NO_BATCHES,
+        CRITERIA_AMENDMENT_AFTER_APPROVAL,
+        CRITERIA_SIDE_EMPTY,
+        REASON_CODE_RETIRED,
         DRAFT_ID_INVALID,
         DRAFT_NOT_FOUND,
         DRAFT_UNREADABLE,
