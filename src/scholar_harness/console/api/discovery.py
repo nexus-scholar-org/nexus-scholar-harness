@@ -1202,6 +1202,14 @@ async def size_estimate(body: EstimateBody, request: Request) -> dict[str, Any]:
                 known[name] = {"name": name, "status": "from_recall_check", "reported_total": total,
                                "error": None, "error_code": None}
     missing = [name for name in names if name not in known]
+    if missing and not body.refresh:
+        # M11a (decision 2026-11-20, item 5): a string the query workbench counted in the
+        # last 24 hours is not counted again; the row says when it was counted.
+        from ...query_workbench import logged_rows, workspace_log_path
+
+        logged = logged_rows(workspace_log_path(ws), query, missing)
+        known.update(logged)
+        missing = [name for name in missing if name not in logged]
     fresh = await est.count_providers(query, missing) if missing else {}
     rows_by_name = {**known, **fresh}
     if fresh or entry is None:

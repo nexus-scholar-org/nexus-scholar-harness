@@ -92,6 +92,10 @@ const POST_PATHS: ReadonlyArray<RegExp> = [
   // M10b Part D: the size estimate. Count-only requests to the selected databases;
   // nothing is written in the workspace and nothing is journaled.
   /^api\/v1\/discovery\/estimate$/,
+  // M11a Part A: the query workbench. Count-only requests, sent only on Count (a dry run
+  // sends nothing); only the count log beside the draft or under audit/ is written.
+  /^api\/v1\/inception\/drafts\/[A-Za-z0-9_-]+\/workbench\/(counts|synonyms|removed)$/,
+  /^api\/v1\/discovery\/workbench\/(counts|synonyms|removed)$/,
   // M3i-harvest-robustness: finish a harvest's remaining stages (duplicates, abstracts,
   // verification) from the run's saved records; the console searches nothing again.
   /^api\/v1\/discovery\/runs\/run_\d{3,}\/prepare$/,
