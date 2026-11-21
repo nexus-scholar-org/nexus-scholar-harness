@@ -470,3 +470,16 @@ Review round 1 (`milestone-reviewer`, on `7f920872`): **CHANGES**, 1 P1, 4 P2, 6
 | P3-C11 | Row state and rejected pool terms followed the index | rows keyed by position and name; rejections by the concept's name | (code path) |
 
 Round-1 follow-ups, not repaired: the old card's per-term DOI lists and the concept-level "in n of m" line are not in the workbench (the chips carry each term's count); the browser's `languages ?? ["en"]` default; a term made only of quotes becomes an empty phrase in the Scopus string.
+
+Review round 2 (on `71f14450`): **CHANGES**, 1 P2, 4 P3 (C1 to C11 confirmed repaired), all taken in `3d4d0062`:
+
+| # | Finding | Repair | Test |
+| :-- | :-- | :-- | :-- |
+| P2-R1 | Keying rows by position and name (the C11 repair) remounted a row on every rename: focus and a click right after it were lost | each concept holds a stable id in the tab (never sent); rows are keyed by it | `"a rename keeps the row: the same checkbox node, focus where it went"` |
+| P3-R2 | "Check again" after offline re-read only the counts' cost | the seed check and the removed read's cost follow it too | (code path) |
+| P3-R3 | A failed cost read left "Read what this concept removes" disabled with no reason | the refusal is shown | (code path) |
+| P3-R4 | After a real seed check the lookup and OpenAlex costs disappeared, so a failed lookup could not be tried again | the costs come from a dry call read again after each real check; the real answer stays shown | (code path) |
+| P3-R5 | No engine test pinned `timeout_seconds` | asserted in `tests/console/test_workbench_counts_api.py` | `test_throttling_refusal_unavailability_and_timeout_keep_their_codes` |
+
+Round-2 follow-ups, not repaired: a `timeout` row can also mean "not started in time" (decision A item 4), which "did not answer within 45 s" does not say; with the OpenAlex key missing the removed read's button says "(0 requests)".
+
