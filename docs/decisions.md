@@ -10,10 +10,18 @@ history to read if you need the original reasoning (`git log --follow -- <path>`
 
 | Entry | Item | What is open |
 | :-- | :-- | :-- |
-| 2026-11-20 — H-run-small-fixes Part C | 1 to 10 | Proposed: item 1 narrows finding 1 (the proof criterion stays as the fallback inclusion; never writing it is the alternative); item 2 makes out-of-scope items wait for Accept in the browser; item 9 changes nothing in the quote check (follow-up proposed). |
 | 2026-11-19 — M9a: what the measurement says about the ladder gates | 2 | The minimum share of the researcher's excludes an agent must take before a rung unlocks: the principle is accepted; the researcher decided on 2026-11-20 to set the number when M9b is built. |
 
-## 2026-11-20 — H-run-small-fixes Part C: the proof writes no criterion beside a typed inclusion, out-of-scope items accepted one by one, weak directions filtered, a cancel that says it is stopping (PROPOSED, items 1 to 10)
+## 2026-11-21 — The M11a screen questions closed; H-run-small-fixes Part C accepted (accepted by the researcher 2026-11-21)
+
+The researcher answered these in the main session on 2026-11-21, each as proposed.
+
+1. **H-run-small-fixes Part C, items 1 to 10, accepted as built** (entry below; PR #267): the proof answer writes no criterion beside a typed inclusion and stays the fallback of a draft with none; each out-of-scope item is its own exclusion criterion, undecided until accepted; weak proposed directions are filtered and a typed direction is grounded on its words; the smaller items as built.
+2. **The query workbench at Inception** (`docs/ux/phase0-inception/final/10-query-workbench.md`, now FINAL): while a version has unused edits, "Use this version" is the brand button and Continue and Accept are secondary; merging two concepts opens a name field filled with the first concept's name; Count asks the databases ticked on Explore and the workbench has no list of its own; years and languages are shown and changed on Scope; a known paper can be added by DOI in the workbench (at most 25). Its other questions (route names, refusal codes, how an applied term is recorded, the proposed wording, the constants, the narrow layout) are closed as the spec proposes.
+3. **"Change the search" on Plan** (`docs/ux/phase1-discovery/final/10-plan-amend-search.md`, now FINAL): it opens as a closed section on Plan; an amendment may be recorded for a version that was never counted, and the journal row says "not counted". Its other questions (the read that returns the concepts, who writes the consequences list, the reason's limit, the refusal when the protocol changed elsewhere, the neighbouring links, no pool on Plan, the two checks shown at Inception only, which run a report reads) are closed as the spec proposes.
+4. **The wording stays open** until the researcher reads the built screens.
+
+## 2026-11-20 — H-run-small-fixes Part C: the proof writes no criterion beside a typed inclusion, out-of-scope items accepted one by one, weak directions filtered, a cancel that says it is stopping (items 1 to 10 accepted by the researcher 2026-11-21, after the merge in PR #267)
 
 Record: `docs/roadmap/milestones/H-run-small-fixes.md`, Part C. Found by the acceptance run of 2026-11-20 (findings 1 to 7, 23, 35, 39) and the Inception redesign's decision D15. Contract v1 baseline current before and after; no Contract v1 schema, protocol schema, identity or fingerprint algorithm changes. What a new protocol contains changes (items 1, 2): no existing protocol, corpus or decision is touched.
 

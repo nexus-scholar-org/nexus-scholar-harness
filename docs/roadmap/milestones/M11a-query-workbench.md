@@ -1,6 +1,6 @@
 # M11a Query workbench
 
-Branch: `dev/m11a/query-workbench-spec` (from `origin/main` at `2436fe66`) · Lane: to be declared per part (proposed below: A, B and D **RELEASE**, C **STANDARD**) · Status: **SPECIFICATION APPROVED 2026-11-20; build not started** (the researcher accepted questions 1 to 10 as recommended, "yes to all", relayed by the main session; decision "2026-11-20 — The order of work after the acceptance run", item 5) · Third in the agreed order (plan §6, "After the acceptance run")
+Branch: `dev/m11a/query-workbench-spec` (from `origin/main` at `2436fe66`) · Lane: to be declared per part (proposed below: A, B and D **RELEASE**, C **STANDARD**) · Status: **SPECIFICATION APPROVED 2026-11-20; the two screen specifications FINAL since 2026-11-21 (their questions closed as proposed); build not started** (the researcher accepted questions 1 to 10 as recommended, "yes to all", relayed by the main session; decision "2026-11-20 — The order of work after the acceptance run", item 5) · Third in the agreed order (plan §6, "After the acceptance run")
 
 Short page for the researcher: [`M11a-query-workbench-for-review.md`](M11a-query-workbench-for-review.md). Screens: [`docs/ux/phase0-inception/final/10-query-workbench.md`](../../ux/phase0-inception/final/10-query-workbench.md) and [`docs/ux/phase1-discovery/final/10-plan-amend-search.md`](../../ux/phase1-discovery/final/10-plan-amend-search.md) (both `Status: DRAFT`). Decisions: `docs/decisions.md`, "2026-11-20 — M11a query workbench: the specification's choices" (accepted 2026-11-20).
 
