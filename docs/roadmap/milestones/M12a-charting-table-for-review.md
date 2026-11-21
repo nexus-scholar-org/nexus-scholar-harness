@@ -1,6 +1,6 @@
 # M12a Charting table: for your review
 
-Date: 2026-11-21 · Status: **all your answers recorded (2026-11-21): the ten, the eight follow-ups and G1 to G5; one item below was written but never asked; nothing built, and the start of the build is yours to approve** · Full record: [`M12a-charting-table.md`](M12a-charting-table.md) · Screens (drafts, their own questions still open): `docs/ux/phase3-extraction/final/01-charting-table.md`, `02-one-study.md` · Decisions: `docs/decisions.md`, "2026-11-21 — M12a charting table" · The agent's plan: [`M12c-agent-cells-for-review.md`](M12c-agent-cells-for-review.md)
+Date: 2026-11-21 · Status: **all your answers recorded (2026-11-21): the ten, the eight follow-ups and G1 to G5; item 21 answered "Production from now"; one question on what that PR carries; nothing built, and the start of the build is yours to approve** · Full record: [`M12a-charting-table.md`](M12a-charting-table.md) · Screens (drafts, their own questions still open): `docs/ux/phase3-extraction/final/01-charting-table.md`, `02-one-study.md` · Decisions: `docs/decisions.md`, "2026-11-21 — M12a charting table" · The agent's plan: [`M12c-agent-cells-for-review.md`](M12c-agent-cells-for-review.md)
 
 ## What you will be able to do
 
@@ -73,9 +73,16 @@ The PDF kit is two systems side by side: an older downloader with the commands `
 | G4 | The proxy in the kit | "Refuse with a message" (code kept parked) |
 | G5 | The old pipeline buttons | "Yes, they stay parked" |
 
-## One item written but never asked
+## Item 21, Part K's bar: your answer
 
-Decision item 21, **Part K's bar**: the kit's downloading is called production only when the thirteen repairs are done with their tests and an independent RELEASE review approves; its first live use is Part F's live run; until then `download` and `ingest` keep their parked notice. My recommendation: accept it with the build start. It costs nothing beyond Part K.
+**"Production from now"** (recommended: keep the parked notice until the repairs are done). What it means:
+- The words "PARKED, not production" come off `download` and `ingest` (they stay on `extract`, `extract-run` and `acquire`), in the command's help, its test, the user guide, the kit list and the kit's skill; plan §8 changes with them. That is a code change, which this answer does not approve to build. It fits a small PR of its own, **K0**, before Part A.
+- Until Part K's repairs land (weeks: after A, beside B), the production `download` sends `student@university.edu` to Unpaywall and OpenAlex in your name, unless `MAILTO` (not `SCHOLAR_MAILTO`, which the kit does not read) is set where it runs; it poses as Chrome to every publisher; it tries the publisher address patterns you decided to remove (G3), one of which saves the wrong IEEE paper; it goes through an institutional proxy if `PROXY_URL` is in a `.env` where it runs, which you decided to refuse (G4); and it keeps no record of which file is which study.
+- The app is not exposed: Part F, the only app path to the kit, comes after Part K.
+
+| # | Question | My recommendation | What it costs |
+| :-- | :-- | :-- | :-- |
+| K0 | **What the notice-removal PR carries.** Words only; or the words plus the four smallest repairs, so that what you called production keeps the decisions you took today: your e-mail required (refused without it, reading `SCHOLAR_MAILTO` too), the app's own user agent, the address patterns switched off, a set proxy refused with a message? | **The words plus the four repairs.** Each is a few lines with a test; without them a production command contradicts G3 and G4 and writes to Unpaywall in a stranger's name. Part K keeps the other nine. | Words only: a small STANDARD PR. With the repairs: a small RELEASE PR (about a day's review). |
 
 ## The questions G1 to G5 as they were asked (kept for the record)
 

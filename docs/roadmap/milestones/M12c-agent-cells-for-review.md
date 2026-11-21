@@ -1,6 +1,6 @@
 # M12c Agent-proposed cells: for your review
 
-Date: 2026-11-21 · Status: **your nine answers recorded (2026-11-21); two new questions where they meet decisions already taken; a plan only, nothing is approved to build and nothing will be spent without your approval** · Full record: [`M12c-agent-cells.md`](M12c-agent-cells.md) · Decisions: `docs/decisions.md`, "2026-11-21 — M12c agent-proposed cells"
+Date: 2026-11-21 · Status: **your nine answers and N1, N2 recorded (2026-11-21), no question open; a plan only, nothing is approved to build and nothing will be spent without your approval** · Full record: [`M12c-agent-cells.md`](M12c-agent-cells.md) · Decisions: `docs/decisions.md`, "2026-11-21 — M12c agent-proposed cells"
 
 ## What you would be able to do
 
@@ -26,9 +26,16 @@ It tells you how much of your table came from the agent and how much you changed
 
 ## The plan now
 
-**M12b-read** (reading the PDFs as text, page by page; large), then **M12c-0** (the contract; medium), then **M12c-2** (proposals from the app, adopt/edit/reject, the counts, the screens; large), then **M12c-3** (the MCP path; medium). All four are reviewed in the RELEASE lane. They come after M12a and before the screening ladder work (M9b to M9d). The agent is offered once M12c-3 is in, so both paths start together.
+**M12b-read** (reading the PDFs as text, page by page; large), then **M12c-0** (the contract; medium), then **M12c-eval** (the small eval set, N1; small, with a run whose spend you approve separately), then **M12c-2** (proposals from the app, adopt/edit/reject, the counts, the screens; large), then **M12c-3** (the MCP path; medium). All but the eval set are reviewed in the RELEASE lane. They come after M12a and before the screening ladder work (M9b to M9d). The agent is offered once M12c-3 is in, so both paths start together.
 
-## New questions (each meets a decision already taken)
+## Your answers to N1 and N2 (2026-11-21)
+
+| # | Question | Your answer |
+| :-- | :-- | :-- |
+| N1 | An eval set for the charting task | "Small eval set" (as recommended); the run's spend needs your separate approval |
+| N2 | How an adopted cell is recorded | "AGENT_ADOPTED, stated plainly" (as recommended) |
+
+## The questions N1 and N2 as they were asked (kept for the record)
 
 | # | Question | My recommendation | What it costs |
 | :-- | :-- | :-- | :-- |
