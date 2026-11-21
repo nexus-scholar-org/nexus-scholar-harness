@@ -293,7 +293,7 @@ The two screen drafts (written by the `ux-spec-writer` agent) carry their own sc
 
 ### Part A: counts, the request budget and the cache
 
-Branch `dev/m11a/part-a-counts` from `origin/main` at `1f218054` · Lane **RELEASE** (as proposed; `test_gate_policy.md`: new public routes, new refusal codes, a persisted file, additive fields on a public answer) · Decisions: `docs/decisions.md` "2026-11-21 — M11a Part A" items 1 to 10 (PROPOSED).
+Branch `dev/m11a/part-a-counts` from `origin/main` at `1f218054` · Lane **RELEASE** (as proposed; `test_gate_policy.md`: new public routes, new refusal codes, a persisted file, additive fields on a public answer) · Decisions: `docs/decisions.md` "2026-11-21 — M11a Part A" items 1 to 10 (accepted by the researcher 2026-11-21).
 
 What was built:
 - `src/scholar_search/workbench.py` (pure): `parse_version` (refuses `WORKBENCH_VERSION_INVALID` cases), `compile_version` through `compile_protocol_search`, `count_variants` (full plus each concept left out), `synonym_variants`, `gain`, `doubles` (×2), `largest`, and the word match `fold_word`/`term_matches`/`concepts_found`/`lacking`/`matches` (whole words, English plurals; decision item 7).
@@ -367,7 +367,7 @@ Review: round 1 CHANGES (8), round 2 CHANGES (5), round 3 **APPROVE** on `52399d
 
 ### Part B: seeds and comparison sets
 
-Branch `dev/m11a/part-b-seeds-comparison`, **from Part A's branch** (`dev/m11a/part-a-counts` at `0267d071`, not merged yet: merge Part A first) · Lane **RELEASE** (as proposed: new routes and refusal codes, new genesis files in the preview answer, new check ids) · Decisions: `docs/decisions.md` "2026-11-21 — M11a Part B" items 1 to 10 (PROPOSED).
+Branch `dev/m11a/part-b-seeds-comparison`, **from Part A's branch** (`dev/m11a/part-a-counts` at `0267d071`, not merged yet: merge Part A first) · Lane **RELEASE** (as proposed: new routes and refusal codes, new genesis files in the preview answer, new check ids) · Decisions: `docs/decisions.md` "2026-11-21 — M11a Part B" items 1 to 10 (accepted by the researcher 2026-11-21).
 
 What was built:
 - `scholar_search.workbench`: `seed_check` (per seed the concepts found and lacking, "not read", the warning levels `all`, `concept`, `few`), `record_text`, `readable`, `related`. `scholar_search.dedup.title_key` is public. `OpenAlexProvider.find_dois` and `works_by_doi`: one request per 50 DOIs (`DOI_FILTER_MAX`), the identifier filter with or without the planned search.
@@ -433,7 +433,7 @@ Vitest, build and Playwright were not repeated on `dde504f3`: the commits after 
 
 ### Part C: the workbench on Inception's step 5
 
-Branch `dev/m11a/part-c-screen`, **from Part B's branch** (`dev/m11a/part-b-seeds-comparison` at `23c57bc1`; merge A, then B, then C) · Lane **RELEASE**, not the STANDARD proposed: the screen needed the Scopus and Web of Science strings, which the engine now builds (an additive field `external` on the counts answer, decision C item 10) · Decisions: `docs/decisions.md` "2026-11-21 — M11a Part C" items 1 to 10 (PROPOSED).
+Branch `dev/m11a/part-c-screen`, **from Part B's branch** (`dev/m11a/part-b-seeds-comparison` at `23c57bc1`; merge A, then B, then C) · Lane **RELEASE**, not the STANDARD proposed: the screen needed the Scopus and Web of Science strings, which the engine now builds (an additive field `external` on the counts answer, decision C item 10) · Decisions: `docs/decisions.md` "2026-11-21 — M11a Part C" items 1 to 10 (accepted by the researcher 2026-11-21).
 
 What was built:
 - `apps/research-ui/components/query-workbench.tsx`: the concepts block (concept rows with wrapping term chips, OR inside and AND between in words, rename, add and remove a term, Split, Remove concept, Merge into one with the name chosen among its terms, the topic's suggested concepts, the pool's suggestions in the D5 look, the cost line, Count, Use this version, Discard edits) and the evidence column (Counts: the table with each concept left out, the largest effect in words, the note on a concept, the exact string, every row state in words, Count anyway for Crossref, the budget line, the size line with the estimate's keys, the last counted version beside this one, "What does each synonym add?", "Read what this concept removes"; Known papers; Compare with an export; the strings for Scopus and Web of Science). One card per database on narrow windows.
@@ -507,7 +507,7 @@ Python did not change after `2cef66f7` (`git diff 2cef66f7 f72edec8` touches the
 
 ### Part D: "Change the search" on Plan
 
-Branch `dev/m11a/part-d-plan-amend`, **from Part C's branch** (`dev/m11a/part-c-screen` at `11577013`; merge A, B, C, then D) · Lane **RELEASE** (a protocol write after genesis through a new route, two refusal codes, an additive field on the plan read) · Decisions: `docs/decisions.md` "2026-11-21 — M11a Part D" items 1 to 13 (PROPOSED).
+Branch `dev/m11a/part-d-plan-amend`, **from Part C's branch** (`dev/m11a/part-c-screen` at `11577013`; merge A, B, C, then D) · Lane **RELEASE** (a protocol write after genesis through a new route, two refusal codes, an additive field on the plan read) · Decisions: `docs/decisions.md` "2026-11-21 — M11a Part D" items 1 to 13 (accepted by the researcher 2026-11-21).
 
 What was built:
 - Engine: `workspace_proposals.search_view` and `amend_search` (the 9(a) path extended to replace the whole concept list: the same lock, compile, `outside_search` guard, backup under `audit/amended/<stamp>/`, atomic writes, `PROTOCOL_AMENDED` with `source: "researcher"`, the reason, `query_key`, both fingerprints, the changed paths, the backup and the counts before and after); `GET /discovery/plan` gains `search`; `POST /api/v1/discovery/workbench/amend` with `dry_run` (the consequences: runs still on the protocol's search, staged exports with their stated strings, recall checks of the current fingerprint, the estimate, open proposals); a running job refuses the real call; `WORKBENCH_REASON_INVALID` and `WORKBENCH_PROTOCOL_CHANGED` registered (`refusals.py`, `screening-api-contract.md` §7); the route in both allow lists, not a phone route.
@@ -577,4 +577,4 @@ Evidence (Part D):
 
 Python did not change after `7019848b` (`git diff 7019848b 669856e0 -- src tests/console` is empty). The six screenshots the Playwright runs regenerate are restored after each run.
 
-**Part D: READY FOR PR** (not pushed). Branch `dev/m11a/part-d-plan-amend`, to be merged after Parts A, B and C. Decision D item 7 was accepted by the researcher on 2026-11-21 (`HANDOFF_SEARCH_CHANGED` keeps "Search again"); items 1 to 6 and 8 to 13 stay PROPOSED.
+**Part D: READY FOR PR** (not pushed). Branch `dev/m11a/part-d-plan-amend`, to be merged after Parts A, B and C. Decision D item 7 was accepted by the researcher on 2026-11-21 (`HANDOFF_SEARCH_CHANGED` keeps "Search again"); the remaining items of parts A, B, C and D were accepted as built the same day (decisions entry "The M11a decisions accepted").

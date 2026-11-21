@@ -10,13 +10,19 @@ history to read if you need the original reasoning (`git log --follow -- <path>`
 
 | Entry | Item | What is open |
 | :-- | :-- | :-- |
-| 2026-11-21 — M11a Part D: "Change the search" on Plan | 1 to 6, 8 to 13 | Proposed with the build; the researcher's answer is pending. Item 7 (`HANDOFF_SEARCH_CHANGED` kept on Harvest) was accepted 2026-11-21. |
-| 2026-11-21 — M11a Part C: the workbench screen | 1 to 10 | Proposed with the build; the researcher's answer is pending. |
-| 2026-11-21 — M11a Part B: known papers and comparison sets | 1 to 10 | Proposed with the build; the researcher's answer is pending. |
-| 2026-11-21 — M11a Part A: the workbench's counts | 1 to 13 | Proposed with the build; the researcher's answer is pending. |
 | 2026-11-19 — M9a: what the measurement says about the ladder gates | 2 | The minimum share of the researcher's excludes an agent must take before a rung unlocks: the principle is accepted; the researcher decided on 2026-11-20 to set the number when M9b is built. |
 
-## 2026-11-21 — M11a Part D: "Change the search" on Plan, recorded as the researcher's amendment (items 1 to 6 and 8 to 13 PROPOSED; item 7 accepted by the researcher 2026-11-21)
+## 2026-11-21 — The M11a decisions accepted (parts A, B, C and D; accepted by the researcher 2026-11-21)
+
+The researcher answered in the main session on 2026-11-21, after parts A, B and C were merged (PR #269, #270, #272) and before part D's push.
+
+1. **Part C item 1, accepted as built:** a merged concept is named by one of its own terms (a choice opening on the first concept's name), not by a typed name. This replaces the letter of "2026-11-21 — The M11a screen questions closed", item 2 ("a name field filled with the first concept's name"): a typed name would be searched as a phrase.
+2. **Part A item 12, accepted as built:** counting after the corpus is accepted still writes the count log under `audit/query_development/`.
+3. **Part A item 1, accepted as built:** the request budget and the quota memory are one file per workspaces folder.
+4. **Every other item of parts A, B, C and D, accepted as built** (asked together, with three named in the question: Arabic numbers follow the app-wide rule of `docs/I18N.md`; Inception counts the databases of the latest first search; `QUERY_NOT_COUNTED` clears only after a Count of the saved version). Part D item 7 was accepted earlier the same day.
+5. **The wording stays open** until the researcher reads the built screens (as decided on 2026-11-21 for the two screen specifications).
+
+## 2026-11-21 — M11a Part D: "Change the search" on Plan, recorded as the researcher's amendment (items 1 to 13 accepted by the researcher 2026-11-21)
 
 Record: `docs/roadmap/milestones/M11a-query-workbench.md`, "Part D". Branch `dev/m11a/part-d-plan-amend`, built on Part C's branch. What decision 2026-11-20 item 1, decision 2026-11-21 item 3 and the FINAL Plan spec (`10-plan-amend-search.md`) decided is built as decided: the researcher's amendment replaces the whole concept list with a required reason through the 9(a) code (compile with the genesis compiler, the `outside_search` guard, the backup under `audit/amended/<stamp>/`, `PROTOCOL_AMENDED`), a harvest made before it can no longer become the corpus, after the accept the workbench records nothing, and a version never counted is recorded with "not counted". No Contract v1 model, schema, identity or golden fixture changes; the protocol's fingerprint moves as with every 9(a) amendment.
 
@@ -36,7 +42,7 @@ Record: `docs/roadmap/milestones/M11a-query-workbench.md`, "Part D". Branch `dev
 
 **Lane RELEASE** (`test_gate_policy.md`): a protocol write after genesis through a new public route, two new refusal codes, an additive field on `GET /discovery/plan`, an additive field on one fixed check's action.
 
-## 2026-11-21 — M11a Part C: the query workbench on Inception's step 5 (items 1 to 10 PROPOSED)
+## 2026-11-21 — M11a Part C: the query workbench on Inception's step 5 (items 1 to 10 accepted by the researcher 2026-11-21)
 
 Record: `docs/roadmap/milestones/M11a-query-workbench.md`, "Part C". Branch `dev/m11a/part-c-screen`, built on Part B's branch. The FINAL screen specification (`10-query-workbench.md`, questions closed 2026-11-21) is built as written; these are the choices it left to the build, and three places where the build differs from its words, each for a stated reason.
 
@@ -85,7 +91,7 @@ This milestone's choices (accepted by the researcher 2026-11-21, as built):
 **Lane RELEASE** (`test_gate_policy.md`): two additive fields on public console routes. No Contract v1 schema, protocol schema, identity, fingerprint, event or publication change.
 
 
-## 2026-11-21 — M11a Part B: known papers, comparison sets and the search development at genesis (items 1 to 10 PROPOSED)
+## 2026-11-21 — M11a Part B: known papers, comparison sets and the search development at genesis (items 1 to 10 accepted by the researcher 2026-11-21)
 
 Record: `docs/roadmap/milestones/M11a-query-workbench.md`, "Part B". Branch `dev/m11a/part-b-seeds-comparison`, built on Part A's branch. What the specification decided (OpenAlex only for the per-database checks, behind a switch; a comparison set never added to the corpus; the development saved under `audit/query_development/`; the two fixed checks never blockers) is built as decided. No Contract v1 model, schema, identity or fingerprint changes: the new files are side files outside the baseline; the preview's `files` list grows by the development files a draft has.
 
@@ -102,7 +108,7 @@ Record: `docs/roadmap/milestones/M11a-query-workbench.md`, "Part B". Branch `dev
 
 **Lane RELEASE** (`test_gate_policy.md`): new public routes and refusal codes, new genesis files in a public preview answer, two new check ids.
 
-## 2026-11-21 — M11a Part A: the workbench's counts, the count log, the budget and the quota memory (items 1 to 13 PROPOSED)
+## 2026-11-21 — M11a Part A: the workbench's counts, the count log, the budget and the quota memory (items 1 to 13 accepted by the researcher 2026-11-21)
 
 Record: `docs/roadmap/milestones/M11a-query-workbench.md`, "Part A". Branch `dev/m11a/part-a-counts`. These are the choices the specification and the FINAL screen specifications leave open; what they decided (counts only on Count, the budgets, the 24-hour log, Crossref, the ×2 note) is built as decided. No Contract v1 model, schema, identity or fingerprint changes; the new files are side files outside the baseline.
 
