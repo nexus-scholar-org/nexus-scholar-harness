@@ -643,10 +643,14 @@ def calibration_result(ws: Path, study_ids: list[str], *, pilot_id: str | None =
             criteria_version=context.criteria_version,
         )[0]
     scored = pg.score(outcomes, labels)
+    missed = list(scored["missed_includes"])
     return {
         "include_recall": scored["include_recall"],
         "ci_low": scored["include_recall_ci_low"],
-        "missed_includes": scored["missed_includes"],
+        # M11b part B, review F1 (answer 11): a pilot's records are undecided in the main screening,
+        # so a check on a pilot names none of them; the count only.
+        "missed_includes": [] if pilot_id is not None else missed,
+        "missed_includes_count": len(missed),
         "compared": len(labels),
         "advisory": True,
     }

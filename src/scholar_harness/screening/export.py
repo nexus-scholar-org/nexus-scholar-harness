@@ -529,13 +529,26 @@ def _pilot_sentences(ws: Path, published: datetime | None, corpus: int) -> tuple
             continue
         studies = {str(r.get("study_id")) for r in draw.get("records") or [] if isinstance(r, dict)}
         decided = len(set(heads(read_decisions(ws, str(draw["pilot_id"])))) & studies)
+        if not decided:
+            continue  # review F2: a pilot with no decision piloted nothing
         figures.append({"pilot_id": draw["pilot_id"], "drawn": int(draw.get("n") or len(studies)),
                         "decided": decided, "seed": draw.get("seed"), "date": _date(draw.get("drawn_at"))})
         paths += [draw_path(ws, str(draw["pilot_id"])), decisions_path(ws, str(draw["pilot_id"]))]
     if not figures:
         return [], [], []
-    parts = [f"{f['decided']} records (seed {f['seed']})" for f in figures]
-    listed = parts[0] if len(parts) == 1 else ", ".join(parts[:-1]) + " and on " + parts[-1].replace(" records", " more", 1)
+    from .criteria import criteria_in_force
+
+    amended = [str(a.get("amended_at") or "") for a in criteria_in_force(ws, until=published).amendments]
+    drawn_at = {str(d["pilot_id"]): str(d.get("drawn_at") or "") for d in list_pilots(ws)}
+    parts = []
+    for i, f in enumerate(figures):
+        noun = "record" if f["decided"] == 1 else "records"
+        part = f"{f['decided']} {noun} (seed {f['seed']})" if i == 0 else f"on {f['decided']} more (seed {f['seed']})"
+        # Record (h): a pilot drawn after a revision of the criteria says so.
+        if i > 0 and any(drawn_at[figures[i - 1]["pilot_id"]] < when <= drawn_at[f["pilot_id"]] for when in amended):
+            part += " after a revision of the criteria"
+        parts.append(part)
+    listed = parts[0] if len(parts) == 1 else ", ".join(parts[:-1]) + " and " + parts[-1]
     sentences = [
         f"The screening criteria were piloted on {listed}, drawn at random from the {corpus} records of the corpus.",
         "The pilot decisions were not counted; these records were screened again with the rest of the corpus, "

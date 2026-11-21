@@ -274,6 +274,18 @@ def draw(
                 CRITERIA_AMENDMENT_AFTER_APPROVAL,
                 "a batch is approved, so the criteria are fixed; a pilot can no longer change them",
             )
+        from .criteria import CRITERIA_AMENDMENT_HANDOFF, handoff_batches
+
+        handoff = handoff_batches(ws, context)
+        if handoff:
+            # Review F6: those decisions are outside the event log, so "no main decision" cannot
+            # be read for their records; the revision refuses this state too (part A, item 10).
+            raise PilotRefused(
+                CRITERIA_AMENDMENT_HANDOFF,
+                f"batch(es) {', '.join(str(i) for i in handoff)} hold a worker recommendation or decisions not made "
+                "in the app; a pilot cannot tell which of their records are decided",
+                handoff_batches=handoff,
+            )
         current = open_pilot(ws)
         if current is not None:
             raise PilotRefused(
@@ -290,8 +302,9 @@ def draw(
             return {"recorded": False, **answer}
         seed = seed if seed is not None else secrets.randbits(32)
         chosen = draw_sample(candidates, seed, n)
-        pilots = list_pilots(ws)
-        pilot_id = f"pilot_{len(pilots) + 1:03d}"
+        taken = [int(m.group(1)) for p in _dir(ws).glob("pilot_[0-9][0-9][0-9].json")
+                 if (m := _PILOT_ID.match(p.stem))] if _dir(ws).is_dir() else []
+        pilot_id = f"pilot_{max(taken, default=0) + 1:03d}"
         record = {
             "pilot_id": pilot_id,
             "seed": seed,
@@ -475,6 +488,16 @@ def intake(
                 parent = known.get(str(raw["supersedes"]))
                 if parent is None or parent.get("study_id") != raw.get("study_id"):
                     refusal = _refusal(ev.INVALID_OUTPUT, "supersedes names no earlier pilot decision for this record")
+            if refusal is None:
+                # Review F7: a change of mind names the decision it replaces (section (d)); a second
+                # decision that does not, from another tab say, is refused rather than winning silently.
+                head = heads([d for d in known.values() if d.get("study_id") == raw.get("study_id")]).get(str(raw.get("study_id")))
+                if head is not None and raw.get("supersedes") != head["pilot_decision_id"]:
+                    refusal = _refusal(
+                        ev.INVALID_OUTPUT,
+                        f"{raw.get('study_id')} already has pilot decision {head['pilot_decision_id']}; "
+                        "a change of mind supersedes it",
+                    )
             if refusal is not None:
                 results.append({"event_id": event_id, "result": "refused", "refusal": refusal})
                 continue
@@ -642,60 +665,88 @@ def summarise(ws: Path, pilot_id: str, context: Any) -> dict[str, Any]:
 def _observations(rows, by_outcome, decided, drafts, checklist, criteria):
     """The readings of record (f) as fixed rules over counts; and those that could not be computed."""
     obs: list[dict[str, Any]] = []
+    short: list[dict[str, Any]] = []  # review F4: readings whose minimum count is not reached yet
     in_force = [r for r in rows if not r["retired"]]
     excludes = by_outcome["EXCLUDE"]
-    if decided >= UNCLEAR_MIN and by_outcome["MAYBE"] >= UNCLEAR_SHARE * decided:
+
+    def below(kind: str, needs: str, have: int, minimum: int) -> None:
+        short.append({"kind": kind, "needs": [needs], "have": have, "min": minimum})
+
+    if decided < UNCLEAR_MIN:
+        below("many_unclear", "decisions", decided, UNCLEAR_MIN)
+    elif by_outcome["MAYBE"] >= UNCLEAR_SHARE * decided:
         obs.append({"kind": "many_unclear", "criteria": [], "counts": _share(by_outcome["MAYBE"], decided)})
-    if excludes >= MOST_WORK_MIN:
+    if excludes < MOST_WORK_MIN:
+        below("does_most_work", "exclusions", excludes, MOST_WORK_MIN)
+    else:
         top = max(in_force, key=lambda r: r["exclusions"]["count"], default=None)
         if top is not None and top["exclusions"]["count"] >= MOST_WORK_SHARE * excludes:
             obs.append({"kind": "does_most_work", "criteria": [top["id"]], "counts": dict(top["exclusions"])})
     answers_known = bool(drafts) or bool(checklist)
-    if decided >= NEVER_USED_MIN:
+    if decided < NEVER_USED_MIN:
+        below("never_used", "decisions", decided, NEVER_USED_MIN)
+    else:
         for r in in_force:
             if r["exclusions"]["count"]:
                 continue
-            if answers_known:
+            said = [a.get(r["id"]) for a in (*drafts.values(), *checklist.values()) if a.get(r["id"])]
+            if said:  # review F5: the full form only for a criterion that was answered
                 against = "yes" if r["side"] == "exclusion" else "no"
-                said = [a.get(r["id"]) for a in (*drafts.values(), *checklist.values())]
                 if against in said:
                     continue
                 obs.append({"kind": "never_used", "form": "full", "criteria": [r["id"]],
-                            "counts": {"exclusions": 0, "of": excludes, "answered": sum(1 for x in said if x)}})
+                            "counts": {"exclusions": 0, "of": excludes, "answered": len(said)}})
             else:
                 obs.append({"kind": "never_used", "form": "weaker", "criteria": [r["id"]],
                             "counts": {"exclusions": 0, "of": excludes}})
+    hard_max = 0
     for r in in_force:
         for source, key in (("drafts", "draft_not_reported"), ("checklist", "checklist_not_reported")):
             share = r[key]
+            if share:
+                hard_max = max(hard_max, share["of"])
             if share and share["of"] >= HARD_MIN and share["count"] >= HARD_SHARE * share["of"]:
                 obs.append({"kind": "hard_to_judge", "criteria": [r["id"]], "source": source, "counts": dict(share)})
+    if answers_known and hard_max < HARD_MIN:
+        below("hard_to_judge", "answers", hard_max, HARD_MIN)
     exclusions = [r["id"] for r in in_force if r["side"] == "exclusion"]
     inclusions = [r["id"] for r in in_force if r["side"] == "inclusion"]
+    together_max = 0
     for source, answer_sets in (("drafts", list(drafts.values())), ("checklist", list(checklist.values()))):
         if not answer_sets:
             continue
         for i, a in enumerate(exclusions):
             for b in exclusions[i + 1:]:
                 either = [s for s in answer_sets if s.get(a) == "yes" or s.get(b) == "yes"]
+                together_max = max(together_max, len(either))
                 together = sum(1 for s in either if s.get(a) == "yes" and s.get(b) == "yes")
                 if len(either) >= TOGETHER_MIN and together >= TOGETHER_SHARE * len(either):
                     obs.append({"kind": "fire_together", "criteria": [a, b], "source": source,
                                 "counts": _share(together, len(either))})
+    if answers_known and len(exclusions) > 1 and together_max < TOGETHER_MIN:
+        below("fire_together", "answers", together_max, TOGETHER_MIN)
+    mirror_max = differ_max = 0
     if drafts:
         for exc in exclusions:
             for inc in inclusions:
                 both = [s for s in drafts.values() if s.get(exc) in ("yes", "no") and s.get(inc) in ("yes", "no")]
+                mirror_max = max(mirror_max, len(both))
                 same = sum(1 for s in both if (s[exc] == "yes") == (s[inc] == "no"))
                 if len(both) >= MIRROR_MIN and same >= MIRROR_SHARE * len(both):
                     obs.append({"kind": "mirrored_pair", "criteria": [exc, inc], "source": "drafts",
                                 "counts": _share(same, len(both))})
+        if mirror_max < MIRROR_MIN:
+            below("mirrored_pair", "answers", mirror_max, MIRROR_MIN)
         for r in in_force:
             share = r["read_differently"]
+            if share:
+                differ_max = max(differ_max, share["of"])
             if share and share["of"] >= DIFFER_MIN and share["count"] >= DIFFER_SHARE * share["of"]:
                 obs.append({"kind": "read_differently", "criteria": [r["id"]], "source": share["source"],
                             "counts": {"count": share["count"], "of": share["of"]}})
-    not_computed = []
+        if differ_max < DIFFER_MIN:
+            below("read_differently", "answers", differ_max, DIFFER_MIN)
+    not_computed = list(short)
     if not answers_known:
         not_computed += [{"kind": k, "needs": ["agent_check", "checklist"]} for k in ("hard_to_judge", "fire_together")]
     if not drafts:

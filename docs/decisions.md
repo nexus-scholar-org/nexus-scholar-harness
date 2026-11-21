@@ -10,7 +10,7 @@ history to read if you need the original reasoning (`git log --follow -- <path>`
 
 | Entry | Item | What is open |
 | :-- | :-- | :-- |
-| 2026-11-21 — M11b part B: the pilot, the build's choices | 1 to 10 | Proposed with the build; the researcher's answer is pending. |
+| 2026-11-21 — M11b part B: the pilot, the build's choices | 1 to 13 | Proposed with the build; the researcher's answer is pending. |
 | 2026-11-21 — M11b part A: criteria in force, the build's choices | 11 | Proposed after review round 3; the researcher's answer is pending. |
 | 2026-11-19 — M9a: what the measurement says about the ladder gates | 2 | The minimum share of the researcher's excludes an agent must take before a rung unlocks: the principle is accepted; the researcher decided on 2026-11-20 to set the number when M9b is built. |
 
@@ -28,6 +28,9 @@ Record: `docs/roadmap/milestones/M11b-criteria-pilot.md`, "Build record", "Part 
 8. **The methods sentence counts the pilot records decided, not drawn**, and names each pilot's seed ("piloted on 38 records (seed …)"), so a pilot ended early is not overstated; the drawn count is in the figures. An amendment made with no counted decision reads "It was made during the pilot, before the main screening." (the amendment row names the open pilot) or "… after the pilot, …".
 9. **The agent check on a pilot compares a draft with a pilot decision only when both were made under the same criteria version**, as the main calibration does since part A.
 10. **The agent check's drafts and runs name the pilot** (`pilot_id` on the run record and on each draft), so the pilot result can tell them apart later; nothing reads it for counting today.
+11. **A pilot decision is labelled with the criteria version in force when it is received** (no binding: it is part of no batch). Since part A's item 5 was decided ("bind the version"), a main decision made under an earlier wording is refused; a pilot decision made just before a revision is not refused, it is labelled with the new version. It is never counted, so only the pilot result's per-version labels can be off by the requests in flight at the moment of a revision. *Alternative:* the pilot queue hands out the version, and the pilot intake refuses a decision bound under another (as part A item 5); the same few lines of code, one more refusal for Triage in pilot mode (part C).
+12. **A second pilot decision on a record must supersede the first** (review round 1, F7): refused `INVALID_OUTPUT` otherwise, so two tabs cannot both decide a record with the last one silently winning. A change of mind names the decision it replaces (section (d)).
+13. **A pilot is not drawn while a batch was decided through the file hand-off** (review round 1, F6): refused `CRITERIA_AMENDMENT_HANDOFF`, the code part A gives a revision in the same state (part A item 10), because "no main decision" cannot be read for records decided outside the event log.
 
 ## 2026-11-21 — M11b part A: criteria in force, the build's choices (items 1 to 10 answered by the researcher 2026-11-21: nine accepted as built, item 5 changed to "bind the version"; M11b-criteria-pilot, part A)
 

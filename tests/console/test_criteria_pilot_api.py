@@ -336,7 +336,14 @@ def test_dod11c_pilot_decisions_reach_no_counted_reader(ws, client):
     assert (agreement["decided_with_proposal"], agreement["table_2x2"]["both_include"]) == (0, 0)
     preview = _ok(client.get(f"{BASE}/prisma/preview"))
     assert preview["excluded"]["total"] == 0 and preview["included"] == 0
-    with pytest.raises((Exception, SystemExit)):
+    # Nothing approvable: no batch has a decisions file, so its coverage is empty (review F8).
+    from scholar_harness.screening.integrity import ScreeningIntegrityRefused, check_exact_coverage
+
+    for batch in ev.load_context(ws).batches.values():
+        with pytest.raises(ScreeningIntegrityRefused) as refused:
+            check_exact_coverage(set(batch.candidates), [])
+        assert refused.value.code == "COVERAGE_INCOMPLETE"
+    with pytest.raises(RuntimeError, match=r"missing, invalid, or rejected decision artifacts for batches \[1, 2, 3\]"):
         cmd_collect(ws)
     assert not (ws / "literature" / "screening" / "generation.json").exists()
 
@@ -528,7 +535,7 @@ def test_dod14_the_agent_check_on_a_pilot_reads_its_labels_from_the_pilot_file(w
     response = client.post(f"{BASE}/proposals/calibrations", json={**body, "study_ids": [records[15]]})
     assert (response.status_code, _code(response)) == (422, "INVALID_OUTPUT")
     response = client.post(f"{BASE}/proposals/calibrations", json={k: v for k, v in body.items() if k != "pilot_id"})
-    assert _code(response) == "INVALID_OUTPUT"  # no study_ids and no decided records: as before
+    assert _code(response) == "BODY_INVALID"  # review F9: without pilot_id, study_ids is required, as before
     assert _code(client.post(f"{BASE}/proposals/calibrations", json={**body, "pilot_id": "pilot_009"})) == "PILOT_NOT_FOUND"
 
 
@@ -544,9 +551,11 @@ def test_dod15_splits_by_criterion_carry_answered_by_both(ws, client):
         _main_event(client, queue[1], "INCLUDE", criteria=[{"id": "INC-01", "answer": "yes"}, {"id": "EXC-01", "answer": "no"}]),
         _main_event(client, queue[2], "INCLUDE"),
     ])
-    splits = {s["criterion_id"]: s for s in _ok(client.get(f"{BASE}/agreement"))["splits_by_criterion"]}
-    assert splits["INC-01"] == {"criterion_id": "INC-01", "n": 1, "answered_by_both": 2}
-    assert splits["EXC-01"] == {"criterion_id": "EXC-01", "n": 0, "answered_by_both": 1}
+    body = _ok(client.get(f"{BASE}/agreement"))
+    # Real splits only, each with its denominator (old clients read `n` as before) ...
+    assert body["splits_by_criterion"] == [{"criterion_id": "INC-01", "n": 1, "answered_by_both": 2}]
+    # ... and every criterion answered by both, split or not, in its own field (review F3).
+    assert body["answered_by_both"] == [{"criterion_id": "EXC-01", "n": 1}, {"criterion_id": "INC-01", "n": 2}]
 
 
 # --- the methods paragraph --------------------------------------------------------------------------------------
@@ -586,3 +595,176 @@ def test_methods_state_the_pilot_and_that_its_decisions_were_not_counted(tmp_pat
     assert body["paragraph"].index("piloted on") < body["paragraph"].index("criteria were amended")
     assert body["figures"]["pilots"] == [{"pilot_id": "pilot_001", "drawn": 3, "decided": 2, "seed": 777, "date": "2026-11-04"}]
     _assert_numbers_trace(body)
+
+
+# --- review round 1 of part B ---------------------------------------------------------------------------
+
+
+def _pilot_check(ws: Path, client: TestClient, driver) -> dict:
+    from scholar_harness.screening import agent_runs as runs
+
+    runs.record_consent(ws, "anthropic", model="claude-haiku-5-5", prompt_sha256=api.PROMPT, accepted_at=CONSENT["accepted_at"])
+    started = _ok(client.post(f"{BASE}/proposals/calibrations", json={
+        "pilot_id": "pilot_001", "provider": "anthropic", "model": "claude-haiku-5-5", "effort": "low"}))
+    return _ok(client.get(f"{BASE}/proposals/runs/{started['run_id']}"))
+
+
+class _ExcludingDriver(FakeDriver):
+    """Answers EXC-01 yes on every record: a draft Exclude against a pilot Include."""
+
+    def run(self, requests, spec, *, on_result=None, cancelled=lambda: False):
+        from scholar_agent.drivers import DriverResult
+
+        out = []
+        for request in requests:
+            ids = spec.schema["properties"]["criteria"]["items"]["properties"]["id"]["enum"]
+            # A verbatim quote from every abstract, so the draft passes its checks and is an Exclude.
+            answers = [{"id": i, "answer": "yes", "quote": "UAV weed mapping"} for i in ids]
+            result = DriverResult(request.custom_id, "ok", output={"criteria": answers, "cannot_decide": False, "reasoning": "r"},
+                                  usage=self.usage, model=spec.model)
+            out.append(result)
+            if on_result:
+                on_result(result)
+        return out
+
+
+def test_review_f1_the_agent_check_on_a_pilot_names_no_record(ws):
+    client = _client(ws, driver=_ExcludingDriver())
+    drawn = _draw(client, 20)
+    records = _pilot_records(client)
+    _decide(client, drawn["pilot_id"], [_decision(s, "INCLUDE") for s in records[:10]])
+    run = _pilot_check(ws, client, _ExcludingDriver())
+    assert run["calibration"]["missed_includes_count"] == 10
+    assert run["calibration"]["missed_includes"] == []
+    setup = _ok(client.get(f"{BASE}/proposals/setup"))
+    text = json.dumps([run, setup])
+    assert not any(s in text for s in records), "a pilot record's id is in the answer"
+
+
+def test_review_f1_a_main_calibration_still_names_its_missed_records(ws):
+    from scholar_harness.screening import agent_runs as runs
+
+    client = _client(ws, driver=_ExcludingDriver())
+    queue = [i["study_id"] for i in _ok(client.get(f"{BASE}/queue", params={"view": "needs_you", "limit": 5}))["items"]]
+    _post_main(client, [_main_event(client, s, "INCLUDE") for s in queue[:3]])
+    runs.record_consent(ws, "anthropic", model="claude-haiku-5-5", prompt_sha256=api.PROMPT, accepted_at=CONSENT["accepted_at"])
+    started = _ok(client.post(f"{BASE}/proposals/calibrations", json={
+        "study_ids": queue[:3], "provider": "anthropic", "model": "claude-haiku-5-5", "effort": "low"}))
+    calibration = _ok(client.get(f"{BASE}/proposals/runs/{started['run_id']}"))["calibration"]
+    assert sorted(calibration["missed_includes"]) == sorted(queue[:3]) and calibration["missed_includes_count"] == 3
+
+
+def test_review_f2_a_pilot_with_no_decision_is_not_in_the_methods(tmp_path):
+    from scholar_harness.screening.export import _pilot_sentences
+
+    ws = _workspace(tmp_path)
+    drawn = pl.draw(ws, n=20, confirm=True, drawn_by="r", seed=1)
+    pl.close(ws, drawn["pilot_id"], closed_by="r")
+    assert _pilot_sentences(ws, None, RECORDS) == ([], [], [])
+
+
+def test_review_f11_the_pilot_sentence_reads_well_for_one_record_and_three_pilots(tmp_path):
+    from scholar_harness.screening import criteria as cr
+    from scholar_harness.screening.export import _pilot_sentences
+
+    ws = _workspace(tmp_path)
+    for i, seed in enumerate((11, 22, 33)):
+        drawn = pl.draw(ws, n=20, confirm=True, drawn_by="r", seed=seed, drawn_at=f"2026-11-2{i + 1}T08:00:00Z")
+        studies = [r["study_id"] for r in pl.read_draw(ws, drawn["pilot_id"])["records"]]
+        pl.intake(ws, drawn["pilot_id"], [_decision(s, decided_at=f"2026-11-2{i + 1}T08:30:00Z")
+                                          for s in studies[: (1 if i == 0 else 2)]],
+                  token_scope="desktop", received_at=f"2026-11-2{i + 1}T09:00:00Z")
+        pl.close(ws, drawn["pilot_id"], closed_by="r", closed_at=f"2026-11-2{i + 1}T10:00:00Z")
+        if i == 1:
+            cr.amend_criteria(ws, op="add", side="exclusion", ids=[], text="Simulation-only studies", reason_category=None,
+                              reason_category_given=False, reason="r", confirm=True, amended_by="r",
+                              amended_at="2026-11-22T12:00:00Z")
+    sentences, figures, _paths = _pilot_sentences(ws, None, RECORDS)
+    assert sentences[0] == (
+        "The screening criteria were piloted on 1 record (seed 11), on 2 more (seed 22) and on 2 more (seed 33) "
+        f"after a revision of the criteria, drawn at random from the {RECORDS} records of the corpus."
+    )
+    assert [f["decided"] for f in figures] == [1, 2, 2]
+
+
+def test_review_f3_old_clients_see_no_zero_split(ws, client):
+    queue = [i["study_id"] for i in _ok(client.get(f"{BASE}/queue", params={"view": "needs_you", "limit": 5}))["items"]]
+    _draft(ws, queue[0], {"INC-01": "yes", "EXC-01": "no"}, created_at="2026-11-21T09:00:00Z")
+    _post_main(client, [_main_event(client, queue[0], "INCLUDE",
+                                    criteria=[{"id": "INC-01", "answer": "yes"}, {"id": "EXC-01", "answer": "no"}])])
+    body = _ok(client.get(f"{BASE}/agreement"))
+    assert body["splits_by_criterion"] == []  # agreeing answers are not splits, as before
+    assert body["answered_by_both"] == [{"criterion_id": "EXC-01", "n": 1}, {"criterion_id": "INC-01", "n": 1}]
+
+
+def test_review_f4_readings_below_their_minimum_are_named(ws, client):
+    drawn = _draw(client, 20)
+    records = _pilot_records(client)
+    _decide(client, drawn["pilot_id"], [_decision(s, "MAYBE") for s in records[:5]])
+    result = _ok(client.get(f"{BASE}/pilot/pilot_001/result"))
+    assert result["observations"] == []
+    short = {n["kind"]: n for n in result["not_computed"] if "min" in n}
+    assert short["many_unclear"] == {"kind": "many_unclear", "needs": ["decisions"], "have": 5, "min": 10}
+    assert short["never_used"]["min"] == 10 and short["does_most_work"] == {
+        "kind": "does_most_work", "needs": ["exclusions"], "have": 0, "min": 5}
+
+
+def test_review_f5_never_used_takes_its_full_form_only_for_an_answered_criterion(ws, client):
+    drawn = _draw(client, 20)
+    records = _pilot_records(client)
+    decisions = [_decision(s, "INCLUDE") for s in records[:12]]
+    decisions[0]["criteria"] = [{"id": "EXC-01", "answer": "no"}]  # one answer, on EXC-01 only
+    _decide(client, drawn["pilot_id"], decisions)
+    never = {o["criteria"][0]: o for o in _ok(client.get(f"{BASE}/pilot/pilot_001/result"))["observations"]
+             if o["kind"] == "never_used"}
+    assert never["EXC-01"]["form"] == "full" and never["EXC-01"]["counts"]["answered"] == 1
+    assert never["INC-01"]["form"] == "weaker"
+
+
+def test_review_f6_a_draw_is_refused_while_a_batch_was_decided_through_the_handoff(tmp_path):
+    import test_screening_actions as sa
+
+    workspace, _studies = sa._scaffold(tmp_path)
+    sa.run_recommend(workspace, 1, produced_at=sa.NOW)
+    with pytest.raises(pl.PilotRefused) as refused:
+        pl.draw(workspace, n=20, confirm=False, drawn_by="r")
+    assert refused.value.code == "CRITERIA_AMENDMENT_HANDOFF"
+
+
+def test_review_f7_a_second_pilot_decision_must_supersede_the_first(ws, client):
+    drawn = _draw(client, 20)
+    study = _pilot_records(client)[0]
+    [first] = _decide(client, drawn["pilot_id"], [_decision(study, "EXCLUDE")])
+    [second] = _decide(client, drawn["pilot_id"], [_decision(study, "INCLUDE")])
+    assert second["result"] == "refused" and second["refusal"]["code"] == "INVALID_OUTPUT"
+    assert first["pilot_decision_id"] in second["refusal"]["message"]
+    [change] = _decide(client, drawn["pilot_id"], [_decision(study, "INCLUDE", supersedes=first["pilot_decision_id"])])
+    assert change["result"] == "accepted"
+    rows = {r["study_id"]: r for r in _ok(client.get(f"{BASE}/pilot/pilot_001/result"))["records"]}
+    assert rows[study]["outcome"] == "INCLUDE"
+
+
+def test_review_f10_the_pilot_view_is_desktop_only(client):
+    _draw(client, 20)
+    response = client.get(f"{BASE}/queue", params={"view": "pilot"}, headers={"Authorization": f"Bearer {PHONE}"})
+    assert response.status_code == 403 and _code(response) == "TOKEN_SCOPE_REFUSED"
+    assert client.get(f"{BASE}/queue", params={"view": "needs_you"}, headers={"Authorization": f"Bearer {PHONE}"}).status_code == 200
+
+
+def test_followup_a_pilot_number_is_never_reused_even_if_a_draw_file_is_unreadable(ws, client):
+    _draw(client, 20)
+    _ok(client.post(f"{BASE}/pilot/pilot_001/close"))
+    (ws / pl.PILOT_DIR / "pilot_001.json").write_text("{not json", encoding="utf-8")
+    assert _draw(client, 20)["pilot_id"] == "pilot_002"
+
+
+def test_followup_a_revision_records_the_pilot_open_at_that_moment(ws, client):
+    drawn = _draw(client, 20)
+    answer = _ok(client.post(f"{BASE}/criteria/amendments", json={
+        "op": "add", "side": "exclusion", "text": "Simulation-only studies", "reason": "r", "confirm": True}))
+    assert answer["amendment"]["pilot_id"] == drawn["pilot_id"]
+    _ok(client.post(f"{BASE}/pilot/{drawn['pilot_id']}/close"))
+    later = _ok(client.post(f"{BASE}/criteria/amendments", json={
+        "op": "add", "side": "exclusion", "text": "Review articles", "reason": "r", "confirm": True}))
+    assert later["amendment"]["pilot_id"] is None
+

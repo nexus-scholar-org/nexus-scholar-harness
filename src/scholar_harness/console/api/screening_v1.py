@@ -23,7 +23,7 @@ from pathlib import Path
 from typing import Any
 
 from fastapi import APIRouter, HTTPException, Request, Response
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from ...screening import criteria as cr
 from ...screening import events as ev
@@ -203,6 +203,7 @@ def summary_of(ws: Path) -> dict[str, Any]:
         by_outcome[winner["outcome"]] += 1
     open_conflicts = ev.conflicts(events)
     total = len(context.study_batch)
+    recheck = len(_recheck(context, events, settings["screener_id"]))
     return {
         "total": total,
         "decided": len(winners),
@@ -216,9 +217,9 @@ def summary_of(ws: Path) -> dict[str, Any]:
         "protocol_changed": context.protocol_changed,
         # M11b part A: the criteria version in force, and how many decisions a revision shows again.
         "criteria_version": context.criteria_version,
-        "recheck": len(_recheck(context, events, settings["screener_id"])),
+        "recheck": recheck,
         # M11b part B (DoD 11b): the open, else the last, pilot; null when none was drawn.
-        "pilot": _pilot_block(ws, len(_recheck(context, events, settings["screener_id"]))),
+        "pilot": _pilot_block(ws, recheck),
     }
 
 
@@ -244,6 +245,9 @@ def queue(
 ) -> dict[str, Any]:
     if view not in VIEWS:
         raise _error(422, "INVALID_OUTPUT", f"view must be one of {VIEWS}")
+    if view == "pilot" and getattr(request.state, "token_scope", "desktop") != "desktop":
+        # Review F10 (decision item 6): every pilot route is desktop-only.
+        raise _error(403, "TOKEN_SCOPE_REFUSED", "the pilot is screened on the desktop")
     ws = _ws(request)
     context, settings, events, winners = _state(ws)
     recheck = _recheck(context, events, settings["screener_id"]) if view == "recheck" else {}
@@ -653,13 +657,6 @@ class CriteriaAmendmentBody(BaseModel):
     confirm: bool | None = None
 
 
-def _open_pilot_id(ws: Path) -> str | None:
-    from ...screening.pilot import open_pilot
-
-    current = open_pilot(ws)
-    return current.pilot_id if current is not None else None
-
-
 @router.post("/criteria/amendments")
 def amend_criteria(body: CriteriaAmendmentBody, request: Request) -> dict[str, Any]:
     """Revise a criterion as an amendment beside the signed protocol (desktop only; DoD 1, 6, 7).
@@ -683,7 +680,7 @@ def amend_criteria(body: CriteriaAmendmentBody, request: Request) -> dict[str, A
             reason_category_given="reason_category" in body.model_fields_set,
             reason=body.reason, confirm=body.confirm,
             amended_by=str(current["screener_id"]), amended_at=_now(),
-            pilot_id=_open_pilot_id(ws),
+            pilot_id=cr.OPEN_PILOT,  # read under the events lock (review follow-up)
         )
     except cr.AmendmentRefused as exc:
         raise _error(exc.status, exc.code, exc.message) from exc
@@ -1409,9 +1406,16 @@ def cancel_proposal_run(run_id: str, request: Request) -> dict[str, Any]:
 
 class CalibrationBody(BaseModel):
     model_config = ConfigDict(extra="forbid")
-    study_ids: list[str] = Field(default_factory=list)
+    #: Required without `pilot_id`, as before M11b (review F9: the body error is unchanged).
+    study_ids: list[str] | None = None
     #: M11b part B (DoD 14, additive): check the agent on a pilot's decided records.
     pilot_id: str | None = None
+
+    @model_validator(mode="after")
+    def _ids_or_pilot(self) -> "CalibrationBody":
+        if self.study_ids is None and self.pilot_id is None:
+            raise ValueError("study_ids is required unless pilot_id is given")
+        return self
     provider: str = "anthropic"
     model: str = "claude-opus-5-5"
     effort: str = "low"
@@ -1437,7 +1441,7 @@ def start_calibration(body: CalibrationBody, request: Request) -> dict[str, Any]
         if not study_ids or any(s not in decided for s in study_ids):
             raise _error(422, "INVALID_OUTPUT", "a pilot check uses the pilot's decided records")
     else:
-        study_ids = body.study_ids
+        study_ids = body.study_ids or []
         if not study_ids or any(s not in winners for s in study_ids):
             raise _error(422, "INVALID_OUTPUT", "calibration uses records you have already decided")
     try:
@@ -1525,8 +1529,11 @@ def agreement(request: Request) -> dict[str, Any]:
         # M11b part B (DoD 15): each row gains `answered_by_both` (decisions with a checklist answer
         # and a draft answer for the criterion); a criterion answered by both and never split has n 0.
         "splits_by_criterion": [
-            {"criterion_id": k, "n": splits.get(k, 0), "answered_by_both": both[k]} for k in sorted(set(splits) | set(both))
+            {"criterion_id": k, "n": v, "answered_by_both": both[k]} for k, v in sorted(splits.items())
         ],
+        # Review F3: the denominator of every criterion answered by both, split or not, in its own
+        # field, so a client that lists `splits_by_criterion` sees only real splits, as before.
+        "answered_by_both": [{"criterion_id": k, "n": v} for k, v in sorted(both.items())],
         "unclear_either_side": unclear,
         "kappa": None,
         "kappa_note": "needs a second human screener",

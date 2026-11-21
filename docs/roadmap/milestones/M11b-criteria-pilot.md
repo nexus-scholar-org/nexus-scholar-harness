@@ -542,3 +542,25 @@ Evidence (Python runs with `-n 4`):
 | pr | `ada92bc1` | `generate_contract_baseline.py --check`; `generate_protocol_schema.py --check`; `generate_contract_schemas.py --check`; `generate_two_study_contract_fixture.py --check`; both ruff commands; `git diff --check origin/main...HEAD`; `uv run pytest -q -n 4 --junitxml` (full suite) | current; in sync; exit 0; exit 0; clean; clean; clean; 6176 tests: 6161 passed, 15 skipped, 0 failed, 0 errors | 691 s |
 
 The commit after `ada92bc1` (`68e1e783`) is this record only. No UI file changed (`git diff origin/main...HEAD -- apps` is empty), so the UI gates were not run.
+
+Review round 1 of part B (`milestone-reviewer`, on `36de9009`): **CHANGES**, 1 P2, 6 P3, 5 P4, all taken (on `fc90db07`, after part A's item 5 and round 3/4 were merged in):
+
+| # | Finding | Repair | Test (`tests/console/test_criteria_pilot_api.py`; fails before: the reviewer's probes on `36de9009`) |
+| :-- | :-- | :-- | :-- |
+| P2-1 | The agent check on a pilot answered `missed_includes` with the ids of pilot records, undecided in the main screening (answer 11; contract §4) | with `pilot_id` the list is always empty; `missed_includes_count` gives the number (also for the main calibration) | `test_review_f1_the_agent_check_on_a_pilot_names_no_record`, `test_review_f1_a_main_calibration_still_names_its_missed_records` |
+| P3-2 | The methods paragraph could say "piloted on 0 records" | a pilot with no decision is left out | `test_review_f2_a_pilot_with_no_decision_is_not_in_the_methods` |
+| P3-3 | `splits_by_criterion` gained rows with `n: 0`, so today's Agreement screen showed zero bars | split rows stay real splits, each with `answered_by_both`; a new top-level `answered_by_both` lists every criterion | `test_dod15_splits_by_criterion_carry_answered_by_both`, `test_review_f3_old_clients_see_no_zero_split` |
+| P3-4 | Readings below their minimum vanished silently | named in `not_computed` with `have` and `min` | `test_review_f4_readings_below_their_minimum_are_named` |
+| P3-5 | "Never used" took its full form for a criterion nobody answered | full form only for an answered criterion | `test_review_f5_never_used_takes_its_full_form_only_for_an_answered_criterion` |
+| P3-6 | The draw ignored records decided through the file hand-off | the draw is refused `CRITERIA_AMENDMENT_HANDOFF` (decision item 13) | `test_review_f6_a_draw_is_refused_while_a_batch_was_decided_through_the_handoff` |
+| P3-7 | A second pilot decision without `supersedes` silently won | refused `INVALID_OUTPUT` (decision item 12) | `test_review_f7_a_second_pilot_decision_must_supersede_the_first` |
+| P4-8 | A catch-all assertion; "nothing approvable" not exercised | the collect refusal is asserted by message; the coverage check refuses each batch | `test_dod11c_pilot_decisions_reach_no_counted_reader` |
+| P4-9 | `study_ids` became optional without `pilot_id` (422 `BODY_INVALID` became `INVALID_OUTPUT`) | required again unless `pilot_id` is given (a model validator) | `test_dod14_the_agent_check_on_a_pilot_reads_its_labels_from_the_pilot_file` |
+| P4-10 | `view=pilot` answered phone tokens | refused `TOKEN_SCOPE_REFUSED` | `test_review_f10_the_pilot_view_is_desktop_only` |
+| P4-11 | "1 records"; three pilots read badly; "after the first revision" not built | wording fixed; a later pilot drawn after a revision says so | `test_review_f11_the_pilot_sentence_reads_well_for_one_record_and_three_pilots` |
+| P4-12 | A blank line at the end of this record | removed | (`git diff --check`) |
+
+Follow-ups taken: the open pilot's id is read under the events lock when a revision is recorded (`test_followup_a_revision_records_the_pilot_open_at_that_moment`); a pilot number is never reused, even when a draw file is unreadable (`test_followup_a_pilot_number_is_never_reused_even_if_a_draw_file_is_unreadable`); `/summary` computes the recheck count once. Not taken: another batch can be approved while a pilot is open (the pilot result's revise would then be refused; the screen in part C shows the fixed state).
+
+Part A's item 5 ("bind the version") does not reach pilot decisions: they carry no binding and are labelled with the version in force when received (decision item 11, PROPOSED, with the binding alternative).
+
