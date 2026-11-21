@@ -579,9 +579,9 @@ Part B's decision items 1 to 13 were accepted by the researcher on 2026-11-21 (m
 
 ### Part C: the screening screens
 
-Branch `dev/m11b/part-c-screens`, stacked on part B (`5d13e86c`) · Lane **STANDARD** (UI over parts A and B) · Status: **IN PROGRESS: the engine side only.** The screens wait for `docs/ux/phase2-screening/final/13-criteria-pilot.md` to be FINAL (open questions 5 to 8 put to the researcher on 2026-11-21; 10 and 11 answered by the build: the result carries each record's outcome, reason code and criteria version; pilot routes are desktop-only; a pilot closes by itself when its last record is decided).
+Branch `dev/m11b/part-c-screens`, stacked on part B (PR 277 head `ea260382` merged in, and `origin/main` `64fd8212`, M12a part A) · Lane **STANDARD** (UI over parts A and B; two additive queue fields) · Spec `docs/ux/phase2-screening/final/13-criteria-pilot.md` FINAL (2026-11-21, questions 5 to 8 answered by the researcher) · Decisions: `docs/decisions.md` "2026-11-22 — M11b part C" items 1 to 16 (PROPOSED) · Status: **IN PROGRESS** (gates and review below).
 
-Built so far (the follow-ups the part A and B reviews left for part C):
+The engine side (the follow-ups the part A and B reviews left for part C):
 - The browser may POST to `api/v1/screening/criteria/amendments`, `api/v1/screening/pilot` and `api/v1/screening/pilot/pilot_NNN/(decisions|close)` (`console/browser.py` and the development proxy `route.ts`, kept equal).
 - `GET /screening/criteria` answers `can_amend: false` and `handoff_batches` while a batch was decided through the file hand-off, so the revise dialog is not offered and then refused.
 - The `CRITERIA_AMENDMENT_HANDOFF` message names the only way to revised criteria (a new screening from this protocol) instead of suggesting Triage, which does not clear a worker recommendation; contract §7.
@@ -593,3 +593,23 @@ Built so far (the follow-ups the part A and B reviews left for part C):
 | the refusal's wording | `test_the_handoff_refusal_names_the_only_way_to_revised_criteria` | passed (fails on `5d13e86c`: the message names Triage) |
 
 The UI dependencies of this worktree were installed with `npm ci --offline` from the local cache (no network).
+
+The screens:
+- Engine, additive (decision items 1 and 2; screening API contract §4): "Needs you" lists the records shown again first and every queue item carries `shown_again`; the items of `view=pilot` carry `pilot_decision`; `_pilot_queue` reads the pilot decisions' heads.
+- `lib/screening-v1.ts`: the types and calls for the criteria in force, revisions, the pilot (draw, decisions, close, result), the queue's new fields and views, `RecordDetail.shown_again`, the calibration's `pilot_id` and `missed_includes_count`, `answered_by_both`.
+- Prepare (state A): `components/screening-pilot-card.tsx`, the card before, during and after a pilot, with the draw's dry call and its confirmation, the records shown again, the fixed state after an approval.
+- Triage (state B; `components/triage-page.tsx`, `lib/triage-copy.ts`): `?view=` opens a view; the pilot view posts to the pilot route (never to `/decisions/events`), shows the banner, "Pilot record k of n", your pilot decision with Next and Change, and the pilot's hand-off; a record shown again has the earlier-decision card, the "Shown again" tag and the revision banner with "What changed", and is decided again by superseding the decision shown; `PILOT_OPEN` links to the pilot; `REASON_CODE_RETIRED` reads the criteria again. The new refusal codes have their state copy (`lib/screening-states.ts`).
+- The result (state C) and the revise dialog (state D): `app/[locale]/screening/pilot/page.tsx`, `components/screening-pilot.tsx`, `components/screening-pilot-copy.ts` (en, fr, ar): counts with denominators, the per-criterion table (checklist and agent columns only when the answer has them, draft-styled, the comparison with the previous pilot), the readings with one "Revise {id}" per id, the "not computed" line with the estimate, the readings below their minimum, the records list (filters by criterion and outcome, 25 a page, a read-only record), the small-sample sentence, the action bar, the details column; the end dialog, the revise dialog (operation, fields, reason of at most 500 characters, dry call, confirmation, record), the agent-check dialog (model, count, estimate, data flow, ceiling, `pilot_id` and `model` always sent, progress, cancel, "Missed includes" as a count).
+- The run screen: "Draft again the {n} records whose draft predates the revision" (decision item 15).
+- The guidance audit gains row S-PL1 for the result's one hint (`docs/ux/shared/final/03-guidance.md`; the audit fixture reads the pilot's catalog for `S-PL` rows).
+
+| DoD | Test | State |
+| :-- | :-- | :-- |
+| 16 Prepare | `tests/screening-pilot-card.test.tsx` (8: draw only after the confirmation, its words, a refused draw, in progress, ended with records shown again, fixed after approval, hidden before batches, copy parity) | done |
+| 16 Triage | `tests/triage-pilot.test.tsx` (10: `?view=pilot`, banner and position, the pilot route only, a change of mind supersedes, an ended pilot cannot be changed, the pilot hand-off, the shown-again banner, tag and earlier card, deciding again supersedes, `PILOT_OPEN` link, `REASON_CODE_RETIRED` reads again, the pilot view offered only while open); the existing `tests/triage.test.tsx` unchanged | done |
+| 16 result | `tests/screening-pilot.test.tsx` (20: counts and denominators, absent columns, draft-styled agent columns and their source, an open pilot, the "not computed" line, observations, nothing stood out, the records list, the end dialog, the revise dialog and its refusal, the agent-check dialog with its model rules, consent and key, the fixed state, an unknown pilot, a second pilot, copy parity) | done |
+| 16 axe light and dark | `tests-browser/screening-pilot.spec.ts` (both projects): the result at 1440 and 1280 px, the revise dialog, the end dialog, Triage with a record shown again | see Evidence |
+| 17 | `criteria.revise-dialog` cases in `tests/screening-pilot.test.tsx`; the browser flow in `tests-browser/screening-pilot.spec.ts` | done |
+| 14 (UI half) | `pilot.calibration-dialog` cases: the body always carries `model` and `pilot_id`; Haiku without a last model | done |
+| 9 (UI half) | `tests/screening-proposals.test.tsx` "proposals.redraft" (2) | done |
+
