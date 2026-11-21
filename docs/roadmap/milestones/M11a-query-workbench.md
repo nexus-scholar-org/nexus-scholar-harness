@@ -416,3 +416,18 @@ Also: the staging and removal rows of the count log now carry the draft or works
 Round-1 follow-ups, not repaired: with 1 or 2 seeds `SEEDS_CANNOT_TEST` (few) and `DIRECTION_SEEDS_FEW` both fire; `SEEDS_CANNOT_TEST`'s action goes to Direction although its sentence also offers an export comparison (part C puts that link in the panel); staging or removing a set on Plan writes under `audit/` without a journal row (as decision item 12 of Part A reads "records"); a DOI holding `,` or `|` would break its batch of 50 in the OpenAlex filter; an unreadable `artifact_registry.json` turns Plan's seed and report calls into a 500.
 
 Not verified (needs a live run, not run): whether OpenAlex answers `filter=…,doi:a|b|…` combined with `search.title_and_abstract` in one request and returns exactly the matching works (DoD 11 and the comparison's OpenAlex measure); how many DOIs one request takes in practice. Prepared check, one request, for the researcher's approval: with `NEXUS_WORKBENCH_OPENALEX_IDS=1` set for the console, on Plan of the real review, `POST /api/v1/discovery/workbench/seeds {"version": <the protocol's query>, "openalex": true}` (its dry run states "openalex: 1"); then compare its `found` with the recall check's result for the same seeds. Whether the local word match would have flagged the run's gap is also unverified (the 2026-11-20 Scopus export used the strict query).
+
+Review round 3 (on `dde504f3`): **APPROVE**. Follow-ups, not repaired: the merge of looked-up texts at genesis is not locked against a lookup running at the same moment (a cache: the cost is one repeated lookup); a replacement can leave more than 5 comparison sets (staging is then refused until some are removed); a draft set whose `set.json` cannot be read is skipped without a note; on a retry the journal row repeats the draft's full line counts, not the lines added.
+
+Evidence (Part B):
+
+| Stage | Commit | Command | Result | Duration |
+| :-- | :-- | :-- | :-- | :-- |
+| inner | `0f052c04` | `pytest tests/console -m "not slow" -n auto`; `pytest tests/inception tests/unit tests/test_handoff.py tests/kits/search -m "not slow" -n auto`; vitest related (route, checks copy) | 896 passed, 1 skipped; 1381 passed; 709 passed | 164 s; 57 s |
+| pr (round 0) | `559c3063` | `pytest -n auto`; ruff `scripts/`; typecheck; vitest; build; `test:browser` | 6020 passed, 15 skipped; clean; clean; 995 passed; ok; Playwright 622 passed, 12 skipped | 584 s; 120 s; 34 s; 851 s |
+| pr (final) | `dde504f3` | `pytest -n auto`; ruff `scripts/`; `generate_contract_baseline.py --check`; `generate_protocol_schema.py --check` | 6026 passed, 15 skipped; clean; current; in sync | 550 s |
+
+Vitest, build and Playwright were not repeated on `dde504f3`: the commits after `559c3063` change Python and docs only (no file under `apps/`). The six screenshots the Playwright run regenerated are restored to the branch's own.
+
+**Part B: READY FOR PR** (not pushed). Branch `dev/m11a/part-b-seeds-comparison`, to be merged after Part A.
+
