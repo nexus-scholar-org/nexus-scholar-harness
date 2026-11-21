@@ -65,8 +65,12 @@ STATUS_BY_CODE = {
 #: Statuses of a cell that holds a number.
 NUMBERED = ("counted", "cached")
 
+#: Reads of the shared state before it is refused as unreadable.
+STATE_READ_TRIES = 5
+
 WORKBENCH_BUDGET_SPENT = "WORKBENCH_BUDGET_SPENT"
 WORKBENCH_VERSION_INVALID = "WORKBENCH_VERSION_INVALID"
+WORKBENCH_STATE_UNREADABLE = "WORKBENCH_STATE_UNREADABLE"
 
 
 class WorkbenchRefused(Exception):
@@ -178,15 +182,36 @@ class SharedState:
         self.path = Path(workspaces_root) / STATE_DIRNAME / STATE_FILE
 
     def _read(self) -> dict[str, Any]:
-        try:
-            data = json.loads(self.path.read_text(encoding="utf-8"))
-        except (OSError, ValueError):
-            data = {}
-        return data if isinstance(data, dict) else {}
+        """The state; ``{}`` only when the file does not exist yet.
+
+        A file that cannot be read (held by another program for a moment, or
+        damaged) is tried again a few times and then refused
+        (``WORKBENCH_STATE_UNREADABLE``): reading it as empty and writing that
+        back would erase every database's pause and the day's spending (review P3).
+        """
+        for attempt in range(STATE_READ_TRIES):
+            try:
+                data = json.loads(self.path.read_text(encoding="utf-8"))
+            except FileNotFoundError:
+                return {}
+            except (OSError, ValueError):
+                if attempt + 1 < STATE_READ_TRIES:
+                    time.sleep(0.05)
+                    continue
+                raise WorkbenchRefused(
+                    503, WORKBENCH_STATE_UNREADABLE,
+                    f"The workbench's budget file cannot be read ({self.path}); nothing was sent. Try again; "
+                    "if it stays unreadable, move the file away and the budget starts again.",
+                ) from None
+            if isinstance(data, dict):
+                return data
+            raise WorkbenchRefused(503, WORKBENCH_STATE_UNREADABLE,
+                                   f"The workbench's budget file is not a JSON object ({self.path}); nothing was sent.")
+        return {}  # pragma: no cover - the loop returns or raises
 
     def _write(self, data: dict[str, Any]) -> None:
         self.path.parent.mkdir(parents=True, exist_ok=True)
-        tmp = self.path.with_suffix(".json.tmp")
+        tmp = self.path.with_name(f".{STATE_FILE}.{os.getpid()}.{threading.get_ident()}.tmp")
         tmp.write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
         os.replace(tmp, self.path)
 
@@ -201,13 +226,34 @@ class SharedState:
         return int((data.get("spent") or {}).get(name, 0))
 
     def spend(self, name: str, requests: int, now: datetime) -> None:
+        """Add ``requests`` (negative: give back a reservation not used) to today's spending."""
         with _lock(self.path):
             data = self._read()
             if data.get("day") != self._day(now):
                 data["day"], data["spent"] = self._day(now), {}
             spent = data.setdefault("spent", {})
-            spent[name] = int(spent.get(name, 0)) + requests
+            spent[name] = max(0, int(spent.get(name, 0)) + requests)
             self._write(data)
+
+    def reserve(self, costs: dict[str, int], now: datetime) -> list[str]:
+        """Take ``costs`` from today's budgets in one step, or nothing: the databases that would pass it.
+
+        Checking and spending under one lock means two Counts sent at once
+        (two tabs, Inception and Plan) cannot both pass the check (review P3).
+        """
+        with _lock(self.path):
+            data = self._read()
+            if data.get("day") != self._day(now):
+                data["day"], data["spent"] = self._day(now), {}
+            spent = data.setdefault("spent", {})
+            over = [n for n, c in costs.items() if c and int(spent.get(n, 0)) + c > BUDGETS.get(n, DEFAULT_BUDGET)]
+            if over:
+                return over
+            for name, cost in costs.items():
+                if cost:
+                    spent[name] = int(spent.get(name, 0)) + cost
+            self._write(data)
+            return []
 
     def budget(self, name: str, now: datetime) -> dict[str, Any]:
         limit = BUDGETS.get(name, DEFAULT_BUDGET)
@@ -267,6 +313,8 @@ class Row:
     any_words: bool = False
     last: dict[str, Any] | None = None
     resets_at: str | None = None
+    #: The requests this database needs, fixed when the Count is planned (review P2: never recomputed after sending).
+    planned: int = 0
 
     @property
     def cost(self) -> int:
@@ -334,13 +382,29 @@ def _plan_rows(
                 if cell.status == "to_count":
                     cell.status = row.status
             row.last = log.last(full_key) if full_key else None
+        row.planned = row.cost
     return rows
 
 
 async def _send(row: Row, *, log: CountLog, state: SharedState, deadline: float, scope: dict[str, Any],
                 query_key: str) -> None:
-    """Ask one database its cells in order; stop at its first failure (the rest are not sent)."""
+    """Ask one database its cells in order; stop at its first failure (the rest are not sent).
+
+    What was sent is logged even when something fails half-way (review P3).
+    """
     logged: list[dict[str, Any]] = []
+    try:
+        await _send_cells(row, logged, state=state, deadline=deadline, scope=scope, query_key=query_key)
+    except Exception as exc:  # noqa: BLE001 - one database's error is its row, never the Count's
+        for cell in row.cells:
+            if cell.status == "to_count":
+                cell.status, cell.error = "failed", f"{type(exc).__name__}: {str(exc)[:200]}"
+    finally:
+        log.append(logged)
+
+
+async def _send_cells(row: Row, logged: list[dict[str, Any]], *, state: SharedState, deadline: float,
+                      scope: dict[str, Any], query_key: str) -> None:
     stop: Cell | None = None
     for cell in row.cells:
         if cell.status != "to_count":
@@ -357,7 +421,6 @@ async def _send(row: Row, *, log: CountLog, state: SharedState, deadline: float,
         answer = await est.count_one(row.name, cell.query, timeout=min(est.COUNT_TIMEOUT, left))
         now = utcnow()
         cell.sent, cell.counted_at = True, now.isoformat()
-        state.spend(row.name, 1, now)
         status = answer["status"]
         if status == "counted":
             cell.status, cell.total = "counted", int(answer["reported_total"])
@@ -381,7 +444,6 @@ async def _send(row: Row, *, log: CountLog, state: SharedState, deadline: float,
             "total": cell.total, "error_code": cell.error_code, "http_status": cell.http_status,
             "resets_at": cell.resets_at, "counted_at": cell.counted_at, "requests": 1, "key": cell.key, **scope,
         })
-    log.append(logged)
 
 
 def _row_public(row: Row, now: datetime, mode: str, year_window: bool) -> dict[str, Any]:
@@ -394,9 +456,18 @@ def _row_public(row: Row, now: datetime, mode: str, year_window: bool) -> dict[s
         "counted_at": full.counted_at if full and full.status in NUMBERED else None,
         "from_cache": bool(full and full.from_cache), "error": full.error if full else None,
         "error_code": full.error_code if full else None, "http_status": full.http_status if full else None,
-        "resets_at": row.resets_at or (full.resets_at if full else None), "cost": row.cost, "requests": sum(c.sent for c in row.cells),
+        "resets_at": row.resets_at or (full.resets_at if full else None), "cost": row.planned,
+        "requests": sum(c.sent for c in row.cells),
         "last": {"total": row.last["total"], "counted_at": row.last["counted_at"]} if row.last else None,
+        "stopped": None,
     }
+    # Review P3: a database that answered the full query and then failed is stopped; the row says so.
+    if row.status is None and full is not None and full.status in NUMBERED:
+        failed = next((c for c in row.cells[1:] if c.sent and c.status not in NUMBERED), None)
+        if failed is not None:
+            out["stopped"] = {"status": failed.status, "error_code": failed.error_code,
+                              "http_status": failed.http_status, "resets_at": failed.resets_at,
+                              "resets_in": resets_in(failed.resets_at, now) if failed.status == "quota_used_up" else None}
     out["resets_in"] = resets_in(out["resets_at"], now) if status == "quota_used_up" else None
     full_total = out["total"]
     others = [c for c in row.cells[1:]]
@@ -428,7 +499,7 @@ def _size(rows: list[dict[str, Any]], size: dict[str, Any], year_window: bool) -
     for row in rows:
         if row["status"] in ("not_comparable", "not_asked") or row["any_words"]:
             est_rows.append({"name": row["name"], "status": "not_selected", "reported_total": None})
-        elif row["status"] in NUMBERED and isinstance(row["total"], int):
+        elif isinstance(row["total"], int):  # the full query's number, current or cached (review P2)
             est_rows.append({"name": row["name"], "status": "counted", "reported_total": row["total"]})
         else:
             est_rows.append({"name": row["name"], "status": "failed", "reported_total": None})
@@ -473,17 +544,27 @@ async def run(
     cap = size.get("query_cap")
     rows = _plan_rows(version, names, variants_for, log=log, state=state, now=now, cap=cap,
                       crossref_anyway=crossref_anyway, openalex_key=openalex_key)
-    spent = [r for r in rows if r.status == "budget_spent"]
+    spent = [r.name for r in rows if r.status == "budget_spent"]
+    if not dry_run and not spent:
+        # Checked and taken in one step, so two Counts at once cannot both pass (review P3).
+        spent = state.reserve({r.name: r.planned for r in rows if r.status is None}, now)
     if spent and not dry_run:
         raise WorkbenchRefused(409, WORKBENCH_BUDGET_SPENT,
-                               "Today's counting budget would be passed for " + ", ".join(r.name for r in spent)
-                               + "; nothing was sent.",
-                               details={"databases": [{"name": r.name, **state.budget(r.name, now)} for r in spent]})
+                               "Today's counting budget would be passed for " + ", ".join(spent) + "; nothing was sent.",
+                               details={"databases": [{"name": n, **state.budget(n, now)} for n in spent]})
     if not dry_run:
         deadline = time.monotonic() + DEADLINE_SECONDS
-        await asyncio.gather(*(_send(r, log=log, state=state, deadline=deadline, scope=scope or {},
-                                     query_key=version.query_key)
-                               for r in rows if r.status is None and r.cost))
+        sending = [r for r in rows if r.status is None and r.planned]
+        try:
+            await asyncio.gather(*(_send(r, log=log, state=state, deadline=deadline, scope=scope or {},
+                                         query_key=version.query_key) for r in sending))
+        finally:
+            # A reserved request that was not sent (a stopped database) is given back.
+            back = utcnow()
+            for r in sending:
+                unused = r.planned - sum(c.sent for c in r.cells)
+                if unused:
+                    state.spend(r.name, -unused, back)
     later = utcnow()
     year_window = bool(version.start_year or version.end_year)
     public = [_row_public(r, later, mode, year_window) for r in rows]
@@ -494,7 +575,7 @@ async def run(
                                "string": None, "total": None, "counted_at": None, "from_cache": False,
                                "error": None, "error_code": None, "http_status": None, "resets_at": None,
                                "resets_in": None, "cost": 0, "requests": 0, "last": None, "drops": []})
-    cost = {r.name: r.cost for r in rows if r.status is None}
+    cost = {r.name: r.planned for r in rows if r.status is None}
     answer: dict[str, Any] = {
         "shape": f"workbench.{mode}-v1",
         "query_key": version.query_key,
@@ -556,6 +637,9 @@ async def read_removed(
                                details={"databases": [{"name": name, **state.budget(name, now)}]})
     if dry_run or status:
         return answer
+    if state.reserve({name: 1}, now):
+        raise WorkbenchRefused(409, WORKBENCH_BUDGET_SPENT, f"Today's counting budget for {name} is used; nothing was sent.",
+                               details={"databases": [{"name": name, **state.budget(name, now)}]})
     from scholar_search.engine import provider_error_code
     from scholar_search.exceptions import ProviderError, QuotaExhaustedError
 
@@ -581,7 +665,6 @@ async def read_removed(
     finally:
         await est._close(provider)
     later = utcnow()
-    state.spend(name, 1, later)
     answer["requests"] = 1
     records = []
     for doc in docs:

@@ -7,7 +7,8 @@ Two places, one engine (``scholar_harness.query_workbench``):
   beside the draft record.
 * Plan, after the freeze: ``POST /api/v1/discovery/workbench/{counts,synonyms,removed}``
   for the open workspace; the count log is ``audit/query_development/counts.jsonl``.
-  Counting still works after the corpus is accepted (it records nothing).
+  Counting still works after the corpus is accepted: it changes nothing in the
+  protocol or the corpus; the count log under ``audit/`` still gets its rows (DoD 22).
 
 Every route takes ``dry_run``: it sends nothing and states the requests a real
 call would send. Nothing is counted on a keystroke: the browser sends a real

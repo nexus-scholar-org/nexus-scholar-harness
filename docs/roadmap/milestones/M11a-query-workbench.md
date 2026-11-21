@@ -48,7 +48,7 @@ Each item is checked by a test named in the build record, unless it says "live".
 - [ ] DoD 2. The same answer includes, for a query of two or more concepts, the count with each concept dropped, per database, and the gain against the full query.
 - [ ] DoD 3. On request, for one concept and one database, the count with each synonym of that concept removed ("what each synonym adds"). The number of requests is stated before it is sent.
 - [ ] DoD 4. Before any request, the answer to a dry call states how many requests a count would send per database, and refuses with `WORKBENCH_BUDGET_SPENT` when a database's daily budget would be passed. Nothing is sent on a keystroke.
-- [ ] DoD 5. Counts are kept in a persisted count log keyed by database and exact string; a repeated string is answered from it for 24 hours without a request. A failed count is never kept.
+- [ ] DoD 5. Counts are kept in a persisted count log keyed by database and exact string; a repeated string is answered from it for 24 hours without a request. A failed count is kept as a record but never answers (wording aligned with (a), review of Part A).
 - [ ] DoD 6. A database whose quota is used up (`QuotaExhaustedError`) gets the row status `quota_used_up` with `resets_at`; the engine sends nothing more to it from the workbench until that time, across drafts and workspaces. Throttling, refusal, timeout and unavailability keep their existing codes.
 - [ ] DoD 7. For a query of two or more concepts Crossref is not counted by default; its row says it cannot combine concepts with AND. "Count anyway" counts it and the row is labelled "any of the words". Crossref is never part of the drop test, the seed check or the comparison.
 - [ ] DoD 8. The size line of M10b Part D (records, works range, screening hours, the warning against the planned size) is computed by `estimate.summarize` for the version shown, before and after the freeze.
@@ -300,7 +300,8 @@ What was built:
 - `src/scholar_harness/query_workbench.py`: `CountLog` (append-only `counts.jsonl`, 24-hour answers, failed rows never answer), `SharedState` (daily budget per database, UTC day; quota memory until `resets_at`), `run` (counts and "what each synonym adds"), `read_removed` ("read what this concept removes", OpenAlex, 25 records, one request), `logged_rows` (the estimate reads the log).
 - `src/scholar_harness/console/api/workbench.py`: `POST /api/v1/inception/drafts/{id}/workbench/{counts,synonyms,removed}` and `POST /api/v1/discovery/workbench/{counts,synonyms,removed}`, each with `dry_run`; in `console/browser.py` `POST_PATHS` and the proxy's list; no phone route.
 - `estimate.count_one` rows gain `http_status`, `quota_exhausted`, `resets_at`; its timeout is read when called. `POST /discovery/estimate` reads the workbench log (`from_count_log`).
-- Refusal codes `WORKBENCH_BUDGET_SPENT` (409) and `WORKBENCH_VERSION_INVALID` (422) in `console/refusals.py` and `screening-api-contract.md` §7.
+- Refusal codes `WORKBENCH_BUDGET_SPENT` (409), `WORKBENCH_VERSION_INVALID` (422) and `WORKBENCH_STATE_UNREADABLE` (503, review round 1) in `console/refusals.py` and `screening-api-contract.md` §7.
+- A row whose database answered the full query and then failed carries `stopped` (`status`, `error_code`, `http_status`, `resets_at`, `resets_in`); the screen says it beside the number.
 
 | DoD | Test (`tests/console/test_workbench_counts_api.py` unless named) | State |
 | :-- | :-- | :-- |
@@ -316,6 +317,20 @@ What was built:
 | 24 | `generate_contract_baseline.py --check` before and after (Evidence) | see Evidence |
 
 Fails before: on the source at `1f218054` the two new test files stop at collection (`ImportError: cannot import name 'workbench'`; 2 errors), seen 2026-11-21.
+
+Review round 1 (`milestone-reviewer`, on `4ff5d37d`): **CHANGES**, 2 P2, 4 P3, 2 P4, all taken:
+
+| # | Finding | Repair | Test (fails before: the reviewer's probes on `4ff5d37d`) |
+| :-- | :-- | :-- | :-- |
+| P2-1 | A real Count answered `cost: 0, cached: true` after sending 15 requests | the cost is fixed when the Count is planned (`Row.planned`) | `test_a_real_count_states_what_it_cost_not_what_is_left_to_count` |
+| P2-2 | A cached number beside a used-up quota was in the table but not in the size line | the size line reads the full query's number, not the row's status | `test_the_size_line_counts_a_cached_number_beside_a_used_up_quota` |
+| P3-3 | A failure after the full query was hidden at row level | `stopped` on the row | `test_a_database_stopped_after_the_full_query_says_so_on_its_row` |
+| P3-4 | An unreadable state file was read as empty and written back (pauses and spending erased) | five tries, then `WORKBENCH_STATE_UNREADABLE`, never overwritten; a unique temporary file per writer | `test_an_unreadable_state_file_is_refused_and_never_overwritten` |
+| P3-5 | Two Counts at once could both pass the budget; an error after sending lost its log rows | the whole cost is reserved in one locked step and the unsent part given back; each database's sending logs in `finally` | `test_two_reservations_cannot_both_pass_the_budget`, `test_what_was_sent_is_logged_when_a_database_fails_unexpectedly` |
+| P3-6 | The routes' docstring said counting after the accept records nothing; it writes the log | docstring fixed; decision item 12 | (none) |
+| P4-7 | DoD 5's wording ("never kept") against (a) ("kept as a record, never answers") | DoD 5 aligned with (a) | (none) |
+| P4-8 | "What each synonym adds" costs the full query too | decision item 11 | (existing synonyms test) |
+
 
 Not verified (needs a live run, not run): the budget defaults against the providers' published limits; how many requests a real session sends; whether OpenAlex and Semantic Scholar show the dropped-concept pattern. Prepared command (researcher's approval needed; it sends 15 count requests, 5 each to OpenAlex, Semantic Scholar and arXiv, from the console of the real review's workspace or a draft):
 

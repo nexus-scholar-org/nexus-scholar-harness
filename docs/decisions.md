@@ -10,10 +10,10 @@ history to read if you need the original reasoning (`git log --follow -- <path>`
 
 | Entry | Item | What is open |
 | :-- | :-- | :-- |
-| 2026-11-21 — M11a Part A: the workbench's counts | 1 to 10 | Proposed with the build; the researcher's answer is pending. |
+| 2026-11-21 — M11a Part A: the workbench's counts | 1 to 13 | Proposed with the build; the researcher's answer is pending. |
 | 2026-11-19 — M9a: what the measurement says about the ladder gates | 2 | The minimum share of the researcher's excludes an agent must take before a rung unlocks: the principle is accepted; the researcher decided on 2026-11-20 to set the number when M9b is built. |
 
-## 2026-11-21 — M11a Part A: the workbench's counts, the count log, the budget and the quota memory (items 1 to 10 PROPOSED)
+## 2026-11-21 — M11a Part A: the workbench's counts, the count log, the budget and the quota memory (items 1 to 13 PROPOSED)
 
 Record: `docs/roadmap/milestones/M11a-query-workbench.md`, "Part A". Branch `dev/m11a/part-a-counts`. These are the choices the specification and the FINAL screen specifications leave open; what they decided (counts only on Count, the budgets, the 24-hour log, Crossref, the ×2 note) is built as decided. No Contract v1 model, schema, identity or fingerprint changes; the new files are side files outside the baseline.
 
@@ -27,8 +27,11 @@ Record: `docs/roadmap/milestones/M11a-query-workbench.md`, "Part A". Branch `dev
 8. **The size estimate on Plan reads the workbench's log and writes nothing to it.** A string counted in the last 24 hours is a `counted` row with `from_count_log` (when it was counted); "Count again to refresh" (`refresh`) bypasses it. The estimate's own in-memory cache is unchanged.
 9. **`estimate.count_one` rows gain `http_status`, `quota_exhausted` and `resets_at`** (additive; the code stays `PROVIDER_RATE_LIMITED`). The estimate answer carries them too.
 10. **Only the query key `main` is taken** (`WORKBENCH_VERSION_INVALID` otherwise), and "Read what this concept removes" is OpenAlex only, one request of 25 records, charged to the budget and logged as a `removed` row that never answers a count.
+11. **"What each synonym adds" asks the full query too** when it is not in the log: its cost is one request per term plus one for the full query (after a Count the full query is usually in the log, so it is one per term, as the specification says). The cost is stated before anything is sent.
+12. **Counting after the corpus is accepted still writes the count log** under `audit/query_development/`: DoD 22's "records nothing" is read as "changes nothing in the protocol, the corpus or the journal". The log is the record of the search's development, which a methods section may want even after the accept. *Alternative:* count without logging after the accept.
+13. **The budget is reserved before sending, and the shared file is never read as empty when it cannot be read** (review of Part A, round 1). A Count takes its whole planned cost from the budgets in one locked step and gives back what it did not send (a database stopped by its first failure); two Counts at once can no longer both pass. A state file that cannot be read after five tries refuses with `WORKBENCH_STATE_UNREADABLE` (503) and is not overwritten, so a moment's lock by another program cannot erase every pause and the day's spending. *Limit:* the lock is per console process; two consoles on one root are not serialised.
 
-**Lane RELEASE** (`test_gate_policy.md`): six new public POST routes, two new refusal codes, a persisted file under `audit/`, additive fields on the estimate's rows.
+**Lane RELEASE** (`test_gate_policy.md`): six new public POST routes, three new refusal codes, a persisted file under `audit/`, additive fields on the estimate's rows.
 
 ## 2026-11-21 — The M11a screen questions closed; H-run-small-fixes Part C accepted (accepted by the researcher 2026-11-21)
 

@@ -242,6 +242,7 @@ The UI reads proposals only through `GET /records/{study_id}/proposal`. The fiel
 | `PACE_INVALID` | discovery estimate | HTTP 422: the size estimate's `pace_seconds` is not a whole number from 5 to 600; no database was asked (M10b) |
 | `WORKBENCH_BUDGET_SPENT` | query workbench | HTTP 409: a Count (or a synonym or removed read) would pass a database's daily workbench request budget; `details.databases` names each with `limit`, `spent`, `left`, `renews_at`; nothing was sent (M11a) |
 | `WORKBENCH_VERSION_INVALID` | query workbench | HTTP 422: the version cannot be searched (no concept with a term, years out of order, a query key other than `main`, a concept index it does not have); nothing was sent (M11a) |
+| `WORKBENCH_STATE_UNREADABLE` | query workbench | HTTP 503: the shared budget and quota file (`<workspaces root>/.query_workbench/state.json`) cannot be read after a few tries; nothing was sent and the file is not overwritten (M11a) |
 | `PROVIDER_UNKNOWN` | discovery runs, recall, estimate | HTTP 422: a database name the engine does not know; `details.known` lists them (M3b-api) |
 | `DISCOVERY_FAILED` | discovery jobs | the job stopped on an unexpected error; `message` names it (M3b-api) |
 | `PROTOCOL_CHANGED_SINCE_SNAPSHOT` | discovery run job `error` | the protocol no longer matches the accepted snapshot; resume refused (E5, M3b-api; also the reason's prefix) |

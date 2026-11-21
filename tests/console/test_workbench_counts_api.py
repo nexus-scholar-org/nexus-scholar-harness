@@ -449,7 +449,9 @@ def test_an_emitted_or_unknown_draft_is_refused(env):
 def test_the_refusal_codes_are_the_engines():
     assert qw.WORKBENCH_BUDGET_SPENT == refusals.WORKBENCH_BUDGET_SPENT
     assert qw.WORKBENCH_VERSION_INVALID == refusals.WORKBENCH_VERSION_INVALID
-    assert {refusals.WORKBENCH_BUDGET_SPENT, refusals.WORKBENCH_VERSION_INVALID} <= refusals.CONTRACT_ADDED
+    assert qw.WORKBENCH_STATE_UNREADABLE == refusals.WORKBENCH_STATE_UNREADABLE
+    assert {refusals.WORKBENCH_BUDGET_SPENT, refusals.WORKBENCH_VERSION_INVALID,
+            refusals.WORKBENCH_STATE_UNREADABLE} <= refusals.CONTRACT_ADDED
 
 
 # --------------------------------------------------------------------------- Plan: the workspace route, the estimate reads the log
@@ -507,3 +509,90 @@ def test_each_route_is_in_the_browser_allow_list_and_the_proxy_and_not_a_phone_r
     patterns = [re.compile(m.group(1).replace("\\/", "/")) for m in re.finditer(r"^\s*/(\^api.*\$)/,", PROXY.read_text(encoding="utf-8"), re.M)]
     assert any(p.fullmatch(path) for p in patterns)
     assert not serve._phone_may_reach("POST", "/" + path)
+
+
+# --------------------------------------------------------------------------- review of Part A (round 1)
+
+
+def test_a_real_count_states_what_it_cost_not_what_is_left_to_count(env):
+    """Review P2: the cost of a real Count is the requests it planned, not zero after sending."""
+    client, root, ws, draft, doubles, _ = env
+    answer = _count(client, draft).json()
+    assert answer["requests"] == 15
+    assert answer["cost"] == {"total": 15, "by_database": {"openalex": 5, "semanticscholar": 5, "arxiv": 5}, "cached": False}
+    assert _row(answer, "openalex")["cost"] == 5
+    again = _count(client, draft).json()
+    assert again["cost"]["total"] == 0 and again["cost"]["cached"] is True and again["requests"] == 0
+
+
+def test_the_size_line_counts_a_cached_number_beside_a_used_up_quota(env):
+    """Review P2: the table and the size line read the same number."""
+    client, root, ws, draft, doubles, clock = env
+    _count(client, draft, providers=["openalex"])
+    doubles.fail["openalex"] = QuotaExhaustedError("openalex", database="OpenAlex", retry_after=3600,
+                                                    resets_at="2026-11-22T00:00:00+00:00")
+    _count(client, draft, concepts=THREE, providers=["openalex"])  # pauses OpenAlex
+    answer = _count(client, draft, providers=["openalex"]).json()
+    oa = _row(answer, "openalex")
+    assert (oa["status"], oa["total"], oa["from_cache"]) == ("quota_used_up", 166, True)
+    assert answer["size"]["estimate"]["records"] == {"low": 166, "high": 166}
+
+
+def test_a_database_stopped_after_the_full_query_says_so_on_its_row(env):
+    """Review P3: the full query counted, then a dropped concept met a used-up quota."""
+    client, root, ws, draft, doubles, _ = env
+    def total(name, text):
+        if "UAV" not in text:
+            raise QuotaExhaustedError("openalex", database="OpenAlex", retry_after=3600,
+                                      resets_at="2026-11-22T00:00:00+00:00")
+        return 166
+    doubles.total = total
+    oa = _row(_count(client, draft, providers=["openalex"]).json(), "openalex")
+    assert (oa["status"], oa["total"]) == ("counted", 166)
+    assert oa["stopped"]["status"] == "quota_used_up" and oa["stopped"]["resets_at"] == "2026-11-22T00:00:00+00:00"
+    assert oa["stopped"]["resets_in"] == {"hours": 13, "minutes": 45}
+    assert [d["status"] for d in oa["drops"]] == ["quota_used_up"] * 4
+    # Two requests were sent; the three not sent are given back to the budget.
+    assert oa["requests"] == 2
+    assert qw.SharedState(root).spent("openalex", qw.utcnow()) == 2
+
+
+def test_an_unreadable_state_file_is_refused_and_never_overwritten(env):
+    """Review P3: reading it as empty would erase every pause and the day's spending."""
+    client, root, ws, draft, doubles, _ = env
+    _count(client, draft, providers=["openalex"])
+    state = root / qw.STATE_DIRNAME / qw.STATE_FILE
+    state.write_text("{not json", encoding="utf-8")
+    response = _count(client, draft, concepts=THREE, providers=["openalex"])
+    assert response.status_code == 503 and _code(response) == refusals.WORKBENCH_STATE_UNREADABLE
+    assert state.read_text(encoding="utf-8") == "{not json"
+    assert doubles.asked() == 5
+
+
+def test_two_reservations_cannot_both_pass_the_budget(env, monkeypatch):
+    """Review P3: the check and the spending are one step."""
+    client, root, ws, draft, doubles, clock = env
+    monkeypatch.setitem(qw.BUDGETS, "openalex", 6)
+    shared = qw.SharedState(root)
+    assert shared.reserve({"openalex": 5}, clock.now) == []
+    assert shared.reserve({"openalex": 5}, clock.now) == ["openalex"]
+    assert shared.spent("openalex", clock.now) == 5
+
+
+def test_what_was_sent_is_logged_when_a_database_fails_unexpectedly(env, monkeypatch):
+    """Review P3: an error after a request was sent still leaves its log row."""
+    client, root, ws, draft, doubles, _ = env
+    real = est.count_one
+    calls = {"n": 0}
+
+    async def flaky(name, query, **kw):
+        calls["n"] += 1
+        if calls["n"] == 2:
+            raise RuntimeError("broken")
+        return await real(name, query, **kw)
+
+    monkeypatch.setattr(est, "count_one", flaky)
+    answer = _count(client, draft, providers=["openalex"]).json()
+    oa = _row(answer, "openalex")
+    assert oa["status"] == "counted" and all(d["status"] == "failed" for d in oa["drops"][1:])
+    assert len(_log(root, draft)) == 1

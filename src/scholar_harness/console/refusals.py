@@ -192,6 +192,8 @@ PACE_INVALID = "PACE_INVALID"
 WORKBENCH_BUDGET_SPENT = "WORKBENCH_BUDGET_SPENT"
 #: M11a Part A: a workbench version that cannot be searched (no concept with a term, years, query key).
 WORKBENCH_VERSION_INVALID = "WORKBENCH_VERSION_INVALID"
+#: M11a Part A (review P3): the workbench's shared budget file cannot be read; nothing was sent and nothing overwritten.
+WORKBENCH_STATE_UNREADABLE = "WORKBENCH_STATE_UNREADABLE"
 #: A database name the engine does not know, in a run's or a check's ``providers``.
 PROVIDER_UNKNOWN = "PROVIDER_UNKNOWN"
 #: A discovery job stopped on an unexpected error; ``message`` names it.
@@ -364,6 +366,7 @@ CONTRACT_ADDED = frozenset(
         PACE_INVALID,
         WORKBENCH_BUDGET_SPENT,
         WORKBENCH_VERSION_INVALID,
+        WORKBENCH_STATE_UNREADABLE,
         PROVIDER_UNKNOWN,
         DISCOVERY_FAILED,
         PROTOCOL_CHANGED_SINCE_SNAPSHOT,
