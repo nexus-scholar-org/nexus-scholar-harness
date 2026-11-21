@@ -626,6 +626,8 @@ async def run(
             for p in public for d in p.get("drops", []) if d.get("note")
         ]
         answer["size"] = _size(public, size, year_window)
+        # Decision 2026-11-20, M11a item 10: the version written for Scopus and Web of Science, to copy.
+        answer["external"] = wb.external_strings(version)
     else:
         answer["concept_index"] = concept_index
     return answer
