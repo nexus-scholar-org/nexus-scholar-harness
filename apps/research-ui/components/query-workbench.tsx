@@ -80,6 +80,8 @@ export function QueryWorkbench({
   pool,
   editableSeeds,
   primary,
+  onPrimaryKey,
+  onVersion,
   onDirty,
   onCounted,
   onUse,
@@ -104,6 +106,10 @@ export function QueryWorkbench({
   editableSeeds?: boolean;
   /** The caller's own primary action (Plan, part D); Inception uses "Use this version". */
   primary?: (state: { version: Version; changed: boolean }) => ReactNode;
+  /** Plan: Ctrl+Enter runs the caller's primary action when it returns true (it opens the confirmation; it never records). */
+  onPrimaryKey?: (state: { version: Version; changed: boolean }) => boolean;
+  /** Plan: told each time the version on screen changes (its key), so a confirmation for another version closes. */
+  onVersion?: (key: string) => void;
   onDirty?: (dirty: boolean) => void;
   onCounted?: () => void;
   onUse?: (use: WorkbenchUse) => Promise<boolean>;
@@ -152,6 +158,7 @@ export function QueryWorkbench({
   const changed = key !== usedKey || seeds.join("|") !== savedSeeds.join("|");
   const stale = answer !== null && answerKey !== key;
   useEffect(() => onDirty?.(changed), [changed, onDirty]);
+  useEffect(() => onVersion?.(key), [key, onVersion]);
 
   const fail = useCallback((error: unknown) => {
     const r = refusalOf(error);
@@ -309,6 +316,7 @@ export function QueryWorkbench({
   const onRegionKey = (event: KeyboardEvent<HTMLElement>) => {
     if (event.key === "Enter" && event.ctrlKey) {
       event.preventDefault();
+      if (onPrimaryKey?.({ version, changed })) return;
       if (primaryKind === "use" && onUse) void use();
       else if (version.concepts.length && !counting) void count();
     }
@@ -865,7 +873,8 @@ function CountsSection({
           {t("workbench.empty")}
         </p>
       ) : (
-        <div className={stale ? "opacity-80" : ""}>
+        <div data-stale={stale ? "true" : undefined}>
+          {/* No dimming: at opacity-80 the muted and "unclear" words fell below 4.5:1 in light (axe, M11a part D). The badge and the row words say the counts are for the previous version. */}
           {stale ? <DecisionBadge role="unclear">{t("workbench.badge.previous")}</DecisionBadge> : null}
           {concepts.length === 1 ? (
             <p className="mt-1 text-sm text-ink-muted" data-one-concept>

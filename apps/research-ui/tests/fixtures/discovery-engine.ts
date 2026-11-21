@@ -12,6 +12,7 @@
 
 type Json = Record<string, unknown>;
 import { checkRow, dismissal, DISCOVERY_STEPS, respond, withDismissals, type CheckIn } from "./checks-engine";
+import { workbenchEngine, type WorkbenchOptions } from "./workbench-engine";
 export type Answer = { status: number; body: unknown; sse?: boolean };
 
 export const FINGERPRINT = "sha256:" + "cd".repeat(32);
@@ -19,6 +20,8 @@ export const QUERY_TEXT = '("weed detection" OR "weed segmentation") AND ("edge 
 export const MAILTO_LINE = "SCHOLAR_MAILTO=you@university.edu";
 
 export interface DiscoveryFakeOptions {
+  /** M11a part D: the workbench routes on Plan (counts, seeds, comparison). */
+  workbench?: WorkbenchOptions;
   /** M10b Part B: the rows `GET /discovery/checks` serves (default none). */
   checks?: CheckIn[];
   protocol?: "ok" | "missing" | "invalid";
@@ -34,6 +37,8 @@ export interface DiscoveryFakeOptions {
   accepted?: boolean;
   /** Database exports staged for import (M3f: combined with a ready harvest at the accept; a run is no longer refused). */
   staged?: boolean;
+  /** M11a part D: the search string the researcher stated for the staged export (`query` in sources.json). */
+  stagedQuery?: string;
   /** A run is in progress; its stream has no end yet. */
   activeJob?: boolean;
   /** Fail this database in every run, with this typed code. */
@@ -264,6 +269,15 @@ export function discoveryEngine(options: DiscoveryFakeOptions = {}) {
   // (`setProtocolProviders`) changes it and the protocol's fingerprint, as the engine would.
   let protocolProviders = runProviders(options.protocolProviders ?? SELECTED);
   let fingerprint = FINGERPRINT;
+  // M11a part D: the protocol's search as Plan reads it, and the amendments recorded from Plan.
+  let searchConcepts: { concept: string; synonyms: string[] }[] = [
+    { concept: "weed detection", synonyms: ["weed segmentation"] },
+    { concept: "edge device", synonyms: ["embedded"] },
+  ];
+  const amendments: Json[] = [];
+  // As the engine: the amendment's "estimate" line only when an estimate was counted for this protocol.
+  let estimatedFor: string | null = null;
+  const bench = workbenchEngine(options.workbench ?? {});
   // M10a: the legs run and are listed in the order asked, else in the protocol's order.
   const legsOf = (capOverride: number | null, requested: string[] | null = null): Json[] =>
     (requested ?? protocolProviders).map((provider) => {
@@ -427,6 +441,7 @@ export function discoveryEngine(options: DiscoveryFakeOptions = {}) {
       shape: "discovery.plan-v1", protocol_fingerprint: fingerprint,
       query: { id: "Q1", text: QUERY_TEXT, year_min: 2018, year_max: 2026, language: "en" },
       cap: { value: 500, source: "protocol", ceiling: 10000 }, mailto_set: mailto, openalex_key_set: openalexKey, s2_key_set: s2Key, golden_seeds: options.goldenSeeds ?? [],
+      search: { query_key: "main", concepts: searchConcepts, start_year: 2018, end_year: 2026, languages: ["en"], golden_seeds: options.goldenSeeds ?? [] },
       providers: names.map((name) => {
         const selected = chosen.includes(name);
         const translated = selected && name in EXECUTED;
@@ -867,6 +882,7 @@ export function discoveryEngine(options: DiscoveryFakeOptions = {}) {
         (accepted ? refuse(409, "CORPUS_ALREADY_ACCEPTED", "The corpus snapshot is accepted; a frozen corpus is never searched again from the browser.") : null) ??
         busy();
       if (refused) return refused;
+      estimatedFor = fingerprint;
       const stub = options.estimate;
       if (stub) return { status: 200, body: typeof stub === "function" ? (stub as (b: Json | null) => object)(body) : stub };
       // H-run-small-fixes: an estimate sent no list counts the default choice, as the engine does.
@@ -1043,10 +1059,55 @@ export function discoveryEngine(options: DiscoveryFakeOptions = {}) {
         },
       };
     }
+    // ---- M11a part D: "Change the search" (the workbench routes, and the amendment). ----
+    if (method === "POST" && route === "/api/v1/discovery/workbench/amend") {
+      const refused = needProtocol();
+      if (refused) return refused;
+      // As the genesis compiler: spaces collapsed, a synonym repeated in another case kept once.
+      const tidy = (text: string) => text.split(/\s+/).filter(Boolean).join(" ");
+      const concepts = ((body?.concepts as { concept: string; synonyms?: string[] }[]) ?? []).map((c) => {
+        const seen = new Set<string>();
+        const synonyms = (c.synonyms ?? []).map(tidy).filter((s) => s && !seen.has(s.toLowerCase()) && seen.add(s.toLowerCase()));
+        return { concept: tidy(c.concept), synonyms };
+      });
+      const reason = String(body?.reason ?? "").trim();
+      if (body?.protocol_fingerprint !== fingerprint) return refuse(409, "WORKBENCH_PROTOCOL_CHANGED", "the protocol changed since this page read it", { protocol_fingerprint: fingerprint });
+      if (accepted) return refuse(409, "CORPUS_ALREADY_ACCEPTED", "a corpus was accepted under this protocol; it is not amended");
+      if (JSON.stringify(concepts) === JSON.stringify(searchConcepts)) return refuse(422, "WORKBENCH_VERSION_INVALID", "this version is the protocol's own search");
+      const next = "sha256:" + String(amendments.length + 1).padStart(2, "0").repeat(32);
+      const answer = {
+        shape: "discovery.workbench-amend-v1", query_key: "main", dry_run: !!body?.dry_run, previous_fingerprint: fingerprint, protocol_fingerprint: next,
+        changed: ["search_strategy.core_concepts"],
+        counts: { openalex: { before: 166, after: "not counted" }, semanticscholar: { before: "not counted", after: "not counted" } },
+        consequences: {
+          runs: runs.map((r) => ({ run: r.run, records: fetchedTotal(r), status: r.status })),
+          exports: staged ? [{ id: "src_1", database: "Scopus", records: 120, staged_on: "2026-11-01", string: options.stagedQuery ?? null }] : [],
+          recall_checks: recall ? [{ check: "check_001", checked_at: recall.checked_at }] : [],
+          estimate: estimatedFor === fingerprint, proposals: wsProposals.filter((p) => p.status === "open").length,
+        },
+      };
+      if (body?.dry_run) return { status: 200, body: answer };
+      if (!reason || reason.length > 2000) return refuse(422, "WORKBENCH_REASON_INVALID", "write one sentence: why the search changes");
+      const active = activeJob();
+      if (active) return refuse(409, "DISCOVERY_JOB_ACTIVE", "A discovery job is already running for this workspace.", { job: active });
+      searchConcepts = concepts;
+      fingerprint = next;
+      protocolChanged = true;
+      amendments.push({ reason, concepts, fingerprint: next });
+      return { status: 200, body: { ...answer, backup: "audit/amended/20261121T101500000000Z" } };
+    }
+    const benchPath = /^\/api\/v1\/discovery\/workbench(\/.*)$/.exec(route);
+    if (benchPath) {
+      const refused = needProtocol();
+      if (refused) return refused;
+      const answer = bench.handle(method, benchPath[1], body, options.goldenSeeds ?? []);
+      if (answer) return answer;
+    }
     return refuse(404, "NOT_FOUND", `the fake has no ${method} ${route}`);
   }
 
   return {
+    amendments,
     calls,
     handle,
     runs,

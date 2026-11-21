@@ -10,13 +10,9 @@ history to read if you need the original reasoning (`git log --follow -- <path>`
 
 | Entry | Item | What is open |
 | :-- | :-- | :-- |
-| 2026-11-21 — M12a K0: `download` and `ingest` production | 1 to 9 | Proposed with the build; the researcher's answer is pending. |
-| 2026-11-21 — M11a Part C: the workbench screen | 1 to 10 | Proposed with the build; the researcher's answer is pending. |
-| 2026-11-21 — M11a Part B: known papers and comparison sets | 1 to 10 | Proposed with the build; the researcher's answer is pending. |
-| 2026-11-21 — M11a Part A: the workbench's counts | 1 to 13 | Proposed with the build; the researcher's answer is pending. |
 | 2026-11-19 — M9a: what the measurement says about the ladder gates | 2 | The minimum share of the researcher's excludes an agent must take before a rung unlocks: the principle is accepted; the researcher decided on 2026-11-20 to set the number when M9b is built. |
 
-## 2026-11-21 — M12a K0: `download` and `ingest` production, the four repairs as built (items 1 to 9 PROPOSED)
+## 2026-11-21 — M12a K0: `download` and `ingest` production, the four repairs as built (items 1 to 9 accepted by the researcher 2026-11-21)
 
 Record: `docs/roadmap/milestones/M12a-charting-table.md`, "Build record", Part K0. Builds items 21 and 27 of the M12a entry below ("Production from now"; "Label plus four repairs"). These are the build's own choices where the specification left the detail open; none is accepted until the researcher answers. Nothing here changes a Contract v1 file or `protocol.json`.
 
@@ -86,7 +82,37 @@ Record: `docs/roadmap/milestones/M12a-charting-table.md`; the researcher's page:
 25. *(Accepted 2026-11-21, G4 "Refuse with a message".)* **The proxy in the production kit:** a proxy setting is refused by the production commands with a message naming this decision; the code stays parked until a decision of its own, under which any file it fetches would be recorded as institutional access, never as open access (PDF-12), and never exported.
 26. *(Accepted 2026-11-21, G5 "Yes, they stay parked".)* **The console's legacy pipeline templates** (`download`, `extract`, stages 5 to 9; `console/runtimes/actions.py:84,91`, `console/api/pipelines.py:221-352`) stay parked with the matrix and synthesis.
 
-## 2026-11-21 — M11a Part C: the query workbench on Inception's step 5 (items 1 to 10 PROPOSED)
+## 2026-11-21 — The M11a decisions accepted (parts A, B, C and D; accepted by the researcher 2026-11-21)
+
+The researcher answered in the main session on 2026-11-21, after parts A, B and C were merged (PR #269, #270, #272) and before part D's push.
+
+1. **Part C item 1, accepted as built:** a merged concept is named by one of its own terms (a choice opening on the first concept's name), not by a typed name. This replaces the letter of "2026-11-21 — The M11a screen questions closed", item 2 ("a name field filled with the first concept's name"): a typed name would be searched as a phrase.
+2. **Part A item 12, accepted as built:** counting after the corpus is accepted still writes the count log under `audit/query_development/`.
+3. **Part A item 1, accepted as built:** the request budget and the quota memory are one file per workspaces folder.
+4. **Every other item of parts A, B, C and D, accepted as built** (asked together, with three named in the question: Arabic numbers follow the app-wide rule of `docs/I18N.md`; Inception counts the databases of the latest first search; `QUERY_NOT_COUNTED` clears only after a Count of the saved version). Part D item 7 was accepted earlier the same day.
+5. **The wording stays open** until the researcher reads the built screens (as decided on 2026-11-21 for the two screen specifications).
+
+## 2026-11-21 — M11a Part D: "Change the search" on Plan, recorded as the researcher's amendment (items 1 to 13 accepted by the researcher 2026-11-21)
+
+Record: `docs/roadmap/milestones/M11a-query-workbench.md`, "Part D". Branch `dev/m11a/part-d-plan-amend`, built on Part C's branch. What decision 2026-11-20 item 1, decision 2026-11-21 item 3 and the FINAL Plan spec (`10-plan-amend-search.md`) decided is built as decided: the researcher's amendment replaces the whole concept list with a required reason through the 9(a) code (compile with the genesis compiler, the `outside_search` guard, the backup under `audit/amended/<stamp>/`, `PROTOCOL_AMENDED`), a harvest made before it can no longer become the corpus, after the accept the workbench records nothing, and a version never counted is recorded with "not counted". No Contract v1 model, schema, identity or golden fixture changes; the protocol's fingerprint moves as with every 9(a) amendment.
+
+1. **The read: `GET /discovery/plan` gains `search`** (`query_key`, the concept list as the protocol holds it, years, languages, `golden_seeds`), read from `protocol.json`. The existing `concepts` field (a number since H-run-small-fixes Part B) is kept as it is.
+2. **The write is a new function beside the 9(a) path, `workspace_proposals.amend_search`**, not a new operation in `FIELD_OPS`: an assistant's proposals keep "add" only for concepts (M10c item 16 as amended by decision 2026-11-20 item 1 covers the researcher's route only). It takes the same lock, the same compile and guard, and the same backup and atomic writes. The route is `POST /api/v1/discovery/workbench/amend` (`dry_run` reads what it would change and writes nothing); a running discovery job refuses the real call, not the dry one.
+3. **Two new refusal codes**: `WORKBENCH_REASON_INVALID` (422: no reason, or over 2,000 characters, whatever the length; the body's own bound is 100,000, so a long reason never becomes the generic body refusal) and `WORKBENCH_PROTOCOL_CHANGED` (409: the fingerprint the page read is not the current one). A version equal to the protocol's own is `WORKBENCH_VERSION_INVALID`.
+4. **The journal row `PROTOCOL_AMENDED` carries** `source: "researcher"`, the reason, `query_key`, the old and new fingerprints, the changed paths, the backup folder, and the counts before and after for each database a run searches (`run_providers`: unknown names left out, as M10a), from the workspace's count log (newest count of each exact string, of any age); a database with no such count, or a workspace with no log at all, reads `"not counted"` (decision 2026-11-21 item 3).
+5. **The consequences are engine-written** (the amend route's `dry_run`): each run whose search is still the protocol's (id, records fetched), each staged export with the string the researcher stated (`query` in `sources.json`, M3f), each recall check made for the current fingerprint, `estimate` true only when a size estimate was counted for the current protocol in this engine (the estimate's in-memory cache), and the number of open assistant proposals. The browser prints them and decides nothing.
+6. **Placement as the spec draws it**: the secondary button "Change the search" (with the `plan.search.help` hint) is in the header of the "Executed string per database" card; opened, the region is full width above Plan's two columns, so Plan's page header now sits above the columns instead of inside the main one. Plan's `plan.amend.help` hint is removed (no longer true for the query); Plan keeps 7 hints. **The one brand button**: 03-guidance (M10d, accepted) makes "Continue to Recall" Plan's main action, while the spec says "never two": while the region is open "Continue to Recall" is a plain link, and the region's one primary action is Count, then "Record this amendment", then the confirmation's own button. Known papers are read only there; there is no pool on Plan; the two fixed checks are not served on Plan (the spec's questions 8 and 9).
+7. **The neighbouring links, as decision 2026-11-21 item 3 closed them**: the estimate's "narrow" and "one database" advice (Plan and Harvest; on Plan the link opens the section directly, and closing the section clears the anchor) and the `RECALL_SEED_MISSED` check now point to Plan's "Change the search" (`/discovery/plan/#change-search`, which opens the section; the check's action gains an additive `section: "change-search"` and reads "Change the search"); Recall gains a "Change the search" link carrying the `plan.search.help` hint, and `amend.help` is REMOVED (guidance D-DS8). **`HANDOFF_SEARCH_CHANGED` keeps "Search again" (Harvest)**: the spec's question assumed it says "amend the query" and goes to Inception, but its action already is Harvest, which is what a run made before an amendment needs; pointing it to "Change the search" would take away the way out of a blocker. **Accepted by the researcher 2026-11-21** (main session): `HANDOFF_SEARCH_CHANGED` keeps "Search again", a recorded departure from the letter of decision 2026-11-21 item 3.
+8. **(Folded into item 6.)**
+9. **The Plan region is not a second landmark named "Search"**, and **the workbench's counts of a previous version are no longer dimmed**. Both were found by this part's axe run on the open confirmation: two landmarks had the same name, and Part C's `opacity-80` on a previous version's counts put the muted and "unclear" words at 3.8:1 to 4.2:1 in the light theme. The "Previous version" badge and each row's "for the previous version. Count again." already say it. This changes Part C's component (`query-workbench.tsx`, one line).
+10. **In the consequences and counts, dates, run ids, database names and the researcher's stated string are isolated left to right** (`I18N.md`; in Arabic the digits of 2026-11-01 were laid out as 01-11-2026), the sentences follow the page's direction, and the counts summary joins databases with the language's separator (`list.sep`, Arabic "، ").
+11. **The confirmation is for one version and never records by accident**: an edit or Discard while it is open closes it (the version recorded is always the one on screen); it is not a form, so Enter in the one-line reason field records nothing; Escape and Cancel return focus to "Record this amendment"; Ctrl+Enter in the workbench opens it once the version differs; after a refusal focus goes to the confirmation's heading (or to the refusal when the confirmation closed); after a recorded amendment Plan takes the new fingerprint as its own (no "changed since this page was read"), reads again and moves focus to its h1. The workbench gains two optional props for this (`onVersion`, `onPrimaryKey`); Inception does not use them.
+12. **Refusals on Record**: a running job names "Follow the running job" (to the screen of that job's kind); `WORKBENCH_PROTOCOL_CHANGED` closes the confirmation and Plan reads the protocol again; a refused dry run shows its words instead of "Reading what this amendment changes…"; `PROTOCOL_AMENDMENT_REFUSED` shows the engine's message under "Details" (new key `plan.search.details`); other codes use the shared discovery refusal card. The spec's "This version" label is added (`plan.search.version`).
+13. **A change of the protocol elsewhere keeps the tab's edits**: the workbench is not remounted on a new fingerprint (it already follows a moved protocol: untouched, it takes the new concepts; edited, it keeps the edits and compares them with the new protocol), as the spec's "Stale" asks. After the researcher's own amendment it starts again from the protocol as recorded, because the genesis compiler tidies what it records (spaces collapsed, a synonym repeated in another case kept once) and the tab's text would otherwise read as a further change. A concept kept under its name keeps its `boolean_operator` in the amended intent (the workbench edits OR groups only).
+
+**Lane RELEASE** (`test_gate_policy.md`): a protocol write after genesis through a new public route, two new refusal codes, an additive field on `GET /discovery/plan`, an additive field on one fixed check's action.
+
+## 2026-11-21 — M11a Part C: the query workbench on Inception's step 5 (items 1 to 10 accepted by the researcher 2026-11-21)
 
 Record: `docs/roadmap/milestones/M11a-query-workbench.md`, "Part C". Branch `dev/m11a/part-c-screen`, built on Part B's branch. The FINAL screen specification (`10-query-workbench.md`, questions closed 2026-11-21) is built as written; these are the choices it left to the build, and three places where the build differs from its words, each for a stated reason.
 
@@ -134,7 +160,8 @@ This milestone's choices (accepted by the researcher 2026-11-21, as built):
 
 **Lane RELEASE** (`test_gate_policy.md`): two additive fields on public console routes. No Contract v1 schema, protocol schema, identity, fingerprint, event or publication change.
 
-## 2026-11-21 — M11a Part B: known papers, comparison sets and the search development at genesis (items 1 to 10 PROPOSED)
+
+## 2026-11-21 — M11a Part B: known papers, comparison sets and the search development at genesis (items 1 to 10 accepted by the researcher 2026-11-21)
 
 Record: `docs/roadmap/milestones/M11a-query-workbench.md`, "Part B". Branch `dev/m11a/part-b-seeds-comparison`, built on Part A's branch. What the specification decided (OpenAlex only for the per-database checks, behind a switch; a comparison set never added to the corpus; the development saved under `audit/query_development/`; the two fixed checks never blockers) is built as decided. No Contract v1 model, schema, identity or fingerprint changes: the new files are side files outside the baseline; the preview's `files` list grows by the development files a draft has.
 
@@ -151,7 +178,7 @@ Record: `docs/roadmap/milestones/M11a-query-workbench.md`, "Part B". Branch `dev
 
 **Lane RELEASE** (`test_gate_policy.md`): new public routes and refusal codes, new genesis files in a public preview answer, two new check ids.
 
-## 2026-11-21 — M11a Part A: the workbench's counts, the count log, the budget and the quota memory (items 1 to 13 PROPOSED)
+## 2026-11-21 — M11a Part A: the workbench's counts, the count log, the budget and the quota memory (items 1 to 13 accepted by the researcher 2026-11-21)
 
 Record: `docs/roadmap/milestones/M11a-query-workbench.md`, "Part A". Branch `dev/m11a/part-a-counts`. These are the choices the specification and the FINAL screen specifications leave open; what they decided (counts only on Count, the budgets, the 24-hour log, Crossref, the ×2 note) is built as decided. No Contract v1 model, schema, identity or fingerprint changes; the new files are side files outside the baseline.
 

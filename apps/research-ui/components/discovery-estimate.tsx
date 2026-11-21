@@ -41,6 +41,10 @@ export interface EstimateCardProps {
   onUseCap?: (cap: number) => void;
   /** The link to inception for "narrow" and "state a planned number". */
   inceptionHref: string;
+  /** M11a part D: Plan's "Change the search"; the narrow and one-database advice links there (question 7). */
+  searchHref?: string;
+  /** On Plan itself: open the section instead of following the link (a same-page anchor may already be set). */
+  onSearch?: () => void;
 }
 
 function rowReason(locale: Locale, row: EstimateRow): string {
@@ -98,7 +102,29 @@ function EstimateRowView({ locale, row, cap }: Readonly<{ locale: Locale; row: E
   );
 }
 
-export function EstimateCard({ locale, origin, fingerprint, providers, cap = null, harvestHref, onUseCap, inceptionHref }: Readonly<EstimateCardProps>) {
+/** Where narrowing the query is done: Plan's "Change the search" when the page gives it, else inception. */
+function NarrowLink({ locale, inceptionHref, searchHref, onSearch }: Readonly<{ locale: Locale; inceptionHref: string; searchHref?: string; onSearch?: () => void }>) {
+  const t = discoveryT(locale);
+  return (
+    <a
+      className={LINK}
+      href={searchHref ?? inceptionHref}
+      onClick={
+        searchHref && onSearch
+          ? (event) => {
+              event.preventDefault();
+              onSearch();
+            }
+          : undefined
+      }
+      data-estimate-narrow
+    >
+      {searchHref ? t("plan.search.open") : t("amend.link")}
+    </a>
+  );
+}
+
+export function EstimateCard({ locale, origin, fingerprint, providers, cap = null, harvestHref, onUseCap, inceptionHref, searchHref, onSearch }: Readonly<EstimateCardProps>) {
   const t = discoveryT(locale);
   const [estimate, setEstimate] = useState<Estimate | null>(null);
   const [counting, setCounting] = useState(false);
@@ -265,16 +291,12 @@ export function EstimateCard({ locale, origin, fingerprint, providers, cap = nul
                   total: (rec.provider_total ?? 0) + (rec.others_total ?? 0),
                 })}
               </p>
-              <a className={LINK} href={inceptionHref} data-estimate-narrow>
-                {t("amend.link")}
-              </a>
+              <NarrowLink locale={locale} inceptionHref={inceptionHref} searchHref={searchHref} onSearch={onSearch} />
             </div>
           ) : rec && rec.kind === "narrow" ? (
             <div className="space-y-2 rounded-md border border-rule bg-paper p-3 text-sm" data-estimate-rec="narrow">
               <p className="text-ink">{t("estimate.rec.narrow")}</p>
-              <a className={LINK} href={inceptionHref} data-estimate-narrow>
-                {t("amend.link")}
-              </a>
+              <NarrowLink locale={locale} inceptionHref={inceptionHref} searchHref={searchHref} onSearch={onSearch} />
             </div>
           ) : null}
           <ul className="space-y-3" data-estimate-rows>
