@@ -391,4 +391,18 @@ What was built:
 
 Fails before: on Part A's head the new API file stops at collection (`ImportError: query_workbench_sets`) and 5 of the new pure tests fail (no `seed_check`, `related`), seen 2026-11-21.
 
+Review round 1 (`milestone-reviewer`, on `559c3063`): **CHANGES**, 1 P2, 4 P3, 2 P4, all taken:
+
+| # | Finding | Repair | Test (fails before: the reviewer's probe `rvB/test_probe_b.py` for B1; code reading for the others) |
+| :-- | :-- | :-- | :-- |
+| P2-B1 | The seed check still sent the OpenAlex check after the lookup met a used-up quota | a failed lookup stops OpenAlex for the call; the check's cost is given back and its row takes the lookup's status | `test_a_lookup_that_meets_a_used_up_quota_sends_nothing_more` |
+| P3-B2 | A genesis copy failing half way (a replacement) left a re-protocoled workspace with a partial development; a retry appended twice | the development is built in a folder beside it (the existing one copied first) and moved in whole | `test_a_failed_genesis_copy_leaves_the_development_as_it_was`, `test_a_replacement_appends_the_logs_and_numbers_the_sets_after_the_existing_ones` |
+| P3-B3 | The seed check warned "few" when no seed could be read | no warning when none is readable ("not checked") | `test_seeds_none_of_which_can_be_read_raise_no_warning`, `tests/kits/search/test_workbench.py::test_seeds_none_of_which_can_be_read_are_not_checked` |
+| P3-B4 | Two uploads at once could take the same set number | the limit check, the number and the rename are one locked step per folder | (code path) |
+| P3-B5 | The fixed check read the pool minus the left-out sample; the panel read the stored pool | both read the stored pool | (code path; the checks tests above) |
+| P4-B6 | `WORKBENCH_COMPARISON_MEASURE` 422 could not happen (an unknown measure is `BODY_INVALID`) | contract table and decision item 4 corrected | (none) |
+| P4-B7 | A call that sends nothing (switch off) was refused for the contact email | the guards run only when a request will be sent | `test_an_openalex_call_that_would_send_nothing_is_not_refused_for_the_contact_email` |
+
+Round-1 follow-ups, not repaired: with 1 or 2 seeds `SEEDS_CANNOT_TEST` (few) and `DIRECTION_SEEDS_FEW` both fire; `SEEDS_CANNOT_TEST`'s action goes to Direction although its sentence also offers an export comparison (part C puts that link in the panel); staging or removing a set on Plan writes under `audit/` without a journal row (as decision item 12 of Part A reads "records"); a DOI holding `,` or `|` would break its batch of 50 in the OpenAlex filter; an unreadable `artifact_registry.json` turns Plan's seed and report calls into a 500.
+
 Not verified (needs a live run, not run): whether OpenAlex answers `filter=…,doi:a|b|…` combined with `search.title_and_abstract` in one request and returns exactly the matching works (DoD 11 and the comparison's OpenAlex measure); how many DOIs one request takes in practice. Prepared check, one request, for the researcher's approval: with `NEXUS_WORKBENCH_OPENALEX_IDS=1` set for the console, on Plan of the real review, `POST /api/v1/discovery/workbench/seeds {"version": <the protocol's query>, "openalex": true}` (its dry run states "openalex: 1"); then compare its `found` with the recall check's result for the same seeds. Whether the local word match would have flagged the run's gap is also unverified (the 2026-11-20 Scopus export used the strict query).

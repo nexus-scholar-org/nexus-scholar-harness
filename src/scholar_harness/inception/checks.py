@@ -553,7 +553,9 @@ def inception_checks(
     # M11a Part B: the query workbench's checks (a note and a warning; never blockers).
     if workspaces_root is not None and record.get("session_id"):
         run("QUERY_NOT_COUNTED", lambda: _query_not_counted(record, draft, Path(workspaces_root)))
-        run("SEEDS_CANNOT_TEST", lambda: _seeds_cannot_test(record, draft, Path(workspaces_root), pool))
+        # Review B5: the pool as stored, as the workbench panel reads it.
+        run("SEEDS_CANNOT_TEST", lambda: _seeds_cannot_test(record, draft, Path(workspaces_root),
+                                                             raw_pool if raw_pool is not None else pool))
     run("CONCEPTS_ONE_ONLY", lambda: [
         check("CONCEPTS_ONE_ONLY", "note", action=_field("criteria", "concepts"))
     ] if len(draft.concepts) == 1 else [])

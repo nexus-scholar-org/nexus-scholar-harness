@@ -326,8 +326,8 @@ def seed_check(version: Version, seeds: list[dict[str, Any]], *, candidates: Any
         rows.append(row)
     read = [r for r in rows if r["read"]]
     untested = [c.name for i, c in enumerate(version.concepts) if read and all(r["concepts"][i]["found"] for r in read)]
-    if not seeds:
-        level = None
+    if not read:
+        level = None  # nothing could be read: "not checked", never a warning (review B3)
     elif len(read) < SEEDS_FEW:
         level = "few"
     elif len(untested) == len(version.concepts):

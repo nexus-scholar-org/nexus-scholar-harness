@@ -225,3 +225,9 @@ def test_the_openalex_identifier_request_combines_the_doi_filter_with_the_search
     assert alone["filter"] == "doi:10.1/a" and not any(k.startswith("search") for k in alone)
     with pytest.raises(ValueError):
         provider._doi_params(query, [f"10.1/{i}" for i in range(51)])
+
+
+def test_seeds_none_of_which_can_be_read_are_not_checked():
+    unread = [{"doi": "10.1/x", "title": None, "abstract": None}, {"doi": "10.1/y", "title": "", "abstract": ""}]
+    check = wb.seed_check(_version(*FOUR), unread)
+    assert (check["read"], check["not_read"], check["warning"]) == (0, 2, None)

@@ -270,7 +270,10 @@ async def seeds(
                     for doi in unknown:
                         texts.setdefault(doi, {"title": None, "abstract": None, "looked_up_at": stamp, "not_found": True})
                 _save_texts(log, texts)
-            if check_cost:
+            if check_cost and lookup_status not in (None, "checked"):
+                # Review B1: OpenAlex refused the lookup; nothing more is sent to it in this call.
+                databases = [{"name": "openalex", "status": lookup_status, "found": [], "not_found": []}]
+            elif check_cost:
                 hit = await _by_ids("find", wanted, wb.compile_version(version))
                 sent += hit["requests"]
                 _log_ids(log, state, hit, kind="seed_openalex", query_key=version.query_key, scope=scope)
@@ -334,6 +337,18 @@ def stage_set(
     log: qw.CountLog, *, file_name: str, content: bytes, database: str, string: str | None, exported_on: str | None,
 ) -> dict[str, Any]:
     """Store one export as a comparison set; refused before anything is kept (``WORKBENCH_COMPARISON_*``)."""
+    root = _sets_dir(log)
+    root.mkdir(parents=True, exist_ok=True)
+    # Review B4: the limit check, the number and the rename are one step per folder.
+    with qw._lock(root):
+        return _stage_locked(log, root, file_name=file_name, content=content, database=database, string=string,
+                             exported_on=exported_on)
+
+
+def _stage_locked(
+    log: qw.CountLog, root: Path, *, file_name: str, content: bytes, database: str, string: str | None,
+    exported_on: str | None,
+) -> dict[str, Any]:
     from .corpus_accept import _IMPORTERS, detect_import_format
 
     if len(list_sets(log)) >= MAX_SETS:
@@ -343,8 +358,6 @@ def stage_set(
         raise qw.WorkbenchRefused(422, WORKBENCH_COMPARISON_TOO_LARGE,
                                   f"{file_name} is over {MAX_FILE_BYTES // (1024 * 1024)} MB.")
     fmt = detect_import_format(file_name, content)
-    root = _sets_dir(log)
-    root.mkdir(parents=True, exist_ok=True)
     taken = [int(p.name[4:]) for p in root.iterdir() if p.is_dir() and CMP_ID.fullmatch(p.name)]
     set_id = f"cmp_{max(taken, default=0) + 1:03d}"
     tmp = root / f".{set_id}.{os.getpid()}.tmp"
@@ -549,11 +562,34 @@ def copy_development(source: Path | None, workspace: Path) -> dict[str, Any]:
     existing ones (each keeps its draft id as ``draft_id``).
     """
     copied: dict[str, Any] = {"counts": 0, "seed_checks": 0, "comparison_sets": 0, "files": []}
-    if source is None or not Path(source).is_dir():
+    if source is None or not Path(source).is_dir() or not development_files(source):
         return copied
     source = Path(source)
-    target = Path(workspace) / "audit" / qw.DEVELOPMENT_DIR
-    target.mkdir(parents=True, exist_ok=True)
+    final = Path(workspace) / "audit" / qw.DEVELOPMENT_DIR
+    # Review B2: the result is built in a folder beside it (the existing development
+    # copied first on a replacement) and moved in whole, so a failure half way
+    # leaves the workspace's development as it was and a retry adds nothing twice.
+    target = final.with_name(f".{qw.DEVELOPMENT_DIR}.{os.getpid()}.tmp")
+    shutil.rmtree(target, ignore_errors=True)
+    if final.is_dir():
+        shutil.copytree(final, target)
+    else:
+        target.mkdir(parents=True)
+    try:
+        _merge_development(source, target, copied)
+        old = final.with_name(f".{qw.DEVELOPMENT_DIR}.{os.getpid()}.old")
+        shutil.rmtree(old, ignore_errors=True)
+        if final.is_dir():
+            os.replace(final, old)
+        os.replace(target, final)
+        shutil.rmtree(old, ignore_errors=True)
+    except BaseException:
+        shutil.rmtree(target, ignore_errors=True)
+        raise
+    return copied
+
+
+def _merge_development(source: Path, target: Path, copied: dict[str, Any]) -> None:
     for name, key in ((qw.COUNTS_FILE, "counts"), (SEED_CHECKS_FILE, "seed_checks")):
         path = source / name
         if path.is_file():
@@ -591,4 +627,3 @@ def copy_development(source: Path | None, workspace: Path) -> dict[str, Any]:
             copied["comparison_sets"] += 1
         if copied["comparison_sets"]:
             copied["files"].append(f"audit/{qw.DEVELOPMENT_DIR}/{COMPARISON_DIR}/")
-    return copied

@@ -467,3 +467,90 @@ def test_seeds_cannot_test_names_a_concept_no_seed_lacks(env):
     (warning,) = _check(_checks(client, draft), "SEEDS_CANNOT_TEST")
     assert warning["subject"] == "concept" and warning["params"]["concept"] == "UAV"
     assert warning["message"] == "No known paper lacks 'UAV'; the seeds cannot test it."
+
+
+# --------------------------------------------------------------------------- review of Part B (round 1)
+
+
+def test_a_lookup_that_meets_a_used_up_quota_sends_nothing_more(env, monkeypatch):
+    """Review B1: after OpenAlex says its quota is used up, the identifier check is not sent."""
+    client, root, ws, draft, openalex, _ = env
+    from scholar_search.exceptions import QuotaExhaustedError
+
+    monkeypatch.setenv("NEXUS_WORKBENCH_OPENALEX_IDS", "1")
+
+    async def used_up(dois):
+        openalex.calls.append(("lookup", len(dois)))
+        raise QuotaExhaustedError("openalex", database="OpenAlex", retry_after=3600, resets_at="2026-11-22T00:00:00+00:00")
+
+    openalex.works_by_doi = used_up
+    answer = client.post(_url(draft, "seeds"), json={"version": _version(), "lookup": True, "openalex": True}).json()
+    assert openalex.calls == [("lookup", 4)] and answer["requests"] == 1
+    assert answer["databases"][0]["status"] == "quota_used_up"
+    state = qw.SharedState(root)
+    assert state.paused_until("openalex", qw.utcnow()) == "2026-11-22T00:00:00+00:00"
+    assert state.spent("openalex", qw.utcnow()) == 1
+
+
+def test_a_failed_genesis_copy_leaves_the_development_as_it_was(env, monkeypatch, tmp_path):
+    """Review B2: the copy is built aside and moved in whole."""
+    client, root, ws, draft, openalex, _ = env
+    folder = DraftStore(root).dir / draft / "query_development"
+    folder.mkdir(parents=True)
+    (folder / "counts.jsonl").write_text('{"kind": "full"}\n', encoding="utf-8")
+    target = tmp_path / "ws"
+    (target / "audit" / "query_development").mkdir(parents=True)
+    (target / "audit" / "query_development" / "counts.jsonl").write_text('{"kind": "old"}\n', encoding="utf-8")
+    import shutil as sh
+
+    def broken(*_a, **_k):
+        raise OSError("disk full")
+
+    monkeypatch.setattr(qs, "_merge_development", broken)
+    with pytest.raises(OSError):
+        qs.copy_development(folder, target)
+    assert (target / "audit" / "query_development" / "counts.jsonl").read_text(encoding="utf-8") == '{"kind": "old"}\n'
+    assert [p.name for p in (target / "audit").iterdir()] == ["query_development"]
+    monkeypatch.undo()
+    copied = qs.copy_development(folder, target)
+    assert copied["counts"] == 1
+    lines = (target / "audit" / "query_development" / "counts.jsonl").read_text(encoding="utf-8").splitlines()
+    assert lines == ['{"kind": "old"}', '{"kind": "full"}']
+    _ = sh
+
+
+def test_a_replacement_appends_the_logs_and_numbers_the_sets_after_the_existing_ones(env, tmp_path):
+    """Review B2: decision item 9 on a workspace that already holds a development."""
+    client, root, ws, draft, openalex, _ = env
+    _stage(client, draft)
+    folder = DraftStore(root).dir / draft / "query_development"
+    target = tmp_path / "ws"
+    first = qs.copy_development(folder, target)
+    second = qs.copy_development(folder, target)
+    assert first["comparison_sets"] == second["comparison_sets"] == 1
+    sets = sorted(p.name for p in (target / "audit" / "query_development" / "comparison").iterdir())
+    assert sets == ["cmp_001", "cmp_002"]
+    data = json.loads((target / "audit" / "query_development" / "comparison" / "cmp_002" / "set.json").read_text(encoding="utf-8"))
+    assert (data["id"], data["draft_id"]) == ("cmp_002", "cmp_001")
+    log = (target / "audit" / "query_development" / "counts.jsonl").read_text(encoding="utf-8").splitlines()
+    assert len(log) == 2  # the staging line, once per copy
+
+
+def test_seeds_none_of_which_can_be_read_raise_no_warning(env):
+    """Review B3: "not checked", never "too few"."""
+    client, root, ws, draft, openalex, _ = env
+    answer = client.post(_url(draft, "seeds"), json={"version": _version()}).json()
+    assert (answer["read"], answer["not_read"], answer["warning"]) == (0, 4, None)
+
+
+def test_an_openalex_call_that_would_send_nothing_is_not_refused_for_the_contact_email(env, monkeypatch):
+    """Review B7: the switch is off, so nothing is sent and no setting is needed."""
+    client, root, ws, draft, openalex, _ = env
+    monkeypatch.setattr(settings, "mailto", None)
+    _stage(client, draft)
+    report = client.post(_url(draft, "comparison/cmp_001/report"), json={"version": _version(), "measure": "openalex"})
+    assert report.status_code == 200 and report.json()["status"] == "switch_off"
+    seeds = client.post(_url(draft, "seeds"), json={"version": _version(), "openalex": True})
+    assert seeds.status_code == 200 and seeds.json()["databases"][0]["status"] == "switch_off"
+    refused = client.post(_url(draft, "seeds"), json={"version": _version(), "lookup": True})
+    assert refused.status_code == 409 and _code(refused) == "MAILTO_NOT_SET"

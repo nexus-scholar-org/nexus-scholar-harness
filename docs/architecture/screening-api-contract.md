@@ -247,7 +247,7 @@ The UI reads proposals only through `GET /records/{study_id}/proposal`. The fiel
 | `WORKBENCH_COMPARISON_TOO_LARGE` | query workbench | HTTP 422: the comparison export holds more than 5,000 records (or is over 50 MB); nothing was kept (M11a) |
 | `WORKBENCH_COMPARISON_FULL` | query workbench | HTTP 409: five comparison sets are already staged; nothing was kept (M11a) |
 | `WORKBENCH_COMPARISON_NOT_FOUND` | query workbench | HTTP 404: no comparison set with that id beside this draft or workspace (M11a) |
-| `WORKBENCH_COMPARISON_MEASURE` | query workbench | HTTP 409/422: the report's measure cannot be used here: `harvest` with no run or accepted corpus (409), or an unknown measure (422) (M11a) |
+| `WORKBENCH_COMPARISON_MEASURE` | query workbench | HTTP 409: the report's measure `harvest` has no run or accepted corpus to compare with (at Inception, always); an unknown measure is `BODY_INVALID` (M11a) |
 | `PROVIDER_UNKNOWN` | discovery runs, recall, estimate | HTTP 422: a database name the engine does not know; `details.known` lists them (M3b-api) |
 | `DISCOVERY_FAILED` | discovery jobs | the job stopped on an unexpected error; `message` names it (M3b-api) |
 | `PROTOCOL_CHANGED_SINCE_SNAPSHOT` | discovery run job `error` | the protocol no longer matches the accepted snapshot; resume refused (E5, M3b-api; also the reason's prefix) |

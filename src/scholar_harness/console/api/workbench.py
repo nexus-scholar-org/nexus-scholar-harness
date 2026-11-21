@@ -320,7 +320,15 @@ async def _seeds(request: Request, place: _Place, body: SeedsBody, known: list[d
     version = _version(body.version)
     dois = list(body.seeds) if body.seeds is not None else saved
     if not body.dry_run and (body.lookup or body.openalex):
-        _guard_send(request, place)
+        # Review B7: refuse for the contact email or a running job only when a request will be sent.
+        try:
+            planned = await qs.seeds(version, dois, log=place.log, state=_state(request), known=known,
+                                     lookup=body.lookup, openalex=body.openalex,
+                                     openalex_key=bool(settings.openalex_key), dry_run=True, scope=place.scope)
+        except qw.WorkbenchRefused as exc:
+            raise _refusal(exc.status, exc.code, exc.message, exc.details) from exc
+        if planned["cost"]["lookup"] or planned["cost"]["openalex"]:
+            _guard_send(request, place)
     try:
         answer = await qs.seeds(version, dois, log=place.log, state=_state(request), known=known, lookup=body.lookup,
                                 openalex=body.openalex, openalex_key=bool(settings.openalex_key),
@@ -353,7 +361,7 @@ def _remove(place: _Place, set_id: str) -> dict[str, Any]:
 async def _report(request: Request, place: _Place, set_id: str, body: ReportBody) -> dict[str, Any]:
     version = _version(body.version)
     harvest = qs.harvest_records(place.workspace, body.run) if place.workspace is not None else None
-    if body.measure == "openalex" and not body.dry_run:
+    if body.measure == "openalex" and not body.dry_run and qs.openalex_ids_enabled():
         _guard_send(request, place)
     try:
         return await qs.report(place.log, set_id, version, measure=body.measure, page=body.page, state=_state(request),
