@@ -10,7 +10,6 @@ from __future__ import annotations
 import csv
 import hashlib
 import io
-import json
 import logging
 import uuid
 from collections.abc import Iterable
@@ -45,23 +44,22 @@ def screener_id(ws: Path) -> str:
 
 
 def reason_options(ws: Path) -> list[dict[str, Any]]:
-    """The full-text exclusion reasons: the protocol's ``EXC-n``, ``FAILS-INC-n``, then Other (screening's codes)."""
-    try:
-        protocol = json.loads((Path(ws) / "protocol.json").read_text(encoding="utf-8"))
-    except (OSError, ValueError):
-        protocol = {}
-    criteria = protocol.get("screening_criteria") or {}
+    """The full-text exclusion reasons: ``EXC-n``, ``FAILS-INC-n``, then Other (screening's codes).
 
-    def _label(item: dict[str, Any]) -> str:
-        return str(item.get("description") or item.get("text") or item.get("criterion") or item.get("id"))
+    Read through the one reader of the criteria in force (M11b part A, DoD 2):
+    a criterion revised before the first approval gives the wording in force,
+    and a retired one is not offered.
+    """
+    from scholar_harness.screening import criteria as criteria_reader
 
+    in_force = criteria_reader.criteria_in_force(ws)
     options = [
-        {"code": str(c["id"]), "label": _label(c), "kind": "exclusion", "category": c.get("reason_category")}
-        for c in criteria.get("exclusion") or [] if isinstance(c, dict) and c.get("id")
+        {"code": c.id, "label": c.text or c.id, "kind": "exclusion", "category": c.reason_category}
+        for c in in_force.exclusion
     ]
     options += [
-        {"code": f"FAILS-{c['id']}", "label": _label(c), "kind": "fails_inclusion", "category": None}
-        for c in criteria.get("inclusion") or [] if isinstance(c, dict) and c.get("id")
+        {"code": f"FAILS-{c.id}", "label": c.text or c.id, "kind": "fails_inclusion", "category": None}
+        for c in in_force.inclusion
     ]
     options.append({"code": ev.OTHER, "label": "Other", "kind": "other", "category": None})
     return options
