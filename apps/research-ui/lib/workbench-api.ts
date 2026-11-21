@@ -228,3 +228,32 @@ export function removeSet(origin: string, place: Place, id: string) {
 export function postReport(origin: string, place: Place, id: string, body: { version: Version; measure: string; page: number; run?: string; dry_run: boolean }, signal?: AbortSignal) {
   return postJson<ReportAnswer>(`${workbenchBase(place)}/comparison/${encodeURIComponent(id)}/report`, origin, body, signal);
 }
+
+/** M11a part D: what an amendment from Plan changes (engine-written, `dry_run`) and what it recorded. */
+export interface AmendAnswer {
+  shape: string;
+  query_key: string;
+  dry_run: boolean;
+  previous_fingerprint: string;
+  protocol_fingerprint: string;
+  changed: string[];
+  /** Per database, the newest count of the protocol's search and of the amended one, or "not counted". */
+  counts: Record<string, { before: number | string; after: number | string }>;
+  consequences: {
+    runs: { run: string; records: number | null; status: string | null }[];
+    exports: { id: string | null; database: string; records: number | null; staged_on: string | null; string: string | null }[];
+    recall_checks: { check: string; checked_at: string | null }[];
+    estimate: boolean;
+    proposals: number;
+  };
+  backup?: string;
+}
+
+/** `POST /api/v1/discovery/workbench/amend`: the researcher's amendment of the search (the M10c 9(a) path). */
+export function postAmend(
+  origin: string,
+  body: { query_key: string; concepts: VersionConcept[]; reason: string; protocol_fingerprint: string; dry_run: boolean },
+  signal?: AbortSignal,
+) {
+  return postJson<AmendAnswer>("/api/v1/discovery/workbench/amend", origin, body, signal);
+}

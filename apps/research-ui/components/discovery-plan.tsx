@@ -22,6 +22,7 @@ import {
   type Refusal,
 } from "@/components/discovery-frame";
 import { KNOWN_PROVIDERS, getPlan, getRuns, type Plan } from "@/lib/discovery-api";
+import { PlanChangeSearch } from "@/components/plan-change-search";
 import { getCorpus } from "@/lib/screening-v1";
 import { discoveryT, providerName, type DiscoveryCopyKey } from "@/lib/discovery-copy";
 
@@ -397,6 +398,18 @@ export function DiscoveryPlan({ locale }: Readonly<{ locale: Locale }>) {
                 {t("plan.changed")}
               </p>
             ) : null}
+            {/* M11a part D (10-plan-amend-search): "Change the search", a closed section; the one write is the amendment. */}
+            {plan.search ? (
+              <PlanChangeSearch
+                locale={locale}
+                origin={origin}
+                search={plan.search}
+                fingerprint={plan.protocol_fingerprint}
+                providers={choice}
+                accepted={accepted}
+                onRecorded={() => void load(current())}
+              />
+            ) : null}
             <section aria-labelledby="plan-strings" aria-busy={pending || undefined} className="rounded-lg border border-rule bg-leaf p-5" data-plan-strings>
               <h2 id="plan-strings" className="font-semibold text-ink">
                 {t("plan.strings.title")}
@@ -590,7 +603,7 @@ export function DiscoveryPlan({ locale }: Readonly<{ locale: Locale }>) {
                 <a className={LINK} href={inceptionHref(locale, origin)} data-amend>
                   {t("amend.link")}
                 </a>
-                <Hint locale={locale} label={t("amend.link")} text={t("amend.help")} textKey="amend.help" />
+                {/* M11a part D: on Plan the query is changed by "Change the search" (its own hint); this link is for the rest. */}
               </p>
               <p className="mt-3">
                 <a className={PRIMARY_LINK} href={discoveryHref(locale, "recall", origin)} data-variant="primary" data-next>

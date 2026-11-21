@@ -865,7 +865,8 @@ function CountsSection({
           {t("workbench.empty")}
         </p>
       ) : (
-        <div className={stale ? "opacity-80" : ""}>
+        <div data-stale={stale ? "true" : undefined}>
+          {/* No dimming: at opacity-80 the muted and "unclear" words fell below 4.5:1 in light (axe, M11a part D). The badge and the row words say the counts are for the previous version. */}
           {stale ? <DecisionBadge role="unclear">{t("workbench.badge.previous")}</DecisionBadge> : null}
           {concepts.length === 1 ? (
             <p className="mt-1 text-sm text-ink-muted" data-one-concept>

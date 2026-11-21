@@ -196,7 +196,7 @@ describe("guidance.screens", () => {
     { name: "discovery entry", hints: ["overview.lede", "overview.plan.line"], gone: ["Each line below is read from the engine."], primary: [/^Continue at /] },
     {
       name: "01 Plan",
-      hints: ["plan.picker.orderHelp", "plan.imports.hint", "plan.limits.mailto.help", "amend.help"],
+      hints: ["plan.picker.orderHelp", "plan.imports.hint", "plan.limits.mailto.help", "plan.search.help"],
       gone: ["Each string is sent exactly as written", "An export cannot be added after a harvest until combined corpora are built."],
       primary: ["Continue to Recall"],
     },

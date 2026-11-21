@@ -69,10 +69,10 @@ Each item is checked by a test named in the build record, unless it says "live".
 - [x] DoD 19. Two fixed checks, never blockers: `QUERY_NOT_COUNTED` (note) and `SEEDS_CANNOT_TEST` (warning), in the M10b catalogue, shown at the field and at Review.
 
 **Amendment from Plan (part D)**
-- [ ] DoD 20. On Plan, the workbench opens on the protocol's query. "Record this amendment" requires a one-sentence reason and writes through the M10c item 9(a) path (intent search fields, protocol recompiled with the genesis compiler, backup under `audit/amended/`, `PROTOCOL_AMENDED`), extended to replace the whole concept list; the journal row carries the reason, the source `researcher` and the counts before and after.
-- [ ] DoD 21. Before the amendment is recorded, the screen lists what it changes: each earlier search run (it can no longer become the corpus), staged exports (left as they are, with their stated strings), recall checks and estimates (no longer apply), open workspace proposals (become stale).
-- [ ] DoD 22. After a corpus is accepted the workbench still opens, counts and compares; it records nothing and says why.
-- [ ] DoD 23. Every new record and answer carries `query_key` (today always `main`).
+- [x] DoD 20. On Plan, the workbench opens on the protocol's query. "Record this amendment" requires a one-sentence reason and writes through the M10c item 9(a) path (intent search fields, protocol recompiled with the genesis compiler, backup under `audit/amended/`, `PROTOCOL_AMENDED`), extended to replace the whole concept list; the journal row carries the reason, the source `researcher` and the counts before and after.
+- [x] DoD 21. Before the amendment is recorded, the screen lists what it changes: each earlier search run (it can no longer become the corpus), staged exports (left as they are, with their stated strings), recall checks and estimates (no longer apply), open workspace proposals (become stale).
+- [x] DoD 22. After a corpus is accepted the workbench still opens, counts and compares; it records nothing and says why.
+- [x] DoD 23. Every new record and answer carries `query_key` (today always `main`).
 
 **Closure**
 - [ ] DoD 24. `generate_contract_baseline.py --check` current before and after each part.
@@ -504,3 +504,26 @@ Evidence (Part C):
 Python did not change after `2cef66f7` (`git diff 2cef66f7 f72edec8` touches the workbench component, its tests and this record). The six screenshots the Playwright runs regenerate are restored after each run.
 
 **Part C: READY FOR PR** (not pushed). Branch `dev/m11a/part-c-screen`, to be merged after Parts A and B.
+
+### Part D: "Change the search" on Plan
+
+Branch `dev/m11a/part-d-plan-amend`, **from Part C's branch** (`dev/m11a/part-c-screen` at `11577013`; merge A, B, C, then D) · Lane **RELEASE** (a protocol write after genesis through a new route, two refusal codes, an additive field on the plan read) · Decisions: `docs/decisions.md` "2026-11-21 — M11a Part D" items 1 to 10 (PROPOSED).
+
+What was built:
+- Engine: `workspace_proposals.search_view` and `amend_search` (the 9(a) path extended to replace the whole concept list: the same lock, compile, `outside_search` guard, backup under `audit/amended/<stamp>/`, atomic writes, `PROTOCOL_AMENDED` with `source: "researcher"`, the reason, `query_key`, both fingerprints, the changed paths, the backup and the counts before and after); `GET /discovery/plan` gains `search`; `POST /api/v1/discovery/workbench/amend` with `dry_run` (the consequences: runs still on the protocol's search, staged exports with their stated strings, recall checks of the current fingerprint, the estimate, open proposals); a running job refuses the real call; `WORKBENCH_REASON_INVALID` and `WORKBENCH_PROTOCOL_CHANGED` registered (`refusals.py`, `screening-api-contract.md` §7); the route in both allow lists, not a phone route.
+- Screen: `apps/research-ui/components/plan-change-search.tsx` on Plan above the executed strings: closed until "Change the search"; "In the protocol" read only; the Part C workbench on the protocol's query (nothing counted on open); "Record this amendment" waits for a change, then the confirmation: the reason (one sentence, required), what the amendment changes in the engine's words, the counts before and after, one brand button; refusals in words; the new fingerprint shown and Plan read again after the write; after the accept the workbench counts and compares, records nothing, says why and links to a new workspace from the protocol.
+- Copy: 31 `plan.search.*` keys in en, fr and ar; guidance rows D-P23 to D-P30 (7 STAYS, 1 HINT); Plan's `plan.amend.help` hint removed, so Plan stays at 7 hints.
+- Found on the way and repaired (decision D items 9 and 10): Part C's dimming of a previous version's counts failed contrast in light (one line in `query-workbench.tsx`); the Plan card and the workbench were two regions named "Search"; in Arabic the staged date was laid out right to left and the counts summary used a Latin comma; the export line did not print the string the researcher stated.
+
+| DoD | Test | State |
+| :-- | :-- | :-- |
+| 20 | `tests/console/test_workbench_amend_api.py` "recording replaces the concept list through the 9a path" (intent, protocol, backup of three files, the journal row's fields), "the reason is one sentence and required", "the protocol's own search is nothing to record", "a protocol changed since the page read it is refused", "a running job refuses the amendment"; `apps/research-ui/tests/discovery-plan-amend.test.tsx` "Record this amendment waits for a change …" (the body sent: concepts, reason, fingerprint, `dry_run`, `query_key`) and "refuses with the engine's words …"; `tests-browser/plan-amend.spec.ts` "change the search on Plan …" | done |
+| 21 | "a dry run lists what it changes and writes nothing", "an earlier run is search-changed after the amendment and a staged export is untouched" (engine); "names each earlier run, each staged export and the recall check …", "prints the string the researcher stated for an export …" (screen, en and ar) | done |
+| 22 | "after the corpus is accepted nothing is amended" (engine, `CORPUS_ALREADY_ACCEPTED`); "after the corpus is accepted: the workbench still opens and counts, Record is absent …" (screen); `plan-amend.spec.ts` "after the corpus is accepted …" | done |
+| 23 | the amend answer and the journal row carry `query_key: "main"` ("a dry run …", "recording …"); the plan read's `search.query_key` ("Plan reads the protocol's concepts …") | done |
+
+Screenshots looked at (`plan-amend.spec.ts` with `M11A_SHOTS`; the open confirmation after a count and a merge, a Scopus export staged): `C:\Users\mouadh\AppData\Local\Claude-Data\claude_pzs8sxrjxfjjc\side-session-notes\local_51fc9825-32a2-4ed5-a19b-92c9aea969a5\m11a-screenshots\plan-amend-en-chromium.png`, `plan-amend-en-chromium-dark.png`, `plan-amend-ar-chromium.png`, `plan-amend-ar-chromium-dark.png`. What the look found is the last bullet above.
+
+Not verified: an amendment on a real review's protocol (every test is on a genesis made by the M10c fixtures or on the fake); the wording (decision 2026-11-21 item 4).
+
+Follow-ups, not repaired here: "1 concepts, 4 terms" (Part C's `workbench.written` and `workbench.versions.*` have no singular form; the workbench catalog has no plural table); the spec's question 7 links (decision D item 7).

@@ -520,7 +520,19 @@ def plan(request: Request, providers: str | None = None) -> dict[str, Any]:
         "imports_hint": ["scopus", "wos"],
         # M4d: the recall seeds inception kept from its pool; Recall pre-fills them as "anchor".
         "golden_seeds": _golden_seeds(proto.path),
+        # M11a part D: the protocol's search as the workbench edits it ("Change the search").
+        "search": _search_view(proto.path),
     }
+
+
+def _search_view(path: Path) -> dict[str, Any]:
+    from ...workspace_proposals import search_view
+
+    try:
+        protocol = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        protocol = {}
+    return search_view({}, protocol if isinstance(protocol, dict) else {})
 
 
 def _golden_seeds(path: Path) -> list[str]:

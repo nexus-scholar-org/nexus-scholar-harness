@@ -10,10 +10,28 @@ history to read if you need the original reasoning (`git log --follow -- <path>`
 
 | Entry | Item | What is open |
 | :-- | :-- | :-- |
+| 2026-11-21 — M11a Part D: "Change the search" on Plan | 1 to 10 | Proposed with the build; the researcher's answer is pending. |
 | 2026-11-21 — M11a Part C: the workbench screen | 1 to 10 | Proposed with the build; the researcher's answer is pending. |
 | 2026-11-21 — M11a Part B: known papers and comparison sets | 1 to 10 | Proposed with the build; the researcher's answer is pending. |
 | 2026-11-21 — M11a Part A: the workbench's counts | 1 to 13 | Proposed with the build; the researcher's answer is pending. |
 | 2026-11-19 — M9a: what the measurement says about the ladder gates | 2 | The minimum share of the researcher's excludes an agent must take before a rung unlocks: the principle is accepted; the researcher decided on 2026-11-20 to set the number when M9b is built. |
+
+## 2026-11-21 — M11a Part D: "Change the search" on Plan, recorded as the researcher's amendment (items 1 to 10 PROPOSED)
+
+Record: `docs/roadmap/milestones/M11a-query-workbench.md`, "Part D". Branch `dev/m11a/part-d-plan-amend`, built on Part C's branch. What decision 2026-11-20 item 1 and the FINAL Plan spec (`10-plan-amend-search.md`, questions closed 2026-11-21) decided is built as decided: the researcher's amendment replaces the whole concept list with a required reason through the 9(a) code (compile with the genesis compiler, the `outside_search` guard, the backup under `audit/amended/<stamp>/`, `PROTOCOL_AMENDED`), a harvest made before it can no longer become the corpus, and after the accept the workbench records nothing. No Contract v1 model, schema, identity or golden fixture changes; the protocol's fingerprint moves as with every 9(a) amendment.
+
+1. **The read: `GET /discovery/plan` gains `search`** (`query_key`, the concept list as the protocol holds it, years, languages, `golden_seeds`), read from `protocol.json`. The existing `concepts` field (a number since H-run-small-fixes Part B) is kept as it is.
+2. **The write is a new function beside the 9(a) path, `workspace_proposals.amend_search`**, not a new operation in `FIELD_OPS`: an assistant's proposals keep "add" only for concepts (M10c item 16 as amended by decision 2026-11-20 item 1 covers the researcher's route only). It takes the same lock, the same compile and guard, and the same backup and atomic writes. The route is `POST /api/v1/discovery/workbench/amend` (`dry_run` reads what it would change and writes nothing); a running discovery job refuses the real call, not the dry one.
+3. **Two new refusal codes**: `WORKBENCH_REASON_INVALID` (422: no reason, or over 2,000 characters; the spec's question 4) and `WORKBENCH_PROTOCOL_CHANGED` (409: the fingerprint the page read is not the current one; question 6). A version equal to the protocol's own is `WORKBENCH_VERSION_INVALID`.
+4. **The journal row `PROTOCOL_AMENDED` carries** `source: "researcher"`, the reason, `query_key`, the old and new fingerprints, the changed paths, the backup folder, and the counts before and after per database from the workspace's count log (newest count of each exact string, of any age; `"not counted"` otherwise, decision 2026-11-21 item 3).
+5. **The consequences are engine-written** (the amend route's `dry_run`): each run whose search is still the protocol's (id, records fetched), each staged export with the string the researcher stated (`query` in `sources.json`, M3f), each recall check made for the current fingerprint, the estimate, and the number of open assistant proposals. The browser prints them and decides nothing.
+6. **"Change the search" opens a closed section on Plan, in the main column above the executed strings** (decision 2026-11-21 item 3). Known papers are read only there; there is no pool on Plan (the spec's question 8). Plan's `plan.amend.help` hint is removed (it said a different query is recorded by inception, which is no longer true); `plan.search.help` takes its place, so Plan keeps 7 hints.
+7. **The neighbouring links are not repointed in this part** (the spec's question 7 proposes repointing `estimate.rec.narrow.go`, `RECALL_SEED_MISSED` and `HANDOFF_SEARCH_CHANGED` to "Change the search"): those keys belong to three other screens' copy and guidance rows; left as a follow-up so this part stays inside Plan.
+8. **The two fixed checks are not served on Plan** (the spec's question 9, as proposed).
+9. **The Plan card is a plain container, not a second region named "Search"**, and **the workbench's counts of a previous version are no longer dimmed**. Both were found by this part's axe run on the open confirmation: two landmarks had the same name, and Part C's `opacity-80` on a previous version's counts put the muted and "unclear" words at 3.8:1 to 4.2:1 in the light theme. The "Previous version" badge and each row's "for the previous version. Count again." already say it. This changes Part C's component (`query-workbench.tsx`, one line); Part C's own browser test checked only a freshly counted table.
+10. **In the consequences, the staged date, the recall check's time and the researcher's stated string are isolated left to right** (`I18N.md`: dates and codes in `<bdi dir="ltr">`; in Arabic the digits of 2026-11-01 were laid out as 01-11-2026), the sentences follow the page's direction, and the counts summary joins databases with the language's separator (`list.sep`, Arabic "، ").
+
+**Lane RELEASE** (`test_gate_policy.md`): a protocol write after genesis through a new public route, two new refusal codes, an additive field on `GET /discovery/plan`.
 
 ## 2026-11-21 — M11a Part C: the query workbench on Inception's step 5 (items 1 to 10 PROPOSED)
 
