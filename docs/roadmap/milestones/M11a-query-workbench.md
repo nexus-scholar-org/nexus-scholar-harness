@@ -453,3 +453,21 @@ Screenshots looked at (`workbench.spec.ts` with `M11A_SHOTS`), the filled region
 
 Not verified: the wording (decision 2026-11-21 item 4: it waits for the researcher's read); a real engine behind the screen (every UI test runs against the fake; the engine side is parts A and B's tests); the screen with a real review's 24 synonyms.
 
+Review round 1 (`milestone-reviewer`, on `7f920872`): **CHANGES**, 1 P1, 4 P2, 6 P3, all taken:
+
+| # | Finding | Repair | Test (fails before: the reviewer's probe `rvC/wb.probe.test.ts` for C1 to C3) |
+| :-- | :-- | :-- | :-- |
+| P1-C1 | "Use it" in the leave question saved twice; the second save carried the earlier time and was refused (`DRAFT_CONFLICT`), and nothing moved on | the version's own save stores the page; "Use it" then goes on without a second save | `"'Use it' in the leave question saves once …"` |
+| P2-C2 | Merge after removing a selected concept crashed the region | an edit that changes the number of concepts clears the selection; Merge checks its indices | `"a removal clears the merge selection …"` |
+| P2-C3 | "Count anyway" on counts of a previous version replaced the whole answer with Crossref's | not offered on a previous version | `"does not offer Count anyway on counts of a previous version"` |
+| P2-C4 | The lookup's request count was worked out in the browser (and could promise requests it would not send) | the panel's dry call asks the lookup and the OpenAlex check; the buttons print the engine's `cost` | the seeds tests |
+| P2-C5 | The cost line could be for the engine's default databases while the page counted Explore's | the dry call also follows the databases | (code path) |
+| P3-C6 | Offline disabled only Count and Use, and could not be left | every engine action disabled; the last answer "As of {time} UTC"; "Check again" | (code path) |
+| P3-C7 | Three printed figures were not engine fields (45 s, "1 request", 0 in the announcement) | `timeout_seconds` on each row; the removed read's cost from its dry call; no number when no cost was read | the row-state tests |
+| P3-C8 | A known paper's term was put in the first lacking concept | the researcher chooses the concept, as for comparison terms | (code path) |
+| P3-C9 | Split's accessible name did not hold its visible text; the spec's focus moves were missing | name "Split", the sentence as its description; focus after Merge, Split, removing a term, Apply and Reject | `"concept edits …"` (name and description) |
+| P3-C10 | "Use it" was a second brand button | secondary | `"'Use it' …"` (at most one primary) |
+| P3-C11 | Row state and rejected pool terms followed the index | rows keyed by position and name; rejections by the concept's name | (code path) |
+
+Round-1 follow-ups, not repaired: the old card's per-term DOI lists and the concept-level "in n of m" line are not in the workbench (the chips carry each term's count); the browser's `languages ?? ["en"]` default; a term made only of quotes becomes an empty phrase in the Scopus string.
+

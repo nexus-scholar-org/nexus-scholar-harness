@@ -155,7 +155,10 @@ describe("inception.workbench", () => {
     expect(document.querySelectorAll("[data-op='and']")).toHaveLength(3);
     expect(document.querySelector("[data-chips='0'] [data-op='or']")).not.toBeNull();
     expect(screen.queryByText(/\bNOT\b/)).toBeNull();
-    fireEvent.click(screen.getByRole("button", { name: "Make 'unmanned aerial vehicle' a concept of its own" }));
+    const split = document.querySelector("[data-split='unmanned aerial vehicle']") as HTMLElement;
+    expect(split).toHaveAccessibleName("Split");
+    expect(split).toHaveAccessibleDescription("Make 'unmanned aerial vehicle' a concept of its own");
+    fireEvent.click(split);
     await waitFor(() => expect(screen.getByLabelText("Concept 5")).toHaveValue("unmanned aerial vehicle"));
     expect(screen.getByText("Previous version")).toBeInTheDocument();
     expect(within(row("openalex")).getByText("166 · for the previous version. Count again.")).toBeInTheDocument();
@@ -319,6 +322,35 @@ describe("inception.workbench", () => {
     await waitFor(() => expect(engine.calls.filter((c) => c.method === "PUT")).toHaveLength(1));
     expect((engine.calls.find((c) => c.method === "PUT")!.body as { draft: { concepts: unknown } }).draft.concepts).toEqual(FOUR);
     await waitFor(() => expect(assign).toHaveBeenCalled());
+  });
+
+  it("'Use it' in the leave question saves once, with the version, and goes on (review C1)", async () => {
+    const { engine, assign } = open();
+    fireEvent.click((await screen.findAllByRole("button", { name: "Remove concept" }))[0]);
+    fireEvent.click(screen.getByRole("button", { name: "Continue to review" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Use it" }));
+    await waitFor(() => expect(assign).toHaveBeenCalledWith(`/en/inception/review/?draft=${SESSION}`));
+    const puts = engine.calls.filter((c) => c.method === "PUT");
+    expect(puts).toHaveLength(1);
+    expect((puts[0].body as { draft: { concepts: unknown } }).draft.concepts).toEqual(FOUR.slice(1));
+    expect(document.querySelectorAll("button[data-variant='primary']").length).toBeLessThanOrEqual(1);
+  });
+
+  it("a removal clears the merge selection, so Merge cannot reach a concept that is gone (review C2)", async () => {
+    open();
+    fireEvent.click(await screen.findByRole("checkbox", { name: "Select UAV to merge" }));
+    fireEvent.click(screen.getByRole("checkbox", { name: "Select segmentation to merge" }));
+    fireEvent.click(within(document.querySelector("[data-concept='3']") as HTMLElement).getByRole("button", { name: "Remove concept" }));
+    expect(screen.getByRole("button", { name: "Merge into one" })).toBeDisabled();
+    expect(document.querySelectorAll("[data-concept-row]")).toHaveLength(3);
+  });
+
+  it("does not offer Count anyway on counts of a previous version (review C3)", async () => {
+    open();
+    await counted();
+    expect(within(row("crossref")).getByRole("button", { name: "Count anyway" })).toBeInTheDocument();
+    fireEvent.click(screen.getAllByRole("button", { name: "Remove concept" })[3]);
+    await waitFor(() => expect(within(row("crossref")).queryByRole("button", { name: "Count anyway" })).toBeNull());
   });
 
   it("maps a running job and a missing contact email to their words, and keeps the chips usable", async () => {

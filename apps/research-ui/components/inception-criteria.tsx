@@ -470,10 +470,14 @@ export function InceptionCriteria({ locale }: Readonly<{ locale: Locale }>) {
             </p>
             <div className="mt-2 flex flex-wrap gap-2">
               <Button
-                variant="primary"
                 onClick={async () => {
+                  // Review C1: the version's own save already stored the page (concepts, seeds and every other answer);
+                  // a second save from this render would carry the earlier time and be refused.
                   const target = leaving;
-                  if (await useVersion.current()) void persist(target, true);
+                  if (await useVersion.current()) {
+                    setLeaving(null);
+                    window.location.assign(inceptionHref(locale, target, target ? draftId : "", origin));
+                  }
                 }}
                 data-leave-use
               >

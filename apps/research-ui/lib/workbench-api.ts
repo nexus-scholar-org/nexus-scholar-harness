@@ -66,6 +66,8 @@ export interface DatabaseRow {
   http_status: number | null;
   resets_at: string | null;
   resets_in: Span | null;
+  /** The longest one count may take, in seconds (the engine's `COUNT_TIMEOUT`). */
+  timeout_seconds?: number;
   cost: number;
   requests: number;
   last: { total: number; counted_at: string } | null;

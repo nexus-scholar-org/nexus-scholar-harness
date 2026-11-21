@@ -66,7 +66,7 @@ export function workbenchEngine(options: WorkbenchOptions = {}, now: () => strin
     const joined = concepts.length >= 2;
     const at = now();
     const rows = names.map((db) => {
-      const base = { name: db, any_words: false, upper_bound: false, error: null, error_code: null, http_status: null, resets_at: null, resets_in: null, last: null, stopped: null };
+      const base = { name: db, any_words: false, upper_bound: false, error: null, error_code: null, http_status: null, resets_at: null, resets_in: null, last: null, stopped: null, timeout_seconds: 45 };
       if (joined && db === "crossref" && !body.crossref_anyway) return { ...base, status: "not_comparable", string: null, total: null, counted_at: null, from_cache: false, cost: 0, requests: 0, drops: [] };
       const variants: { kind: string; index: number | null; concept: string | null; term: string | null; concepts: Concept[] }[] = [{ kind: "full", index: null, concept: null, term: null, concepts }];
       if (mode === "counts" && joined && db !== "crossref") concepts.forEach((c, i) => variants.push({ kind: "drop", index: i, concept: c.concept, term: null, concepts: concepts.filter((_, j) => j !== i) }));
@@ -164,7 +164,7 @@ export function workbenchEngine(options: WorkbenchOptions = {}, now: () => strin
     return {
       status: 200,
       body: {
-        shape: "workbench.seeds-v1", query_key: "main", dry_run: !!body.dry_run, version, cost: { lookup: body.lookup ? 1 : 0, openalex: status === "to_check" || status === "checked" ? 1 : 0 },
+        shape: "workbench.seeds-v1", query_key: "main", dry_run: !!body.dry_run, version, cost: { lookup: body.lookup && dois.some((d) => !titles[d]) ? 1 : 0, openalex: status === "to_check" || status === "checked" ? 1 : 0 },
         requests: body.dry_run ? 0 : (body.lookup ? 1 : 0) + (status === "checked" ? 1 : 0), seeds: rows, total: rows.length, read: read.length, not_read: rows.length - read.length,
         use_every_concept: read.filter((r) => !r.missed).length, missed: read.filter((r) => r.missed).length,
         warning: level ? { level, untested } : null,

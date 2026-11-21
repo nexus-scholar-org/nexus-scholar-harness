@@ -489,6 +489,7 @@ def _row_public(row: Row, now: datetime, mode: str, year_window: bool) -> dict[s
         "requests": sum(c.sent for c in row.cells),
         "last": {"total": row.last["total"], "counted_at": row.last["counted_at"]} if row.last else None,
         "stopped": None,
+        "timeout_seconds": est.COUNT_TIMEOUT,
     }
     # Review P3: a database that answered the full query and then failed is stopped; the row says so.
     if row.status is None and full is not None and full.status in NUMBERED:
