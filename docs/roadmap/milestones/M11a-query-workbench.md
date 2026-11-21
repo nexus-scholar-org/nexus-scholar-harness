@@ -63,10 +63,10 @@ Each item is checked by a test named in the build record, unless it says "live".
 - [x] DoD 15. At genesis the draft's query development (count log rows of the versions tried, the seed checks, the comparison sets) is copied into the workspace under `audit/query_development/`, listed in the preview's `files`.
 
 **Inception screen (part C)**
-- [ ] DoD 16. The workbench is on Inception's step 5 as the concepts block and an evidence column, laid out as direction A's blocks (D10, D13); every state in the screen spec has its words in en, fr and ar; axe passes in light and dark.
-- [ ] DoD 17. Concept edits in the workbench: add, rename, remove a concept; add or remove a synonym; merge two concepts into one (OR); split a term out into a new concept. Operators stay OR within a concept and AND between concepts.
-- [ ] DoD 18. "Use this version" writes the draft's `concepts` through the normal save; counts shown for an earlier version say so until counted again.
-- [ ] DoD 19. Two fixed checks, never blockers: `QUERY_NOT_COUNTED` (note) and `SEEDS_CANNOT_TEST` (warning), in the M10b catalogue, shown at the field and at Review.
+- [x] DoD 16. The workbench is on Inception's step 5 as the concepts block and an evidence column, laid out as direction A's blocks (D10, D13); every state in the screen spec has its words in en, fr and ar; axe passes in light and dark.
+- [x] DoD 17. Concept edits in the workbench: add, rename, remove a concept; add or remove a synonym; merge two concepts into one (OR); split a term out into a new concept. Operators stay OR within a concept and AND between concepts.
+- [x] DoD 18. "Use this version" writes the draft's `concepts` through the normal save; counts shown for an earlier version say so until counted again.
+- [x] DoD 19. Two fixed checks, never blockers: `QUERY_NOT_COUNTED` (note) and `SEEDS_CANNOT_TEST` (warning), in the M10b catalogue, shown at the field and at Review.
 
 **Amendment from Plan (part D)**
 - [ ] DoD 20. On Plan, the workbench opens on the protocol's query. "Record this amendment" requires a one-sentence reason and writes through the M10c item 9(a) path (intent search fields, protocol recompiled with the genesis compiler, backup under `audit/amended/`, `PROTOCOL_AMENDED`), extended to replace the whole concept list; the journal row carries the reason, the source `researcher` and the counts before and after.
@@ -431,3 +431,76 @@ Vitest, build and Playwright were not repeated on `dde504f3`: the commits after 
 
 **Part B: READY FOR PR** (not pushed). Branch `dev/m11a/part-b-seeds-comparison`, to be merged after Part A.
 
+### Part C: the workbench on Inception's step 5
+
+Branch `dev/m11a/part-c-screen`, **from Part B's branch** (`dev/m11a/part-b-seeds-comparison` at `23c57bc1`; merge A, then B, then C) · Lane **RELEASE**, not the STANDARD proposed: the screen needed the Scopus and Web of Science strings, which the engine now builds (an additive field `external` on the counts answer, decision C item 10) · Decisions: `docs/decisions.md` "2026-11-21 — M11a Part C" items 1 to 10 (PROPOSED).
+
+What was built:
+- `apps/research-ui/components/query-workbench.tsx`: the concepts block (concept rows with wrapping term chips, OR inside and AND between in words, rename, add and remove a term, Split, Remove concept, Merge into one with the name chosen among its terms, the topic's suggested concepts, the pool's suggestions in the D5 look, the cost line, Count, Use this version, Discard edits) and the evidence column (Counts: the table with each concept left out, the largest effect in words, the note on a concept, the exact string, every row state in words, Count anyway for Crossref, the budget line, the size line with the estimate's keys, the last counted version beside this one, "What does each synonym add?", "Read what this concept removes"; Known papers; Compare with an export; the strings for Scopus and Web of Science). One card per database on narrow windows.
+- `apps/research-ui/lib/workbench-api.ts` (the routes of parts A and B), `lib/workbench-copy.ts` (every sentence in en, fr and ar, 199 keys).
+- `components/inception-criteria.tsx`: the concepts card is replaced by the workbench; "Use this version" saves through the normal save with `accepted_from`; the leave question ("Use it" or "Leave it") before Continue or Save with unused edits; Continue is secondary while edits are unused.
+- The guidance audit (`docs/ux/shared/final/03-guidance.md`): a "Query workbench" table, rows W-B1 to W-X1 (15 STAYS, 4 HINT), counted by `guidance.audit.test.tsx`, which now reads the workbench catalog too.
+- Test fakes: `tests/fixtures/workbench-engine.ts`, plugged into the inception fake.
+
+| DoD | Test | State |
+| :-- | :-- | :-- |
+| 16 | `apps/research-ui/tests/inception-workbench.test.tsx` (26 cases: every row state, Crossref, largest effect and note, exact string, sizes, seeds, comparison, D5 keys, refusals, copy en/fr/ar with equal placeholders and the N9 guard); `tests-browser/workbench.spec.ts` (axe with contrast in en and ar, light and dark; no sideways scroll at 375, 1024, 1280 and 1440 px); the existing axe and overflow loops over `criteria/` | done |
+| 17 | `inception-workbench.test.tsx` "concept edits …", "merges two concepts …"; `workbench.spec.ts` "develop the search …" | done |
+| 18 | "Use this version sends one PUT …", "asks once before leaving …"; the row reads "for the previous version" after any edit; `inception-criteria.test.tsx` (pool term applied, saved with its source) | done |
+| 19 | `inception-workbench.test.tsx` "inception.workbench checks (DoD 19)": both checks at the concepts field with their words, Continue enabled; the existing Review checks list shows every open check | done |
+
+Screenshots looked at (`workbench.spec.ts` with `M11A_SHOTS`), the filled region (counted, sections open, a Scopus export compared): `C:\Users\mouadh\AppData\Local\Claude-Data\claude_pzs8sxrjxfjjc\side-session-notes\local_51fc9825-32a2-4ed5-a19b-92c9aea969a5\m11a-screenshots\workbench-en-chromium.png`, `workbench-en-chromium-dark.png`, `workbench-ar-chromium.png`, `workbench-ar-chromium-dark.png`. What the first look found and the build changed: negative numbers from the fake's default counts, a squeezed concept name field, chips made large by the split sentence (now "Split" with the full sentence as its accessible name), the Crossref sentence wrapped in one column (now spanning the row), the counts table and the comparison form wider than a phone (cards, and a shrinkable form grid).
+
+Not verified: the wording (decision 2026-11-21 item 4: it waits for the researcher's read); a real engine behind the screen (every UI test runs against the fake; the engine side is parts A and B's tests); the screen with a real review's 24 synonyms.
+
+Review round 1 (`milestone-reviewer`, on `7f920872`): **CHANGES**, 1 P1, 4 P2, 6 P3, all taken:
+
+| # | Finding | Repair | Test (fails before: the reviewer's probe `rvC/wb.probe.test.ts` for C1 to C3) |
+| :-- | :-- | :-- | :-- |
+| P1-C1 | "Use it" in the leave question saved twice; the second save carried the earlier time and was refused (`DRAFT_CONFLICT`), and nothing moved on | the version's own save stores the page; "Use it" then goes on without a second save | `"'Use it' in the leave question saves once …"` |
+| P2-C2 | Merge after removing a selected concept crashed the region | an edit that changes the number of concepts clears the selection; Merge checks its indices | `"a removal clears the merge selection …"` |
+| P2-C3 | "Count anyway" on counts of a previous version replaced the whole answer with Crossref's | not offered on a previous version | `"does not offer Count anyway on counts of a previous version"` |
+| P2-C4 | The lookup's request count was worked out in the browser (and could promise requests it would not send) | the panel's dry call asks the lookup and the OpenAlex check; the buttons print the engine's `cost` | the seeds tests |
+| P2-C5 | The cost line could be for the engine's default databases while the page counted Explore's | the dry call also follows the databases | (code path) |
+| P3-C6 | Offline disabled only Count and Use, and could not be left | every engine action disabled; the last answer "As of {time} UTC"; "Check again" | (code path) |
+| P3-C7 | Three printed figures were not engine fields (45 s, "1 request", 0 in the announcement) | `timeout_seconds` on each row; the removed read's cost from its dry call; no number when no cost was read | the row-state tests |
+| P3-C8 | A known paper's term was put in the first lacking concept | the researcher chooses the concept, as for comparison terms | (code path) |
+| P3-C9 | Split's accessible name did not hold its visible text; the spec's focus moves were missing | name "Split", the sentence as its description; focus after Merge, Split, removing a term, Apply and Reject | `"concept edits …"` (name and description) |
+| P3-C10 | "Use it" was a second brand button | secondary | `"'Use it' …"` (at most one primary) |
+| P3-C11 | Row state and rejected pool terms followed the index | rows keyed by position and name; rejections by the concept's name | (code path) |
+
+Round-1 follow-ups, not repaired: the old card's per-term DOI lists and the concept-level "in n of m" line are not in the workbench (the chips carry each term's count); the browser's `languages ?? ["en"]` default; a term made only of quotes becomes an empty phrase in the Scopus string.
+
+Review round 2 (on `71f14450`): **CHANGES**, 1 P2, 4 P3 (C1 to C11 confirmed repaired), all taken in `3d4d0062`:
+
+| # | Finding | Repair | Test |
+| :-- | :-- | :-- | :-- |
+| P2-R1 | Keying rows by position and name (the C11 repair) remounted a row on every rename: focus and a click right after it were lost | each concept holds a stable id in the tab (never sent); rows are keyed by it | `"a rename keeps the row: the same checkbox node, focus where it went"` |
+| P3-R2 | "Check again" after offline re-read only the counts' cost | the seed check and the removed read's cost follow it too | (code path) |
+| P3-R3 | A failed cost read left "Read what this concept removes" disabled with no reason | the refusal is shown | (code path) |
+| P3-R4 | After a real seed check the lookup and OpenAlex costs disappeared, so a failed lookup could not be tried again | the costs come from a dry call read again after each real check; the real answer stays shown | (code path) |
+| P3-R5 | No engine test pinned `timeout_seconds` | asserted in `tests/console/test_workbench_counts_api.py` | `test_throttling_refusal_unavailability_and_timeout_keep_their_codes` |
+
+Round-2 follow-ups, not repaired: a `timeout` row can also mean "not started in time" (decision A item 4), which "did not answer within 45 s" does not say; with the OpenAlex key missing the removed read's button says "(0 requests)".
+
+Review round 3 (on `2cef66f7`): **CHANGES**, 1 P2, 1 P3 (R1, R2, R5 confirmed; R3 partly), both taken:
+
+| # | Finding | Repair | Test |
+| :-- | :-- | :-- | :-- |
+| P2-R6 | After one real seed check, every later dry answer was ignored, even for an edited version: the panel showed the old version's seed check | a real check's answer stays only while the seeds and version are the ones it was for | `"after a real seed check, an edit shows the seed check of the new version"` |
+| P3-R7 | "Check again" on a refused cost read only cleared the message; the button stayed disabled | the cost read has its own refusal, its "Check again" reads again, and a later success clears it | `"a refused cost read says why, and Check again reads it again"` |
+
+Review round 4 (on `f72edec8`): **APPROVE** (the reviewer's lane line says STANDARD for that UI-only commit; the part is RELEASE as declared above). Follow-up, not repaired: when the concepts drop below two, an old cost refusal can stay on screen until the next read.
+
+Evidence (Part C):
+
+| Stage | Commit | Command | Result | Duration |
+| :-- | :-- | :-- | :-- | :-- |
+| pr (round 0) | `7f920872` | `pytest -n auto`; ruff; baseline; protocol schema; typecheck; vitest; build; `test:browser` | 6027 passed, 15 skipped; clean; current; in sync; clean; 1022 passed; ok; Playwright 628 passed, 4 failed (two existing inception browser tests still typed into the old concepts card; updated in round 1), 12 skipped | 559 s; 99 s; 18 s; 958 s |
+| pr (round 1) | `71f14450` | the same | 6027 passed; clean; current; in sync; 1025 passed; ok; Playwright 632 passed, 12 skipped | 519 s; 109 s; 21 s; 835 s |
+| pr (final, Python) | `2cef66f7` | `pytest -n auto`; ruff `scripts/` and `src/` (real-bug classes); `generate_contract_baseline.py --check`; `generate_protocol_schema.py --check` | 6027 passed, 15 skipped; clean; current; in sync | 581 s |
+| pr (final, UI) | `f72edec8` | typecheck; `npm test`; build; `test:browser` | clean; 1027 passed, 1 failed (`screening-proposals.test.tsx` "shows the run as starting above an earlier run's panel", H-screening-drafts' area, not touched here; passes 18 of 18 when its file runs alone, and the whole suite then 1028 passed: a timing flake under load); ok; Playwright 632 passed, 12 skipped | 101 s; 21 s; 784 s |
+
+Python did not change after `2cef66f7` (`git diff 2cef66f7 f72edec8` touches the workbench component, its tests and this record). The six screenshots the Playwright runs regenerate are restored after each run.
+
+**Part C: READY FOR PR** (not pushed). Branch `dev/m11a/part-c-screen`, to be merged after Parts A and B.
