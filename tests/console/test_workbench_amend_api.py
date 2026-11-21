@@ -16,7 +16,11 @@ import pytest
 from fastapi.testclient import TestClient
 
 from kits.agent.test_mcp_assistant import TOKEN, _create, _genesis, env  # noqa: F401 - env is a fixture
+from scholar_harness import query_workbench as qw
 from scholar_harness import workspace_proposals as WP
+from scholar_harness.corpus_accept import AcceptCorpusRefused, refuse_if_run_protocol_changed
+from scholar_search import workbench as wb
+from scholar_search.plan import run_providers
 from scholar_harness.console import browser, create_app, refusals
 from scholar_harness.console.api.discovery import DiscoveryJob, DiscoveryJobs
 
@@ -127,6 +131,8 @@ def test_an_earlier_run_is_search_changed_after_the_amendment_and_a_staged_expor
     sources.write_text(json.dumps({"sources": [{"id": "src_001", "label": "Scopus", "records": 618,
                                                 "searched_on": "2026-11-20", "query": "TITLE-ABS-KEY(uav)"}]}), encoding="utf-8")
     staged = sources.read_bytes()
+    manifest = json.loads((run / "legs.json").read_text(encoding="utf-8"))
+    refuse_if_run_protocol_changed(ws, manifest)  # the run searched this protocol: no refusal yet
     dry = client.post(AMEND, json=_body(read, _merged(read), dry_run=True)).json()
     assert dry["consequences"]["runs"] == [{"run": "run_001", "records": 781, "status": "COMPLETE"}]
     assert dry["consequences"]["exports"][0] | {} == {"id": "src_001", "database": "Scopus", "records": 618,
@@ -135,13 +141,109 @@ def test_an_earlier_run_is_search_changed_after_the_amendment_and_a_staged_expor
     runs = client.get(f"{PLAN}/runs").json()["runs"]
     assert next(r for r in runs if r["run"] == "run_001")["search_changed"] is True
     assert sources.read_bytes() == staged
+    # The earlier harvest can no longer become the corpus: the accept refuses it.
+    with pytest.raises(AcceptCorpusRefused) as refused:
+        refuse_if_run_protocol_changed(ws, manifest)
+    assert refused.value.code == "PROTOCOL_CHANGED_SINCE_RUN"
+
+
+def test_with_no_count_every_database_reads_not_counted_in_the_answer_and_the_journal(plan):
+    client, ws, _app = plan
+    read = _search(client)
+    assert not qw.workspace_log_path(ws).exists()
+    dry = client.post(AMEND, json=_body(read, _merged(read), dry_run=True)).json()
+    assert dry["counts"] and all(pair == {"before": "not counted", "after": "not counted"} for pair in dry["counts"].values())
+    assert client.post(AMEND, json=_body(read, _merged(read))).status_code == 200
+    row = [e for e in _journal(ws) if e["action"] == "PROTOCOL_AMENDED"][-1]
+    assert row["parameters"]["counts"] == dry["counts"]
+
+
+def test_a_logged_count_of_the_protocols_string_is_the_before_number(plan):
+    from scholar_search.protocol_adapter import compile_protocol_search
+
+    client, ws, _app = plan
+    read = _search(client)
+    query, names = compile_protocol_search(ws / "protocol.json")
+    name = run_providers(names)[0]
+    _countable, (string,) = qw._translate(name, [(wb.Variant("full", wb.Version((wb.Concept("x", ("x",)),))), query)])
+    qw.CountLog(qw.workspace_log_path(ws)).append([{
+        "key": qw.cache_key(name, string, query), "kind": "full", "status": "counted", "total": 781,
+        "counted_at": "2026-11-21T09:00:00Z",
+    }])
+    dry = client.post(AMEND, json=_body(read, _merged(read), dry_run=True)).json()
+    assert dry["counts"][name] == {"before": 781, "after": "not counted"}
+
+
+def test_an_unknown_database_in_the_protocol_is_left_out_not_a_server_error(plan):
+    client, ws, _app = plan
+    # A hand-written or imported protocol: the names in the intent and the protocol alike.
+    names = ["openalex", "Scopus", "made-up"]
+    for file, holder in (("intent.json", lambda d: d), ("protocol.json", lambda d: d["search_strategy"])):
+        data = json.loads((ws / file).read_text(encoding="utf-8"))
+        holder(data)["target_databases"] = names
+        (ws / file).write_text(json.dumps(data), encoding="utf-8")
+    read = _search(client)
+    dry = client.post(AMEND, json=_body(read, _merged(read), dry_run=True))
+    assert dry.status_code == 200, dry.text
+    assert list(dry.json()["counts"]) == ["openalex"]
+    assert client.post(AMEND, json=_body(read, _merged(read))).status_code == 200
+
+
+def test_the_estimate_line_is_the_engines_and_only_when_one_was_counted_for_this_protocol(plan):
+    client, ws, app = plan
+    read = _search(client)
+    assert client.post(AMEND, json=_body(read, _merged(read), dry_run=True)).json()["consequences"]["estimate"] is False
+    app.state.estimate_cache = {(str(ws), "sha256:" + "0" * 64, ("openalex",)): {}}
+    assert client.post(AMEND, json=_body(read, _merged(read), dry_run=True)).json()["consequences"]["estimate"] is False
+    app.state.estimate_cache[(str(ws), read["protocol_fingerprint"], ("openalex",))] = {}
+    assert client.post(AMEND, json=_body(read, _merged(read), dry_run=True)).json()["consequences"]["estimate"] is True
+
+
+def test_open_assistant_proposals_are_counted_and_read_stale_after_the_amendment(plan):
+    client, ws, _app = plan
+    read = _search(client)
+    made, created = WP.make(ws, source="assistant:test", field="languages", op="add", value="fr", why="French studies",
+                            evidence=[])
+    assert created and made["status"] == "open"
+    dry = client.post(AMEND, json=_body(read, _merged(read), dry_run=True)).json()
+    assert dry["consequences"]["proposals"] == 1
+    assert client.post(AMEND, json=_body(read, _merged(read))).status_code == 200
+    assert WP.listing(ws)["counts"]["stale"] == 1
+
+
+def test_a_change_outside_the_search_is_refused_and_writes_nothing(plan, monkeypatch):
+    from scholar_harness.inception import proposals as P
+
+    client, ws, _app = plan
+    read = _search(client)
+    before = _bytes(ws)
+
+    def outside(_protocol, _intent):
+        raise P.ProposalRefused("PROTOCOL_AMENDMENT_REFUSED", "the change reaches eligibility", 422,
+                                {"reason": "outside_search"})
+
+    monkeypatch.setattr(WP, "compile_amendment", outside)
+    response = client.post(AMEND, json=_body(read, _merged(read)))
+    assert response.status_code == 422
+    detail = response.json()["detail"]
+    assert detail["code"] == "PROTOCOL_AMENDMENT_REFUSED" and detail["details"]["reason"] == "outside_search"
+    assert _bytes(ws) == before
+
+
+def test_a_concept_kept_under_its_name_keeps_its_operator():
+    intent = {"core_concepts": [{"concept": "uav", "synonyms": ["drone"], "boolean_operator": "AND"},
+                                {"concept": "weed", "synonyms": []}]}
+    new = WP._replace_concepts(intent, [{"concept": "uav", "synonyms": ["drone", "uas"]},
+                                        {"concept": "crop", "synonyms": []}])
+    assert new["core_concepts"][0]["boolean_operator"] == "AND"
+    assert "boolean_operator" not in new["core_concepts"][1]
 
 
 def test_the_reason_is_one_sentence_and_required(plan):
     client, ws, _app = plan
     read = _search(client)
     before = _bytes(ws)
-    for reason in ("", "   ", "x" * 2_001):
+    for reason in ("", "   ", "x" * 2_001, "x" * 5_000):
         response = client.post(AMEND, json=_body(read, _merged(read), reason=reason))
         assert response.status_code == 422 and response.json()["detail"]["code"] == refusals.WORKBENCH_REASON_INVALID
     assert _bytes(ws) == before

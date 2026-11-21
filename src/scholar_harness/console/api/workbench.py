@@ -438,15 +438,29 @@ class AmendBody(BaseModel):
     model_config = ConfigDict(extra="forbid")
     query_key: str = Field(default=wb.DEFAULT_QUERY_KEY, max_length=40)
     concepts: list[ConceptBody] = Field(default_factory=list, max_length=wb.MAX_CONCEPTS)
-    #: One sentence: why the search changes (written into the journal).
-    reason: str = Field(default="", max_length=4_000)
+    #: One sentence: why the search changes (written into the journal). The engine's limit is
+    #: ``workspace_proposals.REASON_MAX``; this bound only stops a runaway body, so an over-long
+    #: reason is ``WORKBENCH_REASON_INVALID`` and not the generic body refusal (review D-R1 #12).
+    reason: str = Field(default="", max_length=100_000)
     #: The fingerprint the page read; another one refuses ``WORKBENCH_PROTOCOL_CHANGED``.
     protocol_fingerprint: str = Field(max_length=200)
     dry_run: bool = False
 
 
-def _consequences(ws: Path, fingerprint: str) -> dict[str, Any]:
-    """What an amendment makes obsolete, from what the workspace holds (M10c item 21; spec 10-plan-amend-search)."""
+def _consequences(request: Request):
+    """What an amendment makes obsolete, from what the workspace holds (M10c item 21; spec 10-plan-amend-search).
+
+    ``estimate`` is true only when a size estimate was counted for the current protocol
+    in this engine (the estimate's cache); the browser prints the line as it comes.
+    """
+
+    def read(ws: Path, fingerprint: str) -> dict[str, Any]:
+        return _consequences_of(ws, fingerprint, getattr(request.app.state, "estimate_cache", None) or {})
+
+    return read
+
+
+def _consequences_of(ws: Path, fingerprint: str, estimates: dict) -> dict[str, Any]:
     from ...corpus_accept import staged_sources
     from ... import workspace_proposals as wp
 
@@ -466,29 +480,40 @@ def _consequences(ws: Path, fingerprint: str) -> dict[str, Any]:
             recalls.append({"check": path.stem, "checked_at": check.get("checked_at")})
     intent, protocol, current = wp.documents(ws)
     open_proposals = sum(1 for p in wp.stored(ws) if wp.view(p, intent, protocol, current)["status"] == "open")
-    return {"runs": runs, "exports": exports, "recall_checks": recalls, "estimate": True, "proposals": open_proposals}
+    estimate = any(key[0] == str(ws) and key[1] == fingerprint for key in estimates)
+    return {"runs": runs, "exports": exports, "recall_checks": recalls, "estimate": estimate, "proposals": open_proposals}
+
+
+#: What the journal and the confirmation say for a database with no count of that exact string.
+NOT_COUNTED = "not counted"
 
 
 def _counts_before_after(ws: Path):
-    """Each database's newest count of the protocol's search and of the amended one, from the count log."""
+    """Each database's newest count of the protocol's search and of the amended one, from the count log.
+
+    The databases are the ones a run searches (``run_providers``: unknown names dropped, as
+    M10a). A database with no logged count of the exact string, or none at all, reads
+    "not counted" (decision 2026-11-21 item 3), never an empty record.
+    """
+    from scholar_search.plan import run_providers
     from scholar_search.protocol_adapter import compile_protocol_search
 
     log = qw.CountLog(qw.workspace_log_path(ws))
 
-    def counts(old: dict[str, Any], new: dict[str, Any]) -> dict[str, Any]:
-        out: dict[str, Any] = {}
+    def logged(name: str, query: Any) -> Any:
         if not log.path.is_file():
-            return out
+            return NOT_COUNTED
+        try:
+            _countable, (string,) = qw._translate(name, [(wb.Variant("full", wb.Version((wb.Concept("x", ("x",)),))), query)])
+        except (KeyError, ValueError):
+            return NOT_COUNTED
+        row = log.last(qw.cache_key(name, string, query)) if string is not None else None
+        return row["total"] if row and isinstance(row.get("total"), int) else NOT_COUNTED
+
+    def counts(old: dict[str, Any], new: dict[str, Any]) -> dict[str, Any]:
         q_old, names = compile_protocol_search(old)
         q_new, _ = compile_protocol_search(new)
-        for name in dict.fromkeys(names):
-            pair = {}
-            for label, query in (("before", q_old), ("after", q_new)):
-                _countable, (string,) = qw._translate(name, [(wb.Variant("full", wb.Version((wb.Concept("x", ("x",)),))), query)])
-                row = log.last(qw.cache_key(name, string, query)) if string is not None else None
-                pair[label] = row["total"] if row else "not counted"
-            out[name] = pair
-        return out
+        return {name: {"before": logged(name, q_old), "after": logged(name, q_new)} for name in run_providers(names)}
 
     return counts
 
@@ -516,7 +541,7 @@ def workspace_amend(body: AmendBody, request: Request) -> dict[str, Any]:
         return wp.amend_search(
             ws, version.to_dict()["concepts"], reason=body.reason,
             base_fingerprint=body.protocol_fingerprint, dry_run=body.dry_run,
-            consequences=_consequences, counts=_counts_before_after(ws),
+            consequences=_consequences(request), counts=_counts_before_after(ws),
         )
     except P.ProposalRefused as exc:
         raise _refusal(exc.status, exc.code, exc.message, exc.details) from exc

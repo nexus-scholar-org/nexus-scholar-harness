@@ -17,12 +17,13 @@ import {
   Loading,
   MailtoCard,
   OpenAlexKeyCard,
+  PLAN_SEARCH_ANCHOR,
   discoveryHref,
   refusalOf,
   type Refusal,
 } from "@/components/discovery-frame";
 import { KNOWN_PROVIDERS, getPlan, getRuns, type Plan } from "@/lib/discovery-api";
-import { PlanChangeSearch } from "@/components/plan-change-search";
+import { PlanChangeSearch, PlanSearchToggle } from "@/components/plan-change-search";
 import { getCorpus } from "@/lib/screening-v1";
 import { discoveryT, providerName, type DiscoveryCopyKey } from "@/lib/discovery-copy";
 
@@ -227,6 +228,10 @@ export function DiscoveryPlan({ locale }: Readonly<{ locale: Locale }>) {
   const [choice, setChoice] = useState<string[] | null>(null);
   const [pending, setPending] = useState(false);
   const heading = useRef<HTMLHeadingElement>(null);
+  // M11a part D: "Change the search", opened by its button or by the anchor other screens link to.
+  const [searchOpen, setSearchOpen] = useState(false);
+  const searchToggle = useRef<HTMLButtonElement>(null);
+  const focusToggle = useRef(false);
   const fingerprint = useRef<string | null>(null);
   const protocolRef = useRef<string[] | null>(null);
   const sequence = useRef(0);
@@ -241,6 +246,22 @@ export function DiscoveryPlan({ locale }: Readonly<{ locale: Locale }>) {
       heading.current.focus();
     }
   });
+
+  useEffect(() => {
+    if (focusToggle.current && !searchOpen) {
+      focusToggle.current = false;
+      searchToggle.current?.focus();
+    }
+  }, [searchOpen]);
+
+  useEffect(() => {
+    const follow = () => {
+      if (window.location.hash === `#${PLAN_SEARCH_ANCHOR}`) setSearchOpen(true);
+    };
+    follow();
+    window.addEventListener("hashchange", follow);
+    return () => window.removeEventListener("hashchange", follow);
+  }, []);
 
   useEffect(() => {
     const query = new URLSearchParams(window.location.search);
@@ -360,15 +381,37 @@ export function DiscoveryPlan({ locale }: Readonly<{ locale: Locale }>) {
       ) : !plan ? (
         <Loading locale={locale} />
       ) : (
+        <div className="space-y-6">
+          <header>
+            <Eyebrow locale={locale} step="plan" name={t("plan.eyebrowName")} />
+            <h1 ref={heading} tabIndex={-1} className="mt-2 font-display text-3xl text-ink">
+              {t("plan.title")}
+            </h1>
+            <p className="mt-2 max-w-2xl text-ink-muted" data-copy="lede">{t("plan.lede")}</p>
+          </header>
+          {/* M11a part D (10-plan-amend-search): opened, "Change the search" is a full-width region above the two columns. */}
+          {searchOpen && plan.search ? (
+            <PlanChangeSearch
+              locale={locale}
+              origin={origin}
+              search={plan.search}
+              fingerprint={plan.protocol_fingerprint}
+              providers={choice}
+              accepted={accepted}
+              onClose={() => {
+                focusToggle.current = true;
+                setSearchOpen(false);
+              }}
+              onRecorded={(answer) => {
+                // The researcher's own amendment is not "changed since this page was read" (review D-R1 #11).
+                fingerprint.current = answer.protocol_fingerprint;
+                void load(current(), true);
+              }}
+              onProtocolChanged={() => void load(current())}
+            />
+          ) : null}
         <div className="grid gap-6 lg:grid-cols-3">
           <div className="space-y-6 min-w-0 lg:col-span-2">
-            <header>
-              <Eyebrow locale={locale} step="plan" name={t("plan.eyebrowName")} />
-              <h1 ref={heading} tabIndex={-1} className="mt-2 font-display text-3xl text-ink">
-                {t("plan.title")}
-              </h1>
-              <p className="mt-2 max-w-2xl text-ink-muted" data-copy="lede">{t("plan.lede")}</p>
-            </header>
             <section aria-labelledby="plan-picker" className="space-y-3 rounded-lg border border-rule bg-leaf p-5" data-plan-picker>
               <h2 id="plan-picker" className="font-semibold text-ink">
                 {t("plan.picker.title")}
@@ -398,22 +441,23 @@ export function DiscoveryPlan({ locale }: Readonly<{ locale: Locale }>) {
                 {t("plan.changed")}
               </p>
             ) : null}
-            {/* M11a part D (10-plan-amend-search): "Change the search", a closed section; the one write is the amendment. */}
-            {plan.search ? (
-              <PlanChangeSearch
-                locale={locale}
-                origin={origin}
-                search={plan.search}
-                fingerprint={plan.protocol_fingerprint}
-                providers={choice}
-                accepted={accepted}
-                onRecorded={() => void load(current())}
-              />
-            ) : null}
             <section aria-labelledby="plan-strings" aria-busy={pending || undefined} className="rounded-lg border border-rule bg-leaf p-5" data-plan-strings>
-              <h2 id="plan-strings" className="font-semibold text-ink">
-                {t("plan.strings.title")}
-              </h2>
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <h2 id="plan-strings" className="font-semibold text-ink">
+                  {t("plan.strings.title")}
+                </h2>
+                {plan.search ? (
+                  <PlanSearchToggle
+                    locale={locale}
+                    open={searchOpen}
+                    buttonRef={searchToggle}
+                    onToggle={() => {
+                      if (searchOpen) focusToggle.current = true;
+                      setSearchOpen((o) => !o);
+                    }}
+                  />
+                ) : null}
+              </div>
               <p className="mt-1 text-xs text-ink-muted">
                 {t("plan.fingerprint")} <DataCell>{plan.protocol_fingerprint}</DataCell>
               </p>
@@ -606,7 +650,8 @@ export function DiscoveryPlan({ locale }: Readonly<{ locale: Locale }>) {
                 {/* M11a part D: on Plan the query is changed by "Change the search" (its own hint); this link is for the rest. */}
               </p>
               <p className="mt-3">
-                <a className={PRIMARY_LINK} href={discoveryHref(locale, "recall", origin)} data-variant="primary" data-next>
+                {/* 03-guidance (M10d): Plan's one main action; while "Change the search" is open its own action is, so this is a plain link (never two). */}
+                <a className={searchOpen ? LINK : PRIMARY_LINK} href={discoveryHref(locale, "recall", origin)} data-variant={searchOpen ? undefined : "primary"} data-next>
                   {t("plan.next")}
                 </a>
               </p>
@@ -619,6 +664,7 @@ export function DiscoveryPlan({ locale }: Readonly<{ locale: Locale }>) {
               ) : null}
             </section>
           </aside>
+        </div>
         </div>
       )}
     </DiscoveryFrame>

@@ -467,7 +467,7 @@ def decide(ws: Path, pid: str, action: str, *, reason: str | None = None) -> dic
 REASON_MAX = 2_000
 
 
-def search_view(intent: dict[str, Any], protocol: dict[str, Any]) -> dict[str, Any]:
+def search_view(protocol: dict[str, Any]) -> dict[str, Any]:
     """The protocol's search as the workbench edits it: concepts, years, languages, seeds (M11a part D)."""
     strategy = protocol.get("search_strategy") or {}
     concepts = [
@@ -487,8 +487,18 @@ def _replace_concepts(intent: dict[str, Any], concepts: list[dict[str, Any]]) ->
     """A new intent whose concept list is ``concepts`` (the researcher's whole list: remove, rename, merge, split, add)."""
     if not concepts:
         raise _refused("WORKBENCH_VERSION_INVALID", "an amended search needs at least one concept", 422)
+    # A concept kept under its name keeps its operator (the workbench edits OR groups only; review D-R1 follow-up).
+    operators = {
+        str(c.get("concept") or ""): c["boolean_operator"]
+        for c in intent.get("core_concepts") or [] if isinstance(c, dict) and "boolean_operator" in c
+    }
     new = copy.deepcopy(intent)
-    new["core_concepts"] = [_concept_value(c) for c in concepts]
+    new["core_concepts"] = []
+    for c in concepts:
+        value = _concept_value(c)
+        if "boolean_operator" not in value and value["concept"] in operators:
+            value["boolean_operator"] = operators[value["concept"]]
+        new["core_concepts"].append(value)
     return new
 
 

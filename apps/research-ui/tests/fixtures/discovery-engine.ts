@@ -275,6 +275,8 @@ export function discoveryEngine(options: DiscoveryFakeOptions = {}) {
     { concept: "edge device", synonyms: ["embedded"] },
   ];
   const amendments: Json[] = [];
+  // As the engine: the amendment's "estimate" line only when an estimate was counted for this protocol.
+  let estimatedFor: string | null = null;
   const bench = workbenchEngine(options.workbench ?? {});
   // M10a: the legs run and are listed in the order asked, else in the protocol's order.
   const legsOf = (capOverride: number | null, requested: string[] | null = null): Json[] =>
@@ -880,6 +882,7 @@ export function discoveryEngine(options: DiscoveryFakeOptions = {}) {
         (accepted ? refuse(409, "CORPUS_ALREADY_ACCEPTED", "The corpus snapshot is accepted; a frozen corpus is never searched again from the browser.") : null) ??
         busy();
       if (refused) return refused;
+      estimatedFor = fingerprint;
       const stub = options.estimate;
       if (stub) return { status: 200, body: typeof stub === "function" ? (stub as (b: Json | null) => object)(body) : stub };
       // H-run-small-fixes: an estimate sent no list counts the default choice, as the engine does.
@@ -1074,7 +1077,7 @@ export function discoveryEngine(options: DiscoveryFakeOptions = {}) {
           runs: runs.map((r) => ({ run: r.run, records: fetchedTotal(r), status: r.status })),
           exports: staged ? [{ id: "src_1", database: "Scopus", records: 120, staged_on: "2026-11-01", string: options.stagedQuery ?? null }] : [],
           recall_checks: recall ? [{ check: "check_001", checked_at: recall.checked_at }] : [],
-          estimate: true, proposals: wsProposals.filter((p) => p.status === "open").length,
+          estimate: estimatedFor === fingerprint, proposals: wsProposals.filter((p) => p.status === "open").length,
         },
       };
       if (body?.dry_run) return { status: 200, body: answer };

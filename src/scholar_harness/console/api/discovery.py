@@ -532,7 +532,7 @@ def _search_view(path: Path) -> dict[str, Any]:
         protocol = json.loads(path.read_text(encoding="utf-8"))
     except (OSError, ValueError):
         protocol = {}
-    return search_view({}, protocol if isinstance(protocol, dict) else {})
+    return search_view(protocol if isinstance(protocol, dict) else {})
 
 
 def _golden_seeds(path: Path) -> list[str]:

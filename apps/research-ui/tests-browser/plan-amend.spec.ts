@@ -66,6 +66,37 @@ test("change the search on Plan: count, merge, read what it changes, record with
   await expect(page.locator("[data-plan-strings]")).toContainText("sha256:01");
 });
 
+test("keyboard: Enter in the reason never records, Escape returns to Record, Ctrl+Enter reopens, the button records and focus goes to the h1", async ({ page }) => {
+  const fake = await engine(page, OPTIONS);
+  const amendPosts: boolean[] = [];
+  page.on("request", (request) => {
+    if (request.method() === "POST" && request.url().includes("/workbench/amend")) amendPosts.push(!!(JSON.parse(request.postData() ?? "{}") as { dry_run?: boolean }).dry_run);
+  });
+  await page.goto("/en/discovery/plan/");
+  await confirm(page);
+  const reason = page.locator("#plan-search-reason");
+  await expect(reason).toBeFocused();
+  // A real browser submits a form on Enter: here the field is not in one, so nothing is recorded.
+  await reason.press("Enter");
+  await page.waitForTimeout(300);
+  expect(amendPosts.filter((dry) => !dry)).toHaveLength(0);
+  await reason.press("Escape");
+  await expect(page.locator("[data-amend-confirm]")).toHaveCount(0);
+  await expect(page.locator("[data-record-open]")).toBeFocused();
+  await page.getByLabel("Concept 1").press("Control+Enter");
+  await expect(page.locator("[data-amend-confirm]")).toBeVisible();
+  await expect(reason).toBeFocused();
+  await reason.fill("Edge devices and weed detection are one idea in this review.");
+  await page.keyboard.press("Tab"); // the consequences are text: Cancel, then Record
+  await expect(page.locator("[data-record-cancel]")).toBeFocused();
+  await page.keyboard.press("Tab");
+  await expect(page.locator("[data-record]")).toBeFocused();
+  await page.keyboard.press("Enter");
+  await expect(page.locator("[data-amended]")).toContainText("Amendment recorded.");
+  await expect(page.locator("h1")).toBeFocused();
+  expect(fake.amendments).toHaveLength(1);
+});
+
 test("after the corpus is accepted, the section counts but records nothing", async ({ page }) => {
   await engine(page, { ...OPTIONS, accepted: true });
   await page.goto("/en/discovery/plan/");
