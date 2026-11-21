@@ -19,6 +19,7 @@ import {
   useDiscoveryParams,
   useJobStream,
   type Refusal,
+  planSearchHref,
 } from "@/components/discovery-frame";
 import { cancelJob, getPlan, getRecall, getRuns, startRecall, type DiscoveryJob, type Plan, type RecallCheck, type SeedKind } from "@/lib/discovery-api";
 import { getCorpus } from "@/lib/screening-v1";
@@ -436,7 +437,13 @@ export function DiscoveryRecall({ locale }: Readonly<{ locale: Locale }>) {
                   <a className={LINK} href={`/${locale}/inception/${origin ? `?console=${encodeURIComponent(origin)}` : ""}`}>
                     {t("amend.link")}
                   </a>
-                  <Hint locale={locale} label={t("amend.link")} text={t("amend.help")} textKey="amend.help" />
+                </p>
+                {/* M11a part D (question 7): a different query is recorded on Plan, so this hint moves to that link. */}
+                <p className="flex items-center gap-1">
+                  <a className={LINK} href={planSearchHref(locale, origin)} data-change-search>
+                    {t("plan.search.open")}
+                  </a>
+                  <Hint locale={locale} label={t("plan.search.open")} text={t("plan.search.help")} textKey="plan.search.help" />
                 </p>
                 <p className="mt-3">
                   {/* M10d (03-guidance rule 2): "Check these seeds" is the main action until a check exists, then "Continue to Harvest". */}

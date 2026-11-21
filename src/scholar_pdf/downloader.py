@@ -18,11 +18,9 @@ from tenacity import (
     wait_exponential,
 )
 
-from .config import settings
+from .config import require_contact_email, settings, user_agent
 from .publisher_patterns import (
-    compute_direct_pdf_from_landing_url,
     is_proxied_url,
-    resolve_doi_to_publisher_pdf,
     rewrite_via_proxy,
 )
 from .validator import is_valid_pdf, validate_pdf_structure
@@ -65,12 +63,14 @@ class AsyncPDFDownloader:
         self.semaphore = asyncio.Semaphore(settings.max_concurrent_downloads)
         self.use_smart_names = use_smart_names
         # ``proxy_url`` is retained as a deprecated alias for the historical
-        # gateway configuration.  Transport proxying is now explicit.
+        # gateway configuration.  Parked code (M12a item 25): only a gateway the
+        # caller passes is used; ``PROXY_URL`` is never read here (K0), and the
+        # production commands refuse one.
         self.institutional_gateway_url = (
             institutional_gateway_url
             if institutional_gateway_url is not None
-            else (proxy_url if proxy_url is not None else settings.proxy_url) or ""
-        )
+            else proxy_url
+        ) or ""
         self.forward_proxy_url = forward_proxy_url or ""
         self.proxy_url = self.institutional_gateway_url
         self.proxy_style = proxy_style or settings.proxy_style or "auto"
@@ -196,12 +196,10 @@ class AsyncPDFDownloader:
         forward_proxy_url: str | None = None,
     ) -> bool:
         """Download, validate, and atomically publish to ``dest_path``."""
+        # The app names itself and its contact (K0, M12a item 27), never a browser.
         headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-            "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-            "Accept": "application/pdf,application/xhtml+xml,application/xml;q=0.9,"
-            "image/webp,*/*;q=0.8",
-            "Accept-Language": "en-US,en;q=0.9",
+            "User-Agent": user_agent(),
+            "Accept": "application/pdf,*/*;q=0.8",
         }
         timeout = aiohttp.ClientTimeout(total=settings.download_timeout)
         transport_proxy = (
@@ -241,7 +239,11 @@ class AsyncPDFDownloader:
     ) -> dict | None:
         url = f"https://api.openalex.org/works/https://doi.org/{doi}"
         try:
-            response = await http_client.get(url, params={"mailto": settings.mailto})
+            response = await http_client.get(
+                url,
+                params={"mailto": require_contact_email()},
+                headers={"User-Agent": user_agent()},
+            )
             if response.status_code == 200:
                 return response.json()
         except Exception as error:  # noqa: BLE001 - provider adapters vary
@@ -253,7 +255,11 @@ class AsyncPDFDownloader:
     ) -> dict | None:
         url = f"https://api.unpaywall.org/v2/{doi}"
         try:
-            response = await http_client.get(url, params={"email": settings.mailto})
+            response = await http_client.get(
+                url,
+                params={"email": require_contact_email()},
+                headers={"User-Agent": user_agent()},
+            )
             if response.status_code == 200:
                 return response.json()
         except Exception as error:  # noqa: BLE001 - provider adapters vary
@@ -312,6 +318,7 @@ class AsyncPDFDownloader:
         self, session: aiohttp.ClientSession, http_client: AcademicHttpClient, doi: str
     ) -> DownloadResult:
         """Resolve OA evidence and atomically acquire a PDF for one DOI."""
+        require_contact_email()  # refused before any request (MAILTO_NOT_SET)
         try:
             openalex_data = await self.fetch_openalex_metadata(http_client, doi)
             metadata: dict = {}
@@ -358,14 +365,9 @@ class AsyncPDFDownloader:
                     ),
                 )
 
+            # Only the provider's own open-access location: no guessed
+            # publisher URL, whatever the setting says (K0, M12a items 24, 27).
             candidates: list[str] = [pdf_url]
-            direct_url = None
-            if settings.enable_publisher_direct_patterns:
-                direct_url = resolve_doi_to_publisher_pdf(doi) or (
-                    compute_direct_pdf_from_landing_url(pdf_url)
-                )
-                if direct_url and direct_url != pdf_url:
-                    candidates.append(direct_url)
 
             if self.institutional_gateway_url and not is_proxied_url(
                 pdf_url, self.institutional_gateway_url
@@ -447,6 +449,7 @@ class AsyncPDFDownloader:
         self, http_client: AcademicHttpClient, pdf_path: Path, doi: str
     ) -> DownloadResult:
         """Atomically ingest a local PDF without overwriting existing bytes."""
+        require_contact_email()  # the metadata lookups send it (MAILTO_NOT_SET)
         if not pdf_path.exists():
             return DownloadResult(
                 doi=doi,

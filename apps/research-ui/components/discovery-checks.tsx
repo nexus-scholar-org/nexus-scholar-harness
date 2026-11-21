@@ -7,7 +7,7 @@ import { formatNumber } from "@/i18n";
 import { fillNodes } from "@/components/assist-anchor";
 import { notifyDiscoveryChecks, useDiscoveryChecksVersion } from "@/components/checks-bus";
 import { ChecksPanel, type CheckLink } from "@/components/checks-panel";
-import { discoveryHref, LINK, type DiscoveryStep } from "@/components/discovery-frame";
+import { discoveryHref, LINK, PLAN_SEARCH_ANCHOR, planSearchHref, type DiscoveryStep } from "@/components/discovery-frame";
 import { checksCountTemplate } from "@/lib/checks-copy";
 import { dismissDiscoveryCheck, getDiscoveryChecks, restoreDiscoveryCheck } from "@/lib/discovery-api";
 import type { Check, CheckList } from "@/lib/inception-api";
@@ -26,6 +26,7 @@ function link(locale: Locale, origin: string) {
   return (check: Check): CheckLink | null => {
     const step = check.action.step;
     if (!step) return null;
+    if (step === "plan" && check.action.section === PLAN_SEARCH_ANCHOR) return { href: planSearchHref(locale, origin) };
     if (step === "inception") return { href: `/${locale}/inception/${origin ? `?console=${encodeURIComponent(origin)}` : ""}` };
     if ((DISCOVERY_STEPS as readonly string[]).includes(step)) return { href: discoveryHref(locale, step as DiscoveryStep, origin) };
     return null;

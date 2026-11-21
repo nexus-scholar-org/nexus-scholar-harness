@@ -71,6 +71,13 @@ export function discoveryHref(locale: Locale, step: DiscoveryStep | "", origin =
   return `/${locale}/discovery/${step ? `${step}/` : ""}${q ? `?${q}` : ""}`;
 }
 
+/** Plan's "Change the search" (M11a part D): the anchor opens the section (10-plan-amend-search, question 7). */
+export const PLAN_SEARCH_ANCHOR = "change-search";
+
+export function planSearchHref(locale: Locale, origin = ""): string {
+  return `${discoveryHref(locale, "plan", origin)}#${PLAN_SEARCH_ANCHOR}`;
+}
+
 export function screeningHomeHref(locale: Locale, origin = ""): string {
   return `/${locale}/screening/home${origin ? `?console=${encodeURIComponent(origin)}` : ""}`;
 }

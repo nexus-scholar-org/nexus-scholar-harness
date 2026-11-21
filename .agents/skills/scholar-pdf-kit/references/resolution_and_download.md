@@ -15,16 +15,13 @@ flowchart TD
     OA -- "OA PDF Found" --> DL["Download Pipeline"]
     OA -- "No PDF / Failed" --> UP["2. Unpaywall v2 API\n(best_oa_location / primary_location)"]
     UP -- "OA PDF Found" --> DL
-    UP -- "No PDF Found" --> DIR["3. Publisher direct-PDF patterns\n(IEEE/Elsevier/Springer/arXiv/MDPI)"]
-    DIR --> PROX["4. Institutional-proxy rewrite\n(auto | ezproxy | subdomain | prefix)"]
-    PROX --> DL
-    UP -- "No evidence" --> FAIL["Flag as UNRESOLVED"]
+    UP -- "No PDF / No evidence" --> FAIL["Flag as UNRESOLVED"]
 ```
 
 1. **OpenAlex Resolution**: Queries `https://api.openalex.org/works/https://doi.org/{doi}` via the search-kit's httpx client. If a location carries `pdf_url`/`url_for_pdf`, it is selected.
 2. **Unpaywall Fallback**: If OpenAlex yields no direct PDF link, queries `https://api.unpaywall.org/v2/{doi}` for `url_for_pdf`/`pdf_url`.
-3. **Publisher Direct-PDF Patterns**: When enabled (`ENABLE_PUBLISHER_DIRECT_PATTERNS`, default on), computes direct-PDF URLs for known publisher patterns to bypass landing-page blocks.
-4. **Institutional Proxy Rewrite**: When a gateway URL is configured (`--proxy`/`PROXY_URL` with `--proxy-style`), proxied variants are appended as extra candidates.
+3. **No guessed publisher URL** (decision 2026-11-21, M12a items 24 and 27, K0): the publisher direct-PDF patterns are off and the downloader no longer reads them; `ENABLE_PUBLISHER_DIRECT_PATTERNS=true` is refused by `download` and `ingest` (`PUBLISHER_PATTERNS_REFUSED`). Part K deletes them.
+4. **No institutional proxy** (item 25): `--proxy` or `PROXY_URL` is refused by `download` and `ingest` (`PROXY_REFUSED`). The library's gateway rewrite is parked code, used only when a caller passes a gateway explicitly; it no longer reads `PROXY_URL`.
 5. **Access Status**: Only explicit provider OA evidence yields `VERIFIED_OPEN_ACCESS`. Anything else is `UNRESOLVED` — never a paywall determination, and HTTP success alone never counts as acquisition (`_provider_access_status` projects evidence, never transport success).
 
 > Authoritative note: raw `download` is the discovery convenience. The **authoritative**
@@ -39,7 +36,7 @@ Downloads are executed asynchronously using `aiohttp` and `tenacity`:
 - **Concurrency Limiting**: Managed via `asyncio.Semaphore(max_concurrent)` (default: 5) to prevent socket starvation and CDN IP blocking.
 - **Staged, Validated Promotion**: Bytes stream to a per-candidate temp file; only candidates passing binary validation are atomically promoted to their content-addressed final path (`DOC-<32 hex>.pdf`). Staging files are always unlinked. There is no `Content-Type` header gate — paywall/error HTML is rejected by the signature check below.
 - **Exponential Backoff**: Uses `tenacity` with exponential retries (min 2s, max 10s, up to 3 attempts) for transient connection errors and timeouts.
-- **Transport Identity**: PDF bytes stream via `aiohttp` with a Chrome user-agent; OA metadata lookups use the search-kit's httpx client with polite `mailto`.
+- **Transport Identity**: every request (the PDF over `aiohttp`, the OpenAlex and Unpaywall lookups over the search-kit's httpx client) names the app, `nexus-scholar/<version> (mailto:<address>)`; the address is `SCHOLAR_MAILTO` or the kit's `MAILTO`, required (K0).
 
 ---
 

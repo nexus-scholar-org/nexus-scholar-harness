@@ -454,6 +454,8 @@ export interface CheckAction {
   criterion_id?: string;
   /** Discovery hand-off: the preparation can be finished without a new search. */
   finish?: boolean;
+  /** A section of the step's screen (M11a part D: Plan's "change-search"). */
+  section?: string;
   label_key: string;
 }
 
