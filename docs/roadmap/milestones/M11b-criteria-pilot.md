@@ -484,4 +484,3 @@ Evidence for the item 5 change (`-n 4`):
 | :-- | :-- | :-- | :-- | :-- |
 | targeted | `c100e314` (working tree) | the item 5 tests first on `f1968ccd`'s code: 3 of 4 failed as expected; then `test_criteria_amendments_api.py`, `test_screening_events.py`, `test_screening_api_v1.py`, `test_screening_api_contract.py` | 155 tests, 1 failed (the committed fixtures, regenerated: additive `criteria_version` in nine event bindings); then 62 passed | 62 s; 52 s |
 | pr | `c100e314` | contract baseline, protocol schema, contract schemas, two-study fixture; both ruff commands; `git diff --check origin/main...HEAD`; `uv run pytest -q -n 4 --junitxml` (full suite) | current; in sync; exit 0; exit 0; clean; clean; one finding (a blank line at the end of this record, fixed in the next commit, documents only); 6124 tests: 6109 passed, 15 skipped, 0 failed, 0 errors | 558 s |
-
