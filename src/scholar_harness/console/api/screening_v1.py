@@ -28,6 +28,7 @@ from pydantic import BaseModel, ConfigDict, Field
 from ...screening import events as ev
 from ...workspace.atomic import atomic_write_text
 from ...screening import proposals as pr
+from ...screening.highlights import quote_places, search_terms
 from .. import refusals
 
 router = APIRouter(prefix="/api/v1/screening", tags=["screening"])
@@ -284,6 +285,10 @@ def record(study_id: str, request: Request) -> dict[str, Any]:
         "abstract": paper.get("abstract") if _has_abstract(paper) else None,
         "batch_index": context.study_batch[study_id],
         "highlights": [],  # criterion highlights arrive with the M1b triage UI
+        # M8b: the protocol's concepts and where their words occur (UTF-16 offsets per field).
+        "search_terms": search_terms(
+            protocol, paper.get("title", ""), paper.get("abstract") if _has_abstract(paper) else None
+        ),
         "criteria": [
             {"id": c["id"], "text": c.get("description") or c.get("text") or c.get("criterion") or "", "kind": kind}
             for kind in ("inclusion", "exclusion")
@@ -349,6 +354,8 @@ def record_proposal(study_id: str, request: Request) -> dict[str, Any]:
             },
             "validators": proposal.get("validators", []),
             "cannot_decide": proposal.get("cannot_decide", False),
+            # M8b: where each quote shows in the record, or that it is not at its offsets.
+            "quotes": quote_places(output.get("criteria", []), _papers(ws, context).get(study_id, {})),
         }
     }
 

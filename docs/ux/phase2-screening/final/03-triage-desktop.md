@@ -1,6 +1,112 @@
-# 03 Triage queue, desktop    Status: FINAL, built (M1b-1; rebuilt in M6-beta and M8-triage) | Phase 2 Screening | Route `/screening/triage` | Milestone M1a (events, queue) + M1b (UI); amended M6-beta, M7-method, M8-triage
+# 03 Triage queue, desktop    Status: FINAL, built (M1b-1; rebuilt in M6-beta and M8-triage); amended M8b-triage-highlights (FINAL, 2026-11-21, on decisions 1 to 20 accepted) | Phase 2 Screening | Route `/screening/triage` | Milestone M1a (events, queue) + M1b (UI); amended M6-beta, M7-method, M8-triage, M8b-triage-highlights
 
 Boards: `Triage` (D4, proposal hidden), `TriageRevealed` (D5, after deciding). Contract: `docs/architecture/screening-api-contract.md` §3-§4.
+
+## Amended 2026-11-21 (M8b-triage-highlights)
+Source: `docs/roadmap/milestones/M8b-triage-highlights.md`; `docs/decisions.md` "2026-11-21 — M8b-triage-highlights" (items 1 to 9 accepted, 10 to 20 proposed by the milestone and accepted as built on 2026-11-21; cited below as "decision n"; decision 10's matching rule is replaced by the rule shared with M11a in a follow-up PR). Where a sentence further down says otherwise, this section wins. The existing sentence "Highlighted words are tied to a criterion" (05) stays for the criterion highlights, which stay empty. Event contract: no change.
+
+**0. Rule.** "A mark says where to look; it never says what to decide."
+
+**1. Where.**
+- The record pane: the title and the abstract. The year line and the venue are not marked. Spec 05 is the same pane, so it carries the same marks. The phone (04) is unchanged. Full text is out of scope (decision 7): the highlighter (`components/highlighted-text.tsx`) takes any text and a span list, so M12a can reuse it.
+- Nothing about the layout of point 1 of M8-triage changes: no page scroll at 1440×900 and 1280×720; the pane scrolls inside itself; a mark is an underline or a background and never moves a character.
+
+**2. The marks bar.** The first element of the record pane, above the title, inside the scrolling pane (`data-marks-bar`, a `role="group"` named `screening.triage.marks.region`).
+- Two switches, toggle buttons with `aria-pressed`, each a 44 px target with the focus ring: "Search terms" and "Agent's quotes". The second appears only once a draft is shown (point 5); with no draft there is only the first, and the bar has no gap for it.
+- Both are on by default and remembered on this computer: `localStorage` keys `nexus.triage.marks.terms` and `nexus.triage.marks.quotes`, on unless the value is "0" (decision 18). Not stored in the workspace, not in `sessionStorage`. A storage that cannot be read means on. The choice is read after the first render, in an effect (the N12 guard forbids `localStorage` in `components/`; the marks switches are read after render), so the first render shows both on; the record arrives later, so no mark flashes. The helpers live in `lib/triage-marks-memory.ts`.
+- Turning a switch off or on never moves the text (decision 17): the bar and the legend keep their size, only the marks in the text and the swatches change.
+
+**3. The legend (search terms).** Below the switches, a list (`<ul>`, labelled by its title "Search terms in this record").
+- One item per concept in protocol order: its mark sample (`aria-hidden`), its name, and either "{n} mentions" or "not in this record", in words, never a bare number or a colour. Concept names are shown as the protocol writes them (`<bdi>`).
+- A summary line "Mentions {n} of {m} concepts" above the list (`m` is all the concepts of the protocol, `n` those with at least one mention).
+- Marks are capped (decision 14): concepts 1 to 4 have their own mark; concepts 5 and later are one item, "Other concepts", with the neutral mark. Its mention count is the sum of theirs ("not in this record" when all are zero) and its names follow in plain text. A concept shadowed by a longer term of another is still counted as mentioned (decision 10).
+- A hint (the existing `Hint` pattern of `components/ui/guidance.tsx`, a "?" button of 44 px with the panel on activation; not a new always-visible paragraph, and not a Details, because the rule of 12 is for identifiers and proofs) says the matching rule in two plain sentences (copy in point 9).
+- With no concepts in the protocol: no legend, no summary, no search-terms switch; one line "The protocol has no search concepts." In this state the bar shows only the quotes switch (when a draft is shown) or nothing but that line.
+- With the search-terms switch off: the legend stays, the samples are dimmed (reduced opacity, still `aria-hidden`), the counts stay. The text does not move.
+
+**4. Search-term marks (decision 14).**
+- Concepts 1 to 4 in protocol order: a solid, a double, a dashed and a dotted underline; concepts 5 and later share a grey wavy underline. The line style carries the identity; the colour only helps and comes from `brand` and `ink` (decision 14): concept 1 solid `brand`, 2 double `ink`, 3 dashed `brand`, 4 dotted `ink`, other concepts wavy `ink-muted`. No new token: the brand book allows no hue beyond the roles (`BRAND_BOOK.md`), and `anchor` belongs to the quotes. Never colour alone: every mark has its own line style, and the legend shows the same sample.
+- Underlines and backgrounds only: no border, padding, margin or label inside the text. `text-decoration-thickness` and `text-underline-offset` are fixed, so line boxes do not change height.
+- Where two marks overlap, the longest match wins, then the earlier one, then the concept listed first (decision 10). The server sends spans that do not overlap each other.
+- Screen readers do not hear concept marks (decision 16): the text reads as it is. The legend says once which concepts the record mentions and which it lacks.
+- Not marked: a partial word ("weedy"), and a concept the record does not mention. A record the search found can show no mark: databases match in their own way (said in the hint).
+
+**5. The agent's quotes (decisions 4, 12, 13, 15, 16, 19).**
+- **Only when the draft is shown.** With the blinding `reveal_after_decision`, there is no quote and no switch before the decision, and the browser never asks for them: `quotes` is part of the draft and comes with `GET /records/{study_id}/proposal`, which answers 403 `PROPOSAL_HIDDEN` before the decision. With `show`, the quotes come with the draft. With the "move on at once" setting the quotes are marked when a decided record is reopened and its draft is shown (M6-beta 3).
+- **A quote is a link in the text** (`<a href="#answer-{id}">`) with a tint (`anchor-soft`) and a solid 2 px `anchor` bottom border (an inline element's bottom border does not change the line's height, so nothing moves; axe's `link-in-text-block` needs a cue that is not colour, and counts a border, not a shadow). It never uses the include, exclude, unclear or blocked tokens: a quote is not a verdict, whatever its answer is. Its accessible name is its own text followed by "agent's quote for {id} ({answer})", for example "…rice paddies… agent's quote for INC-01 (yes)". The answer is the word, from the existing answer labels (yes, no).
+- **Both ways.** Activating the link moves focus to that answer in the draft aside (the aside scrolls inside its column if needed). Hover or focus on an answer, or on its "Show in the text" button, gives its quote the active frame (a 2 px `anchor` frame drawn as a shadow, no layout). The button "Show in the text" (`screening.triage.marks.quote.show`, 44 px) is on each answer whose quote was found in the title or the abstract; it scrolls the record pane to the quote (`scrollIntoView`, `block: "center"`, no smooth scrolling when the researcher prefers reduced motion) and gives it the active frame until focus or hover leaves.
+- **A quote not found at its place** (`found: false`): not marked; the answer in the draft keeps its quote text and adds "Not found at its place in the record, so it is not marked." The draft's failed `quote_in_source` check is unchanged (decision 19). No "Show in the text" button.
+- **Found, but with no place** (`found: true`, `field: null`: in the year line, or across the end of the title and the start of the abstract, decision 13): nothing is marked, there is no button and no sentence; the draft shows the quote as it does today. A `not_reported` answer carries no quote.
+- **Overlapping quotes of two criteria:** one mark that names both: the link's name lists both ("agent's quote for INC-01 (yes)" and "agent's quote for INC-02 (no)"), activating it moves focus to the first answer, and either answer's hover or focus gives it the active frame.
+- **With search terms:** the underline of a concept is drawn inside the tinted quote, above its bottom border, so both read (decision 5). The tint never replaces the underline.
+- **Switch off** (`Agent's quotes`): the quotes are not marked; the draft is unchanged. "Show in the text" stays on the answers and, pressed, marks that one quote with the active frame and scrolls to it, so the button always does what it says (decision 20). Hovering or focusing an answer marks its quote the same way while the pointer or focus stays there; it never turns the switch on.
+
+**6. States.**
+| State | What the pane shows |
+| :-- | :-- |
+| No draft (none exists, or the draft is hidden) | Bar with "Search terms" only; the legend; no quote mark. The draft aside is as in D4. |
+| Draft hidden (blinding, before the decision) | Same as above. `PROPOSAL_HIDDEN` is not an error here (no error styling). |
+| Draft shown, all quotes found | Both switches; each quote a link; each answer with "Show in the text". |
+| Draft shown, one quote not found | That quote is not marked; its answer carries the not-found line; the others as above. |
+| Title-only record (no abstract) | Title marks only; the legend counts the title. The existing "Title only" note stays. A quote in the title is marked; one in the missing abstract cannot exist. |
+| No concepts in the protocol | Point 3: the one-line note, no legend, no search-terms switch. |
+| Both switches off | No mark in the text; the bar and legend keep their size (point 2); the legend swatches are dimmed. |
+| Loading | The record's skeleton; no bar until the record is read. `search_terms` arrives with the record, so the marks never appear a moment later. |
+| Error | A record read that fails shows what it shows today (`UNKNOWN_STUDY`, `STALE_BINDING`, `ENGINE_UNREACHABLE`). If the proposal read succeeds without `quotes` (an older engine), the quotes switch is not shown and the answers are as before. |
+| Offline | As today: the record read fails or is unavailable, and with it its marks; the quotes are unavailable with the draft. |
+| Protocol-changed | The banner of M8-triage stays; marks come from the protocol in the record read and are shown as read. |
+| RTL (Arabic) | Marks follow the text direction (an underline is not directional; the tint and frame follow the characters). The bar mirrors: the switches start at the inline start; the legend reads right to left; concept names are `<bdi>`; the answer words in a link name follow the page language. Numerals Latin. |
+| Dark theme | Tokens only (`anchor`, `anchor-soft`, `brand`, `ink`, `ink-muted` take their dark values); contrast in point 8. |
+
+**7. Data in.** Two additive read fields, no new route (decisions 11, 12).
+- `GET /api/v1/screening/records/{study_id}` gains `search_terms`: `{concepts: [{concept, terms, mentions}], marks: [{field, start, end, concept}]}` (`concept` in a mark is the index in `concepts`; the browser picks the mark style from it, decision 14). `field` is `title` or `abstract`. Offsets count UTF-16 code units in the title or the abstract exactly as the route serves them, so the browser slices without converting. The browser never matches words (decision 11). ✗ M8b.
+- `GET /api/v1/screening/records/{study_id}/proposal` gains `quotes`: `[{criterion_id, answer, found, field, start, end}]` (`field` is `title`, `abstract` or `null`; `start` and `end` are `null` when `field` is `null`). 403 `PROPOSAL_HIDDEN` before the decision, as for the draft. ✗ M8b.
+- The existing `highlights` (criterion highlights) stays empty (05).
+- Source of the matcher: `src/scholar_harness/term_match.py` (new, ✗ M8b).
+
+**8. Accessibility (decision 16).**
+- Switches: `aria-pressed`, a text label, 44 px, the `focus` ring. The legend is a real list; the hint button has a name and the panel is reachable by keyboard.
+- Quote links: a visible focus ring (the `focus` outline, 2 px, offset 2 px, drawn outside the tint), a name that ends "agent's quote for {id} ({answer})"; `Enter` activates. Few per record, so the tab order stays short; the record pane is already `tabindex="0"`.
+- Contrast: `ink` on `anchor-soft` for quote text; the frame uses `anchor` (a non-text cue, 3:1 against `anchor-soft` and `leaf` in light and dark); underlines use `ink` or `brand` against `leaf`. Axe in light and dark, en and ar.
+- Not colour alone: the line style of a concept, the frame of a quote, the words in the legend.
+- RTL as in point 6.
+- Marks never take the keyboard shortcuts (no new key); `1`/`2`/`3`, `I`, `E`, `U` are unchanged.
+
+**9. Copy** (`lib/triage-copy.ts`, prefix `screening.triage.marks.`; counted forms go in `lib/plural.ts`).
+- `.region`: en "Marks in the record"; fr "Marques dans la notice"; ar "العلامات في السجل"
+- `.terms.switch`: en "Search terms"; fr "Termes de recherche"; ar "مصطلحات البحث"
+- `.quotes.switch`: en "Agent's quotes"; fr "Citations de l'agent"; ar "اقتباسات الوكيل"
+- `.legend.title`: en "Search terms in this record"; fr "Termes de recherche dans cette notice"; ar "مصطلحات البحث في هذا السجل"
+- `.legend.summary` (`{n}`, `{m}`): en "Mentions {n} of {m} concepts"; fr "Mentionne {n} concepts sur {m}"; ar "يذكر {n} من أصل {m} مفاهيم"
+- `.legend.mentions` (`{n}`; plural table): en "{n} mentions", one "1 mention" (the `{n}` form: "{n} mention"); fr "{n} mentions", one "{n} mention"; ar "{n} إشارة", one "إشارة واحدة", two "إشارتان", few "{n} إشارات", many "{n} إشارةً"
+- `.legend.absent`: en "not in this record"; fr "absent de cette notice"; ar "غير موجود في هذا السجل"
+- `.legend.item` (`{name}`, `{status}`; `status` is the mentions or the absent text): en "{name}: {status}"; fr "{name} : {status}"; ar "{name}: {status}"
+- `.legend.other`: en "Other concepts"; fr "Autres concepts"; ar "مفاهيم أخرى"
+- `.hint.label`: en "How marks are matched"; fr "Comment les marques sont trouvées"; ar "كيف تُطابَق العلامات"
+- `.hint.text`: en "Marks show whole words and phrases from your search concepts, in any case; plurals count as the same word, and so do a hyphen and a space. A database matches in its own way, so a record the search found can show no mark."; fr "Les marques montrent les mots et expressions entiers de vos concepts de recherche, sans tenir compte de la casse ; le pluriel, le trait d'union et l'espace comptent pour équivalents. Chaque base cherche à sa façon : une notice trouvée par la recherche peut donc n'avoir aucune marque."; ar "تُظهر العلامات الكلمات والعبارات الكاملة من مفاهيم بحثك دون اعتبار لحالة الأحرف؛ ويُعدّ الجمع والواصلة والمسافة متكافئة. وكل قاعدة بيانات تطابق بطريقتها، لذا قد لا تظهر أي علامة في سجل عثر عليه البحث."
+- `.noConcepts`: en "The protocol has no search concepts."; fr "Le protocole n'a aucun concept de recherche."; ar "لا يتضمن البروتوكول أي مفاهيم بحث."
+- `.quote.suffix` (`{id}`, `{answer}`; read after the quote's text): en "agent's quote for {id} ({answer})"; fr "citation de l'agent pour {id} ({answer})"; ar "اقتباس الوكيل لـ {id} ({answer})"
+- `.quote.show`: en "Show in the text"; fr "Voir dans le texte"; ar "إظهار في النص"
+- `.quote.notFound`: en "Not found at its place in the record, so it is not marked."; fr "Introuvable à sa place dans la notice, elle n'est donc pas marquée."; ar "غير موجود في موضعه في السجل، لذا لم يُعلَّم."
+- Screen-reader legend phrasing: the list is named by `.legend.title`; each item reads `.legend.item` ("Aerial imagery: 3 mentions", "Crop stress: not in this record"); the summary line reads before the list. There is no other announcement: toggling a switch announces only its pressed state.
+- No literal `aria-label`, `title` or `placeholder` (N9 guard); the key list is added to the "Copy" paragraph below.
+
+**10. Backend calls.**
+| Call | Status |
+| :-- | :-- |
+| `GET /api/v1/screening/records/{study_id}` (field `search_terms`) | ✗ M8b (route ✗ M1a, `console/api/screening_v1.py:268`) |
+| `GET /api/v1/screening/records/{study_id}/proposal` (field `quotes`; 403 `PROPOSAL_HIDDEN` unchanged) | ✗ M8b |
+| No new route; no event, no write | none |
+
+Lane RELEASE (decisions: two additive fields on public console routes; no Contract v1, identity or event change).
+
+**11. Tests.**
+- Vitest `highlighted-text.test.tsx`: segmentation of a text by spans; overlap layering (a concept mark inside a quote keeps both); spans out of range or reversed are dropped; surrogate pairs (an emoji or a supplementary character) are never cut; RTL text; empty span list returns the text unchanged.
+- Vitest `triage.highlights.test.tsx`: the switches (`aria-pressed`, both on by default, remembered through `localStorage` keys, on unless "0"); the legend present (one item per concept in protocol order, mentions in words, "not in this record", summary, the cap with "Other concepts") and absent (no concepts: the note, no switch); with the terms switch off the legend stays; blinding (no quote and no quotes switch before the decision, no `quotes` request; `show` mode marks quotes with the draft); the not-found line and no mark; found with no place shows nothing; a quote link's name ends "agent's quote for {id} ({answer})" and focuses that answer; hover or focus on an answer gives the quote the active frame; "Show in the text" scrolls; overlapping quotes give one mark naming both; the quote never carries an include, exclude or unclear class.
+- pytest `tests/test_term_match.py`: the rule of decision 10 (whole words, case, `s`/`es`/`ies`, three-letter floor, hyphen and space, "multispectral" apart, comma ends a phrase, longest then earliest then first concept, per-concept counts, UTF-16 offsets); `tests/test_screening_highlights.py`: `search_terms` on the record read; `quotes` on the draft read; `found` recomputed against the rebuilt record text; year-line and cross-boundary cases (`field: null`); `not_reported` no quote; `PROPOSAL_HIDDEN` hides `quotes`.
+- Playwright `tests-browser/triage-highlights.spec.ts`: no page scroll at 1440×900 and 1280×720 with the marks on; toggling a switch does not move the first line of the abstract (its bounding box is equal before and after); axe with no violation in light and dark, en and ar; screenshots of both themes and of Arabic, looked at.
+
+**12. Open questions.** None. Three points the draft left open were settled as this milestone's choices (decisions 12, 14 and 20, accepted 2026-11-21): the colours come from `brand` and `ink` only; `search_terms.concepts` carries no `mark` field (the style follows the concept's place); "Show in the text" works with the quotes switch off.
 
 ## Amended 2026-11-09 (M8-triage)
 Source: `docs/roadmap/milestones/M8-triage.md`; the three decisions of 2026-11-09 tagged M8-triage in `docs/decisions.md` (not reopened here); mockup `.taste-skill/triage-inspect/desktop-fold.jpg`. Where a sentence further down, or in the M6-beta and M7-method sections, says otherwise, this section wins; the old sentences are struck or rewritten in place. Engine and event contract: no change.
@@ -190,7 +296,7 @@ See 04.
 `I` Include, `E` Exclude (opens the checklist and the reason panel; reason pre-selected when a criterion fails, else none; `Enter` confirms it, chips 1-7 choose another), `U` Unclear → full text, `S` Skip (deferral), `Z` Undo (only when available), `N` next record (after a reveal), `J`/`K` queue (the first press expands the collapsed queue), `1`/`2`/`3` yes/no/not reported on the focused criterion (and open a closed checklist), `?` help, `Esc` closes help and the reason panel. Budget: Include one keypress, Exclude three (M8-triage 5). Shortcuts are off in text fields. After a decision focus moves to the revealed heading, then to Next record.
 
 ## Copy
-`screening.triage.title` (below 1024 px), `screening.triage.lede` (below 1024 px), `screening.triage.{barTitle,queueToggle,helpButton,leave}`, `screening.triage.rail.{needsYou,decided,skipped}`, `screening.triage.queue.viewLabel`, `screening.triage.queue.hiddenRow`, `screening.triage.checklist.*`, `screening.triage.proposal.{hiddenTitle,hiddenBody,draftLabel,notADecision,differs}`, `screening.triage.decision.{include,exclude,unclear,skip,undo,change,next,history}`, `screening.triage.reason.*` (including `.fails`, `.meets`), `screening.triage.checklist.{excludeReady,excludeReadyNotReported,includeReady,includeOff,optional,answeredSome,toggle,summaryNone,summarySome}`, `screening.triage.reason.choose`, `screening.triage.recordPane`, `screening.triage.position`, `screening.triage.queue.{current,next}`, `screening.triage.allDecided.{title,lede}`, `screening.triage.announce.savedNext`, `screening.refusal.REASON_CODE_INCONSISTENT`, `screening.details.*` (12; replaces `screening.triage.recordedAs` on the card), removed: `screening.triage.queue.{expand,collapse}`, `screening.triage.queue.chip.{proposalReady,noProposal,titleOnly}`, `screening.triage.checklist.required`, `screening.triage.checklist.includeNeeds`, `includeNeedsYes`, `undoUnavailable`, `screening.triage.revealed.title.{agrees,differs}`, `screening.outcome.unclear.long`.
+`screening.triage.marks.{region,terms.switch,quotes.switch,legend.title,legend.summary,legend.mentions,legend.absent,legend.item,legend.other,hint.label,hint.text,noConcepts,quote.suffix,quote.show,quote.notFound}` (M8b-triage-highlights, point 9), `screening.triage.title` (below 1024 px), `screening.triage.lede` (below 1024 px), `screening.triage.{barTitle,queueToggle,helpButton,leave}`, `screening.triage.rail.{needsYou,decided,skipped}`, `screening.triage.queue.viewLabel`, `screening.triage.queue.hiddenRow`, `screening.triage.checklist.*`, `screening.triage.proposal.{hiddenTitle,hiddenBody,draftLabel,notADecision,differs}`, `screening.triage.decision.{include,exclude,unclear,skip,undo,change,next,history}`, `screening.triage.reason.*` (including `.fails`, `.meets`), `screening.triage.checklist.{excludeReady,excludeReadyNotReported,includeReady,includeOff,optional,answeredSome,toggle,summaryNone,summarySome}`, `screening.triage.reason.choose`, `screening.triage.recordPane`, `screening.triage.position`, `screening.triage.queue.{current,next}`, `screening.triage.allDecided.{title,lede}`, `screening.triage.announce.savedNext`, `screening.refusal.REASON_CODE_INCONSISTENT`, `screening.details.*` (12; replaces `screening.triage.recordedAs` on the card), removed: `screening.triage.queue.{expand,collapse}`, `screening.triage.queue.chip.{proposalReady,noProposal,titleOnly}`, `screening.triage.checklist.required`, `screening.triage.checklist.includeNeeds`, `includeNeedsYes`, `undoUnavailable`, `screening.triage.revealed.title.{agrees,differs}`, `screening.outcome.unclear.long`.
 
 ## Accessibility
 Decision buttons show text and a key hint. Queue is a list with `aria-current`; the Queue toggle has `aria-expanded`/`aria-controls`; the view select is labelled "Show"; the progress strip is `aria-hidden`. Live region announces "Decision saved", "Queued", "Conflict". Draft aside is labelled "Agent proposal, hidden" / "revealed". Answer chips are 44 px. Contrast per tokens: `include`/`unclear`/`blocked` as text and icon colour on their `-soft` fills only. RTL: queue card flips to the inline end; key hints Latin.
@@ -199,4 +305,4 @@ Decision buttons show text and a key hint. Queue is a list with `aria-current`; 
 Vitest: `triage.keymap.test.tsx`, `triage.blinding-no-proposal-field.test.tsx`, `triage.skip-writes-no-event.test.ts`, `triage.undo-superseding.test.ts`, `triage.changed-after-reveal.test.ts`, the M6-beta tests listed in that amendment (`triage.decisive` rewritten) and the M8-triage tests (amendment 9: `triage.collapsed-checklist`, extended `triage.reason-from-checklist`, no page scroll at 1440×900 and 1280×720, 25-keypress budget, axe in light and dark). Playwright: `screening/triage-desktop.spec.ts` (golden-uav-30 end to end, proposal hidden until decision, conflict visible, replay idempotent).
 
 ## Open questions
-None.
+None (the M8b amendment's point 12 says how its three draft questions were settled).

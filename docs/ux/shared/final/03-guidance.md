@@ -471,6 +471,20 @@ Spec `docs/ux/phase0-inception/final/10-query-workbench.md` (and `docs/ux/phase1
 | W-M2 | `workbench.cmp.measure.words.help` | "This finds a query that is too narrow. It cannot find a database's gaps, such as a missing…" | HINT | T3 definition: what the words measure can and cannot find |
 | W-X1 | `workbench.external.title`, `workbench.external.check` | "Your query for other databases, to copy" | STAYS | V2 the strings for other databases, marked to check there |
 
+### Screening (phase 2): Triage marks (M8b-triage-highlights, 2026-11-21), not counted yet
+Triage has not adopted this audit (no Screening screen is in `tests/guidance-screens.tsx`, and the counts below are of `I-` and `D-` rows only). The test reads these `S-` rows against `triage-copy` so a hint's key is checked (`guidance.never-hidden.test.tsx`), but does not count them. They list every sentence M8b adds (`apps/research-ui/lib/triage-copy.ts`, keys `marks.*`; spec `docs/ux/phase2-screening/final/03-triage-desktop.md`, M8b point 9). When Screening adopts the audit, they join the count.
+
+| ID | Keys | Sentence (en) | Decision | Reason |
+| :-- | :-- | :-- | :-- | :-- |
+| S-TM1 | `marks.region`, `marks.terms.switch`, `marks.quotes.switch` | "Search terms", "Agent's quotes" (group "Marks in the record") | STAYS | controls the researcher acts on |
+| S-TM2 | `marks.legend.title`, `marks.legend.summary`, `marks.legend.mentions`, `marks.legend.absent`, `marks.legend.item`, `marks.legend.other` | "Search terms in this record · Mentions {n} of {m} concepts"; "{name}: {n} mentions" or "not in this record" | STAYS | V4 the legend is the result: which concept is missing |
+| S-TM3 | `marks.hint.label`, `marks.hint.text` | "Marks show whole words and phrases from your search concepts …" | HINT | T1 the matching rule is explanation, one tap away |
+| S-TM4 | `marks.noConcepts` | "The protocol has no search concepts." | STAYS | V3 says why there is no legend |
+| S-TM5 | `marks.quote.suffix` | "agent's quote for {id} ({answer})" (in the quote's accessible name only) | STAYS | names the tie for assistive technology; not shown as text |
+| S-TM6 | `marks.quote.show` | "Show in the text" | STAYS | an action |
+| S-TM7 | `marks.quote.notFound` | "Not found at its place in the record, so it is not marked." | STAYS | V3 says why a quote is not marked |
+
+
 ### Counts per decision
 (Counted by the test `guidance.audit.test.tsx` from the tables above.)
 
