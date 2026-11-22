@@ -1,6 +1,6 @@
 # H-screening-read-performance
 
-Status: **SPECIFICATION, DRAFT; questions 1 to 5 open; nothing built.** Lane proposed: **STANDARD** if question 2 is answered "per request only", **RELEASE** if results are kept between requests (a cache in front of the checks that guard publication). Written by the main session on 2026-11-22 at the researcher's request, from measurements on the published sensor-stress review. The start of any build is the researcher's to approve separately.
+Status: **SPECIFICATION; questions 1 to 5 answered by the researcher on 2026-11-22, each as recommended; nothing built.** Lane: **RELEASE** (question 2: results are kept between requests, a store in front of the checks that guard publication). Order decided the same day for the builds waiting behind M12a Part C: the lost-focus fault in charting first, this second, `H-adopted-decisions-disclosure` third. Written by the main session on 2026-11-22 at the researcher's request, from measurements on the published sensor-stress review. The start of any build is the researcher's to approve separately.
 
 Findings it answers: 47 (`docs/roadmap/acceptance-run-sensor-stress-2026-11-20.md`), and the researcher's own reading that the engine, not the page, is slow.
 
@@ -51,13 +51,15 @@ No route changes its answer. No Contract v1 file changes. The checks that guard 
 5. Screening home sends `/screening/corpus` once; a vitest test counts the requests.
 6. A before-and-after table of the eight routes on a copy of the sensor-stress workspace, in the build record.
 
-## Open questions
+## Questions closed (2026-11-22)
 
-1. **Scope.** Recommendation: screening's read routes and the next-step bar now, as measured; `/workspaces` (2.7 s, not profiled), Charting and Discovery measured first and fixed in a second part if they show the same pattern. Alternative: everything in one build.
-2. **Keep results between requests?** Recommendation: yes, keyed by file sizes and times as in proposal 4. Without it, proposals 1 to 3 should already bring each route under a second (an estimate from the profile, not measured), but a page still pays for each route every time. Cost: a store that guards the publication check is the kind of code where a wrong key shows stale data, so the lane becomes RELEASE and the review looks at it specifically. Alternative: per-request reuse only, lane STANDARD, and measure again before deciding.
-3. **A hand-edited file within the same second.** File times on Windows are fine-grained, but a file rewritten with the same size inside one tick of the clock would not be noticed by a size-and-time key. Recommendation: accept it for display routes, and have the two actions that write (approve, publish) always recompute from disk, ignoring the store. Alternative: key by content hash, which costs a read of every file per request (still far cheaper than today).
-4. **Several requests at once.** Today they queue behind the interpreter lock. Recommendation: leave it; with each route under a second the queue stops mattering. Alternative: one combined "screening home" route, a new API surface.
-5. **The loading state.** Recommendation: headings and empty cards in place, with the sentence the page already has ("Counts appear only once every file is read"), no spinner. Alternative: a skeleton animation; the brand book has no rule for one.
+Asked in the main session, one by one; each answered as recommended. Decision: `docs/decisions.md`, "2026-11-22 — H-screening-read-performance".
+
+1. **Scope: screening's read routes and the next-step bar now.** `/workspaces`, Charting and Discovery are measured first and fixed in a second part if they show the same pattern. *Not chosen:* everything in one build.
+2. **Results are kept between requests**, keyed by the names, sizes and modification times of the files they came from. Known cost: a store in front of the publication check, so the lane is RELEASE and the review looks at it specifically. *Not chosen:* per request only, then measure.
+3. **Display routes trust the store; Approve and Publish always recompute from disk.** Known cost: a file rewritten by hand with the same size inside one tick of the clock is not noticed by a display route. *Not chosen:* a content-hash key.
+4. **Requests keep queuing**; no combined route. *Not chosen:* one "screening home" route.
+5. **The loading state is headings and empty cards**, with the sentence the page already has; no animation. *Not chosen:* an animated skeleton.
 
 ## Not verified
 
