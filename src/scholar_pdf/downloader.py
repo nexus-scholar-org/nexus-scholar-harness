@@ -42,7 +42,7 @@ from .publisher_patterns import (
     is_proxied_url,
     rewrite_via_proxy,
 )
-from .validator import is_valid_pdf, validate_pdf_structure
+from .validator import check_failure, is_valid_pdf, pdf_checks, validate_pdf_structure
 
 if TYPE_CHECKING:
     from scholar_search.http_client import AcademicHttpClient
@@ -390,8 +390,12 @@ class AsyncPDFDownloader:
                 record.error = fetch_failure(error)
                 raise
 
-            if not self._candidate_is_valid(staging):
-                record.error = "not a valid PDF"
+            # Each check by name (PDF-17): a short genuine PDF is "below the
+            # size floor", not "invalid".
+            record.checks = pdf_checks(staging, structural=self.structural_validation)
+            failure = check_failure(record.checks)
+            if failure is not None:
+                record.error = failure
                 return False
             self._promote_staging(staging, dest_path)
             return True
@@ -598,7 +602,10 @@ class AsyncPDFDownloader:
                             logger.debug("PDF candidate failed for %s: %s", doi, type(error).__name__)
                             continue
                         if not success:
-                            last_error = "The listed address gave no PDF: not a valid PDF"
+                            last_error = (
+                                "The listed address gave no PDF: "
+                                f"{attempts[-1].error or 'not a valid PDF'}"
+                            )
                             continue
                         final_path, _ = self._promote_candidate(candidate_path)
                         # The status follows the bytes (Part K item 7, PDF-12): an open
@@ -703,14 +710,15 @@ class AsyncPDFDownloader:
             access_status = self._provider_access_status(openalex_data, unpaywall_data)
             staging = self._new_staging_path()
             shutil.copyfile(pdf_path, staging)
-            if not self._candidate_is_valid(staging):
+            failure = check_failure(pdf_checks(staging, structural=self.structural_validation))
+            if failure is not None:
                 return DownloadResult(
                     doi=doi,
                     success=False,
                     status="FAILED",
                     access_status=access_status,
                     metadata=metadata or None,
-                    error_message="The provided file is not a valid PDF.",
+                    error_message=f"The provided file was not stored: {failure}.",
                     lookups=lookups,
                 )
             final_path, _ = self._promote_candidate(staging)
