@@ -23,6 +23,7 @@ from tenacity import (
 from yarl import URL
 
 from .config import openalex_key, require_contact_email, settings, user_agent
+from .identity import check_identity
 from .open_copies import (
     ACQUIRED,
     ANSWERED,
@@ -231,6 +232,9 @@ class DownloadResult:
     # (``open_location`` or ``institutional_gateway``); ``None`` when no file came.
     source_url: str | None = None
     route: str | None = None
+    # Part K item 9 (PDF-22): "doi found", "title found", "not found: check it"
+    # or "not checked" (no PyMuPDF). Never blocks a file.
+    identity: str | None = None
 
 
 @dataclass(frozen=True)
@@ -575,9 +579,18 @@ class AsyncPDFDownloader:
         return "UNRESOLVED"
 
     async def process_doi(
-        self, session: aiohttp.ClientSession, http_client: AcademicHttpClient, doi: str
+        self,
+        session: aiohttp.ClientSession,
+        http_client: AcademicHttpClient,
+        doi: str,
+        *,
+        title: str | None = None,
     ) -> DownloadResult:
-        """Resolve OA evidence and atomically acquire a PDF for one DOI."""
+        """Resolve OA evidence and atomically acquire a PDF for one DOI.
+
+        ``title`` (the caller's record) is looked for on the first pages, else
+        the title the lookups give (Part K item 9).
+        """
         require_contact_email()  # refused before any request (MAILTO_NOT_SET)
         try:
             # Both services are asked for every DOI, once each (decision
@@ -663,6 +676,9 @@ class AsyncPDFDownloader:
                                 f"{attempts[-1].error or 'not a valid PDF'}"
                             )
                             continue
+                        identity = check_identity(
+                            candidate_path, doi, title or metadata.get("title")
+                        )
                         final_path, _ = self._promote_candidate(candidate_path)
                         # The status follows the bytes (Part K item 7, PDF-12): an open
                         # location's own address is open access; the parked gateway is
@@ -680,6 +696,7 @@ class AsyncPDFDownloader:
                             was_oa=opened,
                             source_url=_public_url(candidate) or candidate,
                             route=route,
+                            identity=identity,
                             # The label follows the bytes: a file fetched through
                             # the parked gateway is not that open location's copy.
                             open_copy=copy if candidate == copy.url else None,
@@ -777,10 +794,12 @@ class AsyncPDFDownloader:
                     error_message=f"The provided file was not stored: {failure}.",
                     lookups=lookups,
                 )
+            identity = check_identity(staging, doi, metadata.get("title"))
             final_path, _ = self._promote_candidate(staging)
             return DownloadResult(
                 doi=doi,
                 success=True,
+                identity=identity,
                 file_path=final_path,
                 was_oa=access_status == "VERIFIED_OPEN_ACCESS",
                 status="ACQUIRED",
