@@ -47,6 +47,18 @@ Record: `docs/roadmap/milestones/M12a-charting-table.md`, "Build record", Part C
 28. **The export lines take the singular** through the shared plural table (`lib/plural.ts`, en, fr and ar; review, finding 5): "1 row", "1 cell is not charted yet", "1 required cell is empty"; `cc()` takes an optional count.
 29. **"Still open" says where a waiting copy is counted** (review, finding 3): "A copy waiting for you is also counted under its row's status above; a report assessed before its full text was retrieved is also among the assessed", and the line reads "Assessed before the full text was retrieved".
 
+## 2026-11-22 — H-screening-read-performance: the engine reads once and keeps what it computed (items 1 to 5 answered by the researcher 2026-11-22, each as recommended; a specification, nothing built)
+
+Record: `docs/roadmap/milestones/H-screening-read-performance.md`. Measured on the published sensor-stress review: Screening home's last API answer arrives after 9.8 s; `/review/next-step` takes 3.9 s alone and opens about 3,300 files, because the decision log and the context are reloaded once per batch, the latest decision of a record is found by scanning every event, and an accepted corpus is re-parsed and de-duplicated on every call. Disk is about a quarter of the time. Asked in the main session, one by one. No route changes its answer; no Contract v1 file changes.
+
+1. **Scope: screening's read routes and the next-step bar**; the rest is measured first. *Not chosen:* everything in one build.
+2. **Results are kept between requests**, keyed by file names, sizes and modification times; never written to disk. Lane RELEASE. *Not chosen:* per request only.
+3. **Approve and Publish always recompute from disk**; display routes trust the store. *Not chosen:* a content-hash key.
+4. **No combined route**; requests keep queuing.
+5. **Loading state: headings and empty cards**, no animation.
+
+The researcher also decided the order of the builds waiting behind M12a Part C: the lost-focus fault in charting (`tests-browser/charting-study.spec.ts:209`, which failed twice in CI on a documents-only PR), then this, then `H-adopted-decisions-disclosure`; and that the first may start in a second session while Part C finishes, the sessions taking turns on heavy runs.
+
 ## 2026-11-22 — M12a Part F: open-access fetching, the engine and the screens (items 1 to 68 accepted by the researcher 2026-11-22 as built)
 
 **Answered 2026-11-22.** The researcher accepted items 1 to 68 as built (asked in the main session with the five items it singled out: 15, 22, 51, 60 and 68; the answer was to go with its recommendation, accept all) and approved the push and the merge at 12 of 12. On item 22 the change is taken (the provider keeps an old-style id's archive); a read-only check the same day found no old-style arXiv id among the 2,176 verified records of the researcher's review. Item 51 stays owed: the French and Arabic words of the fetch screens have not been read by the researcher. Where an item below still reads "PROPOSED", this answer replaces it.
