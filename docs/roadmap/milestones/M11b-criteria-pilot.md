@@ -662,7 +662,7 @@ Review round 2 of part C (on `f6d26718`): **APPROVE** (lane RELEASE confirmed). 
 
 ### Part D: Inception step 5
 
-Branch `dev/m11b/part-d-step5`, stacked on part C (its reviewed head `daaeaa92` merged in, and `origin/main` `55755bd7`: part B as PR 277 and the PDF resolver fix PR 278) · Lane **RELEASE** (the inception draft API, the intent packet and the protocol genesis writes change; new check ids in a public preview) · Decisions: `docs/decisions.md` "2026-11-21 — M11b part D" items 1 to 10 (PROPOSED). Status: **READY FOR PR** (review round 2 APPROVE; not pushed).
+Branch `dev/m11b/part-d-step5`, stacked on part C (its reviewed head `daaeaa92` merged in, and `origin/main` `55755bd7`: part B as PR 277 and the PDF resolver fix PR 278) · Lane **RELEASE** (the inception draft API, the intent packet and the protocol genesis writes change; new check ids in a public preview) · Decisions: `docs/decisions.md` "2026-11-21 — M11b part D" items 1 to 10 (PROPOSED). Status: **IN PROGRESS** (item 5 changed by the researcher on 2026-11-22; the change, its gate and the review of the delta below).
 
 What was built (engine):
 - `inception/steps.py`: the draft fields `method_blinding` (pre-selected "after you decide") and `method_not_reported` (no default); `method_choice`, `method_options` on `steps/criteria`; `build_intent` refuses `METHOD_RULE_UNCHOSEN` (preview and genesis) and writes `method` into the intent; `keep_method_choice` on every save (omitted fields kept; `null` after a choice is `DRAFT_INVALID`). `inception/drafts.py`: a new draft stores the rule unchosen.
@@ -744,3 +744,22 @@ Not taken: P4-9 (Review falls back to "after you decide" when a draft has no vis
 Review round 2 of part D (on `198bdfe8`): **APPROVE** (lane RELEASE confirmed; the contract baseline current at head; 35 Python and 38 vitest targeted tests passed). Three P4 notes, recorded as follow-ups: the import-label test cannot fail (its draft has no import origin; a real test seeds an imported draft and changes the rule); after the researcher saves another rule the label compares against the stored draft and comes back (keeping the imported value in the origin's `carried` entry would fix it); the one full-run vitest failure was `inception.criteria > shows each criterion verbatim with its source; the generated one waits for you` (a test of 05's rows, passed twice alone).
 
 **Part D: READY FOR PR** (not pushed). Branch `dev/m11b/part-d-step5`, stacked on part C (reviewed head `daaeaa92`) with `origin/main` `55755bd7`. Lane RELEASE: the CI matrix on the PR is the closure evidence, recorded after the push. Decision items 1 to 20 of part D wait for the researcher. Part C's final head is to be merged in when the main session sends it.
+
+The researcher's answers to part D (main session, 2026-11-22): nineteen items accepted (11 "Accept"; 8 "Accept, with the weak spot", the French case a follow-up; 17 "Follow-ups"; the other fifteen "Accept as built"); **item 5 changed: "Shown, but I must confirm it"**. The push of part D is approved in advance on condition that the item 5 change passes the full gate and the `milestone-reviewer` approves the delta; the main session pushes, after part C. The follow-up on placeholder workspaces that sign `unclear` without asking is to be fixed in a follow-up PR after part D merges (not here).
+
+The item 5 change (decision items 21 to 24, PROPOSED), built test first:
+- Engine: the draft field `method_not_reported_source` (`imported`, `confirmed`, `chosen`, or null); the importer marks the rule `imported`; `method_choice` answers `chosen: false` and the `source` for it, so `METHOD_RULE_UNCHOSEN` blocks step 5, Review and genesis, with its own sentence (`METHOD_RULE_UNCHOSEN.imported`) and `details.imported` on a refusal; `keep_method_choice` keeps the source when a save omits it, refuses marking a confirmed or picked rule imported again, and makes a changed value `chosen`. The visibility question is carried as it is. The terminal wizard never starts from an imported protocol, so it is unchanged.
+- Screen: "From the imported protocol: confirm this rule or choose another." with "Keep this rule"; keeping saves `confirmed` (label kept), choosing another saves `chosen` (label dropped), both read from the engine's `source`; the criteria step is asked again when the source changes in the tab (a bug the first test run showed: Continue stayed held after "Keep this rule"). Review: "From the imported protocol; not confirmed yet." Copy in en, fr and ar; the audit's row I-C30 names the two new keys.
+
+| Item | Test | Fails before |
+| :-- | :-- | :-- |
+| an import marks its rule imported, carries the visibility | `tests/inception/test_method_questions.py::test_an_import_marks_its_rule_imported_and_carries_the_visibility_as_it_is` | yes (no field: `DRAFT_INVALID` extra input) |
+| shown but blocking at step 5, Review and genesis, nothing written | `test_an_imported_rule_is_shown_but_blocks_step_5_review_and_genesis_until_confirmed` | yes |
+| confirming clears the blocker and records the confirmation | `test_confirming_the_imported_rule_clears_the_blocker_and_records_the_confirmation` | yes |
+| choosing another clears it and drops the mark; a save that names nothing keeps it | `test_choosing_another_rule_clears_the_blocker_and_drops_the_import_mark` | yes |
+| a confirmed rule cannot be marked imported again | `test_a_confirmed_rule_cannot_be_marked_imported_again` | yes |
+| the screen: shown, labelled, held; "Keep this rule"; another choice drops the label; Review's line | `apps/research-ui/tests/inception-criteria-block.test.tsx` "item 5" (3; they replace the guard that could not fail) | yes (Continue stayed held after "Keep this rule" until the step was asked again on the source) |
+
+| Stage | Commit | Command | Result | Duration |
+| :-- | :-- | :-- | :-- | :-- |
+| targeted | `d012e9c6` (working tree) | `tests/inception`, `tests/console/test_inception_api.py`, `tests/kits/protocol`, `tests/mcp`, `-m "not slow"`, `-n 4`; `vitest` of the step 5, checks, guidance audit and Review files; contract baseline, protocol schema | 664 passed; 80 passed, then 17 of the step 5 file (two waits lengthened: the screen draws in more than a second on a loaded machine); current; in sync | |
