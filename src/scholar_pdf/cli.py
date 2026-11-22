@@ -2,6 +2,7 @@
 import asyncio
 import json
 import os
+import re
 import sys
 import tempfile
 from contextlib import suppress
@@ -118,7 +119,7 @@ def _download_exit_code(results: list) -> int:
 
 
 def _write_json_atomic(path: Path, payload: str) -> None:
-    """Write a CLI summary without exposing a partially written JSON file."""
+    """Write a CLI file (a JSON summary, an export) whole or not at all."""
 
     path.parent.mkdir(parents=True, exist_ok=True)
     descriptor, temporary_name = tempfile.mkstemp(
@@ -324,8 +325,28 @@ def _record_id(item: dict) -> str | None:
     return None
 
 
+_BIBTEX_DOI = re.compile(r"^\s*doi=\{([^}]*)\}", re.MULTILINE)
+
+
+def _bibtex_entry(doi: str, metadata: dict) -> str:
+    """One entry; a field the lookups did not give is left out, never ``None`` (PDF-18)."""
+    author = str(metadata.get("author") or "").strip()
+    year = str(metadata.get("year") or "").strip()
+    year = "" if year.lower() == "none" else year
+    title = str(metadata.get("title") or "").strip()
+    key = f"{author or 'Unknown'}{year or 'nd'}".replace(" ", "")
+    fields = [f"  title={{{title or 'Unknown'}}}", f"  author={{{author or 'Unknown'}}}"]
+    if year:
+        fields.append(f"  year={{{year}}}")
+    fields.append(f"  doi={{{doi}}}")
+    return f"@article{{{key},\n" + ",\n".join(fields) + "\n}\n"
+
+
 def _export_results(export_format: str, output_dir: Path, successful_results: list):
-    """Helper to export results, appending to existing files if they exist."""
+    """Add the results to the export file, one entry per DOI, written whole (PDF-18).
+
+    The file is replaced atomically: a failure leaves the previous export as it was.
+    """
     if not successful_results:
         return
 
@@ -339,38 +360,42 @@ def _export_results(export_format: str, output_dir: Path, successful_results: li
                 open(export_path, "r", encoding="utf-8") as f,
             ):
                 export_data = json.load(f)
+        if not isinstance(export_data, list):
+            export_data = []
 
         # Append new successful results, avoiding duplicate DOIs
-        existing_dois = {item["doi"] for item in export_data}
+        existing_dois = {item.get("doi") for item in export_data if isinstance(item, dict)}
         for res in successful_results:
             if res.doi not in existing_dois and res.metadata:
+                existing_dois.add(res.doi)
                 export_data.append(
                     {
                         "doi": res.doi,
-                        "file_path": str(res.file_path),
+                        "file_path": str(res.file_path) if res.file_path else None,
                         "metadata": res.metadata,
                     }
                 )
 
-        with open(export_path, "w", encoding="utf-8") as f:
-            json.dump(export_data, f, indent=2)
+        # Serialized before the file is touched, then replaced atomically.
+        _write_json_atomic(export_path, json.dumps(export_data, indent=2))
         console.print(f"[green]Exported metadata to {export_path}[/green]")
 
     elif export_format.lower() == "bibtex":
+        existing = ""
+        if export_path.exists():
+            existing = export_path.read_text(encoding="utf-8")
+        seen = {doi.strip().lower() for doi in _BIBTEX_DOI.findall(existing)}
         bibtex_entries = []
         for res in successful_results:
-            if not res.metadata:
+            if not res.metadata or res.doi.strip().lower() in seen:
                 continue
-            md = res.metadata
-            author = md.get("author", "Unknown")
-            year = md.get("year", "Unknown")
-            title = md.get("title", "Unknown")
-            key = f"{author}{year}".replace(" ", "")
-            bibtex = f"@article{{{key},\n  title={{{title}}},\n  author={{{author}}},\n  year={{{year}}},\n  doi={{{res.doi}}}\n}}\n"
-            bibtex_entries.append(bibtex)
-
-        with open(export_path, "a", encoding="utf-8") as f:
-            f.write("\n".join(bibtex_entries) + "\n")
+            seen.add(res.doi.strip().lower())
+            bibtex_entries.append(_bibtex_entry(res.doi, res.metadata))
+        if not bibtex_entries:
+            return
+        text = existing.rstrip("\n")
+        text = (text + "\n\n" if text else "") + "\n".join(bibtex_entries)
+        _write_json_atomic(export_path, text.rstrip("\n"))
         console.print(f"[green]Exported BibTeX to {export_path}[/green]")
     else:
         console.print(
@@ -397,9 +422,6 @@ def download(
     ),
     max_concurrent: int = typer.Option(
         5, "--max-concurrent", "-c", help="Maximum concurrent downloads"
-    ),
-    smart_names: bool = typer.Option(
-        False, "--smart-names", help="Rename downloaded PDFs using Author_Year_Title"
     ),
     export_format: str = typer.Option(
         None,
@@ -447,8 +469,11 @@ def download(
     study_ids: dict[str, str] = {}
     titles: dict[str, str] = {}
 
-    # Parse input file if provided
-    if input_file and input_file.exists():
+    # Parse input file if provided. A missing file is a usage error, not
+    # "no DOIs" (PDF-15).
+    if input_file is not None and not input_file.is_file():
+        raise typer.BadParameter(f"{input_file} does not exist", param_hint="--input")
+    if input_file:
         try:
             with open(input_file, "r", encoding="utf-8") as f:
                 data = json.load(f)
@@ -492,7 +517,6 @@ def download(
     manifest_path = manifest if manifest is not None else output_dir / MANIFEST_NAME
     downloader = AsyncPDFDownloader(
         output_dir=output_dir,
-        use_smart_names=smart_names,
         proxy_url=proxy,
         proxy_style=proxy_style,
         structural_validation=strict_validate,
@@ -604,9 +628,6 @@ def ingest(
     output_dir: Path = typer.Option(
         Path("downloads"), "--output", "-o", help="Directory to save PDFs"
     ),
-    smart_names: bool = typer.Option(
-        False, "--smart-names", help="Rename downloaded PDF using Author_Year_Title"
-    ),
     export_format: str = typer.Option(
         None, "--export", help="Export successfully ingested metadata (json or bibtex)"
     ),
@@ -641,7 +662,6 @@ def ingest(
     console.print(f"[bold blue]Ingesting {pdf_path} for DOI {doi}...[/bold blue]")
     downloader = AsyncPDFDownloader(
         output_dir=output_dir,
-        use_smart_names=smart_names,
         proxy_url=proxy,
         proxy_style=proxy_style,
         structural_validation=strict_validate,
@@ -675,7 +695,8 @@ def ingest(
         if export_format:
             _export_results(export_format, output_dir, [res])
     else:
-        console.print(f"[bold red]Failed to ingest PDF: {res.error_message}[/bold red]")
+        console.print(f"[bold red]Failed to ingest PDF: {escape(res.error_message or '')}[/bold red]")
+        raise typer.Exit(1)  # PDF-15: nothing stored is a failure
 
 
 @app.command("extract")

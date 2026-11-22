@@ -194,6 +194,11 @@ def _retry_wait(state: RetryCallState) -> float:
     return _BACKOFF(state)
 
 
+def _year(value: object) -> str:
+    """A year as text, or ``""`` when the service gives none: never ``'None'`` (PDF-18)."""
+    return "" if value is None or isinstance(value, bool) else str(value).strip()
+
+
 def fetch_failure(error: BaseException) -> str:
     """Why a PDF address gave no file, in words; never the error's own text."""
     if isinstance(error, aiohttp.ClientResponseError):
@@ -264,7 +269,6 @@ class AsyncPDFDownloader:
     def __init__(
         self,
         output_dir: Path | None = None,
-        use_smart_names: bool = False,
         proxy_url: str | None = None,
         proxy_style: str = "auto",
         structural_validation: bool | None = None,
@@ -277,7 +281,6 @@ class AsyncPDFDownloader:
         self.manifest_path = Path(manifest_path) if manifest_path is not None else None
         self.output_dir.mkdir(parents=True, exist_ok=True)
         self.semaphore = asyncio.Semaphore(settings.max_concurrent_downloads)
-        self.use_smart_names = use_smart_names
         # ``proxy_url`` is retained as a deprecated alias for the historical
         # gateway configuration.  Parked code (M12a item 25): only a gateway the
         # caller passes is used; ``PROXY_URL`` is never read here (K0), and the
@@ -303,26 +306,6 @@ class AsyncPDFDownloader:
             raise ValueError(
                 "institutional_gateway_url and forward_proxy_url must be distinct"
             )
-
-    def _safe_filename(self, doi: str, metadata: dict | None = None) -> str:
-        """Converts a DOI to a safe filename, optionally using metadata."""
-        if self.use_smart_names and metadata:
-            title = metadata.get("title", "")
-            author = metadata.get("author", "")
-            year = metadata.get("year", "0000")
-
-            if title and author:
-                # Sanitize title and author
-                safe_title = "".join(
-                    c for c in title[:50] if c.isalnum() or c in (" ", "_")
-                ).replace(" ", "_")
-                safe_author = "".join(
-                    c for c in author if c.isalnum() or c in (" ", "_")
-                ).replace(" ", "_")
-                return f"{year}_{safe_author}_{safe_title}.pdf"
-
-        safe_doi = doi.replace("/", "_").replace("\\", "_").replace(":", "_")
-        return f"{safe_doi}.pdf"
 
     def _content_path(self, digest: str) -> Path:
         """Return the authoritative content/identity-addressed final path."""
@@ -544,7 +527,7 @@ class AsyncPDFDownloader:
         metadata = {"title": "", "author": "", "year": ""}
         if source == "openalex":
             metadata["title"] = oa_data.get("title") or ""
-            metadata["year"] = str(oa_data.get("publication_year", ""))
+            metadata["year"] = _year(oa_data.get("publication_year"))
             authorships = oa_data.get("authorships", [])
             if authorships:
                 author_name = authorships[0].get("author", {}).get("display_name", "")
@@ -552,7 +535,7 @@ class AsyncPDFDownloader:
                 metadata["author"] = author_name.split(" ")[-1] if author_name else ""
         elif source == "unpaywall":
             metadata["title"] = oa_data.get("title") or ""
-            metadata["year"] = str(oa_data.get("year", ""))
+            metadata["year"] = _year(oa_data.get("year"))
             z_authors = oa_data.get("z_authors", [])
             if z_authors:
                 metadata["author"] = (
