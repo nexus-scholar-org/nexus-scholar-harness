@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState, type RefObject } from "react";
-import { ArrowDownIcon, ArrowUpIcon, PlusIcon, ScissorsIcon, TrashIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import { ArrowDownIcon, ArrowsPointingInIcon, ArrowUpIcon, PlusIcon, ScissorsIcon, TrashIcon, XMarkIcon } from "@heroicons/react/24/outline";
 
 import type { Locale } from "@/i18n";
 import { Button } from "@/components/ui/base";
@@ -17,7 +17,7 @@ import { COLUMN_TYPES, FOCUS_RING, TYPE_KEY } from "./charting-cells";
  * beside the rows, a labelled complementary region. It edits the form that sits
  * beside the protocol (the protocol itself is never changed): columns with a name,
  * a definition, a type, options and "required"; add, remove, reorder, split one
- * column into two. Before any cell holds a value each change is saved at once;
+ * column into two, merge two columns into one. Before any cell holds a value each change is saved at once;
  * after, the changes wait for one sentence ("Why does the form change?") and are
  * recorded as an amendment. The engine decides what an amendment is and which
  * cells must be charted again; this panel only sends the new columns.
@@ -117,6 +117,9 @@ export function ChartingFormPanel({
   const [needsReason, setNeedsReason] = useState(false);
   const [optionText, setOptionText] = useState<Record<string, string>>({});
   const [line, setLine] = useState("");
+  /** The column whose "Merge with…" chooser is open, and the column chosen in it. */
+  const [mergeFrom, setMergeFrom] = useState<string | null>(null);
+  const [mergeTarget, setMergeTarget] = useState("");
   const draftRef = useRef(draft);
   draftRef.current = draft;
   const formRef = useRef(form);
@@ -262,6 +265,52 @@ export function ChartingFormPanel({
     change([...current.slice(0, index), ...parts, ...current.slice(index + 1)], true);
   }
 
+  function openMerge(column: FormColumn) {
+    const other = draftRef.current.find((c) => c.column_id !== column.column_id);
+    if (!other) return;
+    setMergeTarget(other.column_id);
+    setMergeFrom(column.column_id);
+  }
+
+  function closeMerge(focusId: string | null) {
+    setMergeFrom(null);
+    if (focusId) setTimeout(() => document.querySelector<HTMLElement>(`[data-form-column="${focusId}"] [data-form-merge]`)?.focus(), 0);
+  }
+
+  // The chooser takes the focus when it opens.
+  useEffect(() => {
+    if (mergeFrom) document.querySelector<HTMLSelectElement>(`[data-form-column="${mergeFrom}"] [data-form-merge-target]`)?.focus();
+  }, [mergeFrom]);
+
+  /**
+   * Two columns into one: a new Text column, at the place of the first, that names
+   * both as its sources. The engine reads it as a merge (several columns into one)
+   * and marks its cells "Chart again" with the earlier values. A source not yet in
+   * the saved form (a draft waiting for its amendment) gives its own sources instead,
+   * so a third column can be merged into a merge that is not recorded yet.
+   */
+  function merge(fromId: string, intoId: string) {
+    const current = draftRef.current;
+    const at = [fromId, intoId].map((id) => current.findIndex((c) => c.column_id === id)).sort((x, y) => x - y);
+    if (at[0] < 0 || at[0] === at[1]) return;
+    const [first, second] = [current[at[0]], current[at[1]]];
+    const saved = new Set(formRef.current.columns.map((c) => c.column_id));
+    const sources = (c: FormColumn) => (saved.has(c.column_id) ? [c.column_id] : (c.derived_from ?? []).filter((p) => saved.has(p)));
+    const column: FormColumn = {
+      column_id: newColumnId(),
+      name: t("charting.form.mergeName", { a: first.name, b: second.name }).slice(0, 200),
+      definition: [first.definition, second.definition].map((d) => (d ?? "").trim()).filter(Boolean).join("; ").slice(0, 2000),
+      type: "text",
+      options: [],
+      required: first.required || second.required,
+      from_protocol: null,
+      derived_from: [...new Set([...sources(first), ...sources(second)])],
+    };
+    setMergeFrom(null);
+    focusNext.current = column.column_id;
+    change([...current.slice(0, at[0]), column, ...current.slice(at[0] + 1).filter((c) => c.column_id !== second.column_id)], true);
+  }
+
   function setType(index: number, type: ColumnType) {
     const current = draftRef.current[index];
     const options = type === "one" || type === "several" ? (current.type === "one" || current.type === "several" ? current.options : []) : [];
@@ -276,12 +325,27 @@ export function ChartingFormPanel({
     update(index, { options: [...column.options, text] }, true);
   }
 
+  // The names of columns seen in this panel, so "Made from" can still name a column
+  // removed by a split or merge saved before any value (no amendment says its name then).
+  const seen = useRef(new Map<string, string>());
   const names = useMemo(() => {
     const map = new Map<string, string>();
-    for (const c of form.columns) map.set(c.column_id, c.name);
-    for (const a of form.amendments) {
-      if (a.column_id && !map.has(a.column_id) && typeof a.from === "string") map.set(a.column_id, a.from);
+    for (const c of form.columns) {
+      map.set(c.column_id, c.name);
+      seen.current.set(c.column_id, c.name);
     }
+    // As the engine reads them: a split names its old column, a replacement its one
+    // source, a merge each source in turn.
+    for (const a of form.amendments) {
+      const put = (id: unknown, name: unknown) => {
+        if (typeof id === "string" && id && !map.has(id) && typeof name === "string") map.set(id, name);
+      };
+      if (a.change === "replaced" || a.change === "merged") {
+        const from = Array.isArray(a.from) ? a.from : [a.from];
+        (a.columns ?? []).forEach((id, i) => put(id, from[i]));
+      } else put(a.column_id, a.from);
+    }
+    for (const [id, name] of seen.current) if (!map.has(id)) map.set(id, name);
     return map;
   }, [form.columns, form.amendments]);
 
@@ -355,6 +419,7 @@ export function ChartingFormPanel({
           const defId = `form-def-${column.column_id}`;
           const typeId = `form-type-${column.column_id}`;
           const optionId = `form-option-${column.column_id}`;
+          const mergeId = `form-merge-${column.column_id}`;
           const parents = (column.derived_from ?? []).map((p) => names.get(p) ?? p);
           return (
             <li key={column.column_id} className="space-y-2 rounded-md border border-rule bg-paper p-3" data-form-column={column.column_id}>
@@ -495,11 +560,65 @@ export function ChartingFormPanel({
                   <ScissorsIcon aria-hidden="true" className="size-4" />
                   {t("charting.form.split")}
                 </Button>
+                <Button
+                  variant="quiet"
+                  className="px-2 text-sm"
+                  disabled={locked || draft.length < 2}
+                  aria-expanded={mergeFrom === column.column_id}
+                  aria-controls={mergeFrom === column.column_id ? mergeId : undefined}
+                  onClick={() => (mergeFrom === column.column_id ? closeMerge(null) : openMerge(column))}
+                  data-form-merge
+                >
+                  <ArrowsPointingInIcon aria-hidden="true" className="size-4" />
+                  {t("charting.form.merge")}
+                </Button>
                 <Button variant="quiet" className="px-2 text-sm" disabled={locked} onClick={() => remove(index)} data-form-remove>
                   <TrashIcon aria-hidden="true" className="size-4" />
                   {t("charting.form.remove")}
                 </Button>
               </div>
+              {mergeFrom === column.column_id && !locked ? (
+                <div
+                  id={mergeId}
+                  className="flex flex-wrap items-end gap-2 rounded-md border border-rule bg-leaf p-2"
+                  onKeyDown={(event) => {
+                    // Esc closes the chooser only, not the whole panel.
+                    if (event.key === "Escape") {
+                      event.stopPropagation();
+                      event.preventDefault();
+                      closeMerge(column.column_id);
+                    }
+                  }}
+                  data-form-merge-chooser
+                >
+                  <div className="min-w-0 grow space-y-1">
+                    <label htmlFor={`${mergeId}-target`} className="text-sm text-ink">
+                      <bdi>{t("charting.form.mergeWith", { name: column.name })}</bdi>
+                    </label>
+                    <select
+                      id={`${mergeId}-target`}
+                      value={mergeTarget}
+                      onChange={(event) => setMergeTarget(event.target.value)}
+                      className={input}
+                      data-form-merge-target
+                    >
+                      {draft.map((other, n) =>
+                        other.column_id === column.column_id ? null : (
+                          <option key={other.column_id} value={other.column_id}>
+                            {other.name.trim() || t("charting.form.column", { n: n + 1 })}
+                          </option>
+                        ),
+                      )}
+                    </select>
+                  </div>
+                  <Button className="px-2 text-sm" disabled={!mergeTarget} onClick={() => merge(column.column_id, mergeTarget)} data-form-merge-confirm>
+                    {t("charting.form.mergeConfirm")}
+                  </Button>
+                  <Button variant="quiet" className="px-2 text-sm" onClick={() => closeMerge(column.column_id)} data-form-merge-cancel>
+                    {t("charting.form.mergeCancel")}
+                  </Button>
+                </div>
+              ) : null}
             </li>
           );
         })}
