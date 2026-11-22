@@ -10,7 +10,7 @@ history to read if you need the original reasoning (`git log --follow -- <path>`
 
 | Entry | Item | What is open |
 | :-- | :-- | :-- |
-| 2026-11-21 — M12a Part B: the charting form, cells, pilot and amendments | 1 to 34 | Proposed with the build; items 30 and 31 change or read accepted Part A items 29 and 18; the researcher's answer is pending. |
+| 2026-11-21 — M12a Part B: the charting form, cells, pilot and amendments | 1 to 34 | Proposed with the build; items 13, 30 and 31 change or read accepted items (spec 02's closed question 1, Part A items 29 and 18); items 2, 4, 12 and 19 were reworded by the review; the researcher's answer is pending. |
 | 2026-11-19 — M9a: what the measurement says about the ladder gates | 2 | The minimum share of the researcher's excludes an agent must take before a rung unlocks: the principle is accepted; the researcher decided on 2026-11-20 to set the number when M9b is built. |
 
 ## 2026-11-21 — M12a Part B: the charting form, cells, pilot and amendments (items 1 to 34 PROPOSED)

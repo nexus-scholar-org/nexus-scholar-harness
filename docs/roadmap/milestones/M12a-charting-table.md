@@ -577,6 +577,8 @@ Review round 1 (`milestone-reviewer`, on `57a96c29`, scope `d110afe4..HEAD`): **
 | P3-8 | A `form.json` of another schema was silently re-seeded | refused `CHARTING_FORM_STALE` and kept | `test_a_form_file_this_version_cannot_read_is_refused_and_kept` |
 | P3-9 | Required cells not charted were not counted and not listed as deferred | deferred to Part C, listed under "Not verified" above | (none) |
 
+The repairs also changed the meaning of decision items 2 (a form save is all or nothing, `ATOMIC_COMMIT_FAILED`; "has values" is read while no cell can be stored) and 4 (the new columns keep naming their sources; an unreadable `form.json` is refused `CHARTING_FORM_STALE` and kept), besides 12, 13 and 19; all are PROPOSED, and the researcher sees them reworded.
+
 P4 follow-ups left as they are: two protocol ids that become the same once made safe lose a column at seeding; a new column naming a column still in the form is recorded as "added" yet marked Chart again; a clear without `supersedes` keeps form changes as amendments; no test that nothing is seeded while the table is read-only; the `CHARTING_VALUE_INVALID` words say "not one of the options" for a text that is too long. ("0x10" is now asked again, with finding 3.)
 
 Evidence after round 1:
@@ -587,3 +589,7 @@ Evidence after round 1:
 | pr (final) | `72813eca` | the full PR gate, each heavy step alone on the machine: `pytest -q -n 4` (junit); `sync_skills_bundle.py --check`; typecheck; `vitest run`; build; `playwright test`; both ruff runs; baseline; protocol schema; `git diff --check origin/main...HEAD` | 6239 tests, 0 failures, 0 errors, 15 skipped; OK; clean; 90 files, 1179 tests, 0 failures; built; 680 passed, 12 skipped; clean; clean; current; in sync; clean | 716 s; 151 s; 23 s; 1084 s |
 
 The Playwright run rewrote the same four screenshots as before; they were restored.
+
+Review round 2 (`milestone-reviewer`, on `edf2f482`, the repair delta `57a96c29..HEAD`): **APPROVE**. In its words: "All nine round-1 findings are repaired, and none of the repairs breaks anything I checked." It reran 92 Python tests and the three touched vitest files (21 tests), all clean, and its round-1 probes now behave as expected through the route. Two documentation points, repaired in the closing commit (no executable change, so the gate on `72813eca` stands): the contract row of `CHARTING_FORM_STALE` now names every route that loads the form and the unreadable-form meaning; the record and the open-decisions row say items 2 and 4 changed meaning too. P4 follow-ups, left as they are: the screen's words for `CHARTING_FORM_STALE` ("Reload the table") do not fit an unreadable form; "1.260" is read as 1.26 (right in English, ambiguous in French); a narrow two-tab race in which a free form change lands between `post_events` building its form context and taking the events lock; a change of `derived_from` alone is not stored (no difference found).
+
+**Part B: READY FOR PR** (not pushed). Branch `dev/m12a/part-b-form-cells`; it carries Part A's PR-276 head `d110afe4` and must be merged after Part A. Decision items 1 to 34 are PROPOSED (items 13, 30 and 31 change or read accepted items). The push waits for the researcher's approval through the main session.
