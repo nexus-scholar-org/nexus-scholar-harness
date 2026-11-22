@@ -48,6 +48,8 @@ dependencies = [
     "httpx>=0.28.1,<1",
     "mcp>=2.1.1",
     "networkx>=3.0",
+    # M12a Part C: the charting export's spreadsheet (.xlsx); pure Python (answer 8, "Add openpyxl").
+    "openpyxl>=3.1.5",
     "pydantic>=2.0.0",
     "pydantic-settings>=2.0.0",
     "pypdf>=4.0.0",
