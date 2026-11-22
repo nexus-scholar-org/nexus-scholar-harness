@@ -304,8 +304,8 @@ describe("pilot.calibration-dialog", () => {
     await vi.waitFor(() => expect(posts("/proposals/calibrations")).toHaveLength(1));
     expect(posts("/proposals/calibrations")[0].body).toMatchObject({ pilot_id: "pilot_001", provider: "anthropic", model: "claude-haiku-5-5" });
     expect(await within(dialog).findByText("Missed includes: 2 of 25")).toBeTruthy();
-    // Review C round 2: focus stays inside once the run view replaces the form.
-    expect(dialog.contains(document.activeElement)).toBe(true);
+    // Review C round 2: focus stays inside once the run view replaces the form (it moves there in an effect).
+    await vi.waitFor(() => expect(dialog.contains(document.activeElement)).toBe(true));
   });
 
   it("uses the last model of the workspace when there is one", async () => {
