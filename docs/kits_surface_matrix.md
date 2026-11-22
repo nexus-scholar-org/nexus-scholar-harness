@@ -307,7 +307,7 @@ latent bug**, with the working path in parentheses.
   identity on the first two pages with the `pdf` extra (PDF-22); frontmatter keys =
   `workspace_id|doi|title|authors|year|extraction_engine|extracted_at` (empty keys
   dropped); PDF bytes
-  stream via aiohttp (the app's user agent) while metadata uses search-kit's httpx+hishel client;
+  stream via aiohttp (the app's user agent) while metadata uses search-kit's httpx client without its disk cache (the lookup addresses carry the OpenAlex key and the e-mail; M12a Part K);
   `import fitz` (PyMuPDF); `pyyaml` is an undeclared transitive dep; extraction
   writes a stub line on parse failure — "success" ≠ content.
 
