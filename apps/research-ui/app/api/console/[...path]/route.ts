@@ -61,6 +61,10 @@ const POST_PATHS: ReadonlyArray<RegExp> = [
   /^api\/v1\/screening\/prepare$/,
   // H-screening-drafts: a method amendment (blinding, not-reported policy).
   /^api\/v1\/screening\/method\/amendments$/,
+  // M11b: a revision of the criteria; a pilot drawn, its decisions, its close.
+  /^api\/v1\/screening\/criteria\/amendments$/,
+  /^api\/v1\/screening\/pilot$/,
+  /^api\/v1\/screening\/pilot\/pilot_\d{3}\/(decisions|close)$/,
   // M5b: the corpus import (stage a RIS export, remove one, accept). The console
   // refuses once the corpus is accepted, and a phone token reaches none of them.
   /^api\/v1\/screening\/corpus\/(sources|accept)$/,
@@ -122,6 +126,7 @@ const POST_PATHS: ReadonlyArray<RegExp> = [
   /^api\/v1\/discovery\/proposals\/prop_[0-9a-f]+\/(apply|reject)$/,
   /^api\/v1\/charting\/events$/,
   /^api\/v1\/charting\/records\/[A-Za-z0-9_-]+\/attachment$/,
+  /^api\/v1\/charting\/form\/pilot\/end$/,
 ];
 
 /** The one GET with a side effect: the engine records a reveal when a draft is read. */
@@ -135,6 +140,7 @@ const READ_CHARTING_EXPORT = /^api\/v1\/charting\/export$/;
  * and saving an inception draft (M4b; the console checks `base_updated_at`).
  */
 const PUT_PATHS: ReadonlyArray<RegExp> = [
+  /^api\/v1\/charting\/form$/,
   /^api\/v1\/screening\/settings$/,
   /^api\/v1\/screening\/approver$/,
   /^api\/v1\/inception\/drafts\/[A-Za-z0-9_-]+$/,

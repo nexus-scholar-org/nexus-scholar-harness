@@ -165,7 +165,7 @@ describe("guidance.screens", () => {
       expect(within(card).getByText("Recommended · word scan of your topic")).toBeInTheDocument();
       expect(within(card).queryByRole("button")).toBeNull();
       expect(screen.getAllByRole("radio").every((r) => !(r as HTMLInputElement).checked)).toBe(true);
-      expectHints(["shape.leaningNote", "shape.unitHelp", "shape.proofHelp", "shape.outOfScopeHelp", "shape.planned.hint"]);
+      expectHints(["shape.leaningNote", "shape.unitHelp", "shape.proofHelp", "shape.planned.hint"]);
       expectGone(["A word scan of your topic leans one way; that lens is marked."]);
       expect(screen.getByRole("button", { name: "Continue to concepts and criteria" })).toBeDisabled();
       expect(primaries().map((b) => b.textContent)).toEqual(["Continue to concepts and criteria"]);

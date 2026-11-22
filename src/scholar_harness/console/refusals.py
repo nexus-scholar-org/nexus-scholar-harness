@@ -122,6 +122,8 @@ DRAFT_INCOMPLETE = "DRAFT_INCOMPLETE"
 DRAFT_TOO_LARGE = "DRAFT_TOO_LARGE"
 STEP_UNKNOWN = "STEP_UNKNOWN"
 CRITERIA_UNDECIDED = "CRITERIA_UNDECIDED"
+#: M11b part D (answer 8): the not-reported rule is not chosen; preview and genesis refuse.
+METHOD_RULE_UNCHOSEN = "METHOD_RULE_UNCHOSEN"
 CRITERIA_MISSING = "CRITERIA_MISSING"
 INTENT_INVALID = "INTENT_INVALID"
 SCREENING_BOUND = "SCREENING_BOUND"
@@ -282,6 +284,12 @@ LINK_INVALID = "LINK_INVALID"
 CHARTING_EXPORT_FORMAT_INVALID = "CHARTING_EXPORT_FORMAT_INVALID"
 #: The protocol differs from the one the newest published round was screened under: read-only.
 CHARTING_PROTOCOL_REPLACED = "CHARTING_PROTOCOL_REPLACED"
+# --- the charting form and cells (M12a Part B, `charting/form.py`) ---------------------
+CHARTING_VALUE_INVALID = "CHARTING_VALUE_INVALID"
+CHARTING_COLUMN_UNKNOWN = "CHARTING_COLUMN_UNKNOWN"
+CHARTING_AMENDMENT_REASON_REQUIRED = "CHARTING_AMENDMENT_REASON_REQUIRED"
+#: A form change made from a version that is no longer the form's.
+CHARTING_FORM_STALE = "CHARTING_FORM_STALE"
 
 # --- request validation (H-input-limits, F5) ----------------------------------
 #: A body, query or path parameter pydantic refuses on any route (HTTP 422);
@@ -367,6 +375,7 @@ CONTRACT_ADDED = frozenset(
         DRAFT_TOO_LARGE,
         STEP_UNKNOWN,
         CRITERIA_UNDECIDED,
+        METHOD_RULE_UNCHOSEN,
         CRITERIA_MISSING,
         INTENT_INVALID,
         SCREENING_BOUND,
@@ -452,6 +461,10 @@ CONTRACT_ADDED = frozenset(
         LINK_INVALID,
         CHARTING_EXPORT_FORMAT_INVALID,
         CHARTING_PROTOCOL_REPLACED,
+        CHARTING_VALUE_INVALID,
+        CHARTING_COLUMN_UNKNOWN,
+        CHARTING_AMENDMENT_REASON_REQUIRED,
+        CHARTING_FORM_STALE,
         BODY_INVALID,
     }
     | LEG_ERROR_CODES

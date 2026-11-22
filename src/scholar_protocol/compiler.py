@@ -238,6 +238,9 @@ def compile_protocol(intent: IntentPacket) -> ResearchProtocol:
         "matrix_dimensions": [d.model_dump(mode="json") for d in _build_dimensions(intent)],
         "verification": verification.model_dump(mode="json"),
     }
+    if intent.method is not None:
+        # M11b part D: the researcher's choices; the rest of the block keeps the model defaults.
+        data["method"] = {"blinding": intent.method.blinding, "not_reported": intent.method.not_reported}
     return ResearchProtocol.model_validate(data)
 
 

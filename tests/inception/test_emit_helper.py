@@ -21,7 +21,7 @@ def _helper():
 
 
 def _intent(tmp_path) -> Path:
-    first = run_wizard(ScriptedResponder(list(E2E_ANSWERS)), tmp_path / "first", genesis_timestamp=GENESIS_TS)
+    first = run_wizard(ScriptedResponder(list(E2E_ANSWERS)), tmp_path / "first", genesis_timestamp=GENESIS_TS, not_reported="unclear")
     path = tmp_path / "intent.json"
     path.write_text(json.dumps(first["intent"]), encoding="utf-8")
     return path

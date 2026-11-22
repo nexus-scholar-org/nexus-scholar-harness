@@ -47,6 +47,10 @@ POST_PATHS: tuple[re.Pattern[str], ...] = tuple(
         r"api/v1/screening/prepare",
         # H-screening-drafts: a method amendment (blinding, not-reported policy).
         r"api/v1/screening/method/amendments",
+        # M11b: a revision of the criteria; a pilot drawn, its decisions, its close.
+        r"api/v1/screening/criteria/amendments",
+        r"api/v1/screening/pilot",
+        r"api/v1/screening/pilot/pilot_\d{3}/(decisions|close)",
         r"api/v1/screening/corpus/(sources|accept)",
         r"api/v1/screening/corpus/sources/[A-Za-z0-9_-]+/remove",
         r"api/v1/screening/proposals/(runs|calibrations)",
@@ -87,9 +91,13 @@ POST_PATHS: tuple[re.Pattern[str], ...] = tuple(
         # M12a Part A: charting events (status, decision, link, undo) and a PDF or link per record.
         r"api/v1/charting/events",
         r"api/v1/charting/records/[A-Za-z0-9_-]+/attachment",
+        # M12a Part B: "End pilot" (the form itself is a PUT).
+        r"api/v1/charting/form/pilot/end",
     )
 )
 PUT_PATHS: tuple[re.Pattern[str], ...] = (
+    # M12a Part B: the charting form beside the protocol (a version, or an amendment with its reason).
+    re.compile(r"api/v1/charting/form"),
     re.compile(r"api/v1/screening/settings"),
     re.compile(r"api/v1/screening/approver"),
     re.compile(r"api/v1/inception/drafts/[A-Za-z0-9_-]+"),

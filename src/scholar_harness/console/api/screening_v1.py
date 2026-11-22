@@ -250,7 +250,9 @@ def queue(
         raise _error(403, "TOKEN_SCOPE_REFUSED", "the pilot is screened on the desktop")
     ws = _ws(request)
     context, settings, events, winners = _state(ws)
-    recheck = _recheck(context, events, settings["screener_id"]) if view == "recheck" else {}
+    # M11b part A; part C (spec 13 question 6, settled 2026-11-21): a record shown again is also in
+    # "Needs you", first and tagged ``shown_again``.
+    recheck = _recheck(context, events, settings["screener_id"])
     # The order is the journaled setting; a request for another one is
     # refused, so the order shown is always the order recorded.
     if order is not None and order != settings["queue_order"]:
@@ -294,6 +296,8 @@ def queue(
             return (0 if outcome(proposal)[0] == "MAYBE" else 1, -failed)
 
         chosen.sort(key=unsure)
+    if view == "needs_you" and recheck:
+        chosen.sort(key=lambda study: study not in recheck)  # stable: shown again first, each order kept
     page = chosen[cursor : cursor + max(1, min(limit, 200))]
     items = [
         {
@@ -306,6 +310,10 @@ def queue(
             # In the pilot view, decided in the pilot (never counted); elsewhere, a main decision.
             "decided": (s in pilot_view["decided"]) if pilot_view is not None else s in winners,
             "flags": [] if _has_abstract(papers.get(s, {})) else ["title_only"],
+            "shown_again": s in recheck,
+            # M11b part C, view=pilot only: your pilot decision on the record (a change of mind
+            # supersedes it); the main views never carry it (answer 11).
+            **({"pilot_decision": pilot_view["heads"].get(s)} if pilot_view is not None else {}),
         }
         for s in page
     ]
@@ -324,8 +332,12 @@ def _pilot_queue(ws: Path) -> dict[str, Any] | None:
     current = pl.open_pilot(ws) or pl.last_pilot(ws)
     if current is None:
         return None
-    decided = set(pl.heads(pl.read_decisions(ws, current.pilot_id)))
-    return {"pilot_id": current.pilot_id, "open": current.open, "studies": list(current.studies), "decided": decided}
+    heads = {
+        study: {k: d.get(k) for k in ("pilot_decision_id", "outcome", "reason_code", "criteria", "criteria_version")}
+        for study, d in pl.heads(pl.read_decisions(ws, current.pilot_id)).items()
+    }
+    return {"pilot_id": current.pilot_id, "open": current.open, "studies": list(current.studies), "decided": set(heads),
+            "heads": heads}
 
 
 @router.get("/records/{study_id}")
@@ -633,14 +645,20 @@ def get_criteria(request: Request) -> dict[str, Any]:
     ws = _ws(request)
     if not (ws / "protocol.json").is_file():
         raise _error(409, refusals.SNAPSHOT_NOT_ACCEPTED, "no protocol.json in this workspace")
+    from ...screening.criteria import handoff_batches
+
     current = criteria_in_force(ws)
     context = ev.load_context(ws)
+    approved = any_batch_approved(ws)
+    handoff = handoff_batches(ws, context) if context.batches else []
     return {
         **current.as_dict(),
-        # What the revise dialog needs to know before it offers anything.
-        "can_amend": bool(context.batches) and not any_batch_approved(ws),
+        # What the revise dialog needs to know before it offers anything (part A review round 2:
+        # a hand-off batch refuses every revision, so the dialog is not offered then).
+        "can_amend": bool(context.batches) and not approved and not handoff,
         "batches_prepared": bool(context.batches),
-        "batch_approved": any_batch_approved(ws),
+        "batch_approved": approved,
+        "handoff_batches": handoff,
     }
 
 

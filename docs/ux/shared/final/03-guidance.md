@@ -216,13 +216,13 @@ Shared frame (`inception-frame.tsx`, every screen 01 to 07), then 01 Scope, 02 E
 | I-SH1 | `shape.kicker`, `shape.title` | "Step 4 of 6 · Shape", "Which lens fits, and what will you ask?" | STAYS | V8 / the question |
 | I-SH2 | `shape.lede` (sentence 1) | "A word scan of your topic leans one way; that lens is marked." | REMOVED | X1 the badge `shape.leaning` says it |
 | I-SH3 | `shape.lede` (sentence 2) | "Choosing a lens marks the playbook that matches it and offers a first research question; you choose the playbook, and the question stays a draft until you use it." | STAYS | the one lede sentence |
-| I-SH4 | `shape.paradigm`, `shape.playbook`, `shape.unit`, `shape.proof`, `shape.outOfScope`, `shape.rq`, `shape.addRq`, `shape.removeRq` | field and option labels | STAYS | V7 |
+| I-SH4 | `shape.paradigm`, `shape.playbook`, `shape.unit`, `shape.proof`, `shape.rq`, `shape.addRq`, `shape.removeRq` | field and option labels | STAYS | V7 |
 | I-SH5 | `shape.leaning` | "Leaning · word scan of your topic" | STAYS | V5 provenance and draft label (the mark's source, rule 3) |
 | I-SH6 | `shape.leaningNote` | "The leaning is a keyword scan, not a judgement. Four lenses only; frameworks such as PICO or SPIDER are not offered yet." | HINT | T4 background; the badge keeps "word scan" visible |
 | I-SH7 | `shape.recommended` | "Matches the lens" | STAYS | V5 becomes the Recommended mark (`guidance.recommended.by`); its why is the hint |
 | I-SH8 | `shape.unitHelp` | "For example a model, a team, a crop field." | HINT | T2 example |
 | I-SH9 | `shape.proofHelp` | "The wizard writes your first inclusion criterion from this answer." | HINT | T1; the criterion appears on step 5 with its source `source.proof` (V5) and waits for acceptance |
-| I-SH10 | `shape.outOfScopeHelp` | "One item per line. Each becomes an exclusion criterion you typed." | HINT | T1 how-to |
+| I-SH10 | `shape.outOfScopeMoved` | "Out of scope is asked with the criteria." | STAYS | V2 says where the question went (M11b part D, spec 11 D6: the question and its how-to moved to step 5, row I-C26) |
 | I-SH11 | `shape.rqDraft`, `shape.useDraft`, `shape.draftWaiting`, `shape.draftNeeds`, `shape.chooseLens` | "Template draft · not yet yours", "Use this draft as RQ{n}" | STAYS | V5/V8 |
 | I-SH12 | `shape.lexicon` | "Vocabulary for this lens" | HINT | T2 examples of the lens's words |
 | I-SH14 | `shape.planned.title`, `from`, `upTo`, `preset`, `usePreset`, `useEarlier`, `err.*` | "How many records do you plan to screen?", its fields, the preset and the range errors (M10b Part A) | STAYS | V7/V1 (row added by M10d) |
@@ -251,6 +251,13 @@ Shared frame (`inception-frame.tsx`, every screen 01 to 07), then 01 Scope, 02 E
 | I-C21 | `criteria.continue` | "Continue to review" | STAYS | V7 main action |
 | I-C22 | `criteria.reason.*` | the reason category of each exclusion (M10b Part A) | STAYS | V7/V1/V2 (row added by M10d; `criteria.reason.hasPhrases` and `noPhrases` are candidates for a hint in a later pass) |
 | I-C23 | `criteria.mine.*` | the researcher's own matrix columns (M10b Part A) | STAYS | V7/V1/V5 (row added by M10d; `criteria.mine.descriptionHelp` is a candidate for a hint in a later pass) |
+| I-C24 | `criteria.block.title`, `block.written`, `block.cannotWrite` | "Criteria", "{inclusions} inclusion, {exclusions} exclusion criteria", "Decide every criterion first." | STAYS | V7/V2 the section's heading and its one-line state (M11b part D) |
+| I-C25 | `criteria.block.limits` | "The wording checks compare words, not meaning. They will not see two criteria that say the same thing in different words." | STAYS | V3 what the checks cannot see; spec 11 keeps it as text, never behind a hint |
+| I-C26 | `criteria.oos.question`, `oos.help`, `oos.add`, `oos.announce` | "Is anything out of scope?", "One item per line, or separated by semicolons. …" | STAYS | V7/V2 the field, its separator rule (it decides what becomes a criterion) and its action (moved from Shape, I-SH10) |
+| I-C27 | `criteria.method.title`, `method.later`, `method.savedWith` | "How you will screen", "You can change both later, from Prepare. …" | STAYS | V2 where and how the choice can change |
+| I-C28 | `criteria.method.blinding.*` | "When should the agent's draft for a record be shown to you?" and its two options with their help | STAYS | V7/V1 the question, its options and what each costs |
+| I-C29 | `criteria.method.notReported.*` | "When the title and abstract do not report a criterion, the agent's draft should…" and its three options with the measured figures | STAYS | V7/V1 the figures are the evidence of the choice (answer 8: no default, stated the same way for each option) |
+| I-C30 | `criteria.method.older`, `method.fromImport`, `method.unchosen`, `method.blocked`, `method.importedUnconfirmed`, `method.confirm` | "This draft was started before this question existed.", "Not chosen yet", "Choose what the agent should do … then continue." | STAYS | V3/V5 why Continue is held, and where a value came from |
 | I-R1 | `review.kicker`, `review.title` | "Step 6 of 6 · Review and create", "Check the protocol, then create the workspace" | STAYS | V8 / the question |
 | I-R2 | `review.lede` (sentence 1) | "This is what will be written." | STAYS | the one lede sentence |
 | I-R3 | `review.lede` (sentence 2) | "Nothing is written until you create the workspace." | REMOVED | X1 the gate says it (`review.gateBody`, I-R22) |
@@ -272,6 +279,7 @@ Shared frame (`inception-frame.tsx`, every screen 01 to 07), then 01 Scope, 02 E
 | I-R19 | `review.gate`, `review.gateReplacing`, `review.gateBody` | "Create the workspace", "Writes the protocol, the criteria and the first audit journal entries into {path}." | STAYS | V6 the one gate |
 | I-R21 | `review.synonyms`, `noSynonyms`, `planned`, `planned.stated`, `planned.notStated` | the concepts' synonyms and the planned records in the summary (M10b) | STAYS | V4/V5 what will be written (row added by M10d) |
 | I-R20 | `review.create`, `review.creating`, `review.replace`, `review.cancel` | the main action and its confirmations | STAYS | V7 main action "Create the workspace" |
+| I-R22 | `review.method.*` | "How you will screen", the two choices in words, "Change" | STAYS | V1 the method signed into the protocol, shown before it is signed (M11b part D) |
 | I-DN1 | `done.kicker`, `done.title`, `done.titleReplaced` | "Done", "The workspace is created" | STAYS | V8 |
 | I-DN2 | `done.lede` (sentence 1) | "The protocol and the criteria are written, and GENESIS is in the audit journal." | REMOVED | X1 the title and the rows below state it (folder, fingerprint) |
 | I-DN3 | `done.lede` (sentence 2) | "Next, open the workspace and import your search results." | STAYS | the one lede sentence; replaced by the what's-next bar when 04-next-step ships |
@@ -492,13 +500,26 @@ Triage has not adopted this audit (no Screening screen is in `tests/guidance-scr
 | S-TM6 | `marks.quote.show` | "Show in the text" | STAYS | an action |
 | S-TM7 | `marks.quote.notFound` | "Not found at its place in the record, so it is not marked." | STAYS | V3 says why a quote is not marked |
 
+### Screening (phase 2): the pilot result (M11b part C, 2026-11-22), not counted yet
+The result of `13-criteria-pilot` (`components/screening-pilot-copy.ts`). Only its hint is listed; the rest of the screen is not audited yet, as for Triage above.
+
+| ID | Keys | Sentence (en) | Decision | Reason |
+| :-- | :-- | :-- | :-- | :-- |
+| S-PL1 | `checkHint`, `actions.checkHint` | "It sends the titles and abstracts of these records to the provider you choose, and it costs money. …" | HINT | T1 what the agent check does is explanation, one tap away; the dialog it opens names the provider, the model and the cost before anything is sent |
+
+
+### Charting (phase 3): the one-study view's tips (M12a Part B, 2026-11-21), not counted yet
+| ID | Keys | Sentence (en) | Decision | Reason |
+| :-- | :-- | :-- | :-- | :-- |
+| X-ST1 | `charting.study.tip.whereFrom` | "A page or a short quote, so you can find it again." | HINT | T1 how to fill the field is explanation, one tap away (spec `docs/ux/phase3-extraction/final/02-one-study.md`, Copy) |
+| X-ST2 | `charting.study.tip.notReported` | "Use this when the study does not say. It is a finding, not a blank." | HINT | T1 what Not reported means is explanation, one tap away (same spec) |
 
 ### Counts per decision
 (Counted by the test `guidance.audit.test.tsx` from the tables above.)
 
 | Phase | STAYS | HINT | REMOVED | Total blocks |
 | :-- | --: | --: | --: | --: |
-| Inception 01 to 07 (shared frame included) | 107 | 35 | 11 | 153 |
+| Inception 01 to 07 (shared frame included) | 116 | 34 | 11 | 161 |
 | Discovery 01 to 09 (shared included) | 115 | 35 | 16 | 166 |
 | Query workbench (M11a) | 15 | 4 | 0 | 19 |
 

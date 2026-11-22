@@ -403,6 +403,31 @@ export function InceptionReview({ locale }: Readonly<{ locale: Locale }>) {
           {/* M10b (02-checks): "Ready to create?" replaces the Checks card; open warnings never disable Create. */}
           <ReadinessList locale={locale} />
 
+          {/* M11b part D (spec 11): how you will screen, in words, before the protocol is signed; not a check. */}
+          <section aria-labelledby="review-method-title" className="rounded-lg border border-rule bg-leaf p-4" data-review-method>
+            <h2 id="review-method-title" className="font-semibold text-ink">
+              {t("review.method.title")}
+            </h2>
+            <ul className="mt-2 space-y-1 text-sm text-ink">
+              <li data-review-method-blinding>
+                {t(`review.method.blinding.${record?.draft.method_blinding ?? "reveal_after_decision"}` as Parameters<typeof t>[0])}
+              </li>
+              <li data-review-method-not-reported={record?.draft.method_not_reported ?? "unchosen"}>
+                {record?.draft.method_not_reported
+                  ? t(`review.method.notReported.${record.draft.method_not_reported}` as Parameters<typeof t>[0])
+                  : t("criteria.method.unchosen")}
+                {record?.draft.method_not_reported_source === "imported" ? (
+                  <span className="block text-blocked" data-review-method-unconfirmed>
+                    {t("review.method.unconfirmed")}
+                  </span>
+                ) : null}
+              </li>
+            </ul>
+            <a className="inline-flex min-h-11 items-center text-brand underline" href={`${inceptionHref(locale, "criteria", draftId, origin)}#field-method_not_reported`}>
+              {t("review.method.change")}
+            </a>
+          </section>
+
           {preview ? (
             <>
             {confirm?.kind === "replace" ? (

@@ -84,7 +84,7 @@ describe("inception.criteria reasons (M10b)", () => {
   it("shows every exclusion's reason and lets the researcher change an out-of-scope line's", async () => {
     const { engine, assign } = setUp({ draft: completeDraft({ criteria_decisions: { [proofId()]: true, [outOfScopeId()]: true } }) });
     render(<InceptionCriteria locale="en" />);
-    const row = (await screen.findByText("closed-source models")).closest("li") as HTMLElement;
+    const row = (await screen.findByText("closed-source models", { selector: "[data-verbatim]" })).closest("li") as HTMLElement;
     expect(within(row).getByText("Reason OUT_OF_SCOPE")).toBeInTheDocument();
     fireEvent.click(within(row).getByRole("button", { name: /Change the reason of E1/ }));
     fireEvent.change(within(row).getByLabelText("Reason"), { target: { value: "wrong platform" } });
@@ -98,7 +98,7 @@ describe("inception.criteria reasons (M10b)", () => {
   it("adds an exclusion only with a reason, and the reason list is the engine's with nothing chosen", async () => {
     const { engine } = setUp({ draft: completeDraft({ criteria_decisions: { [proofId()]: true, [outOfScopeId()]: true } }) });
     render(<InceptionCriteria locale="en" />);
-    const side = (await screen.findByText("closed-source models")).closest("[data-side]") as HTMLElement;
+    const side = (await screen.findByText("closed-source models", { selector: "[data-verbatim]" })).closest("[data-side]") as HTMLElement;
     fireEvent.change(within(side).getByLabelText("Add an exclusion criterion"), { target: { value: "Simulation only" } });
     const add = within(side).getByRole("button", { name: "Add" });
     expect(add).toBeDisabled();

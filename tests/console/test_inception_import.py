@@ -73,7 +73,7 @@ def test_import_rebuilds_uav_draft(root):
     assert created.status_code == 201, created.text
     record = created.json()
     assert record["origin"]["kind"] == "import" and record["origin"]["checked"]["shape"] is False
-    draft = {**record["draft"], "topic": "UAV crop-weed mapping"}  # the one answer the report names
+    draft = {**record["draft"], "topic": "UAV crop-weed mapping", "method_not_reported": "unclear"}  # the one answer the report names
 
     criteria = client.post(f"{BASE}/steps/criteria", json={"draft": draft}).json()
     assert "proof" not in {c["source"] for c in criteria["criteria"]}
@@ -233,7 +233,7 @@ def test_genesis_names_origin_and_project_records_it(root):
     body = _import(client, {"kind": "workspace", "slug": "uav"}).json()
     created = _import(client, {"kind": "workspace", "slug": "uav"}, dry_run=False, expect_fingerprint=body["source"]["protocol_fingerprint"]).json()
     sid = created["session_id"]
-    draft = {**created["draft"], "topic": "UAV crop-weed mapping", "title": "UAV weed mapping, second review"}
+    draft = {**created["draft"], "topic": "UAV crop-weed mapping", "method_not_reported": "unclear", "title": "UAV weed mapping, second review"}
     client.put(f"{BASE}/drafts/{sid}", json={"draft": draft, "base_updated_at": created["updated_at"]})
     made = client.post(f"{BASE}/drafts/{sid}/genesis", json={})
     assert made.status_code == 201, made.text
@@ -257,7 +257,7 @@ def test_a_replacement_from_an_imported_draft_puts_a_full_stop_before_started_fr
     for _ in range(2):
         created = _import(client, {"kind": "workspace", "slug": "uav"}, dry_run=False, expect_fingerprint=fingerprint).json()
         sid = created["session_id"]
-        draft = {**created["draft"], "topic": "UAV crop-weed mapping", "title": "UAV weed mapping, second review"}
+        draft = {**created["draft"], "topic": "UAV crop-weed mapping", "method_not_reported": "unclear", "title": "UAV weed mapping, second review"}
         client.put(f"{BASE}/drafts/{sid}", json={"draft": draft, "base_updated_at": created["updated_at"]})
         made = client.post(f"{BASE}/drafts/{sid}/genesis", json={"replace": bool(paths)})
         assert made.status_code == 201, made.text
@@ -290,7 +290,7 @@ def test_a_column_named_like_a_suggestion_is_ticked_and_a_changed_wording_is_lis
         assert body["draft"]["matrix_columns"] == ["Sample Size"]
         assert "custom_matrix_columns" not in body["draft"]
         assert {"what": "matrix_default", "name": "Sample Size"} in body["lost"]
-        draft = {**body["draft"], "topic": "UAV"}
+        draft = {**body["draft"], "topic": "UAV", "method_not_reported": "unclear"}
         assert client.post(f"{BASE}/steps/matrix", json={"draft": draft}).status_code == 200
         assert client.post(f"{BASE}/preview", json={"draft": draft}).status_code == 200
 
@@ -323,7 +323,8 @@ def test_the_draft_lock_keeps_a_save_that_arrives_during_a_side_write(root):
     marker.join(5)
     saver.join(5)
     final = store.load(sid)
-    assert final["draft"] == {"topic": "second"}
+    # M11b part D: a new draft also carries the two method fields, which the save keeps.
+    assert {k: v for k, v in final["draft"].items() if not k.startswith("method_")} == {"topic": "second"}
     assert final["origin"]["checked"]["shape"] is True
 
 
@@ -331,7 +332,7 @@ def test_protocol_origin_is_inception_for_a_plain_draft_and_on_a_replacement(roo
     client = _client(root)
     body = _import(client, {"kind": "workspace", "slug": "uav"}).json()
     created = _import(client, {"kind": "workspace", "slug": "uav"}, dry_run=False, expect_fingerprint=body["source"]["protocol_fingerprint"]).json()
-    draft = {**created["draft"], "topic": "UAV crop-weed mapping", "title": "UAV weed mapping, third review"}
+    draft = {**created["draft"], "topic": "UAV crop-weed mapping", "method_not_reported": "unclear", "title": "UAV weed mapping, third review"}
     client.put(f"{BASE}/drafts/{created['session_id']}", json={"draft": draft, "base_updated_at": created["updated_at"]})
     made = client.post(f"{BASE}/drafts/{created['session_id']}/genesis", json={}).json()
     ws = Path(made["path"])

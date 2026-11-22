@@ -339,6 +339,106 @@ export const STATES: Record<string, StateEntry> = {
       ar: T("السبب يناقض إجاباتك", "يذكر سبب الاستبعاد معيارًا أجبت عنه بعكس ذلك. غيّر الإجابة أو السبب.", "ذلك القرار؛ لم يُسجَّل شيء", "غيّر الإجابة أو السبب"),
     },
   },
+  // M11b (spec 13): the criteria in force and the pilot.
+  REASON_CODE_RETIRED: {
+    role: "blocked",
+    action: "none",
+    copy: {
+      en: T("That reason was replaced", "The criterion this reason names was replaced by a revision of the criteria. Choose a reason from the criteria in force.", "That decision; nothing was recorded", "Choose another reason"),
+      fr: T("Ce motif a été remplacé", "Le critère que nomme ce motif a été remplacé par une révision des critères. Choisissez un motif parmi les critères en vigueur.", "Cette décision ; rien n'a été enregistré", "Choisir un autre motif"),
+      ar: T("استُبدل هذا السبب", "استُبدل المعيار الذي يذكره هذا السبب بمراجعة للمعايير. اختر سببًا من المعايير السارية.", "ذلك القرار؛ لم يُسجَّل شيء", "اختر سببًا آخر"),
+    },
+  },
+  PILOT_OPEN: {
+    role: "blocked",
+    action: "none",
+    copy: {
+      en: T("This record is in your open pilot", "Decide it in the pilot, or end the pilot to screen it here. A new pilot is drawn only once the open one is finished.", "That decision or draw; nothing was recorded", "Go to the pilot"),
+      fr: T("Cette notice est dans votre pilote en cours", "Décidez-la dans le pilote, ou arrêtez le pilote pour la trier ici. Un nouveau pilote n'est tiré qu'une fois le pilote en cours terminé.", "Cette décision ou ce tirage ; rien n'a été enregistré", "Aller au pilote"),
+      ar: T("هذا السجل في تجربتك الجارية", "احسمه في التجربة، أو أنهِ التجربة لتفرزه هنا. لا تُسحب تجربة جديدة إلا بعد انتهاء الجارية.", "ذلك القرار أو السحب؛ لم يُسجَّل شيء", "اذهب إلى التجربة"),
+    },
+  },
+  PILOT_CLOSED: {
+    role: "blocked",
+    action: "none",
+    copy: {
+      en: T("This pilot has ended", "Its decisions are kept; no more can be added here. Its records are back in the main screening.", "That decision; nothing was recorded", "See the pilot result"),
+      fr: T("Ce pilote est arrêté", "Ses décisions sont conservées ; on ne peut plus en ajouter ici. Ses notices sont revenues dans le tri principal.", "Cette décision ; rien n'a été enregistré", "Voir le résultat du pilote"),
+      ar: T("انتهت هذه التجربة", "تُحفظ قراراتها، ولا يمكن إضافة المزيد هنا. عادت سجلاتها إلى الفرز الرئيسي.", "ذلك القرار؛ لم يُسجَّل شيء", "اعرض نتيجة التجربة"),
+    },
+  },
+  PILOT_RECORD_UNKNOWN: {
+    role: "blocked",
+    action: "reload",
+    copy: {
+      en: T("This record is not in the pilot", "The pilot was drawn without this record. Reload the pilot.", "That decision; nothing was recorded", "Reload"),
+      fr: T("Cette notice n'est pas dans le pilote", "Le pilote a été tiré sans cette notice. Rechargez le pilote.", "Cette décision ; rien n'a été enregistré", "Recharger"),
+      ar: T("هذا السجل ليس في التجربة", "سُحبت التجربة دون هذا السجل. أعد تحميل التجربة.", "ذلك القرار؛ لم يُسجَّل شيء", "إعادة التحميل"),
+    },
+  },
+  PILOT_NOT_FOUND: {
+    role: "blocked",
+    action: "home",
+    copy: {
+      en: T("That pilot does not exist in this workspace", "No pilot has that name here. Open the screening home to draw one.", "This page only", "Screening home"),
+      fr: T("Ce pilote n'existe pas dans cet espace de travail", "Aucun pilote ne porte ce nom ici. Ouvrez l'accueil du tri pour en tirer un.", "Cette page seulement", "Accueil du tri"),
+      ar: T("هذه التجربة غير موجودة في مساحة العمل هذه", "لا توجد تجربة بهذا الاسم هنا. افتح صفحة الفرز الرئيسية لسحب واحدة.", "هذه الصفحة فقط", "صفحة الفرز الرئيسية"),
+    },
+  },
+  PILOT_SIZE_INVALID: {
+    role: "blocked",
+    action: "none",
+    copy: {
+      en: T("That pilot size cannot be drawn", "A pilot holds 20 to 100 records, in tens, and no more than the records with no decision that are in no earlier pilot.", "The draw; nothing was drawn", "Choose another size"),
+      fr: T("Cette taille de pilote ne peut pas être tirée", "Un pilote compte de 20 à 100 notices, par dizaines, et pas plus que les notices sans décision qui ne sont dans aucun pilote antérieur.", "Le tirage ; rien n'a été tiré", "Choisir une autre taille"),
+      ar: T("لا يمكن سحب تجربة بهذا الحجم", "تضم التجربة من 20 إلى 100 سجل، بالعشرات، ولا تتجاوز السجلات التي بلا قرار وليست في تجربة سابقة.", "السحب؛ لم يُسحب شيء", "اختر حجمًا آخر"),
+    },
+  },
+  CRITERIA_AMENDMENT_AFTER_APPROVAL: {
+    role: "blocked",
+    action: "none",
+    copy: {
+      en: T("The criteria are fixed", "A batch is already approved, so the criteria are fixed. To change them after publication, start a new screening from this protocol.", "Revisions and pilots", "None"),
+      fr: T("Les critères sont figés", "Un lot est déjà approuvé, les critères sont donc figés. Pour les changer après publication, commencez un nouveau tri à partir de ce protocole.", "Révisions et pilotes", "Aucune"),
+      ar: T("المعايير ثابتة", "اعتُمدت دفعة بالفعل، فالمعايير ثابتة. لتغييرها بعد النشر، ابدأ فرزًا جديدًا من هذا البروتوكول.", "المراجعات والتجارب", "لا شيء"),
+    },
+  },
+  CRITERIA_AMENDMENT_NO_BATCHES: {
+    role: "blocked",
+    action: "prepare",
+    copy: {
+      en: T("Prepare the batches first", "Criteria are revised once the screening batches exist. Before that, change criteria in Inception.", "Revisions only", "Prepare"),
+      fr: T("Préparez d'abord les lots", "Les critères se révisent une fois les lots de tri créés. Avant cela, modifiez les critères dans la conception.", "Révisions seulement", "Préparer"),
+      ar: T("حضّر الدفعات أولًا", "تُراجع المعايير بعد وجود دفعات الفرز. قبل ذلك، غيّر المعايير في مرحلة التأسيس.", "المراجعات فقط", "التحضير"),
+    },
+  },
+  CRITERIA_AMENDMENT_INVALID: {
+    role: "blocked",
+    action: "none",
+    copy: {
+      en: T("This change cannot be recorded", "The engine refused this revision; its reason is below.", "This revision; nothing was recorded", "Change it"),
+      fr: T("Cette modification ne peut pas être enregistrée", "Le moteur a refusé cette révision ; sa raison figure ci-dessous.", "Cette révision ; rien n'a été enregistré", "La modifier"),
+      ar: T("لا يمكن تسجيل هذا التغيير", "رفض المحرك هذه المراجعة؛ السبب أدناه.", "هذه المراجعة؛ لم يُسجَّل شيء", "عدّلها"),
+    },
+  },
+  CRITERIA_SIDE_EMPTY: {
+    role: "blocked",
+    action: "none",
+    copy: {
+      en: T("A side would be left empty", "This would leave no inclusion or no exclusion criterion. Add one first, or choose another change.", "This revision; nothing was recorded", "Choose another change"),
+      fr: T("Un côté resterait vide", "Cela ne laisserait aucun critère d'inclusion ou d'exclusion. Ajoutez-en un d'abord, ou choisissez une autre modification.", "Cette révision ; rien n'a été enregistré", "Choisir une autre modification"),
+      ar: T("سيبقى جانب فارغًا", "سيترك هذا بلا معيار إدراج أو بلا معيار استبعاد. أضف معيارًا أولًا، أو اختر تغييرًا آخر.", "هذه المراجعة؛ لم يُسجَّل شيء", "اختر تغييرًا آخر"),
+    },
+  },
+  CRITERIA_AMENDMENT_HANDOFF: {
+    role: "blocked",
+    action: "none",
+    copy: {
+      en: T("Batches were decided outside the app", "Some batches hold decisions made through the file hand-off; a revision could not show them again, so the criteria of this screening cannot be revised. To screen under revised criteria, start a new screening from this protocol.", "Revisions and pilots", "None"),
+      fr: T("Des lots ont été décidés hors de l'application", "Certains lots contiennent des décisions prises par l'échange de fichiers ; une révision ne pourrait pas les présenter à nouveau, les critères de ce tri ne peuvent donc pas être révisés. Pour trier selon des critères révisés, commencez un nouveau tri à partir de ce protocole.", "Révisions et pilotes", "Aucune"),
+      ar: T("حُسمت دفعات خارج التطبيق", "تضم بعض الدفعات قرارات اتُّخذت عبر تبادل الملفات؛ لا يمكن لمراجعة أن تعرضها مجددًا، فلا يمكن مراجعة معايير هذا الفرز. للفرز وفق معايير مُراجَعة، ابدأ فرزًا جديدًا من هذا البروتوكول.", "المراجعات والتجارب", "لا شيء"),
+    },
+  },
   // M7-method (spec 02 amendment 2026-11-08): the protocol's method block.
   BLINDING_SET_BY_PROTOCOL: {
     role: "blocked",
@@ -655,6 +755,16 @@ export const STATES: Record<string, StateEntry> = {
       en: T("Some criteria still wait for your decision", "Every criterion the wizard wrote must be accepted or rejected before the protocol can be compiled.", "Review and creating the workspace", "Decide them on Concepts and criteria"),
       fr: T("Des critères attendent encore votre décision", "Chaque critère écrit par l'assistant doit être accepté ou rejeté avant de compiler le protocole.", "La vérification et la création de l'espace", "Les décider dans Concepts et critères"),
       ar: T("ما زالت بعض المعايير بانتظار قرارك", "يجب قبول كل معيار كتبه المعالج أو رفضه قبل تجميع البروتوكول.", "المراجعة وإنشاء مساحة العمل", "احسمها في المفاهيم والمعايير"),
+    },
+  },
+  // M11b part D (spec 11): Review's preview and genesis refuse a draft whose not-reported rule is unchosen.
+  METHOD_RULE_UNCHOSEN: {
+    role: "blocked",
+    action: "none",
+    copy: {
+      en: T("Choose what the agent should do when a criterion is not reported", "There is no default: the rule decides whether a record whose abstract is silent on a criterion is marked Unclear or excluded, and it is signed into the protocol.", "Review and creating the workspace", "Choose a rule on Concepts and criteria"),
+      fr: T("Choisissez ce que doit faire l'agent quand un critère n'est pas rapporté", "Il n'y a pas de valeur par défaut : la règle décide si une notice dont le résumé ne dit rien d'un critère est marquée Incertain ou exclue, et elle est signée dans le protocole.", "La vérification et la création de l'espace", "Choisir une règle dans Concepts et critères"),
+      ar: T("اختر ما يفعله الوكيل حين لا يُذكر معيار", "لا قيمة افتراضية: تقرر القاعدة إن كان السجل الذي يسكت ملخصه عن معيار يوضع غير واضح أو يُستبعد، وتُوقَّع في البروتوكول.", "المراجعة وإنشاء مساحة العمل", "اختر قاعدة في المفاهيم والمعايير"),
     },
   },
   CRITERIA_MISSING: {

@@ -31,6 +31,7 @@ def ready_draft() -> dict:
         "extra_exclusions": [{"criterion": "Simulation only", "reason_category": "WRONG_REPORT_TYPE"}],
         "title": "UAV weed mapping",
         "lead_researcher": "A. Researcher",
+        "method_not_reported": "unclear",  # M11b part D: the rule is chosen (no default)
     }
 
 
