@@ -508,6 +508,12 @@ The result of `13-criteria-pilot` (`components/screening-pilot-copy.ts`). Only i
 | S-PL1 | `checkHint`, `actions.checkHint` | "It sends the titles and abstracts of these records to the provider you choose, and it costs money. …" | HINT | T1 what the agent check does is explanation, one tap away; the dialog it opens names the provider, the model and the cost before anything is sent |
 
 
+### Charting (phase 3): the one-study view's tips (M12a Part B, 2026-11-21), not counted yet
+| ID | Keys | Sentence (en) | Decision | Reason |
+| :-- | :-- | :-- | :-- | :-- |
+| X-ST1 | `charting.study.tip.whereFrom` | "A page or a short quote, so you can find it again." | HINT | T1 how to fill the field is explanation, one tap away (spec `docs/ux/phase3-extraction/final/02-one-study.md`, Copy) |
+| X-ST2 | `charting.study.tip.notReported` | "Use this when the study does not say. It is a finding, not a blank." | HINT | T1 what Not reported means is explanation, one tap away (same spec) |
+
 ### Counts per decision
 (Counted by the test `guidance.audit.test.tsx` from the tables above.)
 

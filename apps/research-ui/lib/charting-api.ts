@@ -9,6 +9,8 @@ import { newEventId } from "./screening-v1";
  *
  * The engine computes the rows, their state, the counts and every refusal; this
  * file only types the answers, sends the researcher's events and carries bytes.
+ * Part B adds the charting form beside the protocol, the cells of each row, the
+ * pilot, the recorded amendments, the one-study read and the Charting CSV.
  * Event ids are minted here (`newEventId`, a UUID in small letters); the engine judges
  * each event and answers accepted, duplicate or refused.
  */
@@ -51,6 +53,74 @@ export interface Heads {
   link: string | null;
 }
 
+/** Part B: the five column types of the charting form (record (e)). */
+export type ColumnType = "text" | "number" | "one" | "several" | "yes_no";
+
+export interface FormColumn {
+  column_id: string;
+  name: string;
+  definition: string;
+  type: ColumnType;
+  options: string[];
+  required: boolean;
+  from_protocol?: string | null;
+  derived_from?: string[];
+}
+
+export interface Amendment {
+  amendment_id: string;
+  change_no?: number;
+  change: string;
+  column_id: string | null;
+  from: unknown;
+  to: unknown;
+  options?: string[];
+  columns?: string[];
+  reason: string;
+  pilot: boolean;
+  amended_by: string;
+  amended_at: string;
+  form_version_from?: number;
+  form_version_to: number;
+}
+
+export interface ChartingForm {
+  schema?: string;
+  version: number;
+  columns: FormColumn[];
+  pilot: { on: boolean; ended_at: string | null; ended_by: string | null; ended_at_version?: number | null };
+  amendments: Amendment[];
+  has_values: boolean;
+}
+
+export type CellState = null | "value" | "not_reported" | "not_applicable";
+export type CellValue = string | number | string[] | null;
+
+export interface CellHistory {
+  state: CellState;
+  value: CellValue;
+  note: string | null;
+  where_from: string | null;
+  at: string | null;
+  form_version: number | null;
+  event_id: string;
+  /** The name of the column the value was charted in, when it was another one (a split or a merge). */
+  column?: string;
+}
+
+export interface Cell {
+  state: CellState;
+  value: CellValue;
+  note: string | null;
+  where_from: string | null;
+  pilot: boolean;
+  chart_again: boolean;
+  history: CellHistory[];
+  /** The event that holds the cell now (what a change or an undo supersedes); null when never charted. */
+  event_id: string | null;
+  form_version: number | null;
+}
+
 export interface ChartingRow {
   study_id: string;
   title: string | null;
@@ -72,6 +142,11 @@ export interface ChartingRow {
   fulltext: Fulltext;
   ft_decision: FulltextDecision | null;
   heads: Heads;
+  /** Part B: one cell per form column; absent in an answer from before Part B. */
+  cells?: Record<string, Cell>;
+  charted?: boolean;
+  pilot?: boolean;
+  no_full_text?: boolean;
 }
 
 export interface ReasonOption {
@@ -90,6 +165,9 @@ export interface ChartingCounts {
   included: number;
   excluded: number;
   to_decide: number;
+  charted?: number;
+  not_charted?: number;
+  pilot?: number;
 }
 
 export interface ChartingTable {
@@ -105,10 +183,24 @@ export interface ChartingTable {
   reason_options: ReasonOption[];
   not_retrieved_reasons: NotRetrievedReason[];
   counts: ChartingCounts;
+  /** Part B: the form beside the protocol, seeded at the first read (pilot on). */
+  form?: ChartingForm;
   rows: ChartingRow[];
 }
 
-export type EventKind = "fulltext_status" | "fulltext_decision" | "attachment" | "link";
+/** `GET /api/v1/charting/records/{study_id}`: one study for the one-study view (spec 02). */
+export interface ChartingRecord {
+  shape: string;
+  row: ChartingRow;
+  form: ChartingForm;
+  read_only: boolean;
+  reason_options: ReasonOption[];
+  not_retrieved_reasons: NotRetrievedReason[];
+  publication: ChartingTable["publication"];
+  counts: ChartingCounts;
+}
+
+export type EventKind = "fulltext_status" | "fulltext_decision" | "attachment" | "link" | "cell";
 
 export interface ChartingEvent {
   event_id: string;
@@ -118,6 +210,7 @@ export interface ChartingEvent {
   kind: EventKind;
   value: unknown;
   note?: string;
+  where_from?: string;
   supersedes?: string;
 }
 
@@ -155,6 +248,8 @@ export function chartingEvent(input: {
   kind: EventKind;
   value: unknown;
   supersedes?: string | null;
+  note?: string | null;
+  whereFrom?: string | null;
   now?: Date;
 }): ChartingEvent {
   const event: ChartingEvent = {
@@ -165,6 +260,8 @@ export function chartingEvent(input: {
     kind: input.kind,
     value: input.value,
   };
+  if (input.note) event.note = input.note;
+  if (input.whereFrom) event.where_from = input.whereFrom;
   if (input.supersedes) event.supersedes = input.supersedes;
   return event;
 }
@@ -223,21 +320,81 @@ export function postLink(origin: string, studyId: string, link: string, eventId:
   return postJson<AttachAnswer>(attachmentPath(studyId), origin, { link, event_id: eventId }, signal);
 }
 
-/** The Full text view as CSV; the engine builds the file and journals it. */
-export async function exportFulltextCsv(origin: string, signal?: AbortSignal): Promise<{ blob: Blob; filename: string }> {
+export type ExportView = "fulltext" | "charting";
+
+/** A view of the rows as CSV; the engine builds the file and journals it. */
+export async function exportCsv(origin: string, view: ExportView, signal?: AbortSignal): Promise<{ blob: Blob; filename: string }> {
   let response: Response;
   try {
-    response = await fetch(`${consoleBase(origin)}${BASE}/export?format=csv&view=fulltext`, { method: "GET", signal });
+    response = await fetch(`${consoleBase(origin)}${BASE}/export?format=csv&view=${view}`, { method: "GET", signal });
   } catch (error) {
     throw new ScreeningApiError("CONSOLE_UNREACHABLE", 0, error instanceof Error ? error.message : "the console could not be reached");
   }
   if (!response.ok) throw await failure(response);
   const disposition = response.headers.get("content-disposition") ?? "";
-  const filename = /filename="([^"]+)"/.exec(disposition)?.[1] ?? "charting-fulltext.csv";
+  const filename = /filename="([^"]+)"/.exec(disposition)?.[1] ?? `charting-${view}.csv`;
   return { blob: await response.blob(), filename };
 }
 
+/** The Full text view as CSV (Part A's name, kept for its callers). */
+export function exportFulltextCsv(origin: string, signal?: AbortSignal): Promise<{ blob: Blob; filename: string }> {
+  return exportCsv(origin, "fulltext", signal);
+}
+
+/** One study for the one-study view; `RECORD_NOT_KEPT` when it is not in the kept set. */
+export function getChartingRecord(origin: string, studyId: string, signal?: AbortSignal): Promise<ChartingRecord> {
+  return readJson<ChartingRecord>(`${BASE}/records/${encodeURIComponent(studyId)}`, consoleBase(origin), signal);
+}
+
+/** A new form version; once any cell holds a value the engine asks for `reason` (`CHARTING_AMENDMENT_REASON_REQUIRED`). */
+export function putChartingForm(
+  origin: string,
+  input: { baseVersion: number; columns: FormColumn[]; reason?: string | null },
+  signal?: AbortSignal,
+): Promise<ChartingForm> {
+  const body: Record<string, unknown> = { base_version: input.baseVersion, columns: input.columns };
+  if (input.reason) body.reason = input.reason;
+  return postJson<ChartingForm>(`${BASE}/form`, origin, body, signal, "PUT");
+}
+
+/** "End pilot", one recorded action. */
+export function endChartingPilot(origin: string, baseVersion: number, signal?: AbortSignal): Promise<ChartingForm> {
+  return postJson<ChartingForm>(`${BASE}/form/pilot/end`, origin, { base_version: baseVersion }, signal);
+}
+
+/** Where the screen was when a study was opened, so Esc goes back to the same row, view and filter. */
+export interface TablePlace {
+  view?: "fulltext" | "charting";
+  show?: string;
+  excluded?: boolean;
+  row?: string | null;
+  form?: boolean;
+}
+
+function placeQuery(place: TablePlace, origin: string): URLSearchParams {
+  const query = new URLSearchParams();
+  if (place.view && place.view !== "fulltext") query.set("view", place.view);
+  if (place.show && place.show !== "all") query.set("show", place.show);
+  if (place.excluded) query.set("excluded", "1");
+  if (place.row) query.set("row", place.row);
+  if (place.form) query.set("form", "open");
+  if (origin) query.set("console", origin);
+  return query;
+}
+
 /** The charting screen's route, carrying a development build's console origin. */
-export function chartingHref(locale: Locale, origin = ""): string {
-  return `/${locale}/charting${origin ? `?console=${encodeURIComponent(origin)}` : ""}`;
+export function chartingHref(locale: Locale, origin = "", place: TablePlace = {}): string {
+  const query = placeQuery(place, origin).toString();
+  return `/${locale}/charting${query ? `?${query}` : ""}`;
+}
+
+/**
+ * The one-study view (spec 02). The study travels as a query parameter, not a
+ * path segment: the packaged app is exported as prebuilt pages, which cannot hold a
+ * page per study id.
+ */
+export function chartingStudyHref(locale: Locale, studyId: string, origin = "", place: TablePlace = {}): string {
+  const query = placeQuery({ ...place, row: null, form: false }, origin);
+  query.set("id", studyId);
+  return `/${locale}/charting/study?${query.toString()}`;
 }

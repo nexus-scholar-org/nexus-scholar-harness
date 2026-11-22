@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type ComponentType, type ReactNode, type SVGProps } from "react";
+import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type ComponentType, type MutableRefObject, type ReactNode, type SVGProps } from "react";
 import {
+  AdjustmentsHorizontalIcon,
   ArrowDownTrayIcon,
   ArrowTopRightOnSquareIcon,
   ArrowUturnLeftIcon,
@@ -25,14 +26,21 @@ import {
   attachPdf,
   attachmentHref,
   chartingEvent,
-  exportFulltextCsv,
+  chartingStudyHref,
+  endChartingPilot,
+  exportCsv,
   getCharting,
   postChartingEvents,
   postLink,
+  type CellState,
+  type CellValue,
   type ChartingEvent,
+  type ChartingForm,
   type ChartingRow,
   type ChartingTable,
   type EventKind,
+  type ExportView,
+  type FormColumn,
   type FulltextStatus,
   type NotRetrievedReason,
 } from "@/lib/charting-api";
@@ -43,27 +51,41 @@ import {
   STATUS_KEY,
   STATUS_ROLE,
   UNREACHABLE_CODES,
+  cellContent,
+  cellOf,
+  chartable,
   chartingKey,
   decisionValue,
+  draftOf,
   fileSize,
+  hasCellValue,
+  isShowFilter,
   isTextField,
+  nextToChart,
+  openCells,
+  sameValue,
   statusValue,
+  valueOfDraft,
   visibleRows,
+  type CellDraft,
   type ShowFilter,
   type StatusRole,
+  type TableView,
 } from "@/lib/charting-logic";
 import { newEventId } from "@/lib/screening-v1";
 
+import { CellEditor, CellView, FOCUS_RING, NoFullTextMark, PilotMark, TYPE_KEY, cellWords } from "./charting-cells";
+import { ChartingFormPanel } from "./charting-form-panel";
+
 /**
- * The charting screen, Full text view (spec 01, M12a Part A): one row per study
- * kept at title and abstract, its full-text status, its file or link, and the
- * full-text decision with one reason. Every change is one event, saved at once;
- * the engine judges it and answers the rows it touched.
- *
- * Part B adds the Charting view beside this one (the "Full text / Charting"
- * switch on 1 and 2), the form panel, the pilot and the one-study view on Enter;
- * none of them is drawn here, not even switched off. The keys L, C and D stay
- * free for Part F.
+ * The charting screen (spec 01, M12a Parts A and B): one row per study kept at
+ * title and abstract, in two views of the same rows. The Full text view (Part A)
+ * holds the full-text status, the file or link and the full-text decision with
+ * one reason. The Charting view (Part B) holds one column per column of the
+ * charting form, edited in the cell (Enter, Esc, Alt+N, Alt+A); the form panel
+ * (F) sits beside the rows; Enter on a row opens the one-study view. Every
+ * change is one event, saved at once; the engine judges it and answers the rows
+ * it touched. The keys L, C and D stay free for Part F.
  */
 
 type Refusal = { code: string; message: string };
@@ -73,8 +95,26 @@ type Mode =
   | { kind: "notRetrieved"; ids: string[]; reason: NotRetrievedReason | null; words: string }
   | { kind: "exclude"; id: string; code: string | null; words: string };
 
-type UndoStep = { studyId: string; kind: EventKind; value: unknown; supersedes: string };
+/** What an undo sends back: the earlier value, and for a cell its note and where-from. */
+type Before = { value: unknown; note?: string | null; whereFrom?: string | null };
+type UndoStep = Before & { studyId: string; kind: EventKind; supersedes: string };
 type UndoEntry = { steps: UndoStep[] };
+
+/** The focused place in the Charting view: column 0 is the study, 1 to n the form's columns. */
+type Editing = { row: string; col: number } | null;
+
+/** The screen's place from the address (view, filter, row, form), read after mounting so the first paint matches the server's. */
+function readPlace(): { view: TableView; show: ShowFilter; excluded: boolean; row: string | null; form: boolean } {
+  const query = new URLSearchParams(window.location.search);
+  const show = query.get("show");
+  return {
+    view: query.get("view") === "charting" ? "charting" : "fulltext",
+    show: isShowFilter(show) ? show : "all",
+    excluded: query.get("excluded") === "1",
+    row: query.get("row"),
+    form: query.get("form") === "open",
+  };
+}
 
 type Load =
   | { status: "loading" }
@@ -91,6 +131,8 @@ const SHOW_KEY: Record<ShowFilter, ChartingCopyKey> = {
   toDecide: "charting.table.show.toDecide",
   included: "charting.table.show.included",
   excluded: "charting.table.show.excluded",
+  notCharted: "charting.table.show.notCharted",
+  pilot: "charting.table.show.pilot",
 };
 
 const ROLE_STYLE: Record<StatusRole, string> = {
@@ -109,8 +151,6 @@ const STATUS_ICON: Record<FulltextStatus, Icon> = {
   retrieved: CheckCircleIcon,
   not_retrieved: NoSymbolIcon,
 };
-
-const FOCUS_RING = "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus";
 
 function consoleOrigin(): string {
   if (typeof window === "undefined") return "";
@@ -148,6 +188,173 @@ export function RoleBadge({ role, icon: IconOf, children, data }: Readonly<{ rol
   );
 }
 
+/** What a row of the Charting view calls back; held in a ref so a row re-renders only when its own props change. */
+type GridActions = {
+  focusCell: (rowId: string, col: number) => void;
+  startEdit: (rowId: string, col: number) => void;
+  commit: (rowId: string, col: number, draft: CellDraft, how: "enter" | "blur") => void;
+  cancel: (rowId: string, col: number) => void;
+  studyCell: (row: ChartingRow) => ReactNode;
+  decisionBadge: (row: ChartingRow) => ReactNode;
+  statusBadge: (row: ChartingRow) => ReactNode;
+  roundWords: (row: ChartingRow) => string;
+  t: (key: ChartingCopyKey, values?: Record<string, string | number>) => string;
+};
+
+/**
+ * One row of the Charting view (spec 01): the study as the row header, then one
+ * cell per form column. Memoised: moving the focus re-renders the two rows it
+ * leaves and enters, not every row (DoD 14, 150 rows by 5 columns).
+ */
+const ChartingGridRow = memo(function ChartingGridRow({
+  row,
+  index,
+  columns,
+  locale,
+  focusCol,
+  editCol,
+  readOnly,
+  actions,
+}: Readonly<{
+  row: ChartingRow;
+  index: number;
+  columns: FormColumn[];
+  locale: Locale;
+  focusCol: number | null;
+  editCol: number | null;
+  readOnly: boolean;
+  actions: MutableRefObject<GridActions>;
+}>) {
+  const a = actions.current;
+  const locked = readOnly || !chartable(row);
+  const cellClass = "px-3 py-2 align-top";
+  const ring = "focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus";
+  const focusedHere = (col: number) => (focusCol === col ? "outline-2 -outline-offset-2 outline-focus" : "");
+  return (
+    <tr
+      aria-rowindex={index + 2}
+      className={`border-t border-rule ${row.kept && chartable(row) ? "" : "text-ink-muted opacity-70"}`}
+      data-study-row={row.study_id}
+      data-kept={row.kept ? "true" : "false"}
+      data-focused={focusCol !== null || undefined}
+    >
+      <th
+        scope="row"
+        aria-colindex={1}
+        tabIndex={focusCol === 0 ? 0 : -1}
+        onFocus={(event) => {
+          if (event.target === event.currentTarget) actions.current.focusCell(row.study_id, 0);
+        }}
+        onClick={() => actions.current.focusCell(row.study_id, 0)}
+        className={`${cellClass} sticky start-0 z-10 min-w-64 bg-leaf text-start font-normal ${focusedHere(0)} ${ring}`}
+        data-cell={`${row.study_id}:0`}
+      >
+        {a.studyCell(row)}
+        <span className="mt-1 flex flex-wrap items-center gap-1">
+          {row.pilot ? <PilotMark locale={locale} /> : null}
+          {row.no_full_text && hasCellValue(row) ? <NoFullTextMark locale={locale} /> : null}
+          {row.kept && !chartable(row) ? a.decisionBadge(row) : null}
+        </span>
+      </th>
+      {columns.map((column, i) => {
+        const col = i + 1;
+        const cell = cellOf(row, column.column_id);
+        return (
+          <td
+            key={column.column_id}
+            role="gridcell"
+            aria-colindex={col + 1}
+            aria-readonly={locked || undefined}
+            tabIndex={focusCol === col && editCol !== col ? 0 : -1}
+            onFocus={(event) => {
+              if (event.target === event.currentTarget) actions.current.focusCell(row.study_id, col);
+            }}
+            onClick={() => actions.current.focusCell(row.study_id, col)}
+            onDoubleClick={() => actions.current.startEdit(row.study_id, col)}
+            className={`${cellClass} min-w-40 ${focusedHere(col)} ${ring}`}
+            data-cell={`${row.study_id}:${col}`}
+            data-cell-state={cell.state ?? "empty"}
+          >
+            {editCol === col ? (
+              <CellEditor
+                locale={locale}
+                column={column}
+                initial={draftOf(column, cell)}
+                label={a.t("charting.cell.edit", { column: column.name, title: row.title ?? row.study_id })}
+                onCommit={(draft, how) => actions.current.commit(row.study_id, col, draft, how)}
+                onCancel={() => actions.current.cancel(row.study_id, col)}
+              />
+            ) : (
+              <CellView locale={locale} column={column} cell={cell} />
+            )}
+          </td>
+        );
+      })}
+    </tr>
+  );
+});
+
+/** One card of the phone list (spec 01 "Mobile layout"): a link to the one-study view; memoised like the rows of the Charting view. */
+const PhoneCard = memo(function PhoneCard({
+  row,
+  columns,
+  locale,
+  origin,
+  view,
+  show,
+  excluded,
+  actions,
+}: Readonly<{ row: ChartingRow; columns: FormColumn[]; locale: Locale; origin: string; view: TableView; show: ShowFilter; excluded: boolean; actions: MutableRefObject<GridActions> }>) {
+  const a = actions.current;
+  const href = chartingStudyHref(locale, row.study_id, origin, { view, show, excluded });
+  const filled = columns.filter((c) => cellOf(row, c.column_id).state !== null);
+  return (
+    <li className={`rounded-md border border-rule bg-leaf ${row.kept ? "" : "opacity-70"}`} data-phone-card>
+      <a href={href} className={`flex min-h-11 flex-col gap-2 rounded-md px-3 py-2 ${FOCUS_RING}`} data-phone-link>
+        {a.studyCell(row)}
+        <span className="flex flex-wrap items-center gap-2 text-xs text-ink-muted">
+          <span>{a.roundWords(row)}</span>
+          {a.statusBadge(row)}
+          {a.decisionBadge(row)}
+        </span>
+        {filled.length ? (
+          <dl className="space-y-0.5 text-xs" data-phone-values>
+            {filled.map((c) => (
+              <div key={c.column_id} className="flex flex-wrap gap-1">
+                <dt className="font-medium text-ink">
+                  <bdi>{c.name}</bdi>:
+                </dt>
+                <dd className="text-ink-muted">
+                  <bdi>{cellWords(locale, c, cellOf(row, c.column_id))}</bdi>
+                </dd>
+              </div>
+            ))}
+          </dl>
+        ) : null}
+      </a>
+    </li>
+  );
+});
+
+/**
+ * Which of the two layouts this window shows: the phone list below 640 px, the
+ * desktop screen above. Both are drawn (and CSS picks one) until the window says,
+ * and always where it cannot (the first paint, a test page without matchMedia);
+ * drawing only the one shown keeps a key press from reconciling the other.
+ */
+function useViewport(): "phone" | "desktop" | "both" {
+  const [viewport, setViewport] = useState<"phone" | "desktop" | "both">("both");
+  useEffect(() => {
+    if (typeof window.matchMedia !== "function") return;
+    const query = window.matchMedia("(min-width: 640px)");
+    const update = () => setViewport(query.matches ? "desktop" : "phone");
+    update();
+    query.addEventListener?.("change", update);
+    return () => query.removeEventListener?.("change", update);
+  }, []);
+  return viewport;
+}
+
 export function ChartingPage({ locale }: Readonly<{ locale: Locale }>) {
   return (
     <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
@@ -160,6 +367,7 @@ function ChartingScreen({ locale }: Readonly<{ locale: Locale }>) {
   const t = useCallback((key: ChartingCopyKey, values?: Record<string, string | number>) => cc(locale, key, values), [locale]);
   const n = useCallback((value: number) => formatNumber(locale, value), [locale]);
   const origin = useMemo(consoleOrigin, []);
+  const viewport = useViewport();
 
   const [load, setLoad] = useState<Load>({ status: "loading" });
   const [table, setTable] = useState<ChartingTable | null>(null);
@@ -180,14 +388,40 @@ function ChartingScreen({ locale }: Readonly<{ locale: Locale }>) {
   const [attaching, setAttaching] = useState<string | null>(null);
   const [exporting, setExporting] = useState(false);
   const [undoCount, setUndoCount] = useState(0);
+  // Part B: the view, the focused cell, the cell being edited, the form panel, the export menu, the first-visit card.
+  const [view, setView] = useState<TableView>("fulltext");
+  const [focusCol, setFocusCol] = useState(0);
+  const [editing, setEditing] = useState<Editing>(null);
+  const [panelOpen, setPanelOpen] = useState(false);
+  const [panelAdd, setPanelAdd] = useState(false);
+  const [exportOpen, setExportOpen] = useState(false);
+  const [cardClosed, setCardClosed] = useState(false);
   const undoStack = useRef<UndoEntry[]>([]);
   const fileInput = useRef<HTMLInputElement>(null);
   const attachFor = useRef<string | null>(null);
   const wordsInput = useRef<HTMLInputElement>(null);
   const focusRow = useRef(false);
+  const formButton = useRef<HTMLButtonElement>(null);
+  const exportButton = useRef<HTMLButtonElement>(null);
+  const placeRead = useRef(false);
+  const gridActions = useRef<GridActions>(null as unknown as GridActions);
 
   const boot = useCallback(async () => {
     setLoad({ status: "loading" });
+    // The place in the address is read once, after mounting (the server's first paint has none).
+    if (!placeRead.current) {
+      placeRead.current = true;
+      const place = readPlace();
+      setView(place.view);
+      setShow(place.show);
+      setShowExcluded(place.excluded);
+      if (place.row) setFocusId(place.row);
+      if (place.row) focusRow.current = true;
+      if (place.form) {
+        setPanelOpen(true);
+        setPanelAdd(true);
+      }
+    }
     try {
       const answer = await getCharting(origin);
       setTable(answer);
@@ -206,6 +440,19 @@ function ChartingScreen({ locale }: Readonly<{ locale: Locale }>) {
     void boot();
   }, [boot]);
 
+  /** Read the rows again without the loading state (after a form change, which may mark cells "Chart again"). */
+  const reload = useCallback(async () => {
+    try {
+      const answer = await getCharting(origin);
+      setTable(answer);
+      setOffline(false);
+    } catch (error) {
+      const r = refusalOf(error);
+      if (UNREACHABLE_CODES.has(r.code)) setOffline(true);
+      else setRefusal(r);
+    }
+  }, [origin]);
+
   const rows = useMemo(() => (table ? visibleRows(table.rows, show, showExcluded) : []), [table, show, showExcluded]);
   const rowsRef = useRef(rows);
   rowsRef.current = rows;
@@ -213,6 +460,24 @@ function ChartingScreen({ locale }: Readonly<{ locale: Locale }>) {
   const readOnly = table?.read_only ?? false;
   const reasons = table?.reason_options ?? [];
   const notRetrievedReasons = table?.not_retrieved_reasons ?? ["no_access", "not_found", "no_reply", "other"];
+  const form: ChartingForm | null = table?.form ?? null;
+  const columns: FormColumn[] = useMemo(() => form?.columns ?? [], [form]);
+
+  // The address follows the view and the filter, so Back from a study returns to them.
+  useEffect(() => {
+    if (!placeRead.current || typeof window === "undefined") return;
+    try {
+      const query = new URLSearchParams(window.location.search);
+      for (const key of ["view", "show", "excluded", "row", "form"]) query.delete(key);
+      if (view !== "fulltext") query.set("view", view);
+      if (show !== "all") query.set("show", show);
+      if (showExcluded) query.set("excluded", "1");
+      const text = query.toString();
+      window.history.replaceState(window.history.state, "", `${window.location.pathname}${text ? `?${text}` : ""}`);
+    } catch {
+      /* an address that cannot be rewritten (a test page) keeps the screen as it is */
+    }
+  }, [view, show, showExcluded]);
 
   // Keep the focused row on one that is shown.
   useEffect(() => {
@@ -220,17 +485,24 @@ function ChartingScreen({ locale }: Readonly<{ locale: Locale }>) {
     if (!focusId || !rows.some((r) => r.study_id === focusId)) setFocusId(rows[0].study_id);
   }, [rows, focusId]);
 
+  // Keep the focused column inside the form.
   useEffect(() => {
-    if (!focusRow.current || !focusId) return;
-    focusRow.current = false;
-    const element = document.querySelector<HTMLElement>(`[data-study-row="${focusId}"]`);
-    element?.focus();
-    element?.scrollIntoView?.({ block: "nearest" });
-  }, [focusId, table]);
+    if (focusCol > columns.length) setFocusCol(columns.length);
+  }, [columns.length, focusCol]);
 
-  function moveFocus(id: string | null) {
+  useEffect(() => {
+    if (!focusRow.current || !focusId || load.status !== "ready") return;
+    focusRow.current = false;
+    const selector = view === "charting" && columns.length > 0 ? `[data-cell="${focusId}:${focusCol}"]` : `[data-study-row="${focusId}"]`;
+    const element = document.querySelector<HTMLElement>(selector);
+    element?.focus();
+    element?.scrollIntoView?.({ block: "nearest", inline: "nearest" });
+  }, [focusId, focusCol, table, view, columns.length, editing, load.status]);
+
+  function moveFocus(id: string | null, col?: number) {
     focusRow.current = true;
     setFocusId(id);
+    if (col !== undefined) setFocusCol(col);
   }
 
   function merge(changed: ChartingRow[], counts: ChartingTable["counts"]) {
@@ -276,7 +548,7 @@ function ChartingScreen({ locale }: Readonly<{ locale: Locale }>) {
   }
 
   /** Send events; the accepted ones become one undo step. */
-  async function send(events: ChartingEvent[], previous: (event: ChartingEvent) => unknown, firstId: string | null) {
+  async function send(events: ChartingEvent[], previous: (event: ChartingEvent) => Before, firstId: string | null) {
     setBusy(true);
     setRefusal(null);
     setStatusLine("");
@@ -287,8 +559,10 @@ function ChartingScreen({ locale }: Readonly<{ locale: Locale }>) {
       const refused = answer.results.find((r) => r.result === "refused");
       if (refused) setRefusal({ code: refused.refusal?.code ?? "REFUSED", message: refused.refusal?.message ?? "" });
       if (accepted.length > 0) {
-        pushUndo({ steps: accepted.map((e) => ({ studyId: e.study_id, kind: e.kind, value: previous(e), supersedes: e.event_id })) });
+        pushUndo({ steps: accepted.map((e) => ({ studyId: e.study_id, kind: e.kind, supersedes: e.event_id, ...previous(e) })) });
         saved(accepted.length);
+        // The first value turns later form changes into recorded amendments: read the form's answer again.
+        if (accepted.some((e) => e.kind === "cell") && form && !form.has_values) void reload();
       }
     } catch (error) {
       wentOffline(error);
@@ -306,7 +580,7 @@ function ChartingScreen({ locale }: Readonly<{ locale: Locale }>) {
     const events = targets.map((r) =>
       chartingEvent({ studyId: r.study_id, screenerId: table.screener_id, kind: "fulltext_status", value, supersedes: r.heads.fulltext_status }),
     );
-    void send(events, (e) => before.get(e.study_id), targets[0].study_id);
+    void send(events, (e) => ({ value: before.get(e.study_id) }), targets[0].study_id);
   }
 
   function decide(id: string, value: Record<string, string>) {
@@ -314,7 +588,136 @@ function ChartingScreen({ locale }: Readonly<{ locale: Locale }>) {
     if (!table || !row || !row.kept || !changesAllowed()) return;
     const before = decisionValue(row.ft_decision);
     const event = chartingEvent({ studyId: id, screenerId: table.screener_id, kind: "fulltext_decision", value, supersedes: row.heads.fulltext_decision });
-    void send([event], () => before, id);
+    void send([event], () => ({ value: before }), id);
+  }
+
+  // ------------------------------------------------------------ Part B: cells
+
+  /** Why a row's cells cannot be changed here, as words for the status line, or null. */
+  function lockedWords(row: ChartingRow): string | null {
+    if (readOnly) return t("charting.archived");
+    if (!row.kept) return t("charting.study.noLongerKept");
+    if (!chartable(row)) return t("charting.cell.excludedRow");
+    return null;
+  }
+
+  /** One cell event: the new state and value, the cell's note and where-from kept, superseding what holds the cell now. */
+  function saveCell(rowId: string, column: FormColumn, next: { state: CellState; value: CellValue }) {
+    const row = byId.get(rowId);
+    if (!table || !row || !changesAllowed()) return;
+    const locked = lockedWords(row);
+    if (locked) {
+      setStatusLine(locked);
+      return;
+    }
+    const cell = cellOf(row, column.column_id);
+    const before = cellContent(column.column_id, cell);
+    const keepWords = next.state !== null;
+    const event = chartingEvent({
+      studyId: rowId,
+      screenerId: table.screener_id,
+      kind: "cell",
+      value: { column_id: column.column_id, state: next.state, value: next.state === "value" ? next.value : null },
+      note: keepWords ? cell.note : null,
+      whereFrom: keepWords ? cell.where_from : null,
+      supersedes: cell.event_id,
+    });
+    void send([event], () => before, null);
+  }
+
+  function startEdit(rowId: string, col: number) {
+    const row = byId.get(rowId);
+    const column = columns[col - 1];
+    if (!row || !column) return;
+    if (offline) {
+      setStatusLine(t("charting.refusal.OFFLINE"));
+      return;
+    }
+    const locked = lockedWords(row);
+    if (locked) {
+      setStatusLine(locked);
+      return;
+    }
+    setStatusLine("");
+    setEditing({ row: rowId, col });
+  }
+
+  function commitEdit(rowId: string, col: number, draft: CellDraft, how: "enter" | "blur") {
+    setEditing(null);
+    const row = byId.get(rowId);
+    const column = columns[col - 1];
+    if (!row || !column) return;
+    const cell = cellOf(row, column.column_id);
+    const parsed = valueOfDraft(column, draft);
+    if (parsed.kind === "notANumber") {
+      setStatusLine(t("charting.cell.numberInvalid"));
+      moveFocus(rowId, col);
+      return;
+    }
+    if (parsed.kind === "clear") {
+      if (cell.state === "value") saveCell(rowId, column, { state: null, value: null });
+    } else if (!(cell.state === "value" && sameValue(cell.value, parsed.value) && !cell.chart_again)) {
+      saveCell(rowId, column, { state: "value", value: parsed.value });
+    }
+    if (how === "enter") {
+      // Enter saves and moves down (spec 01 "Keyboard").
+      const list = rowsRef.current;
+      const at = list.findIndex((r) => r.study_id === rowId);
+      moveFocus(list[Math.min(list.length - 1, at + 1)]?.study_id ?? rowId, col);
+    }
+  }
+
+  function cancelEdit(rowId: string, col: number) {
+    setEditing(null);
+    moveFocus(rowId, col);
+  }
+
+  /** Alt+N and Alt+A: Not reported or Not applicable on the focused cell; the same key again clears it. */
+  function special(rowId: string, col: number, state: "not_reported" | "not_applicable") {
+    const row = byId.get(rowId);
+    const column = columns[col - 1];
+    if (!row || !column) return;
+    const cell = cellOf(row, column.column_id);
+    saveCell(rowId, column, cell.state === state && !cell.chart_again ? { state: null, value: null } : { state, value: null });
+  }
+
+  function openStudy(id: string) {
+    window.location.assign(chartingStudyHref(locale, id, origin, { view, show, excluded: showExcluded }));
+  }
+
+  function openPanel(addFirst = false) {
+    setPanelAdd(addFirst);
+    setPanelOpen(true);
+    setExportOpen(false);
+    if (!cardClosed) setCardClosed(true);
+    setTimeout(() => document.querySelector<HTMLElement>("[data-form-panel] [data-form-name], [data-form-panel] [data-end-pilot], [data-form-panel] [data-form-add]")?.focus(), 0);
+  }
+
+  function closePanel() {
+    setPanelOpen(false);
+    setPanelAdd(false);
+    setTimeout(() => formButton.current?.focus(), 0);
+  }
+
+  async function endPilot() {
+    if (!form || !changesAllowed()) return;
+    setBusy(true);
+    setRefusal(null);
+    try {
+      const answer = await endChartingPilot(origin, form.version);
+      setTable((current) => (current ? { ...current, form: answer } : current));
+      setAnnounce(t("charting.pilot.endedAnnounce"));
+    } catch (error) {
+      wentOffline(error);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  function formSaved(next: ChartingForm) {
+    setTable((current) => (current ? { ...current, form: next } : current));
+    // A form change may mark cells "Chart again": read the rows again.
+    void reload();
   }
 
   async function undo() {
@@ -326,7 +729,7 @@ function ChartingScreen({ locale }: Readonly<{ locale: Locale }>) {
     }
     if (!changesAllowed()) return;
     const events = entry.steps.map((s) =>
-      chartingEvent({ studyId: s.studyId, screenerId: table.screener_id, kind: s.kind, value: s.value, supersedes: s.supersedes }),
+      chartingEvent({ studyId: s.studyId, screenerId: table.screener_id, kind: s.kind, value: s.value, supersedes: s.supersedes, note: s.note, whereFrom: s.whereFrom }),
     );
     setBusy(true);
     setRefusal(null);
@@ -419,7 +822,8 @@ function ChartingScreen({ locale }: Readonly<{ locale: Locale }>) {
     else if (row.fulltext.link) window.open(row.fulltext.link, "_blank", "noopener,noreferrer");
   }
 
-  async function runExport() {
+  async function runExport(which: ExportView) {
+    setExportOpen(false);
     if (offline) {
       setStatusLine(t("charting.refusal.OFFLINE"));
       return;
@@ -429,9 +833,12 @@ function ChartingScreen({ locale }: Readonly<{ locale: Locale }>) {
     setRefusal(null);
     setAnnounce(t("charting.export.preparing"));
     try {
-      const { blob, filename } = await exportFulltextCsv(origin);
+      const { blob, filename } = await exportCsv(origin, which);
       saveFile(blob, filename);
-      const message = t("charting.announce.exported", { when: localStamp(new Date().toISOString()), n: n(table.counts.kept) });
+      // The Charting CSV holds every kept row not excluded at full text; the Full text CSV every kept row.
+      const rowsInFile = which === "charting" ? table.counts.kept - table.counts.excluded : table.counts.kept;
+      let message = t("charting.announce.exported", { when: localStamp(new Date().toISOString()), n: n(rowsInFile) });
+      if (which === "charting") message = `${message} ${t("charting.export.cellsOpen", { n: n(openCells(table.rows, columns)) })}`;
       setAnnounce(message);
       setStatusLine(message);
     } catch (error) {
@@ -555,6 +962,22 @@ function ChartingScreen({ locale }: Readonly<{ locale: Locale }>) {
     setMode(null);
   }
 
+  function changeView(next: TableView) {
+    if (next === view) return;
+    setView(next);
+    setEditing(null);
+    setMode(null);
+    setSelected(new Set());
+    focusRow.current = true;
+  }
+
+  function toggleExport() {
+    setExportOpen((open) => {
+      if (!open) setTimeout(() => document.querySelector<HTMLElement>("[data-export-menu] button")?.focus(), 0);
+      return !open;
+    });
+  }
+
   // The keyboard map (spec 01 "Keyboard"), off in text fields. One listener for
   // the screen's life calls the newest handler, swapped before paint.
   const keyHandler = useRef<(event: KeyboardEvent) => void>(() => undefined);
@@ -568,20 +991,33 @@ function ChartingScreen({ locale }: Readonly<{ locale: Locale }>) {
       if (load.status !== "ready" || !table) return;
       // A phone shows the read-only list; keys act only on the desktop screen.
       if (typeof window.matchMedia === "function" && !window.matchMedia("(min-width: 640px)").matches) return;
+      // A cell being edited keeps its keys (Enter, Esc, arrows in its options).
+      if (editing) return;
       const target = event.target as HTMLElement | null;
       const inWords = target instanceof HTMLElement && target.dataset.modeWords !== undefined;
       // The row that has the keyboard's focus is the focused row, whatever the last click said.
       const rowTarget = target instanceof HTMLElement ? target.closest<HTMLElement>("[data-study-row]")?.dataset.studyRow ?? null : null;
       const here = rowTarget ?? focusId;
       if (rowTarget && rowTarget !== focusId) setFocusId(rowTarget);
+      const cellTarget = target instanceof HTMLElement ? target.closest<HTMLElement>("[data-cell]")?.dataset.cell ?? null : null;
+      const col = cellTarget ? Number(cellTarget.slice(cellTarget.lastIndexOf(":") + 1)) : focusCol;
+      if (cellTarget && col !== focusCol) setFocusCol(col);
+      const inPanel = target instanceof HTMLElement && target.closest("[data-form-panel]") !== null;
+      const inMenu = target instanceof HTMLElement && target.closest("[data-export-menu]") !== null;
       if (event.key === "Escape") {
         if (help) setHelp(false);
-        else if (mode) setMode(null);
+        else if (exportOpen) {
+          setExportOpen(false);
+          exportButton.current?.focus();
+        } else if (mode) setMode(null);
         else if (linkFor) setLinkFor(null);
+        else if (panelOpen) closePanel();
         else if (selected.size > 0) setSelected(new Set());
         if (mode && here) moveFocus(here);
         return;
       }
+      // The panel and the menu are forms of their own: the screen's letters do not reach them.
+      if (inPanel || inMenu) return;
       if (mode) {
         if (event.key === "Enter" && (inWords || !isTextField(target)) && !(target instanceof HTMLButtonElement)) {
           event.preventDefault();
@@ -594,12 +1030,26 @@ function ChartingScreen({ locale }: Readonly<{ locale: Locale }>) {
         }
         return;
       }
-      const key = chartingKey(event, target);
+      const dir = document.documentElement.getAttribute("dir") === "rtl" ? "rtl" : "ltr";
+      const key = chartingKey(event, target, dir);
       if (key === null) return;
+      const charting = view === "charting" && columns.length > 0;
+      // Enter on a button, a link or a field does what that control does.
+      if (key === "enter" && target instanceof HTMLElement && target.closest("button, a, summary, input, select, textarea, label") !== null) return;
+      // The arrows belong to the cells; elsewhere (the view switch, a select) they keep their own meaning.
+      const arrow = key === "arrowDown" || key === "arrowUp" || key === "arrowStart" || key === "arrowEnd";
+      const inGrid = target instanceof HTMLElement && (target.closest("[role=grid]") !== null || target === document.body);
+      if (arrow && !inGrid) return;
+      // The full-text keys act in the Full text view (spec 01 "Keyboard").
+      const fullTextOnly = ["toGet", "requested", "retrieved", "notRetrieved", "include", "exclude", "attach", "toggle", "selectAll", "extendDown", "extendUp"];
+      if (view === "charting" && fullTextOnly.includes(key)) return;
       event.preventDefault();
       if (key === "help") setHelp((h) => !h);
-      else if (key === "down" || key === "up") step(key === "down" ? 1 : -1, false, here);
-      else if (key === "extendDown" || key === "extendUp") step(key === "extendDown" ? 1 : -1, true, here);
+      else if (key === "down" || key === "up" || key === "arrowDown" || key === "arrowUp") {
+        step(key === "down" || key === "arrowDown" ? 1 : -1, false, here);
+      } else if (key === "arrowStart" || key === "arrowEnd") {
+        if (charting && here) moveFocus(here, Math.min(columns.length, Math.max(0, col + (key === "arrowEnd" ? 1 : -1))));
+      } else if (key === "extendDown" || key === "extendUp") step(key === "extendDown" ? 1 : -1, true, here);
       else if (key === "toggle" && here) toggle(here);
       else if (key === "selectAll") selectAll();
       else if (key === "toGet") askStatus("to_get", here);
@@ -611,7 +1061,18 @@ function ChartingScreen({ locale }: Readonly<{ locale: Locale }>) {
       else if (key === "attach" && here) startAttach(here);
       else if (key === "open" && here) open(here);
       else if (key === "undo") void undo();
-      else if (key === "export") void runExport();
+      else if (key === "export") toggleExport();
+      else if (key === "viewFulltext") changeView("fulltext");
+      else if (key === "viewCharting") changeView("charting");
+      else if (key === "form") {
+        if (panelOpen) closePanel();
+        else openPanel(columns.length === 0);
+      } else if (key === "enter" && here) {
+        if (charting && col > 0) startEdit(here, col);
+        else openStudy(here);
+      } else if ((key === "notReported" || key === "notApplicable") && charting && here && col > 0) {
+        special(here, col, key === "notReported" ? "not_reported" : "not_applicable");
+      }
     };
   });
 
@@ -955,6 +1416,131 @@ function ChartingScreen({ locale }: Readonly<{ locale: Locale }>) {
   const stickyStart = "sticky start-0 z-10 bg-leaf";
   const stickyStudy = "sticky start-12 z-10 bg-leaf";
 
+  // Part B: the Charting view's pieces.
+  const showCard = !loading && !nothingKept && !readOnly && form !== null && form.pilot.on && !form.has_values && columns.length > 0 && !cardClosed;
+  const noColumns = !loading && form !== null && columns.length === 0;
+  const nextRow = table ? nextToChart(table.rows) : null;
+  const chartableRows = counts ? counts.kept - counts.excluded : 0;
+  const primaryTaken = showCard || (view === "charting" && noColumns);
+  const linkClass = primaryTaken ? `inline-flex min-h-11 items-center justify-center rounded-md border border-rule-strong bg-leaf px-4 font-medium text-ink ${FOCUS_RING}` : `${PRIMARY_LINK} ${FOCUS_RING}`;
+  const nextAction =
+    loading || nothingKept || noColumns || !table ? null : nextRow ? (
+      <a
+        className={linkClass}
+        data-variant={primaryTaken ? "secondary" : "primary"}
+        href={chartingStudyHref(locale, nextRow.study_id, origin, { view, show, excluded: showExcluded })}
+        data-chart-next
+      >
+        {t("charting.next")}
+      </a>
+    ) : chartableRows > 0 ? (
+      <Button variant={primaryTaken ? "secondary" : "primary"} disabled={exporting || offline} onClick={() => void runExport("charting")} data-next-export>
+        <ArrowDownTrayIcon aria-hidden="true" className="size-4" />
+        {t("charting.export.menu")}
+      </Button>
+    ) : null;
+
+  gridActions.current = {
+    // A focus that lands where the screen already is changes nothing (no second render per key press).
+    focusCell: (rowId, col) => {
+      if (rowId !== focusId) setFocusId(rowId);
+      if (col !== focusCol) setFocusCol(col);
+    },
+    startEdit,
+    commit: commitEdit,
+    cancel: cancelEdit,
+    studyCell,
+    decisionBadge,
+    statusBadge,
+    roundWords,
+    t,
+  };
+
+  const firstVisitCard = showCard ? (
+    <section aria-labelledby="charting-first-visit" className="flex flex-wrap items-center gap-3 rounded-md border border-rule bg-leaf px-4 py-3" data-first-visit>
+      <p id="charting-first-visit" className="text-ink">
+        {t("charting.pilot.suggest")}
+      </p>
+      <div className="flex flex-wrap gap-2">
+        <Button variant="primary" onClick={() => openPanel(false)} data-first-visit-open>
+          {t("charting.form.open")}
+        </Button>
+        <Button
+          variant="quiet"
+          onClick={() => setCardClosed(true)}
+          data-first-visit-close
+        >
+          {t("charting.pilot.notNow")}
+        </Button>
+      </div>
+    </section>
+  ) : null;
+
+  const noColumnsState = (
+    <section className="rounded-md border border-rule bg-leaf p-5" data-state="no-columns">
+      <p className="text-ink">{t("charting.form.empty")}</p>
+      {readOnly ? null : (
+        <Button variant="primary" className="mt-3" onClick={() => openPanel(true)} data-add-first-column>
+          {t("charting.form.addFirst")}
+        </Button>
+      )}
+    </section>
+  );
+
+  const chartingGrid = (
+    <div className="max-h-[70vh] overflow-auto rounded-md border border-rule" data-grid-scroll>
+      <table
+        role="grid"
+        aria-label={t("charting.table.gridCharting")}
+        aria-rowcount={rows.length + 1}
+        aria-colcount={columns.length + 1}
+        aria-readonly={readOnly || undefined}
+        className="w-full border-collapse text-sm"
+        data-grid="charting"
+      >
+        <thead className="sticky top-0 z-20 bg-paper">
+          <tr aria-rowindex={1}>
+            <th scope="col" aria-colindex={1} className={`${cell} sticky start-0 z-10 min-w-64 bg-paper text-start font-medium text-ink`}>
+              {t("charting.col.study")}
+            </th>
+            {columns.map((column, i) => (
+              <th key={column.column_id} scope="col" aria-colindex={i + 2} className={`${cell} min-w-40 text-start font-medium text-ink`} data-column={column.column_id}>
+                <span className="flex flex-col">
+                  <bdi>{column.name}</bdi>
+                  <span className="text-xs font-normal text-ink-muted">
+                    {t(TYPE_KEY[column.type])}
+                    {column.required ? (
+                      <>
+                        {" · "}
+                        <span data-required>{t("charting.col.required")}</span>
+                      </>
+                    ) : null}
+                  </span>
+                </span>
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((row, index) => (
+            <ChartingGridRow
+              key={row.study_id}
+              row={row}
+              index={index}
+              columns={columns}
+              locale={locale}
+              focusCol={row.study_id === focusId ? focusCol : null}
+              editCol={editing && editing.row === row.study_id ? editing.col : null}
+              readOnly={readOnly}
+              actions={gridActions}
+            />
+          ))}
+        </tbody>
+      </table>
+      {rows.length === 0 ? <p className="px-4 py-6 text-ink-muted" data-empty-filter>{t("charting.empty.filter")}</p> : null}
+    </div>
+  );
+
   return (
     <div className="space-y-4" data-charting>
       <header className="space-y-1">
@@ -970,6 +1556,7 @@ function ChartingScreen({ locale }: Readonly<{ locale: Locale }>) {
               toGet: n(counts.to_get),
               included: n(counts.included),
               excluded: n(counts.excluded),
+              charted: n(counts.charted ?? 0),
             })}
           </p>
         )}
@@ -979,34 +1566,72 @@ function ChartingScreen({ locale }: Readonly<{ locale: Locale }>) {
         {announce}
       </p>
 
-      {/* Phone: a read-only list (spec 01 "Mobile layout"); the one-study view arrives with Part B. */}
+      {/* Phone: a read-only list (spec 01 "Mobile layout"); each card opens the one-study view (spec 02). */}
       <section className="space-y-3 sm:hidden" data-phone>
         <p className="rounded-md border border-rule bg-leaf px-4 py-3 text-ink">{t("charting.mobile")}</p>
         {showSelect("charting-show-phone")}
-        {loading ? null : (
+        {loading || viewport === "desktop" ? null : (
           <ul className="space-y-2" data-phone-list>
             {rows.map((row) => (
-              <li key={row.study_id} className={`min-h-11 rounded-md border border-rule bg-leaf px-3 py-2 ${row.kept ? "" : "opacity-70"}`} data-phone-card>
-                {studyCell(row)}
-                <span className="mt-2 flex flex-wrap items-center gap-2 text-xs text-ink-muted">
-                  <span>{roundWords(row)}</span>
-                  {statusBadge(row)}
-                  {decisionBadge(row)}
-                </span>
-              </li>
+              <PhoneCard key={row.study_id} row={row} columns={columns} locale={locale} origin={origin} view={view} show={show} excluded={showExcluded} actions={gridActions} />
             ))}
           </ul>
         )}
       </section>
 
+      {viewport === "phone" ? null : (
       <div className="hidden space-y-4 sm:block" data-desktop>
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2" data-toolbar>
-          {/* Part B puts the Full text / Charting switch here (keys 1 and 2). */}
+          <div role="radiogroup" aria-label={t("charting.table.view.label")} className="inline-flex rounded-md border border-rule-strong p-0.5" data-view-switch>
+            {(["fulltext", "charting"] as const).map((v, i) => (
+              <label
+                key={v}
+                className={`inline-flex min-h-10 cursor-pointer items-center gap-2 rounded-sm px-3 text-sm has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-focus ${view === v ? "bg-brand-soft font-semibold text-brand" : "text-ink"}`}
+              >
+                <input type="radio" name="charting-view" value={v} checked={view === v} disabled={loading} onChange={() => changeView(v)} className="sr-only" data-view={v} />
+                {t(v === "fulltext" ? "charting.table.view.fulltext" : "charting.table.view.charting")}
+                <kbd className="text-xs opacity-80">{i + 1}</kbd>
+              </label>
+            ))}
+          </div>
           {showSelect("charting-show")}
           <label className="flex min-h-11 items-center gap-2 text-sm text-ink">
             <input type="checkbox" checked={showExcluded} disabled={loading} onChange={(event) => setShowExcluded(event.target.checked)} className="size-4 accent-[var(--color-brand)]" data-show-excluded />
             {t("charting.table.showExcluded")}
           </label>
+          <Button
+            ref={formButton}
+            variant="quiet"
+            disabled={loading || !form}
+            aria-expanded={panelOpen}
+            aria-controls="charting-form-panel"
+            onClick={() => (panelOpen ? closePanel() : openPanel(columns.length === 0))}
+            data-form-button
+          >
+            <AdjustmentsHorizontalIcon aria-hidden="true" className="size-4" />
+            {t("charting.form.button")} <kbd className="text-xs opacity-80">F</kbd>
+          </Button>
+          {form ? (
+            <span className="flex min-h-11 items-center gap-2 text-sm text-ink" data-pilot>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={form.pilot.on}
+                aria-labelledby="charting-pilot-name"
+                aria-describedby="charting-pilot-state"
+                disabled={loading || readOnly || busy || !form.pilot.on}
+                onClick={() => void endPilot()}
+                className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full border border-rule-strong disabled:cursor-not-allowed ${form.pilot.on ? "bg-brand" : "bg-paper"} ${FOCUS_RING}`}
+                data-pilot-switch
+              >
+                <span aria-hidden="true" className={`inline-flex size-4 rounded-full bg-leaf shadow-sm ${form.pilot.on ? "translate-x-6 rtl:-translate-x-6" : "translate-x-1 rtl:-translate-x-1"}`} />
+              </button>
+              <span id="charting-pilot-name">{t("charting.pilot.label")}</span>
+              <span id="charting-pilot-state" className="text-xs text-ink-muted">
+                {form.pilot.on ? t("charting.pilot.end") : t("charting.pilot.ended", { date: localDate(form.pilot.ended_at) })}
+              </span>
+            </span>
+          ) : null}
           <div className="ms-auto flex flex-wrap items-center gap-2">
             {undoCount > 0 ? (
               <Button variant="quiet" disabled={busy || readOnly} onClick={() => void undo()} data-undo>
@@ -1017,11 +1642,23 @@ function ChartingScreen({ locale }: Readonly<{ locale: Locale }>) {
             <Button variant="quiet" disabled={loading} onClick={() => setHelp((h) => !h)} aria-expanded={help} data-help-button>
               {t("charting.help.button")} <kbd className="text-xs opacity-80">?</kbd>
             </Button>
-            <Button disabled={loading || exporting || offline} onClick={() => void runExport()} data-export>
-              <ArrowDownTrayIcon aria-hidden="true" className="size-4" />
-              {t("charting.export.menu")}
-              <span className="text-xs text-ink-muted">{t("charting.export.csv")}</span>
-            </Button>
+            <span className="relative inline-flex">
+              <Button ref={exportButton} disabled={loading || exporting || offline} onClick={toggleExport} aria-expanded={exportOpen} aria-controls="charting-export-menu" data-export>
+                <ArrowDownTrayIcon aria-hidden="true" className="size-4" />
+                {t("charting.export.menu")}
+              </Button>
+              {exportOpen ? (
+                <span id="charting-export-menu" className="absolute end-0 top-full z-30 mt-1 flex w-64 flex-col gap-1 rounded-md border border-rule bg-leaf p-1 shadow-md" data-export-menu>
+                  <Button variant="quiet" className="justify-start text-start text-sm" onClick={() => void runExport("fulltext")} data-export-fulltext>
+                    {t("charting.export.csv")}
+                  </Button>
+                  <Button variant="quiet" className="justify-start text-start text-sm" onClick={() => void runExport("charting")} data-export-charting>
+                    {t("charting.export.csvCharting")}
+                  </Button>
+                </span>
+              ) : null}
+            </span>
+            {nextAction}
           </div>
         </div>
 
@@ -1031,6 +1668,7 @@ function ChartingScreen({ locale }: Readonly<{ locale: Locale }>) {
               {t("charting.help.title")}
             </h2>
             <p className="mt-2 text-ink-muted">{t("charting.help.body")}</p>
+            <p className="mt-2 text-ink-muted">{t("charting.help.bodyCharting")}</p>
             <Button variant="quiet" className="mt-2" onClick={() => setHelp(false)}>
               {t("charting.help.close")}
             </Button>
@@ -1098,6 +1736,8 @@ function ChartingScreen({ locale }: Readonly<{ locale: Locale }>) {
           {confirmLine ? <div className="rounded-md border border-dashed border-brand bg-brand-soft px-4 py-3">{confirmLine}</div> : null}
         </div>
 
+        {firstVisitCard}
+
         {nothingKept ? (
           <section className="rounded-md border border-rule bg-leaf p-5" data-state="nothing-kept">
             <p className="text-ink">{t("charting.empty.nothingKept")}</p>
@@ -1106,6 +1746,9 @@ function ChartingScreen({ locale }: Readonly<{ locale: Locale }>) {
             </a>
           </section>
         ) : (
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-start" data-table-area>
+          <div className="min-w-0 flex-1">
+          {view === "charting" && !loading ? (noColumns ? noColumnsState : chartingGrid) : (
           <div className="max-h-[70vh] overflow-auto rounded-md border border-rule" data-grid-scroll>
             <table
               role="grid"
@@ -1194,6 +1837,23 @@ function ChartingScreen({ locale }: Readonly<{ locale: Locale }>) {
             </table>
             {!loading && rows.length === 0 ? <p className="px-4 py-6 text-ink-muted" data-empty-filter>{t("charting.empty.filter")}</p> : null}
           </div>
+          )}
+          </div>
+          {panelOpen && form ? (
+            <ChartingFormPanel
+              locale={locale}
+              origin={origin}
+              form={form}
+              readOnly={readOnly || offline}
+              addOnOpen={panelAdd}
+              onSaved={formSaved}
+              onEndPilot={() => void endPilot()}
+              onClose={closePanel}
+              onAnnounce={setAnnounce}
+              onReload={() => void reload()}
+            />
+          ) : null}
+          </div>
         )}
 
         <p className="min-h-5 text-sm text-ink" data-status-line>
@@ -1216,6 +1876,7 @@ function ChartingScreen({ locale }: Readonly<{ locale: Locale }>) {
           data-file-input
         />
       </div>
+      )}
     </div>
   );
 }

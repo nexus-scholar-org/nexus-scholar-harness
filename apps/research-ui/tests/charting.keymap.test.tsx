@@ -92,7 +92,7 @@ describe("charting.keymap", () => {
     expect(postedEvents(engine)[0][0]).toMatchObject({ kind: "fulltext_decision", value: { outcome: "INCLUDE" } });
     focusRow("STU-002");
     await press("e");
-    expect(screen.getByRole("radiogroup")).toBeInTheDocument();
+    expect(within(document.querySelector("[data-confirm-line]") as HTMLElement).getByRole("radiogroup")).toBeInTheDocument();
     await press("1");
     expect(screen.getByRole("radio", { name: /EXC-01/ })).toHaveAttribute("aria-checked", "true");
     await press("Enter");
@@ -141,12 +141,16 @@ describe("charting.keymap", () => {
     expect(undo.map((e) => [e.kind, e.value])).toEqual([["attachment", null], ["fulltext_status", { status: "to_get" }]]);
   });
 
-  it("keys are off in a text field; L, C, D and Enter do nothing here", async () => {
+  it("keys are off in a text field; L, C and D stay free for Part F; Enter opens the study (Part B)", async () => {
     const engine = installEngine(makeTable([makeRow(1)]));
+    const assign = vi.fn();
+    vi.stubGlobal("location", { ...window.location, assign });
     await renderCharting();
     focusRow("STU-001");
-    for (const key of ["l", "c", "d", "Enter", "1", "2"]) await press(key);
+    for (const key of ["l", "c", "d"]) await press(key);
     expect(engine.calls.filter((c) => c.method === "POST")).toHaveLength(0);
+    await press("Enter");
+    expect(assign).toHaveBeenCalledWith("/en/charting/study?id=STU-001");
     fireEvent.click(within(rowOf("STU-001")).getByRole("button", { name: "Paste a link" }));
     const link = document.querySelector("[data-link-input]") as HTMLInputElement;
     link.focus();
@@ -154,16 +158,23 @@ describe("charting.keymap", () => {
     expect(engine.calls.filter((c) => c.method === "POST")).toHaveLength(0);
     expect(chartingKey({ key: "r", ctrlKey: false, metaKey: false, altKey: false, shiftKey: false }, link)).toBeNull();
     expect(chartingKey({ key: "e", ctrlKey: true, metaKey: false, altKey: false, shiftKey: false }, document.body)).toBe("export");
-    for (const key of ["l", "c", "d", "Enter", "1", "2"]) {
+    for (const key of ["l", "c", "d"]) {
       expect(chartingKey({ key, ctrlKey: false, metaKey: false, altKey: false, shiftKey: false }, document.body), key).toBeNull();
     }
+    expect(chartingKey({ key: "Enter", ctrlKey: false, metaKey: false, altKey: false, shiftKey: false }, document.body)).toBe("enter");
+    expect(chartingKey({ key: "1", ctrlKey: false, metaKey: false, altKey: false, shiftKey: false }, document.body)).toBe("viewFulltext");
+    expect(chartingKey({ key: "2", ctrlKey: false, metaKey: false, altKey: false, shiftKey: false }, document.body)).toBe("viewCharting");
   });
 
-  it("Ctrl+E exports the Full text CSV", async () => {
+  it("Ctrl+E opens the Export menu; its first item exports the Full text CSV", async () => {
     const engine = installEngine(makeTable([makeRow(1)]));
     await renderCharting();
     focusRow("STU-001");
     await press("e", { ctrlKey: true });
+    const menu = document.querySelector("[data-export-menu]") as HTMLElement;
+    expect(within(menu).getAllByRole("button").map((b) => b.textContent)).toEqual(["CSV of the Full text view", "CSV of the Charting view"]);
+    expect(document.activeElement).toBe(within(menu).getAllByRole("button")[0]);
+    fireEvent.click(within(menu).getByRole("button", { name: "CSV of the Full text view" }));
     await press("Shift");
     expect(engine.calls.some((c) => c.method === "GET" && c.path === "/api/v1/charting/export?format=csv&view=fulltext")).toBe(true);
     expect(within(grid()).queryByRole("radiogroup")).toBeNull();
