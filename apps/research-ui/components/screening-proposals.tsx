@@ -103,6 +103,8 @@ const COPY = {
     confirmNoCeiling: "No cost ceiling is set.",
     confirm: "Start the run",
     back: "Back",
+    // M11b part C (spec 13): drafts made under an earlier wording of the criteria.
+    redraft: "Draft again the {n} records whose draft predates the revision",
     whileItRuns: "While it runs",
     idle: "No run yet.",
     starting: "Starting the run…",
@@ -183,6 +185,7 @@ const COPY = {
     confirmNoCeiling: "Aucun plafond de coût n'est fixé.",
     confirm: "Lancer le passage",
     back: "Retour",
+    redraft: "Rédiger à nouveau les {n} notices dont le brouillon précède la révision",
     whileItRuns: "Pendant le passage",
     idle: "Aucun passage pour l'instant.",
     starting: "Lancement du passage…",
@@ -263,6 +266,7 @@ const COPY = {
     confirmNoCeiling: "لم يُحدَّد سقف للتكلفة.",
     confirm: "ابدأ التشغيل",
     back: "رجوع",
+    redraft: "أعد صياغة مسودات السجلات الـ{n} التي سبقت مسودتها المراجعة",
     whileItRuns: "أثناء التشغيل",
     idle: "لا تشغيل بعد.",
     starting: "جارٍ بدء التشغيل…",
@@ -326,7 +330,7 @@ export function ScreeningProposals({ locale }: Readonly<{ locale: Locale }>) {
   const [ceiling, setCeiling] = useState("");
   const [consent, setConsent] = useState(false);
   const [estimate, setEstimate] = useState<RunEstimate | null>(null);
-  const [confirming, setConfirming] = useState<null | { dryRun: boolean }>(null);
+  const [confirming, setConfirming] = useState<null | { dryRun: boolean; redraft?: string[]; redraftCount?: number }>(null);
   // H-screening-drafts: the estimate the dialog names (a dry run's is its own), and the start in flight.
   const [dialogEstimate, setDialogEstimate] = useState<RunEstimate | null>(null);
   const [starting, setStarting] = useState(false);
@@ -422,13 +426,14 @@ export function ScreeningProposals({ locale }: Readonly<{ locale: Locale }>) {
       setDialogEstimate(null);
       return;
     }
-    if (!confirming.dryRun) {
+    if (!confirming.dryRun && !confirming.redraft) {
       setDialogEstimate(estimate);
       return;
     }
     let live = true;
     setDialogEstimate(null);
-    estimateRun(origin, { ...request({ dry_run: true }), cost_ceiling_usd: null })
+    const scoped = confirming.redraft ? { scope: { study_ids: confirming.redraft } } : {};
+    estimateRun(origin, { ...request({ dry_run: confirming.dryRun, ...scoped }), cost_ceiling_usd: null })
       .then((e) => live && setDialogEstimate(e))
       .catch((error: unknown) => live && setRefusal(codeOf(error)));
     return () => {
@@ -464,14 +469,15 @@ export function ScreeningProposals({ locale }: Readonly<{ locale: Locale }>) {
     }
   }
 
-  const begin = (dryRun: boolean) =>
+  const begin = (dryRun: boolean, redraft?: string[]) =>
     act(async () => {
       setConfirming(null);
       // H-screening-drafts: the run shows as starting at once; the engine's answer can take a while.
       setStarting(true);
       try {
         const consentBody = consent ? { provider, accepted_at: new Date().toISOString() } : undefined;
-        const started = await startRun(origin, request({ dry_run: dryRun, consent: consentBody }));
+        const scoped = redraft ? { scope: { study_ids: redraft } } : {};
+        const started = await startRun(origin, request({ dry_run: dryRun, consent: consentBody, ...scoped }));
         const view = await getRun(origin, started.run_id);
         setRun(view);
         setConsent(false);
@@ -750,10 +756,18 @@ export function ScreeningProposals({ locale }: Readonly<{ locale: Locale }>) {
               <p className="mt-2 text-xs text-ink-muted">{t("retention")}</p>
             </GatePanel>
 
+            {setup.earlier_wording_drafts && setup.earlier_wording_drafts.count > 0 ? (
+              <p className="text-sm" data-redraft>
+                <Button disabled={!ready} onClick={() => setConfirming({ dryRun: false, redraft: setup.earlier_wording_drafts!.study_ids, redraftCount: setup.earlier_wording_drafts!.count })}>
+                  {t("redraft", { n: n(setup.earlier_wording_drafts.count) })}
+                </Button>
+              </p>
+            ) : null}
+
             {confirming ? (
               <div role="dialog" aria-modal="true" aria-labelledby="run-confirm" className="rounded-lg border border-brand bg-leaf p-5">
                 <h2 id="run-confirm" className="font-semibold text-ink">
-                  {t("confirmTitle", { n: n(confirming.dryRun ? Math.min(20, records) : records), provider: providerName, model })}
+                  {t("confirmTitle", { n: n(confirming.redraft ? (confirming.dryRun ? Math.min(20, confirming.redraftCount ?? confirming.redraft.length) : (confirming.redraftCount ?? confirming.redraft.length)) : confirming.dryRun ? Math.min(20, records) : records), provider: providerName, model })}
                 </h2>
                 <p className="mt-2 text-sm text-ink" data-confirm-estimate>
                   {dialogEstimate === null
@@ -765,7 +779,7 @@ export function ScreeningProposals({ locale }: Readonly<{ locale: Locale }>) {
                 <p className="mt-2 text-sm text-ink">{t("dataFlow", { flow: setup.data_flow })}</p>
                 <p className="mt-1 text-sm text-ink-muted">{typeof ceilingValue === "number" ? t("confirmCeiling", { ceiling: usd(locale, ceilingValue) }) : t("confirmNoCeiling")}</p>
                 <div className="mt-4 flex flex-wrap gap-2">
-                  <Button variant="primary" autoFocus disabled={busy || dialogEstimate === null} onClick={() => void begin(confirming.dryRun)}>
+                  <Button variant="primary" autoFocus disabled={busy || dialogEstimate === null} onClick={() => void begin(confirming.dryRun, confirming.redraft)}>
                     {t("confirm")}
                   </Button>
                   <Button onClick={() => setConfirming(null)}>{t("back")}</Button>

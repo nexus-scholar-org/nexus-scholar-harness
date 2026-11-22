@@ -12,25 +12,44 @@
       "binding": {
         "batch_id": "batch-943f93bf12ff2ce60f2c43c0db28b683",
         "batch_sha256": "sha256:b39cad243897e5375497a23a099ef433c6ce02394e08beff57657c501f531099",
+        "criteria_version": 1,
         "protocol_fingerprint": "sha256:4442ddb7e6ee4416371d92256ddfc0e4124117429b7a34a3baf5cb7531e8a7f5"
       },
       "criteria": [
         {
           "id": "INC-01",
           "kind": "inclusion",
+          "since_version": 1,
           "text": "Formal research protocols declaring explicit research questions"
         },
         {
           "id": "EXC-01",
           "kind": "exclusion",
+          "since_version": 1,
           "text": "Non-canonical or malformed protocol documents"
         }
       ],
+      "criteria_version": 1,
       "doi": null,
       "highlights": [],
       "history": [],
       "my_decision": null,
       "not_reported_policy": "unclear",
+      "search_terms": {
+        "concepts": [
+          {
+            "concept": "Protocol Identity",
+            "mentions": 0,
+            "terms": [
+              "Protocol Identity",
+              "canonical serialization",
+              "protocol fingerprint"
+            ]
+          }
+        ],
+        "marks": []
+      },
+      "shown_again": null,
       "study_id": "STU-5501d9dbf159a23a786423d1b11f46f4",
       "title": "UAV multispectral weed mapping in maize",
       "venue": null,

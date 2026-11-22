@@ -372,6 +372,7 @@ def start_run(
     driver_factory: Callable[[str, str | None], Any] | None = None,
     executor: Callable[[Callable[[], None]], None] | None = None,
     base_url: str | None = None,
+    pilot_id: str | None = None,
 ) -> dict[str, Any]:
     """Refuse or start a run; returns the run record (state `running`)."""
     from scholar_agent import prompt_gate as pg
@@ -388,7 +389,10 @@ def start_run(
     unknown = [s for s in study_ids if s not in context.study_batch]
     if unknown:
         raise RunRefused("UNKNOWN_STUDY", f"{unknown[0]} is not in the bound corpus", status=422)
-    protocol = json.loads((ws / "protocol.json").read_text(encoding="utf-8"))
+    # M11b part A: the prompt names the criteria in force (signed + amendments),
+    # and every draft of this run is labelled with that version.
+    criteria = context.criteria
+    protocol = criteria.protocol_in_force(json.loads((ws / "protocol.json").read_text(encoding="utf-8")))
     task = task_mod.load_task()
     spec = pg.run_spec(protocol, model=model, effort=effort, max_tokens=int(task.defaults["max_tokens"]))
     papers = _papers(ws, context)
@@ -432,6 +436,9 @@ def start_run(
         "task_version": task.task_version,
         "prompt_sha256": task.prompt_sha256,
         "protocol_fingerprint": context.protocol_fingerprint,
+        "criteria_version": criteria.version,
+        # M11b part B: a calibration on a pilot reads its labels from the pilot file.
+        "pilot_id": pilot_id,
         "records": len(study_ids),
         "study_ids": study_ids,
         "done": 0,
@@ -475,7 +482,7 @@ def start_run(
     def work() -> None:
         error = None
         try:
-            _execute(live, driver, requests, spec, papers, protocol, batch)
+            _execute(live, driver, requests, spec, papers, protocol, batch, criteria)
         except BaseException as exc:  # noqa: BLE001 - a crashed run is recorded, never left running
             error = f"{type(exc).__name__}: {exc}"
         finally:
@@ -485,7 +492,7 @@ def start_run(
     return read_run(ws, run_id)
 
 
-def _execute(live: _Live, driver, requests, spec, papers, protocol, batch) -> None:
+def _execute(live: _Live, driver, requests, spec, papers, protocol, batch, criteria=None) -> None:
     from scholar_agent import prompt_gate as pg
 
     ws, run_id = live.ws, live.run["run_id"]
@@ -517,6 +524,7 @@ def _execute(live: _Live, driver, requests, spec, papers, protocol, batch) -> No
                 output=output,
                 protocol=protocol,
                 protocol_fingerprint=context.protocol_fingerprint,
+                criteria=criteria,
                 provenance={
                     "task_id": "screening",
                     "task_version": run["task_version"],
@@ -528,6 +536,8 @@ def _execute(live: _Live, driver, requests, spec, papers, protocol, batch) -> No
                     "usage": result.usage.as_dict(),
                     "cost_estimate": cost,
                     "request_id": result.request_id,
+                    # M11b part B: a draft of the agent check on a pilot names the pilot.
+                    "pilot_id": run.get("pilot_id"),
                     "batch_id": result.batch_id,
                     "driver_status": result.status,
                     "driver_detail": result.detail,
@@ -574,7 +584,7 @@ def _finish(live: _Live, error: str | None) -> None:
             run["finished_at"] = _now()
             if run["kind"] == "calibration":
                 try:
-                    run["calibration"] = calibration_result(ws, run["study_ids"])
+                    run["calibration"] = calibration_result(ws, run["study_ids"], pilot_id=run.get("pilot_id"))
                 except Exception as exc:  # noqa: BLE001 - the run's end is still recorded
                     run["calibration_error"] = f"{type(exc).__name__}: {exc}"
             _write_run(ws, run)
@@ -590,7 +600,7 @@ def _finish(live: _Live, error: str | None) -> None:
         _write_run(ws, run)
 
 
-def calibration_result(ws: Path, study_ids: list[str]) -> dict[str, Any]:
+def calibration_result(ws: Path, study_ids: list[str], *, pilot_id: str | None = None) -> dict[str, Any]:
     """Include-recall of the latest proposals against the researcher's decisions (advisory)."""
     from scholar_agent import prompt_gate as pg
 
@@ -599,25 +609,48 @@ def calibration_result(ws: Path, study_ids: list[str]) -> dict[str, Any]:
     context = ev.load_context(ws)
     events = ev.current_events(ev.read_events(ws), context)
     # H-screening-drafts: scored under the not-reported policy in force, like every screen.
-    protocol = json.loads((ws / "protocol.json").read_text(encoding="utf-8"))
-    criteria = pr.Criteria.from_protocol(protocol)
+    # M11b part A: the criteria in force; a draft made under an earlier version is not counted (DoD 9).
+    criteria = pr.Criteria.from_in_force(context.criteria)
     policy = effective_method(ws).config.not_reported
     labels, outcomes = {}, {}
+    if pilot_id is not None:
+        # M11b part B (record (i)): the pilot's decisions are the labels; they are not events.
+        from scholar_harness.screening.pilot import decided_labels, heads, read_decisions
+
+        pilot_labels = decided_labels(ws, pilot_id, study_ids)
+        versions = {s: int(d.get("criteria_version") or 1) for s, d in heads(read_decisions(ws, pilot_id)).items()}
+        for study, label in pilot_labels.items():
+            proposal = pr.latest_proposal(ws, study)
+            if proposal is None or pr.draft_version(proposal) != versions.get(study, 1):
+                continue
+            labels[study] = label
+            outcomes[study] = pr.outcome_in_force(
+                proposal, criteria, not_reported=policy, protocol_fingerprint=context.protocol_fingerprint,
+                criteria_version=pr.draft_version(proposal),
+            )[0]
+        study_ids = []
     for study in study_ids:
         screener = next((e["screener_id"] for e in events if e["study_id"] == study), None)
         winner = ev.winning_event(events, study, screener) if screener else None
         proposal = pr.latest_proposal(ws, study)
-        if winner is None or proposal is None:
+        if winner is None or proposal is None or context.awaiting_recheck(winner):
+            continue
+        if pr.draft_version(proposal) != context.criteria_version:
             continue
         labels[study] = "INCLUDE" if winner["outcome"] in ("INCLUDE", "MAYBE") else "EXCLUDE"
         outcomes[study] = pr.outcome_in_force(
-            proposal, criteria, not_reported=policy, protocol_fingerprint=context.protocol_fingerprint
+            proposal, criteria, not_reported=policy, protocol_fingerprint=context.protocol_fingerprint,
+            criteria_version=context.criteria_version,
         )[0]
     scored = pg.score(outcomes, labels)
+    missed = list(scored["missed_includes"])
     return {
         "include_recall": scored["include_recall"],
         "ci_low": scored["include_recall_ci_low"],
-        "missed_includes": scored["missed_includes"],
+        # M11b part B, review F1 (answer 11): a pilot's records are undecided in the main screening,
+        # so a check on a pilot names none of them; the count only.
+        "missed_includes": [] if pilot_id is not None else missed,
+        "missed_includes_count": len(missed),
         "compared": len(labels),
         "advisory": True,
     }

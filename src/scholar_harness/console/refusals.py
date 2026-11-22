@@ -92,6 +92,20 @@ BLINDING_SET_BY_PROTOCOL = "BLINDING_SET_BY_PROTOCOL"
 METHOD_AMENDMENT_INVALID = "METHOD_AMENDMENT_INVALID"
 #: H-screening-drafts: the corpus is accepted but no screening batch is prepared yet.
 BATCHES_NOT_PREPARED = "BATCHES_NOT_PREPARED"
+#: M11b part A: a criteria revision that is not recorded (`screening/criteria.py`).
+CRITERIA_AMENDMENT_INVALID = "CRITERIA_AMENDMENT_INVALID"
+CRITERIA_AMENDMENT_NO_BATCHES = "CRITERIA_AMENDMENT_NO_BATCHES"
+CRITERIA_AMENDMENT_AFTER_APPROVAL = "CRITERIA_AMENDMENT_AFTER_APPROVAL"
+CRITERIA_SIDE_EMPTY = "CRITERIA_SIDE_EMPTY"
+CRITERIA_AMENDMENT_HANDOFF = "CRITERIA_AMENDMENT_HANDOFF"
+#: M11b part A: a new EXCLUDE citing a criterion a revision retired.
+REASON_CODE_RETIRED = "REASON_CODE_RETIRED"
+#: M11b part B: the criteria pilot (`screening/pilot.py`).
+PILOT_OPEN = "PILOT_OPEN"
+PILOT_RECORD_UNKNOWN = "PILOT_RECORD_UNKNOWN"
+PILOT_CLOSED = "PILOT_CLOSED"
+PILOT_NOT_FOUND = "PILOT_NOT_FOUND"
+PILOT_SIZE_INVALID = "PILOT_SIZE_INVALID"
 
 # --- the inception routes (M4a, `docs/architecture/inception-api.md`) ---------
 #: Raised as ``DraftRefused`` (``inception/drafts.py``), ``StepRefused``
@@ -108,6 +122,8 @@ DRAFT_INCOMPLETE = "DRAFT_INCOMPLETE"
 DRAFT_TOO_LARGE = "DRAFT_TOO_LARGE"
 STEP_UNKNOWN = "STEP_UNKNOWN"
 CRITERIA_UNDECIDED = "CRITERIA_UNDECIDED"
+#: M11b part D (answer 8): the not-reported rule is not chosen; preview and genesis refuse.
+METHOD_RULE_UNCHOSEN = "METHOD_RULE_UNCHOSEN"
 CRITERIA_MISSING = "CRITERIA_MISSING"
 INTENT_INVALID = "INTENT_INVALID"
 SCREENING_BOUND = "SCREENING_BOUND"
@@ -188,6 +204,22 @@ SEEDS_INVALID = "SEEDS_INVALID"
 CAP_INVALID = "CAP_INVALID"
 #: M10b Part D: the size estimate's screening pace is not 5 to 600 seconds per record.
 PACE_INVALID = "PACE_INVALID"
+#: M11a Part A: a workbench Count would pass a database's daily request budget; nothing was sent.
+WORKBENCH_BUDGET_SPENT = "WORKBENCH_BUDGET_SPENT"
+#: M11a Part A: a workbench version that cannot be searched (no concept with a term, years, query key).
+WORKBENCH_VERSION_INVALID = "WORKBENCH_VERSION_INVALID"
+#: M11a Part A (review P3): the workbench's shared budget file cannot be read; nothing was sent and nothing overwritten.
+WORKBENCH_STATE_UNREADABLE = "WORKBENCH_STATE_UNREADABLE"
+#: M11a Part B: comparison sets (an export from a database the app cannot query) and their report.
+WORKBENCH_COMPARISON_FORMAT = "WORKBENCH_COMPARISON_FORMAT"
+WORKBENCH_COMPARISON_TOO_LARGE = "WORKBENCH_COMPARISON_TOO_LARGE"
+WORKBENCH_COMPARISON_FULL = "WORKBENCH_COMPARISON_FULL"
+WORKBENCH_COMPARISON_NOT_FOUND = "WORKBENCH_COMPARISON_NOT_FOUND"
+WORKBENCH_COMPARISON_MEASURE = "WORKBENCH_COMPARISON_MEASURE"
+#: M11a Part D: the researcher's amendment from Plan has no reason (or one over 2,000 characters).
+WORKBENCH_REASON_INVALID = "WORKBENCH_REASON_INVALID"
+#: M11a Part D: the protocol changed since the page read it; nothing was written.
+WORKBENCH_PROTOCOL_CHANGED = "WORKBENCH_PROTOCOL_CHANGED"
 #: A database name the engine does not know, in a run's or a check's ``providers``.
 PROVIDER_UNKNOWN = "PROVIDER_UNKNOWN"
 #: A discovery job stopped on an unexpected error; ``message`` names it.
@@ -236,6 +268,28 @@ CHASE_SEEDS_INVALID = "CHASE_SEEDS_INVALID"
 #: A failed accept registered the next round's snapshot; finish it before a new chase or another accept.
 CHASE_ACCEPT_PENDING = "CHASE_ACCEPT_PENDING"
 PROTOCOL_CHANGED_SINCE_PUBLISH = "PROTOCOL_CHANGED_SINCE_PUBLISH"
+
+# --- the charting table (M12a Part A, `charting/`, `console/api/charting.py`) ----------
+#: An event or a file for a study that is not in the published kept set (or left it).
+RECORD_NOT_KEPT = "RECORD_NOT_KEPT"
+#: Not retrieved or Exclude without its one reason; Other without words.
+FULLTEXT_REASON_REQUIRED = "FULLTEXT_REASON_REQUIRED"
+#: A reason that is not one of the options, or a reason where none is allowed.
+FULLTEXT_REASON_INVALID = "FULLTEXT_REASON_INVALID"
+ATTACHMENT_NOT_PDF = "ATTACHMENT_NOT_PDF"
+ATTACHMENT_TOO_LARGE = "ATTACHMENT_TOO_LARGE"
+#: ``GET …/attachment`` for a record with no PDF attached.
+ATTACHMENT_MISSING = "ATTACHMENT_MISSING"
+LINK_INVALID = "LINK_INVALID"
+CHARTING_EXPORT_FORMAT_INVALID = "CHARTING_EXPORT_FORMAT_INVALID"
+#: The protocol differs from the one the newest published round was screened under: read-only.
+CHARTING_PROTOCOL_REPLACED = "CHARTING_PROTOCOL_REPLACED"
+# --- the charting form and cells (M12a Part B, `charting/form.py`) ---------------------
+CHARTING_VALUE_INVALID = "CHARTING_VALUE_INVALID"
+CHARTING_COLUMN_UNKNOWN = "CHARTING_COLUMN_UNKNOWN"
+CHARTING_AMENDMENT_REASON_REQUIRED = "CHARTING_AMENDMENT_REASON_REQUIRED"
+#: A form change made from a version that is no longer the form's.
+CHARTING_FORM_STALE = "CHARTING_FORM_STALE"
 
 # --- request validation (H-input-limits, F5) ----------------------------------
 #: A body, query or path parameter pydantic refuses on any route (HTTP 422);
@@ -299,6 +353,17 @@ CONTRACT_ADDED = frozenset(
         BLINDING_SET_BY_PROTOCOL,
         METHOD_AMENDMENT_INVALID,
         BATCHES_NOT_PREPARED,
+        CRITERIA_AMENDMENT_INVALID,
+        CRITERIA_AMENDMENT_NO_BATCHES,
+        CRITERIA_AMENDMENT_AFTER_APPROVAL,
+        CRITERIA_SIDE_EMPTY,
+        CRITERIA_AMENDMENT_HANDOFF,
+        REASON_CODE_RETIRED,
+        PILOT_OPEN,
+        PILOT_RECORD_UNKNOWN,
+        PILOT_CLOSED,
+        PILOT_NOT_FOUND,
+        PILOT_SIZE_INVALID,
         DRAFT_ID_INVALID,
         DRAFT_NOT_FOUND,
         DRAFT_UNREADABLE,
@@ -310,6 +375,7 @@ CONTRACT_ADDED = frozenset(
         DRAFT_TOO_LARGE,
         STEP_UNKNOWN,
         CRITERIA_UNDECIDED,
+        METHOD_RULE_UNCHOSEN,
         CRITERIA_MISSING,
         INTENT_INVALID,
         SCREENING_BOUND,
@@ -358,6 +424,16 @@ CONTRACT_ADDED = frozenset(
         SEEDS_INVALID,
         CAP_INVALID,
         PACE_INVALID,
+        WORKBENCH_BUDGET_SPENT,
+        WORKBENCH_VERSION_INVALID,
+        WORKBENCH_STATE_UNREADABLE,
+        WORKBENCH_COMPARISON_FORMAT,
+        WORKBENCH_COMPARISON_TOO_LARGE,
+        WORKBENCH_COMPARISON_FULL,
+        WORKBENCH_COMPARISON_NOT_FOUND,
+        WORKBENCH_COMPARISON_MEASURE,
+        WORKBENCH_REASON_INVALID,
+        WORKBENCH_PROTOCOL_CHANGED,
         PROVIDER_UNKNOWN,
         DISCOVERY_FAILED,
         PROTOCOL_CHANGED_SINCE_SNAPSHOT,
@@ -376,6 +452,19 @@ CONTRACT_ADDED = frozenset(
         CHASE_SEEDS_INVALID,
         CHASE_ACCEPT_PENDING,
         PROTOCOL_CHANGED_SINCE_PUBLISH,
+        RECORD_NOT_KEPT,
+        FULLTEXT_REASON_REQUIRED,
+        FULLTEXT_REASON_INVALID,
+        ATTACHMENT_NOT_PDF,
+        ATTACHMENT_TOO_LARGE,
+        ATTACHMENT_MISSING,
+        LINK_INVALID,
+        CHARTING_EXPORT_FORMAT_INVALID,
+        CHARTING_PROTOCOL_REPLACED,
+        CHARTING_VALUE_INVALID,
+        CHARTING_COLUMN_UNKNOWN,
+        CHARTING_AMENDMENT_REASON_REQUIRED,
+        CHARTING_FORM_STALE,
         BODY_INVALID,
     }
     | LEG_ERROR_CODES

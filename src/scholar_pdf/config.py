@@ -2,17 +2,27 @@ from pathlib import Path
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+#: Decision 2026-11-21, M12a items 21 and 27 (K0): ``download`` and ``ingest``
+#: are production; the refusals below name the decision item they apply.
+DECISION = "decision 2026-11-21, M12a"
+
 
 class Settings(BaseSettings):
     """Global settings for scholar-pdf-kit."""
-    mailto: str = "student@university.edu"
+
+    # Contact address sent to Unpaywall and OpenAlex and in the User-Agent.
+    # No default (K0, M12a item 27): the app's ``SCHOLAR_MAILTO`` is read
+    # first, then the kit's own ``MAILTO``; without either the kit refuses
+    # to fetch (``MAILTO_NOT_SET``).
+    mailto: str = ""
 
     # Download configurations
     download_dir: Path = Path("downloads")
     max_concurrent_downloads: int = 5
     download_timeout: int = 30  # seconds
 
-    # Institutional proxy support
+    # Institutional proxy support: parked code. ``download`` and ``ingest``
+    # refuse a set proxy with a message (M12a item 25, G4).
     # EZproxy:   https://proxy.university.edu/login?url=
     # Subdomain: https://www.sndl1.arn.dz   (host-prefix style, auto-detected)
     # Prefix:    http://proxy:3128
@@ -24,10 +34,10 @@ class Settings(BaseSettings):
     # %PDF- header + %%EOF trailer signature check.
     pdf_structural_validation: bool = False
 
-    # Publisher direct-PDF patterns
-    # When True, compute direct-PDF URLs for IEEE/Elsevier/Springer/arXiv/MDPI
-    # to bypass Cloudflare/WAF on landing pages.
-    enable_publisher_direct_patterns: bool = True
+    # Publisher direct-PDF patterns: removed (Part K, M12a item 24, G3). The
+    # setting is read only so that a stale ``ENABLE_PUBLISHER_DIRECT_PATTERNS
+    # =true`` is refused by ``download`` and ``ingest``, not silently ignored.
+    enable_publisher_direct_patterns: bool = False
 
     model_config = SettingsConfigDict(
         env_file=".env",
@@ -37,3 +47,52 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
+
+
+class MailtoNotSetError(RuntimeError):
+    """The kit was asked to fetch without a contact address (``MAILTO_NOT_SET``)."""
+
+    code = "MAILTO_NOT_SET"
+
+    def __init__(self) -> None:
+        super().__init__(
+            "MAILTO_NOT_SET: fetching needs a contact email for Unpaywall and OpenAlex. "
+            "Set SCHOLAR_MAILTO (or the kit's MAILTO) in the environment or in .env."
+        )
+
+
+def contact_email() -> str:
+    """The contact address: the app's ``SCHOLAR_MAILTO`` first, then ``MAILTO``; ``""`` if neither."""
+    from scholar_search.config import settings as search_settings
+
+    for value in (search_settings.mailto, settings.mailto):
+        if value and value.strip():
+            return value.strip()
+    return ""
+
+
+def require_contact_email() -> str:
+    """The contact address, or :class:`MailtoNotSetError` before any request is made."""
+    address = contact_email()
+    if not address:
+        raise MailtoNotSetError()
+    return address
+
+
+def openalex_key() -> str:
+    """``SCHOLAR_OPENALEX_KEY`` as the search kit reads it, or ``""``. Never printed or logged.
+
+    Part K item 4: OpenAlex is asked only with its key (decision 2026-11-10,
+    "OpenAlex needs its API key"); without one only Unpaywall is asked.
+    """
+    from scholar_search.config import settings as search_settings
+
+    value = search_settings.openalex_key
+    return value.strip() if isinstance(value, str) else ""
+
+
+def user_agent() -> str:
+    """``nexus-scholar/<version> (mailto:<address>)``: the app names itself, never a browser."""
+    from scholar_search.http_client import PACKAGE, package_version
+
+    return f"{PACKAGE}/{package_version()} (mailto:{require_contact_email()})"

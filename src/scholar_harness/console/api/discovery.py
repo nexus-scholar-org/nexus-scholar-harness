@@ -520,7 +520,19 @@ def plan(request: Request, providers: str | None = None) -> dict[str, Any]:
         "imports_hint": ["scopus", "wos"],
         # M4d: the recall seeds inception kept from its pool; Recall pre-fills them as "anchor".
         "golden_seeds": _golden_seeds(proto.path),
+        # M11a part D: the protocol's search as the workbench edits it ("Change the search").
+        "search": _search_view(proto.path),
     }
+
+
+def _search_view(path: Path) -> dict[str, Any]:
+    from ...workspace_proposals import search_view
+
+    try:
+        protocol = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        protocol = {}
+    return search_view(protocol if isinstance(protocol, dict) else {})
 
 
 def _golden_seeds(path: Path) -> list[str]:
@@ -1202,6 +1214,14 @@ async def size_estimate(body: EstimateBody, request: Request) -> dict[str, Any]:
                 known[name] = {"name": name, "status": "from_recall_check", "reported_total": total,
                                "error": None, "error_code": None}
     missing = [name for name in names if name not in known]
+    if missing and not body.refresh:
+        # M11a (decision 2026-11-20, item 5): a string the query workbench counted in the
+        # last 24 hours is not counted again; the row says when it was counted.
+        from ...query_workbench import logged_rows, workspace_log_path
+
+        logged = logged_rows(workspace_log_path(ws), query, missing)
+        known.update(logged)
+        missing = [name for name in missing if name not in logged]
     fresh = await est.count_providers(query, missing) if missing else {}
     rows_by_name = {**known, **fresh}
     if fresh or entry is None:

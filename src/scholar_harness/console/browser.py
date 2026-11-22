@@ -47,6 +47,10 @@ POST_PATHS: tuple[re.Pattern[str], ...] = tuple(
         r"api/v1/screening/prepare",
         # H-screening-drafts: a method amendment (blinding, not-reported policy).
         r"api/v1/screening/method/amendments",
+        # M11b: a revision of the criteria; a pilot drawn, its decisions, its close.
+        r"api/v1/screening/criteria/amendments",
+        r"api/v1/screening/pilot",
+        r"api/v1/screening/pilot/pilot_\d{3}/(decisions|close)",
         r"api/v1/screening/corpus/(sources|accept)",
         r"api/v1/screening/corpus/sources/[A-Za-z0-9_-]+/remove",
         r"api/v1/screening/proposals/(runs|calibrations)",
@@ -67,15 +71,33 @@ POST_PATHS: tuple[re.Pattern[str], ...] = tuple(
         r"api/v1/discovery/(runs|recall)",
         # M10b Part D: the size estimate (count-only requests; nothing written).
         r"api/v1/discovery/estimate",
+        # M11a Part A: the query workbench (counts, what each synonym adds, what a concept removes);
+        # count-only requests on Count, a dry run that sends nothing; only the count log is written.
+        r"api/v1/inception/drafts/[A-Za-z0-9_-]+/workbench/(counts|synonyms|removed)",
+        r"api/v1/discovery/workbench/(counts|synonyms|removed)",
+        # M11a Part B: the seed check, comparison sets (stage, remove, report); never the corpus staging.
+        r"api/v1/inception/drafts/[A-Za-z0-9_-]+/workbench/(seeds|comparison)",
+        r"api/v1/inception/drafts/[A-Za-z0-9_-]+/workbench/comparison/cmp_\d{3}/(remove|report)",
+        r"api/v1/discovery/workbench/(seeds|comparison)",
+        r"api/v1/discovery/workbench/comparison/cmp_\d{3}/(remove|report)",
+        # M11a Part D: the researcher's amendment of the search from Plan (the M10c 9(a) path).
+        r"api/v1/discovery/workbench/amend",
         # M3i-harvest-robustness: finish a harvest's remaining stages without a new search.
         r"api/v1/discovery/runs/run_\d{3,}/prepare",
         r"api/v1/discovery/jobs/[A-Za-z0-9_-]+/cancel",
         r"api/v1/discovery/chase/(runs|accept)",
         # M10c D5: the researcher applies or rejects an assistant's suggested search change on Plan.
         r"api/v1/discovery/proposals/prop_[0-9a-f]+/(apply|reject)",
+        # M12a Part A: charting events (status, decision, link, undo) and a PDF or link per record.
+        r"api/v1/charting/events",
+        r"api/v1/charting/records/[A-Za-z0-9_-]+/attachment",
+        # M12a Part B: "End pilot" (the form itself is a PUT).
+        r"api/v1/charting/form/pilot/end",
     )
 )
 PUT_PATHS: tuple[re.Pattern[str], ...] = (
+    # M12a Part B: the charting form beside the protocol (a version, or an amendment with its reason).
+    re.compile(r"api/v1/charting/form"),
     re.compile(r"api/v1/screening/settings"),
     re.compile(r"api/v1/screening/approver"),
     re.compile(r"api/v1/inception/drafts/[A-Za-z0-9_-]+"),
@@ -83,6 +105,8 @@ PUT_PATHS: tuple[re.Pattern[str], ...] = (
 )
 #: The one GET with an effect: reading a draft records a reveal.
 READ_PROPOSAL = re.compile(r"api/v1/screening/records/[A-Za-z0-9_-]+/proposal")
+#: M12a Part A (review finding 4): an export journals ``CHARTING_EXPORTED``.
+READ_CHARTING_EXPORT = re.compile(r"api/v1/charting/export")
 
 
 class BrowserRefused(Exception):
@@ -142,6 +166,8 @@ def check(method: str, path: str, *, origin: str | None, host: str, fetch_site: 
         raise BrowserRefused(405, "CONSOLE_METHOD_REFUSED", "POST is served only for the screening actions, the workspaces, inception and discovery")
     if READ_PROPOSAL.fullmatch(inner) and fetch_site not in (None, "same-origin", "none"):
         raise BrowserRefused(403, "CONSOLE_ORIGIN_REFUSED", "the agent's draft is read only from this app's own pages")
+    if READ_CHARTING_EXPORT.fullmatch(inner) and fetch_site not in (None, "same-origin", "none"):
+        raise BrowserRefused(403, "CONSOLE_ORIGIN_REFUSED", "the charting export is made only from this app's own pages")
     return "/" + inner
 
 

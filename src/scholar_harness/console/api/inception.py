@@ -222,7 +222,7 @@ def save_draft(session_id: str, body: SaveBody, request: Request) -> dict[str, A
         def change(record: dict[str, Any]) -> list[dict[str, Any]]:
             # Judged on the stored draft, before this save replaces it (01-proposals, Data out).
             missed = proposals.record_accepted(record, entries, pool=pool, directions=directions, saved=body.draft)
-            record["draft"] = body.draft
+            record["draft"] = steps.keep_method_choice(record.get("draft"), body.draft)  # M11b part D
             return missed
 
         record, not_recorded = store.transact(session_id, change, answer=True, base_updated_at=body.base_updated_at)
@@ -504,7 +504,14 @@ def preview(body: PreviewBody, request: Request) -> dict[str, Any]:
             grounding = stored.get("grounding")
             if grounding:
                 refuse_stale(_recon(request), grounding, scope_of(steps.parse_draft(body.draft)), _left_out(stored))
-        return steps.preview(body.draft, workspaces_root=_root(request), grounding=grounding)
+        answer = steps.preview(body.draft, workspaces_root=_root(request), grounding=grounding)
+        if body.session_id is not None:
+            # M11a (DoD 15): the files genesis writes from the draft's query development.
+            from scholar_harness import query_workbench_sets as qs
+
+            answer["files"] += [f for f in qs.development_files(_store(request).dir / body.session_id / "query_development")
+                                if f not in answer["files"]]
+        return answer
     except (DraftRefused, steps.StepRefused, ReconRefused) as exc:
         raise _error(exc) from exc
 
@@ -545,6 +552,8 @@ def genesis(session_id: str, body: GenesisBody, request: Request) -> dict[str, A
             busy=lambda target: _running_job(request, target),
             origin=record.get("origin"),
             record=record,
+            # M11a (DoD 15): the search's development beside the draft goes into the workspace.
+            query_development=store.dir / session_id / "query_development",
         )
         # The backup and the previous fingerprint too, so Done shows them after a reload (M4b).
         kept = ("slug", "path", "protocol_fingerprint", "replaced", "previous_fingerprint", "backup_dir", "archived")

@@ -4,6 +4,7 @@ import { join } from "node:path";
 import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import { CheckSentence } from "@/components/checks-panel";
 import { DiscoveryRecall } from "@/components/discovery-recall";
 import { InceptionCriteria } from "@/components/inception-criteria";
 import { InceptionReview } from "@/components/inception-review";
@@ -301,11 +302,11 @@ describe("checks panel (02-checks)", () => {
 
   it("copy: every checks.* key and every checks.<ID>.* key exists in en; fr and ar fall back; no literal aria-label (N9 guard)", () => {
     const holes = (s: string) => [...s.matchAll(/\{(\w+)\}/g)].map((m) => m[1]).sort();
-    expect(CHECK_IDS).toHaveLength(50);
+    expect(CHECK_IDS).toHaveLength(59);
     for (const id of CHECK_IDS) {
       for (const part of ["sentence", "why", "action"]) expect(CHECKS_COPY.en, `${id}.${part}`).toHaveProperty([`checks.${id}.${part}`]);
     }
-    for (const key of ["checks.HARVEST_ABOVE_TARGET_general.sentence", "checks.HARVEST_ABOVE_TARGET_general.why", "checks.counts", "checks.ready.blocked", "checks.dismiss.label", "checks.earlier"]) {
+    for (const key of ["checks.HARVEST_ABOVE_TARGET_general.sentence", "checks.HARVEST_ABOVE_TARGET_general.why", "checks.SEEDS_CANNOT_TEST_all.sentence", "checks.SEEDS_CANNOT_TEST_concept.why", "checks.SEEDS_CANNOT_TEST_few.sentence", "checks.METHOD_RULE_UNCHOSEN_older.sentence", "checks.METHOD_RULE_UNCHOSEN_older.why", "checks.counts", "checks.ready.blocked", "checks.dismiss.label", "checks.earlier"]) {
       expect(CHECKS_COPY.en).toHaveProperty([key]);
     }
     for (const [key, en] of Object.entries(CHECKS_COPY.en)) {
@@ -422,5 +423,16 @@ describe("checks panel notes count (H-run-small-fixes, finding 5)", () => {
       return el as HTMLElement;
     });
     expect(summary.textContent).toMatch(/^Notes \(\d+\)$/);
+  });
+});
+
+describe("checks panel, M11b part D (review D round 1, finding 4)", () => {
+  it("quotes criteria in their own direction (RTL)", () => {
+    const { container } = render(
+      <CheckSentence locale="ar" check={checkRow({ check_id: "CRITERIA_DUPLICATE", step: "criteria", level: "warning", subject: "a|b", params: { side: "exclusion", a: "صور الأقمار الصناعية فقط", b: "صور الأقمار الصناعية فقط." }, action: { kind: "field", step: "criteria", field: "extra_exclusions" } }) as never} />,
+    );
+    const quoted = [...container.querySelectorAll("bdi")].filter((b) => b.textContent?.includes("الأقمار"));
+    expect(quoted).toHaveLength(2);
+    for (const b of quoted) expect(b.getAttribute("dir")).toBe("auto");
   });
 });

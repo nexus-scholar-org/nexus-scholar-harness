@@ -14,10 +14,41 @@ GitHub Releases — no source checkout, no per-kit installs.
 > proposals), **inception in the browser** (Scope, Shape, Concepts and criteria,
 > Review and create, Done; Explore and Direction have no screen yet) and, on
 > 1.1.0b6, **discovery in the browser** (Plan to Hand-off). The retrieval and synthesis kit (`scholar_rag`), the citation
-> graph (`scholar_graph`), verification and trust (`scholar_verify`) and full
-> text (`scholar_pdf`, findings PDF-07/08) still work, but are parked: their
-> `--help` says so first, their MCP tools say so in their descriptions, and the
-> app labels any screen that shows them. Do not rely on them for a review.
+> graph (`scholar_graph`), verification and trust (`scholar_verify`) and reading
+> PDFs (`scholar_pdf` `extract`, `extract-run`, and E1 `acquire`; findings
+> PDF-07/08) still work, but are parked: their `--help` says so first, their MCP
+> tools say so in their descriptions, and the app labels any screen that shows
+> them. Do not rely on them for a review.
+>
+> **The PDF kit's downloading is production** from the release after 1.1.0b6
+> (decision 2026-11-21, M12a items 21 and 27, K0): `scholar-pdf download` and `ingest` need a contact e-mail
+> (`SCHOLAR_MAILTO`, or the kit's `MAILTO`; refused `MAILTO_NOT_SET` without),
+> name the app in their User-Agent, request only the providers' own open-access
+> locations (no guessed publisher URL), and refuse an institutional proxy.
+> `download` asks both services for every DOI and takes the best open copy
+> either lists with a direct PDF address
+> (published version first, then accepted manuscript, then submitted version or
+> preprint), names that copy in its summary, and says why a DOI has no file, in
+> words and in its exit code: 3 a lookup failed (run again later), 1 a listed
+> address gave no PDF, 4 open access but no direct PDF address listed, 5 no open
+> copy listed.
+>
+> Since Part K of M12a (decision 2026-11-21, item 15): OpenAlex is asked only
+> with `SCHOLAR_OPENALEX_KEY`, sent as its key (without it only Unpaywall is
+> asked and the command says so; a 409 reads "the daily budget is spent"); a PDF
+> address that answers 400, 401, 403, 404, 410 or 451 is asked once (a 5xx, a
+> timeout, and a 429 whose `Retry-After` is at most 60 s are retried); a
+> service's closed evidence (`is_oa: false`, `oa_status: closed`) overrides its
+> `pdf_url`; every DOI asked gets one row in `download-manifest.jsonl` (in
+> `--output`, or `--manifest PATH`) with the file, its SHA-256, the address
+> asked, the redirects, the version, licence and host, each check by name, the
+> access status and every PDF request; the command prints the PDF requests per
+> DOI; with the `pdf` extra the first two pages are searched for the DOI and
+> the title ("doi found", "title found", "not found: check it"; "not checked"
+> without it), never blocking a file; `ingest` and a missing `--input` exit
+> non-zero; the publisher patterns and `--smart-names` are removed; where hard
+> links fail (FAT or exFAT drives) the file is copied. Check each stored file's
+> identity before you use it.
 
 - Works on **Windows, macOS, Linux** (Python 3.11+ via `uv` or `pip`).
 - The wheel bundles the harness CLI **plus the seven scholar kits**, the
@@ -128,7 +159,7 @@ You now have a fully scaffolded, auditable, agent-capable research workspace.
 Bootstrap a portable workspace in **any** folder (does not need the repo):
 
 ```sh
-nexus-scholar init "Project Title" [--dir PATH] [--scaffold-only]
+nexus-scholar init "Project Title" [--dir PATH] [--scaffold-only] [--not-reported RULE]
 ```
 
 | Option | Meaning |
@@ -136,6 +167,7 @@ nexus-scholar init "Project Title" [--dir PATH] [--scaffold-only]
 | `project_title` (required) | Human-readable title; the workspace slug is derived from it |
 | `--dir, -d PATH` | Target folder (default: current directory) |
 | `--scaffold-only` | Skip the interactive Socratic wizard; write a placeholder protocol |
+| `--not-reported RULE` | What the agent's drafts do when a title and abstract do not report a criterion: `unclear`, `decisive_first` or `exclude`. No default: the interactive wizard asks it, and a scripted (non-interactive) interview without it is refused before anything is written. The rule is signed into the protocol; change it later from Prepare |
 
 What you get:
 
@@ -339,8 +371,8 @@ starts this server on your workspace.
 
 | Variable | Purpose |
 | --- | --- |
-| `SCHOLAR_MAILTO` | Contact email sent to Crossref (in the User-Agent) and to NCBI for PubMed. OpenAlex no longer reads an email and is not sent one. **Required for a live search**: without it `run`, a browser harvest and a recall check refuse with `MAILTO_NOT_SET`. |
-| `SCHOLAR_OPENALEX_KEY` | OpenAlex API key (free, from openalex.org). **Required to search OpenAlex: OpenAlex has required a key since 2026-02-13.** A browser harvest that includes OpenAlex refuses with `OPENALEX_KEY_NOT_SET` until it is set, and the Plan screen shows whether it is set. Without it, a CLI `run` still sends OpenAlex keyless requests, which share a small daily budget with everyone on your network address; paging past the first page is refused, and the OpenAlex leg then fails with `PROVIDER_REFUSED` and a note naming the key. |
+| `SCHOLAR_MAILTO` | Contact email sent to Crossref (in the User-Agent) and to NCBI for PubMed. OpenAlex no longer reads an email and a search does not send it one; `scholar-pdf download` and `ingest` do send it to Unpaywall (as a parameter) and in the User-Agent of every request, and refuse without it. **Required for a live search**: without it `run`, a browser harvest and a recall check refuse with `MAILTO_NOT_SET`. |
+| `SCHOLAR_OPENALEX_KEY` | OpenAlex API key (free, from openalex.org). **Required to search OpenAlex: OpenAlex has required a key since 2026-02-13.** A browser harvest that includes OpenAlex refuses with `OPENALEX_KEY_NOT_SET` until it is set, and the Plan screen shows whether it is set. Without it, a CLI `run` still sends OpenAlex keyless requests, which share a small daily budget with everyone on your network address; paging past the first page is refused, and the OpenAlex leg then fails with `PROVIDER_REFUSED` and a note naming the key. `scholar-pdf download` and `ingest` ask OpenAlex only with this key (sent as its key, never printed or written to the manifest); without it they ask Unpaywall only and say so. |
 | `SCHOLAR_S2_KEY` | Semantic Scholar API key (optional; without it the bulk search runs in Semantic Scholar's shared keyless pool). Sent as the `x-api-key` header. A key Semantic Scholar rejects (HTTP 401 or 403; keys unused for about 60 days are pruned, and a key pasted with quotes is refused) fails the Semantic Scholar leg with `PROVIDER_REFUSED` and a note naming the variable; the search is never retried without the key. The Plan screen shows "Set, not yet verified". A key allows 1 request per second across all endpoints; the search, the abstract step and citation chasing together send at most 0.9 per second (`SCHOLAR_RATE_LIMIT_S2`). |
 | `NEXUS_WORKSPACES_ROOT` | Folder holding your workspaces for `nexus-scholar ui` (else `~/Documents/Nexus Scholar/workspaces`). |
 | `NEXUS_CONSOLE_TOKEN` | The per-launch token of `nexus-scholar serve` (it prints one if unset). |
@@ -412,7 +444,7 @@ scaffolded):
 | `nexus-scholar chase run\|status\|accept` | Citation chasing (M3g) after the screening is published: `run` fetches the papers the included studies cite and the papers that cite them (OpenAlex first, Semantic Scholar second; `--directions`, `--cap-per-seed`, `--ceiling`, `--seeds included+unclear`), deduplicates them against the corpus and keeps the new records under `literature/citation_chase/chase_NNN/`; `status` lists the runs; `accept` sends a run's new records to screening as the next round (their own corpus snapshot naming the parent; the finished round is archived under `literature/screening_rounds/`), after which `prepare` runs again. The PRISMA report then carries a "citation searching" arm |
 | `nexus-scholar ui` | Start the research app in your browser (§2): the console and the app from one process, on `127.0.0.1` |
 | `nexus-scholar serve` | Run the console server for a workspace (loopback only; needs the token in `NEXUS_CONSOLE_TOKEN` or the one it prints); for development with `apps/research-ui` |
-| `nexus-scholar inception` | Interactive Phase-0 Socratic methodology interview → compiled protocol. Each screening criterion is shown verbatim and accepted one by one. A title whose workspace already exists is refused; `--replace` replaces its protocol: the old protocol files and the old corpus (`literature/`, `artifacts/`, the artifact registry, `.harness-console/`, `pdfs/`, `extracted/`, `rag/`, `phase4/`, `synthesis/` except `literature_review.md`) go to `audit/replaced/<stamp>/`, so the new protocol starts with no corpus, and a workspace with screening decisions or a published screening also needs `--discard-screening-binding` |
+| `nexus-scholar inception` | Interactive Phase-0 Socratic methodology interview → compiled protocol. Each screening criterion is shown verbatim and accepted one by one. The interview then asks what the agent's drafts do when a criterion is not reported, with no default; a scripted run gives it with `--not-reported unclear\|decisive_first\|exclude` or is refused. A title whose workspace already exists is refused; `--replace` replaces its protocol: the old protocol files and the old corpus (`literature/`, `artifacts/`, the artifact registry, `.harness-console/`, `pdfs/`, `extracted/`, `rag/`, `phase4/`, `synthesis/` except `literature_review.md`) go to `audit/replaced/<stamp>/`, so the new protocol starts with no corpus, and a workspace with screening decisions or a published screening also needs `--discard-screening-binding` |
 
 Run any with `--help` for full options.
 

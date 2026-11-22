@@ -27,7 +27,7 @@ import re
 import shutil
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Annotated, Any, Callable
+from typing import Annotated, Any, Callable, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, StringConstraints, ValidationError, field_validator
 
@@ -197,6 +197,12 @@ def _doi_list(values: list[str]) -> list[str]:
     return out
 
 
+#: M11b part D: the step-5 method choices and the blocker while the rule is unchosen.
+BLINDING_CHOICES = ("reveal_after_decision", "show")
+NOT_REPORTED_CHOICES = ("unclear", "exclude", "decisive_first")
+METHOD_RULE_UNCHOSEN = "METHOD_RULE_UNCHOSEN"
+
+
 class Draft(BaseModel):
     """Everything the interview collects. Every field is optional until preview."""
 
@@ -238,6 +244,16 @@ class Draft(BaseModel):
     default_exclusion_reason: Name | None = None
     #: The researcher's own matrix columns (M10b, ``05-criteria``).
     custom_matrix_columns: list[MatrixColumnIn] = Field(default_factory=list, max_length=MAX_LIST_ITEMS)
+    #: M11b part D (record (g)): when the agent's draft is shown; "after you decide" pre-selected.
+    method_blinding: Literal["reveal_after_decision", "show"] = "reveal_after_decision"
+    #: M11b part D (answer 8, 2026-11-21): the not-reported rule, with no default: ``None`` until
+    #: the researcher chooses, and genesis is refused (``METHOD_RULE_UNCHOSEN``) until then.
+    method_not_reported: Literal["unclear", "exclude", "decisive_first"] | None = None
+    #: Item 5 as the researcher changed it (2026-11-22, "Shown, but I must confirm it"): where the
+    #: rule came from. ``imported`` is shown but not chosen (the blocker stands); ``confirmed`` is
+    #: the imported rule kept by the researcher; ``chosen`` is one the researcher picked; ``None``
+    #: for a rule chosen before this field existed, which counts as chosen.
+    method_not_reported_source: Literal["imported", "confirmed", "chosen"] | None = None
 
     @field_validator("golden_seeds")
     @classmethod
@@ -568,6 +584,57 @@ REASON_SUGGESTIONS: tuple[tuple[str, str], ...] = (
 )
 
 
+#: The two questions' options in the engine's order (spec 11: the browser does not order them).
+METHOD_OPTIONS = {"blinding": list(BLINDING_CHOICES), "not_reported": ["unclear", "decisive_first", "exclude"]}
+#: What a new draft stores (M11b part D): blinding pre-selected (a proposal), the rule unchosen.
+NEW_DRAFT_METHOD = {"method_blinding": "reveal_after_decision", "method_not_reported": None, "method_not_reported_source": None}
+
+
+def keep_method_choice(stored: dict[str, Any] | None, new: dict[str, Any]) -> dict[str, Any]:
+    """The draft to save, given the stored one (M11b part D).
+
+    A save that does not name the two fields keeps the stored values (a screen from before part D
+    must not drop a choice); a chosen rule cannot be set back to ``null`` (``DRAFT_INVALID``).
+    """
+    stored = stored or {}
+    out = dict(new)
+    for key in NEW_DRAFT_METHOD:
+        if key not in out and key in stored:
+            out[key] = stored[key]
+    if stored.get("method_not_reported") is not None and "method_not_reported" in new and new["method_not_reported"] is None:
+        raise StepRefused(
+            "DRAFT_INVALID", "the not-reported rule was chosen; choose another value, it cannot be unset",
+            details={"errors": [{"field": "method_not_reported", "error": "chosen"}]},
+        )
+    # Item 5 (2026-11-22): a confirmed or picked rule is never marked imported again, and a value
+    # that differs from the stored imported one is the researcher's choice, whatever the source sent.
+    if stored.get("method_not_reported_source") in ("confirmed", "chosen") and new.get("method_not_reported_source") == "imported":
+        raise StepRefused(
+            "DRAFT_INVALID", "the not-reported rule was confirmed or chosen; it cannot be marked imported again",
+            details={"errors": [{"field": "method_not_reported_source", "error": "chosen"}]},
+        )
+    if (
+        out.get("method_not_reported_source") == "imported"
+        and stored.get("method_not_reported_source") == "imported"
+        and out.get("method_not_reported") != stored.get("method_not_reported")
+    ):
+        out["method_not_reported_source"] = "chosen"
+    return out
+
+
+def method_choice(draft: Draft) -> dict[str, Any]:
+    """The two method settings of step 5 (M11b part D): the values, whether the rule is chosen,
+    and whether the draft predates the question (it never stored the field)."""
+    return {
+        "blinding": draft.method_blinding,
+        "not_reported": draft.method_not_reported,
+        # Item 5 (2026-11-22): an imported rule is shown but not chosen until the researcher confirms it.
+        "chosen": draft.method_not_reported is not None and draft.method_not_reported_source != "imported",
+        "started_before_question": "method_not_reported" not in draft.model_fields_set,
+        "source": draft.method_not_reported_source,
+    }
+
+
 def _criteria(draft: Draft) -> dict[str, Any]:
     _require(draft, *_required(draft, "paradigm", "proof"))
     items = criteria_with_decisions(draft)
@@ -577,6 +644,8 @@ def _criteria(draft: Draft) -> dict[str, Any]:
         "undecided": [i["id"] for i in items if i["status"] == "undecided"],
         "missing_sides": [k for k in ("inclusion", "exclusion") if k not in accepted_kinds],
         "reason_suggestions": reason_suggestions(draft),
+        "method": method_choice(draft),
+        "method_options": METHOD_OPTIONS,
     }
 
 
@@ -623,6 +692,17 @@ def build_intent(draft: Draft, genesis_timestamp: str) -> dict[str, Any]:
             "CRITERIA_MISSING", "a protocol needs at least one inclusion and one exclusion criterion",
             details={"missing_sides": criteria["missing_sides"]},
         )
+    if draft.method_not_reported is None or draft.method_not_reported_source == "imported":
+        # M11b part D (answer 8): no rule is pre-selected; the researcher chooses before genesis.
+        # Item 5 (2026-11-22): an imported rule counts only once the researcher confirms it.
+        raise StepRefused(
+            METHOD_RULE_UNCHOSEN,
+            "choose what the agent's draft does when the title and abstract do not report a criterion",
+            details={
+                "started_before_question": "method_not_reported" not in draft.model_fields_set,
+                "imported": draft.method_not_reported_source == "imported",
+            },
+        )
     slug = slugify(draft.title)
     if not slug:
         raise StepRefused("WORKSPACE_TITLE_INVALID", "the title has no letters or digits to make a folder name from")
@@ -633,7 +713,11 @@ def build_intent(draft: Draft, genesis_timestamp: str) -> dict[str, Any]:
     survey.matrix_dimensions = [d for d in dims if d["name"] in draft.matrix_columns] + custom_columns(draft)
     accepted_ids = {i["id"] for i in criteria["criteria"] if i["status"] == "accepted"}
     accepted = [c for c in draft_criteria(survey) if c.id in accepted_ids]
-    return make_intent(survey, slug, genesis_timestamp, criteria=accepted)
+    intent = make_intent(survey, slug, genesis_timestamp, criteria=accepted)
+    # M11b part D (DoD 18b): the choices travel in the intent, so the compiler writes them into the
+    # protocol's method block at genesis and on every recompile (a search amendment).
+    intent["method"] = {"blinding": draft.method_blinding, "not_reported": draft.method_not_reported}
+    return intent
 
 
 def preview(
@@ -703,10 +787,14 @@ def grounding_preview(draft: Draft, grounding: dict[str, Any]) -> dict[str, Any]
     }
 
 
-def _write_draft_records(target: Path, record: dict[str, Any] | None, agent: str) -> None:
+def _write_draft_records(
+    target: Path, record: dict[str, Any] | None, agent: str, query_development: Path | None = None,
+) -> None:
     """The draft's proposals and check dismissals, as the workspace's record (M10b).
 
-    The files are the record; the journal rows index them.
+    With ``query_development`` (M11a, DoD 15), the draft's count log, seed
+    checks and comparison sets are copied under ``audit/query_development/``
+    and one journal row indexes them. The files are the record; the journal rows index them.
     """
     from . import checks, proposals
 
@@ -728,6 +816,18 @@ def _write_draft_records(target: Path, record: dict[str, Any] | None, agent: str
         f"{len(dismissals)} check dismissals and restores carried from the draft",
         agent=agent, parameters=checks.dismissal_counts(dismissals), outputs=[checks.DISMISSALS_FILE],
     )
+    if query_development is not None:
+        from scholar_harness import query_workbench_sets as qs
+
+        copied = qs.copy_development(query_development, target)
+        if copied["files"]:
+            append_event(
+                target, "QUERY_DEVELOPMENT_RECORDED",
+                f"The search's development carried from the draft: {copied['counts']} count rows, "
+                f"{copied['seed_checks']} seed checks, {copied['comparison_sets']} comparison sets",
+                agent=agent, outputs=copied["files"],
+                metrics={k: copied[k] for k in ("counts", "seed_checks", "comparison_sets")},
+            )
 
 
 def planned_files(*, exists: bool) -> list[str]:
@@ -746,6 +846,7 @@ def genesis(
     busy: Callable[[Path], str | None] | None = None,
     origin: dict[str, Any] | None = None,
     record: dict[str, Any] | None = None,
+    query_development: Path | None = None,
 ) -> dict[str, Any]:
     """Create (or, with ``replace``, re-protocol) ``<workspaces_root>/<slug>`` from a draft.
 
@@ -813,7 +914,7 @@ def genesis(
             intent, target_dir=target, replace=replace, discard_screening_binding=discard,
             agent=agent, recon_context=context, source_note=added.strip(),
             protocol_origin="import" if added else "inception",
-            before_log=lambda ws: _write_draft_records(ws, record, agent),
+            before_log=lambda ws: _write_draft_records(ws, record, agent, query_development),
         )
         if created:
             install_workspace_support_files(target)

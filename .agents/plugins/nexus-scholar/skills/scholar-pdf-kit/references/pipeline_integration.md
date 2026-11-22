@@ -25,7 +25,8 @@ flowchart LR
 # Step 1: Discover & deduplicate literature
 uv run scholar-search search "retrieval augmented generation" --limit 20 --output results.json
 
-# Step 2: Download Open Access PDFs (outputs land content-addressed: DOC-<32hex>.pdf)
+# Step 2: Download Open Access PDFs (outputs land content-addressed: DOC-<32hex>.pdf;
+#         downloads/download-manifest.jsonl says which file is which DOI)
 uv run scholar-pdf download --input results.json --output downloads/ --export json
 
 # Step 3: Extract structured Markdown for RAG embedding (non-authoritative)

@@ -69,6 +69,11 @@ class Criteria:
 
         return cls(ids("inclusion"), ids("exclusion"))
 
+    @classmethod
+    def from_in_force(cls, current: Any) -> Criteria:
+        """The ids of the criteria in force (``screening.criteria.CriteriaInForce``, M11b part A)."""
+        return cls(tuple(c.id for c in current.inclusion), tuple(c.id for c in current.exclusion))
+
     @property
     def all(self) -> tuple[str, ...]:
         return self.inclusion + self.exclusion
@@ -90,9 +95,27 @@ def input_sha256(title: str | None, abstract: str | None, published: str | None 
     return "sha256:" + hashlib.sha256(record_text(title, abstract, published).encode("utf-8")).hexdigest()
 
 
-def proposal_id(task_version: str, input_hash: str, protocol_fingerprint: str, model: str) -> str:
-    """Contract §2: sha256(task_version, input_sha256, protocol_fingerprint, model)."""
-    payload = json.dumps([task_version, input_hash, protocol_fingerprint, model], separators=(",", ":"))
+def draft_version(proposal: dict[str, Any]) -> int:
+    """The criteria version a draft was made under (1 for a draft from before M11b)."""
+    try:
+        return max(1, int(proposal.get("criteria_version") or 1))
+    except (TypeError, ValueError):
+        return 1
+
+
+def proposal_id(
+    task_version: str, input_hash: str, protocol_fingerprint: str, model: str, criteria_version: int = 1
+) -> str:
+    """Contract §2: sha256(task_version, input_sha256, protocol_fingerprint, model).
+
+    M11b part A (decision 2026-11-21, part A item 3): from criteria version 2 on,
+    the version joins the hashed list, so a draft under amended wording has its
+    own id; under version 1 the recipe, and every existing id, is unchanged.
+    """
+    parts: list[Any] = [task_version, input_hash, protocol_fingerprint, model]
+    if criteria_version > 1:
+        parts.append(criteria_version)
+    payload = json.dumps(parts, separators=(",", ":"))
     return "PRP-" + hashlib.sha256(payload.encode("utf-8")).hexdigest()[:32]
 
 
@@ -174,7 +197,12 @@ def derive_outcome(
 
 
 def outcome_in_force(
-    proposal: dict[str, Any], criteria: Criteria, *, not_reported: str, protocol_fingerprint: str
+    proposal: dict[str, Any],
+    criteria: Criteria,
+    *,
+    not_reported: str,
+    protocol_fingerprint: str,
+    criteria_version: int = 1,
 ) -> tuple[str, str | None]:
     """The outcome a stored proposal shows and counts under the policy in force.
 
@@ -184,6 +212,10 @@ def outcome_in_force(
     """
     stored = (str(proposal.get("derived_outcome") or "MAYBE"), proposal.get("reason_code"))
     if proposal.get("protocol_fingerprint") != protocol_fingerprint:
+        return stored
+    # M11b part A: a draft made under an earlier criteria version answered other
+    # criteria; it keeps its stored outcome and is labelled, never re-derived.
+    if draft_version(proposal) != criteria_version:
         return stored
     # Always re-derived (deterministic): a record from before this field has no
     # `not_reported_policy`, and the stored outcome of one that has it is the same.
@@ -212,8 +244,14 @@ def submit_proposal(
     provenance: dict[str, Any],
     created_at: str,
     published: str | None = None,
+    criteria: Any = None,
 ) -> dict[str, Any]:
     """Validate, derive the outcome, append one proposal line, journal it.
+
+    ``criteria`` (M11b part A) is the ``CriteriaInForce`` the draft was asked
+    under; an agent run passes the one it built its prompt from, so a revision
+    recorded during the run labels its drafts as made under the earlier wording.
+    Without it the criteria in force are read. ``protocol``'s own list is not read.
 
     `provenance` carries the agent-system §4 fields the caller knows:
     `task_id`, `task_version`, `prompt_sha256`, `driver`, `model`, `effort`,
@@ -225,7 +263,12 @@ def submit_proposal(
     for field in ("model", "prompt_sha256"):
         if not str(provenance.get(field) or "").strip():
             raise ProvenanceMissing(f"a proposal needs its {field}")
-    criteria = Criteria.from_protocol(protocol)
+    if criteria is None:
+        from .criteria import criteria_from_protocol
+
+        criteria = criteria_from_protocol(ws, protocol, protocol_fingerprint)
+    version = criteria.version
+    criteria = Criteria.from_in_force(criteria)
     text = record_text(title, abstract, published)
     checks = validate_output(output, criteria, text)
     # M7-method: the protocol's not-reported policy; H-screening-drafts: with
@@ -244,8 +287,10 @@ def submit_proposal(
             "batch_binding", "usage", "cost_estimate", "request_id", "batch_id",
             # M1b-2: what the provider returned (ok, refusal, truncated, invalid, error).
             "driver_status", "driver_detail", "run_id",
+            # M11b part B: a draft made by the agent check on a pilot names it.
+            "pilot_id",
         )},
-        "proposal_id": proposal_id(task_version, in_hash, protocol_fingerprint, model),
+        "proposal_id": proposal_id(task_version, in_hash, protocol_fingerprint, model, version),
         "study_id": study_id,
         "input_sha256": in_hash,
         "protocol_fingerprint": protocol_fingerprint,
@@ -255,6 +300,7 @@ def submit_proposal(
         "derived_outcome": outcome,
         "reason_code": reason_code,
         "not_reported_policy": policy,
+        "criteria_version": version,
         "cannot_decide": bool(isinstance(output, dict) and output.get("cannot_decide")),
         "created_at": created_at,
     }

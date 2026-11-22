@@ -135,7 +135,7 @@ Then emit **only after the user's explicit confirmation** (ask, mirroring the wi
 
 ## Tooling fallback
 
-If the MCP recon tools are unavailable in the session, fall back to the headless CLI seam (same engine): `{CLI:harness} inception --grounded --auto-select` (best/only direction) or `--direction-id <N>` (specific 1-based direction) — deterministic, cached, no blocked prompts. `--root` selects the repo root; `--no-scaffold` runs the interview with no writes. Read its output back into the chat conversation.
+If the MCP recon tools are unavailable in the session, fall back to the headless CLI seam (same engine): `{CLI:harness} inception --grounded --auto-select --not-reported <rule>` (best/only direction) or `--direction-id <N>` (specific 1-based direction) — deterministic, cached, no blocked prompts. `--not-reported` is required for a scripted run (`unclear`, `decisive_first` or `exclude`; there is no default, and a run without it is refused before anything is written): it is the researcher's choice of what the agent's drafts do when a title and abstract do not report a criterion, signed into the protocol. **Ask the researcher which rule; never choose it yourself.** `--root` selects the repo root; `--no-scaffold` runs the interview with no writes. Read its output back into the chat conversation.
 
 ## HCM revisit note
 

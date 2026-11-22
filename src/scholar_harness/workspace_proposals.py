@@ -459,3 +459,118 @@ def decide(ws: Path, pid: str, action: str, *, reason: str | None = None) -> dic
         answer = listing(ws)
         answer["amended"] = amended
         return answer
+
+
+# --------------------------------------------------------------------------- the researcher's amendment from Plan (M11a part D)
+
+#: The longest reason a researcher's amendment takes (the draft's text limit).
+REASON_MAX = 2_000
+
+
+def search_view(protocol: dict[str, Any]) -> dict[str, Any]:
+    """The protocol's search as the workbench edits it: concepts, years, languages, seeds (M11a part D)."""
+    strategy = protocol.get("search_strategy") or {}
+    concepts = [
+        {"concept": str(c.get("concept") or ""), "synonyms": [str(s) for s in c.get("synonyms") or []]}
+        for c in strategy.get("core_concepts") or [] if isinstance(c, dict)
+    ]
+    years = strategy.get("date_range") or {}
+    return {
+        "query_key": "main", "concepts": concepts,
+        "start_year": years.get("start_year"), "end_year": years.get("end_year"),
+        "languages": list(strategy.get("languages") or []),
+        "golden_seeds": [str(s) for s in strategy.get("golden_seeds") or []],
+    }
+
+
+def _replace_concepts(intent: dict[str, Any], concepts: list[dict[str, Any]]) -> dict[str, Any]:
+    """A new intent whose concept list is ``concepts`` (the researcher's whole list: remove, rename, merge, split, add)."""
+    if not concepts:
+        raise _refused("WORKBENCH_VERSION_INVALID", "an amended search needs at least one concept", 422)
+    # A concept kept under its name keeps its operator (the workbench edits OR groups only; review D-R1 follow-up).
+    operators = {
+        str(c.get("concept") or ""): c["boolean_operator"]
+        for c in intent.get("core_concepts") or [] if isinstance(c, dict) and "boolean_operator" in c
+    }
+    new = copy.deepcopy(intent)
+    new["core_concepts"] = []
+    for c in concepts:
+        value = _concept_value(c)
+        if "boolean_operator" not in value and value["concept"] in operators:
+            value["boolean_operator"] = operators[value["concept"]]
+        new["core_concepts"].append(value)
+    return new
+
+
+def amend_search(
+    ws: Path, concepts: list[dict[str, Any]], *, reason: str, base_fingerprint: str, dry_run: bool,
+    consequences: Any = None, counts: Any = None,
+) -> dict[str, Any]:
+    """Replace the protocol's concept list, as the researcher recorded it on Plan (M11a part D).
+
+    The 9(a) path called directly (decision 2026-11-20, M11a item 1): the new
+    intent is compiled by the genesis compiler, the change must stay inside the
+    search (``PROTOCOL_AMENDMENT_REFUSED``, ``outside_search``), the three files
+    are backed up under ``audit/amended/<stamp>/`` and ``PROTOCOL_AMENDED`` is
+    journaled with ``source: "researcher"``, the reason, the query key and the
+    counts before and after. Refused before anything is written: a reason that
+    is empty or too long (``WORKBENCH_REASON_INVALID``), a protocol that changed
+    since the page read it (``WORKBENCH_PROTOCOL_CHANGED``), an accepted corpus
+    (``CORPUS_ALREADY_ACCEPTED``), a version that is the protocol's own
+    (``WORKBENCH_VERSION_INVALID``). The caller refuses a running discovery job.
+    ``dry_run`` answers what would be written and ``consequences(ws, fingerprint)``.
+    """
+    from .workspace.audit import append_event
+
+    ws = Path(ws)
+    text = " ".join(str(reason or "").split())
+    if not dry_run and not text:
+        raise _refused("WORKBENCH_REASON_INVALID", "write one sentence: why the search changes", 422)
+    if len(text) > REASON_MAX:
+        raise _refused("WORKBENCH_REASON_INVALID", f"the reason is over {REASON_MAX} characters", 422)
+    with lock(ws):
+        intent, protocol, fingerprint = documents(ws)
+        if base_fingerprint != fingerprint:
+            raise _refused("WORKBENCH_PROTOCOL_CHANGED", "the protocol changed since this page read it; read it again",
+                           409, protocol_fingerprint=fingerprint)
+        if frozen(ws):
+            raise _refused("CORPUS_ALREADY_ACCEPTED", "a corpus was accepted under this protocol; it is not amended")
+        new_intent = _replace_concepts(intent, concepts)
+        try:
+            out = compile_amendment(protocol, new_intent)
+        except P.ProposalRefused as exc:
+            if exc.code == "PROPOSAL_NOT_OPEN":
+                raise _refused("WORKBENCH_VERSION_INVALID", "this version is the protocol's own search; nothing to record",
+                               422) from exc
+            raise
+        before_after = counts(protocol, json.loads(out["protocol_bytes"])) if counts else {}
+        answer: dict[str, Any] = {
+            "shape": "discovery.workbench-amend-v1", "query_key": "main", "dry_run": dry_run,
+            "previous_fingerprint": fingerprint, "protocol_fingerprint": out["protocol_fingerprint"],
+            "changed": out["changed"], "counts": before_after,
+            "consequences": consequences(ws, fingerprint) if consequences else {},
+        }
+        if dry_run:
+            return answer
+        stamp = datetime.now(UTC).strftime("%Y%m%dT%H%M%S%fZ")
+        backup = ws / AMENDED_DIR / stamp
+        backup.mkdir(parents=True, exist_ok=False)
+        for name in ("intent.json", "protocol.json", "SCREENING_CRITERIA.md"):
+            if (ws / name).is_file():
+                (backup / name).write_bytes((ws / name).read_bytes())
+        _write_atomic(ws / "intent.json", out["intent_text"].encode("utf-8"))
+        _write_atomic(ws / "protocol.json", out["protocol_bytes"])
+        _write_atomic(ws / "SCREENING_CRITERIA.md", out["criteria_text"].encode("utf-8"))
+        answer["backup"] = backup.relative_to(ws).as_posix()
+        append_event(
+            ws, "PROTOCOL_AMENDED",
+            f"search amended by the researcher: {text[:200]} (protocol fingerprint {fingerprint} -> {out['protocol_fingerprint']})",
+            agent=JOURNAL_AGENT,
+            outputs=["intent.json", "protocol.json", "SCREENING_CRITERIA.md", answer["backup"] + "/"],
+            parameters={
+                "source": "researcher", "reason": text, "query_key": "main", "previous_fingerprint": fingerprint,
+                "protocol_fingerprint": out["protocol_fingerprint"], "changed": out["changed"], "backup": answer["backup"],
+                "counts": before_after,
+            },
+        )
+        return answer

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import type { Locale } from "@/i18n";
 import { formatNumber } from "@/i18n";
@@ -8,11 +8,22 @@ import { Button, DecisionBadge, Hint } from "@/components/ui/base";
 import { inceptionHref, InceptionFrame, InceptionRefusal, refusalOf, StepHeader, useDraft, type Refusal } from "@/components/inception-frame";
 import { StepAssist } from "@/components/inception-assist";
 
-import { runStep, type AcceptedFrom, type CriteriaStep, type Criterion, type Draft, type MatrixColumnIn, type MatrixStep, type ReasonSuggestion } from "@/lib/inception-api";
+import {
+  runStep,
+  type AcceptedFrom,
+  type CriteriaStep,
+  type Criterion,
+  type Draft,
+  type MatrixColumnIn,
+  type MatrixStep,
+  type MethodBlinding,
+  type MethodNotReported,
+  type ReasonSuggestion,
+} from "@/lib/inception-api";
 import { getConcepts, getRecon, hasUsablePool, type ConceptReport, type ReconState } from "@/lib/recon-api";
-import { DETAILS_LABEL } from "@/components/screening-state-card";
-import { DoiLink } from "@/components/inception-recon";
+import { QueryWorkbench, type WorkbenchUse } from "@/components/query-workbench";
 import { inceptionCountT, inceptionT, sourceText } from "@/lib/inception-copy";
+import { workbenchT } from "@/lib/workbench-copy";
 
 /**
  * Step 5, Concepts and criteria (spec 05, M4b; INC-22). Every criterion comes
@@ -25,8 +36,6 @@ import { inceptionCountT, inceptionT, sourceText } from "@/lib/inception-copy";
  * occurs in and the engine's co-occurring pool terms as unticked boxes; a tick
  * only adds the term to that concept's synonyms in the page, saved with it.
  */
-
-const SUGGESTIONS_SHOWN = 5;
 
 /**
  * M10b (`05-criteria`): a reason code as the researcher types it. Lower case
@@ -65,13 +74,6 @@ function stillAccepted(entry: AcceptedFrom, draft: Draft): boolean {
 
 const sameEntry = (a: AcceptedFrom, b: AcceptedFrom) => a.mechanism === b.mechanism && a.field === b.field && JSON.stringify(a.value) === JSON.stringify(b.value);
 
-function synonymsOf(text: string): string[] {
-  return text
-    .split(",")
-    .map((s) => s.trim())
-    .filter(Boolean);
-}
-
 export function InceptionCriteria({ locale }: Readonly<{ locale: Locale }>) {
   const t = inceptionT(locale);
   const state = useDraft();
@@ -84,10 +86,19 @@ export function InceptionCriteria({ locale }: Readonly<{ locale: Locale }>) {
   const [newExclusion, setNewExclusion] = useState("");
   const [recon, setRecon] = useState<ReconState | null>(null);
   const [report, setReport] = useState<ConceptReport | null>(null);
-  const [allSuggestions, setAllSuggestions] = useState<Record<number, boolean>>({});
+  // M11a (10-query-workbench): the workbench's unused edits, and the page's prompt before leaving them.
+  const [workbenchDirty, setWorkbenchDirty] = useState(false);
+  const [leaving, setLeaving] = useState<"review" | "" | null>(null);
+  const useVersion = useRef<() => Promise<boolean>>(async () => false);
+  const bindUse = useCallback((fn: () => Promise<boolean>) => {
+    useVersion.current = fn;
+  }, []);
   const [newExclusionReason, setNewExclusionReason] = useState("");
   const [reasonEditing, setReasonEditing] = useState<string | null>(null);
   const [accepted, setAccepted] = useState<AcceptedFrom[]>([]);
+  // M11b part D (spec 11): the out-of-scope field as typed, until Add puts it in the page's draft.
+  const [oosText, setOosText] = useState<string | null>(null);
+  const [oosAnnounce, setOosAnnounce] = useState("");
   const mark = (entry: AcceptedFrom, on: boolean) =>
     setAccepted((list) => (on ? [...list.filter((e) => !sameEntry(e, entry)), entry] : list.filter((e) => !sameEntry(e, entry))));
 
@@ -123,7 +134,7 @@ export function InceptionCriteria({ locale }: Readonly<{ locale: Locale }>) {
   const key = JSON.stringify([
     draft.paradigm, draft.playbook, draft.proof, draft.unit_of_analysis, draft.out_of_scope, draft.extra_inclusions,
     draft.extra_exclusions, draft.criteria_decisions, draft.matrix_columns, draft.out_of_scope_reasons,
-    draft.default_exclusion_reason, draft.custom_matrix_columns,
+    draft.default_exclusion_reason, draft.custom_matrix_columns, draft.method_blinding, draft.method_not_reported, draft.method_not_reported_source,
   ]);
   useEffect(() => {
     if (!record) return;
@@ -161,16 +172,28 @@ export function InceptionCriteria({ locale }: Readonly<{ locale: Locale }>) {
   };
 
   const concepts = draft.concepts ?? [];
-  const firstAnchored = report ? concepts.findIndex((c) => report.concepts.some((r) => r.source === "draft" && r.concept === (c.concept ?? "").trim())) : -1;
-  const setConcept = (index: number, patch: { concept?: string; synonyms?: string[] }) =>
-    update({ concepts: concepts.map((c, i) => (i === index ? { ...c, ...patch } : c)) });
-  const present = new Set(concepts.map((c) => c.concept.trim().toLowerCase()));
+  const wt = workbenchT(locale);
 
-  const persist = async (next: "review" | "") => {
+  /** "Use this version" (M11a): the concepts and seeds go through the normal save (D7), with the suggestions taken. */
+  const useWorkbench = async (use: WorkbenchUse): Promise<boolean> => {
+    const body = { ...draft, concepts: use.concepts, golden_seeds: use.seeds };
+    const stored = await save(body, [...accepted.filter((entry) => stillAccepted(entry, body)), ...use.accepted.filter((entry) => stillAccepted(entry, body))]);
+    if (stored) setAccepted([]);
+    return stored;
+  };
+
+  const persist = async (next: "review" | "", leave = false) => {
+    if (workbenchDirty && !leave) return setLeaving(next);
+    setLeaving(null);
     const cleaned = concepts.filter((c) => c.concept.trim()).map((c) => ({ concept: c.concept.trim(), synonyms: c.synonyms ?? [] }));
-    const body = { ...draft, concepts: cleaned };
+    // M11b part D: a save writes the visibility the screen shows, even for a draft that never stored it.
+    const shown = draft.method_blinding ?? criteria?.method?.blinding ?? null;
+    // Review D round 1, finding 1: text typed in the out-of-scope field is saved with the page, Add or not.
+    const pendingOos = oosText === null ? {} : { out_of_scope: oosText.split(/[\n;]/).map((item) => item.trim()).filter(Boolean) };
+    const body = { ...draft, ...pendingOos, concepts: cleaned, ...(shown ? { method_blinding: shown } : {}) };
     const stored = await save(body, accepted.filter((entry) => stillAccepted(entry, body)));
     if (stored) setAccepted([]);
+    if (stored) setOosText(null);
     if (stored) window.location.assign(inceptionHref(locale, next, next ? draftId : "", origin));
   };
 
@@ -188,6 +211,19 @@ export function InceptionCriteria({ locale }: Readonly<{ locale: Locale }>) {
 
   const undecided = criteria?.undecided.length ?? 0;
   const paradigm = draft.paradigm ?? "";
+  // M11b part D: the engine says whether the rule is chosen (answer 8: no default); the browser decides nothing.
+  const ruleUnchosen = criteria?.method?.chosen === false;
+  const waits = undecided > 0 || (criteria?.missing_sides.length ?? 0) > 0;
+  const acceptedOn = (kind: "inclusion" | "exclusion") => (criteria?.criteria ?? []).filter((c) => c.kind === kind && c.status === "accepted").length;
+  const oosValue = oosText ?? (draft.out_of_scope ?? []).join("\n");
+  const addOutOfScope = () => {
+    // Semicolons and line breaks separate items; commas do not (05).
+    const items = oosValue.split(/[\n;]/).map((item) => item.trim()).filter(Boolean);
+    const before = new Set(draft.out_of_scope ?? []);
+    update({ out_of_scope: items });
+    setOosText(null);
+    setOosAnnounce(t("criteria.oos.announce", { n: formatNumber(locale, items.filter((item) => !before.has(item)).length) }));
+  };
 
   const renderSide = (kind: "inclusion" | "exclusion") => {
     const items = (criteria?.criteria ?? []).filter((c) => c.kind === kind);
@@ -335,106 +371,104 @@ export function InceptionCriteria({ locale }: Readonly<{ locale: Locale }>) {
           void persist("review");
         }}
       >
-        <section aria-labelledby="criteria-concepts" className="rounded-lg border border-rule bg-leaf p-4">
-          <div className="flex items-center gap-1">
-            <h2 id="criteria-concepts" className="font-semibold text-ink">
-              {t("criteria.concepts")}
-            </h2>
-            {report ? <Hint locale={locale} label={t("criteria.concepts")} text={t("criteria.anchor.note")} textKey="criteria.anchor.note" /> : null}
-          </div>
-          <ol className="mt-3 space-y-3">
-            {concepts.map((c, index) => (
-              <li key={index} data-concept={index}>
-              <div className="grid gap-2 sm:grid-cols-[1fr_2fr_auto] sm:items-end">
-                <div>
-                  <label htmlFor={`concept-${index}`} className="block text-xs text-ink-muted">
-                    {t("criteria.concept")} {formatNumber(locale, index + 1)}
-                  </label>
-                  <input id={`concept-${index}`} value={c.concept} onChange={(event) => setConcept(index, { concept: event.target.value })} className="mt-1 block min-h-11 w-full rounded-md border border-rule bg-paper px-2 text-ink" />
-                </div>
-                <div>
-                  <label htmlFor={`concept-syn-${index}`} className="block text-xs text-ink-muted">
-                    {t("criteria.synonyms")}
-                  </label>
-                  <input
-                    id={`concept-syn-${index}`}
-                    key={(c.synonyms ?? []).join("|")}
-                    defaultValue={(c.synonyms ?? []).join(", ")}
-                    onBlur={(event) => setConcept(index, { synonyms: synonymsOf(event.target.value) })}
-                    className="mt-1 block min-h-11 w-full rounded-md border border-rule bg-paper px-2 text-ink"
-                  />
-                </div>
-                <Button variant="quiet" onClick={() => update({ concepts: concepts.filter((_, i) => i !== index) })}>
-                  {t("criteria.removeConcept", { n: formatNumber(locale, index + 1) })}
-                </Button>
-              </div>
-              {report ? (
-                <Anchoring
-                  locale={locale}
-                  index={index}
-                  hintHere={index === firstAnchored}
-                  report={report}
-                  concept={c.concept}
-                  synonyms={c.synonyms ?? []}
-                  all={!!allSuggestions[index]}
-                  onAll={() => setAllSuggestions((a) => ({ ...a, [index]: !a[index] }))}
-                  onTick={(term, on) => {
-                    setConcept(index, { synonyms: on ? [...(c.synonyms ?? []), term] : (c.synonyms ?? []).filter((x) => x !== term) });
-                    mark({ mechanism: "pool_synonym", field: `concepts[${c.concept.trim()}].synonyms`, value: term }, on);
-                  }}
-                />
-              ) : null}
-              </li>
-            ))}
-          </ol>
-          {recon && !hasUsablePool(recon) ? (
-            <p className="mt-2 text-sm text-ink-muted" data-no-pool>
-              {t("criteria.synonyms.noPool")}{" "}
-              <a className="inline-flex min-h-11 items-center text-brand underline" href={inceptionHref(locale, "explore", draftId, origin)}>
-                {t("criteria.synonyms.goExplore")}
-              </a>
-            </p>
-          ) : null}
-          {recon?.scope_changed && report ? (
-            <p className="mt-2 text-sm text-unclear" data-scope-changed>
-              {t("criteria.anchor.scopeChanged")}{" "}
-              <a className="inline-flex min-h-11 items-center text-brand underline" href={inceptionHref(locale, "explore", draftId, origin)}>
-                {t("criteria.synonyms.goExplore")}
-              </a>
-            </p>
-          ) : null}
-          <div className="mt-3">
-            <Button onClick={() => update({ concepts: [...concepts, { concept: "", synonyms: [] }] })}>{t("criteria.addConcept")}</Button>
-          </div>
-          {suggested.filter((term) => !present.has(term.toLowerCase())).length > 0 ? (
-            <div className="mt-3" data-suggested>
-              <p className="text-xs text-ink-muted">{t("criteria.suggested")}</p>
-              <div className="mt-1 flex flex-wrap gap-2">
-                {suggested
-                  .filter((term) => !present.has(term.toLowerCase()))
-                  .map((term) => (
-                    <Button
-                      key={term}
-                      variant="secondary"
-                      className="border-dashed"
-                      onClick={() => {
-                        update({ concepts: [...concepts, { concept: term, synonyms: [] }] });
-                        mark({ mechanism: "suggested_concept", field: "concepts", value: term }, true);
-                      }}
-                    >
-                      {t("criteria.suggestedAdd", { term })}
-                    </Button>
-                  ))}
-              </div>
-            </div>
-          ) : null}
-        </section>
+        {record ? (
+          <QueryWorkbench
+            key={record.session_id}
+            locale={locale}
+            origin={origin}
+            place={{ kind: "draft", id: record.session_id }}
+            saved={(record.draft.concepts ?? []).map((c) => ({ concept: c.concept, synonyms: c.synonyms ?? [] }))}
+            startYear={draft.start_year ?? null}
+            endYear={draft.end_year ?? null}
+            languages={draft.languages}
+            seeds={record.draft.golden_seeds ?? []}
+            providers={recon?.session?.latest?.providers ?? null}
+            pool={report}
+            editableSeeds
+            topicConcepts={suggested}
+            onDirty={setWorkbenchDirty}
+            onCounted={state.bumpAssist}
+            onUse={useWorkbench}
+            using={saving}
+            bindUse={bindUse}
+          />
+        ) : null}
+        {recon && !hasUsablePool(recon) ? (
+          <p className="text-sm text-ink-muted" data-no-pool>
+            {t("criteria.synonyms.noPool")}{" "}
+            <a className="inline-flex min-h-11 items-center text-brand underline" href={inceptionHref(locale, "explore", draftId, origin)}>
+              {t("criteria.synonyms.goExplore")}
+            </a>
+          </p>
+        ) : null}
+        {recon?.scope_changed && report ? (
+          <p className="text-sm text-unclear" data-scope-changed>
+            {t("criteria.anchor.scopeChanged")}{" "}
+            <a className="inline-flex min-h-11 items-center text-brand underline" href={inceptionHref(locale, "explore", draftId, origin)}>
+              {t("criteria.synonyms.goExplore")}
+            </a>
+          </p>
+        ) : null}
 
         {criteria ? (
-          <div className="grid gap-4 lg:grid-cols-2">
-            {renderSide("inclusion")}
-            {renderSide("exclusion")}
-          </div>
+          <section aria-labelledby="criteria-block-title" className="space-y-4 rounded-lg border border-rule p-4" data-criteria-block>
+            <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+              <h2 id="criteria-block-title" className="font-semibold text-ink">
+                {t("criteria.block.title")}
+              </h2>
+              <span className="text-sm text-ink-muted" data-criteria-written={waits ? "waiting" : "written"}>
+                {waits
+                  ? t("criteria.block.cannotWrite")
+                  : t("criteria.block.written", { inclusions: formatNumber(locale, acceptedOn("inclusion")), exclusions: formatNumber(locale, acceptedOn("exclusion")) })}
+              </span>
+            </div>
+            <div className="grid gap-4 lg:grid-cols-2">
+              {renderSide("inclusion")}
+              {renderSide("exclusion")}
+            </div>
+            <div data-oos-question>
+              <label htmlFor="criteria-oos" className="block text-sm font-medium text-ink">
+                {t("criteria.oos.question")}
+              </label>
+              <p id="criteria-oos-help" className="text-xs text-ink-muted">
+                {t("criteria.oos.help")}
+              </p>
+              <textarea
+                id="criteria-oos"
+                rows={3}
+                dir="auto"
+                value={oosValue}
+                onChange={(event) => setOosText(event.target.value)}
+                aria-describedby="criteria-oos-help"
+                className="mt-1 block w-full rounded-md border border-rule bg-paper p-2 text-ink"
+              />
+              <div className="mt-2">
+                <Button onClick={addOutOfScope} disabled={oosText === null} data-oos-add>
+                  {t("criteria.oos.add")}
+                </Button>
+              </div>
+              <p className="sr-only" role="status" aria-live="polite">
+                {oosAnnounce}
+              </p>
+            </div>
+            {criteria.criteria.length > 0 ? (
+              <p className="text-sm text-ink-muted" data-criteria-limits>
+                {t("criteria.block.limits")}
+              </p>
+            ) : null}
+            <MethodQuestions
+              locale={locale}
+              blinding={draft.method_blinding ?? criteria.method?.blinding ?? null}
+              notReported={draft.method_not_reported ?? null}
+              options={criteria.method_options ?? null}
+              unchosen={ruleUnchosen}
+              older={Boolean(criteria.method?.started_before_question) && ruleUnchosen}
+              source={criteria.method?.source ?? null}
+              onBlinding={(value) => update({ method_blinding: value })}
+              onNotReported={(value) => update({ method_not_reported: value, method_not_reported_source: "chosen" })}
+              onConfirm={() => update({ method_not_reported_source: "confirmed" })}
+            />
+          </section>
         ) : !stepError ? (
           <p role="status" className="text-ink-muted">
             {t("asking")}
@@ -447,8 +481,8 @@ export function InceptionCriteria({ locale }: Readonly<{ locale: Locale }>) {
               <span id="criteria-matrix-legend">{t("criteria.matrix")}</span>
               <Hint locale={locale} label={t("criteria.matrix")} text={t("criteria.matrixHelp")} textKey="criteria.matrixHelp" className="ms-1" />
             </legend>
-            <p className="mt-1 inline-block rounded-sm border border-dashed border-rule px-2 text-xs text-ink-muted" data-parked="matrix">
-              {t("criteria.matrixParked")}
+            <p className="mt-1 text-xs text-ink-muted" data-charting-note>
+              {t("criteria.matrixCharting")}
             </p>
             <div className="mt-2">
               <Button
@@ -515,120 +549,165 @@ export function InceptionCriteria({ locale }: Readonly<{ locale: Locale }>) {
 
         <StepAssist locale={locale} step="criteria" />
 
+        {leaving !== null ? (
+          <div role="alertdialog" aria-labelledby="workbench-leave" className="rounded-md border border-unclear p-3" data-workbench-leave>
+            <p id="workbench-leave" className="text-sm text-ink">
+              {wt("workbench.leave")}
+            </p>
+            <div className="mt-2 flex flex-wrap gap-2">
+              <Button
+                onClick={async () => {
+                  // Review C1: the version's own save already stored the page (concepts, seeds and every other answer);
+                  // a second save from this render would carry the earlier time and be refused.
+                  const target = leaving;
+                  if (await useVersion.current()) {
+                    setLeaving(null);
+                    window.location.assign(inceptionHref(locale, target, target ? draftId : "", origin));
+                  }
+                }}
+                data-leave-use
+              >
+                {wt("workbench.leave.use")}
+              </Button>
+              <Button onClick={() => void persist(leaving, true)} data-leave-leave>
+                {wt("workbench.leave.leave")}
+              </Button>
+            </div>
+          </div>
+        ) : null}
+
         <div className="flex flex-wrap gap-3">
-          <Button variant="primary" type="submit" disabled={saving}>
+          {/* M11a: while the workbench holds unused edits, "Use this version" is the screen's one brand button. */}
+          <Button
+            variant={workbenchDirty ? "secondary" : "primary"}
+            type="submit"
+            disabled={saving || ruleUnchosen}
+            aria-describedby={ruleUnchosen ? "criteria-rule-blocked" : undefined}
+          >
             {saving ? t("saving") : t("criteria.continue")}
           </Button>
           <Button onClick={() => void persist("")} disabled={saving}>
             {t("saveAndExit")}
           </Button>
+          {ruleUnchosen ? (
+            <p id="criteria-rule-blocked" className="basis-full text-sm text-blocked" data-rule-blocked>
+              {t("criteria.method.blocked")}
+            </p>
+          ) : null}
         </div>
       </form>
     </InceptionFrame>
   );
 }
 
-/** One concept's counts in the pool and the engine's co-occurring pool terms (spec 05, M4d). */
-function Anchoring({
+/**
+ * "How you will screen" (spec 11, M11b part D): two radio groups whose options and order are the
+ * engine's (`method_options`). The visibility question is pre-selected (a proposal); the not-reported
+ * question starts with nothing selected and blocks step 5 until chosen (answer 8). No option is
+ * named as recommended.
+ */
+function MethodQuestions({
   locale,
-  index,
-  report,
-  concept,
-  synonyms,
-  all,
-  onAll,
-  onTick,
-  hintHere,
+  blinding,
+  notReported,
+  options,
+  unchosen,
+  older,
+  source,
+  onBlinding,
+  onNotReported,
+  onConfirm,
 }: Readonly<{
   locale: Locale;
-  index: number;
-  report: ConceptReport;
-  concept: string;
-  synonyms: string[];
-  all: boolean;
-  onAll: () => void;
-  onTick: (term: string, on: boolean) => void;
-  /** The one hint of the synonym suggestions sits on the first group drawn (rule 1.6). */
-  hintHere: boolean;
+  blinding: MethodBlinding | null;
+  notReported: MethodNotReported | null;
+  options: { blinding: MethodBlinding[]; not_reported: MethodNotReported[] } | null;
+  unchosen: boolean;
+  older: boolean;
+  /** Item 5 (2026-11-22): the engine's word for where the rule came from. */
+  source: "imported" | "confirmed" | "chosen" | null;
+  onBlinding: (value: MethodBlinding) => void;
+  onNotReported: (value: MethodNotReported) => void;
+  onConfirm: () => void;
 }>) {
   const t = inceptionT(locale);
-  const row = report.concepts.find((r) => r.source === "draft" && r.concept === concept.trim());
-  if (!row) return null;
-  const total = String(report.n_docs);
-  const suggestions = all ? row.suggestions : row.suggestions.slice(0, SUGGESTIONS_SHOWN);
+  const key = (k: string) => k as Parameters<typeof t>[0];
   return (
-    <div className="mt-2 space-y-2 text-sm" data-anchoring={index}>
-      <p className="text-ink" data-anchor-concept>
-        <bdi dir="auto">{t("criteria.anchor.concept", { concept: row.concept, anchored: String(row.anchored_in), total })}</bdi>
-        {row.anchored_in === 0 ? (
-          <>
-            {" "}
-            <DecisionBadge role="unclear">{t("criteria.anchor.none")}</DecisionBadge>
-          </>
-        ) : null}
-      </p>
-      <ul className="flex flex-wrap gap-2">
-        {row.terms.map((term) => (
-          <li key={term.term} className="rounded-sm border border-rule px-2 py-1" data-term={term.term} data-observed={term.observed_in}>
-            <span dir="auto" className="text-ink">
-              {term.term}
-            </span>{" "}
-            {term.observed_in === 0 ? (
-              <DecisionBadge role="unclear">{t("criteria.anchor.none")}</DecisionBadge>
-            ) : (
-              <span className="text-ink-muted" data-anchor-term>
-                {t("criteria.anchor.term", { observed: String(term.observed_in), total })}
-              </span>
-            )}
-            {term.anchor_dois.length ? (
-              <details className="text-xs">
-                <summary className="min-h-11 cursor-pointer rounded-sm py-3 leading-5 text-ink-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus">
-                  {DETAILS_LABEL[locale]} · {t("criteria.anchor.dois", { n: String(term.anchor_dois.length) })}
-                </summary>
-                <ul>
-                  {term.anchor_dois.map((doi) => (
-                    <li key={doi}>
-                      <DoiLink locale={locale} doi={doi} />
-                    </li>
-                  ))}
-                </ul>
-              </details>
-            ) : null}
-          </li>
-        ))}
-      </ul>
-      <div role="group" aria-label={t("criteria.synonyms.group", { concept: row.concept })} className="rounded-md border border-dashed border-ink-muted p-3" data-suggestions={index}>
-        <div className="flex items-center gap-1">
-          <p className="text-xs font-semibold text-ink-muted">{t("criteria.synonyms.title")}</p>
-          {/* M10d (rule 1.6 and 1.7): one hint for the whole list of concepts, on the first group only. */}
-          {hintHere ? (
-            <Hint locale={locale} label={t("criteria.synonyms.title")} text={`${t("criteria.synonyms.help")} ${t("criteria.synonyms.unsaved")}`} textKey="criteria.synonyms.help" />
-          ) : null}
-        </div>
-        {row.suggestions.length === 0 ? (
-          <p className="mt-1 text-ink-muted">{t("criteria.synonyms.none")}</p>
-        ) : (
-          <ul className="mt-1">
-            {suggestions.map((sug) => {
-              const on = synonyms.includes(sug.term);
-              return (
-                <li key={sug.term}>
-                  <label className="flex min-h-11 cursor-pointer items-center gap-3 text-ink">
-                    <input type="checkbox" checked={on} onChange={() => onTick(sug.term, !on)} className="h-5 w-5 shrink-0" data-suggestion={sug.term} />
-                    <bdi dir="auto">{t("criteria.synonyms.option", { term: sug.term, observed: String(sug.observed_in) })}</bdi>
-                  </label>
-                </li>
-              );
-            })}
-          </ul>
-        )}
-        {row.suggestions.length > SUGGESTIONS_SHOWN ? (
-          <Button variant="quiet" className="px-0" aria-expanded={all} onClick={onAll}>
-            {all ? t("criteria.synonyms.less") : t("criteria.synonyms.more", { n: String(row.suggestions.length) })}
-          </Button>
-        ) : null}
+    <section aria-labelledby="method-title" className="space-y-4 border-t border-rule pt-4" data-method>
+      <div>
+        <h3 id="method-title" className="font-semibold text-ink">
+          {t("criteria.method.title")}
+        </h3>
+        <p className="text-sm text-ink-muted">{t("criteria.method.later")}</p>
+        {source === "imported" || source === "confirmed" ? <p className="text-sm text-ink-muted" data-method-import>{t("criteria.method.fromImport")}</p> : null}
       </div>
-    </div>
+      <fieldset id="method-blinding" data-method-group="blinding">
+        <legend className="text-sm font-medium text-ink">{t("criteria.method.blinding.q")}</legend>
+        <div className="mt-2 space-y-2">
+          {(options?.blinding ?? []).map((value) => (
+            <label key={value} className="flex min-h-11 cursor-pointer items-start gap-3">
+              <input
+                type="radio"
+                name="method-blinding"
+                value={value}
+                checked={blinding === value}
+                onChange={() => onBlinding(value)}
+                aria-describedby={`method-blinding-${value}-help`}
+                className="mt-1 h-5 w-5 shrink-0"
+              />
+              <span className="text-sm">
+                <span className="text-ink">{t(key(`criteria.method.blinding.${value}.label`))}</span>
+                <span id={`method-blinding-${value}-help`} className="block text-ink-muted">
+                  {t(key(`criteria.method.blinding.${value}.help`))}
+                </span>
+              </span>
+            </label>
+          ))}
+        </div>
+      </fieldset>
+      <fieldset id="method-not-reported" aria-describedby={unchosen ? "method-rule-unchosen" : undefined} data-method-group="not_reported">
+        <legend className="text-sm font-medium text-ink">{t("criteria.method.notReported.q")}</legend>
+        {unchosen ? (
+          <div id="method-rule-unchosen" className="mt-1 text-sm text-blocked" data-method-unchosen={source === "imported" ? "imported" : "unchosen"}>
+            {source === "imported" ? (
+              <>
+                <p>{t("criteria.method.importedUnconfirmed")}</p>
+                <Button className="mt-1" onClick={onConfirm} data-method-confirm>
+                  {t("criteria.method.confirm")}
+                </Button>
+              </>
+            ) : (
+              <p>
+                {t("criteria.method.unchosen")}
+                {older ? <span className="block text-ink-muted">{t("criteria.method.older")}</span> : null}
+              </p>
+            )}
+          </div>
+        ) : null}
+        <div className="mt-2 space-y-2">
+          {(options?.not_reported ?? []).map((value) => (
+            <label key={value} className="flex min-h-11 cursor-pointer items-start gap-3">
+              <input
+                type="radio"
+                name="method-not-reported"
+                value={value}
+                checked={notReported === value}
+                onChange={() => onNotReported(value)}
+                aria-describedby={`method-nr-${value}-help`}
+                className="mt-1 h-5 w-5 shrink-0"
+              />
+              <span className="text-sm">
+                <span className="text-ink">{t(key(`criteria.method.notReported.${value}.label`))}</span>
+                <span id={`method-nr-${value}-help`} className="block text-ink-muted">
+                  {t(key(`criteria.method.notReported.${value}.help`))}
+                </span>
+              </span>
+            </label>
+          ))}
+        </div>
+      </fieldset>
+      <p className="text-xs text-ink-muted">{t("criteria.method.savedWith")}</p>
+    </section>
   );
 }
 

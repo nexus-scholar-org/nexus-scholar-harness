@@ -32,7 +32,13 @@ import type { NextRequest } from "next/server";
  *    connection that only ends when the job does. Those routes also carry no
  *    120 s timeout — they are long-lived by design — and abort with the
  *    caller's request signal instead.
- * 5. **Not a confused deputy (INC-01).** The proxy adds the console's
+ * 5. **Bytes stay bytes (M12a Part A).** A PDF posted to a charting record's
+ *    attachment route is forwarded as its raw bytes (`arrayBuffer`, never
+ *    `text()`, which would decode and corrupt it), and the two charting reads
+ *    that answer a file (the attached PDF and the Full text CSV) are handed back
+ *    as bytes with their own content type and content disposition. Every other
+ *    body is read and returned as text, as before.
+ * 6. **Not a confused deputy (INC-01).** The proxy adds the console's
  *    per-launch token (`NEXUS_CONSOLE_TOKEN`) server-side, so it answers only
  *    when addressed on a loopback host (DNS rebinding is refused with
  *    `CONSOLE_HOST_REFUSED`) and forwards a POST only when its `Origin` is this
@@ -55,6 +61,10 @@ const POST_PATHS: ReadonlyArray<RegExp> = [
   /^api\/v1\/screening\/prepare$/,
   // H-screening-drafts: a method amendment (blinding, not-reported policy).
   /^api\/v1\/screening\/method\/amendments$/,
+  // M11b: a revision of the criteria; a pilot drawn, its decisions, its close.
+  /^api\/v1\/screening\/criteria\/amendments$/,
+  /^api\/v1\/screening\/pilot$/,
+  /^api\/v1\/screening\/pilot\/pilot_\d{3}\/(decisions|close)$/,
   // M5b: the corpus import (stage a RIS export, remove one, accept). The console
   // refuses once the corpus is accepted, and a phone token reaches none of them.
   /^api\/v1\/screening\/corpus\/(sources|accept)$/,
@@ -92,6 +102,18 @@ const POST_PATHS: ReadonlyArray<RegExp> = [
   // M10b Part D: the size estimate. Count-only requests to the selected databases;
   // nothing is written in the workspace and nothing is journaled.
   /^api\/v1\/discovery\/estimate$/,
+  // M11a Part A: the query workbench. Count-only requests, sent only on Count (a dry run
+  // sends nothing); only the count log beside the draft or under audit/ is written.
+  /^api\/v1\/inception\/drafts\/[A-Za-z0-9_-]+\/workbench\/(counts|synonyms|removed)$/,
+  /^api\/v1\/discovery\/workbench\/(counts|synonyms|removed)$/,
+  // M11a Part B: the seed check and comparison sets (stage, remove, report). A comparison set is
+  // stored beside the count log, never in the corpus staging, and never accepted into a corpus.
+  /^api\/v1\/inception\/drafts\/[A-Za-z0-9_-]+\/workbench\/(seeds|comparison)$/,
+  /^api\/v1\/inception\/drafts\/[A-Za-z0-9_-]+\/workbench\/comparison\/cmp_\d{3}\/(remove|report)$/,
+  /^api\/v1\/discovery\/workbench\/(seeds|comparison)$/,
+  /^api\/v1\/discovery\/workbench\/comparison\/cmp_\d{3}\/(remove|report)$/,
+  // M11a Part D: the researcher's amendment of the search from Plan (reason required; the 9(a) path).
+  /^api\/v1\/discovery\/workbench\/amend$/,
   // M3i-harvest-robustness: finish a harvest's remaining stages (duplicates, abstracts,
   // verification) from the run's saved records; the console searches nothing again.
   /^api\/v1\/discovery\/runs\/run_\d{3,}\/prepare$/,
@@ -102,16 +124,23 @@ const POST_PATHS: ReadonlyArray<RegExp> = [
   /^api\/v1\/discovery\/chase\/(runs|accept)$/,
   // M10c D5: the researcher applies or rejects an assistant's suggested search change on Plan.
   /^api\/v1\/discovery\/proposals\/prop_[0-9a-f]+\/(apply|reject)$/,
+  /^api\/v1\/charting\/events$/,
+  /^api\/v1\/charting\/records\/[A-Za-z0-9_-]+\/attachment$/,
+  /^api\/v1\/charting\/form\/pilot\/end$/,
 ];
 
 /** The one GET with a side effect: the engine records a reveal when a draft is read. */
 const READ_PROPOSAL = /^api\/v1\/screening\/records\/[A-Za-z0-9_-]+\/proposal$/;
+
+/** M12a Part A: an export writes a journal row, so it is made only from this app's pages. */
+const READ_CHARTING_EXPORT = /^api\/v1\/charting\/export$/;
 
 /**
  * PUT targets: the screening settings and approver (journaled by the console),
  * and saving an inception draft (M4b; the console checks `base_updated_at`).
  */
 const PUT_PATHS: ReadonlyArray<RegExp> = [
+  /^api\/v1\/charting\/form$/,
   /^api\/v1\/screening\/settings$/,
   /^api\/v1\/screening\/approver$/,
   /^api\/v1\/inception\/drafts\/[A-Za-z0-9_-]+$/,
@@ -131,6 +160,18 @@ const STREAM_PATHS: ReadonlyArray<RegExp> = [
   // M3b-api: a discovery job's events (a search run pages for minutes).
   /^api\/v1\/discovery\/jobs\/[A-Za-z0-9_-]+\/events$/,
 ];
+
+/**
+ * GET routes whose answer is a file (M12a Part A): returned as bytes, with the
+ * upstream content type and content disposition, never decoded as text.
+ */
+const FILE_PATHS: ReadonlyArray<RegExp> = [
+  /^api\/v1\/charting\/records\/[A-Za-z0-9_-]+\/attachment$/,
+  /^api\/v1\/charting\/export$/,
+];
+
+/** The one POST whose body may be a binary file: a PDF attached to a kept charting record. */
+const BINARY_POST = /^api\/v1\/charting\/records\/[A-Za-z0-9_-]+\/attachment$/;
 
 function isStreamPath(path: string): boolean {
   return STREAM_PATHS.some((pattern) => pattern.test(path));
@@ -181,6 +222,18 @@ function proxyResponse(upstream: Response): Promise<Response> {
         },
       ),
   );
+}
+
+/** A file answer as its bytes, with the console's content type and disposition. */
+async function fileResponse(upstream: Response): Promise<Response> {
+  const headers: Record<string, string> = {
+    "content-type": upstream.headers.get("content-type") ?? "application/octet-stream",
+    "cache-control": "no-store",
+  };
+  const disposition = upstream.headers.get("content-disposition");
+  if (disposition) headers["content-disposition"] = disposition;
+  const body = await upstream.arrayBuffer();
+  return new Response(body, { status: upstream.status, headers });
 }
 
 /**
@@ -243,6 +296,9 @@ async function forward(request: NextRequest, segments: string[] | undefined): Pr
   if (READ_PROPOSAL.test(path) && site !== null && site !== "same-origin" && site !== "none") {
     return typedError(403, "CONSOLE_ORIGIN_REFUSED", "the agent's draft is read only from this app's own pages");
   }
+  if (READ_CHARTING_EXPORT.test(path) && site !== null && site !== "same-origin" && site !== "none") {
+    return typedError(403, "CONSOLE_ORIGIN_REFUSED", "the charting export is made only from this app's own pages");
+  }
   if (method === "POST" && !POST_PATHS.some((pattern) => pattern.test(path))) {
     return typedError(
       405,
@@ -278,7 +334,8 @@ async function forward(request: NextRequest, segments: string[] | undefined): Pr
   if (writes) {
     const contentType = request.headers.get("content-type");
     if (contentType) init.headers = { ...init.headers, "content-type": contentType };
-    init.body = await request.text();
+    const pdf = (contentType ?? "").split(";", 1)[0].trim().toLowerCase() === "application/pdf";
+    init.body = pdf && method === "POST" && BINARY_POST.test(path) ? await request.arrayBuffer() : await request.text();
   }
 
   let upstream: Response;
@@ -293,6 +350,10 @@ async function forward(request: NextRequest, segments: string[] | undefined): Pr
     );
   }
   if (stream || isEventStream(upstream)) return streamResponse(upstream);
+  // Only a successful file answer is bytes; a refusal stays the typed JSON it is.
+  if (method === "GET" && upstream.ok && FILE_PATHS.some((pattern) => pattern.test(path))) {
+    return fileResponse(upstream);
+  }
   return proxyResponse(upstream);
 }
 

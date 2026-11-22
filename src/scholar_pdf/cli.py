@@ -2,6 +2,7 @@
 import asyncio
 import json
 import os
+import re
 import sys
 import tempfile
 from contextlib import suppress
@@ -9,6 +10,7 @@ from pathlib import Path
 
 import typer
 from rich.console import Console
+from rich.markup import escape
 from rich.progress import (
     BarColumn,
     Progress,
@@ -26,21 +28,60 @@ if sys.platform == "win32":
 
 from .acquisition import PDFAcquisitionService, WorkspaceManagerCliAuditSink
 from .acquisition_models import AcquisitionRunConfig, OperationStatus
-from .config import settings
-from .downloader import AsyncPDFDownloader
+from .config import DECISION, MailtoNotSetError, contact_email, openalex_key, settings
+from .downloader import AsyncPDFDownloader, bare_doi
 from .extract import DoclingEngine, GrobidEngine
 from .extraction import PDFExtractionService
 from .extraction_models import ExtractionRunConfig
+from .manifest import MANIFEST_NAME
+from .open_copies import FAILED as LOOKUP_STATE_FAILED
+from .open_copies import (
+    LOOKUP_FAILED,
+    NO_OPEN_COPY_LISTED,
+    OPEN_NO_DIRECT_PDF,
+    PDF_NOT_FETCHED,
+)
 from .publisher_patterns import PROXY_STYLES
 
 app = typer.Typer(
     help=(
-        "PARKED, not production (Nexus Scholar 1.0 ships screening only). "
-        "Scholar PDF Kit: automated PDF discovery, deterministic acquisition, "
-        "and parent-bound text extraction."
+        "Scholar PDF Kit. Production: 'download' (open-access PDFs by DOI) and "
+        "'ingest' (a PDF you already have). Reading PDFs ('extract', "
+        "'extract-run') and E1 'acquire' are parked; their help says so."
     )
 )
 console = Console()
+
+
+def _refuse(code: str, message: str) -> None:
+    """Print a refusal that names its decision and stop with exit code 1."""
+    console.print(f"[bold red]{code}:[/bold red] {message}", soft_wrap=True)
+    raise typer.Exit(1)
+
+
+def _production_preflight(proxy: str | None) -> None:
+    """What ``download`` and ``ingest`` refuse before any request (K0, M12a item 27)."""
+    if (proxy or "").strip() or settings.proxy_url.strip():
+        _refuse(
+            "PROXY_REFUSED",
+            "an institutional proxy is not used by the production download commands "
+            f"({DECISION} item 25). Remove --proxy and PROXY_URL and run again.",
+        )
+    if settings.enable_publisher_direct_patterns:
+        _refuse(
+            "PUBLISHER_PATTERNS_REFUSED",
+            "the publisher direct-PDF patterns (guessed publisher URLs) are removed "
+            f"({DECISION} item 24). Remove ENABLE_PUBLISHER_DIRECT_PATTERNS and run again.",
+        )
+    if not contact_email():
+        _refuse("MAILTO_NOT_SET", str(MailtoNotSetError()).split(": ", 1)[1])
+    if not openalex_key():
+        # Part K item 4: stated, not refused; Unpaywall alone is still an answer.
+        console.print(
+            "[yellow]OpenAlex is not asked: SCHOLAR_OPENALEX_KEY is not set. "
+            "Only Unpaywall is asked.[/yellow]",
+            soft_wrap=True,
+        )
 
 _ACQUISITION_EXIT_CODES = {
     OperationStatus.SUCCESS: 0,
@@ -49,9 +90,36 @@ _ACQUISITION_EXIT_CODES = {
     OperationStatus.CANCELLED: 130,
 }
 
+# ``download`` (H-pdf-resolver-locations): the reason a DOI has no file, in the
+# table and in the exit code. With several DOIs the exit code is the first of
+# these that any DOI met, in this order; 1 stays "a listed address gave no PDF"
+# and any other failure. 2 is left to Typer's usage errors.
+_UNRESOLVED_LABELS = {
+    LOOKUP_FAILED: "[red]Lookup failed[/red]",
+    PDF_NOT_FETCHED: "[red]Failed[/red]",
+    OPEN_NO_DIRECT_PDF: "[yellow]No direct PDF[/yellow]",
+    NO_OPEN_COPY_LISTED: "[yellow]No open copy[/yellow]",
+}
+_DOWNLOAD_EXIT_CODES = {LOOKUP_FAILED: 3, OPEN_NO_DIRECT_PDF: 4, NO_OPEN_COPY_LISTED: 5}
+
+
+def _download_exit_code(results: list) -> int:
+    """0 when every DOI has its file; otherwise 3, 1, 4 or 5 (see the table above)."""
+    failed = [res for res in results if not res.success]
+    if not failed:
+        return 0
+    outcomes = {res.outcome for res in failed}
+    if LOOKUP_FAILED in outcomes:
+        return _DOWNLOAD_EXIT_CODES[LOOKUP_FAILED]
+    if outcomes - set(_DOWNLOAD_EXIT_CODES):
+        return 1
+    if OPEN_NO_DIRECT_PDF in outcomes:
+        return _DOWNLOAD_EXIT_CODES[OPEN_NO_DIRECT_PDF]
+    return _DOWNLOAD_EXIT_CODES[NO_OPEN_COPY_LISTED]
+
 
 def _write_json_atomic(path: Path, payload: str) -> None:
-    """Write a CLI summary without exposing a partially written JSON file."""
+    """Write a CLI file (a JSON summary, an export) whole or not at all."""
 
     path.parent.mkdir(parents=True, exist_ok=True)
     descriptor, temporary_name = tempfile.mkstemp(
@@ -170,7 +238,7 @@ def extract_run(
         False, "--human", help="Render a human table in addition to JSON output."
     ),
 ) -> None:
-    """Extract screened PDF text through the E2 domain service (authoritative)."""
+    """PARKED, not production (reading PDFs waits for M12b-read). Extract screened PDF text through the E2 domain service (authoritative)."""
 
     try:
         run_config = ExtractionRunConfig.model_validate_json(
@@ -218,7 +286,7 @@ def acquire(
         False, "--human", help="Render a human table in addition to JSON output."
     ),
 ) -> None:
-    """Acquire one or more parent-bound PDFs through the E1 domain service."""
+    """PARKED, not production (E1 acquisition stays parked, M12a item 23). Acquire parent-bound PDFs through the E1 domain service."""
 
     try:
         run_config = AcquisitionRunConfig.model_validate_json(
@@ -244,8 +312,41 @@ def acquire(
     raise typer.Exit(code=_ACQUISITION_EXIT_CODES[outcome.status])
 
 
+#: Where a record's own id is read from, in order, for its manifest row (Part K item 8):
+#: ``workspace_id`` is the id the screening files carry (``SCI-000002``).
+_RECORD_ID_KEYS = ("study_id", "record_id", "workspace_id", "id")
+
+
+def _record_id(item: dict) -> str | None:
+    for key in _RECORD_ID_KEYS:
+        value = item.get(key)
+        if isinstance(value, str) and value.strip():
+            return value.strip()
+    return None
+
+
+_BIBTEX_DOI = re.compile(r"^\s*doi=\{([^}]*)\}", re.MULTILINE)
+
+
+def _bibtex_entry(doi: str, metadata: dict) -> str:
+    """One entry; a field the lookups did not give is left out, never ``None`` (PDF-18)."""
+    author = str(metadata.get("author") or "").strip()
+    year = str(metadata.get("year") or "").strip()
+    year = "" if year.lower() == "none" else year
+    title = str(metadata.get("title") or "").strip()
+    key = f"{author or 'Unknown'}{year or 'nd'}".replace(" ", "")
+    fields = [f"  title={{{title or 'Unknown'}}}", f"  author={{{author or 'Unknown'}}}"]
+    if year:
+        fields.append(f"  year={{{year}}}")
+    fields.append(f"  doi={{{doi}}}")
+    return f"@article{{{key},\n" + ",\n".join(fields) + "\n}\n"
+
+
 def _export_results(export_format: str, output_dir: Path, successful_results: list):
-    """Helper to export results, appending to existing files if they exist."""
+    """Add the results to the export file, one entry per DOI, written whole (PDF-18).
+
+    The file is replaced atomically: a failure leaves the previous export as it was.
+    """
     if not successful_results:
         return
 
@@ -259,38 +360,42 @@ def _export_results(export_format: str, output_dir: Path, successful_results: li
                 open(export_path, "r", encoding="utf-8") as f,
             ):
                 export_data = json.load(f)
+        if not isinstance(export_data, list):
+            export_data = []
 
         # Append new successful results, avoiding duplicate DOIs
-        existing_dois = {item["doi"] for item in export_data}
+        existing_dois = {item.get("doi") for item in export_data if isinstance(item, dict)}
         for res in successful_results:
             if res.doi not in existing_dois and res.metadata:
+                existing_dois.add(res.doi)
                 export_data.append(
                     {
                         "doi": res.doi,
-                        "file_path": str(res.file_path),
+                        "file_path": str(res.file_path) if res.file_path else None,
                         "metadata": res.metadata,
                     }
                 )
 
-        with open(export_path, "w", encoding="utf-8") as f:
-            json.dump(export_data, f, indent=2)
+        # Serialized before the file is touched, then replaced atomically.
+        _write_json_atomic(export_path, json.dumps(export_data, indent=2))
         console.print(f"[green]Exported metadata to {export_path}[/green]")
 
     elif export_format.lower() == "bibtex":
+        existing = ""
+        if export_path.exists():
+            existing = export_path.read_text(encoding="utf-8")
+        seen = {doi.strip().lower() for doi in _BIBTEX_DOI.findall(existing)}
         bibtex_entries = []
         for res in successful_results:
-            if not res.metadata:
+            if not res.metadata or res.doi.strip().lower() in seen:
                 continue
-            md = res.metadata
-            author = md.get("author", "Unknown")
-            year = md.get("year", "Unknown")
-            title = md.get("title", "Unknown")
-            key = f"{author}{year}".replace(" ", "")
-            bibtex = f"@article{{{key},\n  title={{{title}}},\n  author={{{author}}},\n  year={{{year}}},\n  doi={{{res.doi}}}\n}}\n"
-            bibtex_entries.append(bibtex)
-
-        with open(export_path, "a", encoding="utf-8") as f:
-            f.write("\n".join(bibtex_entries) + "\n")
+            seen.add(res.doi.strip().lower())
+            bibtex_entries.append(_bibtex_entry(res.doi, res.metadata))
+        if not bibtex_entries:
+            return
+        text = existing.rstrip("\n")
+        text = (text + "\n\n" if text else "") + "\n".join(bibtex_entries)
+        _write_json_atomic(export_path, text.rstrip("\n"))
         console.print(f"[green]Exported BibTeX to {export_path}[/green]")
     else:
         console.print(
@@ -318,9 +423,6 @@ def download(
     max_concurrent: int = typer.Option(
         5, "--max-concurrent", "-c", help="Maximum concurrent downloads"
     ),
-    smart_names: bool = typer.Option(
-        False, "--smart-names", help="Rename downloaded PDFs using Author_Year_Title"
-    ),
     export_format: str = typer.Option(
         None,
         "--export",
@@ -329,19 +431,32 @@ def download(
     proxy: str = typer.Option(
         None,
         "--proxy",
-        help="Institutional proxy URL (overrides PROXY_URL / .env), e.g. https://www.sndl1.arn.dz",
+        help="Refused: an institutional proxy is not used (decision 2026-11-21, M12a item 25).",
     ),
     proxy_style: str = typer.Option(
-        "auto", "--proxy-style", help="Proxy style: auto | ezproxy | subdomain | prefix"
+        "auto", "--proxy-style", help="Parked; a proxy is refused (M12a item 25)."
     ),
     strict_validate: bool = typer.Option(
         False,
         "--strict-validate",
         help="Require pypdf structural validation of downloads",
     ),
+    manifest: Path = typer.Option(
+        None,
+        "--manifest",
+        help=f"Where to write one JSON line per DOI (default: {MANIFEST_NAME} in --output)",
+    ),
 ):
-    """Resolve DOIs via OpenAlex and download Open Access PDFs."""
+    """Download open-access PDFs by DOI (OpenAlex and Unpaywall locations). Needs SCHOLAR_MAILTO.
 
+    The best open copy listed with a direct PDF address is taken: published
+    version first, then accepted manuscript, then submitted version or preprint.
+    Exit codes: 0 every DOI has its file; 3 a lookup failed (run again later);
+    1 a listed address gave no PDF; 4 listed as open access but with no direct
+    PDF address; 5 no open copy listed.
+    """
+
+    _production_preflight(proxy)
     if proxy_style not in PROXY_STYLES:
         raise typer.BadParameter(
             f"--proxy-style must be one of {', '.join(PROXY_STYLES)}"
@@ -350,21 +465,37 @@ def download(
     settings.max_concurrent_downloads = max_concurrent
 
     doi_list = list(dois) if dois else []
+    # Part K item 8: the record each DOI came from, for its manifest row.
+    study_ids: dict[str, str] = {}
+    titles: dict[str, str] = {}
 
-    # Parse input file if provided
-    if input_file and input_file.exists():
+    # Parse input file if provided. A missing file is a usage error, not
+    # "no DOIs" (PDF-15).
+    if input_file is not None and not input_file.is_file():
+        raise typer.BadParameter(f"{input_file} does not exist", param_hint="--input")
+    if input_file:
         try:
             with open(input_file, "r", encoding="utf-8") as f:
                 data = json.load(f)
+                if not isinstance(data, list):
+                    raise ValueError("the input file must hold a JSON list of records")
                 for item in data:
+                    if not isinstance(item, dict):
+                        continue
                     doi = None
-                    if "external_ids" in item and item["external_ids"].get("doi"):
+                    if isinstance(item.get("external_ids"), dict) and item["external_ids"].get("doi"):
                         doi = item["external_ids"]["doi"]
-                    elif "doi" in item:
+                    elif item.get("doi"):
                         doi = item["doi"]
 
+                    doi = bare_doi(doi) if doi else doi  # one lookup per DOI however it is written
                     if doi and doi not in doi_list:
                         doi_list.append(doi)
+                        record_id = _record_id(item)
+                        if record_id:
+                            study_ids[doi] = record_id
+                        if isinstance(item.get("title"), str) and item["title"].strip():
+                            titles[doi] = item["title"].strip()
         except (
             AttributeError,
             KeyError,
@@ -384,12 +515,13 @@ def download(
         f"[bold blue]Starting download process for {len(doi_list)} DOIs...[/bold blue]"
     )
 
+    manifest_path = manifest if manifest is not None else output_dir / MANIFEST_NAME
     downloader = AsyncPDFDownloader(
         output_dir=output_dir,
-        use_smart_names=smart_names,
         proxy_url=proxy,
         proxy_style=proxy_style,
         structural_validation=strict_validate,
+        manifest_path=manifest_path,
     )
 
     async def run_downloads():
@@ -406,12 +538,18 @@ def download(
             from scholar_search.http_client import AcademicHttpClient
 
             results = []
-            http_client = AcademicHttpClient(name="openalex-pdf", rate_limit=10)
+            http_client = AcademicHttpClient(name="openalex-pdf", rate_limit=10, cache_enabled=False)
             try:
                 async with aiohttp.ClientSession() as session:
                     # We process concurrently but update progress bar as each finishes
                     tasks = [
-                        downloader.process_doi(session, http_client, doi)
+                        downloader.process_doi(
+                            session,
+                            http_client,
+                            doi,
+                            title=titles.get(doi),
+                            study_id=study_ids.get(doi),
+                        )
                         for doi in doi_list
                     ]
                     for coro in asyncio.as_completed(tasks):
@@ -436,7 +574,20 @@ def download(
     for res in results:
         if res.success:
             success_count += 1
-            table.add_row(res.doi, "[green]Success[/green]", str(res.file_path))
+            details = escape(str(res.file_path))
+            if res.open_copy is not None:
+                # The copy taken, labelled (M12a answer F3): version, licence, source.
+                details += f" ({escape(res.open_copy.label())}"
+                if res.copies_tried > 1:
+                    details += f"; address {res.copies_tried} of {res.copies_listed} listed"
+                details += ")"
+            table.add_row(res.doi, "[green]Success[/green]", details)
+        elif res.outcome in _UNRESOLVED_LABELS:
+            table.add_row(
+                res.doi,
+                _UNRESOLVED_LABELS[res.outcome],
+                escape(res.error_message or ""),
+            )
         elif res.access_status == "VERIFIED_OPEN_ACCESS":
             table.add_row(
                 res.doi,
@@ -457,15 +608,26 @@ def download(
             )
 
     console.print(table)
+    # Every request sent to a PDF address, per DOI: how many, to which hosts, and
+    # what each answered (a higher-ranked address that gave no PDF included).
+    for res in results:
+        if res.attempts:
+            plural = "s" if res.request_count != 1 else ""
+            console.print(
+                f"{escape(res.doi)}: {res.request_count} PDF request{plural}: "
+                + escape("; ".join(res.request_lines())),
+                soft_wrap=True,
+            )
     console.print(
         f"[bold green]Successfully downloaded {success_count}/{len(doi_list)} PDFs.[/bold green]"
     )
+    console.print(f"Manifest: {escape(str(manifest_path))}", soft_wrap=True)
 
     if export_format:
         successful_results = [res for res in results if res.success]
         _export_results(export_format, output_dir, successful_results)
     if success_count != len(doi_list):
-        raise typer.Exit(1)
+        raise typer.Exit(_download_exit_code(results))
 
 
 @app.command("ingest")
@@ -477,23 +639,31 @@ def ingest(
     output_dir: Path = typer.Option(
         Path("downloads"), "--output", "-o", help="Directory to save PDFs"
     ),
-    smart_names: bool = typer.Option(
-        False, "--smart-names", help="Rename downloaded PDF using Author_Year_Title"
-    ),
     export_format: str = typer.Option(
         None, "--export", help="Export successfully ingested metadata (json or bibtex)"
     ),
     proxy: str = typer.Option(
-        None, "--proxy", help="Institutional proxy URL (overrides PROXY_URL / .env)"
+        None,
+        "--proxy",
+        help="Refused: an institutional proxy is not used (decision 2026-11-21, M12a item 25).",
     ),
     proxy_style: str = typer.Option(
-        "auto", "--proxy-style", help="Proxy style: auto | ezproxy | subdomain | prefix"
+        "auto", "--proxy-style", help="Parked; a proxy is refused (M12a item 25)."
     ),
     strict_validate: bool = typer.Option(
         False, "--strict-validate", help="Require pypdf structural validation on ingest"
     ),
+    manifest: Path = typer.Option(
+        None,
+        "--manifest",
+        help=f"Where to write the file's JSON line (default: {MANIFEST_NAME} in --output)",
+    ),
+    study_id: str = typer.Option(
+        None, "--study-id", help="The record this PDF belongs to, kept in its manifest row"
+    ),
 ):
-    """Manually ingest a PDF into the toolkit, bypassing download."""
+    """Ingest a PDF you already have for a DOI (metadata looked up). Needs SCHOLAR_MAILTO."""
+    _production_preflight(proxy)
     if proxy_style not in PROXY_STYLES:
         raise typer.BadParameter(
             f"--proxy-style must be one of {', '.join(PROXY_STYLES)}"
@@ -503,23 +673,32 @@ def ingest(
     console.print(f"[bold blue]Ingesting {pdf_path} for DOI {doi}...[/bold blue]")
     downloader = AsyncPDFDownloader(
         output_dir=output_dir,
-        use_smart_names=smart_names,
         proxy_url=proxy,
         proxy_style=proxy_style,
         structural_validation=strict_validate,
+        manifest_path=manifest if manifest is not None else output_dir / MANIFEST_NAME,
     )
 
     async def run_ingest():
         from scholar_search.http_client import AcademicHttpClient
 
-        http_client = AcademicHttpClient(name="openalex-pdf", rate_limit=10)
+        http_client = AcademicHttpClient(name="openalex-pdf", rate_limit=10, cache_enabled=False)
         try:
-            return await downloader.ingest_pdf(http_client, pdf_path, doi)
+            return await downloader.ingest_pdf(http_client, pdf_path, doi, study_id=study_id)
         finally:
             await http_client.close()
 
     res = asyncio.run(run_ingest())
 
+    failed_lookups = [
+        look for look in res.lookups if look.state == LOOKUP_STATE_FAILED
+    ]
+    if failed_lookups:
+        # The file is the researcher's own; only its looked-up metadata is missing.
+        said = "; ".join(f"{look.name} {look.failure()}" for look in failed_lookups)
+        console.print(
+            f"[yellow]Metadata lookup incomplete: {said}.[/yellow]", soft_wrap=True
+        )
     if res.success:
         console.print(
             f"[bold green]Successfully ingested PDF to {res.file_path}[/bold green]"
@@ -527,7 +706,8 @@ def ingest(
         if export_format:
             _export_results(export_format, output_dir, [res])
     else:
-        console.print(f"[bold red]Failed to ingest PDF: {res.error_message}[/bold red]")
+        console.print(f"[bold red]Failed to ingest PDF: {escape(res.error_message or '')}[/bold red]")
+        raise typer.Exit(1)  # PDF-15: nothing stored is a failure
 
 
 @app.command("extract")
@@ -546,7 +726,7 @@ def extract(
         "http://localhost:8070", help="Grobid service URL if using grobid"
     ),
 ):
-    """LEGACY, NON-AUTHORITATIVE: extract raw Markdown from a PDF.
+    """PARKED, not production (reading PDFs waits for M12b-read). LEGACY, NON-AUTHORITATIVE: extract raw Markdown from a PDF.
 
     This command writes to an arbitrary output directory and produces no
     acquisition/extraction lineage, no bound frontmatter, and no sidecar

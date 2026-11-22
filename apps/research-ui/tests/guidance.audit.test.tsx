@@ -6,8 +6,9 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { DISCOVERY_COPY } from "@/lib/discovery-copy";
 import { INCEPTION_COPY } from "@/lib/inception-copy";
+import { WORKBENCH_COPY } from "@/lib/workbench-copy";
 
-import { auditRows, DISCOVERY_KEYS, INCEPTION_KEYS, type AuditRow } from "./fixtures/guidance-audit";
+import { auditRows, DISCOVERY_KEYS, INCEPTION_KEYS, WORKBENCH_KEYS, type AuditRow } from "./fixtures/guidance-audit";
 import { SCREENS } from "./guidance-screens";
 import { visibleWords } from "./guidance-words";
 
@@ -23,7 +24,7 @@ afterEach(() => {
 });
 
 const ROWS = auditRows();
-const EN: Record<string, string> = { ...(INCEPTION_COPY.en as Record<string, string>), ...(DISCOVERY_COPY.en as Record<string, string>) };
+const EN: Record<string, string> = { ...(INCEPTION_COPY.en as Record<string, string>), ...(DISCOVERY_COPY.en as Record<string, string>), ...(WORKBENCH_COPY.en as Record<string, string>) };
 const keysOf = (decision: AuditRow["decision"]) => new Set(ROWS.filter((r) => r.decision === decision).flatMap((r) => r.keys));
 const HINT = keysOf("HINT");
 const STAYS = keysOf("STAYS");
@@ -32,7 +33,7 @@ const STAYS = keysOf("STAYS");
  * and not a sentence another screen keeps visible inside a STAYS text (the chase's
  * gate record is a hint; the hand-off gate body says the same and stays).
  */
-const STAYS_TEXT = [...STAYS].map((k) => (INCEPTION_COPY.en as Record<string, string>)[k] ?? (DISCOVERY_COPY.en as Record<string, string>)[k] ?? "");
+const STAYS_TEXT = [...STAYS].map((k) => EN[k] ?? "");
 const HINT_ONLY = [...HINT].filter((k) => !STAYS.has(k));
 
 const norm = (s: string) => s.replace(/\s+/g, " ").trim();
@@ -53,8 +54,10 @@ describe("guidance.audit", () => {
     const covered = (prefix: string) => new Set(ROWS.filter((r) => r.id.startsWith(prefix)).flatMap((r) => r.keys));
     const inception = covered("I-");
     const discovery = covered("D-");
+    const workbench = covered("W-");
     expect(INCEPTION_KEYS.filter((k) => !inception.has(k))).toEqual([]);
     expect(DISCOVERY_KEYS.filter((k) => !discovery.has(k))).toEqual([]);
+    expect(WORKBENCH_KEYS.filter((k) => !workbench.has(k))).toEqual([]);
   });
 
   it("states the same counts per decision as the spec's table", () => {
@@ -63,6 +66,7 @@ describe("guidance.audit", () => {
     for (const [label, prefix] of [
       ["Inception 01 to 07", "I-"],
       ["Discovery 01 to 09", "D-"],
+      ["Query workbench (M11a)", "W-"],
     ] as const) {
       const line = spec.split(/\r?\n/).find((l) => l.startsWith(`| ${label}`));
       const numbers = (line ?? "").split("|").slice(2, 6).map((c) => Number(c.trim()));

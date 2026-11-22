@@ -1,8 +1,12 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
+import { PILOT_COPY } from "@/components/screening-pilot-copy";
+import { CHARTING_COPY } from "@/lib/charting-copy";
 import { DISCOVERY_COPY } from "@/lib/discovery-copy";
 import { INCEPTION_COPY } from "@/lib/inception-copy";
+import { TRIAGE_COPY } from "@/lib/triage-copy";
+import { WORKBENCH_COPY } from "@/lib/workbench-copy";
 
 /**
  * The Audit of `docs/ux/shared/final/03-guidance.md` (M10d), read from the spec
@@ -12,7 +16,8 @@ import { INCEPTION_COPY } from "@/lib/inception-copy";
  * A cell names keys the way the spec writes them: a full key
  * (`explore.pool.title`), a key relative to the row's first key (`pool.meta`
  * after `explore.pool.title`), or a group (`harvest.col.*`). Inception rows
- * (`I-`) name `inception-copy` keys, discovery rows (`D-`) `discovery-copy` keys.
+ * (`I-`) name `inception-copy` keys, discovery rows (`D-`) `discovery-copy` keys,
+ * screening rows (`S-`, M8b, not counted yet) `triage-copy` keys.
  */
 
 export type Decision = "STAYS" | "HINT" | "REMOVED";
@@ -33,6 +38,13 @@ function specPath(): string {
 
 export const INCEPTION_KEYS = Object.keys(INCEPTION_COPY.en);
 export const DISCOVERY_KEYS = Object.keys(DISCOVERY_COPY.en);
+/** M11a: the query workbench's catalog (`W-` rows). */
+export const WORKBENCH_KEYS = Object.keys(WORKBENCH_COPY.en);
+export const TRIAGE_KEYS = Object.keys(TRIAGE_COPY.en);
+/** M11b part C: the pilot result's catalog (`S-PL` rows). */
+export const PILOT_KEYS = Object.keys(PILOT_COPY.en);
+/** M12a Part B: rows `X-` are the charting screens (phase 3), not counted per phase yet. */
+export const CHARTING_KEYS = Object.keys(CHARTING_COPY.en);
 
 /** A token as written, then relative to each leading part of the row's first key (`size.ok` after `explore.tile.size.title`). */
 function resolve(token: string, first: string, catalog: string[]): string[] {
@@ -58,11 +70,11 @@ export function auditRows(): AuditRow[] {
   const text = readFileSync(specPath(), "utf-8");
   const rows: AuditRow[] = [];
   for (const line of text.split(/\r?\n/)) {
-    const m = line.match(/^\| ((?:I|D)-[A-Z]*\d+) \| (.*?) \| (.*?) \| (STAYS|HINT|REMOVED) \| (.*) \|$/);
+    const m = line.match(/^\| ((?:I|D|W|S|X)-[A-Z]*\d+) \| (.*?) \| (.*?) \| (STAYS|HINT|REMOVED) \| (.*) \|$/);
     if (!m) continue;
     const [, id, keyCell, textCell, decision, reason] = m;
     const tokens = [...keyCell.matchAll(/`([^`]+)`/g)].map((t) => t[1]);
-    const catalog = id.startsWith("I-") ? INCEPTION_KEYS : DISCOVERY_KEYS;
+    const catalog = id.startsWith("I-") ? INCEPTION_KEYS : id.startsWith("W-") ? WORKBENCH_KEYS : id.startsWith("S-PL") ? PILOT_KEYS : id.startsWith("S-") ? TRIAGE_KEYS : id.startsWith("X-") ? CHARTING_KEYS : DISCOVERY_KEYS;
     const first = tokens[0] ?? "";
     const keys = new Set<string>();
     const unresolved: string[] = [];

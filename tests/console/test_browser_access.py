@@ -109,6 +109,13 @@ def test_the_draft_is_read_only_from_this_apps_pages(ws, ui):
     assert (cross.status_code, cross.json()["detail"]["code"]) == (403, "CONSOLE_ORIGIN_REFUSED")
 
 
+def test_the_charting_export_is_made_only_from_this_apps_pages(ws, ui):
+    """M12a Part A, review finding 4: an export writes a journal row, so a cross-site GET is refused."""
+    client = _browser(_app(ws, ui)[0])
+    cross = client.get("/api/console/api/v1/charting/export", headers={"Sec-Fetch-Site": "cross-site"})
+    assert (cross.status_code, cross.json()["detail"]["code"]) == (403, "CONSOLE_ORIGIN_REFUSED")
+
+
 def _accept_out_of_scope(answer: str) -> dict:
     """H-run-small-fixes (finding 2): each out-of-scope item waits for Accept; this draft accepts them."""
     return {
@@ -123,6 +130,7 @@ def _inception_draft() -> dict:
     proof_id = CriterionDraft("inclusion", f"Reports the gold-standard proof — {a[5]}", "proof").id
     return {
         "topic": a[0], "paradigm": a[1], "playbook": a[2], "unit_of_analysis": a[4], "proof": a[5],
+        "method_not_reported": "unclear",  # M11b part D: the rule is chosen (no default)
         "out_of_scope": [s.strip() for s in a[6].split(",")], "rqs": [a[8]],
         "concepts": [{"concept": "weed detection"}, {"concept": "on-device inference"}],
         "criteria_decisions": {proof_id: True, **_accept_out_of_scope(a[6])},

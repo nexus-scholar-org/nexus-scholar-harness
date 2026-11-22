@@ -32,7 +32,7 @@ async def test_process_doi_success(downloader, mock_http_client, temp_output_dir
     mock_response = MagicMock()
     mock_response.status_code = 200
     mock_response.json.return_value = {
-        "best_oa_location": {"pdf_url": "https://example.com/test.pdf"},
+        "best_oa_location": {"is_oa": True, "pdf_url": "https://example.com/test.pdf"},
         "title": "Test Title",
     }
     mock_http_client.get = AsyncMock(return_value=mock_response)
@@ -112,7 +112,7 @@ async def test_process_doi_invalid_pdf(downloader, mock_http_client, temp_output
     mock_response = MagicMock()
     mock_response.status_code = 200
     mock_response.json.return_value = {
-        "best_oa_location": {"pdf_url": "https://example.com/paywall.html"}
+        "best_oa_location": {"is_oa": True, "pdf_url": "https://example.com/paywall.html"}
     }
     mock_http_client.get = AsyncMock(return_value=mock_response)
 
@@ -133,64 +133,17 @@ async def test_process_doi_invalid_pdf(downloader, mock_http_client, temp_output
 
     assert result.success is False
     assert result.was_oa is True
-    assert result.error_message == "Failed to download or invalid PDF"
-
-
-@pytest.mark.asyncio
-async def test_process_doi_publisher_pattern_fallback(
-    downloader, mock_http_client, temp_output_dir
-):
-    """When the OpenAlex OA URL is Cloudflare-blocked (HTML hull), the IEEE
-    direct-PDF pattern must be attempted and can rescue the download."""
-    doi = "10.1109/ICCV.2023.01234"
-
-    mock_response = MagicMock()
-    mock_response.status_code = 200
-    mock_response.json.return_value = {
-        "best_oa_location": {"pdf_url": "https://ieeexplore.ieee.org/document/10209481"}
-    }
-    mock_http_client.get = AsyncMock(return_value=mock_response)
-
-    mock_session = AsyncMock(spec=aiohttp.ClientSession)
-
-    async def make_response(header_bytes, content_type):
-        r = AsyncMock()
-        r.raise_for_status = MagicMock()
-        r.__aenter__ = AsyncMock(return_value=r)
-        r.headers = {"Content-Type": content_type}
-
-        async def mk_chunked(*a, **k):
-            yield header_bytes
-            yield b"payload" * 2048
-            if content_type == "application/pdf":
-                yield b"\n%%EOF\n"
-
-        r.content.iter_chunked = mk_chunked
-        return r
-
-    html_resp = await make_response(
-        b"<html><body>Checking your browser...</body></html>", "text/html"
-    )
-    pdf_resp = await make_response(b"%PDF-1.6\n", "application/pdf")
-    mock_session.get.side_effect = [html_resp, pdf_resp]
-
-    result = await downloader.process_doi(mock_session, mock_http_client, doi)
-
-    assert result.success is True
-    assert result.file_path is not None
-    assert result.was_oa is True
-    urls = []
-    for c in mock_session.get.call_args_list:
-        urls.append(c[0][0])
-    assert any("stampPDF/getPDF.jsp" in u for u in urls), urls
+    assert result.error_message.startswith("The listed address gave no PDF")
 
 
 @pytest.mark.asyncio
 async def test_process_doi_proxy_subdomain_attempt(
     downloader, mock_http_client, temp_output_dir
 ):
-    """Cloudflare-blocks both the OA URL and the direct PDF; the SNL-style
-    subdomain-proxy rewrite rescues the download."""
+    """Parked proxy code (M12a item 25, G4): the library still rewrites the OA
+    URL through a subdomain gateway when one is given; the production commands
+    refuse a proxy (test_k0_production_download.py). No guessed publisher URL
+    is tried in between (item 24)."""
     doi = "10.1109/ICCV.2023.01234"
     proxied_downloader = AsyncPDFDownloader(
         output_dir=temp_output_dir,
@@ -200,7 +153,7 @@ async def test_process_doi_proxy_subdomain_attempt(
     mock_response = MagicMock()
     mock_response.status_code = 200
     mock_response.json.return_value = {
-        "best_oa_location": {"pdf_url": "https://ieeexplore.ieee.org/document/10209481"}
+        "best_oa_location": {"is_oa": True, "pdf_url": "https://ieeexplore.ieee.org/document/10209481"}
     }
     mock_http_client.get = AsyncMock(return_value=mock_response)
 
@@ -227,14 +180,23 @@ async def test_process_doi_proxy_subdomain_attempt(
     )
     pdf = await make_response(b"%PDF-1.6\n", "application/pdf")
 
-    mock_session.get.side_effect = [html, html, pdf]
+    mock_session.get.side_effect = [html, pdf]
 
     result = await proxied_downloader.process_doi(mock_session, mock_http_client, doi)
 
     assert result.success is True
-    assert result.was_oa is True
+    # Part K item 7 (PDF-12): bytes through the gateway are never open access.
+    assert result.was_oa is False
+    assert result.access_status == "INSTITUTIONAL_ACCESS"
     urls = [c[0][0] for c in mock_session.get.call_args_list]
-    assert any("ieeexplore-ieee-org.www.sndl1.arn.dz" in u for u in urls), urls
+    assert len(urls) == 2, urls
+    assert urls[0] == "https://ieeexplore.ieee.org/document/10209481"
+    assert "ieeexplore-ieee-org.www.sndl1.arn.dz" in urls[1], urls
+    assert not any("stampPDF" in u for u in urls), urls
+    # The bytes came through the gateway, not from the open location: the
+    # result must not carry that location's version and licence as its label.
+    assert result.open_copy is None
+    assert result.outcome == "ACQUIRED"
 
 
 @pytest.mark.asyncio
@@ -267,7 +229,7 @@ async def test_process_doi_deduplicates_content_without_overwrite(
     metadata = MagicMock()
     metadata.status_code = 200
     metadata.json.return_value = {
-        "best_oa_location": {"pdf_url": "https://example.test/paper.pdf"},
+        "best_oa_location": {"is_oa": True, "pdf_url": "https://example.test/paper.pdf"},
     }
     mock_http_client.get = AsyncMock(return_value=metadata)
 
@@ -294,7 +256,7 @@ async def test_process_doi_deduplicates_content_without_overwrite(
 
 
 def test_gateway_and_forward_proxy_are_not_conflated(temp_output_dir):
-    with pytest.raises(ValueError, match="distinct"):
+    with pytest.raises(ValueError, match="PROXY_REFUSED"):
         AsyncPDFDownloader(
             output_dir=temp_output_dir,
             institutional_gateway_url="https://gateway.test",

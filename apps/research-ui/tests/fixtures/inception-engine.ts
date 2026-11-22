@@ -12,6 +12,7 @@
 
 import { reconEngine, type ReconOptions } from "./recon-engine";
 import { checkRow, digestOf, dismissal, INCEPTION_STEPS, respond, withDismissals, type CheckIn } from "./checks-engine";
+import { workbenchEngine, type WorkbenchOptions } from "./workbench-engine";
 
 export const ROOT = "C:\\Users\\r\\Documents\\Nexus Scholar\\workspaces";
 export const SESSION = "rec_0123456789abcdef0123456789abcdef";
@@ -40,6 +41,13 @@ export interface FakeOptions {
   checksAnswer?: (step: string | undefined) => Json;
   /** M10b: whether a mechanism offered an `accepted_from` value (default: each one). */
   offered?: (entry: Json) => boolean;
+  /** M11a: the query workbench routes of a draft (`…/workbench/…`). */
+  workbench?: WorkbenchOptions;
+  /**
+   * M11b part D: `steps/criteria` answers the two method settings and their options, as the
+   * engine's `method_choice` does (a test double); `order` replaces the engine's order of the rule's options.
+   */
+  method?: boolean | { order?: string[] };
 }
 
 // --- M10b Part B: proposals (test double of `inception/proposals.py`) -----------------
@@ -250,6 +258,25 @@ function idOf(kind: string, source: string, text: string, reason: string | null 
   return `crit_${h.toString(16).padStart(12, "0").slice(0, 12)}`;
 }
 
+/** The engine's `method_choice` and `METHOD_OPTIONS` (M11b part D), as a test double. */
+function methodOf(draft: Json, option: true | { order?: string[] }) {
+  const rule = (draft.method_not_reported ?? null) as string | null;
+  const source = (draft.method_not_reported_source ?? null) as string | null;
+  return {
+    method: {
+      blinding: (draft.method_blinding ?? "reveal_after_decision") as string,
+      not_reported: rule,
+      chosen: rule !== null && source !== "imported",
+      started_before_question: !("method_not_reported" in draft),
+      source,
+    },
+    method_options: {
+      blinding: ["reveal_after_decision", "show"],
+      not_reported: option === true || !option.order ? ["unclear", "decisive_first", "exclude"] : option.order,
+    },
+  };
+}
+
 function criteriaOf(draft: Json) {
   const decisions = (draft.criteria_decisions ?? {}) as Record<string, boolean>;
   const items: Json[] = [];
@@ -306,6 +333,7 @@ export function inceptionEngine(options: FakeOptions = {}) {
   let current: string | null = null;
   let nextId = 0;
   const recon = reconEngine(options.recon ?? {}, () => now());
+  const workbench = workbenchEngine(options.workbench ?? {});
 
   const seed = (draft: Json = {}, emitted: Json | null = null, id = SESSION, extra: Json = {}): string => {
     const at = now();
@@ -326,6 +354,7 @@ export function inceptionEngine(options: FakeOptions = {}) {
     if (lacking) return lacking;
     const c = criteriaOf(draft);
     if (c.undecided.length) return refuse(422, "CRITERIA_UNDECIDED", "accept or reject every criterion the wizard wrote", { undecided: c.undecided });
+    if (options.method && ((draft.method_not_reported ?? null) === null || draft.method_not_reported_source === "imported")) return refuse(422, "METHOD_RULE_UNCHOSEN", "choose the not-reported rule");
     if (c.missing_sides.length) return refuse(422, "CRITERIA_MISSING", "a protocol needs at least one inclusion and one exclusion criterion", { missing_sides: c.missing_sides });
     const slug = slugify(String(draft.title));
     const exists = existing !== "none";
@@ -579,7 +608,7 @@ export function inceptionEngine(options: FakeOptions = {}) {
       }
       if (step[1] === "criteria") {
         const lacking = need(draft, proofRequired(draft) ? ["paradigm", "proof"] : ["paradigm"]);
-        return lacking ?? { status: 200, body: { step: "criteria", ...criteriaOf(draft) } };
+        return lacking ?? { status: 200, body: { step: "criteria", ...criteriaOf(draft), ...(options.method ? methodOf(draft, options.method) : {}) } };
       }
       if (step[1] === "matrix") {
         const lacking = need(draft, ["playbook"]);
@@ -648,6 +677,16 @@ export function inceptionEngine(options: FakeOptions = {}) {
       return { status: 202, body: { slug, path: current, restarting: options.restarting ?? false } };
     }
     if (path === "/api/v1/workspace/meta") return { status: 200, body: { workspace: current } };
+    // M11a: the query workbench of a draft.
+    const bench = path.match(/^\/api\/v1\/inception\/drafts\/([^/]+)\/workbench(\/.*)$/);
+    if (bench) {
+      const record = drafts.get(bench[1]);
+      if (!record) return refuse(404, "DRAFT_NOT_FOUND");
+      if (record.emitted) return refuse(409, "DRAFT_EMITTED", "this draft already created a workspace");
+      const seeds = (((record.draft ?? {}) as Json).golden_seeds ?? []) as string[];
+      const answer = workbench.handle(method, bench[2], body, seeds);
+      if (answer) return answer;
+    }
     return refuse(404, "NOT_FOUND", path);
   };
 
@@ -664,7 +703,7 @@ export function inceptionEngine(options: FakeOptions = {}) {
     return made;
   };
 
-  return { handle, calls, drafts, seed, recon, refuseNext, addProposal };
+  return { handle, calls, drafts, seed, recon, refuseNext, addProposal, workbench };
 }
 
 /** A complete draft: every answer preview needs, the generated criterion still undecided. */

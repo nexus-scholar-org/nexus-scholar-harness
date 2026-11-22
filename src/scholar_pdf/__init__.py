@@ -131,12 +131,14 @@ from .frontmatter import (
     parse_bound_frontmatter,
     verify_bound_frontmatter,
 )
+from .open_copies import (  # not the function open_copies: it would hide the module
+    LookupOutcome,
+    OpenCopy,
+)
 from .publisher_patterns import (
     PROXY_STYLES,
-    compute_direct_pdf_from_landing_url,
     is_proxied_url,
     proxy_style,
-    resolve_doi_to_publisher_pdf,
     rewrite_via_proxy,
     rewrite_via_subdomain,
 )
@@ -225,9 +227,11 @@ __all__ = [
     "GrobidEngine",
     "GrobidProviderEngine",
     "InMemoryAuditSink",
+    "LookupOutcome",
     "ManifestOperation",
     "ManifestReference",
     "MethodProvenance",
+    "OpenCopy",
     "OperationStatus",
     "PDFAcquisitionService",
     "PDFExtractionService",
@@ -251,7 +255,6 @@ __all__ = [
     "canonical_json_bytes",
     "clean_invalid_pdf",
     "compose_extracted_file",
-    "compute_direct_pdf_from_landing_url",
     "compute_extraction_idempotency_key",
     "corpus_snapshot_fingerprint",
     "default_engine_registry",
@@ -269,7 +272,6 @@ __all__ = [
     "parse_bound_frontmatter",
     "project_content_status",
     "proxy_style",
-    "resolve_doi_to_publisher_pdf",
     "rewrite_via_proxy",
     "rewrite_via_subdomain",
     "source_sha256",

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { formatNumber, type Locale } from "@/i18n";
 import { Button, DataCell, DecisionBadge, GatePanel } from "@/components/ui/base";
+import { PilotCard } from "@/components/screening-pilot-card";
 import { ScreeningSteps, StateCard } from "@/components/screening-state-card";
 import { notifyReviewChanged } from "@/components/review-bus";
 import { getScreeningBatches, isScreeningApiError, type ScreeningBatches } from "@/lib/screening-api";
@@ -573,6 +574,7 @@ export function ScreeningPrepare({ locale }: Readonly<{ locale: Locale }>) {
               ) : null}
             </section>
 
+            {batches.count > 0 ? <PilotCard locale={locale} origin={origin} /> : null}
             <GatePanel
               label={t("prepare")}
               actions={
@@ -584,7 +586,8 @@ export function ScreeningPrepare({ locale }: Readonly<{ locale: Locale }>) {
                     <Button onClick={() => setConfirming(false)}>{t("cancel")}</Button>
                   </>
                 ) : (
-                  <Button variant="primary" onClick={() => setConfirming(true)}>
+                  // Review C round 1, finding 7: with batches, the pilot card holds the brand action (decision item 17).
+                  <Button variant={batches.count > 0 ? "secondary" : "primary"} onClick={() => setConfirming(true)}>
                     {t("prepare")}
                   </Button>
                 )

@@ -43,6 +43,7 @@ def _e2e_draft() -> dict:
         "verification_checks": True,
         "title": "On-Device Weed Detection for Embedded Agriculture",
         "lead_researcher": "Dr. Example",
+        "method_not_reported": "unclear",  # M11b part D: the rule is chosen (no default)
     }
 
 
@@ -113,7 +114,7 @@ def test_preview_writes_nothing(tmp_path):
 
 def test_preview_and_the_cli_wizard_compile_the_same_protocol(tmp_path):
     """No second copy of the wizard logic: same answers, same fingerprint."""
-    wizard = run_wizard(ScriptedResponder(list(E2E_ANSWERS)), tmp_path, genesis_timestamp=GENESIS_TS)
+    wizard = run_wizard(ScriptedResponder(list(E2E_ANSWERS)), tmp_path, genesis_timestamp=GENESIS_TS, not_reported="unclear")
     out = steps.preview(_e2e_draft(), genesis_timestamp=GENESIS_TS)
     assert out["intent"] == wizard["intent"]
     assert out["protocol_fingerprint"] == wizard["protocol_fingerprint"]

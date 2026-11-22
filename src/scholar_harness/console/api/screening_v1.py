@@ -23,11 +23,13 @@ from pathlib import Path
 from typing import Any
 
 from fastapi import APIRouter, HTTPException, Request, Response
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
+from ...screening import criteria as cr
 from ...screening import events as ev
 from ...workspace.atomic import atomic_write_text
 from ...screening import proposals as pr
+from ...screening.highlights import quote_places, search_terms
 from .. import refusals
 
 router = APIRouter(prefix="/api/v1/screening", tags=["screening"])
@@ -48,7 +50,9 @@ DEFAULT_SETTINGS: dict[str, Any] = {
 }
 ADVANCE_MODES = ("show_draft_then_next", "next_at_once")
 QUEUE_ORDERS = ("seeded", "agent_uncertainty")
-VIEWS = ("needs_you", "proposal_ready", "no_proposal", "title_only", "decided")
+#: M11b part A: ``recheck``, the decisions a criteria revision shows again.
+#: M11b part B: ``pilot``, the records of the open (else the last) pilot in drawn order.
+VIEWS = ("needs_you", "proposal_ready", "no_proposal", "title_only", "decided", "recheck", "pilot")
 
 
 def _error(status: int, code: str, message: str, **extra: Any) -> HTTPException:
@@ -133,11 +137,12 @@ def _corpus_accepted(ws: Path) -> bool:
 
 def _in_force(ws: Path, context: ev.ScreeningContext, settings: dict[str, Any]):
     """``proposal -> (outcome, reason_code)`` under the not-reported policy in force (H-screening-drafts)."""
-    protocol = json.loads((ws / "protocol.json").read_text(encoding="utf-8"))
-    criteria = pr.Criteria.from_protocol(protocol)
+    # M11b part A: the criteria in force, and a draft of an earlier criteria version keeps its stored outcome.
+    criteria = pr.Criteria.from_in_force(context.criteria)
     policy = settings["not_reported_policy"]
     return lambda proposal: pr.outcome_in_force(
-        proposal, criteria, not_reported=policy, protocol_fingerprint=context.protocol_fingerprint
+        proposal, criteria, not_reported=policy, protocol_fingerprint=context.protocol_fingerprint,
+        criteria_version=context.criteria_version,
     )
 
 
@@ -155,12 +160,23 @@ def _state(ws: Path) -> tuple[ev.ScreeningContext, dict[str, Any], list[dict], d
         e for e in ev.current_events(ev.read_events(ws), context)
         if e.get("screener_id") == settings["screener_id"]
     ]
+    # M11b part A: a decision a criteria revision shows again is not decided until it is decided again.
     winners = {
         study: winner
         for study in context.study_batch
         if (winner := ev.winning_event(events, study, settings["screener_id"])) is not None
+        and not context.awaiting_recheck(winner)
     }
     return context, settings, events, winners
+
+
+def _recheck(context: ev.ScreeningContext, events: list[dict[str, Any]], screener: str) -> dict[str, dict[str, Any]]:
+    """The screener's decisions a criteria revision shows again, by study (M11b part A)."""
+    return {
+        study: winner
+        for study in context.study_batch
+        if (winner := ev.winning_event(events, study, screener)) is not None and context.awaiting_recheck(winner)
+    }
 
 
 @router.get("/summary")
@@ -177,7 +193,8 @@ def summary_of(ws: Path) -> dict[str, Any]:
         lanes = {"agent": 0, "you": 0, "second_screener": "PARKED"}
         return {
             "total": 0, "decided": 0, "by_outcome": empty, "agent_proposed": 0, "needs_you": 0, "conflicts": 0,
-            "lanes": lanes, "protocol_changed": False,
+            "lanes": lanes, "protocol_changed": False, "criteria_version": _criteria(ws).version, "recheck": 0,
+            "pilot": None,
         }
     context, settings, events, winners = _state(ws)
     proposed = {p["study_id"] for p in pr.read_proposals(ws)}
@@ -186,6 +203,7 @@ def summary_of(ws: Path) -> dict[str, Any]:
         by_outcome[winner["outcome"]] += 1
     open_conflicts = ev.conflicts(events)
     total = len(context.study_batch)
+    recheck = len(_recheck(context, events, settings["screener_id"]))
     return {
         "total": total,
         "decided": len(winners),
@@ -197,7 +215,24 @@ def summary_of(ws: Path) -> dict[str, Any]:
         # Review F2 (decision 2026-11-12): the batches were prepared under
         # another protocol, so earlier decisions count nowhere; Home says so.
         "protocol_changed": context.protocol_changed,
+        # M11b part A: the criteria version in force, and how many decisions a revision shows again.
+        "criteria_version": context.criteria_version,
+        "recheck": recheck,
+        # M11b part B (DoD 11b): the open, else the last, pilot; null when none was drawn.
+        "pilot": _pilot_block(ws, recheck),
     }
+
+
+def _pilot_block(ws: Path, recheck: int) -> dict[str, Any] | None:
+    from ...screening.pilot import summary_block
+
+    return summary_block(ws, recheck)
+
+
+def _criteria(ws: Path):
+    from ...screening.criteria import criteria_in_force
+
+    return criteria_in_force(ws)
 
 
 @router.get("/queue")
@@ -210,8 +245,14 @@ def queue(
 ) -> dict[str, Any]:
     if view not in VIEWS:
         raise _error(422, "INVALID_OUTPUT", f"view must be one of {VIEWS}")
+    if view == "pilot" and getattr(request.state, "token_scope", "desktop") != "desktop":
+        # Review F10 (decision item 6): every pilot route is desktop-only.
+        raise _error(403, "TOKEN_SCOPE_REFUSED", "the pilot is screened on the desktop")
     ws = _ws(request)
-    context, settings, _events, winners = _state(ws)
+    context, settings, events, winners = _state(ws)
+    # M11b part A; part C (spec 13 question 6, settled 2026-11-21): a record shown again is also in
+    # "Needs you", first and tagged ``shown_again``.
+    recheck = _recheck(context, events, settings["screener_id"])
     # The order is the journaled setting; a request for another one is
     # refused, so the order shown is always the order recorded.
     if order is not None and order != settings["queue_order"]:
@@ -219,9 +260,15 @@ def queue(
     order = settings["queue_order"]
     papers = _papers(ws, context)
     latest = {p["study_id"]: p for p in sorted(pr.read_proposals(ws), key=lambda p: p.get("created_at") or "")}
+    # M11b part A (DoD 9): a draft made under an earlier criteria version does not order the queue.
+    current_drafts = {
+        s: p for s, p in latest.items() if pr.draft_version(p) == context.criteria_version
+    }
     order_ids = [s for index in sorted(context.batches) for s in context.batches[index].candidates]
 
     def keep(study: str) -> bool:
+        if study in context.pilot_open:
+            return False  # M11b part B: decided in the open pilot, not here (view=pilot lists them)
         decided = study in winners
         has_proposal = study in latest
         return {
@@ -230,23 +277,27 @@ def queue(
             "no_proposal": not decided and not has_proposal,
             "title_only": not decided and not _has_abstract(papers.get(study, {})),
             "decided": decided,
+            "recheck": study in recheck,
         }[view]
 
-    chosen = [s for s in order_ids if keep(s)]
-    if order == "agent_uncertainty":
+    pilot_view = _pilot_queue(ws) if view == "pilot" else None
+    chosen = pilot_view["studies"] if pilot_view is not None else ([] if view == "pilot" else [s for s in order_ids if keep(s)])
+    if order == "agent_uncertainty" and view != "pilot":
         # How unsure the agent was, never its call: Unclear drafts first, then
         # drafts with failed checks; the methods paragraph discloses this order.
         # H-screening-drafts: Unclear under the policy in force.
         outcome = _in_force(ws, context, settings)
 
         def unsure(study: str) -> tuple[int, int]:
-            proposal = latest.get(study)
+            proposal = current_drafts.get(study)
             if proposal is None:
                 return (2, 0)
             failed = sum(1 for c in proposal.get("validators", []) if not c.get("ok"))
             return (0 if outcome(proposal)[0] == "MAYBE" else 1, -failed)
 
         chosen.sort(key=unsure)
+    if view == "needs_you" and recheck:
+        chosen.sort(key=lambda study: study not in recheck)  # stable: shown again first, each order kept
     page = chosen[cursor : cursor + max(1, min(limit, 200))]
     items = [
         {
@@ -256,13 +307,37 @@ def queue(
             # The batch's number, for "Record 12 of 30 · batch 1" (M6-beta, spec 03).
             "batch_index": context.study_batch[s],
             "has_proposal": s in latest,
-            "decided": s in winners,
+            # In the pilot view, decided in the pilot (never counted); elsewhere, a main decision.
+            "decided": (s in pilot_view["decided"]) if pilot_view is not None else s in winners,
             "flags": [] if _has_abstract(papers.get(s, {})) else ["title_only"],
+            "shown_again": s in recheck,
+            # M11b part C, view=pilot only: your pilot decision on the record (a change of mind
+            # supersedes it); the main views never carry it (answer 11).
+            **({"pilot_decision": pilot_view["heads"].get(s)} if pilot_view is not None else {}),
         }
         for s in page
     ]
     next_cursor = cursor + len(page) if cursor + len(page) < len(chosen) else None
-    return {"items": items, "next_cursor": next_cursor, "protocol_changed": context.protocol_changed}
+    out = {"items": items, "next_cursor": next_cursor, "protocol_changed": context.protocol_changed}
+    if view == "pilot":
+        # DoD 12 (answer 6): the checklist keeps Triage's default in a pilot, collapsed and optional.
+        out["pilot"] = {k: pilot_view[k] for k in ("pilot_id", "open")} if pilot_view else None
+        out["checklist_default"] = "collapsed"
+    return out
+
+
+def _pilot_queue(ws: Path) -> dict[str, Any] | None:
+    from ...screening import pilot as pl
+
+    current = pl.open_pilot(ws) or pl.last_pilot(ws)
+    if current is None:
+        return None
+    heads = {
+        study: {k: d.get(k) for k in ("pilot_decision_id", "outcome", "reason_code", "criteria", "criteria_version")}
+        for study, d in pl.heads(pl.read_decisions(ws, current.pilot_id)).items()
+    }
+    return {"pilot_id": current.pilot_id, "open": current.open, "studies": list(current.studies), "decided": set(heads),
+            "heads": heads}
 
 
 @router.get("/records/{study_id}")
@@ -273,8 +348,8 @@ def record(study_id: str, request: Request) -> dict[str, Any]:
         raise _error(404, refusals.UNKNOWN_STUDY, f"{study_id} is not in the bound corpus")
     paper = _papers(ws, context).get(study_id, {})
     protocol = json.loads((ws / "protocol.json").read_text(encoding="utf-8"))
-    criteria = protocol.get("screening_criteria") or {}
     batch = context.batches[context.study_batch[study_id]]
+    earlier = _recheck(context, events, settings["screener_id"]).get(study_id)
     return {
         "study_id": study_id,
         "title": paper.get("title", ""),
@@ -284,16 +359,28 @@ def record(study_id: str, request: Request) -> dict[str, Any]:
         "abstract": paper.get("abstract") if _has_abstract(paper) else None,
         "batch_index": context.study_batch[study_id],
         "highlights": [],  # criterion highlights arrive with the M1b triage UI
+        # M8b: the protocol's concepts and where their words occur (UTF-16 offsets per field).
+        "search_terms": search_terms(
+            protocol, paper.get("title", ""), paper.get("abstract") if _has_abstract(paper) else None
+        ),
+        # M11b part A: the criteria in force (signed + amendments), with the version each wording dates from.
         "criteria": [
-            {"id": c["id"], "text": c.get("description") or c.get("text") or c.get("criterion") or "", "kind": kind}
-            for kind in ("inclusion", "exclusion")
-            for c in criteria.get(kind) or []
-            if isinstance(c, dict) and c.get("id")
+            {"id": c.id, "text": c.text, "kind": c.side, "since_version": c.since_version}
+            for c in context.criteria.all
         ],
+        "criteria_version": context.criteria_version,
+        # The decision a criteria revision shows again, made under an earlier version (null otherwise).
+        "shown_again": None if earlier is None else {
+            "decision": earlier,
+            "criteria_version": earlier.get("criteria_version") or 1,
+        },
         "binding": {
             "protocol_fingerprint": context.protocol_fingerprint,
             "batch_id": batch.batch_id,
             "batch_sha256": batch.batch_sha256,
+            # M11b part A, decision item 5 (decided 2026-11-21): the criteria version the record
+            # is shown under; intake refuses a decision bound under another (STALE_BINDING).
+            "criteria_version": context.criteria_version,
         },
         "my_decision": winners.get(study_id),
         "history": [e for e in events if e["study_id"] == study_id],
@@ -349,6 +436,12 @@ def record_proposal(study_id: str, request: Request) -> dict[str, Any]:
             },
             "validators": proposal.get("validators", []),
             "cannot_decide": proposal.get("cannot_decide", False),
+            # M11b part A (DoD 9): the criteria version the draft answered, and whether that
+            # wording is no longer in force (the screen labels it "made under the earlier wording").
+            "criteria_version": pr.draft_version(proposal),
+            "earlier_wording": pr.draft_version(proposal) != context.criteria_version,
+            # M8b: where each quote shows in the record, or that it is not at its offsets.
+            "quotes": quote_places(output.get("criteria", []), _papers(ws, context).get(study_id, {})),
         }
     }
 
@@ -426,9 +519,21 @@ def resolve_conflict(study_id: str, body: ResolveBody, request: Request) -> dict
         "resolves": [e["event_id"] for e in match["events"] if e["event_id"] != kept["event_id"]],
         "note": kept.get("note") or f"Conflict resolved: kept {kept['event_id']}",
     }
+    # M11b part A, review round 3 (decision item 11): the resolution is bound to the record as it is
+    # now (a binding from before a criteria revision would be refused), and it keeps the criteria
+    # version of the decision it keeps, so a revision that could change that decision shows the
+    # record again rather than counting it under the new wording.
+    batch = context.batches[context.study_batch[study_id]]
+    resolution["binding"] = {
+        "protocol_fingerprint": context.protocol_fingerprint,
+        "batch_id": batch.batch_id,
+        "batch_sha256": batch.batch_sha256,
+        "criteria_version": context.criteria_version,
+    }
     results = ev.intake(
         ws, [resolution], token_scope=scope, received_at=_now(), device=scope, context=context,
         after_commit=lambda stored: _project(ws, context, stored),
+        resolution_version=cr.event_version(kept),
     )
     return {"results": [r.as_dict() for r in results]}
 
@@ -527,6 +632,79 @@ def amend_method(body: AmendmentBody, request: Request) -> dict[str, Any]:
     except m.AmendmentInvalid as exc:
         raise _error(422, exc.code, str(exc)) from exc
     return {"amendment": row, "settings": load_settings(ws)}
+
+
+# --- M11b part A: the criteria in force and their amendments ----------------------
+
+
+@router.get("/criteria")
+def get_criteria(request: Request) -> dict[str, Any]:
+    """The criteria in force (signed + amendments), the retired ids, the version and the amendments (DoD 7b)."""
+    from ...screening.criteria import any_batch_approved, criteria_in_force
+
+    ws = _ws(request)
+    if not (ws / "protocol.json").is_file():
+        raise _error(409, refusals.SNAPSHOT_NOT_ACCEPTED, "no protocol.json in this workspace")
+    from ...screening.criteria import handoff_batches
+
+    current = criteria_in_force(ws)
+    context = ev.load_context(ws)
+    approved = any_batch_approved(ws)
+    handoff = handoff_batches(ws, context) if context.batches else []
+    return {
+        **current.as_dict(),
+        # What the revise dialog needs to know before it offers anything (part A review round 2:
+        # a hand-off batch refuses every revision, so the dialog is not offered then).
+        "can_amend": bool(context.batches) and not approved and not handoff,
+        "batches_prepared": bool(context.batches),
+        "batch_approved": approved,
+        "handoff_batches": handoff,
+    }
+
+
+class CriteriaAmendmentBody(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    op: str
+    side: str
+    ids: list[str] = Field(default_factory=list, max_length=20)
+    #: One text (reword, merge, add) or a list of 2 to 10 (split).
+    text: str | list[str] | None = None  # the 2-to-10 rule for a split is plan_amendment's
+    reason_category: str | None = None
+    reason: str | None = None
+    #: ``false`` is the dry call; it must be given either way.
+    confirm: bool | None = None
+
+
+@router.post("/criteria/amendments")
+def amend_criteria(body: CriteriaAmendmentBody, request: Request) -> dict[str, Any]:
+    """Revise a criterion as an amendment beside the signed protocol (desktop only; DoD 1, 6, 7).
+
+    ``protocol.json``, the corpus snapshot and the batch files keep their bytes.
+    ``confirm: false`` answers the new ids and the records it would show again
+    and writes nothing.
+    """
+    from ...screening import criteria as cr
+
+    ws = _ws(request)
+    if body.confirm is None:
+        raise _error(422, cr.CRITERIA_AMENDMENT_INVALID, "confirm is required: false for a dry call, true to record")
+    if not (ws / "protocol.json").is_file():
+        raise _error(409, refusals.SNAPSHOT_NOT_ACCEPTED, "no protocol.json in this workspace")
+    current = load_settings(ws)
+    try:
+        answer = cr.amend_criteria(
+            ws, op=body.op, side=body.side, ids=body.ids, text=body.text,
+            reason_category=body.reason_category,
+            reason_category_given="reason_category" in body.model_fields_set,
+            reason=body.reason, confirm=body.confirm,
+            amended_by=str(current["screener_id"]), amended_at=_now(),
+            pilot_id=cr.OPEN_PILOT,  # read under the events lock (review follow-up)
+        )
+    except cr.AmendmentRefused as exc:
+        raise _error(exc.status, exc.code, exc.message) from exc
+    except ev.LockBusy as exc:
+        raise _error(503, "ATOMIC_COMMIT_FAILED", "the event log is busy; retry") from exc
+    return answer
 
 
 #: What the approver name is: a name typed on this computer, not a verified
@@ -972,6 +1150,93 @@ def pairing_begin_all(request: Request, body: PairingBeginAllBody | None = None)
     }
 
 
+# --- M11b part B: the criteria pilot (answers 5, 6, 9, 11) ----------------------------
+
+
+class PilotDrawBody(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    n: int = 50
+    #: ``false`` is the dry call (n, the records left to draw from, the expected time); it must be given.
+    confirm: bool | None = None
+
+
+def _pilot_error(exc: Any) -> HTTPException:
+    # The contract's error shape (§4, Errors): what the refusal is about goes under `details`.
+    return _error(exc.status, exc.code, exc.message, **({"details": exc.details} if exc.details else {}))
+
+
+@router.post("/pilot")
+def draw_pilot(body: PilotDrawBody, request: Request) -> dict[str, Any]:
+    """Draw a pilot of n records with no main decision, at random with a recorded seed (DoD 11; desktop only)."""
+    from ...screening import pilot as pl
+
+    ws = _ws(request)
+    if body.confirm is None:
+        raise _error(422, pl.PILOT_SIZE_INVALID, "confirm is required: false for a dry call, true to draw")
+    if not (ws / "protocol.json").is_file():
+        raise _error(409, refusals.SNAPSHOT_NOT_ACCEPTED, "no protocol.json in this workspace")
+    try:
+        return pl.draw(ws, n=body.n, confirm=body.confirm, drawn_by=str(load_settings(ws)["screener_id"]))
+    except pl.PilotRefused as exc:
+        raise _pilot_error(exc) from exc
+    except ev.LockBusy as exc:
+        raise _error(503, ev.ATOMIC_COMMIT_FAILED, "the event log is busy; retry") from exc
+
+
+class PilotDecisionsBody(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    decisions: list[dict[str, Any]] = Field(default_factory=list)
+
+
+@router.post("/pilot/{pilot_id}/decisions")
+def post_pilot_decisions(pilot_id: str, body: PilotDecisionsBody, request: Request) -> dict[str, Any]:
+    """Pilot decisions (DoD 11c): kept apart from the decision events and never counted."""
+    from ...screening import pilot as pl
+
+    if len(body.decisions) > MAX_EVENTS_PER_REQUEST:
+        raise _error(413, "INVALID_OUTPUT", f"at most {MAX_EVENTS_PER_REQUEST} decisions per request")
+    ws = _ws(request)
+    scope = getattr(request.state, "token_scope", "desktop")
+    try:
+        results = pl.intake(ws, pilot_id, body.decisions, token_scope=scope, received_at=_now())
+    except pl.PilotRefused as exc:
+        raise _pilot_error(exc) from exc
+    except ev.LockBusy as exc:
+        raise _error(503, ev.ATOMIC_COMMIT_FAILED, "the event log is busy; retry") from exc
+    return {"results": results, "pilot": pl.state(ws, pl.read_draw(ws, pilot_id)).as_dict()}
+
+
+@router.post("/pilot/{pilot_id}/close")
+def close_pilot(pilot_id: str, request: Request) -> dict[str, Any]:
+    """"End the pilot" (DoD 11d): its undecided records go back to the main screening."""
+    from ...screening import pilot as pl
+
+    ws = _ws(request)
+    try:
+        return pl.close(ws, pilot_id, closed_by=str(load_settings(ws)["screener_id"]))
+    except pl.PilotRefused as exc:
+        raise _pilot_error(exc) from exc
+    except ev.LockBusy as exc:
+        raise _error(503, ev.ATOMIC_COMMIT_FAILED, "the event log is busy; retry") from exc
+
+
+@router.get("/pilot/{pilot_id}/result")
+def pilot_result(pilot_id: str, request: Request) -> dict[str, Any]:
+    """The pilot's counts, per-criterion rows and observations (DoD 13); the agent only as counts (answer 11)."""
+    from ...screening import pilot as pl
+
+    ws = _ws(request)
+    _state(ws)  # the same refusals as every screening read (no batches, no protocol)
+    try:
+        answer = pl.result(ws, pilot_id)
+    except pl.PilotRefused as exc:
+        raise _pilot_error(exc) from exc
+    papers = _papers(ws, ev.load_context(ws))
+    for record in answer["records"]:
+        record["title"] = papers.get(record["study_id"], {}).get("title", "")
+    return answer
+
+
 # --- M1b-2: agent runs, calibration, agreement (contract §4, spec 06/07) -------
 
 
@@ -1031,9 +1296,10 @@ def start_proposal_run(body: RunBody, request: Request) -> dict[str, Any]:
     if body.dry_run:
         ids = ids[: pg.DIRECT_LIMIT]
     if body.estimate_only:
-        protocol = json.loads((ws / "protocol.json").read_text(encoding="utf-8"))
-        spec = pg.run_spec(protocol, model=body.model, effort=body.effort, max_tokens=4096)
         context = ev.load_context(ws)
+        # M11b part A: the prompt a run would send names the criteria in force.
+        protocol = context.criteria.protocol_in_force(json.loads((ws / "protocol.json").read_text(encoding="utf-8")))
+        spec = pg.run_spec(protocol, model=body.model, effort=body.effort, max_tokens=4096)
         papers = runs._papers(ws, context)
         records = [pg.EvalRecord(s, "", *runs._text(papers.get(s, {}))) for s in ids]
         batch = body.provider == "anthropic" and len(ids) > pg.DIRECT_LIMIT
@@ -1082,6 +1348,19 @@ def _run_view(run: dict[str, Any]) -> dict[str, Any]:
     return view
 
 
+def _earlier_wording_drafts(ws: Path) -> dict[str, Any]:
+    """How many records' latest draft predates the criteria version in force (and which)."""
+    if not (ws / "protocol.json").is_file():
+        return {"criteria_version": 1, "count": 0, "study_ids": []}
+    context = ev.load_context(ws)
+    latest: dict[str, dict[str, Any]] = {}
+    for p in sorted(pr.read_proposals(ws), key=lambda p: (p.get("created_at") or "", p.get("proposal_id") or "")):
+        if p.get("protocol_fingerprint") == context.protocol_fingerprint and p.get("study_id") in context.study_batch:
+            latest[p["study_id"]] = p
+    stale = sorted(s for s, p in latest.items() if pr.draft_version(p) != context.criteria_version)
+    return {"criteria_version": context.criteria_version, "count": len(stale), "study_ids": stale}
+
+
 @router.get("/proposals/setup")
 def proposal_setup(request: Request) -> dict[str, Any]:
     """What the run screen needs before a run: key presence (never a key), the task, consent, runs."""
@@ -1104,6 +1383,8 @@ def proposal_setup(request: Request) -> dict[str, Any]:
     last_model = {"provider": latest.get("provider"), "model": latest.get("model")} if latest and latest.get("model") else None
     return {
         "last_model": last_model,
+        # M11b part A (DoD 9): the latest drafts made under an earlier criteria version.
+        "earlier_wording_drafts": _earlier_wording_drafts(ws),
         "task": {
             "task_version": task.task_version,
             "prompt_sha256": task.prompt_sha256,
@@ -1143,7 +1424,16 @@ def cancel_proposal_run(run_id: str, request: Request) -> dict[str, Any]:
 
 class CalibrationBody(BaseModel):
     model_config = ConfigDict(extra="forbid")
-    study_ids: list[str]
+    #: Required without `pilot_id`, as before M11b (review F9: the body error is unchanged).
+    study_ids: list[str] | None = None
+    #: M11b part B (DoD 14, additive): check the agent on a pilot's decided records.
+    pilot_id: str | None = None
+
+    @model_validator(mode="after")
+    def _ids_or_pilot(self) -> "CalibrationBody":
+        if self.study_ids is None and self.pilot_id is None:
+            raise ValueError("study_ids is required unless pilot_id is given")
+        return self
     provider: str = "anthropic"
     model: str = "claude-opus-5-5"
     effort: str = "low"
@@ -1158,12 +1448,25 @@ def start_calibration(body: CalibrationBody, request: Request) -> dict[str, Any]
 
     ws = _ws(request)
     _context, _settings, _events, winners = _state(ws)
-    if not body.study_ids or any(s not in winners for s in body.study_ids):
-        raise _error(422, "INVALID_OUTPUT", "calibration uses records you have already decided")
+    if body.pilot_id is not None:
+        from ...screening import pilot as pl
+
+        try:
+            decided = pl.decided_labels(ws, body.pilot_id)
+        except pl.PilotRefused as exc:
+            raise _error(exc.status, exc.code, exc.message) from exc
+        study_ids = body.study_ids or [s for s in pl.state(ws, pl.read_draw(ws, body.pilot_id)).studies if s in decided]
+        if not study_ids or any(s not in decided for s in study_ids):
+            raise _error(422, "INVALID_OUTPUT", "a pilot check uses the pilot's decided records")
+    else:
+        study_ids = body.study_ids or []
+        if not study_ids or any(s not in winners for s in study_ids):
+            raise _error(422, "INVALID_OUTPUT", "calibration uses records you have already decided")
     try:
         run = runs.start_run(
             ws, provider=body.provider, model=body.model, effort=body.effort,
-            study_ids=list(dict.fromkeys(body.study_ids)), cost_ceiling_usd=body.cost_ceiling_usd, kind="calibration",
+            study_ids=list(dict.fromkeys(study_ids)), cost_ceiling_usd=body.cost_ceiling_usd, kind="calibration",
+            pilot_id=body.pilot_id,
             driver_factory=getattr(request.app.state, "driver_factory", None),
             executor=getattr(request.app.state, "run_executor", None),
             base_url=body.base_url,
@@ -1194,12 +1497,18 @@ def agreement(request: Request) -> dict[str, Any]:
         if r.get("screener_id") == screener and ev.is_current(r, context):
             first = reveals.get(r["study_id"])
             reveals[r["study_id"]] = min(first, r["revealed_at"]) if first else r["revealed_at"]
-    current = [p for p in pr.read_proposals(ws) if p.get("protocol_fingerprint") == context.protocol_fingerprint]
+    # M11b part A (DoD 9): a draft made under an earlier criteria version is not counted.
+    current = [
+        p for p in pr.read_proposals(ws)
+        if p.get("protocol_fingerprint") == context.protocol_fingerprint
+        and pr.draft_version(p) == context.criteria_version
+    ]
     latest = {p["study_id"]: p for p in sorted(current, key=lambda p: (p.get("created_at") or "", p["proposal_id"]))}
     in_force = _in_force(ws, context, settings)  # H-screening-drafts
     table = dict.fromkeys(_PAIRS.values(), 0)
     unclear, compared, after_seeing = 0, 0, 0
     splits: Counter[str] = Counter()
+    both: Counter[str] = Counter()
     for study, proposal in latest.items():
         if study not in winners:
             continue
@@ -1212,6 +1521,10 @@ def agreement(request: Request) -> dict[str, Any]:
             after_seeing += 1  # decided with the draft already in view (blinding off)
             continue
         decision = max(before, key=lambda e: str(e.get("received_at") or ""))
+        # Review round 1, F4 (M11b part A): a decision made under an earlier criteria
+        # version answered other criteria than the draft (a current one); not compared.
+        if cr.event_version(decision) != context.criteria_version:
+            continue
         compared += 1
         you, agent = decision["outcome"], in_force(proposal)[0]
         if "MAYBE" in (you, agent):
@@ -1221,6 +1534,8 @@ def agreement(request: Request) -> dict[str, Any]:
         output = proposal.get("output") if isinstance(proposal.get("output"), dict) else {}
         agent_answers = {a.get("id"): a.get("answer") for a in output.get("criteria", []) if isinstance(a, dict)}
         for answer in decision.get("criteria") or []:
+            if agent_answers.get(answer["id"]) is not None:
+                both[answer["id"]] += 1  # M11b part B (DoD 15): the denominator
             if agent_answers.get(answer["id"]) not in (None, answer["answer"]):
                 splits[answer["id"]] += 1
     pairs = sum(table.values())
@@ -1229,7 +1544,14 @@ def agreement(request: Request) -> dict[str, Any]:
         "decided_after_seeing_the_draft": after_seeing,
         "agreement_pct": round(100 * (table["both_include"] + table["both_exclude"]) / pairs, 1) if pairs else None,
         "table_2x2": table,
-        "splits_by_criterion": [{"criterion_id": k, "n": v} for k, v in sorted(splits.items())],
+        # M11b part B (DoD 15): each row gains `answered_by_both` (decisions with a checklist answer
+        # and a draft answer for the criterion); a criterion answered by both and never split has n 0.
+        "splits_by_criterion": [
+            {"criterion_id": k, "n": v, "answered_by_both": both[k]} for k, v in sorted(splits.items())
+        ],
+        # Review F3: the denominator of every criterion answered by both, split or not, in its own
+        # field, so a client that lists `splits_by_criterion` sees only real splits, as before.
+        "answered_by_both": [{"criterion_id": k, "n": v} for k, v in sorted(both.items())],
         "unclear_either_side": unclear,
         "kappa": None,
         "kappa_note": "needs a second human screener",

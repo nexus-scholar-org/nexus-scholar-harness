@@ -35,7 +35,6 @@ export function InceptionShape({ locale }: Readonly<{ locale: Locale }>) {
   // The answers `shape` was computed from; while it lags the form, the draft is stale.
   const [shapeFor, setShapeFor] = useState("");
   const [stepError, setStepError] = useState<Refusal | null>(null);
-  const [outOfScope, setOutOfScope] = useState<string | null>(null);
 
   // The lenses and the leaning: asked once the draft is read.
   useEffect(() => {
@@ -88,7 +87,8 @@ export function InceptionShape({ locale }: Readonly<{ locale: Locale }>) {
   }, [origin, record, shapeKey]);
 
   const rqs = draft.rqs && draft.rqs.length > 0 ? draft.rqs : [""];
-  const outText = outOfScope ?? (draft.out_of_scope ?? []).join("\n");
+  // M11b part D: the out-of-scope items are edited on step 5; this step keeps them as they are.
+  const outText = (draft.out_of_scope ?? []).join("\n");
 
   const setRq = (index: number, text: string) => update({ rqs: rqs.map((rq, i) => (i === index ? text : rq)) });
 
@@ -252,22 +252,9 @@ export function InceptionShape({ locale }: Readonly<{ locale: Locale }>) {
           </div>
         </div>
 
-        <div>
-          <div className="flex items-center gap-1">
-            <label htmlFor="shape-out" className="block text-sm font-medium text-ink">
-              {t("shape.outOfScope")}
-            </label>
-            <Hint locale={locale} label={t("shape.outOfScope")} text={t("shape.outOfScopeHelp")} textKey="shape.outOfScopeHelp" id="shape-out-help" />
-          </div>
-          <textarea
-            id="shape-out"
-            rows={3}
-            value={outText}
-            onChange={(event) => setOutOfScope(event.target.value)}
-            aria-describedby="shape-out-help"
-            className="mt-1 block w-full rounded-md border border-rule bg-paper p-2 text-ink"
-          />
-        </div>
+        <p className="text-sm text-ink-muted" data-oos-moved>
+          {t("shape.outOfScopeMoved")}
+        </p>
 
         <section aria-labelledby="shape-rq-draft" className="space-y-3">
           {shape ? (

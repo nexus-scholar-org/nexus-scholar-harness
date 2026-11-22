@@ -9,13 +9,54 @@ layer: domain
 ---
 # `scholar-pdf-kit` Skill Instructions
 
-You are an expert academic research agent equipped with `scholar-pdf-kit`. This toolkit automatically resolves DOIs to legal Open Access PDFs via a multi-stage cascade (OpenAlex `best_oa_location` → Unpaywall → publisher direct-PDF patterns → optional institutional-proxy rewrite), validates binary `%PDF-` magic-byte integrity, and extracts structured section Markdown with standard YAML frontmatter.
+You are an expert academic research agent equipped with `scholar-pdf-kit`. This toolkit resolves DOIs to legal Open Access PDFs from the providers' own open-access locations (every open location OpenAlex and Unpaywall list), validates binary `%PDF-` magic-byte integrity, and extracts structured section Markdown with standard YAML frontmatter.
+
+> **Status (decision 2026-11-21, M12a items 21 to 27; K0).** `download` and
+> `ingest` are **production**. `extract`, `extract-run` and `acquire` are
+> **parked**: their `--help` says so first (reading PDFs waits for M12b-read;
+> E1 `acquire` stays parked), and the MCP tools keep their typed refusal or
+> parked description. Since K0 the production commands:
+> - **need a contact e-mail**: `SCHOLAR_MAILTO` (the app's setting) or the kit's
+>   `MAILTO`; without either they refuse with `MAILTO_NOT_SET`, exit 1, and send
+>   nothing. There is no default address;
+> - **name the app**, `nexus-scholar/<version> (mailto:<address>)`, never a browser;
+> - **request no guessed publisher URL**: the direct-PDF patterns are off and no
+>   longer read; `ENABLE_PUBLISHER_DIRECT_PATTERNS=true` is refused
+>   (`PUBLISHER_PATTERNS_REFUSED`, item 24);
+> - **refuse an institutional proxy**: `--proxy` or `PROXY_URL` is refused
+>   (`PROXY_REFUSED`, item 25); the proxy code stays, parked.
+>
+> Since H-pdf-resolver-locations (2026-11-21) `download` **takes the best open
+> copy listed with a direct PDF address**: both services are asked for every
+> DOI, and every open location in OpenAlex `locations` and Unpaywall
+> `oa_locations` is read, not only the "best" one;
+> published version first, then accepted manuscript, then submitted version or
+> preprint (M12a answer F3); at most three addresses are tried; a landing page
+> is never requested. The summary names the copy taken (version, licence,
+> source, provider). A DOI without a file says why, and so does the exit code:
+> 0 every DOI has its file; 3 a lookup failed (run again later); 1 a listed
+> address gave no PDF; 4 open access but no direct PDF address listed; 5 no
+> open copy listed.
+>
+> **Since Part K (M12a record (d3)):** OpenAlex is asked only with
+> `SCHOLAR_OPENALEX_KEY` (without it only Unpaywall, stated; a 409 is "the daily
+> budget is spent"); 400/401/403/404/410/451 are not retried (PDF-06); a
+> service's closed evidence overrides its `pdf_url`, and a stored file's access
+> status comes from the location that gave its bytes (PDF-12); every DOI asked has
+> a row in `download-manifest.jsonl` (or `--manifest PATH`) saying which
+> `DOC-<sha>.pdf` it is, with its SHA-256, addresses, redirects, version, licence,
+> checks and every PDF request (PDF-07); the command prints the PDF requests per
+> DOI; the DOI and title are looked for on the first two pages with the `pdf`
+> extra (PDF-22); `ingest` and a missing `--input` exit non-zero (PDF-15); the
+> size floor is named as such, exports are de-duplicated and atomic, the patterns
+> and `--smart-names` are removed (PDF-17, -18, -05); a copy where hard links fail
+> (PDF-03). Read each file's `identity` in the manifest before relying on it.
 
 ## Core Capabilities
-1. **Multi-Stage Open Access Cascade**: Resolves legal OA full-text across OpenAlex `best_oa_location` → Unpaywall → publisher direct-PDF patterns (IEEE/Elsevier/Springer/arXiv/MDPI) → optional institutional-proxy rewrite (`auto | subdomain | ezproxy | prefix`).
-2. **Concurrent & Resilient Downloading**: Asynchronous staged retrieval (per-candidate temp file, validated before atomic promotion) with exponential backoff (tenacity: min 2 s, max 10 s, 3 attempts). Paywall/error HTML is rejected post-download by binary-signature validation, never by trusting HTTP success.
+1. **Open Access Lookup**: Resolves legal OA full-text from every open location OpenAlex lists (`best_oa_location`, `primary_location`, `locations`) and Unpaywall lists (`best_oa_location`, `oa_locations`); both services are asked once for every DOI and the best copy across both lists is taken. Only an address a provider gives is requested, best version first (published, accepted manuscript, submitted or preprint), at most three per DOI; a landing page is never requested. OpenAlex is asked only with `SCHOLAR_OPENALEX_KEY`. The publisher direct-PDF patterns are removed (M12a item 24); the institutional proxy is refused by `download` and `ingest` (item 25).
+2. **Concurrent & Resilient Downloading**: Asynchronous staged retrieval (per-candidate temp file, validated before atomic promotion). Only a connection error, a timeout, a 5xx or a 429 with `Retry-After` ≤ 60 s is retried (tenacity: 3 attempts); a definitive 4xx is asked once. Every PDF request is kept on the result and in the manifest. Paywall/error HTML is rejected post-download by binary-signature validation, never by trusting HTTP success.
 3. **Strict Binary Signature Validation**: Requires `%PDF-<major>.<minor>` magic bytes within the first 1024 bytes, a `%%EOF` trailer within the final 8 KB, and a 10 KB size floor; unvalidated bytes are never promoted and staging files are unlinked. Optional `--strict-validate` runs pypdf structural parsing (encryption-tolerant) as a second gate.
-4. **Content-Addressed Output Naming**: Discovery `download` and manual `ingest` promote validated bytes to identity-addressed `DOC-<32 hex>.pdf` paths derived from content hash, never from a title, filename, or HTTP success. The `--smart-names` flag is still accepted on the CLI but does not control the final filename in the pinned implementation (see deferred defect D1). Structured metadata logs are exported via `--export json|bibtex`.
+4. **Content-Addressed Output and the Manifest**: Discovery `download` and manual `ingest` promote validated bytes to identity-addressed `DOC-<32 hex>.pdf` paths derived from content hash, never from a title, filename, or HTTP success; each DOI asked gets a row in `download-manifest.jsonl` (DOI, study id, file, SHA-256, addresses, checks, identity). Metadata is exported via `--export json|bibtex` (one entry per DOI, atomic).
 5. **Section-Aware Markdown Extraction**: Converts PDFs to Markdown via `PyMuPDFEngine` or `DoclingEngine` preserving headers, tables, and injecting YAML frontmatter (`workspace_id`, `doi`, `title`, `authors`, `year`, `extraction_engine`, `extracted_at`; empty keys are dropped).
 6. **Acquired-Document Boundary (WP01-E1)**: parent-bound, deterministic acquisition of exact PDF bytes for an *accepted* study (discovery download or `USER_PATH` ingest), publishing a `pdf-acquisition-manifest-v1` manifest. **API/CLI only — not available on MCP.**
 7. **Extracted-Text Boundary (WP01-E2)**: parent-bound, deterministic extraction of committed PDF bytes, publishing a `pdf-extraction-manifest-v1` sidecar plus a non-authoritative `document_manifest` Contract v1 candidate. **API/CLI only — not available on MCP.**
@@ -194,7 +235,7 @@ authoritative E1/E2 boundaries → the sections above (not the refs).
 
 # 2. Bulk Download from Screening Output
 #    NOTE: validated bytes land content-addressed (DOC-<32hex>.pdf);
-#    --smart-names is accepted but does not rename the final file.
+#    {WORKSPACE}/pdfs/download-manifest.jsonl maps each DOI and record id to its file.
 {CLI:pdf} download \
   --input {WORKSPACE}/literature/included.json \
   --output {WORKSPACE}/pdfs/ \
@@ -211,15 +252,11 @@ authoritative E1/E2 boundaries → the sections above (not the refs).
 
 # 4. Ingest an Existing PDF Manually
 {CLI:pdf} ingest my_paper.pdf --doi 10.1038/35057062
-# NOTE: like download, ingest promotes validated bytes to DOC-<32hex>.pdf.
+# NOTE: like download, ingest promotes validated bytes to DOC-<32hex>.pdf and
+#       writes its manifest row; it exits 1 when nothing is stored.
 
-# 5. Download Through an Institutional Proxy (Cloudflare/WAF bypass)
-#    attempt 3 automatically re-runs OA + direct-PDF candidates through the proxy
-{CLI:pdf} download \
-  --input {WORKSPACE}/literature/included.json \
-  --output {WORKSPACE}/pdfs/ \
-  --proxy https://www.sndl1.arn.dz \
-  --proxy-style subdomain      # auto | subdomain | ezproxy | prefix
+# 5. No institutional proxy: `--proxy` (or PROXY_URL) is refused with
+#    PROXY_REFUSED (decision 2026-11-21, M12a item 25). The proxy code is parked.
 
 # 6. WP01-E1 Acquired-Document Boundary (API/CLI only; NOT on MCP)
 #    Parent-bound, fail-closed acquisition publishing a deterministic
@@ -259,12 +296,11 @@ from scholar_pdf.extract import PyMuPDFEngine
 async def main():
     dois = ["10.1371/journal.pbio.3000246", "10.7717/peerj.4375"]
 
-    # 1. Initialize Downloader (add proxy_url/proxy_style to append
-    #    proxied candidates; optional pypdf gate via structural_validation=True)
+    # 1. Initialize Downloader (needs SCHOLAR_MAILTO or MAILTO: process_doi
+    #    raises MailtoNotSetError before any request without one; PROXY_URL is
+    #    not read, M12a item 25; optional pypdf gate via structural_validation=True)
     downloader = AsyncPDFDownloader(
         output_dir=Path("{WORKSPACE}/pdfs"),
-        proxy_url="https://www.sndl1.arn.dz",
-        proxy_style="subdomain",      # auto | subdomain | ezproxy | prefix
         structural_validation=True,
     )
 
@@ -290,9 +326,14 @@ if __name__ == "__main__":
 
 ## Verified surface, MCP mapping & knowledge
 
-- **Cascade**: OpenAlex `best_oa_location` → Unpaywall → publisher direct-PDF
-  (IEEE/Elsevier/Springer/arXiv/MDPI patterns) → optional institutional proxy rewrite.
-- **Validation**: ≥ 10 KB size floor + versioned `%PDF-<major>.<minor>` regex
+- **Lookup**: every open location OpenAlex and Unpaywall list, both asked once
+  for every DOI (`scholar_pdf.open_copies`); only a provider's own direct PDF address is
+  requested, best version first, at most three per DOI (no guessed publisher URL,
+  item 24; no proxy, item 25; OpenAlex only with its key). `DownloadResult` carries
+  `outcome`, `open_copy` (version, licence, host, source, provider), `lookups`,
+  `attempts` (every PDF request), `source_url`, `route`, `access_status`,
+  `identity`, `size` and `sha256`; with `manifest_path` each DOI gets its row.
+- **Validation**: each check named (`pdf_checks`); ≥ 10 KB size floor (reported as a size floor) + versioned `%PDF-<major>.<minor>` regex
   within first 1024 bytes + `%%EOF` within final 8 KB; optional pypdf structural
   gate (`--strict-validate`, encryption-tolerant). Candidates download to staging
   and only validated bytes are atomically promoted; invalid staging is unlinked.
@@ -318,9 +359,11 @@ if __name__ == "__main__":
   metadata); anything else uses PyMuPDF. Re-verify frontmatter before citing it,
   and never write MCP output into the authoritative `extracted/<document_id>.md`
   identity paths.
-- **Env**: `MAILTO`, `DOWNLOAD_DIR`, `MAX_CONCURRENT_DOWNLOADS`, `DOWNLOAD_TIMEOUT`,
-  `PROXY_URL`/`PROXY_STYLE`, `PDF_STRUCTURAL_VALIDATION`,
-  `ENABLE_PUBLISHER_DIRECT_PATTERNS` (pydantic-settings names; the `Settings` fields
+- **Env**: `SCHOLAR_MAILTO` (read first) or `MAILTO` (required, no default),
+  `SCHOLAR_OPENALEX_KEY` (OpenAlex is asked only with it; never printed),
+  `DOWNLOAD_DIR`, `MAX_CONCURRENT_DOWNLOADS`, `DOWNLOAD_TIMEOUT`,
+  `PROXY_URL`/`PROXY_STYLE` (refused by `download`/`ingest`), `PDF_STRUCTURAL_VALIDATION`,
+  `ENABLE_PUBLISHER_DIRECT_PATTERNS` (the patterns are removed; `true` is still refused) (pydantic-settings names; the `Settings` fields
   are lowercase equivalents in `{KIT_ROOT:pdf}/src/scholar_pdf/config.py`).
 - **PyMuPDF is imported as `fitz`** (function-local, like all heavy engine imports).
   `pyyaml` and `pypdf` are **declared** dependencies; `docling` ships only with the
@@ -332,7 +375,7 @@ if __name__ == "__main__":
 
 ## Agent Guidelines & Best Practices
 
-- **Paywall Recognition**: Not all academic literature is Open Access. If resolution reports no legal OA copy (`success=False` with `access_status=UNRESOLVED`, legacy `was_oa=False`), clearly inform the user that no legal Open Access copy is available. Do not attempt to bypass commercial paywalls with web scrapers. HTTP success alone never means acquisition — only validated, promoted bytes count.
+- **Paywall Recognition**: Not all academic literature is Open Access. When `download` gives no file, read the result's `outcome` (the table's Status column), not `status=UNRESOLVED` alone, which covers three different cases: `LOOKUP_FAILED` (exit 3) means a service failed and the answer is incomplete, so say so and run again later, never "no open copy"; `OPEN_NO_DIRECT_PDF` (exit 4) means the paper is listed as open access with landing pages only, so the user gets the PDF from the named landing page and uses `ingest`; `NO_OPEN_COPY_LISTED` (exit 5) means neither service lists an open copy, which is not a paywall determination; `PDF_NOT_FETCHED` (exit 1) means a listed address gave no PDF (the printed PDF requests say what each address answered). A stored file whose manifest `identity` reads "not found: check it" may be another paper: open it before using it. Do not attempt to bypass commercial paywalls with web scrapers. HTTP success alone never means acquisition — only validated, promoted bytes count.
 - **Frontmatter Preservation**: Always ensure extracted markdown contains YAML frontmatter (`workspace_id`, `doi`, `title`, `year`) before handing off to `scholar-rag-kit` for chunking and vector indexing.
 
 ## Preflight
@@ -347,7 +390,7 @@ if __name__ == "__main__":
 Codes this kit's existing content surfaces upstream:
 
 - `PATH_OUTSIDE_WORKSPACE` — output path escapes the canonical workspace root (`..`, absolute, drive, separator, or symlink).
-- `UNRESOLVED` — no legal OA copy found (fail-closed; never an empty success or a fabricated restricted confirmation).
+- `UNRESOLVED` — no direct open-access PDF address was resolved (fail-closed; never an empty success or a fabricated restricted confirmation). The `outcome` says which case: `LOOKUP_FAILED` (a service failed; incomplete, run again), `OPEN_NO_DIRECT_PDF` (open access, landing pages only) or `NO_OPEN_COPY_LISTED` (no open copy listed).
 - `UNSUPPORTED_ARTIFACT_TYPE` — kit-owned manifests (`pdf_acquisition_manifest`, `pdf_extraction_manifest`) passed to the frozen harness acceptance/chain registries.
 - `UNSUPPORTED_CAPABILITY` — MCP surface refusal for acquire/extract (declared unsupported; use CLI/API).
 - `OperationStatus=FAILED` — all-failure batches still publish a manifest with `records=[]` (distinguishable from a missing manifest).

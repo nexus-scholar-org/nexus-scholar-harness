@@ -49,7 +49,7 @@ export function AppShell({
         {translate(locale, "a11y.skipToMain")}
       </a>
 
-      {/* Triage is a focus screen from 1024 px: its own bar replaces the site header (decision 2026-11-09). */}
+      {/* Triage and the one-study charting view are focus screens from 1024 px: their own bar replaces the site header (decision 2026-11-09). */}
       {oneScreen ? (
         <div className="contents lg:hidden">
           <SiteHeader locale={locale} pathname={pathname} />
@@ -84,7 +84,10 @@ export function AppShell({
   );
 }
 
-/** Routes laid out as one desktop screen with no page scroll: triage (spec 03, M8-triage). */
+/**
+ * Routes laid out as one desktop screen with no page scroll: triage (spec 03,
+ * M8-triage) and the one-study charting view (spec 02 of the extraction phase, M12a Part B).
+ */
 export function isOneScreenRoute(pathname: string): boolean {
-  return /^\/[^/]+\/screening\/triage\/?$/.test(pathname);
+  return /^\/[^/]+\/screening\/triage\/?$/.test(pathname) || /^\/[^/]+\/charting\/study\/?$/.test(pathname);
 }

@@ -9,10 +9,34 @@
 > **Parked, not production (M5-slim, production plan §8).** The beta ships
 > **screening** (import → prepare → screen → publish, with optional agent
 > proposals). The retrieval and synthesis kit (`scholar_rag`), the citation
-> graph (`scholar_graph`), verification and trust (`scholar_verify`) and full
-> text (`scholar_pdf`, findings PDF-07/08) still work, but are parked: their
-> `--help` says so first, their MCP tools say so in their descriptions, and the
-> app labels any screen that shows them. Do not rely on them for a review.
+> graph (`scholar_graph`), verification and trust (`scholar_verify`) and reading
+> PDFs (`scholar_pdf` `extract`, `extract-run`, and E1 `acquire`; findings
+> PDF-07/08) still work, but are parked: their `--help` says so first, their MCP
+> tools say so in their descriptions, and the app labels any screen that shows
+> them. Do not rely on them for a review.
+>
+> **The PDF kit's downloading is production** (decision 2026-11-21, M12a items 21
+> and 27, K0): `scholar-pdf download` and `ingest` need a contact e-mail
+> (`SCHOLAR_MAILTO`, or the kit's `MAILTO`; refused `MAILTO_NOT_SET` without),
+> name the app in their User-Agent, request only the providers' own open-access
+> locations (no guessed publisher URL), and refuse an institutional proxy.
+>
+> Since Part K of M12a (decision 2026-11-21, item 15): OpenAlex is asked only
+> with `SCHOLAR_OPENALEX_KEY`, sent as its key (without it only Unpaywall is
+> asked and the command says so; a 409 reads "the daily budget is spent"); a PDF
+> address that answers 400, 401, 403, 404, 410 or 451 is asked once (a 5xx, a
+> timeout, and a 429 whose `Retry-After` is at most 60 s are retried); a
+> service's closed evidence (`is_oa: false`, `oa_status: closed`) overrides its
+> `pdf_url`; every DOI asked gets one row in `download-manifest.jsonl` (in
+> `--output`, or `--manifest PATH`) with the file, its SHA-256, the address
+> asked, the redirects, the version, licence and host, each check by name, the
+> access status and every PDF request; the command prints the PDF requests per
+> DOI; with the `pdf` extra the first two pages are searched for the DOI and
+> the title ("doi found", "title found", "not found: check it"; "not checked"
+> without it), never blocking a file; `ingest` and a missing `--input` exit
+> non-zero; the publisher patterns and `--smart-names` are removed; where hard
+> links fail (FAT or exFAT drives) the file is copied. Check each stored file's
+> identity before you use it.
 
 ## Purpose
 
@@ -29,7 +53,7 @@ that no single skill covers.
 | Kit (package) | Public API anchor | CLI | MCP tool(s) | Harness role |
 | :-- | :-- | :-- | :-- | :-- |
 | search (`scholar_search`) | `SearchEngine`, `Deduplicator`, `DocumentVerifier`, `CitationChainer`, screening fns, `Exporter` | `scholar-search` (search/snowball/chain/import/dedup/verify/export/screen) | `nexus_discover`, `nexus_dedup`, `nexus_screen`, `nexus_screen_reconcile` | Phase-1 discovery/prepare (`compile_protocol_search`) |
-| pdf (`scholar_pdf`) | `AsyncPDFDownloader`, `PyMuPDFEngine`/`DoclingEngine`/`GrobidEngine`, validators, **`scholar_pdf.acquisition`** (WP01-E1, parent-bound), **`scholar_pdf.extraction`** (WP01-E2, parent-bound) | `scholar-pdf` (download/ingest/**acquire**/**extract-run**/extract) | `nexus_extract_pdf` (PyMuPDF only, non-authoritative); acquisition: **UNSUPPORTED** (`pdf_acquisition`, `mcp_supported=false`); extraction: **UNSUPPORTED** (`pdf_extraction`, `mcp_supported=false`) | Phase-2 fulltext + E1 acquired-document + E2 extracted-text boundary |
+| pdf (`scholar_pdf`) | `AsyncPDFDownloader`, `PyMuPDFEngine`/`DoclingEngine`/`GrobidEngine`, validators, **`scholar_pdf.acquisition`** (WP01-E1, parent-bound), **`scholar_pdf.extraction`** (WP01-E2, parent-bound) | `scholar-pdf` (download/ingest: **production** since K0; **acquire**/**extract-run**/extract: parked) | `nexus_extract_pdf` (PyMuPDF only, non-authoritative); acquisition: **UNSUPPORTED** (`pdf_acquisition`, `mcp_supported=false`); extraction: **UNSUPPORTED** (`pdf_extraction`, `mcp_supported=false`) | Phase-2 fulltext + E1 acquired-document + E2 extracted-text boundary |
 | rag (`scholar_rag`) | `ScholarIndexer`, `ScholarRetriever`, `GroundedSynthesisEngine`, `ConsensusCartographer`, `MatrixExtractor` | `scholar-rag` (index/query/synthesize/consensus/matrix/stats) | `nexus_rag_index/query/synthesize`, `nexus_matrix_extract` | Phase-3 retrieval + synthesis |
 | graph (`scholar_graph`) | `CitationGraphBuilder`, `GraphVisualizer` | `scholar-graph` (build/pagerank) | `nexus_graph_build` | Phase-3 knowledge-graph |
 | protocol (`scholar_protocol`) | `ResearchProtocol`, `compile_protocol`, `canonical_json/fingerprint`, `validate_protocol`, `render_screening_criteria`, `build_extraction_model` | `scholar-protocol` (compile/validate/fingerprint/canon/render-criteria/extraction-schema/extraction-prompt) | `nexus_protocol_compile/validate/render_criteria` (+ matrix via rag) | Phase-0 protocol |
@@ -221,13 +245,29 @@ latent bug**, with the working path in parentheses.
   rather than swallowed.
 
 ### scholar-pdf-kit
-- **Public API:** `AsyncPDFDownloader(output_dir, use_smart_names, proxy_url, …)`
-  (async `download_batch`/`process_doi`/`ingest_pdf`), `PyMuPDFEngine.extract_markdown
-  (pdf, output_dir, metadata=None)`, `DoclingEngine`, `GrobidEngine(grobid_url)`,
-  `is_valid_pdf`/`validate_pdf_structure`/`clean_invalid_pdf`, publisher direct-PDF
-  + proxy-rewrite helpers.
-- **CLI:** `download` (`--doi` repeatable / `--input` JSON, `--output`, `--smart-names`,
-  `--export json|bibtex`, `--proxy*`, `--strict-validate`, `-c`) / `ingest` / `extract`
+- **Public API:** `AsyncPDFDownloader(output_dir, proxy_url, …, manifest_path=None)`
+  (async `download_batch`/`process_doi(session, client, doi, *, title, study_id)`/
+  `ingest_pdf(client, path, doi, *, study_id)`; `DownloadResult` carries `outcome`,
+  `open_copy`, `lookups`, `attempts` (each PDF request: address, host, status or
+  error, retry, final address, redirects, content type, checks), `request_count`,
+  `request_hosts()`, `source_url`, `route`, `access_status`, `identity`, `size`,
+  `sha256`, `study_id`), `scholar_pdf.manifest` (one JSON line per DOI,
+  `scholar-pdf-download-manifest-v1`), `scholar_pdf.identity.check_identity`,
+  `PyMuPDFEngine.extract_markdown(pdf, output_dir, metadata=None)`, `DoclingEngine`,
+  `GrobidEngine(grobid_url)`, `is_valid_pdf`/`pdf_checks`/`validate_pdf_structure`/
+  `clean_invalid_pdf`, the parked proxy-rewrite helpers (the publisher direct-PDF
+  patterns are removed, Part K item 3).
+- **CLI:** `download` (`--doi` repeatable / `--input` JSON list (a missing file is a
+  usage error, exit 2), `--output`, `--manifest PATH` (default
+  `download-manifest.jsonl` in `--output`), `--export json|bibtex` (one entry per DOI,
+  written atomically), `--proxy*` (refused, `PROXY_REFUSED`), `--strict-validate`, `-c`;
+  exit codes: 0 every DOI has its file; 3 a lookup failed (run again later); 1 a listed
+  address gave no PDF, or another failure; 4 open access but no direct PDF address
+  listed; 5 no open copy listed; it prints the PDF requests per DOI) /
+  `ingest` (`--manifest`, `--study-id`; exit 1 when nothing is stored) (both production
+  since K0, decision 2026-11-21, M12a items 21 and 27, repaired in Part K: a contact
+  e-mail required, `MAILTO_NOT_SET` without; the app's own User-Agent; OpenAlex only
+  with `SCHOLAR_OPENALEX_KEY`; no guessed publisher URL; no proxy) / `extract`
   (**positional** `pdf_path` — no `--input`; `--engine` accepts only **docling|grobid**;
   pymupdf is API/MCP only).
 - **MCP:** `nexus_extract_pdf(pdf_path, output_dir="./extracted", engine="pymupdf")`
@@ -243,15 +283,31 @@ latent bug**, with the working path in parentheses.
   non-parent-bound raw-path convenience); typed models in
   `scholar_pdf.extraction_models`; candidate builder in
   `scholar_pdf.contract_candidate`.
-- **Knowledge:** env `MAILTO`, `DOWNLOAD_DIR`, `MAX_CONCURRENT_DOWNLOADS`,
-  `DOWNLOAD_TIMEOUT`, `PROXY_URL/PROXY_STYLE`, `PDF_STRUCTURAL_VALIDATION`,
-  `ENABLE_PUBLISHER_DIRECT_PATTERNS` (no prefix); cascade = OpenAlex best_oa →
-  Unpaywall → publisher direct-PDF (IEEE/Springer/arXiv patterns) → proxy rewrite;
-  validation = ≥10 KB + `%PDF-` in first 1 KB + `%%EOF` in last 8 KB (+ optional
-  encryption-tolerant pypdf gate); invalid files auto-deleted; frontmatter keys =
+- **Knowledge:** env `SCHOLAR_MAILTO` (read first) or `MAILTO` (required, no default),
+  `DOWNLOAD_DIR`, `MAX_CONCURRENT_DOWNLOADS`, `DOWNLOAD_TIMEOUT`,
+  `PROXY_URL/PROXY_STYLE` (refused by `download`/`ingest`), `PDF_STRUCTURAL_VALIDATION`,
+  `ENABLE_PUBLISHER_DIRECT_PATTERNS` (the patterns are removed; `true` is still refused,
+  `PUBLISHER_PATTERNS_REFUSED`; no prefix), `SCHOLAR_OPENALEX_KEY` (OpenAlex is asked
+  only with it; a 409 is "the daily budget is spent"); lookup =
+  every open location OpenAlex lists (`best_oa_location`, `primary_location`,
+  `locations`) and Unpaywall lists (`oa_locations`), both services asked once for
+  every DOI when the key is set (Unpaywall only without it); a service's closed
+  evidence overrides its `pdf_url`; best version first (published, accepted,
+  submitted), at most three addresses tried, only a provider's own direct PDF
+  address requested, never a landing page (H-pdf-resolver-locations,
+  `scholar_pdf.open_copies`); User-Agent `nexus-scholar/<version> (mailto:…)`;
+  retries only for a connection error, a timeout, a 5xx or a 429 with
+  `Retry-After` ≤ 60 s (PDF-06); access status from the location that gave the
+  bytes (`VERIFIED_OPEN_ACCESS`; the parked gateway `INSTITUTIONAL_ACCESS`; `ingest`
+  `USER_PROVIDED`);
+  validation = each check named (`pdf_header` in first 1 KB, `pdf_trailer` in last
+  8 KB, `size_floor` ≥10 KB reported as a size floor, optional encryption-tolerant
+  pypdf `structure`); invalid files never stored; files `DOC-<sha256[:32]>.pdf`,
+  published by hard link or, where links fail, an exclusive-create copy (PDF-03);
+  identity on the first two pages with the `pdf` extra (PDF-22); frontmatter keys =
   `workspace_id|doi|title|authors|year|extraction_engine|extracted_at` (empty keys
-  dropped); smart filename `{year}_{author}_{title}.pdf` (title ≤50 alnum); PDF bytes
-  stream via aiohttp (Chrome UA) while metadata uses search-kit's httpx+hishel client;
+  dropped); PDF bytes
+  stream via aiohttp (the app's user agent) while metadata uses search-kit's httpx client without its disk cache (the lookup addresses carry the OpenAlex key and the e-mail; M12a Part K);
   `import fitz` (PyMuPDF); `pyyaml` is an undeclared transitive dep; extraction
   writes a stub line on parse failure — "success" ≠ content.
 
@@ -513,7 +569,7 @@ scholar-agent-kit ──adapter import──► scholar_harness.recon.adapter (g
 | :-- | :-- | :-- |
 | Polite pool / keys | `SCHOLAR_MAILTO` (required, no default), `SCHOLAR_OPENALEX_KEY` (required by OpenAlex since 2026-02-13; the code still calls it optional), `SCHOLAR_S2_KEY`. No NCBI key setting exists. | search |
 | Cache | `SCHOLAR_CACHE_DIR` (`.cache`, hishel TTL 30d unused) | search |
-| PDF | `MAILTO`, `DOWNLOAD_DIR`, `MAX_CONCURRENT_DOWNLOADS`, `DOWNLOAD_TIMEOUT`, `PROXY_URL`, `PROXY_STYLE`, `PDF_STRUCTURAL_VALIDATION`, `ENABLE_PUBLISHER_DIRECT_PATTERNS` | pdf |
+| PDF | `SCHOLAR_MAILTO` or `MAILTO` (required since K0), `DOWNLOAD_DIR`, `MAX_CONCURRENT_DOWNLOADS`, `DOWNLOAD_TIMEOUT`, `PROXY_URL`, `PROXY_STYLE` (refused by `download`/`ingest`), `PDF_STRUCTURAL_VALIDATION`, `ENABLE_PUBLISHER_DIRECT_PATTERNS` (default off, `true` refused) | pdf |
 | Embedder | `OPENAI_API_KEY` | rag |
 | MCP/harness | `NEXUS_RECON_ROOT`, `NEXUS_SKILLS_SRC`, `NEXUS_MCP_CONFIG_HOME` (P7.4 `setup-mcp` config root override, mirrors `NEXUS_RECON_ROOT`) | agent/harness |
 | LLM screening | `GEMINI_API_KEY` | search (`LLMBatchScreener`) |

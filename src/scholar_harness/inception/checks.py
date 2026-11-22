@@ -81,9 +81,24 @@ SENTENCES: dict[str, str] = {
     "CONCEPT_TERM_MISSING": "Your title and questions use {term}, but no concept or synonym does.",
     "CONCEPT_NOT_ANCHORED": "None of the {concept} terms appears in the {n} sample papers.",
     "CONCEPTS_ONE_ONLY": "The search uses one concept only.",
+    # M11a Part B: the query workbench (never blockers).
+    "QUERY_NOT_COUNTED": "This search has not been counted in any database yet.",
+    "SEEDS_CANNOT_TEST.all": "Your {n} known papers each use a term of every concept, so they cannot show a paper this query misses.",
+    "SEEDS_CANNOT_TEST.concept": "No known paper lacks '{concept}'; the seeds cannot test it.",
+    "SEEDS_CANNOT_TEST.few": "Too few known papers to test the query.",
     "CRITERIA_UNDECIDED": "{n} criteria still need your Accept or Drop.",
     "CRITERIA_SIDE_MISSING": "The protocol needs an accepted {side} criterion.",
     "CRITERIA_REASONS_UNIFORM": "All {n} exclusion criteria carry the same reason, {code}.",
+    # M11b part D (record (f), (g); spec 11-criteria-block).
+    "CRITERIA_DUPLICATE": "Two {side} criteria say the same thing: \u201c{a}\u201d and \u201c{b}\u201d.",
+    "CRITERIA_CONTRADICT": "\u201c{inclusion}\u201d is an inclusion and \u201c{exclusion}\u201d is an exclusion with the same words.",
+    "CRITERIA_MIRRORED": "The exclusion \u201c{exclusion}\u201d mostly repeats the inclusion \u201c{inclusion}\u201d with a negation.",
+    "CRITERIA_LUMPED": "\u201c{criterion}\u201d may be several tests in one.",
+    "CRITERIA_NEEDS_FULL_TEXT": "\u201c{criterion}\u201d may need the full text: it names {words}.",
+    "CRITERIA_WORDING_NOT_CHECKED": "The criteria are not in English, so three wording checks did not run: {checks}.",
+    "METHOD_RULE_UNCHOSEN": "Choose what the agent's draft does when a criterion is not reported.",
+    "METHOD_RULE_UNCHOSEN.older": "Choose what the agent's draft does when a criterion is not reported. This draft was started before this question existed.",
+    "METHOD_RULE_UNCHOSEN.imported": "The imported protocol's rule is shown: confirm it or choose another.",
     "REVIEW_PROJECT_MISSING": "Still needed: {fields}.",
     "REVIEW_TITLE_NOT_A_FOLDER": "This title cannot name a folder.",
     "REVIEW_COMPILER_REFUSED": "The compiler refused these answers.",
@@ -136,9 +151,18 @@ CATALOGUE: dict[str, str] = {
     "CONCEPT_TERM_MISSING": "criteria",
     "CONCEPT_NOT_ANCHORED": "criteria",
     "CONCEPTS_ONE_ONLY": "criteria",
+    "QUERY_NOT_COUNTED": "criteria",
+    "SEEDS_CANNOT_TEST": "criteria",
     "CRITERIA_UNDECIDED": "criteria",
     "CRITERIA_SIDE_MISSING": "criteria",
     "CRITERIA_REASONS_UNIFORM": "criteria",
+    "CRITERIA_DUPLICATE": "criteria",
+    "CRITERIA_CONTRADICT": "criteria",
+    "CRITERIA_MIRRORED": "criteria",
+    "CRITERIA_LUMPED": "criteria",
+    "CRITERIA_NEEDS_FULL_TEXT": "criteria",
+    "CRITERIA_WORDING_NOT_CHECKED": "criteria",
+    "METHOD_RULE_UNCHOSEN": "criteria",
     "REVIEW_PROJECT_MISSING": "review",
     "REVIEW_TITLE_NOT_A_FOLDER": "review",
     "REVIEW_COMPILER_REFUSED": "review",
@@ -543,6 +567,12 @@ def inception_checks(
         waiting.append({"check_id": "CONCEPT_NOT_ANCHORED", "step": "criteria", "needs": "pool"})
     else:
         run("CONCEPT_NOT_ANCHORED", lambda: _not_anchored(draft, pool, raw_pool))
+    # M11a Part B: the query workbench's checks (a note and a warning; never blockers).
+    if workspaces_root is not None and record.get("session_id"):
+        run("QUERY_NOT_COUNTED", lambda: _query_not_counted(record, draft, Path(workspaces_root)))
+        # Review B5: the pool as stored, as the workbench panel reads it.
+        run("SEEDS_CANNOT_TEST", lambda: _seeds_cannot_test(record, draft, Path(workspaces_root),
+                                                             raw_pool if raw_pool is not None else pool))
     run("CONCEPTS_ONE_ONLY", lambda: [
         check("CONCEPTS_ONE_ONLY", "note", action=_field("criteria", "concepts"))
     ] if len(draft.concepts) == 1 else [])
@@ -567,6 +597,67 @@ def inception_checks(
     run("REVIEW_PROPOSALS_OPEN", lambda: _proposals_open(record))
     run("REVIEW_IMPORT_STEP_NOT_OPENED", lambda: _import_not_opened(record))
     return items, waiting, partial, proposals
+
+
+def _workbench_version(draft: steps.Draft) -> Any:
+    from scholar_search import workbench as wb
+
+    return wb.parse_version({
+        "concepts": [{"concept": c.concept, "synonyms": list(c.synonyms)} for c in draft.concepts],
+        "start_year": draft.start_year, "end_year": draft.end_year, "languages": list(draft.languages),
+    })
+
+
+def _query_not_counted(record: dict[str, Any], draft: steps.Draft, root: Path) -> list[dict[str, Any]]:
+    """M11a: the saved version of the search was never counted in the workbench (a note)."""
+    from scholar_search import workbench as wb
+
+    from scholar_harness import query_workbench as qw
+
+    from .drafts import DraftStore
+
+    try:
+        version = _workbench_version(draft)
+    except wb.VersionInvalid:
+        return []  # no concept: CONCEPTS_NONE speaks
+    log = qw.CountLog(qw.draft_log_path(DraftStore(root).dir, record["session_id"]))
+    if qw.version_counted(log, version):
+        return []
+    return [check("QUERY_NOT_COUNTED", "note", action=_field("criteria", "concepts"))]
+
+
+def _seeds_cannot_test(record: dict[str, Any], draft: steps.Draft, root: Path,
+                       pool: dict[str, Any] | None) -> list[dict[str, Any]]:
+    """M11a: the known papers' words cannot show a paper the query misses (a warning).
+
+    Read without a request: the first search's pool and the texts the
+    workbench looked up earlier. A seed whose words are not known is not read.
+    """
+    if not draft.golden_seeds:
+        return []
+    from scholar_search import workbench as wb
+
+    from scholar_harness import query_workbench as qw
+    from scholar_harness import query_workbench_sets as qs
+
+    from .drafts import DraftStore
+
+    try:
+        version = _workbench_version(draft)
+    except wb.VersionInvalid:
+        return []
+    log = qw.CountLog(qw.draft_log_path(DraftStore(root).dir, record["session_id"]))
+    known = [qs.row_record(d) for d in (pool or {}).get("docs") or [] if isinstance(d, dict)]
+    result = qs.local_seed_check(version, list(draft.golden_seeds), log=log, known=known)
+    if result["read"] == 0 or result["warning"] is None:
+        return []
+    level = result["warning"]["level"]
+    untested = result["warning"]["untested"]
+    params = {"n": result["read"], "concept": untested[0] if untested else "", "concepts": ", ".join(untested)}
+    evidence = [{"kind": "count", "name": "known papers read", "value": result["read"], "unit": "papers"},
+                {"kind": "count", "name": "known papers not read", "value": result["not_read"], "unit": "papers"}]
+    return [check("SEEDS_CANNOT_TEST", "warning", subject=level, params=params, evidence=evidence,
+                  sentence=f"SEEDS_CANNOT_TEST.{level}", action=_step("direction"))]
 
 
 def _pool_ev(pool: dict[str, Any] | None) -> dict[str, Any]:
@@ -724,6 +815,76 @@ def _criteria_checks(draft: steps.Draft) -> list[dict[str, Any]]:
                        "unit": "criteria"},
             action=_field("criteria", "extra_exclusions"),
         ))
+    out.extend(_wording_checks(result["criteria"]))
+    method = result["method"]
+    if not method["chosen"]:
+        # M11b part D (answer 8): a blocker, like CRITERIA_UNDECIDED; genesis refuses it too.
+        out.append(check(
+            "METHOD_RULE_UNCHOSEN", "blocker",
+            params={"started_before_question": method["started_before_question"], "imported": method["source"] == "imported"},
+            action=_field("criteria", "method_not_reported"),
+            refusal="METHOD_RULE_UNCHOSEN",
+            sentence=(
+                "METHOD_RULE_UNCHOSEN.imported" if method["source"] == "imported"
+                else "METHOD_RULE_UNCHOSEN.older" if method["started_before_question"] else None
+            ),
+        ))
+    return out
+
+
+def _wording_checks(items: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """The five wording checks of M11b (f) on the accepted criteria: warnings and notes, never
+    blockers; an instance is a pair of ids or one id, so each is dismissed alone."""
+    from . import criteria_wording as cw
+
+    accepted = [cw.Item(str(i["id"]), str(i["kind"]), str(i.get("criterion") or "")) for i in items
+                if i.get("status") == "accepted"]
+    field = {"inclusion": "extra_inclusions", "exclusion": "extra_exclusions"}
+    out: list[dict[str, Any]] = []
+    for a, b in cw.duplicates(accepted):
+        out.append(check(
+            "CRITERIA_DUPLICATE", "warning", subject=f"{a.id}|{b.id}", params={"side": a.side, "a": a.text, "b": b.text},
+            evidence=[{"kind": "words", "name": "normalised", "value": list(cw.normalised(a.text))}],
+            action={**_field("criteria", field[a.side]), "criterion_id": a.id},
+        ))
+    for inc, exc in cw.contradictions(accepted):
+        out.append(check(
+            "CRITERIA_CONTRADICT", "warning", subject=f"{inc.id}|{exc.id}",
+            params={"inclusion": inc.text, "exclusion": exc.text},
+            evidence=[{"kind": "words", "name": "normalised", "value": list(cw.normalised(inc.text))}],
+            action={**_field("criteria", "extra_exclusions"), "criterion_id": exc.id},
+        ))
+    english = cw.is_english(accepted)
+    if not english:
+        if accepted:
+            out.append(check(
+                "CRITERIA_WORDING_NOT_CHECKED", "note",
+                params={"checks": "CRITERIA_MIRRORED, CRITERIA_LUMPED, CRITERIA_NEEDS_FULL_TEXT"},
+                action=_field("criteria", "extra_inclusions"),
+            ))
+        return out
+    for exc, inc, share, shared in cw.mirrors(accepted):
+        out.append(check(
+            "CRITERIA_MIRRORED", "warning", subject=f"{exc.id}|{inc.id}", params={"exclusion": exc.text, "inclusion": inc.text},
+            evidence=[{"kind": "words", "name": "shared", "value": sorted(shared)},
+                      {"kind": "share", "name": "covered", "value": share}],
+            threshold={"name": "MIRROR_SHARE", "value": cw.MIRROR_SHARE, "default": cw.MIRROR_SHARE, "unit": "share"},
+            action={**_field("criteria", "extra_exclusions"), "criterion_id": exc.id},
+        ))
+    for item in accepted:
+        if cw.lumped(item):
+            out.append(check(
+                "CRITERIA_LUMPED", "note", subject=item.id, params={"criterion": item.text},
+                action={**_field("criteria", field[item.side]), "criterion_id": item.id},
+            ))
+        found = cw.needs_full_text(item)
+        if found:
+            out.append(check(
+                "CRITERIA_NEEDS_FULL_TEXT", "note", subject=item.id,
+                params={"criterion": item.text, "words": ", ".join(found)},
+                evidence=[{"kind": "words", "name": "names", "value": found}],
+                action=_field("criteria", "method_not_reported"),
+            ))
     return out
 
 

@@ -234,7 +234,7 @@ test("hints work without a mouse: the Shape form is completed and every field hi
   await playbook.focus();
   await page.keyboard.press("Space");
   await expect(playbook).toBeChecked();
-  for (const key of ["shape.leaningNote", "shape.planned.hint", "shape.unitHelp", "shape.proofHelp", "shape.outOfScopeHelp"]) {
+  for (const key of ["shape.leaningNote", "shape.planned.hint", "shape.unitHelp", "shape.proofHelp"]) {
     const b = page.locator(`[data-hint-button="${key}"]`);
     await b.focus();
     await page.keyboard.press("Enter");

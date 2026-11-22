@@ -269,7 +269,7 @@ def test_run_wizard_raw_target_handoff(tmp_path):
         root,
         genesis_timestamp=GENESIS_TS,
         target_dir=raw,
-        init_title="On-Device Weed Detection",
+        init_title="On-Device Weed Detection", not_reported="unclear",
     )
 
     assert result["slug"] == "on-device-weed-detection-for-embedded-agriculture"
@@ -300,7 +300,7 @@ def test_run_wizard_raw_target_accepts_init_title_default(tmp_path):
         root,
         genesis_timestamp=GENESIS_TS,
         target_dir=raw,
-        init_title="Title Seed From CLI",
+        init_title="Title Seed From CLI", not_reported="unclear",
     )
     assert result["title"] == "On-Device Weed Detection for Embedded Agriculture"
     assert result["slug"] == "on-device-weed-detection-for-embedded-agriculture"
