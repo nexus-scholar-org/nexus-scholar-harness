@@ -68,7 +68,7 @@ def _production_preflight(proxy: str | None) -> None:
     if settings.enable_publisher_direct_patterns:
         _refuse(
             "PUBLISHER_PATTERNS_REFUSED",
-            "guessed publisher URLs are not requested "
+            "the publisher direct-PDF patterns (guessed publisher URLs) are removed "
             f"({DECISION} item 24). Remove ENABLE_PUBLISHER_DIRECT_PATTERNS and run again.",
         )
     if not contact_email():

@@ -34,9 +34,9 @@ class Settings(BaseSettings):
     # %PDF- header + %%EOF trailer signature check.
     pdf_structural_validation: bool = False
 
-    # Publisher direct-PDF patterns: off (K0, M12a item 27) and no longer
-    # read by the downloader; the patterns are removed in Part K (item 24,
-    # G3). ``download`` and ``ingest`` refuse the setting when it is on.
+    # Publisher direct-PDF patterns: removed (Part K, M12a item 24, G3). The
+    # setting is read only so that a stale ``ENABLE_PUBLISHER_DIRECT_PATTERNS
+    # =true`` is refused by ``download`` and ``ingest``, not silently ignored.
     enable_publisher_direct_patterns: bool = False
 
     model_config = SettingsConfigDict(
