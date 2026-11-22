@@ -604,12 +604,12 @@ The static export (asked for by the main session before the PR; the app is shipp
 
 ### Part B follow-up: merging columns from the form panel; attach and open in the one-study view, tested
 
-Branch `dev/m12a/part-b-followup`, from `origin/main` `933be3fb` (Parts A and B merged) · Lane **STANDARD** (isolated UI work on an existing route; the engine's merge exists since Part B) · Decisions: `docs/decisions.md` "2026-11-22 — M12a Part B follow-up" items 1 to 7 (PROPOSED). Asked for by the researcher on 2026-11-22, when accepting Part B: the two things Part B had not built ("Not verified" of Part B). The work was built by a subagent from a brief written in the build session.
+Branch `dev/m12a/part-b-followup`, from `origin/main` `933be3fb` (Parts A and B merged) · Lane **STANDARD** (a bounded UI behaviour change in one repository: it writes form amendments through the existing API; the engine's merge exists since Part B) · Decisions: `docs/decisions.md` "2026-11-22 — M12a Part B follow-up" items 1 to 7 (PROPOSED). Asked for by the researcher on 2026-11-22, when accepting Part B: the two things Part B had not built ("Not verified" of Part B). The work was built by a subagent from a brief written in the build session.
 
 What was built:
 - `apps/research-ui/components/charting-form-panel.tsx`: "Merge with…" on each column card, its chooser and the merge (decision items 1 to 5); `lib/charting-copy.ts`: five keys in en, fr and ar.
 - `apps/research-ui/tests/charting-helpers.tsx`: the fake engine applies the engine's split, merge and replacement rule and its history rule (a side effect fixed a history entry only the fake gave a column whose type changed).
-- Tests: `tests/charting.form-panel.test.tsx` (three new: the chooser and its keys, a merge before any value, a merge after values through the amendment prompt with the history), `tests-browser/charting-study.spec.ts` ("attach a PDF from the one-study view and open it in a new tab": the file chooser, the name and size, Retrieved, "Saved", the new tab's request for the attachment route; light and dark).
+- Tests: `tests/charting.form-panel.test.tsx` (three new: the chooser and its keys with a merge before any value; a merge after values through the amendment prompt with the history; a three-column merge step by step), `tests-browser/charting-study.spec.ts` ("attach a PDF from the one-study view and open it in a new tab": the file chooser, the name and size, Retrieved, "Saved", the new tab's request for the attachment route; light and dark).
 
 Not verified: the merge from the panel against the real engine (the engine's merge is `test_charting_form_api.py::test_a_replaced_column_and_a_merge_are_recorded_and_mark_chart_again`); no browser test drives the merge chooser, and the chooser was not looked at in either theme (axe runs with it closed); what the new tab shows (headless Chromium leaves a PDF tab's address empty, so the test checks the request).
 
