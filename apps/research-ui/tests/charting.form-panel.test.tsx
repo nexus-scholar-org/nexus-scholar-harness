@@ -291,6 +291,11 @@ describe("charting.form-panel", () => {
     // Saved before any value: no amendment, and "Made from" still names the old columns.
     expect(within(columnCard(first.column_id)).getByText("Made from: Sensor problems addressed, Cameras and evaluation design")).toBeInTheDocument();
     expect(within(document.querySelector("[data-amendments]") as HTMLElement).getByText("No amendment yet.")).toBeInTheDocument();
+    // Closed and opened again (the panel unmounts in between): the names are still there.
+    await press("Escape");
+    expect(screen.queryByRole("complementary", { name: "Charting form" })).toBeNull();
+    await openPanel();
+    expect(within(columnCard(first.column_id)).getByText("Made from: Sensor problems addressed, Cameras and evaluation design")).toBeInTheDocument();
   });
 
   it("a third column merged into a merge not yet recorded names all three sources", async () => {

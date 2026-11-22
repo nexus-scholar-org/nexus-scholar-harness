@@ -86,6 +86,7 @@ export function ChartingFormPanel({
   locale,
   origin,
   form,
+  seenNames,
   readOnly,
   addOnOpen,
   onSaved,
@@ -98,6 +99,8 @@ export function ChartingFormPanel({
   locale: Locale;
   origin: string;
   form: ChartingForm;
+  /** Column names seen during this page load, kept by the page (the panel unmounts on close). */
+  seenNames?: Map<string, string>;
   readOnly: boolean;
   /** Opened from "Add the first column": start with one new column. */
   addOnOpen: boolean;
@@ -325,14 +328,11 @@ export function ChartingFormPanel({
     update(index, { options: [...column.options, text] }, true);
   }
 
-  // The names of columns seen in this panel, so "Made from" can still name a column
-  // removed by a split or merge saved before any value (no amendment says its name then).
-  const seen = useRef(new Map<string, string>());
   const names = useMemo(() => {
     const map = new Map<string, string>();
     for (const c of form.columns) {
       map.set(c.column_id, c.name);
-      seen.current.set(c.column_id, c.name);
+      seenNames?.set(c.column_id, c.name);
     }
     // As the engine reads them: a split names its old column, a replacement its one
     // source, a merge each source in turn.
@@ -345,9 +345,11 @@ export function ChartingFormPanel({
         (a.columns ?? []).forEach((id, i) => put(id, from[i]));
       } else put(a.column_id, a.from);
     }
-    for (const [id, name] of seen.current) if (!map.has(id)) map.set(id, name);
+    // Then the names the page saw earlier in this page load, for a split or merge
+    // saved before any value (no amendment names its old columns then).
+    for (const [id, name] of seenNames ?? []) if (!map.has(id)) map.set(id, name);
     return map;
-  }, [form.columns, form.amendments]);
+  }, [form.columns, form.amendments, seenNames]);
 
   const groups = useMemo(() => {
     const out: { id: string; rows: Amendment[] }[] = [];
