@@ -845,3 +845,22 @@ Review round 1 (`milestone-reviewer`, on `68731897`, the delta `3b11fd70...HEAD`
 | P4-6 | "checked by the reviewer" fixed; "0 were not retrieved"; the open-cell note | from the confirm events; "none is recorded as not retrieved"; "; 1 in a required column"; item 7 amended | `::test_the_methods_block_on_a_table_never_opened_writes_nothing`, `::test_the_methods_block_states_every_number_from_the_events` |
 
 Follow-ups the reviewer named, not repaired here: Details shows no protocol fingerprint (item 26); spec 04's "Live-only" line names an `isLiveOnlyPath` that `app-shell.tsx` does not have; `methods()` reads the events files twice and the whole journal on every call.
+
+Review round 2 (`milestone-reviewer`, on `9756fad7`: the repairs `4212add6` and `9756fad7`): **APPROVE**. In its words: "New problems from the repairs: none found." Two of its P4 follow-ups were done before the gate (`a1ff08b5`: the TypeScript type names the three decided-from-the-abstract counts; the "Still open" note's words are asserted); the others stay follow-ups: the "a reviewer" form of the open-access sentence has no test; the paragraph's abstract sentence gives no exclusion reasons; and those of round 1.
+
+Evidence (the PR gate on `f9730e06`: `a1ff08b5`, the last product code, with `origin/main` `21a4e6a3` merged, documents only; each heavy step alone on the machine, the script waiting until no other test process ran):
+
+| Check | Result |
+| :-- | :-- |
+| `pytest -q -n 4` (4 workers) with `--junitxml` | 6555 tests, 0 failures, 0 errors, 15 skipped (629 s) |
+| `sync_skills_bundle.py --check`; `ruff check scripts/`; `ruff check src/ --select F821,F811,F823,F632,F7,B023,B006,E9` | OK; clean; clean |
+| `generate_contract_baseline.py --check`; protocol schema check | current; in sync |
+| `npm run typecheck`; `npm run build` | clean; ok |
+| `vitest run` on `f9730e06` | 115 files, 1402 tests, 2 failures: `plural.test.tsx` (Part C's: the plural table's new charting keys were not in the test's list of catalogs; repaired in `01a8e5df`) and `inception-workbench.test.tsx` "a rename keeps the row" (a `waitFor` past the default 1 s; it passed alone twice) |
+| `vitest run` on `01a8e5df`, twice | first: 1 failure, `discovery-proposals.test.tsx` "names the assistant and its model…" (a first-render `findBy` past 1 s; 6 of 7 runs of the file alone passed); second: 115 files, 1402 tests, 0 failures |
+| `playwright test` on `f9730e06` | 732 passed, 16 skipped (15.7 min) |
+| `git diff --check origin/main...HEAD` | clean |
+
+The failures outside Part C's files are the timing class of Part F's item 68: a wait with the default 1 s that runs out under load, in a different file each run (inception-workbench, discovery-proposals; PR 289's CI another wait of inception-workbench). Part C adds eight test files, so the suite is longer. A follow-up for the whole suite: item 68's alternative, a longer default for `findBy` and `waitFor` in `tests/setup.ts`. Playwright rewrote six screenshots: the two of screening's export page (en, ar) show the new "Export and methods" link and are kept (`01a8e5df`); the usual four were restored. Later commits are documents only.
+
+**Part C: READY FOR PR** (not pushed). Branch `dev/m12a/part-c-export`; it carries `origin/main` `21a4e6a3` (Part F, PR 290, merged). Decision items 1 to 29 are PROPOSED; DoD 19 (the live run on the researcher's review) is the researcher's, after the merge.
