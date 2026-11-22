@@ -5,6 +5,7 @@ import { InceptionCriteria } from "@/components/inception-criteria";
 import { InceptionReview } from "@/components/inception-review";
 import { InceptionShape } from "@/components/inception-shape";
 import { CHECKS_COPY } from "@/lib/checks-copy";
+import { stateCopy } from "@/lib/screening-states";
 import { completeDraft, outOfScopeId, proofId } from "./fixtures/inception-engine";
 import { setUp } from "./inception-helpers";
 
@@ -143,5 +144,37 @@ describe("review.how-you-will-screen (spec 11, Review delta (b))", () => {
     expect(group).toHaveTextContent("The agent's draft is shown beside the record.");
     expect(group).toHaveTextContent("A criterion the abstract does not report leaves the record Unclear unless another criterion clearly fails.");
     expect(group.textContent).not.toMatch(/decisive_first/);
+  });
+});
+
+describe("review D round 1", () => {
+  it("finding 1: out-of-scope text typed but not added is saved with the page", async () => {
+    const { engine } = setUp({ draft: decided({ method_not_reported: "unclear" }), method: true });
+    render(<InceptionCriteria locale="en" />);
+    const field = await screen.findByLabelText("Is anything out of scope?");
+    fireEvent.change(field, { target: { value: "closed-source models\nsatellite only" } });
+    fireEvent.click(screen.getByRole("button", { name: "Save draft and exit" }));
+    await waitFor(() => expect(putBodies(engine).length).toBeGreaterThan(0));
+    expect(putBodies(engine).at(-1)!.out_of_scope).toEqual(["closed-source models", "satellite only"]);
+  });
+
+  it("finding 2: a preview refused for an unchosen rule shows its own card", async () => {
+    expect(stateCopy("en", "METHOD_RULE_UNCHOSEN").known).toBe(true);
+    for (const locale of ["fr", "ar"] as const) expect(stateCopy(locale, "METHOD_RULE_UNCHOSEN").known).toBe(true);
+    setUp({ draft: decided({ method_not_reported: null }), method: true });
+    render(<InceptionReview locale="en" />);
+    fireEvent.click(await screen.findByRole("button", { name: "Check the protocol" }));
+    expect(await screen.findByText("Choose what the agent should do when a criterion is not reported")).toBeTruthy();
+  });
+
+  it("finding 10: the import label shows only while the imported choice is the one chosen", async () => {
+    setUp({
+      draft: decided({ method_not_reported: "exclude" }),
+      method: true,
+    });
+    render(<InceptionCriteria locale="en" />);
+    const rule = await screen.findByRole("group", { name: /the agent's draft should/ });
+    expect(within(rule).getByRole("radio", { name: /Exclude when an inclusion criterion/ })).toBeChecked();
+    expect(document.querySelector("[data-method-import]")).toBeNull();
   });
 });

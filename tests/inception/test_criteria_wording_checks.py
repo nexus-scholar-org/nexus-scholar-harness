@@ -60,10 +60,10 @@ def test_an_exclusion_that_repeats_an_inclusion_with_a_negation_is_mirrored():
 @pytest.mark.parametrize(
     ("inclusion", "exclusion", "mirrored"),
     [
-        # 3 of 5 content words of the inclusion: 0.6, at the constant.
-        ("Hyperspectral canopy imaging drone surveys", "No hyperspectral canopy drone", True),
-        # 2 shared of 5 and of 4: 0.5, below it.
-        ("Hyperspectral canopy imaging drone surveys", "Without canopy drone flights indoors", False),
+        # 3 shared of 5 content words on both sides: 0.6 either way, at the constant (review D round 1, finding 5).
+        ("Hyperspectral canopy imaging drone surveys", "No hyperspectral canopy drone flights indoors", True),
+        # 2 shared of 5 on both sides: 0.4, below it.
+        ("Hyperspectral canopy imaging drone surveys", "Without canopy drone flights indoors weekly", False),
     ],
 )
 def test_the_mirror_share_is_the_constant(inclusion, exclusion, mirrored):
@@ -134,3 +134,9 @@ def test_criteria_in_another_language_run_only_the_equality_checks_and_say_so():
     assert "CRITERIA_DUPLICATE" in kinds and "CRITERIA_MIRRORED" not in kinds
     [note] = [r for r in rows if r["check_id"] == "CRITERIA_WORDING_NOT_CHECKED"]
     assert note["level"] == "note" and "CRITERIA_MIRRORED" in note["params"]["checks"]
+
+
+def test_other_than_is_a_negation_only_as_the_phrase():
+    """Review D round 1, finding 8: "other" alone is a content word; "other than" is dropped as a negation."""
+    assert cw.content("Other crops") == frozenset({"other", "crops"})
+    assert cw.content("Crops other than maize") == frozenset({"crops", "maize"})

@@ -757,6 +757,16 @@ export const STATES: Record<string, StateEntry> = {
       ar: T("ما زالت بعض المعايير بانتظار قرارك", "يجب قبول كل معيار كتبه المعالج أو رفضه قبل تجميع البروتوكول.", "المراجعة وإنشاء مساحة العمل", "احسمها في المفاهيم والمعايير"),
     },
   },
+  // M11b part D (spec 11): Review's preview and genesis refuse a draft whose not-reported rule is unchosen.
+  METHOD_RULE_UNCHOSEN: {
+    role: "blocked",
+    action: "none",
+    copy: {
+      en: T("Choose what the agent should do when a criterion is not reported", "There is no default: the rule decides whether a record whose abstract is silent on a criterion is marked Unclear or excluded, and it is signed into the protocol.", "Review and creating the workspace", "Choose a rule on Concepts and criteria"),
+      fr: T("Choisissez ce que doit faire l'agent quand un critère n'est pas rapporté", "Il n'y a pas de valeur par défaut : la règle décide si une notice dont le résumé ne dit rien d'un critère est marquée Incertain ou exclue, et elle est signée dans le protocole.", "La vérification et la création de l'espace", "Choisir une règle dans Concepts et critères"),
+      ar: T("اختر ما يفعله الوكيل حين لا يُذكر معيار", "لا قيمة افتراضية: تقرر القاعدة إن كان السجل الذي يسكت ملخصه عن معيار يوضع غير واضح أو يُستبعد، وتُوقَّع في البروتوكول.", "المراجعة وإنشاء مساحة العمل", "اختر قاعدة في المفاهيم والمعايير"),
+    },
+  },
   CRITERIA_MISSING: {
     role: "blocked",
     action: "none",

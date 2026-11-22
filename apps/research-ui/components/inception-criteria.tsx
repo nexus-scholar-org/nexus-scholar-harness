@@ -188,9 +188,12 @@ export function InceptionCriteria({ locale }: Readonly<{ locale: Locale }>) {
     const cleaned = concepts.filter((c) => c.concept.trim()).map((c) => ({ concept: c.concept.trim(), synonyms: c.synonyms ?? [] }));
     // M11b part D: a save writes the visibility the screen shows, even for a draft that never stored it.
     const shown = draft.method_blinding ?? criteria?.method?.blinding ?? null;
-    const body = { ...draft, concepts: cleaned, ...(shown ? { method_blinding: shown } : {}) };
+    // Review D round 1, finding 1: text typed in the out-of-scope field is saved with the page, Add or not.
+    const pendingOos = oosText === null ? {} : { out_of_scope: oosText.split(/[\n;]/).map((item) => item.trim()).filter(Boolean) };
+    const body = { ...draft, ...pendingOos, concepts: cleaned, ...(shown ? { method_blinding: shown } : {}) };
     const stored = await save(body, accepted.filter((entry) => stillAccepted(entry, body)));
     if (stored) setAccepted([]);
+    if (stored) setOosText(null);
     if (stored) window.location.assign(inceptionHref(locale, next, next ? draftId : "", origin));
   };
 
@@ -460,7 +463,10 @@ export function InceptionCriteria({ locale }: Readonly<{ locale: Locale }>) {
               options={criteria.method_options ?? null}
               unchosen={ruleUnchosen}
               older={Boolean(criteria.method?.started_before_question) && ruleUnchosen}
-              fromImport={(record?.origin?.report.carried ?? []).some((c) => c.field === "method_not_reported")}
+              fromImport={
+                (record?.origin?.report.carried ?? []).some((c) => c.field === "method_not_reported") &&
+                draft.method_not_reported === record?.draft.method_not_reported
+              }
               onBlinding={(value) => update({ method_blinding: value })}
               onNotReported={(value) => update({ method_not_reported: value })}
             />

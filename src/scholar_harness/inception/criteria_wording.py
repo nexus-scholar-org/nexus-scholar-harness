@@ -29,7 +29,9 @@ STOP_WORDS = frozenset(
     should may can will would has have had do does did paper papers study studies record records article articles
     report reports reported""".split()
 )
-NEGATIONS = frozenset({"not", "no", "without", "only", "non", "except", "excluding", "other", "than"})
+#: "other than" is a negation only as the two-word phrase (review D round 1, finding 8); "other" alone is a word.
+NEGATIONS = frozenset({"not", "no", "without", "only", "non", "except", "excluding"})
+_OTHER_THAN = re.compile(r"\bother\s+than\b", re.IGNORECASE)
 #: Things an abstract rarely reports (a constant; record (f)). Matched as whole phrases.
 FULL_TEXT_PHRASES = (
     "full text", "full-text", "results section", "table", "sample size", "code available", "data available",
@@ -65,7 +67,7 @@ def normalised(text: str) -> tuple[str, ...]:
 
 def content(text: str) -> frozenset[str]:
     """The content words: no stop word and no negation word (the mirror check)."""
-    return frozenset(w for w in words(text) if w not in STOP_WORDS and w not in NEGATIONS)
+    return frozenset(w for w in words(_OTHER_THAN.sub(" ", text or "")) if w not in STOP_WORDS and w not in NEGATIONS)
 
 
 def is_english(items: Iterable[Item]) -> bool:

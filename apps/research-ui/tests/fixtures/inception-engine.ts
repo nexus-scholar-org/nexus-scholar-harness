@@ -352,6 +352,7 @@ export function inceptionEngine(options: FakeOptions = {}) {
     if (lacking) return lacking;
     const c = criteriaOf(draft);
     if (c.undecided.length) return refuse(422, "CRITERIA_UNDECIDED", "accept or reject every criterion the wizard wrote", { undecided: c.undecided });
+    if (options.method && (draft.method_not_reported ?? null) === null) return refuse(422, "METHOD_RULE_UNCHOSEN", "choose the not-reported rule");
     if (c.missing_sides.length) return refuse(422, "CRITERIA_MISSING", "a protocol needs at least one inclusion and one exclusion criterion", { missing_sides: c.missing_sides });
     const slug = slugify(String(draft.title));
     const exists = existing !== "none";

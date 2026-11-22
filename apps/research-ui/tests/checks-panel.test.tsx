@@ -4,6 +4,7 @@ import { join } from "node:path";
 import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import { CheckSentence } from "@/components/checks-panel";
 import { DiscoveryRecall } from "@/components/discovery-recall";
 import { InceptionCriteria } from "@/components/inception-criteria";
 import { InceptionReview } from "@/components/inception-review";
@@ -422,5 +423,16 @@ describe("checks panel notes count (H-run-small-fixes, finding 5)", () => {
       return el as HTMLElement;
     });
     expect(summary.textContent).toMatch(/^Notes \(\d+\)$/);
+  });
+});
+
+describe("checks panel, M11b part D (review D round 1, finding 4)", () => {
+  it("quotes criteria in their own direction (RTL)", () => {
+    const { container } = render(
+      <CheckSentence locale="ar" check={checkRow({ check_id: "CRITERIA_DUPLICATE", step: "criteria", level: "warning", subject: "a|b", params: { side: "exclusion", a: "صور الأقمار الصناعية فقط", b: "صور الأقمار الصناعية فقط." }, action: { kind: "field", step: "criteria", field: "extra_exclusions" } }) as never} />,
+    );
+    const quoted = [...container.querySelectorAll("bdi")].filter((b) => b.textContent?.includes("الأقمار"));
+    expect(quoted).toHaveLength(2);
+    for (const b of quoted) expect(b.getAttribute("dir")).toBe("auto");
   });
 });

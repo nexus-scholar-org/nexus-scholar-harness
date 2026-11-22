@@ -263,3 +263,17 @@ def test_the_assistant_has_no_proposal_kind_for_the_rule():
 
     # The fields a proposal may target: the method fields are not among them (the choice is the researcher's).
     assert not {"method_not_reported", "method_blinding"} & set(proposals.STEP_OF_FIELD)
+
+
+@pytest.mark.parametrize(
+    "skill",
+    [".agents/skills/inception-agent/SKILL.md", ".agents/plugins/nexus-scholar/skills/inception-agent/SKILL.md"],
+)
+def test_the_inception_agent_skill_names_the_rule_wherever_it_scripts_the_wizard(skill):
+    """Review D round 1, finding 3: a scripted run without ``--not-reported`` is refused, and the rule
+    is the researcher's to choose, so the skill names the flag and says to ask."""
+    text = (Path(__file__).resolve().parents[2] / skill).read_text(encoding="utf-8")
+    for line in text.splitlines():
+        if "--auto-select" in line:
+            assert "--not-reported" in line, line
+            assert "Ask the researcher" in line, line
