@@ -160,10 +160,19 @@ def test_the_scaffold_only_placeholder_fingerprint_does_not_move(tmp_path):
     2026-11-13, finding 9): the rationale reads "Convincing evidence: ..." in
     place of "Convincing evidence is ...", because the answer is pasted as
     written ("is Quantitative telemetry"). Nothing else in the placeholder moved.
+
+    M11b follow-up (2026-11-22): a placeholder states no method block unless the
+    not-reported rule is given. With ``unclear`` given, the protocol is the one
+    pinned above, byte for byte; without it, the block is left out, which is the
+    second value. Existing placeholder workspaces are not rewritten.
     """
     from scholar_harness.inception.genesis import scaffold_placeholder_workspace
 
     result = scaffold_placeholder_workspace(
-        tmp_path / "ws", "Placeholder Golden", agent="test", timestamp="2026-09-06T12:00:00+00:00"
+        tmp_path / "ws", "Placeholder Golden", agent="test", timestamp="2026-09-06T12:00:00+00:00", not_reported="unclear"
     )
     assert result["protocol_fingerprint"] == "sha256:ac266d77996bbf448f4494efacd49bfc8fe7fa232532361ad570026bc3d305ad"
+    unstated = scaffold_placeholder_workspace(
+        tmp_path / "ws2", "Placeholder Golden", agent="test", timestamp="2026-09-06T12:00:00+00:00"
+    )
+    assert unstated["protocol_fingerprint"] == "sha256:4982fc4a3e4ac655914c08ad0302451b2e01ba38baf083f9f88d11186e34cd39"
