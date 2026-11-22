@@ -13,6 +13,39 @@ from .base import BaseAPIProvider
 # A word as QueryParser reads one: up to a space or a bracket.
 _WORD = re.compile(r"[^\s()]+")
 
+# arXiv identifiers (arXiv's "Understanding the arXiv identifier"): the new
+# style ``YYMM.NNNN`` or ``YYMM.NNNNN`` (since 2007), and the old style
+# ``archive[.SUBJ]/YYMMNNN`` (before 2007), each with an optional ``vN``.
+_NEW_STYLE_ID = r"\d{4}\.\d{4,5}"
+_OLD_STYLE_ID = r"[a-z]+(?:-[a-z]+)*(?:\.[A-Z]{2})?/\d{7}"
+_ARXIV_ID = re.compile(
+    rf"^(?:arxiv:)?(?:https?://(?:www\.|export\.)?arxiv\.org/(?:abs|pdf)/)?"
+    rf"(?P<id>{_NEW_STYLE_ID}|{_OLD_STYLE_ID})(?P<version>v\d+)?(?:\.pdf)?$",
+    re.IGNORECASE,
+)
+
+
+def split_arxiv_id(text: str | None) -> tuple[str | None, str | None]:
+    """``(id, version)`` from an arXiv id, ``arXiv:`` id or abs/pdf address; ``(None, None)`` otherwise.
+
+    M12a Part F (DoD F7): an old-style id keeps its archive (``hep-th/9901001v2``
+    gives ``("hep-th/9901001", "v2")``); the provider used to keep only the part
+    after the last ``/`` and cut it at the first ``v``. A bare seven-digit
+    number (an old-style id stored without its archive) names no paper and is
+    ``(None, None)``.
+    """
+    match = _ARXIV_ID.match((text or "").strip())
+    if match is None:
+        return None, None
+    found = match.group("id")
+    if "/" in found:
+        archive, number = found.split("/", 1)
+        head, dot, subject = archive.partition(".")
+        # Archives are lower case; an old subject class (``math.AG``) is upper case.
+        found = f"{head.lower()}{dot}{subject.upper()}/{number}"
+    version = match.group("version")
+    return found, version.lower() if version else None
+
 
 class ArxivProvider(BaseAPIProvider):
     """Searches arXiv API (http://export.arxiv.org/api/query)."""
@@ -114,13 +147,13 @@ class ArxivProvider(BaseAPIProvider):
                 else:
                     authors.append(Author(family_name=name_parts[0]))
 
-        # Extract Arxiv ID from the ID URL (e.g. http://arxiv.org/abs/2101.01234v1 -> 2101.01234)
+        # The arXiv id from the entry's address, without its version
+        # (http://arxiv.org/abs/2101.01234v1 -> 2101.01234; an old-style
+        # http://arxiv.org/abs/hep-th/9901001v2 -> hep-th/9901001, M12a Part F).
         id_elem = entry.find("atom:id", self.ns)
         arxiv_id = None
         if id_elem is not None and id_elem.text:
-            arxiv_id = id_elem.text.split("/")[-1].split("v")[
-                0
-            ]  # Remove version number
+            arxiv_id, _ = split_arxiv_id(id_elem.text)
 
         # Extract DOI if available (often added after peer review publication)
         doi = None
