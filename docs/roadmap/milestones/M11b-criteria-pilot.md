@@ -820,6 +820,10 @@ Follow-up, not taken (it predates this change): `init --scaffold-only` still pri
 
 | Stage | Commit | Command | Result | Duration |
 | :-- | :-- | :-- | :-- | :-- |
-| targeted (round 1 repairs) | next commit | the new file on `6c9bee9c`'s `wizard.py`; then the new file, `tests/unit/test_audit_log.py`, `test_doctor.py`, `test_workspace_audit_service.py`, `tests/test_ui_launcher.py`, `tests/inception/test_inception_criteria.py`, `test_method_questions.py` (`-n 4`); contract baseline | 1 of 10 failed (the hint); 127 passed, 0 failed; current | |
+| targeted (round 1 repairs) | `898c41f1` (working tree) | the new file on `6c9bee9c`'s `wizard.py`; then the new file, `tests/unit/test_audit_log.py`, `test_doctor.py`, `test_workspace_audit_service.py`, `tests/test_ui_launcher.py`, `tests/inception/test_inception_criteria.py`, `test_method_questions.py` (`-n 4`); contract baseline | 1 of 10 failed (the hint); 127 passed, 0 failed; current | |
 
 The round 1 repairs change one console string and documents; the full suite ran on `6c9bee9c`, before them.
+
+Review round 2 (the delta `6c9bee9c..898c41f1`): **APPROVE** (lane RELEASE confirmed; the four findings repaired; the new file 10 of 10, contract baseline current). Two P3 notes: the full suite ran on `6c9bee9c`, before a one-string change to `wizard.py`, so the CI matrix on the PR head is the closure evidence; the repair row named "next commit" (now `898c41f1`).
+
+**Follow-up: READY FOR PR** (not pushed). Branch `dev/m11b/placeholder-not-reported` on `origin/main` `76c445ef`, head after this commit. Lane RELEASE: the CI matrix on the PR is the closure evidence. Decision items 1 to 8 wait for the researcher.
