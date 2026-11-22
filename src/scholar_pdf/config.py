@@ -79,6 +79,18 @@ def require_contact_email() -> str:
     return address
 
 
+def openalex_key() -> str:
+    """``SCHOLAR_OPENALEX_KEY`` as the search kit reads it, or ``""``. Never printed or logged.
+
+    Part K item 4: OpenAlex is asked only with its key (decision 2026-11-10,
+    "OpenAlex needs its API key"); without one only Unpaywall is asked.
+    """
+    from scholar_search.config import settings as search_settings
+
+    value = search_settings.openalex_key
+    return value.strip() if isinstance(value, str) else ""
+
+
 def user_agent() -> str:
     """``nexus-scholar/<version> (mailto:<address>)``: the app names itself, never a browser."""
     from scholar_search.http_client import PACKAGE, package_version

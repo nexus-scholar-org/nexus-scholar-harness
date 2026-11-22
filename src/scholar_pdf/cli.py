@@ -27,7 +27,7 @@ if sys.platform == "win32":
 
 from .acquisition import PDFAcquisitionService, WorkspaceManagerCliAuditSink
 from .acquisition_models import AcquisitionRunConfig, OperationStatus
-from .config import DECISION, MailtoNotSetError, contact_email, settings
+from .config import DECISION, MailtoNotSetError, contact_email, openalex_key, settings
 from .downloader import AsyncPDFDownloader
 from .extract import DoclingEngine, GrobidEngine
 from .extraction import PDFExtractionService
@@ -73,6 +73,13 @@ def _production_preflight(proxy: str | None) -> None:
         )
     if not contact_email():
         _refuse("MAILTO_NOT_SET", str(MailtoNotSetError()).split(": ", 1)[1])
+    if not openalex_key():
+        # Part K item 4: stated, not refused; Unpaywall alone is still an answer.
+        console.print(
+            "[yellow]OpenAlex is not asked: SCHOLAR_OPENALEX_KEY is not set. "
+            "Only Unpaywall is asked.[/yellow]",
+            soft_wrap=True,
+        )
 
 _ACQUISITION_EXIT_CODES = {
     OperationStatus.SUCCESS: 0,

@@ -32,6 +32,9 @@ PROVIDER_NAMES = {"openalex": "OpenAlex", "unpaywall": "Unpaywall"}
 
 #: Lookup states. ``NOT_FOUND`` (HTTP 404) is an answer: the service does not know the DOI.
 ANSWERED, NOT_FOUND, FAILED = "ANSWERED", "NOT_FOUND", "FAILED"
+#: OpenAlex is not asked without ``SCHOLAR_OPENALEX_KEY`` (Part K item 4). Neither an
+#: answer nor a failure: running again without the key would not change it.
+NOT_ASKED = "NOT_ASKED"
 
 #: Why a DOI ended as it did (``DownloadResult.outcome``).
 ACQUIRED = "ACQUIRED"
@@ -82,13 +85,21 @@ class LookupOutcome:
     def name(self) -> str:
         return PROVIDER_NAMES.get(self.provider, self.provider)
 
+    @property
+    def budget_spent(self) -> bool:
+        """OpenAlex answered 409: its daily budget is spent (Part K item 4)."""
+        return self.provider == "openalex" and self.state == FAILED and self.http_status == 409
+
     def failure(self) -> str:
         """Why the lookup failed, in words: the HTTP status, or the kind of error.
 
-        ``failed (HTTP 503)``, ``failed (timed out)``, ``failed (network error)``
+        ``failed (HTTP 503)``, ``failed (HTTP 409: the daily budget is spent)``
+        (OpenAlex only), ``failed (timed out)``, ``failed (network error)``
         (the lookup client's error with no status), ``failed (unreadable answer)``
         (a 200 whose body is not a JSON object), else the error's class name.
         """
+        if self.budget_spent:
+            return "failed (HTTP 409: the daily budget is spent)"
         if self.http_status is not None and self.http_status != 200:
             return f"failed (HTTP {self.http_status})"
         if self.error_kind and "Timeout" in self.error_kind:
@@ -236,7 +247,14 @@ def lists_open(payload: dict | None) -> bool:
     return isinstance(more, list) and any(isinstance(item, dict) for item in more)
 
 
+def not_asked_note(lookup: LookupOutcome) -> str:
+    """Why a service was not asked, in words (only OpenAlex without its key)."""
+    return f"{lookup.name} was not asked (SCHOLAR_OPENALEX_KEY is not set)"
+
+
 def _said(lookup: LookupOutcome, payload: dict | None) -> str:
+    if lookup.state == NOT_ASKED:
+        return not_asked_note(lookup)
     if lookup.state == FAILED:
         return f"{lookup.name} {lookup.failure()}"
     if lookup.state == NOT_FOUND:

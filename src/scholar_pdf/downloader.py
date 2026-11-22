@@ -18,16 +18,18 @@ from tenacity import (
     wait_exponential,
 )
 
-from .config import require_contact_email, settings, user_agent
+from .config import openalex_key, require_contact_email, settings, user_agent
 from .open_copies import (
     ACQUIRED,
     ANSWERED,
     FAILED,
     MAX_OPEN_COPIES_TRIED,
+    NOT_ASKED,
     NOT_FOUND,
     PDF_NOT_FETCHED,
     LookupOutcome,
     OpenCopy,
+    not_asked_note,
     open_copies,
     unresolved,
 )
@@ -272,12 +274,20 @@ class AsyncPDFDownloader:
         One request, as before. A 404 is an answer (the service does not know
         the DOI); any other error or a body that is not a JSON object is a
         failed lookup, kept with its HTTP status or its error's class name and
-        never with the error's text, which can hold the request address.
+        never with the error's text, which can hold the request address (with
+        the contact e-mail or the OpenAlex key). Without ``SCHOLAR_OPENALEX_KEY``
+        OpenAlex is not asked (``NOT_ASKED``, Part K item 4).
         """
         contact = require_contact_email()  # outside the try: a missing e-mail is refused, not a failed lookup
         if provider == "openalex":
+            # Part K item 4: OpenAlex is asked only with its key, sent as its
+            # ``api_key`` parameter (it no longer reads ``mailto``; the user
+            # agent still names the contact). The key is never logged or kept.
+            key = openalex_key()
+            if not key:
+                return _Lookup(LookupOutcome(provider, NOT_ASKED))
             url = f"https://api.openalex.org/works/https://doi.org/{doi}"
-            params = {"mailto": contact}
+            params = {"api_key": key}
         else:
             url = f"https://api.unpaywall.org/v2/{doi}"
             params = {"email": contact}
@@ -474,6 +484,8 @@ class AsyncPDFDownloader:
                         f"{message}; {lookup.name} {lookup.failure()}, "
                         "so its list was not read"
                     )
+                elif lookup.state == NOT_ASKED:
+                    message = f"{message}; {not_asked_note(lookup)}"
             return replace(
                 result,
                 status="FAILED",
