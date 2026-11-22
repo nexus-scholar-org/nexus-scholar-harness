@@ -12,7 +12,10 @@ a (study, kind) is the last stored event no later event supersedes.
 
 Kinds in Part A: ``fulltext_status``, ``fulltext_decision``, ``attachment``
 (written by the attachment route; through this intake only to undo or
-restore one already stored) and ``link``.
+restore one already stored) and ``link``. Part B adds ``cell``: one value of
+one charting column for one study, with an optional note and "where from";
+its undo chain is per column (the slot ``cell:<column_id>``), and the engine
+stamps the form version and whether the pilot was on.
 """
 
 from __future__ import annotations
@@ -38,7 +41,8 @@ MAX_REASON_TEXT = 500
 MAX_LINK_CHARS = 2_000
 MAX_FUTURE_SKEW = timedelta(minutes=5)
 
-KINDS = ("fulltext_status", "fulltext_decision", "attachment", "link")
+KINDS = ("fulltext_status", "fulltext_decision", "attachment", "link", "cell")
+MAX_WHERE_FROM = 500
 STATUSES = ("to_get", "requested", "retrieved", "not_retrieved")
 NOT_RETRIEVED_REASONS = ("no_access", "not_found", "no_reply", "other")
 OUTCOMES = ("INCLUDE", "EXCLUDE")
@@ -54,8 +58,8 @@ IDEMPOTENCY_CONFLICT = "IDEMPOTENCY_CONFLICT"
 ATOMIC_COMMIT_FAILED = "ATOMIC_COMMIT_FAILED"
 
 #: Fields the engine stamps; the client cannot set them and a replay ignores them.
-ENGINE_FIELDS = frozenset({"received_at", "binding", "method"})
-CLIENT_FIELDS = frozenset({"event_id", "study_id", "screener_id", "at", "kind", "value", "note", "supersedes"})
+ENGINE_FIELDS = frozenset({"received_at", "binding", "method", "pilot"})
+CLIENT_FIELDS = frozenset({"event_id", "study_id", "screener_id", "at", "kind", "value", "note", "where_from", "supersedes"})
 
 _UUID = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$")
 _SAFE_SCREENER = re.compile(r"[^A-Za-z0-9._-]+")
@@ -82,6 +86,9 @@ class Context:
     kept: frozenset[str]
     reason_codes: frozenset[str]
     binding: dict[str, Any]
+    #: Part B: the charting form a cell is checked against, and whether its pilot is on.
+    form: dict[str, Any] | None = None
+    pilot: bool = False
 
 
 def _refuse(code: str, message: str) -> dict[str, str]:
@@ -218,6 +225,8 @@ def shape_refusal(raw: Any, context: Context, stored: list[dict[str, Any]], rece
         return _refuse(BODY_INVALID, "at is in the future")
     if raw.get("note") is not None and _text(raw.get("note"), MAX_NOTE_CHARS) is None:
         return _refuse(BODY_INVALID, f"a note is text of at most {MAX_NOTE_CHARS} characters")
+    if raw.get("where_from") is not None and (raw.get("kind") != "cell" or _text(raw.get("where_from"), MAX_WHERE_FROM) is None):
+        return _refuse(BODY_INVALID, f"where_from goes with a cell and is text of at most {MAX_WHERE_FROM} characters")
     if raw.get("supersedes") is not None and not _UUID.match(str(raw.get("supersedes"))):
         return _refuse(BODY_INVALID, "supersedes is an event_id")
     if str(raw.get("study_id") or "") not in context.kept:
@@ -229,6 +238,12 @@ def shape_refusal(raw: Any, context: Context, stored: list[dict[str, Any]], rece
         return _decision_refusal(value, context)
     if kind == "link":
         return link_refusal(value)
+    if kind == "cell":
+        if context.form is None:
+            return _refuse("CHARTING_COLUMN_UNKNOWN", "The charting form was not created yet. Reload the table.")
+        from .form import cell_refusal
+
+        return cell_refusal(value, context.form)
     return _attachment_refusal(value, str(raw["study_id"]), stored)
 
 
@@ -250,11 +265,19 @@ def _client_content(event: dict[str, Any]) -> dict[str, Any]:
     return {k: v for k, v in event.items() if k not in ENGINE_FIELDS and k != "received_at"}
 
 
+def slot(event: dict[str, Any]) -> str:
+    """What an event's value belongs to: its kind, or ``cell:<column_id>`` for a cell."""
+    if event.get("kind") == "cell":
+        value = event.get("value") if isinstance(event.get("value"), dict) else {}
+        return f"cell:{value.get('column_id')}"
+    return str(event.get("kind"))
+
+
 def heads(events: list[dict[str, Any]], study_id: str, screener_id: str, kind: str) -> list[dict[str, Any]]:
-    """The (study, screener, kind) events no later event supersedes, in stored order."""
+    """The (study, screener, slot) events no later event supersedes, in stored order (``kind`` is a slot)."""
     mine = [
         e for e in events
-        if e.get("study_id") == study_id and e.get("screener_id") == screener_id and e.get("kind") == kind
+        if e.get("study_id") == study_id and e.get("screener_id") == screener_id and slot(e) == kind
     ]
     gone = {str(e["supersedes"]) for e in mine if e.get("supersedes")}
     return [e for e in mine if e["event_id"] not in gone]
@@ -307,13 +330,15 @@ def _intake_locked(ws, events, context, received_at, journal_description, after_
         supersedes = raw.get("supersedes")
         if supersedes and not any(
             e["event_id"] == supersedes and e["study_id"] == raw["study_id"]
-            and e["screener_id"] == raw["screener_id"] and e["kind"] == raw["kind"]
+            and e["screener_id"] == raw["screener_id"] and slot(e) == slot(raw)
             for e in stored + pending
         ):
             results.append(Result(event_id, "refused", _refuse(
-                BODY_INVALID, "supersedes names no earlier event of this kind for this study")))
+                BODY_INVALID, "supersedes names no earlier event of this kind (and column) for this study")))
             continue
         record = {**raw, "method": "HUMAN", "binding": dict(context.binding), "received_at": received_at}
+        if raw["kind"] == "cell":
+            record["pilot"] = context.pilot
         pending.append(record)
         known[event_id] = record
         results.append(Result(event_id, "accepted"))

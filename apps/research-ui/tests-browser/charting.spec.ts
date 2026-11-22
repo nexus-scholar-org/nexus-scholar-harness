@@ -122,7 +122,7 @@ test("the Full text view: status by keyboard on one row and on all, a decision w
   const posted = await engine(page);
   await page.goto("/en/charting");
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Charting");
-  await expect(countsLine(page)).toHaveText("5 kept · 0 retrieved · 0 not retrieved · 5 to get · 0 included at full text · 0 excluded");
+  await expect(countsLine(page)).toHaveText("5 kept · 0 retrieved · 0 not retrieved · 5 to get · 0 included at full text · 0 excluded · 0 charted");
 
   await rowOf(page, "STU-001").click({ position: { x: 4, y: 4 } });
   await page.keyboard.press("r");
