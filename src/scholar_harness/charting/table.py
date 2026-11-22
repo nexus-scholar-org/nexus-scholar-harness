@@ -195,14 +195,18 @@ def counts(rows: list[dict[str, Any]]) -> dict[str, int]:
     }
 
 
-def table(ws: Path | str) -> dict[str, Any]:
-    """``GET /api/v1/charting``: every kept row, the counts and what the screen needs to explain them."""
+def table(ws: Path | str, *, seed: bool = True) -> dict[str, Any]:
+    """``GET /api/v1/charting``: every kept row, the counts and what the screen needs to explain them.
+
+    ``seed=False`` is a pure read (Part C's methods block): the form is not seeded and the kept history
+    is not appended (review of Part C, finding 2).
+    """
     ws = Path(ws)
-    state = read_kept(ws)
+    state = read_kept(ws, remember=seed)
     who = screener_id(ws)
     replaced = protocol_replaced(ws, state)
     # The form is seeded at the first visit (DoD 10), not while the table is read-only.
-    form = (fm.read_form(ws) if replaced else fm.ensure_form(ws, who)) or {"columns": [], "version": 0, "pilot": {"on": False}}
+    form = (fm.read_form(ws) if replaced or not seed else fm.ensure_form(ws, who)) or {"columns": [], "version": 0, "pilot": {"on": False}}
     info = cl.amendment_info(ws, form)
     events = ev.read_events(ws)
     index = cl.build_index(events)

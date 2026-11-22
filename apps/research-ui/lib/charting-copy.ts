@@ -1,3 +1,4 @@
+import { pluralTemplate } from "@/lib/plural";
 import type { Locale } from "@/i18n";
 
 /**
@@ -261,11 +262,11 @@ const EN = {
   "charting.report.counts.other": "Other",
   "charting.report.counts.noDecisions": "No full-text decision is recorded yet. The counts fill in as you decide.",
   "charting.report.open.title": "Still open",
-  "charting.report.open.note": "Not PRISMA counts: what is not finished yet. A copy waiting for you is also awaiting retrieval; a report assessed without a full text is also among the assessed.",
+  "charting.report.open.note": "Not PRISMA counts: what is not finished yet. A copy waiting for you is also counted under its row's status above; a report assessed before its full text was retrieved is also among the assessed.",
   "charting.report.open.awaiting": "Awaiting retrieval",
   "charting.report.open.toConfirm": "Fetched, waiting for you to confirm",
   "charting.report.open.notAssessed": "Retrieved, not yet assessed",
-  "charting.report.open.noFullText": "Assessed without a full text",
+  "charting.report.open.noFullText": "Assessed before the full text was retrieved",
   "charting.report.methods.title": "Methods paragraph",
   "charting.report.methods.draftBadge": "Draft · check before you submit",
   "charting.report.methods.language": "Written in English for a manuscript. Check every number against your PRISMA flow diagram.",
@@ -743,11 +744,11 @@ const FR: Record<ChartingCopyKey, string> = {
   "charting.report.counts.other": "Autre",
   "charting.report.counts.noDecisions": "Aucune décision sur texte intégral n'est encore enregistrée. Les effectifs se remplissent à mesure que vous décidez.",
   "charting.report.open.title": "Encore ouvert",
-  "charting.report.open.note": "Ce ne sont pas des effectifs PRISMA : ce qui n'est pas encore terminé. Une copie qui vous attend est aussi en attente d'obtention ; un rapport évalué sans texte intégral compte aussi parmi les rapports évalués.",
+  "charting.report.open.note": "Ce ne sont pas des effectifs PRISMA : ce qui n'est pas encore terminé. Une copie qui vous attend est aussi comptée selon le statut de sa ligne ci-dessus ; un rapport évalué avant d'avoir son texte intégral compte aussi parmi les rapports évalués.",
   "charting.report.open.awaiting": "En attente d'obtention",
   "charting.report.open.toConfirm": "Récupéré, en attente de votre confirmation",
   "charting.report.open.notAssessed": "Obtenu, pas encore évalué",
-  "charting.report.open.noFullText": "Évalué sans texte intégral",
+  "charting.report.open.noFullText": "Évalué avant l'obtention du texte intégral",
   "charting.report.methods.title": "Paragraphe de méthodes",
   "charting.report.methods.draftBadge": "Brouillon · à vérifier avant soumission",
   "charting.report.methods.language": "Rédigé en anglais pour un manuscrit. Vérifiez chaque nombre avec votre diagramme de flux PRISMA.",
@@ -1222,11 +1223,11 @@ const AR: Record<ChartingCopyKey, string> = {
   "charting.report.counts.other": "سبب آخر",
   "charting.report.counts.noDecisions": "لم يُسجَّل أي قرار على النص الكامل بعد. تمتلئ الأعداد كلما قررت.",
   "charting.report.open.title": "ما زال مفتوحًا",
-  "charting.report.open.note": "ليست أعداد PRISMA: ما لم يكتمل بعد. النسخة التي تنتظرك هي أيضًا بانتظار الحصول عليها؛ والتقرير المقيّم دون نص كامل هو أيضًا من بين التقارير المقيّمة.",
+  "charting.report.open.note": "ليست أعداد PRISMA: ما لم يكتمل بعد. النسخة التي تنتظرك محسوبة أيضًا تحت حالة صفّها أعلاه؛ والتقرير المقيّم قبل الحصول على نصه الكامل محسوب أيضًا ضمن التقارير المقيّمة.",
   "charting.report.open.awaiting": "بانتظار الحصول عليه",
   "charting.report.open.toConfirm": "مُجلَب، ينتظر تأكيدك",
   "charting.report.open.notAssessed": "تم الحصول عليه، لم يُقيَّم بعد",
-  "charting.report.open.noFullText": "قُيّم دون نص كامل",
+  "charting.report.open.noFullText": "قُيّم قبل الحصول على النص الكامل",
   "charting.report.methods.title": "فقرة المنهجية",
   "charting.report.methods.draftBadge": "مسودة · راجعها قبل الإرسال",
   "charting.report.methods.language": "مكتوبة بالإنجليزية لمخطوطة. طابق كل رقم مع مخطط تدفق PRISMA الخاص بك.",
@@ -1465,9 +1466,12 @@ export const CHARTING_REFUSAL_CODES = [
   "MAILTO_NOT_SET", "FETCH_ALREADY_ACTIVE", "FETCH_NOT_PENDING", "DISCARD_REASON_REQUIRED", "FETCH_FILE_WAITING",
 ] as const;
 
-/** One charting string with its `{holes}` filled; a missing hole is an error, never blank. */
-export function cc(locale: Locale, key: ChartingCopyKey, values: Readonly<Record<string, string | number>> = {}): string {
-  return CHARTING_COPY[locale][key].replace(/\{(\w+)\}/g, (_, name: string) => {
+/**
+ * One charting string with its `{holes}` filled; a missing hole is an error, never blank. With `count`,
+ * the form for that count comes from the shared plural table (`lib/plural.ts`) when it has one.
+ */
+export function cc(locale: Locale, key: ChartingCopyKey, values: Readonly<Record<string, string | number>> = {}, count?: number): string {
+  return pluralTemplate(locale, key, count, CHARTING_COPY[locale][key]).replace(/\{(\w+)\}/g, (_, name: string) => {
     if (!(name in values)) throw new Error(`charting copy "${key}" needs {${name}}`);
     return String(values[name]);
   });

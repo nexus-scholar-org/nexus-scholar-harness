@@ -87,7 +87,7 @@ describe("charting.report.counts", () => {
       ["Awaiting retrieval", "2"],
       ["Fetched, waiting for you to confirm", "1"],
       ["Retrieved, not yet assessed", "0"],
-      ["Assessed without a full text", "1"],
+      ["Assessed before the full text was retrieved", "1"],
     ]);
     expect(prisma().contains(region)).toBe(false);
     expect(within(prisma()).queryByText("Awaiting retrieval")).toBeNull();

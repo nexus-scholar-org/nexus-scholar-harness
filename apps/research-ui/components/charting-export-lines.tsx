@@ -38,15 +38,15 @@ export function ExportLines({
             when: localStamp(lastExport.at),
             format: cc(locale, lastExport.format === "xlsx" ? "charting.export.format.xlsx" : "charting.export.format.csv"),
             n: n(lastExport.rows),
-          })}
-          {fileDiffers ? <span data-file-had>{` ${cc(locale, "charting.export.fileHad", { n: n(lastExport.cells_open) })}`}</span> : null}
+          }, lastExport.rows)}
+          {fileDiffers ? <span data-file-had>{` ${cc(locale, "charting.export.fileHad", { n: n(lastExport.cells_open) }, lastExport.cells_open)}`}</span> : null}
         </p>
       ) : null}
-      {cellsOpen > 0 ? <p data-cells-open>{cc(locale, "charting.export.cellsOpen", { n: n(cellsOpen) })}</p> : null}
+      {cellsOpen > 0 ? <p data-cells-open>{cc(locale, "charting.export.cellsOpen", { n: n(cellsOpen) }, cellsOpen)}</p> : null}
       {requiredOpen > 0 ? (
         <p className="flex items-center gap-1.5 text-unclear" data-role="unclear" data-required-open>
           <ExclamationTriangleIcon aria-hidden="true" className="size-4 shrink-0" data-icon />
-          <span>{cc(locale, "charting.export.requiredOpen", { n: n(requiredOpen) })}</span>
+          <span>{cc(locale, "charting.export.requiredOpen", { n: n(requiredOpen) }, requiredOpen)}</span>
         </p>
       ) : null}
     </div>

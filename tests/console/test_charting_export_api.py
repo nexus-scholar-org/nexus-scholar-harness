@@ -135,9 +135,11 @@ def test_the_spreadsheet_has_every_sheet_and_reads_back(env):
     assert list(prisma["Reports sought for retrieval"]) == [2, 0, 2]
     assert list(prisma["Reports not retrieved"]) == [1, 0, 1]
     assert list(prisma["  not retrieved: No access or paywalled"]) == [1, 0, 1]
-    assert list(prisma["Reports assessed for eligibility"]) == [2, 0, 2]
+    # The report not retrieved and decided from its abstract stays under "not retrieved" (review, finding 1).
+    assert list(prisma["Reports assessed for eligibility"]) == [1, 0, 1]
     assert list(prisma["Reports excluded"]) == [1, 0, 1]
-    assert list(prisma["Reports included"]) == [1, 0, 1]
+    assert list(prisma["Reports included"]) == [0, 0, 0]
+    assert list(prisma["Decided from the abstract"]) == [1, 0, 1] and list(prisma["  included"]) == [1, 0, 1]
     assert any(k.startswith(f"  excluded: {option['code']}") for k in prisma)
 
     form = rows("Charting form")
@@ -204,10 +206,12 @@ def test_the_prisma_full_text_counts_are_written_and_screenings_report_is_unchan
     written = json.loads((ws / rp.PRISMA_FILE).read_text(encoding="utf-8"))
     assert written["schema"] == rp.PRISMA_SCHEMA and written["unit"] == "reports"
     total = written["total"]
-    assert (total["sought"], total["not_retrieved"], total["assessed"], total["excluded"], total["included"]) == (2, 1, 2, 1, 1)
+    assert (total["sought"], total["not_retrieved"], total["assessed"], total["excluded"], total["included"]) == (2, 1, 1, 1, 0)
+    assert (total["not_retrieved_decided"], total["not_retrieved_included"], total["not_retrieved_excluded"]) == (1, 1, 0)
     assert total["not_retrieved_reasons"] == {"No access or paywalled": 1}
     assert total["exclusion_reasons"] == {option["code"]: 1}
-    assert total["assessed_without_full_text"] == 1, "the report decided Include while not retrieved"
+    assert total["assessed_without_full_text"] == 0, "a report not retrieved is never counted as assessed"
+    assert total["sought"] == total["not_retrieved"] + total["assessed"] + total["awaiting_retrieval"] + total["retrieved_not_assessed"]
     assert written["arms"]["databases"]["sought"] == 2 and written["arms"]["citation_searching"]["sought"] == 0
     assert [r["round"] for r in written["rounds"]] == [1] and written["rounds"][0]["label"] == "Databases"
     assert screening_report.read_bytes() == before
@@ -220,13 +224,21 @@ def test_a_waiting_or_open_report_is_counted_apart_so_the_counts_add_up():
         _view_row("C", 2, "citation_searching", "retrieved"),
         _view_row("D", 2, "citation_searching", "retrieved", decision={"outcome": "INCLUDE"}),
         {**_view_row("E", 2, "citation_searching", "retrieved"), "kept": False},
+        # Review of Part C, finding 1: not retrieved and decided from the abstract; and finding 3: a copy
+        # waiting on a Not retrieved row, and a decision taken before the full text came (To get).
+        _view_row("F", 1, "databases", "not_retrieved", decision={"outcome": "EXCLUDE", "reason_code": "EXC-1"}),
+        _view_row("G", 1, "databases", "not_retrieved", pending=True),
+        _view_row("H", 1, "databases", "to_get", decision={"outcome": "INCLUDE"}),
     ]}
     counts = rp.prisma_fulltext(view)
     total = counts["total"]
-    assert total["sought"] == 4, "a record no longer kept is not sought"
-    assert (total["awaiting_retrieval"], total["to_confirm"], total["retrieved_not_assessed"], total["assessed"]) == (2, 1, 1, 1)
+    assert total["sought"] == 7, "a record no longer kept is not sought"
+    assert (total["awaiting_retrieval"], total["to_confirm"], total["retrieved_not_assessed"], total["assessed"]) == (2, 2, 1, 2)
+    assert (total["not_retrieved"], total["not_retrieved_decided"], total["not_retrieved_excluded"]) == (2, 1, 1)
+    assert total["exclusion_reasons"] == {}, "an exclusion of a report not retrieved is not a PRISMA exclusion"
+    assert total["assessed_without_full_text"] == 1
     assert total["sought"] == total["not_retrieved"] + total["assessed"] + total["awaiting_retrieval"] + total["retrieved_not_assessed"]
-    assert counts["arms"]["citation_searching"]["included"] == 1 and counts["arms"]["databases"]["sought"] == 2
+    assert counts["arms"]["citation_searching"]["included"] == 1 and counts["arms"]["databases"]["sought"] == 5
     assert [r["label"] for r in counts["rounds"]] == ["Databases", "Citation chasing"]
 
 
@@ -248,8 +260,9 @@ def test_the_methods_block_states_every_number_from_the_events(env):
     amended_on = json.loads((ws / "charting" / "form_amendments.jsonl").read_text(encoding="utf-8").splitlines()[0])["amended_at"][:10]
     assert block["sentences"] == [
         "Of 2 reports sought for retrieval, 1 was not retrieved (No access or paywalled: 1).",
-        f"2 reports were assessed at full text by one reviewer; 1 was excluded ({option['label']} ({option['code']}): 1) "
-        "and 1 was included.",
+        f"1 report was assessed at full text by one reviewer; 1 was excluded ({option['label']} ({option['code']}): 1) "
+        "and 0 were included.",
+        "1 report not retrieved was decided from the abstract: 1 was included and 0 were excluded.",
         f'Data were charted by one reviewer using a form piloted on 1 study and revised on {amended_on} '
         '(renamed "Cameras and evaluation design" to "Cameras": Shorter name.).',
         "'Not reported' was recorded when a study did not report an item.",
@@ -258,8 +271,8 @@ def test_the_methods_block_states_every_number_from_the_events(env):
     ]
     assert block["paragraph"] == " ".join(block["sentences"])
     assert "The pilot of the charting form has not been ended." in block["caveats"]
-    assert "1 report was decided at full text without a retrieved full text." in block["caveats"]
-    assert "2 cells are not charted yet, 1 of them in required columns." in block["caveats"]
+    assert not any("before a full text was retrieved" in c for c in block["caveats"])
+    assert "2 cells are not charted yet; 1 in a required column." in block["caveats"]
     assert block["figures"]["reviewers"] == {"fulltext_decisions": 1, "charting": 1}
     listed = {s["path"]: s["digest"] for s in block["sources"]}
     assert {"charting/form.json", "charting/form_amendments.jsonl", "literature/included.json"} <= set(listed)
@@ -339,3 +352,17 @@ def test_the_table_counts_open_and_required_cells(env):
     _post(client, _cell(ids["included"], "cameras", "value", "Sequoia"))
     counts = client.get(BASE).json()["counts"]
     assert (counts["cells_open"], counts["required_open"]) == (7, 2)
+
+
+def test_the_methods_block_on_a_table_never_opened_writes_nothing(env):
+    """Review of Part C, finding 2: the first read is /methods; no form is seeded, no history kept, no journal row."""
+    client, ws, _ids = env
+    journal = (ws / "audit" / "journal.jsonl").read_bytes()
+    charting_before = sorted(p.relative_to(ws).as_posix() for p in (ws / "charting").rglob("*")) if (ws / "charting").exists() else []
+    answer = client.get(f"{BASE}/methods")
+    assert answer.status_code == 200
+    assert answer.json()["sentences"][0] == "Of 2 reports sought for retrieval, none is recorded as not retrieved."
+    assert (ws / "audit" / "journal.jsonl").read_bytes() == journal
+    charting_after = sorted(p.relative_to(ws).as_posix() for p in (ws / "charting").rglob("*")) if (ws / "charting").exists() else []
+    assert charting_after == charting_before
+    assert not (ws / "charting" / "form.json").exists()

@@ -55,6 +55,9 @@ def _empty() -> dict[str, Any]:
         "exclusion_reasons": {}, "included": 0,
         # The working state: what is still open, so the numbers add up before the stage ends.
         "awaiting_retrieval": 0, "to_confirm": 0, "retrieved_not_assessed": 0, "assessed_without_full_text": 0,
+        # A report not retrieved stays in "not retrieved" whatever its decision; one decided from its abstract
+        # is counted here, apart from the PRISMA boxes (review of Part C, finding 1).
+        "not_retrieved_decided": 0, "not_retrieved_included": 0, "not_retrieved_excluded": 0,
     }
 
 
@@ -62,11 +65,16 @@ def _add(group: dict[str, Any], r: dict[str, Any]) -> None:
     ft, decision = r["fulltext"], r["ft_decision"] or {}
     status, waiting = ft["status"], bool(ft.get("pending_fetch"))
     group["sought"] += 1
+    # Each report falls in exactly one of: not retrieved, assessed, retrieved and not assessed, awaiting
+    # retrieval; so sought is their sum, as a PRISMA 2020 flow draws it.
     if status == "not_retrieved":
         group["not_retrieved"] += 1
         key = NOT_RETRIEVED_WORDS.get(str(ft.get("reason") or ""), "Other")
         group["not_retrieved_reasons"][key] = group["not_retrieved_reasons"].get(key, 0) + 1
-    if decision:
+        if decision.get("outcome") in ("INCLUDE", "EXCLUDE"):
+            group["not_retrieved_decided"] += 1
+            group["not_retrieved_included" if decision["outcome"] == "INCLUDE" else "not_retrieved_excluded"] += 1
+    elif decision:
         group["assessed"] += 1
         if status != "retrieved":
             group["assessed_without_full_text"] += 1
@@ -78,7 +86,7 @@ def _add(group: dict[str, Any], r: dict[str, Any]) -> None:
             group["included"] += 1
     elif status == "retrieved":
         group["retrieved_not_assessed"] += 1
-    elif status != "not_retrieved":
+    else:
         group["awaiting_retrieval"] += 1
     if waiting:
         group["to_confirm"] += 1
@@ -227,7 +235,7 @@ def methods(ws: Path | str, view: dict[str, Any] | None = None) -> dict[str, Any
     from . import table as tb
 
     ws = Path(ws)
-    view = view if view is not None else tb.table(ws)
+    view = view if view is not None else tb.table(ws, seed=False)
     prisma = prisma_fulltext(view)
     t = prisma["total"]
     live = [r for r in view["rows"] if r["kept"]]
@@ -239,14 +247,18 @@ def methods(ws: Path | str, view: dict[str, Any] | None = None) -> dict[str, Any
     not_stated: list[str] = []
 
     # 1. Retrieval.
-    retrieval = f"Of {_reports(t['sought'])} sought for retrieval, {_were(t['not_retrieved'])} not retrieved"
-    retrieval += f" ({_reasons(t['not_retrieved_reasons'])})." if t["not_retrieved"] else "."
+    if t["not_retrieved"]:
+        retrieval = (f"Of {_reports(t['sought'])} sought for retrieval, {_were(t['not_retrieved'])} not retrieved "
+                     f"({_reasons(t['not_retrieved_reasons'])}).")
+    else:
+        retrieval = f"Of {_reports(t['sought'])} sought for retrieval, none is recorded as not retrieved."
     sentences.append(retrieval)
 
     # 2. Open-access copies (Part F): confirmed copies in use, and those discarded.
     fetched = [r for r in live if ((r["fulltext"].get("attachment") or {}).get("origin") == "fetched")]
     discarded = [r for r in live if r["fulltext"].get("discarded_fetch")]
     services = _services(ws)
+    checkers = _reviewers(ws, ("fetched_confirm",))
     if fetched or discarded:
         where = _series(services) if services else "open-access services"
         reasons = Counter(DISCARD_WORDS.get(str((r["fulltext"]["discarded_fetch"] or {}).get("reason")), "other") for r in discarded)
@@ -254,7 +266,7 @@ def methods(ws: Path | str, view: dict[str, Any] | None = None) -> dict[str, Any
         if fetched:
             sentences.append(
                 f"Open-access copies of {_reports(len(fetched))} were located with {where} "
-                f"and each was checked by the reviewer before use{tail}."
+                f"and each was checked by {'the reviewer' if checkers <= 1 else 'a reviewer'} before use{tail}."
             )
         else:
             sentences.append(f"Open-access copies were looked up with {where}; none was used{tail}.")
@@ -269,6 +281,12 @@ def methods(ws: Path | str, view: dict[str, Any] | None = None) -> dict[str, Any
         )
     else:
         sentences.append("No report has been assessed at full text yet.")
+    if t["not_retrieved_decided"]:
+        n = t["not_retrieved_decided"]
+        sentences.append(
+            f"{_reports(n)} not retrieved {'was' if n == 1 else 'were'} decided from the abstract: "
+            f"{_were(t['not_retrieved_included'])} included and {_were(t['not_retrieved_excluded'])} excluded."
+        )
 
     # 4. Charting: the form, its pilot and its amendments.
     charters = _reviewers(ws, ("cell",))
@@ -317,13 +335,13 @@ def methods(ws: Path | str, view: dict[str, Any] | None = None) -> dict[str, Any
         caveats.append(f"{t['to_confirm']} fetched {'copy waits' if t['to_confirm'] == 1 else 'copies wait'} for the reviewer's confirmation "
                        f"and {'is' if t['to_confirm'] == 1 else 'are'} not counted as retrieved.")
     if t["assessed_without_full_text"]:
-        caveats.append(f"{_reports(t['assessed_without_full_text'])} {'was' if t['assessed_without_full_text'] == 1 else 'were'} decided "
-                       "at full text without a retrieved full text.")
+        caveats.append(f"{_reports(t['assessed_without_full_text'])} counted as assessed {'was' if t['assessed_without_full_text'] == 1 else 'were'} "
+                       "decided before a full text was retrieved (To get or Requested).")
     counts = view["counts"]
     if counts.get("cells_open"):
         caveats.append(
-            f"{counts['cells_open']} {'cell is' if counts['cells_open'] == 1 else 'cells are'} not charted yet, "
-            f"{counts.get('required_open', 0)} of them in required columns."
+            f"{counts['cells_open']} {'cell is' if counts['cells_open'] == 1 else 'cells are'} not charted yet; "
+            f"{counts.get('required_open', 0)} in {'a required column' if counts.get('required_open', 0) == 1 else 'required columns'}."
         )
     if len(view.get("rounds") or []) > 1:
         not_stated.append("The sentences give totals over every round; the PRISMA counts are split by round.")
@@ -431,7 +449,12 @@ def prisma_rows(prisma: dict[str, Any], labels: dict[str, str]) -> list[list[Any
     line("Awaiting retrieval", "awaiting_retrieval")
     line("Fetched, to confirm", "to_confirm")
     line("Retrieved, not assessed", "retrieved_not_assessed")
-    line("Assessed without a retrieved full text", "assessed_without_full_text")
+    line("Assessed before a full text was retrieved", "assessed_without_full_text")
+    rows.append([])
+    rows.append(["Not retrieved, decided from the abstract (counted under Reports not retrieved)"])
+    line("Decided from the abstract", "not_retrieved_decided")
+    line("  included", "not_retrieved_included")
+    line("  excluded", "not_retrieved_excluded")
     if len(prisma["rounds"]) > 1:
         rows.append([])
         rows.append(["By round", "Round", "Sought", "Not retrieved", "Assessed", "Excluded", "Included"])

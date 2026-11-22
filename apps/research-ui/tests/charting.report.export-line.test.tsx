@@ -38,6 +38,14 @@ describe("charting.report.export-line", () => {
     expect(line("last-export")).toHaveTextContent("Exported 2026-11-21 14:32 (CSV): 3 rows.");
   });
 
+  it("says one row and one cell in the singular (review of Part C, finding 5)", async () => {
+    installEngine(table({ last_export: lastExport({ rows: 1, cells_open: 5 }) }, { cells_open: 1, required_open: 1 }));
+    await renderReport();
+    expect(line("last-export")).toHaveTextContent(/: 1 row\. Changes after this/);
+    expect(line("cells-open")).toHaveTextContent(/^1 cell is not charted yet\.$/);
+    expect(line("required-open")).toHaveTextContent(/^1 required cell is empty\.$/);
+  });
+
   it("is absent, not 'never', before the first export", async () => {
     installEngine(table({ last_export: null }));
     await renderReport();
