@@ -578,3 +578,12 @@ Review round 1 (`milestone-reviewer`, on `560f5dc6`, scope `55755bd7..HEAD`): **
 | P4-8 | One DOI written two ways in the input cost two lookups and two rows | de-duplicated on the bare DOI; item 18 | `test_the_input_file_is_deduplicated_on_the_bare_doi` |
 
 The new tests fail on `560f5dc6`'s code by reading (no `cache_enabled` passed; a forward proxy only refused when equal to the gateway; `InvalidURL` and `ClientSSLError` are `ClientError`s; three calls for one DOI). Follow-ups the reviewer named, outside Part K: plan §8 still lists `scholar_pdf` downloading as parked (the main session's); the search kit's cache holds its key too; `download --input` does not count records without a DOI; a rare case where two DOIs share bytes and the first row fails.
+
+Evidence after round 1:
+
+| Stage | Commit | Command | Result | Duration |
+| :-- | :-- | :-- | :-- | :-- |
+| inner | working tree before `a6a32eeb` | `pytest tests/kits/pdf -n 2` (junit); real-bug ruff on `src/` | 333 tests, 7 skipped, 0 failures; clean | 32 s |
+| pr (final) | `a7b60db2` (code as `a6a32eeb`) | `pytest -q -n 4` (junit), started when no other pytest, vitest or Playwright run was on the machine; `sync_skills_bundle.py --check`; both ruff runs; baseline; protocol schema; `git diff --check origin/main...HEAD` | 6375 tests, 0 failures, 0 errors, 15 skipped; OK; clean; current; in sync; clean | 641 s |
+
+A first start of this gate was cut off when the desktop app restarted; its leftover workers were ended and the gate was run again from the start.
