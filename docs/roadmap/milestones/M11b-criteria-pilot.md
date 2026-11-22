@@ -662,7 +662,7 @@ Review round 2 of part C (on `f6d26718`): **APPROVE** (lane RELEASE confirmed). 
 
 ### Part D: Inception step 5
 
-Branch `dev/m11b/part-d-step5`, stacked on part C (its reviewed head `daaeaa92` merged in, and `origin/main` `55755bd7`: part B as PR 277 and the PDF resolver fix PR 278) · Lane **RELEASE** (the inception draft API, the intent packet and the protocol genesis writes change; new check ids in a public preview) · Decisions: `docs/decisions.md` "2026-11-21 — M11b part D" items 1 to 20 answered by the researcher on 2026-11-22 (nineteen accepted, item 5 changed), items 21 to 24 PROPOSED with the change. Status: **IN PROGRESS** (item 5 changed by the researcher on 2026-11-22; the change, its gate and the review of the delta below).
+Branch `dev/m11b/part-d-step5`, stacked on part C (its reviewed head `daaeaa92` merged in, and `origin/main` `55755bd7`: part B as PR 277 and the PDF resolver fix PR 278) · Lane **RELEASE** (the inception draft API, the intent packet and the protocol genesis writes change; new check ids in a public preview) · Decisions: `docs/decisions.md` "2026-11-21 — M11b part D" items 1 to 20 answered by the researcher on 2026-11-22 (nineteen accepted, item 5 changed), items 21 to 24 PROPOSED with the change. Status: **READY FOR PR** (the item 5 change gated and approved in review round 3; not pushed).
 
 What was built (engine):
 - `inception/steps.py`: the draft fields `method_blinding` (pre-selected "after you decide") and `method_not_reported` (no default); `method_choice`, `method_options` on `steps/criteria`; `build_intent` refuses `METHOD_RULE_UNCHOSEN` (preview and genesis) and writes `method` into the intent; `keep_method_choice` on every save (omitted fields kept; `null` after a choice is `DRAFT_INVALID`). `inception/drafts.py`: a new draft stores the rule unchosen.
@@ -765,3 +765,12 @@ The item 5 change (decision items 21 to 24, PROPOSED), built test first:
 | targeted | `d012e9c6` (working tree) | `tests/inception`, `tests/console/test_inception_api.py`, `tests/kits/protocol`, `tests/mcp`, `-m "not slow"`, `-n 4`; `vitest` of the step 5, checks, guidance audit and Review files; contract baseline, protocol schema | 664 passed; 80 passed, then 17 of the step 5 file (two waits lengthened: the screen draws in more than a second on a loaded machine); current; in sync | |
 
 Review round 3 of part D (the item 5 delta `198bdfe8..36af1194` without the two merges): **APPROVE** (lane RELEASE confirmed; no accepted item changed in substance: items 1 and 2 extend to the new field, item 16's line has an import sentence in its place, item 18's label rule is replaced by item 24, which the entry says). Targeted reruns: 23 and 17 passed. Two P4s taken (this record's and the entry's stale lines). Not taken, follow-up: an explicit `method_not_reported_source: null` after a confirmation erases the record of it (the rule still counts as chosen; no screen sends it). Noted: step 5 draws in more than a second on a loaded machine (two waits lengthened; two inception files failed once under load).
+
+| Stage | Commit | Command | Result | Duration |
+| :-- | :-- | :-- | :-- | :-- |
+| pr (item 5 change) | `36af1194` | both ruff commands; contract baseline, protocol schema, contract schemas, two-study fixture; `git diff --check origin/main...HEAD`; `uv run pytest -q -n 4 --junitxml` (full suite) | exit 0; current; in sync; exit 0; exit 0; clean; 6376 tests: 6361 passed, 15 skipped, 0 failed, 0 errors | 592 s |
+| pr (item 5 change) | `36af1194` | `npm run typecheck`; `vitest run` (full); `npm run test:browser` (build, then the full browser suite, port 3127) | clean; 1250 of 1252 passed (`inception-explore.test.tsx` and `inception-review.test.tsx` failed once under load, the run taking 347 s; 72 of 72 alone, twice); 704 passed, 14 skipped, 0 failed | 347 s; 1108 s |
+
+The commit after `36af1194` (`df2ed53d`) and this one change documents only.
+
+**Part D: READY FOR PR** (not pushed). Branch `dev/m11b/part-d-step5`, head after this commit, stacked on part C as pushed (`d20709a3`; PR 280's later test commit `e42bfb0c` is not in it) and `origin/main` `a97f4fb5`. Lane RELEASE: the CI matrix on the PR is the closure evidence. The push is approved in advance (2026-11-22) on these conditions, now met; the main session merges `origin/main` and pushes.
