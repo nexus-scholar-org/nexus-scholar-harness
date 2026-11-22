@@ -168,6 +168,33 @@ So 996 of the 1,062 decisions (94%) were not read individually, and 443 records 
 | 41 | Screening, decisions | Storing Unclear for many records at once has no place in the app either: 324 records with an Unclear draft were stored by a script through the decision intake | P3 | Open (with finding 40) |
 | 42 | The main session (not the product) | Two journal rows were reported as written and were not; found by a search of the journal a day later | n/a | Repaired 2026-11-21 (rows written, marked as recorded late) |
 
+## Publication and a first look at charting (evening of 2026-11-22)
+
+**Published.** On 2026-11-22 at about 20:39 local time the screening was published from the app built from `main` `76c445ef`. The researcher asked the main session to publish. The session clicked "Show the codes for every decided batch", then was refused permission to read the 54 one-time codes from the engine's terminal (the permission check judged it undermining oversight; the codes exist to show a person at the computer approved each batch). The researcher copied the codes and pasted them in the chat; the session typed them into the page, clicked "Approve the batches" ("Batches approved: 54.") and "Publish the screening". The approvals are recorded under the researcher's name. Written: `literature/included.json` with 443 kept studies (91 Include, 352 Unclear), `excluded.json` with 619, the PRISMA report, and the journal rows `SCREENING_GENERATION_PUBLISHED` and `SCREENING_PUBLISH_COMPLETED`.
+
+**What was not done before publishing.** The two samples of adopted exclusions (50 and 20) were still unread, so the error rate of the 586 adopted exclusions is still not known. The Publish page's check "Every decision is a human decision" showed Passes, and Agreement read "You and the agent agreed on 99.9% of records" and "You saw every record. No sample needed.", although 996 of the 1,062 decisions were not read one by one (findings 43 and 44).
+
+**Charting, looked at only.** The main session walked the screens in the browser on this workspace, without typing or saving: the table opens with 443 studies, all "To get"; the Charting view shows the two protocol columns ("Sensor problems addressed", "Cameras and evaluation design"); the form panel opens in pilot mode; "Merge with…" shows its chooser on the real engine (cancelled, nothing merged); the one-study view opens. No cell was charted, no PDF attached and no look-up started.
+
+### Findings from this part
+
+| # | Where | Finding | Severity | State |
+| :-- | :-- | :-- | :-- | :-- |
+| 43 | Screening, Agreement | With decisions adopted in bulk from the agent's drafts, Agreement reports 99.9% agreement and "You saw every record. No sample needed." The agreement is the agent's with itself, and the sample is exactly what is owed (follows from finding 40) | P2 | Open |
+| 44 | Screening, Publish | The check "Every decision is a human decision" passes for the same decisions, immediately before publication | P2 | Open (with 43) |
+| 45 | Screening, Publish | After "Publish the screening" the button only greys out; "Published" appears at the top of a long page, out of sight | P3 | Open |
+| 46 | Screening, Prepare | "Pilot your criteria first… while little is decided" is offered, with a bright button, on a review whose every record is decided; the card sits under a list of 54 batch file names | P3 | Open |
+| 47 | Screening home, the pilot page | The first paint is almost blank for 6 to 15 seconds on this workspace (one line of grey text) | P3 | Open |
+| 48 | Charting | The top menu shows "Charting" only once screening is published; before that the screen is reachable only by its address | P4 | Open |
+| 49 | Charting, one study | The first kept study has no abstract, yet was included at title and abstract with no note (a bulk adoption); how many of the 443 are like it was not counted | P3 | Open |
+| 50 | Charting, Full text view | Rows are tall, about five to a screen at 1440 by 900, for 443 studies | P4 | Open |
+| 51 | Charting, form panel | Over the Definition box the mouse wheel scrolls the box, not the panel | P4 | Open |
+| 52 | Charting | One request answered 422 while the page loaded; which one was not found | P4 | Open, not investigated |
+| 53 | Inception, step 5 | "A few answers are still missing" and, directly under it, "The engine needs these answers first" say the same thing | P4 | Open |
+
+Not seen in this walk: Inception's "How you will screen" (the old draft opened has unanswered questions), French, Arabic, the light theme, and any charting action that writes.
+
+
 ## What to fix first
 
 Findings 12, 15 and 16 are one defect seen from three sides, and the one real blocker of this run:
@@ -187,4 +214,4 @@ After the afternoon's part, findings 18 to 21 come before both: a loop that lets
 - Whether the Semantic Scholar key is valid.
 - How much of the OpenAlex daily quota this run used.
 - The two samples of adopted exclusions (50, seed 20261120; 20, seed 20261121): not read by the researcher yet, so the error rate of the 586 adopted exclusions on this review is not known.
-- Approving the 54 batches with one paste and publishing, on this workspace.
+- ~~Approving the 54 batches with one paste and publishing, on this workspace.~~ Done on 2026-11-22 (section above).
