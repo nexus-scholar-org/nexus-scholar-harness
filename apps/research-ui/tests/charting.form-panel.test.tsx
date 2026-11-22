@@ -329,6 +329,58 @@ describe("charting.form-panel", () => {
     expect(within(document.querySelector("[data-amendments]") as HTMLElement).getByText(/columns merged, from “Images, Data split, Test camera absent from training” to “Images and Data split and Test camera absent from training”\./)).toBeInTheDocument();
   });
 
+  it("a split of a column not yet recorded names the saved sources, so the engine accepts it", async () => {
+    const columns = uavColumns();
+    const engine = installEngine(
+      makeChartingTable([withCells(makeRow(1), columns, { cameras: { state: "value", value: "Sequoia", event_id: ev(1) } })], columns, {}, { has_values: true }),
+    );
+    await renderCharting("en", "?view=charting");
+    await openPanel();
+    // An unrecorded split part, split again: every part comes from "cameras".
+    fireEvent.click(within(columnCard("cameras")).getByRole("button", { name: "Split into two" }));
+    const part = [...document.querySelectorAll<HTMLElement>("[data-form-column]")][1];
+    fireEvent.click(within(part).getByRole("button", { name: "Split into two" }));
+    // An unrecorded merge, split: both parts come from its two saved sources.
+    fireEvent.click(within(columnCard("n_images")).getByRole("button", { name: "Merge with…" }));
+    await flush();
+    fireEvent.change(within(columnCard("n_images")).getByRole("combobox", { name: "Merge Images with" }), { target: { value: "split" } });
+    fireEvent.click(within(columnCard("n_images")).getByRole("button", { name: "Merge the two columns" }));
+    await flush();
+    const merged = [...document.querySelectorAll<HTMLElement>("[data-form-column]")].find((c) => within(c).queryByDisplayValue("Images and Data split"))!;
+    fireEvent.click(within(merged).getByRole("button", { name: "Split into two" }));
+    const prompt = document.querySelector("[data-amendment-prompt]") as HTMLElement;
+    fireEvent.change(within(prompt).getByRole("textbox"), { target: { value: "Finer columns." } });
+    fireEvent.click(within(prompt).getByRole("button", { name: "Record the amendment" }));
+    await flush();
+    await flush();
+    const sent = putBody(engine, 0).columns;
+    expect(sent.filter((c) => c.name.startsWith("Cameras and evaluation design")).map((c) => c.derived_from)).toEqual([["cameras"], ["cameras"], ["cameras"]]);
+    expect(sent.filter((c) => c.name.startsWith("Images and Data split")).map((c) => c.derived_from)).toEqual([["n_images", "split"], ["n_images", "split"]]);
+    // Accepted: no refusal, the form moved on.
+    expect(within(panel()).queryByRole("alert")).toBeNull();
+    expect(engine.table.form!.version).toBe(2);
+    expect(engine.table.form!.amendments.some((a) => a.change === "split" && a.column_id === "cameras" && (a.columns ?? []).length === 3)).toBe(true);
+  });
+
+  it("a column removed while the chooser is open: the choice moves to a column that exists, and Merge still works", async () => {
+    const engine = installEngine(makeChartingTable([makeRow(1)]));
+    await renderCharting("en", "?view=charting");
+    await openPanel();
+    fireEvent.click(within(columnCard("n_images")).getByRole("button", { name: "Merge with…" }));
+    await flush();
+    const target = () => within(columnCard("n_images")).getByRole("combobox", { name: "Merge Images with" }) as HTMLSelectElement;
+    fireEvent.change(target(), { target: { value: "split" } });
+    expect(target().value).toBe("split");
+    fireEvent.click(within(columnCard("split")).getByRole("button", { name: "Remove the column" }));
+    await flush();
+    expect(columnCard("split")).toBeNull();
+    expect(target().value).toBe("sensor_problems");
+    expect(within(target()).queryByRole("option", { name: "Data split" })).toBeNull();
+    fireEvent.click(within(columnCard("n_images")).getByRole("button", { name: "Merge the two columns" }));
+    await flush();
+    expect(putBody(engine, puts(engine).length - 1).columns[0]).toMatchObject({ name: "Sensor problems addressed and Images", derived_from: ["sensor_problems", "n_images"] });
+  });
+
   it("End pilot is one recorded action; the toolbar switch turns off and the panel says when", async () => {
     const engine = installEngine(makeChartingTable([makeRow(1)]));
     await renderCharting("en", "?view=charting");

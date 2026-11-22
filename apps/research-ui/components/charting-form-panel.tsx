@@ -253,15 +253,26 @@ export function ChartingFormPanel({
     change(draftRef.current.filter((_, i) => i !== index), true);
   }
 
+  /**
+   * The saved columns a new column comes from. The engine refuses a source that is not
+   * in the saved form, so a column that is itself a draft waiting for its amendment (an
+   * unrecorded split part or merge) gives its own sources instead.
+   */
+  function savedSources(column: FormColumn): string[] {
+    const saved = new Set(formRef.current.columns.map((c) => c.column_id));
+    return saved.has(column.column_id) ? [column.column_id] : (column.derived_from ?? []).filter((p) => saved.has(p));
+  }
+
   function split(index: number) {
     const current = draftRef.current;
     const source = current[index];
+    const sources = savedSources(source);
     const parts = [1, 2].map((n) => ({
       ...source,
       column_id: newColumnId() + n,
       name: t("charting.form.splitName", { name: source.name, n }),
       from_protocol: null,
-      derived_from: [source.column_id],
+      derived_from: [...sources],
       options: [...source.options],
     }));
     focusNext.current = parts[0].column_id;
@@ -285,20 +296,27 @@ export function ChartingFormPanel({
     if (mergeFrom) document.querySelector<HTMLSelectElement>(`[data-form-column="${mergeFrom}"] [data-form-merge-target]`)?.focus();
   }, [mergeFrom]);
 
+  // A column removed while the chooser is open: the choice moves to a column that
+  // exists, and the chooser closes when no other column is left (or its own is gone).
+  useEffect(() => {
+    if (!mergeFrom) return;
+    const others = draft.filter((c) => c.column_id !== mergeFrom);
+    if (others.length === 0 || !draft.some((c) => c.column_id === mergeFrom)) setMergeFrom(null);
+    else if (!others.some((c) => c.column_id === mergeTarget)) setMergeTarget(others[0].column_id);
+  }, [draft, mergeFrom, mergeTarget]);
+
   /**
    * Two columns into one: a new Text column, at the place of the first, that names
    * both as its sources. The engine reads it as a merge (several columns into one)
-   * and marks its cells "Chart again" with the earlier values. A source not yet in
-   * the saved form (a draft waiting for its amendment) gives its own sources instead,
-   * so a third column can be merged into a merge that is not recorded yet.
+   * and marks its cells "Chart again" with the earlier values. Sources are read as
+   * for a split (`savedSources`), so a third column can be merged into a merge that
+   * is not recorded yet.
    */
   function merge(fromId: string, intoId: string) {
     const current = draftRef.current;
     const at = [fromId, intoId].map((id) => current.findIndex((c) => c.column_id === id)).sort((x, y) => x - y);
     if (at[0] < 0 || at[0] === at[1]) return;
     const [first, second] = [current[at[0]], current[at[1]]];
-    const saved = new Set(formRef.current.columns.map((c) => c.column_id));
-    const sources = (c: FormColumn) => (saved.has(c.column_id) ? [c.column_id] : (c.derived_from ?? []).filter((p) => saved.has(p)));
     const column: FormColumn = {
       column_id: newColumnId(),
       name: t("charting.form.mergeName", { a: first.name, b: second.name }).slice(0, 200),
@@ -307,7 +325,7 @@ export function ChartingFormPanel({
       options: [],
       required: first.required || second.required,
       from_protocol: null,
-      derived_from: [...new Set([...sources(first), ...sources(second)])],
+      derived_from: [...new Set([...savedSources(first), ...savedSources(second)])],
     };
     setMergeFrom(null);
     focusNext.current = column.column_id;
