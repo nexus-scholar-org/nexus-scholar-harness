@@ -1,99 +1,49 @@
 # Scholar PDF Kit
 
-> Status (2026-11-10): Historical: parked (not production; see `docs/roadmap/production-plan.md` §7/§8). The kit is now `src/scholar_<kit>/` in the one `nexus-scholar` package. Written for the former kit repository; install instructions here are obsolete (install `nexus-scholar`).
+> Status (2026-11-22, M12a Part K): downloading (`download`, `ingest`, `AsyncPDFDownloader`) is **production** (decision 2026-11-21, M12a items 15, 21 and 27); reading PDFs (`extract`, `extract-run`) and E1 `acquire` are parked. The kit is `src/scholar_pdf/` in the one `nexus-scholar` package; install `nexus-scholar` (the old kit repository and its install steps are obsolete).
 
-[![CI Status](https://github.com/mouadh/Nexus-Scholar-Suite/actions/workflows/scholar-pdf-kit-ci.yml/badge.svg)](https://github.com/mouadh/Nexus-Scholar-Suite/actions)
-[![Python Version](https://img.shields.io/badge/python-3.11%20%7C%203.12-blue)](https://python.org)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+**Scholar PDF Kit** downloads the open-access PDFs of papers by DOI and records which file is which paper.
 
-**Scholar PDF Kit** is a Python-based utility designed to automate the discovery and retrieval of Open Access (OA) academic literature.
+It asks [OpenAlex](https://openalex.org/) (only with `SCHOLAR_OPENALEX_KEY`) and [Unpaywall](https://unpaywall.org/) for the open locations they list and takes the best open copy with a direct PDF address: published version, then accepted manuscript, then submitted version or preprint. It never builds a publisher address, never requests a landing page, never uses an institutional proxy and never poses as a browser: every request names the app and its contact (`nexus-scholar/<version> (mailto:…)`). It does not infer legal access from an HTTP response.
 
-By using metadata and legally available copies from sources such as [OpenAlex](https://openalex.org/), the toolkit resolves Digital Object Identifiers (DOIs) to authorized or open-access PDF endpoints. It does not infer legal access from an HTTP response or bypass access controls.
+## How a download works
 
-## System Architecture
+1. **Lookup**: OpenAlex (with its key) and Unpaywall, once each per DOI; a service's closed evidence (`is_oa: false`, `oa_status: closed`) overrides its `pdf_url`.
+2. **Fetch**: at most three listed addresses, best version first. A 400, 401, 403, 404, 410 or 451 is not retried; a 5xx, a timeout or a 429 with a short `Retry-After` is.
+3. **Checks**: `%PDF-` header, `%%EOF` trailer, a 10 KB size floor (reported as such), optional pypdf structure (`--strict-validate`); with the `pdf` extra, the DOI and title are looked for on the first two pages ("doi found", "title found", "not found: check it"; "not checked" without it).
+4. **Storage**: `DOC-<sha256[:32]>.pdf`, never overwriting; a copy where the drive has no hard links.
+5. **Manifest**: one JSON line per DOI asked in `download-manifest.jsonl` (or `--manifest PATH`); no file is kept without its row.
 
-The package is built with a focus on concurrency and data integrity:
-1. **Resolution**: Queries OpenAlex APIs to determine OA status and locate direct PDF endpoints.
-2. **Concurrent Retrieval**: Utilizes `aiohttp` to manage asynchronous, high-throughput PDF downloads.
-3. **Integrity Validation**: Analyzes downloaded file byte signatures and PDF structure to reject incomplete, malformed, encrypted, or non-PDF responses.
-
-## Installation
-
-Ensure the `git` and `uv` package managers are installed on your system. 
+## Setup
 
 ```bash
-# Clone the repository
-git clone https://github.com/mouadh/scholar-pdf-kit.git
-
-# Navigate to the toolkit directory
-cd scholar-pdf-kit
-
-# Install the E1 API/CLI and base dependencies
-uv pip install .
-
-# In the toolkit monorepo, add the legacy search-provider adapter
-uv pip install -e ".[search]"
+uv sync --extra dev --extra pdf   # the pdf extra adds PyMuPDF for the identity check
+export SCHOLAR_MAILTO=you@example.org        # required
+export SCHOLAR_OPENALEX_KEY=...              # optional; without it only Unpaywall is asked
 ```
-
-The base wheel keeps Contract v1 acquisition, validation, and atomic publication
-self-contained. The deprecated `download`/`ingest` provider paths require the
-optional `search` extra because their HTTP client is owned by
-`scholar-search-kit`.
 
 ## Command Line Interface (CLI)
 
-The package exposes a Typer-based CLI for both targeted and bulk literature retrieval.
-
-### Single Document Retrieval
-Provide a DOI directly to the CLI:
+### Download by DOI
 ```bash
-uv run scholar-pdf download --doi 10.1371/journal.pbio.3000246
+uv run scholar-pdf download --doi 10.7717/peerj.4375 --output pdfs/
 ```
 
-**Example Output:**
-```text
-Starting download process for 1 DOIs...
-Downloading PDFs... ---------------------------------------- 100%
-                               Download Summary                                
-+-----------------------------------------------------------------------------+
-| DOI                          | Status  | Details                            |
-|------------------------------+---------+------------------------------------|
-| 10.1371/journal.pbio.3000246 | Success | downloads/10.1371_journal.pbio.30… |
-+-----------------------------------------------------------------------------+
-Successfully downloaded 1/1 PDFs.
-```
+The summary names the copy taken (version, licence, source, provider), prints the PDF requests each DOI cost and what each address answered, and the path of the manifest. Exit codes: `0` every DOI has its file; `3` a lookup failed (run again later); `1` a listed address gave no PDF, or another failure; `4` open access but no direct PDF address listed; `5` no open copy listed; `2` a usage error (a missing `--input` file among them).
 
-### Multiple Document Retrieval
-Chain multiple DOIs within a single command:
+### Download the included records
 ```bash
-uv run scholar-pdf download --doi 10.1371/journal.pbio.3000246 --doi 10.1038/35057062
+uv run scholar-pdf download --input literature/included.json --output pdfs/ --manifest pdfs/download-manifest.jsonl
 ```
 
-**Example Output:**
-```text
-Starting download process for 2 DOIs...
-Downloading PDFs... ---------------------------------------- 100%
-                               Download Summary                                
-+-----------------------------------------------------------------------------+
-| DOI                          | Status  | Details                            |
-|------------------------------+---------+------------------------------------|
-| 10.1371/journal.pbio.3000246 | Success | downloads/10.1371_journal.pbio.30… |
-| 10.1038/35057062             | Success | downloads\10.1038_35057062.pdf     |
-+-----------------------------------------------------------------------------+
-Successfully downloaded 2/2 PDFs.
-```
+Each record's DOI (`doi` or `external_ids.doi`) is asked; its id (`study_id`, `record_id`, `workspace_id` or `id`) and title go into its manifest row. `--export json|bibtex` adds one entry per DOI to `download_summary.*`, written atomically.
 
-### Bulk Retrieval via JSON / Included Literature
-For systematic literature reviews, integrate directly with `scholar-search-kit` outputs (`included.json` or `results.json`):
+### A PDF you already have
 ```bash
-uv run scholar-pdf download --input literature/included.json --output papers/pdfs/ --smart-names
+uv run scholar-pdf ingest my_paper.pdf --doi 10.1038/s41586-023-0001 --output pdfs/ --study-id SCI-000002
 ```
 
-### Manual PDF Ingestion
-If an open-access PDF was obtained manually or from an institutional proxy:
-```bash
-uv run scholar-pdf ingest my_paper.pdf --doi 10.1038/s41586-023-0001 --output papers/pdfs/ --smart-names
-```
+The file is checked, stored as `DOC-*.pdf` with the access status `USER_PROVIDED`, and given its manifest row; the command exits `1` when nothing is stored.
 
 ### Contract v1 parent-bound acquisition (WP01-E1)
 
@@ -210,13 +160,15 @@ This legacy command is non-authoritative (see the note above); prefer
 ### CLI Arguments Reference
 - `acquire`: Execute a parent-bound Contract v1 acquisition batch and emit a deterministic manifest.
 - `extract-run`: Execute a parent-bound Contract v1 extraction batch and emit deterministic extraction sidecars (authoritative).
-- `download`: Legacy DOI/provider retrieval. Files are validated and atomically published under content-addressed `DOC-*` names.
-- `ingest`: Validate and atomically publish a local PDF under a content-addressed name.
+- `download`: Production open-access retrieval by DOI (above). Files are validated and published under content-addressed `DOC-*` names, each with its manifest row.
+- `ingest`: Validate and publish a local PDF under a content-addressed name, with its manifest row.
 - `extract`: Legacy Markdown conversion. Not a Contract v1 path; emits no manifest.
 
-For legacy downloads, `access_status` is the truthful access projection;
-`was_oa` remains only as a deprecated compatibility field. A successful HTTP
-response alone does not establish that a source is open access.
+For downloads, `access_status` comes from the location that gave the bytes
+(`VERIFIED_OPEN_ACCESS`; `INSTITUTIONAL_ACCESS` for the parked gateway a library
+caller can still pass; `USER_PROVIDED` for `ingest`); `was_oa` remains only as a
+deprecated compatibility field. A successful HTTP response alone does not
+establish that a source is open access.
 
 ## Documentation
 

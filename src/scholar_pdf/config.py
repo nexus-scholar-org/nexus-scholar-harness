@@ -34,9 +34,9 @@ class Settings(BaseSettings):
     # %PDF- header + %%EOF trailer signature check.
     pdf_structural_validation: bool = False
 
-    # Publisher direct-PDF patterns: off (K0, M12a item 27) and no longer
-    # read by the downloader; the patterns are removed in Part K (item 24,
-    # G3). ``download`` and ``ingest`` refuse the setting when it is on.
+    # Publisher direct-PDF patterns: removed (Part K, M12a item 24, G3). The
+    # setting is read only so that a stale ``ENABLE_PUBLISHER_DIRECT_PATTERNS
+    # =true`` is refused by ``download`` and ``ingest``, not silently ignored.
     enable_publisher_direct_patterns: bool = False
 
     model_config = SettingsConfigDict(
@@ -77,6 +77,18 @@ def require_contact_email() -> str:
     if not address:
         raise MailtoNotSetError()
     return address
+
+
+def openalex_key() -> str:
+    """``SCHOLAR_OPENALEX_KEY`` as the search kit reads it, or ``""``. Never printed or logged.
+
+    Part K item 4: OpenAlex is asked only with its key (decision 2026-11-10,
+    "OpenAlex needs its API key"); without one only Unpaywall is asked.
+    """
+    from scholar_search.config import settings as search_settings
+
+    value = search_settings.openalex_key
+    return value.strip() if isinstance(value, str) else ""
 
 
 def user_agent() -> str:
