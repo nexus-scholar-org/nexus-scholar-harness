@@ -32,6 +32,7 @@ from .downloader import AsyncPDFDownloader
 from .extract import DoclingEngine, GrobidEngine
 from .extraction import PDFExtractionService
 from .extraction_models import ExtractionRunConfig
+from .manifest import MANIFEST_NAME
 from .open_copies import FAILED as LOOKUP_STATE_FAILED
 from .open_copies import (
     LOOKUP_FAILED,
@@ -310,6 +311,19 @@ def acquire(
     raise typer.Exit(code=_ACQUISITION_EXIT_CODES[outcome.status])
 
 
+#: Where a record's own id is read from, in order, for its manifest row (Part K item 8):
+#: ``workspace_id`` is the id the screening files carry (``SCI-000002``).
+_RECORD_ID_KEYS = ("study_id", "record_id", "workspace_id", "id")
+
+
+def _record_id(item: dict) -> str | None:
+    for key in _RECORD_ID_KEYS:
+        value = item.get(key)
+        if isinstance(value, str) and value.strip():
+            return value.strip()
+    return None
+
+
 def _export_results(export_format: str, output_dir: Path, successful_results: list):
     """Helper to export results, appending to existing files if they exist."""
     if not successful_results:
@@ -405,6 +419,11 @@ def download(
         "--strict-validate",
         help="Require pypdf structural validation of downloads",
     ),
+    manifest: Path = typer.Option(
+        None,
+        "--manifest",
+        help=f"Where to write one JSON line per DOI (default: {MANIFEST_NAME} in --output)",
+    ),
 ):
     """Download open-access PDFs by DOI (OpenAlex and Unpaywall locations). Needs SCHOLAR_MAILTO.
 
@@ -424,21 +443,33 @@ def download(
     settings.max_concurrent_downloads = max_concurrent
 
     doi_list = list(dois) if dois else []
+    # Part K item 8: the record each DOI came from, for its manifest row.
+    study_ids: dict[str, str] = {}
+    titles: dict[str, str] = {}
 
     # Parse input file if provided
     if input_file and input_file.exists():
         try:
             with open(input_file, "r", encoding="utf-8") as f:
                 data = json.load(f)
+                if not isinstance(data, list):
+                    raise ValueError("the input file must hold a JSON list of records")
                 for item in data:
+                    if not isinstance(item, dict):
+                        continue
                     doi = None
-                    if "external_ids" in item and item["external_ids"].get("doi"):
+                    if isinstance(item.get("external_ids"), dict) and item["external_ids"].get("doi"):
                         doi = item["external_ids"]["doi"]
-                    elif "doi" in item:
+                    elif item.get("doi"):
                         doi = item["doi"]
 
                     if doi and doi not in doi_list:
                         doi_list.append(doi)
+                        record_id = _record_id(item)
+                        if record_id:
+                            study_ids[doi] = record_id
+                        if isinstance(item.get("title"), str) and item["title"].strip():
+                            titles[doi] = item["title"].strip()
         except (
             AttributeError,
             KeyError,
@@ -458,12 +489,14 @@ def download(
         f"[bold blue]Starting download process for {len(doi_list)} DOIs...[/bold blue]"
     )
 
+    manifest_path = manifest if manifest is not None else output_dir / MANIFEST_NAME
     downloader = AsyncPDFDownloader(
         output_dir=output_dir,
         use_smart_names=smart_names,
         proxy_url=proxy,
         proxy_style=proxy_style,
         structural_validation=strict_validate,
+        manifest_path=manifest_path,
     )
 
     async def run_downloads():
@@ -485,7 +518,13 @@ def download(
                 async with aiohttp.ClientSession() as session:
                     # We process concurrently but update progress bar as each finishes
                     tasks = [
-                        downloader.process_doi(session, http_client, doi)
+                        downloader.process_doi(
+                            session,
+                            http_client,
+                            doi,
+                            title=titles.get(doi),
+                            study_id=study_ids.get(doi),
+                        )
                         for doi in doi_list
                     ]
                     for coro in asyncio.as_completed(tasks):
@@ -547,6 +586,7 @@ def download(
     console.print(
         f"[bold green]Successfully downloaded {success_count}/{len(doi_list)} PDFs.[/bold green]"
     )
+    console.print(f"Manifest: {escape(str(manifest_path))}", soft_wrap=True)
 
     if export_format:
         successful_results = [res for res in results if res.success]
@@ -581,6 +621,14 @@ def ingest(
     strict_validate: bool = typer.Option(
         False, "--strict-validate", help="Require pypdf structural validation on ingest"
     ),
+    manifest: Path = typer.Option(
+        None,
+        "--manifest",
+        help=f"Where to write the file's JSON line (default: {MANIFEST_NAME} in --output)",
+    ),
+    study_id: str = typer.Option(
+        None, "--study-id", help="The record this PDF belongs to, kept in its manifest row"
+    ),
 ):
     """Ingest a PDF you already have for a DOI (metadata looked up). Needs SCHOLAR_MAILTO."""
     _production_preflight(proxy)
@@ -597,6 +645,7 @@ def ingest(
         proxy_url=proxy,
         proxy_style=proxy_style,
         structural_validation=strict_validate,
+        manifest_path=manifest if manifest is not None else output_dir / MANIFEST_NAME,
     )
 
     async def run_ingest():
@@ -604,7 +653,7 @@ def ingest(
 
         http_client = AcademicHttpClient(name="openalex-pdf", rate_limit=10)
         try:
-            return await downloader.ingest_pdf(http_client, pdf_path, doi)
+            return await downloader.ingest_pdf(http_client, pdf_path, doi, study_id=study_id)
         finally:
             await http_client.close()
 

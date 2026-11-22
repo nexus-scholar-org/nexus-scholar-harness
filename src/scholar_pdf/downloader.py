@@ -24,6 +24,7 @@ from yarl import URL
 
 from .config import openalex_key, require_contact_email, settings, user_agent
 from .identity import check_identity
+from .manifest import MANIFEST_NOT_WRITTEN, append_row, manifest_row
 from .open_copies import (
     ACQUIRED,
     ANSWERED,
@@ -54,6 +55,10 @@ logger = logging.getLogger(__name__)
 #: The access status of a file fetched through the parked institutional gateway
 #: (a caller passing one explicitly): never open access (M12a item 25, PDF-12).
 INSTITUTIONAL_ACCESS = "INSTITUTIONAL_ACCESS"
+#: The access status of a file the researcher gave (``ingest``), as E1 names it.
+USER_PROVIDED = "USER_PROVIDED"
+#: The outcome of an ``ingest`` that stored nothing.
+NOT_STORED = "NOT_STORED"
 
 
 # --------------------------------------------------------------- one request to a PDF address
@@ -235,6 +240,14 @@ class DownloadResult:
     # Part K item 9 (PDF-22): "doi found", "title found", "not found: check it"
     # or "not checked" (no PyMuPDF). Never blocks a file.
     identity: str | None = None
+    # Part K item 8 (PDF-07): the caller's study id, the stored file's size and
+    # SHA-256, the checks on it (``validator.PdfCheck``; on ``attempts`` for a
+    # download), and whether this call created the file (``new_file``).
+    study_id: str | None = None
+    size: int | None = None
+    sha256: str | None = None
+    checks: tuple = ()
+    new_file: bool = False
 
 
 @dataclass(frozen=True)
@@ -257,8 +270,11 @@ class AsyncPDFDownloader:
         structural_validation: bool | None = None,
         institutional_gateway_url: str | None = None,
         forward_proxy_url: str | None = None,
+        manifest_path: Path | None = None,
     ):
         self.output_dir = output_dir or settings.download_dir
+        # Part K item 8: one JSON line per DOI asked, when the caller gives a path.
+        self.manifest_path = Path(manifest_path) if manifest_path is not None else None
         self.output_dir.mkdir(parents=True, exist_ok=True)
         self.semaphore = asyncio.Semaphore(settings.max_concurrent_downloads)
         self.use_smart_names = use_smart_names
@@ -578,6 +594,38 @@ class AsyncPDFDownloader:
                 return "VERIFIED_OPEN_ACCESS"
         return "UNRESOLVED"
 
+    def _recorded(self, result: DownloadResult) -> DownloadResult:
+        """Write the DOI's manifest row; no file is kept without it (Part K item 8).
+
+        When the row cannot be written, a file this call created is removed and
+        the DOI fails (``MANIFEST_NOT_WRITTEN``); a file stored by an earlier
+        call (it has its own row) is kept.
+        """
+        if self.manifest_path is None:
+            return result
+        try:
+            append_row(self.manifest_path, manifest_row(result, self.manifest_path))
+            return result
+        except OSError as error:
+            note = ""
+            if result.file_path is not None and result.new_file:
+                result.file_path.unlink(missing_ok=True)
+                note = "; the new file was removed"
+            elif result.file_path is not None:
+                note = "; the file stored by an earlier run is kept"
+            message = f"The manifest row could not be written ({type(error).__name__}){note}."
+            if result.error_message:
+                message = f"{message} {result.error_message}"
+            return replace(
+                result,
+                success=False,
+                status="FAILED",
+                outcome=MANIFEST_NOT_WRITTEN,
+                file_path=None,
+                new_file=False,
+                error_message=message,
+            )
+
     async def process_doi(
         self,
         session: aiohttp.ClientSession,
@@ -585,13 +633,26 @@ class AsyncPDFDownloader:
         doi: str,
         *,
         title: str | None = None,
+        study_id: str | None = None,
     ) -> DownloadResult:
         """Resolve OA evidence and atomically acquire a PDF for one DOI.
 
         ``title`` (the caller's record) is looked for on the first pages, else
-        the title the lookups give (Part K item 9).
+        the title the lookups give (Part K item 9). With a ``manifest_path``,
+        one row is written for the DOI, with ``study_id`` (Part K item 8).
         """
         require_contact_email()  # refused before any request (MAILTO_NOT_SET)
+        result = await self._process_doi(session, http_client, doi, title=title)
+        return self._recorded(replace(result, study_id=study_id))
+
+    async def _process_doi(
+        self,
+        session: aiohttp.ClientSession,
+        http_client: AcademicHttpClient,
+        doi: str,
+        *,
+        title: str | None = None,
+    ) -> DownloadResult:
         try:
             # Both services are asked for every DOI, once each (decision
             # 2026-11-21, H-pdf-resolver-locations item 4, "Always ask both
@@ -679,7 +740,9 @@ class AsyncPDFDownloader:
                         identity = check_identity(
                             candidate_path, doi, title or metadata.get("title")
                         )
-                        final_path, _ = self._promote_candidate(candidate_path)
+                        size = candidate_path.stat().st_size
+                        digest = self._digest(candidate_path)
+                        final_path, new_file = self._promote_candidate(candidate_path)
                         # The status follows the bytes (Part K item 7, PDF-12): an open
                         # location's own address is open access; the parked gateway is
                         # institutional access, never open access (M12a item 25).
@@ -697,6 +760,9 @@ class AsyncPDFDownloader:
                             source_url=_public_url(candidate) or candidate,
                             route=route,
                             identity=identity,
+                            size=size,
+                            sha256=digest,
+                            new_file=new_file,
                             # The label follows the bytes: a file fetched through
                             # the parked gateway is not that open location's copy.
                             open_copy=copy if candidate == copy.url else None,
@@ -751,15 +817,32 @@ class AsyncPDFDownloader:
             await http_client.close()
 
     async def ingest_pdf(
+        self,
+        http_client: AcademicHttpClient,
+        pdf_path: Path,
+        doi: str,
+        *,
+        study_id: str | None = None,
+    ) -> DownloadResult:
+        """Atomically ingest a local PDF without overwriting existing bytes.
+
+        The bytes are the researcher's own: the result's route is
+        ``user_provided`` and its access status ``USER_PROVIDED`` (Part K item 7);
+        with a ``manifest_path`` its row is written (item 8).
+        """
+        require_contact_email()  # the metadata lookups send it (MAILTO_NOT_SET)
+        result = await self._ingest_pdf(http_client, pdf_path, doi)
+        return self._recorded(replace(result, study_id=study_id))
+
+    async def _ingest_pdf(
         self, http_client: AcademicHttpClient, pdf_path: Path, doi: str
     ) -> DownloadResult:
-        """Atomically ingest a local PDF without overwriting existing bytes."""
-        require_contact_email()  # the metadata lookups send it (MAILTO_NOT_SET)
         if not pdf_path.exists():
             return DownloadResult(
                 doi=doi,
                 success=False,
                 status="FAILED",
+                outcome=NOT_STORED,
                 access_status="UNRESOLVED",
                 error_message="Provided PDF path does not exist.",
             )
@@ -783,35 +866,48 @@ class AsyncPDFDownloader:
             access_status = self._provider_access_status(openalex_data, unpaywall_data)
             staging = self._new_staging_path()
             shutil.copyfile(pdf_path, staging)
-            failure = check_failure(pdf_checks(staging, structural=self.structural_validation))
+            checks = pdf_checks(staging, structural=self.structural_validation)
+            failure = check_failure(checks)
             if failure is not None:
                 return DownloadResult(
                     doi=doi,
                     success=False,
                     status="FAILED",
+                    outcome=NOT_STORED,
                     access_status=access_status,
                     metadata=metadata or None,
                     error_message=f"The provided file was not stored: {failure}.",
                     lookups=lookups,
+                    checks=checks,
                 )
             identity = check_identity(staging, doi, metadata.get("title"))
-            final_path, _ = self._promote_candidate(staging)
+            size = staging.stat().st_size
+            digest = self._digest(staging)
+            final_path, new_file = self._promote_candidate(staging)
             return DownloadResult(
                 doi=doi,
                 success=True,
                 identity=identity,
                 file_path=final_path,
-                was_oa=access_status == "VERIFIED_OPEN_ACCESS",
+                # The bytes are the researcher's, whatever the providers list (PDF-12).
+                was_oa=False,
                 status="ACQUIRED",
-                access_status=access_status,
+                outcome=ACQUIRED,
+                access_status=USER_PROVIDED,
+                route="user_provided",
                 metadata=metadata or None,
                 lookups=lookups,
+                checks=checks,
+                size=size,
+                sha256=digest,
+                new_file=new_file,
             )
         except Exception as error:  # noqa: BLE001 - provider adapters vary
             return DownloadResult(
                 doi=doi,
                 success=False,
                 status="FAILED",
+                outcome=NOT_STORED,
                 access_status="UNRESOLVED",
                 error_message=str(error),
             )
