@@ -82,6 +82,8 @@ describe("charting.report.counts", () => {
     const region = document.querySelector("[data-open-region]") as HTMLElement;
     expect(within(region).getByRole("heading", { level: 2, name: "Still open" })).toBeInTheDocument();
     expect(region).toHaveTextContent("Not PRISMA counts: what is not finished yet.");
+    // Review of Part C, finding 3: a waiting copy is counted under its row's status, not always as awaiting retrieval.
+    expect(region).toHaveTextContent("A copy waiting for you is also counted under its row's status above");
     const open = [...region.querySelectorAll("[data-open-row]")].map((r) => [r.querySelector("dt")!.textContent, r.querySelector("dd")!.textContent]);
     expect(open).toEqual([
       ["Awaiting retrieval", "2"],

@@ -70,6 +70,9 @@ export function prismaGroup(over: Partial<PrismaGroup> = {}): PrismaGroup {
     to_confirm: 0,
     retrieved_not_assessed: 0,
     assessed_without_full_text: 0,
+    not_retrieved_decided: 0,
+    not_retrieved_included: 0,
+    not_retrieved_excluded: 0,
     ...over,
   };
 }

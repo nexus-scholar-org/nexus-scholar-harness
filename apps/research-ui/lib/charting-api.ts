@@ -449,6 +449,10 @@ export interface PrismaGroup {
   to_confirm: number;
   retrieved_not_assessed: number;
   assessed_without_full_text: number;
+  /** Reports not retrieved and decided from the abstract: counted under not_retrieved, apart from the boxes. */
+  not_retrieved_decided?: number;
+  not_retrieved_included?: number;
+  not_retrieved_excluded?: number;
 }
 
 export interface PrismaRound extends PrismaGroup {
