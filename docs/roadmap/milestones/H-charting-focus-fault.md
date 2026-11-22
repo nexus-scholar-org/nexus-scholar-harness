@@ -65,4 +65,4 @@ Round 2, on the repair delta `5edf2c09..be977b2d`: **APPROVE**, all four finding
 - Ctrl+Down and Ctrl+Up are handled before the screen's `switching` check (`charting-study.tsx`, the key handler and `move()`): two moves started before the move's first render (Ctrl+Down then Ctrl+Up quickly) can both run, and the screen can then show one study while the address and the focus request name the other. This was there before; with this change the focus does not land in that state. Found by the reviewer.
 
 ## Decisions
-Proposed in `docs/decisions.md`, "2026-11-22 — H-charting-focus-fault" (items 1 and 2), for the researcher.
+In `docs/decisions.md`, "2026-11-22 — H-charting-focus-fault": items 1 and 2 accepted by the researcher 2026-11-23, who approved the push and the PR.

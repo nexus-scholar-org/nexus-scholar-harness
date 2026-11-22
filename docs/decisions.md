@@ -12,9 +12,11 @@ history to read if you need the original reasoning (`git log --follow -- <path>`
 | :-- | :-- | :-- |
 | 2026-11-19 — M9a: what the measurement says about the ladder gates | 2 | The minimum share of the researcher's excludes an agent must take before a rung unlocks: the principle is accepted; the researcher decided on 2026-11-20 to set the number when M9b is built. |
 
-## 2026-11-22 — H-charting-focus-fault: a focus asked for after a save waits for the researcher to still be there (items 1 and 2 PROPOSED)
+## 2026-11-22 — H-charting-focus-fault: a focus asked for after a save waits for the researcher to still be there (items 1 and 2 accepted by the researcher 2026-11-23)
 
 Record: `docs/roadmap/milestones/H-charting-focus-fault.md`. The fault itself (after Ctrl+Down the next study sometimes opened with the focus nowhere) is repaired so that the screen does what spec 02 "Keyboard" already says; that needs no decision. These two choices are not settled by the accepted specs; none is accepted until the researcher answers.
+
+**Answered 2026-11-23.** The researcher accepted items 1 and 2 as built ("accept items 1 and 2", in this build's session) and approved the push and the PR. Where an item below still reads "PROPOSED", this answer replaces it.
 
 1. **PROPOSED. A focus asked for after a save lands only if the researcher is still there.** Alt+N and Alt+A put the focus on the field's special button, and Enter moves it to the next field, once the save has answered. They now do so only if the same study is on screen and the focus is still in that field, or nowhere (the input was just switched off). If the researcher moved during the save (Ctrl+Down, J or Next, a click or Tab to another field), the focus stays where they went. *Alternative:* always move the focus when the save answers, as before: the researcher is pulled back to the old field, or onto the same field of the next study, after they had moved on.
 2. **PROPOSED (test only). The browser test checks Esc's page, not the address a moment later.** After Esc the table opens at `row=STU-006`: it reads `row` from the address, drops it from the address (the address keeps only the view and the filter, by design), and focuses that row once the table has loaded. The test now waits for the navigation to that address instead of reading the address afterwards, which raced with the rewrite; the row is still checked by the focused STU-006 cell. *Alternative:* the table keeps `row` in the address: a product change made for a test's sake.
