@@ -134,7 +134,7 @@ export function InceptionCriteria({ locale }: Readonly<{ locale: Locale }>) {
   const key = JSON.stringify([
     draft.paradigm, draft.playbook, draft.proof, draft.unit_of_analysis, draft.out_of_scope, draft.extra_inclusions,
     draft.extra_exclusions, draft.criteria_decisions, draft.matrix_columns, draft.out_of_scope_reasons,
-    draft.default_exclusion_reason, draft.custom_matrix_columns, draft.method_blinding, draft.method_not_reported,
+    draft.default_exclusion_reason, draft.custom_matrix_columns, draft.method_blinding, draft.method_not_reported, draft.method_not_reported_source,
   ]);
   useEffect(() => {
     if (!record) return;
@@ -463,12 +463,10 @@ export function InceptionCriteria({ locale }: Readonly<{ locale: Locale }>) {
               options={criteria.method_options ?? null}
               unchosen={ruleUnchosen}
               older={Boolean(criteria.method?.started_before_question) && ruleUnchosen}
-              fromImport={
-                (record?.origin?.report.carried ?? []).some((c) => c.field === "method_not_reported") &&
-                draft.method_not_reported === record?.draft.method_not_reported
-              }
+              source={criteria.method?.source ?? null}
               onBlinding={(value) => update({ method_blinding: value })}
-              onNotReported={(value) => update({ method_not_reported: value })}
+              onNotReported={(value) => update({ method_not_reported: value, method_not_reported_source: "chosen" })}
+              onConfirm={() => update({ method_not_reported_source: "confirmed" })}
             />
           </section>
         ) : !stepError ? (
@@ -615,9 +613,10 @@ function MethodQuestions({
   options,
   unchosen,
   older,
-  fromImport,
+  source,
   onBlinding,
   onNotReported,
+  onConfirm,
 }: Readonly<{
   locale: Locale;
   blinding: MethodBlinding | null;
@@ -625,9 +624,11 @@ function MethodQuestions({
   options: { blinding: MethodBlinding[]; not_reported: MethodNotReported[] } | null;
   unchosen: boolean;
   older: boolean;
-  fromImport: boolean;
+  /** Item 5 (2026-11-22): the engine's word for where the rule came from. */
+  source: "imported" | "confirmed" | "chosen" | null;
   onBlinding: (value: MethodBlinding) => void;
   onNotReported: (value: MethodNotReported) => void;
+  onConfirm: () => void;
 }>) {
   const t = inceptionT(locale);
   const key = (k: string) => k as Parameters<typeof t>[0];
@@ -638,7 +639,7 @@ function MethodQuestions({
           {t("criteria.method.title")}
         </h3>
         <p className="text-sm text-ink-muted">{t("criteria.method.later")}</p>
-        {fromImport ? <p className="text-sm text-ink-muted" data-method-import>{t("criteria.method.fromImport")}</p> : null}
+        {source === "imported" || source === "confirmed" ? <p className="text-sm text-ink-muted" data-method-import>{t("criteria.method.fromImport")}</p> : null}
       </div>
       <fieldset id="method-blinding" data-method-group="blinding">
         <legend className="text-sm font-medium text-ink">{t("criteria.method.blinding.q")}</legend>
@@ -667,10 +668,21 @@ function MethodQuestions({
       <fieldset id="method-not-reported" aria-describedby={unchosen ? "method-rule-unchosen" : undefined} data-method-group="not_reported">
         <legend className="text-sm font-medium text-ink">{t("criteria.method.notReported.q")}</legend>
         {unchosen ? (
-          <p id="method-rule-unchosen" className="mt-1 text-sm text-blocked" data-method-unchosen>
-            {t("criteria.method.unchosen")}
-            {older ? <span className="block text-ink-muted">{t("criteria.method.older")}</span> : null}
-          </p>
+          <div id="method-rule-unchosen" className="mt-1 text-sm text-blocked" data-method-unchosen={source === "imported" ? "imported" : "unchosen"}>
+            {source === "imported" ? (
+              <>
+                <p>{t("criteria.method.importedUnconfirmed")}</p>
+                <Button className="mt-1" onClick={onConfirm} data-method-confirm>
+                  {t("criteria.method.confirm")}
+                </Button>
+              </>
+            ) : (
+              <p>
+                {t("criteria.method.unchosen")}
+                {older ? <span className="block text-ink-muted">{t("criteria.method.older")}</span> : null}
+              </p>
+            )}
+          </div>
         ) : null}
         <div className="mt-2 space-y-2">
           {(options?.not_reported ?? []).map((value) => (

@@ -98,6 +98,7 @@ SENTENCES: dict[str, str] = {
     "CRITERIA_WORDING_NOT_CHECKED": "The criteria are not in English, so three wording checks did not run: {checks}.",
     "METHOD_RULE_UNCHOSEN": "Choose what the agent's draft does when a criterion is not reported.",
     "METHOD_RULE_UNCHOSEN.older": "Choose what the agent's draft does when a criterion is not reported. This draft was started before this question existed.",
+    "METHOD_RULE_UNCHOSEN.imported": "The imported protocol's rule is shown: confirm it or choose another.",
     "REVIEW_PROJECT_MISSING": "Still needed: {fields}.",
     "REVIEW_TITLE_NOT_A_FOLDER": "This title cannot name a folder.",
     "REVIEW_COMPILER_REFUSED": "The compiler refused these answers.",
@@ -820,10 +821,13 @@ def _criteria_checks(draft: steps.Draft) -> list[dict[str, Any]]:
         # M11b part D (answer 8): a blocker, like CRITERIA_UNDECIDED; genesis refuses it too.
         out.append(check(
             "METHOD_RULE_UNCHOSEN", "blocker",
-            params={"started_before_question": method["started_before_question"]},
+            params={"started_before_question": method["started_before_question"], "imported": method["source"] == "imported"},
             action=_field("criteria", "method_not_reported"),
             refusal="METHOD_RULE_UNCHOSEN",
-            sentence="METHOD_RULE_UNCHOSEN.older" if method["started_before_question"] else None,
+            sentence=(
+                "METHOD_RULE_UNCHOSEN.imported" if method["source"] == "imported"
+                else "METHOD_RULE_UNCHOSEN.older" if method["started_before_question"] else None
+            ),
         ))
     return out
 

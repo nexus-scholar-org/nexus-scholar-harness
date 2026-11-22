@@ -350,13 +350,16 @@ def map_source(source: Source) -> dict[str, Any]:
     lost.append({"what": "preset"})
     method = v.get("method") if isinstance(v.get("method"), dict) else None
     if method:
-        # M11b part D (record (g)): the imported block fills the two step-5 questions, shown as
-        # chosen; what else it sets (dedup, the rule table, the retrieval cap) is not carried.
+        # M11b part D (record (g)): the imported block fills the two step-5 questions; what else it
+        # sets (dedup, the rule table, the retrieval cap) is not carried. Item 5 (2026-11-22): the
+        # rule is shown but marked imported, so it blocks until the researcher confirms it; the
+        # visibility question, a pre-selection nobody questioned, is carried as it is.
         if method.get("blinding") in BLINDING_CHOICES:
             draft["method_blinding"] = method["blinding"]
             carry("method_blinding", "method")
         if method.get("not_reported") in NOT_REPORTED_CHOICES:
             draft["method_not_reported"] = method["not_reported"]
+            draft["method_not_reported_source"] = "imported"
             carry("method_not_reported", "method")
         if any(k not in ("blinding", "not_reported", "reporting") and method.get(k) not in (None, METHOD_DEFAULTS.get(k))
                for k in method):

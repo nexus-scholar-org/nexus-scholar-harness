@@ -70,6 +70,8 @@ export interface Draft {
   method_blinding?: MethodBlinding | null;
   /** M11b part D: what a draft does with a criterion not reported; null until the researcher chooses. */
   method_not_reported?: MethodNotReported | null;
+  /** Item 5 (2026-11-22): `imported` is shown but not chosen until confirmed; `confirmed` or `chosen` count. */
+  method_not_reported_source?: "imported" | "confirmed" | "chosen" | null;
 }
 
 export type MethodBlinding = "reveal_after_decision" | "show";
@@ -244,7 +246,14 @@ export interface CriteriaStep {
   missing_sides: ("inclusion" | "exclusion")[];
   reason_suggestions?: ReasonSuggestion[];
   /** M11b part D: the two method settings of the draft asked, and whether the rule is chosen. */
-  method?: { blinding: MethodBlinding | null; not_reported: MethodNotReported | null; chosen: boolean; started_before_question: boolean };
+  method?: {
+    blinding: MethodBlinding | null;
+    not_reported: MethodNotReported | null;
+    chosen: boolean;
+    started_before_question: boolean;
+    /** Item 5 (2026-11-22): where the rule came from; older engines omit it. */
+    source?: "imported" | "confirmed" | "chosen" | null;
+  };
   /** M11b part D: the options of the two questions in the engine's order (the browser orders nothing). */
   method_options?: { blinding: MethodBlinding[]; not_reported: MethodNotReported[] };
 }

@@ -131,7 +131,7 @@ def test_the_criteria_step_answers_the_options_in_the_engines_order(root):
     assert body["method_options"] == {"blinding": ["reveal_after_decision", "show"],
                                       "not_reported": ["unclear", "decisive_first", "exclude"]}
     assert body["method"] == {"blinding": "reveal_after_decision", "not_reported": None, "chosen": False,
-                              "started_before_question": True}
+                              "started_before_question": True, "source": None}
 
 
 # --- DoD 18b: the choice travels in the intent ---------------------------------------------------
@@ -277,3 +277,75 @@ def test_the_inception_agent_skill_names_the_rule_wherever_it_scripts_the_wizard
         if "--auto-select" in line:
             assert "--not-reported" in line, line
             assert "Ask the researcher" in line, line
+
+
+# --- Item 5, as the researcher changed it (2026-11-22, "Shown, but I must confirm it") ----------
+
+
+def _imported() -> dict:
+    return {**_unchosen(), "method_not_reported": "exclude", "method_not_reported_source": "imported"}
+
+
+def test_an_import_marks_its_rule_imported_and_carries_the_visibility_as_it_is(root):
+    from scholar_harness.inception import importer
+
+    draft = steps.parse_draft({**_unchosen(), "method_not_reported": "exclude", "method_blinding": "show"})
+    protocol = json.loads(compile_intent(steps.build_intent(draft, "2026-11-22T00:00:00+00:00"))["protocol_bytes"])
+    built = importer.map_source(importer.read_source(_file(protocol), root))
+    assert (built["draft"]["method_not_reported"], built["draft"]["method_not_reported_source"]) == ("exclude", "imported")
+    assert built["draft"]["method_blinding"] == "show"  # the visibility question is carried as it was
+    protocol.pop("method")
+    bare = importer.map_source(importer.read_source(_file(protocol), root))
+    assert "method_not_reported_source" not in bare["draft"]
+
+
+def test_an_imported_rule_is_shown_but_blocks_step_5_review_and_genesis_until_confirmed(root):
+    client = _client(root)
+    sid = _create(client, _imported())["session_id"]
+    choice = steps.method_choice(steps.parse_draft(_imported()))
+    assert (choice["not_reported"], choice["chosen"], choice["source"]) == ("exclude", False, "imported")
+    step = client.post(f"{BASE}/steps/criteria", json={"draft": _imported()}).json()
+    assert step["method"]["chosen"] is False and step["method"]["not_reported"] == "exclude"
+    checks = client.post(f"{BASE}/drafts/{sid}/checks", json={"step": "criteria"}).json()
+    [row] = [c for c in checks["checks"] if c["check_id"] == "METHOD_RULE_UNCHOSEN"]
+    assert row["message_key"] == "checks.METHOD_RULE_UNCHOSEN_imported.sentence" and row["params"]["imported"] is True
+    preview = client.post(f"{BASE}/preview", json={"draft": _imported()})
+    assert preview.status_code == 422 and preview.json()["detail"]["code"] == "METHOD_RULE_UNCHOSEN"
+    assert preview.json()["detail"]["details"]["imported"] is True
+    genesis = client.post(f"{BASE}/drafts/{sid}/genesis", json={})
+    assert genesis.status_code == 422 and genesis.json()["detail"]["code"] == "METHOD_RULE_UNCHOSEN"
+    assert not any(root.rglob("protocol.json"))
+
+
+def test_confirming_the_imported_rule_clears_the_blocker_and_records_the_confirmation(root):
+    client = _client(root)
+    sid = _create(client, _imported())["session_id"]
+    saved = _save(client, sid, {**_imported(), "method_not_reported_source": "confirmed"})
+    assert saved.status_code == 200, saved.text
+    assert (saved.json()["draft"]["method_not_reported"], saved.json()["draft"]["method_not_reported_source"]) == ("exclude", "confirmed")
+    checks = client.post(f"{BASE}/drafts/{sid}/checks", json={"step": "criteria"}).json()
+    assert not any(c["check_id"] == "METHOD_RULE_UNCHOSEN" for c in checks["checks"])
+    preview = client.post(f"{BASE}/preview", json={"draft": saved.json()["draft"]})
+    assert preview.status_code == 200 and preview.json()["intent"]["method"]["not_reported"] == "exclude"
+
+
+def test_choosing_another_rule_clears_the_blocker_and_drops_the_import_mark(root):
+    client = _client(root)
+    sid = _create(client, _imported())["session_id"]
+    # A screen that changes the value but does not name the source: a different value is a choice.
+    saved = _save(client, sid, {**_unchosen(), "method_not_reported": "unclear"})
+    assert saved.status_code == 200, saved.text
+    assert (saved.json()["draft"]["method_not_reported"], saved.json()["draft"]["method_not_reported_source"]) == ("unclear", "chosen")
+    assert steps.method_choice(steps.parse_draft(saved.json()["draft"]))["chosen"] is True
+    # A save that names nothing keeps the stored rule and its source.
+    kept = _save(client, sid, {k: v for k, v in _unchosen().items() if not k.startswith("method_")})
+    assert kept.json()["draft"]["method_not_reported_source"] == "chosen"
+
+
+def test_a_confirmed_rule_cannot_be_marked_imported_again(root):
+    client = _client(root)
+    sid = _create(client, _imported())["session_id"]
+    assert _save(client, sid, {**_imported(), "method_not_reported_source": "confirmed"}).status_code == 200
+    back = _save(client, sid, _imported())
+    assert back.status_code == 422 and back.json()["detail"]["code"] == "DRAFT_INVALID"
+    assert "method_not_reported_source" in json.dumps(back.json()["detail"])

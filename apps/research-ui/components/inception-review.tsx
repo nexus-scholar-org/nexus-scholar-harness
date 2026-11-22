@@ -416,6 +416,11 @@ export function InceptionReview({ locale }: Readonly<{ locale: Locale }>) {
                 {record?.draft.method_not_reported
                   ? t(`review.method.notReported.${record.draft.method_not_reported}` as Parameters<typeof t>[0])
                   : t("criteria.method.unchosen")}
+                {record?.draft.method_not_reported_source === "imported" ? (
+                  <span className="block text-blocked" data-review-method-unconfirmed>
+                    {t("review.method.unconfirmed")}
+                  </span>
+                ) : null}
               </li>
             </ul>
             <a className="inline-flex min-h-11 items-center text-brand underline" href={`${inceptionHref(locale, "criteria", draftId, origin)}#field-method_not_reported`}>

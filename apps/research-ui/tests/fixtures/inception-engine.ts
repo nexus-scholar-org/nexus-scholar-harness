@@ -261,12 +261,14 @@ function idOf(kind: string, source: string, text: string, reason: string | null 
 /** The engine's `method_choice` and `METHOD_OPTIONS` (M11b part D), as a test double. */
 function methodOf(draft: Json, option: true | { order?: string[] }) {
   const rule = (draft.method_not_reported ?? null) as string | null;
+  const source = (draft.method_not_reported_source ?? null) as string | null;
   return {
     method: {
       blinding: (draft.method_blinding ?? "reveal_after_decision") as string,
       not_reported: rule,
-      chosen: rule !== null,
+      chosen: rule !== null && source !== "imported",
       started_before_question: !("method_not_reported" in draft),
+      source,
     },
     method_options: {
       blinding: ["reveal_after_decision", "show"],
@@ -352,7 +354,7 @@ export function inceptionEngine(options: FakeOptions = {}) {
     if (lacking) return lacking;
     const c = criteriaOf(draft);
     if (c.undecided.length) return refuse(422, "CRITERIA_UNDECIDED", "accept or reject every criterion the wizard wrote", { undecided: c.undecided });
-    if (options.method && (draft.method_not_reported ?? null) === null) return refuse(422, "METHOD_RULE_UNCHOSEN", "choose the not-reported rule");
+    if (options.method && ((draft.method_not_reported ?? null) === null || draft.method_not_reported_source === "imported")) return refuse(422, "METHOD_RULE_UNCHOSEN", "choose the not-reported rule");
     if (c.missing_sides.length) return refuse(422, "CRITERIA_MISSING", "a protocol needs at least one inclusion and one exclusion criterion", { missing_sides: c.missing_sides });
     const slug = slugify(String(draft.title));
     const exists = existing !== "none";

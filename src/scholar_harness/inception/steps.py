@@ -249,6 +249,11 @@ class Draft(BaseModel):
     #: M11b part D (answer 8, 2026-11-21): the not-reported rule, with no default: ``None`` until
     #: the researcher chooses, and genesis is refused (``METHOD_RULE_UNCHOSEN``) until then.
     method_not_reported: Literal["unclear", "exclude", "decisive_first"] | None = None
+    #: Item 5 as the researcher changed it (2026-11-22, "Shown, but I must confirm it"): where the
+    #: rule came from. ``imported`` is shown but not chosen (the blocker stands); ``confirmed`` is
+    #: the imported rule kept by the researcher; ``chosen`` is one the researcher picked; ``None``
+    #: for a rule chosen before this field existed, which counts as chosen.
+    method_not_reported_source: Literal["imported", "confirmed", "chosen"] | None = None
 
     @field_validator("golden_seeds")
     @classmethod
@@ -582,7 +587,7 @@ REASON_SUGGESTIONS: tuple[tuple[str, str], ...] = (
 #: The two questions' options in the engine's order (spec 11: the browser does not order them).
 METHOD_OPTIONS = {"blinding": list(BLINDING_CHOICES), "not_reported": ["unclear", "decisive_first", "exclude"]}
 #: What a new draft stores (M11b part D): blinding pre-selected (a proposal), the rule unchosen.
-NEW_DRAFT_METHOD = {"method_blinding": "reveal_after_decision", "method_not_reported": None}
+NEW_DRAFT_METHOD = {"method_blinding": "reveal_after_decision", "method_not_reported": None, "method_not_reported_source": None}
 
 
 def keep_method_choice(stored: dict[str, Any] | None, new: dict[str, Any]) -> dict[str, Any]:
@@ -601,6 +606,19 @@ def keep_method_choice(stored: dict[str, Any] | None, new: dict[str, Any]) -> di
             "DRAFT_INVALID", "the not-reported rule was chosen; choose another value, it cannot be unset",
             details={"errors": [{"field": "method_not_reported", "error": "chosen"}]},
         )
+    # Item 5 (2026-11-22): a confirmed or picked rule is never marked imported again, and a value
+    # that differs from the stored imported one is the researcher's choice, whatever the source sent.
+    if stored.get("method_not_reported_source") in ("confirmed", "chosen") and new.get("method_not_reported_source") == "imported":
+        raise StepRefused(
+            "DRAFT_INVALID", "the not-reported rule was confirmed or chosen; it cannot be marked imported again",
+            details={"errors": [{"field": "method_not_reported_source", "error": "chosen"}]},
+        )
+    if (
+        out.get("method_not_reported_source") == "imported"
+        and stored.get("method_not_reported_source") == "imported"
+        and out.get("method_not_reported") != stored.get("method_not_reported")
+    ):
+        out["method_not_reported_source"] = "chosen"
     return out
 
 
@@ -610,8 +628,10 @@ def method_choice(draft: Draft) -> dict[str, Any]:
     return {
         "blinding": draft.method_blinding,
         "not_reported": draft.method_not_reported,
-        "chosen": draft.method_not_reported is not None,
+        # Item 5 (2026-11-22): an imported rule is shown but not chosen until the researcher confirms it.
+        "chosen": draft.method_not_reported is not None and draft.method_not_reported_source != "imported",
         "started_before_question": "method_not_reported" not in draft.model_fields_set,
+        "source": draft.method_not_reported_source,
     }
 
 
@@ -672,12 +692,16 @@ def build_intent(draft: Draft, genesis_timestamp: str) -> dict[str, Any]:
             "CRITERIA_MISSING", "a protocol needs at least one inclusion and one exclusion criterion",
             details={"missing_sides": criteria["missing_sides"]},
         )
-    if draft.method_not_reported is None:
+    if draft.method_not_reported is None or draft.method_not_reported_source == "imported":
         # M11b part D (answer 8): no rule is pre-selected; the researcher chooses before genesis.
+        # Item 5 (2026-11-22): an imported rule counts only once the researcher confirms it.
         raise StepRefused(
             METHOD_RULE_UNCHOSEN,
             "choose what the agent's draft does when the title and abstract do not report a criterion",
-            details={"started_before_question": "method_not_reported" not in draft.model_fields_set},
+            details={
+                "started_before_question": "method_not_reported" not in draft.model_fields_set,
+                "imported": draft.method_not_reported_source == "imported",
+            },
         )
     slug = slugify(draft.title)
     if not slug:
