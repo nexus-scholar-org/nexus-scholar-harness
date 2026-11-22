@@ -10,12 +10,12 @@ history to read if you need the original reasoning (`git log --follow -- <path>`
 
 | Entry | Item | What is open |
 | :-- | :-- | :-- |
-| 2026-11-22 — M12a Part F: open-access fetching, the engine and the screens | 1 to 67 | Proposed with the build; the researcher's answer is pending. Item 22 (the arXiv provider's old-style ids) changes harvests and is asked on its own, with its alternative. |
+| 2026-11-22 — M12a Part F: open-access fetching, the engine and the screens | 1 to 68 | Proposed with the build; the researcher's answer is pending. Item 22 (the arXiv provider's old-style ids) changes harvests and is asked on its own, with its alternative. |
 | 2026-11-19 — M9a: what the measurement says about the ladder gates | 2 | The minimum share of the researcher's excludes an agent must take before a rung unlocks: the principle is accepted; the researcher decided on 2026-11-20 to set the number when M9b is built. |
 
-## 2026-11-22 — M12a Part F: open-access fetching, the engine and the screens (items 1 to 67 PROPOSED)
+## 2026-11-22 — M12a Part F: open-access fetching, the engine and the screens (items 1 to 68 PROPOSED)
 
-Record: `docs/roadmap/milestones/M12a-charting-table.md`, "Build record", Part F. Spec: `docs/ux/phase3-extraction/final/03-fetch-states.md` (FINAL; questions 1 to 10 answered by the researcher on 2026-11-22, each as recommended, the fifth refusal code `FETCH_FILE_WAITING` approved with that answer). Builds section (d2) and DoD F1 to F8 on Part K (PR 283). Items 1 to 24 are the engine's, 25 to 58 the screens', 59 to 65 the engine's repairs after review round 1 (items 6, 20 and 22 amended then), 66 and 67 after round 2 (item 60 amended then). The build's own choices; none is accepted until the researcher answers.
+Record: `docs/roadmap/milestones/M12a-charting-table.md`, "Build record", Part F. Spec: `docs/ux/phase3-extraction/final/03-fetch-states.md` (FINAL; questions 1 to 10 answered by the researcher on 2026-11-22, each as recommended, the fifth refusal code `FETCH_FILE_WAITING` approved with that answer). Builds section (d2) and DoD F1 to F8 on Part K (PR 283). Items 1 to 24 are the engine's, 25 to 58 the screens', 59 to 65 the engine's repairs after review round 1 (items 6, 20 and 22 amended then), 66 and 67 after round 2 (item 60 amended then), 68 from the PR gate. The build's own choices; none is accepted until the researcher answers.
 
 1. Confirm and discard are event kinds on `POST /charting/events` (`fetched_confirm` `{manifest_row}`, `fetched_discard` `{manifest_row, reason, reason_text}`); their undo is `value: null` with `supersedes`; a non-null value must name the waiting row.
 2. A confirm makes the engine write the attachment (`origin: fetched`) and the Retrieved status in the same request (engine-made ids, marked `added_by_engine` in the results); undoing the confirm takes them back only while they still hold.
@@ -90,6 +90,7 @@ After review round 1 (engine):
 65. **No finish row without a start row** (review, finding 10): when the start cannot be written to the journal, the run is released without a `CHARTING_FETCH_FINISHED` row.
 66. **A half-written events file never fails a run** (review round 2, finding 2): the check of item 60 reads the events once per record; if that read fails, the record is asked as planned (a file that still arrives on a changed row is hidden by the row rule of item 60).
 67. **Rows changed during a run are said** (review round 2, finding 3): the finish journal row has `changed_during_run` beside `asked`, and the summary a line "{n} changed by you during the look-up and not asked" (new key `charting.fetch.summary.changed` in en, fr and ar), shown only above zero.
+68. **Two inception test files wait 5 s for their first render** (found by the PR gate, not by a review): with Part F's fourteen test files the full `vitest run` (108 files) took `inception-explore.test.tsx` and `inception-workbench.test.tsx` about 30 s each, and their first `findBy` went past the default 1 s in two of two runs; each file passes alone (three runs) and with all the charting files (two runs), and `origin/main` `46ebe639` (94 files) passed its one run. Only those two waits get `timeout: 5000`; no product code changes. The alternative, a longer default for every `findBy` in `tests/setup.ts`, would hide slow renders everywhere.
 
 **Lane RELEASE** (new routes, a new persisted record and journal rows, refusal codes, outgoing requests, a change to the arXiv provider's parsing).
 

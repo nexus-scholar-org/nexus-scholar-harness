@@ -729,7 +729,7 @@ Review round 2 (`milestone-reviewer`, on `7765cb09`): **APPROVE**. In its words:
 
 ### Part F: open-access fetching (the engine and the screens)
 
-Branch `dev/m12a/part-f-fetch`, cut from Part K's branch (`d1f48bd9`) with `origin/main` `933be3fb` merged in; Part K's pushed head (PR 283, `76b47c15`) merged in on 2026-11-22 (`f108b97a`; the two conflicts were documents Part F had not touched, Part K's versions kept) · Lane **RELEASE** (new routes, a new persisted record and journal rows, refusal codes, outgoing requests, a change to the arXiv provider's parsing) · Spec: `docs/ux/phase3-extraction/final/03-fetch-states.md`, FINAL on 2026-11-22 (questions 1 to 10 answered by the researcher, each as recommended; the fifth refusal code `FETCH_FILE_WAITING` approved with question 6) · Decisions: `docs/decisions.md` "2026-11-22 — M12a Part F" items 1 to 67 (PROPOSED). The screens were built by a subagent from a brief written in the build session; the engine, its two later repairs and the documents in the build session.
+Branch `dev/m12a/part-f-fetch`, cut from Part K's branch (`d1f48bd9`) with `origin/main` `933be3fb` merged in; Part K's pushed head (PR 283, `76b47c15`) merged in on 2026-11-22 (`f108b97a`; the two conflicts were documents Part F had not touched, Part K's versions kept) · Lane **RELEASE** (new routes, a new persisted record and journal rows, refusal codes, outgoing requests, a change to the arXiv provider's parsing) · Spec: `docs/ux/phase3-extraction/final/03-fetch-states.md`, FINAL on 2026-11-22 (questions 1 to 10 answered by the researcher, each as recommended; the fifth refusal code `FETCH_FILE_WAITING` approved with question 6) · Decisions: `docs/decisions.md` "2026-11-22 — M12a Part F" items 1 to 68 (PROPOSED). The screens were built by a subagent from a brief written in the build session; the engine, its two later repairs and the documents in the build session.
 
 What was built:
 - The kit (`src/scholar_pdf/downloader.py`, `open_copies.py`, `manifest.py`): a body limit, a redirect cap, a pacer, the caller's copies and outcome rows, each with a default that leaves the commands unchanged (item 20); an arXiv copy labelled with its version (item 11).
@@ -785,3 +785,21 @@ Review round 2 (`milestone-reviewer`, on `2c0d021d`: the repairs `41c60093`, `a1
 | P4-4 | The UI fake still showed the file after an undo of a confirm when the researcher's attachment held | the fake applies the engine's row rule | the charting vitest files |
 
 Follow-ups the reviewer named, not repaired here: the moved-workspace test's first assertion proves nothing on Windows (JSON escapes the backslashes; the `pdfs/fetched/DOC-` assertion is the one that catches the old behaviour); `manifest_file_root` has no test in the kit's own tests; arXiv-only records go to arXiv's batch look-up at the start, so a row changed after it was already sent there; the replace's running-job check has the search jobs' check-then-act race.
+
+Review round 3 (`milestone-reviewer`, on `f7136455`: the repairs `74a93333` and the docs `f7136455`): **APPROVE**. In its words: "All four round-2 findings are repaired… There are no new findings."
+
+Evidence (the PR gate on `f7136455`, final code `74a93333`; each heavy step alone on the machine, the script waiting until no other test process ran):
+
+| Check | Result |
+| :-- | :-- |
+| `pytest -q -n 4` (4 workers) with `--junitxml` | 6533 tests, 0 failures, 0 errors, 15 skipped (943 s) |
+| `sync_skills_bundle.py --check`; `ruff check scripts/`; `ruff check src/ --select F821,F811,F823,F632,F7,B023,B006,E9` | OK; clean; clean |
+| `generate_contract_baseline.py --check`; protocol schema check | current; in sync |
+| `npm run typecheck`; `npm run build` | clean; ok |
+| `vitest run` | 108 files, 1342 tests: 2 failures in that run (`inception-explore`, `inception-workbench`, their first `findBy` past 1 s; item 68), 1 in a rerun alone; after `25d7956c` two full runs 1342 passed, 0 failures; typecheck clean |
+| `playwright test` | 720 passed, 16 skipped (17.6 min) |
+| `git diff --check origin/main...HEAD` | clean |
+
+The four screenshots Playwright rewrites were restored. Later commits: `4b89c798` merges `origin/main` `46ebe639` (PRs 285 and 286, documents only; the conflict in this record resolved with both sides kept); `25d7956c` is the test repair of item 68 (two test files, no product code), checked by the two full vitest runs above; the rest are documents.
+
+**Part F: READY FOR PR** (not pushed). Branch `dev/m12a/part-f-fetch`; it carries Part K's PR-283 head `76b47c15` and `origin/main` `46ebe639`. Decision items 1 to 68 are PROPOSED; DoD F9 (a live run on the researcher's review) is the researcher's, after the merge.
