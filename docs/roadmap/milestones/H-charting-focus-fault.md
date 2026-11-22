@@ -1,5 +1,5 @@
 # H-charting-focus-fault: after Ctrl+Down the next study sometimes opened with the focus nowhere
-Branch: dev/h/charting-focus-fault (from `origin/main` `21a4e6a3`) · Lane: **STANDARD** · Status: READY FOR PR, not pushed (review round 1 CHANGES, repaired) · Started: 2026-11-22
+Branch: dev/h/charting-focus-fault (from `origin/main` `21a4e6a3`) · Lane: **STANDARD** · Status: READY FOR PR, not pushed (`milestone-reviewer` APPROVE, round 2) · Started: 2026-11-22
 
 **Lane.** STANDARD, from `docs/architecture/test_gate_policy.md` ("a bounded behavior … change owned by one repository"): the keyboard focus of one screen (the charting one-study view) and one browser test. No contract, API, route, persisted file, copy or spec change. Gates: the repeat run of the failing browser test, `tsc`, the charting vitest files, then the `pr` set once on the final executable commit.
 
@@ -58,6 +58,8 @@ Test 1 (four moves): failed in 6 of 6 runs on `origin/main` and 6 of 6 with only
 
 ## Review
 `milestone-reviewer`, round 1: **CHANGES**, no code defect. Repaired: (1) the after-fix evidence and the gates are recorded above; (2) the test of the cause was timing-dependent, so it now makes the move four times, and the counts above say so; (3) the act flag is restored in `afterEach` and the wait for the saved value has its own time limit, so a failing run cannot leave the flag off; (4) decision item 2 now gives the table's steps in order.
+
+Round 2, on the repair delta `5edf2c09..be977b2d`: **APPROVE**, all four findings repaired, nothing new. The reviewer ran the new test on a copy of the app with the old component swapped in: test 1 (four moves) failed in 6 of 6 runs on `origin/main` and 6 of 6 with only `stillAt`, and all four passed in 6 of 6 on the branch. The reviewer did not re-run the recorded gates.
 
 ## Follow-up (not in this change)
 - Ctrl+Down and Ctrl+Up are handled before the screen's `switching` check (`charting-study.tsx`, the key handler and `move()`): two moves started before the move's first render (Ctrl+Down then Ctrl+Up quickly) can both run, and the screen can then show one study while the address and the focus request name the other. This was there before; with this change the focus does not land in that state. Found by the reviewer.
