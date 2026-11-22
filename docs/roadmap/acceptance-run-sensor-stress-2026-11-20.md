@@ -129,6 +129,27 @@ What it says: the rule does the work (Unclear from 67% to 21%, excludes caught f
 
 **Bulk adoption (the researcher's instruction, 2026-11-20).** The researcher asked that their decisions be recorded as the agent's drafts say, without going one by one. The main session did not store them as individually made. It stored 439 exclusions and 69 inclusions through the engine's decision intake, each event with a note ("Adopted in bulk from the agent's draft …; not reviewed individually"), and one journal row `SCREENING_DRAFTS_ADOPTED`. Drafts derived Unclear were not adopted: 488 records stay undecided. Before the adoption the researcher had decided 66 records themselves; of the 33 the draft excluded, they excluded 32 and included 1. A random sample of 50 adopted exclusions (seed 20261120) was given to the researcher to verify; the result is not in this record yet. A decision event must be `method: HUMAN`: the app has no "adopted from the agent" kind (the M9b `AGENT_ADOPTED` event is not built), so its generated methods text does not mention the adoption and the paper's methods must.
 
+**Second drafting pass and the rest of the adoption (2026-11-20 and 2026-11-21).** The 488 records still undecided were drafted a second time by 25 sub-agents of the main session (Sonnet 5.5, task version `mcp-confident-pass-1`, instructed to decide where the text allows), submitted with the MCP tool `nexus_submit_proposal`; this used no API key and added nothing to the review's AI spend. A yes or no whose quote was not found word for word in the record was downgraded to not reported before it was submitted. Under `decisive_first`: 147 Exclude, 17 Include, 324 Unclear.
+
+On 2026-11-21 the researcher asked for two more steps "the same labelled way", neither read one by one:
+
+- the 164 decisive drafts of the second pass were stored as their decisions (147 exclusions, 17 inclusions), with a random sample of 20 adopted exclusions (seed 20261121) written for them to verify;
+- the 324 records still undecided, each with an Unclear draft after two passes, were stored as Unclear, which sends them on to full text. No record was excluded or included by this step.
+
+**Where the screening stands (2026-11-21).** All 1,062 records are decided: 619 Exclude, 91 Include, 352 Unclear. By origin:
+
+| Origin | Records | Exclude | Include | Unclear |
+| :-- | --: | --: | --: | --: |
+| The researcher's own reading | 66 | 33 | 5 | 28 |
+| Adopted from the first drafts, 2026-11-20 | 508 | 439 | 69 | 0 |
+| Adopted from the second pass, 2026-11-21 | 164 | 147 | 17 | 0 |
+| Stored as Unclear in bulk, 2026-11-21 | 324 | 0 | 0 | 324 |
+| **All** | **1,062** | **619** | **91** | **352** |
+
+So 996 of the 1,062 decisions (94%) were not read individually, and 443 records go on to full text. Every such event is `method: HUMAN` with a note that says it was adopted or stored in bulk and names its draft. The two samples (50 and 20 adopted exclusions) are what backs the 586 adopted exclusions; **neither has been read yet**, and the batches are neither approved nor published. AI spend on the review's key stays at about $2.15 of the $10 ceiling (drafts $1.39, the measurement $0.76).
+
+**A slip in the audit trail, repaired.** The main session reported the journal rows `SCREENING_DRAFTS_ADOPTED` (the first adoption) and `SCREENING_DRAFTS_SECOND_PASS` as written on 2026-11-20; they were not in `audit/journal.jsonl`. Both were written on 2026-11-21 from a recount of the stored events, each marked "Recorded late, on 2026-11-21". The decision events themselves and their notes were stored at the time, so no decision was unlabelled; the journal lacked its summary rows for about a day. The two steps of 2026-11-21 were journaled when they ran.
+
 ### Findings from this part
 
 | # | Screen | What happened | Severity | Status |
@@ -144,6 +165,8 @@ What it says: the rule does the work (Unclear from 67% to 21%, excludes caught f
 | 38 | Screening, Publish | Approval is one batch at a time, each with a one-time code read from the engine's terminal: 54 batches of 20 mean 54 codes, and the terminal is not visible to a researcher for whom the app was started | P1 at this corpus size | Open (H-run-small-fixes, Part A) |
 | 39 | Screening, drafts | About 8% of Haiku drafts on the review (82 of 1,062) and 283 of 1,644 in the measurement failed the `quote_in_source` check and fell back to Unclear; the cause is not known (misquotes, or text normalisation) | P2 | Open (H-run-small-fixes, Part C) |
 | 40 | Screening, decisions | There is no way to record that a decision was adopted from the agent's draft; a note on a human decision is the only place for it | P2 | Open (M9b `AGENT_ADOPTED`) |
+| 41 | Screening, decisions | Storing Unclear for many records at once has no place in the app either: 324 records with an Unclear draft were stored by a script through the decision intake | P3 | Open (with finding 40) |
+| 42 | The main session (not the product) | Two journal rows were reported as written and were not; found by a search of the journal a day later | n/a | Repaired 2026-11-21 (rows written, marked as recorded late) |
 
 ## What to fix first
 
@@ -163,3 +186,5 @@ After the afternoon's part, findings 18 to 21 come before both: a loop that lets
 - Hand-off, screening, the AI screener and its cost on this corpus.
 - Whether the Semantic Scholar key is valid.
 - How much of the OpenAlex daily quota this run used.
+- The two samples of adopted exclusions (50, seed 20261120; 20, seed 20261121): not read by the researcher yet, so the error rate of the 586 adopted exclusions on this review is not known.
+- Approving the 54 batches with one paste and publishing, on this workspace.
