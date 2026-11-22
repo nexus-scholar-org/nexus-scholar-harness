@@ -578,3 +578,12 @@ Review round 1 (`milestone-reviewer`, on `57a96c29`, scope `d110afe4..HEAD`): **
 | P3-9 | Required cells not charted were not counted and not listed as deferred | deferred to Part C, listed under "Not verified" above | (none) |
 
 P4 follow-ups left as they are: two protocol ids that become the same once made safe lose a column at seeding; a new column naming a column still in the form is recorded as "added" yet marked Chart again; a clear without `supersedes` keeps form changes as amendments; no test that nothing is seeded while the table is read-only; the `CHARTING_VALUE_INVALID` words say "not one of the options" for a text that is too long. ("0x10" is now asked again, with finding 3.)
+
+Evidence after round 1:
+
+| Stage | Commit | Command | Result | Duration |
+| :-- | :-- | :-- | :-- | :-- |
+| inner | working tree before `72813eca` | `pytest tests/console/test_charting_form_api.py tests/console/test_charting_api.py tests/unit/test_criteria_readers.py -n 2` (junit); `vitest run tests/charting.number-reading.test.ts tests/charting.form-panel.test.tsx tests/charting.cells-keymap.test.tsx`; typecheck | 73 tests, 0 failures; 21 tests, 0 failures; clean | |
+| pr (final) | `72813eca` | the full PR gate, each heavy step alone on the machine: `pytest -q -n 4` (junit); `sync_skills_bundle.py --check`; typecheck; `vitest run`; build; `playwright test`; both ruff runs; baseline; protocol schema; `git diff --check origin/main...HEAD` | 6239 tests, 0 failures, 0 errors, 15 skipped; OK; clean; 90 files, 1179 tests, 0 failures; built; 680 passed, 12 skipped; clean; clean; current; in sync; clean | 716 s; 151 s; 23 s; 1084 s |
+
+The Playwright run rewrote the same four screenshots as before; they were restored.
