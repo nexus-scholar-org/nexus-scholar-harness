@@ -374,7 +374,8 @@ function ReportScreen({ locale, origin }: Readonly<{ locale: Locale; origin: str
   const countRow = (key: string, label: ReactNode, values: number[], reason = false) => (
     <tr key={key} className="border-t border-rule" data-count-row={key}>
       <th scope="row" className={`py-2 text-start font-normal ${reason ? "ps-6 text-ink-muted" : "text-ink"}`}>
-        {reason ? <span className="text-xs">{`${t("charting.report.counts.ofWhich")} `}</span> : null}
+        {reason ? <span className="text-xs">{t("charting.report.counts.ofWhich")}</span> : null}
+        {reason ? " " : null}
         {label}
       </th>
       {values.map((value, i) => (
