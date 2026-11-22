@@ -1,4 +1,5 @@
 import { createRequire } from "node:module";
+import { join } from "node:path";
 
 import type { Page } from "@playwright/test";
 
@@ -27,6 +28,17 @@ async function engine(page: Page, options: FakeOptions & { draft?: Record<string
   return fake;
 }
 
+/**
+ * `M11B_SHOTS=<folder>` also writes the screenshots looked at for the build record (English, light
+ * theme, 1440 by 900); nothing is written into the repository.
+ */
+async function shot(page: Page, name: string, project: string) {
+  const folder = process.env.M11B_SHOTS;
+  if (!folder || project !== "chromium") return;
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.screenshot({ path: join(folder, `${name}.png`) });
+}
+
 const AXE_PATH = createRequire(import.meta.url).resolve("axe-core");
 
 async function axe(page: Page) {
@@ -43,13 +55,18 @@ const decided = (extra: Record<string, unknown> = {}) =>
 
 test.use({ viewport: DESKTOP_VIEWPORT });
 
-test("the rule holds Continue until chosen, and the choice reaches Review in words", async ({ page }) => {
+test("the rule holds Continue until chosen, and the choice reaches Review in words", async ({ page }, info) => {
   const fake = await engine(page, { draft: decided({ method_blinding: "reveal_after_decision", method_not_reported: null }), method: true });
   await page.goto(`/en/inception/criteria/?draft=${SESSION}`);
   const go = page.getByRole("button", { name: "Continue to review" });
   await expect(go).toBeDisabled();
   await expect(page.locator("[data-rule-blocked]")).toContainText("Choose what the agent should do when a criterion is not reported");
   expect(await axe(page)).toEqual([]);
+  if (process.env.M11B_SHOTS && info.project.name === "chromium") {
+    await page.locator("[data-criteria-block]").scrollIntoViewIfNeeded();
+    await page.locator("[data-method]").scrollIntoViewIfNeeded();
+    await shot(page, "6-inception-step5-how-you-will-screen", info.project.name);
+  }
   const rule = page.getByRole("group", { name: /the agent's draft should/ });
   await rule.getByRole("radio", { name: /Exclude only on a clear failure/ }).check();
   await expect(go).toBeEnabled();

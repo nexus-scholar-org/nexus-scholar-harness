@@ -1,4 +1,5 @@
 import { createRequire } from "node:module";
+import { join } from "node:path";
 
 import type { Page, Route } from "@playwright/test";
 
@@ -139,6 +140,17 @@ async function engine(page: Page, options: { open?: boolean; recheck?: boolean }
   return { sent, pilot, main };
 }
 
+/**
+ * `M11B_SHOTS=<folder>` also writes the screenshots looked at for the build record (English, light
+ * theme, 1440 by 900); nothing is written into the repository.
+ */
+async function shot(page: Page, name: string, project: string) {
+  const folder = process.env.M11B_SHOTS;
+  if (!folder || project !== "chromium") return;
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.screenshot({ path: join(folder, `${name}.png`) });
+}
+
 const AXE_PATH = createRequire(import.meta.url).resolve("axe-core");
 
 async function axe(page: Page) {
@@ -152,10 +164,12 @@ async function axe(page: Page) {
 
 test.use({ viewport: DESKTOP_VIEWPORT });
 
-test("the pilot decided by keyboard goes to the pilot route only, then hands off to its result", async ({ page }) => {
+test("the pilot decided by keyboard goes to the pilot route only, then hands off to its result", async ({ page }, info) => {
   const { sent, pilot, main } = await engine(page);
   await page.goto("/en/screening/triage?view=pilot");
   await expect(page.getByRole("region", { name: "Pilot" })).toContainText("Pilot · 0 of 3 decided");
+  await expect(page.locator("[data-position]")).toHaveText("Pilot record 1 of 3");
+  await shot(page, "2-triage-pilot-view", info.project.name);
   for (let i = 1; i <= N; i += 1) {
     await expect(page.locator("[data-position]")).toHaveText(`Pilot record ${i} of 3`);
     await page.keyboard.press("i");
@@ -170,12 +184,13 @@ test("the pilot decided by keyboard goes to the pilot route only, then hands off
 });
 
 for (const width of [1440, 1280]) {
-  test(`at ${width} px: the result, a revision recorded through its dry call, and axe clean`, async ({ page }) => {
+  test(`at ${width} px: the result, a revision recorded through its dry call, and axe clean`, async ({ page }, info) => {
     await page.setViewportSize({ width, height: 900 });
     const { sent } = await engine(page, { open: false });
     await page.goto("/en/screening/pilot?id=pilot_001");
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
     expect(await axe(page)).toEqual([]);
+    if (width === 1440) await shot(page, "4-pilot-result", info.project.name);
     await page.getByRole("button", { name: "Revise a criterion" }).click();
     const dialog = page.getByRole("dialog", { name: "Revise a criterion" });
     await dialog.getByRole("radio", { name: "Reword · same test, clearer words" }).check();
@@ -183,6 +198,7 @@ for (const width of [1440, 1280]) {
     await dialog.locator("textarea").first().fill("Not an arable crop field");
     await dialog.getByLabel("Why are you making this change? One sentence.").fill("Orchards were read two ways");
     expect(await axe(page)).toEqual([]);
+    if (width === 1440) await shot(page, "5-revise-dialog", info.project.name);
     await dialog.getByRole("button", { name: "Check what this changes" }).click();
     const confirm = page.getByRole("alertdialog", { name: "Record this revision?" });
     await expect(confirm).toContainText("No record will be shown again.");
@@ -210,15 +226,35 @@ test("ending an open pilot asks first, then the result reads ended and the recor
   await expect(page.locator("[data-earlier-decision]")).toHaveCount(0);
 });
 
-test("a record shown again shows the earlier decision beside it and is decided again", async ({ page }) => {
+test("a record shown again shows the earlier decision beside it and is decided again", async ({ page }, info) => {
   const { sent } = await engine(page, { open: false, recheck: true });
   await page.goto("/en/screening/triage");
   await expect(page.locator("[data-recheck-banner]")).toContainText("1 records are shown again because criteria changed");
   const earlier = page.locator("[data-earlier-decision]");
   await expect(earlier).toContainText("Your decision under the earlier wording (version 1)");
   expect(await axe(page)).toEqual([]);
+  await shot(page, "3-record-shown-again", info.project.name);
   await page.keyboard.press("i");
   await expect.poll(() => sent.filter((s) => s.path === "/decisions/events").length).toBe(1);
   const event = (sent.find((s) => s.path === "/decisions/events")!.body!.events as Record<string, unknown>[])[0];
   expect(event).toMatchObject({ study_id: "STU-1", outcome: "INCLUDE", supersedes: "EV-old" });
+});
+
+test("screenshots only: Prepare with the pilot card", async ({ page }, info) => {
+  test.skip(!process.env.M11B_SHOTS || info.project.name !== "chromium", "screenshots only (M11B_SHOTS)");
+  await engine(page, { open: false });
+  // Prepare reads its own two answers; the pilot card reads the pilot fake's summary and criteria.
+  await page.route("**/api/console/api/v1/screening/settings", (route) =>
+    route.fulfill({ json: { blinding: "reveal_after_decision", mode: "human_sees_every_record", sample_audit_size: null, screener_id: "researcher:local", advance_on_decide: "show_draft_then_next", not_reported_policy: "unclear", not_reported_source: "protocol", method_amendments: [] } }),
+  );
+  await page.route("**/api/console/api/v1/screening/ui/batches", (route) =>
+    route.fulfill({ json: { shape: "ui07.screening-batches-v1", run_id: null, count: 1, batches: [{ batch_index: 1, batch_file: "batch_001.json", items: 3, decisions_file: null, decisions_count: null, collected: false, coverage: "INCOMPLETE", unresolved_rows: [] }], missing: [] } }),
+  );
+  await page.route("**/api/console/api/v1/screening/summary", (route) =>
+    route.fulfill({ json: { total: 1062, decided: 0, by_outcome: { INCLUDE: 0, EXCLUDE: 0, MAYBE: 0 }, agent_proposed: 0, needs_you: 1062, conflicts: 0, lanes: { agent: 0, you: 0, second_screener: "PARKED" }, protocol_changed: false, criteria_version: 1, recheck: 0, pilot: null } }),
+  );
+  await page.goto("/en/screening/prepare");
+  await expect(page.getByRole("button", { name: "Draw a pilot of 50" })).toBeVisible();
+  await page.locator("[data-pilot-card]").scrollIntoViewIfNeeded();
+  await shot(page, "1-prepare-pilot-card", info.project.name);
 });
