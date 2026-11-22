@@ -241,8 +241,10 @@ def test_a_production_command_refuses_the_publisher_pattern_setting(
     with patch("scholar_pdf.cli.AsyncPDFDownloader", autospec=True) as downloader:
         result = runner.invoke(app, args)
     assert result.exit_code != 0
-    assert "ENABLE_PUBLISHER_DIRECT_PATTERNS" in result.output
-    assert "item 24" in result.output
+    text = " ".join(result.output.split())
+    assert "ENABLE_PUBLISHER_DIRECT_PATTERNS" in text
+    assert "item 24" in text
+    assert "removed" in text  # Part K: a stale setting is refused, not silently ignored
     downloader.assert_not_called()
 
 

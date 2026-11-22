@@ -31,10 +31,24 @@ GitHub Releases — no source checkout, no per-kit installs.
 > preprint), names that copy in its summary, and says why a DOI has no file, in
 > words and in its exit code: 3 a lookup failed (run again later), 1 a listed
 > address gave no PDF, 4 open access but no direct PDF address listed, 5 no open
-> copy listed. Known
-> defects that Part K of M12a still repairs: OpenAlex asked without its key,
-> 403/404/410 retried (PDF-06), no manifest of which file is which DOI (PDF-07),
-> exit 0 on some failures (PDF-15); check the downloaded files by hand.
+> copy listed.
+>
+> Since Part K of M12a (decision 2026-11-21, item 15): OpenAlex is asked only
+> with `SCHOLAR_OPENALEX_KEY`, sent as its key (without it only Unpaywall is
+> asked and the command says so; a 409 reads "the daily budget is spent"); a PDF
+> address that answers 400, 401, 403, 404, 410 or 451 is asked once (a 5xx, a
+> timeout, and a 429 whose `Retry-After` is at most 60 s are retried); a
+> service's closed evidence (`is_oa: false`, `oa_status: closed`) overrides its
+> `pdf_url`; every DOI asked gets one row in `download-manifest.jsonl` (in
+> `--output`, or `--manifest PATH`) with the file, its SHA-256, the address
+> asked, the redirects, the version, licence and host, each check by name, the
+> access status and every PDF request; the command prints the PDF requests per
+> DOI; with the `pdf` extra the first two pages are searched for the DOI and
+> the title ("doi found", "title found", "not found: check it"; "not checked"
+> without it), never blocking a file; `ingest` and a missing `--input` exit
+> non-zero; the publisher patterns and `--smart-names` are removed; where hard
+> links fail (FAT or exFAT drives) the file is copied. Check each stored file's
+> identity before you use it.
 
 - Works on **Windows, macOS, Linux** (Python 3.11+ via `uv` or `pip`).
 - The wheel bundles the harness CLI **plus the seven scholar kits**, the
@@ -357,8 +371,8 @@ starts this server on your workspace.
 
 | Variable | Purpose |
 | --- | --- |
-| `SCHOLAR_MAILTO` | Contact email sent to Crossref (in the User-Agent) and to NCBI for PubMed. OpenAlex no longer reads an email and a search does not send it one; `scholar-pdf download` and `ingest` do send it to Unpaywall and OpenAlex (as a parameter and in the User-Agent) and refuse without it. **Required for a live search**: without it `run`, a browser harvest and a recall check refuse with `MAILTO_NOT_SET`. |
-| `SCHOLAR_OPENALEX_KEY` | OpenAlex API key (free, from openalex.org). **Required to search OpenAlex: OpenAlex has required a key since 2026-02-13.** A browser harvest that includes OpenAlex refuses with `OPENALEX_KEY_NOT_SET` until it is set, and the Plan screen shows whether it is set. Without it, a CLI `run` still sends OpenAlex keyless requests, which share a small daily budget with everyone on your network address; paging past the first page is refused, and the OpenAlex leg then fails with `PROVIDER_REFUSED` and a note naming the key. |
+| `SCHOLAR_MAILTO` | Contact email sent to Crossref (in the User-Agent) and to NCBI for PubMed. OpenAlex no longer reads an email and a search does not send it one; `scholar-pdf download` and `ingest` do send it to Unpaywall (as a parameter) and in the User-Agent of every request, and refuse without it. **Required for a live search**: without it `run`, a browser harvest and a recall check refuse with `MAILTO_NOT_SET`. |
+| `SCHOLAR_OPENALEX_KEY` | OpenAlex API key (free, from openalex.org). **Required to search OpenAlex: OpenAlex has required a key since 2026-02-13.** A browser harvest that includes OpenAlex refuses with `OPENALEX_KEY_NOT_SET` until it is set, and the Plan screen shows whether it is set. Without it, a CLI `run` still sends OpenAlex keyless requests, which share a small daily budget with everyone on your network address; paging past the first page is refused, and the OpenAlex leg then fails with `PROVIDER_REFUSED` and a note naming the key. `scholar-pdf download` and `ingest` ask OpenAlex only with this key (sent as its key, never printed or written to the manifest); without it they ask Unpaywall only and say so. |
 | `SCHOLAR_S2_KEY` | Semantic Scholar API key (optional; without it the bulk search runs in Semantic Scholar's shared keyless pool). Sent as the `x-api-key` header. A key Semantic Scholar rejects (HTTP 401 or 403; keys unused for about 60 days are pruned, and a key pasted with quotes is refused) fails the Semantic Scholar leg with `PROVIDER_REFUSED` and a note naming the variable; the search is never retried without the key. The Plan screen shows "Set, not yet verified". A key allows 1 request per second across all endpoints; the search, the abstract step and citation chasing together send at most 0.9 per second (`SCHOLAR_RATE_LIMIT_S2`). |
 | `NEXUS_WORKSPACES_ROOT` | Folder holding your workspaces for `nexus-scholar ui` (else `~/Documents/Nexus Scholar/workspaces`). |
 | `NEXUS_CONSOLE_TOKEN` | The per-launch token of `nexus-scholar serve` (it prints one if unset). |

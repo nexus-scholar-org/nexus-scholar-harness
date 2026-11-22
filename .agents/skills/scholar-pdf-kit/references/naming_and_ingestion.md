@@ -15,13 +15,12 @@ identity-addressed paths of the form `DOC-<32 hex>.pdf` (content hash via
 filename, or HTTP success. A concurrent writer publishing different bytes to the
 same identity path fails rather than overwrites.
 
-### `--smart-names` (retained flag, no renaming effect)
+### Which file is which paper: the manifest
 
-The CLI still accepts `--smart-names`, and the downloader keeps the
-`_safe_filename` helper (`{year}_{author}_{title}.pdf`, title truncated to 50
-alphanumeric characters) — but the helper is never called on the pinned path, so
-the flag does not change the final filename. Treat smart-naming as a deferred
-toolkit defect (D1), not as behavior to rely on.
+`--smart-names` and `_safe_filename` were removed in Part K (PDF-05): they never
+renamed anything. The mapping from a DOI (and the study id of its record) to its
+`DOC-<32 hex>.pdf` file is the manifest row (`download-manifest.jsonl` in
+`--output`, or `--manifest PATH`; see `resolution_and_download.md` §4).
 
 ### Legacy DOI naming
 
@@ -38,13 +37,15 @@ result record or `--export json` instead.
 
 When a PDF has been acquired manually (e.g. author copy or institutional archive), it can be ingested into the managed library:
 ```bash
-uv run scholar-pdf ingest path/to/manual_paper.pdf --doi 10.1038/35057062 --export json
+uv run scholar-pdf ingest path/to/manual_paper.pdf --doi 10.1038/35057062 --study-id SCI-000002 --export json
 ```
+`ingest` exits 1 when it stores nothing (a missing file, not a PDF, below the size floor, or a manifest row that cannot be written).
 ### Ingestion Workflow
 1. Queries OpenAlex/Unpaywall to hydrate metadata for the provided DOI.
 2. Validates PDF magic bytes plus trailer/size floor in staging (optional pypdf gate via `--strict-validate`).
-3. Atomically promotes validated bytes to the content-addressed `DOC-<32 hex>.pdf` path without overwriting existing bytes.
-4. Appends record to `download_summary.json` or `download_summary.bibtex`.
+3. Atomically promotes validated bytes to the content-addressed `DOC-<32 hex>.pdf` path without overwriting existing bytes (a copy where hard links fail).
+4. Records the identity check and writes the manifest row (route `user_provided`, access status `USER_PROVIDED`).
+5. With `--export`, adds the record to `download_summary.json` or `download_summary.bibtex`.
 
 ---
 
@@ -53,7 +54,7 @@ uv run scholar-pdf ingest path/to/manual_paper.pdf --doi 10.1038/35057062 --expo
 Using `--export <format>` outputs an aggregated summary of all successfully retrieved documents:
 
 - **JSON (`--export json`)**:
-  Appends to `downloads/download_summary.json`, skipping DOIs already recorded:
+  Adds to `downloads/download_summary.json`, skipping DOIs already recorded; the file is replaced atomically:
   ```json
   [
     {
@@ -68,4 +69,4 @@ Using `--export <format>` outputs an aggregated summary of all successfully retr
   ]
   ```
 - **BibTeX (`--export bibtex`)**:
-  Appends formatted BibTeX entries to `downloads/download_summary.bibtex`.
+  Adds one entry per DOI to `downloads/download_summary.bibtex` (DOIs already in the file are skipped; a year the services do not give is left out, never `None`), replaced atomically.
