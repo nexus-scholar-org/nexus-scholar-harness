@@ -302,6 +302,22 @@ class _Lookup:
     payload: dict | None = None
 
 
+def bare_doi(value: str) -> str:
+    """The DOI without a ``https://doi.org/`` or ``doi:`` prefix; its case is kept (Part K).
+
+    ``download --input`` used to pass a DOI written as a link unchanged, so the
+    lookup addresses held the prefix twice.
+    """
+    from .canonical import _DOI_PREFIX
+
+    text = str(value or "").strip()
+    while True:
+        stripped = _DOI_PREFIX.sub("", text, count=1).strip()
+        if stripped == text:
+            return text
+        text = stripped
+
+
 class AsyncPDFDownloader:
     """Asynchronous PDF Downloader using aiohttp."""
 
@@ -665,6 +681,7 @@ class AsyncPDFDownloader:
         one row is written for the DOI, with ``study_id`` (Part K item 8).
         """
         require_contact_email()  # refused before any request (MAILTO_NOT_SET)
+        doi = bare_doi(doi)
         result = await self._process_doi(session, http_client, doi, title=title)
         return self._recorded(replace(result, study_id=study_id))
 
@@ -854,6 +871,7 @@ class AsyncPDFDownloader:
         with a ``manifest_path`` its row is written (item 8).
         """
         require_contact_email()  # the metadata lookups send it (MAILTO_NOT_SET)
+        doi = bare_doi(doi)
         result = await self._ingest_pdf(http_client, pdf_path, doi)
         return self._recorded(replace(result, study_id=study_id))
 
