@@ -592,6 +592,17 @@ Review round 2 (`milestone-reviewer`, on `70c58559`, the repair delta `560f5dc6.
 
 **Part K: READY FOR PR.** Branch `dev/m12a/part-k-kit-download`, from `origin/main` `55755bd7`, with `origin/main` merged in by the main session, twice (`9e4be45f`, then `4962c9eb` after PR 282; document conflicts only, both sides kept; no code conflict). Decision items 1 to 20 were accepted by the researcher on 2026-11-22 as built (item 1 narrows the resolver's accepted item 4 for the keyless case; on item 17 they chose to plan PMC's own open-access route as a follow-up after Part F), the push was approved, and the two prepared live checks were approved for after the merge, the commands shown first.
 
+**Part K: merged** on 2026-11-22 (PR 283, merge commit `258f9cc6`, 12 of 12 checks, head `76b47c15`).
+
+Live checks after the merge (2026-11-22, the main session, on `main` `258f9cc6`; approved by the researcher, who also allowed the contact address and the OpenAlex key to be loaded from their `.env`; neither value was printed, and neither appears in the output or the manifest files, searched for both):
+
+| Check | Command | Result |
+| :-- | :-- | :-- |
+| 2 (with the key) | `scholar-pdf download --doi 10.7717/peerj.4375 --output <scratch>` | exit 0; OpenAlex 200, Unpaywall 200; 2 PDF requests: `pmc.ncbi.nlm.nih.gov` "not a PDF (no %PDF- header in the first 1024 bytes)", `umontreal.scholaris.ca` stored (submittedVersion, cc-by, 2,433,346 bytes; "address 2 of 2 listed"); the printed line and the row name both hosts and the count; row `ACQUIRED`, `VERIFIED_OPEN_ACCESS`, route `open_location`, checks header, trailer and size floor pass, identity "doi found" |
+| 1 (key unset) | `scholar-pdf ingest <that PDF> --doi 10.7717/peerj.4375 --output <scratch>` | exit 0; "OpenAlex is not asked: SCHOLAR_OPENALEX_KEY is not set. Only Unpaywall is asked."; lookups: openalex `NOT_ASKED`, unpaywall `ANSWERED` 200; row `ACQUIRED`, `USER_PROVIDED`, route `user_provided`, identity "doi found" |
+
+Both as the build predicted, PMC's refusal included (decision item 17). Not covered by these two checks: a retry, a 429, a closed work, a forward proxy, the copy fallback, and a batch input file.
+
 ### Part B: the charting form, cells, pilot and amendments; the Charting view and the one-study view
 
 Branch `dev/m12a/part-b-form-cells`, from Part A's `b4bdd6eb`, with Part A's PR-276 head `d110afe4` merged in (`1616d83b`; it brings `origin/main` `46371f45`, M11b part A, and the full-text reasons read through `criteria_in_force`): **merge Part A first** · Lane **RELEASE** (new persisted records `charting/form.json` and `charting/form_amendments.jsonl`, new routes and refusal codes) · Decisions: `docs/decisions.md` "2026-11-21 — M12a Part B" items 1 to 34 (accepted by the researcher 2026-11-22; items 30 and 31 change or read accepted Part A items 29 and 18). The screens were built by a subagent from a brief written in the build session, which read its report and its commits.
@@ -713,6 +724,8 @@ Evidence after round 1, on `a910b2d3` (the repairs `7309bc27` to `3ebbe064`, the
 Review round 2 (`milestone-reviewer`, on `7765cb09`): **APPROVE**. In its words: "All six round-1 findings and both follow-ups are repaired, and I found nothing new." It reran the form-panel and history vitest files (17 tests), all passing, and read the recorded gate. One P4, repaired in the closing commit: the list of new tests above now counts five.
 
 **Part B follow-up: READY FOR PR.** Branch `dev/m12a/part-b-followup`; it carries `origin/main` `9e4be45f`. Decision items 1 to 7 were accepted by the researcher on 2026-11-22 as built (asked together in the main session; item 4 says how the engine records a split of an unsaved merge; the entry amends accepted Part B item 25's last sentence), and the push was approved.
+
+**Part B follow-up: merged** on 2026-11-22 (PR 282, merge commit `4962c9eb`, 12 of 12 checks, head `db6962b9`).
 
 ### Part F: open-access fetching (the engine and the screens)
 
