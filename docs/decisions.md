@@ -12,6 +12,13 @@ history to read if you need the original reasoning (`git log --follow -- <path>`
 | :-- | :-- | :-- |
 | 2026-11-19 — M9a: what the measurement says about the ladder gates | 2 | The minimum share of the researcher's excludes an agent must take before a rung unlocks: the principle is accepted; the researcher decided on 2026-11-20 to set the number when M9b is built. |
 
+## 2026-11-23 — UI unit tests wait 3 s by default; the performance specification is widened (items 1 and 2 accepted by the researcher 2026-11-23)
+
+Asked in the main session on 2026-11-23, both with the recommendation "yes"; the researcher accepted both and approved the push and the merge.
+
+1. **`findBy…` and `waitFor` give up after 3 s, not 1 s** (`apps/research-ui/tests/setup.ts`), and a test may run 15 s, not 5 (`vitest.config.ts`). On 2026-11-22 a first-render wait past 1 s failed a different file on each full run, locally and in CI on documents-only PRs (`inception-workbench` three times, `inception-explore`, `discovery-proposals`, `proposals`). Known cost, said when asked: a render that became slower, up to 3 s, no longer fails a test; these tests check behaviour, and speed is measured by `H-screening-read-performance`. This is the alternative named in M12a Part F item 68, which gave 5 s to two first waits only; those two stay as they are. *Not chosen:* leave the default and repair each wait as it fails.
+2. **`H-screening-read-performance` is amended** (its record, "Amendment 2026-11-23") from a read-only study of every page: the next-step bar first; Charting's two read routes, `/workspaces` and `/discovery/checks` in scope; pages stop repeating requests; three additions to the definition of done. Its closed questions 2 to 5 stand; question 1's "Charting measured first" is replaced. A C JSON parser showed no reliable gain and an array library does not apply; a C string-matching library for the duplicate detector is left as a later, separate decision.
+
 ## 2026-11-22 — H-charting-focus-fault: a focus asked for after a save waits for the researcher to still be there (items 1 and 2 accepted by the researcher 2026-11-23)
 
 Record: `docs/roadmap/milestones/H-charting-focus-fault.md`. The fault itself (after Ctrl+Down the next study sometimes opened with the focus nowhere) is repaired so that the screen does what spec 02 "Keyboard" already says; that needs no decision. These two choices are not settled by the accepted specs; none is accepted until the researcher answers.
