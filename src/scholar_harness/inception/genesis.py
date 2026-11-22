@@ -165,14 +165,16 @@ def compile_intent(intent: dict) -> dict:
     # M7-method (decision 2026-11-08): a new workspace states its method values in
     # the signed protocol, filled with today's defaults, rather than leaving them
     # implicit. Existing workspaces are never rewritten.
-    if compiled.method is None:
+    if compiled.method is None or compiled.method.reporting is None:
         from scholar_protocol.models import MethodConfig
 
         from ..screening.method import DEFAULT_REPORTING, PLAYBOOK_REPORTING
 
         # M7b-guideline: the guideline the playbook implies is stated, not implied.
+        # M11b part D: a method chosen at step 5 keeps its two values and gains the guideline.
         reporting = PLAYBOOK_REPORTING.get(compiled.playbook_type.value, DEFAULT_REPORTING)
-        compiled = compiled.model_copy(update={"method": MethodConfig(reporting=reporting)})
+        method = compiled.method or MethodConfig()
+        compiled = compiled.model_copy(update={"method": method.model_copy(update={"reporting": reporting})})
     return {
         "intent_text": json.dumps(intent, indent=2, ensure_ascii=False),
         "protocol_bytes": canonical_json(compiled),

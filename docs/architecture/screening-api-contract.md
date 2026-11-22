@@ -235,6 +235,7 @@ The UI reads proposals only through `GET /records/{study_id}/proposal`. The fiel
 | `DRAFT_INCOMPLETE` | `/inception/steps`, preview, genesis | HTTP 422: the step needs answers the draft lacks; `details.missing` names them (M4a) |
 | `STEP_UNKNOWN` | `/inception/steps/{step}` | HTTP 404: not `scope`, `shape`, `criteria` or `matrix` (M4a) |
 | `CRITERIA_UNDECIDED` | preview, genesis | HTTP 422: a criterion the wizard wrote has no accept/reject decision (M4a, INC-22) |
+| `METHOD_RULE_UNCHOSEN` | preview, genesis | HTTP 422: the draft has no not-reported rule chosen (M11b part D, answer 8: no default); `details.started_before_question` is true for a draft from before the question existed |
 | `CRITERIA_MISSING` | preview, genesis | HTTP 422: no accepted inclusion or no accepted exclusion criterion (M4a) |
 | `INTENT_INVALID` | preview | HTTP 422: the protocol compiler refused the intent (M4a) |
 | `SCREENING_BOUND` | genesis with `replace` | HTTP 409: the workspace has screening decisions or a publication; `details` gives the counts (M4a, INC-08) |

@@ -145,7 +145,7 @@ You now have a fully scaffolded, auditable, agent-capable research workspace.
 Bootstrap a portable workspace in **any** folder (does not need the repo):
 
 ```sh
-nexus-scholar init "Project Title" [--dir PATH] [--scaffold-only]
+nexus-scholar init "Project Title" [--dir PATH] [--scaffold-only] [--not-reported RULE]
 ```
 
 | Option | Meaning |
@@ -153,6 +153,7 @@ nexus-scholar init "Project Title" [--dir PATH] [--scaffold-only]
 | `project_title` (required) | Human-readable title; the workspace slug is derived from it |
 | `--dir, -d PATH` | Target folder (default: current directory) |
 | `--scaffold-only` | Skip the interactive Socratic wizard; write a placeholder protocol |
+| `--not-reported RULE` | What the agent's drafts do when a title and abstract do not report a criterion: `unclear`, `decisive_first` or `exclude`. No default: the interactive wizard asks it, and a scripted (non-interactive) interview without it is refused before anything is written. The rule is signed into the protocol; change it later from Prepare |
 
 What you get:
 
@@ -429,7 +430,7 @@ scaffolded):
 | `nexus-scholar chase run\|status\|accept` | Citation chasing (M3g) after the screening is published: `run` fetches the papers the included studies cite and the papers that cite them (OpenAlex first, Semantic Scholar second; `--directions`, `--cap-per-seed`, `--ceiling`, `--seeds included+unclear`), deduplicates them against the corpus and keeps the new records under `literature/citation_chase/chase_NNN/`; `status` lists the runs; `accept` sends a run's new records to screening as the next round (their own corpus snapshot naming the parent; the finished round is archived under `literature/screening_rounds/`), after which `prepare` runs again. The PRISMA report then carries a "citation searching" arm |
 | `nexus-scholar ui` | Start the research app in your browser (§2): the console and the app from one process, on `127.0.0.1` |
 | `nexus-scholar serve` | Run the console server for a workspace (loopback only; needs the token in `NEXUS_CONSOLE_TOKEN` or the one it prints); for development with `apps/research-ui` |
-| `nexus-scholar inception` | Interactive Phase-0 Socratic methodology interview → compiled protocol. Each screening criterion is shown verbatim and accepted one by one. A title whose workspace already exists is refused; `--replace` replaces its protocol: the old protocol files and the old corpus (`literature/`, `artifacts/`, the artifact registry, `.harness-console/`, `pdfs/`, `extracted/`, `rag/`, `phase4/`, `synthesis/` except `literature_review.md`) go to `audit/replaced/<stamp>/`, so the new protocol starts with no corpus, and a workspace with screening decisions or a published screening also needs `--discard-screening-binding` |
+| `nexus-scholar inception` | Interactive Phase-0 Socratic methodology interview → compiled protocol. Each screening criterion is shown verbatim and accepted one by one. The interview then asks what the agent's drafts do when a criterion is not reported, with no default; a scripted run gives it with `--not-reported unclear\|decisive_first\|exclude` or is refused. A title whose workspace already exists is refused; `--replace` replaces its protocol: the old protocol files and the old corpus (`literature/`, `artifacts/`, the artifact registry, `.harness-console/`, `pdfs/`, `extracted/`, `rag/`, `phase4/`, `synthesis/` except `literature_review.md`) go to `audit/replaced/<stamp>/`, so the new protocol starts with no corpus, and a workspace with screening decisions or a published screening also needs `--discard-screening-binding` |
 
 Run any with `--help` for full options.
 

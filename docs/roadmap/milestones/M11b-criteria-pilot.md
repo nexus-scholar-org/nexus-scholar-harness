@@ -1,6 +1,6 @@
 # M11b Criteria pilot
 
-Branch: `dev/m11b/criteria-pilot-spec` (from `origin/main` at `1f218054`) · Lane: declared per part (proposed below: A, B and D **RELEASE**, C **STANDARD**) · Status: **SPECIFICATION; the researcher answered the ten questions on 2026-11-21** (1 to 4, 7, 9 and 10 as recommended; **5, 6 and 8 against the recommendation**). Questions 11 and 12, which came from those answers, were answered the same day, both as recommended. The rework of answers 5, 6 and 8 is PROPOSED. **Build started 2026-11-21 (approved by the researcher; building, not pushing): part A READY FOR PR again on `dev/m11b/part-a-criteria-in-force` (item 5 built as decided; item 11 PROPOSED) (see "Build record"); part B READY FOR PR on `dev/m11b/part-b-pilot`; parts C and D not started** · Fourth in the agreed order (plan §6, "After the acceptance run"); M11a part C is merged (PR 272), so part D is no longer blocked by it
+Branch: `dev/m11b/criteria-pilot-spec` (from `origin/main` at `1f218054`) · Lane: declared per part (proposed below: A, B and D **RELEASE**, C **STANDARD**) · Status: **SPECIFICATION; the researcher answered the ten questions on 2026-11-21** (1 to 4, 7, 9 and 10 as recommended; **5, 6 and 8 against the recommendation**). Questions 11 and 12, which came from those answers, were answered the same day, both as recommended. The rework of answers 5, 6 and 8 is PROPOSED. **Build started 2026-11-21 (approved by the researcher; building, not pushing): part A READY FOR PR again on `dev/m11b/part-a-criteria-in-force` (item 5 built as decided; item 11 PROPOSED) (see "Build record"); part B READY FOR PR on `dev/m11b/part-b-pilot` (since merged, PR 277); part C READY FOR PR on `dev/m11b/part-c-screens` (items 1 to 17 accepted 2026-11-22); part D in review on `dev/m11b/part-d-step5`** · Fourth in the agreed order (plan §6, "After the acceptance run"); M11a part C is merged (PR 272), so part D is no longer blocked by it
 
 Short page for the researcher: [`M11b-criteria-pilot-for-review.md`](M11b-criteria-pilot-for-review.md). Screens (both `Status: DRAFT`): [`docs/ux/phase2-screening/final/13-criteria-pilot.md`](../../ux/phase2-screening/final/13-criteria-pilot.md) (draw the pilot, its result, revise a criterion) and [`docs/ux/phase0-inception/final/11-criteria-block.md`](../../ux/phase0-inception/final/11-criteria-block.md) (the change to Inception's step 5). Choices: `docs/decisions.md`, "2026-11-21 — M11b criteria pilot: the specification's choices" (answered 2026-11-21; the rework of 5, 6 and 8 and questions 11 and 12 PROPOSED).
 
@@ -659,3 +659,118 @@ Review round 2 of part C (on `f6d26718`): **APPROVE** (lane RELEASE confirmed). 
 | pr (round 2 repair) | `07fbb270` | `tsc`; `vitest run` (full); `playwright test tests-browser/screening-pilot.spec.ts` (both projects, port 3127); the full browser run of `02848caa` stands for the rest (this commit changes one dialog's focus and one test) | clean; 82 files, 1172 passed; 10 passed | 150 s; 78 s |
 
 **Part C: READY FOR PR** (not pushed). Branch `dev/m11b/part-c-screens`, head after this commit. Lane RELEASE: the CI matrix on the PR is the closure evidence and is recorded after the push. Decision items 1 to 17 of part C were accepted by the researcher on 2026-11-22 as built (items 3, 10 and 16 asked one by one, the other fourteen together), and the push was approved.
+
+### Part D: Inception step 5
+
+Branch `dev/m11b/part-d-step5`, stacked on part C (its reviewed head `daaeaa92` merged in, and `origin/main` `55755bd7`: part B as PR 277 and the PDF resolver fix PR 278) · Lane **RELEASE** (the inception draft API, the intent packet and the protocol genesis writes change; new check ids in a public preview) · Decisions: `docs/decisions.md` "2026-11-21 — M11b part D" items 1 to 20 answered by the researcher on 2026-11-22 (nineteen accepted, item 5 changed), items 21 to 24 accepted as built on 2026-11-22. Status: **PR 281** (pushed by the main session).
+
+What was built (engine):
+- `inception/steps.py`: the draft fields `method_blinding` (pre-selected "after you decide") and `method_not_reported` (no default); `method_choice`, `method_options` on `steps/criteria`; `build_intent` refuses `METHOD_RULE_UNCHOSEN` (preview and genesis) and writes `method` into the intent; `keep_method_choice` on every save (omitted fields kept; `null` after a choice is `DRAFT_INVALID`). `inception/drafts.py`: a new draft stores the rule unchosen.
+- `scholar_protocol/intent.py` and `compiler.py`: `IntentPacket.method` (optional), copied into the protocol's `method` block; `inception/genesis.py` still states the playbook's guideline.
+- `inception/importer.py`: a protocol's or an intent's `method` block fills the two questions.
+- `inception/checks.py` and the new `inception/criteria_wording.py`: `METHOD_RULE_UNCHOSEN` (blocker) and the five wording checks of (f) plus `CRITERIA_WORDING_NOT_CHECKED` (note), never blockers, each instance its own subject.
+- `inception/wizard.py` and `cli.py`: the terminal wizard asks the rule with no default; `--not-reported` on `inception` and `init`; a scripted run without it is refused before anything is written.
+- `console/refusals.py` and `screening-api-contract.md` §7: `METHOD_RULE_UNCHOSEN`. `docs/ux/shared/final/02-checks.md`: the seven catalogue and copy rows (engine wording; the screen's copy is part D's UI work).
+- Existing tests: the 24 scripted `run_wizard` calls give `not_reported="unclear"` (a question would shift their answers); the shared complete drafts of the inception and MCP-assistant tests carry `method_not_reported`.
+
+| DoD | Test | State |
+| :-- | :-- | :-- |
+| 18 (engine) | `tests/inception/test_method_questions.py`: `test_a_new_draft_stores_the_rule_unchosen_and_visibility_after_you_decide`, `test_the_two_fields_round_trip_and_a_value_outside_the_enums_is_refused`, `test_a_chosen_rule_cannot_be_unset_and_a_save_without_the_field_keeps_it`, `test_the_unchosen_rule_blocks_step_5_review_and_genesis_and_nothing_is_written`, `test_a_draft_from_before_the_question_says_so`, `test_genesis_writes_the_choice_into_the_method_block_and_the_preview_lists_it`, `test_the_criteria_step_answers_the_options_in_the_engines_order`, `test_an_imported_protocol_with_a_method_block_fills_the_two_questions`, `test_the_assistant_has_no_proposal_kind_for_the_rule` | done (engine; the radios are UI) |
+| 18b | `tests/inception/test_method_questions.py`: `test_a_search_amendment_of_a_review_that_chose_decisive_first_is_not_refused`, `test_without_the_method_in_the_intent_the_same_amendment_is_refused` (the failure it prevents), `test_a_protocol_without_the_choice_keeps_its_fingerprint` | done |
+| 18c | `tests/inception/test_method_questions.py`: `test_the_wizard_asks_the_rule_with_no_default_until_one_is_chosen`, `test_a_scripted_run_without_the_rule_is_refused_before_anything_is_written`, `test_the_cli_names_the_option`, `test_the_wizard_writes_the_rule_into_the_intent` | done |
+| 19 (engine) | `tests/inception/test_criteria_wording_checks.py` (16 tests: each rule at and below its constant, accepted criteria only, never a blocker, a subject per instance, a changed text a new subject, the other-language note, and the honesty fixture: the 2026-11-20 mirror and the contradiction of meaning are not caught) | done (engine; the panel's copy is UI) |
+| 18 (screen) | `apps/research-ui/tests/inception-criteria-block.test.tsx` "inception.how-you-will-screen" (5: both questions with the engine's options, visibility pre-selected, the rule with none and no "recommended", the measured figures; the engine's order followed; Continue held and named while unchosen, a choice frees it and the save carries both values; a draft from before the question; the visibility question never holds Continue) and "review.how-you-will-screen" (2); `tests-browser/inception-criteria-block.spec.ts` (the choice through to Review, by keyboard) | done |
+| 19 (screen) | `inception-criteria-block.test.tsx` "inception.criteria-checks copy" (the seven ids' sentence, why and action in en, fr and ar); `tests/checks-panel.test.tsx` (the catalogue now 59 ids); the engine's rows are drawn by the existing checks panel | done |
+| 20 | `inception-criteria-block.test.tsx` "inception.criteria-block" (4: the header's written line or "Decide every criterion first.", the limits line, the out-of-scope question here with its separators, Shape's one line); `tests-browser/inception-criteria-block.spec.ts` (out-of-scope rows, no sideways scroll at 375, 1024, 1280 and 1440 px, Arabic, axe in light and dark) | done (the section does not fold: decision item 12) |
+| 21 | `generate_contract_baseline.py --check` current; `generate_protocol_schema.py --check` in sync (Evidence) | done for the engine side |
+
+Fails before: on part C's head the two new files stop at collection (no `criteria_wording` module, no `method_choice`); the scripted-wizard and intent tests have no `not_reported` parameter.
+
+Not verified: whether the wording checks find anything in a real review's criteria (record, "What cannot be verified"); the terminal wizard by hand in a real terminal (tested through the responder and the refusal function).
+
+Evidence, part D engine side (`-n 4`):
+
+| Stage | Commit | Command | Result | Duration |
+| :-- | :-- | :-- | :-- | :-- |
+| targeted | `694c131a` (working tree) | `tests/inception`, `tests/cli`, the inception console tests, `tests/kits/protocol`, `tests/kits/agent`, `-m "not slow"` | 1076 passed | 84 s |
+| full | `438d6a72` | contract baseline, protocol schema, contract schemas, two-study fixture, both ruff commands, `select_test_gate.py --check`, `git diff --check`; `uv run pytest -q -n 4 --junitxml` | current; in sync; exit 0; exit 0; clean; clean; OK; clean; 6260 tests: 6230 passed, 15 skipped, 15 failed: 14 tests whose drafts reach preview or genesis without a chosen rule (now refused, as answer 8 requires) or compare a new draft exactly, and the known `test_draft_store_lock` comparison; their drafts now choose the rule and the two lock tests compare the draft apart from the method fields | 936 s |
+| targeted | next commit | the five failing files | 119 passed | 52 s |
+
+The PR gate for part D runs once its screen is built.
+
+The screen (spec 11 FINAL 2026-11-21, questions 3, 7 and 8 answered as recommended; decision items 11 to 20 PROPOSED):
+- `components/inception-criteria.tsx`: step 5's criteria section ("Criteria", its written line), the two lists unchanged, the out-of-scope question moved here from Shape, the limits line, and "How you will screen" (`MethodQuestions`): the visibility question pre-selected, the not-reported rule with no option selected, options and order from the engine's `method_options`, the help with the measured figures, "Not chosen yet" and the earlier-draft sentence from the engine's `method`, "From the imported protocol". Continue is held, naming why, while the rule is unchosen; a save writes both values as shown.
+- `components/inception-review.tsx`: the read-only group "How you will screen" (the two choices in words, "Not chosen yet", "Change" to the rule).
+- `components/inception-shape.tsx`: the out-of-scope question is gone; one line says where it is asked; the stored items are kept.
+- `lib/checks-copy.ts`: the five wording checks, `CRITERIA_WORDING_NOT_CHECKED` and `METHOD_RULE_UNCHOSEN` (with its earlier-draft sentence), en, fr and ar; the catalogue lists 59 ids. `components/assist-anchor.tsx`: a check's link reaches the rule's first option or the out-of-scope field.
+- `lib/inception-api.ts`, `lib/inception-copy.ts`, `lib/assist-labels.ts`: the method types, the new keys (en, fr, ar), `field.out_of_scope`.
+- `docs/ux/shared/final/03-guidance.md`: rows I-SH10 (repointed), I-C24 to I-C30, I-R22; counts 116, 34, 11, 161.
+- Tests: `tests/inception-criteria-block.test.tsx` (12), the fake engine's `method` answer (`tests/fixtures/inception-engine.ts`, opt-in), `tests-browser/inception-criteria-block.spec.ts` (7 per project); existing tests follow the moved question (Shape, the criteria row read by its verbatim line).
+- A part C test made robust: the agent check's focus assertion waits for the effect (it failed once under the full-suite load, passed alone three times); the same one-line change would suit part C's branch.
+
+| Stage | Commit | Command | Result | Duration |
+| :-- | :-- | :-- | :-- | :-- |
+| targeted | `c68486a8` (working tree) | `vitest run` of the step 5, Shape, Review, answers, checks and guidance files; `tsc` | 150 passed, then 12 of the new file; clean | |
+| checkpoint | `c68486a8` | full `vitest run` | 1183 passed, 1 failed: part C's focus assertion under load (made to wait, `54a49ae0`) | 156 s |
+| targeted | `e9f2b412` | `playwright test tests-browser/inception-criteria-block.spec.ts` (port 3127) | 14 passed after the group lost `aria-required` (axe) and the URL wait was corrected | 60 s |
+| pr | `e9f2b412` | both ruff commands; contract baseline, protocol schema, contract schemas, two-study fixture; `git diff --check origin/main...HEAD` | exit 0; current; in sync; exit 0; exit 0; clean | |
+| pr | `e8a0e1e3` | `uv run pytest -q -n 4 --junitxml` (full suite) | 6336 tests: 6321 passed, 15 skipped, 0 failed, 0 errors | 599 s |
+| pr | `e8a0e1e3` | `npm run typecheck`; `vitest run` (full); `npm run test:browser` (build, then the full browser suite, port 3127) | clean; 83 files, 1184 passed; 684 passed, 12 skipped, 4 failed: two existing tests (end-to-end creation, Shape hints by keyboard, each in both projects) still used Shape's out-of-scope field | 127 s; 1206 s |
+| targeted | next commit | the two tests moved to step 5's question (`tests-browser/inception.spec.ts`, `guidance.spec.ts`) | 6 passed (both projects) | 55 s |
+
+The browser run rewrote the same four unrelated screenshots as in part C; they were restored, not committed.
+
+Review round 1 of part D (`milestone-reviewer`, on `22f2ea6a`): **CHANGES** (lane RELEASE confirmed), 1 P2, 3 P3, 6 P4; no P1. The reviewer confirmed answer 8 on every path (new draft, earlier draft, import without a block, the terminal wizard, a scripted run refused before writing), that a chosen rule cannot be unset on either save path, genesis refused naming `METHOD_RULE_UNCHOSEN` with nothing written, DoD 18b (the intent's method copied; fingerprints kept), the wording checks never blocking with their honesty fixture, decision items 1 to 20 all PROPOSED and none breaking a DoD, and the guidance counts.
+
+| # | Finding | Repair | Test (fails before: 1, 2, 3, 4 and 5) |
+| :-- | :-- | :-- | :-- |
+| P2-1 | Out-of-scope text typed without "Add" was dropped by Continue and "Save draft and exit" | the page's save applies the field as typed (semicolons and line breaks separate) | `review D round 1` > `finding 1` in `inception-criteria-block.test.tsx` |
+| P3-2 | `METHOD_RULE_UNCHOSEN` had no refusal card on Review | a card in en, fr and ar, worded as `CRITERIA_UNDECIDED`'s ("Choose a rule on Concepts and criteria"); the fake engine's preview and genesis refuse it | `finding 2` (the card is known in three languages; Review shows it) |
+| P3-3 | `--not-reported` was not documented; the inception-agent skill told agents to run a scripted interview that is now refused, and did not say the rule is the researcher's | the user guide (`init`, `inception`) and both skill copies name the flag, its values and its absence of default, and tell the agent to ask the researcher | `tests/inception/test_method_questions.py::test_the_inception_agent_skill_names_the_rule_wherever_it_scripts_the_wizard` (2) |
+| P3-4 | Criterion texts in the new check sentences were `dir="ltr"` | the panel reads `a`, `b`, `criterion`, `inclusion` and `exclusion` with `dir="auto"` | `checks panel, M11b part D` > `quotes criteria in their own direction (RTL)` |
+| P4-5 | The "0.6" mirror case scored 1.0 | a pair with 3 of 5 words shared both ways (0.6) and one at 0.4 | `test_the_mirror_share_is_the_constant` |
+| P4-6, 7 | Decision item 19's `{side}` wording; the entry's and the record's stale status lines | corrected | (documents) |
+| P4-8 | "other than" was two separate negation words, so "other" alone was dropped | only the phrase is a negation; "other" is a content word | `test_other_than_is_a_negation_only_as_the_phrase` |
+| P4-10 | "From the imported protocol" stayed after the choice changed | shown only while the imported choice is the one chosen | (`finding 10`, a guard) |
+
+Not taken: P4-9 (Review falls back to "after you decide" when a draft has no visibility value; the engine stores one for every new draft and the screen saves it, so the fallback only fills a draft from before part D); P4-10's first half (the method section under `DRAFT_INCOMPLETE`, a follow-up). Follow-ups for the researcher, outside part D's DoD: placeholder workspaces (`init --scaffold-only`, the Workspaces "Create") still sign `not_reported: "unclear"` without asking; an import of a protocol signed since 2026-11-08 carries the "unclear" genesis wrote without asking as chosen, and ignores later method amendments; the English test reads a French criterion holding "a" as English; the mirror rule's "or the reverse" flags a one-word exclusion whose word an inclusion holds (warnings only).
+
+| Stage | Commit | Command | Result | Duration |
+| :-- | :-- | :-- | :-- | :-- |
+| targeted | `47bf18e2` (working tree) | `tests/inception/test_criteria_wording_checks.py`, `test_method_questions.py` (`-n 4`); `vitest` of the step 5, checks and Review files; contract baseline | 33 + 2 passed; 55 passed; current | |
+| pr (round 1 repairs) | `47bf18e2` | `uv run pytest -q -n 4 --junitxml` (full suite) | 6339 tests: 6324 passed, 15 skipped, 0 failed, 0 errors | 935 s |
+| pr (round 1 repairs) | `47bf18e2` | `npm run typecheck`; `vitest run` (full); `npm run test:browser` (build, then the full browser suite, port 3127) | clean; 1187 of 1188 passed: `inception-criteria.test.tsx` failed once while the machine was loaded (the run took 271 s against 127 s before) and passed twice alone; 688 passed, 12 skipped, 0 failed | 271 s; 917 s |
+
+Review round 2 of part D (on `198bdfe8`): **APPROVE** (lane RELEASE confirmed; the contract baseline current at head; 35 Python and 38 vitest targeted tests passed). Three P4 notes, recorded as follow-ups: the import-label test cannot fail (its draft has no import origin; a real test seeds an imported draft and changes the rule); after the researcher saves another rule the label compares against the stored draft and comes back (keeping the imported value in the origin's `carried` entry would fix it); the one full-run vitest failure was `inception.criteria > shows each criterion verbatim with its source; the generated one waits for you` (a test of 05's rows, passed twice alone).
+
+**Part D: READY FOR PR** (not pushed). Branch `dev/m11b/part-d-step5`, stacked on part C (reviewed head `daaeaa92`) with `origin/main` `55755bd7`. Lane RELEASE: the CI matrix on the PR is the closure evidence, recorded after the push. Decision items 1 to 20 of part D wait for the researcher. Part C's final head is to be merged in when the main session sends it.
+
+The researcher's answers to part D (main session, 2026-11-22): nineteen items accepted (11 "Accept"; 8 "Accept, with the weak spot", the French case a follow-up; 17 "Follow-ups"; the other fifteen "Accept as built"); **item 5 changed: "Shown, but I must confirm it"**. The push of part D is approved in advance on condition that the item 5 change passes the full gate and the `milestone-reviewer` approves the delta; the main session pushes, after part C. The follow-up on placeholder workspaces that sign `unclear` without asking is to be fixed in a follow-up PR after part D merges (not here).
+
+The item 5 change (decision items 21 to 24, accepted as built by the researcher on 2026-11-22), built test first:
+- Engine: the draft field `method_not_reported_source` (`imported`, `confirmed`, `chosen`, or null); the importer marks the rule `imported`; `method_choice` answers `chosen: false` and the `source` for it, so `METHOD_RULE_UNCHOSEN` blocks step 5, Review and genesis, with its own sentence (`METHOD_RULE_UNCHOSEN.imported`) and `details.imported` on a refusal; `keep_method_choice` keeps the source when a save omits it, refuses marking a confirmed or picked rule imported again, and makes a changed value `chosen`. The visibility question is carried as it is. The terminal wizard never starts from an imported protocol, so it is unchanged.
+- Screen: "From the imported protocol: confirm this rule or choose another." with "Keep this rule"; keeping saves `confirmed` (label kept), choosing another saves `chosen` (label dropped), both read from the engine's `source`; the criteria step is asked again when the source changes in the tab (a bug the first test run showed: Continue stayed held after "Keep this rule"). Review: "From the imported protocol; not confirmed yet." Copy in en, fr and ar; the audit's row I-C30 names the two new keys.
+
+| Item | Test | Fails before |
+| :-- | :-- | :-- |
+| an import marks its rule imported, carries the visibility | `tests/inception/test_method_questions.py::test_an_import_marks_its_rule_imported_and_carries_the_visibility_as_it_is` | yes (no field: `DRAFT_INVALID` extra input) |
+| shown but blocking at step 5, Review and genesis, nothing written | `test_an_imported_rule_is_shown_but_blocks_step_5_review_and_genesis_until_confirmed` | yes |
+| confirming clears the blocker and records the confirmation | `test_confirming_the_imported_rule_clears_the_blocker_and_records_the_confirmation` | yes |
+| choosing another clears it and drops the mark; a save that names nothing keeps it | `test_choosing_another_rule_clears_the_blocker_and_drops_the_import_mark` | yes |
+| a confirmed rule cannot be marked imported again | `test_a_confirmed_rule_cannot_be_marked_imported_again` | yes |
+| the screen: shown, labelled, held; "Keep this rule"; another choice drops the label; Review's line | `apps/research-ui/tests/inception-criteria-block.test.tsx` "item 5" (3; they replace the guard that could not fail) | yes (Continue stayed held after "Keep this rule" until the step was asked again on the source) |
+
+| Stage | Commit | Command | Result | Duration |
+| :-- | :-- | :-- | :-- | :-- |
+| targeted | `d012e9c6` (working tree) | `tests/inception`, `tests/console/test_inception_api.py`, `tests/kits/protocol`, `tests/mcp`, `-m "not slow"`, `-n 4`; `vitest` of the step 5, checks, guidance audit and Review files; contract baseline, protocol schema | 664 passed; 80 passed, then 17 of the step 5 file (two waits lengthened: the screen draws in more than a second on a loaded machine); current; in sync | |
+
+Review round 3 of part D (the item 5 delta `198bdfe8..36af1194` without the two merges): **APPROVE** (lane RELEASE confirmed; no accepted item changed in substance: items 1 and 2 extend to the new field, item 16's line has an import sentence in its place, item 18's label rule is replaced by item 24, which the entry says). Targeted reruns: 23 and 17 passed. Two P4s taken (this record's and the entry's stale lines). Not taken, follow-up: an explicit `method_not_reported_source: null` after a confirmation erases the record of it (the rule still counts as chosen; no screen sends it). Noted: step 5 draws in more than a second on a loaded machine (two waits lengthened; two inception files failed once under load).
+
+| Stage | Commit | Command | Result | Duration |
+| :-- | :-- | :-- | :-- | :-- |
+| pr (item 5 change) | `36af1194` | both ruff commands; contract baseline, protocol schema, contract schemas, two-study fixture; `git diff --check origin/main...HEAD`; `uv run pytest -q -n 4 --junitxml` (full suite) | exit 0; current; in sync; exit 0; exit 0; clean; 6376 tests: 6361 passed, 15 skipped, 0 failed, 0 errors | 592 s |
+| pr (item 5 change) | `36af1194` | `npm run typecheck`; `vitest run` (full); `npm run test:browser` (build, then the full browser suite, port 3127) | clean; 1250 of 1252 passed (`inception-explore.test.tsx` and `inception-review.test.tsx` failed once under load, the run taking 347 s; 72 of 72 alone, twice); 704 passed, 14 skipped, 0 failed | 347 s; 1108 s |
+
+The commit after `36af1194` (`df2ed53d`) and this one change documents only.
+
+**Part D: READY FOR PR** (not pushed). Branch `dev/m11b/part-d-step5`, head after this commit, stacked on part C as pushed (`d20709a3`; PR 280's later test commit `e42bfb0c` is not in it) and `origin/main` `a97f4fb5`. Lane RELEASE: the CI matrix on the PR is the closure evidence. The push is approved in advance (2026-11-22) on these conditions, now met; the main session merges `origin/main` and pushes.
