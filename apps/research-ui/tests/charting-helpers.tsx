@@ -4,7 +4,7 @@ import { vi } from "vitest";
 import { ChartingPage } from "@/components/charting-page";
 import { ChartingStudyPage } from "@/components/charting-study";
 import type { Locale } from "@/i18n";
-import type { Amendment, Cell, ChartingEvent, ChartingForm, ChartingRow, ChartingTable, FormColumn } from "@/lib/charting-api";
+import type { Amendment, Attachment, Cell, ChartingEvent, ChartingForm, ChartingRow, ChartingTable, FetchPlan, FetchRun, FormColumn, Fulltext, LastLookup, ManifestRow, PendingFetch } from "@/lib/charting-api";
 
 /**
  * A small in-memory charting engine for the screen's tests (M12a Parts A and B).
@@ -39,6 +39,129 @@ export interface FakeEngine {
   hold?: Promise<void>;
   /** Answer the form's PUT with this refusal instead. */
   formFail?: { status: number; code: string };
+  /** Part F: the look-up of open-access copies (see `FakeFetch`). */
+  fetch: FakeFetch;
+}
+
+/**
+ * Part F: the fake's look-up (`src/scholar_harness/charting/fetch.py` in small).
+ * `GET /charting/fetch` answers `runs[0]` and moves on to the next answer each
+ * time, the last one staying; a start answers `started` and puts `afterStart`
+ * in `runs`; the plan is computed from the rows as the engine's `select` does
+ * unless `plan` is given; `mailto: false` refuses the plan and the start with
+ * `MAILTO_NOT_SET`; `manifest` holds each record's rows for "What was tried".
+ */
+export interface FakeFetch {
+  runs: FetchRun[];
+  started?: FetchRun;
+  afterStart?: FetchRun[];
+  startFail?: { status: number; code: string };
+  plan?: FetchPlan;
+  /** Hold the plan's answer until the test releases it ("Counting…"). */
+  planHold?: Promise<void>;
+  mailto?: boolean;
+  openalexKey?: boolean;
+  manifest: Record<string, ManifestRow[]>;
+  /** Each start's body, in order. */
+  starts: unknown[];
+  /** Fail every read of the run (`"unreachable"` or a code), after the first `failAfter` answers. */
+  pollFail?: { status: number; code: string } | "unreachable";
+  /** What each confirm wrote, so its undo restores it (the engine's `links`). */
+  confirmed: Record<string, { pending: PendingFetch; attachment: Attachment | null; status: Record<string, string | null> }>;
+  discarded: Record<string, PendingFetch>;
+}
+
+export const IDLE_RUN: FetchRun = { state: "idle", run_id: null };
+
+/** A waiting file as the engine shows it on a row (`fetch.pending_view`). */
+export function pendingFetch(over: Partial<PendingFetch> = {}): PendingFetch {
+  return {
+    manifest_row: "FMR-000000000000000000000001",
+    run_id: "FR-000000000000000000000001",
+    source: "Unpaywall",
+    source_name: "Europe PMC",
+    host: "europepmc.org",
+    host_type: "repository",
+    address: "https://europepmc.org/articles/PMC1/pdf/paper.pdf",
+    version: "publishedVersion",
+    version_label: "publishedVersion",
+    licence: "cc-by",
+    size: 1_258_291,
+    sha256: "b".repeat(64),
+    identity: "doi found",
+    at: "2026-11-22T14:30:00Z",
+    duplicate_of: [],
+    ...over,
+  };
+}
+
+export function lastLookup(over: Partial<LastLookup> = {}): LastLookup {
+  return { run_id: "FR-000000000000000000000001", manifest_row: "FMR-000000000000000000000009", at: "2026-11-22T14:31:00Z", outcome: "NO_OPEN_COPY_LISTED", message: null, try_later: false, same_as_discarded: false, ...over };
+}
+
+/** A row whose fetched file waits; its earlier status (To get by default) stays. */
+export function waitingRow(i: number, pending: Partial<PendingFetch> = {}, over: Partial<ChartingRow> = {}): ChartingRow {
+  const base = makeRow(i, over);
+  const fulltext: Fulltext = { ...base.fulltext, pending_fetch: pendingFetch({ manifest_row: `FMR-${String(i).padStart(24, "0")}`, sha256: String(i % 10).repeat(64), ...pending }), last_lookup: lastLookup({ outcome: "ACQUIRED", manifest_row: `FMR-${String(i).padStart(24, "0")}` }) };
+  return { ...base, fulltext };
+}
+
+/** A run record as `GET /api/v1/charting/fetch` answers it (`fetch._view`). */
+export function runView(over: Partial<FetchRun> = {}): FetchRun {
+  return {
+    state: "running",
+    run_id: "FR-000000000000000000000002",
+    total: 214,
+    reached: 0,
+    found: 0,
+    downloaded: 0,
+    failed_checks: 0,
+    errors: {},
+    no_open_copy: 0,
+    no_direct_pdf: 0,
+    try_later: 0,
+    skipped_no_id: 0,
+    not_reached: 0,
+    providers: ["unpaywall"],
+    email: "you@example.org",
+    openalex_key_set: false,
+    now: { phase: "starting", host: null },
+    recent_requests: [],
+    started_at: "2026-11-22T14:00:00Z",
+    finished_at: null,
+    error: null,
+    ...over,
+  };
+}
+
+/** A manifest row of `charting/fetch_manifest.jsonl` (`scholar_pdf/manifest.py` with the run's fields). */
+export function manifestRow(over: Partial<ManifestRow> = {}): ManifestRow {
+  return {
+    row_id: "FMR-000000000000000000000009",
+    run_id: "FR-000000000000000000000001",
+    study_id: "STU-001",
+    doi: "10.3390/rs1001",
+    outcome: "NO_OPEN_COPY_LISTED",
+    status: "UNRESOLVED",
+    file: null,
+    size: null,
+    sha256: null,
+    address: null,
+    redirects: [],
+    http_status: null,
+    version: null,
+    version_label: null,
+    license: null,
+    provider: null,
+    checks: {},
+    lookups: [
+      { service: "unpaywall", state: "ANSWERED", http_status: 200, error: null },
+      { service: "openalex", state: "NOT_ASKED", http_status: null, error: "OpenAlex was not asked (SCHOLAR_OPENALEX_KEY is not set)" },
+    ],
+    requests: [],
+    time: "2026-11-22T14:31:00Z",
+    ...over,
+  };
 }
 
 export function makeRow(i: number, over: Partial<ChartingRow> = {}): ChartingRow {
@@ -71,12 +194,15 @@ export function makeRow(i: number, over: Partial<ChartingRow> = {}): ChartingRow
 export function counts(rows: ChartingRow[]): ChartingTable["counts"] {
   const live = rows.filter((r) => r.kept);
   const by = (test: (r: ChartingRow) => boolean) => live.filter(test).length;
+  // Part F (question 1): a row whose fetched file waits is counted only in "to confirm".
+  const waiting = (r: ChartingRow) => Boolean(r.fulltext.pending_fetch);
   return {
     kept: live.length,
-    to_get: by((r) => r.fulltext.status === "to_get"),
-    requested: by((r) => r.fulltext.status === "requested"),
+    to_get: by((r) => r.fulltext.status === "to_get" && !waiting(r)),
+    requested: by((r) => r.fulltext.status === "requested" && !waiting(r)),
     retrieved: by((r) => r.fulltext.status === "retrieved"),
-    not_retrieved: by((r) => r.fulltext.status === "not_retrieved"),
+    not_retrieved: by((r) => r.fulltext.status === "not_retrieved" && !waiting(r)),
+    to_confirm: by(waiting),
     included: by((r) => r.ft_decision?.outcome === "INCLUDE"),
     excluded: by((r) => r.ft_decision?.outcome === "EXCLUDE"),
     to_decide: by((r) => !r.ft_decision),
@@ -232,6 +358,141 @@ function apply(engine: FakeEngine, event: ChartingEvent): { event_id: string; re
   return { event_id: event.event_id, result: "accepted" };
 }
 
+type EventAnswer = { event_id: string; result: string; refusal?: { code: string; message: string }; added_by_engine?: boolean };
+
+const refused = (event: ChartingEvent, code: string): EventAnswer => ({ event_id: event.event_id, result: "refused", refusal: { code, message: code.toLowerCase() } });
+
+/**
+ * Part F's rules on the events route (`fetch.Hooks.refusal` and `expand`): a
+ * status, a decision or an attachment on a row whose file waits is refused
+ * `FETCH_FILE_WAITING`; a confirm brings the attachment (origin fetched) and
+ * Retrieved with it, as two events of the engine's own; a discard needs one
+ * reason (Other with words); a confirm or discard of a file that is not
+ * waiting is `FETCH_NOT_PENDING`; an undo (a null value) restores the waiting file.
+ */
+function applyAll(engine: FakeEngine, event: ChartingEvent): EventAnswer[] {
+  const row = engine.table.rows.find((r) => r.study_id === event.study_id);
+  if (engine.refuse?.[event.study_id] || !row || !row.kept) return [apply(engine, event)];
+  const value = event.value as Record<string, string> | null;
+  const waiting = row.fulltext.pending_fetch ?? null;
+  const guarded = event.kind === "fulltext_status" || ((event.kind === "fulltext_decision" || event.kind === "attachment") && value !== null);
+  if (guarded && waiting) return [refused(event, "FETCH_FILE_WAITING")];
+  if (event.kind !== "fetched_confirm" && event.kind !== "fetched_discard") return [apply(engine, event)];
+  const f = engine.fetch;
+  const out: EventAnswer[] = [{ event_id: event.event_id, result: "accepted" }];
+  if (value === null) {
+    // An undo: the file waits again, as it was.
+    if (event.kind === "fetched_confirm") {
+      const saved = event.supersedes ? f.confirmed[event.supersedes] : undefined;
+      if (!saved) return [refused(event, "BODY_INVALID")];
+      row.fulltext = { ...row.fulltext, attachment: saved.attachment, status: (saved.status.status ?? "to_get") as never, requested_on: saved.status.requested_on, reason: saved.status.reason as never, reason_text: saved.status.reason_text, pending_fetch: saved.pending };
+      row.heads = { ...row.heads, fetched_confirm: event.event_id };
+    } else {
+      const saved = event.supersedes ? f.discarded[event.supersedes] : undefined;
+      if (!saved) return [refused(event, "BODY_INVALID")];
+      row.fulltext = { ...row.fulltext, pending_fetch: saved, discarded_fetch: null };
+      row.heads = { ...row.heads, fetched_discard: event.event_id };
+    }
+  } else if (event.kind === "fetched_discard") {
+    if (!value.reason || (value.reason === "other" && !value.reason_text?.trim())) return [refused(event, "DISCARD_REASON_REQUIRED")];
+    if (!waiting || waiting.manifest_row !== value.manifest_row) return [refused(event, "FETCH_NOT_PENDING")];
+    f.discarded[event.event_id] = waiting;
+    row.fulltext = { ...row.fulltext, pending_fetch: null, discarded_fetch: { reason: value.reason as never, reason_text: value.reason_text ?? null, at: event.at, manifest_row: value.manifest_row } };
+    row.heads = { ...row.heads, fetched_discard: event.event_id };
+  } else {
+    if (!waiting || waiting.manifest_row !== value.manifest_row) return [refused(event, "FETCH_NOT_PENDING")];
+    const ft = row.fulltext;
+    f.confirmed[event.event_id] = { pending: waiting, attachment: ft.attachment, status: { status: ft.status, requested_on: ft.requested_on, reason: ft.reason, reason_text: ft.reason_text } };
+    const attachmentId = crypto.randomUUID();
+    const statusId = crypto.randomUUID();
+    row.fulltext = {
+      ...ft,
+      status: "retrieved",
+      requested_on: null,
+      reason: null,
+      reason_text: null,
+      attachment: { name: `${row.study_id}.pdf`, size: waiting.size ?? 0, sha256: waiting.sha256, path: `pdfs/${row.study_id}.pdf`, origin: "fetched" },
+      pending_fetch: null,
+    };
+    row.heads = { ...row.heads, fetched_confirm: event.event_id, attachment: attachmentId, fulltext_status: statusId };
+    out.push({ event_id: attachmentId, result: "accepted", added_by_engine: true }, { event_id: statusId, result: "accepted", added_by_engine: true });
+  }
+  if (engine.table.form && row.cells) derive(row, engine.table.form.columns);
+  else row.no_full_text = row.fulltext.status !== "retrieved";
+  return out;
+}
+
+/** The engine's `select` and `plan` in small: what a look-up of `ids` (or every To get record) would ask. */
+function planOf(engine: FakeEngine, ids: string[] | null): FetchPlan {
+  const kept = engine.table.rows.filter((r) => r.kept);
+  const candidates = ids ? kept.filter((r) => ids.includes(r.study_id)) : kept.filter((r) => r.fulltext.status === "to_get");
+  const c = { with_doi: 0, with_arxiv_only: 0, neither: 0, already_have_file: 0, waiting: 0, discarded: 0 };
+  let asked = 0;
+  for (const r of candidates) {
+    if (r.fulltext.pending_fetch) c.waiting += 1;
+    else if (r.fulltext.attachment || r.fulltext.status === "retrieved") c.already_have_file += 1;
+    else if (!ids && r.fulltext.discarded_fetch) c.discarded += 1;
+    else {
+      asked += 1;
+      if (r.doi) c.with_doi += 1;
+      else if (r.arxiv_id) c.with_arxiv_only += 1;
+      else c.neither += 1;
+    }
+  }
+  const key = engine.fetch.openalexKey === true;
+  const needed = c.with_doi + c.with_arxiv_only > 0;
+  return {
+    shape: "charting.fetch-plan-v1",
+    scope: ids ? "ids" : "to_get",
+    total: candidates.length,
+    asked,
+    ...c,
+    arxiv_id_incomplete: 0,
+    email: "you@example.org",
+    openalex_key_set: key,
+    services: { unpaywall: needed ? "asked" : "not_needed", openalex: needed ? (key ? "asked" : "not_asked") : "not_needed", arxiv: c.with_arxiv_only ? "asked" : "not_needed" },
+    notes: [],
+  };
+}
+
+/** The fetch routes of the fake (spec 03 "Backend calls"), or null when the path is not one of them. */
+async function fetchRoute(engine: FakeEngine, method: string, path: string, url: URL, body: unknown): Promise<Response | null> {
+  const f = engine.fetch;
+  if (method === "GET" && path === "/api/v1/charting/fetch/plan") {
+    if (f.planHold) await f.planHold;
+    if (f.mailto === false) return json({ detail: { code: "MAILTO_NOT_SET", message: "no contact e-mail" } }, 409);
+    const ids = url.searchParams.get("ids");
+    return json(f.plan ?? planOf(engine, ids ? ids.split(",").filter(Boolean) : null));
+  }
+  if (method === "POST" && path === "/api/v1/charting/fetch") {
+    f.starts.push(body);
+    if (f.mailto === false) return json({ detail: { code: "MAILTO_NOT_SET", message: "no contact e-mail" } }, 409);
+    if (f.startFail) return json({ detail: { code: f.startFail.code, message: f.startFail.code.toLowerCase() } }, f.startFail.status);
+    const b = body as { ids?: string[]; scope?: string; confirm?: boolean };
+    if (!b.confirm || (b.ids && b.scope)) return json({ detail: { code: "BODY_INVALID", message: "confirm" } }, 422);
+    const started = f.started ?? runView({ total: planOf(engine, b.ids ?? null).asked });
+    f.runs = [...(f.afterStart ?? [started])];
+    return json(started, 202);
+  }
+  if (method === "GET" && path === "/api/v1/charting/fetch") {
+    if (f.pollFail === "unreachable") throw new TypeError("fetch failed");
+    if (f.pollFail) return json({ detail: { code: f.pollFail.code, message: f.pollFail.code.toLowerCase() } }, f.pollFail.status);
+    const answer = f.runs.length > 1 ? f.runs.shift()! : f.runs[0] ?? IDLE_RUN;
+    return json(structuredClone(answer));
+  }
+  if (method === "POST" && path === "/api/v1/charting/fetch/cancel") {
+    const now = f.runs[0];
+    if (now && now.state === "running") f.runs = [{ ...now, state: "cancelling" }];
+    return json(structuredClone(f.runs[0] ?? IDLE_RUN));
+  }
+  const tried = /^\/api\/v1\/charting\/records\/([^/]+)\/fetch$/.exec(path);
+  if (tried && method === "GET") {
+    const id = decodeURIComponent(tried[1]);
+    return json({ shape: "charting.fetch-tried-v1", study_id: id, rows: structuredClone(f.manifest[id] ?? []) });
+  }
+  return null;
+}
+
 /** The engine's form change (`PUT /api/v1/charting/form`), in small: the changes it records and the cells it marks. */
 function putForm(engine: FakeEngine, body: { base_version: number; columns: FormColumn[]; reason?: string }): Response {
   const form = engine.table.form!;
@@ -328,8 +589,14 @@ function putForm(engine: FakeEngine, body: { base_version: number; columns: Form
 }
 
 /** Stub `fetch` with the fake engine; returns the engine so a test can read `calls`. */
-export function installEngine(table: ChartingTable, over: Partial<FakeEngine> = {}): FakeEngine {
-  const engine: FakeEngine = { table: structuredClone(table), calls: [], ...over };
+export function installEngine(table: ChartingTable, over: Partial<Omit<FakeEngine, "fetch">> & { fetch?: Partial<FakeFetch> } = {}): FakeEngine {
+  const { fetch: fetchOver, ...rest } = over;
+  const engine: FakeEngine = {
+    table: structuredClone(table),
+    calls: [],
+    ...rest,
+    fetch: { runs: [IDLE_RUN], manifest: {}, starts: [], confirmed: {}, discarded: {}, ...fetchOver },
+  };
   // The screen writes its view and filter into the address; each test starts from a clean one.
   window.history.replaceState(null, "", "/");
   vi.stubGlobal(
@@ -350,7 +617,10 @@ export function installEngine(table: ChartingTable, over: Partial<FakeEngine> = 
       }
       if (method === "POST" && path === "/api/v1/charting/events") {
         const events = (body as { events: ChartingEvent[] }).events;
-        const results = events.map((e) => apply(engine, e));
+        // As `events.request_refusal`: a decision, a confirm or a discard is one study per request.
+        const decided = new Set(events.filter((e) => ["fulltext_decision", "fetched_confirm", "fetched_discard"].includes(e.kind)).map((e) => e.study_id));
+        if (decided.size > 1) return json({ detail: { code: "BODY_INVALID", message: "one study at a time" } }, 422);
+        const results = events.flatMap((e) => applyAll(engine, e));
         engine.table.counts = counts(engine.table.rows);
         const touched = new Set(events.map((e) => e.study_id));
         return json({ results, counts: engine.table.counts, rows: structuredClone(engine.table.rows.filter((r) => touched.has(r.study_id))) });
@@ -411,6 +681,8 @@ export function installEngine(table: ChartingTable, over: Partial<FakeEngine> = 
           counts: engine.table.counts,
         });
       }
+      const fetched = await fetchRoute(engine, method, path, url, body);
+      if (fetched) return fetched;
       return json({ detail: { code: "NOT_FOUND", message: path } }, 404);
     }),
   );
