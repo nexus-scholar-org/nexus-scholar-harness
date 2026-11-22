@@ -12,7 +12,7 @@ import { SUPPORTED_LOCALES } from "@/i18n";
 const FIXTURES = `${resolve(process.cwd(), "../../tests/fixtures/screening_api")}/`;
 const fixture = (name: string) => JSON.parse(readFileSync(`${FIXTURES}${name}.json`, "utf-8")).response;
 
-function engine(job?: { state: string; error?: string | null }, settings: Record<string, unknown> = {}) {
+function engine(job?: { state: string; error?: string | null }, settings: Record<string, unknown> = {}, batched = false) {
   let polls = 0;
   const log: { method: string; path: string; body: unknown }[] = [];
   vi.stubGlobal(
@@ -32,7 +32,16 @@ function engine(job?: { state: string; error?: string | null }, settings: Record
         const next = { ...fixture("settings_default").body, ...settings, ...(field === "blinding" ? { blinding: body.value } : { not_reported_policy: body.value, not_reported_source: "amendment" }), method_amendments: [amendment] };
         return json({ amendment, settings: next });
       }
-      if (path === "/ui/batches") return json({ shape: "ui07.screening-batches-v1", run_id: null, count: 0, batches: [], missing: [] });
+      if (path === "/ui/batches") {
+        const entry = { batch_index: 1, batch_file: "batch_001.json", items: 20, decisions_file: null, decisions_count: null, collected: false, coverage: "INCOMPLETE", unresolved_rows: [] };
+        return json({ shape: "ui07.screening-batches-v1", run_id: null, count: batched ? 1 : 0, batches: batched ? [entry] : [], missing: [] });
+      }
+      if (path === "/summary") {
+        return json({ total: 20, decided: 0, by_outcome: { INCLUDE: 0, EXCLUDE: 0, MAYBE: 0 }, agent_proposed: 0, needs_you: 20, conflicts: 0, lanes: { agent: 0, you: 0, second_screener: "PARKED" }, protocol_changed: false, criteria_version: 1, recheck: 0, pilot: null });
+      }
+      if (path === "/criteria") {
+        return json({ criteria_version: 1, criteria: [], retired: [], amendments: [], can_amend: true, batches_prepared: true, batch_approved: false, handoff_batches: [] });
+      }
       if (path === "/prepare") {
         if (job) return json({ job_id: "job_1" });
         const refused = fixture("prepare_snapshot_not_accepted");
@@ -288,5 +297,15 @@ describe("prepare.rule-table-policy", () => {
       "Otherwise exclude: any exclusion criterion answered yes, any inclusion criterion answered no, or any inclusion criterion not reported.",
       "Otherwise include: every inclusion yes and no exclusion yes.",
     ]);
+  });
+});
+
+describe("prepare with batches (M11b part C, review round 1 finding 7)", () => {
+  it("has one brand action: the pilot card's draw; Prepare again is secondary", async () => {
+    engine(undefined, {}, true);
+    render(<ScreeningPrepare locale="en" />);
+    await screen.findByRole("button", { name: "Draw a pilot of 50" });
+    const brand = [...document.querySelectorAll('[data-variant="primary"]')].map((e) => e.textContent?.trim());
+    expect(brand).toEqual(["Draw a pilot of 50"]);
   });
 });

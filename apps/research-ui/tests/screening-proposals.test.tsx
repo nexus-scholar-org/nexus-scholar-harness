@@ -324,3 +324,26 @@ describe("proposals cancel (H-run-small-fixes, finding 35)", () => {
     for (const locale of SUPPORTED_LOCALES) expect(PROPOSALS_COPY[locale].stopping, locale).toBeTruthy();
   });
 });
+
+describe("proposals.redraft (M11b part C, spec 13)", () => {
+  it("offers to draft again the records whose draft predates a revision, scoped to them", async () => {
+    const log = engine({ setup: { ...setup({ consent: true }), earlier_wording_drafts: { criteria_version: 1, count: 2, study_ids: ["STU-a", "STU-b"] } } });
+    render(<ScreeningProposals locale="en" />);
+    await startButton();
+    fireEvent.click(screen.getByRole("button", { name: "Draft again the 2 records whose draft predates the revision" }));
+    const dialog = await screen.findByRole("dialog");
+    expect(dialog).toHaveTextContent("Send 2 records to Anthropic");
+    await waitFor(() => expect(log.some((c) => c.path === "/proposals/runs" && c.body?.estimate_only && (c.body.scope as { study_ids?: string[] })?.study_ids)).toBe(true));
+    fireEvent.click(screen.getByRole("button", { name: "Start the run" }));
+    await waitFor(() => expect(log.some((c) => c.path === "/proposals/runs" && !c.body?.estimate_only)).toBe(true));
+    const sent = log.find((c) => c.path === "/proposals/runs" && !c.body?.estimate_only)!.body!;
+    expect(sent.scope).toEqual({ study_ids: ["STU-a", "STU-b"] });
+  });
+
+  it("says nothing of it when every draft is current", async () => {
+    engine({ setup: { ...setup({ consent: true }), earlier_wording_drafts: { criteria_version: 2, count: 0, study_ids: [] } } });
+    render(<ScreeningProposals locale="en" />);
+    await startButton();
+    expect(document.querySelector("[data-redraft]")).toBeNull();
+  });
+});

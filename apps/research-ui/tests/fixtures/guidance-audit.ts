@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
+import { PILOT_COPY } from "@/components/screening-pilot-copy";
 import { CHARTING_COPY } from "@/lib/charting-copy";
 import { DISCOVERY_COPY } from "@/lib/discovery-copy";
 import { INCEPTION_COPY } from "@/lib/inception-copy";
@@ -40,6 +41,8 @@ export const DISCOVERY_KEYS = Object.keys(DISCOVERY_COPY.en);
 /** M11a: the query workbench's catalog (`W-` rows). */
 export const WORKBENCH_KEYS = Object.keys(WORKBENCH_COPY.en);
 export const TRIAGE_KEYS = Object.keys(TRIAGE_COPY.en);
+/** M11b part C: the pilot result's catalog (`S-PL` rows). */
+export const PILOT_KEYS = Object.keys(PILOT_COPY.en);
 /** M12a Part B: rows `X-` are the charting screens (phase 3), not counted per phase yet. */
 export const CHARTING_KEYS = Object.keys(CHARTING_COPY.en);
 
@@ -71,7 +74,7 @@ export function auditRows(): AuditRow[] {
     if (!m) continue;
     const [, id, keyCell, textCell, decision, reason] = m;
     const tokens = [...keyCell.matchAll(/`([^`]+)`/g)].map((t) => t[1]);
-    const catalog = id.startsWith("I-") ? INCEPTION_KEYS : id.startsWith("W-") ? WORKBENCH_KEYS : id.startsWith("S-") ? TRIAGE_KEYS : id.startsWith("X-") ? CHARTING_KEYS : DISCOVERY_KEYS;
+    const catalog = id.startsWith("I-") ? INCEPTION_KEYS : id.startsWith("W-") ? WORKBENCH_KEYS : id.startsWith("S-PL") ? PILOT_KEYS : id.startsWith("S-") ? TRIAGE_KEYS : id.startsWith("X-") ? CHARTING_KEYS : DISCOVERY_KEYS;
     const first = tokens[0] ?? "";
     const keys = new Set<string>();
     const unresolved: string[] = [];

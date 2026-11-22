@@ -5,6 +5,7 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } fr
 import { translate, type Locale } from "@/i18n";
 import { Button, DataCell, DecisionBadge, EvidenceQuote, type DecisionRole } from "@/components/ui/base";
 import { ScreeningSteps, stepHref } from "@/components/screening-state-card";
+import { pilotHref, triageHref } from "@/components/screening-pilot-card";
 import { HighlightedText } from "@/components/highlighted-text";
 import { MarksBar, quoteSpans, termSpans } from "@/components/triage-marks";
 import { QUOTES_KEY, TERMS_KEY, rememberOn, rememberedOn } from "@/lib/triage-marks-memory";
@@ -12,15 +13,18 @@ import { isScreeningApiError } from "@/lib/screening-api";
 import {
   decisionEvent,
   getConflicts,
+  getCriteria,
   getProposal,
   getQueue,
   getRecord,
   getSettings,
   getSummary,
   postEvents,
+  postPilotDecisions,
   resolveConflict,
   type Answer,
   type Conflict,
+  type CriteriaView,
   type IntakeResult,
   type Outcome,
   type Proposal,
@@ -67,6 +71,14 @@ import {
  */
 
 const VIEWS: QueueView[] = ["needs_you", "proposal_ready", "no_proposal", "title_only", "decided"];
+/** M11b part C: views shown only when they hold something (a revision's records, an open pilot). */
+const ALL_VIEWS: readonly QueueView[] = [...VIEWS, "recheck", "pilot"];
+
+function viewFromUrl(): QueueView {
+  if (typeof window === "undefined") return "needs_you";
+  const asked = new URLSearchParams(window.location.search).get("view");
+  return ALL_VIEWS.includes(asked as QueueView) ? (asked as QueueView) : "needs_you";
+}
 const PREFETCH = 5;
 const QUEUE_OPEN_KEY = "nexus.triage.queueOpen";
 const CHECKLIST_OPEN_KEY = "nexus.triage.checklistOpen";
@@ -181,6 +193,11 @@ function TriageScreen({ locale }: Readonly<{ locale: Locale }>) {
   const [busy, setBusy] = useState(false);
   const [help, setHelp] = useState(false);
   const [summary, setSummary] = useState<Summary | null>(null);
+  // M11b part C: the pilot this queue lists (view=pilot), the criteria and their revisions, and the
+  // version a record shown again was decided under once a new decision replaces it.
+  const [pilotInfo, setPilotInfo] = useState<{ pilot_id: string; open: boolean } | null>(null);
+  const [criteriaView, setCriteriaView] = useState<CriteriaView | null>(null);
+  const [replaced, setReplaced] = useState<number | null>(null);
   // Skips in this browser session, for the counts rail; a skip writes nothing (spec 03).
   const [skippedCount, setSkippedCount] = useState(0);
   // "All decided" may be claimed only once the queue has answered (review P2-1).
@@ -244,7 +261,8 @@ function TriageScreen({ locale }: Readonly<{ locale: Locale }>) {
 
   const loadQueue = useCallback(
     async (nextView: QueueView, append = false, from = 0) => {
-      const page = await getQueue(origin, { view: nextView, cursor: from, limit: 50 });
+      const page = await getQueue(origin, { view: nextView, cursor: from, limit: nextView === "pilot" ? 200 : 50 });
+      if (!append) setPilotInfo(nextView === "pilot" ? (page.pilot ?? null) : null);
       setItems((prev) => (append ? [...prev, ...page.items] : page.items));
       setCursor(page.next_cursor);
       setQueueLoaded(true);
@@ -301,6 +319,7 @@ function TriageScreen({ locale }: Readonly<{ locale: Locale }>) {
       setRefusal(null);
       setConflict(null);
       setFocusIndex(0);
+      setReplaced(null);
       setChecklistOpen(checklistChoice.current);
       setRecord(null);
       setProposal({ status: "hidden" });
@@ -329,10 +348,17 @@ function TriageScreen({ locale }: Readonly<{ locale: Locale }>) {
   const boot = useCallback(async () => {
     setBootError(null);
     try {
-      const [current, counts] = await Promise.all([getSettings(origin), getSummary(origin).catch(() => null)]);
+      const [current, counts, criteria] = await Promise.all([
+        getSettings(origin),
+        getSummary(origin).catch(() => null),
+        getCriteria(origin).catch(() => null),
+      ]);
       setSettings(current);
       setSummary(counts);
-      const list = await loadQueue("needs_you");
+      setCriteriaView(criteria);
+      const initial = viewFromUrl();
+      setView(initial);
+      const list = await loadQueue(initial);
       if (list.length > 0) await open(list[0].study_id, list, current);
     } catch (error) {
       setBootError(codeOf(error));
@@ -386,7 +412,64 @@ function TriageScreen({ locale }: Readonly<{ locale: Locale }>) {
     void open(next.study_id, list, settings);
   }
 
+  // Spec 13 (REASON_CODE_RETIRED): the reason chips come from the record's criteria in force, read again.
+  async function refreshCriteria(study: string) {
+    try {
+      const detail = await fetchRecord(study, true);
+      if (current.current === study) setRecord(detail);
+      setCriteriaView(await getCriteria(origin));
+    } catch {
+      // The refusal card stays; the next record read brings the criteria in force.
+    }
+  }
+
+  async function submitPilot(outcome: Outcome, reasonCode: string | null) {
+    if (!record || !settings || !pilotInfo || busy) return;
+    const study = record.study_id;
+    const head = items.find((i) => i.study_id === study)?.pilot_decision ?? null;
+    const { binding: _binding, proposal_shown: _shown, ...decision } = decisionEvent({
+      record,
+      screenerId: settings.screener_id,
+      outcome,
+      reasonCode,
+      criteria: answersInOrder(record.criteria, answers),
+      note: note.trim() || null,
+      supersedes: null,
+      proposalShown: null,
+    });
+    setBusy(true);
+    setRefusal(null);
+    try {
+      const answer = await postPilotDecisions(origin, pilotInfo.pilot_id, [{ ...decision, supersedes: head?.pilot_decision_id ?? null }]);
+      const [result] = answer.results;
+      if (!result || result.result === "refused") {
+        const code = result?.refusal?.code ?? "REFUSED";
+        setRefusal(code);
+        if (code === "REASON_CODE_RETIRED") await refreshCriteria(study);
+        return;
+      }
+      void getSummary(origin).then(setSummary, () => undefined);
+      const list = await loadQueue("pilot");
+      const k = list.findIndex((i) => i.study_id === study) + 1;
+      setMessage(t("pilot.saved", { k, n: list.length }));
+      setEditing(false);
+      setReasonOpen(false);
+      const next = nextUndecided(list, study);
+      if (next) {
+        focusNextTitle.current = true;
+        await open(next.study_id, list, settings);
+      } else {
+        await open(study, list, settings);
+      }
+    } catch (error) {
+      setRefusal(codeOf(error));
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function submit(outcome: Outcome, options: { reasonCode?: string | null; restore?: StoredEvent } = {}) {
+    if (pilotMode) return void submitPilot(outcome, options.reasonCode ?? null);
     if (!record || !settings || busy || stale) return;
     const restore = options.restore;
     const study = record.study_id;
@@ -399,7 +482,8 @@ function TriageScreen({ locale }: Readonly<{ locale: Locale }>) {
       reasonCode: restore ? restore.reason_code : (options.reasonCode ?? null),
       criteria: restore ? restore.criteria : answersInOrder(record.criteria, answers),
       note: restore ? restore.note : note.trim() || null,
-      supersedes: record.my_decision?.event_id ?? null,
+      // M11b part A: a record shown again is decided again by superseding the decision shown again.
+      supersedes: record.my_decision?.event_id ?? record.shown_again?.decision.event_id ?? null,
       // Contract §3.1: name the draft that was on screen when deciding (review 2).
       proposalShown: shown ? { proposal_id: shown.proposal_id, revealed_after_decision: record.my_decision !== null } : null,
     });
@@ -423,13 +507,17 @@ function TriageScreen({ locale }: Readonly<{ locale: Locale }>) {
     if (result.result === "refused") {
       const code = result.refusal?.code ?? "REFUSED";
       if (code === "STALE_BINDING") setStale(true);
+      if (code === "REASON_CODE_RETIRED") void refreshCriteria(study);
       setRefusal(code);
       setMessage(t("refused", { code }));
       return;
     }
+    const earlierVersion = record.shown_again?.criteria_version ?? null;
     const detail = await fetchRecord(study, true);
     if (current.current !== study) return;
     setRecord(detail);
+    if (earlierVersion !== null) setReplaced(earlierVersion);
+    void getSummary(origin).then(setSummary, () => undefined);
     setReasonOpen(false);
     setEditing(false);
     if (result.result === "conflict") {
@@ -497,8 +585,23 @@ function TriageScreen({ locale }: Readonly<{ locale: Locale }>) {
     void submit(target.outcome, { restore: target });
   }
 
-  const decided = record?.my_decision ?? null;
-  const deciding = record !== null && (decided === null || editing) && conflict === null;
+  // M11b part C: in the pilot view a decision goes to the pilot (never counted) and the head shown
+  // is your pilot decision; the main decision of a pilot record is never shown here.
+  const pilotMode = view === "pilot" && pilotInfo !== null;
+  const pilotHead = pilotMode ? (item?.pilot_decision ?? null) : null;
+  const decided = pilotMode ? null : (record?.my_decision ?? null);
+  const deciding =
+    record !== null &&
+    conflict === null &&
+    (pilotMode ? pilotInfo.open && (pilotHead === null || editing) : decided === null || editing);
+  const pilotDone = pilotMode && queueLoaded && items.length > 0 && items.every((i) => i.decided);
+  // Review C round 1, finding 6: the pilot's counts are the engine's (`/summary`), not counted here.
+  const enginePilot = summary?.pilot && pilotInfo && summary.pilot.pilot_id === pilotInfo.pilot_id ? summary.pilot : null;
+  const pilotCounts = { decided: enginePilot?.decided ?? 0, n: enginePilot?.n ?? 0 };
+  const recheckCount = summary?.recheck ?? 0;
+  const viewOptions = ALL_VIEWS.filter(
+    (v) => VIEWS.includes(v) || v === view || (v === "recheck" && recheckCount > 0) || (v === "pilot" && Boolean(summary?.pilot?.open)),
+  );
   // The checklist is a tool for the reason, not a gate for the decision (spec 03, M8-triage 3):
   // Include is off only while an answer given fails; Exclude is always there and needs a reason.
   const decisive = record !== null ? decisiveFor(record.criteria, answers, record.not_reported_policy ?? "unclear") : null;
@@ -677,6 +780,7 @@ function TriageScreen({ locale }: Readonly<{ locale: Locale }>) {
   const batch = record?.batch_index ?? item?.batch_index;
   const position = (() => {
     if (!record || !summary || batch === undefined) return null;
+    if (pilotMode) return t("pilot.position", { k: items.findIndex((i) => i.study_id === record.study_id) + 1, n: items.length });
     if (view === "decided") {
       const at = items.findIndex((i) => i.study_id === record.study_id);
       return t("positionDecided", { k: at + 1, total: summary.decided, batch });
@@ -751,9 +855,51 @@ function TriageScreen({ locale }: Readonly<{ locale: Locale }>) {
           </details>
         </div>
       ) : null}
+      {pilotMode && pilotInfo ? (
+        <section role="region" aria-label={t("pilot.region")} className="rounded-md border border-rule bg-leaf px-4 py-2 lg:flex-none" data-pilot-banner>
+          <p className="font-medium text-ink">
+            {t("pilot.banner", { k: pilotCounts.decided, n: pilotCounts.n })}
+          </p>
+          <p className="text-sm text-ink-muted">{t("pilot.sentence")}</p>
+          <a className="text-sm text-brand underline" href={pilotHref(locale, pilotInfo.pilot_id, origin)}>
+            {t("pilot.link")}
+          </a>
+        </section>
+      ) : null}
+      {!pilotMode && recheckCount > 0 ? (
+        <section className="rounded-md border border-rule bg-leaf px-4 py-2 lg:flex-none" data-recheck-banner>
+          <p className="text-sm text-ink">
+            {t("recheck.banner", { n: recheckCount, v: summary?.criteria_version ?? criteriaView?.criteria_version ?? 1 })}
+          </p>
+          {criteriaView && criteriaView.amendments.length > 0 ? (
+            <details className="text-sm text-ink-muted">
+              <summary className={summaryClass}>{t("recheck.what")}</summary>
+              <ul className="space-y-2 pb-2">
+                {criteriaView.amendments.map((a) => (
+                  <li key={a.amendment_id}>
+                    <p dir="auto" className="text-ink">
+                      {t("recheck.change", {
+                        ids: [...a.from, ...a.to].map((c) => c.id).filter((id, i, all) => all.indexOf(id) === i).join(", "),
+                        from: a.from.map((c) => c.text).join(" / ") || "–",
+                        to: a.to.map((c) => c.text).join(" / ") || "–",
+                      })}
+                    </p>
+                    <p dir="auto">{t("recheck.reason", { reason: a.reason })}</p>
+                  </li>
+                ))}
+              </ul>
+            </details>
+          ) : null}
+        </section>
+      ) : null}
       {refusal && !stale ? (
         <div role="alert" className="rounded-md bg-blocked-soft px-4 py-2 text-blocked lg:flex-none" data-refusal={refusal}>
           <p>{stateCopy(locale, refusal).known ? `${stateCopy(locale, refusal).title}. ${stateCopy(locale, refusal).body}` : t("refused", { code: "" }).replace(/[:：]\s*$/, "")}</p>
+          {refusal === "PILOT_OPEN" ? (
+            <a className="text-sm underline" href={triageHref(locale, "pilot", origin)}>
+              {t("pilot.goTo")}
+            </a>
+          ) : null}
           <details className="text-xs">
             <summary className={summaryClass}>{t("details")}</summary>
             <span className="font-mono" dir="ltr">
@@ -790,7 +936,7 @@ function TriageScreen({ locale }: Readonly<{ locale: Locale }>) {
                 onChange={(e) => void changeView(e.target.value as QueueView)}
                 className="mt-1 block min-h-11 w-full rounded-md border border-rule bg-paper px-2 text-sm text-ink"
               >
-                {VIEWS.map((v) => (
+                {viewOptions.map((v) => (
                   <option key={v} value={v}>
                     {t(`view.${v}` as TriageCopyKey)}
                   </option>
@@ -835,6 +981,7 @@ function TriageScreen({ locale }: Readonly<{ locale: Locale }>) {
                   >
                     <bdi className="line-clamp-2 text-ink">{i.title}</bdi>
                     <span className="mt-0.5 block text-xs text-ink-muted">
+                      {i.shown_again ? `${t("recheck.tag")} · ` : ""}
                       {i.decided ? t("queueDecided") : i.has_proposal ? t("queueHiddenRow") : t("queueNoProposal")}
                       {i.flags.includes("title_only") ? ` · ${t("titleOnly")}` : ""}
                     </span>
@@ -850,7 +997,21 @@ function TriageScreen({ locale }: Readonly<{ locale: Locale }>) {
           ) : null}
         </nav>
 
-        {allDone ? (
+        {pilotDone && pilotInfo ? (
+          <section aria-labelledby="triage-pilot-done" className="rounded-lg border border-rule bg-leaf p-6 lg:col-span-2 lg:self-start" data-pilot-done>
+            <h2 id="triage-pilot-done" className="font-display text-[1.375rem] leading-[1.75rem] text-ink">
+              {t("pilot.doneTitle", { n: pilotCounts.n })}
+            </h2>
+            <p className="mt-4 flex flex-wrap items-center gap-4">
+              <a className="inline-flex min-h-11 items-center rounded-md bg-brand px-4 font-medium text-on-brand" href={pilotHref(locale, pilotInfo.pilot_id, origin)}>
+                {t("pilot.doneAction")}
+              </a>
+              <a className="text-brand underline" href={triageHref(locale, "needs_you", origin)}>
+                {t("pilot.rest")}
+              </a>
+            </p>
+          </section>
+        ) : allDone ? (
           <section aria-labelledby="triage-all-decided" className="rounded-lg border border-rule bg-leaf p-6 lg:col-span-2 lg:self-start" data-all-decided>
             <h2 id="triage-all-decided" className="font-display text-[1.375rem] leading-[1.75rem] text-ink">
               {t("allDecidedTitle", { total: summary?.total ?? 0 })}
@@ -944,6 +1105,54 @@ function TriageScreen({ locale }: Readonly<{ locale: Locale }>) {
 
             {/* The right column: reason, checklist, comparison, draft, note, history (M8-triage 1) */}
             <div className={`min-w-0 space-y-4 ${pane}`} data-right-column>
+              {record && !pilotMode && (record.shown_again || replaced !== null) ? (
+                <section aria-labelledby="triage-earlier-decision" className="rounded-lg border border-rule bg-leaf p-4" data-earlier-decision>
+                  <h2 id="triage-earlier-decision" className="text-sm font-semibold text-ink">
+                    {record.shown_again
+                      ? t("recheck.earlier", { v: record.shown_again.criteria_version })
+                      : t("recheck.replaced", { v: replaced ?? 1 })}
+                  </h2>
+                  {record.shown_again ? (
+                    <>
+                      <p className="mt-2 flex flex-wrap items-center gap-2">
+                        <DecisionBadge role={OUTCOME_ROLE[record.shown_again.decision.outcome]}>
+                          {t(OUTCOME_KEY[record.shown_again.decision.outcome])}
+                        </DecisionBadge>
+                        {record.shown_again.decision.reason_code ? (
+                          <span className="font-mono text-xs text-ink-muted" dir="ltr">
+                            {record.shown_again.decision.reason_code}
+                          </span>
+                        ) : null}
+                      </p>
+                      {record.shown_again.decision.criteria.length > 0 ? (
+                        <p className="mt-1 text-xs text-ink-muted" dir="ltr">
+                          {t("recheck.answers", {
+                            answers: record.shown_again.decision.criteria.map((a) => `${a.id}: ${a.answer}`).join(", "),
+                          })}
+                        </p>
+                      ) : null}
+                      {criteriaView ? (
+                        <details className="mt-1 text-xs text-ink-muted">
+                          <summary className={summaryClass}>{t("details")}</summary>
+                          <ul className="space-y-1 pb-2">
+                            {criteriaView.amendments
+                              .filter((a) => a.criteria_version_after > (record.shown_again?.criteria_version ?? 1))
+                              .map((a) => (
+                                <li key={a.amendment_id} dir="auto">
+                                  {t("recheck.change", {
+                                    ids: [...a.from, ...a.to].map((c) => c.id).filter((id, i, all) => all.indexOf(id) === i).join(", "),
+                                    from: a.from.map((c) => c.text).join(" / ") || "–",
+                                    to: a.to.map((c) => c.text).join(" / ") || "–",
+                                  })}
+                                </li>
+                              ))}
+                          </ul>
+                        </details>
+                      ) : null}
+                    </>
+                  ) : null}
+                </section>
+              ) : null}
               {record && conflict ? (
                 <section role="alert" className="rounded-lg border border-rule-strong bg-unclear-soft p-4">
                   <h2 className="font-semibold text-unclear">{t("conflictTitle")}</h2>
@@ -1238,7 +1447,23 @@ function TriageScreen({ locale }: Readonly<{ locale: Locale }>) {
           <h2 id="triage-decision" className="sr-only">
             {t("decisionHeading")}
           </h2>
-          {decided && !editing ? (
+          {pilotHead && !editing ? (
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2" data-pilot-head>
+              <p className="flex flex-wrap items-center gap-2 text-ink">
+                {t("pilot.decidedAs")}
+                <DecisionBadge role={OUTCOME_ROLE[pilotHead.outcome]}>
+                  {t(OUTCOME_KEY[pilotHead.outcome])}
+                  {pilotHead.reason_code ? ` · ${pilotHead.reason_code}` : ""}
+                </DecisionBadge>
+              </p>
+              <div className="flex flex-wrap gap-2">
+                <Button variant="primary" onClick={() => move(1)}>
+                  {t("next")} <kbd className="text-xs opacity-80">N</kbd>
+                </Button>
+                {pilotInfo?.open ? <Button onClick={() => setEditing(true)}>{t("change")}</Button> : null}
+              </div>
+            </div>
+          ) : decided && !editing ? (
             <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
               <p className="flex flex-wrap items-center gap-2 text-ink">
                 {t("decidedAs")}
