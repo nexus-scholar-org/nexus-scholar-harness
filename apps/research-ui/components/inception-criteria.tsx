@@ -658,7 +658,7 @@ function MethodQuestions({
           ))}
         </div>
       </fieldset>
-      <fieldset id="method-not-reported" aria-required="true" aria-describedby={unchosen ? "method-rule-unchosen" : undefined} data-method-group="not_reported">
+      <fieldset id="method-not-reported" aria-describedby={unchosen ? "method-rule-unchosen" : undefined} data-method-group="not_reported">
         <legend className="text-sm font-medium text-ink">{t("criteria.method.notReported.q")}</legend>
         {unchosen ? (
           <p id="method-rule-unchosen" className="mt-1 text-sm text-blocked" data-method-unchosen>

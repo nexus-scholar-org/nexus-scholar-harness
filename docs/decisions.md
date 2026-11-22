@@ -10,7 +10,7 @@ history to read if you need the original reasoning (`git log --follow -- <path>`
 
 | Entry | Item | What is open |
 | :-- | :-- | :-- |
-| 2026-11-21 — M11b part D: step 5's method questions and wording checks, the build's choices | 1 to 10 | Proposed with the engine side of the build; the researcher's answer is pending. |
+| 2026-11-21 — M11b part D: step 5's method questions and wording checks, the build's choices | 1 to 20 | Proposed with the engine side of the build; the researcher's answer is pending. |
 | 2026-11-22 — M11b part C: the screening screens, the build's choices | 1 to 17 | Proposed with the build; the researcher's answer is pending. |
 | 2026-11-19 — M9a: what the measurement says about the ladder gates | 2 | The minimum share of the researcher's excludes an agent must take before a rung unlocks: the principle is accepted; the researcher decided on 2026-11-20 to set the number when M9b is built. |
 | 2026-11-21 — H-pdf-resolver-locations | 13 | When a listed address gave no PDF while one service had failed: keep "a listed address gave no PDF" (exit code 1) and name the failed service, as built, or report a failed lookup (exit code 3). Proposed 2026-11-21, not answered. |
@@ -61,7 +61,7 @@ Record: `docs/roadmap/milestones/M11b-criteria-pilot.md`, "Build record", "Part 
 16. **Not built in part C** (PROPOSED as follow-ups): the result's offline state (the last result "as of {time}"; offline shows the `ENGINE_UNREACHABLE` card), any phone layout (every pilot route is desktop only, answer 8), and a next-step bar sentence for an open pilot (the bar is unchanged).
 17. **Once batches exist, Prepare's one brand action is the pilot card's** (PROPOSED; review round 1, finding 7): "Draw a pilot of {n}" before a pilot, "Continue the pilot" while one is open, "See the result" after; Prepare's own "Prepare batches" becomes secondary, since preparing again is not the next step once batches exist. Before batches, "Prepare batches" stays the brand button. Spec 13 question 7 settled the card's button, not Prepare's own.
 
-## 2026-11-21 — M11b part D: step 5's method questions and wording checks, the build's choices (PROPOSED; M11b-criteria-pilot, part D, engine side)
+## 2026-11-21 — M11b part D: step 5's method questions and wording checks, the build's choices (items 1 to 20 PROPOSED; M11b-criteria-pilot, part D, engine side)
 
 Record: `docs/roadmap/milestones/M11b-criteria-pilot.md`, "Build record", "Part D". Answers 8 (no default for the not-reported rule) and 12 (the terminal wizard asks too) bind the rest. The screen (DoD 20 and the copy) waits for `11-criteria-block.md` questions 3, 7 and 8. Each item is the build's proposal.
 
@@ -75,6 +75,16 @@ Record: `docs/roadmap/milestones/M11b-criteria-pilot.md`, "Build record", "Part 
 8. **"In English" is read from the criteria themselves:** English when any criterion holds an English function word; otherwise not English when one holds a function word of another language (a short French, German or Spanish list) or a letter outside ASCII; otherwise English. Short criteria such as "UAV imagery; field trials" are read as English. *Alternative:* the review's search languages (they say what papers are searched, not what the criteria are written in).
 9. **The word rules' details:** stop words and negation words are fixed English lists (negations: not, no, without, only, non, except, excluding, and "other than" as two words); the mirror share is the larger of the two coverages; a criterion equal to another is a duplicate or a contradiction, never a mirror; a full-text phrase matches whole words only ("table" does not match "tabletop").
 10. **A pair's subject is "id|id"**, so each pair is dismissed alone; criterion ids come from the text, so a reworded criterion is a new subject and a dismissal does not carry over.
+11. **Continue opens as soon as the rule is chosen in the tab** (PROPOSED; spec 11 question 8 left it open): `steps/criteria` answers for the draft as typed, and Continue saves before it moves on, so the saved draft always carries the choice. The checks panel still describes the saved draft until the save.
+12. **The criteria section does not fold** (PROPOSED), as the concepts block of M11a does not: its header reads "{n} inclusion, {m} exclusion criteria" when nothing waits, else "Decide every criterion first." The "one block open" rule, the written state with Edit, and the "See the check below" chip on a row named by a check are not built.
+13. **The check rows stay in step 5's checks panel** (PROPOSED), below the page as today, not inside the criteria section; their links focus the named row, the out-of-scope field or the rule's first option.
+14. **The out-of-scope field holds the whole list** (PROPOSED): "Add an out-of-scope topic" writes the field to the page's draft (semicolons and line breaks separate items, commas do not), and each item becomes an exclusion row waiting for Accept. Shape shows one line ("Out of scope is asked with the criteria.") and keeps the stored items as they are; the keys `shape.outOfScope` and `shape.outOfScopeHelp` are removed, a proposal card names the field with `field.out_of_scope`.
+15. **A save writes the visibility the screen shows** (PROPOSED), also for a draft that never stored it (the engine's `method.blinding`), as spec 11's Data out asks.
+16. **The rule's group says "Not chosen yet" from the engine's `method.chosen`** (PROPOSED), with "This draft was started before this question existed." when the engine says so; Continue is held and names why. The group carries no `aria-required` (not an allowed attribute on a group; axe refuses it) and is described by that line; `aria-invalid` after a refused Continue is not built because Continue cannot be pressed while the rule is unchosen.
+17. **Not built in part D** (PROPOSED as follow-ups): the J, K, A, R keys and Ctrl+Enter of spec 11 (step 5's keys are unchanged); the older-engine sentence (`criteria.method.err.engine`; one package, so this screen never meets an older engine); the narrow layout's collapsible sections.
+18. **"From the imported protocol"** (PROPOSED) shows under the questions when the import report says it carried `method_not_reported`.
+19. **The check copy uses spec 11's words** (PROPOSED), which differ slightly from the engine sentence in `02-checks` ("what the agent should do" for "what the agent's draft does"); the `{side}` slot of `CRITERIA_DUPLICATE` shows the engine's word (`inclusion` or `exclusion`) as written, untranslated in fr and ar.
+20. **The guidance audit** (PROPOSED): row I-SH10 now names the moved line (STAYS); rows I-C24 to I-C30 and I-R22 add the new keys, all STAYS (the measured figures and the limits line are evidence, kept as text); the counts table reads 116 STAYS, 34 HINT, 11 REMOVED, 161 rows for Inception.
 
 ## 2026-11-21 — M11b part B: the pilot, the build's choices (items 1 to 13 accepted by the researcher 2026-11-21; M11b-criteria-pilot, part B)
 
