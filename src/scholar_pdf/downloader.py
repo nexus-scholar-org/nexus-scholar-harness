@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import errno
 import hashlib
 import logging
 import os
@@ -129,6 +130,52 @@ def _transient(error: BaseException) -> bool:
 
 
 _BACKOFF = wait_exponential(multiplier=1, min=2, max=10)
+
+
+# ------------------------------------------------------------------ portable writes (PDF-03)
+
+#: ``os.link`` errors that mean "no hard links here", where a copy is the fallback.
+_NO_HARD_LINK_ERRNOS = frozenset(
+    code
+    for code in (
+        errno.EPERM,
+        errno.EXDEV,
+        errno.EMLINK,
+        errno.EOPNOTSUPP,
+        getattr(errno, "ENOTSUP", errno.EOPNOTSUPP),
+        getattr(errno, "ENOSYS", errno.EOPNOTSUPP),
+    )
+)
+#: Their Windows equivalents: invalid function (FAT, exFAT), not the same device,
+#: not supported, too many links.
+_NO_HARD_LINK_WINERRORS = frozenset({1, 17, 50, 1142})
+
+
+def _no_hard_links(error: OSError) -> bool:
+    winerror = getattr(error, "winerror", None)
+    if winerror is not None:
+        return winerror in _NO_HARD_LINK_WINERRORS
+    return error.errno in _NO_HARD_LINK_ERRNOS
+
+
+def _copy_exclusive(source: Path, final: Path, digest: str) -> None:
+    """Copy ``source`` to a new ``final`` (``O_EXCL``), fsync it, and check its hash.
+
+    ``FileExistsError`` when ``final`` exists: nothing is overwritten. On any
+    other failure the partly written ``final`` is removed.
+    """
+    flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL | getattr(os, "O_BINARY", 0)
+    descriptor = os.open(final, flags, 0o644)
+    try:
+        with os.fdopen(descriptor, "wb") as target, source.open("rb") as origin:
+            shutil.copyfileobj(origin, target, 1024 * 1024)
+            target.flush()
+            os.fsync(target.fileno())
+        if AsyncPDFDownloader._digest(final) != digest:
+            raise OSError("the copied file does not match the validated bytes")
+    except BaseException:
+        final.unlink(missing_ok=True)
+        raise
 
 
 def _retry_wait(state: RetryCallState) -> float:
@@ -307,9 +354,18 @@ class AsyncPDFDownloader:
             staging.unlink(missing_ok=True)
             return False
         try:
-            # A hard link publishes the already-validated inode atomically and
-            # cannot overwrite a destination created by another process.
-            os.link(staging, final)
+            try:
+                # A hard link publishes the already-validated inode atomically and
+                # cannot overwrite a destination created by another process.
+                os.link(staging, final)
+            except FileExistsError:
+                raise
+            except OSError as error:
+                # PDF-03: FAT or exFAT drives and some network shares have no hard
+                # links. An exclusive-create copy with fsync still never overwrites.
+                if not _no_hard_links(error):
+                    raise
+                _copy_exclusive(staging, final, digest)
         except FileExistsError:
             if (
                 final.is_symlink()
@@ -317,7 +373,7 @@ class AsyncPDFDownloader:
                 or self._digest(final) != digest
                 or not self._candidate_is_valid(final)
             ):
-                raise OSError("content-addressed destination is occupied")
+                raise OSError("content-addressed destination is occupied") from None
             staging.unlink(missing_ok=True)
             return False
         staging.unlink(missing_ok=True)
