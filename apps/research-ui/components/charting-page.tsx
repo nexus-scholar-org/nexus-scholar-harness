@@ -29,7 +29,9 @@ import {
   chartingEvent,
   chartingStudyHref,
   endChartingPilot,
+  chartingReportHref,
   exportCsv,
+  exportFile,
   fetchedHref,
   getCharting,
   getFetchPlan,
@@ -98,6 +100,7 @@ import {
   type PlanState,
 } from "./charting-fetch";
 import { ChartingFormPanel } from "./charting-form-panel";
+import { ExportLines } from "./charting-export-lines";
 
 /**
  * The charting screen (spec 01, M12a Parts A and B): one row per study kept at
@@ -500,6 +503,24 @@ function ChartingScreen({ locale }: Readonly<{ locale: Locale }>) {
     }
   }, [origin]);
   reloadRef.current = reload;
+
+  /** After an export: only the engine's record of it and the open-cell counts are taken from a new read; the rows stay as they are. */
+  const refreshLastExport = useCallback(async () => {
+    try {
+      const answer = await getCharting(origin);
+      setTable((current) =>
+        current
+          ? {
+              ...current,
+              last_export: answer.last_export ?? null,
+              counts: { ...current.counts, cells_open: answer.counts.cells_open, required_open: answer.counts.required_open },
+            }
+          : current,
+      );
+    } catch {
+      /* the file was saved; the line keeps its earlier value until the next read */
+    }
+  }, [origin]);
 
   // Part F: the workspace's look-up, read once the table answered, then polled while it runs.
   // Rows turn "Fetched, to confirm" as files arrive, so the rows are read again when it moves.
@@ -1093,7 +1114,7 @@ function ChartingScreen({ locale }: Readonly<{ locale: Locale }>) {
     setMode({ kind: "discard", id: row.study_id, manifestRow: pending.manifest_row, reason: null, words: "" });
   }
 
-  async function runExport(which: ExportView) {
+  async function runExport(which: ExportView | "xlsx") {
     setExportOpen(false);
     if (offline) {
       setStatusLine(t("charting.refusal.OFFLINE"));
@@ -1104,14 +1125,16 @@ function ChartingScreen({ locale }: Readonly<{ locale: Locale }>) {
     setRefusal(null);
     setAnnounce(t("charting.export.preparing"));
     try {
-      const { blob, filename } = await exportCsv(origin, which);
+      const { blob, filename } = which === "xlsx" ? await exportFile(origin, "xlsx") : await exportCsv(origin, which);
       saveFile(blob, filename);
-      // The Charting CSV holds every kept row not excluded at full text; the Full text CSV every kept row.
-      const rowsInFile = which === "charting" ? table.counts.kept - table.counts.excluded : table.counts.kept;
+      // The Charting CSV and the spreadsheet hold every kept row not excluded at full text; the Full text CSV every kept row.
+      const rowsInFile = which === "fulltext" ? table.counts.kept : table.counts.kept - table.counts.excluded;
       let message = t("charting.announce.exported", { when: localStamp(new Date().toISOString()), n: n(rowsInFile) });
-      if (which === "charting") message = `${message} ${t("charting.export.cellsOpen", { n: n(openCells(table.rows, columns)) })}`;
+      if (which !== "fulltext") message = `${message} ${t("charting.export.cellsOpen", { n: n(openCells(table.rows, columns)) })}`;
       setAnnounce(message);
       setStatusLine(message);
+      // Part C: the persistent last-export line reads what the engine recorded for this file.
+      void refreshLastExport();
     } catch (error) {
       wentOffline(error);
       setAnnounce("");
@@ -2129,12 +2152,23 @@ function ChartingScreen({ locale }: Readonly<{ locale: Locale }>) {
                   <Button variant="quiet" className="justify-start text-start text-sm" onClick={() => void runExport("charting")} data-export-charting>
                     {t("charting.export.csvCharting")}
                   </Button>
+                  {/* Part C (spec 04, question 2): the spreadsheet, every sheet in one file. */}
+                  <Button variant="quiet" className="justify-start text-start text-sm" onClick={() => void runExport("xlsx")} data-export-xlsx>
+                    {t("charting.export.xlsx")}
+                  </Button>
                 </span>
               ) : null}
             </span>
+            {/* Part C (spec 04, question 1): the counts and the methods paragraph live on their own page. */}
+            <a className={`inline-flex min-h-11 items-center text-sm text-brand underline underline-offset-4 ${FOCUS_RING}`} href={chartingReportHref(locale, origin)} data-report-link>
+              {t("charting.report.link")}
+            </a>
             {nextAction}
           </div>
         </div>
+
+        {/* Part C: the last export and the open cells, read from the engine; a download never waits on them. */}
+        {table ? <ExportLines locale={locale} lastExport={table.last_export ?? null} counts={table.counts} /> : null}
 
         {help ? (
           <section aria-labelledby="charting-help-title" className="rounded-md border border-rule bg-leaf p-4 text-sm" data-help>

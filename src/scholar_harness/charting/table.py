@@ -195,14 +195,18 @@ def counts(rows: list[dict[str, Any]]) -> dict[str, int]:
     }
 
 
-def table(ws: Path | str) -> dict[str, Any]:
-    """``GET /api/v1/charting``: every kept row, the counts and what the screen needs to explain them."""
+def table(ws: Path | str, *, seed: bool = True) -> dict[str, Any]:
+    """``GET /api/v1/charting``: every kept row, the counts and what the screen needs to explain them.
+
+    ``seed=False`` is a pure read (Part C's methods block): the form is not seeded and the kept history
+    is not appended (review of Part C, finding 2).
+    """
     ws = Path(ws)
-    state = read_kept(ws)
+    state = read_kept(ws, remember=seed)
     who = screener_id(ws)
     replaced = protocol_replaced(ws, state)
     # The form is seeded at the first visit (DoD 10), not while the table is read-only.
-    form = (fm.read_form(ws) if replaced else fm.ensure_form(ws, who)) or {"columns": [], "version": 0, "pilot": {"on": False}}
+    form = (fm.read_form(ws) if replaced or not seed else fm.ensure_form(ws, who)) or {"columns": [], "version": 0, "pilot": {"on": False}}
     info = cl.amendment_info(ws, form)
     events = ev.read_events(ws)
     index = cl.build_index(events)
@@ -220,6 +224,10 @@ def table(ws: Path | str) -> dict[str, Any]:
         for sid, summary in sorted(state.no_longer_kept.items())
     ]
     _warn_duplicates(rows)
+    summary = counts(rows)
+    summary.update(open_cells(rows, form))
+    from . import report as rp
+
     return {
         "shape": SHAPE,
         "screener_id": who,
@@ -233,10 +241,27 @@ def table(ws: Path | str) -> dict[str, Any]:
         "read_only_code": CHARTING_PROTOCOL_REPLACED if replaced else None,
         "reason_options": reason_options(ws),
         "not_retrieved_reasons": list(ev.NOT_RETRIEVED_REASONS),
-        "counts": counts(rows),
+        "counts": summary,
         "form": {**form, "amendments": fm.read_amendments(ws), "has_values": cl.has_values(events)},
+        # Part C: what the last export wrote ("Exported 21 Nov 14:32: 68 rows"); None before the first.
+        "last_export": rp.last_export(ws),
         "rows": rows,
     }
+
+
+def open_cells(rows: list[dict[str, Any]], form: dict[str, Any]) -> dict[str, int]:
+    """Cells not charted yet, and those of required columns (the screen's ``openCells`` rule; record (h))."""
+    columns = form.get("columns") or []
+    open_all = open_required = 0
+    for r in rows:
+        if not r["kept"] or (r["ft_decision"] or {}).get("outcome") == "EXCLUDE":
+            continue
+        for c in columns:
+            cell = (r.get("cells") or {}).get(c["column_id"]) or {}
+            if cell.get("state") is None or cell.get("chart_again"):
+                open_all += 1
+                open_required += 1 if c.get("required") else 0
+    return {"cells_open": open_all, "required_open": open_required}
 
 
 def _warn_duplicates(rows: list[dict[str, Any]]) -> None:
@@ -436,7 +461,10 @@ def attachment_file(ws: Path | str, study_id: str) -> tuple[Path, str] | None:
 FULLTEXT_COLUMNS = (
     "study_id", "first_author", "year", "title", "doi", "round", "ta_decision", "fulltext_status",
     "requested_on", "not_retrieved_reason", "file_name", "file_sha256", "link", "ft_decision", "ft_reason",
+    # Part C, with Part F (record (h)): where the file in use came from, and the fetched copy's version and licence.
+    "file_origin", "file_source", "file_version", "file_licence",
 )
+ORIGIN_WORDS = {"attached": "Attached", "fetched": "Fetched"}
 STATUS_WORDS = {"to_get": "To get", "requested": "Requested", "retrieved": "Retrieved", "not_retrieved": "Not retrieved"}
 #: A row whose fetched file waits: never "Retrieved" in an export (spec 03, "Copy", export words).
 TO_CONFIRM_WORDS = "Fetched, to confirm"
@@ -462,8 +490,20 @@ def fulltext_rows(view: dict[str, Any]) -> list[list[str]]:
             ft.get("requested_on") or "", reason or "", (ft.get("attachment") or {}).get("name", ""),
             (ft.get("attachment") or {}).get("sha256", ""), ft.get("link") or "",
             {"INCLUDE": "Include", "EXCLUDE": "Exclude"}.get(decision.get("outcome") or "", ""), ft_reason or "",
+            *_file_words(ft.get("attachment") or {}),
         ])
     return out
+
+
+def _file_words(attachment: dict[str, Any]) -> list[str]:
+    """Origin, source, version and licence of the file in use; a researcher's own file has the first only."""
+    if not attachment:
+        return ["", "", "", ""]
+    origin = str(attachment.get("origin") or "attached")
+    if origin != "fetched":
+        return [ORIGIN_WORDS.get(origin, origin), "", "", ""]
+    return ["Fetched", str(attachment.get("source") or ""), str(attachment.get("version_label") or attachment.get("version") or ""),
+            str(attachment.get("licence") or "")]
 
 
 def render_csv(rows: list[list[str]]) -> bytes:
@@ -514,26 +554,48 @@ def charting_rows(view: dict[str, Any]) -> list[list[str]]:
     return out
 
 
-def export(ws: Path | str, *, fmt: str, view: str) -> tuple[bytes, str]:
-    """``GET /api/v1/charting/export?format=csv&view=fulltext|charting``: journaled with the file's SHA-256."""
+def export(ws: Path | str, *, fmt: str, view: str | None) -> tuple[bytes, str]:
+    """``GET /api/v1/charting/export?format=csv&view=fulltext|charting`` or ``format=xlsx``.
+
+    Every export writes ``charting/prisma_fulltext.json``, the ``CHARTING_EXPORTED`` journal row with the
+    file's SHA-256 (DoD 16, 18) and the last export the screen shows. Nothing blocks an export: it says
+    how many cells are not charted yet and how many required cells are empty (record (h)).
+    """
+    from . import report as rp
+
     ws = Path(ws)
-    if fmt != "csv" or view not in ("fulltext", "charting"):
+    if fmt == "xlsx":
+        view = None
+    elif fmt != "csv" or (view or "fulltext") not in ("fulltext", "charting"):
         raise ChartingRefused(422, EXPORT_FORMAT_INVALID,
-                              "The table exports CSV of the Full text view or the Charting view "
-                              "(format=csv&view=fulltext|charting).")
+                              "The table exports a CSV of the Full text view or the Charting view "
+                              "(format=csv&view=fulltext|charting), or the spreadsheet (format=xlsx).")
+    else:
+        view = view or "fulltext"
     data = table(ws)
-    lines = fulltext_rows(data) if view == "fulltext" else charting_rows(data)
-    body = render_csv(lines)
+    at = rp.now_iso()
+    stamp = datetime.fromisoformat(at).strftime("%Y%m%dT%H%M%SZ")
+    if fmt == "xlsx":
+        body = rp.xlsx(ws, data, at)
+        rows = len(charting_rows(data)) - 1
+        name, words = f"charting-{stamp}.xlsx", "the spreadsheet"
+    else:
+        lines = fulltext_rows(data) if view == "fulltext" else charting_rows(data)
+        body, rows = render_csv(lines), len(lines) - 1
+        name = f"charting-{view}-{stamp}.csv"
+        words = f"the {'Full text' if view == 'fulltext' else 'Charting'} view as CSV"
     digest = hashlib.sha256(body).hexdigest()
-    name = f"charting-{view}-{datetime.now(UTC).strftime('%Y%m%dT%H%M%SZ')}.csv"
-    words = "Full text" if view == "fulltext" else "Charting"
+    prisma_path = rp.write_prisma(ws, rp.prisma_fulltext(data), at)
+    counts_now = data["counts"]
+    metrics = {"rows": rows, "not_charted": counts_now["not_charted"], "cells_open": counts_now["cells_open"],
+               "required_open": counts_now["required_open"]}
     append_event(
-        ws, EXPORT_ACTION, f"Exported the {words} view ({len(lines) - 1} rows) as CSV",
-        agent="scholar-harness/charting",
-        parameters={"format": "csv", "view": view, "file_name": name, "sha256": digest},
-        metrics={"rows": len(lines) - 1, "not_charted": data["counts"]["not_charted"]},
-        refresh_index=False,
+        ws, EXPORT_ACTION, f"Exported {words} ({rows} rows)",
+        agent="scholar-harness/charting", outputs=[prisma_path],
+        parameters={"format": fmt, "view": view, "file_name": name, "sha256": digest},
+        metrics=metrics, refresh_index=False,
     )
+    rp.write_last_export(ws, {"at": at, "format": fmt, "view": view, "file_name": name, "sha256": digest, **metrics})
     return body, name
 
 

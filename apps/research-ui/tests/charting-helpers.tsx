@@ -4,7 +4,8 @@ import { vi } from "vitest";
 import { ChartingPage } from "@/components/charting-page";
 import { ChartingStudyPage } from "@/components/charting-study";
 import type { Locale } from "@/i18n";
-import type { Amendment, Attachment, Cell, ChartingEvent, ChartingForm, ChartingRow, ChartingTable, FetchPlan, FetchRun, FormColumn, Fulltext, LastLookup, ManifestRow, PendingFetch } from "@/lib/charting-api";
+import { ChartingReport } from "@/components/charting-report";
+import type { Amendment, Attachment, Cell, ChartingEvent, ChartingForm, ChartingMethods, ChartingRow, ChartingTable, FetchPlan, FetchRun, FormColumn, Fulltext, LastExport, LastLookup, ManifestRow, PendingFetch, PrismaGroup } from "@/lib/charting-api";
 
 /**
  * A small in-memory charting engine for the screen's tests (M12a Parts A and B).
@@ -41,6 +42,141 @@ export interface FakeEngine {
   formFail?: { status: number; code: string };
   /** Part F: the look-up of open-access copies (see `FakeFetch`). */
   fetch: FakeFetch;
+  /** Part C: the answer of `GET /charting/methods` (`makeMethods()` when absent). */
+  methods?: ChartingMethods;
+  /** Part C: answer `GET /charting/methods` with this refusal instead. */
+  methodsFail?: { status: number; code: string };
+  /** Part C: answer an export with this refusal instead (`"unreachable"` for a failed fetch). */
+  exportFail?: { status: number; code: string } | "unreachable";
+  /** Part C: hold an export's answer until the test releases it ("Preparing the file"). */
+  exportHold?: Promise<void>;
+}
+
+// ------------------------------------------------------------------ Part C: the PRISMA full-text counts and the methods block
+
+export const XLSX_TYPE = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+
+/** One group of the PRISMA full-text counts (`report.py` `_empty`), all zero unless given. */
+export function prismaGroup(over: Partial<PrismaGroup> = {}): PrismaGroup {
+  return {
+    sought: 0,
+    not_retrieved: 0,
+    not_retrieved_reasons: {},
+    assessed: 0,
+    excluded: 0,
+    exclusion_reasons: {},
+    included: 0,
+    awaiting_retrieval: 0,
+    to_confirm: 0,
+    retrieved_not_assessed: 0,
+    assessed_without_full_text: 0,
+    not_retrieved_decided: 0,
+    not_retrieved_included: 0,
+    not_retrieved_excluded: 0,
+    ...over,
+  };
+}
+
+/** The databases arm of the default methods answer: numbers no other part of the fixture holds. */
+export const DATABASES: PrismaGroup = prismaGroup({
+  sought: 12,
+  not_retrieved: 2,
+  not_retrieved_reasons: { "No access or paywalled": 1, "Not found": 1 },
+  assessed: 9,
+  excluded: 3,
+  exclusion_reasons: { "EXC-01": 2, OTHER: 1 },
+  included: 6,
+  awaiting_retrieval: 1,
+  assessed_without_full_text: 1,
+});
+
+export const CHASING: PrismaGroup = prismaGroup({
+  sought: 5,
+  not_retrieved: 1,
+  not_retrieved_reasons: { "Authors did not reply": 1 },
+  assessed: 3,
+  excluded: 1,
+  exclusion_reasons: { "FAILS-INC-01": 1 },
+  included: 2,
+  awaiting_retrieval: 1,
+  to_confirm: 1,
+});
+
+export const TOTAL: PrismaGroup = prismaGroup({
+  sought: 17,
+  not_retrieved: 3,
+  not_retrieved_reasons: { "No access or paywalled": 1, "Not found": 1, "Authors did not reply": 1 },
+  assessed: 12,
+  excluded: 4,
+  exclusion_reasons: { "EXC-01": 2, OTHER: 1, "FAILS-INC-01": 1 },
+  included: 8,
+  awaiting_retrieval: 2,
+  to_confirm: 1,
+  assessed_without_full_text: 1,
+});
+
+export const PARAGRAPH =
+  "Of 17 reports sought for retrieval, 3 were not retrieved (No access or paywalled: 1; Not found: 1; Authors did not reply: 1). 12 reports were assessed at full text by one reviewer; 4 were excluded (EXC-01 Not a crop field: 2; FAILS-INC-01 UAV imagery: 1; Other: 1) and 8 were included. The counts are of reports; reports of the same study were not linked.";
+
+/** `GET /api/v1/charting/methods` in the engine's shape (`report.py` `methods()`). */
+export function makeMethods(
+  over: { databases?: PrismaGroup; chasing?: PrismaGroup; total?: PrismaGroup; methods?: Partial<ChartingMethods>; figures?: Partial<ChartingMethods["figures"]> } = {},
+): ChartingMethods {
+  const databases = over.databases ?? DATABASES;
+  const chasing = over.chasing ?? CHASING;
+  const total = over.total ?? TOTAL;
+  return {
+    shape: "charting.methods-v1",
+    sentences: [PARAGRAPH],
+    paragraph: PARAGRAPH,
+    figures: {
+      prisma: {
+        schema: "nexus.charting-prisma-fulltext.v1",
+        unit: "reports",
+        rounds: [
+          { round: 1, arm: "databases", label: "Databases", generation_id: "gen-1", published_at: "2026-11-21T10:00:00Z", ...databases },
+          { round: 2, arm: "citation_searching", label: "Citation chasing", generation_id: "gen-2", published_at: "2026-11-21T12:00:00Z", ...chasing },
+        ],
+        arms: { databases, citation_searching: chasing },
+        total,
+      },
+      open_access: { used: 1, discarded: 0, services: ["Unpaywall"] },
+      reviewers: { fulltext_decisions: 1, charting: 1 },
+      charted: 5,
+      not_charted: 3,
+      cells_open: 7,
+      required_open: 2,
+      pilot: 2,
+      amendments: [],
+      ...over.figures,
+    },
+    caveats: [
+      "2 reports are not yet retrieved or not yet assessed (2 awaiting retrieval, 0 retrieved and not assessed); the counts describe the work so far.",
+      "1 fetched copy waits for the reviewer's confirmation and is not counted as retrieved.",
+    ],
+    not_stated: ["The sentences give totals over every round; the PRISMA counts are split by round."],
+    sources: [
+      { name: "included.json", path: "literature/included.json", digest: `sha256:${"d".repeat(64)}` },
+      { name: "researcher_local.jsonl", path: "charting/events/researcher_local.jsonl", digest: `sha256:${"e".repeat(64)}` },
+    ],
+    ...over.methods,
+  };
+}
+
+/** What `charting/last_export.json` holds after an export (`table.export`). */
+export function lastExport(over: Partial<LastExport> = {}): LastExport {
+  return {
+    at: "2026-11-21T14:32:00Z",
+    format: "xlsx",
+    view: null,
+    file_name: "charting-20261121T143200Z.xlsx",
+    sha256: "c".repeat(64),
+    rows: 68,
+    not_charted: 3,
+    cells_open: 7,
+    required_open: 2,
+    ...over,
+  };
 }
 
 /**
@@ -675,9 +811,37 @@ export function installEngine(table: ChartingTable, over: Partial<Omit<FakeEngin
         engine.table.counts = counts(engine.table.rows);
         return json({ result: "accepted", event_ids: ids, events, row: structuredClone(row), counts: engine.table.counts });
       }
+      if (method === "GET" && path === "/api/v1/charting/methods") {
+        if (engine.methodsFail) return json({ detail: { code: engine.methodsFail.code, message: engine.methodsFail.code.toLowerCase() } }, engine.methodsFail.status);
+        return json(structuredClone(engine.methods ?? makeMethods()));
+      }
       if (method === "GET" && path === "/api/v1/charting/export") {
+        if (engine.exportHold) await engine.exportHold;
+        if (engine.exportFail === "unreachable") throw new TypeError("fetch failed");
+        if (engine.exportFail) return json({ detail: { code: engine.exportFail.code, message: engine.exportFail.code.toLowerCase() } }, engine.exportFail.status);
+        const format = url.searchParams.get("format") ?? "csv";
         const view = url.searchParams.get("view") ?? "fulltext";
-        return new Response("﻿study_id\r\n", { status: 200, headers: { "content-type": "text/csv; charset=utf-8", "content-disposition": `attachment; filename="charting-${view}-20261121T100000Z.csv"` } });
+        if ((format !== "csv" && format !== "xlsx") || (format === "csv" && view !== "fulltext" && view !== "charting")) {
+          return json({ detail: { code: "CHARTING_EXPORT_FORMAT_INVALID", message: "csv or xlsx" } }, 422);
+        }
+        // As `table.export`: the file, then the record the last-export line reads.
+        const c = engine.table.counts;
+        const name = format === "xlsx" ? "charting-20261121T100000Z.xlsx" : `charting-${view}-20261121T100000Z.csv`;
+        engine.table.last_export = {
+          at: "2026-11-21T10:00:00Z",
+          format: format as "csv" | "xlsx",
+          view: format === "xlsx" ? null : (view as "fulltext" | "charting"),
+          file_name: name,
+          sha256: "c".repeat(64),
+          rows: format === "csv" && view === "fulltext" ? c.kept : c.kept - c.excluded,
+          not_charted: c.not_charted ?? 0,
+          cells_open: c.cells_open ?? 0,
+          required_open: c.required_open ?? 0,
+        };
+        if (format === "xlsx") {
+          return new Response(new Uint8Array([0x50, 0x4b, 0x03, 0x04]), { status: 200, headers: { "content-type": XLSX_TYPE, "content-disposition": `attachment; filename="${name}"` } });
+        }
+        return new Response("﻿study_id\r\n", { status: 200, headers: { "content-type": "text/csv; charset=utf-8", "content-disposition": `attachment; filename="${name}"` } });
       }
       if (method === "PUT" && path === "/api/v1/charting/form") {
         if (engine.formFail) return json({ detail: { code: engine.formFail.code, message: engine.formFail.code.toLowerCase() } }, engine.formFail.status);
@@ -735,6 +899,24 @@ export async function renderStudy(id: string, locale: Locale = "en", query = "")
   await flush();
   await flush();
   await flush();
+  return view;
+}
+
+/**
+ * Render Export and methods (spec 04) and wait until it left its loading state
+ * (the table and the methods block answered, or a refusal). `settle: false`
+ * returns at once, for the loading state and a phone window.
+ */
+export async function renderReport(locale: Locale = "en", options: { settle?: boolean; query?: string } = {}) {
+  window.history.replaceState(null, "", `/${locale}/charting/report${options.query ?? ""}`);
+  const view = render(<ChartingReport locale={locale} />);
+  await flush();
+  if (options.settle === false) return view;
+  for (let i = 0; i < 20; i += 1) {
+    const state = document.querySelector("[data-desktop] [data-state]")?.getAttribute("data-state");
+    if (state && state !== "loading") break;
+    await flush();
+  }
   return view;
 }
 

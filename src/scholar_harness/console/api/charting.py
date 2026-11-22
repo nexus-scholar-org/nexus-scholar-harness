@@ -32,6 +32,7 @@ from pydantic import BaseModel, ConfigDict, Field
 from ...charting import ChartingRefused
 from ...charting import attachments as att
 from ...charting import fetch as fx
+from ...charting import report as rp
 from ...charting import table as tb
 
 router = APIRouter(prefix="/api/v1/charting", tags=["charting"])
@@ -180,16 +181,23 @@ def get_attachment(study_id: str, request: Request) -> Response:
 
 
 @router.get("/export")
-def get_export(request: Request, format: str = "csv", view: str = "fulltext") -> Response:  # noqa: A002
-    """The Full text view as CSV (UTF-8 with BOM, CRLF); journaled with the file's SHA-256."""
+def get_export(request: Request, format: str = "csv", view: str | None = None) -> Response:  # noqa: A002
+    """A CSV of a view (UTF-8 with BOM, CRLF) or the spreadsheet (Part C); journaled with the file's SHA-256."""
     try:
         body, name = tb.export(_ws(request), fmt=format, view=view)
     except ChartingRefused as exc:
         raise _error(exc) from exc
-    return Response(
-        content=body, media_type="text/csv; charset=utf-8",
-        headers={"Content-Disposition": f'attachment; filename="{name}"'},
-    )
+    media = rp.XLSX_TYPE if format == "xlsx" else "text/csv; charset=utf-8"
+    return Response(content=body, media_type=media, headers={"Content-Disposition": f'attachment; filename="{name}"'})
+
+
+@router.get("/methods")
+def get_methods(request: Request) -> dict[str, Any]:
+    """The methods block of record (h) and the PRISMA full-text counts (Part C). A pure read: nothing is written."""
+    try:
+        return rp.methods(_ws(request))
+    except ChartingRefused as exc:
+        raise _error(exc) from exc
 
 
 # --------------------------------------------------------------------------- Part F: open-access copies

@@ -105,6 +105,8 @@ def test_the_table_lists_the_published_include_and_unclear_records_with_their_ro
                                "charted": 0, "not_charted": 2, "pilot": 0,  # Part B adds these three
                                # Part F: files waiting, and the PRISMA counts read from the status alone.
                                "to_confirm": 0,
+                               # Part C: cells not charted yet, and those of required columns.
+                               "cells_open": 0, "required_open": 0,
                                "prisma": {"sought": 2, "not_retrieved": 0, "retrieved": 0, "assessed": 0}}
     assert table["publication"]["status"] == "CURRENT"
     assert [o["code"] for o in table["reason_options"]][-1] == "OTHER"
@@ -416,7 +418,8 @@ def test_the_full_text_csv_has_a_bom_crlf_and_is_journaled_with_its_hash(env):
     import hashlib
 
     assert _journal(ws, "CHARTING_EXPORTED")[-1]["parameters"]["sha256"] == hashlib.sha256(response.content).hexdigest()
-    bad = client.get(f"{BASE}/export", params={"format": "xlsx", "view": "fulltext"})
+    # Part C serves format=xlsx; any other format is still refused.
+    bad = client.get(f"{BASE}/export", params={"format": "ods", "view": "fulltext"})
     assert bad.status_code == 422 and _code(bad) == "CHARTING_EXPORT_FORMAT_INVALID"
 
 
