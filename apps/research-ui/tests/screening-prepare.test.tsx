@@ -274,6 +274,55 @@ describe("prepare.not-reported-amendment (H-screening-drafts)", () => {
   });
 });
 
+describe("prepare.not-reported-default (M11b placeholder follow-up, decision item 8)", () => {
+  const DEFAULT_LINE = "The rule shown is the harness default: the protocol does not set it and nobody has chosen it.";
+
+  it("says the rule shown is the default, not a choice, when the engine's source is defaults", async () => {
+    engine(undefined, { not_reported_policy: "unclear", not_reported_source: "defaults" });
+    render(<ScreeningPrepare locale="en" />);
+    const group = (await screen.findByText("A criterion the title and abstract do not report")).closest("fieldset")!;
+    const line = screen.getByText(DEFAULT_LINE);
+    expect(group).toContainElement(line);
+    // Read with the group, as the note is; no new control.
+    expect(group.getAttribute("aria-describedby")?.split(" ")).toContain(line.id);
+    expect(group.querySelectorAll("input, button, select")).toHaveLength(3);
+  });
+
+  it("says nothing when the protocol sets the rule or an amendment changed it", async () => {
+    for (const source of ["protocol", "amendment"]) {
+      engine(undefined, { not_reported_policy: "unclear", not_reported_source: source });
+      const { unmount } = render(<ScreeningPrepare locale="en" />);
+      await screen.findByText("A criterion the title and abstract do not report");
+      expect(screen.queryByText(DEFAULT_LINE)).toBeNull();
+      unmount();
+      vi.unstubAllGlobals();
+    }
+  });
+
+  it("drops the line once the researcher records an amendment", async () => {
+    engine(undefined, { not_reported_policy: "unclear", not_reported_source: "defaults" });
+    render(<ScreeningPrepare locale="en" />);
+    const group = (await screen.findByText("A criterion the title and abstract do not report")).closest("fieldset")!;
+    expect(screen.getByText(DEFAULT_LINE)).toBeInTheDocument();
+    fireEvent.click(group.querySelectorAll('input[type="radio"]')[2]);
+    await screen.findByRole("alertdialog", { name: /Amend the protocol's method/ });
+    fireEvent.click(screen.getByRole("button", { name: "Record the amendment" }));
+    await screen.findByText(/Amended on 2026-11-20/);
+    expect(screen.queryByText(DEFAULT_LINE)).toBeNull();
+  });
+
+  it("is written in French and Arabic", async () => {
+    for (const locale of ["fr", "ar"] as const) {
+      engine(undefined, { not_reported_source: "defaults" });
+      const { unmount } = render(<ScreeningPrepare locale={locale} />);
+      expect(await screen.findByText(PREPARE_COPY[locale].notReportedDefault)).toBeInTheDocument();
+      expect(PREPARE_COPY[locale].notReportedDefault).not.toBe(PREPARE_COPY.en.notReportedDefault);
+      unmount();
+      vi.unstubAllGlobals();
+    }
+  });
+});
+
 describe("prepare.rule-table-policy", () => {
   it("describes the decisive-first table (H-screening-drafts)", async () => {
     engine(undefined, { not_reported_policy: "decisive_first" });

@@ -777,7 +777,7 @@ The commit after `36af1194` (`df2ed53d`) and this one change documents only.
 
 ### Follow-up: placeholder workspaces do not sign the not-reported rule
 
-Branch `dev/m11b/placeholder-not-reported`, cut from `origin/main` `76c445ef` · Lane **RELEASE** (the content of a newly written `protocol.json` and its fingerprint change for placeholders, and the `init --scaffold-only --not-reported` CLI semantics change: "artifact persistence" and "public CLI semantics" in `test_gate_policy.md`) · Decisions: `docs/decisions.md` "2026-11-22 — M11b follow-up: a placeholder workspace does not sign the not-reported rule", items 1 to 8 PROPOSED. Approved by the researcher as a follow-up PR of part D ("Part D", follow-ups).
+Branch `dev/m11b/placeholder-not-reported`, cut from `origin/main` `76c445ef` · Lane **RELEASE** (the content of a newly written `protocol.json` and its fingerprint change for placeholders, and the `init --scaffold-only --not-reported` CLI semantics change: "artifact persistence" and "public CLI semantics" in `test_gate_policy.md`) · Decisions: `docs/decisions.md` "2026-11-22 — M11b follow-up: a placeholder workspace does not sign the not-reported rule", items 1 to 7 accepted as built and item 8 changed to the Prepare line (researcher, 2026-11-22). Approved by the researcher as a follow-up PR of part D ("Part D", follow-ups).
 
 What was found: one function writes every placeholder, `inception/genesis.py` `scaffold_placeholder_workspace`, behind `nexus-scholar init --scaffold-only` (`inception/wizard.py` `init_command`) and the Workspaces "Create" (`workspace/catalog.py` `create`, `POST /api/v1/workspaces`). Its intent carries no `method`, and `compile_intent` filled the model's defaults, so the signed protocol said `not_reported: "unclear"`; `--not-reported` was accepted by `init` and ignored with `--scaffold-only`. No other path writes a protocol or intent without the step-5 or wizard question (the browser genesis and the wizard go through part D's blocker or question; an import marks its rule imported, part D item 21).
 
@@ -826,4 +826,24 @@ The round 1 repairs change one console string and documents; the full suite ran 
 
 Review round 2 (the delta `6c9bee9c..898c41f1`): **APPROVE** (lane RELEASE confirmed; the four findings repaired; the new file 10 of 10, contract baseline current). Two P3 notes: the full suite ran on `6c9bee9c`, before a one-string change to `wizard.py`, so the CI matrix on the PR head is the closure evidence; the repair row named "next commit" (now `898c41f1`).
 
-**Follow-up: READY FOR PR** (not pushed). Branch `dev/m11b/placeholder-not-reported` on `origin/main` `76c445ef`, head after this commit. Lane RELEASE: the CI matrix on the PR is the closure evidence. Decision items 1 to 8 wait for the researcher.
+**Follow-up: READY FOR PR** (not pushed). Branch `dev/m11b/placeholder-not-reported` on `origin/main` `76c445ef`, head after this commit. Lane RELEASE: the CI matrix on the PR is the closure evidence.
+
+The researcher's answers (2026-11-22, relayed by the main session: "go with recommendations"): items 1 to 7 accepted as built; **item 8 changed: add the one-line label on Prepare** saying the rule shown is the default and was not chosen, only where the source is `defaults`, in en, fr and ar, no new control, no engine or API change. The push and the merge (at 12 of 12 checks) are approved for this PR; the main session pushes.
+
+The item 8 change, built test first (`origin/main` `46ebe639` merged in first, documents only):
+- `apps/research-ui/components/screening-prepare.tsx`: `notReportedDefault` in en, fr and ar; under the rule's note, the line shows while `settings.not_reported_source === "defaults"` and the group's `aria-describedby` names it. The settings route already answered the field; nothing else changes.
+- The user guide's row and decision items 1, 6 and 8 say what the screen now says.
+
+| Item | Test (`apps/research-ui/tests/screening-prepare.test.tsx`, "prepare.not-reported-default") | Fails before |
+| :-- | :-- | :-- |
+| the line under the rule, read with the group, no new control | `says the rule shown is the default, not a choice, when the engine's source is defaults` | yes |
+| no line for `protocol` or `amendment` | `says nothing when the protocol sets the rule or an amendment changed it` | guard (passes before) |
+| the line goes once an amendment is recorded | `drops the line once the researcher records an amendment` | yes |
+| French and Arabic | `is written in French and Arabic` | yes |
+
+No browser spec covers Prepare's rule group (`screening-states.spec.ts` shows Prepare's refusal card only; the pilot spec's Prepare test is screenshots only and skipped), so no browser run applies; the Python suite is not rerun (no Python file changed since the PR gate).
+
+| Stage | Commit | Command | Result | Duration |
+| :-- | :-- | :-- | :-- | :-- |
+| before | merge of `46ebe639` + the new tests | `npx vitest run tests/screening-prepare.test.tsx` | 3 failed, 19 passed | |
+| targeted | working tree (the item 8 commit) | `npx vitest run tests/screening-prepare.test.tsx`; `npm run typecheck` | 22 passed; clean | |

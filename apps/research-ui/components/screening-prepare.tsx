@@ -45,6 +45,7 @@ const COPY = {
     notReportedDecisive: "A decisive answer first: an exclusion met or an inclusion not met excludes; otherwise Unclear",
     notReportedExclude: "An unreported inclusion criterion excludes the record",
     notReportedNote: "This rule shapes the agent's drafts and the reason the screen offers you; your own decision is never overridden. A change is recorded as an amendment.",
+    notReportedDefault: "The rule shown is the harness default: the protocol does not set it and nobody has chosen it.",
     amendTitle: "Amend the protocol's method?",
     amendChange: "{field}: from “{from}” to “{to}”.",
     amendBody: "The change is recorded as an amendment: who, when, from and to go into the audit journal and into the methods paragraph of the export. The signed protocol, the corpus and your decisions are not changed.",
@@ -103,6 +104,7 @@ const COPY = {
     notReportedDecisive: "Une réponse décisive d'abord : une exclusion remplie ou une inclusion non remplie exclut ; sinon Incertain",
     notReportedExclude: "Un critère d'inclusion non rapporté exclut la notice",
     notReportedNote: "Cette règle façonne les brouillons de l'agent et le motif que l'écran vous propose ; votre propre décision n'est jamais remplacée. Un changement est enregistré comme amendement.",
+    notReportedDefault: "La règle affichée est celle du logiciel par défaut : le protocole ne la fixe pas et personne ne l'a choisie.",
     amendTitle: "Amender la méthode du protocole ?",
     amendChange: "{field} : de « {from} » à « {to} ».",
     amendBody: "Le changement est enregistré comme amendement : qui, quand, avant et après vont dans le journal d'audit et dans le paragraphe de méthode de l'export. Le protocole signé, le corpus et vos décisions ne changent pas.",
@@ -161,6 +163,7 @@ const COPY = {
     notReportedDecisive: "الإجابة الحاسمة أولًا: استبعاد متحقق أو إدراج غير متحقق يستبعد؛ وإلا فغير واضح",
     notReportedExclude: "معيار إدراج غير مذكور يستبعد السجل",
     notReportedNote: "تحدد هذه القاعدة مسودات الوكيل والسبب الذي تقترحه الشاشة؛ ولا يُتجاوز قرارك أبدًا. يُسجَّل أي تغيير كتعديل.",
+    notReportedDefault: "القاعدة المعروضة هي القاعدة الافتراضية للأداة: لا يحددها البروتوكول ولم يخترها أحد.",
     amendTitle: "تعديل منهج البروتوكول؟",
     amendChange: "{field}: من «{from}» إلى «{to}».",
     amendBody: "يُسجَّل التغيير كتعديل: من ومتى والقيمة السابقة والجديدة تُكتب في سجل التدقيق وفي فقرة المنهج في التصدير. لا يتغير البروتوكول الموقَّع ولا المجموعة ولا قراراتك.",
@@ -336,6 +339,8 @@ export function ScreeningPrepare({ locale }: Readonly<{ locale: Locale }>) {
     // H-screening-drafts: either can be changed after genesis, as a recorded amendment.
     const blindingFromProtocol = settings.blinding_source === "protocol";
     const policy: NotReportedPolicy = settings.not_reported_policy ?? "unclear";
+    // M11b placeholder follow-up (decision item 8): a rule nobody chose is not shown as a choice.
+    const ruleIsDefault = settings.not_reported_source === "defaults";
     const rules =
       policy === "exclude"
         ? (["ruleUnclearExcludePolicy", "ruleExcludeExcludePolicy", "ruleIncludeExcludePolicy"] as const)
@@ -405,11 +410,16 @@ export function ScreeningPrepare({ locale }: Readonly<{ locale: Locale }>) {
                   </label>
                 ))}
               </fieldset>
-              <fieldset className="mt-4" aria-describedby="not-reported-note">
+              <fieldset className="mt-4" aria-describedby={ruleIsDefault ? "not-reported-note not-reported-default" : "not-reported-note"}>
                 <legend className="text-sm font-semibold text-ink">{t("notReported")}</legend>
                 <p id="not-reported-note" className="mt-1 text-sm text-ink-muted">
                   {t("notReportedNote")}
                 </p>
+                {ruleIsDefault ? (
+                  <p id="not-reported-default" className="mt-1 text-sm text-ink">
+                    {t("notReportedDefault")}
+                  </p>
+                ) : null}
                 {(["unclear", "decisive_first", "exclude"] as const).map((value) => (
                   <label key={value} className="mt-2 flex min-h-11 items-center gap-2 text-ink">
                     <input
