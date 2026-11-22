@@ -9,8 +9,9 @@ import shutil
 import tempfile
 from dataclasses import dataclass, replace
 from collections import Counter
+from collections.abc import Awaitable, Callable, Mapping, Sequence
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 from urllib.parse import urlsplit
 
 import aiohttp
@@ -32,6 +33,7 @@ from .open_copies import (
     ANSWERED,
     FAILED,
     MAX_OPEN_COPIES_TRIED,
+    NO_OPEN_COPY_LISTED,
     NOT_ASKED,
     NOT_FOUND,
     PDF_NOT_FETCHED,
@@ -40,6 +42,7 @@ from .open_copies import (
     lists_open,
     not_asked_note,
     open_copies,
+    rank_copies,
     says_closed,
     unresolved,
 )
@@ -47,7 +50,7 @@ from .publisher_patterns import (
     is_proxied_url,
     rewrite_via_proxy,
 )
-from .validator import check_failure, is_valid_pdf, pdf_checks, validate_pdf_structure
+from .validator import PdfCheck, check_failure, is_valid_pdf, pdf_checks, validate_pdf_structure
 
 if TYPE_CHECKING:
     from scholar_search.http_client import AcademicHttpClient
@@ -220,6 +223,8 @@ def _year(value: object) -> str:
 
 def fetch_failure(error: BaseException) -> str:
     """Why a PDF address gave no file, in words; never the error's own text."""
+    if isinstance(error, aiohttp.TooManyRedirects):
+        return "too many redirects"
     if isinstance(error, aiohttp.ClientResponseError):
         if error.status == 429:
             wait = _retry_after(error)
@@ -332,8 +337,24 @@ class AsyncPDFDownloader:
         institutional_gateway_url: str | None = None,
         forward_proxy_url: str | None = None,
         manifest_path: Path | None = None,
+        max_bytes: int | None = None,
+        max_redirects: int | None = None,
+        pacer: Callable[[str], Awaitable[None]] | None = None,
     ):
         self.output_dir = output_dir or settings.download_dir
+        # M12a Part F (decision 2026-11-21 item 17; Part K item 19): a caller may
+        # stop a body at ``max_bytes`` (a hard stop while streaming) and follow at
+        # most ``max_redirects`` redirects, each recorded. ``None`` keeps the
+        # command's behaviour (no size stop; aiohttp's ten redirects).
+        if max_bytes is not None and max_bytes <= 0:
+            raise ValueError("max_bytes is a positive number of bytes")
+        if max_redirects is not None and max_redirects < 0:
+            raise ValueError("max_redirects is zero or more")
+        self.max_bytes = max_bytes
+        self.max_redirects = max_redirects
+        # Called with the address before every request to a PDF address (retries
+        # included), so a caller can pace a host (Part F: arXiv's three seconds).
+        self.pacer = pacer
         # Part K item 8: one JSON line per DOI asked, when the caller gives a path.
         self.manifest_path = Path(manifest_path) if manifest_path is not None else None
         self.output_dir.mkdir(parents=True, exist_ok=True)
@@ -480,11 +501,18 @@ class AsyncPDFDownloader:
         transport_proxy = (
             forward_proxy_url if forward_proxy_url is not None else proxy_url
         ).strip()
+        options: dict[str, Any] = {}
+        if self.max_redirects is not None:
+            # aiohttp stops when the count of redirects reaches its limit, so
+            # following ``max_redirects`` of them takes one more.
+            options["max_redirects"] = self.max_redirects + 1
         staging = self._new_staging_path()
         if dest_path.is_symlink():
             staging.unlink(missing_ok=True)
             raise OSError("destination must not be a symlink")
         try:
+            if self.pacer is not None:
+                await self.pacer(url)
             try:
                 async with (
                     self.semaphore,
@@ -494,16 +522,29 @@ class AsyncPDFDownloader:
                         timeout=timeout,
                         allow_redirects=True,
                         proxy=transport_proxy or None,
+                        **options,
                     ) as response,
                 ):
                     record.observe(response)
                     response.raise_for_status()
+                    declared = getattr(response, "content_length", None)
+                    if self._over_limit(record, declared if isinstance(declared, int) else None):
+                        return False
+                    received = 0
                     with staging.open("wb") as stream:
                         async for chunk in response.content.iter_chunked(8192):
+                            received += len(chunk)
+                            if self._over_limit(record, received):
+                                return False  # a hard stop: the rest is not read
                             stream.write(chunk)
                         stream.flush()
                         os.fsync(stream.fileno())
             except Exception as error:
+                if isinstance(error, aiohttp.TooManyRedirects):
+                    # Each redirect followed before the cap, as the answers gave them.
+                    record.redirects = tuple(
+                        hop for hop in (_public_url(getattr(r, "url", None)) for r in error.history) if hop
+                    )
                 record.error = fetch_failure(error)
                 raise
 
@@ -518,6 +559,16 @@ class AsyncPDFDownloader:
             return True
         finally:
             staging.unlink(missing_ok=True)
+
+    def _over_limit(self, record: FetchAttempt, size: int | None) -> bool:
+        """Whether a body (as declared or as read so far) is over ``max_bytes``; say so on ``record``."""
+        if self.max_bytes is None or size is None or size <= self.max_bytes:
+            return False
+        record.checks = (
+            PdfCheck("size_limit", False, f"over the limit of {self.max_bytes} bytes; the rest was not read"),
+        )
+        record.error = f"the body is over the limit of {self.max_bytes} bytes"
+        return True
 
     async def _lookup(
         self, provider: str, http_client: AcademicHttpClient, doi: str
@@ -635,17 +686,25 @@ class AsyncPDFDownloader:
                 return "VERIFIED_OPEN_ACCESS"
         return "UNRESOLVED"
 
-    def _recorded(self, result: DownloadResult) -> DownloadResult:
+    def _recorded(
+        self, result: DownloadResult, extra: Mapping[str, Any] | None = None
+    ) -> DownloadResult:
         """Write the DOI's manifest row; no file is kept without it (Part K item 8).
 
         When the row cannot be written, a file this call created is removed and
         the DOI fails (``MANIFEST_NOT_WRITTEN``); a file stored by an earlier
-        call (it has its own row) is kept.
+        call (it has its own row) is kept. ``extra`` adds the caller's fields to
+        the row (M12a Part F: its run, the row's id); a field of the kit's own
+        is never replaced.
         """
         if self.manifest_path is None:
             return result
+        row = manifest_row(result, self.manifest_path)
+        clash = sorted(set(extra or {}) & set(row))
+        if clash:
+            raise ValueError(f"manifest_extra may not replace the kit's fields: {', '.join(clash)}")
         try:
-            append_row(self.manifest_path, manifest_row(result, self.manifest_path))
+            append_row(self.manifest_path, {**row, **(extra or {})})
             return result
         except OSError as error:
             note = ""
@@ -675,17 +734,81 @@ class AsyncPDFDownloader:
         *,
         title: str | None = None,
         study_id: str | None = None,
+        extra_copies: Sequence[OpenCopy] = (),
+        prior_lookups: tuple[LookupOutcome, ...] = (),
+        manifest_extra: Mapping[str, Any] | None = None,
     ) -> DownloadResult:
         """Resolve OA evidence and atomically acquire a PDF for one DOI.
 
         ``title`` (the caller's record) is looked for on the first pages, else
         the title the lookups give (Part K item 9). With a ``manifest_path``,
-        one row is written for the DOI, with ``study_id`` (Part K item 8).
+        one row is written for the DOI, with ``study_id`` (Part K item 8) and the
+        caller's ``manifest_extra``. ``extra_copies`` are open copies the caller
+        found itself (M12a Part F: the ``pdf`` link arXiv's answer gives), ranked
+        with the services' copies by version (answer F3); ``prior_lookups`` (the
+        services the caller asked) come before the two asked here on the result.
         """
         require_contact_email()  # refused before any request (MAILTO_NOT_SET)
         doi = bare_doi(doi)
-        result = await self._process_doi(session, http_client, doi, title=title)
-        return self._recorded(replace(result, study_id=study_id))
+        result = await self._process_doi(
+            session, http_client, doi, title=title, extra_copies=extra_copies,
+            prior_lookups=prior_lookups,
+        )
+        return self._recorded(replace(result, study_id=study_id), manifest_extra)
+
+    async def process_copies(
+        self,
+        session: aiohttp.ClientSession,
+        copies: Sequence[OpenCopy],
+        *,
+        doi: str | None = None,
+        title: str | None = None,
+        study_id: str | None = None,
+        lookups: tuple[LookupOutcome, ...] = (),
+        manifest_extra: Mapping[str, Any] | None = None,
+    ) -> DownloadResult:
+        """Fetch a record from open copies the caller found, with every check of ``process_doi``.
+
+        M12a Part F: a record with no DOI and an arXiv id is fetched from the
+        ``pdf`` link arXiv's own answer gives; no service is asked here and no
+        address is built. ``lookups`` say what the caller asked. One manifest
+        row is written, as for a DOI.
+        """
+        require_contact_email()  # the user agent names the contact (MAILTO_NOT_SET)
+        doi = bare_doi(doi or "")
+        ranked = rank_copies(copies)
+        result = DownloadResult(
+            doi=doi,
+            success=False,
+            access_status="VERIFIED_OPEN_ACCESS" if ranked else "UNRESOLVED",
+            was_oa=bool(ranked),
+            lookups=tuple(lookups),
+            copies_listed=len(ranked),
+        )
+        try:
+            if ranked:
+                result = await self._fetch_copies(session, result, ranked, doi, title)
+            else:
+                result = replace(
+                    result, status="UNRESOLVED", outcome=NO_OPEN_COPY_LISTED,
+                    error_message="No open copy is listed. This is not a paywall determination.",
+                )
+        except Exception as error:  # noqa: BLE001 - as process_doi: a result, never a crash
+            result = replace(
+                result, status="FAILED", access_status="UNRESOLVED", was_oa=False,
+                error_message=f"failed ({type(error).__name__})",
+            )
+        return self._recorded(replace(result, study_id=study_id), manifest_extra)
+
+    def record_outcome(
+        self, result: DownloadResult, *, manifest_extra: Mapping[str, Any] | None = None
+    ) -> DownloadResult:
+        """Write the manifest row of a record the caller settled without a request here.
+
+        M12a Part F: a record skipped (no DOI and no arXiv id), or whose arXiv
+        look-up failed or found nothing, still has its row.
+        """
+        return self._recorded(result, manifest_extra)
 
     async def _process_doi(
         self,
@@ -694,6 +817,8 @@ class AsyncPDFDownloader:
         doi: str,
         *,
         title: str | None = None,
+        extra_copies: Sequence[OpenCopy] = (),
+        prior_lookups: tuple[LookupOutcome, ...] = (),
     ) -> DownloadResult:
         try:
             # Both services are asked for every DOI, once each (decision
@@ -702,7 +827,9 @@ class AsyncPDFDownloader:
             openalex = await self._lookup("openalex", http_client, doi)
             unpaywall = await self._lookup("unpaywall", http_client, doi)
             openalex_data, unpaywall_data = openalex.payload, unpaywall.payload
-            lookups: tuple[LookupOutcome, ...] = (openalex.outcome, unpaywall.outcome)
+            lookups: tuple[LookupOutcome, ...] = (
+                *prior_lookups, openalex.outcome, unpaywall.outcome,
+            )
             metadata: dict = {}
             if openalex_data:
                 metadata = self.extract_metadata(openalex_data, "openalex")
@@ -712,6 +839,8 @@ class AsyncPDFDownloader:
             # Every listed open location with a direct address, best version
             # first (M12a answer F3); a landing page is never an address.
             copies = open_copies(openalex_data, unpaywall_data)
+            if extra_copies:
+                copies = rank_copies([*copies, *extra_copies])
 
             access_status = self._provider_access_status(openalex_data, unpaywall_data)
             if copies and access_status == "UNRESOLVED":
@@ -734,107 +863,8 @@ class AsyncPDFDownloader:
                 return replace(
                     result, status="UNRESOLVED", outcome=outcome, error_message=message
                 )
-
-            last_error: str | None = None
-            tried = 0
-            attempts: list[FetchAttempt] = []
-            for copy in copies[:MAX_OPEN_COPIES_TRIED]:
-                tried += 1
-                # Only the provider's own open-access location: no guessed
-                # publisher URL, whatever the setting says (K0, M12a items 24, 27).
-                candidates: list[str] = [copy.url]
-                if self.institutional_gateway_url and not is_proxied_url(
-                    copy.url, self.institutional_gateway_url
-                ):
-                    # Parked gateway code (item 25): only when a caller passes one.
-                    proxied = rewrite_via_proxy(
-                        copy.url,
-                        self.institutional_gateway_url,
-                        style=self.proxy_style,
-                    )
-                    if proxied != copy.url:
-                        candidates.append(proxied)
-
-                for candidate in candidates:
-                    candidate_path = self._new_staging_path()
-                    route = "open_location" if candidate == copy.url else "institutional_gateway"
-                    try:
-                        try:
-                            success = await self.download_pdf(
-                                session,
-                                candidate,
-                                candidate_path,
-                                forward_proxy_url=self.forward_proxy_url or None,
-                                attempts=attempts,
-                                route=route,
-                            )
-                        except Exception as error:  # noqa: BLE001 - any fetch failure
-                            # Words, not the error's text (PDF-06; the address is on the attempt).
-                            last_error = f"The listed address gave no PDF: {fetch_failure(error)}"
-                            logger.debug("PDF candidate failed for %s: %s", doi, type(error).__name__)
-                            continue
-                        if not success:
-                            last_error = (
-                                "The listed address gave no PDF: "
-                                f"{attempts[-1].error or 'not a valid PDF'}"
-                            )
-                            continue
-                        identity = check_identity(
-                            candidate_path, doi, title or metadata.get("title")
-                        )
-                        size = candidate_path.stat().st_size
-                        digest = self._digest(candidate_path)
-                        final_path, new_file = self._promote_candidate(candidate_path)
-                        # The status follows the bytes (Part K item 7, PDF-12): an open
-                        # location's own address is open access; the parked gateway is
-                        # institutional access, never open access (M12a item 25).
-                        opened = route == "open_location"
-                        return replace(
-                            result,
-                            success=True,
-                            file_path=final_path,
-                            status="ACQUIRED",
-                            outcome=ACQUIRED,
-                            access_status=(
-                                "VERIFIED_OPEN_ACCESS" if opened else INSTITUTIONAL_ACCESS
-                            ),
-                            was_oa=opened,
-                            source_url=_public_url(candidate) or candidate,
-                            route=route,
-                            identity=identity,
-                            size=size,
-                            sha256=digest,
-                            new_file=new_file,
-                            # The label follows the bytes: a file fetched through
-                            # the parked gateway is not that open location's copy.
-                            open_copy=copy if candidate == copy.url else None,
-                            copies_tried=tried,
-                            attempts=tuple(attempts),
-                        )
-                    except Exception as error:  # noqa: BLE001 - storing the file failed
-                        last_error = f"The PDF could not be stored: {type(error).__name__}: {error}"
-                    finally:
-                        candidate_path.unlink(missing_ok=True)
-
-            message = last_error or "The listed address gave no PDF"
-            if len(copies) > 1:
-                message = f"{message} ({tried} of {len(copies)} listed addresses tried)"
-            for lookup in lookups:
-                if lookup.state == FAILED:
-                    # The other service may list an address this run never saw.
-                    message = (
-                        f"{message}; {lookup.name} {lookup.failure()}, "
-                        "so its list was not read"
-                    )
-                elif lookup.state == NOT_ASKED:
-                    message = f"{message}; {not_asked_note(lookup)}"
-            return replace(
-                result,
-                status="FAILED",
-                outcome=PDF_NOT_FETCHED,
-                copies_tried=tried,
-                attempts=tuple(attempts),
-                error_message=message,
+            return await self._fetch_copies(
+                session, result, copies, doi, title or metadata.get("title")
             )
         except Exception as error:  # noqa: BLE001 - provider adapters vary
             return DownloadResult(
@@ -845,6 +875,116 @@ class AsyncPDFDownloader:
                 access_status="UNRESOLVED",
                 error_message=str(error),
             )
+
+    async def _fetch_copies(
+        self,
+        session: aiohttp.ClientSession,
+        result: DownloadResult,
+        copies: Sequence[OpenCopy],
+        doi: str,
+        title: str | None,
+    ) -> DownloadResult:
+        """Try the best-ranked copies in turn (at most ``MAX_OPEN_COPIES_TRIED``); the first valid PDF is stored."""
+        lookups = result.lookups
+        last_error: str | None = None
+        tried = 0
+        attempts: list[FetchAttempt] = []
+        for copy in copies[:MAX_OPEN_COPIES_TRIED]:
+            tried += 1
+            # Only the provider's own open-access location: no guessed
+            # publisher URL, whatever the setting says (K0, M12a items 24, 27).
+            candidates: list[str] = [copy.url]
+            if self.institutional_gateway_url and not is_proxied_url(
+                copy.url, self.institutional_gateway_url
+            ):
+                # Parked gateway code (item 25): only when a caller passes one.
+                proxied = rewrite_via_proxy(
+                    copy.url,
+                    self.institutional_gateway_url,
+                    style=self.proxy_style,
+                )
+                if proxied != copy.url:
+                    candidates.append(proxied)
+
+            for candidate in candidates:
+                candidate_path = self._new_staging_path()
+                route = "open_location" if candidate == copy.url else "institutional_gateway"
+                try:
+                    try:
+                        success = await self.download_pdf(
+                            session,
+                            candidate,
+                            candidate_path,
+                            forward_proxy_url=self.forward_proxy_url or None,
+                            attempts=attempts,
+                            route=route,
+                        )
+                    except Exception as error:  # noqa: BLE001 - any fetch failure
+                        # Words, not the error's text (PDF-06; the address is on the attempt).
+                        last_error = f"The listed address gave no PDF: {fetch_failure(error)}"
+                        logger.debug("PDF candidate failed for %s: %s", doi, type(error).__name__)
+                        continue
+                    if not success:
+                        last_error = (
+                            "The listed address gave no PDF: "
+                            f"{attempts[-1].error or 'not a valid PDF'}"
+                        )
+                        continue
+                    identity = check_identity(candidate_path, doi or None, title)
+                    size = candidate_path.stat().st_size
+                    digest = self._digest(candidate_path)
+                    final_path, new_file = self._promote_candidate(candidate_path)
+                    # The status follows the bytes (Part K item 7, PDF-12): an open
+                    # location's own address is open access; the parked gateway is
+                    # institutional access, never open access (M12a item 25).
+                    opened = route == "open_location"
+                    return replace(
+                        result,
+                        success=True,
+                        file_path=final_path,
+                        status="ACQUIRED",
+                        outcome=ACQUIRED,
+                        access_status=(
+                            "VERIFIED_OPEN_ACCESS" if opened else INSTITUTIONAL_ACCESS
+                        ),
+                        was_oa=opened,
+                        source_url=_public_url(candidate) or candidate,
+                        route=route,
+                        identity=identity,
+                        size=size,
+                        sha256=digest,
+                        new_file=new_file,
+                        # The label follows the bytes: a file fetched through
+                        # the parked gateway is not that open location's copy.
+                        open_copy=copy if candidate == copy.url else None,
+                        copies_tried=tried,
+                        attempts=tuple(attempts),
+                    )
+                except Exception as error:  # noqa: BLE001 - storing the file failed
+                    last_error = f"The PDF could not be stored: {type(error).__name__}: {error}"
+                finally:
+                    candidate_path.unlink(missing_ok=True)
+
+        message = last_error or "The listed address gave no PDF"
+        if len(copies) > 1:
+            message = f"{message} ({tried} of {len(copies)} listed addresses tried)"
+        for lookup in lookups:
+            if lookup.state == FAILED:
+                # The other service may list an address this run never saw.
+                message = (
+                    f"{message}; {lookup.name} {lookup.failure()}, "
+                    "so its list was not read"
+                )
+            elif lookup.state == NOT_ASKED:
+                message = f"{message}; {not_asked_note(lookup)}"
+        return replace(
+            result,
+            status="FAILED",
+            outcome=PDF_NOT_FETCHED,
+            copies_tried=tried,
+            attempts=tuple(attempts),
+            error_message=message,
+        )
 
     async def download_batch(self, dois: list[str]) -> list[DownloadResult]:
         """Downloads a batch of DOIs concurrently and closes owned clients."""

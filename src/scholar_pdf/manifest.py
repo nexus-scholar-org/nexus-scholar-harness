@@ -115,6 +115,7 @@ def manifest_row(result: DownloadResult, manifest_path: Path) -> dict[str, Any]:
         "http_status": producing.http_status if producing else None,
         "content_type": producing.content_type if producing else None,
         "version": copy.version if copy else None,
+        "version_label": copy.version_label if copy else None,
         "license": copy.license if copy else None,
         "host_type": copy.host_type if copy else None,
         "source_name": copy.source_name if copy else None,
