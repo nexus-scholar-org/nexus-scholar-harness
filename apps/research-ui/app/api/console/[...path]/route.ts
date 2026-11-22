@@ -127,6 +127,7 @@ const POST_PATHS: ReadonlyArray<RegExp> = [
   /^api\/v1\/charting\/events$/,
   /^api\/v1\/charting\/records\/[A-Za-z0-9_-]+\/attachment$/,
   /^api\/v1\/charting\/form\/pilot\/end$/,
+  /^api\/v1\/charting\/fetch(\/cancel)?$/,
 ];
 
 /** The one GET with a side effect: the engine records a reveal when a draft is read. */

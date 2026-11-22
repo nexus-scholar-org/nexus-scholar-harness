@@ -288,6 +288,15 @@ CHARTING_COLUMN_UNKNOWN = "CHARTING_COLUMN_UNKNOWN"
 CHARTING_AMENDMENT_REASON_REQUIRED = "CHARTING_AMENDMENT_REASON_REQUIRED"
 #: A form change made from a version that is no longer the form's.
 CHARTING_FORM_STALE = "CHARTING_FORM_STALE"
+# --- open-access copies (M12a Part F, `charting/fetch.py`) -----------------------------
+#: A look-up started while this workspace's look-up is running or stopping.
+FETCH_ALREADY_ACTIVE = "FETCH_ALREADY_ACTIVE"
+#: A confirm or discard of a fetched file that is not waiting (any more).
+FETCH_NOT_PENDING = "FETCH_NOT_PENDING"
+#: A discard without its one reason, or Other without words.
+DISCARD_REASON_REQUIRED = "DISCARD_REASON_REQUIRED"
+#: A status, a full-text decision or an attachment on a row whose fetched file waits.
+FETCH_FILE_WAITING = "FETCH_FILE_WAITING"
 
 # --- request validation (H-input-limits, F5) ----------------------------------
 #: A body, query or path parameter pydantic refuses on any route (HTTP 422);
@@ -462,6 +471,10 @@ CONTRACT_ADDED = frozenset(
         CHARTING_COLUMN_UNKNOWN,
         CHARTING_AMENDMENT_REASON_REQUIRED,
         CHARTING_FORM_STALE,
+        FETCH_ALREADY_ACTIVE,
+        FETCH_NOT_PENDING,
+        DISCARD_REASON_REQUIRED,
+        FETCH_FILE_WAITING,
         BODY_INVALID,
     }
     | LEG_ERROR_CODES

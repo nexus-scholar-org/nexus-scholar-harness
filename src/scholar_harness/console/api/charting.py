@@ -6,7 +6,16 @@ with its full-text status, file or link and full-text decision;
 their undo); ``POST /api/v1/charting/records/{study_id}/attachment`` takes the
 researcher's PDF as the raw request body (``application/pdf``) or a link as
 JSON; ``GET`` on the same path serves the PDF back; ``GET /api/v1/charting/export``
-writes the Full text view as CSV. No route here sends an outgoing request.
+writes the Full text view as CSV.
+
+Part F (``charting/fetch.py``) adds the look-up of open-access copies, the
+only routes here that make the console send requests, and only once the
+researcher starts a run: ``GET /api/v1/charting/fetch/plan`` (sends nothing),
+``POST /api/v1/charting/fetch`` (``dry: true`` answers the plan; otherwise
+starts the run, 202), ``GET /api/v1/charting/fetch`` (the run's state),
+``POST /api/v1/charting/fetch/cancel``, ``GET …/records/{id}/fetch`` (what
+was tried) and ``GET …/records/{id}/fetched`` (the waiting file). Confirm and
+discard are event kinds on ``POST /api/v1/charting/events``.
 
 Desktop only: none of these is on the phone allowlist.
 """
@@ -22,6 +31,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from ...charting import ChartingRefused
 from ...charting import attachments as att
+from ...charting import fetch as fx
 from ...charting import table as tb
 
 router = APIRouter(prefix="/api/v1/charting", tags=["charting"])
@@ -57,6 +67,17 @@ class LinkBody(BaseModel):
     link: str | None = Field(default=None, max_length=2_000)
     event_id: str | None = None
     supersedes: str | None = None
+
+
+class FetchBody(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    #: The selected records; absent: every record To get (spec 03, question 5).
+    ids: list[str] | None = Field(default=None, max_length=5_000)
+    scope: str | None = Field(default=None, pattern="^to_get$")
+    #: The plan, sending nothing.
+    dry: bool = False
+    #: The researcher confirmed the plan (Enter on its line); required to start.
+    confirm: bool = False
 
 
 @router.get("")
@@ -169,3 +190,70 @@ def get_export(request: Request, format: str = "csv", view: str = "fulltext") ->
         content=body, media_type="text/csv; charset=utf-8",
         headers={"Content-Disposition": f'attachment; filename="{name}"'},
     )
+
+
+# --------------------------------------------------------------------------- Part F: open-access copies
+
+
+@router.get("/fetch/plan")
+def get_fetch_plan(request: Request, ids: str | None = None) -> dict[str, Any]:
+    """The look-up plan for every To get record, or ``ids`` (comma-separated). No request is sent."""
+    chosen = [i for i in (ids or "").split(",") if i] or None
+    try:
+        return fx.plan(_ws(request), chosen)
+    except ChartingRefused as exc:
+        raise _error(exc) from exc
+
+
+@router.post("/fetch")
+def post_fetch(body: FetchBody, request: Request, response: Response) -> dict[str, Any]:
+    """``dry``: the plan. Otherwise one run for the workspace (``FETCH_ALREADY_ACTIVE``), started in the background."""
+    ids = body.ids if body.ids is not None else None
+    if body.ids is not None and body.scope is not None:
+        raise HTTPException(status_code=422, detail={"code": "BODY_INVALID", "message": "send ids or scope, not both"})
+    try:
+        if body.dry:
+            return fx.plan(_ws(request), ids)
+        if not body.confirm:
+            raise ChartingRefused(422, "BODY_INVALID", "A look-up starts only with confirm: true, after its plan.")
+        run = fx.start(
+            _ws(request), ids,
+            executor=getattr(request.app.state, "fetch_executor", None),
+            deps=getattr(request.app.state, "fetch_deps", None),
+        )
+    except ChartingRefused as exc:
+        raise _error(exc) from exc
+    response.status_code = 202
+    return fx._view(_ws(request), run)
+
+
+@router.get("/fetch")
+def get_fetch(request: Request) -> dict[str, Any]:
+    """The running look-up, else the newest one (``interrupted`` when this console did not finish it), else idle."""
+    return fx.current(_ws(request))
+
+
+@router.post("/fetch/cancel")
+def post_fetch_cancel(request: Request) -> dict[str, Any]:
+    """Stop the look-up after the record in hand; the records it reached keep their manifest rows."""
+    return fx.cancel(_ws(request))
+
+
+@router.get("/records/{study_id}/fetch")
+def get_fetch_tried(study_id: str, request: Request) -> dict[str, Any]:
+    """What was tried for one record: its rows of ``charting/fetch_manifest.jsonl``."""
+    try:
+        return fx.tried(_ws(request), study_id)
+    except ChartingRefused as exc:
+        raise _error(exc) from exc
+
+
+@router.get("/records/{study_id}/fetched")
+def get_fetched_file(study_id: str, request: Request) -> Response:
+    """The fetched file waiting on a record, to open before confirming it (``FETCH_NOT_PENDING`` when none)."""
+    try:
+        path, name = fx.fetched_file(_ws(request), study_id)
+    except ChartingRefused as exc:
+        raise _error(exc) from exc
+    return FileResponse(path, media_type="application/pdf", filename=name, content_disposition_type="inline",
+                        headers={"X-Content-Type-Options": "nosniff"})
