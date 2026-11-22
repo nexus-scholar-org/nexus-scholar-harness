@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { CHARTING_COPY } from "@/lib/charting-copy";
 
-import { PARAGRAPH, installEngine, makeMethods, makeRow, makeTable, renderReport } from "./charting-helpers";
+import { installEngine, makeForm, makeMethods, makeRow, makeTable, PARAGRAPH, renderReport } from "./charting-helpers";
 
 /**
  * Spec 04 "Methods paragraph": the engine's English draft in `lang="en" dir="ltr"`
@@ -125,6 +125,7 @@ describe("charting.report.methods", () => {
       "Cells not charted: 7; of them required: 2",
       "Studies charted in the pilot: 2",
       "Form amendments: 0",
+      "Protocol fingerprint: not recorded",
     ]);
     expect(within(details).getByText("What this statement is based on")).toBeInTheDocument();
     for (const source of methods.sources) {
@@ -145,5 +146,14 @@ describe("charting.report.methods", () => {
     expect(engine.calls.length).toBeGreaterThan(0);
     expect(engine.calls.every((c) => c.method === "GET")).toBe(true);
     expect([...new Set(engine.calls.map((c) => c.path))].sort()).toEqual(["/api/v1/charting", "/api/v1/charting/methods"]);
+  });
+
+  it("names the protocol fingerprint in Details, as spec 04 lists it (item 26)", async () => {
+    const fingerprint = "sha256:4f2a9c0e7b1d";
+    installEngine(makeTable([makeRow(1)], { form: makeForm([], { protocol_fingerprint: fingerprint }) }), { methods: makeMethods() });
+    await renderReport();
+    const line = document.querySelector("[data-methods-details] [data-protocol-fingerprint]") as HTMLElement;
+    expect(line).toHaveTextContent(`Protocol fingerprint: ${fingerprint}`);
+    expect(line.querySelector("bdi")).toHaveAttribute("dir", "ltr");
   });
 });

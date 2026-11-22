@@ -143,6 +143,8 @@ export interface ChartingForm {
   pilot: { on: boolean; ended_at: string | null; ended_by: string | null; ended_at_version?: number | null };
   amendments: Amendment[];
   has_values: boolean;
+  /** The protocol's fingerprint when the form was made (`form.json`); the report page's Details shows it. */
+  protocol_fingerprint?: string | null;
 }
 
 export type CellState = null | "value" | "not_reported" | "not_applicable";

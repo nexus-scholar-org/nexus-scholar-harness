@@ -512,6 +512,26 @@ function ReportScreen({ locale, origin }: Readonly<{ locale: Locale; origin: str
                 {countRow("included", t("charting.report.counts.row.included"), groups.map((g) => g.included))}
               </tbody>
             </table>
+            {Number(total.not_retrieved_decided ?? 0) > 0 ? (
+              // Item 5 as changed by the researcher: the decisions taken from the abstract sit with the counts,
+              // apart from the PRISMA rows and marked as not a PRISMA box (the one-box rule still holds).
+              <table className="mt-4 w-full text-sm" data-abstract-decided>
+                <caption className="pb-2 text-start text-xs text-ink-muted">{t("charting.report.abstract.caption")}</caption>
+                <thead className="sr-only">
+                  <tr>
+                    <th scope="col">{t("charting.report.counts.col.what")}</th>
+                    <th scope="col">{t("charting.report.counts.col.databases")}</th>
+                    <th scope="col">{t("charting.report.counts.col.chasing")}</th>
+                    <th scope="col">{t("charting.report.counts.col.total")}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {countRow("abstract:decided", t("charting.report.abstract.row.decided"), groups.map((g) => Number(g.not_retrieved_decided ?? 0)))}
+                  {countRow("abstract:included", t("charting.report.abstract.row.included"), groups.map((g) => Number(g.not_retrieved_included ?? 0)), true)}
+                  {countRow("abstract:excluded", t("charting.report.abstract.row.excluded"), groups.map((g) => Number(g.not_retrieved_excluded ?? 0)), true)}
+                </tbody>
+              </table>
+            ) : null}
             {total.assessed === 0 ? (
               <p className="mt-3 text-sm text-ink" data-no-decisions>
                 {t("charting.report.counts.noDecisions")}
@@ -607,6 +627,16 @@ function ReportScreen({ locale, origin }: Readonly<{ locale: Locale; origin: str
                 <li>{t("charting.report.figures.cells", { cellsOpen: n(fig.cells_open), requiredOpen: n(fig.required_open) })}</li>
                 <li>{t("charting.report.figures.pilot", { pilot: n(fig.pilot) })}</li>
                 <li>{t("charting.report.figures.amendments", { n: n((fig.amendments ?? []).length) })}</li>
+                <li data-protocol-fingerprint>
+                  {table.form?.protocol_fingerprint ? (
+                    <>
+                      {t("charting.report.figures.fingerprint")}
+                      <bdi dir="ltr" className="font-mono">{table.form.protocol_fingerprint}</bdi>
+                    </>
+                  ) : (
+                    t("charting.report.figures.fingerprintNone")
+                  )}
+                </li>
               </ul>
               <h3 className="mt-3 text-sm font-semibold text-ink">{t("charting.report.methods.basedOn")}</h3>
               <table className="mt-2 w-full text-xs" data-sources>

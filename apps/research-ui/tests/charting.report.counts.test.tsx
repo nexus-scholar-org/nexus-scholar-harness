@@ -128,4 +128,33 @@ describe("charting.report.counts", () => {
     expect(cells("sought")).toEqual(["12", "5", "17"]);
     expect(header("not_retrieved:Not found").textContent).toMatch(/^منها /);
   });
+
+  it("shows the reports not retrieved and decided from the abstract with the counts, marked as not a PRISMA box (item 5)", async () => {
+    const databases = prismaGroup({ sought: 4, not_retrieved: 2, not_retrieved_reasons: { "No access or paywalled": 2 }, assessed: 2, included: 2,
+      not_retrieved_decided: 2, not_retrieved_included: 1, not_retrieved_excluded: 1 });
+    const chasing = prismaGroup({ sought: 1, not_retrieved: 1, not_retrieved_reasons: { "Not found": 1 }, not_retrieved_decided: 1, not_retrieved_included: 1 });
+    const total = prismaGroup({ sought: 5, not_retrieved: 3, not_retrieved_reasons: { "No access or paywalled": 2, "Not found": 1 }, assessed: 2, included: 2,
+      not_retrieved_decided: 3, not_retrieved_included: 2, not_retrieved_excluded: 1 });
+    installEngine(makeTable([makeRow(1)]), { methods: makeMethods({ databases, chasing, total }) });
+    await renderReport();
+    const block = document.querySelector("[data-abstract-decided]") as HTMLTableElement;
+    expect(block).not.toBeNull();
+    expect(block.closest("section")).toBe((document.querySelector("[data-prisma]") as HTMLElement).closest("section"));
+    expect(block.querySelector("caption")).toHaveTextContent(
+      "Not retrieved, decided from the abstract. Not a PRISMA box: these reports are also counted under Reports not retrieved above.",
+    );
+    expect(cells("abstract:decided")).toEqual(["2", "1", "3"]);
+    expect(cells("abstract:included")).toEqual(["1", "1", "2"]);
+    expect(cells("abstract:excluded")).toEqual(["1", "0", "1"]);
+    expect(row("abstract:included").querySelector("th")).toHaveTextContent(/^of which included$/);
+    // Not summed into the PRISMA rows: the boxes keep the one-box rule.
+    expect(cells("included")).toEqual(["2", "0", "2"]);
+    expect(block.contains(row("included"))).toBe(false);
+  });
+
+  it("leaves the decided-from-the-abstract lines out when no report not retrieved was decided", async () => {
+    installEngine(makeTable([makeRow(1)]));
+    await renderReport();
+    expect(document.querySelector("[data-abstract-decided]")).toBeNull();
+  });
 });
