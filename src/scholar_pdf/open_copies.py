@@ -10,6 +10,9 @@ Rules (decision 2026-11-21, M12a answer F3 and items 24 and 27):
   OpenAlex answer; listed in ``best_oa_location`` or ``oa_locations`` in an
   Unpaywall answer) and it carries a direct PDF address (``pdf_url`` or
   ``url_for_pdf``);
+- explicit closed evidence from a service about the work (``is_oa: false`` or
+  ``oa_status: "closed"``) overrides any ``pdf_url`` that service gives (Part K
+  item 7, PDF-12): none of that service's addresses is listed;
 - a landing page is never turned into a PDF address and no address is built;
 - the published version comes first, then the accepted manuscript, then the
   submitted version or preprint, then a copy whose version is not given.
@@ -32,6 +35,9 @@ PROVIDER_NAMES = {"openalex": "OpenAlex", "unpaywall": "Unpaywall"}
 
 #: Lookup states. ``NOT_FOUND`` (HTTP 404) is an answer: the service does not know the DOI.
 ANSWERED, NOT_FOUND, FAILED = "ANSWERED", "NOT_FOUND", "FAILED"
+#: OpenAlex is not asked without ``SCHOLAR_OPENALEX_KEY`` (Part K item 4). Neither an
+#: answer nor a failure: running again without the key would not change it.
+NOT_ASKED = "NOT_ASKED"
 
 #: Why a DOI ended as it did (``DownloadResult.outcome``).
 ACQUIRED = "ACQUIRED"
@@ -82,13 +88,21 @@ class LookupOutcome:
     def name(self) -> str:
         return PROVIDER_NAMES.get(self.provider, self.provider)
 
+    @property
+    def budget_spent(self) -> bool:
+        """OpenAlex answered 409: its daily budget is spent (Part K item 4)."""
+        return self.provider == "openalex" and self.state == FAILED and self.http_status == 409
+
     def failure(self) -> str:
         """Why the lookup failed, in words: the HTTP status, or the kind of error.
 
-        ``failed (HTTP 503)``, ``failed (timed out)``, ``failed (network error)``
+        ``failed (HTTP 503)``, ``failed (HTTP 409: the daily budget is spent)``
+        (OpenAlex only), ``failed (timed out)``, ``failed (network error)``
         (the lookup client's error with no status), ``failed (unreadable answer)``
         (a 200 whose body is not a JSON object), else the error's class name.
         """
+        if self.budget_spent:
+            return "failed (HTTP 409: the daily budget is spent)"
         if self.http_status is not None and self.http_status != 200:
             return f"failed (HTTP {self.http_status})"
         if self.error_kind and "Timeout" in self.error_kind:
@@ -114,6 +128,22 @@ def _text(value: object) -> str | None:
 
 def _version(value: object) -> str:
     return value if value in VERSION_ORDER else UNKNOWN_VERSION
+
+
+def says_closed(payload: object) -> bool:
+    """Whether one service's answer says the work is closed (Part K item 7, PDF-12).
+
+    ``is_oa: false`` or ``oa_status: "closed"``, at the top (Unpaywall) or in
+    ``open_access`` (OpenAlex). Such evidence overrides that service's ``pdf_url``.
+    """
+    if not isinstance(payload, dict):
+        return False
+    open_access = payload.get("open_access")
+    if isinstance(open_access, dict) and (
+        open_access.get("is_oa") is False or open_access.get("oa_status") == "closed"
+    ):
+        return True
+    return payload.get("is_oa") is False or payload.get("oa_status") == "closed"
 
 
 def _openalex_locations(payload: dict) -> list[dict]:
@@ -190,9 +220,9 @@ def open_copies(openalex: dict | None, unpaywall: dict | None) -> list[OpenCopy]
     (``best_oa_location``, ``primary_location``, then the list as given).
     """
     listed: list[OpenCopy] = []
-    if isinstance(openalex, dict):
+    if isinstance(openalex, dict) and not says_closed(openalex):
         listed.extend(_openalex_copies(openalex))
-    if isinstance(unpaywall, dict):
+    if isinstance(unpaywall, dict) and not says_closed(unpaywall):
         listed.extend(_unpaywall_copies(unpaywall))
     order = {version: rank for rank, version in enumerate((*VERSION_ORDER, UNKNOWN_VERSION))}
     seen: set[str] = set()
@@ -206,6 +236,8 @@ def open_copies(openalex: dict | None, unpaywall: dict | None) -> list[OpenCopy]
 
 def open_landing_page(openalex: dict | None, unpaywall: dict | None) -> str | None:
     """The first open location's landing page, to name in a message. Never requested."""
+    openalex = None if says_closed(openalex) else openalex
+    unpaywall = None if says_closed(unpaywall) else unpaywall
     if isinstance(openalex, dict):
         for location in _openalex_locations(openalex):
             page = _address(location.get("landing_page_url"))
@@ -221,7 +253,7 @@ def open_landing_page(openalex: dict | None, unpaywall: dict | None) -> str | No
 
 def lists_open(payload: dict | None) -> bool:
     """Whether one service's answer marks the paper, or a location of it, as open."""
-    if not isinstance(payload, dict):
+    if not isinstance(payload, dict) or says_closed(payload):
         return False
     open_access = payload.get("open_access")
     if isinstance(open_access, dict) and open_access.get("is_oa") is True:
@@ -236,7 +268,14 @@ def lists_open(payload: dict | None) -> bool:
     return isinstance(more, list) and any(isinstance(item, dict) for item in more)
 
 
+def not_asked_note(lookup: LookupOutcome) -> str:
+    """Why a service was not asked, in words (only OpenAlex without its key)."""
+    return f"{lookup.name} was not asked (SCHOLAR_OPENALEX_KEY is not set)"
+
+
 def _said(lookup: LookupOutcome, payload: dict | None) -> str:
+    if lookup.state == NOT_ASKED:
+        return not_asked_note(lookup)
     if lookup.state == FAILED:
         return f"{lookup.name} {lookup.failure()}"
     if lookup.state == NOT_FOUND:

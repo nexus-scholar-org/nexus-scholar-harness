@@ -280,7 +280,7 @@ DESIGN_SCIENCE_DEFAULT: dict[str, Any] = {
             "id": "n4_ds_artifacts",
             "kit": "scholar-pdf-kit",
             "command": ["scholar-pdf", "download"],
-            "args": {"input": "literature/corpus.json", "output": "pdfs/", "smart-names": True},
+            "args": {"input": "literature/corpus.json", "output": "pdfs/"},
             "inputs": ["literature/corpus.json"],
             "outputs": ["pdfs/**"],
             "on_fail": "abort",

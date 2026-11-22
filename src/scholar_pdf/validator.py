@@ -1,5 +1,6 @@
 import os
 import re
+from dataclasses import dataclass
 from pathlib import Path
 
 # Real PDFs are at least ~10 KB; HTML block-pages saved from a paywall are
@@ -15,6 +16,69 @@ _HEADER_SCAN = 1024
 _TRAILER_SCAN = 8 * 1024
 
 _HEADER_RE = re.compile(rb"%PDF-\d+\.\d+")
+
+
+@dataclass(frozen=True)
+class PdfCheck:
+    """One named check on a candidate file, with its result (Part K, PDF-17)."""
+
+    name: str
+    passed: bool
+    detail: str
+
+
+def pdf_checks(file_path: Path, structural: bool = False) -> tuple[PdfCheck, ...]:
+    """Each check of ``is_valid_pdf`` by name, plus pypdf's ``structure`` when asked.
+
+    ``pdf_header`` (``%PDF-<major>.<minor>`` in the first 1024 bytes),
+    ``pdf_trailer`` (``%%EOF`` in the last 8 KB), ``size_floor`` (at least
+    ``MIN_PDF_SIZE_BYTES``) and, with ``structural``, ``structure`` (pypdf
+    parses it). A file below the floor is not called invalid (PDF-17).
+    """
+    try:
+        size = file_path.stat().st_size
+        with open(file_path, "rb") as stream:
+            head = stream.read(_HEADER_SCAN)
+            stream.seek(max(0, size - _TRAILER_SCAN))
+            tail = stream.read(_TRAILER_SCAN)
+    except (OSError, ValueError, OverflowError):
+        return (PdfCheck("readable", False, "the file could not be read"),)
+    checks = [
+        PdfCheck(
+            "pdf_header",
+            _HEADER_RE.search(head) is not None,
+            "%PDF- header in the first 1024 bytes",
+        ),
+        PdfCheck("pdf_trailer", b"%%EOF" in tail, "%%EOF trailer in the last 8 KB"),
+        PdfCheck(
+            "size_floor",
+            size >= MIN_PDF_SIZE_BYTES,
+            f"{size} bytes; the floor is {MIN_PDF_SIZE_BYTES} bytes",
+        ),
+    ]
+    if structural:
+        parses = all(check.passed for check in checks) and validate_pdf_structure(file_path)
+        checks.append(PdfCheck("structure", parses, "pypdf parses the file"))
+    return tuple(checks)
+
+
+def check_failure(checks: tuple[PdfCheck, ...]) -> str | None:
+    """The first failed check in words, or ``None`` when every check passed."""
+    failed = {check.name: check for check in checks if not check.passed}
+    if not failed:
+        return None
+    if "readable" in failed:
+        return "the file could not be read"
+    if "pdf_header" in failed:
+        return "not a PDF (no %PDF- header in the first 1024 bytes)"
+    if "pdf_trailer" in failed:
+        return "not a complete PDF (no %%EOF trailer in the last 8 KB)"
+    if "size_floor" in failed:
+        return (
+            f"below the {MIN_PDF_SIZE_BYTES // 1024} KB size floor "
+            f"({failed['size_floor'].detail.split(';')[0]}); it was not judged invalid"
+        )
+    return "pypdf could not parse it (--strict-validate)"
 
 
 def is_valid_pdf(file_path: Path) -> bool:

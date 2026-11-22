@@ -133,7 +133,7 @@ async def test_process_doi_invalid_pdf(downloader, mock_http_client, temp_output
 
     assert result.success is False
     assert result.was_oa is True
-    assert result.error_message == "Failed to download or invalid PDF"
+    assert result.error_message.startswith("The listed address gave no PDF")
 
 
 @pytest.mark.asyncio
@@ -185,7 +185,9 @@ async def test_process_doi_proxy_subdomain_attempt(
     result = await proxied_downloader.process_doi(mock_session, mock_http_client, doi)
 
     assert result.success is True
-    assert result.was_oa is True
+    # Part K item 7 (PDF-12): bytes through the gateway are never open access.
+    assert result.was_oa is False
+    assert result.access_status == "INSTITUTIONAL_ACCESS"
     urls = [c[0][0] for c in mock_session.get.call_args_list]
     assert len(urls) == 2, urls
     assert urls[0] == "https://ieeexplore.ieee.org/document/10209481"
@@ -254,7 +256,7 @@ async def test_process_doi_deduplicates_content_without_overwrite(
 
 
 def test_gateway_and_forward_proxy_are_not_conflated(temp_output_dir):
-    with pytest.raises(ValueError, match="distinct"):
+    with pytest.raises(ValueError, match="PROXY_REFUSED"):
         AsyncPDFDownloader(
             output_dir=temp_output_dir,
             institutional_gateway_url="https://gateway.test",
