@@ -579,7 +579,7 @@ Part B's decision items 1 to 13 were accepted by the researcher on 2026-11-21 (m
 
 ### Part C: the screening screens
 
-Branch `dev/m11b/part-c-screens`, stacked on part B (PR 277 head `ea260382` merged in, and `origin/main` `64fd8212`, M12a part A) · Lane **RELEASE** (re-declared after review round 1, finding 1: the public queue answer gains `shown_again`, `pilot_decision` and a new order of "Needs you"; `GET /criteria` changes `can_amend` and gains `handoff_batches`; the browser POST allowlist widens; a refusal message changes. Closure evidence is the CI matrix on the PR, which only the push can run) · Spec `docs/ux/phase2-screening/final/13-criteria-pilot.md` FINAL (2026-11-21, questions 5 to 8 answered by the researcher) · Decisions: `docs/decisions.md` "2026-11-22 — M11b part C" items 1 to 17 (PROPOSED) · Status: **IN PROGRESS** (gates and review below).
+Branch `dev/m11b/part-c-screens`, stacked on part B (PR 277 head `ea260382` merged in, and `origin/main` `64fd8212`, M12a part A) · Lane **RELEASE** (re-declared after review round 1, finding 1: the public queue answer gains `shown_again`, `pilot_decision` and a new order of "Needs you"; `GET /criteria` changes `can_amend` and gains `handoff_batches`; the browser POST allowlist widens; a refusal message changes. Closure evidence is the CI matrix on the PR, which only the push can run) · Spec `docs/ux/phase2-screening/final/13-criteria-pilot.md` FINAL (2026-11-21, questions 5 to 8 answered by the researcher) · Decisions: `docs/decisions.md` "2026-11-22 — M11b part C" items 1 to 17 (PROPOSED) · Status: **READY FOR PR** (review round 2 APPROVE; not pushed).
 
 The engine side (the follow-ups the part A and B reviews left for part C):
 - The browser may POST to `api/v1/screening/criteria/amendments`, `api/v1/screening/pilot` and `api/v1/screening/pilot/pilot_NNN/(decisions|close)` (`console/browser.py` and the development proxy `route.ts`, kept equal).
@@ -653,3 +653,9 @@ Follow-ups taken: the earlier-decision card is a labelled region; "Draft again" 
 | pr (round 1 repairs) | `02848caa` | `npm run typecheck`; `vitest run` (full); `npm run test:browser` (build, then the full browser suite, port 3127); the Python suite of `ec7f2a98` stands (no file under `src/`, `tests/` or `scripts/` changed since) | clean; 82 files, 1172 passed; 674 passed, 12 skipped, 0 failed (four unrelated screenshots rewritten again and restored) | 148 s; 998 s |
 
 Review round 2 of part C (on `f6d26718`): **APPROVE** (lane RELEASE confirmed). The eight repairs confirmed with their tests (90 tests of the five repaired files passed at head). One P3, taken: the agent-check dialog left focus on the page once the run view replaced the form; focus now moves into the run view, to Cancel while it runs (`pilot.calibration-dialog` test asserts it). One P4, taken: the record names decision items 1 to 17. Noted, not changed: if `/summary` fails at boot, the pilot banner reads "0 of 0" (the counts are the engine's only); `pilot.saved` stays with the parked P4s.
+
+| Stage | Commit | Command | Result | Duration |
+| :-- | :-- | :-- | :-- | :-- |
+| pr (round 2 repair) | `07fbb270` | `tsc`; `vitest run` (full); `playwright test tests-browser/screening-pilot.spec.ts` (both projects, port 3127); the full browser run of `02848caa` stands for the rest (this commit changes one dialog's focus and one test) | clean; 82 files, 1172 passed; 10 passed | 150 s; 78 s |
+
+**Part C: READY FOR PR** (not pushed). Branch `dev/m11b/part-c-screens`, head after this commit. Lane RELEASE: the CI matrix on the PR is the closure evidence and is recorded after the push. Decision items 1 to 17 of part C wait for the researcher.
