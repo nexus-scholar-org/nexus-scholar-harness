@@ -9,7 +9,7 @@ layer: domain
 ---
 # `scholar-pdf-kit` Skill Instructions
 
-You are an expert academic research agent equipped with `scholar-pdf-kit`. This toolkit resolves DOIs to legal Open Access PDFs from the providers' own open-access locations (OpenAlex `best_oa_location` → Unpaywall), validates binary `%PDF-` magic-byte integrity, and extracts structured section Markdown with standard YAML frontmatter.
+You are an expert academic research agent equipped with `scholar-pdf-kit`. This toolkit resolves DOIs to legal Open Access PDFs from the providers' own open-access locations (every open location OpenAlex and Unpaywall list), validates binary `%PDF-` magic-byte integrity, and extracts structured section Markdown with standard YAML frontmatter.
 
 > **Status (decision 2026-11-21, M12a items 21 to 27; K0).** `download` and
 > `ingest` are **production**. `extract`, `extract-run` and `acquire` are
@@ -26,16 +26,29 @@ You are an expert academic research agent equipped with `scholar-pdf-kit`. This 
 > - **refuse an institutional proxy**: `--proxy` or `PROXY_URL` is refused
 >   (`PROXY_REFUSED`, item 25); the proxy code stays, parked.
 >
+> Since H-pdf-resolver-locations (2026-11-21) `download` **takes the best open
+> copy listed with a direct PDF address**: both services are asked for every
+> DOI, and every open location in OpenAlex `locations` and Unpaywall
+> `oa_locations` is read, not only the "best" one;
+> published version first, then accepted manuscript, then submitted version or
+> preprint (M12a answer F3); at most three addresses are tried; a landing page
+> is never requested. The summary names the copy taken (version, licence,
+> source, provider). A DOI without a file says why, and so does the exit code:
+> 0 every DOI has its file; 3 a lookup failed (run again later); 1 a listed
+> address gave no PDF; 4 open access but no direct PDF address listed; 5 no
+> open copy listed.
+>
 > **Known defects Part K still repairs** (M12a record (d3)): OpenAlex is asked
 > without `SCHOLAR_OPENALEX_KEY` (keyless budget, then 409); 403/404/410 are
-> retried (PDF-06); a closed `is_oa` does not override a `pdf_url` (PDF-12); no
+> retried (PDF-06); the access status can still read open for a closed location that carries a
+> `pdf_url` (PDF-12; such a location is no longer requested); no
 > manifest says which `DOC-<sha>.pdf` belongs to which DOI (PDF-07); `ingest` and
 > `download --input <missing>` exit 0 on failure (PDF-15); the size floor, exports
 > and `--smart-names` (PDF-17, -18, -05); hard links only (PDF-03). Check outputs
 > by hand until then.
 
 ## Core Capabilities
-1. **Open Access Lookup**: Resolves legal OA full-text from OpenAlex `best_oa_location` → Unpaywall, and requests only the location the provider gives. The publisher direct-PDF patterns are off and are removed in Part K (M12a item 24); the institutional proxy is refused by `download` and `ingest` (item 25).
+1. **Open Access Lookup**: Resolves legal OA full-text from every open location OpenAlex lists (`best_oa_location`, `primary_location`, `locations`) and Unpaywall lists (`best_oa_location`, `oa_locations`); both services are asked once for every DOI and the best copy across both lists is taken. Only an address a provider gives is requested, best version first (published, accepted manuscript, submitted or preprint), at most three per DOI; a landing page is never requested. The publisher direct-PDF patterns are off and are removed in Part K (M12a item 24); the institutional proxy is refused by `download` and `ingest` (item 25).
 2. **Concurrent & Resilient Downloading**: Asynchronous staged retrieval (per-candidate temp file, validated before atomic promotion) with exponential backoff (tenacity: min 2 s, max 10 s, 3 attempts). Paywall/error HTML is rejected post-download by binary-signature validation, never by trusting HTTP success.
 3. **Strict Binary Signature Validation**: Requires `%PDF-<major>.<minor>` magic bytes within the first 1024 bytes, a `%%EOF` trailer within the final 8 KB, and a 10 KB size floor; unvalidated bytes are never promoted and staging files are unlinked. Optional `--strict-validate` runs pypdf structural parsing (encryption-tolerant) as a second gate.
 4. **Content-Addressed Output Naming**: Discovery `download` and manual `ingest` promote validated bytes to identity-addressed `DOC-<32 hex>.pdf` paths derived from content hash, never from a title, filename, or HTTP success. The `--smart-names` flag is still accepted on the CLI but does not control the final filename in the pinned implementation (see deferred defect D1). Structured metadata logs are exported via `--export json|bibtex`.
@@ -307,8 +320,11 @@ if __name__ == "__main__":
 
 ## Verified surface, MCP mapping & knowledge
 
-- **Lookup**: OpenAlex `best_oa_location` → Unpaywall; only the provider's own
-  location is requested (no guessed publisher URL, item 24; no proxy, item 25).
+- **Lookup**: every open location OpenAlex and Unpaywall list, both asked once
+  for every DOI (`scholar_pdf.open_copies`); only a provider's own direct PDF address is
+  requested, best version first, at most three per DOI (no guessed publisher URL,
+  item 24; no proxy, item 25). `DownloadResult` carries `outcome`, `open_copy`
+  (version, licence, host, source, provider) and `lookups`.
 - **Validation**: ≥ 10 KB size floor + versioned `%PDF-<major>.<minor>` regex
   within first 1024 bytes + `%%EOF` within final 8 KB; optional pypdf structural
   gate (`--strict-validate`, encryption-tolerant). Candidates download to staging
@@ -350,7 +366,7 @@ if __name__ == "__main__":
 
 ## Agent Guidelines & Best Practices
 
-- **Paywall Recognition**: Not all academic literature is Open Access. If resolution reports no legal OA copy (`success=False` with `access_status=UNRESOLVED`, legacy `was_oa=False`), clearly inform the user that no legal Open Access copy is available. Do not attempt to bypass commercial paywalls with web scrapers. HTTP success alone never means acquisition — only validated, promoted bytes count.
+- **Paywall Recognition**: Not all academic literature is Open Access. When `download` gives no file, read the result's `outcome` (the table's Status column), not `status=UNRESOLVED` alone, which covers three different cases: `LOOKUP_FAILED` (exit 3) means a service failed and the answer is incomplete, so say so and run again later, never "no open copy"; `OPEN_NO_DIRECT_PDF` (exit 4) means the paper is listed as open access with landing pages only, so the user gets the PDF from the named landing page and uses `ingest`; `NO_OPEN_COPY_LISTED` (exit 5) means neither service lists an open copy, which is not a paywall determination; `PDF_NOT_FETCHED` (exit 1) means a listed address gave no PDF. Do not attempt to bypass commercial paywalls with web scrapers. HTTP success alone never means acquisition — only validated, promoted bytes count.
 - **Frontmatter Preservation**: Always ensure extracted markdown contains YAML frontmatter (`workspace_id`, `doi`, `title`, `year`) before handing off to `scholar-rag-kit` for chunking and vector indexing.
 
 ## Preflight
@@ -365,7 +381,7 @@ if __name__ == "__main__":
 Codes this kit's existing content surfaces upstream:
 
 - `PATH_OUTSIDE_WORKSPACE` — output path escapes the canonical workspace root (`..`, absolute, drive, separator, or symlink).
-- `UNRESOLVED` — no legal OA copy found (fail-closed; never an empty success or a fabricated restricted confirmation).
+- `UNRESOLVED` — no direct open-access PDF address was resolved (fail-closed; never an empty success or a fabricated restricted confirmation). The `outcome` says which case: `LOOKUP_FAILED` (a service failed; incomplete, run again), `OPEN_NO_DIRECT_PDF` (open access, landing pages only) or `NO_OPEN_COPY_LISTED` (no open copy listed).
 - `UNSUPPORTED_ARTIFACT_TYPE` — kit-owned manifests (`pdf_acquisition_manifest`, `pdf_extraction_manifest`) passed to the frozen harness acceptance/chain registries.
 - `UNSUPPORTED_CAPABILITY` — MCP surface refusal for acquire/extract (declared unsupported; use CLI/API).
 - `OperationStatus=FAILED` — all-failure batches still publish a manifest with `records=[]` (distinguishable from a missing manifest).

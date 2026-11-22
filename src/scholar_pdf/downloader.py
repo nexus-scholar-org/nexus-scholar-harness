@@ -6,7 +6,7 @@ import logging
 import os
 import shutil
 import tempfile
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -19,6 +19,18 @@ from tenacity import (
 )
 
 from .config import require_contact_email, settings, user_agent
+from .open_copies import (
+    ACQUIRED,
+    ANSWERED,
+    FAILED,
+    MAX_OPEN_COPIES_TRIED,
+    NOT_FOUND,
+    PDF_NOT_FETCHED,
+    LookupOutcome,
+    OpenCopy,
+    open_copies,
+    unresolved,
+)
 from .publisher_patterns import (
     is_proxied_url,
     rewrite_via_proxy,
@@ -43,6 +55,24 @@ class DownloadResult:
     metadata: dict | None = None
     access_status: str | None = None
     status: str | None = None
+    # H-pdf-resolver-locations. ``outcome`` says why: ACQUIRED, PDF_NOT_FETCHED
+    # (addresses were listed, none gave a PDF), LOOKUP_FAILED, OPEN_NO_DIRECT_PDF
+    # or NO_OPEN_COPY_LISTED. ``status`` keeps its three values.
+    outcome: str | None = None
+    # The copy the file came from: its version, licence, host, source and provider.
+    open_copy: OpenCopy | None = None
+    # What each service asked answered (never the request itself).
+    lookups: tuple[LookupOutcome, ...] = ()
+    copies_listed: int = 0
+    copies_tried: int = 0
+
+
+@dataclass(frozen=True)
+class _Lookup:
+    """One service's answer for one DOI: the outcome, and the payload when it answered."""
+
+    outcome: LookupOutcome
+    payload: dict | None = None
 
 
 class AsyncPDFDownloader:
@@ -234,37 +264,59 @@ class AsyncPDFDownloader:
         finally:
             staging.unlink(missing_ok=True)
 
+    async def _lookup(
+        self, provider: str, http_client: AcademicHttpClient, doi: str
+    ) -> _Lookup:
+        """Ask one service about one DOI and keep what happened.
+
+        One request, as before. A 404 is an answer (the service does not know
+        the DOI); any other error or a body that is not a JSON object is a
+        failed lookup, kept with its HTTP status or its error's class name and
+        never with the error's text, which can hold the request address.
+        """
+        contact = require_contact_email()  # outside the try: a missing e-mail is refused, not a failed lookup
+        if provider == "openalex":
+            url = f"https://api.openalex.org/works/https://doi.org/{doi}"
+            params = {"mailto": contact}
+        else:
+            url = f"https://api.unpaywall.org/v2/{doi}"
+            params = {"email": contact}
+        try:
+            response = await http_client.get(
+                url, params=params, headers={"User-Agent": user_agent()}
+            )
+            status = response.status_code
+        except Exception as error:  # noqa: BLE001 - provider adapters vary
+            status = getattr(error, "status_code", None)
+            status = status if isinstance(status, int) else None
+            kind = type(error).__name__
+            logger.debug("%s lookup failed for %s: %s", provider, doi, kind)
+            state = NOT_FOUND if status == 404 else FAILED
+            return _Lookup(LookupOutcome(provider, state, status, kind))
+        if status == 404:
+            return _Lookup(LookupOutcome(provider, NOT_FOUND, status))
+        payload = None
+        if status == 200:
+            try:
+                payload = response.json()
+            except ValueError:  # a body that is not JSON
+                payload = None
+        if not isinstance(payload, dict):
+            kind = None if status != 200 else "NotAJsonObject"
+            return _Lookup(LookupOutcome(provider, FAILED, status, kind))
+        return _Lookup(LookupOutcome(provider, ANSWERED, status), payload)
+
     async def fetch_openalex_metadata(
         self, http_client: AcademicHttpClient, doi: str
     ) -> dict | None:
-        url = f"https://api.openalex.org/works/https://doi.org/{doi}"
-        try:
-            response = await http_client.get(
-                url,
-                params={"mailto": require_contact_email()},
-                headers={"User-Agent": user_agent()},
-            )
-            if response.status_code == 200:
-                return response.json()
-        except Exception as error:  # noqa: BLE001 - provider adapters vary
-            logger.debug("OpenAlex metadata lookup failed for %s: %s", doi, error)
-        return None
+        """The OpenAlex answer, or ``None``. ``_lookup`` also says why there is none."""
+        return (await self._lookup("openalex", http_client, doi)).payload
 
     async def fetch_unpaywall_metadata(
         self, http_client: AcademicHttpClient, doi: str
     ) -> dict | None:
-        url = f"https://api.unpaywall.org/v2/{doi}"
-        try:
-            response = await http_client.get(
-                url,
-                params={"email": require_contact_email()},
-                headers={"User-Agent": user_agent()},
-            )
-            if response.status_code == 200:
-                return response.json()
-        except Exception as error:  # noqa: BLE001 - provider adapters vary
-            logger.debug("Unpaywall metadata lookup failed for %s: %s", doi, error)
-        return None
+        """The Unpaywall answer, or ``None``. ``_lookup`` also says why there is none."""
+        return (await self._lookup("unpaywall", http_client, doi)).payload
 
     def extract_metadata(self, oa_data: dict, source: str) -> dict:
         metadata = {"title": "", "author": "", "year": ""}
@@ -320,108 +372,114 @@ class AsyncPDFDownloader:
         """Resolve OA evidence and atomically acquire a PDF for one DOI."""
         require_contact_email()  # refused before any request (MAILTO_NOT_SET)
         try:
-            openalex_data = await self.fetch_openalex_metadata(http_client, doi)
+            # Both services are asked for every DOI, once each (decision
+            # 2026-11-21, H-pdf-resolver-locations item 4, "Always ask both
+            # services"), so the best copy is chosen across both lists.
+            openalex = await self._lookup("openalex", http_client, doi)
+            unpaywall = await self._lookup("unpaywall", http_client, doi)
+            openalex_data, unpaywall_data = openalex.payload, unpaywall.payload
+            lookups: tuple[LookupOutcome, ...] = (openalex.outcome, unpaywall.outcome)
             metadata: dict = {}
-            pdf_url = None
             if openalex_data:
-                for location_key in ("best_oa_location", "primary_location"):
-                    location = openalex_data.get(location_key) or {}
-                    if isinstance(location, dict):
-                        pdf_url = location.get("pdf_url") or location.get("url_for_pdf")
-                        if pdf_url:
-                            break
-                pdf_url = pdf_url or openalex_data.get("url_for_pdf")
                 metadata = self.extract_metadata(openalex_data, "openalex")
+            if unpaywall_data and not metadata.get("title"):
+                metadata = self.extract_metadata(unpaywall_data, "unpaywall")
 
-            unpaywall_data = None
-            if not pdf_url:
-                unpaywall_data = await self.fetch_unpaywall_metadata(http_client, doi)
-                if unpaywall_data:
-                    for location_key in ("best_oa_location", "primary_location"):
-                        location = unpaywall_data.get(location_key) or {}
-                        if isinstance(location, dict):
-                            pdf_url = location.get("url_for_pdf") or location.get(
-                                "pdf_url"
-                            )
-                            if pdf_url:
-                                break
-                    pdf_url = pdf_url or unpaywall_data.get("url_for_pdf")
-                    if not metadata.get("title"):
-                        metadata = self.extract_metadata(unpaywall_data, "unpaywall")
+            # Every listed open location with a direct address, best version
+            # first (M12a answer F3); a landing page is never an address.
+            copies = open_copies(openalex_data, unpaywall_data)
 
             access_status = self._provider_access_status(openalex_data, unpaywall_data)
+            if copies and access_status == "UNRESOLVED":
+                # A location its provider marks open is that provider's evidence.
+                access_status = "VERIFIED_OPEN_ACCESS"
             was_oa = access_status == "VERIFIED_OPEN_ACCESS"
-            if not pdf_url:
-                return DownloadResult(
-                    doi=doi,
-                    success=False,
-                    was_oa=was_oa,
-                    status="UNRESOLVED",
-                    access_status=access_status,
-                    metadata=metadata or None,
-                    error_message=(
-                        "No legal open-access PDF URL was resolved from "
-                        "OpenAlex/Unpaywall; this is not a paywall determination."
-                    ),
-                )
-
-            # Only the provider's own open-access location: no guessed
-            # publisher URL, whatever the setting says (K0, M12a items 24, 27).
-            candidates: list[str] = [pdf_url]
-
-            if self.institutional_gateway_url and not is_proxied_url(
-                pdf_url, self.institutional_gateway_url
-            ):
-                for candidate in list(candidates):
-                    proxied = rewrite_via_proxy(
-                        candidate,
-                        self.institutional_gateway_url,
-                        style=self.proxy_style,
-                    )
-                    if proxied != candidate:
-                        candidates.append(proxied)
-
-            last_error: str | None = None
-            for candidate in candidates:
-                candidate_path = self._new_staging_path()
-                try:
-                    success = await self.download_pdf(
-                        session,
-                        candidate,
-                        candidate_path,
-                        forward_proxy_url=self.forward_proxy_url or None,
-                    )
-                    if not success:
-                        last_error = "Failed to download or invalid PDF"
-                        continue
-                    final_path, _ = self._promote_candidate(candidate_path)
-                    return DownloadResult(
-                        doi=doi,
-                        success=True,
-                        file_path=final_path,
-                        was_oa=was_oa,
-                        status="ACQUIRED",
-                        access_status=access_status,
-                        metadata=metadata or None,
-                    )
-                except Exception as error:  # noqa: BLE001 - provider adapters vary
-                    last_error = str(error)
-                    logger.debug(
-                        "PDF candidate failed for %s via a redacted provider URL: %s",
-                        doi,
-                        error,
-                    )
-                finally:
-                    candidate_path.unlink(missing_ok=True)
-
-            return DownloadResult(
+            result = DownloadResult(
                 doi=doi,
                 success=False,
                 was_oa=was_oa,
-                status="FAILED",
                 access_status=access_status,
                 metadata=metadata or None,
-                error_message=last_error or "Failed to download or invalid PDF",
+                lookups=lookups,
+                copies_listed=len(copies),
+            )
+            if not copies:
+                outcome, message = unresolved(
+                    lookups, {"openalex": openalex_data, "unpaywall": unpaywall_data}
+                )
+                return replace(
+                    result, status="UNRESOLVED", outcome=outcome, error_message=message
+                )
+
+            last_error: str | None = None
+            tried = 0
+            for copy in copies[:MAX_OPEN_COPIES_TRIED]:
+                tried += 1
+                # Only the provider's own open-access location: no guessed
+                # publisher URL, whatever the setting says (K0, M12a items 24, 27).
+                candidates: list[str] = [copy.url]
+                if self.institutional_gateway_url and not is_proxied_url(
+                    copy.url, self.institutional_gateway_url
+                ):
+                    # Parked gateway code (item 25): only when a caller passes one.
+                    proxied = rewrite_via_proxy(
+                        copy.url,
+                        self.institutional_gateway_url,
+                        style=self.proxy_style,
+                    )
+                    if proxied != copy.url:
+                        candidates.append(proxied)
+
+                for candidate in candidates:
+                    candidate_path = self._new_staging_path()
+                    try:
+                        success = await self.download_pdf(
+                            session,
+                            candidate,
+                            candidate_path,
+                            forward_proxy_url=self.forward_proxy_url or None,
+                        )
+                        if not success:
+                            last_error = "Failed to download or invalid PDF"
+                            continue
+                        final_path, _ = self._promote_candidate(candidate_path)
+                        return replace(
+                            result,
+                            success=True,
+                            file_path=final_path,
+                            status="ACQUIRED",
+                            outcome=ACQUIRED,
+                            # The label follows the bytes: a file fetched through
+                            # the parked gateway is not that open location's copy.
+                            open_copy=copy if candidate == copy.url else None,
+                            copies_tried=tried,
+                        )
+                    except Exception as error:  # noqa: BLE001 - provider adapters vary
+                        last_error = str(error)
+                        logger.debug(
+                            "PDF candidate failed for %s via a redacted provider URL: %s",
+                            doi,
+                            error,
+                        )
+                    finally:
+                        candidate_path.unlink(missing_ok=True)
+
+            message = last_error or "Failed to download or invalid PDF"
+            if len(copies) > 1:
+                message = f"{message} ({tried} of {len(copies)} listed addresses tried)"
+            for lookup in lookups:
+                if lookup.state == FAILED:
+                    # The other service may list an address this run never saw.
+                    message = (
+                        f"{message}; {lookup.name} {lookup.failure()}, "
+                        "so its list was not read"
+                    )
+            return replace(
+                result,
+                status="FAILED",
+                outcome=PDF_NOT_FETCHED,
+                copies_tried=tried,
+                error_message=message,
             )
         except Exception as error:  # noqa: BLE001 - provider adapters vary
             return DownloadResult(
@@ -461,13 +519,17 @@ class AsyncPDFDownloader:
 
         staging: Path | None = None
         try:
-            openalex_data = await self.fetch_openalex_metadata(http_client, doi)
+            openalex = await self._lookup("openalex", http_client, doi)
+            openalex_data = openalex.payload
+            lookups: tuple[LookupOutcome, ...] = (openalex.outcome,)
             unpaywall_data = None
             metadata: dict = {}
             if openalex_data:
                 metadata = self.extract_metadata(openalex_data, "openalex")
             else:
-                unpaywall_data = await self.fetch_unpaywall_metadata(http_client, doi)
+                unpaywall = await self._lookup("unpaywall", http_client, doi)
+                unpaywall_data = unpaywall.payload
+                lookups = (*lookups, unpaywall.outcome)
                 if unpaywall_data:
                     metadata = self.extract_metadata(unpaywall_data, "unpaywall")
 
@@ -482,6 +544,7 @@ class AsyncPDFDownloader:
                     access_status=access_status,
                     metadata=metadata or None,
                     error_message="The provided file is not a valid PDF.",
+                    lookups=lookups,
                 )
             final_path, _ = self._promote_candidate(staging)
             return DownloadResult(
@@ -492,6 +555,7 @@ class AsyncPDFDownloader:
                 status="ACQUIRED",
                 access_status=access_status,
                 metadata=metadata or None,
+                lookups=lookups,
             )
         except Exception as error:  # noqa: BLE001 - provider adapters vary
             return DownloadResult(
