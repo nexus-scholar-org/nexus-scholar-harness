@@ -245,7 +245,7 @@ Shared frame (`inception-frame.tsx`, every screen 01 to 07), then 01 Scope, 02 E
 | I-C15 | `criteria.missingSide.inclusion`, `missingSide.exclusion` | "No inclusion criterion is accepted yet. Accept one above or add your own." | STAYS | V2 warning that blocks Review |
 | I-C16 | `criteria.matrix`, `criteria.tickAll` | "Extraction matrix columns", "Tick all suggested columns" | STAYS | V7 |
 | I-C17 | `criteria.matrixHelp` | "Ticked columns are saved in the protocol. With none ticked, the protocol has no matrix columns." | HINT | T1/T3 |
-| I-C18 | `criteria.matrixParked` | "Parked: the Matrix phase that fills these columns is not in production." | STAYS | V2 an honest "not in production" |
+| I-C18 | `criteria.matrixCharting` | "These columns are filled on the Charting step." | STAYS | V2 says where the columns are filled (M12a DoD 9 replaced the parked line, `criteria.matrixParked`) |
 | I-C19 | `criteria.verification` | "Run the post-screening verification checks (...)" | STAYS | V7 option label |
 | I-C20 | `criteria.verificationParked` | "Advisory: Phase 4 checks are parked; this choice is saved in the protocol, nothing runs them yet." | STAYS | V2 an honest "not in production" |
 | I-C21 | `criteria.continue` | "Continue to review" | STAYS | V7 main action |
@@ -492,6 +492,13 @@ Triage has not adopted this audit (no Screening screen is in `tests/guidance-scr
 | S-TM6 | `marks.quote.show` | "Show in the text" | STAYS | an action |
 | S-TM7 | `marks.quote.notFound` | "Not found at its place in the record, so it is not marked." | STAYS | V3 says why a quote is not marked |
 
+### Screening (phase 2): the pilot result (M11b part C, 2026-11-22), not counted yet
+The result of `13-criteria-pilot` (`components/screening-pilot-copy.ts`). Only its hint is listed; the rest of the screen is not audited yet, as for Triage above.
+
+| ID | Keys | Sentence (en) | Decision | Reason |
+| :-- | :-- | :-- | :-- | :-- |
+| S-PL1 | `checkHint`, `actions.checkHint` | "It sends the titles and abstracts of these records to the provider you choose, and it costs money. …" | HINT | T1 what the agent check does is explanation, one tap away; the dialog it opens names the provider, the model and the cost before anything is sent |
+
 
 ### Counts per decision
 (Counted by the test `guidance.audit.test.tsx` from the tables above.)
@@ -602,7 +609,7 @@ None.
 
 Closed by the researcher on 2026-11-15 (record: `docs/roadmap/milestones/M10b-proposals-checks.md`, R8 and "Adopted from the writers' recommendations"):
 1. Two exceptions to the brand book are allowed: the hint button is an icon-only control named by its `aria-label`, and "Recommended" uses the neutral dashed badge. They are recorded as one `docs/decisions.md` entry (written when M10a's entries are merged, because that branch edits the file) and one line in the brand book's Iconography section, added with M10d's first slice.
-2. The four limitations stay visible and are not moved behind a hint: `explore.pool.langNote`, `criteria.matrixParked`, `criteria.verificationParked`, `plan.limits.cap.engine_ceiling`.
+2. The four limitations stay visible and are not moved behind a hint: `explore.pool.langNote`, `criteria.matrixCharting` (until M12a `criteria.matrixParked`), `criteria.verificationParked`, `plan.limits.cap.engine_ceiling`.
 3. The fold plan of rule 4 is built for Explore and Review first, as M10d's first slice. The researcher looks at both with real data before Criteria, Harvest, Report and Chase are folded; those four keep their current layout until then.
 4. On Report, "I reviewed this text" is the one brand button while the methods text is unreviewed, and "Continue to hand-off" becomes the brand button after; the researcher can still continue earlier through a secondary link.
 5. The density numbers B1 to B6 are the starting budget enforced by `density.budget.test.tsx`; they change only by editing this spec and the test together, after Explore has been tried. `overview.continue` and the second sentence of `done.lede` stay until the what's-next bar of `04-next-step` is built.

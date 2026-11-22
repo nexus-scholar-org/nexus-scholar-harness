@@ -237,3 +237,14 @@ describe("home.compact (M6-beta, spec 01 amendment)", () => {
     expect(document.querySelector("[data-export-link]")).toBeNull();
   });
 });
+
+describe("screening-home.charting (M12a)", () => {
+  it("links to the charting screen beside Export while the screening is published", async () => {
+    engine({
+      "/api/console/api/v1/ui/publication-status": { shape: "ui07.publication-status-v1", status: "CURRENT", code: null, generation_id: "GEN-1", outputs: {}, message: "", details: {} },
+    });
+    render(<ScreeningHome locale="fr" />);
+    const link = await screen.findByRole("link", { name: "Extraire les données des études incluses" });
+    expect(link).toHaveAttribute("href", "/fr/charting");
+  });
+});

@@ -395,8 +395,8 @@ export function InceptionCriteria({ locale }: Readonly<{ locale: Locale }>) {
               <span id="criteria-matrix-legend">{t("criteria.matrix")}</span>
               <Hint locale={locale} label={t("criteria.matrix")} text={t("criteria.matrixHelp")} textKey="criteria.matrixHelp" className="ms-1" />
             </legend>
-            <p className="mt-1 inline-block rounded-sm border border-dashed border-rule px-2 text-xs text-ink-muted" data-parked="matrix">
-              {t("criteria.matrixParked")}
+            <p className="mt-1 text-xs text-ink-muted" data-charting-note>
+              {t("criteria.matrixCharting")}
             </p>
             <div className="mt-2">
               <Button

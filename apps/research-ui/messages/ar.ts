@@ -38,6 +38,7 @@ const ar: Record<MessageKey, string> = {
     "يُسجَّل كل قرار في سجل التدقيق الخاص بمساحة العمل.",
   "nav.discovery": "الاستكشاف",
   "nav.screening": "الفرز",
+  "nav.charting": "استخراج البيانات",
   "nav.workspaces": "مساحات العمل",
   "nav.landmark.primary": "التنقل الرئيسي",
   "a11y.openMainNavigation": "فتح قائمة التنقل الرئيسية",
