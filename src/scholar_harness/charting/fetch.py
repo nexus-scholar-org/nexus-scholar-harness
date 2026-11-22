@@ -84,6 +84,8 @@ DISCARD_REASON_REQUIRED = "DISCARD_REASON_REQUIRED"
 FETCH_FILE_WAITING = "FETCH_FILE_WAITING"
 
 KINDS = ("fetched_confirm", "fetched_discard")
+#: The licence words of an arXiv copy whose answer names none (record (d2)).
+ARXIV_NO_LICENCE = "arXiv; licence not given"
 DISCARD_REASONS = ("wrong_paper", "not_full_text", "unreadable", "other")
 #: The kit's outcome for a record with neither a DOI nor an arXiv id.
 SKIPPED_NO_ID = "SKIPPED_NO_ID"
@@ -198,7 +200,7 @@ def pending_view(row: dict[str, Any]) -> dict[str, Any]:
     names = {"openalex": "OpenAlex", "unpaywall": "Unpaywall", "arxiv": "arXiv"}
     licence = row.get("license")
     if licence is None and provider == "arxiv":
-        licence = "arXiv; licence not given"
+        licence = ARXIV_NO_LICENCE
     return {
         "manifest_row": row.get("row_id"),
         "run_id": row.get("run_id"),
@@ -934,7 +936,9 @@ async def _execute(live: _Live, records: list[dict[str, Any]], deps: Deps) -> No
                     copies = []
                     if entry.pdf_url:
                         copies.append(OpenCopy(
-                            url=entry.pdf_url, version="submittedVersion", license=entry.license,
+                            # Record (d2): "arXiv; licence not given" unless the answer carries one.
+                            url=entry.pdf_url, version="submittedVersion",
+                            license=entry.license or ARXIV_NO_LICENCE,
                             host_type="repository", source_name="arXiv", provider="arxiv",
                             version_label=f"preprint (arXiv {entry.version or 'version not given'})",
                         ))

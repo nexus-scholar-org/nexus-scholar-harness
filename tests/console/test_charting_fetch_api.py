@@ -639,6 +639,7 @@ def test_an_arxiv_only_record_is_asked_of_arxiv_and_fetched_from_the_link_arxiv_
     row = next(r for r in manifest(world["ws"]) if r["study_id"] == world["arxiv"])
     assert row["address"].endswith("/pdf/2101.01234v3") and row["version_label"] == "preprint (arXiv v3)"
     assert row["arxiv_id"] == "2101.01234" and row["arxiv_version"] == "v3"
+    assert row["license"] == "arXiv; licence not given"  # in the manifest itself (record (d2))
     assert [lk["service"] for lk in row["lookups"]] == ["arxiv"]
     # The arXiv-only record never reaches the DOI services.
     assert all("2101.01234" not in url for url, _ in lookups.calls)
