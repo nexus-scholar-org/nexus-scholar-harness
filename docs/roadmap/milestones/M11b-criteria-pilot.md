@@ -650,3 +650,4 @@ Follow-ups taken: the earlier-decision card is a labelled region; "Draft again" 
 | Stage | Commit | Command | Result | Duration |
 | :-- | :-- | :-- | :-- | :-- |
 | targeted | working tree after the repairs | `vitest run` of the pilot result, the pilot card, Triage's pilot file and Prepare; `tsc` | 70 passed (9 of the new ones fail with the components of `7c9e3311`); clean | 40 s |
+| pr (round 1 repairs) | `02848caa` | `npm run typecheck`; `vitest run` (full); `npm run test:browser` (build, then the full browser suite, port 3127); the Python suite of `ec7f2a98` stands (no file under `src/`, `tests/` or `scripts/` changed since) | clean; 82 files, 1172 passed; 674 passed, 12 skipped, 0 failed (four unrelated screenshots rewritten again and restored) | 148 s; 998 s |
