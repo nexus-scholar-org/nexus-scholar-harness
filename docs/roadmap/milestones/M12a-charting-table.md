@@ -587,3 +587,7 @@ Evidence after round 1:
 | pr (final) | `a7b60db2` (code as `a6a32eeb`) | `pytest -q -n 4` (junit), started when no other pytest, vitest or Playwright run was on the machine; `sync_skills_bundle.py --check`; both ruff runs; baseline; protocol schema; `git diff --check origin/main...HEAD` | 6375 tests, 0 failures, 0 errors, 15 skipped; OK; clean; current; in sync; clean | 641 s |
 
 A first start of this gate was cut off when the desktop app restarted; its leftover workers were ended and the gate was run again from the start.
+
+Review round 2 (`milestone-reviewer`, on `70c58559`, the repair delta `560f5dc6..HEAD`): **APPROVE**. In its words: "All eight round 1 findings are resolved: six repaired, P4-3 recorded as a deviation and P4-7 listed as a follow-up. Nothing in the delta opens a new P1, P2 or P3." It reran the kit's tests (333, 0 failures, 7 skipped), the baseline check, the real-bug ruff run and `git diff --check`, all clean. One P4 follow-up: the no-cache test drives `download` only; `ingest` and `download_batch` are checked by reading.
+
+**Part K: READY FOR PR** (not pushed). Branch `dev/m12a/part-k-kit-download`, from `origin/main` `55755bd7`; it shares no file with Parts B and F. Decision items 1 to 20 are PROPOSED (item 1 narrows the resolver's accepted item 4 for the keyless case; item 17 proposes PMC's own open-access route for a later decision). The push waits for the researcher's approval through the main session.
