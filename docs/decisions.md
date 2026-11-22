@@ -95,6 +95,19 @@ After review round 1 (engine):
 
 **Lane RELEASE** (new routes, a new persisted record and journal rows, refusal codes, outgoing requests, a change to the arXiv provider's parsing).
 
+## 2026-11-22 — H-adopted-decisions-disclosure: decisions stored from the agent's drafts are declared (items 1 to 6 answered by the researcher 2026-11-22, each as recommended; a specification, nothing built)
+
+Record: `docs/roadmap/milestones/H-adopted-decisions-disclosure.md`. Found by the walk of the published sensor-stress review (findings 43 and 44 of `docs/roadmap/acceptance-run-sensor-stress-2026-11-20.md`): with 996 of 1,062 decisions stored in bulk as `method: HUMAN`, Publish passes "Every decision is a human decision", Agreement reports 99.9% and "You saw every record. No sample needed.", and the methods text says one reviewer screened every record. Asked in the main session, one by one. The ladder decision of 2026-11-10 (`AGENT_ADOPTED`, M9b) is unchanged; this covers decisions already stored as the reviewer's and changes no Contract v1 file.
+
+1. **A declaration recorded by the researcher, now**: an append-only `audit/adoption_declarations.jsonl` naming the decision events "stored from the agent's draft without being read one by one"; the events are not rewritten. *Not chosen:* wait for M9b.
+2. **Candidates by the note's wording**, offered for confirmation, never applied silently. *Not chosen:* by timing; both.
+3. **Undeclared candidates do not block publication** ("Look at this"). *Not chosen:* block.
+4. **An owed sample does not block publication**; it is stated on Agreement, Publish and in the methods text. *Not chosen:* block.
+5. **A declaration on a published review makes only the methods export out of date.** *Not chosen:* the whole generation.
+6. **The phrase: "stored from the agent's draft without being read one by one".**
+
+The researcher also answered: the build starts after M12a Part F is ready for its PR, in a session of its own. Lane RELEASE (proposed in the record).
+
 ## 2026-11-22 — M11b follow-up: a placeholder workspace does not sign the not-reported rule (items 1 to 7 accepted by the researcher 2026-11-22 as built; item 8 changed by the researcher to the alternative, a line on Prepare, built; M11b-criteria-pilot, "Follow-up: placeholder workspaces")
 
 Record: `docs/roadmap/milestones/M11b-criteria-pilot.md`, "Build record", "Follow-up: placeholder workspaces". Part D (entry "2026-11-21 — M11b part D", answers 8 and 12) gave the rule no default at step 5, Review, genesis and the terminal wizard; the researcher left the placeholder scaffold out of part D and approved its fix as a follow-up PR. The placeholder scaffold is one function, `scaffold_placeholder_workspace`, behind `nexus-scholar init --scaffold-only` and the Workspaces "Create" (`POST /api/v1/workspaces`); it asks no question and wrote `method.not_reported: "unclear"` into the signed protocol. Nothing here changes a Contract v1 file, the protocol model or schema, or an existing protocol; `generate_contract_baseline.py --check` is current. The researcher answered on 2026-11-22 in the main session ("go with recommendations": accept 1 to 7 as built; on item 8 take the alternative).
@@ -338,7 +351,6 @@ Record: `docs/roadmap/milestones/M12a-charting-table.md`, "Build record", Part A
 
 **Lane RELEASE** (new public routes and refusal codes, a new persisted record, a new reader of published artifacts, a change to the same-origin proxy).
 
-
 ## 2026-11-21 — M11b part A: criteria in force, the build's choices (items 1 to 11 answered by the researcher 2026-11-21: ten accepted as built, item 5 changed to "bind the version"; M11b-criteria-pilot, part A)
 
 Record: `docs/roadmap/milestones/M11b-criteria-pilot.md`, "Build record, part A". Choices the specification leaves open, found when the code was read at `dacabd94` (step 0 of the build). The researcher answered them in the main session on 2026-11-21: items 1 and 10 "Accept as built"; item 9 "Accept"; items 2, 3, 4, 6, 7 and 8 "Accept as built" (asked together); item 5 "Bind the version" (the alternative the question recommended), built before part A's PR.
@@ -374,7 +386,6 @@ Record: `docs/roadmap/milestones/M11b-criteria-pilot.md`; the researcher's page:
 10. **Parts and order A, B, C, then D** (accepted, as recommended; D after M11a part C is merged). Re-sized: A large (unchanged), B large (was medium: a second decision store and intake), C medium, D medium (was small to medium). The build starts when the researcher says.
 11. **Answered "Counts only" (as recommended, 2026-11-21; from items 5 and 9): the pilot result never shows the agent's draft for one record.** It meets the screening API contract (accepted 2026-11-04, §3.1): "`proposal_shown` is `null` when the researcher decided before any proposal was revealed. With blinding on (the default) it is always `null` at decision time" and "A reveal (M1b-0) is the first time `GET /records/{id}/proposal` returns a proposal to a screener." Chosen: counts only, never per record, and the main screening shows nothing of the pilot decision, so the contract does not change. *Not chosen:* a draft on request recorded as a reveal; show freely and report those records as not blind (each amends the contract).
 12. **Answered "Yes, it asks too" (as recommended, 2026-11-21; from item 8): the terminal wizard** (`scholar-harness inception`) asks the not-reported rule with no default, and a scripted run needs `--not-reported <rule>`; a small CLI change in part D.
-
 
 ## 2026-11-21 — M12a K0: `download` and `ingest` production, the four repairs as built (items 1 to 9 accepted by the researcher 2026-11-21)
 
@@ -524,7 +535,6 @@ This milestone's choices (accepted by the researcher 2026-11-21, as built):
 
 **Lane RELEASE** (`test_gate_policy.md`): two additive fields on public console routes. No Contract v1 schema, protocol schema, identity, fingerprint, event or publication change.
 
-
 ## 2026-11-21 — M11a Part B: known papers, comparison sets and the search development at genesis (items 1 to 10 accepted by the researcher 2026-11-21)
 
 Record: `docs/roadmap/milestones/M11a-query-workbench.md`, "Part B". Branch `dev/m11a/part-b-seeds-comparison`, built on Part A's branch. What the specification decided (OpenAlex only for the per-database checks, behind a switch; a comparison set never added to the corpus; the development saved under `audit/query_development/`; the two fixed checks never blockers) is built as decided. No Contract v1 model, schema, identity or fingerprint changes: the new files are side files outside the baseline; the preview's `files` list grows by the development files a draft has.
@@ -561,7 +571,6 @@ Record: `docs/roadmap/milestones/M11a-query-workbench.md`, "Part A". Branch `dev
 13. **The budget is reserved before sending, and the shared file is never read as empty when it cannot be read** (review of Part A, round 1). A Count takes its whole planned cost from the budgets in one locked step and gives back what it did not send (a database stopped by its first failure); two Counts at once can no longer both pass. A state file that cannot be read after five tries refuses with `WORKBENCH_STATE_UNREADABLE` (503) and is not overwritten, so a moment's lock by another program cannot erase every pause and the day's spending. *Limit:* the lock is per console process; two consoles on one root are not serialised.
 
 **Lane RELEASE** (`test_gate_policy.md`): six new public POST routes, three new refusal codes, a persisted file under `audit/`, additive fields on the estimate's rows.
-
 
 ## 2026-11-21 — The M11a screen questions closed; H-run-small-fixes Part C accepted (accepted by the researcher 2026-11-21)
 
@@ -634,7 +643,6 @@ Record and full design: `docs/roadmap/milestones/M3f-combined-corpus.md`. Found 
 7. **The report and methods text name how each source was obtained (PRISMA-S).** The corpus run's report lists each searched database with its recorded query (`kind: "search"`) and each export with the date, search string and limits the researcher stated (`kind: "import"`, "not stated" when absent); its `dedup` is the combined one. The methods text adds the exports sentence with those details, one sentence that the imported records were not checked, and "Deduplication across the N sources removed …". The screening export's "Records were identified from …" lists both parts.
 8. **Out of scope:** retrying one failed database (finding 13: the harvest part would be several runs), several queries per review (finding 22, a contract decision), an export as a recall comparison set (finding 21), checking imported records (item 4), adding sources after the accept (M3g's round mechanism), a "discard this harvest" action, CSV import, near-twin review (M3e), the import-only report and Duplicates 404s (M3d-engine deferred), and a harvest-only corpus's PRISMA "records identified", which the code counts as works with 0 duplicates (read from the code, not run; changing it changes published numbers, so it is a follow-up with its own decision).
 
-
 ## 2026-11-20 — H-run-small-fixes Part A: approve every decided batch from one paste; the codes also shown in a desktop window (items 1 to 7 accepted by the researcher 2026-11-20; item 4 changes the wording of the 2026-11-04 decision "Approval: terminal-only code")
 
 Record: `docs/roadmap/milestones/H-run-small-fixes.md`, Part A. Found by the acceptance run of 2026-11-20 (finding 38): approval was one batch at a time, each with a one-time code printed in the engine's terminal; the real review has 54 batches of 20, so 54 codes, and the terminal is not visible to a researcher for whom the app was started. Contract v1 baseline current before and after; no Contract v1 schema, model, identity or artifact changes.
@@ -649,7 +657,6 @@ Record: `docs/roadmap/milestones/H-run-small-fixes.md`, Part A. Found by the acc
 
 **Lane RELEASE** (`test_gate_policy.md`): two new public routes on the approval path, an additive public value (`code_shown_on: "desktop"`), and a change to how an approval act is shown.
 
-
 ## 2026-11-20 — The order of work after the acceptance run (accepted by the researcher 2026-11-20)
 
 Record: `docs/roadmap/production-plan.md` §6, "After the acceptance run"; motivation: `docs/roadmap/what-a-researcher-does.md`; evidence: `docs/roadmap/acceptance-run-sensor-stress-2026-11-20.md` (37 findings).
@@ -661,7 +668,6 @@ Record: `docs/roadmap/production-plan.md` §6, "After the acceptance run"; motiv
 5. **Specifications first for M11a and M11b:** neither has one; each is written and read by the researcher before anything is built, as for M10b.
 6. **At most two milestones in flight,** because the researcher's decisions and reviews are the bottleneck. **One outside researcher uses the app without help before b7.**
 7. **Waiting:** M9b and M9c (the M9a measurement is read again under `decisive_first` first), M10e, M3e (conditional), M2. The Matrix beyond the charting table, synthesis, the graph and the risk-of-bias trust score stay parked.
-
 
 ## 2026-11-20 — H-screening-drafts: a decisive answer first, the method amended after genesis, drafts derived under the rule in force (items 1 to 10 accepted by the researcher 2026-11-20, including the spend to measure `screen-v2` on Haiku 5.5; item 2 changes the 2026-11-08 decision "Method parameters move into the protocol")
 
