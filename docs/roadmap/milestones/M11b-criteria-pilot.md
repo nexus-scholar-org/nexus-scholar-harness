@@ -579,7 +579,7 @@ Part B's decision items 1 to 13 were accepted by the researcher on 2026-11-21 (m
 
 ### Part C: the screening screens
 
-Branch `dev/m11b/part-c-screens`, stacked on part B (PR 277 head `ea260382` merged in, and `origin/main` `64fd8212`, M12a part A) · Lane **RELEASE** (re-declared after review round 1, finding 1: the public queue answer gains `shown_again`, `pilot_decision` and a new order of "Needs you"; `GET /criteria` changes `can_amend` and gains `handoff_batches`; the browser POST allowlist widens; a refusal message changes. Closure evidence is the CI matrix on the PR, which only the push can run) · Spec `docs/ux/phase2-screening/final/13-criteria-pilot.md` FINAL (2026-11-21, questions 5 to 8 answered by the researcher) · Decisions: `docs/decisions.md` "2026-11-22 — M11b part C" items 1 to 16 (PROPOSED) · Status: **IN PROGRESS** (gates and review below).
+Branch `dev/m11b/part-c-screens`, stacked on part B (PR 277 head `ea260382` merged in, and `origin/main` `64fd8212`, M12a part A) · Lane **RELEASE** (re-declared after review round 1, finding 1: the public queue answer gains `shown_again`, `pilot_decision` and a new order of "Needs you"; `GET /criteria` changes `can_amend` and gains `handoff_batches`; the browser POST allowlist widens; a refusal message changes. Closure evidence is the CI matrix on the PR, which only the push can run) · Spec `docs/ux/phase2-screening/final/13-criteria-pilot.md` FINAL (2026-11-21, questions 5 to 8 answered by the researcher) · Decisions: `docs/decisions.md` "2026-11-22 — M11b part C" items 1 to 17 (PROPOSED) · Status: **IN PROGRESS** (gates and review below).
 
 The engine side (the follow-ups the part A and B reviews left for part C):
 - The browser may POST to `api/v1/screening/criteria/amendments`, `api/v1/screening/pilot` and `api/v1/screening/pilot/pilot_NNN/(decisions|close)` (`console/browser.py` and the development proxy `route.ts`, kept equal).
@@ -617,7 +617,7 @@ Fails before: on part B's head the pilot result route `/screening/pilot` does no
 
 Contract v1: unchanged (`generate_contract_baseline.py --check` current). The two queue fields are additive to the screening API (contract §4 notes), not Contract v1.
 
-Not verified: no live engine and no real browser session with a real workspace (the browser tests answer the console proxy with a fake of the engine's shapes); no model call (the agent check is tested against a fake run); the phone (desktop only, answer 8); wording and layout stay open until the researcher sees the built screens (spec 13). Decision items 1 to 16 wait for the researcher.
+Not verified: no live engine and no real browser session with a real workspace (the browser tests answer the console proxy with a fake of the engine's shapes); no model call (the agent check is tested against a fake run); the phone (desktop only, answer 8); wording and layout stay open until the researcher sees the built screens (spec 13). Decision items 1 to 17 wait for the researcher.
 
 Evidence (part C; Python with `-n 4`, one heavy job at a time):
 
@@ -651,3 +651,5 @@ Follow-ups taken: the earlier-decision card is a labelled region; "Draft again" 
 | :-- | :-- | :-- | :-- | :-- |
 | targeted | working tree after the repairs | `vitest run` of the pilot result, the pilot card, Triage's pilot file and Prepare; `tsc` | 70 passed (9 of the new ones fail with the components of `7c9e3311`); clean | 40 s |
 | pr (round 1 repairs) | `02848caa` | `npm run typecheck`; `vitest run` (full); `npm run test:browser` (build, then the full browser suite, port 3127); the Python suite of `ec7f2a98` stands (no file under `src/`, `tests/` or `scripts/` changed since) | clean; 82 files, 1172 passed; 674 passed, 12 skipped, 0 failed (four unrelated screenshots rewritten again and restored) | 148 s; 998 s |
+
+Review round 2 of part C (on `f6d26718`): **APPROVE** (lane RELEASE confirmed). The eight repairs confirmed with their tests (90 tests of the five repaired files passed at head). One P3, taken: the agent-check dialog left focus on the page once the run view replaced the form; focus now moves into the run view, to Cancel while it runs (`pilot.calibration-dialog` test asserts it). One P4, taken: the record names decision items 1 to 17. Noted, not changed: if `/summary` fails at boot, the pilot banner reads "0 of 0" (the counts are the engine's only); `pilot.saved` stays with the parked P4s.

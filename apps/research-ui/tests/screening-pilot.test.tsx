@@ -298,10 +298,14 @@ describe("pilot.calibration-dialog", () => {
     expect(dialog).toHaveTextContent("50 records you decided");
     expect(await within(dialog).findByText(/About \$0\.01 for 50 records on claude-haiku-5-5/)).toBeTruthy();
     expect(posts("/proposals/calibrations")).toHaveLength(0);
-    fireEvent.click(within(dialog).getByRole("button", { name: /^Run the check/ }));
+    const runButton = within(dialog).getByRole("button", { name: /^Run the check/ });
+    runButton.focus();
+    fireEvent.click(runButton);
     await vi.waitFor(() => expect(posts("/proposals/calibrations")).toHaveLength(1));
     expect(posts("/proposals/calibrations")[0].body).toMatchObject({ pilot_id: "pilot_001", provider: "anthropic", model: "claude-haiku-5-5" });
     expect(await within(dialog).findByText("Missed includes: 2 of 25")).toBeTruthy();
+    // Review C round 2: focus stays inside once the run view replaces the form.
+    expect(dialog.contains(document.activeElement)).toBe(true);
   });
 
   it("uses the last model of the workspace when there is one", async () => {

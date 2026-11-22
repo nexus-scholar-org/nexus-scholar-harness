@@ -1096,6 +1096,14 @@ function CheckDialog({
   const [ceiling, setCeiling] = useState("");
   const [estimate, setEstimate] = useState<RunEstimate | null>(null);
   const [run, setRun] = useState<RunView | null>(null);
+  // Review C round 2: the run view replaces the form, so focus moves into it (to Cancel while it runs).
+  const runView = useRef<HTMLDivElement>(null);
+  const started = run !== null;
+  useEffect(() => {
+    if (!started || !runView.current) return;
+    const target = runView.current.querySelector<HTMLElement>("button") ?? runView.current;
+    target.focus();
+  }, [started]);
   const [stopping, setStopping] = useState(false);
   const [busy, setBusy] = useState(false);
   const [refusal, setRefusal] = useState<{ code: string; message: string } | null>(null);
@@ -1176,7 +1184,7 @@ function CheckDialog({
         {t("actions.check", { n: n(result.decided) })}
       </h2>
       {run ? (
-        <div className="mt-3 space-y-2 text-sm" data-check-run={run.state}>
+        <div ref={runView} tabIndex={-1} className="mt-3 space-y-2 text-sm" data-check-run={run.state}>
           {active ? <p role="status">{stopping || run.cancel_requested ? t("cal.stopping") : t("cal.running", { n: n(run.records), k: n(run.done) })}</p> : null}
           {!active && calibration ? (
             <>
