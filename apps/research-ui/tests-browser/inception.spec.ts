@@ -66,7 +66,6 @@ test("a researcher creates a workspace from the browser and lands on screening H
   await page.getByRole("radio", { name: /DESIGN_SCIENCE/ }).check();
   await page.getByLabel("Unit of analysis", { exact: true }).fill("embedded cameras");
   await page.getByLabel("Proof a reviewer would accept", { exact: true }).fill("mIoU and FPS on a public benchmark");
-  await page.getByLabel("Out of scope", { exact: true }).fill("closed-source models");
   await page.getByRole("button", { name: "Use this draft as RQ1" }).click();
   await page.getByRole("button", { name: "Continue to concepts and criteria" }).click();
 
@@ -78,7 +77,9 @@ test("a researcher creates a workspace from the browser and lands on screening H
   await expect(proof).toHaveAttribute("data-status", "undecided");
   await proof.getByRole("button", { name: "Accept" }).click();
   await expect(proof).toHaveAttribute("data-status", "accepted");
-  // H-run-small-fixes (finding 2): the out-of-scope item waits for Accept too.
+  // M11b part D (spec 11, D6): out of scope is asked on step 5; the item waits for Accept (H-run-small-fixes, finding 2).
+  await page.getByLabel("Is anything out of scope?").fill("closed-source models");
+  await page.getByRole("button", { name: "Add an out-of-scope topic" }).click();
   const outOfScope = page.locator("[data-criterion]", { hasText: "closed-source models" });
   await expect(outOfScope).toHaveAttribute("data-status", "undecided");
   await outOfScope.getByRole("button", { name: "Accept" }).click();

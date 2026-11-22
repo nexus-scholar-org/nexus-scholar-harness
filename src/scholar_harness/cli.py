@@ -138,9 +138,15 @@ def init(
         "--scaffold-only",
         help="Skip the Socratic wizard; scaffold the layout with a placeholder protocol",
     ),
+    not_reported: str | None = typer.Option(
+        None,
+        "--not-reported",
+        help="For the wizard: what the agent's draft does when a criterion is not reported "
+        "(unclear, decisive_first or exclude); no default",
+    ),
 ):
     """Bootstrap a portable Nexus Scholar research workspace in any folder (P7.3)."""
-    init_command(project_title, target_dir, scaffold_only=scaffold_only)
+    init_command(project_title, target_dir, scaffold_only=scaffold_only, not_reported=not_reported)
 
 
 @app.command("setup-mcp")
@@ -916,6 +922,12 @@ def inception(
         "--discard-screening-binding",
         help="With --replace: replace even though screening decisions or a published screening exist under the current protocol",
     ),
+    not_reported: str | None = typer.Option(
+        None,
+        "--not-reported",
+        help="What the agent's draft does when a criterion is not reported: unclear, decisive_first or exclude. "
+        "No default: asked when omitted; a scripted run must give it",
+    ),
 ):
     """Run the Phase-0 Socratic methodology interview and emit a compiled protocol."""
     inception_command(
@@ -926,6 +938,7 @@ def inception(
         direction_id=direction_id,
         replace=replace,
         discard_screening_binding=discard_screening_binding,
+        not_reported=not_reported,
     )
 
 

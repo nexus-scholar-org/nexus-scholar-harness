@@ -211,8 +211,12 @@ def run_wizard(
     init_title: str | None = None,
     replace: bool = False,
     discard_screening_binding: bool = False,
+    not_reported: str | None = None,
 ) -> dict:
     """Run the 4-stage Socratic inception interview and emit the protocol.
+
+    ``not_reported`` (M11b part D, answer 12 of 2026-11-21) is the not-reported rule given on the
+    command line (``--not-reported``); without it the rule is asked with no default.
 
     INC-08: the protocol is written only through :func:`emit_workspace`, which
     refuses a folder that already holds a workspace unless ``replace`` is set
@@ -361,6 +365,9 @@ def run_wizard(
         extra_exclusions=extra_exclusions, trust_score_threshold=0.0,
     )
     criteria = accept_criteria(responder, draft_criteria(criteria_survey), paradigm)
+    # M11b part D (answers 8 and 12): the not-reported rule has no default; it is asked here, after
+    # the criteria it applies to, unless --not-reported gave it.
+    rule = not_reported if not_reported is not None else ask_not_reported(responder)
 
     # ---- Stage 4d: extraction matrix + verification --------------------------
     matrix_dimensions: list[dict] = []
@@ -423,6 +430,8 @@ def run_wizard(
         matrix_dimensions=matrix_dimensions,
     )
     intent = make_intent(survey, slug, ts, criteria=criteria)
+    # M11b part D (DoD 18b, 18c): the choice travels in the intent, as the web wizard's does.
+    intent["method"] = {"blinding": "reveal_after_decision", "not_reported": rule}
 
     # ---- Stage 4f: review + genesis -------------------------------------------
     console.print(Panel.fit(
@@ -478,6 +487,52 @@ def run_wizard(
     }
 
 
+#: The not-reported rule's choices, from the most cautious to the strictest (record (g)).
+NOT_REPORTED_CHOICES: tuple[tuple[str, str], ...] = (
+    ("unclear", "mark it Unclear whenever a criterion is not reported (the most cautious)"),
+    ("decisive_first", "exclude only on a clear failure; otherwise mark it Unclear"),
+    ("exclude", "exclude when an inclusion criterion is not reported (the strictest)"),
+)
+
+
+def ask_not_reported(responder: Responder) -> str:
+    """Ask the rule with no default, again until one of the three is chosen."""
+    allowed = {value for value, _ in NOT_REPORTED_CHOICES}
+    while True:
+        answer = responder.choice(
+            "When the title and abstract do not report a criterion, the agent's draft should…",
+            NOT_REPORTED_CHOICES,
+            default="",
+        )
+        if answer in allowed:
+            return answer
+        console.print("[red]Choose one of the three rules; there is no default.[/red]")
+
+
+def require_not_reported(not_reported: str | None, *, scripted: bool) -> None:
+    """Refuse, before anything is asked or written, a value outside the three, and a scripted run
+    (no terminal, or a headless flag) that does not give ``--not-reported`` (answer 12)."""
+    allowed = [value for value, _ in NOT_REPORTED_CHOICES]
+    if not_reported is not None and not_reported not in allowed:
+        console.print(f"[bold red]--not-reported must be one of: {', '.join(allowed)}.[/bold red]")
+        raise typer.Exit(2)
+    if not_reported is None and scripted:
+        console.print(
+            "[bold red]A scripted run must say what the agent's draft does when a criterion is not reported: "
+            f"--not-reported {{{'|'.join(allowed)}}}. There is no default.[/bold red]"
+        )
+        raise typer.Exit(2)
+
+
+def _scripted() -> bool:
+    import sys
+
+    try:
+        return not sys.stdin.isatty()
+    except (AttributeError, ValueError):
+        return True
+
+
 def inception_command(
     root: Path = typer.Option(Path("."), "--root", "-r", help="Repository root containing workspaces/ (default: current dir)"),
     no_scaffold: bool = typer.Option(False, "--no-scaffold", help="Run interview only; do not write anything"),
@@ -486,13 +541,16 @@ def inception_command(
     direction_id: int | None = None,
     replace: bool = False,
     discard_screening_binding: bool = False,
+    not_reported: str | None = None,
 ) -> None:
     """Launch the interactive Phase-0 Socratic inception wizard."""
+    require_not_reported(not_reported, scripted=_scripted() or auto_select or direction_id is not None)
     run_wizard(
         ConsoleResponder(), root,
         no_scaffold=no_scaffold, grounded=grounded,
         auto_select=auto_select, direction_id=direction_id,
         replace=replace, discard_screening_binding=discard_screening_binding,
+        not_reported=not_reported,
     )
 
 
@@ -506,6 +564,7 @@ def init_command(
     target_dir: Path,
     *,
     scaffold_only: bool = False,
+    not_reported: str | None = None,
 ) -> dict:
     """P7.3 ``nexus-scholar init <title>``: bootstrap a portable workspace.
 
@@ -524,6 +583,8 @@ def init_command(
         console.print("[bold red]❌ Project title must produce a non-empty slug.[/bold red]")
         raise typer.Exit(1)
 
+    if not scaffold_only:
+        require_not_reported(not_reported, scripted=_scripted())  # M11b part D, before anything is written
     require_uninitialized(target)
 
     if scaffold_only:
@@ -538,6 +599,7 @@ def init_command(
             target,
             target_dir=target,
             init_title=project_title,
+            not_reported=not_reported,
         )
         support = install_workspace_support_files(target)
 

@@ -55,7 +55,8 @@ def test_a_side_write_in_another_process_does_not_undo_a_save(tmp_path: Path) ->
         assert child.wait(timeout=60) == 0
 
     final = store.load(sid)
-    assert final["draft"] == {"topic": "the researcher's newer words"}
+    # M11b part D: a new draft also carries the two method fields, which the save keeps.
+    assert {k: v for k, v in final["draft"].items() if not k.startswith("method_")} == {"topic": "the researcher's newer words"}
     assert final["assistant_findings"] == [{"subject": "find_1"}]
 
 

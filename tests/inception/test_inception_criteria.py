@@ -85,7 +85,7 @@ def _run(tmp_path, monkeypatch, answers):
     recorder = Console(record=True, width=400)
     monkeypatch.setattr(wizard_mod, "console", recorder)
     responder = RecordingResponder(answers)
-    result = run_wizard(responder, tmp_path, genesis_timestamp=GENESIS_TS)
+    result = run_wizard(responder, tmp_path, genesis_timestamp=GENESIS_TS, not_reported="unclear")
     assert responder.answers == [], f"unused answers: {responder.answers}"
     return result, responder, recorder.export_text()
 

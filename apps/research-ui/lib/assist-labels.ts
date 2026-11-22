@@ -23,7 +23,7 @@ const FIELD_KEY: Record<string, InceptionCopyKey> = {
   start_year: "scope.fromYear",
   end_year: "scope.toYear",
   languages: "scope.languages",
-  out_of_scope: "shape.outOfScope",
+  out_of_scope: "field.out_of_scope",
   extra_inclusions: "criteria.inclusion",
   extra_exclusions: "criteria.exclusion",
   matrix_columns: "criteria.matrix",

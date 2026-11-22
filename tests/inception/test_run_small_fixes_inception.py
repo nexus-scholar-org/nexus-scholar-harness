@@ -32,6 +32,7 @@ def draft(**over) -> dict:
         "extra_inclusions": ["Evaluates weed segmentation on UAV multispectral imagery"],
         "title": "Sensor stress review",
         "lead_researcher": "A. Researcher",
+        "method_not_reported": "unclear",  # M11b part D: the rule is chosen (no default)
     }
     base.update(over)
     return base

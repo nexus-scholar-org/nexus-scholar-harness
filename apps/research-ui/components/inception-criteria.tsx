@@ -8,7 +8,18 @@ import { Button, DecisionBadge, Hint } from "@/components/ui/base";
 import { inceptionHref, InceptionFrame, InceptionRefusal, refusalOf, StepHeader, useDraft, type Refusal } from "@/components/inception-frame";
 import { StepAssist } from "@/components/inception-assist";
 
-import { runStep, type AcceptedFrom, type CriteriaStep, type Criterion, type Draft, type MatrixColumnIn, type MatrixStep, type ReasonSuggestion } from "@/lib/inception-api";
+import {
+  runStep,
+  type AcceptedFrom,
+  type CriteriaStep,
+  type Criterion,
+  type Draft,
+  type MatrixColumnIn,
+  type MatrixStep,
+  type MethodBlinding,
+  type MethodNotReported,
+  type ReasonSuggestion,
+} from "@/lib/inception-api";
 import { getConcepts, getRecon, hasUsablePool, type ConceptReport, type ReconState } from "@/lib/recon-api";
 import { QueryWorkbench, type WorkbenchUse } from "@/components/query-workbench";
 import { inceptionCountT, inceptionT, sourceText } from "@/lib/inception-copy";
@@ -85,6 +96,9 @@ export function InceptionCriteria({ locale }: Readonly<{ locale: Locale }>) {
   const [newExclusionReason, setNewExclusionReason] = useState("");
   const [reasonEditing, setReasonEditing] = useState<string | null>(null);
   const [accepted, setAccepted] = useState<AcceptedFrom[]>([]);
+  // M11b part D (spec 11): the out-of-scope field as typed, until Add puts it in the page's draft.
+  const [oosText, setOosText] = useState<string | null>(null);
+  const [oosAnnounce, setOosAnnounce] = useState("");
   const mark = (entry: AcceptedFrom, on: boolean) =>
     setAccepted((list) => (on ? [...list.filter((e) => !sameEntry(e, entry)), entry] : list.filter((e) => !sameEntry(e, entry))));
 
@@ -120,7 +134,7 @@ export function InceptionCriteria({ locale }: Readonly<{ locale: Locale }>) {
   const key = JSON.stringify([
     draft.paradigm, draft.playbook, draft.proof, draft.unit_of_analysis, draft.out_of_scope, draft.extra_inclusions,
     draft.extra_exclusions, draft.criteria_decisions, draft.matrix_columns, draft.out_of_scope_reasons,
-    draft.default_exclusion_reason, draft.custom_matrix_columns,
+    draft.default_exclusion_reason, draft.custom_matrix_columns, draft.method_blinding, draft.method_not_reported, draft.method_not_reported_source,
   ]);
   useEffect(() => {
     if (!record) return;
@@ -172,9 +186,14 @@ export function InceptionCriteria({ locale }: Readonly<{ locale: Locale }>) {
     if (workbenchDirty && !leave) return setLeaving(next);
     setLeaving(null);
     const cleaned = concepts.filter((c) => c.concept.trim()).map((c) => ({ concept: c.concept.trim(), synonyms: c.synonyms ?? [] }));
-    const body = { ...draft, concepts: cleaned };
+    // M11b part D: a save writes the visibility the screen shows, even for a draft that never stored it.
+    const shown = draft.method_blinding ?? criteria?.method?.blinding ?? null;
+    // Review D round 1, finding 1: text typed in the out-of-scope field is saved with the page, Add or not.
+    const pendingOos = oosText === null ? {} : { out_of_scope: oosText.split(/[\n;]/).map((item) => item.trim()).filter(Boolean) };
+    const body = { ...draft, ...pendingOos, concepts: cleaned, ...(shown ? { method_blinding: shown } : {}) };
     const stored = await save(body, accepted.filter((entry) => stillAccepted(entry, body)));
     if (stored) setAccepted([]);
+    if (stored) setOosText(null);
     if (stored) window.location.assign(inceptionHref(locale, next, next ? draftId : "", origin));
   };
 
@@ -192,6 +211,19 @@ export function InceptionCriteria({ locale }: Readonly<{ locale: Locale }>) {
 
   const undecided = criteria?.undecided.length ?? 0;
   const paradigm = draft.paradigm ?? "";
+  // M11b part D: the engine says whether the rule is chosen (answer 8: no default); the browser decides nothing.
+  const ruleUnchosen = criteria?.method?.chosen === false;
+  const waits = undecided > 0 || (criteria?.missing_sides.length ?? 0) > 0;
+  const acceptedOn = (kind: "inclusion" | "exclusion") => (criteria?.criteria ?? []).filter((c) => c.kind === kind && c.status === "accepted").length;
+  const oosValue = oosText ?? (draft.out_of_scope ?? []).join("\n");
+  const addOutOfScope = () => {
+    // Semicolons and line breaks separate items; commas do not (05).
+    const items = oosValue.split(/[\n;]/).map((item) => item.trim()).filter(Boolean);
+    const before = new Set(draft.out_of_scope ?? []);
+    update({ out_of_scope: items });
+    setOosText(null);
+    setOosAnnounce(t("criteria.oos.announce", { n: formatNumber(locale, items.filter((item) => !before.has(item)).length) }));
+  };
 
   const renderSide = (kind: "inclusion" | "exclusion") => {
     const items = (criteria?.criteria ?? []).filter((c) => c.kind === kind);
@@ -379,10 +411,64 @@ export function InceptionCriteria({ locale }: Readonly<{ locale: Locale }>) {
         ) : null}
 
         {criteria ? (
-          <div className="grid gap-4 lg:grid-cols-2">
-            {renderSide("inclusion")}
-            {renderSide("exclusion")}
-          </div>
+          <section aria-labelledby="criteria-block-title" className="space-y-4 rounded-lg border border-rule p-4" data-criteria-block>
+            <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+              <h2 id="criteria-block-title" className="font-semibold text-ink">
+                {t("criteria.block.title")}
+              </h2>
+              <span className="text-sm text-ink-muted" data-criteria-written={waits ? "waiting" : "written"}>
+                {waits
+                  ? t("criteria.block.cannotWrite")
+                  : t("criteria.block.written", { inclusions: formatNumber(locale, acceptedOn("inclusion")), exclusions: formatNumber(locale, acceptedOn("exclusion")) })}
+              </span>
+            </div>
+            <div className="grid gap-4 lg:grid-cols-2">
+              {renderSide("inclusion")}
+              {renderSide("exclusion")}
+            </div>
+            <div data-oos-question>
+              <label htmlFor="criteria-oos" className="block text-sm font-medium text-ink">
+                {t("criteria.oos.question")}
+              </label>
+              <p id="criteria-oos-help" className="text-xs text-ink-muted">
+                {t("criteria.oos.help")}
+              </p>
+              <textarea
+                id="criteria-oos"
+                rows={3}
+                dir="auto"
+                value={oosValue}
+                onChange={(event) => setOosText(event.target.value)}
+                aria-describedby="criteria-oos-help"
+                className="mt-1 block w-full rounded-md border border-rule bg-paper p-2 text-ink"
+              />
+              <div className="mt-2">
+                <Button onClick={addOutOfScope} disabled={oosText === null} data-oos-add>
+                  {t("criteria.oos.add")}
+                </Button>
+              </div>
+              <p className="sr-only" role="status" aria-live="polite">
+                {oosAnnounce}
+              </p>
+            </div>
+            {criteria.criteria.length > 0 ? (
+              <p className="text-sm text-ink-muted" data-criteria-limits>
+                {t("criteria.block.limits")}
+              </p>
+            ) : null}
+            <MethodQuestions
+              locale={locale}
+              blinding={draft.method_blinding ?? criteria.method?.blinding ?? null}
+              notReported={draft.method_not_reported ?? null}
+              options={criteria.method_options ?? null}
+              unchosen={ruleUnchosen}
+              older={Boolean(criteria.method?.started_before_question) && ruleUnchosen}
+              source={criteria.method?.source ?? null}
+              onBlinding={(value) => update({ method_blinding: value })}
+              onNotReported={(value) => update({ method_not_reported: value, method_not_reported_source: "chosen" })}
+              onConfirm={() => update({ method_not_reported_source: "confirmed" })}
+            />
+          </section>
         ) : !stepError ? (
           <p role="status" className="text-ink-muted">
             {t("asking")}
@@ -492,15 +578,136 @@ export function InceptionCriteria({ locale }: Readonly<{ locale: Locale }>) {
 
         <div className="flex flex-wrap gap-3">
           {/* M11a: while the workbench holds unused edits, "Use this version" is the screen's one brand button. */}
-          <Button variant={workbenchDirty ? "secondary" : "primary"} type="submit" disabled={saving}>
+          <Button
+            variant={workbenchDirty ? "secondary" : "primary"}
+            type="submit"
+            disabled={saving || ruleUnchosen}
+            aria-describedby={ruleUnchosen ? "criteria-rule-blocked" : undefined}
+          >
             {saving ? t("saving") : t("criteria.continue")}
           </Button>
           <Button onClick={() => void persist("")} disabled={saving}>
             {t("saveAndExit")}
           </Button>
+          {ruleUnchosen ? (
+            <p id="criteria-rule-blocked" className="basis-full text-sm text-blocked" data-rule-blocked>
+              {t("criteria.method.blocked")}
+            </p>
+          ) : null}
         </div>
       </form>
     </InceptionFrame>
+  );
+}
+
+/**
+ * "How you will screen" (spec 11, M11b part D): two radio groups whose options and order are the
+ * engine's (`method_options`). The visibility question is pre-selected (a proposal); the not-reported
+ * question starts with nothing selected and blocks step 5 until chosen (answer 8). No option is
+ * named as recommended.
+ */
+function MethodQuestions({
+  locale,
+  blinding,
+  notReported,
+  options,
+  unchosen,
+  older,
+  source,
+  onBlinding,
+  onNotReported,
+  onConfirm,
+}: Readonly<{
+  locale: Locale;
+  blinding: MethodBlinding | null;
+  notReported: MethodNotReported | null;
+  options: { blinding: MethodBlinding[]; not_reported: MethodNotReported[] } | null;
+  unchosen: boolean;
+  older: boolean;
+  /** Item 5 (2026-11-22): the engine's word for where the rule came from. */
+  source: "imported" | "confirmed" | "chosen" | null;
+  onBlinding: (value: MethodBlinding) => void;
+  onNotReported: (value: MethodNotReported) => void;
+  onConfirm: () => void;
+}>) {
+  const t = inceptionT(locale);
+  const key = (k: string) => k as Parameters<typeof t>[0];
+  return (
+    <section aria-labelledby="method-title" className="space-y-4 border-t border-rule pt-4" data-method>
+      <div>
+        <h3 id="method-title" className="font-semibold text-ink">
+          {t("criteria.method.title")}
+        </h3>
+        <p className="text-sm text-ink-muted">{t("criteria.method.later")}</p>
+        {source === "imported" || source === "confirmed" ? <p className="text-sm text-ink-muted" data-method-import>{t("criteria.method.fromImport")}</p> : null}
+      </div>
+      <fieldset id="method-blinding" data-method-group="blinding">
+        <legend className="text-sm font-medium text-ink">{t("criteria.method.blinding.q")}</legend>
+        <div className="mt-2 space-y-2">
+          {(options?.blinding ?? []).map((value) => (
+            <label key={value} className="flex min-h-11 cursor-pointer items-start gap-3">
+              <input
+                type="radio"
+                name="method-blinding"
+                value={value}
+                checked={blinding === value}
+                onChange={() => onBlinding(value)}
+                aria-describedby={`method-blinding-${value}-help`}
+                className="mt-1 h-5 w-5 shrink-0"
+              />
+              <span className="text-sm">
+                <span className="text-ink">{t(key(`criteria.method.blinding.${value}.label`))}</span>
+                <span id={`method-blinding-${value}-help`} className="block text-ink-muted">
+                  {t(key(`criteria.method.blinding.${value}.help`))}
+                </span>
+              </span>
+            </label>
+          ))}
+        </div>
+      </fieldset>
+      <fieldset id="method-not-reported" aria-describedby={unchosen ? "method-rule-unchosen" : undefined} data-method-group="not_reported">
+        <legend className="text-sm font-medium text-ink">{t("criteria.method.notReported.q")}</legend>
+        {unchosen ? (
+          <div id="method-rule-unchosen" className="mt-1 text-sm text-blocked" data-method-unchosen={source === "imported" ? "imported" : "unchosen"}>
+            {source === "imported" ? (
+              <>
+                <p>{t("criteria.method.importedUnconfirmed")}</p>
+                <Button className="mt-1" onClick={onConfirm} data-method-confirm>
+                  {t("criteria.method.confirm")}
+                </Button>
+              </>
+            ) : (
+              <p>
+                {t("criteria.method.unchosen")}
+                {older ? <span className="block text-ink-muted">{t("criteria.method.older")}</span> : null}
+              </p>
+            )}
+          </div>
+        ) : null}
+        <div className="mt-2 space-y-2">
+          {(options?.not_reported ?? []).map((value) => (
+            <label key={value} className="flex min-h-11 cursor-pointer items-start gap-3">
+              <input
+                type="radio"
+                name="method-not-reported"
+                value={value}
+                checked={notReported === value}
+                onChange={() => onNotReported(value)}
+                aria-describedby={`method-nr-${value}-help`}
+                className="mt-1 h-5 w-5 shrink-0"
+              />
+              <span className="text-sm">
+                <span className="text-ink">{t(key(`criteria.method.notReported.${value}.label`))}</span>
+                <span id={`method-nr-${value}-help`} className="block text-ink-muted">
+                  {t(key(`criteria.method.notReported.${value}.help`))}
+                </span>
+              </span>
+            </label>
+          ))}
+        </div>
+      </fieldset>
+      <p className="text-xs text-ink-muted">{t("criteria.method.savedWith")}</p>
+    </section>
   );
 }
 

@@ -65,7 +65,7 @@ import {
   type TableView,
 } from "@/lib/charting-logic";
 
-import { ChartAgainMark, FOCUS_RING, HistoryLine, NoFullTextMark, PilotMark, TYPE_KEY, optionWords } from "./charting-cells";
+import { ChartAgainMark, FOCUS_RING, HistoryLine, NoFullTextMark, PilotMark, TYPE_KEY, chartAgainHistory, optionWords } from "./charting-cells";
 import { RoleBadge } from "./charting-page";
 
 /**
@@ -1156,7 +1156,8 @@ function Field({
   const valueOff = locked || special;
   const describedBy = column.definition ? defId : undefined;
   const input = `min-h-11 w-full rounded-md border border-rule-strong bg-leaf px-2 text-sm text-ink disabled:opacity-60 ${FOCUS_RING}`;
-  const last = cell.history[cell.history.length - 1];
+  // A "Chart again" field shows each earlier value: one per source column after a merge.
+  const earlier = chartAgainHistory(cell);
   const leaveGroup = (event: FocusEvent<HTMLElement>) => {
     if (!event.currentTarget.contains(event.relatedTarget as Node | null)) onCommit();
   };
@@ -1302,9 +1303,13 @@ function Field({
         </p>
       ) : null}
 
-      {last && (cell.chart_again || cell.history.length > 0) ? (
+      {earlier.length ? (
         <div className="space-y-0.5" data-history-list>
-          {cell.chart_again ? <HistoryLine locale={locale} column={column} entry={last} /> : null}
+          {earlier.map((entry, i) => (
+            <p key={`${entry.event_id}-${i}`}>
+              <HistoryLine locale={locale} column={column} entry={entry} />
+            </p>
+          ))}
         </div>
       ) : null}
     </div>

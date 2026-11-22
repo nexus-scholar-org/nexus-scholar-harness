@@ -10,8 +10,9 @@ import { DESKTOP_VIEWPORT, expect, test } from "./helpers";
  * specs of this suite the console is answered at the network boundary by a small
  * stateful fake in the engine's shapes (`tests/console/test_charting_form_api.py`):
  * the table with its form and cells, the one-study read, cell events with undo,
- * the form's PUT (a reason once a value exists, recorded as an amendment) and
- * "End pilot". It runs in light (`chromium`) and dark (`chromium-dark`).
+ * the form's PUT (a reason once a value exists, recorded as an amendment),
+ * "End pilot", and Part A's attachment POST and GET (`test_charting_api.py`;
+ * the GET is the context's route, so a new tab is answered too). It runs in light (`chromium`) and dark (`chromium-dark`).
  */
 
 const AXE_PATH = createRequire(import.meta.url).resolve("axe-core");
@@ -95,11 +96,46 @@ async function engine(page: Page, size = 7) {
     not_retrieved_reasons: ["no_access", "not_found", "no_reply", "other"],
     counts: counts(), form, rows,
   });
+  // The attached file, served to whichever tab asks (a new tab does not see the page's routes,
+  // so this one is the context's); `opened` lists each study whose file was asked for, and whether a tab was opening it.
+  const opened: { study: string; navigation: boolean }[] = [];
+  const pdfs = new Map<string, Buffer>();
+  await page.context().route("**/api/console/api/v1/charting/records/*/attachment", async (route) => {
+    const request = route.request();
+    if (request.method() !== "GET") return route.fallback();
+    const study = decodeURIComponent(/\/records\/([^/]+)\/attachment$/.exec(new URL(request.url()).pathname)![1]);
+    opened.push({ study, navigation: request.isNavigationRequest() });
+    const body = pdfs.get(study);
+    if (!body) return route.fulfill({ status: 404, json: { detail: { code: "NOT_FOUND", message: "" } } });
+    return route.fulfill({ status: 200, body, headers: { "content-type": "application/pdf", "content-disposition": "inline" } });
+  });
   await page.route("**/api/console/api/v1/**", async (route) => {
     const request = route.request();
-    const path = new URL(request.url()).pathname.replace("/api/console/api/v1", "");
+    const url = new URL(request.url());
+    const path = url.pathname.replace("/api/console/api/v1", "");
     const method = request.method();
     if (path === "/charting" && method === "GET") return route.fulfill({ json: table() });
+    const attachment = /^\/charting\/records\/([^/]+)\/attachment$/.exec(path);
+    if (attachment && method === "GET") return route.fallback();
+    if (attachment && method === "POST") {
+      // Part A's answer (`tests/console/test_charting_api.py`): the PDF as the raw body, the
+      // attachment event and, on a To get row, a Retrieved status event, each id with its kind.
+      const target = rows.find((r) => r.study_id === decodeURIComponent(attachment[1]))!;
+      const body = request.postDataBuffer() ?? Buffer.alloc(0);
+      const eventId = url.searchParams.get("event_id")!;
+      const statusId = url.searchParams.get("status_event_id")!;
+      pdfs.set(target.study_id, body);
+      target.fulltext = { ...target.fulltext, attachment: { name: url.searchParams.get("name"), size: body.length, sha256: "a".repeat(64), path: `pdfs/${target.study_id}.pdf`, origin: "attached" } };
+      target.heads = { ...target.heads, attachment: eventId };
+      const events = [{ event_id: eventId, kind: "attachment" }];
+      if (target.fulltext.status === "to_get") {
+        target.fulltext = { ...target.fulltext, status: "retrieved" };
+        target.heads = { ...target.heads, fulltext_status: statusId };
+        events.push({ event_id: statusId, kind: "fulltext_status" });
+      }
+      derive(target);
+      return route.fulfill({ json: { result: "accepted", event_ids: events.map((e) => e.event_id), events, row: target, counts: counts() } });
+    }
     const record = /^\/charting\/records\/([^/]+)$/.exec(path);
     if (record && method === "GET") {
       const found = rows.find((r) => r.study_id === record[1]);
@@ -156,7 +192,7 @@ async function engine(page: Page, size = 7) {
     }
     return route.fulfill({ status: 404, json: { detail: { code: "NOT_FOUND", message: path } } });
   });
-  return { posted, rows, form };
+  return { posted, rows, form, opened };
 }
 
 async function axe(page: Page) {
@@ -251,6 +287,43 @@ test("in-cell editing in the Charting view, then a form amendment with its reaso
   await page.keyboard.press("Escape");
   await expect(panel).toHaveCount(0);
   await expect(page.locator("[data-form-button]")).toBeFocused();
+});
+
+test("the one-study view: attach a PDF through the file picker, see it Retrieved, then open it in a new tab", async ({ page }) => {
+  await page.setViewportSize(DESKTOP_VIEWPORT);
+  const { rows, opened } = await engine(page);
+  await page.goto("/en/charting/study?view=charting&id=STU-001");
+  // The screen puts the focus on the first field once the study has loaded: wait for it before acting.
+  await expect(page.locator('[data-field="sensor_problems"] input').first()).toBeFocused();
+  await expect(page.locator('[data-status="to_get"]')).toHaveAttribute("aria-checked", "true");
+  await expect(page.locator("[data-open-file]")).toHaveCount(0);
+  // A small PDF of exactly 2,048 bytes, so the size the screen prints is known.
+  const head = Buffer.from("%PDF-1.4\n1 0 obj << /Type /Catalog >> endobj\ntrailer << /Root 1 0 R >>\n", "latin1");
+  const tail = Buffer.from("\n%%EOF\n", "latin1");
+  const pdf = Buffer.concat([head, Buffer.alloc(2048 - head.length - tail.length, 0x20), tail]);
+  const [chooser] = await Promise.all([page.waitForEvent("filechooser"), page.locator("[data-attach]").click()]);
+  expect(chooser.isMultiple()).toBe(false);
+  await chooser.setFiles({ name: "Sa 2018.pdf", mimeType: "application/pdf", buffer: pdf });
+  const line = page.locator("[data-file-line]");
+  await expect(line.locator("[data-file-name]")).toHaveText("Sa 2018.pdf");
+  await expect(line).toContainText("2 KB");
+  await expect(page.locator('[data-status="retrieved"]')).toHaveAttribute("aria-checked", "true");
+  await expect(page.locator('[data-status="retrieved"]')).toContainText("Retrieved");
+  await expect(page.locator("[data-announce]")).toHaveText("Saved");
+  expect(rows[0].fulltext.status).toBe("retrieved");
+  expect(rows[0].fulltext.attachment).toMatchObject({ name: "Sa 2018.pdf", size: 2048 });
+  // Open: a new tab that asks the console's attachment route for this study.
+  const open = line.locator("[data-open-file]");
+  await expect(open).toHaveAttribute("target", "_blank");
+  await expect(open).toHaveAttribute("href", /\/api\/console\/api\/v1\/charting\/records\/STU-001\/attachment$/);
+  const [tab] = await Promise.all([page.context().waitForEvent("page"), open.click()]);
+  // Chromium may ask more than once (a PDF tab can fetch again); the first ask is the tab's load.
+  await expect.poll(() => opened.length).toBeGreaterThanOrEqual(1);
+  expect(opened[0].study).toBe("STU-001");
+  // Asked as the new tab's own page load, not as a fetch of the screen.
+  expect(opened[0].navigation).toBe(true);
+  expect(tab).not.toBe(page);
+  await tab.close();
 });
 
 for (const locale of ["en", "ar"] as const) {
