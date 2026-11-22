@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import type { FormColumn } from "@/lib/charting-api";
 
-import { flush, installEngine, makeChartingTable, makeRow, press, renderCharting, uavColumns, withCells, type FakeEngine } from "./charting-helpers";
+import { flush, installEngine, makeChartingTable, makeRow, press, renderCharting, renderStudy, uavColumns, withCells, type FakeEngine } from "./charting-helpers";
 
 /**
  * Spec 01, the form panel and the pilot (M12a Part B, DoD 12 and 13): F opens a
@@ -204,7 +204,7 @@ describe("charting.form-panel", () => {
         { has_values: true },
       ),
     );
-    await renderCharting("en", "?view=charting");
+    const view = await renderCharting("en", "?view=charting");
     await openPanel();
     const mergeButton = within(columnCard("n_images")).getByRole("button", { name: "Merge with…" });
     expect(mergeButton).toHaveAttribute("aria-expanded", "false");
@@ -244,11 +244,19 @@ describe("charting.form-panel", () => {
     expect(within(columnCard(sent.columns[2].column_id)).getByText("Made from: Images, Data split")).toBeInTheDocument();
     const cell = document.querySelector('[data-cell="STU-001:3"]') as HTMLElement;
     expect(cell.querySelector("[data-mark=chart-again]")).toHaveTextContent("Chart again");
-    expect(cell.querySelector("[data-history]")).toHaveTextContent("Earlier value, in Data split: By field");
+    // One earlier value per source column, both on screen.
+    const lines = (el: Element) => [...el.querySelectorAll("[data-history]")].map((h) => h.textContent);
+    expect(lines(cell)).toEqual(["Earlier value, in Images: 1260", "Earlier value, in Data split: By field"]);
     const history = engine.table.rows[0].cells![sent.columns[2].column_id].history;
     expect(history.map((h) => [h.column, h.value])).toEqual([["Images", 1260], ["Data split", "By field"]]);
     // Study 2 held nothing in either column: nothing to chart again.
     expect(document.querySelector('[data-cell="STU-002:3"] [data-mark=chart-again]')).toBeNull();
+    // The one-study view shows both too.
+    view.unmount();
+    await renderStudy("STU-001");
+    const field = document.querySelector(`[data-field="${sent.columns[2].column_id}"]`) as HTMLElement;
+    expect(field.querySelector("[data-mark=chart-again]")).not.toBeNull();
+    expect(lines(field)).toEqual(["Earlier value, in Images: 1260", "Earlier value, in Data split: By field"]);
   });
 
   it("before any value a merge saves at once; Esc and Cancel close the chooser, not the panel", async () => {

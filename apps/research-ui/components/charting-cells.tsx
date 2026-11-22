@@ -104,7 +104,7 @@ export function PilotMark({ locale }: Readonly<{ locale: Locale }>) {
   );
 }
 
-/** The newest earlier value, as "Earlier value: …" (read-only history). */
+/** One earlier value, as "Earlier value: …" or "Earlier value, in {column}: …" (read-only history). */
 export function HistoryLine({ locale, column, entry }: Readonly<{ locale: Locale; column: Pick<FormColumn, "type">; entry: CellHistory }>) {
   const label = entry.column ? cc(locale, "charting.cell.historyIn", { column: entry.column }) : cc(locale, "charting.cell.history");
   return (
@@ -114,9 +114,21 @@ export function HistoryLine({ locale, column, entry }: Readonly<{ locale: Locale
   );
 }
 
+/**
+ * The earlier values a "Chart again" cell shows: a column made from others carries
+ * one entry per source column at the end of its history (the engine adds them in
+ * the order of `derived_from`), so all of them are shown; otherwise the newest one.
+ */
+export function chartAgainHistory(cell: Pick<Cell, "chart_again" | "history">): CellHistory[] {
+  if (!cell.chart_again || cell.history.length === 0) return [];
+  let start = cell.history.length;
+  while (start > 0 && cell.history[start - 1].column) start -= 1;
+  return start < cell.history.length ? cell.history.slice(start) : cell.history.slice(-1);
+}
+
 /** What a cell shows: the value, the two special values, or a dash read as "Not charted". */
 export function CellView({ locale, column, cell }: Readonly<{ locale: Locale; column: FormColumn; cell: Cell }>) {
-  const last = cell.chart_again ? cell.history[cell.history.length - 1] : undefined;
+  const earlier = chartAgainHistory(cell).filter((entry) => cell.state === null || entry.state !== null);
   return (
     <span className="flex flex-col items-start gap-1">
       {cell.state === "not_reported" ? (
@@ -136,7 +148,9 @@ export function CellView({ locale, column, cell }: Readonly<{ locale: Locale; co
         </>
       )}
       {cell.chart_again ? <ChartAgainMark locale={locale} /> : null}
-      {last && (cell.state === null || last.state !== null) ? <HistoryLine locale={locale} column={column} entry={last} /> : null}
+      {earlier.map((entry, i) => (
+        <HistoryLine key={`${entry.event_id}-${i}`} locale={locale} column={column} entry={entry} />
+      ))}
     </span>
   );
 }
