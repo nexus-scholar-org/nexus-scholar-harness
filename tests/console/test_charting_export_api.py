@@ -261,6 +261,12 @@ def test_the_methods_block_states_every_number_from_the_events(env):
     assert "1 report was decided at full text without a retrieved full text." in block["caveats"]
     assert "2 cells are not charted yet, 1 of them in required columns." in block["caveats"]
     assert block["figures"]["reviewers"] == {"fulltext_decisions": 1, "charting": 1}
+    listed = {s["path"]: s["digest"] for s in block["sources"]}
+    assert {"charting/form.json", "charting/form_amendments.jsonl", "literature/included.json"} <= set(listed)
+    assert any(p.startswith("charting/events/") for p in listed)
+    import hashlib as _h
+
+    assert listed["charting/form.json"] == "sha256:" + _h.sha256((ws / "charting" / "form.json").read_bytes()).hexdigest()
     # A pure read: no journal row, no file.
     assert (ws / "audit" / "journal.jsonl").read_bytes() == journal_before
     assert not (ws / rp.PRISMA_FILE).exists()

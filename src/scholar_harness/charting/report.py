@@ -342,7 +342,30 @@ def methods(ws: Path | str, view: dict[str, Any] | None = None) -> dict[str, Any
         "figures": figures,
         "caveats": caveats,
         "not_stated": not_stated,
+        "sources": sources(ws, view),
     }
+
+
+def sources(ws: Path, view: dict[str, Any]) -> list[dict[str, Any]]:
+    """The files the block is computed from, each with its SHA-256 ("What this statement is based on")."""
+    import hashlib
+
+    from .fetch import MANIFEST
+    from .kept import read_kept
+
+    paths: list[Path] = []
+    try:
+        paths += [s.included for s in sorted(read_kept(ws, remember=False).sources, key=lambda s: s.round)]
+    except Exception:  # noqa: BLE001 - the table was read already; a source that cannot be listed is left out
+        pass
+    paths += sorted((ws / ev.EVENTS_DIR).glob("*.jsonl")) if (ws / ev.EVENTS_DIR).is_dir() else []
+    paths += [ws / fm.FORM_FILE, ws / fm.AMENDMENTS_FILE, ws / MANIFEST]
+    out = []
+    for path in paths:
+        if path.is_file():
+            out.append({"name": path.name, "path": path.relative_to(ws).as_posix(),
+                        "digest": "sha256:" + hashlib.sha256(path.read_bytes()).hexdigest()})
+    return out
 
 
 # --------------------------------------------------------------------------- the spreadsheet
