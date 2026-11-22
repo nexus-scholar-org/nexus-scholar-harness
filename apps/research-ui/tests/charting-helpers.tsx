@@ -16,7 +16,9 @@ import type { Amendment, Cell, ChartingEvent, ChartingForm, ChartingRow, Chartin
  * "End pilot" and the one-study read. It applies status, decision and cell
  * events the way the engine does (the value of the newest event, `heads` or the
  * cell's `event_id` naming it), marks a cell "Chart again" when its column's type
- * changes, an option it uses is removed or its column is split, and refuses an
+ * changes, an option it uses is removed or its column is split, merged or
+ * replaced (the engine's `diff` rule: one into several, several into one, one
+ * into one), and refuses an
  * event for a record that is not kept (`RECORD_NOT_KEPT`).
  */
 
@@ -246,16 +248,27 @@ function putForm(engine: FakeEngine, body: { base_version: number; columns: Form
   const changes: Omit<Amendment, "amendment_id" | "reason" | "pilot" | "amended_by" | "amended_at" | "form_version_to">[] = [];
   const again = new Set<string>();
   const removedOptions = new Map<string, string[]>();
+  // As the engine's `diff`: an old column gone into several new ones is a split, several
+  // gone into one new column a merge, one into one a replacement.
   const splits = new Map<string, string[]>();
   for (const c of body.columns) for (const parent of c.derived_from ?? []) if (old.has(parent) && !fresh.has(parent)) splits.set(parent, [...(splits.get(parent) ?? []), c.column_id]);
+  const targets = new Map<string, string[]>();
+  for (const [parent, children] of splits) for (const child of children) targets.set(child, [...(targets.get(child) ?? []), parent]);
   for (const [parent, children] of splits) {
+    if (children.length < 2) continue;
     changes.push({ change: "split", column_id: parent, from: old.get(parent)!.name, to: children.map((id) => fresh.get(id)!.name), columns: children });
     for (const child of children) again.add(child);
+  }
+  for (const [child, parents] of targets) {
+    if (parents.length > 1) changes.push({ change: "merged", column_id: child, from: parents.map((p) => old.get(p)!.name), to: fresh.get(child)!.name, columns: parents });
+    else if (splits.get(parents[0])!.length === 1) changes.push({ change: "replaced", column_id: child, from: old.get(parents[0])!.name, to: fresh.get(child)!.name, columns: parents });
+    else continue;
+    again.add(child);
   }
   for (const c of body.columns) {
     const before = old.get(c.column_id);
     if (!before) {
-      if (!(c.derived_from ?? []).some((p) => splits.has(p))) changes.push({ change: "added", column_id: c.column_id, from: null, to: c.name });
+      if (!targets.has(c.column_id)) changes.push({ change: "added", column_id: c.column_id, from: null, to: c.name });
       continue;
     }
     if (before.name !== c.name) changes.push({ change: "renamed", column_id: c.column_id, from: before.name, to: c.name });
@@ -294,10 +307,14 @@ function putForm(engine: FakeEngine, body: { base_version: number; columns: Form
     for (const c of columns) {
       let cell = row.cells?.[c.column_id] ?? emptyCell();
       if (again.has(c.column_id)) {
-        const parent = (c.derived_from ?? [])[0];
-        const earlier = parent ? row.cells?.[parent] : undefined;
-        if (earlier && earlier.state !== null) cell = { ...cell, chart_again: true, history: [...cell.history, { state: earlier.state, value: earlier.value, note: earlier.note, where_from: earlier.where_from, at: null, form_version: earlier.form_version, event_id: earlier.event_id ?? "", column: old.get(parent)!.name }] };
-        else if (cell.state !== null) cell = { ...cell, chart_again: true };
+        if (cell.state !== null) cell = { ...cell, chart_again: true };
+        else {
+          // An empty cell of a column made from others: each source's earlier value, as history (`cells.project`).
+          for (const parent of (c.derived_from ?? []).filter((p) => old.has(p))) {
+            const earlier = row.cells?.[parent];
+            if (earlier && earlier.state !== null) cell = { ...cell, chart_again: true, history: [...cell.history, { state: earlier.state, value: earlier.value, note: earlier.note, where_from: earlier.where_from, at: null, form_version: earlier.form_version, event_id: earlier.event_id ?? "", column: old.get(parent)!.name }] };
+          }
+        }
       }
       const gone = removedOptions.get(c.column_id);
       if (gone && cell.state === "value" && (Array.isArray(cell.value) ? cell.value : [cell.value]).some((v) => gone.includes(String(v)))) cell = { ...cell, chart_again: true };
