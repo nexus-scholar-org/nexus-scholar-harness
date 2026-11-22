@@ -329,3 +329,53 @@ test("DoD 14 in the browser: 150 rows by 5 columns, first draw and a walk of 60 
   expect(firstDraw).toBeLessThan(3000);
   expect(perMove).toBeLessThan(50);
 });
+
+/**
+ * `M12A_SHOTS=<folder>` writes the four screenshots shown to the researcher (en, light,
+ * 1440x900): the Full text view, the Charting view with a cell being edited, the form
+ * panel and the one-study view. Nothing is written into the repository; without the
+ * switch the test is skipped.
+ */
+test("screenshots for the researcher (M12A_SHOTS)", async ({ page }, info) => {
+  const shots = process.env.M12A_SHOTS;
+  test.skip(!shots || info.project.name !== "chromium", "M12A_SHOTS names a folder; light theme only");
+  const { join } = await import("node:path");
+  await page.setViewportSize(DESKTOP_VIEWPORT);
+  await engine(page);
+  // 1. The Full text view with rows in different states.
+  await page.goto("/en/charting");
+  const notNowFirst = page.getByRole("button", { name: "Not now" });
+  if (await notNowFirst.count()) await notNowFirst.click();
+  await page.locator("[role=grid] tbody tr").first().click();
+  // One key at a time, each after the last save has answered.
+  for (const key of ["r", "i", "j", "q", "j", "n", "1", "Enter", "j", "r", "e", "1", "Enter", "j", "j"]) {
+    await page.keyboard.press(key);
+    await page.waitForTimeout(350);
+  }
+  await page.screenshot({ path: join(shots!, "1-full-text.png") });
+  // 2. The Charting view, two values saved and a third being typed.
+  await page.goto("/en/charting?view=charting");
+  const notNow = page.getByRole("button", { name: "Not now" });
+  if (await notNow.count()) await notNow.click();
+  await page.locator('[data-cell="STU-001:2"]').click();
+  await page.keyboard.press("Enter");
+  await page.keyboard.type("RedEdge-M and Sequoia; one model per camera");
+  await page.keyboard.press("Enter");
+  await page.keyboard.press("Alt+N");
+  await page.locator('[data-cell="STU-003:2"]').click();
+  await page.keyboard.press("Enter");
+  await page.keyboard.type("Sequoia only");
+  await page.waitForTimeout(300);
+  await page.screenshot({ path: join(shots!, "2-charting-editing.png") });
+  await page.keyboard.press("Escape");
+  // 3. The form panel open.
+  await page.keyboard.press("f");
+  await expect(page.getByRole("complementary", { name: "Charting form" })).toBeVisible();
+  await page.waitForTimeout(300);
+  await page.screenshot({ path: join(shots!, "3-form-panel.png") });
+  // 4. The one-study view.
+  await page.goto("/en/charting/study?id=STU-001");
+  await expect(page.locator("[data-position]")).toBeVisible();
+  await page.waitForTimeout(300);
+  await page.screenshot({ path: join(shots!, "4-one-study.png") });
+});
