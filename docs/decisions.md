@@ -10,7 +10,22 @@ history to read if you need the original reasoning (`git log --follow -- <path>`
 
 | Entry | Item | What is open |
 | :-- | :-- | :-- |
+| 2026-11-22 — M12a Part B follow-up: merging columns; attach and open tested | 1 to 7 | Proposed with the build; the researcher's answer is pending. |
 | 2026-11-19 — M9a: what the measurement says about the ladder gates | 2 | The minimum share of the researcher's excludes an agent must take before a rung unlocks: the principle is accepted; the researcher decided on 2026-11-20 to set the number when M9b is built. |
+
+## 2026-11-22 — M12a Part B follow-up: merging columns from the form panel; attach and open tested in the browser (items 1 to 7 PROPOSED)
+
+Record: `docs/roadmap/milestones/M12a-charting-table.md`, "Build record", "Part B follow-up". The two things Part B did not build, which the researcher asked for as a follow-up after Part B merged (2026-11-22). The engine already records a merge (Part B items 4 and 5); nothing in it changes. The build's own choices; none is accepted until the researcher answers.
+
+1. **The control**: each column card gets a quiet "Merge with…" after "Split into two" (disabled while the table is read-only or the form has fewer than two columns). It opens a small chooser under the card, not a dialog: a labelled select "Merge {name} with" listing the other columns in form order (the first one picked), then "Merge the two columns" and "Cancel"; Esc closes only the chooser; the focus goes to the select, back to the button on Cancel or Esc, and to the new column's name after a merge, as with a split.
+2. **The new column**: Text, no options, named "{a} and {b}" in form order (fr "{a} et {b}", ar "{a} و{b}"), at most 200 characters; its definition the two joined with "; " (at most 2,000); required if either was; no protocol id; it takes the first column's place, replaces both, and its `derived_from` names both.
+3. **Saving as a split does**: the same queued form save, at once before any value exists, through the amendment prompt with its sentence afterwards; the engine records "merged" and marks the new column's cells "Chart again" with each old column's earlier value as history.
+4. **Three or more columns merge step by step**: merging a column made by an unsaved merge uses its own sources, so A with B, then that with C before recording, gives one "merged" row with three sources; merging a merge already recorded makes a new merge of that column and C.
+5. **"Made from" names old columns the way the engine does** (from the split, replaced and merged amendments), and also from the names seen in the panel during the page load, so a split or merge saved before any value names the old columns instead of their ids. This changes the split's display in that case too (it showed ids).
+6. **No new change words**: the amendment line uses the existing "columns merged" words ("columns merged, from “Images, Data split” to “Images and Data split”.").
+7. **The browser test of Attach and Open in the one-study view** checks the request the new tab makes for the attachment route, not what the tab shows (headless Chromium leaves its address empty for a PDF); it waits for the screen's focus after the load before acting (the race fixed on PR 280).
+
+**Lane STANDARD** (`test_gate_policy.md`: isolated UI work on an existing route; no new route, persisted record, refusal code or engine change).
 
 ## 2026-11-22 — M11b part C: the screening screens, the build's choices (items 1 to 17 accepted by the researcher 2026-11-22 as built; M11b-criteria-pilot, part C)
 
