@@ -207,6 +207,9 @@ test("chart five studies from the abstract by keyboard, then undo the last chang
   expect(rows.slice(0, 5).every((r) => r.charted)).toBe(true);
   expect(posted.flat().filter((e) => e.kind === "cell")).toHaveLength(25);
   // Undo the last change (study 5, the Yes/No field) from outside a field.
+  // The move to study 6 puts the focus on its first field once the study has loaded; wait for that,
+  // or it lands after the focus below and the key is typed inside a field, where it does nothing.
+  await expect(page.locator('[data-field="sensor_problems"] input').first()).toBeFocused();
   await page.locator("[data-region=study]").focus();
   await page.keyboard.press("z");
   await expect(page.locator("[data-announce]")).toHaveText("Undone");
