@@ -52,6 +52,8 @@ def _file_entry(file_path: Path | None, manifest_path: Path) -> str | None:
 def _request(attempt: FetchAttempt) -> dict[str, Any]:
     return {
         "url": attempt.url,
+        "host": attempt.host,
+        "retry": attempt.retry,
         "route": attempt.route,
         "http_status": attempt.http_status,
         "final_url": attempt.final_url,
@@ -123,6 +125,8 @@ def manifest_row(result: DownloadResult, manifest_path: Path) -> dict[str, Any]:
         "lookups": lookups,
         "copies_listed": result.copies_listed,
         "copies_tried": result.copies_tried,
+        "request_count": result.request_count,
+        "request_hosts": result.request_hosts(),
         "requests": [_request(attempt) for attempt in result.attempts],
         "time": datetime.now(UTC).isoformat(timespec="seconds"),
         "app_version": _app_version(),

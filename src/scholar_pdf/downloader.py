@@ -8,8 +8,10 @@ import os
 import shutil
 import tempfile
 from dataclasses import dataclass, replace
+from collections import Counter
 from pathlib import Path
 from typing import TYPE_CHECKING
+from urllib.parse import urlsplit
 
 import aiohttp
 from scholar_search.http_client import RETRY_AFTER_CAP, retry_after_seconds
@@ -95,6 +97,21 @@ class FetchAttempt:
     error: str | None = None
     #: The checks on the bytes, by name (``validator.PdfCheck``), when bytes came.
     checks: tuple = ()
+    #: Whether this request repeated the one before it to the same address.
+    retry: bool = False
+
+    @property
+    def host(self) -> str:
+        """The host (and port, when given) the request went to."""
+        return urlsplit(self.url).netloc.rsplit("@", 1)[-1]
+
+    def answer(self, stored: bool = False) -> str:
+        """What the address answered, in words: ``stored``, the error, or the status."""
+        if stored:
+            return "stored"
+        if self.error:
+            return self.error
+        return f"HTTP {self.http_status}" if self.http_status is not None else "answered"
 
     def observe(self, response: object) -> None:
         """Keep the status, the final address, the redirects and the content type."""
@@ -254,6 +271,28 @@ class DownloadResult:
     checks: tuple = ()
     new_file: bool = False
 
+    @property
+    def request_count(self) -> int:
+        """How many requests went to PDF addresses for this DOI, retries included."""
+        return len(self.attempts)
+
+    def request_hosts(self) -> dict[str, int]:
+        """How many of those requests went to each host."""
+        return dict(Counter(attempt.host for attempt in self.attempts))
+
+    def request_lines(self) -> list[str]:
+        """Each PDF request in words, ``<host>: <answer>``, in the order sent."""
+        lines = []
+        for index, attempt in enumerate(self.attempts):
+            stored = (
+                self.success
+                and index == len(self.attempts) - 1
+                and attempt.url == self.source_url
+            )
+            retry = " (retry)" if attempt.retry else ""
+            lines.append(f"{attempt.host}: {attempt.answer(stored)}{retry}")
+        return lines
+
 
 @dataclass(frozen=True)
 class _Lookup:
@@ -412,6 +451,7 @@ class AsyncPDFDownloader:
         """
         record = FetchAttempt(url=_public_url(url) or url, route=route)
         if attempts is not None:
+            record.retry = bool(attempts) and attempts[-1].url == record.url
             attempts.append(record)
         # The app names itself and its contact (K0, M12a item 27), never a browser.
         headers = {

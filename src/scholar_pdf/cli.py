@@ -607,6 +607,16 @@ def download(
             )
 
     console.print(table)
+    # Every request sent to a PDF address, per DOI: how many, to which hosts, and
+    # what each answered (a higher-ranked address that gave no PDF included).
+    for res in results:
+        if res.attempts:
+            plural = "s" if res.request_count != 1 else ""
+            console.print(
+                f"{escape(res.doi)}: {res.request_count} PDF request{plural}: "
+                + escape("; ".join(res.request_lines())),
+                soft_wrap=True,
+            )
     console.print(
         f"[bold green]Successfully downloaded {success_count}/{len(doi_list)} PDFs.[/bold green]"
     )

@@ -99,10 +99,15 @@ async def test_a_429_beyond_the_cap_or_without_retry_after_ends_with_try_later(h
 
 
 @pytest.mark.asyncio
-async def test_a_refused_address_does_not_stop_the_next_one(downloader):
-    """No backoff patched: a 403 must not cost any wait before the next address."""
-    import time
+async def test_a_refused_address_does_not_stop_the_next_one(downloader, monkeypatch):
+    """A 403 costs no wait before the next address: the retry wait is never asked."""
+    waits = []
 
+    def recording_wait(state):
+        waits.append(state)
+        return 0
+
+    monkeypatch.setattr(AsyncPDFDownloader.download_pdf.retry, "wait", recording_wait)
     openalex = {
         "open_access": {"is_oa": True},
         "locations": [
@@ -118,10 +123,8 @@ async def test_a_refused_address_does_not_stop_the_next_one(downloader):
         openalex["locations"][0]["pdf_url"] = host.url("/refused.pdf")
         openalex["locations"][1]["pdf_url"] = host.url("/open.pdf")
         lookups = FakeLookups(openalex, {"is_oa": False, "oa_locations": []})
-        started = time.monotonic()
         async with aiohttp.ClientSession() as session:
             result = await downloader.process_doi(session, lookups, "10.1/two")
-        elapsed = time.monotonic() - started
     assert result.success is True, result.error_message
     assert host.hits["/refused.pdf"] == 1 and host.hits["/open.pdf"] == 1
-    assert elapsed < 2.0, elapsed
+    assert waits == []
