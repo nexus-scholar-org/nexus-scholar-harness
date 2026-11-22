@@ -143,8 +143,14 @@ def _log_project_event(
 # ---------------------------------------------------------------------------
 
 
-def compile_intent(intent: dict) -> dict:
+def compile_intent(intent: dict, *, state_method: bool = True) -> dict:
     """Compile an intent in memory; nothing is written (the compile-preview).
+
+    ``state_method=False`` (the placeholder scaffold, and a recompile of a
+    protocol that states no block) leaves out the method block an intent
+    without ``method`` would otherwise be given: nobody chose its not-reported
+    rule (M11b part D, answer 8; the placeholder follow-up). An intent that
+    carries ``method`` always states it.
 
     Returns ``intent_text``, ``protocol_bytes``, ``criteria_text`` and
     ``protocol_fingerprint``: exactly what :func:`compile_protocol_files`
@@ -165,7 +171,7 @@ def compile_intent(intent: dict) -> dict:
     # M7-method (decision 2026-11-08): a new workspace states its method values in
     # the signed protocol, filled with today's defaults, rather than leaving them
     # implicit. Existing workspaces are never rewritten.
-    if compiled.method is None or compiled.method.reporting is None:
+    if (compiled.method is None and state_method) or (compiled.method is not None and compiled.method.reporting is None):
         from scholar_protocol.models import MethodConfig
 
         from ..screening.method import DEFAULT_REPORTING, PLAYBOOK_REPORTING
@@ -183,14 +189,14 @@ def compile_intent(intent: dict) -> dict:
     }
 
 
-def compile_protocol_files(ws_dir: Path, intent: dict) -> dict[str, str]:
+def compile_protocol_files(ws_dir: Path, intent: dict, *, state_method: bool = True) -> dict[str, str]:
     """Compile intent.json → protocol.json + SCREENING_CRITERIA.md via the kit, deterministically.
 
     Returns {"protocol_fingerprint": ..., "protocol_path": ..., "criteria_path": ...}.
     The intent is compiled before anything is written, so an invalid intent
-    leaves the folder as it was.
+    leaves the folder as it was. ``state_method`` as :func:`compile_intent`.
     """
-    out = compile_intent(intent)
+    out = compile_intent(intent, state_method=state_method)
     (ws_dir / "intent.json").write_text(out["intent_text"], encoding="utf-8")
     (ws_dir / "protocol.json").write_bytes(out["protocol_bytes"])
     (ws_dir / "SCREENING_CRITERIA.md").write_text(out["criteria_text"], encoding="utf-8")
@@ -722,15 +728,28 @@ class WorkspaceScaffoldRefused(Exception):
         self.code, self.message = code, message
 
 
-def scaffold_placeholder_workspace(target: Path, title: str, *, agent: str, timestamp: str | None = None) -> dict:
+#: The not-reported rule's values (the terminal wizard's ``NOT_REPORTED_CHOICES``, M11b part D).
+PLACEHOLDER_NOT_REPORTED = ("unclear", "decisive_first", "exclude")
+
+
+def scaffold_placeholder_workspace(
+    target: Path, title: str, *, agent: str, timestamp: str | None = None, not_reported: str | None = None
+) -> dict:
     """The ``nexus-scholar init --scaffold-only`` workspace, without a console.
 
     Shared by the CLI and the workspaces API (M5-slim): the canonical layout, a
     deterministic placeholder protocol, the ``PROJECT_INITIALIZED`` + ``GENESIS``
     journal rows written by ``log_genesis`` under ``agent``, then the support
     files (skills, ``.env.example``, ``.mcp.json``). Refuses
-    ``WORKSPACE_TITLE_INVALID`` for a title with no slug and ``WORKSPACE_EXISTS``
-    for a folder that already carries an :data:`INIT_MARKERS` file or is a file.
+    ``WORKSPACE_TITLE_INVALID`` for a title with no slug, ``METHOD_RULE_INVALID``
+    for a not-reported rule outside the three, and ``WORKSPACE_EXISTS`` for a
+    folder that already carries an :data:`INIT_MARKERS` file or is a file.
+
+    M11b follow-up: no question is asked here, so the protocol states no method
+    block (the screens read the rule as the harness default, source
+    ``defaults``) unless ``not_reported`` names the rule; then the intent and
+    the protocol carry it as part D's genesis does. The rule is chosen when the
+    placeholder is replaced (New review, or the wizard), where part D asks it.
     """
     from .intent import slugify
 
@@ -738,6 +757,10 @@ def scaffold_placeholder_workspace(target: Path, title: str, *, agent: str, time
     slug = slugify(title)
     if not slug:
         raise WorkspaceScaffoldRefused("WORKSPACE_TITLE_INVALID", "the title has no letters or digits to make a folder name from")
+    if not_reported is not None and not_reported not in PLACEHOLDER_NOT_REPORTED:
+        raise WorkspaceScaffoldRefused(
+            "METHOD_RULE_INVALID", f"the not-reported rule must be one of: {', '.join(PLACEHOLDER_NOT_REPORTED)}"
+        )
     if target.is_file() or (target.exists() and any((target / marker).exists() for marker in INIT_MARKERS)):
         raise WorkspaceScaffoldRefused("WORKSPACE_EXISTS", f"{target} already holds a Nexus Scholar workspace")
     from .emit import GenesisRefused, emit_workspace
@@ -745,6 +768,8 @@ def scaffold_placeholder_workspace(target: Path, title: str, *, agent: str, time
     target.mkdir(parents=True, exist_ok=True)
     # A fixed timestamp gives a reproducible placeholder protocol (its fingerprint).
     intent = _scaffold_only_intent(title, slug, timestamp or datetime.now(UTC).isoformat())
+    if not_reported is not None:
+        intent["method"] = {"blinding": "reveal_after_decision", "not_reported": not_reported}
     # M4a: the one gated genesis path; it never replaces here.
     try:
         compiled = emit_workspace(
@@ -754,6 +779,7 @@ def scaffold_placeholder_workspace(target: Path, title: str, *, agent: str, time
             description=f"nexus-scholar init (--scaffold-only): '{title}'",
             fingerprint_label="placeholder protocol",
             protocol_origin="placeholder",
+            state_method=not_reported is not None,
         )
     except GenesisRefused as exc:
         raise WorkspaceScaffoldRefused("WORKSPACE_EXISTS", exc.message) from exc
