@@ -662,7 +662,7 @@ Review round 2 of part C (on `f6d26718`): **APPROVE** (lane RELEASE confirmed). 
 
 ### Part D: Inception step 5
 
-Branch `dev/m11b/part-d-step5`, stacked on part C (`238dce96`), with `origin/main` `46371f45` (part A merged, PR 275) brought in through B and C · Lane **RELEASE** (the inception draft API, the intent packet and the protocol genesis writes change; new check ids in a public preview) · Decisions: `docs/decisions.md` "2026-11-21 — M11b part D" items 1 to 10 (PROPOSED). Status: **IN PROGRESS: the engine side only.** The screen (DoD 20, the criteria block of direction A, and the checks' copy in en/fr/ar) waits for `docs/ux/phase0-inception/final/11-criteria-block.md` to be FINAL (questions 3, 7, 8).
+Branch `dev/m11b/part-d-step5`, stacked on part C (its reviewed head `daaeaa92` merged in, and `origin/main` `55755bd7`: part B as PR 277 and the PDF resolver fix PR 278) · Lane **RELEASE** (the inception draft API, the intent packet and the protocol genesis writes change; new check ids in a public preview) · Decisions: `docs/decisions.md` "2026-11-21 — M11b part D" items 1 to 10 (PROPOSED). Status: **IN PROGRESS** (the screen built; gate and review below).
 
 What was built (engine):
 - `inception/steps.py`: the draft fields `method_blinding` (pre-selected "after you decide") and `method_not_reported` (no default); `method_choice`, `method_options` on `steps/criteria`; `build_intent` refuses `METHOD_RULE_UNCHOSEN` (preview and genesis) and writes `method` into the intent; `keep_method_choice` on every save (omitted fields kept; `null` after a choice is `DRAFT_INVALID`). `inception/drafts.py`: a new draft stores the rule unchosen.
@@ -679,12 +679,14 @@ What was built (engine):
 | 18b | `tests/inception/test_method_questions.py`: `test_a_search_amendment_of_a_review_that_chose_decisive_first_is_not_refused`, `test_without_the_method_in_the_intent_the_same_amendment_is_refused` (the failure it prevents), `test_a_protocol_without_the_choice_keeps_its_fingerprint` | done |
 | 18c | `tests/inception/test_method_questions.py`: `test_the_wizard_asks_the_rule_with_no_default_until_one_is_chosen`, `test_a_scripted_run_without_the_rule_is_refused_before_anything_is_written`, `test_the_cli_names_the_option`, `test_the_wizard_writes_the_rule_into_the_intent` | done |
 | 19 (engine) | `tests/inception/test_criteria_wording_checks.py` (16 tests: each rule at and below its constant, accepted criteria only, never a blocker, a subject per instance, a changed text a new subject, the other-language note, and the honesty fixture: the 2026-11-20 mirror and the contradiction of meaning are not caught) | done (engine; the panel's copy is UI) |
-| 20 | (UI) | waits for spec 11 FINAL |
+| 18 (screen) | `apps/research-ui/tests/inception-criteria-block.test.tsx` "inception.how-you-will-screen" (5: both questions with the engine's options, visibility pre-selected, the rule with none and no "recommended", the measured figures; the engine's order followed; Continue held and named while unchosen, a choice frees it and the save carries both values; a draft from before the question; the visibility question never holds Continue) and "review.how-you-will-screen" (2); `tests-browser/inception-criteria-block.spec.ts` (the choice through to Review, by keyboard) | done |
+| 19 (screen) | `inception-criteria-block.test.tsx` "inception.criteria-checks copy" (the seven ids' sentence, why and action in en, fr and ar); `tests/checks-panel.test.tsx` (the catalogue now 59 ids); the engine's rows are drawn by the existing checks panel | done |
+| 20 | `inception-criteria-block.test.tsx` "inception.criteria-block" (4: the header's written line or "Decide every criterion first.", the limits line, the out-of-scope question here with its separators, Shape's one line); `tests-browser/inception-criteria-block.spec.ts` (out-of-scope rows, no sideways scroll at 375, 1024, 1280 and 1440 px, Arabic, axe in light and dark) | done (the section does not fold: decision item 12) |
 | 21 | `generate_contract_baseline.py --check` current; `generate_protocol_schema.py --check` in sync (Evidence) | done for the engine side |
 
 Fails before: on part C's head the two new files stop at collection (no `criteria_wording` module, no `method_choice`); the scripted-wizard and intent tests have no `not_reported` parameter.
 
-Not verified: the screen (DoD 20); whether the wording checks find anything in a real review's criteria (record, "What cannot be verified"); the terminal wizard by hand in a real terminal (tested through the responder and the refusal function).
+Not verified: whether the wording checks find anything in a real review's criteria (record, "What cannot be verified"); the terminal wizard by hand in a real terminal (tested through the responder and the refusal function).
 
 Evidence, part D engine side (`-n 4`):
 
@@ -695,3 +697,20 @@ Evidence, part D engine side (`-n 4`):
 | targeted | next commit | the five failing files | 119 passed | 52 s |
 
 The PR gate for part D runs once its screen is built.
+
+The screen (spec 11 FINAL 2026-11-21, questions 3, 7 and 8 answered as recommended; decision items 11 to 20 PROPOSED):
+- `components/inception-criteria.tsx`: step 5's criteria section ("Criteria", its written line), the two lists unchanged, the out-of-scope question moved here from Shape, the limits line, and "How you will screen" (`MethodQuestions`): the visibility question pre-selected, the not-reported rule with no option selected, options and order from the engine's `method_options`, the help with the measured figures, "Not chosen yet" and the earlier-draft sentence from the engine's `method`, "From the imported protocol". Continue is held, naming why, while the rule is unchosen; a save writes both values as shown.
+- `components/inception-review.tsx`: the read-only group "How you will screen" (the two choices in words, "Not chosen yet", "Change" to the rule).
+- `components/inception-shape.tsx`: the out-of-scope question is gone; one line says where it is asked; the stored items are kept.
+- `lib/checks-copy.ts`: the five wording checks, `CRITERIA_WORDING_NOT_CHECKED` and `METHOD_RULE_UNCHOSEN` (with its earlier-draft sentence), en, fr and ar; the catalogue lists 59 ids. `components/assist-anchor.tsx`: a check's link reaches the rule's first option or the out-of-scope field.
+- `lib/inception-api.ts`, `lib/inception-copy.ts`, `lib/assist-labels.ts`: the method types, the new keys (en, fr, ar), `field.out_of_scope`.
+- `docs/ux/shared/final/03-guidance.md`: rows I-SH10 (repointed), I-C24 to I-C30, I-R22; counts 116, 34, 11, 161.
+- Tests: `tests/inception-criteria-block.test.tsx` (12), the fake engine's `method` answer (`tests/fixtures/inception-engine.ts`, opt-in), `tests-browser/inception-criteria-block.spec.ts` (7 per project); existing tests follow the moved question (Shape, the criteria row read by its verbatim line).
+- A part C test made robust: the agent check's focus assertion waits for the effect (it failed once under the full-suite load, passed alone three times); the same one-line change would suit part C's branch.
+
+| Stage | Commit | Command | Result | Duration |
+| :-- | :-- | :-- | :-- | :-- |
+| targeted | `c68486a8` (working tree) | `vitest run` of the step 5, Shape, Review, answers, checks and guidance files; `tsc` | 150 passed, then 12 of the new file; clean | |
+| checkpoint | `c68486a8` | full `vitest run` | 1183 passed, 1 failed: part C's focus assertion under load (made to wait, `54a49ae0`) | 156 s |
+| targeted | `e9f2b412` | `playwright test tests-browser/inception-criteria-block.spec.ts` (port 3127) | 14 passed after the group lost `aria-required` (axe) and the URL wait was corrected | 60 s |
+| pr | `e9f2b412` | both ruff commands; contract baseline, protocol schema, contract schemas, two-study fixture; `git diff --check origin/main...HEAD` | exit 0; current; in sync; exit 0; exit 0; clean | |
