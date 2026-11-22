@@ -91,6 +91,19 @@ After review round 1 (engine):
 
 **Lane RELEASE** (new routes, a new persisted record and journal rows, refusal codes, outgoing requests, a change to the arXiv provider's parsing).
 
+## 2026-11-22 — M12c agent-proposed cells: a blind second reading (item 1 answered by the researcher 2026-11-22: "Yes, add it to the spec"; items 2 to 5 open)
+
+Record: `docs/roadmap/milestones/M12c-agent-cells.md`, "Amendment 2026-11-22". Proposed by the main session after answer 7 of the entry "2026-11-21 — M12c agent-proposed cells" ("No measurement") left M12c with no check on the agent. Asked in the main session on 2026-11-22 with three choices (yes; one reading; decide when M12c starts). Nothing is built or spent by this answer; M12c's start stays the researcher's to approve.
+
+1. *(Answered "Yes, add it to the spec", as recommended.)* **Each paper is read twice by the agent, the two readings independent of each other** (neither is shown the other's output), and the researcher still decides every cell. Where the two readings disagree, the cell is flagged for a closer look. Known cost, said when asked: about twice the AI spend per paper. *Not chosen:* one reading, as specified on 2026-11-21; leaving the question until M12c starts.
+
+Open, to be written into the specification and asked before M12c-2 is built (not decided here):
+
+2. What counts as a disagreement for each column type (text, number, yes/no, one of a list), and for "not reported" against a value.
+3. What the researcher sees: both values with their quotes, or one proposal and a flag; and what the counts and the methods text say about agreement (agreement between two readings is not accuracy).
+4. Whether the two readings use the same model and prompt, and how the estimate, the typed ceiling and the hard ceiling name the doubled spend.
+5. The MCP path (answer 3, "Both from the start"): the app cannot make a client read twice or keep the readings apart; whether a second reading there is required, offered or absent.
+
 ## 2026-11-22 — M12a Part K: the PDF kit's downloading made production (items 1 to 20 accepted by the researcher 2026-11-22 as built)
 
 Record: `docs/roadmap/milestones/M12a-charting-table.md`, "Build record", Part K. Builds section (d3) items 3, 4 and 6 to 13 on top of K0 (PR 274) and the resolver (PR 278, whose items 13 and 14 behave as merged). The build's own choices where the record left the detail open. The researcher accepted all twenty as built on 2026-11-22 (asked in the main session: items 2, 4, 11 and 20 one by one, item 17 with its own question, the other fifteen in four groups) and approved the push. On item 17 they chose "Plan it as a follow-up": PMC's own open-access route gets a specification after Part F (plan §6); nothing of it is built or decided here. The two prepared live checks are approved for after the merge, the commands shown to the researcher first. Nothing here changes a Contract v1 file.
