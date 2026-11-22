@@ -287,6 +287,8 @@ def submit_proposal(
             "batch_binding", "usage", "cost_estimate", "request_id", "batch_id",
             # M1b-2: what the provider returned (ok, refusal, truncated, invalid, error).
             "driver_status", "driver_detail", "run_id",
+            # M11b part B: a draft made by the agent check on a pilot names it.
+            "pilot_id",
         )},
         "proposal_id": proposal_id(task_version, in_hash, protocol_fingerprint, model, version),
         "study_id": study_id,

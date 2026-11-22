@@ -54,6 +54,9 @@ CRITERIA_SIDE_EMPTY = "CRITERIA_SIDE_EMPTY"
 #: A current batch was decided through the file hand-off (a worker recommendation or a
 #: decisions file not built from events): a revision could not show those decisions again.
 CRITERIA_AMENDMENT_HANDOFF = "CRITERIA_AMENDMENT_HANDOFF"
+#: ``amend_criteria(pilot_id=OPEN_PILOT)``: record the pilot open at the time of the revision,
+#: read under the events lock (M11b part B).
+OPEN_PILOT = object()
 #: At most this many texts in a split (review round 1, F5).
 MAX_SPLIT_TEXTS = 10
 #: The file hand-off worker reads the signed wording from the batch file; once
@@ -709,7 +712,7 @@ def amend_criteria(
     confirm: bool,
     amended_by: str,
     amended_at: str,
-    pilot_id: str | None = None,
+    pilot_id: Any = None,
 ) -> dict[str, Any]:
     """Check, and with ``confirm`` record, one criteria revision (DoD 1 to 8).
 
@@ -757,6 +760,11 @@ def amend_criteria(
                 "app's Triage (or start a new screening) before revising the criteria",
                 status=409,
             )
+        if pilot_id is OPEN_PILOT:
+            from .pilot import open_pilot
+
+            in_progress = open_pilot(ws)
+            pilot_id = in_progress.pilot_id if in_progress is not None else None
         current = context.criteria if context.criteria is not None else signed_criteria(None)
         plan = plan_amendment(
             current, op=op, side=side, ids=ids, text=text,

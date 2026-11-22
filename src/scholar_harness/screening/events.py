@@ -67,6 +67,8 @@ PROJECTION_STALE = "PROJECTION_STALE"
 #: A new EXCLUDE citing a criterion a revision retired (M11b part A); events
 #: stored before the revision keep it.
 REASON_CODE_RETIRED = "REASON_CODE_RETIRED"
+#: M11b part B: a new main decision on a record of the open pilot.
+PILOT_OPEN = "PILOT_OPEN"
 
 #: Fields the engine stamps on intake; the client cannot set them, and they do
 #: not count when an `event_id` is replayed (idempotency compares the rest).
@@ -111,6 +113,8 @@ class ScreeningContext:
     study_batch: dict[str, int] = field(default_factory=dict)
     #: The criteria in force (M11b part A); ``None`` only for a context built by hand.
     criteria: CriteriaInForce | None = None
+    #: M11b part B: the records of the open pilot; a new main decision on one is refused ``PILOT_OPEN``.
+    pilot_open: frozenset[str] = frozenset()
 
     @property
     def criteria_version(self) -> int:
@@ -122,6 +126,9 @@ class ScreeningContext:
         self.criteria = criteria_from_protocol(workspace, protocol, self.protocol_fingerprint)
         self.exclusion_ids = self.criteria.ids("exclusion")
         self.inclusion_ids = self.criteria.ids("inclusion")
+        from scholar_harness.screening.pilot import open_studies
+
+        self.pilot_open = open_studies(workspace)
 
     def retired_reason(self, code: str | None) -> bool:
         return self.criteria is not None and self.criteria.retired_reason(code)
@@ -169,6 +176,9 @@ def load_context(workspace: Path) -> ScreeningContext:
         inclusion_ids=criteria.ids("inclusion"),
         criteria=criteria,
     )
+    from scholar_harness.screening.pilot import open_studies
+
+    context.pilot_open = open_studies(ws)
     registry_path = ws / "audit" / "artifact_registry.json"
     if not registry_path.is_file():
         return context
@@ -344,6 +354,13 @@ def _criteria_refusal(
       decision shown again: a second head would leave the earlier one in place
       (an equal outcome is a confirmation, and the earliest head wins).
     """
+    if event.get("study_id") in context.pilot_open:
+        # M11b part B (answer 5): a record of the open pilot is decided in the pilot, never in
+        # both places at once; it comes back to the main screening when the pilot ends.
+        return _refuse(
+            PILOT_OPEN,
+            f"{event.get('study_id')} is in the open pilot; decide it there, or end the pilot to screen it here",
+        )
     code = event.get("reason_code")
     kept_earlier = resolution_version is not None and resolution_version < context.criteria_version
     if event.get("outcome") == "EXCLUDE" and context.retired_reason(code) and not kept_earlier:
