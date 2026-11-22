@@ -462,6 +462,11 @@ function ChartingScreen({ locale }: Readonly<{ locale: Locale }>) {
   const notRetrievedReasons = table?.not_retrieved_reasons ?? ["no_access", "not_found", "no_reply", "other"];
   const form: ChartingForm | null = table?.form ?? null;
   const columns: FormColumn[] = useMemo(() => form?.columns ?? [], [form]);
+  // The name of every column seen during this page load, kept here because the form
+  // panel unmounts when it closes: its "Made from" can then still name a column that a
+  // split or merge removed before any value existed (no amendment names it then).
+  const seenColumnNames = useRef(new Map<string, string>());
+  for (const c of columns) seenColumnNames.current.set(c.column_id, c.name);
 
   // The address follows the view and the filter, so Back from a study returns to them.
   useEffect(() => {
@@ -1844,6 +1849,7 @@ function ChartingScreen({ locale }: Readonly<{ locale: Locale }>) {
               locale={locale}
               origin={origin}
               form={form}
+              seenNames={seenColumnNames.current}
               readOnly={readOnly || offline}
               addOnOpen={panelAdd}
               onSaved={formSaved}

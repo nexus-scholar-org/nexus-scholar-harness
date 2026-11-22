@@ -601,3 +601,42 @@ The static export (asked for by the main session before the PR; the app is shipp
 | :-- | :-- | :-- | :-- | :-- |
 | export | `dc7064e2` | `npm run build:export` in `apps/research-ui`, alone on the machine | exit 0; the route list holds `/[locale]/charting` and `/[locale]/charting/study` for en, fr and ar; `.next-export/{en,fr,ar}/charting/index.html` and `.next-export/{en,fr,ar}/charting/study/index.html` written, `lang` and `dir` right (`ar` is `rtl`) | 63 s |
 | export served | `dc7064e2` | the console built with `ui_dir=.next-export` (`create_app`, a TestClient, no network): `GET /{en,fr,ar}/charting`, `…/charting/`, `…/charting/study?id=STU-abc`, `…/charting/study/?id=STU-abc` | every one 200 with its locale's page (decision item 13: the one-study view's query-parameter address is served from the static export) | |
+
+### Part B follow-up: merging columns from the form panel; attach and open in the one-study view, tested
+
+Branch `dev/m12a/part-b-followup`, from `origin/main` `933be3fb` (Parts A and B merged) · Lane **STANDARD** (a bounded UI behaviour change in one repository: it writes form amendments through the existing API; the engine's merge exists since Part B) · Decisions: `docs/decisions.md` "2026-11-22 — M12a Part B follow-up" items 1 to 7 (accepted as built 2026-11-22). Asked for by the researcher on 2026-11-22, when accepting Part B: the two things Part B had not built ("Not verified" of Part B). The work was built by a subagent from a brief written in the build session.
+
+What was built:
+- `apps/research-ui/components/charting-form-panel.tsx`: "Merge with…" on each column card, its chooser and the merge (decision items 1 to 5); `lib/charting-copy.ts`: five keys in en, fr and ar.
+- `apps/research-ui/tests/charting-helpers.tsx`: the fake engine applies the engine's split, merge and replacement rule and its history rule (a side effect fixed a history entry only the fake gave a column whose type changed).
+- Tests: `tests/charting.form-panel.test.tsx` (five new: the chooser and its keys with a merge before any value; a merge after values through the amendment prompt with the history; a three-column merge step by step; and, from review round 1, a split of unsaved split parts and merges, and a chooser whose chosen column is removed), `tests-browser/charting-study.spec.ts` ("attach a PDF from the one-study view and open it in a new tab": the file chooser, the name and size, Retrieved, "Saved", the new tab's request for the attachment route; light and dark).
+
+Not verified: the merge from the panel against the real engine (the engine's merge is `test_charting_form_api.py::test_a_replaced_column_and_a_merge_are_recorded_and_mark_chart_again`); no browser test drives the merge chooser, and the chooser was not looked at in either theme (axe runs with it closed); what the new tab shows (headless Chromium leaves a PDF tab's address empty, so the test checks the request).
+
+Evidence:
+
+| Stage | Commit | Command | Result | Duration |
+| :-- | :-- | :-- | :-- | :-- |
+| inner | `1ece5716` | typecheck; `vitest run tests/charting.form-panel.test.tsx tests/charting.i18n.test.ts tests/charting-study.i18n.test.ts tests/charting-study.history.test.tsx tests/charting.charting-view.test.tsx`; `playwright test tests-browser/charting-study.spec.ts` (the subagent's runs, one at a time) | clean; 32 tests, 0 failures; 18 passed (light and dark) | |
+| pr | `4647bf24` (code as `1ece5716`) | `select_test_gate.py --changed origin/main --stage pr` (area research-ui); the Python files that read the UI's files (`test_browser_access`, `test_lineage_api`, `test_screening_drafts_api`, `test_screening_read_api`, `test_wheel_build_hook`, `test_select_test_gate`; junit); `npm run typecheck`; `npx vitest run`; `npm run build`; `npx playwright test`; `git diff --check origin/main...HEAD` (each heavy step alone on the machine) | 113 tests, 0 failures; clean; 93 files, 1237 tests, 0 failures; built; 692 passed, 12 skipped; clean | 24 s; 143 s; 16 s; 848 s |
+
+No Python source changed, so the full Python suite does not apply (the selector names only the research-ui area). Playwright rewrote the usual four screenshots; they were restored.
+
+Review round 1 (`milestone-reviewer`, on `6b527d33`): **CHANGES**, 1 P2, 1 P3, 4 P4 (lane STANDARD confirmed, its stated reason corrected), all taken, with two follow-ups it named:
+
+| # | Finding | Repair | Test |
+| :-- | :-- | :-- | :-- |
+| P2-1 | After a merge the engine sends one history entry per source, but both views showed only the last | every trailing history entry that names a source column is shown, one line each, in the table and the one-study view (`chartAgainHistory`) | `charting.form-panel.test.tsx` (both "Earlier value, in Images: 1260" and "in Data split: By field" on screen, in both views) |
+| P3-2 | The names behind "Made from" were lost when the panel closed | kept by the page for the page load and passed to the panel | the before-any-value merge test closes and reopens the panel |
+| P4-3 | The Open test counted exactly one request | at least one, the first checked | `charting-study.spec.ts` |
+| P4-4 | The record's list of the three new tests was wrong | reworded | (none) |
+| P4-5 | The lane's reason used the policy's FAST wording | "a bounded UI behaviour change in one repository" | (none) |
+| P4-6 | Accepted Part B item 25 still says merging is not built | the follow-up entry says it amends that sentence | (none) |
+| follow-up | Splitting an unsaved merge or split part was refused by the engine | split uses the same saved sources as merge (decision item 4) | `charting.form-panel.test.tsx` (fails with the fix taken out) |
+| follow-up | A merge chooser whose chosen column was removed did nothing | the choice moves to a column that exists, or the chooser closes | `charting.form-panel.test.tsx` (fails with the fix taken out) |
+
+Evidence after round 1, on `a910b2d3` (the repairs `7309bc27` to `3ebbe064`, the docs `c5a93219`, and `origin/main` `9e4be45f` merged in, no conflict): the Python files that read the UI's files 113 tests, 0 failures; typecheck clean; `vitest run` 94 files, 1257 tests, 0 failures (133 s); build ok; `playwright test` 706 passed, 14 skipped (858 s); `git diff --check origin/main...HEAD` clean; each heavy step alone on the machine. The usual four screenshots were restored.
+
+Review round 2 (`milestone-reviewer`, on `7765cb09`): **APPROVE**. In its words: "All six round-1 findings and both follow-ups are repaired, and I found nothing new." It reran the form-panel and history vitest files (17 tests), all passing, and read the recorded gate. One P4, repaired in the closing commit: the list of new tests above now counts five.
+
+**Part B follow-up: READY FOR PR.** Branch `dev/m12a/part-b-followup`; it carries `origin/main` `9e4be45f`. Decision items 1 to 7 were accepted by the researcher on 2026-11-22 as built (asked together in the main session; item 4 says how the engine records a split of an unsaved merge; the entry amends accepted Part B item 25's last sentence), and the push was approved.
