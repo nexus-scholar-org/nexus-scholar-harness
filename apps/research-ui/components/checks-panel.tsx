@@ -78,7 +78,8 @@ function slot(locale: Locale, name: string, value: unknown): ReactNode {
   if (name === "state" && hasChecksKey(`checks.state.${text}`)) return t(`checks.state.${text}` as "checks.state.failed");
   if (name === "fields") return <bdi dir="auto">{text.split(/,\s*/).map((f) => fieldLabel(locale, f)).join(", ")}</bdi>;
   if (name === "steps") return <bdi dir="auto">{text.split(/,\s*/).map((s) => stepLabel(locale, s)).join(", ")}</bdi>;
-  if (["term", "concept", "words", "lens"].includes(name)) return <bdi dir="auto">{text}</bdi>;
+  // M11b part D (spec 11, RTL): the quoted criteria of the wording checks are the review's own words.
+  if (["term", "concept", "words", "lens", "a", "b", "criterion", "inclusion", "exclusion"].includes(name)) return <bdi dir="auto">{text}</bdi>;
   return <bdi dir="ltr">{text}</bdi>;
 }
 

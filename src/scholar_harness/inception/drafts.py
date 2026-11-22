@@ -168,6 +168,11 @@ class DraftStore:
             if self._path(sid).exists():
                 raise DraftRefused("DRAFT_EXISTS", f"a draft {sid} already exists")
             stamp = _now()
+            # M11b part D: a new draft states its method fields (the rule unchosen), so the screen and
+            # the checks can tell it from a draft started before the question existed.
+            from .steps import NEW_DRAFT_METHOD
+
+            draft = {**NEW_DRAFT_METHOD, **draft}
             record = {"session_id": sid, "created_at": stamp, "updated_at": stamp, "draft": draft, "emitted": None}
             record.update(extra or {})
             return self._write(record)
@@ -244,7 +249,12 @@ class DraftStore:
             )
         if record.get("emitted"):
             raise DraftRefused("DRAFT_EMITTED", "this draft already created a workspace", details={"emitted": record["emitted"]})
-        record["draft"] = draft
+        from .steps import StepRefused, keep_method_choice
+
+        try:
+            record["draft"] = keep_method_choice(record.get("draft"), draft)
+        except StepRefused as exc:
+            raise DraftRefused(exc.code, exc.message, status=exc.status, details=exc.details) from exc
         record["updated_at"] = _now()
         return self._write(record)
 

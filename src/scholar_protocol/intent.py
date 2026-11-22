@@ -33,7 +33,7 @@ fixed, deterministic input to the compiler.
 
 from __future__ import annotations
 
-from typing import List, Optional
+from typing import List, Literal, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -121,6 +121,18 @@ class MatrixDimensionIntent(BaseModel):
 # ---------------------------------------------------------------------------
 # Root intent packet
 # ---------------------------------------------------------------------------
+
+
+class MethodIntent(BaseModel):
+    """The two screening method settings the researcher chooses at Inception's step 5
+    (M11b part D, record (g); decision 2026-11-21, answer 8). Copied by the compiler
+    into the protocol's ``method`` block, so genesis and every later recompile (a
+    search amendment) give the same block."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    blinding: Literal["reveal_after_decision", "show"] = "reveal_after_decision"
+    not_reported: Literal["unclear", "exclude", "decisive_first"]
 
 
 class IntentPacket(BaseModel):
@@ -247,4 +259,11 @@ class IntentPacket(BaseModel):
     reproducibility_das_cas_check: Optional[bool] = Field(None)
     minimum_trust_score_threshold: Optional[float] = Field(
         None, ge=0.0, le=10.0
+    )
+
+    # ---- Screening method (M11b part D; None = the harness defaults) --------
+
+    method: Optional[MethodIntent] = Field(
+        None,
+        description="The researcher's screening method choices; None leaves the protocol's method to the defaults",
     )
