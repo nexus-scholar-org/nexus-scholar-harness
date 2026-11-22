@@ -612,3 +612,12 @@ What was built:
 - Tests: `tests/charting.form-panel.test.tsx` (three new: the chooser and its keys, a merge before any value, a merge after values through the amendment prompt with the history), `tests-browser/charting-study.spec.ts` ("attach a PDF from the one-study view and open it in a new tab": the file chooser, the name and size, Retrieved, "Saved", the new tab's request for the attachment route; light and dark).
 
 Not verified: the merge from the panel against the real engine (the engine's merge is `test_charting_form_api.py::test_a_replaced_column_and_a_merge_are_recorded_and_mark_chart_again`); no browser test drives the merge chooser, and the chooser was not looked at in either theme (axe runs with it closed); what the new tab shows (headless Chromium leaves a PDF tab's address empty, so the test checks the request).
+
+Evidence:
+
+| Stage | Commit | Command | Result | Duration |
+| :-- | :-- | :-- | :-- | :-- |
+| inner | `1ece5716` | typecheck; `vitest run tests/charting.form-panel.test.tsx tests/charting.i18n.test.ts tests/charting-study.i18n.test.ts tests/charting-study.history.test.tsx tests/charting.charting-view.test.tsx`; `playwright test tests-browser/charting-study.spec.ts` (the subagent's runs, one at a time) | clean; 32 tests, 0 failures; 18 passed (light and dark) | |
+| pr | `4647bf24` (code as `1ece5716`) | `select_test_gate.py --changed origin/main --stage pr` (area research-ui); the Python files that read the UI's files (`test_browser_access`, `test_lineage_api`, `test_screening_drafts_api`, `test_screening_read_api`, `test_wheel_build_hook`, `test_select_test_gate`; junit); `npm run typecheck`; `npx vitest run`; `npm run build`; `npx playwright test`; `git diff --check origin/main...HEAD` (each heavy step alone on the machine) | 113 tests, 0 failures; clean; 93 files, 1237 tests, 0 failures; built; 692 passed, 12 skipped; clean | 24 s; 143 s; 16 s; 848 s |
+
+No Python source changed, so the full Python suite does not apply (the selector names only the research-ui area). Playwright rewrote the usual four screenshots; they were restored.
