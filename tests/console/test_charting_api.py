@@ -102,7 +102,10 @@ def test_the_table_lists_the_published_include_and_unclear_records_with_their_ro
     assert included["fulltext"]["status"] == "to_get" and included["ft_decision"] is None
     assert table["counts"] == {"kept": 2, "to_get": 2, "requested": 0, "retrieved": 0, "not_retrieved": 0,
                                "included": 0, "excluded": 0, "to_decide": 2,
-                               "charted": 0, "not_charted": 2, "pilot": 0}  # Part B adds the last three
+                               "charted": 0, "not_charted": 2, "pilot": 0,  # Part B adds these three
+                               # Part F: files waiting, and the PRISMA counts read from the status alone.
+                               "to_confirm": 0,
+                               "prisma": {"sought": 2, "not_retrieved": 0, "retrieved": 0, "assessed": 0}}
     assert table["publication"]["status"] == "CURRENT"
     assert [o["code"] for o in table["reason_options"]][-1] == "OTHER"
     assert any(o["code"] == ids["code"] for o in table["reason_options"])

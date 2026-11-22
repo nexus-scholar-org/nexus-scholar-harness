@@ -15,7 +15,12 @@ Kinds in Part A: ``fulltext_status``, ``fulltext_decision``, ``attachment``
 restore one already stored) and ``link``. Part B adds ``cell``: one value of
 one charting column for one study, with an optional note and "where from";
 its undo chain is per column (the slot ``cell:<column_id>``), and the engine
-stamps the form version and whether the pilot was on.
+stamps the form version and whether the pilot was on. Part F adds
+``fetched_confirm`` and ``fetched_discard`` (``fetch.py``): a confirm brings
+the attachment (``origin: fetched``) and the Retrieved status it implies,
+written by the engine in the same request, and its undo takes them back; a
+status or a full-text decision on a row whose fetched file waits is refused
+``FETCH_FILE_WAITING``.
 """
 
 from __future__ import annotations
@@ -41,7 +46,9 @@ MAX_REASON_TEXT = 500
 MAX_LINK_CHARS = 2_000
 MAX_FUTURE_SKEW = timedelta(minutes=5)
 
-KINDS = ("fulltext_status", "fulltext_decision", "attachment", "link", "cell")
+KINDS = ("fulltext_status", "fulltext_decision", "attachment", "link", "cell", "fetched_confirm", "fetched_discard")
+#: Kinds decided one study per request (DoD 5; Part F's confirm and discard as well).
+ONE_STUDY_KINDS = ("fulltext_decision", "fetched_confirm", "fetched_discard")
 MAX_WHERE_FROM = 500
 STATUSES = ("to_get", "requested", "retrieved", "not_retrieved")
 NOT_RETRIEVED_REASONS = ("no_access", "not_found", "no_reply", "other")
@@ -58,7 +65,7 @@ IDEMPOTENCY_CONFLICT = "IDEMPOTENCY_CONFLICT"
 ATOMIC_COMMIT_FAILED = "ATOMIC_COMMIT_FAILED"
 
 #: Fields the engine stamps; the client cannot set them and a replay ignores them.
-ENGINE_FIELDS = frozenset({"received_at", "binding", "method", "pilot"})
+ENGINE_FIELDS = frozenset({"received_at", "binding", "method", "pilot", "links", "fetched"})
 CLIENT_FIELDS = frozenset({"event_id", "study_id", "screener_id", "at", "kind", "value", "note", "where_from", "supersedes"})
 
 _UUID = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$")
@@ -70,11 +77,15 @@ class Result:
     event_id: str
     result: str  # accepted | duplicate | refused
     refusal: dict[str, str] | None = None
+    #: Part F: an event the engine wrote with a client's event (a confirm's attachment and status).
+    engine: bool = False
 
     def as_dict(self) -> dict[str, Any]:
         out: dict[str, Any] = {"event_id": self.event_id, "result": self.result}
         if self.refusal is not None:
             out["refusal"] = self.refusal
+        if self.engine:
+            out["added_by_engine"] = True
         return out
 
 
@@ -89,6 +100,8 @@ class Context:
     #: Part B: the charting form a cell is checked against, and whether its pilot is on.
     form: dict[str, Any] | None = None
     pilot: bool = False
+    #: Part F: ``fetch.Hooks`` (which row has a file waiting; what a confirm writes).
+    fetch: Any = None
 
 
 def _refuse(code: str, message: str) -> dict[str, str]:
@@ -232,6 +245,14 @@ def shape_refusal(raw: Any, context: Context, stored: list[dict[str, Any]], rece
     if str(raw.get("study_id") or "") not in context.kept:
         return _refuse(RECORD_NOT_KEPT, "That study is not in the kept set any more. Reload the table.")
     kind, value = raw["kind"], raw.get("value")
+    if context.fetch is not None:
+        refusal = context.fetch.refusal(raw, stored)
+        if refusal is not None:
+            return refusal
+    if kind in ("fetched_confirm", "fetched_discard"):
+        if context.fetch is None:
+            return _refuse(BODY_INVALID, "a fetched file is confirmed or discarded through the charting table")
+        return None
     if kind == "fulltext_status":
         return _status_refusal(value)
     if kind == "fulltext_decision":
@@ -254,10 +275,10 @@ def request_refusal(events: Any) -> dict[str, str] | None:
     if len(events) > MAX_EVENTS:
         return _refuse(BODY_INVALID, f"at most {MAX_EVENTS} events per request")
     decided = {
-        str(e.get("study_id")) for e in events if isinstance(e, dict) and e.get("kind") == "fulltext_decision"
+        str(e.get("study_id")) for e in events if isinstance(e, dict) and e.get("kind") in ONE_STUDY_KINDS
     }
     if len(decided) > 1:
-        return _refuse(BODY_INVALID, "Decide at full text one study at a time.")
+        return _refuse(BODY_INVALID, "Decide at full text, confirm or discard one study at a time.")
     return None
 
 
@@ -310,11 +331,23 @@ def intake(
         ]
 
 
+def _fetch_words(pending: list[dict[str, Any]]) -> str | None:
+    """The journal row's words for a confirm or a discard (they ride in ``CHARTING_EVENTS_RECEIVED``)."""
+    for record in pending:
+        if record["kind"] in ("fetched_confirm", "fetched_discard"):
+            verb = "Confirmed" if record["kind"] == "fetched_confirm" else "Discarded"
+            if record.get("value") is None:
+                verb = f"Undid: {verb.lower()}"
+            return f"{verb} the fetched PDF of {record['study_id']} ({len(pending)} event(s))"
+    return None
+
+
 def _intake_locked(ws, events, context, received_at, journal_description, after_commit) -> list[Result]:
     stored = read_events(ws)
     known = {e["event_id"]: e for e in stored}
     pending: list[dict[str, Any]] = []
     results: list[Result] = []
+    placed: list[tuple[str, Any]] = []
     for raw in events:
         event_id = str(raw.get("event_id") or "") if isinstance(raw, dict) else ""
         previous = known.get(event_id)
@@ -339,11 +372,31 @@ def _intake_locked(ws, events, context, received_at, journal_description, after_
         record = {**raw, "method": "HUMAN", "binding": dict(context.binding), "received_at": received_at}
         if raw["kind"] == "cell":
             record["pilot"] = context.pilot
+        extra: list[dict[str, Any]] = []
+        if context.fetch is not None and raw["kind"] in ("fetched_confirm", "fetched_discard"):
+            extra = context.fetch.expand(record, stored + pending)
+            try:
+                put_back = context.fetch.place(record, stored + pending)
+            except OSError:
+                results.append(Result(event_id, "refused", _refuse(
+                    ATOMIC_COMMIT_FAILED,
+                    "The fetched PDF could not be copied to the study's file (is the earlier one open "
+                    "in another program?). Close it and confirm again.")))
+                continue
+            if put_back is not None:
+                placed.append((event_id, put_back))
         pending.append(record)
         known[event_id] = record
         results.append(Result(event_id, "accepted"))
+        for added in extra:
+            pending.append(added)
+            known[added["event_id"]] = added
+            results.append(Result(added["event_id"], "accepted", engine=True))
     if pending:
-        commit(ws, pending, results, description=journal_description)
+        commit(ws, pending, results, description=journal_description or _fetch_words(pending))
+        for event_id, put_back in placed:
+            if any(r.event_id == event_id and r.result == "refused" for r in results):
+                put_back()  # the events were not stored: the earlier file goes back in place
         if after_commit is not None and any(r.result == "accepted" for r in results):
             after_commit([p for p in pending if any(r.event_id == p["event_id"] and r.result == "accepted" for r in results)])
     return results
