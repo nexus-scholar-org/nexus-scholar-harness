@@ -621,3 +621,18 @@ Evidence:
 | pr | `4647bf24` (code as `1ece5716`) | `select_test_gate.py --changed origin/main --stage pr` (area research-ui); the Python files that read the UI's files (`test_browser_access`, `test_lineage_api`, `test_screening_drafts_api`, `test_screening_read_api`, `test_wheel_build_hook`, `test_select_test_gate`; junit); `npm run typecheck`; `npx vitest run`; `npm run build`; `npx playwright test`; `git diff --check origin/main...HEAD` (each heavy step alone on the machine) | 113 tests, 0 failures; clean; 93 files, 1237 tests, 0 failures; built; 692 passed, 12 skipped; clean | 24 s; 143 s; 16 s; 848 s |
 
 No Python source changed, so the full Python suite does not apply (the selector names only the research-ui area). Playwright rewrote the usual four screenshots; they were restored.
+
+Review round 1 (`milestone-reviewer`, on `6b527d33`): **CHANGES**, 1 P2, 1 P3, 4 P4 (lane STANDARD confirmed, its stated reason corrected), all taken, with two follow-ups it named:
+
+| # | Finding | Repair | Test |
+| :-- | :-- | :-- | :-- |
+| P2-1 | After a merge the engine sends one history entry per source, but both views showed only the last | every trailing history entry that names a source column is shown, one line each, in the table and the one-study view (`chartAgainHistory`) | `charting.form-panel.test.tsx` (both "Earlier value, in Images: 1260" and "in Data split: By field" on screen, in both views) |
+| P3-2 | The names behind "Made from" were lost when the panel closed | kept by the page for the page load and passed to the panel | the before-any-value merge test closes and reopens the panel |
+| P4-3 | The Open test counted exactly one request | at least one, the first checked | `charting-study.spec.ts` |
+| P4-4 | The record's list of the three new tests was wrong | reworded | (none) |
+| P4-5 | The lane's reason used the policy's FAST wording | "a bounded UI behaviour change in one repository" | (none) |
+| P4-6 | Accepted Part B item 25 still says merging is not built | the follow-up entry says it amends that sentence | (none) |
+| follow-up | Splitting an unsaved merge or split part was refused by the engine | split uses the same saved sources as merge (decision item 4) | `charting.form-panel.test.tsx` (fails with the fix taken out) |
+| follow-up | A merge chooser whose chosen column was removed did nothing | the choice moves to a column that exists, or the chooser closes | `charting.form-panel.test.tsx` (fails with the fix taken out) |
+
+Evidence after round 1, on `a910b2d3` (the repairs `7309bc27` to `3ebbe064`, the docs `c5a93219`, and `origin/main` `9e4be45f` merged in, no conflict): the Python files that read the UI's files 113 tests, 0 failures; typecheck clean; `vitest run` 94 files, 1257 tests, 0 failures (133 s); build ok; `playwright test` 706 passed, 14 skipped (858 s); `git diff --check origin/main...HEAD` clean; each heavy step alone on the machine. The usual four screenshots were restored.
