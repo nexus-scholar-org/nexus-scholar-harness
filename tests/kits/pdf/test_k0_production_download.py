@@ -54,7 +54,7 @@ def _metadata_client(pdf_url: str | None) -> MagicMock:
     client = MagicMock(spec=AcademicHttpClient)
     answer = MagicMock()
     answer.status_code = 200
-    answer.json.return_value = {"best_oa_location": {"pdf_url": pdf_url}}
+    answer.json.return_value = {"best_oa_location": {"is_oa": True, "pdf_url": pdf_url}}
     client.get = AsyncMock(return_value=answer)
     return client
 

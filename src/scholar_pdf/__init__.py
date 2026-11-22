@@ -131,6 +131,10 @@ from .frontmatter import (
     parse_bound_frontmatter,
     verify_bound_frontmatter,
 )
+from .open_copies import (  # not the function open_copies: it would hide the module
+    LookupOutcome,
+    OpenCopy,
+)
 from .publisher_patterns import (
     PROXY_STYLES,
     compute_direct_pdf_from_landing_url,
@@ -225,9 +229,11 @@ __all__ = [
     "GrobidEngine",
     "GrobidProviderEngine",
     "InMemoryAuditSink",
+    "LookupOutcome",
     "ManifestOperation",
     "ManifestReference",
     "MethodProvenance",
+    "OpenCopy",
     "OperationStatus",
     "PDFAcquisitionService",
     "PDFExtractionService",
