@@ -10,6 +10,7 @@ default, and a scripted run needs ``--not-reported`` (answer 12).
 from __future__ import annotations
 
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -241,7 +242,8 @@ def test_the_cli_names_the_option():
     from scholar_harness.cli import app
 
     out = CliRunner().invoke(app, ["inception", "--help"], terminal_width=200).output
-    assert "--not-reported" in out
+    # Rich colours the help where colour is forced (CI), which splits the option's name.
+    assert "--not-reported" in re.sub(r"\x1b\[[0-9;]*[A-Za-z]", "", out)
 
 
 def test_the_wizard_writes_the_rule_into_the_intent(tmp_path):
