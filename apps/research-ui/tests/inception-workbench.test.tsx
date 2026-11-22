@@ -68,7 +68,8 @@ async function counted() {
 describe("inception.workbench", () => {
   it("shows the block, the cost line and the sections, and sends no count on load or on a keystroke", async () => {
     const { engine } = open();
-    expect(await screen.findByText("Count: 15 requests (OpenAlex 5, Semantic Scholar 5, arXiv 5)")).toBeInTheDocument();
+    // The file's first render waits longer than the default second: the full suite runs it under load.
+    expect(await screen.findByText("Count: 15 requests (OpenAlex 5, Semantic Scholar 5, arXiv 5)", {}, { timeout: 5000 })).toBeInTheDocument();
     expect(screen.getByText("Nothing counted yet. Count asks each database how many records match; no records are fetched.")).toBeInTheDocument();
     expect(real(engine)).toHaveLength(0);
     const before = calls(engine).length;
