@@ -456,6 +456,10 @@ export interface FetchRun {
   failed_checks?: number;
   /** Errors by kind, in the kit's short words ("HTTP 403", "timed out", "lookup failed"); the screen maps them. */
   errors?: Record<string, number>;
+  /** The failed file checks by the kit's name (`pdf_header`, `size_floor`, …), each counted once per record; absent in older run files. */
+  check_failures?: Record<string, number>;
+  /** The look-ups that failed and are not "try later"; absent in older run files. */
+  lookup_failures?: { service: string; http_status: number | null; error_kind: string | null; n: number }[];
   no_open_copy?: number;
   no_direct_pdf?: number;
   try_later?: number;

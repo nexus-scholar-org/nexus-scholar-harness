@@ -35,6 +35,7 @@ import {
   checksWords,
   discardedWords,
   errorCount,
+  checkFailurePhrases,
   errorPhrases,
   identityOf,
   licenceOf,
@@ -740,7 +741,8 @@ export function SummaryCard({
     : run.state === "cancelled"
       ? t("charting.fetch.summary.titleCancelled", { when })
       : t("charting.fetch.summary.title", { when });
-  const errors = errorPhrases(run.errors, n);
+  const errors = errorPhrases(run, n, t);
+  const checks = checkFailurePhrases(run, n, t);
   const line = (key: ChartingCopyKey, value: number | undefined, data: string, extra?: ReactNode) => (
     <li data-summary-line={data}>
       {t(key, { n: n(value ?? 0) })}
@@ -756,7 +758,18 @@ export function SummaryCard({
         {line("charting.fetch.summary.asked", run.total, "asked")}
         {line("charting.fetch.summary.found", run.found, "found")}
         {line("charting.fetch.summary.downloaded", run.downloaded, "downloaded")}
-        {line("charting.fetch.summary.failedChecks", run.failed_checks, "failedChecks")}
+        {line(
+          "charting.fetch.summary.failedChecks",
+          run.failed_checks,
+          "failedChecks",
+          checks.length ? (
+            <ul className="ms-4 list-disc text-ink-muted" data-summary-checks>
+              {checks.map((c, i) => (
+                <li key={i}>{t(c.key, c.values)}</li>
+              ))}
+            </ul>
+          ) : null,
+        )}
         {line(
           "charting.fetch.summary.errors",
           errorCount(run),

@@ -153,19 +153,61 @@ const ERROR_KEY: Record<ErrorClass, ChartingCopyKey> = {
   other: "charting.fetch.error.other",
 };
 
-/** The run's errors by kind as lines with their numbers, the largest first ("3 × the host refused (HTTP 403)"). */
-export function errorPhrases(errors: Record<string, number> | undefined, n: (value: number) => string): Phrase[] {
+/**
+ * The run's errors by kind as lines with their numbers, the largest first ("3 × the host refused (HTTP 403)").
+ * When the run names its failed look-ups (`lookup_failures`), they replace the bare "a lookup failed" line:
+ * "1 × the lookup failed: Unpaywall answered HTTP 503", or, with no status, the words of the failure's kind.
+ */
+export function errorPhrases(run: FetchRun, n: (value: number) => string, t: Words): Phrase[] {
+  const named = lookupFailurePhrases(run, n, t);
   const grouped = new Map<string, { cls: ErrorClass; status?: number; count: number }>();
-  for (const [kind, count] of Object.entries(errors ?? {})) {
+  for (const [kind, count] of Object.entries(run.errors ?? {})) {
     if (!count) continue;
     const { cls, status } = errorClass(kind);
+    if (cls === "lookupAny" && named.length) continue;
     const id = `${cls}:${status ?? ""}`;
     const was = grouped.get(id);
     grouped.set(id, { cls, status, count: (was?.count ?? 0) + count });
   }
-  return [...grouped.values()]
+  const lines = [...grouped.values()]
     .sort((a, b) => b.count - a.count)
-    .map((g) => ({ key: ERROR_KEY[g.cls], values: { n: n(g.count), status: g.status ?? "" } }));
+    .map((g): Phrase => ({ key: ERROR_KEY[g.cls], values: { n: n(g.count), status: g.status ?? "" } }));
+  return [...lines, ...named];
+}
+
+/** The class of a failed look-up that has no HTTP status, from its error kind (an exception's name). */
+function lookupKindClass(kind: string | null | undefined): ErrorClass {
+  const said = (kind ?? "").toLowerCase();
+  if (said.includes("timeout")) return "timeout";
+  if (said.includes("certificate") || said.includes("ssl")) return "certificate";
+  return "connection";
+}
+
+/** The run's failed look-ups (not "try later") by service and answer; empty for an older run file. */
+export function lookupFailurePhrases(run: FetchRun, n: (value: number) => string, t: Words): Phrase[] {
+  return (run.lookup_failures ?? [])
+    .filter((f) => f.n > 0)
+    .map((f): Phrase =>
+      f.http_status !== null && f.http_status !== undefined
+        ? { key: "charting.fetch.error.lookupFailed", values: { n: n(f.n), service: serviceWords(t, f.service), status: f.http_status } }
+        : { key: ERROR_KEY[lookupKindClass(f.error_kind)], values: { n: n(f.n), status: "" } },
+    );
+}
+
+/**
+ * The failed file checks by name, in the spec's words ("2 × not a PDF (an HTML page, for example)"); the
+ * trailer, structure and readability checks share one line. Empty for an older run file.
+ */
+export function checkFailurePhrases(run: FetchRun, n: (value: number) => string, t: Words): Phrase[] {
+  const byWords = new Map<ChartingCopyKey, number>();
+  for (const [name, count] of Object.entries(run.check_failures ?? {})) {
+    if (!count) continue;
+    const key = CHECK_NAME_KEY[name] ?? "charting.fetch.check.structure";
+    byWords.set(key, (byWords.get(key) ?? 0) + count);
+  }
+  return [...byWords.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .map(([key, count]) => ({ key: "charting.fetch.summary.checkLine", values: { n: n(count), check: t(key) } }));
 }
 
 /** A failed check's words from the kit's failure text (`validator.check_failure`, the size limit, the redirects). */

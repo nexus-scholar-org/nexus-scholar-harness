@@ -1,7 +1,7 @@
 import { fireEvent, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { installEngine, makeRow, makeTable, postedEvents, press, renderCharting, waitingRow } from "./charting-helpers";
+import { installEngine, makeRow, makeTable, noLongerKeptWaitingRow, postedEvents, press, renderCharting, waitingRow } from "./charting-helpers";
 
 /**
  * Spec 03 "Confirm (C, or the button)" (M12a Part F): C confirms the focused
@@ -141,14 +141,22 @@ describe("charting.fetch-confirm", () => {
     expect(desktop.querySelector("[data-banner=archived]")).toHaveTextContent("CHARTING_PROTOCOL_REPLACED");
   });
 
-  it("a record no longer kept with a file waiting: C is refused RECORD_NOT_KEPT", async () => {
-    const engine = installEngine(makeTable([waitingRow(1, {}, { kept: false }), makeRow(2)]));
+  it("a record no longer kept keeps its waiting file, marked so; C and D are refused RECORD_NOT_KEPT, Open still works", async () => {
+    const engine = installEngine(makeTable([noLongerKeptWaitingRow(1), makeRow(2)]));
     await renderCharting();
+    expect(rowOf("STU-001").querySelector("[data-no-longer-kept]")).toHaveTextContent("No longer kept at title and abstract");
+    expect(rowOf("STU-001").querySelector("[data-badge=fetch-to-confirm]")).toHaveTextContent("Fetched, to confirm");
+    expect(within(rowOf("STU-001")).getByRole("link", { name: "Open the file of Study number 1" })).toBeInTheDocument();
+    expect(within(rowOf("STU-001")).getByRole("button", { name: "Confirm the file of Study number 1" })).toBeDisabled();
+    // Not counted: the row is out of the kept set.
+    expect(document.querySelector("[data-counts]")!.textContent).not.toMatch(/to confirm/);
     focusRow("STU-001");
     await press("c");
     expect(postedEvents(engine)).toHaveLength(0);
     expect(document.querySelector("[data-desktop] [data-refusal=RECORD_NOT_KEPT]")).toHaveTextContent("That study is not in the kept set any more. Reload the table.");
-    expect(rowOf("STU-001").querySelector("[data-no-longer-kept]")).toHaveTextContent("No longer kept at title and abstract");
+    await press("d");
+    expect(postedEvents(engine)).toHaveLength(0);
+    expect(document.querySelector("[data-confirm-line]")!.textContent).toBe("");
   });
 
   it("offline: Open of a waiting file says the console is not answering", async () => {

@@ -106,6 +106,16 @@ export function waitingRow(i: number, pending: Partial<PendingFetch> = {}, over:
   return { ...base, fulltext };
 }
 
+/**
+ * A record no longer kept whose fetched file still waits, in the engine's shape for such a row
+ * (`table.table`, since f9f5f287): the record's summary with no authors, abstract, venue, link or
+ * arXiv id, `kept: false`, and its fetch state (waiting file, last look-up, discard) as for a kept row.
+ */
+export function noLongerKeptWaitingRow(i: number, pending: Partial<PendingFetch> = {}): ChartingRow {
+  const row = waitingRow(i, pending, { kept: false, authors: [], abstract: null, venue: null, url: null, arxiv_id: null, ta_reason: "" });
+  return { ...row, fulltext: { ...row.fulltext, discarded_fetch: null } };
+}
+
 /** A run record as `GET /api/v1/charting/fetch` answers it (`fetch._view`). */
 export function runView(over: Partial<FetchRun> = {}): FetchRun {
   return {
@@ -130,6 +140,8 @@ export function runView(over: Partial<FetchRun> = {}): FetchRun {
     started_at: "2026-11-22T14:00:00Z",
     finished_at: null,
     error: null,
+    check_failures: {},
+    lookup_failures: [],
     ...over,
   };
 }

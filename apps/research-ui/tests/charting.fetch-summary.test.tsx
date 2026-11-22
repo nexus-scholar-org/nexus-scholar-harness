@@ -91,6 +91,47 @@ describe("charting.fetch-summary", () => {
     );
   });
 
+  it("names the failed checks in the spec's words and the failed look-ups by service and status", async () => {
+    const named = runView({
+      ...finished,
+      failed_checks: 5,
+      check_failures: { pdf_header: 2, size_floor: 1, size_limit: 1, pdf_trailer: 1, structure: 1 },
+      errors: { "HTTP 403": 1, "lookup failed": 3 },
+      lookup_failures: [
+        { service: "unpaywall", http_status: 503, error_kind: null, n: 2 },
+        { service: "openalex", http_status: null, error_kind: "ClientConnectorError", n: 1 },
+        { service: "arxiv", http_status: null, error_kind: "TimeoutError", n: 1 },
+      ],
+    });
+    installEngine(tableWithTryLater(), { fetch: { runs: [named] } });
+    await renderCharting();
+    const card = summary()!;
+    expect([...card.querySelectorAll("[data-summary-checks] li")].map((li) => li.textContent)).toEqual([
+      "2 × not a PDF (an HTML page, for example)",
+      // The trailer and the structure share the words "the PDF structure is not valid".
+      "2 × the PDF structure is not valid",
+      "1 × too small to be a paper",
+      "1 × over 100 MB",
+    ]);
+    expect([...card.querySelectorAll("[data-summary-errors] li")].map((li) => li.textContent)).toEqual([
+      "1 × the host refused (HTTP 403)",
+      "2 × the lookup failed: Unpaywall answered HTTP 503",
+      "1 × the connection failed",
+      "1 × the host did not answer in time",
+    ]);
+    expect(card.querySelector("[data-summary-line=errors]")!.firstChild!.textContent).toBe("4 errors");
+  });
+
+  it("an older run file with no names keeps the counts and the bare 'a lookup failed' line", async () => {
+    const older = { ...finished };
+    delete older.check_failures;
+    delete older.lookup_failures;
+    installEngine(tableWithTryLater(), { fetch: { runs: [older] } });
+    await renderCharting();
+    expect(summary()!.querySelector("[data-summary-checks]")).toBeNull();
+    expect([...summary()!.querySelectorAll("[data-summary-errors] li")].map((li) => li.textContent)).toContain("1 × a lookup failed");
+  });
+
   it("'Show the n to confirm' sets the filter", async () => {
     installEngine(tableWithTryLater(), { fetch: { runs: [finished] } });
     await renderCharting();
