@@ -11,7 +11,7 @@ history to read if you need the original reasoning (`git log --follow -- <path>`
 | Entry | Item | What is open |
 | :-- | :-- | :-- |
 | 2026-11-21 — M11b part D: step 5's method questions and wording checks, the build's choices | 1 to 10 | Proposed with the engine side of the build; the researcher's answer is pending. |
-| 2026-11-22 — M11b part C: the screening screens, the build's choices | 1 to 16 | Proposed with the build; the researcher's answer is pending. |
+| 2026-11-22 — M11b part C: the screening screens, the build's choices | 1 to 17 | Proposed with the build; the researcher's answer is pending. |
 | 2026-11-19 — M9a: what the measurement says about the ladder gates | 2 | The minimum share of the researcher's excludes an agent must take before a rung unlocks: the principle is accepted; the researcher decided on 2026-11-20 to set the number when M9b is built. |
 | 2026-11-21 — H-pdf-resolver-locations | 13 | When a listed address gave no PDF while one service had failed: keep "a listed address gave no PDF" (exit code 1) and name the failed service, as built, or report a failed lookup (exit code 3). Proposed 2026-11-21, not answered. |
 | 2026-11-21 — H-pdf-resolver-locations | 14 | Two changes the review made to items accepted as built: the failure words "network error" and "unreadable answer" (item 8), and no copy label on a file fetched through the parked gateway (item 10). Proposed 2026-11-22, not answered. |

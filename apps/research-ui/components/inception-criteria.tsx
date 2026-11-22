@@ -186,7 +186,9 @@ export function InceptionCriteria({ locale }: Readonly<{ locale: Locale }>) {
     if (workbenchDirty && !leave) return setLeaving(next);
     setLeaving(null);
     const cleaned = concepts.filter((c) => c.concept.trim()).map((c) => ({ concept: c.concept.trim(), synonyms: c.synonyms ?? [] }));
-    const body = { ...draft, concepts: cleaned };
+    // M11b part D: a save writes the visibility the screen shows, even for a draft that never stored it.
+    const shown = draft.method_blinding ?? criteria?.method?.blinding ?? null;
+    const body = { ...draft, concepts: cleaned, ...(shown ? { method_blinding: shown } : {}) };
     const stored = await save(body, accepted.filter((entry) => stillAccepted(entry, body)));
     if (stored) setAccepted([]);
     if (stored) window.location.assign(inceptionHref(locale, next, next ? draftId : "", origin));

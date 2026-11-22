@@ -38,11 +38,12 @@ describe("inception.shape", () => {
     fireEvent.click(use);
     expect((screen.getByLabelText("Research question 1") as HTMLTextAreaElement).value).toContain("weed detection");
 
-    fireEvent.change(screen.getByLabelText("Out of scope"), { target: { value: "closed models\n\npre-2020" } });
+    // M11b part D (spec 11, D6): out of scope is asked on step 5; Shape says so in one line.
+    expect(screen.getByText("Out of scope is asked with the criteria.")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Continue to concepts and criteria" }));
     await waitFor(() => expect(assign).toHaveBeenCalledWith(`/en/inception/criteria/?draft=${SESSION}`));
     const put = engine.calls.find((c) => c.method === "PUT")!;
-    expect(put.body?.draft).toMatchObject({ paradigm: "Design Science", playbook: "DESIGN_SCIENCE", out_of_scope: ["closed models", "pre-2020"] });
+    expect(put.body?.draft).toMatchObject({ paradigm: "Design Science", playbook: "DESIGN_SCIENCE" });
   });
 
   it("keeps Continue disabled until the researcher has chosen a playbook, and says so (H-ui-findings F2)", async () => {

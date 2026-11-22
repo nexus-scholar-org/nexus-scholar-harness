@@ -27,7 +27,7 @@ describe("inception.criteria", () => {
     expect(within(proof).queryByText("Written by the wizard: not in the protocol unless you accept it.")).toBeNull();
     expect(within(proof).getByRole("button", { name: "Accept" })).toHaveAttribute("aria-pressed", "false");
     // H-run-small-fixes (finding 2): an out-of-scope item waits for Accept too.
-    const typed = screen.getByText("closed-source models").closest("li")!;
+    const typed = screen.getByText("closed-source models", { selector: "[data-verbatim]" }).closest("li")!;
     expect(typed).toHaveAttribute("data-status", "undecided");
     expect(within(typed).getByText("Your out-of-scope answer")).toBeInTheDocument();
     expect(screen.getByText("2 still need you.")).toBeInTheDocument();
@@ -39,7 +39,7 @@ describe("inception.criteria", () => {
     const proof = (await screen.findByText(PROOF)).closest("li")!;
     fireEvent.click(within(proof).getByRole("button", { name: "Accept" }));
     await waitFor(() => expect(screen.getByText(PROOF).closest("li")).toHaveAttribute("data-status", "accepted"));
-    const out = screen.getByText("closed-source models").closest("li")!;
+    const out = screen.getByText("closed-source models", { selector: "[data-verbatim]" }).closest("li")!;
     fireEvent.click(within(out).getByRole("button", { name: "Accept" }));
     await waitFor(() => expect(screen.getByText("Every criterion has your decision.")).toBeInTheDocument());
     fireEvent.click(screen.getByRole("button", { name: "Continue to review" }));

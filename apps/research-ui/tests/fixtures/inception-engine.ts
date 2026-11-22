@@ -43,6 +43,11 @@ export interface FakeOptions {
   offered?: (entry: Json) => boolean;
   /** M11a: the query workbench routes of a draft (`…/workbench/…`). */
   workbench?: WorkbenchOptions;
+  /**
+   * M11b part D: `steps/criteria` answers the two method settings and their options, as the
+   * engine's `method_choice` does (a test double); `order` replaces the engine's order of the rule's options.
+   */
+  method?: boolean | { order?: string[] };
 }
 
 // --- M10b Part B: proposals (test double of `inception/proposals.py`) -----------------
@@ -251,6 +256,23 @@ function idOf(kind: string, source: string, text: string, reason: string | null 
   let h = 0;
   for (const ch of `${kind}|${source}|${text}|${reason ?? ""}`) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
   return `crit_${h.toString(16).padStart(12, "0").slice(0, 12)}`;
+}
+
+/** The engine's `method_choice` and `METHOD_OPTIONS` (M11b part D), as a test double. */
+function methodOf(draft: Json, option: true | { order?: string[] }) {
+  const rule = (draft.method_not_reported ?? null) as string | null;
+  return {
+    method: {
+      blinding: (draft.method_blinding ?? "reveal_after_decision") as string,
+      not_reported: rule,
+      chosen: rule !== null,
+      started_before_question: !("method_not_reported" in draft),
+    },
+    method_options: {
+      blinding: ["reveal_after_decision", "show"],
+      not_reported: option === true || !option.order ? ["unclear", "decisive_first", "exclude"] : option.order,
+    },
+  };
 }
 
 function criteriaOf(draft: Json) {
@@ -583,7 +605,7 @@ export function inceptionEngine(options: FakeOptions = {}) {
       }
       if (step[1] === "criteria") {
         const lacking = need(draft, proofRequired(draft) ? ["paradigm", "proof"] : ["paradigm"]);
-        return lacking ?? { status: 200, body: { step: "criteria", ...criteriaOf(draft) } };
+        return lacking ?? { status: 200, body: { step: "criteria", ...criteriaOf(draft), ...(options.method ? methodOf(draft, options.method) : {}) } };
       }
       if (step[1] === "matrix") {
         const lacking = need(draft, ["playbook"]);
