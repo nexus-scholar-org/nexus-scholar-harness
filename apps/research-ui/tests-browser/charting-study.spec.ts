@@ -250,9 +250,12 @@ test("chart five studies from the abstract by keyboard, then undo the last chang
   await page.keyboard.press("z");
   await expect(page.locator("[data-announce]")).toHaveText("Undone");
   expect(rows[4].cells.cross_camera.state).toBeNull();
-  // Esc goes back to the table on this study's row.
+  // Esc goes back to the table on this study's row. The table reads the row from the address and then
+  // drops it (the address keeps only the view and filter), so the check is on the page Esc opens,
+  // not on the address a moment later (H-charting-focus-fault).
+  const toTable = page.waitForEvent("framenavigated", (frame) => frame === page.mainFrame() && /\/en\/charting\?view=charting&row=STU-006/.test(frame.url()));
   await page.keyboard.press("Escape");
-  await expect(page).toHaveURL(/\/en\/charting\?view=charting&row=STU-006/);
+  await toTable;
   await expect(page.locator("[data-counts]")).toContainText("4 charted");
   await expect(page.locator('[data-cell="STU-006:0"]')).toBeFocused();
 });

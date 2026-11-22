@@ -188,7 +188,8 @@ function StudyScreen({ locale }: Readonly<{ locale: Locale }>) {
   draftsRef.current = drafts;
   const fileInput = useRef<HTMLInputElement>(null);
   const wordsInput = useRef<HTMLInputElement>(null);
-  const focusAfterLoad = useRef<"first" | "decision" | null>(null);
+  // Where the focus goes once a study is on screen, and for which study (H-charting-focus-fault).
+  const focusAfterLoad = useRef<{ studyId: string; which: "first" | "decision" } | null>(null);
   // Part F: the plan panel of a look-up of this record, where Esc returns the focus, "What was tried", the run.
   const viewport = useViewport();
   const n = useCallback((value: number) => formatNumber(locale, value), [locale]);
@@ -234,7 +235,7 @@ function StudyScreen({ locale }: Readonly<{ locale: Locale }>) {
         setDrafts(fresh);
         setLoad({ status: "ready" });
         setOffline(false);
-        if (answer.row.ft_decision?.outcome === "EXCLUDE" && answer.row.kept && !answer.read_only) focusAfterLoad.current = "decision";
+        if (answer.row.ft_decision?.outcome === "EXCLUDE" && answer.row.kept && !answer.read_only) focusAfterLoad.current = { studyId: answer.row.study_id, which: "decision" };
         return true;
       } catch (error) {
         const r = refusalOf(error);
@@ -272,15 +273,19 @@ function StudyScreen({ locale }: Readonly<{ locale: Locale }>) {
       } catch {
         // The record read below says what is wrong; without the list, J and K stay put.
       }
-      focusAfterLoad.current = focusAfterLoad.current ?? "first";
+      focusAfterLoad.current = focusAfterLoad.current ?? { studyId: id, which: "first" };
       await readStudy(id);
     })();
   }, [origin, readStudy]);
 
   // After a move, the focus lands on the first field of the study (or its decision when it is excluded).
+  // The request names its study: React may run this effect for a render made before a move (when the
+  // move's first update starts, it runs the effects still waiting), and that render still shows the
+  // previous study, whose fields are about to go. Only the render of the named study spends the request.
   useEffect(() => {
-    if (load.status !== "ready" || switching || !focusAfterLoad.current) return;
-    const which = focusAfterLoad.current;
+    const pendingFocus = focusAfterLoad.current;
+    if (load.status !== "ready" || switching || !pendingFocus || record?.row.study_id !== pendingFocus.studyId) return;
+    const which = pendingFocus.which;
     focusAfterLoad.current = null;
     const target =
       which === "decision"
@@ -496,7 +501,7 @@ function StudyScreen({ locale }: Readonly<{ locale: Locale }>) {
       /* an address that cannot be rewritten keeps the study on screen all the same */
     }
     setStudyId(nextId);
-    focusAfterLoad.current = "first";
+    focusAfterLoad.current = { studyId: nextId, which: "first" };
     const ok = await readStudy(nextId);
     setSwitching(false);
     if (ok) setAnnounce(t("charting.study.announce.moved", { k: list.indexOf(nextId) + 1, total: list.length }));
@@ -946,10 +951,27 @@ function StudyScreen({ locale }: Readonly<{ locale: Locale }>) {
       return;
     }
     if (!changesAllowed()) return;
+    const studyAtKey = recordRef.current?.row.study_id ?? null;
     void commit([cid], { special: state }).then(() => {
-      // The value input is off while the cell holds a special value; the focus stays on its button.
-      setTimeout(() => document.querySelector<HTMLElement>(`[data-field="${cid}"] [data-special="${state}"]`)?.focus(), 0);
+      // The value input is off while the cell holds a special value; the focus stays on its button,
+      // unless the researcher moved on while the value was saved (another field, another study).
+      setTimeout(() => {
+        if (!stillAt(studyAtKey, cid)) return;
+        document.querySelector<HTMLElement>(`[data-field="${cid}"] [data-special="${state}"]`)?.focus();
+      }, 0);
     });
+  }
+
+  /**
+   * A focus asked for after a save lands only where the researcher still is: the same study, and the
+   * focus still inside the field they acted on, or nowhere (its input was just switched off). A key
+   * that arrives before the save's answer, Ctrl+Down or a move to another field, wins (H-charting-focus-fault).
+   */
+  function stillAt(studyId: string | null, cid: string): boolean {
+    if (recordRef.current?.row.study_id !== studyId) return false;
+    const active = document.activeElement;
+    if (!active || active === document.body) return true;
+    return document.querySelector(`[data-field="${cid}"]`)?.contains(active) ?? false;
   }
 
   /** Enter in a single-line field saves it and moves to the next field (spec 02 "Keyboard"). */
@@ -958,8 +980,9 @@ function StudyScreen({ locale }: Readonly<{ locale: Locale }>) {
     if (allowShift && event.shiftKey) return;
     event.preventDefault();
     const at = columns.findIndex((c) => c.column_id === cid);
+    const studyAtKey = recordRef.current?.row.study_id ?? null;
     void commit([cid], { force: true }).then((ok) => {
-      if (!ok) return;
+      if (!ok || !stillAt(studyAtKey, cid)) return;
       const next = columns[at + 1];
       const nextTarget = next
         ? document.querySelector<HTMLElement>(`[data-field="${next.column_id}"] [data-value-input]:not(:disabled), [data-field="${next.column_id}"] [data-special]`)
