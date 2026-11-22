@@ -14,7 +14,7 @@ history to read if you need the original reasoning (`git log --follow -- <path>`
 | 2026-11-22 — M11b part C: the screening screens, the build's choices | 1 to 16 | Proposed with the build; the researcher's answer is pending. |
 | 2026-11-19 — M9a: what the measurement says about the ladder gates | 2 | The minimum share of the researcher's excludes an agent must take before a rung unlocks: the principle is accepted; the researcher decided on 2026-11-20 to set the number when M9b is built. |
 
-## 2026-11-22 — M11b part C: the screening screens, the build's choices (items 1 to 16 PROPOSED; M11b-criteria-pilot, part C)
+## 2026-11-22 — M11b part C: the screening screens, the build's choices (items 1 to 17 PROPOSED; M11b-criteria-pilot, part C)
 
 Record: `docs/roadmap/milestones/M11b-criteria-pilot.md`, "Build record", "Part C". Choices spec 13 (FINAL 2026-11-21) leaves open, or where the build departs from its words. None is accepted until the researcher answers.
 
@@ -34,6 +34,7 @@ Record: `docs/roadmap/milestones/M11b-criteria-pilot.md`, "Build record", "Part 
 14. **The read-only record of the result is a dialog** (PROPOSED) with the title, your pilot decision (outcome, reason code, criteria version) and the abstract from `GET /records/{id}`; no checklist answers (part B item 10: the result carries none), no decision bar, no draft.
 15. **"Draft again" on the run screen** (PROPOSED): when the setup counts drafts made under an earlier wording, a secondary button opens the run screen's own confirmation for a run scoped to those records (`scope.study_ids`), with its own estimate and the same consent and key gates.
 16. **Not built in part C** (PROPOSED as follow-ups): the result's offline state (the last result "as of {time}"; offline shows the `ENGINE_UNREACHABLE` card), any phone layout (every pilot route is desktop only, answer 8), and a next-step bar sentence for an open pilot (the bar is unchanged).
+17. **Once batches exist, Prepare's one brand action is the pilot card's** (PROPOSED; review round 1, finding 7): "Draw a pilot of {n}" before a pilot, "Continue the pilot" while one is open, "See the result" after; Prepare's own "Prepare batches" becomes secondary, since preparing again is not the next step once batches exist. Before batches, "Prepare batches" stays the brand button. Spec 13 question 7 settled the card's button, not Prepare's own.
 
 ## 2026-11-21 — M11b part D: step 5's method questions and wording checks, the build's choices (PROPOSED; M11b-criteria-pilot, part D, engine side)
 

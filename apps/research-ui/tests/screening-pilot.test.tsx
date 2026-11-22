@@ -49,6 +49,7 @@ interface Fake {
   lastModel: string | null;
   shownAgain: number;
   refuseAmend?: string;
+  handoff?: boolean;
 }
 let fake: Fake;
 
@@ -75,7 +76,7 @@ beforeEach(() => {
         return json({
           criteria_version: 1,
           criteria: ROWS.map((r) => ({ id: r.id, side: r.side, text: r.text, reason_category: null, since_version: 1 })),
-          retired: [], amendments: [], can_amend: !fake.approved, batches_prepared: true, batch_approved: fake.approved, handoff_batches: [],
+          retired: [], amendments: [], can_amend: !fake.approved && !fake.handoff, batches_prepared: true, batch_approved: fake.approved, handoff_batches: fake.handoff ? [1] : [],
         });
       }
       if (path === "/proposals/setup") {
@@ -297,10 +298,14 @@ describe("pilot.calibration-dialog", () => {
     expect(dialog).toHaveTextContent("50 records you decided");
     expect(await within(dialog).findByText(/About \$0\.01 for 50 records on claude-haiku-5-5/)).toBeTruthy();
     expect(posts("/proposals/calibrations")).toHaveLength(0);
-    fireEvent.click(within(dialog).getByRole("button", { name: /^Run the check/ }));
+    const runButton = within(dialog).getByRole("button", { name: /^Run the check/ });
+    runButton.focus();
+    fireEvent.click(runButton);
     await vi.waitFor(() => expect(posts("/proposals/calibrations")).toHaveLength(1));
     expect(posts("/proposals/calibrations")[0].body).toMatchObject({ pilot_id: "pilot_001", provider: "anthropic", model: "claude-haiku-5-5" });
     expect(await within(dialog).findByText("Missed includes: 2 of 25")).toBeTruthy();
+    // Review C round 2: focus stays inside once the run view replaces the form.
+    expect(dialog.contains(document.activeElement)).toBe(true);
   });
 
   it("uses the last model of the workspace when there is one", async () => {
@@ -369,5 +374,114 @@ describe("pilot copy", () => {
         expect(holes(value), `${locale}.${key}`).toBe(holes(PILOT_COPY.en[key as keyof (typeof PILOT_COPY)["en"]]));
       }
     }
+  });
+});
+
+describe("review C round 1", () => {
+  const amend = () => fake.log.filter((l) => l.method === "POST" && l.path === "/criteria/amendments").map((l) => l.body!);
+  async function revise(op: string, fill: (dialog: HTMLElement) => void) {
+    await ready();
+    fireEvent.click(screen.getByRole("button", { name: "Revise a criterion" }));
+    const dialog = screen.getByRole("dialog", { name: "Revise a criterion" });
+    fireEvent.click(within(dialog).getByRole("radio", { name: op }));
+    fill(dialog);
+    fireEvent.change(within(dialog).getByLabelText("Why are you making this change? One sentence."), { target: { value: "A reason" } });
+    fireEvent.click(within(dialog).getByRole("button", { name: "Check what this changes" }));
+    await screen.findByRole("alertdialog", { name: "Record this revision?" });
+    return amend()[0];
+  }
+
+  it("finding 8: each operation sends its own body; only a reason-category change sends reason_category", async () => {
+    const reword = await revise("Reword · same test, clearer words", (d) => {
+      fireEvent.change(within(d).getByLabelText("Criterion"), { target: { value: "EXC-01" } });
+      fireEvent.change(within(d).getByLabelText("New wording"), { target: { value: "Not an arable field" } });
+    });
+    expect(reword).toEqual({ op: "reword", side: "exclusion", ids: ["EXC-01"], text: "Not an arable field", reason: "A reason", confirm: false });
+  });
+
+  it("finding 8: split sends two texts and no reason_category", async () => {
+    const body = await revise("Split · one criterion into two", (d) => {
+      fireEvent.change(within(d).getByLabelText("Criterion"), { target: { value: "EXC-01" } });
+      fireEvent.change(within(d).getByLabelText("New wording 1"), { target: { value: "Not a field" } });
+      fireEvent.change(within(d).getByLabelText("New wording 2"), { target: { value: "Not a crop" } });
+    });
+    expect(body).toEqual({ op: "split", side: "exclusion", ids: ["EXC-01"], text: ["Not a field", "Not a crop"], reason: "A reason", confirm: false });
+  });
+
+  it("finding 8: merge sends both ids of one side and one text", async () => {
+    const body = await revise("Merge · two criteria into one", (d) => {
+      fireEvent.change(within(d).getByLabelText("Criterion 1"), { target: { value: "EXC-01" } });
+      fireEvent.change(within(d).getByLabelText("Criterion 2"), { target: { value: "EXC-02" } });
+      fireEvent.change(within(d).getByLabelText("New wording"), { target: { value: "Not a crop image study" } });
+    });
+    expect(body).toEqual({ op: "merge", side: "exclusion", ids: ["EXC-01", "EXC-02"], text: "Not a crop image study", reason: "A reason", confirm: false });
+  });
+
+  it("finding 8: remove sends the id only; add sends the side and the text, no id", async () => {
+    const removed = await revise("Remove", (d) => fireEvent.change(within(d).getByLabelText("Criterion"), { target: { value: "EXC-02" } }));
+    expect(removed).toEqual({ op: "remove", side: "exclusion", ids: ["EXC-02"], reason: "A reason", confirm: false });
+  });
+
+  it("finding 8: add sends the side and the text, no id", async () => {
+    const added = await revise("Add", (d) => {
+      fireEvent.click(within(d).getByRole("radio", { name: "Inclusion" }));
+      fireEvent.change(within(d).getByLabelText("New wording"), { target: { value: "Peer reviewed" } });
+    });
+    expect(added).toEqual({ op: "add", side: "inclusion", ids: [], text: "Peer reviewed", reason: "A reason", confirm: false });
+  });
+
+  it("finding 8: a reason-category change sends the category and no text", async () => {
+    const body = await revise("Change the reason category · wording stays", (d) => {
+      fireEvent.change(within(d).getByLabelText("Criterion"), { target: { value: "EXC-01" } });
+      fireEvent.change(within(d).getByLabelText("Rejection reason text"), { target: { value: "Not a field" } });
+    });
+    expect(body).toEqual({ op: "reason_category", side: "exclusion", ids: ["EXC-01"], reason_category: "Not a field", reason: "A reason", confirm: false });
+  });
+
+  it("finding 3: an addition that shows records again cites no criterion", async () => {
+    fake.shownAgain = 14;
+    await revise("Add", (d) => {
+      fireEvent.click(within(d).getByRole("radio", { name: "Exclusion" }));
+      fireEvent.change(within(d).getByLabelText("New wording"), { target: { value: "Not peer reviewed" } });
+    });
+    const confirm = screen.getByRole("alertdialog");
+    expect(confirm).toHaveTextContent("This will show again 14 records you decided: 6 Include, 5 Unclear.");
+    expect(confirm.textContent).not.toMatch(/citing/);
+  });
+
+  it("finding 4: batches decided through the hand-off say so, not that a batch was approved", async () => {
+    fake.handoff = true;
+    await ready();
+    const note = document.querySelector("[data-fixed]") as HTMLElement;
+    expect(note.getAttribute("data-fixed")).toBe("handoff");
+    expect(note).toHaveTextContent("decisions made through the file hand-off");
+    expect(note.textContent).not.toMatch(/already approved/);
+    expect(screen.queryByRole("button", { name: "Revise a criterion" })).toBeNull();
+  });
+
+  it("finding 2: a dialog takes focus when it opens, keeps Tab inside, and gives focus back on close", async () => {
+    await ready();
+    const opener = screen.getByRole("button", { name: "Check the agent on these 50 records" });
+    opener.focus();
+    fireEvent.click(opener);
+    const dialog = screen.getByRole("dialog", { name: "Check the agent on these 50 records" });
+    await vi.waitFor(() => expect(dialog.contains(document.activeElement)).toBe(true));
+    const buttons = within(dialog).getAllByRole("button");
+    const last = buttons[buttons.length - 1];
+    last.focus();
+    fireEvent.keyDown(last, { key: "Tab" });
+    expect(dialog.contains(document.activeElement)).toBe(true);
+    expect(document.activeElement).not.toBe(last);
+    fireEvent.keyDown(dialog, { key: "Escape" });
+    await vi.waitFor(() => expect(document.activeElement).toBe(opener));
+  });
+
+  it("finding 2: the revise dialog keeps focus inside when it moves to its confirmation and back", async () => {
+    await revise("Remove", (d) => fireEvent.change(within(d).getByLabelText("Criterion"), { target: { value: "EXC-02" } }));
+    const confirm = screen.getByRole("alertdialog");
+    await vi.waitFor(() => expect(confirm.contains(document.activeElement)).toBe(true));
+    fireEvent.click(within(confirm).getByRole("button", { name: "Back" }));
+    const form = screen.getByRole("dialog", { name: "Revise a criterion" });
+    await vi.waitFor(() => expect(form.contains(document.activeElement)).toBe(true));
   });
 });

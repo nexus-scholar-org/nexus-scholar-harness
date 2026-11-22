@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type ReactNode } from "react";
 
 import { formatNumber, type Locale } from "@/i18n";
 import { Button, DataCell, DecisionBadge, Hint, PRIMARY_LINK } from "@/components/ui/base";
@@ -9,6 +9,7 @@ import { PILOT_COPY, type PilotKey } from "@/components/screening-pilot-copy";
 import { CHEAPEST_ANTHROPIC_MODEL, LISTED_ANTHROPIC_MODELS } from "@/components/screening-proposals";
 import { ScreeningSteps, StateCard, stepHref } from "@/components/screening-state-card";
 import { isScreeningApiError } from "@/lib/screening-api";
+import { stateCopy } from "@/lib/screening-states";
 import {
   amendCriteria,
   cancelRun,
@@ -191,6 +192,8 @@ export function ScreeningPilot({ locale }: Readonly<{ locale: Locale }>) {
     const soFar = r.open;
     const title = r.open ? t("titleOpen", { k: n(r.decided), n: n(r.n) }) : r.closed_reason === "ended" ? t("titleEnded", { k: n(r.decided), n: n(r.n) }) : t("titleDone", { k: n(r.decided), n: n(r.n) });
     const fixed = criteria.batch_approved || !criteria.can_amend;
+    // Review C round 1, finding 4: batches decided through the file hand-off fix the criteria too, for another reason.
+    const handoff = !criteria.batch_approved && (criteria.handoff_batches?.length ?? 0) > 0;
     const changed = Boolean(summary.protocol_changed);
     const waiting = summary.recheck ?? 0;
     const canCheck = hasKey && r.decided > 0 && (!r.open || r.decided === r.n);
@@ -252,7 +255,11 @@ export function ScreeningPilot({ locale }: Readonly<{ locale: Locale }>) {
 
             <section aria-label={t("details")} className="sticky bottom-0 space-y-2 rounded-lg border border-rule bg-paper p-4" data-action-bar>
               {waiting > 0 ? <p className="text-sm text-ink">{t("waiting", { n: n(waiting) })}</p> : null}
-              {fixed ? <p className="text-sm text-ink" data-fixed>{t("fixed")}</p> : null}
+              {fixed ? (
+                <p className="text-sm text-ink" data-fixed={handoff ? "handoff" : "approved"}>
+                  {handoff ? stateCopy(locale, "CRITERIA_AMENDMENT_HANDOFF").body : t("fixed")}
+                </p>
+              ) : null}
               <div className="flex flex-wrap items-center gap-2">
                 {r.open ? (
                   <a className={PRIMARY_LINK} data-variant="primary" href={triageHref(locale, "pilot", origin)}>
@@ -318,7 +325,8 @@ export function ScreeningPilot({ locale }: Readonly<{ locale: Locale }>) {
             onClose={close}
             onEnded={() => {
               setDialog(null);
-              void load();
+              // The opener ("End the pilot") is gone once the pilot has ended: focus goes to the new heading.
+              void load().then(() => window.setTimeout(() => document.querySelector<HTMLElement>("h1")?.focus(), 0));
             }}
           />
         ) : null}
@@ -364,7 +372,9 @@ function Header({ t, title }: Readonly<{ t: T; title: string }>) {
   return (
     <header>
       <p className="text-xs font-semibold uppercase tracking-[0.05em] text-brand rtl:tracking-normal">{t("eyebrow")}</p>
-      <h1 className="font-display mt-1 text-[1.75rem] leading-[2.25rem] text-ink">{title}</h1>
+      <h1 tabIndex={-1} className="font-display mt-1 text-[1.75rem] leading-[2.25rem] text-ink">
+        {title}
+      </h1>
       <p className="mt-2 max-w-prose text-ink-muted">{t("lede")}</p>
     </header>
   );
@@ -715,15 +725,55 @@ function MorePilot({ locale, origin, corpus, label }: Readonly<{ locale: Locale;
   return <DrawPilot locale={locale} origin={origin} corpus={corpus} brand={false} label={label} onDrawn={() => window.location.assign(triageHref(locale, "pilot", origin))} />;
 }
 
+const FOCUSABLE = 'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
+/**
+ * A modal dialog (spec 13, Accessibility): focus moves inside when it opens (to a control that
+ * asks for it, else to its heading), Tab and Shift+Tab stay inside, and the caller returns focus
+ * to the opener on close.
+ */
 function Dialog({
   role = "dialog",
   labelledBy,
   describedBy,
   children,
 }: Readonly<{ role?: "dialog" | "alertdialog"; labelledBy: string; describedBy?: string; children: ReactNode }>) {
+  const box = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const element = box.current;
+    if (!element || element.contains(document.activeElement)) return;
+    const heading = element.querySelector<HTMLElement>(`#${labelledBy}`);
+    if (heading) {
+      heading.tabIndex = -1;
+      heading.focus();
+    }
+  }, [labelledBy]);
+  const trap = (event: ReactKeyboardEvent<HTMLDivElement>) => {
+    if (event.key !== "Tab" || !box.current) return;
+    const items = [...box.current.querySelectorAll<HTMLElement>(FOCUSABLE)];
+    if (items.length === 0) return;
+    const first = items[0];
+    const last = items[items.length - 1];
+    const active = document.activeElement;
+    if (event.shiftKey && (active === first || !box.current.contains(active) || active === box.current.querySelector(`#${labelledBy}`))) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && active === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  };
   return (
     <div className="fixed inset-0 z-40 flex items-center justify-center bg-ink/40 p-4">
-      <div role={role} aria-modal="true" aria-labelledby={labelledBy} aria-describedby={describedBy} className="max-h-[90vh] w-full max-w-xl overflow-y-auto rounded-lg border border-rule bg-paper p-6 text-ink">
+      <div
+        ref={box}
+        role={role}
+        aria-modal="true"
+        aria-labelledby={labelledBy}
+        aria-describedby={describedBy}
+        onKeyDown={trap}
+        className="max-h-[90vh] w-full max-w-xl overflow-y-auto rounded-lg border border-rule bg-paper p-6 text-ink"
+      >
         {children}
       </div>
     </div>
@@ -925,7 +975,9 @@ function ReviseDialog({
         ) : null}
         {shown.total > 0 ? (
           <p className="mt-3 text-sm" data-shown-again>
-            {t("rev.shown", { n: n(shown.total), x: n(shown.INCLUDE), y: n(shown.MAYBE), z: n(shown.EXCLUDE), id: cited })}
+            {cited
+              ? t("rev.shown", { n: n(shown.total), x: n(shown.INCLUDE), y: n(shown.MAYBE), z: n(shown.EXCLUDE), id: cited })
+              : t("rev.shownUncited", { n: n(shown.total), x: n(shown.INCLUDE), y: n(shown.MAYBE) })}
           </p>
         ) : (
           <div className="mt-3 text-sm" data-shown-again="none">
@@ -1044,6 +1096,14 @@ function CheckDialog({
   const [ceiling, setCeiling] = useState("");
   const [estimate, setEstimate] = useState<RunEstimate | null>(null);
   const [run, setRun] = useState<RunView | null>(null);
+  // Review C round 2: the run view replaces the form, so focus moves into it (to Cancel while it runs).
+  const runView = useRef<HTMLDivElement>(null);
+  const started = run !== null;
+  useEffect(() => {
+    if (!started || !runView.current) return;
+    const target = runView.current.querySelector<HTMLElement>("button") ?? runView.current;
+    target.focus();
+  }, [started]);
   const [stopping, setStopping] = useState(false);
   const [busy, setBusy] = useState(false);
   const [refusal, setRefusal] = useState<{ code: string; message: string } | null>(null);
@@ -1124,7 +1184,7 @@ function CheckDialog({
         {t("actions.check", { n: n(result.decided) })}
       </h2>
       {run ? (
-        <div className="mt-3 space-y-2 text-sm" data-check-run={run.state}>
+        <div ref={runView} tabIndex={-1} className="mt-3 space-y-2 text-sm" data-check-run={run.state}>
           {active ? <p role="status">{stopping || run.cancel_requested ? t("cal.stopping") : t("cal.running", { n: n(run.records), k: n(run.done) })}</p> : null}
           {!active && calibration ? (
             <>

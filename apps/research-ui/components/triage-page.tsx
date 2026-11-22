@@ -595,6 +595,9 @@ function TriageScreen({ locale }: Readonly<{ locale: Locale }>) {
     conflict === null &&
     (pilotMode ? pilotInfo.open && (pilotHead === null || editing) : decided === null || editing);
   const pilotDone = pilotMode && queueLoaded && items.length > 0 && items.every((i) => i.decided);
+  // Review C round 1, finding 6: the pilot's counts are the engine's (`/summary`), not counted here.
+  const enginePilot = summary?.pilot && pilotInfo && summary.pilot.pilot_id === pilotInfo.pilot_id ? summary.pilot : null;
+  const pilotCounts = { decided: enginePilot?.decided ?? 0, n: enginePilot?.n ?? 0 };
   const recheckCount = summary?.recheck ?? 0;
   const viewOptions = ALL_VIEWS.filter(
     (v) => VIEWS.includes(v) || v === view || (v === "recheck" && recheckCount > 0) || (v === "pilot" && Boolean(summary?.pilot?.open)),
@@ -855,7 +858,7 @@ function TriageScreen({ locale }: Readonly<{ locale: Locale }>) {
       {pilotMode && pilotInfo ? (
         <section role="region" aria-label={t("pilot.region")} className="rounded-md border border-rule bg-leaf px-4 py-2 lg:flex-none" data-pilot-banner>
           <p className="font-medium text-ink">
-            {t("pilot.banner", { k: items.filter((i) => i.decided).length, n: items.length })}
+            {t("pilot.banner", { k: pilotCounts.decided, n: pilotCounts.n })}
           </p>
           <p className="text-sm text-ink-muted">{t("pilot.sentence")}</p>
           <a className="text-sm text-brand underline" href={pilotHref(locale, pilotInfo.pilot_id, origin)}>
@@ -997,7 +1000,7 @@ function TriageScreen({ locale }: Readonly<{ locale: Locale }>) {
         {pilotDone && pilotInfo ? (
           <section aria-labelledby="triage-pilot-done" className="rounded-lg border border-rule bg-leaf p-6 lg:col-span-2 lg:self-start" data-pilot-done>
             <h2 id="triage-pilot-done" className="font-display text-[1.375rem] leading-[1.75rem] text-ink">
-              {t("pilot.doneTitle", { n: items.length })}
+              {t("pilot.doneTitle", { n: pilotCounts.n })}
             </h2>
             <p className="mt-4 flex flex-wrap items-center gap-4">
               <a className="inline-flex min-h-11 items-center rounded-md bg-brand px-4 font-medium text-on-brand" href={pilotHref(locale, pilotInfo.pilot_id, origin)}>
@@ -1103,8 +1106,8 @@ function TriageScreen({ locale }: Readonly<{ locale: Locale }>) {
             {/* The right column: reason, checklist, comparison, draft, note, history (M8-triage 1) */}
             <div className={`min-w-0 space-y-4 ${pane}`} data-right-column>
               {record && !pilotMode && (record.shown_again || replaced !== null) ? (
-                <section className="rounded-lg border border-rule bg-leaf p-4" data-earlier-decision>
-                  <h2 className="text-sm font-semibold text-ink">
+                <section aria-labelledby="triage-earlier-decision" className="rounded-lg border border-rule bg-leaf p-4" data-earlier-decision>
+                  <h2 id="triage-earlier-decision" className="text-sm font-semibold text-ink">
                     {record.shown_again
                       ? t("recheck.earlier", { v: record.shown_again.criteria_version })
                       : t("recheck.replaced", { v: replaced ?? 1 })}
