@@ -6,7 +6,8 @@ import { formatNumber, type Locale } from "@/i18n";
 import { Button, DataCell, DecisionBadge, type DecisionRole } from "@/components/ui/base";
 import { DETAILS_LABEL, ScreeningSteps, StateCard, stepHref } from "@/components/screening-state-card";
 import { getPublicationStatus, isScreeningApiError, type PublicationStatus } from "@/lib/screening-api";
-import { chartingHref } from "@/lib/charting-api";
+import { chartingHref, chartingReportHref } from "@/lib/charting-api";
+import { cc } from "@/lib/charting-copy";
 import {
   DEFAULT_EXPORT_SETS,
   downloadExport,
@@ -404,6 +405,10 @@ export function ScreeningExport({ locale }: Readonly<{ locale: Locale }>) {
             {/* M12a (spec 01 "Entry"): the full texts and the charting come after the screening. */}
             <a className="inline-flex min-h-11 items-center text-brand underline" href={chartingHref(locale, origin)} data-charting-link>
               {t("chartingLink")}
+            </a>
+            {/* M12a Part C (spec 04 "Entry"): the charting table's own export, counts and methods paragraph. */}
+            <a className="inline-flex min-h-11 items-center text-brand underline" href={chartingReportHref(locale, origin)} data-charting-report-link>
+              {cc(locale, "charting.report.link")}
             </a>
           </p>
         </header>

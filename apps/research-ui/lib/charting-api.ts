@@ -222,6 +222,22 @@ export interface ChartingCounts {
   pilot?: number;
   /** Part F: rows with a fetched file waiting; they are not in to get, requested or not retrieved. */
   to_confirm?: number;
+  /** Part C: cells not charted yet (empty or to chart again) on rows not excluded, and those of required columns. */
+  cells_open?: number;
+  required_open?: number;
+}
+
+/** Part C: what the newest export wrote (`charting/last_export.json`), for the persistent last-export line. */
+export interface LastExport {
+  at: string;
+  format: "csv" | "xlsx";
+  view: ExportView | null;
+  file_name: string;
+  sha256: string;
+  rows: number;
+  not_charted: number;
+  cells_open: number;
+  required_open: number;
 }
 
 export interface ChartingTable {
@@ -239,6 +255,8 @@ export interface ChartingTable {
   counts: ChartingCounts;
   /** Part B: the form beside the protocol, seeded at the first read (pilot on). */
   form?: ChartingForm;
+  /** Part C: the newest export, or null before the first; absent in an answer from before Part C. */
+  last_export?: LastExport | null;
   rows: ChartingRow[];
 }
 
@@ -377,25 +395,115 @@ export function postLink(origin: string, studyId: string, link: string, eventId:
 }
 
 export type ExportView = "fulltext" | "charting";
+export type ExportFormat = "csv" | "xlsx";
 
-/** A view of the rows as CSV; the engine builds the file and journals it. */
-export async function exportCsv(origin: string, view: ExportView, signal?: AbortSignal): Promise<{ blob: Blob; filename: string }> {
+/** The export route of a file: a CSV of one view, or the spreadsheet (which has no view). */
+export function exportUrl(format: ExportFormat, view: ExportView = "fulltext"): string {
+  return format === "xlsx" ? `${BASE}/export?format=xlsx` : `${BASE}/export?format=csv&view=${view}`;
+}
+
+/** A file of the rows: the engine builds it, journals it with its SHA-256 and records it as the last export. */
+export async function exportFile(
+  origin: string,
+  format: ExportFormat,
+  view: ExportView = "fulltext",
+  signal?: AbortSignal,
+): Promise<{ blob: Blob; filename: string }> {
   let response: Response;
   try {
-    response = await fetch(`${consoleBase(origin)}${BASE}/export?format=csv&view=${view}`, { method: "GET", signal });
+    response = await fetch(`${consoleBase(origin)}${exportUrl(format, view)}`, { method: "GET", signal });
   } catch (error) {
     throw new ScreeningApiError("CONSOLE_UNREACHABLE", 0, error instanceof Error ? error.message : "the console could not be reached");
   }
   if (!response.ok) throw await failure(response);
   const disposition = response.headers.get("content-disposition") ?? "";
-  const filename = /filename="([^"]+)"/.exec(disposition)?.[1] ?? `charting-${view}.csv`;
+  const fallback = format === "xlsx" ? "charting.xlsx" : `charting-${view}.csv`;
+  const filename = /filename="([^"]+)"/.exec(disposition)?.[1] ?? fallback;
   return { blob: await response.blob(), filename };
+}
+
+/** A view of the rows as CSV; the engine builds the file and journals it. */
+export function exportCsv(origin: string, view: ExportView, signal?: AbortSignal): Promise<{ blob: Blob; filename: string }> {
+  return exportFile(origin, "csv", view, signal);
 }
 
 /** The Full text view as CSV (Part A's name, kept for its callers). */
 export function exportFulltextCsv(origin: string, signal?: AbortSignal): Promise<{ blob: Blob; filename: string }> {
   return exportCsv(origin, "fulltext", signal);
 }
+
+// ---------------------------------------------------------------- Part C: the PRISMA full-text counts and the methods answer
+
+/** One group of the PRISMA full-text counts (`report.py` `_empty`): a round, an arm or the total. */
+export interface PrismaGroup {
+  sought: number;
+  not_retrieved: number;
+  /** Keyed by the engine's own English words ("No access or paywalled", "Not found", "Authors did not reply", "Other"). */
+  not_retrieved_reasons: Record<string, number>;
+  assessed: number;
+  excluded: number;
+  /** Keyed by reason code (`EXC-n`, `FAILS-INC-n`, `OTHER`). */
+  exclusion_reasons: Record<string, number>;
+  included: number;
+  awaiting_retrieval: number;
+  to_confirm: number;
+  retrieved_not_assessed: number;
+  assessed_without_full_text: number;
+}
+
+export interface PrismaRound extends PrismaGroup {
+  round: number;
+  arm: string | null;
+  label: string;
+  generation_id: string | null;
+  published_at: string | null;
+}
+
+export interface PrismaFulltext {
+  schema: string;
+  unit: string;
+  rounds: PrismaRound[];
+  /** `databases` and `citation_searching`, each present in the engine's answer even when empty. */
+  arms: Record<string, PrismaGroup>;
+  total: PrismaGroup;
+}
+
+/** One recorded form amendment as the methods answer lists it (`report.py` `amendment_list`). */
+export interface MethodsAmendment {
+  at?: string | null;
+  changes?: string[];
+  reason?: string | null;
+  [key: string]: unknown;
+}
+
+/** `GET /api/v1/charting/methods` (`report.py` `methods()`): a pure read, nothing is written. */
+export interface ChartingMethods {
+  shape: "charting.methods-v1" | string;
+  sentences: string[];
+  paragraph: string;
+  figures: {
+    prisma: PrismaFulltext;
+    open_access: { used: number; discarded: number; services: string[] };
+    reviewers: { fulltext_decisions: number; charting: number };
+    charted: number;
+    not_charted: number;
+    cells_open: number;
+    required_open: number;
+    pilot: number;
+    amendments: MethodsAmendment[];
+  };
+  caveats: string[];
+  not_stated: string[];
+  sources: { name: string; path: string; digest: string }[];
+}
+
+export function getChartingMethods(origin: string, signal?: AbortSignal): Promise<ChartingMethods> {
+  return readJson<ChartingMethods>(`${BASE}/methods`, consoleBase(origin), signal);
+}
+
+/** The same, under the short names a caller inside this module family expects. */
+export type Methods = ChartingMethods;
+export const getMethods = getChartingMethods;
 
 /** One study for the one-study view; `RECORD_NOT_KEPT` when it is not in the kept set. */
 export function getChartingRecord(origin: string, studyId: string, signal?: AbortSignal): Promise<ChartingRecord> {
@@ -581,6 +689,11 @@ function placeQuery(place: TablePlace, origin: string): URLSearchParams {
 export function chartingHref(locale: Locale, origin = "", place: TablePlace = {}): string {
   const query = placeQuery(place, origin).toString();
   return `/${locale}/charting${query ? `?${query}` : ""}`;
+}
+
+/** Export and methods (spec 04, Part C): the downloads, the PRISMA full-text counts and the methods paragraph. */
+export function chartingReportHref(locale: Locale, origin = ""): string {
+  return `/${locale}/charting/report${origin ? `?console=${encodeURIComponent(origin)}` : ""}`;
 }
 
 /**
