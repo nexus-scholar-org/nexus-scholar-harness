@@ -104,7 +104,7 @@ const COPY = {
     notReportedDecisive: "Une réponse décisive d'abord : une exclusion remplie ou une inclusion non remplie exclut ; sinon Incertain",
     notReportedExclude: "Un critère d'inclusion non rapporté exclut la notice",
     notReportedNote: "Cette règle façonne les brouillons de l'agent et le motif que l'écran vous propose ; votre propre décision n'est jamais remplacée. Un changement est enregistré comme amendement.",
-    notReportedDefault: "La règle affichée est celle du logiciel par défaut : le protocole ne la fixe pas et personne ne l'a choisie.",
+    notReportedDefault: "La règle affichée est la règle par défaut du logiciel : le protocole ne la fixe pas et personne ne l'a choisie.",
     amendTitle: "Amender la méthode du protocole ?",
     amendChange: "{field} : de « {from} » à « {to} ».",
     amendBody: "Le changement est enregistré comme amendement : qui, quand, avant et après vont dans le journal d'audit et dans le paragraphe de méthode de l'export. Le protocole signé, le corpus et vos décisions ne changent pas.",

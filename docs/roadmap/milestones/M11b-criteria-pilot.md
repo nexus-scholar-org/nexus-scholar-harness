@@ -847,3 +847,11 @@ No browser spec covers Prepare's rule group (`screening-states.spec.ts` shows Pr
 | :-- | :-- | :-- | :-- | :-- |
 | before | merge of `46ebe639` + the new tests | `npx vitest run tests/screening-prepare.test.tsx` | 3 failed, 19 passed | |
 | targeted | working tree (the item 8 commit) | `npx vitest run tests/screening-prepare.test.tsx`; `npm run typecheck` | 22 passed; clean | |
+
+Review round 3 (the item 8 delta `9af1db4b..25137327`): **APPROVE** (lane RELEASE confirmed; the line shows only for `defaults`, reads the engine's settings so it goes after an amendment, adds no control, is named by the group's `aria-describedby` only while shown; the three strings and the docs match; no Python file changed since the PR gate on `6c9bee9c`; 22 vitest passed, typecheck clean). One P4 taken: the French line now reads "La règle affichée est la règle par défaut du logiciel : …".
+
+| Stage | Commit | Command | Result | Duration |
+| :-- | :-- | :-- | :-- | :-- |
+| targeted (round 3 wording) | the commit after `25137327` | `npx vitest run tests/screening-prepare.test.tsx`; `npm run typecheck` | 22 passed; clean | |
+
+**Follow-up: READY FOR PR** (not pushed), the item 8 change included. Branch `dev/m11b/placeholder-not-reported`, head after this commit, with `origin/main` `46ebe639` merged in. Lane RELEASE: the CI matrix on the PR is the closure evidence. All eight decision items are answered. The push and the merge at 12 of 12 checks are approved by the researcher; the main session pushes.
