@@ -35,6 +35,9 @@ export default defineConfig({
     // cannot silently resolve to another framework's globals.
     globals: false,
     setupFiles: ["./tests/setup.ts"],
+    // A test may now wait up to 3 s at each step (tests/setup.ts); the default 5 s per test would cut
+    // short one with two slow steps.
+    testTimeout: 15000,
     include: ["tests/**/*.test.ts", "tests/**/*.test.tsx"],
     // Refuse to pass a suite that has nothing in it.
     passWithNoTests: false,

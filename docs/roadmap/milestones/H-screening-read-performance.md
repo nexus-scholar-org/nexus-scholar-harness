@@ -61,9 +61,43 @@ Asked in the main session, one by one; each answered as recommended. Decision: `
 4. **Requests keep queuing**; no combined route. *Not chosen:* one "screening home" route.
 5. **The loading state is headings and empty cards**, with the sentence the page already has; no animation. *Not chosen:* an animated skeleton.
 
+## Amendment 2026-11-23: the study's findings, and a wider scope
+
+Accepted by the researcher on 2026-11-23 (asked in the main session; the answer was to go with its recommendation). Source: a read-only study by a second session on a copy of the same workspace, `slow-loading-study-2026-11-22.md` in the sessions' shared notes folder (not in the repository). Its times are about twice those above, because other sessions were running test suites on the PC while it measured, and it reports run-to-run noise of up to two times; the proportions are what it is used for here.
+
+**What it adds**
+
+- **`GET /review/next-step` is sent by every page** (the next-step bar in the app shell) and was 4.6 to 11.3 s across its runs. No page is fast on this review, whatever it shows.
+- **Page totals, requests one after another (its medians):** Export 21.9 s, Publish 18.1 s, Charting one study 17.7 s, Screening home 14.8 s, Charting table 12.4 s, Workspaces 11.0 s, Triage first record 10.9 s.
+- **Charting is slow too:** `GET /charting` about 5 s and 1.28 MB; `GET /charting/records/{id}` about 5 s; the one-study view requests the whole table again on each move to another study.
+- **Requests a page does not need or repeats:** `/screening/corpus` is sent by every screening page's step bar and again by some pages; Publish sends one batch-review request per batch (54); the pilot page asks for the summary and the criteria twice; Export runs three slow checks in a row.
+- **Time split of the currentness check:** file open and read about 24%, JSON decoding about 32%, the project's own logic about 23%, other about 20%, hashing and validation under 1%.
+
+**Experiments** (monkeypatched in its own scripts; each route's answer checked byte-identical; medians, noisy)
+
+| Trial | Result |
+| :-- | :-- |
+| Context and event log loaded once per request | publication status 7.3 s to 1.4 s (a later pass 2.5 s to 0.5 s); next step 11.3 s to 3.5 s; workspaces 4.6 s to 1.4 s. The largest effect |
+| The corpus view kept (what skipping the rebuild saves) | next step 11.3 s to 4.7 s |
+| An index for the latest decision | summary 0.66 s to 0.40 s; no reliable gain on the heavy routes |
+| Load-once and the index together | publication status 0.74 s; next step 1.75 s on one pass |
+| A C-backed JSON parser (`orjson`) | no reliable gain at route level (one pass faster, the next within noise). The standard parser already runs in C; a micro-benchmark on the event log gave 23.7 ms to 13.3 ms per pass, an estimate |
+| An array library (numpy) | not applicable: the work is files, JSON, strings and dictionaries |
+| The duplicate detector | compares titles with the standard library's pure-Python `difflib.SequenceMatcher`; no C string library is imported. It matters only while a corpus is not yet accepted |
+
+**What changes in this specification**
+
+1. **Order of work.** The next-step bar comes first: it must not recompute the publication check and the corpus view on every page. Then proposals 1 to 4 above.
+2. **Scope (replaces closed question 1's "measured first" for Charting).** `GET /charting` and `GET /charting/records/{id}` are in scope, with the same load-once repair; the table's 1.28 MB answer is reduced where the page does not use what it carries (to be listed in the build's own choices). `/workspaces` and the Discovery frame's `/discovery/checks` (2.4 s on every Discovery page) are in scope for load-once. The duplicate detector is not: a C string-matching library is a later, separate decision.
+3. **What pages ask for.** The step bar's corpus request is shared with the page's own, and not sent by pages that do not show it; Publish reads its batch reviews in one request (a new read route, answering what the 54 answer today); the one-study view does not request the whole table on each move; the pilot page asks for the summary and the criteria once.
+4. **Definition of done, added.** (7) No page of Screening, Charting or Workspaces sends the same GET twice on load (a vitest test per page counts requests). (8) `GET /review/next-step` opens at most 150 files on the fixture of DoD 1. (9) The before-and-after table of DoD 6 covers every page listed above, measured with nothing else running on the machine, three passes each.
+
+Closed questions 2 to 5 stand as answered.
+
 ## Not verified
 
 - The estimate "under a second" comes from the profile, not from a changed engine.
-- `/workspaces`, Charting, Discovery and Inception were not profiled. Triage's per-record routes were not timed.
+- ~~`/workspaces`, Charting, Discovery and Inception were not profiled. Triage's per-record routes were not timed.~~ Measured by the study of 2026-11-22 (amendment above), on one workspace, under load from other sessions; a cold file cache was not measured.
+- The study's first probe listed the researcher's real workspaces folder through `/workspaces` and `/inception/drafts` before it was pointed at the copy; it reports that nothing there was opened or written.
 - One workspace, one machine, one run of each measurement (three repeats per route in the profile run; two in the app).
 - Whether the artifact registry reads can share one load was not read in the code; the count comes from the open-file tally.
