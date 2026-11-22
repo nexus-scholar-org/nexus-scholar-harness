@@ -66,7 +66,14 @@ export interface Draft {
   default_exclusion_reason?: string | null;
   /** M10b: the researcher's own matrix columns. */
   custom_matrix_columns?: MatrixColumnIn[];
+  /** M11b part D (spec 11): when the agent's draft is shown; pre-selected after you decide. */
+  method_blinding?: MethodBlinding | null;
+  /** M11b part D: what a draft does with a criterion not reported; null until the researcher chooses. */
+  method_not_reported?: MethodNotReported | null;
 }
+
+export type MethodBlinding = "reveal_after_decision" | "show";
+export type MethodNotReported = "unclear" | "decisive_first" | "exclude";
 
 export interface Emitted {
   slug: string;
@@ -236,6 +243,10 @@ export interface CriteriaStep {
   undecided: string[];
   missing_sides: ("inclusion" | "exclusion")[];
   reason_suggestions?: ReasonSuggestion[];
+  /** M11b part D: the two method settings of the draft asked, and whether the rule is chosen. */
+  method?: { blinding: MethodBlinding | null; not_reported: MethodNotReported | null; chosen: boolean; started_before_question: boolean };
+  /** M11b part D: the options of the two questions in the engine's order (the browser orders nothing). */
+  method_options?: { blinding: MethodBlinding[]; not_reported: MethodNotReported[] };
 }
 
 export interface MatrixColumn {
