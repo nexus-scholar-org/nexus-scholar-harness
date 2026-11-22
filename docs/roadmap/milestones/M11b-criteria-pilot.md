@@ -734,3 +734,9 @@ Review round 1 of part D (`milestone-reviewer`, on `22f2ea6a`): **CHANGES** (lan
 | P4-10 | "From the imported protocol" stayed after the choice changed | shown only while the imported choice is the one chosen | (`finding 10`, a guard) |
 
 Not taken: P4-9 (Review falls back to "after you decide" when a draft has no visibility value; the engine stores one for every new draft and the screen saves it, so the fallback only fills a draft from before part D); P4-10's first half (the method section under `DRAFT_INCOMPLETE`, a follow-up). Follow-ups for the researcher, outside part D's DoD: placeholder workspaces (`init --scaffold-only`, the Workspaces "Create") still sign `not_reported: "unclear"` without asking; an import of a protocol signed since 2026-11-08 carries the "unclear" genesis wrote without asking as chosen, and ignores later method amendments; the English test reads a French criterion holding "a" as English; the mirror rule's "or the reverse" flags a one-word exclusion whose word an inclusion holds (warnings only).
+
+| Stage | Commit | Command | Result | Duration |
+| :-- | :-- | :-- | :-- | :-- |
+| targeted | `47bf18e2` (working tree) | `tests/inception/test_criteria_wording_checks.py`, `test_method_questions.py` (`-n 4`); `vitest` of the step 5, checks and Review files; contract baseline | 33 + 2 passed; 55 passed; current | |
+| pr (round 1 repairs) | `47bf18e2` | `uv run pytest -q -n 4 --junitxml` (full suite) | 6339 tests: 6324 passed, 15 skipped, 0 failed, 0 errors | 935 s |
+| pr (round 1 repairs) | `47bf18e2` | `npm run typecheck`; `vitest run` (full); `npm run test:browser` (build, then the full browser suite, port 3127) | clean; 1187 of 1188 passed: `inception-criteria.test.tsx` failed once while the machine was loaded (the run took 271 s against 127 s before) and passed twice alone; 688 passed, 12 skipped, 0 failed | 271 s; 917 s |
