@@ -10,6 +10,18 @@ Sources: M12a (g); `docs/architecture/agent_autonomy_ladder.md` (§3 rungs, §4 
 
 1 Contract v1: "Yes, contract first". 2 Provenance: "Yes". 3 How the agent runs: **"Both from the start"** (not as recommended, which was "From the app first"). 4 What may be sent: "All, after consent". 5 When a proposal is shown: "Beside the cell, never in it". 6 Which columns: **"All columns at once"** (not as recommended, which was each column opened one by one after its measurement). 7 The measurement: **"no time to chart by hand just do it without measuring"** (the researcher's own words, not as recommended); asked then whether the app should still count, at no extra work, how many proposals they adopted unchanged, edited or rejected per column and put that in the methods text: "Count as I work". 8 An agent's "not reported": "Yes, I type it". 9 Order: "After M12a, before M9b–M9d"; with answer 7 the measurement part is dropped.
 
+## Amendment 2026-11-22: a blind second reading
+
+The researcher answered on 2026-11-22: **"Yes, add it to the spec."** Each paper is read twice by the agent, the two readings independent of each other (neither is shown the other's output); the researcher still decides every cell; a cell on which the two readings disagree is flagged for a closer look. The cost named when asked: about twice the AI spend per paper. Decision: `docs/decisions.md`, "2026-11-22 — M12c agent-proposed cells: a blind second reading".
+
+What this changes below, to be written out before M12c-2 is built (the sections are not yet rewritten):
+- "What the agent is asked, and what it is shown", "What the researcher sees", "What the counts show": two readings and a disagreement flag. Agreement between the readings is not accuracy, and answer 7 ("No measurement") stands.
+- "Runs, consent and spend": the estimate and both ceilings cover two readings.
+- "The methods text": it says each paper was read twice and what a disagreement led to.
+- Risk 1 (anchoring) is unchanged: every value is still shown before the researcher's reading.
+
+Still open (decision items 2 to 5 of that entry): what counts as a disagreement per column type; what is shown; the same model and prompt or not; the MCP path, where the app cannot make a client read twice.
+
 ## Goal
 
 When the researcher charts, an agent may propose a value for every column of the charting form (one switch for the whole form), each value with a quote from the study's full text that the app has checked is really there, on the page it names. The proposal is shown beside its empty cell; the researcher adopts, edits or rejects it, one cell at a time; nothing becomes a cell without them, and every adopted cell says it came from the agent. The agent is **not measured** before use (answer 7): the app counts, as the researcher works, how many proposals were adopted unchanged, edited or rejected per column, and the methods text reports those counts and says that accuracy was not measured. Proposals come from the app's own run (the researcher's API key) and from the researcher's own AI client over MCP, both from the first release (answer 3).
