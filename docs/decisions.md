@@ -10,7 +10,76 @@ history to read if you need the original reasoning (`git log --follow -- <path>`
 
 | Entry | Item | What is open |
 | :-- | :-- | :-- |
+| 2026-11-22 — M12a Part F: open-access fetching, the engine and the screens | 1 to 58 | Proposed with the build; the researcher's answer is pending. Item 22 (the arXiv provider's old-style ids) changes harvests and is asked on its own, with its alternative. |
 | 2026-11-19 — M9a: what the measurement says about the ladder gates | 2 | The minimum share of the researcher's excludes an agent must take before a rung unlocks: the principle is accepted; the researcher decided on 2026-11-20 to set the number when M9b is built. |
+
+## 2026-11-22 — M12a Part F: open-access fetching, the engine and the screens (items 1 to 58 PROPOSED)
+
+Record: `docs/roadmap/milestones/M12a-charting-table.md`, "Build record", Part F. Spec: `docs/ux/phase3-extraction/final/03-fetch-states.md` (FINAL; questions 1 to 10 answered by the researcher on 2026-11-22, each as recommended, the fifth refusal code `FETCH_FILE_WAITING` approved with that answer). Builds section (d2) and DoD F1 to F8 on Part K (PR 283). Items 1 to 24 are the engine's, 25 to 58 the screens'. The build's own choices; none is accepted until the researcher answers.
+
+1. Confirm and discard are event kinds on `POST /charting/events` (`fetched_confirm` `{manifest_row}`, `fetched_discard` `{manifest_row, reason, reason_text}`); their undo is `value: null` with `supersedes`; a non-null value must name the waiting row.
+2. A confirm makes the engine write the attachment (`origin: fetched`) and the Retrieved status in the same request (engine-made ids, marked `added_by_engine` in the results); undoing the confirm takes them back only while they still hold.
+3. One code, `FETCH_FILE_WAITING` (409, spec 03 question 6), for a status, a decision or an attachment on a row with a file waiting; the screen turns it into "Confirm this PDF as the full text? Enter". Confirm and decide in one request is accepted.
+4. Confirm and discard are journaled as `CHARTING_EVENTS_RECEIVED`, not `CHARTING_ATTACHMENT_ADDED`.
+5. Counts as spec 03 question 1 recommends: a waiting row leaves To get / Requested / Not retrieved and counts in `to_confirm`; `counts.prisma` (sought, not retrieved, retrieved, assessed) reads the status alone and does not move until a confirm.
+6. Fetched files keep the kit's names, `pdfs/fetched/DOC-<sha256[:32]>.pdf` ((d2) and spec 03 said `<sha256>.pdf`).
+7. Selection: nothing selected = every kept To get record minus those with a file, a waiting file or a discarded file; a selection may hold To get, Requested and Not retrieved records (others left out and counted; a discarded record is asked again when selected); a record not kept is `RECORD_NOT_KEPT`; nothing to ask is `BODY_INVALID` with the plan.
+8. Records left out are not "reached" and get no manifest row.
+9. The same bytes as a discarded file: the row is written, the file not offered (`same_as_discarded`).
+10. A record with both a DOI and an arXiv id is asked by DOI only.
+11. An arXiv copy is `submittedVersion` ("preprint (arXiv vN)"), repository, source arXiv, ranked with the services' copies; the kit's three-copy cap applies.
+12. arXiv look-ups: 50 ids per request without their version (the latest is answered), `max_results` set, all before the downloads; a failed request marks its ids as failed look-ups.
+13. Pacing: arXiv's hosts share the API's one-per-3-s budget; other hosts a 1 s pause between two requests to the same host; one record at a time; the lookup client 5 per second, no disk cache.
+14. "Try later": a PDF 429, or a look-up 409, 429 or 503.
+15. One run per workspace by `charting/fetch_runs/active.lock` (process and engine named; a stale lock taken over silently); "interrupted" read from a run file left in the state running when no run of that id is live in this console, nothing written. This matches the answer to spec 03 question 8 (inferred, nothing written at start-up); the spec's sentence says "from a start with no finish in the journal", and the engine reads the run file instead, which holds the counts the card shows ("stopped after 88 of 214"). The journal's start row without a finish stays as the question's answer said.
+16. The contact e-mail is the kit's (`SCHOLAR_MAILTO`, then `MAILTO`); the plan is refused without it too.
+17. The start needs `confirm: true`; `ids` and `scope` together are `BODY_INVALID`.
+18. `GET …/fetched` with nothing waiting is `FETCH_NOT_PENDING` (409).
+19. The e-mail is written in the start journal row and the run file (never the key).
+20. Kit additions with defaults that leave the commands unchanged: `max_bytes`, `max_redirects` (aiohttp gets N+1), `pacer`, `process_copies`, `record_outcome`, `process_doi(extra_copies, prior_lookups, manifest_extra)`; `OpenCopy.version_label` and a `version_label` manifest field (schema name kept v1).
+21. The PDF session ignores environment proxies; the Unpaywall/OpenAlex lookup client (httpx) still follows `HTTP(S)_PROXY` as the search kit does.
+22. **The arXiv provider's parsing of old-style ids (DoD F7), a change to harvests, PROPOSED on its own.** *Built:* `scholar_search/providers/arxiv.py` keeps an old-style id's archive (`hep-th/9901001`; it used to keep only `9901001`). *What changes for corpora already stored:* they hold the bare numbers; a new harvest's `hep-th/9901001` no longer matches a stored `9901001` on the arXiv-id tier of deduplication (DOI and title still can match it); and within stored corpora two papers from different archives with the same number may already have been merged under one key. Nothing is migrated. *Does the fetch need the provider change?* Only for records harvested after it: the fetch reads the arXiv id stored on the record, and a stored bare number cannot be turned back into its archive by any look-up, so the fetch skips it ("its arXiv id has no archive", counted) whichever way this is decided. *Alternative:* keep the provider's harvest parsing as it is and handle old-style ids only on the fetch path: no change to matching for stored or new corpora, but new harvests keep losing the archive (so old-style arXiv-only papers can never be fetched by arXiv id, and two archives' papers keep colliding on one key). *Costs:* the change as built costs a matching difference between corpora harvested before and after it; the alternative costs the old defect, kept. New-style ids (2007 on) are unaffected either way.
+23. **The run names what failed** (found while building the screens): the run record carries `check_failures` (each failed file check by name, once per record) and `lookup_failures` (each failed look-up that is not "try later", by service and HTTP status or error kind), so the summary can say them in the spec's words; `errors` keeps its counts.
+24. **A record no longer kept keeps its fetch state on the row** (found while building the screens: the rows no longer kept were built without it); it is not counted in "to confirm" (only kept rows are counted), and a confirm on it is refused `RECORD_NOT_KEPT`.
+
+Screens (DoD F8; spec 03 FINAL; the choices the spec did not settle):
+
+25. **The Show option** "Fetched, to confirm" comes after "Not retrieved", in the Full text view only; the To get, Requested and Not retrieved filters leave out rows with a file waiting, so each list matches its count.
+26. **The earlier status badge stays visible** under the "Fetched, to confirm" badge (it is the status that returns on discard).
+27. **The badge** is on the page's plain background (`leaf`) with a dashed `ink-muted` border, words and icon; the "Recommended" mark sits on `leaf-raised`.
+28. **"{n} of {total} shown"** appears under the "to confirm" filter only.
+29. **The toolbar button** is disabled, with its words visible, only when nothing is selected and no kept To get row is free of a file; with a selection it is always on; `L` in the disabled state puts the words on the status line.
+30. **The plan's numbers**: the title counts the records asked; "Nothing to look up" when none has a DOI or an arXiv id; the "already" line adds files and files waiting; the Unpaywall and arXiv lines appear only above zero; a line for discarded records left out (`.plan.discarded`); "of 1 record" has its own words.
+31. **The start** sends `{scope: "to_get", confirm: true}` with nothing selected and `{ids, confirm: true}` (kept rows only) with a selection.
+32. **`E` on a waiting row**: Enter opens the reason chips; the confirm and the exclusion go in one request after the reason; Esc at the chips sends nothing. **Undo of a confirm with its decision** is one `Z`: the decision is taken back first, then the confirm (the engine refuses a decision on a waiting row).
+33. **Bulk status keys** with waiting rows: the confirmation line is shown whenever rows are skipped, even with one row left; when every row is waiting, only the skip sentence shows.
+34. **Where refusals show**: the page's own checks (status keys on a waiting row, no file waiting, one at a time, reason needed) on the status line, as Part A's local checks; the engine's refusals in the `role="alert"` banner.
+35. **Buttons**: "Requests" is a button with `aria-expanded`; "Cancel the look-up", "Start the look-up" and the confirm question's Confirm are bordered secondary buttons.
+36. **Announcements**: one each time 25 more records are reached; the end sentence is used for a cancelled run too.
+37. **The summary's title** says "finished" or "cancelled" only when this page watched the run; otherwise "Last look-up, {when}"; Dismiss lasts for the page load (no browser storage, N12).
+38. **"Select the n to try later"** selects the rows whose last look-up in that run says try later and that have no file waiting (n counts those rows), and switches to the Full text view and Show all when needed; it starts nothing.
+39. **A run that crashed** (engine state `failed`) shows the interrupted card with its own sentence (`.run.failed`) and Dismiss.
+40. **The table is read again** while a run moves (reached, downloaded or state), at most once per two-second poll; the one-study view re-reads its record the same way.
+41. **The run card's skeleton** shows on desktop only, until the first answer.
+42. **The one-study view**: the summary only for a run watched there, without Show and Select; no toolbar button (`L` only); Attach and the link are hidden while a file waits.
+43. **"What was tried"** shows the newest manifest row of the record.
+44. **Service answers in the panel**: the copy's own service "open copy listed" (arXiv "vN found"); another service that answered "answered" (new words) unless the outcome is "no open copy listed"; not found "no open copy listed"; a failure "failed (HTTP n)" or "failed (the connection failed)".
+45. **Addresses in the panel**: at most three, in the order asked; version and licence only on the copy's own address (new key `addressShort`); redirects add "redirected n times".
+46. **The PubMed Central line** shows for an `ncbi.nlm.nih.gov` or `pmc.` host that did not give the stored file; `europepmc.org` does not count.
+47. **Check names in words**: `pdf_header` not a PDF; `pdf_trailer`, `structure`, `readable` the PDF structure is not valid; `size_floor` too small; `size_limit` over 100 MB; "every file check passed" when none failed, then the identity result.
+48. **Row outcome words**: a PDF not fetched reads "try later" when the service asked to wait, else the failed check when the message names one, else "the download failed"; FAILED and MANIFEST_NOT_WRITTEN read "the download failed"; the same bytes as a discarded file have their own sentence.
+49. **Error classes in the summary**: other 4xx "refused", 5xx "the host had an error"; certificate, time-out, network error, over the limit, too many redirects and manifest not written have their own words; a 409 look-up is never shown as "budget spent" (the engine counts it as try later).
+50. **Copy keys beyond the spec's list** (en, fr, ar): the names with the title (`.openFor`, `.confirmFor`, `.discardFor`), `.plan.titleOne`, `.plan.discarded`, `.run.failed`, `.run.showProgress`, `.tried.loading`, `.tried.serviceAnswer.answered`, `.tried.notAskedKey`, `.tried.addressShort`, `.answer.*`, `.error.redirects`, `.error.lookupAny`, `.check.allPassed`, `.outcome.sameAsDiscarded`, `.discard.doneReason.*`.
+51. **The French and Arabic words** of every `charting.fetch.*` key were written in the build and need the researcher's reading.
+52. **The proxy** passes the waiting PDF through as bytes (it was not on the list of file answers, so it would have been read as text) and adds `nosniff` to every file answer.
+53. **The phone**: the waiting file's lines and its Open link sit beside the card's own link, not inside it; in the one-study view Confirm and Discard are hidden and `L`, `C`, `D` are ignored.
+54. **Two Part A tests changed** because spec 03 changes the behaviour they lock: the Show options now include "Fetched, to confirm" (`charting.states`), and `L`, `C`, `D` are now keys (`charting.keymap`, which closes the plan with Esc and still checks that nothing is sent).
+55. **A record failing two checks that share a line** (for example `pdf_trailer` and `structure`, both "the PDF structure is not valid") is counted once per check, so that line can be larger than the number of records.
+56. **A failed look-up with no HTTP status** is said with the time-out, certificate or connection words, without the service's name (the spec's error lines have no service slot).
+57. **"A lookup failed"** shows only when the run names no look-up failure; the named entries count look-ups, not records, so their sum can differ from the records counted in `errors`.
+58. **One more copy key**, `charting.fetch.summary.checkLine` ("{n} × {check}"), carries the check lines.
+
+**Lane RELEASE** (new routes, a new persisted record and journal rows, refusal codes, outgoing requests, a change to the arXiv provider's parsing).
 
 ## 2026-11-22 — M12a Part K: the PDF kit's downloading made production (items 1 to 20 accepted by the researcher 2026-11-22 as built)
 
