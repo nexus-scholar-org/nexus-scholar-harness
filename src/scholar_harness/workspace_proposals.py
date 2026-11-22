@@ -256,7 +256,8 @@ def compile_amendment(protocol: dict[str, Any], new_intent: dict[str, Any]) -> d
     from .inception.genesis import compile_intent
 
     try:
-        out = compile_intent(new_intent)
+        # A protocol that states no method block (a placeholder, M11b follow-up) is recompiled without one.
+        out = compile_intent(new_intent, state_method="method" in protocol)
     except (ValidationError, ValueError, TypeError, KeyError) as exc:
         errors = [e.get("msg", str(e)) for e in exc.errors()] if isinstance(exc, ValidationError) else [str(exc)]
         raise _refused("PROTOCOL_AMENDMENT_REFUSED", "the amended intent does not compile to a protocol", 422,
