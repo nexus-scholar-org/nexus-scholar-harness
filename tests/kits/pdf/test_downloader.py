@@ -32,7 +32,7 @@ async def test_process_doi_success(downloader, mock_http_client, temp_output_dir
     mock_response = MagicMock()
     mock_response.status_code = 200
     mock_response.json.return_value = {
-        "best_oa_location": {"pdf_url": "https://example.com/test.pdf"},
+        "best_oa_location": {"is_oa": True, "pdf_url": "https://example.com/test.pdf"},
         "title": "Test Title",
     }
     mock_http_client.get = AsyncMock(return_value=mock_response)
@@ -112,7 +112,7 @@ async def test_process_doi_invalid_pdf(downloader, mock_http_client, temp_output
     mock_response = MagicMock()
     mock_response.status_code = 200
     mock_response.json.return_value = {
-        "best_oa_location": {"pdf_url": "https://example.com/paywall.html"}
+        "best_oa_location": {"is_oa": True, "pdf_url": "https://example.com/paywall.html"}
     }
     mock_http_client.get = AsyncMock(return_value=mock_response)
 
@@ -153,7 +153,7 @@ async def test_process_doi_proxy_subdomain_attempt(
     mock_response = MagicMock()
     mock_response.status_code = 200
     mock_response.json.return_value = {
-        "best_oa_location": {"pdf_url": "https://ieeexplore.ieee.org/document/10209481"}
+        "best_oa_location": {"is_oa": True, "pdf_url": "https://ieeexplore.ieee.org/document/10209481"}
     }
     mock_http_client.get = AsyncMock(return_value=mock_response)
 
@@ -191,6 +191,10 @@ async def test_process_doi_proxy_subdomain_attempt(
     assert urls[0] == "https://ieeexplore.ieee.org/document/10209481"
     assert "ieeexplore-ieee-org.www.sndl1.arn.dz" in urls[1], urls
     assert not any("stampPDF" in u for u in urls), urls
+    # The bytes came through the gateway, not from the open location: the
+    # result must not carry that location's version and licence as its label.
+    assert result.open_copy is None
+    assert result.outcome == "ACQUIRED"
 
 
 @pytest.mark.asyncio
@@ -223,7 +227,7 @@ async def test_process_doi_deduplicates_content_without_overwrite(
     metadata = MagicMock()
     metadata.status_code = 200
     metadata.json.return_value = {
-        "best_oa_location": {"pdf_url": "https://example.test/paper.pdf"},
+        "best_oa_location": {"is_oa": True, "pdf_url": "https://example.test/paper.pdf"},
     }
     mock_http_client.get = AsyncMock(return_value=metadata)
 

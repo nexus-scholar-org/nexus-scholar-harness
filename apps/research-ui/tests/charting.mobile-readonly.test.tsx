@@ -31,8 +31,19 @@ describe("charting.mobile-readonly", () => {
     const engine = installEngine(makeTable([makeRow(1)]));
     vi.stubGlobal("matchMedia", (query: string) => ({ matches: !query.includes("min-width"), media: query, addEventListener() {}, removeEventListener() {} }));
     await renderCharting();
-    (document.querySelector('[data-study-row="STU-001"]') as HTMLElement).focus();
+    // Part B: on a phone window the desktop screen is not drawn at all, only the list.
+    expect(document.querySelector("[data-desktop]")).toBeNull();
+    expect(document.querySelectorAll("[data-phone-card]")).toHaveLength(1);
+    (document.querySelector("[data-phone-link]") as HTMLElement).focus();
     fireEvent.keyDown(document.activeElement!, { key: "r" });
+    fireEvent.keyDown(document.activeElement!, { key: "n", altKey: true, code: "KeyN" });
     expect(engine.calls.filter((c) => c.method === "POST")).toHaveLength(0);
+  });
+
+  it("each card opens the one-study view of its study, on the list's filter", async () => {
+    installEngine(makeTable([makeRow(1), makeRow(2)]));
+    await renderCharting("en", "?show=toGet");
+    const links = document.querySelectorAll<HTMLAnchorElement>("[data-phone-link]");
+    expect(links[1].getAttribute("href")).toBe("/en/charting/study?show=toGet&id=STU-002");
   });
 });

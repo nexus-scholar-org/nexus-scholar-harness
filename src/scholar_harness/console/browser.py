@@ -91,9 +91,13 @@ POST_PATHS: tuple[re.Pattern[str], ...] = tuple(
         # M12a Part A: charting events (status, decision, link, undo) and a PDF or link per record.
         r"api/v1/charting/events",
         r"api/v1/charting/records/[A-Za-z0-9_-]+/attachment",
+        # M12a Part B: "End pilot" (the form itself is a PUT).
+        r"api/v1/charting/form/pilot/end",
     )
 )
 PUT_PATHS: tuple[re.Pattern[str], ...] = (
+    # M12a Part B: the charting form beside the protocol (a version, or an amendment with its reason).
+    re.compile(r"api/v1/charting/form"),
     re.compile(r"api/v1/screening/settings"),
     re.compile(r"api/v1/screening/approver"),
     re.compile(r"api/v1/inception/drafts/[A-Za-z0-9_-]+"),

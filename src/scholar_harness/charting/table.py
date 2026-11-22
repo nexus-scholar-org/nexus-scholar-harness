@@ -21,7 +21,9 @@ from scholar_harness.workspace.audit import append_event
 
 from . import CHARTING_DIR, ChartingRefused
 from . import attachments as att
+from . import cells as cl
 from . import events as ev
+from . import form as fm
 from .kept import CHARTING_PROTOCOL_REPLACED, KeptState, as_dict, protocol_replaced, read_kept
 from .lock import LockBusy, locked
 
@@ -65,7 +67,7 @@ def reason_options(ws: Path) -> list[dict[str, Any]]:
     return options
 
 
-def _binding(ws: Path, state: KeptState) -> dict[str, Any]:
+def _binding(ws: Path, state: KeptState, form: dict[str, Any] | None = None) -> dict[str, Any]:
     from scholar_harness.corpus_accept import AcceptCorpusRefused, _protocol_fingerprint
 
     newest = max(state.sources, key=lambda s: s.round)
@@ -78,16 +80,20 @@ def _binding(ws: Path, state: KeptState) -> dict[str, Any]:
         "generation_id": newest.generation_id,
         "generation_sha256": newest.generation_sha256,
         "round": newest.round,
-        "form_version": None,  # Part B: the charting form's version
+        "form_version": (form or {}).get("version"),
     }
 
 
 def context(ws: Path, state: KeptState) -> ev.Context:
+    who = screener_id(ws)
+    form = fm.ensure_form(ws, who)
     return ev.Context(
-        screener_id=screener_id(ws),
+        screener_id=who,
         kept=frozenset(state.kept_ids),
         reason_codes=frozenset(o["code"] for o in reason_options(ws) if o["code"] != ev.OTHER),
-        binding=_binding(ws, state),
+        binding=_binding(ws, state, form),
+        form=form,
+        pilot=bool((form.get("pilot") or {}).get("on")),
     )
 
 
@@ -96,13 +102,24 @@ def _value(events: list[dict[str, Any]], study_id: str, who: str, kind: str) -> 
     return (head.get("value"), head["event_id"]) if head is not None else (None, None)
 
 
-def row(record: dict[str, Any], events: list[dict[str, Any]], who: str, *, kept: bool, new_since: str | None) -> dict[str, Any]:
+def row(
+    record: dict[str, Any], events: list[dict[str, Any]], who: str, *, kept: bool, new_since: str | None,
+    form: dict[str, Any] | None = None, info: dict[str, Any] | None = None,
+    index: dict[tuple[str, str, str], list[dict[str, Any]]] | None = None,
+) -> dict[str, Any]:
     study_id = record["study_id"]
-    status, status_event = _value(events, study_id, who, "fulltext_status")
-    decision, decision_event = _value(events, study_id, who, "fulltext_decision")
-    attachment, attachment_event = _value(events, study_id, who, "attachment")
-    link, link_event = _value(events, study_id, who, "link")
-    return {
+    index = index if index is not None else cl.build_index(events)
+
+    def _held(kind: str) -> tuple[Any, str | None]:
+        head = cl.head_of(index.get((study_id, who, kind), []))
+        return (head.get("value"), head["event_id"]) if head is not None else (None, None)
+
+    status, status_event = _held("fulltext_status")
+    decision, decision_event = _held("fulltext_decision")
+    attachment, attachment_event = _held("attachment")
+    link, link_event = _held("link")
+    cells = cl.project(events, study_id, who, form, info, index) if form is not None and info is not None else {}
+    out = {
         **record,
         "round_label": ROUND_LABEL.get(str(record.get("arm")), str(record.get("arm") or "")),
         "kept": kept,
@@ -121,7 +138,13 @@ def row(record: dict[str, Any], events: list[dict[str, Any]], who: str, *, kept:
             "fulltext_status": status_event, "fulltext_decision": decision_event,
             "attachment": attachment_event, "link": link_event,
         },
+        # Part B: one cell per form column; "No full text" when the row is charted without a retrieved copy.
+        "cells": cells,
+        "no_full_text": (status or {}).get("status", "to_get") != "retrieved",
     }
+    out["charted"] = cl.charted(out, form) if form is not None else False
+    out["pilot"] = any(c.get("pilot") for c in cells.values())
+    return out
 
 
 def counts(rows: list[dict[str, Any]]) -> dict[str, int]:
@@ -139,6 +162,10 @@ def counts(rows: list[dict[str, Any]]) -> dict[str, int]:
         "included": _n(lambda r: (r["ft_decision"] or {}).get("outcome") == "INCLUDE"),
         "excluded": _n(lambda r: (r["ft_decision"] or {}).get("outcome") == "EXCLUDE"),
         "to_decide": _n(lambda r: not r["ft_decision"]),
+        # Part B: rows excluded at full text are not counted as charted or not charted.
+        "charted": _n(lambda r: r.get("charted", False)),
+        "not_charted": _n(lambda r: not r.get("charted", False) and (r["ft_decision"] or {}).get("outcome") != "EXCLUDE"),
+        "pilot": _n(lambda r: r.get("pilot", False)),
     }
 
 
@@ -147,17 +174,23 @@ def table(ws: Path | str) -> dict[str, Any]:
     ws = Path(ws)
     state = read_kept(ws)
     who = screener_id(ws)
+    replaced = protocol_replaced(ws, state)
+    # The form is seeded at the first visit (DoD 10), not while the table is read-only.
+    form = (fm.read_form(ws) if replaced else fm.ensure_form(ws, who)) or {"columns": [], "version": 0, "pilot": {"on": False}}
+    info = cl.amendment_info(ws, form)
     events = ev.read_events(ws)
+    index = cl.build_index(events)
     rows = [
-        row(as_dict(r), events, who, kept=True, new_since=state.new_since.get(r.study_id)) for r in state.records
+        row(as_dict(r), events, who, kept=True, new_since=state.new_since.get(r.study_id), form=form, info=info,
+            index=index)
+        for r in state.records
     ]
     rows += [
         row({"study_id": sid, "authors": [], "abstract": None, "venue": None, "url": None, "arxiv_id": None,
              "ta_reason": "", "generation_id": summary.get("generation_id"), **summary},
-            events, who, kept=False, new_since=None)
+            events, who, kept=False, new_since=None, form=form, info=info, index=index)
         for sid, summary in sorted(state.no_longer_kept.items())
     ]
-    replaced = protocol_replaced(ws, state)
     return {
         "shape": SHAPE,
         "screener_id": who,
@@ -172,6 +205,7 @@ def table(ws: Path | str) -> dict[str, Any]:
         "reason_options": reason_options(ws),
         "not_retrieved_reasons": list(ev.NOT_RETRIEVED_REASONS),
         "counts": counts(rows),
+        "form": {**form, "amendments": fm.read_amendments(ws), "has_values": cl.has_values(events)},
         "rows": rows,
     }
 
@@ -386,24 +420,115 @@ def render_csv(rows: list[list[str]]) -> bytes:
     return ("﻿" + buffer.getvalue()).encode("utf-8")
 
 
+CELL_WORDS = {"not_reported": "Not reported", "not_applicable": "Not applicable"}
+
+
+def _cell_text(cell: dict[str, Any]) -> str:
+    """A cell as the file writes it: the value, "Not reported", "Not applicable", or empty when not charted."""
+    state = cell.get("state")
+    if state in CELL_WORDS:
+        return CELL_WORDS[state]
+    if state != "value":
+        return ""
+    value = cell.get("value")
+    if isinstance(value, list):
+        return "; ".join(str(v) for v in value)
+    if isinstance(value, float) and value.is_integer():
+        return str(int(value))
+    return str(value)
+
+
+def charting_rows(view: dict[str, Any]) -> list[list[str]]:
+    """The Charting view as rows: one per record kept and not excluded at full text (record (h))."""
+    columns = (view.get("form") or {}).get("columns") or []
+    header = ["study_id", "first_author", "year", "title", "doi", "round", "fulltext_status", "no_full_text", "pilot"]
+    for c in columns:
+        header += [c["name"], f"{c['name']} (note)", f"{c['name']} (where from)"]
+    out: list[list[str]] = [header]
+    for r in view["rows"]:
+        if not r["kept"] or (r["ft_decision"] or {}).get("outcome") == "EXCLUDE":
+            continue
+        line = [
+            r["study_id"], (r.get("authors") or [""])[0] if r.get("authors") else "", str(r.get("year") or ""),
+            r.get("title") or "", r.get("doi") or "", r["round_label"], STATUS_WORDS[r["fulltext"]["status"]],
+            "No full text" if r.get("no_full_text") else "", "Pilot" if r.get("pilot") else "",
+        ]
+        for c in columns:
+            cell = r["cells"].get(c["column_id"]) or {}
+            line += [_cell_text(cell), cell.get("note") or "", cell.get("where_from") or ""]
+        out.append(line)
+    return out
+
+
 def export(ws: Path | str, *, fmt: str, view: str) -> tuple[bytes, str]:
-    """``GET /api/v1/charting/export?format=csv&view=fulltext``: the Full text view; journaled with its SHA-256."""
+    """``GET /api/v1/charting/export?format=csv&view=fulltext|charting``: journaled with the file's SHA-256."""
     ws = Path(ws)
-    if fmt != "csv" or view != "fulltext":
+    if fmt != "csv" or view not in ("fulltext", "charting"):
         raise ChartingRefused(422, EXPORT_FORMAT_INVALID,
-                              "Part A exports the Full text view as CSV (format=csv&view=fulltext).")
+                              "The table exports CSV of the Full text view or the Charting view "
+                              "(format=csv&view=fulltext|charting).")
     data = table(ws)
-    body = render_csv(fulltext_rows(data))
+    lines = fulltext_rows(data) if view == "fulltext" else charting_rows(data)
+    body = render_csv(lines)
     digest = hashlib.sha256(body).hexdigest()
-    name = f"charting-fulltext-{datetime.now(UTC).strftime('%Y%m%dT%H%M%SZ')}.csv"
+    name = f"charting-{view}-{datetime.now(UTC).strftime('%Y%m%dT%H%M%SZ')}.csv"
+    words = "Full text" if view == "fulltext" else "Charting"
     append_event(
-        ws, EXPORT_ACTION, f"Exported the Full text view ({sum(1 for r in data['rows'] if r['kept'])} rows) as CSV",
+        ws, EXPORT_ACTION, f"Exported the {words} view ({len(lines) - 1} rows) as CSV",
         agent="scholar-harness/charting",
-        parameters={"format": "csv", "view": "fulltext", "file_name": name, "sha256": digest},
-        metrics={"rows": sum(1 for r in data["rows"] if r["kept"])},
+        parameters={"format": "csv", "view": view, "file_name": name, "sha256": digest},
+        metrics={"rows": len(lines) - 1, "not_charted": data["counts"]["not_charted"]},
         refresh_index=False,
     )
     return body, name
+
+
+# --------------------------------------------------------------------------- the form (Part B)
+
+
+def get_form(ws: Path | str) -> dict[str, Any]:
+    """``GET /api/v1/charting/form``: the form (seeded at the first visit) and its amendments."""
+    return table(Path(ws))["form"]
+
+
+def put_form(ws: Path | str, columns: Any, *, base_version: Any, reason: Any) -> dict[str, Any]:
+    """``PUT /api/v1/charting/form``: a new version; after any value exists, a recorded amendment with its reason."""
+    ws = Path(ws)
+    state = _writable(ws)
+    ctx = context(ws, state)
+    # Review of Part B, finding 7: "has values" is read, and the form saved, while no cell can be
+    # stored (the events lock is held; the form's own lock is taken inside, always in this order).
+    try:
+        with locked(ws / ev.EVENTS_DIR / ".lock"):
+            fm.save(
+                ws, columns, base_version=base_version, reason=reason, screener_id=ctx.screener_id,
+                has_values=cl.has_values(ev.read_events(ws)),
+                protocol_fingerprint=ctx.binding.get("protocol_fingerprint"),
+                generation_id=ctx.binding.get("generation_id"),
+            )
+    except LockBusy as exc:
+        raise ChartingRefused(503, ev.ATOMIC_COMMIT_FAILED, "the charting log is busy; retry") from exc
+    return get_form(ws)
+
+
+def end_pilot(ws: Path | str, *, base_version: Any) -> dict[str, Any]:
+    """``POST /api/v1/charting/form/pilot/end``: "End pilot", recorded once."""
+    ws = Path(ws)
+    _writable(ws)
+    fm.end_pilot(ws, screener_id=screener_id(ws), base_version=base_version)
+    return get_form(ws)
+
+
+def record(ws: Path | str, study_id: str) -> dict[str, Any]:
+    """``GET /api/v1/charting/records/{study_id}``: one study for the one-study view, with the form."""
+    view = table(Path(ws))
+    found = next((r for r in view["rows"] if r["study_id"] == study_id), None)
+    if found is None:
+        raise ChartingRefused(409, ev.RECORD_NOT_KEPT, "That study is not in the kept set any more. Back to the table.")
+    return {"shape": "charting.record-v1", "screener_id": view["screener_id"], "row": found, "form": view["form"],
+            "read_only": view["read_only"],
+            "reason_options": view["reason_options"], "not_retrieved_reasons": view["not_retrieved_reasons"],
+            "publication": view["publication"], "counts": view["counts"]}
 
 
 CHARTING_PATHS = (CHARTING_DIR,)

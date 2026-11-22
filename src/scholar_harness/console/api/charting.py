@@ -40,6 +40,18 @@ class EventsBody(BaseModel):
     events: list[Any] = Field(min_length=1, max_length=200)
 
 
+class FormBody(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    base_version: int
+    columns: list[Any] = Field(max_length=40)
+    reason: str | None = Field(default=None, max_length=500)
+
+
+class PilotBody(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    base_version: int
+
+
 class LinkBody(BaseModel):
     model_config = ConfigDict(extra="forbid")
     link: str | None = Field(default=None, max_length=2_000)
@@ -52,6 +64,42 @@ def get_table(request: Request) -> dict[str, Any]:
     """The kept rows of every published round, their full-text state and the counts line."""
     try:
         return tb.table(_ws(request))
+    except ChartingRefused as exc:
+        raise _error(exc) from exc
+
+
+@router.get("/form")
+def get_form(request: Request) -> dict[str, Any]:
+    """The charting form beside the protocol (seeded at the first visit) and its amendments."""
+    try:
+        return tb.get_form(_ws(request))
+    except ChartingRefused as exc:
+        raise _error(exc) from exc
+
+
+@router.put("/form")
+def put_form(body: FormBody, request: Request) -> dict[str, Any]:
+    """A new form version; once any cell holds a value, a recorded amendment that needs a one-sentence reason."""
+    try:
+        return tb.put_form(_ws(request), body.columns, base_version=body.base_version, reason=body.reason)
+    except ChartingRefused as exc:
+        raise _error(exc) from exc
+
+
+@router.post("/form/pilot/end")
+def end_pilot(body: PilotBody, request: Request) -> dict[str, Any]:
+    """"End pilot", recorded once (``CHARTING_PILOT_ENDED``)."""
+    try:
+        return tb.end_pilot(_ws(request), base_version=body.base_version)
+    except ChartingRefused as exc:
+        raise _error(exc) from exc
+
+
+@router.get("/records/{study_id}")
+def get_record(study_id: str, request: Request) -> dict[str, Any]:
+    """One study for the one-study view."""
+    try:
+        return tb.record(_ws(request), study_id)
     except ChartingRefused as exc:
         raise _error(exc) from exc
 

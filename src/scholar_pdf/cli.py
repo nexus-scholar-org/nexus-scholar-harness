@@ -9,6 +9,7 @@ from pathlib import Path
 
 import typer
 from rich.console import Console
+from rich.markup import escape
 from rich.progress import (
     BarColumn,
     Progress,
@@ -31,6 +32,13 @@ from .downloader import AsyncPDFDownloader
 from .extract import DoclingEngine, GrobidEngine
 from .extraction import PDFExtractionService
 from .extraction_models import ExtractionRunConfig
+from .open_copies import FAILED as LOOKUP_STATE_FAILED
+from .open_copies import (
+    LOOKUP_FAILED,
+    NO_OPEN_COPY_LISTED,
+    OPEN_NO_DIRECT_PDF,
+    PDF_NOT_FETCHED,
+)
 from .publisher_patterns import PROXY_STYLES
 
 app = typer.Typer(
@@ -72,6 +80,33 @@ _ACQUISITION_EXIT_CODES = {
     OperationStatus.FAILED: 1,
     OperationStatus.CANCELLED: 130,
 }
+
+# ``download`` (H-pdf-resolver-locations): the reason a DOI has no file, in the
+# table and in the exit code. With several DOIs the exit code is the first of
+# these that any DOI met, in this order; 1 stays "a listed address gave no PDF"
+# and any other failure. 2 is left to Typer's usage errors.
+_UNRESOLVED_LABELS = {
+    LOOKUP_FAILED: "[red]Lookup failed[/red]",
+    PDF_NOT_FETCHED: "[red]Failed[/red]",
+    OPEN_NO_DIRECT_PDF: "[yellow]No direct PDF[/yellow]",
+    NO_OPEN_COPY_LISTED: "[yellow]No open copy[/yellow]",
+}
+_DOWNLOAD_EXIT_CODES = {LOOKUP_FAILED: 3, OPEN_NO_DIRECT_PDF: 4, NO_OPEN_COPY_LISTED: 5}
+
+
+def _download_exit_code(results: list) -> int:
+    """0 when every DOI has its file; otherwise 3, 1, 4 or 5 (see the table above)."""
+    failed = [res for res in results if not res.success]
+    if not failed:
+        return 0
+    outcomes = {res.outcome for res in failed}
+    if LOOKUP_FAILED in outcomes:
+        return _DOWNLOAD_EXIT_CODES[LOOKUP_FAILED]
+    if outcomes - set(_DOWNLOAD_EXIT_CODES):
+        return 1
+    if OPEN_NO_DIRECT_PDF in outcomes:
+        return _DOWNLOAD_EXIT_CODES[OPEN_NO_DIRECT_PDF]
+    return _DOWNLOAD_EXIT_CODES[NO_OPEN_COPY_LISTED]
 
 
 def _write_json_atomic(path: Path, payload: str) -> None:
@@ -364,7 +399,14 @@ def download(
         help="Require pypdf structural validation of downloads",
     ),
 ):
-    """Download open-access PDFs by DOI (OpenAlex and Unpaywall locations). Needs SCHOLAR_MAILTO."""
+    """Download open-access PDFs by DOI (OpenAlex and Unpaywall locations). Needs SCHOLAR_MAILTO.
+
+    The best open copy listed with a direct PDF address is taken: published
+    version first, then accepted manuscript, then submitted version or preprint.
+    Exit codes: 0 every DOI has its file; 3 a lookup failed (run again later);
+    1 a listed address gave no PDF; 4 listed as open access but with no direct
+    PDF address; 5 no open copy listed.
+    """
 
     _production_preflight(proxy)
     if proxy_style not in PROXY_STYLES:
@@ -461,7 +503,20 @@ def download(
     for res in results:
         if res.success:
             success_count += 1
-            table.add_row(res.doi, "[green]Success[/green]", str(res.file_path))
+            details = escape(str(res.file_path))
+            if res.open_copy is not None:
+                # The copy taken, labelled (M12a answer F3): version, licence, source.
+                details += f" ({escape(res.open_copy.label())}"
+                if res.copies_tried > 1:
+                    details += f"; address {res.copies_tried} of {res.copies_listed} listed"
+                details += ")"
+            table.add_row(res.doi, "[green]Success[/green]", details)
+        elif res.outcome in _UNRESOLVED_LABELS:
+            table.add_row(
+                res.doi,
+                _UNRESOLVED_LABELS[res.outcome],
+                escape(res.error_message or ""),
+            )
         elif res.access_status == "VERIFIED_OPEN_ACCESS":
             table.add_row(
                 res.doi,
@@ -490,7 +545,7 @@ def download(
         successful_results = [res for res in results if res.success]
         _export_results(export_format, output_dir, successful_results)
     if success_count != len(doi_list):
-        raise typer.Exit(1)
+        raise typer.Exit(_download_exit_code(results))
 
 
 @app.command("ingest")
@@ -548,6 +603,15 @@ def ingest(
 
     res = asyncio.run(run_ingest())
 
+    failed_lookups = [
+        look for look in res.lookups if look.state == LOOKUP_STATE_FAILED
+    ]
+    if failed_lookups:
+        # The file is the researcher's own; only its looked-up metadata is missing.
+        said = "; ".join(f"{look.name} {look.failure()}" for look in failed_lookups)
+        console.print(
+            f"[yellow]Metadata lookup incomplete: {said}.[/yellow]", soft_wrap=True
+        )
     if res.success:
         console.print(
             f"[bold green]Successfully ingested PDF to {res.file_path}[/bold green]"

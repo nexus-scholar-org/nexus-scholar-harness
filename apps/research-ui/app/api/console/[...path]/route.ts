@@ -126,6 +126,7 @@ const POST_PATHS: ReadonlyArray<RegExp> = [
   /^api\/v1\/discovery\/proposals\/prop_[0-9a-f]+\/(apply|reject)$/,
   /^api\/v1\/charting\/events$/,
   /^api\/v1\/charting\/records\/[A-Za-z0-9_-]+\/attachment$/,
+  /^api\/v1\/charting\/form\/pilot\/end$/,
 ];
 
 /** The one GET with a side effect: the engine records a reveal when a draft is read. */
@@ -139,6 +140,7 @@ const READ_CHARTING_EXPORT = /^api\/v1\/charting\/export$/;
  * and saving an inception draft (M4b; the console checks `base_updated_at`).
  */
 const PUT_PATHS: ReadonlyArray<RegExp> = [
+  /^api\/v1\/charting\/form$/,
   /^api\/v1\/screening\/settings$/,
   /^api\/v1\/screening\/approver$/,
   /^api\/v1\/inception\/drafts\/[A-Za-z0-9_-]+$/,
