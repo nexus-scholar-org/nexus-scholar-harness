@@ -15,7 +15,11 @@ from scholar_protocol.models import MethodConfig
 
 
 def test_a_new_workspace_protocol_carries_the_default_block(tmp_path):
-    scaffold_placeholder_workspace(tmp_path / "new", "Method block review", agent="test", timestamp="2026-11-08T00:00:00+00:00")
+    # M11b follow-up: a placeholder states the block only when the not-reported rule is
+    # given (``--not-reported``); without it, it states none (test_placeholder_not_reported).
+    scaffold_placeholder_workspace(
+        tmp_path / "new", "Method block review", agent="test", timestamp="2026-11-08T00:00:00+00:00", not_reported="unclear"
+    )
     protocol = json.loads((tmp_path / "new" / "protocol.json").read_text(encoding="utf-8"))
     derived = PLAYBOOK_REPORTING[protocol["playbook_type"]]
     # M7b-guideline G3: the derived guideline is written into the signed protocol.

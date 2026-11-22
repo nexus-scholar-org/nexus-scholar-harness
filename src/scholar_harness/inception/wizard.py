@@ -583,13 +583,16 @@ def init_command(
         console.print("[bold red]❌ Project title must produce a non-empty slug.[/bold red]")
         raise typer.Exit(1)
 
-    if not scaffold_only:
-        require_not_reported(not_reported, scripted=_scripted())  # M11b part D, before anything is written
+    # M11b part D, before anything is written. The placeholder asks nothing: without
+    # --not-reported it states no rule, which is chosen when the placeholder is replaced.
+    require_not_reported(not_reported, scripted=_scripted() and not scaffold_only)
     require_uninitialized(target)
 
     if scaffold_only:
         # The same path the workspaces API takes (M5-slim).
-        result = scaffold_placeholder_workspace(target, project_title, agent="nexus-scholar/init", timestamp=_now_iso())
+        result = scaffold_placeholder_workspace(
+            target, project_title, agent="nexus-scholar/init", timestamp=_now_iso(), not_reported=not_reported
+        )
         support = result.pop("support")
     else:
         # Full Socratic interview, emitted into the raw target dir (not
@@ -609,6 +612,11 @@ def init_command(
             "   --scaffold-only: placeholder protocol compiled; re-run without "
             "the flag to run the Socratic wizard against this folder."
         )
+        if not_reported is None:
+            console.print(
+                "   It states no not-reported rule: choose it with New review in the app when you replace "
+                "the placeholder, or change it on Prepare. --not-reported on init states it from the start."
+            )
     console.print(
         "   skills → .agents/skills/ · env template → .env.example · "
         f"MCP wiring → {support['mcp_config'].name} ({support['mcp_config']})"
