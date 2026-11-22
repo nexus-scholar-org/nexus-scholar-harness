@@ -714,3 +714,8 @@ The screen (spec 11 FINAL 2026-11-21, questions 3, 7 and 8 answered as recommend
 | checkpoint | `c68486a8` | full `vitest run` | 1183 passed, 1 failed: part C's focus assertion under load (made to wait, `54a49ae0`) | 156 s |
 | targeted | `e9f2b412` | `playwright test tests-browser/inception-criteria-block.spec.ts` (port 3127) | 14 passed after the group lost `aria-required` (axe) and the URL wait was corrected | 60 s |
 | pr | `e9f2b412` | both ruff commands; contract baseline, protocol schema, contract schemas, two-study fixture; `git diff --check origin/main...HEAD` | exit 0; current; in sync; exit 0; exit 0; clean | |
+| pr | `e8a0e1e3` | `uv run pytest -q -n 4 --junitxml` (full suite) | 6336 tests: 6321 passed, 15 skipped, 0 failed, 0 errors | 599 s |
+| pr | `e8a0e1e3` | `npm run typecheck`; `vitest run` (full); `npm run test:browser` (build, then the full browser suite, port 3127) | clean; 83 files, 1184 passed; 684 passed, 12 skipped, 4 failed: two existing tests (end-to-end creation, Shape hints by keyboard, each in both projects) still used Shape's out-of-scope field | 127 s; 1206 s |
+| targeted | next commit | the two tests moved to step 5's question (`tests-browser/inception.spec.ts`, `guidance.spec.ts`) | 6 passed (both projects) | 55 s |
+
+The browser run rewrote the same four unrelated screenshots as in part C; they were restored, not committed.
