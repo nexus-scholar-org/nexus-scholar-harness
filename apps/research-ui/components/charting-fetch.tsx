@@ -786,6 +786,7 @@ export function SummaryCard({
         {line("charting.fetch.summary.noCopy", run.no_open_copy, "noCopy")}
         {line("charting.fetch.summary.skipped", run.skipped_no_id, "skipped")}
         {line("charting.fetch.summary.notReached", run.not_reached, "notReached")}
+        {run.left_out?.changed_during_run ? line("charting.fetch.summary.changed", run.left_out.changed_during_run, "changed") : null}
         {line(
           "charting.fetch.summary.tryLater",
           run.try_later,

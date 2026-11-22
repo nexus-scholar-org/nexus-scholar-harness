@@ -958,7 +958,13 @@ async def _execute(live: _Live, records: list[dict[str, Any]], deps: Deps) -> No
                 update(not_reached=len(records) - index)
                 break
             study_id, title, doi = record["study_id"], record.get("title"), record.get("doi")
-            if row_taken(ev.read_events(ws), study_id, _screener(ws)):
+            try:
+                taken = row_taken(ev.read_events(ws), study_id, _screener(ws))
+            except (OSError, ValueError):
+                # An events file read half-written: asked as planned; ``pending_row`` still hides
+                # a file on a row taken meanwhile (review of Part F, round 2, finding 2).
+                taken = False
+            if taken:
                 # Changed by the researcher since the start (a file or Retrieved): not asked, no row.
                 # It leaves the records asked, as the records left out at the start (item 8).
                 with live.lock:
@@ -1075,7 +1081,8 @@ def _finish(live: _Live, error: str | None) -> None:
                      "downloaded": snapshot["downloaded"], "failed_checks": snapshot["failed_checks"],
                      "errors": sum(errors.values()), "no_open_copy": snapshot["no_open_copy"],
                      "no_direct_pdf": snapshot["no_direct_pdf"], "try_later": snapshot["try_later"],
-                     "skipped": snapshot["skipped_no_id"], "not_reached": snapshot["not_reached"]},
+                     "skipped": snapshot["skipped_no_id"], "not_reached": snapshot["not_reached"],
+                     "changed_during_run": (snapshot.get("left_out") or {}).get("changed_during_run", 0)},
             refresh_index=False,
         )
     finally:

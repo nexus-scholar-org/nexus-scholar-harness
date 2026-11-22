@@ -828,10 +828,17 @@ def test_a_file_fetched_for_a_row_changed_while_it_downloaded_does_not_wait_on_i
     assert doi_row["fulltext"]["pending_fetch"] is None and table["counts"]["to_confirm"] == 0
     c = table["counts"]
     assert c["kept"] == c["to_get"] + c["requested"] + c["retrieved"] + c["not_retrieved"] + c["to_confirm"]
-    # And the status keys stay free on it.
+    # The status keys stay free on it while it is the researcher's (Retrieved) ...
     answer = world["client"].post(f"{BASE}/events", json={"events": [
         event(world["doi"], "fulltext_status", {"status": "requested"})]}).json()
     assert answer["results"][0]["result"] == "accepted"
+    # ... and once it is a row a look-up asks about again, with no file, the fetched file waits on it
+    # again (decision item 60, review round 2 finding 1): status keys then ask for a confirm first.
+    again = row_of(world["client"], world["doi"])["fulltext"]["pending_fetch"]
+    assert again is not None and again["manifest_row"] == row["row_id"]
+    refused = world["client"].post(f"{BASE}/events", json={"events": [
+        event(world["doi"], "fulltext_status", {"status": "to_get"})]}).json()
+    assert refused["results"][0]["refusal"]["code"] == "FETCH_FILE_WAITING"
 
 
 def test_the_full_text_export_says_fetched_to_confirm_for_a_waiting_row(world):
@@ -887,3 +894,43 @@ def test_no_finish_row_when_the_start_row_could_not_be_written(world, monkeypatc
         del host
     assert journal(world["ws"], fx.FINISHED) == [] and journal(world["ws"], fx.STARTED) == []
     assert fx.live_run(world["ws"]) is None and not (world["ws"] / fx.LOCK_FILE).exists()
+
+
+def test_a_bad_read_of_the_events_during_a_run_never_fails_it(world, monkeypatch):
+    """Round 2, finding 2: a half-written events file is read as "not taken"; the run still finishes."""
+    from scholar_harness.charting import events as ev_mod
+
+    real = ev_mod.read_events
+    calls = {"n": 0}
+
+    def torn_once(ws):
+        calls["n"] += 1
+        if calls["n"] == 1:
+            raise ValueError("a line half written")
+        return real(ws)
+
+    held = []
+    world["app"].state.fetch_executor = held.append
+    with ThreadedStub(ROUTES) as host:
+        standard_run(world, host, ids=[world["doi"]])
+        monkeypatch.setattr(fx.ev, "read_events", torn_once)
+        held[0]()
+        monkeypatch.setattr(fx.ev, "read_events", real)
+    assert calls["n"] >= 1
+    run = world["client"].get(f"{BASE}/fetch").json()
+    assert run["state"] == "finished" and run["downloaded"] == 1
+
+
+def test_the_finish_row_counts_the_rows_changed_during_the_run(world):
+    """Round 2, finding 3: the journal explains why fewer records were asked than the start said."""
+    held = []
+    world["app"].state.fetch_executor = held.append
+    with ThreadedStub(ROUTES) as host:
+        standard_run(world, host, ids=[world["doi"], world["arxiv"]])
+        world["client"].post(f"{BASE}/events", json={"events": [
+            event(world["doi"], "fulltext_status", {"status": "retrieved"})]})
+        held[0]()
+    [started] = journal(world["ws"], fx.STARTED)
+    [finished] = journal(world["ws"], fx.FINISHED)
+    assert started["metrics"]["records_asked"] == 2
+    assert finished["metrics"]["asked"] == 1 and finished["metrics"]["changed_during_run"] == 1

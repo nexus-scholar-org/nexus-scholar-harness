@@ -122,6 +122,12 @@ describe("charting.fetch-summary", () => {
     expect(card.querySelector("[data-summary-line=errors]")!.firstChild!.textContent).toBe("4 errors");
   });
 
+  it("says how many rows were left because the researcher changed them during the run (review round 2)", async () => {
+    installEngine(tableWithTryLater(), { fetch: { runs: [runView({ ...finished, left_out: { changed_during_run: 2 } })] } });
+    await renderCharting();
+    expect(summary()!.querySelector("[data-summary-line=changed]")).toHaveTextContent("2 changed by you during the look-up and not asked");
+  });
+
   it("an older run file with no names keeps the counts and the bare 'a lookup failed' line", async () => {
     const older = { ...finished };
     delete older.check_failures;

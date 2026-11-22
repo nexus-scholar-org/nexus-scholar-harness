@@ -465,6 +465,8 @@ export interface FetchRun {
   try_later?: number;
   skipped_no_id?: number;
   not_reached?: number;
+  /** Records left out before or during the run; `changed_during_run` counts rows the researcher changed after the start. */
+  left_out?: { already_have_file?: number; waiting?: number; discarded?: number; changed_during_run?: number };
   providers?: string[];
   email?: string;
   openalex_key_set?: boolean;

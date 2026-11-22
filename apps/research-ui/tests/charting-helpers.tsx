@@ -407,6 +407,9 @@ function applyAll(engine: FakeEngine, event: ChartingEvent): EventAnswer[] {
         ...(statusHolds ? { status: (saved.status.status ?? "to_get") as never, requested_on: saved.status.requested_on, reason: saved.status.reason as never, reason_text: saved.status.reason_text } : {}),
         pending_fetch: saved.pending,
       };
+      // The engine's row rule: a row with a file or a status a look-up does not ask about shows no waiting file.
+      const lookupStatus = ["to_get", "requested", "not_retrieved"].includes(row.fulltext.status);
+      if (row.fulltext.attachment || !lookupStatus) row.fulltext = { ...row.fulltext, pending_fetch: null };
       row.heads = { ...row.heads, fetched_confirm: event.event_id };
     } else {
       const saved = event.supersedes ? f.discarded[event.supersedes] : undefined;
