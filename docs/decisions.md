@@ -60,7 +60,7 @@ Record: `docs/roadmap/milestones/H-pdf-resolver-locations.md`. Found by the live
 
 ## 2026-11-21 — M11b part D: step 5's method questions and wording checks, the build's choices (items 1 to 20 answered by the researcher 2026-11-22: nineteen accepted, item 5 changed to "Shown, but I must confirm it"; items 21 to 24 PROPOSED with the change; M11b-criteria-pilot, part D)
 
-Record: `docs/roadmap/milestones/M11b-criteria-pilot.md`, "Build record", "Part D". Answers 8 (no default for the not-reported rule) and 12 (the terminal wizard asks too) bind the rest. The screen (DoD 20 and the copy) follows `11-criteria-block.md`, FINAL since its questions 3, 7 and 8 were answered (2026-11-21). Each item is the build's proposal.
+Record: `docs/roadmap/milestones/M11b-criteria-pilot.md`, "Build record", "Part D". Answers 8 (no default for the not-reported rule) and 12 (the terminal wizard asks too) bind the rest. The screen (DoD 20 and the copy) follows `11-criteria-block.md`, FINAL since its questions 3, 7 and 8 were answered (2026-11-21). Items 1 to 20 carry the researcher's answers of 2026-11-22; items 21 to 24 are the build's proposals.
 
 1. *(Accepted 2026-11-22, "Accept as built".)* **A new draft stores `method_blinding: "reveal_after_decision"` and `method_not_reported: null`.** The pre-selection of draft visibility is the record's proposal, not asked separately; the rule is unchosen (answer 8).
 2. *(Accepted 2026-11-22, "Accept as built".)* **A save that does not name the two fields keeps the stored values; an explicit `null` after a choice is refused `DRAFT_INVALID`.** Today's step-5 screen sends no method fields, so without the first half every save would drop the choice. *Alternative:* a separate route for the two questions.
