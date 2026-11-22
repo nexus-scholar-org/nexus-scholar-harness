@@ -777,7 +777,7 @@ The commit after `36af1194` (`df2ed53d`) and this one change documents only.
 
 ### Follow-up: placeholder workspaces do not sign the not-reported rule
 
-Branch `dev/m11b/placeholder-not-reported`, cut from `origin/main` `76c445ef` · Lane **RELEASE** (the content of a newly written `protocol.json` and its fingerprint change for placeholders, and the `init --scaffold-only --not-reported` CLI semantics change: "artifact persistence" and "public CLI semantics" in `test_gate_policy.md`) · Decisions: `docs/decisions.md` "2026-11-22 — M11b follow-up: a placeholder workspace does not sign the not-reported rule", items 1 to 7 PROPOSED. Approved by the researcher as a follow-up PR of part D ("Part D", follow-ups).
+Branch `dev/m11b/placeholder-not-reported`, cut from `origin/main` `76c445ef` · Lane **RELEASE** (the content of a newly written `protocol.json` and its fingerprint change for placeholders, and the `init --scaffold-only --not-reported` CLI semantics change: "artifact persistence" and "public CLI semantics" in `test_gate_policy.md`) · Decisions: `docs/decisions.md` "2026-11-22 — M11b follow-up: a placeholder workspace does not sign the not-reported rule", items 1 to 8 PROPOSED. Approved by the researcher as a follow-up PR of part D ("Part D", follow-ups).
 
 What was found: one function writes every placeholder, `inception/genesis.py` `scaffold_placeholder_workspace`, behind `nexus-scholar init --scaffold-only` (`inception/wizard.py` `init_command`) and the Workspaces "Create" (`workspace/catalog.py` `create`, `POST /api/v1/workspaces`). Its intent carries no `method`, and `compile_intent` filled the model's defaults, so the signed protocol said `not_reported: "unclear"`; `--not-reported` was accepted by `init` and ignored with `--scaffold-only`. No other path writes a protocol or intent without the step-5 or wizard question (the browser genesis and the wizard go through part D's blocker or question; an import marks its rule imported, part D item 21).
 
@@ -805,3 +805,21 @@ Not verified: the CLI by hand in a real terminal (tested through `init_command`)
 | before the fix | `76c445ef` + the new test file | `uv run pytest tests/inception/test_placeholder_not_reported.py` | 9 of 10 failed (the step-5 guard passed) | |
 | targeted | working tree | `uv run pytest -n 4 -m "not slow" tests/inception tests/cli tests/console tests/kits/protocol tests/kits/agent tests/mcp` | 2182 tests: 2181 passed, 1 skipped, 0 failed | 359 s |
 | checks | working tree | `generate_contract_baseline.py --check`; `generate_protocol_schema.py --check` | current; in sync | |
+| pr | `6c9bee9c` | `select_test_gate.py --changed origin/main --stage pr` (areas inception, harness-cli, harness-other): `git diff --check origin/main...HEAD`; `ruff check scripts/`; `ruff check src/ --select F821,F811,F823,F632,F7,B023,B006,E9`; `uv run pytest -q -n 4 --junitxml` (full suite; `-n 4` for the machine, not `-n auto`) | clean; exit 0; exit 0; 6468 tests: 6453 passed, 15 skipped, 0 failed, 0 errors | 933 s |
+
+Review round 1 (`milestone-reviewer`, on `6c9bee9c`): **CHANGES** (lane RELEASE confirmed; no P1). The reviewer found no other path that signs a rule nobody chose, confirmed that no step-5, wizard, preview, replace or amendment output moves (with `state_method` true the condition is the old one), that item 5 is safe for protocols written before 2026-11-08 (only the search fields can change, and not after a corpus is accepted), and that 9 of the 10 new tests fail before the fix.
+
+| # | Finding | Repair | Test |
+| :-- | :-- | :-- | :-- |
+| P2-1 | The guide and items 1 and 6 said the screens show the rule "as a default"; no screen reads `not_reported_source` (Prepare shows Unclear selected like a chosen rule) | the guide row and items 1 and 6 say what happens; new item 8 (PROPOSED): no label added, with the Prepare line as the alternative | (documents) |
+| P2-2 | No PR-stage gate recorded; four test files that build a placeholder through `init_command` were outside the targeted run | the pr row above (full suite on `6c9bee9c`); the four files rerun after the repair | below |
+| P3-3 | The new hint sent the researcher to re-run `init` on the same folder, which `require_uninitialized` refuses | "choose it with New review in the app when you replace the placeholder, or change it on Prepare. --not-reported on init states it from the start."; the guide says `init` cannot run again on the folder | `test_init_scaffold_only_without_the_option_signs_no_rule_also_when_scripted` (fails on the old wording) |
+| P3-4 | Item 1 did not say that a placeholder's visibility becomes a workspace setting (`PUT /settings`), not a method amendment | one sentence in item 1's cost | (documents) |
+
+Follow-up, not taken (it predates this change): `init --scaffold-only` still prints "re-run without the flag to run the Socratic wizard against this folder", which `require_uninitialized` refuses.
+
+| Stage | Commit | Command | Result | Duration |
+| :-- | :-- | :-- | :-- | :-- |
+| targeted (round 1 repairs) | next commit | the new file on `6c9bee9c`'s `wizard.py`; then the new file, `tests/unit/test_audit_log.py`, `test_doctor.py`, `test_workspace_audit_service.py`, `tests/test_ui_launcher.py`, `tests/inception/test_inception_criteria.py`, `test_method_questions.py` (`-n 4`); contract baseline | 1 of 10 failed (the hint); 127 passed, 0 failed; current | |
+
+The round 1 repairs change one console string and documents; the full suite ran on `6c9bee9c`, before them.

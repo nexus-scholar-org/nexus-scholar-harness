@@ -614,8 +614,8 @@ def init_command(
         )
         if not_reported is None:
             console.print(
-                "   It states no not-reported rule: you choose it when you replace the placeholder "
-                "(or give --not-reported unclear|decisive_first|exclude)."
+                "   It states no not-reported rule: choose it with New review in the app when you replace "
+                "the placeholder, or change it on Prepare. --not-reported on init states it from the start."
             )
     console.print(
         "   skills → .agents/skills/ · env template → .env.example · "

@@ -71,12 +71,16 @@ def test_init_scaffold_only_takes_the_rule_from_the_option(tmp_path):
     assert _read(target, "protocol.json")["method"]["not_reported"] == "exclude"
 
 
-def test_init_scaffold_only_without_the_option_signs_no_rule_also_when_scripted(tmp_path):
+def test_init_scaffold_only_without_the_option_signs_no_rule_also_when_scripted(tmp_path, capsys):
     # Nothing is signed, so nothing needs refusing: the placeholder states no rule.
     target = tmp_path / "scripted"
     with mock.patch.object(wizard, "_scripted", return_value=True):
         wizard.init_command("No rule", target, scaffold_only=True, not_reported=None)
     assert "method" not in _read(target, "protocol.json")
+    said = " ".join(capsys.readouterr().out.split())
+    # Review finding 3: init cannot run again on the folder, so the hint never sends the researcher there.
+    assert "It states no not-reported rule: choose it with New review in the app" in said
+    assert "replace the placeholder (or give" not in said
 
 
 def test_init_scaffold_only_refuses_a_rule_outside_the_three_before_writing(tmp_path):
