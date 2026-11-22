@@ -256,7 +256,7 @@ async def test_process_doi_deduplicates_content_without_overwrite(
 
 
 def test_gateway_and_forward_proxy_are_not_conflated(temp_output_dir):
-    with pytest.raises(ValueError, match="distinct"):
+    with pytest.raises(ValueError, match="PROXY_REFUSED"):
         AsyncPDFDownloader(
             output_dir=temp_output_dir,
             institutional_gateway_url="https://gateway.test",

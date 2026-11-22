@@ -60,6 +60,7 @@ async def test_each_pdf_request_is_on_the_result_and_its_row(tmp_path):
             async with aiohttp.ClientSession() as session:
                 result = await downloader.process_doi(session, two_locations(first, second), "10.1/two")
             hosts = (f"127.0.0.1:{refusing.port}", f"127.0.0.1:{giving.port}")
+            agents = refusing.agents + giving.agents
 
     assert result.success is True, result.error_message
     assert result.request_count == 2
@@ -69,6 +70,10 @@ async def test_each_pdf_request_is_on_the_result_and_its_row(tmp_path):
     ]
     assert result.request_hosts() == {hosts[0]: 1, hosts[1]: 1}
     assert refusing.hits["/pub.pdf"] == 1  # the 403 is not retried
+    # DoD K2 on the stub server (review of Part K, finding 4): every request names the app and its contact.
+    from scholar_pdf.config import contact_email
+
+    assert len(agents) == 2 and all(x.startswith("nexus-scholar/") and x.endswith(f"(mailto:{contact_email()})") for x in agents), agents
 
     [row] = [json.loads(line) for line in manifest.read_text(encoding="utf-8").splitlines()]
     assert row["request_count"] == 2

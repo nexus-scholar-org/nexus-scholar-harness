@@ -149,6 +149,8 @@ def _transient(error: BaseException) -> bool:
             wait = _retry_after(error)
             return wait is not None and wait <= RETRY_AFTER_CAP
         return False
+    if isinstance(error, (aiohttp.InvalidURL, aiohttp.ClientSSLError)):
+        return False  # definitive: asking again cannot change it (review of Part K, finding 6)
     return isinstance(error, (aiohttp.ClientError, asyncio.TimeoutError))
 
 
@@ -353,13 +355,13 @@ class AsyncPDFDownloader:
             if structural_validation is None
             else structural_validation
         )
-        if (
-            self.institutional_gateway_url
-            and self.forward_proxy_url
-            and self.institutional_gateway_url == self.forward_proxy_url
-        ):
+        if self.forward_proxy_url:
+            # Review of Part K, finding 2: a file fetched through a transport proxy would be
+            # labelled open access. The production downloader takes none (decision 2026-11-21,
+            # M12a item 25); E1's own transport (parked) is separate.
             raise ValueError(
-                "institutional_gateway_url and forward_proxy_url must be distinct"
+                "PROXY_REFUSED: the downloader takes no forward proxy "
+                "(decision 2026-11-21, M12a item 25)"
             )
 
     def _content_path(self, digest: str) -> Path:
@@ -848,7 +850,9 @@ class AsyncPDFDownloader:
         """Downloads a batch of DOIs concurrently and closes owned clients."""
         from scholar_search.http_client import AcademicHttpClient
 
-        http_client = AcademicHttpClient(name="openalex-pdf", rate_limit=10)
+        # No on-disk cache: the lookup addresses carry the OpenAlex key and the e-mail
+        # (review of Part K, finding 1).
+        http_client = AcademicHttpClient(name="openalex-pdf", rate_limit=10, cache_enabled=False)
         try:
             async with aiohttp.ClientSession() as session:
                 tasks = [self.process_doi(session, http_client, doi) for doi in dois]

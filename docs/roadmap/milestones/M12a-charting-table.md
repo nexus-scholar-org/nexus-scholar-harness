@@ -563,3 +563,18 @@ Evidence:
 | pr | `a9f15b99` (code as `171b40b7`) | `select_test_gate.py --changed origin/main --stage pr` (areas console, pdf; no UI file); `pytest -q -n 4` (junit), started when no other pytest, vitest or Playwright run was on the machine; `sync_skills_bundle.py --check`; `ruff check scripts/`; `ruff check src/ --select F821,F811,F823,F632,F7,B023,B006,E9`; `generate_contract_baseline.py --check`; `generate_protocol_schema.py --check`; `git diff --check origin/main...HEAD` | 6370 tests, 0 failures, 0 errors, 15 skipped; OK; clean; clean; current; in sync; clean | 711 s |
 
 No file under `apps/` changed, so typecheck, vitest, build and Playwright do not apply. A first start of this gate with the UI steps included was stopped while it waited for the machine (its pytest workers ended); nothing from it is reported.
+
+Review round 1 (`milestone-reviewer`, on `560f5dc6`, scope `55755bd7..HEAD`): **APPROVE**, with two P3s to repair before the researcher answers and six P4s. In its words: no P1 or P2 findings; none of items 1 to 19 contradicts an accepted item (item 1 narrows the resolver's accepted item 4 for the keyless case, which the researcher should see). Repairs:
+
+| # | Finding | Repair | Test |
+| :-- | :-- | :-- | :-- |
+| P3-1 | The lookup client's on-disk cache stored each lookup address, OpenAlex key and e-mail included, in plain text under the folder the command ran from; item 2 understated it | the kit's three lookup clients keep no disk cache; item 2 reworded | `test_part_k_review.py::test_the_kits_lookup_clients_keep_no_disk_cache` |
+| P3-2 | A library caller's forward proxy left files labelled open access (accepted item 25) | the downloader refuses a forward proxy (`PROXY_REFUSED`); new item 20 | `test_the_downloader_refuses_a_forward_proxy`; `test_downloader.py::test_gateway_and_forward_proxy_are_not_conflated` now expects the refusal |
+| P4-3 | DoD K4 says "cassettes"; the tests mock the lookup client | not changed: the real client's 409 mapping (`http_client.py`) is the search kit's and is not exercised here; recorded as a deviation | (none) |
+| P4-4 | No test read the user agent on the stub server (DoD K2) | asserted on every request the stub server saw | `test_part_k_requests.py::test_each_pdf_request_is_on_the_result_and_its_row` |
+| P4-5 | Three storage-failure messages keep the error's text | item 4 says so (local paths only) | (none) |
+| P4-6 | An invalid address or a certificate error was retried | not retried | `test_an_invalid_address_or_a_certificate_error_is_not_retried` |
+| P4-7 | The copy's hash check and the exclusive-create race have no test | not added; a follow-up | (none) |
+| P4-8 | One DOI written two ways in the input cost two lookups and two rows | de-duplicated on the bare DOI; item 18 | `test_the_input_file_is_deduplicated_on_the_bare_doi` |
+
+The new tests fail on `560f5dc6`'s code by reading (no `cache_enabled` passed; a forward proxy only refused when equal to the gateway; `InvalidURL` and `ClientSSLError` are `ClientError`s; three calls for one DOI). Follow-ups the reviewer named, outside Part K: plan §8 still lists `scholar_pdf` downloading as parked (the main session's); the search kit's cache holds its key too; `download --input` does not count records without a DOI; a rare case where two DOIs share bytes and the first row fails.

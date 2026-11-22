@@ -29,7 +29,7 @@ if sys.platform == "win32":
 from .acquisition import PDFAcquisitionService, WorkspaceManagerCliAuditSink
 from .acquisition_models import AcquisitionRunConfig, OperationStatus
 from .config import DECISION, MailtoNotSetError, contact_email, openalex_key, settings
-from .downloader import AsyncPDFDownloader
+from .downloader import AsyncPDFDownloader, bare_doi
 from .extract import DoclingEngine, GrobidEngine
 from .extraction import PDFExtractionService
 from .extraction_models import ExtractionRunConfig
@@ -488,6 +488,7 @@ def download(
                     elif item.get("doi"):
                         doi = item["doi"]
 
+                    doi = bare_doi(doi) if doi else doi  # one lookup per DOI however it is written
                     if doi and doi not in doi_list:
                         doi_list.append(doi)
                         record_id = _record_id(item)
@@ -537,7 +538,7 @@ def download(
             from scholar_search.http_client import AcademicHttpClient
 
             results = []
-            http_client = AcademicHttpClient(name="openalex-pdf", rate_limit=10)
+            http_client = AcademicHttpClient(name="openalex-pdf", rate_limit=10, cache_enabled=False)
             try:
                 async with aiohttp.ClientSession() as session:
                     # We process concurrently but update progress bar as each finishes
@@ -681,7 +682,7 @@ def ingest(
     async def run_ingest():
         from scholar_search.http_client import AcademicHttpClient
 
-        http_client = AcademicHttpClient(name="openalex-pdf", rate_limit=10)
+        http_client = AcademicHttpClient(name="openalex-pdf", rate_limit=10, cache_enabled=False)
         try:
             return await downloader.ingest_pdf(http_client, pdf_path, doi, study_id=study_id)
         finally:
