@@ -608,8 +608,26 @@ The screens:
 | 16 Prepare | `tests/screening-pilot-card.test.tsx` (8: draw only after the confirmation, its words, a refused draw, in progress, ended with records shown again, fixed after approval, hidden before batches, copy parity) | done |
 | 16 Triage | `tests/triage-pilot.test.tsx` (10: `?view=pilot`, banner and position, the pilot route only, a change of mind supersedes, an ended pilot cannot be changed, the pilot hand-off, the shown-again banner, tag and earlier card, deciding again supersedes, `PILOT_OPEN` link, `REASON_CODE_RETIRED` reads again, the pilot view offered only while open); the existing `tests/triage.test.tsx` unchanged | done |
 | 16 result | `tests/screening-pilot.test.tsx` (20: counts and denominators, absent columns, draft-styled agent columns and their source, an open pilot, the "not computed" line, observations, nothing stood out, the records list, the end dialog, the revise dialog and its refusal, the agent-check dialog with its model rules, consent and key, the fixed state, an unknown pilot, a second pilot, copy parity) | done |
-| 16 axe light and dark | `tests-browser/screening-pilot.spec.ts` (both projects): the result at 1440 and 1280 px, the revise dialog, the end dialog, Triage with a record shown again | see Evidence |
+| 16 axe light and dark | `tests-browser/screening-pilot.spec.ts` (both projects): the keyboard pilot to its result, the result at 1440 and 1280 px with a revision, the end dialog, Triage with a record shown again; axe on each | done (10 passed) |
 | 17 | `criteria.revise-dialog` cases in `tests/screening-pilot.test.tsx`; the browser flow in `tests-browser/screening-pilot.spec.ts` | done |
 | 14 (UI half) | `pilot.calibration-dialog` cases: the body always carries `model` and `pilot_id`; Haiku without a last model | done |
 | 9 (UI half) | `tests/screening-proposals.test.tsx` "proposals.redraft" (2) | done |
 
+Fails before: on part B's head the pilot result route `/screening/pilot` does not exist, Triage has no pilot view, and `tests/triage-pilot.test.tsx`, `tests/screening-pilot.test.tsx` and `tests/screening-pilot-card.test.tsx` fail at import (the components are new).
+
+Contract v1: unchanged (`generate_contract_baseline.py --check` current). The two queue fields are additive to the screening API (contract §4 notes), not Contract v1.
+
+Not verified: no live engine and no real browser session with a real workspace (the browser tests answer the console proxy with a fake of the engine's shapes); no model call (the agent check is tested against a fake run); the phone (desktop only, answer 8); wording and layout stay open until the researcher sees the built screens (spec 13). Decision items 1 to 16 wait for the researcher.
+
+Evidence (part C; Python with `-n 4`, one heavy job at a time):
+
+| Stage | Commit | Command | Result | Duration |
+| :-- | :-- | :-- | :-- | :-- |
+| targeted | `8c7ed969` (working tree) | `vitest run tests/triage-pilot.test.tsx`, `tests/screening-pilot.test.tsx`, `tests/screening-proposals.test.tsx`; `tsc` | 9, 20, 20 passed; clean | |
+| checkpoint | `91e5da93` | full `vitest run` | 1153 passed, 3 failed: the details rule and the hint audit on the new page (repaired in `e994b7fd`, row S-PL1), and an inception proposals test that passed when run again | 198 s |
+| targeted | `ec7f2a98` | `playwright test tests-browser/screening-pilot.spec.ts` (port 3127; 3117 was held by another process) | 10 passed (chromium and chromium-dark) after the revise dialog's fields were located by element | 60 s |
+| pr | `ec7f2a98` | `uv run pytest -q -n 4 --junitxml` (full suite) | 6268 tests: 6253 passed, 15 skipped, 0 failed, 0 errors | 996 s |
+| pr | `ec7f2a98` | both ruff commands; `generate_contract_baseline.py --check`; `generate_protocol_schema.py --check`; `generate_contract_schemas.py --check`; `generate_two_study_contract_fixture.py --check`; `git diff --check origin/main...HEAD` | exit 0; current; in sync; exit 0; exit 0; one blank line at the end of this record (removed in the next commit) | |
+| pr | `ec7f2a98` | `npm run typecheck`; `vitest run` (full); `npm run test:browser` (build, then the full browser suite, port 3127) | clean; 82 files, 1157 passed; 674 passed, 12 skipped, 0 failed | 137 s; 921 s |
+
+The browser run rewrote four committed screenshots of screens part C does not touch (workspaces, import, the phone menu); they were restored, not committed.
