@@ -518,3 +518,48 @@ Review round 2 (`milestone-reviewer`, on `15cd57eb`, the repair delta `d3b0613c`
 **Part A: READY FOR PR** (not pushed). Branch `dev/m12a/part-a-rows-fulltext`; it carries K0 and `origin/main` `b36303b8`. The researcher accepted items 1 to 33 as built on 2026-11-21; items 2 and 8 (reworded) and 34 to 36 (new) were accepted as built the same day, and the push was approved.
 
 **After merging `origin/main` `46371f45` (M11b part A), one repair by the main session, outside the review rounds above.** M11b part A's reader test (`tests/unit/test_criteria_readers.py`) failed on this branch: `charting/table.py` read the protocol's criteria itself to build the full-text exclusion reasons. `reason_options` now reads the criteria in force through `screening.criteria.criteria_in_force`, so a criterion revised before the first approval gives its wording in force and a retired one is not offered. Test: `tests/console/test_charting_api.py::test_the_full_text_reasons_are_the_criteria_in_force` (fails before, passes after). Evidence: the console, screening and PDF kit tests on the repaired tree, 1,422 tests, 0 failures, 8 skipped (`-n 4`); ruff clean; contract baseline and protocol schema current; typecheck clean. The full suite, vitest and Playwright were not repeated locally after this merge.
+
+### Part K: the PDF kit's downloading made production
+
+Branch `dev/m12a/part-k-kit-download`, cut from `origin/main` `55755bd7` (K0, Part A and the resolver fix, PR 278, merged), not from Part A's branch: it shares no file with Parts B and F · Lane **RELEASE** (a kit's public commands and network behaviour change) · Decisions: `docs/decisions.md` "2026-11-22 — M12a Part K" items 1 to 19 (PROPOSED). The work was built by a subagent from a brief written in the build session, which read its report and its commits and added item 18's repair.
+
+What was built (section (d3); items 1, 2 and 5 were done by K0, the walk over every listed location by PR 278):
+- Item 3: the publisher direct-PDF patterns and their tests deleted; the parked proxy code kept (`test_parked_proxy_routing.py`).
+- Item 4: OpenAlex asked only with `SCHOLAR_OPENALEX_KEY` (sent as `api_key`), "not asked" said otherwise; a 409 named the budget spent.
+- Item 6 (PDF-06): 400, 401, 403, 404, 410, 451 asked once; 429 within 60 s waited out; connection errors, timeouts and 5xx retried.
+- Item 7 (PDF-12): closed evidence per service; the access status from the copy that produced the bytes; `INSTITUTIONAL_ACCESS` and `USER_PROVIDED`.
+- Item 8 (PDF-07, the kit's half): `src/scholar_pdf/manifest.py`, a row for every DOI asked, no file without its row, `--manifest`.
+- Item 9 (PDF-22): `src/scholar_pdf/identity.py`, the DOI and the title on the first two pages, "not checked" without PyMuPDF.
+- Item 10: PDF-15 exit codes, PDF-17 the size floor named, PDF-18 years and exports, PDF-05 dead code removed (`models.py`, `--smart-names`, `_safe_filename`; the parked console template no longer passes `--smart-names`).
+- Item 11 (PDF-03): a checked exclusive-create copy where hard links fail.
+- Items 12 and 13: the guide, the surface matrix, `docs/kits/pdf/README.md` and `api_reference.md`, the kit skill and its bundle copy; the two unused cassettes with the old placeholder address deleted (nothing read them).
+- After the live check of PR 278 (asked by the main session): every PDF request on the result, the row and the command's output (count, hosts, answers); PubMed Central's refusal recorded, not worked around (item 17).
+- Found during the build: a DOI written as a link or with `doi:` is looked up as the bare DOI (item 18).
+
+| DoD | Test (`tests/kits/pdf/` unless named) | Fails before | State |
+| :-- | :-- | :-- | :-- |
+| K1 | done by K0 (`test_k0_production_download.py`) | (K0) | done |
+| K2 | done by K0; every request now listed with its host (`test_part_k_requests.py`) | 3 of 3 | done |
+| K3 | `test_parked_proxy_routing.py` (the patterns gone, the proxy code parked), K0's refusals | 4 of 14 | done |
+| K4 | `test_part_k_openalex_key.py` (mocked answers, no network) | 8 of 8 | done |
+| K5 | `test_part_k_retries.py` (stub server on 127.0.0.1 counting requests), `test_part_k_access_status.py` | 10 of 12; 6 of 6 | done |
+| K6 | `test_part_k_manifest.py` | 8 of 8 | done |
+| K7 | `test_part_k_commands.py` (PDF-15, -18, -05), `test_part_k_size_floor.py` (PDF-17), `test_part_k_portable_writes.py` (PDF-03), `test_part_k_identity.py` (PDF-22), `test_part_k_doi_forms.py` (item 18); the kit suite | 12 of 14; collection error; 7 of 10; collection error; collection error | done |
+| K8 | `tests/test_parked_labels.py` (notices unchanged on `extract`, `extract-run`, `acquire`), `tests/kits/agent/test_mcp_acquisition_capability.py` (MCP unchanged), `tests/conformance/test_skill_portability.py`, `sync_skills_bundle.py --check` | (docs) | done |
+
+"Fails before" counts are the subagent's runs on the code before each fix (item 18's: mine). One test was changed after it was written: a "finished in under 2 s" check in `test_part_k_retries.py` failed under load (2.9 s) and now records whether the retry wait was used, which the old code also fails.
+
+Not verified:
+- No live request was sent. PubMed Central's answer, a FAT or exFAT drive (the copy fallback) and the base install without PyMuPDF were simulated with stubs and monkeypatches.
+- Prepared checks, each needing the researcher's approval: (1) one request: with `SCHOLAR_OPENALEX_KEY` unset and `SCHOLAR_MAILTO` set, `uv run scholar-pdf ingest <a local PDF> --doi 10.7717/peerj.4375 --output <tmp>/pdfs` (one Unpaywall lookup; "OpenAlex is not asked"; one manifest row `USER_PROVIDED` with an `identity` value and no e-mail or key); (2) with the key set, `uv run scholar-pdf download --doi 10.7717/peerj.4375 --output <tmp>/pdfs` (two lookups and at most three PDF requests; the printed line and the row show PMC's answer, the repository's file, the request count and the hosts).
+- A 100 MB stop and a five-redirect cap are Part F's (aiohttp's default of ten redirects applies to the command).
+
+Evidence:
+
+| Stage | Commit | Command | Result | Duration |
+| :-- | :-- | :-- | :-- | :-- |
+| inner | `2251f398` and earlier | the kit's test files one at a time (load), and `test_e1_acquired_document_boundary`, `test_e2_extraction_boundary`, `test_actions_cli_parity`, `test_mcp_acquisition_capability`, `tests/unit/test_extraction_stage`, `test_parked_labels`, `test_skill_portability` alone (the subagent's runs); both ruff runs | kit 322 tests, 7 skipped, 0 failures (251 before Part K); the others 24, 43, 18 (2 skipped), 27, 18, 11, 113, 0 failures; clean | |
+| inner | `171b40b7` | `pytest tests/kits/pdf/test_part_k_doi_forms.py tests/kits/pdf/test_part_k_commands.py tests/kits/pdf/test_part_k_manifest.py tests/kits/pdf/test_cli.py` (junit) | 33 tests, 0 failures | |
+| pr | `a9f15b99` (code as `171b40b7`) | `select_test_gate.py --changed origin/main --stage pr` (areas console, pdf; no UI file); `pytest -q -n 4` (junit), started when no other pytest, vitest or Playwright run was on the machine; `sync_skills_bundle.py --check`; `ruff check scripts/`; `ruff check src/ --select F821,F811,F823,F632,F7,B023,B006,E9`; `generate_contract_baseline.py --check`; `generate_protocol_schema.py --check`; `git diff --check origin/main...HEAD` | 6370 tests, 0 failures, 0 errors, 15 skipped; OK; clean; clean; current; in sync; clean | 711 s |
+
+No file under `apps/` changed, so typecheck, vitest, build and Playwright do not apply. A first start of this gate with the UI steps included was stopped while it waited for the machine (its pytest workers ended); nothing from it is reported.
