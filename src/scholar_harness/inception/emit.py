@@ -326,8 +326,12 @@ def emit_workspace(
     protocol_origin: str = "inception",
     source_note: str = "",
     before_log: Callable[[Path], None] | None = None,
+    state_method: bool = True,
 ) -> dict[str, Any]:
     """Write ``intent`` as a workspace's protocol through the overwrite guard.
+
+    ``state_method`` as :func:`compile_intent` (``False`` only for the
+    placeholder scaffold without a chosen not-reported rule).
 
     ``target_dir`` writes into that folder (``nexus-scholar init``, the HTTP
     route); otherwise the workspace is ``root/workspaces/<slug>``. Returns
@@ -341,7 +345,7 @@ def emit_workspace(
     slug = intent["project_slug"]
     ws_dir = workspace_dir_for(slug, root=root, target_dir=target_dir)
     guard = check_writable(ws_dir, replace=replace, discard_screening_binding=discard_screening_binding)
-    compile_intent(intent)  # validate before any write
+    compile_intent(intent, state_method=state_method)  # validate before any write
     title, paradigm = intent["title"], intent["primary_paradigm"]
     rqs = [rq["text"] for rq in intent["research_questions"]]
     summary = description or f"Phase-0 Inception: '{title}' [{paradigm}, {intent['playbook_type']}]"
@@ -351,7 +355,7 @@ def emit_workspace(
             scaffold_raw_project(ws_dir, title, slug, paradigm, rqs)
         else:
             scaffold_project(Path(root), title, slug, paradigm, rqs)
-        compiled = compile_protocol_files(ws_dir, intent)
+        compiled = compile_protocol_files(ws_dir, intent, state_method=state_method)
         _write_origin(ws_dir, protocol_origin)
         if before_log is not None:
             before_log(ws_dir)
@@ -374,7 +378,7 @@ def emit_workspace(
     stamp = datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
     backup = _backup(ws_dir, stamp)
     archived = _archive_corpus(ws_dir, backup)
-    compiled = compile_protocol_files(ws_dir, intent)
+    compiled = compile_protocol_files(ws_dir, intent, state_method=state_method)
     _refresh_manifest(ws_dir, intent, protocol_origin)
     write_review_notes(ws_dir, title, rqs)
     if before_log is not None:

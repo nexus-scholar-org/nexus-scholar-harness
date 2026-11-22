@@ -141,8 +141,8 @@ def init(
     not_reported: str | None = typer.Option(
         None,
         "--not-reported",
-        help="For the wizard: what the agent's draft does when a criterion is not reported "
-        "(unclear, decisive_first or exclude); no default",
+        help="What the agent's draft does when a criterion is not reported (unclear, decisive_first or exclude); "
+        "no default. The wizard asks it when omitted; with --scaffold-only the placeholder then states no rule",
     ),
 ):
     """Bootstrap a portable Nexus Scholar research workspace in any folder (P7.3)."""

@@ -167,7 +167,7 @@ nexus-scholar init "Project Title" [--dir PATH] [--scaffold-only] [--not-reporte
 | `project_title` (required) | Human-readable title; the workspace slug is derived from it |
 | `--dir, -d PATH` | Target folder (default: current directory) |
 | `--scaffold-only` | Skip the interactive Socratic wizard; write a placeholder protocol |
-| `--not-reported RULE` | What the agent's drafts do when a title and abstract do not report a criterion: `unclear`, `decisive_first` or `exclude`. No default: the interactive wizard asks it, and a scripted (non-interactive) interview without it is refused before anything is written. The rule is signed into the protocol; change it later from Prepare |
+| `--not-reported RULE` | What the agent's drafts do when a title and abstract do not report a criterion: `unclear`, `decisive_first` or `exclude`. No default: the interactive wizard asks it, and a scripted (non-interactive) interview without it is refused before anything is written. The rule is signed into the protocol; change it later from Prepare. With `--scaffold-only` nothing is asked: without this option the placeholder protocol states no rule (the screens show the harness default, `unclear`, as a default, not as your choice), and you choose it when you replace the placeholder with **New review** or the wizard |
 
 What you get:
 

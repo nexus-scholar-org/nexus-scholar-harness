@@ -774,3 +774,34 @@ Review round 3 of part D (the item 5 delta `198bdfe8..36af1194` without the two 
 The commit after `36af1194` (`df2ed53d`) and this one change documents only.
 
 **Part D: READY FOR PR** (not pushed). Branch `dev/m11b/part-d-step5`, head after this commit, stacked on part C as pushed (`d20709a3`; PR 280's later test commit `e42bfb0c` is not in it) and `origin/main` `a97f4fb5`. Lane RELEASE: the CI matrix on the PR is the closure evidence. The push is approved in advance (2026-11-22) on these conditions, now met; the main session merges `origin/main` and pushes.
+
+### Follow-up: placeholder workspaces do not sign the not-reported rule
+
+Branch `dev/m11b/placeholder-not-reported`, cut from `origin/main` `76c445ef` · Lane **RELEASE** (the content of a newly written `protocol.json` and its fingerprint change for placeholders, and the `init --scaffold-only --not-reported` CLI semantics change: "artifact persistence" and "public CLI semantics" in `test_gate_policy.md`) · Decisions: `docs/decisions.md` "2026-11-22 — M11b follow-up: a placeholder workspace does not sign the not-reported rule", items 1 to 7 PROPOSED. Approved by the researcher as a follow-up PR of part D ("Part D", follow-ups).
+
+What was found: one function writes every placeholder, `inception/genesis.py` `scaffold_placeholder_workspace`, behind `nexus-scholar init --scaffold-only` (`inception/wizard.py` `init_command`) and the Workspaces "Create" (`workspace/catalog.py` `create`, `POST /api/v1/workspaces`). Its intent carries no `method`, and `compile_intent` filled the model's defaults, so the signed protocol said `not_reported: "unclear"`; `--not-reported` was accepted by `init` and ignored with `--scaffold-only`. No other path writes a protocol or intent without the step-5 or wizard question (the browser genesis and the wizard go through part D's blocker or question; an import marks its rule imported, part D item 21).
+
+What was built:
+- `inception/genesis.py`: `compile_intent` and `compile_protocol_files` take `state_method` (default true, as before); the placeholder passes false unless a rule is given, so its protocol and intent state no method block (item 1). `scaffold_placeholder_workspace(..., not_reported=)` writes a given rule into the intent as part D's genesis does, and refuses a value outside the three `METHOD_RULE_INVALID` before anything is written (item 2). `inception/emit.py` `emit_workspace` passes `state_method` through.
+- `inception/wizard.py` `init_command`: `--scaffold-only` takes `--not-reported`; a scripted placeholder run is not refused (item 3); an invalid value exits 2 before writing; the command says when the placeholder states no rule. `cli.py`: the option's help.
+- `workspace_proposals.py` `compile_amendment`: a protocol without a method block is recompiled without one (item 5).
+- Docs: the user guide's `--not-reported` row; `workspaces-api.md` (the create route signs no rule).
+- Existing tests: `test_new_workspace_method.py` (2026-11-08) gives `not_reported="unclear"`; `test_inception_criteria.py::test_the_scaffold_only_placeholder_fingerprint_does_not_move` pins the old value with `unclear` given (unchanged, byte for byte) and the new value without a rule.
+
+| Item | Test (`tests/inception/test_placeholder_not_reported.py`) | Fails before |
+| :-- | :-- | :-- |
+| 1 | `test_a_placeholder_states_no_rule_and_the_screen_reads_the_defaults` | yes (the block was written) |
+| 2 | `test_an_explicit_rule_is_signed_with_the_guideline`, `test_a_rule_outside_the_three_is_refused_before_anything_is_written`, `test_init_scaffold_only_takes_the_rule_from_the_option`, `test_init_scaffold_only_refuses_a_rule_outside_the_three_before_writing` | yes (no parameter; the option ignored) |
+| 3 | `test_init_scaffold_only_without_the_option_signs_no_rule_also_when_scripted` | yes (the block was written) |
+| 4 | `test_the_workspaces_create_signs_no_rule` | yes |
+| 5 | `test_a_search_amendment_of_a_placeholder_is_not_refused_for_the_method` | yes (on `main` the placeholder's recompile states the block) |
+| 7 | `test_an_imported_placeholder_leaves_the_rule_unchosen` | yes ("unclear" was imported) |
+| part D kept | `test_a_review_written_at_step_5_still_states_its_block` | guard |
+
+Not verified: the CLI by hand in a real terminal (tested through `init_command`); a screening run on a new placeholder (the rule's source `defaults` is tested through `effective_method`, the methods sentence for that source is existing code).
+
+| Stage | Commit | Command | Result | Duration |
+| :-- | :-- | :-- | :-- | :-- |
+| before the fix | `76c445ef` + the new test file | `uv run pytest tests/inception/test_placeholder_not_reported.py` | 9 of 10 failed (the step-5 guard passed) | |
+| targeted | working tree | `uv run pytest -n 4 -m "not slow" tests/inception tests/cli tests/console tests/kits/protocol tests/kits/agent tests/mcp` | 2182 tests: 2181 passed, 1 skipped, 0 failed | 359 s |
+| checks | working tree | `generate_contract_baseline.py --check`; `generate_protocol_schema.py --check` | current; in sync | |
