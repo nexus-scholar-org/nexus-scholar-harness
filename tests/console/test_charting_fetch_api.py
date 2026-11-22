@@ -108,6 +108,9 @@ class FakeLookups:
         if answer is None:
             response.status_code = 404
             return response
+        if isinstance(answer, int):  # a service that answers with this HTTP status and no body
+            response.status_code = answer
+            return response
         response.status_code = 200
         response.json.return_value = answer
         return response
@@ -341,7 +344,8 @@ def test_a_body_over_the_limit_is_cut_and_fails(world, monkeypatch):
     [row] = manifest(world["ws"])
     assert row["file"] is None and row["outcome"] == "PDF_NOT_FETCHED"
     assert "over the limit of 4096 bytes" in row["message"]
-    assert world["client"].get(f"{BASE}/fetch").json()["failed_checks"] == 1
+    run = world["client"].get(f"{BASE}/fetch").json()
+    assert run["failed_checks"] == 1 and run["check_failures"] == {"size_limit": 1}
 
 
 def test_redirects_are_recorded_and_a_sixth_is_refused(world):
@@ -365,7 +369,11 @@ def test_html_named_pdf_fails_its_checks(world):
     [row] = manifest(world["ws"])
     assert row["file"] is None and row["outcome"] == "PDF_NOT_FETCHED"
     assert row["requests"][0]["http_status"] == 200 and row["requests"][0]["error"]  # it answered; the checks said no
-    assert world["client"].get(f"{BASE}/fetch").json()["failed_checks"] == 1
+    run = world["client"].get(f"{BASE}/fetch").json()
+    assert run["failed_checks"] == 1
+    # The summary names the check that failed (spec 03, "End summary"), once per record.
+    assert "pdf_trailer" in run["check_failures"] and set(run["check_failures"].values()) == {1}
+    assert set(run["check_failures"]) <= {"pdf_header", "pdf_trailer", "size_floor", "structure"}
     assert not list((world["ws"] / "pdfs" / "fetched").glob("*.pdf"))
 
 
@@ -691,3 +699,45 @@ def test_the_fetch_post_routes_are_on_the_browser_allow_list():
         assert any(p.fullmatch(path) for p in POST_PATHS), path
     route = (_HERE.parents[1] / "apps" / "research-ui" / "app" / "api" / "console" / "[...path]" / "route.ts")
     assert r"/^api\/v1\/charting\/fetch(\/cancel)?$/," in route.read_text(encoding="utf-8")
+
+
+def test_a_failed_lookup_is_named_by_service_and_status_on_the_run(world):
+    """Spec 03's summary says "the lookup failed: Unpaywall answered HTTP 500"; the run record carries both."""
+    with ThreadedStub(ROUTES):
+        lookups = FakeLookups({("api.unpaywall.org", DOI): 500, ("api.openalex.org", DOI): 500})
+        world["app"].state.fetch_deps = deps(lookups, FakeArxiv(b""))
+        world["client"].post(f"{BASE}/fetch", json={"confirm": True, "ids": [world["doi"]]})
+    run = world["client"].get(f"{BASE}/fetch").json()
+    assert run["errors"] == {"lookup failed": 1} and run["try_later"] == 0
+    assert sorted((f["service"], f["http_status"], f["n"]) for f in run["lookup_failures"]) == [
+        ("openalex", 500, 1), ("unpaywall", 500, 1)]
+    [row] = manifest(world["ws"])
+    assert row["outcome"] == "LOOKUP_FAILED"
+
+
+def test_a_record_no_longer_kept_keeps_its_waiting_file_on_the_row_and_cannot_be_confirmed(world, monkeypatch):
+    """Spec 03, "Stale": a record that left the kept set keeps its waiting file; C and D are refused."""
+    with ThreadedStub(ROUTES) as host:
+        standard_run(world, host, ids=[world["doi"]])
+    waiting = _waiting(world, world["doi"])
+    assert waiting is not None
+    current = tb.read_kept
+
+    def dropped(path, *, remember=True):
+        state = current(path, remember=remember)
+        gone = next(r for r in state.records if r.study_id == world["doi"])
+        state.records = [r for r in state.records if r.study_id != world["doi"]]
+        state.no_longer_kept[gone.study_id] = {"title": gone.title, "doi": gone.doi, "year": gone.year}
+        return state
+
+    monkeypatch.setattr(tb, "read_kept", dropped)
+    table = world["client"].get(BASE).json()
+    row = next(r for r in table["rows"] if r["study_id"] == world["doi"])
+    assert row["kept"] is False
+    assert row["fulltext"]["pending_fetch"]["manifest_row"] == waiting["manifest_row"]
+    assert row["fulltext"]["last_lookup"]["manifest_row"] == waiting["manifest_row"]
+    assert table["counts"]["to_confirm"] == 0  # counted only among the kept rows
+    answer = world["client"].post(f"{BASE}/events", json={"events": [
+        event(world["doi"], "fetched_confirm", {"manifest_row": waiting["manifest_row"]})]}).json()
+    assert answer["results"][0]["result"] == "refused"
+    assert answer["results"][0]["refusal"]["code"] == "RECORD_NOT_KEPT"

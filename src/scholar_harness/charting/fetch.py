@@ -732,8 +732,11 @@ class HostPacer:
 
 
 def _empty_counts() -> dict[str, Any]:
+    # ``check_failures`` names the failed file checks ({check: records}); ``lookup_failures`` the failed
+    # look-ups that are not "try later" ([{service, http_status, error_kind, n}]): the summary says them
+    # in words (spec 03, "End summary").
     return {"reached": 0, "found": 0, "downloaded": 0, "failed_checks": 0, "errors": {}, "no_open_copy": 0,
-            "no_direct_pdf": 0, "try_later": 0, "skipped_no_id": 0}
+            "no_direct_pdf": 0, "try_later": 0, "skipped_no_id": 0, "check_failures": {}, "lookup_failures": []}
 
 
 def start(
@@ -830,6 +833,10 @@ def _classify(result: Any, run: dict[str, Any]) -> None:
             run["try_later"] += 1
         elif any(any(not c.passed for c in (a.checks or ())) for a in attempts):
             run["failed_checks"] += 1
+            names = dict.fromkeys(c.name for a in attempts for c in (a.checks or ()) if not c.passed)
+            by_name = run.setdefault("check_failures", {})
+            for name in names:  # each failed check once per record
+                by_name[name] = by_name.get(name, 0) + 1
         else:
             words = next((str(a.error) for a in reversed(attempts) if a.error), "no PDF")
             kind = words.split(":", 1)[0]
@@ -841,6 +848,17 @@ def _classify(result: Any, run: dict[str, Any]) -> None:
             run["try_later"] += 1
         else:
             errors["lookup failed"] = errors.get("lookup failed", 0) + 1
+            failures = run.setdefault("lookup_failures", [])
+            for lk in lookups:
+                if lk.state != "FAILED":
+                    continue
+                key = {"service": lk.provider, "http_status": lk.http_status,
+                       "error_kind": None if lk.http_status is not None else lk.error_kind}
+                entry = next((f for f in failures if all(f.get(k) == v for k, v in key.items())), None)
+                if entry is None:
+                    failures.append({**key, "n": 1})
+                else:
+                    entry["n"] += 1
         return
     kind = "manifest not written" if outcome == "MANIFEST_NOT_WRITTEN" else "failed"
     errors[kind] = errors.get(kind, 0) + 1

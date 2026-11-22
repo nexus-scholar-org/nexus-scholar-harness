@@ -206,7 +206,8 @@ def table(ws: Path | str) -> dict[str, Any]:
     info = cl.amendment_info(ws, form)
     events = ev.read_events(ws)
     index = cl.build_index(events)
-    fetched = fx.table_state(ws, events, who, [r.study_id for r in state.records])
+    # The records no longer kept keep their waiting file and last look-up on the row (spec 03, "Stale").
+    fetched = fx.table_state(ws, events, who, [r.study_id for r in state.records] + sorted(state.no_longer_kept))
     rows = [
         row(as_dict(r), events, who, kept=True, new_since=state.new_since.get(r.study_id), form=form, info=info,
             index=index, fetched=fetched)
@@ -215,7 +216,7 @@ def table(ws: Path | str) -> dict[str, Any]:
     rows += [
         row({"study_id": sid, "authors": [], "abstract": None, "venue": None, "url": None, "arxiv_id": None,
              "ta_reason": "", "generation_id": summary.get("generation_id"), **summary},
-            events, who, kept=False, new_since=None, form=form, info=info, index=index)
+            events, who, kept=False, new_since=None, form=form, info=info, index=index, fetched=fetched)
         for sid, summary in sorted(state.no_longer_kept.items())
     ]
     _warn_duplicates(rows)
