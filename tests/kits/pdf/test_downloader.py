@@ -133,7 +133,7 @@ async def test_process_doi_invalid_pdf(downloader, mock_http_client, temp_output
 
     assert result.success is False
     assert result.was_oa is True
-    assert result.error_message == "Failed to download or invalid PDF"
+    assert result.error_message.startswith("The listed address gave no PDF")
 
 
 @pytest.mark.asyncio

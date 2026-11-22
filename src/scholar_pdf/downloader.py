@@ -11,12 +11,15 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 import aiohttp
+from scholar_search.http_client import RETRY_AFTER_CAP, retry_after_seconds
 from tenacity import (
+    RetryCallState,
     retry,
-    retry_if_exception_type,
+    retry_if_exception,
     stop_after_attempt,
     wait_exponential,
 )
+from yarl import URL
 
 from .config import openalex_key, require_contact_email, settings, user_agent
 from .open_copies import (
@@ -45,6 +48,108 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
+# --------------------------------------------------------------- one request to a PDF address
+
+
+def _public_url(value: object) -> str | None:
+    """An address as text, without any ``user:password@`` part; ``None`` if it is not one."""
+    if not isinstance(value, (str, URL)):
+        return None
+    url = value if isinstance(value, URL) else URL(value)
+    if url.user is not None or url.password is not None:
+        url = url.with_user(None)
+    return str(url)
+
+
+@dataclass
+class FetchAttempt:
+    """One request to a PDF address, as the manifest records it (Part K items 6 and 8).
+
+    Never holds a lookup request: those carry the contact e-mail and the OpenAlex key.
+    """
+
+    #: The address asked.
+    url: str
+    #: ``open_location`` (an address a provider lists) or ``institutional_gateway`` (parked).
+    route: str = "open_location"
+    http_status: int | None = None
+    #: The address that answered, after redirects.
+    final_url: str | None = None
+    #: Each address redirected from, in order.
+    redirects: tuple[str, ...] = ()
+    content_type: str | None = None
+    #: Why the request gave no file, in words (never the error's own text).
+    error: str | None = None
+    #: The checks on the bytes, by name (``validator.PdfCheck``), when bytes came.
+    checks: tuple = ()
+
+    def observe(self, response: object) -> None:
+        """Keep the status, the final address, the redirects and the content type."""
+        status = getattr(response, "status", None)
+        self.http_status = status if isinstance(status, int) else None
+        self.final_url = _public_url(getattr(response, "url", None))
+        history = getattr(response, "history", ())
+        if isinstance(history, (tuple, list)):
+            self.redirects = tuple(
+                url for url in (_public_url(getattr(hop, "url", None)) for hop in history) if url
+            )
+        headers = getattr(response, "headers", None)
+        content_type = headers.get("Content-Type") if hasattr(headers, "get") else None
+        self.content_type = content_type if isinstance(content_type, str) else None
+
+
+def _retry_after(error: BaseException) -> float | None:
+    headers = getattr(error, "headers", None)
+    value = headers.get("Retry-After") if hasattr(headers, "get") else None
+    return retry_after_seconds(value) if isinstance(value, str) else None
+
+
+def _transient(error: BaseException) -> bool:
+    """Whether asking the same address again can give a different answer (PDF-06).
+
+    Retried: a connection error, a timeout, a 5xx, and a 429 whose ``Retry-After``
+    is within ``RETRY_AFTER_CAP`` (the search kit's cap, M12a item 14). Not
+    retried: every other answer, 400, 401, 403, 404, 410 and 451 among them, and
+    a 429 that asks for a longer wait or gives none ("try later").
+    """
+    if isinstance(error, aiohttp.ClientResponseError):
+        if error.status >= 500:
+            return True
+        if error.status == 429:
+            wait = _retry_after(error)
+            return wait is not None and wait <= RETRY_AFTER_CAP
+        return False
+    return isinstance(error, (aiohttp.ClientError, asyncio.TimeoutError))
+
+
+_BACKOFF = wait_exponential(multiplier=1, min=2, max=10)
+
+
+def _retry_wait(state: RetryCallState) -> float:
+    """A 429's own ``Retry-After`` (within the cap), else 2 to 10 s of backoff."""
+    error = state.outcome.exception() if state.outcome is not None else None
+    if isinstance(error, aiohttp.ClientResponseError) and error.status == 429:
+        wait = _retry_after(error)
+        if wait is not None:
+            return wait
+    return _BACKOFF(state)
+
+
+def fetch_failure(error: BaseException) -> str:
+    """Why a PDF address gave no file, in words; never the error's own text."""
+    if isinstance(error, aiohttp.ClientResponseError):
+        if error.status == 429:
+            wait = _retry_after(error)
+            asked = f", it asks for {wait:.0f} s" if wait is not None else ""
+            return f"HTTP 429: the host asks to try later{asked}"
+        return f"HTTP {error.status}"
+    if isinstance(error, (asyncio.TimeoutError, aiohttp.ServerTimeoutError)):
+        return "timed out"
+    if isinstance(error, aiohttp.ClientError):
+        return f"network error ({type(error).__name__})"
+    return f"failed ({type(error).__name__})"
+
+
 @dataclass
 class DownloadResult:
     doi: str
@@ -67,6 +172,8 @@ class DownloadResult:
     lookups: tuple[LookupOutcome, ...] = ()
     copies_listed: int = 0
     copies_tried: int = 0
+    # Part K: every request made to a PDF address for this DOI, retries included.
+    attempts: tuple[FetchAttempt, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -214,9 +321,9 @@ class AsyncPDFDownloader:
         return final, self._promote_staging(staging, final)
 
     @retry(
-        wait=wait_exponential(multiplier=1, min=2, max=10),
+        wait=_retry_wait,
         stop=stop_after_attempt(3),
-        retry=retry_if_exception_type((aiohttp.ClientError, asyncio.TimeoutError)),
+        retry=retry_if_exception(_transient),
         reraise=True,
     )
     async def download_pdf(
@@ -226,8 +333,17 @@ class AsyncPDFDownloader:
         dest_path: Path,
         proxy_url: str = "",
         forward_proxy_url: str | None = None,
+        attempts: list[FetchAttempt] | None = None,
+        route: str = "open_location",
     ) -> bool:
-        """Download, validate, and atomically publish to ``dest_path``."""
+        """Download, validate, and atomically publish to ``dest_path``.
+
+        Only a transient failure is retried (``_transient``, PDF-06). Each
+        request, retries included, is appended to ``attempts`` when given.
+        """
+        record = FetchAttempt(url=_public_url(url) or url, route=route)
+        if attempts is not None:
+            attempts.append(record)
         # The app names itself and its contact (K0, M12a item 27), never a browser.
         headers = {
             "User-Agent": user_agent(),
@@ -242,24 +358,30 @@ class AsyncPDFDownloader:
             staging.unlink(missing_ok=True)
             raise OSError("destination must not be a symlink")
         try:
-            async with (
-                self.semaphore,
-                session.get(
-                    url,
-                    headers=headers,
-                    timeout=timeout,
-                    allow_redirects=True,
-                    proxy=transport_proxy or None,
-                ) as response,
-            ):
-                response.raise_for_status()
-                with staging.open("wb") as stream:
-                    async for chunk in response.content.iter_chunked(8192):
-                        stream.write(chunk)
-                    stream.flush()
-                    os.fsync(stream.fileno())
+            try:
+                async with (
+                    self.semaphore,
+                    session.get(
+                        url,
+                        headers=headers,
+                        timeout=timeout,
+                        allow_redirects=True,
+                        proxy=transport_proxy or None,
+                    ) as response,
+                ):
+                    record.observe(response)
+                    response.raise_for_status()
+                    with staging.open("wb") as stream:
+                        async for chunk in response.content.iter_chunked(8192):
+                            stream.write(chunk)
+                        stream.flush()
+                        os.fsync(stream.fileno())
+            except Exception as error:
+                record.error = fetch_failure(error)
+                raise
 
             if not self._candidate_is_valid(staging):
+                record.error = "not a valid PDF"
                 return False
             self._promote_staging(staging, dest_path)
             return True
@@ -423,6 +545,7 @@ class AsyncPDFDownloader:
 
             last_error: str | None = None
             tried = 0
+            attempts: list[FetchAttempt] = []
             for copy in copies[:MAX_OPEN_COPIES_TRIED]:
                 tried += 1
                 # Only the provider's own open-access location: no guessed
@@ -442,15 +565,24 @@ class AsyncPDFDownloader:
 
                 for candidate in candidates:
                     candidate_path = self._new_staging_path()
+                    route = "open_location" if candidate == copy.url else "institutional_gateway"
                     try:
-                        success = await self.download_pdf(
-                            session,
-                            candidate,
-                            candidate_path,
-                            forward_proxy_url=self.forward_proxy_url or None,
-                        )
+                        try:
+                            success = await self.download_pdf(
+                                session,
+                                candidate,
+                                candidate_path,
+                                forward_proxy_url=self.forward_proxy_url or None,
+                                attempts=attempts,
+                                route=route,
+                            )
+                        except Exception as error:  # noqa: BLE001 - any fetch failure
+                            # Words, not the error's text (PDF-06; the address is on the attempt).
+                            last_error = f"The listed address gave no PDF: {fetch_failure(error)}"
+                            logger.debug("PDF candidate failed for %s: %s", doi, type(error).__name__)
+                            continue
                         if not success:
-                            last_error = "Failed to download or invalid PDF"
+                            last_error = "The listed address gave no PDF: not a valid PDF"
                             continue
                         final_path, _ = self._promote_candidate(candidate_path)
                         return replace(
@@ -463,18 +595,14 @@ class AsyncPDFDownloader:
                             # the parked gateway is not that open location's copy.
                             open_copy=copy if candidate == copy.url else None,
                             copies_tried=tried,
+                            attempts=tuple(attempts),
                         )
-                    except Exception as error:  # noqa: BLE001 - provider adapters vary
-                        last_error = str(error)
-                        logger.debug(
-                            "PDF candidate failed for %s via a redacted provider URL: %s",
-                            doi,
-                            error,
-                        )
+                    except Exception as error:  # noqa: BLE001 - storing the file failed
+                        last_error = f"The PDF could not be stored: {type(error).__name__}: {error}"
                     finally:
                         candidate_path.unlink(missing_ok=True)
 
-            message = last_error or "Failed to download or invalid PDF"
+            message = last_error or "The listed address gave no PDF"
             if len(copies) > 1:
                 message = f"{message} ({tried} of {len(copies)} listed addresses tried)"
             for lookup in lookups:
@@ -491,6 +619,7 @@ class AsyncPDFDownloader:
                 status="FAILED",
                 outcome=PDF_NOT_FETCHED,
                 copies_tried=tried,
+                attempts=tuple(attempts),
                 error_message=message,
             )
         except Exception as error:  # noqa: BLE001 - provider adapters vary
