@@ -1,5 +1,5 @@
 # H-charting-focus-fault: after Ctrl+Down the next study sometimes opened with the focus nowhere
-Branch: dev/h/charting-focus-fault (from `origin/main` `21a4e6a3`) · Lane: **STANDARD** · Status: READY FOR PR, not pushed · Started: 2026-11-22
+Branch: dev/h/charting-focus-fault (from `origin/main` `21a4e6a3`) · Lane: **STANDARD** · Status: READY FOR PR, not pushed (review round 1 CHANGES, repaired) · Started: 2026-11-22
 
 **Lane.** STANDARD, from `docs/architecture/test_gate_policy.md` ("a bounded behavior … change owned by one repository"): the keyboard focus of one screen (the charting one-study view) and one browser test. No contract, API, route, persisted file, copy or spec change. Gates: the repeat run of the failing browser test, `tsc`, the charting vitest files, then the `pr` set once on the final executable commit.
 
@@ -33,23 +33,34 @@ The request names its study (`{ studyId, which }`), and the effect spends it onl
 
 ## Tests
 `apps/research-ui/tests/charting-study.focus-race.test.tsx`, four tests:
-1. Ctrl+Down pressed the moment a saved value shows (React schedules its own work there, as in the browser; the next study's read answers a task later): the next study has the focus on its first field. **Fails on `origin/main`**, and also with only the `stillAt` repair, so it tests the cause itself.
+1. Ctrl+Down pressed the moment a saved value shows (React schedules its own work there, as in the browser; the next study's read answers a task later): the next study has the focus on its first field. Done four times, studies 1 to 5. **Fails on `origin/main`** and also with only the `stillAt` repair, so it tests the cause itself. One such move loses the focus in most jsdom runs, not all (the reviewer saw about 10 in 12 on `origin/main`); four moves in a row make a false pass unlikely.
 2. Alt+A then Ctrl+Down before the save's answer: the focus is on the next study's first field. **Fails on `origin/main`** (it was on that study's Not applicable button).
 3. Alt+N, then another field before the save's answer: the focus stays in the other field. **Fails on `origin/main`.**
 4. Alt+N with the focus left in the field: the focus moves to the Not reported button (the behaviour kept). Passes before and after.
 
-Before the fix: 3 failed of 4, in each of 3 runs. After: 4 passed, in each of 5 runs.
+Test 1 (four moves): failed in 6 of 6 runs on `origin/main` and 6 of 6 with only `stillAt`, always on the focus at "Study 2 of 5". Tests 2 and 3 failed on `origin/main` in each of 3 runs here and 12 of 12 for the reviewer. After the fix: 4 passed, in each of 6 runs.
 
 ## Evidence
 | Check | Commit | Command | Result |
 | :-- | :-- | :-- | :-- |
 | Repeat run before the fix | `21a4e6a3` + instrumentation | `RESEARCH_UI_PORT=3191 npx playwright test tests-browser/<instrumented copy>:209 --repeat-each 40` (both projects) | 5 failed, 75 passed (10.6 min) |
-| Repeat run after the fix | (pending) | `RESEARCH_UI_PORT=3191 npx playwright test tests-browser/charting-study.spec.ts:209 --repeat-each 40` (both projects) | (pending) |
+| Repeat run after the fix | `1acfa784` (the tree run, committed unchanged right after) | `RESEARCH_UI_PORT=3191 npx playwright test tests-browser/charting-study.spec.ts:209 --repeat-each 40` (both projects) | **80 passed, 0 failed** (7.0 min) |
+| PR gate (`select_test_gate.py --changed origin/main --stage pr`: area research-ui) | `1acfa784` | `git diff --check`; `npm run typecheck`; `npm test`; `npm run build`; `npm run test:browser` | diff-check, typecheck, build: pass. Browser suite: **720 passed, 16 skipped, 0 failed** (20.1 min). Vitest: 1349 passed, 1 failed: `inception-workbench.test.tsx` "a rename keeps the row…" (1.2 s, under load; not touched by this change). That file alone afterwards: 33 of 33 passed |
+| Charting one-study vitest files | `1acfa784` + the review repair | `npx vitest run tests/charting-study` | 7 files, 32 of 32 passed |
+| Final executable commit | `bf3d6b91` (the review repair, a vitest file only) | `npm run typecheck`; `npm test` | typecheck pass; vitest **109 files, 1350 of 1350 passed** |
+| Contract baseline | `5edf2c09` | `uv run python scripts/generate_contract_baseline.py --check` (run by the reviewer) | current |
 
 ## Not verified
 - The CI failures were not shown to be at a given study: CI logs only the line. The local runs show studies 2, 3 and 6, never the first study on open; a failure on open was not excluded by any run, but no path to it was found by reading.
 - Not tried in a real browser by hand; the fix was checked through the browser test and the jsdom tests.
-- `apps/research-ui/tests/inception-workbench.test.tsx` "a refused cost read says why…" (times out under load) was not looked into beyond a read of the test; no obvious cause was seen.
+- `apps/research-ui/tests/inception-workbench.test.tsx`: "a refused cost read says why…" (known to time out under load) was not looked into beyond a read of the test; no obvious cause was seen. In this branch's full vitest run another test of that file, "a rename keeps the row…", failed once the same way (about 1.2 s, under load) and passed when the file ran alone. Neither is touched here.
+- The build and the browser suite were not run again after the review repair: it changed only the new vitest file, which neither of them reads.
+
+## Review
+`milestone-reviewer`, round 1: **CHANGES**, no code defect. Repaired: (1) the after-fix evidence and the gates are recorded above; (2) the test of the cause was timing-dependent, so it now makes the move four times, and the counts above say so; (3) the act flag is restored in `afterEach` and the wait for the saved value has its own time limit, so a failing run cannot leave the flag off; (4) decision item 2 now gives the table's steps in order.
+
+## Follow-up (not in this change)
+- Ctrl+Down and Ctrl+Up are handled before the screen's `switching` check (`charting-study.tsx`, the key handler and `move()`): two moves started before the move's first render (Ctrl+Down then Ctrl+Up quickly) can both run, and the screen can then show one study while the address and the focus request name the other. This was there before; with this change the focus does not land in that state. Found by the reviewer.
 
 ## Decisions
 Proposed in `docs/decisions.md`, "2026-11-22 — H-charting-focus-fault" (items 1 and 2), for the researcher.
