@@ -1,11 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { formatNumber, type Locale } from "@/i18n";
 import { Button, PRIMARY_LINK } from "@/components/ui/base";
 import { StateCard } from "@/components/screening-state-card";
 import { isScreeningApiError } from "@/lib/screening-api";
+import { stateCopy } from "@/lib/screening-states";
 import { drawPilot, getCriteria, getSummary, type CriteriaView, type PilotDraw, type Summary } from "@/lib/screening-v1";
 
 /**
@@ -143,7 +144,14 @@ export function DrawPilot({
   onDrawn: (draw: PilotDraw) => void;
 }>) {
   const t = (key: PilotCardKey, values: Readonly<Record<string, string | number>> = {}) => fill(COPY[locale][key], values);
-  const [size, setSize] = useState(50);
+  // Review C round 1, finding 5: the field keeps what is typed and takes its step when it loses focus or draws.
+  const [sizeText, setSizeText] = useState("50");
+  const drawButton = useRef<HTMLButtonElement>(null);
+  const snap = (text: string) => Math.min(100, Math.max(20, Math.round((Number(text) || 50) / 10) * 10));
+  const cancel = () => {
+    setDry(null);
+    window.setTimeout(() => drawButton.current?.focus(), 0);
+  };
   const [dry, setDry] = useState<PilotDraw | null>(null);
   const [busy, setBusy] = useState(false);
   const [refusal, setRefusal] = useState<{ code: string; message: string } | null>(null);
@@ -152,7 +160,7 @@ export function DrawPilot({
     setBusy(true);
     setRefusal(null);
     try {
-      setDry(await drawPilot(origin, size, false));
+      setDry(await drawPilot(origin, snap(sizeText), false));
     } catch (error) {
       setRefusal(codeOf(error));
     } finally {
@@ -164,7 +172,7 @@ export function DrawPilot({
     setBusy(true);
     setRefusal(null);
     try {
-      onDrawn(await drawPilot(origin, size, true));
+      onDrawn(await drawPilot(origin, snap(sizeText), true));
       setDry(null);
     } catch (error) {
       setRefusal(codeOf(error));
@@ -181,7 +189,7 @@ export function DrawPilot({
           aria-labelledby="pilot-draw-title"
           aria-describedby="pilot-draw-body"
           className="rounded-md border border-brand p-4"
-          onKeyDown={(e) => e.key === "Escape" && setDry(null)}
+          onKeyDown={(e) => e.key === "Escape" && cancel()}
         >
           <p id="pilot-draw-title" className="font-semibold text-ink">
             {t("drawTitle")}
@@ -194,7 +202,7 @@ export function DrawPilot({
             <Button variant="primary" autoFocus disabled={busy} onClick={() => void confirm()}>
               {t("drawConfirm")}
             </Button>
-            <Button disabled={busy} onClick={() => setDry(null)}>
+            <Button disabled={busy} onClick={cancel}>
               {t("drawCancel")}
             </Button>
           </div>
@@ -208,14 +216,17 @@ export function DrawPilot({
               min={20}
               max={100}
               step={10}
-              value={size}
+              value={sizeText}
               aria-describedby="pilot-size-hint"
-              onChange={(e) => setSize(Math.min(100, Math.max(20, Math.round((Number(e.target.value) || 50) / 10) * 10)))}
+              onChange={(e) => setSizeText(e.target.value)}
+              onBlur={() => {
+                setSizeText(String(snap(sizeText)));
+              }}
               className="mt-1 block w-28 rounded-md border border-rule bg-paper p-2 text-ink"
             />
           </label>
-          <Button variant={brand ? "primary" : "secondary"} disabled={busy} onClick={() => void ask()}>
-            {label ? label(size) : t("draw", { n: formatNumber(locale, size) })}
+          <Button ref={drawButton} variant={brand ? "primary" : "secondary"} disabled={busy} onClick={() => void ask()}>
+            {label ? label(snap(sizeText)) : t("draw", { n: formatNumber(locale, snap(sizeText)) })}
           </Button>
         </div>
       )}
@@ -279,6 +290,10 @@ export function PilotCard({ locale, origin }: Readonly<{ locale: Locale; origin:
             </a>
           ) : null}
         </>
+      ) : !criteria.batch_approved && (criteria.handoff_batches?.length ?? 0) > 0 ? (
+        <p className="mt-2 text-sm text-ink" data-handoff>
+          {stateCopy(locale, "CRITERIA_AMENDMENT_HANDOFF").body}
+        </p>
       ) : !pilot ? (
         <>
           <p className="mt-2 text-sm text-ink">{t("body")}</p>
@@ -296,7 +311,7 @@ export function PilotCard({ locale, origin }: Readonly<{ locale: Locale; origin:
         </>
       ) : pilot.open ? (
         <div className="mt-3 flex flex-wrap gap-2">
-          <a className={PRIMARY_LINK} href={triageHref(locale, "pilot", origin)}>
+          <a className={PRIMARY_LINK} data-variant="primary" href={triageHref(locale, "pilot", origin)}>
             {t("continue")}
           </a>
           <a className="inline-flex min-h-11 items-center px-2 text-sm underline" href={pilotHref(locale, pilot.pilot_id, origin)}>
@@ -305,7 +320,7 @@ export function PilotCard({ locale, origin }: Readonly<{ locale: Locale; origin:
         </div>
       ) : (
         <div className="mt-3 flex flex-wrap items-center gap-2">
-          <a className={PRIMARY_LINK} href={pilotHref(locale, pilot.pilot_id, origin)}>
+          <a className={PRIMARY_LINK} data-variant="primary" href={pilotHref(locale, pilot.pilot_id, origin)}>
             {t("result")}
           </a>
           <a className="inline-flex min-h-11 items-center px-2 text-sm underline" href={triageHref(locale, "needs_you", origin)}>

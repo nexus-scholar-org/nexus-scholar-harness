@@ -60,6 +60,7 @@ interface Fake {
   main: StoredEvent[];
   recheck: boolean;
   refuseMain?: string;
+  summaryPilot?: { decided: number; n: number };
 }
 let fake: Fake;
 
@@ -91,7 +92,7 @@ function fakeFetch(url: string, init?: RequestInit): Promise<Response> {
       total: 2, decided: 0, by_outcome: { INCLUDE: 0, EXCLUDE: 0, MAYBE: 0 }, agent_proposed: 0, needs_you: 2, conflicts: 0,
       lanes: { agent: 0, you: 0, second_screener: "PARKED" }, criteria_version: fake.recheck ? 2 : 1,
       recheck: fake.recheck && shownAgain("STU-a") ? 1 : 0,
-      pilot: { pilot_id: "pilot_001", n: 2, decided: Object.keys(fake.pilot).length, open: fake.pilotOpen, closed_at: null, closed_reason: null, pilots: 1, recheck: 0 },
+      pilot: { pilot_id: "pilot_001", n: fake.summaryPilot?.n ?? 2, decided: fake.summaryPilot?.decided ?? Object.keys(fake.pilot).length, open: fake.pilotOpen, closed_at: null, closed_reason: null, pilots: 1, recheck: 0 },
     }));
   }
   if (path === "/criteria") {
@@ -276,5 +277,13 @@ describe("triage.shown-again (spec 13)", () => {
     const values = Array.from(select.options).map((o) => o.value);
     expect(values).toContain("pilot");
     expect(values).not.toContain("recheck");
+  });
+});
+
+describe("triage pilot, review C round 1", () => {
+  it("finding 6: the banner shows the engine's pilot counts, not a count of the queue", async () => {
+    fake.summaryPilot = { decided: 7, n: 50 };
+    await openPilot();
+    expect(screen.getByRole("region", { name: "Pilot" })).toHaveTextContent("Pilot · 7 of 50 decided");
   });
 });

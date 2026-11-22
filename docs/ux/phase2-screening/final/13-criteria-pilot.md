@@ -345,7 +345,7 @@ Playwright (`apps/research-ui/e2e/screening/`):
 Python tests of the engine are the build record's (parts A and B); none is named here.
 
 ## Open questions
-None. Questions 1 to 4 were settled by the milestone record, 9 by the researcher's answer 11, 10 and 11 by the build of part B, and 5 to 8 by the researcher on 2026-11-21 (main session), each as recommended. The answers are kept here so the reasoning stays visible. Wording and layout stay open until the researcher sees the built screens.
+None. Questions 1 to 4 were settled by the milestone record, 9 by the researcher's answer 11, 10 and 11 by the build of part B, and 5 to 8 by the researcher on 2026-11-21 (main session): 5 to 7 as recommended, 8 against its recommendation ("Desktop only for now"). The answers are kept here so the reasoning stays visible. Wording and layout stay open until the researcher sees the built screens.
 
 1. **How do Prepare and Triage know a pilot is open?** *Settled by the record (DoD 11b, 2026-11-21):* `GET /summary` gains a `pilot` block (the open or last pilot's id, n, decided, open or closed, and how many counted records wait to be shown again). An unknown `id` on the result route answers a plain not-found refusal.
 2. **Is there a dry call for the draw?** *Settled by the record (DoD 11):* `confirm: false` answers n, the undecided count and the expected time, and writes nothing, so the dialog can say how many records are left to draw from and refuse before the call when fewer remain.

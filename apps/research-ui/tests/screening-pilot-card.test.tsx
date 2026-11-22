@@ -8,7 +8,7 @@ import { SUPPORTED_LOCALES } from "@/i18n";
 
 type Pilot = { pilot_id: string; n: number; decided: number; open: boolean; closed_at: string | null; closed_reason: string | null; pilots: number; recheck: number } | null;
 
-function engine(options: { pilot?: Pilot; approved?: boolean; prepared?: boolean; recheck?: number; refuse?: string } = {}) {
+function engine(options: { pilot?: Pilot; approved?: boolean; prepared?: boolean; recheck?: number; refuse?: string; handoff?: boolean } = {}) {
   const log: { method: string; path: string; body: Record<string, unknown> | null }[] = [];
   vi.stubGlobal(
     "fetch",
@@ -26,8 +26,8 @@ function engine(options: { pilot?: Pilot; approved?: boolean; prepared?: boolean
         });
       }
       if (path === "/criteria") {
-        return json({ criteria_version: 1, criteria: [], retired: [], amendments: [], can_amend: !options.approved,
-          batches_prepared: options.prepared ?? true, batch_approved: options.approved ?? false, handoff_batches: [] });
+        return json({ criteria_version: 1, criteria: [], retired: [], amendments: [], can_amend: !options.approved && !options.handoff,
+          batches_prepared: options.prepared ?? true, batch_approved: options.approved ?? false, handoff_batches: options.handoff ? [2] : [] });
       }
       if (path === "/pilot" && method === "POST") {
         if (options.refuse) return json({ detail: { code: options.refuse, message: "refused" } }, 409);
@@ -120,5 +120,40 @@ describe("pilot card", () => {
         expect(holes(value), `${locale}.${key}`).toBe(holes(PILOT_CARD_COPY.en[key as keyof (typeof PILOT_CARD_COPY)["en"]]));
       }
     }
+  });
+});
+
+describe("pilot card, review C round 1", () => {
+  it("finding 5: the size field keeps what is typed, and takes its step when it loses focus", async () => {
+    engine();
+    render(<PilotCard locale="en" origin="" />);
+    const field = (await screen.findByLabelText("Records in the pilot")) as HTMLInputElement;
+    fireEvent.change(field, { target: { value: "3" } });
+    expect(field.value).toBe("3");
+    fireEvent.change(field, { target: { value: "30" } });
+    expect(field.value).toBe("30");
+    expect(screen.getByRole("button", { name: "Draw a pilot of 30" })).toBeTruthy();
+    fireEvent.change(field, { target: { value: "37" } });
+    fireEvent.blur(field);
+    expect(field.value).toBe("40");
+  });
+
+  it("finding 2: Not now and Esc give focus back to the draw button", async () => {
+    engine();
+    render(<PilotCard locale="en" origin="" />);
+    fireEvent.click(await screen.findByRole("button", { name: "Draw a pilot of 50" }));
+    const dialog = await screen.findByRole("alertdialog");
+    fireEvent.keyDown(dialog, { key: "Escape" });
+    await vi.waitFor(() => expect(document.activeElement).toBe(screen.getByRole("button", { name: "Draw a pilot of 50" })));
+    fireEvent.click(screen.getByRole("button", { name: "Draw a pilot of 50" }));
+    fireEvent.click(within(await screen.findByRole("alertdialog")).getByRole("button", { name: "Not now" }));
+    await vi.waitFor(() => expect(document.activeElement).toBe(screen.getByRole("button", { name: "Draw a pilot of 50" })));
+  });
+
+  it("finding 4: with batches decided through the hand-off the card offers no draw and names why", async () => {
+    engine({ handoff: true });
+    render(<PilotCard locale="en" origin="" />);
+    expect(await screen.findByText(/decisions made through the file hand-off/)).toBeTruthy();
+    expect(screen.queryByRole("button", { name: /Draw a pilot/ })).toBeNull();
   });
 });

@@ -586,7 +586,8 @@ export function ScreeningPrepare({ locale }: Readonly<{ locale: Locale }>) {
                     <Button onClick={() => setConfirming(false)}>{t("cancel")}</Button>
                   </>
                 ) : (
-                  <Button variant="primary" onClick={() => setConfirming(true)}>
+                  // Review C round 1, finding 7: with batches, the pilot card holds the brand action (decision item 17).
+                  <Button variant={batches.count > 0 ? "secondary" : "primary"} onClick={() => setConfirming(true)}>
                     {t("prepare")}
                   </Button>
                 )

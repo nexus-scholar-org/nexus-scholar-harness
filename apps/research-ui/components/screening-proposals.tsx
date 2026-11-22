@@ -330,7 +330,7 @@ export function ScreeningProposals({ locale }: Readonly<{ locale: Locale }>) {
   const [ceiling, setCeiling] = useState("");
   const [consent, setConsent] = useState(false);
   const [estimate, setEstimate] = useState<RunEstimate | null>(null);
-  const [confirming, setConfirming] = useState<null | { dryRun: boolean; redraft?: string[] }>(null);
+  const [confirming, setConfirming] = useState<null | { dryRun: boolean; redraft?: string[]; redraftCount?: number }>(null);
   // H-screening-drafts: the estimate the dialog names (a dry run's is its own), and the start in flight.
   const [dialogEstimate, setDialogEstimate] = useState<RunEstimate | null>(null);
   const [starting, setStarting] = useState(false);
@@ -758,7 +758,7 @@ export function ScreeningProposals({ locale }: Readonly<{ locale: Locale }>) {
 
             {setup.earlier_wording_drafts && setup.earlier_wording_drafts.count > 0 ? (
               <p className="text-sm" data-redraft>
-                <Button disabled={!ready} onClick={() => setConfirming({ dryRun: false, redraft: setup.earlier_wording_drafts!.study_ids })}>
+                <Button disabled={!ready} onClick={() => setConfirming({ dryRun: false, redraft: setup.earlier_wording_drafts!.study_ids, redraftCount: setup.earlier_wording_drafts!.count })}>
                   {t("redraft", { n: n(setup.earlier_wording_drafts.count) })}
                 </Button>
               </p>
@@ -767,7 +767,7 @@ export function ScreeningProposals({ locale }: Readonly<{ locale: Locale }>) {
             {confirming ? (
               <div role="dialog" aria-modal="true" aria-labelledby="run-confirm" className="rounded-lg border border-brand bg-leaf p-5">
                 <h2 id="run-confirm" className="font-semibold text-ink">
-                  {t("confirmTitle", { n: n(confirming.redraft ? (confirming.dryRun ? Math.min(20, confirming.redraft.length) : confirming.redraft.length) : confirming.dryRun ? Math.min(20, records) : records), provider: providerName, model })}
+                  {t("confirmTitle", { n: n(confirming.redraft ? (confirming.dryRun ? Math.min(20, confirming.redraftCount ?? confirming.redraft.length) : (confirming.redraftCount ?? confirming.redraft.length)) : confirming.dryRun ? Math.min(20, records) : records), provider: providerName, model })}
                 </h2>
                 <p className="mt-2 text-sm text-ink" data-confirm-estimate>
                   {dialogEstimate === null
