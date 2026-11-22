@@ -67,7 +67,7 @@ export interface FakeFetch {
   /** Fail every read of the run (`"unreachable"` or a code), after the first `failAfter` answers. */
   pollFail?: { status: number; code: string } | "unreachable";
   /** What each confirm wrote, so its undo restores it (the engine's `links`). */
-  confirmed: Record<string, { pending: PendingFetch; attachment: Attachment | null; status: Record<string, string | null> }>;
+  confirmed: Record<string, { pending: PendingFetch; attachment: Attachment | null; status: Record<string, string | null>; attachmentId?: string; statusId?: string }>;
   discarded: Record<string, PendingFetch>;
 }
 
@@ -380,7 +380,9 @@ const refused = (event: ChartingEvent, code: string): EventAnswer => ({ event_id
  * `FETCH_FILE_WAITING`; a confirm brings the attachment (origin fetched) and
  * Retrieved with it, as two events of the engine's own; a discard needs one
  * reason (Other with words); a confirm or discard of a file that is not
- * waiting is `FETCH_NOT_PENDING`; an undo (a null value) restores the waiting file.
+ * waiting is `FETCH_NOT_PENDING`; an undo (a null value) restores the waiting file,
+ * and takes back the attachment and the status the confirm wrote only while
+ * they still hold, as the engine does (left as the researcher set them since).
  */
 function applyAll(engine: FakeEngine, event: ChartingEvent): EventAnswer[] {
   const row = engine.table.rows.find((r) => r.study_id === event.study_id);
@@ -397,7 +399,14 @@ function applyAll(engine: FakeEngine, event: ChartingEvent): EventAnswer[] {
     if (event.kind === "fetched_confirm") {
       const saved = event.supersedes ? f.confirmed[event.supersedes] : undefined;
       if (!saved) return [refused(event, "BODY_INVALID")];
-      row.fulltext = { ...row.fulltext, attachment: saved.attachment, status: (saved.status.status ?? "to_get") as never, requested_on: saved.status.requested_on, reason: saved.status.reason as never, reason_text: saved.status.reason_text, pending_fetch: saved.pending };
+      const attachmentHolds = !saved.attachmentId || row.heads.attachment === saved.attachmentId;
+      const statusHolds = !saved.statusId || row.heads.fulltext_status === saved.statusId;
+      row.fulltext = {
+        ...row.fulltext,
+        ...(attachmentHolds ? { attachment: saved.attachment } : {}),
+        ...(statusHolds ? { status: (saved.status.status ?? "to_get") as never, requested_on: saved.status.requested_on, reason: saved.status.reason as never, reason_text: saved.status.reason_text } : {}),
+        pending_fetch: saved.pending,
+      };
       row.heads = { ...row.heads, fetched_confirm: event.event_id };
     } else {
       const saved = event.supersedes ? f.discarded[event.supersedes] : undefined;
@@ -414,9 +423,9 @@ function applyAll(engine: FakeEngine, event: ChartingEvent): EventAnswer[] {
   } else {
     if (!waiting || waiting.manifest_row !== value.manifest_row) return [refused(event, "FETCH_NOT_PENDING")];
     const ft = row.fulltext;
-    f.confirmed[event.event_id] = { pending: waiting, attachment: ft.attachment, status: { status: ft.status, requested_on: ft.requested_on, reason: ft.reason, reason_text: ft.reason_text } };
     const attachmentId = crypto.randomUUID();
     const statusId = crypto.randomUUID();
+    f.confirmed[event.event_id] = { pending: waiting, attachment: ft.attachment, status: { status: ft.status, requested_on: ft.requested_on, reason: ft.reason, reason_text: ft.reason_text }, attachmentId, statusId };
     row.fulltext = {
       ...ft,
       status: "retrieved",

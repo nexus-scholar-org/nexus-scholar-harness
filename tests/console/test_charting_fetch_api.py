@@ -737,7 +737,153 @@ def test_a_record_no_longer_kept_keeps_its_waiting_file_on_the_row_and_cannot_be
     assert row["fulltext"]["pending_fetch"]["manifest_row"] == waiting["manifest_row"]
     assert row["fulltext"]["last_lookup"]["manifest_row"] == waiting["manifest_row"]
     assert table["counts"]["to_confirm"] == 0  # counted only among the kept rows
+    served = world["client"].get(f"{BASE}/records/{world['doi']}/fetched")  # review, finding 7
+    assert served.status_code == 200 and served.content.startswith(b"%PDF-")
     answer = world["client"].post(f"{BASE}/events", json={"events": [
         event(world["doi"], "fetched_confirm", {"manifest_row": waiting["manifest_row"]})]}).json()
     assert answer["results"][0]["result"] == "refused"
     assert answer["results"][0]["refusal"]["code"] == "RECORD_NOT_KEPT"
+
+
+# --------------------------------------------------------------------------- review of Part F, round 1
+
+
+def test_the_manifest_names_files_relative_to_the_workspace_and_a_moved_workspace_still_serves_them(world, tmp_path):
+    """Finding 1: no home path in the tracked manifest; a copied workspace keeps its waiting files."""
+    import shutil
+
+    with ThreadedStub(ROUTES) as host:
+        standard_run(world, host, ids=[world["doi"]])
+    ws = world["ws"]
+    text = (ws / "charting" / "fetch_manifest.jsonl").read_text(encoding="utf-8")
+    assert str(ws) not in text and str(ws.resolve()) not in text and str(ws).replace("\\", "/") not in text
+    [row] = manifest(ws)
+    assert row["file"].startswith("pdfs/fetched/DOC-")
+    moved = tmp_path / "moved" / ws.name
+    shutil.copytree(ws, moved)
+    app = create_app(moved, token=TOKEN)
+    with TestClient(app, base_url="http://127.0.0.1", headers={"Authorization": f"Bearer {TOKEN}"}) as client:
+        waiting = row_of(client, world["doi"])["fulltext"]["pending_fetch"]
+        assert waiting is not None
+        served = client.get(f"{BASE}/records/{world['doi']}/fetched")
+        assert served.status_code == 200 and served.content.startswith(b"%PDF-")
+        answer = client.post(f"{BASE}/events", json={"events": [
+            event(world["doi"], "fetched_confirm", {"manifest_row": waiting["manifest_row"]})]}).json()
+        assert answer["results"][0]["result"] == "accepted"
+    assert (moved / "pdfs" / f"{world['doi']}.pdf").is_file()
+
+
+def test_a_protocol_replace_waits_for_a_running_look_up(world):
+    """Finding 2: genesis with replace asks ``live_run``; a live run is named until it ends."""
+    held = []
+    world["app"].state.fetch_executor = held.append
+    with ThreadedStub(ROUTES) as host:
+        started = standard_run(world, host, ids=[world["doi"]])[0].json()
+        assert fx.live_run(world["ws"]) == started["run_id"]
+        held[0]()
+    assert fx.live_run(world["ws"]) is None
+
+
+def test_a_row_given_retrieved_during_the_run_is_not_asked_and_counts_add_up(world):
+    """Finding 3: a row the researcher changes after the start is left out, with no row and no waiting file."""
+    held = []
+    world["app"].state.fetch_executor = held.append
+    with ThreadedStub(ROUTES) as host:
+        started = standard_run(world, host, ids=[world["doi"], world["arxiv"]])[0].json()
+        assert started["total"] == 2
+        answer = world["client"].post(f"{BASE}/events", json={"events": [
+            event(world["doi"], "fulltext_status", {"status": "retrieved"})]}).json()
+        assert answer["results"][0]["result"] == "accepted"
+        held[0]()
+        assert "/doi.pdf" not in host.hits or host.hits["/doi.pdf"] == 0
+    run = world["client"].get(f"{BASE}/fetch").json()
+    assert run["state"] == "finished" and run["total"] == 1 and run["reached"] == 1
+    assert run["left_out"]["changed_during_run"] == 1
+    assert [r["study_id"] for r in manifest(world["ws"])] == [world["arxiv"]]
+    table = world["client"].get(BASE).json()
+    row = next(r for r in table["rows"] if r["study_id"] == world["doi"])
+    assert row["fulltext"]["pending_fetch"] is None and row["fulltext"]["status"] == "retrieved"
+    c = table["counts"]
+    assert c["kept"] == c["to_get"] + c["requested"] + c["retrieved"] + c["not_retrieved"] + c["to_confirm"]
+
+
+def test_a_file_fetched_for_a_row_changed_while_it_downloaded_does_not_wait_on_it(world):
+    """Finding 3: the change lands while the look-up is in flight; the file is kept on disk, not offered."""
+    def change(url):
+        if "api.unpaywall.org" in url and not changed:
+            changed.append(tb.post_events(world["ws"], [
+                event(world["doi"], "fulltext_status", {"status": "retrieved"})]))
+
+    changed: list = []
+    with ThreadedStub(ROUTES) as host:
+        lookups = FakeLookups({("api.unpaywall.org", DOI): unpaywall(host.url("/doi.pdf")),
+                               ("api.openalex.org", DOI): CLOSED_OPENALEX}, on_call=change)
+        world["app"].state.fetch_deps = deps(lookups, FakeArxiv(b""))
+        world["client"].post(f"{BASE}/fetch", json={"confirm": True, "ids": [world["doi"]]})
+    assert changed and changed[0]["results"][0]["result"] == "accepted"
+    [row] = manifest(world["ws"])
+    assert row["outcome"] == "ACQUIRED"
+    table = world["client"].get(BASE).json()
+    doi_row = next(r for r in table["rows"] if r["study_id"] == world["doi"])
+    assert doi_row["fulltext"]["pending_fetch"] is None and table["counts"]["to_confirm"] == 0
+    c = table["counts"]
+    assert c["kept"] == c["to_get"] + c["requested"] + c["retrieved"] + c["not_retrieved"] + c["to_confirm"]
+    # And the status keys stay free on it.
+    answer = world["client"].post(f"{BASE}/events", json={"events": [
+        event(world["doi"], "fulltext_status", {"status": "requested"})]}).json()
+    assert answer["results"][0]["result"] == "accepted"
+
+
+def test_the_full_text_export_says_fetched_to_confirm_for_a_waiting_row(world):
+    """Finding 5: never "To get" (nor "Retrieved") for a row whose fetched file waits."""
+    with ThreadedStub(ROUTES) as host:
+        standard_run(world, host, ids=[world["doi"]])
+    text = world["client"].get(f"{BASE}/export", params={"format": "csv", "view": "fulltext"}).content.decode("utf-8-sig")
+    line = next(line for line in text.splitlines() if line.startswith(world["doi"]))
+    assert "Fetched, to confirm" in line and ",Retrieved," not in line
+
+
+def test_the_start_answer_never_reads_a_short_run_as_interrupted(world, monkeypatch):
+    """Finding 6: the run ends between the start's snapshot and its answer."""
+    threads = []
+    world["app"].state.fetch_executor = lambda fn: threads.append(threading.Thread(target=fn)) or threads[-1].start()
+    real = fx.start
+
+    def start_then_wait(*args, **kwargs):
+        snapshot = real(*args, **kwargs)
+        for thread in threads:
+            thread.join()
+        assert fx.live_run(world["ws"]) is None  # the run has ended; the snapshot still says running
+        return snapshot
+
+    monkeypatch.setattr(fx, "start", start_then_wait)
+    with ThreadedStub(ROUTES) as host:
+        response = standard_run(world, host, ids=[NEITHER, world["doi"]])[0]
+    assert response.status_code == 202 and response.json()["state"] == "running"
+    assert world["client"].get(f"{BASE}/fetch").json()["state"] == "finished"
+
+
+def test_try_later_is_said_only_for_a_record_left_without_a_file():
+    """Finding 8: a 429 from one service while the other gave the file is nothing to try later."""
+    failed = [{"service": "unpaywall", "state": "FAILED", "http_status": 429, "error": "x"}]
+    assert fx._try_later({"outcome": "ACQUIRED", "lookups": failed, "requests": []}) is False
+    assert fx._try_later({"outcome": "LOOKUP_FAILED", "lookups": failed, "requests": []}) is True
+
+
+def test_no_finish_row_when_the_start_row_could_not_be_written(world, monkeypatch):
+    """Finding 10: a failed start leaves no lone CHARTING_FETCH_FINISHED and releases the lock."""
+    real = fx.append_event
+
+    def refuse_start(ws, action, *args, **kwargs):
+        if action == fx.STARTED:
+            raise OSError("journal not writable")
+        return real(ws, action, *args, **kwargs)
+
+    monkeypatch.setattr(fx, "append_event", refuse_start)
+    with ThreadedStub(ROUTES) as host, pytest.raises(OSError):
+        lookups = FakeLookups({})
+        world["app"].state.fetch_deps = deps(lookups, FakeArxiv(b""))
+        fx.start(world["ws"], [world["doi"]], executor=lambda fn: None, deps=world["app"].state.fetch_deps)
+        del host
+    assert journal(world["ws"], fx.FINISHED) == [] and journal(world["ws"], fx.STARTED) == []
+    assert fx.live_run(world["ws"]) is None and not (world["ws"] / fx.LOCK_FILE).exists()

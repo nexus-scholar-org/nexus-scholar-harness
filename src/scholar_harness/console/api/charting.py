@@ -224,7 +224,7 @@ def post_fetch(body: FetchBody, request: Request, response: Response) -> dict[st
     except ChartingRefused as exc:
         raise _error(exc) from exc
     response.status_code = 202
-    return fx._view(_ws(request), run)
+    return fx._view(_ws(request), run, just_started=True)
 
 
 @router.get("/fetch")

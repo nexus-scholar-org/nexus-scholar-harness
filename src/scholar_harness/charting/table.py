@@ -438,6 +438,12 @@ FULLTEXT_COLUMNS = (
     "requested_on", "not_retrieved_reason", "file_name", "file_sha256", "link", "ft_decision", "ft_reason",
 )
 STATUS_WORDS = {"to_get": "To get", "requested": "Requested", "retrieved": "Retrieved", "not_retrieved": "Not retrieved"}
+#: A row whose fetched file waits: never "Retrieved" in an export (spec 03, "Copy", export words).
+TO_CONFIRM_WORDS = "Fetched, to confirm"
+
+
+def status_words(fulltext: dict[str, Any]) -> str:
+    return TO_CONFIRM_WORDS if fulltext.get("pending_fetch") else STATUS_WORDS[fulltext["status"]]
 REASON_WORDS = {"no_access": "No access or paywalled", "not_found": "Not found", "no_reply": "Authors did not reply"}
 
 
@@ -452,7 +458,7 @@ def fulltext_rows(view: dict[str, Any]) -> list[list[str]]:
         out.append([
             r["study_id"], (r.get("authors") or [""])[0] if r.get("authors") else "", str(r.get("year") or ""),
             r.get("title") or "", r.get("doi") or "", r["round_label"],
-            "Unclear" if r.get("ta_decision") == "MAYBE" else "Include", STATUS_WORDS[ft["status"]],
+            "Unclear" if r.get("ta_decision") == "MAYBE" else "Include", status_words(ft),
             ft.get("requested_on") or "", reason or "", (ft.get("attachment") or {}).get("name", ""),
             (ft.get("attachment") or {}).get("sha256", ""), ft.get("link") or "",
             {"INCLUDE": "Include", "EXCLUDE": "Exclude"}.get(decision.get("outcome") or "", ""), ft_reason or "",
@@ -498,7 +504,7 @@ def charting_rows(view: dict[str, Any]) -> list[list[str]]:
             continue
         line = [
             r["study_id"], (r.get("authors") or [""])[0] if r.get("authors") else "", str(r.get("year") or ""),
-            r.get("title") or "", r.get("doi") or "", r["round_label"], STATUS_WORDS[r["fulltext"]["status"]],
+            r.get("title") or "", r.get("doi") or "", r["round_label"], status_words(r["fulltext"]),
             "No full text" if r.get("no_full_text") else "", "Pilot" if r.get("pilot") else "",
         ]
         for c in columns:

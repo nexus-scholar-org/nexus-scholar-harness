@@ -131,12 +131,16 @@ def rows_for(ws: Path | str, study_id: str) -> list[dict[str, Any]]:
 
 
 def stored_file(ws: Path, row: dict[str, Any]) -> Path | None:
-    """The file a manifest row names, when it is inside ``pdfs/fetched/``; else ``None``."""
+    """The file a manifest row names, when it is inside ``pdfs/fetched/``; else ``None``.
+
+    The run writes the file relative to the workspace (``pdfs/fetched/…``,
+    review of Part F, finding 1), so a row holds no home path and still names
+    its file after the workspace is moved or copied.
+    """
     entry = row.get("file")
     if not isinstance(entry, str) or not entry:
         return None
-    base = (Path(ws) / MANIFEST).parent
-    path = (base / entry).resolve() if not Path(entry).is_absolute() else Path(entry).resolve()
+    path = (Path(ws) / entry).resolve() if not Path(entry).is_absolute() else Path(entry).resolve()
     folder = (Path(ws) / FETCHED_DIR).resolve()
     try:
         path.relative_to(folder)
@@ -164,6 +168,26 @@ def _named(head: dict[str, Any] | None) -> str | None:
     return str(value.get("manifest_row")) if isinstance(value, dict) and value.get("manifest_row") else None
 
 
+def _screener(ws: Path) -> str:
+    from . import table as tb
+
+    return tb.screener_id(ws)
+
+
+def row_taken(events: list[dict[str, Any]], study_id: str, who: str) -> bool:
+    """The researcher gave the row a file or a status a look-up does not ask about (Retrieved).
+
+    Such a row is not asked by a run already under way, and a file fetched for
+    it before the change does not wait on it (review of Part F, finding 3).
+    """
+    attachment = ev.current(events, study_id, who, "attachment")
+    if attachment is not None and attachment.get("value") is not None:
+        return True
+    status = ev.current(events, study_id, who, "fulltext_status")
+    value = (status or {}).get("value") or {}
+    return bool(value.get("status")) and value.get("status") not in LOOKUP_STATUSES
+
+
 def pending_row(
     manifest: list[dict[str, Any]], events: list[dict[str, Any]], study_id: str, who: str
 ) -> dict[str, Any] | None:
@@ -171,7 +195,9 @@ def pending_row(
 
     The newest row of the record with a stored file waits unless the current
     confirm or discard names it, or a discard that stands named the same
-    bytes (spec 03, question 4: the same file is never offered again).
+    bytes (spec 03, question 4: the same file is never offered again), or the
+    researcher has since given the row a file of their own or a status a
+    look-up does not ask about (``row_taken``).
     """
     newest = None
     for row in manifest:
@@ -185,6 +211,8 @@ def pending_row(
         return None
     discarded = {(e.get("fetched") or {}).get("sha256") for e in effective_discards(events, study_id, who)}
     if newest.get("sha256") in discarded:
+        return None
+    if row_taken(events, study_id, who):
         return None
     return newest
 
@@ -221,6 +249,8 @@ def pending_view(row: dict[str, Any]) -> dict[str, Any]:
 
 
 def _try_later(row: dict[str, Any]) -> bool:
+    if row.get("outcome") == "ACQUIRED":
+        return False  # another service gave the file; nothing to try later (review, finding 8)
     if any(str(r.get("error") or "").startswith("HTTP 429") for r in row.get("requests") or []):
         return True
     return any(
@@ -555,6 +585,8 @@ class _Live:
         self.ws, self.run = ws, run
         self.lock = threading.Lock()
         self.cancel = threading.Event()
+        #: The start row is in the journal; only then is a finish row written (review, finding 10).
+        self.journaled = False
 
 
 _LIVE: dict[tuple[str, str], _Live] = {}
@@ -790,6 +822,7 @@ def start(
                      "with_arxiv_only": with_arxiv, "neither": run["neither"], **run["left_out"]},
             refresh_index=False,
         )
+        live.journaled = True
     except BaseException as exc:
         _finish(live, f"{type(exc).__name__}")
         raise
@@ -887,7 +920,7 @@ async def _execute(live: _Live, records: list[dict[str, Any]], deps: Deps) -> No
     make = deps.downloader or AsyncPDFDownloader
     downloader = make(
         output_dir=ws / FETCHED_DIR, manifest_path=ws / MANIFEST, max_bytes=MAX_BYTES,
-        max_redirects=MAX_REDIRECTS, pacer=pacer,
+        max_redirects=MAX_REDIRECTS, pacer=pacer, manifest_file_root=ws,
     )
     lookup_client = (deps.lookup_client or _default_lookup_client)()
     arxiv_client = (deps.arxiv_client or _default_arxiv_client)()
@@ -925,6 +958,15 @@ async def _execute(live: _Live, records: list[dict[str, Any]], deps: Deps) -> No
                 update(not_reached=len(records) - index)
                 break
             study_id, title, doi = record["study_id"], record.get("title"), record.get("doi")
+            if row_taken(ev.read_events(ws), study_id, _screener(ws)):
+                # Changed by the researcher since the start (a file or Retrieved): not asked, no row.
+                # It leaves the records asked, as the records left out at the start (item 8).
+                with live.lock:
+                    left = live.run.setdefault("left_out", {})
+                    left["changed_during_run"] = left.get("changed_during_run", 0) + 1
+                    live.run["total"] -= 1
+                    _write_run(ws, live.run)
+                continue
             arxiv_id, given = _arxiv_id(record.get("arxiv_id"))
             fields = extra(record, arxiv_id)
             try:
@@ -1017,6 +1059,8 @@ def _finish(live: _Live, error: str | None) -> None:
             pass
         snapshot = copy.deepcopy(run)
     try:
+        if not live.journaled:
+            return  # the start was not recorded; the lock and the live entry are still released below
         errors = snapshot["errors"]
         append_event(
             ws, FINISHED,
@@ -1053,13 +1097,14 @@ def read_run(ws: Path | str, run_id: str) -> dict[str, Any]:
     return data
 
 
-def _view(ws: Path, run: dict[str, Any]) -> dict[str, Any]:
+def _view(ws: Path, run: dict[str, Any], *, just_started: bool = False) -> dict[str, Any]:
     out = dict(run)
     out.pop("study_ids", None)
     state = run.get("state")
     if state == "running" and run.get("cancel_requested"):
         out["state"] = "cancelling"
-    if state == "running" and _live(ws, run["run_id"]) is None:
+    # ``just_started``: the start's own answer; a short run may already have ended (review, finding 6).
+    if state == "running" and not just_started and _live(ws, run["run_id"]) is None:
         # Spec 03, question 8: a run this console did not finish is read as interrupted; nothing is written.
         out["state"] = "interrupted"
     return out
@@ -1080,6 +1125,20 @@ def current(ws: Path | str) -> dict[str, Any]:
         return {"state": "idle", "run_id": None}
     newest = max(runs, key=lambda r: (str(r.get("started_at") or ""), str(r.get("run_id"))))
     return _view(ws, newest)
+
+
+def live_run(ws: Path | str) -> str | None:
+    """The id of this console's look-up still running in ``ws``, else ``None``.
+
+    A protocol replace (genesis with ``replace``) waits for it, as for a search
+    job, so the run does not write into the new protocol's workspace (review of
+    Part F, finding 2; spec 03 "Stale").
+    """
+    ws = Path(ws)
+    info = _read_lock(ws)
+    if info and info.get("run_id") and _live(ws, str(info["run_id"])) is not None:
+        return str(info["run_id"])
+    return None
 
 
 def cancel(ws: Path | str) -> dict[str, Any]:
@@ -1103,7 +1162,7 @@ def fetched_file(ws: Path | str, study_id: str) -> tuple[Path, str]:
     ws = Path(ws)
     att.attached_path(ws, study_id)  # refuses an unsafe study id
     state = tb.read_kept(ws, remember=False)
-    if study_id not in state.kept_ids:
+    if study_id not in state.kept_ids and study_id not in state.no_longer_kept:
         raise ChartingRefused(409, ev.RECORD_NOT_KEPT, "That study is not in the kept set.")
     row = pending_row(read_manifest(ws), ev.read_events(ws), study_id, tb.screener_id(ws))
     path = stored_file(ws, row) if row is not None else None

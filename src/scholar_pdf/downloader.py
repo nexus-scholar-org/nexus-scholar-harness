@@ -340,6 +340,7 @@ class AsyncPDFDownloader:
         max_bytes: int | None = None,
         max_redirects: int | None = None,
         pacer: Callable[[str], Awaitable[None]] | None = None,
+        manifest_file_root: Path | None = None,
     ):
         self.output_dir = output_dir or settings.download_dir
         # M12a Part F (decision 2026-11-21 item 17; Part K item 19): a caller may
@@ -357,6 +358,9 @@ class AsyncPDFDownloader:
         self.pacer = pacer
         # Part K item 8: one JSON line per DOI asked, when the caller gives a path.
         self.manifest_path = Path(manifest_path) if manifest_path is not None else None
+        # M12a Part F: the folder a row's ``file`` is relative to (the workspace);
+        # ``None`` keeps the command's rule (the manifest's folder, else absolute).
+        self.manifest_file_root = Path(manifest_file_root) if manifest_file_root is not None else None
         self.output_dir.mkdir(parents=True, exist_ok=True)
         self.semaphore = asyncio.Semaphore(settings.max_concurrent_downloads)
         # ``proxy_url`` is retained as a deprecated alias for the historical
@@ -699,7 +703,7 @@ class AsyncPDFDownloader:
         """
         if self.manifest_path is None:
             return result
-        row = manifest_row(result, self.manifest_path)
+        row = manifest_row(result, self.manifest_path, getattr(self, "manifest_file_root", None))
         clash = sorted(set(extra or {}) & set(row))
         if clash:
             raise ValueError(f"manifest_extra may not replace the kit's fields: {', '.join(clash)}")

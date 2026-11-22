@@ -517,8 +517,17 @@ def preview(body: PreviewBody, request: Request) -> dict[str, Any]:
 
 
 def _running_job(request: Request, target: Path) -> str | None:
-    """A discovery or console job of this process still running in ``target`` (M4d, F1 review)."""
+    """A discovery or console job, or a look-up of open-access copies, of this process still running in ``target``.
+
+    M4d (F1 review); M12a Part F (review, finding 2): a running look-up would
+    write its manifest and files into the new protocol's workspace.
+    """
+    from ...charting import fetch as fx
+
     resolved = Path(target).resolve()
+    run_id = fx.live_run(resolved)
+    if run_id is not None:
+        return f"look-up of open-access copies {run_id}"
     discovery = getattr(request.app.state, "discovery_jobs", None)
     if discovery is not None:
         job = discovery.active(resolved) or discovery.active(Path(target))
