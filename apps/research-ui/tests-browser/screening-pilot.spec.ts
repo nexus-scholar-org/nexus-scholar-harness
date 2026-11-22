@@ -28,8 +28,11 @@ async function engine(page: Page, options: { open?: boolean; recheck?: boolean }
   const main = new Map<string, Record<string, unknown>>();
   let open = options.open ?? true;
   let closedReason: string | null = open ? null : "complete";
-  let version = 1;
-  const amendments: Record<string, unknown>[] = [];
+  // With records shown again, a revision was recorded: EXC-01 reworded, version 2.
+  let version = options.recheck ? 2 : 1;
+  const amendments: Record<string, unknown>[] = options.recheck
+    ? [{ amendment_id: "CRA-0", op: "reword", side: "exclusion", from: [CRITERIA[1]], to: [{ ...CRITERIA[1], text: "Not an arable crop field" }], reason: "Orchards were read two ways", criteria_version_before: 1, criteria_version_after: 2, pilot_id: null, decided_at_time: 0, shown_again: { INCLUDE: 0, MAYBE: 0, EXCLUDE: 1, total: 1 }, amended_by: "researcher:local", amended_at: "2026-11-21T11:00:00Z" }]
+    : [];
   const earlier = {
     event_id: "EV-old", study_id: "STU-1", screener_id: "researcher:local", method: "HUMAN", outcome: "EXCLUDE", reason_code: "EXC-01",
     criteria: [{ id: "EXC-01", answer: "yes" }], note: null, supersedes: null, binding: BINDING, proposal_shown: null,
@@ -181,6 +184,7 @@ test("the pilot decided by keyboard goes to the pilot route only, then hands off
   await page.getByRole("link", { name: "See the pilot result" }).click();
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("The pilot is decided: 3 of 3 records.");
   await expect(page.locator("[data-not-computed]")).toContainText("Four readings need answers per criterion");
+  await shot(page, "4-pilot-result", info.project.name);
 });
 
 for (const width of [1440, 1280]) {
@@ -190,7 +194,6 @@ for (const width of [1440, 1280]) {
     await page.goto("/en/screening/pilot?id=pilot_001");
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
     expect(await axe(page)).toEqual([]);
-    if (width === 1440) await shot(page, "4-pilot-result", info.project.name);
     await page.getByRole("button", { name: "Revise a criterion" }).click();
     const dialog = page.getByRole("dialog", { name: "Revise a criterion" });
     await dialog.getByRole("radio", { name: "Reword · same test, clearer words" }).check();
