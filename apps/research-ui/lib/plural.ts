@@ -16,6 +16,10 @@ export type PluralForm = "zero" | "one" | "two" | "few" | "many" | "other";
 export type PluralForms = Partial<Record<PluralForm, string>>;
 
 const EN: Record<string, PluralForms> = {
+  "charting.export.done": { one: "Exported {when} ({format}): {n} row. Changes after this are not in that file." },
+  "charting.export.cellsOpen": { one: "{n} cell is not charted yet." },
+  "charting.export.requiredOpen": { one: "{n} required cell is empty." },
+  "charting.export.fileHad": { one: "That file had {n} cell not charted." },
   "proposals.badge": { one: "{n} suggestion" },
   "checks.waiting": { one: "{n} check is waiting for {need}" },
   "checks.earlier": { one: "{n} open check on earlier steps" },
@@ -30,6 +34,10 @@ const EN: Record<string, PluralForms> = {
 };
 
 const FR: Record<string, PluralForms> = {
+  "charting.export.done": { one: "Exporté {when} ({format}) : {n} ligne. Les changements ultérieurs ne sont pas dans ce fichier." },
+  "charting.export.cellsOpen": { one: "{n} cellule n'est pas encore extraite." },
+  "charting.export.requiredOpen": { one: "{n} cellule obligatoire est vide." },
+  "charting.export.fileHad": { one: "Ce fichier avait {n} cellule non extraite." },
   "proposals.badge": { one: "{n} suggestion" },
   "checks.waiting": { one: "{n} vérification attend {need}" },
   "checks.earlier": { one: "{n} vérification ouverte aux étapes précédentes" },
@@ -44,6 +52,15 @@ const FR: Record<string, PluralForms> = {
 };
 
 const AR: Record<string, PluralForms> = {
+  "charting.export.done": {
+    one: "صُدّر {when} ({format}): صف واحد. التغييرات بعد ذلك ليست في ذلك الملف.",
+    two: "صُدّر {when} ({format}): صفّان. التغييرات بعد ذلك ليست في ذلك الملف.",
+    many: "صُدّر {when} ({format}): {n} صفًّا. التغييرات بعد ذلك ليست في ذلك الملف.",
+    other: "صُدّر {when} ({format}): {n} صف. التغييرات بعد ذلك ليست في ذلك الملف.",
+  },
+  "charting.export.cellsOpen": { one: "خلية واحدة لم تُستخرج بعد.", two: "خليتان لم تُستخرجا بعد.", many: "{n} خليةً لم تُستخرج بعد.", other: "{n} خلية لم تُستخرج بعد." },
+  "charting.export.requiredOpen": { one: "خلية إلزامية واحدة فارغة.", two: "خليتان إلزاميتان فارغتان.", many: "{n} خليةً إلزامية فارغة.", other: "{n} خلية إلزامية فارغة." },
+  "charting.export.fileHad": { one: "كان في ذلك الملف خلية واحدة لم تُستخرج.", two: "كان في ذلك الملف خليتان لم تُستخرجا.", many: "كان في ذلك الملف {n} خليةً لم تُستخرج.", other: "كان في ذلك الملف {n} خلية لم تُستخرج." },
   "marks.legend.mentions": { one: "إشارة واحدة", two: "إشارتان", few: "{n} إشارات", many: "{n} إشارةً", other: "{n} إشارة" },
   "proposals.badge": { one: "اقتراح واحد", two: "اقتراحان", few: "{n} اقتراحات", many: "{n} اقتراحًا", other: "{n} اقتراح" },
   "checks.waiting": {

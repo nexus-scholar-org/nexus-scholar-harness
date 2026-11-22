@@ -173,7 +173,7 @@ describe("charting.keymap", () => {
     focusRow("STU-001");
     await press("e", { ctrlKey: true });
     const menu = document.querySelector("[data-export-menu]") as HTMLElement;
-    expect(within(menu).getAllByRole("button").map((b) => b.textContent)).toEqual(["CSV of the Full text view", "CSV of the Charting view"]);
+    expect(within(menu).getAllByRole("button").map((b) => b.textContent)).toEqual(["CSV of the Full text view", "CSV of the Charting view", "Spreadsheet (.xlsx)"]);
     expect(document.activeElement).toBe(within(menu).getAllByRole("button")[0]);
     fireEvent.click(within(menu).getByRole("button", { name: "CSV of the Full text view" }));
     await press("Shift");

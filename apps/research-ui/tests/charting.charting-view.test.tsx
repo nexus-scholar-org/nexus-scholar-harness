@@ -202,12 +202,13 @@ describe("charting.charting-view", () => {
     expect(engine.calls.some((c) => c.path === "/api/v1/charting/export?format=csv&view=charting")).toBe(true);
   });
 
-  it("the Export menu offers both CSVs; the Charting one says how many cells are not charted yet", async () => {
+  it("the Export menu offers both CSVs and the spreadsheet; the Charting one says how many cells are not charted yet", async () => {
     const engine = installEngine(fixture());
     await renderCharting("en", "?view=charting");
     fireEvent.click(document.querySelector("[data-export]") as HTMLElement);
     const menu = document.querySelector("[data-export-menu]") as HTMLElement;
-    expect(within(menu).queryByText(/xlsx/i)).toBeNull();
+    // Part C (spec 04): the spreadsheet is the third item.
+    expect(within(menu).getByRole("button", { name: "Spreadsheet (.xlsx)" })).toBeInTheDocument();
     fireEvent.click(within(menu).getByRole("button", { name: "CSV of the Charting view" }));
     await flush();
     expect(engine.calls.some((c) => c.path === "/api/v1/charting/export?format=csv&view=charting")).toBe(true);
