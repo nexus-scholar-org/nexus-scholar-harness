@@ -11,6 +11,7 @@ import {
   DocumentArrowUpIcon,
   InboxIcon,
   LinkIcon,
+  MagnifyingGlassIcon,
   NoSymbolIcon,
   QuestionMarkCircleIcon,
   XCircleIcon,
@@ -29,7 +30,9 @@ import {
   chartingStudyHref,
   endChartingPilot,
   exportCsv,
+  fetchedHref,
   getCharting,
+  getFetchPlan,
   postChartingEvents,
   postLink,
   type CellState,
@@ -38,13 +41,16 @@ import {
   type ChartingForm,
   type ChartingRow,
   type ChartingTable,
+  type DiscardReason,
   type EventKind,
   type ExportView,
+  type FetchRun,
   type FormColumn,
   type FulltextStatus,
   type NotRetrievedReason,
 } from "@/lib/charting-api";
 import { cc, refusalWords, type ChartingCopyKey } from "@/lib/charting-copy";
+import { ACTIVE_STATES, DISCARD_KEY, DISCARD_REASONS, confirmAsksFirst } from "@/lib/charting-fetch";
 import {
   REASON_KEY,
   SHOW_FILTERS,
@@ -67,6 +73,7 @@ import {
   statusValue,
   valueOfDraft,
   visibleRows,
+  waitingFile,
   type CellDraft,
   type ShowFilter,
   type StatusRole,
@@ -75,6 +82,21 @@ import {
 import { newEventId } from "@/lib/screening-v1";
 
 import { CellEditor, CellView, FOCUS_RING, NoFullTextMark, PilotMark, TYPE_KEY, cellWords } from "./charting-cells";
+import {
+  FetchBadge,
+  InterruptedCard,
+  LookupLines,
+  PendingFile,
+  PlanBlock,
+  RunCard,
+  Say,
+  SummaryCard,
+  TriedDisclosure,
+  planAsks,
+  useFetchRun,
+  useFocusOnShow,
+  type PlanState,
+} from "./charting-fetch";
 import { ChartingFormPanel } from "./charting-form-panel";
 
 /**
@@ -85,15 +107,21 @@ import { ChartingFormPanel } from "./charting-form-panel";
  * charting form, edited in the cell (Enter, Esc, Alt+N, Alt+A); the form panel
  * (F) sits beside the rows; Enter on a row opens the one-study view. Every
  * change is one event, saved at once; the engine judges it and answers the rows
- * it touched. The keys L, C and D stay free for Part F.
+ * it touched. Part F (spec 03) adds the look-up of open-access copies: L opens
+ * its plan, the run card and its summary sit above the rows, and a fetched file
+ * waits on its row until the researcher confirms it (C) or discards it (D).
  */
 
 type Refusal = { code: string; message: string };
 
 type Mode =
-  | { kind: "bulk"; status: FulltextStatus; ids: string[] }
-  | { kind: "notRetrieved"; ids: string[]; reason: NotRetrievedReason | null; words: string }
-  | { kind: "exclude"; id: string; code: string | null; words: string };
+  | { kind: "bulk"; status: FulltextStatus; ids: string[]; skipped: number }
+  | { kind: "notRetrieved"; ids: string[]; reason: NotRetrievedReason | null; words: string; skipped: number }
+  // `confirmRow`: the waiting file the decision confirms first, in the same request (spec 03, I and E).
+  | { kind: "exclude"; id: string; code: string | null; words: string; confirmRow?: string | null }
+  // Part F: confirm a fetched file after a question (a warned file, or I and E on a waiting row).
+  | { kind: "fetchConfirm"; id: string; manifestRow: string; then: "INCLUDE" | "EXCLUDE" | null }
+  | { kind: "discard"; id: string; manifestRow: string; reason: DiscardReason | null; words: string };
 
 /** What an undo sends back: the earlier value, and for a cell its note and where-from. */
 type Before = { value: unknown; note?: string | null; whereFrom?: string | null };
@@ -128,6 +156,7 @@ const SHOW_KEY: Record<ShowFilter, ChartingCopyKey> = {
   toGet: "charting.table.show.toGet",
   requested: "charting.table.show.requested",
   notRetrieved: "charting.table.show.notRetrieved",
+  toConfirm: "charting.table.show.toConfirm",
   toDecide: "charting.table.show.toDecide",
   included: "charting.table.show.included",
   excluded: "charting.table.show.excluded",
@@ -197,6 +226,9 @@ type GridActions = {
   studyCell: (row: ChartingRow) => ReactNode;
   decisionBadge: (row: ChartingRow) => ReactNode;
   statusBadge: (row: ChartingRow) => ReactNode;
+  /** Part F: "Fetched, to confirm" before the earlier status, and the waiting file read-only on a phone. */
+  fulltextBadges: (row: ChartingRow) => ReactNode;
+  pendingPhone: (row: ChartingRow) => ReactNode;
   roundWords: (row: ChartingRow) => string;
   t: (key: ChartingCopyKey, values?: Record<string, string | number>) => string;
 };
@@ -314,7 +346,7 @@ const PhoneCard = memo(function PhoneCard({
         {a.studyCell(row)}
         <span className="flex flex-wrap items-center gap-2 text-xs text-ink-muted">
           <span>{a.roundWords(row)}</span>
-          {a.statusBadge(row)}
+          {a.fulltextBadges(row)}
           {a.decisionBadge(row)}
         </span>
         {filled.length ? (
@@ -332,6 +364,11 @@ const PhoneCard = memo(function PhoneCard({
           </dl>
         ) : null}
       </a>
+      {row.fulltext.pending_fetch ? (
+        <div className="border-t border-rule px-3 py-2" data-phone-pending>
+          {a.pendingPhone(row)}
+        </div>
+      ) : null}
     </li>
   );
 });
@@ -342,7 +379,7 @@ const PhoneCard = memo(function PhoneCard({
  * and always where it cannot (the first paint, a test page without matchMedia);
  * drawing only the one shown keeps a key press from reconciling the other.
  */
-function useViewport(): "phone" | "desktop" | "both" {
+export function useViewport(): "phone" | "desktop" | "both" {
   const [viewport, setViewport] = useState<"phone" | "desktop" | "both">("both");
   useEffect(() => {
     if (typeof window.matchMedia !== "function") return;
@@ -405,6 +442,16 @@ function ChartingScreen({ locale }: Readonly<{ locale: Locale }>) {
   const exportButton = useRef<HTMLButtonElement>(null);
   const placeRead = useRef(false);
   const gridActions = useRef<GridActions>(null as unknown as GridActions);
+  // Part F: the plan panel, where Esc returns the focus, the summaries dismissed in this page load, the open "What was tried".
+  const [plan, setPlan] = useState<PlanState | null>(null);
+  const planReturn = useRef<{ to: "row" | "button"; row: string | null }>({ to: "row", row: null });
+  const planRef = useRef<HTMLElement | null>(null);
+  const lookButton = useRef<HTMLButtonElement>(null);
+  const [dismissed, setDismissed] = useState<ReadonlySet<string>>(new Set());
+  const [triedFor, setTriedFor] = useState<string | null>(null);
+  const runMark = useRef("");
+  const reloadRef = useRef<() => Promise<void>>(async () => undefined);
+  const runStarted = useRef(false);
 
   const boot = useCallback(async () => {
     setLoad({ status: "loading" });
@@ -452,12 +499,31 @@ function ChartingScreen({ locale }: Readonly<{ locale: Locale }>) {
       else setRefusal(r);
     }
   }, [origin]);
+  reloadRef.current = reload;
+
+  // Part F: the workspace's look-up, read once the table answered, then polled while it runs.
+  // Rows turn "Fetched, to confirm" as files arrive, so the rows are read again when it moves.
+  const onRunChange = useCallback((next: FetchRun, previous: FetchRun | null) => {
+    const mark = `${next.run_id}:${next.reached ?? 0}:${next.downloaded ?? 0}:${next.state}`;
+    if (previous && previous.run_id === next.run_id && mark !== runMark.current) void reloadRef.current();
+    runMark.current = mark;
+  }, []);
+  const fetchRun = useFetchRun(origin, t, n, onRunChange);
+  const loadRun = fetchRun.load;
+  useEffect(() => {
+    if (load.status !== "ready" || runStarted.current) return;
+    runStarted.current = true;
+    void loadRun();
+  }, [load.status, loadRun]);
+  useFocusOnShow(planRef, plan !== null, plan === null ? "" : plan.status === "mailto" ? "mailto" : "plan");
 
   const rows = useMemo(() => (table ? visibleRows(table.rows, show, showExcluded) : []), [table, show, showExcluded]);
   const rowsRef = useRef(rows);
   rowsRef.current = rows;
   const byId = useMemo(() => new Map((table?.rows ?? []).map((r) => [r.study_id, r])), [table]);
   const readOnly = table?.read_only ?? false;
+  // Part F: a look-up with nothing selected asks every kept record To get with no file and none waiting.
+  const lookable = selected.size > 0 || (table?.rows ?? []).some((r) => r.kept && r.fulltext.status === "to_get" && !r.fulltext.attachment && !waitingFile(r));
   const reasons = table?.reason_options ?? [];
   const notRetrievedReasons = table?.not_retrieved_reasons ?? ["no_access", "not_found", "no_reply", "other"];
   const form: ChartingForm | null = table?.form ?? null;
@@ -762,6 +828,10 @@ function ChartingScreen({ locale }: Readonly<{ locale: Locale }>) {
   function startAttach(id: string) {
     const row = byId.get(id);
     if (!row || !row.kept || !changesAllowed()) return;
+    if (waitingFile(row)) {
+      setStatusLine(t("charting.fetch.waiting"));
+      return;
+    }
     attachFor.current = id;
     fileInput.current?.click();
   }
@@ -824,7 +894,203 @@ function ChartingScreen({ locale }: Readonly<{ locale: Locale }>) {
     const row = byId.get(id);
     if (!row) return;
     if (row.fulltext.attachment) window.open(attachmentHref(origin, id), "_blank", "noopener");
-    else if (row.fulltext.link) window.open(row.fulltext.link, "_blank", "noopener,noreferrer");
+    else if (row.fulltext.pending_fetch) {
+      // Part F: O opens the waiting file; with the console not answering it cannot be served.
+      if (offline) setStatusLine(t("charting.refusal.OFFLINE"));
+      else window.open(fetchedHref(origin, id), "_blank", "noopener");
+    } else if (row.fulltext.link) window.open(row.fulltext.link, "_blank", "noopener,noreferrer");
+  }
+
+  // ------------------------------------------------------------ Part F: look up, confirm, discard
+
+  /** The kept rows a look-up asks about: the selection, or null for every record To get. */
+  function lookupIds(): string[] | null {
+    if (selected.size === 0 || !table) return null;
+    return table.rows.filter((r) => selected.has(r.study_id) && r.kept).map((r) => r.study_id);
+  }
+
+  async function openPlan(ids: string[] | null) {
+    setPlan({ status: "counting", ids });
+    try {
+      const answer = await getFetchPlan(origin, ids);
+      setPlan((current) => (current && current.ids === ids ? { status: "ready", ids, plan: answer } : current));
+    } catch (error) {
+      const r = refusalOf(error);
+      if (r.code === "MAILTO_NOT_SET") setPlan((current) => (current && current.ids === ids ? { status: "mailto", ids } : current));
+      else {
+        setPlan(null);
+        wentOffline(error);
+      }
+    }
+  }
+
+  /** `L` or the toolbar button: the plan panel for the selection, or for every record To get. */
+  function askLookup(here: string | null, from: "row" | "button") {
+    if (!table || !changesAllowed()) return;
+    const ids = lookupIds();
+    if (ids !== null && ids.length === 0) return;
+    if (ids === null && !lookable) {
+      setStatusLine(t("charting.fetch.look.disabled"));
+      return;
+    }
+    planReturn.current = { to: from, row: here };
+    setMode(null);
+    setTriedFor(null);
+    setRefusal(null);
+    setStatusLine("");
+    void openPlan(ids);
+  }
+
+  function closePlan() {
+    setPlan(null);
+    const back = planReturn.current;
+    if (back.to === "button") {
+      setTimeout(() => lookButton.current?.focus(), 0);
+      return;
+    }
+    // The plan had the focus; it goes back to the row the plan was opened from.
+    const id = back.row ?? focusId;
+    moveFocus(id);
+    setTimeout(() => {
+      if (id && (document.activeElement === document.body || document.activeElement === null)) {
+        document.querySelector<HTMLElement>(`[data-desktop] [data-study-row="${CSS.escape(id)}"]`)?.focus();
+      }
+    }, 0);
+  }
+
+  /** Enter or "Start the look-up": the run starts only from a plan that asks something (`confirm: true`). */
+  async function startLookup() {
+    if (!plan || plan.status !== "ready" || !planAsks(plan.plan) || busy) return;
+    if (!changesAllowed()) return;
+    const ids = plan.ids;
+    setBusy(true);
+    setRefusal(null);
+    try {
+      await fetchRun.start(ids);
+      closePlan();
+    } catch (error) {
+      const r = refusalOf(error);
+      if (r.code === "MAILTO_NOT_SET") setPlan({ status: "mailto", ids });
+      else {
+        setPlan(null);
+        wentOffline(error);
+      }
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function cancelRun() {
+    if (offline) {
+      setStatusLine(t("charting.refusal.OFFLINE"));
+      return;
+    }
+    if (readOnly) {
+      setStatusLine(t("charting.archived"));
+      return;
+    }
+    try {
+      await fetchRun.cancel();
+    } catch (error) {
+      wentOffline(error);
+    }
+  }
+
+  /**
+   * Send a confirm or a discard (and the decision that goes with a confirm): one
+   * study per request. The accepted events are one undo step, the decision
+   * undone before the confirm (the engine refuses a decision on a waiting row).
+   */
+  async function sendFetch(events: ChartingEvent[], previous: (event: ChartingEvent) => Before, id: string, done: "confirmed" | "discarded") {
+    const list = rowsRef.current;
+    const at = list.findIndex((r) => r.study_id === id);
+    const nextId = list[at + 1]?.study_id ?? list[at - 1]?.study_id ?? id;
+    setBusy(true);
+    setRefusal(null);
+    setStatusLine("");
+    let moved = false;
+    try {
+      const answer = await postChartingEvents(origin, events);
+      merge(answer.rows, answer.counts);
+      const accepted = events.filter((e) => answer.results.some((r) => r.event_id === e.event_id && r.result !== "refused"));
+      const refused = answer.results.find((r) => r.result === "refused");
+      if (refused) setRefusal({ code: refused.refusal?.code ?? "REFUSED", message: refused.refusal?.message ?? "" });
+      if (accepted.length > 0) {
+        pushUndo({ steps: accepted.map((e) => ({ studyId: e.study_id, kind: e.kind, supersedes: e.event_id, ...previous(e) })).reverse() });
+        setLastSaved(new Date().toISOString());
+        const left = n(answer.counts.to_confirm ?? 0);
+        setAnnounce(t(done === "confirmed" ? "charting.fetch.announce.confirmed" : "charting.fetch.announce.discarded", { n: left }));
+        notifyReviewChanged();
+        moved = true;
+      }
+    } catch (error) {
+      wentOffline(error);
+    } finally {
+      setBusy(false);
+      moveFocus(moved ? nextId : id);
+    }
+  }
+
+  /** Confirm the waiting file of a row, with a full-text decision when `I` or `E` asked for one. */
+  function confirmFetched(id: string, decision?: Record<string, string>) {
+    const row = byId.get(id);
+    const pending = row?.fulltext.pending_fetch;
+    if (!table || !row || !pending || !changesAllowed()) return;
+    const events = [
+      chartingEvent({ studyId: id, screenerId: table.screener_id, kind: "fetched_confirm", value: { manifest_row: pending.manifest_row }, supersedes: row.heads.fetched_confirm ?? null }),
+    ];
+    if (decision) events.push(chartingEvent({ studyId: id, screenerId: table.screener_id, kind: "fulltext_decision", value: decision, supersedes: row.heads.fulltext_decision }));
+    const before = decisionValue(row.ft_decision);
+    void sendFetch(events, (e) => ({ value: e.kind === "fulltext_decision" ? before : null }), id, "confirmed");
+  }
+
+  function discardFetched(id: string, manifestRow: string, reason: DiscardReason, words: string) {
+    const row = byId.get(id);
+    if (!table || !row || !changesAllowed()) return;
+    const value: Record<string, string> = { manifest_row: manifestRow, reason };
+    if (reason === "other") value.reason_text = words;
+    const event = chartingEvent({ studyId: id, screenerId: table.screener_id, kind: "fetched_discard", value, supersedes: row.heads.fetched_discard ?? null });
+    void sendFetch([event], () => ({ value: null }), id, "discarded");
+  }
+
+  /** The row `C` and `D` act on, or why they do nothing here (words on the status line). */
+  function waitingTarget(here: string | null): ChartingRow | null {
+    if (offline) {
+      setStatusLine(t("charting.refusal.OFFLINE"));
+      return null;
+    }
+    if (selected.size > 1) {
+      setStatusLine(t("charting.fetch.confirm.oneAtATime"));
+      return null;
+    }
+    const row = here ? byId.get(here) : undefined;
+    if (!row) return null;
+    if (!row.fulltext.pending_fetch) {
+      setStatusLine(t("charting.fetch.noneWaiting"));
+      return null;
+    }
+    if (!row.kept) {
+      setRefusal({ code: "RECORD_NOT_KEPT", message: "" });
+      return null;
+    }
+    return changesAllowed() ? row : null;
+  }
+
+  function askConfirm(here: string | null) {
+    const row = waitingTarget(here);
+    const pending = row?.fulltext.pending_fetch;
+    if (!row || !pending) return;
+    setTriedFor(null);
+    if (confirmAsksFirst(pending)) setMode({ kind: "fetchConfirm", id: row.study_id, manifestRow: pending.manifest_row, then: null });
+    else confirmFetched(row.study_id);
+  }
+
+  function askDiscard(here: string | null) {
+    const row = waitingTarget(here);
+    const pending = row?.fulltext.pending_fetch;
+    if (!row || !pending) return;
+    setTriedFor(null);
+    setMode({ kind: "discard", id: row.study_id, manifestRow: pending.manifest_row, reason: null, words: "" });
   }
 
   async function runExport(which: ExportView) {
@@ -863,13 +1129,20 @@ function ChartingScreen({ locale }: Readonly<{ locale: Locale }>) {
 
   function askStatus(status: FulltextStatus, here: string | null) {
     if (!changesAllowed()) return;
-    const ids = statusTargets(here);
-    if (ids.length === 0) return;
-    if (status === "not_retrieved") {
-      setMode({ kind: "notRetrieved", ids, reason: null, words: "" });
+    const targets = statusTargets(here);
+    if (targets.length === 0) return;
+    // Part F (question 6): a row with a fetched file waiting keeps its status until the file is confirmed or discarded.
+    const ids = targets.filter((id) => !waitingFile(byId.get(id)!));
+    const skipped = targets.length - ids.length;
+    if (ids.length === 0) {
+      setStatusLine(selected.size > 0 && targets.length > 1 ? t("charting.fetch.bulkSkipped", { n: n(skipped) }) : t("charting.fetch.waiting"));
       return;
     }
-    if (ids.length > 1) setMode({ kind: "bulk", status, ids });
+    if (status === "not_retrieved") {
+      setMode({ kind: "notRetrieved", ids, reason: null, words: "", skipped });
+      return;
+    }
+    if (ids.length > 1 || skipped > 0) setMode({ kind: "bulk", status, ids, skipped });
     else setStatus(ids, { status });
   }
 
@@ -881,6 +1154,12 @@ function ChartingScreen({ locale }: Readonly<{ locale: Locale }>) {
     if (!id || !changesAllowed()) return;
     const row = byId.get(id);
     if (!row || !row.kept) return;
+    // Part F: on a row whose fetched file waits, I and E ask to confirm the file first (decision 18).
+    const pending = row.fulltext.pending_fetch;
+    if (pending) {
+      setMode({ kind: "fetchConfirm", id, manifestRow: pending.manifest_row, then: outcome });
+      return;
+    }
     if (outcome === "INCLUDE") decide(id, { outcome: "INCLUDE" });
     else setMode({ kind: "exclude", id, code: null, words: "" });
   }
@@ -890,6 +1169,27 @@ function ChartingScreen({ locale }: Readonly<{ locale: Locale }>) {
     if (mode.kind === "bulk") {
       setMode(null);
       setStatus(mode.ids, { status: mode.status });
+      return;
+    }
+    if (mode.kind === "fetchConfirm") {
+      if (mode.then === "EXCLUDE") {
+        // Enter confirms and goes on to the decision: the reason chips, then one request with both.
+        setMode({ kind: "exclude", id: mode.id, code: null, words: "", confirmRow: mode.manifestRow });
+        return;
+      }
+      setMode(null);
+      confirmFetched(mode.id, mode.then === "INCLUDE" ? { outcome: "INCLUDE" } : undefined);
+      return;
+    }
+    if (mode.kind === "discard") {
+      const words = mode.words.trim();
+      if (!mode.reason || (mode.reason === "other" && !words)) {
+        setStatusLine(t("charting.refusal.DISCARD_REASON_REQUIRED"));
+        if (mode.reason === "other") wordsInput.current?.focus();
+        return;
+      }
+      setMode(null);
+      discardFetched(mode.id, mode.manifestRow, mode.reason, words);
       return;
     }
     if (mode.kind === "notRetrieved") {
@@ -918,11 +1218,20 @@ function ChartingScreen({ locale }: Readonly<{ locale: Locale }>) {
       return;
     }
     setMode(null);
-    decide(mode.id, mode.code === "OTHER" ? { outcome: "EXCLUDE", reason_code: "OTHER", reason_text: words } : { outcome: "EXCLUDE", reason_code: mode.code });
+    const decision: Record<string, string> = mode.code === "OTHER" ? { outcome: "EXCLUDE", reason_code: "OTHER", reason_text: words } : { outcome: "EXCLUDE", reason_code: mode.code };
+    if (mode.confirmRow) confirmFetched(mode.id, decision);
+    else decide(mode.id, decision);
   }
 
   function pick(index: number) {
-    if (!mode || mode.kind === "bulk") return;
+    if (!mode || mode.kind === "bulk" || mode.kind === "fetchConfirm") return;
+    if (mode.kind === "discard") {
+      const reason = DISCARD_REASONS[index];
+      if (!reason) return;
+      setMode({ ...mode, reason });
+      if (reason === "other") setTimeout(() => wordsInput.current?.focus(), 0);
+      return;
+    }
     if (mode.kind === "notRetrieved") {
       const reason = notRetrievedReasons[index];
       if (!reason) return;
@@ -972,6 +1281,8 @@ function ChartingScreen({ locale }: Readonly<{ locale: Locale }>) {
     setView(next);
     setEditing(null);
     setMode(null);
+    setPlan(null);
+    setTriedFor(null);
     setSelected(new Set());
     focusRow.current = true;
   }
@@ -1014,15 +1325,31 @@ function ChartingScreen({ locale }: Readonly<{ locale: Locale }>) {
         else if (exportOpen) {
           setExportOpen(false);
           exportButton.current?.focus();
+        } else if (plan) {
+          closePlan();
+          return;
         } else if (mode) setMode(null);
         else if (linkFor) setLinkFor(null);
-        else if (panelOpen) closePanel();
+        else if (triedFor) {
+          const row = triedFor;
+          setTriedFor(null);
+          moveFocus(row);
+          return;
+        } else if (panelOpen) closePanel();
         else if (selected.size > 0) setSelected(new Set());
         if (mode && here) moveFocus(here);
         return;
       }
       // The panel and the menu are forms of their own: the screen's letters do not reach them.
       if (inPanel || inMenu) return;
+      // Part F: while the plan panel is open, Enter starts the look-up and the other keys wait.
+      if (plan) {
+        if (event.key === "Enter" && !(target instanceof HTMLElement && target.closest("button, a, summary, input, select, textarea") !== null)) {
+          event.preventDefault();
+          void startLookup();
+        }
+        return;
+      }
       if (mode) {
         if (event.key === "Enter" && (inWords || !isTextField(target)) && !(target instanceof HTMLButtonElement)) {
           event.preventDefault();
@@ -1046,7 +1373,7 @@ function ChartingScreen({ locale }: Readonly<{ locale: Locale }>) {
       const inGrid = target instanceof HTMLElement && (target.closest("[role=grid]") !== null || target === document.body);
       if (arrow && !inGrid) return;
       // The full-text keys act in the Full text view (spec 01 "Keyboard").
-      const fullTextOnly = ["toGet", "requested", "retrieved", "notRetrieved", "include", "exclude", "attach", "toggle", "selectAll", "extendDown", "extendUp"];
+      const fullTextOnly = ["toGet", "requested", "retrieved", "notRetrieved", "include", "exclude", "attach", "toggle", "selectAll", "extendDown", "extendUp", "lookup", "confirm", "discard"];
       if (view === "charting" && fullTextOnly.includes(key)) return;
       event.preventDefault();
       if (key === "help") setHelp((h) => !h);
@@ -1065,6 +1392,9 @@ function ChartingScreen({ locale }: Readonly<{ locale: Locale }>) {
       else if (key === "exclude") askDecision("EXCLUDE", here);
       else if (key === "attach" && here) startAttach(here);
       else if (key === "open" && here) open(here);
+      else if (key === "lookup") askLookup(here, "row");
+      else if (key === "confirm") askConfirm(here);
+      else if (key === "discard") askDiscard(here);
       else if (key === "undo") void undo();
       else if (key === "export") toggleExport();
       else if (key === "viewFulltext") changeView("fulltext");
@@ -1143,7 +1473,7 @@ function ChartingScreen({ locale }: Readonly<{ locale: Locale }>) {
         className={`min-h-11 rounded-md border border-rule-strong bg-leaf px-2 text-sm text-ink ${FOCUS_RING}`}
         data-show
       >
-        {SHOW_FILTERS.map((filter) => (
+        {SHOW_FILTERS.filter((filter) => filter !== "toConfirm" || view === "fulltext" || show === "toConfirm").map((filter) => (
           <option key={filter} value={filter}>
             {t(SHOW_KEY[filter])}
           </option>
@@ -1163,6 +1493,26 @@ function ChartingScreen({ locale }: Readonly<{ locale: Locale }>) {
       {statusWords(row)}
     </RoleBadge>
   );
+
+  // Part F: a waiting file is shown first; the earlier status stays beneath it and returns on discard.
+  const fulltextBadges = (row: ChartingRow) => (
+    <>
+      {row.fulltext.pending_fetch ? <FetchBadge locale={locale} /> : null}
+      {statusBadge(row)}
+    </>
+  );
+
+  const titleOf = (studyId: string) => byId.get(studyId)?.title ?? studyId;
+
+  /** Opening a waiting file needs the console: with it not answering, the link says so instead. */
+  const openFetched = (event: { preventDefault: () => void }) => {
+    if (!offline) return;
+    event.preventDefault();
+    setStatusLine(t("charting.refusal.OFFLINE"));
+  };
+
+  const pendingPhone = (row: ChartingRow) =>
+    row.fulltext.pending_fetch ? <PendingFile locale={locale} origin={origin} row={row} pending={row.fulltext.pending_fetch} titleOf={titleOf} phone onOpen={openFetched} /> : null;
 
   const reasonLine = (row: ChartingRow) => {
     const ft = row.fulltext;
@@ -1236,13 +1586,34 @@ function ChartingScreen({ locale }: Readonly<{ locale: Locale }>) {
     </span>
   );
 
+  const skippedLine = (skipped: number) => (skipped > 0 ? <p className="text-ink" data-bulk-skipped>{t("charting.fetch.bulkSkipped", { n: n(skipped) })}</p> : null);
+
   const confirmLine = (() => {
     if (!mode) return null;
     if (mode.kind === "bulk") {
       return (
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-          <p className="font-medium text-ink">{t("charting.bulk.confirm", { n: n(mode.ids.length), status: t(STATUS_KEY[mode.status]) })}</p>
-          <Button onClick={confirmMode} disabled={busy}>
+        <div className="space-y-2">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+            <p className="font-medium text-ink">{t("charting.bulk.confirm", { n: n(mode.ids.length), status: t(STATUS_KEY[mode.status]) })}</p>
+            <Button onClick={confirmMode} disabled={busy}>
+              {t("charting.reason.confirm")}
+            </Button>
+            <Button variant="quiet" onClick={() => setMode(null)}>
+              {t("charting.reason.cancel")}
+            </Button>
+          </div>
+          {skippedLine(mode.skipped)}
+        </div>
+      );
+    }
+    if (mode.kind === "fetchConfirm") {
+      const target = byId.get(mode.id);
+      return (
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2" data-fetch-ask={mode.then ?? "confirm"}>
+          <p className="font-medium text-ink">
+            {mode.then ? t("charting.fetch.confirm.beforeDecide") : <Say locale={locale} k="charting.fetch.confirm.line" values={{ title: target?.title ?? mode.id }} bdi={["title"]} />}
+          </p>
+          <Button variant="secondary" onClick={confirmMode} disabled={busy}>
             {t("charting.reason.confirm")}
           </Button>
           <Button variant="quiet" onClick={() => setMode(null)}>
@@ -1254,23 +1625,32 @@ function ChartingScreen({ locale }: Readonly<{ locale: Locale }>) {
     const chips =
       mode.kind === "notRetrieved"
         ? notRetrievedReasons.map((reason, i) => ({ key: reason, words: t(REASON_KEY[reason]), chosen: mode.reason === reason, code: null as string | null, i }))
-        : reasons.map((o, i) => ({ key: o.code, words: o.code === "OTHER" ? t("charting.decision.other") : o.label, chosen: mode.code === o.code, code: o.code === "OTHER" ? null : o.code, i }));
-    const needsWords = mode.kind === "notRetrieved" ? mode.reason === "other" : mode.code === "OTHER";
-    const target = mode.kind === "exclude" ? byId.get(mode.id) : undefined;
+        : mode.kind === "discard"
+          ? DISCARD_REASONS.map((reason, i) => ({ key: reason, words: t(DISCARD_KEY[reason]), chosen: mode.reason === reason, code: null as string | null, i }))
+          : reasons.map((o, i) => ({ key: o.code, words: o.code === "OTHER" ? t("charting.decision.other") : o.label, chosen: mode.code === o.code, code: o.code === "OTHER" ? null : o.code, i }));
+    const needsWords = mode.kind === "exclude" ? mode.code === "OTHER" : mode.reason === "other";
+    const target = mode.kind === "exclude" || mode.kind === "discard" ? byId.get(mode.id) : undefined;
+    const groupName = mode.kind === "notRetrieved" ? t("charting.status.notRetrieved") : mode.kind === "discard" ? t("charting.fetch.discard") : t("charting.decision.exclude");
+    const wordsKey: ChartingCopyKey = mode.kind === "notRetrieved" ? "charting.notRetrieved.words" : mode.kind === "discard" ? "charting.fetch.discard.words" : "charting.decision.words";
     return (
       <div className="space-y-2">
         <p className="font-medium text-ink">
-          {mode.kind === "notRetrieved"
-            ? mode.ids.length > 1
+          {mode.kind === "notRetrieved" ? (
+            mode.ids.length > 1
               ? `${t("charting.bulk.confirm", { n: n(mode.ids.length), status: t("charting.status.notRetrieved") })} ${t("charting.notRetrieved.choose")}`
               : t("charting.notRetrieved.choose")
-            : (
-              <>
-                {t("charting.decision.exclude")}: <bdi>{target?.title ?? mode.id}</bdi> · {t("charting.decision.choose")}
-              </>
-            )}
+          ) : mode.kind === "discard" ? (
+            <>
+              {t("charting.fetch.discard")}: <bdi>{target?.title ?? mode.id}</bdi> · {t("charting.fetch.discard.choose")}
+            </>
+          ) : (
+            <>
+              {t("charting.decision.exclude")}: <bdi>{target?.title ?? mode.id}</bdi> · {t("charting.decision.choose")}
+            </>
+          )}
         </p>
-        <div className="flex flex-wrap gap-2" role="radiogroup" aria-label={mode.kind === "notRetrieved" ? t("charting.status.notRetrieved") : t("charting.decision.exclude")}>
+        {mode.kind === "notRetrieved" ? skippedLine(mode.skipped) : null}
+        <div className="flex flex-wrap gap-2" role="radiogroup" aria-label={groupName}>
           {chips.map((chip) => (
             <button
               key={chip.key}
@@ -1291,7 +1671,7 @@ function ChartingScreen({ locale }: Readonly<{ locale: Locale }>) {
         </div>
         {needsWords ? (
           <label className="flex flex-col gap-1 text-sm text-ink">
-            <span>{t(mode.kind === "notRetrieved" ? "charting.notRetrieved.words" : "charting.decision.words")}</span>
+            <span>{t(wordsKey)}</span>
             <input
               ref={wordsInput}
               data-mode-words=""
@@ -1317,6 +1697,27 @@ function ChartingScreen({ locale }: Readonly<{ locale: Locale }>) {
   const fileCell = (row: ChartingRow) => {
     const ft = row.fulltext;
     const disabled = readOnly || !row.kept || busy;
+    if (ft.pending_fetch) {
+      return (
+        <PendingFile
+          locale={locale}
+          origin={origin}
+          row={row}
+          pending={ft.pending_fetch}
+          titleOf={titleOf}
+          disabled={disabled}
+          onOpen={openFetched}
+          onConfirm={() => {
+            setFocusId(row.study_id);
+            askConfirm(row.study_id);
+          }}
+          onDiscard={() => {
+            setFocusId(row.study_id);
+            askDiscard(row.study_id);
+          }}
+        />
+      );
+    }
     return (
       <span className="flex flex-col items-start gap-1">
         {ft.attachment ? (
@@ -1457,6 +1858,8 @@ function ChartingScreen({ locale }: Readonly<{ locale: Locale }>) {
     studyCell,
     decisionBadge,
     statusBadge,
+    fulltextBadges,
+    pendingPhone,
     roundWords,
     t,
   };
@@ -1480,6 +1883,49 @@ function ChartingScreen({ locale }: Readonly<{ locale: Locale }>) {
       </div>
     </section>
   ) : null;
+
+  // Part F: the run card, the end summary or the card of an interrupted run (one at a time, above the rows).
+  const run = fetchRun.run;
+  const tryLaterIds =
+    run && run.run_id
+      ? (table?.rows ?? []).filter((r) => r.kept && !waitingFile(r) && r.fulltext.last_lookup?.try_later && r.fulltext.last_lookup.run_id === run.run_id).map((r) => r.study_id)
+      : [];
+  const fetchCard = (phone: boolean): ReactNode => {
+    if (!run || !run.run_id) {
+      return !phone && !loading && !fetchRun.loaded ? <p aria-hidden="true" className="h-16 w-full animate-pulse rounded-md bg-rule" data-skeleton="run" /> : null;
+    }
+    if (ACTIVE_STATES.has(run.state)) {
+      return <RunCard locale={locale} run={run} lost={fetchRun.lost} offline={offline} canCancel={!readOnly} phone={phone} n={n} onCancel={() => void cancelRun()} />;
+    }
+    if (dismissed.has(run.run_id)) return null;
+    const dismiss = () => setDismissed((current) => new Set([...current, run.run_id!]));
+    if (run.state === "interrupted" || run.state === "failed") return <InterruptedCard locale={locale} run={run} n={n} phone={phone} onDismiss={dismiss} />;
+    if (run.state !== "finished" && run.state !== "cancelled") return null;
+    return (
+      <SummaryCard
+        locale={locale}
+        run={run}
+        watched={fetchRun.watched}
+        toConfirm={counts?.to_confirm ?? 0}
+        tryLater={tryLaterIds.length}
+        phone={phone}
+        n={n}
+        onShow={() => {
+          if (view !== "fulltext") changeView("fulltext");
+          changeShow("toConfirm");
+          focusRow.current = true;
+        }}
+        onSelect={() => {
+          if (view !== "fulltext") changeView("fulltext");
+          // The rows are selected and nothing else: a look-up starts only from L and its plan.
+          if (show !== "all" && tryLaterIds.some((id) => !rows.some((r) => r.study_id === id))) setShow("all");
+          setSelected(new Set(tryLaterIds));
+          moveFocus(tryLaterIds[0] ?? focusId);
+        }}
+        onDismiss={dismiss}
+      />
+    );
+  };
 
   const noColumnsState = (
     <section className="rounded-md border border-rule bg-leaf p-5" data-state="no-columns">
@@ -1563,6 +2009,8 @@ function ChartingScreen({ locale }: Readonly<{ locale: Locale }>) {
               excluded: n(counts.excluded),
               charted: n(counts.charted ?? 0),
             })}
+            {/* Part F (question 1): the waiting files, counted apart, only when there are some. */}
+            {(counts.to_confirm ?? 0) > 0 ? <span data-counts-to-confirm>{` · ${t("charting.fetch.counts.toConfirm", { n: n(counts.to_confirm ?? 0) })}`}</span> : null}
           </p>
         )}
       </header>
@@ -1574,6 +2022,7 @@ function ChartingScreen({ locale }: Readonly<{ locale: Locale }>) {
       {/* Phone: a read-only list (spec 01 "Mobile layout"); each card opens the one-study view (spec 02). */}
       <section className="space-y-3 sm:hidden" data-phone>
         <p className="rounded-md border border-rule bg-leaf px-4 py-3 text-ink">{t("charting.mobile")}</p>
+        {viewport === "desktop" ? null : fetchCard(true)}
         {showSelect("charting-show-phone")}
         {loading || viewport === "desktop" ? null : (
           <ul className="space-y-2" data-phone-list>
@@ -1616,6 +2065,26 @@ function ChartingScreen({ locale }: Readonly<{ locale: Locale }>) {
             <AdjustmentsHorizontalIcon aria-hidden="true" className="size-4" />
             {t("charting.form.button")} <kbd className="text-xs opacity-80">F</kbd>
           </Button>
+          {view === "fulltext" ? (
+            <span className="flex flex-wrap items-center gap-2" data-fetch-look-group>
+              <Button
+                ref={lookButton}
+                variant="quiet"
+                disabled={loading || readOnly || nothingKept || !lookable}
+                aria-expanded={plan !== null}
+                onClick={() => askLookup(focusId, "button")}
+                data-fetch-look
+              >
+                <MagnifyingGlassIcon aria-hidden="true" className="size-4" />
+                {t("charting.fetch.look")} <kbd className="text-xs opacity-80">L</kbd>
+              </Button>
+              {!loading && !nothingKept && !lookable ? (
+                <span className="text-xs text-ink-muted" data-fetch-look-disabled>
+                  {t("charting.fetch.look.disabled")}
+                </span>
+              ) : null}
+            </span>
+          ) : null}
           {form ? (
             <span className="flex min-h-11 items-center gap-2 text-sm text-ink" data-pilot>
               <button
@@ -1674,6 +2143,9 @@ function ChartingScreen({ locale }: Readonly<{ locale: Locale }>) {
             </h2>
             <p className="mt-2 text-ink-muted">{t("charting.help.body")}</p>
             <p className="mt-2 text-ink-muted">{t("charting.help.bodyCharting")}</p>
+            <p className="mt-2 text-ink-muted" data-help-fetch>
+              {t("charting.help.bodyFetch")}
+            </p>
             <Button variant="quiet" className="mt-2" onClick={() => setHelp(false)}>
               {t("charting.help.close")}
             </Button>
@@ -1728,6 +2200,19 @@ function ChartingScreen({ locale }: Readonly<{ locale: Locale }>) {
         {refusal ? (
           <div role="alert" className="rounded-md bg-blocked-soft px-4 py-3 text-blocked" data-refusal={refusal.code}>
             <p>{refusalWords(locale, refusal.code)}</p>
+            {refusal.code === "FETCH_ALREADY_ACTIVE" ? (
+              <Button
+                variant="quiet"
+                className="px-1"
+                onClick={() => {
+                  setRefusal(null);
+                  void fetchRun.refresh();
+                }}
+                data-fetch-show-progress
+              >
+                {t("charting.fetch.run.showProgress")}
+              </Button>
+            ) : null}
             <details className="text-xs">
               <summary className={summaryClass}>{t("charting.details")}</summary>
               <span className="font-mono" dir="ltr">
@@ -1739,6 +2224,26 @@ function ChartingScreen({ locale }: Readonly<{ locale: Locale }>) {
 
         <div aria-live="polite" className="min-h-0" data-confirm-line>
           {confirmLine ? <div className="rounded-md border border-dashed border-brand bg-brand-soft px-4 py-3">{confirmLine}</div> : null}
+          {plan ? (
+            <PlanBlock
+              locale={locale}
+              state={plan}
+              one={false}
+              scopeAll={plan.ids === null}
+              busy={busy}
+              blockRef={planRef}
+              onStart={() => void startLookup()}
+              onCancel={closePlan}
+            />
+          ) : null}
+        </div>
+
+        {/* Part F: the look-up's own live region, then its card (spec 03 "Running", "End summary"). */}
+        <div className="space-y-2" data-fetch-region>
+          <p role="status" aria-live="polite" className="sr-only" data-fetch-announce>
+            {fetchRun.announce}
+          </p>
+          {fetchCard(false)}
         </div>
 
         {firstVisitCard}
@@ -1828,9 +2333,22 @@ function ChartingScreen({ locale }: Readonly<{ locale: Locale }>) {
                           </th>
                           <td className={cell}>{roundWords(row)}</td>
                           <td className={cell}>
-                            <span className="flex flex-col items-start">
-                              {statusBadge(row)}
+                            <span className="flex flex-col items-start gap-1">
+                              {fulltextBadges(row)}
                               {reasonLine(row)}
+                              <LookupLines locale={locale} row={row} />
+                              {row.fulltext.last_lookup ? (
+                                <TriedDisclosure
+                                  locale={locale}
+                                  origin={origin}
+                                  row={row}
+                                  open={triedFor === row.study_id}
+                                  onToggle={(open) => {
+                                    setFocusId(row.study_id);
+                                    setTriedFor(open ? row.study_id : null);
+                                  }}
+                                />
+                              ) : null}
                             </span>
                           </td>
                           <td className={cell}>{fileCell(row)}</td>
@@ -1840,7 +2358,11 @@ function ChartingScreen({ locale }: Readonly<{ locale: Locale }>) {
                     })}
               </tbody>
             </table>
-            {!loading && rows.length === 0 ? <p className="px-4 py-6 text-ink-muted" data-empty-filter>{t("charting.empty.filter")}</p> : null}
+            {!loading && rows.length === 0 ? (
+              <p className="px-4 py-6 text-ink-muted" data-empty-filter>
+                {show === "toConfirm" ? t("charting.fetch.empty.toConfirm") : t("charting.empty.filter")}
+              </p>
+            ) : null}
           </div>
           )}
           </div>
@@ -1862,6 +2384,11 @@ function ChartingScreen({ locale }: Readonly<{ locale: Locale }>) {
           </div>
         )}
 
+        {show === "toConfirm" && counts && !loading ? (
+          <p className="text-sm text-ink-muted" data-shown>
+            {t("charting.table.shown", { n: n(rows.length), total: n(counts.kept) })}
+          </p>
+        ) : null}
         <p className="min-h-5 text-sm text-ink" data-status-line>
           {statusLine}
         </p>
