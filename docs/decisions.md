@@ -10,12 +10,11 @@ history to read if you need the original reasoning (`git log --follow -- <path>`
 
 | Entry | Item | What is open |
 | :-- | :-- | :-- |
-| 2026-11-22 — M12a Part B follow-up: merging columns; attach and open tested | 1 to 7 | Proposed with the build; the researcher's answer is pending. |
 | 2026-11-19 — M9a: what the measurement says about the ladder gates | 2 | The minimum share of the researcher's excludes an agent must take before a rung unlocks: the principle is accepted; the researcher decided on 2026-11-20 to set the number when M9b is built. |
 
-## 2026-11-22 — M12a Part B follow-up: merging columns from the form panel; attach and open tested in the browser (items 1 to 7 PROPOSED)
+## 2026-11-22 — M12a Part B follow-up: merging columns from the form panel; attach and open tested in the browser (items 1 to 7 accepted by the researcher 2026-11-22 as built)
 
-Record: `docs/roadmap/milestones/M12a-charting-table.md`, "Build record", "Part B follow-up". The two things Part B did not build, which the researcher asked for as a follow-up after Part B merged (2026-11-22). The engine already records a merge (Part B items 4 and 5); nothing in it changes. This amends the last sentence of accepted Part B item 25 ("Merging columns in the panel is not built"). The build's own choices; none is accepted until the researcher answers.
+Record: `docs/roadmap/milestones/M12a-charting-table.md`, "Build record", "Part B follow-up". The two things Part B did not build, which the researcher asked for as a follow-up after Part B merged (2026-11-22). The engine already records a merge (Part B items 4 and 5); nothing in it changes. This amends the last sentence of accepted Part B item 25 ("Merging columns in the panel is not built"). The build's own choices. The researcher accepted all seven as built on 2026-11-22 (asked in the main session, together, on its recommendation) and approved the push.
 
 1. **The control**: each column card gets a quiet "Merge with…" after "Split into two" (disabled while the table is read-only or the form has fewer than two columns). It opens a small chooser under the card, not a dialog: a labelled select "Merge {name} with" listing the other columns in form order (the first one picked), then "Merge the two columns" and "Cancel"; Esc closes only the chooser; the focus goes to the select, back to the button on Cancel or Esc, and to the new column's name after a merge, as with a split.
 2. **The new column**: Text, no options, named "{a} and {b}" in form order (fr "{a} et {b}", ar "{a} و{b}"), at most 200 characters; its definition the two joined with "; " (at most 2,000); required if either was; no protocol id; it takes the first column's place, replaces both, and its `derived_from` names both.

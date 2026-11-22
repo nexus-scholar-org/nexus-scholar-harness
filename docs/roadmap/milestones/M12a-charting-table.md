@@ -604,7 +604,7 @@ The static export (asked for by the main session before the PR; the app is shipp
 
 ### Part B follow-up: merging columns from the form panel; attach and open in the one-study view, tested
 
-Branch `dev/m12a/part-b-followup`, from `origin/main` `933be3fb` (Parts A and B merged) · Lane **STANDARD** (a bounded UI behaviour change in one repository: it writes form amendments through the existing API; the engine's merge exists since Part B) · Decisions: `docs/decisions.md` "2026-11-22 — M12a Part B follow-up" items 1 to 7 (PROPOSED). Asked for by the researcher on 2026-11-22, when accepting Part B: the two things Part B had not built ("Not verified" of Part B). The work was built by a subagent from a brief written in the build session.
+Branch `dev/m12a/part-b-followup`, from `origin/main` `933be3fb` (Parts A and B merged) · Lane **STANDARD** (a bounded UI behaviour change in one repository: it writes form amendments through the existing API; the engine's merge exists since Part B) · Decisions: `docs/decisions.md` "2026-11-22 — M12a Part B follow-up" items 1 to 7 (accepted as built 2026-11-22). Asked for by the researcher on 2026-11-22, when accepting Part B: the two things Part B had not built ("Not verified" of Part B). The work was built by a subagent from a brief written in the build session.
 
 What was built:
 - `apps/research-ui/components/charting-form-panel.tsx`: "Merge with…" on each column card, its chooser and the merge (decision items 1 to 5); `lib/charting-copy.ts`: five keys in en, fr and ar.
@@ -639,4 +639,4 @@ Evidence after round 1, on `a910b2d3` (the repairs `7309bc27` to `3ebbe064`, the
 
 Review round 2 (`milestone-reviewer`, on `7765cb09`): **APPROVE**. In its words: "All six round-1 findings and both follow-ups are repaired, and I found nothing new." It reran the form-panel and history vitest files (17 tests), all passing, and read the recorded gate. One P4, repaired in the closing commit: the list of new tests above now counts five.
 
-**Part B follow-up: READY FOR PR** (not pushed). Branch `dev/m12a/part-b-followup`; it carries `origin/main` `9e4be45f`. Decision items 1 to 7 are PROPOSED (item 4 says how the engine records a split of an unsaved merge; the entry amends accepted Part B item 25's last sentence). The push waits for the researcher's approval through the main session.
+**Part B follow-up: READY FOR PR.** Branch `dev/m12a/part-b-followup`; it carries `origin/main` `9e4be45f`. Decision items 1 to 7 were accepted by the researcher on 2026-11-22 as built (asked together in the main session; item 4 says how the engine records a split of an unsaved merge; the entry amends accepted Part B item 25's last sentence), and the push was approved.
