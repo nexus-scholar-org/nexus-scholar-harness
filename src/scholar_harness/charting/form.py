@@ -53,6 +53,7 @@ CHARTING_COLUMN_UNKNOWN = "CHARTING_COLUMN_UNKNOWN"
 CHARTING_AMENDMENT_REASON_REQUIRED = "CHARTING_AMENDMENT_REASON_REQUIRED"
 CHARTING_FORM_STALE = "CHARTING_FORM_STALE"
 BODY_INVALID = "BODY_INVALID"
+ATOMIC_COMMIT_FAILED = "ATOMIC_COMMIT_FAILED"
 
 _COLUMN_ID = re.compile(r"^[A-Za-z0-9_-]{1,64}$")
 
@@ -98,14 +99,20 @@ def _seed_columns(ws: Path) -> list[dict[str, Any]]:
 
 
 def read_form(ws: Path) -> dict[str, Any] | None:
+    """The form, None when there is none yet; a file that is not a form this version reads is refused, never replaced."""
     path = Path(ws) / FORM_FILE
     if not path.is_file():
         return None
     try:
         data = json.loads(path.read_text(encoding="utf-8"))
     except (OSError, ValueError) as exc:
-        raise ChartingRefused(409, BODY_INVALID, f"charting/form.json cannot be read ({type(exc).__name__})") from exc
-    return data if isinstance(data, dict) and data.get("schema") == FORM_SCHEMA else None
+        raise ChartingRefused(409, CHARTING_FORM_STALE,
+                              f"charting/form.json cannot be read ({type(exc).__name__}); it is kept as it is.") from exc
+    if not (isinstance(data, dict) and data.get("schema") == FORM_SCHEMA):
+        # Review of Part B, finding 8: a hand-edited or newer form is never seeded over.
+        raise ChartingRefused(409, CHARTING_FORM_STALE,
+                              "charting/form.json is not a charting form this version reads; it is kept as it is.")
+    return data
 
 
 def _write_form(ws: Path, form: dict[str, Any]) -> None:
@@ -293,8 +300,15 @@ def save(
         changes = diff(form["columns"], columns)
         if not changes:
             return form
-        for c in columns:  # a new column may only derive from a column of this form
-            unknown = [p for p in c["derived_from"] if p not in {x["column_id"] for x in form["columns"]}]
+        current = {x["column_id"]: x for x in form["columns"]}
+        for c in columns:
+            # A column new in this save, or whose sources change, may only derive from a column of
+            # this form; a column made by an earlier split keeps naming its source (review of Part B,
+            # finding 1: the panel sends it back, and the split's history is read from it).
+            prior = current.get(c["column_id"])
+            if prior is not None and list(prior.get("derived_from") or []) == c["derived_from"]:
+                continue
+            unknown = [p for p in c["derived_from"] if p not in current]
             if unknown:
                 raise ChartingRefused(422, BODY_INVALID, f"derived_from names no column of the form: {', '.join(unknown)}")
         text = reason.strip() if isinstance(reason, str) else ""
@@ -303,32 +317,52 @@ def save(
         version = int(form["version"]) + 1
         at = now()
         pilot = bool((form.get("pilot") or {}).get("on"))
-        if has_values:
-            path = ws / AMENDMENTS_FILE
-            path.parent.mkdir(parents=True, exist_ok=True)
-            amendment_id = f"amd_{uuid.uuid4().hex[:12]}"
-            with path.open("a", encoding="utf-8", newline="\n") as handle:
-                for n, change in enumerate(changes, start=1):
-                    row = {
-                        "schema": AMENDMENT_SCHEMA, "amendment_id": amendment_id, "change_no": n, **change,
-                        "reason": text, "pilot": pilot, "amended_by": screener_id, "amended_at": at,
-                        "form_version_from": form["version"], "form_version_to": version,
-                        "protocol_fingerprint": protocol_fingerprint, "generation_id": generation_id,
-                    }
-                    handle.write(json.dumps(row, ensure_ascii=False, sort_keys=True) + "\n")
-        form = {**form, "columns": columns, "version": version, "updated_at": at}
-        _write_form(ws, form)
-        append_event(
-            ws, "CHARTING_FORM_AMENDED" if has_values else "CHARTING_FORM_CHANGED",
-            (f"Charting form amended to version {version}: " if has_values else f"Charting form changed to version {version} (no value yet): ")
-            + "; ".join(c["change"] for c in changes),
-            agent="scholar-harness/charting",
-            outputs=[FORM_FILE.as_posix()] + ([AMENDMENTS_FILE.as_posix()] if has_values else []),
-            parameters={"version": version, "changes": changes, "reason": text or None, "pilot": pilot,
-                        "screener_id": screener_id},
-            metrics={"changes": len(changes)}, refresh_index=False,
-        )
+        previous = form
+        path = ws / AMENDMENTS_FILE
+        size = path.stat().st_size if path.exists() else None
+        try:
+            if has_values:
+                path.parent.mkdir(parents=True, exist_ok=True)
+                amendment_id = f"amd_{uuid.uuid4().hex[:12]}"
+                with path.open("a", encoding="utf-8", newline="\n") as handle:
+                    for n, change in enumerate(changes, start=1):
+                        row = {
+                            "schema": AMENDMENT_SCHEMA, "amendment_id": amendment_id, "change_no": n, **change,
+                            "reason": text, "pilot": pilot, "amended_by": screener_id, "amended_at": at,
+                            "form_version_from": form["version"], "form_version_to": version,
+                            "protocol_fingerprint": protocol_fingerprint, "generation_id": generation_id,
+                        }
+                        handle.write(json.dumps(row, ensure_ascii=False, sort_keys=True) + "\n")
+            form = {**form, "columns": columns, "version": version, "updated_at": at}
+            _write_form(ws, form)
+            append_event(
+                ws, "CHARTING_FORM_AMENDED" if has_values else "CHARTING_FORM_CHANGED",
+                (f"Charting form amended to version {version}: " if has_values else f"Charting form changed to version {version} (no value yet): ")
+                + "; ".join(c["change"] for c in changes),
+                agent="scholar-harness/charting",
+                outputs=[FORM_FILE.as_posix()] + ([AMENDMENTS_FILE.as_posix()] if has_values else []),
+                parameters={"version": version, "changes": changes, "reason": text or None, "pilot": pilot,
+                            "screener_id": screener_id},
+                metrics={"changes": len(changes)}, refresh_index=False,
+            )
+        except Exception as exc:  # review of Part B, finding 7: all three writes or none
+            _roll_back(ws, previous, path, size)
+            raise ChartingRefused(503, ATOMIC_COMMIT_FAILED,
+                                  "The form change and its journal row could not be written together; nothing changed.") from exc
     return form
+
+
+def _roll_back(ws: Path, previous: dict[str, Any], amendments: Path, size: int | None) -> None:
+    """Put the form and the amendments file back as they were before a failed save."""
+    try:
+        if size is None:
+            amendments.unlink(missing_ok=True)
+        elif amendments.exists():
+            with amendments.open("r+b") as handle:
+                handle.truncate(size)
+        _write_form(ws, previous)
+    except OSError:
+        pass  # the refusal still says nothing changed; the next read shows what is on disk
 
 
 def end_pilot(ws: Path, *, screener_id: str, base_version: Any) -> dict[str, Any]:
@@ -341,12 +375,19 @@ def end_pilot(ws: Path, *, screener_id: str, base_version: Any) -> dict[str, Any
         if not (form.get("pilot") or {}).get("on"):
             return form
         at = now()
+        previous = form
         form = {**form, "pilot": {"on": False, "ended_at": at, "ended_by": screener_id,
                                   "ended_at_version": form["version"]}, "updated_at": at}
-        _write_form(ws, form)
-        append_event(ws, "CHARTING_PILOT_ENDED", "The charting pilot ended",
-                     agent="scholar-harness/charting", outputs=[FORM_FILE.as_posix()],
-                     parameters={"version": form["version"], "screener_id": screener_id}, refresh_index=False)
+        try:
+            _write_form(ws, form)
+            append_event(ws, "CHARTING_PILOT_ENDED", "The charting pilot ended",
+                         agent="scholar-harness/charting", outputs=[FORM_FILE.as_posix()],
+                         parameters={"version": form["version"], "screener_id": screener_id}, refresh_index=False)
+        except Exception as exc:
+            _roll_back(ws, previous, Path(ws) / AMENDMENTS_FILE, (Path(ws) / AMENDMENTS_FILE).stat().st_size
+                       if (Path(ws) / AMENDMENTS_FILE).exists() else None)
+            raise ChartingRefused(503, ATOMIC_COMMIT_FAILED,
+                                  "The end of the pilot and its journal row could not be written together.") from exc
     return form
 
 
@@ -376,13 +417,17 @@ def cell_refusal(value: Any, form: dict[str, Any]) -> dict[str, str] | None:
     if kind == "text":
         return None if isinstance(v, str) and v.strip() and len(v) <= MAX_TEXT_VALUE else bad
     if kind == "number":
-        ok = isinstance(v, (int, float)) and not isinstance(v, bool) and math.isfinite(v)
+        try:
+            ok = isinstance(v, (int, float)) and not isinstance(v, bool) and math.isfinite(v)
+        except OverflowError:  # review of Part B, finding 2: an integer beyond a float's range
+            ok = False
         return None if ok else bad
     if kind in ("one", "yes_no"):
         return None if isinstance(v, str) and v in column["options"] else {
             "code": CHARTING_VALUE_INVALID, "message": "That value is not one of the options."}
     if kind == "several":
-        ok = isinstance(v, list) and v and len(set(v)) == len(v) and all(isinstance(x, str) and x in column["options"] for x in v)
+        ok = (isinstance(v, list) and v and all(isinstance(x, str) for x in v)  # strings first (review, finding 2)
+              and len(set(v)) == len(v) and all(x in column["options"] for x in v))
         return None if ok else {"code": CHARTING_VALUE_INVALID, "message": "Those values are not all options."}
     return bad
 

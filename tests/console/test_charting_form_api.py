@@ -154,6 +154,9 @@ def test_cells_of_every_type_with_not_reported_not_applicable_note_and_where_fro
     ("no_such_column", "value", "x", "CHARTING_COLUMN_UNKNOWN"),
     ("split", "not_reported", "By date", "BODY_INVALID"),
     ("split", "guessed", None, "BODY_INVALID"),
+    ("sensor_problems", "value", [{"x": 1}], "CHARTING_VALUE_INVALID"),  # review of Part B, finding 2
+    ("sensor_problems", "value", [["Misregistration"]], "CHARTING_VALUE_INVALID"),
+    ("n_images", "value", 10**400, "CHARTING_VALUE_INVALID"),
 ])
 def test_a_value_that_does_not_fit_its_column_is_refused(env, column, state, value, code):
     client, ws, ids = env
@@ -257,6 +260,98 @@ def test_a_split_marks_the_new_columns_with_the_earlier_value_as_history(env):
     assert (ws / "charting" / "events").is_dir()  # the old column's cell is kept in the log
 
 
+def _split_cameras(client):
+    columns = [c for c in _form(client)["columns"] if c["column_id"] != "cameras"]
+    columns += [
+        {"column_id": "camera_models", "name": "Cameras", "definition": "", "type": "text", "options": [],
+         "required": False, "derived_from": ["cameras"]},
+        {"column_id": "cross_test", "name": "Test camera absent from training", "definition": "", "type": "yes_no",
+         "options": [], "required": False, "derived_from": ["cameras"]},
+    ]
+    return columns
+
+
+def test_after_a_split_the_form_still_saves_and_the_split_history_stays(env):
+    """Review of Part B, finding 1: the new columns keep naming their source, and later saves pass."""
+    client, ws, ids = env
+    _post(client, _cell(ids["included"], "cameras", "value", "RedEdge-M"))
+    assert _put(client, _split_cameras(client), reason="One value per question.").status_code == 200
+    columns = _form(client)["columns"]
+    assert next(c for c in columns if c["column_id"] == "camera_models")["derived_from"] == ["cameras"]
+    next(c for c in columns if c["column_id"] == "camera_models")["name"] = "Camera models"
+    renamed = _put(client, columns, reason="Clearer name.")
+    assert renamed.status_code == 200, renamed.text
+    cell = _row(client, ids["included"])["cells"]["camera_models"]
+    assert cell["chart_again"] is True and cell["history"][-1]["value"] == "RedEdge-M"
+    columns = _form(client)["columns"]
+    columns.append({"column_id": "orphan", "name": "Orphan", "definition": "", "type": "text", "options": [],
+                    "required": False, "derived_from": ["cameras"]})  # a new column may not name a column that is gone
+    refused = _put(client, columns, reason="x")
+    assert refused.status_code == 422 and refused.json()["detail"]["code"] == "BODY_INVALID"
+
+
+def test_a_free_split_before_any_value_also_keeps_saving(env):
+    client, _, _ = env
+    assert _put(client, _split_cameras(client)).status_code == 200
+    columns = _form(client)["columns"]
+    columns[0]["name"] = "Sensor problems"
+    assert _put(client, columns).status_code == 200
+
+
+def test_a_replaced_column_and_a_merge_are_recorded_and_mark_chart_again(env):
+    """Review of Part B, finding 5: replacement and merge are tested on the real engine."""
+    client, ws, ids = env
+    study = ids["included"]
+    _post(client, _cell(study, "cameras", "value", "Sequoia"), _cell(study, "n_images", "value", 1260),
+          _cell(study, "split", "not_reported"))
+    columns = [c for c in _form(client)["columns"] if c["column_id"] != "cameras"]
+    columns.append({"column_id": "camera_list", "name": "Cameras used", "definition": "", "type": "text",
+                    "options": [], "required": False, "derived_from": ["cameras"]})
+    assert _put(client, columns, reason="One column for the cameras.").status_code == 200
+    columns = [c for c in _form(client)["columns"] if c["column_id"] not in ("n_images", "split")]
+    columns.append({"column_id": "data", "name": "Images and split", "definition": "", "type": "text",
+                    "options": [], "required": False, "derived_from": ["n_images", "split"]})
+    assert _put(client, columns, reason="Size and split read together.").status_code == 200
+    rows = [json.loads(line) for line in (ws / "charting" / "form_amendments.jsonl").read_text(encoding="utf-8").splitlines()]
+    assert [r["change"] for r in rows] == ["replaced", "merged"]
+    assert rows[1]["from"] == ["Images", "Data split"] and rows[1]["columns"] == ["n_images", "split"]
+    cells = _row(client, study)["cells"]
+    assert cells["camera_list"]["chart_again"] is True and cells["camera_list"]["history"][-1]["value"] == "Sequoia"
+    merged = cells["data"]
+    assert merged["chart_again"] is True
+    assert {h["column"] for h in merged["history"]} == {"Images", "Data split"}
+
+
+def test_a_form_file_this_version_cannot_read_is_refused_and_kept(env):
+    """Review of Part B, finding 8: never seeded over."""
+    client, ws, _ = env
+    client.get(BASE)
+    path = ws / "charting" / "form.json"
+    path.write_text(json.dumps({"schema": "nexus.charting-form.v9", "columns": []}), encoding="utf-8")
+    response = client.get(BASE)
+    assert response.status_code == 409 and response.json()["detail"]["code"] == "CHARTING_FORM_STALE"
+    assert json.loads(path.read_text(encoding="utf-8"))["schema"] == "nexus.charting-form.v9"
+
+
+def test_a_form_save_whose_journal_row_fails_changes_nothing(env, monkeypatch):
+    """Review of Part B, finding 7: the amendment rows, the form and its journal row together or not at all."""
+    client, ws, ids = env
+    _post(client, _cell(ids["included"], "cameras", "value", "Sequoia"))
+    before = (ws / "charting" / "form.json").read_bytes()
+    from scholar_harness.charting import form as fm
+
+    def broken(*args, **kwargs):
+        raise OSError("the journal cannot be written")
+
+    monkeypatch.setattr(fm, "append_event", broken)
+    columns = _form(client)["columns"]
+    columns[1]["name"] = "Cameras"
+    response = _put(client, columns, reason="Shorter.")
+    assert response.status_code == 503 and response.json()["detail"]["code"] == "ATOMIC_COMMIT_FAILED"
+    assert (ws / "charting" / "form.json").read_bytes() == before
+    assert not (ws / "charting" / "form_amendments.jsonl").exists()
+
+
 # ------------------------------------------------------------------ DoD 13: pilot
 
 
@@ -302,6 +397,17 @@ def test_the_charting_csv_writes_words_for_not_reported_and_leaves_uncharted_cel
     assert "Cameras and evaluation design (where from)" in lines[0]
     row = next(line for line in lines if line.startswith(ids["included"]))
     assert "Sequoia,n,p. 2" in row and "Not reported" in row and "Not applicable" in row and "No full text" in row
+    import csv
+    import io
+
+    parsed = list(csv.reader(io.StringIO(text)))
+    cells = dict(zip(parsed[0], next(r for r in parsed if r and r[0] == ids["included"])))
+    assert cells["Sensor problems addressed"] == "" and cells["Data split"] == "Not applicable"  # not charted: empty
+    # A row excluded at full text is left out (review of Part B, finding 6).
+    _post(client, {"event_id": str(uuid.uuid4()), "study_id": ids["unclear"], "screener_id": WHO, "at": "2026-11-21T10:00:00Z",
+                   "kind": "fulltext_decision", "value": {"outcome": "EXCLUDE", "reason_code": ids["code"]}})
+    again = client.get(f"{BASE}/export", params={"format": "csv", "view": "charting"}).content.decode("utf-8-sig")
+    assert ids["unclear"] not in again and ids["included"] in again
     assert _journal(ws, "CHARTING_EXPORTED")[-1]["parameters"]["view"] == "charting"
 
 

@@ -543,7 +543,8 @@ DoD 14's budget (150 kept rows × 5 columns, about half charted): `charting.budg
 Fails before: on `b4bdd6eb`'s source the new Python tests fail (no `/form` route, no `cell` kind, no form in the table's answer); the screens are new.
 
 Not verified:
-- Merging columns in the panel is not built (the engine supports it, `test_charting_form_api.py` covers only split and replacement through the panel's words).
+- Merging columns in the panel is not built; the engine's merge and replacement are tested (`test_a_replaced_column_and_a_merge_are_recorded_and_mark_chart_again`), the panel offers a split only.
+- The count of required cells not charted (scope (e): "the export counts their uncharted cells") is deferred to Part C's export and methods text; Part B marks required columns and counts rows not charted.
 - Attach a PDF and Open it from the one-study view: the controls exist (Part A's actions) but no test drives them there.
 - `npm run build:export` (the static export) was not run; the study route uses a query parameter so that it can be exported.
 - Every UI test uses the fake console; the fake imitates the "Chart again" rules, which the Python tests check on the real engine.
@@ -561,3 +562,19 @@ Evidence:
 | pr (UI half, final) | `4f8139df` | the Python files that read the UI's files (`test_browser_access`, `test_lineage_api`, `test_screening_drafts_api`, `test_screening_read_api`, `test_wheel_build_hook`, `test_select_test_gate`; junit); typecheck; `vitest run`; build; `playwright test`; `git diff --check origin/main...HEAD` | 113 tests, 0 failures; clean; 89 files, 1177 tests, 0 failures; built; 680 passed, 12 skipped; clean | 76 s; 159 s; 26 s; 1050 s |
 
 Since `117c92f2` only UI files and documents changed (`git diff --name-only 117c92f2 4f8139df`: `charting-page.tsx`, `charting-study.tsx`, `charting.charting-view.test.tsx`, `tests/fixtures/guidance-audit.ts`, `docs/decisions.md`, `docs/ux/shared/final/03-guidance.md`), so the full Python run on `117c92f2` stands for the Python side, and the Python tests that read files under `apps/research-ui/` ran again on `4f8139df`. Both Playwright runs rewrote the same four screenshots as Part A's (workspaces at 1440 and 375, the empty import, the open mobile menu); they were restored.
+
+Review round 1 (`milestone-reviewer`, on `57a96c29`, scope `d110afe4..HEAD`): **CHANGES**, 1 P1, 2 P2, 6 P3 (and P4 follow-ups); decision items judged readings except item 13 (it changes spec 02's closed question 1) and item 12's claim. All taken:
+
+| # | Finding | Repair | Test (fails before: the reviewer's probes on `57a96c29` for 1 to 3) |
+| :-- | :-- | :-- | :-- |
+| P1-1 | After a split, every later save from the panel was refused `BODY_INVALID` (the new columns keep naming the column that is gone) | `derived_from` is checked only for a column new in the save or whose sources change; the fake console applies the same rule | `test_after_a_split_the_form_still_saves_and_the_split_history_stays`, `test_a_free_split_before_any_value_also_keeps_saving` |
+| P2-2 | A "several" value with a non-text item and a number beyond a float's range raised (500, the whole request lost) | strings checked first; `OverflowError` refused | `test_a_value_that_does_not_fit_its_column_is_refused` (three new cases) |
+| P2-3 | "1,260" was stored as 1.26 | a comma before three digits, two commas or a hexadecimal is asked again; item 19 reworded | `charting.number-reading.test.ts` |
+| P3-4 | Item 13 changes spec 02's closed question 1 without saying so | flagged for the researcher | (none) |
+| P3-5 | No test of `replaced` or `merged`; item 12's speed claim rested on the UI's fake | engine tests added; the projection groups the events once per answer (0.35 s became about 0.01 s on the reviewer's probe); item 12 states the measure | `test_a_replaced_column_and_a_merge_are_recorded_and_mark_chart_again`; the probe (`scratchpad/probe_perf2.py`) |
+| P3-6 | The CSV test did not assert an empty cell or a left-out row | both asserted | `test_the_charting_csv_writes_words_for_not_reported_and_leaves_uncharted_cells_empty` |
+| P3-7 | A form save was three writes with no rollback; "has values" was read outside the events lock | rolled back on failure (`ATOMIC_COMMIT_FAILED`, 503); `put_form` holds the events lock (then the form's, always in that order); "End pilot" the same | `test_a_form_save_whose_journal_row_fails_changes_nothing` (the lock: by reading) |
+| P3-8 | A `form.json` of another schema was silently re-seeded | refused `CHARTING_FORM_STALE` and kept | `test_a_form_file_this_version_cannot_read_is_refused_and_kept` |
+| P3-9 | Required cells not charted were not counted and not listed as deferred | deferred to Part C, listed under "Not verified" above | (none) |
+
+P4 follow-ups left as they are: two protocol ids that become the same once made safe lose a column at seeding; a new column naming a column still in the form is recorded as "added" yet marked Chart again; a clear without `supersedes` keeps form changes as amendments; no test that nothing is seeded while the table is read-only; the `CHARTING_VALUE_INVALID` words say "not one of the options" for a text that is too long. ("0x10" is now asked again, with finding 3.)

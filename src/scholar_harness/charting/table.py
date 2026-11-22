@@ -105,13 +105,20 @@ def _value(events: list[dict[str, Any]], study_id: str, who: str, kind: str) -> 
 def row(
     record: dict[str, Any], events: list[dict[str, Any]], who: str, *, kept: bool, new_since: str | None,
     form: dict[str, Any] | None = None, info: dict[str, Any] | None = None,
+    index: dict[tuple[str, str, str], list[dict[str, Any]]] | None = None,
 ) -> dict[str, Any]:
     study_id = record["study_id"]
-    status, status_event = _value(events, study_id, who, "fulltext_status")
-    decision, decision_event = _value(events, study_id, who, "fulltext_decision")
-    attachment, attachment_event = _value(events, study_id, who, "attachment")
-    link, link_event = _value(events, study_id, who, "link")
-    cells = cl.project(events, study_id, who, form, info) if form is not None and info is not None else {}
+    index = index if index is not None else cl.build_index(events)
+
+    def _held(kind: str) -> tuple[Any, str | None]:
+        head = cl.head_of(index.get((study_id, who, kind), []))
+        return (head.get("value"), head["event_id"]) if head is not None else (None, None)
+
+    status, status_event = _held("fulltext_status")
+    decision, decision_event = _held("fulltext_decision")
+    attachment, attachment_event = _held("attachment")
+    link, link_event = _held("link")
+    cells = cl.project(events, study_id, who, form, info, index) if form is not None and info is not None else {}
     out = {
         **record,
         "round_label": ROUND_LABEL.get(str(record.get("arm")), str(record.get("arm") or "")),
@@ -172,14 +179,16 @@ def table(ws: Path | str) -> dict[str, Any]:
     form = (fm.read_form(ws) if replaced else fm.ensure_form(ws, who)) or {"columns": [], "version": 0, "pilot": {"on": False}}
     info = cl.amendment_info(ws, form)
     events = ev.read_events(ws)
+    index = cl.build_index(events)
     rows = [
-        row(as_dict(r), events, who, kept=True, new_since=state.new_since.get(r.study_id), form=form, info=info)
+        row(as_dict(r), events, who, kept=True, new_since=state.new_since.get(r.study_id), form=form, info=info,
+            index=index)
         for r in state.records
     ]
     rows += [
         row({"study_id": sid, "authors": [], "abstract": None, "venue": None, "url": None, "arxiv_id": None,
              "ta_reason": "", "generation_id": summary.get("generation_id"), **summary},
-            events, who, kept=False, new_since=None, form=form, info=info)
+            events, who, kept=False, new_since=None, form=form, info=info, index=index)
         for sid, summary in sorted(state.no_longer_kept.items())
     ]
     return {
@@ -487,11 +496,18 @@ def put_form(ws: Path | str, columns: Any, *, base_version: Any, reason: Any) ->
     ws = Path(ws)
     state = _writable(ws)
     ctx = context(ws, state)
-    fm.save(
-        ws, columns, base_version=base_version, reason=reason, screener_id=ctx.screener_id,
-        has_values=cl.has_values(ev.read_events(ws)), protocol_fingerprint=ctx.binding.get("protocol_fingerprint"),
-        generation_id=ctx.binding.get("generation_id"),
-    )
+    # Review of Part B, finding 7: "has values" is read, and the form saved, while no cell can be
+    # stored (the events lock is held; the form's own lock is taken inside, always in this order).
+    try:
+        with locked(ws / ev.EVENTS_DIR / ".lock"):
+            fm.save(
+                ws, columns, base_version=base_version, reason=reason, screener_id=ctx.screener_id,
+                has_values=cl.has_values(ev.read_events(ws)),
+                protocol_fingerprint=ctx.binding.get("protocol_fingerprint"),
+                generation_id=ctx.binding.get("generation_id"),
+            )
+    except LockBusy as exc:
+        raise ChartingRefused(503, ev.ATOMIC_COMMIT_FAILED, "the charting log is busy; retry") from exc
     return get_form(ws)
 
 

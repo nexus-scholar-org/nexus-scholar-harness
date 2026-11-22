@@ -237,6 +237,12 @@ function putForm(engine: FakeEngine, body: { base_version: number; columns: Form
   if (body.columns.some((c) => !c.name?.trim())) return json({ detail: { code: "BODY_INVALID", message: "a column name" } }, 422);
   const old = new Map(form.columns.map((c) => [c.column_id, c]));
   const fresh = new Map(body.columns.map((c) => [c.column_id, c]));
+  // As the engine: only a column new in this save, or whose sources change, must name columns of the form.
+  for (const c of body.columns) {
+    const prior = old.get(c.column_id);
+    const same = prior && JSON.stringify(prior.derived_from ?? []) === JSON.stringify(c.derived_from ?? []);
+    if (!same && (c.derived_from ?? []).some((p) => !old.has(p))) return json({ detail: { code: "BODY_INVALID", message: "derived_from names no column of the form" } }, 422);
+  }
   const changes: Omit<Amendment, "amendment_id" | "reason" | "pilot" | "amended_by" | "amended_at" | "form_version_to">[] = [];
   const again = new Set<string>();
   const removedOptions = new Map<string, string[]>();

@@ -207,7 +207,11 @@ export function valueOfDraft(column: FormColumn, draft: CellDraft): { kind: "cle
   const text = draft.trim();
   if (!text) return { kind: "clear" };
   if (column.type === "number") {
-    const parsed = Number(text.replace(/\s/g, "").replace(/,(?=\d+$)/, "."));
+    const compact = text.replace(/\s/g, "");
+    // A comma before exactly three digits ("1,260") may be a thousands separator or a decimal
+    // comma; the screen does not guess, it asks for the number again (review of Part B, finding 3).
+    if (/,\d{3}$/.test(compact) || /,.*,/.test(compact) || /^[-+]?0[xob]/i.test(compact)) return { kind: "notANumber" };
+    const parsed = Number(compact.replace(/,(?=\d+$)/, "."));
     return Number.isFinite(parsed) ? { kind: "value", value: parsed } : { kind: "notANumber" };
   }
   return { kind: "value", value: column.type === "text" ? draft.trim() : text };

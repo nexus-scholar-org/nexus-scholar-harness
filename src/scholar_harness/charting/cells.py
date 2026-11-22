@@ -62,13 +62,32 @@ def _uses(value: Any, options: list[str]) -> bool:
     return any(v in options for v in values)
 
 
-def project(events: list[dict[str, Any]], study_id: str, who: str, form: dict[str, Any], info: dict[str, Any]) -> dict[str, Any]:
+def build_index(events: list[dict[str, Any]]) -> dict[tuple[str, str, str], list[dict[str, Any]]]:
+    """The events grouped by (study, screener, slot), in stored order: read once per answer."""
+    index: dict[tuple[str, str, str], list[dict[str, Any]]] = {}
+    for event in events:
+        index.setdefault((str(event.get("study_id")), str(event.get("screener_id")), ev.slot(event)), []).append(event)
+    return index
+
+
+def head_of(mine: list[dict[str, Any]]) -> dict[str, Any] | None:
+    """The last stored event of one slot that no later event of the slot supersedes (``events.current``)."""
+    gone = {str(e["supersedes"]) for e in mine if e.get("supersedes")}
+    live = [e for e in mine if e["event_id"] not in gone]
+    return live[-1] if live else None
+
+
+def project(
+    events: list[dict[str, Any]], study_id: str, who: str, form: dict[str, Any], info: dict[str, Any],
+    index: dict[tuple[str, str, str], list[dict[str, Any]]] | None = None,
+) -> dict[str, Any]:
+    index = index if index is not None else build_index(events)
     cells: dict[str, Any] = {}
     for column in form.get("columns") or []:
         cid = column["column_id"]
         slot = f"cell:{cid}"
-        mine = [e for e in events if e.get("study_id") == study_id and e.get("screener_id") == who and ev.slot(e) == slot]
-        head = ev.current(events, study_id, who, slot)
+        mine = index.get((study_id, who, slot), [])
+        head = head_of(mine)
         value = (head or {}).get("value") or {}
         state = value.get("state")
         version = int(((head or {}).get("binding") or {}).get("form_version") or 0)
@@ -83,7 +102,7 @@ def project(events: list[dict[str, Any]], study_id: str, who: str, form: dict[st
                     chart_again = True
         elif info["parents"].get(cid):
             for parent in info["parents"][cid]:
-                earlier = ev.current(events, study_id, who, f"cell:{parent}")
+                earlier = head_of(index.get((study_id, who, f"cell:{parent}"), []))
                 if earlier is not None and (earlier.get("value") or {}).get("state") is not None:
                     history.append(_entry(earlier, info["names"].get(parent, parent)))
                     chart_again = True
