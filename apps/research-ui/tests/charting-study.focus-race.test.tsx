@@ -11,7 +11,15 @@ import { flush, installEngine, makeChartingTable, makeRow, renderStudy } from ".
  * render spent the focus request on the previous study, whose fields were about to go.
  */
 
-afterEach(() => vi.unstubAllGlobals());
+type ActFlag = { IS_REACT_ACT_ENVIRONMENT?: boolean };
+const actFlag = globalThis as ActFlag;
+const actWas = actFlag.IS_REACT_ACT_ENVIRONMENT;
+
+afterEach(() => {
+  vi.unstubAllGlobals();
+  // The first test lets React schedule its own work; every test after it starts with act again.
+  actFlag.IS_REACT_ACT_ENVIRONMENT = actWas;
+});
 
 const field = (id: string) => document.querySelector(`[data-field="${id}"]`) as HTMLElement;
 const position = () => document.querySelector("[data-position]");
@@ -20,53 +28,63 @@ function key(target: Element, init: KeyboardEventInit) {
   target.dispatchEvent(new KeyboardEvent("keydown", { bubbles: true, cancelable: true, ...init }));
 }
 
-function threeStudies() {
-  return makeChartingTable([makeRow(1, { abstract: "One." }), makeRow(2, { abstract: "Two." }), makeRow(3, { abstract: "Three." })]);
+function studies(count: number) {
+  return makeChartingTable(Array.from({ length: count }, (_, i) => makeRow(i + 1, { abstract: `Study ${i + 1}.` })));
 }
 
-type ActFlag = { IS_REACT_ACT_ENVIRONMENT?: boolean };
+/** Runs `then` once `ready()` holds after a change of `aria-pressed`; fails after `ms`, so the test always ends. */
+function onPressed(element: Element, ready: () => boolean, then: () => void, ms = 2000): Promise<void> {
+  return new Promise<void>((resolve, reject) => {
+    const observer = new MutationObserver(() => {
+      if (!ready()) return;
+      observer.disconnect();
+      clearTimeout(timer);
+      then();
+      resolve();
+    });
+    const timer = setTimeout(() => {
+      observer.disconnect();
+      reject(new Error("the saved value never showed"));
+    }, ms);
+    observer.observe(element, { attributes: true, attributeFilter: ["aria-pressed"] });
+  });
+}
 
 describe("charting-study.focus-race", () => {
-  it("Ctrl+Down pressed as soon as a saved value shows: the next study opens with the focus on its first field", async () => {
-    installEngine(threeStudies());
-    // The next study is read over the network, as from the engine: its answer comes a task later,
+  it("Ctrl+Down pressed as soon as a saved value shows: the next study opens with the focus on its first field, four times over", async () => {
+    installEngine(studies(5));
+    // Each next study is read over the network, as from the engine: its answer comes a task later,
     // so the screen shows its loading state first and the previous study's fields go.
     const answer = globalThis.fetch;
     vi.stubGlobal("fetch", async (input: string, init?: RequestInit) => {
-      if (String(input).includes("/charting/records/STU-002")) await new Promise((resolve) => setTimeout(resolve, 20));
+      if (/\/charting\/records\/STU-00[2-5]/.test(String(input))) await new Promise((resolve) => setTimeout(resolve, 20));
       return answer(input, init);
     });
     await renderStudy("STU-001");
-    const yes = field("cross_camera").querySelector("input") as HTMLInputElement;
-    const notApplicable = field("cross_camera").querySelector('[data-special="not_applicable"]') as HTMLElement;
-    yes.focus();
     // From here React schedules its own work, as in the browser: the render that shows the saved
-    // value commits first and its effects run in a later task.
-    const flag = globalThis as ActFlag;
-    const was = flag.IS_REACT_ACT_ENVIRONMENT;
-    flag.IS_REACT_ACT_ENVIRONMENT = false;
-    try {
+    // value commits first and its effects run in a later task. Whether the key lands in that gap
+    // depends on timing in jsdom too (most runs on origin/main lose the focus, not all), so the move
+    // is made four times: a regression passes only if every one of them misses the gap.
+    actFlag.IS_REACT_ACT_ENVIRONMENT = false;
+    for (let k = 1; k <= 4; k += 1) {
+      const yes = field("cross_camera").querySelector("input") as HTMLInputElement;
+      const notApplicable = field("cross_camera").querySelector('[data-special="not_applicable"]') as HTMLElement;
+      yes.focus();
       // The key arrives the moment the saved Not applicable is on screen, before those effects run.
-      const pressed = new Promise<void>((resolve) => {
-        const observer = new MutationObserver(() => {
-          if (notApplicable.getAttribute("aria-pressed") !== "true") return;
-          observer.disconnect();
-          key(document.activeElement ?? document.body, { key: "ArrowDown", ctrlKey: true });
-          resolve();
-        });
-        observer.observe(notApplicable, { attributes: true, attributeFilter: ["aria-pressed"] });
-      });
+      const pressed = onPressed(
+        notApplicable,
+        () => notApplicable.getAttribute("aria-pressed") === "true",
+        () => key(document.activeElement ?? document.body, { key: "ArrowDown", ctrlKey: true }),
+      );
       key(yes, { key: "a", altKey: true, code: "KeyA" });
       await pressed;
-      await waitFor(() => expect(position()).toHaveTextContent("Study 2 of 3"));
+      await waitFor(() => expect(position()).toHaveTextContent(`Study ${k + 1} of 5`));
       await waitFor(() => expect(field("sensor_problems").contains(document.activeElement)).toBe(true));
-    } finally {
-      flag.IS_REACT_ACT_ENVIRONMENT = was;
     }
   });
 
   it("Alt+A then Ctrl+Down before the save's answer: the focus stays on the next study's first field", async () => {
-    installEngine(threeStudies());
+    installEngine(studies(3));
     await renderStudy("STU-001");
     const yes = field("cross_camera").querySelector("input") as HTMLInputElement;
     yes.focus();
@@ -82,7 +100,7 @@ describe("charting-study.focus-race", () => {
   });
 
   it("Alt+N, then another field before the save's answer: the focus stays in the field the researcher went to", async () => {
-    installEngine(threeStudies());
+    installEngine(studies(3));
     await renderStudy("STU-001");
     const random = field("split").querySelector("input") as HTMLInputElement;
     const yes = field("cross_camera").querySelector("input") as HTMLInputElement;
@@ -98,7 +116,7 @@ describe("charting-study.focus-race", () => {
   });
 
   it("Alt+N with the focus left in the field: the focus moves to the Not reported button once the input is off", async () => {
-    installEngine(threeStudies());
+    installEngine(studies(3));
     await renderStudy("STU-001");
     const random = field("split").querySelector("input") as HTMLInputElement;
     random.focus();
