@@ -10,6 +10,9 @@ Rules (decision 2026-11-21, M12a answer F3 and items 24 and 27):
   OpenAlex answer; listed in ``best_oa_location`` or ``oa_locations`` in an
   Unpaywall answer) and it carries a direct PDF address (``pdf_url`` or
   ``url_for_pdf``);
+- explicit closed evidence from a service about the work (``is_oa: false`` or
+  ``oa_status: "closed"``) overrides any ``pdf_url`` that service gives (Part K
+  item 7, PDF-12): none of that service's addresses is listed;
 - a landing page is never turned into a PDF address and no address is built;
 - the published version comes first, then the accepted manuscript, then the
   submitted version or preprint, then a copy whose version is not given.
@@ -127,6 +130,22 @@ def _version(value: object) -> str:
     return value if value in VERSION_ORDER else UNKNOWN_VERSION
 
 
+def says_closed(payload: object) -> bool:
+    """Whether one service's answer says the work is closed (Part K item 7, PDF-12).
+
+    ``is_oa: false`` or ``oa_status: "closed"``, at the top (Unpaywall) or in
+    ``open_access`` (OpenAlex). Such evidence overrides that service's ``pdf_url``.
+    """
+    if not isinstance(payload, dict):
+        return False
+    open_access = payload.get("open_access")
+    if isinstance(open_access, dict) and (
+        open_access.get("is_oa") is False or open_access.get("oa_status") == "closed"
+    ):
+        return True
+    return payload.get("is_oa") is False or payload.get("oa_status") == "closed"
+
+
 def _openalex_locations(payload: dict) -> list[dict]:
     listed = [payload.get("best_oa_location"), payload.get("primary_location")]
     more = payload.get("locations")
@@ -201,9 +220,9 @@ def open_copies(openalex: dict | None, unpaywall: dict | None) -> list[OpenCopy]
     (``best_oa_location``, ``primary_location``, then the list as given).
     """
     listed: list[OpenCopy] = []
-    if isinstance(openalex, dict):
+    if isinstance(openalex, dict) and not says_closed(openalex):
         listed.extend(_openalex_copies(openalex))
-    if isinstance(unpaywall, dict):
+    if isinstance(unpaywall, dict) and not says_closed(unpaywall):
         listed.extend(_unpaywall_copies(unpaywall))
     order = {version: rank for rank, version in enumerate((*VERSION_ORDER, UNKNOWN_VERSION))}
     seen: set[str] = set()
@@ -217,6 +236,8 @@ def open_copies(openalex: dict | None, unpaywall: dict | None) -> list[OpenCopy]
 
 def open_landing_page(openalex: dict | None, unpaywall: dict | None) -> str | None:
     """The first open location's landing page, to name in a message. Never requested."""
+    openalex = None if says_closed(openalex) else openalex
+    unpaywall = None if says_closed(unpaywall) else unpaywall
     if isinstance(openalex, dict):
         for location in _openalex_locations(openalex):
             page = _address(location.get("landing_page_url"))
@@ -232,7 +253,7 @@ def open_landing_page(openalex: dict | None, unpaywall: dict | None) -> str | No
 
 def lists_open(payload: dict | None) -> bool:
     """Whether one service's answer marks the paper, or a location of it, as open."""
-    if not isinstance(payload, dict):
+    if not isinstance(payload, dict) or says_closed(payload):
         return False
     open_access = payload.get("open_access")
     if isinstance(open_access, dict) and open_access.get("is_oa") is True:

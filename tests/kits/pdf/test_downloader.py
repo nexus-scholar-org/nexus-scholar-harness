@@ -185,7 +185,9 @@ async def test_process_doi_proxy_subdomain_attempt(
     result = await proxied_downloader.process_doi(mock_session, mock_http_client, doi)
 
     assert result.success is True
-    assert result.was_oa is True
+    # Part K item 7 (PDF-12): bytes through the gateway are never open access.
+    assert result.was_oa is False
+    assert result.access_status == "INSTITUTIONAL_ACCESS"
     urls = [c[0][0] for c in mock_session.get.call_args_list]
     assert len(urls) == 2, urls
     assert urls[0] == "https://ieeexplore.ieee.org/document/10209481"

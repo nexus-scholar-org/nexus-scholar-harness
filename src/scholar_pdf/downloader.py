@@ -32,8 +32,10 @@ from .open_copies import (
     PDF_NOT_FETCHED,
     LookupOutcome,
     OpenCopy,
+    lists_open,
     not_asked_note,
     open_copies,
+    says_closed,
     unresolved,
 )
 from .publisher_patterns import (
@@ -46,6 +48,10 @@ if TYPE_CHECKING:
     from scholar_search.http_client import AcademicHttpClient
 
 logger = logging.getLogger(__name__)
+
+#: The access status of a file fetched through the parked institutional gateway
+#: (a caller passing one explicitly): never open access (M12a item 25, PDF-12).
+INSTITUTIONAL_ACCESS = "INSTITUTIONAL_ACCESS"
 
 
 # --------------------------------------------------------------- one request to a PDF address
@@ -174,6 +180,10 @@ class DownloadResult:
     copies_tried: int = 0
     # Part K: every request made to a PDF address for this DOI, retries included.
     attempts: tuple[FetchAttempt, ...] = ()
+    # Part K item 7 (PDF-12): the candidate that produced the bytes, and its route
+    # (``open_location`` or ``institutional_gateway``); ``None`` when no file came.
+    source_url: str | None = None
+    route: str | None = None
 
 
 @dataclass(frozen=True)
@@ -473,7 +483,14 @@ class AsyncPDFDownloader:
 
     @staticmethod
     def _provider_access_status(*payloads: dict | None) -> str:
-        """Project only explicit provider OA evidence, never HTTP success."""
+        """Project only explicit provider OA evidence, never HTTP success.
+
+        Explicit closed evidence (``is_oa: false``, ``oa_status: "closed"``)
+        overrides a ``pdf_url`` in the same answer (Part K item 7, PDF-12), and
+        a location its provider marks closed is never open evidence. This is
+        the paper's status when no file came; a stored file takes the status of
+        the location that produced its bytes (``process_doi``).
+        """
 
         for payload in payloads:
             if not isinstance(payload, dict):
@@ -483,18 +500,17 @@ class AsyncPDFDownloader:
                 for key in ("source", "publisher")
             ):
                 return "RESTRICTED_CONFIRMED"
+            if says_closed(payload):
+                continue
             for location_key in ("best_oa_location", "primary_location"):
                 location = payload.get(location_key)
-                if isinstance(location, dict) and (
-                    location.get("pdf_url") or location.get("url_for_pdf")
+                if (
+                    isinstance(location, dict)
+                    and location.get("is_oa") is not False
+                    and (location.get("pdf_url") or location.get("url_for_pdf"))
                 ):
                     return "VERIFIED_OPEN_ACCESS"
-            open_access = payload.get("open_access")
-            if isinstance(open_access, dict) and open_access.get("is_oa") is True:
-                return "VERIFIED_OPEN_ACCESS"
-            if payload.get("is_oa") is True or payload.get("url_for_pdf"):
-                return "VERIFIED_OPEN_ACCESS"
-            if payload.get("oa_status") in {"gold", "green", "hybrid", "bronze"}:
+            if lists_open(payload) or payload.get("url_for_pdf"):
                 return "VERIFIED_OPEN_ACCESS"
         return "UNRESOLVED"
 
@@ -585,12 +601,22 @@ class AsyncPDFDownloader:
                             last_error = "The listed address gave no PDF: not a valid PDF"
                             continue
                         final_path, _ = self._promote_candidate(candidate_path)
+                        # The status follows the bytes (Part K item 7, PDF-12): an open
+                        # location's own address is open access; the parked gateway is
+                        # institutional access, never open access (M12a item 25).
+                        opened = route == "open_location"
                         return replace(
                             result,
                             success=True,
                             file_path=final_path,
                             status="ACQUIRED",
                             outcome=ACQUIRED,
+                            access_status=(
+                                "VERIFIED_OPEN_ACCESS" if opened else INSTITUTIONAL_ACCESS
+                            ),
+                            was_oa=opened,
+                            source_url=_public_url(candidate) or candidate,
+                            route=route,
                             # The label follows the bytes: a file fetched through
                             # the parked gateway is not that open location's copy.
                             open_copy=copy if candidate == copy.url else None,
