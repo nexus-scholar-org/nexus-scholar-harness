@@ -31,6 +31,51 @@ export interface Attachment {
   origin: string;
 }
 
+/**
+ * Part F: a fetched file waiting for the researcher on a row ("Fetched, to
+ * confirm"); `fulltext.status` keeps the earlier status (spec 03 "Data in").
+ */
+export interface PendingFetch {
+  manifest_row: string;
+  run_id: string | null;
+  /** The service that listed the copy, as the engine names it ("Unpaywall", "OpenAlex", "arXiv"). */
+  source: string | null;
+  source_name?: string | null;
+  host: string | null;
+  host_type?: string | null;
+  address?: string | null;
+  version: string | null;
+  version_label: string | null;
+  licence: string | null;
+  size: number | null;
+  sha256: string;
+  /** The kit's check of the first two pages: "doi found", "title found", "not found: check it", "not checked". */
+  identity: string | null;
+  at: string | null;
+  /** Other kept records whose waiting or attached file has the same bytes. */
+  duplicate_of: string[];
+}
+
+/** Part F: the newest look-up of a record (its newest manifest row). */
+export interface LastLookup {
+  run_id: string | null;
+  manifest_row: string | null;
+  at: string | null;
+  outcome: string | null;
+  message?: string | null;
+  try_later: boolean;
+  same_as_discarded?: boolean;
+}
+
+export type DiscardReason = "wrong_paper" | "not_full_text" | "unreadable" | "other";
+
+export interface DiscardedFetch {
+  reason: DiscardReason | null;
+  reason_text: string | null;
+  at: string | null;
+  manifest_row: string | null;
+}
+
 export interface Fulltext {
   status: FulltextStatus;
   requested_on: string | null;
@@ -38,6 +83,10 @@ export interface Fulltext {
   reason_text: string | null;
   attachment: Attachment | null;
   link: string | null;
+  /** Part F; absent in an answer from before Part F. */
+  pending_fetch?: PendingFetch | null;
+  last_lookup?: LastLookup | null;
+  discarded_fetch?: DiscardedFetch | null;
 }
 
 export interface FulltextDecision {
@@ -51,6 +100,9 @@ export interface Heads {
   fulltext_decision: string | null;
   attachment: string | null;
   link: string | null;
+  /** Part F: the events that hold a confirm or a discard of a fetched file now. */
+  fetched_confirm?: string | null;
+  fetched_discard?: string | null;
 }
 
 /** Part B: the five column types of the charting form (record (e)). */
@@ -168,6 +220,8 @@ export interface ChartingCounts {
   charted?: number;
   not_charted?: number;
   pilot?: number;
+  /** Part F: rows with a fetched file waiting; they are not in to get, requested or not retrieved. */
+  to_confirm?: number;
 }
 
 export interface ChartingTable {
@@ -200,7 +254,7 @@ export interface ChartingRecord {
   counts: ChartingCounts;
 }
 
-export type EventKind = "fulltext_status" | "fulltext_decision" | "attachment" | "link" | "cell";
+export type EventKind = "fulltext_status" | "fulltext_decision" | "attachment" | "link" | "cell" | "fetched_confirm" | "fetched_discard";
 
 export interface ChartingEvent {
   event_id: string;
@@ -218,6 +272,8 @@ export interface EventResult {
   event_id: string;
   result: "accepted" | "duplicate" | "refused";
   refusal?: { code: string; message: string };
+  /** Part F: an event the engine wrote with the client's (a confirm's attachment and status). */
+  added_by_engine?: boolean;
 }
 
 export interface EventsAnswer {
@@ -360,6 +416,145 @@ export function putChartingForm(
 /** "End pilot", one recorded action. */
 export function endChartingPilot(origin: string, baseVersion: number, signal?: AbortSignal): Promise<ChartingForm> {
   return postJson<ChartingForm>(`${BASE}/form/pilot/end`, origin, { base_version: baseVersion }, signal);
+}
+
+// ---------------------------------------------------------------- Part F: open-access copies
+
+export type ServiceUse = "asked" | "not_asked" | "not_needed";
+
+/** `GET /api/v1/charting/fetch/plan`: what a look-up would ask; nothing is sent (spec 03 "Data in"). */
+export interface FetchPlan {
+  shape: string;
+  scope: "to_get" | "ids";
+  /** The records in scope, those left out included. */
+  total: number;
+  /** The records the run would reach: `with_doi + with_arxiv_only + neither`. */
+  asked: number;
+  with_doi: number;
+  with_arxiv_only: number;
+  neither: number;
+  arxiv_id_incomplete: number;
+  already_have_file: number;
+  waiting: number;
+  discarded: number;
+  email: string;
+  openalex_key_set: boolean;
+  services: { unpaywall: ServiceUse; openalex: ServiceUse; arxiv: ServiceUse };
+  notes?: string[];
+}
+
+export type FetchState = "idle" | "running" | "cancelling" | "finished" | "cancelled" | "interrupted" | "failed";
+
+/** `GET /api/v1/charting/fetch`: the running look-up, else the newest one, else idle. */
+export interface FetchRun {
+  state: FetchState;
+  run_id: string | null;
+  total?: number;
+  reached?: number;
+  found?: number;
+  downloaded?: number;
+  failed_checks?: number;
+  /** Errors by kind, in the kit's short words ("HTTP 403", "timed out", "lookup failed"); the screen maps them. */
+  errors?: Record<string, number>;
+  /** The failed file checks by the kit's name (`pdf_header`, `size_floor`, …), each counted once per record; absent in older run files. */
+  check_failures?: Record<string, number>;
+  /** The look-ups that failed and are not "try later"; absent in older run files. */
+  lookup_failures?: { service: string; http_status: number | null; error_kind: string | null; n: number }[];
+  no_open_copy?: number;
+  no_direct_pdf?: number;
+  try_later?: number;
+  skipped_no_id?: number;
+  not_reached?: number;
+  /** Records left out before or during the run; `changed_during_run` counts rows the researcher changed after the start. */
+  left_out?: { already_have_file?: number; waiting?: number; discarded?: number; changed_during_run?: number };
+  providers?: string[];
+  email?: string;
+  openalex_key_set?: boolean;
+  now?: { phase: string; host: string | null; seconds?: number };
+  recent_requests?: { host: string; answer: string }[];
+  started_at?: string | null;
+  finished_at?: string | null;
+  error?: string | null;
+}
+
+export interface ManifestRequest {
+  url: string;
+  host: string;
+  retry?: boolean;
+  route?: string;
+  http_status: number | null;
+  final_url?: string | null;
+  redirects?: string[];
+  content_type?: string | null;
+  error: string | null;
+}
+
+export interface ManifestLookup {
+  service: string;
+  state: "ANSWERED" | "NOT_FOUND" | "FAILED" | "NOT_ASKED" | string;
+  http_status: number | null;
+  error?: string | null;
+}
+
+/** One row of `charting/fetch_manifest.jsonl` (`src/scholar_pdf/manifest.py`, with the run's fields). */
+export interface ManifestRow {
+  row_id?: string;
+  run_id?: string;
+  study_id: string;
+  doi?: string | null;
+  outcome: string | null;
+  status?: string | null;
+  file?: string | null;
+  size?: number | null;
+  sha256?: string | null;
+  address?: string | null;
+  redirects?: string[];
+  http_status?: number | null;
+  version?: string | null;
+  version_label?: string | null;
+  license?: string | null;
+  provider?: string | null;
+  checks?: Record<string, string>;
+  lookups?: ManifestLookup[];
+  requests?: ManifestRequest[];
+  time?: string | null;
+  arxiv_version?: string | null;
+}
+
+export interface FetchTried {
+  shape: string;
+  study_id: string;
+  rows: ManifestRow[];
+}
+
+/** The plan of a look-up of `ids`, or of every record To get when `ids` is null. */
+export function getFetchPlan(origin: string, ids: readonly string[] | null, signal?: AbortSignal): Promise<FetchPlan> {
+  const query = ids && ids.length ? `?ids=${encodeURIComponent(ids.join(","))}` : "";
+  return readJson<FetchPlan>(`${BASE}/fetch/plan${query}`, consoleBase(origin), signal);
+}
+
+/** Start a look-up after the researcher confirmed its plan; 202 with the run. */
+export function startFetch(origin: string, ids: readonly string[] | null, signal?: AbortSignal): Promise<FetchRun> {
+  const body = ids && ids.length ? { ids: [...ids], confirm: true } : { scope: "to_get", confirm: true };
+  return postJson<FetchRun>(`${BASE}/fetch`, origin, body, signal);
+}
+
+export function getFetchRun(origin: string, signal?: AbortSignal): Promise<FetchRun> {
+  return readJson<FetchRun>(`${BASE}/fetch`, consoleBase(origin), signal);
+}
+
+export function cancelFetch(origin: string, signal?: AbortSignal): Promise<FetchRun> {
+  return postJson<FetchRun>(`${BASE}/fetch/cancel`, origin, {}, signal);
+}
+
+/** What was tried for one record: its manifest rows, oldest first. */
+export function getFetchTried(origin: string, studyId: string, signal?: AbortSignal): Promise<FetchTried> {
+  return readJson<FetchTried>(`${BASE}/records/${encodeURIComponent(studyId)}/fetch`, consoleBase(origin), signal);
+}
+
+/** Where the fetched file waiting on a record is served, to open in a new tab before confirming it. */
+export function fetchedHref(origin: string, studyId: string): string {
+  return `${consoleBase(origin)}${BASE}/records/${encodeURIComponent(studyId)}/fetched`;
 }
 
 /** Where the screen was when a study was opened, so Esc goes back to the same row, view and filter. */

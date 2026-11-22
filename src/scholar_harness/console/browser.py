@@ -93,6 +93,9 @@ POST_PATHS: tuple[re.Pattern[str], ...] = tuple(
         r"api/v1/charting/records/[A-Za-z0-9_-]+/attachment",
         # M12a Part B: "End pilot" (the form itself is a PUT).
         r"api/v1/charting/form/pilot/end",
+        # M12a Part F: start (or plan, dry) and cancel the look-up of open-access copies; confirm and
+        # discard go through the charting events above.
+        r"api/v1/charting/fetch(/cancel)?",
     )
 )
 PUT_PATHS: tuple[re.Pattern[str], ...] = (

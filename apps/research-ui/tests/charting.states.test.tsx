@@ -27,7 +27,7 @@ describe("charting.states", () => {
     expect(within(grid).getAllByRole("columnheader").map((h) => h.textContent)).toEqual(["", "Study", "Round", "Full text", "File", "Decision"]);
     const select = within(desktop()).getByRole("combobox", { name: "Show" });
     expect(within(select).getAllByRole("option").map((o) => o.textContent)).toEqual([
-      "All", "To get", "Requested", "Not retrieved", "To decide at full text", "Included at full text", "Excluded at full text", "Not charted", "Pilot",
+      "All", "To get", "Requested", "Not retrieved", "Fetched, to confirm", "To decide at full text", "Included at full text", "Excluded at full text", "Not charted", "Pilot",
     ]);
     expect(within(desktop()).getByRole("checkbox", { name: "Show excluded" })).not.toBeChecked();
     expect(within(desktop()).getByRole("button", { name: "Export" })).toBeEnabled();

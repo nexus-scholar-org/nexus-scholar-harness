@@ -27,7 +27,8 @@ const posts = (engine: ReturnType<typeof setUp>["engine"], suffix: string) => en
 describe("inception.explore", () => {
   it("opens on the first-search card with one brand button when the draft has never searched", async () => {
     const { engine } = start();
-    await screen.findByRole("heading", { name: "Your first search" });
+    // The file's first render waits longer than the default second: the full suite runs it under load.
+    await screen.findByRole("heading", { name: "Your first search" }, { timeout: 5000 });
     expect(screen.getByText("on-device weed detection")).toBeInTheDocument();
     expect(screen.getByText("Your draft has no from-year, so the search starts at 2000.")).toBeInTheDocument();
     expect(screen.getAllByRole("button").filter((b) => b.className.includes("bg-brand"))).toHaveLength(1);

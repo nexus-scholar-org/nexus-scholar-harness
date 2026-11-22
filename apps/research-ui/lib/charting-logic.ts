@@ -8,9 +8,9 @@ import type { Cell, CellState, CellValue, ChartingRow, FormColumn, FulltextDecis
  * event; nothing here decides a status, an outcome or whether a value fits.
  */
 
-export type ShowFilter = "all" | "toGet" | "requested" | "notRetrieved" | "toDecide" | "included" | "excluded" | "notCharted" | "pilot";
+export type ShowFilter = "all" | "toGet" | "requested" | "notRetrieved" | "toConfirm" | "toDecide" | "included" | "excluded" | "notCharted" | "pilot";
 
-export const SHOW_FILTERS: readonly ShowFilter[] = ["all", "toGet", "requested", "notRetrieved", "toDecide", "included", "excluded", "notCharted", "pilot"];
+export const SHOW_FILTERS: readonly ShowFilter[] = ["all", "toGet", "requested", "notRetrieved", "toConfirm", "toDecide", "included", "excluded", "notCharted", "pilot"];
 
 export function isShowFilter(value: string | null | undefined): value is ShowFilter {
   return SHOW_FILTERS.includes(value as ShowFilter);
@@ -46,10 +46,17 @@ function excludedAtFullText(row: ChartingRow): boolean {
   return row.ft_decision?.outcome === "EXCLUDE";
 }
 
+/** Part F: a fetched file waits on the row ("Fetched, to confirm"). */
+export function waitingFile(row: ChartingRow): boolean {
+  return Boolean(row.fulltext.pending_fetch);
+}
+
 /**
  * The rows a view shows, in the engine's order. A row excluded at full text is
  * left out unless "Show excluded" is on or the view is the excluded one; a row no
- * longer kept appears only under All (it is out of the counts).
+ * longer kept appears only under All (it is out of the counts). A row with a
+ * fetched file waiting is shown under "Fetched, to confirm" and not under its
+ * earlier status, as the engine counts it (spec 03, question 1).
  */
 export function visibleRows(rows: readonly ChartingRow[], show: ShowFilter, showExcluded: boolean): ChartingRow[] {
   return rows.filter((row) => {
@@ -59,11 +66,13 @@ export function visibleRows(rows: readonly ChartingRow[], show: ShowFilter, show
     if (!row.kept) return false;
     switch (show) {
       case "toGet":
-        return row.fulltext.status === "to_get";
+        return row.fulltext.status === "to_get" && !waitingFile(row);
       case "requested":
-        return row.fulltext.status === "requested";
+        return row.fulltext.status === "requested" && !waitingFile(row);
       case "notRetrieved":
-        return row.fulltext.status === "not_retrieved";
+        return row.fulltext.status === "not_retrieved" && !waitingFile(row);
+      case "toConfirm":
+        return waitingFile(row);
       case "toDecide":
         return row.ft_decision === null;
       case "included":
@@ -85,7 +94,9 @@ export type ChartingKey =
   // Part B: the two views, the form panel, Enter, the arrows between cells and the two special cell values.
   | "viewFulltext" | "viewCharting" | "form" | "enter"
   | "arrowDown" | "arrowUp" | "arrowStart" | "arrowEnd"
-  | "notReported" | "notApplicable";
+  | "notReported" | "notApplicable"
+  // Part F: look up open-access copies, confirm or discard a fetched file.
+  | "lookup" | "confirm" | "discard";
 
 const KEYMAP: Record<string, ChartingKey> = {
   j: "down", k: "up", x: "toggle", a: "selectAll",
@@ -93,6 +104,7 @@ const KEYMAP: Record<string, ChartingKey> = {
   i: "include", e: "exclude", p: "attach", o: "open", z: "undo", "?": "help",
   "1": "viewFulltext", "2": "viewCharting", f: "form", Enter: "enter",
   ArrowDown: "arrowDown", ArrowUp: "arrowUp",
+  l: "lookup", c: "confirm", d: "discard",
 };
 
 export function isTextField(target: EventTarget | null): boolean {
@@ -113,7 +125,8 @@ function letterOf(event: { key: string; code?: string }): string {
  * Export; Shift+J and Shift+K extend the selection; Alt+N and Alt+A set Not
  * reported and Not applicable on the focused cell (Part B). The arrows left and
  * right are given by where they point (`arrowStart`, `arrowEnd`), so the page can
- * mirror them in a right-to-left layout. The keys L, C and D stay free (Part F).
+ * mirror them in a right-to-left layout. Part F gives L (look up), C (confirm)
+ * and D (discard); Ctrl+C and Ctrl+D stay the browser's.
  */
 export function chartingKey(
   event: Pick<KeyboardEvent, "key" | "ctrlKey" | "metaKey" | "altKey" | "shiftKey"> & { code?: string },

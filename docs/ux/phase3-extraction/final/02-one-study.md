@@ -48,6 +48,7 @@ Refusals as 01 (`RECORD_NOT_KEPT`, `FULLTEXT_REASON_REQUIRED`, `FULLTEXT_REASON_
   - Pilot on: a quiet "Pilot" mark beside the position; saved values are marked Pilot.
   - Excluded at full text: the form is read-only with "Excluded at full text: <reason>. Change the decision to chart it." and the decision control focused.
   - No longer kept at title and abstract: read-only, "No longer kept at title and abstract. Its values are kept and left out of exports."
+  - Fetched, to confirm (Part F, built to `03-fetch-states.md`, section "One-study view (02)"): the full-text block shows the waiting file (badge, source, version, licence, size, identity result, warning), Open, Confirm and Discard with the reason chips inline, then "What was tried"; the status select is disabled with "A fetched file is waiting"; Attach and the link are hidden while it waits; the form keeps "Charting from the abstract" until the file is confirmed. `L` looks up this one record with the same plan block ("of 1 record"); `C`, `D`, `O`, `Z` and the question before `I`/`E` work as in the table.
 - **Offline**: "The console is not answering. Nothing is lost; last change saved at 14:32." Fields stay readable; changes are refused locally.
 - **Stale / protocol changed**: screening published again: "New since 21 Nov" on the study. Protocol replaced by a re-inception: the whole page is read-only with "This study's table belongs to the old protocol." (`CHARTING_PROTOCOL_REPLACED`); the PDF still opens.
 

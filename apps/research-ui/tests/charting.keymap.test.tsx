@@ -141,13 +141,14 @@ describe("charting.keymap", () => {
     expect(undo.map((e) => [e.kind, e.value])).toEqual([["attachment", null], ["fulltext_status", { status: "to_get" }]]);
   });
 
-  it("keys are off in a text field; L, C and D stay free for Part F; Enter opens the study (Part B)", async () => {
+  it("keys are off in a text field; L, C and D send nothing on a row with no file waiting (Part F); Enter opens the study (Part B)", async () => {
     const engine = installEngine(makeTable([makeRow(1)]));
     const assign = vi.fn();
     vi.stubGlobal("location", { ...window.location, assign });
     await renderCharting();
     focusRow("STU-001");
     for (const key of ["l", "c", "d"]) await press(key);
+    await press("Escape"); // L opened the look-up plan (Part F); Esc closes it and nothing was started
     expect(engine.calls.filter((c) => c.method === "POST")).toHaveLength(0);
     await press("Enter");
     expect(assign).toHaveBeenCalledWith("/en/charting/study?id=STU-001");
@@ -158,8 +159,8 @@ describe("charting.keymap", () => {
     expect(engine.calls.filter((c) => c.method === "POST")).toHaveLength(0);
     expect(chartingKey({ key: "r", ctrlKey: false, metaKey: false, altKey: false, shiftKey: false }, link)).toBeNull();
     expect(chartingKey({ key: "e", ctrlKey: true, metaKey: false, altKey: false, shiftKey: false }, document.body)).toBe("export");
-    for (const key of ["l", "c", "d"]) {
-      expect(chartingKey({ key, ctrlKey: false, metaKey: false, altKey: false, shiftKey: false }, document.body), key).toBeNull();
+    for (const [key, action] of [["l", "lookup"], ["c", "confirm"], ["d", "discard"]] as const) {
+      expect(chartingKey({ key, ctrlKey: false, metaKey: false, altKey: false, shiftKey: false }, document.body), key).toBe(action);
     }
     expect(chartingKey({ key: "Enter", ctrlKey: false, metaKey: false, altKey: false, shiftKey: false }, document.body)).toBe("enter");
     expect(chartingKey({ key: "1", ctrlKey: false, metaKey: false, altKey: false, shiftKey: false }, document.body)).toBe("viewFulltext");

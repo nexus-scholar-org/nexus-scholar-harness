@@ -39,12 +39,18 @@ def _app_version() -> str:
     return package_version()
 
 
-def _file_entry(file_path: Path | None, manifest_path: Path) -> str | None:
-    """The file relative to the manifest's folder when it is inside it (POSIX), else absolute."""
+def _file_entry(file_path: Path | None, manifest_path: Path, file_root: Path | None = None) -> str | None:
+    """The file relative to ``file_root`` (else the manifest's folder) when it is inside it (POSIX), else absolute.
+
+    M12a Part F gives the workspace as ``file_root``: its manifest sits in
+    ``charting/`` and its files in ``pdfs/fetched/``, and a row must not carry
+    the researcher's home path nor break when the workspace is moved.
+    """
     if file_path is None:
         return None
+    base = Path(file_root) if file_root is not None else manifest_path.parent
     try:
-        return file_path.resolve().relative_to(manifest_path.resolve().parent).as_posix()
+        return file_path.resolve().relative_to(base.resolve()).as_posix()
     except ValueError:
         return str(file_path.resolve())
 
@@ -73,8 +79,8 @@ def _producing_attempt(result: DownloadResult) -> FetchAttempt | None:
     return None
 
 
-def manifest_row(result: DownloadResult, manifest_path: Path) -> dict[str, Any]:
-    """The row for one DOI, from its result."""
+def manifest_row(result: DownloadResult, manifest_path: Path, file_root: Path | None = None) -> dict[str, Any]:
+    """The row for one DOI, from its result (``file_root``: see ``_file_entry``)."""
     producing = _producing_attempt(result)
     copy = result.open_copy
     checks: dict[str, str] = {}
@@ -106,7 +112,7 @@ def manifest_row(result: DownloadResult, manifest_path: Path) -> dict[str, Any]:
         "outcome": result.outcome,
         "status": result.status,
         "message": result.error_message,
-        "file": _file_entry(result.file_path, manifest_path),
+        "file": _file_entry(result.file_path, manifest_path, file_root),
         "size": result.size,
         "sha256": result.sha256,
         "address": result.source_url,
@@ -115,6 +121,7 @@ def manifest_row(result: DownloadResult, manifest_path: Path) -> dict[str, Any]:
         "http_status": producing.http_status if producing else None,
         "content_type": producing.content_type if producing else None,
         "version": copy.version if copy else None,
+        "version_label": copy.version_label if copy else None,
         "license": copy.license if copy else None,
         "host_type": copy.host_type if copy else None,
         "source_name": copy.source_name if copy else None,

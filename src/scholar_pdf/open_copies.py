@@ -31,7 +31,7 @@ UNKNOWN_VERSION = "unknown"
 #: How many listed addresses one DOI may cost (the best-ranked ones).
 MAX_OPEN_COPIES_TRIED = 3
 
-PROVIDER_NAMES = {"openalex": "OpenAlex", "unpaywall": "Unpaywall"}
+PROVIDER_NAMES = {"openalex": "OpenAlex", "unpaywall": "Unpaywall", "arxiv": "arXiv"}
 
 #: Lookup states. ``NOT_FOUND`` (HTTP 404) is an answer: the service does not know the DOI.
 ANSWERED, NOT_FOUND, FAILED = "ANSWERED", "NOT_FOUND", "FAILED"
@@ -60,13 +60,16 @@ class OpenCopy:
     #: ``publisher`` or ``repository``; ``None`` when the provider does not say.
     host_type: str | None
     source_name: str | None
-    #: ``openalex`` or ``unpaywall``: the service that listed this location.
+    #: ``openalex``, ``unpaywall``, or ``arxiv`` (M12a Part F: the link arXiv's own answer gives).
     provider: str
+    #: The version in the words a row shows when the provider says more than
+    #: ``version`` (M12a Part F: "preprint (arXiv v3)"); ``None`` otherwise.
+    version_label: str | None = None
 
     def label(self) -> str:
         """The copy in words, for a table row."""
         parts = [
-            self.version,
+            self.version_label or self.version,
             self.license or "licence not given",
             self.source_name or self.host_type or "host not given",
             f"listed by {PROVIDER_NAMES.get(self.provider, self.provider)}",
@@ -224,10 +227,20 @@ def open_copies(openalex: dict | None, unpaywall: dict | None) -> list[OpenCopy]
         listed.extend(_openalex_copies(openalex))
     if isinstance(unpaywall, dict) and not says_closed(unpaywall):
         listed.extend(_unpaywall_copies(unpaywall))
+    return rank_copies(listed)
+
+
+def rank_copies(listed: list[OpenCopy] | tuple[OpenCopy, ...]) -> list[OpenCopy]:
+    """``listed`` best version first (``VERSION_ORDER``, then ``unknown``), each address once.
+
+    Stable: copies of one version keep the order given. M12a Part F ranks the
+    ``pdf`` link of arXiv's answer (a ``submittedVersion``) with the services'
+    copies this way, so a published version listed for the journal DOI wins.
+    """
     order = {version: rank for rank, version in enumerate((*VERSION_ORDER, UNKNOWN_VERSION))}
     seen: set[str] = set()
     copies = []
-    for copy in sorted(listed, key=lambda item: order[item.version]):  # stable
+    for copy in sorted(listed, key=lambda item: order.get(item.version, len(order))):  # stable
         if copy.url not in seen:
             seen.add(copy.url)
             copies.append(copy)

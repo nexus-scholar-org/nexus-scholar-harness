@@ -2,8 +2,9 @@
 
 import re
 import xml.etree.ElementTree as ET
-from collections.abc import AsyncIterator
-from dataclasses import replace
+from collections.abc import AsyncIterator, Iterable
+from dataclasses import dataclass, replace
+from typing import Any
 
 from ..http_client import ARXIV_RATE
 from ..models import Author, Document, ExternalIds, Query
@@ -12,6 +13,64 @@ from .base import BaseAPIProvider
 
 # A word as QueryParser reads one: up to a space or a bracket.
 _WORD = re.compile(r"[^\s()]+")
+
+# arXiv identifiers (arXiv's "Understanding the arXiv identifier"): the new
+# style ``YYMM.NNNN`` or ``YYMM.NNNNN`` (since 2007), and the old style
+# ``archive[.SUBJ]/YYMMNNN`` (before 2007), each with an optional ``vN``.
+_NEW_STYLE_ID = r"\d{4}\.\d{4,5}"
+_OLD_STYLE_ID = r"[a-z]+(?:-[a-z]+)*(?:\.[A-Z]{2})?/\d{7}"
+_ARXIV_ID = re.compile(
+    rf"^(?:arxiv:)?(?:https?://(?:www\.|export\.)?arxiv\.org/(?:abs|pdf)/)?"
+    rf"(?P<id>{_NEW_STYLE_ID}|{_OLD_STYLE_ID})(?P<version>v\d+)?(?:\.pdf)?$",
+    re.IGNORECASE,
+)
+
+
+#: arXiv's own Atom elements (``arxiv:doi``, ``arxiv:journal_ref``, ...).
+ARXIV_NS = "http://arxiv.org/schemas/atom"
+#: How many ids one ``id_list`` request asks for (M12a Part F).
+ID_LIST_CHUNK = 50
+
+
+@dataclass(frozen=True)
+class ArxivEntry:
+    """What arXiv's answer says about one id (M12a Part F, DoD F7): nothing is built here.
+
+    ``pdf_url`` is the entry's ``pdf`` link exactly as arXiv gives it; ``version``
+    is the version arXiv answered with (``v3``); ``doi`` a journal DOI when the
+    entry carries one (``arxiv:doi``, else its ``doi`` link); ``license`` the
+    entry's ``arxiv:license`` when present (not seen in arXiv's documented
+    answer: unverified, so usually ``None``).
+    """
+
+    arxiv_id: str
+    version: str | None
+    pdf_url: str | None
+    doi: str | None
+    license: str | None
+    title: str | None
+
+
+def split_arxiv_id(text: str | None) -> tuple[str | None, str | None]:
+    """``(id, version)`` from an arXiv id, ``arXiv:`` id or abs/pdf address; ``(None, None)`` otherwise.
+
+    M12a Part F (DoD F7): an old-style id keeps its archive (``hep-th/9901001v2``
+    gives ``("hep-th/9901001", "v2")``); the provider used to keep only the part
+    after the last ``/`` and cut it at the first ``v``. A bare seven-digit
+    number (an old-style id stored without its archive) names no paper and is
+    ``(None, None)``.
+    """
+    match = _ARXIV_ID.match((text or "").strip())
+    if match is None:
+        return None, None
+    found = match.group("id")
+    if "/" in found:
+        archive, number = found.split("/", 1)
+        head, dot, subject = archive.partition(".")
+        # Archives are lower case; an old subject class (``math.AG``) is upper case.
+        found = f"{head.lower()}{dot}{subject.upper()}/{number}"
+    version = match.group("version")
+    return found, version.lower() if version else None
 
 
 class ArxivProvider(BaseAPIProvider):
@@ -114,13 +173,13 @@ class ArxivProvider(BaseAPIProvider):
                 else:
                     authors.append(Author(family_name=name_parts[0]))
 
-        # Extract Arxiv ID from the ID URL (e.g. http://arxiv.org/abs/2101.01234v1 -> 2101.01234)
+        # The arXiv id from the entry's address, without its version
+        # (http://arxiv.org/abs/2101.01234v1 -> 2101.01234; an old-style
+        # http://arxiv.org/abs/hep-th/9901001v2 -> hep-th/9901001, M12a Part F).
         id_elem = entry.find("atom:id", self.ns)
         arxiv_id = None
         if id_elem is not None and id_elem.text:
-            arxiv_id = id_elem.text.split("/")[-1].split("v")[
-                0
-            ]  # Remove version number
+            arxiv_id, _ = split_arxiv_id(id_elem.text)
 
         # Extract DOI if available (often added after peer review publication)
         doi = None
@@ -391,5 +450,67 @@ class ArxivProvider(BaseAPIProvider):
             if not entries or total is None or next_start >= total:
                 return
             params["start"] = next_start
+
+    # ----------------------------------------------------------------- look-up by id (M12a Part F)
+
+    def parse_id_list(self, content: bytes) -> dict[str, ArxivEntry]:
+        """The entries of an ``id_list`` answer by id (without version); error entries left out."""
+        if not content.strip():
+            return {}
+        root = ET.fromstring(content)
+        found: dict[str, ArxivEntry] = {}
+        for entry in root.findall("atom:entry", self.ns):
+            id_elem = entry.find("atom:id", self.ns)
+            arxiv_id, version = split_arxiv_id(id_elem.text if id_elem is not None else None)
+            if arxiv_id is None:
+                continue  # arXiv's answer for an id it cannot read (``.../api/errors#...``)
+            pdf_url = None
+            doi_link = None
+            for link in entry.findall("atom:link", self.ns):
+                if link.get("title") == "pdf" and pdf_url is None:
+                    pdf_url = (link.get("href") or "").strip() or None
+                if link.get("title") == "doi" and doi_link is None:
+                    href = link.get("href") or ""
+                    doi_link = href.split("doi.org/", 1)[1].strip() if "doi.org/" in href else None
+            doi_elem = entry.find(f"{{{ARXIV_NS}}}doi")
+            doi = (doi_elem.text or "").strip() if doi_elem is not None and doi_elem.text else None
+            license_elem = entry.find(f"{{{ARXIV_NS}}}license")
+            title_elem = entry.find("atom:title", self.ns)
+            found[arxiv_id] = ArxivEntry(
+                arxiv_id=arxiv_id,
+                version=version,
+                pdf_url=pdf_url,
+                doi=doi or doi_link,
+                license=(license_elem.text or "").strip() or None if license_elem is not None and license_elem.text else None,
+                title=" ".join(title_elem.text.split()) if title_elem is not None and title_elem.text else None,
+            )
+        return found
+
+    async def lookup_ids(self, ids: Iterable[str], *, client: Any = None) -> dict[str, ArxivEntry]:
+        """Ask arXiv's API for several ids per request (``id_list``), one request at a time.
+
+        ``client`` (an ``AcademicHttpClient``; this provider's own by default)
+        paces ``export.arxiv.org`` at ``ARXIV_RATE`` through the host's shared
+        budget. Each id is asked once, without its version, so the answer is
+        the latest version. An id arXiv does not know is absent from the
+        result. A failed request raises (the caller says which ids it covered).
+        """
+        wanted: list[str] = []
+        for value in ids:
+            arxiv_id, _ = split_arxiv_id(value)
+            if arxiv_id is not None and arxiv_id not in wanted:
+                wanted.append(arxiv_id)
+        http = client if client is not None else self.client
+        found: dict[str, ArxivEntry] = {}
+        for start in range(0, len(wanted), ID_LIST_CHUNK):
+            chunk = wanted[start : start + ID_LIST_CHUNK]
+            # max_results: arXiv answers ten entries unless told otherwise.
+            response = await http.get(
+                self.base_url, params={"id_list": ",".join(chunk), "max_results": len(chunk)}
+            )
+            for arxiv_id, entry in self.parse_id_list(response.content).items():
+                if arxiv_id in chunk:
+                    found[arxiv_id] = entry
+        return found
 
     # arXiv has no native snowballing API

@@ -23,6 +23,7 @@ from . import CHARTING_DIR, ChartingRefused
 from . import attachments as att
 from . import cells as cl
 from . import events as ev
+from . import fetch as fx
 from . import form as fm
 from .kept import CHARTING_PROTOCOL_REPLACED, KeptState, as_dict, protocol_replaced, read_kept
 from .lock import LockBusy, locked
@@ -94,6 +95,7 @@ def context(ws: Path, state: KeptState) -> ev.Context:
         binding=_binding(ws, state, form),
         form=form,
         pilot=bool((form.get("pilot") or {}).get("on")),
+        fetch=fx.Hooks(ws, who),
     )
 
 
@@ -106,6 +108,7 @@ def row(
     record: dict[str, Any], events: list[dict[str, Any]], who: str, *, kept: bool, new_since: str | None,
     form: dict[str, Any] | None = None, info: dict[str, Any] | None = None,
     index: dict[tuple[str, str, str], list[dict[str, Any]]] | None = None,
+    fetched: fx.TableState | None = None,
 ) -> dict[str, Any]:
     study_id = record["study_id"]
     index = index if index is not None else cl.build_index(events)
@@ -118,6 +121,9 @@ def row(
     decision, decision_event = _held("fulltext_decision")
     attachment, attachment_event = _held("attachment")
     link, link_event = _held("link")
+    _, confirm_event = _held("fetched_confirm")
+    _, discard_event = _held("fetched_discard")
+    fetched = fetched or fx.TableState()
     cells = cl.project(events, study_id, who, form, info, index) if form is not None and info is not None else {}
     out = {
         **record,
@@ -131,12 +137,18 @@ def row(
             "reason_text": (status or {}).get("reason_text"),
             "attachment": attachment,
             "link": (link or {}).get("url") if isinstance(link, dict) else None,
+            # Part F: a fetched file waiting for the researcher ("Fetched, to confirm"); the status
+            # above keeps the earlier one, and the row is counted apart (spec 03, question 1).
+            "pending_fetch": fetched.pending.get(study_id),
+            "last_lookup": fetched.last.get(study_id),
+            "discarded_fetch": fetched.discarded.get(study_id),
         },
         "ft_decision": decision,
         # The events that hold each value now: what an undo supersedes.
         "heads": {
             "fulltext_status": status_event, "fulltext_decision": decision_event,
             "attachment": attachment_event, "link": link_event,
+            "fetched_confirm": confirm_event, "fetched_discard": discard_event,
         },
         # Part B: one cell per form column; "No full text" when the row is charted without a retrieved copy.
         "cells": cells,
@@ -153,12 +165,26 @@ def counts(rows: list[dict[str, Any]]) -> dict[str, int]:
     def _n(test) -> int:
         return sum(1 for r in live if test(r))
 
+    def _waiting(r: dict[str, Any]) -> bool:
+        return bool(r["fulltext"].get("pending_fetch"))
+
     return {
         "kept": len(live),
-        "to_get": _n(lambda r: r["fulltext"]["status"] == "to_get"),
-        "requested": _n(lambda r: r["fulltext"]["status"] == "requested"),
+        # Part F (spec 03, question 1): a row whose fetched file waits leaves To get, Requested and
+        # Not retrieved and is counted in "to confirm", so the counts still add up to the kept total.
+        "to_get": _n(lambda r: r["fulltext"]["status"] == "to_get" and not _waiting(r)),
+        "requested": _n(lambda r: r["fulltext"]["status"] == "requested" and not _waiting(r)),
         "retrieved": _n(lambda r: r["fulltext"]["status"] == "retrieved"),
-        "not_retrieved": _n(lambda r: r["fulltext"]["status"] == "not_retrieved"),
+        "not_retrieved": _n(lambda r: r["fulltext"]["status"] == "not_retrieved" and not _waiting(r)),
+        "to_confirm": _n(_waiting),
+        # The PRISMA full-text counts read the status alone: a file waiting is neither retrieved nor
+        # assessed, and these do not move until it is confirmed (DoD F5).
+        "prisma": {
+            "sought": len(live),
+            "not_retrieved": _n(lambda r: r["fulltext"]["status"] == "not_retrieved"),
+            "retrieved": _n(lambda r: r["fulltext"]["status"] == "retrieved"),
+            "assessed": _n(lambda r: bool(r["ft_decision"])),
+        },
         "included": _n(lambda r: (r["ft_decision"] or {}).get("outcome") == "INCLUDE"),
         "excluded": _n(lambda r: (r["ft_decision"] or {}).get("outcome") == "EXCLUDE"),
         "to_decide": _n(lambda r: not r["ft_decision"]),
@@ -180,17 +206,20 @@ def table(ws: Path | str) -> dict[str, Any]:
     info = cl.amendment_info(ws, form)
     events = ev.read_events(ws)
     index = cl.build_index(events)
+    # The records no longer kept keep their waiting file and last look-up on the row (spec 03, "Stale").
+    fetched = fx.table_state(ws, events, who, [r.study_id for r in state.records] + sorted(state.no_longer_kept))
     rows = [
         row(as_dict(r), events, who, kept=True, new_since=state.new_since.get(r.study_id), form=form, info=info,
-            index=index)
+            index=index, fetched=fetched)
         for r in state.records
     ]
     rows += [
         row({"study_id": sid, "authors": [], "abstract": None, "venue": None, "url": None, "arxiv_id": None,
              "ta_reason": "", "generation_id": summary.get("generation_id"), **summary},
-            events, who, kept=False, new_since=None, form=form, info=info, index=index)
+            events, who, kept=False, new_since=None, form=form, info=info, index=index, fetched=fetched)
         for sid, summary in sorted(state.no_longer_kept.items())
     ]
+    _warn_duplicates(rows)
     return {
         "shape": SHAPE,
         "screener_id": who,
@@ -208,6 +237,22 @@ def table(ws: Path | str) -> dict[str, Any]:
         "form": {**form, "amendments": fm.read_amendments(ws), "has_values": cl.has_values(events)},
         "rows": rows,
     }
+
+
+def _warn_duplicates(rows: list[dict[str, Any]]) -> None:
+    """The same bytes waiting or attached on two kept rows are named on both (record (d2), check 5)."""
+    by_hash: dict[str, set[str]] = {}
+    for r in rows:
+        if not r["kept"]:
+            continue
+        ft = r["fulltext"]
+        for sha in ((ft.get("pending_fetch") or {}).get("sha256"), (ft.get("attachment") or {}).get("sha256")):
+            if sha:
+                by_hash.setdefault(sha, set()).add(r["study_id"])
+    for r in rows:
+        pending = r["fulltext"].get("pending_fetch")
+        if pending:
+            pending["duplicate_of"] = sorted(by_hash.get(pending["sha256"], set()) - {r["study_id"]})
 
 
 def _writable(ws: Path) -> KeptState:
@@ -257,6 +302,9 @@ def check_attach(ws: Path | str, study_id: str, event_ids: Iterable[str | None] 
     att.attached_path(ws, study_id)  # refuses an unsafe study id
     if study_id not in ctx.kept:
         raise ChartingRefused(409, ev.RECORD_NOT_KEPT, "That study is not in the kept set any more. Reload the table.")
+    if ctx.fetch is not None and ctx.fetch.waiting(study_id, ev.read_events(ws)) is not None:
+        raise ChartingRefused(409, fx.FETCH_FILE_WAITING,
+                              "A fetched file is waiting on this row. Confirm it or discard it first.")
     for given in event_ids:
         if given is not None and not ev._UUID.match(given):
             raise ChartingRefused(422, ev.BODY_INVALID, "event ids are lowercase UUIDs")
@@ -390,6 +438,12 @@ FULLTEXT_COLUMNS = (
     "requested_on", "not_retrieved_reason", "file_name", "file_sha256", "link", "ft_decision", "ft_reason",
 )
 STATUS_WORDS = {"to_get": "To get", "requested": "Requested", "retrieved": "Retrieved", "not_retrieved": "Not retrieved"}
+#: A row whose fetched file waits: never "Retrieved" in an export (spec 03, "Copy", export words).
+TO_CONFIRM_WORDS = "Fetched, to confirm"
+
+
+def status_words(fulltext: dict[str, Any]) -> str:
+    return TO_CONFIRM_WORDS if fulltext.get("pending_fetch") else STATUS_WORDS[fulltext["status"]]
 REASON_WORDS = {"no_access": "No access or paywalled", "not_found": "Not found", "no_reply": "Authors did not reply"}
 
 
@@ -404,7 +458,7 @@ def fulltext_rows(view: dict[str, Any]) -> list[list[str]]:
         out.append([
             r["study_id"], (r.get("authors") or [""])[0] if r.get("authors") else "", str(r.get("year") or ""),
             r.get("title") or "", r.get("doi") or "", r["round_label"],
-            "Unclear" if r.get("ta_decision") == "MAYBE" else "Include", STATUS_WORDS[ft["status"]],
+            "Unclear" if r.get("ta_decision") == "MAYBE" else "Include", status_words(ft),
             ft.get("requested_on") or "", reason or "", (ft.get("attachment") or {}).get("name", ""),
             (ft.get("attachment") or {}).get("sha256", ""), ft.get("link") or "",
             {"INCLUDE": "Include", "EXCLUDE": "Exclude"}.get(decision.get("outcome") or "", ""), ft_reason or "",
@@ -450,7 +504,7 @@ def charting_rows(view: dict[str, Any]) -> list[list[str]]:
             continue
         line = [
             r["study_id"], (r.get("authors") or [""])[0] if r.get("authors") else "", str(r.get("year") or ""),
-            r.get("title") or "", r.get("doi") or "", r["round_label"], STATUS_WORDS[r["fulltext"]["status"]],
+            r.get("title") or "", r.get("doi") or "", r["round_label"], status_words(r["fulltext"]),
             "No full text" if r.get("no_full_text") else "", "Pilot" if r.get("pilot") else "",
         ]
         for c in columns:

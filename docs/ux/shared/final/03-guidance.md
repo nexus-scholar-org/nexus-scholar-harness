@@ -514,6 +514,15 @@ The result of `13-criteria-pilot` (`components/screening-pilot-copy.ts`). Only i
 | X-ST1 | `charting.study.tip.whereFrom` | "A page or a short quote, so you can find it again." | HINT | T1 how to fill the field is explanation, one tap away (spec `docs/ux/phase3-extraction/final/02-one-study.md`, Copy) |
 | X-ST2 | `charting.study.tip.notReported` | "Use this when the study does not say. It is a finding, not a blank." | HINT | T1 what Not reported means is explanation, one tap away (same spec) |
 
+### Charting (phase 3): the look-up of open-access copies (M12a Part F, 2026-11-22), not counted yet
+The three hints of `docs/ux/phase3-extraction/final/03-fetch-states.md` ("Layout"); the plan's services, the e-mail and the counts are never behind a hint (they are the consent), and the identity result, the version and the try-later count stay visible beside their hint.
+
+| ID | Keys | Sentence (en) | Decision | Reason |
+| :-- | :-- | :-- | :-- | :-- |
+| X-F1 | `charting.fetch.tip.identity` | "The check looks for the DOI or the title words on the first two pages. It cannot tell you the paper is the right one. Open the file to be sure." | HINT | T1 how the identity check works is explanation, one tap away; its result stays visible in words and an icon (spec 03, Copy) |
+| X-F2 | `charting.fetch.tip.version` | "The app takes the best open copy it finds: the published version, then the accepted manuscript, then a preprint. You decide whether a preprint will do." | HINT | T1 how the copy is chosen is explanation, one tap away; the version itself stays visible (same spec) |
+| X-F3 | `charting.fetch.tip.tryLater` | "Try later means the service or the host asked the app to wait, or did not answer. It is not an answer about the paper." | HINT | T1 what "to try later" means is explanation, one tap away; the count and the row's line stay visible (same spec) |
+
 ### Counts per decision
 (Counted by the test `guidance.audit.test.tsx` from the tables above.)
 

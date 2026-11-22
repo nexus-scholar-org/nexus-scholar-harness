@@ -127,6 +127,7 @@ const POST_PATHS: ReadonlyArray<RegExp> = [
   /^api\/v1\/charting\/events$/,
   /^api\/v1\/charting\/records\/[A-Za-z0-9_-]+\/attachment$/,
   /^api\/v1\/charting\/form\/pilot\/end$/,
+  /^api\/v1\/charting\/fetch(\/cancel)?$/,
 ];
 
 /** The one GET with a side effect: the engine records a reveal when a draft is read. */
@@ -168,6 +169,8 @@ const STREAM_PATHS: ReadonlyArray<RegExp> = [
 const FILE_PATHS: ReadonlyArray<RegExp> = [
   /^api\/v1\/charting\/records\/[A-Za-z0-9_-]+\/attachment$/,
   /^api\/v1\/charting\/export$/,
+  // M12a Part F: the fetched file waiting on a record, opened before it is confirmed.
+  /^api\/v1\/charting\/records\/[A-Za-z0-9_-]+\/fetched$/,
 ];
 
 /** The one POST whose body may be a binary file: a PDF attached to a kept charting record. */
@@ -229,6 +232,8 @@ async function fileResponse(upstream: Response): Promise<Response> {
   const headers: Record<string, string> = {
     "content-type": upstream.headers.get("content-type") ?? "application/octet-stream",
     "cache-control": "no-store",
+    // A file is a file: the browser never guesses another type from its bytes.
+    "x-content-type-options": "nosniff",
   };
   const disposition = upstream.headers.get("content-disposition");
   if (disposition) headers["content-disposition"] = disposition;

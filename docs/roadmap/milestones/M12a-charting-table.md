@@ -726,3 +726,80 @@ Review round 2 (`milestone-reviewer`, on `7765cb09`): **APPROVE**. In its words:
 **Part B follow-up: READY FOR PR.** Branch `dev/m12a/part-b-followup`; it carries `origin/main` `9e4be45f`. Decision items 1 to 7 were accepted by the researcher on 2026-11-22 as built (asked together in the main session; item 4 says how the engine records a split of an unsaved merge; the entry amends accepted Part B item 25's last sentence), and the push was approved.
 
 **Part B follow-up: merged** on 2026-11-22 (PR 282, merge commit `4962c9eb`, 12 of 12 checks, head `db6962b9`).
+
+### Part F: open-access fetching (the engine and the screens)
+
+Branch `dev/m12a/part-f-fetch`, cut from Part K's branch (`d1f48bd9`) with `origin/main` `933be3fb` merged in; Part K's pushed head (PR 283, `76b47c15`) merged in on 2026-11-22 (`f108b97a`; the two conflicts were documents Part F had not touched, Part K's versions kept) · Lane **RELEASE** (new routes, a new persisted record and journal rows, refusal codes, outgoing requests, a change to the arXiv provider's parsing) · Spec: `docs/ux/phase3-extraction/final/03-fetch-states.md`, FINAL on 2026-11-22 (questions 1 to 10 answered by the researcher, each as recommended; the fifth refusal code `FETCH_FILE_WAITING` approved with question 6) · Decisions: `docs/decisions.md` "2026-11-22 — M12a Part F" items 1 to 68 (PROPOSED). The screens were built by a subagent from a brief written in the build session; the engine, its two later repairs and the documents in the build session.
+
+What was built:
+- The kit (`src/scholar_pdf/downloader.py`, `open_copies.py`, `manifest.py`): a body limit, a redirect cap, a pacer, the caller's copies and outcome rows, each with a default that leaves the commands unchanged (item 20); an arXiv copy labelled with its version (item 11).
+- The arXiv provider (`src/scholar_search/providers/arxiv.py`): an old-style id keeps its archive (DoD F7; item 22, asked on its own), and a look-up by id list.
+- The engine (`src/scholar_harness/charting/fetch.py`, new; `events.py`, `table.py`): the plan, the run (one per workspace, its lock, cancel, progress, the manifest `charting/fetch_manifest.jsonl`), "Fetched, to confirm" on the rows and in the counts, confirm and discard as events with their undo, the guard `FETCH_FILE_WAITING`, the journal rows `CHARTING_FETCH_STARTED` and `CHARTING_FETCH_FINISHED`; after the screens' build, the run names failed checks and failed look-ups, and the rows no longer kept keep their fetch state (items 23 and 24).
+- The routes (`console/api/charting.py`), the refusals (`console/refusals.py`, the contract's §7 rows, `docs/architecture/screening-api-contract.md`), the browser allow-lists (`console/browser.py`, `app/api/console/[...path]/route.ts`, which also passes the waiting PDF through as bytes).
+- The screens (`apps/research-ui/components/charting-fetch.tsx` and `lib/charting-fetch.ts`, new; `charting-page.tsx`, `charting-study.tsx`, `lib/charting-api.ts`, `charting-copy.ts` in en, fr and ar, `charting-logic.ts`); the hints X-F1 to X-F3 in `docs/ux/shared/final/03-guidance.md`; spec 01 FINAL and the Part F lines owed to specs 01 and 02.
+
+| DoD | Test(s) |
+| :-- | :-- |
+| F1: no e-mail, no socket; no OpenAlex key, not asked and said | `test_charting_fetch_api.py::test_without_the_contact_email_the_plan_and_the_start_are_refused_before_any_request`, `::test_without_the_openalex_key_openalex_is_not_asked_and_the_plan_says_so`; `charting.fetch-plan.test.tsx` |
+| F2: a manifest row for every record reached | `::test_every_record_reached_has_a_manifest_row_and_no_file_is_without_one`, `::test_a_failed_record_has_its_row_too`, `::test_a_cancel_stops_between_records_and_the_records_reached_keep_their_rows`; `test_part_f_kit.py::test_no_copy_from_the_caller_writes_a_row_and_sends_nothing` |
+| F3: the checks on a local stub server | `::test_a_body_over_the_limit_is_cut_and_fails`, `::test_redirects_are_recorded_and_a_sixth_is_refused`, `::test_html_named_pdf_fails_its_checks`, `::test_a_429_that_asks_too_long_ends_as_try_later`, `::test_the_same_bytes_for_two_records_are_warned_on_both_rows`; `test_part_f_kit.py` (body limit declared and streamed, five redirects, the sixth, the pacer, a page that is not a PDF); 403, 404 and 410 asked once and a 429 within the cap waited out: Part K's `test_part_k_retries.py::test_a_definitive_answer_is_asked_once`, `::test_a_429_with_a_short_retry_after_is_waited_out_once` |
+| F4: the kit as a library; no proxy, no guessed address | `::test_the_run_calls_the_kits_downloader_with_no_proxy_and_asks_only_listed_addresses`, `::test_the_default_session_trusts_no_proxy_from_the_environment` |
+| F5: waiting, not counted; confirm, discard, undo, refusals | `::test_a_fetched_file_waits_and_the_prisma_counts_do_not_move`, `::test_confirm_attaches_the_file_with_origin_fetched_and_sets_retrieved_and_undo_takes_it_back`, `::test_discard_needs_one_reason_keeps_the_file_and_can_be_undone`, `::test_confirm_or_discard_with_nothing_waiting_is_fetch_not_pending`, `::test_a_decision_status_or_attachment_on_a_waiting_row_asks_for_the_confirmation_first`, `::test_a_record_no_longer_kept_keeps_its_waiting_file_on_the_row_and_cannot_be_confirmed`; `charting.fetch-confirm`, `-discard`, `-decide-guard`, `-badge` |
+| F6: one run, cancel, skips, journal rows without the key | `::test_one_run_per_workspace`, `::test_a_second_run_skips_records_with_a_waiting_or_confirmed_file`, `::test_a_discarded_file_is_not_offered_again_and_the_record_is_left_out_unless_selected`, `::test_the_journal_rows_carry_the_counts_and_never_the_key`, `::test_a_run_this_console_did_not_finish_reads_as_interrupted_without_a_write`; `charting.fetch-run.test.tsx` |
+| F7: arXiv by id, paced, labelled; a journal DOI goes to the services; old-style ids | `::test_an_arxiv_only_record_is_asked_of_arxiv_and_fetched_from_the_link_arxiv_gives`, `::test_a_journal_doi_in_arxivs_answer_goes_to_the_services_and_the_best_copy_wins`, `::test_arxiv_requests_share_one_budget_of_one_every_three_seconds`; `test_arxiv_ids.py` (seven test functions, 21 cases, a hand-made answer); `test_part_f_kit.py::test_a_published_version_listed_for_the_journal_doi_wins_over_the_arxiv_preprint`, `::test_the_arxiv_preprint_is_taken_when_the_services_list_no_copy` |
+| F8: the screens, en/fr/ar, keyboard, axe light and dark | the fourteen `apps/research-ui/tests/charting.fetch-*` files; `tests-browser/charting-fetch.spec.ts` (seven tests, each in light and dark: plan and run with Cancel; filter, open, confirm and discard within four keypresses per row; a failed row and its tried panel; `I` on a waiting row; 390 px read-only; Arabic at 390 px; axe) |
+| F9: a live run on the researcher's review | not done: the researcher's, after the merge |
+
+Not verified:
+- No live request was sent (no Unpaywall, OpenAlex, arXiv or publisher). Every run in the tests goes to fakes and a local stub server; the arXiv answer is hand-made, not recorded. DoD F9 is the first live run.
+- The screens were not driven against a real console: vitest uses the fake engine in `tests/charting-helpers.tsx` and Playwright a fake at the network boundary; the fake imitates the engine's rules, which the Python tests check on the real engine.
+- The French and Arabic words of the new keys were written in the build and not read by a speaker (item 51).
+- PubMed Central's own route stays a follow-up after Part F (Part K item 17, the researcher's answer of 2026-11-22).
+- The letter keys need the Latin keyboard layout (Part A's standing limit).
+
+Review round 1 (`milestone-reviewer`, on `6bbe0c58`, the delta `76b47c15...HEAD`): **CHANGES**, no P1. In its words: "No paywall bypass, no proxy on the PDF session […], and no URL the app builds itself." Eleven findings; the gate that was running on `6bbe0c58` was stopped and is run again on the repairs.
+
+| # | Finding | Repair | Test |
+| :-- | :-- | :-- | :-- |
+| P2-1 | The manifest named fetched files by absolute path (home path in a tracked file; a moved workspace could not serve or confirm them) | relative to the workspace (`manifest_file_root`); item 6 amended | `test_charting_fetch_api.py::test_the_manifest_names_files_relative_to_the_workspace_and_a_moved_workspace_still_serves_them` |
+| P2-2 | A protocol replace did not stop or wait for a running look-up | genesis with `replace` refused `WORKSPACE_JOB_ACTIVE` while one runs; item 59 | `::test_a_protocol_replace_waits_for_a_running_look_up`; `test_inception_api.py::test_a_replacement_waits_for_a_running_look_up_of_open_access_copies` |
+| P2-3 | A file could arrive on a row the researcher changed during the run (counts over the kept total, status keys refused) | the run skips such a row; a file that still arrives does not wait on it; item 60 | `::test_a_row_given_retrieved_during_the_run_is_not_asked_and_counts_add_up`, `::test_a_file_fetched_for_a_row_changed_while_it_downloaded_does_not_wait_on_it` |
+| P2-4 | Item 22 left out that the arXiv id feeds the REC- and STU- ids, the verifier, the chasing keys and the retraction look-up | item 22 amended (documents only) | (none) |
+| P3-5 | The Full text CSV said "To get" for a waiting row | "Fetched, to confirm"; item 61 | `::test_the_full_text_export_says_fetched_to_confirm_for_a_waiting_row` |
+| P3-6 | The start's answer could read a short run as interrupted | not for the start's own answer; item 62 | `::test_the_start_answer_never_reads_a_short_run_as_interrupted` |
+| P3-7 | Open was shown on a record no longer kept, whose file the route refused | the file is served; item 63 | `::test_a_record_no_longer_kept_keeps_its_waiting_file_on_the_row_and_cannot_be_confirmed` (extended) |
+| P4-8 | "Try later" on a row whose file came from the other service | only for a record left without a file; item 64 | `::test_try_later_is_said_only_for_a_record_left_without_a_file` |
+| P4-9 | The record's test count and the F3 row's missing retry tests | corrected above | (none) |
+| P4-10 | A finish row could be written with no start row | not written then; item 65 | `::test_no_finish_row_when_the_start_row_could_not_be_written` |
+| P4-11 | The UI tests' fake undid a confirm's attachment and status even after a later change | the fake follows the engine's rule (only while they still hold) | the charting vitest files (no test drives an undo after a later change) |
+
+The new tests were written after the repairs and not run against the code before them; the findings were confirmed by reading (the reviewer ran `_file_entry` for finding 1). Follow-ups the reviewer named, not repaired here: two consoles on one workspace can both take over a stale lock (a read, remove and create race in `_acquire`); a dead console's process number reused by Windows keeps its lock "alive" (the pattern of `agent_runs`); the arXiv provider object made for the look-up opens an HTTP client it never uses or closes; the pacer reports "waiting" for an arXiv request the budget lets go at once.
+
+Review round 2 (`milestone-reviewer`, on `2c0d021d`: the repairs `41c60093`, `a1be70c0` and `origin/main` `76c445ef` merged): **CHANGES**. In its words: "All eleven round-1 findings are repaired, and each new test would fail on the code at `6bbe0c58`." It found that the merge lost nothing from `origin/main`. The gate that was running on `2c0d021d` was stopped and is run again on the repairs.
+
+| # | Finding | Repair | Test |
+| :-- | :-- | :-- | :-- |
+| P3-1 | Item 60 said a file fetched for a changed row never waits on it; the rule reads the row as it is now, so the file waits again once the row is To get, Requested or Not retrieved with no file | the behaviour kept and item 60 says it (the researcher's choice; hiding the file for good is the alternative) | `test_charting_fetch_api.py::test_a_file_fetched_for_a_row_changed_while_it_downloaded_does_not_wait_on_it` (extended: the file waits again, `FETCH_FILE_WAITING`) |
+| P4-2 | The new per-record read of the events sat outside the record's `try`: a half-written line could fail the whole run | a failed read asks the record as planned; item 66 | `::test_a_bad_read_of_the_events_during_a_run_never_fails_it` |
+| P4-3 | Rows changed during a run were counted only in the run file | the finish row's `changed_during_run` and a summary line; item 67 | `::test_the_finish_row_counts_the_rows_changed_during_the_run`; `charting.fetch-summary.test.tsx` ("says how many rows were left…") |
+| P4-4 | The UI fake still showed the file after an undo of a confirm when the researcher's attachment held | the fake applies the engine's row rule | the charting vitest files |
+
+Follow-ups the reviewer named, not repaired here: the moved-workspace test's first assertion proves nothing on Windows (JSON escapes the backslashes; the `pdfs/fetched/DOC-` assertion is the one that catches the old behaviour); `manifest_file_root` has no test in the kit's own tests; arXiv-only records go to arXiv's batch look-up at the start, so a row changed after it was already sent there; the replace's running-job check has the search jobs' check-then-act race.
+
+Review round 3 (`milestone-reviewer`, on `f7136455`: the repairs `74a93333` and the docs `f7136455`): **APPROVE**. In its words: "All four round-2 findings are repaired… There are no new findings."
+
+Evidence (the PR gate on `f7136455`, final code `74a93333`; each heavy step alone on the machine, the script waiting until no other test process ran):
+
+| Check | Result |
+| :-- | :-- |
+| `pytest -q -n 4` (4 workers) with `--junitxml` | 6533 tests, 0 failures, 0 errors, 15 skipped (943 s) |
+| `sync_skills_bundle.py --check`; `ruff check scripts/`; `ruff check src/ --select F821,F811,F823,F632,F7,B023,B006,E9` | OK; clean; clean |
+| `generate_contract_baseline.py --check`; protocol schema check | current; in sync |
+| `npm run typecheck`; `npm run build` | clean; ok |
+| `vitest run` | 108 files, 1342 tests: 2 failures in that run (`inception-explore`, `inception-workbench`, their first `findBy` past 1 s; item 68), 1 in a rerun alone; after `25d7956c` two full runs 1342 passed, 0 failures; typecheck clean |
+| `playwright test` | 720 passed, 16 skipped (17.6 min) |
+| `git diff --check origin/main...HEAD` | clean |
+
+The four screenshots Playwright rewrites were restored. Later commits: `4b89c798` merges `origin/main` `46ebe639` (PRs 285 and 286, documents only; the conflict in this record resolved with both sides kept); `25d7956c` is the test repair of item 68 (two test files, no product code), checked by the two full vitest runs above; the rest are documents.
+
+**Part F: READY FOR PR.** Branch `dev/m12a/part-f-fetch`; it carries Part K's PR-283 head `76b47c15` and `origin/main` `a34904dd` (merged in by the main session; one document conflict, both sides kept). Decision items 1 to 68 were accepted by the researcher on 2026-11-22 as built, and the push and the merge were approved; item 51 (the French and Arabic words) is still to be read by the researcher. DoD F9 (a live run on the researcher's review) is the researcher's, after the merge.

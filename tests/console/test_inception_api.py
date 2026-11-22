@@ -501,3 +501,23 @@ def test_a_too_large_and_malformed_draft_is_reported_as_too_large():
         steps.parse_draft({"topic": "x" * _over(steps.MAX_TEXT_CHARS), "start_year": "soon"})
     assert refused.value.code == "DRAFT_TOO_LARGE"
     assert {tuple(e["loc"]) for e in refused.value.details["errors"]} == {("topic",), ("start_year",)}
+
+
+def test_a_replacement_waits_for_a_running_look_up_of_open_access_copies(root, monkeypatch):
+    """M12a Part F, review finding 2: a running look-up would write into the new protocol's workspace."""
+    from scholar_harness.charting import fetch as fx
+
+    client = _client(root)
+    first = client.post(f"{BASE}/drafts", json={"draft": _draft()}).json()["session_id"]
+    client.post(f"{BASE}/drafts/{first}/genesis", json={})
+    ws = root / SLUG
+    running = {"id": "FR-" + "1" * 24}
+    monkeypatch.setattr(fx, "live_run", lambda target: running["id"] if Path(target).resolve() == ws.resolve() else None)
+    before = _tree(ws)
+    second = client.post(f"{BASE}/drafts", json={"draft": _draft()}).json()["session_id"]
+    refused = client.post(f"{BASE}/drafts/{second}/genesis", json={"replace": True})
+    assert (refused.status_code, refused.json()["detail"]["code"]) == (409, "WORKSPACE_JOB_ACTIVE")
+    assert "look-up of open-access copies" in refused.text
+    assert _tree(ws) == before
+    running["id"] = None
+    assert client.post(f"{BASE}/drafts/{second}/genesis", json={"replace": True}).status_code == 201
