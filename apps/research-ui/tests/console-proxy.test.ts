@@ -585,6 +585,30 @@ describe("console proxy — files (M12a Part A)", () => {
     expect(new Uint8Array(await response.arrayBuffer())).toEqual(PDF);
   });
 
+  it("returns a fetched file waiting on a record as its bytes, inline and not sniffed (M12a Part F)", async () => {
+    vi.stubEnv("NEXUS_CONSOLE_URL", CONSOLE);
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(() =>
+        Promise.resolve(
+          new Response(PDF, {
+            status: 200,
+            headers: { "content-type": "application/pdf", "content-disposition": 'inline; filename="STU-abc_1-fetched.pdf"', "x-content-type-options": "nosniff" },
+          }),
+        ),
+      ),
+    );
+    const response = await GET(
+      request("api/v1/charting/records/STU-abc_1/fetched"),
+      context("api", "v1", "charting", "records", "STU-abc_1", "fetched"),
+    );
+    expect(response.status).toBe(200);
+    expect(response.headers.get("content-type")).toBe("application/pdf");
+    expect(response.headers.get("content-disposition")).toBe('inline; filename="STU-abc_1-fetched.pdf"');
+    expect(response.headers.get("x-content-type-options")).toBe("nosniff");
+    expect(new Uint8Array(await response.arrayBuffer())).toEqual(PDF);
+  });
+
   it("returns the charting CSV with its BOM and file name", async () => {
     vi.stubEnv("NEXUS_CONSOLE_URL", CONSOLE);
     const csv = new Uint8Array([0xef, 0xbb, 0xbf, 0x61, 0x2c, 0x62, 0x0d, 0x0a]);
