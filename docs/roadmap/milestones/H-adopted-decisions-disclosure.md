@@ -1,6 +1,6 @@
 # H-adopted-decisions-disclosure
 
-Status: **SPECIFICATION, DRAFT; questions 1 to 6 open; nothing built.** Lane proposed: **RELEASE** (a new persisted record, a new route, a changed publication check and a changed methods text). Written by the main session on 2026-11-22 at the researcher's request, after the walk of the published sensor-stress review. The start of any build is the researcher's to approve separately.
+Status: **SPECIFICATION; questions 1 to 6 answered by the researcher on 2026-11-22, each as recommended; nothing built.** The build starts after M12a Part F is ready for its PR, in a session of its own (the researcher's answer, same day). Lane proposed: **RELEASE** (a new persisted record, a new route, a changed publication check and a changed methods text). Written by the main session on 2026-11-22 at the researcher's request, after the walk of the published sensor-stress review. The start of any build is the researcher's to approve separately.
 
 Findings it answers: 43 and 44, with 40 and 41 behind them (`docs/roadmap/acceptance-run-sensor-stress-2026-11-20.md`).
 
@@ -46,14 +46,16 @@ This specification is narrower and comes first: **an honest disclosure for decis
 5. The contract baseline check stays current with no regeneration.
 6. A browser test of the declaration flow; copy in en, fr and ar.
 
-## Open questions
+## Questions closed (2026-11-22)
 
-1. **Is a declaration (beside the events) the right shape now**, or should this wait for M9b's `AGENT_ADOPTED` event? Recommendation: the declaration now. M9b is a contract change behind calibration gates and does not cover decisions already stored. Cost: two mechanisms for a while; M9b must read declarations too.
-2. **How are candidates found?** Recommendation: by the note's wording (the notes of 2026-11-20 and 2026-11-21 name the adoption), offered for confirmation, never applied silently. Cost: a review whose bulk notes are worded differently offers nothing, and the researcher declares by filter (date range, batch). Alternative: any decision with no reveal and received within seconds of its neighbours.
-3. **Does an undeclared candidate block publication?** Recommendation: no, "Look at this" only; the app cannot prove a decision was not read. Alternative: block until declared or dismissed with a reason.
-4. **Does an owed sample block publication?** Recommendation: no; it is stated on Agreement, on Publish and in the methods text. Cost: a review can be published with the sample unread, as this one was.
-5. **Does recording a declaration make a published generation stale?** Recommendation: yes for the methods export only (it is regenerated), not for `included.json`: no decision changed. Alternative: mark the whole generation stale and require publishing again.
-6. **The wording.** "Stored from the agent's draft without being read one by one" is proposed for all four places. The researcher may prefer another phrase for the methods section of a paper.
+Asked in the main session, one by one; each answered as recommended. Decision: `docs/decisions.md`, "2026-11-22 — H-adopted-decisions-disclosure".
+
+1. **A declaration now**, not a wait for M9b's `AGENT_ADOPTED`. Known cost: two mechanisms for a while; M9b must read declarations too.
+2. **Candidates are found by the note's wording**, offered for confirmation, never applied silently. Known cost: a review whose bulk notes are worded differently offers nothing, and the researcher declares by filter (date range, batch). *Not chosen:* timing; both.
+3. **An undeclared candidate does not block publication**: "Look at this" only. *Not chosen:* block until declared or dismissed with a reason.
+4. **An owed sample does not block publication**; it is stated on Agreement, on Publish and in the methods text. Known cost: a review can be published with the sample unread. *Not chosen:* block.
+5. **A declaration on a published review makes only the methods export out of date**; `included.json` and `excluded.json` stay as published. *Not chosen:* the whole generation stale.
+6. **The phrase is "stored from the agent's draft without being read one by one"**, in all four places. *Not chosen:* "adopted from the agent's draft"; "accepted in bulk on the agent's recommendation".
 
 ## Not verified
 

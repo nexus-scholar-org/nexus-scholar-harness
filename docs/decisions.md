@@ -12,6 +12,19 @@ history to read if you need the original reasoning (`git log --follow -- <path>`
 | :-- | :-- | :-- |
 | 2026-11-19 — M9a: what the measurement says about the ladder gates | 2 | The minimum share of the researcher's excludes an agent must take before a rung unlocks: the principle is accepted; the researcher decided on 2026-11-20 to set the number when M9b is built. |
 
+## 2026-11-22 — H-adopted-decisions-disclosure: decisions stored from the agent's drafts are declared (items 1 to 6 answered by the researcher 2026-11-22, each as recommended; a specification, nothing built)
+
+Record: `docs/roadmap/milestones/H-adopted-decisions-disclosure.md`. Found by the walk of the published sensor-stress review (findings 43 and 44 of `docs/roadmap/acceptance-run-sensor-stress-2026-11-20.md`): with 996 of 1,062 decisions stored in bulk as `method: HUMAN`, Publish passes "Every decision is a human decision", Agreement reports 99.9% and "You saw every record. No sample needed.", and the methods text says one reviewer screened every record. Asked in the main session, one by one. The ladder decision of 2026-11-10 (`AGENT_ADOPTED`, M9b) is unchanged; this covers decisions already stored as the reviewer's and changes no Contract v1 file.
+
+1. **A declaration recorded by the researcher, now**: an append-only `audit/adoption_declarations.jsonl` naming the decision events "stored from the agent's draft without being read one by one"; the events are not rewritten. *Not chosen:* wait for M9b.
+2. **Candidates by the note's wording**, offered for confirmation, never applied silently. *Not chosen:* by timing; both.
+3. **Undeclared candidates do not block publication** ("Look at this"). *Not chosen:* block.
+4. **An owed sample does not block publication**; it is stated on Agreement, Publish and in the methods text. *Not chosen:* block.
+5. **A declaration on a published review makes only the methods export out of date.** *Not chosen:* the whole generation.
+6. **The phrase: "stored from the agent's draft without being read one by one".**
+
+The researcher also answered: the build starts after M12a Part F is ready for its PR, in a session of its own. Lane RELEASE (proposed in the record).
+
 ## 2026-11-22 — M12c agent-proposed cells: a blind second reading (item 1 answered by the researcher 2026-11-22: "Yes, add it to the spec"; items 2 to 5 open)
 
 Record: `docs/roadmap/milestones/M12c-agent-cells.md`, "Amendment 2026-11-22". Proposed by the main session after answer 7 of the entry "2026-11-21 — M12c agent-proposed cells" ("No measurement") left M12c with no check on the agent. Asked in the main session on 2026-11-22 with three choices (yes; one reading; decide when M12c starts). Nothing is built or spent by this answer; M12c's start stays the researcher's to approve.
