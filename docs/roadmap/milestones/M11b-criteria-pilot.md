@@ -576,3 +576,86 @@ Review round 2 of part B (on `0cdf80aa`): **APPROVE**. The twelve round-1 repair
 **Part B: READY FOR PR** (not pushed). Branch `dev/m11b/part-b-pilot`, stacked on part A. The PR gate on `fbf8887d` (6219 tests, 0 failed) stands for the later commits, which change documents only. Decision items 1 to 13 of part B wait for the researcher.
 
 Part B's decision items 1 to 13 were accepted by the researcher on 2026-11-21 (main session), and the push of part B was approved; the main session pushes it.
+
+### Part C: the screening screens
+
+Branch `dev/m11b/part-c-screens`, stacked on part B (PR 277 head `ea260382` merged in, and `origin/main` `64fd8212`, M12a part A) · Lane **RELEASE** (re-declared after review round 1, finding 1: the public queue answer gains `shown_again`, `pilot_decision` and a new order of "Needs you"; `GET /criteria` changes `can_amend` and gains `handoff_batches`; the browser POST allowlist widens; a refusal message changes. Closure evidence is the CI matrix on the PR, which only the push can run) · Spec `docs/ux/phase2-screening/final/13-criteria-pilot.md` FINAL (2026-11-21, questions 5 to 8 answered by the researcher) · Decisions: `docs/decisions.md` "2026-11-22 — M11b part C" items 1 to 17 (accepted by the researcher 2026-11-22) · Status: **READY FOR PR** (review round 2 APPROVE; not pushed).
+
+The engine side (the follow-ups the part A and B reviews left for part C):
+- The browser may POST to `api/v1/screening/criteria/amendments`, `api/v1/screening/pilot` and `api/v1/screening/pilot/pilot_NNN/(decisions|close)` (`console/browser.py` and the development proxy `route.ts`, kept equal).
+- `GET /screening/criteria` answers `can_amend: false` and `handoff_batches` while a batch was decided through the file hand-off, so the revise dialog is not offered and then refused.
+- The `CRITERIA_AMENDMENT_HANDOFF` message names the only way to revised criteria (a new screening from this protocol) instead of suggesting Triage, which does not clear a worker recommendation; contract §7.
+
+| Item | Test | Result (`-n 4`) |
+| :-- | :-- | :-- |
+| the POST allowlist | `tests/console/test_criteria_pilot_plumbing.py::test_the_browser_may_post_to_the_new_routes_only` (7 cases); `test_browser_access.py` (parity with `route.ts`); `vitest related route.ts` | 77 Python tests passed with part A's file; vitest 69 passed; `tsc` clean |
+| `can_amend` and `handoff_batches` | `test_the_criteria_route_offers_no_revision_while_a_handoff_batch_exists` | passed (fails on `5d13e86c`: `can_amend` true, no `handoff_batches`) |
+| the refusal's wording | `test_the_handoff_refusal_names_the_only_way_to_revised_criteria` | passed (fails on `5d13e86c`: the message names Triage) |
+
+The UI dependencies of this worktree were installed with `npm ci --offline` from the local cache (no network).
+
+The screens:
+- Engine, additive (decision items 1 and 2; screening API contract §4): "Needs you" lists the records shown again first and every queue item carries `shown_again`; the items of `view=pilot` carry `pilot_decision`; `_pilot_queue` reads the pilot decisions' heads.
+- `lib/screening-v1.ts`: the types and calls for the criteria in force, revisions, the pilot (draw, decisions, close, result), the queue's new fields and views, `RecordDetail.shown_again`, the calibration's `pilot_id` and `missed_includes_count`, `answered_by_both`.
+- Prepare (state A): `components/screening-pilot-card.tsx`, the card before, during and after a pilot, with the draw's dry call and its confirmation, the records shown again, the fixed state after an approval.
+- Triage (state B; `components/triage-page.tsx`, `lib/triage-copy.ts`): `?view=` opens a view; the pilot view posts to the pilot route (never to `/decisions/events`), shows the banner, "Pilot record k of n", your pilot decision with Next and Change, and the pilot's hand-off; a record shown again has the earlier-decision card, the "Shown again" tag and the revision banner with "What changed", and is decided again by superseding the decision shown; `PILOT_OPEN` links to the pilot; `REASON_CODE_RETIRED` reads the criteria again. The new refusal codes have their state copy (`lib/screening-states.ts`).
+- The result (state C) and the revise dialog (state D): `app/[locale]/screening/pilot/page.tsx`, `components/screening-pilot.tsx`, `components/screening-pilot-copy.ts` (en, fr, ar): counts with denominators, the per-criterion table (checklist and agent columns only when the answer has them, draft-styled, the comparison with the previous pilot), the readings with one "Revise {id}" per id, the "not computed" line with the estimate, the readings below their minimum, the records list (filters by criterion and outcome, 25 a page, a read-only record), the small-sample sentence, the action bar, the details column; the end dialog, the revise dialog (operation, fields, reason of at most 500 characters, dry call, confirmation, record), the agent-check dialog (model, count, estimate, data flow, ceiling, `pilot_id` and `model` always sent, progress, cancel, "Missed includes" as a count).
+- The run screen: "Draft again the {n} records whose draft predates the revision" (decision item 15).
+- The guidance audit gains row S-PL1 for the result's one hint (`docs/ux/shared/final/03-guidance.md`; the audit fixture reads the pilot's catalog for `S-PL` rows).
+
+| DoD | Test | State |
+| :-- | :-- | :-- |
+| 16 Prepare | `tests/screening-pilot-card.test.tsx` (8: draw only after the confirmation, its words, a refused draw, in progress, ended with records shown again, fixed after approval, hidden before batches, copy parity) | done |
+| 16 Triage | `tests/triage-pilot.test.tsx` (10: `?view=pilot`, banner and position, the pilot route only, a change of mind supersedes, an ended pilot cannot be changed, the pilot hand-off, the shown-again banner, tag and earlier card, deciding again supersedes, `PILOT_OPEN` link, `REASON_CODE_RETIRED` reads again, the pilot view offered only while open); the existing `tests/triage.test.tsx` unchanged | done |
+| 16 result | `tests/screening-pilot.test.tsx` (20: counts and denominators, absent columns, draft-styled agent columns and their source, an open pilot, the "not computed" line, observations, nothing stood out, the records list, the end dialog, the revise dialog and its refusal, the agent-check dialog with its model rules, consent and key, the fixed state, an unknown pilot, a second pilot, copy parity) | done |
+| 16 axe light and dark | `tests-browser/screening-pilot.spec.ts` (both projects): the keyboard pilot to its result, the result at 1440 and 1280 px with a revision, the end dialog, Triage with a record shown again; axe on each | done (10 passed) |
+| 17 | `criteria.revise-dialog` cases in `tests/screening-pilot.test.tsx`; the browser flow in `tests-browser/screening-pilot.spec.ts` | done |
+| 14 (UI half) | `pilot.calibration-dialog` cases: the body always carries `model` and `pilot_id`; Haiku without a last model | done |
+| 9 (UI half) | `tests/screening-proposals.test.tsx` "proposals.redraft" (2) | done |
+
+Fails before: on part B's head the pilot result route `/screening/pilot` does not exist, Triage has no pilot view, and `tests/triage-pilot.test.tsx`, `tests/screening-pilot.test.tsx` and `tests/screening-pilot-card.test.tsx` fail at import (the components are new).
+
+Contract v1: unchanged (`generate_contract_baseline.py --check` current). The two queue fields are additive to the screening API (contract §4 notes), not Contract v1.
+
+Not verified: no live engine and no real browser session with a real workspace (the browser tests answer the console proxy with a fake of the engine's shapes); no model call (the agent check is tested against a fake run); the phone (desktop only, answer 8); wording and layout stay open until the researcher sees the built screens (spec 13). Decision items 1 to 17 wait for the researcher.
+
+Evidence (part C; Python with `-n 4`, one heavy job at a time):
+
+| Stage | Commit | Command | Result | Duration |
+| :-- | :-- | :-- | :-- | :-- |
+| targeted | `8c7ed969` (working tree) | `vitest run tests/triage-pilot.test.tsx`, `tests/screening-pilot.test.tsx`, `tests/screening-proposals.test.tsx`; `tsc` | 9, 20, 20 passed; clean | |
+| checkpoint | `91e5da93` | full `vitest run` | 1153 passed, 3 failed: the details rule and the hint audit on the new page (repaired in `e994b7fd`, row S-PL1), and an inception proposals test that passed when run again | 198 s |
+| targeted | `ec7f2a98` | `playwright test tests-browser/screening-pilot.spec.ts` (port 3127; 3117 was held by another process) | 10 passed (chromium and chromium-dark) after the revise dialog's fields were located by element | 60 s |
+| pr | `ec7f2a98` | `uv run pytest -q -n 4 --junitxml` (full suite) | 6268 tests: 6253 passed, 15 skipped, 0 failed, 0 errors | 996 s |
+| pr | `ec7f2a98` | both ruff commands; `generate_contract_baseline.py --check`; `generate_protocol_schema.py --check`; `generate_contract_schemas.py --check`; `generate_two_study_contract_fixture.py --check`; `git diff --check origin/main...HEAD` | exit 0; current; in sync; exit 0; exit 0; one blank line at the end of this record (removed in the next commit) | |
+| pr | `ec7f2a98` | `npm run typecheck`; `vitest run` (full); `npm run test:browser` (build, then the full browser suite, port 3127) | clean; 82 files, 1157 passed; 674 passed, 12 skipped, 0 failed | 137 s; 921 s |
+
+The browser run rewrote four committed screenshots of screens part C does not touch (workspaces, import, the phone menu); they were restored, not committed.
+
+Review round 1 of part C (`milestone-reviewer`, on `7c9e3311`): **CHANGES**, 2 P2, 6 P3, all taken. The reviewer confirmed: pilot decisions never reach `/decisions/events`; answer 11 holds (`pilot_decision` on `view=pilot` only, the agent as counts only, "Missed includes" a count); the calibration body always carries `model` and `pilot_id`; a record shown again supersedes the decision shown; the revise dialog's body is right for the six operations against `plan_amendment`; no Contract v1 change; decision items 1 to 16 match the code.
+
+| # | Finding | Repair | Test (fails before: 9 of these on the components of `7c9e3311`, run with the new tests) |
+| :-- | :-- | :-- | :-- |
+| P2-1 | The lane was STANDARD although part C changes the public queue answer, `GET /criteria`, the browser allowlist and a refusal message | re-declared **RELEASE**; the closure evidence is the CI matrix on the PR | (record) |
+| P2-2 | Dialog focus did not meet spec 13: no trap, the agent-check dialog took no focus, the revise dialog dropped focus to the page on its confirmation and on Back, the draw confirmation did not give focus back | the result's dialog moves focus inside (a control that asks for it, else its heading), keeps Tab inside, and the caller gives it back; the draw confirmation gives focus back to the draw button; after "End the pilot" focus goes to the new heading | `review C round 1` > `finding 2` in `tests/screening-pilot.test.tsx` (2) and `tests/screening-pilot-card.test.tsx` (1) |
+| P3-3 | An addition read "… 0 Exclude citing ." | a sentence without a cited criterion (`rev.shownUncited`, en, fr, ar) | `finding 3: an addition that shows records again cites no criterion` |
+| P3-4 | With hand-off batches and no approval, the result said "a batch is already approved" and Prepare's card still offered a draw | both show the `CRITERIA_AMENDMENT_HANDOFF` sentence; the card offers no draw | `finding 4` in both files |
+| P3-5 | The size field took its step on every keystroke | it keeps what is typed and takes its step when it loses focus or draws | `finding 5: the size field keeps what is typed…` |
+| P3-6 | Triage counted the pilot's progress from the queue | the banner and the hand-off read `/summary`'s `pilot` block | `finding 6: the banner shows the engine's pilot counts…` |
+| P3-7 | Prepare had two brand buttons once batches existed | Prepare's own button is secondary once batches exist (decision item 17, PROPOSED) | `prepare with batches … has one brand action` |
+| P3-8 | Only reword's request body was tested | one test per operation; only a reason-category change sends `reason_category` | `finding 8` (6 tests; they pass before too: the code was already right) |
+
+Follow-ups taken: the earlier-decision card is a labelled region; "Draft again" names the engine's count; spec 13's line on its questions says 8 was answered against its recommendation. Not taken (P4, listed for later): the pilot agent check sends no `base_url`, so a last run on an OpenAI-compatible endpoint would be refused; "1 records are shown again" (a plural); `pilot.saved` names the position of the record just decided; `Ctrl+Enter` does nothing while a dialog is open; an emptied reason category leaves the confirmation's "After" cell empty.
+
+| Stage | Commit | Command | Result | Duration |
+| :-- | :-- | :-- | :-- | :-- |
+| targeted | working tree after the repairs | `vitest run` of the pilot result, the pilot card, Triage's pilot file and Prepare; `tsc` | 70 passed (9 of the new ones fail with the components of `7c9e3311`); clean | 40 s |
+| pr (round 1 repairs) | `02848caa` | `npm run typecheck`; `vitest run` (full); `npm run test:browser` (build, then the full browser suite, port 3127); the Python suite of `ec7f2a98` stands (no file under `src/`, `tests/` or `scripts/` changed since) | clean; 82 files, 1172 passed; 674 passed, 12 skipped, 0 failed (four unrelated screenshots rewritten again and restored) | 148 s; 998 s |
+
+Review round 2 of part C (on `f6d26718`): **APPROVE** (lane RELEASE confirmed). The eight repairs confirmed with their tests (90 tests of the five repaired files passed at head). One P3, taken: the agent-check dialog left focus on the page once the run view replaced the form; focus now moves into the run view, to Cancel while it runs (`pilot.calibration-dialog` test asserts it). One P4, taken: the record names decision items 1 to 17. Noted, not changed: if `/summary` fails at boot, the pilot banner reads "0 of 0" (the counts are the engine's only); `pilot.saved` stays with the parked P4s.
+
+| Stage | Commit | Command | Result | Duration |
+| :-- | :-- | :-- | :-- | :-- |
+| pr (round 2 repair) | `07fbb270` | `tsc`; `vitest run` (full); `playwright test tests-browser/screening-pilot.spec.ts` (both projects, port 3127); the full browser run of `02848caa` stands for the rest (this commit changes one dialog's focus and one test) | clean; 82 files, 1172 passed; 10 passed | 150 s; 78 s |
+
+**Part C: READY FOR PR** (not pushed). Branch `dev/m11b/part-c-screens`, head after this commit. Lane RELEASE: the CI matrix on the PR is the closure evidence and is recorded after the push. Decision items 1 to 17 of part C were accepted by the researcher on 2026-11-22 as built (items 3, 10 and 16 asked one by one, the other fourteen together), and the push was approved.
