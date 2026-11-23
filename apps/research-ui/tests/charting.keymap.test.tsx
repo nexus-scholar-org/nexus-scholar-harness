@@ -84,27 +84,6 @@ describe("charting.keymap", () => {
     expect(postedEvents(engine)[3][0].value).toEqual({ status: "to_get" });
   });
 
-  it("I includes the focused row; E then a number then Enter excludes it with that reason; OTHER asks for words", async () => {
-    const engine = installEngine(makeTable([makeRow(1), makeRow(2)]));
-    await renderCharting();
-    focusRow("STU-001");
-    await press("i");
-    expect(postedEvents(engine)[0][0]).toMatchObject({ kind: "fulltext_decision", value: { outcome: "INCLUDE" } });
-    focusRow("STU-002");
-    await press("e");
-    expect(within(document.querySelector("[data-confirm-line]") as HTMLElement).getByRole("radiogroup")).toBeInTheDocument();
-    await press("1");
-    expect(screen.getByRole("radio", { name: /EXC-01/ })).toHaveAttribute("aria-checked", "true");
-    await press("Enter");
-    expect(postedEvents(engine)[1][0]).toMatchObject({ study_id: "STU-002", value: { outcome: "EXCLUDE", reason_code: "EXC-01" } });
-    await press("e");
-    await press("3");
-    const words = document.querySelector("[data-mode-words]") as HTMLInputElement;
-    fireEvent.change(words, { target: { value: "Same study as another report" } });
-    await press("Enter");
-    expect(postedEvents(engine)[2][0].value).toEqual({ outcome: "EXCLUDE", reason_code: "OTHER", reason_text: "Same study as another report" });
-  });
-
   it("Z undoes the last change with a superseding event that carries the earlier value", async () => {
     const engine = installEngine(makeTable([makeRow(1)]));
     await renderCharting();

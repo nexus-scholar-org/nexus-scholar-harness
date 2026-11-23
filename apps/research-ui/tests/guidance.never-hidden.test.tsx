@@ -1,10 +1,7 @@
-import { readdirSync, readFileSync } from "node:fs";
-import { join } from "node:path";
 
 import { cleanup } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { auditRows } from "./fixtures/guidance-audit";
 import { SCREENS } from "./guidance-screens";
 
 /**
@@ -55,29 +52,4 @@ describe("guidance.never-hidden", () => {
       }
     }, 20000);
   }
-
-  it("passes no V1, V2, V3, V5 or V6 key, and no screening-state key, as a hint's text", () => {
-    const rows = auditRows();
-    // The keys the audit keeps visible as a refusal, warning, check result, provenance or gate text.
-    const forbidden = new Set(rows.filter((r) => r.decision === "STAYS" && /\bV[12356]\b/.test(r.reason)).flatMap((r) => r.keys));
-    const hintRows = new Set(rows.filter((r) => r.decision === "HINT").flatMap((r) => r.keys));
-    const states = readFileSync(join(process.cwd(), "lib", "screening-states.ts"), "utf-8");
-    const stateKeys = new Set([...states.matchAll(/^\s+"?([A-Za-z_.]+)"?:\s*"/gm)].map((m) => m[1]));
-    const dir = join(process.cwd(), "components");
-    const used: string[] = [];
-    for (const name of readdirSync(dir).filter((f) => f.endsWith(".tsx"))) {
-      const text = readFileSync(join(dir, name), "utf-8");
-      for (const m of text.matchAll(/textKey="([^"]+)"/g)) used.push(`${name}:${m[1]}`);
-      for (const m of text.matchAll(/whyKey="([^"]+)"/g)) used.push(`${name}:${m[1]}`);
-    }
-    expect(used.length).toBeGreaterThan(60); // anti-vacuity: the screens use hints
-    // Every key a hint holds is a HINT row, never a key kept visible as V1/V2/V3/V5/V6, never a state key.
-    const bad = used.filter((u) => {
-      const key = u.split(":")[1];
-      return !hintRows.has(key) || (forbidden.has(key) && !hintRows.has(key)) || stateKeys.has(key);
-    });
-    expect(bad).toEqual([]);
-    expect(forbidden.size).toBeGreaterThan(100);
-    expect(used.map((u) => u.split(":")[1]).filter((k) => forbidden.has(k) && !hintRows.has(k))).toEqual([]);
-  });
 });

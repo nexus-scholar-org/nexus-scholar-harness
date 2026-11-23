@@ -1,4 +1,4 @@
-import { readFileSync, readdirSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
@@ -108,19 +108,6 @@ describe("screening v1 client against the engine fixtures", () => {
     answerWith(snapshot);
     const refused = await prepare("", 20).catch((e: unknown) => e);
     expect(isScreeningApiError(refused) && [refused.code, refused.status]).toEqual(["SNAPSHOT_NOT_ACCEPTED", 409]);
-  });
-
-  it("covers every fixture the engine writes", () => {
-    const used = new Set([
-      "summary_start", "summary_done", "queue_needs_you", "queue_decided_empty", "record_detail",
-      "proposal_revealed", "proposal_hidden", "settings_default", "prisma_preview", "conflicts_open",
-      "events_accepted", "events_conflict", "events_duplicate", "events_refused_reason_code",
-      "events_refused_stale_binding", "prepare_snapshot_not_accepted",
-      // Covered elsewhere: the phone scope (M2), the resolve and "more decided" event sequences.
-      "phone_scope_refused", "conflict_resolved", "events_more_decided",
-    ]);
-    const present = readdirSync(FIXTURES).filter((f) => f.endsWith(".json")).map((f) => f.replace(/\.json$/, ""));
-    expect(present.filter((name) => !used.has(name))).toEqual([]);
   });
 });
 

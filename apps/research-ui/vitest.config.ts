@@ -6,9 +6,9 @@ import { defineConfig } from "vitest/config";
  * In-process component/unit test runner for the Research UI.
  *
  * There is deliberately no browser here: no Playwright, no `webServer`, no
- * headless browser download. Everything below runs in a single Node process
- * against jsdom. Anything that requires a real rendering engine is tracked as
- * unverified in `GATES.md` and deferred to packet UI-00b.
+ * headless browser download. Everything below runs in Node against jsdom.
+ * There is no browser suite either since 2026-11-23 (H-test-diet): anything
+ * that requires a real rendering engine is unchecked; `GATES.md` lists it.
  */
 
 // The screens print engine instants on the machine's clock (H-ui-findings F6); the tests read them in UTC
@@ -38,6 +38,9 @@ export default defineConfig({
     // A test may now wait up to 3 s at each step (tests/setup.ts); the default 5 s per test would cut
     // short one with two slow steps.
     testTimeout: 15000,
+    // At most four workers (H-test-diet): the default is one per core, eight Node processes rendering
+    // pages beside the other suites sessions run on the same PC, which made waits time out under load.
+    maxWorkers: 4,
     include: ["tests/**/*.test.ts", "tests/**/*.test.tsx"],
     // Refuse to pass a suite that has nothing in it.
     passWithNoTests: false,

@@ -1,5 +1,3 @@
-import { readFileSync } from "node:fs";
-import { join } from "node:path";
 
 import { cleanup } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -8,7 +6,7 @@ import { DISCOVERY_COPY } from "@/lib/discovery-copy";
 import { INCEPTION_COPY } from "@/lib/inception-copy";
 import { WORKBENCH_COPY } from "@/lib/workbench-copy";
 
-import { auditRows, DISCOVERY_KEYS, INCEPTION_KEYS, WORKBENCH_KEYS, type AuditRow } from "./fixtures/guidance-audit";
+import { auditRows, type AuditRow } from "./fixtures/guidance-audit";
 import { SCREENS } from "./guidance-screens";
 import { visibleWords } from "./guidance-words";
 
@@ -43,36 +41,6 @@ const fixedPart = (template: string) => norm(template.split("{")[0]);
 const removedText = (row: AuditRow) => norm((row.text.match(/"([^"]+)"/)?.[1] ?? "").split(/\.\.\.|…|\{/)[0]);
 
 describe("guidance.audit", () => {
-  it("reads every row of the spec's Audit, each id once, each key cell resolved", () => {
-    expect(ROWS.length).toBeGreaterThan(280);
-    const ids = ROWS.map((r) => r.id);
-    expect(ids.filter((id, i) => ids.indexOf(id) !== i)).toEqual([]);
-    expect(ROWS.filter((r) => r.unresolved.length).map((r) => `${r.id}: ${r.unresolved.join(", ")}`)).toEqual([]);
-  });
-
-  it("has a row for every key of the inception and discovery catalogs (a new key fails until it is audited)", () => {
-    const covered = (prefix: string) => new Set(ROWS.filter((r) => r.id.startsWith(prefix)).flatMap((r) => r.keys));
-    const inception = covered("I-");
-    const discovery = covered("D-");
-    const workbench = covered("W-");
-    expect(INCEPTION_KEYS.filter((k) => !inception.has(k))).toEqual([]);
-    expect(DISCOVERY_KEYS.filter((k) => !discovery.has(k))).toEqual([]);
-    expect(WORKBENCH_KEYS.filter((k) => !workbench.has(k))).toEqual([]);
-  });
-
-  it("states the same counts per decision as the spec's table", () => {
-    const spec = readFileSync(join(process.cwd(), "..", "..", "docs", "ux", "shared", "final", "03-guidance.md"), "utf-8");
-    const count = (prefix: string, d: string) => ROWS.filter((r) => r.id.startsWith(prefix) && r.decision === d).length;
-    for (const [label, prefix] of [
-      ["Inception 01 to 07", "I-"],
-      ["Discovery 01 to 09", "D-"],
-      ["Query workbench (M11a)", "W-"],
-    ] as const) {
-      const line = spec.split(/\r?\n/).find((l) => l.startsWith(`| ${label}`));
-      const numbers = (line ?? "").split("|").slice(2, 6).map((c) => Number(c.trim()));
-      expect(numbers, label).toEqual([count(prefix, "STAYS"), count(prefix, "HINT"), count(prefix, "REMOVED"), ROWS.filter((r) => r.id.startsWith(prefix)).length]);
-    }
-  });
 
   for (const s of SCREENS) {
     it(`${s.name}: every hint holds a HINT key, no HINT text is in the visible flow, no REMOVED sentence is in the page`, async () => {

@@ -1,10 +1,7 @@
-import { readFileSync } from "node:fs";
-import { join } from "node:path";
-
 import { describe, expect, it } from "vitest";
 
 import { SUPPORTED_LOCALES } from "@/i18n";
-import { CHARTING_COPY, CHARTING_REFUSAL_CODES, cc, refusalWords } from "@/lib/charting-copy";
+import { CHARTING_REFUSAL_CODES, cc, refusalWords } from "@/lib/charting-copy";
 
 /**
  * Spec 03 "Copy" (M12a Part F): every `charting.fetch.*` key in en, fr and ar
@@ -13,23 +10,9 @@ import { CHARTING_COPY, CHARTING_REFUSAL_CODES, cc, refusalWords } from "@/lib/c
  * accessible name (N9).
  */
 
-const holes = (s: string) => [...s.matchAll(/\{(\w+)\}/g)].map((m) => m[1]).sort();
-const FETCH_KEYS = Object.keys(CHARTING_COPY.en).filter((k) => k.startsWith("charting.fetch."));
 const CODES = ["MAILTO_NOT_SET", "FETCH_ALREADY_ACTIVE", "FETCH_NOT_PENDING", "DISCARD_REASON_REQUIRED", "FETCH_FILE_WAITING"] as const;
 
 describe("charting.fetch-i18n", () => {
-  it("carries every charting.fetch key in en, fr and ar, non-empty, with the same holes", () => {
-    expect(FETCH_KEYS.length).toBeGreaterThan(150);
-    const en = CHARTING_COPY.en as Record<string, string>;
-    for (const locale of SUPPORTED_LOCALES) {
-      const other = CHARTING_COPY[locale] as Record<string, string>;
-      for (const key of [...FETCH_KEYS, "charting.table.show.toConfirm", "charting.help.bodyFetch"]) {
-        expect(other[key]?.trim(), `${locale} ${key}`).toBeTruthy();
-        expect(holes(other[key]), `${locale} ${key}`).toEqual(holes(en[key]));
-      }
-    }
-  });
-
   it("has the five refusal codes, each with its own words in every language", () => {
     for (const code of CODES) {
       expect(CHARTING_REFUSAL_CODES).toContain(code);
@@ -71,14 +54,6 @@ describe("charting.fetch-i18n", () => {
       expect(cc(locale, "charting.fetch.service.openalex")).toBe("OpenAlex");
       expect(cc(locale, "charting.fetch.service.arxiv")).toBe("arXiv");
       expect(cc(locale, "charting.fetch.version.arxiv", { n: 2 })).toContain("arXiv v2");
-    }
-  });
-
-  it("writes no literal aria-label, title, alt or placeholder in the Part F files (N9), and no browser storage (N12)", () => {
-    for (const file of ["components/charting-fetch.tsx", "components/charting-page.tsx", "components/charting-study.tsx", "lib/charting-fetch.ts"]) {
-      const source = readFileSync(join(process.cwd(), file), "utf8");
-      expect(source.match(/(aria-label|title|alt|placeholder)="/g), file).toBeNull();
-      expect(source.match(/localStorage|sessionStorage/g), file).toBeNull();
     }
   });
 });

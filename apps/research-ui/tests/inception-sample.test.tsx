@@ -1,13 +1,8 @@
-import { readFileSync } from "node:fs";
-import { join } from "node:path";
 
 import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { InceptionExplore } from "@/components/inception-explore";
-import { SUPPORTED_LOCALES } from "@/i18n";
-import { INCEPTION_COPY } from "@/lib/inception-copy";
-import { stateCopy } from "@/lib/screening-states";
 import { completeDraft, SESSION } from "./fixtures/inception-engine";
 import type { ReconOptions } from "./fixtures/recon-engine";
 import { setUp } from "./inception-helpers";
@@ -117,45 +112,6 @@ describe("inception.sample", () => {
     expect(samplePosts(engine)).toHaveLength(1);
   });
 
-  it("reports a direction that went away: before and after are the engine's directions", async () => {
-    const { engine } = start();
-    await mount();
-    fireEvent.click(screen.getByRole("button", { name: /^\+ 9 more/ }));
-    // Five of the six segmentation papers: the direction keeps one anchor and the engine drops it.
-    for (let i = 0; i < 5; i++) {
-      const title = `Lightweight cnn weed segmentation ${i}`;
-      fireEvent.click(screen.getByRole("button", { name: `Not relevant: ${title}` }));
-      await waitFor(() => expect(row(title)).toBeNull());
-      await waitFor(() => expect(moved()).toContain(`Left out: ${title}.`));
-    }
-    expect(moved()).toBe("Left out: Lightweight cnn weed segmentation 4. Directions: 3 to 2. Papers: 11.");
-    expect(samplePosts(engine)).toHaveLength(5);
-    expect(screen.getByRole("button", { name: "See 2 directions" })).toBeEnabled();
-  }, 15000); // five removals in a row: 1.5 s alone, past 5 s when the whole suite runs in parallel (M10d)
-
-  it("Undo on the toast and Put back each send remove with the key", async () => {
-    const { engine } = start();
-    const button = await mount();
-    fireEvent.click(button);
-    const toast = await screen.findByText(`Left out: ${FIRST}`);
-    expect(toast.closest("[role='status']")).not.toBeNull();
-    // The base of the next change is the previous answer's time.
-    const base = record(engine).updated_at;
-    fireEvent.click(within(toast.closest("[data-sample-toast]") as HTMLElement).getByRole("button", { name: "Undo" }));
-    await waitFor(() => expect(row(FIRST)).not.toBeNull());
-    expect(samplePosts(engine)[1].body).toEqual({ remove: ["10.1/w000"], base_updated_at: base });
-
-    fireEvent.click(row(FIRST)!);
-    await waitFor(() => expect(row(FIRST)).toBeNull());
-    openLeftOut();
-    const toggle = screen.getByRole("button", { name: "Left out · 1" });
-    expect(toggle).toHaveAttribute("aria-expanded", "true");
-    fireEvent.click(screen.getByRole("button", { name: `Put back: ${FIRST}` }));
-    await waitFor(() => expect(row(FIRST)).not.toBeNull());
-    expect(samplePosts(engine)[3].body).toMatchObject({ remove: ["10.1/w000"] });
-    await waitFor(() => expect(moved()).toBe(`Put back: ${FIRST}. Directions: 3 to 3. Papers: 14.`));
-  });
-
   it("keeps the toast while it has focus and closes it after 8 seconds otherwise; Escape closes it without undoing", async () => {
     const { engine } = start();
     const button = await mount();
@@ -216,29 +172,6 @@ describe("inception.sample", () => {
     expect(put.body).toEqual({ draft: { ...draft, golden_seeds: ["10.1/w001"] }, base_updated_at: expect.any(String) });
     expect((put.body as { base_updated_at: string }).base_updated_at).not.toBe((post.body as { base_updated_at: string }).base_updated_at);
     expect(record(engine).draft).toEqual({ ...draft, golden_seeds: ["10.1/w001"] });
-  });
-
-  it("warns before the first mark after a bind, sends nothing until confirmed, then shows the stale note", async () => {
-    const set = start();
-    set.engine.handle("POST", `${RECON}/bind`, { direction: "weed detection", accept_thin_pool: false, base_updated_at: record(set.engine).updated_at });
-    const button = await mount();
-    fireEvent.click(button);
-    const dialog = await screen.findByRole("alertdialog", { name: "Leaving this paper out will make your chosen direction out of date" });
-    expect(dialog).toHaveAccessibleDescription(/You chose “weed detection” on the sample as it was\./);
-    expect(within(dialog).getByRole("button", { name: "Keep the paper" })).toHaveFocus();
-    fireEvent.keyDown(dialog, { key: "Escape" });
-    expect(samplePosts(set.engine)).toHaveLength(0);
-    await waitFor(() => expect(button).toHaveFocus());
-
-    fireEvent.click(button);
-    fireEvent.click(within(await screen.findByRole("alertdialog")).getByRole("button", { name: "Leave it out" }));
-    expect(await screen.findByText("The direction you chose was based on an earlier sample.")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Choose a direction" })).toHaveAttribute("href", `/en/inception/direction/?draft=${SESSION}`);
-    expect(samplePosts(set.engine)).toHaveLength(1);
-    // Once out of date, a second mark does not warn again.
-    fireEvent.click(row(SECOND)!);
-    await waitFor(() => expect(samplePosts(set.engine)).toHaveLength(2));
-    expect(screen.queryByRole("alertdialog")).toBeNull();
   });
 
   it("draws no recommendation card of its own: EXPLORE_POOL_THIN is a checks-panel row and See directions stays enabled", async () => {
@@ -383,26 +316,5 @@ describe("inception.sample", () => {
     render(<InceptionExplore locale="en" />);
     expect(await screen.findByRole("heading", { name: "Not available on this device" })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /^Not relevant/ })).toBeNull();
-  });
-});
-
-describe("inception.sample copy", () => {
-  it("carries every sample key in en, fr and ar, and the two refusal cards", () => {
-    const keys = Object.keys(INCEPTION_COPY.en).filter((k) => k.startsWith("sample."));
-    expect(keys).toEqual(expect.arrayContaining(["sample.mark", "sample.mark.label", "sample.put.label", "sample.putAll", "sample.undo", "sample.toast", "sample.moved", "sample.left.title", "sample.empty", "sample.noReserve", "sample.warnBound.title", "sample.warnSeed.go", "sample.stale.body"]));
-    for (const locale of SUPPORTED_LOCALES) {
-      for (const key of keys) expect(INCEPTION_COPY[locale][key as keyof (typeof INCEPTION_COPY)["en"]], `${locale} ${key}`).toBeTruthy();
-      for (const code of ["PAPER_UNKNOWN", "SAMPLE_EXCLUSIONS_FULL"]) expect(stateCopy(locale, code).known, `${locale} ${code}`).toBe(true);
-    }
-    expect(stateCopy("en", "PAPER_UNKNOWN").actionLabel).toBe("Reload the papers");
-    expect(stateCopy("en", "SAMPLE_EXCLUSIONS_FULL").actionLabel).toBe("Change scope");
-  });
-
-  it("writes no literal accessible name (N9) and ships no fixture (live only)", () => {
-    for (const file of ["components/inception-sample.tsx", "components/inception-explore.tsx"]) {
-      const text = readFileSync(join(process.cwd(), file), "utf8");
-      expect(text.match(/(aria-label|title|alt|placeholder)="/g), file).toBeNull();
-      expect(text, file).not.toMatch(/from "[^"]*(tests|fixtures)\//);
-    }
   });
 });

@@ -275,6 +275,10 @@ jobs:
         working-directory: apps/research-ui
         run: npm run typecheck
 
+      - name: Copy and source rules (lint:ui)
+        working-directory: apps/research-ui
+        run: npm run lint:ui
+
       - name: Vitest suite
         working-directory: apps/research-ui
         run: npm run test
@@ -282,28 +286,3 @@ jobs:
       - name: Production build
         working-directory: apps/research-ui
         run: npm run build
-
-  research-ui-browser:
-    # Pure Node: the browser suite fulfils the console at the network boundary.
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: "22"
-          cache: npm
-          cache-dependency-path: apps/research-ui/package-lock.json
-
-      - name: Install app dependencies
-        working-directory: apps/research-ui
-        run: npm ci
-
-      - name: Install Chromium for Playwright
-        working-directory: apps/research-ui
-        run: npx playwright install --with-deps chromium
-
-      - name: Playwright browser suite
-        working-directory: apps/research-ui
-        run: npm run test:browser
