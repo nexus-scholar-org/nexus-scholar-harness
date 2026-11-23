@@ -12,6 +12,15 @@ history to read if you need the original reasoning (`git log --follow -- <path>`
 | :-- | :-- | :-- |
 | 2026-11-19 — M9a: what the measurement says about the ladder gates | 2 | The minimum share of the researcher's excludes an agent must take before a rung unlocks: the principle is accepted; the researcher decided on 2026-11-20 to set the number when M9b is built. |
 
+## 2026-11-23 — Findings 45, 46, 48 and 50 to 53 of the sensor-stress run: what is done with each (answered by the researcher 2026-11-23)
+
+Record: `docs/roadmap/acceptance-run-sensor-stress-2026-11-20.md`, findings 43 to 53. Asked in the main session on 2026-11-23, each with a recommendation; all answered as recommended. Findings 43, 44 and 49's label are `H-adopted-decisions-disclosure`; finding 47 is `H-screening-read-performance`. Nothing is built by these answers; the start of the build is the researcher's to approve.
+
+1. **Finding 45: publication is confirmed beside the button.** A "Published" line with the counts and the date next to "Publish the screening", and the page scrolls to the top status. *Not chosen:* going to Export after publishing; leaving it.
+2. **Finding 46: the pilot card is shown only while few records are decided**, then one quiet line; the list of batch files folds to a count with "show all". *Not chosen:* hiding the card only; leaving it. *Not decided:* the number that counts as "few".
+3. **Finding 48: "Charting" is always in the top menu.** Before publication it opens a page saying charting starts after the screening is published, with a link to Publish. *Not chosen:* hidden until published.
+4. **Findings 50, 51, 52 and 53 are all to be fixed:** compact rows in Charting's Full text view; the form panel scrolls under the mouse wheel unless the Definition box has the focus; the request that answered 422 while Charting loaded is found and fixed or explained; Inception step 5 keeps one of its two sentences. None was dropped.
+
 ## 2026-11-23 — H-screening-read-performance: the build's own choices (items 6 to 23 accepted by the researcher 2026-11-23 as built; item 23's deferred run done the same day)
 
 Record: `docs/roadmap/milestones/H-screening-read-performance.md`, "Build 2026-11-23". Items 1 to 5 are the specification's closed questions (entry of 2026-11-22). Each item below is how the build did something the specification leaves open; each is the researcher's to accept or change.
