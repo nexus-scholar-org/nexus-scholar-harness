@@ -46,6 +46,9 @@ from scholar_harness.authority.generations import (
 from scholar_harness.screening import events as ev
 from scholar_harness.screening import proposals as pr
 from scholar_harness.screening import read_store
+from scholar_harness.screening.adoption import DECLARATIONS_FILE as ADOPTION_FILE
+from scholar_harness.screening.adoption import PHRASE as ADOPTION_PHRASE
+from scholar_harness.screening.adoption import read_ledger
 from scholar_harness.screening.criteria import AMENDMENTS_FILE as CRITERIA_AMENDMENTS_FILE
 
 EXPORT_NOT_PUBLISHED = "EXPORT_NOT_PUBLISHED"
@@ -622,6 +625,73 @@ def _criteria_amendment_sentences(
     return sentences, figures, True
 
 
+def _plural(n: int, one: str, many: str) -> str:
+    return f"{n} {one if n == 1 else many}"
+
+
+def _adoption_sentences(
+    ws: Path, view: Published, published: datetime | None, *, one: bool
+) -> tuple[dict[str, Any] | None, list[str], list[str]]:
+    """H-adopted-decisions-disclosure (DoD 4, answer 5): the published decisions declared as stored
+    from the agent's drafts, with their outcomes and the samples drawn from their exclusions.
+
+    Declarations made after publication are stated too: a declaration describes how decisions
+    that are already published were made, so it makes this paragraph out of date and nothing else.
+    """
+    ledger = read_ledger(ws)
+    active = ledger.declared_events()
+    declared = {s: e for s, e in view.entries.items() if str(e.get("event_id") or "") in active}
+    if not declared:
+        return None, [], []
+    by_outcome = {o: sum(1 for e in declared.values() if str(e.get("decision")) == o) for o in ("EXCLUDE", "INCLUDE", "MAYBE")}
+    stored, read = len(declared), len(view.entries) - len(declared)
+    used = {active[str(e["event_id"])]["declaration_id"] for e in declared.values()}
+    rows = [r for r in ledger.declarations if r["declaration_id"] in used]
+    results = ledger.sample_results
+    samples = []
+    for row in rows:
+        sample = row.get("sample")
+        if isinstance(sample, dict):
+            result = results.get(row["declaration_id"])
+            samples.append({
+                "size": int(sample.get("size") or 0), "seed": sample.get("seed"), "read": result is not None,
+                "changed": len(result.get("changed_study_ids") or []) if result else None,
+            })
+    dates = sorted({_date(r.get("declared_at")) for r in rows})
+    after = published is not None and any((_time(r.get("declared_at")) or published) > published for r in rows)
+    figures = {
+        "read_one_by_one": read, "stored_from_drafts": stored, "by_outcome": by_outcome, "samples": samples,
+        "declared_on": dates, "declared_after_publication": after, "phrase": ADOPTION_PHRASE,
+    }
+    who = "One reviewer" if one else "The reviewers"
+    sentences = [
+        f"{who} read {_plural(read, 'record', 'records')} one by one; "
+        f"{_plural(stored, 'decision was', 'decisions were')} {ADOPTION_PHRASE} "
+        f"({by_outcome['EXCLUDE']} excluded, {by_outcome['INCLUDE']} included and {by_outcome['MAYBE']} unclear)."
+    ]
+    for sample in samples:
+        drawn = f"A sample of {sample['size']} of these exclusions was drawn (seed {sample['seed']})"
+        if sample["read"]:
+            sentences.append(
+                f"{drawn} and read; the reviewer changed {sample['changed']} of the "
+                f"{_plural(sample['size'], 'decision', 'decisions')}."
+            )
+        else:
+            sentences.append(f"{drawn} and has not been read.")
+    if not samples and by_outcome["EXCLUDE"]:
+        sentences.append(
+            f"No sample of the {_plural(by_outcome['EXCLUDE'], 'exclusion', 'exclusions')} stored from the agent's "
+            "draft was read."
+        )
+    caveats = []
+    if after:
+        caveats.append(
+            f"Decisions were declared as {ADOPTION_PHRASE} after publication ({', '.join(dates)}); this paragraph states "
+            "them, and the published decisions and their export are unchanged. Copy the paragraph again."
+        )
+    return figures, sentences, caveats
+
+
 def build_methods(ws: Path) -> dict[str, Any]:
     """The methods paragraph of the published screening. Pure read."""
     ws = Path(ws)
@@ -776,7 +846,18 @@ def build_methods(ws: Path) -> dict[str, Any]:
     published_entries = [view.entries[s] for s in view.entries]
     screeners = {str(e.get("screener_id")) for e in published_entries if e.get("screener_id")}
     all_human = bool(published_entries) and all(str(e.get("method") or "").upper() == "HUMAN" for e in published_entries)
-    if all_human and len(screeners) == 1:
+    # H-adopted-decisions-disclosure (DoD 4): decisions declared as stored from the agent's drafts.
+    adoption, adoption_sentences, adoption_caveats = _adoption_sentences(ws, view, published, one=len(screeners) == 1)
+    figures["adoption"] = adoption
+    if adoption is not None:
+        source(ADOPTION_FILE)
+        sentences.extend(adoption_sentences)
+        caveats.extend(adoption_caveats)
+        if len(screeners) == 1:
+            figures["reviewers"] = 1
+        if not all_human:
+            not_stated.append("Screener: the published decisions are not all human decisions.")
+    elif all_human and len(screeners) == 1:
         sentences.append("One reviewer screened every record.")
         figures["reviewers"] = 1
     else:
@@ -892,8 +973,10 @@ def build_methods(ws: Path) -> dict[str, Any]:
                 f"{sum(1 for p in proposals if p.get('cannot_decide'))} proposals say the model could not decide; "
                 "they are counted as proposals."
             )
-        if all_human:
+        if all_human and adoption is None:
             sentences.append("Drafts were advisory; every decision in this screening was made by the reviewer.")
+        elif all_human:
+            sentences.append("Drafts were advisory for the records the reviewer read one by one.")
         # 4. Consent
         for provider in sorted({a["provider"] for a in agents if a["provider"]}):
             given = consent.get(provider) if isinstance(consent, dict) else None

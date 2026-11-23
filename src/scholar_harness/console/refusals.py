@@ -19,6 +19,14 @@ from scholar_harness.screening.export import (
     EXPORT_SOURCE_MISMATCH,
     METHODS_SOURCE_MISSING,
 )
+from scholar_harness.screening.adoption import (
+    ADOPTION_ALREADY_DECLARED,
+    ADOPTION_CONFIRM_REQUIRED,
+    ADOPTION_DECLARATION_INVALID,
+    ADOPTION_EVENT_NOT_WINNING,
+    ADOPTION_NOT_DECLARED,
+    ADOPTION_SAMPLE_INVALID,
+)
 from scholar_harness.screening.integrity import (
     COVERAGE_INCOMPLETE,
     PROVENANCE_MISSING,
@@ -373,6 +381,13 @@ CONTRACT_ADDED = frozenset(
         PILOT_CLOSED,
         PILOT_NOT_FOUND,
         PILOT_SIZE_INVALID,
+        # H-adopted-decisions-disclosure: the declarations of decisions stored from drafts.
+        ADOPTION_CONFIRM_REQUIRED,
+        ADOPTION_EVENT_NOT_WINNING,
+        ADOPTION_ALREADY_DECLARED,
+        ADOPTION_DECLARATION_INVALID,
+        ADOPTION_NOT_DECLARED,
+        ADOPTION_SAMPLE_INVALID,
         DRAFT_ID_INVALID,
         DRAFT_NOT_FOUND,
         DRAFT_UNREADABLE,
