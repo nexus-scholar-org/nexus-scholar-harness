@@ -29,20 +29,23 @@ Nothing replaces the browser suites. These were checked by them alone and are no
 9. **Whole-flow behaviour in the production build:** downloads arriving as real files (Export, the charting exports), server-sent job events as a real `text/event-stream`, the restart wait of Open on Workspaces, polling and cancel of agent proposals, the real Next router and the same-origin proxy.
 10. **The charting keyboard budget.** Under 50 ms a move in Chromium (`charting-study.spec.ts`), and its jsdom counterpart `charting.budget.test.tsx` (a timed 120-key walk, removed as a journey).
 11. **Screenshots.** Nothing writes the reference captures any more; the README's one image is now a static file.
+12. **One request body.** The approval-code step's `pairing/begin` request (`{batch: 1}` for a single batch) is no longer asserted; the code being sent trimmed and the field cleared are (choice 10).
 
-The vitest cut adds, beyond the browser suites: 41 multi-step journeys (listed below; each crossed several submits or records), so a fault that appears only after a second or third write on the same page, or when moving between records, is less likely to be caught.
+The vitest cut adds, beyond the browser suites: 39 multi-step journeys (listed below; each crossed several submits or records), so a fault that appears only after a second or third write on the same page, or when moving between records, is less likely to be caught.
 
 ## Choices made in the build (for the reviewer)
 
 1. **The rule applied to every vitest test.** *scan*: the assertions are about the text of source, CSS, config or catalogue files rather than rendered output. *journey*: three or more state-changing actions (writes, submits, moves to another step or record) with assertions between them, or a walk across steps or records doing work on more than one. Kept by three carve-outs: (a) keymap tests, whose purpose is one screen's key bindings, each key pressed and its effect asserted (for example `charting.keymap` "one status key on the focused row saves at once", `charting-study.keymap` "Alt+N and Alt+A ..."); (b) one decision made of several keys or clicks counts as one action, including a refused or cancelled first attempt (for example `triage` "picks reason chip 3 by keyboard ... confirms with Enter", `screening-pilot` "asks first, writes nothing on Not now ..."); (c) `charting-study.focus-race`, the only remaining guard of the fault of PR #293. Opening and dismissing a dialog with Esc or Cancel is not a state change.
-2. **Classification by four read-only scouts, then one rule by the lead.** The scouts applied the brief with different strictness (one counted every key sequence as a journey, 40 in 43 files); the lead re-decided every journey against the rule above, per test. Borderline calls kept: `triage` 348, 391, 458, 523, 536, 627, 644, 712; `discovery-plan-amend` 70, 109, 144; `discovery-report` 103; `inception-sample` 197; `inception-workbench` 198; `screening-pilot` 221, 239; in group 1 `charting-study.keymap` 51, 94, 116, `charting.cells-keymap` 31, 63, 125, 153, `charting.charting-view` 111, `charting.states` 98, 155, `charting.fetch-decide-guard` 49, 92, `charting.fetch-discard` 40, 61, 89, `charting.fetch-plan` 133, `charting.fetch-run` 47, `charting.fetch-study` 65, 83, `charting.form-panel` 110, `charting.keymap` 39, 59, 108, 124, 144, `checks-panel` 258. Borderline calls removed: `triage` 255, 319, 659, 749; `discovery-plan-amend` 127; `inception-direction` 205.
-3. **The lint runs on vitest** (`vitest.lint.config.ts`, environment `node`, one worker), not on a hand-written Node script: the catalogues are TypeScript modules loaded through the `@/` alias, and keeping the scans' logic unchanged avoided rewriting 70 checks. It is one file outside `tests/`, not part of `npm test`, and it refuses to run from any folder but the app root. It took 4.7 s. A deliberate literal `aria-label` in `components/screening-export.tsx` made two N9 rules fail (then reverted), so it is not vacuous.
+2. **Classification by four read-only scouts, then one rule by the lead.** The scouts applied the brief with different strictness (one counted every key sequence as a journey, 40 in 43 files); the lead re-decided every journey against the rule above, per test. Borderline calls kept: `triage` 348, 391, 458, 523, 536, 627, 644, 712; `discovery-plan-amend` 70, 109, 144; `discovery-report` 103; `inception-sample` 197; `inception-workbench` 198; `screening-pilot` 221, 239; in group 1 `charting-study.keymap` 51, 94, 116, `charting.cells-keymap` 31, 63, 125, 153, `charting.charting-view` 111, `charting.states` 98, 155, `charting.fetch-decide-guard` 49, 92, `charting.fetch-discard` 40, 61, 89, `charting.fetch-plan` 133, `charting.fetch-run` 47, `charting.fetch-study` 65, 83, `charting.form-panel` 110, `charting.keymap` 39, 59, 108, 124, 144, `checks-panel` 258. Borderline calls removed: `triage` 255, 319, 659, 749; `discovery-plan-amend` 127. `inception-direction` 112 and 205 were removed in the first build and restored after review (finding 4): 205 has no write and one dialog dismissed with Esc, 112 two reads on one draft, both under the rule.
+3. **The lint runs on vitest** (`vitest.lint.config.ts`, environment `node`, one worker), not on a hand-written Node script: the catalogues are TypeScript modules loaded through the `@/` alias, and keeping the scans' logic unchanged avoided rewriting 72 checks. It is one file outside `tests/`, not part of `npm test`, and it refuses to run from any folder but the app root. It took 4.7 s. A deliberate literal `aria-label` in `components/screening-export.tsx` made two N9 rules fail (then reverted), so it is not vacuous.
 4. **`lint/` is excluded from Tailwind's source scan** (`@source not "../lint/**"` in `globals.css`), because the theme rule names retired variables on purpose; the same reason `tests/` is excluded.
 5. **Two dropped boundary checks were restored by the lead**: "the document renders the theme boot script from a module the server inlines" and the guard on the boundary parser. With `hydration.spec.ts` gone they are the only trace of the #418 guard.
 6. **The deterministic wait in `guidance-screens.tsx`.** `settle()` no longer waits 150 ms per read (up to 3 s per state); it flushes zero-delay turns inside `act` until three turns leave the word count unchanged. The two Criteria states now also wait for `[data-criteria-block]`, drawn only from the engine's answer, which the page asks 200 ms after the draft (the old real-time loop had covered that debounce by accident; without it "05 Criteria … one edit hint" failed once). The five dependent files pass (100 tests).
 7. **Kept, though only the browser suites used them:** `scripts/golden_screening_sandbox.py` and its Python test (the live gate's console; a usable tool on its own, and Python is outside this part's scope), `next.config.ts`'s `NEXT_DIST_DIR` (the export build uses it), and the `.next-live/` and `.next-longstrings/` ignore lines (so a folder left on a developer machine stays out of `git status`).
 8. **Comments that named a deleted spec** as the guard of something were rewritten to say no test checks it (`globals.css`, `lib/screening-api.ts`, the app README); historical work packets and milestone records were left as they are. GATES.md carries a dated note that every row citing a browser spec is history.
 9. **Shared fixtures were not trimmed.** Branches of the fake engines in `tests/fixtures/` that only removed tests used may remain (the scouts removed per-file helpers only; one fake-engine branch for the pairing redeem in `screening-publish` was left as harmless).
+10. **Seven one-decision tests added after review (finding 1).** Six removed journeys were the only UI test of a first write that matters; each now has a test that starts from a seeded engine state and makes one decision, so they fit the rule: `triage` "Change my decision after the reveal sends an event that supersedes the earlier one, with revealed_after_decision true" and "Undo on a changed decision restores the previous outcome, superseding the change"; `screening-publish` "sends a typed approval code once, trimmed, and clears the field" and "Publish the screening, with every batch approved, sends one publish request and says Published"; `inception-criteria` "Accept on the drafted criterion saves criteria_decisions[its engine id] = true"; `inception-review` "Replace, and discard the screening link sends the typed slug as confirm_discard_screening_binding"; `charting.form-panel` "before any value, Merge with… and confirm saves one column derived from both". Each was made to fail by changing its key expected value, then restored.
+11. **Lint additions after review:** the `SCHOLAR_OPENALEX_KEY` line rule (finding 2) and the scan-root check of the N9 to N12 rules (finding 5). The app README, I18N.md, the three fake engines' headers and three lines of the production plan no longer present a browser spec as current (findings 3, 6, 7, 8).
 
 ## Evidence
 
@@ -67,7 +70,7 @@ All on the researcher's PC (Windows, 8 cores), `apps/research-ui`, with `node_mo
 
 ## Classification of the vitest suite (before the cut)
 
-Written tests: `it`/`test` as written, an `it.each` counted once (1,258 written = 1,441 executed). *Kind* is the file's kind after the lead's rule: *mixed* means at least one test was removed and one kept. Totals: 119 files; 13 component, 44 screen-state, 8 unit, 50 mixed, 3 all scans (deleted), 1 all journey (deleted). Removed: 85 scans (84 classified, plus the parser check of `server-client-boundary`, which moved to the lint with its file) and 41 journeys; kept 1,132 written tests.
+Written tests: `it`/`test` as written, an `it.each` counted once (1,258 written = 1,441 executed). *Kind* is the file's kind after the lead's rule: *mixed* means at least one test was removed and one kept. Totals: 119 files; 13 component, 45 screen-state, 8 unit, 49 mixed, 3 all scans (deleted), 1 all journey (deleted). Removed: 85 scans (84 classified, plus the parser check of `server-client-boundary`, which moved to the lint with its file) and 39 journeys; kept 1,134 written tests; then 7 one-decision tests added after review (choice 10), so the suite has 1,141 written tests.
 
 | File | Kind | Written | Scans out | Journeys out | Kept | Note |
 | :-- | :-- | --: | --: | --: | --: | :-- |
@@ -151,7 +154,7 @@ Written tests: `it`/`test` as written, an `it.each` counted once (1,258 written 
 | inception-copy.test.ts | mixed | 6 | 5 | 0 | 1 |  |
 | inception-criteria-block.test.tsx | mixed | 17 | 1 | 0 | 16 |  |
 | inception-criteria.test.tsx | mixed | 9 | 0 | 2 | 7 |  |
-| inception-direction.test.tsx | mixed | 26 | 0 | 2 | 24 |  |
+| inception-direction.test.tsx | screen-state | 26 | 0 | 0 | 26 | 112 and 205 removed, then restored after review finding 4 |
 | inception-done.test.tsx | screen-state | 5 | 0 | 0 | 5 |  |
 | inception-explore.test.tsx | mixed | 55 | 0 | 3 | 52 |  |
 | inception-import.test.tsx | mixed | 8 | 0 | 1 | 7 |  |
@@ -191,7 +194,7 @@ Written tests: `it`/`test` as written, an `it.each` counted once (1,258 written 
 | ui-base.test.tsx | component | 4 | 0 | 0 | 4 |  |
 | workspaces.test.tsx | mixed | 12 | 1 | 0 | 11 |  |
 
-### Journeys removed (41)
+### Journeys removed (39)
 
 - `charting.budget.test.tsx`: 56 "draws ${ROWS} rows by 5 columns and walks them by keyboard within the stated budget"
 - `charting.fetch-confirm.test.tsx`: 60 "asks first when the file was not found by the check, or the same bytes wait for another record"; 86 "with several rows selected C confirms nothing and says one at a time; a row with no file says so"
@@ -206,7 +209,6 @@ Written tests: `it`/`test` as written, an `it.each` counted once (1,258 written 
 - `discovery-recall.test.tsx`: 107 "prints the SCHOLAR_MAILTO line for MAILTO_NOT_SET and checks again"
 - `inception-answers.test.tsx`: 84 "shows every exclusion's reason and lets the researcher change an out-of-scope line's"
 - `inception-criteria.test.tsx`: 36 "records Accept by the engine's id, then saves and goes to Review"; 51 "adds and removes a typed criterion, names a missing side, and ticks every matrix column"
-- `inception-direction.test.tsx`: 112 "checks a phrase once per press, URL-encoded, and leaves Pursue as it was"; 205 "warns before a narrower search when a direction is bound, and sends nothing until confirmed"
 - `inception-explore.test.tsx`: 467 "offers the failed search's Search again only while a search could be sent: none without a database or with a q"; 592 "maps PROVIDER_UNKNOWN to the spec card with the code under Details; Reset the databases ticks every database i"; 617 "Reset the databases ticks every database in the engine's own order of databases_available"
 - `inception-import.test.tsx`: 86 "offers Read it again when the source changed before the create"
 - `inception-review.test.tsx`: 97 "needs the typed slug for a workspace with screening; the engine compares it"
@@ -216,7 +218,7 @@ Written tests: `it`/`test` as written, an `it.each` counted once (1,258 written 
 - `screening-publish.test.tsx`: 139 "asks the engine to print a code, sends the typed code once, clears it, then publishes"
 - `triage.test.tsx`: 255 "a change after the reveal supersedes the decision and shows the engine's stamp; undo restores the previous one"; 319 "sends proposal_shown with revealed_after_decision false, and true for a change after a reveal"; 659 "shows no Undo on a first decision, and Undo once there is something to undo"; 749 "with drafts and the default setting, N after the last record reaches the hand-off"
 
-### Scans moved to `lint/ui-rules.lint.ts` (68, plus the two boundary checks restored by the lead)
+### Scans moved to `lint/ui-rules.lint.ts` (68, plus four added by the lead: the two boundary checks, the `SCHOLAR_OPENALEX_KEY` line and the scan-root check)
 
 Per source file (each `describe` in the lint names it): locale parity of keys, placeholders and non-empty values for every catalogue (`messages/*`, charting, fetch, report, checks, discovery, inception, guidance, workbench, proposals, next-step, plural, triage, the screening copy objects); a refusal card or words for every refusal code in every locale; no literal `aria-label`/`title`/`alt`/`placeholder` in components (N9); logical, not physical, layout properties in components and the stylesheet (N10); no mirrored icon (N11); no browser storage or network at render time (N12); 44 px `<summary>` targets with a focus ring; the brand untranslated and no English sentence in a translation; `SCHOLAR_MAILTO`/`SCHOLAR_OPENALEX_KEY` untranslated; hints never carry a warning or refusal key; every catalogue key has a guidance-audit row; the default agent model is the cheapest listed in `prices.toml`; the theme is current with the brand tokens, every brand colour has a light and dark value and retired names stay out; the server/client module boundary (React #418); retired Publish wording; the workspaces copy and nav check.
 
@@ -257,16 +259,15 @@ Per source file (each `describe` in the lint names it): locale parity of keys, p
 - `triage.test.tsx`: 1
 - `workspaces.test.tsx`: 1
 
-### Scans dropped (15)
+### Scans dropped (14)
 
 - `discovery-combined.test.tsx`: no catalog string says an export cannot be added after a harvest, in any locale -- pins one decided sentence after finding 26; the rendered Harvest test (line 207) already checks the shown sentence
-- `discovery-copy.test.ts`: prints the SCHOLAR_OPENALEX_KEY line untranslated and never calls the email an OpenAlex requirement (F12) -- second half pins wording of one help sentence; first half can join the env-variable rule
+- `discovery-copy.test.ts`: the help-sentence half of "prints the SCHOLAR_OPENALEX_KEY line untranslated and never calls the email an OpenAlex requirement (F12)" (its wording only); the line half is in the lint (review finding 2)
 - `guidance.audit.test.tsx`: reads every row of the spec's Audit, each id once, each key cell resolved -- tests the fixture parser, not the product
 - `guidance.audit.test.tsx`: states the same counts per decision as the spec's table -- doc consistency only; ordinary review covers it
 - `i18n-catalog.test.ts`: declares the key set once, in the catalog index -- tautology
 - `i18n-catalog.test.ts`: maps every nav id to a key that exists in every catalog -- covered by the key-parity rule and by the MessageKey type
 - `i18n-catalog.test.ts`: matches SHA-256 for ${path} -- breaks on every legitimate script or dependency change; dependency changes are reviewed in the diff
-- `i18n-direction-source.test.ts`: reads the UI source it is meant to guard -- meta-check of the scan itself; the lint script should simply fail when it finds no files
 - `inception-copy.test.ts`: retires the not-built step tag and the recon note (M4d) -- one-off retirement check
 - `screening-export.test.tsx`: has the three variants in every locale: small completeness check; general key-parity lint covers it
 - `screening-home.test.tsx`: review F2: the summary fixture carries the flag the engine writes: pins a test fixture file's content, no user-visible rule

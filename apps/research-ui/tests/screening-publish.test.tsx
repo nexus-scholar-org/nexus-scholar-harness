@@ -285,3 +285,37 @@ describe("publish.reporting", () => {
     expect(screen.queryByText("PRISMA 2020 screening preview")).toBeNull();
   });
 });
+
+// One decision each, from a seeded engine state (H-test-diet).
+describe("publish.one-decision", () => {
+  it("sends a typed approval code once, trimmed, and clears the field", async () => {
+    const log = engine();
+    render(<ScreeningPublish locale="en" />);
+    await screen.findByText("Approve each batch, then publish the screening.");
+    const field = screen.getByLabelText("Approval code for batch 1");
+    fireEvent.change(field, { target: { value: " AB12C-DE34F " } });
+    fireEvent.click(screen.getByRole("button", { name: "Approve batch 1" }));
+    await screen.findByText("Approval on file");
+    expect(log.filter((l) => l.path === "/actions/pairing/redeem").map((l) => l.body)).toEqual([expect.objectContaining({ batch: 1, code: "AB12C-DE34F" })]);
+    expect(field).toHaveValue("");
+    // The UI cannot tell whether an approval on file is still current, so re-approval stays available (review 4).
+    expect(screen.getByRole("button", { name: "Approve batch 1" })).toBeInTheDocument();
+  });
+
+  it("Publish the screening, with every batch approved, sends one publish request and says Published", async () => {
+    const log = engine({ approved: true });
+    render(<ScreeningPublish locale="en" />);
+    const publish = await screen.findByRole("button", { name: "Publish the screening" });
+    await waitFor(() => expect(publish).toBeEnabled());
+    fireEvent.click(publish);
+    // "Published", with the generation id behind Details (M6-beta, rule page 12).
+    const banner = await waitFor(() => {
+      const el = document.querySelector("[data-published]");
+      if (!el) throw new Error("not yet");
+      return el;
+    });
+    expect(log.filter((l) => l.method === "POST" && l.path.endsWith("/actions/publish"))).toHaveLength(1);
+    expect(banner).toHaveTextContent("Published");
+    expect(within(banner as HTMLElement).getByText("GEN-1").closest("details")).not.toBeNull();
+  });
+});

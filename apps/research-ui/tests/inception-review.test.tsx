@@ -220,3 +220,31 @@ describe("inception.review refused checks (H-run-small-fixes, finding 7)", () =>
     expect(await screen.findByText("DRAFT_INVALID")).toBeInTheDocument();
   });
 });
+
+// One decision from a seeded state (H-test-diet): the engine answers Create with SCREENING_BOUND,
+// so the typed-slug confirmation is one click away; a wrong name is refused first.
+describe("inception.review typed slug", () => {
+  it("Replace, and discard the screening link sends the typed slug as confirm_discard_screening_binding", async () => {
+    const { engine, assign } = setUp({ draft: decided(), existing: "bound" });
+    engine.refuseNext(`POST /api/v1/inception/drafts/${SESSION}/genesis`, {
+      status: 409,
+      body: { detail: { code: "SCREENING_BOUND", message: "screening was done under the current protocol", details: { path: "on-device-weed-detection", bound: true, decision_events: 4, decision_files: 1, published: false } } },
+    });
+    render(<InceptionReview locale="en" />);
+    fireEvent.click(await screen.findByRole("button", { name: "Create the workspace" }));
+    const bound = await screen.findByRole("heading", { name: "Screening was done under the current protocol" });
+    expect(bound.closest("section")?.textContent).toContain("4 screening decision events, 1 batch decision files");
+    const confirmButton = screen.getByRole("button", { name: "Replace, and discard the screening link" });
+    expect(confirmButton).toBeDisabled();
+
+    fireEvent.change(screen.getByLabelText(/To replace it anyway, type the workspace name/), { target: { value: "wrong" } });
+    fireEvent.click(confirmButton);
+    expect(await screen.findByRole("heading", { name: "The name does not match" })).toBeInTheDocument();
+    expect(assign).not.toHaveBeenCalled();
+
+    fireEvent.change(screen.getByLabelText(/To replace it anyway/), { target: { value: "on-device-weed-detection" } });
+    fireEvent.click(screen.getByRole("button", { name: "Replace, and discard the screening link" }));
+    await waitFor(() => expect(assign).toHaveBeenCalled());
+    expect(engine.calls.filter((c) => c.path.endsWith("/genesis")).at(-1)?.body).toEqual({ replace: true, confirm_discard_screening_binding: "on-device-weed-detection" });
+  });
+});

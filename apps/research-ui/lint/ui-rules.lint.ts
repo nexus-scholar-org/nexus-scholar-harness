@@ -290,6 +290,13 @@ describe("discovery-copy.test.ts", () => {
         expect(stateCopy(locale, "MAILTO_NOT_SET").command).toBe("SCHOLAR_MAILTO=<your email>");
       }
     });
+
+    it("prints the SCHOLAR_OPENALEX_KEY line with the variable name untranslated in every locale (F12)", () => {
+      for (const locale of SUPPORTED_LOCALES) {
+        expect(DISCOVERY_COPY[locale]["openalexKey.line"]).toBe("SCHOLAR_OPENALEX_KEY=<your key>");
+        expect(stateCopy(locale, "OPENALEX_KEY_NOT_SET").command).toBe("SCHOLAR_OPENALEX_KEY=<your key>");
+      }
+    });
 });
 
 describe("discovery-preparation.test.tsx", () => {
@@ -521,6 +528,15 @@ describe("i18n-direction-source.test.ts", () => {
     ...dirSrc_sourceFiles("app").filter((file) => !file.startsWith("app/api/")),
     ...dirSrc_sourceFiles("components"),
   ];
+
+    it("reads the UI source it is meant to guard", () => {
+      // Anti-vacuity: a scan root that silently resolved to nothing would make
+      // every assertion below pass for the wrong reason.
+      expect(dirSrc_UI_SOURCE.length).toBeGreaterThan(5);
+      expect(dirSrc_UI_SOURCE.some((file) => file.startsWith("app/"))).toBe(true);
+      expect(dirSrc_UI_SOURCE.some((file) => file.startsWith("components/"))).toBe(true);
+      expect(dirSrc_UI_SOURCE.some((file) => file.endsWith(".tsx"))).toBe(true);
+    });
 
     it("carries no literal accessible name (N9)", () => {
       // `aria-label="…"`, `title="…"`, `alt="…"` and `placeholder="…"` are user-visible

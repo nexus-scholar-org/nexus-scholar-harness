@@ -30,7 +30,7 @@ npm run typecheck
 npm run test
 npm run build
 npm run dev
-npm run lint:ui        # copy and source rules that read files (scripts/lint-ui.mjs)
+npm run lint:ui        # copy and source rules that read files (lint/ui-rules.lint.ts)
 ```
 
 `npm run typecheck` and `npm run build` must pass before a change is considered

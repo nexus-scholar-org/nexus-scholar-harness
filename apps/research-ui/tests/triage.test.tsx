@@ -759,3 +759,50 @@ describe("record-detail.first-recorded (H-screening-drafts)", () => {
     expect(document.querySelector("[data-first-recorded]")).toBeNull();
   });
 });
+
+// One decision on a record that already holds one (H-test-diet): the record is opened
+// straight from the "decided" view, its draft already readable, and one change is made.
+describe("triage.change-and-undo on a decided record", () => {
+  const decision = (id: string, outcome: "INCLUDE" | "EXCLUDE", supersedes: string | null): StoredEvent => ({
+    event_id: id,
+    study_id: "STU-a",
+    screener_id: "researcher:local",
+    method: "HUMAN",
+    outcome,
+    reason_code: outcome === "EXCLUDE" ? "EXC-01" : null,
+    note: null,
+    criteria: [],
+    decided_at: "2026-11-05T09:00:00Z",
+    device: "desktop",
+    supersedes,
+    proposal_shown: null,
+    binding: BINDING,
+    received_at: "2026-11-05T09:00:00Z",
+    token_scope: "desktop",
+    changed_after_reveal: false,
+  });
+
+  beforeEach(() => window.history.replaceState(null, "", "/?view=decided"));
+  afterEach(() => window.history.replaceState(null, "", "/"));
+
+  it("Change my decision after the reveal sends an event that supersedes the earlier one, with revealed_after_decision true", async () => {
+    engine.events.push(decision("e1", "INCLUDE", null));
+    await ready();
+    await waitFor(() => expect(screen.getByTestId("proposal-aside")).toHaveTextContent("Not a decision"));
+    fireEvent.click(await screen.findByRole("button", { name: "Change my decision" }));
+    fireEvent.click(screen.getByRole("button", { name: /^Unclear/ }));
+    await waitFor(() => expect(postedEvents()).toHaveLength(1));
+    const change = postedEvents()[0];
+    expect(change).toMatchObject({ supersedes: "e1", proposal_shown: { proposal_id: "PRP-1", revealed_after_decision: true } });
+    expect(change).not.toHaveProperty("changed_after_reveal");
+    await screen.findByText("Changed after seeing the agent's draft");
+  });
+
+  it("Undo on a changed decision restores the previous outcome, superseding the change", async () => {
+    engine.events.push(decision("e1", "INCLUDE", null), decision("e2", "EXCLUDE", "e1"));
+    await ready();
+    fireEvent.click(await screen.findByRole("button", { name: /^Undo/ }));
+    await waitFor(() => expect(postedEvents()).toHaveLength(1));
+    expect(postedEvents()[0]).toMatchObject({ outcome: "INCLUDE", supersedes: "e2", reason_code: null });
+  });
+});

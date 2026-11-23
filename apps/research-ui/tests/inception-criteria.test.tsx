@@ -2,7 +2,7 @@ import { fireEvent, render, screen, waitFor, within } from "@testing-library/rea
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { InceptionCriteria } from "@/components/inception-criteria";
-import { completeDraft, SESSION } from "./fixtures/inception-engine";
+import { completeDraft, proofId, SESSION } from "./fixtures/inception-engine";
 import { setUp } from "./inception-helpers";
 
 /**
@@ -93,5 +93,20 @@ describe("inception.criteria", () => {
     engine.handle("PUT", `/api/v1/inception/drafts/${SESSION}`, { draft: { ...(record.draft as object), start_year: 2015 }, base_updated_at: record.updated_at });
     render(<InceptionCriteria locale="en" />);
     expect(await screen.findByText(/The pool was searched for an earlier scope; counts may not match./)).toBeInTheDocument();
+  });
+});
+
+// One decision from a seeded draft (H-test-diet): Accept one drafted criterion and save.
+describe("inception.criteria accept", () => {
+  it("Accept on the drafted criterion saves criteria_decisions[its engine id] = true", async () => {
+    const { engine } = setUp({ draft: completeDraft() });
+    render(<InceptionCriteria locale="en" />);
+    const proof = (await screen.findByText(PROOF)).closest("li")!;
+    fireEvent.click(within(proof).getByRole("button", { name: "Accept" }));
+    await waitFor(() => expect(screen.getByText(PROOF).closest("li")).toHaveAttribute("data-status", "accepted"));
+    fireEvent.click(screen.getByRole("button", { name: "Save draft and exit" }));
+    await waitFor(() => expect(engine.calls.filter((c) => c.method === "PUT")).toHaveLength(1));
+    const put = engine.calls.find((c) => c.method === "PUT")!;
+    expect(put.body?.draft).toMatchObject({ criteria_decisions: { [proofId()]: true } });
   });
 });

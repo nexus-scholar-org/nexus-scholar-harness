@@ -178,3 +178,24 @@ describe("charting.form-panel", () => {
     expect(within(panel()).getByRole("alert")).toHaveTextContent("Say in one sentence why the form changes.");
   });
 });
+
+// One decision before any value (H-test-diet): Merge with… one other column, confirmed once.
+describe("charting.form-panel merge", () => {
+  it("before any value, Merge with… and confirm saves one column derived from both", async () => {
+    const engine = installEngine(makeChartingTable([makeRow(1)]));
+    await renderCharting("en", "?view=charting");
+    await openPanel();
+    fireEvent.click(within(columnCard("cameras")).getByRole("button", { name: "Merge with…" }));
+    await flush();
+    fireEvent.change(within(columnCard("cameras")).getByRole("combobox", { name: "Merge Cameras and evaluation design with" }), { target: { value: "sensor_problems" } });
+    fireEvent.click(within(columnCard("cameras")).getByRole("button", { name: "Merge the two columns" }));
+    await flush();
+    expect(puts(engine)).toHaveLength(1);
+    expect(putBody(engine, 0).reason).toBeUndefined();
+    const first = putBody(engine, 0).columns[0];
+    expect(first).toMatchObject({ name: "Sensor problems addressed and Cameras and evaluation design", type: "text", required: true, derived_from: ["sensor_problems", "cameras"] });
+    expect(document.querySelector("[data-amendment-prompt]")).toBeNull();
+    expect(within(columnCard(first.column_id)).getByText("Made from: Sensor problems addressed, Cameras and evaluation design")).toBeInTheDocument();
+    expect(within(document.querySelector("[data-amendments]") as HTMLElement).getByText("No amendment yet.")).toBeInTheDocument();
+  });
+});

@@ -109,6 +109,26 @@ describe("inception.direction", () => {
     expect("direction" in body).toBe(false);
   });
 
+  it("checks a phrase once per press, URL-encoded, and leaves Pursue as it was", async () => {
+    const { engine } = prepare();
+    render(<InceptionDirection locale="en" />);
+    await cards();
+    fireEvent.click(screen.getByRole("button", { name: "Write my own direction" }));
+    fireEvent.change(screen.getByLabelText("Your direction"), { target: { value: "weed detection & more" } });
+    const pursue = screen.getByRole("button", { name: "Pursue weed detection & more" });
+    const enabled = !(pursue as HTMLButtonElement).disabled;
+    fireEvent.click(screen.getByRole("button", { name: "Check my phrase" }));
+    expect(await screen.findByText(/This phrase occurs in 0 of 14 titles or abstracts/)).toBeInTheDocument();
+    const checks = engine.calls.filter((c) => c.path === `${RECON}/evidence`);
+    expect(checks).toHaveLength(1);
+    expect(checks[0].search).toBe("term=weed%20detection%20%26%20more");
+    expect(!(pursue as HTMLButtonElement).disabled).toBe(enabled);
+    fireEvent.change(screen.getByLabelText("Your direction"), { target: { value: "weed detection" } });
+    fireEvent.click(screen.getByRole("button", { name: "Check my phrase" }));
+    expect(await screen.findByText("This phrase occurs in 8 of 14 titles or abstracts. It will be recorded as grounded.")).toBeInTheDocument();
+    expect(document.querySelectorAll("[data-evidence] [data-doi]")).toHaveLength(8);
+  });
+
   it("binds the skip with exactly skip and base_updated_at, then goes to Shape", async () => {
     const { engine, assign } = prepare();
     render(<InceptionDirection locale="en" />);
@@ -180,6 +200,21 @@ describe("inception.direction", () => {
     fireEvent.click((await cards())[0]);
     fireEvent.click(screen.getByRole("button", { name: "Search again, narrower · 1 left" }));
     expect(await screen.findByRole("heading", { name: "The one narrower search of this draft is used" })).toBeInTheDocument();
+  });
+
+  it("warns before a narrower search when a direction is bound, and sends nothing until confirmed", async () => {
+    const { engine } = prepare();
+    bind(engine, { direction: "weed detection" });
+    render(<InceptionDirection locale="en" />);
+    fireEvent.click(await screen.findByRole("button", { name: "Choose a different direction" }));
+    fireEvent.click((await cards())[1]);
+    fireEvent.click(screen.getByRole("button", { name: "Search again, narrower · 1 left" }));
+    const dialog = await screen.findByRole("alertdialog");
+    expect(sentTo(engine, "POST", "/probe")).toHaveLength(1);
+    fireEvent.keyDown(dialog, { key: "Escape" });
+    expect(screen.queryByRole("alertdialog")).toBeNull();
+    expect(sentTo(engine, "POST", "/probe")).toHaveLength(1);
+    expect(engine.calls.some((c) => c.path.endsWith("/delta"))).toBe(false);
   });
 
   it("shows a binding made stale by a scope change, names the parts, keeps the cards live and offers no Continue", async () => {
