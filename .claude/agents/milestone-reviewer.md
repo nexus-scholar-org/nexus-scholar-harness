@@ -35,8 +35,10 @@ Check, citing `file:line` for every finding:
   `audit/journal.jsonl`.
 - **Scope:** nothing outside Phases 0–2 changes behaviour; parked surfaces keep a
   visible "not production" label (plan §8).
-- **Evidence:** the PR-stage gate (`select_test_gate.py --changed main --stage pr`)
-  was run once on the final executable commit and recorded.
+- **Evidence:** the PR-stage gate (`select_test_gate.py --changed origin/main --stage pr`,
+  the touched areas) was run once on the final executable commit and recorded. The full
+  suites are CI's (policy "Local gate and CI gate", 2026-11-23): do not ask for a local
+  full-suite run; ask for the CI run of the final commit, or "CI, not yet run" before the push.
 
 Output:
 

@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import re
 from unittest.mock import AsyncMock, patch
 
 import pytest
@@ -30,9 +31,22 @@ from .test_open_copy_resolver import FakeLookups, closed_unpaywall
 
 runner = CliRunner()
 
+# Typer draws a usage error in a Rich box: colour codes on GitHub Actions (Typer forces a
+# terminal there), border characters, and lines wrapped at the box width, which can split a
+# long path in the middle. The first CI run with `pytest -n auto` (H-gate-and-ci, 2026-11-23)
+# failed on that. The searches below read the text without styling, borders or line breaks.
+_STYLE = re.compile(r"\x1b\[[0-9;]*[A-Za-z]")
+_BOX = re.compile(r"[─-╿]")
+
 
 def text_of(result) -> str:
-    return " ".join(result.output.split())
+    """The output as words: no colour codes, no box borders, whitespace collapsed."""
+    return " ".join(_BOX.sub(" ", _STYLE.sub("", result.output)).split())
+
+
+def compact_of(result) -> str:
+    """The output with no whitespace at all, so a path the box wrapped mid-name reads whole."""
+    return "".join(text_of(result).split())
 
 
 # ------------------------------------------------------------------ PDF-15
@@ -71,9 +85,27 @@ def test_download_with_a_missing_input_file_exits_non_zero(tmp_path):
     with patch("scholar_pdf.cli.AsyncPDFDownloader.process_doi", new_callable=AsyncMock) as process_doi:
         result = runner.invoke(app, ["download", "--input", str(tmp_path / "absent.json"), "--output", str(tmp_path / "o")])
     assert result.exit_code == 2, text_of(result)
-    assert "absent.json" in text_of(result)
+    assert "absent.json" in compact_of(result)
     assert "No DOIs provided" not in text_of(result)
     process_doi.assert_not_called()
+
+
+def test_a_missing_input_file_is_named_even_when_the_error_box_wraps_its_name(tmp_path):
+    """A name longer than the error box is split across lines; it is still found whole."""
+    name = f"absent-{'x' * 90}.json"
+    with patch("scholar_pdf.cli.AsyncPDFDownloader.process_doi", new_callable=AsyncMock) as process_doi:
+        result = runner.invoke(app, ["download", "--input", str(tmp_path / name), "--output", str(tmp_path / "o")])
+    assert result.exit_code == 2, text_of(result)
+    assert name in compact_of(result)
+    process_doi.assert_not_called()
+
+
+def test_the_text_helpers_drop_colour_codes_and_box_borders():
+    class Out:
+        output = "\x1b[31m│\x1b[0m C:\\tmp\\abse \x1b[31m│\x1b[0m\n\x1b[31m│\x1b[0m nt.json does not exist \x1b[31m│\x1b[0m\n"
+
+    assert text_of(Out) == "C:\\tmp\\abse nt.json does not exist"
+    assert "absent.json" in compact_of(Out)
 
 
 def test_download_with_an_input_file_that_is_not_a_list_exits_non_zero(tmp_path):
