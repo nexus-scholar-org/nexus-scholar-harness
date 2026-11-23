@@ -12,6 +12,20 @@ history to read if you need the original reasoning (`git log --follow -- <path>`
 | :-- | :-- | :-- |
 | 2026-11-19 — M9a: what the measurement says about the ladder gates | 2 | The minimum share of the researcher's excludes an agent must take before a rung unlocks: the principle is accepted; the researcher decided on 2026-11-20 to set the number when M9b is built. |
 
+## 2026-11-23 — H-faster-python-tests: the Python suite's fixed costs cut (decided by the researcher 2026-11-23; nothing PROPOSED)
+
+Record: `docs/roadmap/milestones/H-faster-python-tests.md`. Stacked on H-remove-rag-verify (coordinator's instruction); to be rebased on `main` once that merges. The work is the test-suite review's step 3, points 1 to 4, as the researcher decided it on 2026-11-23. Full suite with `-n 4`: 516 s to 437 s; the sample files the review timed: 33 s to 7 s (protocol CLI), 30 s to 15 s (charting), 29 s to 19 s (screening API).
+
+**For the researcher to decide:** nothing. One consequence to know: the inner gate (`-m "not slow"`) no longer runs 58 cases that start a process, most of them the terminal inception wizard (it scaffolds through a Python script) and the pipeline executor; checkpoint, PR and full runs still do.
+
+**Choices made in the build** (for the reviewer)
+
+1. The lazy import also covers `cli.py` (through `_orchestrator_class()` and a module `__getattr__`), not only `__init__.py`; `cli.ResearchOrchestrator` stays patchable.
+2. Templates are per process, under a private temporary root removed at exit; the key carries every input the builder reads (the protocol file's content included, since four fixtures patch `PROTOCOL`); a template that records its own path is refused at build time.
+3. Three builders only (the most used); the other per-file helpers and the 37 files that load helpers by path are left for a later pass.
+4. "Starts a process" is what a recorder saw (`Popen`, `multiprocessing`) during a run of the not-slow selection, excluding the product's own `git` calls; the baseline-locked `test_contract_baseline.py` is left unmarked.
+5. The protocol CLI's in-process helper keeps the process interface (`returncode`, `stdout`, `stderr`) so no assertion changed; one real start is kept and marked slow.
+
 ## 2026-11-23 — H-remove-rag-verify: `scholar_rag` and `scholar_verify` removed (decided by the researcher 2026-11-23; items 1 to 3 PROPOSED)
 
 Record: `docs/roadmap/milestones/H-remove-rag-verify.md`. The removal itself is the researcher's decision of 2026-11-23 in the coordinator session ("I want to delete the rag and verify module and their test entirely. They are saved in the commit history."); restore from `8dd7904a`. `scholar_graph`, PDF extraction, the capability adapter and `claims` wait for a later pass.
