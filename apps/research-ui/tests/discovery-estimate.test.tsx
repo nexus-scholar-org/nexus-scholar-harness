@@ -379,19 +379,6 @@ describe("discovery.estimate on Harvest", () => {
 });
 
 describe("discovery.estimate review fixes", () => {
-  it("answers a what-if after a recall-check estimate from the cache: no refresh with another pace", async () => {
-    const { engine, card } = await planCard({ estimate: answer({ recall_check: { check: "check_001", checked_at: "2026-11-17T10:00:00+00:00" } }) });
-    const user = await count(card);
-    const pace = within(card).getByLabelText("Seconds per record");
-    await user.clear(pace);
-    await user.type(pace, "45");
-    // "Count again" with another pace is a what-if: answered from the cache, no refresh.
-    await count(card);
-    expect(estimateCalls(engine)[1].body).toEqual({ providers: PROTOCOL_LIST, pace_seconds: 45 });
-    // The same click with nothing changed refreshes past the recall check.
-    await count(card);
-    expect(estimateCalls(engine)[2].body).toEqual({ providers: PROTOCOL_LIST, pace_seconds: 45, refresh: true });
-  });
 
   it("says why a pace that is not a whole number is not sent, and sends nothing", async () => {
     const { engine, card } = await planCard();

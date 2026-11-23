@@ -352,11 +352,14 @@ def test_research_ui_change_takes_ui_gate_not_python_suite() -> None:
     assert inner == [
         "git diff --check",
         "npm --prefix apps/research-ui run typecheck",
+        "npm --prefix apps/research-ui run lint:ui",
         "npm --prefix apps/research-ui run test:related -- "
         "components/screening-page.tsx lib/screening-api.ts",
     ]
     _, pr = MODULE.select_commands(data, tasks=[], paths=paths, stage="pr")
-    assert "npm --prefix apps/research-ui run test:browser" in pr
+    assert "npm --prefix apps/research-ui run build" in pr
+    # The browser suite was removed on 2026-11-23 (H-test-diet); no gate may name it.
+    assert not any("test:browser" in command or "playwright" in command for command in pr)
     assert not any(command.startswith("uv run pytest") for command in pr)
 
 

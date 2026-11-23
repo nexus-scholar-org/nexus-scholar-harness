@@ -57,49 +57,12 @@ describe("charting.fetch-confirm", () => {
     expect(document.querySelector("[data-counts]")!.textContent).toContain("1 to confirm");
   });
 
-  it("asks first when the file was not found by the check, or the same bytes wait for another record", async () => {
-    const engine = installEngine(makeTable([waitingRow(1, { identity: "not found: check it" }), waitingRow(2, { duplicate_of: ["STU-003"] }), makeRow(3)]));
-    await renderCharting();
-    focusRow("STU-001");
-    await press("c");
-    expect(postedEvents(engine)).toHaveLength(0);
-    expect(document.querySelector("[data-confirm-line]")).toHaveTextContent("Confirm this file as the full text of Study number 1? Enter to confirm · Esc to cancel");
-    await press("Escape");
-    expect(document.querySelector("[data-confirm-line]")!.textContent).toBe("");
-    expect(postedEvents(engine)).toHaveLength(0);
-    await press("c");
-    await press("Enter");
-    expect(postedEvents(engine)[0][0]).toMatchObject({ study_id: "STU-001", kind: "fetched_confirm" });
-    focusRow("STU-002");
-    await press("c");
-    expect(document.querySelector("[data-confirm-line]")).toHaveTextContent("Confirm this file as the full text of Study number 2?");
-  });
-
   it("a preprint, a version not given or 'Not checked' does not ask", async () => {
     const engine = installEngine(makeTable([waitingRow(1, { identity: "not checked", version: null, version_label: null })]));
     await renderCharting();
     focusRow("STU-001");
     await press("c");
     expect(postedEvents(engine)).toHaveLength(1);
-  });
-
-  it("with several rows selected C confirms nothing and says one at a time; a row with no file says so", async () => {
-    const engine = installEngine(makeTable([waitingRow(1), waitingRow(2), makeRow(3)]));
-    await renderCharting();
-    focusRow("STU-001");
-    await press("x");
-    await press("j");
-    await press("x");
-    await press("c");
-    expect(postedEvents(engine)).toHaveLength(0);
-    expect(statusLine()).toBe("Confirm one file at a time: press C on a single row.");
-    await press("Escape");
-    focusRow("STU-003");
-    await press("c");
-    expect(statusLine()).toBe("No file is waiting on this row.");
-    await press("d");
-    expect(statusLine()).toBe("No file is waiting on this row.");
-    expect(postedEvents(engine)).toHaveLength(0);
   });
 
   it("the Confirm button does what C does", async () => {

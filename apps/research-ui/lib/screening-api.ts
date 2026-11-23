@@ -12,8 +12,8 @@
  *
  * Prose note for the stylesheet guard: this file sits under `lib/`, which
  * the `@source not` list does not exclude, so a utility-looking word here
- * would be emitted into the stylesheet with no source to justify it, and
- * `tests-browser/hygiene.spec.ts` reports that as unexplained. The wording
+ * would be emitted into the stylesheet with no source to justify it (the
+ * browser check that reported it was removed on 2026-11-23). The wording
  * below is chosen to carry no such word.
  */
 
@@ -416,8 +416,8 @@ export async function getBatchReviews(origin: string, signal?: AbortSignal): Pro
  * The wording above is chosen to carry no utility-shaped word: this file
  * sits under `lib/`, which the `@source not` list does not exclude, so a
  * utility-looking word here would be emitted into the stylesheet with no
- * source to justify it, and `tests-browser/hygiene.spec.ts` reports that
- * as unexplained.
+ * source to justify it (the browser check that reported it was removed on
+ * 2026-11-23).
  */
 
 export interface LineageVerification {

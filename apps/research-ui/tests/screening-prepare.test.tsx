@@ -5,7 +5,6 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { PREPARE_COPY, ScreeningPrepare } from "@/components/screening-prepare";
-import { SUPPORTED_LOCALES } from "@/i18n";
 
 /** Prepare (spec 02) in jsdom; the snapshot refusal is the engine's recorded fixture. */
 
@@ -139,18 +138,6 @@ describe("prepare.ai-agreed-needs-confirm", () => {
       sample_audit_size: 60,
       confirm_ai_agreed_exclusion: true,
     });
-  });
-});
-
-describe("prepare copy", () => {
-  it("has the same keys and holes in every locale", () => {
-    const holes = (s: string) => [...s.matchAll(/\{(\w+)\}/g)].map((m) => m[1]).sort();
-    for (const locale of SUPPORTED_LOCALES) {
-      expect(Object.keys(PREPARE_COPY[locale]).sort()).toEqual(Object.keys(PREPARE_COPY.en).sort());
-      for (const [key, value] of Object.entries(PREPARE_COPY[locale])) {
-        expect(holes(value), `${locale}/${key}`).toEqual(holes(PREPARE_COPY.en[key as keyof typeof PREPARE_COPY.en]));
-      }
-    }
   });
 });
 

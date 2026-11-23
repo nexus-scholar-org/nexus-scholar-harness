@@ -6,7 +6,6 @@ import { DiscoveryHandoff } from "@/components/discovery-handoff";
 import { DiscoveryHarvest } from "@/components/discovery-harvest";
 import { DiscoveryReport } from "@/components/discovery-report";
 import { ScreeningImport } from "@/components/screening-import";
-import { DISCOVERY_COPY } from "@/lib/discovery-copy";
 import type { Corpus } from "@/lib/screening-v1";
 
 import { sent, setUp } from "./discovery-helpers";
@@ -187,19 +186,6 @@ describe("discovery.combined: Import (04 addendum)", () => {
     render(<ScreeningImport locale="en" />);
     await waitFor(() => expect(document.querySelector('[data-staging-refused="VERIFIED_EXISTS"]')).not.toBeNull());
     expect(screen.queryByText(/only before the first harvest/)).toBeNull();
-  });
-});
-
-describe("discovery.combined: copy (finding 26)", () => {
-  it("no catalog string says an export cannot be added after a harvest, in any locale", () => {
-    for (const locale of ["en", "fr", "ar"] as const) {
-      const copy = DISCOVERY_COPY[locale];
-      expect(copy["harvest.warn.imports"]).not.toMatch(/can no longer be added|ne peuvent plus|لم يعد ممكنًا/);
-      expect(copy["plan.imports.afterRun"]).not.toMatch(/cannot be added|ne peut pas être ajouté|لا يمكن إضافة/);
-    }
-    expect(DISCOVERY_COPY.en["harvest.warn.imports"]).toBe(
-      "Database exports you add on the Import step, before or after this harvest, are combined with it when you accept the corpus on the Hand-off, and duplicates across both are removed.",
-    );
   });
 });
 

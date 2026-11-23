@@ -1,9 +1,7 @@
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { WORKSPACES_COPY, WorkspacesScreen } from "@/components/workspaces-screen";
-import { SUPPORTED_LOCALES } from "@/i18n";
-import { currentNavId } from "@/components/site-header";
+import { WorkspacesScreen } from "@/components/workspaces-screen";
 import { stateCopy } from "@/lib/screening-states";
 import { previewSlug } from "@/lib/workspaces";
 
@@ -210,15 +208,6 @@ describe("workspaces.open", () => {
 });
 
 describe("workspaces copy and shell", () => {
-  it("has every key in every locale, and the header marks the screen current", () => {
-    const keys = Object.keys(WORKSPACES_COPY.en).sort();
-    for (const locale of SUPPORTED_LOCALES) expect(Object.keys(WORKSPACES_COPY[locale]).sort()).toEqual(keys);
-    expect(currentNavId("/ar/workspaces/", "ar")).toBe("workspaces");
-    for (const code of ["WORKSPACE_TITLE_INVALID", "WORKSPACE_EXISTS", "WORKSPACE_PATH_REFUSED", "WORKSPACE_ROOT_UNAVAILABLE", "WORKSPACE_NOT_VALID", "WORKSPACE_BUSY", "RESTART_UNSUPPORTED"]) {
-      for (const locale of SUPPORTED_LOCALES) expect(stateCopy(locale, code).known).toBe(true);
-    }
-  });
-
   it("previews the folder name the way the engine derives it", () => {
     expect(previewSlug("  Weed Mapping with UAVs!  ")).toBe("weed-mapping-with-uavs");
     expect(previewSlug("Revue -- systématique")).toBe("revue-systématique");

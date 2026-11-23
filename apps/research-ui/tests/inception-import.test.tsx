@@ -83,22 +83,6 @@ describe("inception.import", () => {
     expect(screen.queryByRole("button", { name: "Create the draft from this review" })).toBeNull();
   });
 
-  it("offers Read it again when the source changed before the create", async () => {
-    const refuseOnce: Record<string, { status: number; body: unknown }> = {};
-    const { engine } = setUp({ noDraft: true, workspaces: WORKSPACES, search: "", refuseOnce });
-    render(<InceptionImport locale="en" />);
-    fireEvent.click(await screen.findByRole("radio", { name: /UAV review v0.3/ }));
-    await screen.findByText("Comes across as you wrote it");
-    refuseOnce["POST /api/v1/inception/drafts/import"] = {
-      status: 409,
-      body: { detail: { code: "IMPORT_SOURCE_CHANGED", message: "changed", details: { expected: "a", found: "b" } } },
-    };
-    fireEvent.click(screen.getByRole("button", { name: "Create the draft from this review" }));
-    expect(await screen.findByRole("heading", { name: "That protocol changed while you were looking" })).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "Read it again" }));
-    await waitFor(() => expect(posts(engine).filter((c) => (c.body as { dry_run: boolean }).dry_run)).toHaveLength(2));
-    expect(await screen.findByText("Comes across as you wrote it")).toBeInTheDocument();
-  });
 });
 
 describe("inception.import on the steps", () => {

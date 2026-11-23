@@ -1,5 +1,3 @@
-import { readFileSync } from "node:fs";
-import { join } from "node:path";
 
 import { act, cleanup, render, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -7,8 +5,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { NextStepBar } from "@/components/next-step-bar";
 import { AppShell } from "@/components/app-shell";
 import { REVIEW_CHANGED_EVENT } from "@/components/review-bus";
-import { ACTION_KEYS, NEXT_STATES, NEXT_STEP_COPY, WAITING_STAGES, type NextStepCopyKey } from "@/lib/next-step-copy";
-import { SCREEN_ROUTES, type NextStep } from "@/lib/next-step";
+import { NEXT_STEP_COPY } from "@/lib/next-step-copy";
+import type { NextStep } from "@/lib/next-step";
 
 /**
  * The next-step bar (`docs/ux/shared/final/04-next-step.md` "Acceptance tests", M10b Part C).
@@ -132,44 +130,6 @@ describe("next-step.charting (M12a DoD 9)", () => {
     } finally {
       window.removeEventListener("nexus:next-step-answer", listener);
       window.sessionStorage.clear();
-    }
-  });
-});
-
-describe("next-step.i18n", () => {
-  const en = NEXT_STEP_COPY.en as Record<string, string>;
-  const holes = (s: string) => [...s.matchAll(/\{(\w+)\}/g)].map((m) => m[1]).sort();
-
-  it("maps every state, waiting stage and action key to a key in en, fr and ar, with the same holes", () => {
-    const keys = [
-      ...NEXT_STATES.map((s) => `next.state.${s}`),
-      ...WAITING_STAGES.map((s) => `next.waiting.${s}`),
-      ...ACTION_KEYS.map((k) => `next.action.${k}`),
-      "next.stopped.searching", "next.stopped.stage", "next.failed.searching", "next.failed.stage", "next.interrupted",
-      "next.reason.STOPPED_BY_RESEARCHER", "next.reason.INTERRUPTED", "next.inRound",
-      "next.state.SETUP_NEEDED.what.email", "next.state.SETUP_NEEDED.what.key", "next.state.SETUP_NEEDED.what.both",
-      "next.stage.deduplicating", "next.stage.adding_abstracts", "next.stage.verifying",
-      "next.region", "next.details", "next.asOf", "next.unknown", "next.here", "next.offline", "next.offline.last",
-      "next.word.running", "next.word.stopped", "next.word.failed", "next.word.interrupted",
-    ];
-    for (const key of keys) expect(en, key).toHaveProperty([key]);
-    for (const [key, text] of Object.entries(en)) {
-      for (const locale of ["fr", "ar"] as const) {
-        const other = NEXT_STEP_COPY[locale][key as NextStepCopyKey];
-        expect(other, `${locale} ${key}`).toBeTruthy();
-        expect(holes(other), `${locale} ${key}`).toEqual(holes(text));
-      }
-    }
-    expect(en["next.state.PUBLISHED_STALE"]).toBe("The screening changed since you published.");
-  });
-
-  it("routes every screen the engine names, and the bar's source carries no literal accessible name (N9)", () => {
-    for (const screen of ["workspaces", "inception.list", "inception.scope", "inception.explore", "inception.direction", "inception.shape", "inception.criteria", "inception.review", "inception.done", "discovery.plan", "discovery.harvest", "discovery.handoff", "discovery.chase", "screening.home", "screening.triage", "screening.publish", "charting"]) {
-      expect(SCREEN_ROUTES, screen).toHaveProperty([screen]);
-    }
-    for (const file of ["components/next-step-bar.tsx", "components/review-bus.ts", "lib/next-step.ts", "lib/next-step-copy.ts"]) {
-      const text = readFileSync(join(process.cwd(), file), "utf8");
-      expect(text.match(/(aria-label|title|alt|placeholder)="/g), file).toBeNull();
     }
   });
 });

@@ -1,8 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { AGREEMENT_COPY, ScreeningAgreement } from "@/components/screening-agreement";
-import { SUPPORTED_LOCALES } from "@/i18n";
+import { ScreeningAgreement } from "@/components/screening-agreement";
 
 /**
  * Agreement with the agent (spec 07) in jsdom. Every number is the engine's
@@ -84,12 +83,5 @@ describe("agreement.no-undecided-leak", () => {
     engine({ summary: { ...SUMMARY, agent_proposed: 0 } });
     render(<ScreeningAgreement locale="en" />);
     expect(await screen.findByRole("link", { name: "Run agent proposals" })).toHaveAttribute("href", "/en/screening/proposals");
-  });
-});
-
-describe("agreement copy", () => {
-  it("has every key in every locale", () => {
-    const keys = Object.keys(AGREEMENT_COPY.en).sort();
-    for (const locale of SUPPORTED_LOCALES) expect(Object.keys(AGREEMENT_COPY[locale]).sort()).toEqual(keys);
   });
 });

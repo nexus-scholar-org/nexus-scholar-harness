@@ -1,10 +1,9 @@
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { IMPORT_COPY, ScreeningImport } from "@/components/screening-import";
-import { HOME_COPY, ScreeningHome } from "@/components/screening-home";
+import { ScreeningImport } from "@/components/screening-import";
+import { ScreeningHome } from "@/components/screening-home";
 import { ScreeningSteps } from "@/components/screening-state-card";
-import { SUPPORTED_LOCALES } from "@/i18n";
 import type { Corpus } from "@/lib/screening-v1";
 
 /**
@@ -71,16 +70,6 @@ const refused = (status: number, code: string) => () =>
   new Response(JSON.stringify({ detail: { code, message: code.toLowerCase() } }), { status, headers: { "content-type": "application/json" } });
 
 afterEach(() => vi.unstubAllGlobals());
-
-describe("import.copy", () => {
-  it("has the same keys in every locale", () => {
-    const keys = Object.keys(IMPORT_COPY.en).sort();
-    for (const locale of SUPPORTED_LOCALES) expect(Object.keys(IMPORT_COPY[locale]).sort()).toEqual(keys);
-    for (const locale of SUPPORTED_LOCALES) {
-      for (const key of ["importCta", "imported", "importedLink"] as const) expect(HOME_COPY[locale][key]).toBeTruthy();
-    }
-  });
-});
 
 describe("import.empty", () => {
   it("opens with the form, search details closed, and the line that the corpus is accepted on the Hand-off (no link, no accept)", async () => {

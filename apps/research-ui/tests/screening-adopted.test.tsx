@@ -10,7 +10,6 @@ import { ScreeningExport } from "@/components/screening-export";
 import { PUBLISH_COPY, ScreeningPublish } from "@/components/screening-publish";
 import { formatNumber, SUPPORTED_LOCALES } from "@/i18n";
 import { ADOPTION_COPY, adoptionText } from "@/lib/adoption-copy";
-import { CHARTING_COPY } from "@/lib/charting-copy";
 
 /**
  * H-adopted-decisions-disclosure (decision 2026-11-22) in jsdom: the declaration screen
@@ -85,31 +84,6 @@ afterEach(() => {
 });
 
 const S = "/api/v1/screening";
-
-// --- the copy: one phrase, three languages --------------------------------------------
-
-describe("adoption.copy", () => {
-  it("has every key in en, fr and ar, and the decided phrase in English", () => {
-    const keys = Object.keys(ADOPTION_COPY.en).sort();
-    for (const locale of SUPPORTED_LOCALES) expect(Object.keys(ADOPTION_COPY[locale]).sort()).toEqual(keys);
-    expect(ADOPTION_COPY.en.phraseOne).toBe("Stored from the agent's draft without being read one by one");
-    expect(ADOPTION_COPY.en.notCounted).toContain("stored from the agent's draft without being read one by one");
-    expect(CHARTING_COPY.en["charting.study.taAdopted"]).toBe("Stored from the agent's draft without being read one by one");
-    expect(PUBLISH_COPY.en["check.human_provenance"]).toBe("Every decision is recorded as the reviewer's");
-    expect(PUBLISH_COPY.en["check.adopted_decisions_declared"]).toBe("Decisions stored from drafts are declared");
-    for (const locale of SUPPORTED_LOCALES) {
-      expect(CHARTING_COPY[locale]["charting.study.taAdopted"]).toBeTruthy();
-      expect(PUBLISH_COPY[locale].look).toBeTruthy();
-    }
-  });
-
-  it("pins the fr and ar wording of the phrase", () => {
-    expect(ADOPTION_COPY.fr.phraseOne).toBe("Enregistrée depuis le brouillon de l'agent sans être lue une à une");
-    expect(ADOPTION_COPY.ar.phraseOne).toBe("حُفظ من مسودة الوكيل دون قراءته واحدًا واحدًا");
-    expect(adoptionText("fr", "sampleOwed", { k: 50 })).toBe("Un échantillon de 50 exclusions adoptées est dû.");
-    expect(adoptionText("ar", "sampleOwed", { k: 50 })).toBe("عيّنة من 50 استبعادًا معتمَدًا مستحقة.");
-  });
-});
 
 // --- the declaration screen ------------------------------------------------------------
 
