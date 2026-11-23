@@ -11,7 +11,6 @@ history to read if you need the original reasoning (`git log --follow -- <path>`
 | Entry | Item | What is open |
 | :-- | :-- | :-- |
 | 2026-11-19 — M9a: what the measurement says about the ladder gates | 2 | The minimum share of the researcher's excludes an agent must take before a rung unlocks: the principle is accepted; the researcher decided on 2026-11-20 to set the number when M9b is built. |
-| 2026-11-23 — H-screening-read-performance: the build's own choices | 6 to 23 | Proposed by the build; none answered yet. |
 
 ## 2026-11-23 — H-screening-read-performance: the build's own choices (items 6 to 23 accepted by the researcher 2026-11-23 as built; item 23's deferred run done the same day)
 
