@@ -1159,7 +1159,7 @@ def _coordinator_ws(root: Path, name: str) -> Path:
 def test_coordinator_stale_generation_skips_stages_with_named_reason(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """AG03C-04/05: coordinator keeps stages 5-9 SKIPPED/PENDING on STALE."""
+    """AG03C-04/05: coordinator keeps Stage 5 (extraction) SKIPPED/PENDING on STALE."""
     ws = _coordinator_ws(tmp_path, "ws")
     (ws / "project.json").write_text(
         json.dumps({"project_id": "ws", "registered_workspace_id": WS_ID})

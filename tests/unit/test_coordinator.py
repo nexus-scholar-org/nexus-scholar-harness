@@ -16,7 +16,7 @@ Mapping to the HCM-04l packet:
 - HCM04L-03 order preserved (9-stage sequence + early pause return)
 - HCM04L-04 results shape identical (all mappings + statuses)
 - HCM04L-05 audit bytes+order identical (PAUSE + COMPLETED, metrics passthrough)
-- HCM04L-06 no-fabrication returns (pause before Stages 5-9)
+- HCM04L-06 no-fabrication returns (pause before Stage 5)
 - HCM04L-07 file/protocol DSL unchanged (FileNotFoundError + validation)
 - HCM04L-08 bindings flow (verified_docs->papers_to_screen)
 - HCM04L-09 no new seams (orch-namespace honoring untouched) + transport guard
@@ -253,7 +253,7 @@ def _discovery_double(status: str, **extra):
 def test_glue_lives_in_coordinator_orchestrator_delegates():
     """HCM04L-01/NEG-01: move-not-duplicate guard (restore-inline fails)."""
     orch_src = Path(orch.__file__).read_text(encoding="utf-8")
-    # Orchestrator keeps no Stage 1-9 inline regions; only the thin delegate.
+    # Orchestrator keeps no Stage 1-5 inline regions; only the thin delegate.
     for marker in (
         "Stage 1: Protocol Query Compilation",
         "Stage 2: 2-Tier Deduplication",
@@ -452,7 +452,7 @@ def test_indexing_fn_is_refused_now_that_indexing_is_gone(tmp_path, monkeypatch)
 
 
 def test_pause_order_and_no_fabrication(tmp_path, monkeypatch):
-    """HCM04L-03/06/NEG-02/NEG-04: pause order exact; Stages 5-9 never run."""
+    """HCM04L-03/06/NEG-02/NEG-04: pause order exact; Stage 5 never runs."""
     _stub_coordinator(monkeypatch)
     ws = tmp_path / "ws"
     ws.mkdir()

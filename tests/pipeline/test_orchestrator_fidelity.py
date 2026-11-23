@@ -5,7 +5,7 @@ kit interaction is monkeypatched in the orchestrator module namespace.  What is
 verified offline is the *orchestration* contract fixed under matrix finding #9:
 
 - the run pauses at the PRISMA agent-in-the-loop handoff (PENDING_AGENT_REVIEW,
-  stages 5-9 SKIPPED) instead of reporting SUCCESS on empty/fabricated output;
+  Stage 5 SKIPPED) instead of reporting SUCCESS on empty/fabricated output;
 - Stage 5 never invents Methodology/Results/Limitations prose — it writes
   metadata-frontmatter documents derived from real records (or PyMuPDF output);
 - Stage 8 drives a real OpenAlex HTTP client.

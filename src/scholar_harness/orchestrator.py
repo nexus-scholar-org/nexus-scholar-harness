@@ -479,7 +479,7 @@ class ResearchOrchestrator:
 
         Thin delegate to ``pipeline.coordinator.run_pipeline`` (HCM-04l):
         identical signature; the coordinator owns the glue (protocol
-        load/validate, dir setup, Stage 1-9 delegation, Stage-4 gate +
+        load/validate, dir setup, Stage 1-5 delegation, Stage-4 gate +
         PAUSE audit, Stage-10 COMPLETED audit, status propagation).
         """
         return await _coordinator_run_pipeline(
