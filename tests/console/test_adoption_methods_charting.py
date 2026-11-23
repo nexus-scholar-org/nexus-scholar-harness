@@ -167,3 +167,33 @@ def test_a_kept_study_declared_as_adopted_shows_it_in_the_charting_table(tmp_pat
     assert rows[included]["ta_adopted"] is True and rows[unclear]["ta_adopted"] is False
     study = client.get(f"/api/v1/charting/records/{included}").json()
     assert study["row"]["ta_adopted"] is True
+
+
+def test_the_draft_sentences_concern_only_the_records_read_one_by_one(tmp_path):
+    """Review finding 1: with drafts, a declared decision is not a blind decision, nor a revealed one."""
+    from scholar_harness.screening import proposals as pr
+
+    ws, events = _workspace(tmp_path)
+    context = ev.load_context(ws)
+    protocol = json.loads((ws / "protocol.json").read_text(encoding="utf-8"))
+    proposals = {
+        s: pr.submit_proposal(
+            ws, study_id=s, title="t", abstract="a", output={"criteria": [], "cannot_decide": True},
+            protocol=protocol, protocol_fingerprint=context.protocol_fingerprint,
+            provenance={"task_version": "screen-v1", "model": "claude-opus-5-5", "driver": "mcp",
+                        "prompt_sha256": "sha256:" + "ab" * 32},
+            created_at="2026-11-04T09:00:00Z",
+        )
+        for s in events
+    }
+    declared = next(s for s, e in events.items() if e["note"] == BULK)
+    ev.record_reveal(ws, study_id=declared, screener_id=se.SCREENER, proposal_id=proposals[declared]["proposal_id"],
+                     context=context, revealed_at="2026-11-04T12:00:00Z")
+    client = _client(ws)
+    _declare(client, events)
+    tea.publish(ws)
+    body = _methods(client)
+    assert "The statements on drafts below concern the 1 record the reviewer read one by one." in body["paragraph"]
+    assert body["figures"]["revealed_decisions"] == 0  # the declared record's reveal is not a reading
+    assert "every decision in this screening was made by the reviewer" not in body["paragraph"]
+    _numbers_trace(body)

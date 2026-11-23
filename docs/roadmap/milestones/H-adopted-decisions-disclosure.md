@@ -42,7 +42,7 @@ This specification is narrower and comes first: **an honest disclosure for decis
 1. A declaration is refused without `confirm`, from a phone, for an event id that is not a current winning decision, and twice for the same record; each refusal has a code and a test.
 2. With the two-study fixture plus a declared set, Agreement's figure excludes declared decisions; the test fails on today's code.
 3. The Publish check for undeclared candidates is "Look at this" on a fixture holding bulk-noted decisions and Passes after the declaration.
-4. The methods text never says "screened every record" when a declaration exists; a test pins the sentences in en, fr and ar.
+4. The methods text never says "screened every record" when a declaration exists; a test pins its sentences in English (the paragraph stays English, spec 10 decision 5), and a test pins the Export screen's declaration figures and their labels in en, fr and ar. *(Reworded 2026-11-23 on the researcher's answer "English paragraph (Recommended)"; decision item 22. As first written: "a test pins the sentences in en, fr and ar".)*
 5. The contract baseline check stays current with no regeneration.
 6. A browser test of the declaration flow; copy in en, fr and ar.
 
@@ -63,7 +63,7 @@ Line references were gathered by a read-only search on 2026-11-22 and not each r
 
 ## Build 2026-11-23
 
-Status: **BUILT on `dev/h/adopted-decisions-disclosure` (from `main` `9b2e0d5f`); not pushed. DoD 1, 2, 3, 5 and 6 met; DoD 4 met in English and on the Export screen in en, fr and ar, but not as written (the paragraph itself is English by spec 10's decision 5; decision item 22 waits for the researcher).** Lane: RELEASE (item 7). Built in a session of its own, started by the main session on the researcher's approval of 2026-11-23. The build's own choices are items 7 to 28 of the decisions entry "2026-11-23 — H-adopted-decisions-disclosure: the build's own choices", all PROPOSED.
+Status: **BUILT on `dev/h/adopted-decisions-disclosure` (from `main` `9b2e0d5f`); not pushed. DoD 1 to 6 met (DoD 4 as reworded on the researcher's answer of 2026-11-23, decision item 22).** Lane: RELEASE (item 7). Built in a session of its own, started by the main session on the researcher's approval of 2026-11-23. The build's own choices are items 7 to 28 of the decisions entry "2026-11-23 — H-adopted-decisions-disclosure: the build's own choices": item 22 answered by the researcher, the others PROPOSED.
 
 **What was built.**
 
@@ -81,7 +81,7 @@ Status: **BUILT on `dev/h/adopted-decisions-disclosure` (from `main` `9b2e0d5f`)
 | 1 | `tests/console/test_adoption_declarations_api.py`: `…without_confirm…` (`ADOPTION_CONFIRM_REQUIRED`, nothing written), `…from_a_phone…` (`TOKEN_SCOPE_REFUSED`), `…not_a_current_winning_decision…` (superseded and unknown, `ADOPTION_EVENT_NOT_WINNING`), `…same_record_twice…` (one request and a second declaration, `ADOPTION_ALREADY_DECLARED`), `…another_origin…` (`CONSOLE_ORIGIN_REFUSED` on the browser surface), `…cannot_choose_who_or_when` | pass |
 | 2 | `test_agreement_excludes_declared_decisions_and_says_how_many` (the three-record fixture: 3 compared before, 1 after declaring 2) | fails on `9b2e0d5f` (no route; the figure counted the adopted decisions), passes on the build |
 | 3 | `test_the_publish_checks_are_renamed_and_the_declaration_check_does_not_block`, `test_with_no_candidate_the_declaration_check_passes` | pass |
-| 4 | `tests/console/test_adoption_methods_charting.py`: the sentences pinned in English, no "screened every record", no "every decision … made by the reviewer", every number a figure, the sample unread then read, a declaration after publication (paragraph changed, note added, `included.json`, `excluded.json`, `prisma_report.json` and the RIS export byte for byte unchanged); `apps/research-ui/tests/screening-adopted.test.tsx` "adoption.export" pins the Export labels in en, fr and ar | pass; fr and ar of the paragraph itself not built (item 22) |
+| 4 | `tests/console/test_adoption_methods_charting.py`: the sentences pinned in English, no "screened every record", no "every decision … made by the reviewer", every number a figure, the sample unread then read, a declaration after publication (paragraph changed, note added, `included.json`, `excluded.json`, `prisma_report.json` and the RIS export byte for byte unchanged); `apps/research-ui/tests/screening-adopted.test.tsx` "adoption.export" pins the Export labels in en, fr and ar | pass (DoD 4 as reworded; the paragraph stays English, item 22 answered) |
 | 5 | `uv run python scripts/generate_contract_baseline.py --check` | "Contract baseline current", no regeneration |
 | 6 | `apps/research-ui/tests-browser/screening-adopted.spec.ts` (the flow in en: offered, nothing sent, focus in the dialog, axe clean, one POST with `confirm: true` and the sample, then Agreement; the screen in fr and ar with axe), both themes; `tests/screening-adopted.test.tsx` (18 tests) | pass |
 | Item 6 | `test_a_kept_study_declared_as_adopted_shows_it_in_the_charting_table` (table and one-study read); UI badge copy in three locales | pass |

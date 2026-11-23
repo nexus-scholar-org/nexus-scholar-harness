@@ -631,7 +631,7 @@ def _plural(n: int, one: str, many: str) -> str:
 
 def _adoption_sentences(
     ws: Path, view: Published, published: datetime | None, *, one: bool
-) -> tuple[dict[str, Any] | None, list[str], list[str]]:
+) -> tuple[dict[str, Any] | None, list[str], list[str], set[str]]:
     """H-adopted-decisions-disclosure (DoD 4, answer 5): the published decisions declared as stored
     from the agent's drafts, with their outcomes and the samples drawn from their exclusions.
 
@@ -642,7 +642,7 @@ def _adoption_sentences(
     active = ledger.declared_events()
     declared = {s: e for s, e in view.entries.items() if str(e.get("event_id") or "") in active}
     if not declared:
-        return None, [], []
+        return None, [], [], set()
     by_outcome = {o: sum(1 for e in declared.values() if str(e.get("decision")) == o) for o in ("EXCLUDE", "INCLUDE", "MAYBE")}
     stored, read = len(declared), len(view.entries) - len(declared)
     used = {active[str(e["event_id"])]["declaration_id"] for e in declared.values()}
@@ -654,7 +654,8 @@ def _adoption_sentences(
         if isinstance(sample, dict):
             result = results.get(row["declaration_id"])
             samples.append({
-                "size": int(sample.get("size") or 0), "seed": sample.get("seed"), "read": result is not None,
+                "size": int(sample.get("size") or 0), "seed": sample.get("seed"), "how": sample.get("how") or "drawn",
+                "read": result is not None,
                 "changed": len(result.get("changed_study_ids") or []) if result else None,
             })
     dates = sorted({_date(r.get("declared_at")) for r in rows})
@@ -670,7 +671,9 @@ def _adoption_sentences(
         f"({by_outcome['EXCLUDE']} excluded, {by_outcome['INCLUDE']} included and {by_outcome['MAYBE']} unclear)."
     ]
     for sample in samples:
-        drawn = f"A sample of {sample['size']} of these exclusions was drawn (seed {sample['seed']})"
+        # Review follow-up: a sample chosen outside the app cannot be drawn again from its seed.
+        where = " outside the app" if sample["how"] == "given" else ""
+        drawn = f"A sample of {sample['size']} of these exclusions was drawn{where} (seed {sample['seed']})"
         if sample["read"]:
             sentences.append(
                 f"{drawn} and read; the reviewer changed {sample['changed']} of the "
@@ -689,7 +692,7 @@ def _adoption_sentences(
             f"Decisions were declared as {ADOPTION_PHRASE} after publication ({', '.join(dates)}); this paragraph states "
             "them, and the published decisions and their export are unchanged. Copy the paragraph again."
         )
-    return figures, sentences, caveats
+    return figures, sentences, caveats, set(declared)
 
 
 def build_methods(ws: Path) -> dict[str, Any]:
@@ -847,7 +850,9 @@ def build_methods(ws: Path) -> dict[str, Any]:
     screeners = {str(e.get("screener_id")) for e in published_entries if e.get("screener_id")}
     all_human = bool(published_entries) and all(str(e.get("method") or "").upper() == "HUMAN" for e in published_entries)
     # H-adopted-decisions-disclosure (DoD 4): decisions declared as stored from the agent's drafts.
-    adoption, adoption_sentences, adoption_caveats = _adoption_sentences(ws, view, published, one=len(screeners) == 1)
+    adoption, adoption_sentences, adoption_caveats, declared_studies = _adoption_sentences(
+        ws, view, published, one=len(screeners) == 1
+    )
     figures["adoption"] = adoption
     if adoption is not None:
         source(ADOPTION_FILE)
@@ -1012,15 +1017,24 @@ def build_methods(ws: Path) -> dict[str, Any]:
     mode = _timeline(rows, "mode", published, now["mode"])
     audit_size = _timeline(rows, "sample_audit_size", published, now["sample_audit_size"])
     order = _timeline(rows, "queue_order", published, now["queue_order"])
-    events = _published_events(ws, view, published)
+    all_events = _published_events(ws, view, published)
     for path in sorted((ws / ev.EVENTS_DIR).glob("*.jsonl")) if (ws / ev.EVENTS_DIR).is_dir() else []:
         source(path.relative_to(ws))
+    # H-adopted-decisions-disclosure (review finding 1): a decision stored from the draft was neither
+    # blind nor made with the draft in view; the draft sentences (5, 5b) concern the records read.
+    events = {s: c for s, c in all_events.items() if s not in declared_studies}
 
     # 5. Reveal
     shown = "Drafts were shown before the decision"
     hidden = "Drafts were hidden until the reviewer decided"
     figures["blinding"] = {"at_publish": blinding.at_publish, "changes": [list(x) for x in blinding.changes]}
     if proposals:
+        if adoption is not None:
+            read = adoption["read_one_by_one"]
+            sentences.append(
+                f"The statements on drafts below concern the {read} record{'' if read == 1 else 's'} "
+                "the reviewer read one by one."
+            )
         if not blinding.changes:
             sentences.append(f"{hidden}." if blinding.initial != "show" else f"{shown} throughout the screening.")
         else:
@@ -1031,7 +1045,8 @@ def build_methods(ws: Path) -> dict[str, Any]:
         context = ev.load_context(ws)
         revealed = {
             str(r["study_id"]) for r in (ev.read_reveals(ws) if have_reveals else [])
-            if r.get("study_id") in view.entries and ev.is_current(r, context)
+            if r.get("study_id") in view.entries and r.get("study_id") not in declared_studies
+            and ev.is_current(r, context)
             and (published is None or (_time(r.get("revealed_at")) or published) <= published)
         }
         tracked_since = _time(REVEAL_TRACKING_SINCE)
@@ -1152,7 +1167,7 @@ def build_methods(ws: Path) -> dict[str, Any]:
         for date, value in order.changes:
             sentences.append(f"Records were presented in {ORDER_LABELS.get(value, str(value))} order from {date}.")
         first = order.changes[0][0]
-        earliest = min((str(e.get("received_at") or "") for chain in events.values() for e in chain), default="")
+        earliest = min((str(e.get("received_at") or "") for chain in all_events.values() for e in chain), default="")
         if earliest and _date(earliest) < first:
             not_stated.append(f"Queue order: not recorded before {first}.")
     else:

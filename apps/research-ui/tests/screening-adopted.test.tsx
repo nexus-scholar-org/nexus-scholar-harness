@@ -203,6 +203,13 @@ describe("adoption.agreement", () => {
     expect(document.body.textContent).not.toContain("رأيت كل سجل");
   });
 
+  it("does not say 'You saw every record' while candidates are undeclared", async () => {
+    engine({ [`${S}/agreement`]: { ...AGREEMENT, adoption: adoption({ candidates: 3, undeclared_candidates: 3 }) }, [`${S}/summary`]: SUMMARY, [`${S}/settings`]: SETTINGS });
+    render(<ScreeningAgreement locale="en" />);
+    await waitFor(() => expect(document.querySelector('[data-adoption-sample="undeclared"]')).not.toBeNull());
+    expect(document.body.textContent).not.toContain("You saw every record");
+  });
+
   it("says a sample is owed even when none was drawn", async () => {
     engine({
       [`${S}/agreement`]: { ...AGREEMENT, adoption: adoption({ declared: 2, declared_by_outcome: { INCLUDE: 1, EXCLUDE: 1, MAYBE: 0 }, sample_owed: true, no_sample_drawn: true }) },

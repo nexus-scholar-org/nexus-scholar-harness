@@ -304,6 +304,12 @@ export function ScreeningAgreement({ locale }: Readonly<{ locale: Locale }>) {
                   {!adoption.sample_owed && adoption.declared_by_outcome.EXCLUDE === 0 && adoption.samples.length === 0 ? <p>{a$("noExclusionsDeclared")}</p> : null}
                   <a className="inline-block text-brand underline" href={adoptedHref(locale, origin)}>{a$("declareLink")}</a>
                 </div>
+              ) : adoption && adoption.undeclared_candidates > 0 ? (
+                // Review finding 5: undeclared candidates are not "every record seen" either.
+                <p className="mt-2 text-sm text-ink" data-adoption-sample="undeclared">
+                  {a$("sampleUndeclared", { n: n(adoption.undeclared_candidates) })}{" "}
+                  <a className="text-brand underline" href={adoptedHref(locale, origin)}>{a$("declareLink")}</a>
+                </p>
               ) : settings.mode !== "ai_agreed_exclusion" ? (
                 <p className="mt-2 text-sm text-ink">{t("sampleNotNeeded")}</p>
               ) : null}
