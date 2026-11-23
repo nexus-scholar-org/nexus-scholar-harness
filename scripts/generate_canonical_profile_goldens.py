@@ -7,14 +7,16 @@ the kits:
 
 * ``contract_v1_canonical``   -- the normative Contract v1 serializer owned by
   ``scholar_harness.contracts.canonical`` and restated byte-for-byte by
-  ``scholar_rag.canonical`` and ``scholar_pdf.canonical``.
+  ``scholar_pdf.canonical`` (and by ``scholar_rag.canonical`` until that
+  package was removed, 2026-11-23).
 * ``documents_list_ascii``    -- the search-kit's distinct documents-list
   serializer (``ensure_ascii=True``), owned by ``scholar_search.canonical``.
 * ``protocol_declaration_order`` -- the protocol-kit's distinct Pydantic
   declaration-order serializer, owned by ``scholar_protocol.canonical``.
 * ``identifier_registry``     -- the Contract v1 identifier registry and
   identity-minting formulas owned by ``scholar_harness.contracts.identifiers``
-  and restated by ``scholar_rag.canonical`` / ``scholar_pdf.canonical``.
+  and restated by ``scholar_pdf.canonical`` (and by ``scholar_rag.canonical``
+  until 2026-11-23).
 
 The expected bytes/fingerprints for each profile are computed by that profile's
 **owning reference implementation** (never by a different profile's serializer),

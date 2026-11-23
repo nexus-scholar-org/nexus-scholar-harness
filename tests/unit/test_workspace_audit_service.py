@@ -66,7 +66,6 @@ def _make_ws(tmp_path: Path, manifest: dict | None = None) -> Path:
 FORBIDDEN = "console.api.audit"
 CORE_PATHS = [
     "src/scholar_harness/contracts/acceptance.py",
-    "src/scholar_harness/index_acceptance.py",
     "src/scholar_harness/extraction_producer.py",
     "src/scholar_harness/orchestrator.py",
     "src/scholar_harness/handoff.py",
@@ -138,14 +137,12 @@ def test_hcm2_01_guard_fails_when_forbidden_restored(tmp_path):
 
 
 def test_hcm2_01_acceptance_exposes_neutral_sink_for_injection():
-    """HCM2-01: acceptance/index/extraction expose neutral ``log_event`` for fault injection."""
+    """HCM2-01: acceptance/extraction expose neutral ``log_event`` for fault injection."""
     import scholar_harness.contracts.acceptance as acceptance
     import scholar_harness.extraction_producer as producer
-    import scholar_harness.index_acceptance as index_acc
 
     assert acceptance.log_event is neutral_audit.log_event
     assert producer.log_event is neutral_audit.log_event
-    assert index_acc.log_event is neutral_audit.log_event
 
 
 # ---------------------------------------------------------------------------
@@ -632,7 +629,6 @@ def test_hcm2_08_no_hidden_legacy_log_loader():
         "src/scholar_harness/audit_log.py",
         "src/scholar_harness/inception/genesis.py",
         "src/scholar_harness/contracts/acceptance.py",
-        "src/scholar_harness/index_acceptance.py",
         "src/scholar_harness/extraction_producer.py",
     ]:
         text = (REPO_ROOT / rel).read_text(encoding="utf-8")

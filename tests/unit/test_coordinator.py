@@ -18,10 +18,11 @@ Mapping to the HCM-04l packet:
 - HCM04L-05 audit bytes+order identical (PAUSE + COMPLETED, metrics passthrough)
 - HCM04L-06 no-fabrication returns (pause before Stages 5-9)
 - HCM04L-07 file/protocol DSL unchanged (FileNotFoundError + validation)
-- HCM04L-08 bindings flow (indexer->matrix, retriever->synthesis,
-  verified_docs->papers_to_screen)
+- HCM04L-08 bindings flow (verified_docs->papers_to_screen)
 - HCM04L-09 no new seams (orch-namespace honoring untouched) + transport guard
-- HCM04L-10 indexing_fn explicit DI (required, no default surprise)
+- HCM04L-10 (was: the required ``indexing_fn``) indexing, the matrix and
+  synthesis left with ``scholar_rag`` (H-remove-rag-verify, 2026-11-23): the
+  keyword is refused and those stages never run
 
 Negatives (each tmp_path-only, byte-identical restored):
 
@@ -32,8 +33,7 @@ Negatives (each tmp_path-only, byte-identical restored):
 - NEG-05 byte-identical probe restore (orch vs direct coordinator agree)
 
 Carried debt TD x8 seams untouched (SearchEngine/Deduplicator/
-DocumentVerifier/GroundedSynthesisEngine/ScholarRetriever/MatrixExtractor/
-CitationGraphBuilder/GraphVisualizer shims stay in stages via
+DocumentVerifier/CitationGraphBuilder/GraphVisualizer shims stay in stages via
 orch.__dict__ honoring; coordinator adds no new seam) + TD-E3-CURRENTNESS-01
 + MCP docs failure stay base-proven.
 """
@@ -201,29 +201,6 @@ def _fake_extraction(*, included_documents, pdfs_dir, extracted_dir):
     )
 
 
-def _fake_indexing(chroma_dir: Path):
-    CALL_ORDER.append("indexing")
-    return (
-        {"status": "SUCCESS", "indexed_files": 1, "total_chunks": 5},
-        SimpleNamespace(
-            collection_name="scholar_docs", embedder_kwargs={"provider": "x"}
-        ),
-    )
-
-
-def _fake_matrix(*, protocol, indexer_compat, chroma_dir, literature_dir):
-    CALL_ORDER.append("matrix")
-    assert indexer_compat is not None
-    lit = Path(literature_dir)
-    retriever = SimpleNamespace(_fake=True, indexer=indexer_compat)
-    return SimpleNamespace(
-        rows=[{"r": 1}],
-        csv_path=lit / "synthesis_matrix.csv",
-        json_path=lit / "synthesis_matrix.json",
-        retriever=retriever,
-    )
-
-
 async def _fake_graph(*, included_documents, literature_dir):
     CALL_ORDER.append("graph")
     lit = Path(literature_dir)
@@ -239,18 +216,6 @@ async def _fake_graph(*, included_documents, literature_dir):
     )
 
 
-def _fake_synthesis(*, protocol, retriever, synthesis_dir):
-    CALL_ORDER.append("synthesis")
-    synth = Path(synthesis_dir)
-    synth.mkdir(parents=True, exist_ok=True)
-    p = synth / "literature_review.md"
-    p.write_text("# Synthesis\n", encoding="utf-8")
-    assert getattr(retriever, "_fake", False)
-    return SimpleNamespace(
-        verified_claims=1, total_claims=2, entailment_rate=0.5, review_path=p
-    )
-
-
 def _stub_downstream_stages(monkeypatch):
     """Stub every stage EXCEPT discovery (the real stage is then exercised)."""
     _clear_order()
@@ -262,9 +227,7 @@ def _stub_downstream_stages(monkeypatch):
         _fake_preparation,
     )
     monkeypatch.setattr(coord_mod, "run_extraction", _fake_extraction)
-    monkeypatch.setattr(coord_mod, "run_matrix", _fake_matrix)
     monkeypatch.setattr(coord_mod, "run_graph", _fake_graph)
-    monkeypatch.setattr(coord_mod, "run_synthesis", _fake_synthesis)
 
 
 def _stub_coordinator(monkeypatch):
@@ -332,9 +295,7 @@ def test_glue_lives_in_coordinator_orchestrator_delegates():
     assert "run_verification(" not in delegate
     assert "run_screening_preparation(" not in delegate
     assert "run_extraction(" not in delegate
-    assert "run_matrix(" not in delegate
     assert "run_graph(" not in delegate
-    assert "run_synthesis(" not in delegate
     assert "PIPELINE_RUN_PAUSED_FOR_SCREENING" not in delegate
     assert "PIPELINE_RUN_COMPLETED" not in delegate
     # A restore-inline-glue mutation (re-adding any Stage region to the
@@ -348,13 +309,17 @@ def test_glue_lives_in_coordinator_orchestrator_delegates():
         "Stage 3: Verification",
         "Stage 4: Systematic PRISMA",
         "Stage 5: Fulltext Extraction",
-        "Stage 6: Vector & Semantic Indexing",
-        "Stage 7: Dynamic Protocol Matrix",
         "Stage 8: Citation Knowledge Graph",
-        "Stage 9: Grounded Evidence Synthesis",
         "Stage 10: Append-Only Audit",
     ):
         assert marker in coord_src
+    # H-remove-rag-verify: the indexing, matrix and synthesis stages are gone.
+    for marker in (
+        "Stage 6: Vector & Semantic Indexing",
+        "Stage 7: Dynamic Protocol Matrix",
+        "Stage 9: Grounded Evidence Synthesis",
+    ):
+        assert marker not in coord_src
     assert "PIPELINE_RUN_PAUSED_FOR_SCREENING" in coord_src
     assert "PIPELINE_RUN_COMPLETED" in coord_src
 
@@ -396,9 +361,8 @@ def test_coordinator_has_no_orchestrator_or_console_import():
     assert any(".hydration" in s and "run_hydration" in s for s in out)
     assert any(".verification" in s and "run_verification" in s for s in out)
     assert any(".extraction" in s and "run_extraction" in s for s in out)
-    assert any(".matrix" in s and "run_matrix" in s for s in out)
     assert any(".graph" in s and "run_graph" in s for s in out)
-    assert any(".synthesis" in s and "run_synthesis" in s for s in out)
+    assert not any("run_matrix" in s or "run_synthesis" in s for s in out)
     assert (
         any(
             "scholar_harness.pipeline.screening_prepare" in s
@@ -443,7 +407,6 @@ def test_signatures_identical_and_mock_mode_unused(tmp_path, monkeypatch):
         "protocol_path",
         "max_search_results",
         "mock_mode",
-        "indexing_fn",
         # M3b-api: the console's discovery job hooks; optional, so every
         # existing caller (the orchestrator, the CLI) is unchanged.
         "providers",
@@ -454,7 +417,7 @@ def test_signatures_identical_and_mock_mode_unused(tmp_path, monkeypatch):
         "notes",
         "freeze_corpus",
     ]
-    assert all(p.default is None for p in params[5:-1])
+    assert all(p.default is None for p in params[4:-1])
     # M3d-engine: the browser run passes False (stop before the snapshot); every other caller accepts.
     assert params[-1].default is True
     assert all(p.kind is inspect.Parameter.KEYWORD_ONLY for p in params)
@@ -462,9 +425,6 @@ def test_signatures_identical_and_mock_mode_unused(tmp_path, monkeypatch):
     assert params[1].default is None
     assert params[2].default is None
     assert params[3].default is False
-    assert (
-        params[4].default is inspect.Parameter.empty
-    )  # indexing_fn required, no surprise default
     assert inspect.iscoroutinefunction(coord_mod.run_pipeline)
 
     # mock_mode accepted-but-unused: identical outcomes either way.
@@ -473,26 +433,32 @@ def test_signatures_identical_and_mock_mode_unused(tmp_path, monkeypatch):
     ws.mkdir()
     _write_protocol(ws)
     plain = asyncio.run(
-        coord_mod.run_pipeline(workspace_dir=ws, indexing_fn=_fake_indexing)
+        coord_mod.run_pipeline(workspace_dir=ws)
     )
     assert plain["status"] == "PENDING_AGENT_REVIEW"
     flagged = asyncio.run(
         coord_mod.run_pipeline(
-            workspace_dir=ws, mock_mode=True, indexing_fn=_fake_indexing
+            workspace_dir=ws, mock_mode=True
         )
     )
     assert flagged["status"] == "PENDING_AGENT_REVIEW"
     assert flagged["stages"]["discovery"] == plain["stages"]["discovery"]
 
 
-def test_indexing_fn_required_no_default_surprise(tmp_path, monkeypatch):
-    """HCM04L-10: missing indexing_fn is TypeError, never silent skip."""
+def test_indexing_fn_is_refused_now_that_indexing_is_gone(tmp_path, monkeypatch):
+    """HCM04L-10 (H-remove-rag-verify): passing indexing_fn is a TypeError,
+    never a silently ignored collaborator, and no stage runs."""
     _stub_coordinator(monkeypatch)
     ws = tmp_path / "ws"
     ws.mkdir()
     _write_protocol(ws)
     with pytest.raises(TypeError):
-        asyncio.run(coord_mod.run_pipeline(workspace_dir=ws))  # type: ignore[call-arg]
+        asyncio.run(
+            coord_mod.run_pipeline(  # type: ignore[call-arg]
+                workspace_dir=ws, indexing_fn=lambda _c: ({}, None)
+            )
+        )
+    assert CALL_ORDER == []
 
 
 # ---------------------------------------------------------------------------
@@ -508,7 +474,7 @@ def test_pause_order_and_no_fabrication(tmp_path, monkeypatch):
     _write_protocol(ws)
 
     results = asyncio.run(
-        coord_mod.run_pipeline(workspace_dir=ws, indexing_fn=_fake_indexing)
+        coord_mod.run_pipeline(workspace_dir=ws)
     )
 
     # NEG-02: reorder-stages mutation fails this exact-sequence assert.
@@ -520,11 +486,12 @@ def test_pause_order_and_no_fabrication(tmp_path, monkeypatch):
         "screening_prepare",
     ]
     assert results["status"] == "PENDING_AGENT_REVIEW"
-    for stage in ("extraction", "indexing", "matrix", "graph", "synthesis"):
+    for stage in ("extraction", "graph"):
         assert results["stages"][stage] == {
             "status": "SKIPPED",
             "reason": "PRISMA collect not run yet",
         }
+    assert not {"indexing", "matrix", "synthesis"} & set(results["stages"])
     # NEG-04: force-SUCCESS-on-pause fails here (must stay PENDING).
     assert results["status"] != "SUCCESS"
     assert (
@@ -534,7 +501,7 @@ def test_pause_order_and_no_fabrication(tmp_path, monkeypatch):
 
 
 def test_success_order_full_sequence(tmp_path, monkeypatch):
-    """HCM04L-03: success path runs all 9 delegations in order."""
+    """HCM04L-03: success path runs every delegation in order."""
     _stub_coordinator(monkeypatch)
     ws = tmp_path / "ws"
     ws.mkdir()
@@ -546,7 +513,7 @@ def test_success_order_full_sequence(tmp_path, monkeypatch):
     )
 
     results = asyncio.run(
-        coord_mod.run_pipeline(workspace_dir=ws, indexing_fn=_fake_indexing)
+        coord_mod.run_pipeline(workspace_dir=ws)
     )
 
     assert CALL_ORDER == [
@@ -556,10 +523,7 @@ def test_success_order_full_sequence(tmp_path, monkeypatch):
         "verification",
         "screening_prepare",
         "extraction",
-        "indexing",
-        "matrix",
         "graph",
-        "synthesis",
     ]
     assert results["status"] == "SUCCESS"
 
@@ -570,7 +534,7 @@ def test_success_order_full_sequence(tmp_path, monkeypatch):
 
 
 def test_results_shape_and_bindings(tmp_path, monkeypatch):
-    """HCM04L-04/08: mappings identical; indexer/retriever/papers flow."""
+    """HCM04L-04/08: mappings identical; papers_to_screen flows."""
     _stub_coordinator(monkeypatch)
     ws = tmp_path / "ws"
     ws.mkdir()
@@ -581,32 +545,8 @@ def test_results_shape_and_bindings(tmp_path, monkeypatch):
         json.dumps([{"workspace_id": "SCI-000001"}]), encoding="utf-8"
     )
 
-    seen_indexer = {}
-    seen_retriever = {}
-
-    orig_matrix = coord_mod.run_matrix
-    orig_synth = coord_mod.run_synthesis
-
-    def _spy_matrix(*, protocol, indexer_compat, chroma_dir, literature_dir):
-        seen_indexer["obj"] = indexer_compat
-        return orig_matrix(
-            protocol=protocol,
-            indexer_compat=indexer_compat,
-            chroma_dir=chroma_dir,
-            literature_dir=literature_dir,
-        )
-
-    def _spy_synth(*, protocol, retriever, synthesis_dir):
-        seen_retriever["obj"] = retriever
-        return orig_synth(
-            protocol=protocol, retriever=retriever, synthesis_dir=synthesis_dir
-        )
-
-    monkeypatch.setattr(coord_mod, "run_matrix", _spy_matrix)
-    monkeypatch.setattr(coord_mod, "run_synthesis", _spy_synth)
-
     results = asyncio.run(
-        coord_mod.run_pipeline(workspace_dir=ws, indexing_fn=_fake_indexing)
+        coord_mod.run_pipeline(workspace_dir=ws)
     )
 
     assert results["stages"]["discovery"] == 1
@@ -620,18 +560,8 @@ def test_results_shape_and_bindings(tmp_path, monkeypatch):
     }
     assert results["stages"]["extraction"]["status"] == "DONE"
     assert results["stages"]["extraction"]["documents"] == 1
-    assert results["stages"]["indexing"]["status"] == "SUCCESS"
-    assert results["stages"]["matrix_rows"] == {"status": "DONE", "rows": 1}
     assert results["stages"]["graph_nodes"]["status"] == "DONE"
-    assert results["stages"]["synthesis"] == {
-        "verified_claims": 1,
-        "total_claims": 2,
-        "entailment_rate": 0.5,
-    }
-    # Bindings: indexer object reached matrix; SAME retriever reached synthesis.
-    assert seen_indexer["obj"] is not None
-    assert seen_retriever["obj"] is not None
-    assert seen_retriever["obj"].indexer is seen_indexer["obj"]
+    assert not {"indexing", "matrix_rows", "synthesis"} & set(results["stages"])
 
 
 # ---------------------------------------------------------------------------
@@ -647,7 +577,7 @@ def test_pause_audit_bytes_and_metrics_passthrough(tmp_path, monkeypatch):
     p = _write_protocol(ws)
 
     results = asyncio.run(
-        coord_mod.run_pipeline(workspace_dir=ws, indexing_fn=_fake_indexing)
+        coord_mod.run_pipeline(workspace_dir=ws)
     )
 
     rows = _journal_rows(ws)
@@ -686,7 +616,7 @@ def test_completed_audit_bytes_and_order(tmp_path, monkeypatch):
     )
 
     results = asyncio.run(
-        coord_mod.run_pipeline(workspace_dir=ws, indexing_fn=_fake_indexing)
+        coord_mod.run_pipeline(workspace_dir=ws)
     )
 
     rows = _journal_rows(ws)
@@ -699,11 +629,7 @@ def test_completed_audit_bytes_and_order(tmp_path, monkeypatch):
     assert ev["description"].startswith("Completed end-to-end research pipeline for '")
     assert "Coordinator Parity" in ev["description"]
     assert ev["inputs"] == [str(p.resolve())]
-    assert ev["outputs"] == [
-        str(ws / "synthesis" / "literature_review.md"),
-        str(ws / "literature" / "synthesis_matrix.csv"),
-        str(ws / "literature" / "knowledge_graph.html"),
-    ]
+    assert ev["outputs"] == [str(ws / "literature" / "knowledge_graph.html")]
     assert ev["metrics"] == results["stages"]
     assert ev["status"] == "SUCCESS"
 
@@ -723,7 +649,6 @@ def test_missing_protocol_raises_before_stages(tmp_path, monkeypatch):
             coord_mod.run_pipeline(
                 workspace_dir=ws,
                 protocol_path=ws / "nope.json",
-                indexing_fn=_fake_indexing,
             )
         )
     assert CALL_ORDER == []
@@ -739,7 +664,7 @@ def test_invalid_protocol_raises_no_fabrication(tmp_path, monkeypatch):
     bad.write_text("{ not valid json", encoding="utf-8")
     with pytest.raises(Exception):
         asyncio.run(
-            coord_mod.run_pipeline(workspace_dir=ws, indexing_fn=_fake_indexing)
+            coord_mod.run_pipeline(workspace_dir=ws)
         )
     assert CALL_ORDER == []
 
@@ -749,8 +674,8 @@ def test_invalid_protocol_raises_no_fabrication(tmp_path, monkeypatch):
 # ---------------------------------------------------------------------------
 
 
-def test_orchestrator_delegates_with_indexing_fn_and_parity(tmp_path, monkeypatch):
-    """Orchestrator thin delegate passes indexing_fn; results/audit agree."""
+def test_orchestrator_delegates_and_parity(tmp_path, monkeypatch):
+    """Orchestrator thin delegate; results/audit agree with the coordinator."""
     _clear_order()
     # Patch stages at the coordinator level (canonical) so both entry
     # points share the same fakes; patch screening_prepare call-time target.
@@ -763,24 +688,7 @@ def test_orchestrator_delegates_with_indexing_fn_and_parity(tmp_path, monkeypatc
         _fake_preparation,
     )
     monkeypatch.setattr(coord_mod, "run_extraction", _fake_extraction)
-    monkeypatch.setattr(coord_mod, "run_matrix", _fake_matrix)
     monkeypatch.setattr(coord_mod, "run_graph", _fake_graph)
-    monkeypatch.setattr(coord_mod, "run_synthesis", _fake_synthesis)
-
-    seen_chroma: list[Path] = []
-
-    async def _ignored(*a, **k):
-        raise AssertionError("should not be called")
-
-    def _spy_indexing(chroma_dir: Path):
-        seen_chroma.append(Path(chroma_dir))
-        return _fake_indexing(chroma_dir)
-
-    monkeypatch.setattr(
-        orch.ResearchOrchestrator,
-        "_run_indexing_stage",
-        lambda self, c: _spy_indexing(c),
-    )
 
     ws = tmp_path / "ws"
     ws.mkdir()
@@ -793,8 +701,8 @@ def test_orchestrator_delegates_with_indexing_fn_and_parity(tmp_path, monkeypatc
 
     orch_results = asyncio.run(orch.ResearchOrchestrator(ws).run_pipeline_async())
     assert orch_results["status"] == "SUCCESS"
-    assert seen_chroma and seen_chroma[0] == ws / "chroma_db"
-    assert CALL_ORDER[-3:] == ["matrix", "graph", "synthesis"]
+    assert CALL_ORDER[-2:] == ["extraction", "graph"]
+    assert not (ws / "chroma_db").exists()
 
     orch_journal = (ws / "audit" / "journal.jsonl").read_bytes()
 
@@ -811,15 +719,15 @@ def test_orchestrator_delegates_with_indexing_fn_and_parity(tmp_path, monkeypatc
     )
 
     direct = asyncio.run(
-        coord_mod.run_pipeline(workspace_dir=ws2, indexing_fn=_fake_indexing)
+        coord_mod.run_pipeline(workspace_dir=ws2)
     )
     assert direct["stages"].keys() == orch_results["stages"].keys()
-    assert direct["stages"]["synthesis"] == orch_results["stages"]["synthesis"]
+    assert direct["stages"]["graph_nodes"] == orch_results["stages"]["graph_nodes"]
     # Restore: delete + re-run restores identical bytes.
-    review = ws2 / "synthesis" / "literature_review.md"
+    review = ws2 / "literature" / "knowledge_graph.json"
     first = review.read_bytes()
     review.unlink()
-    asyncio.run(coord_mod.run_pipeline(workspace_dir=ws2, indexing_fn=_fake_indexing))
+    asyncio.run(coord_mod.run_pipeline(workspace_dir=ws2))
     assert review.read_bytes() == first
     assert isinstance(orch_journal, bytes) and len(orch_journal) > 0
 
@@ -852,7 +760,7 @@ def test_degraded_discovery_never_overwrites_the_waiting_state(tmp_path, monkeyp
     _write_protocol(ws)
 
     results = asyncio.run(
-        coord_mod.run_pipeline(workspace_dir=ws, indexing_fn=_fake_indexing)
+        coord_mod.run_pipeline(workspace_dir=ws)
     )
 
     # The workflow state survives ...
@@ -896,7 +804,7 @@ def test_pause_row_is_never_a_success_for_a_non_successful_harvest(
     _write_protocol(ws)
 
     results = asyncio.run(
-        coord_mod.run_pipeline(workspace_dir=ws, indexing_fn=_fake_indexing)
+        coord_mod.run_pipeline(workspace_dir=ws)
     )
 
     rows = [
@@ -917,7 +825,7 @@ def test_abort_path_keeps_the_successful_stage_mapping_shape(tmp_path, monkeypat
 
     Before the repair an aborted run published
     ``stages.deduplication == {"status": "SKIPPED", ...}`` and
-    ``stages.matrix`` / ``stages.graph`` (names that do not exist on the
+    ``stages.graph`` (a name that does not exist on the
     successful path), so a consumer reading
     ``stages.deduplication["unique"]`` hit a ``KeyError``.
     """
@@ -936,7 +844,7 @@ def test_abort_path_keeps_the_successful_stage_mapping_shape(tmp_path, monkeypat
     _write_protocol(ws)
 
     results = asyncio.run(
-        coord_mod.run_pipeline(workspace_dir=ws, indexing_fn=_fake_indexing)
+        coord_mod.run_pipeline(workspace_dir=ws)
     )
 
     assert results["status"] == "FAILED"
@@ -948,18 +856,14 @@ def test_abort_path_keeps_the_successful_stage_mapping_shape(tmp_path, monkeypat
     assert stages["screening"]["batch_files_prepared"] == 0
     assert stages["verification"]["verified"] == 0
     assert stages["extraction"]["documents"] == 0
-    assert stages["matrix_rows"]["rows"] == 0
     assert stages["graph_nodes"]["nodes"] == 0
-    assert stages["synthesis"]["total_claims"] == 0
+    assert not {"indexing", "matrix_rows", "synthesis"} & set(stages)
     for stage in (
         "deduplication",
         "verification",
         "screening",
         "extraction",
-        "indexing",
-        "matrix_rows",
         "graph_nodes",
-        "synthesis",
     ):
         assert stages[stage]["status"] == "SKIPPED"
         assert "discovery failed" in stages[stage]["reason"]
@@ -990,7 +894,7 @@ def test_pipeline_row_records_a_missing_discovery_audit_event(tmp_path, monkeypa
     _write_protocol(ws)
 
     results = asyncio.run(
-        coord_mod.run_pipeline(workspace_dir=ws, indexing_fn=_fake_indexing)
+        coord_mod.run_pipeline(workspace_dir=ws)
     )
 
     assert results["discovery"]["audit_status"] == "NOT_WRITTEN"
@@ -1059,7 +963,7 @@ def test_real_non_degraded_harvest_yields_a_successful_pipeline(tmp_path, monkey
     )
 
     results = asyncio.run(
-        coord_mod.run_pipeline(workspace_dir=ws, indexing_fn=_fake_indexing)
+        coord_mod.run_pipeline(workspace_dir=ws)
     )
 
     assert results["discovery"]["status"] == "SUCCESS"

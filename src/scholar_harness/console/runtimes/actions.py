@@ -93,49 +93,6 @@ ACTIONS: list[Action] = [
         True,
     ),
     Action(
-        "rag_index",
-        "Index into vector store",
-        # E3-008 / T-90: the typed indexing service refuses any identity limb it
-        # is not told, so every required option must be visible here or the
-        # operator cannot run the action at all. The `<...>` literals are
-        # deliberately left for the operator to supply (run id, timestamp,
-        # producer identity, embedding identity); they are stated, never read or
-        # minted by the kit. `--workspace-id` was removed in rag
-        # `033191eff967abf19023b258539c9a1422c8747f` -- that full SHA is the
-        # historical pre-fix pin; the current pin is the full SHA recorded in
-        # `.agents/plugins/nexus-scholar/plugins.json`. The removal is a property of
-        # the interface, not of either pin. It survives
-        # only on `query`. This mirrors the agent kit's canonical
-        # INDEX_CLI_ALTERNATIVE (capabilities.py:266-273).
-        "uv run scholar-rag index {ws}/extracted/ "
-        "--parent-view {ws}/parent-view.json "
-        "--journal {ws}/audit/journal.jsonl "
-        "--workspace-root {ws} "
-        "--run-id <RUN-...> "
-        "--created-at <rfc3339> "
-        "--producer-version <version> "
-        "--producer-commit <40-hex> "
-        "--embedder-provider <provider> "
-        "--embedder-model <model> "
-        "--embedder-dimension <int>",
-        "nexus_rag_index",
-        True,
-    ),
-    Action(
-        "trust_context",
-        "Build trust consensus",
-        "uv run scholar-verify trust-context --workspace {ws}",
-        None,
-        True,
-    ),
-    Action(
-        "synthesize",
-        "Grounded synthesis",
-        'uv run scholar-rag synthesize --rq-id RQ1 --output-claims {ws}/synthesis/claims.json -- "{q}"',
-        "nexus_rag_synthesize",
-        True,
-    ),
-    Action(
         "graph",
         "Build citation graph",
         "uv run scholar-graph build --input {ws}/literature/included.json "
@@ -148,13 +105,6 @@ ACTIONS: list[Action] = [
         "Export artifact set",
         "uv run scholar-harness export latex -w {ws}",
         None,
-        True,
-    ),
-    Action(
-        "critique_methodology",
-        "Methodology critique",
-        "uv run scholar-verify risk-of-bias -w {ws}",
-        "nexus_critique_methodology",
         True,
     ),
     Action(

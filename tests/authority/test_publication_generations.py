@@ -1126,20 +1126,6 @@ def _coordinator_fakes(ws: Path) -> dict:
     async def _graph(**kwargs):
         return SimpleNamespace(nodes=0, edges=0)
 
-    def _matrix(**kwargs):
-        return SimpleNamespace(rows=[], retriever=object())
-
-    def _synth(**kwargs):
-        return SimpleNamespace(
-            review_path=ws / "synthesis" / "literature_review.md",
-            verified_claims=0,
-            total_claims=0,
-            entailment_rate=0.0,
-        )
-
-    def _index(chroma_dir):
-        return ({"status": "DONE"}, object())
-
     return {
         "run_discovery": _discovery,
         "run_deduplication": _dedup,
@@ -1148,9 +1134,6 @@ def _coordinator_fakes(ws: Path) -> dict:
         "run_screening_preparation": _prepare,
         "run_extraction": _extract,
         "run_graph": _graph,
-        "run_matrix": _matrix,
-        "run_synthesis": _synth,
-        "indexing_fn": _index,
     }
 
 
@@ -1163,15 +1146,12 @@ def _patch_coordinator(monkeypatch: pytest.MonkeyPatch, ws: Path):
         "run_verification",
         "run_extraction",
         "run_graph",
-        "run_matrix",
-        "run_synthesis",
     ):
         monkeypatch.setattr(coordinator, name, fakes[name])
     monkeypatch.setattr(
         "scholar_harness.pipeline.screening_prepare.run_screening_preparation",
         fakes["run_screening_preparation"],
     )
-    return fakes["indexing_fn"]
 
 
 def _coordinator_ws(root: Path, name: str) -> Path:
@@ -1199,12 +1179,12 @@ def test_coordinator_stale_generation_skips_stages_with_named_reason(
     write_publication_approval(ws / "literature" / "screening", record, staged_at=NOW)
     _publish(ws, content, record, snapshot, binding)
     (ws / "literature" / "excluded.json").write_text("tampered\n", encoding="utf-8")
-    indexing_fn = _patch_coordinator(monkeypatch, ws)
+    _patch_coordinator(monkeypatch, ws)
     results = asyncio.run(
-        coordinator.run_pipeline(workspace_dir=ws, indexing_fn=indexing_fn)
+        coordinator.run_pipeline(workspace_dir=ws)
     )
     assert results["status"] == "PENDING_AGENT_REVIEW"
-    for stage in ("extraction", "indexing", "matrix", "graph", "synthesis"):
+    for stage in ("extraction", "graph"):
         assert results["stages"][stage]["status"] == "SKIPPED"
         assert "STALE" in results["stages"][stage]["reason"]
     journal = (ws / "audit" / "journal.jsonl").read_text(encoding="utf-8")
@@ -1233,9 +1213,9 @@ def test_coordinator_current_generation_proceeds(
     snapshot, binding, record = _mint(content=content)
     write_publication_approval(ws / "literature" / "screening", record, staged_at=NOW)
     _publish(ws, content, record, snapshot, binding)
-    indexing_fn = _patch_coordinator(monkeypatch, ws)
+    _patch_coordinator(monkeypatch, ws)
     results = asyncio.run(
-        coordinator.run_pipeline(workspace_dir=ws, indexing_fn=indexing_fn)
+        coordinator.run_pipeline(workspace_dir=ws)
     )
     assert results["stages"]["extraction"]["status"] == "DONE"
     assert results["status"] == "SUCCESS"
@@ -1714,10 +1694,10 @@ def test_coordinator_legacy_without_generation_reports_explicitly(
     for name in PUBLICATION_OUTPUTS[1:]:
         (ws / "literature" / name).write_text(_content()[name], encoding="utf-8")
     assert require_current_generation(ws).status is GenerationStatus.LEGACY_UNVERIFIED
-    indexing_fn = _patch_coordinator(monkeypatch, ws)
+    _patch_coordinator(monkeypatch, ws)
     with caplog.at_level("WARNING"):
         results = asyncio.run(
-            coordinator.run_pipeline(workspace_dir=ws, indexing_fn=indexing_fn)
+            coordinator.run_pipeline(workspace_dir=ws)
         )
     assert GENERATION_LEGACY_UNVERIFIED in caplog.text
     assert results["stages"]["extraction"]["status"] == "DONE"

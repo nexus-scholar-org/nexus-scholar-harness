@@ -1,6 +1,6 @@
 # Ingestion, Export, and Pipeline Integration Reference
 
-This guide details supported file formats, importers, exporters, and downstream pipeline handoffs (e.g. to `scholar-pdf-kit` and `scholar-rag-kit`).
+This guide details supported file formats, importers, exporters, and downstream pipeline handoffs (e.g. to `scholar-pdf-kit`).
 
 ---
 

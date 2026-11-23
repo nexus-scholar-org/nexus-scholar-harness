@@ -2,7 +2,7 @@
 
 The vision-report sweep flagged these tools as silently broken (0-edge
 graphs, dropped metadata, lint-only bib cleaning, screen artifacts never
-written, a verify-claims schema mismatch).  Each fix ships a regression
+written).  Each fix ships a regression
 test here; the suite targets the tool functions directly with fake
 engines / in-memory fixtures, never the network.
 """
@@ -18,7 +18,6 @@ from scholar_agent.server import (
     nexus_extract_pdf,
     nexus_graph_build,
     nexus_screen,
-    nexus_verify_claims,
 )
 from scholar_graph.builder import CitationGraphBuilder
 
@@ -215,89 +214,7 @@ def test_nexus_screen_empty_candidates_still_writes_proposals(tmp_path):
     assert "0 flagged" in result
 
 
-# ---------------------------------------------------------------------------
-# nexus_verify_claims: digest scholar-rag claims.json + per-claim verdicts
-# (matrix finding #6)
-# ---------------------------------------------------------------------------
-
 _VERIFIED_QUOTE = "The group that received the intervention improved on the primary outcome."
-
-
-def _write_extracted_source(tmp_path):
-    src_dir = tmp_path / "extracted"
-    src_dir.mkdir(exist_ok=True)
-    (src_dir / "SCI-0001.md").write_text(
-        "---\n"
-        'title: "Intervention trial"\n'
-        'workspace_id: "SCI-0001"\n'
-        "---\n\n"
-        f"{_VERIFIED_QUOTE}\n",
-        encoding="utf-8",
-    )
-    return src_dir
-
-
-def test_nexus_verify_claims_digests_rag_claims_json(tmp_path):
-    """SynthesisClaim-shaped claims (claim_text/study_id, no evidence_quote) must
-    be verified and each claim must get a per-claim verdict."""
-    src_dir = _write_extracted_source(tmp_path)
-    claims = {
-        "rq_id": "RQ1",
-        "claims": [
-            {
-                "claim_text": _VERIFIED_QUOTE,
-                "citation_tokens": ["[@doi:10.1000/example]"],
-                "entailment_status": "VERIFIED",
-                "study_id": "SCI-0001",
-            },
-            {
-                "claim_text": "A wholly unrelated sentence that never appears in the document.",
-                "study_id": "SCI-0001",
-            },
-            {
-                "claim_text": _VERIFIED_QUOTE,
-                "study_id": "SCI-9999",
-            },
-        ],
-    }
-    claims_path = tmp_path / "claims.json"
-    claims_path.write_text(json.dumps(claims, indent=2), encoding="utf-8")
-
-    payload = json.loads(nexus_verify_claims(str(claims_path), str(src_dir)))
-
-    assert payload["status"] == "SUCCESS"
-    assert payload["metrics"]["total_claims"] == 3
-    assert payload["metrics"]["verified_claims"] == 1
-    assert len(payload["claims"]) == 3
-    assert payload["claims"][0]["is_verified"] is True
-    assert payload["claims"][0]["rag_entailment_status"] == "VERIFIED"
-    assert payload["claims"][1]["failure_reason"] == "INSUFFICIENT_COVERAGE"
-    assert payload["claims"][2]["failure_reason"] == "SOURCE_TEXT_NOT_FOUND"
-    assert payload["failures_by_reason"].get("SOURCE_TEXT_NOT_FOUND") == 1
-    assert payload["failures_by_reason"].get("INSUFFICIENT_COVERAGE") == 1
-
-
-def test_nexus_verify_claims_accepts_bare_list_and_missing_study_id(tmp_path):
-    src_dir = _write_extracted_source(tmp_path)
-    claims_path = tmp_path / "claims.json"
-    claims_path.write_text(
-        json.dumps([{"claim_text": _VERIFIED_QUOTE}], indent=2), encoding="utf-8"
-    )
-
-    payload = json.loads(nexus_verify_claims(str(claims_path), str(src_dir)))
-
-    assert payload["metrics"]["total_claims"] == 1
-    verdict = payload["claims"][0]
-    assert verdict["claim_id"] == "CLAIM-0001"
-    assert verdict["study_id"] == ""
-    assert verdict["is_verified"] is False
-
-
-def test_nexus_verify_claims_missing_input_returns_error(tmp_path):
-    payload = json.loads(
-        nexus_verify_claims(str(tmp_path / "nope.json"), str(tmp_path))
-    )
-    assert payload["status"] == "ERROR"
 
 
 # ---------------------------------------------------------------------------
@@ -341,70 +258,6 @@ def test_nexus_resolve_path_keeps_inside_absolute_and_inline_json(tmp_path, monk
     # Inline JSON is kept only by the JSON-capable resolver (AGT-01 review).
     assert server._resolve_path_or_json('{"a": 1}') == '{"a": 1}'
     assert server._resolve_path(None) is None
-
-
-# ---------------------------------------------------------------------------
-# nexus_rag_query: graph PageRank boosting params (matrix finding #7)
-# ---------------------------------------------------------------------------
-
-class _RecordingRetriever:
-    def __init__(self, db_path):
-        self.db_path = db_path
-        self.calls = []
-
-    def query(self, **kwargs):
-        self.calls.append(kwargs)
-        return []
-
-
-def test_nexus_rag_query_passes_graph_boost_params(tmp_path, monkeypatch):
-    from scholar_agent import server
-
-    anchor = tmp_path / "anchor"
-    anchor.mkdir()
-    monkeypatch.setattr(server, "_mcp_anchor", lambda: anchor)
-    holder = {}
-
-    def _factory(db_path):
-        r = _RecordingRetriever(db_path=db_path)
-        holder["r"] = r
-        return r
-
-    monkeypatch.setattr(server, "ScholarRetriever", _factory)
-
-    server.nexus_rag_query(
-        "deep learning",
-        db_path="./chroma_db",
-        graph_source="graph.json",
-        alpha=0.5,
-        beta=0.25,
-        boost_doi="10.1000/example",
-    )
-    call = holder["r"].calls[0]
-    assert call["graph_source"] == str(anchor / "graph.json")
-    assert call["alpha"] == 0.5
-    assert call["beta"] == 0.25
-    assert call["boost_dois"] == ["10.1000/example"]
-    assert call["query_text"] == "deep learning"
-
-
-def test_nexus_rag_query_uses_default_weighting(tmp_path, monkeypatch):
-    from scholar_agent import server
-
-    holder = {}
-
-    def _factory(db_path):
-        r = _RecordingRetriever(db_path=db_path)
-        holder["r"] = r
-        return r
-
-    monkeypatch.setattr(server, "ScholarRetriever", _factory)
-
-    server.nexus_rag_query("semantic search", db_path=str(tmp_path / "db"))
-    call = holder["r"].calls[0]
-    assert call["graph_source"] is None
-    assert call["alpha"] == 0.25
-    assert call["beta"] == 0.15
 
 
 # ---------------------------------------------------------------------------
@@ -476,86 +329,3 @@ def test_nexus_protocol_validate_inline_and_file_modes_agree(tmp_path):
 
     assert inline["status"] == filed["status"] == "INVALID"
     assert sorted(inline["errors"]) == sorted(filed["errors"])
-
-
-# ---------------------------------------------------------------------------
-# nexus_verify_phase4: run Phase-4 streams, write phase4/ mirrors (no network)
-# ---------------------------------------------------------------------------
-
-
-def _stub_phase4_modules(monkeypatch):
-    from scholar_agent import server
-
-    monkeypatch.setattr(
-        server.verify_cli, "_merged_records", lambda ws: {"studies": [{"study_id": "s1"}]}
-    )
-    monkeypatch.setattr(server.verify_cli, "_manifest", lambda ws: {"studies": {"s1": {}}})
-    monkeypatch.setattr(
-        server.open_science,
-        "run",
-        lambda recs, extracted: {"summary": {"scanned": 1}, "results": {}},
-    )
-    monkeypatch.setattr(server.open_science, "render_report", lambda out: "# Open-Science\n")
-    monkeypatch.setattr(server.coi, "load_chunks", lambda d: [])
-    monkeypatch.setattr(server.coi, "run", lambda manifest, chunks: {"summary": {}, "results": {}})
-    monkeypatch.setattr(server.coi, "render_report", lambda out: "# COI\n")
-    monkeypatch.setattr(
-        server.risk_of_bias,
-        "run",
-        lambda recs, manifest: {"summary": {"overall": "LOW"}, "results": {}},
-    )
-    monkeypatch.setattr(
-        server.risk_of_bias, "render_report", lambda out: "# Risk of Bias\n"
-    )
-    return server
-
-
-def test_nexus_verify_phase4_writes_phase4_artifacts(tmp_path, monkeypatch):
-    from scholar_agent import server
-
-    _stub_phase4_modules(monkeypatch)
-    payload = json.loads(server.nexus_verify_phase4(str(tmp_path), stream="risk-of-bias"))
-    assert payload["status"] == "SUCCESS"
-    out = tmp_path / "phase4" / "risk_of_bias.json"
-    assert out.is_file()
-    assert json.loads(out.read_text(encoding="utf-8"))["summary"]["overall"] == "LOW"
-    assert (tmp_path / "phase4" / "risk_of_bias.md").is_file()
-    assert payload["written"]["risk_of_bias"] == str(out)
-
-
-def test_nexus_verify_phase4_trust_context_writes_annotated_mirror(tmp_path, monkeypatch):
-    from scholar_agent import server
-
-    _stub_phase4_modules(monkeypatch)
-    (tmp_path / "synthesis").mkdir()
-    (tmp_path / "synthesis" / "consensus.json").write_text("{}", encoding="utf-8")
-    monkeypatch.setattr(
-        server.verify_cli,
-        "_load",
-        lambda p, kind: {"studies": {}} if "consensus" not in str(p) else {"reports": []},
-    )
-    monkeypatch.setattr(server.trust_context, "_rows", lambda data: [])
-    monkeypatch.setattr(
-        server.trust_context,
-        "annotate",
-        lambda cons, phase4, rq_id=None, claims_by_rq=None: {"annotated": True},
-    )
-    monkeypatch.setattr(server.trust_context, "render_report", lambda annotated: "# Trust\n")
-
-    payload = json.loads(server.nexus_verify_phase4(str(tmp_path), stream="trust-context"))
-    assert payload["status"] == "SUCCESS"
-    out = tmp_path / "phase4" / "trust_consensus.json"
-    assert payload["written"]["trust_context"] == str(out)
-    assert out.is_file()
-    assert (tmp_path / "phase4" / "trust_consensus.md").is_file()
-
-
-def test_nexus_verify_phase4_gates_bad_stream_and_missing_workspace(tmp_path, monkeypatch):
-    from scholar_agent import server
-
-    payload = json.loads(server.nexus_verify_phase4(str(tmp_path / "nope"), stream="open-science"))
-    assert payload["status"] == "ERROR"
-
-    payload = json.loads(server.nexus_verify_phase4(str(tmp_path), stream="bogus"))
-    assert payload["status"] == "ERROR"
-    assert "bogus" in payload["error"]

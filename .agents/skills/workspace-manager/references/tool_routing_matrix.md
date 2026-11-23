@@ -20,7 +20,6 @@ duplication); verify flags there before running.
 | **6. Manual PDF Ingest** | `scholar-pdf-kit` | Local PDF + DOI | `workspaces/<P>/pdfs/*.pdf` | `uv run scholar-pdf ingest <file.pdf> --doi <doi> --output workspaces/<P>/pdfs/ --smart-names` |
 | **7. Fulltext Extraction** | `scholar-pdf-kit` | `workspaces/<P>/pdfs/` | `workspaces/<P>/extracted/*.md` | `uv run scholar-pdf extract workspaces/<P>/pdfs/ --output workspaces/<P>/extracted/ --engine docling` |
 | **8. Bibliographic Export** | `scholar-search-kit` | `workspaces/<P>/literature/verified.json` | `workspaces/<P>/exports/` (e.g. `references.csv`) | `scholar-search export` → `workspaces/<P>/exports/` (flags: see scholar-search-kit skill) |
-| **9. Graph & RAG Indexing** | `scholar-rag-kit` | `workspaces/<P>/extracted/` | index under `workspaces/<P>/` (see scholar-rag-kit skill) | `scholar-rag index` → workspace index (flags: see scholar-rag-kit skill; RAG indexing is not available via MCP) |
 
 ---
 

@@ -89,13 +89,7 @@ def status(
     table.add_section()
     table.add_row("Harvested OA PDFs", f"{stat['pdfs_count']} PDFs")
     table.add_row("Extracted Markdown", f"{stat['extracted_count']} documents")
-    table.add_row("Vector DB Chunks", f"{stat['vector_chunks']} chunks")
-    table.add_row("Extraction Matrix Rows", f"{stat['matrix_rows']} rows")
     table.add_row("Citation Graph Nodes", f"{stat['graph_nodes']} nodes")
-    table.add_row(
-        "Grounded Synthesis",
-        "✅ Generated" if stat["synthesis_generated"] else "⏳ Pending",
-    )
 
     console.print(table)
 
@@ -669,7 +663,7 @@ extract_app = typer.Typer(
     name="extract",
     help=(
         "Publish the Contract v1 document manifest for a workspace's real Stage 5 "
-        "extraction output and hand it to Stage 6 (runtime acceptance adoption)."
+        "extraction output (runtime acceptance adoption)."
     ),
     add_completion=False,
     no_args_is_help=True,
@@ -730,9 +724,6 @@ def extract_status(
 @extract_app.command("publish")
 def extract_publish(
     workspace: str = typer.Argument(..., help="Workspace directory path"),
-    index: bool = typer.Option(
-        False, "--index", help="Run Stage 6 over the accepted manifest afterwards"
-    ),
     as_json: bool = typer.Option(False, "--json", help="Emit machine-readable JSON"),
 ):
     """Publish the accepted document manifest through the frozen acceptance gate."""
@@ -741,14 +732,6 @@ def extract_publish(
     outcome = publish_document_manifest(_extract_workspace(workspace))
     payload: dict = {"publication": outcome.as_dict()}
     exit_code = 0 if outcome.accepted else 1
-    if index:
-        if outcome.accepted:
-            indexing, exit_code = _extract_index(workspace, exit_code)
-            payload["indexing"] = indexing
-        else:
-            # Nothing was accepted, so there is nothing to index. Running Stage 6 here
-            # would only record a refusal over an empty run.
-            payload["indexing"] = {"skipped": "no accepted document manifest"}
 
     if as_json:
         # One document, and only that: a second JSON body on stdout would make the
@@ -769,68 +752,8 @@ def extract_publish(
                 f"[bold red]Refused ({outcome.status}): {refusal.get('code')}[/bold red]"
             )
             console.print(f"[dim]{refusal.get('message')}[/dim]")
-        if index:
-            _print_index(payload.get("indexing") or {})
     if exit_code:
         raise typer.Exit(exit_code)
-
-
-@extract_app.command("index")
-def extract_index(
-    workspace: str = typer.Argument(..., help="Workspace directory path"),
-    as_json: bool = typer.Option(False, "--json", help="Emit machine-readable JSON"),
-):
-    """Run Stage 6 over the already-accepted document manifest."""
-    result, exit_code = _extract_index(workspace, 0)
-    if as_json:
-        _emit_json(result)
-    else:
-        _print_index(result)
-    if exit_code:
-        raise typer.Exit(exit_code)
-
-
-def _extract_index(workspace: str, exit_code: int) -> tuple[dict, int]:
-    """Run Stage 6 and return its JSON result plus the process exit code.
-
-    Both ``extract index`` and ``extract publish --index`` need this, and both must
-    agree: the typed refusal is returned as data rather than raised past the caller, so
-    a refusal is rendered (or serialized) by the one code path that owns the format.
-    """
-
-    from .extraction_producer import PublicationRefused, index_accepted_documents
-
-    try:
-        result = index_accepted_documents(_extract_workspace(workspace))
-    except PublicationRefused as refusal:
-        # ``stage6_refused`` rather than ``refused``: a *successful* Stage 6 result
-        # already carries a ``refused`` list of rejected documents, and reusing that
-        # name for the refusal case would make the two shapes indistinguishable.
-        result = {"stage6_refused": True, "status": "FAILED", **refusal.as_dict()}
-        exit_code = exit_code or 1
-    else:
-        if result.get("indexed_files", 0) == 0:
-            exit_code = exit_code or 1
-    return result, exit_code
-
-
-def _print_index(result: dict) -> None:
-    """Render one Stage 6 result as the human block, unchanged in wording and order."""
-
-    if result.get("stage6_refused"):
-        console.print(f"[bold red]Stage 6 refused: {result['code']}[/bold red]")
-        console.print(f"[dim]{result['message']}[/dim]")
-        return
-    if result.get("skipped"):
-        # ``publish --index`` on a refused publication: previously the command exited
-        # before indexing, so the human block said nothing about Stage 6. It stays
-        # silent here for that reason; the reason itself is still in the JSON payload.
-        return
-    console.print(
-        f"[bold green]Stage 6 {result['status']}[/bold green]: indexed "
-        f"{result['indexed_files']} document(s), {result['total_chunks']} chunk(s), "
-        f"{len(result['refused'])} refused"
-    )
 
 
 app.add_typer(extract_app, name="extract")
@@ -1129,7 +1052,6 @@ def _pipeline_summary_panel(results: object) -> tuple[Panel, str]:
     discovery_stage = stages.get("discovery")
     screening_stage = stages.get("screening")
     extraction_stage = stages.get("extraction")
-    synthesis_stage = stages.get("synthesis")
 
     lines: list[str] = [
         f"[{heading_style}]{headline}[/{heading_style}]",
@@ -1179,18 +1101,8 @@ def _pipeline_summary_panel(results: object) -> tuple[Panel, str]:
                 f"{_stage_note(extraction_stage)}"
             ),
             (
-                f"• Matrix Rows: {_stage_count(stages.get('matrix_rows'), 'rows')}"
-                f"{_stage_note(stages.get('matrix_rows'))}"
-            ),
-            (
                 f"• Graph Nodes: {_stage_count(stages.get('graph_nodes'), 'nodes')}"
                 f"{_stage_note(stages.get('graph_nodes'))}"
-            ),
-            (
-                "• Grounded Claims: "
-                f"{_stage_count(synthesis_stage, 'verified_claims')} / "
-                f"{_stage_count(synthesis_stage, 'total_claims')} verified"
-                f"{_stage_note(synthesis_stage)}"
             ),
         ]
     )

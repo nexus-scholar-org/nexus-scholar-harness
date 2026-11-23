@@ -1,4 +1,4 @@
-"""Hermetic fidelity tests for the orchestrator Stages 5-9 refactor.
+"""Hermetic fidelity tests for the orchestrator's stages after screening.
 
 The pipeline's discovery/dedup/verification stages hit the network, so every
 kit interaction is monkeypatched in the orchestrator module namespace.  What is
@@ -8,8 +8,10 @@ verified offline is the *orchestration* contract fixed under matrix finding #9:
   stages 5-9 SKIPPED) instead of reporting SUCCESS on empty/fabricated output;
 - Stage 5 never invents Methodology/Results/Limitations prose — it writes
   metadata-frontmatter documents derived from real records (or PyMuPDF output);
-- Stages 7/9 receive a real ScholarRetriever bound to the same Chroma db (no
-  `indexer.retriever`); Stage 8 drives a real OpenAlex HTTP client.
+- Stage 8 drives a real OpenAlex HTTP client.
+
+Indexing, the matrix and synthesis (Stages 6, 7, 9) left with ``scholar_rag``
+(H-remove-rag-verify, 2026-11-23); the tests assert they no longer run.
 """
 
 from __future__ import annotations
@@ -17,7 +19,6 @@ from __future__ import annotations
 import asyncio
 import json
 from pathlib import Path
-from types import SimpleNamespace
 
 import networkx as nx
 
@@ -25,13 +26,9 @@ from scholar_harness import orchestrator as orch
 from scholar_harness.pipeline import deduplication as dedup_mod
 from scholar_harness.pipeline import discovery as disc_mod
 from scholar_harness.pipeline import graph as graph_mod
-from scholar_harness.pipeline import matrix as mat_mod
-from scholar_harness.pipeline import synthesis as synth_mod
 from scholar_harness.pipeline import verification as ver_mod
 
-# Registered workspace identity this fixture workspace records. Stage 6 states the
-# value recorded in project.json and refuses to index under anything else, so a
-# fixture workspace that reaches Stage 6 must record one.
+# Registered workspace identity this fixture workspace records.
 FIXTURE_WORKSPACE_ID = "WSP-" + "0" * 32
 
 
@@ -142,54 +139,6 @@ class _FakeVerifier:
         return [], []
 
 
-class _FakeIndexer:
-    def __init__(
-        self, db_path=".", collection_name="scholar_docs", embedder_kwargs=None, **kw
-    ):
-        self.collection_name = collection_name
-        self.embedder_kwargs = embedder_kwargs or {"provider": "sentence-transformers"}
-
-    def index_directory(self, docs_dir, workspace_id=None, **kw):
-        return {"indexed": 0}
-
-
-RETRIEVER_CALLS: list[dict] = []
-
-
-class _RecorderRetriever:
-    def __init__(self, **kwargs):
-        RETRIEVER_CALLS.append(kwargs)
-        self.kw = kwargs
-
-
-class _FakeMatrix:
-    def __init__(self, protocol=None, retriever=None, **kw):
-        self.retriever = retriever
-        SEEN_MATRIX_RETRIEVERS.append(retriever)
-
-    def extract_all(self, output_dir):
-        out = Path(output_dir)
-        return [], out / "synthesis_matrix.csv", out / "synthesis_matrix.json"
-
-
-class _FakeSynth:
-    def __init__(self, retriever=None, **kw):
-        self.retriever = retriever
-        SEEN_SYNTH_RETRIEVERS.append(retriever)
-
-    def synthesize(self, **kw):
-        return SimpleNamespace(
-            synthesis_markdown="# Synthesis\n",
-            verified_claims_count=0,
-            claims=[],
-            entailment_rate=0.0,
-        )
-
-
-SEEN_MATRIX_RETRIEVERS: list[object] = []
-SEEN_SYNTH_RETRIEVERS: list[object] = []
-
-
 class _FakeGraph:
     def __init__(self, client):
         self.client = client
@@ -225,10 +174,6 @@ def _stub_kit_engines(monkeypatch):
     monkeypatch.setattr(disc_mod, "SearchEngine", _FakeEngine)
     monkeypatch.setattr(dedup_mod, "Deduplicator", _FakeDedup)
     monkeypatch.setattr(ver_mod, "DocumentVerifier", _FakeVerifier)
-    monkeypatch.setattr(orch, "ScholarIndexer", _FakeIndexer)
-    monkeypatch.setattr(mat_mod, "ScholarRetriever", _RecorderRetriever)
-    monkeypatch.setattr(mat_mod, "MatrixExtractor", _FakeMatrix)
-    monkeypatch.setattr(synth_mod, "GroundedSynthesisEngine", _FakeSynth)
     monkeypatch.setattr(graph_mod, "CitationGraphBuilder", _FakeGraph)
     monkeypatch.setattr(graph_mod, "GraphVisualizer", _FakeVis)
     monkeypatch.setattr(
@@ -254,8 +199,10 @@ def test_pipeline_pauses_for_collect_and_skips_stages_5_9(tmp_path, monkeypatch)
     results = _run(ws)
 
     assert results["status"] == "PENDING_AGENT_REVIEW"
-    for stage in ("extraction", "indexing", "matrix", "graph", "synthesis"):
+    for stage in ("extraction", "graph"):
         assert results["stages"][stage]["status"] == "SKIPPED"
+    # The removed stages are not reported at all (H-remove-rag-verify).
+    assert not {"indexing", "matrix", "synthesis"} & set(results["stages"])
     assert not list((ws / "extracted").glob("*.md")), (
         "no extraction may occur before collect"
     )
@@ -319,15 +266,12 @@ def test_pipeline_after_collect_writes_metadata_extraction_not_placeholder(
 
 
 # ---------------------------------------------------------------------------
-# Stages 7-9 wiring: real retriever bound to the chroma db; real graph client
+# After collect: extraction then the graph; no index, matrix or synthesis
 # ---------------------------------------------------------------------------
 
 
-def test_stages_7_9_bind_retriever_and_8_uses_real_client(tmp_path, monkeypatch):
+def test_after_collect_runs_extraction_and_graph_only(tmp_path, monkeypatch):
     _stub_kit_engines(monkeypatch)
-    RETRIEVER_CALLS.clear()
-    SEEN_MATRIX_RETRIEVERS.clear()
-    SEEN_SYNTH_RETRIEVERS.clear()
 
     ws = tmp_path
     _write_protocol(ws)
@@ -357,14 +301,12 @@ def test_stages_7_9_bind_retriever_and_8_uses_real_client(tmp_path, monkeypatch)
     assert (ws / "literature" / "knowledge_graph.json").is_file()
     assert (ws / "literature" / "knowledge_graph.html").is_file()
 
-    assert any(
-        call.get("collection_name") == "scholar_docs" for call in RETRIEVER_CALLS
-    )
-    assert any(
-        str(call.get("db_path") or "").endswith("chroma_db") for call in RETRIEVER_CALLS
-    )
-    assert SEEN_MATRIX_RETRIEVERS and SEEN_SYNTH_RETRIEVERS
-    assert SEEN_MATRIX_RETRIEVERS[-1] is SEEN_SYNTH_RETRIEVERS[-1]
+    assert not {"indexing", "matrix_rows", "synthesis"} & set(results["stages"])
+    assert not (ws / "chroma_db").exists()
+    assert not (ws / "literature" / "synthesis_matrix.csv").exists()
+    assert not (ws / "synthesis" / "literature_review.md").exists()
+    journal = (ws / "audit" / "journal.jsonl").read_text(encoding="utf-8")
+    assert "PIPELINE_RUN_COMPLETED" in journal
 
 
 # ---------------------------------------------------------------------------

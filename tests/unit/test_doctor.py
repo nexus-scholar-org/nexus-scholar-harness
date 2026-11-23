@@ -82,7 +82,7 @@ def test_doctor_command_registered():
 
 def test_kits_all_importable_dev_env():
     manifest = load_kit_manifest()
-    assert len(manifest) == 7  # all 7 scholar_* packages bundled
+    assert len(manifest) == 5  # all 5 scholar_* kit packages bundled
     results = check_kits()
     assert [r.name for r in results] == list(manifest)
     assert all(r.status == Status.PASS for r in results)
@@ -101,12 +101,12 @@ def test_kit_manifest_reports_the_package_version(monkeypatch):
 def test_kits_fail_reachable_via_importable_map():
     names = [r.name for r in check_kits()]
     importable_map = dict.fromkeys(names, True)
-    importable_map["scholar-rag-kit"] = False
+    importable_map["scholar-graph-kit"] = False
     results = check_kits(importable_map=importable_map)
     assert [r.name for r in results] == names
     assert any(r.status == Status.FAIL for r in results)
-    rag = next(r for r in results if r.name == "scholar-rag-kit")
-    assert "import FAILED" in rag.detail
+    graph = next(r for r in results if r.name == "scholar-graph-kit")
+    assert "import FAILED" in graph.detail
 
 
 def test_cli_doctor_fail_reachable_via_monkeypatch(tmp_path, monkeypatch):
@@ -114,7 +114,7 @@ def test_cli_doctor_fail_reachable_via_monkeypatch(tmp_path, monkeypatch):
         doctor_mod,
         "check_kits",
         lambda importable_map=None: [
-            CheckResult("kits", "scholar-rag-kit", Status.FAIL, "import FAILED")
+            CheckResult("kits", "scholar-graph-kit", Status.FAIL, "import FAILED")
         ],
     )
     result = runner.invoke(app, ["doctor", "--workspace", str(tmp_path)])
@@ -506,7 +506,7 @@ def test_exit_code_flag_exits_1_on_fail(tmp_path, monkeypatch):
         doctor_mod,
         "check_kits",
         lambda importable_map=None: [
-            CheckResult("kits", "scholar-rag-kit", Status.FAIL, "import FAILED")
+            CheckResult("kits", "scholar-graph-kit", Status.FAIL, "import FAILED")
         ],
     )
     result = runner.invoke(app, ["doctor", "--workspace", str(tmp_path), "--exit-code"])
@@ -518,7 +518,7 @@ def test_advisory_default_exits_0_despite_fail(tmp_path, monkeypatch):
         doctor_mod,
         "check_kits",
         lambda importable_map=None: [
-            CheckResult("kits", "scholar-rag-kit", Status.FAIL, "import FAILED")
+            CheckResult("kits", "scholar-graph-kit", Status.FAIL, "import FAILED")
         ],
     )
     result = runner.invoke(app, ["doctor", "--workspace", str(tmp_path)])

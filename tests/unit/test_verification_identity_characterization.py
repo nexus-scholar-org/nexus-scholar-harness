@@ -751,7 +751,7 @@ def test_vei_07b_dedup_sci_ids_become_corpus_alias_ids():
 
 
 # ---------------------------------------------------------------------------
-# VEI-08 [HARNESS-INTEGRATION + SOURCE-TRACE]: downstream + Stage 6 isolation
+# VEI-08 [HARNESS-INTEGRATION + SOURCE-TRACE]: downstream isolation
 # ---------------------------------------------------------------------------
 
 
@@ -782,31 +782,6 @@ def test_vei_08_collector_parallel_fallback_remints_positionally():
     raw_kept = dict(raw_missing, workspace_id="SCI-000007")
     wid2 = raw_kept.get("workspace_id") or "SCI-000001"
     assert _rebuild_doc(raw_kept, fallback_id=wid2).workspace_id == "SCI-000007"
-
-
-def test_vei_08b_fallback_sci_cannot_reach_stage6_without_acceptance(tmp_path):
-    """VEI-08b [SOURCE-TRACE + HARNESS-INTEGRATION]: Stage 6 inherits only
-    accepted document_manifest records (HCM-01 HC1-2 lineage).
-
-    With no artifact registry, ``_accepted_document_records`` is empty and
-    ``_run_indexing_stage`` refuses with RAG_INDEX_REJECTED before any
-    backend -- a fallback SCI- workspace_id in verified.json is never
-    consulted (Stage 6 reads document_id/study_id from the manifest, and
-    workspace_id from project.json). A fallback SCI- can therefore only
-    reach Stage 6 if a later screening/extraction packet accepts it as a
-    study -- that path is UNPROVEN here (see VEI-10).
-    """
-    ws = tmp_path / "ws"
-    ws.mkdir()
-    (ws / "project.json").write_text(
-        json.dumps({"project_id": "s", "registered_workspace_id": "WSP-" + "c" * 32}),
-        encoding="utf-8",
-    )
-    orch_instance = orch.ResearchOrchestrator(ws)
-    assert orch_instance._accepted_document_records() == {}
-    assert orch_instance._accepted_screening_parents() == {}
-    res, _indexer = orch_instance._run_indexing_stage(ws / "chroma_db")
-    assert res["status"] == "FAILED"
 
 
 def test_vei_08c_screening_candidates_come_from_corpus_not_verified_json():

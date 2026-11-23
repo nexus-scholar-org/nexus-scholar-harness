@@ -113,6 +113,9 @@ def _spec(command: list[str]) -> dict:
         ["uv", "run", "anything"],
         ["python", "src/scholar_harness/other.py"],
         ["scholar-search/../../python"],
+        # H-remove-rag-verify: the removed kits' commands are no longer allowed.
+        ["scholar-rag", "matrix"],
+        ["scholar-verify", "risk-of-bias"],
     ],
 )
 def test_pipeline_commands_outside_the_allowlist_are_invalid(command):
@@ -125,7 +128,7 @@ def test_pipeline_commands_outside_the_allowlist_are_invalid(command):
     [
         ["scholar-search", "run"],
         ["scholar-pdf", "download"],
-        ["scholar-rag", "matrix"],
+        ["scholar-graph", "build"],
         ["python", "src/scholar_harness/agent_screen.py", "prepare"],
     ],
 )

@@ -939,10 +939,6 @@ def _refuse_busy(jobs: DiscoveryJobs, ws: Path) -> None:
                       details={"job": active.to_dict()})
 
 
-def _no_indexing(_ws: Path):  # pragma: no cover - stages 5-9 need a collected screening, never reached here
-    raise RuntimeError("indexing is not run from the console's discovery job")
-
-
 def _run_error(results: dict[str, Any]) -> dict[str, Any]:
     stages = results.get("stages") or {}
     snapshot = stages.get("corpus_snapshot") or {}
@@ -993,7 +989,7 @@ async def start_run(body: RunBody, request: Request) -> dict[str, Any]:
                                "detail": json.loads(json.dumps(detail, default=str))})
 
         results = await run_pipeline(
-            workspace_dir=ws, max_search_results=body.cap_override, indexing_fn=_no_indexing,
+            workspace_dir=ws, max_search_results=body.cap_override,
             providers=providers, leg_callback=_leg_reporter(job), stage_callback=on_stage,
             should_stop=lambda: job.cancel_requested, notes=[body.note] if body.note else None,
             # M3d-engine: the hand-off screen's accept freezes the corpus (decision 2026-11-10).

@@ -1,60 +1,12 @@
-"""Tests for verbatim claim verifier and multi-screener adjudication."""
+"""Tests for multi-screener adjudication.
 
-from pathlib import Path
-from scholar_verify.verbatim import (
-    VerbatimClaimVerifier,
-    char_window_coverage,
-    normalize_scientific_text,
-    token_ngram_coverage,
-)
+(The verbatim claim verifier tests left with ``scholar_verify``, H-remove-rag-verify.)
+"""
+
 from scholar_search.screening import (
     calculate_fleiss_kappa,
     reconcile_multi_screener_decisions,
 )
-
-
-def test_normalize_scientific_text():
-    raw = "Multi-agent sys-\n tems  •  evaluate [“retrieval”]"
-    norm = normalize_scientific_text(raw)
-    assert "sys- tems" not in norm
-    assert "systems" in norm
-    assert "-" in norm
-    assert '"retrieval"' in norm
-
-
-def test_verbatim_coverage_exact_match():
-    source = "Large language models demonstrate strong potential in systematic review screening but suffer from hallucinations."
-    quote = "strong potential in systematic review screening"
-    
-    char_cov = char_window_coverage(quote, source)
-    token_cov = token_ngram_coverage(quote, source)
-    assert char_cov >= 0.95
-    assert token_cov >= 0.95
-
-
-def test_verbatim_claim_verifier():
-    verifier = VerbatimClaimVerifier(threshold=0.90)
-    claims = [
-        {
-            "claim_id": "C-01",
-            "study_id": "SCI-001",
-            "evidence_quote": "OpenScholar-8B produced zero hallucinated cited papers."
-        },
-        {
-            "claim_id": "C-02",
-            "study_id": "SCI-001",
-            "evidence_quote": "Completely fabricated text that does not exist."
-        }
-    ]
-    sources = {
-        "SCI-001": "In empirical benchmarks, OpenScholar-8B produced zero hallucinated cited papers compared to baselines."
-    }
-    results, metrics = verifier.verify_claims_ledger(claims, sources)
-    assert metrics["total_claims"] == 2
-    assert metrics["verified_claims"] == 1
-    assert metrics["failed_claims"] == 1
-    assert results[0].is_verified is True
-    assert results[1].is_verified is False
 
 
 def test_calculate_fleiss_kappa():

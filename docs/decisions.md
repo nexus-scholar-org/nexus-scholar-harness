@@ -38,6 +38,29 @@ Record: `docs/roadmap/milestones/H-gate-and-ci.md`. Steps 1 and 2 of `docs/asses
 12. CI: the UI is built once per kind (the export in `build-wheel`, the standalone app in `research-ui`, which alone compiles the console proxy route); the `research-ui` job is pure Node. The browser job's third build goes with H-test-diet.
 13. `/gate`, `/ship`, `test-gatekeeper`, `milestone-reviewer` and `AGENTS.md` carry the same rules; the reviewer no longer asks for a local full-suite run.
 
+## 2026-11-23 — H-remove-rag-verify: `scholar_rag` and `scholar_verify` removed (decided by the researcher 2026-11-23; items 1 to 3 accepted by the researcher 2026-11-23 as built)
+
+**Accepted 2026-11-23.** The researcher accepted items 1 to 3 as built, in the coordinator session, after the build's report ("Yes to all"), and approved the push and the PR.
+
+Record: `docs/roadmap/milestones/H-remove-rag-verify.md`. The removal itself is the researcher's decision of 2026-11-23 in the coordinator session ("I want to delete the rag and verify module and their test entirely. They are saved in the commit history."); restore from `8dd7904a`. `scholar_graph`, PDF extraction, the capability adapter and `claims` wait for a later pass.
+
+**For the researcher to decide**
+
+1. **Baseline-locked documents still describe the rag kit and the E3 MCP refusal.** `cross_kit_contract_v1.md`, the WP-01 hand-off and packet documents, `generate_contract_baseline.py` (packet E names `scholar-rag-kit`) and the frozen fixtures (a producer string) were not changed: changing them needs a contract decision and a baseline regeneration. The behaviour changed too: an MCP client that calls `nexus_rag_index` now gets an unknown-tool error, not the typed `UNSUPPORTED_CAPABILITY` refusal those documents (Packet E3 §9.1) describe; `rag_indexing` is gone from the capability registry. *Proposed:* leave them as the frozen record of 2026-09; the milestone record and this entry say the producer is gone. *Alternative:* open a contract decision to mark packet E3 withdrawn and regenerate the baseline.
+2. **A stored pipeline spec with a `scholar-rag` or `scholar-verify` node is refused** at validation (`COMMAND_NOT_ALLOWED`); the console's default design-science pipeline lost its matrix node. *Proposed:* as built (the commands no longer exist, so allowing them would only fail later). *Alternative:* keep the allowlist entries and let such a node fail when run.
+3. **The pipeline result and the command-line summaries drop the removed stages** rather than reporting them as skipped: `nexus-scholar run` and `nexus_pipeline_run` no longer carry `indexing`, `matrix_rows` or `synthesis`, the run summary no longer prints "Matrix Rows" or "Grounded Claims", and `nexus-scholar status` no longer prints the vector-chunk, matrix and synthesis rows. The console's status JSON keeps its keys (`vector_chunks` is always 0). *Proposed:* as built. *Alternative:* report the three stages as `SKIPPED` with the reason "removed".
+
+**Choices made in the build** (for the reviewer)
+
+4. Deleted only tests whose whole subject was deleted; mixed files were split and repaired. Tests that compared the harness with rag's copy (canonical-profile parity AC-4, AC-6, AC-10, AC-11, NC-2, NC-7) now compare the harness with its golden and, where it exists, with `scholar_pdf`; the skill-portability and capability-adapter tests that used `rag` as the sample kit use `pdf` or `graph`.
+5. Negative tests added for removed behaviour: `indexing_fn` passed to the coordinator raises `TypeError` before any stage; pipeline nodes naming the removed CLIs are refused; the removed actions, tools and stage keys are absent; the wheel smoke asserts neither package is importable.
+6. The coordinator's `indexing_fn` parameter is removed (the console's discovery route passed a placeholder that raised if called); the stage names in its skip and abort mappings are `extraction`, `graph` / `graph_nodes`. Journal descriptions ("before stages 5-9") are unchanged.
+7. `get_status` and `sync_state` no longer open a Chroma store; the `vector_chunks` key stays in `get_status` at 0.
+8. The gate manifest loses the E3-only tasks (T-10 to T-100, T-130, T-140), the `rag` and `verify` areas and the `scholar-rag-kit` fallback; `test_select_test_gate.py` uses the remaining tasks. Only lines naming removed things changed (shared with the cleanup-tests session).
+9. CI: the wheel smoke imports `scholar_harness` and `scholar_agent.server` and asserts the removed packages are absent; the Python job installs `dev` and `pdf` only and no longer downloads the embedding model.
+10. `tests/conftest.py` keeps `HF_HUB_OFFLINE` and `TRANSFORMERS_OFFLINE` (Docling also loads Hugging Face models); only its comment changed.
+11. The sealed E1-to-E3 fixture (`tests/e2e/fixtures/e4_golden/`) and the E4 adversarial proof are deleted with the E3 index; E1 and E2 keep their own boundary suites.
+
 ## 2026-11-23 — H-test-diet: the browser suites removed and the UI unit suite cut (decided by the researcher 2026-11-23; items 1 to 4 accepted by the researcher 2026-11-23; items 5 to 16 the build's choices)
 
 **Answered 2026-11-23.** Items 1 to 4 were put to the researcher in the coordinator session with the build's numbers; the researcher accepted them as built ("Yes to all", relayed by the coordinator) and approved pushing the branch as a pull request, which the coordinator does. The standing permission for sessions to push (H-gate-and-ci item 1) is not part of this answer and stays open.

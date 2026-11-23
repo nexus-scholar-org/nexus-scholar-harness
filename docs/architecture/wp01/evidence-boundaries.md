@@ -145,7 +145,7 @@ new success event. The rebuild case constructs a **separate generation**; it doe
 
 ## Documented surface fact (cross-checked by conformance)
 
-The MCP surface is 32 registered tools (29 `nexus_*` + 3 `recon_*`; M1a added the three screening-proposal tools; M5-slim removed `nexus_bib_clean`; M10c added the five `nexus_assistant_*` tools).
+The MCP surface is 25 registered tools (22 `nexus_*` + 3 `recon_*`; M1a added the three screening-proposal tools; M5-slim removed `nexus_bib_clean`; M10c added the five `nexus_assistant_*` tools; H-remove-rag-verify removed the seven rag, matrix and verify tools, the E3 `nexus_rag_index` refusal among them).
 
 `tests/conformance/test_e2_extraction_boundary.py` asserts this number against the
 live registry; `tests/conformance/test_mcp_tool_parity.py` and

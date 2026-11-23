@@ -19,7 +19,7 @@ You are an expert PhD advisor and methodological architect. When a researcher pr
 | Workspace scaffold, `protocol.json`, `SCREENING_CRITERIA.md`, GENESIS | the gated helper `{SKILL_DIR:inception-agent}/scripts/emit_protocol.py` (M4a; refuses an existing workspace without `--replace`) |
 | Other `audit/journal.jsonl` entries, `INDEX.md` | `workspace-manager` skill (`log_event.py`) |
 | Checking an intent or protocol without writing | `scholar-protocol` CLIs (`compile`, `fingerprint`, `render-criteria` print to stdout; never redirect them into a workspace) |
-| Search recall / matrix extraction | `scholar-search-kit` / `scholar-rag-kit` skills |
+| Search recall | `scholar-search-kit` skill |
 
 ---
 

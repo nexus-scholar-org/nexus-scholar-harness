@@ -212,7 +212,7 @@ def _doubles(monkeypatch, tmp_path: Path, *, fail_in: str | None = None):
 
 def _pipeline(ws: Path, **options) -> dict:
     return asyncio.run(coordinator.run_pipeline(
-        workspace_dir=ws, indexing_fn=lambda _ws: ({}, None), freeze_corpus=False, **options,
+        workspace_dir=ws, freeze_corpus=False, **options,
     ))
 
 

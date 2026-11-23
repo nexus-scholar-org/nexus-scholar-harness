@@ -3714,21 +3714,17 @@ CLI_SHORT_NAMES = (
     "harness",
     "pdf",
     "protocol",
-    "rag",
     "search",
-    "verify",
 )
 
-#: The seven kits that own a ``{KIT_ROOT:<short>}`` binding (the harness is a
+#: The five kits that own a ``{KIT_ROOT:<short>}`` binding (the harness is a
 #: CLI, not a kit: ``tools/scholar-harness`` does not exist).
 KIT_SHORT_NAMES = (
     "agent",
     "graph",
     "pdf",
     "protocol",
-    "rag",
     "search",
-    "verify",
 )
 
 
@@ -3810,7 +3806,7 @@ def test_binding_vocabulary_matches_the_registry() -> None:
     """The literal assertions above cannot drift from the registry."""
     assert set(CLI_SHORT_NAMES) == set(CLI_SHORTS)
     assert set(KIT_SHORT_NAMES) == set(KIT_SHORTS)
-    assert len(_shipped_skill_names()) == 13, (
+    assert len(_shipped_skill_names()) == 11, (  # 13 until H-remove-rag-verify
         "the shipped skill set changed; update the expectation deliberately"
     )
 
@@ -3963,18 +3959,18 @@ def test_unimportable_kit_is_absent_and_render_names_it(
     from scholar_harness.capabilities import adapter as adapter_module
 
     monkeypatch.setitem(
-        adapter_module.KIT_MODULES, "rag", "scholar_package_that_does_not_exist"
+        adapter_module.KIT_MODULES, "graph", "scholar_package_that_does_not_exist"
     )
     workspace = tmp_path / "workspaces" / _WS
     workspace.mkdir(parents=True)
 
     env = _resolve_env("in-process", workspace, tmp_path / "plugins.json")
 
-    assert "KIT_ROOT:rag" not in env
-    assert "CLI:rag" in env, "the CLI family is independent of the kit package"
+    assert "KIT_ROOT:graph" not in env
+    assert "CLI:graph" in env, "the CLI family is independent of the kit package"
     with pytest.raises(ValueError) as excinfo:
-        render("Run {KIT_ROOT:rag}/apply.py", Preamble.from_env(env))
-    assert "{KIT_ROOT:rag}" in str(excinfo.value)
+        render("Run {KIT_ROOT:graph}/apply.py", Preamble.from_env(env))
+    assert "{KIT_ROOT:graph}" in str(excinfo.value)
     assert not isinstance(excinfo.value, KeyError)
 
 
