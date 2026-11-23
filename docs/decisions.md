@@ -11,9 +11,9 @@ history to read if you need the original reasoning (`git log --follow -- <path>`
 | Entry | Item | What is open |
 | :-- | :-- | :-- |
 | 2026-11-19 — M9a: what the measurement says about the ladder gates | 2 | The minimum share of the researcher's excludes an agent must take before a rung unlocks: the principle is accepted; the researcher decided on 2026-11-20 to set the number when M9b is built. |
-| 2026-11-23 — H-screening-read-performance: the build's own choices | 6 to 22 | Proposed by the build; none answered yet. |
+| 2026-11-23 — H-screening-read-performance: the build's own choices | 6 to 23 | Proposed by the build; none answered yet. |
 
-## 2026-11-23 — H-screening-read-performance: the build's own choices (items 6 to 22 PROPOSED, not yet answered)
+## 2026-11-23 — H-screening-read-performance: the build's own choices (items 6 to 23 PROPOSED, not yet answered)
 
 Record: `docs/roadmap/milestones/H-screening-read-performance.md`, "Build 2026-11-23". Items 1 to 5 are the specification's closed questions (entry of 2026-11-22). Each item below is how the build did something the specification leaves open; each is the researcher's to accept or change.
 
@@ -34,6 +34,7 @@ Record: `docs/roadmap/milestones/H-screening-read-performance.md`, "Build 2026-1
 20. **Files opened are counted as the interpreter's `open` events under the workspace**, on a first call with the store empty and the modules already imported; `os.stat` is not counted.
 21. **The web app's request tests answer each page from a real engine's recorded answers** on a published three-record workspace (`apps/research-ui/tests/fixtures/page-engine.json`, written by `tests/console/_record_page_engine.py`).
 22. **`stale_projections` reads each decisions file once and decodes it as UTF-8** (as `read_text` did), then compares the same bytes as before; a failure to read the context, the log or `project.json` counts every event-sourced batch stale, as the same failure in each batch's own read did.
+23. **DoD 6 and 9 are recorded on the generated fixture, and their run on a copy of the sensor-stress review is deferred** (review round 2, finding 3): this session was not allowed to read the review. The fixture reproduces its file counts (item 19); its times are this PC's. *Deferred:* the same two scripts on a copy of the review, by a session allowed to make one.
 
 ## 2026-11-23 — UI unit tests wait 3 s by default; the performance specification is widened (items 1 and 2 accepted by the researcher 2026-11-23)
 
