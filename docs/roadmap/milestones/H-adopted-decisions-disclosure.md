@@ -97,13 +97,17 @@ Gates:
 | Contract v1 | `uv run python scripts/generate_contract_baseline.py --check` | "Contract baseline current", on `c9530ced`; never regenerated |
 | Screening API fixtures | `tests/console/test_screening_api_contract.py` after `generate_screening_api_fixtures.py` | 6 passed; three fixtures changed (item 27) |
 | Full Python suite, once | `uv run pytest -q -n 4 -p no:cacheprovider` on `ea0b8a20` | exit 0: 6,605 passed, 31 skipped, none failed (counted from the progress line; pytest printed no summary line) |
+| Full Python suite on the final code | `uv run pytest -q -n 4 -p no:cacheprovider` on `71d81097` (review round 2, P2) | exit 0: 6,607 passed, 31 skipped, none failed (counted from the progress line) |
 | After review round 1 | the affected files (`test_adoption_*`, `test_methods_api`, `test_methods_method_block`, `test_export_api`, `test_criteria_pilot_api`), `-n 4`, on `c9530ced` | 113 passed |
 | Typecheck | `npx tsc --noEmit` | clean, on `c9530ced` |
 | UI unit tests | `npx vitest run` | 1,459 passed on `ea0b8a20`; on `c9530ced` 1,459 passed and 1 failed in `tests/inception-workbench.test.tsx` ("a refused cost read…", "no refusal yet"), a file this build does not touch; it passed 3 times of 3 run alone (a wait under load) |
 | Browser | `npx playwright test` of `screening-adopted`, `screening-export`, `screening-states`, `charting-study`, `hydration` (both themes) | 66 passed, 4 skipped, on `ea0b8a20`; `screening-adopted.spec.ts` again on `c9530ced` (after the Agreement change): 6 passed; no committed screenshot changed |
 
 
-**Review.** REVIEW_PLACEHOLDER
+**Review.** `milestone-reviewer`, independent, two rounds.
+- Round 1 (on `ea0b8a20`): CHANGES. P2: the methods draft sentences still counted declared decisions as blind or revealed; the contract rows of `/summary`, `/prisma/preview`, `/agreement` were not updated (a client gating on `all(ok)` would block on the advisory check); no gate evidence. P3: Home still said "you see every record" beside the declared count; Agreement said "You saw every record" beside undeclared candidates. All five fixed in `c9530ced` (items 19, 20 amended, item 29 added).
+- Round 2 (on `c9530ced`): CHANGES on evidence only, "the code findings are resolved and nothing in the code needs to change"; the full suite had to run once on the final code commit, which it did on `71d81097` (above), the condition the reviewer set for APPROVE without another round. Its P3 suggestion (a test of the "drawn outside the app" sentence) is in `71d81097`.
+- Follow-ups the reviewer left as P3, not changed: a crash between the line and its journal row leaves an unconfirmed line with no repair path (only an `OSError` from the journal append is rolled back); the sample seed is drawn in the browser (the pilot's is drawn by the engine); a sample stays owed after every decision of its declaration is withdrawn or decided again; Agreement builds a candidate list it discards; a citation-chasing round's charting match is untested beyond round 1; `read_ledger` reads the whole journal on each read that is not kept.
 
 **Not verified.**
 
