@@ -12,6 +12,26 @@ history to read if you need the original reasoning (`git log --follow -- <path>`
 | :-- | :-- | :-- |
 | 2026-11-19 — M9a: what the measurement says about the ladder gates | 2 | The minimum share of the researcher's excludes an agent must take before a rung unlocks: the principle is accepted; the researcher decided on 2026-11-20 to set the number when M9b is built. |
 | 2026-11-23 — H-gate-and-ci | 1 | The standing permission for sessions to push a work branch and open a draft pull request: not given. |
+| 2026-11-23 — H-charting-row-layout | 1 | Whether the charting table's row actions may be smaller than 44 px on a desktop pointer: proposed, not built. |
+
+## 2026-11-23 — H-charting-row-layout: one line of row actions, the pinned cells carry the row (PROPOSED; item 1 open)
+
+Record: `docs/roadmap/milestones/H-charting-row-layout.md`. The work is the researcher's instruction of 2026-11-23 in the coordinator session ("Work the two layout fixes first"), for 1.1.0b7. Measured, a long-title row at 1440 px: 157 px before, 109 px after.
+
+**For the researcher to decide**
+
+1. **A denser row below the 44 px rule, on desktop pointers only.** Built: the rule kept (every action and link at least 44 px tall), a row is 109 px (the file line and one line of actions, each 44 px). Measured, not built: the table's actions and links at 28 px when the pointer is a mouse (`pointer: fine`), 44 px on touch, gives **77 px** (the two-line title then sets the height). For 443 studies the table is then about 34,000 px tall instead of about 48,000 px (about 70,000 px before this change). The cost is an exception to the brand rule "every Button variant is at least 44 px" for one table on desktop, and smaller targets for a mouse user. Not built unless the researcher chooses it.
+
+**Choices made in the build (for the reviewer)**
+
+2. The fix is an opt-in `size="small"` on the shared `Button` (the same 44 px target, the table's text size and padding, no wrapping), not a class-merging change to `Button` for every screen: a passed `className` still cannot override a base class, so the other screens keep their look.
+3. The small size also reaches the one-study view, which renders the same Confirm / Discard and "What was tried" pieces: they asked for `px-1 text-xs` there too.
+4. The two actions of a cell never wrap (`flex-nowrap`): the column widens and the long title wraps instead; at narrow widths the table scrolls sideways, which the pinned cells are for.
+5. The row owns one opaque background, `leaf` (the surface colour), or `brand-soft` when selected, and the pinned cells inherit it. The table body was two-toned before (white pinned cells, grey `paper` elsewhere); it is now white throughout.
+6. The focused row's frame is drawn by its cells (inset shadows, mirrored in Arabic) and the row's own outline is removed, because the pinned cells and the next row's background painted over it.
+7. The first pinned column is held at 48 px, the second's offset: squeezed to 40 px it let the scrolled cells show through a slit between the pinned cells.
+8. No hover tint was added (the table had none); the pinned cells would follow one.
+9. Other screens that pass `px-1 text-xs` through `className` (the query workbench's term buttons) have the same lost classes and are left for a follow-up.
 
 ## 2026-11-23 — H-gate-and-ci: the local gate runs what a change touched, CI runs everything, one full suite at a time (chosen by the researcher 2026-11-23; items 2 to 13 accepted as built 2026-11-23; item 1 open)
 
