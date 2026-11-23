@@ -1,6 +1,6 @@
 # H-close-side-doors Close the side doors around the decision ledger
 
-Branch: `dev/h/close-side-doors` (from `origin/main` `8dd7904a`) · Lane: **RELEASE** (a public API route, an MCP tool and the screening API contract change) · Status: **BUILDING**
+Branch: `dev/h/close-side-doors` (from `origin/main` `8dd7904a`) · Lane: **RELEASE** (a public API route, an MCP tool and the screening API contract change) · Status: **READY FOR PR** (review round 2 APPROVE; not pushed; decision items 1 to 4 PROPOSED)
 
 The researcher's decision of 2026-11-23, in the coordinator session, after the project review of that day (`docs/assessment/project-review-2026-11-23.md`, section 3 points 2 and 4, evidence E4 to E7). Four doors let a decision, a setting or a spend happen around the guarded paths. Each is closed with a test that fails on `origin/main`'s code.
 
@@ -67,8 +67,24 @@ The allowlist, separately: with `origin/main`'s `browser.py`, `test_writes_follo
 
 ## Evidence
 
-Filled at the final head.
+All on this PC (Windows 11, the project venv on Python 3.14.7 synced `--extra dev --extra pdf --extra rag`, as on `main`). No network request, no AI spend, no real workspace opened.
+
+| Check | Head | Result |
+| :-- | :-- | :-- |
+| Full Python suite, `uv run pytest -n 4 -p no:cacheprovider -o addopts="" -q` with a junit file | `a9d01da5` | **6,569 passed, 15 skipped, 0 failed, 0 errors** (junit 6,584); 607 s |
+| The same, before review round 1 | `5ecc41e6` | 6,568 passed, 15 skipped, 0 failed (junit 6,583); 775 s |
+| Fails first: the four changed source files and `browser.py` at `origin/main`, the new and changed tests run | before `5ecc41e6` | 10 of 10, then the browser test: all fail on their assertions (the reviewer repeated this independently: 12 of 12); the round-1 test fails on `5ecc41e6` by reading |
+| `apps/research-ui/tests/console-proxy.test.ts` alone (vitest, through a link to the main checkout's `node_modules`, same lock file as `origin/main`) | `5ecc41e6` (`route.ts` unchanged since) | 77 passed; with `origin/main`'s `route.ts`, the changed case fails |
+| PR-stage selection, `select_test_gate.py --changed origin/main --stage pr` | `a9d01da5` | areas screening, console, agent-mcp, research-ui. Run: the Python suite (with `-n 4`), `git diff --check`. **Not run**: the research-ui area's typecheck, full UI unit suite, build and browser suite (the coordinator asked for the one vitest file alone; the cleanup-tests session owns those suites) |
+| `ruff check scripts/`; `ruff check src/ --select F821,F811,F823,F632,F7,B023,B006,E9` | `a9d01da5` | pass |
+| `generate_contract_baseline.py --check`, `generate_protocol_schema.py --check`, `sync_skills_bundle.py --check` | `a9d01da5` | pass; no locked path in the diff |
+
+**Not verified.**
+- The web app in a browser: the Prepare screen's handling of the new refusal, and an agent run started from the screen against the stricter request (read from the code only; no web app file but `route.ts` and the one test changed).
+- The full UI unit suite, typecheck, build and browser suite.
+- CI.
 
 ## Review
 
-Pending.
+- **Round 1** (`milestone-reviewer`, on `5ecc41e6`): **CHANGES**, documentation-level, no P0 or P1. Findings: `docs/architecture/console/SPECS.md` still listed the route as live (P2); the search skill's preflight still named `nexus_screen_llm`; a save over a stored `ai_agreed_exclusion` journaled the forced value as `before`; `sample_audit_size` left unnamed; the ceiling "required in form only" to be said plainly. All fixed or stated in `a9d01da5`, with a test for the journal fix. The reviewer confirmed: every new test fails on `origin/main` on its own assertion; no test was weakened beyond the removed code; every screen request to `/proposals/runs` and `/proposals/calibrations` sends provider, model and the ceiling key.
+- **Round 2** (on `a9d01da5`): **APPROVE**. Targeted run 169 passed; baseline current.
