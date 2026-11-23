@@ -335,9 +335,48 @@ def _snapshot(ws: Path) -> dict[str, str]:
     return out
 
 
+def _write_draft_decisions(ws: Path, idx: int, rows: list[dict], reviewed_by: str) -> None:
+    """Write a batch's draft decisions file as the removed console route did.
+
+    H-close-side-doors removed ``POST /screening/batch/{n}/decisions``; this
+    keeps its file shape (the §7 wrapper, rows upserted by ``workspace_id``,
+    ``method``/``screener_id``/``decided_at`` on every row) for the legacy
+    authority path these tests drive.
+    """
+    path = ws / "literature" / "screening" / f"batch_{idx:03d}_decisions.json"
+    merged: list[dict] = []
+    if path.is_file():
+        prior = json.loads(path.read_text(encoding="utf-8"))
+        merged = list(prior.get("decisions") if isinstance(prior, dict) else prior)
+    index = {str(r.get("workspace_id")): i for i, r in enumerate(merged)}
+    stamp = "2026-10-13T00:00:01+00:00"
+    for row in rows:
+        record = {
+            "workspace_id": row["workspace_id"],
+            "decision": row["decision"],
+            "method": "HUMAN",
+            "confidence": row.get("confidence"),
+            "matched_inclusion_criteria": [],
+            "violated_exclusion_criteria": [],
+            "relevant_rqs": [],
+            "screening_reasoning": row["screening_reasoning"],
+            "screener_id": reviewed_by,
+            "decided_at": stamp,
+        }
+        if record["workspace_id"] in index:
+            merged[index[record["workspace_id"]]].update(record)
+        else:
+            index[record["workspace_id"]] = len(merged)
+            merged.append(record)
+    path.write_text(
+        json.dumps({"batch": idx, "decisions": merged, "reviewed_by": reviewed_by, "timestamp": stamp}, indent=2) + "\n",
+        encoding="utf-8",
+    )
+
+
 def _collect_current(ws: Path):
     """Drive the real authority path to a CURRENT generation: recommend (worker),
-    console-POST decisions (drafts), stage a publication approval, collect."""
+    write draft decisions, stage a publication approval, collect."""
     from scholar_harness.authority.generations import (
         build_publication_snapshot,
         content_sha256,
@@ -359,7 +398,6 @@ def _collect_current(ws: Path):
         run_recommend(
             ws, int(row["batch_index"]), produced_at="2026-10-13T00:00:00+00:00"
         )
-    client = TestClient(create_app(ws))
     for row in manifest["batches"]:
         idx = int(row["batch_index"])
         papers = json.loads(
@@ -367,30 +405,25 @@ def _collect_current(ws: Path):
                 encoding="utf-8"
             )
         )["papers"]
-        r = client.post(
-            f"/api/v1/screening/batch/{idx}/decisions",
-            json={
-                "batch": idx,
-                "reviewed_by": "hcm06",
-                "decisions": [
-                    {
-                        "workspace_id": papers[0]["workspace_id"],
-                        "decision": "INCLUDE",
-                        "confidence": 0.9,
-                        # Explicit: the route merges by workspace_id and does
-                        # not default a field the caller omitted.
-                        "screening_reasoning": "include during console verification review",
-                    },
-                    {
-                        "workspace_id": papers[1]["workspace_id"],
-                        "decision": "EXCLUDE",
-                        "confidence": 0.8,
-                        "screening_reasoning": "exclude during console verification review",
-                    },
-                ],
-            },
+        _write_draft_decisions(
+            ws,
+            idx,
+            [
+                {
+                    "workspace_id": papers[0]["workspace_id"],
+                    "decision": "INCLUDE",
+                    "confidence": 0.9,
+                    "screening_reasoning": "include during console verification review",
+                },
+                {
+                    "workspace_id": papers[1]["workspace_id"],
+                    "decision": "EXCLUDE",
+                    "confidence": 0.8,
+                    "screening_reasoning": "exclude during console verification review",
+                },
+            ],
+            "hcm06",
         )
-        assert r.status_code == 200, r.text
 
     real_publish = generations.publish_generation
     captured: dict = {}

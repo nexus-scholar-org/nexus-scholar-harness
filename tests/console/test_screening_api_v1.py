@@ -226,16 +226,24 @@ def test_required_6_unclear_counted_in_the_prisma_preview(client):
     assert all(check["ok"] for check in preview["checks"])
 
 
-def test_settings_change_is_journaled_and_ai_exclusion_needs_confirmation(client, ws):
+def test_settings_change_is_journaled_and_ai_exclusion_is_refused(client, ws):
     assert client.get(f"{BASE}/settings").json()["blinding"] == "reveal_after_decision"
-    refused = client.put(f"{BASE}/settings", json={"mode": "ai_agreed_exclusion"})
-    assert refused.status_code == 422
-    ok = client.put(
-        f"{BASE}/settings",
-        json={"mode": "ai_agreed_exclusion", "sample_audit_size": 40, "confirm_ai_agreed_exclusion": True},
-    )
-    assert ok.json()["mode"] == "ai_agreed_exclusion"
-    rows = [json.loads(line) for line in (ws / "audit" / "journal.jsonl").read_text(encoding="utf-8").splitlines()]
+    journal = ws / "audit" / "journal.jsonl"
+    before = journal.read_bytes()
+    # H-close-side-doors: refused with or without the confirmation, and nothing is recorded.
+    for body in (
+        {"mode": "ai_agreed_exclusion"},
+        {"mode": "ai_agreed_exclusion", "sample_audit_size": 40, "confirm_ai_agreed_exclusion": True},
+    ):
+        refused = client.put(f"{BASE}/settings", json=body)
+        assert refused.status_code == 422
+        assert "not available" in refused.json()["detail"]["message"]
+    assert journal.read_bytes() == before
+    assert client.get(f"{BASE}/settings").json()["mode"] == "human_sees_every_record"
+    ok = client.put(f"{BASE}/settings", json={"sample_audit_size": 40})
+    assert ok.status_code == 200
+    assert ok.json()["mode"] == "human_sees_every_record"
+    rows = [json.loads(line) for line in journal.read_text(encoding="utf-8").splitlines()]
     assert rows[-1]["action"] == "SCREENING_SETTINGS_CHANGED"
 
 

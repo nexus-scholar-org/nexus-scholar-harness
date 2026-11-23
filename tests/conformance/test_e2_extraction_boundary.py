@@ -1939,7 +1939,7 @@ def test_documented_mcp_tool_count_matches_the_live_surface() -> None:
     (``tests/conformance/test_e1_acquired_document_boundary.py:541-550``):
     ``{tool.name for tool in mcp._tool_manager.list_tools()}``.
 
-    ``count == 32`` is asserted rather than assumed (27 until M10c added the five assistant tools) -- if a later packet changes
+    ``count == 31`` is asserted rather than assumed (27 until M10c added the five assistant tools, 32 until H-close-side-doors removed nexus_screen_llm) -- if a later packet changes
     the surface, this test must fail loudly instead of blessing whatever number
     the prose happens to carry.
     """
@@ -1948,8 +1948,8 @@ def test_documented_mcp_tool_count_matches_the_live_surface() -> None:
 
     registered = {tool.name for tool in mcp._tool_manager.list_tools()}
     count = len(registered)
-    assert count == 32, (
-        f"the live MCP surface is {count} tools, not 32; every documented count "
+    assert count == 31, (
+        f"the live MCP surface is {count} tools, not 31; every documented count "
         "checked below is now stale and the declared-unsupported surface has moved"
     )
     assert "nexus_pdf_extraction" in registered, (

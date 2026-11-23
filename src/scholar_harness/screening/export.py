@@ -926,8 +926,6 @@ def build_methods(ws: Path) -> dict[str, Any]:
         blinding = Timeline(signed, changes, method.config.blinding, bool(changes))
     else:
         blinding = _timeline(rows, "blinding", published, now["blinding"])
-    mode = _timeline(rows, "mode", published, now["mode"])
-    audit_size = _timeline(rows, "sample_audit_size", published, now["sample_audit_size"])
     order = _timeline(rows, "queue_order", published, now["queue_order"])
     events = _published_events(ws, view, published)
     for path in sorted((ws / ev.EVENTS_DIR).glob("*.jsonl")) if (ws / ev.EVENTS_DIR).is_dir() else []:
@@ -1049,18 +1047,8 @@ def build_methods(ws: Path) -> dict[str, Any]:
                 "shown unless the reviewer opened it from the record's details."
             )
 
-    # 6. AI-agreed exclusion
-    on = "ai_agreed_exclusion"
-    size = audit_size.at_publish
-    figures["mode"] = {"at_publish": mode.at_publish, "changes": [list(x) for x in mode.changes], "sample_audit_size": size}
-    with_size = f", with a sample check of {size}" if size else ""
-    label = "The AI-agreed-exclusion setting was"
-    if not mode.changes:
-        sentences.append(f"{label} on throughout the screening{with_size}." if mode.initial == on else f"{label} off.")
-    else:
-        sentences.append(f"{label} {'on' if mode.initial == on else 'off'} at the start of the screening.")
-        for date, value in mode.changes:
-            sentences.append(f"{label} on from {date}{with_size}." if value == on else f"{label} off from {date}.")
+    # 6. (H-close-side-doors, 2026-11-23) The AI-agreed-exclusion setting is no
+    # longer stated: no code ever acted on it, so it never changed a record's path.
 
     # 7. Order
     figures["queue_order"] = {"at_publish": order.at_publish if order.recorded else None,

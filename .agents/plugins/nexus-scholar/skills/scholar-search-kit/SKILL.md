@@ -251,11 +251,9 @@ if __name__ == "__main__":
   `dedup=True`, and writes `.cache/mcp/discover_<slug>_<ts>.json` resolved via
   `_resolve_path` (`NEXUS_MCP_WORKSPACE` else repo root) → pass absolute
   workspace paths; `nexus_dedup` reads JSON only (`JSONImporter`) and writes
-  JSON; `nexus_screen` runs in-process **heuristic** screening and persists all
-  five artifacts (`included.json`, `excluded.json`, `conflicts.json`,
-  `prisma_report.json`, `prisma_screening_report.md`); `nexus_screen_llm` is the
-  LLM variant (checklist prompt per protocol criteria, heuristic fallback per
-  batch on API failure); `nexus_screen_reconcile` accepts either a
+  JSON; `nexus_screen` runs in-process **heuristic** screening and writes
+  proposals only (`screening_proposals.json`), never a decision
+  (`nexus_screen_llm` was removed on 2026-11-23); `nexus_screen_reconcile` accepts either a
   screener-id → `{workspace_id: INCLUDE|EXCLUDE}` JSON map or a directory of
   `batch_*_decisions*.json` files (screener key derived from the file stem),
   plus an optional adjudication map — strict-majority voting with Fleiss' Kappa.
@@ -266,7 +264,7 @@ if __name__ == "__main__":
   prepare` chunks candidates into `literature/screening/batch_NNN.json`; an
   agent writes `batch_NNN_decisions.json`; `collect` assembles the final
   `included/excluded` + PRISMA report). The CLI `screen` / MCP `nexus_screen`
-  heuristic (and `nexus_screen_llm`) is a fast deterministic pre-filter, not a
+  heuristic is a fast deterministic pre-filter, not a
   substitute for agent review.
 - **Identity**: `workspace_id` (`SCI-%06d`) is a dedup-run-local canonical id,
   not a stable cross-run study identity. Corpus-level lineage lives in

@@ -1,10 +1,9 @@
 """Hermetic tests for M5.3 (screening decisions, audit POST, pipelines, job aliases).
 
 Covers:
-  - POST /api/v1/screening/batch/{n}/decisions: atomic write, validation,
-    journal + project.json updates, and round-trip parity through
-    `agent_screen.cmd_collect` for BOTH the console wrapper (§7) and the
-    legacy raw-array format.
+  - The old POST /api/v1/screening/batch/{n}/decisions route is gone
+    (H-close-side-doors): it answers 404 and writes nothing. The collector
+    still reads BOTH the wrapper (§7) and the legacy raw-array formats.
   - POST /api/v1/audit/events: journal event + INDEX.md/project.json refresh.
   - PipelineSpec CRUD, fingerprint stability, dry-run (incl. "writes nothing").
   - Job endpoint aliases (POST /api/v1/jobs, GET /api/v1/jobs/{id}/events).
@@ -12,7 +11,6 @@ Covers:
 
 from __future__ import annotations
 
-import hashlib
 import importlib.util
 import json
 import sys
@@ -74,186 +72,28 @@ def _bootstrap(tmp):
 
 
 # ---------------------------------------------------------------------------
-# screening decisions writer
+# the old decisions writer is gone (H-close-side-doors)
 # ---------------------------------------------------------------------------
 
-def test_post_screening_decisions_atomic(tmp_path):
+
+def test_old_batch_decisions_route_is_gone_and_writes_nothing(tmp_path):
+    """The route wrote a decisions file around the ledger with a caller-set method."""
     ws = _bootstrap(tmp_path)
     client = TestClient(create_app(ws))
-
-    r = client.post(
-        "/api/v1/screening/batch/1/decisions",
-        json={
-            "batch": 1,
-            "reviewed_by": "test",
-            "decisions": [
-                {"workspace_id": "SCI-000001", "decision": "INCLUDE", "confidence": 0.9,
-                 "matched_inclusion_criteria": ["INC-01"], "screening_reasoning": "matches"},
-                {"workspace_id": "SCI-000002", "decision": "EXCLUDE", "confidence": 0.6,
-                 "violated_exclusion_criteria": ["EXC-02"]},
-            ],
-        },
-    )
-    assert r.status_code == 200
-    assert r.json()["decisions_written"] == 2
-
-    file = ws / "literature" / "screening" / "batch_001_decisions.json"
-    assert file.exists()
-    payload = json.loads(file.read_text(encoding="utf-8"))
-    assert payload["batch"] == 1
-    assert payload["reviewed_by"] == "test"
-    assert payload["timestamp"]
-    assert payload["decisions"][0]["workspace_id"] == "SCI-000001"
-    assert payload["decisions"][0]["decision"] == "INCLUDE"
-    assert payload["decisions"][0]["confidence"] == 0.9
-    assert payload["decisions"][1]["decision"] == "EXCLUDE"
-
-    # Atomic discipline: no partial temp files survive.
-    assert not list((ws / "literature" / "screening").glob("*.tmp-*"))
-
-    # Journal event SCREEN_DECISIONS appended.
-    journal = [json.loads(l) for l in (ws / "audit" / "journal.jsonl").read_text().splitlines() if l.strip()]
-    assert journal[-1]["action"] == "SCREEN_DECISIONS"
-    assert journal[-1]["agent_or_tool"] == "scholar-harness-console"
-    assert journal[-1]["metrics"] == {"included": 1, "excluded": 1, "total": 2}
-
-    # project.json updated_at refreshed.
-    manifest = json.loads((ws / "project.json").read_text(encoding="utf-8"))
-    assert manifest["updated_at"]
-
-
-def test_screening_decisions_partial_post_merges_and_preserves_the_rest(tmp_path):
-    """A one-record browser draft must not truncate the batch.
-
-    The route is the sanctioned draft writer, and the UI saves one record at a
-    time. Replacing the file (the old behaviour) silently discarded every other
-    review in the batch; merging by workspace_id keeps them, and only the
-    fields the request actually set are overwritten.
-    """
-    ws = _bootstrap(tmp_path)
-    client = TestClient(create_app(ws))
-    url = "/api/v1/screening/batch/1/decisions"
-
-    full = client.post(
-        url,
-        json={
-            "batch": 1,
-            "reviewed_by": "agent",
-            "decisions": [
-                {
-                    "workspace_id": "SCI-000001",
-                    "decision": "INCLUDE",
-                    "confidence": 0.9,
-                    "matched_inclusion_criteria": ["INC-01"],
-                    "screening_reasoning": "matches",
-                },
-                {
-                    "workspace_id": "SCI-000002",
-                    "decision": "EXCLUDE",
-                    "confidence": 0.6,
-                    "violated_exclusion_criteria": ["EXC-02"],
-                },
-            ],
-        },
-    )
-    assert full.status_code == 200
-
-    partial = client.post(
-        url,
-        json={
-            "batch": 1,
-            "reviewed_by": "researcher-draft",
-            "decisions": [
-                {
-                    "workspace_id": "SCI-000001",
-                    "decision": "EXCLUDE",
-                    "screening_reasoning": "reconsidered",
-                }
-            ],
-        },
-    )
-    assert partial.status_code == 200
-    assert partial.json()["decisions_written"] == 1
-    assert partial.json()["decisions_total"] == 2
-
-    payload = json.loads(
-        (ws / "literature" / "screening" / "batch_001_decisions.json").read_text(
-            encoding="utf-8"
-        )
-    )
-    assert payload["reviewed_by"] == "researcher-draft"
-    assert [r["workspace_id"] for r in payload["decisions"]] == [
-        "SCI-000001",
-        "SCI-000002",
-    ]
-
-    updated = payload["decisions"][0]
-    assert updated["decision"] == "EXCLUDE"
-    assert updated["screening_reasoning"] == "reconsidered"
-    # Fields the request did not set survive the merge.
-    assert updated["confidence"] == 0.9
-    assert updated["matched_inclusion_criteria"] == ["INC-01"]
-
-    sibling = payload["decisions"][1]
-    assert sibling["decision"] == "EXCLUDE"
-    assert sibling["confidence"] == 0.6
-    assert sibling["violated_exclusion_criteria"] == ["EXC-02"]
-
-    journal = [
-        json.loads(line)
-        for line in (ws / "audit" / "journal.jsonl").read_text().splitlines()
-        if line.strip()
-    ]
-    assert journal[-1]["action"] == "SCREEN_DECISIONS"
-    assert journal[-1]["metrics"] == {"included": 0, "excluded": 2, "total": 2}
-    assert journal[-1]["parameters"]["posted"] == 1
-
-
-def test_screening_decisions_refuses_to_overwrite_an_unreadable_draft(tmp_path):
-    ws = _bootstrap(tmp_path)
-    client = TestClient(create_app(ws))
-    broken = ws / "literature" / "screening" / "batch_001_decisions.json"
-    broken.write_text("{not json", encoding="utf-8")
+    journal_before = (ws / "audit" / "journal.jsonl").read_bytes()
 
     response = client.post(
         "/api/v1/screening/batch/1/decisions",
         json={
             "batch": 1,
-            "decisions": [{"workspace_id": "SCI-000001", "decision": "INCLUDE"}],
+            "reviewed_by": "anyone",
+            "decisions": [{"workspace_id": "SCI-000001", "decision": "EXCLUDE", "method": "HUMAN"}],
         },
     )
 
-    assert response.status_code == 422
-    assert "unreadable" in response.json()["detail"]
-    # The corrupt file is left exactly as found; nothing was replaced.
-    assert broken.read_text(encoding="utf-8") == "{not json"
-
-
-def test_screening_decisions_validation(tmp_path):
-    ws = _bootstrap(tmp_path)
-    client = TestClient(create_app(ws))
-
-    base = {"batch": 1, "decisions": [{"workspace_id": "SCI-000001", "decision": "INCLUDE"}]}
-
-    # Unknown workspace id -> 422.
-    bad_id = {"batch": 1, "decisions": [{"workspace_id": "NOPE", "decision": "INCLUDE"}]}
-    assert client.post("/api/v1/screening/batch/1/decisions", json=bad_id).status_code == 422
-
-    # Bad decision enum -> 422 (pydantic).
-    # M1a: MAYBE ("Unclear → full text") is a valid outcome; an unknown one is not.
-    bad_dec = {"batch": 1, "decisions": [{"workspace_id": "SCI-000001", "decision": "PERHAPS"}]}
-    assert client.post("/api/v1/screening/batch/1/decisions", json=bad_dec).status_code == 422
-
-    # Confidence out of range -> 422.
-    bad_cfd = {"batch": 1, "decisions": [{"workspace_id": "SCI-000001", "decision": "INCLUDE", "confidence": 1.7}]}
-    assert client.post("/api/v1/screening/batch/1/decisions", json=bad_cfd).status_code == 422
-
-    # Batch disagreement -> 400.
-    assert client.post("/api/v1/screening/batch/1/decisions", json={**base, "batch": 2}).status_code == 400
-
-    # Missing batch -> 404.
-    assert client.post("/api/v1/screening/batch/9/decisions", json=base).status_code == 404
-
+    assert response.status_code == 404
+    assert not (ws / "literature" / "screening" / "batch_001_decisions.json").exists()
+    assert (ws / "audit" / "journal.jsonl").read_bytes() == journal_before
 
 def _bootstrap_collect(tmp, n_batches):
     """Workspace shaped for agent_screen.collect: verified.json + protocol + manifest."""
@@ -463,23 +303,31 @@ def _stage_approval_for_console_collect(ws, collect_fn) -> None:
 
 
 def test_screening_parity_console_wrapper(tmp_path):
-    """GUI-written wrapper -> cmd_collect produces correct PRISMA outputs."""
+    """A §7 wrapper file -> cmd_collect produces correct PRISMA outputs.
+
+    The file is written directly, as the removed console route used to write it
+    (H-close-side-doors): the collector's reading of the wrapper is unchanged.
+    """
     agent_screen = _load_agent_screen()
     ws = _bootstrap_collect(tmp_path, n_batches=1)
-    client = TestClient(create_app(ws))
-
-    r = client.post(
-        "/api/v1/screening/batch/1/decisions",
-        json={
-            "batch": 1,
-            "decisions": [
-                {"workspace_id": "SCI-000001", "decision": "INCLUDE", "confidence": 0.95},
-                {"workspace_id": "SCI-000002", "decision": "EXCLUDE", "confidence": 0.6,
-                 "violated_exclusion_criteria": ["EXC-02"]},
-            ],
-        },
+    provenance = {"method": "HUMAN", "screener_id": "console", "decided_at": "2026-10-13T12:00:00+00:00"}
+    (ws / "literature" / "screening" / "batch_001_decisions.json").write_text(
+        json.dumps(
+            {
+                "batch": 1,
+                "decisions": [
+                    {"workspace_id": "SCI-000001", "decision": "INCLUDE", "confidence": 0.95,
+                     "screening_reasoning": "include", **provenance},
+                    {"workspace_id": "SCI-000002", "decision": "EXCLUDE", "confidence": 0.6,
+                     "violated_exclusion_criteria": ["EXC-02"],
+                     "screening_reasoning": "exclude", **provenance},
+                ],
+                "reviewed_by": "console",
+                "timestamp": "2026-10-13T12:00:00+00:00",
+            }
+        ),
+        encoding="utf-8",
     )
-    assert r.status_code == 200
 
     # AG-03C R1: publication requires a staged operator approval bound to the
     # helper's own scope (prepare-then-collect sequence via the staged approval).

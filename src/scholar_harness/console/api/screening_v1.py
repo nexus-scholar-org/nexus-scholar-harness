@@ -91,6 +91,9 @@ def load_settings(ws: Path) -> dict[str, Any]:
     from ...screening.method import MethodInvalid, effective_method
 
     settings = _stored_settings(ws)
+    # H-close-side-doors: a workspace that stored "ai_agreed_exclusion" before it was
+    # refused reads as what happened: every record was seen by the reviewer.
+    settings["mode"] = "human_sees_every_record"
     try:
         method = effective_method(ws)
     except MethodInvalid as exc:
@@ -589,19 +592,21 @@ def put_settings(body: SettingsBody, request: Request) -> dict[str, Any]:
         update.pop("blinding", None)  # the same value: nothing to record
     if update.get("blinding") not in (None, "reveal_after_decision", "show"):
         raise _error(422, "INVALID_OUTPUT", "blinding must be reveal_after_decision or show")
-    if update.get("mode") not in (None, "human_sees_every_record", "ai_agreed_exclusion"):
-        raise _error(422, "INVALID_OUTPUT", "mode must be human_sees_every_record or ai_agreed_exclusion")
+    # H-close-side-doors (2026-11-23): AI-agreed exclusion is refused. No code acts on
+    # it (the agent never excludes a record by itself), so turning it on would only
+    # change what the methods text claims. The field stays for the screens that read it.
+    if update.get("mode") == "ai_agreed_exclusion":
+        raise _error(
+            422,
+            "INVALID_OUTPUT",
+            "AI-agreed exclusion is not available: nothing acts on it, and every record is seen by the reviewer",
+        )
+    if update.get("mode") not in (None, "human_sees_every_record"):
+        raise _error(422, "INVALID_OUTPUT", "mode must be human_sees_every_record")
     if update.get("advance_on_decide") not in (None, *ADVANCE_MODES):
         raise _error(422, "INVALID_OUTPUT", f"advance_on_decide must be one of {ADVANCE_MODES}")
     if update.get("queue_order") not in (None, *QUEUE_ORDERS):
         raise _error(422, "INVALID_OUTPUT", f"queue_order must be one of {QUEUE_ORDERS}")
-    if update.get("mode") == "ai_agreed_exclusion" and current["mode"] != "ai_agreed_exclusion":
-        if not body.confirm_ai_agreed_exclusion or not update.get("sample_audit_size", current["sample_audit_size"]):
-            raise _error(
-                422,
-                "INVALID_OUTPUT",
-                "AI-agreed exclusion needs confirm_ai_agreed_exclusion=true and a sample_audit_size",
-            )
     if not update:
         return current  # nothing changed (e.g. the protocol's own blinding value repeated)
     new = {**_stored_settings(ws), **update}

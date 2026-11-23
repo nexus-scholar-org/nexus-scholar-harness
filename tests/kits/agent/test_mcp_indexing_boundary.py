@@ -114,7 +114,6 @@ PRE_EXISTING_TOOLS = frozenset(
         "nexus_discover",
         "nexus_dedup",
         "nexus_screen",
-        "nexus_screen_llm",
         "nexus_pipeline_run",
         "nexus_extract_pdf",
         "nexus_rag_index",
@@ -756,7 +755,7 @@ def test_e3_neg_040_e3_adds_no_tool_and_drops_none():
     registered = _registered_tool_names()
     assert PRE_EXISTING_TOOLS <= registered
     assert registered == PRE_EXISTING_TOOLS | M1A_SCREENING_TOOLS | M10C_ASSISTANT_TOOLS
-    assert len(registered) == 32
+    assert len(registered) == 31  # H-close-side-doors removed nexus_screen_llm
 
 
 def _help_text() -> str:

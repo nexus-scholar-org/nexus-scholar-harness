@@ -1,18 +1,10 @@
-"""Screening decision writer (SPECS §3, §7, §8).
+"""Screening read routes (UI-07) and the protected screening actions.
 
-`POST /api/v1/screening/batch/{n}/decisions` writes the canonical
-`batch_NNN_decisions.json` in the §7 wrapper shape the agent handoff expects:
-
-    {"batch": n, "decisions": [...], "reviewed_by": "...", "timestamp": "..."}
-
-Dual-compatibility: each decision accepts `study_id` or `workspace_id`, and
-`cmd_collect` (agent_screen.py) accepts both the wrapper and the legacy raw
-array, so GUI-written and agent-written files stay interchangeable.
-
-All writes are atomic: `<file>.tmp-<uuid>` then `os.replace`, followed by one
-append-only audit journal event (SPECS §8). A posted subset is merged by
-`workspace_id`; sibling records and fields the request did not set are
-preserved, so a one-record browser draft cannot erase the rest of the batch.
+H-close-side-doors (2026-11-23): the old `POST /api/v1/screening/batch/{n}/decisions`
+route is removed. It wrote `batch_NNN_decisions.json` directly with a caller-set
+`method`, around the decision ledger; the web app no longer called it. Decisions
+are recorded only by `POST /api/v1/screening/decisions/events` (the ledger,
+`screening_v1.py`), which accepts only a human decision.
 """
 
 from __future__ import annotations
@@ -20,14 +12,12 @@ from __future__ import annotations
 import json
 import logging
 import uuid
-from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
 from fastapi import APIRouter, HTTPException, Request
-from pydantic import BaseModel, ConfigDict, field_validator
+from pydantic import BaseModel, ConfigDict
 
-from ...workspace.atomic import replace_with_retry
 from ...screening.criteria import file_sha256 as criteria_amendments_sha256
 from .audit import log_event
 
@@ -35,234 +25,10 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/v1/screening", tags=["screening"])
 
-_DECISION_CODES = ("INCLUDE", "EXCLUDE", "MAYBE")  # MAYBE: Unclear → full text (M1a)
-_CONFIDENCE_WORDS = {"high": 0.9, "medium": 0.7, "low": 0.5}
-
-
-class Decision(BaseModel):
-    model_config = ConfigDict(extra="ignore")
-
-    workspace_id: str | None = None
-    study_id: str | None = None
-    decision: str
-    # CON-11: no invented confidence. A human decision carries none.
-    confidence: float | str | None = None
-    # CON-11: the console is the human draft writer, so rows are HUMAN unless
-    # the caller says otherwise (an agent posting through it must say LLM).
-    method: str = "HUMAN"
-    matched_inclusion_criteria: list[str] = []
-    violated_exclusion_criteria: list[str] = []
-    relevant_rqs: list[str] = []
-    screening_reasoning: str = ""
-
-    @field_validator("decision")
-    @classmethod
-    def _decision_upper(cls, v: str) -> str:
-        raw = (v or "").strip().upper()
-        if raw not in _DECISION_CODES:
-            raise ValueError(f"decision must be INCLUDE, EXCLUDE or MAYBE, got {v!r}")
-        return raw
-
-    @property
-    def resolved_id(self) -> str:
-        return self.workspace_id or self.study_id or ""
-
-    def to_record(self) -> dict[str, Any]:
-        confidence = self.confidence
-        if isinstance(confidence, str):
-            confidence = _CONFIDENCE_WORDS.get(confidence.strip().lower())
-        c = None if confidence is None else float(confidence)
-        if c is not None and not 0 <= c <= 1:
-            raise ValueError(f"confidence must be in [0,1], got {confidence!r}")
-        return {
-            "workspace_id": self.resolved_id,
-            "decision": self.decision,
-            "method": self.method.strip().upper(),
-            "confidence": c,
-            "matched_inclusion_criteria": list(self.matched_inclusion_criteria),
-            "violated_exclusion_criteria": list(self.violated_exclusion_criteria),
-            "relevant_rqs": list(self.relevant_rqs),
-            "screening_reasoning": self.screening_reasoning
-            or f"{self.decision.lower()} during console verification review",
-        }
-
-
-class DecisionsBody(BaseModel):
-    model_config = ConfigDict(extra="ignore")
-
-    batch: int | None = None
-    decisions: list[Decision]
-    reviewed_by: str = "console"
-    timestamp: str | None = None
-
-
-def _batch_file(ws: Path, n: int) -> Path:
-    return ws / "literature" / "screening" / f"batch_{n:03d}.json"
-
-
-def _atomic_write_json(path: Path, payload: Any) -> None:
-    tmp = path.with_name(path.name + f".tmp-{uuid.uuid4().hex[:8]}")
-    tmp.write_text(
-        json.dumps(payload, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
-    )
-    replace_with_retry(tmp, path)
-
-
-@router.post("/batch/{n}/decisions", status_code=200)
-def post_batch_decisions(
-    body: DecisionsBody, n: int, request: Request
-) -> dict[str, Any]:
-    ws: Path = request.app.state.workspace
-    batch_path = _batch_file(ws, n)
-    if not batch_path.is_file():
-        raise HTTPException(
-            status_code=404,
-            detail=f"missing file: literature/screening/batch_{n:03d}.json",
-        )
-
-    batch = json.loads(batch_path.read_text(encoding="utf-8"))
-    known_ids = {str(p.get("workspace_id", "")) for p in batch.get("papers", [])}
-    known_ids.discard("")
-
-    if body.batch is not None and body.batch != n:
-        raise HTTPException(
-            status_code=400,
-            detail=f"body batch={body.batch} disagrees with path batch={n}",
-        )
-
-    if not body.decisions:
-        raise HTTPException(status_code=400, detail="decisions list must not be empty")
-
-    records: list[dict[str, Any]] = []
-    unknown: list[str] = []
-    received_at = datetime.now(UTC).isoformat()
-    for dec in body.decisions:
-        try:
-            record = dec.to_record()
-        except ValueError as exc:
-            raise HTTPException(
-                status_code=422, detail=f"invalid decision: {exc}"
-            ) from exc
-        if record["workspace_id"] not in known_ids:
-            unknown.append(record["workspace_id"])
-        # CON-11: every row carries who decided and when; the time is the
-        # caller's, else the moment the console received it, never 1970.
-        record["screener_id"] = body.reviewed_by
-        record["decided_at"] = body.timestamp or received_at
-        records.append(record)
-
-    if unknown:
-        raise HTTPException(
-            status_code=422,
-            detail=f"decisions reference unknown workspace_ids (not in batch {n}): {sorted(set(unknown))}",
-        )
-
-    decisions_file = ws / "literature" / "screening" / f"batch_{n:03d}_decisions.json"
-
-    # Merge, never truncate. The route is the sanctioned *draft* writer
-    # (UI-07_ACTION_SPEC §1/§6) and a browser reviewer saves one record at a
-    # time; replacing the file with that single record would silently discard
-    # every other review in the batch. Posted records upsert by workspace_id
-    # and only the fields the caller actually set are overwritten, so a
-    # one-row save keeps its siblings' criteria refs and confidence intact.
-    # Posting the complete batch (the agent path) is unchanged in effect.
-    merged: list[dict[str, Any]] = []
-    if decisions_file.is_file():
-        try:
-            prior = json.loads(decisions_file.read_text(encoding="utf-8"))
-        except (OSError, ValueError) as exc:
-            raise HTTPException(
-                status_code=422,
-                detail=(
-                    f"existing {decisions_file.name} is unreadable; "
-                    "refusing to overwrite it"
-                ),
-            ) from exc
-        raw_prior = prior.get("decisions") if isinstance(prior, dict) else prior
-        if not isinstance(raw_prior, list):
-            raise HTTPException(
-                status_code=422,
-                detail=(
-                    f"existing {decisions_file.name} does not carry a decisions list; "
-                    "refusing to overwrite it"
-                ),
-            )
-        merged = [dict(entry) for entry in raw_prior if isinstance(entry, dict)]
-
-    index = {
-        str(entry.get("workspace_id", "")): position
-        for position, entry in enumerate(merged)
-        if entry.get("workspace_id")
-    }
-    mergeable = (
-        "decision",
-        "confidence",
-        "matched_inclusion_criteria",
-        "violated_exclusion_criteria",
-        "relevant_rqs",
-        "screening_reasoning",
-    )
-    for dec, record in zip(body.decisions, records):
-        workspace_id = record["workspace_id"]
-        position = index.get(workspace_id)
-        if position is None:
-            index[workspace_id] = len(merged)
-            merged.append(record)
-            continue
-        explicit = dec.model_fields_set
-        for key in mergeable:
-            if key in explicit:
-                merged[position][key] = record[key]
-        # CON-11: provenance describes this save, so it is always restamped.
-        for key in ("method", "screener_id", "decided_at"):
-            merged[position][key] = record[key]
-
-    timestamp = body.timestamp or datetime.now(UTC).isoformat()
-    payload = {
-        "batch": n,
-        "decisions": merged,
-        "reviewed_by": body.reviewed_by,
-        "timestamp": timestamp,
-    }
-
-    _atomic_write_json(decisions_file, payload)
-
-    inc = sum(1 for r in merged if r.get("decision") == "INCLUDE")
-    exc = sum(1 for r in merged if r.get("decision") == "EXCLUDE")
-    posted_inc = sum(1 for r in records if r["decision"] == "INCLUDE")
-    posted_exc = len(records) - posted_inc
-    log_event(
-        workspace=ws,
-        action="SCREEN_DECISIONS",
-        description=(
-            f"Saved {len(records)} screening decisions for batch {n} "
-            f"({posted_inc} INCLUDE / {posted_exc} EXCLUDE); "
-            f"draft now holds {len(merged)}"
-        ),
-        inputs=[batch_path.name],
-        outputs=[decisions_file.name],
-        parameters={
-            "batch": n,
-            "reviewed_by": body.reviewed_by,
-            "posted": len(records),
-            "merged": len(merged),
-        },
-        metrics={"included": inc, "excluded": exc, "total": len(merged)},
-    )
-
-    return {
-        "batch": n,
-        "decisions_written": len(records),
-        "decisions_total": len(merged),
-        "decisions_file": decisions_file.name,
-    }
-
-
 # ---------------------------------------------------------------------------
 # UI-07 screening presentation shapes (HCM-06 read side; GET only).
 #
-# The POST decisions route above is untouched: it keeps writing draft
-# decision files only. Everything below is a pure read over the workspace
+# Everything below is a pure read over the workspace
 # bound at app state, serving the UI-07 presentation spec §§3-5 shapes:
 #
 # * GET /ui/batches                        §3(b) screening batches envelope
@@ -857,11 +623,10 @@ def _ui07_batch_review(ws: Path, n: int) -> dict[str, Any]:
 # Action routes live under `/actions/` — clearly distinct from the `/ui/`
 # read routes above. The five operations of the action spec (§1) map as:
 #
-# * draft capture / override-as-draft — REUSE of the existing
-#   `POST /api/v1/screening/batch/{n}/decisions` route, which writes draft
-#   decision files only. There is deliberately NO `/actions/drafts` route:
-#   a second writer would be a second approval-shaped surface to review, so
-#   the reuse is documented here and pinned by test (unknown route → 404).
+# * draft capture / override-as-draft — the old batch decisions route that
+#   served it was removed (H-close-side-doors, 2026-11-23); decisions go
+#   through the ledger (`POST /decisions/events`). There is deliberately NO
+#   `/actions/drafts` route either (pinned by test: unknown route → 404).
 # * approval request — `POST /actions/pairing/redeem` (this section). There
 #   is deliberately NO mint/create pairing route: challenge creation is the
 #   terminal-side `pairing.begin_pairing` act (`approve --begin` semantics)

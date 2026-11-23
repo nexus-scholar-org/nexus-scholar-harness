@@ -32,7 +32,6 @@ import pytest
 
 from scholar_harness.authority import AuthorityRefused
 from scholar_harness.contracts import AcceptanceContext, accept_artifact
-from scholar_harness.console.api.screening import DecisionsBody
 from scholar_harness.screening.batcher import cmd_prepare
 from scholar_harness.screening.collector import cmd_collect
 from scholar_harness.screening.integrity import (
@@ -486,26 +485,3 @@ def test_unresolved_conflict_is_refused_never_coerced_to_exclude(
     check_no_unresolved_for_finalize([{**entry, "decision": "MAYBE"}])
 
 
-def test_console_decisions_body_accepts_any_reviewed_by_string() -> None:
-    """AG-01 console boundary: ``reviewed_by`` is unauthenticated metadata.
-
-    The console writer validates batch membership, but the ``reviewed_by``
-    attribution on the validated body is an arbitrary free string — the same
-    forgery available to any file writer.
-    """
-    body = DecisionsBody.model_validate(
-        {
-            "batch": 1,
-            "reviewed_by": "professor-x",
-            "decisions": [
-                {
-                    "workspace_id": "STU-synthetic-001",
-                    "decision": "INCLUDE",
-                    "confidence": 0.9,
-                    "screening_reasoning": "Console-shaped forgery.",
-                }
-            ],
-        }
-    )
-    assert body.reviewed_by == "professor-x"
-    assert body.decisions[0].resolved_id == "STU-synthetic-001"
