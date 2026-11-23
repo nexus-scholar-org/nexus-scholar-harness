@@ -283,6 +283,17 @@ describe("review 1: a late draft never lands on another record", () => {
 });
 
 describe("review 2: show mode names the draft that was on screen", () => {
+  it("sends proposal_shown with revealed_after_decision false for a first decision made with the draft on screen", async () => {
+    // The export reads this first event to count decisions made with the draft visible (screening/export.py).
+    engine.blinding = "show";
+    await ready();
+    await waitFor(() => expect(screen.getByTestId("proposal-aside")).toHaveTextContent("Not a decision"));
+    answerAll();
+    fireEvent.click(screen.getByRole("button", { name: /^Include/ }));
+    await waitFor(() => expect(postedEvents()).toHaveLength(1));
+    expect(postedEvents()[0].proposal_shown).toEqual({ proposal_id: "PRP-1", revealed_after_decision: false });
+  });
+
   it("sends proposal_shown null when no draft was on screen", async () => {
     await ready();
     answerAll();
