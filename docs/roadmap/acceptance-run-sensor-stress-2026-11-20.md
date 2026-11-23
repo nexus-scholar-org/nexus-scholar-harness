@@ -180,17 +180,17 @@ So 996 of the 1,062 decisions (94%) were not read individually, and 443 records 
 
 | # | Where | Finding | Severity | State |
 | :-- | :-- | :-- | :-- | :-- |
-| 43 | Screening, Agreement | With decisions adopted in bulk from the agent's drafts, Agreement reports 99.9% agreement and "You saw every record. No sample needed." The agreement is the agent's with itself, and the sample is exactly what is owed (follows from finding 40) | P2 | Open |
-| 44 | Screening, Publish | The check "Every decision is a human decision" passes for the same decisions, immediately before publication | P2 | Open (with 43) |
-| 45 | Screening, Publish | After "Publish the screening" the button only greys out; "Published" appears at the top of a long page, out of sight | P3 | Open |
-| 46 | Screening, Prepare | "Pilot your criteria first… while little is decided" is offered, with a bright button, on a review whose every record is decided; the card sits under a list of 54 batch file names | P3 | Open |
-| 47 | Screening home, the pilot page | The first paint is almost blank for 6 to 15 seconds on this workspace (one line of grey text) | P3 | Open |
-| 48 | Charting | The top menu shows "Charting" only once screening is published; before that the screen is reachable only by its address | P4 | Open |
-| 49 | Charting, one study | The first kept study has no abstract, yet was included at title and abstract with no note (a bulk adoption); how many of the 443 are like it was not counted | P3 | Open |
-| 50 | Charting, Full text view | Rows are tall, about five to a screen at 1440 by 900, for 443 studies | P4 | Open |
-| 51 | Charting, form panel | Over the Definition box the mouse wheel scrolls the box, not the panel | P4 | Open |
-| 52 | Charting | One request answered 422 while the page loaded; which one was not found | P4 | Open, not investigated |
-| 53 | Inception, step 5 | "A few answers are still missing" and, directly under it, "The engine needs these answers first" say the same thing | P4 | Open |
+| 43 | Screening, Agreement | With decisions adopted in bulk from the agent's drafts, Agreement reports 99.9% agreement and "You saw every record. No sample needed." The agreement is the agent's with itself, and the sample is exactly what is owed (follows from finding 40) | P2 | Being built: `H-adopted-decisions-disclosure` (started 2026-11-23) |
+| 44 | Screening, Publish | The check "Every decision is a human decision" passes for the same decisions, immediately before publication | P2 | Being built (with 43) |
+| 45 | Screening, Publish | After "Publish the screening" the button only greys out; "Published" appears at the top of a long page, out of sight | P3 | To fix (researcher, 2026-11-23): a "Published" line with the counts and the date beside the button, and the page scrolls to the top status |
+| 46 | Screening, Prepare | "Pilot your criteria first… while little is decided" is offered, with a bright button, on a review whose every record is decided; the card sits under a list of 54 batch file names | P3 | To fix (2026-11-23): the pilot card only while few records are decided, then one quiet line; the batch file list folds to a count with "show all" |
+| 47 | Screening home, the pilot page | The first paint is almost blank for 6 to 15 seconds on this workspace (one line of grey text) | P3 | Fixed on `main` by `H-screening-read-performance` (PR 296); not yet looked at in a browser on this review |
+| 48 | Charting | The top menu shows "Charting" only once screening is published; before that the screen is reachable only by its address | P4 | To fix (2026-11-23): "Charting" always in the menu; before publication it opens a page that says so, with a link to Publish |
+| 49 | Charting, one study | The first kept study has no abstract, yet was included at title and abstract with no note (a bulk adoption); how many of the 443 are like it was not counted | P3 | The label is being built with 43; the count of such studies is still not made |
+| 50 | Charting, Full text view | Rows are tall, about five to a screen at 1440 by 900, for 443 studies | P4 | To fix (2026-11-23): compact rows |
+| 51 | Charting, form panel | Over the Definition box the mouse wheel scrolls the box, not the panel | P4 | To fix (2026-11-23): the panel scrolls unless the box has the focus |
+| 52 | Charting | One request answered 422 while the page loaded; which one was not found | P4 | To investigate and fix or explain (2026-11-23) |
+| 53 | Inception, step 5 | "A few answers are still missing" and, directly under it, "The engine needs these answers first" say the same thing | P4 | To fix (2026-11-23): keep one sentence |
 
 Not seen in this walk: Inception's "How you will screen" (the old draft opened has unanswered questions), French, Arabic, the light theme, and any charting action that writes.
 
