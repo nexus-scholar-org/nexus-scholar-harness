@@ -39,7 +39,6 @@ def _target(ws: Path, escape: str, name: str) -> str:
 
 WRITERS = [
     ("dedup", lambda ws, out: server.nexus_dedup("in.json", out("out.json"))),
-    ("graph_build", lambda ws, out: server.nexus_graph_build("in.json", out("g.html"), out("g.json"))),
     ("screen", lambda ws, out: server.nexus_screen("in.json", "in.json", out("lit"))),
     ("extract_pdf", lambda ws, out: server.nexus_extract_pdf("in.json", out("extracted"))),
 ]

@@ -116,6 +116,8 @@ def _spec(command: list[str]) -> dict:
         # H-remove-rag-verify: the removed kits' commands are no longer allowed.
         ["scholar-rag", "matrix"],
         ["scholar-verify", "risk-of-bias"],
+        # H-remove-graph: so is the citation graph's.
+        ["scholar-graph", "build"],
     ],
 )
 def test_pipeline_commands_outside_the_allowlist_are_invalid(command):
@@ -128,7 +130,6 @@ def test_pipeline_commands_outside_the_allowlist_are_invalid(command):
     [
         ["scholar-search", "run"],
         ["scholar-pdf", "download"],
-        ["scholar-graph", "build"],
         ["python", "src/scholar_harness/agent_screen.py", "prepare"],
     ],
 )

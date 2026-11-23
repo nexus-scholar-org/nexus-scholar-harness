@@ -136,8 +136,9 @@ def test_three_recon_tools_registered_on_mcp():
     # ``nexus_pdf_acquire`` + the WP01-E2 declared-unsupported extraction-boundary
     # tool ``nexus_pdf_extraction``), plus the 3 recon_* tools asserted above.
     # M10c added the five nexus_assistant_* tools; H-remove-rag-verify removed seven;
-    # H-close-side-doors removed nexus_screen_llm.
-    assert len(names) == 24
+    # H-close-side-doors removed nexus_screen_llm; H-remove-graph removed the
+    # two graph tools.
+    assert len(names) == 22
     assert "nexus_discover" in names
 
 

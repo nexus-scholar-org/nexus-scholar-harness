@@ -73,13 +73,6 @@ SKILL_CONTRACTS: dict[str, dict[str, Any]] = {
         "layer": "domain",
         "base_variables": ["CLI", "CONFIG", "WORKSPACE", "SKILL_DIR"],
     },
-    "scholar-graph-kit": {
-        "applies_to": ["inception-agent"],
-        "requires": ["scholar-graph"],
-        "returns": "json",
-        "layer": "domain",
-        "base_variables": ["CLI", "CONFIG", "WORKSPACE", "SKILL_DIR"],
-    },
     "workspace-manager": {
         "applies_to": ["orchestrator", "inception-agent"],
         "requires": [],
@@ -145,7 +138,6 @@ def _frontmatter_block(name: str, text: str) -> str:
             "scholar-search-kit": "Federated academic search, deduplication, verification, screening batches, and export across OpenAlex, Crossref, PubMed, arXiv, and bioRxiv.",
             "scholar-pdf-kit": "Open Access discovery, resilient download, magic-byte validation, and fulltext extraction with YAML frontmatter.",
             "scholar-protocol-kit": "Deterministic research-protocol compilation, validation, fingerprinting, and criteria rendering.",
-            "scholar-graph-kit": "Citation knowledge networks, normalized PageRank, and interactive HTML graphs.",
             "workspace-manager": "Workspace routing, batch operations, audit journal logging, and catalog synchronization.",
             "inception-agent": "Grounded exploratory inception: probe the literature, distill directions, and scaffold a protocol-bound workspace.",
             "methodology-copilot": "Socratic methodology guidance from paradigm selection to rigor criteria.",

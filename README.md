@@ -11,13 +11,13 @@ Nexus helps you define a protocol, discover literature, work through screening a
 
 ## What you can use today
 
-The `nexus-scholar` package bundles the harness, five scientific kits and an MCP server. Initialize a local workspace, inspect its environment, record events and generate configuration for an AI host. Scientific capabilities have different dependencies and acceptance requirements; installation alone does not establish a completed review.
+The `nexus-scholar` package bundles the harness, four scientific kits and an MCP server. Initialize a local workspace, inspect its environment, record events and generate configuration for an AI host. Scientific capabilities have different dependencies and acceptance requirements; installation alone does not establish a completed review.
 
 | Surface | Available / intended use | Boundary |
 |---|---|---|
 | Screening app (`nexus-scholar ui`), beta | Workspaces, creating a workspace in the browser (Inception: Scope, Explore, Direction, Shape, Concepts and criteria with the query workbench, Review, Done), searching the free databases (Discovery: Plan, Recall, Harvest, Import, Duplicates, Report, Hand-off, Chase), RIS and PubMed `.nbib` imports deduplicated with a harvest in one corpus, title and abstract screening with an optional criteria pilot, optional AI drafts, the declaration of decisions stored from drafts, approval, publication, RIS/CSV export, methods paragraph; since `1.1.0b7` the Charting step (full-text status and decision, attached PDFs, an open-access look-up, the charting form, a spreadsheet export) | One reviewer, desktop only, RIS and PubMed `.nbib` imports; most of the `1.1.0b7` additions were used only on test data; see the [release notes](docs/releases/1.1.0b7.md) and the [beta page](docs/beta/README.md) |
 | CLI/MCP toolkit | Workspace setup, a search of the free databases with per-database records (`scholar-harness run`), the same import and screening steps from a terminal, and scientific tool access for an AI host | Follow the versioned user guide and supported tool surfaces. A live search needs `SCHOLAR_MAILTO` and, for OpenAlex, `SCHOLAR_OPENALEX_KEY` |
-| Reading PDF text, extraction, graph | Kits in the package | Parked: not production, labelled so in `--help`. `scholar-pdf download` and `ingest` are production since `1.1.0b7`. Synthesis and verification (`scholar-rag`, `scholar-verify`) were removed on 2026-11-23 |
+| Reading PDF text and extraction | Kits in the package | Parked: not production, labelled so in `--help`. `scholar-pdf download` and `ingest` are production since `1.1.0b7`. Synthesis and verification (`scholar-rag`, `scholar-verify`) were removed on 2026-11-23, the citation graph (`scholar-graph`) after `1.1.0b7` |
 | Development branch (`main`) | Work after `1.1.0b7`, not tagged | May differ from the installed release |
 
 The latest release is the beta [v1.1.0b7](https://github.com/nexus-scholar-org/nexus-scholar-harness/releases/tag/v1.1.0b7) ([release notes](docs/releases/1.1.0b7.md); previous: [1.1.0b6](docs/releases/1.1.0b6.md), [1.1.0b5](docs/releases/1.1.0b5.md), [1.1.0b4](docs/releases/1.1.0b4.md), [1.1.0b3](docs/releases/1.1.0b3.md)) (a pre-release, also on PyPI). Later work on `main` is not a claim about that release's behavior.
@@ -82,7 +82,6 @@ See the [AG record](docs/architecture/agent-controls/README.md), [evidence bound
 | Protocol | Compile and validate research intent/protocols |
 | Search | Discovery, deduplication, metadata and screening support |
 | PDF | Full-text acquisition and extraction |
-| Graph | Citation networks and graph analysis |
 | Agent | MCP tool interfaces |
 
 Kits own scientific operations. The harness coordinates workspaces, accepted evidence, audit, pipelines and interfaces. CLI, MCP and UI use shared services rather than separate research engines. MCP does not expose every authoritative operation; some acquisition/extraction boundaries explicitly refuse unsupported access. A convenience output is not automatically an accepted scientific artifact.
@@ -98,7 +97,7 @@ uv sync --extra dev --extra pdf
 uv run pytest
 ```
 
-The harness and the five kits are one package: `uv sync` installs all of them editable from `src/`, with every CLI. Kit code is changed in `src/scholar_<kit>/` like any other code, in one PR.
+The harness and the four kits are one package: `uv sync` installs all of them editable from `src/`, with every CLI. Kit code is changed in `src/scholar_<kit>/` like any other code, in one PR.
 
 Contributions go through a fork and PR to this repository. Select checks from the [test-gate policy](docs/architecture/test_gate_policy.md): ordinary prose uses a light gate; consumed documents and executable changes retain required checks. Candidate-specific evidence replaces static test totals. CI badges describe configured checks, not automatic proof that every scientific workflow or the full local pytest suite passed.
 

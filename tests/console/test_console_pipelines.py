@@ -105,18 +105,9 @@ def test_harvest_corpus(tmp_path):
     assert all(p["size_bytes"] > 0 for p in body["pdfs"])
 
 
-def test_assets_graph_serves_html(tmp_path):
+def test_assets_graph_route_is_gone(tmp_path):
+    """H-remove-graph: the console no longer serves a citation graph page."""
     ws = _bootstrap(tmp_path)
-    client = TestClient(create_app(ws))
-    r = client.get("/api/v1/assets/graph")
-    assert r.status_code == 200
-    assert r.headers["content-type"] == "text/html; charset=utf-8"
-    assert "<body>graph</body>" in r.text
-
-
-def test_assets_graph_missing_404(tmp_path):
-    ws = _bootstrap(tmp_path)
-    (ws / "literature" / "knowledge_graph.html").unlink()
     client = TestClient(create_app(ws))
     assert client.get("/api/v1/assets/graph").status_code == 404
 
