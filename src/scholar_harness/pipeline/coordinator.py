@@ -2,9 +2,9 @@
 
 Owns the ``run_pipeline_async`` orchestration glue moved verbatim from
 ``ResearchOrchestrator.run_pipeline_async`` (:510-780) so the orchestrator
-delegates without behavior change. All 9 stages were already neutral
+delegates without behavior change. The stages were already neutral
 (HCM-04b..04k); this moves only the glue: protocol load/validate, directory
-setup, Stage 1-9 delegation in order, the Stage-4 collect-gate + PAUSE audit,
+setup, stage delegation in order (Stages 1-5 since H-remove-graph), the Stage-4 collect-gate + PAUSE audit,
 the Stage-10 COMPLETED audit, status propagation, and no-fabrication
 returns.
 
@@ -935,7 +935,7 @@ async def run_pipeline(
     """Execute the research workflow from protocol to full-text extraction.
 
     Verbatim move of ``ResearchOrchestrator.run_pipeline_async`` (:517-780):
-    protocol load/validate, directory setup, Stage 1-9 delegation in order,
+    protocol load/validate, directory setup, Stage 1-5 delegation in order,
     Stage-4 collect-gate + PAUSE audit, Stage-10 COMPLETED audit, status
     propagation, and no-fabrication returns.
 
@@ -1277,7 +1277,7 @@ async def run_pipeline(
                 status=_ledger_status(results),
             )
             return results
-        # Local binding retained: Stage 4 reports this count; Stages 5-9 gate
+        # Local binding retained: Stage 4 reports this count; Stage 5 gates
         # on the collect handoff below.
         total_batches = preparation_outcome.total_batches
 
@@ -1287,7 +1287,7 @@ async def run_pipeline(
         "papers_to_screen": len(verified_docs),
     }
     emit_stage("screening_prepare", "DONE", {"batch_files_prepared": total_batches})
-    # Stages 5-9 require the PRISMA collect handoff to have run. Without
+    # Stage 5 (extraction) requires the PRISMA collect handoff to have run. Without
     # literature/included.json the pipeline must stop, never fabricate output.
     inc_file = lit_dir / "included.json"
     if not inc_file.exists():
@@ -1312,9 +1312,9 @@ async def run_pipeline(
         )
         return results
 
-    # AG-03C currentness gate: stages 5-9 run only on a CURRENT generation; a
+    # AG-03C currentness gate: Stage 5 runs only on a CURRENT generation; a
     # stale/mismatched generation (including the MISMATCHED a deleted
-    # generation reports when authorized material survives it) keeps them
+    # generation reports when authorized material survives it) keeps it
     # SKIPPED/PENDING with an explicit reason naming the status (never a
     # silent pass, never consumption of a superseded run). A true-legacy
     # workspace (migration exception 2026-10-13, bounded — see the AG-03C
@@ -1353,7 +1353,7 @@ async def run_pipeline(
             "scholar-harness",
             "Pipeline paused: screening publication is not a current "
             f"authorized generation ({_generation_reason}); re-collect under "
-            "an authorized generation before stages 5-9"
+            "an authorized generation before the extraction stage"
             f"{_pipeline_note(results)}",
             [str(p_path)],
             [str(lit_dir / "screening")],

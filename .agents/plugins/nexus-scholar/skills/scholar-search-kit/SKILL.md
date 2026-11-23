@@ -195,7 +195,7 @@ async def main():
     verifier = DocumentVerifier()
     processed_docs, audit = await verifier.process_batch(unique_docs, verify=True, enrich=True)
 
-    # 5. Export for downstream PDF harvesting and graph building
+    # 5. Export for downstream PDF harvesting
     exporter = Exporter()
     exporter.json(processed_docs, "{WORKSPACE}/literature/verified.json")
 

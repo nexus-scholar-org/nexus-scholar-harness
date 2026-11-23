@@ -806,7 +806,8 @@ def test_abort_path_keeps_the_successful_stage_mapping_shape(tmp_path, monkeypat
 
     Before the repair an aborted run published
     ``stages.deduplication == {"status": "SKIPPED", ...}`` and
-    a name that does not exist on the successful path, so a consumer reading
+    ``stages.graph`` (a name that does not exist on the successful path; the
+    graph stage itself was removed in H-remove-graph), so a consumer reading
     ``stages.deduplication["unique"]`` hit a ``KeyError``.
     """
     _stub_coordinator(monkeypatch)

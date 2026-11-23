@@ -95,9 +95,7 @@ Every project in `{WORKSPACE}/` adheres to this layout:
 │   ├── included.json          # Final screened include set
 │   ├── excluded.json          # Screened-out records + reasons
 │   ├── screening/             # batch_NNN.json + batch_NNN_decisions.json
-│   ├── prisma_screening_report.md   # PRISMA 2020 flow
-│   ├── graph.html             # PyVis interactive citation network visualization
-│   └── graph.json             # Node-link graph topology & PageRank weights
+│   └── prisma_screening_report.md   # PRISMA 2020 flow
 ├── pdfs/                      # Downloaded PDFs & download_summary.json
 ├── extracted/                 # Markdown with YAML frontmatter
 ├── synthesis/                 # Literature review, claims, dynamic synthesis matrices
@@ -110,7 +108,7 @@ Every project in `{WORKSPACE}/` adheres to this layout:
 ## Event Logging (Append-Only Audit Trail)
 
 ### Single Events
-After executing any major step (Search, Dedup, Verify, Screen, PDF Download, Extraction, Graph, Matrix, Synthesis), log the action:
+After executing any major step (Search, Dedup, Verify, Screen, PDF Download, Extraction), log the action:
 
 ```bash
 {PY} {SKILL_DIR:workspace-manager}/scripts/log_event.py <project-slug> \

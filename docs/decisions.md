@@ -23,7 +23,7 @@ Record: `docs/roadmap/milestones/H-remove-graph.md`. The removal itself is the r
 
 1. **The pipeline result and the summaries drop the graph stage** rather than reporting it as skipped: `nexus-scholar run` and `nexus_pipeline_run` no longer carry `graph_nodes`, the run summary no longer prints "Graph Nodes", `nexus-scholar status` no longer prints "Citation Graph Nodes". The status JSON keeps its `graph_nodes` key, read from an old workspace's `knowledge_graph.json`. *Proposed:* as built, the same rule as H-remove-rag-verify's item 3. *Alternative:* report the stage as `SKIPPED` with a reason for one release.
 2. **A stored pipeline spec with a `scholar-graph` node is refused** at validation (`COMMAND_NOT_ALLOWED`), and the console's `/api/v1/assets/graph` route is gone (404). *Proposed:* as built (the command no longer exists; the web app never called the route). *Alternative:* keep the allowlist entry and let such a node fail when run.
-3. **The 1.1.0b7 release note**, if this lands before the tag, must say: the `scholar-graph` command, the MCP tools `nexus_graph_build` and `nexus_graph_narrative` (22 tools remain), the pipeline's graph stage and its `knowledge_graph.json`/`.html` outputs, the console's `graph` and `graph_narrative` actions and `/api/v1/assets/graph`, and the `scholar-graph-kit` skill are removed; `networkx`, `pyvis` and `scipy` are no longer installed with the base package (`networkx` and `numpy` still come with `[pdf]`, `scipy` with `[extract]`). *Proposed:* those lines. *Alternative:* a shorter note naming only the command and the two tools.
+3. **The 1.1.0b7 release note**, if this lands before the tag, must say: the `scholar-graph` command, the MCP tools `nexus_graph_build` and `nexus_graph_narrative` (22 tools remain), the pipeline's graph stage and its `knowledge_graph.json`/`.html` outputs, the console's `graph` and `graph_narrative` actions and `/api/v1/assets/graph`, and the `scholar-graph-kit` skill are removed; `networkx`, `pyvis` and `scipy` are no longer installed with the base package (`networkx` and `numpy` still come with `[pdf]`; `networkx`, `scipy` and `numpy` with `[extract]`). *Proposed:* those lines. *Alternative:* a shorter note naming only the command and the two tools.
 
 **Choices made in the build** (for the reviewer)
 
@@ -33,6 +33,8 @@ Record: `docs/roadmap/milestones/H-remove-graph.md`. The removal itself is the r
 7. `tests/mcp/test_mcp_tools_graph.py` keeps its name (its remaining tests cover other tools; documents cite it).
 8. `scripts/build_mcpb.py`'s bundle description now says only the full-text tools are parked (it still named rag, verify and the graph).
 9. `docs/architecture/console/SPECS.md` (a 2026-09 design record that still lists the rag and verify actions) is not edited; `lib/` (gitignored, written by pyvis) is not deleted.
+10. Two audit-journal texts changed: the `PIPELINE_RUN_COMPLETED` row's `outputs` names the `extracted/` folder (it named `literature/knowledge_graph.html`, the last stage's output), and the stale-generation pause row says "before the extraction stage" (it said "before stages 5-9"). Nothing reads either; old rows are untouched.
+11. A test keeps `networkx`, `pyvis` and `scipy` out of the base dependencies.
 
 ## 2026-11-23 — H-charting-row-layout: one line of row actions, the pinned cells carry the row (PROPOSED; item 1 open)
 

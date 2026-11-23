@@ -37,3 +37,12 @@ def test_httpcore_is_declared_because_hishel_imports_it() -> None:
     httpcore = _requirements().get("httpcore")
     assert httpcore is not None, "hishel imports httpcore; declare it, do not rely on httpx bringing it"
     assert httpcore.specifier.contains(Version("1.0.9"))
+
+
+def test_the_removed_graph_dependencies_stay_out_of_the_base_install() -> None:
+    """H-remove-graph (2026-11-23): only the citation graph used these three.
+
+    They may still arrive through an extra (PyMuPDF brings networkx, Docling
+    brings scipy), never with the base package.
+    """
+    assert not {"networkx", "pyvis", "scipy"} & set(_requirements())
