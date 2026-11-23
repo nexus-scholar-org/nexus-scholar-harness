@@ -93,7 +93,7 @@ All on this PC (Windows 11, the project venv on Python 3.14.7, synced `--extra d
 
 | Check | Head | Result |
 | :-- | :-- | :-- |
-| Full Python suite | | |
+| Full Python suite, `suite_lock.py -- uv run pytest -q -n 4 --dist worksteal -p no:cacheprovider` | working tree of `645aedf7` before its last two edits (`build_mcpb.py` text, one allowlist case, both run separately: 29 passed) | **exit 0: 5,268 passed, 15 skipped** (counted from the progress lines; the doubled `-q` hides the summary). Collected now: 5,284 (5,405 before: 101 in deleted files, 6 removed and 1 added in mixed files, about 15 parametrized cases that left with their parameter, e.g. the `graph`/`graph_narrative` action-parity cases) |
 | Targeted run of the affected areas (authority, conformance, console, agent kit, MCP, pipeline, unit, CLI, handoff, parked labels, packaging tests), `-n 4` | working tree before the docs | 3,130 passed, 7 skipped, 1 failed: the documented tool count (24) in the surface matrix, fixed with the docs; the E2 and count tests then 47 passed |
 | `ruff check scripts/`; `ruff check src/ --select F821,F811,F823,F632,F7,B023,B006,E9` | | pass |
 | `generate_contract_baseline.py --check` | | "Contract baseline current" |
