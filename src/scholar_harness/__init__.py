@@ -13,7 +13,7 @@ __all__ = ["ResearchOrchestrator", "__version__"]
 
 def __getattr__(name: str):
     # H-faster-python-tests: the orchestrator pulls in the PDF and search kits,
-    # networkx, pypdf and aiohttp (about 4 s). It is imported when first asked
+    # pypdf and aiohttp. It is imported when first asked
     # for, not by every ``import scholar_harness.<anything>``.
     if name == "ResearchOrchestrator":
         from .orchestrator import ResearchOrchestrator

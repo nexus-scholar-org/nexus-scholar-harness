@@ -36,7 +36,7 @@ app = typer.Typer(
 def _orchestrator_class():
     """The orchestrator, imported on first use (H-faster-python-tests).
 
-    It pulls in the PDF and search kits, networkx, pypdf and aiohttp (about 4 s),
+    It pulls in the PDF and search kits, pypdf and aiohttp,
     which ``--help`` and most commands never need. A module attribute
     ``ResearchOrchestrator``, set by a test's ``monkeypatch.setattr``, wins.
     """
@@ -152,7 +152,6 @@ def status(
     table.add_section()
     table.add_row("Harvested OA PDFs", f"{stat['pdfs_count']} PDFs")
     table.add_row("Extracted Markdown", f"{stat['extracted_count']} documents")
-    table.add_row("Citation Graph Nodes", f"{stat['graph_nodes']} nodes")
 
     console.print(table)
 
@@ -1170,10 +1169,6 @@ def _pipeline_summary_panel(results: object) -> tuple[Panel, str]:
                 "• Markdown Extracts: "
                 f"{_stage_count(extraction_stage, 'documents', 'extracted')}"
                 f"{_stage_note(extraction_stage)}"
-            ),
-            (
-                f"• Graph Nodes: {_stage_count(stages.get('graph_nodes'), 'nodes')}"
-                f"{_stage_note(stages.get('graph_nodes'))}"
             ),
         ]
     )

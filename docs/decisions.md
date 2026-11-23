@@ -39,6 +39,29 @@ Record: `docs/roadmap/milestones/H-workspace-format-version.md`. Source: the pro
 11. A migration step never writes the excluded folders, so restoring a copy and moving the current `pdfs/` back in gives the workspace as it was.
 12. No restore command in this work: the user guide gives the steps by hand.
 
+## 2026-11-23 — H-remove-graph: `scholar_graph` removed after 1.1.0b7 (decided by the researcher 2026-11-23, finish confirmed 2026-11-24; items 1 to 3 accepted by the researcher 2026-11-24 as built)
+
+**Accepted 2026-11-24.** The researcher accepted items 1 to 3 as built, in the coordinator session, after the build's report ("Accept, push, merge"), and approved the push, the PR and the merge at green.
+
+Record: `docs/roadmap/milestones/H-remove-graph.md`. The removal itself is the researcher's decision of 2026-11-23 in the coordinator session ("Yes, remove graph"); restore from `9af17212`. `networkx`, `pyvis` and `scipy` leave the base dependencies; PDF extraction, the capability adapter and `claims` stay.
+
+**For the researcher to decide**
+
+1. **The pipeline result and the summaries drop the graph stage** rather than reporting it as skipped: `nexus-scholar run` and `nexus_pipeline_run` no longer carry `graph_nodes`, the run summary no longer prints "Graph Nodes", `nexus-scholar status` no longer prints "Citation Graph Nodes". The status JSON keeps its `graph_nodes` key, read from an old workspace's `knowledge_graph.json`. *Proposed:* as built, the same rule as H-remove-rag-verify's item 3. *Alternative:* report the stage as `SKIPPED` with a reason for one release.
+2. **A stored pipeline spec with a `scholar-graph` node is refused** at validation (`COMMAND_NOT_ALLOWED`), and the console's `/api/v1/assets/graph` route is gone (404). *Proposed:* as built (the command no longer exists; the web app never called the route). *Alternative:* keep the allowlist entry and let such a node fail when run.
+3. **The release note of the release after 1.1.0b7** (this lands after the 1.1.0b7 tag, so that release's note is not edited; the repository keeps no running "unreleased" file, so this item is the "Unreleased, after 1.1.0b7" note) must say: the `scholar-graph` command, the MCP tools `nexus_graph_build` and `nexus_graph_narrative` (22 tools remain), the pipeline's graph stage and its `knowledge_graph.json`/`.html` outputs, the console's `graph` and `graph_narrative` actions and `/api/v1/assets/graph`, and the `scholar-graph-kit` skill are removed; `networkx`, `pyvis` and `scipy` are no longer installed with the base package (`networkx` and `numpy` still come with `[pdf]`; `networkx`, `scipy` and `numpy` with `[extract]`). Users of 1.1.0b7 who call `scholar-graph` or the two tools get "command not found" or "unknown tool" after upgrading. *Proposed:* those lines, under the note's "Removed, and what breaks". *Alternative:* a shorter note naming only the command and the two tools.
+
+**Choices made in the build** (for the reviewer)
+
+4. Deleted only tests whose whole subject was deleted; mixed files kept every assertion over kept code. The capability-adapter, skill-portability and doctor tests that used `graph` as their sample kit now use `pdf`.
+5. Negative tests: no `graph_nodes` stage or graph files after a collected screening; the coordinator source has no `run_graph`; `/api/v1/assets/graph` answers 404; the two actions and two tools are absent from their exact sets; a `scholar-graph` pipeline node is refused; no "Graph Nodes" line in the summaries.
+6. Old workspaces' graph files are read, never written: `get_status`/`sync_state` still count an existing `knowledge_graph.json`, `handoff.py` keeps its `GRAPH` phase (as it kept `SYNTHESIS` and `CRITIQUE`), and the corpus counts still exclude `graph.json` and `knowledge_graph.json`.
+7. `tests/mcp/test_mcp_tools_graph.py` keeps its name (its remaining tests cover other tools; documents cite it).
+8. `scripts/build_mcpb.py`'s bundle description now says only the full-text tools are parked (it still named rag, verify and the graph).
+9. `docs/architecture/console/SPECS.md` (a 2026-09 design record that still lists the rag and verify actions) is not edited; `lib/` (gitignored, written by pyvis) is not deleted.
+10. Two audit-journal texts changed: the `PIPELINE_RUN_COMPLETED` row's `outputs` names the `extracted/` folder (it named `literature/knowledge_graph.html`, the last stage's output), and the stale-generation pause row says "before the extraction stage" (it said "before stages 5-9"). Nothing reads either; old rows are untouched.
+11. A test keeps `networkx`, `pyvis` and `scipy` out of the base dependencies.
+
 ## 2026-11-23 — H-charting-row-layout: one line of row actions, the pinned cells carry the row (item 1 answered by the researcher 2026-11-23: keep 44 px; items 2 to 9 are the build's choices, merged with PR #305)
 
 Record: `docs/roadmap/milestones/H-charting-row-layout.md`. The work is the researcher's instruction of 2026-11-23 in the coordinator session ("Work the two layout fixes first"), for 1.1.0b7. Measured, a long-title row at 1440 px: 157 px before, 109 px after.

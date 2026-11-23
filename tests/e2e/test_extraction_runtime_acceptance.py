@@ -635,7 +635,7 @@ def test_a2_invalid_workspace_state_refuses_and_publishes_nothing(
     §4 matrix row for changed bytes ("STALE — refuse"). The generation gate
     that guards ``literature/included.json`` fires before the producer's
     domain checks, exactly as the coordinator's stale-precedence pin does for
-    stages 5–9. The refusal stays typed and fail-closed (nothing published);
+    Stage 5 (extraction). The refusal stays typed and fail-closed (nothing published);
     only the code moved, to the architecturally honest one. The shadowed
     domain codes remain reachable on true-legacy workspaces (migration
     exception: legacy proceeds with an explicit LEGACY report) and their

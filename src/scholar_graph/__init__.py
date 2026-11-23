@@ -1,1 +1,0 @@
-"""Scholar Graph Kit"""

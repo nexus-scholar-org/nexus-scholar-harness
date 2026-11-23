@@ -38,7 +38,7 @@ patch them). This packet adds NO fourth broad seam: call-time
 
 Zero-record behavior: batches glob empty -> total 0, report written with
 ``0 batch files``, mapping truthful PENDING_AGENT_REVIEW (NOT
-screening-complete), Stages 5-9 SKIPPED.
+screening-complete), Stage 5 SKIPPED.
 """
 
 from __future__ import annotations
@@ -467,9 +467,8 @@ def test_orchestrator_mapping_truthful_pending_with_stubbed_batches(
     assert (ws / "literature" / "prisma_screening_report.md").read_text(
         encoding="utf-8"
     ) == _expected_report_text(ws.resolve(), 2)
-    assert not {"indexing", "matrix", "synthesis"} & set(results["stages"])
-    for stage in ("extraction", "graph"):
-        assert results["stages"][stage]["status"] == "SKIPPED"
+    assert not {"indexing", "matrix", "graph", "synthesis"} & set(results["stages"])
+    assert results["stages"]["extraction"]["status"] == "SKIPPED"
     assert len(_pause_rows(ws)) == 1
 
 
@@ -550,9 +549,8 @@ def test_zero_record_orchestrator_truthful_pending_not_complete(tmp_path, monkey
     }
     assert results["status"] == "PENDING_AGENT_REVIEW"
     assert results["status"] != "SUCCESS"
-    assert not {"indexing", "matrix", "synthesis"} & set(results["stages"])
-    for stage in ("extraction", "graph"):
-        assert results["stages"][stage]["status"] == "SKIPPED"
+    assert not {"indexing", "matrix", "graph", "synthesis"} & set(results["stages"])
+    assert results["stages"]["extraction"]["status"] == "SKIPPED"
     assert "0 batch files" in (
         ws / "literature" / "prisma_screening_report.md"
     ).read_text(encoding="utf-8")
@@ -772,7 +770,7 @@ def test_stage_4_prepare_region_has_no_direct_batcher_use():
     source = Path(coord_mod.__file__).read_text(encoding="utf-8")
     region = source.split("Stage 4: Systematic PRISMA 2020 Screening", 1)[1]
     region = region.split("Stage 5:", 1)[0]
-    prepare = region.split("Stages 5-9 require", 1)[0]
+    prepare = region.split("Stage 5 (extraction) requires", 1)[0]
     # No direct batcher code in the prepare region (prose in the HCM-04f
     # comment names the moved concepts; only code patterns break parity).
     assert "cmd_prepare(" not in prepare
@@ -785,7 +783,7 @@ def test_stage_4_prepare_region_has_no_direct_batcher_use():
     assert "preparation_outcome" in prepare
     # HCM-04l: the collect gate + PAUSE audit live in the coordinator
     # (moved from the orchestrator); they stay out of the stage module.
-    gate = region.split("Stages 5-9 require", 1)[1]
+    gate = region.split("Stage 5 (extraction) requires", 1)[1]
     assert "included.json" in gate
     assert "PIPELINE_RUN_PAUSED_FOR_SCREENING" in gate
     assert "run_screening_preparation" not in gate
