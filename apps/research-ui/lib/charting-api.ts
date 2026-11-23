@@ -183,7 +183,8 @@ export interface ChartingRow {
   venue: string | null;
   doi: string | null;
   url: string | null;
-  abstract: string | null;
+  /** Only in `/charting/records/{id}`: the table route leaves it out (H-screening-read-performance). */
+  abstract?: string | null;
   arxiv_id: string | null;
   round: number;
   arm: string;

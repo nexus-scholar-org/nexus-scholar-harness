@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type ReactNode } from "react";
 
 import { formatNumber, type Locale } from "@/i18n";
+import { LoadingFrame } from "@/components/loading-frame";
 import { Button, DataCell, DecisionBadge, Hint, PRIMARY_LINK } from "@/components/ui/base";
 import { DrawPilot, triageHref } from "@/components/screening-pilot-card";
 import { PILOT_COPY, type PilotKey } from "@/components/screening-pilot-copy";
@@ -176,7 +177,7 @@ export function ScreeningPilot({ locale }: Readonly<{ locale: Locale }>) {
   }, [primaryHref, dialog]);
 
   const body = (() => {
-    if (state.status === "loading") return <p className="text-ink-muted" role="status">{t("loading")}</p>;
+    if (state.status === "loading") return <LoadingFrame heading={t("eyebrow")} sentence={t("loading")} />;
     if (state.status === "error") return <StateCard pageHeading locale={locale} code={state.code} message={state.message} consoleOrigin={origin} onRetry={() => void load()} />;
     if (state.status === "none") {
       return (

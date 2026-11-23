@@ -9,7 +9,7 @@ import { SUPPORTED_LOCALES } from "@/i18n";
 
 /**
  * Publish (spec 09) in jsdom. The PRISMA preview is the engine's recorded
- * fixture; approval state comes from `/ui/batch/{n}/review`. The approval code
+ * fixture; approval state comes from `/ui/batches/review` (each batch's `/ui/batch/{n}/review`). The approval code
  * is typed by the researcher (the engine prints it in its terminal) and is
  * sent once to redeem, never kept.
  */
@@ -60,6 +60,8 @@ function engine(options: { preview?: unknown; approved?: boolean; redeem?: Respo
         return ok({ name: approver, set_at: approver ? "2026-11-06T13:00:00Z" : null, basis: "typed-name" });
       }
       if (path === "/ui/batch/1/review") return ok(review(approved));
+      // H-screening-read-performance: every batch's review in one request, as the engine answers it.
+      if (path === "/ui/batches/review") return ok({ shape: "ui07.batch-reviews-v1", count: 1, reviews: [review(approved)] });
       if (path === "/actions/pairing/begin") return ok({ batch_index: 1, snapshot_fingerprint: "sha256:s", code_expires_at: "2026-11-05T10:05:00Z", attempt_cap: 5, code_shown_on: "terminal" });
       if (path === "/actions/pairing/begin-all" && options.beginAll) return ok(options.beginAll);
       if (path === "/actions/pairing/begin-all")

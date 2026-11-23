@@ -3,12 +3,13 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { formatNumber, type Locale } from "@/i18n";
+import { LoadingFrame } from "@/components/loading-frame";
 import { Button, DataCell, DecisionBadge, GatePanel } from "@/components/ui/base";
 import { DETAILS_LABEL } from "@/components/screening-state-card";
 import { ScreeningSteps, StateCard, exportHref, stepHref } from "@/components/screening-state-card";
 import { notifyReviewChanged } from "@/components/review-bus";
 import {
-  getBatchReview,
+  getBatchReviews,
   getPublicationStatus,
   getScreeningBatches,
   isScreeningApiError,
@@ -344,9 +345,8 @@ export function ScreeningPublish({ locale }: Readonly<{ locale: Locale }>) {
           () => "none",
         ),
       ]);
-      const reviews = Object.fromEntries(
-        await Promise.all(batches.batches.map(async (b) => [b.batch_index, await getBatchReview(origin, b.batch_index)] as const)),
-      );
+      // H-screening-read-performance: every batch's review in one request (one per batch before).
+      const reviews = batches.batches.length ? await getBatchReviews(origin) : {};
       setState({ status: "ready", data: { preview, batches, reviews, current: publication.current, staleChanged: publication.staleChanged, approver, reporting } });
     } catch (error) {
       setState({ status: "error", ...codeOf(error) });
@@ -397,7 +397,7 @@ export function ScreeningPublish({ locale }: Readonly<{ locale: Locale }>) {
   }
 
   const body = (() => {
-    if (state.status === "loading") return <p className="text-ink-muted" role="status">{t("loading")}</p>;
+    if (state.status === "loading") return <LoadingFrame heading={t("eyebrow")} sentence={t("loading")} />;
     if (state.status === "error") return <StateCard pageHeading locale={locale} code={state.code} message={state.message} consoleOrigin={origin} onRetry={() => void load()} />;
     const { preview, batches, reviews, current, staleChanged, approver, reporting } = state.data;
     const allPass = preview.checks.every((c) => c.ok);

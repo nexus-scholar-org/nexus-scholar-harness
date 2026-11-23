@@ -65,6 +65,8 @@ test("publish shows the PROJECTION_STALE card and keeps Publish disabled", async
     "/prisma/preview": PREVIEW_STALE,
     "/ui/batches": { ...BATCHES_STALE, batches: [{ ...BATCHES_STALE.batches[0], binding: undefined, coverage: "COMPLETE" }] },
     "/ui/batch/1/review": { shape: "ui07.review-state-v1", batch_index: 1, recommendation: { present: false }, resolution: { resolved: 3, total: 3, unresolved_rows: [] }, override: { superseded: false }, review: { present: true, approval_fingerprint: "sha256:x" }, deferral: { present: false }, missing: [] },
+    // H-screening-read-performance: Publish reads every batch's review in one request.
+    "/ui/batches/review": { shape: "ui07.batch-reviews-v1", count: 1, reviews: [{ shape: "ui07.review-state-v1", batch_index: 1, recommendation: { present: false }, resolution: { resolved: 3, total: 3, unresolved_rows: [] }, override: { superseded: false }, review: { present: true, approval_fingerprint: "sha256:x" }, deferral: { present: false }, missing: [] }] },
     "/approver": { name: "Researcher", set_at: "2026-11-06T13:00:00Z", basis: "typed-name" },
   });
   await page.goto("/en/screening/publish");
@@ -121,6 +123,8 @@ for (const locale of ["en", "ar"] as const) {
       "/prisma/preview": PREVIEW_OK,
       "/ui/batches": BATCHES_OK,
       "/ui/batch/1/review": { shape: "ui07.review-state-v1", batch_index: 1, recommendation: { present: false }, resolution: { resolved: 3, total: 3, unresolved_rows: [] }, override: { superseded: false }, review: { present: true, approval_fingerprint: "sha256:x" }, deferral: { present: false }, missing: [] },
+      // H-screening-read-performance: Publish reads every batch's review in one request.
+      "/ui/batches/review": { shape: "ui07.batch-reviews-v1", count: 1, reviews: [{ shape: "ui07.review-state-v1", batch_index: 1, recommendation: { present: false }, resolution: { resolved: 3, total: 3, unresolved_rows: [] }, override: { superseded: false }, review: { present: true, approval_fingerprint: "sha256:x" }, deferral: { present: false }, missing: [] }] },
       "/approver": { name: "Researcher", set_at: "2026-11-06T13:00:00Z", basis: "typed-name" },
     });
     await page.route("**/api/console/api/v1/ui/publication-status", (route) => route.fulfill({ json: STALE_STATUS }));

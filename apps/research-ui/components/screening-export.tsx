@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState, type KeyboardEvent } from "react";
 
 import { formatNumber, type Locale } from "@/i18n";
+import { LoadingFrame } from "@/components/loading-frame";
 import { Button, DataCell, DecisionBadge, type DecisionRole } from "@/components/ui/base";
 import { DETAILS_LABEL, ScreeningSteps, StateCard, stepHref } from "@/components/screening-state-card";
 import { getPublicationStatus, isScreeningApiError, type PublicationStatus } from "@/lib/screening-api";
@@ -337,13 +338,7 @@ export function ScreeningExport({ locale }: Readonly<{ locale: Locale }>) {
   }
 
   const body = (() => {
-    if (state.status === "loading") {
-      return (
-        <p className="text-ink-muted" role="status">
-          {t("loading")}
-        </p>
-      );
-    }
+    if (state.status === "loading") return <LoadingFrame heading={t("eyebrow")} sentence={t("loading")} />;
     if (state.status === "not_published") {
       return (
         <section aria-labelledby="export-empty" className="rounded-lg border border-rule bg-leaf p-5" data-state="not-published">

@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { formatNumber, type Locale } from "@/i18n";
+import { LoadingFrame } from "@/components/loading-frame";
 import { DataCell, DecisionBadge } from "@/components/ui/base";
 import { ScreeningSteps, StateCard, stepHref } from "@/components/screening-state-card";
 import { isScreeningApiError } from "@/lib/screening-api";
@@ -153,7 +154,7 @@ export function ScreeningAgreement({ locale }: Readonly<{ locale: Locale }>) {
   }, [load]);
 
   const body = (() => {
-    if (state.status === "loading") return <p className="text-ink-muted" role="status">{t("loading")}</p>;
+    if (state.status === "loading") return <LoadingFrame heading={t("eyebrow")} sentence={t("loading")} />;
     if (state.status === "error") return <StateCard pageHeading locale={locale} code={state.code} message={state.message} consoleOrigin={origin} onRetry={() => void load()} />;
     const { agreement: a, summary, settings } = state.data;
     const header = (title: string) => (

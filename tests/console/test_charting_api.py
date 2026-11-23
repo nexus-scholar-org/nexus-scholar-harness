@@ -538,3 +538,17 @@ def test_the_packaged_browser_path_carries_the_pdf_and_the_csv_as_bytes(tmp_path
         csv_body = client.get(f"/api/console{BASE}/export", params={"format": "csv", "view": "fulltext"})
         assert csv_body.content.startswith(b"\xef\xbb\xbf")
         assert csv_body.headers["content-disposition"].startswith("attachment")
+
+
+def test_the_table_rows_leave_out_the_abstract_the_study_view_reads_it_from_the_record(env):
+    """H-screening-read-performance: no screen reads ``abstract`` from the table answer, most of its bytes."""
+    from scholar_harness.charting import table as tb
+
+    client, ws, ids = env
+    table = client.get(BASE).json()
+    assert table["rows"] and all("abstract" not in r for r in table["rows"])
+    full = {r["study_id"]: r for r in tb.table(ws)["rows"]}
+    for row in table["rows"]:
+        assert {k: v for k, v in full[row["study_id"]].items() if k != "abstract"} == row
+    record = client.get(f"{BASE}/records/{ids['included']}").json()
+    assert "abstract" in record["row"]
