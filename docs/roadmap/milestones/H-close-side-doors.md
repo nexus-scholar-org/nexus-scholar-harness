@@ -71,6 +71,7 @@ All on this PC (Windows 11, the project venv on Python 3.14.7 synced `--extra de
 
 | Check | Head | Result |
 | :-- | :-- | :-- |
+| After merging `origin/main` `81f821f5` (H-remove-rag-verify, H-test-diet, disclosure): full Python suite `-n 4` (junit) | `13aedc3c` | **5,354 passed, 15 skipped, 0 failed** (junit 5,369); 606 s. Also: `console-proxy.test.ts` alone 77 passed, `npm run lint:ui` 76 passed (through a link to the main checkout's `node_modules`, a superset: `main` only dropped Playwright); both ruff commands, contract baseline, schemas, two-study fixture, protocol schema, skills bundle, gate selector, `uv lock --check`, `git diff --check`: pass. Live MCP surface: 24 tools |
 | Full Python suite, `uv run pytest -n 4 -p no:cacheprovider -o addopts="" -q` with a junit file | `a9d01da5` | **6,569 passed, 15 skipped, 0 failed, 0 errors** (junit 6,584); 607 s |
 | The same, before review round 1 | `5ecc41e6` | 6,568 passed, 15 skipped, 0 failed (junit 6,583); 775 s |
 | Fails first: the four changed source files and `browser.py` at `origin/main`, the new and changed tests run | before `5ecc41e6` | 10 of 10, then the browser test: all fail on their assertions (the reviewer repeated this independently: 12 of 12); the round-1 test fails on `5ecc41e6` by reading |
