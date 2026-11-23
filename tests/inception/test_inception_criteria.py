@@ -12,6 +12,8 @@ from __future__ import annotations
 
 import json
 
+import pytest
+
 from conftest import GENESIS_TS
 from rich.console import Console
 
@@ -94,6 +96,7 @@ def _criterion_prompts(responder):
     return [(m, d) for m, d in responder.confirms if m.startswith("Accept")]
 
 
+@pytest.mark.slow  # H-faster-python-tests: starts a process (recorded 2026-11-23).
 def test_every_criterion_is_shown_verbatim_with_its_source(tmp_path, monkeypatch):
     result, responder, text = _run(
         tmp_path, monkeypatch, _answers("closed-source models, pre-2022 studies", [True, True, True])
@@ -114,6 +117,7 @@ def test_every_criterion_is_shown_verbatim_with_its_source(tmp_path, monkeypatch
     assert [c["criterion"] for c in intent["exclusion_criteria"]] == ["closed-source models", "pre-2022 studies"]
 
 
+@pytest.mark.slow  # H-faster-python-tests: starts a process (recorded 2026-11-23).
 def test_a_rejected_criterion_is_not_compiled(tmp_path, monkeypatch):
     result, _responder, _text = _run(
         tmp_path, monkeypatch, _answers("closed-source models, pre-2022 studies", [True, True, False])
@@ -125,6 +129,7 @@ def test_a_rejected_criterion_is_not_compiled(tmp_path, monkeypatch):
     assert "pre-2022 studies" not in (ws / "SCREENING_CRITERIA.md").read_text(encoding="utf-8")
 
 
+@pytest.mark.slow  # H-faster-python-tests: starts a process (recorded 2026-11-23).
 def test_the_paradigm_default_exclusion_is_shown_and_can_be_refused(tmp_path, monkeypatch):
     # No out-of-scope answer: the wizard proposes the paradigm's default exclusion.
     # Refusing both generated criteria leaves each side empty, so the wizard asks for one.
@@ -140,6 +145,7 @@ def test_the_paradigm_default_exclusion_is_shown_and_can_be_refused(tmp_path, mo
     assert [c["criterion"] for c in intent["exclusion_criteria"]] == ["Simulation-only studies"]
 
 
+@pytest.mark.slow  # H-faster-python-tests: starts a process (recorded 2026-11-23).
 def test_the_ready_panel_lists_every_accepted_criterion(tmp_path, monkeypatch):
     _result, _responder, text = _run(
         tmp_path, monkeypatch, _answers("closed-source models", [True, True])

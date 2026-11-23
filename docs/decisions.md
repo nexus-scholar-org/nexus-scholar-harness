@@ -38,6 +38,20 @@ Record: `docs/roadmap/milestones/H-gate-and-ci.md`. Steps 1 and 2 of `docs/asses
 12. CI: the UI is built once per kind (the export in `build-wheel`, the standalone app in `research-ui`, which alone compiles the console proxy route); the `research-ui` job is pure Node. The browser job's third build goes with H-test-diet.
 13. `/gate`, `/ship`, `test-gatekeeper`, `milestone-reviewer` and `AGENTS.md` carry the same rules; the reviewer no longer asks for a local full-suite run.
 
+## 2026-11-23 — H-faster-python-tests: the Python suite's fixed costs cut (decided by the researcher 2026-11-23; accepted as built 2026-11-23)
+
+Record: `docs/roadmap/milestones/H-faster-python-tests.md`. Built on H-remove-rag-verify (coordinator's instruction); `origin/main` `81f821f5`, which holds it (PR 300), was merged in on 2026-11-23. **Accepted 2026-11-23:** the researcher accepted the build in the coordinator session ("Yes to all") and approved merging when green. The work is the test-suite review's step 3, points 1 to 4, as the researcher decided it on 2026-11-23. Full suite with `-n 4`: 516 s to 437 s; the sample files the review timed: 33 s to 7 s (protocol CLI), 30 s to 15 s (charting), 29 s to 19 s (screening API).
+
+**For the researcher to decide:** nothing. One consequence to know: the inner gate (`-m "not slow"`) no longer runs 57 cases that start a process, most of them the terminal inception wizard (it scaffolds through a Python script) and the pipeline executor; checkpoint, PR and full runs still do.
+
+**Choices made in the build** (for the reviewer)
+
+1. The lazy import also covers `cli.py` (through `_orchestrator_class()` and a module `__getattr__`), not only `__init__.py`; `cli.ResearchOrchestrator` stays patchable.
+2. Templates are per process, under a private temporary root removed at exit; the key carries every input the builder reads (the protocol file's content included, since four fixtures patch `PROTOCOL`, and `WS_ID`/`SCREENER`); a template that records its own path is refused at build time. Copies made in one process share the build's random ids (event ids, generation ids); no test relies on them differing.
+3. Three builders only (the most used); the other per-file helpers and the 37 files that load helpers by path are left for a later pass.
+4. "Starts a process" is what a recorder saw (`Popen`, `multiprocessing`) during a run of the not-slow selection, excluding the product's own `git` calls; the baseline-locked `test_contract_baseline.py` is left unmarked.
+5. The protocol CLI's in-process helper keeps the process interface (`returncode`, `stdout`, `stderr`) so no assertion changed, and re-raises an uncaught exception instead of reporting exit 1; one real start is kept and marked slow.
+
 ## 2026-11-23 — H-close-side-doors: four doors around the ledger closed (decided by the researcher 2026-11-23; items 1, 2 and 4 accepted as proposed; item 3 answered: the ceiling must be a number, a follow-up not built here)
 
 **Answered 2026-11-23.** In the coordinator session, after the build's report, the researcher accepted the build ("Yes to all") and approved merging the clean-up PRs when green. Items 1, 2 and 4: accepted as proposed (`nexus_screen` and `nexus_screen_reconcile` kept; the Prepare option for AI-agreed exclusion to be removed in a follow-up; `base_url` left free). **Item 3: the ceiling must be a number** for a priced model. That needs a screen change (the ceiling field filled before a run) and is a follow-up; it is **decided, not built**: on this branch an explicit `null` is still accepted.

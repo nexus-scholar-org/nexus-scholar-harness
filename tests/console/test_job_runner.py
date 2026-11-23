@@ -50,6 +50,7 @@ def _run_prepare(ws: Path, body: dict) -> tuple[int, dict]:
         return 202, job
 
 
+@pytest.mark.slow  # H-faster-python-tests: starts a process (recorded 2026-11-23).
 def test_prepare_honours_batch_size(tmp_path):
     ws = _golden(tmp_path)
     status, job = _run_prepare(ws, {"batch_size": 10})
@@ -66,6 +67,7 @@ def test_prepare_refuses_a_batch_size_out_of_bounds(tmp_path, size):
     assert not (ws / "literature" / "screening").exists()
 
 
+@pytest.mark.slow  # H-faster-python-tests: starts a process (recorded 2026-11-23).
 def test_jobs_do_not_import_from_the_workspace(tmp_path):
     ws = tmp_path / "shared workspace"
     planted = ws / "scholar_harness"

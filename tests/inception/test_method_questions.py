@@ -246,6 +246,7 @@ def test_the_cli_names_the_option():
     assert "--not-reported" in re.sub(r"\x1b\[[0-9;]*[A-Za-z]", "", out)
 
 
+@pytest.mark.slow  # H-faster-python-tests: starts a process (recorded 2026-11-23).
 def test_the_wizard_writes_the_rule_into_the_intent(tmp_path):
     from conftest import E2E_ANSWERS, ScriptedResponder
 

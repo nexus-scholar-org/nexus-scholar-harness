@@ -112,6 +112,7 @@ def run_worker(pub: Path, inbox: Path) -> dict[str, str]:
     return json.loads((inbox / "report.json").read_text(encoding="utf-8"))
 
 
+@pytest.mark.slow  # H-faster-python-tests: starts a process (recorded 2026-11-23).
 def test_worker_runs_at_low_integrity(deployment: tuple[Path, Path]) -> None:
     _pub, inbox = deployment
     report = run_worker(*deployment)
@@ -119,6 +120,7 @@ def test_worker_runs_at_low_integrity(deployment: tuple[Path, Path]) -> None:
     assert inbox.joinpath("report.json").exists()
 
 
+@pytest.mark.slow  # H-faster-python-tests: starts a process (recorded 2026-11-23).
 @pytest.mark.parametrize(
     "key",
     [
@@ -140,6 +142,7 @@ def test_worker_cannot_write_publisher_owned_state(
     )
 
 
+@pytest.mark.slow  # H-faster-python-tests: starts a process (recorded 2026-11-23).
 def test_worker_can_write_only_its_low_integrity_inbox(
     deployment: tuple[Path, Path],
 ) -> None:
@@ -149,6 +152,7 @@ def test_worker_can_write_only_its_low_integrity_inbox(
     assert (inbox / "draft.json").exists()
 
 
+@pytest.mark.slow  # H-faster-python-tests: starts a process (recorded 2026-11-23).
 def test_no_publisher_state_was_created_by_the_worker(
     deployment: tuple[Path, Path],
 ) -> None:
@@ -164,6 +168,7 @@ def test_no_publisher_state_was_created_by_the_worker(
         assert not (pub / name).exists(), f"worker created publisher file {name}"
 
 
+@pytest.mark.slow  # H-faster-python-tests: starts a process (recorded 2026-11-23).
 def test_junction_redirection_into_the_publisher_store_is_denied(
     deployment: tuple[Path, Path],
 ) -> None:
@@ -185,6 +190,7 @@ def test_junction_redirection_into_the_publisher_store_is_denied(
     ]
 
 
+@pytest.mark.slow  # H-faster-python-tests: starts a process (recorded 2026-11-23).
 def test_read_up_is_permitted_and_recorded_as_a_limitation(
     deployment: tuple[Path, Path],
 ) -> None:
@@ -285,6 +291,7 @@ except Exception as exc:  # noqa: BLE001
 """
 
 
+@pytest.mark.slow  # H-faster-python-tests: starts a process (recorded 2026-11-23).
 def test_worker_does_not_inherit_open_publisher_handle(
     deployment: tuple[Path, Path],
 ) -> None:

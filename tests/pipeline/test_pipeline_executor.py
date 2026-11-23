@@ -111,6 +111,7 @@ def _bootstrap(tmp):
     return ws
 
 
+@pytest.mark.slow  # H-faster-python-tests: starts a process (recorded 2026-11-23).
 def test_load_spec_and_topological_order(tmp_path):
     ws = _bootstrap(tmp_path)
     spec_file = _write_spec(tmp_path, _spec_dict())
@@ -140,6 +141,7 @@ def test_resolve_args_unresolved_template_raises(tmp_path):
         execute_file(_write_spec(tmp_path, spec), ws)
 
 
+@pytest.mark.slow  # H-faster-python-tests: starts a process (recorded 2026-11-23).
 def test_on_fail_abort_stops_pipeline(tmp_path):
     ws = _bootstrap(tmp_path)
     spec = _spec_dict()
@@ -158,6 +160,7 @@ def test_on_fail_abort_stops_pipeline(tmp_path):
     assert not (ws / "literature" / "n3.json").exists()
 
 
+@pytest.mark.slow  # H-faster-python-tests: starts a process (recorded 2026-11-23).
 def test_on_fail_continue_keeps_running(tmp_path):
     ws = _bootstrap(tmp_path)
     spec = _spec_dict()
@@ -198,6 +201,7 @@ def test_on_fail_skip_marks_skipped(tmp_path):
     assert states["n3"] == "success"
 
 
+@pytest.mark.slow  # H-faster-python-tests: starts a process (recorded 2026-11-23).
 def test_requires_decision_halt_and_resume(tmp_path):
     ws = _bootstrap(tmp_path)
     (ws / "literature" / "screening").mkdir()
@@ -237,6 +241,7 @@ def test_requires_decision_halt_and_resume(tmp_path):
     assert requires_decision_satisfied(ws)[0]
 
 
+@pytest.mark.slow  # H-faster-python-tests: starts a process (recorded 2026-11-23).
 def test_idempotent_repeat_skips_existing_outputs(tmp_path):
     ws = _bootstrap(tmp_path)
     spec_file = _write_spec(tmp_path, _spec_dict())
@@ -282,6 +287,7 @@ def test_build_command_flags_and_repo_root(tmp_path):
     assert "prepare" in cmd2
 
 
+@pytest.mark.slow  # H-faster-python-tests: starts a process (recorded 2026-11-23).
 def test_cli_run_pipeline_flag(tmp_path):
     ws = _bootstrap(tmp_path)
     spec_file = _write_spec(tmp_path, _spec_dict())
@@ -294,6 +300,7 @@ def test_cli_run_pipeline_flag(tmp_path):
     assert (ws / "literature" / "n2.json").exists()
 
 
+@pytest.mark.slow  # H-faster-python-tests: starts a process (recorded 2026-11-23).
 def test_cli_run_pipeline_halted_exit(tmp_path):
     ws = _bootstrap(tmp_path)
     CODE_BATCH = (

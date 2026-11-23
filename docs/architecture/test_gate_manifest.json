@@ -170,6 +170,12 @@
       "checkpoint": ["uv run pytest tests/console tests/authority tests/test_ui_launcher.py -q -n 4 --dist worksteal"]
     },
     {
+      "name": "test-support",
+      "paths": ["tests/support/**"],
+      "inner": ["uv run pytest tests/console tests/test_screening_events.py -q -m \"not slow\" -n 4 --dist worksteal"],
+      "checkpoint": ["uv run pytest tests/console tests/test_screening_events.py tests/authority -q -n 4 --dist worksteal"]
+    },
+    {
       "name": "inception",
       "paths": ["src/scholar_harness/inception/**"],
       "inner": ["uv run pytest tests/inception -q -m \"not slow\""],

@@ -256,6 +256,7 @@ E2E_ANSWERS = [
 ]
 
 
+@pytest.mark.slow  # H-faster-python-tests: starts a process (recorded 2026-11-23).
 def test_run_wizard_scripted_e2e(tmp_path):
     responder = ScriptedResponder(E2E_ANSWERS)
     result = run_wizard(responder, tmp_path, genesis_timestamp=GENESIS_TS, not_reported="unclear")

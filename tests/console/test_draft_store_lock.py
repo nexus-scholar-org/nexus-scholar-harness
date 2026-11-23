@@ -14,6 +14,8 @@ import textwrap
 import time
 from pathlib import Path
 
+import pytest
+
 from scholar_harness.inception.drafts import DraftStore
 
 _SIDE_WRITER = textwrap.dedent(
@@ -34,6 +36,7 @@ _SIDE_WRITER = textwrap.dedent(
 )
 
 
+@pytest.mark.slow  # H-faster-python-tests: starts a process (recorded 2026-11-23).
 def test_a_side_write_in_another_process_does_not_undo_a_save(tmp_path: Path) -> None:
     store = DraftStore(tmp_path)
     record = store.create({"topic": "first words"})
