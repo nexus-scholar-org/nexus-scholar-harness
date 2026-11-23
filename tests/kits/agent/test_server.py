@@ -98,5 +98,3 @@ def test_nexus_dedup_and_screen(tmp_path, sample_intent_json):
     assert (lit_dir / "screening_proposals.json").exists()
     for name in ("included.json", "excluded.json", "conflicts.json", "prisma_report.json", "prisma_screening_report.md"):
         assert not (lit_dir / name).exists(), name
-
-

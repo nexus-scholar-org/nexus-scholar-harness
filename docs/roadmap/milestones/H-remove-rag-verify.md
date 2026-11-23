@@ -16,7 +16,7 @@ The same for `src/scholar_verify`, `tests/kits/verify`, the four harness modules
 
 ## What was deleted
 
-`git diff --shortstat origin/main` on the branch: 194 files, +454 / −52,264 lines (113 files deleted, 81 changed). `src/`: +78 / −19,946. `tests/`: +221 / −29,417. `uv.lock`: +2 / −1,122.
+`git diff --shortstat origin/main..HEAD` at the final head: 208 files, +636 / −52,370 lines (113 deleted, 94 changed, 1 added: this record). `src/`: +87 / −19,972. `tests/`: +262 / −29,451. `uv.lock`: +2 / −1,122.
 
 | What | Files | Lines |
 | :-- | --: | --: |
@@ -30,9 +30,9 @@ The same for `src/scholar_verify`, `tests/kits/verify`, the four harness modules
 | Skills `scholar-rag-kit`, `scholar-verify-kit` and their bundled copies | 10 | 1,066 |
 | `docs/kits/rag/`, `docs/kits/verify/` | 3 | 291 |
 
-Changed, not deleted: the MCP server (−582 lines: seven tools and the rag/verify imports), the capability registry (the E3 `rag_indexing` declaration), the orchestrator (the rag imports, the `ScholarIndexer` stub, seven indexing delegates, the Chroma reads), the pipeline coordinator (Stages 6, 7, 9 and the `indexing_fn` parameter), the extraction producer and its two command lines (`index_accepted_documents`, `extract index`, `--index`), the console's actions table and default pipeline, the pipeline allowlist, `doctor`, the skill vocabulary, `pyproject.toml`, the plugin manifest, CI, the gate manifest and selector, and 34 test files repaired (one of them `tests/conftest.py`, a comment).
+Changed, not deleted: the MCP server (−582 lines: seven tools and the rag/verify imports), the capability registry (the E3 `rag_indexing` declaration), the orchestrator (the rag imports, the `ScholarIndexer` stub, seven indexing delegates, the Chroma reads), the pipeline coordinator (Stages 6, 7, 9 and the `indexing_fn` parameter), the extraction producer and its two command lines (`index_accepted_documents`, `extract index`, `--index`), the console's actions table and default pipeline, the pipeline allowlist, `doctor`, the skill vocabulary, `pyproject.toml`, the plugin manifest, CI, the gate manifest and selector, and 36 test files repaired (one of them `tests/conftest.py`, a comment).
 
-**Tests.** Collected before (`origin/main`, with the `rag` extra): **6,590**, of which 1,006 in `tests/kits/rag` and `tests/kits/verify`. After: see "Evidence". No test of code that stays was dropped to make the suite pass: a test was deleted only when everything it exercised was deleted; where a test mixed both (the extraction acceptance file, the canonical-profile parity, the registered-identity tests, the coordinator tests, the console tests), the part over kept code stayed and was repaired, and removed behaviour gained negative checks (below).
+**Tests.** Collected before (`origin/main` `8dd7904a`, with the `rag` extra): **6,590**, of which 1,006 in `tests/kits/rag` and `tests/kits/verify`. After (final head, without the `rag` extra): **5,351** (5,336 passed, 15 skipped). 1,245 were removed (the 1,006 kit tests and 239 in the deleted or split harness, conformance, e2e and MCP files) and 6 added (the four refusal tests of the indexing commands, two allowlist negatives). No test of code that stays was dropped to make the suite pass: a test was deleted only when everything it exercised was deleted; where a test mixed both (the extraction acceptance file, the canonical-profile parity, the registered-identity tests, the coordinator tests, the console tests), the part over kept code stayed and was repaired, and removed behaviour gained negative checks (below).
 
 ## What a user loses
 
@@ -58,7 +58,7 @@ Changed, not deleted: the MCP server (−582 lines: seven tools and the rag/veri
 
 - [x] 1. `src/scholar_rag`, `src/scholar_verify`, `tests/kits/rag`, `tests/kits/verify` deleted, and every module, stage, MCP tool, command, action, skill, extra and test that existed only to call them (tables above).
 - [x] 2. No reference to the two packages remains in `src/`, `tests/` (outside the baseline-locked contract fixtures), `scripts/`, `pyproject.toml`, `.agents/`, CI or the gate manifest, except where a line records the removal, or in a baseline-locked file (below).
-- [x] 3. Removed behaviour is refused, not silently ignored, with tests: `indexing_fn` passed to the coordinator is a `TypeError` and no stage runs (`test_indexing_fn_is_refused_now_that_indexing_is_gone`); pipeline specs naming `scholar-rag` or `scholar-verify` are refused (`test_pipeline_commands_outside_the_allowlist_are_invalid`); the removed actions, tools and stage keys are absent (`test_agent_actions_table`, `test_count_freshness`, `test_scholar_agent_cli_help_subprocess`, the coordinator and orchestrator-fidelity tests); the wheel carries neither package (CI smoke).
+- [x] 3. Removed behaviour is refused, not silently ignored, with tests: `extract index`, `extract publish --index` and `agent_extract.py index` / `publish --index` are usage errors (exit 2) that create nothing (`test_cli_indexing_entry_points_are_refused`, `test_script_indexing_entry_points_are_refused`); `indexing_fn` passed to the coordinator is a `TypeError` and no stage runs (`test_indexing_fn_is_refused_now_that_indexing_is_gone`); pipeline specs naming `scholar-rag` or `scholar-verify` are refused (`test_pipeline_commands_outside_the_allowlist_are_invalid`); the removed actions, tools and stage keys are absent (`test_agent_actions_table`, `test_count_freshness`, `test_scholar_agent_cli_help_subprocess`, the coordinator and orchestrator-fidelity tests); the wheel carries neither package (CI smoke).
 - [x] 4. Packaging: `pyproject.toml`, `uv.lock` (`uv lock --check`), the plugin manifest (`validate_manifest.py`), the skills bundle (`sync_skills_bundle.py --check`), skill portability (`skill_portability_transform.py --check`).
 - [x] 5. CI: the wheel smoke no longer imports the removed modules and asserts they are absent; the Python job syncs `--extra dev --extra pdf` and no longer fetches the embedding model. Only those lines changed.
 - [x] 6. Gate manifest: the tasks that existed only for E3 indexing (T-10 to T-100, T-130, T-140), the `rag` and `verify` areas and the `scholar-rag-kit` fallback are removed; `select_test_gate.py --check` passes; its tests repaired to remaining tasks.
@@ -75,8 +75,27 @@ Changed, not deleted: the MCP server (−582 lines: seven tools and the rag/veri
 
 ## Evidence
 
-Filled at the final head; see below.
+All on this PC (Windows 11, the project venv on Python 3.14.7, synced `--extra dev --extra pdf`, so without chromadb, sentence-transformers, torch or openai). No network request, no AI spend.
+
+| Check | Head | Result |
+| :-- | :-- | :-- |
+| Full Python suite, `uv run pytest -n 4 -p no:cacheprovider -o addopts="" -q` (the gate's `-q`, with the summary line kept) with a junit file | `e16464f7` | **5,336 passed, 15 skipped, 0 failed, 0 errors** (junit: 5,351 tests); 872 s (14 min 32 s) |
+| First full run (before review round 1) | `6f8ab643` plus two uncommitted test edits | 3 failed: stale expectations in `tests/mcp/test_mcp_recon.py` (32 tools) and `tests/unit/test_screening_prepare_stage.py` (two `indexing` keys); fixed in `8f4daea3`; 671 s |
+| PR-stage selection, `select_test_gate.py --changed origin/main --stage pr` | `e16464f7` | the full suite (run with `-n 4`, not the manifest's `-n auto`), `ruff check scripts/`, `sync_skills_bundle.py --check`, `select_test_gate.py --check`, `git diff --check`: all pass |
+| `ruff check scripts/`; `ruff check src/ --select F821,F811,F823,F632,F7,B023,B006,E9` | `e16464f7` | pass |
+| `generate_contract_baseline.py --check` | `e16464f7` | "Contract baseline current"; no locked path in the diff |
+| `generate_contract_schemas.py`, `generate_two_study_contract_fixture.py`, `generate_protocol_schema.py`, `generate_canonical_profile_goldens.py` (`--check`) | `e16464f7` | pass |
+| `sync_skills_bundle.py --check`, `skill_portability_transform.py --check`, `validate_manifest.py`, `select_test_gate.py --check` (11 tasks, 17 areas), `uv lock --check` | `e16464f7` | pass |
+| `uv build --wheel` (`NEXUS_WHEEL_ALLOW_NO_UI=1`) | `6f8ab643` (later commits change tests and texts, plus `cli.py` help text and `identity.py` and comment wording) | built; 312 files; base-install smoke as in the table above |
+| `git diff --check origin/main` | final head | pass (two trailing blank lines in test files removed after the full run; whitespace only) |
+
+**Not verified.**
+- CI (Ubuntu, Python 3.12, cross-OS): not run, nothing pushed.
+- The wheel with the UI export inside it, and the wheel rebuilt on the final head (the commits after `6f8ab643` touch no packaging file).
+- The MCP server driven by a real MCP client; the 25-tool surface is checked through the tool manager and `--help`.
+- Any real workspace: none was opened. An old workspace that has `rag/chroma_db` or `phase4/` keeps those folders; nothing reads them now, and `sync_state` no longer refreshes a stale `stats.vector_chunks` in its `project.json`.
 
 ## Review
 
-Pending.
+- **Round 1** (`milestone-reviewer`, on `6f8ab643`): **CHANGES**, no P0 or P1. Ten findings: stale texts that still sent agents to `extract index` and `--index` (the pdf skill, shipped in the wheel), `extract --help`, README, the identity refusal, AGENTS, the surface matrix, `data-flow.md` and the plan; an empty evidence section; a dead tail in the extraction acceptance tests; no negative test for the removed indexing commands; decision item 1 not naming the MCP behaviour change. All ten fixed in `e16464f7`, with four of the reviewer's follow-ups (the workspace-manager skill's `phase4/` line, three comments naming Stages 6 and 9, the matrix's "8 kit APIs", the user guide's skill count). Reviewer's own checks: 878 tests of the changed files passed; every deleted test covered only removed code; the kept-code assertions in mixed files survive; the coordinator's maps agree on every path; no product path lost anything it needs.
+- **Round 2:** see below.

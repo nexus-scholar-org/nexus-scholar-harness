@@ -26,5 +26,3 @@ def test_calibration_without_a_gold_file_builds_the_batch(tmp_path):
     cmd_calibration(ws, sample_size=5)
     batch = json.loads((ws / "literature" / "screening" / "calibration_batch_000.json").read_text(encoding="utf-8"))
     assert len(batch["papers"]) == 5
-
-
