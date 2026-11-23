@@ -55,27 +55,6 @@ describe("charting.report.export-menu", () => {
     expect(exportButton.closest("span")?.nextElementSibling).toBe(link);
   });
 
-  it("/charting/report: each download asks its own format and view and saves the engine's file", async () => {
-    const engine = installEngine(makeTable([makeRow(1), makeRow(2)]));
-    const saved = savedFiles();
-    await renderReport();
-    fireEvent.click(fileButton("fulltext"));
-    await waitFor(() => expect(saved).toHaveLength(1));
-    await waitFor(() => expect(fileButton("charting")).toBeEnabled());
-    fireEvent.click(fileButton("charting"));
-    await waitFor(() => expect(saved).toHaveLength(2));
-    await waitFor(() => expect(fileButton("xlsx")).toBeEnabled());
-    fireEvent.click(fileButton("xlsx"));
-    await waitFor(() => expect(saved).toHaveLength(3));
-    expect(saved).toEqual(["charting-fulltext-20261121T100000Z.csv", "charting-charting-20261121T100000Z.csv", "charting-20261121T100000Z.xlsx"]);
-    expect(engine.calls.filter((c) => c.path.startsWith("/api/v1/charting/export")).map((c) => c.path)).toEqual([
-      "/api/v1/charting/export?format=csv&view=fulltext",
-      "/api/v1/charting/export?format=csv&view=charting",
-      "/api/v1/charting/export?format=xlsx",
-    ]);
-    expect(engine.calls.every((c) => c.method === "GET")).toBe(true);
-  });
-
   it("/charting/report: a download in flight reads Preparing the file, is busy, and holds the other two", async () => {
     let release: () => void = () => undefined;
     installEngine(makeTable([makeRow(1)]), { exportHold: new Promise<void>((resolve) => (release = resolve)) });

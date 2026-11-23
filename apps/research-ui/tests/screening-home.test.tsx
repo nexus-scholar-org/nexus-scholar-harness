@@ -4,10 +4,9 @@ import { resolve } from "node:path";
 import { render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { HOME_COPY, ScreeningHome } from "@/components/screening-home";
+import { ScreeningHome } from "@/components/screening-home";
 import { StateCard } from "@/components/screening-state-card";
-import { SUPPORTED_LOCALES } from "@/i18n";
-import { STATES, stateCopy } from "@/lib/screening-states";
+import { stateCopy } from "@/lib/screening-states";
 
 /**
  * Screening home (spec 01) and the state cards (spec 08). The summary is the
@@ -92,10 +91,6 @@ describe("screening-home.summary", () => {
     await waitFor(() => expect(document.querySelector("[data-imported-line]")).not.toBeNull());
   });
 
-  it("review F2: the summary fixture carries the flag the engine writes", () => {
-    expect(body("summary_start").protocol_changed).toBe(false);
-  });
-
   it("shows the engine's code when it cannot be reached", async () => {
     vi.stubGlobal("fetch", vi.fn(async () => Promise.reject(new TypeError("fetch failed"))));
     render(<ScreeningHome locale="en" />);
@@ -162,16 +157,6 @@ describe("states.approval-refusals-name-their-next-step", () => {
 });
 
 describe("states.copy-for-every-code", () => {
-  it("has a title, body, affects and action for every code in every locale", () => {
-    for (const [code, entry] of Object.entries(STATES)) {
-      for (const locale of SUPPORTED_LOCALES) {
-        for (const field of ["title", "body", "affects", "action"] as const) {
-          expect(entry.copy[locale][field].trim(), `${code}/${locale}/${field}`).not.toBe("");
-        }
-      }
-    }
-  });
-
   it("renders an unknown code verbatim instead of another card", () => {
     render(<StateCard locale="en" code="SOMETHING_NEW" message="details from the engine" />);
     expect(screen.getByText("SOMETHING_NEW")).toBeInTheDocument();
@@ -179,15 +164,6 @@ describe("states.copy-for-every-code", () => {
     expect(stateCopy("en", "SOMETHING_NEW").known).toBe(false);
   });
 
-  it("home copy has the same keys and holes in every locale", () => {
-    const holes = (s: string) => [...s.matchAll(/\{(\w+)\}/g)].map((m) => m[1]).sort();
-    for (const locale of SUPPORTED_LOCALES) {
-      expect(Object.keys(HOME_COPY[locale]).sort()).toEqual(Object.keys(HOME_COPY.en).sort());
-      for (const [key, value] of Object.entries(HOME_COPY[locale])) {
-        expect(holes(value), `${locale}/${key}`).toEqual(holes(HOME_COPY.en[key as keyof typeof HOME_COPY.en]));
-      }
-    }
-  });
 });
 
 describe("states.conflict-not-a-refusal", () => {

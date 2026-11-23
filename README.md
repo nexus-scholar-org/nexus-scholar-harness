@@ -63,7 +63,7 @@ For a crop/weed review, the intended first complete interaction is:
 
 In the beta, step 1 works in the browser (without the grounded Explore and Direction steps), and steps 2 to 6 work end to end for title and abstract screening by one reviewer. Search is done in the databases themselves and their RIS or `.nbib` exports are imported, or from a terminal with `scholar-harness run`. On `main` the search also runs from the browser (Discovery). The AI drafts are optional, hidden until you decide by default, and never decide for you. Full-text charting, synthesis and scientific evaluation have separate readiness requirements and are parked.
 
-![The Import screen: two databases, their records summed per database, and the counts for the PRISMA flow diagram (test data)](apps/research-ui/screenshots/1440-screening-import-staged.png)
+![The Import screen: two databases, their records summed per database, and the counts for the PRISMA flow diagram (test data)](docs/images/screening-import-staged.png)
 
 ## Evidence and researcher control
 

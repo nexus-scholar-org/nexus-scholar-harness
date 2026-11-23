@@ -6,9 +6,7 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { EXPORT_COPY, ScreeningExport } from "@/components/screening-export";
-import { HOME_COPY, ScreeningHome } from "@/components/screening-home";
-import { SUPPORTED_LOCALES } from "@/i18n";
-import { stateCopy } from "@/lib/screening-states";
+import { ScreeningHome } from "@/components/screening-home";
 
 /**
  * Export and methods (spec 10) in jsdom. The engine is stubbed at `fetch`
@@ -163,11 +161,6 @@ describe("export.states", () => {
     expect(await screen.findByText(/Your current decisions differ from the published ones/)).toBeInTheDocument();
   });
 
-  it("has a card for every export refusal code, in every locale", () => {
-    for (const code of ["EXPORT_NOT_PUBLISHED", "GENERATION_STALE", "GENERATION_SUPERSEDED", "EXPORT_FORMAT_INVALID", "EXPORT_SOURCE_MISMATCH", "METHODS_SOURCE_MISSING"]) {
-      for (const locale of SUPPORTED_LOCALES) expect(stateCopy(locale, code).known, `${code}/${locale}`).toBe(true);
-    }
-  });
 });
 
 describe("methods.language", () => {
@@ -240,20 +233,6 @@ describe("export.download", () => {
   });
 });
 
-describe("export.i18n", () => {
-  it("has every key in every locale", () => {
-    const keys = Object.keys(EXPORT_COPY.en).sort();
-    for (const locale of SUPPORTED_LOCALES) expect(Object.keys(EXPORT_COPY[locale]).sort(), locale).toEqual(keys);
-    for (const locale of SUPPORTED_LOCALES) expect(HOME_COPY[locale].exportLink.trim(), locale).not.toBe("");
-  });
-
-  it("writes no literal aria-label, title, alt or placeholder (N9)", () => {
-    const source = readFileSync(resolve(process.cwd(), "components/screening-export.tsx"), "utf-8");
-    expect(source).not.toMatch(/(aria-label|alt|placeholder)="[^"{]/);
-    expect(source).not.toMatch(/\stitle="[^"{]/);
-  });
-});
-
 describe("export.link", () => {
   const HOME = {
     "/api/v1/screening/summary": { ...body("summary_start"), agent_proposed: 0, lanes: { agent: 0, you: 0, second_screener: "PARKED" } },
@@ -309,11 +288,4 @@ describe("export.reporting", () => {
     expect(screen.getByText(note, { exact: false })).toBeInTheDocument();
   });
 
-  it("has the three variants in every locale", () => {
-    for (const locale of SUPPORTED_LOCALES) {
-      for (const key of ["methods.counts", "methods.countsScr", "methods.countsNone", "methods.language", "methods.languageScr", "methods.languageNone"] as const) {
-        expect(EXPORT_COPY[locale][key]).toBeTruthy();
-      }
-    }
-  });
 });

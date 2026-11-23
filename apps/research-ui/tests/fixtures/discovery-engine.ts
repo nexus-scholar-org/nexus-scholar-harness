@@ -1,8 +1,7 @@
 /**
  * A small stateful fake of the discovery routes (`src/scholar_harness/console/api/discovery.py`,
  * packet `docs/architecture/research_ui/DISCOVERY_API_PACKET.md` §4) and the corpus routes the
- * hand-off uses, for tests only: the vitest screens stub `fetch` with it and the
- * Playwright spec answers the console proxy with it. It keeps the engine's shapes
+ * hand-off uses, for tests only: the vitest screens stub `fetch` with it. It keeps the engine's shapes
  * and refusal codes; the engine's behaviour is pinned by the Python suite
  * (`tests/console/test_discovery_api.py`, `tests/console/test_corpus_import_api.py`).
  *

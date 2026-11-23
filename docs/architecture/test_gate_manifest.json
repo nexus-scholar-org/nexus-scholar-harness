@@ -375,10 +375,10 @@
     {
       "name": "research-ui",
       "paths": ["apps/research-ui/**"],
-      "inner": ["npm --prefix apps/research-ui run typecheck", "npm --prefix apps/research-ui run test:related -- {area_paths}"],
-      "checkpoint": ["npm --prefix apps/research-ui run typecheck", "uv run python scripts/suite_lock.py -- npm --prefix apps/research-ui test"],
+      "inner": ["npm --prefix apps/research-ui run typecheck", "npm --prefix apps/research-ui run lint:ui", "npm --prefix apps/research-ui run test:related -- {area_paths}"],
+      "checkpoint": ["npm --prefix apps/research-ui run typecheck", "npm --prefix apps/research-ui run lint:ui", "uv run python scripts/suite_lock.py -- npm --prefix apps/research-ui test"],
       "pr": ["@checkpoint"],
-      "closure": ["npm --prefix apps/research-ui run typecheck", "uv run python scripts/suite_lock.py -- npm --prefix apps/research-ui test", "npm --prefix apps/research-ui run build", "uv run python scripts/suite_lock.py -- npm --prefix apps/research-ui run test:browser"],
+      "closure": ["npm --prefix apps/research-ui run typecheck", "npm --prefix apps/research-ui run lint:ui", "uv run python scripts/suite_lock.py -- npm --prefix apps/research-ui test", "npm --prefix apps/research-ui run build"],
       "path_root": "apps/research-ui/"
     }
   ],

@@ -464,26 +464,6 @@ describe("inception.explore query and databases", () => {
     expect(posts(engine, "/probe")).toHaveLength(1);
   });
 
-  it("offers the failed search's Search again only while a search could be sent: none without a database or with a query too long", async () => {
-    const { engine } = start({ outcomes: ["failed", "failed"] });
-    fireEvent.click(await screen.findByRole("button", { name: "Search the literature" }));
-    const card = (await screen.findByRole("heading", { name: "Every database failed to answer" })).closest("[data-refusal]") as HTMLElement;
-    await screen.findByRole("heading", { name: "Your first search" });
-    expect(within(card).getByRole("button", { name: "Search again" })).toBeEnabled();
-    untickAll();
-    expect(within(card).queryByRole("button", { name: "Search again" })).toBeNull();
-    fireEvent.click(screen.getByRole("checkbox", { name: "Ask Crossref" }));
-    expect(within(card).getByRole("button", { name: "Search again" })).toBeEnabled();
-    fireEvent.change(field(), { target: { value: "w".repeat(2001) } });
-    expect(within(card).queryByRole("button", { name: "Search again" })).toBeNull();
-    expect(posts(engine, "/probe")).toHaveLength(1);
-    // Once the query fits again, Search again sends what the screen shows.
-    fireEvent.change(field(), { target: { value: "weed camera" } });
-    fireEvent.click(within(card).getByRole("button", { name: "Search again" }));
-    await waitFor(() => expect(posts(engine, "/probe")).toHaveLength(2));
-    expect(posts(engine, "/probe")[1].body).toEqual({ refresh: true, semantic: false, databases: ["crossref"], query: "weed camera" });
-  });
-
   it("follows the engine's order of databases_available before the first search, and sends it", async () => {
     const order = ["crossref", "arxiv", "openalex", "semanticscholar"];
     const { engine } = start({ databasesAvailable: order });
@@ -588,49 +568,6 @@ describe("inception.explore query and databases", () => {
     expect(screen.getByRole("button", { name: "Move Semantic Scholar up" })).toBeEnabled();
     expect(screen.getByRole("button", { name: "Move Crossref down" })).toBeEnabled();
   }, 10000);
-
-  it("maps PROVIDER_UNKNOWN to the spec card with the code under Details; Reset the databases ticks every database in the engine's order", async () => {
-    setUp({
-      draft: completeDraft(),
-      refuseOnce: { [`POST ${RECON}/probe`]: { status: 422, body: { detail: { code: "PROVIDER_UNKNOWN", message: "refused", details: { unknown: ["scopus", ""], repeated: [], known: ALL } } } } },
-    });
-    render(<InceptionExplore locale="en" />);
-    await screen.findByRole("heading", { name: "Your first search" });
-    // A changed choice first, so Reset has something to undo.
-    fireEvent.click(screen.getByRole("checkbox", { name: "Ask Semantic Scholar" }));
-    fireEvent.click(screen.getByRole("button", { name: "Move arXiv up" }));
-    expect(pickerRows()).toEqual(["openalex:true", "arxiv:true", "crossref:true", "semanticscholar:false"]);
-    fireEvent.click(screen.getByRole("button", { name: "Search the literature" }));
-    const card = (await screen.findByRole("heading", { name: "That database list cannot be searched" })).closest("[data-refusal]") as HTMLElement;
-    expect(within(card).getByText("The engine accepts a non-empty list of OpenAlex, Semantic Scholar, Crossref and arXiv, each once. Nothing was sent.")).toBeInTheDocument();
-    const details = card.querySelector("details") as HTMLElement;
-    expect(details.textContent).toContain("PROVIDER_UNKNOWN");
-    // Each name the engine did not know, an empty one as "" (as Plan and Harvest print them).
-    expect(within(details).getByText("Names the engine does not know:")).toBeInTheDocument();
-    expect([...details.querySelectorAll("[data-unknown-provider]")].map((el) => el.textContent)).toEqual(["scopus", '""']);
-    // The screen's button is the action: its words appear once, not again as a muted line.
-    expect(screen.getAllByText("Reset the databases")).toHaveLength(1);
-    fireEvent.click(screen.getByRole("button", { name: "Reset the databases" }));
-    expect(pickerRows()).toEqual(ALL.map((id) => `${id}:true`));
-  });
-
-  it("Reset the databases ticks every database in the engine's own order of databases_available", async () => {
-    const order = ["crossref", "arxiv", "openalex", "semanticscholar"];
-    setUp({
-      draft: completeDraft(),
-      recon: { databasesAvailable: order },
-      refuseOnce: { [`POST ${RECON}/probe`]: { status: 422, body: { detail: { code: "PROVIDER_UNKNOWN", message: "refused", details: { unknown: ["scopus"] } } } } },
-    });
-    render(<InceptionExplore locale="en" />);
-    await screen.findByRole("heading", { name: "Your first search" });
-    fireEvent.click(screen.getByRole("checkbox", { name: "Ask arXiv" }));
-    fireEvent.click(screen.getByRole("button", { name: "Move OpenAlex up" }));
-    expect(pickerRows()).toEqual(["openalex:true", "crossref:true", "semanticscholar:true", "arxiv:false"]);
-    fireEvent.click(screen.getByRole("button", { name: "Search the literature" }));
-    await screen.findByRole("heading", { name: "That database list cannot be searched" });
-    fireEvent.click(screen.getByRole("button", { name: "Reset the databases" }));
-    expect(pickerRows()).toEqual(order.map((id) => `${id}:true`));
-  });
 
   it("retries an unreachable engine at start by reading the session again, sends no probe, and enables Search again", async () => {
     const set = setUp({

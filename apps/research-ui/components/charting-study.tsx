@@ -1140,6 +1140,11 @@ function StudyScreen({ locale }: Readonly<{ locale: Locale }>) {
                   <RoleBadge role={row.ta_decision === "INCLUDE" ? "include" : "unclear"} icon={row.ta_decision === "INCLUDE" ? CheckCircleIcon : QuestionMarkCircleIcon} data="ta">
                     {t("charting.study.taDecision", { outcome: row.ta_decision === "INCLUDE" ? t("charting.study.taInclude") : t("charting.study.taMaybe") })}
                   </RoleBadge>
+                  {row.ta_adopted ? (
+                    <span className="rounded-sm bg-unclear-soft px-1.5 text-xs font-medium text-ink" data-ta-adopted>
+                      {t("charting.study.taAdopted")}
+                    </span>
+                  ) : null}
                   {row.ta_reason ? <bdi className="text-ink-muted">{row.ta_reason}</bdi> : null}
                   {row.new_since ? (
                     <span className="rounded-sm bg-brand-soft px-1.5 text-xs font-medium text-brand" data-new>

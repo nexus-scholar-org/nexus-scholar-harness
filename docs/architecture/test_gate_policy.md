@@ -98,9 +98,10 @@ Selection, in order:
    screening, contracts, authority, console, inception, recon, pipeline,
    workspace-audit, harness-cli, a `src/scholar_harness/**` catch-all, one area
    per package under `src/scholar_*`, the selector itself, and `research-ui`
-   (typecheck plus `vitest related` for the touched files at inner; typecheck and
-   the full vitest under the lock at checkpoint and pr; build and Playwright at
-   closure; never the Python suite). The console has finer areas before its
+   (typecheck, `lint:ui` and `vitest related` for the touched files at inner;
+   typecheck, `lint:ui` and the full vitest under the lock at checkpoint and pr;
+   the build at closure, and in CI on every pull request; never the Python suite;
+   there is no browser suite since 2026-11-23). The console has finer areas before its
    catch-all: console-charting (with `src/scholar_harness/charting/`),
    console-discovery, console-screening and console-inception, so `inner` is a
    few files; packaging and ci-workflows (`scripts/check_workflows.py`) are areas

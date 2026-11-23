@@ -1,6 +1,6 @@
 # H-gate-and-ci
 
-Status: **READY FOR PR 2026-11-23** (review round 2 APPROVE; its three P3s fixed after it; RELEASE closure waits for the CI run) (branch `dev/h/gate-and-ci`, cut from `origin/main` `8dd7904a`; not pushed). Lane: **RELEASE** (it changes the gate every later milestone runs and the CI workflow).
+Status: **READY FOR PR 2026-11-23; accepted as built by the researcher the same day** ("Yes to all", relayed by the coordinator; merge on green approved), **except the standing push permission, which stays open**. Review round 2 APPROVE, its three P3s fixed after it; RELEASE closure waits for the CI run. `origin/main` `075a792a` (H-test-diet, PR 299) merged after the review (see "After the merge of main"). Branch `dev/h/gate-and-ci`, cut from `origin/main` `8dd7904a`; not pushed. Lane: **RELEASE** (it changes the gate every later milestone runs and the CI workflow).
 
 Source: `docs/assessment/test-suite-review-2026-11-23.md` (local branch `dev/docs/project-review-2026-11-23`), steps 1 and 2, chosen by the researcher on 2026-11-23 in the coordinator session ("Gate settings and CI"). That choice named a standing permission for sessions to push work branches to the fork; the permission is **not given**, so this build keeps every push the coordinator's, on the researcher's approval, and names the permission as an open item. Companion part: `H-test-diet` (`dev/h/test-diet`), built the same day.
 
@@ -30,7 +30,7 @@ Source: `docs/assessment/test-suite-review-2026-11-23.md` (local branch `dev/doc
 
 ## Required CI checks
 
-Part 2 adds and removes no job: **12** required checks (`build-wheel`; `lint-and-smoke` × 6; `python-test`; `wheel-e2e` × 2; `research-ui`; `research-ui-browser`). With H-test-diet merged, **11** (`research-ui-browser` is gone). The coordinator merges on "all green"; a branch protection rule that lists `research-ui-browser` must drop it when H-test-diet merges.
+**11** required checks: `build-wheel`; `lint-and-smoke` × 6; `python-test`; `wheel-e2e` × 2; `research-ui`. This part adds and removes no job; H-test-diet (merged before it) removed `research-ui-browser`. The coordinator merges on "all green".
 
 ## Choices made in the build (for the reviewer)
 
@@ -39,13 +39,13 @@ Part 2 adds and removes no job: **12** required checks (`build-wheel`; `lint-and
 3. **The lock wraps the command, not pytest itself:** any full suite (Python, vitest, the browser suite) uses the same wrapper; nested `uv run` costs about a second.
 4. **Exit 75 (EX_TEMPFAIL)** when `--timeout` runs out, so a caller can tell "busy" from "failed". No timeout by default: a second session waits.
 5. **`@checkpoint`** rather than copying each area's checkpoint into a `pr` list: one source of truth; the selector refuses it at inner and checkpoint.
-6. **The UI area's full vitest is locked at checkpoint and pr**, and the browser suite and the build moved to closure: CI runs them on every pull request.
+6. **The UI area's full vitest is locked at checkpoint and pr**, with the type check and `lint:ui`; the build moved to closure (CI runs it on every pull request). There is no browser suite since H-test-diet.
 7. **No E3 task runs the full suite at `pr`** (review round 1): T-120, T-130, T-140 and T-160 to T-230 run their checkpoint plus ruff at `pr`, the full suite at `closure`; a test says so. **What counts as owning a test file:** a path under `tests/` in an area's inner or checkpoint command; `--ignore=` paths and the bare `tests` do not count. The 22 files that failed the new rule went to the area whose source they import (listed in the manifest diff); `tests/e2e` is now in the pipeline area's checkpoint whole.
 8. **`pyproject.toml` and `uv.lock` keep their E3 task T-110** (the RAG and agent kits' suites at `pr`, as on `main`); the full suites for a dependency change are CI's. `hatch_build.py` and `scripts/build_mcpb.py` form a small `packaging` area.
 9. **Finer console areas run their inner with `-n 4 --dist worksteal`,** as the console catch-all did: the four charting files took 112 s on one worker and 81 s on four.
 10. **The checkpoint of every console area is all of `tests/console` plus `tests/authority`** (as the catch-all's), plus the users outside that folder (review round 1): discovery adds `tests/unit/test_discovery_stage.py`, `tests/kits/agent/test_mcp_assistant.py`, `tests/kits/agent/test_mcp_workspace_proposals.py`, `tests/kits/search/test_provider_resilience.py`; inception adds `tests/inception`, `tests/recon`, `tests/kits/agent/test_mcp_assistant.py`, `tests/pipeline/test_golden_recon_cassette.py`; screening adds `tests/test_read_store.py`. Only `inner` is narrow.
 11. **`setup-uv` v2 → v5** for `enable-cache`; `version: "0.12.5"` is kept. This is a major-version change of an action that could not be run here.
-12. **The UI is built once per kind in CI:** the export in `build-wheel` (shared with every wheel job through the artifact) and the standalone app in `research-ui`. The first build of this part dropped the standalone build; review round 1 showed it is the only build that compiles the console proxy route (`app/api/console/[...path]/route.ts`) and the redirects (the export compiles `.tsx` pages only), so it stays. The third build, inside the browser job's Playwright `webServer`, goes when H-test-diet removes that job; this part does not share one build between those two jobs.
+12. **The UI is built once per kind in CI:** the export in `build-wheel` (shared with every wheel job through the artifact) and the standalone app in `research-ui`. The first build of this part dropped the standalone build; review round 1 showed it is the only build that compiles the console proxy route (`app/api/console/[...path]/route.ts`) and the redirects (the export compiles `.tsx` pages only), so it stays. The third build, inside the browser job's Playwright `webServer`, went with H-test-diet.
 13. **The `research-ui` job drops Python:** its comment said vitest starts `uv run scholar-harness serve`; no test does (searched `apps/research-ui/tests` on `origin/main`: the only child process is `build-tokens.mjs --check` under Node).
 14. **`concurrency`** groups a pull request's runs by its number and cancels the superseded one; other runs are grouped by their own run id (review round 1: grouping pushes to `main` by ref would queue them and replace a pending one).
 
@@ -70,6 +70,10 @@ On the researcher's PC, branch `dev/h/gate-and-ci`, venv synced offline with `--
 | ruff (CI rules) | `uv run ruff check scripts/` | clean (one unused import fixed) |
 
 The full Python suite was not run for this part: the diff changes no `src/` file; the selector picked the gate above, which is the point of the change.
+
+## After the merge of main (2026-11-23)
+
+`origin/main` `075a792a` (H-test-diet, PR 299) merged into the branch. Conflicts, resolved by keeping both sides' rules: the manifest's `research-ui` area (H-test-diet's `lint:ui` at every stage and no browser suite, with this part's locked vitest at checkpoint, `@checkpoint` at pr and the build at closure); the policy's area paragraph (the same); `/gate` (this part's stage list, which names no browser suite); `tests/unit/test_select_test_gate.py` (the UI `pr` selection is the type check, `lint:ui` and the locked vitest; closure adds the build; no gate names a browser command). `ci.yml` and `docs/decisions.md` merged without conflict: the `research-ui` job is pure Node with `lint:ui`, vitest and the standalone build. Evidence of the merge is in the table above (rows marked "after the merge").
 
 ## Not verified
 

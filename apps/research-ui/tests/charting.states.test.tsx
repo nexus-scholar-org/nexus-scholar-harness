@@ -2,8 +2,6 @@ import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { ChartingPage } from "@/components/charting-page";
-import { SUPPORTED_LOCALES } from "@/i18n";
-import { CHARTING_COPY, CHARTING_REFUSAL_CODES, refusalWords, type ChartingCopyKey } from "@/lib/charting-copy";
 
 import { flush, installEngine, makeRow, makeTable, postedEvents, press, renderCharting } from "./charting-helpers";
 
@@ -216,17 +214,5 @@ describe("charting.states", () => {
     expect(within(rowOf("STU-001")).getByRole("link", { name: "Open the link" })).toHaveAttribute("href", "https://www.mdpi.com/2072-4292/10/9/1423");
     // A link is not a retrieved full text.
     expect(within(rowOf("STU-001")).getByText("To get")).toBeInTheDocument();
-  });
-
-  it("every refusal code maps to its own key in en, fr and ar", () => {
-    for (const code of CHARTING_REFUSAL_CODES) {
-      const key = `charting.refusal.${code}` as ChartingCopyKey;
-      for (const locale of SUPPORTED_LOCALES) {
-        expect(CHARTING_COPY[locale][key], `${locale} ${code}`).toBeTruthy();
-        expect(refusalWords(locale, code)).toBe(CHARTING_COPY[locale][key]);
-      }
-    }
-    expect(refusalWords("en", "SOMETHING_NEW")).toBe("The console refused the change.");
-    expect(CHARTING_COPY.en["charting.refusal.FULLTEXT_REASON_REQUIRED"]).toBe("Choose one reason first.");
   });
 });

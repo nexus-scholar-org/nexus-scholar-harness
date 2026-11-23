@@ -1,8 +1,7 @@
 import { act, fireEvent, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { SUPPORTED_LOCALES } from "@/i18n";
-import { CHARTING_COPY, refusalWords } from "@/lib/charting-copy";
+import { CHARTING_COPY } from "@/lib/charting-copy";
 
 import { PARAGRAPH, flush, installEngine, makeMethods, makeRow, makeTable, prismaGroup, renderReport } from "./charting-helpers";
 
@@ -197,17 +196,5 @@ describe("charting.report.states", () => {
     expect(document.querySelector("[data-last-export]")).toBeNull();
     await flush();
     expect(fileButton("fulltext")).toBeEnabled();
-  });
-
-  it("every refusal this page can show has words of its own in every locale", () => {
-    for (const locale of SUPPORTED_LOCALES) {
-      const unknown = CHARTING_COPY[locale]["charting.refusal.unknown"];
-      for (const code of ["SCREENING_NOT_PUBLISHED", "CHARTING_EXPORT_FORMAT_INVALID", "CHARTING_PROTOCOL_REPLACED", "GENERATION_STALE", "BODY_INVALID"]) {
-        expect(refusalWords(locale, code), `${locale} ${code}`).not.toBe(unknown);
-      }
-      for (const key of ["charting.report.failed", "charting.report.refused", "charting.offlineNoChange", "charting.report.phone.desktopOnly"] as const) {
-        expect(CHARTING_COPY[locale][key].trim(), `${locale} ${key}`).not.toBe("");
-      }
-    }
   });
 });

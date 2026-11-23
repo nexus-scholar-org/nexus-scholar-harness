@@ -5,7 +5,8 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { formatNumber, type Locale } from "@/i18n";
 import { LoadingFrame } from "@/components/loading-frame";
 import { DataCell, DecisionBadge } from "@/components/ui/base";
-import { ScreeningSteps, StateCard, stepHref } from "@/components/screening-state-card";
+import { adoptedHref, ScreeningSteps, StateCard, stepHref } from "@/components/screening-state-card";
+import { adoptionText } from "@/lib/adoption-copy";
 import { isScreeningApiError } from "@/lib/screening-api";
 import { getAgreement, getSettings, getSummary, type Agreement, type Settings, type Summary } from "@/lib/screening-v1";
 
@@ -15,6 +16,10 @@ import { getAgreement, getSettings, getSummary, type Agreement, type Settings, t
  * screener exists. Every number is the engine's (`GET /agreement`), which
  * counts only decisions made before the draft was revealed and only records you
  * have decided, so nothing here shows the agent's call on an undecided record.
+ *
+ * H-adopted-decisions-disclosure: decisions declared as stored from the agent's draft
+ * without being read one by one are not in these figures (the engine leaves them out),
+ * and the sample box says a sample is owed instead of "No sample needed".
  */
 
 const COPY = {
@@ -157,6 +162,9 @@ export function ScreeningAgreement({ locale }: Readonly<{ locale: Locale }>) {
     if (state.status === "loading") return <LoadingFrame heading={t("eyebrow")} sentence={t("loading")} />;
     if (state.status === "error") return <StateCard pageHeading locale={locale} code={state.code} message={state.message} consoleOrigin={origin} onRetry={() => void load()} />;
     const { agreement: a, summary, settings } = state.data;
+    const adoption = a.adoption;
+    const declared = adoption?.declared ?? 0;
+    const a$ = (key: Parameters<typeof adoptionText>[1], values?: Record<string, string | number>) => adoptionText(locale, key, values);
     const header = (title: string) => (
       <header>
         <p className="text-xs font-semibold uppercase tracking-[0.05em] text-brand rtl:tracking-normal">{t("eyebrow")}</p>
@@ -212,6 +220,13 @@ export function ScreeningAgreement({ locale }: Readonly<{ locale: Locale }>) {
         </ul>
 
         {a.decided_after_seeing_the_draft > 0 ? <p className="text-sm text-ink-muted">{t("afterSeeing", { n: n(a.decided_after_seeing_the_draft) })}</p> : null}
+        {declared > 0 ? <p className="text-sm text-ink" data-adoption-not-counted={declared}>{a$("notCounted", { n: n(declared) })}</p> : null}
+        {adoption && adoption.undeclared_candidates > 0 ? (
+          <p className="text-sm text-ink" data-adoption-undeclared={adoption.undeclared_candidates}>
+            {a$("undeclared", { n: n(adoption.undeclared_candidates) })}{" "}
+            <a className="text-brand underline" href={adoptedHref(locale, origin)}>{a$("declareLink")}</a>
+          </p>
+        ) : null}
 
         <div className="flex flex-wrap gap-6">
           <div className="min-w-0 flex-[999_1_480px] space-y-6">
@@ -270,15 +285,34 @@ export function ScreeningAgreement({ locale }: Readonly<{ locale: Locale }>) {
               <p className="mt-1 text-sm text-exclude">{t("kappaDisabled")}</p>
             </section>
 
-            <section aria-labelledby="agreement-sample" className="rounded-lg border border-rule bg-leaf p-5" data-sample={settings.mode}>
+            <section aria-labelledby="agreement-sample" className="rounded-lg border border-rule bg-leaf p-5" data-sample={declared > 0 ? "declared" : settings.mode}>
               <h2 id="agreement-sample" className="font-semibold text-ink">{t("sample")}</h2>
               {settings.mode === "ai_agreed_exclusion" ? (
                 <p className="mt-2 text-sm text-ink">
                   <DecisionBadge role="unclear">{settings.sample_audit_size ?? "—"}</DecisionBadge> {t("sampleOptIn")}
                 </p>
-              ) : (
+              ) : null}
+              {declared > 0 && adoption ? (
+                // "You saw every record" is never said once a declaration exists.
+                <div className="mt-2 space-y-1 text-sm text-ink" data-adoption-sample={adoption.sample_owed ? "owed" : "read"}>
+                  {adoption.sample_owed ? (
+                    <p>{adoption.sample_owed_size !== null ? a$("sampleOwed", { k: n(adoption.sample_owed_size) }) : a$("sampleOwedNone")}</p>
+                  ) : null}
+                  {adoption.samples.filter((s) => s.read).map((s) => (
+                    <p key={s.declaration_id}>{a$("sampleRead", { k: n(s.size), c: n(s.changed ?? 0) })}</p>
+                  ))}
+                  {!adoption.sample_owed && adoption.declared_by_outcome.EXCLUDE === 0 && adoption.samples.length === 0 ? <p>{a$("noExclusionsDeclared")}</p> : null}
+                  <a className="inline-block text-brand underline" href={adoptedHref(locale, origin)}>{a$("declareLink")}</a>
+                </div>
+              ) : adoption && adoption.undeclared_candidates > 0 ? (
+                // Review finding 5: undeclared candidates are not "every record seen" either.
+                <p className="mt-2 text-sm text-ink" data-adoption-sample="undeclared">
+                  {a$("sampleUndeclared", { n: n(adoption.undeclared_candidates) })}{" "}
+                  <a className="text-brand underline" href={adoptedHref(locale, origin)}>{a$("declareLink")}</a>
+                </p>
+              ) : settings.mode !== "ai_agreed_exclusion" ? (
                 <p className="mt-2 text-sm text-ink">{t("sampleNotNeeded")}</p>
-              )}
+              ) : null}
             </section>
 
             <a className="inline-block text-brand underline" href={stepHref(locale, "publish", origin)}>{t("toPublish")}</a>

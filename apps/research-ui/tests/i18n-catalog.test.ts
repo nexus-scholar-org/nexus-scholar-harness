@@ -1,14 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { createHash } from "node:crypto";
-import { readFileSync } from "node:fs";
-import { resolve } from "node:path";
 
 import {
   DEFAULT_LOCALE,
   LOCALE_METADATA,
   SUPPORTED_LOCALES,
   isSupportedLocale,
-  placeholdersOf,
   resolveLocale,
   swapLocale,
   translate,
@@ -19,113 +15,6 @@ import {
 } from "@/i18n";
 import en, { type MessageKey } from "@/messages/en";
 import { CATALOGS } from "@/messages";
-
-/**
- * Catalog integrity (packet UI-01d, N1-N8).
- *
- * These are the mechanical checks that keep three catalogs describing one
- * product: identical key sets, identical holes, no empty string, no raw token
- * leaking into a translated catalog, and one deliberately language-independent
- * brand string. None of them can tell you whether a French sentence reads well -
- * that is H1/H2 in `GATES.md`, and a human gate - but every one of them catches
- * the failure that a build should never ship.
- */
-describe("catalog parity", () => {
-  it("ships exactly the keys the packets inventory, in every locale", () => {
-    // 150 keys until M5-slim; the demonstration screens and their 128 keys
-    // were removed on 2026-11-05, and the new header and footer added 6
-    // (`nav.workspaces`, `shell.descriptor`, `footer.*`): 22, the shell
-    // chrome only; M3c-screens added `nav.discovery` (23), M12a `nav.charting` (24). `messages/en.ts`'s header states the same figure.
-    const expected = Object.keys(en).sort();
-
-    expect(expected).toHaveLength(24);
-    for (const locale of SUPPORTED_LOCALES) {
-      expect(Object.keys(CATALOGS[locale]).sort()).toEqual(expected);
-    }
-  });
-
-  it("declares the key set once, in the catalog index", () => {
-    // `MESSAGE_KEYS` is what `translate` accepts, so it must be exactly the
-    // English key set: a key that exists only in a translation would be
-    // unreachable, and one that exists only in English would be renderable in no
-    // locale at all.
-    const keys = Object.keys(en) as MessageKey[];
-    expect(new Set(keys).size).toBe(keys.length);
-  });
-
-  it("gives every key a non-empty value in every locale", () => {
-    for (const locale of SUPPORTED_LOCALES) {
-      for (const [key, value] of Object.entries(CATALOGS[locale])) {
-        expect(typeof value, `${locale} / ${key}`).toBe("string");
-        expect(value.trim(), `${locale} / ${key}`).not.toBe("");
-      }
-    }
-  });
-
-  it("uses the same holes in every locale, in every message that has any", () => {
-    // N4. A translation that dropped `{available}` would render
-    // `Available locales: .` - valid JSX, wrong sentence, no error anywhere.
-    for (const key of Object.keys(en) as MessageKey[]) {
-      const english = placeholdersOf(en[key]);
-      for (const locale of SUPPORTED_LOCALES) {
-        expect(
-          placeholdersOf(CATALOGS[locale][key]),
-          `${locale} / ${key} must use the same holes as English`,
-        ).toEqual(english);
-      }
-    }
-  });
-
-  it("has no hole that English does not have, in any translation", () => {
-    // The other direction: an extra `{typo}` in a translation would render as
-    // literal `{typo}` text on screen, forever, because nothing looks up a hole
-    // that no template declares.
-    const englishHoles = new Set(Object.values(en).flatMap(placeholdersOf));
-    for (const locale of SUPPORTED_LOCALES) {
-      for (const [key, value] of Object.entries(CATALOGS[locale])) {
-        for (const hole of placeholdersOf(value)) {
-          expect(englishHoles.has(hole), `${locale} / ${key} invented {${hole}}`).toBe(true);
-        }
-      }
-    }
-  });
-
-  it("uses no positional or brace-style placeholder other than {name}", () => {
-    // §4.5: no `{0}`, no `%s`, no `{{interpolation}}`, no ICU blocks. A template
-    // using any of those renders as literal text here, because `translate`
-    // substitutes only `{name}`.
-    for (const locale of SUPPORTED_LOCALES) {
-      for (const [key, value] of Object.entries(CATALOGS[locale])) {
-        expect(value, `${locale} / ${key}`).not.toMatch(/\{\{|\}\}|\{\d|%s|\bnplural\b/);
-        expect(value, `${locale} / ${key}`).not.toMatch(/\{(?![a-zA-Z][a-zA-Z0-9_]*\})[^}]*\}/);
-      }
-    }
-  });
-
-  it("keeps the brand identical and untranslated in every catalog", () => {
-    // §4.2 B01: the wordmark is not chrome to translate. It is asserted per
-    // locale rather than globally, so a translator who changes one catalog sees
-    // exactly which one drifted.
-    for (const locale of SUPPORTED_LOCALES) {
-      expect(CATALOGS[locale]["brand.productName"], locale).toBe("Nexus Scholar");
-    }
-  });
-
-  it("does not render an English sentence in a non-English catalog", () => {
-    // A coarse but real signal: every message is either the brand or differs
-    // from its English source, and the number of identical strings is bounded so
-    // a wholesale "paste English into fr.ts" fails here instead of shipping.
-    for (const locale of SUPPORTED_LOCALES.filter((code) => code !== "en")) {
-      const identical = Object.keys(en).filter(
-        (key) => CATALOGS[locale][key as MessageKey] === en[key as MessageKey],
-      );
-      expect(identical, `${locale} still holds ${identical.length} English strings`).toEqual([
-        "brand.productName",
-      ]);
-    }
-  });
-
-});
 
 describe("locale resolution", () => {
   it("accepts only the exact, case-sensitive locale codes it ships", () => {
@@ -273,13 +162,6 @@ describe("translate", () => {
 });
 
 describe("navigation keys", () => {
-  it("maps every nav id to a key that exists in every catalog", () => {
-    for (const locale of SUPPORTED_LOCALES) {
-      for (const id of ["workspaces", "discovery", "screening", "charting"]) {
-        expect(CATALOGS[locale][navKey(id)], `${locale} / ${id}`).toBeTruthy();
-      }
-    }
-  });
 
   it("throws UnmappedTokenError for a nav id nobody declared", () => {
     expect(() => navKey("overview")).toThrow(UnmappedTokenError);
@@ -335,36 +217,4 @@ describe("translateParts", () => {
   it("throws on an unfilled hole rather than rendering a blank", () => {
     expect(() => translateParts("fr", "notFound.unsupportedLocale", {})).toThrow(MissingMessageError);
   });
-});
-
-describe("byte pins", () => {
-  const FILES = [
-    {
-      // M5-slim added the `build:export` script (the packaged app's export);
-      // no dependency changed, and package-lock.json keeps its pin.
-      path: "package.json",
-      sha256: "d3b9d4d77871be9660116c89d2f6a60ff5ffacc301b37b74a3deb82a68e8df1d",
-    },
-    {
-      path: "package-lock.json",
-      sha256: "a3decceab16a65daaeb98fcf04682b6cf55f1da357da1c448b6a50dbc47647a5",
-    },
-  ] as const;
-
-  for (const { path, sha256 } of FILES) {
-    it(`matches SHA-256 for ${path}`, () => {
-      const root = resolve(import.meta.dirname, "..");
-      // Hash the COMMITTED content, not the checkout's line endings. Git
-      // checks text files out with CRLF on Windows and LF everywhere else,
-      // so a raw-byte hash of a text file is platform-dependent and this pin
-      // could only ever pass on the machine that computed it.
-      const b = readFileSync(resolve(root, path));
-      const normalized = Buffer.from(
-        b.toString("utf8").replace(/\r\n/g, "\n"),
-        "utf8",
-      );
-      const d = createHash("sha256").update(normalized).digest("hex");
-      expect(d).toBe(sha256);
-    });
-  }
 });
