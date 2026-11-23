@@ -12,6 +12,26 @@ history to read if you need the original reasoning (`git log --follow -- <path>`
 | :-- | :-- | :-- |
 | 2026-11-19 — M9a: what the measurement says about the ladder gates | 2 | The minimum share of the researcher's excludes an agent must take before a rung unlocks: the principle is accepted; the researcher decided on 2026-11-20 to set the number when M9b is built. |
 | 2026-11-23 — H-gate-and-ci | 1 | The standing permission for sessions to push a work branch and open a draft pull request: not given. |
+| 2026-11-23 — M13-installers | 1 to 12 | The installers' build route, formats, signing and spend, and the product choices: all open. |
+
+## 2026-11-23 — M13-installers: an installer per platform, opened from an icon with no terminal (PROPOSED; questions 1 to 12 open)
+
+Record: `docs/roadmap/milestones/M13-installers.md` (specification; nothing built). Requested by the researcher on 2026-11-23: an installer for Windows, Linux and macOS, easy setup of the app and of the MCP connection, a desktop or Start-menu icon that opens the app with no terminal. Written by a specification session from the code at `main` `6f31f92e` and the tools' and signing programmes' own documentation, read on 2026-11-23.
+
+**For the researcher to decide** (each with the recommendation; the record gives the alternatives and costs):
+
+1. *(PROPOSED.)* **Build route:** PyInstaller one-folder bundles with one installer builder per platform. Not Briefcase (no Tk on Windows and macOS, which the approval window needs), not a light installer that installs `uv` and then the wheel (needs the internet at install).
+2. *(PROPOSED.)* **Windows:** a per-user `setup.exe` made with Inno Setup, no administrator password; not an MSI (WiX) for now.
+3. *(PROPOSED.)* **The user's own browser plus a small control window** (Open in browser, Settings, Stop); not an app window of its own.
+4. *(PROPOSED.)* **Linux:** a `.deb` only, built once for Ubuntu 22.04 and 24.04 and Debian 12.
+5. *(PROPOSED.)* **Order:** the engine and app parts first (A launcher, B settings), then Windows, Linux, macOS; signing as a track that starts at once.
+6. *(PROPOSED.)* **Zero spend now:** unsigned Windows builds with an illustrated guide; apply to the SignPath Foundation programme once an installer is released; no macOS signing until a Mac tester exists. Microsoft's Artifact Signing is not open to individuals outside the United States and Canada (its quickstart, updated 2026-11-20).
+7. *(PROPOSED.)* **Storage:** e-mail, folder and update choice in a per-user settings file; keys in the system keychain; environment variables still first.
+8. *(PROPOSED.)* **The Connect button covers Claude Desktop only**, with the bundled MCP program instead of `uvx`.
+9. *(PROPOSED.)* **Updates:** a daily check of GitHub's public release list, on by default and switchable; a notice with a Download link; no automatic updater.
+10. *(PROPOSED.)* **The bundle carries the `ai` and `pdf` extras**, not `extract`.
+11. *(PROPOSED.)* **The workspace format version** (project review 2026-11-23, item 8) is built before installers go to outside testers, as its own item.
+12. *(PROPOSED.)* **A trial build** on the researcher's PC before Part W, in a throw-away environment, to measure size and start time.
 
 ## 2026-11-23 — H-gate-and-ci: the local gate runs what a change touched, CI runs everything, one full suite at a time (chosen by the researcher 2026-11-23; items 2 to 13 accepted as built 2026-11-23; item 1 open)
 
