@@ -483,5 +483,3 @@ def test_unresolved_conflict_is_refused_never_coerced_to_exclude(
     assert excinfo.value.code == "UNRESOLVED_FINALIZE_REFUSED"
     # M1a, decision 2026-11-04: MAYBE (Unclear) passes finalize as terminal.
     check_no_unresolved_for_finalize([{**entry, "decision": "MAYBE"}])
-
-
