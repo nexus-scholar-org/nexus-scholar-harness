@@ -91,6 +91,9 @@ def load_settings(ws: Path) -> dict[str, Any]:
     from ...screening.method import MethodInvalid, effective_method
 
     settings = _stored_settings(ws)
+    # H-close-side-doors: a workspace that stored "ai_agreed_exclusion" before it was
+    # refused reads as what happened: every record was seen by the reviewer.
+    settings["mode"] = "human_sees_every_record"
     try:
         method = effective_method(ws)
     except MethodInvalid as exc:
@@ -605,30 +608,36 @@ def put_settings(body: SettingsBody, request: Request) -> dict[str, Any]:
         update.pop("blinding", None)  # the same value: nothing to record
     if update.get("blinding") not in (None, "reveal_after_decision", "show"):
         raise _error(422, "INVALID_OUTPUT", "blinding must be reveal_after_decision or show")
-    if update.get("mode") not in (None, "human_sees_every_record", "ai_agreed_exclusion"):
-        raise _error(422, "INVALID_OUTPUT", "mode must be human_sees_every_record or ai_agreed_exclusion")
+    # H-close-side-doors (2026-11-23): AI-agreed exclusion is refused. No code acts on
+    # it (the agent never excludes a record by itself), so turning it on would only
+    # change what the methods text claims. The field stays for the screens that read it.
+    if update.get("mode") == "ai_agreed_exclusion":
+        raise _error(
+            422,
+            "INVALID_OUTPUT",
+            "AI-agreed exclusion is not available: nothing acts on it, and every record is seen by the reviewer",
+        )
+    if update.get("mode") not in (None, "human_sees_every_record"):
+        raise _error(422, "INVALID_OUTPUT", "mode must be human_sees_every_record")
     if update.get("advance_on_decide") not in (None, *ADVANCE_MODES):
         raise _error(422, "INVALID_OUTPUT", f"advance_on_decide must be one of {ADVANCE_MODES}")
     if update.get("queue_order") not in (None, *QUEUE_ORDERS):
         raise _error(422, "INVALID_OUTPUT", f"queue_order must be one of {QUEUE_ORDERS}")
-    if update.get("mode") == "ai_agreed_exclusion" and current["mode"] != "ai_agreed_exclusion":
-        if not body.confirm_ai_agreed_exclusion or not update.get("sample_audit_size", current["sample_audit_size"]):
-            raise _error(
-                422,
-                "INVALID_OUTPUT",
-                "AI-agreed exclusion needs confirm_ai_agreed_exclusion=true and a sample_audit_size",
-            )
     if not update:
         return current  # nothing changed (e.g. the protocol's own blinding value repeated)
-    new = {**_stored_settings(ws), **update}
+    stored = _stored_settings(ws)
+    new = {**stored, **update}
     atomic_write_text(ws / SETTINGS_FILE, json.dumps(new, indent=2, sort_keys=True) + "\n")
+    # The journal states what the file held: `load_settings` reads a stored
+    # "ai_agreed_exclusion" as "human_sees_every_record" (H-close-side-doors).
+    before = {k: (stored.get(k) if k == "mode" else current[k]) for k in update}
     append_event(
         ws,
         "SCREENING_SETTINGS_CHANGED",
         "Changed screening settings: " + ", ".join(f"{k}={update[k]}" for k in sorted(update)),
         agent="scholar-harness/console",
         outputs=[str(SETTINGS_FILE).replace("\\", "/")],
-        parameters={"before": {k: current[k] for k in update}, "after": update},
+        parameters={"before": before, "after": update},
         refresh_index=False,
     )
     return load_settings(ws)
@@ -1421,8 +1430,10 @@ class RunScope(BaseModel):
 class RunBody(BaseModel):
     model_config = ConfigDict(extra="forbid")
     driver: str = "api"
-    provider: str = "anthropic"
-    model: str = "claude-opus-5-5"
+    # H-close-side-doors (2026-11-23): no default provider or model (the default was
+    # the most expensive model), and a run states its ceiling: see `_require_run_terms`.
+    provider: str | None = None
+    model: str | None = None
     effort: str = "low"
     scope: RunScope = Field(default_factory=RunScope)
     consent: RunConsent | None = None
@@ -1450,6 +1461,23 @@ def _run_error(exc: Any) -> HTTPException:
     return _error(exc.status, exc.code, exc.message)
 
 
+def _require_run_terms(body: Any, *, spends: bool) -> None:
+    """H-close-side-doors: the caller names the provider and the model, and a run
+    that can spend states its cost ceiling: a number, or ``null`` for no ceiling
+    (the only value an unpriced model accepts). Nothing is defaulted."""
+    missing = [name for name in ("provider", "model") if not getattr(body, name)]
+    if missing:
+        raise _error(
+            422, "INVALID_OUTPUT", f"{' and '.join(missing)} {'is' if len(missing) == 1 else 'are'} required: there is no default"
+        )
+    if spends and "cost_ceiling_usd" not in body.model_fields_set:
+        raise _error(
+            422,
+            "INVALID_OUTPUT",
+            "cost_ceiling_usd is required: a number in USD, or null to run without a ceiling",
+        )
+
+
 @router.post("/proposals/runs")
 def start_proposal_run(body: RunBody, request: Request) -> dict[str, Any]:
     """Estimate, or start, an agent run over the scope; nothing leaves the machine without consent."""
@@ -1457,6 +1485,7 @@ def start_proposal_run(body: RunBody, request: Request) -> dict[str, Any]:
 
     from ...screening import agent_runs as runs
 
+    _require_run_terms(body, spends=not body.estimate_only)
     ws = _ws(request)
     ids = _scope_ids(ws, body.scope)
     if body.dry_run:
@@ -1600,8 +1629,9 @@ class CalibrationBody(BaseModel):
         if self.study_ids is None and self.pilot_id is None:
             raise ValueError("study_ids is required unless pilot_id is given")
         return self
-    provider: str = "anthropic"
-    model: str = "claude-opus-5-5"
+    # H-close-side-doors: as for a run, no default provider or model, and a stated ceiling.
+    provider: str | None = None
+    model: str | None = None
     effort: str = "low"
     cost_ceiling_usd: float | None = None
     base_url: str | None = None
@@ -1612,6 +1642,7 @@ def start_calibration(body: CalibrationBody, request: Request) -> dict[str, Any]
     """Check the agent on records you have decided (advisory; never blocks a run)."""
     from ...screening import agent_runs as runs
 
+    _require_run_terms(body, spends=True)
     ws = _ws(request)
     _context, _settings, _events, winners = _state(ws)
     if body.pilot_id is not None:

@@ -18,7 +18,7 @@ from scholar_harness.console.refusals import CONSOLE_REFUSALS
 from scholar_harness.screening import agent_runs as runs
 from scholar_harness.screening import events as ev
 from scholar_harness.screening import proposals as pr
-from test_screening_api_v1 import BASE, DESKTOP, PHONE, _event, _post, _studies, _workspace
+from test_screening_api_v1 import BASE, RUN, DESKTOP, PHONE, _event, _post, _studies, _workspace
 
 CONSENT = {"provider": "anthropic", "accepted_at": "2026-11-05T09:00:00Z"}
 
@@ -67,7 +67,7 @@ def _journal(ws):
 def test_an_estimate_needs_no_consent_and_writes_nothing(ws):
     client = _client(ws)
     before = (ws / "audit" / "journal.jsonl").read_text(encoding="utf-8")
-    body = client.post(f"{BASE}/proposals/runs", json={"estimate_only": True}).json()
+    body = client.post(f"{BASE}/proposals/runs", json={**RUN, "estimate_only": True}).json()
     assert body["run_id"] is None and body["estimate"]["records"] == 3 and body["estimate"]["prices_as_of"]
     assert (ws / "audit" / "journal.jsonl").read_text(encoding="utf-8") == before
     assert not (ws / runs.RUNS_DIR).exists()
@@ -75,7 +75,7 @@ def test_an_estimate_needs_no_consent_and_writes_nothing(ws):
 
 def test_a_run_without_consent_is_refused_and_nothing_leaves(ws):
     driver = FakeDriver()
-    response = _client(ws, driver).post(f"{BASE}/proposals/runs", json={})
+    response = _client(ws, driver).post(f"{BASE}/proposals/runs", json=RUN)
     assert response.status_code == 409 and response.json()["detail"]["code"] == "CONSENT_REQUIRED"
     assert driver.seen == []
 
@@ -84,7 +84,7 @@ def test_every_record_gets_a_proposal_and_a_refusal_is_unclear_never_dropped(ws)
     studies = _studies(_client(ws))
     driver = FakeDriver(plan={studies[0]: "refusal", studies[1]: "error"})
     client = _client(ws, driver)
-    started = client.post(f"{BASE}/proposals/runs", json={"consent": CONSENT}).json()
+    started = client.post(f"{BASE}/proposals/runs", json={**RUN, "consent": CONSENT}).json()
     status = client.get(f"{BASE}/proposals/runs/{started['run_id']}").json()
     assert (status["state"], status["done"], status["refused"], status["failed"]) == ("completed", 3, 1, 1)
     stored = {p["study_id"]: p for p in pr.read_proposals(ws)}
@@ -106,13 +106,13 @@ def test_every_record_gets_a_proposal_and_a_refusal_is_unclear_never_dropped(ws)
 def test_one_run_at_a_time_and_cancel_keeps_finished_proposals(ws):
     pending = []
     client = _client(ws, FakeDriver(), executor=pending.append)
-    first = client.post(f"{BASE}/proposals/runs", json={"consent": CONSENT}).json()
-    second = client.post(f"{BASE}/proposals/runs", json={})
+    first = client.post(f"{BASE}/proposals/runs", json={**RUN, "consent": CONSENT}).json()
+    second = client.post(f"{BASE}/proposals/runs", json=RUN)
     assert second.status_code == 409 and second.json()["detail"]["code"] == "RUN_ALREADY_ACTIVE"
     cancelled = client.post(f"{BASE}/proposals/runs/{first['run_id']}/cancel").json()
     # H-run-small-fixes (finding 35): still running until the worker notices; a new run is refused meanwhile.
     assert cancelled == {"run_id": first["run_id"], "state": "running", "cancel_requested": True}
-    again = client.post(f"{BASE}/proposals/runs", json={})
+    again = client.post(f"{BASE}/proposals/runs", json=RUN)
     assert again.status_code == 409 and again.json()["detail"]["code"] == "RUN_ALREADY_ACTIVE"
     pending[0]()  # the run notices the cancel before its first record
     status = client.get(f"{BASE}/proposals/runs/{first['run_id']}").json()
@@ -122,9 +122,9 @@ def test_one_run_at_a_time_and_cancel_keeps_finished_proposals(ws):
 
 def test_the_cost_ceiling_refuses_an_estimate_above_it_and_stops_a_run_that_reaches_it(ws):
     client = _client(ws, FakeDriver(usage=Usage(input_tokens=1_000_000, output_tokens=100_000)))
-    too_low = client.post(f"{BASE}/proposals/runs", json={"consent": CONSENT, "cost_ceiling_usd": 0.0001})
+    too_low = client.post(f"{BASE}/proposals/runs", json={**RUN, "consent": CONSENT, "cost_ceiling_usd": 0.0001})
     assert too_low.status_code == 409 and too_low.json()["detail"]["code"] == "COST_CEILING_REACHED"
-    started = client.post(f"{BASE}/proposals/runs", json={"cost_ceiling_usd": 1.0}).json()
+    started = client.post(f"{BASE}/proposals/runs", json={**RUN, "cost_ceiling_usd": 1.0}).json()
     status = client.get(f"{BASE}/proposals/runs/{started['run_id']}").json()
     assert (status["state"], status["code"]) == ("stopped", "COST_CEILING_REACHED")
     assert 0 < status["done"] < 3 and status["cost_so_far"] >= 1.0
@@ -134,7 +134,7 @@ def test_a_provider_without_a_key_is_refused(ws, monkeypatch):
     app = create_app(ws, token=DESKTOP)
     monkeypatch.setattr("scholar_agent.keys.resolve_key", lambda provider: None)
     client = TestClient(app, base_url="http://127.0.0.1", headers={"Authorization": f"Bearer {DESKTOP}"})
-    response = client.post(f"{BASE}/proposals/runs", json={"consent": CONSENT})
+    response = client.post(f"{BASE}/proposals/runs", json={**RUN, "consent": CONSENT})
     assert response.status_code == 409 and response.json()["detail"]["code"] == "PROVIDER_KEY_MISSING"
     assert {"PROVIDER_KEY_MISSING", "UNKNOWN_RUN", "CONSENT_REQUIRED", "RUN_ALREADY_ACTIVE", "COST_CEILING_REACHED"} <= CONSOLE_REFUSALS
 
@@ -143,19 +143,19 @@ def test_unknown_run_and_phone_scope(ws):
     client = _client(ws)
     missing = client.get(f"{BASE}/proposals/runs/RUN-nope")
     assert missing.status_code == 404 and missing.json()["detail"]["code"] == "UNKNOWN_RUN"
-    phone = client.post(f"{BASE}/proposals/runs", json={"estimate_only": True}, headers={"Authorization": f"Bearer {PHONE}"})
+    phone = client.post(f"{BASE}/proposals/runs", json={**RUN, "estimate_only": True}, headers={"Authorization": f"Bearer {PHONE}"})
     assert phone.status_code == 403 and phone.json()["detail"]["code"] == "TOKEN_SCOPE_REFUSED"
 
 
 def test_calibration_uses_decided_records_and_reports_missed_includes(ws):
     client = _client(ws)
     studies = _studies(client)
-    refused = client.post(f"{BASE}/proposals/calibrations", json={"study_ids": studies[:1]})
+    refused = client.post(f"{BASE}/proposals/calibrations", json={**RUN, "study_ids": studies[:1]})
     assert refused.status_code == 422  # undecided records are not calibration material
     _post(client, [_event(client, s, "INCLUDE") for s in studies])
     runs.record_consent(ws, "anthropic", model="m", prompt_sha256="sha256:x", accepted_at="2026-11-05T09:00:00Z")
     # The fake agent answers not_reported everywhere -> Unclear, so no include is missed.
-    run_id = client.post(f"{BASE}/proposals/calibrations", json={"study_ids": studies}).json()["run_id"]
+    run_id = client.post(f"{BASE}/proposals/calibrations", json={**RUN, "study_ids": studies}).json()["run_id"]
     status = client.get(f"{BASE}/proposals/runs/{run_id}").json()
     assert status["kind"] == "calibration" and status["calibration"]["include_recall"] == 1.0
     assert status["calibration"]["advisory"] is True and status["calibration"]["missed_includes"] == []
@@ -165,7 +165,7 @@ def test_agreement_counts_only_decisions_made_before_the_reveal(ws):
     client = _client(ws)
     studies = _studies(client)
     runs.record_consent(ws, "anthropic", model="m", prompt_sha256="sha256:x", accepted_at="2026-11-05T09:00:00Z")
-    client.post(f"{BASE}/proposals/runs", json={})  # Unclear drafts for every record
+    client.post(f"{BASE}/proposals/runs", json=RUN)  # Unclear drafts for every record
     first = _event(client, studies[0], "INCLUDE")
     _post(client, [first])
     client.get(f"{BASE}/records/{studies[0]}/proposal")  # reveal after the decision
@@ -184,7 +184,7 @@ def test_setup_names_key_sources_never_keys_and_the_latest_run(ws, monkeypatch):
     empty = client.get(f"{BASE}/proposals/setup").json()
     assert empty["active_run"] is None and empty["latest_run"] is None
     assert empty["task"]["prompt_sha256"] == task_mod.load_task().prompt_sha256
-    started = client.post(f"{BASE}/proposals/runs", json={"consent": CONSENT}).json()
+    started = client.post(f"{BASE}/proposals/runs", json={**RUN, "consent": CONSENT}).json()
     body = client.get(f"{BASE}/proposals/setup")
     assert "sk-secret" not in body.text
     setup = body.json()
@@ -224,11 +224,11 @@ def test_a_driver_that_cannot_be_built_is_refused_and_never_holds_the_lock(ws, e
     app.state.driver_factory = raising
     app.state.run_executor = lambda fn: fn()
     client = TestClient(app, base_url="http://127.0.0.1", headers={"Authorization": f"Bearer {DESKTOP}"})
-    refused = client.post(f"{BASE}/proposals/runs", json={"consent": CONSENT})
+    refused = client.post(f"{BASE}/proposals/runs", json={**RUN, "consent": CONSENT})
     assert refused.status_code == status and refused.json()["detail"]["code"] == "DRIVER_UNAVAILABLE"
     assert runs.active_run(ws) is None
     app.state.driver_factory = lambda provider, key: FakeDriver()
-    assert client.post(f"{BASE}/proposals/runs", json={}).status_code == 200
+    assert client.post(f"{BASE}/proposals/runs", json=RUN).status_code == 200
 
 
 def test_a_run_that_crashes_in_its_thread_ends_failed_and_frees_the_lock(ws):
@@ -238,19 +238,19 @@ def test_a_run_that_crashes_in_its_thread_ends_failed_and_frees_the_lock(ws):
 
     pending = []
     client = _client(ws, Crashing(), executor=_thread_like(pending))
-    run_id = client.post(f"{BASE}/proposals/runs", json={"consent": CONSENT}).json()["run_id"]
+    run_id = client.post(f"{BASE}/proposals/runs", json={**RUN, "consent": CONSENT}).json()["run_id"]
     pending.pop()()
     status = client.get(f"{BASE}/proposals/runs/{run_id}").json()
     assert status["state"] == "failed" and runs.active_run(ws) is None
     assert any(e.get("action") == "AGENT_RUN_COMPLETED" and e["parameters"]["state"] == "failed" for e in _journal(ws))
     client.app.state.driver_factory = lambda provider, key: FakeDriver()
-    assert client.post(f"{BASE}/proposals/runs", json={}).status_code == 200
+    assert client.post(f"{BASE}/proposals/runs", json=RUN).status_code == 200
 
 
 def test_a_lock_left_by_a_stopped_engine_is_recovered_by_the_next_run_or_a_cancel(ws):
     pending = []
     client = _client(ws, FakeDriver(), executor=pending.append)
-    stale = client.post(f"{BASE}/proposals/runs", json={"consent": CONSENT}).json()["run_id"]
+    stale = client.post(f"{BASE}/proposals/runs", json={**RUN, "consent": CONSENT}).json()["run_id"]
     # The engine stops: the worker never runs and this process forgets the run.
     runs._LIVE.clear()
     pending.clear()
@@ -258,10 +258,10 @@ def test_a_lock_left_by_a_stopped_engine_is_recovered_by_the_next_run_or_a_cance
     assert client.post(f"{BASE}/proposals/runs/{stale}/cancel").json()["state"] == "cancelled"
     assert runs.active_run(ws) is None and runs.read_run(ws, stale)["state"] == "cancelled"
 
-    again = client.post(f"{BASE}/proposals/runs", json={}).json()["run_id"]
+    again = client.post(f"{BASE}/proposals/runs", json=RUN).json()["run_id"]
     runs._LIVE.clear()
     pending.clear()
-    fresh = client.post(f"{BASE}/proposals/runs", json={})
+    fresh = client.post(f"{BASE}/proposals/runs", json=RUN)
     assert fresh.status_code == 200, fresh.json()
     assert runs.read_run(ws, again)["state"] == "failed"
     assert "engine stopped" in runs.read_run(ws, again)["error"]
@@ -270,9 +270,9 @@ def test_a_lock_left_by_a_stopped_engine_is_recovered_by_the_next_run_or_a_cance
 def test_an_unpriced_provider_refuses_a_ceiling_and_reports_its_cost_as_unknown(ws):
     gemini = {"provider": "gemini", "accepted_at": "2026-11-05T09:00:00Z"}
     client = _client(ws, FakeDriver(usage=Usage(input_tokens=10_000_000, output_tokens=1)))
-    refused = client.post(f"{BASE}/proposals/runs", json={"provider": "gemini", "model": "gemini-x", "consent": gemini, "cost_ceiling_usd": 0.0001})
+    refused = client.post(f"{BASE}/proposals/runs", json={**RUN, "provider": "gemini", "model": "gemini-x", "consent": gemini, "cost_ceiling_usd": 0.0001})
     assert refused.status_code == 422 and refused.json()["detail"]["code"] == "CEILING_NOT_PRICED"
-    run_id = client.post(f"{BASE}/proposals/runs", json={"provider": "gemini", "model": "gemini-x"}).json()["run_id"]
+    run_id = client.post(f"{BASE}/proposals/runs", json={**RUN, "provider": "gemini", "model": "gemini-x"}).json()["run_id"]
     status = client.get(f"{BASE}/proposals/runs/{run_id}").json()
     assert status["state"] == "completed" and status["cost_so_far"] is None
     assert {"DRIVER_UNAVAILABLE", "CEILING_NOT_PRICED"} <= CONSOLE_REFUSALS
@@ -299,7 +299,7 @@ def test_a_real_threaded_run_survives_concurrent_reads_and_keeps_a_mid_run_cance
     app = create_app(ws, token=DESKTOP, phone_tokens={PHONE})
     app.state.driver_factory = lambda provider, key: Slow()
     client = TestClient(app, base_url="http://127.0.0.1", headers={"Authorization": f"Bearer {DESKTOP}"})
-    run_id = client.post(f"{BASE}/proposals/runs", json={"consent": CONSENT}).json()["run_id"]
+    run_id = client.post(f"{BASE}/proposals/runs", json={**RUN, "consent": CONSENT}).json()["run_id"]
     errors, stop = [], threading.Event()
 
     def poll():
@@ -345,7 +345,8 @@ def test_calibration_passes_the_base_url_to_the_driver(ws, monkeypatch):
 
     monkeypatch.setattr("scholar_agent.drivers.make_driver", make)
     monkeypatch.setattr("scholar_agent.keys.resolve_key", lambda provider: None)
-    body = {"study_ids": studies, "provider": "openai_compatible", "model": "local", "base_url": "http://127.0.0.1:9/v1"}
+    body = {"study_ids": studies, "provider": "openai_compatible", "model": "local", "base_url": "http://127.0.0.1:9/v1",
+            "cost_ceiling_usd": None}
     assert client.post(f"{BASE}/proposals/calibrations", json=body).status_code == 200
     assert seen["base_url"] == "http://127.0.0.1:9/v1"
 
@@ -385,21 +386,21 @@ def test_a_lock_held_by_another_live_engine_is_never_taken_and_a_dead_one_is_rec
     import os
 
     client = _client(ws, FakeDriver(), executor=lambda fn: None)
-    run_id = client.post(f"{BASE}/proposals/runs", json={"consent": CONSENT}).json()["run_id"]
+    run_id = client.post(f"{BASE}/proposals/runs", json={**RUN, "consent": CONSENT}).json()["run_id"]
     lock = ws / runs.LOCK_FILE
     runs._LIVE.clear()
     # Another engine process that is still alive owns the run (this test's parent process).
     lock.write_text(json.dumps({"run_id": run_id, "pid": os.getppid(), "engine": "other"}), encoding="utf-8")
-    refused = client.post(f"{BASE}/proposals/runs", json={})
+    refused = client.post(f"{BASE}/proposals/runs", json=RUN)
     assert refused.status_code == 409 and refused.json()["detail"]["code"] == "RUN_ALREADY_ACTIVE"
     cancel = client.post(f"{BASE}/proposals/runs/{run_id}/cancel")
     assert cancel.status_code == 409 and runs.read_run(ws, run_id)["state"] == "running"
     # A lock still being written is held, not stale.
     lock.write_text("", encoding="utf-8")
-    assert client.post(f"{BASE}/proposals/runs", json={}).status_code == 409
+    assert client.post(f"{BASE}/proposals/runs", json=RUN).status_code == 409
     # The owning process is gone: the next run recovers it, journaling its end once.
     lock.write_text(json.dumps({"run_id": run_id, "pid": 2**22 + 12345, "engine": "gone"}), encoding="utf-8")
-    assert client.post(f"{BASE}/proposals/runs", json={}).status_code == 200
+    assert client.post(f"{BASE}/proposals/runs", json=RUN).status_code == 200
     assert runs.read_run(ws, run_id)["state"] == "failed"
     completed = [r for r in _journal(ws) if r["action"] == "AGENT_RUN_COMPLETED" and r["parameters"]["run_id"] == run_id]
     assert len(completed) == 1
@@ -420,3 +421,48 @@ def test_pid_liveness_fails_safe(ws):
     assert runs._pid_alive(2**40) is False and runs._pid_alive(0) is False and runs._pid_alive(-1) is False
     if os.name == "nt":
         assert runs._pid_alive(4)  # System: exists, and not ours to open
+
+
+# --- H-close-side-doors: no default model, a stated ceiling --------------------- #
+
+
+@pytest.mark.parametrize("missing", ["provider", "model"])
+def test_a_run_without_a_provider_or_model_is_refused_and_nothing_leaves(ws, missing):
+    """The request used to default to anthropic / claude-opus-5-5, the dearest model."""
+    driver = FakeDriver()
+    client = _client(ws, driver)
+    body = {k: v for k, v in {**RUN, "consent": CONSENT}.items() if k != missing}
+    response = client.post(f"{BASE}/proposals/runs", json=body)
+    assert response.status_code == 422
+    assert f"{missing} is required" in response.json()["detail"]["message"]
+    assert driver.seen == []
+    assert not (ws / runs.RUNS_DIR).exists()
+    # An estimate also names its model: it is priced by it.
+    estimate = client.post(f"{BASE}/proposals/runs", json={**body, "estimate_only": True})
+    assert estimate.status_code == 422
+
+
+def test_a_run_must_state_its_ceiling_and_an_estimate_need_not(ws):
+    driver = FakeDriver()
+    client = _client(ws, driver)
+    terms = {"provider": "anthropic", "model": "claude-opus-5-5", "consent": CONSENT}
+    refused = client.post(f"{BASE}/proposals/runs", json=terms)
+    assert refused.status_code == 422
+    assert "cost_ceiling_usd is required" in refused.json()["detail"]["message"]
+    assert driver.seen == [] and not (ws / runs.RUNS_DIR).exists()
+    assert client.post(f"{BASE}/proposals/runs", json={**terms, "estimate_only": True}).status_code == 200
+    # An explicit null is a stated choice (the screen sends it when the field is blank).
+    started = client.post(f"{BASE}/proposals/runs", json={**terms, "cost_ceiling_usd": None})
+    assert started.status_code == 200, started.text
+
+
+def test_a_calibration_without_a_model_or_a_ceiling_is_refused(ws):
+    client = _client(ws, FakeDriver())
+    studies = _studies(client)
+    _post(client, [_event(client, s, "INCLUDE") for s in studies])
+    runs.record_consent(ws, "anthropic", model="claude-opus-5-5", prompt_sha256="sha256:x", accepted_at=CONSENT["accepted_at"])
+    no_model = client.post(f"{BASE}/proposals/calibrations", json={"study_ids": studies, "cost_ceiling_usd": None})
+    assert no_model.status_code == 422 and "model" in no_model.json()["detail"]["message"]
+    no_ceiling = client.post(f"{BASE}/proposals/calibrations", json={"study_ids": studies, "provider": "anthropic", "model": "claude-opus-5-5"})
+    assert no_ceiling.status_code == 422 and "cost_ceiling_usd" in no_ceiling.json()["detail"]["message"]
+    assert not (ws / runs.RUNS_DIR).exists()

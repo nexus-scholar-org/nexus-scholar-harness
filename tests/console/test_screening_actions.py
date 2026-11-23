@@ -813,21 +813,23 @@ def test_journal_rows_carry_request_id_without_secrets(tmp_path):
 # --- drafts reuse + HTTP surface ------------------------------------------------ #
 
 
-def test_drafts_reuse_posts_decisions(tmp_path):
-    """POST decisions stays the drafts operation: writes drafts, mints nothing."""
+def test_old_drafts_route_is_gone(tmp_path):
+    """H-close-side-doors: the batch decisions route no longer writes drafts."""
     workspace, studies = _scaffold(tmp_path)
     ws_noprep = workspace
     _write_operator_context(ws_noprep)
     run_recommend(ws_noprep, 1, produced_at=NOW)
     client = TestClient(create_app(ws_noprep))
+    screening = workspace / "literature" / "screening"
+    before = (screening / "batch_001_decisions.json").read_bytes() if (screening / "batch_001_decisions.json").is_file() else None
     papers = [{"workspace_id": s["study_id"], "decision": "INCLUDE"} for s in studies]
     r = client.post(
         "/api/v1/screening/batch/1/decisions",
         json={"batch": 1, "reviewed_by": "browser-draft", "decisions": papers},
     )
-    assert r.status_code == 200
-    screening = workspace / "literature" / "screening"
-    assert (screening / "batch_001_decisions.json").is_file()
+    assert r.status_code == 404
+    after = (screening / "batch_001_decisions.json").read_bytes() if (screening / "batch_001_decisions.json").is_file() else None
+    assert after == before
     assert not (screening / "approvals" / "batch_001_approval.json").exists()
     assert not (screening / "publication_approval.json").exists()
     assert not list(screening.glob("pairing/*.json"))

@@ -60,7 +60,7 @@ From `@router.` in `src/scholar_harness/console/api/*.py` and `include_router` i
 | `recon.py` | `/api/v1/inception/drafts/{id}/recon` | GET `` (the state), `jobs/{job}`, `jobs/{job}/events`, `directions`; POST `probe`, `delta`, `distill`, `bind` | `inception-api.md` |
 | `discovery.py` | `/api/v1/discovery` | GET `plan`, `runs`, `runs/{run}`, `runs/{run}/report`, `dedup`, `report`, `handoff`, `recall`, `jobs/{job}`, `jobs/{job}/events`; PUT `report/methods`; POST `runs`, `recall`, `jobs/{job}/cancel` | `DISCOVERY_API_PACKET.md` |
 | `screening_v1.py` | `/api/v1/screening` | GET `summary`, `queue`, `records/{id}`, `records/{id}/proposal`, `decisions/conflicts`, `settings`, `approver`, `corpus`, `prisma/preview`, `export`, `methods`, `proposals/setup`, `proposals/runs/{id}`, `agreement`; PUT `settings`, `approver`; POST `decisions/events`, `decisions/conflicts/{id}/resolve`, `corpus/sources`, `corpus/sources/{id}/remove`, `corpus/accept`, `prepare`, `actions/pairing/begin`, `proposals/runs`, `proposals/runs/{id}/cancel`, `proposals/calibrations` | `screening-api-contract.md` §4 |
-| `screening.py` | `/api/v1/screening` | POST `batch/{n}/decisions`, `actions/pairing/redeem`, `actions/defer`, `actions/publish`; GET `ui/batches`, `ui/batch/{n}/review`, `actions/pairing/status` | `screening-api-contract.md` §4, UI-07 |
+| `screening.py` | `/api/v1/screening` | POST `actions/pairing/redeem`, `actions/defer`, `actions/publish`; GET `ui/batches`, `ui/batch/{n}/review`, `actions/pairing/status` | `screening-api-contract.md` §4, UI-07 |
 | `jobs.py` | `/api/v1/jobs` | POST `start`, `{id}/cancel`; GET ``, `{id}`, `{id}/stream` | this file §6 |
 | `pipelines.py` | `/api/v1/pipelines` | GET ``, `{id}`, `{id}/export`; POST ``, `{id}/dry-run` | this file §4 |
 | `audit.py` | `/api/v1/audit` | POST `events` | this file §3 |
@@ -82,7 +82,6 @@ All responses return the canonical file contents or 404 with the missing relativ
 | GET | `/api/v1/literature/included` · `/excluded` | PRISMA sets | `literature/included.json` · `excluded.json` |
 | GET | `/api/v1/screening/batches` | batch list + decision/collect state | `literature/screening/*` |
 | GET | `/api/v1/screening/batch/{n}` | batch items + existing decisions | `batch_NNN.json`, `batch_NNN_decisions.json` |
-| POST | `/api/v1/screening/batch/{n}/decisions` | append decisions; run `collect` | `batch_NNN_decisions.json`; collect on `literature/` |
 | GET | `/api/v1/synthesis/{file}` | `consensus*`, `evidence_matrix`, `synthesis_rq*`, `rag_rq*` | `synthesis/*` |
 | GET | `/api/v1/phase4/{file}` | `trust_consensus*`, RoB/COI/retraction/open-science | `phase4/*` |
 | GET | `/api/v1/assets/graph` | serve generated graph | `literature/knowledge_graph.html` |
@@ -260,12 +259,16 @@ The routes in that table are history: the demonstration screens were removed on
 
 Job control and the pipeline builder stay API only.
 
+The old `POST /api/v1/screening/batch/{n}/decisions` (it wrote a decisions file
+around the ledger) was removed from the engine and both allowlists on
+2026-11-23 (H-close-side-doors).
+
 **Browser allowlists.** Two lists carry the same rules and are kept equal by
 tests: the development proxy (`apps/research-ui/app/api/console/[...path]/route.ts`,
 pinned by `apps/research-ui/tests/console-proxy.test.ts`) and the packaged
 app's browser surface (`src/scholar_harness/console/browser.py`, pinned by
 `tests/console/test_browser_access.py`). GET and HEAD reach any `/api/v1/...`
-path of plain segments. POST reaches only: screening `batch/{n}/decisions`,
+path of plain segments. POST reaches only: screening
 `actions/pairing/(begin|redeem)`, `actions/defer`, `actions/publish`,
 `decisions/events`, `decisions/conflicts/{id}/resolve`, `prepare`,
 `corpus/(sources|accept)`, `corpus/sources/{id}/remove`,

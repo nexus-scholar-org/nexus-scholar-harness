@@ -52,6 +52,29 @@ Record: `docs/roadmap/milestones/H-faster-python-tests.md`. Built on H-remove-ra
 4. "Starts a process" is what a recorder saw (`Popen`, `multiprocessing`) during a run of the not-slow selection, excluding the product's own `git` calls; the baseline-locked `test_contract_baseline.py` is left unmarked.
 5. The protocol CLI's in-process helper keeps the process interface (`returncode`, `stdout`, `stderr`) so no assertion changed, and re-raises an uncaught exception instead of reporting exit 1; one real start is kept and marked slow.
 
+## 2026-11-23 — H-close-side-doors: four doors around the ledger closed (decided by the researcher 2026-11-23; items 1, 2 and 4 accepted as proposed; item 3 answered: the ceiling must be a number, a follow-up not built here)
+
+**Answered 2026-11-23.** In the coordinator session, after the build's report, the researcher accepted the build ("Yes to all") and approved merging the clean-up PRs when green. Items 1, 2 and 4: accepted as proposed (`nexus_screen` and `nexus_screen_reconcile` kept; the Prepare option for AI-agreed exclusion to be removed in a follow-up; `base_url` left free). **Item 3: the ceiling must be a number** for a priced model. That needs a screen change (the ceiling field filled before a run) and is a follow-up; it is **decided, not built**: on this branch an explicit `null` is still accepted.
+
+Record: `docs/roadmap/milestones/H-close-side-doors.md`. The work is the researcher's decision of 2026-11-23 in the coordinator session (project review, section 3 points 2 and 4, E4 to E7): remove the old batch decisions route and its allowlist entry; remove `nexus_screen_llm` and any other pre-ledger MCP screening tool that can produce a decision outside the ledger; remove `ai_agreed_exclusion`, or refuse it and stop reporting it; no default model and a required cost ceiling on the agent-run request.
+
+**For the researcher to decide**
+
+1. **`nexus_screen` and `nexus_screen_reconcile` are kept.** Neither can produce a decision: `nexus_screen` writes heuristic proposals to a side file (`screening_proposals.json`) that nothing reads, and `nexus_screen_reconcile` returns a majority vote and a Fleiss' kappa over legacy batch files and writes nothing. Both are pre-ledger surfaces. *Proposed:* keep them for now. *Alternative:* remove both (two more MCP tools; the proposal store and `nexus_submit_proposal` stay).
+2. **`ai_agreed_exclusion` is refused and no longer reported, not removed**, because the web app's three screens and their tests read the field and workspaces may store it. The Prepare screen still offers the option, and choosing it shows the engine's refusal. *Proposed:* remove the option from Prepare (and its mentions on Home and Agreement) in a follow-up with the owner of the web app's unit tests. *Alternative:* leave the screens as they are until M9b replaces the field with the autonomy ladder's modes.
+3. **An explicit `null` ceiling is still accepted for a priced model:** a run must state `cost_ceiling_usd`, and `null` means "no ceiling". The screen sends `null` when the ceiling field is blank, so it keeps working unchanged, and a run started from the screen with a blank field still has no ceiling, as before. The "required ceiling" of the brief is therefore met in form for API callers, and in substance only if the alternative below is chosen. *Proposed:* as built. *Alternative:* require a number for a priced model; the screen would then need the ceiling field filled before a run (a web app change).
+4. **`base_url` stays free:** an OpenAI-compatible run sends the records and the key to any address the request names (review E6). *Proposed:* leave it, as the brief did not include it. *Alternative:* accept only `https://` addresses and loopback, in a follow-up.
+
+**Choices made in the build** (for the reviewer)
+
+5. The new refusals reuse the screening API's existing 422 code `INVALID_OUTPUT` with a plain message; no refusal code was added (a new code means changing the contract's §7 table and the refusal-set test).
+6. `GET /settings` forces `mode` to `human_sees_every_record` on read; `settings.json` and the journal rows of a workspace that stored the old value are left untouched (no migration of stored files). The first save that overwrites a stored `ai_agreed_exclusion` journals that stored value as `before` (review finding 3). `confirm_ai_agreed_exclusion` is still accepted in the body (the screen may send it) and has no effect. `sample_audit_size`, the setting's companion, is kept as it was (accepted, stored, journaled, returned) and is now inert: nothing reads or reports it.
+7. The methods paragraph's section 6 and `figures["mode"]` are removed; the `mode` and `sample_audit_size` timelines are no longer read for it.
+8. The provider and model check runs first, then the ceiling check (only for a request that can spend: a run, a dry run, a calibration); both before any state is read or written.
+9. Tests that relied on the run defaults send them explicitly through one constant (`RUN` in `tests/console/test_screening_api_v1.py`); their assertions are unchanged.
+10. The route's own tests are deleted with it; the two tests that used it to set up a draft write the same file shape directly, so the collector's reading of it stays tested.
+11. `LLMBatchScreener` (scholar_search) loses its only caller outside its module; not removed here.
+
 ## 2026-11-23 — H-remove-rag-verify: `scholar_rag` and `scholar_verify` removed (decided by the researcher 2026-11-23; items 1 to 3 accepted by the researcher 2026-11-23 as built)
 
 **Accepted 2026-11-23.** The researcher accepted items 1 to 3 as built, in the coordinator session, after the build's report ("Yes to all"), and approved the push and the PR.
