@@ -241,6 +241,7 @@ def test_all_builtin_archetype_templates_list_valid_and_exportable(tmp_path):
 # live DAG execution through the job runner (httpx + asyncio.run)
 # ---------------------------------------------------------------------------
 
+@pytest.mark.slow  # H-faster-python-tests: starts a process (recorded 2026-11-23).
 def test_pipeline_job_success_streams_and_persists(tmp_path):
     ws = _bootstrap(tmp_path)
     app = create_app(ws)
@@ -282,6 +283,7 @@ def test_pipeline_job_success_streams_and_persists(tmp_path):
     assert journal[-1]["metrics"]["node_states"] == {"n1": "success", "n2": "success"}
 
 
+@pytest.mark.slow  # H-faster-python-tests: starts a process (recorded 2026-11-23).
 def test_pipeline_job_halted_on_requires_decision(tmp_path):
     ws = _bootstrap(tmp_path)
     app = create_app(ws)
@@ -312,6 +314,7 @@ def test_pipeline_job_halted_on_requires_decision(tmp_path):
     assert journal[-1]["metrics"]["state"] == "failed"
 
 
+@pytest.mark.slow  # H-faster-python-tests: starts a process (recorded 2026-11-23).
 def test_pipeline_job_cancel_cooperative(tmp_path):
     ws = _bootstrap(tmp_path)
     app = create_app(ws)

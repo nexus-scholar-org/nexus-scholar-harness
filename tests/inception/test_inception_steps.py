@@ -112,6 +112,7 @@ def test_preview_writes_nothing(tmp_path):
     }
 
 
+@pytest.mark.slow  # H-faster-python-tests: starts a process (recorded 2026-11-23).
 def test_preview_and_the_cli_wizard_compile_the_same_protocol(tmp_path):
     """No second copy of the wizard logic: same answers, same fingerprint."""
     wizard = run_wizard(ScriptedResponder(list(E2E_ANSWERS)), tmp_path, genesis_timestamp=GENESIS_TS, not_reported="unclear")

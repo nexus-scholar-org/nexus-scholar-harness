@@ -2772,6 +2772,7 @@ def test_e2_neg_027_unknown_study_is_rejected_before_emission(
     assert not list((fixture.root / "extracted").glob("*.md"))
 
 
+@pytest.mark.slow  # H-faster-python-tests: starts a process (recorded 2026-11-23).
 def test_e2_neg_030_api_and_cli_report_the_same_operation_and_candidate(
     tmp_path: Path,
 ) -> None:

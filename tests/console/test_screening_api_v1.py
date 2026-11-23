@@ -278,6 +278,7 @@ def test_summary_before_prepare_is_an_empty_progress_not_a_refusal(tmp_path):
     assert body["lanes"] == {"agent": 0, "you": 0, "second_screener": "PARKED"}
 
 
+@pytest.mark.slow  # H-faster-python-tests: starts a process (recorded 2026-11-23).
 def test_prepare_job_runs_from_the_workspace_folder(tmp_path):
     """Golden run, 2026-11-05: Prepare did nothing in the installed app.
 

@@ -208,6 +208,7 @@ def test_inception_help_lists_grounded_flag():
 # ---------------------------------------------------------------------------
 
 
+@pytest.mark.slow  # H-faster-python-tests: starts a process (recorded 2026-11-23).
 def test_without_grounded_never_constructs_engine_or_cache(tmp_path, monkeypatch):
     def _explode(*args, **kwargs):
         raise AssertionError("ReconEngine constructed without --grounded")
@@ -230,6 +231,7 @@ def test_without_grounded_never_constructs_engine_or_cache(tmp_path, monkeypatch
     assert "recon_context" not in genesis["description"]
 
 
+@pytest.mark.slow  # H-faster-python-tests: starts a process (recorded 2026-11-23).
 def test_without_grounded_byte_identical_summary(tmp_path):
     result = run_wizard(
         GroundedScriptedResponder(_plain_answers()),
@@ -249,6 +251,7 @@ def test_without_grounded_byte_identical_summary(tmp_path):
 # ---------------------------------------------------------------------------
 
 
+@pytest.mark.slow  # H-faster-python-tests: starts a process (recorded 2026-11-23).
 def test_grounded_wizard_presents_direction_and_records_recon_context(tmp_path):
     calls = []
 
@@ -541,6 +544,7 @@ def test_grounded_empty_pool_hard_aborts_with_guidance(tmp_path):
 # ---------------------------------------------------------------------------
 
 
+@pytest.mark.slow  # H-faster-python-tests: starts a process (recorded 2026-11-23).
 def test_grounded_default_concepts_are_pool_anchored_only(tmp_path):
     def search_fn(query: Query, providers: list[str]):
         return _fake_docs(3)
@@ -587,6 +591,7 @@ def test_grounded_default_concepts_are_pool_anchored_only(tmp_path):
 # ---------------------------------------------------------------------------
 
 
+@pytest.mark.slow  # H-faster-python-tests: starts a process (recorded 2026-11-23).
 def test_grounded_unanchored_synonym_dropped_with_warning(tmp_path, monkeypatch):
     from scholar_harness import inception as inception_module
 
@@ -699,6 +704,7 @@ def test_grounded_unanchored_concept_exits_without_emitting(tmp_path):
 # ---------------------------------------------------------------------------
 
 
+@pytest.mark.slow  # H-faster-python-tests: starts a process (recorded 2026-11-23).
 def test_grounded_delta_probe_runs_once_and_merges(tmp_path):
     calls = []
 
@@ -756,6 +762,7 @@ def _predicted_directions(tmp_path) -> list[dict]:
     return _grounded_directions_for_terms(distiller_distill(pool))
 
 
+@pytest.mark.slow  # H-faster-python-tests: starts a process (recorded 2026-11-23).
 def test_auto_select_picks_first_direction_without_prompt(tmp_path):
     engine = _grounded_engine(tmp_path)
     n_concepts = len(_pool_anchored_defaults(engine))
@@ -773,6 +780,7 @@ def test_auto_select_picks_first_direction_without_prompt(tmp_path):
     assert len(rc["anchor_dois"]) >= 2
 
 
+@pytest.mark.slow  # H-faster-python-tests: starts a process (recorded 2026-11-23).
 def test_direction_id_selects_nth_direction_without_prompt(tmp_path):
     engine = _grounded_engine(tmp_path)
     directions = _predicted_directions(tmp_path)
@@ -831,6 +839,7 @@ def test_direction_id_zero_exits_without_emitting(tmp_path):
 # ---------------------------------------------------------------------------
 
 
+@pytest.mark.slow  # H-faster-python-tests: starts a process (recorded 2026-11-23).
 def test_grounded_wizard_probes_the_topic_as_keywords_and_keeps_the_sentence(tmp_path):
     from scholar_harness.recon.session import ReconSessions
 

@@ -379,6 +379,7 @@ def test_e1_audit_symlink_cannot_escape_workspace(tmp_path: Path) -> None:
     assert not list(outside.iterdir())
 
 
+@pytest.mark.slow  # H-faster-python-tests: starts a process (recorded 2026-11-23).
 def test_e1_neg_026_035_workspace_manager_cli_audit_is_idempotent(
     tmp_path: Path,
 ) -> None:
@@ -485,6 +486,7 @@ def test_e1_neg_029_manifest_round_trip_contains_only_relative_paths(
     assert str(fixture.root) not in manifest_path.read_text(encoding="utf-8")
 
 
+@pytest.mark.slow  # H-faster-python-tests: starts a process (recorded 2026-11-23).
 def test_e1_neg_031_api_and_cli_json_use_the_same_statuses(
     tmp_path: Path,
 ) -> None:

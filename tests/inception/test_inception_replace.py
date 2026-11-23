@@ -45,6 +45,7 @@ def _make_live(ws):
     return manifest
 
 
+@pytest.mark.slow  # H-faster-python-tests: starts a process (recorded 2026-11-23).
 def test_rerun_refuses_an_existing_workspace_and_writes_nothing(tmp_path):
     _first_run(tmp_path)
     ws = tmp_path / "workspaces" / SLUG
@@ -74,6 +75,7 @@ def test_rerun_into_a_raw_folder_refuses_too(tmp_path):
     assert (target / "protocol.json").read_bytes() == SENTINEL
 
 
+@pytest.mark.slow  # H-faster-python-tests: starts a process (recorded 2026-11-23).
 def test_replace_backs_up_the_old_protocol_and_keeps_the_manifest(tmp_path):
     _first_run(tmp_path)
     ws = tmp_path / "workspaces" / SLUG
@@ -122,6 +124,7 @@ def _add_publication(ws):
     (screening / "generation.json").write_text('{"generation": 1}', encoding="utf-8")
 
 
+@pytest.mark.slow  # H-faster-python-tests: starts a process (recorded 2026-11-23).
 @pytest.mark.parametrize(
     ("bind", "expected"),
     [
@@ -146,6 +149,7 @@ def test_replace_refuses_a_workspace_bound_to_screening(tmp_path, bind, expected
     assert not (ws / "audit" / "replaced").exists()
 
 
+@pytest.mark.slow  # H-faster-python-tests: starts a process (recorded 2026-11-23).
 def test_replace_with_discard_confirmation_proceeds_on_a_bound_workspace(tmp_path):
     _first_run(tmp_path)
     ws = tmp_path / "workspaces" / SLUG

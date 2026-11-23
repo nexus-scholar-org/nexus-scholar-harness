@@ -25,6 +25,8 @@ import re
 from pathlib import Path
 from typing import ClassVar
 
+import pytest
+
 from rich.console import Console
 from rich.panel import Panel
 from typer.testing import CliRunner
@@ -409,6 +411,7 @@ def test_missing_stage_entries_render_zero_never_none(monkeypatch, tmp_path):
 # --------------------------------------------------------------------------
 
 
+@pytest.mark.slow  # H-faster-python-tests: starts a process (recorded 2026-11-23).
 def test_pipeline_spec_path_is_unaffected(monkeypatch, tmp_path):
     """The ``--pipeline`` DAG path keeps its own summary (not the new panel)."""
     from scholar_harness.pipeline import validation as pipeline_validation

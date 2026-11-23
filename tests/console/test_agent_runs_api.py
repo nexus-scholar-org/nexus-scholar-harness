@@ -405,6 +405,7 @@ def test_a_lock_held_by_another_live_engine_is_never_taken_and_a_dead_one_is_rec
     assert len(completed) == 1
 
 
+@pytest.mark.slow  # H-faster-python-tests: starts a process (recorded 2026-11-23).
 def test_pid_liveness_fails_safe(ws):
     # Third review: an engine this one may not inspect was read as gone, and a
     # pid out of range raised. Both now answer without taking a live run.

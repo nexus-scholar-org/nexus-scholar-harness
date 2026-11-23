@@ -250,6 +250,7 @@ def stub_app(tmp_path):
     return app, app.state.job_runner
 
 
+@pytest.mark.slow  # H-faster-python-tests: starts a process (recorded 2026-11-23).
 def test_runner_lifecycle_writes_journal(tmp_path, monkeypatch):
     """Hermetic end-to-end through JobRunner (real subprocess, proactor loop)."""
     import asyncio

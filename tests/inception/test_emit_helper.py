@@ -6,6 +6,8 @@ import importlib.util
 import json
 from pathlib import Path
 
+import pytest
+
 from conftest import E2E_ANSWERS, GENESIS_TS, ScriptedResponder
 
 from scholar_harness.inception import run_wizard
@@ -27,6 +29,7 @@ def _intent(tmp_path) -> Path:
     return path
 
 
+@pytest.mark.slow  # H-faster-python-tests: starts a process (recorded 2026-11-23).
 def test_preview_writes_nothing_and_shows_the_criteria(tmp_path, capsys):
     intent = _intent(tmp_path)
     capsys.readouterr()
@@ -38,6 +41,7 @@ def test_preview_writes_nothing_and_shows_the_criteria(tmp_path, capsys):
     assert not root.exists()
 
 
+@pytest.mark.slow  # H-faster-python-tests: starts a process (recorded 2026-11-23).
 def test_emit_then_refuse_then_replace(tmp_path, capsys):
     intent = _intent(tmp_path)
     capsys.readouterr()
