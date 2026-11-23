@@ -46,6 +46,8 @@ export interface Summary {
   recheck?: number;
   /** M11b part B: the open, else the last, pilot; null when none was drawn. */
   pilot?: PilotBlock | null;
+  /** H-adopted-decisions-disclosure: decisions declared as stored from drafts, and candidates not declared. */
+  adoption?: { declared: number; undeclared_candidates: number } | null;
 }
 
 export interface PilotBlock {
@@ -256,6 +258,66 @@ export interface PrismaCheck {
   name: string;
   ok: boolean;
   detail: string;
+  /** H-adopted-decisions-disclosure: an advisory check reads "Look at this" and never blocks publishing. */
+  advisory?: boolean;
+}
+
+// --- H-adopted-decisions-disclosure: decisions stored from the agent's drafts -----
+
+export interface AdoptionSample {
+  declaration_id: string;
+  size: number;
+  seed: number | null;
+  study_ids: string[];
+  read: boolean;
+  changed: number | null;
+  recorded_at: string | null;
+}
+
+export interface AdoptionDeclarationRow {
+  declaration_id: string;
+  declared_by: string;
+  declared_at: string;
+  note: string | null;
+  counts: Record<Outcome, number>;
+  sample: { size: number; seed: number; study_ids: string[]; how: "drawn" | "given" } | null;
+}
+
+/** What is declared among the current decisions (GET /adoption-declarations; also on Agreement and Publish). */
+export interface AdoptionState {
+  phrase: string;
+  declared: number;
+  declared_by_outcome: Record<Outcome, number>;
+  candidates: number;
+  undeclared_candidates: number;
+  undeclared_by_outcome: Record<Outcome, number>;
+  declarations: AdoptionDeclarationRow[];
+  samples: AdoptionSample[];
+  sample_owed: boolean;
+  sample_owed_size: number | null;
+  no_sample_drawn: boolean;
+  integrity: { removed: string[]; unconfirmed: string[] };
+  /** The declaration screen's read only. */
+  candidate_list?: { event_id: string; study_id: string; outcome: Outcome; note: string | null; declared: boolean }[];
+  declared_study_ids?: string[];
+}
+
+export function getAdoption(origin: string, signal?: AbortSignal): Promise<AdoptionState> {
+  return readJson<AdoptionState>(`${BASE}/adoption-declarations`, consoleBase(origin), signal);
+}
+
+/** Declare decisions stored from the agent's draft without being read one by one (never sent without the reviewer's confirmation). */
+export function declareAdoption(
+  origin: string,
+  input: { event_ids: string[]; note?: string; sample?: { size: number; seed: number } },
+  signal?: AbortSignal,
+): Promise<{ declaration: AdoptionDeclarationRow; state: AdoptionState }> {
+  return postJson<{ declaration: AdoptionDeclarationRow; state: AdoptionState }>(`${BASE}/adoption-declarations`, origin, { ...input, confirm: true }, signal);
+}
+
+/** The reviewer has read every record of a declaration's sample; the engine counts the decisions that changed. */
+export function recordAdoptionSample(origin: string, declarationId: string, signal?: AbortSignal): Promise<{ result: unknown; state: AdoptionState }> {
+  return postJson<{ result: unknown; state: AdoptionState }>(`${BASE}/adoption-declarations/sample-results`, origin, { declaration_id: declarationId, confirm: true }, signal);
 }
 
 export interface PrismaPreview {
@@ -267,6 +329,8 @@ export interface PrismaPreview {
   included: number;
   not_yet_decided: number;
   checks: PrismaCheck[];
+  /** H-adopted-decisions-disclosure. */
+  adoption?: AdoptionState;
 }
 
 export interface PairingBegun {
@@ -641,6 +705,8 @@ export interface Agreement {
   unclear_either_side: number;
   kappa: null;
   kappa_note: string;
+  /** H-adopted-decisions-disclosure: declared decisions are not in the figures above. */
+  adoption?: AdoptionState;
 }
 
 export function getProposalSetup(origin: string, signal?: AbortSignal): Promise<ProposalSetup> {
@@ -707,6 +773,16 @@ export interface MethodsSource {
 }
 
 /** `GET /screening/methods`: the paragraph is engine-written English, shown and copied only. */
+export interface MethodsAdoption {
+  read_one_by_one: number;
+  stored_from_drafts: number;
+  by_outcome: Record<Outcome, number>;
+  samples: { size: number; seed: number | null; read: boolean; changed: number | null }[];
+  declared_on: string[];
+  declared_after_publication: boolean;
+  phrase: string;
+}
+
 export interface Methods {
   generation_id: string;
   generation_fingerprint: string;
@@ -721,6 +797,8 @@ export interface Methods {
     unclear: number;
     included: number;
     exclusion_reasons: Record<string, number>;
+    /** H-adopted-decisions-disclosure: null when nothing published was declared as stored from drafts. */
+    adoption?: MethodsAdoption | null;
     [more: string]: unknown;
   };
   sources: MethodsSource[];
