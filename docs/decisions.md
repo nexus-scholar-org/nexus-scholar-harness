@@ -28,7 +28,7 @@ Record: `docs/roadmap/milestones/H-charting-row-layout.md`. The work is the rese
 3. The small size also reaches the one-study view, which renders the same Confirm / Discard and "What was tried" pieces: they asked for `px-1 text-xs` there too.
 4. The two actions of a cell never wrap (`flex-nowrap`): the column widens and the long title wraps instead; at narrow widths the table scrolls sideways, which the pinned cells are for.
 5. The row owns one opaque background, `leaf` (the surface colour), or `brand-soft` when selected, and the pinned cells inherit it. The table body was two-toned before (white pinned cells, grey `paper` elsewhere); it is now white throughout.
-6. The focused row's frame is drawn by its cells (inset shadows, mirrored in Arabic) and the row's own outline is removed, because the pinned cells and the next row's background painted over it.
+6. The focused row's frame is drawn by its cells (inset shadows, mirrored in Arabic) and the row's own outline is removed, because the pinned cells and the next row's background painted over it. In forced colours (Windows High Contrast), which drop box shadows, the focused row keeps its own outline (review repair).
 7. The first pinned column is held at 48 px, the second's offset: squeezed to 40 px it let the scrolled cells show through a slit between the pinned cells.
 8. No hover tint was added (the table had none); the pinned cells would follow one.
 9. Other screens that pass `px-1 text-xs` through `className` (the query workbench's term buttons) have the same lost classes and are left for a follow-up.

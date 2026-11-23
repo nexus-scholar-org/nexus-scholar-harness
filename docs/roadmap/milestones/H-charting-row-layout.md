@@ -17,7 +17,7 @@ On 2026-11-23, on their real review (443 kept studies), the charting table (Full
 - `Button` gains `size="small"` (opt-in; the regular size is unchanged): `min-h-11` kept (the brand rule: every variant at least 44 px tall), `px-1 text-xs leading-4 gap-1 whitespace-nowrap`. The size replaces the base's padding and text size instead of competing with them. It sets `data-size="small"`.
 - The row's actions (file cell, decision cell) and the look-up pieces shown in the table (Confirm / Discard of a fetched file, "What was tried" and its Close) use `size="small"`. The two action pairs sit in `flex flex-nowrap` (`data-row-actions="file|decision"`): the column widens to hold both rather than stacking them; a long title wraps instead.
 - The row owns one opaque background: `bg-leaf`, or `bg-brand-soft` when selected. The pinned cells take it (`bg-inherit`), so selected, not-kept (muted, `opacity-70` on the row) or any later row tint read as one band, and the pinned cells still hide what scrolls under them.
-- The focused row's frame is drawn by its cells (inset shadows in `--color-focus`): top and bottom on every cell, the start edge on the first, the end edge on the last, mirrored in Arabic (`rtl:`). The row's own outline is removed (`focus-visible:outline-none` on the row, so the browser's default ring does not come back); `data-focused` is unchanged.
+- The focused row's frame is drawn by its cells (inset shadows in `--color-focus`): top and bottom on every cell, the start edge on the first, the end edge on the last, mirrored in Arabic (`rtl:`). The row's own outline is removed in normal colours (`not-forced-colors:focus-visible:outline-none` on the row, so the browser's default ring does not come back); `data-focused` is unchanged. In forced colours (Windows High Contrast) the browser drops box shadows, so there the focused row keeps a 2 px outline of its own (`forced-colors:outline-2 …`); the pinned cells still cover its start, as before this change (review repair, `a6e9d59f`).
 - The first pinned column is held at 48 px (`w-12 min-w-12`, header and body).
 
 The same `small` size also reaches the one-study view, which renders the same `PendingFile` and `TriedDisclosure` (choice 3 below).
@@ -50,9 +50,9 @@ What the screenshots show after the change: one band per row in light and dark, 
 5. A not-kept row is muted on the row; the pinned cells inherit.
 6. The first pinned column (header and body) is `w-12 min-w-12`; the second is `start-12`.
 7. Every cell of the focused row draws top and bottom; the first the start edge, the last the end edge, both directions; the unfocused row draws nothing.
-8. The row has no outline class of its own.
+8. In normal colours the row has no outline of its own (only `not-forced-colors:focus-visible:outline-none`); in forced colours the focused row keeps one and the other row has none (since the review repair).
 
-All 8 **fail on `origin/main`** (the three component files swapped back) and pass on the branch.
+All 8 **fail on `origin/main`** (the three component files swapped back; run on `8013d2bb`'s version of the test file, before test 8 was extended) and pass on the branch.
 
 ## Evidence
 | Check | Commit | Command | Result |
@@ -60,19 +60,25 @@ All 8 **fail on `origin/main`** (the three component files swapped back) and pas
 | New tests on the old code | `6f31f92e` components + the new test file | `npx vitest run tests/charting.row-layout.test.tsx` | 8 failed of 8 |
 | Charting vitest files | `8013d2bb` (tree, before commit) | `npx vitest run tests/charting --maxWorkers=4` | 40 files, 235 of 235 passed |
 | Typecheck, UI lint | `8013d2bb` (tree) | `npx tsc --noEmit`; `npm run lint:ui` | pass; 76 of 76 |
-| PR gate (`select_test_gate.py --changed origin/main --stage pr`: area research-ui) and build | `8013d2bb` | `git diff --check`; `npm run typecheck`; `npm run lint:ui`; `suite_lock.py -- npm test -- --maxWorkers=4`; `npm run build` | pending (running when this was written) |
+| PR gate (`select_test_gate.py --changed origin/main --stage pr`: area research-ui) and build | `8013d2bb` | `git diff --check`; `npm run typecheck`; `npm run lint:ui`; `suite_lock.py -- npm test -- --maxWorkers=4`; `npm run build` | all pass: diff-check, typecheck; lint:ui 76 of 76; vitest **117 files, 1,347 of 1,347 passed** (303 s); build exit 0 |
 | Browser look, before and after | `6f31f92e`, `8013d2bb` | export build + `nexus-scholar ui` on port 8795 + the Playwright script (above) | table above; screenshots in `.cache/` |
+| Review repair: charting vitest files, typecheck, UI lint, diff-check | `a6e9d59f` (tree, before commit) | `npx vitest run tests/charting --maxWorkers=4`; `npx tsc --noEmit`; `npm run lint:ui`; `git diff --check` | 40 files, 235 of 235 passed; pass; 76 of 76; clean |
+| Review repair: forced colours in the browser | `a6e9d59f` (tree) | export build; Playwright `emulateMedia({ forcedColors })`, the first row clicked then ArrowDown, ArrowUp (the row has DOM focus and `:focus-visible`) | normal: row outline `none`, the cells' inset frame drawn; forced: row outline `solid 2px`, cell shadows `none`. `after-forced-colors-none.png`, `after-forced-colors-active.png` |
+
+The full vitest run and `npm run build` were not repeated after the review repair (one class list on the row and one test changed; the charting files ran, and the export build compiled the same CSS). The first export build of the repair printed `Error: Can't resolve './theme.css'` and still finished; a second build right after printed no error. Not looked into.
 
 ## Not verified
 - Not looked at on the researcher's review (443 studies; their app and workspaces are not touched by build sessions). The heights are from a three-row fixture with a title replaced in the page.
 - The "What was tried" line and a waiting fetched file (Confirm / Discard) were not seen in a browser: the fixture has no look-up (that needs the network). They are pinned by the vitest tests only. The same goes for the one-study view, where `PendingFile` and `TriedDisclosure` now render at the small size too.
 - Hover: the table has no hover tint, before or after; none was added. The pinned cells would follow one (they inherit the row's background), not seen.
-- Keyboard movement in the browser (arrows, Space, Enter) was not exercised by hand; the keymap vitest files pass and no key handling changed.
+- Keyboard use in the browser: only ArrowDown and ArrowUp were pressed (the forced-colours check; the frame followed the focus). Space, Enter and Tab through the row's actions were not tried in a browser; the keymap vitest files pass and no key handling changed.
+- Forced colours were emulated in Chromium, not seen on Windows High Contrast itself.
+- The end edge of the frame is off-screen while the last column is scrolled out of view (a frame drawn by cells cannot avoid it); a not-kept row's frame is drawn at 70 % opacity, as its outline was before.
 - French was not looked at; its action words are longer, so its columns are wider (they cannot wrap now).
 - Other screens that pass `px-1 text-xs` to a `Button` through `className` (for example `query-workbench.tsx`, the term buttons) have the same lost classes; they are not changed here (follow-up).
 
 ## Review
-Pending.
+`milestone-reviewer`, round 1 on `f97c00ad`: **APPROVE**. It compiled the branch's stylesheet and found every new class (both shadow directions, `bg-inherit`, `min-w-12`, `flex-nowrap`); found no state where a keyboard-focused row has no frame; confirmed `bg-inherit` under `opacity-70` (the row is one stacking context) and the RTL mirroring; found no other test asserting a changed class; and checked the record against the diff. It ran the new file with `charting.fetch-badge` (15 of 15), seven other charting files (38 of 38), `tsc` and `lint:ui` (76 of 76). One P3, taken: in forced colours the browser drops box shadows, and with the row's outline removed a focused row showed no frame there; repaired in `a6e9d59f` (above). Its other notes (the query workbench's lost classes, the end edge off-screen while scrolled, the muted row's frame at 70 %) are in "Not verified" and decision item 9. It noted that `origin/main` had moved to `460f23f3` (three documents-only commits) and that the branch merges into it cleanly; not merged here. The repair was not sent back to the reviewer.
 
 ## Decisions
 In `docs/decisions.md`, "2026-11-23 — H-charting-row-layout".
