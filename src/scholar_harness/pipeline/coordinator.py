@@ -20,16 +20,15 @@ Preservation notes:
 - Stage order and early-pause return preserved: discovery, deduplication,
   hydration, verification, screening preparation, then the
   ``included.json`` collect-gate (the later stages SKIPPED + ``PENDING`` +
-  PAUSE audit + return before them), then extraction and graph, then the
+  PAUSE audit + return before them), then extraction, then the
   COMPLETED audit. Indexing, the matrix and synthesis left with
   ``scholar_rag`` (H-remove-rag-verify, 2026-11-23).
 - Results shape preserved: ``discovery`` count, ``deduplication``
   unique/dupes, ``verification`` status/counts (+ quarantine), ``screening``
   PENDING mapping with ``len(verified_docs)`` papers_to_screen, pause
-  SKIPPED mappings (``extraction``/``graph``), success ``extraction`` DONE,
-  ``graph_nodes`` DONE, plus the ``SUCCESS``/``PENDING_AGENT_REVIEW``
-  status propagation. The pause/success key asymmetry (``graph`` vs
-  ``graph_nodes``) is preserved verbatim.
+  SKIPPED mappings (``extraction``), success ``extraction`` DONE, plus the
+  ``SUCCESS``/``PENDING_AGENT_REVIEW`` status propagation. (The citation
+  graph stage left with ``scholar_graph``, H-remove-graph, 2026-11-23.)
 - Bindings flow via coordinator locals: Stage-3 ``verified_docs`` length to
   Stage-4 ``papers_to_screen``.
 - File/protocol DSL unchanged: missing protocol raises
@@ -73,7 +72,7 @@ Neutrality: stdlib plus ``scholar-protocol-kit`` only for the protocol
 validation shape and harness stages only for delegation -- no console
 transport, no Contract v1 acceptance beyond what the stages themselves
 publish, no workspace audit beyond the three coordinator-owned legacy rows
-(PAUSE + COMPLETED + ABORTED), no direct scholar-search/pdf/graph kit
+(PAUSE + COMPLETED + ABORTED), no direct scholar-search/pdf kit
 imports.
 """
 
@@ -95,7 +94,6 @@ from .deduplication import current_method as current_dedup_method
 from .deduplication import run_deduplication
 from .discovery import run_discovery
 from .extraction import run_extraction
-from .graph import run_graph
 from .hydration import run_hydration
 from .verification import run_verification
 
@@ -105,9 +103,9 @@ logger = logging.getLogger(__name__)
 #: The stage-mapping shape each stage has on a *successful* path. The abort
 #: path (a FAILED harvest) keeps the same keys -- with neutral zero values --
 #: so a consumer that reads ``stages.deduplication["unique"]`` or
-#: ``stages.graph_nodes["nodes"]`` does not hit a ``KeyError`` on an aborted
-#: run (T-TRUTH-COUNTS-01, F-9). The stage *names* are the successful-path
-#: names too (``graph_nodes``), never aliases.
+#: ``stages.deduplication["unique"]`` does not hit a ``KeyError`` on an
+#: aborted run (T-TRUTH-COUNTS-01, F-9). The stage *names* are the
+#: successful-path names too, never aliases.
 _ABORTED_STAGE_SHAPES: dict[str, dict[str, Any]] = {
     "deduplication": {"unique": 0, "duplicates_removed": 0},
     "verification": {
@@ -119,7 +117,6 @@ _ABORTED_STAGE_SHAPES: dict[str, dict[str, Any]] = {
     },
     "screening": {"batch_files_prepared": 0, "papers_to_screen": 0},
     "extraction": {"documents": 0, "metadata_frontmatter_only": []},
-    "graph_nodes": {"nodes": 0, "edges": 0},
 }
 
 
@@ -747,7 +744,7 @@ def _pause_for_corpus_accept(
     reason = "awaiting the hand-off accept"
     results["stages"]["corpus_snapshot"] = {"status": "NOT_ACCEPTED", "reason": reason}
     emit_stage("corpus_snapshot", "NOT_ACCEPTED", results["stages"]["corpus_snapshot"])
-    for stage in ("screening", "extraction", "graph_nodes"):
+    for stage in ("screening", "extraction"):
         results["stages"][stage] = {
             **_ABORTED_STAGE_SHAPES[stage],
             "status": "SKIPPED",
@@ -935,7 +932,7 @@ async def run_pipeline(
     notes: list[str] | None = None,
     freeze_corpus: bool = True,
 ) -> dict[str, Any]:
-    """Execute the research workflow from protocol to the citation graph.
+    """Execute the research workflow from protocol to full-text extraction.
 
     Verbatim move of ``ResearchOrchestrator.run_pipeline_async`` (:517-780):
     protocol load/validate, directory setup, Stage 1-9 delegation in order,
@@ -1192,7 +1189,7 @@ async def run_pipeline(
         emit_stage("corpus_snapshot", snapshot["status"], snapshot)
         if snapshot["status"] == "REFUSED":
             reason = f"corpus snapshot refused: {snapshot['reason']}"
-            for stage in ("screening", "extraction", "graph_nodes"):
+            for stage in ("screening", "extraction"):
                 results["stages"][stage] = {
                     **_ABORTED_STAGE_SHAPES[stage],
                     "status": "SKIPPED",
@@ -1258,7 +1255,7 @@ async def run_pipeline(
                 f"{exc.code}); see the log for the reason"
             )
             code = _refusal_code(reason)
-            for name in ("screening", "extraction", "graph_nodes"):
+            for name in ("screening", "extraction"):
                 results["stages"][name] = {
                     **_ABORTED_STAGE_SHAPES[name],
                     "status": "SKIPPED",
@@ -1294,7 +1291,7 @@ async def run_pipeline(
     # literature/included.json the pipeline must stop, never fabricate output.
     inc_file = lit_dir / "included.json"
     if not inc_file.exists():
-        for stage in ("extraction", "graph"):
+        for stage in ("extraction",):
             results["stages"][stage] = {
                 "status": "SKIPPED",
                 "reason": "PRISMA collect not run yet",
@@ -1343,7 +1340,7 @@ async def run_pipeline(
             f"{_generation.status.value} ({_generation.code}); "
             f"{_generation.message}"
         )
-        for stage in ("extraction", "graph"):
+        for stage in ("extraction",):
             results["stages"][stage] = {
                 "status": "SKIPPED",
                 "reason": _generation_reason,
@@ -1390,25 +1387,6 @@ async def run_pipeline(
     }
 
     # -------------------------------------------------------------
-    # Stage 8: Citation Knowledge Graph & PageRank
-    # -------------------------------------------------------------
-    # HCM-04j: delegated to the neutral pipeline stage. run_graph owns
-    # client construction, DOI collection, build_graph, PageRank, JSON
-    # export, and HTML visualization; it emits no audit event and writes
-    # no registry state. The client lifecycle is unchanged (per call, no
-    # close -- the base never closed the graph client).
-    graph_outcome = await run_graph(
-        included_documents=inc_docs,
-        literature_dir=lit_dir,
-    )
-    # Local bindings retained: the results mapping below reads them.
-    results["stages"]["graph_nodes"] = {
-        "status": "DONE",
-        "nodes": graph_outcome.nodes,
-        "edges": graph_outcome.edges,
-    }
-
-    # -------------------------------------------------------------
     # Stage 10: Append-Only Audit Journal Logging
     # -------------------------------------------------------------
     _apply_discovery_status(results, discovery_status, discovery_reason)
@@ -1419,7 +1397,7 @@ async def run_pipeline(
         f"Completed end-to-end research pipeline for '{protocol.metadata.get('title', 'Unknown')}'"
         f"{_pipeline_note(results)}",
         [str(p_path)],
-        [str(lit_dir / "knowledge_graph.html")],
+        [str(ext_dir)],
         results["stages"],
         status=_ledger_status(results),
     )

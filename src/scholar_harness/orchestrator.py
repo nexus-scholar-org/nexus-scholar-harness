@@ -70,15 +70,6 @@ from .pipeline.extraction import (  # noqa: F401
     run_extraction,
 )
 
-# HCM-04j: citation knowledge graph lives in the neutral pipeline stage
-# (scholar_harness.pipeline.graph). Tests patch
-# ``pipeline.graph.CitationGraphBuilder`` / ``pipeline.graph.GraphVisualizer``
-# directly. Canonical definitions live in the stage module.
-from .pipeline.graph import (  # noqa: F401
-    GraphOutcome,
-    run_graph,
-)
-
 # HCM-04l: pipeline coordination glue lives in the neutral coordinator
 # (scholar_harness.pipeline.coordinator). The orchestrator keeps only the
 # thin run_pipeline_async/run_pipeline delegates with identical signatures;

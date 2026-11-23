@@ -5,7 +5,7 @@ the wheel). A skill body never restates a version; instead the installer
 emits one ``SKILL.meta.json`` per skill directory:
 
 ```json
-{"skill": "scholar-graph-kit", "kit": "scholar-graph-kit",
+{"skill": "scholar-pdf-kit", "kit": "scholar-pdf-kit",
  "rev": "<full sha from plugins.json>", "source": "plugins.json",
  "verified_at": "<ISO8601 UTC at generation>"}
 ```

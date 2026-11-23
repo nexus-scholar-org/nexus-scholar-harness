@@ -227,19 +227,13 @@
       "name": "agent-mcp",
       "paths": ["src/scholar_agent/**"],
       "inner": ["uv run pytest tests/kits/agent -q -m \"not slow\""],
-      "checkpoint": ["uv run pytest tests/kits/agent tests/mcp tests/conformance/test_mcp_tool_parity.py tests/conformance/test_capability_adapter.py tests/cli/test_scholar_agent_cli.py tests/test_mcp_narrative.py -q"]
+      "checkpoint": ["uv run pytest tests/kits/agent tests/mcp tests/conformance/test_mcp_tool_parity.py tests/conformance/test_capability_adapter.py tests/cli/test_scholar_agent_cli.py -q"]
     },
     {
       "name": "pdf",
       "paths": ["src/scholar_pdf/**"],
       "inner": ["uv run pytest tests/kits/pdf -q -m \"not slow\""],
       "checkpoint": ["uv run pytest tests/kits/pdf tests/conformance/test_e1_acquired_document_boundary.py tests/conformance/test_e2_extraction_boundary.py tests/unit/test_extraction_stage.py -q"]
-    },
-    {
-      "name": "graph",
-      "paths": ["src/scholar_graph/**"],
-      "inner": ["uv run pytest tests/kits/graph -q -m \"not slow\""],
-      "checkpoint": ["uv run pytest tests/kits/graph tests/unit/test_graph_stage.py tests/mcp/test_mcp_tools_graph.py -q"]
     },
     {
       "name": "packaging",

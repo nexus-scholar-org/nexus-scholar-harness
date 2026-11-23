@@ -1123,9 +1123,6 @@ def _coordinator_fakes(ws: Path) -> dict:
     def _extract(**kwargs):
         return SimpleNamespace(documents=[], metadata_frontmatter_only=0)
 
-    async def _graph(**kwargs):
-        return SimpleNamespace(nodes=0, edges=0)
-
     return {
         "run_discovery": _discovery,
         "run_deduplication": _dedup,
@@ -1133,7 +1130,6 @@ def _coordinator_fakes(ws: Path) -> dict:
         "run_verification": _verification,
         "run_screening_preparation": _prepare,
         "run_extraction": _extract,
-        "run_graph": _graph,
     }
 
 
@@ -1145,7 +1141,6 @@ def _patch_coordinator(monkeypatch: pytest.MonkeyPatch, ws: Path):
         "run_hydration",
         "run_verification",
         "run_extraction",
-        "run_graph",
     ):
         monkeypatch.setattr(coordinator, name, fakes[name])
     monkeypatch.setattr(
@@ -1184,9 +1179,8 @@ def test_coordinator_stale_generation_skips_stages_with_named_reason(
         coordinator.run_pipeline(workspace_dir=ws)
     )
     assert results["status"] == "PENDING_AGENT_REVIEW"
-    for stage in ("extraction", "graph"):
-        assert results["stages"][stage]["status"] == "SKIPPED"
-        assert "STALE" in results["stages"][stage]["reason"]
+    assert results["stages"]["extraction"]["status"] == "SKIPPED"
+    assert "STALE" in results["stages"]["extraction"]["reason"]
     journal = (ws / "audit" / "journal.jsonl").read_text(encoding="utf-8")
     assert "PIPELINE_RUN_PAUSED_FOR_SCREENING" in journal
 

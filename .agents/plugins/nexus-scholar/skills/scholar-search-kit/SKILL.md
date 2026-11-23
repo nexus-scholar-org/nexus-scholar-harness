@@ -34,7 +34,7 @@ You are an expert academic research agent equipped with `scholar-search-kit`. Th
 3. **Verification & Abstract Hydration**: Verifies citation authenticity against Crossref/OpenAlex to detect hallucinations, strips JATS XML markup (`<jats:p>`), and hydrates rich abstracts.
 4. **Smart 2-Tier Deduplication**: Merges duplicate records by persistent IDs (DOI, arXiv, PMID, OpenAlex) and fuzzy title similarity ($\ge 97\%$) with author/year validation, assigning canonical `workspace_id: SCI-XXXXXX` identifiers.
 5. **Systematic Screening Engine**: Evaluates candidate title/abstract relevance against `protocol.json.screening_criteria`, generating `included.json`, `excluded.json`, `conflicts.json`, `prisma_report.json`, and markdown PRISMA 2020 flow diagrams.
-6. **Standardized Export**: Exports normalized collections to JSON, JSONL, or CSV for direct handoff to `scholar-pdf-kit` and `scholar-graph-kit`.
+6. **Standardized Export**: Exports normalized collections to JSON, JSONL, or CSV for direct handoff to `scholar-pdf-kit`.
 
 ---
 
@@ -283,4 +283,4 @@ if __name__ == "__main__":
 
 - **Protocol Conformance**: Always use `--protocol` when working within a project workspace to ensure search keywords, date bounds, and languages match the frozen research protocol.
 - **Screening Transparency**: Heuristic `screen` output is candidate triage only. Authoritative inclusion requires the agent `prepare`/`collect` handoff; always check `literature/prisma_screening_report.md` and log `SCREENING_COMPLETED` events to `audit/journal.jsonl`.
-- **Handoff to PDF & Graph Kit**: Pass `literature/included.json` directly to the `scholar-pdf-kit` downloader and `scholar-graph` builder (see those skills for exact commands).
+- **Handoff to the PDF kit**: Pass `literature/included.json` directly to the `scholar-pdf-kit` downloader (see that skill for exact commands).

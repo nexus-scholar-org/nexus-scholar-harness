@@ -20,12 +20,9 @@ import asyncio
 import json
 from pathlib import Path
 
-import networkx as nx
-
 from scholar_harness import orchestrator as orch
 from scholar_harness.pipeline import deduplication as dedup_mod
 from scholar_harness.pipeline import discovery as disc_mod
-from scholar_harness.pipeline import graph as graph_mod
 from scholar_harness.pipeline import verification as ver_mod
 
 # Registered workspace identity this fixture workspace records.
@@ -139,43 +136,10 @@ class _FakeVerifier:
         return [], []
 
 
-class _FakeGraph:
-    def __init__(self, client):
-        self.client = client
-
-    async def build_graph(self, dois):
-        G = nx.DiGraph()
-        for d in dois:
-            G.add_node(d, label=d)
-        return G
-
-    @staticmethod
-    def compute_pagerank(G):
-        ranks = {n: 1.0 / max(len(G), 1) for n in G.nodes}
-        nx.set_node_attributes(G, ranks, "pagerank")
-        return ranks
-
-    def export_json(self, G, path: Path):
-        path.write_text(
-            json.dumps({"nodes": list(G.nodes), "links": list(G.edges)}),
-            encoding="utf-8",
-        )
-
-
-class _FakeVis:
-    def __init__(self, html_path):
-        self.html_path = html_path
-
-    def generate_html(self, G):
-        Path(self.html_path).write_text("<html></html>", encoding="utf-8")
-
-
 def _stub_kit_engines(monkeypatch):
     monkeypatch.setattr(disc_mod, "SearchEngine", _FakeEngine)
     monkeypatch.setattr(dedup_mod, "Deduplicator", _FakeDedup)
     monkeypatch.setattr(ver_mod, "DocumentVerifier", _FakeVerifier)
-    monkeypatch.setattr(graph_mod, "CitationGraphBuilder", _FakeGraph)
-    monkeypatch.setattr(graph_mod, "GraphVisualizer", _FakeVis)
     monkeypatch.setattr(
         "scholar_harness.agent_screen.cmd_prepare", lambda *a, **k: None
     )
@@ -199,8 +163,7 @@ def test_pipeline_pauses_for_collect_and_skips_stages_5_9(tmp_path, monkeypatch)
     results = _run(ws)
 
     assert results["status"] == "PENDING_AGENT_REVIEW"
-    for stage in ("extraction", "graph"):
-        assert results["stages"][stage]["status"] == "SKIPPED"
+    assert results["stages"]["extraction"]["status"] == "SKIPPED"
     # The removed stages are not reported at all (H-remove-rag-verify).
     assert not {"indexing", "matrix", "synthesis"} & set(results["stages"])
     assert not list((ws / "extracted").glob("*.md")), (
@@ -266,11 +229,11 @@ def test_pipeline_after_collect_writes_metadata_extraction_not_placeholder(
 
 
 # ---------------------------------------------------------------------------
-# After collect: extraction then the graph; no index, matrix or synthesis
+# After collect: extraction only; no index, matrix, synthesis or graph
 # ---------------------------------------------------------------------------
 
 
-def test_after_collect_runs_extraction_and_graph_only(tmp_path, monkeypatch):
+def test_after_collect_runs_extraction_only(tmp_path, monkeypatch):
     _stub_kit_engines(monkeypatch)
 
     ws = tmp_path
@@ -297,11 +260,11 @@ def test_after_collect_runs_extraction_and_graph_only(tmp_path, monkeypatch):
     results = _run(ws)
 
     assert results["stages"]["extraction"]["status"] == "DONE"
-    assert results["stages"]["graph_nodes"]["status"] == "DONE"
-    assert (ws / "literature" / "knowledge_graph.json").is_file()
-    assert (ws / "literature" / "knowledge_graph.html").is_file()
+    # H-remove-graph: no citation graph is built any more.
+    assert not (ws / "literature" / "knowledge_graph.json").exists()
+    assert not (ws / "literature" / "knowledge_graph.html").exists()
 
-    assert not {"indexing", "matrix_rows", "synthesis"} & set(results["stages"])
+    assert not {"indexing", "matrix_rows", "graph_nodes", "synthesis"} & set(results["stages"])
     assert not (ws / "chroma_db").exists()
     assert not (ws / "literature" / "synthesis_matrix.csv").exists()
     assert not (ws / "synthesis" / "literature_review.md").exists()

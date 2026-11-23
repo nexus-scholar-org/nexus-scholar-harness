@@ -57,7 +57,6 @@ from scholar_harness.pipeline import coordinator as coord_mod
 from scholar_harness.pipeline import deduplication as dedup_mod
 from scholar_harness.pipeline import discovery as disc_mod
 from scholar_harness.pipeline import extraction as ext_mod
-from scholar_harness.pipeline import graph as graph_mod
 from scholar_harness.pipeline import verification as ver_mod
 
 FIXTURE_WORKSPACE_ID = "WSP-" + "0" * 32
@@ -699,46 +698,9 @@ class _FakeVerifier:
 
 def _stub_upstream(monkeypatch):
 
-    import networkx as nx
-
-    class _FakeGraph:
-        def __init__(self, client):
-            self.client = client
-
-        async def build_graph(self, dois):
-            G = nx.DiGraph()
-            for d in dois:
-                G.add_node(d, label=d)
-            return G
-
-        @staticmethod
-        def compute_pagerank(G):
-            ranks = {n: 1.0 / max(len(G), 1) for n in G.nodes}
-            nx.set_node_attributes(G, ranks, "pagerank")
-            return ranks
-
-        def export_json(self, G, path):
-            import json as _j
-
-            path.write_text(
-                _j.dumps({"nodes": list(G.nodes), "links": list(G.edges)}),
-                encoding="utf-8",
-            )
-
-    class _FakeVis:
-        def __init__(self, html_path):
-            self.html_path = html_path
-
-        def generate_html(self, G):
-            from pathlib import Path as _P
-
-            _P(self.html_path).write_text("<html></html>", encoding="utf-8")
-
     monkeypatch.setattr(disc_mod, "SearchEngine", _FakeEngine)
     monkeypatch.setattr(dedup_mod, "Deduplicator", _FakeDedup)
     monkeypatch.setattr(ver_mod, "DocumentVerifier", _FakeVerifier)
-    monkeypatch.setattr(graph_mod, "CitationGraphBuilder", _FakeGraph)
-    monkeypatch.setattr(graph_mod, "GraphVisualizer", _FakeVis)
     monkeypatch.setattr(
         "scholar_harness.agent_screen.cmd_prepare", lambda *a, **k: None
     )

@@ -3705,23 +3705,21 @@ def test_run_role_refuses_a_workspace_equal_to_the_root(tmp_path: Path) -> None:
 # T-ALP-D1: ``resolve_env`` binds the full skill vocabulary (spec 04 §1)
 # ---------------------------------------------------------------------------
 
-#: The eight ``{CLI:<short>}`` names a shipped skill uses. The registry
+#: The five ``{CLI:<short>}`` names a shipped skill uses. The registry
 #: (``variables.CLI_SHORTS``) is the source of truth; this literal tuple is the
 #: assertion, so extending the kit set is a deliberate edit here too.
 CLI_SHORT_NAMES = (
     "agent",
-    "graph",
     "harness",
     "pdf",
     "protocol",
     "search",
 )
 
-#: The five kits that own a ``{KIT_ROOT:<short>}`` binding (the harness is a
+#: The four kits that own a ``{KIT_ROOT:<short>}`` binding (the harness is a
 #: CLI, not a kit: ``tools/scholar-harness`` does not exist).
 KIT_SHORT_NAMES = (
     "agent",
-    "graph",
     "pdf",
     "protocol",
     "search",
@@ -3806,7 +3804,7 @@ def test_binding_vocabulary_matches_the_registry() -> None:
     """The literal assertions above cannot drift from the registry."""
     assert set(CLI_SHORT_NAMES) == set(CLI_SHORTS)
     assert set(KIT_SHORT_NAMES) == set(KIT_SHORTS)
-    assert len(_shipped_skill_names()) == 11, (  # 13 until H-remove-rag-verify
+    assert len(_shipped_skill_names()) == 10, (  # 13 until H-remove-rag-verify, 11 until H-remove-graph
         "the shipped skill set changed; update the expectation deliberately"
     )
 
@@ -3959,18 +3957,18 @@ def test_unimportable_kit_is_absent_and_render_names_it(
     from scholar_harness.capabilities import adapter as adapter_module
 
     monkeypatch.setitem(
-        adapter_module.KIT_MODULES, "graph", "scholar_package_that_does_not_exist"
+        adapter_module.KIT_MODULES, "pdf", "scholar_package_that_does_not_exist"
     )
     workspace = tmp_path / "workspaces" / _WS
     workspace.mkdir(parents=True)
 
     env = _resolve_env("in-process", workspace, tmp_path / "plugins.json")
 
-    assert "KIT_ROOT:graph" not in env
-    assert "CLI:graph" in env, "the CLI family is independent of the kit package"
+    assert "KIT_ROOT:pdf" not in env
+    assert "CLI:pdf" in env, "the CLI family is independent of the kit package"
     with pytest.raises(ValueError) as excinfo:
-        render("Run {KIT_ROOT:graph}/apply.py", Preamble.from_env(env))
-    assert "{KIT_ROOT:graph}" in str(excinfo.value)
+        render("Run {KIT_ROOT:pdf}/apply.py", Preamble.from_env(env))
+    assert "{KIT_ROOT:pdf}" in str(excinfo.value)
     assert not isinstance(excinfo.value, KeyError)
 
 

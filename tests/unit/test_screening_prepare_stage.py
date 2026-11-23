@@ -467,9 +467,8 @@ def test_orchestrator_mapping_truthful_pending_with_stubbed_batches(
     assert (ws / "literature" / "prisma_screening_report.md").read_text(
         encoding="utf-8"
     ) == _expected_report_text(ws.resolve(), 2)
-    assert not {"indexing", "matrix", "synthesis"} & set(results["stages"])
-    for stage in ("extraction", "graph"):
-        assert results["stages"][stage]["status"] == "SKIPPED"
+    assert not {"indexing", "matrix", "graph", "synthesis"} & set(results["stages"])
+    assert results["stages"]["extraction"]["status"] == "SKIPPED"
     assert len(_pause_rows(ws)) == 1
 
 
@@ -550,9 +549,8 @@ def test_zero_record_orchestrator_truthful_pending_not_complete(tmp_path, monkey
     }
     assert results["status"] == "PENDING_AGENT_REVIEW"
     assert results["status"] != "SUCCESS"
-    assert not {"indexing", "matrix", "synthesis"} & set(results["stages"])
-    for stage in ("extraction", "graph"):
-        assert results["stages"][stage]["status"] == "SKIPPED"
+    assert not {"indexing", "matrix", "graph", "synthesis"} & set(results["stages"])
+    assert results["stages"]["extraction"]["status"] == "SKIPPED"
     assert "0 batch files" in (
         ws / "literature" / "prisma_screening_report.md"
     ).read_text(encoding="utf-8")

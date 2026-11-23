@@ -13,6 +13,26 @@ history to read if you need the original reasoning (`git log --follow -- <path>`
 | 2026-11-19 — M9a: what the measurement says about the ladder gates | 2 | The minimum share of the researcher's excludes an agent must take before a rung unlocks: the principle is accepted; the researcher decided on 2026-11-20 to set the number when M9b is built. |
 | 2026-11-23 — H-gate-and-ci | 1 | The standing permission for sessions to push a work branch and open a draft pull request: not given. |
 | 2026-11-23 — H-charting-row-layout | 1 | Whether the charting table's row actions may be smaller than 44 px on a desktop pointer: proposed, not built. |
+| 2026-11-23 — H-remove-graph | 1 to 3 | The graph stage dropped from results rather than skipped, `scholar-graph` pipeline nodes refused, and the 1.1.0b7 release-note lines: proposed as built. |
+
+## 2026-11-23 — H-remove-graph: `scholar_graph` removed (decided by the researcher 2026-11-23; items 1 to 3 PROPOSED)
+
+Record: `docs/roadmap/milestones/H-remove-graph.md`. The removal itself is the researcher's decision of 2026-11-23 in the coordinator session ("Yes, remove graph"); restore from `9af17212`. `networkx`, `pyvis` and `scipy` leave the base dependencies; PDF extraction, the capability adapter and `claims` stay.
+
+**For the researcher to decide**
+
+1. **The pipeline result and the summaries drop the graph stage** rather than reporting it as skipped: `nexus-scholar run` and `nexus_pipeline_run` no longer carry `graph_nodes`, the run summary no longer prints "Graph Nodes", `nexus-scholar status` no longer prints "Citation Graph Nodes". The status JSON keeps its `graph_nodes` key, read from an old workspace's `knowledge_graph.json`. *Proposed:* as built, the same rule as H-remove-rag-verify's item 3. *Alternative:* report the stage as `SKIPPED` with a reason for one release.
+2. **A stored pipeline spec with a `scholar-graph` node is refused** at validation (`COMMAND_NOT_ALLOWED`), and the console's `/api/v1/assets/graph` route is gone (404). *Proposed:* as built (the command no longer exists; the web app never called the route). *Alternative:* keep the allowlist entry and let such a node fail when run.
+3. **The 1.1.0b7 release note**, if this lands before the tag, must say: the `scholar-graph` command, the MCP tools `nexus_graph_build` and `nexus_graph_narrative` (22 tools remain), the pipeline's graph stage and its `knowledge_graph.json`/`.html` outputs, the console's `graph` and `graph_narrative` actions and `/api/v1/assets/graph`, and the `scholar-graph-kit` skill are removed; `networkx`, `pyvis` and `scipy` are no longer installed with the base package (`networkx` and `numpy` still come with `[pdf]`, `scipy` with `[extract]`). *Proposed:* those lines. *Alternative:* a shorter note naming only the command and the two tools.
+
+**Choices made in the build** (for the reviewer)
+
+4. Deleted only tests whose whole subject was deleted; mixed files kept every assertion over kept code. The capability-adapter, skill-portability and doctor tests that used `graph` as their sample kit now use `pdf`.
+5. Negative tests: no `graph_nodes` stage or graph files after a collected screening; the coordinator source has no `run_graph`; `/api/v1/assets/graph` answers 404; the two actions and two tools are absent from their exact sets; a `scholar-graph` pipeline node is refused; no "Graph Nodes" line in the summaries.
+6. Old workspaces' graph files are read, never written: `get_status`/`sync_state` still count an existing `knowledge_graph.json`, `handoff.py` keeps its `GRAPH` phase (as it kept `SYNTHESIS` and `CRITIQUE`), and the corpus counts still exclude `graph.json` and `knowledge_graph.json`.
+7. `tests/mcp/test_mcp_tools_graph.py` keeps its name (its remaining tests cover other tools; documents cite it).
+8. `scripts/build_mcpb.py`'s bundle description now says only the full-text tools are parked (it still named rag, verify and the graph).
+9. `docs/architecture/console/SPECS.md` (a 2026-09 design record that still lists the rag and verify actions) is not edited; `lib/` (gitignored, written by pyvis) is not deleted.
 
 ## 2026-11-23 — H-charting-row-layout: one line of row actions, the pinned cells carry the row (PROPOSED; item 1 open)
 

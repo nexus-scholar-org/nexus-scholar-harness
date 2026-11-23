@@ -33,7 +33,7 @@ Negatives (each tmp_path-only, byte-identical restored):
 - NEG-05 byte-identical probe restore (orch vs direct coordinator agree)
 
 Carried debt TD x8 seams untouched (SearchEngine/Deduplicator/
-DocumentVerifier/CitationGraphBuilder/GraphVisualizer shims stay in stages via
+DocumentVerifier shims stay in stages via
 orch.__dict__ honoring; coordinator adds no new seam) + TD-E3-CURRENTNESS-01
 + MCP docs failure stay base-proven.
 """
@@ -201,21 +201,6 @@ def _fake_extraction(*, included_documents, pdfs_dir, extracted_dir):
     )
 
 
-async def _fake_graph(*, included_documents, literature_dir):
-    CALL_ORDER.append("graph")
-    lit = Path(literature_dir)
-    (lit / "knowledge_graph.json").write_text(
-        '{"nodes": [], "links": []}', encoding="utf-8"
-    )
-    (lit / "knowledge_graph.html").write_text("<html></html>", encoding="utf-8")
-    return SimpleNamespace(
-        nodes=0,
-        edges=0,
-        json_path=lit / "knowledge_graph.json",
-        html_path=lit / "knowledge_graph.html",
-    )
-
-
 def _stub_downstream_stages(monkeypatch):
     """Stub every stage EXCEPT discovery (the real stage is then exercised)."""
     _clear_order()
@@ -227,7 +212,6 @@ def _stub_downstream_stages(monkeypatch):
         _fake_preparation,
     )
     monkeypatch.setattr(coord_mod, "run_extraction", _fake_extraction)
-    monkeypatch.setattr(coord_mod, "run_graph", _fake_graph)
 
 
 def _stub_coordinator(monkeypatch):
@@ -309,10 +293,11 @@ def test_glue_lives_in_coordinator_orchestrator_delegates():
         "Stage 3: Verification",
         "Stage 4: Systematic PRISMA",
         "Stage 5: Fulltext Extraction",
-        "Stage 8: Citation Knowledge Graph",
         "Stage 10: Append-Only Audit",
     ):
         assert marker in coord_src
+    # H-remove-graph: the citation graph stage is gone.
+    assert "Stage 8: Citation Knowledge Graph" not in coord_src
     # H-remove-rag-verify: the indexing, matrix and synthesis stages are gone.
     for marker in (
         "Stage 6: Vector & Semantic Indexing",
@@ -361,7 +346,7 @@ def test_coordinator_has_no_orchestrator_or_console_import():
     assert any(".hydration" in s and "run_hydration" in s for s in out)
     assert any(".verification" in s and "run_verification" in s for s in out)
     assert any(".extraction" in s and "run_extraction" in s for s in out)
-    assert any(".graph" in s and "run_graph" in s for s in out)
+    assert not any("run_graph" in s for s in out)
     assert not any("run_matrix" in s or "run_synthesis" in s for s in out)
     assert (
         any(
@@ -486,12 +471,11 @@ def test_pause_order_and_no_fabrication(tmp_path, monkeypatch):
         "screening_prepare",
     ]
     assert results["status"] == "PENDING_AGENT_REVIEW"
-    for stage in ("extraction", "graph"):
-        assert results["stages"][stage] == {
-            "status": "SKIPPED",
-            "reason": "PRISMA collect not run yet",
-        }
-    assert not {"indexing", "matrix", "synthesis"} & set(results["stages"])
+    assert results["stages"]["extraction"] == {
+        "status": "SKIPPED",
+        "reason": "PRISMA collect not run yet",
+    }
+    assert not {"indexing", "matrix", "graph", "synthesis"} & set(results["stages"])
     # NEG-04: force-SUCCESS-on-pause fails here (must stay PENDING).
     assert results["status"] != "SUCCESS"
     assert (
@@ -523,7 +507,6 @@ def test_success_order_full_sequence(tmp_path, monkeypatch):
         "verification",
         "screening_prepare",
         "extraction",
-        "graph",
     ]
     assert results["status"] == "SUCCESS"
 
@@ -560,8 +543,7 @@ def test_results_shape_and_bindings(tmp_path, monkeypatch):
     }
     assert results["stages"]["extraction"]["status"] == "DONE"
     assert results["stages"]["extraction"]["documents"] == 1
-    assert results["stages"]["graph_nodes"]["status"] == "DONE"
-    assert not {"indexing", "matrix_rows", "synthesis"} & set(results["stages"])
+    assert not {"indexing", "matrix_rows", "graph_nodes", "synthesis"} & set(results["stages"])
 
 
 # ---------------------------------------------------------------------------
@@ -629,7 +611,7 @@ def test_completed_audit_bytes_and_order(tmp_path, monkeypatch):
     assert ev["description"].startswith("Completed end-to-end research pipeline for '")
     assert "Coordinator Parity" in ev["description"]
     assert ev["inputs"] == [str(p.resolve())]
-    assert ev["outputs"] == [str(ws / "literature" / "knowledge_graph.html")]
+    assert ev["outputs"] == [str(ws / "extracted")]
     assert ev["metrics"] == results["stages"]
     assert ev["status"] == "SUCCESS"
 
@@ -688,7 +670,6 @@ def test_orchestrator_delegates_and_parity(tmp_path, monkeypatch):
         _fake_preparation,
     )
     monkeypatch.setattr(coord_mod, "run_extraction", _fake_extraction)
-    monkeypatch.setattr(coord_mod, "run_graph", _fake_graph)
 
     ws = tmp_path / "ws"
     ws.mkdir()
@@ -701,7 +682,7 @@ def test_orchestrator_delegates_and_parity(tmp_path, monkeypatch):
 
     orch_results = asyncio.run(orch.ResearchOrchestrator(ws).run_pipeline_async())
     assert orch_results["status"] == "SUCCESS"
-    assert CALL_ORDER[-2:] == ["extraction", "graph"]
+    assert CALL_ORDER[-1:] == ["extraction"]
     assert not (ws / "chroma_db").exists()
 
     orch_journal = (ws / "audit" / "journal.jsonl").read_bytes()
@@ -722,9 +703,9 @@ def test_orchestrator_delegates_and_parity(tmp_path, monkeypatch):
         coord_mod.run_pipeline(workspace_dir=ws2)
     )
     assert direct["stages"].keys() == orch_results["stages"].keys()
-    assert direct["stages"]["graph_nodes"] == orch_results["stages"]["graph_nodes"]
+    assert direct["stages"]["extraction"]["documents"] == orch_results["stages"]["extraction"]["documents"]
     # Restore: delete + re-run restores identical bytes.
-    review = ws2 / "literature" / "knowledge_graph.json"
+    review = ws2 / "extracted" / "SCI-000001.md"
     first = review.read_bytes()
     review.unlink()
     asyncio.run(coord_mod.run_pipeline(workspace_dir=ws2))
@@ -825,8 +806,7 @@ def test_abort_path_keeps_the_successful_stage_mapping_shape(tmp_path, monkeypat
 
     Before the repair an aborted run published
     ``stages.deduplication == {"status": "SKIPPED", ...}`` and
-    ``stages.graph`` (a name that does not exist on the
-    successful path), so a consumer reading
+    a name that does not exist on the successful path, so a consumer reading
     ``stages.deduplication["unique"]`` hit a ``KeyError``.
     """
     _stub_coordinator(monkeypatch)
@@ -856,14 +836,12 @@ def test_abort_path_keeps_the_successful_stage_mapping_shape(tmp_path, monkeypat
     assert stages["screening"]["batch_files_prepared"] == 0
     assert stages["verification"]["verified"] == 0
     assert stages["extraction"]["documents"] == 0
-    assert stages["graph_nodes"]["nodes"] == 0
-    assert not {"indexing", "matrix_rows", "synthesis"} & set(stages)
+    assert not {"indexing", "matrix_rows", "graph_nodes", "synthesis"} & set(stages)
     for stage in (
         "deduplication",
         "verification",
         "screening",
         "extraction",
-        "graph_nodes",
     ):
         assert stages[stage]["status"] == "SKIPPED"
         assert "discovery failed" in stages[stage]["reason"]
