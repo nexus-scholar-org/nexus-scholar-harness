@@ -1,6 +1,6 @@
 # H-test-diet
 
-Status: **READY FOR PR 2026-11-23** (review round 3 APPROVE on `33dc8391`) (branch `dev/h/test-diet`, cut from `origin/main` `8dd7904a`; not pushed). Lane: **RELEASE** (the coordinator's brief: it changes the gates every later milestone runs).
+Status: **READY FOR PR 2026-11-23; accepted by the researcher the same day** (items 1 to 4 of the decisions entry, "Yes to all", relayed by the coordinator; push as a PR approved, the coordinator pushes). Review round 3 APPROVE on `33dc8391`; `origin/main` `a6859a51` (PR 298) merged after it (see "After the merge of main"). Branch `dev/h/test-diet`, cut from `origin/main` `8dd7904a`; not pushed. Lane: **RELEASE** (the coordinator's brief: it changes the gates every later milestone runs).
 
 Source: the researcher's decisions of 2026-11-23 in the coordinator session, after `docs/assessment/test-suite-review-2026-11-23.md` (on local branch `dev/docs/project-review-2026-11-23`). Their words: "Delete all browser tests"; "I want to cut the browser tests and also the UI tests. Leave only component tests."; UI unit tests: "Cut scans and whole-page journeys". The coordinator had recommended keeping a small real-browser set; the researcher chose full deletion.
 
@@ -179,6 +179,7 @@ Written tests: `it`/`test` as written, an `it.each` counted once (1,258 written 
 | proposals.test.tsx | mixed | 15 | 1 | 0 | 14 |  |
 | read-sharing.test.ts | unit | 8 | 0 | 0 | 8 |  |
 | recommended.test.tsx | component | 6 | 0 | 0 | 6 |  |
+| screening-adopted.test.tsx | mixed | 13 | 2 | 0 | 11 | arrived with PR 298 after the cut; classified on the merge |
 | screening-agreement.test.tsx | mixed | 6 | 1 | 0 | 5 |  |
 | screening-export.test.tsx | mixed | 20 | 4 | 0 | 16 |  |
 | screening-home.test.tsx | mixed | 20 | 3 | 0 | 17 |  |
@@ -280,6 +281,19 @@ Per source file (each `describe` in the lint names it): locale parity of keys, p
 - `screening-publish.test.tsx`: names the approver in every locale: covered by parity lint
 - `screening-v1-client.test.ts`: covers every fixture the engine writes: hand-maintained file-structure bookkeeping
 - `triage.test.tsx`: names the list and the answers in every locale: subsumed by the parity and non-empty test
+
+## After the merge of main (2026-11-23)
+
+`origin/main` `a6859a51` (PR 298, H-adopted-decisions-disclosure) merged into the branch without conflict. PR 298 brought `apps/research-ui/tests-browser/screening-adopted.spec.ts`, deleted here with the rest of the browser suite (no other Playwright file, script or dependency came with it), and `apps/research-ui/tests/screening-adopted.test.tsx`, classified by the same rule (table row above): its two copy scans, key parity of the adoption copy and the decided phrase in en, fr and ar, moved unchanged to `lint/ui-rules.lint.ts`; its 11 written tests (screen states and one declaration decision) stay.
+
+| What | Command | Result |
+| :-- | :-- | :-- |
+| type check | `npx tsc --noEmit` | clean |
+| lint | `npm run lint:ui` | 76 passed (74 + the 2 moved) |
+| full vitest | `npx vitest run` (4 workers), started after the coordinator's Python suite ended (510 s wait) | 116 files, **1,339 tests passed** (1,322 + 17 from the new file), 0 failed; 306.9 s |
+| selector | `uv run pytest tests/unit/test_select_test_gate.py -q`; `select_test_gate.py --check` | 40 passed; `OK: 24 tasks, 19 areas, 4 stages` |
+| contract | `generate_contract_baseline.py --check` | current |
+| full Python suite | — | not run here (the coordinator runs it before the push) |
 
 ## Not verified
 

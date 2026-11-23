@@ -27,6 +27,7 @@ import { PUBLISH_COPY } from "@/components/screening-publish";
 import { currentNavId } from "@/components/site-header";
 import { WORKSPACES_COPY } from "@/components/workspaces-screen";
 import { type Locale, placeholdersOf, SUPPORTED_LOCALES } from "@/i18n";
+import { ADOPTION_COPY, adoptionText } from "@/lib/adoption-copy";
 import { cc, CHARTING_COPY, CHARTING_REFUSAL_CODES, type ChartingCopyKey, refusalWords } from "@/lib/charting-copy";
 import { CHECK_IDS, CHECKS_COPY } from "@/lib/checks-copy";
 import { DISCOVERY_COPY, type DiscoveryCopyKey } from "@/lib/discovery-copy";
@@ -1129,5 +1130,29 @@ describe("workspaces.test.tsx", () => {
     for (const code of ["WORKSPACE_TITLE_INVALID", "WORKSPACE_EXISTS", "WORKSPACE_PATH_REFUSED", "WORKSPACE_ROOT_UNAVAILABLE", "WORKSPACE_NOT_VALID", "WORKSPACE_BUSY", "RESTART_UNSUPPORTED"]) {
       for (const locale of SUPPORTED_LOCALES) expect(stateCopy(locale, code).known).toBe(true);
     }
+  });
+});
+
+describe("screening-adopted.test.tsx", () => {
+  // Moved with the merge of PR 298 (H-test-diet): key parity and the decided phrase of the adoption copy.
+  it("has every key in en, fr and ar, and the decided phrase in English", () => {
+    const keys = Object.keys(ADOPTION_COPY.en).sort();
+    for (const locale of SUPPORTED_LOCALES) expect(Object.keys(ADOPTION_COPY[locale]).sort()).toEqual(keys);
+    expect(ADOPTION_COPY.en.phraseOne).toBe("Stored from the agent's draft without being read one by one");
+    expect(ADOPTION_COPY.en.notCounted).toContain("stored from the agent's draft without being read one by one");
+    expect(CHARTING_COPY.en["charting.study.taAdopted"]).toBe("Stored from the agent's draft without being read one by one");
+    expect(PUBLISH_COPY.en["check.human_provenance"]).toBe("Every decision is recorded as the reviewer's");
+    expect(PUBLISH_COPY.en["check.adopted_decisions_declared"]).toBe("Decisions stored from drafts are declared");
+    for (const locale of SUPPORTED_LOCALES) {
+      expect(CHARTING_COPY[locale]["charting.study.taAdopted"]).toBeTruthy();
+      expect(PUBLISH_COPY[locale].look).toBeTruthy();
+    }
+  });
+
+  it("pins the fr and ar wording of the phrase", () => {
+    expect(ADOPTION_COPY.fr.phraseOne).toBe("Enregistrée depuis le brouillon de l'agent sans être lue une à une");
+    expect(ADOPTION_COPY.ar.phraseOne).toBe("حُفظ من مسودة الوكيل دون قراءته واحدًا واحدًا");
+    expect(adoptionText("fr", "sampleOwed", { k: 50 })).toBe("Un échantillon de 50 exclusions adoptées est dû.");
+    expect(adoptionText("ar", "sampleOwed", { k: 50 })).toBe("عيّنة من 50 استبعادًا معتمَدًا مستحقة.");
   });
 });

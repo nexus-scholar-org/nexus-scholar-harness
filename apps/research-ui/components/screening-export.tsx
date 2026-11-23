@@ -9,6 +9,7 @@ import { DETAILS_LABEL, ScreeningSteps, StateCard, stepHref } from "@/components
 import { getPublicationStatus, isScreeningApiError, type PublicationStatus } from "@/lib/screening-api";
 import { chartingHref, chartingReportHref } from "@/lib/charting-api";
 import { cc } from "@/lib/charting-copy";
+import { adoptionText } from "@/lib/adoption-copy";
 import {
   DEFAULT_EXPORT_SETS,
   downloadExport,
@@ -487,6 +488,46 @@ export function ScreeningExport({ locale }: Readonly<{ locale: Locale }>) {
                     ))}
                   </tbody>
                 </table>
+              ) : null}
+
+              {f.adoption ? (
+                // H-adopted-decisions-disclosure (DoD 4): the declared figures, in the screen's language
+                // (the paragraph itself is English for a manuscript, spec 10 decision 5).
+                <section aria-labelledby="methods-adoption" className="mt-5" data-methods-adoption>
+                  <h3 id="methods-adoption" className="text-sm font-semibold text-ink">{adoptionText(locale, "exportTitle")}</h3>
+                  {f.adoption.declared_after_publication ? (
+                    <p role="note" className="mt-1 rounded-md bg-unclear-soft px-3 py-2 text-sm text-ink" data-adoption-after>{adoptionText(locale, "exportAfter")}</p>
+                  ) : null}
+                  <table className="mt-2 w-full text-sm">
+                    <tbody>
+                      <tr className="border-t border-rule">
+                        <th scope="row" className="py-1.5 text-start font-normal text-ink-muted">{adoptionText(locale, "exportRead")}</th>
+                        <td className="py-1.5 text-end text-ink">{n(f.adoption.read_one_by_one)}</td>
+                      </tr>
+                      <tr className="border-t border-rule">
+                        <th scope="row" className="py-1.5 text-start font-normal text-ink-muted">
+                          {adoptionText(locale, "exportStored")}
+                          <span className="block text-xs">
+                            {adoptionText(locale, "exportOutcomes", { e: n(f.adoption.by_outcome.EXCLUDE), i: n(f.adoption.by_outcome.INCLUDE), u: n(f.adoption.by_outcome.MAYBE) })}
+                          </span>
+                        </th>
+                        <td className="py-1.5 text-end text-ink">{n(f.adoption.stored_from_drafts)}</td>
+                      </tr>
+                      {f.adoption.samples.length === 0 ? (
+                        <tr className="border-t border-rule">
+                          <th scope="row" colSpan={2} className="py-1.5 text-start font-normal text-ink-muted">{adoptionText(locale, "exportNoSample")}</th>
+                        </tr>
+                      ) : (
+                        f.adoption.samples.map((s, i) => (
+                          <tr key={i} className="border-t border-rule" data-adoption-sample={s.read ? "read" : "owed"}>
+                            <th scope="row" className="py-1.5 text-start font-normal text-ink-muted">{adoptionText(locale, "exportSample", { k: n(s.size), seed: String(s.seed ?? "—") })}</th>
+                            <td className="py-1.5 text-end text-ink">{s.read ? adoptionText(locale, "exportSampleRead", { c: n(s.changed ?? 0) }) : adoptionText(locale, "exportSampleUnread")}</td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </section>
               ) : null}
 
               {methods.not_stated.length > 0 ? (
