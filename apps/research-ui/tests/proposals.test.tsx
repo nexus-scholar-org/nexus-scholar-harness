@@ -1,11 +1,8 @@
-import { readFileSync } from "node:fs";
-import { join } from "node:path";
 
 import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { InceptionCriteria } from "@/components/inception-criteria";
-import { PROPOSALS_COPY } from "@/lib/proposals-copy";
 import { completeDraft, outOfScopeId, proofId, SESSION } from "./fixtures/inception-engine";
 import { setUp } from "./inception-helpers";
 
@@ -252,25 +249,6 @@ describe("inception proposals (01-proposals)", () => {
     fireEvent.click(li.querySelector("[data-evidence-toggle]") as HTMLElement);
     expect(within(li).getByText("10.1234/uav.1")).toHaveAttribute("dir", "ltr");
     expect(within(li).getByRole("button", { name: "طبّق" })).toBeInTheDocument();
-  });
-
-  it("copy: every proposals.* key exists in en and fr/ar fall back", () => {
-    const holes = (s: string) => [...s.matchAll(/\{(\w+)\}/g)].map((m) => m[1]).sort();
-    for (const [key, en] of Object.entries(PROPOSALS_COPY.en)) {
-      for (const locale of ["fr", "ar"] as const) {
-        const text = PROPOSALS_COPY[locale][key as keyof typeof PROPOSALS_COPY.en];
-        expect(text, `${locale} ${key}`).toBeTruthy();
-        expect(holes(text), `${locale} ${key}`).toEqual(holes(en));
-      }
-    }
-    for (const key of ["proposals.title", "proposals.what.add", "proposals.stale.was", "proposals.notRecorded", "proposals.source.engine.anchor_seed"]) {
-      expect(PROPOSALS_COPY.en).toHaveProperty([key]);
-    }
-    // The N9 guard on the new components: no literal accessible name.
-    for (const file of ["components/inception-assist.tsx", "components/assist-anchor.tsx", "components/assist-context.tsx"]) {
-      const text = readFileSync(join(process.cwd(), file), "utf8");
-      expect(text.match(/(aria-label|title|alt|placeholder)="/g), file).toBeNull();
-    }
   });
 
   it("applying a pool synonym sends accepted_from with the save", async () => {

@@ -124,23 +124,6 @@ describe("discovery.plan change the search", () => {
     expect(screen.getByRole("button", { name: "Record this amendment" })).toBeDisabled();
   });
 
-  it("an edit while the confirmation is open closes it, so the version recorded is always the one on screen", async () => {
-    const { engine } = setUp(PROVIDERS);
-    render(<DiscoveryPlan locale="en" />);
-    await openSearch();
-    await openConfirmation();
-    fireEvent.change(screen.getAllByLabelText("Add a term")[0], { target: { value: "weed mapping" } });
-    fireEvent.click(screen.getAllByRole("button", { name: "Add" })[0]);
-    await waitFor(() => expect(confirmation()).toBeNull());
-    // Discard too.
-    await waitFor(() => expect(screen.getByRole("button", { name: "Record this amendment" })).not.toBeDisabled());
-    fireEvent.click(screen.getByRole("button", { name: "Record this amendment" }));
-    await waitFor(() => expect(confirmation()).not.toBeNull());
-    fireEvent.click(screen.getByRole("button", { name: "Discard edits" }));
-    await waitFor(() => expect(confirmation()).toBeNull());
-    expect(real(engine)).toHaveLength(0);
-  });
-
   it("Escape and Cancel close the confirmation and return focus to Record this amendment; Enter in the reason never records; Ctrl+Enter opens it", async () => {
     const { engine } = setUp(PROVIDERS);
     render(<DiscoveryPlan locale="en" />);

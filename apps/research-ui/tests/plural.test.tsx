@@ -4,14 +4,8 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { CheckSentence } from "@/components/checks-panel";
 import { InceptionCriteria } from "@/components/inception-criteria";
 import { InceptionScope } from "@/components/inception-scope";
-import { SUPPORTED_LOCALES, type Locale } from "@/i18n";
-import { CHARTING_COPY } from "@/lib/charting-copy";
-import { CHECKS_COPY } from "@/lib/checks-copy";
-import { DISCOVERY_COPY } from "@/lib/discovery-copy";
-import { INCEPTION_COPY } from "@/lib/inception-copy";
-import { PLURALS, pluralForm, pluralTemplate } from "@/lib/plural";
-import { PROPOSALS_COPY } from "@/lib/proposals-copy";
-import { TRIAGE_COPY } from "@/lib/triage-copy";
+import type { Locale } from "@/i18n";
+import { pluralForm, pluralTemplate } from "@/lib/plural";
 import { checkRow } from "./fixtures/checks-engine";
 import { completeDraft, outOfScopeId, proofId } from "./fixtures/inception-engine";
 import { setUp } from "./inception-helpers";
@@ -19,11 +13,6 @@ import { setUp } from "./inception-helpers";
 /** H-ui-findings F4: a count of one reads "1 suggestion", not "1 suggestions"; Arabic has six forms. */
 
 afterEach(() => vi.unstubAllGlobals());
-
-const holes = (s: string) => [...s.matchAll(/\{(\w+)\}/g)].map((m) => m[1]).filter((h) => h !== "n").sort();
-const catalogs = { ...INCEPTION_COPY, } as Record<Locale, Record<string, string>>;
-const general = (locale: Locale, key: string): string =>
-  (CHECKS_COPY[locale] as Record<string, string>)[key] ?? (PROPOSALS_COPY[locale] as Record<string, string>)[key] ?? catalogs[locale][key] ?? (DISCOVERY_COPY[locale] as Record<string, string>)[key] ?? (TRIAGE_COPY[locale] as Record<string, string>)[key] ?? (CHARTING_COPY[locale] as Record<string, string>)[key];
 
 describe("plural forms", () => {
   it("picks the CLDR form of a count in each language", () => {
@@ -39,26 +28,6 @@ describe("plural forms", () => {
     expect(pluralTemplate("en", "no.such.key", 1, "general")).toBe("general");
   });
 
-  it("lists only keys that exist, with the holes of the general string (n may be spelled out)", () => {
-    for (const locale of SUPPORTED_LOCALES) {
-      for (const [key, forms] of Object.entries(PLURALS[locale])) {
-        const base = general(locale, key);
-        expect(base, `${locale} / ${key} has no catalog string`).toBeTruthy();
-        for (const [form, text] of Object.entries(forms)) {
-          expect(holes(text), `${locale} / ${key} / ${form}`).toEqual(holes(base));
-        }
-      }
-    }
-  });
-
-  it("gives Arabic every count form for the criteria check", () => {
-    const forms = PLURALS.ar["checks.CRITERIA_UNDECIDED.sentence"];
-    for (const form of ["one", "two", "few", "many", "other"] as const) expect(forms[form], form).toBeTruthy();
-    for (const text of Object.values(forms)) {
-      expect(text).toContain(INCEPTION_COPY.ar["criteria.accept"]);
-      expect(text).toContain(INCEPTION_COPY.ar["criteria.reject"]);
-    }
-  });
 });
 
 describe("plural wording on screen", () => {

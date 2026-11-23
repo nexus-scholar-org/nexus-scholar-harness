@@ -116,11 +116,14 @@ def _client(ws: Path, window: _Window | None = None) -> TestClient:
     )
 
 
-_LAST: dict[str, str] = {}
-
-
 def _decide(client: TestClient, studies: list[str], outcome: str = "INCLUDE") -> None:
-    """Decide the studies; a second decision on a study supersedes the first."""
+    """Decide the studies; a second decision on a study supersedes the first.
+
+    The last event per study is kept on the client itself. A module-level table keyed by
+    ``id(client)`` handed a new client the stale ids of a collected one whenever Python
+    reused the address, and the intake then refused the events.
+    """
+    last: dict[str, str] = client.__dict__.setdefault("_last_decision", {})
     events = []
     for study in studies:
         binding = client.get(f"{BASE}/records/{study}").json()["binding"]
@@ -136,12 +139,12 @@ def _decide(client: TestClient, studies: list[str], outcome: str = "INCLUDE") ->
                 "criteria": [],
                 "decided_at": "2026-11-20T10:00:00.000Z",
                 "device": "desktop",
-                "supersedes": _LAST.get(f"{id(client)}:{study}"),
+                "supersedes": last.get(study),
                 "proposal_shown": None,
                 "binding": binding,
             }
         )
-        _LAST[f"{id(client)}:{study}"] = events[-1]["event_id"]
+        last[study] = events[-1]["event_id"]
     for start in range(0, len(events), 200):
         response = client.post(f"{BASE}/decisions/events", json={"events": events[start : start + 200]})
         assert response.status_code == 200, response.text

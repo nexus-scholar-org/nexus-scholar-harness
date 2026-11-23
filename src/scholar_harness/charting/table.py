@@ -224,6 +224,14 @@ def table(ws: Path | str, *, seed: bool = True) -> dict[str, Any]:
         for sid, summary in sorted(state.no_longer_kept.items())
     ]
     _warn_duplicates(rows)
+    # H-adopted-decisions-disclosure (item 6, finding 49): a kept study whose title-and-abstract
+    # decision was declared as stored from the agent's draft says so beside that decision.
+    from scholar_harness.screening import adoption as ad
+
+    ledger = ad.read_ledger(ws)
+    adopted = {s.round: ad.declared_in_decision_files(s.generation.parent, ledger) for s in state.sources}
+    for r in rows:
+        r["ta_adopted"] = adopted.get(r.get("round"), {}).get(r["study_id"]) == r.get("ta_decision")
     summary = counts(rows)
     summary.update(open_cells(rows, form))
     from . import report as rp

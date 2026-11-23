@@ -1,5 +1,5 @@
-import { render, screen } from "@testing-library/react";
-import { vi } from "vitest";
+import { act, render, screen, waitFor } from "@testing-library/react";
+import { expect, vi } from "vitest";
 
 import { InceptionScope } from "@/components/inception-scope";
 import { InceptionExplore } from "@/components/inception-explore";
@@ -85,13 +85,22 @@ export type GuidanceScreen = {
   mount: (locale?: Locale) => Promise<void>;
 };
 
-/** Waits until the page's word count holds still for two reads 150 ms apart. */
+/**
+ * Waits until the page has drawn what the fake engine answered. Every mount first waits for a text
+ * that only the engine's answer draws; the fakes answer at once, so what is left are promise
+ * callbacks and the renders they cause. Each turn flushes them inside `act` with a zero-delay timer;
+ * the page is settled when three turns in a row leave the word count unchanged. No wall-clock wait
+ * (H-test-diet replaced the former 150 ms loop, which cost up to 3 s per state under load).
+ */
 async function settle() {
   let last = -1;
-  for (let i = 0; i < 20; i++) {
-    await new Promise((resolve) => setTimeout(resolve, 150));
+  let unchanged = 0;
+  for (let turn = 0; turn < 200 && unchanged < 3; turn++) {
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
     const now = visibleWords().length;
-    if (now === last) return;
+    unchanged = now === last ? unchanged + 1 : 0;
     last = now;
   }
 }
@@ -181,6 +190,8 @@ export const SCREENS: GuidanceScreen[] = [
       inceptionSetUp({ draft: completeDraft() });
       render(<InceptionCriteria locale={locale} />);
       await screen.findAllByRole("listitem", {}, { timeout: 5000 });
+      // The page asks the engine for its criteria 200 ms after the draft is read; the block is drawn from that answer.
+      await waitFor(() => expect(document.querySelector("[data-criteria-block]")).not.toBeNull(), { timeout: 5000 });
       await settle();
     },
   },
@@ -192,6 +203,8 @@ export const SCREENS: GuidanceScreen[] = [
       probed({}, completeDraft({ concepts: [{ concept: "weed detection", synonyms: [] }, { concept: "edge device", synonyms: [] }] }));
       render(<InceptionCriteria locale={locale} />);
       await screen.findAllByRole("listitem", {}, { timeout: 5000 });
+      // The page asks the engine for its criteria 200 ms after the draft is read; the block is drawn from that answer.
+      await waitFor(() => expect(document.querySelector("[data-criteria-block]")).not.toBeNull(), { timeout: 5000 });
       await settle();
     },
   },

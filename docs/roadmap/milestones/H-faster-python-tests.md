@@ -1,8 +1,8 @@
 # H-faster-python-tests Cut the Python suite's fixed costs
 
-Branch: `dev/h/faster-python-tests` · Lane: **STANDARD** (test code and one lazy import; no contract, product behaviour or public surface changes) · Status: **READY FOR PR** (review round 2 APPROVE; not pushed; stacked on Part 1)
+Branch: `dev/h/faster-python-tests` · Lane: **STANDARD** (test code and one lazy import; no contract, product behaviour or public surface changes) · Status: **READY FOR PR** (review round 2 APPROVE; accepted by the researcher 2026-11-23; `origin/main` `81f821f5` merged in)
 
-**Stacked on Part 1.** Cut from `dev/h/remove-rag-verify` at `58468929` (H-remove-rag-verify, READY FOR PR, not merged), on the coordinator's instruction of 2026-11-23, so that nothing here measures or reworks tests Part 1 deletes, and the "before" numbers are the suite as it will be. It is to be rebased on `main` once Part 1 merges. A first start from `origin/main` (measurements only, no code) was dropped.
+**Built on Part 1.** Cut from `dev/h/remove-rag-verify` at `58468929`, on the coordinator's instruction of 2026-11-23, so that nothing here measures or reworks tests Part 1 deletes, and the "before" numbers are the suite as it is now. Part 1 merged (PR 300); `origin/main` `81f821f5` was merged into this branch on 2026-11-23 (one conflict, `docs/decisions.md`; the coordinator's fix to `tests/console/test_approve_all.py`'s helper merged as it is). A first start from `origin/main` (measurements only, no code) was dropped.
 
 The researcher's decision of 2026-11-23 in the coordinator session, from the test-suite review of that day (`docs/assessment/test-suite-review-2026-11-23.md`, step 3, points 1 to 4).
 

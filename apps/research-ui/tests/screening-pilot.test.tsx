@@ -2,8 +2,6 @@ import { fireEvent, render, screen, waitFor, within } from "@testing-library/rea
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ScreeningPilot } from "@/components/screening-pilot";
-import { PILOT_COPY } from "@/components/screening-pilot-copy";
-import { SUPPORTED_LOCALES } from "@/i18n";
 import type { PilotResult } from "@/lib/screening-v1";
 
 /** The pilot result and its dialogs (spec 13, states C and D; M11b part C) against a fake engine. */
@@ -361,21 +359,6 @@ describe("pilot states", () => {
     const headers = screen.getAllByRole("columnheader").map((h) => h.textContent ?? "");
     expect(headers.filter((h) => h.startsWith("Reason for exclusions"))).toEqual(["Reason for exclusions · Pilot 1", "Reason for exclusions · Pilot 2"]);
     expect(document.querySelector('[data-count="MAYBE"] [data-previous]')).toHaveTextContent("Pilot 1: 15 of 50");
-  });
-});
-
-describe("pilot copy", () => {
-  it("every locale has every key with the same holes, none empty", () => {
-    const keys = Object.keys(PILOT_COPY.en).sort();
-    const holes = (s: string) => (s.match(/\{\w+\}/g) ?? []).sort().join(",");
-    for (const locale of SUPPORTED_LOCALES) {
-      expect(Object.keys(PILOT_COPY[locale]).sort()).toEqual(keys);
-      for (const key of keys) {
-        const value = PILOT_COPY[locale][key as keyof (typeof PILOT_COPY)["en"]];
-        expect(value.length, `${locale}.${key}`).toBeGreaterThan(0);
-        expect(holes(value), `${locale}.${key}`).toBe(holes(PILOT_COPY.en[key as keyof (typeof PILOT_COPY)["en"]]));
-      }
-    }
   });
 });
 

@@ -1,6 +1,3 @@
-import { readFileSync } from "node:fs";
-import { join } from "node:path";
-
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { SUPPORTED_LOCALES } from "@/i18n";
@@ -17,22 +14,8 @@ import { installEngine, makeRow, makeTable, renderReport } from "./charting-help
 
 afterEach(() => vi.unstubAllGlobals());
 
-const holes = (s: string) => [...s.matchAll(/\{(\w+)\}/g)].map((m) => m[1]).sort();
-const NEW_EXPORT_KEYS = ["charting.export.xlsx", "charting.export.done", "charting.export.requiredOpen", "charting.export.fileHad", "charting.export.format.csv", "charting.export.format.xlsx"];
 
 describe("charting.report.i18n", () => {
-  it("carries every report key and every new export key in en, fr and ar, non-empty, with the same holes", () => {
-    const en = CHARTING_COPY.en as Record<string, string>;
-    const keys = [...Object.keys(en).filter((k) => k.startsWith("charting.report.")), ...NEW_EXPORT_KEYS];
-    expect(keys.length).toBeGreaterThan(50);
-    for (const locale of SUPPORTED_LOCALES) {
-      const other = CHARTING_COPY[locale] as Record<string, string>;
-      for (const key of keys) {
-        expect(other[key]?.trim(), `${locale} ${key}`).toBeTruthy();
-        expect(holes(other[key]), `${locale} ${key}`).toEqual(holes(en[key]));
-      }
-    }
-  });
 
   it("keeps the spec's English words", () => {
     const words: [ChartingCopyKey, string][] = [
@@ -83,18 +66,4 @@ describe("charting.report.i18n", () => {
       expect(document.querySelector("[data-desktop] h1")?.textContent).toBe(CHARTING_COPY[locale]["charting.report.title"]);
     });
   }
-
-  it("writes no literal aria-label, title, alt or placeholder in the Part C files (N9)", () => {
-    for (const file of ["components/charting-report.tsx", "components/charting-export-lines.tsx", "app/[locale]/charting/report/page.tsx"]) {
-      const source = readFileSync(join(process.cwd(), file), "utf8");
-      expect(source.match(/(aria-label|title|alt|placeholder)="/g), file).toBeNull();
-    }
-  });
-
-  it("reaches for no browser storage in the Part C files (N12)", () => {
-    for (const file of ["components/charting-report.tsx", "components/charting-export-lines.tsx"]) {
-      const source = readFileSync(join(process.cwd(), file), "utf8");
-      expect(source, file).not.toMatch(/localStorage|sessionStorage|indexedDB/);
-    }
-  });
 });

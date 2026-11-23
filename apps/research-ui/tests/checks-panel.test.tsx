@@ -1,6 +1,3 @@
-import { readFileSync } from "node:fs";
-import { join } from "node:path";
-
 import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
@@ -9,7 +6,6 @@ import { DiscoveryRecall } from "@/components/discovery-recall";
 import { InceptionCriteria } from "@/components/inception-criteria";
 import { InceptionReview } from "@/components/inception-review";
 import { InceptionScope } from "@/components/inception-scope";
-import { CHECK_IDS, CHECKS_COPY } from "@/lib/checks-copy";
 import { checkRow, type CheckIn } from "./fixtures/checks-engine";
 import { completeDraft, outOfScopeId, proofId, SESSION } from "./fixtures/inception-engine";
 import { setUp } from "./inception-helpers";
@@ -85,32 +81,6 @@ describe("checks panel (02-checks)", () => {
     expect(text.textContent).toContain("Counts and suggestions describe the earlier search, not the draft as it is now.");
     expect(text.textContent).toContain("Suggested: POOL_THIN_FLOOR 12");
     expect(row("EXPLORE_SCOPE_CHANGED").contains(text)).toBe(true);
-  });
-
-  it("Dismiss of a warning needs a reason; sends one POST with subject, digest and reason; moves the row to Dismissed with date and reason; Restore returns it", async () => {
-    const { engine } = setUp({ draft: decided(), checks: () => [{ ...warning, subject: "years" }] });
-    render(<InceptionScope locale="en" />);
-    await waitFor(() => expect(row("EXPLORE_SCOPE_CHANGED")).not.toBeNull());
-    fireEvent.click(within(row("EXPLORE_SCOPE_CHANGED")).getByRole("button", { name: "Dismiss" }));
-    const field = await screen.findByLabelText("Why are you dismissing this? It is kept in the record.");
-    await waitFor(() => expect(field).toHaveFocus());
-    fireEvent.click(screen.getByRole("button", { name: "Dismiss with this reason" }));
-    expect(field).toHaveAttribute("aria-invalid", "true");
-    expect(screen.getByText("Write a short reason.")).toBeInTheDocument();
-    expect(dismissPosts(engine)).toEqual([]);
-    fireEvent.change(field, { target: { value: "The years changed on purpose; the pool is fine." } });
-    fireEvent.click(screen.getByRole("button", { name: "Dismiss with this reason" }));
-    await waitFor(() => expect(dismissPosts(engine)).toHaveLength(1));
-    const [post] = dismissPosts(engine);
-    expect(post.path).toBe(`${CHECKS}/EXPLORE_SCOPE_CHANGED/dismiss`);
-    expect(post.body).toEqual({ subject: "years", evidence_digest: checkRow({ ...warning, subject: "years" }).evidence_digest, reason: "The years changed on purpose; the pool is fine." });
-    const dismissed = (await waitFor(() => panel().querySelector("[data-dismissed]") as HTMLElement)) as HTMLElement;
-    expect(dismissed.querySelector("summary")?.textContent).toBe("Dismissed (1)");
-    expect(dismissed.querySelector("[data-dismissal]")?.textContent).toMatch(/^Dismissed 2026-11-\d{2}: The years changed on purpose; the pool is fine\.$/);
-    expect(screen.getByText("Dismissed: The sample was searched for an earlier question, years or languages.")).toBeInTheDocument();
-    fireEvent.click(within(dismissed).getByRole("button", { name: "Restore" }));
-    await waitFor(() => expect(panel().querySelector("[data-open-rows] li[data-check='EXPLORE_SCOPE_CHANGED']")).not.toBeNull());
-    expect(dismissPosts(engine).map((c) => c.path.split("/").at(-1))).toEqual(["dismiss", "restore"]);
   });
 
   it("Dismiss of a note sends one POST with no reason and opens no form", async () => {
@@ -298,28 +268,6 @@ describe("checks panel (02-checks)", () => {
     expect(badge("EXPLORE_SCOPE_CHANGED").textContent).toBe("Look at this");
     expect(badge("SCOPE_START_YEAR_DEFAULTED")).toHaveAttribute("data-role", "exclude");
     expect(badge("SCOPE_START_YEAR_DEFAULTED").textContent).toBe("Note");
-  });
-
-  it("copy: every checks.* key and every checks.<ID>.* key exists in en; fr and ar fall back; no literal aria-label (N9 guard)", () => {
-    const holes = (s: string) => [...s.matchAll(/\{(\w+)\}/g)].map((m) => m[1]).sort();
-    expect(CHECK_IDS).toHaveLength(59);
-    for (const id of CHECK_IDS) {
-      for (const part of ["sentence", "why", "action"]) expect(CHECKS_COPY.en, `${id}.${part}`).toHaveProperty([`checks.${id}.${part}`]);
-    }
-    for (const key of ["checks.HARVEST_ABOVE_TARGET_general.sentence", "checks.HARVEST_ABOVE_TARGET_general.why", "checks.SEEDS_CANNOT_TEST_all.sentence", "checks.SEEDS_CANNOT_TEST_concept.why", "checks.SEEDS_CANNOT_TEST_few.sentence", "checks.METHOD_RULE_UNCHOSEN_older.sentence", "checks.METHOD_RULE_UNCHOSEN_older.why", "checks.counts", "checks.ready.blocked", "checks.dismiss.label", "checks.earlier"]) {
-      expect(CHECKS_COPY.en).toHaveProperty([key]);
-    }
-    for (const [key, en] of Object.entries(CHECKS_COPY.en)) {
-      for (const locale of ["fr", "ar"] as const) {
-        const text = CHECKS_COPY[locale][key as keyof typeof CHECKS_COPY.en];
-        expect(text, `${locale} ${key}`).toBeTruthy();
-        expect(holes(text), `${locale} ${key}`).toEqual(holes(en));
-      }
-    }
-    for (const file of ["components/checks-panel.tsx", "components/discovery-checks.tsx", "components/inception-assist.tsx", "components/checks-bus.ts"]) {
-      const text = readFileSync(join(process.cwd(), file), "utf8");
-      expect(text.match(/(aria-label|title|alt|placeholder)="/g), file).toBeNull();
-    }
   });
 
   it("RTL: ids and codes dir=ltr, reasons dir=auto", async () => {

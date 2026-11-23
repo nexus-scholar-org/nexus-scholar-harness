@@ -1,11 +1,8 @@
-import { readFileSync } from "node:fs";
-import { join } from "node:path";
 
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { InceptionCriteria } from "@/components/inception-criteria";
-import { WORKBENCH_COPY } from "@/lib/workbench-copy";
 import { completeDraft, SESSION } from "./fixtures/inception-engine";
 import type { WorkbenchOptions } from "./fixtures/workbench-engine";
 import { setUp } from "./inception-helpers";
@@ -149,52 +146,6 @@ describe("inception.workbench", () => {
     expect(screen.getByText("arXiv: 0 of 100 counting requests left today.")).toBeInTheDocument();
   });
 
-  it("concept edits: rename, add and remove a term, split a term out, remove a concept; AND between, OR inside; an edit marks the counts as the previous version and sends nothing", async () => {
-    const { engine } = open();
-    await counted();
-    const sent = real(engine).length;
-    expect(document.querySelectorAll("[data-op='and']")).toHaveLength(3);
-    expect(document.querySelector("[data-chips='0'] [data-op='or']")).not.toBeNull();
-    expect(screen.queryByText(/\bNOT\b/)).toBeNull();
-    const split = document.querySelector("[data-split='unmanned aerial vehicle']") as HTMLElement;
-    expect(split).toHaveAccessibleName("Split");
-    expect(split).toHaveAccessibleDescription("Make 'unmanned aerial vehicle' a concept of its own");
-    fireEvent.click(split);
-    await waitFor(() => expect(screen.getByLabelText("Concept 5")).toHaveValue("unmanned aerial vehicle"));
-    expect(screen.getByText("Previous version")).toBeInTheDocument();
-    expect(within(row("openalex")).getByText("166 · for the previous version. Count again.")).toBeInTheDocument();
-    fireEvent.click(within(document.querySelector("[data-concept='4']") as HTMLElement).getByRole("button", { name: "Remove concept" }));
-    fireEvent.change(screen.getByLabelText("Concept 3"), { target: { value: "weeds" } });
-    fireEvent.blur(screen.getByLabelText("Concept 3"));
-    const term = screen.getByLabelText("Add a term", { selector: "#wb-term-0" });
-    fireEvent.change(term, { target: { value: "drone" } });
-    fireEvent.keyDown(term, { key: "Enter" });
-    expect(document.querySelector("[data-chips='0'] [data-chip='drone']")).not.toBeNull();
-    fireEvent.click(screen.getByRole("button", { name: "Remove drone" }));
-    expect(document.querySelector("[data-chip='drone']")).toBeNull();
-    expect(real(engine)).toHaveLength(sent);
-  });
-
-  it("merges two concepts under a name that starts as the first's, and shows the last counted and this version side by side", async () => {
-    open();
-    await counted();
-    fireEvent.click(screen.getByRole("checkbox", { name: "Select UAV to merge" }));
-    fireEvent.click(screen.getByRole("checkbox", { name: "Select multispectral to merge" }));
-    fireEvent.click(screen.getByRole("button", { name: "Merge into one" }));
-    expect(screen.getByLabelText("Name of the merged concept")).toHaveValue("UAV");
-    expect([...(screen.getByLabelText("Name of the merged concept") as HTMLSelectElement).options].map((o) => o.value)).toEqual(["UAV", "unmanned aerial vehicle", "multispectral"]);
-    fireEvent.click(screen.getByRole("button", { name: "Merge" }));
-    expect(screen.getByLabelText("Concept 1")).toHaveValue("UAV");
-    expect([...document.querySelectorAll("[data-chips='0'] [data-chip]")].map((c) => c.getAttribute("data-chip"))).toEqual(["UAV", "unmanned aerial vehicle", "multispectral"]);
-    const versions = document.querySelector("[data-versions]") as HTMLElement;
-    expect(within(versions).getByText("Last counted")).toBeInTheDocument();
-    expect(within(versions).getByText("4 concepts, 5 terms · counted 10:15 UTC")).toBeInTheDocument();
-    expect(within(versions).getByText("3 concepts, 5 terms · not counted")).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "Count" }));
-    await waitFor(() => expect(within(document.querySelector("[data-version='now']") as HTMLElement).getByText("OpenAlex 781")).toBeInTheDocument());
-    expect(within(document.querySelector("[data-version='last']") as HTMLElement).getByText("OpenAlex 166")).toBeInTheDocument();
-  });
-
   it("what each synonym adds: the cost first, one request on confirm, and 'adds nothing' at gain 0", async () => {
     const { engine } = open({ total: (db, concepts) => (concepts[0]?.synonyms.includes("unmanned aerial vehicle") || concepts[0]?.concept === "unmanned aerial vehicle" ? 166 : 150) });
     await counted();
@@ -245,56 +196,12 @@ describe("inception.workbench", () => {
     expect(await screen.findByText(/OpenAlex is not asked yet: this check waits for a first test with the real database\./)).toBeInTheDocument();
   });
 
-  it("after a real seed check, an edit shows the seed check of the new version (review C round 3)", async () => {
-    const strict = "Weed segmentation from UAV multispectral imagery";
-    open({ seedTitles: { "10.1/a": strict }, openalexIds: true }, { golden_seeds: ["10.1/a"] });
-    await section("seeds");
-    fireEvent.click(await screen.findByRole("button", { name: /Check seeds in OpenAlex/ }));
-    await waitFor(() => expect(screen.getByText("multispectral · found")).toBeInTheDocument());
-    const name = screen.getByLabelText("Concept 2");
-    fireEvent.change(name, { target: { value: "hyperspectral" } });
-    fireEvent.blur(name);
-    await waitFor(() => expect(screen.getByText("hyperspectral · lacks")).toBeInTheDocument());
-    expect(screen.queryByText("multispectral · found")).toBeNull();
-  });
-
   it("a seed that lacks a concept is missed by the words, with its own term offered; too few readable seeds say so", async () => {
     open({ seedTitles: { "10.1/a": "Weed segmentation from UAV RGB orthophotos" } }, { golden_seeds: ["10.1/a"] });
     await section("seeds");
     expect(await screen.findByText("Too few known papers to test the query.")).toBeInTheDocument();
     expect(screen.getByText(/missed by the words of this query: no term of 'multispectral' in its title or abstract/)).toBeInTheDocument();
     expect(screen.getByText("Suggested by a known paper · not yet yours")).toBeInTheDocument();
-  });
-
-  it("compares with a staged Scopus export: the report line, the measure, the missing records and their terms, applied only with a concept chosen", async () => {
-    const { engine } = open();
-    await section("comparison");
-    const ris = [
-      "TY  - JOUR\nTI  - Weed segmentation from UAV multispectral imagery\nDO  - 10.9/a\nER  - ",
-      "TY  - JOUR\nTI  - Hyperspectral weed segmentation from a UAV\nAB  - hyperspectral imagery\nDO  - 10.9/b\nER  - ",
-      "TY  - JOUR\nTI  - Hyperspectral weed segmentation in fields\nAB  - hyperspectral imagery\nDO  - 10.9/c\nER  - ",
-    ].join("\n") + "\n";
-    const file = new File([ris], "scopus.ris", { type: "application/x-research-info-systems" });
-    Object.defineProperty(file, "arrayBuffer", { value: async () => new TextEncoder().encode(ris).buffer });
-    fireEvent.change(screen.getByLabelText("RIS or NBIB file"), { target: { files: [file] } });
-    fireEvent.change(screen.getByLabelText("Database it came from"), { target: { value: "Scopus" } });
-    fireEvent.click(document.querySelector("[data-cmp-stage]") as HTMLElement);
-    expect(await screen.findByText(/Staged: Scopus, 3 records/)).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "Compare" }));
-    expect(await screen.findByText("2 of 3 Scopus records are missing from what your query finds.")).toBeInTheDocument();
-    expect(screen.getByText("Measure: matched by your query's words in the title, abstract and keywords")).toBeInTheDocument();
-    expect(screen.getAllByText(/lacks (UAV, )?multispectral/).length).toBe(2);
-    const rowHyper = document.querySelector("[data-suggestion-row='hyperspectral']") as HTMLElement;
-    expect(within(rowHyper).getByText("hyperspectral · in 2 of 2 missing records")).toBeInTheDocument();
-    const apply = within(rowHyper).getByRole("button", { name: "Apply" });
-    expect(apply).toBeDisabled();
-    expect(screen.queryByRole("button", { name: /Apply all/ })).toBeNull();
-    fireEvent.change(within(rowHyper).getByLabelText("Add as synonym of"), { target: { value: "1" } });
-    fireEvent.click(apply);
-    expect(document.querySelector("[data-chips='1'] [data-chip='hyperspectral']")).not.toBeNull();
-    expect(engine.calls.some((c) => c.method === "PUT")).toBe(false);
-    fireEvent.click(screen.getByRole("button", { name: "Remove" }));
-    await waitFor(() => expect(screen.getByText("No export staged. Add one from Scopus, Web of Science or another database.")).toBeInTheDocument());
   });
 
   it("refuses a file that is not an export, with the words of the spec", async () => {
@@ -424,20 +331,5 @@ describe("inception.workbench checks (DoD 19)", () => {
       ),
     );
     expect(screen.getByRole("button", { name: "Continue to review" })).not.toBeDisabled();
-  });
-});
-
-describe("workbench copy", () => {
-  it("has every key in en, fr and ar with the same placeholders, and no literal labels in the component (N9)", () => {
-    const holes = (s: string) => [...s.matchAll(/\{(\w+)\}/g)].map((m) => m[1]).sort();
-    for (const [key, en] of Object.entries(WORKBENCH_COPY.en)) {
-      for (const locale of ["fr", "ar"] as const) {
-        const text = WORKBENCH_COPY[locale][key as keyof typeof WORKBENCH_COPY.en];
-        expect(text, `${locale} ${key}`).toBeTruthy();
-        expect(holes(text), `${locale} ${key}`).toEqual(holes(en));
-      }
-    }
-    const component = readFileSync(join(process.cwd(), "components", "query-workbench.tsx"), "utf8");
-    expect(component.match(/(aria-label|title|alt|placeholder)="/g)).toBeNull();
   });
 });

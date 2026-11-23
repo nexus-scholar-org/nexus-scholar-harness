@@ -10,13 +10,20 @@ Commands referenced here all run in `apps/research-ui/`:
 
 ```text
 npm run typecheck
+npm run lint:ui
 npm run test
-npm run test:browser
 npm run build
 ```
 
-`npm run test:browser` is packet UI-00b's suite. It starts and stops its own
-server and needs a Chromium build (`npx playwright install chromium`).
+> **2026-11-23: every browser suite was removed** (H-test-diet, decided by the
+> researcher; `docs/decisions.md`). `tests-browser/`, `tests-live/`,
+> `tests-long-strings/`, the three Playwright configurations, the committed
+> screenshots and `npm run test:browser` are gone. Every row below that cites a
+> Playwright spec, a rendered-axe or overflow run, a screenshot, the live gate or
+> the long-string gate is history, not current evidence: nothing re-checks it.
+> The vitest suite was cut to tests of one component or one screen state on the
+> same day; source and copy scans that guard a rule moved to `npm run lint:ui`.
+> `docs/roadmap/milestones/H-test-diet.md` lists what is no longer checked.
 
 
 > **2026-11-05: the demonstration screens were removed** (`docs/decisions.md`).

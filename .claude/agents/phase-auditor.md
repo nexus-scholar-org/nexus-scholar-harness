@@ -18,7 +18,7 @@ Sources of truth, read as needed:
 
 Never search recursively from the repository root (`.venv/` and
 `apps/research-ui/node_modules/` flood results); scope to `src/<package>`,
-`tests/`, `docs/` or `apps/research-ui/{app,components,lib,tests,tests-browser}`.
+`tests/`, `docs/` or `apps/research-ui/{app,components,lib,tests}`.
 
 For each finding you are given, report:
 

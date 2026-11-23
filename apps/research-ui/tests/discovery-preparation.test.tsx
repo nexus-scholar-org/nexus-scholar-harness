@@ -6,7 +6,6 @@ import { DiscoveryHandoff } from "@/components/discovery-handoff";
 import { DiscoveryHarvest } from "@/components/discovery-harvest";
 import { discoveryT } from "@/lib/discovery-copy";
 import { localStamp } from "@/lib/local-time";
-import { stateCopy } from "@/lib/screening-states";
 
 import { sent, setUp } from "./discovery-helpers";
 
@@ -87,28 +86,6 @@ describe("discovery.harvest: the steps after the search (M3i)", () => {
     expect(within(card).getByText(/The console may have been closed while they ran\./)).toBeInTheDocument();
     expect(card.querySelector("[data-no-marker]")).toHaveTextContent("This run was made by an earlier version, which did not record the step it stopped at.");
     expect(card.querySelector("[data-stage-ended]")).toBeNull();
-    expect(within(card).getByRole("button", { name: FINISH })).toBeEnabled();
-  });
-
-  it("keeps Stop after the search; a stop there ends the run as stopped before the next step", async () => {
-    const user = userEvent.setup();
-    const { engine } = setUp({ holdAfterSearch: true });
-    render(<DiscoveryHarvest locale="en" />);
-    await user.click(await screen.findByRole("button", { name: "Start the harvest" }));
-    // The held stream closes without an end: one reconnect, then the last state with Retry.
-    await screen.findByText(/Connection lost/);
-    expect(screen.getByRole("heading", { level: 1, name: "The corpus is being prepared" })).toBeInTheDocument();
-    expect(screen.getByText("Preparing")).toBeInTheDocument();
-    expect(document.querySelector("[data-stop-late]")).toHaveTextContent("A stop now takes effect when the current step ends");
-    expect(screen.queryByRole("button", { name: "Stop the harvest and keep what was fetched" })).toBeNull();
-
-    await user.click(screen.getByRole("button", { name: "Stop after the current step" }));
-    expect(sent(engine)).toContain("POST /api/v1/discovery/jobs/djob_0000000000000000/cancel");
-    await user.click(screen.getByRole("button", { name: "Retry" }));
-    await screen.findByRole("heading", { level: 1, name: "You stopped the harvest before the corpus was prepared." });
-    const card = await preparationCard();
-    expect(card).toHaveAttribute("data-preparation", "stopped");
-    expect(within(card).getByText(/You stopped before the step “Checks”/)).toBeInTheDocument();
     expect(within(card).getByRole("button", { name: FINISH })).toBeEnabled();
   });
 
@@ -256,17 +233,6 @@ describe("discovery.handoff: an unfinished preparation (M3i)", () => {
       t("handoff.pending.failed", { run: "run_001", stage: t("harvest.stage.verification") }),
     );
     expect(screen.getByRole("link", { name: t("handoff.pending.finish") })).toBeInTheDocument();
-  });
-});
-
-describe("the two M3i refusals have their own cards", () => {
-  it.each(["en", "fr", "ar"] as const)("in %s", (locale) => {
-    for (const code of ["PREPARATION_UNFINISHED", "PREPARATION_NOT_AVAILABLE"]) {
-      const copy = stateCopy(locale, code);
-      expect(copy.known).toBe(true);
-      expect(copy.title.length).toBeGreaterThan(5);
-      expect(copy.actionLabel.length).toBeGreaterThan(2);
-    }
   });
 });
 
