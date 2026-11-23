@@ -1,6 +1,6 @@
 # H-test-diet
 
-Status: **BUILT 2026-11-23 — see "Review" for the verdict** (branch `dev/h/test-diet`, cut from `origin/main` `8dd7904a`; not pushed). Lane: **RELEASE** (the coordinator's brief: it changes the gates every later milestone runs).
+Status: **READY FOR PR 2026-11-23** (review round 3 APPROVE on `33dc8391`) (branch `dev/h/test-diet`, cut from `origin/main` `8dd7904a`; not pushed). Lane: **RELEASE** (the coordinator's brief: it changes the gates every later milestone runs).
 
 Source: the researcher's decisions of 2026-11-23 in the coordinator session, after `docs/assessment/test-suite-review-2026-11-23.md` (on local branch `dev/docs/project-review-2026-11-23`). Their words: "Delete all browser tests"; "I want to cut the browser tests and also the UI tests. Leave only component tests."; UI unit tests: "Cut scans and whole-page journeys". The coordinator had recommended keeping a small real-browser set; the researcher chose full deletion.
 
@@ -12,7 +12,7 @@ Source: the researcher's decisions of 2026-11-23 in the coordinator session, aft
 - [x] `vitest.config.ts` caps workers at four; the 150 ms loop in `tests/guidance-screens.tsx` is gone.
 - [x] Gate: `tsc --noEmit`, the full vitest before and after, `npm run build`, `lint:ui`; the Python tests that name the gate commands.
 - [x] An entry in `docs/decisions.md` with the two lists kept apart.
-- [ ] Independent review (`milestone-reviewer`): see "Review".
+- [x] Independent review (`milestone-reviewer`): round 1 CHANGES, round 2 CHANGES (one P2), round 3 APPROVE; see "Review".
 
 ## What is no longer checked anywhere (the cost of the researcher's choice)
 
@@ -303,5 +303,7 @@ Per source file (each `describe` in the lint names it): locale parity of keys, p
 9. (P3) The full Python suite asked by the selector at `pr` was not run: run once on `82c80973`, 6,575 passed, 15 skipped, 0 failed (Evidence).
 
 **Round 2** (on `43f9457a`): **CHANGES**, one P2 left: finding 1(a) was half fixed; the first decision in show mode sending `revealed_after_decision: false` (the value the export's blind/visible figures read) had no test. Fixed in the next commit by the eighth one-decision test; it fails with the value flipped and passes restored; `triage.test.tsx` 48 passed. The other eight findings were confirmed fixed.
+
+**Round 3** (on `33dc8391`): **APPROVE**. The reviewer re-ran `tests/triage.test.tsx` (48 passed) and did not re-run the full suites.
 
 Reviewer's follow-ups, not fixed here: the Explore guidance mounts swallow a missing table (`tests/guidance-screens.tsx`, the `.catch(() => undefined)` already on `main`); the dropped `screening-v1-client` fixture-coverage check (named in decision item 4).
