@@ -196,14 +196,24 @@ def test_a_failure_at_start_is_logged_and_shown_with_no_standard_output(home, mo
     assert "RuntimeError: could not bind the engine" in log and "the engine says something first" in log
     assert len(told) == 1 and told[0].startswith("Nexus Scholar could not start.")
     assert str(next(home.logs.glob("*.log"))) in told[0]
-    assert instance.read_info(home.settings) is None and instance.Instance(home.settings).acquire()
+    probe = instance.Instance(home.settings)
+    assert instance.read_info(home.settings) is None and probe.acquire()
+    probe.release()
 
 
-def test_an_incomplete_install_is_named(home, monkeypatch):
-    told: list[str] = []
+def test_an_incomplete_install_is_named_after_the_lock_is_freed(home, monkeypatch):
+    told: list[tuple[str, bool]] = []
+
+    def tell(message: str) -> None:
+        # A second click while this message is open must not wait for a dead engine.
+        probe = instance.Instance(home.settings)
+        free = probe.acquire()
+        probe.release()
+        told.append((message, free))
+
     monkeypatch.setattr(launcher, "resolve_ui_dir", lambda: None)
-    assert desktop.main(["--no-browser"], tell=told.append) == 1
-    assert told == [desktop.INCOMPLETE]
+    assert desktop.main(["--no-browser"], tell=tell) == 1
+    assert told == [(desktop.INCOMPLETE, True)]
 
 
 def test_an_unwritable_workspaces_folder_is_named(home, monkeypatch):
@@ -220,7 +230,7 @@ def test_the_engine_runs_in_the_settings_folder_with_the_user_cache(home, monkey
 
     def record(self):
         seen.update(cwd=os.getcwd(), cache=os.environ["SCHOLAR_CACHE_DIR"], recon=os.environ["NEXUS_RECON_ROOT"],
-                    landing=self.landing(), root=str(self.root))
+                    landing=self.landing(), root=str(self.root), terminal=self.codes_on_terminal)
 
     monkeypatch.setattr(launcher.Launcher, "run", record)
     before = os.getcwd()
@@ -228,6 +238,7 @@ def test_the_engine_runs_in_the_settings_folder_with_the_user_cache(home, monkey
     assert Path(seen["cwd"]) == home.settings.resolve() or Path(seen["cwd"]) == home.settings
     assert seen["cache"] == str(home.cache / "search") and seen["recon"] == str(home.cache / "inception_recon")
     assert seen["landing"] == "/en/workspaces/" and seen["root"] == str((tmp_path / "workspaces").resolve())
+    assert seen["terminal"] is False  # its output is the log: approval codes go to the window only
     assert os.getcwd() == before
     log = _logs(home)
     assert "Settings folder:" in log and "Workspaces folder:" in log and "Port:" in log
@@ -243,3 +254,78 @@ def test_an_environment_variable_still_wins_over_the_user_cache(home, monkeypatc
 def test_an_unknown_option_is_refused(home):
     assert desktop.main(["--frobnicate"]) == 2
     assert "Unknown options: --frobnicate" in _logs(home)
+
+
+def test_a_log_folder_that_cannot_be_made_still_shows_a_message(home, monkeypatch):
+    def refuse(*_a, **_k):
+        raise PermissionError("denied")
+
+    monkeypatch.setattr(desktop, "open_log", refuse)
+    told: list[str] = []
+    assert desktop.main(["--no-browser"], tell=told.append) == 1
+    assert len(told) == 1 and told[0].startswith("Nexus Scholar could not start: it cannot write its log folder")
+
+
+def test_a_link_to_another_port_is_not_opened(home, monkeypatch):
+    holder = instance.Instance(home.settings)
+    assert holder.acquire()
+    opened: list[str] = []
+    monkeypatch.setattr(desktop.webbrowser, "open", opened.append)
+    monkeypatch.setattr(instance, "ask", lambda *a, **k: {"url": "http://127.0.0.1:9/launch?code=x", "engine_port": 1234})
+    told: list[str] = []
+    try:
+        assert desktop.main([], tell=told.append) == 1
+    finally:
+        holder.release()
+    assert opened == [] and told == [desktop.NOT_ANSWERING]
+
+
+def test_a_start_while_the_engine_is_stopping_goes_on_once_the_lock_is_free(home, monkeypatch):
+    holder = instance.Instance(home.settings)
+    assert holder.acquire()
+    threading.Timer(0.5, holder.release).start()  # the old engine finishes stopping
+    ran: list[bool] = []
+    monkeypatch.setattr(launcher.Launcher, "run", lambda self: ran.append(True))
+    assert desktop.main(["--no-browser"]) == 0
+    assert ran == [True]
+
+
+def test_a_slow_first_start_is_still_published_and_a_failed_publish_still_opens_the_browser(tmp_path, ui, monkeypatch):
+    """Review P2: the old wait gave up after 200 polls (10 s) and never published."""
+    polls = {"n": 0}
+
+    class SlowServer:
+        should_exit = False
+
+        @property
+        def started(self):
+            return polls["n"] > 500
+
+    monkeypatch.setattr(launcher.time, "sleep", lambda _s: polls.__setitem__("n", polls["n"] + 1))
+    opened: list[str] = []
+    monkeypatch.setattr(launcher.webbrowser, "open", opened.append)
+    published: list[int] = []
+
+    class Claim:
+        def router(self, **_k):
+            return instance.router("s", launch_link=lambda: "", stop=lambda: None)
+
+        def publish(self, host, port):
+            published.append(port)
+            raise PermissionError("the file is held by another program")
+
+    app_launcher = launcher.Launcher(root=tmp_path, workspace=None, ui_dir=ui, port=8799, open_browser=True,
+                                     say=lambda _m: None, instance=Claim())  # type: ignore[arg-type]
+    app_launcher._server = SlowServer()
+    app_launcher._when_ready("http://127.0.0.1:8799/launch?code=x")
+    assert polls["n"] > 500 and published == [8799] and opened == ["http://127.0.0.1:8799/launch?code=x"]
+
+
+@pytest.mark.skipif(os.name == "nt", reason="Windows refuses to remove an open file; POSIX would remove it")
+def test_a_running_engines_log_is_not_pruned(tmp_path):
+    for n in range(desktop.KEEP_LOGS):
+        (tmp_path / f"{desktop.LOG_PREFIX}20260101-00000{n}-999999999.log").write_text("old")
+    live = tmp_path / f"{desktop.LOG_PREFIX}20250101-000000-{os.getpid()}.log"
+    live.write_text("running")
+    desktop.open_log(tmp_path).close()
+    assert live.exists()

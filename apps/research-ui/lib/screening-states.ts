@@ -348,6 +348,15 @@ export const STATES: Record<string, StateEntry> = {
       ar: T("رمز اعتماد خاطئ", "لا يطابق الرمز المعروض في الطرفية، أو انتهت صلاحيته.", "الاعتماد", "أعد كتابة الرمز"),
     },
   },
+  APPROVAL_WINDOW_UNAVAILABLE: {
+    role: "blocked",
+    action: "none",
+    copy: {
+      en: T("The approval codes could not be shown", "The window that shows the approval codes could not open on this computer, and this app has no terminal to show them. No code was shown anywhere.", "Approval", "Ask for the codes again; if this keeps happening, restart Nexus Scholar"),
+      fr: T("Les codes d'approbation n'ont pas pu être affichés", "La fenêtre qui affiche les codes d'approbation n'a pas pu s'ouvrir sur cet ordinateur, et cette application n'a pas de terminal pour les afficher. Aucun code n'a été affiché.", "Approbation", "Redemander les codes ; si cela se répète, redémarrer Nexus Scholar"),
+      ar: T("تعذّر عرض رموز الاعتماد", "لم تتمكن النافذة التي تعرض رموز الاعتماد من الفتح على هذا الحاسوب، ولا توجد طرفية لهذا التطبيق لعرضها. لم يُعرض أي رمز.", "الاعتماد", "اطلب الرموز من جديد، وإن تكرر ذلك فأعد تشغيل Nexus Scholar"),
+    },
+  },
   ACTION_ORIGIN_REFUSED: {
     role: "blocked",
     action: "none",

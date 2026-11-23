@@ -86,6 +86,7 @@ class Launcher:
         server_factory: Callable[[Any, str, int], Any] | None = None,
         say: Callable[[str], None] = print,
         instance: Instance | None = None,
+        codes_on_terminal: bool = True,
     ):
         self.root, self.workspace, self.ui_dir = root, workspace, ui_dir
         self.host, self.port = host, port
@@ -96,6 +97,7 @@ class Launcher:
         self.codes = browser.LaunchCodes(self.session)
         self.server_factory = server_factory or _uvicorn_server
         self.instance = instance
+        self.codes_on_terminal = codes_on_terminal
         self._next: Path | None = None
         self._stopping = False
         self._server: Any = None
@@ -117,6 +119,7 @@ class Launcher:
             # Finding 38: the app may have been started for the researcher, with
             # its terminal out of sight; the codes also show in a desktop window.
             code_window=code_window.reveal,
+            codes_on_terminal=self.codes_on_terminal,
             local_routes=(
                 self.instance.router(launch_link=self.launch_url, stop=self.request_stop)
                 if self.instance is not None
@@ -172,15 +175,21 @@ class Launcher:
             self.say(f"Opening the workspace at {self.workspace}")
 
     def _when_ready(self, url: str | None) -> None:
-        """Once the first server answers: publish the instance, then open the browser."""
-        started = False
-        for _ in range(200):
-            started = bool(getattr(self._server, "started", False))
-            if started:
-                break
+        """Once the first server answers: publish the instance, then open the browser.
+
+        No time limit: a first start can be slow (an antivirus scanning a new
+        bundle, a cold disk), and an engine that never publishes cannot be found
+        by a second click or stopped by `--stop`.
+        """
+        while not getattr(self._server, "started", False):
+            if self._stopping:
+                return
             time.sleep(0.05)
-        if started and self.instance is not None:
-            self.instance.publish(self.host, self.port)
+        if self.instance is not None:
+            try:
+                self.instance.publish(self.host, self.port)
+            except OSError as exc:
+                self.say(f"Could not write the instance file ({exc}); a second start will not find this engine")
         if url is not None:
             webbrowser.open(url)
 

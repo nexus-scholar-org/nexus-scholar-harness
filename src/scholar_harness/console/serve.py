@@ -146,6 +146,7 @@ def create_app(
     ui_dir: str | Path | None = None,
     code_window: Callable[..., bool] | None = None,
     local_routes: APIRouter | None = None,
+    codes_on_terminal: bool = True,
 ) -> FastAPI:
     """Build the console app for one workspace.
 
@@ -175,6 +176,11 @@ def create_app(
     (``console/instance.py``). They pass the loopback host and origin checks
     here and then check their own secret, never the console token; they are
     not served under the browser prefix.
+
+    ``codes_on_terminal=False`` (the installed app, which has no terminal and
+    whose standard output is its log file) keeps the approval codes off
+    standard output: they are shown only in the desktop window, and a begin
+    whose window cannot open is refused (``APPROVAL_WINDOW_UNAVAILABLE``).
     """
     # ``None``: no workspace open yet (``nexus-scholar ui`` on an empty root).
     # Then only the workspaces routes, the static UI and /healthz answer.
@@ -198,6 +204,7 @@ def create_app(
 
     app.state.workspace = ws
     app.state.code_window = code_window
+    app.state.codes_on_terminal = codes_on_terminal
     app.state.job_runner = runner
     app.state.job_broadcast = broadcast
     from scholar_harness.workspace.catalog import resolve_root

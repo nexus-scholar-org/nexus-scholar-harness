@@ -38,6 +38,19 @@ Status: **BUILT on `dev/m13/part-a-launcher` (from `main` `cc0e8fa1`, `main` `0b
 | No console window appears (by hand on Windows) | `nexus-scholar-app.exe --no-browser` from a `uv` install, started from `C:\Windows`: answers after 5.2 s, `/healthz` 200, the process has no visible window; `nexus-scholar-app.exe --stop` exit 0, engine gone, port free, `engine.json` removed. Also `pythonw -m scholar_harness.console.desktop --no-browser`: `engine.json` after 5.9 s, the log complete |
 | With no settings, the first page is the setup screen | **not in this branch**: the setup screen is Part B |
 
+## Independent review (milestone-reviewer), round 1: CHANGES, repaired
+
+| # | Finding | Repair | Test |
+| :-- | :-- | :-- | :-- |
+| P1 | Approval codes went into the installed app's log file in plain text (the pairing routes `print()` them; standard output is the log). That breaks the pairing rule "never stored, never logged", and a process with file access could approve its own batch | the installed start builds the app with `codes_on_terminal=False`; the routes print nothing then, the codes go to the window only, and with no window both refuse `APPROVAL_WINDOW_UNAVAILABLE` (409, new console code: `refusals.py`, contract §7, app copy in three languages) | `tests/console/test_approve_all.py`: `test_installed_app_the_codes_never_reach_its_log_file`, `test_installed_app_without_a_window_refuses_instead_of_hiding_the_codes` (both routes), `test_the_installed_start_runs_its_engine_without_a_terminal_for_codes`; `test_the_engine_runs_in_the_settings_folder_with_the_user_cache` checks the flag |
+| P2 | `engine.json` was published only if the server started within 10 s; a failed publish also stopped the browser from opening | no time limit while not stopping; a failed publish is logged and the browser still opens | `test_a_slow_first_start_is_still_published_and_a_failed_publish_still_opens_the_browser` |
+| P3 | `engine.tmp` briefly readable by others on POSIX | created with `os.open(…, 0o600)` | (POSIX; not testable on Windows) |
+| P3 | A second start opened any URL the answering port returned | only `http://127.0.0.1:<the port asked>/launch?…` | `test_a_link_to_another_port_is_not_opened` |
+| P3 | A log folder that cannot be made escaped with no message | message `LOG_FAILED` | `test_a_log_folder_that_cannot_be_made_still_shows_a_message` |
+| P3 | Failure messages were shown while the lock was held; a click just after Stop got "not answering" | lock released before the message; a waiting start takes the lock when it comes free | `test_an_incomplete_install_is_named_after_the_lock_is_freed`, `test_a_start_while_the_engine_is_stopping_goes_on_once_the_lock_is_free` |
+| P3 | Decisions: stale "entry point" in the open row; the spec departure of item 5 not named | both corrected | — |
+| follow-up | A test left a lock handle open; on POSIX a sixth click could prune the running engine's log | handle released; a log whose process runs is kept | `test_a_running_engines_log_is_not_pruned` (POSIX only, skipped on Windows) |
+
 ## Not in this branch (the rest of spec §5.2 Part A)
 
 - **The control window** of §4.2: Open in browser, Settings, Stop, the status line and the closing question with the busy check. The instance routes it needs (a fresh link, stop) are here.

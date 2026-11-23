@@ -33,6 +33,7 @@ import platform
 import re
 import sys
 import threading
+import time
 import traceback
 import webbrowser
 from collections.abc import Callable
@@ -41,6 +42,7 @@ from datetime import datetime
 from pathlib import Path
 
 from . import code_window
+from .browser import LAUNCH_PATH
 
 #: Points every per-user folder under one folder (tests, CI, a portable copy).
 HOME_ENV = "NEXUS_APP_HOME"
@@ -59,6 +61,10 @@ INCOMPLETE = "This installation is incomplete. Please reinstall Nexus Scholar."
 CANNOT_WRITE = (
     "Nexus Scholar cannot write to {folder}. Free some space, or reconnect the folder if it is on "
     "a network or cloud drive, then start Nexus Scholar again."
+)
+LOG_FAILED = (
+    "Nexus Scholar could not start: it cannot write its log folder {folder} ({error}). "
+    "Free some space or check that folder, then start Nexus Scholar again."
 )
 NOT_ANSWERING = (
     "Nexus Scholar is already running on this computer but does not answer. Wait a minute and "
@@ -158,11 +164,32 @@ class LogFile(io.TextIOBase):
         super().close()
 
 
+def _running(log: Path) -> bool:
+    """Whether the process that writes ``log`` (its pid ends the name) still runs.
+
+    Windows refuses to remove an open file anyway; POSIX would remove it.
+    """
+    if os.name == "nt":
+        return False
+    try:
+        os.kill(int(log.stem.rsplit("-", 1)[1]), 0)
+    except (ValueError, IndexError, ProcessLookupError):
+        return False
+    except OSError:  # it exists but belongs to someone else
+        return True
+    return True
+
+
 def open_log(folder: Path, *, now: datetime | None = None, cap: int = LOG_CAP_BYTES) -> LogFile:
-    """A new log file for this launch; the oldest ones beyond :data:`KEEP_LOGS` are removed."""
+    """A new log file for this launch; the oldest ones beyond :data:`KEEP_LOGS` are removed.
+
+    A log a running engine still writes is kept.
+    """
     folder.mkdir(parents=True, exist_ok=True)
     old = sorted(folder.glob(f"{LOG_PREFIX}*.log"))
     for stale in old[: max(0, len(old) - (KEEP_LOGS - 1))]:
+        if _running(stale):
+            continue
         try:
             stale.unlink()
         except OSError:
@@ -236,26 +263,37 @@ def _start(folders: AppFolders, *, stop: bool, open_browser: bool, tell: Callabl
         return 0
 
     claim = instance_module.Instance(folders.settings)
-    if not claim.acquire():
-        answer = instance_module.ask(folders.settings, "launch-link", wait=instance_module.ANSWER_WAIT_SECONDS)
-        if answer is None:
+    deadline = time.monotonic() + instance_module.ANSWER_WAIT_SECONDS
+    while not claim.acquire():
+        # Another engine holds the lock: ask it for a link. It may also be
+        # stopping, in which case the lock comes free and this start goes on.
+        answer = instance_module.ask(folders.settings, "launch-link", wait=1.0)
+        if answer is not None:
+            url = str(answer.get("url", ""))
+            if not url.startswith(f"http://127.0.0.1:{answer.get('engine_port')}{LAUNCH_PATH}?"):
+                _say("The running engine answered with an unexpected link; not opened.")
+                tell(NOT_ANSWERING)
+                return 1
+            _say("Another Nexus Scholar engine is running; opening a new link from it.")
+            if open_browser:
+                webbrowser.open(url)
+            return 0
+        if time.monotonic() >= deadline:
             tell(NOT_ANSWERING)
             return 1
-        _say("Another Nexus Scholar engine is running; opening a new link from it.")
-        if open_browser:
-            webbrowser.open(answer["url"])
-        return 0
+    problem: str | None = None
     try:
         ui_dir = resolve_ui_dir()
+        root, source = resolve_root(None)
         if ui_dir is None:
             _say("No app bundle (the screens) was found.")
-            tell(INCOMPLETE)
+            problem = INCOMPLETE
+        elif not _writable(root):
+            _say(f"Workspaces folder: {root} (from the {source}) cannot be written.")
+            problem = CANNOT_WRITE.format(folder=root)
+        if problem is not None:
             return 1
-        root, source = resolve_root(None)
         _say(f"Workspaces folder: {root} (from the {source})")
-        if not _writable(root):
-            tell(CANNOT_WRITE.format(folder=root))
-            return 1
         launcher = Launcher(
             root=root,
             workspace=most_recent(root),
@@ -265,13 +303,16 @@ def _start(folders: AppFolders, *, stop: bool, open_browser: bool, tell: Callabl
             start_on_workspaces=True,
             say=_say,
             instance=claim,
+            codes_on_terminal=False,  # standard output is the log: approval codes go to the window only
         )
         _say(f"Port: {launcher.port}")
         launcher.run()
         _say("Stopped.")
         return 0
     finally:
-        claim.release()
+        claim.release()  # before any message, so a click meanwhile is not left waiting
+        if problem is not None:
+            tell(problem)
 
 
 def main(argv: list[str] | None = None, *, tell: Callable[[str], None] = tell_user) -> int:
@@ -279,7 +320,11 @@ def main(argv: list[str] | None = None, *, tell: Callable[[str], None] = tell_us
     if args[:1] == [code_window.CHILD_FLAG]:
         return code_window.run_child()
     folders = app_folders()
-    log = open_log(folders.logs)
+    try:
+        log = open_log(folders.logs)
+    except OSError as exc:
+        tell(LOG_FAILED.format(folder=folders.logs, error=exc))
+        return 1
     saved_streams, saved_cwd = (sys.stdout, sys.stderr), os.getcwd()
     sys.stdout = sys.stderr = log
     own_faulthandler = not faulthandler.is_enabled()  # a test runner may have its own

@@ -100,9 +100,15 @@ class Instance:
         """Write ``engine.json`` once the server answers; replaced atomically."""
         payload = {"pid": os.getpid(), "host": host, "port": port, "secret": self.secret}
         temp = self.info_path.with_suffix(".tmp")
-        temp.write_text(json.dumps(payload), encoding="utf-8")
-        if os.name != "nt":
-            os.chmod(temp, 0o600)
+        try:
+            temp.unlink()
+        except FileNotFoundError:
+            pass
+        # Readable by this user only from the first byte (POSIX; on Windows the
+        # per-user settings folder's permissions apply).
+        fd = os.open(temp, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o600)
+        with os.fdopen(fd, "w", encoding="utf-8") as handle:
+            handle.write(json.dumps(payload))
         os.replace(temp, self.info_path)
 
     def release(self) -> None:
@@ -145,7 +151,9 @@ def ask(folder: Path, action: str, *, wait: float = ANSWER_WAIT_SECONDS) -> dict
             )
             try:
                 with urllib.request.urlopen(request, timeout=3) as response:  # noqa: S310 - loopback only
-                    return json.loads(response.read())
+                    answer = json.loads(response.read())
+                if isinstance(answer, dict):
+                    return {**answer, "engine_port": info["port"]}
             except (urllib.error.URLError, OSError, ValueError):
                 pass
         if time.monotonic() >= deadline:
