@@ -63,9 +63,9 @@ def _extraction_file_stem(doc_item: dict[str, Any]) -> str:
     it is never an identity. Reading a ``document_id``, ``study_id``, or
     ``workspace_id`` out of this stem would be inference from a filename, which
     Contract v1 forbids: identity is stated in a typed request or inherited from
-    an accepted artifact, never derived from a slug. Stage 6 therefore takes
-    both limbs from the accepted ``document_manifest`` (``_accepted_document_records``)
-    and takes its path from the record's own ``extracted_path``.
+    an accepted artifact, never derived from a slug. A consumer therefore takes
+    both limbs from the accepted ``document_manifest`` and its path from the
+    record's own ``extracted_path``.
 
     The stem still prefers ``workspace_id`` over ``study_id`` because that is how
     Stage 5 has always named the file; the collision is a filename, not an

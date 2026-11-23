@@ -40,7 +40,7 @@ uv run scholar-pdf acquire workspaces/<project-slug>/acquisition_run.json \
   --audit-logger .agents/skills/workspace-manager/scripts/log_event.py
 uv run scholar-pdf extract-run workspaces/<project-slug>/extraction_run.json \
   --audit-logger .agents/skills/workspace-manager/scripts/log_event.py
-uv run scholar-harness extract publish workspaces/<project-slug> --index
+uv run scholar-harness extract publish workspaces/<project-slug>
 ```
 
 ---

@@ -1917,29 +1917,42 @@ def _exclude_the_study_in_its_screening_parent(workspace: Path) -> None:
 
 
 # --------------------------------------------------------------------------- #
-# T-131 E3 acceptance adapter -- hermetic adapter assertions only
-# --------------------------------------------------------------------------- #
-# The kit produces a candidate; the harness adapter decides (handoff section 6).
-# Every test below is hermetic: a deterministic mock embedder, offline flags,
-# tmp dirs only, no network, no model download. The candidate is built through
-# the real chunker/sidecar path (``_build_candidate_manifest``), and the live
-# backend is a fake ``VerifiableBackend`` holding exactly the declared set, so
-# the adapter's seven ordered checks, atomic publication, and idempotency are
-# proven without opening a Chroma file.
-#
-# MISSING-ID disposition (T-140): this file claims only the adapter-owned
-# ``E3-NEG-037`` / ``E3-POS-008`` acceptance boundary (via the adapter's
-# ``index-acceptance-v1`` record and section 6.6 event). Kit-owned
-# (009,011,017,021,022,030,031,035,050), publish-time frozen-gate (039),
-# MCP (POS-009), and CI (POS-012) stay parked in
-# ``tests/conformance/test_e3_index_lineage_boundary.py``.
+# H-remove-rag-verify: the indexing entry points are gone, and say so
 # --------------------------------------------------------------------------- #
 
-_ADAPTER_RUN_ID = "RUN-" + "a1" * 16
-_ADAPTER_CREATED_AT = "2026-09-27T00:00:00Z"
-_ADAPTER_COMMIT = "ab" * 20
-_ADAPTER_VERSION = "0.2.0"
-_ADAPTER_ACCEPTED_AT = "2026-09-28T00:00:00Z"
-_ADAPTER_MANIFEST_RELPATH = "rag/index/RUN-a1/manifest.json"
+
+@pytest.mark.parametrize(
+    "args",
+    [["index", "WS"], ["publish", "WS", "--index"]],
+    ids=["extract-index", "publish-index"],
+)
+def test_cli_indexing_entry_points_are_refused(tmp_path: Path, args: list[str]) -> None:
+    """``extract index`` and ``extract publish --index`` are usage errors now."""
+
+    workspace = tmp_path / "ws"
+    workspace.mkdir()
+    result = _invoke([str(workspace) if a == "WS" else a for a in args])
+
+    assert result.exit_code == 2, (result.exit_code, result.stdout)
+    assert not (workspace / "rag").exists()
+    assert not (workspace / "literature").exists()
 
 
+@pytest.mark.parametrize(
+    "argv",
+    [["index", "WS"], ["publish", "WS", "--index"]],
+    ids=["script-index", "script-publish-index"],
+)
+def test_script_indexing_entry_points_are_refused(tmp_path: Path, argv: list[str]) -> None:
+    """``agent_extract.py index`` and ``publish --index`` are refused by argparse."""
+
+    from scholar_harness import agent_extract
+
+    workspace = tmp_path / "ws"
+    workspace.mkdir()
+    with pytest.raises(SystemExit) as caught:
+        agent_extract.main([str(workspace) if a == "WS" else a for a in argv])
+
+    assert caught.value.code == 2
+    assert not (workspace / "rag").exists()
+    assert not (workspace / "literature").exists()

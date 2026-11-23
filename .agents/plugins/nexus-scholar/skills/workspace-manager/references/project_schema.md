@@ -89,7 +89,7 @@ workspaces/<project-slug>/
 ├── synthesis/              # Synthesized literature review artifacts
 │   └── literature_review.md # Scaffolded review template (init_project.py:158-163)
 ├── exports/                # Exported citation bundles
-└── phase4/                 # Verify-kit outputs (trust consensus, RoB/COI, retraction)
+└── phase4/                 # Phase-4 outputs of earlier workspaces (the verify kit was removed 2026-11-23)
 ```
 
 `init_project.py` scaffolds `audit/`, `literature/`, `pdfs/`, `extracted/`,

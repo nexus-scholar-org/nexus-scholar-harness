@@ -54,9 +54,9 @@ that no single skill covers.
 | search (`scholar_search`) | `SearchEngine`, `Deduplicator`, `DocumentVerifier`, `CitationChainer`, screening fns, `Exporter` | `scholar-search` (search/snowball/chain/import/dedup/verify/export/screen) | `nexus_discover`, `nexus_dedup`, `nexus_screen`, `nexus_screen_reconcile` | Phase-1 discovery/prepare (`compile_protocol_search`) |
 | pdf (`scholar_pdf`) | `AsyncPDFDownloader`, `PyMuPDFEngine`/`DoclingEngine`/`GrobidEngine`, validators, **`scholar_pdf.acquisition`** (WP01-E1, parent-bound), **`scholar_pdf.extraction`** (WP01-E2, parent-bound) | `scholar-pdf` (download/ingest: **production** since K0; **acquire**/**extract-run**/extract: parked) | `nexus_extract_pdf` (PyMuPDF only, non-authoritative); acquisition: **UNSUPPORTED** (`pdf_acquisition`, `mcp_supported=false`); extraction: **UNSUPPORTED** (`pdf_extraction`, `mcp_supported=false`) | Phase-2 fulltext + E1 acquired-document + E2 extracted-text boundary |
 | graph (`scholar_graph`) | `CitationGraphBuilder`, `GraphVisualizer` | `scholar-graph` (build/pagerank) | `nexus_graph_build` | Phase-3 knowledge-graph |
-| protocol (`scholar_protocol`) | `ResearchProtocol`, `compile_protocol`, `canonical_json/fingerprint`, `validate_protocol`, `render_screening_criteria`, `build_extraction_model` | `scholar-protocol` (compile/validate/fingerprint/canon/render-criteria/extraction-schema/extraction-prompt) | `nexus_protocol_compile/validate/render_criteria` (+ matrix via rag) | Phase-0 protocol |
+| protocol (`scholar_protocol`) | `ResearchProtocol`, `compile_protocol`, `canonical_json/fingerprint`, `validate_protocol`, `render_screening_criteria`, `build_extraction_model` | `scholar-protocol` (compile/validate/fingerprint/canon/render-criteria/extraction-schema/extraction-prompt) | `nexus_protocol_compile/validate/render_criteria` | Phase-0 protocol |
 | agent (`scholar_agent`) | MCP server (**25 tools**, incl. the five M10c `nexus_assistant_*` tools, `nexus_pdf_acquire` = declared-unsupported E1 boundary and `nexus_pdf_extraction` = declared-unsupported E2 boundary) + harness-recon adapter | `scholar-agent` (MCP stdio server) | every `nexus_*` + `recon_probe/distill/delta` | MCP front-door |
-| harness (`scholar_harness`) | thin wrapper over the 8 kit APIs (`orchestrator.py`; inception engine) | `nexus-scholar` (P7): `init` (P7.3 scaffold), `setup-mcp` (P7.4), `doctor` (P7.5 — kits import + pinned `default_rev` via `plugins.json`/wheel `nexus_scholar_pins.json`, `SCHOLAR_MAILTO` + model keys, skill resolvability, workspace layout; `--json` machine-readable with key values masked `***`; `--exit-code` opt-in, trips on FAIL only), `log` (P7.6 — `log event` single canonical event, `log batch` JSONL lenient-skip, `log sync-index` INDEX regeneration; all refresh INDEX + append to `audit/journal.jsonl` via the wheel-portable `workspace-manager` loader, workstation path-or-slug resolution with clean refusal); dev-venv script is `scholar-harness` (status/sync/run/export/inception) | — (agent kit owns the MCP front-door) | distribution / orchestration front-door |
+| harness (`scholar_harness`) | thin wrapper over the kit APIs (`orchestrator.py`; inception engine) | `nexus-scholar` (P7): `init` (P7.3 scaffold), `setup-mcp` (P7.4), `doctor` (P7.5 — kits import + pinned `default_rev` via `plugins.json`/wheel `nexus_scholar_pins.json`, `SCHOLAR_MAILTO` + model keys, skill resolvability, workspace layout; `--json` machine-readable with key values masked `***`; `--exit-code` opt-in, trips on FAIL only), `log` (P7.6 — `log event` single canonical event, `log batch` JSONL lenient-skip, `log sync-index` INDEX regeneration; all refresh INDEX + append to `audit/journal.jsonl` via the wheel-portable `workspace-manager` loader, workstation path-or-slug resolution with clean refusal); dev-venv script is `scholar-harness` (status/sync/run/export/inception) | — (agent kit owns the MCP front-door) | distribution / orchestration front-door |
 
 ---
 
@@ -434,9 +434,8 @@ Removed in M5-slim (2026-11-05): the harness never used it, and its dedup and re
   (finding 2); DOI precedence `doi` → `external_ids` (reverse of CLI).
 - **Knowledge:** OpenAlex only, **no polite-pool mailto sent**; intra-pool edges only
   (source → referenced work in pool via wid→doi); **no co-citation logic exists**
-  (prose claims are aspirational); no TF-based weighting (RAG does that); graph.json
-  consumed by RAG retriever (reuses `pagerank` key or recomputes nx.pagerank α=0.85;
-  blend α=0.25/β=0.15 differs from computation α); pyvis 0.3.2 `lib/` materializes in
+  (prose claims are aspirational); no TF-based weighting; graph.json was consumed by
+  the RAG retriever until it was removed on 2026-11-23; pyvis 0.3.2 `lib/` materializes in
   run CWD and the HTML is a hybrid (local bindings + **CDN vis.js**) — not offline;
   unbounded per-DOI concurrency; fallback nodes get `year=None`, `title="Study <doi>"`.
 
@@ -459,7 +458,7 @@ Removed in M5-slim (2026-11-05): the harness never used it, and its dedup and re
   it), comparable across compile/validate; golden `.sha256` fixtures gate serializer
   changes (preset/model changes need version bump); validator never touches
   `schemas/v1/protocol.schema.json` (derived artifact, CI-checked); errors fold into
-  JSON strings, not MCP failures; matrix-extract validates only structurally.
+  JSON strings, not MCP failures.
 
 ### scholar-agent-kit (MCP front-door)
 - **25 tools** (22 `nexus_*` + 3 `recon_*`; since M10c the five `nexus_assistant_*` tools: read the app's drafts and workspaces, add a proposal or a finding, never apply one); `--help` lists all 25 (listing parity enforced

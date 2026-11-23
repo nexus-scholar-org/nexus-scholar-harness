@@ -120,8 +120,8 @@ def require_recorded_identity(workspace: Path | str) -> str:
 
     if not isinstance(recorded, str) or not recorded.strip():
         raise RegisteredWorkspaceIdentityMissingError(
-            f"{manifest_path} records no 'registered_workspace_id'. Stage 6 "
-            f"indexes under the workspace identity minted at inception and "
+            f"{manifest_path} records no 'registered_workspace_id'. The "
+            f"workspace identity minted at inception is required; Nexus "
             f"will not substitute the project slug "
             f"({manifest.get('project_id')!r}) or mint a new one. "
             f"Fix: re-create the workspace so inception records a registered "

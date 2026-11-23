@@ -102,7 +102,7 @@ Every project in `{WORKSPACE}/` adheres to this layout:
 ├── extracted/                 # Markdown with YAML frontmatter
 ├── synthesis/                 # Literature review, claims, dynamic synthesis matrices
 ├── exports/                   # CSV/JSON exports (search, verified, decisions)
-└── phase4/                    # Verify-kit outputs (trust consensus, RoB/COI, retraction)
+└── phase4/                    # Phase-4 outputs of earlier workspaces (the verify kit was removed 2026-11-23)
 ```
 
 ---

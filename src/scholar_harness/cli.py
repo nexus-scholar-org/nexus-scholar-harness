@@ -663,7 +663,7 @@ extract_app = typer.Typer(
     name="extract",
     help=(
         "Publish the Contract v1 document manifest for a workspace's real Stage 5 "
-        "extraction output and hand it to Stage 6 (runtime acceptance adoption)."
+        "extraction output (runtime acceptance adoption)."
     ),
     add_completion=False,
     no_args_is_help=True,

@@ -1431,7 +1431,7 @@ def validate_extraction_currentness(workspace: Path, artifact_id: str) -> None:
         recorded = json.loads(path.read_text(encoding="utf-8"))
         for item in recorded["documents"]:
             extracted = _resolve_inside(workspace, item["extracted_path"])
-            # Missing files are classified by Stage 6's existing preflight.
+            # A missing file is not a changed body; this check skips it.
             if not extracted.is_file():
                 continue
             current = sha256_bytes(extracted.read_bytes())

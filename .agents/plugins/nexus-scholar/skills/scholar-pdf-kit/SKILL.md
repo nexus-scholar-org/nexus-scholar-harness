@@ -163,8 +163,8 @@ Conformance: `tests/conformance/test_e2_extraction_boundary.py`.
 ## Runtime acceptance of the E2 output (harness, E2-RUNTIME-ACCEPTANCE-ADOPTION)
 
 The kit publishes a **non-authoritative candidate**; the harness producer is what turns
-committed Stage 5 output into an accepted Contract v1 `document_manifest` that Stage 6
-actually consumes. It adds no second gate — it hands the candidate to the frozen adapter
+committed Stage 5 output into an accepted Contract v1 `document_manifest`. It adds no
+second gate — it hands the candidate to the frozen adapter
 `scholar_harness.extraction_adapter.accept_extraction_candidate`, which owns acceptance,
 the registry entry, the published path, the rejection record, and idempotency.
 
@@ -208,14 +208,8 @@ the registry entry, the published path, the rejection record, and idempotency.
   `literature/extraction_publications/<ART-…>.json` with per-document source kind/hash,
   extraction method, and the registered parent. It is **not** the kit's
   `pdf-extraction-manifest-v1` sidecar and is never presented as one.
-- **Indexing is an observation, not a claim.** `extract index` delegates via
-  `index_accepted_documents` (`src/scholar_harness/extraction_producer.py:1648`)
-  to orchestrator Stage 6 typed `index_workspace`
-  (`src/scholar_harness/orchestrator.py:1425`) and records what actually happened; indexing zero
-  documents is `FAILED`, and Stage 6 re-reads the accepted manifest rather than the
-  provenance record. It also refuses with `DOCUMENT_MANIFEST_NOT_ACCEPTED` **before**
-  constructing Stage 6, so a workspace that has never published gets no
-  `rag/chroma_db` directory and no embedding-model download.
+- **No indexing.** Indexing the accepted manifest (Stage 6, `extract index`,
+  `publish --index`) was removed with `scholar_rag` on 2026-11-23.
 
 Acceptance evidence: `tests/e2e/test_extraction_runtime_acceptance.py`.
 
@@ -275,12 +269,11 @@ authoritative E1/E2 boundaries → the sections above (not the refs).
 
 # 8. Harness runtime acceptance of the E2 output (E2-RUNTIME-ACCEPTANCE-ADOPTION)
 #    Accepts the Stage 5 committed extraction through the FROZEN adapter and
-#    publishes the Contract v1 document_manifest Stage 6 consumes. Fail-closed:
+#    publishes the Contract v1 document_manifest. Fail-closed:
 #    a stub, a short body, a mismatched frontmatter, or a missing accepted
 #    screening parent refuses and publishes nothing.
 {CLI:harness} extract status  {WORKSPACE}
-{CLI:harness} extract publish {WORKSPACE} --index
-{CLI:harness} extract index  {WORKSPACE}
+{CLI:harness} extract publish {WORKSPACE}
 ```
 
 ---
