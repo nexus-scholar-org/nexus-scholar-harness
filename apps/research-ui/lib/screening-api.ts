@@ -221,14 +221,15 @@ export function normalizeConsoleOrigin(origin: string): string {
 }
 
 /**
- * One request for every reader of the same address at the same time
+ * One request for every reader of the same address in the same synchronous run
  * (H-screening-read-performance, DoD 5 and 7). Two parts of a page that read
- * the same GET while it loads (the screening steps and Home both read the
- * corpus) share one request; each reader gets its own copy of the answer, and
- * its own refusal or abort. Nothing is kept once the answer arrived: the next
- * read asks the engine again.
+ * the same GET as it mounts (the screening steps and Home both read the corpus,
+ * in one render's effects) share one request; each reader gets its own copy of
+ * the answer, and its own refusal or abort. A read that starts later, after a
+ * write or anything else awaited, never joins it, and nothing is kept once the
+ * answer arrived: the next read asks the engine again.
  */
-type SharedRead = { promise: Promise<unknown>; controller: AbortController; readers: number; fetcher: typeof fetch; handedOut: boolean };
+type SharedRead = { promise: Promise<unknown>; controller: AbortController; readers: number; fetcher: typeof fetch; handedOut: boolean; joinable: boolean };
 const sharedReads = new Map<string, SharedRead>();
 
 /** What an aborted read always gave: the failed `fetch` read as an unreachable console. */
@@ -247,9 +248,15 @@ export function readJson<T>(path: string, origin: string, signal?: AbortSignal):
   if (signal?.aborted) return readJsonOnce<T>(path, origin, signal);
   let shared = sharedReads.get(url);
   if (shared !== undefined && shared.fetcher !== globalThis.fetch) shared = undefined; // another fetch (a test's): never joined
+  // Only readers that start in the same synchronous run (one render's effects) share a request: a read
+  // made after anything awaited, such as a write, always asks the engine again (review finding 1).
+  if (shared !== undefined && !shared.joinable) shared = undefined;
   if (shared === undefined) {
     const controller = new AbortController();
-    const entry: SharedRead = { controller, readers: 0, promise: Promise.resolve(), fetcher: globalThis.fetch, handedOut: false };
+    const entry: SharedRead = { controller, readers: 0, promise: Promise.resolve(), fetcher: globalThis.fetch, handedOut: false, joinable: true };
+    queueMicrotask(() => {
+      entry.joinable = false;
+    });
     entry.promise = readJsonOnce<unknown>(path, origin, controller.signal).finally(() => {
       if (sharedReads.get(url) === entry) sharedReads.delete(url);
     });
@@ -357,6 +364,9 @@ export function getBatchReview(
   );
 }
 
+/** The reason phrases the per-batch request's refusal carried as its message when the engine gave none. */
+const STATUS_TEXT: Record<number, string> = { 400: "Bad Request", 403: "Forbidden", 404: "Not Found", 409: "Conflict", 422: "Unprocessable Entity", 500: "Internal Server Error" };
+
 /** A batch the per-batch route refused, as the one-request route carries it. */
 interface RefusedReview {
   batch_index: number;
@@ -382,7 +392,7 @@ export async function getBatchReviews(origin: string, signal?: AbortSignal): Pro
       throw new ScreeningApiError(
         String(detail?.code ?? `HTTP_${item.status}`),
         item.status,
-        String(detail?.message ?? (typeof item.detail === "string" ? item.detail : "")),
+        String(detail?.message ?? (typeof item.detail === "string" ? item.detail : (STATUS_TEXT[item.status] ?? ""))),
         detail?.details,
       );
     }

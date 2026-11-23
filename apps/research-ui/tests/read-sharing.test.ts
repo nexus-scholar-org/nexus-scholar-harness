@@ -104,4 +104,25 @@ describe("read-sharing", () => {
     second.pending[0].answer(200, { fresh: true });
     expect(await read).toEqual({ fresh: true });
   });
+
+  it("review finding 1: a read after a write never joins a read made before it", async () => {
+    const { fetchMock, pending } = deferredEngine();
+    const before = readJson("/api/v1/charting", "/api/console");
+    await Promise.resolve(); // the write's await: a later task, as after a POST
+    await new Promise((r) => setTimeout(r, 0));
+    const after = readJson("/api/v1/charting", "/api/console");
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    pending[0].answer(200, { version: 1 });
+    pending[1].answer(200, { version: 2 });
+    expect(await before).toEqual({ version: 1 });
+    expect(await after).toEqual({ version: 2 });
+  });
+
+  it("a read one microtask later is already its own request", async () => {
+    const { fetchMock } = deferredEngine();
+    void readJson("/api/v1/screening/summary", "/api/console").catch(() => undefined);
+    await Promise.resolve();
+    void readJson("/api/v1/screening/summary", "/api/console").catch(() => undefined);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
 });

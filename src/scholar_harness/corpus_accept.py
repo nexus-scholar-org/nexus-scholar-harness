@@ -653,7 +653,13 @@ def _accepted_counts(
         return None
     if manifest.get("total_raw_harvested") != records or staged != records:
         return None
-    if artifact.get("protocol_fingerprint") != _protocol_fingerprint(ws):
+    try:
+        current = _protocol_fingerprint(ws)
+    except AcceptCorpusRefused:
+        # Review finding 2: an unreadable protocol is not this path's refusal to make; the
+        # full preview answers as it always did.
+        return None
+    if artifact.get("protocol_fingerprint") != current:
         return None
     return {"identified": records, "duplicates": records - studies, "unique_studies": studies}
 

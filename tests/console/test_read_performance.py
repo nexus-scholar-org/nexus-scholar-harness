@@ -204,7 +204,7 @@ def test_approve_and_publish_recompute_from_disk_even_where_the_store_cannot_see
     assert not ev.projection_is_current(ws, 7, path)
     with pytest.raises(Exception) as refused:
         cmd_collect(ws)
-    assert ev.PROJECTION_STALE in str(refused.value) or "007" in str(refused.value) or "7" in str(refused.value)
+    assert ev.PROJECTION_STALE in str(refused.value) and "007" in str(refused.value), str(refused.value)
 
 
 # --- DoD 4: an accepted corpus is read, not rebuilt --------------------------------------------
@@ -328,3 +328,18 @@ def test_the_kept_results_read_only_files_the_key_covers(ws):
     assert outside == []
     left_out = [p for p in inside if os.path.relpath(p, root).split(os.sep)[0] in read_store.NOT_READ]
     assert left_out == []
+
+
+@pytest.mark.parametrize("protocol", ["not json", None], ids=["invalid", "missing"])
+def test_review_finding_2_an_unreadable_protocol_answers_the_corpus_as_before(ws, protocol, counted_dedup):
+    """The fast path never refuses where the full preview answered (review finding 2)."""
+    from scholar_harness.corpus_accept import preview_staged
+
+    if protocol is None:
+        (ws / "protocol.json").unlink()
+    else:
+        (ws / "protocol.json").write_text(protocol, encoding="utf-8")
+    response = _client(ws).get("/api/v1/screening/corpus")
+    assert response.status_code == 200, response.text
+    full = preview_staged(ws)
+    assert response.json()["preview"] == {k: full[k] for k in ("identified", "duplicates", "unique_studies")}
