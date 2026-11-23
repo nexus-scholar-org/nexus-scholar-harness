@@ -20,8 +20,22 @@ import type { ComponentPropsWithRef, ReactNode } from "react";
 
 type ButtonVariant = "primary" | "secondary" | "quiet";
 
+/**
+ * `small` is the size a dense table row asks for (H-charting-row-layout): the
+ * same 44px target, with the table's text size and a narrow padding, on one line.
+ * It is a size of its own, not a `className`, because a class passed in does
+ * not win over the base: both land in one class list and the stylesheet's
+ * order decides, so `px-1 text-xs` beside `px-4 text-[0.9375rem]` was ignored.
+ */
+type ButtonSize = "regular" | "small";
+
 const BUTTON_BASE =
-  "inline-flex min-h-11 items-center justify-center gap-2 rounded-md px-4 text-[0.9375rem] font-medium leading-[1.375rem] disabled:cursor-not-allowed disabled:opacity-50";
+  "inline-flex min-h-11 items-center justify-center rounded-md font-medium disabled:cursor-not-allowed disabled:opacity-50";
+
+const BUTTON_SIZES: Record<ButtonSize, string> = {
+  regular: "gap-2 px-4 text-[0.9375rem] leading-[1.375rem]",
+  small: "gap-1 whitespace-nowrap px-1 text-xs leading-4",
+};
 
 const BUTTON_VARIANTS: Record<ButtonVariant, string> = {
   primary: "bg-brand text-on-brand hover:opacity-90",
@@ -31,15 +45,17 @@ const BUTTON_VARIANTS: Record<ButtonVariant, string> = {
 
 export function Button({
   variant = "secondary",
+  size = "regular",
   className = "",
   type = "button",
   ...props
-}: Readonly<ComponentPropsWithRef<"button"> & { variant?: ButtonVariant }>) {
+}: Readonly<ComponentPropsWithRef<"button"> & { variant?: ButtonVariant; size?: ButtonSize }>) {
   return (
     <button
       type={type}
       data-variant={variant}
-      className={`${BUTTON_BASE} ${BUTTON_VARIANTS[variant]} ${className}`.trim()}
+      data-size={size === "regular" ? undefined : size}
+      className={`${BUTTON_BASE} ${BUTTON_SIZES[size]} ${BUTTON_VARIANTS[variant]} ${className}`.trim()}
       {...props}
     />
   );
