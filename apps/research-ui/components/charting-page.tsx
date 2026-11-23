@@ -177,6 +177,36 @@ const ROLE_STYLE: Record<StatusRole, string> = {
 
 type Icon = ComponentType<SVGProps<SVGSVGElement>>;
 
+/** A row's actions in one cell (H-charting-row-layout): side by side; the column widens rather than stack them. */
+const ROW_ACTIONS = "flex flex-nowrap items-center gap-1";
+
+/**
+ * The table's two pinned cells (H-charting-row-layout). Their background is the
+ * row's own (`bg-inherit`; the row's colours are opaque), so a selected, muted
+ * or tinted row reads as one band and the pinned cells still hide what scrolls
+ * under them. The first is held at the second's offset (48px, `start-12`):
+ * squeezed to its content it was 40px, and the scrolled cells showed between.
+ */
+const PINNED_START = "sticky start-0 z-10 w-12 min-w-12";
+const PINNED_STUDY = "sticky start-12 z-10";
+
+/**
+ * The focused row's frame, drawn by its cells (H-charting-row-layout). The row's
+ * own outline is painted under the pinned cells and under the next row's
+ * background, so each cell draws its part: top and bottom on every cell, the
+ * start edge on the first, the end edge on the last (mirrored in Arabic).
+ * Written out in full: Tailwind compiles only class names it finds whole.
+ * In forced colours (Windows High Contrast) the browser drops box shadows, so
+ * there the focused row keeps its own outline (the pinned cells still cover
+ * part of it, as before this change).
+ */
+const FRAME: Record<"start" | "middle" | "end", string> = {
+  start:
+    "shadow-[inset_2px_0_0_var(--color-focus),inset_0_2px_0_var(--color-focus),inset_0_-2px_0_var(--color-focus)] rtl:shadow-[inset_-2px_0_0_var(--color-focus),inset_0_2px_0_var(--color-focus),inset_0_-2px_0_var(--color-focus)]",
+  middle: "shadow-[inset_0_2px_0_var(--color-focus),inset_0_-2px_0_var(--color-focus)]",
+  end: "shadow-[inset_-2px_0_0_var(--color-focus),inset_0_2px_0_var(--color-focus),inset_0_-2px_0_var(--color-focus)] rtl:shadow-[inset_2px_0_0_var(--color-focus),inset_0_2px_0_var(--color-focus),inset_0_-2px_0_var(--color-focus)]",
+};
+
 const STATUS_ICON: Record<FulltextStatus, Icon> = {
   to_get: InboxIcon,
   requested: ClockIcon,
@@ -1765,14 +1795,14 @@ function ChartingScreen({ locale }: Readonly<{ locale: Locale }>) {
           <span className="text-xs text-ink-muted">{attaching === row.study_id ? t("charting.file.attaching") : t("charting.file.none")}</span>
         )}
         {row.kept && !readOnly ? (
-          <span className="flex flex-wrap gap-1">
-            <Button variant="quiet" className="px-1 text-xs" disabled={disabled} onClick={() => startAttach(row.study_id)} data-attach>
+          <span className={ROW_ACTIONS} data-row-actions="file">
+            <Button variant="quiet" size="small" disabled={disabled} onClick={() => startAttach(row.study_id)} data-attach>
               <DocumentArrowUpIcon aria-hidden="true" className="size-4" />
               {t("charting.file.attach")}
             </Button>
             <Button
               variant="quiet"
-              className="px-1 text-xs"
+              size="small"
               disabled={disabled}
               aria-expanded={linkFor === row.study_id}
               onClick={() => {
@@ -1819,13 +1849,13 @@ function ChartingScreen({ locale }: Readonly<{ locale: Locale }>) {
     <span className="flex flex-col items-start gap-1">
       {decisionBadge(row)}
       {row.kept && !readOnly ? (
-        <span className="flex flex-wrap gap-1">
-          <Button variant="quiet" className="px-1 text-xs" disabled={busy} onClick={() => askDecision("INCLUDE", row.study_id)} aria-label={t("charting.decision.includeFor", { title: row.title ?? row.study_id })} data-include>
+        <span className={ROW_ACTIONS} data-row-actions="decision">
+          <Button variant="quiet" size="small" disabled={busy} onClick={() => askDecision("INCLUDE", row.study_id)} aria-label={t("charting.decision.includeFor", { title: row.title ?? row.study_id })} data-include>
             {t("charting.decision.include")}
           </Button>
           <Button
             variant="quiet"
-            className="px-1 text-xs"
+            size="small"
             disabled={busy}
             onClick={() => {
               setFocusId(row.study_id);
@@ -1842,8 +1872,6 @@ function ChartingScreen({ locale }: Readonly<{ locale: Locale }>) {
   );
 
   const cell = "px-3 py-2 align-top";
-  const stickyStart = "sticky start-0 z-10 bg-leaf";
-  const stickyStudy = "sticky start-12 z-10 bg-leaf";
 
   // Part B: the Charting view's pieces.
   const showCard = !loading && !nothingKept && !readOnly && form !== null && form.pilot.on && !form.has_values && columns.length > 0 && !cardClosed;
@@ -2304,7 +2332,7 @@ function ChartingScreen({ locale }: Readonly<{ locale: Locale }>) {
             >
               <thead className="sticky top-0 z-20 bg-paper">
                 <tr aria-rowindex={1}>
-                  <th scope="col" className={`${cell} ${stickyStart} w-12 bg-paper`}>
+                  <th scope="col" className={`${cell} ${PINNED_START} bg-paper`}>
                     <input
                       type="checkbox"
                       disabled={loading || rows.length === 0}
@@ -2315,7 +2343,7 @@ function ChartingScreen({ locale }: Readonly<{ locale: Locale }>) {
                       data-select-all
                     />
                   </th>
-                  <th scope="col" className={`${cell} ${stickyStudy} min-w-64 bg-paper text-start font-medium text-ink`}>{t("charting.col.study")}</th>
+                  <th scope="col" className={`${cell} ${PINNED_STUDY} min-w-64 bg-paper text-start font-medium text-ink`}>{t("charting.col.study")}</th>
                   <th scope="col" className={`${cell} text-start font-medium text-ink`}>{t("charting.col.round")}</th>
                   <th scope="col" className={`${cell} text-start font-medium text-ink`}>{t("charting.col.fulltext")}</th>
                   <th scope="col" className={`${cell} text-start font-medium text-ink`}>{t("charting.col.file")}</th>
@@ -2336,6 +2364,7 @@ function ChartingScreen({ locale }: Readonly<{ locale: Locale }>) {
                   : rows.map((row, index) => {
                       const focused = row.study_id === focusId;
                       const isSelected = selected.has(row.study_id);
+                      const framed = (where: keyof typeof FRAME) => (focused ? FRAME[where] : "");
                       return (
                         <tr
                           key={row.study_id}
@@ -2346,12 +2375,12 @@ function ChartingScreen({ locale }: Readonly<{ locale: Locale }>) {
                           onFocus={(event) => {
                             if (event.target === event.currentTarget) setFocusId(row.study_id);
                           }}
-                          className={`border-t border-rule ${isSelected ? "bg-brand-soft" : ""} ${focused ? "outline-2 -outline-offset-2 outline-focus" : ""} ${row.kept ? "" : "text-ink-muted opacity-70"} focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus`}
+                          className={`border-t border-rule ${isSelected ? "bg-brand-soft" : "bg-leaf"} ${row.kept ? "" : "text-ink-muted opacity-70"} ${focused ? "forced-colors:outline-2 forced-colors:-outline-offset-2 forced-colors:outline-focus" : ""} not-forced-colors:focus-visible:outline-none`}
                           data-study-row={row.study_id}
                           data-kept={row.kept ? "true" : "false"}
                           data-focused={focused || undefined}
                         >
-                          <td className={`${cell} ${stickyStart} ${isSelected ? "bg-brand-soft" : ""}`}>
+                          <td className={`${cell} ${PINNED_START} bg-inherit ${framed("start")}`} data-pinned="start">
                             <input
                               type="checkbox"
                               tabIndex={-1}
@@ -2362,11 +2391,11 @@ function ChartingScreen({ locale }: Readonly<{ locale: Locale }>) {
                               className="size-4 accent-[var(--color-brand)]"
                             />
                           </td>
-                          <th scope="row" className={`${cell} ${stickyStudy} min-w-64 text-start font-normal ${isSelected ? "bg-brand-soft" : ""}`}>
+                          <th scope="row" className={`${cell} ${PINNED_STUDY} min-w-64 bg-inherit text-start font-normal ${framed("middle")}`} data-pinned="study">
                             {studyCell(row)}
                           </th>
-                          <td className={cell}>{roundWords(row)}</td>
-                          <td className={cell}>
+                          <td className={`${cell} ${framed("middle")}`}>{roundWords(row)}</td>
+                          <td className={`${cell} ${framed("middle")}`}>
                             <span className="flex flex-col items-start gap-1">
                               {fulltextBadges(row)}
                               {reasonLine(row)}
@@ -2385,8 +2414,8 @@ function ChartingScreen({ locale }: Readonly<{ locale: Locale }>) {
                               ) : null}
                             </span>
                           </td>
-                          <td className={cell}>{fileCell(row)}</td>
-                          <td className={cell}>{decisionCell(row)}</td>
+                          <td className={`${cell} ${framed("middle")}`}>{fileCell(row)}</td>
+                          <td className={`${cell} ${framed("end")}`}>{decisionCell(row)}</td>
                         </tr>
                       );
                     })}
