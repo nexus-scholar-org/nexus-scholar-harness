@@ -13,7 +13,7 @@ This branch is cut from `origin/main`, not from `dev/h/remove-rag-verify` (Part 
 `POST /api/v1/screening/batch/{n}/decisions` (`console/api/screening.py:111`) wrote `batch_NNN_decisions.json` directly, with a caller-set `method` and a free `reviewed_by`, around the ledger. The web app no longer called it (searched `apps/research-ui/{app,components,lib}`: only the proxy's allowlist names it).
 
 - **Removed** from the engine with its request models (`Decision`, `DecisionsBody`) and helpers. The route answers 404 and writes nothing. Decisions are recorded only through `POST /screening/decisions/events`, which accepts only a human decision.
-- **Allowlist:** see "Open" below.
+- **Allowlist:** the entry is removed from both lists, which `tests/console/test_browser_access.py::test_the_allowlist_equals_the_development_proxys` keeps equal: `console/browser.py` (the packaged app) and the development proxy `apps/research-ui/app/api/console/[...path]/route.ts`. A browser POST to the old path is refused before the engine: 405 `CONSOLE_METHOD_REFUSED` (`test_writes_follow_the_allowlist_and_need_this_origin`) and 405 in the proxy. The proxy's unit test `apps/research-ui/tests/console-proxy.test.ts` used this path as its sample forwarded POST; with the coordinator's leave (option A, 2026-11-23), that one case now forwards `decisions/events` and asserts the old path is refused and not forwarded. That file is in the cleanup-tests session's area: the branch `dev/h/test-diet` may touch it too, and whichever merges second resolves.
 - Tests: `tests/console/test_console_screening.py::test_old_batch_decisions_route_is_gone_and_writes_nothing`, `tests/console/test_screening_actions.py::test_old_drafts_route_is_gone`. Four tests of the route's own behaviour (atomic write, merge, unreadable draft, validation) and the AG-01 characterization of its request body are deleted with it. Two tests that used it only to set up a draft file now write the file directly in the same shape (`test_screening_parity_console_wrapper`; `test_screening_read_api.py::_write_draft_decisions`), so the collector's reading of that shape stays covered.
 
 ### 2. Pre-ledger MCP screening tools
@@ -56,6 +56,8 @@ Validated, journaled, shown on three screens and stated in every methods paragra
 ## Proof that each test fails on today's code
 
 The four changed source files (`console/api/screening.py`, `console/api/screening_v1.py`, `screening/export.py`, `scholar_agent/server.py`) were put back to `origin/main`'s version and the new and changed tests run: **10 of 10 failed** (the two route tests, the tool-count test, the settings refusal, the two methods tests, the four run and calibration tests). The files were then restored.
+
+The allowlist, separately: with `origin/main`'s `browser.py`, `test_writes_follow_the_allowlist_and_need_this_origin` fails (the old path reaches the engine); with `origin/main`'s `route.ts`, the changed `console-proxy.test.ts` case fails (the old path is forwarded). Both pass on the branch (vitest: that file alone, 77 passed, run through a link to the main checkout's `node_modules`, whose lock file equals `origin/main`'s).
 
 ## Open
 

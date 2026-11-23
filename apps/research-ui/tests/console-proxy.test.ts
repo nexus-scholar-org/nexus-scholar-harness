@@ -210,14 +210,30 @@ describe("console proxy — refusals", () => {
 });
 
 describe("console proxy — writes", () => {
-  it("forwards an allowlisted draft-decisions POST with its body and content type", async () => {
+  it("forwards an allowlisted decision-events POST with its body and content type", async () => {
     vi.stubEnv("NEXUS_CONSOLE_URL", CONSOLE);
-    const fetchSpy = vi.fn(() =>
-      Promise.resolve(jsonResponse({ batch: 1, decisions_written: 1, decisions_file: "x" })),
-    );
+    const fetchSpy = vi.fn(() => Promise.resolve(jsonResponse({ results: [] })));
     vi.stubGlobal("fetch", fetchSpy);
 
     const response = await POST(
+      request("api/v1/screening/decisions/events", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ study_id: "SCI-001", decision: "INCLUDE" }),
+      }),
+      context("api", "v1", "screening", "decisions", "events"),
+    );
+
+    expect(response.status).toBe(200);
+    const call = fetchSpy.mock.calls[0] as unknown as [unknown, RequestInit | undefined];
+    expect(String(call[0])).toBe(`${CONSOLE}/api/v1/screening/decisions/events`);
+    expect(call[1]?.method).toBe("POST");
+    expect(call[1]?.body).toBe(JSON.stringify({ study_id: "SCI-001", decision: "INCLUDE" }));
+    expect((call[1]?.headers as Record<string, string>)["content-type"]).toBe("application/json");
+
+    // H-close-side-doors: the old batch decisions writer is no longer forwarded.
+    fetchSpy.mockClear();
+    const old = await POST(
       request("api/v1/screening/batch/1/decisions", {
         method: "POST",
         headers: { "content-type": "application/json" },
@@ -225,13 +241,8 @@ describe("console proxy — writes", () => {
       }),
       context("api", "v1", "screening", "batch", "1", "decisions"),
     );
-
-    expect(response.status).toBe(200);
-    const call = fetchSpy.mock.calls[0] as unknown as [unknown, RequestInit | undefined];
-    expect(String(call[0])).toBe(`${CONSOLE}/api/v1/screening/batch/1/decisions`);
-    expect(call[1]?.method).toBe("POST");
-    expect(call[1]?.body).toBe(JSON.stringify({ study_id: "SCI-001", decision: "INCLUDE" }));
-    expect((call[1]?.headers as Record<string, string>)["content-type"]).toBe("application/json");
+    expect(old.status).toBe(405);
+    expect(fetchSpy).not.toHaveBeenCalled();
   });
 
   // The console serves POST /actions/pairing/redeem, /actions/defer and
