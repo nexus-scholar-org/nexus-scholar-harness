@@ -285,14 +285,16 @@ def publication_state(workspace: Path | str) -> dict[str, Any]:
     Review R2: a chase starts only from such a publication, not from the mere
     presence of ``literature/included.json``.
     """
-    from scholar_harness.authority.generations import GenerationStatus, require_current_generation
+    from scholar_harness.authority.generations import GenerationStatus
     from scholar_harness.corpus_accept import AcceptCorpusRefused, _protocol_fingerprint
+    from scholar_harness.screening.currentness import current_generation
 
     ws = Path(workspace)
     if not (ws / "literature" / "included.json").is_file():
         return {"published": False, "generation_id": None, "code": "SCREENING_NOT_PUBLISHED",
                 "message": "literature/included.json is missing: publish the screening before chasing citations"}
-    result = require_current_generation(ws)
+    # H-screening-read-performance: kept between display calls; computed from disk otherwise.
+    result = current_generation(ws)
     record = result.record
     try:
         fingerprint = _protocol_fingerprint(ws)

@@ -14,6 +14,7 @@ from fastapi import APIRouter, BackgroundTasks, HTTPException, Request
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, ConfigDict
 
+from scholar_harness.screening.read_store import display_route
 from scholar_harness.workspace import catalog
 
 router = APIRouter(prefix="/api/v1", tags=["workspaces"])
@@ -31,6 +32,7 @@ def _root(request: Request) -> tuple[Path, str]:
 
 
 @router.get("/workspaces")
+@display_route
 def list_workspaces(request: Request, include_invalid: bool = False) -> dict[str, Any]:
     root, source = _root(request)
     try:

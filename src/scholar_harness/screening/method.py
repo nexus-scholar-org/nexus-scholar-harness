@@ -95,9 +95,11 @@ def effective_method(workspace: Path | str, *, until: datetime | None = None) ->
     With ``until``, only the amendments made at or before it apply (the methods
     paragraph states the values at publication).
     """
+    from . import read_store
+
     path = Path(workspace) / "protocol.json"
     try:
-        raw = json.loads(path.read_text(encoding="utf-8"))
+        raw = json.loads(read_store.read_text(path))
     except (OSError, ValueError):
         raw = None
     protocol = raw if isinstance(raw, dict) else None

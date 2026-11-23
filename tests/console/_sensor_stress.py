@@ -120,8 +120,8 @@ def build(root: Path) -> Path:
     cmd_prepare(ws, batch_size=BATCH_SIZE)
 
     context = ev.load_context(ws)
-    exclusion = sorted(context.exclusion_ids)[0]
-    inclusion = sorted(context.inclusion_ids)[0]
+    exclusion = min(context.exclusion_ids)
+    inclusion = min(context.inclusion_ids)
     start = datetime(2026, 11, 20, 10, tzinfo=UTC)
     clock = 0
 

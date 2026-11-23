@@ -12,6 +12,7 @@ from typing import Any
 
 from fastapi import APIRouter, Request
 
+from ...screening.read_store import display_route
 from .. import next_step
 
 router = APIRouter(prefix="/api/v1/review", tags=["review"])
@@ -29,6 +30,7 @@ def _listing_empty(request: Request) -> bool:
 
 
 @router.get("/next-step")
+@display_route
 def review_next_step(request: Request) -> dict[str, Any]:
     ws = getattr(request.app.state, "workspace", None)
     if ws is None:

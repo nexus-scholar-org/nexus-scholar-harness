@@ -30,12 +30,18 @@ from collections.abc import Iterator
 from contextlib import contextmanager
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
+from functools import cached_property
 from pathlib import Path
 from typing import Any
 
 from scholar_harness.contracts.canonical import deterministic_id
 from scholar_harness.contracts.identifiers import IdentifierKind
-from scholar_harness.screening.criteria import CriteriaInForce, criteria_from_protocol, shown_again
+from scholar_harness.screening import read_store
+from scholar_harness.screening.criteria import (
+    CriteriaInForce,
+    criteria_from_protocol,
+    shown_again,
+)
 from scholar_harness.screening.integrity import PROVENANCE_MISSING, STALE_BINDING
 from scholar_harness.workspace.audit import append_event
 
@@ -165,7 +171,7 @@ def load_context(workspace: Path) -> ScreeningContext:
     from scholar_protocol.models import ResearchProtocol
 
     ws = Path(workspace)
-    protocol = json.loads((ws / "protocol.json").read_text(encoding="utf-8"))
+    protocol = json.loads(read_store.read_text(ws / "protocol.json"))
     fingerprint = protocol_fingerprint(ResearchProtocol.model_validate(protocol))
     # M11b part A: the criteria in force (signed + amendments under this
     # fingerprint), never the protocol's list read here.
@@ -182,13 +188,13 @@ def load_context(workspace: Path) -> ScreeningContext:
     registry_path = ws / "audit" / "artifact_registry.json"
     if not registry_path.is_file():
         return context
-    entries = json.loads(registry_path.read_text(encoding="utf-8")).get("artifacts", {})
+    entries = json.loads(read_store.read_text(registry_path)).get("artifacts", {})
     corpus_fingerprint = newest_corpus_fingerprint(ws, entries)
     newest: dict[int, tuple[str, dict]] = {}
     for artifact_id, entry in entries.items():
         if entry.get("artifact_type") != "screening_batch":
             continue
-        artifact = json.loads((ws / entry["path"]).read_text(encoding="utf-8"))
+        artifact = json.loads(read_store.read_text(ws / entry["path"]))
         # M3g (screening rounds): a batch bound to an earlier corpus snapshot
         # belongs to an archived round; the context is the current corpus only.
         bound = (artifact.get("data", {}).get("binding") or {}).get("corpus_fingerprint")
@@ -291,7 +297,7 @@ def read_events(workspace: Path) -> list[dict[str, Any]]:
     if not directory.is_dir():
         return events
     for path in sorted(directory.glob("*.jsonl")):
-        for line in path.read_text(encoding="utf-8").splitlines():
+        for line in read_store.read_text(path).splitlines():
             if line.strip():
                 events.append(json.loads(line))
     return events
@@ -593,11 +599,35 @@ def _superseded(events: list[dict[str, Any]]) -> set[str]:
     return gone
 
 
+class EventIndex(tuple):
+    """An event list that cannot change, with its lookups built once (H-screening-read-performance).
+
+    ``heads``, ``winning_event``, ``conflicts`` and the supersession chain accept
+    one in place of a list and then read the (study, screener) group instead of
+    scanning every event; the answer is the same, and a group keeps file order.
+    A tuple, so nothing can be added after the lookups were built.
+    """
+
+    @cached_property
+    def groups(self) -> dict[tuple[Any, Any], list[dict[str, Any]]]:
+        groups: dict[tuple[Any, Any], list[dict[str, Any]]] = {}
+        for event in self:
+            groups.setdefault((event.get("study_id"), event.get("screener_id")), []).append(event)
+        return groups
+
+    @cached_property
+    def by_id(self) -> dict[Any, dict[str, Any]]:
+        return {e["event_id"]: e for e in self}
+
+
 def heads(events: list[dict[str, Any]], study_id: str, screener_id: str) -> list[dict[str, Any]]:
     """The events for one (study, screener) that no later event supersedes."""
-    mine = [
-        e for e in events if e.get("study_id") == study_id and e.get("screener_id") == screener_id
-    ]
+    if isinstance(events, EventIndex):
+        mine = events.groups.get((study_id, screener_id), [])
+    else:
+        mine = [
+            e for e in events if e.get("study_id") == study_id and e.get("screener_id") == screener_id
+        ]
     gone = _superseded(mine)
     return sorted((e for e in mine if e["event_id"] not in gone), key=lambda e: e["event_id"])
 
@@ -618,9 +648,10 @@ def winning_event(events: list[dict[str, Any]], study_id: str, screener_id: str)
 def conflicts(events: list[dict[str, Any]]) -> list[dict[str, Any]]:
     """Every (study, screener) with differing heads, in study order."""
     keys = sorted({(e["study_id"], e["screener_id"]) for e in events})
+    index = events if isinstance(events, EventIndex) else EventIndex(events)
     found = []
     for study, screener in keys:
-        live = heads(events, study, screener)
+        live = heads(index, study, screener)
         if len({e["outcome"] for e in live}) > 1:
             found.append({"study_id": study, "screener_id": screener, "events": live})
     return found
@@ -749,7 +780,7 @@ def _intake_locked(ws, events, token_scope, received_at, device, context, after_
     if after_commit is not None and project:
         try:
             after_commit(project)
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             # Review B: the events are stored and journaled, so their results
             # stand. Review B2: the failure is journaled, and collect refuses
             # while any projection differs from the event log, so a stale
@@ -775,34 +806,80 @@ def _journal_projection_failure(ws: Path, events: list[dict[str, Any]], exc: Exc
         logger.warning("could not journal a failed projection: %s", journal_exc)
 
 
-def projection_is_current(workspace: Path, batch_index: int, path: Path) -> bool:
-    """True when `path` holds exactly what the event log projects for the batch."""
+def projection_is_current(
+    workspace: Path,
+    batch_index: int,
+    path: Path,
+    *,
+    context: ScreeningContext | None = None,
+    events: list[dict[str, Any]] | None = None,
+    workspace_id: str | None = None,
+    final: bytes | None = None,
+) -> bool:
+    """True when `path` holds exactly what the event log projects for the batch.
+
+    H-screening-read-performance: a caller that checks several batches passes the
+    context, the event list and the workspace id it loaded once (and ``final``,
+    the file's bytes when it read them already); without them each is read here.
+    """
     try:
-        final = path.read_bytes()
+        final = path.read_bytes() if final is None else final
         payload = json.loads(final)
-        manifest = json.loads((Path(workspace) / "project.json").read_text(encoding="utf-8"))
-        workspace_id = str(manifest.get("registered_workspace_id") or manifest.get("project_id") or "")
+        if workspace_id is None:
+            manifest = json.loads((Path(workspace) / "project.json").read_text(encoding="utf-8"))
+            workspace_id = str(manifest.get("registered_workspace_id") or manifest.get("project_id") or "")
         projected = project_batch(
-            workspace, batch_index, str(payload.get("reviewed_by") or ""), workspace_id=workspace_id
+            workspace, batch_index, str(payload.get("reviewed_by") or ""), workspace_id=workspace_id,
+            context=context, events=events,
         )
     except (KeyError, OSError, ValueError, AttributeError):
         return False
     return final.replace(b"\r\n", b"\n") == projected
 
 
-def stale_projections(workspace: Path) -> list[int]:
-    """Batches whose decisions file claims the event log but no longer matches it."""
+def stale_projections(
+    workspace: Path,
+    *,
+    context: ScreeningContext | None = None,
+    events: list[dict[str, Any]] | None = None,
+) -> list[int]:
+    """Batches whose decisions file claims the event log but no longer matches it.
+
+    H-screening-read-performance: the context, the event log and the workspace id
+    are read once (at the first decisions file that claims the log), not once per
+    batch, and each decisions file is read once. A failure to read them counts
+    every such batch stale, as the same failure in each batch's own read did.
+    """
     directory = Path(workspace) / "literature" / "screening"
     stale = []
+    loaded: tuple[ScreeningContext, list[dict[str, Any]], str] | None = None
+    failed = False
     for path in sorted(directory.glob("batch_[0-9][0-9][0-9]_decisions.json")):
         try:
-            payload = json.loads(path.read_text(encoding="utf-8"))
+            raw = read_store.read_bytes(path)
+            payload = json.loads(raw.decode("utf-8"))
         except (OSError, ValueError):
             continue
         if not (isinstance(payload, dict) and payload.get("source") == "decision-events"):
             continue
         index = int(path.name[6:9])
-        if not projection_is_current(workspace, index, path):
+        if loaded is None and not failed:
+            try:
+                manifest = json.loads(read_store.read_text(Path(workspace) / "project.json"))
+                workspace_id = str(manifest.get("registered_workspace_id") or manifest.get("project_id") or "")
+                loaded = (
+                    context if context is not None else load_context(workspace),
+                    events if events is not None else read_events(workspace),
+                    workspace_id,
+                )
+            except (KeyError, OSError, ValueError, AttributeError):
+                failed = True
+        if loaded is None:
+            stale.append(index)
+            continue
+        if not projection_is_current(
+            workspace, index, path, context=loaded[0], events=loaded[1], workspace_id=loaded[2], final=raw
+        ):
             stale.append(index)
     return stale
 
@@ -887,7 +964,7 @@ def decision_id_for(
 
 def _chain(events: list[dict[str, Any]], head: dict[str, Any]) -> list[dict[str, Any]]:
     """Oldest-first supersession chain ending at `head`."""
-    by_id = {e["event_id"]: e for e in events}
+    by_id = events.by_id if isinstance(events, EventIndex) else {e["event_id"]: e for e in events}
     chain = [head]
     while chain[0].get("supersedes") in by_id:
         chain.insert(0, by_id[chain[0]["supersedes"]])
@@ -901,11 +978,17 @@ def project_batch(
     *,
     workspace_id: str,
     context: ScreeningContext | None = None,
+    events: list[dict[str, Any]] | None = None,
 ) -> bytes:
-    """The `batch_NNN_decisions.json` bytes for one screener (contract §3.3)."""
+    """The `batch_NNN_decisions.json` bytes for one screener (contract §3.3).
+
+    ``events`` is every stored event (``read_events``), for a caller that loaded
+    the log once for several batches (H-screening-read-performance).
+    """
     context = context or load_context(workspace)
     batch = context.batches[batch_index]
-    events = [e for e in read_events(workspace) if e.get("screener_id") == screener_id]
+    stored = read_events(workspace) if events is None else events
+    events = [e for e in stored if e.get("screener_id") == screener_id]
     entries: list[dict[str, Any]] = []
     # Review finding 3: only events bound to this batch generation and protocol
     # count; after a re-prepare, earlier decisions are not carried over.
@@ -914,7 +997,7 @@ def project_batch(
         "batch_id": batch.batch_id,
         "batch_sha256": batch.batch_sha256,
     }
-    events = current_events(events, context)
+    events = EventIndex(current_events(events, context))
     for study in sorted(batch.candidates):
         winner = winning_event(events, study, screener_id)
         if winner is None:

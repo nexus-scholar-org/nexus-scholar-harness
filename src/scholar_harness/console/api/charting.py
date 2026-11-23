@@ -34,6 +34,7 @@ from ...charting import attachments as att
 from ...charting import fetch as fx
 from ...charting import report as rp
 from ...charting import table as tb
+from ...screening.read_store import display_route
 
 router = APIRouter(prefix="/api/v1/charting", tags=["charting"])
 
@@ -82,6 +83,7 @@ class FetchBody(BaseModel):
 
 
 @router.get("")
+@display_route
 def get_table(request: Request) -> dict[str, Any]:
     """The kept rows of every published round, their full-text state and the counts line."""
     try:
@@ -118,6 +120,7 @@ def end_pilot(body: PilotBody, request: Request) -> dict[str, Any]:
 
 
 @router.get("/records/{study_id}")
+@display_route
 def get_record(study_id: str, request: Request) -> dict[str, Any]:
     """One study for the one-study view."""
     try:

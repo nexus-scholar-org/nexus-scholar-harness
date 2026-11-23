@@ -22,11 +22,35 @@ from scholar_harness.authority.generations import (
 
 
 def screening_currentness(workspace: Path | str) -> CurrentnessResult:
-    """The publication status, STALE when a decision changed after publish."""
-    from .export import ExportRefused, load_published
+    """The publication status, STALE when a decision changed after publish.
+
+    H-screening-read-performance: inside a display route (``read_store.display_reads``)
+    the result is kept while the workspace's files are unchanged; everywhere else,
+    and always for Approve and Publish, it is computed from the disk.
+    """
+    from . import read_store
 
     ws = Path(workspace)
-    result = require_current_generation(ws)
+    return read_store.remember(ws, "screening-currentness", lambda: _currentness(ws))
+
+
+def current_generation(workspace: Path | str) -> CurrentnessResult:
+    """``require_current_generation``, kept between display calls (H-screening-read-performance).
+
+    The status, ``load_published`` and the chase's publication state each ask for it;
+    inside one display call it is computed once. Outside a display call (Approve,
+    Publish, export, the methods paragraph) this is ``require_current_generation``.
+    """
+    from . import read_store
+
+    ws = Path(workspace)
+    return read_store.remember(ws, "current-generation", lambda: require_current_generation(ws))
+
+
+def _currentness(ws: Path) -> CurrentnessResult:
+    from .export import ExportRefused, load_published
+
+    result = current_generation(ws)
     if result.status is not GenerationStatus.CURRENT or result.record is None:
         return result
     try:

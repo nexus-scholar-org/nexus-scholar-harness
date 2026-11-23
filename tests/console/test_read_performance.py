@@ -14,6 +14,7 @@ import os
 import shutil
 import sys
 from pathlib import Path
+from typing import ClassVar
 
 import pytest
 from _sensor_stress import SCREENER, WS_ID, build
@@ -32,7 +33,7 @@ class _Opens:
     """Counts the files opened under one folder (an audit hook: every ``open`` of the process)."""
 
     root: str | None = None
-    paths: list[str] = []
+    paths: ClassVar[list[str]] = []
 
 
 def _hook(event: str, args: tuple) -> None:
@@ -274,3 +275,56 @@ def test_a_staged_export_changed_on_disk_after_acceptance_is_parsed_again(ws, co
     full = preview_staged(ws)
     assert body["preview"] == {k: full[k] for k in ("identified", "duplicates", "unique_studies")}
     assert body["preview"]["identified"] == 2182
+
+
+# --- the store's key covers every file a kept result reads ------------------------------------
+
+
+class _AllOpens:
+    on = False
+    paths: ClassVar[list[str]] = []
+
+
+def _all_hook(event: str, args: tuple) -> None:
+    if event == "open" and _AllOpens.on and args and isinstance(args[0], str | bytes | os.PathLike):
+        _AllOpens.paths.append(os.path.abspath(os.fsdecode(args[0])))
+
+
+sys.addaudithook(_all_hook)
+
+
+def test_the_kept_results_read_only_files_the_key_covers(ws):
+    """Every result the store keeps is computed from files under the workspace, none in a folder
+    the key leaves out (``read_store.NOT_READ``); so no change it depends on can go unseen."""
+    from scholar_harness.console.api.screening_v1 import _corpus_view, summary_of
+    from scholar_harness.screening import read_store
+    from scholar_harness.screening.currentness import (
+        current_generation,
+        screening_currentness,
+    )
+
+    client = _client(ws)
+    assert client.get("/api/v1/charting").status_code == 200  # the charting folder exists and has files
+    for folder in read_store.NOT_READ:
+        (ws / folder).mkdir(exist_ok=True)
+        (ws / folder / "probe.json").write_text("{}", encoding="utf-8")
+    read_store.clear()
+    _AllOpens.paths = []
+    _AllOpens.on = True
+    try:
+        with read_store.display_reads():
+            screening_currentness(ws)
+            current_generation(ws)
+            _corpus_view(ws)
+            summary_of(ws)
+            read_store.remember(ws, "stale-projections", lambda: ev.stale_projections(ws))
+    finally:
+        _AllOpens.on = False
+    root = os.path.abspath(ws)
+    python = tuple(os.path.abspath(p) for p in {sys.prefix, sys.base_prefix, sys.exec_prefix})
+    inside = [p for p in _AllOpens.paths if p.startswith(root + os.sep)]
+    outside = [p for p in _AllOpens.paths if not p.startswith(root + os.sep) and not p.startswith(python)]
+    assert inside, "the kept results read the workspace"
+    assert outside == []
+    left_out = [p for p in inside if os.path.relpath(p, root).split(os.sep)[0] in read_store.NOT_READ]
+    assert left_out == []
