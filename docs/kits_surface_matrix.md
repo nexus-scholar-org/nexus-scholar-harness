@@ -520,7 +520,7 @@ scholar-agent-kit ──adapter import──► scholar_harness.recon.adapter (g
 | MCP/harness | `NEXUS_RECON_ROOT`, `NEXUS_SKILLS_SRC`, `NEXUS_MCP_CONFIG_HOME` (P7.4 `setup-mcp` config root override, mirrors `NEXUS_RECON_ROOT`) | agent/harness |
 | LLM screening | `GEMINI_API_KEY` | search (`LLMBatchScreener`) |
 
-Known pins (2026-11-10): there are no per-kit versions any more; every package ships in the one `nexus-scholar` wheel, version `1.1.0b6` (`pyproject.toml:7`). `.agents/plugins/nexus-scholar/plugins.json` carries no `default_rev` pins, so the `default_rev` sentence below is history. Third-party pins as last swept (2026-09-13, not re-checked): bibtexparser `2.0.0b9` **beta**; chromadb `1.5.9`;
+Known pins (2026-11-10): there are no per-kit versions any more; every package ships in the one `nexus-scholar` wheel, version `1.1.0b7` (`pyproject.toml:7`; 2026-11-23). `.agents/plugins/nexus-scholar/plugins.json` carries no `default_rev` pins, so the `default_rev` sentence below is history. Third-party pins as last swept (2026-09-13, not re-checked): bibtexparser `2.0.0b9` **beta**; chromadb `1.5.9`;
 sentence-transformers `6.0.0`; networkx `3.6.1`; mcp `2.1.1` (agent kit);
 pymupdf `1.28.2` (`import fitz`); docling `2.123.0` (only with `[extract]` extra);
 `plugins.json` lists all 7 kits to `default_rev` full commit SHAs (freshness enforced by

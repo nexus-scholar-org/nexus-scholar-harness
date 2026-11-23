@@ -11,9 +11,10 @@ GitHub Releases — no source checkout, no per-kit installs.
 
 > **Parked, not production (M5-slim, production plan §8).** The beta ships
 > **screening** (import → prepare → screen → publish, with optional agent
-> proposals), **inception in the browser** (Scope, Shape, Concepts and criteria,
-> Review and create, Done; Explore and Direction have no screen yet) and, on
-> 1.1.0b6, **discovery in the browser** (Plan to Hand-off). The citation
+> proposals), **inception in the browser** (Scope, Explore, Direction, Shape,
+> Concepts and criteria, Review and create, Done), **discovery in the browser**
+> (Plan to Hand-off, and citation chasing) and, since 1.1.0b7, **full-text
+> charting** (the Charting step after publication). The citation
 > graph (`scholar_graph`) and reading PDFs (`scholar_pdf` `extract`,
 > `extract-run`, and E1 `acquire`; findings PDF-07/08) still work, but are
 > parked: their `--help` says so first, their MCP
@@ -121,21 +122,37 @@ directly), `--port` (default 8770; another free port is used if taken) and
 app runs there and prints the approval codes. The researcher's flow, screen by
 screen, is in [Getting started](getting-started.md):
 
-- **New review** on Workspaces opens inception: Scope, Shape, Concepts and
-  criteria, Review and create, Done. Nothing is written until you press
-  **Create the workspace**. The step bar shows Explore and Direction, which have
-  no screen yet; the CLI wizard and the MCP `recon_*` tools still run them.
-- **Discovery** (1.1.0b6): Plan, Recall, Harvest, Import,
-  Duplicates, Report, Hand-off. A browser harvest does not freeze the corpus;
-  **Accept this corpus** on Hand-off does. It needs `SCHOLAR_MAILTO` and, for
-  OpenAlex, `SCHOLAR_OPENALEX_KEY` (§8). A harvest is four steps: the search,
-  then duplicates, abstracts and checks; only the last makes the works the
-  Hand-off shows. If those later steps failed, were stopped, or the console
-  was closed while they ran, Harvest and Hand-off say so, and **Finish
-  preparing this corpus** on Harvest completes them from the saved records
-  without searching again (on `main` after 1.1.0b6; not in a tagged release yet).
-- **Screening**: Import, Prepare, Triage, Agent proposals, Agreement, Publish,
-  Export and methods.
+- **New review** on Workspaces opens inception: Scope, Explore, Direction,
+  Shape, Concepts and criteria, Review and create, Done. Nothing is written
+  until you press **Create the workspace**. Explore and Direction search a
+  first sample of papers, so they need `SCHOLAR_MAILTO` (§8). Step 5 holds the
+  query workbench (**Count** asks each database for its total; nothing is
+  counted while you type) and asks how you will screen: when the agent's draft
+  is shown and what it does when the abstract does not report a criterion
+  (no choice is preselected).
+- **Discovery**: Plan, Recall, Harvest, Import, Duplicates, Report, Hand-off,
+  and Chase after publication. A browser harvest does not freeze the corpus;
+  **Accept this corpus** on Hand-off does, and since 1.1.0b7 it takes a
+  harvest and imported exports together in one corpus. It needs
+  `SCHOLAR_MAILTO` and, for OpenAlex, `SCHOLAR_OPENALEX_KEY` (§8). A harvest is
+  four steps: the search, then duplicates, abstracts and checks; only the last
+  makes the works the Hand-off shows. If those later steps failed, were
+  stopped, or the console was closed while they ran, Harvest and Hand-off say
+  so, and **Finish preparing this corpus** on Harvest completes them from the
+  saved records without searching again.
+- **Screening**: Import, Prepare (with the optional criteria pilot), Triage,
+  Agent proposals, Agreement, Publish, Export and methods. If you stored
+  decisions from the agent's drafts without reading each record, declare them
+  on **Decisions stored from the agent's draft** (`/screening/adopted`);
+  Agreement, Publish and the methods paragraph then say
+  so. The decisions themselves are not changed.
+- **Charting** (since 1.1.0b7), after publication: one row per kept study,
+  its full-text status, **Attach a PDF** or **Paste a link**, a full-text
+  decision, **Look up open-access copies** (shows what it will ask first;
+  needs `SCHOLAR_MAILTO`; each fetched PDF waits for you to confirm it), the
+  charting form and the one-study view, then **Export and methods** (a
+  spreadsheet, CSV files, the PRISMA full-text counts and a methods
+  paragraph).
 
 **From a terminal:**
 
@@ -188,7 +205,7 @@ What you get:
 ├── literature/           # raw + screened records land here
 ├── pdfs/                 # downloaded Open Access PDFs
 ├── extracted/            # extracted fulltext (YAML-frontmatter Markdown)
-└── synthesis/            # grounded synthesis outputs
+└── synthesis/            # kept for `export`; the synthesis kit was removed on 2026-11-23
 ```
 
 Notes:

@@ -1,5 +1,5 @@
 # H-charting-row-layout: the charting table's rows were about five lines tall, and the focused row looked cut in two
-Branch: dev/h/charting-row-layout (from `origin/main` `6f31f92e`) · Lane: **STANDARD** · Status: **READY FOR PR** (not pushed) · Started: 2026-11-23
+Branch: dev/h/charting-row-layout (from `origin/main` `6f31f92e`) · Lane: **STANDARD** · Status: **MERGED** as PR #305 on 2026-11-23 (merge commit `9af17212`); decision item 1 answered "Keep 44 px" (2026-11-23) · Started: 2026-11-23
 
 **Lane.** STANDARD, from `docs/architecture/test_gate_policy.md` ("a bounded behavior … change owned by one repository"): UI only, one screen (the charting table) and one opt-in size of the shared `Button`. No contract, API, route, persisted file, copy, catalog or spec change. Gates: the charting vitest files, `tsc`, `lint:ui`, `npm run build`, then the selector's `pr` set (area research-ui) once on the final executable commit. The full suites are CI's (H-gate-and-ci).
 
