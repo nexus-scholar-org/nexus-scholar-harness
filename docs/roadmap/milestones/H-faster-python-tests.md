@@ -1,6 +1,6 @@
 # H-faster-python-tests Cut the Python suite's fixed costs
 
-Branch: `dev/h/faster-python-tests` · Lane: **STANDARD** (test code and one lazy import; no contract, product behaviour or public surface changes) · Status: **READY FOR PR** (see "Review"; not pushed)
+Branch: `dev/h/faster-python-tests` · Lane: **STANDARD** (test code and one lazy import; no contract, product behaviour or public surface changes) · Status: **READY FOR PR** (review round 2 APPROVE; not pushed; stacked on Part 1)
 
 **Stacked on Part 1.** Cut from `dev/h/remove-rag-verify` at `58468929` (H-remove-rag-verify, READY FOR PR, not merged), on the coordinator's instruction of 2026-11-23, so that nothing here measures or reworks tests Part 1 deletes, and the "before" numbers are the suite as it will be. It is to be rebased on `main` once Part 1 merges. A first start from `origin/main` (measurements only, no code) was dropped.
 
@@ -22,7 +22,7 @@ The key holds every input the build reads: four fixtures or helpers patch `PROTO
 
 **(c) Command-line tests in process.** `tests/kits/protocol/test_cli.py` runs the 23 command tests through `typer`'s `CliRunner` with the same three fields a process gives (`returncode`, `stdout`, `stderr`), including the commands that write bytes to `sys.stdout.buffer` and the Rich diagnostics on stderr. An uncaught exception is re-raised with its traceback rather than reported as exit code 1, so a crash cannot pass as an expected refusal (stricter than the old subprocess, which exited 1). `test_fingerprint_stable` now compares two runs in one process, so it no longer spans two hash seeds; that case is covered by `tests/kits/protocol/test_canonical.py::test_pinned_golden_fingerprint` (a checked-in value) and by the real-start test (`canon` across processes). One new test starts the installed program for real and checks it answers like the in-process run (`test_the_installed_program_starts_and_answers`, marked slow).
 
-**(d) Tests that start a process are marked slow.** Found by running the not-slow selection once with a recorder plugin on `subprocess.Popen` (which asyncio's subprocesses also use on Windows) and `multiprocessing`, noting the running test and the program: **49 test functions (57 cases)** start Python, `uv`, `icacls` or `cmd`; they are marked `@pytest.mark.slow` with a comment. Calls to `git` made by the product itself (1,178, to stamp a commit) are not counted: they are part of what is under test, and marking those tests would empty the inner gate of screening. Per file (functions): `authority/test_isolation_windows.py` 13 new (Windows-only; one more was already slow), `inception/test_inception_grounded.py` 9, `pipeline/test_pipeline_executor.py` 7, `inception/test_inception_replace.py` 6, `inception/test_inception_criteria.py` 4, `console/test_console_jobs.py` 3, two each in `kits/pdf/test_atomic_acquisition.py`, `inception/test_emit_helper.py`, `console/test_job_runner.py`, one each in nine more. `tests/conformance/test_contract_baseline.py::test_contract_baseline_is_current` also starts Python but is baseline-locked, so it is left unmarked.
+**(d) Tests that start a process are marked slow.** Found by running the not-slow selection once with a recorder plugin on `subprocess.Popen` (which asyncio's subprocesses also use on Windows) and `multiprocessing`, noting the running test and the program: **49 test functions (57 cases)** start Python, `uv`, `icacls` or `cmd`; they are marked `@pytest.mark.slow` with a comment. Calls to `git` made by the product itself (1,178, to stamp a commit) are not counted: they are part of what is under test, and marking those tests would empty the inner gate of screening. Per file (cases): `authority/test_isolation_windows.py` 13 new (Windows-only; one more was already slow), `inception/test_inception_grounded.py` 9, `pipeline/test_pipeline_executor.py` 7, `inception/test_inception_replace.py` 6, `inception/test_inception_criteria.py` 4, `console/test_console_jobs.py` 3, two each in `kits/pdf/test_atomic_acquisition.py`, `inception/test_emit_helper.py`, `console/test_job_runner.py`, one each in nine more. `tests/conformance/test_contract_baseline.py::test_contract_baseline_is_current` also starts Python but is baseline-locked, so it is left unmarked.
 
 No assertion was removed or loosened. Marking slow changes which stage runs a test (the inner gate skips it; checkpoint, PR and full runs keep it), not what it checks.
 
@@ -60,11 +60,17 @@ All on this PC, one process at a time, nothing else heavy running (checked befor
 
 | Check | Head | Result |
 | :-- | :-- | :-- |
-| Full Python suite `-n 4` (junit) | `0259e27e` | 5,337 passed, 15 skipped, 0 failed (junit 5,352) |
+| Full Python suite `-n 4` (junit), final head | `34af655e` | **5,337 passed, 15 skipped, 0 failed** (junit 5,352); 481 s, with the reviewer's targeted tests running alongside (the clean after-timing is the 437 s run on `0259e27e` above) |
+| Full Python suite `-n 4` (junit) | `0259e27e` | 5,337 passed, 15 skipped, 0 failed (junit 5,352); 437 s |
+| `tests/console/_record_page_engine.py` imported as a direct run does, and its `published_workspace` built (`main()` not run: it would rewrite the web app's fixture) | `34af655e` | works; failed before the round-1 fix (`ModuleNotFoundError: support`) |
+| Template folders left in the temporary folder after the final run | `34af655e` | none |
 | The files of the three builders' callers (24 files) | `aa0297a6` | 388 passed |
 | The 57 newly slow cases, run with `-m slow` | `0259e27e` | 62 passed (with the files' existing slow tests); none left in `-m "not slow"` |
 | `ruff check scripts/`; `ruff check src/ --select F821,F811,F823,F632,F7,B023,B006,E9`; `generate_contract_baseline.py --check`; `git diff --check` | `0259e27e` | pass; baseline current, no locked file changed |
 
 ## Review
 
-Pending.
+- **Round 1** (`milestone-reviewer`, on `3eaf4bcc`): **CHANGES**. P2: the page-engine recorder script, run directly, could no longer import `support`. P3: the record called the builders deterministic though copies share random ids; a failed build could block later calls with `FileExistsError`; the keys lacked `WS_ID`/`SCREENER`; counts (57 cases, 13 new in the isolation tests); the crash check in the in-process helper could never fail; the lost two-hash-seed comparison. All fixed or recorded in `34af655e`. The reviewer found no weakened test (the protocol CLI checks hold under Click 8.5/Typer 0.27, stdout bytes and stderr included), no caller patching an input outside the key, and no reliance on the orchestrator's import side effects.
+- **Round 2** (on `34af655e`): **APPROVE**. Targeted run 235 passed.
+
+**Not verified.** CI and macOS/Linux (`_refuse_own_path` matches the path string as written; a resolved alias such as `/private/var` or an 8.3 name would not match, which matters only if a builder ever writes an absolute path, and none does today); the recorder script's `main()`; that each of the 49 marked tests starts a process on every OS (the list is one Windows recording run).
