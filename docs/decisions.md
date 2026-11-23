@@ -12,15 +12,16 @@ history to read if you need the original reasoning (`git log --follow -- <path>`
 | :-- | :-- | :-- |
 | 2026-11-19 — M9a: what the measurement says about the ladder gates | 2 | The minimum share of the researcher's excludes an agent must take before a rung unlocks: the principle is accepted; the researcher decided on 2026-11-20 to set the number when M9b is built. |
 | 2026-11-23 — H-gate-and-ci | 1 | The standing permission for sessions to push a work branch and open a draft pull request: not given. |
-| 2026-11-23 — H-charting-row-layout | 1 | Whether the charting table's row actions may be smaller than 44 px on a desktop pointer: proposed, not built. |
 
-## 2026-11-23 — H-charting-row-layout: one line of row actions, the pinned cells carry the row (PROPOSED; item 1 open)
+## 2026-11-23 — H-charting-row-layout: one line of row actions, the pinned cells carry the row (item 1 answered by the researcher 2026-11-23: keep 44 px; items 2 to 9 are the build's choices, merged with PR #305)
 
 Record: `docs/roadmap/milestones/H-charting-row-layout.md`. The work is the researcher's instruction of 2026-11-23 in the coordinator session ("Work the two layout fixes first"), for 1.1.0b7. Measured, a long-title row at 1440 px: 157 px before, 109 px after.
 
+**Answered 2026-11-23.** To item 1 the researcher answered "Keep 44 px" (relayed by the coordinator session): the 28 px row actions for desktop pointers are not built; the question is revisited after the table has been used on the real review. Merged as PR #305 (merge commit `9af17212`), before the release `1.1.0b7`.
+
 **For the researcher to decide**
 
-1. **A denser row below the 44 px rule, on desktop pointers only.** Built: the rule kept (every action and link at least 44 px tall), a row is 109 px (the file line and one line of actions, each 44 px). Measured, not built: the table's actions and links at 28 px when the pointer is a mouse (`pointer: fine`), 44 px on touch, gives **77 px** (the two-line title then sets the height). For 443 studies the table is then about 34,000 px tall instead of about 48,000 px (about 70,000 px before this change). The cost is an exception to the brand rule "every Button variant is at least 44 px" for one table on desktop, and smaller targets for a mouse user. Not built unless the researcher chooses it.
+1. *(Answered 2026-11-23: "Keep 44 px". Not built; revisit after use on the real review.)* **A denser row below the 44 px rule, on desktop pointers only.** Built: the rule kept (every action and link at least 44 px tall), a row is 109 px (the file line and one line of actions, each 44 px). Measured, not built: the table's actions and links at 28 px when the pointer is a mouse (`pointer: fine`), 44 px on touch, gives **77 px** (the two-line title then sets the height). For 443 studies the table is then about 34,000 px tall instead of about 48,000 px (about 70,000 px before this change). The cost is an exception to the brand rule "every Button variant is at least 44 px" for one table on desktop, and smaller targets for a mouse user. Not built unless the researcher chooses it.
 
 **Choices made in the build (for the reviewer)**
 
