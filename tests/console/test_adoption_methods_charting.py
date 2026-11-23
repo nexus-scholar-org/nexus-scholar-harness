@@ -197,3 +197,15 @@ def test_the_draft_sentences_concern_only_the_records_read_one_by_one(tmp_path):
     assert body["figures"]["revealed_decisions"] == 0  # the declared record's reveal is not a reading
     assert "every decision in this screening was made by the reviewer" not in body["paragraph"]
     _numbers_trace(body)
+
+
+def test_a_sample_given_by_its_study_ids_is_stated_as_drawn_outside_the_app(tmp_path):
+    ws, events = _workspace(tmp_path)
+    client = _client(ws)
+    excluded = next(s for s, e in events.items() if e["outcome"] == "EXCLUDE")
+    _declare(client, events, sample={"size": 1, "seed": 20261121, "study_ids": [excluded]})
+    tea.publish(ws)
+    body = _methods(client)
+    assert "A sample of 1 of these exclusions was drawn outside the app (seed 20261121) and has not been read." in body["paragraph"]
+    assert body["figures"]["adoption"]["samples"][0]["how"] == "given"
+    _numbers_trace(body)

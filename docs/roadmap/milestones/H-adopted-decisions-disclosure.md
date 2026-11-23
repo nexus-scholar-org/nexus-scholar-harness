@@ -63,7 +63,7 @@ Line references were gathered by a read-only search on 2026-11-22 and not each r
 
 ## Build 2026-11-23
 
-Status: **BUILT on `dev/h/adopted-decisions-disclosure` (from `main` `9b2e0d5f`); not pushed. DoD 1 to 6 met (DoD 4 as reworded on the researcher's answer of 2026-11-23, decision item 22).** Lane: RELEASE (item 7). Built in a session of its own, started by the main session on the researcher's approval of 2026-11-23. The build's own choices are items 7 to 28 of the decisions entry "2026-11-23 — H-adopted-decisions-disclosure: the build's own choices": item 22 answered by the researcher, the others PROPOSED.
+Status: **BUILT on `dev/h/adopted-decisions-disclosure` (from `main` `9b2e0d5f`); not pushed. DoD 1 to 6 met (DoD 4 as reworded on the researcher's answer of 2026-11-23, decision item 22).** Lane: RELEASE (item 7). Built in a session of its own, started by the main session on the researcher's approval of 2026-11-23. The build's own choices are items 7 to 29 of the decisions entry "2026-11-23 — H-adopted-decisions-disclosure: the build's own choices": item 22 answered by the researcher, the others PROPOSED.
 
 **What was built.**
 
@@ -88,7 +88,20 @@ Status: **BUILT on `dev/h/adopted-decisions-disclosure` (from `main` `9b2e0d5f`)
 | Read store | `test_the_next_display_request_sees_a_declaration` (Publish's check and the summary, both kept by display routes, change on the next request after a declaration and after a withdrawal) | pass |
 | Integrity | `test_a_line_typed_into_the_file_is_not_applied_and_a_removed_line_is_reported`, `test_a_withdrawal_is_a_later_line_and_the_declaration_stays`, the events files byte for byte unchanged after a declaration | pass |
 
-Gates: GATES_PLACEHOLDER
+Gates:
+
+| Gate | Where | Result |
+| :-- | :-- | :-- |
+| Tests written first | the 22 API, methods and charting tests on `9b2e0d5f` with only `adoption.py` present | 21 failed, 1 passed (the phone refusal, already held by the scope guard) |
+| Lint as CI | `uv run ruff check scripts/`; `uv run ruff check src/ --select F821,F811,F823,F632,F7,B023,B006,E9` | clean, on `c9530ced` |
+| Contract v1 | `uv run python scripts/generate_contract_baseline.py --check` | "Contract baseline current", on `c9530ced`; never regenerated |
+| Screening API fixtures | `tests/console/test_screening_api_contract.py` after `generate_screening_api_fixtures.py` | 6 passed; three fixtures changed (item 27) |
+| Full Python suite, once | `uv run pytest -q -n 4 -p no:cacheprovider` on `ea0b8a20` | exit 0: 6,605 passed, 31 skipped, none failed (counted from the progress line; pytest printed no summary line) |
+| After review round 1 | the affected files (`test_adoption_*`, `test_methods_api`, `test_methods_method_block`, `test_export_api`, `test_criteria_pilot_api`), `-n 4`, on `c9530ced` | 113 passed |
+| Typecheck | `npx tsc --noEmit` | clean, on `c9530ced` |
+| UI unit tests | `npx vitest run` | 1,459 passed on `ea0b8a20`; on `c9530ced` 1,459 passed and 1 failed in `tests/inception-workbench.test.tsx` ("a refused cost read…", "no refusal yet"), a file this build does not touch; it passed 3 times of 3 run alone (a wait under load) |
+| Browser | `npx playwright test` of `screening-adopted`, `screening-export`, `screening-states`, `charting-study`, `hydration` (both themes) | 66 passed, 4 skipped, on `ea0b8a20`; `screening-adopted.spec.ts` again on `c9530ced` (after the Agreement change): 6 passed; no committed screenshot changed |
+
 
 **Review.** REVIEW_PLACEHOLDER
 
