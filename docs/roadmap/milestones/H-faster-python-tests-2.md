@@ -1,6 +1,8 @@
 # H-faster-python-tests-2 Two more workspace templates and six slow marks
 
-Branch: `dev/h/faster-python-tests-2` (from `origin/main` `6f31f92e`, which holds H-faster-python-tests, PR 303) · Lane: **STANDARD** (test code only; no product code, contract or public surface changes) · Status: **IN REVIEW** (round 1 CHANGES, repaired; round 2 pending) · Started: 2026-11-23
+Branch: `dev/h/faster-python-tests-2` (from `origin/main` `6f31f92e`, which holds H-faster-python-tests, PR 303) · Lane: **STANDARD** (test code only; no product code, contract or public surface changes) · Status: **READY FOR PR** (review round 2 APPROVE on `b9ee992a`; not pushed; decision items 1 to 3 PROPOSED) · Started: 2026-11-23
+
+`origin/main` `460f23f3` (PR 304, the M13-installers specification, documentation only) was merged in at `b9ee992a`; one conflict, `docs/decisions.md`, both entries kept.
 
 The researcher's go-ahead of 2026-11-23 in the review session ("Yes, build them"), after the full timing passes of that day (`docs/assessment/test-suite-review-2026-11-23.md`, "Update, evening of 2026-11-23", on the local branch `dev/docs/project-review-2026-11-23`, commit `e73795d9`; items 1, 2 and 4 of "What is left"). The per-file numbers of those passes are in the sessions' shared notes folder (`test-timing-2026-11-23-branch-e8eaf753.txt`).
 
@@ -25,7 +27,7 @@ What the inner gates lose with them, and what was done about it (review round 1,
 
 - **The 54-batch approve-all test was the only test of four properties:** a publication approval fingerprint after a full bulk approval, each approval binding its own batch's decision bytes, `bulk: true` on every journal row, and a second paste approving nothing. Its body is now a helper run twice: with 54 batches (slow, the reproduction of finding 38) and with **three batches (not slow, a new test,** `test_one_action_approves_three_decided_batches_each_bound_to_its_own_bytes`), so every assertion stays in the inner gates. The new test fails when an expected value is flipped (checked with `bulk`).
 - **`test_the_handoff_accept_gives_the_snapshot_the_cli_run_gives` is the only assertion that the browser hand-off accept and the command-line accept give the same artifact id.** It leaves the `pipeline` area's inner command; the checkpoint, the PR stage and CI keep it. Named in the decisions entry, item 2.
-- The other four have neighbours in the inner gates (the reviewer's reading): the two golden recon replays reached an inner command only through the `pipeline` area, which does not own recon code, and the assistant's workspace read has other tests in `tests/kits/agent`.
+- The other four (the reviewer's reading): the two golden recon replays reached an inner command only through the `pipeline` area, which does not own recon code; the assistant's workspace read has other tests in `tests/kits/agent`; and `test_the_cassette_holds_no_contact_address_or_key` has no neighbour in an inner gate: its guard is that a change to a cassette selects the full suite.
 
 **(d) `tmp_path_retention_policy = "failed"`: tried, then refused.** pytest's default keeps every test's temporary folder for the last three runs and deletes the fourth-oldest run's folder when a session ends: a full run left 52,452 files, and a later session, even a one-file one, spent up to a minute deleting such a folder (33 s in a profile on 2026-11-23). The setting removes a passing test's folder when the test ends. It cost nothing measurable in run time (table below), and both full runs passed. **But it makes temporary paths repeat inside one process:** pytest names a folder from the first 30 characters of the test's name plus the lowest free number, so once a folder is removed the next test with the same start of name gets the same absolute path. The read store keeps results by absolute workspace path and a name, size and modification-time signature (`src/scholar_harness/screening/read_store.py:109-147`), which a copy of the same template reproduces. The reviewer showed the consequence in `tests/console/test_read_performance.py`: the three cases of the 150-file test shared one path, and the `next-step` case opened 69 files instead of 139, because it was served results kept by the case before it. The test passed, measuring a warm store. The templates of H-faster-python-tests rest on the same assumption (a test's path is its own). The setting is not in this branch. The path repetition was reproduced separately with a three-case throwaway test (`all`: three paths; `failed`: one).
 
@@ -37,7 +39,7 @@ What the inner gates lose with them, and what was done about it (review round 1,
 - [x] (d) The retention setting tried on one file and on a full run; refused, because it weakens a test.
 - [x] The full suite at four workers under the suite lock (twice: without the setting, which is this branch's tree before the approve-all repair, and with it).
 - [x] No test weakened on the final tree.
-- [ ] Independent review (`milestone-reviewer`): round 1 CHANGES, repaired; round 2 pending.
+- [x] Independent review (`milestone-reviewer`): round 1 CHANGES, repaired; round 2 APPROVE.
 - [ ] Closure: the CI run of the pull request (CI is the full gate; nothing is pushed).
 
 ## Decisions
@@ -61,8 +63,9 @@ On the researcher's PC (Windows, 4 cores, 8 threads), this worktree, venv synced
 | (d) path repetition | a throwaway three-case test outside the repository | `-o tmp_path_retention_policy=all`, then `=failed` | `all`: three paths (`…mos0`, `…mos1`, `…mos2`); `failed`: one path three times | |
 | after review | final tree (the setting out, the approve-all helper) | `pytest tests/console/test_approve_all.py -q` | 26 passed (25 and the new one); with `-m "not slow"` 25 passed; the new test with `bulk` expected `False`: failed, then restored | 54-batch test 44 s; the others under 4 s each |
 | pr | final tree | `select_test_gate.py --check`; `ruff check scripts/`; `ruff check src/ --select F821,F811,F823,F632,F7,B023,B006,E9`; `generate_contract_baseline.py --check`; `git diff --check` | pass; baseline current, no locked file changed; clean | |
+| checkpoint | final tree `b9ee992a` | the selector's checkpoint for `--changed origin/main`: `python scripts/suite_lock.py -- pytest tests/console tests/kits/agent tests/pipeline -q -n 4 --dist worksteal --junitxml` | **1,621 results: 1,617 passed, 4 skipped, 0 failed** | 419 s |
 
-The full suite was not run a third time for the final tree: it differs from the "setting off" run by one test file (`tests/console/test_approve_all.py`, run whole above). CI is the full gate.
+The full suite was not run a third time for the final tree: it differs from the "setting off" run by one test file (`tests/console/test_approve_all.py`) and a documentation merge, and the selector's checkpoint above ran on it. CI is the full gate.
 
 **What the numbers say.** Set-up in the six files fell by 45 s of one-process time, and the inner gates that cover the four marked files run about 80 s less (a few seconds are given back by the new three-batch test). The full suite at four workers did not change measurably: 522 s here against 437 s in H-faster-python-tests's record on an idle PC. The deletion of old temporary folders at the end of a session stays as it was.
 
@@ -81,6 +84,8 @@ The full suite was not run a third time for the final tree: it differs from the 
 - Reviewer follow-ups that predate this branch: the `screening` area's checkpoint does not list `tests/console/test_approve_all.py`; `AGENTS.md` still names `scholar_rag`, `scholar_verify` and `--extra rag`.
 
 ## Review
+
+**Round 2** (on `b9ee992a`): **APPROVE**. The four findings are closed: with the setting out the three route cases get three paths again and `next-step` opens 139 files on its first call; the three-batch test fails when the product drops `bulk` from the journal row (the reviewer's probe: 1 failed, 24 passed in the not-slow selection). Three P3 points on this record's wording, fixed in the next commit: the checkpoint selection run on the final tree (evidence table), the cassette check's guard named in (c), the merge of `460f23f3` named at the top.
 
 **Round 1** (`milestone-reviewer`, on `c95c6fbf`): **CHANGES**. The two templates were found sound (no other test compares two workspaces built from one key; the keys are complete; the four globals are right for every caller, `ids="doi"` and `ids="none"` included; 102 passed).
 
