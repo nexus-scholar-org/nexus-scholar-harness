@@ -196,6 +196,9 @@ const PINNED_STUDY = "sticky start-12 z-10";
  * background, so each cell draws its part: top and bottom on every cell, the
  * start edge on the first, the end edge on the last (mirrored in Arabic).
  * Written out in full: Tailwind compiles only class names it finds whole.
+ * In forced colours (Windows High Contrast) the browser drops box shadows, so
+ * there the focused row keeps its own outline (the pinned cells still cover
+ * part of it, as before this change).
  */
 const FRAME: Record<"start" | "middle" | "end", string> = {
   start:
@@ -2372,7 +2375,7 @@ function ChartingScreen({ locale }: Readonly<{ locale: Locale }>) {
                           onFocus={(event) => {
                             if (event.target === event.currentTarget) setFocusId(row.study_id);
                           }}
-                          className={`border-t border-rule ${isSelected ? "bg-brand-soft" : "bg-leaf"} ${row.kept ? "" : "text-ink-muted opacity-70"} focus-visible:outline-none`}
+                          className={`border-t border-rule ${isSelected ? "bg-brand-soft" : "bg-leaf"} ${row.kept ? "" : "text-ink-muted opacity-70"} ${focused ? "forced-colors:outline-2 forced-colors:-outline-offset-2 forced-colors:outline-focus" : ""} not-forced-colors:focus-visible:outline-none`}
                           data-study-row={row.study_id}
                           data-kept={row.kept ? "true" : "false"}
                           data-focused={focused || undefined}

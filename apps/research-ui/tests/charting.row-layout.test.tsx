@@ -150,12 +150,17 @@ describe("charting.row-layout: the focus frame goes round the whole row", () => 
     for (const cell of row("STU-001").children) expect(shadowsOf(cell)).toEqual([]);
   });
 
-  it("the row's own outline, which the pinned cells and the next row painted over, is gone", async () => {
-    installEngine(makeTable([makeRow(1)]));
+  it("the row's own outline, which the pinned cells and the next row painted over, is kept only for forced colours", async () => {
+    installEngine(makeTable([makeRow(1), makeRow(2)]));
     await renderCharting();
     await act(async () => {
       fireEvent.click(row("STU-001").querySelector("td:nth-child(3)")!);
     });
-    expect(classes(row("STU-001")).filter((c) => /outline-(2|focus)/.test(c))).toEqual([]);
+    const outlines = (id: string) => classes(row(id)).filter((c) => /outline/.test(c));
+    // Normal colours: no outline of the row's own (the browser's default ring is switched off too).
+    expect(outlines("STU-001").filter((c) => !c.startsWith("forced-colors:"))).toEqual(["not-forced-colors:focus-visible:outline-none"]);
+    // Forced colours drop box shadows: the focused row keeps an outline there, the other row has none.
+    expect(outlines("STU-001")).toEqual(expect.arrayContaining(["forced-colors:outline-2", "forced-colors:-outline-offset-2", "forced-colors:outline-focus"]));
+    expect(outlines("STU-002")).toEqual(["not-forced-colors:focus-visible:outline-none"]);
   });
 });
