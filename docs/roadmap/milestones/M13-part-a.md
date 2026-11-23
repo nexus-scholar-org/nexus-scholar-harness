@@ -51,6 +51,8 @@ Status: **BUILT on `dev/m13/part-a-launcher` (from `main` `cc0e8fa1`, `main` `0b
 | P3 | Decisions: stale "entry point" in the open row; the spec departure of item 5 not named | both corrected | — |
 | follow-up | A test left a lock handle open; on POSIX a sixth click could prune the running engine's log | handle released; a log whose process runs is kept | `test_a_running_engines_log_is_not_pruned` (POSIX only, skipped on Windows) |
 
+**Round 2: APPROVE** (f0f26985, code read; the gate was running). Two of its minor notes were repaired after it: the ready-wait thread now ends when the first server returns without starting (`test_the_ready_wait_ends_when_the_first_server_never_started`), and a write of `engine.json` that clashes is tried up to five times (`test_a_publish_that_clashes_once_is_tried_again`). Left as follow-ups: after an `APPROVAL_WINDOW_UNAVAILABLE` refusal the pairing status shows a pending challenge nobody can answer for up to 5 minutes, and the refused begin replaces a code an earlier window may still show (both harmless; voiding the staged records on refusal would be cleaner); one test replaces `time.sleep` for the whole process while it runs.
+
 ## Not in this branch (the rest of spec §5.2 Part A)
 
 - **The control window** of §4.2: Open in browser, Settings, Stop, the status line and the closing question with the busy check. The instance routes it needs (a fresh link, stop) are here.
@@ -62,13 +64,14 @@ Status: **BUILT on `dev/m13/part-a-launcher` (from `main` `cc0e8fa1`, `main` `0b
 | Check | Result |
 | :-- | :-- |
 | Targeted tests (`tests/test_ui_launcher.py`, `tests/console/test_desktop_*.py`) | 22 passed |
+| Selector `pr` gate after the review repairs (f0f26985; areas console-screening, console, harness-cli, research-ui; task T-110) | `tests/console tests/authority tests/test_read_store.py tests/test_ui_launcher.py`: 1461 passed, 2 skipped; `tests/cli tests/unit tests/mcp` + parity: 832 passed, 2 skipped; `tests/kits/agent`: 284 passed. **Not run locally:** the research-ui typecheck, lint and vitest (this worktree has no `node_modules`); CI runs them on the one changed UI file (`lib/screening-states.ts`, one new refusal entry) |
 | Selector `pr` gate after merging `main` `0bcefdd3` (areas console, harness-cli; task T-110) | `tests/console tests/authority tests/test_ui_launcher.py`: 1438 passed, 1 skipped; `tests/cli tests/unit tests/mcp` + parity + serve: 847 passed, 2 skipped; `tests/kits/agent`: 284 passed (all with `-n 4`) |
 | `git diff --check`, `ruff check scripts/`, `ruff check src/ --select F821,…` | pass |
 | Contract baseline `--check` | current |
 | Wheel build | `uv build --wheel` (with `NEXUS_WHEEL_ALLOW_NO_UI=1`: this worktree holds no UI export): 1.5 MB; carries `console/desktop.py`, `console/instance.py` and `[gui_scripts] nexus-scholar-app`. Installed alone in a throw-away Python 3.12 environment with no extras: `nexus-scholar --help` and `scholar-agent --help` answer; `desktop.main(['--frobnicate'])` returns 2 and logs the line |
 | Console-less start (`pythonw`) and `--stop` | as above |
 | Browser pane, fault 1 | as above |
-| Independent review (milestone-reviewer) | filled below |
+| Independent review (milestone-reviewer) | round 1 CHANGES (one P1, one P2, six P3), repaired in f0f26985; round 2 APPROVE |
 
 ## Notes
 

@@ -318,7 +318,7 @@ def test_a_slow_first_start_is_still_published_and_a_failed_publish_still_opens_
                                      say=lambda _m: None, instance=Claim())  # type: ignore[arg-type]
     app_launcher._server = SlowServer()
     app_launcher._when_ready("http://127.0.0.1:8799/launch?code=x")
-    assert polls["n"] > 500 and published == [8799] and opened == ["http://127.0.0.1:8799/launch?code=x"]
+    assert polls["n"] > 500 and published == [8799] * launcher.PUBLISH_ATTEMPTS and opened == ["http://127.0.0.1:8799/launch?code=x"]
 
 
 @pytest.mark.skipif(os.name == "nt", reason="Windows refuses to remove an open file; POSIX would remove it")
@@ -329,3 +329,49 @@ def test_a_running_engines_log_is_not_pruned(tmp_path):
     live.write_text("running")
     desktop.open_log(tmp_path).close()
     assert live.exists()
+
+
+def test_the_ready_wait_ends_when_the_first_server_never_started(tmp_path, ui):
+    """Review round 2: a server whose run() returns without starting left the wait thread spinning."""
+
+    class NeverStarts:
+        started, should_exit = False, False
+
+        def __init__(self, *_a):
+            pass
+
+        def run(self):
+            return None
+
+    app_launcher = launcher.Launcher(root=tmp_path, workspace=None, ui_dir=ui, open_browser=False, say=lambda _m: None,
+                                     server_factory=NeverStarts, instance=instance.Instance(tmp_path / "settings"))
+    app_launcher.run()
+    assert app_launcher._done is True
+    waiter = threading.Thread(target=app_launcher._when_ready, args=(None,), daemon=True)
+    waiter.start()
+    waiter.join(timeout=2)
+    assert not waiter.is_alive()
+
+
+def test_a_publish_that_clashes_once_is_tried_again(tmp_path, ui, monkeypatch):
+    monkeypatch.setattr(launcher.time, "sleep", lambda _s: None)
+    attempts: list[int] = []
+    said: list[str] = []
+
+    class Claim:
+        def router(self, **_k):
+            return instance.router("s", launch_link=lambda: "", stop=lambda: None)
+
+        def publish(self, host, port):
+            attempts.append(port)
+            if len(attempts) < 3:
+                raise PermissionError("held by a reader")
+
+    class Started:
+        started, should_exit = True, False
+
+    app_launcher = launcher.Launcher(root=tmp_path, workspace=None, ui_dir=ui, port=8798, open_browser=False,
+                                     say=said.append, instance=Claim())  # type: ignore[arg-type]
+    app_launcher._server = Started()
+    app_launcher._when_ready(None)
+    assert attempts == [8798, 8798, 8798] and said == []

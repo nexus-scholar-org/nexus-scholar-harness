@@ -40,6 +40,8 @@ UI_DIR_ENV = "NEXUS_UI_DIR"
 DEFAULT_PORT = 8770
 #: Seconds a stopping server waits for open responses (event streams) before it cancels them.
 RESTART_GRACE_SECONDS = 3
+#: Tries to write the instance file (a Windows replace can clash with a reader).
+PUBLISH_ATTEMPTS = 5
 _BUNDLE_PACKAGE = "scholar_harness_data"
 _REPO_EXPORT = Path(__file__).resolve().parents[3] / "apps" / "research-ui" / ".next-export"
 
@@ -100,6 +102,7 @@ class Launcher:
         self.codes_on_terminal = codes_on_terminal
         self._next: Path | None = None
         self._stopping = False
+        self._done = False  # run() has returned
         self._server: Any = None
         self.restarts = 0
 
@@ -151,6 +154,12 @@ class Launcher:
         return f"http://{self.host}:{self.port}{browser.LAUNCH_PATH}?{query}"
 
     def run(self) -> None:
+        try:
+            self._serve_until_done()
+        finally:
+            self._done = True
+
+    def _serve_until_done(self) -> None:
         first = True
         while not self._stopping:
             app = self.build_app(self.workspace)
@@ -182,14 +191,19 @@ class Launcher:
         by a second click or stopped by `--stop`.
         """
         while not getattr(self._server, "started", False):
-            if self._stopping:
+            if self._stopping or self._done:  # stopped, or the server never started
                 return
             time.sleep(0.05)
         if self.instance is not None:
-            try:
-                self.instance.publish(self.host, self.port)
-            except OSError as exc:
-                self.say(f"Could not write the instance file ({exc}); a second start will not find this engine")
+            for attempt in range(PUBLISH_ATTEMPTS):
+                try:
+                    self.instance.publish(self.host, self.port)
+                    break
+                except OSError as exc:  # e.g. a second launcher reading the file at that moment
+                    if attempt == PUBLISH_ATTEMPTS - 1:
+                        self.say(f"Could not write the instance file ({exc}); a second start will not find this engine")
+                    else:
+                        time.sleep(0.2)
         if url is not None:
             webbrowser.open(url)
 
