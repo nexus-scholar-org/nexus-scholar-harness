@@ -10,14 +10,16 @@ in chat before step 5, unless they already said to ship in this request.
 
 1. **DoD:** read `docs/roadmap/milestones/<M>.md`. Every DoD box is checked or
    listed under "Deferred" with its plan §7 rule. Otherwise stop and report.
-2. **Gate once:** `/gate pr` on the final executable commit. Then
+2. **Gate once:** `/gate pr` on the final executable commit (the tests of the
+   areas the change touched, lint and the type check; base `origin/main`). Then
    `uv run python scripts/generate_contract_baseline.py --check` and
    `git diff --check origin/main...HEAD`. Record the results in Evidence.
-   A failure here means fix, commit, and re-run `/gate pr`.
-3. **Review:** run the `milestone-reviewer` agent with `<M>` and base `main`.
-   On CHANGES, fix only the listed findings, re-run the smallest load-bearing
-   test (and `/gate pr` only if executable code changed), then re-review with
-   the previous findings. On BLOCKED, stop and ask the researcher.
+   A failure here means fix, commit, and re-run `/gate pr`. The full suites are
+   CI's: record "full suites: CI, not yet run" with the commit until CI has run.
+3. **Review:** run the `milestone-reviewer` agent with `<M>` and base `origin/main`.
+   On CHANGES, fix only the listed findings, re-run the affected areas' tests
+   (`/gate checkpoint`; never the full suite locally for a repair), then
+   re-review with the previous findings. On BLOCKED, stop and ask the researcher.
 4. **Close the file:** set `Status: READY FOR PR` in the milestone file and
    commit it with the rest of the branch.
 5. **Push and PR:** load and follow `.agents/skills/pull-request-gate/SKILL.md`.
@@ -27,4 +29,9 @@ in chat before step 5, unless they already said to ship in this request.
    The PR body states: milestone and plan link, lane, DoD checklist, findings
    fixed (with test names), the Evidence table, reviewer verdict, what was not
    verified, and the attribution line required for this session.
+   Then wait for CI on the pushed commit: the full suites run there. Merge only
+   when every required check is green, and cite the CI run in the record.
+   Until the researcher gives a standing permission for sessions to push work
+   branches (proposed 2026-11-23, not given), the push is the coordinator's, on
+   the researcher's word.
 6. Report the PR URL and what remains for the next milestone.

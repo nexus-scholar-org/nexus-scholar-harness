@@ -11,6 +11,32 @@ history to read if you need the original reasoning (`git log --follow -- <path>`
 | Entry | Item | What is open |
 | :-- | :-- | :-- |
 | 2026-11-19 — M9a: what the measurement says about the ladder gates | 2 | The minimum share of the researcher's excludes an agent must take before a rung unlocks: the principle is accepted; the researcher decided on 2026-11-20 to set the number when M9b is built. |
+| 2026-11-23 — H-gate-and-ci | 1 | The standing permission for sessions to push a work branch and open a draft pull request: not given. |
+
+## 2026-11-23 — H-gate-and-ci: the local gate runs what a change touched, CI runs everything, one full suite at a time (chosen by the researcher 2026-11-23; items 2 to 13 accepted as built 2026-11-23; item 1 open)
+
+**Answered 2026-11-23.** The researcher accepted the build's items as built ("Yes to all", relayed by the coordinator session) and approved merging the pull request when CI is green. Item 1, the standing push permission, was not given by name and stays open; until it is, the coordinator pushes on the researcher's word.
+
+Record: `docs/roadmap/milestones/H-gate-and-ci.md`. Steps 1 and 2 of `docs/assessment/test-suite-review-2026-11-23.md`, chosen in the coordinator session on 2026-11-23 ("Gate settings and CI").
+
+**For the researcher to decide**
+
+1. **A standing permission for sessions to push their work branch to the fork and open a draft pull request,** so CI can run while they work (CI runs on pull requests and on pushes to `main` and `develop` only). Not given; the build assumes it is not. Until it is, the coordinator pushes on the researcher's word, a build session records "full suites: CI, not yet run", and nothing merges before CI is green.
+2. **CI is the full gate; the PC runs the touched areas.** The cost: a failure far from the change (another area, another OS) shows up in CI minutes after the push instead of in a local run. Nothing merges on a red or unfinished CI, so the cost is a wait, not a missed fault. After a repair or a merge of `main`, the affected tests run locally and the full suites in CI (this replaces the rule that asked for the whole suite again locally).
+3. **The required CI checks are 11** (H-test-diet, merged first, removed `research-ui-browser`; this part adds and removes no job).
+
+**Choices made in the build (for the reviewer)**
+
+4. The lock: `scripts/suite_lock.py`, the operating system's lock on one file in the user's temp folder (`NEXUS_SUITE_LOCK` overrides), freed by the system when its holder ends, so it cannot go stale; a holder over 3 h is reported, not broken; exit 75 on `--timeout`; every full-suite command in the manifest runs through it. (The first build's lock file with stale rules had a race, review round 1.)
+5. `-n 4 --dist worksteal` for local runs; `-n auto --dist worksteal` on the CI runner.
+6. `--changed` defaults to `origin/main`.
+7. Area `pr` = `@checkpoint` plus lint, and no E3 task runs the full suite at `pr`; a changed test file outside every area runs its folder at `pr`; full suites locally only for a release, as the fallback or on request; the UI's build and browser suite at closure only. A RELEASE part's closure evidence is the CI run of its final commit.
+8. Finer areas: console-charting (with the charting package), console-discovery, console-screening, console-inception, with a few files and `-n 4` at inner and all of `tests/console` and `tests/authority` plus their outside users at checkpoint; `packaging`; `ci-workflows` with `scripts/check_workflows.py`.
+9. `select_test_gate.py --check` fails on a Python test file no area's inner or checkpoint names (the bare `tests` catch-all does not count) and on a test path an area or an E3 task names that does not exist; 22 files were given areas.
+10. `pyproject.toml` and `uv.lock` keep their E3 task T-110 (the RAG and agent kits' suites at `pr`); their full suites are CI's.
+11. CI: `setup-uv` v2 → v5 with its cache; `concurrency` cancelling a superseded pull-request run, pushes grouped by their own run id.
+12. CI: the UI is built once per kind (the export in `build-wheel`, the standalone app in `research-ui`, which alone compiles the console proxy route); the `research-ui` job is pure Node. The browser job's third build goes with H-test-diet.
+13. `/gate`, `/ship`, `test-gatekeeper`, `milestone-reviewer` and `AGENTS.md` carry the same rules; the reviewer no longer asks for a local full-suite run.
 
 ## 2026-11-23 — H-close-side-doors: four doors around the ledger closed (decided by the researcher 2026-11-23; items 1, 2 and 4 accepted as proposed; item 3 answered: the ceiling must be a number, a follow-up not built here)
 

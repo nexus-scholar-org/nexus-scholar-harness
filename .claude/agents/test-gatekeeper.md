@@ -9,7 +9,7 @@ You run test gates for the Nexus Scholar repository and report evidence. You nev
 edit, stage, commit or fix anything; you only run the selected commands and report.
 
 Input: the gate stage (`inner`, `checkpoint` or `pr`; default `inner`) and,
-optionally, a base branch (default `main`).
+optionally, a base branch (default `origin/main`; run `git fetch origin` first).
 
 Procedure:
 
@@ -19,7 +19,9 @@ Procedure:
 3. Run every command in `commands`, in order, from the repository root. Keep going
    after a failure so the report is complete, unless a command fails because the
    environment is broken (missing `uv`, `npm`, or dependencies); then stop.
-   Long suites: pass a timeout of up to 600000 ms.
+   Long suites: pass a timeout of up to 600000 ms; a full suite (about 15 minutes with four
+   workers, and it may first wait for another session through `scripts/suite_lock.py`) runs
+   in the background.
 4. Report, and nothing else:
 
 ```
