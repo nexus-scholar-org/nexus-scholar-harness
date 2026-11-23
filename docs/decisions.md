@@ -10,10 +10,11 @@ history to read if you need the original reasoning (`git log --follow -- <path>`
 
 | Entry | Item | What is open |
 | :-- | :-- | :-- |
-| 2026-11-23 — H-adopted-decisions-disclosure: the build's own choices | 7 to 21, 23 to 29 | Built and PROPOSED, not yet answered (item 22 answered 2026-11-23). |
 | 2026-11-19 — M9a: what the measurement says about the ladder gates | 2 | The minimum share of the researcher's excludes an agent must take before a rung unlocks: the principle is accepted; the researcher decided on 2026-11-20 to set the number when M9b is built. |
 
-## 2026-11-23 — H-adopted-decisions-disclosure: the build's own choices (item 22 answered by the researcher 2026-11-23; items 7 to 21 and 23 to 29 PROPOSED)
+## 2026-11-23 — H-adopted-decisions-disclosure: the build's own choices (item 22 answered by the researcher 2026-11-23; items 7 to 21 and 23 to 29 accepted by the researcher 2026-11-23 as built)
+
+**Accepted 2026-11-23.** The researcher accepted items 7 to 21 and 23 to 29 as built, in the main session, after the build's report ("Accept all push and PR"), and approved the push and the PR. Before the answer the main session checked item 8's wording on a copy of the sensor-stress review: it matches 996 of the 1,062 decision notes, the number expected (the wording only; the build's code was not run on the copy). The reviewer's five small follow-ups stay open and are not part of this acceptance.
 
 Record: `docs/roadmap/milestones/H-adopted-decisions-disclosure.md`, "Build 2026-11-23". Items 1 to 6 are the specification's closed questions (entry of 2026-11-22). Each item below is how the build did something the specification leaves open, or leaves thin; each is the researcher's to accept or change. Nothing here changes a Contract v1 file; `generate_contract_baseline.py --check` is current. The screening API contract (not Contract v1) gains three routes, six refusal codes and new fields, and its recorded fixtures were regenerated (item 27).
 
@@ -40,6 +41,15 @@ Record: `docs/roadmap/milestones/H-adopted-decisions-disclosure.md`, "Build 2026
 27. *(PROPOSED.)* **The screening API fixtures were regenerated** (`scripts/generate_screening_api_fixtures.py`): `prisma_preview.json` (the renamed detail, the new check, `adoption`) and `summary_start.json`, `summary_done.json` (`adoption`). Nothing else changed in them. No fixture was added for the new routes; their shapes are pinned by the API tests.
 28. *(PROPOSED.)* **Limits.** At most 20,000 events per declaration or withdrawal and a note of 500 characters, as the decision notes.
 29. *(PROPOSED; review finding 5.)* **Agreement before a declaration.** With undeclared candidates and no declaration, the sample box no longer says "You saw every record. No sample needed."; it says "Not known yet: {n} decisions look stored from the agent's draft and are not declared. Declare them, or check their notes.", with the link. *Alternative not taken:* answer 3 literally, where only a declaration removes the sentence.
+
+## 2026-11-23 — Findings 45, 46, 48 and 50 to 53 of the sensor-stress run: what is done with each (answered by the researcher 2026-11-23)
+
+Record: `docs/roadmap/acceptance-run-sensor-stress-2026-11-20.md`, findings 43 to 53. Asked in the main session on 2026-11-23, each with a recommendation; all answered as recommended. Findings 43, 44 and 49's label are `H-adopted-decisions-disclosure`; finding 47 is `H-screening-read-performance`. Nothing is built by these answers; the start of the build is the researcher's to approve.
+
+1. **Finding 45: publication is confirmed beside the button.** A "Published" line with the counts and the date next to "Publish the screening", and the page scrolls to the top status. *Not chosen:* going to Export after publishing; leaving it.
+2. **Finding 46: the pilot card is shown only while few records are decided**, then one quiet line; the list of batch files folds to a count with "show all". *Not chosen:* hiding the card only; leaving it. *Not decided:* the number that counts as "few".
+3. **Finding 48: "Charting" is always in the top menu.** Before publication it opens a page saying charting starts after the screening is published, with a link to Publish. *Not chosen:* hidden until published.
+4. **Findings 50, 51, 52 and 53 are all to be fixed:** compact rows in Charting's Full text view; the form panel scrolls under the mouse wheel unless the Definition box has the focus; the request that answered 422 while Charting loaded is found and fixed or explained; Inception step 5 keeps one of its two sentences. None was dropped.
 
 ## 2026-11-23 — H-screening-read-performance: the build's own choices (items 6 to 23 accepted by the researcher 2026-11-23 as built; item 23's deferred run done the same day)
 
