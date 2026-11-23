@@ -8,6 +8,7 @@ then exported over HTTP. The export reads the published files only.
 from __future__ import annotations
 
 import csv
+import hashlib
 import importlib.util
 import io
 import json
@@ -58,7 +59,19 @@ def publish(ws: Path) -> None:
 
 
 def published_workspace(tmp_path: Path) -> tuple[Path, dict[str, str]]:
-    ws = se._build(tmp_path)
+    """A published workspace under ``tmp_path``: a copy of one built once per process.
+
+    H-faster-python-tests: ``tests/support/workspaces.py``; ``se._build`` keys
+    on the protocol it reads (tests patch ``se.PROTOCOL``), and so does this.
+    """
+    from support.workspaces import copy_of
+
+    key = ("export_api.published_workspace", hashlib.sha256(se.PROTOCOL.read_bytes()).hexdigest())
+    return copy_of(key, _published_workspace_fresh, tmp_path)
+
+
+def _published_workspace_fresh(tmp_path: Path) -> tuple[Path, dict[str, str]]:
+    ws = se._build_fresh(tmp_path)
     ids = decide(ws)
     publish(ws)
     return ws, ids

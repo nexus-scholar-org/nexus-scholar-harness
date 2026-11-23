@@ -8,6 +8,7 @@ phone token scope are checked against the contract.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import uuid
 from datetime import UTC, datetime
@@ -35,6 +36,20 @@ PROMPT = "sha256:" + "0" * 64
 
 
 def _workspace(root: Path, *, prepare: bool | str = True) -> Path:
+    """A workspace under ``root``: a copy of one built once per process.
+
+    H-faster-python-tests: ``tests/support/workspaces.py``. The key holds every
+    input the build reads, the protocol file's content included (tests patch
+    ``PROTOCOL``).
+    """
+    from support.workspaces import copy_of
+
+    key = ("screening_api_v1._workspace", prepare, hashlib.sha256(PROTOCOL.read_bytes()).hexdigest())
+    ws, _ = copy_of(key, lambda fresh: (_workspace_fresh(fresh, prepare=prepare), None), root)
+    return ws
+
+
+def _workspace_fresh(root: Path, *, prepare: bool | str = True) -> Path:
     ws = root / "ws"
     ws.mkdir()
     (ws / "project.json").write_text(

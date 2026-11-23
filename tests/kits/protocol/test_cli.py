@@ -1,4 +1,10 @@
-"""Tests for the scholar-protocol CLI exit codes and output."""
+"""Tests for the scholar-protocol CLI exit codes and output.
+
+H-faster-python-tests: the commands run in process (``CliRunner``), so each
+test no longer starts a Python and imports the package again (23 tests took
+about 40 s). One test still starts the installed program for real
+(``test_the_installed_program_starts_and_answers``).
+"""
 
 from __future__ import annotations
 
@@ -7,8 +13,12 @@ import pathlib
 import subprocess
 import sys
 import tempfile
+from types import SimpleNamespace
 
 import pytest
+from typer.testing import CliRunner
+
+from scholar_protocol.cli import app
 
 FIXTURES = pathlib.Path(__file__).parent / "fixtures"
 VALID_DIR = FIXTURES / "valid"
@@ -24,7 +34,7 @@ _SCRIPT = (
 )
 
 
-def run(*args: str) -> subprocess.CompletedProcess:
+def run_process(*args: str) -> subprocess.CompletedProcess:
     """Run the scholar-protocol CLI as a subprocess.
 
     Uses the installed entry-point script when available so that
@@ -37,6 +47,33 @@ def run(*args: str) -> subprocess.CompletedProcess:
     else:
         cmd = [sys.executable, "-m", "scholar_protocol.cli", *args]
     return subprocess.run(cmd, capture_output=True, text=True)
+
+
+def run(*args: str) -> SimpleNamespace:
+    """Run the scholar-protocol CLI in process; the same three fields as a process.
+
+    ``returncode`` is the exit code a process would return (``typer.Exit`` codes;
+    1 for an uncaught exception), ``stdout`` the text the command wrote (the
+    commands that write bytes to ``sys.stdout.buffer`` included), ``stderr`` the
+    diagnostics.
+    """
+    result = CliRunner().invoke(app, list(args))
+    if result.exception is not None and not isinstance(result.exception, SystemExit):
+        # A crash must not pass as a clean exit: a process would exit 1 with a traceback.
+        assert result.exit_code == 1, (result.exit_code, result.exception)
+    return SimpleNamespace(returncode=result.exit_code, stdout=result.stdout, stderr=result.stderr)
+
+
+@pytest.mark.slow
+def test_the_installed_program_starts_and_answers() -> None:
+    """One real start: the installed script (or ``-m``) gives the in-process answers."""
+    valid = run_process("validate", str(VALID_DIR / "design_science_min.json"))
+    assert valid.returncode == 0, valid.stderr
+    canon = run_process("canon", str(VALID_DIR / "design_science_min.json"))
+    assert canon.returncode == 0
+    assert canon.stdout == run("canon", str(VALID_DIR / "design_science_min.json")).stdout
+    missing = run_process("fingerprint", _MISSING)
+    assert missing.returncode == 2
 
 
 _MISSING = str(pathlib.Path(tempfile.gettempdir()) / "scholar_proto_missing_xyz.json")

@@ -7,6 +7,7 @@ submits events through `intake`, and checks the stored log, the projection to
 
 from __future__ import annotations
 
+import hashlib
 import json
 import uuid
 from datetime import UTC, datetime, timedelta
@@ -35,6 +36,25 @@ def ws(tmp_path) -> Path:
 
 
 def _build(tmp_path: Path, *, batch_size: int = 20, method: dict | None = None) -> Path:
+    """A prepared workspace under ``tmp_path``: a copy of one built once per process.
+
+    H-faster-python-tests: ``tests/support/workspaces.py``. The key holds every
+    input the build reads, the protocol file's content included (tests patch
+    ``PROTOCOL``).
+    """
+    from support.workspaces import copy_of
+
+    key = (
+        "screening_events._build",
+        batch_size,
+        json.dumps(method, sort_keys=True),
+        hashlib.sha256(PROTOCOL.read_bytes()).hexdigest(),
+    )
+    workspace, _ = copy_of(key, lambda root: (_build_fresh(root, batch_size=batch_size, method=method), None), tmp_path)
+    return workspace
+
+
+def _build_fresh(tmp_path: Path, *, batch_size: int = 20, method: dict | None = None) -> Path:
     workspace = tmp_path / "ws"
     workspace.mkdir()
     (workspace / "project.json").write_text(
