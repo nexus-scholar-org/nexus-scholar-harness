@@ -104,25 +104,6 @@ describe("discovery.recall", () => {
     expect(engine.calls.some((c) => c.path.startsWith("/api/v1/discovery/jobs/"))).toBe(false);
   });
 
-  it("prints the SCHOLAR_MAILTO line for MAILTO_NOT_SET and checks again", async () => {
-    const user = userEvent.setup();
-    const { engine } = setUp({ mailto: false });
-    render(<DiscoveryRecall locale="en" />);
-    await user.type(await screen.findByLabelText("Identifier of seed 1"), "10.1000/one");
-    await user.click(screen.getByRole("button", { name: "Check these seeds" }));
-    const card = await screen.findByRole("alert");
-    expect(card).toHaveAttribute("data-state", "MAILTO_NOT_SET");
-    expect(within(card).getByText("SCHOLAR_MAILTO=<your email>")).toBeInTheDocument();
-    expect(within(card.querySelector("details") as HTMLElement).getByText("MAILTO_NOT_SET")).toBeInTheDocument();
-    engine.setMailto(true);
-    await user.click(within(card).getByRole("button", { name: "Check again" }));
-    // Check again re-reads; it starts nothing (review 4).
-    await waitFor(() => expect(screen.queryByRole("alert")).toBeNull());
-    expect(engine.calls.filter((c) => c.method === "POST")).toHaveLength(1);
-    await user.click(screen.getByRole("button", { name: "Check these seeds" }));
-    await screen.findByRole("heading", { level: 1, name: "The query finds 1 of the 1 papers you gave it" });
-  });
-
   it("says DISCOVERY_JOB_ACTIVE as a sentence and points to the running harvest", async () => {
     const user = userEvent.setup();
     setUp({ refuseOnce: { "POST /api/v1/discovery/recall": refuse(409, "DISCOVERY_JOB_ACTIVE", "busy", { job: { job_id: "djob_x", kind: "run", state: "running" } }) } });

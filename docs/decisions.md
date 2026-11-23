@@ -11,6 +11,30 @@ history to read if you need the original reasoning (`git log --follow -- <path>`
 | Entry | Item | What is open |
 | :-- | :-- | :-- |
 | 2026-11-19 — M9a: what the measurement says about the ladder gates | 2 | The minimum share of the researcher's excludes an agent must take before a rung unlocks: the principle is accepted; the researcher decided on 2026-11-20 to set the number when M9b is built. |
+| 2026-11-23 — H-test-diet | 1 to 4 | What the removed browser suites and journeys no longer check, the required checks (12 to 11), and the 15 dropped scans. |
+
+## 2026-11-23 — H-test-diet: the browser suites removed and the UI unit suite cut (decided by the researcher 2026-11-23; items 1 to 4 for the researcher, items 5 to 13 PROPOSED)
+
+Record: `docs/roadmap/milestones/H-test-diet.md`. Decided in the coordinator session on 2026-11-23, after `docs/assessment/test-suite-review-2026-11-23.md`: "Delete all browser tests" ("I want to cut the browser tests and also the UI tests. Leave only component tests."), and for the UI unit tests "Cut scans and whole-page journeys". *Not chosen:* the coordinator's recommendation to keep a small real-browser set.
+
+**For the researcher to decide**
+
+1. **What is no longer checked, accepted as the cost?** With the browser suites gone nothing checks hydration errors (beyond the static module rule kept in the lint), focus rings and focus order as rendered, contrast in light and dark, horizontal overflow and string expansion, locale attributes before JavaScript, that the served app requests nothing outside the machine, the shipped CSS, real downloads and event streams, and the one run of the UI against a real engine. The record lists eleven items. The decision is taken; this item asks only whether any of them should come back in another form (for example a by-hand check list before a release).
+2. **41 multi-step journeys were removed from the unit suite** under the rule in the record (three or more writes or a walk across records). Keyboard maps, one decision made of several keys, and the focus-race regression test were kept. Accept the line, or name tests to restore.
+3. **CI's required checks go from 12 to 11** (`research-ui-browser` is gone). The coordinator merges on "all green"; a protection rule that still lists the browser job must be changed.
+4. **15 scans were dropped, not moved to the lint** (listed in the record: pins of one sentence, tautologies, fixture bookkeeping, package hash pins). Accept, or name one to keep.
+
+**Choices made in the build (for the reviewer)**
+
+5. The rule and its three carve-outs (keymap tests, one decision made of several actions, the focus-race regression), applied by the lead to every journey the four classifiers proposed.
+6. The scans that guard a rule live in one file, `apps/research-ui/lint/ui-rules.lint.ts`, run by vitest with its own configuration (`npm run lint:ui`, node environment), so their logic moved unchanged; it is not part of `npm test`.
+7. `lint/` is excluded from Tailwind's source scan, as `tests/` is.
+8. The two boundary checks of React #418 (the theme boot script's module; the guard on the parser) were restored into the lint after a classifier dropped them.
+9. `settle()` in `tests/guidance-screens.tsx` waits for zero-delay turns, not 150 ms reads; the two Criteria states wait for the block drawn from the engine's debounced answer.
+10. `vitest.config.ts` caps workers at four.
+11. The README's screenshot moved to `docs/images/`; the other eleven committed screenshots were deleted.
+12. Kept: `scripts/golden_screening_sandbox.py` with its Python test, `NEXT_DIST_DIR`, and the ignore lines of the removed suites' build folders.
+13. Comments that named a deleted spec as a guard now say nothing checks it; history documents were not edited, and GATES.md carries a dated note.
 
 ## 2026-11-23 — Findings 45, 46, 48 and 50 to 53 of the sensor-stress run: what is done with each (answered by the researcher 2026-11-23)
 

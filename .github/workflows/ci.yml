@@ -275,6 +275,10 @@ jobs:
         working-directory: apps/research-ui
         run: npm run typecheck
 
+      - name: Copy and source rules (lint:ui)
+        working-directory: apps/research-ui
+        run: npm run lint:ui
+
       - name: Vitest suite
         working-directory: apps/research-ui
         run: npm run test
@@ -282,4 +286,3 @@ jobs:
       - name: Production build
         working-directory: apps/research-ui
         run: npm run build
-

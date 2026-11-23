@@ -4,7 +4,6 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { InceptionCriteria } from "@/components/inception-criteria";
 import { InceptionReview } from "@/components/inception-review";
 import { InceptionShape } from "@/components/inception-shape";
-import { CHECKS_COPY } from "@/lib/checks-copy";
 import { stateCopy } from "@/lib/screening-states";
 import { completeDraft, outOfScopeId, proofId } from "./fixtures/inception-engine";
 import { setUp } from "./inception-helpers";
@@ -113,17 +112,6 @@ describe("inception.how-you-will-screen", () => {
     const visibility = await screen.findByRole("group", { name: "When should the agent's draft for a record be shown to you?" });
     fireEvent.click(within(visibility).getByRole("radio", { name: /Beside the record/ }));
     await waitFor(() => expect(screen.getByRole("button", { name: /^Continue/ })).toBeEnabled());
-  });
-});
-
-describe("inception.criteria-checks copy", () => {
-  it("has the five wording checks, the not-checked note and the blocker in every locale", () => {
-    for (const id of ["CRITERIA_DUPLICATE", "CRITERIA_CONTRADICT", "CRITERIA_MIRRORED", "CRITERIA_LUMPED", "CRITERIA_NEEDS_FULL_TEXT", "CRITERIA_WORDING_NOT_CHECKED", "METHOD_RULE_UNCHOSEN"]) {
-      for (const locale of ["en", "fr", "ar"] as const) {
-        for (const part of ["sentence", "why", "action"]) expect(CHECKS_COPY[locale], `${locale} ${id}.${part}`).toHaveProperty([`checks.${id}.${part}`]);
-      }
-    }
-    expect(CHECKS_COPY.en["checks.METHOD_RULE_UNCHOSEN_older.sentence" as keyof (typeof CHECKS_COPY)["en"]]).toContain("This draft was started before this question existed.");
   });
 });
 

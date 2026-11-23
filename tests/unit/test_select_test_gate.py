@@ -352,6 +352,7 @@ def test_research_ui_change_takes_ui_gate_not_python_suite() -> None:
     assert inner == [
         "git diff --check",
         "npm --prefix apps/research-ui run typecheck",
+        "npm --prefix apps/research-ui run lint:ui",
         "npm --prefix apps/research-ui run test:related -- "
         "components/screening-page.tsx lib/screening-api.ts",
     ]

@@ -94,29 +94,6 @@ describe("inception.review", () => {
     expect(screen.queryByRole("button", { name: "Replace and back up" })).toBeNull();
   });
 
-  it("needs the typed slug for a workspace with screening; the engine compares it", async () => {
-    const { engine, assign } = setUp({ draft: decided(), existing: "bound" });
-    render(<InceptionReview locale="en" />);
-    fireEvent.click(await screen.findByRole("button", { name: "Create the workspace" }));
-    fireEvent.click(await screen.findByRole("button", { name: "Replace and back up" }));
-    const bound = await screen.findByRole("heading", { name: "Screening was done under the current protocol" });
-    expect(bound.closest("section")?.textContent).toContain("4 screening decision events, 1 batch decision files");
-    const confirmButton = screen.getByRole("button", { name: "Replace, and discard the screening link" });
-    expect(confirmButton).toBeDisabled();
-    expect(brandButtons()).toHaveLength(1);
-
-    fireEvent.change(screen.getByLabelText(/To replace it anyway, type the workspace name/), { target: { value: "wrong" } });
-    fireEvent.click(confirmButton);
-    expect(await screen.findByRole("heading", { name: "The name does not match" })).toBeInTheDocument();
-    expect(screen.getByLabelText(/To replace it anyway/)).toHaveValue("wrong");
-    expect(assign).not.toHaveBeenCalled();
-
-    fireEvent.change(screen.getByLabelText(/To replace it anyway/), { target: { value: "on-device-weed-detection" } });
-    fireEvent.click(screen.getByRole("button", { name: "Replace, and discard the screening link" }));
-    await waitFor(() => expect(assign).toHaveBeenCalled());
-    expect(engine.calls.filter((c) => c.path.endsWith("/genesis")).at(-1)?.body).toEqual({ replace: true, confirm_discard_screening_binding: "on-device-weed-detection" });
-  });
-
   it("Escape cancels a confirmation and writes nothing", async () => {
     const { engine } = setUp({ draft: decided(), existing: "workspace" });
     render(<InceptionReview locale="en" />);

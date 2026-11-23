@@ -2,7 +2,7 @@ import { fireEvent, render, screen, waitFor, within } from "@testing-library/rea
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { InceptionCriteria } from "@/components/inception-criteria";
-import { completeDraft, outOfScopeId, proofId, SESSION } from "./fixtures/inception-engine";
+import { completeDraft, SESSION } from "./fixtures/inception-engine";
 import { setUp } from "./inception-helpers";
 
 /**
@@ -31,39 +31,6 @@ describe("inception.criteria", () => {
     expect(typed).toHaveAttribute("data-status", "undecided");
     expect(within(typed).getByText("Your out-of-scope answer")).toBeInTheDocument();
     expect(screen.getByText("2 still need you.")).toBeInTheDocument();
-  });
-
-  it("records Accept by the engine's id, then saves and goes to Review", async () => {
-    const { engine, assign } = setUp({ draft: completeDraft() });
-    render(<InceptionCriteria locale="en" />);
-    const proof = (await screen.findByText(PROOF)).closest("li")!;
-    fireEvent.click(within(proof).getByRole("button", { name: "Accept" }));
-    await waitFor(() => expect(screen.getByText(PROOF).closest("li")).toHaveAttribute("data-status", "accepted"));
-    const out = screen.getByText("closed-source models", { selector: "[data-verbatim]" }).closest("li")!;
-    fireEvent.click(within(out).getByRole("button", { name: "Accept" }));
-    await waitFor(() => expect(screen.getByText("Every criterion has your decision.")).toBeInTheDocument());
-    fireEvent.click(screen.getByRole("button", { name: "Continue to review" }));
-    await waitFor(() => expect(assign).toHaveBeenCalledWith(`/en/inception/review/?draft=${SESSION}`));
-    const put = engine.calls.find((c) => c.method === "PUT")!;
-    expect(put.body?.draft).toMatchObject({ criteria_decisions: { [proofId()]: true, [outOfScopeId()]: true } });
-  });
-
-  it("adds and removes a typed criterion, names a missing side, and ticks every matrix column", async () => {
-    setUp({ draft: completeDraft({ out_of_scope: [] }) });
-    render(<InceptionCriteria locale="en" />);
-    expect(await screen.findByText("No exclusion criterion is accepted yet. Accept one above or add your own.")).toBeInTheDocument();
-    fireEvent.change(screen.getByLabelText("Add an exclusion criterion"), { target: { value: "Not peer reviewed" } });
-    // M10b: an exclusion is added only with a reason (05-criteria).
-    fireEvent.change(document.getElementById("criteria-new-exclusion-reason") as HTMLInputElement, { target: { value: "WRONG_REPORT_TYPE" } });
-    fireEvent.click(within(screen.getByText("Exclusion criteria").closest("section")!).getByRole("button", { name: "Add" }));
-    const typed = (await screen.findByText("Not peer reviewed")).closest("li")!;
-    expect(within(typed).getByText("Typed by you")).toBeInTheDocument();
-    await waitFor(() => expect(screen.queryByText("No exclusion criterion is accepted yet. Accept one above or add your own.")).toBeNull());
-    fireEvent.click(within(typed).getByRole("button", { name: "Remove" }));
-    await waitFor(() => expect(screen.queryByText("Not peer reviewed")).toBeNull());
-
-    fireEvent.click(await screen.findByRole("button", { name: "Tick all suggested columns" }));
-    expect(screen.getByRole("checkbox", { name: /Performance Metric/ })).toBeChecked();
   });
 
   it("says the columns are filled on the Charting step, and labels the verification checks as parked", async () => {

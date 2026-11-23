@@ -30,7 +30,7 @@
  * CSS). It does **not** strip comments from `.ts`/`.tsx`. That is why the two
  * exclusions are both needed.
  *
- * PATH SEMANTICS — read this before editing the four lines below, because the
+ * PATH SEMANTICS — read this before editing the five lines below, because the
  * obvious spelling is wrong and fails *silently*. `@source` paths resolve
  * **relative to this file's own directory**, which is `app/` — NOT relative to
  * the application root. So `./tests/**` means
@@ -50,9 +50,10 @@
  * scanned, and adding an exclusion on a false premise would be a guess dressed
  * up as a fix. See `GATES.md` §3.7.9.
  *
- * The three directives after the Markdown one exclude the test directory and
- * the two translation directories, so the exclusion list is four entries:
- * `../../**` for every Markdown file under `apps/`, then `../tests/**`,
+ * The four directives after the Markdown one exclude the test directory, the
+ * lint directory (its rules name retired utilities on purpose) and the two
+ * translation directories, so the exclusion list is five entries: `../../**`
+ * for every Markdown file under `apps/`, then `../tests/**`, `../lint/**`,
  * `../i18n/**` and `../messages/**`. (Until 2026-11-23 two more excluded the
  * browser suites, `../tests-browser/**` and `../tests-long-strings/**`.) The
  * last two are excluded for the same reason as the test directories, and the
@@ -73,6 +74,7 @@
  */
 @source not "../../**/*.md";
 @source not "../tests/**";
+@source not "../lint/**";
 @source not "../i18n/**";
 @source not "../messages/**";
 

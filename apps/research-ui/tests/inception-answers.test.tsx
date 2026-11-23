@@ -81,20 +81,6 @@ describe("inception.criteria reasons (M10b)", () => {
     expect(normaliseReason("wrong-task!")).toEqual({ value: "WRONGTASK", refused: true });
   });
 
-  it("shows every exclusion's reason and lets the researcher change an out-of-scope line's", async () => {
-    const { engine, assign } = setUp({ draft: completeDraft({ criteria_decisions: { [proofId()]: true, [outOfScopeId()]: true } }) });
-    render(<InceptionCriteria locale="en" />);
-    const row = (await screen.findByText("closed-source models", { selector: "[data-verbatim]" })).closest("li") as HTMLElement;
-    expect(within(row).getByText("Reason OUT_OF_SCOPE")).toBeInTheDocument();
-    fireEvent.click(within(row).getByRole("button", { name: /Change the reason of E1/ }));
-    fireEvent.change(within(row).getByLabelText("Reason"), { target: { value: "wrong platform" } });
-    fireEvent.click(within(row).getByRole("button", { name: "Use this reason" }));
-    await waitFor(() => expect(screen.getByText("Reason WRONG_PLATFORM")).toBeInTheDocument());
-    fireEvent.click(screen.getByRole("button", { name: "Continue to review" }));
-    await waitFor(() => expect(assign).toHaveBeenCalled());
-    expect(putDraft(engine)).toMatchObject({ out_of_scope_reasons: { "closed-source models": "WRONG_PLATFORM" } });
-  });
-
   it("adds an exclusion only with a reason, and the reason list is the engine's with nothing chosen", async () => {
     const { engine } = setUp({ draft: completeDraft({ criteria_decisions: { [proofId()]: true, [outOfScopeId()]: true } }) });
     render(<InceptionCriteria locale="en" />);

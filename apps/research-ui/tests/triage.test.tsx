@@ -2,9 +2,7 @@ import { act, fireEvent, render, screen, waitFor, within } from "@testing-librar
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { TriagePage } from "@/components/triage-page";
-import { SUPPORTED_LOCALES } from "@/i18n";
 import type { DecisionEvent, StoredEvent } from "@/lib/screening-v1";
-import { TRIAGE_COPY, tc } from "@/lib/triage-copy";
 import { contradicts, decisiveFor, mayReadProposal, reasonOptions, triageKey, undoTarget } from "@/lib/triage-logic";
 
 /**
@@ -223,14 +221,6 @@ describe("record-detail.draft-answers", () => {
     expect(within(items[2]).getByRole("blockquote")).toHaveTextContent("drone");
     expect(within(items[3]).getByText("Yes", { exact: true })).toBeInTheDocument();
   });
-
-  it("names the list and the answers in every locale", () => {
-    for (const locale of SUPPORTED_LOCALES) {
-      for (const key of ["agentAnswers", "recordSilent", "noQuote"] as const) {
-        expect(tc(locale, key), `${locale} ${key}`).not.toBe("");
-      }
-    }
-  });
 });
 
 describe("record-detail.missing-field", () => {
@@ -252,29 +242,6 @@ describe("triage.skip-writes-no-event", () => {
 });
 
 describe("triage.undo-superseding and triage.changed-after-reveal", () => {
-  it("a change after the reveal supersedes the decision and shows the engine's stamp; undo restores the previous one", async () => {
-    await ready();
-    answerAll();
-    fireEvent.click(screen.getByRole("button", { name: /^Include/ }));
-    await screen.findByText("Your decision differs from the agent's draft.");
-    const first = postedEvents()[0];
-
-    fireEvent.click(screen.getByRole("button", { name: "Change my decision" }));
-    answer("EXC-01", "Yes");
-    fireEvent.click(screen.getByRole("button", { name: /^Exclude/ }));
-    // EXC-01 is pre-selected from the checklist, shown in words with its code (M6-beta).
-    expect(screen.getByRole("button", { name: /^1\. Not a crop field/ })).toHaveAttribute("aria-pressed", "true");
-    fireEvent.click(screen.getByRole("button", { name: "Exclude with this reason" }));
-    await screen.findByText("Changed after seeing the agent's draft");
-    const change = postedEvents()[1];
-    expect(change).toMatchObject({ outcome: "EXCLUDE", reason_code: "EXC-01", supersedes: first.event_id });
-    expect(change).not.toHaveProperty("changed_after_reveal");
-
-    fireEvent.click(screen.getByRole("button", { name: /^Undo/ }));
-    await waitFor(() => expect(postedEvents()).toHaveLength(3));
-    expect(postedEvents()[2]).toMatchObject({ outcome: "INCLUDE", supersedes: change.event_id, reason_code: null });
-  });
-
   it("a first decision cannot be undone", () => {
     const first = { event_id: "e1", supersedes: null } as StoredEvent;
     expect(undoTarget(first, [first])).toBeNull();
@@ -316,25 +283,6 @@ describe("review 1: a late draft never lands on another record", () => {
 });
 
 describe("review 2: show mode names the draft that was on screen", () => {
-  it("sends proposal_shown with revealed_after_decision false, and true for a change after a reveal", async () => {
-    engine.blinding = "show";
-    await ready();
-    await waitFor(() => expect(screen.getByTestId("proposal-aside")).toHaveTextContent("Not a decision"));
-    answerAll();
-    fireEvent.click(screen.getByRole("button", { name: /^Include/ }));
-    await waitFor(() => expect(postedEvents()).toHaveLength(1));
-    expect(postedEvents()[0].proposal_shown).toEqual({ proposal_id: "PRP-1", revealed_after_decision: false });
-    await screen.findByText("Title only record", { selector: "p bdi" }); // moved on at once
-    await act(async () => {
-      fireEvent.keyDown(window, { key: "k" });
-    });
-    await screen.findByRole("button", { name: "Change my decision" });
-    fireEvent.click(screen.getByRole("button", { name: "Change my decision" }));
-    fireEvent.click(screen.getByRole("button", { name: /^Unclear/ }));
-    await waitFor(() => expect(postedEvents()).toHaveLength(2));
-    expect(postedEvents()[1].proposal_shown).toEqual({ proposal_id: "PRP-1", revealed_after_decision: true });
-  });
-
   it("sends proposal_shown null when no draft was on screen", async () => {
     await ready();
     answerAll();
@@ -426,22 +374,6 @@ describe("triage logic", () => {
 
   it("offers exclusion codes, then FAILS-<inclusion id>", () => {
     expect(reasonOptions(CRITERIA)).toEqual(["EXC-01", "FAILS-INC-01"]);
-  });
-});
-
-describe("triage copy", () => {
-  it("has the same keys and holes in every locale, none empty", () => {
-    const keys = Object.keys(TRIAGE_COPY.en).sort();
-    for (const locale of SUPPORTED_LOCALES) {
-      expect(Object.keys(TRIAGE_COPY[locale]).sort()).toEqual(keys);
-      for (const key of keys as (keyof typeof TRIAGE_COPY.en)[]) {
-        const value = TRIAGE_COPY[locale][key];
-        expect(value.trim(), `${locale}/${key}`).not.toBe("");
-        const holes = (s: string) => [...s.matchAll(/\{(\w+)\}/g)].map((m) => m[1]).sort();
-        expect(holes(value), `${locale}/${key}`).toEqual(holes(TRIAGE_COPY.en[key]));
-      }
-    }
-    expect(() => tc("en", "refused")).toThrow(/needs \{code\}/);
   });
 });
 
@@ -655,23 +587,6 @@ describe("triage.focus-bar", () => {
   });
 });
 
-describe("triage.undo-hidden", () => {
-  it("shows no Undo on a first decision, and Undo once there is something to undo", async () => {
-    engine.proposals = new Set();
-    await ready();
-    answer("INC-01", "Yes");
-    fireEvent.click(screen.getByRole("button", { name: /^Include/ }));
-    await screen.findByText("Title only record", { selector: "p bdi" });
-    await press("k");
-    await screen.findByRole("button", { name: "Change my decision" });
-    expect(screen.queryByRole("button", { name: /^Undo/ })).toBeNull();
-    expect(screen.queryByText("A first decision cannot be undone; change it instead.")).toBeNull();
-    fireEvent.click(screen.getByRole("button", { name: "Change my decision" }));
-    fireEvent.click(screen.getByRole("button", { name: /^Unclear/ }));
-    await screen.findByRole("button", { name: /^Undo/ });
-  });
-});
-
 describe("triage.all-decided", () => {
   it("hands off to Publish when nothing needs you, with no draft aside", async () => {
     for (const s of studies()) {
@@ -744,19 +659,6 @@ describe("triage review fixes (M6-beta part 2)", () => {
     expect(screen.queryByText("Every record has your decision.")).toBeNull();
     release();
     await screen.findByText("Drone weed mapping", { selector: "p bdi" });
-  });
-
-  it("with drafts and the default setting, N after the last record reaches the hand-off", async () => {
-    engine.proposals = new Set(["STU-a", "STU-b", "STU-c"]);
-    await ready();
-    for (const title of ["Drone weed mapping", "Title only record", "Third record"]) {
-      await screen.findByText(title, { selector: "p bdi" });
-      answer("INC-01", "Yes");
-      fireEvent.click(screen.getByRole("button", { name: /^Include/ }));
-      await screen.findByText("Your decision differs from the agent's draft.");
-      await press("n");
-    }
-    await screen.findByRole("heading", { name: "All 3 records are decided" });
   });
 
   it("moves focus to the next record's title after deciding", async () => {

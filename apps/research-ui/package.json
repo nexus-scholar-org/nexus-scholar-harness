@@ -14,6 +14,7 @@
     "test": "vitest run",
     "test:related": "vitest related --run --passWithNoTests",
     "test:watch": "vitest",
+    "lint:ui": "vitest run --config vitest.lint.config.ts",
     "build:export": "node scripts/build-export.mjs"
   },
   "dependencies": {

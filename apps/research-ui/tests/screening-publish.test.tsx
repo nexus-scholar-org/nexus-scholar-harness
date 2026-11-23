@@ -4,8 +4,7 @@ import { resolve } from "node:path";
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { PUBLISH_COPY, ScreeningPublish } from "@/components/screening-publish";
-import { SUPPORTED_LOCALES } from "@/i18n";
+import { ScreeningPublish } from "@/components/screening-publish";
 
 /**
  * Publish (spec 09) in jsdom. The PRISMA preview is the engine's recorded
@@ -62,7 +61,6 @@ function engine(options: { preview?: unknown; approved?: boolean; redeem?: Respo
       if (path === "/ui/batch/1/review") return ok(review(approved));
       // H-screening-read-performance: every batch's review in one request, as the engine answers it.
       if (path === "/ui/batches/review") return ok({ shape: "ui07.batch-reviews-v1", count: 1, reviews: [review(approved)] });
-      if (path === "/actions/pairing/begin") return ok({ batch_index: 1, snapshot_fingerprint: "sha256:s", code_expires_at: "2026-11-05T10:05:00Z", attempt_cap: 5, code_shown_on: "terminal" });
       if (path === "/actions/pairing/begin-all" && options.beginAll) return ok(options.beginAll);
       if (path === "/actions/pairing/begin-all")
         return ok({ batches: [{ batch_index: 1, snapshot_fingerprint: "sha256:s" }], skipped: [{ batch_index: 2, reason: "DEFERRED" }], code_expires_at: "2026-11-05T10:05:00Z", attempt_cap: 5, code_shown_on: options.shownOn ?? "desktop" });
@@ -124,51 +122,9 @@ describe("publish.approver", () => {
     expect(screen.getByRole("status")).toHaveTextContent("Name saved.");
     expect(screen.getByRole("button", { name: "Show a code for batch 1" })).toBeEnabled();
   });
-
-  it("names the approver in every locale", () => {
-    for (const locale of SUPPORTED_LOCALES) {
-      for (const key of ["approverTitle", "approverBody", "approverCurrent", "approverNone", "approverLabel", "approverSave", "approverSaved"] as const) {
-        expect(PUBLISH_COPY[locale][key], `${locale} ${key}`).toBeTruthy();
-      }
-      expect(PUBLISH_COPY[locale].approverCurrent, locale).toContain("{name}");
-    }
-  });
 });
 
 describe("publish approval and publish", () => {
-  it("asks the engine to print a code, sends the typed code once, clears it, then publishes", async () => {
-    const log = engine();
-    render(<ScreeningPublish locale="en" />);
-    await screen.findByText("Approve each batch, then publish the screening.");
-    expect(screen.getByRole("button", { name: "Publish the screening" })).toBeDisabled();
-
-    fireEvent.click(screen.getByRole("button", { name: "Show a code for batch 1" }));
-    await screen.findByText(/Code printed in the terminal/);
-    const begin = log.find((l) => l.path === "/actions/pairing/begin");
-    expect(begin?.body).toEqual({ batch: 1 });
-
-    const field = screen.getByLabelText("Approval code for batch 1");
-    fireEvent.change(field, { target: { value: " AB12C-DE34F " } });
-    fireEvent.click(screen.getByRole("button", { name: "Approve batch 1" }));
-    await screen.findByText("Approval on file");
-    // The UI cannot tell whether an approval on file is still current, so re-approval stays available (review 4).
-    expect(screen.getByRole("button", { name: "Approve batch 1" })).toBeInTheDocument();
-    expect(log.find((l) => l.path === "/actions/pairing/redeem")?.body).toMatchObject({ batch: 1, code: "AB12C-DE34F" });
-    expect(field).toHaveValue("");
-
-    const publish = screen.getByRole("button", { name: "Publish the screening" });
-    await waitFor(() => expect(publish).toBeEnabled());
-    fireEvent.click(publish);
-    // "Published", with the generation id behind Details (M6-beta, rule page 12).
-    const banner = await waitFor(() => {
-      const el = document.querySelector("[data-published]");
-      if (!el) throw new Error("not yet");
-      return el;
-    });
-    expect(banner).toHaveTextContent("Published");
-    expect(within(banner as HTMLElement).getByText("GEN-1").closest("details")).not.toBeNull();
-  });
-
   it("shows the engine's refusal for a wrong code", async () => {
     engine({ redeem: new Response(JSON.stringify({ detail: { code: "PAIRING_CODE_INVALID", message: "no" } }), { status: 403, headers: { "content-type": "application/json" } }) });
     render(<ScreeningPublish locale="en" />);
@@ -270,19 +226,6 @@ describe("export.link on publish", () => {
   });
 });
 
-describe("publish copy", () => {
-  it("has the same keys and holes in every locale", () => {
-    const holes = (s: string) => [...s.matchAll(/\{(\w+)\}/g)].map((m) => m[1]).sort();
-    for (const locale of SUPPORTED_LOCALES) {
-      expect(Object.keys(PUBLISH_COPY[locale]).sort()).toEqual(Object.keys(PUBLISH_COPY.en).sort());
-      for (const [key, value] of Object.entries(PUBLISH_COPY[locale])) {
-        expect(value.trim()).not.toBe("");
-        expect(holes(value), `${locale}/${key}`).toEqual(holes(PUBLISH_COPY.en[key as keyof typeof PUBLISH_COPY.en]));
-      }
-    }
-  });
-});
-
 describe("publish.details (M6-beta, spec 09 amendment)", () => {
   it("shows each check as one line; a passing check's detail and the batch file name sit behind Details", async () => {
     engine();
@@ -340,13 +283,5 @@ describe("publish.reporting", () => {
     render(<ScreeningPublish locale="en" />);
     expect(await screen.findByText("Screening preview")).toBeInTheDocument();
     expect(screen.queryByText("PRISMA 2020 screening preview")).toBeNull();
-  });
-
-  it("has the three variants in every locale", () => {
-    for (const locale of SUPPORTED_LOCALES) {
-      for (const key of ["prisma", "prismaScr", "prismaNone", "publishBodyNone"] as const) expect(PUBLISH_COPY[locale][key]).toBeTruthy();
-      // M12a DoD 9: Publish no longer says it writes a full-text list.
-      for (const key of ["publishBody", "publishBodyNone"] as const) expect(PUBLISH_COPY[locale][key]).not.toMatch(/full-text lists|texte intégral ainsi|والنص الكامل وتقرير/);
-    }
   });
 });

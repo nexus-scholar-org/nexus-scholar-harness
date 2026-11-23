@@ -4,9 +4,6 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { DiscoveryChase } from "@/components/discovery-chase";
 import { DiscoverySteps } from "@/components/discovery-frame";
-import { SUPPORTED_LOCALES } from "@/i18n";
-import { DISCOVERY_COPY } from "@/lib/discovery-copy";
-import { stateCopy } from "@/lib/screening-states";
 
 import type { ChaseRun, ChaseState } from "@/lib/discovery-api";
 
@@ -246,16 +243,5 @@ describe("discovery.chase step and copy", () => {
     render(<DiscoverySteps locale="en" origin="" chase current="chase" />);
     expect(screen.getByRole("link", { name: "8 Chase" })).toHaveAttribute("aria-current", "step");
     expect(screen.getByRole("link", { name: "8 Chase" })).toHaveAttribute("href", "/en/discovery/chase/");
-  });
-
-  it("gives every chase refusal a known card in every locale", () => {
-    for (const locale of SUPPORTED_LOCALES) {
-      for (const code of ["SCREENING_NOT_PUBLISHED", "CHASE_NOT_RUN", "CHASE_NOTHING_NEW", "CHASE_ALREADY_ACCEPTED", "CHASE_STALE", "CHASE_DIRECTION_INVALID", "CHASE_SEEDS_INVALID", "PROTOCOL_CHANGED_SINCE_PUBLISH"]) {
-        const card = stateCopy(locale, code);
-        expect(card.known, `${locale} ${code}`).toBe(true);
-        expect(card.title && card.body, `${locale} ${code}`).toBeTruthy();
-      }
-      expect(DISCOVERY_COPY[locale]["steps.chase"].startsWith("8 ")).toBe(true);
-    }
   });
 });
