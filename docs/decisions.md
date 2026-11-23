@@ -12,6 +12,31 @@ history to read if you need the original reasoning (`git log --follow -- <path>`
 | :-- | :-- | :-- |
 | 2026-11-19 — M9a: what the measurement says about the ladder gates | 2 | The minimum share of the researcher's excludes an agent must take before a rung unlocks: the principle is accepted; the researcher decided on 2026-11-20 to set the number when M9b is built. |
 | 2026-11-23 — H-gate-and-ci | 1 | The standing permission for sessions to push a work branch and open a draft pull request: not given. |
+| 2026-11-24 — M13 Part A | 1 to 4 | Whether the rest of Part A (control window, app text, entry point) is a second PR; single instance for the installed start only; the 3-second cut of open responses on Open and Stop; where a tester puts the contact e-mail until Part B. |
+
+## 2026-11-24 — M13 Part A: the launcher for an installed app (PROPOSED; items 1 to 4 for the researcher, 5 to 14 the build's choices)
+
+Record: `docs/roadmap/milestones/M13-part-a.md`. Specification: `docs/roadmap/milestones/M13-installers.md` §4.1, §4.2, §5.2 Part A. Started on the researcher's go of 2026-11-24 ("Start Part A and the workspace format version"), relayed by the coordinator session. Branch `dev/m13/part-a-launcher` from `main` `cc0e8fa1`, lane RELEASE. Built: `console/desktop.py` (the start from an icon: log file, user folders, failure messages), `console/instance.py` (one engine per user), the restart time limit, the approval window inside a bundle, the start with no console. Three known faults fixed, each with a test that failed on `cc0e8fa1`: release walk 1.1.0b7 fault 1 (Open left the engine stopped), trial build faults 3 and 4.
+
+**For the researcher to decide**
+
+1. **Part A in two pull requests.** This branch holds the engine's start path. The control window of §4.2, the app's text (about 60 lines in three languages that send the user to a terminal) and the `gui-scripts` entry point are not in it. The entry point is one line in `pyproject.toml`, which the graph removal is changing. Recommended: merge this one, and build the rest as Part A's second pull request after the graph removal merges, before Part W. The alternative is to hold this branch until all of Part A is built.
+2. **One engine per user applies to the installed start only.** `nexus-scholar ui` in a terminal still starts as many engines as asked: tests, CI, the release walk and other sessions on this PC run several at once, beside the researcher's own engine. Recommended as built. The alternative, the same rule for the terminal, would make a second `nexus-scholar ui` open the first engine's workspace instead of the one asked for.
+3. **Open and Stop cut a response still open after 3 seconds** (`RESTART_GRACE_SECONDS`). The browser's event streams then end, and a page still loading something gets an error once. The walk's fault came from exactly such a response. A discovery or recon job is already stopped when the server stops (the console's lifespan), so the time limit adds no new loss. Recommended as built (3 s). The alternative is a longer limit, which makes every Open slower when something is held.
+4. **Where a tester puts the contact e-mail until Part B.** The installed start reads `.env` from the settings folder (`%APPDATA%\Nexus Scholar\.env`), so a tester can set `SCHOLAR_MAILTO` there before Part B's screen exists. Recommended: say so only in the tester notes of the first Windows build, not in the user guide, since Part B replaces it.
+
+**Choices made in the build (for the reviewer)**
+
+5. The single-instance test is an operating-system lock held for the engine's life (`msvcrt.locking` on Windows, `flock` elsewhere), not the presence of `engine.json`. A crashed engine leaves no stale claim. A second start that finds the lock waits up to 15 s for an answer, since the first engine may be starting or restarting.
+6. `engine.json` holds a secret made for this launch, never the console token. The two instance routes (`/instance/launch-link`, `/instance/stop`) check that secret themselves and refuse any request with a browser `Origin` or `Sec-Fetch-Site` header. `create_app` takes them as `local_routes`, included before the UI mount, and its guard lets them through after the loopback host and origin checks.
+7. The search and recon caches are pointed at the user's cache folder through `SCHOLAR_CACHE_DIR` and `NEXUS_RECON_ROOT`, set only when not already set. `scholar_search/config.py` is unchanged; the settings file and keychain reading is Part B.
+8. With no standard output or error, uvicorn gets `log_config=None`. A terminal start keeps uvicorn's own output exactly as before.
+9. The log masks e-mail addresses (first letter and domain kept), launch codes, `Bearer` values and `sk-`, `sk_` and `AIza` key prefixes. Masking works per write, and the engine never prints a key.
+10. Failure messages use a Tk message window in the starting process, on its main thread before or after the server, best-effort. `NEXUS_APP_DIALOGS=0` turns them off for tests and CI. The spec's "Choose another folder in Settings" waits for Part B. Until then the message says to free space or reconnect the folder.
+11. `--approval-window` is handled by both `desktop.main` and `cli.main`, so it works whichever program Part W makes the bundle's entry.
+12. Options of the installed start: `--no-browser` (tests, CI) and `--stop`. Any other option is refused with exit code 2 and a log line.
+13. The landing page of a start from an icon is the Workspaces screen, with the most recent workspace open, as `nexus-scholar ui` without `--workspace`.
+14. Left as is: after a restart with a response open, the log holds uvicorn's "Cancel 1 running task(s)" and a `CancelledError` trace. It is harmless; ending the event streams when a stop starts would avoid it.
 
 ## 2026-11-23 — H-charting-row-layout: one line of row actions, the pinned cells carry the row (item 1 answered by the researcher 2026-11-23: keep 44 px; items 2 to 9 are the build's choices, merged with PR #305)
 

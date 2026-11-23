@@ -13,7 +13,12 @@ Rules kept here:
   elsewhere aborts the whole process), and a Tk crash on any platform must not
   take the engine down. This file imports the standard library only, and the
   child runs it in isolated mode, so it starts in well under a second instead
-  of loading the whole console package;
+  of loading the whole console package. Inside a frozen bundle (the installed
+  app, M13 Part A) ``sys.executable`` is the app, not Python, and ``-I`` is
+  not an option it knows (trial build fault 3): there the child is the app
+  itself started with :data:`CHILD_FLAG`, which the app's entry points
+  (``console/desktop.py`` and ``cli.main``) hand to :func:`run_child` before
+  anything else loads;
 * the codes reach the child on its standard input, never on its command line
   (other programs can read command lines), and are never in the window title;
 * the window names the batches and tells the researcher to close it if they
@@ -38,6 +43,8 @@ from typing import Any
 WINDOW_ENV = "NEXUS_APPROVAL_WINDOW"
 
 TITLE = "Nexus Scholar: approval"
+#: The flag that makes a frozen app run as this window (never a user-facing option).
+CHILD_FLAG = "--approval-window"
 READY, UNAVAILABLE = "ready", "unavailable"
 _START_TIMEOUT_S = 5.0
 
@@ -113,8 +120,22 @@ def _show(payload: dict[str, Any]) -> None:
 
 
 def _command() -> list[str]:
+    if getattr(sys, "frozen", False):
+        return [sys.executable, CHILD_FLAG]
     # Isolated mode: no user site, no PYTHON* variables, no script folder on the path.
     return [sys.executable, "-I", str(Path(__file__).resolve())]
+
+
+def run_child() -> int:
+    """The child's work when started with :data:`CHILD_FLAG`: the payload is on standard input."""
+    if sys.stdin is None:
+        return 1
+    try:
+        payload = json.loads(sys.stdin.read())
+    except ValueError:
+        return 1
+    _show(payload)
+    return 0
 
 
 def reveal(*, codes: str, batches: list[int], expires_at: str) -> bool:
@@ -160,4 +181,4 @@ def _first_line(child: subprocess.Popen, timeout: float) -> str:
 
 
 if __name__ == "__main__":
-    _show(json.loads(sys.stdin.read()))
+    sys.exit(run_child())

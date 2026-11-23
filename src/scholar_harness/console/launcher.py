@@ -6,6 +6,16 @@ and session secret, opens the browser on a one-time launch link, and, when the
 workspace screen asks to open another workspace, stops the server and starts a
 new one on that folder with the same port, token and session
 (`docs/architecture/workspaces-api.md` §4). Nothing else crosses a restart.
+
+The installed app (M13 Part A, `console/desktop.py`) also gives the launcher
+an `instance.Instance`: once the server answers, the launcher publishes its
+port and secret, and serves the routes a second launcher uses to ask for a
+fresh launch link or to stop this engine.
+
+A restart or a stop must not wait for the browser: uvicorn's graceful
+shutdown waits for every open connection with no time limit unless
+`timeout_graceful_shutdown` is set, and a page holding an event stream kept
+the old server alive (release walk 1.1.0b7, fault 1).
 """
 
 from __future__ import annotations
@@ -14,6 +24,7 @@ import importlib.util
 import os
 import secrets
 import socket
+import sys
 import threading
 import time
 import webbrowser
@@ -23,9 +34,12 @@ from typing import Any
 from urllib.parse import urlencode
 
 from . import browser, code_window
+from .instance import Instance
 
 UI_DIR_ENV = "NEXUS_UI_DIR"
 DEFAULT_PORT = 8770
+#: Seconds a stopping server waits for open responses (event streams) before it cancels them.
+RESTART_GRACE_SECONDS = 3
 _BUNDLE_PACKAGE = "scholar_harness_data"
 _REPO_EXPORT = Path(__file__).resolve().parents[3] / "apps" / "research-ui" / ".next-export"
 
@@ -71,6 +85,7 @@ class Launcher:
         start_on_workspaces: bool = False,
         server_factory: Callable[[Any, str, int], Any] | None = None,
         say: Callable[[str], None] = print,
+        instance: Instance | None = None,
     ):
         self.root, self.workspace, self.ui_dir = root, workspace, ui_dir
         self.host, self.port = host, port
@@ -80,7 +95,9 @@ class Launcher:
         self.session = secrets.token_urlsafe(32)
         self.codes = browser.LaunchCodes(self.session)
         self.server_factory = server_factory or _uvicorn_server
+        self.instance = instance
         self._next: Path | None = None
+        self._stopping = False
         self._server: Any = None
         self.restarts = 0
 
@@ -100,11 +117,25 @@ class Launcher:
             # Finding 38: the app may have been started for the researcher, with
             # its terminal out of sight; the codes also show in a desktop window.
             code_window=code_window.reveal,
+            local_routes=(
+                self.instance.router(launch_link=self.launch_url, stop=self.request_stop)
+                if self.instance is not None
+                else None
+            ),
         )
 
     def request_open(self, path: Path) -> None:
         """The workspaces route's restart hook: stop this server, start one on `path`."""
+        if self._stopping:
+            return
         self._next = Path(path)
+        if self._server is not None:
+            self._server.should_exit = True
+
+    def request_stop(self) -> None:
+        """Stop the engine: the running server ends and no other starts."""
+        self._stopping = True
+        self._next = None
         if self._server is not None:
             self._server.should_exit = True
 
@@ -118,33 +149,56 @@ class Launcher:
 
     def run(self) -> None:
         first = True
-        while True:
+        while not self._stopping:
             app = self.build_app(self.workspace)
             self._server = self.server_factory(app, self.host, self.port)
             if first:
                 url = self.launch_url()
                 self.say(f"Nexus Scholar is running at http://{self.host}:{self.port}/ (press Ctrl+C to stop)")
-                if self.open_browser:
-                    threading.Thread(target=self._open_when_ready, args=(url,), daemon=True).start()
-                else:
+                if not self.open_browser:
                     self.say(f"Open this one-time link in your browser: {url}")
+                if self.open_browser or self.instance is not None:
+                    threading.Thread(
+                        target=self._when_ready, args=(url if self.open_browser else None,), daemon=True
+                    ).start()
                 first = False
+            if self._stopping:  # a stop asked while the next server was being built
+                return
             self._server.run()
-            if self._next is None:
+            if self._next is None or self._stopping:
                 return
             self.workspace, self._next = self._next, None
             self.restarts += 1
             self.say(f"Opening the workspace at {self.workspace}")
 
-    def _open_when_ready(self, url: str) -> None:
+    def _when_ready(self, url: str | None) -> None:
+        """Once the first server answers: publish the instance, then open the browser."""
+        started = False
         for _ in range(200):
-            if getattr(self._server, "started", False):
+            started = bool(getattr(self._server, "started", False))
+            if started:
                 break
             time.sleep(0.05)
-        webbrowser.open(url)
+        if started and self.instance is not None:
+            self.instance.publish(self.host, self.port)
+        if url is not None:
+            webbrowser.open(url)
 
 
 def _uvicorn_server(app: Any, host: str, port: int) -> Any:
     import uvicorn
 
-    return uvicorn.Server(uvicorn.Config(app, host=host, port=port, log_level="warning"))
+    # With no console (pythonw, a windowed bundle) sys.stdout and sys.stderr are
+    # None and uvicorn's own logging set-up raises (trial build fault 4); its
+    # loggers then use whatever the process set up (the installed app's log file).
+    no_console = sys.stdout is None or sys.stderr is None
+    return uvicorn.Server(
+        uvicorn.Config(
+            app,
+            host=host,
+            port=port,
+            log_level="warning",
+            timeout_graceful_shutdown=RESTART_GRACE_SECONDS,
+            **({"log_config": None} if no_console else {}),
+        )
+    )

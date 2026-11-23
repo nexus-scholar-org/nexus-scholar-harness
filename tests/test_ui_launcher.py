@@ -155,3 +155,61 @@ def test_the_cli_refuses_without_a_bundle_or_with_a_bad_workspace(tmp_path, monk
     monkeypatch.setattr(launcher, "resolve_ui_dir", lambda: Path(tmp_path))
     bad = CliRunner().invoke(app, ["ui", "--workspace", str(tmp_path), "--root", str(tmp_path)])
     assert bad.exit_code == 1 and "Not a Nexus Scholar workspace" in bad.output
+
+
+@pytest.mark.slow
+def test_open_restarts_while_the_browser_holds_an_event_stream_open(root, ui):
+    """Release walk 1.1.0b7, fault 1: an open stream must not hold the old server forever.
+
+    uvicorn's graceful shutdown waits for every connection with no time limit
+    unless ``timeout_graceful_shutdown`` is set; a browser holding a
+    server-sent-events stream (or any response still being sent) kept the old
+    server alive, so the new one never started.
+    """
+    port = launcher.free_port("127.0.0.1", 0)
+    app_launcher = launcher.Launcher(root=root, workspace=root / "first-review", ui_dir=ui, port=port,
+                                     open_browser=False, say=lambda _: None)
+    thread = threading.Thread(target=app_launcher.run, daemon=True)
+    thread.start()
+    jar = http.cookiejar.CookieJar()
+    opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(jar))
+    base = f"http://127.0.0.1:{port}"
+    _wait(f"{base}/healthz", opener)
+    opener.open(app_launcher.launch_url(), timeout=5).read()
+    stream = opener.open(f"{base}/api/console/api/v1/events/tick", timeout=30)
+    try:
+        assert stream.readline().startswith(b"event: tick")  # the stream is live and stays open
+        request = urllib.request.Request(f"{base}/api/console/api/v1/workspaces/open",
+                                         data=json.dumps({"slug": "second-review"}).encode(),
+                                         headers={"Content-Type": "application/json", "Origin": base}, method="POST")
+        with opener.open(request, timeout=5) as response:
+            assert response.status == 202
+        meta = f"{base}/api/console/api/v1/workspace/meta"
+        deadline = time.time() + launcher.RESTART_GRACE_SECONDS + 10
+        while time.time() < deadline:
+            try:
+                if _wait(meta, opener, timeout=1)["workspace"] == str((root / "second-review").resolve()):
+                    break
+            except AssertionError:
+                pass
+        else:
+            raise AssertionError("the old server never finished shutting down while a stream was open")
+        assert app_launcher.restarts == 1
+    finally:
+        stream.close()
+        app_launcher.request_stop()
+        thread.join(timeout=15)
+    assert not thread.is_alive()
+
+
+def test_the_server_starts_with_no_standard_output_or_error(monkeypatch):
+    """Trial build fault 4: with no console, uvicorn's logging set-up raised and the engine exited."""
+    import sys
+
+    from fastapi import FastAPI
+
+    monkeypatch.setattr(sys, "stdout", None)
+    monkeypatch.setattr(sys, "stderr", None)
+    server = launcher._uvicorn_server(FastAPI(), "127.0.0.1", launcher.free_port("127.0.0.1", 0))
+    assert server.config.timeout_graceful_shutdown == launcher.RESTART_GRACE_SECONDS
+    server.config.load()  # what `Server.run` does first; raised ValueError before the fix

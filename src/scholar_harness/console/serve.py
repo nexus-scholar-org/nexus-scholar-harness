@@ -20,7 +20,7 @@ from collections.abc import Callable, Iterable
 from pathlib import Path
 from typing import Any
 
-from fastapi import FastAPI, Request
+from fastapi import APIRouter, FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
@@ -145,6 +145,7 @@ def create_app(
     launch_codes: browser.LaunchCodes | None = None,
     ui_dir: str | Path | None = None,
     code_window: Callable[..., bool] | None = None,
+    local_routes: APIRouter | None = None,
 ) -> FastAPI:
     """Build the console app for one workspace.
 
@@ -168,6 +169,12 @@ def create_app(
     approval codes in a window on this computer's desktop, for a researcher
     who cannot see the terminal (finding 38). The codes still never travel
     over HTTP.
+
+    ``local_routes`` (the installed app's launcher, M13 Part A) are the
+    instance routes a second launcher on this computer uses
+    (``console/instance.py``). They pass the loopback host and origin checks
+    here and then check their own secret, never the console token; they are
+    not served under the browser prefix.
     """
     # ``None``: no workspace open yet (``nexus-scholar ui`` on an empty root).
     # Then only the workspaces routes, the static UI and /healthz answer.
@@ -216,6 +223,7 @@ def create_app(
         raise ValueError(f"not a static UI export (no en/): {ui_root}")
     hosts = frozenset(trusted_hosts if trusted_hosts is not None else _DEFAULT_HOSTS)
     expected = f"Bearer {token}".encode() if token else None
+    local_prefix = local_routes.prefix if local_routes is not None else None
     # Phone-scoped tokens (contract §4, §6). M2's `/lan/pair` adds to this set;
     # tests pass them in. A phone token reaches only `_PHONE_ROUTES`.
     app.state.phone_tokens = {t for t in (phone_tokens or ()) if t}
@@ -237,6 +245,8 @@ def create_app(
             )
         request.state.token_scope = "desktop"
         path = request.url.path
+        if local_prefix and (path == local_prefix or path.startswith(local_prefix + "/")):
+            return await call_next(request)  # the route checks its own secret (console/instance.py)
         if path.startswith(browser.BROWSER_PREFIX + "/") or path == browser.BROWSER_PREFIX:
             if browser_session is None:
                 return _refusal(404, "CONSOLE_PATH_REFUSED", "the browser surface is served only by `nexus-scholar ui`")
@@ -289,6 +299,8 @@ def create_app(
     app.include_router(pipelines_api.router)
     app.include_router(audit_api.router)
     app.include_router(streams_api.router)
+    if local_routes is not None:
+        app.include_router(local_routes)  # before the UI mount at "/", which would answer first
 
     @app.get("/healthz")
     def healthz() -> dict[str, str]:

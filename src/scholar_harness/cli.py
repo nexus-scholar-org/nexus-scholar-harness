@@ -1662,6 +1662,11 @@ def ui(
 
 
 def main():
+    # A frozen app starts its approval-code window as itself with this flag (M13 Part A).
+    from .console import code_window
+
+    if sys.argv[1:2] == [code_window.CHILD_FLAG]:
+        return code_window.run_child()
     app()
 
 
