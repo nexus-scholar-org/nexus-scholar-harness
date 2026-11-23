@@ -1,5 +1,5 @@
 # H-charting-focus-fault: after Ctrl+Down the next study sometimes opened with the focus nowhere
-Branch: dev/h/charting-focus-fault (from `origin/main` `21a4e6a3`) · Lane: **STANDARD** · Status: READY FOR PR, not pushed (`milestone-reviewer` APPROVE, round 2) · Started: 2026-11-22
+Branch: dev/h/charting-focus-fault (from `origin/main` `21a4e6a3`) · Lane: **STANDARD** · Status: **MERGED 2026-11-23** (PR 293, `main` `ac6d29d8`; `milestone-reviewer` APPROVE, round 2) · Started: 2026-11-22
 
 **Lane.** STANDARD, from `docs/architecture/test_gate_policy.md` ("a bounded behavior … change owned by one repository"): the keyboard focus of one screen (the charting one-study view) and one browser test. No contract, API, route, persisted file, copy or spec change. Gates: the repeat run of the failing browser test, `tsc`, the charting vitest files, then the `pr` set once on the final executable commit.
 

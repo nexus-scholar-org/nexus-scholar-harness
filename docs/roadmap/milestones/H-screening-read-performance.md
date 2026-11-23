@@ -1,6 +1,6 @@
 # H-screening-read-performance
 
-Status: **BUILT 2026-11-23, READY FOR PR, not pushed** (branch `dev/h/screening-read-performance`; see "Build 2026-11-23" below). Specification: questions 1 to 5 answered by the researcher on 2026-11-22, each as recommended; amended 2026-11-23. Lane: **RELEASE** (question 2: results are kept between requests, a store in front of the checks that guard publication).
+Status: **BUILT 2026-11-23; items 6 to 23 accepted by the researcher the same day; push, PR and merge at 12 of 12 approved** (branch `dev/h/screening-read-performance`; see "Build 2026-11-23" below). Specification: questions 1 to 5 answered by the researcher on 2026-11-22, each as recommended; amended 2026-11-23. Lane: **RELEASE** (question 2: results are kept between requests, a store in front of the checks that guard publication).
 
 Findings it answers: 47 (`docs/roadmap/acceptance-run-sensor-stress-2026-11-20.md`), and the researcher's own reading that the engine, not the page, is slow.
 
@@ -219,3 +219,23 @@ Repaired in `a4119db2`: (1) a request is shared only between readers that start 
 Round 2 on `1fbf5088..ede125c2`: **CHANGES, documentation only**: findings 1, 2, 4 and 5 resolved (1 and 2 re-reproduced against the repairs: two requests and the later answer; ACCEPTED 2/0/2 as the old path), 6 a follow-up; finding 3 open until this section existed and DoD 6 and 9's fixture-only measurement was an explicit deferral (now decision item 23, PROPOSED).
 
 Round 3 on `ede125c2..99c5a685` (documentation only): **APPROVE**. Two wording follow-ups ("What was built" item 6 and DoD 3) were applied after it. Before merge the researcher answers decision items 6 to 23, including item 11's known limit and item 23's deferral.
+
+## Measured on a copy of the review, 2026-11-23
+
+By the main session, at the researcher's word, on the copy of the sensor-stress review made for the profile of 2026-11-22 (589 files; the copy was unchanged after each run). One process per commit, an in-process test client, each route called three times in the order listed, so a later route may find results an earlier one left in the store. Times in ms, on the researcher's PC, one run.
+
+| Route | `main` `ac6d29d8` | Build `154da1a2` | Answer |
+| :-- | :-- | :-- | :-- |
+| `GET /review/next-step` | 6370, 4177, 4333 | 911, 140, 139 | equal apart from `computed_at` |
+| `GET /ui/publication-status` | 2523, 2593, 2539 | 32, 29, 29 | byte-identical |
+| `GET /screening/prisma/preview` | 2711, 2723, 3326 | 313, 88, 94 | byte-identical |
+| `GET /screening/corpus` | 2081, 1635, 1483 | 31, 32, 31 | byte-identical |
+| `GET /screening/summary` | 532, 617, 542 | 32, 30, 32 | byte-identical |
+| `GET /screening/agreement` | 374, 358, 357 | 223, 202, 202 | byte-identical |
+| `GET /screening/ui/batches` | 1233, 277, 265 | 225, 220, 226 | byte-identical |
+| `GET /screening/settings` | 5, 4, 4 | 5, 3, 3 | byte-identical |
+| `GET /screening/decisions/conflicts` | 164, 167, 161 | 49, 44, 46 | byte-identical |
+| `GET /charting` | 3165, 2796, 2763 | 82, 78, 147 | 1,281,396 to 723,525 bytes; the only difference is `abstract` absent from the 443 rows |
+| `GET /discovery/checks` | 1691, 1273, 1373 | 226, 188, 190 | equal apart from `computed_at` |
+
+Not measured there: files opened per call, `/workspaces`, `/charting/records/{id}`, the pages in a browser, a first call of the publication status with an empty store. DoD 6 and 9's page tables remain the generated fixture's.

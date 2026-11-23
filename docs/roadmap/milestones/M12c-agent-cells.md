@@ -20,7 +20,16 @@ What this changes below, to be written out before M12c-2 is built (the sections 
 - "The methods text": it says each paper was read twice and what a disagreement led to.
 - Risk 1 (anchoring) is unchanged: every value is still shown before the researcher's reading.
 
-Still open (decision items 2 to 5 of that entry): what counts as a disagreement per column type; what is shown; the same model and prompt or not; the MCP path, where the app cannot make a client read twice.
+Items 2 to 5 of that entry were answered on 2026-11-23 (below).
+
+## Amendment 2026-11-23: the second reading, items 2 to 5
+
+Asked in the main session, one question per item. Decision: `docs/decisions.md`, "2026-11-23 — M12c agent-proposed cells: the second reading, items 2 to 5". The sections below are still not rewritten; this is what they must say before M12c-2 is built.
+
+- **Disagreement, by column type (item 2).** List and yes/no columns: different options. Numbers: different after units and format are normalised. Free text: never compared automatically; both shown, flagged only when one reading says "not reported" and the other gives a value. "Not reported" against a value is a disagreement for every type.
+- **What is shown (item 3).** Agreed: one proposal marked "two readings agree", both quotes available. Disagreed: both values side by side with their quotes and a flag. Agreement is named as agreement between two readings, never as correctness, on the screen, in the counts and in the methods text.
+- **A different model reads second (item 4).** Chosen on the run screen. Consent, estimate and both ceilings name each reading's model, provider and spend. M12c-eval runs both models. To confirm before M12c-2: whether a second model of the same provider is enough, and what happens when only one model is available.
+- **MCP (item 5).** One reading is accepted and labelled "one reading"; a second, sent by the client as a separate run, is compared by the same rule. The methods text states how many cells had one reading. The app knows the model only as the client declares it.
 
 ## Goal
 
