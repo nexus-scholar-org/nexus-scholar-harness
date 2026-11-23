@@ -31,7 +31,7 @@ Record: `docs/roadmap/milestones/H-close-side-doors.md`. The work is the researc
 8. The provider and model check runs first, then the ceiling check (only for a request that can spend: a run, a dry run, a calibration); both before any state is read or written.
 9. Tests that relied on the run defaults send them explicitly through one constant (`RUN` in `tests/console/test_screening_api_v1.py`); their assertions are unchanged.
 10. The route's own tests are deleted with it; the two tests that used it to set up a draft write the same file shape directly, so the collector's reading of it stays tested.
-11. `LLMBatchScreener` (scholar_search) and `build_checklist_schema` (scholar_agent) lose the removed tool as a caller; not removed here.
+11. `LLMBatchScreener` (scholar_search) loses its only caller outside its module; not removed here.
 
 ## 2026-11-23 — Findings 45, 46, 48 and 50 to 53 of the sensor-stress run: what is done with each (answered by the researcher 2026-11-23)
 
