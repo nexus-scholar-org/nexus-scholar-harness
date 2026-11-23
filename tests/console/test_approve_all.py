@@ -185,6 +185,7 @@ def _journal(ws: Path) -> list[dict]:
     return [json.loads(line) for line in (ws / "audit" / "journal.jsonl").read_text(encoding="utf-8").splitlines()]
 
 
+@pytest.mark.slow  # H-faster-python-tests-2: 30 s in the one-process timing pass of 2026-11-23.
 def test_finding_38_one_action_approves_54_decided_batches(tmp_path, capsys):
     """Reproduction: 54 decided batches of 20 needed 54 begin calls and 54 typed codes.
 

@@ -8,6 +8,7 @@ The workspace is the published screening of ``tests/console/test_export_api.py``
 from __future__ import annotations
 
 import asyncio
+import hashlib
 import importlib.util
 import json
 from pathlib import Path
@@ -118,6 +119,24 @@ def build_ws(tmp_path: Path, ids: str = "doi+openalex") -> Path:
     ``doi`` or ``none``), so a test never edits a published output afterwards
     (a changed output makes the generation STALE, which the chase refuses).
     """
+    from support.workspaces import copy_of
+
+    key = (
+        "citation_chase.build_ws",
+        ids,
+        hashlib.sha256(tea.se.PROTOCOL.read_bytes()).hexdigest(),
+        tea.se.WS_ID,
+        tea.se.SCREENER,
+    )
+    # H-faster-python-tests-2: built once per process and copied (tests/support/workspaces.py).
+    # The four identifiers below are the same for every copy, so they travel with the template.
+    workspace, seeds = copy_of(key, lambda folder: _build_ws_fresh(folder, ids), tmp_path)
+    global W_INCLUDE, DOI_INCLUDE, DOI_EXCLUDED, W_EXCLUDED
+    W_INCLUDE, DOI_INCLUDE, DOI_EXCLUDED, W_EXCLUDED = seeds
+    return workspace
+
+
+def _build_ws_fresh(tmp_path: Path, ids: str) -> tuple[Path, tuple]:
     tmp_path.mkdir(parents=True, exist_ok=True)
     workspace = tea.se._build(tmp_path)
     tea.decide(workspace)
@@ -133,13 +152,15 @@ def build_ws(tmp_path: Path, ids: str = "doi+openalex") -> Path:
                     "external_ids": eids, "authors": [{"family_name": "Reviewer"}]})
     (workspace / "literature" / "verified.json").write_text(json.dumps(rows), encoding="utf-8")
     tea.publish(workspace)
-    global W_INCLUDE, DOI_INCLUDE, DOI_EXCLUDED, W_EXCLUDED
     included = json.loads((workspace / "literature" / "included.json").read_text(encoding="utf-8"))
     seed = next(r for r in included if r["screening"]["decision"] == "INCLUDE")
-    W_INCLUDE, DOI_INCLUDE = seed["external_ids"].get("openalex_id"), seed["external_ids"].get("doi")
     excluded = json.loads((workspace / "literature" / "excluded.json").read_text(encoding="utf-8"))
-    DOI_EXCLUDED, W_EXCLUDED = excluded[0]["external_ids"].get("doi"), excluded[0]["external_ids"].get("openalex_id")
-    return workspace
+    return workspace, (
+        seed["external_ids"].get("openalex_id"),
+        seed["external_ids"].get("doi"),
+        excluded[0]["external_ids"].get("doi"),
+        excluded[0]["external_ids"].get("openalex_id"),
+    )
 
 
 @pytest.fixture

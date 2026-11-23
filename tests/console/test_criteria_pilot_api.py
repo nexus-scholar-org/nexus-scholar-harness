@@ -12,6 +12,7 @@ The workspace has 60 records in three batches (criteria INC-01 and EXC-01).
 
 from __future__ import annotations
 
+import hashlib
 import json
 import uuid
 from datetime import UTC, datetime
@@ -39,6 +40,26 @@ RECORDS = 60
 
 
 def _workspace(root: Path, *, records: int = RECORDS, prepare: bool = True) -> Path:
+    """A pilot workspace under ``root``: a copy of one built once per process.
+
+    H-faster-python-tests-2: ``tests/support/workspaces.py``. The key holds every
+    input the build reads (the protocol file's content included). A test that
+    compares workspaces built apart calls ``_workspace_fresh``.
+    """
+    from support.workspaces import copy_of
+
+    key = (
+        "criteria_pilot._workspace",
+        records,
+        prepare,
+        hashlib.sha256(api.PROTOCOL.read_bytes()).hexdigest(),
+        WS_ID,
+    )
+    ws, _ = copy_of(key, lambda folder: (_workspace_fresh(folder, records=records, prepare=prepare), None), root)
+    return ws
+
+
+def _workspace_fresh(root: Path, *, records: int = RECORDS, prepare: bool = True) -> Path:
     ws = root / "ws"
     ws.mkdir(parents=True)
     (ws / "project.json").write_text(json.dumps({"project_id": "pilot", "registered_workspace_id": WS_ID}), encoding="utf-8")
@@ -165,14 +186,16 @@ def test_dod11_a_draw_writes_the_file_and_one_journal_row(ws, client):
 
 
 def test_dod11_the_same_seed_on_the_same_snapshot_gives_the_same_list(tmp_path):
-    first = _workspace(tmp_path / "a")
-    second = _workspace(tmp_path / "b")
+    # Built apart, not copied: two copies of one template would share every stamp and id,
+    # and the same list would then say nothing about the seed.
+    first = _workspace_fresh(tmp_path / "a")
+    second = _workspace_fresh(tmp_path / "b")
     a = pl.draw(first, n=20, confirm=True, drawn_by="r", seed=12345)
     b = pl.draw(second, n=20, confirm=True, drawn_by="r", seed=12345)
     list_a = [r["study_id"] for r in pl.read_draw(first, a["pilot_id"])["records"]]
     list_b = [r["study_id"] for r in pl.read_draw(second, b["pilot_id"])["records"]]
     assert list_a == list_b and len(set(list_a)) == 20
-    third = _workspace(tmp_path / "c")
+    third = _workspace_fresh(tmp_path / "c")
     other = pl.draw(third, n=20, confirm=True, drawn_by="r", seed=54321)
     assert [r["study_id"] for r in pl.read_draw(third, other["pilot_id"])["records"]] != list_a
 

@@ -13,6 +13,23 @@ history to read if you need the original reasoning (`git log --follow -- <path>`
 | 2026-11-19 — M9a: what the measurement says about the ladder gates | 2 | The minimum share of the researcher's excludes an agent must take before a rung unlocks: the principle is accepted; the researcher decided on 2026-11-20 to set the number when M9b is built. |
 | 2026-11-23 — H-gate-and-ci | 1 | The standing permission for sessions to push a work branch and open a draft pull request: not given. |
 
+## 2026-11-23 — H-faster-python-tests-2: two more workspace templates, six slow marks, no kept temporary folders (go-ahead by the researcher 2026-11-23; built; items 1 to 3 PROPOSED)
+
+Record: `docs/roadmap/milestones/H-faster-python-tests-2.md`. Items 1, 2 and 4 of "What is left" in the test-suite review's update of 2026-11-23, which the researcher told the review session to build ("Yes, build them"). Test code and one pytest setting; no product code.
+
+**For the researcher to decide**
+
+1. **The scaffold-based console fixtures stay as they are** (the discovery, next-step, harvest-preparation, workbench and proposal fixtures). The review named them for templates; measured, a copy saves about 0.1 s a test (0.18 s fresh, 0.075 s copied), and a scaffolded review records its own folder in `.mcp.json` and in its journal, so a copy would point back at the template. Proposed: leave them; the remaining cost is the scaffold's own (product code).
+2. **Six tests leave the inner gates** (marked slow, 7 to 30 s each): the 54-batch approve-all test, the critic test that reads every document, two golden recon tests and two golden search tests. Checkpoint, PR and full runs keep them. The cost: an edit that breaks one of them is seen at the checkpoint, not after each edit.
+3. **A passing test's temporary folder is no longer kept** (`tmp_path_retention_policy = "failed"`). The cost: after a green run there is nothing to inspect by hand; a failed test's folder is still kept.
+
+**Choices made in the build (for the reviewer)**
+
+4. Template keys hold every input the builders read: the pilot's record count and `prepare`, the chase's `ids`, the protocol file's content, `WS_ID`, and for the chase `SCREENER`.
+5. `test_dod11_the_same_seed_on_the_same_snapshot_gives_the_same_list` keeps fresh builds: it compares two workspaces built apart.
+6. `build_ws`'s four module globals travel with the template (the fresh builder returns them; they are set after each copy).
+7. The retention setting was kept on the evidence of one file run four times and one full run each way (522 s off, 489 s on, 5,405 results, none failed, both).
+
 ## 2026-11-23 — H-gate-and-ci: the local gate runs what a change touched, CI runs everything, one full suite at a time (chosen by the researcher 2026-11-23; items 2 to 13 accepted as built 2026-11-23; item 1 open)
 
 **Answered 2026-11-23.** The researcher accepted the build's items as built ("Yes to all", relayed by the coordinator session) and approved merging the pull request when CI is green. Item 1, the standing push permission, was not given by name and stays open; until it is, the coordinator pushes on the researcher's word.
