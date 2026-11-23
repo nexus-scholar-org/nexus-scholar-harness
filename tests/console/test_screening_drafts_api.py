@@ -25,7 +25,7 @@ import pytest
 import test_screening_api_v1 as api
 from fastapi.testclient import TestClient
 from test_agent_runs_api import CONSENT, FakeDriver
-from test_screening_api_v1 import BASE, DESKTOP, PHONE, _event, _post, _studies
+from test_screening_api_v1 import BASE, RUN, DESKTOP, PHONE, _event, _post, _studies
 
 from scholar_harness.console import create_app
 from scholar_harness.console.refusals import CONSOLE_REFUSALS
@@ -253,7 +253,7 @@ def test_an_agent_run_derives_under_the_amended_policy(tmp_path, monkeypatch):
     ws = _workspace_with_block(tmp_path, monkeypatch)
     client = _client(ws, FakeDriver())
     assert _amend(client, "not_reported", "decisive_first").status_code == 200
-    started = client.post(f"{BASE}/proposals/runs", json={"consent": CONSENT}).json()
+    started = client.post(f"{BASE}/proposals/runs", json={**RUN, "consent": CONSENT}).json()
     assert client.get(f"{BASE}/proposals/runs/{started['run_id']}").json()["state"] == "completed"
     assert {p["not_reported_policy"] for p in pr.read_proposals(ws)} == {"decisive_first"}
 
@@ -266,7 +266,7 @@ def test_the_setup_names_the_last_model_used_and_a_run_says_whether_it_is_a_batc
     client = _client(ws)
     setup = client.get(f"{BASE}/proposals/setup").json()
     assert setup["last_model"] is None
-    started = client.post(f"{BASE}/proposals/runs", json={"consent": CONSENT, "model": "claude-haiku-5-5"}).json()
+    started = client.post(f"{BASE}/proposals/runs", json={**RUN, "consent": CONSENT, "model": "claude-haiku-5-5"}).json()
     setup = client.get(f"{BASE}/proposals/setup").json()
     assert setup["last_model"] == {"provider": "anthropic", "model": "claude-haiku-5-5"}
     view = client.get(f"{BASE}/proposals/runs/{started['run_id']}").json()

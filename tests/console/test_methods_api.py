@@ -170,25 +170,43 @@ def test_agent_use_consent_blinding_history_reveal_and_queue_order(tmp_path):
     assert f"Records were presented in agent-uncertainty order from {order_date}." in paragraph
     assert body["figures"]["queue_order"]["at_publish"] == "agent_uncertainty"
     assert f"Queue order: not recorded before {order_date}." in body["not_stated"]
-    assert "The AI-agreed-exclusion setting was off." in paragraph
+    # H-close-side-doors: the AI-agreed-exclusion setting is no longer stated.
+    assert "AI-agreed" not in paragraph
+    assert "mode" not in body["figures"]
 
 
-def test_ai_agreed_exclusion_setting_is_stated_with_its_date_and_sample(tmp_path):
+def test_a_stored_ai_agreed_exclusion_setting_is_not_stated(tmp_path):
+    """A workspace that turned the setting on before it was refused: nothing acted
+    on it, so the methods text does not claim it and the settings read "every record"."""
+    from scholar_harness.workspace.audit import append_event
+
     ws = se._build(tmp_path)
-    client = client_for(ws)
-    response = client.put(
-        f"{BASE}/settings",
-        json={"mode": "ai_agreed_exclusion", "sample_audit_size": 25, "confirm_ai_agreed_exclusion": True},
+    settings = ws / "literature" / "screening" / "settings.json"
+    stored = json.loads(settings.read_text(encoding="utf-8")) if settings.is_file() else {}
+    settings.write_text(
+        json.dumps({**stored, "mode": "ai_agreed_exclusion", "sample_audit_size": 25}), encoding="utf-8"
     )
-    assert response.status_code == 200, response.text
+    append_event(
+        ws,
+        "SCREENING_SETTINGS_CHANGED",
+        "Changed screening settings: mode=ai_agreed_exclusion, sample_audit_size=25",
+        agent="scholar-harness/console",
+        outputs=["literature/screening/settings.json"],
+        parameters={
+            "before": {"mode": "human_sees_every_record", "sample_audit_size": None},
+            "after": {"mode": "ai_agreed_exclusion", "sample_audit_size": 25},
+        },
+        refresh_index=False,
+    )
+    client = client_for(ws)
+    assert client.get(f"{BASE}/settings").json()["mode"] == "human_sees_every_record"
     decide(ws)
     publish(ws)
     body = _methods(ws)
     _assert_numbers_trace(body)
     _assert_no_forbidden(body["paragraph"])
-    assert re.search(
-        r"The AI-agreed-exclusion setting was on from \d{4}-\d{2}-\d{2}, with a sample check of 25\.", body["paragraph"]
-    )
+    assert "AI-agreed" not in body["paragraph"]
+    assert "mode" not in body["figures"]
 
 
 def test_methods_source_missing_without_prisma_report(tmp_path):
@@ -337,8 +355,8 @@ def _evidence_methods(tmp_path: Path) -> dict:
 
 def test_no_op_settings_rows_are_not_repeated(tmp_path):
     paragraph = _evidence_methods(tmp_path)["paragraph"]
-    assert paragraph.count("The AI-agreed-exclusion setting was") == 1
-    assert "The AI-agreed-exclusion setting was off." in paragraph
+    # H-close-side-doors: the AI-agreed-exclusion setting is no longer stated at all.
+    assert "AI-agreed" not in paragraph
     # Blinding really changed (hidden, shown, hidden, shown): each change once, no show-to-show row.
     assert paragraph.count("Drafts were shown before the decision from 2026-11-06.") == 1
 

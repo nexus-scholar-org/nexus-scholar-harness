@@ -21,7 +21,7 @@ import pytest
 import test_screening_api_v1 as api
 from fastapi.testclient import TestClient
 from test_agent_runs_api import CONSENT, FakeDriver
-from test_screening_api_v1 import BASE, DESKTOP, PHONE, _event, _post, _studies
+from test_screening_api_v1 import BASE, RUN, DESKTOP, PHONE, _event, _post, _studies
 
 from scholar_harness.console import create_app
 from scholar_harness.console.refusals import CONSOLE_REFUSALS
@@ -147,7 +147,7 @@ def test_dod2_every_reader_takes_the_amended_wording(ws, client, monkeypatch):
         return real(protocol, **kw)
 
     monkeypatch.setattr(pg, "run_spec", spy)
-    estimate = client.post(f"{BASE}/proposals/runs", json={
+    estimate = client.post(f"{BASE}/proposals/runs", json={**RUN,
         "provider": "anthropic", "model": "claude-haiku-5-5", "effort": "low", "estimate_only": True,
         "scope": {"study_ids": [study]}})
     assert estimate.status_code == 200, estimate.text
@@ -616,7 +616,7 @@ def test_dod9_calibration_and_queue_order_leave_earlier_drafts_out(ws, client):
 def test_dod9_an_agent_run_stamps_its_drafts_with_the_version_in_force(ws, client):
     _ok(_amend(client, "add", "exclusion", text="Simulation-only studies"))
     study = _studies(client)[0]
-    response = client.post(f"{BASE}/proposals/runs", json={
+    response = client.post(f"{BASE}/proposals/runs", json={**RUN,
         "provider": "anthropic", "model": "claude-haiku-5-5", "effort": "low",
         "scope": {"study_ids": [study]}, "consent": CONSENT})
     assert response.status_code == 200, response.text

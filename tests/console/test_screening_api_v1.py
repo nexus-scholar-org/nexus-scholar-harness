@@ -30,6 +30,11 @@ ROOT = Path(__file__).resolve().parents[2]
 PROTOCOL = ROOT / "tests" / "kits" / "protocol" / "fixtures" / "canonical" / "identity_base.json"
 WS_ID = "WSP-" + "d" * 32
 BASE = "/api/v1/screening"
+
+#: H-close-side-doors: a run names its provider and model and states its ceiling
+#: (``null`` = none); these were the defaults the request used to fill in.
+RUN = {"provider": "anthropic", "model": "claude-opus-5-5", "cost_ceiling_usd": None}
+
 DESKTOP, PHONE = "desktop-token", "phone-token"
 PROMPT = "sha256:" + "0" * 64
 
@@ -226,16 +231,24 @@ def test_required_6_unclear_counted_in_the_prisma_preview(client):
     assert all(check["ok"] for check in preview["checks"])
 
 
-def test_settings_change_is_journaled_and_ai_exclusion_needs_confirmation(client, ws):
+def test_settings_change_is_journaled_and_ai_exclusion_is_refused(client, ws):
     assert client.get(f"{BASE}/settings").json()["blinding"] == "reveal_after_decision"
-    refused = client.put(f"{BASE}/settings", json={"mode": "ai_agreed_exclusion"})
-    assert refused.status_code == 422
-    ok = client.put(
-        f"{BASE}/settings",
-        json={"mode": "ai_agreed_exclusion", "sample_audit_size": 40, "confirm_ai_agreed_exclusion": True},
-    )
-    assert ok.json()["mode"] == "ai_agreed_exclusion"
-    rows = [json.loads(line) for line in (ws / "audit" / "journal.jsonl").read_text(encoding="utf-8").splitlines()]
+    journal = ws / "audit" / "journal.jsonl"
+    before = journal.read_bytes()
+    # H-close-side-doors: refused with or without the confirmation, and nothing is recorded.
+    for body in (
+        {"mode": "ai_agreed_exclusion"},
+        {"mode": "ai_agreed_exclusion", "sample_audit_size": 40, "confirm_ai_agreed_exclusion": True},
+    ):
+        refused = client.put(f"{BASE}/settings", json=body)
+        assert refused.status_code == 422
+        assert "not available" in refused.json()["detail"]["message"]
+    assert journal.read_bytes() == before
+    assert client.get(f"{BASE}/settings").json()["mode"] == "human_sees_every_record"
+    ok = client.put(f"{BASE}/settings", json={"sample_audit_size": 40})
+    assert ok.status_code == 200
+    assert ok.json()["mode"] == "human_sees_every_record"
+    rows = [json.loads(line) for line in journal.read_text(encoding="utf-8").splitlines()]
     assert rows[-1]["action"] == "SCREENING_SETTINGS_CHANGED"
 
 
@@ -729,3 +742,19 @@ def test_f2_nothing_prepared_reports_no_protocol_change(tmp_path):
     _amend_protocol(ws)
     c = TestClient(create_app(ws, token=DESKTOP), base_url="http://127.0.0.1", headers={"Authorization": f"Bearer {DESKTOP}"})
     assert c.get(f"{BASE}/summary").json()["protocol_changed"] is False
+
+
+def test_a_settings_save_journals_the_stored_mode_it_replaces(client, ws):
+    """H-close-side-doors: a workspace that stored "ai_agreed_exclusion" reads as
+    "every record", but the row of the save that overwrites it names what the file held."""
+    settings = ws / "literature" / "screening" / "settings.json"
+    stored = json.loads(settings.read_text(encoding="utf-8")) if settings.is_file() else {}
+    settings.write_text(json.dumps({**stored, "mode": "ai_agreed_exclusion"}), encoding="utf-8")
+    assert client.get(f"{BASE}/settings").json()["mode"] == "human_sees_every_record"
+    saved = client.put(f"{BASE}/settings", json={"mode": "human_sees_every_record"})
+    assert saved.status_code == 200
+    row = json.loads((ws / "audit" / "journal.jsonl").read_text(encoding="utf-8").splitlines()[-1])
+    assert row["action"] == "SCREENING_SETTINGS_CHANGED"
+    assert row["parameters"]["before"] == {"mode": "ai_agreed_exclusion"}
+    assert row["parameters"]["after"] == {"mode": "human_sees_every_record"}
+    assert json.loads(settings.read_text(encoding="utf-8"))["mode"] == "human_sees_every_record"

@@ -92,6 +92,9 @@ def test_writes_follow_the_allowlist_and_need_this_origin(ws, ui):
     same = {"Origin": "http://127.0.0.1:8765"}
     job = client.post("/api/console/api/v1/jobs", json={}, headers=same)
     assert (job.status_code, job.json()["detail"]["code"]) == (405, "CONSOLE_METHOD_REFUSED")
+    # H-close-side-doors: the old batch decisions writer is not reachable from the browser.
+    old = client.post("/api/console/api/v1/screening/batch/1/decisions", json={"decisions": []}, headers=same)
+    assert (old.status_code, old.json()["detail"]["code"]) == (405, "CONSOLE_METHOD_REFUSED")
     foreign = client.post("/api/console/api/v1/workspaces", json={"title": "x"}, headers={"Origin": "http://127.0.0.1:3000"})
     assert (foreign.status_code, foreign.json()["detail"]["code"]) == (403, "CONSOLE_ORIGIN_REFUSED")
     created = client.post("/api/console/api/v1/workspaces", json={"title": "Second"}, headers=same)

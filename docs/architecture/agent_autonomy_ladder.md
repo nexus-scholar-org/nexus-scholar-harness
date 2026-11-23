@@ -31,9 +31,9 @@ human decision.
 | Agent runs | In-app runs on the researcher's key with consent, estimate, cost ceiling, cancel; MCP driver writes proposals the same way. | `src/scholar_harness/screening/agent_runs.py` |
 | Calibration | A run of kind `calibration` over records the researcher already decided; answers `include_recall`, `ci_low`, `missed_includes`, `compared`, marked advisory. | `agent_runs.py:590`, route `POST /screening/proposals/calibrations` |
 | Agreement | The researcher's decisions beside the drafts, counting only decisions made before the reveal; the 2x2 table and the splits. | `GET /screening/agreement` |
-| Modes | Settings hold `mode` = `human_sees_every_record` or `ai_agreed_exclusion` (needs a typed confirmation and `sample_audit_size`). **No code reads the mode**: it changes nothing in the queue or the intake. It is only reported in the methods paragraph (`export.py:846`). | `console/api/screening_v1.py:39-42, 411-422` |
+| Modes | Settings hold `mode` = `human_sees_every_record`; `ai_agreed_exclusion` is refused since 2026-11-23 (H-close-side-doors; before, it needed a typed confirmation and `sample_audit_size`). **No code reads the mode**: it changes nothing in the queue or the intake. It was only reported in the methods paragraph, until 2026-11-23. | `console/api/screening_v1.py` (`put_settings`, `load_settings`) |
 | PRISMA checks | `human_provenance` (every winner is HUMAN), open conflicts, bound to current protocol, every record decided, projections current. | `screening_v1.py:678-706` |
-| Methods paragraph | States one reviewer screened every record, the blinding, the queue order, and whether the AI-agreed-exclusion setting was on. | `src/scholar_harness/screening/export.py` |
+| Methods paragraph | States one reviewer screened every record, the blinding and the queue order. (It stated the AI-agreed-exclusion setting until 2026-11-23, H-close-side-doors.) | `src/scholar_harness/screening/export.py` |
 
 So the second mode exists in name only. This proposal replaces it with modes
 that do something, and gates them.

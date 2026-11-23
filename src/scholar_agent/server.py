@@ -540,9 +540,9 @@ def nexus_screen(
     input_path: str, protocol_path: str, output_dir: str = "./literature"
 ) -> str:
     """
-    Screen candidate literature against protocol inclusion/exclusion criteria.
-    Outputs included.json, excluded.json, conflicts.json, prisma_report.json,
-    and prisma_screening_report.md.
+    Screen candidate literature against protocol inclusion/exclusion criteria
+    with the keyword heuristic. Writes proposals only
+    (``screening_proposals.json``), never a decision or a partition file.
     """
     input_path = _resolve_path(input_path) or input_path
     protocol_path = _resolve_path(protocol_path) or protocol_path
@@ -570,86 +570,11 @@ def nexus_screen(
         return f"Error during screening: {e}"
 
 
-@mcp.tool()
-def nexus_screen_llm(
-    input_path: str,
-    protocol_path: str,
-    output_dir: str = "./literature",
-    api_key: str = None,
-    model: str = "gemini-2.0-flash",
-    batch_size: int = 20,
-    temperature: float = 0.1,
-) -> str:
-    """LLM-enhanced PRISMA screening using a checklist-based Gemini prompt.
-
-    Sends documents to the LLM in batches with a structured boolean checklist
-    derived from the protocol's inclusion/exclusion criteria.  Each document
-    receives an INCLUDE/EXCLUDE verdict backed by per-criterion booleans.
-
-    If the LLM call fails (network, rate-limit, auth), the tool transparently
-    falls back to the same heuristic screening used by ``nexus_screen``.
-
-    Outputs: ``included.json``, ``excluded.json``, ``conflicts.json``,
-    ``prisma_report.json``, ``prisma_screening_report.md`` in *output_dir*.
-    """
-    input_path = _resolve_path(input_path) or input_path
-    protocol_path = _resolve_path(protocol_path) or protocol_path
-    output_dir = _resolve_path(output_dir) or output_dir
-
-    inp = Path(input_path)
-    proto = Path(protocol_path)
-    if not inp.exists():
-        return json.dumps(
-            {"status": "ERROR", "error": f"Input file not found: {input_path}"}
-        )
-    if not proto.exists():
-        return json.dumps(
-            {"status": "ERROR", "error": f"Protocol file not found: {protocol_path}"}
-        )
-
-    try:
-        from scholar_search.screening import (
-            LLMBatchScreener,
-            partition_screening_results,
-        )
-        from scholar_agent.calibration import build_checklist_schema
-
-        importer = JSONImporter()
-        raw_docs = list(importer.parse(inp))
-        protocol_data = json.loads(proto.read_text(encoding="utf-8"))
-        checklist_schema = build_checklist_schema(protocol_data)
-
-        out_d = Path(output_dir)
-        out_d.mkdir(parents=True, exist_ok=True)
-
-        # Attempt LLM screening; fall back to heuristic on any failure.
-        try:
-            screener = LLMBatchScreener(
-                api_key=api_key,
-                model=model,
-                batch_size=batch_size,
-                temperature=temperature,
-            )
-            decisions = asyncio.run(screener.screen(raw_docs, protocol_data))
-        except Exception as llm_err:
-            import logging as _log
-
-            _log.getLogger(__name__).warning(
-                "LLM screening failed (%s), falling back to heuristic", llm_err
-            )
-            decisions = [
-                evaluate_heuristic_screening(d, protocol_data) for d in raw_docs
-            ]
-
-        summary = _write_screening_proposals(
-            out_d, raw_docs, decisions, tool="nexus_screen_llm", model=model
-        )
-        return json.dumps(
-            {"status": "PROPOSALS_ONLY", **summary, "output_dir": str(out_d)},
-            indent=2,
-        )
-    except Exception as e:
-        return json.dumps({"status": "ERROR", "error": str(e)})
+# H-close-side-doors (2026-11-23): ``nexus_screen_llm`` was removed. It sent
+# records to a Gemini model with no consent, estimate or ceiling, and on any
+# failure fell back to the keyword heuristic while labelling the output with
+# the model's name. Agent screening runs through the app (consent, estimate,
+# ceiling) or ``nexus_submit_proposal`` (the proposal store).
 
 
 @mcp.tool()
@@ -1895,7 +1820,6 @@ def main(argv: list[str] | None = None) -> None:
             "  - nexus_discover: Search OpenAlex for scholarly papers\n"
             "  - nexus_dedup: Deduplicate candidate documents by PID clustering\n"
             "  - nexus_screen: Systematic PRISMA screening against protocol criteria\n"
-            "  - nexus_screen_llm: LLM-enhanced screening with heuristic fallback\n"
             "  - nexus_extract_pdf: NON-AUTHORITATIVE legacy convenience - extracts via path heuristics; does not verify, identify, or claim Contract artifacts\n"
             "  - nexus_pdf_acquire: DECLARED UNSUPPORTED (E1) - rejects PDF acquisition with "
             "operation=acquire_pdf / status=FAILED / UNSUPPORTED_CAPABILITY before any I/O; "
