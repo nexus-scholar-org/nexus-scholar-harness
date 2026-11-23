@@ -66,7 +66,12 @@ def published_workspace(tmp_path: Path) -> tuple[Path, dict[str, str]]:
     """
     from support.workspaces import copy_of
 
-    key = ("export_api.published_workspace", hashlib.sha256(se.PROTOCOL.read_bytes()).hexdigest())
+    key = (
+        "export_api.published_workspace",
+        hashlib.sha256(se.PROTOCOL.read_bytes()).hexdigest(),
+        se.WS_ID,
+        se.SCREENER,
+    )
     return copy_of(key, _published_workspace_fresh, tmp_path)
 
 

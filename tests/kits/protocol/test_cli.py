@@ -59,8 +59,10 @@ def run(*args: str) -> SimpleNamespace:
     """
     result = CliRunner().invoke(app, list(args))
     if result.exception is not None and not isinstance(result.exception, SystemExit):
-        # A crash must not pass as a clean exit: a process would exit 1 with a traceback.
-        assert result.exit_code == 1, (result.exit_code, result.exception)
+        # An uncaught exception is a crash, never an expected exit code: re-raise it
+        # with its traceback (a process would exit 1, which a test could mistake
+        # for a deliberate refusal).
+        raise result.exception
     return SimpleNamespace(returncode=result.exit_code, stdout=result.stdout, stderr=result.stderr)
 
 

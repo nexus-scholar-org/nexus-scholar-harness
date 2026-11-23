@@ -10,9 +10,13 @@ temporary root, and every test then gets a copy of it under its own
 
 What makes a copy equivalent to a fresh build:
 
-* the builders are deterministic (fixed identities, fingerprints and dates),
-  apart from a few "now" stamps written when the template was built, which are
-  still earlier than anything the test does;
+* the builders use fixed identities, fingerprints and dates, except for the
+  "now" stamps written when the template was built (still earlier than
+  anything the test does) and random ids (``uuid4`` event ids, and the
+  generation ids and file names that follow from them): every copy made in one
+  process shares those, where fresh builds would differ. No test relies on two
+  workspaces having different ids (the read store and the preview cache are
+  keyed by absolute path);
 * the template holds no absolute path to where it was built: this is checked
   when it is built, and a builder that writes one fails loudly here instead of
   handing a test paths into another folder;
@@ -69,8 +73,9 @@ def copy_of(
     the builder wrote in its folder is copied, at the same relative paths.
     """
     if key not in _built:
-        root = _templates_root() / f"t{len(_built):03d}"
-        root.mkdir()
+        # A fresh folder per attempt: a builder that failed leaves its folder behind
+        # and must not turn every later call into a FileExistsError.
+        root = Path(tempfile.mkdtemp(prefix="t", dir=_templates_root()))
         workspace, extra = build(root)
         _refuse_own_path(root)
         _built[key] = (root, Path(workspace), extra)

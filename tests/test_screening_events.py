@@ -49,6 +49,7 @@ def _build(tmp_path: Path, *, batch_size: int = 20, method: dict | None = None) 
         batch_size,
         json.dumps(method, sort_keys=True),
         hashlib.sha256(PROTOCOL.read_bytes()).hexdigest(),
+        WS_ID,
     )
     workspace, _ = copy_of(key, lambda root: (_build_fresh(root, batch_size=batch_size, method=method), None), tmp_path)
     return workspace

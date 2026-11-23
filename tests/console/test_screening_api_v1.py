@@ -44,7 +44,7 @@ def _workspace(root: Path, *, prepare: bool | str = True) -> Path:
     """
     from support.workspaces import copy_of
 
-    key = ("screening_api_v1._workspace", prepare, hashlib.sha256(PROTOCOL.read_bytes()).hexdigest())
+    key = ("screening_api_v1._workspace", prepare, hashlib.sha256(PROTOCOL.read_bytes()).hexdigest(), WS_ID)
     ws, _ = copy_of(key, lambda fresh: (_workspace_fresh(fresh, prepare=prepare), None), root)
     return ws
 

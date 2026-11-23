@@ -19,6 +19,8 @@ from fastapi.testclient import TestClient
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
+# ``tests/``, for ``support.workspaces`` (H-faster-python-tests); pytest adds it through the conftest.
+sys.path.insert(0, str(HERE.parent))
 
 from test_export_api import published_workspace  # noqa: E402
 
