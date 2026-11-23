@@ -356,11 +356,11 @@ export function PendingFile({
         {phone ? null : (
           // In the one-study view the two actions leave below 640 px (the phone is read-only, question 7).
           <span className={`${responsive ? "hidden sm:inline-flex" : "inline-flex"} flex-wrap items-center gap-1`} data-fetch-actions>
-            <Button variant="quiet" className="px-1 text-xs" disabled={disabled} onClick={onConfirm} aria-label={t("charting.fetch.confirmFor", { title })} data-fetch-confirm>
+            <Button variant="quiet" size="small" disabled={disabled} onClick={onConfirm} aria-label={t("charting.fetch.confirmFor", { title })} data-fetch-confirm>
               <CheckCircleIcon aria-hidden="true" className="size-4" />
               {t("charting.fetch.confirm")} <kbd className="text-xs opacity-80">C</kbd>
             </Button>
-            <Button variant="quiet" className="px-1 text-xs" disabled={disabled} onClick={onDiscard} aria-label={t("charting.fetch.discardFor", { title })} data-fetch-discard>
+            <Button variant="quiet" size="small" disabled={disabled} onClick={onDiscard} aria-label={t("charting.fetch.discardFor", { title })} data-fetch-discard>
               {t("charting.fetch.discard")} <kbd className="text-xs opacity-80">D</kbd>
             </Button>
           </span>
@@ -459,7 +459,7 @@ export function TriedPanel({ locale, origin, studyId, id, onClose }: Readonly<{ 
           </p>
         </>
       ) : null}
-      <Button variant="quiet" className="px-1 text-xs" onClick={onClose} data-tried-close>
+      <Button variant="quiet" size="small" onClick={onClose} data-tried-close>
         {t("charting.fetch.tried.close")}
       </Button>
     </div>
@@ -471,7 +471,7 @@ export function TriedDisclosure({ locale, origin, row, open, onToggle }: Readonl
   const panelId = `tried-${row.study_id.replace(/[^A-Za-z0-9_-]/g, "")}`;
   return (
     <>
-      <Button variant="quiet" className="px-1 text-xs" aria-expanded={open} aria-controls={panelId} onClick={() => onToggle(!open)} data-tried-open>
+      <Button variant="quiet" size="small" aria-expanded={open} aria-controls={panelId} onClick={() => onToggle(!open)} data-tried-open>
         {cc(locale, "charting.fetch.tried.open")}
       </Button>
       {open ? <TriedPanel locale={locale} origin={origin} studyId={row.study_id} id={panelId} onClose={() => onToggle(false)} /> : null}
