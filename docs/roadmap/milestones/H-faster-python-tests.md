@@ -1,8 +1,8 @@
 # H-faster-python-tests Cut the Python suite's fixed costs
 
-Branch: `dev/h/faster-python-tests` · Lane: **STANDARD** (test code and one lazy import; no contract, product behaviour or public surface changes) · Status: **READY FOR PR** (review round 2 APPROVE; accepted by the researcher 2026-11-23; `origin/main` `81f821f5` merged in)
+Branch: `dev/h/faster-python-tests` · Lane: **STANDARD** (test code and one lazy import; no contract, product behaviour or public surface changes) · Status: **READY FOR PR** (review round 2 APPROVE; accepted by the researcher 2026-11-23; `origin/main` `ba019cd3` merged in)
 
-**Built on Part 1.** Cut from `dev/h/remove-rag-verify` at `58468929`, on the coordinator's instruction of 2026-11-23, so that nothing here measures or reworks tests Part 1 deletes, and the "before" numbers are the suite as it is now. Part 1 merged (PR 300); `origin/main` `81f821f5` was merged into this branch on 2026-11-23 (one conflict, `docs/decisions.md`; the coordinator's fix to `tests/console/test_approve_all.py`'s helper merged as it is). A first start from `origin/main` (measurements only, no code) was dropped.
+**Built on Part 1.** Cut from `dev/h/remove-rag-verify` at `58468929`, on the coordinator's instruction of 2026-11-23, so that nothing here measures or reworks tests Part 1 deletes, and the "before" numbers are the suite as it is now. Part 1 merged (PR 300); `origin/main` was merged into this branch three times on 2026-11-23: `81f821f5` (one conflict, `docs/decisions.md`; the coordinator's fix to `tests/console/test_approve_all.py`'s helper merged as it is, and that file uses its own builder, not a template), `7d464a42` (H-gate-and-ci, clean) and `ba019cd3` (H-close-side-doors; `docs/decisions.md` again, both entries kept). H-gate-and-ci's `select_test_gate.py --check` passed without a change, but `tests/support/` belonged to no area, so a change there would have fallen back to the full suite: a `test-support` area now runs the templates' callers (`tests/console`, `tests/test_screening_events.py`), not-slow at the inner stage. Every inner command of the manifest still collects at least one test with the new slow marks (collect-only, exit code 0 for all 31). A first start from `origin/main` (measurements only, no code) was dropped.
 
 The researcher's decision of 2026-11-23 in the coordinator session, from the test-suite review of that day (`docs/assessment/test-suite-review-2026-11-23.md`, step 3, points 1 to 4).
 
@@ -60,7 +60,9 @@ All on this PC, one process at a time, nothing else heavy running (checked befor
 
 | Check | Head | Result |
 | :-- | :-- | :-- |
-| Full Python suite `-n 4` (junit), final head | `34af655e` | **5,337 passed, 15 skipped, 0 failed** (junit 5,352); 481 s, with the reviewer's targeted tests running alongside (the clean after-timing is the 437 s run on `0259e27e` above) |
+| After merging `ba019cd3`: selector tests (`test_select_test_gate`, `test_suite_lock`, `test_check_workflows`); Parts 2 and 3's files outside the console (`test_screening_events`, the AG-01 characterization, protocol CLI, `tests/kits/agent`, `tests/mcp`, `tests/conformance`, `tests/cli`); `tests/console` in full under `scripts/suite_lock.py` | `178090ef` | 73 passed; 1,152 passed, 3 skipped; **1,217 passed, 1 skipped, 0 failed** (junit). `select_test_gate.py --check` (24 areas), both ruff commands, contract baseline, skills bundle, `git diff --check`: pass. No template folder left. CI is the full gate from here (H-gate-and-ci) |
+| Full Python suite `-n 4` after merging `81f821f5` | `13b89348` | 5,361 passed, 15 skipped, 0 failed (junit 5,376); 474 s |
+| Full Python suite `-n 4` (junit), final head before the merges | `34af655e` | **5,337 passed, 15 skipped, 0 failed** (junit 5,352); 481 s, with the reviewer's targeted tests running alongside (the clean after-timing is the 437 s run on `0259e27e` above) |
 | Full Python suite `-n 4` (junit) | `0259e27e` | 5,337 passed, 15 skipped, 0 failed (junit 5,352); 437 s |
 | `tests/console/_record_page_engine.py` imported as a direct run does, and its `published_workspace` built (`main()` not run: it would rewrite the web app's fixture) | `34af655e` | works; failed before the round-1 fix (`ModuleNotFoundError: support`) |
 | Template folders left in the temporary folder after the final run | `34af655e` | none |
