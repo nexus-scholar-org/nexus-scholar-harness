@@ -11,7 +11,7 @@ the automated preparation -- the call-time ``cmd_prepare`` batch build, the
 ``prisma_screening_report.md`` IN PROGRESS write. Human/agent decisions,
 adjudication, and the ``included.json`` collect gate (plus the
 ``PIPELINE_RUN_PAUSED_FOR_SCREENING`` audit and the ``SKIPPED`` mapping for
-Stages 5-9) stay in the orchestrator: they are the coordinator's handoff
+Stage 5, extraction) stay in the orchestrator: they are the coordinator's handoff
 gate, not preparation.
 
 Preservation notes:

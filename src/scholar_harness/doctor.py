@@ -71,7 +71,6 @@ KITS: tuple[str, ...] = (
     "scholar-protocol-kit",
     "scholar-search-kit",
     "scholar-pdf-kit",
-    "scholar-graph-kit",
     "scholar-agent-kit",
 )
 

@@ -1,7 +1,7 @@
 """Surface count freshness.
 
-The repo documents cardinal numbers (5 kits, 10 mirrored skills, 12 console
-actions, 24 MCP tools) in ``docs/kits_surface_matrix.md`` / AGENTS.md.  These
+The repo documents cardinal numbers (4 kits, 9 mirrored skills, 10 console
+actions, 22 MCP tools) in ``docs/kits_surface_matrix.md`` / AGENTS.md.  These
 must match runtime reality so prose never silently corrodes.  The skill check
 also guards mirror completeness: the plugin bundle must contain every
 canonical skill except ``pull-request-gate`` (the sync script's one exclusion).
@@ -22,12 +22,14 @@ SKILLS_CANONICAL = REPO_ROOT / ".agents" / "skills"
 SKILLS_MIRROR = REPO_ROOT / ".agents" / "plugins" / "nexus-scholar" / "skills"
 MANIFEST = REPO_ROOT / ".agents" / "plugins" / "nexus-scholar" / "plugins.json"
 
-EXPECTED_KITS = 5
-EXPECTED_ACTIONS = 12
-EXPECTED_MCP_TOOLS = 24
-EXPECTED_MIRRORED_SKILLS = 10
+# H-remove-graph (2026-11-23): 5 kits, 12 actions, 24 tools and 10 mirrored
+# skills before scholar_graph left.
+EXPECTED_KITS = 4
+EXPECTED_ACTIONS = 10
+EXPECTED_MCP_TOOLS = 22
+EXPECTED_MIRRORED_SKILLS = 9
 
-# Live-derived 24-tool surface via `{t.name for t in mcp._tool_manager.list_tools()}`.
+# Live-derived 22-tool surface via `{t.name for t in mcp._tool_manager.list_tools()}`.
 # Exact set (not a subset) so an added/removed/renamed tool fails loudly with
 # missing/unexpected lists instead of blessing whatever number prose carries.
 EXPECTED_MCP_TOOL_NAMES = frozenset(
@@ -40,8 +42,6 @@ EXPECTED_MCP_TOOL_NAMES = frozenset(
         "nexus_dedup",
         "nexus_discover",
         "nexus_extract_pdf",
-        "nexus_graph_build",
-        "nexus_graph_narrative",
         "nexus_pdf_acquire",
         "nexus_pdf_extraction",
         "nexus_pipeline_run",

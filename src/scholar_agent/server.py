@@ -85,8 +85,8 @@ from scholar_pdf.extract import DoclingEngine, GrobidEngine, PyMuPDFEngine
 # H-remove-rag-verify (2026-11-23): scholar_rag and scholar_verify were removed
 # with their MCP tools (retrieval, synthesis, matrix, claim verification, the
 # Phase-4 streams, the methodology critique and the E3 indexing refusal).
-from scholar_graph.builder import CitationGraphBuilder
-from scholar_graph.visualizer import GraphVisualizer
+# H-remove-graph (2026-11-23): scholar_graph was removed with nexus_graph_build
+# and nexus_graph_narrative.
 
 # Bib Imports
 
@@ -588,7 +588,7 @@ def nexus_pipeline_run(
 
     Wraps ``scholar_harness.orchestrator.ResearchOrchestrator`` to execute the
     research workflow: discovery → dedup → verification → screening
-    preparation, and after a collected screening, extraction → citation graph.
+    preparation, and after a collected screening, full-text extraction.
 
     Parameters
     ----------
@@ -791,63 +791,6 @@ def nexus_pdf_extraction(
     return unsupported_capability_envelope_json(PDF_EXTRACTION)
 
 
-# ==============================================================================
-# Phase 2: Knowledge Graph Tools
-# ==============================================================================
-
-
-@mcp.tool()
-@_journaled("MCP_GRAPH_BUILD")
-def nexus_graph_build(
-    input_path: str,
-    output_html: str = "./graph.html",
-    json_output: str = "./graph.json",
-) -> str:
-    """
-    Build a citation graph network from screening included.json and compute PageRank centrality.
-    """
-    input_path = _resolve_path(input_path) or input_path
-    output_html = _resolve_path(output_html) or output_html
-    json_output = _resolve_path(json_output) or json_output
-    inp = Path(input_path)
-    if not inp.exists():
-        return f"Error: File {input_path} not found."
-    try:
-        from scholar_search.http_client import AcademicHttpClient
-
-        builder = CitationGraphBuilder(
-            AcademicHttpClient(name="openalex-graph", rate_limit=10)
-        )
-
-        dois = []
-        if inp.suffix == ".json":
-            data = json.loads(inp.read_text(encoding="utf-8"))
-            if isinstance(data, dict):
-                data = data.get("results") or data.get("items") or []
-            for d in data if isinstance(data, list) else []:
-                doi = (d.get("external_ids") or {}).get("doi") or d.get("doi")
-                if doi:
-                    dois.append(doi)
-
-        if not dois:
-            return f"Error: No DOIs found in {input_path}."
-
-        G = asyncio.run(builder.build_graph(dois))
-        CitationGraphBuilder.compute_pagerank(G)
-        builder.export_json(G, Path(json_output))
-
-        vis = GraphVisualizer(Path(output_html))
-        vis.generate_html(G)
-        return f"Citation graph built ({G.number_of_nodes()} nodes, {G.number_of_edges()} edges). Exported to {output_html} and {json_output}."
-    except Exception as e:
-        return f"Error building graph: {e}"
-
-
-# ==============================================================================
-# Phase 4 / Rigor Enhancement: Multi-Screener Reconciliation & Verbatim Attributions
-# ==============================================================================
-
-
 @mcp.tool()
 def nexus_screen_reconcile(screeners_json: str, adjudication_json: str = None) -> str:
     """
@@ -899,180 +842,6 @@ def nexus_screen_reconcile(screeners_json: str, adjudication_json: str = None) -
 
         res = reconcile_multi_screener_decisions(screeners_map, adj_map)
         return json.dumps(res, indent=2)
-    except Exception as e:
-        return json.dumps({"status": "ERROR", "error": str(e)})
-
-
-# ==============================================================================
-# Phase F: Specialized Agents — Graph Narrative (F2)
-# ==============================================================================
-
-
-def _load_graph_json(graph_path: Path) -> dict:
-    """Read and return parsed graph JSON (node-link format with pagerank/groups)."""
-    if not graph_path.is_file():
-        raise FileNotFoundError(f"Graph JSON not found at {graph_path}")
-    return json.loads(graph_path.read_text(encoding="utf-8"))
-
-
-def _identify_hubs(graph_data: dict, top_n: int = 10) -> list[dict]:
-    """Sort nodes by PageRank score and return the top-N with title, doi, score."""
-    nodes = graph_data.get("nodes", [])
-    pagerank = graph_data.get("pagerank", {})
-    scored: list[dict] = []
-    for node in nodes:
-        nid = node.get("id", "")
-        score = pagerank.get(nid, 0.0)
-        scored.append(
-            {
-                "title": node.get("title", nid),
-                "doi": node.get("doi", ""),
-                "id": nid,
-                "pagerank": score,
-            }
-        )
-    scored.sort(key=lambda x: x["pagerank"], reverse=True)
-    return scored[:top_n]
-
-
-def _summarize_communities(graph_data: dict) -> list[dict]:
-    """Group nodes by ``group`` field (Louvain community ID) and summarize."""
-    nodes = graph_data.get("nodes", [])
-    pagerank = graph_data.get("pagerank", {})
-    groups: dict[str, list[dict]] = {}
-    for node in nodes:
-        gid = str(node.get("group", "0"))
-        if gid not in groups:
-            groups[gid] = []
-        score = pagerank.get(node.get("id", ""), 0.0)
-        groups[gid].append(
-            {
-                "id": node.get("id", ""),
-                "title": node.get("title", node.get("id", "")),
-                "doi": node.get("doi", ""),
-                "pagerank": score,
-            }
-        )
-    summaries: list[dict] = []
-    for gid in sorted(groups, key=lambda g: len(groups[g]), reverse=True):
-        members = groups[gid]
-        members.sort(key=lambda x: x["pagerank"], reverse=True)
-        top3 = members[:3]
-        label_parts = [m["title"][:60] for m in top3 if m["title"]]
-        summaries.append(
-            {
-                "group_id": gid,
-                "node_count": len(members),
-                "top_nodes": [
-                    {"title": m["title"], "doi": m["doi"], "pagerank": m["pagerank"]}
-                    for m in top3
-                ],
-                "label": " / ".join(label_parts) if label_parts else f"Community {gid}",
-            }
-        )
-    return summaries
-
-
-@mcp.tool()
-@_journaled("MCP_GRAPH_NARRATIVE")
-def nexus_graph_narrative(
-    workspace_dir: str,
-    graph_json_path: str,
-    top_hubs: int = 10,
-) -> str:
-    """Generate a narrative summary from citation graph structure and community detection.
-
-    Reads graph stats (PageRank hubs, Louvain communities) and produces a
-    ``visual_synthesis.md`` explaining hub papers and thematic clusters.
-
-    Parameters
-    ----------
-    workspace_dir:
-        Path to the research workspace.
-    graph_json_path:
-        Path to the graph JSON file (node-link format with pagerank/groups).
-    top_hubs:
-        Number of top hub papers to include (default 10).
-    """
-    try:
-        ws = Path(_resolve_path(workspace_dir) or workspace_dir).resolve()
-        gp = Path(_resolve_path(graph_json_path) or graph_json_path)
-        if not ws.is_dir():
-            return json.dumps(
-                {"status": "ERROR", "error": f"Workspace not found: {workspace_dir}"}
-            )
-
-        graph_data = _load_graph_json(gp)
-        hubs = _identify_hubs(graph_data, top_n=top_hubs)
-        communities = _summarize_communities(graph_data)
-
-        # Render narrative
-        nodes = graph_data.get("nodes", [])
-        edges = graph_data.get("links", graph_data.get("edges", []))
-        n_nodes = len(nodes)
-        n_edges = len(edges)
-
-        md_lines = [
-            "# Visual Synthesis: Citation Network Analysis",
-            "",
-            "## Network Overview",
-            "",
-            f"- **Total papers**: {n_nodes}",
-            f"- **Citation links**: {n_edges}",
-            f"- **Communities detected**: {len(communities)}",
-            f"- **Top hub papers analyzed**: {len(hubs)}",
-            "",
-            "## Hub Papers",
-            "",
-            "Hub papers are the most central nodes in the citation network, as measured by PageRank centrality. They represent the most influential or foundational works in this corpus.",
-            "",
-            "| Rank | Title | DOI | PageRank |",
-            "| :---: | :--- | :--- | :---: |",
-        ]
-        for i, hub in enumerate(hubs, 1):
-            title = (hub["title"] or "")[:80]
-            doi = hub.get("doi") or "—"
-            md_lines.append(f"| {i} | {title} | {doi} | {hub['pagerank']:.4f} |")
-
-        md_lines += ["", "## Thematic Communities", ""]
-        for comm in communities:
-            gid = comm["group_id"]
-            count = comm["node_count"]
-            label = comm["label"]
-            md_lines += [
-                f"### Community {gid} ({count} papers)",
-                "",
-                f"**Key themes**: {label}",
-                "",
-                "Top papers:",
-            ]
-            for tn in comm["top_nodes"]:
-                t = (tn["title"] or "")[:80]
-                d = tn.get("doi") or "—"
-                md_lines.append(f"- {t} (DOI: {d})")
-            md_lines.append("")
-
-        md_lines += [
-            "---",
-            f"*Generated by `nexus_graph_narrative` (scholar-graph-kit)*",
-        ]
-
-        narrative_md = "\n".join(md_lines)
-
-        # Write output
-        out_dir = ws / "synthesis"
-        out_dir.mkdir(parents=True, exist_ok=True)
-        (out_dir / "visual_synthesis.md").write_text(narrative_md, encoding="utf-8")
-
-        return json.dumps(
-            {
-                "status": "SUCCESS",
-                "n_hubs": len(hubs),
-                "n_communities": len(communities),
-                "output_path": str(out_dir / "visual_synthesis.md"),
-            },
-            indent=2,
-        )
     except Exception as e:
         return json.dumps({"status": "ERROR", "error": str(e)})
 
@@ -1780,15 +1549,12 @@ def nexus_assistant_report_finding(
     ))
 
 
-#: Tools over parked work (production plan §8, M5-slim): the graph, full text
-#: and the full pipeline. They keep working, and their description says first
-#: that they are not production, so an agent reading the tool list sees it
-#: before calling one. The two declared-unsupported boundaries
-#: (nexus_pdf_acquire, nexus_pdf_extraction) already refuse with a typed
-#: envelope.
+#: Tools over parked work (production plan §8, M5-slim): full text and the full
+#: pipeline. They keep working, and their description says first that they are
+#: not production, so an agent reading the tool list sees it before calling
+#: one. The two declared-unsupported boundaries (nexus_pdf_acquire,
+#: nexus_pdf_extraction) already refuse with a typed envelope.
 PARKED_TOOLS = (
-    "nexus_graph_build",
-    "nexus_graph_narrative",
     "nexus_extract_pdf",
     "nexus_pipeline_run",
 )
@@ -1828,7 +1594,6 @@ def main(argv: list[str] | None = None) -> None:
             "operation=extract_pdf / status=FAILED / UNSUPPORTED_CAPABILITY before any I/O; "
             "use the scholar-pdf extract-run CLI or "
             "scholar_pdf.extraction.PDFExtractionService API instead\n"
-            "  - nexus_graph_build: Build citation graph from included studies or DOIs\n"
             "  - nexus_screen_reconcile: Reconcile multi-screener decisions with Fleiss' kappa\n"
             "  - nexus_screening_queue: List records to screen (no agent outcomes shown)\n"
             "  - nexus_screening_record: One record with its criteria, to draft a proposal\n"
@@ -1838,8 +1603,7 @@ def main(argv: list[str] | None = None) -> None:
             "  - nexus_assistant_read_workspace: A workspace's protocol, plan translations, recall and checks (read-only)\n"
             "  - nexus_assistant_propose: Suggest one change to a draft or a workspace's search; the researcher applies or rejects it in the app\n"
             "  - nexus_assistant_report_finding: Report one problem in a protocol (the critic); listed in the app's checks\n"
-            "  - nexus_graph_narrative: Generate narrative summary from citation graph structure\n"
-            "  - nexus_pipeline_run: Run the ResearchOrchestrator pipeline (search to screening, then extraction and graph)\n"
+            "  - nexus_pipeline_run: Run the ResearchOrchestrator pipeline (search to screening, then extraction)\n"
             "  - recon_probe: Probe a topic into a FAIR recon session (cross-turn state)\n"
             "  - recon_distill: Distill the latest session pool into anchored terms\n"
             "  - recon_delta: Bounded adaptive gap follow-up probes with cache reuse"

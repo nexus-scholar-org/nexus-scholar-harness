@@ -264,18 +264,6 @@ def harvest_corpus(request: Request):
     }
 
 
-@router.get("/assets/graph")
-def assets_graph(request: Request):
-    from fastapi.responses import HTMLResponse
-
-    ws = _ws(request)
-    for name in ("knowledge_graph.html", "graph.html"):
-        path = ws / "literature" / name
-        if path.is_file():
-            return HTMLResponse(path.read_text(encoding="utf-8"))
-    raise HTTPException(status_code=404, detail="missing file: knowledge_graph.html")
-
-
 @router.get("/audit/events")
 def audit_events(
     request: Request,

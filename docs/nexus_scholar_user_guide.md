@@ -14,14 +14,14 @@ GitHub Releases — no source checkout, no per-kit installs.
 > proposals), **inception in the browser** (Scope, Explore, Direction, Shape,
 > Concepts and criteria, Review and create, Done), **discovery in the browser**
 > (Plan to Hand-off, and citation chasing) and, since 1.1.0b7, **full-text
-> charting** (the Charting step after publication). The citation
-> graph (`scholar_graph`) and reading PDFs (`scholar_pdf` `extract`,
-> `extract-run`, and E1 `acquire`; findings PDF-07/08) still work, but are
-> parked: their `--help` says so first, their MCP
+> charting** (the Charting step after publication). Reading PDFs
+> (`scholar_pdf` `extract`, `extract-run`, and E1 `acquire`; findings
+> PDF-07/08) still works, but is parked: its `--help` says so first, its MCP
 > tools say so in their descriptions, and the app labels any screen that shows
-> them. Do not rely on them for a review. The retrieval and synthesis kit
-> (`scholar_rag`) and verification and trust (`scholar_verify`) were removed on
-> 2026-11-23, with their commands and MCP tools.
+> it. Do not rely on it for a review. The retrieval and synthesis kit
+> (`scholar_rag`), verification and trust (`scholar_verify`) and the citation
+> graph (`scholar_graph`) were removed on 2026-11-23, with their commands and
+> MCP tools.
 >
 > **The PDF kit's downloading is production** since 1.1.0b7
 > (decision 2026-11-21, M12a items 21 and 27, K0): `scholar-pdf download` and `ingest` need a contact e-mail
@@ -54,8 +54,8 @@ GitHub Releases — no source checkout, no per-kit installs.
 > identity before you use it.
 
 - Works on **Windows, macOS, Linux** (Python 3.11+ via `uv` or `pip`).
-- The wheel bundles the harness CLI **plus the five scholar kits** (protocol,
-  search, PDF, graph, agent), the
+- The wheel bundles the harness CLI **plus the four scholar kits** (protocol,
+  search, PDF, agent; the graph kit was removed after 1.1.0b7), the
   research app (`nexus-scholar ui`) and the skill bundles, so a workspace initialized here is self-contained and
   portable.
 - PyPI: <https://pypi.org/project/nexus-scholar/>
@@ -199,7 +199,7 @@ What you get:
 ├── INDEX.md              # regenerable project index
 ├── project.json          # machine-readable manifest + stats
 ├── audit/journal.jsonl   # append-only audit ledger (see `log`)
-├── .agents/skills/       # 10 skill bundles (symlinked when possible, else copied)
+├── .agents/skills/       # 9 skill bundles (symlinked when possible, else copied)
 ├── .env.example          # API-key template (SCHOLAR_*, NEXUS_*, provider keys)
 ├── .mcp.json             # MCP wiring with the absolute workspace path
 ├── literature/           # raw + screened records land here
@@ -376,11 +376,10 @@ scholar-agent [--workspace <root>] [--transport stdio|sse|streamable-http]
   (default `NEXUS_MCP_WORKSPACE` or the current repo root). CWD-independent.
 - `--transport` selects the protocol; `stdio` is the default for desktop
   clients.
-- Run it with `--help` to list the tools. `src/scholar_agent/` registers 24
+- Run it with `--help` to list the tools. `src/scholar_agent/` registers 22
   (2026-11-23), among them `nexus_discover`, `nexus_screening_queue`,
   `nexus_screening_record`, `nexus_submit_proposal`, the `nexus_assistant_*`
-  tools, the recon tools `recon_probe`, `recon_distill` and `recon_delta`, and
-  the parked `nexus_graph_*` tools.
+  tools and the recon tools `recon_probe`, `recon_distill` and `recon_delta`.
 
 Pair it with §4: `setup-mcp --harness claude` writes the client config that
 starts this server on your workspace.

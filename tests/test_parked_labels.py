@@ -1,8 +1,9 @@
 """Parked kits say so (production plan §8, M5-slim).
 
-The graph and reading PDFs are parked (synthesis, the matrix and
-risk-of-bias/trust were removed with their kits, H-remove-rag-verify): their commands stay, and `--help` says in its first line that they are
-not production, so nobody mistakes a working command for a supported one.
+Reading PDFs is parked: its commands stay, and `--help` says in its first line
+that they are not production, so nobody mistakes a working command for a
+supported one. (Synthesis, the matrix and risk-of-bias/trust left with their
+kits in H-remove-rag-verify; the citation graph in H-remove-graph, 2026-11-23.)
 
 The PDF kit is split (decision 2026-11-21, M12a items 21 to 23 and 27, K0):
 `download` and `ingest` are production; `extract`, `extract-run` and `acquire`
@@ -15,16 +16,6 @@ import pytest
 from typer.testing import CliRunner
 
 NOTICE = "PARKED, not production"
-
-
-@pytest.mark.parametrize("module", ["scholar_graph.cli"])
-def test_a_parked_kit_says_so_in_help(module):
-    import importlib
-
-    app = importlib.import_module(module).app
-    result = CliRunner().invoke(app, ["--help"])
-    assert result.exit_code == 0
-    assert NOTICE in " ".join(result.output.split())
 
 
 @pytest.mark.parametrize("command", ["extract", "extract-run", "acquire"])

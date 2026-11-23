@@ -164,11 +164,15 @@ def test_agent_actions_table(tmp_path):
     body = client.get("/api/v1/agents/actions").json()
     rows = body["rows"]
     ids = {r["action_id"] for r in rows}
-    # D6 parity: status + graph must be present and self-consistent.
+    # D6 parity: status + extract must be present and self-consistent.
     assert "status" in ids
-    assert "graph" in ids
-    # H-remove-rag-verify: the actions over the removed kits are gone.
-    assert not ids & {"rag_index", "trust_context", "synthesize", "critique_methodology"}
+    assert "extract" in ids
+    # H-remove-rag-verify and H-remove-graph: the actions over the removed kits
+    # are gone.
+    assert not ids & {
+        "rag_index", "trust_context", "synthesize", "critique_methodology",
+        "graph", "graph_narrative",
+    }
     for r in rows:
         assert r["command"].startswith("uv run ")
         assert isinstance(r["mutates"], bool)
@@ -267,7 +271,7 @@ def test_runner_lifecycle_writes_journal(tmp_path, monkeypatch):
 
     async def scenario():
         runner = JobRunner(ws)
-        job = await runner.start("graph", workspace=str(ws))
+        job = await runner.start("extract", workspace=str(ws))
         assert job.state in ("running", "success")
         for _ in range(100):
             await asyncio.sleep(0.05)
@@ -280,11 +284,11 @@ def test_runner_lifecycle_writes_journal(tmp_path, monkeypatch):
 
     job = asyncio.run(scenario())
 
-    # Exit criterion: completion lands in audit/journal.jsonl under GRAPH.
+    # Exit criterion: completion lands in audit/journal.jsonl under EXTRACT.
     events = [l for l in (ws / "audit" / "journal.jsonl").read_text(encoding="utf-8").splitlines()
               if l.strip()]
     tail = json.loads(events[-1])
-    assert tail["action"] == "GRAPH"
+    assert tail["action"] == "EXTRACT"
     assert tail["status"] == "SUCCESS"
 
     # Exit criterion: job log captured.
