@@ -30,6 +30,11 @@ ROOT = Path(__file__).resolve().parents[2]
 PROTOCOL = ROOT / "tests" / "kits" / "protocol" / "fixtures" / "canonical" / "identity_base.json"
 WS_ID = "WSP-" + "d" * 32
 BASE = "/api/v1/screening"
+
+#: H-close-side-doors: a run names its provider and model and states its ceiling
+#: (``null`` = none); these were the defaults the request used to fill in.
+RUN = {"provider": "anthropic", "model": "claude-opus-5-5", "cost_ceiling_usd": None}
+
 DESKTOP, PHONE = "desktop-token", "phone-token"
 PROMPT = "sha256:" + "0" * 64
 

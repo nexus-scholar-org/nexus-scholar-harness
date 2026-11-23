@@ -21,7 +21,7 @@ import pytest
 import test_screening_api_v1 as api
 from fastapi.testclient import TestClient
 from test_agent_runs_api import CONSENT, FakeDriver
-from test_screening_api_v1 import BASE, DESKTOP, PHONE, WS_ID
+from test_screening_api_v1 import BASE, RUN, DESKTOP, PHONE, WS_ID
 
 from scholar_harness.console import create_app
 from scholar_harness.console.refusals import CONSOLE_REFUSALS
@@ -517,7 +517,7 @@ def test_dod14_the_agent_check_on_a_pilot_reads_its_labels_from_the_pilot_file(w
     drawn = _draw(client, 20)
     records = _pilot_records(client)
     _decide(client, drawn["pilot_id"], [_decision(s, "EXCLUDE" if i < 4 else "INCLUDE") for i, s in enumerate(records[:10])])
-    body = {"pilot_id": drawn["pilot_id"], "provider": "anthropic", "model": "claude-haiku-5-5", "effort": "low"}
+    body = {"pilot_id": drawn["pilot_id"], "provider": "anthropic", "model": "claude-haiku-5-5", "effort": "low", "cost_ceiling_usd": None}
     # The consent comes from the run screen; record it once.
     from scholar_harness.screening import agent_runs as runs
 
@@ -532,11 +532,11 @@ def test_dod14_the_agent_check_on_a_pilot_reads_its_labels_from_the_pilot_file(w
     rows = {r["id"]: r for r in _ok(client.get(f"{BASE}/pilot/pilot_001/result"))["criteria"]}
     assert rows["INC-01"]["draft_not_reported"]["of"] == 10
     # Records outside the pilot's decided ones are refused; without pilot_id the route is unchanged.
-    response = client.post(f"{BASE}/proposals/calibrations", json={**body, "study_ids": [records[15]]})
+    response = client.post(f"{BASE}/proposals/calibrations", json={**RUN, **body, "study_ids": [records[15]]})
     assert (response.status_code, _code(response)) == (422, "INVALID_OUTPUT")
     response = client.post(f"{BASE}/proposals/calibrations", json={k: v for k, v in body.items() if k != "pilot_id"})
     assert _code(response) == "BODY_INVALID"  # review F9: without pilot_id, study_ids is required, as before
-    assert _code(client.post(f"{BASE}/proposals/calibrations", json={**body, "pilot_id": "pilot_009"})) == "PILOT_NOT_FOUND"
+    assert _code(client.post(f"{BASE}/proposals/calibrations", json={**RUN, **body, "pilot_id": "pilot_009"})) == "PILOT_NOT_FOUND"
 
 
 # --- DoD 15: the agreement denominator ---------------------------------------------------------------------
@@ -604,7 +604,7 @@ def _pilot_check(ws: Path, client: TestClient, driver) -> dict:
     from scholar_harness.screening import agent_runs as runs
 
     runs.record_consent(ws, "anthropic", model="claude-haiku-5-5", prompt_sha256=api.PROMPT, accepted_at=CONSENT["accepted_at"])
-    started = _ok(client.post(f"{BASE}/proposals/calibrations", json={
+    started = _ok(client.post(f"{BASE}/proposals/calibrations", json={**RUN,
         "pilot_id": "pilot_001", "provider": "anthropic", "model": "claude-haiku-5-5", "effort": "low"}))
     return _ok(client.get(f"{BASE}/proposals/runs/{started['run_id']}"))
 
@@ -648,7 +648,7 @@ def test_review_f1_a_main_calibration_still_names_its_missed_records(ws):
     queue = [i["study_id"] for i in _ok(client.get(f"{BASE}/queue", params={"view": "needs_you", "limit": 5}))["items"]]
     _post_main(client, [_main_event(client, s, "INCLUDE") for s in queue[:3]])
     runs.record_consent(ws, "anthropic", model="claude-haiku-5-5", prompt_sha256=api.PROMPT, accepted_at=CONSENT["accepted_at"])
-    started = _ok(client.post(f"{BASE}/proposals/calibrations", json={
+    started = _ok(client.post(f"{BASE}/proposals/calibrations", json={**RUN,
         "study_ids": queue[:3], "provider": "anthropic", "model": "claude-haiku-5-5", "effort": "low"}))
     calibration = _ok(client.get(f"{BASE}/proposals/runs/{started['run_id']}"))["calibration"]
     assert sorted(calibration["missed_includes"]) == sorted(queue[:3]) and calibration["missed_includes_count"] == 3

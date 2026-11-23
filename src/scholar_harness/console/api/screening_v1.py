@@ -1280,8 +1280,10 @@ class RunScope(BaseModel):
 class RunBody(BaseModel):
     model_config = ConfigDict(extra="forbid")
     driver: str = "api"
-    provider: str = "anthropic"
-    model: str = "claude-opus-5-5"
+    # H-close-side-doors (2026-11-23): no default provider or model (the default was
+    # the most expensive model), and a run states its ceiling: see `_require_run_terms`.
+    provider: str | None = None
+    model: str | None = None
     effort: str = "low"
     scope: RunScope = Field(default_factory=RunScope)
     consent: RunConsent | None = None
@@ -1309,6 +1311,23 @@ def _run_error(exc: Any) -> HTTPException:
     return _error(exc.status, exc.code, exc.message)
 
 
+def _require_run_terms(body: Any, *, spends: bool) -> None:
+    """H-close-side-doors: the caller names the provider and the model, and a run
+    that can spend states its cost ceiling: a number, or ``null`` for no ceiling
+    (the only value an unpriced model accepts). Nothing is defaulted."""
+    missing = [name for name in ("provider", "model") if not getattr(body, name)]
+    if missing:
+        raise _error(
+            422, "INVALID_OUTPUT", f"{' and '.join(missing)} {'is' if len(missing) == 1 else 'are'} required: there is no default"
+        )
+    if spends and "cost_ceiling_usd" not in body.model_fields_set:
+        raise _error(
+            422,
+            "INVALID_OUTPUT",
+            "cost_ceiling_usd is required: a number in USD, or null to run without a ceiling",
+        )
+
+
 @router.post("/proposals/runs")
 def start_proposal_run(body: RunBody, request: Request) -> dict[str, Any]:
     """Estimate, or start, an agent run over the scope; nothing leaves the machine without consent."""
@@ -1316,6 +1335,7 @@ def start_proposal_run(body: RunBody, request: Request) -> dict[str, Any]:
 
     from ...screening import agent_runs as runs
 
+    _require_run_terms(body, spends=not body.estimate_only)
     ws = _ws(request)
     ids = _scope_ids(ws, body.scope)
     if body.dry_run:
@@ -1459,8 +1479,9 @@ class CalibrationBody(BaseModel):
         if self.study_ids is None and self.pilot_id is None:
             raise ValueError("study_ids is required unless pilot_id is given")
         return self
-    provider: str = "anthropic"
-    model: str = "claude-opus-5-5"
+    # H-close-side-doors: as for a run, no default provider or model, and a stated ceiling.
+    provider: str | None = None
+    model: str | None = None
     effort: str = "low"
     cost_ceiling_usd: float | None = None
     base_url: str | None = None
@@ -1471,6 +1492,7 @@ def start_calibration(body: CalibrationBody, request: Request) -> dict[str, Any]
     """Check the agent on records you have decided (advisory; never blocks a run)."""
     from ...screening import agent_runs as runs
 
+    _require_run_terms(body, spends=True)
     ws = _ws(request)
     _context, _settings, _events, winners = _state(ws)
     if body.pilot_id is not None:
