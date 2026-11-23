@@ -478,7 +478,8 @@ def test_a_writing_command_copies_and_stamps_an_older_workspace_first(old):
 
     result = CliRunner().invoke(cli, ["log", "event", str(old), "--action", "NOTE", "--description", "x"])
     assert result.exit_code == 0, result.output
-    assert "Saving a copy of old-review" in result.output and "Saved a copy of this review" in result.output
+    assert "Saving a copy of old-review" in result.stderr and "Saved a copy of this review" in result.stderr
+    assert "copy" not in result.stdout  # standard output stays the command's own (it may be JSON)
     assert [r["action"] for r in _journal(old)][-2:] == [wf.ACTION_STAMPED, "NOTE"]
 
 

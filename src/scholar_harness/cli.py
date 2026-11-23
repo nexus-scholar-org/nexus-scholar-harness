@@ -67,6 +67,11 @@ def _print_version(value: bool) -> None:
         raise typer.Exit()
 
 
+def _notices() -> Console:
+    """Standard error: a command's standard output may be JSON (``extract publish --json``)."""
+    return Console(stderr=True, legacy_windows=False)
+
+
 #: The files that make a folder a workspace for :func:`_open_for_writing` (any one of them).
 _WORKSPACE_MARKERS = ("project.json", "protocol.json", "audit/journal.jsonl")
 
@@ -83,16 +88,16 @@ def _open_for_writing(workspace: Path | str) -> None:
         return
     try:
         if plan(ws).needed:
-            console.print(
+            _notices().print(
                 f"Saving a copy of {ws.name} before this version of Nexus Scholar writes to it…",
                 markup=False, highlight=False, soft_wrap=True,
             )
         result = prepare_for_writing(ws, agent="nexus-scholar/cli")
     except WorkspaceFormatRefused as exc:
-        console.print(f"❌ {exc.message}", style="bold red", markup=False, highlight=False, soft_wrap=True)
+        _notices().print(f"❌ {exc.message}", style="bold red", markup=False, highlight=False, soft_wrap=True)
         raise typer.Exit(1) from exc
     if result.copy is not None:
-        console.print(f"Saved a copy of this review: {result.copy}", markup=False, highlight=False, soft_wrap=True)
+        _notices().print(f"Saved a copy of this review: {result.copy}", markup=False, highlight=False, soft_wrap=True)
 
 
 def _open_slug_for_writing(workspace: str) -> None:

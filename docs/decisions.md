@@ -36,8 +36,23 @@ Record: `docs/roadmap/milestones/H-workspace-format-version.md`. Source: the pro
 8. Reads never stamp or copy: the Workspaces list, `most_recent`, `status`, `doctor` and display routes only read the file. Opening a workspace in the browser app counts as opening for writing.
 9. An unreadable format file is refused (`WORKSPACE_FORMAT_UNREADABLE`), never guessed.
 10. On a refusal at start, `create_app` starts with no workspace open and answers the refusal's own code on workspace routes; `ui` without `--workspace` lands on the Workspaces screen, where the row shows it.
-11. A migration step never writes the excluded folders, so restoring a copy and moving the current `pdfs/` back in gives the workspace as it was.
+11. A migration step writes only files the copy holds, so restoring a copy gives the workspace as it was (with item 2, PDFs included).
 12. No restore command in this work: the user guide gives the steps by hand.
+
+**Choices made in the build (for the reviewer)**
+
+13. Kept in the copy although the specification had them as re-creatable: `extracted/` (a published document manifest names `extracted/<stem>.md` with its checksum, so a restore without it breaks the registry) and `.harness-console/` (the researcher's saved pipelines). Left out: `.env`, `.agents/`, `.cache/`, `exports/`, `chroma_db/`, `rag/`, and the same five under `audit/replaced/<stamp>/`. Symbolic links are not followed or copied.
+14. PDFs and other compressed files are stored in the zip, text is deflated: on 417 MB of PDF-sized files, 0.9 s instead of 22.2 s for the same size (measured, record §3.3).
+15. The copy runs before the server serves when it is at most 64 MB, and in the background above that; while it runs every workspace route answers 503 `WORKSPACE_PREPARING` with the review's title and progress, `GET /api/v1/workspaces/preparation` reports it, and the web app shows "Saving a copy of {title} before opening it" with a progress bar on every page except Workspaces, then mounts the page afresh. A server shutdown during the copy cancels it (partial zip removed, nothing stamped).
+16. The Open route checks only newer and unreadable before the restart; the copy runs in the new server, so a long copy never holds the request. A failed copy shows on the landing page's card and as the row's "Copy failed" badge.
+17. The copy lock lives beside the copies (`.nexus-copies/<slug>/.copy.lock`), so a failed copy leaves the review byte-identical; a lock older than six hours is stale.
+18. The stamp's journal rows go through `append_event` with `refresh_index=False`: the stamp changes `workspace_format.json`, appends rows, and bumps `project.json`'s `updated_at`; `INDEX.md` is not rewritten.
+19. `written_by` is never written back down: an older build opening a workspace of the same format makes no copy and leaves it. Versions are compared as PEP 440 releases by a small parser (no `packaging` in the base install); an unreadable `written_by` counts as older (a copy is made).
+20. An unreadable format file gets no badge of its own on the Workspaces screen (item 5 named two badges); Open shows its card.
+21. The four codes are console codes (`refusals.py`, the screening contract's §7 table and `workspaces-api.md` §5), not Contract v1.
+22. The workspace-manager scripts (`init_project.py`, `log_event.py`) stamp at birth and refuse a newer workspace only when they run inside the package's environment; a copy vendored into a workspace before this build has no check.
+23. Test fixtures that model today's layout call `stamp_new` (three shared builders); hand-made fixtures elsewhere stay unstamped and are copied and stamped on first open, which their assertions do not see.
+24. The one-time notice's "seen" flag is kept in the browser's storage (`lib/copy-notice.ts`), per copy: a convenience; if storage is unavailable the notice shows again.
 
 ## 2026-11-23 — H-remove-graph: `scholar_graph` removed after 1.1.0b7 (decided by the researcher 2026-11-23, finish confirmed 2026-11-24; items 1 to 3 accepted by the researcher 2026-11-24 as built)
 

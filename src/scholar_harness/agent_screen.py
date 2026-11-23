@@ -54,7 +54,7 @@ except ImportError:
 
 
 #: Subcommands that only read the workspace (H-workspace-format-version).
-READ_ONLY_COMMANDS = frozenset({"status"})
+READ_ONLY_COMMANDS = frozenset({"status", "review"})
 
 
 def _open_for_writing(workspace_dir: Path) -> None:
