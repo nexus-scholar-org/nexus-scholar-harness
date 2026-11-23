@@ -1,6 +1,6 @@
 # H-workspace-format-version
 
-Status: **BUILD IN PROGRESS, 2026-11-24. Questions answered by the researcher on 2026-11-24 (§7, "Questions closed"): five as recommended, question 2 changed to "Everything including PDFs".** Specification written 2026-11-23. Branch `dev/h/workspace-format-version`, cut from `origin/main` `cc0e8fa1` (the merge of release `1.1.0b7`, PR #307). Lane for the build: **RELEASE** (a new persisted file in every workspace and a change to how every workspace is opened).
+Status: **BUILT 2026-11-24, in independent review; not pushed. Questions answered by the researcher on 2026-11-24 (§7, "Questions closed"): five as recommended, question 2 changed to "Everything including PDFs".** Specification written 2026-11-23. Branch `dev/h/workspace-format-version`, cut from `origin/main` `cc0e8fa1` (the merge of release `1.1.0b7`, PR #307). Lane for the build: **RELEASE** (a new persisted file in every workspace and a change to how every workspace is opened).
 
 Source: the project review of 2026-11-23, finding 9 and recommendation 8 ("A format version on the workspace and a copy made before a newer build first opens it"; on local branch `dev/docs/project-review-2026-11-23`), and the researcher's answer to question 11 of `docs/roadmap/milestones/M13-installers.md` (build it as its own piece of work, before installers go to outside testers). The instruction to start, in the coordinator's brief: "Start Part A and the workspace format version". Part A of M13 (the launcher) is built in parallel by another session; this work needs no change to `console/launcher.py`, `console/code_window.py` or the start-up path of `nexus-scholar ui` (§3.2).
 
@@ -266,14 +266,53 @@ The researcher answered in the coordinator session on 2026-11-24, one by one (re
 
 ---
 
-## 8. Not verified
+## 8. What was built (2026-11-24)
+
+Branch `dev/h/workspace-format-version`; `origin/main` `0bcefdd3` (PR 308, H-remove-graph) merged in at `0df8161b`. Commits after the specification: `3c2ac370` (engine), `19c97793` (web app, codes, guides), `f9b9577e` (notices on standard error; `agent_screen.py review` reads only), `a669d91a` (`workspace/meta` answers during the copy).
+
+- **Engine.** `src/scholar_harness/workspace/format.py` (new): the format file, `plan`, `prepare_for_writing`, the verified zip (`make_copy`), pruning, `last_copy`, the step registry (`STEPS`, step 0 to 1 `stamp-today`), version comparison, and `OpenGate` (the browser app's gate: foreground up to 64 MB, background above, progress, cancel on shutdown).
+- **Doors.** `console/serve.py` `create_app` (the gate; `_format_blocked` in the middleware; a lifespan that cancels a running copy); `workspace/catalog.py` (`check_open` quick checks; each row's `format` and `last_copy`, reads only); `console/api/workspaces.py` (`GET /api/v1/workspaces/preparation`, `preparation` in the list); `cli.py` (`_open_for_writing` in eleven writing commands, notices on standard error); `agent_screen.py` (every subcommand but `status` and `review`); `scholar_agent/server.py` (the journalled tools, `nexus_screen`'s proposals, `nexus_pipeline_run`, `nexus_submit_proposal`, the assistant's two writing tools); `inception/emit.py` (a replacement); `workspace/audit.py` (newer-format backstop in both journal writers); the workspace-manager `init_project.py` and `log_event.py` (canonical and bundle copies).
+- **Birth.** `genesis.scaffold_raw_project` and `init_project.py` stamp; `NEW_WORKSPACE_FILES` names `workspace_format.json`.
+- **Web app.** `components/workspace-preparation.tsx` (new, inside the shell's `main`): the "Saving a copy of {title} before opening it" panel with a progress bar, the one-time notice, the refusal card; `lib/copy-notice.ts`; the Workspaces rows' badges ("Made with a newer version", "Copy failed") and last-copy line; four state cards in English, French and Arabic.
+- **Codes.** `WORKSPACE_FORMAT_NEWER`, `WORKSPACE_FORMAT_UNREADABLE`, `WORKSPACE_COPY_FAILED`, `WORKSPACE_PREPARING` in `console/refusals.py`, `screening-api-contract.md` §7 and `workspaces-api.md` §5 (console codes, not Contract v1).
+- **Docs.** User guide ("The copy made before an update", restore steps); `DEVELOPER_COMPASS.md` (the rule for raising the format); `AGENTS.md`; `.gitignore` (`workspaces/.nexus-copies/`).
+- **Tests.** `tests/unit/test_workspace_format.py` (33 tests, each item of §6); `apps/research-ui/tests/workspace-preparation.test.tsx` (6) and one more in `workspaces.test.tsx`; three shared fixtures that model today's layout now call `stamp_new` (`tests/test_screening_events.py`, `tests/console/test_console_serve.py`, `tests/console/test_corpus_import_api.py`); `next-step-bar.test.tsx` counts the bar's own reads only.
+
+## 9. Evidence
+
+| Check | Commit | Result |
+| :-- | :-- | :-- |
+| `generate_contract_baseline.py --check` | `0df8161b`, `a669d91a` | current |
+| `ruff check scripts/`; `ruff check src/ --select F821,F811,F823,F632,F7,B023,B006,E9` | `0df8161b`, `a669d91a` | pass |
+| `select_test_gate.py --check`; `sync_skills_bundle.py --check`; `git diff --check` | `0df8161b`, `a669d91a` | pass |
+| Selector `pr` gate, areas screening, console, inception, workspace-audit, harness-cli, agent-mcp, research-ui: web app `typecheck`, `lint:ui` (76), `npm test` (118 files, 1,354 tests) | `0df8161b` | pass |
+| The same gate: full Python suite, `-n 4` through `suite_lock.py` | `0df8161b` | 3 failures, all caused by this work and repaired in `f9b9577e`: `test_review_is_read_only` (`agent_screen.py review` opened for writing) and two `extract publish --json` tests (a notice on standard output) |
+| The full gate again: every check above, the web app (118 files, 1,354 tests) and the full Python suite (`-n 4`, `suite_lock.py`, exit 0) | `a669d91a` | pass |
+| `tests/unit/test_workspace_format.py` | `a669d91a` | 33 pass |
+| `uv build --wheel`; fresh Python 3.12 base install; `nexus-scholar --help`, `scholar-agent --help`; `init --scaffold-only` from the wheel writes `workspace_format.json` (format 1) | `a669d91a` | pass; wheel 4.25 MB; `format.py`, the UI bundle and the bundled `log_event.py` with its check are in it |
+
+**Verification with a workspace written by `v1.1.0b6`** (2026-11-24, scratch folders, port 8771; the researcher's workspaces were not touched):
+
+1. `git worktree add --detach <scratch>/b6 v1.1.0b6`; in it `uv sync`; `uv run nexus-scholar --version` gave `1.1.0b6`.
+2. With that b6 code: `nexus-scholar init "Old layout review" --scaffold-only --dir <scratch>/b6root/old-layout-review`; `nexus-scholar accept-corpus --workspace … --ris Scopus=<5 records>.ris` (5 studies accepted); `python src/scholar_harness/agent_screen.py prepare …` (`batch_001.json`). Then 300 PDF-sized files (417 MB) copied into `pdfs/`, and the SHA-256 of all 358 files recorded. No `workspace_format.json`.
+3. This build: `uv run nexus-scholar ui --no-browser --port 8771 --root <scratch>/b6root` (no `--workspace`). The terminal printed "Saving a copy of Old layout review before this version of Nexus Scholar opens it (417 MB)…" before the server line, then "Saved a copy …": the start-up path opened the most recent review and copied it with no click.
+4. In the browser: the screening home showed the one-time notice naming `<root>\.nexus-copies\old-layout-review` and read the b6 corpus correctly ("5 records from Scopus", batch 1, nothing decided). The Workspaces row showed "Copy saved before an update" with its date.
+5. On disk: only `workspace_format.json` (format 1), `audit/journal.jsonl` (one `WORKSPACE_FORMAT_STAMPED` row naming the copy) and `project.json` (`updated_at`) differed from b6's files. The zip: 417.1 MB, 319 members, the 300 PDFs stored; it unzipped in 0.6 s to files byte-identical to b6's, less `.agents/` (left out by design).
+6. The panel: a second b6 workspace with 40,000 small text files (109 MB) was the most recent at the next start; the screening home showed "Saving a copy of Third old review before opening it", "30 of 109 MB", then "60 of 109 MB", and opened by itself with the notice when the copy was done (screenshot `h-workspace-format-version-copy-panel.jpg` in the coordinator's notes folder).
+7. Open on the Workspaces screen did **not** restart the server in the app's browser pane, for a review that needed a copy, for one already stamped, and also on `cc0e8fa1` (main before this branch, same UI export): a **pre-existing** fault in this environment, not caused by this work. The same restart driven by a script against the real uvicorn server restarts and copies correctly (stamped and unstamped target). See §10.
+
+## 10. Not verified
 
 - **The researcher's real reviews** were not opened: their size, the size of their `pdfs/`, the zip's size and the time a copy takes are estimates. The figures in §1.6 are the repository's development workspaces.
 - **The b6 comparison (§1.5)** is a reading of code. The `decisive_first` refusal and the `method_amendments.jsonl` file were opened by this session; the rest is a subagent's reading, some marked "not opened" by it (pilot, harvest marker, verification checks, PDF manifest, citation chase, query workbench, b6 `doctor`). No b6 build was run.
 - **That today's code reads every older layout correctly** (the premise of step 0 to 1): `1.1.0b7` opens them today, but no test opens a b1 to b6 workspace of each kind.
-- **Which command-line commands write**: the list in §3.2 is from the command names and help text; each must be confirmed in the build.
+- **Which command-line commands write**: confirmed by reading each command's body in the build (§3.2), not by tracing every function they call.
 - **That every display route writes nothing**: not checked; it is why question 4 recommends refusing rather than a read-only view.
 - **Concurrency**: no general lock exists between a command-line run, the MCP server and the browser app on one workspace (review, scout finding). The format lock covers two opens racing; a command writing while the copy is made could put a half-written file in the zip. Not handled beyond the lock.
 - **Builds without this check** (`1.1.0b7` and earlier, and skill scripts vendored into a workspace before this build) will still open and write a newer workspace. Nothing can stop that from here.
-- **The web app's handling** of the new refusal codes on screens other than Workspaces (where the app goes when a workspace route answers 409 with a new code) was not read.
+- **Screens' own handling of the new codes**: the shell replaces every page but Workspaces while a copy runs or after a refusal, so pages do not see the codes in normal use; a page that is already open when a workspace becomes refused (not possible today: the gate decides at start) was not tried.
 - **Windows specifics**: a zip of a 90 MB `literature/` on a OneDrive-synced folder, file locks while syncing, and long paths in `audit/replaced/` were not tried.
+- **Open from the Workspaces screen in the app's browser pane**: the server does not restart, on this branch and on `cc0e8fa1` alike (§9 item 7); whether the same happens in an ordinary browser was not tried. It may be the "workspace-open hang" noted before release `1.1.0b7`.
+- **`written_by` reads `1.1.0b7`** on this branch, the version in `pyproject.toml`: a workspace opened by this build and later by the released `1.1.0b8` gets one more copy then (answer 1).
+- **The copy's time on a real review and on a cold disk**: measured on synthetic files from a warm cache only (§3.3).
+- **macOS and Linux**: the tests ran on Windows; CI runs them on Ubuntu.
