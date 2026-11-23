@@ -28,8 +28,8 @@
       "paths": ["src/scholar_agent/**", ".agents/plugins/nexus-scholar/plugins.json"],
       "inner": ["uv run pytest tests/conformance/test_count_freshness.py -q"],
       "checkpoint": ["uv run pytest tests/conformance -q"],
-      "pr": ["uv run pytest -q", "uv run ruff check scripts/"],
-      "closure": ["uv run pytest -q", "npm --prefix apps/research-ui ci", "npm --prefix apps/research-ui run build:export", "uv build --wheel"]
+      "pr": ["uv run pytest tests/conformance -q", "uv run ruff check scripts/"],
+      "closure": ["uv run python scripts/suite_lock.py -- uv run pytest -q -n 4 --dist worksteal", "npm --prefix apps/research-ui ci", "npm --prefix apps/research-ui run build:export", "uv build --wheel"]
     },
     "T-150": {
       "repo": "harness",
@@ -37,63 +37,63 @@
       "inner": ["uv run python scripts/sync_skills_bundle.py --check"],
       "checkpoint": ["uv run python scripts/sync_skills_bundle.py --check", "uv run pytest tests/conformance/test_count_freshness.py -q"],
       "pr": ["uv run pytest tests/conformance -q", "uv run ruff check scripts/"],
-      "closure": ["uv run pytest -q"]
+      "closure": ["uv run python scripts/suite_lock.py -- uv run pytest -q -n 4 --dist worksteal"]
     },
     "T-160": {
       "repo": "harness",
       "paths": ["tests/authority/**"],
       "inner": ["uv run pytest tests/authority -q"],
       "checkpoint": ["uv run pytest tests/authority -q"],
-      "pr": ["uv run pytest -q", "uv run ruff check scripts/"],
-      "closure": ["uv run pytest -q"]
+      "pr": ["uv run pytest tests/authority -q", "uv run ruff check scripts/"],
+      "closure": ["uv run python scripts/suite_lock.py -- uv run pytest -q -n 4 --dist worksteal"]
     },
     "T-170": {
       "repo": "harness",
       "paths": ["tests/pipeline/**"],
       "inner": ["uv run pytest tests/pipeline -q"],
       "checkpoint": ["uv run pytest tests/pipeline -q"],
-      "pr": ["uv run pytest -q", "uv run ruff check scripts/"],
-      "closure": ["uv run pytest -q"]
+      "pr": ["uv run pytest tests/pipeline -q", "uv run ruff check scripts/"],
+      "closure": ["uv run python scripts/suite_lock.py -- uv run pytest -q -n 4 --dist worksteal"]
     },
     "T-180": {
       "repo": "harness",
       "paths": ["tests/unit/**"],
       "inner": ["uv run pytest tests/unit -q"],
       "checkpoint": ["uv run pytest tests/unit -q"],
-      "pr": ["uv run pytest -q", "uv run ruff check scripts/"],
-      "closure": ["uv run pytest -q"]
+      "pr": ["uv run pytest tests/unit -q", "uv run ruff check scripts/"],
+      "closure": ["uv run python scripts/suite_lock.py -- uv run pytest -q -n 4 --dist worksteal"]
     },
     "T-190": {
       "repo": "harness",
       "paths": ["tests/e2e/**"],
       "inner": ["uv run pytest tests/e2e -q"],
       "checkpoint": ["uv run pytest tests/e2e -q"],
-      "pr": ["uv run pytest -q", "uv run ruff check scripts/"],
-      "closure": ["uv run pytest -q"]
+      "pr": ["uv run pytest tests/e2e -q", "uv run ruff check scripts/"],
+      "closure": ["uv run python scripts/suite_lock.py -- uv run pytest -q -n 4 --dist worksteal"]
     },
     "T-200": {
       "repo": "harness",
       "paths": ["tests/console/**"],
       "inner": ["uv run pytest tests/console -q"],
       "checkpoint": ["uv run pytest tests/console -q"],
-      "pr": ["uv run pytest -q", "uv run ruff check scripts/"],
-      "closure": ["uv run pytest -q"]
+      "pr": ["uv run pytest tests/console -q", "uv run ruff check scripts/"],
+      "closure": ["uv run python scripts/suite_lock.py -- uv run pytest -q -n 4 --dist worksteal"]
     },
     "T-210": {
       "repo": "harness",
       "paths": ["tests/mcp/**"],
       "inner": ["uv run pytest tests/mcp -q"],
       "checkpoint": ["uv run pytest tests/mcp -q"],
-      "pr": ["uv run pytest -q", "uv run ruff check scripts/"],
-      "closure": ["uv run pytest -q"]
+      "pr": ["uv run pytest tests/mcp -q", "uv run ruff check scripts/"],
+      "closure": ["uv run python scripts/suite_lock.py -- uv run pytest -q -n 4 --dist worksteal"]
     },
     "T-220": {
       "repo": "harness",
       "paths": ["tests/recon/**"],
       "inner": ["uv run pytest tests/recon -q"],
       "checkpoint": ["uv run pytest tests/recon -q"],
-      "pr": ["uv run pytest -q", "uv run ruff check scripts/"],
-      "closure": ["uv run pytest -q"]
+      "pr": ["uv run pytest tests/recon -q", "uv run ruff check scripts/"],
+      "closure": ["uv run python scripts/suite_lock.py -- uv run pytest -q -n 4 --dist worksteal"]
     },
     "T-230": {
       "repo": "harness",
@@ -111,21 +111,21 @@
         "uv run pytest tests/conformance -q",
         "uv run python scripts/generate_canonical_profile_goldens.py --check"
       ],
-      "pr": ["uv run pytest -q", "uv run ruff check scripts/"],
-      "closure": ["uv run pytest -q"]
+      "pr": ["uv run pytest tests/conformance -q", "uv run python scripts/generate_canonical_profile_goldens.py --check", "uv run ruff check scripts/"],
+      "closure": ["uv run python scripts/suite_lock.py -- uv run pytest -q -n 4 --dist worksteal"]
     }
   },
   "area_defaults": {
-    "comment": "Areas map the post-merge source tree (one package, src/scholar_*) to the tests that exercise it. A path matched by an area takes that area's gate; E3 task path rules apply only to paths no area matches (explicit --task still works). The first matching area wins, so specific areas precede catch-alls. Inner skips @pytest.mark.slow; checkpoint and pr run everything.",
-    "pr": ["uv run pytest -q -n auto", "uv run ruff check scripts/"],
-    "closure": ["uv run pytest -q -n auto", "npm --prefix apps/research-ui ci", "npm --prefix apps/research-ui run build:export", "uv build --wheel"]
+    "comment": "Areas map the post-merge source tree (one package, src/scholar_*) to the tests that exercise it. A path matched by an area takes that area's gate; E3 task path rules apply only to paths no area matches (explicit --task still works). The first matching area wins, so specific areas precede catch-alls. Inner skips @pytest.mark.slow; checkpoint runs the area's tests and their direct consumers, slow ones included. pr is the checkpoint plus lint (\"@checkpoint\" stands for the area's checkpoint commands): since H-gate-and-ci (2026-11-23) the full suites run in CI, and locally only at closure or when a path matches no area, always through scripts/suite_lock.py. Every Python test file must be named by some area's inner or checkpoint commands (select_test_gate.py --check).",
+    "pr": ["@checkpoint", "uv run ruff check scripts/"],
+    "closure": ["uv run python scripts/suite_lock.py -- uv run pytest -q -n 4 --dist worksteal", "npm --prefix apps/research-ui ci", "npm --prefix apps/research-ui run build:export", "uv build --wheel"]
   },
   "areas": [
     {
       "name": "screening",
-      "paths": ["src/scholar_harness/screening/**", "src/scholar_harness/agent_screen.py", "src/scholar_harness/rescreen_workspace.py"],
-      "inner": ["uv run pytest tests/test_screening_migration.py tests/test_screening_decision_integrity.py tests/test_screening_decision_contract.py tests/test_ag01_screening_authorization_characterization.py tests/unit/test_screening_prepare_stage.py -q -m \"not slow\""],
-      "checkpoint": ["uv run pytest tests/test_screening_migration.py tests/test_screening_decision_integrity.py tests/test_screening_decision_contract.py tests/test_ag01_screening_authorization_characterization.py tests/unit/test_screening_prepare_stage.py tests/unit/test_index_refresh_screening.py tests/authority tests/console/test_console_screening.py tests/console/test_screening_actions.py tests/console/test_screening_read_api.py tests/conformance/test_actions_cli_parity.py tests/e2e/test_e2e_search_screen.py -q"]
+      "paths": ["src/scholar_harness/screening/**", "src/scholar_harness/agent_screen.py", "src/scholar_harness/rescreen_workspace.py", "src/scholar_harness/term_match.py", "scripts/golden_screening_sandbox.py"],
+      "inner": ["uv run pytest tests/test_screening_migration.py tests/test_screening_decision_integrity.py tests/test_screening_decision_contract.py tests/test_ag01_screening_authorization_characterization.py tests/unit/test_screening_prepare_stage.py tests/test_screening_events.py tests/test_screening_proposals.py tests/test_screening_rules_policy.py tests/test_read_store.py tests/test_term_match.py -q -m \"not slow\""],
+      "checkpoint": ["uv run pytest tests/test_screening_migration.py tests/test_screening_decision_integrity.py tests/test_screening_decision_contract.py tests/test_ag01_screening_authorization_characterization.py tests/unit/test_screening_prepare_stage.py tests/unit/test_index_refresh_screening.py tests/authority tests/console/test_console_screening.py tests/console/test_screening_actions.py tests/console/test_screening_read_api.py tests/conformance/test_actions_cli_parity.py tests/e2e/test_e2e_search_screen.py tests/e2e/test_golden_screening_api.py tests/test_screening_events.py tests/test_screening_proposals.py tests/test_screening_rules_policy.py tests/test_read_store.py tests/test_term_match.py tests/test_golden_screening_sandbox.py -q"]
     },
     {
       "name": "contracts",
@@ -140,10 +140,34 @@
       "checkpoint": ["uv run pytest tests/authority tests/test_screening_decision_integrity.py tests/test_ag01_screening_authorization_characterization.py tests/console/test_screening_actions.py -q"]
     },
     {
+      "name": "console-charting",
+      "paths": ["src/scholar_harness/charting/**", "src/scholar_harness/console/api/charting.py"],
+      "inner": ["uv run pytest tests/console/test_charting_api.py tests/console/test_charting_export_api.py tests/console/test_charting_fetch_api.py tests/console/test_charting_form_api.py -q -m \"not slow\" -n 4 --dist worksteal"],
+      "checkpoint": ["uv run pytest tests/console tests/authority -q -n 4 --dist worksteal"]
+    },
+    {
+      "name": "console-discovery",
+      "paths": ["src/scholar_harness/console/api/discovery.py", "src/scholar_harness/console/discovery_checks.py", "src/scholar_harness/console/api/workbench.py"],
+      "inner": ["uv run pytest tests/console/test_discovery_api.py tests/console/test_discovery_checks.py tests/console/test_discovery_estimate_api.py tests/console/test_harvest_preparation_api.py tests/console/test_chase_api.py tests/console/test_combined_corpus_api.py tests/console/test_quota_hang_api.py tests/console/test_workbench_amend_api.py tests/console/test_workbench_counts_api.py tests/console/test_workbench_seeds_comparison_api.py -q -m \"not slow\" -n 4 --dist worksteal"],
+      "checkpoint": ["uv run pytest tests/console tests/authority tests/unit/test_discovery_stage.py tests/kits/agent/test_mcp_assistant.py tests/kits/agent/test_mcp_workspace_proposals.py tests/kits/search/test_provider_resilience.py -q -n 4 --dist worksteal"]
+    },
+    {
+      "name": "console-screening",
+      "paths": ["src/scholar_harness/console/api/screening.py", "src/scholar_harness/console/api/screening_v1.py", "src/scholar_harness/console/api/review.py", "src/scholar_harness/console/next_step.py"],
+      "inner": ["uv run pytest tests/console/test_screening_actions.py tests/console/test_screening_api_contract.py tests/console/test_screening_api_v1.py tests/console/test_screening_drafts_api.py tests/console/test_screening_highlights.py tests/console/test_screening_read_api.py tests/console/test_agent_runs_api.py tests/console/test_approve_all.py tests/console/test_batch_reviews_api.py tests/console/test_corpus_api.py tests/console/test_corpus_import_api.py tests/console/test_criteria_amendments_api.py tests/console/test_criteria_pilot_api.py tests/console/test_criteria_pilot_plumbing.py tests/console/test_export_api.py tests/console/test_lineage_api.py tests/console/test_methods_api.py tests/console/test_methods_method_block.py tests/console/test_method_settings.py tests/console/test_publication_currentness.py tests/console/test_read_performance.py tests/console/test_console_screening.py tests/console/test_next_step_api.py -q -m \"not slow\" -n 4 --dist worksteal"],
+      "checkpoint": ["uv run pytest tests/console tests/authority tests/test_read_store.py -q -n 4 --dist worksteal"]
+    },
+    {
+      "name": "console-inception",
+      "paths": ["src/scholar_harness/console/api/inception.py", "src/scholar_harness/console/api/recon.py"],
+      "inner": ["uv run pytest tests/console/test_inception_api.py tests/console/test_inception_checks.py tests/console/test_inception_import.py tests/console/test_inception_proposals.py tests/console/test_recon_api.py tests/console/test_recon_sample_api.py tests/console/test_draft_store_lock.py tests/console/test_assistant_read.py tests/console/test_console_refusals.py -q -m \"not slow\" -n 4 --dist worksteal"],
+      "checkpoint": ["uv run pytest tests/console tests/authority tests/inception tests/recon tests/kits/agent/test_mcp_assistant.py tests/pipeline/test_golden_recon_cassette.py -q -n 4 --dist worksteal"]
+    },
+    {
       "name": "console",
       "paths": ["src/scholar_harness/console/**"],
-      "inner": ["uv run pytest tests/console -q -m \"not slow\" -n auto"],
-      "checkpoint": ["uv run pytest tests/console tests/authority -q"]
+      "inner": ["uv run pytest tests/console -q -m \"not slow\" -n 4 --dist worksteal"],
+      "checkpoint": ["uv run pytest tests/console tests/authority tests/test_ui_launcher.py -q -n 4 --dist worksteal"]
     },
     {
       "name": "inception",
@@ -161,7 +185,7 @@
       "name": "pipeline",
       "paths": ["src/scholar_harness/pipeline/**", "src/scholar_harness/orchestrator.py", "src/scholar_harness/pipeline_executor.py"],
       "inner": ["uv run pytest tests/pipeline tests/unit -q -m \"not slow\""],
-      "checkpoint": ["uv run pytest tests/pipeline tests/unit tests/e2e/test_e2e_search_screen.py tests/console/test_console_pipelines.py tests/console/test_console_jobs.py -q"]
+      "checkpoint": ["uv run pytest tests/pipeline tests/unit tests/e2e tests/console/test_console_pipelines.py tests/console/test_console_jobs.py -q"]
     },
     {
       "name": "workspace-audit",
@@ -178,8 +202,8 @@
     {
       "name": "harness-other",
       "paths": ["src/scholar_harness/**"],
-      "inner": ["uv run pytest tests/unit tests/test_handoff.py -q -m \"not slow\""],
-      "checkpoint": ["uv run pytest tests --ignore=tests/kits -q"]
+      "inner": ["uv run pytest tests/unit tests/test_handoff.py tests/test_parked_labels.py tests/test_undefined_names_reachable.py -q -m \"not slow\""],
+      "checkpoint": ["uv run pytest tests --ignore=tests/kits -q", "uv run pytest tests/integrations tests/test_parked_labels.py tests/test_undefined_names_reachable.py -q"]
     },
     {
       "name": "search",
@@ -197,7 +221,7 @@
       "name": "agent-mcp",
       "paths": ["src/scholar_agent/**"],
       "inner": ["uv run pytest tests/kits/agent -q -m \"not slow\""],
-      "checkpoint": ["uv run pytest tests/kits/agent tests/mcp tests/conformance/test_mcp_tool_parity.py tests/conformance/test_capability_adapter.py tests/cli/test_scholar_agent_cli.py -q"]
+      "checkpoint": ["uv run pytest tests/kits/agent tests/mcp tests/conformance/test_mcp_tool_parity.py tests/conformance/test_capability_adapter.py tests/cli/test_scholar_agent_cli.py tests/test_mcp_narrative.py -q"]
     },
     {
       "name": "pdf",
@@ -212,19 +236,33 @@
       "checkpoint": ["uv run pytest tests/kits/graph tests/unit/test_graph_stage.py tests/mcp/test_mcp_tools_graph.py -q"]
     },
     {
+      "name": "packaging",
+      "paths": ["hatch_build.py", "scripts/build_mcpb.py"],
+      "inner": ["uv run pytest tests/test_version.py tests/test_wheel_build_hook.py tests/test_dependency_bounds.py tests/test_build_mcpb.py -q -m \"not slow\""],
+      "checkpoint": ["uv run pytest tests/test_version.py tests/test_wheel_build_hook.py tests/test_dependency_bounds.py tests/test_build_mcpb.py -q"]
+    },
+    {
+      "name": "ci-workflows",
+      "paths": [".github/**"],
+      "inner": ["uv run python scripts/check_workflows.py"],
+      "checkpoint": ["uv run python scripts/check_workflows.py"],
+      "pr": ["uv run python scripts/check_workflows.py"],
+      "closure": ["uv run python scripts/check_workflows.py", "uv run python scripts/suite_lock.py -- uv run pytest -q -n 4 --dist worksteal"]
+    },
+    {
       "name": "test-gate-selector",
-      "paths": ["scripts/select_test_gate.py", "docs/architecture/test_gate_manifest.json"],
-      "inner": ["uv run pytest tests/unit/test_select_test_gate.py -q", "uv run python scripts/select_test_gate.py --check", "uv run ruff check scripts/"],
-      "checkpoint": ["uv run pytest tests/unit/test_select_test_gate.py -q", "uv run python scripts/select_test_gate.py --check", "uv run ruff check scripts/"],
-      "pr": ["uv run pytest tests/unit/test_select_test_gate.py tests/conformance -q", "uv run ruff check scripts/"]
+      "paths": ["scripts/select_test_gate.py", "scripts/suite_lock.py", "scripts/check_workflows.py", "docs/architecture/test_gate_manifest.json"],
+      "inner": ["uv run pytest tests/unit/test_select_test_gate.py tests/unit/test_suite_lock.py tests/unit/test_check_workflows.py -q", "uv run python scripts/select_test_gate.py --check", "uv run ruff check scripts/"],
+      "checkpoint": ["uv run pytest tests/unit/test_select_test_gate.py tests/unit/test_suite_lock.py tests/unit/test_check_workflows.py -q", "uv run python scripts/select_test_gate.py --check", "uv run python scripts/check_workflows.py", "uv run ruff check scripts/"],
+      "pr": ["uv run pytest tests/unit/test_select_test_gate.py tests/unit/test_suite_lock.py tests/unit/test_check_workflows.py tests/conformance -q", "uv run python scripts/select_test_gate.py --check", "uv run ruff check scripts/"]
     },
     {
       "name": "research-ui",
       "paths": ["apps/research-ui/**"],
       "inner": ["npm --prefix apps/research-ui run typecheck", "npm --prefix apps/research-ui run lint:ui", "npm --prefix apps/research-ui run test:related -- {area_paths}"],
-      "checkpoint": ["npm --prefix apps/research-ui run typecheck", "npm --prefix apps/research-ui run lint:ui", "npm --prefix apps/research-ui test"],
-      "pr": ["npm --prefix apps/research-ui run typecheck", "npm --prefix apps/research-ui run lint:ui", "npm --prefix apps/research-ui test", "npm --prefix apps/research-ui run build"],
-      "closure": ["npm --prefix apps/research-ui run typecheck", "npm --prefix apps/research-ui run lint:ui", "npm --prefix apps/research-ui test", "npm --prefix apps/research-ui run build"],
+      "checkpoint": ["npm --prefix apps/research-ui run typecheck", "npm --prefix apps/research-ui run lint:ui", "uv run python scripts/suite_lock.py -- npm --prefix apps/research-ui test"],
+      "pr": ["@checkpoint"],
+      "closure": ["npm --prefix apps/research-ui run typecheck", "npm --prefix apps/research-ui run lint:ui", "uv run python scripts/suite_lock.py -- npm --prefix apps/research-ui test", "npm --prefix apps/research-ui run build"],
       "path_root": "apps/research-ui/"
     }
   ],
@@ -257,7 +295,7 @@
     ]
   },
   "fallback": {
-    "harness": ["uv run pytest -q -n auto", "uv run ruff check scripts/"],
+    "harness": ["uv run python scripts/suite_lock.py -- uv run pytest -q -n 4 --dist worksteal", "uv run ruff check scripts/"],
     "scholar-agent-kit": ["uv run pytest tests/kits/agent -q", "uv run ruff check src/scholar_agent tests/kits/agent"],
     "kits": ["uv run pytest tests/kits/agent -q"]
   }

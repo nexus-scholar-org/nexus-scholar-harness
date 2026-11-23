@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import fnmatch
 import json
+import shlex
 import subprocess
 from pathlib import Path
 from typing import Any
@@ -12,6 +13,10 @@ from typing import Any
 ROOT = Path(__file__).resolve().parents[1]
 MANIFEST = ROOT / "docs" / "architecture" / "test_gate_manifest.json"
 AREA_PATHS_TOKEN = "{area_paths}"
+# An area command list may hold this token: it stands for the area's checkpoint commands
+# (the local pr gate is the checkpoint plus lint since H-gate-and-ci; CI runs the full suites).
+CHECKPOINT_TOKEN = "@checkpoint"
+DEFAULT_BASE = "origin/main"
 
 
 def normalize_path(path: str) -> str:
@@ -79,7 +84,54 @@ def load_manifest() -> dict[str, Any]:
         for stage in stages:
             if not (area.get(stage) or defaults.get(stage)):
                 raise ValueError(f"area {name} has no {stage} commands")
+        for stage in ("inner", "checkpoint"):
+            if CHECKPOINT_TOKEN in (area.get(stage) or defaults.get(stage) or []):
+                raise ValueError(f"area {name}: {CHECKPOINT_TOKEN} is allowed only at pr and closure")
     return data
+
+
+def pytest_targets(command: str, *, ignored: bool = True) -> list[str]:
+    """The test paths a pytest command names; ``--ignore=`` paths only when ``ignored``."""
+    if "pytest" not in command:
+        return []
+    targets: list[str] = []
+    for token in shlex.split(command):
+        if token.startswith("--ignore="):
+            if not ignored:
+                continue
+            token = token.removeprefix("--ignore=")
+        if token == "tests" or token.startswith("tests/"):
+            targets.append(token.rstrip("/"))
+    return targets
+
+
+def unowned_test_files(data: dict[str, Any], root: Path = ROOT) -> list[str]:
+    """Python test files that no area's inner or checkpoint commands name.
+
+    The catch-all ``tests`` target does not count: an area must name the file or a folder
+    under ``tests/`` that holds it, so "inner" stays a few files and every test has an owner.
+    """
+    owned: set[str] = set()
+    for area in data.get("areas", []):
+        for stage in ("inner", "checkpoint"):
+            for command in area.get(stage, []):
+                owned.update(t for t in pytest_targets(command, ignored=False) if t != "tests")
+    files = sorted(path.relative_to(root).as_posix() for path in (root / "tests").rglob("test_*.py"))
+    return [path for path in files if not any(path == t or path.startswith(f"{t}/") for t in owned)]
+
+
+def missing_test_targets(data: dict[str, Any], root: Path = ROOT) -> list[str]:
+    """Test paths named by an area's or an E3 task's command that do not exist."""
+    owners = [(area["name"], area) for area in data.get("areas", [])]
+    owners += list(data.get("tasks", {}).items())
+    missing: list[str] = []
+    for name, owner in owners:
+        for stage in data["stages"]:
+            for command in owner.get(stage, []):
+                for target in pytest_targets(command):
+                    if not (root / target).exists():
+                        missing.append(f"{name}/{stage}: {target}")
+    return missing
 
 
 def area_for_path(data: dict[str, Any], path: str) -> dict[str, Any] | None:
@@ -98,7 +150,13 @@ def is_test_file(path: str) -> bool:
 def area_commands(
     data: dict[str, Any], area: dict[str, Any], stage: str, area_paths: list[str]
 ) -> list[str]:
-    commands = area.get(stage) or data.get("area_defaults", {}).get(stage, [])
+    defaults = data.get("area_defaults", {})
+    commands: list[str] = []
+    for command in area.get(stage) or defaults.get(stage, []):
+        if command == CHECKPOINT_TOKEN:
+            commands.extend(area.get("checkpoint") or defaults.get("checkpoint", []))
+        else:
+            commands.append(command)
     root = area.get("path_root", "")
     relative = " ".join(path.removeprefix(root) for path in area_paths)
     return [command.replace(AREA_PATHS_TOKEN, relative) for command in commands]
@@ -245,8 +303,9 @@ def select_commands(
     if test_files:
         if stage == "inner":
             own = [f"uv run pytest {' '.join(test_files)} -q"]
-        elif stage == "checkpoint":
-            # The file's own directory; a top-level tests/test_*.py runs itself.
+        elif stage in ("checkpoint", "pr"):
+            # The file's own directory; a top-level tests/test_*.py runs itself. The full
+            # suite is CI's (H-gate-and-ci); locally it runs only at closure.
             targets: list[str] = []
             for path in test_files:
                 parent = path.rsplit("/", 1)[0]
@@ -295,25 +354,30 @@ def select_commands(
     return ordered_tasks, drop_subsumed_pytest(commands)
 
 
-FULL_SUITE_COMMANDS = ("uv run pytest -q", "uv run pytest -q -n auto")
+# The full Python suite, through the machine-wide lock (scripts/suite_lock.py), first; the
+# older spellings stay recognised so a manifest entry not yet rewritten is still deduplicated.
+LOCKED_FULL_SUITE = "uv run python scripts/suite_lock.py -- uv run pytest -q -n 4 --dist worksteal"
+FULL_SUITE_COMMANDS = (LOCKED_FULL_SUITE, "uv run pytest -q -n auto", "uv run pytest -q")
 
 
 def drop_subsumed_pytest(commands: list[str]) -> list[str]:
     """Run the full Python suite once: it subsumes every narrower pytest run.
 
-    Narrower runs carry no extra options beyond paths, ``-q`` and ``-m``, so the
-    full suite (which includes slow tests) covers them. One full-suite command
-    is kept, the parallel one when both were selected.
+    Narrower runs carry no extra options beyond paths, ``-q``, ``-m`` and the worker
+    count, so the full suite (which includes slow tests) covers them. One full-suite
+    command is kept, the locked one when it was selected.
     """
     full = [command for command in commands if command in FULL_SUITE_COMMANDS]
     if not full:
         return commands
-    keep = "uv run pytest -q -n auto" if "uv run pytest -q -n auto" in full else full[0]
+    keep = next(command for command in FULL_SUITE_COMMANDS if command in full)
     result: list[str] = []
     for command in commands:
-        if command.startswith("uv run pytest"):
+        if command in FULL_SUITE_COMMANDS:
             if command == keep and keep not in result:
                 result.append(command)
+            continue
+        if command.startswith("uv run pytest"):
             continue
         result.append(command)
     return result
@@ -343,11 +407,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--changed",
         nargs="?",
-        const="main",
+        const=DEFAULT_BASE,
         default=None,
         metavar="BASE",
-        help="add every path changed since the merge base with BASE (default main), "
-        "including staged, unstaged and untracked files",
+        help=f"add every path changed since the merge base with BASE (default {DEFAULT_BASE}; "
+        "fetch first), including staged, unstaged and untracked files",
     )
     parser.add_argument(
         "--stage", choices=("inner", "checkpoint", "pr", "closure"), default="inner"
@@ -388,6 +452,14 @@ def main() -> int:
     try:
         data = load_manifest()
         if args.check:
+            unowned = unowned_test_files(data)
+            missing = missing_test_targets(data)
+            for path in unowned:
+                print(f"ERROR: {path} belongs to no area (name it in an area's inner or checkpoint commands)")
+            for target in missing:
+                print(f"ERROR: {target} does not exist")
+            if unowned or missing:
+                return 2
             print(
                 f"OK: {len(data['tasks'])} tasks, {len(data.get('areas', []))} areas, "
                 f"{len(data['stages'])} stages"
