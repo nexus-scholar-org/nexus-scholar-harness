@@ -6,7 +6,8 @@ import { formatNumber, type Locale } from "@/i18n";
 import { LoadingFrame } from "@/components/loading-frame";
 import { Button, DataCell, DecisionBadge, GatePanel } from "@/components/ui/base";
 import { DETAILS_LABEL } from "@/components/screening-state-card";
-import { ScreeningSteps, StateCard, exportHref, stepHref } from "@/components/screening-state-card";
+import { adoptedHref, ScreeningSteps, StateCard, exportHref, stepHref } from "@/components/screening-state-card";
+import { adoptionText } from "@/lib/adoption-copy";
 import { notifyReviewChanged } from "@/components/review-bus";
 import {
   getBatchReviews,
@@ -72,7 +73,9 @@ const COPY = {
     reason: "Reason",
     count: "Records",
     checks: "Checks",
-    "check.human_provenance": "Every decision is a human decision",
+    "check.human_provenance": "Every decision is recorded as the reviewer's",
+    "check.adopted_decisions_declared": "Decisions stored from drafts are declared",
+    look: "Look at this",
     "check.no_open_conflicts": "No open conflicts between devices",
     "check.bound_to_current_protocol": "Decisions are bound to the current protocol",
     "check.every_record_decided": "Every record is decided",
@@ -145,7 +148,9 @@ const COPY = {
     reason: "Motif",
     count: "Notices",
     checks: "Contrôles",
-    "check.human_provenance": "Chaque décision est humaine",
+    "check.human_provenance": "Chaque décision est enregistrée comme celle de l'évaluateur",
+    "check.adopted_decisions_declared": "Les décisions enregistrées depuis les brouillons sont déclarées",
+    look: "À examiner",
     "check.no_open_conflicts": "Aucun conflit ouvert entre appareils",
     "check.bound_to_current_protocol": "Les décisions sont liées au protocole actuel",
     "check.every_record_decided": "Chaque notice est décidée",
@@ -218,7 +223,9 @@ const COPY = {
     reason: "السبب",
     count: "السجلات",
     checks: "الفحوص",
-    "check.human_provenance": "كل قرار هو قرار بشري",
+    "check.human_provenance": "كل قرار مسجَّل على أنه قرار المراجع",
+    "check.adopted_decisions_declared": "القرارات المحفوظة من المسودات مصرَّح بها",
+    look: "انظر في هذا",
     "check.no_open_conflicts": "لا تعارضات مفتوحة بين الأجهزة",
     "check.bound_to_current_protocol": "القرارات مرتبطة بالبروتوكول الحالي",
     "check.every_record_decided": "حُسم كل سجل",
@@ -400,7 +407,9 @@ export function ScreeningPublish({ locale }: Readonly<{ locale: Locale }>) {
     if (state.status === "loading") return <LoadingFrame heading={t("eyebrow")} sentence={t("loading")} />;
     if (state.status === "error") return <StateCard pageHeading locale={locale} code={state.code} message={state.message} consoleOrigin={origin} onRetry={() => void load()} />;
     const { preview, batches, reviews, current, staleChanged, approver, reporting } = state.data;
-    const allPass = preview.checks.every((c) => c.ok);
+    // H-adopted-decisions-disclosure (answer 3): an advisory check reads "Look at this" and never blocks.
+    const allPass = preview.checks.every((c) => c.ok || c.advisory);
+    const adoption = preview.adoption;
     const allApproved = batches.batches.every((b) => reviews[b.batch_index]?.review.present);
     // Decided and not approved, as the screen can see it; the engine's own count
     // (which also re-offers a stale approval) comes back from the begin call.
@@ -507,7 +516,7 @@ export function ScreeningPublish({ locale }: Readonly<{ locale: Locale }>) {
                   const key = `check.${c.name}` as PublishCopyKey;
                   return (
                     <li key={c.name} className="flex flex-wrap items-center gap-2" data-check={c.name}>
-                      <DecisionBadge role={c.ok ? "include" : "blocked"}>{c.ok ? t("pass") : t("fail")}</DecisionBadge>
+                      <DecisionBadge role={c.ok ? "include" : c.advisory ? "unclear" : "blocked"}>{c.ok ? t("pass") : c.advisory ? t("look") : t("fail")}</DecisionBadge>
                       <span className="text-ink">{key in PUBLISH_COPY[locale] ? t(key) : c.name}</span>
                       {c.ok ? null : (
                         <span className="text-xs text-ink-muted" dir="ltr">
@@ -531,6 +540,28 @@ export function ScreeningPublish({ locale }: Readonly<{ locale: Locale }>) {
                       ))}
                   </ul>
                 </details>
+              ) : null}
+              {adoption && (adoption.undeclared_candidates > 0 || adoption.integrity.removed.length + adoption.integrity.unconfirmed.length > 0) ? (
+                <p className="mt-3 text-sm text-ink" data-adoption-look>
+                  {adoption.integrity.removed.length + adoption.integrity.unconfirmed.length > 0
+                    ? adoptionText(locale, "integrity")
+                    : adoptionText(locale, "undeclared", { n: n(adoption.undeclared_candidates) })}{" "}
+                  {adoptionText(locale, "checkDeclaredNote")}{" "}
+                  <a className="text-brand underline" href={adoptedHref(locale, origin)}>{adoptionText(locale, "declareLink")}</a>
+                </p>
+              ) : null}
+              {adoption && adoption.declared > 0 ? (
+                <p className="mt-3 text-sm text-ink" data-adoption-declared={adoption.declared}>
+                  {adoptionText(locale, "storedCount", { n: n(adoption.declared) })}
+                  {adoption.sample_owed ? (
+                    <>
+                      {" "}
+                      {adoption.sample_owed_size !== null
+                        ? adoptionText(locale, "publishOwed", { k: n(adoption.sample_owed_size) })
+                        : adoptionText(locale, "publishOwedNone")}
+                    </>
+                  ) : null}
+                </p>
               ) : null}
               {!preview.checks.find((c) => c.name === "projections_current")?.ok ? (
                 <div className="mt-3">

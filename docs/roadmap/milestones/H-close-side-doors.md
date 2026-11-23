@@ -1,10 +1,10 @@
 # H-close-side-doors Close the side doors around the decision ledger
 
-Branch: `dev/h/close-side-doors` (from `origin/main` `8dd7904a`) · Lane: **RELEASE** (a public API route, an MCP tool and the screening API contract change) · Status: **READY FOR PR** (review round 2 APPROVE; not pushed; decision items 1 to 4 PROPOSED)
+Branch: `dev/h/close-side-doors` (from `origin/main` `8dd7904a`) · Lane: **RELEASE** (a public API route, an MCP tool and the screening API contract change) · Status: **READY FOR PR** (review round 2 APPROVE; build accepted by the researcher 2026-11-23; items 1, 2, 4 accepted as proposed; item 3 decided as "a number is required", a follow-up not built here; `origin/main` `81f821f5` merged in, with H-remove-rag-verify)
 
 The researcher's decision of 2026-11-23, in the coordinator session, after the project review of that day (`docs/assessment/project-review-2026-11-23.md`, section 3 points 2 and 4, evidence E4 to E7). Four doors let a decision, a setting or a spend happen around the guarded paths. Each is closed with a test that fails on `origin/main`'s code.
 
-This branch is cut from `origin/main`, not from `dev/h/remove-rag-verify` (Part 1). The two touch the same lines in a few places (the MCP tool counts, the agent skill's tool table, `docs/decisions.md`); see "Merging with Part 1".
+This branch was cut from `origin/main` `8dd7904a`; `origin/main` `81f821f5` (with H-remove-rag-verify, PR 300) was merged in on 2026-11-23: the MCP surface is now 24 tools, and the agent skill's table was renumbered on top of Part 1's.
 
 ## The four doors
 
@@ -61,7 +61,7 @@ The allowlist, separately: with `origin/main`'s `browser.py`, `test_writes_follo
 
 ## Open
 
-- **The ceiling half of brief item 4 is met in form, not in substance, for the screen** (decision item 3): a run must state `cost_ceiling_usd`, but `null` means no ceiling, and the screen sends `null` when its ceiling field is blank. A run from the screen with a blank field still has no ceiling, as before. It is closed in substance only if the researcher chooses item 3's alternative (a number required for a priced model, with a screen change).
+- **The ceiling half of brief item 4 is met in form, not in substance, for the screen** (decision item 3; the researcher answered on 2026-11-23 that the ceiling must be a number: a follow-up with a screen change, not built on this branch): a run must state `cost_ceiling_usd`, but `null` means no ceiling, and the screen sends `null` when its ceiling field is blank. A run from the screen with a blank field still has no ceiling, as before. It is closed in substance only if the researcher chooses item 3's alternative (a number required for a priced model, with a screen change).
 - **The Prepare screen still offers AI-agreed exclusion** (decision item 2); choosing it now shows the engine's refusal. Removing the option means changing the web app's unit tests.
 - Follow-ups not done here: re-record `apps/research-ui/tests/fixtures/page-engine.json` (`tests/console/_record_page_engine.py`), which still carries `figures.mode` and the removed sentence (nothing compares it with the engine); amendment notes on the FINAL UX specs that describe the sentence and the opt-in (`docs/ux/phase2-screening/final/02-prepare.md`, `07-agreement-with-agent.md`, `09-publish.md:47`, `10-export-and-methods.md:166`, `:203`); the historical UI-07 documents that describe the old route as the draft writer; `LLMBatchScreener` with no outside caller.
 

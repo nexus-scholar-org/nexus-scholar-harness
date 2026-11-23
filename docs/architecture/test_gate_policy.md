@@ -96,8 +96,9 @@ Selection, in order:
    screening, contracts, authority, console, inception, recon, pipeline,
    workspace-audit, harness-cli, a `src/scholar_harness/**` catch-all, one area
    per package under `src/scholar_*`, the selector itself, and `research-ui`
-   (typecheck plus `vitest related` for the touched files at inner; vitest,
-   build and Playwright at pr, never the Python suite). Area `pr`/`closure`
+   (typecheck, `lint:ui` and `vitest related` for the touched files at inner;
+   vitest and the build at pr, never the Python suite; there is no browser
+   suite since 2026-11-23). Area `pr`/`closure`
    default to the full Python suite once, in parallel (`-n auto`).
 2. **Changed test files** outside every area run themselves at inner, their
    directory at checkpoint, and the full suite at pr.

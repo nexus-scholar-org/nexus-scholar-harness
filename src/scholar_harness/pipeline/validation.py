@@ -80,9 +80,7 @@ def _toposort(node_ids: set[str], edges: list[list[str]]) -> tuple[list[str], li
 ALLOWED_COMMAND_PREFIXES: tuple[tuple[str, ...], ...] = (
     ("scholar-search",),
     ("scholar-pdf",),
-    ("scholar-rag",),
     ("scholar-protocol",),
-    ("scholar-verify",),
     ("scholar-graph",),
     ("python", "src/scholar_harness/agent_screen.py"),
 )

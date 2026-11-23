@@ -10,7 +10,7 @@ Build a researcher-facing view/controller over Nexus Scholar. The Python harness
 
 - Page shells, navigation, responsive layout, accessibility, and visual states.
 - Presentation-only TypeScript interfaces under `lib/`.
-- Component tests and visual/browser tests contained in this application.
+- Component tests contained in this application (vitest; there is no browser suite since 2026-11-23).
 - Tailwind Plus component adaptation through the local `tailwind-plus` MCP.
 
 ## Forbidden
@@ -30,7 +30,7 @@ Build a researcher-facing view/controller over Nexus Scholar. The Python harness
 4. Use semantic HTML, keyboard navigation, visible focus, and text labels in addition to color.
 5. Keep server data behind `lib/api-client.ts` once that boundary exists.
 6. Build against an approved API contract; fixtures belong in tests only.
-7. Run targeted type, component, and browser checks for the changed surface.
+7. Run targeted type and component checks for the changed surface; look at a changed screen in the running app.
 8. Report files changed, screenshots checked, tests run, and any missing API capability.
 
 ## Context boundary

@@ -1,7 +1,7 @@
 """Parked kits say so (production plan §8, M5-slim).
 
-Synthesis, the matrix, the graph, risk-of-bias/trust and reading PDFs are
-parked: their commands stay, and `--help` says in its first line that they are
+The graph and reading PDFs are parked (synthesis, the matrix and
+risk-of-bias/trust were removed with their kits, H-remove-rag-verify): their commands stay, and `--help` says in its first line that they are
 not production, so nobody mistakes a working command for a supported one.
 
 The PDF kit is split (decision 2026-11-21, M12a items 21 to 23 and 27, K0):
@@ -17,7 +17,7 @@ from typer.testing import CliRunner
 NOTICE = "PARKED, not production"
 
 
-@pytest.mark.parametrize("module", ["scholar_rag.cli", "scholar_graph.cli", "scholar_verify.cli"])
+@pytest.mark.parametrize("module", ["scholar_graph.cli"])
 def test_a_parked_kit_says_so_in_help(module):
     import importlib
 

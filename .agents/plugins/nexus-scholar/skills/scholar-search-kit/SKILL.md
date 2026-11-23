@@ -34,7 +34,7 @@ You are an expert academic research agent equipped with `scholar-search-kit`. Th
 3. **Verification & Abstract Hydration**: Verifies citation authenticity against Crossref/OpenAlex to detect hallucinations, strips JATS XML markup (`<jats:p>`), and hydrates rich abstracts.
 4. **Smart 2-Tier Deduplication**: Merges duplicate records by persistent IDs (DOI, arXiv, PMID, OpenAlex) and fuzzy title similarity ($\ge 97\%$) with author/year validation, assigning canonical `workspace_id: SCI-XXXXXX` identifiers.
 5. **Systematic Screening Engine**: Evaluates candidate title/abstract relevance against `protocol.json.screening_criteria`, generating `included.json`, `excluded.json`, `conflicts.json`, `prisma_report.json`, and markdown PRISMA 2020 flow diagrams.
-6. **Standardized Export**: Exports normalized collections to JSON, JSONL, or CSV for direct handoff to `scholar-pdf-kit`, `scholar-graph-kit`, and `scholar-rag-kit`.
+6. **Standardized Export**: Exports normalized collections to JSON, JSONL, or CSV for direct handoff to `scholar-pdf-kit` and `scholar-graph-kit`.
 
 ---
 

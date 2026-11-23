@@ -190,6 +190,19 @@ def _recheck(context: ev.ScreeningContext, events: list[dict[str, Any]], screene
     }
 
 
+def _adoption(ws: Path, winners: dict[str, dict[str, Any]], *, full: bool = False) -> dict[str, Any]:
+    """The declarations of decisions stored from drafts over these winners (H-adopted-decisions-disclosure).
+
+    ``full`` adds the candidate list and the declared study ids (the declaration screen).
+    """
+    from ...screening import adoption as ad
+
+    state = ad.state(ws, winners, list_candidates=full)
+    if not full:
+        state.pop("declared_study_ids", None)
+    return state
+
+
 @router.get("/summary")
 @read_store.display_route
 def summary(request: Request) -> dict[str, Any]:
@@ -214,7 +227,7 @@ def _summary_of(ws: Path) -> dict[str, Any]:
         return {
             "total": 0, "decided": 0, "by_outcome": empty, "agent_proposed": 0, "needs_you": 0, "conflicts": 0,
             "lanes": lanes, "protocol_changed": False, "criteria_version": _criteria(ws).version, "recheck": 0,
-            "pilot": None,
+            "pilot": None, "adoption": {"declared": 0, "undeclared_candidates": 0},
         }
     context, settings, events, winners = _state(ws, context)
     proposed = {p["study_id"] for p in pr.read_proposals(ws)}
@@ -224,6 +237,7 @@ def _summary_of(ws: Path) -> dict[str, Any]:
     open_conflicts = ev.conflicts(events)
     total = len(context.study_batch)
     recheck = len(_recheck(context, events, settings["screener_id"]))
+    adoption = _adoption(ws, winners)
     return {
         "total": total,
         "decided": len(winners),
@@ -240,6 +254,8 @@ def _summary_of(ws: Path) -> dict[str, Any]:
         "recheck": recheck,
         # M11b part B (DoD 11b): the open, else the last, pilot; null when none was drawn.
         "pilot": _pilot_block(ws, recheck),
+        # H-adopted-decisions-disclosure: decisions declared as stored from drafts, and candidates not declared.
+        "adoption": {k: adoption[k] for k in ("declared", "undeclared_candidates")},
     }
 
 
@@ -660,6 +676,110 @@ def amend_method(body: AmendmentBody, request: Request) -> dict[str, Any]:
     return {"amendment": row, "settings": load_settings(ws)}
 
 
+# --- H-adopted-decisions-disclosure: decisions stored from the agent's drafts ------
+
+
+class AdoptionSampleBody(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    size: int
+    seed: int
+    study_ids: list[str] | None = Field(None, max_length=20_000)
+
+
+class AdoptionDeclarationBody(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    event_ids: list[str] = Field(default_factory=list, max_length=20_000)
+    confirm: bool = False
+    note: str | None = Field(None, max_length=500)
+    sample: AdoptionSampleBody | None = None
+
+
+class AdoptionWithdrawalBody(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    event_ids: list[str] = Field(default_factory=list, max_length=20_000)
+    confirm: bool = False
+    note: str | None = Field(None, max_length=500)
+
+
+class AdoptionSampleResultBody(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    declaration_id: str = Field(max_length=64)
+    confirm: bool = False
+    note: str | None = Field(None, max_length=500)
+
+
+def _adoption_write(ws: Path, confirm: bool, write: Any) -> dict[str, Any]:
+    """Under the events lock, so the winners checked are the winners when the line is written."""
+    from ...screening import adoption as ad
+
+    if not confirm:
+        raise _error(
+            422, ad.ADOPTION_CONFIRM_REQUIRED, "a declaration, a withdrawal or a sample's result needs confirm=true"
+        )
+    try:
+        with ev._locked(ws):
+            context, settings, _events, winners = _state(ws)
+            row = write(context, settings, winners)
+    except ad.AdoptionRefused as exc:
+        raise _error(exc.status, exc.code, exc.message, **exc.details) from exc
+    except ev.LockBusy as exc:
+        raise _error(503, ev.ATOMIC_COMMIT_FAILED, f"the decision events are busy; nothing was recorded ({exc})") from exc
+    _context, _settings, _events, winners = _state(ws)
+    return {"row": row, "state": _adoption(ws, winners)}
+
+
+@router.get("/adoption-declarations")
+@read_store.display_route
+def get_adoption_declarations(request: Request) -> dict[str, Any]:
+    """The declarations, the samples and the candidates offered for confirmation (never applied by this read)."""
+    ws = _ws(request)
+    _context, _settings, _events, winners = _state(ws)
+    return _adoption(ws, winners, full=True)
+
+
+@router.post("/adoption-declarations")
+def post_adoption_declaration(body: AdoptionDeclarationBody, request: Request) -> dict[str, Any]:
+    """Declare decisions "stored from the agent's draft without being read one by one".
+
+    H-adopted-decisions-disclosure (decision 2026-11-22): one line of
+    ``audit/adoption_declarations.jsonl`` and one journal row; the events are not rewritten.
+    """
+    from ...screening import adoption as ad
+
+    ws = _ws(request)
+    out = _adoption_write(ws, body.confirm, lambda context, settings, winners: ad.declare(
+        ws, winners, event_ids=body.event_ids, declared_by=str(settings["screener_id"]), declared_at=_now(),
+        note=body.note, sample=body.sample.model_dump() if body.sample else None,
+        protocol_fingerprint=context.protocol_fingerprint,
+    ))
+    return {"declaration": out["row"], "state": out["state"]}
+
+
+@router.post("/adoption-declarations/withdrawals")
+def post_adoption_withdrawal(body: AdoptionWithdrawalBody, request: Request) -> dict[str, Any]:
+    """Withdraw declared records the reviewer has since read: a later line; the declaration stays."""
+    from ...screening import adoption as ad
+
+    ws = _ws(request)
+    out = _adoption_write(ws, body.confirm, lambda _context, settings, _winners: ad.withdraw(
+        ws, event_ids=body.event_ids, withdrawn_by=str(settings["screener_id"]), withdrawn_at=_now(), note=body.note,
+    ))
+    return {"withdrawal": out["row"], "state": out["state"]}
+
+
+@router.post("/adoption-declarations/sample-results")
+def post_adoption_sample_result(body: AdoptionSampleResultBody, request: Request) -> dict[str, Any]:
+    """The reviewer has read a declaration's sample; the engine counts the decisions that changed."""
+    from ...screening import adoption as ad
+
+    ws = _ws(request)
+    out = _adoption_write(ws, body.confirm, lambda _context, settings, winners: ad.record_sample_result(
+        ws, winners, declaration_id=body.declaration_id, recorded_by=str(settings["screener_id"]),
+        recorded_at=_now(), note=body.note,
+    ))
+    return {"result": out["row"], "state": out["state"]}
+
+
 # --- M11b part A: the criteria in force and their amendments ----------------------
 
 
@@ -969,6 +1089,27 @@ async def prepare(body: PrepareBody, request: Request) -> dict[str, Any]:
     return {"job_id": job.job_id}
 
 
+def _adoption_check(adoption: dict[str, Any]) -> dict[str, Any]:
+    """"Decisions stored from drafts are declared": advisory, never a block (answer 3)."""
+    integrity = adoption["integrity"]
+    undeclared = adoption["undeclared_candidates"]
+    if integrity["removed"] or integrity["unconfirmed"]:
+        detail = (
+            f"audit/adoption_declarations.jsonl does not match the journal: {len(integrity['removed'])} recorded "
+            f"line(s) missing or changed, {len(integrity['unconfirmed'])} line(s) the journal does not record"
+        )
+    elif undeclared:
+        detail = f"{undeclared} decisions have a note that says adopted or stored in bulk and are not declared"
+    else:
+        detail = f"{adoption['declared']} decisions declared as {adoption['phrase']}"
+    return {
+        "name": "adopted_decisions_declared",
+        "ok": not undeclared and not integrity["removed"] and not integrity["unconfirmed"],
+        "advisory": True,
+        "detail": detail,
+    }
+
+
 @router.get("/prisma/preview")
 @read_store.display_route
 def prisma_preview(request: Request) -> dict[str, Any]:
@@ -990,12 +1131,16 @@ def prisma_preview(request: Request) -> dict[str, Any]:
             by_reason[code] = by_reason.get(code, 0) + 1
     open_conflicts = ev.conflicts(events)
     screened = len(context.study_batch)
+    adoption = _adoption(ws, winners)
     checks = [
         {
+            # H-adopted-decisions-disclosure: all the engine can know is that each decision is
+            # recorded as the reviewer's; whether it was read is declared (the next check).
             "name": "human_provenance",
             "ok": all(w.get("method") == "HUMAN" for w in winners.values()),
-            "detail": "every decision is a human decision event",
+            "detail": "every decision is recorded as the reviewer's",
         },
+        _adoption_check(adoption),
         {"name": "no_open_conflicts", "ok": not open_conflicts, "detail": f"{len(open_conflicts)} open"},
         {
             # Review F2: not vacuous. No decision proves nothing, and a batch
@@ -1033,6 +1178,7 @@ def prisma_preview(request: Request) -> dict[str, Any]:
         "included": counts["INCLUDE"],
         "not_yet_decided": screened - len(winners),
         "checks": checks,
+        "adoption": adoption,
     }
     from ...corpus_accept import COMBINED_MANIFEST_SCHEMA, _manifest, prisma_identification
 
@@ -1556,12 +1702,17 @@ def agreement(request: Request) -> dict[str, Any]:
     ]
     latest = {p["study_id"]: p for p in sorted(current, key=lambda p: (p.get("created_at") or "", p["proposal_id"]))}
     in_force = _in_force(ws, context, settings)  # H-screening-drafts
+    # H-adopted-decisions-disclosure (DoD 2): a decision stored from the draft is the agent agreeing
+    # with itself; declared decisions leave the figure.
+    adoption = _adoption(ws, winners, full=True)
+    declared = set(adoption.pop("declared_study_ids"))
+    adoption.pop("candidate_list", None)
     table = dict.fromkeys(_PAIRS.values(), 0)
     unclear, compared, after_seeing = 0, 0, 0
     splits: Counter[str] = Counter()
     both: Counter[str] = Counter()
     for study, proposal in latest.items():
-        if study not in winners:
+        if study not in winners or study in declared:
             continue
         revealed_at = reveals.get(study)
         before = [
@@ -1606,4 +1757,5 @@ def agreement(request: Request) -> dict[str, Any]:
         "unclear_either_side": unclear,
         "kappa": None,
         "kappa_note": "needs a second human screener",
+        "adoption": adoption,
     }

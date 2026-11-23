@@ -12,21 +12,21 @@ MODULE = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(MODULE)
 
 
-def test_manifest_is_valid_and_covers_every_e3_task() -> None:
+def test_manifest_is_valid_and_covers_every_task() -> None:
     data = MODULE.load_manifest()
-    expected = {
-        f"T-{number}" for number in (*range(10, 100, 10), 95, *range(100, 160, 10))
-    } | {f"T-{number}" for number in range(160, 240, 10)}
+    # The E3 indexing tasks (T-10 to T-100, T-130, T-140) left with scholar_rag
+    # (H-remove-rag-verify, 2026-11-23).
+    expected = {"T-110", "T-120", "T-150"} | {f"T-{number}" for number in range(160, 240, 10)}
     assert set(data["tasks"]) == expected
 
 
 def test_inner_selection_is_narrow_and_deterministic() -> None:
     data = MODULE.load_manifest()
-    tasks, commands = MODULE.select_commands(data, tasks=["T-10"], paths=[], stage="inner")
-    assert tasks == ["T-10"]
+    tasks, commands = MODULE.select_commands(data, tasks=["T-160"], paths=[], stage="inner")
+    assert tasks == ["T-160"]
     assert commands == [
         "git diff --check",
-        "uv run pytest tests/kits/rag/test_canonical.py -q",
+        "uv run pytest tests/authority -q",
     ]
 
 
@@ -34,15 +34,15 @@ def test_path_selection_unions_overlapping_tasks_without_duplicate_commands() ->
     data = MODULE.load_manifest()
     tasks, commands = MODULE.select_commands(
         data,
-        tasks=["T-20", "T-40", "T-120"],
-        paths=["src/scholar_rag/chunker.py"],
+        tasks=["T-120", "T-160", "T-170"],
+        paths=["src/scholar_agent/server.py"],
         stage="checkpoint",
     )
-    # Explicit E3 tasks union with the rag area gate, without duplicates.
-    assert tasks == ["T-20", "T-40", "T-120"]
+    # Explicit tasks union with the agent-mcp area gate, without duplicates.
+    assert tasks == ["T-120", "T-160", "T-170"]
     assert commands[0] == "git diff --check"
     assert len(commands) == len(set(commands))
-    assert any("tests/kits/rag" in command for command in commands)
+    assert any("tests/kits/agent" in command for command in commands)
 
 
 def test_unknown_task_and_empty_selection_fail_closed() -> None:
@@ -68,9 +68,9 @@ def test_unmatched_executable_path_uses_full_repository_fallback() -> None:
 
 def test_empty_task_stage_uses_owning_repository_fallback() -> None:
     data = MODULE.load_manifest()
-    tasks, commands = MODULE.select_commands(data, tasks=["T-10"], paths=[], stage="closure")
-    assert tasks == ["T-10"]
-    assert "uv run pytest tests/kits/rag -q" in commands
+    tasks, commands = MODULE.select_commands(data, tasks=["T-110"], paths=[], stage="closure")
+    assert tasks == ["T-110"]
+    assert "uv run pytest tests/kits/agent -q" in commands
 
 
 def test_prose_only_doc_selects_light_gate_without_full_suite() -> None:
@@ -352,11 +352,14 @@ def test_research_ui_change_takes_ui_gate_not_python_suite() -> None:
     assert inner == [
         "git diff --check",
         "npm --prefix apps/research-ui run typecheck",
+        "npm --prefix apps/research-ui run lint:ui",
         "npm --prefix apps/research-ui run test:related -- "
         "components/screening-page.tsx lib/screening-api.ts",
     ]
     _, pr = MODULE.select_commands(data, tasks=[], paths=paths, stage="pr")
-    assert "npm --prefix apps/research-ui run test:browser" in pr
+    assert "npm --prefix apps/research-ui run build" in pr
+    # The browser suite was removed on 2026-11-23 (H-test-diet); no gate may name it.
+    assert not any("test:browser" in command or "playwright" in command for command in pr)
     assert not any(command.startswith("uv run pytest") for command in pr)
 
 

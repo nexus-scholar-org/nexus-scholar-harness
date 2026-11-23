@@ -3,8 +3,7 @@
  * `src/scholar_harness/console/api/recon.py`), for tests only. It keeps the
  * engine's shapes and refusal codes; the real behaviour (occurrence counts,
  * directions, staleness) is pinned by `tests/console/test_recon_api.py`.
- * The vitest screens reach it through `inceptionEngine`, the Playwright spec
- * through the console proxy route.
+ * The vitest screens reach it through `inceptionEngine`.
  *
  * As the real session does, every recorded probe (topic or narrower, empty or
  * failed included) overwrites the session's `topic` with the draft's topic,

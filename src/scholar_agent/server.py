@@ -80,18 +80,11 @@ from scholar_search.screening import (
     reconcile_multi_screener_decisions,
 )
 from scholar_pdf.extract import DoclingEngine, GrobidEngine, PyMuPDFEngine
-from scholar_verify.verbatim import VerbatimClaimVerifier
-from scholar_verify import cli as verify_cli
-from scholar_verify import coi, open_science, retraction, risk_of_bias, trust_context
 
 # Phase 2 Imports
-# WP01-E3: scholar_rag.indexer.ScholarIndexer is deliberately NOT imported.
-# The E3 indexing surface is declared unsupported (Packet E3 section 9.1), so
-# no legacy indexing path may be reachable from this adapter -- see
-# nexus_rag_index below and tests/test_mcp_indexing_boundary.py.
-from scholar_rag.retriever import ScholarRetriever
-from scholar_rag.synthesis import GroundedSynthesisEngine
-from scholar_rag.matrix import MatrixExtractor
+# H-remove-rag-verify (2026-11-23): scholar_rag and scholar_verify were removed
+# with their MCP tools (retrieval, synthesis, matrix, claim verification, the
+# Phase-4 streams, the methodology critique and the E3 indexing refusal).
 from scholar_graph.builder import CitationGraphBuilder
 from scholar_graph.visualizer import GraphVisualizer
 
@@ -105,16 +98,9 @@ from scholar_graph.visualizer import GraphVisualizer
 # E2-013) with the same discipline: the canonical scholar-pdf-kit owns
 # extraction (API/CLI), so no engine, sidecar, or identity logic may appear
 # in the MCP adapter either.
-# WP01-E3 adds the third declared MCP capability boundary (Packet E3
-# section 9.1, E3-008): the canonical scholar-rag-kit owns indexing through the
-# T-90 shared service (API/CLI). This kit declares and refuses only -- no
-# chunker, store, identity, parent-bound, or journal logic may appear in the
-# MCP adapter, and the legacy ScholarIndexer path is removed rather than
-# forwarded to.
 from scholar_agent.capabilities import (
     PDF_ACQUISITION,
     PDF_EXTRACTION,
-    RAG_INDEXING,
     unsupported_capability_envelope_json,
 )
 
@@ -598,12 +584,11 @@ def nexus_pipeline_run(
     protocol_path: str = None,
     skip_stages: str = None,
 ) -> str:
-    """Run the full 10-stage ResearchOrchestrator pipeline.
+    """Run the ResearchOrchestrator pipeline.
 
     Wraps ``scholar_harness.orchestrator.ResearchOrchestrator`` to execute the
-    end-to-end research workflow: protocol compilation → discovery → dedup →
-    screening → verification → PDF harvest → extraction → RAG indexing →
-    grounded synthesis.
+    research workflow: discovery → dedup → verification → screening
+    preparation, and after a collected screening, extraction → citation graph.
 
     Parameters
     ----------
@@ -807,175 +792,8 @@ def nexus_pdf_extraction(
 
 
 # ==============================================================================
-# Phase 2: RAG, Matrix Extraction & Knowledge Graph Tools
+# Phase 2: Knowledge Graph Tools
 # ==============================================================================
-
-
-@mcp.tool()
-def nexus_rag_index(
-    docs_dir: str,
-    db_path: str = "./chroma_db",
-    bib_file: str = None,
-    workspace_id: str = None,
-) -> str:
-    """DECLARED UNSUPPORTED: RAG indexing is not available through MCP (E3).
-
-    This tool exists so the boundary is *observable* rather than silently
-    omitted. RAG indexing (``rag_indexing``) is declared in
-    ``scholar_agent.capabilities`` with ``mcp_supported=False``; the canonical
-    scholar-rag-kit owns the domain service and exposes it through its Python
-    API (``scholar_rag.index_service.index_workspace``, taking an
-    ``IndexServiceRequest`` and returning an ``IndexServiceResult``) and the
-    ``scholar-rag index`` CLI. Those API/CLI surfaces are the supported E3
-    indexing surfaces and both call the same T-90 shared service.
-
-    This tool used to call ``scholar_rag.indexer.ScholarIndexer`` directly.
-    That path was non-authoritative and is deliberately removed rather than
-    kept: it hard-coded a working-directory-relative ``db_path``, silently
-    substituted workspace identity from ``project.json`` when ``workspace_id``
-    was omitted, could not carry an accepted parent, an embedder identity, or a
-    ``PARTIAL`` result, and returned free-text success/failure strings. A
-    superficially working tool that silently substitutes caller intent is the
-    exact divergence Packet E3 section 9.1 declares against, so no partial MCP
-    indexing and no forwarding to the legacy indexer remains here.
-
-    Arguments mirror the shape of the retired request and are accepted for
-    discoverability only: the rejection is unconditional, so no argument value
-    is validated, interpreted, or echoed. In particular no store path, workspace
-    identity, accepted parent, or journal is derived from ``db_path``, from the
-    working directory, or from local workspace contents.
-
-    Returns a JSON operation envelope: ``operation="rag_index"``,
-    ``status="FAILED"``, ``artifacts=[]``, ``warnings=[]``, and exactly one
-    non-retryable error with ``code="UNSUPPORTED_CAPABILITY"`` whose message
-    names the ``scholar-rag index`` CLI and the
-    ``scholar_rag.index_service`` API. The rejection occurs before any store is
-    opened, any directory is read, any index is built, or any filesystem or
-    audit I/O occurs; the envelope is produced by pure functions over the
-    immutable declaration.
-
-    Retrieval over an existing index (``nexus_rag_query``,
-    ``nexus_rag_synthesize``) is unaffected: E3 declares only the *indexing*
-    surface unsupported, and no retrieval MCP tool is added by this packet.
-    """
-    return unsupported_capability_envelope_json(RAG_INDEXING)
-
-
-@mcp.tool()
-def nexus_rag_query(
-    query: str,
-    db_path: str = "./chroma_db",
-    section: str = None,
-    section_category: str = None,
-    paradigm: str = None,
-    boost_doi: str = None,
-    n_results: int = 5,
-    graph_source: str = None,
-    alpha: float = 0.25,
-    beta: float = 0.15,
-) -> str:
-    """
-    Search indexed academic literature with sectional slicing and graph PageRank boosting.
-    Categories: 'abstract_intro', 'methodology', 'results_empirical', 'discussion_limitations'.
-    graph_source: citation graph JSON/gpickle (as exported by nexus_graph_build) whose
-        PageRank scores are blended as `CosineSim + alpha*PageRank + beta*seed`.
-    """
-    try:
-        db_path = _resolve_path(db_path) or db_path
-        graph_source = _resolve_path(graph_source) or graph_source
-        retriever = ScholarRetriever(db_path=db_path)
-        boost_list = [boost_doi] if boost_doi else None
-        results = retriever.query(
-            query_text=query,
-            n_results=n_results,
-            section=section,
-            section_category=section_category,
-            paradigm=paradigm,
-            boost_dois=boost_list,
-            graph_source=graph_source,
-            alpha=alpha,
-            beta=beta,
-        )
-
-        if not results:
-            return "No results found."
-
-        output = []
-        for i, res in enumerate(results, 1):
-            meta = res.metadata
-            section_name = meta.get("section", "Unknown")
-            sec_cat = meta.get("section_category", "general")
-            token = res.citation_token
-            snippet = res.text[:300].replace("\n", " ") + "..."
-            output.append(
-                f"Result {i} (Hybrid Score: {res.hybrid_score:.4f}, CosSim: {res.cosine_sim:.4f})\n"
-                f"Token: {token} | Section: {section_name} [{sec_cat}]\n"
-                f"{snippet}\n"
-            )
-        return "\n".join(output)
-    except Exception as e:
-        return f"Error during RAG query: {e}"
-
-
-@mcp.tool()
-def nexus_rag_synthesize(
-    query: str,
-    rq_id: str = "RQ1",
-    db_path: str = "./chroma_db",
-    section_category: str = None,
-    paradigm: str = None,
-    n_chunks: int = 5,
-) -> str:
-    """
-    Generate grounded synthesis with atomic citation tokens and automated claim entailment verification.
-    """
-    try:
-        db_path = _resolve_path(db_path) or db_path
-        retriever = ScholarRetriever(db_path=db_path)
-        engine = GroundedSynthesisEngine(retriever=retriever)
-        result = engine.synthesize(
-            query=query,
-            rq_id=rq_id,
-            n_chunks=n_chunks,
-            section_category=section_category,
-            paradigm=paradigm,
-        )
-        return (
-            f"Grounded Synthesis for '{query}' ({result.verified_claims_count}/{len(result.claims)} verified claims, {result.entailment_rate * 100:.1f}% entailment):\n\n"
-            f"{result.synthesis_markdown}"
-        )
-    except Exception as e:
-        return f"Error during synthesis: {e}"
-
-
-@mcp.tool()
-@_journaled("MCP_MATRIX_EXTRACT")
-def nexus_matrix_extract(
-    workspace_dir: str = ".",
-    protocol_path: str = None,
-    output_dir: str = "./literature",
-) -> str:
-    """
-    Extract dynamic Protocol Matrix Dimensions across all indexed studies in the workspace.
-    """
-    workspace_dir = _resolve_path(workspace_dir) or workspace_dir
-    protocol_path = _resolve_path(protocol_path) or protocol_path
-    output_dir = _resolve_path(output_dir) or output_dir
-    w_dir = Path(workspace_dir).resolve()
-    p_path = Path(protocol_path or (w_dir / "protocol.json"))
-    out_dir = Path(output_dir)
-    if not p_path.exists():
-        return f"Error: Protocol not found at {p_path}"
-    try:
-        protocol = ResearchProtocol.model_validate(
-            json.loads(p_path.read_text(encoding="utf-8"))
-        )
-        retriever = ScholarRetriever(db_path=str(w_dir / "chroma_db"))
-        extractor = MatrixExtractor(protocol=protocol, retriever=retriever)
-        rows, csv_path, json_path = extractor.extract_all(output_dir=out_dir)
-        return f"Successfully extracted dynamic matrix ({len(rows)} studies) to {csv_path} and {json_path}."
-    except Exception as e:
-        return f"Error extracting matrix: {e}"
 
 
 @mcp.tool()
@@ -1085,250 +903,9 @@ def nexus_screen_reconcile(screeners_json: str, adjudication_json: str = None) -
         return json.dumps({"status": "ERROR", "error": str(e)})
 
 
-@mcp.tool()
-def nexus_verify_claims(
-    claims_json_path: str, extracted_dir_path: str, threshold: float = 0.90
-) -> str:
-    """
-    Verify claim quotes against extracted Markdown files using token n-gram and char-window matching.
-    Accepts scholar-rag SynthesisClaim JSON ({claims: [...]} or bare list). Returns
-    aggregate metrics, per-claim verdicts, and a failures-by-reason breakdown.
-
-    Args:
-        claims_json_path: Path to synthesis claims JSON (e.g. synthesis/claims.json).
-        extracted_dir_path: Directory containing extracted source markdown documents.
-        threshold: Coverage threshold (default 0.90).
-    """
-    try:
-        claims_json_path = _resolve_path(claims_json_path) or claims_json_path
-        extracted_dir_path = _resolve_path(extracted_dir_path) or extracted_dir_path
-        cp = Path(claims_json_path)
-        ed = Path(extracted_dir_path)
-        if not cp.is_file():
-            return json.dumps(
-                {
-                    "status": "ERROR",
-                    "error": f"Claims file not found: {claims_json_path}",
-                }
-            )
-        if not ed.is_dir():
-            return json.dumps(
-                {
-                    "status": "ERROR",
-                    "error": f"Extracted directory not found: {extracted_dir_path}",
-                }
-            )
-
-        claims = json.loads(cp.read_text(encoding="utf-8"))
-        if isinstance(claims, dict):
-            claims = claims.get("claims", [])
-        if not isinstance(claims, list):
-            return json.dumps(
-                {
-                    "status": "ERROR",
-                    "error": "Claims file must be a JSON array or {claims: [...]}",
-                }
-            )
-
-        # scholar-rag SynthesisClaim emits claim_text + study_id, not
-        # evidence_quote/claim_id. Normalize so VerbatimClaimVerifier can digest it.
-        normalized: list[dict[str, Any]] = []
-        for i, claim in enumerate(claims):
-            if not isinstance(claim, dict):
-                continue
-            normalized.append(
-                {
-                    "claim_id": claim.get("claim_id")
-                    or claim.get("workspace_id")
-                    or f"CLAIM-{i + 1:04d}",
-                    "study_id": claim.get("study_id") or "",
-                    "evidence_quote": claim.get("evidence_quote")
-                    or claim.get("claim_text")
-                    or "",
-                    "_rag_status": claim.get("entailment_status"),
-                }
-            )
-
-        source_texts = {}
-        for f in ed.glob("*.md"):
-            content = f.read_text(encoding="utf-8", errors="replace")
-            source_texts[f.stem] = content
-            # Try to index by SCI-xxxx if found
-            import re
-
-            m = re.search(r"workspace_id:\s*['\"]?(SCI-\d+)['\"]?", content)
-            if m:
-                source_texts[m.group(1)] = content
-            m2 = re.search(r"(SCI-\d+)", f.name)
-            if m2:
-                source_texts[m2.group(1)] = content
-
-        verifier = VerbatimClaimVerifier(threshold=threshold)
-        results, metrics = verifier.verify_claims_ledger(normalized, source_texts)
-
-        failures_by_reason: dict[str, int] = {}
-        verdicts: list[dict[str, Any]] = []
-        for result, claim in zip(results, normalized):
-            verdict = asdict(result)
-            rag_status = claim.get("_rag_status")
-            if rag_status:
-                verdict["rag_entailment_status"] = rag_status
-            if not verdict.get("is_verified") and verdict.get("failure_reason"):
-                reason = verdict["failure_reason"]
-                failures_by_reason[reason] = failures_by_reason.get(reason, 0) + 1
-            verdicts.append(verdict)
-
-        return json.dumps(
-            {
-                "status": "SUCCESS",
-                "metrics": metrics,
-                "failures_by_reason": failures_by_reason,
-                "claims": verdicts,
-            },
-            indent=2,
-        )
-    except Exception as e:
-        return json.dumps({"status": "ERROR", "error": str(e)})
-
-
-@mcp.tool()
-@_journaled("MCP_VERIFY_PHASE4")
-def nexus_verify_phase4(
-    workspace_dir: str = ".",
-    stream: str = "all",
-    sleep_s: float = 0.2,
-    skip_retraction: bool = True,
-    rq_id: str = None,
-) -> str:
-    """
-    Run a scholar-verify Phase-4 stream against a workspace and persist outputs.
-
-    stream: 'retraction' | 'open-science' | 'coi' | 'risk-of-bias' |
-        'trust-context' | 'all'. Outputs land under <ws>/phase4/<name>.{json,md}
-        (e.g. risk_of_bias.json) mirroring `uv run scholar-verify <stream>`.
-        'retraction' hits OpenAlex/Crossref (sleep_s seconds between calls);
-        set skip_retraction=False to run it (the default mirrors --skip-retraction).
-    """
-    ws = Path(_resolve_path(workspace_dir) or workspace_dir).resolve()
-    if not ws.is_dir():
-        return json.dumps(
-            {"status": "ERROR", "error": f"Workspace not found: {workspace_dir}"}
-        )
-    streams = {
-        "retraction",
-        "open-science",
-        "coi",
-        "risk-of-bias",
-        "trust-context",
-        "all",
-    }
-    if stream not in streams:
-        return json.dumps(
-            {
-                "status": "ERROR",
-                "error": f"Unknown stream '{stream}'; expected one of {sorted(streams)}",
-            }
-        )
-    try:
-        written: dict[str, str] = {}
-
-        if stream in ("retraction", "all") and not skip_retraction:
-            recs = verify_cli._merged_records(ws)
-            inc = verify_cli._load(ws / "literature" / "included.json", "included")
-            out = retraction.RetractionChecker(sleep_s=sleep_s).check(recs, inc)
-            verify_cli._write(
-                ws,
-                "retraction_status_check",
-                out,
-                retraction.render_retraction_report(out),
-            )
-            written["retraction"] = str(ws / "phase4" / "retraction_status_check.json")
-
-        if stream in ("open-science", "all"):
-            recs = verify_cli._merged_records(ws)
-            out = open_science.run(recs, ws / "extracted")
-            verify_cli._write(
-                ws, "open_science_regex_baseline", out, open_science.render_report(out)
-            )
-            written["open_science"] = str(
-                ws / "phase4" / "open_science_regex_baseline.json"
-            )
-
-        if stream in ("coi", "all"):
-            manifest = verify_cli._manifest(ws)
-            chunks = coi.load_chunks(ws / "phase4" / "_agent_results")
-            out = coi.run(manifest, chunks)
-            verify_cli._write(ws, "coi_audit", out, coi.render_report(out))
-            written["coi"] = str(ws / "phase4" / "coi_audit.json")
-
-        if stream in ("risk-of-bias", "all"):
-            recs = verify_cli._merged_records(ws)
-            manifest = verify_cli._manifest(ws)
-            out = risk_of_bias.run(recs, manifest)
-            verify_cli._write(ws, "risk_of_bias", out, risk_of_bias.render_report(out))
-            written["risk_of_bias"] = str(ws / "phase4" / "risk_of_bias.json")
-
-        if stream in ("trust-context", "all"):
-            cons_path = ws / trust_context.CONSENSUS_DEFAULT
-            if not cons_path.is_file():
-                written["trust_context"] = "SKIPPED (no synthesis consensus.json)"
-            else:
-                cons = verify_cli._load(cons_path, "consensus report")
-                phase4 = {}
-                for key, default_fname in trust_context.PHASE4_INPUTS.items():
-                    p = ws / "phase4" / default_fname
-                    if p.exists():
-                        phase4[key] = trust_context._rows(
-                            verify_cli._load(p, f"phase4/{default_fname}")
-                        )
-                cdir = ws / "synthesis"
-                claims_by_rq = (
-                    trust_context.load_rq_claims(cdir) if cdir.exists() else {}
-                )
-                annotated = trust_context.annotate(
-                    cons, phase4, rq_id=rq_id, claims_by_rq=claims_by_rq
-                )
-                md = trust_context.render_report(annotated)
-                phase4_dir = ws / "phase4"
-                phase4_dir.mkdir(parents=True, exist_ok=True)
-                stem = (
-                    f"trust_consensus_{verify_cli._slug(rq_id)}"
-                    if rq_id
-                    else "trust_consensus"
-                )
-                (phase4_dir / f"{stem}.json").write_text(
-                    json.dumps(annotated, indent=2, ensure_ascii=False),
-                    encoding="utf-8",
-                )
-                (phase4_dir / f"{stem}.md").write_text(md, encoding="utf-8")
-                written["trust_context"] = str(phase4_dir / f"{stem}.json")
-
-        return json.dumps(
-            {"status": "SUCCESS", "stream": stream, "written": written}, indent=2
-        )
-    except Exception as e:
-        return json.dumps({"status": "ERROR", "error": str(e)})
-
-
 # ==============================================================================
-# Phase F: Specialized Agents — Methodology Critique (F1) & Graph Narrative (F2)
+# Phase F: Specialized Agents — Graph Narrative (F2)
 # ==============================================================================
-
-
-def _load_records(workspace_dir: Path) -> list[dict]:
-    """Load merged extraction records from ``literature/extraction/merged/records.json``."""
-    recs_path = workspace_dir / "literature" / "extraction" / "merged" / "records.json"
-    if not recs_path.is_file():
-        raise FileNotFoundError(f"records.json not found at {recs_path}")
-    return json.loads(recs_path.read_text(encoding="utf-8"))
-
-
-def _load_manifest(workspace_dir: Path) -> list[dict]:
-    """Load the Phase-4 manifest from ``phase4/_manifest.json``."""
-    manifest_path = workspace_dir / "phase4" / "_manifest.json"
-    if not manifest_path.is_file():
-        raise FileNotFoundError(f"_manifest.json not found at {manifest_path}")
-    return json.loads(manifest_path.read_text(encoding="utf-8"))
 
 
 def _load_graph_json(graph_path: Path) -> dict:
@@ -1394,134 +971,6 @@ def _summarize_communities(graph_data: dict) -> list[dict]:
             }
         )
     return summaries
-
-
-@mcp.tool()
-@_journaled("MCP_CRITIQUE_METHODOLOGY")
-def nexus_critique_methodology(
-    workspace_dir: str,
-    protocol_path: str | None = None,
-    rq_id: str | None = None,
-) -> str:
-    """Evaluate methodological rigor of extracted studies using risk-of-bias scoring.
-
-    Wraps ``scholar-verify-kit`` risk-of-bias (QUADAS-2/PROBAST adaptation) and
-    produces a ``methodological_critique.md`` with domain-level summary and
-    per-study table.
-
-    Parameters
-    ----------
-    workspace_dir:
-        Path to the research workspace.
-    protocol_path:
-        Optional path to ``protocol.json`` for research-question context.
-    rq_id:
-        Optional research question ID to scope the critique.
-    """
-    try:
-        ws = Path(_resolve_path(workspace_dir) or workspace_dir).resolve()
-        if not ws.is_dir():
-            return json.dumps(
-                {"status": "ERROR", "error": f"Workspace not found: {workspace_dir}"}
-            )
-
-        # Load data
-        records = _load_records(ws)
-        manifest = _load_manifest(ws)
-
-        # Run risk-of-bias scoring
-        rob_result = risk_of_bias.run(records, manifest)
-
-        # Compute aggregate stats
-        summary = rob_result.get("summary", {})
-        overall_risk = summary.get("overall_risk", {})
-        by_domain = summary.get("by_domain", {})
-        studies_high = summary.get("studies_high_risk", [])
-        studies_unclear = summary.get("studies_unclear", [])
-        total_assessed = summary.get("studies_assessed", 0)
-
-        # Determine overall risk label
-        if overall_risk.get("H", 0) > 0:
-            overall_label = "HIGH"
-        elif overall_risk.get("?", 0) > overall_risk.get("L", 0):
-            overall_label = "UNCLEAR"
-        else:
-            overall_label = "LOW"
-
-        # Build domain ratings
-        domain_names = risk_of_bias.DOMAIN_NAMES
-        domain_ratings: dict[str, dict[str, int]] = {}
-        for dk, counts in by_domain.items():
-            domain_ratings[dk] = dict(counts)
-
-        # Render Markdown critique
-        md_lines = [
-            "# Methodological Critique",
-            "",
-            "## Overview",
-            "",
-            f"- **Studies assessed**: {total_assessed}",
-            f"- **Overall risk**: {overall_label}",
-            f"- **High-risk studies**: {', '.join(studies_high) if studies_high else 'None'}",
-            f"- **Unclear-risk studies**: {', '.join(studies_unclear) if studies_unclear else 'None'}",
-            "",
-            "## Domain-Level Summary",
-            "",
-            "| Domain | L (Low) | ? (Unclear) | H (High) |",
-            "| :--- | :---: | :---: | :---: |",
-        ]
-        for dk in sorted(domain_names):
-            label = domain_names.get(dk, dk)
-            counts = by_domain.get(dk, {})
-            l_count = counts.get("L", 0)
-            u_count = counts.get("?", 0)
-            h_count = counts.get("H", 0)
-            na_count = counts.get("n/a", 0)
-            if na_count == total_assessed:
-                md_lines.append(f"| {dk}: {label} | — | — | — (n/a) |")
-            else:
-                md_lines.append(
-                    f"| {dk}: {label} | {l_count} | {u_count} | {h_count} |"
-                )
-
-        md_lines += ["", "## Per-Study Breakdown", ""]
-        md_lines += [
-            "| Workspace ID | Title | Year | Overall Risk |",
-            "| :--- | :--- | :---: | :---: |",
-        ]
-        for row in rob_result.get("results", []):
-            title = (row.get("title") or "")[:80]
-            md_lines.append(
-                f"| {row['workspace_id']} | {title} | {row.get('year', '')} | {row['overall_risk']} |"
-            )
-
-        md_lines += [
-            "",
-            "---",
-            f"*Generated by `nexus_critique_methodology` (scholar-verify-kit risk-of-bias)*",
-        ]
-
-        summary_md = "\n".join(md_lines)
-
-        # Write output
-        out_dir = ws / "phase4"
-        out_dir.mkdir(parents=True, exist_ok=True)
-        (out_dir / "methodological_critique.md").write_text(
-            summary_md, encoding="utf-8"
-        )
-
-        return json.dumps(
-            {
-                "status": "SUCCESS",
-                "overall_risk": overall_label,
-                "domain_ratings": domain_ratings,
-                "per_study_count": total_assessed,
-                "output_path": str(out_dir / "methodological_critique.md"),
-            },
-            indent=2,
-        )
-    except Exception as e:
-        return json.dumps({"status": "ERROR", "error": str(e)})
 
 
 @mcp.tool()
@@ -2331,22 +1780,16 @@ def nexus_assistant_report_finding(
     ))
 
 
-#: Tools over parked work (production plan §8, M5-slim): synthesis, the matrix,
-#: the graph, verification/trust, full text and the full pipeline. They keep
-#: working, and their description says first that they are not production, so
-#: an agent reading the tool list sees it before calling one. The two
-#: declared-unsupported boundaries (nexus_pdf_acquire, nexus_rag_index,
-#: nexus_pdf_extraction) already refuse with a typed envelope.
+#: Tools over parked work (production plan §8, M5-slim): the graph, full text
+#: and the full pipeline. They keep working, and their description says first
+#: that they are not production, so an agent reading the tool list sees it
+#: before calling one. The two declared-unsupported boundaries
+#: (nexus_pdf_acquire, nexus_pdf_extraction) already refuse with a typed
+#: envelope.
 PARKED_TOOLS = (
-    "nexus_rag_query",
-    "nexus_rag_synthesize",
-    "nexus_matrix_extract",
     "nexus_graph_build",
     "nexus_graph_narrative",
-    "nexus_verify_claims",
-    "nexus_verify_phase4",
     "nexus_extract_pdf",
-    "nexus_critique_methodology",
     "nexus_pipeline_run",
 )
 PARKED_NOTICE = "PARKED, not production (Nexus Scholar 1.0 ships screening only)."
@@ -2385,13 +1828,6 @@ def main(argv: list[str] | None = None) -> None:
             "operation=extract_pdf / status=FAILED / UNSUPPORTED_CAPABILITY before any I/O; "
             "use the scholar-pdf extract-run CLI or "
             "scholar_pdf.extraction.PDFExtractionService API instead\n"
-            "  - nexus_rag_index: DECLARED UNSUPPORTED (E3) - rejects RAG indexing with "
-            "operation=rag_index / status=FAILED / UNSUPPORTED_CAPABILITY before any store is "
-            "opened or any I/O; use the scholar-rag index CLI or "
-            "scholar_rag.index_service (index_workspace/IndexServiceRequest) API instead\n"
-            "  - nexus_rag_query: Hybrid search with sectional slicing and graph PageRank boosting\n"
-            "  - nexus_rag_synthesize: Grounded synthesis with claim entailment verification\n"
-            "  - nexus_matrix_extract: Extract dynamic protocol matrix dimensions across studies\n"
             "  - nexus_graph_build: Build citation graph from included studies or DOIs\n"
             "  - nexus_screen_reconcile: Reconcile multi-screener decisions with Fleiss' kappa\n"
             "  - nexus_screening_queue: List records to screen (no agent outcomes shown)\n"
@@ -2402,11 +1838,8 @@ def main(argv: list[str] | None = None) -> None:
             "  - nexus_assistant_read_workspace: A workspace's protocol, plan translations, recall and checks (read-only)\n"
             "  - nexus_assistant_propose: Suggest one change to a draft or a workspace's search; the researcher applies or rejects it in the app\n"
             "  - nexus_assistant_report_finding: Report one problem in a protocol (the critic); listed in the app's checks\n"
-            "  - nexus_verify_claims: Verify synthesis claim quotes against extracted fulltext\n"
-            "  - nexus_verify_phase4: Run scholar-verify Phase-4 streams (retraction/open-science/coi/risk-of-bias/trust-context)\n"
-            "  - nexus_critique_methodology: Evaluate methodological rigor via risk-of-bias scoring\n"
             "  - nexus_graph_narrative: Generate narrative summary from citation graph structure\n"
-            "  - nexus_pipeline_run: Run the full 10-stage ResearchOrchestrator pipeline\n"
+            "  - nexus_pipeline_run: Run the ResearchOrchestrator pipeline (search to screening, then extraction and graph)\n"
             "  - recon_probe: Probe a topic into a FAIR recon session (cross-turn state)\n"
             "  - recon_distill: Distill the latest session pool into anchored terms\n"
             "  - recon_delta: Bounded adaptive gap follow-up probes with cache reuse"

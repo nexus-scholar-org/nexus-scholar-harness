@@ -61,6 +61,9 @@ const POST_PATHS: ReadonlyArray<RegExp> = [
   /^api\/v1\/screening\/prepare$/,
   // H-screening-drafts: a method amendment (blinding, not-reported policy).
   /^api\/v1\/screening\/method\/amendments$/,
+  // H-adopted-decisions-disclosure: a declaration, a withdrawal, a sample's result.
+  /^api\/v1\/screening\/adoption-declarations$/,
+  /^api\/v1\/screening\/adoption-declarations\/(withdrawals|sample-results)$/,
   // M11b: a revision of the criteria; a pilot drawn, its decisions, its close.
   /^api\/v1\/screening\/criteria\/amendments$/,
   /^api\/v1\/screening\/pilot$/,

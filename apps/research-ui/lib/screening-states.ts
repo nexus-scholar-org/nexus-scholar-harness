@@ -176,6 +176,61 @@ export const STATES: Record<string, StateEntry> = {
       ar: T("لم يُسجَّل التعديل", "رفض المحرك تغيير المنهج هذا، ولم يتغير شيء. التفاصيل تذكر السبب.", "هذا التغيير فقط", "اختر من جديد أو أبقِ القيمة"),
     },
   },
+  // H-adopted-decisions-disclosure: a declaration, a withdrawal or a sample's result the engine refused; nothing was recorded.
+  ADOPTION_CONFIRM_REQUIRED: {
+    role: "blocked",
+    action: "none",
+    copy: {
+      en: T("Not recorded without your confirmation", "Nothing was declared. Tick the confirmation and record it again.", "This declaration only", "Confirm, then record"),
+      fr: T("Rien n'est enregistré sans votre confirmation", "Rien n'a été déclaré. Cochez la confirmation et enregistrez à nouveau.", "Cette déclaration seulement", "Confirmer, puis enregistrer"),
+      ar: T("لا يُسجَّل شيء دون تأكيدك", "لم يُصرَّح بشيء. ضع علامة التأكيد ثم سجّل من جديد.", "هذا التصريح فقط", "أكّد ثم سجّل"),
+    },
+  },
+  ADOPTION_EVENT_NOT_WINNING: {
+    role: "blocked",
+    action: "reload",
+    copy: {
+      en: T("A decision has changed since this page was read", "One of the selected decisions is no longer the record's current decision. Nothing was declared.", "This declaration only", "Reload and select again"),
+      fr: T("Une décision a changé depuis la lecture de cette page", "L'une des décisions sélectionnées n'est plus la décision actuelle de la notice. Rien n'a été déclaré.", "Cette déclaration seulement", "Recharger et sélectionner à nouveau"),
+      ar: T("تغيّر قرار منذ قراءة هذه الصفحة", "أحد القرارات المحدَّدة لم يعد القرار الحالي للسجل. لم يُصرَّح بشيء.", "هذا التصريح فقط", "أعد التحميل وحدّد من جديد"),
+    },
+  },
+  ADOPTION_ALREADY_DECLARED: {
+    role: "blocked",
+    action: "reload",
+    copy: {
+      en: T("A record is already declared", "A selected record is declared already, or named twice. Nothing was declared.", "This declaration only", "Reload and select again"),
+      fr: T("Une notice est déjà déclarée", "Une notice sélectionnée est déjà déclarée, ou nommée deux fois. Rien n'a été déclaré.", "Cette déclaration seulement", "Recharger et sélectionner à nouveau"),
+      ar: T("سجل مصرَّح به بالفعل", "أحد السجلات المحدَّدة مصرَّح به بالفعل أو مذكور مرتين. لم يُصرَّح بشيء.", "هذا التصريح فقط", "أعد التحميل وحدّد من جديد"),
+    },
+  },
+  ADOPTION_DECLARATION_INVALID: {
+    role: "blocked",
+    action: "none",
+    copy: {
+      en: T("The declaration was not recorded", "Select at least one decision, and keep the note under 500 characters. Nothing was declared.", "This declaration only", "Change it and record again"),
+      fr: T("La déclaration n'a pas été enregistrée", "Sélectionnez au moins une décision et gardez la note sous 500 caractères. Rien n'a été déclaré.", "Cette déclaration seulement", "Modifier et enregistrer à nouveau"),
+      ar: T("لم يُسجَّل التصريح", "حدّد قرارًا واحدًا على الأقل، وأبقِ الملاحظة دون 500 حرف. لم يُصرَّح بشيء.", "هذا التصريح فقط", "عدّل ثم سجّل من جديد"),
+    },
+  },
+  ADOPTION_NOT_DECLARED: {
+    role: "blocked",
+    action: "reload",
+    copy: {
+      en: T("That record is not declared", "It was never declared, or was withdrawn already. Nothing was recorded.", "This withdrawal only", "Reload"),
+      fr: T("Cette notice n'est pas déclarée", "Elle n'a jamais été déclarée, ou a déjà été retirée. Rien n'a été enregistré.", "Ce retrait seulement", "Recharger"),
+      ar: T("هذا السجل غير مصرَّح به", "لم يُصرَّح به قط، أو سُحب بالفعل. لم يُسجَّل شيء.", "هذا السحب فقط", "إعادة التحميل"),
+    },
+  },
+  ADOPTION_SAMPLE_INVALID: {
+    role: "blocked",
+    action: "none",
+    copy: {
+      en: T("The sample was not recorded", "The size must be between 1 and the selected exclusions, or the sample's result is already recorded, or a sampled record has no decision. The details say which.", "This sample only", "Change it and try again"),
+      fr: T("L'échantillon n'a pas été enregistré", "La taille doit être comprise entre 1 et les exclusions sélectionnées, ou le résultat de l'échantillon est déjà enregistré, ou une notice de l'échantillon n'a pas de décision. Les détails disent lequel.", "Cet échantillon seulement", "Modifier et réessayer"),
+      ar: T("لم تُسجَّل العيّنة", "يجب أن يكون الحجم بين 1 وعدد الاستبعادات المحدَّدة، أو أن نتيجة العيّنة مسجَّلة بالفعل، أو أن سجلًا في العيّنة بلا قرار. التفاصيل تذكر أيها.", "هذه العيّنة فقط", "عدّل وحاول من جديد"),
+    },
+  },
   ENGINE_UNREACHABLE: {
     role: "blocked",
     action: "retry",

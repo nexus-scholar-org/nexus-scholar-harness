@@ -17,9 +17,7 @@ import click
 import pytest
 from scholar_graph.cli import app as graph_app
 from scholar_pdf.cli import app as pdf_app
-from scholar_rag.cli import app as rag_app
 from scholar_search.cli import app as search_app
-from scholar_verify.cli import app as verify_app
 from typer.core import TyperArgument, TyperOption
 from typer.main import get_group
 
@@ -30,9 +28,7 @@ CLI_APPS: dict[str, click.Group] = {
     "scholar-harness": get_group(harness_app),
     "scholar-search": get_group(search_app),
     "scholar-pdf": get_group(pdf_app),
-    "scholar-rag": get_group(rag_app),
     "scholar-graph": get_group(graph_app),
-    "scholar-verify": get_group(verify_app),
 }
 
 REPO_ROOT = Path(__file__).resolve().parents[2]

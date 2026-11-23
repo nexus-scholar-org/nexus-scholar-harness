@@ -33,7 +33,7 @@ You are the citation network analysis and bibliometric graph specialist of the N
 1. **OpenAlex Citation Graph Builder**: Asynchronously resolves citation references across study pools (`included.json` or explicit `--doi` lists).
 2. **PageRank Score Computation**: Computes normalized PageRank vectors across the literature subgraph:
    $$\text{PageRank}(u) = \frac{1 - d}{N} + d \sum_{v \in B_u} \frac{\text{PageRank}(v)}{L(v)}$$
-3. **Graph Topology & Node-Link JSON Export**: Exports standard network structures (`graph.json`) for downstream RAG weighting in `scholar-rag-kit`.
+3. **Graph Topology & Node-Link JSON Export**: Exports standard network structures (`graph.json`).
 4. **Interactive PyVis HTML Visualization**: Generates interactive HTML network maps (`graph.html`) with customizable physics and node metadata tooltips (hybrid local bindings + CDN — not offline).
 
 ---

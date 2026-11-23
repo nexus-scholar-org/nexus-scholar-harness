@@ -16,7 +16,6 @@ This guide demonstrates end-to-end integration across `scholar-search-kit`, `sch
 flowchart LR
     S["scholar-search-kit (Search & Dedup)"] -->|results.json| P["scholar-pdf-kit (Download OA PDFs)"]
     P -->|downloads/*.pdf| E["scholar-pdf-kit extract (Markdown/TEI)"]
-    E -->|markdown/*.md| R["scholar-rag-kit / Vector Store"]
 ```
 
 ### Command Line Workflow (legacy discovery lane)
@@ -41,7 +40,7 @@ uv run scholar-pdf acquire workspaces/<project-slug>/acquisition_run.json \
   --audit-logger .agents/skills/workspace-manager/scripts/log_event.py
 uv run scholar-pdf extract-run workspaces/<project-slug>/extraction_run.json \
   --audit-logger .agents/skills/workspace-manager/scripts/log_event.py
-uv run scholar-harness extract publish workspaces/<project-slug> --index
+uv run scholar-harness extract publish workspaces/<project-slug>
 ```
 
 ---

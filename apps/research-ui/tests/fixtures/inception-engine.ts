@@ -1,7 +1,6 @@
 /**
  * A small stateful fake of the inception API (`docs/architecture/inception-api.md`),
- * for tests only: the vitest screens stub `fetch` with it and the Playwright spec
- * answers the console proxy with it. It keeps the engine's shapes and refusal
+ * for tests only: the vitest screens stub `fetch` with it. It keeps the engine's shapes and refusal
  * codes; the engine's real behaviour is pinned by the Python suite
  * (`tests/console/test_inception_api.py`, `tests/inception/`).
  *

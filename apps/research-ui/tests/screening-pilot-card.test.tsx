@@ -1,8 +1,7 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { PILOT_CARD_COPY, PilotCard } from "@/components/screening-pilot-card";
-import { SUPPORTED_LOCALES } from "@/i18n";
+import { PilotCard } from "@/components/screening-pilot-card";
 
 /** Prepare's pilot card (spec 13, state A; M11b part C) against a fake engine. */
 
@@ -109,18 +108,6 @@ describe("pilot card", () => {
     await vi.waitFor(() => expect(container.querySelector("[data-pilot-card]")).toBeNull());
   });
 
-  it("every locale has every key with the same holes", () => {
-    const keys = Object.keys(PILOT_CARD_COPY.en).sort();
-    const holes = (s: string) => (s.match(/\{\w+\}/g) ?? []).sort().join(",");
-    for (const locale of SUPPORTED_LOCALES) {
-      expect(Object.keys(PILOT_CARD_COPY[locale]).sort()).toEqual(keys);
-      for (const key of keys) {
-        const value = PILOT_CARD_COPY[locale][key as keyof (typeof PILOT_CARD_COPY)["en"]];
-        expect(value.length, `${locale}.${key}`).toBeGreaterThan(0);
-        expect(holes(value), `${locale}.${key}`).toBe(holes(PILOT_CARD_COPY.en[key as keyof (typeof PILOT_CARD_COPY)["en"]]));
-      }
-    }
-  });
 });
 
 describe("pilot card, review C round 1", () => {

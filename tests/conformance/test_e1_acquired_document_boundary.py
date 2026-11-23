@@ -350,8 +350,8 @@ def test_pdf_acquire_tool_is_registered_and_the_surface_is_25_tools():
     assert "nexus_pdf_acquire" in registered, (
         "the declared-unsupported tool must exist so the boundary is observable"
     )
-    assert len(registered) == 31, (  # M10c: +5 assistant; H-close-side-doors: -nexus_screen_llm
-        f"expected 31 registered MCP tools, found {len(registered)}"
+    assert len(registered) == 24, (  # M10c: +5; H-remove-rag-verify: -7; H-close-side-doors: -1
+        f"expected 24 registered MCP tools, found {len(registered)}"
     )
 
 

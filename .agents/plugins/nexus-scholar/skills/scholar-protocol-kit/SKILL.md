@@ -25,7 +25,7 @@ You are the research protocol and methodology compiler specialist of the Nexus S
 3. **Criteria Document Renderer (`render_screening_criteria`)**:
    - Translates `protocol.json` into a clean, human-readable `SCREENING_CRITERIA.md` with explicit inclusion/exclusion reason categories.
 4. **Dynamic Extraction Model Builder (`build_extraction_model`)**:
-   - Generates dynamic Pydantic `BaseModel` classes from `protocol.matrix_dimensions` to enforce strict JSON schemas on downstream LLM extraction in `scholar-rag-kit`.
+   - Generates dynamic Pydantic `BaseModel` classes from `protocol.matrix_dimensions` to enforce strict JSON schemas on downstream LLM extraction.
 
 ---
 
@@ -179,10 +179,9 @@ ExtractionModel = build_extraction_model(protocol)
   unparsable, or pre-v1 shape) must be detected and classified explicitly — never silently
   coerced into the canonical contract.
 - **Routing**: search recall (`golden_seeds` + `scholar-search-kit validate-query`) →
-  `scholar-search-kit` skill; matrix extraction (`build_extraction_model` → `scholar-rag-kit`) →
-  `scholar-rag-kit` skill; MCP front-door (`nexus_*`) → `scholar-agent-kit` skill.
-- **Integration**: `build_extraction_model` (dynamic Pydantic, `extraction.py:17-66`) feeds matrix extraction in
-  `scholar-rag-kit`; `nexus_matrix_extract` imports it.
+  `scholar-search-kit` skill; MCP front-door (`nexus_*`) → `scholar-agent-kit` skill.
+- **Integration**: `build_extraction_model` (dynamic Pydantic, `extraction.py:17-66`) has no
+  consumer since the matrix extraction left with `scholar_rag` (2026-11-23).
 
 ## Preflight
 
@@ -201,6 +200,5 @@ Codes this kit's existing content surfaces upstream:
 
 ## Pointers
 
-- Matrix extraction downstream: `scholar-rag-kit` skill (`build_extraction_model` → matrix extraction; `nexus_matrix_extract`).
 - Search recall validation: `scholar-search-kit` skill (`golden_seeds` + `validate-query`).
 - MCP front-door: `scholar-agent-kit` skill (`nexus_*`).

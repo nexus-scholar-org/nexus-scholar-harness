@@ -15,129 +15,25 @@
     ]
   },
   "tasks": {
-    "T-10": {
-      "repo": "scholar-rag-kit",
-      "paths": ["src/scholar_rag/canonical.py", "tests/kits/rag/test_canonical.py"],
-      "inner": ["uv run pytest tests/kits/rag/test_canonical.py -q"],
-      "checkpoint": ["uv run pytest tests/kits/rag/test_canonical.py tests/kits/rag/test_index_identity.py -q"],
-      "pr": ["uv run pytest tests/kits/rag -q", "uv run ruff check src/scholar_rag tests/kits/rag"],
-      "closure": []
-    },
-    "T-20": {
-      "repo": "scholar-rag-kit",
-      "paths": ["src/scholar_rag/chunker.py", "tests/kits/rag/test_index_identity.py"],
-      "inner": ["uv run pytest tests/kits/rag/test_index_identity.py -q"],
-      "checkpoint": ["uv run pytest tests/kits/rag/test_index_identity.py tests/kits/rag/test_chunker.py -q"],
-      "pr": ["uv run pytest tests/kits/rag -q", "uv run ruff check src/scholar_rag tests/kits/rag"],
-      "closure": []
-    },
-    "T-30": {
-      "repo": "scholar-rag-kit",
-      "paths": ["src/scholar_rag/indexer.py", "src/scholar_rag/index_models.py"],
-      "inner": ["uv run pytest tests/kits/rag/test_index_identity.py -q"],
-      "checkpoint": ["uv run pytest tests/kits/rag/test_index_identity.py tests/kits/rag/test_index_service.py -q"],
-      "pr": ["uv run pytest tests/kits/rag -q", "uv run ruff check src/scholar_rag tests/kits/rag"],
-      "closure": []
-    },
-    "T-40": {
-      "repo": "scholar-rag-kit",
-      "paths": ["src/scholar_rag/chunker.py", "src/scholar_rag/index_models.py"],
-      "inner": ["uv run pytest tests/kits/rag/test_chunker.py -q"],
-      "checkpoint": ["uv run pytest tests/kits/rag/test_chunker.py tests/kits/rag/test_index_identity.py -q"],
-      "pr": ["uv run pytest tests/kits/rag -q", "uv run ruff check src/scholar_rag tests/kits/rag"],
-      "closure": []
-    },
-    "T-50": {
-      "repo": "scholar-rag-kit",
-      "paths": ["src/scholar_rag/index_manifest.py", "tests/kits/rag/test_index_manifest.py"],
-      "inner": ["uv run pytest tests/kits/rag/test_index_manifest.py -q"],
-      "checkpoint": ["uv run pytest tests/kits/rag/test_index_manifest.py tests/kits/rag/test_index_identity.py -q"],
-      "pr": ["uv run pytest tests/kits/rag -q", "uv run ruff check src/scholar_rag tests/kits/rag"],
-      "closure": []
-    },
-    "T-60": {
-      "repo": "scholar-rag-kit",
-      "paths": ["src/scholar_rag/indexer.py", "src/scholar_rag/replacement.py", "tests/kits/rag/test_index_replacement.py"],
-      "inner": ["uv run pytest tests/kits/rag/test_index_replacement.py -q"],
-      "checkpoint": ["uv run pytest tests/kits/rag/test_index_replacement.py tests/kits/rag/test_index_manifest.py -q"],
-      "pr": ["uv run pytest tests/kits/rag -q", "uv run ruff check src/scholar_rag tests/kits/rag"],
-      "closure": []
-    },
-    "T-70": {
-      "repo": "scholar-rag-kit",
-      "paths": ["src/scholar_rag/recovery.py", "tests/kits/rag/test_index_legacy.py"],
-      "inner": ["uv run pytest tests/kits/rag/test_index_legacy.py -q"],
-      "checkpoint": ["uv run pytest tests/kits/rag/test_index_legacy.py tests/kits/rag/test_index_replacement.py -q"],
-      "pr": ["uv run pytest tests/kits/rag -q", "uv run ruff check src/scholar_rag tests/kits/rag"],
-      "closure": []
-    },
-    "T-80": {
-      "repo": "scholar-rag-kit",
-      "paths": ["src/scholar_rag/index_verifier.py", "tests/kits/rag/test_index_verifier.py"],
-      "inner": ["uv run pytest tests/kits/rag/test_index_verifier.py -q"],
-      "checkpoint": ["uv run pytest tests/kits/rag/test_index_verifier.py tests/kits/rag/test_index_manifest.py -q"],
-      "pr": ["uv run pytest tests/kits/rag -q", "uv run ruff check src/scholar_rag tests/kits/rag"],
-      "closure": []
-    },
-    "T-90": {
-      "repo": "scholar-rag-kit",
-      "paths": ["src/scholar_rag/index_service.py", "src/scholar_rag/cli.py", "tests/kits/rag/test_index_service.py"],
-      "inner": ["uv run pytest tests/kits/rag/test_index_service.py -q"],
-      "checkpoint": ["uv run pytest tests/kits/rag/test_index_service.py tests/kits/rag/test_index_manifest.py tests/kits/rag/test_index_verifier.py -q"],
-      "pr": ["uv run pytest tests/kits/rag -q", "uv run ruff check src/scholar_rag tests/kits/rag", "uv run python -c \"import os, subprocess, sys; sys.exit(subprocess.call(['uv', 'build', '--wheel'], env=dict(os.environ, NEXUS_WHEEL_ALLOW_NO_UI='1')))\""],
-      "closure": []
-    },
-    "T-95": {
-      "repo": "scholar-rag-kit",
-      "paths": ["src/scholar_rag/models.py", "src/scholar_rag/retriever.py", "src/scholar_rag/synthesis.py"],
-      "inner": ["uv run pytest tests/kits/rag -k \"index or citation or similarity\" -q"],
-      "checkpoint": ["uv run pytest tests/kits/rag/test_index_identity.py tests/kits/rag/test_index_service.py -q"],
-      "pr": ["uv run pytest tests/kits/rag -q", "uv run ruff check src/scholar_rag tests/kits/rag"],
-      "closure": []
-    },
-    "T-100": {
-      "repo": "scholar-agent-kit",
-      "paths": ["src/scholar_agent/capabilities.py", "src/scholar_agent/server.py", "tests/kits/agent/test_mcp_indexing_boundary.py"],
-      "inner": ["uv run pytest tests/kits/agent/test_mcp_indexing_boundary.py -q"],
-      "checkpoint": ["uv run pytest tests/kits/agent/test_mcp_indexing_boundary.py tests/kits/agent/test_mcp_extraction_capability.py tests/kits/agent/test_mcp_acquisition_capability.py -q"],
-      "pr": ["uv run pytest tests/kits/agent -q", "uv run ruff check src/scholar_agent tests/kits/agent"],
-      "closure": []
-    },
     "T-110": {
       "repo": "kits",
       "paths": ["pyproject.toml", "uv.lock"],
       "inner": ["uv run python -c \"import os, subprocess, sys; sys.exit(subprocess.call(['uv', 'build', '--wheel'], env=dict(os.environ, NEXUS_WHEEL_ALLOW_NO_UI='1')))\""],
       "checkpoint": ["uv run pytest tests/conformance/test_count_freshness.py -q"],
-      "pr": ["uv run pytest tests/kits/rag -q", "uv run pytest tests/kits/agent -q"],
+      "pr": ["uv run pytest tests/kits/agent -q"],
       "closure": []
     },
     "T-120": {
       "repo": "harness",
-      "paths": ["src/scholar_rag/**", "src/scholar_agent/**", ".agents/plugins/nexus-scholar/plugins.json"],
+      "paths": ["src/scholar_agent/**", ".agents/plugins/nexus-scholar/plugins.json"],
       "inner": ["uv run pytest tests/conformance/test_count_freshness.py -q"],
       "checkpoint": ["uv run pytest tests/conformance -q"],
       "pr": ["uv run pytest -q", "uv run ruff check scripts/"],
       "closure": ["uv run pytest -q", "npm --prefix apps/research-ui ci", "npm --prefix apps/research-ui run build:export", "uv build --wheel"]
     },
-    "T-130": {
-      "repo": "harness",
-      "paths": ["src/scholar_harness/**", "tests/conformance/test_e3_index_lineage_boundary.py"],
-      "inner": ["uv run pytest tests/conformance/test_e3_index_lineage_boundary.py -q"],
-      "checkpoint": ["uv run pytest tests/test_contract_acceptance.py tests/test_contract_artifact_chain.py tests/conformance/test_e3_index_lineage_boundary.py -q"],
-      "pr": ["uv run pytest -q", "uv run ruff check scripts/"],
-      "closure": ["uv run pytest -q"]
-    },
-    "T-140": {
-      "repo": "harness",
-      "paths": ["tests/conformance/test_e3_index_lineage_boundary.py", "tests/conformance/fixtures/e3_*"],
-      "inner": ["uv run pytest tests/conformance/test_e3_index_lineage_boundary.py -q"],
-      "checkpoint": ["uv run pytest tests/conformance -q"],
-      "pr": ["uv run pytest -q", "uv run ruff check scripts/"],
-      "closure": ["uv run pytest -q"]
-    },
     "T-150": {
       "repo": "harness",
-      "paths": ["docs/kits_surface_matrix.md", ".agents/skills/scholar-rag-kit/SKILL.md", ".agents/plugins/nexus-scholar/skills/scholar-rag-kit/SKILL.md"],
+      "paths": ["docs/kits_surface_matrix.md"],
       "inner": ["uv run python scripts/sync_skills_bundle.py --check"],
       "checkpoint": ["uv run python scripts/sync_skills_bundle.py --check", "uv run pytest tests/conformance/test_count_freshness.py -q"],
       "pr": ["uv run pytest tests/conformance -q", "uv run ruff check scripts/"],
@@ -310,22 +206,10 @@
       "checkpoint": ["uv run pytest tests/kits/pdf tests/conformance/test_e1_acquired_document_boundary.py tests/conformance/test_e2_extraction_boundary.py tests/unit/test_extraction_stage.py -q"]
     },
     {
-      "name": "rag",
-      "paths": ["src/scholar_rag/**"],
-      "inner": ["uv run pytest tests/kits/rag -q -m \"not slow\""],
-      "checkpoint": ["uv run pytest tests/kits/rag tests/conformance/test_e3_index_lineage_boundary.py tests/pipeline/test_indexing_stage.py -q"]
-    },
-    {
       "name": "graph",
       "paths": ["src/scholar_graph/**"],
       "inner": ["uv run pytest tests/kits/graph -q -m \"not slow\""],
       "checkpoint": ["uv run pytest tests/kits/graph tests/unit/test_graph_stage.py tests/mcp/test_mcp_tools_graph.py -q"]
-    },
-    {
-      "name": "verify",
-      "paths": ["src/scholar_verify/**"],
-      "inner": ["uv run pytest tests/kits/verify -q -m \"not slow\""],
-      "checkpoint": ["uv run pytest tests/kits/verify tests/unit/test_verification_stage.py -q"]
     },
     {
       "name": "test-gate-selector",
@@ -337,10 +221,10 @@
     {
       "name": "research-ui",
       "paths": ["apps/research-ui/**"],
-      "inner": ["npm --prefix apps/research-ui run typecheck", "npm --prefix apps/research-ui run test:related -- {area_paths}"],
-      "checkpoint": ["npm --prefix apps/research-ui run typecheck", "npm --prefix apps/research-ui test"],
-      "pr": ["npm --prefix apps/research-ui run typecheck", "npm --prefix apps/research-ui test", "npm --prefix apps/research-ui run build", "npm --prefix apps/research-ui run test:browser"],
-      "closure": ["npm --prefix apps/research-ui run typecheck", "npm --prefix apps/research-ui test", "npm --prefix apps/research-ui run build", "npm --prefix apps/research-ui run test:browser"],
+      "inner": ["npm --prefix apps/research-ui run typecheck", "npm --prefix apps/research-ui run lint:ui", "npm --prefix apps/research-ui run test:related -- {area_paths}"],
+      "checkpoint": ["npm --prefix apps/research-ui run typecheck", "npm --prefix apps/research-ui run lint:ui", "npm --prefix apps/research-ui test"],
+      "pr": ["npm --prefix apps/research-ui run typecheck", "npm --prefix apps/research-ui run lint:ui", "npm --prefix apps/research-ui test", "npm --prefix apps/research-ui run build"],
+      "closure": ["npm --prefix apps/research-ui run typecheck", "npm --prefix apps/research-ui run lint:ui", "npm --prefix apps/research-ui test", "npm --prefix apps/research-ui run build"],
       "path_root": "apps/research-ui/"
     }
   ],
@@ -374,8 +258,7 @@
   },
   "fallback": {
     "harness": ["uv run pytest -q -n auto", "uv run ruff check scripts/"],
-    "scholar-rag-kit": ["uv run pytest tests/kits/rag -q", "uv run ruff check src/scholar_rag tests/kits/rag"],
     "scholar-agent-kit": ["uv run pytest tests/kits/agent -q", "uv run ruff check src/scholar_agent tests/kits/agent"],
-    "kits": ["uv run pytest tests/kits/rag -q", "uv run pytest tests/kits/agent -q"]
+    "kits": ["uv run pytest tests/kits/agent -q"]
   }
 }

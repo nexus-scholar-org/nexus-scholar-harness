@@ -24,10 +24,8 @@ from scholar_harness.inception.genesis import (
     scaffold_raw_project,
     validate_registered_workspace_id,
 )
-from scholar_harness.orchestrator import (
-    RegisteredWorkspaceIdentityMissingError,
-    ResearchOrchestrator,
-)
+from scholar_harness.orchestrator import ResearchOrchestrator
+from scholar_harness.workspace.errors import RegisteredWorkspaceIdentityMissingError
 
 EVT_RE = re.compile(r"^EVT-\d{14}-[0-9a-f]{6}$")
 WSP_VALID = "WSP-" + "a" * 32
@@ -74,7 +72,7 @@ def test_hc1_1_mint_then_reread_via_resolver_returns_same_value(tmp_path):
 
 
 # ---------------------------------------------------------------------------
-# HC1-2: consumer refusal (orchestrator.recorded_workspace_id + Stage 6 gate)
+# HC1-2: consumer refusal (orchestrator.recorded_workspace_id)
 # ---------------------------------------------------------------------------
 
 
@@ -114,38 +112,6 @@ def test_hc1_2_consumer_refuses_invalid_recorded_forms(tmp_path, raw, must_name)
     message = str(excinfo.value)
     assert must_name in message
     assert "registered_workspace_id" in message
-
-
-def test_hc1_2_refusal_leaves_bytes_and_store_untouched(tmp_path, monkeypatch):
-    """HC1-2: refusal happens before any backend/store and changes no bytes."""
-    ws = tmp_path / "study"
-    ws.mkdir()
-    (ws / "project.json").write_text(
-        json.dumps({"project_id": "evidence-synthesis"}), encoding="utf-8"
-    )
-    (ws / "audit").mkdir()
-    (ws / "audit" / "journal.jsonl").write_text("", encoding="utf-8")
-    pj_before = (ws / "project.json").read_bytes()
-    journal_before = (ws / "audit" / "journal.jsonl").read_bytes()
-    chroma_dir = ws / "rag" / "chroma_db"
-
-    def _boom(**kwargs):
-        raise AssertionError(
-            "backend must not be constructed before identity validation"
-        )
-
-    import scholar_harness.orchestrator as orch_module
-
-    monkeypatch.setattr(orch_module, "ChromaReplacementView", _boom)
-    monkeypatch.setattr(orch_module, "ChromaVisibleSetReader", _boom)
-    monkeypatch.setattr(orch_module, "get_embedder", _boom)
-
-    with pytest.raises(RegisteredWorkspaceIdentityMissingError):
-        ResearchOrchestrator(ws)._run_indexing_stage(chroma_dir)
-
-    assert (ws / "project.json").read_bytes() == pj_before
-    assert (ws / "audit" / "journal.jsonl").read_bytes() == journal_before
-    assert not chroma_dir.exists()
 
 
 def test_hc1_2_nonobject_consumer_manifest_crashes_untyped_observed(tmp_path):

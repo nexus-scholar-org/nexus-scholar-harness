@@ -100,7 +100,7 @@ jobs:
           wheel=$(ls dist/nexus_scholar-*-py3-none-any.whl)
           uvx --from "$wheel" nexus-scholar --help > /dev/null
           uvx --from "$wheel" scholar-agent --help > /dev/null
-          uvx --from "$wheel" python -c "import scholar_rag.index_service as s, scholar_harness.index_acceptance as a; assert s.INDEX_SERVICE_OUTCOMES==frozenset({'SUCCESS','PARTIAL','REFUSED','FAILED'}); assert a.ACCEPTANCE_SCHEMA_VERSION=='index-acceptance-v1'; import importlib.util as u; assert u.find_spec('chromadb') is None, 'chromadb leaked into the base install'; assert u.find_spec('torch') is None, 'torch leaked into the base install'"
+          uvx --from "$wheel" python -c "import scholar_harness, scholar_agent.server; import importlib.util as u; assert u.find_spec('scholar_rag') is None and u.find_spec('scholar_verify') is None, 'a removed package is in the wheel'; assert u.find_spec('chromadb') is None, 'chromadb leaked into the base install'; assert u.find_spec('torch') is None, 'torch leaked into the base install'"
           echo "wheel smoke OK"
 
       - name: Workspace-manager CLI smoke
@@ -108,7 +108,7 @@ jobs:
 
   python-test:
     # The whole suite (harness + every kit's tests) in one run, on one
-    # representative runner, with the pdf and rag extras installed so nothing
+    # representative runner, with the pdf extra installed so nothing
     # is deselected. Cross-OS coverage comes from lint-and-smoke and wheel-e2e.
     runs-on: ubuntu-latest
     steps:
@@ -124,22 +124,14 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Sync project environment (dev + pdf + rag extras)
-        run: uv sync --extra dev --extra pdf --extra rag
+      - name: Sync project environment (dev + pdf extras)
+        run: uv sync --extra dev --extra pdf
 
       - name: Contract v1 drift gates not covered by pytest
         run: |
           uv run --no-sync python scripts/generate_contract_schemas.py --check
           uv run --no-sync python scripts/generate_two_study_contract_fixture.py --check
           uv run --no-sync python scripts/generate_protocol_schema.py --check
-
-      # The suite runs offline (tests/conftest.py refuses non-loopback connects
-      # and sets HF_HUB_OFFLINE), so the sentence-transformers model the RAG
-      # tests load is fetched here, before pytest (M4c). ChromaDB's default ONNX
-      # model is not needed: the retriever embeds its queries itself
-      # (tests/kits/rag/test_retriever.py guards that).
-      - name: Fetch the embedding model the RAG tests load
-        run: uv run --no-sync python -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('all-MiniLM-L6-v2')"
 
       - name: Test suite
         run: uv run --no-sync pytest -q -o addopts=""
@@ -275,6 +267,10 @@ jobs:
         working-directory: apps/research-ui
         run: npm run typecheck
 
+      - name: Copy and source rules (lint:ui)
+        working-directory: apps/research-ui
+        run: npm run lint:ui
+
       - name: Vitest suite
         working-directory: apps/research-ui
         run: npm run test
@@ -282,28 +278,3 @@ jobs:
       - name: Production build
         working-directory: apps/research-ui
         run: npm run build
-
-  research-ui-browser:
-    # Pure Node: the browser suite fulfils the console at the network boundary.
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: "22"
-          cache: npm
-          cache-dependency-path: apps/research-ui/package-lock.json
-
-      - name: Install app dependencies
-        working-directory: apps/research-ui
-        run: npm ci
-
-      - name: Install Chromium for Playwright
-        working-directory: apps/research-ui
-        run: npx playwright install --with-deps chromium
-
-      - name: Playwright browser suite
-        working-directory: apps/research-ui
-        run: npm run test:browser

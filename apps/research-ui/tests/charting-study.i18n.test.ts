@@ -1,10 +1,6 @@
-import { readFileSync } from "node:fs";
-import { join } from "node:path";
-
 import { describe, expect, it } from "vitest";
 
-import { SUPPORTED_LOCALES } from "@/i18n";
-import { CHARTING_COPY, cc } from "@/lib/charting-copy";
+import { cc } from "@/lib/charting-copy";
 
 /**
  * Spec 02 "Copy" and spec 01's Part B keys (M12a Part B): the spec's English
@@ -30,28 +26,5 @@ describe("charting-study.i18n", () => {
     expect(en("charting.next")).toBe("Chart the next study");
     expect(en("charting.cell.whereFrom")).toBe("Where from (page or quote)");
     expect(["text", "one", "several", "yesNo", "number"].map((k) => en(`charting.type.${k}` as Parameters<typeof cc>[1]))).toEqual(["Text", "One of a list", "Several of a list", "Yes or No", "Number"]);
-  });
-
-  it("carries every Part B key in fr and ar, translated where English is not a name", () => {
-    for (const locale of SUPPORTED_LOCALES) {
-      for (const key of Object.keys(CHARTING_COPY.en).filter((k) => k.startsWith("charting.study.") || k.startsWith("charting.form.") || k.startsWith("charting.cell.") || k.startsWith("charting.pilot."))) {
-        expect((CHARTING_COPY[locale] as Record<string, string>)[key]?.trim(), `${locale} ${key}`).toBeTruthy();
-      }
-    }
-    expect(cc("fr", "charting.study.position", { k: 1, total: 3 })).toBe("Étude 1 sur 3");
-    expect(cc("ar", "charting.study.position", { k: 1, total: 3 })).toBe("الدراسة 1 من 3");
-    expect(cc("ar", "charting.cell.notReported")).not.toBe(cc("en", "charting.cell.notReported"));
-  });
-
-  it("writes no literal aria-label, title, alt or placeholder in the Part B files (N9)", () => {
-    for (const file of [
-      "components/charting-study.tsx",
-      "components/charting-cells.tsx",
-      "components/charting-form-panel.tsx",
-      "app/[locale]/charting/study/page.tsx",
-    ]) {
-      const source = readFileSync(join(process.cwd(), file), "utf8");
-      expect(source.match(/(aria-label|title|alt|placeholder)="/g), file).toBeNull();
-    }
   });
 });
