@@ -12,6 +12,31 @@ history to read if you need the original reasoning (`git log --follow -- <path>`
 | :-- | :-- | :-- |
 | 2026-11-19 — M9a: what the measurement says about the ladder gates | 2 | The minimum share of the researcher's excludes an agent must take before a rung unlocks: the principle is accepted; the researcher decided on 2026-11-20 to set the number when M9b is built. |
 | 2026-11-23 — H-gate-and-ci | 1 | The standing permission for sessions to push a work branch and open a draft pull request: not given. |
+| 2026-11-23 — H-workspace-format-version | 1 to 6 | When a copy is made, what it holds, where copies live and how many, a newer-format workspace, the Workspaces screen, asking first: PROPOSED, nothing built. |
+
+## 2026-11-23 — H-workspace-format-version: a format version on every workspace, and a copy before a newer build first opens it (PROPOSED; specification only, nothing built)
+
+Record: `docs/roadmap/milestones/H-workspace-format-version.md`. Source: the project review of 2026-11-23 (finding 9, recommendation 8) and the researcher's answer to M13 question 11 (build it before installers go to outside testers). Written from `main` `cc0e8fa1`. No Contract v1 file, fingerprint or published generation changes (record §5).
+
+**The proposal in brief.** One small file, `workspace_format.json`, at each workspace's root: one number for the whole workspace and the build that last wrote it. Written at birth and at the first open for writing, never on a read. A workspace without it (every existing one) is format 0. Before a build writes to an older-format workspace (or, item 1, one last written by an older build) it saves a verified zip of the workspace without the PDFs and other re-creatable folders; if the copy fails the workspace is not opened. A newer-format workspace is refused. Migrations are numbered steps, each idempotent and journalled, writing only files the copy holds; the first step stamps today's layout as format 1 and rewrites nothing. The check sits in `create_app` (all browser-app paths, no launcher change), the Workspaces open route, each writing command, `agent_screen.py` and the MCP server, with a newer-format refusal in the journal writer as a backstop.
+
+**For the researcher to decide** (each with the alternatives and cost in record §7)
+
+1. *(PROPOSED.)* **When a copy is made:** when the format is older, and also when the build is newer than the one that last wrote the workspace. Not: only on a format change; at every open.
+2. *(PROPOSED.)* **What is copied:** everything except `pdfs/`, `extracted/`, caches, `exports/`, the vendored skills, the console's job records and `.env` (also inside `audit/replaced/`). Not: everything with the PDFs; only protocol, audit and literature.
+3. *(PROPOSED.)* **Where and how many:** one zip per copy in `.nexus-copies/<review>/` in the workspaces folder, the five newest per review. Not: inside the review; a per-user application folder; keep all; a plain folder.
+4. *(PROPOSED.)* **A review written by a newer version:** refused, listed with a badge and a plain message. Not: read-only; open with a warning.
+5. *(PROPOSED.)* **The Workspaces screen:** no format column; a badge only for "newer version" or "copy failed"; the row's details name the last copy; a one-time notice after a copy. Not: a format number on every row; nothing on screen.
+6. *(PROPOSED.)* **Asking first:** no question; copy, then say so. Not: ask each time; a setting to turn copies off.
+
+**Choices made in the specification (for the reviewer)**
+
+7. The version is a file of its own, not a field in `project.json`, which five writers rewrite (some outside the package), so a race could drop it.
+8. Reads never stamp or copy: the Workspaces list, `most_recent`, `status`, `doctor` and display routes only read the file. Opening a workspace in the browser app counts as opening for writing.
+9. An unreadable format file is refused (`WORKSPACE_FORMAT_UNREADABLE`), never guessed.
+10. On a refusal at start, `create_app` starts with no workspace open and answers the refusal's own code on workspace routes; `ui` without `--workspace` lands on the Workspaces screen, where the row shows it.
+11. A migration step never writes the excluded folders, so restoring a copy and moving the current `pdfs/` back in gives the workspace as it was.
+12. No restore command in this work: the user guide gives the steps by hand.
 
 ## 2026-11-23 — H-charting-row-layout: one line of row actions, the pinned cells carry the row (item 1 answered by the researcher 2026-11-23: keep 44 px; items 2 to 9 are the build's choices, merged with PR #305)
 
