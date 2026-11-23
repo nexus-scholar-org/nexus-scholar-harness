@@ -54,16 +54,20 @@ All on the researcher's PC (Windows, 8 cores), `apps/research-ui`, with `node_mo
 | What | Commit | Command | Result |
 | :-- | :-- | :-- | :-- |
 | vitest before | `origin/main` `8dd7904a` (detached) | `npx vitest run` (default workers) | 119 files, **1,441 tests passed**, 0 failed; **203.7 s** (208 s wall) |
-| vitest after | working tree of the final commit | `npx vitest run` (`maxWorkers: 4`) | 115 files, **1,312 tests passed**, 0 failed; **225.5 s** (230 s wall) |
-| lint | same | `npm run lint:ui` | 1 file, 72 checks passed (70 written; one runs per locale); 4.7 s |
+| vitest after (round 1) | `328c31d6` working tree | `npx vitest run` (`maxWorkers: 4`) | 115 files, **1,312 tests passed**, 0 failed; **225.5 s** (230 s wall) |
+| vitest after repairs | `82c80973` | `npx vitest run` (`maxWorkers: 4`) | 115 files, **1,321 tests passed** (1,312 + 7 new + 2 restored), 0 failed; **206.3 s** (210 s wall) |
+| new tests can fail | `82c80973` working tree | each of the 7 new tests with its key expected value changed, then restored | each failed; all restored |
+| five files of the new tests | same | `npx vitest run` on triage, screening-publish, inception-criteria, inception-review, charting.form-panel | 5 files, 99 tests passed |
+| lint | `82c80973` | `npm run lint:ui` | 1 file, 74 checks passed (72 written; one runs per locale); 4.7 s on `328c31d6` with 72 |
 | lint can fail | same, one line added then removed | literal `aria-label` appended to `components/screening-export.tsx` | 2 failed (both N9 rules), 70 passed; file restored |
 | guidance files after the wait change | same | `npx vitest run` on `guidance.screens`, `guidance.audit`, `guidance.never-hidden`, `guidance.words`, `density.budget` | 5 files, 100 tests passed, 26.7 s |
 | type check | same | `npx tsc --noEmit` | clean, 21 s |
+| type check after repairs | `82c80973` | `npx tsc --noEmit` | clean |
 | production build | same | `npm run build` | passed, 51 s |
 | gate selector | same | `uv run pytest tests/unit/test_select_test_gate.py -q`; `uv run python scripts/select_test_gate.py --check` | 40 passed; `OK: 24 tasks, 19 areas, 4 stages` |
 | selector area `pr` | same | `uv run pytest tests/unit/test_select_test_gate.py tests/conformance -q`; `uv run ruff check scripts/` | 723 results, 2 failed: `test_e3_neg_050_pinned_stale_bytes_are_not_indexed[cli]` and `test_e3_diagnostic_real_chroma_index_workspace_reproducer`, both `No module named chromadb` (this worktree was synced with `--extra dev` only; the RAG code is being removed by the parallel cleanup); ruff clean |
 | contract and whitespace | same | `generate_contract_baseline.py --check`; `git diff --check origin/main` | baseline current; clean |
-| full Python suite | — | `uv run pytest -q -n auto` (what the selector asks at `pr`) | **not run**: the only Python file changed is the selector test above; left to CI |
+| full Python suite | `82c80973` | `uv run pytest -q -n 4 --dist worksteal` (with `--extra dev --extra pdf --extra rag`, synced offline) | **6,590 results: 6,575 passed, 15 skipped, 0 failed**; 917 s (counted from the progress lines; this pytest prints no summary line) |
 | lock file | same | `npm install --offline` after removing `@playwright/test` | removed 3 packages (`@playwright/test`, `playwright`, `playwright-core`), 46 lines |
 
 **What the numbers say.** The cut removed 129 executed tests (9 %), 126 written ones. The full run did not get faster: 4 workers instead of vitest's default cost more than the cut saved. jsdom is created once per file and is 42 % of the tracked time in both runs, so the next saving is in the runner settings (one jsdom per worker), not in the number of tests; that is not part of this change. The worker cap is for stability under parallel sessions, which this run could not measure (the PC was otherwise idle).
@@ -285,4 +289,16 @@ Per source file (each `describe` in the lint names it): locale parity of keys, p
 
 ## Review
 
-(filled after the `milestone-reviewer` run)
+**Round 1** (`milestone-reviewer`, on `328c31d6`): **CHANGES**, 3 P2 and 6 P3. All fixed in `82c80973`:
+
+1. (P2) Six removed journeys were the only UI test of a first write: fixed by seven one-decision tests (choice 10); `pairing/begin`'s body stays unchecked (no-longer-checked item 12).
+2. (P2) The `SCHOLAR_OPENALEX_KEY` line rule was claimed but not in the lint: added.
+3. (P2) `I18N.md` still named browser specs and the deleted source test as current: rewritten with dates.
+4. (P3) `inception-direction` 112 and 205 did not meet the rule: restored.
+5. (P3) The scan-root check was dropped on a false premise: added to the lint.
+6. (P3) README named a non-existent `scripts/lint-ui.mjs`: fixed.
+7. (P3) The fake engines' headers named the Playwright spec: fixed.
+8. (P3) The production plan still required Playwright in three places: dated notes, and decision item 1 names them.
+9. (P3) The full Python suite asked by the selector at `pr` was not run: run once on `82c80973`, 6,575 passed, 15 skipped, 0 failed (Evidence).
+
+Reviewer's follow-ups, not fixed here: the Explore guidance mounts swallow a missing table (`tests/guidance-screens.tsx`, the `.catch(() => undefined)` already on `main`); the dropped `screening-v1-client` fixture-coverage check (named in decision item 4).
