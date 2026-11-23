@@ -116,8 +116,15 @@ def _no_workspace() -> JSONResponse:
 #: Routes that answer while the open workspace is being copied or was refused
 #: (H-workspace-format-version): the workspaces list, its preparation state,
 #: create and open, and inception's drafts (stored outside the workspace; a
-#: genesis that replaces a protocol prepares its own target).
-_FORMAT_FREE = ("/api/v1/workspaces", "/api/v1/workspaces/preparation", "/api/v1/workspaces/open")
+#: genesis that replaces a protocol prepares its own target). `workspace/meta`
+#: is a pure read the Workspaces screen polls after Open to see the new folder;
+#: it then moves to a page that shows the copy's progress.
+_FORMAT_FREE = (
+    "/api/v1/workspaces",
+    "/api/v1/workspaces/preparation",
+    "/api/v1/workspaces/open",
+    "/api/v1/workspace/meta",
+)
 
 
 def _format_blocked(app: FastAPI, path: str) -> JSONResponse | None:

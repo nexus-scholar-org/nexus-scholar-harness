@@ -108,7 +108,7 @@ def test_unstamped_workspace_is_copied_then_stamped_on_first_open_and_nothing_el
         k: v for k, v in project_before.items() if k != "updated_at"
     }
     _assert_only_stamp_changed(before, old)
-    assert TestClient(app).get("/api/v1/workspace/meta").status_code == 200
+    assert TestClient(app).get("/api/v1/workspace/status").status_code == 200
 
 
 def test_a_second_open_makes_no_second_copy_and_writes_nothing(old):
@@ -146,7 +146,7 @@ def test_a_copy_that_fails_midway_leaves_the_workspace_untouched_and_refused(old
     assert _hashes(old) == before
     assert not list(wf.copies_dir(old).glob("*.partial")) and not _zips(old)
     client = TestClient(app)
-    for method, path in (("GET", "/api/v1/workspace/meta"), ("POST", "/api/v1/screening/decisions/events")):
+    for method, path in (("GET", "/api/v1/workspace/status"), ("POST", "/api/v1/screening/decisions/events")):
         answer = client.request(method, path, json={})
         assert answer.status_code == 409 and answer.json()["detail"]["code"] == wf.WORKSPACE_COPY_FAILED
     listing = client.get("/api/v1/workspaces").json()
@@ -170,7 +170,7 @@ def test_a_newer_workspace_is_refused_everywhere_and_never_written(old, monkeypa
     app = create_app(old)
     assert app.state.format_gate.refusal.code == wf.WORKSPACE_FORMAT_NEWER
     client = TestClient(app)
-    answer = client.get("/api/v1/workspace/meta")
+    answer = client.get("/api/v1/workspace/status")
     assert answer.status_code == 409
     assert answer.json()["detail"]["code"] == wf.WORKSPACE_FORMAT_NEWER
     assert "Made with a newer version of Nexus Scholar" in answer.json()["detail"]["message"]
@@ -260,7 +260,7 @@ def test_a_large_copy_runs_in_the_background_and_every_workspace_route_says_so(o
     app = create_app(old)
     assert hold.started.wait(10)
     client = TestClient(app)
-    answer = client.get("/api/v1/workspace/meta")
+    answer = client.get("/api/v1/workspace/status")
     assert answer.status_code == 503
     detail = answer.json()["detail"]
     assert detail["code"] == wf.WORKSPACE_PREPARING and "Old Review" in detail["message"]
@@ -268,9 +268,11 @@ def test_a_large_copy_runs_in_the_background_and_every_workspace_route_says_so(o
     preparation = client.get("/api/v1/workspaces/preparation").json()["preparation"]
     assert preparation["state"] == "preparing" and preparation["reason"] == "format"
     assert client.get("/api/v1/workspaces").status_code == 200
+    # The Workspaces screen polls `meta` after Open to see the new folder, then moves to a page with the panel.
+    assert client.get("/api/v1/workspace/meta").json()["workspace"] == str(old.resolve())
     hold.release.set()
     assert app.state.format_gate.wait(10)
-    assert client.get("/api/v1/workspace/meta").status_code == 200
+    assert client.get("/api/v1/workspace/status").status_code == 200
     assert client.get("/api/v1/workspaces/preparation").json()["preparation"]["result"]["copied"] is True
 
 
@@ -309,10 +311,10 @@ def test_the_ui_start_path_opens_the_most_recent_review_and_shows_the_copy(old, 
             client = TestClient(self.app, base_url="http://127.0.0.1:8770",
                                 headers={"Authorization": f"Bearer {app_launcher.token}"})
             assert hold.started.wait(10)
-            seen["during"] = client.get("/api/v1/workspace/meta").json()["detail"]
+            seen["during"] = client.get("/api/v1/workspace/status").json()["detail"]
             hold.release.set()
             assert self.app.state.format_gate.wait(10)
-            seen["after"] = client.get("/api/v1/workspace/meta").status_code
+            seen["after"] = client.get("/api/v1/workspace/status").status_code
 
     root = old.parent
     app_launcher = launcher.Launcher(root=root, workspace=catalog.most_recent(root), ui_dir=ui, open_browser=False,
