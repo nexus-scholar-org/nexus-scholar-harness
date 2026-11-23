@@ -11,6 +11,11 @@ assert SPEC and SPEC.loader
 MODULE = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(MODULE)
 
+# The full Python suite, as the manifest spells it since H-gate-and-ci: through the machine-wide
+# lock, four workers, work stealing. Locally it runs at closure or as the unknown-path fallback;
+# the pr gate is the area's checkpoint, and CI runs the full suites.
+FULL = MODULE.LOCKED_FULL_SUITE
+
 
 def test_manifest_is_valid_and_covers_every_e3_task() -> None:
     data = MODULE.load_manifest()
@@ -61,7 +66,7 @@ def test_unmatched_executable_path_uses_full_repository_fallback() -> None:
     assert tasks == []
     assert commands == [
         "git diff --check",
-        "uv run pytest -q -n auto",
+        FULL,
         "uv run ruff check scripts/",
     ]
 
@@ -84,7 +89,7 @@ def test_prose_only_doc_selects_light_gate_without_full_suite() -> None:
     )
     assert tasks == []
     assert commands == ["git diff --check"]
-    assert "uv run pytest -q -n auto" not in commands
+    assert FULL not in commands
 
 
 def test_unmatched_root_readme_is_prose_not_an_error() -> None:
@@ -104,7 +109,7 @@ def test_consumed_doc_keeps_boundary_check() -> None:
         data, tasks=[], paths=["docs/kits_surface_matrix.md"], stage="inner"
     )
     assert "uv run pytest tests/conformance/test_count_freshness.py -q" in commands
-    assert "uv run pytest -q -n auto" not in commands
+    assert FULL not in commands
 
 
 def test_consumed_skill_doc_keeps_mirror_check() -> None:
@@ -117,7 +122,7 @@ def test_consumed_skill_doc_keeps_mirror_check() -> None:
         stage="inner",
     )
     assert "uv run python scripts/sync_skills_bundle.py --check" in commands
-    assert "uv run pytest -q -n auto" not in commands
+    assert FULL not in commands
 
 
 def test_locked_doc_keeps_drift_requirements() -> None:
@@ -131,7 +136,7 @@ def test_locked_doc_keeps_drift_requirements() -> None:
     )
     assert "uv run python scripts/generate_contract_baseline.py --check" in commands
     assert "uv run python scripts/generate_contract_schemas.py --check" in commands
-    assert "uv run pytest -q -n auto" not in commands
+    assert FULL not in commands
 
 
 def test_executable_change_selects_executable_gate() -> None:
@@ -152,7 +157,15 @@ def test_executable_change_selects_executable_gate() -> None:
         paths=["src/scholar_harness/authority/binding.py"],
         stage="pr",
     )
-    assert "uv run pytest -q -n auto" in pr_commands
+    assert FULL not in pr_commands
+    assert any(command.startswith("uv run pytest tests/authority ") for command in pr_commands)
+    _, closure = MODULE.select_commands(
+        data,
+        tasks=[],
+        paths=["src/scholar_harness/authority/binding.py"],
+        stage="closure",
+    )
+    assert FULL in closure
 
 
 def test_mixed_prose_and_executable_unions() -> None:
@@ -199,7 +212,7 @@ def test_unknown_path_falls_back_conservatively() -> None:
     assert tasks == []
     assert commands == [
         "git diff --check",
-        "uv run pytest -q -n auto",
+        FULL,
         "uv run ruff check scripts/",
     ]
 
@@ -281,7 +294,10 @@ def test_changed_test_file_runs_itself_then_its_directory(path: str, directory: 
     )
     assert f"uv run pytest {directory} -q" in checkpoint
     _, pr = MODULE.select_commands(data, tasks=[], paths=[path], stage="pr")
-    assert "uv run pytest -q -n auto" in pr
+    assert f"uv run pytest {directory} -q" in pr
+    assert FULL not in pr
+    _, closure = MODULE.select_commands(data, tasks=[], paths=[path], stage="closure")
+    assert FULL in closure
 
 
 def test_top_level_test_file_runs_itself_at_checkpoint() -> None:
@@ -310,7 +326,12 @@ def test_explicit_e3_task_still_selects_its_gate() -> None:
             "screening",
             "tests/test_screening_migration.py",
         ),
-        ("src/scholar_harness/console/api/screening.py", "console", "tests/console"),
+        ("src/scholar_harness/console/api/screening.py", "console-screening", "tests/console/test_screening_actions.py"),
+        ("src/scholar_harness/console/api/charting.py", "console-charting", "tests/console/test_charting_api.py"),
+        ("src/scholar_harness/charting/fetch.py", "console-charting", "tests/console/test_charting_fetch_api.py"),
+        ("src/scholar_harness/console/api/discovery.py", "console-discovery", "tests/console/test_discovery_api.py"),
+        ("src/scholar_harness/console/api/inception.py", "console-inception", "tests/console/test_inception_api.py"),
+        ("src/scholar_harness/console/serve.py", "console", "tests/console"),
         ("src/scholar_harness/inception/wizard.py", "inception", "tests/inception"),
         ("src/scholar_search/providers/pubmed.py", "search", "tests/kits/search"),
         ("src/scholar_protocol/compiler.py", "protocol", "tests/kits/protocol"),
@@ -325,10 +346,14 @@ def test_source_area_selects_narrow_inner_gate(path: str, area: str, expected: s
     tasks, commands = MODULE.select_commands(data, tasks=[], paths=[path], stage="inner")
     assert tasks == []
     assert any(expected in command and '-m "not slow"' in command for command in commands)
-    assert "uv run pytest -q -n auto" not in commands
+    assert FULL not in commands
     assert not any("test_e3_index_lineage_boundary" in command for command in commands)
     _, pr = MODULE.select_commands(data, tasks=[], paths=[path], stage="pr")
-    assert "uv run pytest -q -n auto" in pr
+    _, checkpoint = MODULE.select_commands(data, tasks=[], paths=[path], stage="checkpoint")
+    assert FULL not in pr
+    assert all(command in pr for command in checkpoint)
+    _, closure = MODULE.select_commands(data, tasks=[], paths=[path], stage="closure")
+    assert FULL in closure
 
 
 def test_contracts_area_keeps_baseline_drift_check_at_inner() -> None:
@@ -356,8 +381,14 @@ def test_research_ui_change_takes_ui_gate_not_python_suite() -> None:
         "components/screening-page.tsx lib/screening-api.ts",
     ]
     _, pr = MODULE.select_commands(data, tasks=[], paths=paths, stage="pr")
-    assert "npm --prefix apps/research-ui run test:browser" in pr
-    assert not any(command.startswith("uv run pytest") for command in pr)
+    assert pr == [
+        "git diff --check",
+        "npm --prefix apps/research-ui run typecheck",
+        "uv run python scripts/suite_lock.py -- npm --prefix apps/research-ui test",
+    ]
+    _, closure = MODULE.select_commands(data, tasks=[], paths=paths, stage="closure")
+    assert "uv run python scripts/suite_lock.py -- npm --prefix apps/research-ui run test:browser" in closure
+    assert not any("pytest" in command for command in pr + closure)
 
 
 def test_research_ui_markdown_stays_prose() -> None:
@@ -377,7 +408,7 @@ def test_mixed_area_and_unknown_path_still_takes_full_fallback() -> None:
         stage="inner",
     )
     # The full-suite fallback subsumes the narrower search run.
-    assert "uv run pytest -q -n auto" in commands
+    assert FULL in commands
     assert not any("tests/kits/search" in command for command in commands)
 
 
@@ -405,6 +436,97 @@ def test_full_suite_runs_once_and_subsumes_narrower_pytest_runs() -> None:
         paths=["pyproject.toml", ".gitignore", "scripts/select_test_gate.py"],
         stage="pr",
     )
-    pytest_runs = [command for command in commands if command.startswith("uv run pytest")]
-    assert pytest_runs == ["uv run pytest -q -n auto"]
+    pytest_runs = [command for command in commands if "pytest" in command]
+    assert pytest_runs == [FULL]
     assert "uv run ruff check scripts/" in commands
+
+
+# H-gate-and-ci (2026-11-23): the local gate is what a change touched, CI is the full gate,
+# every full suite on the PC goes through the machine-wide lock, every test file has an area.
+
+
+def test_every_full_suite_in_the_manifest_goes_through_the_lock_with_four_workers() -> None:
+    text = MODULE.MANIFEST.read_text(encoding="utf-8")
+    assert "-n auto" not in text
+    data = MODULE.load_manifest()
+    commands = [
+        command
+        for section in (data["common"], data.get("area_defaults", {}), data["fallback"])
+        for value in section.values()
+        if isinstance(value, list)
+        for command in value
+    ]
+    commands += [c for area in data["areas"] for stage in data["stages"] for c in area.get(stage, [])]
+    commands += [c for task in data["tasks"].values() for stage in data["stages"] for c in task[stage]]
+    for command in commands:
+        bare = command.split(" -- ", 1)[-1]
+        if bare in {"uv run pytest -q", "uv run pytest -q -n 4 --dist worksteal", "npm --prefix apps/research-ui test"}:
+            assert command.startswith("uv run python scripts/suite_lock.py -- "), command
+
+
+def test_the_local_pr_gate_is_the_area_checkpoint_and_the_full_suite_is_for_closure() -> None:
+    data = MODULE.load_manifest()
+    for area in data["areas"]:
+        path = area["paths"][0].replace("**", "x.py")
+        if MODULE.matched_areas(data, [path]) != [area["name"]]:
+            continue
+        _, pr = MODULE.select_commands(data, tasks=[], paths=[path], stage="pr")
+        assert FULL not in pr, area["name"]
+
+
+def test_changed_defaults_to_origin_main() -> None:
+    assert MODULE.DEFAULT_BASE == "origin/main"
+
+
+def test_checkpoint_token_is_refused_at_inner(tmp_path, monkeypatch) -> None:
+    data = MODULE.load_manifest()
+    data["areas"][0]["inner"] = [MODULE.CHECKPOINT_TOKEN]
+    manifest = tmp_path / "manifest.json"
+    manifest.write_text(__import__("json").dumps(data), encoding="utf-8")
+    monkeypatch.setattr(MODULE, "MANIFEST", manifest)
+    with pytest.raises(ValueError, match="allowed only at pr and closure"):
+        MODULE.load_manifest()
+
+
+def test_the_check_names_a_test_file_no_area_owns(tmp_path) -> None:
+    data = {
+        "stages": ["inner", "checkpoint", "pr", "closure"],
+        "areas": [
+            {"name": "a", "inner": ["uv run pytest tests/kits/a -q"], "checkpoint": ["uv run pytest tests --ignore=tests/kits -q"]},
+        ],
+    }
+    for name in ("tests/kits/a/test_one.py", "tests/unit/test_two.py", "tests/test_three.py"):
+        (tmp_path / name).parent.mkdir(parents=True, exist_ok=True)
+        (tmp_path / name).write_text("def test_x():\n    pass\n", encoding="utf-8")
+    # The catch-all `tests --ignore=...` owns nothing: an area must name the file or its folder.
+    assert MODULE.unowned_test_files(data, root=tmp_path) == ["tests/test_three.py", "tests/unit/test_two.py"]
+    assert MODULE.missing_test_targets(data, root=tmp_path) == []
+    data["areas"][0]["inner"] = ["uv run pytest tests/kits/gone -q"]
+    assert MODULE.missing_test_targets(data, root=tmp_path) == ["a/inner: tests/kits/gone"]
+
+
+def test_the_repository_has_no_unowned_test_file() -> None:
+    data = MODULE.load_manifest()
+    assert MODULE.unowned_test_files(data) == []
+    assert MODULE.missing_test_targets(data) == []
+
+
+def test_finer_console_areas_keep_inner_to_a_few_files() -> None:
+    data = MODULE.load_manifest()
+    for path, area in (
+        ("src/scholar_harness/console/api/charting.py", "console-charting"),
+        ("src/scholar_harness/console/api/discovery.py", "console-discovery"),
+        ("src/scholar_harness/console/api/screening_v1.py", "console-screening"),
+        ("src/scholar_harness/console/api/recon.py", "console-inception"),
+    ):
+        assert MODULE.matched_areas(data, [path]) == [area]
+        _, inner = MODULE.select_commands(data, tasks=[], paths=[path], stage="inner")
+        targets = [t for command in inner for t in MODULE.pytest_targets(command)]
+        assert targets and "tests/console" not in targets, area
+        assert all(target.endswith(".py") for target in targets), area
+
+
+def test_a_workflow_change_takes_the_workflow_check_not_the_full_suite() -> None:
+    data = MODULE.load_manifest()
+    _, pr = MODULE.select_commands(data, tasks=[], paths=[".github/workflows/ci.yml"], stage="pr")
+    assert pr == ["git diff --check", "uv run python scripts/check_workflows.py"]
