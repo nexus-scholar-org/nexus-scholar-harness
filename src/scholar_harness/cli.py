@@ -67,6 +67,46 @@ def _print_version(value: bool) -> None:
         raise typer.Exit()
 
 
+#: The files that make a folder a workspace for :func:`_open_for_writing` (any one of them).
+_WORKSPACE_MARKERS = ("project.json", "protocol.json", "audit/journal.jsonl")
+
+
+def _open_for_writing(workspace: Path | str) -> None:
+    """H-workspace-format-version: before a command writes, copy and stamp an older workspace, refuse a newer one.
+
+    A folder that is not (yet) a workspace is left to the command's own checks.
+    """
+    from .workspace.format import WorkspaceFormatRefused, plan, prepare_for_writing
+
+    ws = Path(workspace).resolve()
+    if not ws.is_dir() or not any((ws / marker).is_file() for marker in _WORKSPACE_MARKERS):
+        return
+    try:
+        if plan(ws).needed:
+            console.print(
+                f"Saving a copy of {ws.name} before this version of Nexus Scholar writes to it…",
+                markup=False, highlight=False, soft_wrap=True,
+            )
+        result = prepare_for_writing(ws, agent="nexus-scholar/cli")
+    except WorkspaceFormatRefused as exc:
+        console.print(f"❌ {exc.message}", style="bold red", markup=False, highlight=False, soft_wrap=True)
+        raise typer.Exit(1) from exc
+    if result.copy is not None:
+        console.print(f"Saved a copy of this review: {result.copy}", markup=False, highlight=False, soft_wrap=True)
+
+
+def _open_slug_for_writing(workspace: str) -> None:
+    """:func:`_open_for_writing` for the ``log`` commands, which also accept a slug under ``workspaces/``."""
+    from .workspace.audit import resolve_workspace
+    from .workspace.errors import NotWorkspaceError
+
+    try:
+        target = resolve_workspace(workspace)
+    except NotWorkspaceError:
+        return  # the command reports the unknown workspace itself
+    _open_for_writing(target)
+
+
 @app.callback()
 def _main(
     version: bool = typer.Option(  # noqa: B008
@@ -192,6 +232,8 @@ def setup_mcp(
     ),
 ):
     """Wire the nexus-scholar MCP server into harness config files (P7.4)."""
+    if not dry_run:
+        _open_for_writing(workspace)
     run_setup_mcp(workspace, harness, dry_run=dry_run, env_file=env_file)
 
 
@@ -273,6 +315,7 @@ def log_event_command(
     ),
 ):
     """Append one canonical audit event (audit/journal.jsonl) and refresh INDEX.md."""
+    _open_slug_for_writing(workspace)
     run_log_event(
         workspace,
         action=action,
@@ -303,6 +346,7 @@ def log_batch_command(
     append.  Exits 1 when any record was skipped or failed to write, but the
     journal always stays JSON-parse-clean.
     """
+    _open_slug_for_writing(workspace)
     run_log_batch(workspace, events_file)
 
 
@@ -314,6 +358,7 @@ def log_sync_index_command(
     ),
 ):
     """Regenerate INDEX.md from workspace state (no journal append)."""
+    _open_slug_for_writing(workspace)
     run_sync_index(workspace)
 
 
@@ -752,6 +797,7 @@ def extract_publish(
     """Publish the accepted document manifest through the frozen acceptance gate."""
     from .extraction_producer import publish_document_manifest
 
+    _open_for_writing(_extract_workspace(workspace))
     outcome = publish_document_manifest(_extract_workspace(workspace))
     payload: dict = {"publication": outcome.as_dict()}
     exit_code = 0 if outcome.accepted else 1
@@ -802,6 +848,7 @@ def supervise(
     from .handoff import run_supervisor_once
 
     ws = workspace.resolve()
+    _open_for_writing(ws)
 
     if once:
         result = run_supervisor_once(ws)
@@ -898,6 +945,7 @@ def sync(
     ),
 ):
     """Atomically rebuild project.json stats and INDEX.md from filesystem state."""
+    _open_for_writing(workspace)
     orchestrator = _orchestrator_class()(workspace)
     result = orchestrator.sync_state(dry_run=dry_run)
 
@@ -1163,6 +1211,7 @@ def run_pipeline(
 ):
     """Execute a research pipeline: either the classic orchestrator (--protocol)
     or a PipelineSpec DAG (--pipeline, M5.4)."""
+    _open_for_writing(workspace)
     if pipeline is not None:
         _run_pipeline_spec(pipeline, workspace, skip)
         return
@@ -1268,6 +1317,7 @@ def export(
 ):
     """Export synthesized research findings and bibliographies to external tools."""
     workspace_path = workspace.resolve()
+    _open_for_writing(workspace_path)
 
     if claim_confirmed:
         from .contracts.confirmation.api import ConfirmationRefusalError, export_gate
@@ -1390,6 +1440,7 @@ def accept_corpus_command(
     """
     from .corpus_accept import AcceptCorpusRefused, accept_corpus, parse_ris_option
 
+    _open_for_writing(workspace)
     try:
         result = accept_corpus(workspace, ris=[parse_ris_option(r) for r in ris or []])
     except AcceptCorpusRefused as exc:
@@ -1452,6 +1503,7 @@ def chase_run(
     when the run is published, new.json) and journals CITATION_CHASE. Nothing is
     added to the corpus: run `chase accept` for that.
     """
+    _open_for_writing(workspace)
     import asyncio
 
     from .pipeline.citation_chase import ChaseRefused, run_citation_chase
@@ -1536,6 +1588,7 @@ def chase_accept(
     """
     from .pipeline.citation_chase import ChaseRefused, accept_citation_chase
 
+    _open_for_writing(workspace)
     try:
         accepted = accept_citation_chase(workspace, chase=chase)
     except ChaseRefused as exc:

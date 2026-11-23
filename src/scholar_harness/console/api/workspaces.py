@@ -36,9 +36,22 @@ def _root(request: Request) -> tuple[Path, str]:
 def list_workspaces(request: Request, include_invalid: bool = False) -> dict[str, Any]:
     root, source = _root(request)
     try:
-        return catalog.listing(root, source, request.app.state.workspace, include_invalid=include_invalid)
+        out = catalog.listing(root, source, request.app.state.workspace, include_invalid=include_invalid)
     except catalog.WorkspaceRefused as exc:
         raise _error(exc) from exc
+    out["preparation"] = _preparation(request)
+    return out
+
+
+def _preparation(request: Request) -> dict[str, Any] | None:
+    gate = getattr(request.app.state, "format_gate", None)
+    return gate.snapshot() if gate is not None else None
+
+
+@router.get("/workspaces/preparation")
+def workspace_preparation(request: Request) -> dict[str, Any]:
+    """Whether the open workspace is ready, being copied (with progress), or refused (H-workspace-format-version)."""
+    return {"preparation": _preparation(request)}
 
 
 class CreateBody(BaseModel):
