@@ -247,31 +247,31 @@
       "name": "console-charting",
       "paths": ["src/scholar_harness/charting/**", "src/scholar_harness/console/api/charting.py"],
       "inner": ["uv run pytest tests/console/test_charting_api.py tests/console/test_charting_export_api.py tests/console/test_charting_fetch_api.py tests/console/test_charting_form_api.py -q -m \"not slow\" -n 4 --dist worksteal"],
-      "checkpoint": ["uv run pytest tests/console tests/authority -q"]
+      "checkpoint": ["uv run pytest tests/console tests/authority -q -n 4 --dist worksteal"]
     },
     {
       "name": "console-discovery",
       "paths": ["src/scholar_harness/console/api/discovery.py", "src/scholar_harness/console/discovery_checks.py", "src/scholar_harness/console/api/workbench.py"],
       "inner": ["uv run pytest tests/console/test_discovery_api.py tests/console/test_discovery_checks.py tests/console/test_discovery_estimate_api.py tests/console/test_harvest_preparation_api.py tests/console/test_chase_api.py tests/console/test_combined_corpus_api.py tests/console/test_quota_hang_api.py tests/console/test_workbench_amend_api.py tests/console/test_workbench_counts_api.py tests/console/test_workbench_seeds_comparison_api.py -q -m \"not slow\" -n 4 --dist worksteal"],
-      "checkpoint": ["uv run pytest tests/console tests/authority tests/unit/test_discovery_stage.py tests/kits/agent/test_mcp_assistant.py tests/kits/agent/test_mcp_workspace_proposals.py tests/kits/search/test_provider_resilience.py -q"]
+      "checkpoint": ["uv run pytest tests/console tests/authority tests/unit/test_discovery_stage.py tests/kits/agent/test_mcp_assistant.py tests/kits/agent/test_mcp_workspace_proposals.py tests/kits/search/test_provider_resilience.py -q -n 4 --dist worksteal"]
     },
     {
       "name": "console-screening",
       "paths": ["src/scholar_harness/console/api/screening.py", "src/scholar_harness/console/api/screening_v1.py", "src/scholar_harness/console/api/review.py", "src/scholar_harness/console/next_step.py"],
       "inner": ["uv run pytest tests/console/test_screening_actions.py tests/console/test_screening_api_contract.py tests/console/test_screening_api_v1.py tests/console/test_screening_drafts_api.py tests/console/test_screening_highlights.py tests/console/test_screening_read_api.py tests/console/test_agent_runs_api.py tests/console/test_approve_all.py tests/console/test_batch_reviews_api.py tests/console/test_corpus_api.py tests/console/test_corpus_import_api.py tests/console/test_criteria_amendments_api.py tests/console/test_criteria_pilot_api.py tests/console/test_criteria_pilot_plumbing.py tests/console/test_export_api.py tests/console/test_lineage_api.py tests/console/test_methods_api.py tests/console/test_methods_method_block.py tests/console/test_method_settings.py tests/console/test_publication_currentness.py tests/console/test_read_performance.py tests/console/test_console_screening.py tests/console/test_next_step_api.py -q -m \"not slow\" -n 4 --dist worksteal"],
-      "checkpoint": ["uv run pytest tests/console tests/authority tests/test_read_store.py -q"]
+      "checkpoint": ["uv run pytest tests/console tests/authority tests/test_read_store.py -q -n 4 --dist worksteal"]
     },
     {
       "name": "console-inception",
       "paths": ["src/scholar_harness/console/api/inception.py", "src/scholar_harness/console/api/recon.py"],
       "inner": ["uv run pytest tests/console/test_inception_api.py tests/console/test_inception_checks.py tests/console/test_inception_import.py tests/console/test_inception_proposals.py tests/console/test_recon_api.py tests/console/test_recon_sample_api.py tests/console/test_draft_store_lock.py tests/console/test_assistant_read.py tests/console/test_console_refusals.py -q -m \"not slow\" -n 4 --dist worksteal"],
-      "checkpoint": ["uv run pytest tests/console tests/authority tests/inception tests/recon tests/kits/agent/test_mcp_assistant.py tests/pipeline/test_golden_recon_cassette.py -q"]
+      "checkpoint": ["uv run pytest tests/console tests/authority tests/inception tests/recon tests/kits/agent/test_mcp_assistant.py tests/pipeline/test_golden_recon_cassette.py -q -n 4 --dist worksteal"]
     },
     {
       "name": "console",
       "paths": ["src/scholar_harness/console/**"],
       "inner": ["uv run pytest tests/console -q -m \"not slow\" -n 4 --dist worksteal"],
-      "checkpoint": ["uv run pytest tests/console tests/authority tests/test_ui_launcher.py -q"]
+      "checkpoint": ["uv run pytest tests/console tests/authority tests/test_ui_launcher.py -q -n 4 --dist worksteal"]
     },
     {
       "name": "inception",

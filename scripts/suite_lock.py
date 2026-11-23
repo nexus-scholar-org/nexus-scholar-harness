@@ -114,9 +114,13 @@ def try_acquire(path: Path, command: list[str]) -> Held | None:
     """Take the lock now, or return None while another process holds it."""
     path.parent.mkdir(parents=True, exist_ok=True)
     handle = open(path, "a+b")  # noqa: SIM115 - held open for as long as the lock is held
-    if not _os_lock(handle):
+    try:
+        if not _os_lock(handle):
+            handle.close()
+            return None
+    except BaseException:
         handle.close()
-        return None
+        raise
     record = {
         "pid": os.getpid(),
         "host": socket.gethostname(),
@@ -124,11 +128,29 @@ def try_acquire(path: Path, command: list[str]) -> Held | None:
         "cwd": os.getcwd(),
         "command": " ".join(command),
     }
+    _write_holder(path, record)
+    return Held(path, handle, record)
+
+
+def _write_holder(path: Path, record: dict[str, Any]) -> None:
+    """Name the holder. Best effort: the system lock is what excludes others.
+
+    On Windows a reader that has the holder file open at that instant makes the replace fail;
+    retry a few times, then go on without naming the holder.
+    """
     target = holder_path(path)
     scratch = target.with_name(f"{target.name}.{os.getpid()}.tmp")
-    scratch.write_text(json.dumps(record), encoding="utf-8")
-    os.replace(scratch, target)
-    return Held(path, handle, record)
+    for attempt in range(4):
+        try:
+            scratch.write_text(json.dumps(record), encoding="utf-8")
+            os.replace(scratch, target)
+            return
+        except OSError:
+            time.sleep(0.05 * (attempt + 1))
+    try:
+        scratch.unlink()
+    except OSError:
+        pass
 
 
 def release(held: Held) -> None:

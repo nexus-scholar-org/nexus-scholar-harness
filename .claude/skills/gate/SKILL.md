@@ -26,10 +26,12 @@ What each stage runs (H-gate-and-ci, 2026-11-23):
   minutes, not half an hour. The full suites are CI's, on the pull request; the
   record cites the CI run of the final commit. After a repair or a merge of
   `main`, run `checkpoint` again here and let CI rerun the full suites.
-- `closure`: the full suites, for a `RELEASE` closure or a release.
+- `closure`: prints the full suites. A `RELEASE` part's closure evidence is the CI
+  run of its final commit (every required check green), not a local run; run the
+  full suites here only for a release, or when the researcher asks.
 
-A full suite on this PC (the `closure` stage, or the fallback for a path no area
-matches) always runs through the machine-wide lock, which the manifest's commands
+A full suite on this PC (a release, the researcher's request, or the fallback for
+a path no area matches) always runs through the machine-wide lock, which the manifest's commands
 already include: `uv run python scripts/suite_lock.py -- <command>`. A second
 session waits until the first finishes; `uv run python scripts/suite_lock.py
 --status` shows who holds it. Never start a full suite outside the wrapper and

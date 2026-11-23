@@ -1,6 +1,6 @@
 # H-gate-and-ci
 
-Status: **BUILT 2026-11-23 — see "Review" for the verdict** (branch `dev/h/gate-and-ci`, cut from `origin/main` `8dd7904a`; not pushed). Lane: **RELEASE** (it changes the gate every later milestone runs and the CI workflow).
+Status: **READY FOR PR 2026-11-23** (review round 2 APPROVE; its three P3s fixed after it; RELEASE closure waits for the CI run) (branch `dev/h/gate-and-ci`, cut from `origin/main` `8dd7904a`; not pushed). Lane: **RELEASE** (it changes the gate every later milestone runs and the CI workflow).
 
 Source: `docs/assessment/test-suite-review-2026-11-23.md` (local branch `dev/docs/project-review-2026-11-23`), steps 1 and 2, chosen by the researcher on 2026-11-23 in the coordinator session ("Gate settings and CI"). That choice named a standing permission for sessions to push work branches to the fork; the permission is **not given**, so this build keeps every push the coordinator's, on the researcher's approval, and names the permission as an open item. Companion part: `H-test-diet` (`dev/h/test-diet`), built the same day.
 
@@ -10,11 +10,11 @@ Source: `docs/assessment/test-suite-review-2026-11-23.md` (local branch `dev/doc
 - [x] **One machine-wide lock** around any full suite: `scripts/suite_lock.py`, the operating system's lock on one file, freed when its holder process ends (the stale-lock rule), a second session waits; every full-suite command in the manifest runs through it. Tested (11 tests, three of them with real processes).
 - [x] **Local gate = touched areas; CI = full gate.** Area `pr` is the area's `checkpoint` plus lint (`@checkpoint` in the manifest); a changed test file outside every area runs its folder at `pr`; no E3 task runs the full suite at `pr` either; the full suites run locally only for a release, as the unknown-path fallback, or when the researcher asks (the selector's `closure` stage prints them). The policy's repair rule is replaced: after a repair or a merge of `main`, the affected tests locally and the full suites in CI.
 - [x] **Finer console areas:** console-charting (with `src/scholar_harness/charting/`), console-discovery, console-screening, console-inception, before the console catch-all; their `inner` is 4 to 23 named files. **The selector's check fails** when a Python test file is named by no area's inner or checkpoint commands (the catch-all `tests --ignore=…` does not count), and when an area or an E3 task names a test path that does not exist.
-- [x] **CI:** Python with `-n auto --dist worksteal` on the runner; `uv` cache (setup-uv `enable-cache`) in every job that installs uv; npm cache in both Node jobs (already there); the UI built once (build-wheel's `build:export`), the `research-ui` job no longer builds or sets up Python; a `concurrency` group that cancels a superseded pull-request run.
+- [x] **CI:** Python with `-n auto --dist worksteal` on the runner; `uv` cache (setup-uv `enable-cache`) in every job that installs uv; npm cache in both Node jobs (already there); the UI built once per kind (the export in `build-wheel`, shared through the wheel artifact; the standalone app in `research-ui`, which alone compiles the console proxy route), the `research-ui` job no longer sets up Python; a `concurrency` group that cancels a superseded pull-request run.
 - [x] `tests/unit/test_select_test_gate.py` and the selector's own checks match; new tests for the lock and the workflow check.
 - [x] An entry in `docs/decisions.md` with the two lists kept apart.
 - [ ] **Closure evidence (RELEASE):** the CI run of the final commit with every required check green. Not yet run: nothing is pushed.
-- [ ] Independent review: see "Review".
+- [x] Independent review: round 1 CHANGES (5 P2, 5 P3), round 2 APPROVE with three P3s, fixed; see "Review".
 
 ## What changed
 
@@ -64,6 +64,7 @@ On the researcher's PC, branch `dev/h/gate-and-ci`, venv synced offline with `--
 | workflows | `uv run python scripts/check_workflows.py` | `OK: 3 workflows` |
 | this change's own `pr` gate (the new rules), first build `c9d549cc` | `select_test_gate.py --changed origin/main --stage pr`: `git diff --check`; `check_workflows.py`; `pytest tests/unit/test_select_test_gate.py tests/unit/test_suite_lock.py tests/unit/test_check_workflows.py tests/conformance -q`; `--check`; `ruff check scripts/`; `pytest tests/unit -q` | all passed: 754 results (3 skipped) in 52 s; 732 in 62 s; ruff clean. About two minutes, against 917 s for the full Python suite on the same PC (H-test-diet's run) |
 | the same gate after round 1 | `9c016482`, same six commands | all passed: 755 results (3 skipped) in 131 s; 733 in 120 s; `--check` OK; ruff clean (slower than the first run; the PC was not idle) |
+| after round 2 | final commit | `uv run pytest tests/unit/test_select_test_gate.py tests/unit/test_suite_lock.py tests/unit/test_check_workflows.py -q`; `--check`; `ruff check scripts/`; `git diff --check` | 73 passed (55 selector, 12 lock, 6 workflow); OK; clean; clean. The six-command `pr` gate was not re-run for this commit (the lock script, one test, the console checkpoints' worker count and text changed; reuse per the policy's evidence rule is the reviewer's call) |
 | a finer console area | `pytest` on the four charting files `-m "not slow"` | 121 tests: 112 s on one worker, 81 s with `-n 4 --dist worksteal` |
 | lock status | `uv run python scripts/suite_lock.py --status` | `suite-lock: free (…\Temp\nexus-scholar-suite.lock)` |
 | ruff (CI rules) | `uv run ruff check scripts/` | clean (one unused import fixed) |
@@ -80,6 +81,8 @@ The full Python suite was not run for this part: the diff changes no `src/` file
 - **Conflicts with H-test-diet** in `ci.yml`, the manifest's `research-ui` area, the policy's area paragraph, `/gate` and `tests/unit/test_select_test_gate.py`: whichever merges second merges `main`.
 
 ## Review
+
+**Round 2** (on `633b0b3a`): **APPROVE**; all ten round-1 findings confirmed fixed. Three P3s fixed in the next commit: (1) on Windows a reader holding the holder file made the winner's `os.replace` fail and the winner exit without running its command: the holder file is now written best effort (retries, then none; the system lock is what excludes), and the handle is closed if locking raises; a test; (2) `/gate` and `AGENTS.md` (lines 25 and 49) still said a RELEASE closure runs the full suites on the PC: reworded to the policy; (3) the CI DoD line still said the `research-ui` job no longer builds: reworded. Also from the follow-ups: the console checkpoints run with `-n 4 --dist worksteal`.
 
 **Round 1** (`milestone-reviewer`, on `c9d549cc`): **CHANGES**, 5 P2 and 5 P3. Fixed in the next commit:
 

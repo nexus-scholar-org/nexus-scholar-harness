@@ -184,3 +184,22 @@ def test_a_second_session_waits_for_the_first_to_finish(lock_file: Path) -> None
     assert times["second start"] >= times["first end"]
     assert b"waiting; a full suite is running" in err
     assert not LOCK.holder_path(lock_file).exists()
+
+
+def test_a_holder_file_that_cannot_be_written_still_leaves_us_the_lock(
+    lock_file: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Review round 2: on Windows a reader holding the holder file makes the replace fail."""
+
+    def refuse(*_args: object) -> None:
+        raise PermissionError(5, "Access is denied")
+
+    monkeypatch.setattr(LOCK.os, "replace", refuse)
+    held = LOCK.acquire(lock_file, ["pytest"], timeout=1)
+    assert held is not None
+    try:
+        assert not LOCK.holder_path(lock_file).exists()
+        assert not list(lock_file.parent.glob("*.tmp"))
+        assert LOCK.acquire(lock_file, ["pytest"], timeout=0.1, poll=0.05, out=io.StringIO()) is None
+    finally:
+        LOCK.release(held)
