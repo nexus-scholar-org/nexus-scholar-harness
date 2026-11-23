@@ -92,6 +92,10 @@ scholar-pdf = "scholar_pdf.cli:app"
 scholar-protocol = "scholar_protocol.cli:app"
 scholar-search = "scholar_search.cli:main"
 
+# M13 Part A: the start with no console window (Windows) for icons and menu entries.
+[project.gui-scripts]
+nexus-scholar-app = "scholar_harness.console.desktop:run"
+
 [tool.hatch.build.targets.wheel]
 packages = [
     "src/scholar_harness",

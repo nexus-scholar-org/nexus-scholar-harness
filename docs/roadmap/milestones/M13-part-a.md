@@ -1,10 +1,10 @@
 # M13 Part A: the launcher for an installed app
 
-Status: **BUILT on `dev/m13/part-a-launcher` (from `main` `cc0e8fa1`), not pushed; the engine start path only (see "Not in this branch"). Lane RELEASE.** The researcher gave the go on 2026-11-24 ("Start Part A and the workspace format version"), relayed by the coordinator session "Nexus Scholar parent work". Specification: `docs/roadmap/milestones/M13-installers.md` §4.1, §4.2, §5.2 Part A and §8 (trial build). Decisions: `docs/decisions.md`, entry "2026-11-24 — M13 Part A".
+Status: **BUILT on `dev/m13/part-a-launcher` (from `main` `cc0e8fa1`, `main` `0bcefdd3` merged in), not pushed; the engine start path only (see "Not in this branch"). Lane RELEASE.** The researcher gave the go on 2026-11-24 ("Start Part A and the workspace format version"), relayed by the coordinator session "Nexus Scholar parent work". Specification: `docs/roadmap/milestones/M13-installers.md` §4.1, §4.2, §5.2 Part A and §8 (trial build). Decisions: `docs/decisions.md`, entry "2026-11-24 — M13 Part A".
 
 ## What a start from an icon does now
 
-`pythonw -m scholar_harness.console.desktop` (and, once Part W builds it, the bundle's windowed program) starts the engine with no terminal (`src/scholar_harness/console/desktop.py`):
+`nexus-scholar-app` (the new `[project.gui-scripts]` entry point: `nexus-scholar-app.exe` on Windows, no console window), `pythonw -m scholar_harness.console.desktop`, and later the bundle's windowed program start the engine with no terminal (`src/scholar_harness/console/desktop.py`):
 
 1. **Output goes to a log file before anything prints.** One file per launch in the user's log folder, the last five kept, none above 5 MB. It names the version, the system, the folders, the workspaces folder and the port; e-mail addresses, launch codes, `Bearer` values and key-like strings are masked. Standard output and error are the log, so nothing is written to a missing console.
 2. **The user's own folders (spec §4.1).** Settings `%APPDATA%\Nexus Scholar` (Linux `~/.config/nexus-scholar`, macOS `~/Library/Application Support/Nexus Scholar`), logs `%LOCALAPPDATA%\Nexus Scholar\Logs`, cache `%LOCALAPPDATA%\Nexus Scholar\Cache`. `NEXUS_APP_HOME` puts all three under one folder (tests, CI). The engine runs in the settings folder, so the search settings' `.env` is read from there, never from the program folder or wherever the icon started; the search cache (`SCHOLAR_CACHE_DIR`) and the recon cache (`NEXUS_RECON_ROOT`) default to the cache folder. A variable already set still wins. No change to `scholar_search/config.py` was needed; reading the e-mail and keys from a settings file is Part B.
@@ -35,12 +35,11 @@ Status: **BUILT on `dev/m13/part-a-launcher` (from `main` `cc0e8fa1`), not pushe
 | The log: one per launch, five kept, 5 MB cap, nothing sensitive | `test_the_log_keeps_five_files_masks_and_stops_at_its_cap` |
 | The instance routes are not reachable from a page | `test_the_instance_routes_refuse_a_browser_and_a_wrong_secret` |
 | The approval window works inside a bundle | the three tests above, and a windowed PyInstaller probe of `code_window.py` in a throw-away environment: frozen, no standard output in the parent, the child started as the app with the flag (no `-I`), "ready" received, the window closed itself when the test codes expired |
-| No console window appears (by hand on Windows) | `pythonw -m scholar_harness.console.desktop --no-browser` from `C:\Windows`: `engine.json` after 5.9 s, `/healthz` 200, the log complete. The windowed entry point (`gui-scripts`) is not in this branch, see below |
+| No console window appears (by hand on Windows) | `nexus-scholar-app.exe --no-browser` from a `uv` install, started from `C:\Windows`: answers after 5.2 s, `/healthz` 200, the process has no visible window; `nexus-scholar-app.exe --stop` exit 0, engine gone, port free, `engine.json` removed. Also `pythonw -m scholar_harness.console.desktop --no-browser`: `engine.json` after 5.9 s, the log complete |
 | With no settings, the first page is the setup screen | **not in this branch**: the setup screen is Part B |
 
 ## Not in this branch (the rest of spec §5.2 Part A)
 
-- **The `[project.gui-scripts]` entry point** (`nexus-scholar-app = "scholar_harness.console.desktop:run"`). It is one line in `pyproject.toml`, which the graph removal (`dev/h/remove-graph`) is changing; it waits for that merge.
 - **The control window** of §4.2: Open in browser, Settings, Stop, the status line and the closing question with the busy check. The instance routes it needs (a fresh link, stop) are here.
 - **The app's text** (about 60 lines in three languages that send the user to a terminal, a variable or `.env`), and the engine telling the app how it was started.
 - **The message "the browser could not reach Nexus Scholar"**: only the control window can show it.
@@ -50,10 +49,10 @@ Status: **BUILT on `dev/m13/part-a-launcher` (from `main` `cc0e8fa1`), not pushe
 | Check | Result |
 | :-- | :-- |
 | Targeted tests (`tests/test_ui_launcher.py`, `tests/console/test_desktop_*.py`) | 22 passed |
-| Selector `pr` gate (areas console, harness-cli) | see the commit and the report; filled below |
+| Selector `pr` gate after merging `main` `0bcefdd3` (areas console, harness-cli; task T-110) | `tests/console tests/authority tests/test_ui_launcher.py`: 1438 passed, 1 skipped; `tests/cli tests/unit tests/mcp` + parity + serve: 847 passed, 2 skipped; `tests/kits/agent`: 284 passed (all with `-n 4`) |
 | `git diff --check`, `ruff check scripts/`, `ruff check src/ --select F821,…` | pass |
 | Contract baseline `--check` | current |
-| Wheel build | filled below |
+| Wheel build | `uv build --wheel` (with `NEXUS_WHEEL_ALLOW_NO_UI=1`: this worktree holds no UI export): 1.5 MB; carries `console/desktop.py`, `console/instance.py` and `[gui_scripts] nexus-scholar-app`. Installed alone in a throw-away Python 3.12 environment with no extras: `nexus-scholar --help` and `scholar-agent --help` answer; `desktop.main(['--frobnicate'])` returns 2 and logs the line |
 | Console-less start (`pythonw`) and `--stop` | as above |
 | Browser pane, fault 1 | as above |
 | Independent review (milestone-reviewer) | filled below |
