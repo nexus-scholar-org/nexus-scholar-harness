@@ -1,6 +1,6 @@
 # H-remove-graph Remove the citation graph
 
-Branch: `dev/h/remove-graph` (from `origin/main` `9af17212`; `origin/main` `cc0e8fa1`, the 1.1.0b7 release, merged in on 2026-11-24 as `a269cda1`) · Lane: **RELEASE** (packaging, the base dependencies, the MCP surface and the public commands change) · Status: **READY FOR PR** (review round 2 APPROVE; not pushed)
+Branch: `dev/h/remove-graph` (from `origin/main` `9af17212`; `origin/main` `cc0e8fa1`, the 1.1.0b7 release, merged in on 2026-11-24 as `a269cda1`) · Lane: **RELEASE** (packaging, the base dependencies, the MCP surface and the public commands change) · Status: **READY FOR PR** (review round 2 APPROVE; decision items 1 to 3 accepted by the researcher on 2026-11-24 as built; push, PR and merge at green approved)
 
 The researcher's decision of 2026-11-23, in the coordinator session ("Yes, remove graph"), after the project review of that day (item 10: three base dependencies, `networkx`, `pyvis` and `scipy`, served only the parked graph code; cited in `docs/roadmap/milestones/M13-installers.md` §2.4). The researcher confirmed finishing it on 2026-11-24 ("Yes, finish it"), after 1.1.0b7 was released, so the removal ships in the release after 1.1.0b7. Delete `scholar_graph`, its tests and everything that only exists to call it. PDF extraction, the capability adapter and `claims` stay.
 

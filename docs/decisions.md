@@ -12,9 +12,10 @@ history to read if you need the original reasoning (`git log --follow -- <path>`
 | :-- | :-- | :-- |
 | 2026-11-19 — M9a: what the measurement says about the ladder gates | 2 | The minimum share of the researcher's excludes an agent must take before a rung unlocks: the principle is accepted; the researcher decided on 2026-11-20 to set the number when M9b is built. |
 | 2026-11-23 — H-gate-and-ci | 1 | The standing permission for sessions to push a work branch and open a draft pull request: not given. |
-| 2026-11-23 — H-remove-graph | 1 to 3 | The graph stage dropped from results rather than skipped, `scholar-graph` pipeline nodes refused, and the release-note lines for the release after 1.1.0b7: proposed as built. |
 
-## 2026-11-23 — H-remove-graph: `scholar_graph` removed after 1.1.0b7 (decided by the researcher 2026-11-23, finish confirmed 2026-11-24; items 1 to 3 PROPOSED)
+## 2026-11-23 — H-remove-graph: `scholar_graph` removed after 1.1.0b7 (decided by the researcher 2026-11-23, finish confirmed 2026-11-24; items 1 to 3 accepted by the researcher 2026-11-24 as built)
+
+**Accepted 2026-11-24.** The researcher accepted items 1 to 3 as built, in the coordinator session, after the build's report ("Accept, push, merge"), and approved the push, the PR and the merge at green.
 
 Record: `docs/roadmap/milestones/H-remove-graph.md`. The removal itself is the researcher's decision of 2026-11-23 in the coordinator session ("Yes, remove graph"); restore from `9af17212`. `networkx`, `pyvis` and `scipy` leave the base dependencies; PDF extraction, the capability adapter and `claims` stay.
 
