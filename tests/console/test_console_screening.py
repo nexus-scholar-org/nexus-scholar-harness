@@ -95,6 +95,7 @@ def test_old_batch_decisions_route_is_gone_and_writes_nothing(tmp_path):
     assert not (ws / "literature" / "screening" / "batch_001_decisions.json").exists()
     assert (ws / "audit" / "journal.jsonl").read_bytes() == journal_before
 
+
 def _bootstrap_collect(tmp, n_batches):
     """Workspace shaped for agent_screen.collect: verified.json + protocol + manifest."""
     ws = _bootstrap(tmp)

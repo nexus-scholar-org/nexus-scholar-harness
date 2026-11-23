@@ -15,7 +15,7 @@ You are an expert academic research agent equipped with `scholar-search-kit`. Th
 - `{CLI:search} --help` resolves → else `BLOCKED_INPUT`.
 - `{WORKSPACE}` resolves — `protocol.json` for `--protocol`/screening commands; `literature/…` for export and handoff artifacts.
 - `{CONFIG}` present (the pin manifest).
-- `SCHOLAR_MAILTO` set (required: a live search refuses `MAILTO_NOT_SET` without it) and `SCHOLAR_OPENALEX_KEY` set (OpenAlex requires a key since 2026-02-13; see the search section of `docs/kits_surface_matrix.md`); `GEMINI_API_KEY` needed for `nexus_screen_llm` (`LLMBatchScreener`).
+- `SCHOLAR_MAILTO` set (required: a live search refuses `MAILTO_NOT_SET` without it) and `SCHOLAR_OPENALEX_KEY` set (OpenAlex requires a key since 2026-02-13; see the search section of `docs/kits_surface_matrix.md`).
 
 ## Refusals
 - `BLOCKED_INPUT` — a preflight requirement is missing (e.g. `protocol.json` absent where `--protocol` is required).

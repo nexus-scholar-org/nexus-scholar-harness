@@ -61,7 +61,9 @@ The allowlist, separately: with `origin/main`'s `browser.py`, `test_writes_follo
 
 ## Open
 
-Filled at the end.
+- **The ceiling half of brief item 4 is met in form, not in substance, for the screen** (decision item 3): a run must state `cost_ceiling_usd`, but `null` means no ceiling, and the screen sends `null` when its ceiling field is blank. A run from the screen with a blank field still has no ceiling, as before. It is closed in substance only if the researcher chooses item 3's alternative (a number required for a priced model, with a screen change).
+- **The Prepare screen still offers AI-agreed exclusion** (decision item 2); choosing it now shows the engine's refusal. Removing the option means changing the web app's unit tests.
+- Follow-ups not done here: re-record `apps/research-ui/tests/fixtures/page-engine.json` (`tests/console/_record_page_engine.py`), which still carries `figures.mode` and the removed sentence (nothing compares it with the engine); amendment notes on the FINAL UX specs that describe the sentence and the opt-in (`docs/ux/phase2-screening/final/02-prepare.md`, `07-agreement-with-agent.md`, `09-publish.md:47`, `10-export-and-methods.md:166`, `:203`); the historical UI-07 documents that describe the old route as the draft writer; `LLMBatchScreener` with no outside caller.
 
 ## Evidence
 

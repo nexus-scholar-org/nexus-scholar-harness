@@ -742,3 +742,19 @@ def test_f2_nothing_prepared_reports_no_protocol_change(tmp_path):
     _amend_protocol(ws)
     c = TestClient(create_app(ws, token=DESKTOP), base_url="http://127.0.0.1", headers={"Authorization": f"Bearer {DESKTOP}"})
     assert c.get(f"{BASE}/summary").json()["protocol_changed"] is False
+
+
+def test_a_settings_save_journals_the_stored_mode_it_replaces(client, ws):
+    """H-close-side-doors: a workspace that stored "ai_agreed_exclusion" reads as
+    "every record", but the row of the save that overwrites it names what the file held."""
+    settings = ws / "literature" / "screening" / "settings.json"
+    stored = json.loads(settings.read_text(encoding="utf-8")) if settings.is_file() else {}
+    settings.write_text(json.dumps({**stored, "mode": "ai_agreed_exclusion"}), encoding="utf-8")
+    assert client.get(f"{BASE}/settings").json()["mode"] == "human_sees_every_record"
+    saved = client.put(f"{BASE}/settings", json={"mode": "human_sees_every_record"})
+    assert saved.status_code == 200
+    row = json.loads((ws / "audit" / "journal.jsonl").read_text(encoding="utf-8").splitlines()[-1])
+    assert row["action"] == "SCREENING_SETTINGS_CHANGED"
+    assert row["parameters"]["before"] == {"mode": "ai_agreed_exclusion"}
+    assert row["parameters"]["after"] == {"mode": "human_sees_every_record"}
+    assert json.loads(settings.read_text(encoding="utf-8"))["mode"] == "human_sees_every_record"

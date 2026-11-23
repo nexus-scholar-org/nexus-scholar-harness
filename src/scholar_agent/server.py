@@ -554,9 +554,9 @@ def nexus_screen(
     input_path: str, protocol_path: str, output_dir: str = "./literature"
 ) -> str:
     """
-    Screen candidate literature against protocol inclusion/exclusion criteria.
-    Outputs included.json, excluded.json, conflicts.json, prisma_report.json,
-    and prisma_screening_report.md.
+    Screen candidate literature against protocol inclusion/exclusion criteria
+    with the keyword heuristic. Writes proposals only
+    (``screening_proposals.json``), never a decision or a partition file.
     """
     input_path = _resolve_path(input_path) or input_path
     protocol_path = _resolve_path(protocol_path) or protocol_path

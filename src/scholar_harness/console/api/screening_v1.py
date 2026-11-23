@@ -609,15 +609,19 @@ def put_settings(body: SettingsBody, request: Request) -> dict[str, Any]:
         raise _error(422, "INVALID_OUTPUT", f"queue_order must be one of {QUEUE_ORDERS}")
     if not update:
         return current  # nothing changed (e.g. the protocol's own blinding value repeated)
-    new = {**_stored_settings(ws), **update}
+    stored = _stored_settings(ws)
+    new = {**stored, **update}
     atomic_write_text(ws / SETTINGS_FILE, json.dumps(new, indent=2, sort_keys=True) + "\n")
+    # The journal states what the file held: `load_settings` reads a stored
+    # "ai_agreed_exclusion" as "human_sees_every_record" (H-close-side-doors).
+    before = {k: (stored.get(k) if k == "mode" else current[k]) for k in update}
     append_event(
         ws,
         "SCREENING_SETTINGS_CHANGED",
         "Changed screening settings: " + ", ".join(f"{k}={update[k]}" for k in sorted(update)),
         agent="scholar-harness/console",
         outputs=[str(SETTINGS_FILE).replace("\\", "/")],
-        parameters={"before": {k: current[k] for k in update}, "after": update},
+        parameters={"before": before, "after": update},
         refresh_index=False,
     )
     return load_settings(ws)
