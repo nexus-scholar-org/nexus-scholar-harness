@@ -12,10 +12,9 @@ history to read if you need the original reasoning (`git log --follow -- <path>`
 | :-- | :-- | :-- |
 | 2026-11-19 — M9a: what the measurement says about the ladder gates | 2 | The minimum share of the researcher's excludes an agent must take before a rung unlocks: the principle is accepted; the researcher decided on 2026-11-20 to set the number when M9b is built. |
 | 2026-11-23 — H-gate-and-ci | 1 | The standing permission for sessions to push a work branch and open a draft pull request: not given. |
-| 2026-11-23 — H-charting-row-layout | 1 | Whether the charting table's row actions may be smaller than 44 px on a desktop pointer: proposed, not built. |
-| 2026-11-23 — H-remove-graph | 1 to 3 | The graph stage dropped from results rather than skipped, `scholar-graph` pipeline nodes refused, and the 1.1.0b7 release-note lines: proposed as built. |
+| 2026-11-23 — H-remove-graph | 1 to 3 | The graph stage dropped from results rather than skipped, `scholar-graph` pipeline nodes refused, and the release-note lines for the release after 1.1.0b7: proposed as built. |
 
-## 2026-11-23 — H-remove-graph: `scholar_graph` removed (decided by the researcher 2026-11-23; items 1 to 3 PROPOSED)
+## 2026-11-23 — H-remove-graph: `scholar_graph` removed after 1.1.0b7 (decided by the researcher 2026-11-23, finish confirmed 2026-11-24; items 1 to 3 PROPOSED)
 
 Record: `docs/roadmap/milestones/H-remove-graph.md`. The removal itself is the researcher's decision of 2026-11-23 in the coordinator session ("Yes, remove graph"); restore from `9af17212`. `networkx`, `pyvis` and `scipy` leave the base dependencies; PDF extraction, the capability adapter and `claims` stay.
 
@@ -23,7 +22,7 @@ Record: `docs/roadmap/milestones/H-remove-graph.md`. The removal itself is the r
 
 1. **The pipeline result and the summaries drop the graph stage** rather than reporting it as skipped: `nexus-scholar run` and `nexus_pipeline_run` no longer carry `graph_nodes`, the run summary no longer prints "Graph Nodes", `nexus-scholar status` no longer prints "Citation Graph Nodes". The status JSON keeps its `graph_nodes` key, read from an old workspace's `knowledge_graph.json`. *Proposed:* as built, the same rule as H-remove-rag-verify's item 3. *Alternative:* report the stage as `SKIPPED` with a reason for one release.
 2. **A stored pipeline spec with a `scholar-graph` node is refused** at validation (`COMMAND_NOT_ALLOWED`), and the console's `/api/v1/assets/graph` route is gone (404). *Proposed:* as built (the command no longer exists; the web app never called the route). *Alternative:* keep the allowlist entry and let such a node fail when run.
-3. **The 1.1.0b7 release note**, if this lands before the tag, must say: the `scholar-graph` command, the MCP tools `nexus_graph_build` and `nexus_graph_narrative` (22 tools remain), the pipeline's graph stage and its `knowledge_graph.json`/`.html` outputs, the console's `graph` and `graph_narrative` actions and `/api/v1/assets/graph`, and the `scholar-graph-kit` skill are removed; `networkx`, `pyvis` and `scipy` are no longer installed with the base package (`networkx` and `numpy` still come with `[pdf]`; `networkx`, `scipy` and `numpy` with `[extract]`). *Proposed:* those lines. *Alternative:* a shorter note naming only the command and the two tools.
+3. **The release note of the release after 1.1.0b7** (this lands after the 1.1.0b7 tag, so that release's note is not edited; the repository keeps no running "unreleased" file, so this item is the "Unreleased, after 1.1.0b7" note) must say: the `scholar-graph` command, the MCP tools `nexus_graph_build` and `nexus_graph_narrative` (22 tools remain), the pipeline's graph stage and its `knowledge_graph.json`/`.html` outputs, the console's `graph` and `graph_narrative` actions and `/api/v1/assets/graph`, and the `scholar-graph-kit` skill are removed; `networkx`, `pyvis` and `scipy` are no longer installed with the base package (`networkx` and `numpy` still come with `[pdf]`; `networkx`, `scipy` and `numpy` with `[extract]`). Users of 1.1.0b7 who call `scholar-graph` or the two tools get "command not found" or "unknown tool" after upgrading. *Proposed:* those lines, under the note's "Removed, and what breaks". *Alternative:* a shorter note naming only the command and the two tools.
 
 **Choices made in the build** (for the reviewer)
 
@@ -36,13 +35,15 @@ Record: `docs/roadmap/milestones/H-remove-graph.md`. The removal itself is the r
 10. Two audit-journal texts changed: the `PIPELINE_RUN_COMPLETED` row's `outputs` names the `extracted/` folder (it named `literature/knowledge_graph.html`, the last stage's output), and the stale-generation pause row says "before the extraction stage" (it said "before stages 5-9"). Nothing reads either; old rows are untouched.
 11. A test keeps `networkx`, `pyvis` and `scipy` out of the base dependencies.
 
-## 2026-11-23 — H-charting-row-layout: one line of row actions, the pinned cells carry the row (PROPOSED; item 1 open)
+## 2026-11-23 — H-charting-row-layout: one line of row actions, the pinned cells carry the row (item 1 answered by the researcher 2026-11-23: keep 44 px; items 2 to 9 are the build's choices, merged with PR #305)
 
 Record: `docs/roadmap/milestones/H-charting-row-layout.md`. The work is the researcher's instruction of 2026-11-23 in the coordinator session ("Work the two layout fixes first"), for 1.1.0b7. Measured, a long-title row at 1440 px: 157 px before, 109 px after.
 
+**Answered 2026-11-23.** To item 1 the researcher answered "Keep 44 px" (relayed by the coordinator session): the 28 px row actions for desktop pointers are not built; the question is revisited after the table has been used on the real review. Merged as PR #305 (merge commit `9af17212`), before the release `1.1.0b7`.
+
 **For the researcher to decide**
 
-1. **A denser row below the 44 px rule, on desktop pointers only.** Built: the rule kept (every action and link at least 44 px tall), a row is 109 px (the file line and one line of actions, each 44 px). Measured, not built: the table's actions and links at 28 px when the pointer is a mouse (`pointer: fine`), 44 px on touch, gives **77 px** (the two-line title then sets the height). For 443 studies the table is then about 34,000 px tall instead of about 48,000 px (about 70,000 px before this change). The cost is an exception to the brand rule "every Button variant is at least 44 px" for one table on desktop, and smaller targets for a mouse user. Not built unless the researcher chooses it.
+1. *(Answered 2026-11-23: "Keep 44 px". Not built; revisit after use on the real review.)* **A denser row below the 44 px rule, on desktop pointers only.** Built: the rule kept (every action and link at least 44 px tall), a row is 109 px (the file line and one line of actions, each 44 px). Measured, not built: the table's actions and links at 28 px when the pointer is a mouse (`pointer: fine`), 44 px on touch, gives **77 px** (the two-line title then sets the height). For 443 studies the table is then about 34,000 px tall instead of about 48,000 px (about 70,000 px before this change). The cost is an exception to the brand rule "every Button variant is at least 44 px" for one table on desktop, and smaller targets for a mouse user. Not built unless the researcher chooses it.
 
 **Choices made in the build (for the reviewer)**
 

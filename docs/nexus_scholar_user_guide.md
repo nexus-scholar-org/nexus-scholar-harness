@@ -1,6 +1,6 @@
 # nexus-scholar 1.1 (beta): user guide
 
-This guide follows the current beta, **1.1.0b6** (PyPI and GitHub). Where `main`
+This guide follows the current beta, **1.1.0b7** (PyPI and GitHub). Where `main`
 already does more, the text says so.
 
 `nexus-scholar` is the distributed entry point for the **Nexus Scholar
@@ -11,9 +11,10 @@ GitHub Releases — no source checkout, no per-kit installs.
 
 > **Parked, not production (M5-slim, production plan §8).** The beta ships
 > **screening** (import → prepare → screen → publish, with optional agent
-> proposals), **inception in the browser** (Scope, Shape, Concepts and criteria,
-> Review and create, Done; Explore and Direction have no screen yet) and, on
-> 1.1.0b6, **discovery in the browser** (Plan to Hand-off). Reading PDFs
+> proposals), **inception in the browser** (Scope, Explore, Direction, Shape,
+> Concepts and criteria, Review and create, Done), **discovery in the browser**
+> (Plan to Hand-off, and citation chasing) and, since 1.1.0b7, **full-text
+> charting** (the Charting step after publication). Reading PDFs
 > (`scholar_pdf` `extract`, `extract-run`, and E1 `acquire`; findings
 > PDF-07/08) still works, but is parked: its `--help` says so first, its MCP
 > tools say so in their descriptions, and the app labels any screen that shows
@@ -22,7 +23,7 @@ GitHub Releases — no source checkout, no per-kit installs.
 > graph (`scholar_graph`) were removed on 2026-11-23, with their commands and
 > MCP tools.
 >
-> **The PDF kit's downloading is production** from the release after 1.1.0b6
+> **The PDF kit's downloading is production** since 1.1.0b7
 > (decision 2026-11-21, M12a items 21 and 27, K0): `scholar-pdf download` and `ingest` need a contact e-mail
 > (`SCHOLAR_MAILTO`, or the kit's `MAILTO`; refused `MAILTO_NOT_SET` without),
 > name the app in their User-Agent, request only the providers' own open-access
@@ -53,7 +54,8 @@ GitHub Releases — no source checkout, no per-kit installs.
 > identity before you use it.
 
 - Works on **Windows, macOS, Linux** (Python 3.11+ via `uv` or `pip`).
-- The wheel bundles the harness CLI **plus the seven scholar kits**, the
+- The wheel bundles the harness CLI **plus the four scholar kits** (protocol,
+  search, PDF, agent; the graph kit was removed after 1.1.0b7), the
   research app (`nexus-scholar ui`) and the skill bundles, so a workspace initialized here is self-contained and
   portable.
 - PyPI: <https://pypi.org/project/nexus-scholar/>
@@ -70,7 +72,7 @@ GitHub Releases — no source checkout, no per-kit installs.
 Run any command in an ephemeral isolated environment directly from PyPI:
 
 ```sh
-uvx "nexus-scholar>=1.1.0b6" --help
+uvx "nexus-scholar>=1.1.0b7" --help
 ```
 
 `uvx` caches the environment, so repeat runs are fast.
@@ -82,10 +84,10 @@ uvx "nexus-scholar>=1.1.0b6" --help
 
 ```sh
 # Via standard pip:
-pip install "nexus-scholar>=1.1.0b6"
+pip install "nexus-scholar>=1.1.0b7"
 
 # Or as an isolated CLI tool via uv:
-uv tool install "nexus-scholar>=1.1.0b6"
+uv tool install "nexus-scholar>=1.1.0b7"
 ```
 
 The version in the command is needed while Nexus Scholar is in beta. Do not use
@@ -120,21 +122,37 @@ directly), `--port` (default 8770; another free port is used if taken) and
 app runs there and prints the approval codes. The researcher's flow, screen by
 screen, is in [Getting started](getting-started.md):
 
-- **New review** on Workspaces opens inception: Scope, Shape, Concepts and
-  criteria, Review and create, Done. Nothing is written until you press
-  **Create the workspace**. The step bar shows Explore and Direction, which have
-  no screen yet; the CLI wizard and the MCP `recon_*` tools still run them.
-- **Discovery** (1.1.0b6): Plan, Recall, Harvest, Import,
-  Duplicates, Report, Hand-off. A browser harvest does not freeze the corpus;
-  **Accept this corpus** on Hand-off does. It needs `SCHOLAR_MAILTO` and, for
-  OpenAlex, `SCHOLAR_OPENALEX_KEY` (§8). A harvest is four steps: the search,
-  then duplicates, abstracts and checks; only the last makes the works the
-  Hand-off shows. If those later steps failed, were stopped, or the console
-  was closed while they ran, Harvest and Hand-off say so, and **Finish
-  preparing this corpus** on Harvest completes them from the saved records
-  without searching again (on `main` after 1.1.0b6; not in a tagged release yet).
-- **Screening**: Import, Prepare, Triage, Agent proposals, Agreement, Publish,
-  Export and methods.
+- **New review** on Workspaces opens inception: Scope, Explore, Direction,
+  Shape, Concepts and criteria, Review and create, Done. Nothing is written
+  until you press **Create the workspace**. Explore and Direction search a
+  first sample of papers, so they need `SCHOLAR_MAILTO` (§8). Step 5 holds the
+  query workbench (**Count** asks each database for its total; nothing is
+  counted while you type) and asks how you will screen: when the agent's draft
+  is shown and what it does when the abstract does not report a criterion
+  (no choice is preselected).
+- **Discovery**: Plan, Recall, Harvest, Import, Duplicates, Report, Hand-off,
+  and Chase after publication. A browser harvest does not freeze the corpus;
+  **Accept this corpus** on Hand-off does, and since 1.1.0b7 it takes a
+  harvest and imported exports together in one corpus. It needs
+  `SCHOLAR_MAILTO` and, for OpenAlex, `SCHOLAR_OPENALEX_KEY` (§8). A harvest is
+  four steps: the search, then duplicates, abstracts and checks; only the last
+  makes the works the Hand-off shows. If those later steps failed, were
+  stopped, or the console was closed while they ran, Harvest and Hand-off say
+  so, and **Finish preparing this corpus** on Harvest completes them from the
+  saved records without searching again.
+- **Screening**: Import, Prepare (with the optional criteria pilot), Triage,
+  Agent proposals, Agreement, Publish, Export and methods. If you stored
+  decisions from the agent's drafts without reading each record, declare them
+  on **Decisions stored from the agent's draft** (`/screening/adopted`);
+  Agreement, Publish and the methods paragraph then say
+  so. The decisions themselves are not changed.
+- **Charting** (since 1.1.0b7), after publication: one row per kept study,
+  its full-text status, **Attach a PDF** or **Paste a link**, a full-text
+  decision, **Look up open-access copies** (shows what it will ask first;
+  needs `SCHOLAR_MAILTO`; each fetched PDF waits for you to confirm it), the
+  charting form and the one-study view, then **Export and methods** (a
+  spreadsheet, CSV files, the PRISMA full-text counts and a methods
+  paragraph).
 
 **From a terminal:**
 
@@ -187,7 +205,7 @@ What you get:
 ├── literature/           # raw + screened records land here
 ├── pdfs/                 # downloaded Open Access PDFs
 ├── extracted/            # extracted fulltext (YAML-frontmatter Markdown)
-└── synthesis/            # grounded synthesis outputs
+└── synthesis/            # kept for `export`; the synthesis kit was removed on 2026-11-23
 ```
 
 Notes:
@@ -253,7 +271,7 @@ What it verifies:
 
 | Group | Checks |
 | --- | --- |
-| `kits` | Each of the seven bundled kits imports; they share the `nexus-scholar` version (no per-kit pins) |
+| `kits` | Each of the five bundled kits imports; they share the `nexus-scholar` version (no per-kit pins) |
 | `keys` | API keys present/absent (values shown masked `***` or `Missing`); model keys warn rather than fail |
 | `skills` | Skill bundles resolvable (workspace copy / repo / wheel bundle) |
 | `layout` | Canonical contract files present; `project.json` stats match disk state |
@@ -468,6 +486,6 @@ Run any with `--help` for full options.
 
 - Releases are tagged on the harness repo (`v*`); each tag publishes a wheel to
   PyPI and GitHub Releases with auto-generated notes.
-- Upgrade during the beta with `uv tool install --force "nexus-scholar>=1.1.0b6"`
-  or `pip install -U "nexus-scholar>=1.1.0b6"`. Release notes are in
-  `docs/releases/` (1.1.0b6 is the latest).
+- Upgrade during the beta with `uv tool install --force "nexus-scholar>=1.1.0b7"`
+  or `pip install -U "nexus-scholar>=1.1.0b7"`. Release notes are in
+  `docs/releases/` (1.1.0b7 is the latest).
