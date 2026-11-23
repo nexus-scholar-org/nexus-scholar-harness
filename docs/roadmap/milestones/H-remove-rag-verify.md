@@ -1,6 +1,6 @@
 # H-remove-rag-verify Remove the retrieval and verification kits
 
-Branch: `dev/h/remove-rag-verify` (from `origin/main` `8dd7904a`) · Lane: **RELEASE** (packaging, the MCP surface and the public commands change) · Status: **READY FOR PR** (not pushed; see "Review" for the verdict)
+Branch: `dev/h/remove-rag-verify` (from `origin/main` `8dd7904a`) · Lane: **RELEASE** (packaging, the MCP surface and the public commands change) · Status: **READY FOR PR** (review round 2 APPROVE; not pushed; decision items 1 to 3 PROPOSED)
 
 The researcher's decision of 2026-11-23, in the coordinator session, after the project review and the test-suite review of that day (`docs/assessment/project-review-2026-11-23.md`, section 3, "Complexity that is not earning its keep"): delete `scholar_rag` and `scholar_verify`, their tests, and every stage, MCP tool, command, skill and extra that only exists to call them. Their words: "I want to delete the rag and verify module and their test entirely. They are saved in the commit history." `scholar_graph`, PDF extraction, the capability adapter and `claims` stay for a later pass.
 
@@ -16,7 +16,7 @@ The same for `src/scholar_verify`, `tests/kits/verify`, the four harness modules
 
 ## What was deleted
 
-`git diff --shortstat origin/main..HEAD` at the final head: 208 files, +636 / −52,370 lines (113 deleted, 94 changed, 1 added: this record). `src/`: +87 / −19,972. `tests/`: +262 / −29,451. `uv.lock`: +2 / −1,122.
+`git diff --shortstat origin/main..e16464f7` (the last executable commit): 208 files, +636 / −52,370 lines (113 deleted, 94 changed, 1 added: this record). `src/`: +87 / −19,972. `tests/`: +262 / −29,451. `uv.lock`: +2 / −1,122.
 
 | What | Files | Lines |
 | :-- | --: | --: |
@@ -86,16 +86,16 @@ All on this PC (Windows 11, the project venv on Python 3.14.7, synced `--extra d
 | `generate_contract_baseline.py --check` | `e16464f7` | "Contract baseline current"; no locked path in the diff |
 | `generate_contract_schemas.py`, `generate_two_study_contract_fixture.py`, `generate_protocol_schema.py`, `generate_canonical_profile_goldens.py` (`--check`) | `e16464f7` | pass |
 | `sync_skills_bundle.py --check`, `skill_portability_transform.py --check`, `validate_manifest.py`, `select_test_gate.py --check` (11 tasks, 17 areas), `uv lock --check` | `e16464f7` | pass |
-| `uv build --wheel` (`NEXUS_WHEEL_ALLOW_NO_UI=1`) | `6f8ab643` (later commits change tests and texts, plus `cli.py` help text and `identity.py` and comment wording) | built; 312 files; base-install smoke as in the table above |
+| `uv build --wheel` (`NEXUS_WHEEL_ALLOW_NO_UI=1`) | `6f8ab643`, rebuilt by the reviewer at `daa9abdc` | built; 312 files; base-install smoke (on `6f8ab643`) as in the table above; the later commits change the bundled skill texts, which the reviewer's rebuild confirms |
 | `git diff --check origin/main` | final head | pass (two trailing blank lines in test files removed after the full run; whitespace only) |
 
 **Not verified.**
 - CI (Ubuntu, Python 3.12, cross-OS): not run, nothing pushed.
-- The wheel with the UI export inside it, and the wheel rebuilt on the final head (the commits after `6f8ab643` touch no packaging file).
+- The wheel with the UI export inside it; a base-install smoke of the wheel rebuilt at `daa9abdc`.
 - The MCP server driven by a real MCP client; the 25-tool surface is checked through the tool manager and `--help`.
 - Any real workspace: none was opened. An old workspace that has `rag/chroma_db` or `phase4/` keeps those folders; nothing reads them now, and `sync_state` no longer refreshes a stale `stats.vector_chunks` in its `project.json`.
 
 ## Review
 
 - **Round 1** (`milestone-reviewer`, on `6f8ab643`): **CHANGES**, no P0 or P1. Ten findings: stale texts that still sent agents to `extract index` and `--index` (the pdf skill, shipped in the wheel), `extract --help`, README, the identity refusal, AGENTS, the surface matrix, `data-flow.md` and the plan; an empty evidence section; a dead tail in the extraction acceptance tests; no negative test for the removed indexing commands; decision item 1 not naming the MCP behaviour change. All ten fixed in `e16464f7`, with four of the reviewer's follow-ups (the workspace-manager skill's `phase4/` line, three comments naming Stages 6 and 9, the matrix's "8 kit APIs", the user guide's skill count). Reviewer's own checks: 878 tests of the changed files passed; every deleted test covered only removed code; the kept-code assertions in mixed files survive; the coordinator's maps agree on every path; no product path lost anything it needs.
-- **Round 2:** see below.
+- **Round 2** (on `daa9abdc`): **APPROVE**. All ten findings fixed; nothing new at P0 to P2. Two P3 notes on this record (the line counts are `e16464f7`'s; the wheel row) were applied. The reviewer's targeted run: 272 passed, 1 skipped; static checks pass; wheel rebuilt, 312 files, no rag or verify path.
