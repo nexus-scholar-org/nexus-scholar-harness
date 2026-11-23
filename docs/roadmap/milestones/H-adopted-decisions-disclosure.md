@@ -1,6 +1,6 @@
 # H-adopted-decisions-disclosure
 
-Status: **SPECIFICATION; questions 1 to 6 answered by the researcher on 2026-11-22, each as recommended; nothing built.** The build starts after M12a Part F is ready for its PR, in a session of its own (the researcher's answer, same day). Lane proposed: **RELEASE** (a new persisted record, a new route, a changed publication check and a changed methods text). Written by the main session on 2026-11-22 at the researcher's request, after the walk of the published sensor-stress review. The start of any build is the researcher's to approve separately.
+Status: **BUILT 2026-11-23 on `dev/h/adopted-decisions-disclosure`, not pushed (see "Build 2026-11-23" below); the build's own choices are PROPOSED. Specification: questions 1 to 6 answered by the researcher on 2026-11-22, each as recommended.** The build starts after M12a Part F is ready for its PR, in a session of its own (the researcher's answer, same day). Lane proposed: **RELEASE** (a new persisted record, a new route, a changed publication check and a changed methods text). Written by the main session on 2026-11-22 at the researcher's request, after the walk of the published sensor-stress review. The start of any build is the researcher's to approve separately.
 
 Findings it answers: 43 and 44, with 40 and 41 behind them (`docs/roadmap/acceptance-run-sensor-stress-2026-11-20.md`).
 
@@ -60,3 +60,42 @@ Asked in the main session, one by one; each answered as recommended. Decision: `
 ## Not verified
 
 Line references were gathered by a read-only search on 2026-11-22 and not each re-read by the main session. No design was tested against the engine. Whether the notes on the sensor-stress events are uniform enough for question 2 was not checked on the workspace.
+
+## Build 2026-11-23
+
+Status: **BUILT on `dev/h/adopted-decisions-disclosure` (from `main` `9b2e0d5f`); not pushed. DoD 1, 2, 3, 5 and 6 met; DoD 4 met in English and on the Export screen in en, fr and ar, but not as written (the paragraph itself is English by spec 10's decision 5; decision item 22 waits for the researcher).** Lane: RELEASE (item 7). Built in a session of its own, started by the main session on the researcher's approval of 2026-11-23. The build's own choices are items 7 to 28 of the decisions entry "2026-11-23 — H-adopted-decisions-disclosure: the build's own choices", all PROPOSED.
+
+**What was built.**
+
+- **Engine** (`src/scholar_harness/screening/adoption.py`, new). The append-only `audit/adoption_declarations.jsonl` with three kinds of line (declaration, withdrawal, sample result), each written with one journal row naming the line's id and SHA-256; a line the journal does not confirm is not applied, a recorded line missing from the file is reported (item 10). The reader, the state over the current winning decisions (declared, candidates by the note's wording, samples, what is owed), the three writes, and the lookup of declared events in a round's decision files (charting).
+- **Routes** (`console/api/screening_v1.py`): `GET /screening/adoption-declarations` (a display route), `POST /screening/adoption-declarations`, `/withdrawals`, `/sample-results`, desktop only (the phone scope guard), in the browser allowlist and the development proxy's, `confirm: true`, under the events lock; six refusal codes (`console/refusals.py`, the contract's §7 and §4 tables).
+- **Agreement** leaves declared decisions out of every figure and returns `adoption`; **Publish** renames the provenance detail, adds the advisory check `adopted_decisions_declared` and returns `adoption`; **summary** returns `adoption: {declared, undeclared_candidates}`.
+- **Methods** (`screening/export.py`): the counts sentence instead of "One reviewer screened every record.", one sentence per sample or that none was read, "Drafts were advisory for the records the reviewer read one by one.", `figures.adoption`, the file among the sources, and the after-publication note (answer 5).
+- **Charting** (`charting/table.py`): rows carry `ta_adopted`; the one-study view shows the phrase beside the title-and-abstract decision.
+- **UI** (`apps/research-ui`): the declaration screen `/{locale}/screening/adopted` (`components/screening-adopted.tsx`), the shared copy `lib/adoption-copy.ts` (en, fr, ar), Agreement's sentence and sample box, Publish's "Look at this" (amber, outside the publish gate) with its sentence and link, Home's settings line, Export's declared figures and note, the charting badge, state cards for the six codes.
+
+**Evidence.**
+
+| DoD | Test | Result |
+| :-- | :-- | :-- |
+| 1 | `tests/console/test_adoption_declarations_api.py`: `…without_confirm…` (`ADOPTION_CONFIRM_REQUIRED`, nothing written), `…from_a_phone…` (`TOKEN_SCOPE_REFUSED`), `…not_a_current_winning_decision…` (superseded and unknown, `ADOPTION_EVENT_NOT_WINNING`), `…same_record_twice…` (one request and a second declaration, `ADOPTION_ALREADY_DECLARED`), `…another_origin…` (`CONSOLE_ORIGIN_REFUSED` on the browser surface), `…cannot_choose_who_or_when` | pass |
+| 2 | `test_agreement_excludes_declared_decisions_and_says_how_many` (the three-record fixture: 3 compared before, 1 after declaring 2) | fails on `9b2e0d5f` (no route; the figure counted the adopted decisions), passes on the build |
+| 3 | `test_the_publish_checks_are_renamed_and_the_declaration_check_does_not_block`, `test_with_no_candidate_the_declaration_check_passes` | pass |
+| 4 | `tests/console/test_adoption_methods_charting.py`: the sentences pinned in English, no "screened every record", no "every decision … made by the reviewer", every number a figure, the sample unread then read, a declaration after publication (paragraph changed, note added, `included.json`, `excluded.json`, `prisma_report.json` and the RIS export byte for byte unchanged); `apps/research-ui/tests/screening-adopted.test.tsx` "adoption.export" pins the Export labels in en, fr and ar | pass; fr and ar of the paragraph itself not built (item 22) |
+| 5 | `uv run python scripts/generate_contract_baseline.py --check` | "Contract baseline current", no regeneration |
+| 6 | `apps/research-ui/tests-browser/screening-adopted.spec.ts` (the flow in en: offered, nothing sent, focus in the dialog, axe clean, one POST with `confirm: true` and the sample, then Agreement; the screen in fr and ar with axe), both themes; `tests/screening-adopted.test.tsx` (18 tests) | pass |
+| Item 6 | `test_a_kept_study_declared_as_adopted_shows_it_in_the_charting_table` (table and one-study read); UI badge copy in three locales | pass |
+| Read store | `test_the_next_display_request_sees_a_declaration` (Publish's check and the summary, both kept by display routes, change on the next request after a declaration and after a withdrawal) | pass |
+| Integrity | `test_a_line_typed_into_the_file_is_not_applied_and_a_removed_line_is_reported`, `test_a_withdrawal_is_a_later_line_and_the_declaration_stays`, the events files byte for byte unchanged after a declaration | pass |
+
+Gates: GATES_PLACEHOLDER
+
+**Review.** REVIEW_PLACEHOLDER
+
+**Not verified.**
+
+- On the sensor-stress review itself: the build did not read the researcher's workspaces (not allowed). Whether its 996 notes all match the candidate wording (item 8) is not checked; the notes quoted in the acceptance-run record match.
+- The two samples drawn there (50 and 20) are to be recorded with their study ids (item 14); not tried.
+- With 1,000 candidates: the declaration screen's list and the agreement and publish reads were not timed on a review of that size (the fixtures hold three records).
+- The browser test answers the console with a fake of the engine's shapes; the engine's answers are covered by the Python tests, not by a browser run against the real engine.
+- Screens looked at only through the tests (text, roles, axe); no screenshot was reviewed by a person.

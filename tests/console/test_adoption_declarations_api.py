@@ -20,13 +20,20 @@ from pathlib import Path
 import pytest
 import test_screening_api_v1 as api
 from fastapi.testclient import TestClient
-from test_screening_api_v1 import BASE, DESKTOP, PHONE, _event, _post, _propose, _studies
+from test_screening_api_v1 import (
+    BASE,
+    DESKTOP,
+    PHONE,
+    _event,
+    _post,
+    _propose,
+    _studies,
+)
 
 from scholar_harness.console import browser, create_app
 from scholar_harness.console.refusals import CONSOLE_REFUSALS
-from scholar_harness.screening import adoption
+from scholar_harness.screening import adoption, read_store
 from scholar_harness.screening import events as ev
-from scholar_harness.screening import read_store
 
 BULK = "Adopted in bulk from the agent's draft (proposal P-1); not reviewed individually"
 ROUTE = f"{BASE}/adoption-declarations"

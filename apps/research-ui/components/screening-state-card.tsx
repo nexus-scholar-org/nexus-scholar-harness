@@ -25,6 +25,11 @@ export function exportHref(locale: Locale, consoleOrigin = ""): string {
   return `/${locale}/screening/export${consoleOrigin ? `?console=${encodeURIComponent(consoleOrigin)}` : ""}`;
 }
 
+/** H-adopted-decisions-disclosure: the declaration screen, reached from Agreement and Publish (not a step). */
+export function adoptedHref(locale: Locale, consoleOrigin = ""): string {
+  return `/${locale}/screening/adopted${consoleOrigin ? `?console=${encodeURIComponent(consoleOrigin)}` : ""}`;
+}
+
 const STEP_LABELS: Record<Locale, Record<ScreeningStep, string>> = {
   en: { home: "Home", import: "Import", prepare: "1 Prepare", proposals: "2 Agent proposals", triage: "3 Triage", agreement: "4 Agreement", publish: "5 Publish" },
   fr: { home: "Accueil", import: "Importer", prepare: "1 Préparer", proposals: "2 Propositions de l'agent", triage: "3 Trier", agreement: "4 Accord", publish: "5 Publier" },
