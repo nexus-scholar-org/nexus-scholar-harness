@@ -108,7 +108,9 @@ A small installer that puts `uv` on the machine and runs `uv tool install "nexus
 
 ### 2.4 Size, start time and comparison
 
-**Size (estimates, not measured; Q12).** The wheel is 3.5 MB, but the bundle carries Python and every library: Python itself (roughly 30 to 40 MB), numpy and scipy (roughly 80 to 120 MB, used only by parked code), PyMuPDF (roughly 40 to 60 MB) and the rest (roughly 40 to 60 MB). **About 200 to 300 MB on disk and a 70 to 120 MB download** for routes 1 and 2; about 100 MB less once scipy, networkx and pyvis leave the base install (review item 10). Route 3 downloads a similar amount, at install time instead of from the release page. Start time is unknown until a trial build; a one-folder bundle starts about as fast as the same program from `uv`.
+**Measured on 2026-11-23 (trial build, §8):** a Windows bundle of 285 MB in 7,594 files, a 145 MB zip, the first page in 2.6 to 7.0 seconds; PyMuPDF 94 MB, scipy with numpy and networkx 95 MB, `jedi` 23 MB in 5,536 files. The estimates written before the build follow, for the record.
+
+**Size (estimates written before the trial build).** The wheel is 3.5 MB, but the bundle carries Python and every library: Python itself (roughly 30 to 40 MB), numpy and scipy (roughly 80 to 120 MB, used only by parked code), PyMuPDF (roughly 40 to 60 MB) and the rest (roughly 40 to 60 MB). **About 200 to 300 MB on disk and a 70 to 120 MB download** for routes 1 and 2; about 100 MB less once scipy, networkx and pyvis leave the base install (review item 10). Route 3 downloads a similar amount, at install time instead of from the release page. Start time is unknown until a trial build; a one-folder bundle starts about as fast as the same program from `uv`.
 
 | | Briefcase | **PyInstaller + builders** | Light `uv` installer |
 | :-- | :-- | :-- | :-- |
@@ -410,10 +412,10 @@ Asked in the coordinator session on 2026-11-23, one by one; each answered as rec
 
 ## 7. Not verified
 
-Nothing in this specification was built or tried. In particular:
+Only the Windows trial bundle of §8 was built and run, on the researcher's PC; no installer was made and no other platform was tried. In particular:
 
-- **No bundle was made.** Every size and start-time figure in §2.4 and §4.1 is an estimate from the libraries' usual sizes. Whether PyInstaller collects this project correctly (the app's screens under `scholar_harness_data`, the skills, package version information, uvicorn's and the MCP library's dynamic imports) is not checked.
-- **Tk inside a bundle** on each platform, and in `uv`'s private Python, rests on the presence of PyInstaller's hook file and a search snippet, not on a run.
+- **Sizes and start times on Linux and macOS** are not measured; §8 gives Windows only. The MCP server was not bundled or started from a bundle. The skills were collected with the app's data but not used.
+- **Tk inside a bundle** was checked on Windows only (§8: the Tk files are collected); the approval window itself was not opened. In `uv`'s private Python it rests on a search snippet.
 - **Smart App Control**: whether it blocks only the installer or each unsigned program and library inside the installed folder; whether the Python libraries that are already signed by their publishers help. Not tested.
 - **Antivirus** behaviour on a PyInstaller bundle of this project: not tested.
 - **Briefcase**: that Windows and macOS packages must be built on their own systems is implied by its pages, not stated; that no end-user updater or single-instance feature exists was not confirmed.
@@ -430,3 +432,51 @@ Nothing in this specification was built or tried. In particular:
 - **Effort figures** in §5 are judgements, not measurements.
 - **What a tester sees in the browser** (e.g. a "not commonly downloaded" warning in Edge or Chrome) was not checked.
 - **Double-clicking a `.deb` on Ubuntu 24.04** opens the App Center, whose handling of local `.deb` files has varied between releases; not checked.
+
+---
+
+## 8. Trial build (2026-11-23, question 12)
+
+Run on the researcher's PC (Windows 11 Pro, 64-bit) on 2026-11-23, from `main` `460f23f3`, by the specification session, as answer 12 describes. Nothing was installed into the project's environment; nothing but this section is committed.
+
+**How.** The app's screens were built (`npm ci`, `npm run build:export`: 8.5 MB) and the wheel built from them (`NEXUS_WHEEL_REQUIRE_UI=1 uv build --wheel`: **4.3 MB**, `1.1.0b6` on `main`). A throw-away environment outside the project (`uv venv`, Python 3.12.14 from `uv`) received the wheel with the `ai` and `pdf` extras and PyInstaller 6.22.3. The entry point was a three-line script calling the existing command-line app; no project code was changed. One-folder bundle, console mode, then a windowed variant. The app was started with `ui --no-browser` on port 8797, a temporary workspaces root and `NEXUS_APPROVAL_WINDOW=0`. Afterwards the bundle, the zip, the environment and the temporary workspaces were deleted, along with the UI's `node_modules` and export in this worktree.
+
+**Windows Sandbox: not tried.** It is not enabled on this PC (`WindowsSandbox.exe` is absent), and enabling it changes a system setting, which this trial does not do. The bundle was therefore run on the build PC only, which already has the libraries' caches and Python from `uv`; a clean-machine run is still owed (Part W's definition of done).
+
+### Numbers
+
+| What | Result |
+| :-- | :-- |
+| Installed into the throw-away environment (`site-packages`, including PyInstaller) | 455 MB |
+| Bundle on disk (one folder) | **285 MB in 7,594 files** |
+| Compressed as a zip (Windows' own, "optimal") | **145 MB** (an Inno Setup installer compresses with LZMA, usually tighter; not measured) |
+| PyInstaller build time | 3.5 to 6.5 minutes per build (the PC was running other sessions' tests) |
+| Time from start to the first page (`/en/workspaces/` answers 200), bundle | 3.1, 2.6, 7.0, 6.8 seconds over four starts |
+| The same from the throw-away environment, not bundled | 8.9 and 4.6 seconds over two starts |
+| Longest path inside the bundle | 128 characters (a `jedi` stub file) |
+
+The spread of the start times comes from the load of the other sessions' test runs on the same PC; the bundle starts no slower than the normal install.
+
+**What makes it large.**
+
+| Part | MB in the bundle | Why it is there |
+| :-- | :-- | :-- |
+| PyMuPDF | 94 | the `pdf` extra (answer 10) |
+| scipy, numpy, networkx (with their DLL folders) | 95 | base dependencies used only by the parked graph code (project review item 10) |
+| `jedi` (with `parso`, `IPython`) | 25 | pulled in by `pyvis` → `ipython`; the app never uses it. **5,536 of the 7,594 files**, and every path near the length limit |
+| cryptography and OpenSSL | 18 | `keyring` and HTTPS |
+| the app's screens and skills | 9 | `scholar_harness_data` |
+| Python itself | 7 (`python312.dll`) plus the standard library | — |
+
+Also found: PyMuPDF 2.1 on PyPI now depends on `onnxruntime` (49 MB installed), `pymupdf-layout` and `pymupdf4llm`. PyInstaller did not collect `onnxruntime` into the bundle (PyMuPDF imports it only for its layout features); whether a PDF feature the app uses needs it was not checked. Dropping `pyvis`, `networkx` and `scipy` from the base install (review item 10) would remove about 120 MB and about three files in four, and pinning `pymupdf` below 2.1 or excluding its layout packages would avoid `onnxruntime` in a later bundle.
+
+### What broke, and what each means for the build
+
+1. **Windows' 260-character path limit.** The first build, written under the long scratch folder, stopped with `FileNotFoundError` on a `jedi` stub 128 characters deep. Installed under `%LOCALAPPDATA%\Programs\Nexus Scholar\` the deepest path is about 180 characters for a short user name, so it fits; a long user name or a custom install folder can still break it. *For Part W:* exclude `IPython` and `jedi` from the bundle (or remove `pyvis` from the base install), and keep the install folder short.
+2. **The app's screens were not collected.** The first bundle that built said "This install has no app bundle (the app's screens)". `scholar_harness_data` is data, not imported code. *For Part W:* `--collect-all scholar_harness_data` and `--copy-metadata nexus-scholar`; with both, the screens were found.
+3. **The approval window cannot start inside a bundle.** Starting it the way the engine does (`sys.executable -I code_window.py`, `code_window.py:115-117`) gave `No such option: -I`: inside a bundle `sys.executable` is the app. Confirms the Part A item of §4.2.
+4. **With no console, the engine does not start at all.** The windowed bundle exited at once with exit code 1. The same app run with no standard output and error (`pythonw`, outside the bundle) fails in `uvicorn.Config` → `logging.config.dictConfig` with `ValueError: Unable to configure formatter 'default'` (`launcher.py:150`). Confirms the Part A item of §4.2: output must go to the log file before the server is made.
+
+**What worked inside the console bundle.** The one-time launch link (303 to Workspaces), the workspace list, creating a workspace (201) with its journal events, opening it (the in-process restart, 202), the screening summary, the discovery plan, the next-step route, the inception drafts list and a new draft (201). `keys status` read the Windows Credential Manager through `keyring` (it reports sources only, never a key). The Tk files (`_tkinter.pyd`, `tcl86t.dll`, `tk86t.dll` and their data) are in the bundle.
+
+**Not tried in the trial:** an installer, a clean machine, antivirus or Smart App Control reactions (the bundle never left the build PC), the MCP server as a second program, the approval window itself, a search against the live databases, the windowed variant after a fix.
