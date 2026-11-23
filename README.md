@@ -11,13 +11,13 @@ Nexus helps you define a protocol, discover literature, work through screening a
 
 ## What you can use today
 
-The `nexus-scholar` package bundles the harness, seven scientific kits and an MCP server. Initialize a local workspace, inspect its environment, record events and generate configuration for an AI host. Scientific capabilities have different dependencies and acceptance requirements; installation alone does not establish a completed review.
+The `nexus-scholar` package bundles the harness, five scientific kits and an MCP server. Initialize a local workspace, inspect its environment, record events and generate configuration for an AI host. Scientific capabilities have different dependencies and acceptance requirements; installation alone does not establish a completed review.
 
 | Surface | Available / intended use | Boundary |
 |---|---|---|
 | Screening app (`nexus-scholar ui`), beta | Workspaces, creating a workspace in the browser (Inception: Scope, Shape, Concepts and criteria, Review, Done), searching the free databases (Discovery: Plan, Recall, Harvest, Import, Duplicates, Report, Hand-off), the import of RIS and PubMed `.nbib` exports with deduplication across databases, title and abstract screening, optional AI drafts, approval, publication, RIS/CSV export, methods paragraph | One reviewer, title and abstract only, RIS and PubMed `.nbib` only; the Explore and Direction inception steps have no screen; see the [beta page](docs/beta/README.md) |
 | CLI/MCP toolkit | Workspace setup, a search of the free databases with per-database records (`scholar-harness run`), the same import and screening steps from a terminal, and scientific tool access for an AI host | Follow the versioned user guide and supported tool surfaces. A live search needs `SCHOLAR_MAILTO` and, for OpenAlex, `SCHOLAR_OPENALEX_KEY` |
-| Full text, extraction, synthesis, graph, verification | Kits in the package | Parked: not production, labelled so in `--help` |
+| Full text, extraction, graph | Kits in the package | Parked: not production, labelled so in `--help`. Synthesis and verification were removed on 2026-11-23 |
 | Development branch (`main`) | Work after `1.1.0b6`, not tagged | May differ from the installed release |
 
 The latest release is the beta [v1.1.0b6](https://github.com/nexus-scholar-org/nexus-scholar-harness/releases/tag/v1.1.0b6) ([release notes](docs/releases/1.1.0b6.md); previous: [1.1.0b5](docs/releases/1.1.0b5.md), [1.1.0b4](docs/releases/1.1.0b4.md), [1.1.0b3](docs/releases/1.1.0b3.md)) (a pre-release, also on PyPI). Later work on `main` is not a claim about that release's behavior.
@@ -82,12 +82,10 @@ See the [AG record](docs/architecture/agent-controls/README.md), [evidence bound
 | Protocol | Compile and validate research intent/protocols |
 | Search | Discovery, deduplication, metadata and screening support |
 | PDF | Full-text acquisition and extraction |
-| RAG | Indexing, retrieval and synthesis capabilities |
 | Graph | Citation networks and graph analysis |
 | Agent | MCP tool interfaces |
-| Verify | Retraction, open-science and methodological trust checks |
 
-Kits own scientific operations. The harness coordinates workspaces, accepted evidence, audit, pipelines and interfaces. CLI, MCP and UI use shared services rather than separate research engines. MCP does not expose every authoritative operation; some acquisition/extraction/index boundaries explicitly refuse unsupported access. A convenience output is not automatically an accepted scientific artifact.
+Kits own scientific operations. The harness coordinates workspaces, accepted evidence, audit, pipelines and interfaces. CLI, MCP and UI use shared services rather than separate research engines. MCP does not expose every authoritative operation; some acquisition/extraction boundaries explicitly refuse unsupported access. A convenience output is not automatically an accepted scientific artifact.
 
 ## Develop and contribute
 
@@ -96,11 +94,11 @@ Read [AGENTS.md](AGENTS.md) and the [Developer Compass](docs/architecture/DEVELO
 ```sh
 git clone https://github.com/nexus-scholar-org/nexus-scholar-harness.git
 cd nexus-scholar-harness
-uv sync --extra dev --extra pdf --extra rag
+uv sync --extra dev --extra pdf
 uv run pytest
 ```
 
-The harness and the seven kits are one package: `uv sync` installs all of them editable from `src/`, with every CLI. Kit code is changed in `src/scholar_<kit>/` like any other code, in one PR.
+The harness and the five kits are one package: `uv sync` installs all of them editable from `src/`, with every CLI. Kit code is changed in `src/scholar_<kit>/` like any other code, in one PR.
 
 Contributions go through a fork and PR to this repository. Select checks from the [test-gate policy](docs/architecture/test_gate_policy.md): ordinary prose uses a light gate; consumed documents and executable changes retain required checks. Candidate-specific evidence replaces static test totals. CI badges describe configured checks, not automatic proof that every scientific workflow or the full local pytest suite passed.
 

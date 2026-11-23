@@ -253,7 +253,7 @@ def test_adapter_env_cli_and_kit_root_bindings_per_surface(tmp_path: Path) -> No
 def test_kit_root_pyproject_resolves_in_dev_but_not_in_app(tmp_path: Path) -> None:
     """Boundary (open contract decision): the app ``KIT_ROOT`` is a package dir.
 
-    A shipped body composes ``{KIT_ROOT:rag}/pyproject.toml``; that idiom is
+    A shipped body composes ``{KIT_ROOT:pdf}/pyproject.toml``; that idiom is
     checkout-shaped. Under the dev preamble it names a real file, under the
     in-process adapter (installed package directory) it does not. This test
     documents the gap rather than pretending the app column is resolved.
@@ -262,15 +262,15 @@ def test_kit_root_pyproject_resolves_in_dev_but_not_in_app(tmp_path: Path) -> No
     workspace.mkdir(parents=True)
     app_env = _adapter_envs(workspace, tmp_path / "plugins.json")["in-process"]
 
-    dev_file = Path(render("{KIT_ROOT:rag}/pyproject.toml", Preamble.dev()))
-    app_file = Path(render("{KIT_ROOT:rag}/pyproject.toml", Preamble.from_env(app_env)))
+    dev_file = Path(render("{KIT_ROOT:pdf}/pyproject.toml", Preamble.dev()))
+    app_file = Path(render("{KIT_ROOT:pdf}/pyproject.toml", Preamble.from_env(app_env)))
 
     assert dev_file.is_file(), dev_file
     assert not app_file.exists(), app_file
     # The package directory itself exists; the checkout idioms below it do not.
-    assert Path(render("{KIT_ROOT:rag}", Preamble.from_env(app_env))).is_dir()
+    assert Path(render("{KIT_ROOT:pdf}", Preamble.from_env(app_env))).is_dir()
     assert not Path(
-        render("{KIT_ROOT:rag}/src/scholar_rag", Preamble.from_env(app_env))
+        render("{KIT_ROOT:pdf}/src/scholar_pdf", Preamble.from_env(app_env))
     ).exists()
 
 
@@ -360,15 +360,15 @@ def test_rewrite_is_idempotent() -> None:
 
 
 def test_rewrite_maps_both_kit_root_spellings() -> None:
-    """The vendored checkout form (``tools/scholar-rag-kit/``) rewrites too.
+    """The vendored checkout form (``tools/scholar-pdf-kit/``) rewrites too.
 
-    ``tools/scholar-rag/`` (still used by spec 03 §4's example) and the real
-    ``tools/scholar-rag-kit/`` both map to the same placeholder, and the result
+    ``tools/scholar-pdf/`` (the older spelling; spec 03 §4's example used rag) and the real
+    ``tools/scholar-pdf-kit/`` both map to the same placeholder, and the result
     is a fixed point.
     """
-    for form in ("tools/scholar-rag/", "tools/scholar-rag-kit/"):
-        rewritten = rewrite_text(form + "src/scholar_rag/indexer.py")
-        assert rewritten == "{KIT_ROOT:rag}/src/scholar_rag/indexer.py"
+    for form in ("tools/scholar-pdf/", "tools/scholar-pdf-kit/"):
+        rewritten = rewrite_text(form + "src/scholar_pdf/extract.py")
+        assert rewritten == "{KIT_ROOT:pdf}/src/scholar_pdf/extract.py"
         assert rewrite_text(rewritten) == rewritten
 
 

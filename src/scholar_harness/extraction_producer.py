@@ -2,14 +2,13 @@
 
 Why this module exists
 ----------------------
-The pipeline writes ``extracted/<stem>.md`` (Stage 5) and indexes *accepted*
-documents (Stage 6), but nothing ever published the manifest in between. Stage 6
-inherits both of its identity limbs from an accepted ``document_manifest``, so with
-no manifest it refused every document and reported ``FAILED`` for a workspace whose
-extraction had actually succeeded. This module is the missing runtime link::
+The pipeline writes ``extracted/<stem>.md`` (Stage 5); this module publishes the
+accepted ``document_manifest`` that names them::
 
-    Stage 5 output -> candidate -> frozen acceptance gate -> accepted manifest ->
-    Stage 6
+    Stage 5 output -> candidate -> frozen acceptance gate -> accepted manifest
+
+(The manifest used to feed Stage 6, indexing, which left with ``scholar_rag`` in
+H-remove-rag-verify, 2026-11-23.)
 
 What it is allowed to do
 ------------------------
@@ -138,7 +137,6 @@ __all__ = [
     "PublicationRefused",
     "build_acceptance_context",
     "build_document_manifest_candidate",
-    "index_accepted_documents",
     "publication_status",
     "publish_document_manifest",
 ]
@@ -150,7 +148,6 @@ _INCLUDED_RELPATH = "literature/included.json"
 _EXTRACTED_RELPATH = "extracted"
 _PDFS_RELPATH = "pdfs"
 _PUBLICATION_DIR_RELPATH = "literature/extraction_publications"
-_DEFAULT_CHROMA_RELPATH = "rag/chroma_db"
 
 #: A body must reach this many whitespace-collapsed characters before a record may
 #: claim ``VALID``. This is the same usefulness threshold the PDF kit applies to a
@@ -1434,7 +1431,7 @@ def validate_extraction_currentness(workspace: Path, artifact_id: str) -> None:
         recorded = json.loads(path.read_text(encoding="utf-8"))
         for item in recorded["documents"]:
             extracted = _resolve_inside(workspace, item["extracted_path"])
-            # Missing files are classified by Stage 6's existing preflight.
+            # A missing file is not a changed body; this check skips it.
             if not extracted.is_file():
                 continue
             current = sha256_bytes(extracted.read_bytes())
@@ -1655,96 +1652,8 @@ def publish_document_manifest(workspace: Path) -> PublicationOutcome:
 
 
 # ---------------------------------------------------------------------------
-# Stage 6 handoff and status
+# Status
 # ---------------------------------------------------------------------------
-
-
-def _accepted_manifest_ids(
-    workspace: Path, registry: ArtifactRegistry, context: AcceptanceContext
-) -> list[str]:
-    """Ids of accepted ``document_manifest`` artifacts in *context*'s generation.
-
-    Read-only, and deliberately narrow: Stage 6 stays the only surface that interprets
-    a manifest, so this exists purely to answer "is there anything to index?" without
-    constructing an indexer.
-    """
-
-    found: list[str] = []
-    for artifact_id, entry in sorted(registry.artifacts.items()):
-        if entry.artifact_type != "document_manifest":
-            continue
-        payload = _load_accepted_payload(workspace, artifact_id, entry)
-        if not _generation_matches(payload, context):
-            continue
-        DocumentManifestArtifact.model_validate(payload)
-        found.append(artifact_id)
-    return found
-
-
-def index_accepted_documents(
-    workspace: Path, chroma_dir: Path | None = None
-) -> dict[str, Any]:
-    """Run Stage 6 over the accepted manifest and return its real result.
-
-    Stage 6 is the only surface that builds a typed indexing request, and it is frozen
-    for this packet: this function **delegates** to the orchestrator's Stage 6 rather
-    than reimplementing identity binding, so document/study identity is still inherited
-    from the accepted ``document_manifest`` and the workspace limb still comes from the
-    recorded ``registered_workspace_id``. Its ``status`` is the canonical
-    ``OperationStatus`` the run actually reached, and Stage 6 writes its own
-    ``RAG_INDEX_BUILT`` ledger event.
-
-    A pre-flight runs *before* the orchestrator is constructed. Without it, indexing a
-    workspace that has no accepted manifest still creates the vector store on disk (and
-    downloads an embedding model) before Stage 6 refuses -- a real side effect over a
-    run that indexed nothing. Refusing first keeps "indexing nothing" free of
-    artifacts.
-    """
-
-    from scholar_harness.orchestrator import ResearchOrchestrator
-
-    workspace = Path(workspace).resolve()
-    target = (
-        Path(chroma_dir).resolve()
-        if chroma_dir is not None
-        else workspace / _DEFAULT_CHROMA_RELPATH
-    )
-
-    context = build_acceptance_context(workspace)
-    manifest_ids = _accepted_manifest_ids(workspace, _load_registry(workspace), context)
-    if not manifest_ids:
-        raise PublicationRefused(
-            "DOCUMENT_MANIFEST_NOT_ACCEPTED",
-            f"No accepted Contract v1 document_manifest matches this workspace's "
-            f"generation ({context.workspace_id} / {context.corpus_fingerprint}). "
-            "Stage 6 indexes the *accepted* manifest, not a file on disk, so there is "
-            "nothing to index and no index is created. Fix: run "
-            "`scholar-harness extract publish <workspace>` first; `extract status` "
-            "reports what is recorded.",
-            workspace_id=context.workspace_id,
-            corpus_fingerprint=context.corpus_fingerprint,
-        )
-
-    # A changed body cannot inherit an earlier E2 acceptance merely because the
-    # frozen manifest's identity fields stayed unchanged.
-    for artifact_id in manifest_ids:
-        validate_extraction_currentness(workspace, artifact_id)
-    try:
-        result, _indexer = ResearchOrchestrator(workspace)._run_indexing_stage(target)
-    except RegisteredWorkspaceIdentityMissingError as exc:
-        raise PublicationRefused(
-            "WORKSPACE_IDENTITY_NOT_RECORDED",
-            f"Stage 6 refused to index: {exc}",
-        ) from exc
-    status = str(result.get("status") or "")
-    if status not in {member.value for member in OperationStatus}:
-        raise PublicationRefused(
-            "INDEXING_STATUS_NOT_CANONICAL",
-            f"Stage 6 reported status {status!r}, which is not a canonical "
-            "OperationStatus.",
-            status=status,
-        )
-    return result
 
 
 def publication_status(workspace: Path) -> dict[str, Any]:

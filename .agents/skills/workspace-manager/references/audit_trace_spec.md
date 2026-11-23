@@ -26,7 +26,7 @@ workspaces/<project-slug>/
 ├── extracted/                      # Markdown with YAML frontmatter
 ├── synthesis/                      # Literature reviews, tables, synthesis notes
 ├── exports/                        # Spreadsheets, BibTeX, RIS exports
-└── phase4/                         # Verify-kit outputs (trust consensus, RoB/COI, retraction)
+└── phase4/                         # Phase-4 outputs of earlier workspaces (the verify kit was removed 2026-11-23)
 ```
 
 ---

@@ -34,8 +34,8 @@ Preservation notes:
   ``results["stages"]["graph_nodes"]`` payload (``status DONE``,
   ``nodes`` / ``edges`` counts). Stage 10 still logs the html path later,
   unchanged.
-- Downstream binding: nothing consumes ``G`` in-pipeline (Stage 9 reuses
-  the Stage-7 ``retriever``, not the graph), so the outcome carries only
+- Downstream binding: nothing consumes ``G`` in-pipeline, so the outcome
+  carries only
   counts plus the json/html paths.
 - Error propagation unchanged: a provider/builder/visualizer raise
   propagates with no fabricated graph, no ``DONE`` mapping, and no

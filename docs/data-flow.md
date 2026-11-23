@@ -64,7 +64,6 @@ identifiers of your records** (DOIs, titles), never your decisions:
 | Inception reconnaissance (a first pool of up to 25 papers) | CLI wizard, MCP `recon_*` tools, and the console's recon routes (1.1.0b5; the Explore screen is not built) | Your topic as a query, to OpenAlex, Semantic Scholar, Crossref and arXiv |
 | Full-text discovery and download (parked, not production) | CLI | Unpaywall, `doi.org` and the publisher sites it points to |
 | Citation graph (parked) | CLI, MCP | OpenAlex |
-| Verification: retractions and related checks (parked) | CLI, MCP | Crossref, OpenAlex |
 
 With every search request the engine also sends who is asking:
 

@@ -370,7 +370,7 @@ computed values, so a host application can pin any single key.
 CLI_SCRIPTS: dict[str, str] = {short: f"scholar-{short}" for short in CLI_SHORTS}
 
 #: ``<short>`` → importable module name of the kit's package
-#: (``rag`` → ``scholar_rag``). The harness is not a kit, so it is absent —
+#: (``pdf`` → ``scholar_pdf``). The harness is not a kit, so it is absent —
 #: there is no ``{KIT_ROOT:harness}`` and no adapter pretends to bind one.
 KIT_MODULES: dict[str, str] = {short: f"scholar_{short}" for short in KIT_SHORTS}
 

@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
-"""agent_extract.py -- publish the Contract v1 document manifest and index it.
+"""agent_extract.py -- publish the Contract v1 document manifest.
 
-This is the runtime CLI half of the extraction acceptance link. Stage 5 wrote
-``extracted/<stem>.md`` and Stage 6 indexes *accepted* documents, but between the
-two nothing published the ``document_manifest`` Stage 6 inherits both of its
-identity limbs from, so an extracted workspace reported ``FAILED`` at indexing.
+This is the runtime CLI half of the extraction acceptance link: Stage 5 wrote
+``extracted/<stem>.md``, and this publishes the ``document_manifest`` that names
+them. (Indexing the manifest left with ``scholar_rag``, H-remove-rag-verify.)
 
 The commands here do not implement acceptance. They call
 :mod:`scholar_harness.extraction_producer`, which builds the candidate from
@@ -14,11 +13,10 @@ recorded workspace state and hands it to the frozen acceptance gate
 Workflow::
 
     python src/scholar_harness/agent_extract.py status  <workspace>
-    python src/scholar_harness/agent_extract.py publish <workspace> --index
-    python src/scholar_harness/agent_extract.py index   <workspace>
+    python src/scholar_harness/agent_extract.py publish <workspace>
 
-Every command is read-mostly and fail-closed: a refusal publishes no manifest, no
-registry entry, and no index, prints the typed refusal code, and exits non-zero.
+Every command is read-mostly and fail-closed: a refusal publishes no manifest and no
+registry entry, prints the typed refusal code, and exits non-zero.
 """
 
 from __future__ import annotations
@@ -44,8 +42,6 @@ if str(_SRC_ROOT) not in sys.path:
     sys.path.insert(0, str(_SRC_ROOT))
 
 from scholar_harness.extraction_producer import (
-    PublicationRefused,
-    index_accepted_documents,
     publication_status,
     publish_document_manifest,
 )
@@ -99,46 +95,17 @@ def _cmd_status(workspace: Path, as_json: bool) -> int:
     return EXIT_OK
 
 
-def _cmd_publish(workspace: Path, as_json: bool, run_index: bool) -> int:
+def _cmd_publish(workspace: Path, as_json: bool) -> int:
     outcome = publish_document_manifest(workspace)
-    payload: dict = {"publication": outcome.as_dict()}
-    if run_index:
-        if outcome.accepted:
-            try:
-                payload["indexing"] = index_accepted_documents(workspace)
-            except PublicationRefused as refusal:
-                payload["indexing"] = {"refusal": refusal.as_dict()}
-                payload["indexing_refused"] = True
-        else:
-            # Nothing was accepted, so there is nothing to index. Running Stage 6 here
-            # would only record a refusal over an empty run.
-            payload["indexing"] = {"skipped": "no accepted document manifest"}
-    _emit(payload, as_json)
-    if not outcome.accepted:
-        return EXIT_REFUSED
-    indexing = payload.get("indexing") or {}
-    if indexing.get("status") not in {"SUCCESS", "PARTIAL", None}:
-        return EXIT_REFUSED
-    if indexing.get("refusal") or indexing.get("indexing_refused"):
-        return EXIT_REFUSED
-    return EXIT_OK
-
-
-def _cmd_index(workspace: Path, as_json: bool) -> int:
-    try:
-        result = index_accepted_documents(workspace)
-    except PublicationRefused as refusal:
-        _emit({"indexing_refused": refusal.as_dict()}, as_json)
-        return EXIT_REFUSED
-    _emit(result, as_json)
-    return EXIT_OK if result.get("status") in {"SUCCESS", "PARTIAL"} else EXIT_REFUSED
+    _emit({"publication": outcome.as_dict()}, as_json)
+    return EXIT_OK if outcome.accepted else EXIT_REFUSED
 
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         description=(
             "Publish the Contract v1 document manifest for a workspace's real Stage 5 "
-            "extraction output, then hand it to Stage 6.\n\n"
+            "extraction output.\n\n"
             "The candidate is built from recorded workspace state only "
             "(project.json identity, protocol.json fingerprint, the accepted corpus "
             "snapshot and its accepted screening decisions) and is accepted by the "
@@ -156,23 +123,15 @@ def main(argv: list[str] | None = None) -> int:
         )
         return item
 
-    _add("status", "Report recorded state without publishing or indexing.")
-    p_publish = _add("publish", "Publish the accepted document manifest.")
-    p_publish.add_argument(
-        "--index",
-        action="store_true",
-        help="Run Stage 6 over the accepted manifest after publication",
-    )
-    _add("index", "Run Stage 6 over the already-accepted manifest.")
+    _add("status", "Report recorded state without publishing.")
+    _add("publish", "Publish the accepted document manifest.")
 
     args = parser.parse_args(argv)
     workspace_dir = Path(args.workspace).resolve()
 
     if args.command == "status":
         return _cmd_status(workspace_dir, args.json)
-    if args.command == "publish":
-        return _cmd_publish(workspace_dir, args.json, args.index)
-    return _cmd_index(workspace_dir, args.json)
+    return _cmd_publish(workspace_dir, args.json)
 
 
 if __name__ == "__main__":

@@ -48,7 +48,6 @@ import asyncio
 import inspect
 import json
 from pathlib import Path
-from types import SimpleNamespace
 
 import networkx as nx
 import pytest
@@ -59,8 +58,6 @@ from scholar_harness.pipeline import deduplication as dedup_mod
 from scholar_harness.pipeline import discovery as disc_mod
 from scholar_harness.pipeline import extraction as ext_mod
 from scholar_harness.pipeline import graph as graph_mod
-from scholar_harness.pipeline import matrix as mat_mod
-from scholar_harness.pipeline import synthesis as synth_mod
 from scholar_harness.pipeline import verification as ver_mod
 
 FIXTURE_WORKSPACE_ID = "WSP-" + "0" * 32
@@ -543,43 +540,11 @@ class _FakeVerifier:
         return [], []
 
 
-class _RecorderRetriever:
-    def __init__(self, **kwargs):
-        self.kw = kwargs
-
-
-class _FakeMatrix:
-    def __init__(self, protocol=None, retriever=None, **kw):
-        self.retriever = retriever
-
-    def extract_all(self, output_dir):
-        from pathlib import Path as _P
-
-        out = _P(output_dir)
-        return [], out / "synthesis_matrix.csv", out / "synthesis_matrix.json"
-
-
-class _FakeSynth:
-    def __init__(self, retriever=None, **kw):
-        self.retriever = retriever
-
-    def synthesize(self, **kw):
-        return SimpleNamespace(
-            synthesis_markdown="# Synthesis\n",
-            verified_claims_count=0,
-            claims=[],
-            entailment_rate=0.0,
-        )
-
-
 def _stub_upstream(monkeypatch):
     _clear_seen()
     monkeypatch.setattr(disc_mod, "SearchEngine", _FakeEngine)
     monkeypatch.setattr(dedup_mod, "Deduplicator", _FakeDedup)
     monkeypatch.setattr(ver_mod, "DocumentVerifier", _FakeVerifier)
-    monkeypatch.setattr(mat_mod, "ScholarRetriever", _RecorderRetriever)
-    monkeypatch.setattr(mat_mod, "MatrixExtractor", _FakeMatrix)
-    monkeypatch.setattr(synth_mod, "GroundedSynthesisEngine", _FakeSynth)
     monkeypatch.setattr(graph_mod, "CitationGraphBuilder", _FakeGraph)
     monkeypatch.setattr(graph_mod, "GraphVisualizer", _FakeVis)
     monkeypatch.setattr(

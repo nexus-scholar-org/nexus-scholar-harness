@@ -11,50 +11,7 @@ from pathlib import Path
 from typing import Any
 
 from scholar_protocol.models import ResearchProtocol
-from scholar_rag.chunker import text_fingerprint
-from scholar_rag.index_models import IndexDocumentRequest
-from scholar_rag.index_service import (
-    IndexServiceRequest,
-    IndexedSource,
-    Counts,
-    index_workspace,
-)
-from scholar_rag.replacement import ChromaReplacementView
-from scholar_rag.index_verifier import ChromaVisibleSetReader
-from scholar_rag.embedder import get_embedder
-
-from .contracts.acceptance import ArtifactRegistry, RegistryEntry
-from .contracts.models import ArtifactReference, DocumentManifestArtifact
 from .workspace import counts
-from .workspace.errors import RegisteredWorkspaceIdentityMissingError
-from .workspace.identity import validate_registered_workspace_id
-
-
-# Backward compatibility for tests that monkeypatch ScholarIndexer
-# The legacy ScholarIndexer.index_markdown path has been replaced by IndexService.index_workspace
-# This class exists only to allow existing tests to monkeypatch it; it is not used in production.
-class ScholarIndexer:
-    """Deprecated: Legacy indexer interface for test compatibility only.
-
-    The real indexing path now uses scholar_rag.index_service.index_workspace.
-    This stub allows tests to monkeypatch the old interface.
-    """
-
-    def __init__(self, db_path: str, **kwargs: Any) -> None:
-        self.db_path = db_path
-        self.collection_name = "scholar_docs"
-        self.embedder_kwargs = {
-            "provider": "sentence-transformers",
-            "model_name": "all-MiniLM-L6-v2",
-        }
-
-    def index_markdown(self, text: str, request: Any = None) -> list[dict[str, str]]:
-        raise NotImplementedError(
-            "Legacy ScholarIndexer.index_markdown is not implemented. Use IndexService."
-        )
-
-    def get_collection_count(self) -> int:
-        return 0
 
 
 # HCM-04b: provider resolution lives in the neutral pipeline stage
@@ -113,15 +70,6 @@ from .pipeline.extraction import (  # noqa: F401
     run_extraction,
 )
 
-# HCM-04i: dynamic protocol matrix lives in the neutral pipeline stage
-# (scholar_harness.pipeline.matrix). Tests patch
-# ``pipeline.matrix.ScholarRetriever`` / ``pipeline.matrix.MatrixExtractor``
-# directly. Canonical definitions live in the stage module.
-from .pipeline.matrix import (  # noqa: F401
-    MatrixOutcome,
-    run_matrix,
-)
-
 # HCM-04j: citation knowledge graph lives in the neutral pipeline stage
 # (scholar_harness.pipeline.graph). Tests patch
 # ``pipeline.graph.CitationGraphBuilder`` / ``pipeline.graph.GraphVisualizer``
@@ -129,15 +77,6 @@ from .pipeline.matrix import (  # noqa: F401
 from .pipeline.graph import (  # noqa: F401
     GraphOutcome,
     run_graph,
-)
-
-# HCM-04k: grounded synthesis lives in the neutral pipeline stage
-# (scholar_harness.pipeline.synthesis). Tests patch
-# ``pipeline.synthesis.GroundedSynthesisEngine`` directly. Canonical
-# definitions live in the stage module.
-from .pipeline.synthesis import (  # noqa: F401
-    SynthesisOutcome,
-    run_synthesis,
 )
 
 # HCM-04l: pipeline coordination glue lives in the neutral coordinator
@@ -284,19 +223,8 @@ class ResearchOrchestrator:
             if status["extracted_count"] > 0:
                 status["phase"] = "PHASE_2_SYNTHESIS"
 
-        # 4b. Vector Database Chunks
-        chroma_dir = self.workspace_dir / "chroma_db"
-        if not chroma_dir.exists():
-            chroma_dir = self.workspace_dir / "rag" / "chroma_db"
-        if chroma_dir.exists():
-            try:
-                import chromadb
-
-                client = chromadb.PersistentClient(path=str(chroma_dir))
-                collection = client.get_collection("scholar_docs")
-                status["vector_chunks"] = collection.count()
-            except Exception:
-                pass
+        # 4b. Vector chunks: no index is built since scholar_rag was removed
+        # (H-remove-rag-verify); ``vector_chunks`` stays 0.
 
         # 5. Synthesis Review
         synth_file = self.workspace_dir / "synthesis" / "literature_review.md"
@@ -435,17 +363,6 @@ class ResearchOrchestrator:
             matrix_path = ws / "synthesis" / "synthesis_matrix.json"
         _count("matrix_studies", matrix_path)
 
-        # Vector DB chunk count
-        chroma_dir = ws / "rag" / "chroma_db"
-        if chroma_dir.exists():
-            try:
-                import chromadb
-
-                client = chromadb.PersistentClient(path=str(chroma_dir))
-                stats["vector_chunks"] = client.get_collection("scholar_docs").count()
-            except Exception:
-                pass
-
         # Merge into manifest
         manifest_path = ws / "project.json"
         manifest: dict[str, Any] = {}
@@ -579,7 +496,6 @@ class ResearchOrchestrator:
             protocol_path=protocol_path,
             max_search_results=max_search_results,
             mock_mode=mock_mode,
-            indexing_fn=self._run_indexing_stage,
         )
 
     def run_pipeline(
@@ -594,43 +510,6 @@ class ResearchOrchestrator:
             )
         )
 
-    def _load_artifact_registry(self) -> ArtifactRegistry | None:
-        """Thin delegate to ``pipeline.indexing.load_artifact_registry`` (HCM-04h).
-
-        Preserves the ``orch._load_artifact_registry()`` seam with an identical
-        signature; the canonical implementation lives in the neutral stage.
-        """
-        from .pipeline.indexing import load_artifact_registry
-
-        return load_artifact_registry(self.workspace_dir)
-
-    def _accepted_artifact_payload(self, entry: RegistryEntry) -> Any | None:
-        """Thin delegate to ``pipeline.indexing.accepted_artifact_payload`` (HCM-04h).
-
-        Identical signature; canonical implementation lives in the stage.
-        """
-        from .pipeline.indexing import accepted_artifact_payload
-
-        return accepted_artifact_payload(self.workspace_dir, entry)
-
-    def _accepted_screening_parents(self) -> dict[str, dict[str, str]]:
-        """Thin delegate to ``pipeline.indexing.accepted_screening_parents`` (HCM-04h).
-
-        Identical signature; canonical implementation lives in the stage.
-        """
-        from .pipeline.indexing import accepted_screening_parents
-
-        return accepted_screening_parents(self.workspace_dir)
-
-    def _accepted_document_records(self) -> dict[str, dict[str, str]]:
-        """Thin delegate to ``pipeline.indexing.accepted_document_records`` (HCM-04h).
-
-        Identical signature; canonical implementation lives in the stage.
-        """
-        from .pipeline.indexing import accepted_document_records
-
-        return accepted_document_records(self.workspace_dir)
-
     def recorded_workspace_id(self) -> str:
         """Return the workspace identity recorded in ``project.json``.
 
@@ -641,75 +520,6 @@ class ResearchOrchestrator:
         from .workspace.identity import require_recorded_identity
 
         return require_recorded_identity(self.workspace_dir)
-
-    def _build_parent_view(self) -> dict[str, Any] | None:
-        """Thin delegate to ``pipeline.indexing.build_parent_view`` (HCM-04h).
-
-        Identical signature; canonical implementation lives in the stage.
-        """
-        from .pipeline.indexing import build_parent_view
-
-        return build_parent_view(self.workspace_dir)
-
-    def _build_index_service_request(
-        self,
-        *,
-        chroma_dir: Path,
-        parent_view: dict[str, Any],
-        run_id: str,
-        created_at: str,
-        producer_commit: str,
-        producer_version: str,
-    ) -> IndexServiceRequest | None:
-        """Thin delegate to ``pipeline.indexing.build_index_service_request`` (HCM-04h).
-
-        Identical signature; forwards this module's (possibly patched)
-        ``get_embedder`` global as the explicit kit collaborator and this
-        instance's (possibly patched) ``_accepted_*`` readers as explicit
-        data collaborators so the ``orch.get_embedder`` and
-        ``orch._accepted_document_records`` monkeypatch seams keep working.
-        Canonical implementation and kit defaults live in the stage.
-        """
-        from .pipeline.indexing import build_index_service_request
-
-        return build_index_service_request(
-            workspace_dir=self.workspace_dir,
-            chroma_dir=chroma_dir,
-            parent_view=parent_view,
-            run_id=run_id,
-            created_at=created_at,
-            producer_commit=producer_commit,
-            producer_version=producer_version,
-            get_embedder_fn=get_embedder,
-            documents=self._accepted_document_records(),
-            screening_parents=self._accepted_screening_parents(),
-        )
-
-    def _run_indexing_stage(self, chroma_dir: Path) -> tuple[dict[str, Any], Any]:
-        """Thin delegate to ``pipeline.indexing.run_indexing`` (HCM-04h).
-
-        Identical signature; forwards this module's (possibly patched)
-        ``get_embedder`` / ``ChromaReplacementView`` / ``ChromaVisibleSetReader``
-        / ``index_workspace`` globals as explicit kit collaborators and this
-        instance's (possibly patched) ``_build_parent_view`` / ``_accepted_*``
-        readers as explicit data collaborators so all live Stage-6 seams keep
-        working. Canonical implementation and kit defaults live in the stage.
-        The outcome carries ``(result dict, indexer)`` for Stage 7.
-        """
-        from .pipeline.indexing import run_indexing
-
-        outcome = run_indexing(
-            workspace_dir=self.workspace_dir,
-            chroma_dir=chroma_dir,
-            get_embedder_fn=get_embedder,
-            backend_cls=ChromaReplacementView,
-            reader_cls=ChromaVisibleSetReader,
-            index_workspace_fn=index_workspace,
-            parent_view=self._build_parent_view(),
-            documents=self._accepted_document_records(),
-            screening_parents=self._accepted_screening_parents(),
-        )
-        return outcome.result, outcome.indexer
 
     def _log_audit_event(
         self,
