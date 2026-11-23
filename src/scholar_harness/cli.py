@@ -19,7 +19,6 @@ from .integrations.latex_typst import AcademicTypesettingExporter
 from .integrations.obsidian import ObsidianVaultExporter
 from .integrations.zotero import ZoteroBridge
 from .mcp_setup import run_setup_mcp
-from .orchestrator import ResearchOrchestrator
 
 if sys.platform == "win32":
     try:
@@ -33,6 +32,30 @@ app = typer.Typer(
     help="Nexus Scholar Harness: Master CLI orchestrating systematic research workflows, MCP servers, and academic ecosystem integrations.",
     add_completion=False,
 )
+
+def _orchestrator_class():
+    """The orchestrator, imported on first use (H-faster-python-tests).
+
+    It pulls in the PDF and search kits, networkx, pypdf and aiohttp (about 4 s),
+    which ``--help`` and most commands never need. A module attribute
+    ``ResearchOrchestrator``, set by a test's ``monkeypatch.setattr``, wins.
+    """
+    patched = globals().get("ResearchOrchestrator")
+    if patched is not None:
+        return patched
+    from .orchestrator import ResearchOrchestrator
+
+    return ResearchOrchestrator
+
+
+def __getattr__(name: str):
+    # ``cli.ResearchOrchestrator`` still resolves (tests patch it), lazily.
+    if name == "ResearchOrchestrator":
+        from .orchestrator import ResearchOrchestrator
+
+        return ResearchOrchestrator
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
 console = Console(force_terminal=True, legacy_windows=False)
 
 
@@ -60,7 +83,7 @@ def status(
     ),
 ):
     """Display comprehensive status and pipeline metrics for a research workspace."""
-    orchestrator = ResearchOrchestrator(workspace)
+    orchestrator = _orchestrator_class()(workspace)
     stat = orchestrator.get_status()
 
     table = Table(
@@ -875,7 +898,7 @@ def sync(
     ),
 ):
     """Atomically rebuild project.json stats and INDEX.md from filesystem state."""
-    orchestrator = ResearchOrchestrator(workspace)
+    orchestrator = _orchestrator_class()(workspace)
     result = orchestrator.sync_state(dry_run=dry_run)
 
     table = Table(
@@ -1145,7 +1168,7 @@ def run_pipeline(
         return
 
     protocol_path = protocol or Path("protocol.json")
-    orchestrator = ResearchOrchestrator(workspace)
+    orchestrator = _orchestrator_class()(workspace)
     console.print(
         f"[bold cyan]🚀 Initializing Nexus Scholar Pipeline for {protocol_path}...[/bold cyan]"
     )

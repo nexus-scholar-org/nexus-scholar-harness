@@ -8,6 +8,15 @@ try:
 except PackageNotFoundError:  # a bare source tree with no install
     __version__ = "0+unknown"
 
-from .orchestrator import ResearchOrchestrator
-
 __all__ = ["ResearchOrchestrator", "__version__"]
+
+
+def __getattr__(name: str):
+    # H-faster-python-tests: the orchestrator pulls in the PDF and search kits,
+    # networkx, pypdf and aiohttp (about 4 s). It is imported when first asked
+    # for, not by every ``import scholar_harness.<anything>``.
+    if name == "ResearchOrchestrator":
+        from .orchestrator import ResearchOrchestrator
+
+        return ResearchOrchestrator
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
