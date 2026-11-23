@@ -121,14 +121,16 @@ def unowned_test_files(data: dict[str, Any], root: Path = ROOT) -> list[str]:
 
 
 def missing_test_targets(data: dict[str, Any], root: Path = ROOT) -> list[str]:
-    """Test paths named by an area command that do not exist."""
+    """Test paths named by an area's or an E3 task's command that do not exist."""
+    owners = [(area["name"], area) for area in data.get("areas", [])]
+    owners += list(data.get("tasks", {}).items())
     missing: list[str] = []
-    for area in data.get("areas", []):
+    for name, owner in owners:
         for stage in data["stages"]:
-            for command in area.get(stage, []):
+            for command in owner.get(stage, []):
                 for target in pytest_targets(command):
                     if not (root / target).exists():
-                        missing.append(f"{area['name']}/{stage}: {target}")
+                        missing.append(f"{name}/{stage}: {target}")
     return missing
 
 

@@ -12,11 +12,13 @@ on:
 #
 # CI is the full gate (docs/architecture/test_gate_policy.md, "Local gate and CI
 # gate", 2026-11-23): the PC runs the tests a change touched, this workflow runs
-# everything. A newer push to the same pull request cancels the older run.
+# everything. A newer push to the same pull request cancels the older run; a
+# push to main or develop gets a group of its own (its run id), so it is never
+# queued behind, replaced or cancelled by another push.
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: true
 
 jobs:
   build-wheel:
@@ -259,9 +261,9 @@ jobs:
 
   research-ui:
     # Pure Node: no vitest test starts the Python engine (checked 2026-11-23), so
-    # this job sets up no Python. The app is built once, in build-wheel
-    # (`npm run build:export`, the build the wheel ships); this job checks the
-    # tokens the `npm run build` prebuild step checked.
+    # this job sets up no Python. It builds the standalone app (`npm run build`):
+    # build-wheel's `build:export` compiles only `.tsx` pages, so the console
+    # proxy route and the redirects are compiled here and nowhere else.
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -281,13 +283,13 @@ jobs:
         working-directory: apps/research-ui
         run: npm run typecheck
 
-      - name: Design tokens are current
-        working-directory: apps/research-ui
-        run: npm run tokens:check
-
       - name: Vitest suite
         working-directory: apps/research-ui
         run: npm run test
+
+      - name: Production build
+        working-directory: apps/research-ui
+        run: npm run build
 
   research-ui-browser:
     # Pure Node: the browser suite fulfils the console at the network boundary.

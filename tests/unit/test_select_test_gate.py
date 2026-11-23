@@ -530,3 +530,22 @@ def test_a_workflow_change_takes_the_workflow_check_not_the_full_suite() -> None
     data = MODULE.load_manifest()
     _, pr = MODULE.select_commands(data, tasks=[], paths=[".github/workflows/ci.yml"], stage="pr")
     assert pr == ["git diff --check", "uv run python scripts/check_workflows.py"]
+
+
+def test_no_e3_task_runs_the_full_suite_at_pr() -> None:
+    """Review finding 3: a test helper or conftest change runs its task's checkpoint at pr, not the full suite."""
+    data = MODULE.load_manifest()
+    for task_id, task in data["tasks"].items():
+        assert FULL not in task["pr"], task_id
+    _, pr = MODULE.select_commands(data, tasks=[], paths=["tests/console/conftest.py"], stage="pr")
+    assert FULL not in pr
+    assert "uv run pytest tests/console -q" in pr
+
+
+def test_the_missing_path_check_covers_e3_tasks(tmp_path) -> None:
+    data = {
+        "stages": ["inner", "checkpoint", "pr", "closure"],
+        "areas": [],
+        "tasks": {"T-1": {"inner": ["uv run pytest tests/kits/rag/test_gone.py -q"], "checkpoint": [], "pr": [], "closure": []}},
+    }
+    assert MODULE.missing_test_targets(data, root=tmp_path) == ["T-1/inner: tests/kits/rag/test_gone.py"]

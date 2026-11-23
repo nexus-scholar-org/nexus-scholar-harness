@@ -40,7 +40,7 @@ history.
 |---|---|---|
 | `FAST` | Documentation, isolated UI, test-only corrections, and local refactors with no public or persisted semantic change | `inner` evidence, one scoped review, and a repair-delta check. No owner-repository full suite unless the changed path or a failed gate requires it. |
 | `STANDARD` | A bounded behavior, packaging, or dependency change owned by one repository | `inner` and `checkpoint` evidence while editing; the full suites once for the final PR candidate, in CI; one broad review and, if repaired, one review limited to the original findings and repair delta. The full suites for the final candidate are CI's (see "Local gate and CI gate"). |
-| `RELEASE` | Contract semantics; artifact identity or persistence; public API, CLI, or MCP semantics; cross-kit compatibility; pins, vendors, or acceptance publication | The applicable `pr` and `closure` evidence, independent review/tester where the governing packet requires them, and cross-repository checks. |
+| `RELEASE` | Contract semantics; artifact identity or persistence; public API, CLI, or MCP semantics; cross-kit compatibility; pins, vendors, or acceptance publication | The applicable `pr` and `closure` evidence (closure: the CI run of the final commit, see "Local gate and CI gate"), independent review/tester where the governing packet requires them, and cross-repository checks. |
 
 Escalate a task to `RELEASE` immediately when its actual diff changes Contract
 v1 semantics, an authoritative artifact's identity or publication behavior, a
@@ -167,15 +167,19 @@ what a change touched; CI, which runs off the PC, is the full gate.
 - **After a repair or a merge of `main`:** the affected tests locally (the
   selector at `checkpoint` against `origin/main`), and the full suites again in CI
   on the new commit. A local full-suite rerun is not required.
-- **Full suites on the PC** run only at `closure` (`RELEASE` closure, a release),
-  when a path matches no area (the fallback), or when the researcher asks, and
-  always through the lock below.
+- **`RELEASE` closure evidence** is the CI run of the part's final commit with
+  every required check green. Until it exists the record says "closure: CI run
+  of <sha>, not yet run" and the part is not ready to merge.
+- **Full suites on the PC** run only for a release, when a path matches no area
+  (the fallback), or when the researcher asks, and always through the lock
+  below. The selector's `closure` stage prints them for those cases.
 
-**Who pushes (open).** CI runs only on a pushed branch. Every push is approved by
+**Who pushes (open).** CI runs on a pull request (a draft is enough) or a push to
+`main` or `develop`, so a work branch must be pushed and have a pull request open. Every push is approved by
 the researcher today, and the coordinator session pushes on that approval; a build
 session never pushes. A standing permission for sessions to push their work
-branch to the fork, so CI can run while they work, has been proposed and is **not
-given**. Until it is, a build session records "full suites: CI, not yet run" and
+branch to the fork and open a draft pull request, so CI can run while they work,
+has been proposed and is **not given**. Until it is, a build session records "full suites: CI, not yet run" and
 names the commit; the coordinator pushes on the researcher's word, waits for CI,
 and merges only on all green.
 

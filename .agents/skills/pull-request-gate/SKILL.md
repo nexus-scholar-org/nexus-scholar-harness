@@ -44,7 +44,7 @@ git switch -c feat/your-improvement main
 
 # 2. Change + verify (gate selected per docs/architecture/test_gate_policy.md)
 {PY} scripts/select_test_gate.py --path <changed-file> --stage inner  # prints required commands
-<run the printed commands>  # must pass (light gate for prose-only, full suite for executable)
+<run the printed commands>  # must pass (light gate for prose-only, the touched areas for executable; full suites in CI)
 {PY} -m ruff check scripts/
 
 # 3. Commit to the branch
