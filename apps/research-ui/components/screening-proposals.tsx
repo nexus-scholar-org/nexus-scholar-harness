@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { formatNumber, type Locale } from "@/i18n";
+import { LoadingFrame } from "@/components/loading-frame";
 import { Button, DataCell, DecisionBadge, GatePanel } from "@/components/ui/base";
 import { ScreeningSteps, StateCard } from "@/components/screening-state-card";
 import { isScreeningApiError } from "@/lib/screening-api";
@@ -494,7 +495,7 @@ export function ScreeningProposals({ locale }: Readonly<{ locale: Locale }>) {
     });
 
   const body = (() => {
-    if (state.status === "loading") return <p className="text-ink-muted" role="status">{t("loading")}</p>;
+    if (state.status === "loading") return <LoadingFrame heading={t("eyebrow")} sentence={t("loading")} />;
     if (state.status === "error") return <StateCard pageHeading locale={locale} code={state.code} message={state.message} consoleOrigin={origin} onRetry={() => void load()} />;
     const { setup, decided } = state.data;
     const chosen = setup.providers.find((p) => p.provider === provider);

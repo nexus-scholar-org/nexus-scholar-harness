@@ -27,6 +27,7 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from ...screening import criteria as cr
 from ...screening import events as ev
+from ...screening import read_store
 from ...workspace.atomic import atomic_write_text
 from ...screening import proposals as pr
 from ...screening.highlights import quote_places, search_terms
@@ -146,20 +147,27 @@ def _in_force(ws: Path, context: ev.ScreeningContext, settings: dict[str, Any]):
     )
 
 
-def _state(ws: Path) -> tuple[ev.ScreeningContext, dict[str, Any], list[dict], dict[str, dict]]:
+def _state(
+    ws: Path, context: ev.ScreeningContext | None = None
+) -> tuple[ev.ScreeningContext, dict[str, Any], list[dict], dict[str, dict]]:
+    """The context, the settings, the screener's current events and the decided records.
+
+    The events come back as an ``ev.EventIndex`` (H-screening-read-performance): the
+    latest decision of each record is looked up, not found by scanning every event.
+    """
     if not (ws / "protocol.json").is_file():
         raise _error(409, refusals.SNAPSHOT_NOT_ACCEPTED, "no protocol.json in this workspace")
-    context = ev.load_context(ws)
+    context = context or ev.load_context(ws)
     if not context.batches:
         # H-screening-drafts: an accepted corpus without batches is not a missing corpus.
         if _corpus_accepted(ws):
             raise _error(409, refusals.BATCHES_NOT_PREPARED, "the corpus is accepted; prepare the screening batches")
         raise _error(409, refusals.SNAPSHOT_NOT_ACCEPTED, "no prepared batches; accept the corpus and prepare")
     settings = load_settings(ws)
-    events = [
+    events = ev.EventIndex(
         e for e in ev.current_events(ev.read_events(ws), context)
         if e.get("screener_id") == settings["screener_id"]
-    ]
+    )
     # M11b part A: a decision a criteria revision shows again is not decided until it is decided again.
     winners = {
         study: winner
@@ -180,13 +188,22 @@ def _recheck(context: ev.ScreeningContext, events: list[dict[str, Any]], screene
 
 
 @router.get("/summary")
+@read_store.display_route
 def summary(request: Request) -> dict[str, Any]:
     return summary_of(_ws(request))
 
 
 def summary_of(ws: Path) -> dict[str, Any]:
-    """The screening summary of a workspace (``GET /screening/summary``; the next-step builder reads it too)."""
-    if (ws / "protocol.json").is_file() and not ev.load_context(ws).batches:
+    """The screening summary of a workspace (``GET /screening/summary``; the next-step builder reads it too).
+
+    Kept between display calls while the workspace's files are unchanged (H-screening-read-performance).
+    """
+    return read_store.remember(ws, "screening-summary", lambda: _summary_of(ws))
+
+
+def _summary_of(ws: Path) -> dict[str, Any]:
+    context = ev.load_context(ws) if (ws / "protocol.json").is_file() else None
+    if context is not None and not context.batches:
         # Nothing prepared yet is a state, not a refusal: the home shows it and
         # offers Prepare, whose own refusal names a missing snapshot.
         empty = {"INCLUDE": 0, "EXCLUDE": 0, "MAYBE": 0}
@@ -196,7 +213,7 @@ def summary_of(ws: Path) -> dict[str, Any]:
             "lanes": lanes, "protocol_changed": False, "criteria_version": _criteria(ws).version, "recheck": 0,
             "pilot": None,
         }
-    context, settings, events, winners = _state(ws)
+    context, settings, events, winners = _state(ws, context)
     proposed = {p["study_id"] for p in pr.read_proposals(ws)}
     by_outcome = {"INCLUDE": 0, "EXCLUDE": 0, "MAYBE": 0}
     for winner in winners.values():
@@ -809,11 +826,12 @@ def _corpus_error(exc: Any) -> HTTPException:
 
 def _corpus_view(ws: Path) -> dict[str, Any]:
     """`corpus_status` with its refusals typed (M7-method review finding 1:
-    an invalid method block answers 409, never 500)."""
+    an invalid method block answers 409, never 500). Kept between display calls
+    while the workspace's files are unchanged (H-screening-read-performance)."""
     from ...corpus_accept import AcceptCorpusRefused, corpus_status
 
     try:
-        return corpus_status(ws)
+        return read_store.remember(ws, "corpus-status", lambda: corpus_status(ws))
     except AcceptCorpusRefused as exc:
         raise _corpus_error(exc) from exc
 
@@ -832,6 +850,7 @@ class CorpusSourceBody(BaseModel):
 
 
 @router.get("/corpus")
+@read_store.display_route
 def get_corpus(request: Request) -> dict[str, Any]:
     """The corpus import: staged database exports, the counts acceptance would give, or what was accepted."""
     return _corpus_view(_ws(request))
@@ -942,6 +961,7 @@ async def prepare(body: PrepareBody, request: Request) -> dict[str, Any]:
 
 
 @router.get("/prisma/preview")
+@read_store.display_route
 def prisma_preview(request: Request) -> dict[str, Any]:
     ws = _ws(request)
     context, settings, events, winners = _state(ws)
@@ -988,7 +1008,7 @@ def prisma_preview(request: Request) -> dict[str, Any]:
         {"name": "every_record_decided", "ok": len(winners) == screened, "detail": f"{screened - len(winners)} not yet decided"},
         {
             "name": "projections_current",
-            "ok": not (stale := ev.stale_projections(ws)),
+            "ok": not (stale := read_store.remember(ws, "stale-projections", lambda: ev.stale_projections(ws))),
             "detail": (
                 f"{ev.PROJECTION_STALE}: batch(es) {', '.join(f'{i:03d}' for i in stale)} differ from the decision events"
                 if stale else "every decisions file matches the decision events"

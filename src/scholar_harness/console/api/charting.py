@@ -34,6 +34,7 @@ from ...charting import attachments as att
 from ...charting import fetch as fx
 from ...charting import report as rp
 from ...charting import table as tb
+from ...screening.read_store import display_route
 
 router = APIRouter(prefix="/api/v1/charting", tags=["charting"])
 
@@ -82,12 +83,22 @@ class FetchBody(BaseModel):
 
 
 @router.get("")
+@display_route
 def get_table(request: Request) -> dict[str, Any]:
-    """The kept rows of every published round, their full-text state and the counts line."""
+    """The kept rows of every published round, their full-text state and the counts line.
+
+    H-screening-read-performance: the rows leave out ``abstract``, which no screen reads
+    from this answer (the one-study view reads it from ``/records/{id}``); it was most of
+    the table's bytes.
+    """
     try:
-        return tb.table(_ws(request))
+        view = tb.table(_ws(request))
     except ChartingRefused as exc:
         raise _error(exc) from exc
+    for row in view.get("rows") or []:
+        if isinstance(row, dict):
+            row.pop("abstract", None)
+    return view
 
 
 @router.get("/form")
@@ -118,6 +129,7 @@ def end_pilot(body: PilotBody, request: Request) -> dict[str, Any]:
 
 
 @router.get("/records/{study_id}")
+@display_route
 def get_record(study_id: str, request: Request) -> dict[str, Any]:
     """One study for the one-study view."""
     try:

@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
 
 import { formatNumber, type Locale } from "@/i18n";
+import { LoadingFrame } from "@/components/loading-frame";
 import { Button, DataCell, DecisionBadge, Hint } from "@/components/ui/base";
 import { ScreeningSteps, StateCard, stepHref } from "@/components/screening-state-card";
 import { isScreeningApiError } from "@/lib/screening-api";
@@ -263,9 +264,7 @@ export function ScreeningImport({ locale }: Readonly<{ locale: Locale }>) {
         <ScreeningSteps locale={locale} current="import" consoleOrigin={origin} />
       )}
       {load.status === "loading" ? (
-        <p className="text-ink-muted" role="status">
-          {t("loading")}
-        </p>
+        <LoadingFrame heading={t("eyebrow")} sentence={t("loading")} />
       ) : load.status === "error" && load.code === "TOKEN_SCOPE_REFUSED" ? (
         <section className="rounded-lg border border-rule bg-leaf p-5" data-phone-pointer>
           <h1 className="font-display text-[1.75rem] leading-[2.25rem] text-ink">{t("title")}</h1>

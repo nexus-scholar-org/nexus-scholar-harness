@@ -50,6 +50,8 @@ from scholar_search.config import settings
 from scholar_search.plan import DEFAULT_PROVIDERS as DEFAULT_DATABASES, run_providers
 
 from ...pipeline import discovery as disc
+from ...screening import read_store
+from ...screening.read_store import display_route
 from ...pipeline import harvest_marker
 from ...workspace.audit import append_event
 from .. import refusals
@@ -258,13 +260,13 @@ def _protocol(ws: Path) -> _Protocol:
     if not path.is_file():
         raise Refused(409, refusals.PROTOCOL_MISSING, "This workspace has no protocol.json; finish inception first.")
     try:
-        model = ResearchProtocol.model_validate_json(path.read_text(encoding="utf-8"))
+        model = ResearchProtocol.model_validate_json(read_store.read_text(path))
         query, providers = compile_protocol_search(path)
     except (ValidationError, ValueError, TypeError) as exc:
         raise Refused(422, refusals.PROTOCOL_INVALID, f"protocol.json is not a valid protocol: {str(exc)[:300]}") from exc
     # M10a: the list a run sent no ``providers`` searches (unknown names dropped, a
     # repeat once, no known name the engine's default suite), not the raw field.
-    raw = json.loads(path.read_text(encoding="utf-8"))
+    raw = json.loads(read_store.read_text(path))
     strategy = raw.get("search_strategy") if isinstance(raw, dict) else None
     listed = strategy.get("target_databases") if isinstance(strategy, dict) else None
     return _Protocol(path, query, run_providers(providers), canonical_fingerprint(model),
@@ -846,6 +848,7 @@ def put_methods(body: MethodsBody, request: Request) -> dict[str, Any]:
 
 
 @router.get("/handoff")
+@display_route
 def handoff(request: Request) -> dict[str, Any]:
     from .screening_v1 import _corpus_view
 
@@ -1523,6 +1526,7 @@ def _discovery_checks(request: Request, step: str | None, run: str | None) -> di
 
 
 @router.get("/checks")
+@display_route
 def discovery_checks(request: Request, step: str | None = None, run: str | None = None) -> dict[str, Any]:
     """The discovery checks of the open workspace (02-checks); a pure read."""
     return _discovery_checks(request, step, run)

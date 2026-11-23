@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { formatNumber, type Locale } from "@/i18n";
+import { LoadingFrame } from "@/components/loading-frame";
 import { Button, DataCell, DecisionBadge, GatePanel } from "@/components/ui/base";
 import { PilotCard } from "@/components/screening-pilot-card";
 import { ScreeningSteps, StateCard } from "@/components/screening-state-card";
@@ -331,7 +332,7 @@ export function ScreeningPrepare({ locale }: Readonly<{ locale: Locale }>) {
 
   const body = (() => {
     if (error) return <StateCard pageHeading locale={locale} code={error.code} message={error.message} consoleOrigin={origin} onRetry={() => void load()} />;
-    if (!settings || !draft || !batches) return <p className="text-ink-muted" role="status">{t("loading")}</p>;
+    if (!settings || !draft || !batches) return <LoadingFrame heading={t("eyebrow")} sentence={t("loading")} />;
     const aiNeedsConfirm = draft.mode === "ai_agreed_exclusion" && settings.mode !== "ai_agreed_exclusion";
     const canSave = !aiNeedsConfirm || (aiConfirmed && (draft.sample_audit_size ?? 0) > 0);
     const stale = batches.batches.some((b) => b.binding?.state === "STALE_BINDING");

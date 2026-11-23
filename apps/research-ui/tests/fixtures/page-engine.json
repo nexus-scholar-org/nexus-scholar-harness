@@ -1,0 +1,939 @@
+{
+ "_source": "tests/console/_record_page_engine.py: a published three-record workspace (test_export_api)",
+ "answers": {
+  "/api/v1/charting": {
+   "body": {
+    "changes": null,
+    "chasing_pending": false,
+    "counts": {
+     "cells_open": 0,
+     "charted": 0,
+     "excluded": 0,
+     "included": 0,
+     "kept": 2,
+     "not_charted": 2,
+     "not_retrieved": 0,
+     "pilot": 0,
+     "prisma": {
+      "assessed": 0,
+      "not_retrieved": 0,
+      "retrieved": 0,
+      "sought": 2
+     },
+     "requested": 0,
+     "required_open": 0,
+     "retrieved": 0,
+     "to_confirm": 0,
+     "to_decide": 2,
+     "to_get": 2
+    },
+    "form": {
+     "amendments": [],
+     "columns": [],
+     "created_at": "2026-11-23T07:35:31.506372Z",
+     "created_by": "researcher:local",
+     "has_values": false,
+     "pilot": {
+      "ended_at": null,
+      "ended_at_version": null,
+      "ended_by": null,
+      "on": true
+     },
+     "protocol_fingerprint": "sha256:4442ddb7e6ee4416371d92256ddfc0e4124117429b7a34a3baf5cb7531e8a7f5",
+     "schema": "nexus.charting-form.v1",
+     "updated_at": "2026-11-23T07:35:31.506659Z",
+     "version": 1
+    },
+    "last_export": null,
+    "not_retrieved_reasons": [
+     "no_access",
+     "not_found",
+     "no_reply",
+     "other"
+    ],
+    "publication": {
+     "arm": "databases",
+     "code": null,
+     "generation_id": "GEN-cccccccc-RUN-2aa9ccd0d744aa0037af70d84aa1-0542dfe3",
+     "published_at": "2026-11-23T07:35:29.833038+00:00",
+     "round": 1,
+     "status": "CURRENT"
+    },
+    "read_only": false,
+    "read_only_code": null,
+    "reason_options": [
+     {
+      "category": "INVALID_FORMAT",
+      "code": "EXC-01",
+      "kind": "exclusion",
+      "label": "Non-canonical or malformed protocol documents"
+     },
+     {
+      "category": null,
+      "code": "FAILS-INC-01",
+      "kind": "fails_inclusion",
+      "label": "Formal research protocols declaring explicit research questions"
+     },
+     {
+      "category": null,
+      "code": "OTHER",
+      "kind": "other",
+      "label": "Other"
+     }
+    ],
+    "rounds": [
+     {
+      "arm": "databases",
+      "generation_id": "GEN-cccccccc-RUN-2aa9ccd0d744aa0037af70d84aa1-0542dfe3",
+      "published_at": "2026-11-23T07:35:29.833038+00:00",
+      "round": 1
+     }
+    ],
+    "rows": [
+     {
+      "arm": "databases",
+      "arxiv_id": null,
+      "authors": [],
+      "cells": {},
+      "charted": false,
+      "doi": null,
+      "ft_decision": null,
+      "fulltext": {
+       "attachment": null,
+       "discarded_fetch": null,
+       "last_lookup": null,
+       "link": null,
+       "pending_fetch": null,
+       "reason": null,
+       "reason_text": null,
+       "requested_on": null,
+       "status": "to_get"
+      },
+      "generation_id": "GEN-cccccccc-RUN-2aa9ccd0d744aa0037af70d84aa1-0542dfe3",
+      "heads": {
+       "attachment": null,
+       "fetched_confirm": null,
+       "fetched_discard": null,
+       "fulltext_decision": null,
+       "fulltext_status": null,
+       "link": null
+      },
+      "kept": true,
+      "new_since": null,
+      "no_full_text": true,
+      "pilot": false,
+      "round": 1,
+      "round_label": "Databases",
+      "study_id": "STU-b1b6111ca6b1ba7e39878789c11ddd34",
+      "ta_decision": "MAYBE",
+      "ta_reason": "MAYBE (no note)",
+      "title": "Event record 2",
+      "url": null,
+      "venue": null,
+      "year": null
+     },
+     {
+      "arm": "databases",
+      "arxiv_id": null,
+      "authors": [],
+      "cells": {},
+      "charted": false,
+      "doi": null,
+      "ft_decision": null,
+      "fulltext": {
+       "attachment": null,
+       "discarded_fetch": null,
+       "last_lookup": null,
+       "link": null,
+       "pending_fetch": null,
+       "reason": null,
+       "reason_text": null,
+       "requested_on": null,
+       "status": "to_get"
+      },
+      "generation_id": "GEN-cccccccc-RUN-2aa9ccd0d744aa0037af70d84aa1-0542dfe3",
+      "heads": {
+       "attachment": null,
+       "fetched_confirm": null,
+       "fetched_discard": null,
+       "fulltext_decision": null,
+       "fulltext_status": null,
+       "link": null
+      },
+      "kept": true,
+      "new_since": null,
+      "no_full_text": true,
+      "pilot": false,
+      "round": 1,
+      "round_label": "Databases",
+      "study_id": "STU-d0fc4b2f40536a604ad8a9b439780faa",
+      "ta_decision": "INCLUDE",
+      "ta_reason": "INCLUDE (no note)",
+      "title": "Event record 0",
+      "url": null,
+      "venue": null,
+      "year": null
+     }
+    ],
+    "screener_id": "researcher:local",
+    "shape": "charting.table-v1",
+    "stale": false
+   },
+   "status": 200
+  },
+  "/api/v1/charting/fetch": {
+   "body": {
+    "run_id": null,
+    "state": "idle"
+   },
+   "status": 200
+  },
+  "/api/v1/charting/records/STU-d0fc4b2f40536a604ad8a9b439780faa": {
+   "body": {
+    "counts": {
+     "cells_open": 0,
+     "charted": 0,
+     "excluded": 0,
+     "included": 0,
+     "kept": 2,
+     "not_charted": 2,
+     "not_retrieved": 0,
+     "pilot": 0,
+     "prisma": {
+      "assessed": 0,
+      "not_retrieved": 0,
+      "retrieved": 0,
+      "sought": 2
+     },
+     "requested": 0,
+     "required_open": 0,
+     "retrieved": 0,
+     "to_confirm": 0,
+     "to_decide": 2,
+     "to_get": 2
+    },
+    "form": {
+     "amendments": [],
+     "columns": [],
+     "created_at": "2026-11-23T07:35:31.506372Z",
+     "created_by": "researcher:local",
+     "has_values": false,
+     "pilot": {
+      "ended_at": null,
+      "ended_at_version": null,
+      "ended_by": null,
+      "on": true
+     },
+     "protocol_fingerprint": "sha256:4442ddb7e6ee4416371d92256ddfc0e4124117429b7a34a3baf5cb7531e8a7f5",
+     "schema": "nexus.charting-form.v1",
+     "updated_at": "2026-11-23T07:35:31.506659Z",
+     "version": 1
+    },
+    "not_retrieved_reasons": [
+     "no_access",
+     "not_found",
+     "no_reply",
+     "other"
+    ],
+    "publication": {
+     "arm": "databases",
+     "code": null,
+     "generation_id": "GEN-cccccccc-RUN-2aa9ccd0d744aa0037af70d84aa1-0542dfe3",
+     "published_at": "2026-11-23T07:35:29.833038+00:00",
+     "round": 1,
+     "status": "CURRENT"
+    },
+    "read_only": false,
+    "reason_options": [
+     {
+      "category": "INVALID_FORMAT",
+      "code": "EXC-01",
+      "kind": "exclusion",
+      "label": "Non-canonical or malformed protocol documents"
+     },
+     {
+      "category": null,
+      "code": "FAILS-INC-01",
+      "kind": "fails_inclusion",
+      "label": "Formal research protocols declaring explicit research questions"
+     },
+     {
+      "category": null,
+      "code": "OTHER",
+      "kind": "other",
+      "label": "Other"
+     }
+    ],
+    "row": {
+     "abstract": null,
+     "arm": "databases",
+     "arxiv_id": null,
+     "authors": [],
+     "cells": {},
+     "charted": false,
+     "doi": null,
+     "ft_decision": null,
+     "fulltext": {
+      "attachment": null,
+      "discarded_fetch": null,
+      "last_lookup": null,
+      "link": null,
+      "pending_fetch": null,
+      "reason": null,
+      "reason_text": null,
+      "requested_on": null,
+      "status": "to_get"
+     },
+     "generation_id": "GEN-cccccccc-RUN-2aa9ccd0d744aa0037af70d84aa1-0542dfe3",
+     "heads": {
+      "attachment": null,
+      "fetched_confirm": null,
+      "fetched_discard": null,
+      "fulltext_decision": null,
+      "fulltext_status": null,
+      "link": null
+     },
+     "kept": true,
+     "new_since": null,
+     "no_full_text": true,
+     "pilot": false,
+     "round": 1,
+     "round_label": "Databases",
+     "study_id": "STU-d0fc4b2f40536a604ad8a9b439780faa",
+     "ta_decision": "INCLUDE",
+     "ta_reason": "INCLUDE (no note)",
+     "title": "Event record 0",
+     "url": null,
+     "venue": null,
+     "year": null
+    },
+    "screener_id": "researcher:local",
+    "shape": "charting.record-v1"
+   },
+   "status": 200
+  },
+  "/api/v1/review/next-step": {
+   "body": {
+    "action": {
+     "key": "openTriage",
+     "to": {
+      "query": {},
+      "screen": "screening.triage"
+     }
+    },
+    "also": [],
+    "params": {
+     "needs_you": 3,
+     "total": 3
+    },
+    "phase": "screening",
+    "protocol_fingerprint": "sha256:4442ddb7e6ee4416371d92256ddfc0e4124117429b7a34a3baf5cb7531e8a7f5",
+    "round": 1,
+    "scope": "workspace",
+    "shape": "review.next-step-v1",
+    "state": "SCREENING",
+    "unknown": [],
+    "waiting": null
+   },
+   "status": 200
+  },
+  "/api/v1/screening/agreement": {
+   "body": {
+    "agreement_pct": null,
+    "answered_by_both": [],
+    "decided_after_seeing_the_draft": 0,
+    "decided_with_proposal": 0,
+    "kappa": null,
+    "kappa_note": "needs a second human screener",
+    "splits_by_criterion": [],
+    "table_2x2": {
+     "both_exclude": 0,
+     "both_include": 0,
+     "you_exclude_agent_include": 0,
+     "you_include_agent_exclude": 0
+    },
+    "unclear_either_side": 0
+   },
+   "status": 200
+  },
+  "/api/v1/screening/approver": {
+   "body": {
+    "basis": "typed-name",
+    "name": null,
+    "set_at": null
+   },
+   "status": 200
+  },
+  "/api/v1/screening/corpus": {
+   "body": {
+    "accepted": {
+     "accepted_at": "2026-11-23T07:35:29.356641Z",
+     "artifact_id": "ART-corpus-352fdb0f43ed65829f9b5d6c29f6eadd",
+     "duplicates": 0,
+     "records": 3,
+     "studies": 3
+    },
+    "databases": [],
+    "from_discovery": true,
+    "harvest": null,
+    "limits": {
+     "label_max_length": 40,
+     "max_source_bytes": 52428800
+    },
+    "origin": null,
+    "preview": {
+     "duplicates": 0,
+     "identified": 0,
+     "unique_studies": 0
+    },
+    "shape": "screening.corpus-v1",
+    "sources": [],
+    "staging_refused": {
+     "code": "CORPUS_ALREADY_ACCEPTED",
+     "message": "the corpus is already accepted; its sources can no longer change"
+    },
+    "state": "ACCEPTED"
+   },
+   "status": 200
+  },
+  "/api/v1/screening/criteria": {
+   "body": {
+    "amendments": [],
+    "batch_approved": false,
+    "batches_prepared": true,
+    "can_amend": true,
+    "criteria": [
+     {
+      "id": "INC-01",
+      "reason_category": null,
+      "side": "inclusion",
+      "since_version": 1,
+      "text": "Formal research protocols declaring explicit research questions"
+     },
+     {
+      "id": "EXC-01",
+      "reason_category": "INVALID_FORMAT",
+      "side": "exclusion",
+      "since_version": 1,
+      "text": "Non-canonical or malformed protocol documents"
+     }
+    ],
+    "criteria_version": 1,
+    "handoff_batches": [],
+    "retired": []
+   },
+   "status": 200
+  },
+  "/api/v1/screening/decisions/conflicts": {
+   "body": {
+    "items": []
+   },
+   "status": 200
+  },
+  "/api/v1/screening/methods": {
+   "body": {
+    "caveats": [
+     "proposals.jsonl is absent: no AI model proposal is recorded."
+    ],
+    "figures": {
+     "agents": [],
+     "blinding": {
+      "at_publish": "reveal_after_decision",
+      "changes": []
+     },
+     "criteria_amendments": [],
+     "duplicates_removed": 0,
+     "excluded": 1,
+     "exclusion_reasons": {
+      "FAILS-INC-01": 1
+     },
+     "identified": 3,
+     "included": 1,
+     "method": {
+      "blinding": "reveal_after_decision",
+      "dedup": {
+       "doi": true,
+       "first_author": true,
+       "title_similarity": 0.97,
+       "year_tolerance": 1
+      },
+      "not_reported": "unclear",
+      "reporting": "prisma-scr",
+      "reporting_label": "PRISMA-ScR",
+      "reporting_source": "playbook",
+      "rules_version": "screening-rules-v1",
+      "source": "defaults"
+     },
+     "method_amendments": [],
+     "mode": {
+      "at_publish": "human_sees_every_record",
+      "changes": [],
+      "sample_audit_size": null
+     },
+     "n_proposed": 0,
+     "pilots": [],
+     "queue_order": {
+      "at_publish": null,
+      "changes": []
+     },
+     "reviewers": 1,
+     "screened": 3,
+     "unclear": 1
+    },
+    "generation_fingerprint": "sha256:d422981ca0361751a79c4102ea2edfeb6884f6233fffc2c2fcc9e65b4668e3ab",
+    "generation_id": "GEN-cccccccc-RUN-2aa9ccd0d744aa0037af70d84aa1-0542dfe3",
+    "language": "en",
+    "not_stated": [
+     "Queue order: not recorded for this screening."
+    ],
+    "paragraph": "3 records were identified; 0 duplicates were removed; 3 records were screened; 1 were excluded (FAILS-INC-01: 1); 1 were unclear and went to full-text assessment; 1 were included. Duplicates across databases were removed by exact DOI and by title similarity of at least 0.97 with the same first author and publication years at most 1 year apart. One reviewer screened every record. A criterion the title and abstract did not report sent the record to full-text assessment. These are the harness defaults (screening-rules-v1); the protocol does not set them. The criteria were not changed after the protocol was signed. The screening is reported following PRISMA-ScR, the PRISMA extension for scoping reviews. No AI model proposed decisions for this screening. The AI-agreed-exclusion setting was off.",
+    "published_at": "2026-11-23T07:35:29.833038+00:00",
+    "sources": [
+     {
+      "digest": "sha256:6e3ef6467e3f23980253eecfaeb5eaa05f0de6a7e5e3902384ee190ad225ffb3",
+      "name": "generation.json",
+      "path": "literature/screening/generation.json"
+     },
+     {
+      "digest": "sha256:beaaa9b2eb93ce664f65208c7d6533bf915dcec660fc38e4a41c2d9ce75a1425",
+      "name": "prisma_report.json",
+      "path": "literature/prisma_report.json"
+     },
+     {
+      "digest": "sha256:96deb42953789d94a0396eb151d98647f4729d41d7e045e49ad631f2fa234bc2",
+      "name": "included.json",
+      "path": "literature/included.json"
+     },
+     {
+      "digest": "sha256:3fd4dacb79157257fcdfb6defbddb2d1f7fedd43dd135d914b0908d6a80a1d7f",
+      "name": "excluded.json",
+      "path": "literature/excluded.json"
+     },
+     {
+      "digest": "sha256:7f82285eabee26923e2b0e36ed27f70160602eaf8fa2cfa79fd4852dddee1eaf",
+      "name": "batch_001_decisions.json",
+      "path": "literature/screening/batch_001_decisions.json"
+     },
+     {
+      "name": "journal.jsonl",
+      "path": "audit/journal.jsonl"
+     },
+     {
+      "digest": "sha256:578f497dd8ae8728a3e29c0ea089f1150f6751adab844e2d5038575cf24b90da",
+      "name": "researcher_local-1.jsonl",
+      "path": "literature/screening/events/researcher_local-1.jsonl"
+     }
+    ]
+   },
+   "status": 200
+  },
+  "/api/v1/screening/prisma/preview": {
+   "body": {
+    "checks": [
+     {
+      "detail": "every decision is a human decision event",
+      "name": "human_provenance",
+      "ok": true
+     },
+     {
+      "detail": "0 open",
+      "name": "no_open_conflicts",
+      "ok": true
+     },
+     {
+      "detail": "no decision yet; the current protocol is sha256:4442ddb7e6ee4416371d92256ddfc0e4124117429b7a34a3baf5cb7531e8a7f5",
+      "name": "bound_to_current_protocol",
+      "ok": false
+     },
+     {
+      "detail": "3 not yet decided",
+      "name": "every_record_decided",
+      "ok": false
+     },
+     {
+      "detail": "every decisions file matches the decision events",
+      "name": "projections_current",
+      "ok": true
+     }
+    ],
+    "duplicates_removed": 0,
+    "excluded": {
+     "by_reason": {},
+     "total": 0
+    },
+    "identified": 3,
+    "included": 0,
+    "not_yet_decided": 3,
+    "screened": 3,
+    "unclear_to_full_text": 0
+   },
+   "status": 200
+  },
+  "/api/v1/screening/proposals/setup": {
+   "body": {
+    "active_run": null,
+    "data_flow": "titles, abstracts and publication years of every record in the run, and the screening criteria",
+    "earlier_wording_drafts": {
+     "count": 0,
+     "criteria_version": 1,
+     "study_ids": []
+    },
+    "last_model": null,
+    "latest_run": null,
+    "providers": [
+     {
+      "consent": null,
+      "key": "environment",
+      "provider": "anthropic"
+     },
+     {
+      "consent": null,
+      "key": "none",
+      "provider": "openai_compatible"
+     },
+     {
+      "consent": null,
+      "key": "none",
+      "provider": "gemini"
+     }
+    ],
+    "task": {
+     "effort": "low",
+     "model": "claude-opus-5-5",
+     "prompt_sha256": "sha256:3cccd987e5210cf03afdb29a5de8ecb526fff5b267e8bb06664f28ad972dc449",
+     "task_version": "screen-v1"
+    }
+   },
+   "status": 200
+  },
+  "/api/v1/screening/queue?view=decided&limit=30": {
+   "body": {
+    "items": [],
+    "next_cursor": null,
+    "protocol_changed": false
+   },
+   "status": 200
+  },
+  "/api/v1/screening/queue?view=decided&limit=50": {
+   "body": {
+    "items": [],
+    "next_cursor": null,
+    "protocol_changed": false
+   },
+   "status": 200
+  },
+  "/api/v1/screening/queue?view=needs_you&limit=200": {
+   "body": {
+    "items": [
+     {
+      "batch_id": "batch-af0577ee80cb397b0f62ff181c8aed86",
+      "batch_index": 1,
+      "decided": false,
+      "flags": [
+       "title_only"
+      ],
+      "has_proposal": false,
+      "shown_again": false,
+      "study_id": "STU-76935ac3f73068dc32fcb26f8e1d8941",
+      "title": "Event record 1"
+     },
+     {
+      "batch_id": "batch-af0577ee80cb397b0f62ff181c8aed86",
+      "batch_index": 1,
+      "decided": false,
+      "flags": [
+       "title_only"
+      ],
+      "has_proposal": false,
+      "shown_again": false,
+      "study_id": "STU-b1b6111ca6b1ba7e39878789c11ddd34",
+      "title": "Event record 2"
+     },
+     {
+      "batch_id": "batch-af0577ee80cb397b0f62ff181c8aed86",
+      "batch_index": 1,
+      "decided": false,
+      "flags": [
+       "title_only"
+      ],
+      "has_proposal": false,
+      "shown_again": false,
+      "study_id": "STU-d0fc4b2f40536a604ad8a9b439780faa",
+      "title": "Event record 0"
+     }
+    ],
+    "next_cursor": null,
+    "protocol_changed": false
+   },
+   "status": 200
+  },
+  "/api/v1/screening/queue?view=needs_you&limit=50": {
+   "body": {
+    "items": [
+     {
+      "batch_id": "batch-af0577ee80cb397b0f62ff181c8aed86",
+      "batch_index": 1,
+      "decided": false,
+      "flags": [
+       "title_only"
+      ],
+      "has_proposal": false,
+      "shown_again": false,
+      "study_id": "STU-76935ac3f73068dc32fcb26f8e1d8941",
+      "title": "Event record 1"
+     },
+     {
+      "batch_id": "batch-af0577ee80cb397b0f62ff181c8aed86",
+      "batch_index": 1,
+      "decided": false,
+      "flags": [
+       "title_only"
+      ],
+      "has_proposal": false,
+      "shown_again": false,
+      "study_id": "STU-b1b6111ca6b1ba7e39878789c11ddd34",
+      "title": "Event record 2"
+     },
+     {
+      "batch_id": "batch-af0577ee80cb397b0f62ff181c8aed86",
+      "batch_index": 1,
+      "decided": false,
+      "flags": [
+       "title_only"
+      ],
+      "has_proposal": false,
+      "shown_again": false,
+      "study_id": "STU-d0fc4b2f40536a604ad8a9b439780faa",
+      "title": "Event record 0"
+     }
+    ],
+    "next_cursor": null,
+    "protocol_changed": false
+   },
+   "status": 200
+  },
+  "/api/v1/screening/queue?view=pilot&limit=200": {
+   "body": {
+    "checklist_default": "collapsed",
+    "items": [],
+    "next_cursor": null,
+    "pilot": null,
+    "protocol_changed": false
+   },
+   "status": 200
+  },
+  "/api/v1/screening/records/STU-d0fc4b2f40536a604ad8a9b439780faa": {
+   "body": {
+    "abstract": null,
+    "batch_index": 1,
+    "binding": {
+     "batch_id": "batch-af0577ee80cb397b0f62ff181c8aed86",
+     "batch_sha256": "sha256:c346aefeeb944f1d8a7ba3533fef14ec3bae358bcc325ea677b2bd2ac8e23b16",
+     "criteria_version": 1,
+     "protocol_fingerprint": "sha256:4442ddb7e6ee4416371d92256ddfc0e4124117429b7a34a3baf5cb7531e8a7f5"
+    },
+    "criteria": [
+     {
+      "id": "INC-01",
+      "kind": "inclusion",
+      "since_version": 1,
+      "text": "Formal research protocols declaring explicit research questions"
+     },
+     {
+      "id": "EXC-01",
+      "kind": "exclusion",
+      "since_version": 1,
+      "text": "Non-canonical or malformed protocol documents"
+     }
+    ],
+    "criteria_version": 1,
+    "doi": null,
+    "highlights": [],
+    "history": [],
+    "my_decision": null,
+    "not_reported_policy": "unclear",
+    "search_terms": {
+     "concepts": [
+      {
+       "concept": "Protocol Identity",
+       "mentions": 0,
+       "terms": [
+        "Protocol Identity",
+        "canonical serialization",
+        "protocol fingerprint"
+       ]
+      }
+     ],
+     "marks": []
+    },
+    "shown_again": null,
+    "study_id": "STU-d0fc4b2f40536a604ad8a9b439780faa",
+    "title": "Event record 0",
+    "venue": null,
+    "year": null
+   },
+   "status": 200
+  },
+  "/api/v1/screening/records/STU-d0fc4b2f40536a604ad8a9b439780faa/proposal": {
+   "body": {
+    "detail": {
+     "code": "PROPOSAL_HIDDEN",
+     "message": "decide this record first; the agent's draft is hidden until then"
+    }
+   },
+   "status": 403
+  },
+  "/api/v1/screening/settings": {
+   "body": {
+    "advance_on_decide": "show_draft_then_next",
+    "blinding": "reveal_after_decision",
+    "blinding_source": "settings",
+    "method_amendments": [],
+    "mode": "human_sees_every_record",
+    "not_reported_policy": "unclear",
+    "not_reported_source": "defaults",
+    "queue_order": "seeded",
+    "reporting": "prisma-scr",
+    "reporting_source": "playbook",
+    "sample_audit_size": null,
+    "screener_id": "researcher:local"
+   },
+   "status": 200
+  },
+  "/api/v1/screening/summary": {
+   "body": {
+    "agent_proposed": 0,
+    "by_outcome": {
+     "EXCLUDE": 0,
+     "INCLUDE": 0,
+     "MAYBE": 0
+    },
+    "conflicts": 0,
+    "criteria_version": 1,
+    "decided": 0,
+    "lanes": {
+     "agent": 0,
+     "second_screener": "PARKED",
+     "you": 0
+    },
+    "needs_you": 3,
+    "pilot": null,
+    "protocol_changed": false,
+    "recheck": 0,
+    "total": 3
+   },
+   "status": 200
+  },
+  "/api/v1/screening/ui/batches": {
+   "body": {
+    "batches": [
+     {
+      "batch_file": "batch_001.json",
+      "batch_index": 1,
+      "collected": true,
+      "coverage": "COMPLETE",
+      "decisions_count": 3,
+      "decisions_file": "batch_001_decisions.json",
+      "items": 3,
+      "unresolved_rows": []
+     }
+    ],
+    "count": 1,
+    "missing": [],
+    "run_id": "RUN-2aa9ccd0d744aa0037af70d84aa13753",
+    "shape": "ui07.screening-batches-v1"
+   },
+   "status": 200
+  },
+  "/api/v1/screening/ui/batches/review": {
+   "body": {
+    "count": 1,
+    "reviews": [
+     {
+      "batch_index": 1,
+      "deferral": {
+       "present": false
+      },
+      "missing": [
+       {
+        "file": "batch_001_recommendation.json",
+        "reason": "WORKER_BATCH_MISSING"
+       }
+      ],
+      "override": {
+       "superseded": false
+      },
+      "recommendation": {
+       "present": false
+      },
+      "resolution": {
+       "resolved": 3,
+       "total": 3,
+       "unresolved_rows": []
+      },
+      "review": {
+       "present": false
+      },
+      "shape": "ui07.review-state-v1"
+     }
+    ],
+    "shape": "ui07.batch-reviews-v1"
+   },
+   "status": 200
+  },
+  "/api/v1/ui/publication-status": {
+   "body": {
+    "code": null,
+    "details": {
+     "generation_id": "GEN-cccccccc-RUN-2aa9ccd0d744aa0037af70d84aa1-0542dfe3"
+    },
+    "generation_id": "GEN-cccccccc-RUN-2aa9ccd0d744aa0037af70d84aa1-0542dfe3",
+    "message": "screening generation is current",
+    "outputs": {
+     "conflicts.json": "sha256:4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+     "excluded.json": "sha256:3fd4dacb79157257fcdfb6defbddb2d1f7fedd43dd135d914b0908d6a80a1d7f",
+     "included.json": "sha256:96deb42953789d94a0396eb151d98647f4729d41d7e045e49ad631f2fa234bc2",
+     "prisma_report.json": "sha256:beaaa9b2eb93ce664f65208c7d6533bf915dcec660fc38e4a41c2d9ce75a1425",
+     "prisma_screening_report.md": "sha256:27923124bf6db6e1619536b9f1ca9a9956522f8311ec1b4719c89bf5be9dc1c6"
+    },
+    "shape": "ui07.publication-status-v1",
+    "status": "CURRENT"
+   },
+   "status": 200
+  },
+  "/api/v1/workspaces": {
+   "body": {
+    "busy": {
+     "pairing_open": false,
+     "run_active": false
+    },
+    "current": {
+     "path": "C:\\ws-root\\ws",
+     "slug": "ws"
+    },
+    "items": [
+     {
+      "has_corpus": true,
+      "is_current": true,
+      "last_event": {
+       "action": "SCREENING_GENERATION_PUBLISHED",
+       "at": "2026-11-23T07:35:29.848485+00:00"
+      },
+      "path": "C:\\ws-root\\ws",
+      "screening_started": true,
+      "slug": "ws",
+      "status": "PUBLISHED",
+      "title": null,
+      "valid": true
+     }
+    ],
+    "root": "C:\\ws-root",
+    "root_source": "flag",
+    "skipped_count": 0,
+    "writable": true
+   },
+   "status": 200
+  }
+ },
+ "study": "STU-d0fc4b2f40536a604ad8a9b439780faa"
+}

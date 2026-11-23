@@ -42,10 +42,10 @@ from scholar_harness.authority.generations import (
     GENERATION_STALE,
     GenerationRecord,
     GenerationStatus,
-    require_current_generation,
 )
 from scholar_harness.screening import events as ev
 from scholar_harness.screening import proposals as pr
+from scholar_harness.screening import read_store
 from scholar_harness.screening.criteria import AMENDMENTS_FILE as CRITERIA_AMENDMENTS_FILE
 
 EXPORT_NOT_PUBLISHED = "EXPORT_NOT_PUBLISHED"
@@ -134,7 +134,7 @@ def _read_json_output(ws: Path, record: GenerationRecord, name: str) -> Any:
     """Read a published file and re-check its digest against `generation.json`."""
     path = ws / "literature" / name
     try:
-        raw = path.read_bytes()
+        raw = read_store.read_bytes(path)
     except OSError:
         raw = None
     if raw is None or content_sha256(raw) != record.output_digests[name]:
@@ -154,7 +154,8 @@ def _decision_entries(ws: Path, record: GenerationRecord) -> tuple[dict[str, dic
         name = f"batch_{int(binding['batch_index']):03d}_decisions.json"
         path = screening / name
         try:
-            raw = path.read_bytes()
+            # H-screening-read-performance: inside a display route the stale check reads these bytes again.
+            raw = read_store.read_bytes(path)
             payload = json.loads(raw.decode("utf-8"))
         except (OSError, ValueError) as exc:
             raise ExportRefused(
@@ -228,8 +229,10 @@ def _check_decisions_unchanged(
 
 def load_published(ws: Path, *, purpose: str) -> tuple[Published, dict[str, Any] | None]:
     """The CURRENT published generation, or a typed refusal. Pure read."""
+    from .currentness import current_generation
+
     ws = Path(ws)
-    result = require_current_generation(ws)
+    result = current_generation(ws)
     if result.status is not GenerationStatus.CURRENT or result.record is None:
         raise _refuse_from_currentness(result, purpose=purpose)
     record = result.record

@@ -15,6 +15,7 @@ from typing import Any
 
 from fastapi import APIRouter, HTTPException, Query, Request
 
+from ...screening.read_store import display_route
 from ..runtimes.actions import actions_payload
 
 logger = logging.getLogger(__name__)
@@ -574,6 +575,7 @@ def ui07_corpus_page(
 
 
 @router.get("/ui/publication-status")
+@display_route
 def ui07_publication_status(request: Request):
     """§3(e): honest currentness for the screening publication (pure read)."""
     _ui07_refuse_caller_identity(request)

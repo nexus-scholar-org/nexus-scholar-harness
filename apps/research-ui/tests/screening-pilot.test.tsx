@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ScreeningPilot } from "@/components/screening-pilot";
@@ -123,6 +123,8 @@ const posts = (path: string) => fake.log.filter((l) => l.method === "POST" && l.
 
 async function ready() {
   render(<ScreeningPilot locale="en" />);
+  // The loading frame has its own heading (H-screening-read-performance); the page's comes after it.
+  await waitFor(() => expect(document.querySelector("[data-loading-frame]")).toBeNull());
   return screen.findByRole("heading", { level: 1 });
 }
 

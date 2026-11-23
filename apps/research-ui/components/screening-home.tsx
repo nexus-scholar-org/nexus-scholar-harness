@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { formatNumber, type Locale } from "@/i18n";
+import { LoadingFrame } from "@/components/loading-frame";
 import { DataCell, DecisionBadge } from "@/components/ui/base";
 import { DETAILS_LABEL, ScreeningSteps, StateCard, exportHref, stepHref } from "@/components/screening-state-card";
 import { getPublicationStatus, getScreeningBatches, isScreeningApiError, type ScreeningBatches } from "@/lib/screening-api";
@@ -252,9 +253,7 @@ export function ScreeningHome({ locale }: Readonly<{ locale: Locale }>) {
     <div className="mx-auto max-w-7xl px-6 py-10 lg:px-8 lg:py-14">
       <ScreeningSteps locale={locale} current="home" consoleOrigin={origin} />
       {state.status === "loading" ? (
-        <p className="text-ink-muted" role="status">
-          {t("loading")}
-        </p>
+        <LoadingFrame heading={t("eyebrow")} sentence={t("loading")} cards={3} />
       ) : state.status === "error" ? (
         <StateCard
           pageHeading

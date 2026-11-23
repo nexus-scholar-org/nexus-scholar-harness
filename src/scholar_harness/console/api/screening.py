@@ -641,17 +641,42 @@ def ui07_screening_batches(request: Request):
     }
 
 
+@router.get("/ui/batches/review")
+def ui07_batch_reviews(request: Request):
+    """Every batch's review state in one answer (H-screening-read-performance).
+
+    The Publish screen asked ``/ui/batch/{n}/review`` once per batch (54 requests
+    on the sensor-stress review). Each item is what that route answers for the
+    batch, in the order of ``/ui/batches``; a batch that route refuses carries
+    its status and refusal (``{"batch_index", "status", "detail"}``) instead.
+    """
+    _ui07_refuse_caller_identity(request)
+    batches = ui07_screening_batches(request)["batches"]
+    ws = _ui07_ws(request)
+    reviews: list[dict[str, Any]] = []
+    for batch in batches:
+        n = int(batch["batch_index"])
+        try:
+            reviews.append(_ui07_batch_review(ws, n))
+        except HTTPException as exc:
+            reviews.append({"batch_index": n, "status": exc.status_code, "detail": exc.detail})
+    return {"shape": "ui07.batch-reviews-v1", "count": len(reviews), "reviews": reviews}
+
+
 @router.get("/ui/batch/{n}/review")
 def ui07_batch_review(request: Request, n: int):
     """§3(d): recommendation, resolution, override history, review, deferral."""
+    _ui07_refuse_caller_identity(request)
+    return _ui07_batch_review(_ui07_ws(request), n)
+
+
+def _ui07_batch_review(ws: Path, n: int) -> dict[str, Any]:
     from scholar_harness.screening.worker import (
         RECOMMENDATION_SCHEMA,
         WORKER_METHOD,
         recommendation_path,
     )
 
-    _ui07_refuse_caller_identity(request)
-    ws = _ui07_ws(request)
     sdir = _ui07_screening_dir(ws)
     batch_file = sdir / f"batch_{n:03d}.json"
     if not batch_file.is_file():

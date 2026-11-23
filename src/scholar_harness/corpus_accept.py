@@ -52,6 +52,7 @@ from scholar_search.models import Document
 from .contracts import AcceptanceContext, accept_artifact
 from .contracts.canonical import canonical_fingerprint, deterministic_id
 from .contracts.identifiers import IdentifierKind
+from .screening import read_store
 from .screening.batcher import _rebuild_doc
 from .workspace.audit import append_event
 
@@ -112,7 +113,7 @@ def _protocol_fingerprint(ws: Path) -> str:
     if not path.is_file():
         raise AcceptCorpusRefused(f"protocol.json not found in {ws}")
     try:
-        raw = json.loads(path.read_text(encoding="utf-8"))
+        raw = json.loads(read_store.read_text(path))
         return protocol_fingerprint(ResearchProtocol.model_validate(raw))
     except ValueError as exc:  # JSON and pydantic validation errors
         raise AcceptCorpusRefused(f"protocol.json is not a valid protocol ({exc})", "PROTOCOL_INVALID") from exc
@@ -225,7 +226,7 @@ def _accepted_snapshot(ws: Path) -> bool:
     registry = ws / "audit" / "artifact_registry.json"
     if not registry.is_file():
         return False
-    entries = json.loads(registry.read_text(encoding="utf-8")).get("artifacts", {})
+    entries = json.loads(read_store.read_text(registry)).get("artifacts", {})
     return any(e.get("artifact_type") == "corpus_snapshot" for e in entries.values())
 
 
@@ -262,7 +263,7 @@ def _manifest(ws: Path) -> dict[str, Any] | None:
     if not path.is_file():
         return None
     try:
-        value = json.loads(path.read_text(encoding="utf-8"))
+        value = json.loads(read_store.read_text(path))
     except (OSError, ValueError):
         return None
     return value if isinstance(value, dict) else None
@@ -583,21 +584,84 @@ def preview_staged(workspace: Path | str) -> dict[str, Any]:
     sources, documents = _staged_documents(ws)
     unique = len(_deduplicator(ws).deduplicate(copy.deepcopy(documents))) if documents else 0
     return {
-        "sources": [
-            {
-                **{k: s[k] for k in ("id", "label", "file_name", "records", "searched_on", "query")},
-                "format": s.get("format", "ris"),
-                # E3 (M3d-engine); rows staged before it carry neither.
-                "limits": s.get("limits"),
-                "rejected": list(s.get("rejected") or []),
-            }
-            for s in sources
-        ],
+        "sources": _source_rows(sources),
         "databases": databases(sources),
         "identified": len(documents),
         "duplicates": len(documents) - unique,
         "unique_studies": unique,
     }
+
+
+def _source_rows(sources: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """The staged files as the corpus view lists them (no file is parsed)."""
+    return [
+        {
+            **{k: s[k] for k in ("id", "label", "file_name", "records", "searched_on", "query")},
+            "format": s.get("format", "ris"),
+            # E3 (M3d-engine); rows staged before it carry neither.
+            "limits": s.get("limits"),
+            "rejected": list(s.get("rejected") or []),
+        }
+        for s in sources
+    ]
+
+
+def _staged_as_accepted(ws: Path, sources: list[dict[str, Any]], manifest: dict[str, Any] | None) -> bool:
+    """True when the staged files are, byte for byte, the ones the accepted corpus was built from.
+
+    H-screening-read-performance: the acceptance's manifest names each file's id and
+    sha256; each stored file is hashed again here (no parsing).
+    """
+    if not manifest or manifest.get("schema") not in (IMPORT_MANIFEST_SCHEMA, COMBINED_MANIFEST_SCHEMA):
+        return False
+    accepted = [(m.get("id"), m.get("sha256")) for m in manifest.get("sources") or [] if isinstance(m, dict)]
+    if accepted != [(s.get("id"), s.get("sha256")) for s in sources]:
+        return False
+    for source in sources:
+        try:
+            if hashlib.sha256((ws / source["stored_as"]).read_bytes()).hexdigest() != source["sha256"]:
+                return False
+        except (OSError, KeyError, TypeError):
+            return False
+    return True
+
+
+def _accepted_counts(
+    ws: Path, snapshot: dict[str, Any], sources: list[dict[str, Any]], manifest: dict[str, Any] | None
+) -> dict[str, int] | None:
+    """``preview_staged``'s counts for exports accepted alone, read from the acceptance (no de-duplication).
+
+    H-screening-read-performance: answered from the accepted snapshot and its manifest
+    only when the snapshot is the one those exports built: an import manifest whose
+    record count is the staged files' and the snapshot's, round 1 (a later round's
+    snapshot is the chase's), and the protocol the snapshot was built under is the
+    current one (so is its de-duplication method). Otherwise ``None``: the exports are
+    parsed and de-duplicated again, as before.
+    """
+    from .screening.rounds import current_round
+
+    if not manifest or manifest.get("schema") != IMPORT_MANIFEST_SCHEMA:
+        return None
+    if int(current_round(ws).get("round") or 1) > 1:
+        return None
+    try:
+        artifact = json.loads(read_store.read_text(ws / snapshot["path"]))
+        records = len(artifact["data"]["record_to_study"])
+        studies = len(artifact["data"]["studies"])
+        staged = sum(int(s["records"]) for s in sources)
+    except (OSError, ValueError, KeyError, TypeError):
+        return None
+    if manifest.get("total_raw_harvested") != records or staged != records:
+        return None
+    try:
+        current = _protocol_fingerprint(ws)
+    except AcceptCorpusRefused:
+        # Review finding 2: an unreadable protocol is not this path's refusal to make; the
+        # full preview answers as it always did.
+        return None
+    if artifact.get("protocol_fingerprint") != current:
+        return None
+    return {"identified": records, "duplicates": records - studies, "unique_studies": studies}
 
 
 IMPORT_MANIFEST_SCHEMA = "nexus.corpus-import.v1"
@@ -728,18 +792,29 @@ def corpus_status(workspace: Path | str) -> dict[str, Any]:
     registry = ws / "audit" / "artifact_registry.json"
     snapshot = None
     if registry.is_file():
-        entries = json.loads(registry.read_text(encoding="utf-8")).get("artifacts", {})
+        entries = json.loads(read_store.read_text(registry)).get("artifacts", {})
         accepted = [e for e in entries.values() if e.get("artifact_type") == "corpus_snapshot"]
         if accepted:
             snapshot = max(accepted, key=lambda e: str(e.get("accepted_at") or ""))
-    preview = preview_staged(ws)
-    sources = preview["sources"]
+    # H-screening-read-performance: while nothing is accepted, or when a staged file
+    # changed since the accept, the exports are parsed and de-duplicated as before.
+    # Once accepted from these very files, the staged counts are computed only if the
+    # answer shows them, and then read from the acceptance where it is certain.
+    staged = staged_sources(ws)
+    manifest_now = _manifest(ws) if snapshot else None
+    preview: dict[str, Any] | None = None
+    if not snapshot or (staged and not _staged_as_accepted(ws, staged, manifest_now)):
+        preview = preview_staged(ws)
+    elif any(int(s.get("records") or 0) for s in staged):
+        _deduplicator(ws)  # an invalid method block refuses, as the de-duplication would
+    sources = preview["sources"] if preview is not None else _source_rows(staged)
     status: dict[str, Any] = {
         "shape": "screening.corpus-v1",
         "state": "ACCEPTED" if snapshot else ("STAGED" if sources else "EMPTY"),
         "sources": sources,
-        "databases": preview["databases"],
-        "preview": {k: preview[k] for k in ("identified", "duplicates", "unique_studies")},
+        "databases": preview["databases"] if preview is not None else databases(staged),
+        # Set below, by the first part of the answer that shows counts.
+        "preview": {k: preview[k] for k in ("identified", "duplicates", "unique_studies")} if preview is not None else None,
         "accepted": None,
         "from_discovery": False,
         # Review F4: where the corpus comes from: "imports", "discovery",
@@ -755,7 +830,7 @@ def corpus_status(workspace: Path | str) -> dict[str, Any]:
     if refusal is not None:
         status["staging_refused"] = {"code": refusal.code, "message": str(refusal)}
     if snapshot:
-        artifact = json.loads((ws / snapshot["path"]).read_text(encoding="utf-8"))
+        artifact = json.loads(read_store.read_text(ws / snapshot["path"]))
         studies = len(artifact["data"]["studies"])
         records = len(artifact["data"]["record_to_study"])
         status["accepted"] = {
@@ -772,7 +847,7 @@ def corpus_status(workspace: Path | str) -> dict[str, Any]:
             status["from_discovery"] = True
             status["origin"] = "combined"
             status["harvest"] = {"run": part.get("run"), "state": "ready", "included": True}
-            status["databases"] = [*(part.get("databases") or []), *preview["databases"]]
+            status["databases"] = [*(part.get("databases") or []), *databases(staged)]
             identified = int(manifest.get("total_raw_harvested") or records)
             status["preview"] = {"identified": identified, "duplicates": max(0, identified - studies),
                                  "unique_studies": studies}
@@ -812,6 +887,13 @@ def corpus_status(workspace: Path | str) -> dict[str, Any]:
             status["origin"], rows, status["preview"] = harvest
             if rows is not None:
                 status["databases"] = rows
+    if status["preview"] is None:
+        # An accepted corpus whose counts no other part gave: the staged exports' own.
+        counts = _accepted_counts(ws, snapshot, staged, manifest_now) if snapshot else None
+        if counts is None:
+            full = preview_staged(ws)
+            counts = {k: full[k] for k in ("identified", "duplicates", "unique_studies")}
+        status["preview"] = counts
     return status
 
 
