@@ -22,7 +22,7 @@ What each stage costs (measured 2026-11-03, Windows, 8 cores):
   `tsc` plus `vitest related` for the touched files.
 - `checkpoint`: the area plus its direct consumers, slow tests included.
 - `pr`: the full Python suite once, in parallel (`-n auto`), plus lint; UI changes
-  add vitest, build and Playwright. Run it once per final executable commit;
+  add vitest and the build (there is no browser suite since 2026-11-23). Run it once per final executable commit;
   documentation-only repairs reuse it (policy §"Evidence reuse").
 
 Never claim a gate passed without its output. If the selector falls back to

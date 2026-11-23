@@ -30,7 +30,7 @@ npm run typecheck
 npm run test
 npm run build
 npm run dev
-npm run test:browser   # Playwright, tests-browser/
+npm run lint:ui        # copy and source rules that read files (scripts/lint-ui.mjs)
 ```
 
 `npm run typecheck` and `npm run build` must pass before a change is considered
@@ -38,10 +38,12 @@ reviewable. `npm run test` runs the component/unit suite in-process with Vitest
 on jsdom; it needs no server and no browser. `npm run dev` starts the Next.js
 development server for manual inspection and is not used by the test run.
 
-What the test suite does and does not prove is recorded in `docs/GATES.md`. Real
-browser verification (screenshots, 375px/1440px rendering, axe on rendered CSS)
-runs separately via `npm run test:browser`; `docs/GATES.md` §3 is the authoritative
-record of what it measured and what is still open.
+What the test suite does and does not prove is recorded in `docs/GATES.md`. There
+is no real-browser suite: the Playwright suites were removed on 2026-11-23
+(H-test-diet, decided by the researcher), so rendering at 375px/1440px, focus
+rings, contrast on rendered CSS and hydration are checked by looking at the app,
+not by a test. `docs/roadmap/milestones/H-test-diet.md` lists what is no longer
+checked.
 
 Do not commit `node_modules/` or `.next/`; both are ignored.
 
@@ -104,9 +106,9 @@ Two constraints that are easy to undo by accident:
   Sans, IBM Plex Mono) are bundled from `@fontsource` packages in
   `app/[locale]/layout.tsx`. Do not add a font CDN or a `fonts.googleapis.com` link.
 - **`--color-focus` is the one focus ring.** `a:focus-visible` in
-  `app/globals.css` and `.skip-link:focus` must both read it;
-  `tests-browser/focus-visibility.spec.ts` cross-checks them, so moving one and
-  not the other fails the suite even though every control still looks focused.
+  `app/globals.css` and `.skip-link:focus` must both read it. No test
+  cross-checks them since the browser suite was removed (2026-11-23), so moving
+  one and not the other would pass unnoticed.
 
 ## Guardrails
 

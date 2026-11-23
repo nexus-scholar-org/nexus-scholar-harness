@@ -339,8 +339,8 @@
       "paths": ["apps/research-ui/**"],
       "inner": ["npm --prefix apps/research-ui run typecheck", "npm --prefix apps/research-ui run test:related -- {area_paths}"],
       "checkpoint": ["npm --prefix apps/research-ui run typecheck", "npm --prefix apps/research-ui test"],
-      "pr": ["npm --prefix apps/research-ui run typecheck", "npm --prefix apps/research-ui test", "npm --prefix apps/research-ui run build", "npm --prefix apps/research-ui run test:browser"],
-      "closure": ["npm --prefix apps/research-ui run typecheck", "npm --prefix apps/research-ui test", "npm --prefix apps/research-ui run build", "npm --prefix apps/research-ui run test:browser"],
+      "pr": ["npm --prefix apps/research-ui run typecheck", "npm --prefix apps/research-ui test", "npm --prefix apps/research-ui run build"],
+      "closure": ["npm --prefix apps/research-ui run typecheck", "npm --prefix apps/research-ui test", "npm --prefix apps/research-ui run build"],
       "path_root": "apps/research-ui/"
     }
   ],

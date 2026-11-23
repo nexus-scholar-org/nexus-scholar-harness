@@ -19,23 +19,23 @@
  * names that must exist in the product live in `app/` and `components/`, both of
  * which stay scanned, so no real utility is lost. The test directories are
  * excluded for the same reason as the prose, and this is not hypothetical:
- * `tests-browser/hygiene.spec.ts` documents the retired palette in its own
+ * the former browser hygiene spec documented the retired palette in its own
  * JSDoc, and being a `.ts` file it was being read as a class-name source. The
- * guard was regenerating the exact defect it exists to catch.
+ * guard was regenerating the exact defect it existed to catch. (The browser
+ * suites were removed on 2026-11-23, H-test-diet; only `../tests/**` is left.)
  *
  * Note the asymmetry, because it decides what the guard must do: Tailwind strips
  * `/* … *​/` comments from **its own stylesheet**, so naming a retired utility in
  * `globals.css` prose is harmless (verified — zero occurrences in the shipped
  * CSS). It does **not** strip comments from `.ts`/`.tsx`. That is why the two
- * exclusions are both needed, and why `stripCssComments()` in
- * `tests-browser/hygiene.spec.ts` applies only to CSS.
+ * exclusions are both needed.
  *
- * PATH SEMANTICS — read this before editing the six lines below, because the
+ * PATH SEMANTICS — read this before editing the four lines below, because the
  * obvious spelling is wrong and fails *silently*. `@source` paths resolve
  * **relative to this file's own directory**, which is `app/` — NOT relative to
- * the application root. So `./tests-browser/**` means
- * `app/research-ui/app/tests-browser/**`, which does not exist, excludes nothing,
- * and still compiles the palette. It must be `../tests-browser/**`. This was hit
+ * the application root. So `./tests/**` means
+ * `app/research-ui/app/tests/**`, which does not exist, excludes nothing,
+ * and still compiles the palette. It must be `../tests/**`. This was hit
  * during implementation: the first two directives worked only because `../`
  * happens to reach the app root, and the two test-directory exclusions appeared
  * correct, produced no warning, and did nothing.
@@ -50,11 +50,11 @@
  * scanned, and adding an exclusion on a false premise would be a guess dressed
  * up as a fix. See `GATES.md` §3.7.9.
  *
- * The five directives after the Markdown one (packet UI-01d, M6) exclude the
- * three test directories and the two new translation directories, so the
- * exclusion list is now six entries: `../../**` for every Markdown file under
- * `apps/`, then `../tests/**`, `../tests-browser/**`, `../tests-long-strings/**`,
- * `../i18n/**` and `../messages/**`. The
+ * The three directives after the Markdown one exclude the test directory and
+ * the two translation directories, so the exclusion list is four entries:
+ * `../../**` for every Markdown file under `apps/`, then `../tests/**`,
+ * `../i18n/**` and `../messages/**`. (Until 2026-11-23 two more excluded the
+ * browser suites, `../tests-browser/**` and `../tests-long-strings/**`.) The
  * last two are excluded for the same reason as the test directories, and the
  * reason is the same failure mode as Markdown prose: `i18n/` and `messages/` are
  * fourteen files whose entire content is natural language. A catalog word that
@@ -66,12 +66,6 @@
  * happen to harvest, would silently widen the gate-21(c) allow-list and make that
  * gate weaker every time a translator chose a common word.
  *
- * `../tests-long-strings/**` is the third test directory and is excluded for the
- * third reason: that suite carries deliberately absurd measurement strings (the
- * ones the expansion gate inflates) and a `data-nav-region` selector it drives
- * the browser with. It is a measurement harness, not a source of utility names,
- * and nothing under it may reach the scanner.
- *
  * (Note for whoever edits this comment: a CSS comment cannot contain the
  * sequence `*` + `/`, so these globs are described by their head — `../../**` —
  * and never written out in full. Writing one out closes this comment early and
@@ -79,8 +73,6 @@
  */
 @source not "../../**/*.md";
 @source not "../tests/**";
-@source not "../tests-browser/**";
-@source not "../tests-long-strings/**";
 @source not "../i18n/**";
 @source not "../messages/**";
 
@@ -101,8 +93,8 @@
  * generator.
  *
  * Contrast: the brand book states every text colour passes 4.5:1 on surface
- * and ground in both themes; `tests-browser/rendered-axe.spec.ts` checks it on
- * the rendered page in light and in dark.
+ * and ground in both themes. No test checks it on the rendered page since the
+ * browser suite was removed (2026-11-23); jsdom cannot compute contrast.
  */
 :root {
   --background: var(--color-paper);
@@ -144,9 +136,8 @@ body {
  * It uses `var(--color-focus)` — the same token, and the same value, as
  * `.skip-link:focus` below — and the same 2px geometry, so the skip link is not
  * a special case but the first element this rule happens to reach first.
- * `tests-browser/focus-visibility.spec.ts` reads the rendered token rather than
- * a literal, and cross-checks the nav ring against the skip-link ring in the
- * same run, so the two cannot drift apart unnoticed.
+ * No test cross-checks the two rings since the browser suite was removed
+ * (2026-11-23), so keep them reading the one token.
  *
  * This supersedes the earlier bare `button, a { outline-offset: 3px; }`
  * declaration rather than sitting beside it. That rule applied an offset in

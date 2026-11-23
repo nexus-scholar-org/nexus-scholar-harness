@@ -13,7 +13,6 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:related": "vitest related --run --passWithNoTests",
-    "test:browser": "playwright test",
     "test:watch": "vitest",
     "build:export": "node scripts/build-export.mjs"
   },
@@ -28,7 +27,6 @@
     "react-dom": "^19.0.0"
   },
   "devDependencies": {
-    "@playwright/test": "^1.63.0",
     "@tailwindcss/postcss": "^4.0.0",
     "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "^16.3.3",
