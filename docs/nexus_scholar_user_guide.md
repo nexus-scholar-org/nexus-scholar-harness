@@ -1,6 +1,6 @@
 # nexus-scholar 1.1 (beta): user guide
 
-This guide follows the current beta, **1.1.0b6** (PyPI and GitHub). Where `main`
+This guide follows the current beta, **1.1.0b7** (PyPI and GitHub). Where `main`
 already does more, the text says so.
 
 `nexus-scholar` is the distributed entry point for the **Nexus Scholar
@@ -22,7 +22,7 @@ GitHub Releases — no source checkout, no per-kit installs.
 > (`scholar_rag`) and verification and trust (`scholar_verify`) were removed on
 > 2026-11-23, with their commands and MCP tools.
 >
-> **The PDF kit's downloading is production** from the release after 1.1.0b6
+> **The PDF kit's downloading is production** since 1.1.0b7
 > (decision 2026-11-21, M12a items 21 and 27, K0): `scholar-pdf download` and `ingest` need a contact e-mail
 > (`SCHOLAR_MAILTO`, or the kit's `MAILTO`; refused `MAILTO_NOT_SET` without),
 > name the app in their User-Agent, request only the providers' own open-access
@@ -53,7 +53,8 @@ GitHub Releases — no source checkout, no per-kit installs.
 > identity before you use it.
 
 - Works on **Windows, macOS, Linux** (Python 3.11+ via `uv` or `pip`).
-- The wheel bundles the harness CLI **plus the seven scholar kits**, the
+- The wheel bundles the harness CLI **plus the five scholar kits** (protocol,
+  search, PDF, graph, agent), the
   research app (`nexus-scholar ui`) and the skill bundles, so a workspace initialized here is self-contained and
   portable.
 - PyPI: <https://pypi.org/project/nexus-scholar/>
@@ -70,7 +71,7 @@ GitHub Releases — no source checkout, no per-kit installs.
 Run any command in an ephemeral isolated environment directly from PyPI:
 
 ```sh
-uvx "nexus-scholar>=1.1.0b6" --help
+uvx "nexus-scholar>=1.1.0b7" --help
 ```
 
 `uvx` caches the environment, so repeat runs are fast.
@@ -82,10 +83,10 @@ uvx "nexus-scholar>=1.1.0b6" --help
 
 ```sh
 # Via standard pip:
-pip install "nexus-scholar>=1.1.0b6"
+pip install "nexus-scholar>=1.1.0b7"
 
 # Or as an isolated CLI tool via uv:
-uv tool install "nexus-scholar>=1.1.0b6"
+uv tool install "nexus-scholar>=1.1.0b7"
 ```
 
 The version in the command is needed while Nexus Scholar is in beta. Do not use
@@ -253,7 +254,7 @@ What it verifies:
 
 | Group | Checks |
 | --- | --- |
-| `kits` | Each of the seven bundled kits imports; they share the `nexus-scholar` version (no per-kit pins) |
+| `kits` | Each of the five bundled kits imports; they share the `nexus-scholar` version (no per-kit pins) |
 | `keys` | API keys present/absent (values shown masked `***` or `Missing`); model keys warn rather than fail |
 | `skills` | Skill bundles resolvable (workspace copy / repo / wheel bundle) |
 | `layout` | Canonical contract files present; `project.json` stats match disk state |
@@ -358,7 +359,7 @@ scholar-agent [--workspace <root>] [--transport stdio|sse|streamable-http]
   (default `NEXUS_MCP_WORKSPACE` or the current repo root). CWD-independent.
 - `--transport` selects the protocol; `stdio` is the default for desktop
   clients.
-- Run it with `--help` to list the tools. `src/scholar_agent/` registers 25
+- Run it with `--help` to list the tools. `src/scholar_agent/` registers 24
   (2026-11-23), among them `nexus_discover`, `nexus_screening_queue`,
   `nexus_screening_record`, `nexus_submit_proposal`, the `nexus_assistant_*`
   tools, the recon tools `recon_probe`, `recon_distill` and `recon_delta`, and
@@ -469,6 +470,6 @@ Run any with `--help` for full options.
 
 - Releases are tagged on the harness repo (`v*`); each tag publishes a wheel to
   PyPI and GitHub Releases with auto-generated notes.
-- Upgrade during the beta with `uv tool install --force "nexus-scholar>=1.1.0b6"`
-  or `pip install -U "nexus-scholar>=1.1.0b6"`. Release notes are in
-  `docs/releases/` (1.1.0b6 is the latest).
+- Upgrade during the beta with `uv tool install --force "nexus-scholar>=1.1.0b7"`
+  or `pip install -U "nexus-scholar>=1.1.0b7"`. Release notes are in
+  `docs/releases/` (1.1.0b7 is the latest).
