@@ -483,6 +483,37 @@ Run any with `--help` for full options.
 | Skills were `COPIED` and you want symlinks | Enable Developer Mode (Windows) / re-run `init` into a fresh folder per the CLI hint |
 | `doctor` overall is `WARN` but `--exit-code` returns 0 | WARNs are advisory by design; only a `FAIL` trips `--exit-code` |
 
+### The copy made before an update
+
+Each review records which version of Nexus Scholar last opened it for
+writing (`workspace_format.json` in the review's folder). The first time a
+newer version opens a review, it saves a copy of the whole review first,
+PDFs included, as one zip file beside your reviews:
+
+```
+<your workspaces folder>/.nexus-copies/<review folder>/<review>-<date>-...zip
+```
+
+While the copy is made the app shows "Saving a copy of …" with its progress,
+and then opens the review by itself; the terminal prints the same line. The
+five newest copies of each review are kept; older ones are deleted by the
+app, never anything else in that folder. A copy never holds your `.env` key
+file, the vendored skills, caches or exports.
+
+**To go back to a copy:** close Nexus Scholar; rename the review's folder
+(for example add `-newer`); unzip the copy into a new folder with the
+review's original name; copy your `.env` back if the review had one; open it
+with the version you used before (a newer one would copy it again). The
+copies sit beside your reviews, so they are not a backup of your disk: if
+the workspaces folder is lost, so are they.
+
+**"Made with a newer version of Nexus Scholar."** A review last opened by a
+newer version is not opened by an older one, so nothing in it is misread or
+overwritten. Install that version (or a later one) to continue. **"This
+review was not opened"** after a failed copy means nothing in the review was
+changed: free some disk space or check that the `.nexus-copies` folder can
+be written, then open it again.
+
 ## 11. Versioning
 
 - Releases are tagged on the harness repo (`v*`); each tag publishes a wheel to

@@ -76,6 +76,32 @@ describe("workspaces.list", () => {
     expect(document.body.textContent).toContain(ROOT);
   });
 
+  it("badges a review made by a newer version and a failed copy, and names the last copy (H-workspace-format-version)", async () => {
+    const copiesFolder = `${ROOT}\\.nexus-copies\\uav-review`;
+    engine({
+      list: () => listing({
+        items: [
+          item("uav-review", {
+            is_current: true, has_corpus: true,
+            last_copy: { name: "uav-review-20261124T090000Z-format0-to1-earlier-to-1.1.0b8.zip", folder: copiesFolder, at: "2026-11-24T09:00:00+00:00", bytes: 4096 },
+          }),
+          item("crop-review", { format: { recorded: true, format: 2, written_by: "1.3.0", newer: true, unreadable: false } }),
+        ],
+        preparation: { state: "refused", slug: "uav-review", title: "uav review", reason: "build", done_bytes: 0, total_bytes: 0,
+          refusal: { code: "WORKSPACE_COPY_FAILED", message: "disk full" } },
+      }),
+    });
+    render(<WorkspacesScreen locale="en" />);
+    const current = (await screen.findByText("uav review")).closest("tr")!;
+    expect(within(current).getByText("Copy failed")).toBeInTheDocument();
+    expect(within(current).getByText(copiesFolder)).toBeInTheDocument();
+    expect(current.querySelector("[data-last-copy]")?.textContent).toContain("Copy saved before an update");
+    const newer = screen.getByText("crop review").closest("tr")!;
+    expect(within(newer).getByText("Made with a newer version")).toBeInTheDocument();
+    expect(within(newer).queryByText("Copy failed")).toBeNull();
+    expect(newer.querySelector("[data-last-copy]")).toBeNull();
+  });
+
   it("links New review to the inception drafts, as a secondary action beside the one brand button (M4b)", async () => {
     engine();
     render(<WorkspacesScreen locale="en" />);

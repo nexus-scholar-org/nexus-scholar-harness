@@ -65,6 +65,20 @@ an authoritative artifact.
   `parent_decision_ids` reference both screener decisions.
 - Logging an acceptance failure and continuing is a contract violation.
 
+### The workspace format version
+
+- A change that an older build would refuse, misread or overwrite in a
+  workspace (a new value in a protocol field, a new file that changes what a
+  reader counts or reports, a file another reader rewrites) raises
+  `CURRENT_FORMAT` in `src/scholar_harness/workspace/format.py` by one and
+  adds a migration step to `STEPS`, even an empty one, with its test
+  (H-workspace-format-version). The milestone review checks it.
+- A step is idempotent, journalled, and writes only files the copy holds; it
+  never changes `protocol.json`, a Contract v1 artifact, a fingerprint or a
+  published generation unless a contract decision says so.
+- Every door that writes into an existing workspace opens it with
+  `prepare_for_writing` (or goes through `create_app`); reads never stamp.
+
 ## 6. Minimum valid screening provenance
 
 A single decision handed to the Contract v1 collector needs, at minimum:

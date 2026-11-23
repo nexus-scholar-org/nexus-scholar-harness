@@ -621,6 +621,43 @@ export const STATES: Record<string, StateEntry> = {
       ar: T("لا يستطيع هذا التطبيق تبديل مساحة العمل", "لم يُشغَّل بالأمر `nexus-scholar ui`، فلا يمكنه إعادة التشغيل على مجلد آخر. شغّله من الطرفية بدلًا من ذلك.", "فتح مساحة عمل أخرى", "nexus-scholar ui"),
     },
   },
+  // H-workspace-format-version: the format check before a version writes to a review.
+  WORKSPACE_FORMAT_NEWER: {
+    role: "blocked",
+    action: "reload",
+    copy: {
+      en: T("Made with a newer version of Nexus Scholar", "This review was last opened with a newer version, which stores reviews in a way this version cannot read safely. To keep it intact, this version does not open it. Install the newer version to continue.", "Opening this review", "Reload the list"),
+      fr: T("Créée avec une version plus récente de Nexus Scholar", "Cette revue a été ouverte en dernier avec une version plus récente, qui enregistre les revues d'une manière que cette version ne peut pas lire sans risque. Pour la garder intacte, cette version ne l'ouvre pas. Installez la version plus récente pour continuer.", "L'ouverture de cette revue", "Recharger la liste"),
+      ar: T("أُنشئت بإصدار أحدث من Nexus Scholar", "فُتحت هذه المراجعة آخر مرة بإصدار أحدث يحفظ المراجعات بطريقة لا يستطيع هذا الإصدار قراءتها بأمان. وللحفاظ عليها سليمة لا يفتحها هذا الإصدار. ثبّت الإصدار الأحدث للمتابعة.", "فتح هذه المراجعة", "إعادة تحميل القائمة"),
+    },
+  },
+  WORKSPACE_FORMAT_UNREADABLE: {
+    role: "blocked",
+    action: "reload",
+    copy: {
+      en: T("This review's format file cannot be read", "The file that records which version stored this review (workspace_format.json) is damaged. Nothing in the review was changed, and this version does not open it.", "Opening this review", "Reload the list"),
+      fr: T("Le fichier de format de cette revue est illisible", "Le fichier qui indique quelle version a enregistré cette revue (workspace_format.json) est endommagé. Rien n'a été modifié dans la revue, et cette version ne l'ouvre pas.", "L'ouverture de cette revue", "Recharger la liste"),
+      ar: T("تعذّرت قراءة ملف صيغة هذه المراجعة", "الملف الذي يسجّل الإصدار الذي حفظ هذه المراجعة (workspace_format.json) تالف. لم يتغيّر شيء في المراجعة، ولا يفتحها هذا الإصدار.", "فتح هذه المراجعة", "إعادة تحميل القائمة"),
+    },
+  },
+  WORKSPACE_COPY_FAILED: {
+    role: "blocked",
+    action: "reload",
+    copy: {
+      en: T("This review was not opened", "Nexus Scholar saves a copy of a review before a newer version opens it, and the copy could not be saved. Nothing in the review was changed. Free some disk space or check that the copies folder can be written, then try again.", "Opening this review", "Try again"),
+      fr: T("Cette revue n'a pas été ouverte", "Nexus Scholar enregistre une copie d'une revue avant qu'une version plus récente ne l'ouvre, et la copie n'a pas pu être enregistrée. Rien n'a été modifié dans la revue. Libérez de l'espace disque ou vérifiez que le dossier des copies est accessible en écriture, puis réessayez.", "L'ouverture de cette revue", "Réessayer"),
+      ar: T("لم تُفتح هذه المراجعة", "يحفظ Nexus Scholar نسخة من المراجعة قبل أن يفتحها إصدار أحدث، وتعذّر حفظ النسخة. لم يتغيّر شيء في المراجعة. وفّر مساحة على القرص أو تحقّق من إمكانية الكتابة في مجلد النسخ، ثم أعد المحاولة.", "فتح هذه المراجعة", "إعادة المحاولة"),
+    },
+  },
+  WORKSPACE_PREPARING: {
+    role: "unclear",
+    action: "reload",
+    copy: {
+      en: T("Saving a copy of this review", "This version of Nexus Scholar saves a copy of the review before opening it. The screen opens by itself when the copy is done.", "Opening this review", "Check again"),
+      fr: T("Enregistrement d'une copie de cette revue", "Cette version de Nexus Scholar enregistre une copie de la revue avant de l'ouvrir. L'écran s'ouvre de lui-même une fois la copie terminée.", "L'ouverture de cette revue", "Vérifier à nouveau"),
+      ar: T("جارٍ حفظ نسخة من هذه المراجعة", "يحفظ هذا الإصدار من Nexus Scholar نسخة من المراجعة قبل فتحها. تُفتح الشاشة من تلقاء نفسها عند اكتمال النسخ.", "فتح هذه المراجعة", "التحقق مجددًا"),
+    },
+  },
   RUN_ALREADY_ACTIVE: {
     role: "unclear",
     action: "reload",
