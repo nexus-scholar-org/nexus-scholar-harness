@@ -1,6 +1,6 @@
 # H-remove-rag-verify Remove the retrieval and verification kits
 
-Branch: `dev/h/remove-rag-verify` (from `origin/main` `8dd7904a`) · Lane: **RELEASE** (packaging, the MCP surface and the public commands change) · Status: **READY FOR PR** (review round 2 APPROVE; not pushed; decision items 1 to 3 PROPOSED)
+Branch: `dev/h/remove-rag-verify` (from `origin/main` `8dd7904a`) · Lane: **RELEASE** (packaging, the MCP surface and the public commands change) · Status: **READY FOR PR** (review round 2 APPROVE; decision items 1 to 3 accepted by the researcher on 2026-11-23 as built; push and PR approved)
 
 The researcher's decision of 2026-11-23, in the coordinator session, after the project review and the test-suite review of that day (`docs/assessment/project-review-2026-11-23.md`, section 3, "Complexity that is not earning its keep"): delete `scholar_rag` and `scholar_verify`, their tests, and every stage, MCP tool, command, skill and extra that only exists to call them. Their words: "I want to delete the rag and verify module and their test entirely. They are saved in the commit history." `scholar_graph`, PDF extraction, the capability adapter and `claims` stay for a later pass.
 

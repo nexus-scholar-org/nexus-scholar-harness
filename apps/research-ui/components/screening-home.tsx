@@ -9,6 +9,7 @@ import { DETAILS_LABEL, ScreeningSteps, StateCard, exportHref, stepHref } from "
 import { getPublicationStatus, getScreeningBatches, isScreeningApiError, type ScreeningBatches } from "@/lib/screening-api";
 import { chartingHref } from "@/lib/charting-api";
 import { getConflicts, getCorpus, getSettings, getSummary, type Conflict, type Corpus, type Settings, type Summary } from "@/lib/screening-v1";
+import { adoptionText } from "@/lib/adoption-copy";
 
 /**
  * Screening home (spec 01): how far screening is, what needs you, who screens,
@@ -454,7 +455,13 @@ function HomeReady({
       <p className="text-sm text-ink-muted" data-home-settings>
         {t("settings", {
           blinding: settings.blinding === "show" ? t("blindingShow") : t("blindingHidden"),
-          mode: settings.mode === "ai_agreed_exclusion" ? t("modeAi") : t("modeEvery"),
+          // H-adopted-decisions-disclosure: "you see every record" is not said alone once decisions are declared as stored from drafts.
+          mode:
+            settings.mode === "ai_agreed_exclusion"
+              ? t("modeAi")
+              : (summary.adoption?.declared ?? 0) > 0
+                ? adoptionText(locale, "homeMode", { n: n(summary.adoption!.declared) })
+                : t("modeEvery"),
         })}
       </p>
 

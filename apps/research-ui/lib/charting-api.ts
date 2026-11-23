@@ -192,6 +192,8 @@ export interface ChartingRow {
   generation_id: string | null;
   ta_decision: "INCLUDE" | "MAYBE";
   ta_reason: string | null;
+  /** H-adopted-decisions-disclosure (item 6): the title-and-abstract decision was declared as stored from the agent's draft. */
+  ta_adopted?: boolean;
   kept: boolean;
   new_since: string | null;
   fulltext: Fulltext;

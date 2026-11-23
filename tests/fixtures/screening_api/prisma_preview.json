@@ -7,10 +7,41 @@
   },
   "response": {
     "body": {
+      "adoption": {
+        "candidates": 0,
+        "declarations": [],
+        "declared": 0,
+        "declared_by_outcome": {
+          "EXCLUDE": 0,
+          "INCLUDE": 0,
+          "MAYBE": 0
+        },
+        "integrity": {
+          "removed": [],
+          "unconfirmed": []
+        },
+        "no_sample_drawn": false,
+        "phrase": "stored from the agent's draft without being read one by one",
+        "sample_owed": false,
+        "sample_owed_size": null,
+        "samples": [],
+        "undeclared_by_outcome": {
+          "EXCLUDE": 0,
+          "INCLUDE": 0,
+          "MAYBE": 0
+        },
+        "undeclared_candidates": 0
+      },
       "checks": [
         {
-          "detail": "every decision is a human decision event",
+          "detail": "every decision is recorded as the reviewer's",
           "name": "human_provenance",
+          "ok": true
+        },
+        {
+          "advisory": true,
+          "detail": "0 decisions declared as stored from the agent's draft without being read one by one",
+          "name": "adopted_decisions_declared",
           "ok": true
         },
         {
