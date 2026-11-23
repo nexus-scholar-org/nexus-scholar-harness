@@ -130,11 +130,6 @@ packages = [
 testpaths = ["tests"]
 pythonpath = ["src"]
 addopts = "-q"
-# A passing test's temporary folder is removed when the test ends, and the run's folder with it when
-# every test passed (H-faster-python-tests-2). The default kept every folder of the last three runs,
-# about 50,000 files after a full run, which a later session then spent up to a minute deleting.
-# A failed test's folder is kept.
-tmp_path_retention_policy = "failed"
 markers = [
     "slow: >= ~2.5s (subprocess, real index or server); skipped by the inner test gate",
 ]

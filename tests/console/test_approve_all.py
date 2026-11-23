@@ -192,21 +192,31 @@ def test_finding_38_one_action_approves_54_decided_batches(tmp_path, capsys):
     Now one begin-all stages all 54, one paste of the printed block redeems
     them, and each approval still binds its own batch.
     """
-    ws = _workspace(tmp_path, records=54 * 3, batch_size=3)
+    _one_action_approves_every_decided_batch(tmp_path, capsys, batches=54)
+
+
+def test_one_action_approves_three_decided_batches_each_bound_to_its_own_bytes(tmp_path, capsys):
+    """The same checks on three batches, for the gates that skip the 54-batch reproduction."""
+    _one_action_approves_every_decided_batch(tmp_path, capsys, batches=3)
+
+
+def _one_action_approves_every_decided_batch(tmp_path, capsys, *, batches: int) -> None:
+    last = batches + 1
+    ws = _workspace(tmp_path, records=batches * 3, batch_size=3)
     client = _client(ws)
     by_batch = _studies_by_batch(client)
-    assert len(by_batch) == 54
+    assert len(by_batch) == batches
     _decide(client, [s for studies in by_batch.values() for s in studies])
     capsys.readouterr()
 
     begun = client.post(f"{BASE}/actions/pairing/begin-all", json={})
     assert begun.status_code == 200, begun.text
     body = begun.json()
-    assert [b["batch_index"] for b in body["batches"]] == list(range(1, 55))
+    assert [b["batch_index"] for b in body["batches"]] == list(range(1, last))
     assert body["skipped"] == []
     printed = capsys.readouterr().out
     bundle = _bundle(printed)
-    assert len(bundle.splitlines()) == 54
+    assert len(bundle.splitlines()) == batches
     # The codes never travel over HTTP.
     for line in bundle.splitlines():
         assert line.split(":", 1)[1].strip() not in begun.text
@@ -214,13 +224,13 @@ def test_finding_38_one_action_approves_54_decided_batches(tmp_path, capsys):
     redeemed = client.post(f"{BASE}/actions/pairing/redeem-all", json={"codes": bundle})
     assert redeemed.status_code == 200, redeemed.text
     result = redeemed.json()
-    assert [r["batch_index"] for r in result["approved"]] == list(range(1, 55))
+    assert [r["batch_index"] for r in result["approved"]] == list(range(1, last))
     assert result["refused"] == []
     assert result["publication_approval_fingerprint"]
 
     # One approval per batch, each binding only that batch's decision bytes (CON-03).
     approvals = _approvals(ws)
-    assert sorted(approvals) == list(range(1, 55))
+    assert sorted(approvals) == list(range(1, last))
     from scholar_harness.authority.binding import content_sha256
 
     for index, record in approvals.items():
@@ -228,7 +238,7 @@ def test_finding_38_one_action_approves_54_decided_batches(tmp_path, capsys):
         assert record["approval"]["final_decision_sha256"] == content_sha256(decisions.read_bytes())
     # The journal keeps its per-batch shape: one redeem row per batch.
     rows = [r for r in _journal(ws) if r["action"] == "SCREENING_PAIRING_REDEEMED"]
-    assert sorted(r["parameters"]["batch_index"] for r in rows) == list(range(1, 55))
+    assert sorted(r["parameters"]["batch_index"] for r in rows) == list(range(1, last))
     assert all(r["parameters"]["bulk"] is True for r in rows)
     # Every code is used once: a second paste approves nothing.
     again = client.post(f"{BASE}/actions/pairing/redeem-all", json={"codes": bundle})

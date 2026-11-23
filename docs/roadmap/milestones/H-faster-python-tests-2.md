@@ -1,8 +1,10 @@
-# H-faster-python-tests-2 Two more workspace templates, six slow marks, no kept temporary folders
+# H-faster-python-tests-2 Two more workspace templates and six slow marks
 
-Branch: `dev/h/faster-python-tests-2` (from `origin/main` `6f31f92e`, which holds H-faster-python-tests, PR 303) · Lane: **STANDARD** (test code and one pytest setting; no product code, contract or public surface changes) · Status: **IN REVIEW** · Started: 2026-11-23
+Branch: `dev/h/faster-python-tests-2` (from `origin/main` `6f31f92e`, which holds H-faster-python-tests, PR 303) · Lane: **STANDARD** (test code only; no product code, contract or public surface changes) · Status: **IN REVIEW** (round 1 CHANGES, repaired; round 2 pending) · Started: 2026-11-23
 
 The researcher's go-ahead of 2026-11-23 in the review session ("Yes, build them"), after the full timing passes of that day (`docs/assessment/test-suite-review-2026-11-23.md`, "Update, evening of 2026-11-23", on the local branch `dev/docs/project-review-2026-11-23`, commit `e73795d9`; items 1, 2 and 4 of "What is left"). The per-file numbers of those passes are in the sessions' shared notes folder (`test-timing-2026-11-23-branch-e8eaf753.txt`).
+
+Of the three items, two are built and one is refused: the temporary-folder setting (d) was tried, measured and taken out after review.
 
 ## What changed
 
@@ -19,17 +21,23 @@ Each keeps its signature; the original is `_workspace_fresh` and `_build_ws_fres
 
 **(c) Six long tests marked slow.** They ran in the inner gates (`-m "not slow"`) and each took 7 s or more in the one-process pass: `test_approve_all.py::test_finding_38_one_action_approves_54_decided_batches` (30 s), `test_assistant_critic_set.py::test_every_document_can_be_read_through_the_tool` (18 s), `test_golden_recon_cassette.py::test_the_golden_probe_keeps_each_leg_and_feeds_directions` (12 s) and `::test_the_golden_probe_runs_from_http_and_binds` (8 s), `test_golden_search_cassettes.py::test_the_cassette_holds_no_contact_address_or_key` (8 s) and `::test_the_handoff_accept_gives_the_snapshot_the_cli_run_gives` (7 s). Checkpoint, PR and full runs keep them. No assertion changed.
 
-**(d) `tmp_path_retention_policy = "failed"`** in `pyproject.toml`. pytest's default keeps every test's temporary folder for the last three runs and deletes the fourth-oldest run's folder when a session ends. A full run left 52,452 files; a later session, even a one-file one, then spent up to a minute deleting such a folder (33 s measured in a profile on 2026-11-23). With the setting a passing test's folder is removed when the test ends (in its worker), a failed test's folder is kept, and the run's folder is removed when every test passed.
+What the inner gates lose with them, and what was done about it (review round 1, findings 2 and 3):
+
+- **The 54-batch approve-all test was the only test of four properties:** a publication approval fingerprint after a full bulk approval, each approval binding its own batch's decision bytes, `bulk: true` on every journal row, and a second paste approving nothing. Its body is now a helper run twice: with 54 batches (slow, the reproduction of finding 38) and with **three batches (not slow, a new test,** `test_one_action_approves_three_decided_batches_each_bound_to_its_own_bytes`), so every assertion stays in the inner gates. The new test fails when an expected value is flipped (checked with `bulk`).
+- **`test_the_handoff_accept_gives_the_snapshot_the_cli_run_gives` is the only assertion that the browser hand-off accept and the command-line accept give the same artifact id.** It leaves the `pipeline` area's inner command; the checkpoint, the PR stage and CI keep it. Named in the decisions entry, item 2.
+- The other four have neighbours in the inner gates (the reviewer's reading): the two golden recon replays reached an inner command only through the `pipeline` area, which does not own recon code, and the assistant's workspace read has other tests in `tests/kits/agent`.
+
+**(d) `tmp_path_retention_policy = "failed"`: tried, then refused.** pytest's default keeps every test's temporary folder for the last three runs and deletes the fourth-oldest run's folder when a session ends: a full run left 52,452 files, and a later session, even a one-file one, spent up to a minute deleting such a folder (33 s in a profile on 2026-11-23). The setting removes a passing test's folder when the test ends. It cost nothing measurable in run time (table below), and both full runs passed. **But it makes temporary paths repeat inside one process:** pytest names a folder from the first 30 characters of the test's name plus the lowest free number, so once a folder is removed the next test with the same start of name gets the same absolute path. The read store keeps results by absolute workspace path and a name, size and modification-time signature (`src/scholar_harness/screening/read_store.py:109-147`), which a copy of the same template reproduces. The reviewer showed the consequence in `tests/console/test_read_performance.py`: the three cases of the 150-file test shared one path, and the `next-step` case opened 69 files instead of 139, because it was served results kept by the case before it. The test passed, measuring a warm store. The templates of H-faster-python-tests rest on the same assumption (a test's path is its own). The setting is not in this branch. The path repetition was reproduced separately with a three-case throwaway test (`all`: three paths; `failed`: one).
 
 ## Definition of done
 
 - [x] (a) The pilot and chase builders are templates; the key holds every input the build reads; the one test that needs fresh builds keeps them.
 - [x] (b) The scaffold-based fixtures measured and left, with the reason.
-- [x] (c) Six tests marked slow; every inner command that covers their files still selects other tests.
-- [x] (d) The retention setting tried on one file and on a full run, kept because the full run was not slower and no test failed.
-- [x] The full suite at four workers, before and after the setting, under the suite lock.
-- [x] No test weakened.
-- [ ] Independent review (`milestone-reviewer`).
+- [x] (c) Six tests marked slow. What each was the only inner-gate guard of is named above; the approve-all properties keep an unmarked test, the hand-off accept identity does not.
+- [x] (d) The retention setting tried on one file and on a full run; refused, because it weakens a test.
+- [x] The full suite at four workers under the suite lock (twice: without the setting, which is this branch's tree before the approve-all repair, and with it).
+- [x] No test weakened on the final tree.
+- [ ] Independent review (`milestone-reviewer`): round 1 CHANGES, repaired; round 2 pending.
 - [ ] Closure: the CI run of the pull request (CI is the full gate; nothing is pushed).
 
 ## Decisions
@@ -48,25 +56,35 @@ On the researcher's PC (Windows, 4 cores, 8 threads), this worktree, venv synced
 | checkpoint | (a)+(c) | `pytest` on the four marked files, `-m "not slow"` | 39 passed (of 45), 0 failed; the longest left is 4.3 s, so the time did not move to a neighbour | 26 s (107 s for the 45 in the pass) |
 | (c) | manifest | the inner commands that cover the four files (`tests/pipeline`, `tests/console` and its finer areas, `tests/kits/agent`) | each selects a folder or a list of files with many other tests; `select_test_gate.py --check`: `OK: 11 tasks, 24 areas, 4 stages` | |
 | (d) one file | (a)+(c) | `pytest tests/console/test_next_step_api.py -q -o tmp_path_retention_policy=all` and `=failed`, twice each, alternating | 46 passed each time; suite time 34.0 and 28.5 s kept, 32.8 and 32.9 s removed; with `failed` the run left no folder | |
-| full, setting off | (a)+(c) | `python scripts/suite_lock.py -- pytest -q -n 4 --dist worksteal --junitxml` | **5,405 results: 5,390 passed, 15 skipped, 0 failed**; 52,452 files left in the temporary folder | 522 s |
-| full, setting on (the final tree) | (a)+(c)+(d) | the same | **5,405 results: 5,390 passed, 15 skipped, 0 failed**; no folder left; no template folder left | 489 s |
-| pr | final tree | `select_test_gate.py --changed origin/main --stage pr` | selects `git diff --check`, `tests/console tests/kits/agent tests/pipeline` and `tests/kits/agent` (task T-110, `pyproject.toml`): all inside the full run above | |
-| pr | final tree | `ruff check scripts/`; `ruff check src/ --select F821,F811,F823,F632,F7,B023,B006,E9`; `generate_contract_baseline.py --check`; `git diff --check` | pass; baseline current, no locked file changed; clean | |
+| full, setting off | (a)+(c), before the approve-all repair | `python scripts/suite_lock.py -- pytest -q -n 4 --dist worksteal --junitxml` | **5,405 results: 5,390 passed, 15 skipped, 0 failed**; 52,452 files left in the temporary folder | 522 s |
+| full, setting on (refused later) | (a)+(c)+(d) | the same | 5,405 results: 5,390 passed, 15 skipped, 0 failed; no folder left. **This run passed with the weakened read-performance case in it**, which is why a green run was not enough to keep the setting | 489 s |
+| (d) path repetition | a throwaway three-case test outside the repository | `-o tmp_path_retention_policy=all`, then `=failed` | `all`: three paths (`…mos0`, `…mos1`, `…mos2`); `failed`: one path three times | |
+| after review | final tree (the setting out, the approve-all helper) | `pytest tests/console/test_approve_all.py -q` | 26 passed (25 and the new one); with `-m "not slow"` 25 passed; the new test with `bulk` expected `False`: failed, then restored | 54-batch test 44 s; the others under 4 s each |
+| pr | final tree | `select_test_gate.py --check`; `ruff check scripts/`; `ruff check src/ --select F821,F811,F823,F632,F7,B023,B006,E9`; `generate_contract_baseline.py --check`; `git diff --check` | pass; baseline current, no locked file changed; clean | |
 
-**What the numbers say.** Set-up in the six files fell by 45 s of one-process time, and the inner gates that cover the four marked files run about 80 s less. The full suite at four workers did not change measurably: 522 s and 489 s here against 437 s in H-faster-python-tests's record on an idle PC; the difference between the two runs here is inside what the same tree varies by. The gain of (d) is not in a run's own time: it is the deletion a later session no longer does, and 0.5 GB a run no longer left on disk.
+The full suite was not run a third time for the final tree: it differs from the "setting off" run by one test file (`tests/console/test_approve_all.py`, run whole above). CI is the full gate.
+
+**What the numbers say.** Set-up in the six files fell by 45 s of one-process time, and the inner gates that cover the four marked files run about 80 s less (a few seconds are given back by the new three-batch test). The full suite at four workers did not change measurably: 522 s here against 437 s in H-faster-python-tests's record on an idle PC. The deletion of old temporary folders at the end of a session stays as it was.
 
 ## Not verified
 
-- CI, macOS and Linux. On Linux and macOS a passing test's folder is removed the same way; not run there.
-- That no workflow outside the tests reads a passed test's temporary folder after the run (a developer inspecting it by hand no longer can, unless the test failed).
+- CI, macOS and Linux.
 - The full run on an idle PC: other sessions existed, none held the suite lock.
 - The six slow marks rest on one timing pass; a test may be faster on another machine.
+- Whether another path-keyed store exists beside the read store; the reviewer probed 13 files.
 
 ## Deferred
 
+- **The temporary-folder cost** (item 4 of the review's update). Open ways, none built: clearing the read store before every test and then using the setting (it would need a search for every other store keyed by path); a retention count of one (less disk, the same deletion); writing fewer files per test. Each is a design choice for a later part.
 - The scaffold itself (0.18 s, 44 files) and the console's import (3.7 s per process) are product code; not touched.
 - Narrowing the console areas' checkpoint, and a virus-scanner exclusion for the temporary folder: the researcher's decisions (review update, items 3 and 5).
+- Reviewer follow-ups that predate this branch: the `screening` area's checkpoint does not list `tests/console/test_approve_all.py`; `AGENTS.md` still names `scholar_rag`, `scholar_verify` and `--extra rag`.
 
 ## Review
 
-Pending.
+**Round 1** (`milestone-reviewer`, on `c95c6fbf`): **CHANGES**. The two templates were found sound (no other test compares two workspaces built from one key; the keys are complete; the four globals are right for every caller, `ids="doi"` and `ids="none"` included; 102 passed).
+
+1. (P1) The retention setting made temporary paths repeat, and the read store then served an earlier test's results to the `next-step` case of the 150-file test (69 files opened instead of 139). **Repaired by taking the setting out;** the reason is recorded in (d).
+2. (P2) The 54-batch approve-all test was the only test of four approval properties. **Repaired:** a three-batch test with the same assertions, not slow.
+3. (P3) The hand-off accept identity leaves the `pipeline` inner command. **Named** in (c) and in the decisions entry, item 2.
+4. (P3) DoD (c) was weaker than "nothing is guarded only by one of the six". **Reworded.**
