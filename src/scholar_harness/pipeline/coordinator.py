@@ -11,8 +11,7 @@ returns.
 Preservation notes:
 
 - Mechanical parameterization only: ``self.workspace_dir`` to
-  ``workspace_dir``; ``self._run_indexing_stage`` to the explicit
-  ``indexing_fn`` collaborator; ``self._log_audit_event`` to direct
+  ``workspace_dir``; ``self._log_audit_event`` to direct
   ``workspace.audit.append_legacy_event`` with identical args/order (same
   bytes as the adapter: same action, agent, description, inputs, outputs,
   metrics passthrough, and observed ``SUCCESS`` outcome).
@@ -20,22 +19,19 @@ Preservation notes:
   ``test_discovery_stage.py:358`` proves identical outcomes either way).
 - Stage order and early-pause return preserved: discovery, deduplication,
   hydration, verification, screening preparation, then the
-  ``included.json`` collect-gate (Stages 5-9 SKIPPED + ``PENDING`` +
-  PAUSE audit + return before Stages 5-9), then extraction, indexing,
-  matrix, graph, synthesis, then the COMPLETED audit.
+  ``included.json`` collect-gate (the later stages SKIPPED + ``PENDING`` +
+  PAUSE audit + return before them), then extraction and graph, then the
+  COMPLETED audit. Indexing, the matrix and synthesis left with
+  ``scholar_rag`` (H-remove-rag-verify, 2026-11-23).
 - Results shape preserved: ``discovery`` count, ``deduplication``
   unique/dupes, ``verification`` status/counts (+ quarantine), ``screening``
   PENDING mapping with ``len(verified_docs)`` papers_to_screen, pause
-  SKIPPED mappings (``extraction``/``indexing``/``matrix``/``graph``/
-  ``synthesis``), success ``extraction`` DONE, ``indexing`` via the
-  collaborator, ``matrix_rows`` DONE, ``graph_nodes`` DONE, ``synthesis``
-  counts, plus the ``SUCCESS``/``PENDING_AGENT_REVIEW`` status propagation.
-  The pause/success key asymmetry (``matrix`` vs ``matrix_rows``,
-  ``graph`` vs ``graph_nodes``) is preserved verbatim.
-- Bindings flow via coordinator locals: Stage-6 ``indexer`` to Stage 7,
-  Stage-7 ``retriever`` to Stage 9, Stage-3 ``verified_docs`` length to
-  Stage-4 ``papers_to_screen``. The in-memory ``ResearchProtocol`` is
-  passed through to Stages 7/9 untouched (no re-parse).
+  SKIPPED mappings (``extraction``/``graph``), success ``extraction`` DONE,
+  ``graph_nodes`` DONE, plus the ``SUCCESS``/``PENDING_AGENT_REVIEW``
+  status propagation. The pause/success key asymmetry (``graph`` vs
+  ``graph_nodes``) is preserved verbatim.
+- Bindings flow via coordinator locals: Stage-3 ``verified_docs`` length to
+  Stage-4 ``papers_to_screen``.
 - File/protocol DSL unchanged: missing protocol raises
   ``FileNotFoundError``; invalid protocol propagates the kit validation
   error; no fabrication on any path.
@@ -48,20 +44,9 @@ Preservation notes:
   that direction is safe: stages never import this coordinator at top
   (their orchestrator-namespace seams are lazy ``__dict__`` reads inside
   functions), and this coordinator never imports the orchestrator.
-- Indexing DI decision (packet open question): the coordinator takes a
-  REQUIRED keyword-only ``indexing_fn`` collaborator
-  (``Callable[[Path], tuple[dict, Any]]``) and calls it as
-  ``indexing_fn(chroma_dir)``. The orchestrator passes its bound
-  ``self._run_indexing_stage`` (which stays untouched: E3/e2e call
-  ``orch._run_indexing_stage`` directly, and its kit/data seams keep
-  working through the orchestrator thin delegate). No default is offered:
-  a ``None`` default would surprise (a missing collaborator must be a
-  ``TypeError``, never a silent skip or an orchestrator import). This
-  mirrors the HCM-04h stage-level explicit DI and keeps the coordinator
-  neutral (no orchestrator import, no cycle).
 - Audit neutrality: this coordinator calls ``append_legacy_event``
   directly (same bytes as the orchestrator adapter) and emits no other
-  events; stage-owned audits (discovery, hydration, verification, indexing)
+  events; stage-owned audits (discovery, hydration, verification)
   stay in their stages. No new events, no rewording -- except the
   ``PIPELINE_RUN_ABORTED`` row written when the discovery harvest FAILED
   (T-TRUTH-COUNTS-01 fail-closed publication: a failed harvest must not
@@ -88,7 +73,7 @@ Neutrality: stdlib plus ``scholar-protocol-kit`` only for the protocol
 validation shape and harness stages only for delegation -- no console
 transport, no Contract v1 acceptance beyond what the stages themselves
 publish, no workspace audit beyond the three coordinator-owned legacy rows
-(PAUSE + COMPLETED + ABORTED), no direct scholar-search/rag/pdf/graph kit
+(PAUSE + COMPLETED + ABORTED), no direct scholar-search/pdf/graph kit
 imports.
 """
 
@@ -112,8 +97,6 @@ from .discovery import run_discovery
 from .extraction import run_extraction
 from .graph import run_graph
 from .hydration import run_hydration
-from .matrix import run_matrix
-from .synthesis import run_synthesis
 from .verification import run_verification
 
 logger = logging.getLogger(__name__)
@@ -122,9 +105,9 @@ logger = logging.getLogger(__name__)
 #: The stage-mapping shape each stage has on a *successful* path. The abort
 #: path (a FAILED harvest) keeps the same keys -- with neutral zero values --
 #: so a consumer that reads ``stages.deduplication["unique"]`` or
-#: ``stages.matrix_rows["rows"]`` does not hit a ``KeyError`` on an aborted
+#: ``stages.graph_nodes["nodes"]`` does not hit a ``KeyError`` on an aborted
 #: run (T-TRUTH-COUNTS-01, F-9). The stage *names* are the successful-path
-#: names too (``matrix_rows`` / ``graph_nodes``), never aliases.
+#: names too (``graph_nodes``), never aliases.
 _ABORTED_STAGE_SHAPES: dict[str, dict[str, Any]] = {
     "deduplication": {"unique": 0, "duplicates_removed": 0},
     "verification": {
@@ -136,16 +119,7 @@ _ABORTED_STAGE_SHAPES: dict[str, dict[str, Any]] = {
     },
     "screening": {"batch_files_prepared": 0, "papers_to_screen": 0},
     "extraction": {"documents": 0, "metadata_frontmatter_only": []},
-    # The indexing mapping is produced by the injected ``indexing_fn``; its
-    # shape is not known here, so only the skip marker is published.
-    "indexing": {},
-    "matrix_rows": {"rows": 0},
     "graph_nodes": {"nodes": 0, "edges": 0},
-    "synthesis": {
-        "verified_claims": 0,
-        "total_claims": 0,
-        "entailment_rate": 0.0,
-    },
 }
 
 
@@ -773,7 +747,7 @@ def _pause_for_corpus_accept(
     reason = "awaiting the hand-off accept"
     results["stages"]["corpus_snapshot"] = {"status": "NOT_ACCEPTED", "reason": reason}
     emit_stage("corpus_snapshot", "NOT_ACCEPTED", results["stages"]["corpus_snapshot"])
-    for stage in ("screening", "extraction", "indexing", "matrix_rows", "graph_nodes", "synthesis"):
+    for stage in ("screening", "extraction", "graph_nodes"):
         results["stages"][stage] = {
             **_ABORTED_STAGE_SHAPES[stage],
             "status": "SKIPPED",
@@ -953,7 +927,6 @@ async def run_pipeline(
     protocol_path: Path | str | None = None,
     max_search_results: int | None = None,
     mock_mode: bool = False,
-    indexing_fn: Callable[[Path], tuple[dict[str, Any], Any]],
     providers: list[str] | None = None,
     progress_callback: Callable[[str, int], None] | None = None,
     leg_callback: Callable[[Any], None] | None = None,
@@ -962,7 +935,7 @@ async def run_pipeline(
     notes: list[str] | None = None,
     freeze_corpus: bool = True,
 ) -> dict[str, Any]:
-    """Execute the end-to-end research workflow from protocol to synthesis.
+    """Execute the research workflow from protocol to the citation graph.
 
     Verbatim move of ``ResearchOrchestrator.run_pipeline_async`` (:517-780):
     protocol load/validate, directory setup, Stage 1-9 delegation in order,
@@ -970,7 +943,7 @@ async def run_pipeline(
     propagation, and no-fabrication returns.
 
     Only mechanical parameterization: ``workspace_dir`` / ``protocol_path`` /
-    ``max_search_results`` inputs, ``indexing_fn`` for Stage 6, direct
+    ``max_search_results`` inputs, direct
     ``append_legacy_event`` for the three coordinator audits (PAUSE,
     COMPLETED, ABORTED). ``mock_mode`` is accepted-but-unused (signature
     parity). The screening-preparation import stays function-level at its
@@ -1023,7 +996,6 @@ async def run_pipeline(
     ext_dir = ws / "extracted"
     synth_dir = ws / "synthesis"
     audit_dir = ws / "audit"
-    chroma_dir = ws / "chroma_db"
 
     for d in (lit_dir, pdf_dir, ext_dir, synth_dir, audit_dir):
         d.mkdir(parents=True, exist_ok=True)
@@ -1220,7 +1192,7 @@ async def run_pipeline(
         emit_stage("corpus_snapshot", snapshot["status"], snapshot)
         if snapshot["status"] == "REFUSED":
             reason = f"corpus snapshot refused: {snapshot['reason']}"
-            for stage in ("screening", "extraction", "indexing", "matrix_rows", "graph_nodes", "synthesis"):
+            for stage in ("screening", "extraction", "graph_nodes"):
                 results["stages"][stage] = {
                     **_ABORTED_STAGE_SHAPES[stage],
                     "status": "SKIPPED",
@@ -1286,7 +1258,7 @@ async def run_pipeline(
                 f"{exc.code}); see the log for the reason"
             )
             code = _refusal_code(reason)
-            for name in ("screening", "extraction", "indexing", "matrix_rows", "graph_nodes", "synthesis"):
+            for name in ("screening", "extraction", "graph_nodes"):
                 results["stages"][name] = {
                     **_ABORTED_STAGE_SHAPES[name],
                     "status": "SKIPPED",
@@ -1322,7 +1294,7 @@ async def run_pipeline(
     # literature/included.json the pipeline must stop, never fabricate output.
     inc_file = lit_dir / "included.json"
     if not inc_file.exists():
-        for stage in ("extraction", "indexing", "matrix", "graph", "synthesis"):
+        for stage in ("extraction", "graph"):
             results["stages"][stage] = {
                 "status": "SKIPPED",
                 "reason": "PRISMA collect not run yet",
@@ -1371,7 +1343,7 @@ async def run_pipeline(
             f"{_generation.status.value} ({_generation.code}); "
             f"{_generation.message}"
         )
-        for stage in ("extraction", "indexing", "matrix", "graph", "synthesis"):
+        for stage in ("extraction", "graph"):
             results["stages"][stage] = {
                 "status": "SKIPPED",
                 "reason": _generation_reason,
@@ -1418,42 +1390,6 @@ async def run_pipeline(
     }
 
     # -------------------------------------------------------------
-    # Stage 6: Vector & Semantic Indexing (ChromaDB)
-    # -------------------------------------------------------------
-    # E3-008 / T-90: the typed indexing surface refuses to mint chunk
-    # identity it was not told, so identity is bound per document from the
-    # pipeline's own recorded state (see _index_accepted_documents). The
-    # workspace limb is the registered identity recorded in project.json at
-    # inception -- never the project slug, never a value minted here. A
-    # document with no accepted screening parent is REFUSED, never indexed
-    # on an inferred workspace_id.
-    # HCM-04l: the orchestrator keeps the thin _run_indexing_stage method
-    # untouched (E3/e2e call it directly); the coordinator takes it as the
-    # explicit indexing_fn collaborator (required, no default) and calls it
-    # here with the same chroma_dir argument the base passed.
-    index_res, indexer = indexing_fn(chroma_dir)
-    results["stages"]["indexing"] = index_res
-
-    # -------------------------------------------------------------
-    # Stage 7: Dynamic Protocol Matrix Extraction
-    # -------------------------------------------------------------
-    # HCM-04i: delegated to the neutral pipeline stage. run_matrix owns
-    # retriever construction, MatrixExtractor construction, and
-    # extract_all publication; it emits no audit event and writes no
-    # registry state. The retriever binding is carried for Stage 9.
-    matrix_outcome = run_matrix(
-        protocol=protocol,
-        indexer_compat=indexer,
-        chroma_dir=chroma_dir,
-        literature_dir=lit_dir,
-    )
-    # Local bindings retained: the results mapping below reads them;
-    # Stage 9 reuses the carried retriever.
-    matrix_rows = matrix_outcome.rows
-    retriever = matrix_outcome.retriever
-    results["stages"]["matrix_rows"] = {"status": "DONE", "rows": len(matrix_rows)}
-
-    # -------------------------------------------------------------
     # Stage 8: Citation Knowledge Graph & PageRank
     # -------------------------------------------------------------
     # HCM-04j: delegated to the neutral pipeline stage. run_graph owns
@@ -1473,27 +1409,6 @@ async def run_pipeline(
     }
 
     # -------------------------------------------------------------
-    # Stage 9: Grounded Evidence Synthesis & Entailment
-    # -------------------------------------------------------------
-    # HCM-04k: delegated to the neutral pipeline stage. run_synthesis
-    # owns engine construction, first-RQ selection with fallbacks, the
-    # synchronous synthesize call, and literature_review.md publication;
-    # it emits no audit event and writes no registry state.
-    synthesis_outcome = run_synthesis(
-        protocol=protocol,
-        retriever=retriever,
-        synthesis_dir=synth_dir,
-    )
-    # Local bindings retained: the results mapping below reads them;
-    # Stage 10 reads the synth_file path.
-    synth_file = synthesis_outcome.review_path
-    results["stages"]["synthesis"] = {
-        "verified_claims": synthesis_outcome.verified_claims,
-        "total_claims": synthesis_outcome.total_claims,
-        "entailment_rate": synthesis_outcome.entailment_rate,
-    }
-
-    # -------------------------------------------------------------
     # Stage 10: Append-Only Audit Journal Logging
     # -------------------------------------------------------------
     _apply_discovery_status(results, discovery_status, discovery_reason)
@@ -1504,11 +1419,7 @@ async def run_pipeline(
         f"Completed end-to-end research pipeline for '{protocol.metadata.get('title', 'Unknown')}'"
         f"{_pipeline_note(results)}",
         [str(p_path)],
-        [
-            str(synth_file),
-            str(lit_dir / "synthesis_matrix.csv"),
-            str(lit_dir / "knowledge_graph.html"),
-        ],
+        [str(lit_dir / "knowledge_graph.html")],
         results["stages"],
         status=_ledger_status(results),
     )

@@ -16,7 +16,6 @@ This guide demonstrates end-to-end integration across `scholar-search-kit`, `sch
 flowchart LR
     S["scholar-search-kit (Search & Dedup)"] -->|results.json| P["scholar-pdf-kit (Download OA PDFs)"]
     P -->|downloads/*.pdf| E["scholar-pdf-kit extract (Markdown/TEI)"]
-    E -->|markdown/*.md| R["scholar-rag-kit / Vector Store"]
 ```
 
 ### Command Line Workflow (legacy discovery lane)

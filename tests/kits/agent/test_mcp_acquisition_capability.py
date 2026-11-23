@@ -162,15 +162,8 @@ PRE_EXISTING_TOOLS = frozenset(
         "nexus_screen_llm",
         "nexus_pipeline_run",
         "nexus_extract_pdf",
-        "nexus_rag_index",
-        "nexus_rag_query",
-        "nexus_rag_synthesize",
-        "nexus_matrix_extract",
         "nexus_graph_build",
         "nexus_screen_reconcile",
-        "nexus_verify_claims",
-        "nexus_verify_phase4",
-        "nexus_critique_methodology",
         "nexus_graph_narrative",
         "recon_probe",
         "recon_distill",
@@ -547,7 +540,6 @@ def test_e1_neg_047_registry_declares_pdf_acquisition_mcp_unsupported():
     assert sorted(caps.CAPABILITIES) == [
         "pdf_acquisition",
         "pdf_extraction",
-        "rag_indexing",
     ]
 
 
@@ -675,7 +667,7 @@ def test_e1_neg_047_pre_existing_tools_are_untouched():
         "nexus_pdf_acquire",
         "nexus_pdf_extraction",
     ]
-    assert len(registered) == len(PRE_EXISTING_TOOLS) + 2 + len(M1A_SCREENING_TOOLS) + len(M10C_ASSISTANT_TOOLS) == 32
+    assert len(registered) == len(PRE_EXISTING_TOOLS) + 2 + len(M1A_SCREENING_TOOLS) + len(M10C_ASSISTANT_TOOLS) == 25
 
 
 # --------------------------------------------------------------------------- #

@@ -121,9 +121,7 @@ def _normal_stages() -> dict:
             "papers_to_screen": 9,
         },
         "extraction": {"status": "DONE", "documents": 7},
-        "matrix_rows": {"status": "DONE", "rows": 4},
         "graph_nodes": {"status": "DONE", "nodes": 7, "edges": 11},
-        "synthesis": {"verified_claims": 3, "total_claims": 5},
     }
 
 
@@ -151,14 +149,7 @@ def _aborted_stages() -> dict:
             "reason": reason,
         },
         "extraction": {"status": "SKIPPED", "reason": reason},
-        "matrix_rows": {"rows": 0, "status": "SKIPPED", "reason": reason},
         "graph_nodes": {"nodes": 0, "edges": 0, "status": "SKIPPED", "reason": reason},
-        "synthesis": {
-            "verified_claims": 0,
-            "total_claims": 0,
-            "status": "SKIPPED",
-            "reason": reason,
-        },
     }
 
 
@@ -188,7 +179,8 @@ def test_success_status_renders_success_headline_and_success_border(
     assert "Status: SUCCESS" in plain
     assert "Deduplicated: 9 unique" in plain
     assert "Markdown Extracts: 7" in plain
-    assert "Matrix Rows: 4" in plain
+    # H-remove-rag-verify: no matrix or synthesis line is printed any more.
+    assert "Matrix Rows" not in plain
     assert "Graph Nodes: 7" in plain
     _assert_border_style(result.stdout, "green")
 
@@ -360,9 +352,8 @@ def test_abort_path_stage_mapping_renders_numbers_never_raw_mappings(
     assert result.exit_code == 1
     assert "Deduplicated: 0 unique" in plain
     assert "Markdown Extracts: 0" in plain
-    assert "Matrix Rows: 0" in plain
     assert "Graph Nodes: 0" in plain
-    assert "Grounded Claims: 0 / 0 verified" in plain
+    assert "Matrix Rows" not in plain and "Grounded Claims" not in plain
     # No raw Python mapping / None ever reaches the user.
     assert "{" not in plain
     assert "}" not in plain
@@ -387,7 +378,8 @@ def test_normal_path_mapping_stages_render_their_counts(monkeypatch, tmp_path):
     assert result.exit_code == 0
     assert "Discovered: 12 papers" in plain
     assert "Deduplicated: 9 unique" in plain
-    assert "Grounded Claims: 3 / 5 verified" in plain
+    assert "Graph Nodes: 7" in plain
+    assert "Grounded Claims" not in plain
     assert "{" not in plain
     assert "}" not in plain
 

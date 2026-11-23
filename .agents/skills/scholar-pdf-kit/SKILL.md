@@ -376,7 +376,7 @@ if __name__ == "__main__":
 ## Agent Guidelines & Best Practices
 
 - **Paywall Recognition**: Not all academic literature is Open Access. When `download` gives no file, read the result's `outcome` (the table's Status column), not `status=UNRESOLVED` alone, which covers three different cases: `LOOKUP_FAILED` (exit 3) means a service failed and the answer is incomplete, so say so and run again later, never "no open copy"; `OPEN_NO_DIRECT_PDF` (exit 4) means the paper is listed as open access with landing pages only, so the user gets the PDF from the named landing page and uses `ingest`; `NO_OPEN_COPY_LISTED` (exit 5) means neither service lists an open copy, which is not a paywall determination; `PDF_NOT_FETCHED` (exit 1) means a listed address gave no PDF (the printed PDF requests say what each address answered). A stored file whose manifest `identity` reads "not found: check it" may be another paper: open it before using it. Do not attempt to bypass commercial paywalls with web scrapers. HTTP success alone never means acquisition — only validated, promoted bytes count.
-- **Frontmatter Preservation**: Always ensure extracted markdown contains YAML frontmatter (`workspace_id`, `doi`, `title`, `year`) before handing off to `scholar-rag-kit` for chunking and vector indexing.
+- **Frontmatter Preservation**: Always ensure extracted markdown contains YAML frontmatter (`workspace_id`, `doi`, `title`, `year`).
 
 ## Preflight
 

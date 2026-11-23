@@ -13,12 +13,14 @@ GitHub Releases — no source checkout, no per-kit installs.
 > **screening** (import → prepare → screen → publish, with optional agent
 > proposals), **inception in the browser** (Scope, Shape, Concepts and criteria,
 > Review and create, Done; Explore and Direction have no screen yet) and, on
-> 1.1.0b6, **discovery in the browser** (Plan to Hand-off). The retrieval and synthesis kit (`scholar_rag`), the citation
-> graph (`scholar_graph`), verification and trust (`scholar_verify`) and reading
-> PDFs (`scholar_pdf` `extract`, `extract-run`, and E1 `acquire`; findings
-> PDF-07/08) still work, but are parked: their `--help` says so first, their MCP
+> 1.1.0b6, **discovery in the browser** (Plan to Hand-off). The citation
+> graph (`scholar_graph`) and reading PDFs (`scholar_pdf` `extract`,
+> `extract-run`, and E1 `acquire`; findings PDF-07/08) still work, but are
+> parked: their `--help` says so first, their MCP
 > tools say so in their descriptions, and the app labels any screen that shows
-> them. Do not rely on them for a review.
+> them. Do not rely on them for a review. The retrieval and synthesis kit
+> (`scholar_rag`) and verification and trust (`scholar_verify`) were removed on
+> 2026-11-23, with their commands and MCP tools.
 >
 > **The PDF kit's downloading is production** from the release after 1.1.0b6
 > (decision 2026-11-21, M12a items 21 and 27, K0): `scholar-pdf download` and `ingest` need a contact e-mail
@@ -356,11 +358,11 @@ scholar-agent [--workspace <root>] [--transport stdio|sse|streamable-http]
   (default `NEXUS_MCP_WORKSPACE` or the current repo root). CWD-independent.
 - `--transport` selects the protocol; `stdio` is the default for desktop
   clients.
-- Run it with `--help` to list the tools. `src/scholar_agent/` registers 27
-  (2026-11-10), among them `nexus_discover`, `nexus_screening_queue`,
-  `nexus_screening_record`, `nexus_submit_proposal`, the recon tools
-  `recon_probe`, `recon_distill` and `recon_delta`, and the parked
-  `nexus_rag_*`, `nexus_graph_*` and `nexus_verify_*` tools.
+- Run it with `--help` to list the tools. `src/scholar_agent/` registers 25
+  (2026-11-23), among them `nexus_discover`, `nexus_screening_queue`,
+  `nexus_screening_record`, `nexus_submit_proposal`, the `nexus_assistant_*`
+  tools, the recon tools `recon_probe`, `recon_distill` and `recon_delta`, and
+  the parked `nexus_graph_*` tools.
 
 Pair it with §4: `setup-mcp --harness claude` writes the client config that
 starts this server on your workspace.

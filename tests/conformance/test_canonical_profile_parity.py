@@ -49,7 +49,6 @@ from scholar_protocol.canonical import (
     canonical_json as protocol_canonical_json,
 )
 from scholar_protocol.models import ResearchProtocol
-from scholar_rag import canonical as rag_canonical
 from scholar_search.canonical import (
     canonical_fingerprint as search_fingerprint,
 )
@@ -75,7 +74,6 @@ DECLARED_PROFILES = {CONTRACT_PROFILE, DOCUMENTS_PROFILE, PROTOCOL_PROFILE}
 #: no serializer is routed through another profile's code path.
 PROFILE_REGISTRY: dict[str, str] = {
     "scholar_harness.contracts.canonical": CONTRACT_PROFILE,
-    "scholar_rag.canonical": CONTRACT_PROFILE,
     "scholar_pdf.canonical": CONTRACT_PROFILE,
     "scholar_search.canonical": DOCUMENTS_PROFILE,
     "scholar_protocol.canonical": PROTOCOL_PROFILE,
@@ -179,17 +177,18 @@ def test_goldens_carry_no_generation_or_environment_data() -> None:
 
 
 # --------------------------------------------------------------------------- #
-# AC-4 -- contract-v1 parity: harness == rag == pdf == golden, byte-identical
+# AC-4 -- contract-v1 parity: harness == pdf == golden, byte-identical
+# (the rag kit's copy left with scholar_rag, H-remove-rag-verify 2026-11-23)
 # --------------------------------------------------------------------------- #
 @pytest.mark.parametrize(
     "case",
     CONTRACT_GOLDEN["cases"],
     ids=[c["payload_id"] for c in CONTRACT_GOLDEN["cases"]],
 )
-def test_contract_v1_parity_is_byte_identical_across_three_implementations(
+def test_contract_v1_parity_is_byte_identical_across_implementations(
     case: dict[str, Any],
 ) -> None:
-    """AC-4: the normative profile agrees byte-for-byte across the three kits.
+    """AC-4: the normative profile agrees byte-for-byte across the implementations.
 
     This is the drift detector (G5).  Expected bytes come from the HARNESS
     reference only; if any kit has drifted, its bytes differ from the frozen
@@ -204,21 +203,15 @@ def test_contract_v1_parity_is_byte_identical_across_three_implementations(
     harness_bytes = harness_canonical.canonical_json_bytes(
         payload, set_like_arrays=set_like
     )
-    rag_bytes = rag_canonical.canonical_json_bytes(payload, set_like_arrays=set_like)
     pdf_bytes = pdf_canonical.canonical_json_bytes(payload, set_like_arrays=set_like)
 
     assert harness_bytes == expected_bytes, f"harness drifted on {case['payload_id']}"
-    assert rag_bytes == expected_bytes, (
-        f"RAG kit drifted from the contract-v1 golden on {case['payload_id']}: "
-        f"kit={rag_bytes!r} golden={expected_bytes!r}"
-    )
     assert pdf_bytes == expected_bytes, (
         f"PDF kit drifted from the contract-v1 golden on {case['payload_id']}: "
         f"kit={pdf_bytes!r} golden={expected_bytes!r}"
     )
     for name, module in (
         ("harness", harness_canonical),
-        ("rag", rag_canonical),
         ("pdf", pdf_canonical),
     ):
         fp = module.canonical_fingerprint(payload, set_like_arrays=set_like)
@@ -285,14 +278,14 @@ def test_repeated_serialization_is_deterministic() -> None:
 
 
 # --------------------------------------------------------------------------- #
-# AC-6 / G6 -- rejection parity: all three reject the same inputs, same types
+# AC-6 / G6 -- rejection parity: all reject the same inputs, same types
 # --------------------------------------------------------------------------- #
 @pytest.mark.parametrize(
     "rejection",
     CONTRACT_GOLDEN["rejections"],
     ids=[r["payload_id"] for r in CONTRACT_GOLDEN["rejections"]],
 )
-def test_rejection_parity_all_three_reject_the_same_inputs(
+def test_rejection_parity_all_reject_the_same_inputs(
     rejection: dict[str, Any],
 ) -> None:
     """AC-6 / G6: which inputs are rejected, with which exception type.
@@ -305,7 +298,6 @@ def test_rejection_parity_all_three_reject_the_same_inputs(
     expected_type = rejection["expected_exception_type"]
     for name, module in (
         ("harness", harness_canonical),
-        ("rag", rag_canonical),
         ("pdf", pdf_canonical),
     ):
         with pytest.raises(Exception) as caught:
@@ -402,16 +394,15 @@ def test_profile_registry_maps_each_implementation_to_exactly_one_profile() -> N
     # Every declared profile is represented.
     assert set(PROFILE_REGISTRY) == {
         "scholar_harness.contracts.canonical",
-        "scholar_rag.canonical",
         "scholar_pdf.canonical",
         "scholar_search.canonical",
         "scholar_protocol.canonical",
     }
-    # The one DEFINED agreement across distinct-looking names: rag and pdf are
-    # contract_v1_canonical, so they agree WITH the harness by design.  The
+    # The one DEFINED agreement across distinct-looking names: pdf is
+    # contract_v1_canonical, so it agrees WITH the harness by design.  The
     # profiles that must NOT agree are the non-contract ones, proved next.
     assert (
-        PROFILE_REGISTRY["scholar_rag.canonical"]
+        PROFILE_REGISTRY["scholar_pdf.canonical"]
         == PROFILE_REGISTRY["scholar_harness.contracts.canonical"]
         == CONTRACT_PROFILE
     )
@@ -420,7 +411,7 @@ def test_profile_registry_maps_each_implementation_to_exactly_one_profile() -> N
 def test_no_distinct_profile_shares_bytes_with_the_contract_profile() -> None:
     """AC-9: for the shared unicode payload, distinct profiles disagree.
 
-    The only profiles defined to agree are the three contract_v1_canonical
+    The only profiles defined to agree are the contract_v1_canonical
     implementations (enumerated in the registry test above).  The non-contract
     profiles must never reproduce the contract profile's bytes.
     """
@@ -432,14 +423,15 @@ def test_no_distinct_profile_shares_bytes_with_the_contract_profile() -> None:
 
 
 # --------------------------------------------------------------------------- #
-# AC-10 -- identifier registry parity: harness == rag
+# AC-10 -- identifier registry: harness == golden (the rag restatement left with
+# scholar_rag, H-remove-rag-verify 2026-11-23)
 # --------------------------------------------------------------------------- #
 def _registry_view(id_prefixes: Any) -> dict[str, Any]:
     """Project a kit's ``ID_PREFIXES`` mapping into the golden registry shape.
 
     This is the single projection both the real NC-2 gate and the NC-2
     mutation proof run through, so the proof and the gate cannot diverge.
-    Keys may be enum members (the real rag-kit registry) or plain strings
+    Keys may be enum members (the real harness registry) or plain strings
     (the in-test mutant); the projection is identical either way.
     """
 
@@ -469,25 +461,17 @@ def _registry_view_differences(
     ]
 
 
-def test_identifier_registry_mirrors_between_harness_and_rag() -> None:
+def test_identifier_registry_matches_its_golden() -> None:
     registry = REGISTRY_GOLDEN["registry"]
-    # The golden came from the harness; the harness still agrees with it.
+    # The golden came from the harness; the harness still agrees with it, through
+    # the same projection and comparison the NC-2 mutation proof uses.
     assert harness_identifiers.identifier_registry() == registry
-    # The RAG restatement has the same kind set, same prefix tuples in the same
-    # order, and the same mint prefix (== prefixes[0]).  The comparison and the
-    # naming below go through the same helpers the NC-2 mutation proof uses.
-    rag_registry = _registry_view(rag_canonical.ID_PREFIXES)
-    differing = _registry_view_differences(rag_registry, registry)
-    assert not differing, (
-        f"RAG kit identifier registry drifted (NC-2); differing kind(s): {differing}"
+    differing = _registry_view_differences(
+        _registry_view(harness_identifiers.ID_PREFIXES), registry
     )
-    assert [k.value for k in rag_canonical.IdentifierKind] == [
-        k.value for k in harness_identifiers.IdentifierKind
-    ]
-    for kind in harness_identifiers.IdentifierKind:
-        assert rag_canonical.primary_prefix(
-            kind.value
-        ) == harness_identifiers.primary_prefix(kind)
+    assert not differing, (
+        f"harness identifier registry drifted (NC-2); differing kind(s): {differing}"
+    )
 
 
 @pytest.mark.parametrize(
@@ -499,44 +483,36 @@ def test_validate_identifier_accepts_and_rejects_the_same_strings(
     case: dict[str, Any],
 ) -> None:
     harness_kind = harness_identifiers.IdentifierKind(case["kind"])
-    rag_kind = rag_canonical.IdentifierKind(case["kind"])
     if case["accepted"]:
         assert (
             harness_identifiers.validate_identifier(harness_kind, case["value"])
             == case["value"]
         )
-        assert (
-            rag_canonical.validate_identifier(rag_kind, case["value"]) == case["value"]
-        )
     else:
         expected = case["expected_exception_type"]
         with pytest.raises(Exception) as harnessCaught:
             harness_identifiers.validate_identifier(harness_kind, case["value"])
-        with pytest.raises(Exception) as ragCaught:
-            rag_canonical.validate_identifier(rag_kind, case["value"])
         assert type(harnessCaught.value).__name__ == expected
-        assert type(ragCaught.value).__name__ == expected
 
 
 # --------------------------------------------------------------------------- #
-# AC-11 -- identity-minting parity (rag incl. rag-chunk; pdf document id)
+# AC-11 -- identity minting against the golden (incl. the rag-chunk version);
+# pdf document id parity
 # --------------------------------------------------------------------------- #
 @pytest.mark.parametrize(
     "case",
     REGISTRY_GOLDEN["deterministic_id_cases"],
     ids=[c["payload_id"] for c in REGISTRY_GOLDEN["deterministic_id_cases"]],
 )
-def test_deterministic_id_parity_harness_equals_rag(
+def test_deterministic_id_matches_the_golden(
     case: dict[str, Any],
 ) -> None:
-    """AC-11: the same (kind, namespace, input, version) mints the same id.
+    """AC-11: the same (kind, namespace, input, version) mints the golden id.
 
-    Includes the non-default ``rag-chunk-identity-v1`` version the RAG kit
-    really mints chunk ids with (NC-7).
+    Includes the non-default ``rag-chunk-identity-v1`` version (NC-7).
     """
 
     harness_kind = harness_identifiers.IdentifierKind(case["kind"])
-    rag_kind = rag_canonical.IdentifierKind(case["kind"])
     expected = case["expected_id"]
     harness_id = harness_canonical.deterministic_id(
         harness_kind,
@@ -544,16 +520,7 @@ def test_deterministic_id_parity_harness_equals_rag(
         case["input"],
         algorithm_version=case["algorithm_version"],
     )
-    rag_id = rag_canonical.deterministic_id(
-        rag_kind,
-        case["workspace_namespace"],
-        case["input"],
-        algorithm_version=case["algorithm_version"],
-    )
     assert harness_id == expected, f"harness mint drifted on {case['payload_id']}"
-    assert rag_id == expected, (
-        f"RAG kit mint drifted on {case['payload_id']}: kit={rag_id!r} golden={expected!r}"
-    )
 
 
 def test_pdf_document_identity_matches_harness_deterministic_id() -> None:
@@ -584,8 +551,8 @@ def test_rag_chunk_identity_uses_the_non_default_algorithm_version() -> None:
     assert case["algorithm_version"] == "rag-chunk-identity-v1"
     # A v1-only restriction would mint a DIFFERENT id, so the parity test above
     # (which pins the rag-chunk-identity-v1 golden) would fail.
-    v1_id = rag_canonical.deterministic_id(
-        rag_canonical.IdentifierKind(case["kind"]),
+    v1_id = harness_canonical.deterministic_id(
+        harness_identifiers.IdentifierKind(case["kind"]),
         case["workspace_namespace"],
         case["input"],
         algorithm_version="v1",
@@ -647,15 +614,15 @@ def test_nc2_registry_prefix_change_diverges_naming_the_kind() -> None:
     """NC-2: a changed prefix fails registry parity, naming the differing kind.
 
     The mutant is an ``ID_PREFIXES``-shaped mapping (built from the REAL
-    rag-kit registry, with only ``STUDY``'s prefix drifted) pushed through
+    harness registry, with only ``STUDY``'s prefix drifted) pushed through
     the SAME comparison path the real gate uses: ``_registry_view`` then
     ``_registry_view_differences`` against the frozen golden.  The proof and
     the gate therefore cannot diverge.
     """
 
     registry = REGISTRY_GOLDEN["registry"]
-    mutated_id_prefixes = dict(rag_canonical.ID_PREFIXES)
-    mutated_id_prefixes[rag_canonical.IdentifierKind.STUDY] = ("STU2-",)
+    mutated_id_prefixes = dict(harness_identifiers.ID_PREFIXES)
+    mutated_id_prefixes[harness_identifiers.IdentifierKind.STUDY] = ("STU2-",)
     mutated_view = _registry_view(mutated_id_prefixes)
     assert mutated_view != registry, "the mutant must diverge from the golden"
     differing = _registry_view_differences(mutated_view, registry)

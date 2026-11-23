@@ -1504,17 +1504,13 @@ def test_e2_neg_019_rejection_envelope_is_pure_and_zero_io() -> None:
 
 
 def test_e2_neg_020_e2_does_not_broaden_the_e1_acquisition_declaration() -> None:
-    """E2-NEG-020: E1's acquisition declaration is unchanged by E2 or E3.
+    """E2-NEG-020: E1's acquisition declaration is unchanged by E2.
 
-    The kit now declares three capabilities, because E3-008 adopts the
-    declared-unsupported ``rag_indexing`` capability (owner: the canonical
-    ``nexus-scholar-org/scholar-rag-kit``; ``mcp_supported: false``; see
-    ``docs/architecture/wp01/evidence-boundaries.md``). That third
-    entry is a separate E3 declaration for a different domain service, not a
-    broadening of ``pdf_acquisition`` or ``pdf_extraction``.
+    The kit declares two capabilities. (E3-008's third, ``rag_indexing``, left
+    with ``scholar_rag`` in H-remove-rag-verify, 2026-11-23.)
 
     What THIS test asserts is narrower than "both rows are unchanged": it asserts the
-    three-member keyset, and then E1's acquisition declaration and its rejection
+    two-member keyset, and then E1's acquisition declaration and its rejection
     envelope limb by limb (the assertions that follow). E2's extraction row is
     covered by the immutability test above, which snapshots and re-checks
     ``PDF_EXTRACTION_DECLARATION`` and its deterministic envelope -- deliberately a
@@ -1525,7 +1521,6 @@ def test_e2_neg_020_e2_does_not_broaden_the_e1_acquisition_declaration() -> None
     assert set(caps.CAPABILITIES) == {
         caps.PDF_ACQUISITION,
         caps.PDF_EXTRACTION,
-        caps.RAG_INDEXING,
     }
     assert caps.PDF_ACQUISITION_DECLARATION.mcp_supported is False
     assert (
@@ -1939,7 +1934,7 @@ def test_documented_mcp_tool_count_matches_the_live_surface() -> None:
     (``tests/conformance/test_e1_acquired_document_boundary.py:541-550``):
     ``{tool.name for tool in mcp._tool_manager.list_tools()}``.
 
-    ``count == 32`` is asserted rather than assumed (27 until M10c added the five assistant tools) -- if a later packet changes
+    ``count == 25`` is asserted rather than assumed (27 until M10c added the five assistant tools, 32 until H-remove-rag-verify removed seven) -- if a later packet changes
     the surface, this test must fail loudly instead of blessing whatever number
     the prose happens to carry.
     """
@@ -1948,8 +1943,8 @@ def test_documented_mcp_tool_count_matches_the_live_surface() -> None:
 
     registered = {tool.name for tool in mcp._tool_manager.list_tools()}
     count = len(registered)
-    assert count == 32, (
-        f"the live MCP surface is {count} tools, not 32; every documented count "
+    assert count == 25, (
+        f"the live MCP surface is {count} tools, not 25; every documented count "
         "checked below is now stale and the declared-unsupported surface has moved"
     )
     assert "nexus_pdf_extraction" in registered, (

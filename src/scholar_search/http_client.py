@@ -142,8 +142,7 @@ def _policy(url: str) -> tuple[str, float] | None:
     abstract hydrator, the harvest's verification stage
     (``scholar_search.verifier.DocumentVerifier``, single-record lookups) and
     citation chasing. Crossref has two: list requests and single-record
-    lookups have different limits. The post-screening ``scholar_verify`` kit
-    has its own HTTP client and is not counted here.
+    lookups have different limits.
     """
     parts = urlsplit(url)
     host = (parts.hostname or "").lower()

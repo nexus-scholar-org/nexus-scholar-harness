@@ -222,7 +222,7 @@ def test_the_handoff_accept_gives_the_snapshot_the_cli_run_gives(tmp_path, monke
     def run(ws: Path, **kwargs):
         with _vcr().use_cassette(str(CASSETTE)):
             return asyncio.run(coordinator.run_pipeline(
-                workspace_dir=ws, max_search_results=CAP, indexing_fn=lambda _ws: ({}, None), **kwargs,
+                workspace_dir=ws, max_search_results=CAP, **kwargs,
             ))
 
     cli = _workspace(tmp_path, "cli")

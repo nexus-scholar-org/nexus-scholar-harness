@@ -1,6 +1,6 @@
 # Kit Surface Matrix — API · CLI · MCP
 
-> **Status:** Live — generated 2026-09-13 by a full read-only sweep of all eight kits; `scholar_bib` was removed in M5-slim (2026-11-05), leaving seven
+> **Status:** Live — generated 2026-09-13 by a full read-only sweep of all eight kits; `scholar_bib` was removed in M5-slim (2026-11-05), and `scholar_rag` and `scholar_verify` on 2026-11-23 (H-remove-rag-verify; findings below that name them are history), leaving five
 > (one exploration agent per kit, evidence cited inline). This is the **agent-facing
 > knowledge base** that backstops the `SKILL.md` files and the MCP tools.
 > **Regenerate:** re-run the sweep when kit APIs/CLIs change; skill content mirrors this
@@ -8,9 +8,8 @@
 
 > **Parked, not production (M5-slim, production plan §8).** The beta ships
 > **screening** (import → prepare → screen → publish, with optional agent
-> proposals). The retrieval and synthesis kit (`scholar_rag`), the citation
-> graph (`scholar_graph`), verification and trust (`scholar_verify`) and reading
-> PDFs (`scholar_pdf` `extract`, `extract-run`, and E1 `acquire`; findings
+> proposals). The citation graph (`scholar_graph`) and reading PDFs
+> (`scholar_pdf` `extract`, `extract-run`, and E1 `acquire`; findings
 > PDF-07/08) still work, but are parked: their `--help` says so first, their MCP
 > tools say so in their descriptions, and the app labels any screen that shows
 > them. Do not rely on them for a review.
@@ -54,11 +53,9 @@ that no single skill covers.
 | :-- | :-- | :-- | :-- | :-- |
 | search (`scholar_search`) | `SearchEngine`, `Deduplicator`, `DocumentVerifier`, `CitationChainer`, screening fns, `Exporter` | `scholar-search` (search/snowball/chain/import/dedup/verify/export/screen) | `nexus_discover`, `nexus_dedup`, `nexus_screen`, `nexus_screen_reconcile` | Phase-1 discovery/prepare (`compile_protocol_search`) |
 | pdf (`scholar_pdf`) | `AsyncPDFDownloader`, `PyMuPDFEngine`/`DoclingEngine`/`GrobidEngine`, validators, **`scholar_pdf.acquisition`** (WP01-E1, parent-bound), **`scholar_pdf.extraction`** (WP01-E2, parent-bound) | `scholar-pdf` (download/ingest: **production** since K0; **acquire**/**extract-run**/extract: parked) | `nexus_extract_pdf` (PyMuPDF only, non-authoritative); acquisition: **UNSUPPORTED** (`pdf_acquisition`, `mcp_supported=false`); extraction: **UNSUPPORTED** (`pdf_extraction`, `mcp_supported=false`) | Phase-2 fulltext + E1 acquired-document + E2 extracted-text boundary |
-| rag (`scholar_rag`) | `ScholarIndexer`, `ScholarRetriever`, `GroundedSynthesisEngine`, `ConsensusCartographer`, `MatrixExtractor` | `scholar-rag` (index/query/synthesize/consensus/matrix/stats) | `nexus_rag_index/query/synthesize`, `nexus_matrix_extract` | Phase-3 retrieval + synthesis |
 | graph (`scholar_graph`) | `CitationGraphBuilder`, `GraphVisualizer` | `scholar-graph` (build/pagerank) | `nexus_graph_build` | Phase-3 knowledge-graph |
 | protocol (`scholar_protocol`) | `ResearchProtocol`, `compile_protocol`, `canonical_json/fingerprint`, `validate_protocol`, `render_screening_criteria`, `build_extraction_model` | `scholar-protocol` (compile/validate/fingerprint/canon/render-criteria/extraction-schema/extraction-prompt) | `nexus_protocol_compile/validate/render_criteria` (+ matrix via rag) | Phase-0 protocol |
-| agent (`scholar_agent`) | MCP server (**32 tools**, incl. the five M10c `nexus_assistant_*` tools, `nexus_pdf_acquire` = declared-unsupported E1 boundary and `nexus_pdf_extraction` = declared-unsupported E2 boundary) + harness-recon adapter | `scholar-agent` (MCP stdio server) | every `nexus_*` + `recon_probe/distill/delta` | MCP front-door |
-| verify (`scholar_verify`) | `RetractionChecker`, open-science DAS/CAS, COI audit, QUADAS-2/PROBAST RoB, trust-context, `VerbatimClaimVerifier` | `scholar-verify` (retraction/open-science/coi/risk-of-bias/trust-context/all/verbatim-claims) | `nexus_verify_claims` (verbatim) + `nexus_verify_phase4` (Phase-4 streams) | Phase-4 trust |
+| agent (`scholar_agent`) | MCP server (**25 tools**, incl. the five M10c `nexus_assistant_*` tools, `nexus_pdf_acquire` = declared-unsupported E1 boundary and `nexus_pdf_extraction` = declared-unsupported E2 boundary) + harness-recon adapter | `scholar-agent` (MCP stdio server) | every `nexus_*` + `recon_probe/distill/delta` | MCP front-door |
 | harness (`scholar_harness`) | thin wrapper over the 8 kit APIs (`orchestrator.py`; inception engine) | `nexus-scholar` (P7): `init` (P7.3 scaffold), `setup-mcp` (P7.4), `doctor` (P7.5 — kits import + pinned `default_rev` via `plugins.json`/wheel `nexus_scholar_pins.json`, `SCHOLAR_MAILTO` + model keys, skill resolvability, workspace layout; `--json` machine-readable with key values masked `***`; `--exit-code` opt-in, trips on FAIL only), `log` (P7.6 — `log event` single canonical event, `log batch` JSONL lenient-skip, `log sync-index` INDEX regeneration; all refresh INDEX + append to `audit/journal.jsonl` via the wheel-portable `workspace-manager` loader, workstation path-or-slug resolution with clean refusal); dev-venv script is `scholar-harness` (status/sync/run/export/inception) | — (agent kit owns the MCP front-door) | distribution / orchestration front-door |
 
 ---
@@ -423,14 +420,6 @@ Declared facts (all harness-enforced by
 ### scholar-bib-kit
 Removed in M5-slim (2026-11-05): the harness never used it, and its dedup and resolver could silently damage a `.bib` file (`docs/assessment/kit-bib.md`, BIB-01 to BIB-03).
 
-### scholar-rag-kit
-- **Public API (typed E3 path):** `scholar_rag.index_service.index_workspace(request, backend=…, reader=…, embedder=…, workspace_root=…)` (`tools/scholar-rag-kit/src/scholar_rag/index_service.py:722`) over an explicit `IndexServiceRequest` (`index_service.py:370`) — request limbs, the accepted `parent_view`, the embedder identity, and the journal/docs destinations are all stated, none inferred. Chunking is `MarkdownChunker.chunk` with content-derived `CHK-` identities minted by `mint_chunk_id` (`chunker.py:121`) from the ten §5.1 limbs read from `base_metadata` only — no fallback to frontmatter, filename, DOI, title, CWD, or `project.json` (`chunker.py:18-28,593`); `min_chunk_chars` is the honored micro-chunk merge threshold (`chunker.py:530`), inside the closed option set (`chunker.py:83`). Each run publishes an `IndexManifest` v1 sidecar (`MANIFEST_SCHEMA_VERSION = "index-manifest-v1"`, `index_manifest.py:130`) through the R1–R7 replacement protocol (`IndexReplacement.run`, `replacement.py:1385`; intent at `replacement.py:638`) with live-set proof via `verify_backend` (`index_verifier.py:563`). Also: `ScholarRetriever.query(…, alpha=0.25, beta=0.15, graph_source=None, boost_dois=None)` (hybrid `cos + α·PR + β·seed`, over-fetch ×4 when boosting, `retriever.py:205`), `GroundedSynthesisEngine.synthesize(…, llm_callable=None)` (deterministic bullets when no LLM), `ConsensusCartographer(threshold=0.30)` (`consensus.py:203`; verdicts from **study counts**), `MatrixExtractor(protocol…)` (dynamic dims via `build_extraction_model`, writes `synthesis_matrix.{json,csv,md}`). Legacy `ScholarIndexer.index_markdown/index_directory` (`indexer.py:84,280`, `collection.upsert` at `indexer.py:126`) is the superseded path Stage 6 no longer uses (the harness keeps only a monkeypatch stub, `src/scholar_harness/orchestrator.py:58`; Stage 6 calls `index_workspace`, `orchestrator.py:1402`).
-- **CLI:** `index` is the typed-service surface — `--parent-view/--journal/--workspace-root/--run-id/--created-at/--producer-version/--producer-commit/--embedder-provider/--embedder-model/--embedder-dimension` are all required and none is minted or discovered (`cli.py:82`; assembly in `cli.py:224`; exits `0/2/3/4` per `index_service.py:209`). `query` (graph boost via `--graph/--alpha/--beta`, `cli.py:556`), `synthesize`, `consensus --similarity` lexical|sentence-transformers, `matrix`, `stats` as shipped.
-- **MCP:** `nexus_rag_index` is **declared unsupported** — capability `rag_indexing` with `mcp_supported=false`, owner `nexus-scholar-org/scholar-rag-kit` (`tools/scholar-agent-kit/src/scholar_agent/capabilities.py:56`); every call returns `operation="rag_index"`, `status="FAILED"`, one non-retryable `UNSUPPORTED_CAPABILITY` error with zero I/O (`server.py:830`). No MCP index parity exists and none is claimed; nothing is journaled on that surface. `nexus_rag_query` supports `graph_source`/`alpha`/`beta` plus a single `boost_doi` (`server.py:876`); `nexus_rag_synthesize` (`rq_id` default `"RQ1"`, no boost/llm override); `nexus_matrix_extract` (db pinned to `<workspace_dir>/chroma_db` — align with an explicit `db_path=<ws>/chroma_db`).
-- **Knowledge:** embedder default `all-MiniLM-L6-v2` (HF download on first use; hermetic `mock` provider for CI); OPENAI provider needs `OPENAI_API_KEY`; sector categories `abstract_intro|methodology|results_empirical|discussion_limitations|other` via keyword classification; paradigm/study_design from **companion BibTeX only** as non-identity enrichment — identity is recorded-artifact-only and nothing is inferred from `project.json`, a title, the CWD, a DOI, a filename, or frontmatter (`indexer.py:294`, `chunker.py:18`); the typed index path takes an explicit journal and never discovers one (`index_service.py:576`, `cli.py:132`); citation tokens ship as `[<workspace_id|paper_id|doi|filename>#<sec10>#<chunk_id>]` (`retriever.py:123`) with content-derived `CHK-` chunk ids; `entailment_score` with `VERIFIED (≥0.85)` / `AMBIGUOUS (≥0.50)` / `UNSUPPORTED` is kit-observed similarity vocabulary — embedding cosine scaled to [0,1] with a lexical-overlap fallback (`synthesis.py:112`; status words in `models.py:207`) — similarity is not entailment and synthesis does not verify it; claims.json carries **no `evidence_quote`/`claim_id`** (finding 6); the kit's own run-report actions are `RAG_INDEX_RUN_BUILT`/`RAG_INDEX_RUN_REJECTED` (`index_service.py:195`), distinct from the harness continuity event, while the §6.6 accepted-record event belongs to the future `index-acceptance-v1` adapter (see Status).
-- **Status (E3 in progress, `docs/architecture/wp01/README.md:30`):** T-140 (`9931dce`) proves the harness-live rows including `E3-POS-005` golden parity plus a real-Chroma diagnostic whose healthy-path `SUCCESS` leaves the historical `ATOMIC_COMMIT_FAILED` concern UNSUBSTANTIATED on that path/env (`tests/conformance/test_e3_index_lineage_boundary.py:1426`); 14 ledger rows stay honestly `MISSING` upstream of adapter/parity work — kit-owned `E3-NEG-009/011` (eligibility join), `017` (hash-stale), `021/022` (path/docs containment), `030/031` (uniqueness), `035` (usability), `050` (staleness), plus publish-time `039`, adapter-future `037`/`POS-008` (§6.6/`index-acceptance-v1`), MCP-parity `POS-009`, and CI-wheel `POS-012` (MISSING table at `test_e3_index_lineage_boundary.py:1099`, `len(MISSING) == 14` at `:1528`).
-- **Versions:** the shipped kit package is `0.1.0` (`tools/scholar-rag-kit/pyproject.toml:7`); golden `producer.version 0.2.0` is the producing-kit version stamped inside the frozen golden manifest bytes (`tests/conformance/fixtures/e3_golden_manifest.json`; kit source `tools/scholar-rag-kit/tests/test_index_manifest.py:136`), not the installed package version.
-
 ### scholar-graph-kit
 - **Public API:** `CitationGraphBuilder(http_client)` (mandatory client — API-pinned;
   `build_graph` raises nothing, swallows fetch failures to None), `compute_pagerank(
@@ -473,7 +462,7 @@ Removed in M5-slim (2026-11-05): the harness never used it, and its dedup and re
   JSON strings, not MCP failures; matrix-extract validates only structurally.
 
 ### scholar-agent-kit (MCP front-door)
-- **32 tools** (29 `nexus_*` + 3 `recon_*`; since M10c the five `nexus_assistant_*` tools: read the app's drafts and workspaces, add a proposal or a finding, never apply one); `--help` lists all 32 (listing parity enforced
+- **25 tools** (22 `nexus_*` + 3 `recon_*`; since M10c the five `nexus_assistant_*` tools: read the app's drafts and workspaces, add a proposal or a finding, never apply one); `--help` lists all 25 (listing parity enforced
   by `tests/conformance/test_mcp_tool_parity.py`). Full inventory and signatures in
   `server.py` (tool list at lines 203-1782); launch via `uv run
   --directory tools/scholar-agent-kit scholar-agent` (CWD = kit dir; no env/cwd in
@@ -508,45 +497,8 @@ Removed in M5-slim (2026-11-05): the harness never used it, and its dedup and re
   the typed `{status: error, cache_key: None}` envelope, never `TypeError`.
   Year-window honesty: MCP `start_year` defaults to 2020, engine/adapter to
   2000 -- parity needs an explicit shared window.
-- **Return conventions:** machine JSON = protocol + reconcile + verify + recon tools;
+- **Return conventions:** machine JSON = protocol + reconcile + recon + screening + assistant tools;
   prose strings (success "Error:" prefixes) = the rest.
-- **`nexus_verify_claims`** wraps `VerbatimClaimVerifier(threshold=0.90)` (verify kit),
-  returns `{status, metrics, failures_by_reason, claims}` — RAG `claims.json` schema
-  bridge documented in finding 6.
-- **`nexus_verify_phase4`** runs scholar-verify Phase-4 streams (see verify-kit
-  section) via the same thin CLI helpers; `workspace_dir` resolved with the standard
-  `_resolve_path` anchor.
-- **Bare `uv sync` of the kit would break** — `scholar_verify.verbatim` is imported but
-  `scholar-verify-kit` is not a declared dep (shared-venv install hides it).
-
-### scholar-verify-kit
-- **Public API:** `RetractionChecker` (OpenAlex/Crossref, deterministic
-  `flagged = OA is_retracted OR any Crossref update ∈ {retraction, expression-of-concern,
-  correction, addendum, correction-addendum}`; sleeps `sleep_s` per record — 94 studies
-  ≈ +19 s), open-science DAS/CAS `run` (regex + repo-host whitelist; missing extraction
-  **dropped** by default), COI `run` (deterministic relabel of `no-statement`;
-  `coi_chunk_1..8.json` must be contiguous or `SystemExit`), `risk_of_bias.run`
-  (QUADAS-2/PROBAST L/?/H + n/a; worst-domain overall; conservative `?` for
-  self-collected w/o docs), `build_trust_index`/`trust_level` (BLOCKED/WEAK/ADEQUATE/
-  STRONG/UNVERIFIED ladder; any flag → BLOCKED; STRONG needs zero `?` + zero industry
-  + ≥1 public+link), `VerbatimClaimVerifier` (verbatim — the only MCP-exposed part).
-- **CLI:** retraction/open-science/coi/risk-of-bias/trust-context/all/verbatim-claims,
-  all `--workspace/-w` (requires protocol.json or INDEX.md); `all` ≠ all (no
-  trust-context/verbatim, no overwrite prompt); outputs `phase4/{retraction_status_check,
-  open_science_regex_baseline, coi_audit, risk_of_bias, trust_consensus[_<rq>]}.{json,md}`
-  with envelope `{run_metadata, summary, results}`.
-- **MCP:** `nexus_verify_claims` (verbatim) + `nexus_verify_phase4` (any/all Phase-4
-  streams; same envelope + phase4/ outputs as the CLI; `skip_retraction` default True).
-- **Knowledge:** only retraction hits the network (mailto `verification@nexus-scholar.example`);
-  hermetic everything else; `10.48550` arXiv DOIs short-circuit Crossref (`_datacite`);
-  RQ attribution = exact `(study_id, claim_text)` match; `_FLAG_REASON_SENSITIVE` dead
-  constant (no sensitivity filtering — any flag blocks); 3 retries/exponential on
-  `fetch_json`, clean misses `{"_status": 404|400|422}`; kit standalone (typer/rich/
-  requests only); inputs `literature/extraction/merged/records.json`,
-  `literature/included.json`, `phase4/_manifest.json`, `phase4/_agent_results/*`,
-  `extracted/*.md`, `synthesis/consensus.json` + 4 phase4 JSONs.
-
----
 
 ## Cross-kit dependency graph
 
@@ -555,11 +507,7 @@ scholar-search-kit ──http_client──► scholar-pdf-kit        (AcademicHt
                 ├──http_client──► scholar-graph-kit        (mandatory ctor arg)
                 ├──SearchEngine─► scholar-agent-kit/recon  (adapter make_engine search_fn)
                 │                 scholar_harness.recon.adapter
-scholar-protocol-kit ──build_extraction_model──► scholar-rag-kit (matrix, UNDECLARED dep)
 scholar-protocol-kit ──────────► scholar-agent-kit (compile/validate/render)
-scholar-rag-kit ────────────────► scholar-agent-kit (index/query/synthesize/matrix)
-scholar-graph-kit ──graph.json──► scholar-rag-kit (CLI --graph consumption, workflow-level)
-scholar-verify-kit ─verbatim────► scholar-agent-kit (nexus_verify_claims, UNDECLARED dep)
 scholar-agent-kit ──adapter import──► scholar_harness.recon.adapter (guarded, no sys.path)
 ```
 
@@ -570,7 +518,6 @@ scholar-agent-kit ──adapter import──► scholar_harness.recon.adapter (g
 | Polite pool / keys | `SCHOLAR_MAILTO` (required, no default), `SCHOLAR_OPENALEX_KEY` (required by OpenAlex since 2026-02-13; the code still calls it optional), `SCHOLAR_S2_KEY`. No NCBI key setting exists. | search |
 | Cache | `SCHOLAR_CACHE_DIR` (`.cache`, hishel TTL 30d unused) | search |
 | PDF | `SCHOLAR_MAILTO` or `MAILTO` (required since K0), `DOWNLOAD_DIR`, `MAX_CONCURRENT_DOWNLOADS`, `DOWNLOAD_TIMEOUT`, `PROXY_URL`, `PROXY_STYLE` (refused by `download`/`ingest`), `PDF_STRUCTURAL_VALIDATION`, `ENABLE_PUBLISHER_DIRECT_PATTERNS` (default off, `true` refused) | pdf |
-| Embedder | `OPENAI_API_KEY` | rag |
 | MCP/harness | `NEXUS_RECON_ROOT`, `NEXUS_SKILLS_SRC`, `NEXUS_MCP_CONFIG_HOME` (P7.4 `setup-mcp` config root override, mirrors `NEXUS_RECON_ROOT`) | agent/harness |
 | LLM screening | `GEMINI_API_KEY` | search (`LLMBatchScreener`) |
 

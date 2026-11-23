@@ -11,7 +11,7 @@ Nexus helps you define a protocol, discover literature, work through screening a
 
 ## What you can use today
 
-The `nexus-scholar` package bundles the harness, seven scientific kits and an MCP server. Initialize a local workspace, inspect its environment, record events and generate configuration for an AI host. Scientific capabilities have different dependencies and acceptance requirements; installation alone does not establish a completed review.
+The `nexus-scholar` package bundles the harness, five scientific kits and an MCP server. Initialize a local workspace, inspect its environment, record events and generate configuration for an AI host. Scientific capabilities have different dependencies and acceptance requirements; installation alone does not establish a completed review.
 
 | Surface | Available / intended use | Boundary |
 |---|---|---|
@@ -82,12 +82,10 @@ See the [AG record](docs/architecture/agent-controls/README.md), [evidence bound
 | Protocol | Compile and validate research intent/protocols |
 | Search | Discovery, deduplication, metadata and screening support |
 | PDF | Full-text acquisition and extraction |
-| RAG | Indexing, retrieval and synthesis capabilities |
 | Graph | Citation networks and graph analysis |
 | Agent | MCP tool interfaces |
-| Verify | Retraction, open-science and methodological trust checks |
 
-Kits own scientific operations. The harness coordinates workspaces, accepted evidence, audit, pipelines and interfaces. CLI, MCP and UI use shared services rather than separate research engines. MCP does not expose every authoritative operation; some acquisition/extraction/index boundaries explicitly refuse unsupported access. A convenience output is not automatically an accepted scientific artifact.
+Kits own scientific operations. The harness coordinates workspaces, accepted evidence, audit, pipelines and interfaces. CLI, MCP and UI use shared services rather than separate research engines. MCP does not expose every authoritative operation; some acquisition/extraction boundaries explicitly refuse unsupported access. A convenience output is not automatically an accepted scientific artifact.
 
 ## Develop and contribute
 
@@ -96,11 +94,11 @@ Read [AGENTS.md](AGENTS.md) and the [Developer Compass](docs/architecture/DEVELO
 ```sh
 git clone https://github.com/nexus-scholar-org/nexus-scholar-harness.git
 cd nexus-scholar-harness
-uv sync --extra dev --extra pdf --extra rag
+uv sync --extra dev --extra pdf
 uv run pytest
 ```
 
-The harness and the seven kits are one package: `uv sync` installs all of them editable from `src/`, with every CLI. Kit code is changed in `src/scholar_<kit>/` like any other code, in one PR.
+The harness and the five kits are one package: `uv sync` installs all of them editable from `src/`, with every CLI. Kit code is changed in `src/scholar_<kit>/` like any other code, in one PR.
 
 Contributions go through a fork and PR to this repository. Select checks from the [test-gate policy](docs/architecture/test_gate_policy.md): ordinary prose uses a light gate; consumed documents and executable changes retain required checks. Candidate-specific evidence replaces static test totals. CI badges describe configured checks, not automatic proof that every scientific workflow or the full local pytest suite passed.
 

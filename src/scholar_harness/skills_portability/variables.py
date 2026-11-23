@@ -147,13 +147,11 @@ KIT_COMMANDS: dict[str, str] = {
     "scholar-protocol": "protocol",
     "scholar-search": "search",
     "scholar-pdf": "pdf",
-    "scholar-rag": "rag",
     "scholar-graph": "graph",
     "scholar-agent": "agent",
-    "scholar-verify": "verify",
 }
 
-#: Every ``<short>`` a ``{CLI:<short>}`` placeholder may name: the eight kit
+#: Every ``<short>`` a ``{CLI:<short>}`` placeholder may name: the kit
 #: commands plus the harness's own CLI (``{CLI:harness}``, which
 #: ``rewrite_text`` produces for ``uv run scholar-harness``). An adapter
 #: iterates this set, so a CLI a skill may name is always a CLI it can bind.

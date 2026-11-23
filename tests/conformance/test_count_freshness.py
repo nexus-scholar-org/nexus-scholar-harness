@@ -1,7 +1,7 @@
 """Surface count freshness.
 
-The repo documents cardinal numbers (7 kits, 12 mirrored skills, 16 console
-actions, 32 MCP tools) in ``docs/kits_surface_matrix.md`` / AGENTS.md.  These
+The repo documents cardinal numbers (5 kits, 10 mirrored skills, 12 console
+actions, 25 MCP tools) in ``docs/kits_surface_matrix.md`` / AGENTS.md.  These
 must match runtime reality so prose never silently corrodes.  The skill check
 also guards mirror completeness: the plugin bundle must contain every
 canonical skill except ``pull-request-gate`` (the sync script's one exclusion).
@@ -22,12 +22,12 @@ SKILLS_CANONICAL = REPO_ROOT / ".agents" / "skills"
 SKILLS_MIRROR = REPO_ROOT / ".agents" / "plugins" / "nexus-scholar" / "skills"
 MANIFEST = REPO_ROOT / ".agents" / "plugins" / "nexus-scholar" / "plugins.json"
 
-EXPECTED_KITS = 7
-EXPECTED_ACTIONS = 16
-EXPECTED_MCP_TOOLS = 32
-EXPECTED_MIRRORED_SKILLS = 12
+EXPECTED_KITS = 5
+EXPECTED_ACTIONS = 12
+EXPECTED_MCP_TOOLS = 25
+EXPECTED_MIRRORED_SKILLS = 10
 
-# Live-derived 32-tool surface via `{t.name for t in mcp._tool_manager.list_tools()}`.
+# Live-derived 25-tool surface via `{t.name for t in mcp._tool_manager.list_tools()}`.
 # Exact set (not a subset) so an added/removed/renamed tool fails loudly with
 # missing/unexpected lists instead of blessing whatever number prose carries.
 EXPECTED_MCP_TOOL_NAMES = frozenset(
@@ -37,40 +37,33 @@ EXPECTED_MCP_TOOL_NAMES = frozenset(
         "nexus_assistant_read_draft",
         "nexus_assistant_read_workspace",
         "nexus_assistant_report_finding",
-        "nexus_critique_methodology",
         "nexus_dedup",
         "nexus_discover",
         "nexus_extract_pdf",
         "nexus_graph_build",
         "nexus_graph_narrative",
-        "nexus_matrix_extract",
         "nexus_pdf_acquire",
         "nexus_pdf_extraction",
         "nexus_pipeline_run",
         "nexus_protocol_compile",
         "nexus_protocol_render_criteria",
         "nexus_protocol_validate",
-        "nexus_rag_index",
-        "nexus_rag_query",
-        "nexus_rag_synthesize",
         "nexus_screen",
         "nexus_screen_llm",
         "nexus_screen_reconcile",
         "nexus_screening_queue",
         "nexus_screening_record",
         "nexus_submit_proposal",
-        "nexus_verify_claims",
-        "nexus_verify_phase4",
         "recon_delta",
         "recon_distill",
         "recon_probe",
     }
 )
 
-# Declared-unsupported boundary tools stay registered so the E1/E2/E3 refusals
+# Declared-unsupported boundary tools stay registered so the E1/E2 refusals
 # are observable (never missing tools). Subset of EXPECTED_MCP_TOOL_NAMES.
 BOUNDARY_MCP_TOOLS = frozenset(
-    {"nexus_pdf_acquire", "nexus_pdf_extraction", "nexus_rag_index"}
+    {"nexus_pdf_acquire", "nexus_pdf_extraction"}
 )
 
 # ``pull-request-gate`` is intentionally not distributed with the plugin bundle

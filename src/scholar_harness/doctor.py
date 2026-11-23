@@ -62,7 +62,7 @@ class CheckResult:
 
 
 # ---------------------------------------------------------------------------
-# Kits: the eight scholar_* packages ship inside the nexus-scholar distribution
+# Kits: the scholar_* packages ship inside the nexus-scholar distribution
 # ---------------------------------------------------------------------------
 
 #: Every kit bundled in the ``nexus-scholar`` package. They share its version;
@@ -72,9 +72,7 @@ KITS: tuple[str, ...] = (
     "scholar-search-kit",
     "scholar-pdf-kit",
     "scholar-graph-kit",
-    "scholar-rag-kit",
     "scholar-agent-kit",
-    "scholar-verify-kit",
 )
 
 

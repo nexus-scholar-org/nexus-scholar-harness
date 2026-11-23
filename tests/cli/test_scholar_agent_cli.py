@@ -39,7 +39,10 @@ def test_scholar_agent_cli_help_subprocess():
     assert res.returncode == 0
     assert "-w WORKSPACE" in res.stdout or "--workspace" in res.stdout
     assert "--transport" in res.stdout
-    assert "nexus_verify_phase4" in res.stdout
+    assert "nexus_screening_queue" in res.stdout
+    # H-remove-rag-verify: the removed tools are not advertised.
+    assert "nexus_verify_phase4" not in res.stdout
+    assert "nexus_rag_query" not in res.stdout
     assert "recon_delta" in res.stdout
 
 
@@ -80,19 +83,3 @@ def test_scholar_agent_cli_transport_passthrough(tmp_path):
         main(["--workspace", str(ws), "--transport", "sse"])
         assert mock_run.called
         assert mock_run.call_args.kwargs.get("transport") == "sse"
-
-
-
-def test_nexus_verify_phase4_default_workspace(tmp_path, monkeypatch):
-    """Verify nexus_verify_phase4 defaults to '.' and anchors to workspace."""
-    ws = tmp_path / "phase4_ws"
-    ws.mkdir(parents=True, exist_ok=True)
-    monkeypatch.setenv("NEXUS_MCP_WORKSPACE", str(ws))
-
-    # Calling without workspace_dir argument should default to "." -> ws
-    import json
-    res = json.loads(server.nexus_verify_phase4(stream="risk-of-bias"))
-    assert res["status"] in ("SUCCESS", "ERROR")
-    # Output path in result should point inside ws
-    if res.get("json_path"):
-        assert str(ws) in res["json_path"]
