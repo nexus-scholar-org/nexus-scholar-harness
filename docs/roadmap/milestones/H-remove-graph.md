@@ -1,6 +1,6 @@
 # H-remove-graph Remove the citation graph
 
-Branch: `dev/h/remove-graph` (from `origin/main` `9af17212`) · Lane: **RELEASE** (packaging, the base dependencies, the MCP surface and the public commands change) · Status: **BUILT, review pending** (not pushed)
+Branch: `dev/h/remove-graph` (from `origin/main` `9af17212`) · Lane: **RELEASE** (packaging, the base dependencies, the MCP surface and the public commands change) · Status: **READY FOR PR** (review round 2 below; not pushed)
 
 The researcher's decision of 2026-11-23, in the coordinator session ("Yes, remove graph"), after the project review of that day (item 10: three base dependencies, `networkx`, `pyvis` and `scipy`, served only the parked graph code; cited in `docs/roadmap/milestones/M13-installers.md` §2.4). Delete `scholar_graph`, its tests and everything that only exists to call it. PDF extraction, the capability adapter and `claims` stay.
 
@@ -16,7 +16,7 @@ Then re-add `networkx`, `pyvis` and `scipy` to the base dependencies, the `schol
 
 ## What was deleted
 
-`git diff --shortstat 9af17212` on the final head: see "Evidence". By part:
+`git diff --shortstat 9af17212..ee412b58`: 74 files, +371 / −4,842 lines (the deletions, the repairs, this record and the decisions entry). By part:
 
 | What | Files | Lines |
 | :-- | --: | --: |
@@ -37,7 +37,7 @@ Changed, not deleted: the MCP server (−245 lines: the two tools, their imports
 - **MCP tools (24 to 22):** `nexus_graph_build` and `nexus_graph_narrative`. An MCP client that calls either now gets an unknown-tool error.
 - **The pipeline after a collected screening** (`nexus-scholar run`, `nexus_pipeline_run`): extraction only. Its result no longer carries the `graph_nodes` stage, no `literature/knowledge_graph.json` or `.html` is written, and its summary no longer prints "Graph Nodes". `nexus-scholar status` no longer prints the "Citation Graph Nodes" row (the status JSON keeps its `graph_nodes` key, read from an existing `knowledge_graph.json`, as `vector_chunks` stayed after H-remove-rag-verify).
 - **Console:** the `graph` and `graph_narrative` actions (12 to 10) and the `/api/v1/assets/graph` route (now 404). A stored pipeline spec with a `scholar-graph` node is refused at validation (`COMMAND_NOT_ALLOWED`). The web app used none of them.
-- **Install:** `networkx`, `pyvis` and `scipy` leave the base dependencies; with `pyvis` go the 15 packages only it brought (`ipython`, `jedi`, `parso`, `traitlets`, `prompt-toolkit`, `jsonpickle` and their dependencies). `numpy` was only there through `scipy` and goes too. They still arrive with an extra: `networkx` and `numpy` with `pdf` (PyMuPDF 2.1 requires `networkx`; `numpy` through PyMuPDF's layout packages), and `networkx`, `scipy` and `numpy` with `extract` (Docling, `networkx` through torch).
+- **Install:** `networkx`, `pyvis` and `scipy` leave the base dependencies; with `pyvis` go the packages only it brought (`ipython`, `jedi`, `parso`, `traitlets`, `prompt-toolkit`, `jsonpickle`, `jinja2`, `markupsafe`, `psutil` and their dependencies). `numpy` was only there through `scipy` and goes too. A base install loses 20 packages in all (measured below). They still arrive with an extra: `networkx` and `numpy` with `pdf` (PyMuPDF 2.1 requires `networkx`; `numpy` through PyMuPDF's layout packages), and `networkx`, `scipy` and `numpy` with `extract` (Docling, `networkx` through torch).
 - **Skill:** `scholar-graph-kit` (10 mirrored skills to 9; 11 shipped to 10).
 
 ## Measured effect on a fresh install
@@ -46,13 +46,15 @@ The wheel built without the UI export (`NEXUS_WHEEL_ALLOW_NO_UI=1`), installed o
 
 | | Before (`9af17212`) | After (this branch) |
 | :-- | --: | --: |
-| Wheel | 1,456 KB, 313 files | see "Evidence" |
-| Environment on disk | 267 MB, 12,884 files | see "Evidence" |
-| Packages installed | 82 | see "Evidence" |
-| `networkx` / `pyvis` / `scipy` / `numpy` / `jedi` / `IPython` importable | all yes | see "Evidence" |
+| Wheel | 1,456 KB, 313 files | 1,432 KB, 304 files |
+| Environment on disk | 267 MB, 12,884 files | **69 MB, 3,470 files** |
+| Packages installed | 82 | 62 |
+| `networkx` / `pyvis` / `scipy` / `numpy` / `jedi` / `IPython` importable | all yes | all no |
 | MCP tools (`scholar-agent --help`) | 24 | 22 |
-| `import scholar_harness.cli` | 2.77, 2.38, 2.14 s | see "Evidence" |
-| `nexus-scholar --help` | 2.51, 3.58, 3.20 s | see "Evidence" |
+| `import scholar_harness.cli` | 2.77, 2.38, 2.14 s | 2.63, 2.70, 2.58 s |
+| `nexus-scholar --help` | 2.51, 3.58, 3.20 s | 3.17, 2.77, 2.63 s |
+
+The 20 packages a base install no longer gets: asttokens, executing, ipython, ipython-pygments-lexers, jedi, jinja2, jsonpickle, markupsafe, matplotlib-inline, networkx, numpy, parso, prompt-toolkit, psutil, pure-eval, pyvis, scipy, stack-data, traitlets, wcwidth. Start-up time does not change: the graph code was never imported at start-up, so the times above differ only by noise. The console scripts are now `nexus-scholar`, `scholar-agent`, `scholar-harness`, `scholar-pdf`, `scholar-protocol`, `scholar-search` (`scholar-graph` gone).
 
 `uv.lock`: 16 packages removed (asttokens, executing, ipython, ipython-pygments-lexers, jedi, jsonpickle, matplotlib-inline, parso, pexpect, prompt-toolkit, ptyprocess, pure-eval, pyvis, stack-data, traitlets, wcwidth). `networkx`, `scipy` and `numpy` stay in the lock, reached only through the `pdf` and `extract` extras (`uv tree --invert`).
 
@@ -76,8 +78,8 @@ The wheel built without the UI export (`NEXUS_WHEEL_ALLOW_NO_UI=1`), installed o
 - [x] 4. Packaging: `pyproject.toml`, `uv.lock` (`uv lock --check`), the plugin manifest, the skills bundle, skill portability.
 - [x] 5. Gate manifest: the `graph` area removed, `tests/test_mcp_narrative.py` out of the agent-mcp checkpoint; `select_test_gate.py --check` passes.
 - [x] 6. Documents corrected where they would now be false: `AGENTS.md`, `README.md`, `docs/kits_surface_matrix.md`, `docs/nexus_scholar_user_guide.md`, `docs/data-flow.md`, `docs/architecture/wp01/evidence-boundaries.md` (its count is test-read), the agent, search and workspace-manager skills.
-- [ ] 7. Gate on the final head ("Evidence").
-- [ ] 8. Independent review.
+- [x] 7. Gate ("Evidence").
+- [x] 8. Independent review ("Review").
 
 ## Left as it is, on purpose
 
@@ -99,11 +101,16 @@ All on this PC (Windows 11, the project venv on Python 3.14.7, synced `--extra d
 | `generate_contract_baseline.py --check` | | "Contract baseline current" |
 | `generate_contract_schemas.py`, `generate_two_study_contract_fixture.py`, `generate_protocol_schema.py` (`--check`) | | pass |
 | `sync_skills_bundle.py --check`, `validate_manifest.py`, `select_test_gate.py --check` (11 tasks, 23 areas), `check_workflows.py`, `uv lock --check` | | pass |
-| `uv build --wheel` and the fresh-environment install | | |
-| `git diff --check` | | |
+| `uv build --wheel` (`NEXUS_WHEEL_ALLOW_NO_UI=1`) and the install into a fresh Python 3.12 venv, offline from the uv cache, base only | `ee412b58` | built, 304 files; both `nexus-scholar --help` and `scholar-agent --help` answer; 22 tools; `networkx`, `pyvis`, `scipy`, `numpy`, `jedi`, `IPython` not importable; numbers in "Measured effect" |
+| Review round 1 repairs (wording, the journal text, one new test): `tests/test_dependency_bounds.py`, coordinator, publication generations, orchestrator fidelity | `ee412b58` | 77 passed; ruff `src/` pass; skills bundle and gate manifest checks pass |
+| `git diff --check 9af17212` | `ee412b58` | pass |
 
 **Not verified.**
 - CI (Ubuntu, Python 3.12, cross-OS): not run, nothing pushed.
 - The wheel with the UI export inside it.
 - The MCP server driven by a real MCP client; the 22-tool surface is checked through the tool manager and `--help`.
 - Any real workspace: none was opened.
+
+## Review
+
+- **Round 1** (`milestone-reviewer`, on `645aedf7`): **CHANGES**, no P0 to P2. Six P3 findings: AGENTS.md's "six packages"; the plan's §8 parked list; the workspace-manager layout (`graph.html`, `graph.json`, "Graph" among the steps to log) and the search skill's "graph building"; the coordinator's "Stages 5-9" texts, one of them a journal description; this record's test-file count, two unlisted parametrized losses and `networkx`'s route through `extract`; the `PIPELINE_RUN_COMPLETED` outputs change not named. All six fixed in `ee412b58`, with two of the reviewer's follow-ups: a test that keeps the three dependencies out of the base install, and the coordinator test's docstring naming `stages.graph` again. Reviewer's own checks: 818 targeted tests passed (2 skipped); every deleted test covered only removed code; the negative tests fail on the old code; runtime counts 22 tools, 10 actions, 4 kits, 9 mirrored skills; no product path imports `networkx`, `pyvis`, `scipy` or `numpy`.
