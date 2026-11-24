@@ -122,7 +122,7 @@ Done by the coordinator session at the researcher's request ("You check it here"
 - **Themes and widths.** Light and dark at 1440 and 375 px, and `/ar/settings/` (RTL): no horizontal page scroll. The console held only the two expected refusals (422, 409).
 - **The logs.** The two log files held no key, no e-mail address and no launch code.
 
-**Faults found, fixed after the check** (tests in `apps/research-ui/tests/settings.screen.test.tsx`):
+**Faults found, fixed after the check** (tests in `apps/research-ui/tests/settings.screen.test.tsx`; web checks on `8c1ab476`: typecheck pass, `lint:ui` 76 passed, vitest through the suite lock 120 files and 1395 passed; no Python changed since the merged-tree run):
 1. **A file path did not wrap at 375 px.** The keys file's path ran past the card's edge, in the Keys sentence and in the row's "Kept in …" line, in both themes. Both paragraphs now wrap like the folder path (`[overflow-wrap:anywhere]`). Test: the class on both lines.
 2. **Focus was lost after "Keep the key in that file".** It fell to the page body. It now goes to the row's Replace button once the row has re-rendered. Escape, Cancel and "Do not save" use the same mechanism. Test: Replace has focus after the confirmation.
 3. **Names were not told apart.** The five key fields were all named "Paste the key", and both Remove buttons were named "Remove". Each field, Replace and Remove now names its value: "Paste the key OpenAlex key", "Replace Google Gemini key", "Remove E-mail address". Test: "settings.names".
