@@ -39,6 +39,8 @@ interface StateEntry {
   action: StateAction;
   /** A terminal command shown under the action, for people who prefer the terminal. */
   command?: string;
+  /** M13 Part B: also link to the Settings screen, where this value is saved (beside the card's own step). */
+  settingsLink?: boolean;
   copy: Record<Locale, { title: string; body: string; affects: string; action: string }>;
 }
 
@@ -996,22 +998,26 @@ export const STATES: Record<string, StateEntry> = {
   },
   MAILTO_NOT_SET: {
     role: "blocked",
-    action: "settings",
+    action: "retry",
+    // M13 Part B: the card keeps its own step and also links to Settings.
+    settingsLink: true,
     command: "SCHOLAR_MAILTO=<your email>",
     copy: {
-      en: T("Set a contact email before searching", "A search needs a contact e-mail address for the literature databases. Add it in Settings.", "Recall and Harvest", "Open Settings"),
-      fr: T("Indiquez une adresse de contact avant de chercher", "Une recherche demande une adresse e-mail de contact pour les bases bibliographiques. Ajoutez-la dans les réglages.", "Le rappel et la collecte", "Ouvrir les réglages"),
-      ar: T("حدّد بريدًا للتواصل قبل البحث", "يحتاج البحث إلى عنوان بريد إلكتروني للتواصل مع قواعد البيانات العلمية. أضِفه في الإعدادات.", "فحص الاستدعاء والحصاد", "فتح الإعدادات"),
+      en: T("Set a contact email before searching", "A search needs a contact e-mail address for the literature databases. Add it in Settings.", "Recall and Harvest", "Check again"),
+      fr: T("Indiquez une adresse de contact avant de chercher", "Une recherche demande une adresse e-mail de contact pour les bases bibliographiques. Ajoutez-la dans les réglages.", "Le rappel et la collecte", "Vérifier à nouveau"),
+      ar: T("حدّد بريدًا للتواصل قبل البحث", "يحتاج البحث إلى عنوان بريد إلكتروني للتواصل مع قواعد البيانات العلمية. أضِفه في الإعدادات.", "فحص الاستدعاء والحصاد", "تحقّق مجددًا"),
     },
   },
   OPENALEX_KEY_NOT_SET: {
     role: "blocked",
-    action: "settings",
+    action: "retry",
+    // M13 Part B: the card keeps its own step and also links to Settings.
+    settingsLink: true,
     command: "SCHOLAR_OPENALEX_KEY=<your key>",
     copy: {
-      en: T("Set the OpenAlex API key before searching OpenAlex", "OpenAlex needs a free API key. Add it in Settings, or leave OpenAlex out of the run.", "Harvest", "Open Settings"),
-      fr: T("Indiquez la clé d'API OpenAlex avant de chercher dans OpenAlex", "OpenAlex demande une clé d'API gratuite. Ajoutez-la dans les réglages, ou retirez OpenAlex de l'exécution.", "La collecte", "Ouvrir les réglages"),
-      ar: T("حدّد مفتاح واجهة OpenAlex البرمجية قبل البحث فيها", "تحتاج OpenAlex إلى مفتاح واجهة برمجية مجاني. أضِفه في الإعدادات، أو استبعد OpenAlex من التشغيل.", "الحصاد", "فتح الإعدادات"),
+      en: T("Set the OpenAlex API key before searching OpenAlex", "OpenAlex needs a free API key. Add it in Settings, or leave OpenAlex out of the run.", "Harvest", "Check again"),
+      fr: T("Indiquez la clé d'API OpenAlex avant de chercher dans OpenAlex", "OpenAlex demande une clé d'API gratuite. Ajoutez-la dans les réglages, ou retirez OpenAlex de l'exécution.", "La collecte", "Vérifier à nouveau"),
+      ar: T("حدّد مفتاح واجهة OpenAlex البرمجية قبل البحث فيها", "تحتاج OpenAlex إلى مفتاح واجهة برمجية مجاني. أضِفه في الإعدادات، أو استبعد OpenAlex من التشغيل.", "الحصاد", "تحقّق مجددًا"),
     },
   },
   // M3g-citation-chasing (spec 09): the chase routes' refusals.
@@ -1409,29 +1415,35 @@ export const STATES: Record<string, StateEntry> = {
   // window and settings folder; `stateCopy` picks them when the engine says it was installed.
   "installed.MAILTO_NOT_SET": {
     role: "blocked",
-    action: "settings",
+    action: "retry",
+    // M13 Part B: the card keeps its own step and also links to Settings.
+    settingsLink: true,
     copy: {
-      en: T("Set a contact email before searching", "A search needs a contact e-mail address for the literature databases. Add it in Settings.", "Recall and Harvest", "Open Settings"),
-      fr: T("Indiquez une adresse de contact avant de chercher", "Une recherche demande une adresse e-mail de contact pour les bases bibliographiques. Ajoutez-la dans les réglages.", "Le rappel et la collecte", "Ouvrir les réglages"),
-      ar: T("حدّد بريدًا للتواصل قبل البحث", "يحتاج البحث إلى عنوان بريد إلكتروني للتواصل مع قواعد البيانات العلمية. أضِفه في الإعدادات.", "فحص الاستدعاء والحصاد", "فتح الإعدادات"),
+      en: T("Set a contact email before searching", "A search needs a contact e-mail address for the literature databases. Add it in Settings.", "Recall and Harvest", "Check again"),
+      fr: T("Indiquez une adresse de contact avant de chercher", "Une recherche demande une adresse e-mail de contact pour les bases bibliographiques. Ajoutez-la dans les réglages.", "Le rappel et la collecte", "Vérifier à nouveau"),
+      ar: T("حدّد بريدًا للتواصل قبل البحث", "يحتاج البحث إلى عنوان بريد إلكتروني للتواصل مع قواعد البيانات العلمية. أضِفه في الإعدادات.", "فحص الاستدعاء والحصاد", "تحقّق مجددًا"),
     },
   },
   "installed.OPENALEX_KEY_NOT_SET": {
     role: "blocked",
-    action: "settings",
+    action: "retry",
+    // M13 Part B: the card keeps its own step and also links to Settings.
+    settingsLink: true,
     copy: {
-      en: T("Set the OpenAlex API key before searching OpenAlex", "OpenAlex needs a free API key. Add it in Settings, or leave OpenAlex out of the run.", "Harvest", "Open Settings"),
-      fr: T("Indiquez la clé d'API OpenAlex avant de chercher dans OpenAlex", "OpenAlex demande une clé d'API gratuite. Ajoutez-la dans les réglages, ou retirez OpenAlex de l'exécution.", "La collecte", "Ouvrir les réglages"),
-      ar: T("حدّد مفتاح واجهة OpenAlex البرمجية قبل البحث فيها", "تحتاج OpenAlex إلى مفتاح واجهة برمجية مجاني. أضِفه في الإعدادات، أو استبعد OpenAlex من التشغيل.", "الحصاد", "فتح الإعدادات"),
+      en: T("Set the OpenAlex API key before searching OpenAlex", "OpenAlex needs a free API key. Add it in Settings, or leave OpenAlex out of the run.", "Harvest", "Check again"),
+      fr: T("Indiquez la clé d'API OpenAlex avant de chercher dans OpenAlex", "OpenAlex demande une clé d'API gratuite. Ajoutez-la dans les réglages, ou retirez OpenAlex de l'exécution.", "La collecte", "Vérifier à nouveau"),
+      ar: T("حدّد مفتاح واجهة OpenAlex البرمجية قبل البحث فيها", "تحتاج OpenAlex إلى مفتاح واجهة برمجية مجاني. أضِفه في الإعدادات، أو استبعد OpenAlex من التشغيل.", "الحصاد", "تحقّق مجددًا"),
     },
   },
   "installed.inception.MAILTO_NOT_SET": {
     role: "blocked",
-    action: "settings",
+    action: "reload",
+    // M13 Part B: the card keeps its own step and also links to Settings.
+    settingsLink: true,
     copy: {
-      en: T("Nexus Scholar has no contact email for the literature databases", "A search needs one, and no request was sent. Add it in Settings.", "New searches (a pool already on screen still works)", "Open Settings"),
-      fr: T("Nexus Scholar n'a pas d'adresse de contact pour les bases bibliographiques", "Une recherche en demande une, et aucune requête n'a été envoyée. Ajoutez-la dans les réglages.", "Les nouvelles recherches (un corpus déjà affiché reste utilisable)", "Ouvrir les réglages"),
-      ar: T("ليس لدى Nexus Scholar بريد للتواصل مع قواعد البيانات العلمية", "يحتاج البحث إلى بريد، ولم يُرسل أي طلب. أضِفه في الإعدادات.", "عمليات البحث الجديدة (تبقى مجموعة الأوراق المعروضة صالحة)", "فتح الإعدادات"),
+      en: T("Nexus Scholar has no contact email for the literature databases", "A search needs one, and no request was sent. Add it in Settings.", "New searches (a pool already on screen still works)", "Reload the page"),
+      fr: T("Nexus Scholar n'a pas d'adresse de contact pour les bases bibliographiques", "Une recherche en demande une, et aucune requête n'a été envoyée. Ajoutez-la dans les réglages.", "Les nouvelles recherches (un corpus déjà affiché reste utilisable)", "Recharger la page"),
+      ar: T("ليس لدى Nexus Scholar بريد للتواصل مع قواعد البيانات العلمية", "يحتاج البحث إلى بريد، ولم يُرسل أي طلب. أضِفه في الإعدادات.", "عمليات البحث الجديدة (تبقى مجموعة الأوراق المعروضة صالحة)", "أعد تحميل الصفحة"),
     },
   },
   "installed.SNAPSHOT_NOT_ACCEPTED": {
@@ -1463,12 +1475,14 @@ export const STATES: Record<string, StateEntry> = {
   },
   "inception.MAILTO_NOT_SET": {
     role: "blocked",
-    action: "settings",
+    action: "reload",
+    // M13 Part B: the card keeps its own step and also links to Settings.
+    settingsLink: true,
     command: "SCHOLAR_MAILTO=<your email>",
     copy: {
-      en: T("Nexus Scholar has no contact email for the literature databases", "A search needs one, and no request was sent. Add it in Settings.", "New searches (a pool already on screen still works)", "Open Settings"),
-      fr: T("Nexus Scholar n'a pas d'adresse de contact pour les bases bibliographiques", "Une recherche en demande une, et aucune requête n'a été envoyée. Ajoutez-la dans les réglages.", "Les nouvelles recherches (un corpus déjà affiché reste utilisable)", "Ouvrir les réglages"),
-      ar: T("ليس لدى Nexus Scholar بريد للتواصل مع قواعد البيانات العلمية", "يحتاج البحث إلى بريد، ولم يُرسل أي طلب. أضِفه في الإعدادات.", "عمليات البحث الجديدة (تبقى مجموعة الأوراق المعروضة صالحة)", "فتح الإعدادات"),
+      en: T("This console has no contact email for the literature databases", "A search needs one, and no request was sent. Add it in Settings.", "New searches (a pool already on screen still works)", "Reload the page"),
+      fr: T("Cette console n'a pas d'adresse de contact pour les bases bibliographiques", "Une recherche en demande une, et aucune requête n'a été envoyée. Ajoutez-la dans les réglages.", "Les nouvelles recherches (un corpus déjà affiché reste utilisable)", "Recharger la page"),
+      ar: T("ليس لوحدة التحكم هذه بريد للتواصل مع قواعد البيانات العلمية", "يحتاج البحث إلى بريد، ولم يُرسل أي طلب. أضِفه في الإعدادات.", "عمليات البحث الجديدة (تبقى مجموعة الأوراق المعروضة صالحة)", "أعد تحميل الصفحة"),
     },
   },
   "inception.PROVIDERS_FAILED": {
@@ -1641,6 +1655,7 @@ export interface StateCopy {
   affects: string;
   actionLabel: string;
   command?: string;
+  settingsLink?: boolean;
 }
 
 const UNKNOWN: Record<Locale, { title: string; body: string }> = {
@@ -1694,7 +1709,7 @@ export function stateCopy(locale: Locale, code: string, installed = false): Stat
     return { code, known: false, role: "blocked", action: "none", title: UNKNOWN[locale].title, body: UNKNOWN[locale].body, affects: "", actionLabel: "" };
   }
   const c = entry.copy[locale];
-  return { code, known: true, role: entry.role, action: entry.action, title: c.title, body: c.body, affects: c.affects, actionLabel: c.action, command: entry.command };
+  return { code, known: true, role: entry.role, action: entry.action, title: c.title, body: c.body, affects: c.affects, actionLabel: c.action, command: entry.command, settingsLink: entry.settingsLink };
 }
 
 export const AFFECTS_LABEL: Record<Locale, string> = { en: "Affects:", fr: "Concerne :", ar: "يؤثر في:" };

@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/base";
 import { AFFECTS_LABEL, stateCopy } from "@/lib/screening-states";
 import { getCorpus } from "@/lib/screening-v1";
 import { useInstalled } from "@/lib/engine-start";
+import { settingsT } from "@/lib/settings-copy";
 
 /**
  * One state card (spec 08): what happened, what it affects, one next step, and
@@ -194,6 +195,13 @@ export function StateCard({
           </a>
         ) : state.actionLabel && !hideActionLabel ? (
           <p className="text-sm text-ink-muted">{state.actionLabel}</p>
+        ) : null}
+        {state.settingsLink && state.action !== "settings" ? (
+          <p className="mt-2">
+            <a className="inline-flex min-h-11 items-center text-brand underline" href={`/${locale}/settings/${query}`} data-open-settings>
+              {settingsT(locale, "settings.open")}
+            </a>
+          </p>
         ) : null}
         {state.command ? (
           <p className="mt-2">

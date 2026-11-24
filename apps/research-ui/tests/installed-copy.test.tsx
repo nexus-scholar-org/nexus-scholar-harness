@@ -69,7 +69,8 @@ describe("installed cards", () => {
     expect(stateCopy("en", "MAILTO_NOT_SET").command).toBe("SCHOLAR_MAILTO=<your email>");
     expect(stateCopy("en", "MAILTO_NOT_SET", true).body).toContain("Add it in Settings");
     expect(stateCopy("en", "MAILTO_NOT_SET", true).command).toBeUndefined();
-    expect(stateCopy("en", "MAILTO_NOT_SET", true).action).toBe("settings");
+    expect(stateCopy("en", "MAILTO_NOT_SET", true).action).toBe("retry"); // "Check again" stays
+    expect(stateCopy("en", "MAILTO_NOT_SET", true).settingsLink).toBe(true);
     expect(stateCopy("en", "MAILTO_NOT_SET", true).code).toBe("MAILTO_NOT_SET"); // the code shown stays the engine's
     expect(installedStateKey(inceptionStateKey("MAILTO_NOT_SET"), true)).toBe("installed.inception.MAILTO_NOT_SET");
     expect(installedStateKey("STALE_BINDING", true)).toBe("STALE_BINDING"); // no installed card: the usual one

@@ -48,6 +48,8 @@ function expectedTabStops(locale: Locale): string[] {
     `a:${CATALOGS[locale]["nav.workspaces"]}`,
     `a:${CATALOGS[locale]["nav.discovery"]}`,
     `a:${CATALOGS[locale]["nav.screening"]}`,
+    // M13 Part B: Settings, on every route.
+    `a:${CATALOGS[locale]["nav.settings"]}`,
     // The language menu's button shows the current endonym.
     `button:${LOCALE_METADATA[locale].endonym}`,
     // The theme toolbar: three icon buttons, named by aria-label.
