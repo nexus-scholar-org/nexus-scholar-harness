@@ -12,9 +12,10 @@ history to read if you need the original reasoning (`git log --follow -- <path>`
 | :-- | :-- | :-- |
 | 2026-11-19 — M9a: what the measurement says about the ladder gates | 2 | The minimum share of the researcher's excludes an agent must take before a rung unlocks: the principle is accepted; the researcher decided on 2026-11-20 to set the number when M9b is built. |
 | 2026-11-23 — H-gate-and-ci | 1 | The standing permission for sessions to push a work branch and open a draft pull request: not given. |
-| 2026-11-24 — M13 Part A, second pull request | 1 to 4 | The installed app's words point to `.env` in its settings folder until Part B; provider keys not available in the installed app; the control window in English only; no Settings button until Part B. |
 
-## 2026-11-24 — M13 Part A, second pull request: the control window and the app's words for the installed app (PROPOSED; items 1 to 4 for the researcher, 5 to 16 the build's choices)
+## 2026-11-24 — M13 Part A, second pull request: the control window and the app's words for the installed app (ACCEPTED 2026-11-24; items 1 to 4 as recommended, 5 to 16 the build's choices)
+
+**Accepted 2026-11-24.** The researcher accepted items 1 to 4 as recommended in the coordinator session ("Accept, push, merge", to the question whether to accept the four items as recommended and push and merge at green): until Part B the installed app's own words point to `.env` in its settings folder; provider keys are not available in the installed app; the control window is in English only; no Settings button until Part B.
 
 Record: `docs/roadmap/milestones/M13-part-a.md`, section "Second pull request". Specification: `docs/roadmap/milestones/M13-installers.md` §4.2 and §5.2 Part A. Started on the researcher's go of 2026-11-24 ("Start it"), relayed by the coordinator session. Branch `dev/m13/part-a-control-window` from `main` `59f0dca1`, lane RELEASE. Built:
 

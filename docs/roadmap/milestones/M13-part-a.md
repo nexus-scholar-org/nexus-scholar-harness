@@ -1,6 +1,6 @@
 # M13 Part A: the launcher for an installed app
 
-Status: **BUILT on `dev/m13/part-a-launcher` (from `main` `cc0e8fa1`, `main` `0bcefdd3` merged in); items 1 to 4 accepted by the researcher on 2026-11-24, in a pull request; the engine start path only (see "Not in this branch"). Lane RELEASE.** The researcher gave the go on 2026-11-24 ("Start Part A and the workspace format version"), relayed by the coordinator session "Nexus Scholar parent work". Specification: `docs/roadmap/milestones/M13-installers.md` §4.1, §4.2, §5.2 Part A and §8 (trial build). Decisions: `docs/decisions.md`, entry "2026-11-24 — M13 Part A".
+Status: **BUILT on `dev/m13/part-a-launcher` (from `main` `cc0e8fa1`, `main` `0bcefdd3` merged in); items 1 to 4 accepted by the researcher on 2026-11-24; merged 2026-11-24 as PR 309 (`0f473f0f`); the engine start path only (see "Not in this branch"). Lane RELEASE.** The researcher gave the go on 2026-11-24 ("Start Part A and the workspace format version"), relayed by the coordinator session "Nexus Scholar parent work". Specification: `docs/roadmap/milestones/M13-installers.md` §4.1, §4.2, §5.2 Part A and §8 (trial build). Decisions: `docs/decisions.md`, entry "2026-11-24 — M13 Part A".
 
 ## What a start from an icon does now
 
@@ -55,7 +55,7 @@ Status: **BUILT on `dev/m13/part-a-launcher` (from `main` `cc0e8fa1`, `main` `0b
 
 ## Second pull request: the control window and the app's words (2026-11-24)
 
-Status: **BUILT on `dev/m13/part-a-control-window` (from `main` `59f0dca1`), not pushed. Lane RELEASE.** Started on the researcher's go of 2026-11-24 ("Start it"), relayed by the coordinator session. Decisions entry: "2026-11-24 — M13 Part A, second pull request" (items 1 to 4 for the researcher).
+Status: **BUILT on `dev/m13/part-a-control-window` (from `main` `59f0dca1`); items 1 to 4 accepted by the researcher on 2026-11-24, in a pull request. Lane RELEASE.** Started on the researcher's go of 2026-11-24 ("Start it"), relayed by the coordinator session. Decisions entry: "2026-11-24 — M13 Part A, second pull request" (items 1 to 4 for the researcher).
 
 ### The control window (`src/scholar_harness/console/control_window.py`)
 
