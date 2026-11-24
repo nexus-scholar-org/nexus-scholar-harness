@@ -13,9 +13,9 @@ history to read if you need the original reasoning (`git log --follow -- <path>`
 | 2026-11-19 — M9a: what the measurement says about the ladder gates | 2 | The minimum share of the researcher's excludes an agent must take before a rung unlocks: the principle is accepted; the researcher decided on 2026-11-20 to set the number when M9b is built. |
 | 2026-11-23 — H-gate-and-ci | 1 | The standing permission for sessions to push a work branch and open a draft pull request: not given. |
 
-## 2026-11-24 — M13 Part W: the Windows installer (PROPOSED; questions 1 to 3 answered by the researcher before the build; items 4 to 12 the build's choices)
+## 2026-11-24 — M13 Part W: the Windows installer (PROPOSED; questions 1 to 3 answered by the researcher before the build; items 4 to 13 the build's choices)
 
-Record: `docs/roadmap/milestones/M13-part-w.md`. Specification: `docs/roadmap/milestones/M13-installers.md` §2.2, §4.1, §4.6, §5.2 Part W, Q1, Q2, Q10. Started on the researcher's choice of 2026-11-24 ("Part W: Windows installer"). Branch `dev/m13/part-w-windows-installer` from Part B's head, lane STANDARD.
+Record: `docs/roadmap/milestones/M13-part-w.md`. Specification: `docs/roadmap/milestones/M13-installers.md` §2.2, §4.1, §4.6, §5.2 Part W, Q1, Q2, Q10. Started on the researcher's choice of 2026-11-24 ("Part W: Windows installer"). Branch `dev/m13/part-w-windows-installer` from Part B's head. The lane is RELEASE, after review round 1: `--forget` is a new flag of the public `nexus-scholar-app`, and the part adds a pin and a release asset.
 
 **Answered by the researcher (2026-11-24, before the build; the record has what was not chosen)**
 
@@ -34,10 +34,11 @@ None now. Answer 3 waits for the first installer.
 6. The installer is installed per user into `{userpf}` (`%LOCALAPPDATA%\Programs`) with `PrivilegesRequired=lowest`. Its AppId is fixed, so updates replace the same app.
 7. "Stop it first" uses the app's own `--stop` and the engine's `engine.json` in `%APPDATA%\Nexus Scholar`. It asks first; a silent install stops without asking.
 8. The downgrade warning compares one integer per version (`build.py:version_key`, PEP 440 order) kept in `HKCU\Software\Nexus Scholar`. It defaults to No; a silent install of an older version is refused.
-9. The uninstaller's "Also remove my settings and saved keys" (§4.6, unticked by default) is a Yes/No question whose default is No. Inno Setup's uninstaller has no wizard page for a tick box. On Yes it runs the new `--forget` before the files go. A silent uninstall keeps everything. `--forget` never deletes a folder that holds the reviews folder.
+9. The uninstaller's "Also remove my settings and saved keys" (§4.6, unticked by default) is a Yes/No question whose default is No. Inno Setup's uninstaller has no wizard page for a tick box. On Yes it runs the new `--forget` before the files go. A silent uninstall keeps everything. `--forget` stops a running engine first. It removes keys, settings, logs and the cache, but never a review and never `<cache>/inception_recon`, the explorations in progress of unfinished drafts (review round 1). It keeps a folder that holds the reviews folder or lies inside it.
 10. The icon is drawn by `packaging/icons/make_icon.py` with Pillow's built-in font, so it does not depend on the fonts of the computer it runs on. The generated `.ico` is committed beside the SVG design.
 11. The CI job runs on v* tags (it attaches the installer to the release that `release.yml` makes on the same tag), on demand, and on pull requests that change `packaging/**` or the workflow, so ordinary pull requests do not run it. Its test points both `NEXUS_APP_HOME` and `NEXUS_WORKSPACES_ROOT` at temporary folders.
-12. A gate area `windows-packaging` (`docs/architecture/test_gate_manifest.json`) runs `tests/test_windows_packaging.py` for changes under `packaging/`.
+12. A gate area `windows-packaging` (`docs/architecture/test_gate_manifest.json`) runs `tests/test_windows_packaging.py` for changes under `packaging/`. Two selector tests that used `packaging/unknown.cfg` as their example of an unclaimed path now use `unclaimed/unknown.cfg`.
+13. Only the job that attaches the installer to a release has write permission, and it runs only on a tag. A stop that does not happen stops the install with a message, instead of installing over a running engine. The installer always uses the default folder (`DisableDirPage=yes`), because a deep custom folder could break the 260-character path limit.
 
 ## 2026-11-24 — M13 Part B: settings and first-run setup (PROPOSED; questions 1 to 8 answered by the researcher before the build; item 21 for the researcher; items 9 to 20 and 22 the build's choices)
 

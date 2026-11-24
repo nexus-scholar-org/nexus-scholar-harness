@@ -84,6 +84,8 @@ def build_bundle(wheel: Path, work: Path, out: Path) -> Path:
 
 
 def build_installer(folder: Path, version: str, out: Path, iscc: str) -> Path:
+    # Absolute: Inno Setup reads a relative Source or output folder from the script's own folder.
+    folder, out = folder.resolve(), out.resolve()
     run([iscc, f"/DAppVersion={version}", f"/DVersionKey={version_key(version)}", f"/DSourceDir={folder}",
          f"/O{out}", str(HERE / "nexus-scholar.iss")])
     setup = out / f"NexusScholar-{version}-setup.exe"

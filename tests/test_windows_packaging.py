@@ -80,3 +80,45 @@ def test_the_workflow_runs_on_tags_on_demand_and_on_packaging_changes_only():
     assert "tags:" in flow and "workflow_dispatch" in flow
     assert "- 'packaging/**'" in flow and "runs-on: windows-latest" in flow
     assert "smoke_test.ps1" in flow and "--installer" in flow
+
+
+def test_the_compiler_gets_absolute_paths(tmp_path, monkeypatch):
+    """Review of Part W, P1: Inno Setup reads a relative path from the script's own folder."""
+    build = _build()
+    seen: list[list[str]] = []
+    monkeypatch.setattr(build, "run", lambda command, **_k: seen.append(command))
+    out = Path("relative-out")
+    monkeypatch.chdir(tmp_path)
+    (tmp_path / out).mkdir()
+    (tmp_path / out / "NexusScholar-1.1.0b7-setup.exe").write_text("x", encoding="utf-8")
+    build.build_installer(Path("relative-bundle"), "1.1.0b7", out, "iscc")
+    source = next(a for a in seen[0] if a.startswith("/DSourceDir="))
+    output = next(a for a in seen[0] if a.startswith("/O"))
+    assert Path(source.split("=", 1)[1]).is_absolute() and Path(output[2:]).is_absolute()
+
+
+def test_the_uninstaller_never_calls_a_setup_only_function_and_a_failed_stop_stops_the_install():
+    iss = (WINDOWS / "nexus-scholar.iss").read_text(encoding="utf-8")
+    assert "IsUninstaller()" in iss and "UninstallSilent()" in iss
+    ask = iss[iss.index("function AskToStop"):iss.index("function InitializeSetup")]
+    assert "WizardSilent" not in ask and "Silent()" in ask  # P1: through the helper only
+    assert "if not StopEngine(Exe) then" in ask and "Result := False" in ask  # P3: no install over a running engine
+    assert "DisableDirPage=yes" in iss
+
+
+def test_the_smoke_test_refuses_to_run_on_a_computer_someone_uses():
+    smoke = (WINDOWS / "smoke_test.ps1").read_text(encoding="utf-8")
+    assert '$env:GITHUB_ACTIONS -ne "true" -and -not $ThrowAwayMachine' in smoke
+
+
+def test_only_the_tag_job_may_write_to_the_release():
+    flow = (ROOT / ".github" / "workflows" / "windows-installer.yml").read_text(encoding="utf-8")
+    top = flow[: flow.index("jobs:")]
+    assert "contents: read" in top and "contents: write" not in top
+    attach = flow[flow.index("  attach:"):]
+    assert "if: github.ref_type == 'tag'" in attach and "contents: write" in attach
+
+
+def test_a_bundle_without_the_plugin_manifest_is_a_failed_build():
+    spec = (WINDOWS / "nexus-scholar.spec").read_text(encoding="utf-8")
+    assert "plugin manifest is missing" in spec and "raise SystemExit" in spec

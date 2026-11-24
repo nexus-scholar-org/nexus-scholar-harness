@@ -207,7 +207,7 @@ def test_unknown_path_falls_back_conservatively() -> None:
     """F1-06: unknown paths take the harness full suite, never light-only."""
     data = MODULE.load_manifest()
     tasks, commands = MODULE.select_commands(
-        data, tasks=[], paths=["packaging/unknown.cfg"], stage="inner"
+        data, tasks=[], paths=["unclaimed/unknown.cfg"], stage="inner"
     )
     assert tasks == []
     assert commands == [
@@ -408,7 +408,7 @@ def test_mixed_area_and_unknown_path_still_takes_full_fallback() -> None:
     _, commands = MODULE.select_commands(
         data,
         tasks=[],
-        paths=["src/scholar_search/engine.py", "packaging/unknown.cfg"],
+        paths=["src/scholar_search/engine.py", "unclaimed/unknown.cfg"],
         stage="inner",
     )
     # The full-suite fallback subsumes the narrower search run.

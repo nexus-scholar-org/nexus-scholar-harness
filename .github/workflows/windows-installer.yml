@@ -16,7 +16,7 @@ on:
       - '.github/workflows/windows-installer.yml'
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   installer:
@@ -59,7 +59,13 @@ jobs:
         run: uv build --wheel
 
       - name: Install Inno Setup
-        run: choco install innosetup --yes --no-progress
+        # Inno Setup 6.3 or later (the script's `x64compatible`); its compiler is looked up, not assumed.
+        shell: pwsh
+        run: |
+          choco install innosetup --yes --no-progress
+          $iscc = Get-ChildItem -Path "${env:ProgramFiles(x86)}", "$env:ProgramFiles" -Recurse -Filter ISCC.exe -ErrorAction SilentlyContinue | Select-Object -First 1
+          if (-not $iscc) { throw "Inno Setup's compiler was not found after the install" }
+          "ISCC=$($iscc.FullName)" | Out-File -Append -Encoding utf8 $env:GITHUB_ENV
 
       - name: Build the bundle and the installer
         # A short work folder: Windows refuses paths over 260 characters (the trial build).
@@ -68,7 +74,7 @@ jobs:
           uv run --no-project python packaging/windows/build.py
           --wheel "dist/nexus_scholar-${VERSION}-py3-none-any.whl"
           --work "C:/nsb" --out dist/windows --installer
-          --iscc "C:/Program Files (x86)/Inno Setup 6/ISCC.exe"
+          --iscc "$ISCC"
 
       - name: Install, start, stop and uninstall it
         shell: pwsh
@@ -81,13 +87,28 @@ jobs:
           path: dist/windows/NexusScholar-*-setup.exe
           if-no-files-found: error
 
+  attach:
+    # Only on a tag, and only this job may write to the release.
+    needs: installer
+    if: github.ref_type == 'tag'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist/windows
+          merge-multiple: true
+
       - name: Attach it to the release
         # release.yml makes the release on the same tag; wait for it, then add the installer.
-        if: github.ref_type == 'tag'
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          VERSION="${GITHUB_REF_NAME#v}"
           for attempt in $(seq 1 40); do
             if gh release view "v${VERSION}" > /dev/null 2>&1; then
               gh release upload "v${VERSION}" "dist/windows/NexusScholar-${VERSION}-setup.exe" --clobber

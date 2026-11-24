@@ -30,8 +30,8 @@ import faulthandler
 import io
 import os
 import platform
-import shutil
 import re
+import shutil
 import sys
 import threading
 import time
@@ -348,12 +348,19 @@ FORGET_FLAG = "--forget"
 
 
 def _holds(folder: Path, inner: Path | None) -> bool:
+    """Whether deleting `folder` could touch `inner` (one inside the other, either way)."""
     if inner is None:
         return False
     try:
-        return inner.resolve().is_relative_to(folder.resolve())
+        a, b = inner.resolve(), folder.resolve()
+        return a.is_relative_to(b) or b.is_relative_to(a)
     except (OSError, ValueError):
         return True  # when unsure, keep the folder
+
+
+#: Kept by --forget: an inception draft's explorations in progress (Explore, Direction) live here,
+#: and the draft itself, under the reviews folder, would come back without them.
+KEPT_CACHE = "inception_recon"
 
 
 def forget(folders: AppFolders) -> int:
@@ -368,16 +375,42 @@ def forget(folders: AppFolders) -> int:
 
     from scholar_harness.workspace.catalog import resolve_root
 
+    from . import instance as instance_module
+
+    # A running engine holds its files and keys: stop it first and wait for its lock.
+    if instance_module.read_info(folders.settings) is not None:
+        instance_module.ask(folders.settings, "stop", wait=2.0)
+        claim = instance_module.Instance(folders.settings)
+        deadline = time.monotonic() + 30
+        while not claim.acquire():
+            if time.monotonic() >= deadline:
+                print("Nexus Scholar is still running; nothing was removed.", file=sys.stderr)
+                return 1
+            time.sleep(0.25)
+        claim.release()
     try:
         reviews, _source = resolve_root(None)
     except Exception:  # noqa: BLE001 - when the reviews folder is unknown, keep every folder that might hold it
         reviews = None
+    failed = False
     for name in user_settings.KEY_ENV:
         try:
             user_settings.remove_key(name)
-        except Exception:  # noqa: BLE001 - a locked keychain: the rest still goes
-            pass
-    for folder in (folders.settings, folders.logs, folders.cache):
+        except Exception:  # noqa: BLE001 - a locked keychain: the rest still goes, and the exit says so
+            failed = True
+    if folders.cache.is_dir():
+        # The cache goes, except the explorations in progress of unfinished inception drafts.
+        for entry in folders.cache.iterdir():
+            if entry.name == KEPT_CACHE or _holds(entry, reviews):
+                continue
+            if entry.is_dir():
+                shutil.rmtree(entry, ignore_errors=True)
+            else:
+                try:
+                    entry.unlink()
+                except OSError:
+                    pass
+    for folder in (folders.settings, folders.logs):
         if not folder.exists():
             continue
         if _holds(folder, reviews) or reviews is None:
@@ -388,7 +421,7 @@ def forget(folders: AppFolders) -> int:
                     pass
             continue
         shutil.rmtree(folder, ignore_errors=True)
-    return 0
+    return 1 if failed else 0
 
 
 def run_with_window(launcher: Any, panel: control_window.ControlPanel, root_window: Any) -> bool:

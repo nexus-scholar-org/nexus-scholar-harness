@@ -8,9 +8,15 @@
 # leave the reviews folder at the default (~\Documents\Nexus Scholar\workspaces), a real one on any
 # computer but a fresh runner (M13 Part B, the coordinator's note on the check by hand).
 param(
-    [Parameter(Mandatory = $true)][string]$Installer
+    [Parameter(Mandatory = $true)][string]$Installer,
+    [switch]$ThrowAwayMachine
 )
 $ErrorActionPreference = "Stop"
+
+# It installs over and uninstalls %LOCALAPPDATA%\Programs\Nexus Scholar: never on a computer someone uses.
+if ($env:GITHUB_ACTIONS -ne "true" -and -not $ThrowAwayMachine) {
+    throw "This test installs and uninstalls Nexus Scholar for the current user. It runs on a CI runner; elsewhere pass -ThrowAwayMachine on a computer made for it."
+}
 
 function Wait-Until([scriptblock]$Condition, [int]$Seconds, [string]$What) {
     $deadline = (Get-Date).AddSeconds($Seconds)
@@ -33,7 +39,7 @@ $summary = @()
 
 # 1. Install, per user, silently.
 $installerBytes = (Get-Item $Installer).Length
-$p = Start-Process -FilePath $Installer -ArgumentList "/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART", "/CURRENTUSER", "/LOG=$root\install.log" -Wait -PassThru
+$p = Start-Process -FilePath $Installer -ArgumentList "/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART", "`"/LOG=$root\install.log`"" -Wait -PassThru
 if ($p.ExitCode -ne 0) { Get-Content "$root\install.log" -Tail 40; throw "the installer failed with exit code $($p.ExitCode)" }
 $app = Join-Path $env:LOCALAPPDATA "Programs\Nexus Scholar"
 $exe = Join-Path $app "Nexus Scholar.exe"
@@ -75,7 +81,6 @@ $uninstaller = Get-ChildItem -Path $app -Filter "unins*.exe" | Select-Object -Fi
 Start-Process -FilePath $uninstaller.FullName -ArgumentList "/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART" -Wait | Out-Null
 Wait-Until { -not (Test-Path $exe) } 120 "the uninstaller to remove the program"
 if (-not (Test-Path (Join-Path $root "workspaces\kept-review\note.txt"))) { throw "the uninstall removed a review" }
-if (-not (Test-Path (Join-Path $settings "settings.json")) -and -not (Test-Path $settings)) { throw "a silent uninstall removed the settings" }
 if (Get-ChildItem -Path $startMenu -Filter "*.lnk" -ErrorAction SilentlyContinue) { throw "the Start-menu entry is still there" }
 
 $summary += "installed, started, stopped and uninstalled; the review kept"

@@ -32,7 +32,8 @@ AppPublisherURL=https://github.com/nexus-scholar
 DefaultDirName={userpf}\{#AppName}
 DefaultGroupName={#AppName}
 DisableProgramGroupPage=yes
-DisableDirPage=auto
+; The default folder only: a deep custom folder can break Windows' 260-character path limit (trial build).
+DisableDirPage=yes
 PrivilegesRequired=lowest
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
@@ -83,7 +84,16 @@ begin
   Result := FileExists(ExpandConstant('{userappdata}\{#AppName}\engine.json'));
 end;
 
-procedure StopEngine(Exe: String);
+function Silent(): Boolean;
+begin
+  { WizardSilent may be called from Setup only, UninstallSilent from the uninstaller only. }
+  if IsUninstaller() then
+    Result := UninstallSilent()
+  else
+    Result := WizardSilent();
+end;
+
+function StopEngine(Exe: String): Boolean;
 var
   Code, Tries: Integer;
 begin
@@ -91,11 +101,12 @@ begin
     Exec(Exe, '--stop', '', SW_HIDE, ewWaitUntilTerminated, Code);
   { The engine needs a few seconds to close its open pages; engine.json goes when it has stopped. }
   Tries := 0;
-  while EngineRunning() and (Tries < 40) do
+  while EngineRunning() and (Tries < 60) do
   begin
     Sleep(250);
     Tries := Tries + 1;
   end;
+  Result := not EngineRunning();
 end;
 
 function AskToStop(Exe: String): Boolean;
@@ -103,14 +114,21 @@ begin
   Result := True;
   if not EngineRunning() then
     exit;
-  if not WizardSilent() then
+  if not Silent() then
     if MsgBox('Nexus Scholar is running. Stop it now and continue? Open browser tabs will stop working.',
               mbConfirmation, MB_YESNO) <> IDYES then
     begin
       Result := False;
       exit;
     end;
-  StopEngine(Exe);
+  if not StopEngine(Exe) then
+  begin
+    { It did not stop (or a crash left engine.json behind): never overwrite files it may hold. }
+    if not Silent() then
+      MsgBox('Nexus Scholar could not be stopped. Close its window (Stop Nexus Scholar), or restart the computer, then run this again.',
+             mbError, MB_OK);
+    Result := False;
+  end;
 end;
 
 function InitializeSetup(): Boolean;
@@ -147,8 +165,8 @@ begin
   { Unticked by default (specification §4.6): the answer No is the default button; a silent uninstall keeps them. }
   RemoveUserData := False;
   if not UninstallSilent() then
-    RemoveUserData := MsgBox('Also remove your Nexus Scholar settings and saved keys?' + #13#10#13#10 +
-                             'Your reviews are never removed.', mbConfirmation, MB_YESNO or MB_DEFBUTTON2) = IDYES;
+    RemoveUserData := MsgBox('Also remove your Nexus Scholar settings, saved keys and logs?' + #13#10#13#10 +
+                             'Your reviews and their explorations in progress are never removed.', mbConfirmation, MB_YESNO or MB_DEFBUTTON2) = IDYES;
 end;
 
 procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);

@@ -34,8 +34,9 @@ for package in PACKAGES:
 datas += copy_metadata("nexus-scholar")
 # The agent-plugin manifest sits beside the packages in the wheel (genesis.py reads it there).
 manifest = os.path.join(sysconfig.get_paths()["purelib"], "nexus_scholar_plugins.json")
-if os.path.isfile(manifest):
-    datas.append((manifest, "."))
+if not os.path.isfile(manifest):
+    raise SystemExit(f"the wheel's plugin manifest is missing: {manifest}")
+datas.append((manifest, "."))
 
 
 def analysis(entry):

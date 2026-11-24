@@ -422,10 +422,15 @@ def test_forget_removes_settings_keys_logs_and_cache_but_never_a_review(home, tm
     for folder in (home.logs, home.cache):
         folder.mkdir(parents=True, exist_ok=True)
         (folder / "something").write_text("x", encoding="utf-8")
+    (home.cache / desktop.KEPT_CACHE / "sessions").mkdir(parents=True)
+    (home.cache / desktop.KEPT_CACHE / "sessions" / "probe.json").write_text("{}", encoding="utf-8")
     assert desktop.main([desktop.FORGET_FLAG]) == 0
     assert user_settings.stored_key("openalex") == (None, None) and user_settings.stored_key("gemini") == (None, None)
-    for folder in (home.settings, home.logs, home.cache):
+    for folder in (home.settings, home.logs):
         assert not folder.exists(), folder
+    assert not (home.cache / "something").exists()
+    # Review of Part W, P2: an unfinished draft's explorations in progress stay.
+    assert (home.cache / desktop.KEPT_CACHE / "sessions" / "probe.json").is_file()
     assert (reviews / "kept-review" / "project.json").is_file()  # the review stays
 
 
@@ -439,3 +444,23 @@ def test_forget_keeps_a_folder_that_holds_the_reviews(home, tmp_path, monkeypatc
     assert desktop.main([desktop.FORGET_FLAG]) == 0
     assert not user_settings.settings_path().exists()
     assert (inside / "inside-review" / "project.json").is_file()
+
+
+def test_forget_stops_a_running_engine_first(home, monkeypatch):
+    """Review of Part W, P3: a running engine holds its files and keys, so it is stopped and waited for."""
+    from scholar_search import user_settings
+
+    holder = instance.Instance(home.settings)
+    assert holder.acquire()
+    holder.publish("127.0.0.1", 9)
+    asked: list[str] = []
+
+    def stop(folder, action, wait=0):
+        asked.append(action)
+        holder.release()  # the engine stops and lets go of its lock
+        return {"stopping": True}
+
+    monkeypatch.setattr(instance, "ask", stop)
+    user_settings.write_settings(contact_email="r@example.org")
+    assert desktop.main([desktop.FORGET_FLAG]) == 0
+    assert asked == ["stop"] and not user_settings.settings_path().exists()
