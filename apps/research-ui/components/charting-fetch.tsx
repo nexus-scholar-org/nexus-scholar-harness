@@ -54,6 +54,7 @@ import {
 import { UNREACHABLE_CODES, fileSize } from "@/lib/charting-logic";
 
 import { FOCUS_RING } from "./charting-cells";
+import { useInstalled } from "@/lib/engine-start";
 
 /**
  * The look-up of open-access copies (M12a Part F, spec 03), shared by the
@@ -516,6 +517,7 @@ export function PlanBlock({
   onCancel: () => void;
 }>) {
   const t: Words = (key, values) => cc(locale, key, values);
+  const installed = useInstalled();
   const heading = useId();
   const summaryClass = `min-h-11 cursor-pointer py-3 leading-5 rounded-sm ${FOCUS_RING}`;
   if (state.status === "mailto") {
@@ -523,7 +525,7 @@ export function PlanBlock({
       <section ref={blockRef as RefObject<HTMLElement>} tabIndex={-1} aria-labelledby={heading} className={`rounded-md bg-blocked-soft px-4 py-3 text-blocked ${FOCUS_RING}`} data-fetch-plan="mailto">
         <div role="alert" data-refusal="MAILTO_NOT_SET">
           <p id={heading}>
-            <Say locale={locale} k="charting.refusal.MAILTO_NOT_SET" />
+            <Say locale={locale} k={installed ? "charting.refusal.mailtoInstalled" : "charting.refusal.MAILTO_NOT_SET"} />
           </p>
           <details className="text-xs">
             <summary className={summaryClass}>{t("charting.details")}</summary>

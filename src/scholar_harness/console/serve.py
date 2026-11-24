@@ -197,6 +197,7 @@ def create_app(
     code_window: Callable[..., bool] | None = None,
     local_routes: APIRouter | None = None,
     codes_on_terminal: bool = True,
+    started_as: str | None = None,
 ) -> FastAPI:
     """Build the console app for one workspace.
 
@@ -231,6 +232,11 @@ def create_app(
     whose standard output is its log file) keeps the approval codes off
     standard output: they are shown only in the desktop window, and a begin
     whose window cannot open is refused (``APPROVAL_WINDOW_UNAVAILABLE``).
+
+    ``started_as`` (``terminal`` or ``installed``, from the launcher) is set
+    by the launch link as a readable cookie, so the app can name the right
+    place for a setting: a terminal command, or the installed app's window
+    and settings folder.
     """
     # ``None``: no workspace open yet (``nexus-scholar ui`` on an empty root).
     # Then only the workspaces routes, the static UI and /healthz answer.
@@ -387,6 +393,10 @@ def create_app(
                 return _refusal(401, "LAUNCH_CODE_INVALID", "this launch link was used or has expired; start `nexus-scholar ui` again")
             response = RedirectResponse(browser.safe_next(next), status_code=303)
             response.set_cookie(browser.SESSION_COOKIE, browser_session, httponly=True, samesite="strict", path="/")
+            if started_as:
+                # Not a secret: the app reads it to pick its words (a terminal command, or the
+                # installed app's window and settings folder; M13 Part A).
+                response.set_cookie(browser.STARTED_AS_COOKIE, started_as, samesite="strict", path="/")
             return response
 
     if ui_root is not None:

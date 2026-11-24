@@ -40,8 +40,9 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
+from typing import Any
 
-from . import code_window
+from . import code_window, control_window
 from .browser import LAUNCH_PATH
 
 #: Points every per-user folder under one folder (tests, CI, a portable copy).
@@ -245,7 +246,14 @@ def _header(folders: AppFolders) -> None:
     _say(f"Cache folder: {folders.cache}")
 
 
-def _start(folders: AppFolders, *, stop: bool, open_browser: bool, tell: Callable[[str], None]) -> int:
+def _start(
+    folders: AppFolders,
+    *,
+    stop: bool,
+    open_browser: bool,
+    tell: Callable[[str], None],
+    log_file: Path | None = None,
+) -> int:
     from . import instance as instance_module
     from .launcher import DEFAULT_PORT, Launcher, free_port, resolve_ui_dir
     from scholar_harness.workspace.catalog import most_recent, resolve_root
@@ -294,6 +302,7 @@ def _start(folders: AppFolders, *, stop: bool, open_browser: bool, tell: Callabl
         if problem is not None:
             return 1
         _say(f"Workspaces folder: {root} (from the {source})")
+        panel: control_window.ControlPanel | None = None
         launcher = Launcher(
             root=root,
             workspace=most_recent(root),
@@ -304,15 +313,52 @@ def _start(folders: AppFolders, *, stop: bool, open_browser: bool, tell: Callabl
             say=_say,
             instance=claim,
             codes_on_terminal=False,  # standard output is the log: approval codes go to the window only
+            started_as="installed",
+            on_second_start=lambda: panel.second_start() if panel is not None else None,
         )
         _say(f"Port: {launcher.port}")
-        launcher.run()
-        _say("Stopped.")
-        return 0
+        root_window = control_window.make_root() if _dialogs_enabled() else None
+        if root_window is None:
+            _say("No control window (no display, or windows turned off): the engine runs without one.")
+            launcher.run()
+            _say("Stopped.")
+            return 0
+        panel = control_window.ControlPanel(
+            launcher, settings_folder=folders.settings, log_file=log_file, open_browser_at_start=open_browser
+        )
+        failed = run_with_window(launcher, panel, root_window)
+        _say("Stopped after an error." if failed else "Stopped.")
+        return 1 if failed else 0
     finally:
         claim.release()  # before any message, so a click meanwhile is not left waiting
         if problem is not None:
             tell(problem)
+
+
+def run_with_window(launcher: Any, panel: control_window.ControlPanel, root_window: Any) -> bool:
+    """The engine in a background thread, the control window on this (main) thread.
+
+    Returns whether the engine stopped on an error. However the window closes,
+    the engine is stopped and waited for (open responses are cut after
+    ``RESTART_GRACE_SECONDS``; a copy of a review still running is cancelled).
+    """
+    from .launcher import RESTART_GRACE_SECONDS
+
+    def engine() -> None:
+        try:
+            launcher.run()
+        except BaseException as exc:  # noqa: BLE001 - also SystemExit from a server that could not bind
+            traceback.print_exc()
+            panel.engine_failed(exc)
+
+    thread = threading.Thread(target=engine, name="nexus-engine", daemon=True)
+    thread.start()
+    try:
+        control_window.ControlWindow(panel, thread, root_window).run()
+    finally:
+        launcher.request_stop()
+        thread.join(timeout=RESTART_GRACE_SECONDS + 35)
+    return panel.failure is not None
 
 
 def main(argv: list[str] | None = None, *, tell: Callable[[str], None] = tell_user) -> int:
@@ -335,7 +381,9 @@ def main(argv: list[str] | None = None, *, tell: Callable[[str], None] = tell_us
         if unknown:
             _say(f"Unknown options: {' '.join(unknown)}")
             return 2
-        return _start(folders, stop="--stop" in args, open_browser="--no-browser" not in args, tell=tell)
+        return _start(
+            folders, stop="--stop" in args, open_browser="--no-browser" not in args, tell=tell, log_file=log.path
+        )
     except KeyboardInterrupt:
         return 0
     except BaseException:  # noqa: BLE001 - also SystemExit from a server that could not bind

@@ -21,6 +21,7 @@ import {
   type RunRequest,
   type RunView,
 } from "@/lib/screening-v1";
+import { useInstalled } from "@/lib/engine-start";
 
 /**
  * Agent proposals run (spec 06): choose the provider, see what leaves this
@@ -64,6 +65,7 @@ const COPY = {
     keyNote: "The key stays in the engine. It is never written to the workspace or the journal, and the browser never sees it.",
     dataFlow: "What leaves this machine: {flow}.",
     mcp: "Using your own Claude instead? Run it from Claude over MCP (uv run scholar-agent); it submits drafts with the same checks and starts no run here.",
+    mcpInstalled: "Using your own Claude instead? Connecting Claude Desktop to this app comes in a later version.",
     settings: "Run settings",
     model: "Model",
     baseUrl: "Endpoint URL",
@@ -146,6 +148,7 @@ const COPY = {
     keyNote: "La clé reste dans le moteur. Elle n'est jamais écrite dans l'espace ni dans le journal, et le navigateur ne la voit jamais.",
     dataFlow: "Ce qui quitte cette machine : {flow}.",
     mcp: "Vous préférez votre propre Claude ? Lancez-le depuis Claude via MCP (uv run scholar-agent) ; il soumet ses brouillons avec les mêmes contrôles et ne lance aucun passage ici.",
+    mcpInstalled: "Vous préférez votre propre Claude ? La connexion de Claude Desktop à cette application arrive dans une prochaine version.",
     settings: "Réglages du passage",
     model: "Modèle",
     baseUrl: "URL du point d'accès",
@@ -227,6 +230,7 @@ const COPY = {
     keyNote: "يبقى المفتاح في المحرك. لا يُكتب أبدًا في المساحة ولا في السجل، ولا يراه المتصفح.",
     dataFlow: "ما يغادر هذا الجهاز: {flow}.",
     mcp: "تفضّل Claude الخاص بك؟ شغّله من Claude عبر MCP (uv run scholar-agent)؛ يرسل المسودات بالفحوص نفسها ولا يبدأ تشغيلًا هنا.",
+    mcpInstalled: "تفضّل Claude الخاص بك؟ ربط Claude Desktop بهذا التطبيق يأتي في إصدار لاحق.",
     settings: "إعدادات التشغيل",
     model: "النموذج",
     baseUrl: "عنوان نقطة الوصول",
@@ -320,6 +324,7 @@ function usd(locale: Locale, value: number): string {
 type Loaded = { setup: ProposalSetup; decided: string[] };
 
 export function ScreeningProposals({ locale }: Readonly<{ locale: Locale }>) {
+  const installed = useInstalled();
   const t = useCallback((key: ProposalsCopyKey, values?: Record<string, string | number>) => fill(PROPOSALS_COPY[locale][key], values), [locale]);
   const n = useCallback((value: number) => formatNumber(locale, value), [locale]);
   const origin = useMemo(consoleOrigin, []);
@@ -568,7 +573,7 @@ export function ScreeningProposals({ locale }: Readonly<{ locale: Locale }>) {
               <p className="mt-3 text-sm text-ink" data-flow>
                 {t("dataFlow", { flow: setup.data_flow })}
               </p>
-              <p className="mt-2 text-sm text-ink-muted">{t("mcp")}</p>
+              <p className="mt-2 text-sm text-ink-muted">{t(installed ? "mcpInstalled" : "mcp")}</p>
             </fieldset>
 
             <section aria-labelledby="run-settings" className="rounded-lg border border-rule bg-leaf p-5">

@@ -262,9 +262,9 @@ export const STATES: Record<string, StateEntry> = {
     role: "unclear",
     action: "publish",
     copy: {
-      en: T("Not approved", "Each batch must be approved with the code shown in the terminal before it can be published.", "Publishing", "Review and approve"),
-      fr: T("Non approuvé", "Chaque lot doit être approuvé avec le code affiché dans le terminal avant publication.", "Publication", "Vérifier et approuver"),
-      ar: T("غير معتمد", "يجب اعتماد كل دفعة بالرمز المعروض في الطرفية قبل نشرها.", "النشر", "المراجعة والاعتماد"),
+      en: T("Not approved", "Each batch must be approved with the code shown on this computer before it can be published.", "Publishing", "Review and approve"),
+      fr: T("Non approuvé", "Chaque lot doit être approuvé avec le code affiché sur cet ordinateur avant publication.", "Publication", "Vérifier et approuver"),
+      ar: T("غير معتمد", "يجب اعتماد كل دفعة بالرمز المعروض على هذا الحاسوب قبل نشرها.", "النشر", "المراجعة والاعتماد"),
     },
   },
   COVERAGE_INCOMPLETE: {
@@ -343,9 +343,9 @@ export const STATES: Record<string, StateEntry> = {
     role: "blocked",
     action: "none",
     copy: {
-      en: T("Wrong approval code", "The code does not match the one shown in the terminal, or it expired.", "Approval", "Type the code again"),
-      fr: T("Code d'approbation erroné", "Le code ne correspond pas à celui affiché dans le terminal, ou il a expiré.", "Approbation", "Saisir le code à nouveau"),
-      ar: T("رمز اعتماد خاطئ", "لا يطابق الرمز المعروض في الطرفية، أو انتهت صلاحيته.", "الاعتماد", "أعد كتابة الرمز"),
+      en: T("Wrong approval code", "The code does not match the one shown on this computer, or it expired.", "Approval", "Type the code again"),
+      fr: T("Code d'approbation erroné", "Le code ne correspond pas à celui affiché sur cet ordinateur, ou il a expiré.", "Approbation", "Saisir le code à nouveau"),
+      ar: T("رمز اعتماد خاطئ", "لا يطابق الرمز المعروض على هذا الحاسوب، أو انتهت صلاحيته.", "الاعتماد", "أعد كتابة الرمز"),
     },
   },
   APPROVAL_WINDOW_UNAVAILABLE: {
@@ -1402,6 +1402,56 @@ export const STATES: Record<string, StateEntry> = {
       ar: T("اختير الاتجاه على مجموعة أوراق أو نطاق لم يعودا مطابقين", "أُعيد البحث، أو تغيّر النطاق، بعد اختيارك له. لم يُكتب شيء.", "المعاينة وإنشاء مساحة العمل", "اختر الاتجاه من جديد"),
     },
   },
+  // M13 Part A: the installed app (started from an icon) has no terminal. Its cards name its
+  // window and settings folder; `stateCopy` picks them when the engine says it was installed.
+  "installed.MAILTO_NOT_SET": {
+    role: "blocked",
+    action: "retry",
+    command: "SCHOLAR_MAILTO=<your email>",
+    copy: {
+      en: T("Set a contact email before searching", "A search needs a contact email for the literature databases. Put the line below in a file named .env in Nexus Scholar's settings folder (in the Nexus Scholar window: Open the settings folder), then stop Nexus Scholar in that window and start it again.", "Recall and Harvest", "Check again"),
+      fr: T("Indiquez une adresse de contact avant de chercher", "Une recherche demande une adresse de contact pour les bases bibliographiques. Mettez la ligne ci-dessous dans un fichier nommé .env dans le dossier des réglages de Nexus Scholar (dans la fenêtre Nexus Scholar : Open the settings folder), puis arrêtez Nexus Scholar dans cette fenêtre et relancez-le.", "Le rappel et la collecte", "Vérifier à nouveau"),
+      ar: T("حدّد بريدًا للتواصل قبل البحث", "يحتاج البحث إلى بريد للتواصل مع قواعد البيانات العلمية. ضع السطر أدناه في ملف اسمه ‎.env‎ في مجلد إعدادات Nexus Scholar (في نافذة Nexus Scholar: Open the settings folder)، ثم أوقف Nexus Scholar من تلك النافذة وشغّله من جديد.", "فحص الاستدعاء والحصاد", "تحقّق مجددًا"),
+    },
+  },
+  "installed.OPENALEX_KEY_NOT_SET": {
+    role: "blocked",
+    action: "retry",
+    command: "SCHOLAR_OPENALEX_KEY=<your key>",
+    copy: {
+      en: T("Set the OpenAlex API key before searching OpenAlex", "OpenAlex requires a free API key since February 2026. Put the line below in a file named .env in Nexus Scholar's settings folder (in the Nexus Scholar window: Open the settings folder), then stop Nexus Scholar in that window and start it again. Or leave OpenAlex out of the run.", "Harvest", "Check again"),
+      fr: T("Indiquez la clé d'API OpenAlex avant de chercher dans OpenAlex", "OpenAlex exige une clé d'API gratuite depuis février 2026. Mettez la ligne ci-dessous dans un fichier nommé .env dans le dossier des réglages de Nexus Scholar (dans la fenêtre Nexus Scholar : Open the settings folder), puis arrêtez Nexus Scholar dans cette fenêtre et relancez-le. Ou retirez OpenAlex de l'exécution.", "La collecte", "Vérifier à nouveau"),
+      ar: T("حدّد مفتاح واجهة OpenAlex البرمجية قبل البحث فيها", "تشترط OpenAlex مفتاح واجهة برمجية مجانيًا منذ فبراير 2026. ضع السطر أدناه في ملف اسمه ‎.env‎ في مجلد إعدادات Nexus Scholar (في نافذة Nexus Scholar: Open the settings folder)، ثم أوقف Nexus Scholar من تلك النافذة وشغّله من جديد. أو استبعد OpenAlex من التشغيل.", "الحصاد", "تحقّق مجددًا"),
+    },
+  },
+  "installed.inception.MAILTO_NOT_SET": {
+    role: "blocked",
+    action: "reload",
+    command: "SCHOLAR_MAILTO=<your email>",
+    copy: {
+      en: T("Nexus Scholar has no contact email for the literature databases", "A search needs one, and no request was sent. Put the line below in a file named .env in Nexus Scholar's settings folder (in the Nexus Scholar window: Open the settings folder), then stop Nexus Scholar in that window and start it again.", "New searches (a pool already on screen still works)", "Reload the page"),
+      fr: T("Nexus Scholar n'a pas d'adresse de contact pour les bases bibliographiques", "Une recherche en demande une, et aucune requête n'a été envoyée. Mettez la ligne ci-dessous dans un fichier nommé .env dans le dossier des réglages de Nexus Scholar (dans la fenêtre Nexus Scholar : Open the settings folder), puis arrêtez Nexus Scholar dans cette fenêtre et relancez-le.", "Les nouvelles recherches (un corpus déjà affiché reste utilisable)", "Recharger la page"),
+      ar: T("ليس لدى Nexus Scholar بريد للتواصل مع قواعد البيانات العلمية", "يحتاج البحث إلى بريد، ولم يُرسل أي طلب. ضع السطر أدناه في ملف اسمه ‎.env‎ في مجلد إعدادات Nexus Scholar (في نافذة Nexus Scholar: Open the settings folder)، ثم أوقف Nexus Scholar من تلك النافذة وشغّله من جديد.", "عمليات البحث الجديدة (تبقى مجموعة الأوراق المعروضة صالحة)", "أعد تحميل الصفحة"),
+    },
+  },
+  "installed.PROVIDER_KEY_MISSING": {
+    role: "blocked",
+    action: "none",
+    copy: {
+      en: T("No key for this provider", "This version of the installed app cannot store a provider key yet; that comes with its settings screen. The browser never takes a key. Nothing was sent.", "Agent runs with this provider", "Not available in this version"),
+      fr: T("Aucune clé pour ce fournisseur", "Cette version de l'application installée ne peut pas encore enregistrer de clé de fournisseur ; cela viendra avec son écran de réglages. Le navigateur ne reçoit jamais de clé. Rien n'a été envoyé.", "Les passages de l'agent avec ce fournisseur", "Indisponible dans cette version"),
+      ar: T("لا مفتاح لهذا المزوّد", "لا يستطيع هذا الإصدار من التطبيق المثبّت حفظ مفتاح مزوّد بعد؛ سيأتي ذلك مع شاشة الإعدادات. لا يستلم المتصفح أي مفتاح أبدًا. لم يُرسل شيء.", "تشغيل الوكيل مع هذا المزوّد", "غير متاح في هذا الإصدار"),
+    },
+  },
+  "installed.DRIVER_UNAVAILABLE": {
+    role: "blocked",
+    action: "none",
+    copy: {
+      en: T("This provider cannot be used yet", "A setting it needs, such as the base URL, is missing, or its driver is not part of this installation. Settings for providers come with the app's settings screen. Nothing was sent.", "Agent runs with this provider", "Not available in this version"),
+      fr: T("Ce fournisseur n'est pas encore utilisable", "Un réglage requis, comme l'URL de base, manque, ou son pilote ne fait pas partie de cette installation. Les réglages des fournisseurs viendront avec l'écran de réglages de l'application. Rien n'a été envoyé.", "Les passages de l'agent avec ce fournisseur", "Indisponible dans cette version"),
+      ar: T("لا يمكن استخدام هذا المزوّد بعد", "ينقصه إعداد مطلوب مثل عنوان URL الأساسي، أو أن برنامج تشغيله ليس جزءًا من هذا التثبيت. ستأتي إعدادات المزوّدين مع شاشة إعدادات التطبيق. لم يُرسل شيء.", "تشغيل الوكيل مع هذا المزوّد", "غير متاح في هذا الإصدار"),
+    },
+  },
   "inception.MAILTO_NOT_SET": {
     role: "blocked",
     action: "reload",
@@ -1615,9 +1665,22 @@ export function probeStateKey(code: string): string {
   return STATES[PROBE_SCOPE + code] ? PROBE_SCOPE + code : inceptionStateKey(code);
 }
 
+/**
+ * The installed app's cards (M13 Part A): registered under this prefix, used when
+ * the engine says it was started from an icon, so a card names the app's window
+ * and settings folder instead of a terminal command.
+ */
+export const INSTALLED_SCOPE = "installed.";
+
+/** The card key for `code` as this engine was started: the installed card when one exists. */
+export function installedStateKey(code: string, installed = false): string {
+  return installed && STATES[INSTALLED_SCOPE + code] ? INSTALLED_SCOPE + code : code;
+}
+
 /** The card for a code; an unknown code renders as itself, never as another card. */
-export function stateCopy(locale: Locale, code: string): StateCopy {
-  const entry = STATES[code] ?? (code === "CONSOLE_UNREACHABLE" || code === "CONSOLE_TIMEOUT" ? STATES.ENGINE_UNREACHABLE : undefined);
+export function stateCopy(locale: Locale, code: string, installed = false): StateCopy {
+  const key = installedStateKey(code, installed);
+  const entry = STATES[key] ?? (code === "CONSOLE_UNREACHABLE" || code === "CONSOLE_TIMEOUT" ? STATES.ENGINE_UNREACHABLE : undefined);
   if (!entry) {
     return { code, known: false, role: "blocked", action: "none", title: UNKNOWN[locale].title, body: UNKNOWN[locale].body, affects: "", actionLabel: "" };
   }

@@ -53,7 +53,78 @@ Status: **BUILT on `dev/m13/part-a-launcher` (from `main` `cc0e8fa1`, `main` `0b
 
 **Round 2: APPROVE** (f0f26985, code read; the gate was running). Two of its minor notes were repaired after it: the ready-wait thread now ends when the first server returns without starting (`test_the_ready_wait_ends_when_the_first_server_never_started`), and a write of `engine.json` that clashes is tried up to five times (`test_a_publish_that_clashes_once_is_tried_again`). Left as follow-ups: after an `APPROVAL_WINDOW_UNAVAILABLE` refusal the pairing status shows a pending challenge nobody can answer for up to 5 minutes, and the refused begin replaces a code an earlier window may still show (both harmless; voiding the staged records on refusal would be cleaner); one test replaces `time.sleep` for the whole process while it runs.
 
-## Not in this branch (the rest of spec §5.2 Part A)
+## Second pull request: the control window and the app's words (2026-11-24)
+
+Status: **BUILT on `dev/m13/part-a-control-window` (from `main` `59f0dca1`), not pushed. Lane RELEASE.** Started on the researcher's go of 2026-11-24 ("Start it"), relayed by the coordinator session. Decisions entry: "2026-11-24 — M13 Part A, second pull request" (items 1 to 4 for the researcher).
+
+### The control window (`src/scholar_harness/console/control_window.py`)
+
+A start from an icon now opens a small window titled "Nexus Scholar" beside the browser:
+
+- **Status line.** "Nexus Scholar is running on this computer. Your reviews are in <folder>." It also says:
+  - "Opening your review…" while a small review's copy runs, before the server answers;
+  - "Saving a copy of <title> before opening it: x MB of y MB" while a large review's copy runs;
+  - the refusal's message when a review is refused;
+  - after 60 s with no launch link used, that a security program or a proxy may block 127.0.0.1.
+- **Buttons.**
+  - **Open in browser**: a new tab with a fresh one-time link.
+  - **Stop Nexus Scholar**.
+  - "Show the log file" and "Open the settings folder".
+  - "Copy the details", shown after an error.
+- **Closing the window stops Nexus Scholar**, after the question "Stop Nexus Scholar? Open browser tabs will stop working." When something is in progress, the question names it and the default is to keep running: a copy of a review being saved, an agent run, approval codes waiting, a literature search.
+- **A second click on the icon** opens a fresh link (as before) and brings the window to the front.
+- **When the engine stops on an error**, the window says so and keeps the log and details buttons.
+- **With no Tk or no display**, or with `NEXUS_APP_DIALOGS=0`, the start runs headless as in the first pull request.
+
+The engine runs in a background thread and the window on the main thread. `desktop.run_with_window` stops the engine and waits for it however the window closes.
+
+### The app's words for the installed app
+
+The launch link sets a readable cookie, `nexus_started_as`: `installed` from an icon, `terminal` from `nexus-scholar ui`. The screens read it after mount (`useInstalled()`, so the first render matches the static export) and then use the installed wording.
+
+| Where | Terminal start (unchanged) | Installed app |
+| :-- | :-- | :-- |
+| Contact e-mail and OpenAlex key cards (search, recall, harvest, inception, discovery plan) | put the line in the console's environment or `.env`, restart the console | put the line in `.env` in Nexus Scholar's settings folder (the window's "Open the settings folder"), stop it in its window and start it again |
+| The look-up's e-mail refusal (charting) | same | same as above |
+| No key for an AI provider | `nexus-scholar keys set <provider>` | "This version of the installed app cannot store a provider key yet" (no command) |
+| Provider driver missing | `uv sync --extra ai` | names the missing setting; no command |
+| Where the approval codes are (Publish) | the window and the engine's terminal | the window only |
+| Approval-code refusals | — | "the code shown on this computer", for both starts |
+| Using your own Claude (agent proposals) | `uv run scholar-agent` | "connecting Claude Desktop comes in a later version" |
+| Workspaces: after creating a review; the empty list | the `accept-corpus` command; start the app on a folder from the terminal | import on the Import screen; move the folder into the workspaces folder |
+| Screening home "Run from the terminal"; inception start's terminal hint | shown | hidden |
+
+All in English, French and Arabic. Left with terminal words: the chase options' "from the terminal", `RESTART_UNSUPPORTED` (the installed app cannot hit it), and the "Not set — set SCHOLAR_OPENALEX_KEY" status labels (decision item 15).
+
+### While a copy of an older review runs (the coordinator's question)
+
+The workspace format check (PR 310) copies an older review before opening it.
+
+- **A large review** (copied in the background) was checked with a real server in `test_while_a_copy_of_an_older_review_runs`:
+  - the server answers and workspace routes say `WORKSPACE_PREPARING`;
+  - the status line shows the copy and its progress, and the closing question names it;
+  - a second start gets a fresh link from the running engine at once;
+  - once the copy is done, the status line and the closing question are clear.
+  - Stopping during the copy cancels it (the format module removes the partial zip and stamps nothing).
+- **A small review** (under 64 MB, copied before the server answers) was reasoned about, not timed:
+  - At the first start the window says "Opening your review…". `engine.json` is published only once the server answers, so a second click meanwhile waits, up to 15 s, and then says the engine does not answer.
+  - On Open (a restart) the server is down for the length of the copy, and a second click waits the same way.
+  - A copy under 64 MB takes seconds, but a slow disk could exceed 15 s. Raising the wait, or publishing before the copy, would be a follow-up if testers meet it.
+
+### Definition of done (second pull request)
+
+| Item | Evidence |
+| :-- | :-- |
+| The window: status, Open in browser, Stop, closing question with the busy check | `tests/console/test_control_window.py`: status line (copy, refusal, opening, failure), browser-blocked line, busy question, buttons, second start, threaded run and stop, engine error kept, start opens the window when it can; Tk smoke test (built and polled on Windows, skipped without a display) |
+| Behaviour while a copy runs | `test_while_a_copy_of_an_older_review_runs` (slow, real server) |
+| The app knows how the engine was started | `test_the_launch_link_tells_the_app_how_the_engine_was_started`; `apps/research-ui/tests/installed-copy.test.tsx` (cookie parsing, every installed card in three languages free of terminal words, the cards and the e-mail card after mount, the first render as the static export) |
+| By hand on Windows | see Evidence below |
+
+### Evidence
+
+Filled in below as the checks run.
+
+## Not in the first pull request (built in the second, above)
 
 - **The control window** of §4.2: Open in browser, Settings, Stop, the status line and the closing question with the busy check. The instance routes it needs (a fresh link, stop) are here.
 - **The app's text** (about 60 lines in three languages that send the user to a terminal, a variable or `.env`), and the engine telling the app how it was started.
