@@ -45,6 +45,7 @@ describe("installed cards", () => {
       "installed.MAILTO_NOT_SET",
       "installed.OPENALEX_KEY_NOT_SET",
       "installed.PROVIDER_KEY_MISSING",
+      "installed.SNAPSHOT_NOT_ACCEPTED",
       "installed.inception.MAILTO_NOT_SET",
     ]);
     for (const key of installedKeys) {
@@ -58,6 +59,7 @@ describe("installed cards", () => {
         }
       }
       expect(STATES[key].action).not.toBe("terminal");
+      expect(STATES[key].command ?? "", key).not.toMatch(TERMINAL_WORDS);
     }
   });
 

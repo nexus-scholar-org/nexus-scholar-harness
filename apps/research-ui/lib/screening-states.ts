@@ -1434,6 +1434,15 @@ export const STATES: Record<string, StateEntry> = {
       ar: T("ليس لدى Nexus Scholar بريد للتواصل مع قواعد البيانات العلمية", "يحتاج البحث إلى بريد، ولم يُرسل أي طلب. ضع السطر أدناه في ملف اسمه ‎.env‎ في مجلد إعدادات Nexus Scholar (في نافذة Nexus Scholar: Open the settings folder)، ثم أوقف Nexus Scholar من تلك النافذة وشغّله من جديد.", "عمليات البحث الجديدة (تبقى مجموعة الأوراق المعروضة صالحة)", "أعد تحميل الصفحة"),
     },
   },
+  "installed.SNAPSHOT_NOT_ACCEPTED": {
+    role: "blocked",
+    action: "import",
+    copy: {
+      en: T("No accepted corpus", "Batches can be prepared only from an accepted corpus. Import your search results and accept them first.", "Batch preparation only", "Import the corpus"),
+      fr: T("Aucun corpus accepté", "Les lots ne peuvent être préparés qu'à partir d'un corpus accepté. Importez d'abord vos résultats de recherche et acceptez-les.", "Préparation des lots uniquement", "Importer le corpus"),
+      ar: T("لا توجد مجموعة مقبولة", "لا تُحضَّر الدفعات إلا من مجموعة مقبولة. استورد نتائج بحثك واقبلها أولًا.", "تحضير الدفعات فقط", "استيراد المجموعة"),
+    },
+  },
   "installed.PROVIDER_KEY_MISSING": {
     role: "blocked",
     action: "none",

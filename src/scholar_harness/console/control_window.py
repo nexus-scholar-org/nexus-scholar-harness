@@ -84,7 +84,8 @@ class ControlPanel:
         self.log_file = Path(log_file) if log_file is not None else None
         self.open_browser_at_start = open_browser_at_start
         self.clock = clock
-        self.started_at = clock()
+        #: When the server was first seen answering; the browser hint counts from then.
+        self.answered_at: float | None = None
         self.failure: str | None = None
         self.raise_requested = threading.Event()
         self._open_folder = open_folder or open_folder_on_desktop
@@ -98,7 +99,11 @@ class ControlPanel:
         root = getattr(self.launcher, "root", None)
         lines = [f"Nexus Scholar is running on this computer. Your reviews are in {root}."]
         gate = self._gate()
-        if gate is not None:
+        if getattr(self.launcher, "opening", None) is not None:
+            # A review is being opened (a restart, or a small review's copy before the server
+            # answers): the last app's copy state is not this review's.
+            lines.append("Opening your review…")
+        elif gate is not None:
             snap = gate.snapshot()
             if snap.get("state") == "preparing":
                 total = int(snap.get("total_bytes") or 0)
@@ -108,8 +113,6 @@ class ControlPanel:
             elif snap.get("state") == "refused":
                 refusal = snap.get("refusal") or {}
                 lines.append(f"{snap.get('title')} was not opened: {refusal.get('message', 'refused')}")
-        elif getattr(self.launcher, "opening", None) is not None and not self._server_started():
-            lines.append("Opening your review…")
         if self._browser_seems_blocked():
             lines.append(BROWSER_BLOCKED)
         return " ".join(lines)
@@ -195,10 +198,12 @@ class ControlPanel:
     def _browser_seems_blocked(self) -> bool:
         if not self.open_browser_at_start or not self._server_started():
             return False
+        if self.answered_at is None:
+            self.answered_at = self.clock()
         codes = getattr(self.launcher, "codes", None)
         if codes is None or getattr(codes, "redeemed", 0):
             return False
-        return self.clock() - self.started_at >= BROWSER_HINT_SECONDS
+        return self.clock() - self.answered_at >= BROWSER_HINT_SECONDS
 
 
 def open_folder_on_desktop(folder: Path) -> None:
@@ -258,12 +263,20 @@ class ControlWindow:
             stop = messagebox.askyesno(TITLE, busy.question() + "\n\nYes: stop now. No: keep running.", parent=self.root, default="no")
         else:
             stop = messagebox.askokcancel(TITLE, busy.question(), parent=self.root)
+        if not self._alive():
+            return  # the engine stopped (`--stop`) while the question was open; the window is gone
         if stop:
             self._stopping = True
             self.status.configure(text="Stopping Nexus Scholar…")
             self.open_button.configure(state="disabled")
             self.stop_button.configure(state="disabled")
             self.panel.stop()
+
+    def _alive(self) -> bool:
+        try:
+            return bool(self.root.winfo_exists())
+        except Exception:  # noqa: BLE001 - a destroyed root raises TclError
+            return False
 
     def poll(self) -> None:
         if not self.engine.is_alive():

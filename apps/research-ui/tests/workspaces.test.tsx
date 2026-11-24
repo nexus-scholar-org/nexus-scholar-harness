@@ -240,3 +240,32 @@ describe("workspaces copy and shell", () => {
     expect(previewSlug("!!!")).toBe("");
   });
 });
+
+describe("workspaces in the installed app (M13 Part A)", () => {
+  const cookie = (value: string | null) => {
+    document.cookie = value === null ? "nexus_started_as=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/" : `nexus_started_as=${value}; path=/`;
+  };
+  afterEach(() => cookie(null));
+
+  it("points to the Import screen after a review is made, with no command and no Copy button", async () => {
+    cookie("installed");
+    engine();
+    render(<WorkspacesScreen locale="en" />);
+    fireEvent.click(await screen.findByRole("button", { name: "New workspace" }));
+    fireEvent.change(screen.getByLabelText("Title of the review"), { target: { value: "Weed Mapping" } });
+    fireEvent.click(screen.getByRole("button", { name: "Create" }));
+    await screen.findByRole("heading", { name: "Workspace created" });
+    const next = document.querySelector("[data-next-step]")!;
+    expect(next).toHaveTextContent("import your search results on the Import screen");
+    expect(next.textContent).not.toMatch(/accept-corpus|terminal/);
+    expect(within(next as HTMLElement).queryByRole("button", { name: "Copy" })).toBeNull();
+  });
+
+  it("says where to put a review folder you already have", async () => {
+    cookie("installed");
+    engine({ list: () => listing({ items: [], current: null }) });
+    render(<WorkspacesScreen locale="fr" />);
+    await screen.findByText(/déplacez-le dans le dossier indiqué en haut de cet écran/);
+    expect(document.body.textContent).not.toMatch(/terminal/i);
+  });
+});

@@ -82,8 +82,11 @@ def test_the_status_line_names_the_folder_the_copy_and_a_refusal(tmp_path):
     assert panel.status().endswith("Sensor review was not opened: a newer version wrote it")
     _with_gate(fake, {"state": "ready", "title": "Sensor review"})
     assert "Saving" not in panel.status()
-    fake.app, fake.opening = None, tmp_path / "reviews" / "sensor"
-    assert panel.status().endswith("Opening your review…")  # a small review's copy runs before the server answers
+    _with_gate(fake, {"state": "refused", "title": "Old review", "refusal": {"message": "refused"}})
+    fake.opening = tmp_path / "reviews" / "sensor"
+    status = panel.status()  # a restart: the last app's refusal is not this review's
+    assert status.endswith("Opening your review…") and "Old review" not in status
+    fake.opening = None
     panel.engine_failed(RuntimeError("port gone"))
     assert panel.status() == control_window.FAILED and "RuntimeError: port gone" in panel.details()
 
@@ -91,10 +94,12 @@ def test_the_status_line_names_the_folder_the_copy_and_a_refusal(tmp_path):
 def test_the_status_line_says_the_browser_may_be_blocked_only_after_a_minute_unused(tmp_path):
     now = [0.0]
     fake = FakeLauncher(tmp_path)
-    fake._server = type("S", (), {"started": True})()
     panel = _panel(fake, tmp_path, clock=lambda: now[0])
+    now[0] = 500.0  # a slow first start: the minute counts from the server's answer, not the window
     assert control_window.BROWSER_BLOCKED not in panel.status()
-    now[0] = control_window.BROWSER_HINT_SECONDS + 1
+    fake._server = type("S", (), {"started": True})()
+    assert control_window.BROWSER_BLOCKED not in panel.status()
+    now[0] = 500.0 + control_window.BROWSER_HINT_SECONDS + 1
     assert control_window.BROWSER_BLOCKED in panel.status()
     assert fake.codes.redeem(fake.codes.issue())  # the browser used a link
     assert control_window.BROWSER_BLOCKED not in panel.status()
@@ -161,6 +166,11 @@ def test_the_launch_link_tells_the_app_how_the_engine_was_started(tmp_path, ui):
         answer = client.get(app_launcher.launch_url().split("8770", 1)[1], follow_redirects=False)
         assert answer.status_code == 303
         assert client.cookies.get(browser.STARTED_AS_COOKIE) == started_as
+        used = client.get(app_launcher.launch_url().split("8770", 1)[1].replace("code=", "code=x"), follow_redirects=False)
+        where = "Nexus Scholar window" if started_as == "installed" else "`nexus-scholar ui`"
+        assert used.json()["detail"]["code"] == "LAUNCH_CODE_INVALID" and where in used.json()["detail"]["message"]
+        no_session = TestClient(app_launcher.build_app(None), base_url="http://127.0.0.1:8770").get("/api/console/api/v1/workspaces")
+        assert no_session.json()["detail"]["code"] == "TOKEN_REQUIRED" and where in no_session.json()["detail"]["message"]
         set_cookie = [h for h in answer.headers.get_list("set-cookie") if h.startswith(browser.STARTED_AS_COOKIE)]
         assert set_cookie and "httponly" not in set_cookie[0].lower()  # the page reads it; it is no secret
 
@@ -224,12 +234,13 @@ def test_the_installed_start_opens_the_window_when_it_can(tmp_path, ui, monkeypa
     used: list[tuple[Any, Any]] = []
     monkeypatch.setattr(control_window, "make_root", lambda: "a root")
     monkeypatch.setattr(desktop, "run_with_window", lambda la, panel, root: used.append((la.started_as, root)) or False)
-    assert desktop.main(["--no-browser"]) == 0
+    quiet = lambda _m: None  # noqa: E731 - no message box on a developer's desktop
+    assert desktop.main(["--no-browser"], tell=quiet) == 0
     assert used == [("installed", "a root")]
     # No display or windows turned off: it runs headless, as before.
     monkeypatch.setattr(control_window, "make_root", lambda: None)
     monkeypatch.setattr(launcher.Launcher, "run", lambda self: None)
-    assert desktop.main(["--no-browser"]) == 0 and len(used) == 1
+    assert desktop.main(["--no-browser"], tell=quiet) == 0 and len(used) == 1
 
 
 def test_the_tk_window_builds_polls_and_closes(tmp_path):

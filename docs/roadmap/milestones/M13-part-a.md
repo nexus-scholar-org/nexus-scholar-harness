@@ -120,6 +120,25 @@ The workspace format check (PR 310) copies an older review before opening it.
 | The app knows how the engine was started | `test_the_launch_link_tells_the_app_how_the_engine_was_started`; `apps/research-ui/tests/installed-copy.test.tsx` (cookie parsing, every installed card in three languages free of terminal words, the cards and the e-mail card after mount, the first render as the static export) |
 | By hand on Windows | see Evidence below |
 
+### Independent review (milestone-reviewer), round 1: CHANGES, repaired
+
+| # | Finding | Repair | Test |
+| :-- | :-- | :-- | :-- |
+| P2 | The "No accepted corpus" card still showed `nexus-scholar accept-corpus …` in the installed app | `installed.SNAPSHOT_NOT_ACCEPTED`: the Import link, no command; the installed cards may carry no terminal command | `installed-copy.test.tsx` (the card list, and no command with terminal words) |
+| P2 | The engine's own sentences for a missing session (`TOKEN_REQUIRED`) and a used link (`LAUNCH_CODE_INVALID`) said to start `nexus-scholar ui` | `serve._start_again`: in the installed app they say "click Open in browser in the Nexus Scholar window" | `test_the_launch_link_tells_the_app_how_the_engine_was_started` (both codes, both starts) |
+| P2 | The workspaces screen and Publish had no test with the cookie set | cases with and without the cookie | `workspaces.test.tsx` and `screening-publish.test.tsx`, "in the installed app (M13 Part A)" |
+| P3 | During a restart the status line could show the last review's copy or refusal | the review being opened wins: "Opening your review…" | `test_the_status_line_names_the_folder_the_copy_and_a_refusal` |
+| P3 | The browser hint counted from the window, not from the server's answer | it counts from the first answer | `test_the_status_line_says_the_browser_may_be_blocked_only_after_a_minute_unused` |
+| P3 | A stop (`--stop`) while the closing question is open left a call on a destroyed window | the window checks it still exists after the question | — (Tk only) |
+| P3 | One test could open a message box on a developer's desktop | it passes a silent `tell` | — |
+
+Left as follow-ups, as the review listed them (P3):
+- A stop during a restart's build can leave a large background copy, already started, to be killed at exit. That copy behaviour comes from PR 310.
+- The closing question does not name a charting look-up or a pipeline job.
+- The cookie belongs to the host, not the port: a `nexus_started_as=installed` from an earlier launch stays for a later `serve` on 127.0.0.1.
+- More words that name a setting without a place: Explore's "OpenAlex refused the request; set SCHOLAR_OPENALEX_KEY", the look-up plan's labels, and the query workbench's "Add it in Settings" (there is no Settings screen yet).
+- Tester notes should warn that Windows may save `.env` as `.env.txt` when extensions are hidden.
+
 ### A fault found in the browser check, fixed here
 
 On the installed app's first discovery page, the request answered **500**. The search's HTTP cache (hishel) defaults to `.cache/hishel` in the folder the process started in, and it creates that folder without `exist_ok`. The installed engine runs in the settings folder, which has no `.cache` (`FileNotFoundError`, then `FileExistsError` when several search clients were built at once). `scholar_search/http_client.py` already computed `<SCHOLAR_CACHE_DIR>/scholar_cache` but never passed it. The fix creates that folder with `exist_ok` and gives it to hishel as its storage. The same fault reached a terminal start in a folder with no `.cache`. Test: `tests/kits/search/test_http_cache_location.py` (eight clients built at once in a fresh folder): it passes with the fix and fails on `59f0dca1` with the cache made in the starting folder. Effect on terminal users: the cache moves from `.cache/hishel` to `.cache/scholar_cache` (under `SCHOLAR_CACHE_DIR`), so it starts cold once.
