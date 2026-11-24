@@ -1,6 +1,6 @@
 # M13 Part B: settings and first-run setup
 
-Status: **BUILT on `dev/m13/part-b-settings` (from `main` `f2a7407e`, `main` `5ffc53e2` merged in), not pushed; the check by hand of answer 7 was done by the coordinator session and its three faults are fixed. Lane RELEASE.** The researcher gave the go on 2026-11-24 ("Start Part B"), relayed by the coordinator session "Nexus Scholar parent work". Specification: `docs/roadmap/milestones/M13-installers.md` §4.3 and §5.2 Part B, and Q7 (settings in a file, keys in the system keychain). Decisions: `docs/decisions.md`, entry "2026-11-24 — M13 Part B". Screen specification: `docs/ux/shared/final/05-settings.md`.
+Status: **BUILT on `dev/m13/part-b-settings` (from `main` `f2a7407e`, `main` `5ffc53e2` merged in); pushed on the researcher's word of 2026-11-24, in a pull request; the check by hand of answer 7 was done by the coordinator session and its three faults are fixed. Lane RELEASE.** The researcher gave the go on 2026-11-24 ("Start Part B"), relayed by the coordinator session "Nexus Scholar parent work". Specification: `docs/roadmap/milestones/M13-installers.md` §4.3 and §5.2 Part B, and Q7 (settings in a file, keys in the system keychain). Decisions: `docs/decisions.md`, entry "2026-11-24 — M13 Part B". Screen specification: `docs/ux/shared/final/05-settings.md`.
 
 ## Questions answered by the researcher (2026-11-24)
 

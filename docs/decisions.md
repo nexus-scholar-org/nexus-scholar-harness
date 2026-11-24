@@ -12,6 +12,7 @@ history to read if you need the original reasoning (`git log --follow -- <path>`
 | :-- | :-- | :-- |
 | 2026-11-19 — M9a: what the measurement says about the ladder gates | 2 | The minimum share of the researcher's excludes an agent must take before a rung unlocks: the principle is accepted; the researcher decided on 2026-11-20 to set the number when M9b is built. |
 | 2026-11-23 — H-gate-and-ci | 1 | The standing permission for sessions to push a work branch and open a draft pull request: not given. |
+| 2026-11-24 — M13 Part B | 21 | Whether `NEXUS_APP_HOME` should also move the default reviews folder (recommended: yes, `<home>/workspaces`); not built, not answered by name. |
 
 ## 2026-11-24 — M13 Part W: the Windows installer (PROPOSED; questions 1 to 3 answered by the researcher before the build; items 4 to 13 the build's choices)
 
@@ -40,7 +41,9 @@ None now. Answer 3 waits for the first installer.
 12. A gate area `windows-packaging` (`docs/architecture/test_gate_manifest.json`) runs `tests/test_windows_packaging.py` for changes under `packaging/`. Two selector tests that used `packaging/unknown.cfg` as their example of an unclaimed path now use `unclaimed/unknown.cfg`.
 13. Only the job that attaches the installer to a release has write permission, and it runs only on a tag. A stop that does not happen stops the install with a message, instead of installing over a running engine. The installer always uses the default folder (`DisableDirPage=yes`), because a deep custom folder could break the 260-character path limit.
 
-## 2026-11-24 — M13 Part B: settings and first-run setup (PROPOSED; questions 1 to 8 answered by the researcher before the build; item 21 for the researcher; items 9 to 20 and 22 the build's choices)
+## 2026-11-24 — M13 Part B: settings and first-run setup (built; pushed on the researcher's word of 2026-11-24; questions 1 to 8 answered by the researcher before the build; item 21 still open for the researcher; items 9 to 20 and 22 the build's choices)
+
+**Pushed 2026-11-24.** The coordinator asked the researcher whether to accept items 20 and 21 as recommended and to push and merge at green; they answered "Push and merge when the ci I s green". Item 20 (the cards keep their own step and add an "Open Settings" link) ships as built on that word. Item 21 is not built and was not answered by name: it stays open.
 
 Record: `docs/roadmap/milestones/M13-part-b.md`. Specification: `docs/roadmap/milestones/M13-installers.md` §4.3, §5.2 Part B, Q7. Screen: `docs/ux/shared/final/05-settings.md` (FINAL). Routes: `docs/architecture/settings-api.md`. Started on the researcher's go of 2026-11-24 ("Start Part B"). Branch `dev/m13/part-b-settings` from `main` `f2a7407e`, lane RELEASE.
 
