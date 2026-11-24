@@ -35,6 +35,7 @@ import {
   type PairingBegunAll,
   type PrismaPreview,
 } from "@/lib/screening-v1";
+import { useInstalled } from "@/lib/engine-start";
 
 /**
  * Publish (spec 09): the PRISMA screening preview with its checks, one
@@ -104,6 +105,9 @@ const COPY = {
     askCode: "Show a code for {batch}",
     codeShown: "Code printed in the terminal; it expires at {time}.",
     codeShownDesktop: "Code shown in a Nexus Scholar window on this desktop and in the terminal; it expires at {time}.",
+    batchesBodyInstalled: "Approval needs one-time codes that appear only on this computer, in a Nexus Scholar window on the desktop. Each code approves one batch, once. A decision changed after approval makes the approval stale.",
+    bulkShownWindow: "The codes (batches: {n}) are in a Nexus Scholar window on this computer's desktop. They expire at {time}.",
+    codeShownWindow: "Code shown in a Nexus Scholar window on this desktop; it expires at {time}.",
     codeLabel: "Approval code for {batch}",
     approve: "Approve {batch}",
     defer: "Defer",
@@ -179,6 +183,9 @@ const COPY = {
     askCode: "Afficher un code pour {batch}",
     codeShown: "Code affiché dans le terminal ; il expire à {time}.",
     codeShownDesktop: "Code affiché dans une fenêtre Nexus Scholar sur ce bureau et dans le terminal ; il expire à {time}.",
+    batchesBodyInstalled: "L'approbation exige des codes à usage unique qui n'apparaissent que sur cet ordinateur, dans une fenêtre Nexus Scholar sur le bureau. Chaque code approuve un lot, une seule fois. Une décision modifiée après approbation rend l'approbation périmée.",
+    bulkShownWindow: "Les codes (lots : {n}) sont dans une fenêtre Nexus Scholar sur le bureau de cet ordinateur. Ils expirent à {time}.",
+    codeShownWindow: "Code affiché dans une fenêtre Nexus Scholar sur ce bureau ; il expire à {time}.",
     codeLabel: "Code d'approbation pour {batch}",
     approve: "Approuver {batch}",
     defer: "Reporter",
@@ -254,6 +261,9 @@ const COPY = {
     askCode: "عرض رمز لـ{batch}",
     codeShown: "طُبع الرمز في الطرفية؛ تنتهي صلاحيته في {time}.",
     codeShownDesktop: "ظهر الرمز في نافذة Nexus Scholar على سطح المكتب وفي الطرفية؛ تنتهي صلاحيته في {time}.",
+    batchesBodyInstalled: "يحتاج الاعتماد إلى رموز لمرة واحدة لا تظهر إلا على هذا الحاسوب، في نافذة Nexus Scholar على سطح المكتب. كل رمز يعتمد دفعة واحدة مرة واحدة. أي قرار يتغيّر بعد الاعتماد يجعل الاعتماد قديمًا.",
+    bulkShownWindow: "الرموز (عدد الدفعات: {n}) في نافذة Nexus Scholar على سطح مكتب هذا الحاسوب. تنتهي صلاحيتها في {time}.",
+    codeShownWindow: "ظهر الرمز في نافذة Nexus Scholar على سطح المكتب؛ تنتهي صلاحيته في {time}.",
     codeLabel: "رمز اعتماد {batch}",
     approve: "اعتماد {batch}",
     defer: "تأجيل",
@@ -313,6 +323,8 @@ type Loaded = {
 
 export function ScreeningPublish({ locale }: Readonly<{ locale: Locale }>) {
   const t = useCallback((key: PublishCopyKey, values?: Record<string, string | number>) => fill(PUBLISH_COPY[locale][key], values), [locale]);
+  // M13 Part A: the installed app shows the codes in its window only (it has no terminal).
+  const installed = useInstalled();
   const n = useCallback((value: number) => formatNumber(locale, value), [locale]);
   const origin = useMemo(consoleOrigin, []);
   const [state, setState] = useState<{ status: "loading" } | { status: "ready"; data: Loaded } | { status: "error"; code: string; message: string }>({ status: "loading" });
@@ -627,7 +639,7 @@ export function ScreeningPublish({ locale }: Readonly<{ locale: Locale }>) {
               <h2 id="publish-batches" className="font-semibold text-ink">
                 {t("batches")}
               </h2>
-              <p className="mt-1 text-sm text-ink-muted">{t("batchesBody")}</p>
+              <p className="mt-1 text-sm text-ink-muted">{t(installed ? "batchesBodyInstalled" : "batchesBody")}</p>
               <div className="mt-4 space-y-3" data-bulk-approval>
                 <p className="text-sm text-ink" data-bulk-ready>
                   {t("bulkReady", { ready: n(ready), total: n(batches.batches.length) })}
@@ -651,7 +663,7 @@ export function ScreeningPublish({ locale }: Readonly<{ locale: Locale }>) {
                 {begunAll ? (
                   <div className="space-y-1 text-xs text-ink-muted" role="status" data-bulk-begun>
                     <p>
-                      {t(begunAll.code_shown_on === "desktop" ? "bulkShownDesktop" : "bulkShownTerminal", {
+                      {t(begunAll.code_shown_on === "desktop" ? (installed ? "bulkShownWindow" : "bulkShownDesktop") : "bulkShownTerminal", {
                         n: n(begunAll.batches.length),
                         time: new Date(begunAll.code_expires_at).toLocaleTimeString(locale),
                       })}
@@ -763,7 +775,7 @@ export function ScreeningPublish({ locale }: Readonly<{ locale: Locale }>) {
                             </Button>
                             {begun[b.batch_index] ? (
                               <p className="text-xs text-ink-muted">
-                                {t(begun[b.batch_index].code_shown_on === "desktop" ? "codeShownDesktop" : "codeShown", {
+                                {t(begun[b.batch_index].code_shown_on === "desktop" ? (installed ? "codeShownWindow" : "codeShownDesktop") : "codeShown", {
                                   time: new Date(begun[b.batch_index].code_expires_at).toLocaleTimeString(locale),
                                 })}
                               </p>

@@ -319,3 +319,26 @@ describe("publish.one-decision", () => {
     expect(within(banner as HTMLElement).getByText("GEN-1").closest("details")).not.toBeNull();
   });
 });
+
+describe("publish in the installed app (M13 Part A)", () => {
+  const cookie = (value: string | null) => {
+    document.cookie = value === null ? "nexus_started_as=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/" : `nexus_started_as=${value}; path=/`;
+  };
+  afterEach(() => cookie(null));
+
+  it("says the codes are in the window only, never in a terminal", async () => {
+    cookie("installed");
+    engine({ shownOn: "desktop" });
+    render(<ScreeningPublish locale="en" />);
+    await screen.findByText(/appear only on this computer, in a Nexus Scholar window on the desktop/);
+    fireEvent.click(await screen.findByRole("button", { name: "Show the codes for every decided batch" }));
+    await screen.findByText(/^The codes \(batches: 1\) are in a Nexus Scholar window on this computer's desktop\. They expire at [^.]+\.$/);
+    expect(document.body.textContent).not.toMatch(/terminal/i);
+  });
+
+  it("a terminal start keeps naming the terminal", async () => {
+    engine({ shownOn: "desktop" });
+    render(<ScreeningPublish locale="en" />);
+    await screen.findByText(/and always in the engine's terminal/);
+  });
+});

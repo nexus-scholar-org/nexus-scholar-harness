@@ -1,6 +1,6 @@
 # M13 Part A: the launcher for an installed app
 
-Status: **BUILT on `dev/m13/part-a-launcher` (from `main` `cc0e8fa1`, `main` `0bcefdd3` merged in); items 1 to 4 accepted by the researcher on 2026-11-24, in a pull request; the engine start path only (see "Not in this branch"). Lane RELEASE.** The researcher gave the go on 2026-11-24 ("Start Part A and the workspace format version"), relayed by the coordinator session "Nexus Scholar parent work". Specification: `docs/roadmap/milestones/M13-installers.md` §4.1, §4.2, §5.2 Part A and §8 (trial build). Decisions: `docs/decisions.md`, entry "2026-11-24 — M13 Part A".
+Status: **BUILT on `dev/m13/part-a-launcher` (from `main` `cc0e8fa1`, `main` `0bcefdd3` merged in); items 1 to 4 accepted by the researcher on 2026-11-24; merged 2026-11-24 as PR 309 (`0f473f0f`); the engine start path only (see "Not in this branch"). Lane RELEASE.** The researcher gave the go on 2026-11-24 ("Start Part A and the workspace format version"), relayed by the coordinator session "Nexus Scholar parent work". Specification: `docs/roadmap/milestones/M13-installers.md` §4.1, §4.2, §5.2 Part A and §8 (trial build). Decisions: `docs/decisions.md`, entry "2026-11-24 — M13 Part A".
 
 ## What a start from an icon does now
 
@@ -53,7 +53,113 @@ Status: **BUILT on `dev/m13/part-a-launcher` (from `main` `cc0e8fa1`, `main` `0b
 
 **Round 2: APPROVE** (f0f26985, code read; the gate was running). Two of its minor notes were repaired after it: the ready-wait thread now ends when the first server returns without starting (`test_the_ready_wait_ends_when_the_first_server_never_started`), and a write of `engine.json` that clashes is tried up to five times (`test_a_publish_that_clashes_once_is_tried_again`). Left as follow-ups: after an `APPROVAL_WINDOW_UNAVAILABLE` refusal the pairing status shows a pending challenge nobody can answer for up to 5 minutes, and the refused begin replaces a code an earlier window may still show (both harmless; voiding the staged records on refusal would be cleaner); one test replaces `time.sleep` for the whole process while it runs.
 
-## Not in this branch (the rest of spec §5.2 Part A)
+## Second pull request: the control window and the app's words (2026-11-24)
+
+Status: **BUILT on `dev/m13/part-a-control-window` (from `main` `59f0dca1`); items 1 to 4 accepted by the researcher on 2026-11-24, in a pull request. Lane RELEASE.** Started on the researcher's go of 2026-11-24 ("Start it"), relayed by the coordinator session. Decisions entry: "2026-11-24 — M13 Part A, second pull request" (items 1 to 4 for the researcher).
+
+### The control window (`src/scholar_harness/console/control_window.py`)
+
+A start from an icon now opens a small window titled "Nexus Scholar" beside the browser:
+
+- **Status line.** "Nexus Scholar is running on this computer. Your reviews are in <folder>." It also says:
+  - "Opening your review…" while a small review's copy runs, before the server answers;
+  - "Saving a copy of <title> before opening it: x MB of y MB" while a large review's copy runs;
+  - the refusal's message when a review is refused;
+  - after 60 s with no launch link used, that a security program or a proxy may block 127.0.0.1.
+- **Buttons.**
+  - **Open in browser**: a new tab with a fresh one-time link.
+  - **Stop Nexus Scholar**.
+  - "Show the log file" and "Open the settings folder".
+  - "Copy the details", shown after an error.
+- **Closing the window stops Nexus Scholar**, after the question "Stop Nexus Scholar? Open browser tabs will stop working." When something is in progress, the question names it and the default is to keep running: a copy of a review being saved, an agent run, approval codes waiting, a literature search.
+- **A second click on the icon** opens a fresh link (as before) and brings the window to the front.
+- **When the engine stops on an error**, the window says so and keeps the log and details buttons.
+- **With no Tk or no display**, or with `NEXUS_APP_DIALOGS=0`, the start runs headless as in the first pull request.
+
+The engine runs in a background thread and the window on the main thread. `desktop.run_with_window` stops the engine and waits for it however the window closes.
+
+### The app's words for the installed app
+
+The launch link sets a readable cookie, `nexus_started_as`: `installed` from an icon, `terminal` from `nexus-scholar ui`. The screens read it after mount (`useInstalled()`, so the first render matches the static export) and then use the installed wording.
+
+| Where | Terminal start (unchanged) | Installed app |
+| :-- | :-- | :-- |
+| Contact e-mail and OpenAlex key cards (search, recall, harvest, inception, discovery plan) | put the line in the console's environment or `.env`, restart the console | put the line in `.env` in Nexus Scholar's settings folder (the window's "Open the settings folder"), stop it in its window and start it again |
+| The look-up's e-mail refusal (charting) | same | same as above |
+| No key for an AI provider | `nexus-scholar keys set <provider>` | "This version of the installed app cannot store a provider key yet" (no command) |
+| Provider driver missing | `uv sync --extra ai` | names the missing setting; no command |
+| Where the approval codes are (Publish) | the window and the engine's terminal | the window only |
+| Approval-code refusals | — | "the code shown on this computer", for both starts |
+| Using your own Claude (agent proposals) | `uv run scholar-agent` | "connecting Claude Desktop comes in a later version" |
+| Workspaces: after creating a review; the empty list | the `accept-corpus` command; start the app on a folder from the terminal | import on the Import screen; move the folder into the workspaces folder |
+| Screening home "Run from the terminal"; inception start's terminal hint | shown | hidden |
+
+All in English, French and Arabic. Left with terminal words: the chase options' "from the terminal", `RESTART_UNSUPPORTED` (the installed app cannot hit it), and the "Not set — set SCHOLAR_OPENALEX_KEY" status labels (decision item 15).
+
+### While a copy of an older review runs (the coordinator's question)
+
+The workspace format check (PR 310) copies an older review before opening it.
+
+- **A large review** (copied in the background) was checked with a real server in `test_while_a_copy_of_an_older_review_runs`:
+  - the server answers and workspace routes say `WORKSPACE_PREPARING`;
+  - the status line shows the copy and its progress, and the closing question names it;
+  - a second start gets a fresh link from the running engine at once;
+  - once the copy is done, the status line and the closing question are clear.
+  - Stopping during the copy cancels it (the format module removes the partial zip and stamps nothing).
+- **A small review** (under 64 MB, copied before the server answers) was reasoned about, not timed:
+  - At the first start the window says "Opening your review…". `engine.json` is published only once the server answers, so a second click meanwhile waits, up to 15 s, and then says the engine does not answer.
+  - On Open (a restart) the server is down for the length of the copy, and a second click waits the same way.
+  - A copy under 64 MB takes seconds, but a slow disk could exceed 15 s. Raising the wait, or publishing before the copy, would be a follow-up if testers meet it.
+
+### Definition of done (second pull request)
+
+| Item | Evidence |
+| :-- | :-- |
+| The window: status, Open in browser, Stop, closing question with the busy check | `tests/console/test_control_window.py`: status line (copy, refusal, opening, failure), browser-blocked line, busy question, buttons, second start, threaded run and stop, engine error kept, start opens the window when it can; Tk smoke test (built and polled on Windows, skipped without a display) |
+| Behaviour while a copy runs | `test_while_a_copy_of_an_older_review_runs` (slow, real server) |
+| The app knows how the engine was started | `test_the_launch_link_tells_the_app_how_the_engine_was_started`; `apps/research-ui/tests/installed-copy.test.tsx` (cookie parsing, every installed card in three languages free of terminal words, the cards and the e-mail card after mount, the first render as the static export) |
+| By hand on Windows | see Evidence below |
+
+### Independent review (milestone-reviewer), round 1: CHANGES, repaired
+
+| # | Finding | Repair | Test |
+| :-- | :-- | :-- | :-- |
+| P2 | The "No accepted corpus" card still showed `nexus-scholar accept-corpus …` in the installed app | `installed.SNAPSHOT_NOT_ACCEPTED`: the Import link, no command; the installed cards may carry no terminal command | `installed-copy.test.tsx` (the card list, and no command with terminal words) |
+| P2 | The engine's own sentences for a missing session (`TOKEN_REQUIRED`) and a used link (`LAUNCH_CODE_INVALID`) said to start `nexus-scholar ui` | `serve._start_again`: in the installed app they say "click Open in browser in the Nexus Scholar window" | `test_the_launch_link_tells_the_app_how_the_engine_was_started` (both codes, both starts) |
+| P2 | The workspaces screen and Publish had no test with the cookie set | cases with and without the cookie | `workspaces.test.tsx` and `screening-publish.test.tsx`, "in the installed app (M13 Part A)" |
+| P3 | During a restart the status line could show the last review's copy or refusal | the review being opened wins: "Opening your review…" | `test_the_status_line_names_the_folder_the_copy_and_a_refusal` |
+| P3 | The browser hint counted from the window, not from the server's answer | it counts from the first answer | `test_the_status_line_says_the_browser_may_be_blocked_only_after_a_minute_unused` |
+| P3 | A stop (`--stop`) while the closing question is open left a call on a destroyed window | the window checks it still exists after the question | — (Tk only) |
+| P3 | One test could open a message box on a developer's desktop | it passes a silent `tell` | — |
+
+**Round 2: APPROVE** (d7582968, code read). Its note that the workspaces test looked for a button named "Copy" (the button is "Copy the command", so the check passed either way) is repaired: the test looks for any Copy button, and it fails when the button is shown. Its other note is left: if the engine stops on an error while the closing question is open and the answer is Yes, the window closes without showing the error (the log records it).
+
+**Final gate on d7582968** (selector `pr`, areas console, search, research-ui): `tests/console tests/authority tests/test_ui_launcher.py` 1459 passed, 2 skipped; the search area 572 passed; typecheck pass; lint:ui 76 passed; vitest through the suite lock 119 files, 1369 passed; `git diff --check`, ruff, contract baseline, `select_test_gate --check` pass. The last commit changes one test line (`workspaces.test.tsx`, 17 passed).
+
+Left as follow-ups, as the review listed them (P3):
+- A stop during a restart's build can leave a large background copy, already started, to be killed at exit. That copy behaviour comes from PR 310.
+- The closing question does not name a charting look-up or a pipeline job.
+- The cookie belongs to the host, not the port: a `nexus_started_as=installed` from an earlier launch stays for a later `serve` on 127.0.0.1.
+- More words that name a setting without a place: Explore's "OpenAlex refused the request; set SCHOLAR_OPENALEX_KEY", the look-up plan's labels, and the query workbench's "Add it in Settings" (there is no Settings screen yet).
+- Tester notes should warn that Windows may save `.env` as `.env.txt` when extensions are hidden.
+
+### A fault found in the browser check, fixed here
+
+On the installed app's first discovery page, the request answered **500**. The search's HTTP cache (hishel) defaults to `.cache/hishel` in the folder the process started in, and it creates that folder without `exist_ok`. The installed engine runs in the settings folder, which has no `.cache` (`FileNotFoundError`, then `FileExistsError` when several search clients were built at once). `scholar_search/http_client.py` already computed `<SCHOLAR_CACHE_DIR>/scholar_cache` but never passed it. The fix creates that folder with `exist_ok` and gives it to hishel as its storage. The same fault reached a terminal start in a folder with no `.cache`. Test: `tests/kits/search/test_http_cache_location.py` (eight clients built at once in a fresh folder): it passes with the fix and fails on `59f0dca1` with the cache made in the starting folder. Effect on terminal users: the cache moves from `.cache/hishel` to `.cache/scholar_cache` (under `SCHOLAR_CACHE_DIR`), so it starts cold once.
+
+### Evidence
+
+| Check | Result |
+| :-- | :-- |
+| Selector `pr` gate on `e3084062` (areas console, research-ui) | `tests/console tests/authority tests/test_ui_launcher.py`: 1459 passed, 2 skipped; `npm run typecheck` pass; `npm run lint:ui` 76 passed; vitest through the suite lock: 119 files, 1365 passed |
+| `git diff --check`, ruff (`scripts/`, `src/` bug rules), contract baseline `--check` | pass, current |
+| The search area after the cache fix (selector `pr`, area search) | `tests/kits/search` + identity conformance + discovery, dedup and http-client units + migration + e2e search-screen: 572 passed |
+| By hand on Windows: `nexus-scholar-app.exe --no-browser` from `C:\Windows`, temporary home, the UI export of this branch | engine answered in 7 s; a `pythonw` window titled "Nexus Scholar" appeared; `--stop` closed it in 3.9 s, freed port 8770 and removed `engine.json` |
+| Browser pane (the desktop app's Chromium), same engine | readable cookie `nexus_started_as=installed` (the session cookie stays HttpOnly); Workspaces: the installed empty-list text; creating a review: the installed next step, no `accept-corpus` command and no Copy button; Discovery plan: the installed contact-email and OpenAlex key cards; no console error from the new code |
+| The installed instruction works | a test address put in `.env` in the settings folder, `--stop`, start again: the contact-email card is gone (the OpenAlex card stays: no key) |
+| The cache fault | before the fix the plan page answered a 500 (log: `FileNotFoundError` on `.cache\hishel`); after it, no failed request on the page, no `.cache` in the settings folder, the cache under `cache\search\scholar_cache` |
+
+## Not in the first pull request (built in the second, above)
 
 - **The control window** of §4.2: Open in browser, Settings, Stop, the status line and the closing question with the busy check. The instance routes it needs (a fresh link, stop) are here.
 - **The app's text** (about 60 lines in three languages that send the user to a terminal, a variable or `.env`), and the engine telling the app how it was started.

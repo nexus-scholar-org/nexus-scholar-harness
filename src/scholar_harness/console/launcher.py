@@ -89,6 +89,8 @@ class Launcher:
         say: Callable[[str], None] = print,
         instance: Instance | None = None,
         codes_on_terminal: bool = True,
+        started_as: str = "terminal",
+        on_second_start: Callable[[], None] | None = None,
     ):
         self.root, self.workspace, self.ui_dir = root, workspace, ui_dir
         self.host, self.port = host, port
@@ -100,6 +102,13 @@ class Launcher:
         self.server_factory = server_factory or _uvicorn_server
         self.instance = instance
         self.codes_on_terminal = codes_on_terminal
+        #: How the engine was started (`terminal` for `nexus-scholar ui`, `installed` from an icon);
+        #: the launch link tells the app, which picks its words by it (M13 Part A).
+        self.started_as = started_as
+        self.on_second_start = on_second_start
+        #: The app the running server serves, and the review being opened (the control window reads both).
+        self.app: Any = None
+        self.opening: Path | None = None
         self._next: Path | None = None
         self._stopping = False
         self._done = False  # run() has returned
@@ -123,8 +132,9 @@ class Launcher:
             # its terminal out of sight; the codes also show in a desktop window.
             code_window=code_window.reveal,
             codes_on_terminal=self.codes_on_terminal,
+            started_as=self.started_as,
             local_routes=(
-                self.instance.router(launch_link=self.launch_url, stop=self.request_stop)
+                self.instance.router(launch_link=self._second_start_link, stop=self.request_stop)
                 if self.instance is not None
                 else None
             ),
@@ -145,6 +155,12 @@ class Launcher:
         if self._server is not None:
             self._server.should_exit = True
 
+    def _second_start_link(self) -> str:
+        """A second click on the icon: a fresh link, and the control window comes forward."""
+        if self.on_second_start is not None:
+            self.on_second_start()
+        return self.launch_url()
+
     def landing(self) -> str:
         """Where the first page opens: the workspaces screen unless one was named."""
         return "/en/workspaces/" if self.start_on_workspaces else "/en/screening/home/"
@@ -162,7 +178,9 @@ class Launcher:
     def _serve_until_done(self) -> None:
         first = True
         while not self._stopping:
+            self.opening = self.workspace  # a small review's copy runs while the app is built
             app = self.build_app(self.workspace)
+            self.app, self.opening = app, None
             self._server = self.server_factory(app, self.host, self.port)
             if first:
                 url = self.launch_url()

@@ -6,6 +6,7 @@ import type { Locale } from "@/i18n";
 import { Button } from "@/components/ui/base";
 import { AFFECTS_LABEL, stateCopy } from "@/lib/screening-states";
 import { getCorpus } from "@/lib/screening-v1";
+import { useInstalled } from "@/lib/engine-start";
 
 /**
  * One state card (spec 08): what happened, what it affects, one next step, and
@@ -128,7 +129,8 @@ export function StateCard({
   hideActionLabel?: boolean;
 }>) {
   const Heading = pageHeading ? "h1" : "h2";
-  const state = stateCopy(locale, copyCode ?? code);
+  const installed = useInstalled();
+  const state = stateCopy(locale, copyCode ?? code, installed);
   const roleEdge = { include: "border-s-include", unclear: "border-s-unclear", blocked: "border-s-blocked", exclude: "border-s-exclude" }[state.role];
   const roleText = { include: "text-include", unclear: "text-unclear", blocked: "text-blocked", exclude: "text-exclude" }[state.role];
   const query = consoleOrigin ? `?console=${encodeURIComponent(consoleOrigin)}` : "";

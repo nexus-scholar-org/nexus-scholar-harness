@@ -161,6 +161,13 @@ async def _lifespan(app: FastAPI):
         gate.stop()
 
 
+def _start_again(started_as: str | None, purpose: str) -> str:
+    """Where a new session comes from: the installed app's window, or `nexus-scholar ui` (M13 Part A)."""
+    if started_as == "installed":
+        return f"click Open in browser in the Nexus Scholar window {purpose}"
+    return f"open the app from `nexus-scholar ui` {purpose}"
+
+
 def _host_name(header: str) -> str:
     """``Host`` without its port; IPv6 brackets removed."""
     if header.startswith("["):
@@ -197,6 +204,7 @@ def create_app(
     code_window: Callable[..., bool] | None = None,
     local_routes: APIRouter | None = None,
     codes_on_terminal: bool = True,
+    started_as: str | None = None,
 ) -> FastAPI:
     """Build the console app for one workspace.
 
@@ -231,6 +239,11 @@ def create_app(
     whose standard output is its log file) keeps the approval codes off
     standard output: they are shown only in the desktop window, and a begin
     whose window cannot open is refused (``APPROVAL_WINDOW_UNAVAILABLE``).
+
+    ``started_as`` (``terminal`` or ``installed``, from the launcher) is set
+    by the launch link as a readable cookie, so the app can name the right
+    place for a setting: a terminal command, or the installed app's window
+    and settings folder.
     """
     # ``None``: no workspace open yet (``nexus-scholar ui`` on an empty root).
     # Then only the workspaces routes, the static UI and /healthz answer.
@@ -319,7 +332,7 @@ def create_app(
             if browser_session is None:
                 return _refusal(404, "CONSOLE_PATH_REFUSED", "the browser surface is served only by `nexus-scholar ui`")
             if not browser.has_session(request.cookies.get(browser.SESSION_COOKIE), browser_session):
-                return _refusal(401, "TOKEN_REQUIRED", "open the app from `nexus-scholar ui` to start a session")
+                return _refusal(401, "TOKEN_REQUIRED", _start_again(started_as, "to start a session"))
             try:
                 inner = browser.check(
                     request.method, path, origin=origin, host=request.headers.get("host", ""),
@@ -384,9 +397,13 @@ def create_app(
         @app.get(browser.LAUNCH_PATH)
         def launch(code: str | None = None, next: str | None = None):  # noqa: A002 - the query name
             if not launch_codes.redeem(code):
-                return _refusal(401, "LAUNCH_CODE_INVALID", "this launch link was used or has expired; start `nexus-scholar ui` again")
+                return _refusal(401, "LAUNCH_CODE_INVALID", "this launch link was used or has expired; " + _start_again(started_as, "for a new one"))
             response = RedirectResponse(browser.safe_next(next), status_code=303)
             response.set_cookie(browser.SESSION_COOKIE, browser_session, httponly=True, samesite="strict", path="/")
+            if started_as:
+                # Not a secret: the app reads it to pick its words (a terminal command, or the
+                # installed app's window and settings folder; M13 Part A).
+                response.set_cookie(browser.STARTED_AS_COOKIE, started_as, samesite="strict", path="/")
             return response
 
     if ui_root is not None:

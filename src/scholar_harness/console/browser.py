@@ -31,6 +31,8 @@ from urllib.parse import urlsplit
 
 BROWSER_PREFIX = "/api/console"
 SESSION_COOKIE = "nexus_session"
+#: How the engine was started (`terminal` or `installed`); readable by the page, not a secret (M13 Part A).
+STARTED_AS_COOKIE = "nexus_started_as"
 LAUNCH_PATH = "/launch"
 LAUNCH_CODE_SECONDS = 120.0
 
@@ -127,6 +129,8 @@ class LaunchCodes:
         self.session = session
         self._codes: dict[str, float] = {}
         self._lock = threading.Lock()
+        #: Links used so far; the installed app's window says the browser may be blocked while it is 0.
+        self.redeemed = 0
 
     def issue(self) -> str:
         code = secrets.token_urlsafe(24)
@@ -139,7 +143,10 @@ class LaunchCodes:
             return False
         with self._lock:
             expires = self._codes.pop(code, None)
-        return expires is not None and time.monotonic() <= expires
+            ok = expires is not None and time.monotonic() <= expires
+            if ok:
+                self.redeemed += 1
+        return ok
 
 
 def has_session(cookie: str | None, session: str) -> bool:

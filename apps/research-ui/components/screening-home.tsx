@@ -10,6 +10,7 @@ import { getPublicationStatus, getScreeningBatches, isScreeningApiError, type Sc
 import { chartingHref } from "@/lib/charting-api";
 import { getConflicts, getCorpus, getSettings, getSummary, type Conflict, type Corpus, type Settings, type Summary } from "@/lib/screening-v1";
 import { adoptionText } from "@/lib/adoption-copy";
+import { useInstalled } from "@/lib/engine-start";
 
 /**
  * Screening home (spec 01): how far screening is, what needs you, who screens,
@@ -285,6 +286,7 @@ function HomeReady({
   n: (value: number) => string;
 }>) {
   const { summary, batches, conflicts, settings, publication, corpus } = data;
+  const installed = useInstalled();
   const published = publication?.status === "CURRENT";
   const publishedStale = publication?.status === "STALE" && publication.changed !== null;
   const importOpen = corpus !== null && corpus.state !== "ACCEPTED" && !corpus.from_discovery;
@@ -465,6 +467,8 @@ function HomeReady({
         })}
       </p>
 
+      {/* M13 Part A: the installed app has no terminal (and no source checkout). */}
+      {installed ? null : (
       <details className="rounded-lg border border-rule bg-leaf p-5 text-sm">
         <summary className="min-h-11 cursor-pointer py-3 leading-5 rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus font-semibold text-ink">{t("terminal")}</summary>
         <p className="mt-2 text-ink-muted">{t("terminalBody")}</p>
@@ -472,6 +476,7 @@ function HomeReady({
           {"uv run python src/scholar_harness/agent_screen.py prepare <workspace>\nuv run python src/scholar_harness/agent_screen.py collect <workspace>"}
         </pre>
       </details>
+      )}
     </div>
   );
 }

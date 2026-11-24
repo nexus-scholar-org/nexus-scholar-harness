@@ -13,6 +13,7 @@ import { CHECKS_COPY } from "@/lib/checks-copy";
 import { fillNodes } from "@/components/assist-anchor";
 import { notifyDiscoveryChecks, useDiscoveryChecksVersion } from "@/components/checks-bus";
 import { notifyReviewChanged } from "@/components/review-bus";
+import { useInstalled } from "@/lib/engine-start";
 
 /**
  * What every discovery screen shares (spec 01 "Shared by 01–08", M3c-screens):
@@ -225,6 +226,7 @@ export function DiscoveryRefusal({
 /** The contact-email state (decision 5): the exact line to set, where to put it, and Check again. The browser writes no setting. */
 export function MailtoCard({ locale, onCheck }: Readonly<{ locale: Locale; onCheck?: () => void }>) {
   const t = discoveryT(locale);
+  const installed = useInstalled();
   return (
     <div className="rounded-lg border border-rule bg-leaf p-4" data-mailto>
       <p className="font-semibold text-ink">
@@ -235,7 +237,7 @@ export function MailtoCard({ locale, onCheck }: Readonly<{ locale: Locale; onChe
           {t("mailto.line")}
         </code>
       </p>
-      <p className="mt-2 text-sm text-ink-muted">{t("mailto.where")}</p>
+      <p className="mt-2 text-sm text-ink-muted">{t(installed ? "mailto.whereInstalled" : "mailto.where")}</p>
       {onCheck ? (
         <Button className="mt-3" onClick={onCheck}>
           {t("mailto.check")}
@@ -251,6 +253,7 @@ export function MailtoCard({ locale, onCheck }: Readonly<{ locale: Locale; onChe
  */
 export function OpenAlexKeyCard({ locale, onCheck }: Readonly<{ locale: Locale; onCheck?: () => void }>) {
   const t = discoveryT(locale);
+  const installed = useInstalled();
   return (
     <div className="rounded-lg border border-rule bg-leaf p-4" data-openalex-key>
       <p className="font-semibold text-ink">
@@ -261,7 +264,7 @@ export function OpenAlexKeyCard({ locale, onCheck }: Readonly<{ locale: Locale; 
           {t("openalexKey.line")}
         </code>
       </p>
-      <p className="mt-2 text-sm text-ink-muted">{t("openalexKey.where")}</p>
+      <p className="mt-2 text-sm text-ink-muted">{t(installed ? "openalexKey.whereInstalled" : "openalexKey.where")}</p>
       {onCheck ? (
         <Button className="mt-3" onClick={onCheck}>
           {t("mailto.check")}

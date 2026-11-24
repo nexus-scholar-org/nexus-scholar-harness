@@ -7,6 +7,7 @@ import { Button, DataCell } from "@/components/ui/base";
 import { inceptionHref, InceptionRefusal, refusalOf, Stamp, useLocationParams, type Refusal } from "@/components/inception-frame";
 import { createDraft, listDrafts, type DraftListing } from "@/lib/inception-api";
 import { inceptionT } from "@/lib/inception-copy";
+import { useInstalled } from "@/lib/engine-start";
 
 /**
  * Inception start and resume (spec 08, M4b): the drafts under the workspaces
@@ -15,6 +16,7 @@ import { inceptionT } from "@/lib/inception-copy";
  */
 export function InceptionStart({ locale }: Readonly<{ locale: Locale }>) {
   const t = inceptionT(locale);
+  const installed = useInstalled();
   const { origin, ready } = useLocationParams();
   const [listing, setListing] = useState<DraftListing | null>(null);
   const [loadError, setLoadError] = useState<Refusal | null>(null);
@@ -139,9 +141,11 @@ export function InceptionStart({ locale }: Readonly<{ locale: Locale }>) {
               ))}
             </ul>
           )}
-          <p className="text-sm text-ink-muted">
-            {t("start.terminal")} <code className="rounded-sm bg-paper px-1 font-mono text-[0.8125rem]" dir="ltr">uv run scholar-harness inception</code>
-          </p>
+          {installed ? null : (
+            <p className="text-sm text-ink-muted">
+              {t("start.terminal")} <code className="rounded-sm bg-paper px-1 font-mono text-[0.8125rem]" dir="ltr">uv run scholar-harness inception</code>
+            </p>
+          )}
         </section>
       )}
     </div>
