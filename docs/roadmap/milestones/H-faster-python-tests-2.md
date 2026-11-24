@@ -1,8 +1,8 @@
 # H-faster-python-tests-2 Two more workspace templates and six slow marks
 
-Branch: `dev/h/faster-python-tests-2` (from `origin/main` `6f31f92e`, which holds H-faster-python-tests, PR 303) · Lane: **STANDARD** (test code only; no product code, contract or public surface changes) · Status: **READY FOR PR** (review round 2 APPROVE on `b9ee992a`; not pushed; decision items 1 to 3 PROPOSED) · Started: 2026-11-23
+Branch: `dev/h/faster-python-tests-2` (from `origin/main` `6f31f92e`, which holds H-faster-python-tests, PR 303) · Lane: **STANDARD** (test code only; no product code, contract or public surface changes) · Status: **READY FOR PR** (review round 2 APPROVE on `b9ee992a`; pushed to the fork on the researcher's word of 2026-11-24, "Yes, open the PR"; decision items 1 to 3 PROPOSED) · Started: 2026-11-23
 
-`origin/main` `460f23f3` (PR 304, the M13-installers specification, documentation only) was merged in at `b9ee992a`; one conflict, `docs/decisions.md`, both entries kept.
+`origin/main` `460f23f3` (PR 304, the M13-installers specification, documentation only) was merged in at `b9ee992a`; one conflict, `docs/decisions.md`, both entries kept. `origin/main` `f2a7407e` (PRs 305 to 311) was merged in at `86f1b4a0` on 2026-11-24, after the review: the same one conflict, both sides kept; `tests/console/test_approve_all.py` merged without a conflict (main added tests to it). The review did not read this merge.
 
 The researcher's go-ahead of 2026-11-23 in the review session ("Yes, build them"), after the full timing passes of that day (`docs/assessment/test-suite-review-2026-11-23.md`, "Update, evening of 2026-11-23", on the local branch `dev/docs/project-review-2026-11-23`, commit `e73795d9`; items 1, 2 and 4 of "What is left"). The per-file numbers of those passes are in the sessions' shared notes folder (`test-timing-2026-11-23-branch-e8eaf753.txt`).
 
@@ -64,6 +64,7 @@ On the researcher's PC (Windows, 4 cores, 8 threads), this worktree, venv synced
 | after review | final tree (the setting out, the approve-all helper) | `pytest tests/console/test_approve_all.py -q` | 26 passed (25 and the new one); with `-m "not slow"` 25 passed; the new test with `bulk` expected `False`: failed, then restored | 54-batch test 44 s; the others under 4 s each |
 | pr | final tree | `select_test_gate.py --check`; `ruff check scripts/`; `ruff check src/ --select F821,F811,F823,F632,F7,B023,B006,E9`; `generate_contract_baseline.py --check`; `git diff --check` | pass; baseline current, no locked file changed; clean | |
 | checkpoint | final tree `b9ee992a` | the selector's checkpoint for `--changed origin/main`: `python scripts/suite_lock.py -- pytest tests/console tests/kits/agent tests/pipeline -q -n 4 --dist worksteal --junitxml` | **1,621 results: 1,617 passed, 4 skipped, 0 failed** | 419 s |
+| pr | `86f1b4a0` (after the merge of `f2a7407e`) | the selector's PR stage for `--changed origin/main`: `git diff --check`; `python scripts/suite_lock.py -- pytest tests/console tests/kits/agent tests/pipeline -q -n 4 --dist worksteal`; both ruff commands; `generate_contract_baseline.py --check`; `select_test_gate.py --check` (`OK: 11 tasks, 23 areas, 4 stages`) | **1,652 results: 1,647 passed, 5 skipped, 0 failed** (counted from the progress lines; exit 0); the rest pass | not recorded (the run waited for another session's full suite) |
 
 The full suite was not run a third time for the final tree: it differs from the "setting off" run by one test file (`tests/console/test_approve_all.py`) and a documentation merge, and the selector's checkpoint above ran on it. CI is the full gate.
 
