@@ -1,6 +1,6 @@
 # M13 Part B: settings and first-run setup
 
-Status: **BUILDING on `dev/m13/part-b-settings` (from `main` `f2a7407e`), not pushed. Lane RELEASE.** The researcher gave the go on 2026-11-24 ("Start Part B"), relayed by the coordinator session "Nexus Scholar parent work". Specification: `docs/roadmap/milestones/M13-installers.md` §4.3 and §5.2 Part B, and Q7 (settings in a file, keys in the system keychain). Decisions: `docs/decisions.md`, entry "2026-11-24 — M13 Part B". Screen specification: `docs/ux/shared/final/05-settings.md`.
+Status: **BUILT on `dev/m13/part-b-settings` (from `main` `f2a7407e`, `main` `5ffc53e2` merged in), not pushed; the check by hand of answer 7 is outstanding (see Evidence). Lane RELEASE.** The researcher gave the go on 2026-11-24 ("Start Part B"), relayed by the coordinator session "Nexus Scholar parent work". Specification: `docs/roadmap/milestones/M13-installers.md` §4.3 and §5.2 Part B, and Q7 (settings in a file, keys in the system keychain). Decisions: `docs/decisions.md`, entry "2026-11-24 — M13 Part B". Screen specification: `docs/ux/shared/final/05-settings.md`.
 
 ## Questions answered by the researcher (2026-11-24)
 
@@ -85,6 +85,13 @@ Left as follow-ups (P3, as the review listed them):
 - **Answer 3's wording.** Setup opens while no Done or Later choice is saved, which is wider than "no settings file yet".
 - **Decision item 20.** It departs from the screen specification and needs the researcher's acceptance.
 
+**Round 2: CHANGES on evidence only** (no code change required): every round-1 finding was verified repaired. Its three small notes were repaired in `2a939361`:
+- a key is not written to the file while an old keychain copy cannot be removed;
+- the shared search settings are restored after each test (`tests/conftest.py`);
+- `keys clear` says "removed" or "no stored key".
+
+What it still requires is the check by hand of answer 7, below.
+
 ## Evidence
 
 | Check | Result |
@@ -92,5 +99,5 @@ Left as follow-ups (P3, as the review listed them):
 | Full Python suite (suite lock, `-n 4`) on `435c296a` (the engine) | 5369 passed, 16 skipped |
 | UI on `1bd71597`: typecheck, `lint:ui`, vitest (suite lock) | pass; 76 passed; 120 files, 1394 passed |
 | Contract baseline, ruff (`scripts/`, `src/` bug rules), `select_test_gate --check`, `git diff --check` | current; pass |
-| After review round 1 | filled below |
+| Final gate on the merged tree `113ac9c6` (this branch with `main` `5ffc53e2` merged in; after review rounds 1 and 2) | full Python suite (suite lock, `-n 4`): 5375 passed, 16 skipped; typecheck pass; `lint:ui` 76 passed; vitest (suite lock): 120 files, 1394 passed; `git diff --check`, ruff, contract baseline, `select_test_gate --check` pass |
 | **Check by hand of the installed start in both themes at phone and desktop width (answer 7)** | **Not done.** The command that starts the installed app in a temporary home, with the engine's keychain pointed away from the real Windows Credential Manager, was refused by this session's permission check. The researcher, or a session they allow, runs it before the pull request: start `nexus-scholar-app` with a temporary `NEXUS_APP_HOME`, open the first-run setup, save a made-up e-mail and key, and look in light and dark at 375 and 1440 px. |
