@@ -382,9 +382,16 @@ class AcademicHttpClient:
         agent = user_agent()
 
         if cache_enabled and settings.http_cache:
+            # The cache lives under SCHOLAR_CACHE_DIR. hishel's own default is
+            # `.cache/hishel` in whatever folder the process started in, made
+            # without `exist_ok`: clients built at once raced, and the installed
+            # app's settings folder has no `.cache`, so its first discovery page
+            # answered 500 (M13 Part A).
+            cache_path.mkdir(parents=True, exist_ok=True)
             self.client = hishel.AsyncCacheClient(
                 transport=transport,
                 headers={"User-Agent": agent},
+                storage=hishel.AsyncFileStorage(base_path=cache_path),
             )
         else:
             self.client = httpx.AsyncClient(

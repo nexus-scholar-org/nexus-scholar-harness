@@ -14,7 +14,7 @@ history to read if you need the original reasoning (`git log --follow -- <path>`
 | 2026-11-23 — H-gate-and-ci | 1 | The standing permission for sessions to push a work branch and open a draft pull request: not given. |
 | 2026-11-24 — M13 Part A, second pull request | 1 to 4 | The installed app's words point to `.env` in its settings folder until Part B; provider keys not available in the installed app; the control window in English only; no Settings button until Part B. |
 
-## 2026-11-24 — M13 Part A, second pull request: the control window and the app's words for the installed app (PROPOSED; items 1 to 4 for the researcher, 5 to 15 the build's choices)
+## 2026-11-24 — M13 Part A, second pull request: the control window and the app's words for the installed app (PROPOSED; items 1 to 4 for the researcher, 5 to 16 the build's choices)
 
 Record: `docs/roadmap/milestones/M13-part-a.md`, section "Second pull request". Specification: `docs/roadmap/milestones/M13-installers.md` §4.2 and §5.2 Part A. Started on the researcher's go of 2026-11-24 ("Start it"), relayed by the coordinator session. Branch `dev/m13/part-a-control-window` from `main` `59f0dca1`, lane RELEASE. Built:
 
@@ -42,6 +42,7 @@ Record: `docs/roadmap/milestones/M13-part-a.md`, section "Second pull request". 
 13. Hidden in the installed app: the Screening home's "Run from the terminal" panel (its commands also need a source checkout), the inception start's terminal hint, and the workspaces screen's `accept-corpus` command and its Copy button. The installed workspaces text points to the Import screen instead.
 14. The guidance audit (`docs/ux/shared/final/03-guidance.md`, D-DS5 and D-DS6) lists the two new discovery keys.
 15. Left with terminal words, as the record lists: the chase options' "the unclear studies can be added from the terminal"; the `RESTART_UNSUPPORTED` card, which the installed app cannot hit; and the "Not set — set SCHOLAR_OPENALEX_KEY" status labels on Explore and in the look-up plan, which name the setting without a place.
+16. **A fault found in the browser check, fixed here.** The search's HTTP cache now lives in `<SCHOLAR_CACHE_DIR>/scholar_cache`, made with `exist_ok`. Before, hishel's default `.cache/hishel` was made in the starting folder without `exist_ok`, and the installed app's first discovery page answered 500. Terminal users' cache moves from `.cache/hishel` to `.cache/scholar_cache` and starts cold once. Test: `tests/kits/search/test_http_cache_location.py`.
 
 ## 2026-11-24 — M13 Part A: the launcher for an installed app (ACCEPTED 2026-11-24; items 1 to 4 as recommended, 5 to 16 the build's choices)
 

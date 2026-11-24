@@ -120,9 +120,21 @@ The workspace format check (PR 310) copies an older review before opening it.
 | The app knows how the engine was started | `test_the_launch_link_tells_the_app_how_the_engine_was_started`; `apps/research-ui/tests/installed-copy.test.tsx` (cookie parsing, every installed card in three languages free of terminal words, the cards and the e-mail card after mount, the first render as the static export) |
 | By hand on Windows | see Evidence below |
 
+### A fault found in the browser check, fixed here
+
+On the installed app's first discovery page, the request answered **500**. The search's HTTP cache (hishel) defaults to `.cache/hishel` in the folder the process started in, and it creates that folder without `exist_ok`. The installed engine runs in the settings folder, which has no `.cache` (`FileNotFoundError`, then `FileExistsError` when several search clients were built at once). `scholar_search/http_client.py` already computed `<SCHOLAR_CACHE_DIR>/scholar_cache` but never passed it. The fix creates that folder with `exist_ok` and gives it to hishel as its storage. The same fault reached a terminal start in a folder with no `.cache`. Test: `tests/kits/search/test_http_cache_location.py` (eight clients built at once in a fresh folder): it passes with the fix and fails on `59f0dca1` with the cache made in the starting folder. Effect on terminal users: the cache moves from `.cache/hishel` to `.cache/scholar_cache` (under `SCHOLAR_CACHE_DIR`), so it starts cold once.
+
 ### Evidence
 
-Filled in below as the checks run.
+| Check | Result |
+| :-- | :-- |
+| Selector `pr` gate on `e3084062` (areas console, research-ui) | `tests/console tests/authority tests/test_ui_launcher.py`: 1459 passed, 2 skipped; `npm run typecheck` pass; `npm run lint:ui` 76 passed; vitest through the suite lock: 119 files, 1365 passed |
+| `git diff --check`, ruff (`scripts/`, `src/` bug rules), contract baseline `--check` | pass, current |
+| The search area after the cache fix (selector `pr`, area search) | `tests/kits/search` + identity conformance + discovery, dedup and http-client units + migration + e2e search-screen: 572 passed |
+| By hand on Windows: `nexus-scholar-app.exe --no-browser` from `C:\Windows`, temporary home, the UI export of this branch | engine answered in 7 s; a `pythonw` window titled "Nexus Scholar" appeared; `--stop` closed it in 3.9 s, freed port 8770 and removed `engine.json` |
+| Browser pane (the desktop app's Chromium), same engine | readable cookie `nexus_started_as=installed` (the session cookie stays HttpOnly); Workspaces: the installed empty-list text; creating a review: the installed next step, no `accept-corpus` command and no Copy button; Discovery plan: the installed contact-email and OpenAlex key cards; no console error from the new code |
+| The installed instruction works | a test address put in `.env` in the settings folder, `--stop`, start again: the contact-email card is gone (the OpenAlex card stays: no key) |
+| The cache fault | before the fix the plan page answered a 500 (log: `FileNotFoundError` on `.cache\hishel`); after it, no failed request on the page, no `.cache` in the settings folder, the cache under `cache\search\scholar_cache` |
 
 ## Not in the first pull request (built in the second, above)
 
