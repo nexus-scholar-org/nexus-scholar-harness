@@ -528,13 +528,15 @@ def test_versions_sort_as_releases_do():
 def test_a_long_review_name_keeps_the_copy_path_short(tmp_path):
     """Finding 1: the copy's file name does not repeat the review's folder name (Windows' 260 characters)."""
     # By hand: genesis under pytest's deep temporary folder would itself pass the limit (vendored skills).
-    ws = tmp_path / "a-systematic-review-of-unmanned-aerial-vehicle-imaging-for-weed-and-crop-stress-detection"
+    # 70 characters: above the 66 at which the old name passed the limit under the default root, and
+    # short enough for pytest's own deep temporary folder (parallel runs add `popen-gwN`).
+    ws = tmp_path / "a-systematic-review-of-uav-imaging-for-weed-and-crop-stress-detection-x"
     (ws / "audit").mkdir(parents=True)
     (ws / "audit" / "journal.jsonl").write_text("", encoding="utf-8")
     (ws / "project.json").write_text("{}", encoding="utf-8")
     (ws / "protocol.json").write_text("{}", encoding="utf-8")
     result = wf.prepare_for_writing(ws, agent="test")
-    assert len(ws.name) > 80
+    assert len(ws.name) > 66
     assert ws.name not in result.copy.name
     # parent + "/.nexus-copies/" + slug + "/" + a name of at most about 100 characters
     assert len(str(result.copy)) <= len(str(ws)) + len("/.nexus-copies/") + 100

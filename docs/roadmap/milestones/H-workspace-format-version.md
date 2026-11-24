@@ -1,6 +1,6 @@
 # H-workspace-format-version
 
-Status: **BUILT 2026-11-24, in independent review; not pushed. Questions answered by the researcher on 2026-11-24 (§7, "Questions closed"): five as recommended, question 2 changed to "Everything including PDFs".** Specification written 2026-11-23. Branch `dev/h/workspace-format-version`, cut from `origin/main` `cc0e8fa1` (the merge of release `1.1.0b7`, PR #307). Lane for the build: **RELEASE** (a new persisted file in every workspace and a change to how every workspace is opened).
+Status: **READY FOR PR 2026-11-24, not pushed.** Independent review: round 1 CHANGES on `dce1abee` (12 findings, all repaired), round 2 APPROVE on `7605edd8`. Questions answered by the researcher on 2026-11-24 (§7): five as recommended, question 2 changed to "Everything including PDFs". Specification written 2026-11-23.
 
 Source: the project review of 2026-11-23, finding 9 and recommendation 8 ("A format version on the workspace and a copy made before a newer build first opens it"; on local branch `dev/docs/project-review-2026-11-23`), and the researcher's answer to question 11 of `docs/roadmap/milestones/M13-installers.md` (build it as its own piece of work, before installers go to outside testers). The instruction to start, in the coordinator's brief: "Start Part A and the workspace format version". Part A of M13 (the launcher) is built in parallel by another session; this work needs no change to `console/launcher.py`, `console/code_window.py` or the start-up path of `nexus-scholar ui` (§3.2).
 
@@ -289,6 +289,8 @@ Branch `dev/h/workspace-format-version`; `origin/main` `0bcefdd3` (PR 308, H-rem
 | The same gate: full Python suite, `-n 4` through `suite_lock.py` | `0df8161b` | 3 failures, all caused by this work and repaired in `f9b9577e`: `test_review_is_read_only` (`agent_screen.py review` opened for writing) and two `extract publish --json` tests (a notice on standard output) |
 | The full gate again: every check above, the web app (118 files, 1,354 tests) and the full Python suite (`-n 4`, `suite_lock.py`, exit 0) | `a669d91a` | pass |
 | `tests/unit/test_workspace_format.py` | `a669d91a` | 33 pass |
+| Review round 1 repairs: the full gate again (every check above; web app 118 files, 1,356 tests; full Python suite `-n 4` through `suite_lock.py`) | `7605edd8` | all pass except one test: `test_a_long_review_name_keeps_the_copy_path_short`, whose own 89-character folder under pytest's parallel temporary folder (`popen-gw3`) passed 260 characters; the test's name was shortened to 71 characters (still above the 66 the review found) in the next commit, and the file then passed under `-n 4` |
+| Independent review round 2 (`milestone-reviewer`) | `7605edd8` | APPROVE; ran 60 Python tests, four API and launcher files, 54 web app tests |
 | `uv build --wheel`; fresh Python 3.12 base install; `nexus-scholar --help`, `scholar-agent --help`; `init --scaffold-only` from the wheel writes `workspace_format.json` (format 1) | `a669d91a` | pass; wheel 4.25 MB; `format.py`, the UI bundle and the bundled `log_event.py` with its check are in it |
 
 **Verification with a workspace written by `v1.1.0b6`** (2026-11-24, scratch folders, port 8771; the researcher's workspaces were not touched):
@@ -319,6 +321,8 @@ Branch `dev/h/workspace-format-version`; `origin/main` `0bcefdd3` (PR 308, H-rem
 12. P3, `prune` could fail on a copy removed meanwhile: it skips it.
 
 Also from the review: Open on an unreadable review and `log batch` are now tested; the refusal card's link keeps `?console=`.
+
+Round 2 (`7605edd8`): **APPROVE**, no new findings. Its two follow-ups, not built: a line in `.nexus-copies/README.txt` about the `.copy.lock` file that now stays there; a test with a real second process holding the lock (for the `fcntl` path, which only CI runs).
 
 ## 10. Not verified
 
