@@ -132,6 +132,10 @@ The workspace format check (PR 310) copies an older review before opening it.
 | P3 | A stop (`--stop`) while the closing question is open left a call on a destroyed window | the window checks it still exists after the question | — (Tk only) |
 | P3 | One test could open a message box on a developer's desktop | it passes a silent `tell` | — |
 
+**Round 2: APPROVE** (d7582968, code read). Its note that the workspaces test looked for a button named "Copy" (the button is "Copy the command", so the check passed either way) is repaired: the test looks for any Copy button, and it fails when the button is shown. Its other note is left: if the engine stops on an error while the closing question is open and the answer is Yes, the window closes without showing the error (the log records it).
+
+**Final gate on d7582968** (selector `pr`, areas console, search, research-ui): `tests/console tests/authority tests/test_ui_launcher.py` 1459 passed, 2 skipped; the search area 572 passed; typecheck pass; lint:ui 76 passed; vitest through the suite lock 119 files, 1369 passed; `git diff --check`, ruff, contract baseline, `select_test_gate --check` pass. The last commit changes one test line (`workspaces.test.tsx`, 17 passed).
+
 Left as follow-ups, as the review listed them (P3):
 - A stop during a restart's build can leave a large background copy, already started, to be killed at exit. That copy behaviour comes from PR 310.
 - The closing question does not name a charting look-up or a pipeline job.

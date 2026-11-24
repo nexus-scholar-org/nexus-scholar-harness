@@ -258,7 +258,7 @@ describe("workspaces in the installed app (M13 Part A)", () => {
     const next = document.querySelector("[data-next-step]")!;
     expect(next).toHaveTextContent("import your search results on the Import screen");
     expect(next.textContent).not.toMatch(/accept-corpus|terminal/);
-    expect(within(next as HTMLElement).queryByRole("button", { name: "Copy" })).toBeNull();
+    expect(within(next as HTMLElement).queryByRole("button", { name: /copy/i })).toBeNull();
   });
 
   it("says where to put a review folder you already have", async () => {
