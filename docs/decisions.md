@@ -194,6 +194,25 @@ Record: `docs/roadmap/milestones/H-charting-row-layout.md`. The work is the rese
 8. No hover tint was added (the table had none); the pinned cells would follow one.
 9. Other screens that pass `px-1 text-xs` through `className` (the query workbench's term buttons) have the same lost classes and are left for a follow-up.
 
+## 2026-11-23 — H-faster-python-tests-2: two more workspace templates and six slow marks; the temporary-folder setting refused (go-ahead by the researcher 2026-11-23; built; items 1 to 3 ACCEPTED 2026-11-24)
+
+**Accepted 2026-11-24.** The researcher accepted items 1 to 3 as proposed in the coordinator session ("Yes accept", to the question whether to accept PR 312's three items and merge it): the scaffold-based console fixtures stay as they are; six long tests leave the inner gates; the temporary-folder setting is refused.
+
+Record: `docs/roadmap/milestones/H-faster-python-tests-2.md`. Items 1, 2 and 4 of "What is left" in the test-suite review's update of 2026-11-23, which the researcher told the review session to build ("Yes, build them"). Test code only; no product code.
+
+**For the researcher to decide**
+
+1. **The scaffold-based console fixtures stay as they are** (the discovery, next-step, harvest-preparation, workbench and proposal fixtures). The review named them for templates; measured, a copy saves about 0.1 s a test (0.18 s fresh, 0.075 s copied), and a scaffolded review records its own folder in `.mcp.json` and in its journal, so a copy would point back at the template. Proposed: leave them; the remaining cost is the scaffold's own (product code).
+2. **Six tests leave the inner gates** (marked slow, 7 to 30 s each): the 54-batch approve-all test, the critic test that reads every document, two golden recon tests and two golden search tests. Checkpoint, PR and full runs keep them. The cost: an edit that breaks one of them is seen at the checkpoint, not after each edit. For the approve-all test a three-batch test with the same assertions was added and stays in the inner gates. **One property is then checked by no inner gate:** that the browser hand-off accept and the command-line accept give the same artifact id (`test_the_handoff_accept_gives_the_snapshot_the_cli_run_gives`, 7 s).
+3. **`tmp_path_retention_policy = "failed"` is refused** (the review's item 4: a later session spends up to a minute deleting an old run's 50,000 temporary files). The setting cost no run time and both full runs passed with it, but it makes a temporary path repeat inside one process, and the read store, keyed by path and file stamps, then serves one test the results another kept: a read-performance case passed while opening 69 files instead of 139 (found by the independent review, reproduced). Proposed: leave pytest's default; the deletion cost stays until a later part reduces the files a test writes or clears path-keyed stores between tests.
+
+**Choices made in the build (for the reviewer)**
+
+4. Template keys hold every input the builders read: the pilot's record count and `prepare`, the chase's `ids`, the protocol file's content, `WS_ID`, and for the chase `SCREENER`.
+5. `test_dod11_the_same_seed_on_the_same_snapshot_gives_the_same_list` keeps fresh builds: it compares two workspaces built apart.
+6. `build_ws`'s four module globals travel with the template (the fresh builder returns them; they are set after each copy).
+7. The approve-all checks are one helper run with 54 batches (slow) and with three (not slow); no assertion differs between the two but the count.
+
 ## 2026-11-23 — M13-installers: an installer per platform, opened from an icon with no terminal (answered by the researcher 2026-11-23, each as recommended; the build needs a separate go)
 
 Record: `docs/roadmap/milestones/M13-installers.md` (specification; nothing built). Requested by the researcher on 2026-11-23: an installer for Windows, Linux and macOS, easy setup of the app and of the MCP connection, a desktop or Start-menu icon that opens the app with no terminal. Written by a specification session from the code at `main` `6f31f92e` and the tools' and signing programmes' own documentation, read on 2026-11-23.

@@ -59,6 +59,7 @@ def test_prepare_makes_the_42_documents_as_genesis_would(prepared):
             assert files == ["intent.json", "protocol.json"], doc_id
 
 
+@pytest.mark.slow  # H-faster-python-tests-2: 18 s in the one-process timing pass of 2026-11-23.
 def test_every_document_can_be_read_through_the_tool(prepared, monkeypatch):
     out, made = prepared
     monkeypatch.setenv("NEXUS_MCP_WORKSPACE", str(out))
