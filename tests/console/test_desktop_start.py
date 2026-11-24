@@ -389,3 +389,27 @@ def test_a_publish_that_clashes_once_is_tried_again(tmp_path, ui, monkeypatch):
     app_launcher._server = Started()
     app_launcher._when_ready(None)
     assert attempts == [8798, 8798, 8798] and said == []
+
+
+def test_the_installed_start_reads_dotenv_and_the_cache_from_its_own_folders(home, monkeypatch):
+    """Review of M13 Part B, P1: the search settings are read again after the start moves into its settings folder."""
+    from scholar_search.config import reload_settings
+
+    for name in ("SCHOLAR_CACHE_DIR", "NEXUS_RECON_ROOT", "SCHOLAR_MAILTO"):
+        monkeypatch.setenv(name, "placeholder")  # recorded, so the test's end restores the original state
+        monkeypatch.delenv(name)
+    home.settings.mkdir(parents=True, exist_ok=True)
+    (home.settings / ".env").write_text("SCHOLAR_MAILTO=dotenv@example.org\n", encoding="utf-8")
+    seen: dict[str, str | None] = {}
+
+    def record(self):
+        from scholar_search.config import settings
+
+        seen.update(mailto=settings.mailto, cache=str(settings.cache_dir))
+
+    monkeypatch.setattr(launcher.Launcher, "run", record)
+    try:
+        assert desktop.main(["--no-browser"]) == 0
+    finally:
+        reload_settings()  # back to the test session's own settings
+    assert seen == {"mailto": "dotenv@example.org", "cache": str(home.cache / "search")}

@@ -322,3 +322,55 @@ def test_the_mcp_server_loads_a_key_kept_in_the_file(monkeypatch):
     loaded = server._apply_keychain_keys()
     assert "GEMINI_API_KEY" in loaded and os.environ["GEMINI_API_KEY"] == FAKE_KEYS["gemini"]
     monkeypatch.delenv("GEMINI_API_KEY")
+
+
+def test_an_empty_variable_does_not_hide_the_saved_value(tmp_path, monkeypatch):
+    """Review P2: `SCHOLAR_MAILTO=` sets nothing; the screen's value is used and reported."""
+    client = _client(root=tmp_path / "reviews")
+    client.put("/api/v1/settings/contact-email", json={"value": "store@example.org"})
+    (tmp_path / ".env").write_text("SCHOLAR_MAILTO=\n", encoding="utf-8")
+    monkeypatch.setenv("SCHOLAR_OPENALEX_KEY", "")
+    client.put("/api/v1/settings/keys/openalex", json={"value": FAKE_KEYS["openalex"]})
+    reload_settings()
+    body = client.get("/api/v1/settings").json()
+    assert settings.mailto == "store@example.org" and body["contact_email"] == {"value": "store@example.org", "source": "settings"}
+    assert settings.openalex_key == FAKE_KEYS["openalex"] and body["keys"]["openalex"]["source"] == "keychain"
+
+
+def test_a_key_kept_in_the_file_replaces_an_older_keychain_copy(tmp_path, monkeypatch):
+    """Review P2: one place per key, also from the keychain to the file."""
+    import sys
+
+    from scholar_agent import keys
+
+    client = _client(root=tmp_path / "reviews")
+    client.put("/api/v1/settings/keys/anthropic", json={"value": "sk-ant-OLD-MADE-UP"})
+    module = sys.modules["keyring"]
+
+    def refuse(*_a):
+        raise RuntimeError("the keychain will not take this one")
+
+    monkeypatch.setattr(module, "set_password", refuse)  # writes fail, reads and deletes still work
+    asked = client.put("/api/v1/settings/keys/anthropic", json={"value": "sk-ant-NEW-MADE-UP"})
+    assert asked.json()["detail"]["code"] == "KEYCHAIN_UNAVAILABLE"
+    kept = client.put("/api/v1/settings/keys/anthropic", json={"value": "sk-ant-NEW-MADE-UP", "use_file": True})
+    assert kept.status_code == 200 and kept.json()["keys"]["anthropic"]["source"] == "file"
+    assert keys.resolve_key("anthropic") == "sk-ant-NEW-MADE-UP"
+
+
+def test_a_run_started_while_the_folder_window_was_open_stops_the_change(tmp_path, monkeypatch):
+    """Review P2: the busy check runs again after the dialog; nothing is saved."""
+    catalog.create(tmp_path / "reviews", "Late Review")
+    state = {"run_active": False, "pairing_open": False}
+    monkeypatch.setattr(catalog, "busy", lambda ws: dict(state))
+
+    def chosen_while_a_run_starts(start):
+        state["run_active"] = True
+        return tmp_path / "elsewhere"
+
+    monkeypatch.setattr(folder_dialog, "choose", chosen_while_a_run_starts)
+    restarted: list[Path] = []
+    client = _client(tmp_path / "reviews" / "late-review", root=tmp_path / "reviews", on_root_change=restarted.append)
+    answer = client.post("/api/v1/settings/folder/choose", json={})
+    assert answer.json()["detail"]["code"] == "WORKSPACE_BUSY"
+    assert restarted == [] and user_settings.workspaces_root() is None

@@ -59,3 +59,38 @@ The screen specification (`docs/ux/shared/final/05-settings.md`) raised two more
 | A key saved on the screen is never returned by any route | `test_a_saved_key_is_never_returned_by_any_route` (every answer and refusal after every key is saved); the screen's half: `apps/research-ui/tests/settings.screen.test.tsx` "a key leaves the page with its request and is never shown again" |
 | An environment variable still wins | `test_the_environment_and_dotenv_still_win` (and `.env`, answer 2); the screen: "a value set in the environment or .env is printed with its source and cannot be edited" |
 | The screen passes the accessibility checks and the check of answer 7 | `settings.screen.test.tsx` "settings.a11y" (in-process axe in light, dark and Arabic); the check by hand: see Evidence |
+
+## Independent review (milestone-reviewer), round 1: CHANGES, repaired
+
+| # | Finding | Repair | Test |
+| :-- | :-- | :-- | :-- |
+| P1 | The installed start built the search settings before moving into its settings folder, so the `.env` there was missed and the search cache went to the wrong folder | `desktop._start` reads the search settings again after the change of folder (`reload_settings()`) | `test_desktop_start.py::test_the_installed_start_reads_dotenv_and_the_cache_from_its_own_folders` |
+| P1 | The check by hand of answer 7 and the Evidence were missing | Evidence below; the check by hand **was not done** (see there) | — |
+| P2 | An empty variable (`SCHOLAR_MAILTO=`) hid the saved value, and the screen named the wrong source | `env_ignore_empty=True` in the search settings | `test_an_empty_variable_does_not_hide_the_saved_value` |
+| P2 | A key kept in the file after the keychain refused it could be shadowed by an older keychain copy | storing in the file removes the keychain copy, and refuses again if it cannot | `test_a_key_kept_in_the_file_replaces_an_older_keychain_copy` |
+| P2 | The busy check was not repeated after the folder dialog, which may stay open for minutes | checked again after the dialog; refused with `WORKSPACE_BUSY`, nothing saved | `test_a_run_started_while_the_folder_window_was_open_stops_the_change` |
+| P2 | Child processes started by tests could read the real keychain | `tests/conftest.py` sets `PYTHON_KEYRING_BACKEND` to keyring's "null" backend for the session | — |
+| P3 | `nexus-scholar keys clear` left a key kept in the file; the refusal note had no words for the file; the phone card's link said "Back to Workspaces"; `aria-describedby` named a missing source line | fixed | existing tests |
+
+Left as follow-ups (P3, as the review listed them):
+- **The keychain at start.** Every CLI and MCP start now reads the keychain at import when the `ai` extra is installed (a Linux keyring may prompt), so a lazy read is worth considering.
+- **The folder dialog.**
+  - Nothing stops two dialogs being open at once, from two tabs.
+  - A dialog left open across a restart can still save the folder.
+  - Firefox gives up on a request after 300 s, before the dialog's 10-minute wait ends.
+- **The settings file.** It is written without a lock and without the Windows replace retry.
+- **An unwritable reviews folder.** If the saved folder cannot be written, the installed start refuses to start, so the screen cannot be reached to change it.
+- **The PDF kit's own `MAILTO`.** It now loses to the e-mail saved on the screen.
+- **Missing from the screen specification.** The footer caption with the settings folder, and the reason disabled buttons give when the engine is unreachable.
+- **Answer 3's wording.** Setup opens while no Done or Later choice is saved, which is wider than "no settings file yet".
+- **Decision item 20.** It departs from the screen specification and needs the researcher's acceptance.
+
+## Evidence
+
+| Check | Result |
+| :-- | :-- |
+| Full Python suite (suite lock, `-n 4`) on `435c296a` (the engine) | 5369 passed, 16 skipped |
+| UI on `1bd71597`: typecheck, `lint:ui`, vitest (suite lock) | pass; 76 passed; 120 files, 1394 passed |
+| Contract baseline, ruff (`scripts/`, `src/` bug rules), `select_test_gate --check`, `git diff --check` | current; pass |
+| After review round 1 | filled below |
+| **Check by hand of the installed start in both themes at phone and desktop width (answer 7)** | **Not done.** The command that starts the installed app in a temporary home, with the engine's keychain pointed away from the real Windows Credential Manager, was refused by this session's permission check. The researcher, or a session they allow, runs it before the pull request: start `nexus-scholar-app` with a temporary `NEXUS_APP_HOME`, open the first-run setup, save a made-up e-mail and key, and look in light and dark at 375 and 1440 px. |

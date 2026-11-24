@@ -215,6 +215,11 @@ def choose_folder(request: Request, background: BackgroundTasks, body: ChooseBod
         raise _error(409, refusals.FOLDER_DIALOG_UNAVAILABLE, "the folder dialog cannot open on this computer's desktop") from None
     if chosen is None:
         return JSONResponse({"chosen": None, "restarting": False})
+    if current is not None:
+        # Again after the dialog: a run or an approval may have started while it was open.
+        state = catalog.busy(Path(current))
+        if state.get("run_active") or state.get("pairing_open"):
+            raise _error(409, "WORKSPACE_BUSY", "an agent run or an approval started while the folder window was open; nothing was changed", **state)
     chosen = chosen.expanduser().resolve()
     if not _writable(chosen):
         raise _error(409, "WORKSPACE_ROOT_UNAVAILABLE", f"Nexus Scholar cannot write to {chosen}", path=str(chosen))

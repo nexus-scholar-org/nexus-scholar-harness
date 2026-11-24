@@ -137,7 +137,7 @@ export function SettingsScreen({ locale }: Readonly<{ locale: Locale }>) {
       <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6" data-settings-phone>
         <div className={CARD}>
           <p className="text-ink">{t("settings.phone.desktopOnly")}</p>
-          <a className="mt-3 inline-flex min-h-11 items-center text-brand underline" href={`/${locale}/screening/`}>{t("settings.back")}</a>
+          <a className="mt-3 inline-flex min-h-11 items-center text-brand underline" href={`/${locale}/screening/${origin ? `?console=${encodeURIComponent(origin)}` : ""}`}>{t("settings.phone.toScreening")}</a>
         </div>
       </div>
     );
@@ -314,7 +314,7 @@ function EmailCard({ locale, origin, view, disabled, setupMode, field, onAnswer,
             dir="ltr"
             value={draft}
             onChange={(event) => setDraft(event.target.value)}
-            aria-describedby={`${help} ${source}`}
+            aria-describedby={[help, view.contact_email.source ? source : ""].filter(Boolean).join(" ")}
             className={FIELD}
           />
           <div className="flex flex-wrap gap-3">
@@ -489,7 +489,7 @@ function KeyRow({ locale, origin, view, disabled, onAnswer, onAnnounce, onRefres
               dir="ltr"
               value={draft}
               onChange={(event) => setDraft(event.target.value)}
-              aria-describedby={[KEY_HELP[name] ? help : "", source].filter(Boolean).join(" ")}
+              aria-describedby={[KEY_HELP[name] ? help : "", state.source ? source : ""].filter(Boolean).join(" ") || undefined}
               className={FIELD}
             />
           </div>

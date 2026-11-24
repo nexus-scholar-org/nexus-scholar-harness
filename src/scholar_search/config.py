@@ -111,6 +111,8 @@ class Settings(BaseSettings):
         env_file_encoding="utf-8",
         env_prefix="SCHOLAR_",
         extra="ignore",
+        # An empty variable sets nothing, so it never hides the value saved on the Settings screen.
+        env_ignore_empty=True,
     )
 
     @classmethod

@@ -119,6 +119,8 @@ def _isolate_user_settings() -> None:
     import types
 
     os.environ["NEXUS_SETTINGS_DIR"] = tempfile.mkdtemp(prefix="nexus-test-settings-")
+    # Child processes a test starts import the real keyring: point them at keyring's "null" backend.
+    os.environ["PYTHON_KEYRING_BACKEND"] = "keyring.backends.null.Keyring"
     module = types.ModuleType("keyring")
     for name in ("get_keyring", "get_password", "set_password", "delete_password"):
         setattr(module, name, getattr(_KEYRING, name))

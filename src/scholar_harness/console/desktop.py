@@ -266,6 +266,11 @@ def _start(
     os.chdir(folders.settings)
     os.environ.setdefault("SCHOLAR_CACHE_DIR", str(folders.cache / "search"))
     os.environ.setdefault("NEXUS_RECON_ROOT", str(folders.cache / "inception_recon"))
+    # The search settings were first built where the app started (an import made them);
+    # read them again here, so `.env` in the settings folder and the cache folder apply (M13 Part B).
+    from scholar_search.config import reload_settings
+
+    reload_settings()
 
     if stop:
         answer = instance_module.ask(folders.settings, "stop", wait=2.0)

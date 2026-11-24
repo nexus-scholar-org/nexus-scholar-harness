@@ -233,6 +233,17 @@ def store_key(name: str, value: str, *, use_file: bool = False) -> str:
     data = _read_json(keys_path())
     data[name] = value
     _write_private(keys_path(), data)
+    # One place per key: an older keychain copy would be read first.
+    kr = keyring_module()
+    if kr is not None:
+        try:
+            if kr.get_password(SERVICE, name):
+                kr.delete_password(SERVICE, name)
+        except Exception:  # noqa: BLE001 - a keychain that cannot write may not delete either
+            pass
+    if _from_keychain(name):
+        # It could not be removed: the file must still win, so say so rather than use the old key.
+        raise KeychainUnavailable(str(keys_path()))
     return "file"
 
 
