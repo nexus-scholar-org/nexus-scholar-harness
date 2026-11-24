@@ -354,6 +354,7 @@ def test_a_key_kept_in_the_file_replaces_an_older_keychain_copy(tmp_path, monkey
     asked = client.put("/api/v1/settings/keys/anthropic", json={"value": "sk-ant-NEW-MADE-UP"})
     assert asked.json()["detail"]["code"] == "KEYCHAIN_UNAVAILABLE"
     kept = client.put("/api/v1/settings/keys/anthropic", json={"value": "sk-ant-NEW-MADE-UP", "use_file": True})
+    assert user_settings._from_keychain("anthropic") is None  # the old copy went first
     assert kept.status_code == 200 and kept.json()["keys"]["anthropic"]["source"] == "file"
     assert keys.resolve_key("anthropic") == "sk-ant-NEW-MADE-UP"
 
@@ -374,3 +375,20 @@ def test_a_run_started_while_the_folder_window_was_open_stops_the_change(tmp_pat
     answer = client.post("/api/v1/settings/folder/choose", json={})
     assert answer.json()["detail"]["code"] == "WORKSPACE_BUSY"
     assert restarted == [] and user_settings.workspaces_root() is None
+
+
+def test_a_keychain_copy_that_cannot_be_removed_leaves_nothing_in_the_file(tmp_path, monkeypatch):
+    """Review round 2, note 7: refused before the file is written, so no unused key is left there."""
+    import sys
+
+    client = _client(root=tmp_path / "reviews")
+    client.put("/api/v1/settings/keys/gemini", json={"value": "AIzaOLDMADEUP"})
+    module = sys.modules["keyring"]
+
+    def refuse(*_a):
+        raise RuntimeError("locked")
+
+    monkeypatch.setattr(module, "delete_password", refuse)
+    answer = client.put("/api/v1/settings/keys/gemini", json={"value": "AIzaNEWMADEUP", "use_file": True})
+    assert answer.json()["detail"]["code"] == "KEYCHAIN_UNAVAILABLE"
+    assert not user_settings.keys_path().exists() or "gemini" not in user_settings.keys_path().read_text(encoding="utf-8")

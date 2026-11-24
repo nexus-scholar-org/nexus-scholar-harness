@@ -131,6 +131,17 @@ _KEYRING = _SessionKeyring()
 
 
 @pytest.fixture(autouse=True)
+def _keep_search_settings():
+    """The shared search settings are put back after each test (a test may reload them in its own folder)."""
+    from scholar_search.config import settings
+
+    saved = settings.model_dump()
+    yield
+    for name, value in saved.items():
+        object.__setattr__(settings, name, value)
+
+
+@pytest.fixture(autouse=True)
 def _own_user_settings(tmp_path_factory, monkeypatch):
     """Each test gets its own settings folder and an empty keychain (M13 Part B)."""
     monkeypatch.setenv("NEXUS_SETTINGS_DIR", str(tmp_path_factory.mktemp("user-settings")))

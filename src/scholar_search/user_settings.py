@@ -230,10 +230,8 @@ def store_key(name: str, value: str, *, use_file: bool = False) -> str:
             raise KeychainUnavailable(str(keys_path())) from exc
         _remove_from_file(name)  # one place per key
         return "keychain"
-    data = _read_json(keys_path())
-    data[name] = value
-    _write_private(keys_path(), data)
-    # One place per key: an older keychain copy would be read first.
+    # One place per key: an older keychain copy would be read first, so it goes before
+    # the file is written; if it cannot be removed, nothing is written and the save is refused.
     kr = keyring_module()
     if kr is not None:
         try:
@@ -242,8 +240,10 @@ def store_key(name: str, value: str, *, use_file: bool = False) -> str:
         except Exception:  # noqa: BLE001 - a keychain that cannot write may not delete either
             pass
     if _from_keychain(name):
-        # It could not be removed: the file must still win, so say so rather than use the old key.
         raise KeychainUnavailable(str(keys_path()))
+    data = _read_json(keys_path())
+    data[name] = value
+    _write_private(keys_path(), data)
     return "file"
 
 

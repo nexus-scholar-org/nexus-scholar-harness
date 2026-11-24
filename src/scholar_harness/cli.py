@@ -422,7 +422,7 @@ def keys_status() -> None:
 
 @keys_app.command("clear")
 def keys_clear(provider: str = typer.Argument(..., help=_PROVIDER_HELP)) -> None:
-    """Remove a provider's key from the OS keychain."""
+    """Remove a provider's key from the OS keychain (and from Nexus Scholar's keys file, M13 Part B)."""
     from scholar_agent.keys import clear_key
 
     try:
@@ -430,7 +430,7 @@ def keys_clear(provider: str = typer.Argument(..., help=_PROVIDER_HELP)) -> None
     except ValueError as exc:
         console.print(f"[bold red]❌ {exc}[/bold red]")
         raise typer.Exit(1) from exc
-    console.print(f"{provider}: {'removed from the keychain' if removed else 'no keychain entry'}")
+    console.print(f"{provider}: {'removed' if removed else 'no stored key'}")
 
 
 app.add_typer(keys_app, name="keys")
