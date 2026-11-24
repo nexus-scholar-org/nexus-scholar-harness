@@ -13,7 +13,7 @@ history to read if you need the original reasoning (`git log --follow -- <path>`
 | 2026-11-19 — M9a: what the measurement says about the ladder gates | 2 | The minimum share of the researcher's excludes an agent must take before a rung unlocks: the principle is accepted; the researcher decided on 2026-11-20 to set the number when M9b is built. |
 | 2026-11-23 — H-gate-and-ci | 1 | The standing permission for sessions to push a work branch and open a draft pull request: not given. |
 
-## 2026-11-24 — M13 Part B: settings and first-run setup (PROPOSED; questions 1 to 8 answered by the researcher before the build, items 9 to 20 the build's choices)
+## 2026-11-24 — M13 Part B: settings and first-run setup (PROPOSED; questions 1 to 8 answered by the researcher before the build; item 21 for the researcher; items 9 to 20 and 22 the build's choices)
 
 Record: `docs/roadmap/milestones/M13-part-b.md`. Specification: `docs/roadmap/milestones/M13-installers.md` §4.3, §5.2 Part B, Q7. Screen: `docs/ux/shared/final/05-settings.md` (FINAL). Routes: `docs/architecture/settings-api.md`. Started on the researcher's go of 2026-11-24 ("Start Part B"). Branch `dev/m13/part-b-settings` from `main` `f2a7407e`, lane RELEASE.
 
@@ -30,9 +30,11 @@ Record: `docs/roadmap/milestones/M13-part-b.md`. Specification: `docs/roadmap/mi
 
 **For the researcher to decide**
 
-None. The questions were asked before the build (above).
+21. **Should `NEXUS_APP_HOME` also move the default reviews folder?** Today it moves the installed start's settings, log and cache folders only. The reviews folder still defaults to `~/Documents/Nexus Scholar/workspaces`, the real one, unless `NEXUS_WORKSPACES_ROOT` is set too. A test home that still points at the real reviews is a trap. The coordinator's check by hand avoided it only by setting that variable, and the first command written for the check did not. *Recommended:* yes. With `NEXUS_APP_HOME` set, the default becomes `<home>/workspaces`. `--root`, `NEXUS_WORKSPACES_ROOT` and a folder chosen in Settings still win, and a user who sets neither variable sees no change. *Alternative:* leave it, and say in the user guide and the tester notes that both variables are needed. Not changed in this branch until the researcher answers.
 
 **Choices made in the build (for the reviewer)**
+
+22. After the coordinator's check by hand, Done also looks unavailable (`opacity-60`, `cursor-not-allowed`) until the e-mail is saved. It was already `aria-disabled`, with its note, and pressing it did nothing. The specification asks only for `aria-disabled`.
 
 9. The store is `scholar_search/user_settings.py`, in the package every other one already depends on, so the search settings, the PDF look-up, the AI key store, the MCP server and the harness read one set of rules. The installed app's settings folder (`desktop.app_folders`) uses its `settings_dir`.
 10. The search settings get the store as pydantic's lowest-precedence source (`config.py:UserSettingsSource`), and `reload_settings()` updates the one shared instance in place. Modules hold it by reference, so a saved e-mail or key applies at the next request with no restart (the definition-of-done test drives `POST /discovery/runs` from `MAILTO_NOT_SET` to the next check).

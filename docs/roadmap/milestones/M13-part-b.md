@@ -1,6 +1,6 @@
 # M13 Part B: settings and first-run setup
 
-Status: **BUILT on `dev/m13/part-b-settings` (from `main` `f2a7407e`, `main` `5ffc53e2` merged in), not pushed; the check by hand of answer 7 is outstanding (see Evidence). Lane RELEASE.** The researcher gave the go on 2026-11-24 ("Start Part B"), relayed by the coordinator session "Nexus Scholar parent work". Specification: `docs/roadmap/milestones/M13-installers.md` §4.3 and §5.2 Part B, and Q7 (settings in a file, keys in the system keychain). Decisions: `docs/decisions.md`, entry "2026-11-24 — M13 Part B". Screen specification: `docs/ux/shared/final/05-settings.md`.
+Status: **BUILT on `dev/m13/part-b-settings` (from `main` `f2a7407e`, `main` `5ffc53e2` merged in), not pushed; the check by hand of answer 7 was done by the coordinator session and its three faults are fixed. Lane RELEASE.** The researcher gave the go on 2026-11-24 ("Start Part B"), relayed by the coordinator session "Nexus Scholar parent work". Specification: `docs/roadmap/milestones/M13-installers.md` §4.3 and §5.2 Part B, and Q7 (settings in a file, keys in the system keychain). Decisions: `docs/decisions.md`, entry "2026-11-24 — M13 Part B". Screen specification: `docs/ux/shared/final/05-settings.md`.
 
 ## Questions answered by the researcher (2026-11-24)
 
@@ -100,4 +100,42 @@ What it still requires is the check by hand of answer 7, below.
 | UI on `1bd71597`: typecheck, `lint:ui`, vitest (suite lock) | pass; 76 passed; 120 files, 1394 passed |
 | Contract baseline, ruff (`scripts/`, `src/` bug rules), `select_test_gate --check`, `git diff --check` | current; pass |
 | Final gate on the merged tree `113ac9c6` (this branch with `main` `5ffc53e2` merged in; after review rounds 1 and 2) | full Python suite (suite lock, `-n 4`): 5375 passed, 16 skipped; typecheck pass; `lint:ui` 76 passed; vitest (suite lock): 120 files, 1394 passed; `git diff --check`, ruff, contract baseline, `select_test_gate --check` pass |
-| **Check by hand of the installed start in both themes at phone and desktop width (answer 7)** | **Not done.** The command that starts the installed app in a temporary home, with the engine's keychain pointed away from the real Windows Credential Manager, was refused by this session's permission check. The researcher, or a session they allow, runs it before the pull request: start `nexus-scholar-app` with a temporary `NEXUS_APP_HOME`, open the first-run setup, save a made-up e-mail and key, and look in light and dark at 375 and 1440 px. |
+| **Check by hand of the installed start (answer 7), done by the coordinator session** on `dc9db004` ("You check it here", the researcher, 2026-11-24) | Passed, with three small faults, fixed below. See "The coordinator's check by hand" |
+
+## The coordinator's check by hand (2026-11-24, on `dc9db004`)
+
+Done by the coordinator session at the researcher's request ("You check it here"). This session's own attempt was refused by its permission check. Setup:
+- the web export built from `dc9db004` (`NEXUS_UI_DIR`);
+- `nexus-scholar-app.exe --no-browser`;
+- `NEXUS_APP_HOME` and `NEXUS_WORKSPACES_ROOT` both temporary folders;
+- `NEXUS_APP_DIALOGS=0`;
+- `PYTHON_KEYRING_BACKEND` set to keyring's "fail" backend;
+- the provider and e-mail variables removed.
+
+**Passed (English unless said):**
+- **First run.** The installed start opened `/en/settings/?setup=1` by itself, with the cookie `nexus_started_as=installed`. Done was `aria-disabled` with its note until an e-mail was saved.
+- **The e-mail.** An invalid address was refused in place (`SETTING_INVALID`, "Nothing was sent"). A made-up address saved: "Saved in your settings" and the announcement "E-mail address saved.". Done became available.
+- **A key.** A made-up Anthropic key was refused with `KEYCHAIN_UNAVAILABLE` (409), then the question naming `keys.json` in the temporary settings folder appeared. After "Keep the key in that file" the row read Set, with Replace and Remove and "Kept in <file>". The value was in neither the page's HTML nor `GET /api/v1/settings`, whose source read `file`.
+- **Done.** Done went to Workspaces, with the installed empty-list wording and a Settings link. `settings.json` held `contact_email`, `schema` and `setup: done`.
+- **A new start.** The process was killed rather than stopped cleanly, so `engine.json` stayed. On the next start the app landed on Workspaces, not setup, and Settings showed the e-mail and the key as Set.
+- **Remove.** The key read Not set at once, focus moved to that row's field, and `keys.json` became `{}`.
+- **Themes and widths.** Light and dark at 1440 and 375 px, and `/ar/settings/` (RTL): no horizontal page scroll. The console held only the two expected refusals (422, 409).
+- **The logs.** The two log files held no key, no e-mail address and no launch code.
+
+**Faults found, fixed after the check** (tests in `apps/research-ui/tests/settings.screen.test.tsx`):
+1. **A file path did not wrap at 375 px.** The keys file's path ran past the card's edge, in the Keys sentence and in the row's "Kept in …" line, in both themes. Both paragraphs now wrap like the folder path (`[overflow-wrap:anywhere]`). Test: the class on both lines.
+2. **Focus was lost after "Keep the key in that file".** It fell to the page body. It now goes to the row's Replace button once the row has re-rendered. Escape, Cancel and "Do not save" use the same mechanism. Test: Replace has focus after the confirmation.
+3. **Names were not told apart.** The five key fields were all named "Paste the key", and both Remove buttons were named "Remove". Each field, Replace and Remove now names its value: "Paste the key OpenAlex key", "Replace Google Gemini key", "Remove E-mail address". Test: "settings.names".
+
+**The coordinator's observation on Done.** Before the e-mail is saved, Done kept the brand colour although it was `aria-disabled`. Pressing it does nothing (test "first run": no setup request is sent). It now also looks unavailable (`opacity-60`, `cursor-not-allowed`) until the e-mail is saved. The specification says only `aria-disabled` with the note, so the look is a choice of this build.
+
+**Not covered by the check:**
+- the folder row when it can be changed, and the folder dialog: `NEXUS_WORKSPACES_ROOT` pins the folder (see the note below);
+- the cards' "Open Settings" link on Discovery or Screening: there was no review in the temporary folder;
+- the control window's Settings button: windows were off;
+- a real system keychain;
+- French by eye.
+
+## Note for anyone repeating the check by hand
+
+**Set `NEXUS_WORKSPACES_ROOT` to a temporary folder, as well as `NEXUS_APP_HOME`.** `NEXUS_APP_HOME` moves the settings, log and cache folders only. Without the root variable, the workspaces root falls to the default, `~/Documents/Nexus Scholar/workspaces`, the researcher's real reviews folder. The installed start then opens the most recent review there, and the workspace format check would copy and stamp a real review. The start command this session first described for the check left that variable out; the permission check refused it. The consequence of setting the variable: the folder row shows "Set in the environment (NEXUS_WORKSPACES_ROOT)", so its changeable state and the folder dialog cannot be checked this way. Decision entry item 21 asks the researcher whether `NEXUS_APP_HOME` should also move the default reviews folder.

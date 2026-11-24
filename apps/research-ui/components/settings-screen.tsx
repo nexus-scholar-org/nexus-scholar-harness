@@ -233,7 +233,7 @@ function SourceLine({ locale, source, variable, file, id }: Readonly<{ locale: L
         ? settingsT(locale, "settings.source.file", { path: "⁨" + (file ?? "") + "⁩" })
         : settingsT(locale, `settings.source.${source}` as SettingsCopyKey);
   return (
-    <p id={id} className="mt-1 text-sm text-ink-muted" data-source={source}>
+    <p id={id} className="mt-1 text-sm text-ink-muted [overflow-wrap:anywhere]" data-source={source}>
       {words}
     </p>
   );
@@ -305,7 +305,7 @@ function EmailCard({ locale, origin, view, disabled, setupMode, field, onAnswer,
             void send(draft.trim());
           }}
         >
-          <label htmlFor="settings-email" className="block text-sm text-ink">{t("settings.email.label")}</label>
+          <label id="settings-email-label" htmlFor="settings-email" className="block text-sm text-ink">{t("settings.email.label")}</label>
           <input
             id="settings-email"
             ref={field}
@@ -320,7 +320,7 @@ function EmailCard({ locale, origin, view, disabled, setupMode, field, onAnswer,
           <div className="flex flex-wrap gap-3">
             <Button type="submit" disabled={busy || disabled} aria-disabled={busy || disabled}>{busy ? t("settings.saving") : t("settings.email.save")}</Button>
             {view.contact_email.value ? (
-              <Button variant="quiet" disabled={busy || disabled} onClick={() => void send("")}>{t("settings.email.remove")}</Button>
+              <Button variant="quiet" id="settings-email-remove" aria-labelledby="settings-email-remove settings-email-label" disabled={busy || disabled} onClick={() => void send("")}>{t("settings.email.remove")}</Button>
             ) : null}
           </div>
           <SourceLine locale={locale} source={view.contact_email.source} id={source} />
@@ -350,7 +350,7 @@ function KeysCard(props: CardProps) {
   return (
     <section aria-labelledby={heading} className={CARD} data-card="keys">
       <h2 id={heading} className="font-semibold text-ink">{t("settings.keys.heading")}</h2>
-      <p className="mt-1 text-sm text-ink-muted">{settingsT(locale, "settings.keys.where", { where: storeWords(locale, view) })}</p>
+      <p className="mt-1 text-sm text-ink-muted [overflow-wrap:anywhere]" data-keys-where>{settingsT(locale, "settings.keys.where", { where: storeWords(locale, view) })}</p>
       {view.key_store.kind === "none" && !Object.values(view.keys).some((k) => k.set) ? (
         <p className="mt-1 text-sm text-ink" data-store-none>{t("settings.store.none")}</p>
       ) : null}
@@ -384,8 +384,22 @@ function KeyRow({ locale, origin, view, disabled, onAnswer, onAnnounce, onRefres
   const field = useRef<HTMLInputElement>(null);
   const replaceButton = useRef<HTMLButtonElement>(null);
   const confirmTitle = useRef<HTMLParagraphElement>(null);
+  // Where focus goes once the row has re-rendered (the control that had it may be gone).
+  const [focusTo, setFocusTo] = useState<"replace" | "field" | null>(null);
   const elsewhere = setElsewhere(state.source);
   const showField = !elsewhere && (!state.set || editing);
+  const nameId = useId();
+  const fieldLabelId = useId();
+  const replaceId = useId();
+  const removeId = useId();
+
+  useEffect(() => {
+    const target = focusTo === "replace" ? replaceButton.current : focusTo === "field" ? field.current : null;
+    if (target) {
+      target.focus();
+      setFocusTo(null);
+    }
+  });
 
   useEffect(() => {
     if (editing) field.current?.focus();
@@ -403,7 +417,7 @@ function KeyRow({ locale, origin, view, disabled, onAnswer, onAnnounce, onRefres
       setEditing(false);
       setConfirm(null);
       onAnnounce(t("settings.key.saved", { label }));
-      setTimeout(() => replaceButton.current?.focus(), 0);
+      setFocusTo("replace");
     } catch (error) {
       const r = refusalOf(error);
       if (r.code === "KEYCHAIN_UNAVAILABLE" && !useFile) {
@@ -426,7 +440,7 @@ function KeyRow({ locale, origin, view, disabled, onAnswer, onAnnounce, onRefres
     try {
       onAnswer(await removeKey(origin, name));
       onAnnounce(t("settings.key.removed", { label }));
-      setTimeout(() => field.current?.focus(), 0);
+      setFocusTo("field");
     } catch (error) {
       setRefusal(refusalOf(error));
     } finally {
@@ -437,7 +451,7 @@ function KeyRow({ locale, origin, view, disabled, onAnswer, onAnnounce, onRefres
   return (
     <li data-key-row={name}>
       <p className="font-medium text-ink">
-        {label}{" "}
+        <span id={nameId}>{label}</span>{" "}
         <DecisionBadge role={state.set ? "include" : "unclear"}>{t(state.set ? "settings.key.set" : "settings.key.notSet")}</DecisionBadge>
       </p>
       {KEY_HELP[name] ? <p id={help} className="text-sm text-ink-muted">{t(KEY_HELP[name]!)}</p> : null}
@@ -454,7 +468,7 @@ function KeyRow({ locale, origin, view, disabled, onAnswer, onAnnounce, onRefres
               disabled={busy}
               onClick={() => {
                 setConfirm(null);
-                setTimeout(() => field.current?.focus(), 0);
+                setFocusTo("field");
               }}
             >
               {t("settings.keychain.no")}
@@ -472,12 +486,12 @@ function KeyRow({ locale, origin, view, disabled, onAnswer, onAnnounce, onRefres
             if (event.key === "Escape" && editing) {
               setEditing(false);
               setDraft("");
-              setTimeout(() => replaceButton.current?.focus(), 0);
+              setFocusTo("replace");
             }
           }}
         >
           <div className="min-w-0 flex-1">
-            <label htmlFor={fieldId} className="block text-sm text-ink">{t("settings.key.field")}</label>
+            <label id={fieldLabelId} htmlFor={fieldId} className="block text-sm text-ink">{t("settings.key.field")}</label>
             <input
               id={fieldId}
               ref={field}
@@ -489,6 +503,7 @@ function KeyRow({ locale, origin, view, disabled, onAnswer, onAnnounce, onRefres
               dir="ltr"
               value={draft}
               onChange={(event) => setDraft(event.target.value)}
+              aria-labelledby={`${fieldLabelId} ${nameId}`}
               aria-describedby={[KEY_HELP[name] ? help : "", state.source ? source : ""].filter(Boolean).join(" ") || undefined}
               className={FIELD}
             />
@@ -500,7 +515,7 @@ function KeyRow({ locale, origin, view, disabled, onAnswer, onAnnounce, onRefres
               onClick={() => {
                 setEditing(false);
                 setDraft("");
-                setTimeout(() => replaceButton.current?.focus(), 0);
+                setFocusTo("replace");
               }}
             >
               {t("settings.key.cancel")}
@@ -509,8 +524,8 @@ function KeyRow({ locale, origin, view, disabled, onAnswer, onAnnounce, onRefres
         </form>
       ) : !elsewhere ? (
         <div className="mt-2 flex flex-wrap gap-3">
-          <Button ref={replaceButton} disabled={busy || disabled} onClick={() => setEditing(true)}>{t("settings.key.replace")}</Button>
-          <Button variant="quiet" disabled={busy || disabled} onClick={() => void remove()}>{t("settings.key.remove")}</Button>
+          <Button ref={replaceButton} id={replaceId} aria-labelledby={`${replaceId} ${nameId}`} disabled={busy || disabled} onClick={() => setEditing(true)}>{t("settings.key.replace")}</Button>
+          <Button variant="quiet" id={removeId} aria-labelledby={`${removeId} ${nameId}`} disabled={busy || disabled} onClick={() => void remove()}>{t("settings.key.remove")}</Button>
         </div>
       ) : null}
       <SourceLine locale={locale} source={state.source} variable={state.variable} file={view.key_store.file} id={source} />
@@ -614,7 +629,7 @@ function SetupActions({ locale, origin, view, disabled }: Readonly<{ locale: Loc
       <div className="flex flex-col gap-3 sm:flex-row">
         <Button
           variant="primary"
-          className="w-full sm:w-auto"
+          className={`w-full sm:w-auto ${emailSaved ? "" : "cursor-not-allowed opacity-60"}`}
           aria-disabled={!emailSaved || busy || disabled}
           aria-describedby={emailSaved ? undefined : note}
           onClick={() => {

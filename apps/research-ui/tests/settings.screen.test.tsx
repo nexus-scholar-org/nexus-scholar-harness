@@ -122,7 +122,7 @@ describe("settings.screen", () => {
     vi.stubGlobal("location", { ...window.location, assign, reload: vi.fn(), search: "?setup=1", href: "http://localhost/en/settings/?setup=1" });
     const fake = engine(base({ setup: "pending" }));
     render(<SettingsScreen locale="en" />);
-    const field = await screen.findByLabelText("E-mail address");
+    const field = await screen.findByRole("textbox", { name: "E-mail address" });
     expect(screen.getByRole("heading", { level: 1, name: "Set up Nexus Scholar" })).toBeInTheDocument();
     await waitFor(() => expect(field).toHaveFocus());
     const done = screen.getByRole("button", { name: "Done" });
@@ -163,7 +163,7 @@ describe("settings.email", () => {
   it("saves, announces, and refuses a bad address with the field kept", async () => {
     const fake = engine(base());
     render(<SettingsScreen locale="en" />);
-    const field = await screen.findByLabelText("E-mail address");
+    const field = await screen.findByRole("textbox", { name: "E-mail address" });
     expect(field).toHaveAttribute("type", "email");
     fake.next = [{ path: "/api/v1/settings/contact-email", status: 422, code: "SETTING_INVALID" }];
     fireEvent.change(field, { target: { value: "not-an-address" } });
@@ -177,7 +177,7 @@ describe("settings.email", () => {
     fireEvent.click(screen.getByRole("button", { name: "Save" }));
     await waitFor(() => expect(document.querySelector("[data-announce]")).toHaveTextContent("E-mail address saved."));
     expect(fake.calls.filter((c) => c.path === "/api/v1/settings/contact-email").at(-1)).toEqual({ method: "PUT", path: "/api/v1/settings/contact-email", body: { value: "reviewer@example.org" } });
-    fireEvent.click(screen.getByRole("button", { name: "Remove" }));
+    fireEvent.click(screen.getByRole("button", { name: "Remove E-mail address" }));
     await waitFor(() => expect(document.querySelector("[data-announce]")).toHaveTextContent("E-mail address removed."));
     expect(fake.calls.at(-1)?.body).toEqual({ value: "" });
   });
@@ -189,7 +189,7 @@ describe("settings.keys", () => {
     render(<SettingsScreen locale="en" />);
     await screen.findByRole("heading", { level: 1 });
     const row = document.querySelector('[data-key-row="anthropic"]') as HTMLElement;
-    const field = within(row).getByLabelText("Paste the key");
+    const field = within(row).getByLabelText("Paste the key Anthropic key");
     expect(field).toHaveAttribute("type", "password");
     expect(field).toHaveAttribute("autocomplete", "off");
     expect(within(row).queryByRole("button", { name: /show|reveal|copy/i })).toBeNull();
@@ -197,7 +197,7 @@ describe("settings.keys", () => {
     fireEvent.click(within(row).getByRole("button", { name: "Save key" }));
     expect(field).toHaveValue(""); // dropped when the request is sent
     await waitFor(() => expect(within(row).getByText("Set")).toBeInTheDocument());
-    expect(within(row).queryByLabelText("Paste the key")).toBeNull();
+    expect(within(row).queryByLabelText("Paste the key Anthropic key")).toBeNull();
     expect(within(row).getByText("Kept in the system keychain")).toBeInTheDocument();
     expect(document.body.innerHTML).not.toContain(MADE_UP);
     expect(fake.calls.find((c) => c.path === "/api/v1/settings/keys/anthropic")?.body).toEqual({ value: MADE_UP, use_file: false });
@@ -205,13 +205,13 @@ describe("settings.keys", () => {
     expect(document.querySelector("[data-announce]")).toHaveTextContent("Anthropic key saved.");
 
     // Replace moves focus to the field; Escape returns it to Replace.
-    fireEvent.click(within(row).getByRole("button", { name: "Replace" }));
-    const again = within(row).getByLabelText("Paste the key");
+    fireEvent.click(within(row).getByRole("button", { name: "Replace Anthropic key" }));
+    const again = within(row).getByLabelText("Paste the key Anthropic key");
     await waitFor(() => expect(again).toHaveFocus());
     fireEvent.keyDown(again, { key: "Escape" });
-    await waitFor(() => expect(within(row).getByRole("button", { name: "Replace" })).toHaveFocus());
+    await waitFor(() => expect(within(row).getByRole("button", { name: "Replace Anthropic key" })).toHaveFocus());
 
-    fireEvent.click(within(row).getByRole("button", { name: "Remove" }));
+    fireEvent.click(within(row).getByRole("button", { name: "Remove Anthropic key" }));
     await waitFor(() => expect(within(row).getByText("Not set")).toBeInTheDocument());
     expect(fake.calls.at(-1)).toEqual({ method: "POST", path: "/api/v1/settings/keys/anthropic/remove", body: {} });
   });
@@ -223,18 +223,24 @@ describe("settings.keys", () => {
     expect(await screen.findByText(/This computer has no keychain Nexus Scholar can use/)).toBeInTheDocument();
     const row = document.querySelector('[data-key-row="openalex"]') as HTMLElement;
     fake.next = [{ path: "/api/v1/settings/keys/openalex", status: 409, code: "KEYCHAIN_UNAVAILABLE", details: { file } }];
-    fireEvent.change(within(row).getByLabelText("Paste the key"), { target: { value: "oa-MADE-UP" } });
+    fireEvent.change(within(row).getByLabelText("Paste the key OpenAlex key"), { target: { value: "oa-MADE-UP" } });
     fireEvent.click(within(row).getByRole("button", { name: "Save key" }));
     const confirm = await within(row).findByText(/Keep the keys in a file only you can read\?/);
     expect(confirm).toHaveTextContent(file);
     await waitFor(() => expect(confirm).toHaveFocus());
     fireEvent.click(within(row).getByRole("button", { name: "Keep the key in that file" }));
     await waitFor(() => expect(within(row).getByText("Set")).toBeInTheDocument());
+    // The coordinator's check by hand, fault 2: focus stays in the row, not on the page's body.
+    await waitFor(() => expect(within(row).getByRole("button", { name: "Replace OpenAlex key" })).toHaveFocus());
+    // Fault 1: the paragraphs that print the file's path wrap it, as the folder path does.
+    for (const line of [document.querySelector("[data-keys-where]"), within(row).getByText(/Kept in/)]) {
+      expect(line?.className).toContain("[overflow-wrap:anywhere]");
+    }
     expect(fake.calls.at(-1)?.body).toEqual({ value: "oa-MADE-UP", use_file: true });
 
     const s2 = document.querySelector('[data-key-row="semanticscholar"]') as HTMLElement;
     fake.next = [{ path: "/api/v1/settings/keys/semanticscholar", status: 409, code: "KEYCHAIN_UNAVAILABLE", details: { file } }];
-    fireEvent.change(within(s2).getByLabelText("Paste the key"), { target: { value: "s2-MADE-UP" } });
+    fireEvent.change(within(s2).getByLabelText("Paste the key Semantic Scholar key"), { target: { value: "s2-MADE-UP" } });
     fireEvent.click(within(s2).getByRole("button", { name: "Save key" }));
     const before = fake.calls.length;
     fireEvent.click(await within(s2).findByRole("button", { name: "Do not save" }));
@@ -256,7 +262,7 @@ describe("settings.elsewhere", () => {
     engine(view);
     render(<SettingsScreen locale="en" />);
     expect(await screen.findByText("Set in the environment (SCHOLAR_MAILTO)")).toBeInTheDocument();
-    expect(screen.queryByLabelText("E-mail address")).toBeNull();
+    expect(screen.queryByRole("textbox", { name: "E-mail address" })).toBeNull();
     const oa = document.querySelector('[data-key-row="openalex"]') as HTMLElement;
     expect(within(oa).getByText("Set in the .env file")).toBeInTheDocument();
     expect(within(oa).queryByRole("button")).toBeNull();
@@ -322,17 +328,17 @@ describe("settings.states", () => {
     vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify({ detail: { code: "TOKEN_SCOPE_REFUSED", message: "" } }), { status: 403, headers: { "content-type": "application/json" } })));
     render(<SettingsScreen locale="en" />);
     expect(await screen.findByText(/Settings are changed on the computer that runs Nexus Scholar/)).toBeInTheDocument();
-    expect(screen.queryByLabelText("E-mail address")).toBeNull();
+    expect(screen.queryByRole("textbox", { name: "E-mail address" })).toBeNull();
   });
 
   it("an unreachable engine keeps the last values and disables every write", async () => {
     const fake = engine(base({ contact_email: { value: "r@example.org", source: "settings" } }));
     render(<SettingsScreen locale="en" />);
-    await screen.findByLabelText("E-mail address");
+    await screen.findByRole("textbox", { name: "E-mail address" });
     vi.stubGlobal("fetch", vi.fn(async () => { throw new TypeError("connection refused"); }));
     await act(async () => window.dispatchEvent(new Event("focus")));
     expect(await screen.findByText(/As of/)).toBeInTheDocument();
-    expect(screen.getByLabelText("E-mail address")).toHaveValue("r@example.org");
+    expect(screen.getByRole("textbox", { name: "E-mail address" })).toHaveValue("r@example.org");
     expect(screen.getByRole("button", { name: "Save" })).toBeDisabled();
     expect(fake.calls.length).toBeGreaterThan(0);
   });
@@ -375,4 +381,22 @@ describe("settings.a11y (in-process axe; jsdom computes no contrast, so that sta
       document.documentElement.dir = "ltr";
     });
   }
+});
+
+describe("settings.names (the coordinator's check by hand, fault 3)", () => {
+  it("every key field and every Replace and Remove says which value it is for", async () => {
+    const view = base({ contact_email: { value: "r@example.org", source: "settings" } });
+    view.keys.gemini = { set: true, source: "keychain" };
+    engine(view);
+    render(<SettingsScreen locale="en" />);
+    await screen.findByRole("textbox", { name: "E-mail address" });
+    for (const label of ["OpenAlex key", "Semantic Scholar key", "Anthropic key", "OpenAI-compatible key"]) {
+      expect(screen.getByLabelText(`Paste the key ${label}`)).toHaveAttribute("type", "password");
+    }
+    expect(screen.getByRole("button", { name: "Replace Google Gemini key" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Remove Google Gemini key" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Remove E-mail address" })).toBeInTheDocument();
+    const names = screen.getAllByRole("button").map((b) => b.textContent);
+    expect(names.filter((n) => n === "Remove")).toHaveLength(2); // the same words, told apart by their names
+  });
 });
