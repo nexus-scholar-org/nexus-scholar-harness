@@ -15,8 +15,47 @@ Asked before the build and answered one by one in the coordinator session, each 
 | 5 | AI provider keys | **Three optional rows**: Anthropic, OpenAI-compatible, Google Gemini; set, replace or remove only, never shown; no base-URL setting | Anthropic only |
 | 6 | No system keychain | **A file only this user can read, after a confirmation, wherever the keychain fails**; the screen says where the file is | Linux only; elsewhere keys cannot be stored |
 
+The screen specification (`docs/ux/shared/final/05-settings.md`) raised two more, also answered on 2026-11-24 as proposed:
+
+| # | Question | Answer | Not chosen |
+| :-- | :-- | :-- | :-- |
+| 7 | What stands in for the "browser test in both themes" (the browser suites were removed on 2026-11-23) | **Component tests and a check by hand**: vitest against a fake engine, the in-process accessibility pass in light, dark and Arabic, and before the pull request a check by hand of the real installed start in both themes at phone and desktop width | One real-browser test for this screen |
+| 8 | A folder change when a restart is not allowed | **Refuse, save nothing**: `WORKSPACE_BUSY` while an agent run or an approval is in progress, `RESTART_UNSUPPORTED` under `serve`, both before the folder dialog opens | Save the folder and apply it at the next start |
+
 ## What Part B replaces from Part A
 
 - The installed app's words that send a tester to a `.env` file in the settings folder: the contact e-mail and OpenAlex key cards, the look-up's e-mail refusal (Part A second pull request, decision item 1).
 - "Not available in this version" for provider keys in the installed app (item 2).
 - "Open the settings folder" standing in for a Settings button in the control window (item 4).
+
+## What was built
+
+- **The store** (`src/scholar_search/user_settings.py`):
+  - `settings.json` in the user's settings folder holds the contact e-mail, the reviews folder and the setup choice;
+  - the keys go in the system keychain (service `nexus-scholar`), or in `keys.json` after a confirmation where the keychain fails (answer 6);
+  - both files are readable by this user only.
+- **The precedence** (answer 2): the search settings read the store as their lowest-precedence source, after the environment and `.env` (`src/scholar_search/config.py`), and reload in place. The AI key store (`scholar_agent/keys.py`) and the MCP server read the keys file after the keychain. The workspaces root reads the chosen folder after `--root` and `NEXUS_WORKSPACES_ROOT` (`workspace/catalog.py:resolve_root`).
+- **The routes** (`src/scholar_harness/console/api/settings.py`; `docs/architecture/settings-api.md`):
+  - read;
+  - the e-mail;
+  - a key;
+  - remove a key;
+  - setup;
+  - the folder, through the system's folder dialog (`console/folder_dialog.py`) and a restart in place.
+
+  They have four new refusal codes and never return a key's value.
+- **First run** (answer 3): the installed start lands on `/en/settings/?setup=1` while no setup choice is saved. The control window's Settings button opens the screen with a fresh launch link.
+- **The screen** (`apps/research-ui/components/settings-screen.tsx`, `/[locale]/settings/`), as its FINAL specification says: three cards, write-only keys, the source of each value, the keychain question, the folder change and its wait, Done and Later in setup mode, in English, French and Arabic.
+- **Part A's stand-ins replaced**:
+  - the cards for a missing e-mail, OpenAlex key or provider key link to Settings;
+  - the discovery and look-up texts say to save the value on the Settings screen;
+  - "Settings" is in the header on every route and on Workspaces.
+
+## Definition of done (specification §5.2 Part B)
+
+| Item | Evidence |
+| :-- | :-- |
+| A search refused for a missing e-mail succeeds after the e-mail is saved on the screen, with no restart by the user | `tests/console/test_settings_api.py::test_a_search_refused_for_a_missing_email_goes_on_after_it_is_saved_with_no_restart` (the same app: `MAILTO_NOT_SET`, then the run passes the e-mail check) |
+| A key saved on the screen is never returned by any route | `test_a_saved_key_is_never_returned_by_any_route` (every answer and refusal after every key is saved); the screen's half: `apps/research-ui/tests/settings.screen.test.tsx` "a key leaves the page with its request and is never shown again" |
+| An environment variable still wins | `test_the_environment_and_dotenv_still_win` (and `.env`, answer 2); the screen: "a value set in the environment or .env is printed with its source and cannot be edited" |
+| The screen passes the accessibility checks and the check of answer 7 | `settings.screen.test.tsx` "settings.a11y" (in-process axe in light, dark and Arabic); the check by hand: see Evidence |

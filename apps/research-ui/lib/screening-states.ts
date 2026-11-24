@@ -30,7 +30,9 @@ export type StateAction =
   // M4d inception recon: a link to one inception step of this draft (the caller gives the href),
   // and running the first search again (the caller gives the handler).
   | "inception-step"
-  | "explore-search";
+  | "explore-search"
+  // M13 Part B: a link to the Settings screen (the contact e-mail, the keys, the reviews folder).
+  | "settings";
 
 interface StateEntry {
   role: DecisionRole;
@@ -542,11 +544,12 @@ export const STATES: Record<string, StateEntry> = {
   },
   PROVIDER_KEY_MISSING: {
     role: "blocked",
-    action: "terminal",
+    action: "settings",
+    command: "nexus-scholar keys set <provider>",
     copy: {
-      en: T("No key for this provider", "The key is set in the engine's terminal and kept in the system keychain; the browser never takes it.", "Agent runs with this provider", "nexus-scholar keys set <provider>"),
-      fr: T("Aucune clé pour ce fournisseur", "La clé se saisit dans le terminal du moteur et reste dans le trousseau du système ; le navigateur ne la reçoit jamais.", "Les passages de l'agent avec ce fournisseur", "nexus-scholar keys set <provider>"),
-      ar: T("لا مفتاح لهذا المزوّد", "يُدخَل المفتاح في طرفية المحرك ويُحفظ في سلسلة مفاتيح النظام، ولا يستلمه المتصفح أبدًا.", "تشغيلات الوكيل مع هذا المزوّد", "nexus-scholar keys set <provider>"),
+      en: T("No key for this provider", "No key for this provider. Add one in Settings; the browser never shows a key again. Nothing was sent.", "Agent runs with this provider", "Open Settings"),
+      fr: T("Aucune clé pour ce fournisseur", "Aucune clé pour ce fournisseur. Ajoutez-en une dans les réglages ; le navigateur ne la montre plus jamais. Rien n'a été envoyé.", "Les passages de l'agent avec ce fournisseur", "Ouvrir les réglages"),
+      ar: T("لا مفتاح لهذا المزوّد", "لا مفتاح لهذا المزوّد. أضِف مفتاحًا في الإعدادات؛ لا يعرض المتصفح المفتاح مرة أخرى. لم يُرسل شيء.", "تشغيل الوكيل مع هذا المزوّد", "فتح الإعدادات"),
     },
   },
   DRIVER_UNAVAILABLE: {
@@ -993,22 +996,22 @@ export const STATES: Record<string, StateEntry> = {
   },
   MAILTO_NOT_SET: {
     role: "blocked",
-    action: "retry",
+    action: "settings",
     command: "SCHOLAR_MAILTO=<your email>",
     copy: {
-      en: T("Set a contact email before searching", "A search needs a contact email for the literature databases. Put the line below in the console's environment, or in a .env file, then start the console again.", "Recall and Harvest", "Check again"),
-      fr: T("Indiquez une adresse de contact avant de chercher", "Une recherche demande une adresse de contact pour les bases bibliographiques. Mettez la ligne ci-dessous dans l'environnement de la console ou dans un fichier .env, puis redémarrez la console.", "Le rappel et la collecte", "Vérifier à nouveau"),
-      ar: T("حدّد بريدًا للتواصل قبل البحث", "يحتاج البحث إلى بريد للتواصل مع قواعد البيانات العلمية. ضع السطر أدناه في بيئة وحدة التحكم أو في ملف ‎.env‎، ثم أعد تشغيل وحدة التحكم.", "فحص الاستدعاء والحصاد", "تحقّق مجددًا"),
+      en: T("Set a contact email before searching", "A search needs a contact e-mail address for the literature databases. Add it in Settings.", "Recall and Harvest", "Open Settings"),
+      fr: T("Indiquez une adresse de contact avant de chercher", "Une recherche demande une adresse e-mail de contact pour les bases bibliographiques. Ajoutez-la dans les réglages.", "Le rappel et la collecte", "Ouvrir les réglages"),
+      ar: T("حدّد بريدًا للتواصل قبل البحث", "يحتاج البحث إلى عنوان بريد إلكتروني للتواصل مع قواعد البيانات العلمية. أضِفه في الإعدادات.", "فحص الاستدعاء والحصاد", "فتح الإعدادات"),
     },
   },
   OPENALEX_KEY_NOT_SET: {
     role: "blocked",
-    action: "retry",
+    action: "settings",
     command: "SCHOLAR_OPENALEX_KEY=<your key>",
     copy: {
-      en: T("Set the OpenAlex API key before searching OpenAlex", "OpenAlex requires a free API key since February 2026. Put the line below in the console's environment, or in a .env file, then start the console again, or leave OpenAlex out of the run.", "Harvest", "Check again"),
-      fr: T("Indiquez la clé d'API OpenAlex avant de chercher dans OpenAlex", "OpenAlex exige une clé d'API gratuite depuis février 2026. Mettez la ligne ci-dessous dans l'environnement de la console ou dans un fichier .env, puis redémarrez la console, ou retirez OpenAlex de l'exécution.", "La collecte", "Vérifier à nouveau"),
-      ar: T("حدّد مفتاح واجهة OpenAlex البرمجية قبل البحث فيها", "تشترط OpenAlex مفتاح واجهة برمجية مجانيًا منذ فبراير 2026. ضع السطر أدناه في بيئة وحدة التحكم أو في ملف ‎.env‎، ثم أعد تشغيل وحدة التحكم، أو استبعد OpenAlex من التشغيل.", "الحصاد", "تحقّق مجددًا"),
+      en: T("Set the OpenAlex API key before searching OpenAlex", "OpenAlex needs a free API key. Add it in Settings, or leave OpenAlex out of the run.", "Harvest", "Open Settings"),
+      fr: T("Indiquez la clé d'API OpenAlex avant de chercher dans OpenAlex", "OpenAlex demande une clé d'API gratuite. Ajoutez-la dans les réglages, ou retirez OpenAlex de l'exécution.", "La collecte", "Ouvrir les réglages"),
+      ar: T("حدّد مفتاح واجهة OpenAlex البرمجية قبل البحث فيها", "تحتاج OpenAlex إلى مفتاح واجهة برمجية مجاني. أضِفه في الإعدادات، أو استبعد OpenAlex من التشغيل.", "الحصاد", "فتح الإعدادات"),
     },
   },
   // M3g-citation-chasing (spec 09): the chase routes' refusals.
@@ -1406,32 +1409,29 @@ export const STATES: Record<string, StateEntry> = {
   // window and settings folder; `stateCopy` picks them when the engine says it was installed.
   "installed.MAILTO_NOT_SET": {
     role: "blocked",
-    action: "retry",
-    command: "SCHOLAR_MAILTO=<your email>",
+    action: "settings",
     copy: {
-      en: T("Set a contact email before searching", "A search needs a contact email for the literature databases. Put the line below in a file named .env in Nexus Scholar's settings folder (in the Nexus Scholar window: Open the settings folder), then stop Nexus Scholar in that window and start it again.", "Recall and Harvest", "Check again"),
-      fr: T("Indiquez une adresse de contact avant de chercher", "Une recherche demande une adresse de contact pour les bases bibliographiques. Mettez la ligne ci-dessous dans un fichier nommé .env dans le dossier des réglages de Nexus Scholar (dans la fenêtre Nexus Scholar : Open the settings folder), puis arrêtez Nexus Scholar dans cette fenêtre et relancez-le.", "Le rappel et la collecte", "Vérifier à nouveau"),
-      ar: T("حدّد بريدًا للتواصل قبل البحث", "يحتاج البحث إلى بريد للتواصل مع قواعد البيانات العلمية. ضع السطر أدناه في ملف اسمه ‎.env‎ في مجلد إعدادات Nexus Scholar (في نافذة Nexus Scholar: Open the settings folder)، ثم أوقف Nexus Scholar من تلك النافذة وشغّله من جديد.", "فحص الاستدعاء والحصاد", "تحقّق مجددًا"),
+      en: T("Set a contact email before searching", "A search needs a contact e-mail address for the literature databases. Add it in Settings.", "Recall and Harvest", "Open Settings"),
+      fr: T("Indiquez une adresse de contact avant de chercher", "Une recherche demande une adresse e-mail de contact pour les bases bibliographiques. Ajoutez-la dans les réglages.", "Le rappel et la collecte", "Ouvrir les réglages"),
+      ar: T("حدّد بريدًا للتواصل قبل البحث", "يحتاج البحث إلى عنوان بريد إلكتروني للتواصل مع قواعد البيانات العلمية. أضِفه في الإعدادات.", "فحص الاستدعاء والحصاد", "فتح الإعدادات"),
     },
   },
   "installed.OPENALEX_KEY_NOT_SET": {
     role: "blocked",
-    action: "retry",
-    command: "SCHOLAR_OPENALEX_KEY=<your key>",
+    action: "settings",
     copy: {
-      en: T("Set the OpenAlex API key before searching OpenAlex", "OpenAlex requires a free API key since February 2026. Put the line below in a file named .env in Nexus Scholar's settings folder (in the Nexus Scholar window: Open the settings folder), then stop Nexus Scholar in that window and start it again. Or leave OpenAlex out of the run.", "Harvest", "Check again"),
-      fr: T("Indiquez la clé d'API OpenAlex avant de chercher dans OpenAlex", "OpenAlex exige une clé d'API gratuite depuis février 2026. Mettez la ligne ci-dessous dans un fichier nommé .env dans le dossier des réglages de Nexus Scholar (dans la fenêtre Nexus Scholar : Open the settings folder), puis arrêtez Nexus Scholar dans cette fenêtre et relancez-le. Ou retirez OpenAlex de l'exécution.", "La collecte", "Vérifier à nouveau"),
-      ar: T("حدّد مفتاح واجهة OpenAlex البرمجية قبل البحث فيها", "تشترط OpenAlex مفتاح واجهة برمجية مجانيًا منذ فبراير 2026. ضع السطر أدناه في ملف اسمه ‎.env‎ في مجلد إعدادات Nexus Scholar (في نافذة Nexus Scholar: Open the settings folder)، ثم أوقف Nexus Scholar من تلك النافذة وشغّله من جديد. أو استبعد OpenAlex من التشغيل.", "الحصاد", "تحقّق مجددًا"),
+      en: T("Set the OpenAlex API key before searching OpenAlex", "OpenAlex needs a free API key. Add it in Settings, or leave OpenAlex out of the run.", "Harvest", "Open Settings"),
+      fr: T("Indiquez la clé d'API OpenAlex avant de chercher dans OpenAlex", "OpenAlex demande une clé d'API gratuite. Ajoutez-la dans les réglages, ou retirez OpenAlex de l'exécution.", "La collecte", "Ouvrir les réglages"),
+      ar: T("حدّد مفتاح واجهة OpenAlex البرمجية قبل البحث فيها", "تحتاج OpenAlex إلى مفتاح واجهة برمجية مجاني. أضِفه في الإعدادات، أو استبعد OpenAlex من التشغيل.", "الحصاد", "فتح الإعدادات"),
     },
   },
   "installed.inception.MAILTO_NOT_SET": {
     role: "blocked",
-    action: "reload",
-    command: "SCHOLAR_MAILTO=<your email>",
+    action: "settings",
     copy: {
-      en: T("Nexus Scholar has no contact email for the literature databases", "A search needs one, and no request was sent. Put the line below in a file named .env in Nexus Scholar's settings folder (in the Nexus Scholar window: Open the settings folder), then stop Nexus Scholar in that window and start it again.", "New searches (a pool already on screen still works)", "Reload the page"),
-      fr: T("Nexus Scholar n'a pas d'adresse de contact pour les bases bibliographiques", "Une recherche en demande une, et aucune requête n'a été envoyée. Mettez la ligne ci-dessous dans un fichier nommé .env dans le dossier des réglages de Nexus Scholar (dans la fenêtre Nexus Scholar : Open the settings folder), puis arrêtez Nexus Scholar dans cette fenêtre et relancez-le.", "Les nouvelles recherches (un corpus déjà affiché reste utilisable)", "Recharger la page"),
-      ar: T("ليس لدى Nexus Scholar بريد للتواصل مع قواعد البيانات العلمية", "يحتاج البحث إلى بريد، ولم يُرسل أي طلب. ضع السطر أدناه في ملف اسمه ‎.env‎ في مجلد إعدادات Nexus Scholar (في نافذة Nexus Scholar: Open the settings folder)، ثم أوقف Nexus Scholar من تلك النافذة وشغّله من جديد.", "عمليات البحث الجديدة (تبقى مجموعة الأوراق المعروضة صالحة)", "أعد تحميل الصفحة"),
+      en: T("Nexus Scholar has no contact email for the literature databases", "A search needs one, and no request was sent. Add it in Settings.", "New searches (a pool already on screen still works)", "Open Settings"),
+      fr: T("Nexus Scholar n'a pas d'adresse de contact pour les bases bibliographiques", "Une recherche en demande une, et aucune requête n'a été envoyée. Ajoutez-la dans les réglages.", "Les nouvelles recherches (un corpus déjà affiché reste utilisable)", "Ouvrir les réglages"),
+      ar: T("ليس لدى Nexus Scholar بريد للتواصل مع قواعد البيانات العلمية", "يحتاج البحث إلى بريد، ولم يُرسل أي طلب. أضِفه في الإعدادات.", "عمليات البحث الجديدة (تبقى مجموعة الأوراق المعروضة صالحة)", "فتح الإعدادات"),
     },
   },
   "installed.SNAPSHOT_NOT_ACCEPTED": {
@@ -1445,30 +1445,30 @@ export const STATES: Record<string, StateEntry> = {
   },
   "installed.PROVIDER_KEY_MISSING": {
     role: "blocked",
-    action: "none",
+    action: "settings",
     copy: {
-      en: T("No key for this provider", "This version of the installed app cannot store a provider key yet; that comes with its settings screen. The browser never takes a key. Nothing was sent.", "Agent runs with this provider", "Not available in this version"),
-      fr: T("Aucune clé pour ce fournisseur", "Cette version de l'application installée ne peut pas encore enregistrer de clé de fournisseur ; cela viendra avec son écran de réglages. Le navigateur ne reçoit jamais de clé. Rien n'a été envoyé.", "Les passages de l'agent avec ce fournisseur", "Indisponible dans cette version"),
-      ar: T("لا مفتاح لهذا المزوّد", "لا يستطيع هذا الإصدار من التطبيق المثبّت حفظ مفتاح مزوّد بعد؛ سيأتي ذلك مع شاشة الإعدادات. لا يستلم المتصفح أي مفتاح أبدًا. لم يُرسل شيء.", "تشغيل الوكيل مع هذا المزوّد", "غير متاح في هذا الإصدار"),
+      en: T("No key for this provider", "No key for this provider. Add one in Settings; the browser never shows a key again. Nothing was sent.", "Agent runs with this provider", "Open Settings"),
+      fr: T("Aucune clé pour ce fournisseur", "Aucune clé pour ce fournisseur. Ajoutez-en une dans les réglages ; le navigateur ne la montre plus jamais. Rien n'a été envoyé.", "Les passages de l'agent avec ce fournisseur", "Ouvrir les réglages"),
+      ar: T("لا مفتاح لهذا المزوّد", "لا مفتاح لهذا المزوّد. أضِف مفتاحًا في الإعدادات؛ لا يعرض المتصفح المفتاح مرة أخرى. لم يُرسل شيء.", "تشغيل الوكيل مع هذا المزوّد", "فتح الإعدادات"),
     },
   },
   "installed.DRIVER_UNAVAILABLE": {
     role: "blocked",
     action: "none",
     copy: {
-      en: T("This provider cannot be used yet", "A setting it needs, such as the base URL, is missing, or its driver is not part of this installation. Settings for providers come with the app's settings screen. Nothing was sent.", "Agent runs with this provider", "Not available in this version"),
-      fr: T("Ce fournisseur n'est pas encore utilisable", "Un réglage requis, comme l'URL de base, manque, ou son pilote ne fait pas partie de cette installation. Les réglages des fournisseurs viendront avec l'écran de réglages de l'application. Rien n'a été envoyé.", "Les passages de l'agent avec ce fournisseur", "Indisponible dans cette version"),
-      ar: T("لا يمكن استخدام هذا المزوّد بعد", "ينقصه إعداد مطلوب مثل عنوان URL الأساسي، أو أن برنامج تشغيله ليس جزءًا من هذا التثبيت. ستأتي إعدادات المزوّدين مع شاشة إعدادات التطبيق. لم يُرسل شيء.", "تشغيل الوكيل مع هذا المزوّد", "غير متاح في هذا الإصدار"),
+      en: T("This provider cannot be used yet", "A setting it needs, such as the base URL, is missing, or its driver is not part of this installation. A base URL is not a setting of this version. Nothing was sent.", "Agent runs with this provider", "Not available in this version"),
+      fr: T("Ce fournisseur n'est pas encore utilisable", "Un réglage requis, comme l'URL de base, manque, ou son pilote ne fait pas partie de cette installation. L'URL de base n'est pas un réglage de cette version. Rien n'a été envoyé.", "Les passages de l'agent avec ce fournisseur", "Indisponible dans cette version"),
+      ar: T("لا يمكن استخدام هذا المزوّد بعد", "ينقصه إعداد مطلوب مثل عنوان URL الأساسي، أو أن برنامج تشغيله ليس جزءًا من هذا التثبيت. عنوان URL الأساسي ليس إعدادًا في هذا الإصدار. لم يُرسل شيء.", "تشغيل الوكيل مع هذا المزوّد", "غير متاح في هذا الإصدار"),
     },
   },
   "inception.MAILTO_NOT_SET": {
     role: "blocked",
-    action: "reload",
+    action: "settings",
     command: "SCHOLAR_MAILTO=<your email>",
     copy: {
-      en: T("This console has no contact email for the literature databases", "A search needs one, and no request was sent. There is no setting for it in the app yet: set SCHOLAR_MAILTO in the environment or the .env of the console and start the console again.", "New searches (a pool already on screen still works)", "Reload the page"),
-      fr: T("Cette console n'a pas d'adresse de contact pour les bases bibliographiques", "Une recherche en demande une, et aucune requête n'a été envoyée. L'application n'a pas encore de réglage pour cela : définissez SCHOLAR_MAILTO dans l'environnement ou le .env de la console, puis redémarrez la console.", "Les nouvelles recherches (un corpus déjà affiché reste utilisable)", "Recharger la page"),
-      ar: T("ليس لوحدة التحكم هذه بريد للتواصل مع قواعد البيانات العلمية", "يحتاج البحث إلى بريد، ولم يُرسل أي طلب. لا يوجد إعداد لذلك في التطبيق بعد: عيّن SCHOLAR_MAILTO في بيئة وحدة التحكم أو ملف ‎.env‎ الخاص بها، ثم أعد تشغيلها.", "عمليات البحث الجديدة (تبقى مجموعة الأوراق المعروضة صالحة)", "أعد تحميل الصفحة"),
+      en: T("Nexus Scholar has no contact email for the literature databases", "A search needs one, and no request was sent. Add it in Settings.", "New searches (a pool already on screen still works)", "Open Settings"),
+      fr: T("Nexus Scholar n'a pas d'adresse de contact pour les bases bibliographiques", "Une recherche en demande une, et aucune requête n'a été envoyée. Ajoutez-la dans les réglages.", "Les nouvelles recherches (un corpus déjà affiché reste utilisable)", "Ouvrir les réglages"),
+      ar: T("ليس لدى Nexus Scholar بريد للتواصل مع قواعد البيانات العلمية", "يحتاج البحث إلى بريد، ولم يُرسل أي طلب. أضِفه في الإعدادات.", "عمليات البحث الجديدة (تبقى مجموعة الأوراق المعروضة صالحة)", "فتح الإعدادات"),
     },
   },
   "inception.PROVIDERS_FAILED": {

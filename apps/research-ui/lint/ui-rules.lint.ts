@@ -382,10 +382,10 @@ describe("i18n-catalog.test.ts", () => {
       // 150 keys until M5-slim; the demonstration screens and their 128 keys
       // were removed on 2026-11-05, and the new header and footer added 6
       // (`nav.workspaces`, `shell.descriptor`, `footer.*`): 22, the shell
-      // chrome only; M3c-screens added `nav.discovery` (23), M12a `nav.charting` (24). `messages/en.ts`'s header states the same figure.
+      // chrome only; M3c-screens added `nav.discovery` (23), M12a `nav.charting` (24), M13 Part B `nav.settings` (25). `messages/en.ts`'s header states the same figure.
       const expected = Object.keys(en).sort();
 
-      expect(expected).toHaveLength(24);
+      expect(expected).toHaveLength(25);
       for (const locale of SUPPORTED_LOCALES) {
         expect(Object.keys(CATALOGS[locale]).sort()).toEqual(expected);
       }

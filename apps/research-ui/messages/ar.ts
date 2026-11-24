@@ -39,6 +39,7 @@ const ar: Record<MessageKey, string> = {
   "nav.discovery": "الاستكشاف",
   "nav.screening": "الفرز",
   "nav.charting": "استخراج البيانات",
+  "nav.settings": "الإعدادات",
   "nav.workspaces": "مساحات العمل",
   "nav.landmark.primary": "التنقل الرئيسي",
   "a11y.openMainNavigation": "فتح قائمة التنقل الرئيسية",

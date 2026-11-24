@@ -145,7 +145,9 @@ export function StateCard({
             ? `/${locale}/inception/${query}`
             : state.action === "inception-step"
               ? (actionHref ?? `/${locale}/inception/${query}`)
-              : null;
+              : state.action === "settings"
+                ? `/${locale}/settings/${query}`
+                : null;
   return (
     <section role="alert" aria-labelledby={`state-${code}`} className={`rounded-lg border border-rule border-s-4 bg-leaf p-5 ${roleEdge}`} data-state={code} data-role={state.role}>
       {/* The title is the heading, once: a badge repeating it was read out and shown twice (H-ui-findings F7). The role shows as the edge colour and in the code line; the heading names the state in words. */}

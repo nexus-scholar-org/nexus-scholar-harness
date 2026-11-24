@@ -13,6 +13,40 @@ history to read if you need the original reasoning (`git log --follow -- <path>`
 | 2026-11-19 — M9a: what the measurement says about the ladder gates | 2 | The minimum share of the researcher's excludes an agent must take before a rung unlocks: the principle is accepted; the researcher decided on 2026-11-20 to set the number when M9b is built. |
 | 2026-11-23 — H-gate-and-ci | 1 | The standing permission for sessions to push a work branch and open a draft pull request: not given. |
 
+## 2026-11-24 — M13 Part B: settings and first-run setup (PROPOSED; questions 1 to 8 answered by the researcher before the build, items 9 to 20 the build's choices)
+
+Record: `docs/roadmap/milestones/M13-part-b.md`. Specification: `docs/roadmap/milestones/M13-installers.md` §4.3, §5.2 Part B, Q7. Screen: `docs/ux/shared/final/05-settings.md` (FINAL). Routes: `docs/architecture/settings-api.md`. Started on the researcher's go of 2026-11-24 ("Start Part B"). Branch `dev/m13/part-b-settings` from `main` `f2a7407e`, lane RELEASE.
+
+**Answered by the researcher (2026-11-24, each as recommended; the record has what was not chosen)**
+
+1. The screen has the contact e-mail, the keys and the reviews folder only; Connect (Part C) and the update notice (Part D) come later, with no placeholder.
+2. The environment, then `.env` in the engine's folder, then the screen. A value set in the environment or `.env` is shown with its source and is not editable.
+3. Setup opens by itself only on the installed start with no settings file. Both starts get the Settings link.
+4. "Later" is remembered; a search still stops with `MAILTO_NOT_SET`, now pointing to Settings.
+5. Three optional AI key rows (Anthropic, OpenAI-compatible, Gemini): write-only, no base-URL setting.
+6. Where the keychain fails, a file only this user can read, after a confirmation, on any system.
+7. The screen check is component tests, the in-process accessibility pass in light, dark and Arabic, and a check by hand of the real installed start in both themes at phone and desktop width. No browser test comes back.
+8. A folder change is refused before the dialog opens, and nothing is saved, while an agent run or an approval is in progress (`WORKSPACE_BUSY`) or under `serve` (`RESTART_UNSUPPORTED`).
+
+**For the researcher to decide**
+
+None. The questions were asked before the build (above).
+
+**Choices made in the build (for the reviewer)**
+
+9. The store is `scholar_search/user_settings.py`, in the package every other one already depends on, so the search settings, the PDF look-up, the AI key store, the MCP server and the harness read one set of rules. The installed app's settings folder (`desktop.app_folders`) uses its `settings_dir`.
+10. The search settings get the store as pydantic's lowest-precedence source (`config.py:UserSettingsSource`), and `reload_settings()` updates the one shared instance in place. Modules hold it by reference, so a saved e-mail or key applies at the next request with no restart (the definition-of-done test drives `POST /discovery/runs` from `MAILTO_NOT_SET` to the next check).
+11. Keys use the service name `nexus-scholar` with the key's own name (`openalex`, `semanticscholar`, and the AI provider names `nexus-scholar keys set` already uses), so a key set on the command line shows as set on the screen and the other way round. The keys file is read after the keychain. Saving to the keychain removes the same key from the file, so each key lives in one place.
+12. Whether a keychain is usable is judged by keyring's backend (not its "fail" or "null" stand-in), so a computer without one gets the confirmation of answer 6 before anything is written. `KEYCHAIN_UNAVAILABLE` carries the file path; the resend carries `use_file: true`.
+13. The settings and keys files are replaced atomically and created `0600` on POSIX (`mkstemp`, then `fchmod`); on Windows the per-user folder's permissions apply.
+14. The source reported for a value uses the same order the engine reads in. AI keys are not reported as set from `.env`, because the console reads `.env` for the search settings only.
+15. The launcher passes the reviews folder with its real source (`default`, `environment`, `settings`, `flag`). Before this, `create_app` reported every launcher start as `flag`, which would have refused every folder change. After a folder change the launcher restarts on the most recent review under the new folder and reports `settings`.
+16. The folder dialog is a child process like the approval-code window (`console/folder_dialog.py`, stdlib only, `--choose-folder` when frozen). The request waits for it, up to 10 minutes.
+17. The routes answer with no review open and during a review's copy (`_workspace_free`, `_format_blocked`), are not on the phone list, and are in both allowlists (`console/browser.py`, the development proxy).
+18. Tests never touch the real settings folder or keychain. `tests/conftest.py` gives every test its own settings folder and an empty in-memory keychain module, which a test's own fake still replaces.
+19. In the app, the e-mail field submits with `noValidate`, so the engine judges the address (`SETTING_INVALID`), not the browser. A key field is emptied as its request is sent. The screen reads `started_as` from `GET /settings`, not from the cookie. Its first render is the loading view, so the static export and the first client render match.
+20. The state cards `MAILTO_NOT_SET`, `OPENALEX_KEY_NOT_SET`, `inception.MAILTO_NOT_SET` and `PROVIDER_KEY_MISSING` link to Settings in both starts ("Add it in Settings"). A terminal start keeps the variable or command as a second line; the installed scope has none. The discovery plan's contact-email and OpenAlex cards get an "Open Settings" link, and in the installed app they lose their environment-variable line. "Settings" is a fifth item in the header's navigation on every route. The control window's Settings button replaces "Open the settings folder".
+
 ## 2026-11-24 — M13 Part A, second pull request: the control window and the app's words for the installed app (ACCEPTED 2026-11-24; items 1 to 4 as recommended, 5 to 16 the build's choices)
 
 **Accepted 2026-11-24.** The researcher accepted items 1 to 4 as recommended in the coordinator session ("Accept, push, merge", to the question whether to accept the four items as recommended and push and merge at green): until Part B the installed app's own words point to `.env` in its settings folder; provider keys are not available in the installed app; the control window is in English only; no Settings button until Part B.

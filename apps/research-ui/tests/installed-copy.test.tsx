@@ -64,12 +64,17 @@ describe("installed cards", () => {
   });
 
   it("are picked only when the engine says it was installed", () => {
-    expect(stateCopy("en", "MAILTO_NOT_SET").body).toContain("console's environment");
-    expect(stateCopy("en", "MAILTO_NOT_SET", true).body).toContain("settings folder");
+    // M13 Part B: both starts send the researcher to Settings; only the terminal start keeps the variable line.
+    expect(stateCopy("en", "MAILTO_NOT_SET").body).toContain("Add it in Settings");
+    expect(stateCopy("en", "MAILTO_NOT_SET").command).toBe("SCHOLAR_MAILTO=<your email>");
+    expect(stateCopy("en", "MAILTO_NOT_SET", true).body).toContain("Add it in Settings");
+    expect(stateCopy("en", "MAILTO_NOT_SET", true).command).toBeUndefined();
+    expect(stateCopy("en", "MAILTO_NOT_SET", true).action).toBe("settings");
     expect(stateCopy("en", "MAILTO_NOT_SET", true).code).toBe("MAILTO_NOT_SET"); // the code shown stays the engine's
     expect(installedStateKey(inceptionStateKey("MAILTO_NOT_SET"), true)).toBe("installed.inception.MAILTO_NOT_SET");
     expect(installedStateKey("STALE_BINDING", true)).toBe("STALE_BINDING"); // no installed card: the usual one
-    expect(stateCopy("en", "PROVIDER_KEY_MISSING", true).action).toBe("none");
+    expect(stateCopy("en", "PROVIDER_KEY_MISSING", true).action).toBe("settings");
+    expect(stateCopy("en", "PROVIDER_KEY_MISSING", true).body).not.toMatch(/Not available/);
   });
 
   it("no longer say the approval code is in the terminal, for either start", () => {
@@ -83,7 +88,7 @@ describe("installed cards", () => {
       const t = discoveryT(locale);
       for (const key of ["mailto.whereInstalled", "openalexKey.whereInstalled"] as const) {
         expect(t(key), `${locale} ${key}`).not.toMatch(TERMINAL_WORDS);
-        expect(t(key)).toContain(".env");
+        expect(t(key)).not.toContain(".env"); // M13 Part B: the Settings screen replaces the .env step
       }
       expect(CHARTING_COPY[locale]["charting.refusal.mailtoInstalled"]).not.toMatch(TERMINAL_WORDS);
     }
@@ -94,13 +99,15 @@ describe("the screens", () => {
   it("a state card names the settings folder once the page knows the engine was installed", async () => {
     setCookie("installed");
     render(<StateCard locale="en" code="MAILTO_NOT_SET" />);
-    await waitFor(() => expect(screen.getByText(/settings folder/)).toBeInTheDocument());
+    await waitFor(() => expect(screen.queryByText("SCHOLAR_MAILTO=<your email>")).toBeNull());
     expect(screen.getByText("MAILTO_NOT_SET")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Open Settings" })).toHaveAttribute("href", "/en/settings/");
   });
 
   it("a terminal start keeps the words it had", () => {
     render(<StateCard locale="en" code="MAILTO_NOT_SET" />);
-    expect(screen.getByText(/console's environment/)).toBeInTheDocument();
+    expect(screen.getByText("SCHOLAR_MAILTO=<your email>")).toBeInTheDocument(); // the variable line stays for a terminal user
+    expect(screen.getByRole("link", { name: "Open Settings" })).toBeInTheDocument();
   });
 
   it("the contact-email and OpenAlex cards say where the line goes in the installed app", async () => {
@@ -111,7 +118,9 @@ describe("the screens", () => {
         <OpenAlexKeyCard locale="fr" />
       </>,
     );
-    await waitFor(() => expect(screen.getAllByText(/dossier des réglages de Nexus Scholar/)).toHaveLength(2));
+    await waitFor(() => expect(screen.getAllByText(/dans les réglages/)).toHaveLength(2));
+    expect(screen.queryByText("SCHOLAR_MAILTO=<your email>")).toBeNull(); // no environment line in the installed app
+    expect(screen.getAllByRole("link", { name: "Ouvrir les réglages" })).toHaveLength(2);
   });
 
   it("the first render matches the static export (no hydration mismatch), whatever the cookie", () => {

@@ -19,6 +19,7 @@ import {
   type WorkspaceListing,
 } from "@/lib/workspaces";
 import { useInstalled } from "@/lib/engine-start";
+import { settingsT } from "@/lib/settings-copy";
 
 /**
  * The minimal workspace screen (spec `phase2-screening/final/00-workspaces.md`,
@@ -391,6 +392,14 @@ export function WorkspacesScreen({ locale }: Readonly<{ locale: Locale }>) {
               data-new-review
             >
               {t("cta.newReview")}
+            </a>
+            {/* M13 Part B: the Settings screen (spec shared/final/05-settings.md), a secondary link. */}
+            <a
+              href={`/${locale}/settings/${origin ? `?console=${encodeURIComponent(origin)}` : ""}`}
+              className="inline-flex min-h-11 items-center justify-center px-2 text-[0.9375rem] font-medium text-brand underline"
+              data-settings-link
+            >
+              {settingsT(locale, "settings.link")}
             </a>
           </div>
         </header>

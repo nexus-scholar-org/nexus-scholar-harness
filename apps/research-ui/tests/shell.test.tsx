@@ -98,16 +98,17 @@ describe("landmarks", () => {
 });
 
 describe("primary navigation", () => {
-  it("links the three destinations in every locale, and nothing else", () => {
+  it("links the three destinations and Settings in every locale, and nothing else", () => {
     for (const locale of SUPPORTED_LOCALES) {
       renderShell(locale);
       const nav = screen.getByRole("navigation", { name: t(locale, "nav.landmark.primary") });
       const links = within(nav).getAllByRole("link");
-      expect(links.map((link) => link.textContent), locale).toEqual([t(locale, "nav.workspaces"), t(locale, "nav.discovery"), t(locale, "nav.screening")]);
+      expect(links.map((link) => link.textContent), locale).toEqual([t(locale, "nav.workspaces"), t(locale, "nav.discovery"), t(locale, "nav.screening"), t(locale, "nav.settings")]);
       expect(links.map((link) => link.getAttribute("href")), locale).toEqual([
         `/${locale}/workspaces`,
         `/${locale}/discovery`,
         `/${locale}/screening/home`,
+        `/${locale}/settings`, // M13 Part B
       ]);
     }
   });
@@ -128,7 +129,8 @@ describe("primary navigation", () => {
     expect(currentNavId("/en/screeningx", "en")).toBeUndefined();
     expect(currentNavId("/en/corpus", "en")).toBeUndefined();
     expect(currentNavId("/fr/workspaces", "en")).toBeUndefined();
-    expect(NAV_ITEMS.map((item) => item.id)).toEqual(["workspaces", "discovery", "screening", "charting"]);
+    expect(NAV_ITEMS.map((item) => item.id)).toEqual(["workspaces", "discovery", "screening", "charting", "settings"]);
+    expect(currentNavId("/en/settings/", "en")).toBe("settings");
     expect(currentNavId("/fr/discovery/harvest/", "fr")).toBe("discovery");
     expect(currentNavId("/ar/charting/", "ar")).toBe("charting");
   });
@@ -143,7 +145,7 @@ describe("primary navigation", () => {
       renderShell("en", "/en/screening/home");
       expect(linksOf("en")).not.toContain(t("en", "nav.charting"));
       act(() => announceNextStep({ scope: "workspace", phase: "published", state: "DONE", round: 1 }));
-      expect(linksOf("en")).toEqual([t("en", "nav.workspaces"), t("en", "nav.discovery"), t("en", "nav.screening"), t("en", "nav.charting")]);
+      expect(linksOf("en")).toEqual([t("en", "nav.workspaces"), t("en", "nav.discovery"), t("en", "nav.screening"), t("en", "nav.charting"), t("en", "nav.settings")]);
       act(() => announceNextStep({ scope: "workspace", phase: "screening", state: "SCREENING", round: 1 }));
       expect(linksOf("en")).not.toContain(t("en", "nav.charting"));
       // A chased round being screened: the first round's table stays open.
@@ -211,6 +213,7 @@ describe("mobile menu", () => {
       t("en", "nav.workspaces"),
       t("en", "nav.discovery"),
       t("en", "nav.screening"),
+      t("en", "nav.settings"),
       ...SUPPORTED_LOCALES.map((code) => LOCALE_METADATA[code].endonym),
     ]);
     expect(within(dialog).getByRole("group", { name: t("en", "theme.selectorLabel") })).toBeInTheDocument();

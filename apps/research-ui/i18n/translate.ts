@@ -70,6 +70,7 @@ const NAV_KEYS: Readonly<Record<string, MessageKey>> = {
   discovery: "nav.discovery",
   screening: "nav.screening",
   charting: "nav.charting",
+  settings: "nav.settings",
 };
 
 /** The catalog key for a nav id; an unknown id throws {@link UnmappedTokenError}. */

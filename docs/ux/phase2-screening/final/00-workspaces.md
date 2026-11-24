@@ -116,3 +116,7 @@ The Inception screens (`docs/ux/phase0-inception/final/01-scope.md` to `08-state
 - **Not added.** No count of drafts, no "Resume" link and no draft rows here; drafts have their own page (08). The empty-folder help text is unchanged.
 - **Copy key.** `workspaces.cta.newReview` = "New review".
 - **Tests.** Add to `workspaces.list.test.tsx`: the link is present with the right href, is secondary, and the screen still has exactly one brand button; to `workspaces/workspaces.spec.ts`: the link opens `/inception/`.
+
+## Addendum (M13 Part B, 2026-11-24): the Settings link
+
+A secondary **Settings** link sits beside "New workspace" and "New review", to the Settings screen ([`../../shared/final/05-settings.md`](../../shared/final/05-settings.md)). The screen keeps exactly one brand button. "There is no settings screen and no config file for the root" is superseded for the folder: the Settings screen saves it in the user's settings file (`root_source: "settings"`), below `--root` and `NEXUS_WORKSPACES_ROOT`, which still win.
