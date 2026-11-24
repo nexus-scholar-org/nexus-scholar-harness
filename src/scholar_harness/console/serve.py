@@ -15,12 +15,14 @@ proxy, never directly.
 from __future__ import annotations
 
 import hmac
+import json
 import re
 from collections.abc import Callable, Iterable
+from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Any
 
-from fastapi import FastAPI, Request
+from fastapi import APIRouter, FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
@@ -111,6 +113,61 @@ def _no_workspace() -> JSONResponse:
     return _refusal(409, "WORKSPACE_NOT_VALID", "no workspace is open; create or open one on the workspaces screen")
 
 
+#: Routes that answer while the open workspace is being copied or was refused
+#: (H-workspace-format-version): the workspaces list, its preparation state,
+#: create and open, and inception's drafts (stored outside the workspace; a
+#: genesis that replaces a protocol prepares its own target). `workspace/meta`
+#: is a pure read the Workspaces screen polls after Open to see the new folder;
+#: it then moves to a page that shows the copy's progress.
+_FORMAT_FREE = (
+    "/api/v1/workspaces",
+    "/api/v1/workspaces/preparation",
+    "/api/v1/workspaces/open",
+    "/api/v1/workspace/meta",
+)
+
+
+def _format_blocked(app: FastAPI, path: str) -> JSONResponse | None:
+    """The answer for a workspace route while the workspace is not ready to be written."""
+    gate = getattr(app.state, "format_gate", None)
+    if gate is None or gate.ready or not path.startswith("/api/"):
+        return None
+    if path in _FORMAT_FREE or path.startswith("/api/v1/inception/"):
+        return None
+    if gate.state == "refused" and gate.refusal is not None:
+        exc = gate.refusal
+        return JSONResponse(
+            {"detail": {"code": exc.code, "message": exc.message, "details": exc.details}}, status_code=exc.status
+        )
+    snapshot = gate.snapshot()
+    return JSONResponse(
+        {"detail": {
+            "code": "WORKSPACE_PREPARING",
+            "message": f"Saving a copy of {snapshot['title']} before opening it",
+            "details": json.loads(json.dumps(snapshot, default=str)),
+        }},
+        status_code=503,
+        headers={"Retry-After": "1"},
+    )
+
+
+@asynccontextmanager
+async def _lifespan(app: FastAPI):
+    """Discovery's lifespan, then a copy still running is cancelled (the server is stopping)."""
+    async with discovery_api.lifespan(app):
+        yield
+    gate = getattr(app.state, "format_gate", None)
+    if gate is not None:
+        gate.stop()
+
+
+def _start_again(started_as: str | None, purpose: str) -> str:
+    """Where a new session comes from: the installed app's window, or `nexus-scholar ui` (M13 Part A)."""
+    if started_as == "installed":
+        return f"click Open in browser in the Nexus Scholar window {purpose}"
+    return f"open the app from `nexus-scholar ui` {purpose}"
+
+
 def _host_name(header: str) -> str:
     """``Host`` without its port; IPv6 brackets removed."""
     if header.startswith("["):
@@ -145,6 +202,9 @@ def create_app(
     launch_codes: browser.LaunchCodes | None = None,
     ui_dir: str | Path | None = None,
     code_window: Callable[..., bool] | None = None,
+    local_routes: APIRouter | None = None,
+    codes_on_terminal: bool = True,
+    started_as: str | None = None,
 ) -> FastAPI:
     """Build the console app for one workspace.
 
@@ -168,6 +228,22 @@ def create_app(
     approval codes in a window on this computer's desktop, for a researcher
     who cannot see the terminal (finding 38). The codes still never travel
     over HTTP.
+
+    ``local_routes`` (the installed app's launcher, M13 Part A) are the
+    instance routes a second launcher on this computer uses
+    (``console/instance.py``). They pass the loopback host and origin checks
+    here and then check their own secret, never the console token; they are
+    not served under the browser prefix.
+
+    ``codes_on_terminal=False`` (the installed app, which has no terminal and
+    whose standard output is its log file) keeps the approval codes off
+    standard output: they are shown only in the desktop window, and a begin
+    whose window cannot open is refused (``APPROVAL_WINDOW_UNAVAILABLE``).
+
+    ``started_as`` (``terminal`` or ``installed``, from the launcher) is set
+    by the launch link as a readable cookie, so the app can name the right
+    place for a setting: a terminal command, or the installed app's window
+    and settings folder.
     """
     # ``None``: no workspace open yet (``nexus-scholar ui`` on an empty root).
     # Then only the workspaces routes, the static UI and /healthz answer.
@@ -176,7 +252,7 @@ def create_app(
         raise ValueError(f"workspace path does not exist: {ws}")
 
     app = FastAPI(
-        lifespan=discovery_api.lifespan,
+        lifespan=_lifespan,
         title="scholar-harness console",
         version="0.1.0",
         description="Local observability and job-control surface for the Nexus Scholar harness.",
@@ -190,7 +266,19 @@ def create_app(
     runner = JobRunner(ws, on_event=on_job_event) if ws is not None else None
 
     app.state.workspace = ws
+    # H-workspace-format-version: the one point every browser-app path shares
+    # (`serve`, `ui` at start, the launcher's restart). An older workspace is
+    # copied (in the background when large) and stamped before any route may
+    # write; a newer or unreadable one, or a failed copy, is refused.
+    app.state.format_gate = None
+    # Only a workspace: a plain folder (`serve` defaults to `.`) is never copied or stamped.
+    if ws is not None and any((ws / marker).is_file() for marker in ("project.json", "protocol.json", "audit/journal.jsonl")):
+        from scholar_harness.workspace.catalog import workspace_title
+        from scholar_harness.workspace.format import OpenGate
+
+        app.state.format_gate = OpenGate(ws, agent="nexus-scholar/console", title=workspace_title(ws)).start()
     app.state.code_window = code_window
+    app.state.codes_on_terminal = codes_on_terminal
     app.state.job_runner = runner
     app.state.job_broadcast = broadcast
     from scholar_harness.workspace.catalog import resolve_root
@@ -216,6 +304,7 @@ def create_app(
         raise ValueError(f"not a static UI export (no en/): {ui_root}")
     hosts = frozenset(trusted_hosts if trusted_hosts is not None else _DEFAULT_HOSTS)
     expected = f"Bearer {token}".encode() if token else None
+    local_prefix = local_routes.prefix if local_routes is not None else None
     # Phone-scoped tokens (contract §4, §6). M2's `/lan/pair` adds to this set;
     # tests pass them in. A phone token reaches only `_PHONE_ROUTES`.
     app.state.phone_tokens = {t for t in (phone_tokens or ()) if t}
@@ -237,11 +326,13 @@ def create_app(
             )
         request.state.token_scope = "desktop"
         path = request.url.path
+        if local_prefix and (path == local_prefix or path.startswith(local_prefix + "/")):
+            return await call_next(request)  # the route checks its own secret (console/instance.py)
         if path.startswith(browser.BROWSER_PREFIX + "/") or path == browser.BROWSER_PREFIX:
             if browser_session is None:
                 return _refusal(404, "CONSOLE_PATH_REFUSED", "the browser surface is served only by `nexus-scholar ui`")
             if not browser.has_session(request.cookies.get(browser.SESSION_COOKIE), browser_session):
-                return _refusal(401, "TOKEN_REQUIRED", "open the app from `nexus-scholar ui` to start a session")
+                return _refusal(401, "TOKEN_REQUIRED", _start_again(started_as, "to start a session"))
             try:
                 inner = browser.check(
                     request.method, path, origin=origin, host=request.headers.get("host", ""),
@@ -254,6 +345,8 @@ def create_app(
             request.scope["raw_path"] = inner.encode()
             if ws is None and not _workspace_free(inner):
                 return _no_workspace()
+            if (blocked := _format_blocked(app, inner)) is not None:
+                return blocked
             return await call_next(request)
         if ui_root is not None and not path.startswith("/api/") and request.method in ("GET", "HEAD"):
             return await call_next(request)  # the static UI holds no workspace data
@@ -273,6 +366,8 @@ def create_app(
                 return _refusal(401, "TOKEN_REQUIRED", "a valid console token is required")
         if ws is None and path.startswith("/api/") and not _workspace_free(path):
             return _no_workspace()
+        if (blocked := _format_blocked(app, path)) is not None:
+            return blocked
         return await call_next(request)
 
     app.include_router(workspace_api.router)
@@ -289,6 +384,8 @@ def create_app(
     app.include_router(pipelines_api.router)
     app.include_router(audit_api.router)
     app.include_router(streams_api.router)
+    if local_routes is not None:
+        app.include_router(local_routes)  # before the UI mount at "/", which would answer first
 
     @app.get("/healthz")
     def healthz() -> dict[str, str]:
@@ -300,9 +397,13 @@ def create_app(
         @app.get(browser.LAUNCH_PATH)
         def launch(code: str | None = None, next: str | None = None):  # noqa: A002 - the query name
             if not launch_codes.redeem(code):
-                return _refusal(401, "LAUNCH_CODE_INVALID", "this launch link was used or has expired; start `nexus-scholar ui` again")
+                return _refusal(401, "LAUNCH_CODE_INVALID", "this launch link was used or has expired; " + _start_again(started_as, "for a new one"))
             response = RedirectResponse(browser.safe_next(next), status_code=303)
             response.set_cookie(browser.SESSION_COOKIE, browser_session, httponly=True, samesite="strict", path="/")
+            if started_as:
+                # Not a secret: the app reads it to pick its words (a terminal command, or the
+                # installed app's window and settings folder; M13 Part A).
+                response.set_cookie(browser.STARTED_AS_COOKIE, started_as, samesite="strict", path="/")
             return response
 
     if ui_root is not None:

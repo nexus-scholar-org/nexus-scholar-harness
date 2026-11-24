@@ -18,6 +18,40 @@ export interface WorkspaceItem {
   status?: "NEW" | "CORPUS_ACCEPTED" | "SCREENING" | "PUBLISHED" | "PUBLISHED_CHANGED";
   last_event?: { at: string | null; action: string | null } | null;
   is_current: boolean;
+  /** H-workspace-format-version: the recorded format (a read); older engines omit it. */
+  format?: WorkspaceFormat;
+  /** The newest copy saved before a newer version opened the review. */
+  last_copy?: WorkspaceCopy | null;
+}
+
+export interface WorkspaceFormat {
+  recorded: boolean;
+  format: number | null;
+  written_by: string | null;
+  newer: boolean;
+  unreadable: boolean;
+}
+
+export interface WorkspaceCopy {
+  name: string;
+  folder: string;
+  at: string;
+  bytes: number;
+}
+
+/**
+ * Whether the open workspace is ready, being copied (with progress), or refused
+ * (H-workspace-format-version; `GET /api/v1/workspaces/preparation`).
+ */
+export interface WorkspacePreparation {
+  state: "ready" | "preparing" | "refused" | "cancelled";
+  slug: string;
+  title: string;
+  reason: "format" | "build" | null;
+  done_bytes: number;
+  total_bytes: number;
+  refusal?: { code: string; message: string; details?: unknown };
+  result?: { copied: boolean; copy: { name: string; folder: string } | null };
 }
 
 export interface WorkspaceListing {
@@ -28,6 +62,8 @@ export interface WorkspaceListing {
   busy: { run_active: boolean; pairing_open: boolean };
   skipped_count: number;
   items: WorkspaceItem[];
+  /** The open workspace's preparation; `null` with none open, absent from older engines. */
+  preparation?: WorkspacePreparation | null;
 }
 
 export interface CreatedWorkspace {
@@ -53,6 +89,11 @@ export function createWorkspace(origin: string, title: string, signal?: AbortSig
 
 export function openWorkspace(origin: string, slug: string, signal?: AbortSignal): Promise<OpenedWorkspace> {
   return postJson<OpenedWorkspace>("/api/v1/workspaces/open", origin, { slug }, signal);
+}
+
+export async function getPreparation(origin: string, signal?: AbortSignal): Promise<WorkspacePreparation | null> {
+  const body = await readJson<{ preparation: WorkspacePreparation | null }>("/api/v1/workspaces/preparation", consoleBase(origin), signal);
+  return body.preparation ?? null;
 }
 
 /** The workspace the engine serves now; `null` while none is open. */

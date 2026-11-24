@@ -1,11 +1,11 @@
-# Nexus Scholar beta (1.1.0b6)
+# Nexus Scholar beta (1.1.0b7)
 
 Thank you for testing. This page says who the beta is for, how to install it,
 what it cannot do yet, and how to tell us what happened.
 
-## What is new in 1.1.0b6
+## What is new in 1.1.0b7
 
-1.1.0b6 adds the Discovery screens: you can plan, run and report a search of the free databases from the browser, then hand the corpus off to screening. The earlier 1.1.0b5 added creating a workspace from the browser, PubMed `.nbib` import and the triage focus view. Already on 1.1.0b5 or earlier? Upgrade with `uv tool install --force "nexus-scholar>=1.1.0b6"`. Details, including changes to the local API: [release notes](../releases/1.1.0b6.md).
+1.1.0b7 adds the Explore and Direction steps and the query workbench to inception, one corpus from a harvest and imported exports, citation chasing, triage highlights, a criteria pilot, the declaration of decisions stored from the agent's drafts, and a Charting step after publication (full-text status and decision, attached PDFs, an open-access look-up, a spreadsheet export). It also **removes** the `scholar-rag` and `scholar-verify` commands, the `rag` extra and eight MCP tools. Most of what is new was used only on test data. Copy your workspace folders before you upgrade: a workspace has no format version yet. Upgrade with `uv tool install --force "nexus-scholar>=1.1.0b7"`. Details: [release notes](../releases/1.1.0b7.md); the earlier [1.1.0b6](../releases/1.1.0b6.md) added the Discovery screens.
 
 ## Who it is for
 
@@ -20,10 +20,10 @@ methods paragraph.
 2. Install Nexus Scholar:
 
    ```bash
-   uv tool install "nexus-scholar>=1.1.0b6"
+   uv tool install "nexus-scholar>=1.1.0b7"
    ```
 
-3. Check the version (it should print `nexus-scholar 1.1.0b6`):
+3. Check the version (it should print `nexus-scholar 1.1.0b7`):
 
    ```bash
    nexus-scholar --version
@@ -46,8 +46,7 @@ workspace, import your RIS or `.nbib` files, prepare, screen, publish and export
 - **Approval uses a code shown in the terminal.** Keep the terminal where the app runs in view.
 - **The approver is a typed name,** not a verified sign-in.
 - **AI drafts are optional and not validated.** Do not report a recall or accuracy figure for them.
-- **The Discovery screens are new and have not been tried by a second person.** Search needs `SCHOLAR_MAILTO`, and OpenAlex needs `SCHOLAR_OPENALEX_KEY` (required by OpenAlex since 2026-02-13). A harvest and imported exports cannot be combined in one corpus yet. See the [release notes](../releases/1.1.0b6.md).
-- **Inception has no Explore or Direction screen.** The browser flow goes Scope, Shape, Concepts and criteria, Review, Done.
+- **The Discovery, Explore and Charting screens have not been tried by a second person.** Search needs `SCHOLAR_MAILTO`, and OpenAlex needs `SCHOLAR_OPENALEX_KEY` (required by OpenAlex since 2026-02-13). See the [release notes](../releases/1.1.0b7.md), "Known limits".
 
 ## Tell us what happened
 

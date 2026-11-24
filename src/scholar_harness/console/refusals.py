@@ -71,6 +71,11 @@ WORKSPACE_ROOT_UNAVAILABLE = "WORKSPACE_ROOT_UNAVAILABLE"
 WORKSPACE_NOT_VALID = "WORKSPACE_NOT_VALID"
 WORKSPACE_BUSY = "WORKSPACE_BUSY"
 RESTART_UNSUPPORTED = "RESTART_UNSUPPORTED"
+#: The workspace format version (H-workspace-format-version; raised in ``workspace/format.py``).
+WORKSPACE_FORMAT_NEWER = "WORKSPACE_FORMAT_NEWER"
+WORKSPACE_FORMAT_UNREADABLE = "WORKSPACE_FORMAT_UNREADABLE"
+WORKSPACE_COPY_FAILED = "WORKSPACE_COPY_FAILED"
+WORKSPACE_PREPARING = "WORKSPACE_PREPARING"
 #: The export and methods routes (M5-slim, spec 10) are re-exported from
 #: ``screening/export.py`` above.
 
@@ -308,6 +313,11 @@ DISCARD_REASON_REQUIRED = "DISCARD_REASON_REQUIRED"
 #: A status, a full-text decision or an attachment on a row whose fetched file waits.
 FETCH_FILE_WAITING = "FETCH_FILE_WAITING"
 
+# --- the installed app (M13 Part A) -------------------------------------------
+#: The installed app has no terminal, and the approval-code window could not
+#: open: the codes would be nowhere, so the begin is refused (fail closed).
+APPROVAL_WINDOW_UNAVAILABLE = "APPROVAL_WINDOW_UNAVAILABLE"
+
 # --- request validation (H-input-limits, F5) ----------------------------------
 #: A body, query or path parameter pydantic refuses on any route (HTTP 422);
 #: ``details.errors`` lists ``loc``, ``msg`` and ``type`` for each error.
@@ -348,6 +358,10 @@ CONTRACT_ADDED = frozenset(
         WORKSPACE_NOT_VALID,
         WORKSPACE_BUSY,
         RESTART_UNSUPPORTED,
+        WORKSPACE_FORMAT_NEWER,
+        WORKSPACE_FORMAT_UNREADABLE,
+        WORKSPACE_COPY_FAILED,
+        WORKSPACE_PREPARING,
         PROVENANCE_MISSING,
         PROJECTION_STALE,
         EXPORT_NOT_PUBLISHED,
@@ -494,6 +508,7 @@ CONTRACT_ADDED = frozenset(
         DISCARD_REASON_REQUIRED,
         FETCH_FILE_WAITING,
         BODY_INVALID,
+        APPROVAL_WINDOW_UNAVAILABLE,
     }
     | LEG_ERROR_CODES
     | IMPORT_REJECTION_CODES

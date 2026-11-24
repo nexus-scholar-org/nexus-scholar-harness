@@ -2,7 +2,7 @@
 
 **A research workspace and toolkit for literature reviews, with source lineage and explicit researcher control over final evidence.**
 
-Nexus helps you define a protocol, discover literature, work through screening and full-text evidence, and keep project artifacts and history together. The intended first user is an individual researcher. Today the released product is the **screening app** (beta). You create a workspace in the browser, import your database exports, screen titles and abstracts on your own computer, publish the screening with its PRISMA counts, and export the decisions and a draft methods paragraph. It comes with the CLI/MCP toolkit it is built on. Searching the free databases from the browser (the Discovery screens) is on `main` and comes with the next beta, `1.1.0b6`.
+Nexus helps you define a protocol, discover literature, work through screening and full-text evidence, and keep project artifacts and history together. The intended first user is an individual researcher. Today the released product is the **screening app** (beta). You create a workspace in the browser, search the free databases or import your database exports, screen titles and abstracts on your own computer, publish the screening with its PRISMA counts, export the decisions and a draft methods paragraph, and, since `1.1.0b7`, chart the kept studies at full text. It comes with the CLI/MCP toolkit it is built on.
 
 [![CI](https://github.com/nexus-scholar-org/nexus-scholar-harness/actions/workflows/ci.yml/badge.svg)](https://github.com/nexus-scholar-org/nexus-scholar-harness/actions/workflows/ci.yml)
 [![PyPI](https://img.shields.io/pypi/v/nexus-scholar.svg)](https://pypi.org/project/nexus-scholar/)
@@ -11,16 +11,16 @@ Nexus helps you define a protocol, discover literature, work through screening a
 
 ## What you can use today
 
-The `nexus-scholar` package bundles the harness, five scientific kits and an MCP server. Initialize a local workspace, inspect its environment, record events and generate configuration for an AI host. Scientific capabilities have different dependencies and acceptance requirements; installation alone does not establish a completed review.
+The `nexus-scholar` package bundles the harness, four scientific kits and an MCP server. Initialize a local workspace, inspect its environment, record events and generate configuration for an AI host. Scientific capabilities have different dependencies and acceptance requirements; installation alone does not establish a completed review.
 
 | Surface | Available / intended use | Boundary |
 |---|---|---|
-| Screening app (`nexus-scholar ui`), beta | Workspaces, creating a workspace in the browser (Inception: Scope, Shape, Concepts and criteria, Review, Done), searching the free databases (Discovery: Plan, Recall, Harvest, Import, Duplicates, Report, Hand-off), the import of RIS and PubMed `.nbib` exports with deduplication across databases, title and abstract screening, optional AI drafts, approval, publication, RIS/CSV export, methods paragraph | One reviewer, title and abstract only, RIS and PubMed `.nbib` only; the Explore and Direction inception steps have no screen; see the [beta page](docs/beta/README.md) |
+| Screening app (`nexus-scholar ui`), beta | Workspaces, creating a workspace in the browser (Inception: Scope, Explore, Direction, Shape, Concepts and criteria with the query workbench, Review, Done), searching the free databases (Discovery: Plan, Recall, Harvest, Import, Duplicates, Report, Hand-off, Chase), RIS and PubMed `.nbib` imports deduplicated with a harvest in one corpus, title and abstract screening with an optional criteria pilot, optional AI drafts, the declaration of decisions stored from drafts, approval, publication, RIS/CSV export, methods paragraph; since `1.1.0b7` the Charting step (full-text status and decision, attached PDFs, an open-access look-up, the charting form, a spreadsheet export) | One reviewer, desktop only, RIS and PubMed `.nbib` imports; most of the `1.1.0b7` additions were used only on test data; see the [release notes](docs/releases/1.1.0b7.md) and the [beta page](docs/beta/README.md) |
 | CLI/MCP toolkit | Workspace setup, a search of the free databases with per-database records (`scholar-harness run`), the same import and screening steps from a terminal, and scientific tool access for an AI host | Follow the versioned user guide and supported tool surfaces. A live search needs `SCHOLAR_MAILTO` and, for OpenAlex, `SCHOLAR_OPENALEX_KEY` |
-| Full text, extraction, graph | Kits in the package | Parked: not production, labelled so in `--help`. Synthesis and verification were removed on 2026-11-23 |
-| Development branch (`main`) | Work after `1.1.0b6`, not tagged | May differ from the installed release |
+| Reading PDF text and extraction | Kits in the package | Parked: not production, labelled so in `--help`. `scholar-pdf download` and `ingest` are production since `1.1.0b7`. Synthesis and verification (`scholar-rag`, `scholar-verify`) were removed on 2026-11-23, the citation graph (`scholar-graph`) after `1.1.0b7` |
+| Development branch (`main`) | Work after `1.1.0b7`, not tagged | May differ from the installed release |
 
-The latest release is the beta [v1.1.0b6](https://github.com/nexus-scholar-org/nexus-scholar-harness/releases/tag/v1.1.0b6) ([release notes](docs/releases/1.1.0b6.md); previous: [1.1.0b5](docs/releases/1.1.0b5.md), [1.1.0b4](docs/releases/1.1.0b4.md), [1.1.0b3](docs/releases/1.1.0b3.md)) (a pre-release, also on PyPI). Later work on `main` is not a claim about that release's behavior.
+The latest release is the beta [v1.1.0b7](https://github.com/nexus-scholar-org/nexus-scholar-harness/releases/tag/v1.1.0b7) ([release notes](docs/releases/1.1.0b7.md); previous: [1.1.0b6](docs/releases/1.1.0b6.md), [1.1.0b5](docs/releases/1.1.0b5.md), [1.1.0b4](docs/releases/1.1.0b4.md), [1.1.0b3](docs/releases/1.1.0b3.md)) (a pre-release, also on PyPI). Later work on `main` is not a claim about that release's behavior.
 
 ## Start a workspace
 
@@ -29,12 +29,12 @@ The latest release is the beta [v1.1.0b6](https://github.com/nexus-scholar-org/n
 Install [uv](https://docs.astral.sh/uv/getting-started/installation/), then Nexus Scholar (the version in the command is needed while it is in beta; do not use `--prerelease allow`, which also takes development releases of other packages), and start the app:
 
 ```sh
-uv tool install "nexus-scholar>=1.1.0b6"
+uv tool install "nexus-scholar>=1.1.0b7"
 nexus-scholar --version
 nexus-scholar ui
 ```
 
-`nexus-scholar --version` should print `nexus-scholar 1.1.0b6`. With pip, use `pip install "nexus-scholar>=1.1.0b6"`. The app opens in your browser on **Workspaces**; everything runs on your computer.
+`nexus-scholar --version` should print `nexus-scholar 1.1.0b7`. With pip, use `pip install "nexus-scholar>=1.1.0b7"`. The app opens in your browser on **Workspaces**; everything runs on your computer.
 
 From a terminal, create a project and inspect its setup:
 
@@ -61,7 +61,7 @@ For a crop/weed review, the intended first complete interaction is:
 5. Explicitly authorize final decisions and publish the current screening result.
 6. Export a screening record with reasons and provenance.
 
-In the beta, step 1 works in the browser (without the grounded Explore and Direction steps), and steps 2 to 6 work end to end for title and abstract screening by one reviewer. Search is done in the databases themselves and their RIS or `.nbib` exports are imported, or from a terminal with `scholar-harness run`. On `main` the search also runs from the browser (Discovery). The AI drafts are optional, hidden until you decide by default, and never decide for you. Full-text charting, synthesis and scientific evaluation have separate readiness requirements and are parked.
+In the beta, step 1 works in the browser, and steps 2 to 6 work end to end for title and abstract screening by one reviewer. The search runs from the browser (Discovery), from a terminal with `nexus-scholar run`, or in the databases themselves with their RIS or `.nbib` exports imported. The AI drafts are optional, hidden until you decide by default, and never decide for you; decisions stored from drafts without reading each record are declared as such. Full-text charting is new in `1.1.0b7` and was used only on test data; reading a PDF's text is parked; synthesis and the verification checks were removed.
 
 ![The Import screen: two databases, their records summed per database, and the counts for the PRISMA flow diagram (test data)](docs/images/screening-import-staged.png)
 
@@ -82,7 +82,6 @@ See the [AG record](docs/architecture/agent-controls/README.md), [evidence bound
 | Protocol | Compile and validate research intent/protocols |
 | Search | Discovery, deduplication, metadata and screening support |
 | PDF | Full-text acquisition and extraction |
-| Graph | Citation networks and graph analysis |
 | Agent | MCP tool interfaces |
 
 Kits own scientific operations. The harness coordinates workspaces, accepted evidence, audit, pipelines and interfaces. CLI, MCP and UI use shared services rather than separate research engines. MCP does not expose every authoritative operation; some acquisition/extraction boundaries explicitly refuse unsupported access. A convenience output is not automatically an accepted scientific artifact.
@@ -98,7 +97,7 @@ uv sync --extra dev --extra pdf
 uv run pytest
 ```
 
-The harness and the five kits are one package: `uv sync` installs all of them editable from `src/`, with every CLI. Kit code is changed in `src/scholar_<kit>/` like any other code, in one PR.
+The harness and the four kits are one package: `uv sync` installs all of them editable from `src/`, with every CLI. Kit code is changed in `src/scholar_<kit>/` like any other code, in one PR.
 
 Contributions go through a fork and PR to this repository. Select checks from the [test-gate policy](docs/architecture/test_gate_policy.md): ordinary prose uses a light gate; consumed documents and executable changes retain required checks. Candidate-specific evidence replaces static test totals. CI badges describe configured checks, not automatic proof that every scientific workflow or the full local pytest suite passed.
 

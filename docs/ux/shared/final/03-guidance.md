@@ -299,8 +299,8 @@ Shared (the entry `/discovery/` and spec 07 "States"), then 01 Plan, 02 Recall, 
 | D-DS2 | `run.label`, `run.option`, `run.stale`, `run.staleBody`, `run.readonly`, `run.describes`, `run.differs`, `run.newest` | the run selector and its warnings ("A later run's records became the corpus ...") | STAYS | V5/V2 provenance and staleness |
 | D-DS3 | `job.connectionLost`, `job.retry`, `job.follow`, `job.otherKind`, `job.openHarvest`, `job.openRecall` | "Connection lost · as of {time}", "Another discovery job is running ..." | STAYS | V2/V8 |
 | D-DS4 | `job.keepOpen` | "Keep this window's console open until the harvest ends; closing the console stops the harvest ..." | STAYS | V2 warning: closing the console stops the run |
-| D-DS5 | `mailto.title`, `mailto.line`, `mailto.where`, `mailto.check` | the MAILTO_NOT_SET card with the line to set | STAYS | V1 refusal and its next step |
-| D-DS6 | `openalexKey.title`, `openalexKey.line`, `openalexKey.where` | the OpenAlex key card | STAYS | V1 refusal and its next step |
+| D-DS5 | `mailto.title`, `mailto.line`, `mailto.where`, `mailto.whereInstalled`, `mailto.check` | the MAILTO_NOT_SET card with the line to set | STAYS | V1 refusal and its next step |
+| D-DS6 | `openalexKey.title`, `openalexKey.line`, `openalexKey.where`, `openalexKey.whereInstalled` | the OpenAlex key card | STAYS | V1 refusal and its next step |
 | D-DS7 | `amend.link` | "Change the protocol through inception" | STAYS | V7 link |
 | D-DS8 | `amend.help` | "A different query or database is a protocol amendment, recorded by inception." | REMOVED | no longer true for the query since M11a part D: Recall's hint is now `plan.search.help` on its "Change the search" link (D-P24); the inception link stays without a hint |
 | D-DS9 | `status.PENDING_CORPUS_ACCEPT`, `status.PARTIAL`, `status.CANCELLED`, `status.COMPLETED`, `status.FAILED` | run status badges | STAYS | V3 status in role colour, with words |

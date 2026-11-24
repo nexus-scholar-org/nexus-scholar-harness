@@ -155,6 +155,16 @@ def init_project(
     with open(manifest_path, "w", encoding="utf-8") as f:
         json.dump(manifest, f, indent=2)
 
+    # H-workspace-format-version: a new workspace starts at the current format.
+    # Run outside the package's environment the stamp is skipped; the first
+    # open by the app then saves a copy and stamps it.
+    try:
+        from scholar_harness.workspace.format import stamp_new
+    except ImportError:
+        stamp_new = None
+    if stamp_new is not None:
+        stamp_new(project_dir)
+
     # Create an initial synthesis notes template
     notes_path = project_dir / "synthesis" / "literature_review.md"
     if not notes_path.exists():

@@ -10,6 +10,8 @@ workspaces/**/chroma_db/
 
 # Harness Console runtime state (job stdout, job dirs)
 workspaces/**/.harness-console/
+# H-workspace-format-version: the copies made before a newer build writes (zips, PDFs included).
+workspaces/.nexus-copies/
 
 # Superseded calibration harvest generations.
 # Each search round re-derives the whole corpus; only the current round (r3e) is

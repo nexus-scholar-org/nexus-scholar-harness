@@ -1249,11 +1249,13 @@ def pairing_begin(body: PairingBeginBody, request: Request) -> dict[str, Any]:
         if code is None:
             raise
         raise _error(409, str(code), str(getattr(exc, "message", exc))) from exc
-    print(f"[nexus-scholar] approval code for batch {body.batch}: {staged['code']} (expires {staged['expires_at']})", flush=True)
+    if _codes_on_terminal(request):
+        print(f"[nexus-scholar] approval code for batch {body.batch}: {staged['code']} (expires {staged['expires_at']})", flush=True)
     shown = _show_on_desktop(
         request, codes=f"batch {staged['batch_index']}: {staged['code']}", batches=[staged["batch_index"]],
         expires_at=staged["expires_at"],
     )
+    _require_a_place_for_the_codes(request, shown)
     return {
         "batch_index": staged["batch_index"],
         "snapshot_fingerprint": staged["snapshot_fingerprint"],
@@ -1261,6 +1263,29 @@ def pairing_begin(body: PairingBeginBody, request: Request) -> dict[str, Any]:
         "attempt_cap": staged["attempt_cap"],
         "code_shown_on": "desktop" if shown else "terminal",
     }
+
+
+def _codes_on_terminal(request: Request) -> bool:
+    """Whether this engine has a terminal for the codes (M13 Part A).
+
+    The installed app has none: its standard output is its log file, and the
+    pairing rule is that a plaintext code is never stored or logged
+    (``authority/pairing.py``). There the codes go to the desktop window only.
+    """
+    return bool(getattr(request.app.state, "codes_on_terminal", True))
+
+
+def _require_a_place_for_the_codes(request: Request, shown: bool) -> None:
+    """With no terminal and no window the codes are nowhere: refuse (fail closed).
+
+    The staged codes stay unusable and expire; asking again stages fresh ones.
+    """
+    if not shown and not _codes_on_terminal(request):
+        raise _error(
+            409,
+            refusals.APPROVAL_WINDOW_UNAVAILABLE,
+            "the approval-code window could not open on this computer, and this app has no terminal to show the codes",
+        )
 
 
 def _show_on_desktop(request: Request, *, codes: str, batches: list[int], expires_at: str) -> bool:
@@ -1306,13 +1331,15 @@ def pairing_begin_all(request: Request, body: PairingBeginAllBody | None = None)
         raise _error(409, str(code), str(getattr(exc, "message", exc)), **details) from exc
     batches = [s["batch_index"] for s in staged["staged"]]
     count = len(batches)
-    print(
-        f"[nexus-scholar] approval codes for {count} batch{'es' if count != 1 else ''} "
-        f"(expire {staged['expires_at']}); copy the lines below into the Publish screen:",
-        flush=True,
-    )
-    print(staged["block"], flush=True)
+    if _codes_on_terminal(request):
+        print(
+            f"[nexus-scholar] approval codes for {count} batch{'es' if count != 1 else ''} "
+            f"(expire {staged['expires_at']}); copy the lines below into the Publish screen:",
+            flush=True,
+        )
+        print(staged["block"], flush=True)
     shown = _show_on_desktop(request, codes=staged["block"], batches=batches, expires_at=staged["expires_at"])
+    _require_a_place_for_the_codes(request, shown)
     return {
         "batches": [
             {"batch_index": s["batch_index"], "snapshot_fingerprint": s["snapshot_fingerprint"]}

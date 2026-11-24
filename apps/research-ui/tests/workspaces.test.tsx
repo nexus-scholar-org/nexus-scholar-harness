@@ -76,6 +76,32 @@ describe("workspaces.list", () => {
     expect(document.body.textContent).toContain(ROOT);
   });
 
+  it("badges a review made by a newer version and a failed copy, and names the last copy (H-workspace-format-version)", async () => {
+    const copiesFolder = `${ROOT}\\.nexus-copies\\uav-review`;
+    engine({
+      list: () => listing({
+        items: [
+          item("uav-review", {
+            is_current: true, has_corpus: true,
+            last_copy: { name: "uav-review-20261124T090000Z-format0-to1-earlier-to-1.1.0b8.zip", folder: copiesFolder, at: "2026-11-24T09:00:00+00:00", bytes: 4096 },
+          }),
+          item("crop-review", { format: { recorded: true, format: 2, written_by: "1.3.0", newer: true, unreadable: false } }),
+        ],
+        preparation: { state: "refused", slug: "uav-review", title: "uav review", reason: "build", done_bytes: 0, total_bytes: 0,
+          refusal: { code: "WORKSPACE_COPY_FAILED", message: "disk full" } },
+      }),
+    });
+    render(<WorkspacesScreen locale="en" />);
+    const current = (await screen.findByText("uav review")).closest("tr")!;
+    expect(within(current).getByText("Copy failed")).toBeInTheDocument();
+    expect(within(current).getByText(copiesFolder)).toBeInTheDocument();
+    expect(current.querySelector("[data-last-copy]")?.textContent).toContain("Copy saved before an update");
+    const newer = screen.getByText("crop review").closest("tr")!;
+    expect(within(newer).getByText("Made with a newer version")).toBeInTheDocument();
+    expect(within(newer).queryByText("Copy failed")).toBeNull();
+    expect(newer.querySelector("[data-last-copy]")).toBeNull();
+  });
+
   it("links New review to the inception drafts, as a secondary action beside the one brand button (M4b)", async () => {
     engine();
     render(<WorkspacesScreen locale="en" />);
@@ -212,5 +238,34 @@ describe("workspaces copy and shell", () => {
     expect(previewSlug("  Weed Mapping with UAVs!  ")).toBe("weed-mapping-with-uavs");
     expect(previewSlug("Revue -- systématique")).toBe("revue-systématique");
     expect(previewSlug("!!!")).toBe("");
+  });
+});
+
+describe("workspaces in the installed app (M13 Part A)", () => {
+  const cookie = (value: string | null) => {
+    document.cookie = value === null ? "nexus_started_as=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/" : `nexus_started_as=${value}; path=/`;
+  };
+  afterEach(() => cookie(null));
+
+  it("points to the Import screen after a review is made, with no command and no Copy button", async () => {
+    cookie("installed");
+    engine();
+    render(<WorkspacesScreen locale="en" />);
+    fireEvent.click(await screen.findByRole("button", { name: "New workspace" }));
+    fireEvent.change(screen.getByLabelText("Title of the review"), { target: { value: "Weed Mapping" } });
+    fireEvent.click(screen.getByRole("button", { name: "Create" }));
+    await screen.findByRole("heading", { name: "Workspace created" });
+    const next = document.querySelector("[data-next-step]")!;
+    expect(next).toHaveTextContent("import your search results on the Import screen");
+    expect(next.textContent).not.toMatch(/accept-corpus|terminal/);
+    expect(within(next as HTMLElement).queryByRole("button", { name: /copy/i })).toBeNull();
+  });
+
+  it("says where to put a review folder you already have", async () => {
+    cookie("installed");
+    engine({ list: () => listing({ items: [], current: null }) });
+    render(<WorkspacesScreen locale="fr" />);
+    await screen.findByText(/déplacez-le dans le dossier indiqué en haut de cet écran/);
+    expect(document.body.textContent).not.toMatch(/terminal/i);
   });
 });

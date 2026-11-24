@@ -18,6 +18,7 @@ import {
   type WorkspaceItem,
   type WorkspaceListing,
 } from "@/lib/workspaces";
+import { useInstalled } from "@/lib/engine-start";
 
 /**
  * The minimal workspace screen (spec `phase2-screening/final/00-workspaces.md`,
@@ -48,6 +49,9 @@ const COPY = {
     "status.screening": "Screening in progress",
     "status.published": "Published",
     "status.publishedChanged": "Published, decisions since",
+    "badge.newer": "Made with a newer version",
+    "badge.copyFailed": "Copy failed",
+    lastCopy: "Copy saved before an update",
     untitled: "Untitled",
     never: "No activity yet",
     "create.label": "New workspace",
@@ -66,6 +70,8 @@ const COPY = {
     "next.open": "Open it",
     "empty.title": "No workspaces yet",
     "empty.body": "Your reviews will appear here. To use a folder you already have, start the app on it from the terminal.",
+    "empty.bodyInstalled": "Your reviews will appear here. To use a review folder you already have, move it into the folder named at the top of this screen, then come back here.",
+    "next.bodyInstalled": "Screening starts from an accepted corpus. Open the review, then import your search results on the Import screen and accept them.",
     opening: "Opening {title}…",
     "skipped.count": "{n} folders skipped",
     "skipped.show": "Show them",
@@ -102,6 +108,9 @@ const COPY = {
     "status.screening": "Sélection en cours",
     "status.published": "Publiée",
     "status.publishedChanged": "Publiée, décisions depuis",
+    "badge.newer": "Créée avec une version plus récente",
+    "badge.copyFailed": "Échec de la copie",
+    lastCopy: "Copie enregistrée avant une mise à jour",
     untitled: "Sans titre",
     never: "Aucune activité",
     "create.label": "Nouvel espace",
@@ -120,6 +129,8 @@ const COPY = {
     "next.open": "L'ouvrir",
     "empty.title": "Aucun espace pour l'instant",
     "empty.body": "Vos revues apparaîtront ici. Pour utiliser un dossier existant, lancez l'application dessus depuis le terminal.",
+    "empty.bodyInstalled": "Vos revues apparaîtront ici. Pour utiliser un dossier de revue existant, déplacez-le dans le dossier indiqué en haut de cet écran, puis revenez ici.",
+    "next.bodyInstalled": "La sélection part d'un corpus accepté. Ouvrez la revue, puis importez vos résultats de recherche sur l'écran Importer et acceptez-les.",
     opening: "Ouverture de {title}…",
     "skipped.count": "{n} dossiers ignorés",
     "skipped.show": "Les afficher",
@@ -156,6 +167,9 @@ const COPY = {
     "status.screening": "الفرز جارٍ",
     "status.published": "منشور",
     "status.publishedChanged": "منشور، مع قرارات بعده",
+    "badge.newer": "أُنشئت بإصدار أحدث",
+    "badge.copyFailed": "فشل النسخ",
+    lastCopy: "نسخة محفوظة قبل تحديث",
     untitled: "بلا عنوان",
     never: "لا نشاط بعد",
     "create.label": "مساحة عمل جديدة",
@@ -174,6 +188,8 @@ const COPY = {
     "next.open": "فتحها",
     "empty.title": "لا توجد مساحات عمل بعد",
     "empty.body": "ستظهر مراجعاتك هنا. لاستخدام مجلد موجود لديك، شغّل التطبيق عليه من الطرفية.",
+    "empty.bodyInstalled": "ستظهر مراجعاتك هنا. لاستخدام مجلد مراجعة موجود لديك، انقله إلى المجلد المذكور في أعلى هذه الشاشة، ثم عد إلى هنا.",
+    "next.bodyInstalled": "يبدأ الفرز من متن مقبول. افتح المراجعة، ثم استورد نتائج بحثك في شاشة الاستيراد واقبلها.",
     opening: "جارٍ فتح {title}…",
     "skipped.count": "{n} مجلدات مُتخطّاة",
     "skipped.show": "إظهارها",
@@ -242,6 +258,7 @@ function acceptCommand(path: string): string {
 }
 
 export function WorkspacesScreen({ locale }: Readonly<{ locale: Locale }>) {
+  const installed = useInstalled();
   const t = useCallback((key: WorkspacesCopyKey, values?: Record<string, string | number>) => fill(WORKSPACES_COPY[locale][key], values), [locale]);
   const origin = useMemo(consoleOrigin, []);
   const [listing, setListing] = useState<WorkspaceListing | null>(null);
@@ -424,18 +441,22 @@ export function WorkspacesScreen({ locale }: Readonly<{ locale: Locale }>) {
         {created ? (
           <section aria-labelledby="next-step" className="rounded-lg border border-rule bg-leaf p-5" data-next-step>
             <h2 id="next-step" ref={nextHeading} tabIndex={-1} className="font-semibold text-ink">{t("next.title")}</h2>
-            <p className="mt-1 text-ink">{t("next.body")}</p>
-            <p className="mt-2 rounded-md bg-paper p-2 font-mono text-sm text-ink">
-              <bdi dir="ltr">{acceptCommand(created.path)}</bdi>
-            </p>
+            <p className="mt-1 text-ink">{t(installed ? "next.bodyInstalled" : "next.body")}</p>
+            {installed ? null : (
+              <p className="mt-2 rounded-md bg-paper p-2 font-mono text-sm text-ink">
+                <bdi dir="ltr">{acceptCommand(created.path)}</bdi>
+              </p>
+            )}
             <div className="mt-2 flex flex-wrap gap-3">
-              <Button
-                onClick={() => {
-                  void navigator.clipboard?.writeText(acceptCommand(created.path)).then(() => setCopied(true));
-                }}
-              >
-                <span aria-live="polite">{copied ? t("next.copied") : t("next.copy")}</span>
-              </Button>
+              {installed ? null : (
+                <Button
+                  onClick={() => {
+                    void navigator.clipboard?.writeText(acceptCommand(created.path)).then(() => setCopied(true));
+                  }}
+                >
+                  <span aria-live="polite">{copied ? t("next.copied") : t("next.copy")}</span>
+                </Button>
+              )}
               <Button onClick={() => void open({ slug: created.slug, title: null, path: created.path })}>{t("next.open")}</Button>
             </div>
             <p className="mt-3 border border-dashed border-rule p-2 text-sm text-ink-muted" data-draft>{t("create.placeholderProtocol")}</p>
@@ -452,7 +473,7 @@ export function WorkspacesScreen({ locale }: Readonly<{ locale: Locale }>) {
         {valid.length === 0 && invalid.length === 0 ? (
           <section className="rounded-lg border border-rule bg-leaf p-5" data-empty>
             <h2 className="font-semibold text-ink">{t("empty.title")}</h2>
-            <p className="mt-1 text-ink-muted">{t("empty.body")}</p>
+            <p className="mt-1 text-ink-muted">{t(installed ? "empty.bodyInstalled" : "empty.body")}</p>
           </section>
         ) : (
           <div className="overflow-x-auto rounded-lg border border-rule bg-leaf">
@@ -474,10 +495,22 @@ export function WorkspacesScreen({ locale }: Readonly<{ locale: Locale }>) {
                       <td className="p-3">
                         <p className="font-medium text-ink">{item.title ?? t("untitled")}</p>
                         <p className="text-xs text-ink-muted"><bdi dir="ltr">{item.path}</bdi></p>
+                        {/* H-workspace-format-version: the newest copy saved before a newer version opened it. */}
+                        {item.last_copy ? (
+                          <p className="text-xs text-ink-muted" data-last-copy={item.last_copy.name}>
+                            {t("lastCopy")}: <Stamp at={item.last_copy.at} /> · <bdi dir="ltr">{item.last_copy.folder}</bdi>
+                          </p>
+                        ) : null}
                       </td>
                       <td className="p-3">
                         <span className="flex flex-wrap items-center gap-2">
                           <DecisionBadge role={status.role}>{t(status.key)}</DecisionBadge>
+                          {item.format?.newer ? (
+                            <span data-format-newer><DecisionBadge role="blocked">{t("badge.newer")}</DecisionBadge></span>
+                          ) : null}
+                          {item.is_current && listing?.preparation?.state === "refused" && listing.preparation.refusal?.code === "WORKSPACE_COPY_FAILED" ? (
+                            <span data-copy-failed><DecisionBadge role="blocked">{t("badge.copyFailed")}</DecisionBadge></span>
+                          ) : null}
                           {/* A status chip, never a wrapped button (M6-beta, review U-3). */}
                           {item.is_current ? (
                             <span className="whitespace-nowrap rounded-sm border border-brand px-2 py-0.5 text-xs text-brand" data-open-now>

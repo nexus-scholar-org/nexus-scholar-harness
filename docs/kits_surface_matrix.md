@@ -1,6 +1,6 @@
 # Kit Surface Matrix — API · CLI · MCP
 
-> **Status:** Live — generated 2026-09-13 by a full read-only sweep of all eight kits; `scholar_bib` was removed in M5-slim (2026-11-05), and `scholar_rag` and `scholar_verify` on 2026-11-23 (H-remove-rag-verify; findings below that name them are history), leaving five
+> **Status:** Live — generated 2026-09-13 by a full read-only sweep of all eight kits; `scholar_bib` was removed in M5-slim (2026-11-05), and `scholar_rag` and `scholar_verify` on 2026-11-23 (H-remove-rag-verify), and `scholar_graph` the same day (H-remove-graph); findings below that name them are history, leaving four
 > (one exploration agent per kit, evidence cited inline). This is the **agent-facing
 > knowledge base** that backstops the `SKILL.md` files and the MCP tools.
 > **Regenerate:** re-run the sweep when kit APIs/CLIs change; skill content mirrors this
@@ -8,11 +8,11 @@
 
 > **Parked, not production (M5-slim, production plan §8).** The beta ships
 > **screening** (import → prepare → screen → publish, with optional agent
-> proposals). The citation graph (`scholar_graph`) and reading PDFs
-> (`scholar_pdf` `extract`, `extract-run`, and E1 `acquire`; findings
-> PDF-07/08) still work, but are parked: their `--help` says so first, their MCP
-> tools say so in their descriptions, and the app labels any screen that shows
-> them. Do not rely on them for a review.
+> proposals). Reading PDFs (`scholar_pdf` `extract`, `extract-run`, and E1
+> `acquire`; findings PDF-07/08) still works, but is parked: its `--help` says so
+> first, its MCP tools say so in their descriptions, and the app labels any
+> screen that shows it. Do not rely on it for a review. The citation graph
+> (`scholar_graph`) was removed on 2026-11-23 (H-remove-graph).
 >
 > **The PDF kit's downloading is production** (decision 2026-11-21, M12a items 21
 > and 27, K0): `scholar-pdf download` and `ingest` need a contact e-mail
@@ -53,9 +53,8 @@ that no single skill covers.
 | :-- | :-- | :-- | :-- | :-- |
 | search (`scholar_search`) | `SearchEngine`, `Deduplicator`, `DocumentVerifier`, `CitationChainer`, screening fns, `Exporter` | `scholar-search` (search/snowball/chain/import/dedup/verify/export/screen) | `nexus_discover`, `nexus_dedup`, `nexus_screen`, `nexus_screen_reconcile` | Phase-1 discovery/prepare (`compile_protocol_search`) |
 | pdf (`scholar_pdf`) | `AsyncPDFDownloader`, `PyMuPDFEngine`/`DoclingEngine`/`GrobidEngine`, validators, **`scholar_pdf.acquisition`** (WP01-E1, parent-bound), **`scholar_pdf.extraction`** (WP01-E2, parent-bound) | `scholar-pdf` (download/ingest: **production** since K0; **acquire**/**extract-run**/extract: parked) | `nexus_extract_pdf` (PyMuPDF only, non-authoritative); acquisition: **UNSUPPORTED** (`pdf_acquisition`, `mcp_supported=false`); extraction: **UNSUPPORTED** (`pdf_extraction`, `mcp_supported=false`) | Phase-2 fulltext + E1 acquired-document + E2 extracted-text boundary |
-| graph (`scholar_graph`) | `CitationGraphBuilder`, `GraphVisualizer` | `scholar-graph` (build/pagerank) | `nexus_graph_build` | Phase-3 knowledge-graph |
 | protocol (`scholar_protocol`) | `ResearchProtocol`, `compile_protocol`, `canonical_json/fingerprint`, `validate_protocol`, `render_screening_criteria`, `build_extraction_model` | `scholar-protocol` (compile/validate/fingerprint/canon/render-criteria/extraction-schema/extraction-prompt) | `nexus_protocol_compile/validate/render_criteria` | Phase-0 protocol |
-| agent (`scholar_agent`) | MCP server (**24 tools**, incl. the five M10c `nexus_assistant_*` tools, `nexus_pdf_acquire` = declared-unsupported E1 boundary and `nexus_pdf_extraction` = declared-unsupported E2 boundary) + harness-recon adapter | `scholar-agent` (MCP stdio server) | every `nexus_*` + `recon_probe/distill/delta` | MCP front-door |
+| agent (`scholar_agent`) | MCP server (**22 tools**, incl. the five M10c `nexus_assistant_*` tools, `nexus_pdf_acquire` = declared-unsupported E1 boundary and `nexus_pdf_extraction` = declared-unsupported E2 boundary) + harness-recon adapter | `scholar-agent` (MCP stdio server) | every `nexus_*` + `recon_probe/distill/delta` | MCP front-door |
 | harness (`scholar_harness`) | thin wrapper over the kit APIs (`orchestrator.py`; inception engine) | `nexus-scholar` (P7): `init` (P7.3 scaffold), `setup-mcp` (P7.4), `doctor` (P7.5 — kits import + pinned `default_rev` via `plugins.json`/wheel `nexus_scholar_pins.json`, `SCHOLAR_MAILTO` + model keys, skill resolvability, workspace layout; `--json` machine-readable with key values masked `***`; `--exit-code` opt-in, trips on FAIL only), `log` (P7.6 — `log event` single canonical event, `log batch` JSONL lenient-skip, `log sync-index` INDEX regeneration; all refresh INDEX + append to `audit/journal.jsonl` via the wheel-portable `workspace-manager` loader, workstation path-or-slug resolution with clean refusal); dev-venv script is `scholar-harness` (status/sync/run/export/inception) | — (agent kit owns the MCP front-door) | distribution / orchestration front-door |
 
 ---
@@ -421,23 +420,7 @@ Declared facts (all harness-enforced by
 Removed in M5-slim (2026-11-05): the harness never used it, and its dedup and resolver could silently damage a `.bib` file (`docs/assessment/kit-bib.md`, BIB-01 to BIB-03).
 
 ### scholar-graph-kit
-- **Public API:** `CitationGraphBuilder(http_client)` (mandatory client — API-pinned;
-  `build_graph` raises nothing, swallows fetch failures to None), `compute_pagerank(
-  alpha=0.85)` (normalized to max 1.0, 4dp, lowercased keys), `export_json` (node-link
-  + `"pagerank"` key), `GraphVisualizer(output_path).generate_html` (PyVis, mutates
-  node attrs). `config.Settings` and `models.GraphNode/GraphEdge` are **dead**.
-- **CLI:** `build --doi/-d (repeatable) | --input json; --output graph.html; 
-  --json-output` (renders HTML **before** exporting JSON → CLI JSON includes PyVis
-  `value`/`title` node keys), `pagerank <graph.json>` (needs the `pagerank` key).
-  JSON always written even without `--json-output` (sidecar `graph.json`).
-- **MCP:** `nexus_graph_build(input_path, output_html, json_output)` — 0-edge bug
-  (finding 2); DOI precedence `doi` → `external_ids` (reverse of CLI).
-- **Knowledge:** OpenAlex only, **no polite-pool mailto sent**; intra-pool edges only
-  (source → referenced work in pool via wid→doi); **no co-citation logic exists**
-  (prose claims are aspirational); no TF-based weighting; graph.json was consumed by
-  the RAG retriever until it was removed on 2026-11-23; pyvis 0.3.2 `lib/` materializes in
-  run CWD and the HTML is a hybrid (local bindings + **CDN vis.js**) — not offline;
-  unbounded per-DOI concurrency; fallback nodes get `year=None`, `title="Study <doi>"`.
+Removed on 2026-11-23 (H-remove-graph): the citation graph was parked, no product path used it, and it alone brought `networkx`, `pyvis` and `scipy` into the base install. Restore it from `9af17212`.
 
 ### scholar-protocol-kit
 - **Public API:** `compile_protocol(IntentPacket) -> ResearchProtocol` (pure, zero
@@ -461,7 +444,7 @@ Removed in M5-slim (2026-11-05): the harness never used it, and its dedup and re
   JSON strings, not MCP failures.
 
 ### scholar-agent-kit (MCP front-door)
-- **24 tools** (21 `nexus_*` + 3 `recon_*`; since M10c the five `nexus_assistant_*` tools: read the app's drafts and workspaces, add a proposal or a finding, never apply one); `--help` lists all 24 (listing parity enforced
+- **22 tools** (19 `nexus_*` + 3 `recon_*`; since M10c the five `nexus_assistant_*` tools: read the app's drafts and workspaces, add a proposal or a finding, never apply one; H-remove-graph removed the two graph tools); `--help` lists all 22 (listing parity enforced
   by `tests/conformance/test_mcp_tool_parity.py`). Full inventory and signatures in
   `server.py` (tool list at lines 203-1782); launch via `uv run
   --directory tools/scholar-agent-kit scholar-agent` (CWD = kit dir; no env/cwd in
@@ -503,7 +486,6 @@ Removed in M5-slim (2026-11-05): the harness never used it, and its dedup and re
 
 ```text
 scholar-search-kit ──http_client──► scholar-pdf-kit        (AcademicHttpClient)
-                ├──http_client──► scholar-graph-kit        (mandatory ctor arg)
                 ├──SearchEngine─► scholar-agent-kit/recon  (adapter make_engine search_fn)
                 │                 scholar_harness.recon.adapter
 scholar-protocol-kit ──────────► scholar-agent-kit (compile/validate/render)
@@ -520,7 +502,7 @@ scholar-agent-kit ──adapter import──► scholar_harness.recon.adapter (g
 | MCP/harness | `NEXUS_RECON_ROOT`, `NEXUS_SKILLS_SRC`, `NEXUS_MCP_CONFIG_HOME` (P7.4 `setup-mcp` config root override, mirrors `NEXUS_RECON_ROOT`) | agent/harness |
 | LLM screening | `GEMINI_API_KEY` | search (`LLMBatchScreener`) |
 
-Known pins (2026-11-10): there are no per-kit versions any more; every package ships in the one `nexus-scholar` wheel, version `1.1.0b6` (`pyproject.toml:7`). `.agents/plugins/nexus-scholar/plugins.json` carries no `default_rev` pins, so the `default_rev` sentence below is history. Third-party pins as last swept (2026-09-13, not re-checked): bibtexparser `2.0.0b9` **beta**; chromadb `1.5.9`;
+Known pins (2026-11-10): there are no per-kit versions any more; every package ships in the one `nexus-scholar` wheel, version `1.1.0b7` (`pyproject.toml:7`; 2026-11-23). `.agents/plugins/nexus-scholar/plugins.json` carries no `default_rev` pins, so the `default_rev` sentence below is history. Third-party pins as last swept (2026-09-13, not re-checked): bibtexparser `2.0.0b9` **beta**; chromadb `1.5.9`;
 sentence-transformers `6.0.0`; networkx `3.6.1`; mcp `2.1.1` (agent kit);
 pymupdf `1.28.2` (`import fitz`); docling `2.123.0` (only with `[extract]` extra);
 `plugins.json` lists all 7 kits to `default_rev` full commit SHAs (freshness enforced by

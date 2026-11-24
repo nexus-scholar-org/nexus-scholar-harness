@@ -56,6 +56,12 @@ New console codes (not Contract v1). They go in `src/scholar_harness/console/ref
 | `WORKSPACE_NOT_VALID` | 409 | open | the folder lacks a canonical marker, or no longer exists |
 | `WORKSPACE_BUSY` | 409 | open | an agent run is active or an approval pairing is open; `details` names which |
 | `RESTART_UNSUPPORTED` | 501 | open | the server was not started by the `nexus-scholar ui` launcher |
+| `WORKSPACE_FORMAT_NEWER` | 409 | open, every workspace route | the workspace's `workspace_format.json` names a newer format than this build reads; it is not opened and nothing is written (H-workspace-format-version) |
+| `WORKSPACE_FORMAT_UNREADABLE` | 409 | open, every workspace route | `workspace_format.json` cannot be read; it is not opened |
+| `WORKSPACE_COPY_FAILED` | 409 | every workspace route | the copy made before this build writes to an older workspace could not be saved; the workspace was not changed |
+| `WORKSPACE_PREPARING` | 503 | every workspace route | the copy is being made in the background; `details` is the preparation state below |
+
+**The format check (H-workspace-format-version).** `create_app` prepares its workspace before any route may write: a workspace of an older format, or last written by an older build, is copied to `{parent}/.nexus-copies/{slug}/` (a verified zip) and stamped; a large copy runs in the background. `GET /api/v1/workspaces/preparation` (workspace-free) answers `{preparation: {state: "ready"|"preparing"|"refused"|"cancelled", slug, title, reason: "format"|"build"|null, done_bytes, total_bytes, refusal?: {code, message, details}, result?: {copied, copy: {name, folder}?, …}} | null}`, and the list carries the same object as `preparation`. Each list item also carries `format: {recorded, format, written_by, newer, unreadable}` and `last_copy: {name, folder, at, bytes} | null`; both are reads, and the list never copies or stamps. `POST /workspaces/open` runs the quick checks only (newer, unreadable); the copy runs in the new server. Open on the current workspace while its copy is refused (failed or cancelled) answers `202` and restarts on it: that is the retry. `GET /api/v1/workspace/meta` (a read) answers during a copy, so the screen's wait after Open ends. The list's last activity and the choice of the most recent workspace skip the format rows (`WORKSPACE_FORMAT_STAMPED`, `WORKSPACE_FORMAT_MIGRATED`, `WORKSPACE_OPENED_BY_NEWER_BUILD`).
 
 `RUN_ALREADY_ACTIVE` keeps its meaning (a second agent run) and is not reused.
 

@@ -295,6 +295,10 @@ def scaffold_raw_project(
     (ws_dir / "project.json").write_text(
         json.dumps(manifest, indent=2, ensure_ascii=False), encoding="utf-8"
     )
+    # H-workspace-format-version: a new workspace starts at the current format.
+    from ..workspace.format import stamp_new
+
+    stamp_new(ws_dir)
 
     write_review_notes(ws_dir, title, rqs)
 

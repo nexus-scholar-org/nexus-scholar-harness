@@ -10,7 +10,7 @@ layer: domain
 # `scholar-agent-kit` Skill Instructions
 
 MCP front-door for most Nexus Scholar surfaces — **not** every API/CLI capability.
-24 tools: 21 `nexus_*` + 3 `recon_*` (`scholar-agent --help` lists all 24 registered tools; parity
+22 tools: 19 `nexus_*` + 3 `recon_*` (`scholar-agent --help` lists all 22 registered tools; parity
 enforced by `tests/conformance/test_mcp_tool_parity.py`). Pinned source:
 `{KIT_ROOT:agent}/src/scholar_agent/server.py` (tool list/signatures,
 `_resolve_path`, refusals) + `capabilities.py` (registry; pin: see `{CONFIG}`).
@@ -18,8 +18,8 @@ Detail pointers below route to `--help`, the surface matrix, and those two
 files — this page stays the small-footprint entrypoint.
 
 ## Preflight
-- `MCP nexus_*` availability, or `{CLI:agent} --help` resolves (lists all 24 registered tools) → else `BLOCKED_INPUT`.
-- `{WORKSPACE}` resolves — `protocol.json`/`project.json` where the tools require workspace input; a graph JSON for #12.
+- `MCP nexus_*` availability, or `{CLI:agent} --help` resolves (lists all 22 registered tools) → else `BLOCKED_INPUT`.
+- `{WORKSPACE}` resolves — `protocol.json`/`project.json` where the tools require workspace input.
 - `{CONFIG}` present (the pin manifest).
 
 ## Refusals
@@ -32,7 +32,7 @@ files — this page stays the small-footprint entrypoint.
 
 ```bash
 {CLI:agent} [--workspace <ws>]
-{CLI:agent} --help  # lists all 24 registered tools
+{CLI:agent} --help  # lists all 22 registered tools
 ```
 
 - Server CWD is `{KIT_ROOT:agent}/`; `mcp_config.json` ships no `env`/cwd.
@@ -52,7 +52,7 @@ files — this page stays the small-footprint entrypoint.
 - Known gap: client auto-setup should set `NEXUS_RECON_ROOT` explicitly since
   `mcp_config.json` declares no `env`.
 
-## 2. Tool inventory — Exposed MCP Tools (24 total) — signature → return
+## 2. Tool inventory — Exposed MCP Tools (22 total) — signature → return
 
 | # | Tool | Key signature (defaults) | Returns |
 |---|------|--------------------------|---------|
@@ -65,26 +65,26 @@ files — this page stays the small-footprint entrypoint.
 | 7 | `nexus_extract_pdf` | `(pdf_path, output_dir="./extracted", engine="pymupdf")`; `title`/`doi`/`workspace_id` heuristically derived from path (§5) | prose (`Error…` prefix); **not** an envelope |
 | 8 | `nexus_pdf_acquire` | 14 E1-shaped args, all default `""`, discoverability only | JSON refusal envelope (§4) |
 | 9 | `nexus_pdf_extraction` | `(pdf_path="", output_dir="", engine="")`, discoverability only | JSON refusal envelope (§4) |
-| 10 | `nexus_graph_build` | `(input_path, output_html="./graph.html", json_output="./graph.json")`; real `AcademicHttpClient(name="openalex-graph", rate_limit=10)`; accepts list or `{results\|items}` dicts; DOI precedence `external_ids.doi → doi`; errors on zero DOIs | prose (`Error…`) |
-| 11 | `nexus_screen_reconcile` | `(screeners_json, adjudication_json=None)`; dir of `batch_*_decisions*.json` or screener→decision map | JSON majority-vote + Fleiss' κ (`{"status":"ERROR"…}` on failure) |
-| 12 | `nexus_graph_narrative` | `(workspace_dir, graph_json_path, top_hubs=10)`; hubs by PageRank, communities by `group` | JSON `{status, n_hubs, n_communities, output_path}`; writes `synthesis/visual_synthesis.md` |
-| 13 | `nexus_pipeline_run` | `(workspace_dir, query=None, protocol_path=None, skip_stages=None)`; `ResearchOrchestrator` to the screening hand-off (extraction and graph after a collect), comma-separated skips | JSON result (`{"status":"ERROR"…}` on failure) |
-| 14 | `recon_probe` | `(topic, session_id=None, start_year=2020, limit=10, semantic=False)`; pool capped at 25; `semantic=True` → OpenAlex `search.semantic` (`/m/semantic/` cache-key segment); upserts `rec_<hex>` sessions | JSON `{session_id, cache_key, status: probe_ok, n_docs, pool_path}` |
-| 15 | `recon_distill` | `(session_id, lexicon_json=None)`; str **or** dict; optional `metrics/datasets/schools` regex→label maps merged over default; lexicon hash in artifact name; carries `pool` sufficiency + `purity` gates (`qei` never standalone) | JSON `{session_id, cache_key, terms_path, qei, pool, purity, metrics, datasets, schools, topics, micro_taxonomy_top}` |
-| 16 | `recon_delta` | `(session_id, followups=3)`; hard cap 3; thin schools `n ≤ 2`; gap reason verbatim under `reason` **and** `confidence.detail` (`label: gap`); `corpus_total` + `saturation_label` per follow-up; `dropped_n` counts 25-cap discards | JSON `{session_id, merged_cache_keys, followups, pool_path, terms_path, topics, dropped_n, pool_size_before/after}` |
-| 17 | `nexus_screening_queue` | `(workspace_dir=".", view="needs_you", limit=50)`; views `needs_you`, `no_proposal`, `decided` | JSON `{status, items:[{study_id, title, has_proposal}]}`; never shows an agent outcome |
-| 18 | `nexus_screening_record` | `(study_id, workspace_dir=".")` | JSON `{status, study_id, title, abstract, criteria, answers}`; evidence offsets index into title + blank line + abstract |
-| 19 | `nexus_submit_proposal` | `(study_id, proposal_json, model, task_version="screen-v1", prompt_sha256=None, workspace_dir=".")`; one answer per criterion with a verbatim evidence span | JSON `{status, proposal_id, derived_outcome, validators}`; appends to the proposal store, journals, **never** writes a decision |
-| 20 | `nexus_assistant_drafts` | `(workspaces_root=None)`; the app's root (`NEXUS_WORKSPACES_ROOT` or the default) | JSON `{status, workspaces_root, drafts:[{session_id, topic, title, updated_at, emitted, open_proposals, findings}]}`; read-only |
-| 21 | `nexus_assistant_read_draft` | `(session_id, workspaces_root=None)` | JSON `{status, draft, intent, intent_refused, grounding, checks, proposals, pool}`; read-only (the checks are computed as the app does; nothing is recorded) |
-| 22 | `nexus_assistant_read_workspace` | `(workspace_dir)` a slug under the app's root, or a path inside the MCP anchor | JSON `{status, intent, protocol, plan, recall, checks, proposals}`; `plan.providers[]` carries each database's translation and `cannot_express`; read-only |
-| 23 | `nexus_assistant_propose` | `(field, op, value, why, model, session_id=None, workspace_dir=None, task="suggest", evidence=None, workspaces_root=None)`; exactly one of `session_id`, `workspace_dir`; `task` ∈ `suggest\|synonyms\|translation\|recall_repair` | JSON `{status, created, proposal}`; one open proposal, source `agent:<model>`. On a draft: on the app's card for its step; a side write (no answer, no `updated_at` change); checked as a save of the field would be; refused after genesis (`DRAFT_EMITTED`). On a workspace: a card on Discovery Plan; only the search (`core_concepts` add, `core_concepts[<name>].synonyms` add/remove, `start_year`/`end_year` replace, `languages`); checked as an Apply would be; refused once a corpus is accepted (`CORPUS_ALREADY_ACCEPTED`). At most 30 open |
-| 24 | `nexus_assistant_report_finding` | `(locator, severity, finding, model, session_id=None, workspace_dir=None, why=None, workspaces_root=None)`; exactly one target; `locator` a JSON pointer into the intent (`draft:/…` into a draft's answers, `protocol:/…` into a workspace's `protocol.json`); `severity` ∈ `critical\|major\|minor` | JSON `{status, created, finding}`; an `ASSISTANT_FINDING` row (`source: "agent"`, never a blocker) in the app's checks panel; draft: record key `assistant_findings`; workspace: `audit/assistant_findings.jsonl` + `ASSISTANT_FINDING_REPORTED`; at most 50 open |
+| 10 | `nexus_screen_reconcile` | `(screeners_json, adjudication_json=None)`; dir of `batch_*_decisions*.json` or screener→decision map | JSON majority-vote + Fleiss' κ (`{"status":"ERROR"…}` on failure) |
+| 11 | `nexus_pipeline_run` | `(workspace_dir, query=None, protocol_path=None, skip_stages=None)`; `ResearchOrchestrator` to the screening hand-off (extraction after a collect), comma-separated skips | JSON result (`{"status":"ERROR"…}` on failure) |
+| 12 | `recon_probe` | `(topic, session_id=None, start_year=2020, limit=10, semantic=False)`; pool capped at 25; `semantic=True` → OpenAlex `search.semantic` (`/m/semantic/` cache-key segment); upserts `rec_<hex>` sessions | JSON `{session_id, cache_key, status: probe_ok, n_docs, pool_path}` |
+| 13 | `recon_distill` | `(session_id, lexicon_json=None)`; str **or** dict; optional `metrics/datasets/schools` regex→label maps merged over default; lexicon hash in artifact name; carries `pool` sufficiency + `purity` gates (`qei` never standalone) | JSON `{session_id, cache_key, terms_path, qei, pool, purity, metrics, datasets, schools, topics, micro_taxonomy_top}` |
+| 14 | `recon_delta` | `(session_id, followups=3)`; hard cap 3; thin schools `n ≤ 2`; gap reason verbatim under `reason` **and** `confidence.detail` (`label: gap`); `corpus_total` + `saturation_label` per follow-up; `dropped_n` counts 25-cap discards | JSON `{session_id, merged_cache_keys, followups, pool_path, terms_path, topics, dropped_n, pool_size_before/after}` |
+| 15 | `nexus_screening_queue` | `(workspace_dir=".", view="needs_you", limit=50)`; views `needs_you`, `no_proposal`, `decided` | JSON `{status, items:[{study_id, title, has_proposal}]}`; never shows an agent outcome |
+| 16 | `nexus_screening_record` | `(study_id, workspace_dir=".")` | JSON `{status, study_id, title, abstract, criteria, answers}`; evidence offsets index into title + blank line + abstract |
+| 17 | `nexus_submit_proposal` | `(study_id, proposal_json, model, task_version="screen-v1", prompt_sha256=None, workspace_dir=".")`; one answer per criterion with a verbatim evidence span | JSON `{status, proposal_id, derived_outcome, validators}`; appends to the proposal store, journals, **never** writes a decision |
+| 18 | `nexus_assistant_drafts` | `(workspaces_root=None)`; the app's root (`NEXUS_WORKSPACES_ROOT` or the default) | JSON `{status, workspaces_root, drafts:[{session_id, topic, title, updated_at, emitted, open_proposals, findings}]}`; read-only |
+| 19 | `nexus_assistant_read_draft` | `(session_id, workspaces_root=None)` | JSON `{status, draft, intent, intent_refused, grounding, checks, proposals, pool}`; read-only (the checks are computed as the app does; nothing is recorded) |
+| 20 | `nexus_assistant_read_workspace` | `(workspace_dir)` a slug under the app's root, or a path inside the MCP anchor | JSON `{status, intent, protocol, plan, recall, checks, proposals}`; `plan.providers[]` carries each database's translation and `cannot_express`; read-only |
+| 21 | `nexus_assistant_propose` | `(field, op, value, why, model, session_id=None, workspace_dir=None, task="suggest", evidence=None, workspaces_root=None)`; exactly one of `session_id`, `workspace_dir`; `task` ∈ `suggest\|synonyms\|translation\|recall_repair` | JSON `{status, created, proposal}`; one open proposal, source `agent:<model>`. On a draft: on the app's card for its step; a side write (no answer, no `updated_at` change); checked as a save of the field would be; refused after genesis (`DRAFT_EMITTED`). On a workspace: a card on Discovery Plan; only the search (`core_concepts` add, `core_concepts[<name>].synonyms` add/remove, `start_year`/`end_year` replace, `languages`); checked as an Apply would be; refused once a corpus is accepted (`CORPUS_ALREADY_ACCEPTED`). At most 30 open |
+| 22 | `nexus_assistant_report_finding` | `(locator, severity, finding, model, session_id=None, workspace_dir=None, why=None, workspaces_root=None)`; exactly one target; `locator` a JSON pointer into the intent (`draft:/…` into a draft's answers, `protocol:/…` into a workspace's `protocol.json`); `severity` ∈ `critical\|major\|minor` | JSON `{status, created, finding}`; an `ASSISTANT_FINDING` row (`source: "agent"`, never a blocker) in the app's checks panel; draft: record key `assistant_findings`; workspace: `audit/assistant_findings.jsonl` + `ASSISTANT_FINDING_REPORTED`; at most 50 open |
 
-Return rule of thumb: **JSON** = #1, #2, #8, #9, #11–#24.
-**Prose** (`"Error: …"` prefixes, no envelope) = #3–#7, #10.
+Return rule of thumb: **JSON** = #1, #2, #8–#22.
+**Prose** (`"Error: …"` prefixes, no envelope) = #3–#7.
 
-`nexus_screen_llm` was removed on 2026-11-23 (H-close-side-doors): use the app's agent run or #19.
+`nexus_graph_build` and `nexus_graph_narrative` were removed on 2026-11-23 with `scholar_graph` (H-remove-graph).
+
+`nexus_screen_llm` was removed on 2026-11-23 (H-close-side-doors): use the app's agent run or #17.
 
 Removed 2026-11-23 with `scholar_rag` and `scholar_verify` (H-remove-rag-verify):
 `nexus_rag_index`, `nexus_rag_query`, `nexus_rag_synthesize`,
@@ -142,26 +142,24 @@ Conformance: `test_e1_acquired_document_boundary.py`,
 - **Tool selection**: lazy/eager MCP calls (`nexus_discover`,
   `recon_probe/distill/delta`) inside subagent loops — this kit is the intended
   front-door. Interactive terminal or a known-broken MCP path → the direct kit
-  CLIs (`scholar-search`, `scholar-pdf`, `scholar-graph`, `scholar-protocol`).
-- **Direct CLI fallbacks**: `{CLI:graph} build --input
-  <ws>/literature/included.json` (real client, same as #10 builds).
+  CLIs (`scholar-search`, `scholar-pdf`, `scholar-protocol`).
 - **Screening contract**: #6 is heuristic screening that writes proposals
   only (`screening_proposals.json`), never a decision; the harness agent-in-the-loop batch handoff
   (`agent_screen.py` `batch_NNN.json` → `batch_NNN_decisions.json`) is a
-  separate contract — do not mix its files with #11's reconciler inputs
+  separate contract — do not mix its files with #10's reconciler inputs
   without checking shapes.
 - **Absolute paths > defaults** (see §1): anything file-backed gets an explicit
   `<workspace>/…` path.
-- **The assistant and the critic (#20–#24, M10c)**: on the researcher's
+- **The assistant and the critic (#18–#22, M10c)**: on the researcher's
   drafts and workspaces, read freely and explain; suggest a change only with
-  #23 and raise a problem only with #24. Nothing you send is applied: the
+  #21 and raise a problem only with #22. Nothing you send is applied: the
   researcher applies, edits or rejects each suggestion and dismisses each
   finding in the app. Never start a search or a harvest for the app's draft
   (`recon_probe`/`recon_delta` refuse its session id:
   `RECON_SESSION_IS_A_DRAFT`); never accept a corpus, decide a screening
   record or publish. Name your model in `model`. As a critic, report one
   finding per problem, at the most specific locator (the criterion, the
-  concept's synonyms, the question), with a severity from §2 #24, and stay
+  concept's synonyms, the question), with a severity from §2 #22, and stay
   quiet on what is sound. M9d's tasks: synonyms (`task="synonyms"`, field
   `concepts[<name>].synonyms`), translation explanations (read
   `plan.providers[].cannot_express` and explain it), recall repair (read

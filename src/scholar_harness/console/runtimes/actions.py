@@ -93,26 +93,11 @@ ACTIONS: list[Action] = [
         True,
     ),
     Action(
-        "graph",
-        "Build citation graph",
-        "uv run scholar-graph build --input {ws}/literature/included.json "
-        "--output {ws}/literature/knowledge_graph.html",
-        "nexus_graph_build",
-        True,
-    ),
-    Action(
         "export",
         "Export artifact set",
         "uv run scholar-harness export latex -w {ws}",
         None,
         True,
-    ),
-    Action(
-        "graph_narrative",
-        "Graph narrative synthesis",
-        "uv run scholar-graph pagerank {ws}/literature/knowledge_graph.json",
-        "nexus_graph_narrative",
-        False,
     ),
     Action(
         "pipeline",

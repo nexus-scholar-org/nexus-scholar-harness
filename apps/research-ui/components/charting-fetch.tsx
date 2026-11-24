@@ -54,6 +54,7 @@ import {
 import { UNREACHABLE_CODES, fileSize } from "@/lib/charting-logic";
 
 import { FOCUS_RING } from "./charting-cells";
+import { useInstalled } from "@/lib/engine-start";
 
 /**
  * The look-up of open-access copies (M12a Part F, spec 03), shared by the
@@ -356,11 +357,11 @@ export function PendingFile({
         {phone ? null : (
           // In the one-study view the two actions leave below 640 px (the phone is read-only, question 7).
           <span className={`${responsive ? "hidden sm:inline-flex" : "inline-flex"} flex-wrap items-center gap-1`} data-fetch-actions>
-            <Button variant="quiet" className="px-1 text-xs" disabled={disabled} onClick={onConfirm} aria-label={t("charting.fetch.confirmFor", { title })} data-fetch-confirm>
+            <Button variant="quiet" size="small" disabled={disabled} onClick={onConfirm} aria-label={t("charting.fetch.confirmFor", { title })} data-fetch-confirm>
               <CheckCircleIcon aria-hidden="true" className="size-4" />
               {t("charting.fetch.confirm")} <kbd className="text-xs opacity-80">C</kbd>
             </Button>
-            <Button variant="quiet" className="px-1 text-xs" disabled={disabled} onClick={onDiscard} aria-label={t("charting.fetch.discardFor", { title })} data-fetch-discard>
+            <Button variant="quiet" size="small" disabled={disabled} onClick={onDiscard} aria-label={t("charting.fetch.discardFor", { title })} data-fetch-discard>
               {t("charting.fetch.discard")} <kbd className="text-xs opacity-80">D</kbd>
             </Button>
           </span>
@@ -459,7 +460,7 @@ export function TriedPanel({ locale, origin, studyId, id, onClose }: Readonly<{ 
           </p>
         </>
       ) : null}
-      <Button variant="quiet" className="px-1 text-xs" onClick={onClose} data-tried-close>
+      <Button variant="quiet" size="small" onClick={onClose} data-tried-close>
         {t("charting.fetch.tried.close")}
       </Button>
     </div>
@@ -471,7 +472,7 @@ export function TriedDisclosure({ locale, origin, row, open, onToggle }: Readonl
   const panelId = `tried-${row.study_id.replace(/[^A-Za-z0-9_-]/g, "")}`;
   return (
     <>
-      <Button variant="quiet" className="px-1 text-xs" aria-expanded={open} aria-controls={panelId} onClick={() => onToggle(!open)} data-tried-open>
+      <Button variant="quiet" size="small" aria-expanded={open} aria-controls={panelId} onClick={() => onToggle(!open)} data-tried-open>
         {cc(locale, "charting.fetch.tried.open")}
       </Button>
       {open ? <TriedPanel locale={locale} origin={origin} studyId={row.study_id} id={panelId} onClose={() => onToggle(false)} /> : null}
@@ -516,6 +517,7 @@ export function PlanBlock({
   onCancel: () => void;
 }>) {
   const t: Words = (key, values) => cc(locale, key, values);
+  const installed = useInstalled();
   const heading = useId();
   const summaryClass = `min-h-11 cursor-pointer py-3 leading-5 rounded-sm ${FOCUS_RING}`;
   if (state.status === "mailto") {
@@ -523,7 +525,7 @@ export function PlanBlock({
       <section ref={blockRef as RefObject<HTMLElement>} tabIndex={-1} aria-labelledby={heading} className={`rounded-md bg-blocked-soft px-4 py-3 text-blocked ${FOCUS_RING}`} data-fetch-plan="mailto">
         <div role="alert" data-refusal="MAILTO_NOT_SET">
           <p id={heading}>
-            <Say locale={locale} k="charting.refusal.MAILTO_NOT_SET" />
+            <Say locale={locale} k={installed ? "charting.refusal.mailtoInstalled" : "charting.refusal.MAILTO_NOT_SET"} />
           </p>
           <details className="text-xs">
             <summary className={summaryClass}>{t("charting.details")}</summary>

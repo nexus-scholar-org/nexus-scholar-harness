@@ -61,7 +61,7 @@ def manifest(version: str, wheel_name: str) -> dict:
             "Connects Claude to one Nexus Scholar workspace on this computer through the scholar-agent MCP server. "
             "Claude can list records to screen, read one with its criteria, and store a draft proposal; it never records a decision. "
             "Record text reaches Anthropic through your Claude app, under your account's terms. "
-            "Retrieval, synthesis, graph, verification and full-text tools are present but parked, not production."
+            "The full-text tools are present but parked, not production."
         ),
         "author": {"name": "Nexus Scholar Org", "url": "https://github.com/nexus-scholar-org/nexus-scholar-harness"},
         "homepage": "https://github.com/nexus-scholar-org/nexus-scholar-harness",

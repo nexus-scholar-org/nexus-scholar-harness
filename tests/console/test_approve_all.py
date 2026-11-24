@@ -607,3 +607,74 @@ def test_review_the_window_says_which_batches_and_to_close_it_if_not_asked():
     words = code_window.message(list(range(1, 55)), "2026-11-20T10:05:00+00:00")
     assert "batches 1, 2, 3" in words and "and 42 more" in words
     assert "If you did not just ask for codes on the Publish screen, close this window" in words
+
+
+# --- M13 Part A: the installed app has no terminal ---------------------------
+
+
+def _client_without_terminal(ws: Path, window: Any) -> TestClient:
+    app = create_app(ws, token=DESKTOP, code_window=window, codes_on_terminal=False)
+    return TestClient(app, base_url="http://127.0.0.1", headers={"Authorization": f"Bearer {DESKTOP}"})
+
+
+def test_installed_app_the_codes_never_reach_its_log_file(tmp_path, monkeypatch):
+    """Review of M13 Part A, P1: the installed app's standard output is its log file.
+
+    The pairing rule (``authority/pairing.py``) is that a plaintext code is never
+    stored or logged: with no terminal the codes go to the desktop window only.
+    """
+    import sys
+
+    from scholar_harness.console import desktop
+
+    ws = _workspace(tmp_path, records=6, batch_size=3)
+    window = _Window()
+    client = _client_without_terminal(ws, window)
+    by_batch = _studies_by_batch(client)
+    _decide(client, by_batch[1] + by_batch[2])
+    log = desktop.open_log(tmp_path / "logs")
+    monkeypatch.setattr(sys, "stdout", log)
+    monkeypatch.setattr(sys, "stderr", log)
+
+    whole = client.post(f"{BASE}/actions/pairing/begin-all", json={})
+    single = client.post(f"{BASE}/actions/pairing/begin", json={"batch": 1})
+    monkeypatch.undo()
+    log.close()
+
+    assert whole.status_code == 200 and single.status_code == 200, (whole.text, single.text)
+    assert whole.json()["code_shown_on"] == "desktop" and single.json()["code_shown_on"] == "desktop"
+    block = window.calls[0]["codes"]
+    codes = [line.split(":", 1)[1].strip() for line in block.splitlines()]
+    codes.append(window.calls[1]["codes"].split(":", 1)[1].strip())
+    assert len(codes) == 3 and all(codes)
+    text = log.path.read_text(encoding="utf-8")
+    assert "approval code" not in text
+    for code in codes:
+        assert code not in text
+    # The window's codes still approve.
+    redeemed = client.post(f"{BASE}/actions/pairing/redeem-all", json={"codes": window.calls[-1]["codes"]})
+    assert redeemed.status_code == 200 and [r["batch_index"] for r in redeemed.json()["approved"]] == [1]
+
+
+@pytest.mark.parametrize("route", ["begin", "begin-all"])
+def test_installed_app_without_a_window_refuses_instead_of_hiding_the_codes(tmp_path, capsys, route):
+    ws = _workspace(tmp_path, records=3, batch_size=3)
+    client = _client_without_terminal(ws, _Window(shown=False))
+    _decide(client, _studies_by_batch(client)[1])
+    capsys.readouterr()
+    body = {"batch": 1} if route == "begin" else {}
+    answer = client.post(f"{BASE}/actions/pairing/{route}", json=body)
+    assert answer.status_code == 409
+    assert answer.json()["detail"]["code"] == "APPROVAL_WINDOW_UNAVAILABLE"
+    assert "approval code" not in capsys.readouterr().out
+
+
+def test_the_installed_start_runs_its_engine_without_a_terminal_for_codes(tmp_path):
+    from scholar_harness.console import launcher
+
+    ui = tmp_path / "ui"
+    (ui / "en").mkdir(parents=True)
+    (ui / "en" / "index.html").write_text("<html></html>", encoding="utf-8")
+    quiet = {"root": tmp_path, "workspace": None, "ui_dir": ui, "open_browser": False, "say": lambda _m: None}
+    assert launcher.Launcher(**quiet).build_app(None).state.codes_on_terminal is True  # `nexus-scholar ui`
+    assert launcher.Launcher(**quiet, codes_on_terminal=False).build_app(None).state.codes_on_terminal is False

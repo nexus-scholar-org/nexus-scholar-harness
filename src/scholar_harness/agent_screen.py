@@ -53,6 +53,25 @@ except ImportError:
     from .authority.review import cmd_approve, cmd_defer, cmd_review  # type: ignore
 
 
+#: Subcommands that only read the workspace (H-workspace-format-version).
+READ_ONLY_COMMANDS = frozenset({"status", "review"})
+
+
+def _open_for_writing(workspace_dir: Path) -> None:
+    """Copy and stamp an older workspace, refuse a newer one, before a subcommand writes."""
+    from scholar_harness.workspace.format import WorkspaceFormatRefused, prepare_for_writing
+
+    if not (workspace_dir / "project.json").is_file():
+        return
+    try:
+        result = prepare_for_writing(workspace_dir, agent="agent_screen")
+    except WorkspaceFormatRefused as exc:
+        print(exc.message, file=sys.stderr)
+        raise SystemExit(1) from exc
+    if result.copy is not None:
+        print(f"Saved a copy of this review before writing to it: {result.copy}", file=sys.stderr)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         description=(
@@ -186,6 +205,8 @@ def main() -> None:
 
     args = parser.parse_args()
     workspace_dir = Path(args.workspace).resolve()
+    if args.command not in READ_ONLY_COMMANDS:
+        _open_for_writing(workspace_dir)
 
     if args.command == "calibration":
         cmd_calibration(
