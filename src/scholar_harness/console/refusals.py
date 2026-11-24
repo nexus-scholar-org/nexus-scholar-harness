@@ -313,6 +313,11 @@ DISCARD_REASON_REQUIRED = "DISCARD_REASON_REQUIRED"
 #: A status, a full-text decision or an attachment on a row whose fetched file waits.
 FETCH_FILE_WAITING = "FETCH_FILE_WAITING"
 
+# --- the installed app (M13 Part A) -------------------------------------------
+#: The installed app has no terminal, and the approval-code window could not
+#: open: the codes would be nowhere, so the begin is refused (fail closed).
+APPROVAL_WINDOW_UNAVAILABLE = "APPROVAL_WINDOW_UNAVAILABLE"
+
 # --- request validation (H-input-limits, F5) ----------------------------------
 #: A body, query or path parameter pydantic refuses on any route (HTTP 422);
 #: ``details.errors`` lists ``loc``, ``msg`` and ``type`` for each error.
@@ -503,6 +508,7 @@ CONTRACT_ADDED = frozenset(
         DISCARD_REASON_REQUIRED,
         FETCH_FILE_WAITING,
         BODY_INVALID,
+        APPROVAL_WINDOW_UNAVAILABLE,
     }
     | LEG_ERROR_CODES
     | IMPORT_REJECTION_CODES

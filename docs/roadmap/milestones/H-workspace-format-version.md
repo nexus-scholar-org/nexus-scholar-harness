@@ -1,6 +1,6 @@
 # H-workspace-format-version
 
-Status: **READY FOR PR 2026-11-24, not pushed.** Independent review: round 1 CHANGES on `dce1abee` (12 findings, all repaired), round 2 APPROVE on `7605edd8`. Questions answered by the researcher on 2026-11-24 (§7): five as recommended, question 2 changed to "Everything including PDFs". Specification written 2026-11-23.
+Status: **IN A PULL REQUEST 2026-11-24, pushed on the researcher's word ("Yes, both"), with M13 Part A's branch merged in.** Independent review: round 1 CHANGES on `dce1abee` (12 findings, all repaired), round 2 APPROVE on `7605edd8`. Questions answered by the researcher on 2026-11-24 (§7): five as recommended, question 2 changed to "Everything including PDFs". Specification written 2026-11-23.
 
 Source: the project review of 2026-11-23, finding 9 and recommendation 8 ("A format version on the workspace and a copy made before a newer build first opens it"; on local branch `dev/docs/project-review-2026-11-23`), and the researcher's answer to question 11 of `docs/roadmap/milestones/M13-installers.md` (build it as its own piece of work, before installers go to outside testers). The instruction to start, in the coordinator's brief: "Start Part A and the workspace format version". Part A of M13 (the launcher) is built in parallel by another session; this work needs no change to `console/launcher.py`, `console/code_window.py` or the start-up path of `nexus-scholar ui` (§3.2).
 
