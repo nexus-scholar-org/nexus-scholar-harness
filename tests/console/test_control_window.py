@@ -26,7 +26,7 @@ from scholar_harness.workspace import format as wsformat
 @pytest.fixture
 def ui(tmp_path):
     folder = tmp_path / "ui"
-    for page in ("", "screening/home", "workspaces"):
+    for page in ("", "screening/home", "workspaces", "settings"):
         (folder / "en" / page).mkdir(parents=True, exist_ok=True)
         (folder / "en" / page / "index.html").write_text("<html>app</html>", encoding="utf-8")
     return folder
@@ -55,8 +55,10 @@ class FakeLauncher:
         self.codes = browser.LaunchCodes("s")
         self.stopped = False
 
-    def launch_url(self) -> str:
-        return f"http://127.0.0.1:1/launch?code={self.codes.issue()}&next=%2Fen%2Fworkspaces%2F"
+    def launch_url(self, next_path: str | None = None) -> str:
+        from urllib.parse import quote
+
+        return f"http://127.0.0.1:1/launch?code={self.codes.issue()}&next={quote(next_path or '/en/workspaces/', safe='')}"
 
     def request_stop(self) -> None:
         self.stopped = True
@@ -141,8 +143,9 @@ def test_the_buttons_open_a_new_link_stop_and_show_the_folders(tmp_path, monkeyp
     panel.open_in_browser()
     assert len(opened) == 2 and opened[0] != opened[1] and "/launch?code=" in opened[0]  # a fresh link each time
     panel.open_log_folder()
-    panel.open_settings_folder()
-    assert shown == [tmp_path / "logs", tmp_path / "settings"] and (tmp_path / "settings").is_dir()
+    assert shown == [tmp_path / "logs"]
+    panel.open_settings()  # M13 Part B: the Settings screen, with a fresh link
+    assert "next=%2Fen%2Fsettings%2F" in opened[-1] and "/launch?code=" in opened[-1]
     panel.stop()
     assert fake.stopped
 

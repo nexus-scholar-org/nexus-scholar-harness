@@ -29,7 +29,7 @@ from scholar_harness.workspace import catalog
 @pytest.fixture
 def ui(tmp_path):
     folder = tmp_path / "ui"
-    for page in ("", "screening/home", "workspaces"):
+    for page in ("", "screening/home", "workspaces", "settings"):
         (folder / "en" / page).mkdir(parents=True, exist_ok=True)
         (folder / "en" / page / "index.html").write_text("<html>app</html>", encoding="utf-8")
     return folder
@@ -250,7 +250,8 @@ def test_the_engine_runs_in_the_settings_folder_with_the_user_cache(home, monkey
     assert desktop.main(["--no-browser"]) == 0
     assert Path(seen["cwd"]) == home.settings.resolve() or Path(seen["cwd"]) == home.settings
     assert seen["cache"] == str(home.cache / "search") and seen["recon"] == str(home.cache / "inception_recon")
-    assert seen["landing"] == "/en/workspaces/" and seen["root"] == str((tmp_path / "workspaces").resolve())
+    # M13 Part B: the installed start's first run opens setup (answer 3); a saved choice lands on Workspaces.
+    assert seen["landing"] == "/en/settings/?setup=1" and seen["root"] == str((tmp_path / "workspaces").resolve())
     assert seen["terminal"] is False  # its output is the log: approval codes go to the window only
     assert os.getcwd() == before
     log = _logs(home)

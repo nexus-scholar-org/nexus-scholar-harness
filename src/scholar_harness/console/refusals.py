@@ -318,6 +318,16 @@ FETCH_FILE_WAITING = "FETCH_FILE_WAITING"
 #: open: the codes would be nowhere, so the begin is refused (fail closed).
 APPROVAL_WINDOW_UNAVAILABLE = "APPROVAL_WINDOW_UNAVAILABLE"
 
+# --- settings and first-run setup (M13 Part B, `settings-api.md`) ------------
+#: Not an e-mail address, or not a key (one line, no spaces); nothing was sent to test it.
+SETTING_INVALID = "SETTING_INVALID"
+#: The environment or `.env` sets this value, and it wins over the Settings screen.
+SETTING_SET_ELSEWHERE = "SETTING_SET_ELSEWHERE"
+#: No system keychain can take the key; `details.file` is the file the user may confirm.
+KEYCHAIN_UNAVAILABLE = "KEYCHAIN_UNAVAILABLE"
+#: The engine cannot open the system's folder dialog on this computer's desktop.
+FOLDER_DIALOG_UNAVAILABLE = "FOLDER_DIALOG_UNAVAILABLE"
+
 # --- request validation (H-input-limits, F5) ----------------------------------
 #: A body, query or path parameter pydantic refuses on any route (HTTP 422);
 #: ``details.errors`` lists ``loc``, ``msg`` and ``type`` for each error.
@@ -509,6 +519,10 @@ CONTRACT_ADDED = frozenset(
         FETCH_FILE_WAITING,
         BODY_INVALID,
         APPROVAL_WINDOW_UNAVAILABLE,
+        SETTING_INVALID,
+        SETTING_SET_ELSEWHERE,
+        KEYCHAIN_UNAVAILABLE,
+        FOLDER_DIALOG_UNAVAILABLE,
     }
     | LEG_ERROR_CODES
     | IMPORT_REJECTION_CODES

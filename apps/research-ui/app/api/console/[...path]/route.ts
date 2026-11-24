@@ -131,6 +131,8 @@ const POST_PATHS: ReadonlyArray<RegExp> = [
   /^api\/v1\/charting\/records\/[A-Za-z0-9_-]+\/attachment$/,
   /^api\/v1\/charting\/form\/pilot\/end$/,
   /^api\/v1\/charting\/fetch(\/cancel)?$/,
+  // M13 Part B: the Settings screen (settings-api.md); a key's value is never in an answer.
+  /^api\/v1\/settings\/(keys\/(openalex|semanticscholar|anthropic|openai_compatible|gemini)\/remove|folder\/choose|setup)$/,
 ];
 
 /** The one GET with a side effect: the engine records a reveal when a draft is read. */
@@ -150,6 +152,8 @@ const PUT_PATHS: ReadonlyArray<RegExp> = [
   /^api\/v1\/inception\/drafts\/[A-Za-z0-9_-]+$/,
   // M3b-api: the researcher's reviewed methods paragraph of a search run (journaled).
   /^api\/v1\/discovery\/report\/methods$/,
+  // M13 Part B: the contact e-mail and the keys, from the Settings screen.
+  /^api\/v1\/settings\/(contact-email|keys\/(openalex|semanticscholar|anthropic|openai_compatible|gemini))$/,
 ];
 
 /**

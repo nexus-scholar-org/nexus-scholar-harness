@@ -90,6 +90,7 @@ class Launcher:
         instance: Instance | None = None,
         codes_on_terminal: bool = True,
         started_as: str = "terminal",
+        root_source: str = "flag",
         on_second_start: Callable[[], None] | None = None,
     ):
         self.root, self.workspace, self.ui_dir = root, workspace, ui_dir
@@ -105,11 +106,14 @@ class Launcher:
         #: How the engine was started (`terminal` for `nexus-scholar ui`, `installed` from an icon);
         #: the launch link tells the app, which picks its words by it (M13 Part A).
         self.started_as = started_as
+        #: Where the reviews folder came from (`flag`, `environment`, `settings`, `default`).
+        self.root_source = root_source
         self.on_second_start = on_second_start
         #: The app the running server serves, and the review being opened (the control window reads both).
         self.app: Any = None
         self.opening: Path | None = None
         self._next: Path | None = None
+        self._next_root: Path | None = None
         self._stopping = False
         self._done = False  # run() has returned
         self._server: Any = None
@@ -125,6 +129,8 @@ class Launcher:
             trusted_hosts=LOOPBACK_HOSTS,
             workspaces_root=self.root,
             on_open=self.request_open,
+            on_root_change=self.request_root,
+            workspaces_root_source=self.root_source,
             browser_session=self.session,
             launch_codes=self.codes,
             ui_dir=self.ui_dir,
@@ -148,6 +154,18 @@ class Launcher:
         if self._server is not None:
             self._server.should_exit = True
 
+    def request_root(self, root: Path) -> None:
+        """The Settings screen's restart hook: serve the reviews under `root` (M13 Part B).
+
+        The server restarts on that folder's most recent review, or on none, and
+        the open tab keeps its session, as after Open on Workspaces.
+        """
+        if self._stopping:
+            return
+        self._next_root = Path(root)
+        if self._server is not None:
+            self._server.should_exit = True
+
     def request_stop(self) -> None:
         """Stop the engine: the running server ends and no other starts."""
         self._stopping = True
@@ -162,11 +180,20 @@ class Launcher:
         return self.launch_url()
 
     def landing(self) -> str:
-        """Where the first page opens: the workspaces screen unless one was named."""
+        """Where the first page opens: setup on the installed app's first run, else Workspaces unless a review was named.
+
+        First run (M13 Part B, the researcher's answer 3): only the installed
+        start opens setup by itself, and only while no choice is saved.
+        """
+        if self.started_as == "installed":
+            from scholar_search import user_settings
+
+            if user_settings.setup_state() == "pending":
+                return "/en/settings/?setup=1"
         return "/en/workspaces/" if self.start_on_workspaces else "/en/screening/home/"
 
-    def launch_url(self) -> str:
-        query = urlencode({"code": self.codes.issue(), "next": self.landing()})
+    def launch_url(self, next_path: str | None = None) -> str:
+        query = urlencode({"code": self.codes.issue(), "next": next_path or self.landing()})
         return f"http://{self.host}:{self.port}{browser.LAUNCH_PATH}?{query}"
 
     def run(self) -> None:
@@ -195,8 +222,18 @@ class Launcher:
             if self._stopping:  # a stop asked while the next server was being built
                 return
             self._server.run()
-            if self._next is None or self._stopping:
+            if self._stopping or (self._next is None and self._next_root is None):
                 return
+            if self._next_root is not None:
+                from scholar_harness.workspace.catalog import most_recent
+
+                self.root, self._next_root = self._next_root, None
+                self.root_source = "settings"
+                self._next = None
+                self.workspace = most_recent(self.root)
+                self.restarts += 1
+                self.say(f"Reviews folder changed to {self.root}")
+                continue
             self.workspace, self._next = self._next, None
             self.restarts += 1
             self.say(f"Opening the workspace at {self.workspace}")

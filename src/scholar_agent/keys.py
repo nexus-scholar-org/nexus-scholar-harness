@@ -69,6 +69,14 @@ def _from_keychain(provider: str) -> str | None:
     return value or None
 
 
+def _from_file(provider: str) -> str | None:
+    """A key kept in the user's keys file, where the keychain failed (M13 Part B, after the user confirmed it)."""
+    from scholar_search import user_settings
+
+    value, where = user_settings.stored_key(provider)
+    return value if where == "file" else None
+
+
 def _from_environment(provider: str) -> str | None:
     return os.environ.get(ENV_VARS[provider], "").strip() or None
 
@@ -79,9 +87,9 @@ def keychain_available() -> bool:
 
 
 def resolve_key(provider: str) -> str | None:
-    """The key to use: the environment variable if set, else the keychain entry, else None."""
+    """The key to use: the environment variable if set, else the keychain entry, else the keys file, else None."""
     _check(provider)
-    return _from_environment(provider) or _from_keychain(provider)
+    return _from_environment(provider) or _from_keychain(provider) or _from_file(provider)
 
 
 def key_status(provider: str) -> KeyStatus:
@@ -89,7 +97,9 @@ def key_status(provider: str) -> KeyStatus:
     in_keychain = bool(_from_keychain(provider))
     if _from_environment(provider):
         return KeyStatus(provider, "environment", also_in_keychain=in_keychain)
-    return KeyStatus(provider, "keychain" if in_keychain else "none")
+    if in_keychain:
+        return KeyStatus(provider, "keychain")
+    return KeyStatus(provider, "file" if _from_file(provider) else "none")
 
 
 _REFUSAL = re.compile(r"(?<!\d)401(?!\d)|AuthenticationError", re.IGNORECASE)

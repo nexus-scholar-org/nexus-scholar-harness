@@ -34,12 +34,21 @@ class WorkspaceRefused(Exception):
 
 
 def resolve_root(flag: Path | None = None, env: dict[str, str] | None = None) -> tuple[Path, str]:
-    """The workspaces root and where it came from: `flag`, `environment` or `default`."""
+    """The workspaces root and where it came from: `flag`, `environment`, `settings` or `default`.
+
+    `settings` is the folder chosen on the Settings screen (M13 Part B), below
+    the flag and the environment variable, which still win.
+    """
     env = os.environ if env is None else env
     if flag is not None:
         return Path(flag).expanduser().resolve(), "flag"
     if env.get(ROOT_ENV):
         return Path(env[ROOT_ENV]).expanduser().resolve(), "environment"
+    from scholar_search import user_settings
+
+    chosen = user_settings.workspaces_root()
+    if chosen is not None:
+        return chosen.expanduser().resolve(), "settings"
     return DEFAULT_ROOT.expanduser().resolve(), "default"
 
 

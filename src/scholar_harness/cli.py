@@ -1695,13 +1695,14 @@ def ui(
             "copy. Or point NEXUS_UI_DIR at a static export.[/bold red]"
         )
         raise typer.Exit(1)
-    folder, _source = resolve_root(root)
+    folder, source = resolve_root(root)
     target = workspace.resolve() if workspace is not None else None
     if target is not None and not validity(target)[0]:
         console.print(f"[bold red]❌ Not a Nexus Scholar workspace: {target} ({validity(target)[1]})[/bold red]")
         raise typer.Exit(1)
     launcher = Launcher(
         root=folder,
+        root_source=source,
         workspace=target if target is not None else most_recent(folder),
         ui_dir=ui_dir,
         port=free_port("127.0.0.1", port),
@@ -1721,6 +1722,10 @@ def main():
 
     if sys.argv[1:2] == [code_window.CHILD_FLAG]:
         return code_window.run_child()
+    from .console import folder_dialog
+
+    if sys.argv[1:2] == [folder_dialog.CHILD_FLAG]:
+        return folder_dialog.run_child()
     app()
 
 

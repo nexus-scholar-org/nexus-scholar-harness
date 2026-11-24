@@ -56,7 +56,7 @@ export interface WorkspacePreparation {
 
 export interface WorkspaceListing {
   root: string;
-  root_source: "flag" | "environment" | "default";
+  root_source: "flag" | "environment" | "settings" | "default";
   writable: boolean;
   current: { slug: string; path: string } | null;
   busy: { run_active: boolean; pairing_open: boolean };
