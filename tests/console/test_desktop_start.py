@@ -408,3 +408,34 @@ def test_the_installed_start_reads_dotenv_and_the_cache_from_its_own_folders(hom
     monkeypatch.setattr(launcher.Launcher, "run", record)
     assert desktop.main(["--no-browser"]) == 0  # tests/conftest.py puts the shared settings back afterwards
     assert seen == {"mailto": "dotenv@example.org", "cache": str(home.cache / "search")}
+
+
+def test_forget_removes_settings_keys_logs_and_cache_but_never_a_review(home, tmp_path):
+    """M13 Part W: the uninstaller's "Also remove my settings and saved keys" (specification §4.6)."""
+    from scholar_search import user_settings
+
+    reviews = tmp_path / "workspaces"
+    catalog.create(reviews, "Kept Review")
+    user_settings.write_settings(contact_email="r@example.org")
+    user_settings.store_key("openalex", "oa-MADE-UP")
+    user_settings.store_key("gemini", "AIza-MADE-UP", use_file=True)
+    for folder in (home.logs, home.cache):
+        folder.mkdir(parents=True, exist_ok=True)
+        (folder / "something").write_text("x", encoding="utf-8")
+    assert desktop.main([desktop.FORGET_FLAG]) == 0
+    assert user_settings.stored_key("openalex") == (None, None) and user_settings.stored_key("gemini") == (None, None)
+    for folder in (home.settings, home.logs, home.cache):
+        assert not folder.exists(), folder
+    assert (reviews / "kept-review" / "project.json").is_file()  # the review stays
+
+
+def test_forget_keeps_a_folder_that_holds_the_reviews(home, tmp_path, monkeypatch):
+    from scholar_search import user_settings
+
+    inside = home.settings / "reviews"  # a reviews folder chosen inside the settings folder
+    monkeypatch.setenv(catalog.ROOT_ENV, str(inside))
+    catalog.create(inside, "Inside Review")
+    user_settings.write_settings(contact_email="r@example.org")
+    assert desktop.main([desktop.FORGET_FLAG]) == 0
+    assert not user_settings.settings_path().exists()
+    assert (inside / "inside-review" / "project.json").is_file()

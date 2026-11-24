@@ -164,6 +164,12 @@
       "checkpoint": ["uv run pytest tests/console tests/authority tests/inception tests/recon tests/kits/agent/test_mcp_assistant.py tests/pipeline/test_golden_recon_cassette.py -q -n 4 --dist worksteal"]
     },
     {
+      "name": "windows-packaging",
+      "paths": ["packaging/**", ".github/workflows/windows-installer.yml"],
+      "inner": ["uv run pytest tests/test_windows_packaging.py -q"],
+      "checkpoint": ["uv run pytest tests/test_windows_packaging.py tests/console/test_desktop_start.py -q -n 4 --dist worksteal"]
+    },
+    {
       "name": "console",
       "paths": ["src/scholar_harness/console/**"],
       "inner": ["uv run pytest tests/console -q -m \"not slow\" -n 4 --dist worksteal"],

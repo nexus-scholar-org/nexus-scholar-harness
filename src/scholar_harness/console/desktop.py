@@ -30,6 +30,7 @@ import faulthandler
 import io
 import os
 import platform
+import shutil
 import re
 import sys
 import threading
@@ -343,6 +344,53 @@ def _start(
             tell(problem)
 
 
+FORGET_FLAG = "--forget"
+
+
+def _holds(folder: Path, inner: Path | None) -> bool:
+    if inner is None:
+        return False
+    try:
+        return inner.resolve().is_relative_to(folder.resolve())
+    except (OSError, ValueError):
+        return True  # when unsure, keep the folder
+
+
+def forget(folders: AppFolders) -> int:
+    """Remove this user's Nexus Scholar settings, saved keys, logs and cache; never a review (M13 Part W).
+
+    The Windows uninstaller runs it when "Also remove my settings and saved keys"
+    is ticked (specification §4.6; unticked by default). The keys go from the
+    system keychain and from the keys file. A folder that holds the reviews
+    folder is never deleted, only the files this app wrote in it.
+    """
+    from scholar_search import user_settings
+
+    from scholar_harness.workspace.catalog import resolve_root
+
+    try:
+        reviews, _source = resolve_root(None)
+    except Exception:  # noqa: BLE001 - when the reviews folder is unknown, keep every folder that might hold it
+        reviews = None
+    for name in user_settings.KEY_ENV:
+        try:
+            user_settings.remove_key(name)
+        except Exception:  # noqa: BLE001 - a locked keychain: the rest still goes
+            pass
+    for folder in (folders.settings, folders.logs, folders.cache):
+        if not folder.exists():
+            continue
+        if _holds(folder, reviews) or reviews is None:
+            for known in ("settings.json", "keys.json", "engine.json", "engine.lock", ".env"):
+                try:
+                    (folder / known).unlink()
+                except OSError:
+                    pass
+            continue
+        shutil.rmtree(folder, ignore_errors=True)
+    return 0
+
+
 def run_with_window(launcher: Any, panel: control_window.ControlPanel, root_window: Any) -> bool:
     """The engine in a background thread, the control window on this (main) thread.
 
@@ -376,6 +424,8 @@ def main(argv: list[str] | None = None, *, tell: Callable[[str], None] = tell_us
     if args[:1] == [folder_dialog.CHILD_FLAG]:
         return folder_dialog.run_child()
     folders = app_folders()
+    if args == [FORGET_FLAG]:
+        return forget(folders)
     try:
         log = open_log(folders.logs)
     except OSError as exc:
