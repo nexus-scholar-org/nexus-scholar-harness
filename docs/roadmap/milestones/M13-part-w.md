@@ -27,7 +27,7 @@ Status: **BUILT on `dev/m13/part-w-windows-installer` (cut from Part B's head `b
   - "Start Nexus Scholar" at the end;
   - a running Nexus Scholar is stopped first, after asking, with the app's own `--stop`;
   - an older version over a newer one warns first (default No).
-  - The uninstaller asks, default No, "Also remove your Nexus Scholar settings and saved keys?". On yes it runs the app's new `--forget` before the files go. A review is never removed.
+  - The uninstaller asks, default No, "Also remove your Nexus Scholar settings, saved keys and logs? Your reviews and their explorations in progress are never removed.". On yes it runs the app's new `--forget` before the files go.
 - **`--forget`** (`console/desktop.py`):
   - stops a running engine first and waits for it;
   - removes every saved key (keychain and keys file), the settings folder, the logs, and the cache except `inception_recon` (the explorations in progress of unfinished inception drafts);
@@ -100,3 +100,9 @@ Left as follow-ups:
 - the uninstaller's Yes to "Also remove…";
 - the downgrade warning;
 - SmartScreen.
+
+**Round 2: CHANGES**: all twelve round-1 repairs were confirmed. One repair introduced a fault, now fixed (tests in `tests/console/test_desktop_start.py`):
+- **P2, a leftover `engine.json`.** After a forced end (Task Manager, a crash) it would have blocked installing, updating and uninstalling, because the stop never "happened". `--stop` now removes a leftover `engine.json` when no engine answers and none holds the lock. The installer's message says to start Nexus Scholar and close it, instead of restarting the computer, which removes nothing. Test: `test_stop_removes_a_leftover_engine_file_and_keeps_a_live_one`.
+- **P3, an unknown reviews folder.** When the reviews folder is unknown, `--forget` now keeps the whole cache as well.
+- **P3, the uninstaller's question.** The record now quotes its new words.
+- **Not handled:** the uninstaller ignores `--forget`'s exit 1, so a key it could not remove is not reported. This is a follow-up.

@@ -464,3 +464,21 @@ def test_forget_stops_a_running_engine_first(home, monkeypatch):
     user_settings.write_settings(contact_email="r@example.org")
     assert desktop.main([desktop.FORGET_FLAG]) == 0
     assert asked == ["stop"] and not user_settings.settings_path().exists()
+
+
+def test_stop_removes_a_leftover_engine_file_and_keeps_a_live_one(home):
+    """Review of Part W, round 2: a forced end leaves engine.json; --stop clears it only when no engine holds the lock."""
+    home.settings.mkdir(parents=True, exist_ok=True)
+    leftover = home.settings / instance.INFO_NAME
+    leftover.write_text('{"pid": 1, "host": "127.0.0.1", "port": 9, "secret": "x"}', encoding="utf-8")
+    assert desktop.main(["--stop"]) == 0
+    assert not leftover.exists()  # no engine answered and none held the lock
+
+    holder = instance.Instance(home.settings)
+    assert holder.acquire()
+    holder.publish("127.0.0.1", 9)  # a live engine that does not answer (port 9)
+    try:
+        assert desktop.main(["--stop"]) == 0
+        assert holder.info_path.exists()  # a held lock: nothing removed
+    finally:
+        holder.release()

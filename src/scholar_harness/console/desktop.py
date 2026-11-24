@@ -275,7 +275,21 @@ def _start(
 
     if stop:
         answer = instance_module.ask(folders.settings, "stop", wait=2.0)
-        _say("Asked the running engine to stop." if answer else "No running engine answered; nothing to stop.")
+        if answer:
+            _say("Asked the running engine to stop.")
+            return 0
+        # No engine answered. If none holds the lock either, an engine.json left by a forced
+        # end (Task Manager, a crash) is stale: remove it, so the installer's "stop it first"
+        # does not wait for an engine that is gone (M13 Part W, review round 2).
+        claim = instance_module.Instance(folders.settings)
+        if claim.acquire():
+            try:
+                claim.info_path.unlink(missing_ok=True)
+            finally:
+                claim.release()
+            _say("No running engine; a leftover engine.json was removed if there was one.")
+        else:
+            _say("An engine holds the lock but does not answer; nothing was removed.")
         return 0
 
     claim = instance_module.Instance(folders.settings)
@@ -398,8 +412,9 @@ def forget(folders: AppFolders) -> int:
             user_settings.remove_key(name)
         except Exception:  # noqa: BLE001 - a locked keychain: the rest still goes, and the exit says so
             failed = True
-    if folders.cache.is_dir():
-        # The cache goes, except the explorations in progress of unfinished inception drafts.
+    if folders.cache.is_dir() and reviews is not None:
+        # The cache goes, except the explorations in progress of unfinished inception drafts
+        # (and nothing at all when the reviews folder is unknown, as for the other folders).
         for entry in folders.cache.iterdir():
             if entry.name == KEPT_CACHE or _holds(entry, reviews):
                 continue

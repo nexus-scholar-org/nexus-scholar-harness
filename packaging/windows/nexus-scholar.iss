@@ -125,7 +125,7 @@ begin
   begin
     { It did not stop (or a crash left engine.json behind): never overwrite files it may hold. }
     if not Silent() then
-      MsgBox('Nexus Scholar could not be stopped. Close its window (Stop Nexus Scholar), or restart the computer, then run this again.',
+      MsgBox('Nexus Scholar could not be stopped. Start Nexus Scholar, close it with Stop Nexus Scholar in its window, then run this again.',
              mbError, MB_OK);
     Result := False;
   end;
