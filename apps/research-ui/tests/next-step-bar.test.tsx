@@ -463,7 +463,8 @@ describe("next-step.where", () => {
     shell("/en/screening/triage");
     await flush();
     expect(bar()).toBeNull();
-    expect(calls).toHaveLength(0);
+    // The bar reads nothing; the shell's copy check (H-workspace-format-version) is its own read.
+    expect(calls.filter((c) => !c.url.includes("/workspaces/preparation"))).toHaveLength(0);
   });
 
   it("is absent with a phone-scoped token", async () => {

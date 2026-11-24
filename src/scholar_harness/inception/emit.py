@@ -85,6 +85,7 @@ def _corpus_files(ws_dir: Path, rel: str) -> list[Path]:
 #: 2026-11-09); ``test_preview_names_every_file_genesis_writes`` keeps it exact.
 NEW_WORKSPACE_FILES = (
     "project.json",
+    "workspace_format.json",
     "intent.json",
     "protocol.json",
     "SCREENING_CRITERIA.md",
@@ -374,6 +375,15 @@ def emit_workspace(
             "archived": [],
         }
 
+    # H-workspace-format-version: a replacement writes into an existing
+    # workspace, so it is opened for writing first (copy and stamp when it is
+    # older; refused when a newer version stored it).
+    from ..workspace.format import WorkspaceFormatRefused, prepare_for_writing
+
+    try:
+        prepare_for_writing(ws_dir, agent=agent)
+    except WorkspaceFormatRefused as exc:
+        raise GenesisRefused(exc.code, exc.message, exc.details) from exc
     previous = _fingerprint_of(ws_dir / "protocol.json")
     stamp = datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
     backup = _backup(ws_dir, stamp)

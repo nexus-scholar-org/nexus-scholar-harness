@@ -292,6 +292,26 @@ def _journal_mcp(action: str, description: str, *, outputs: list[str] | None = N
     )
 
 
+def _open_for_writing(ws: Path) -> Path:
+    """H-workspace-format-version: before a tool writes into a workspace, copy and stamp an older one.
+
+    Raises ``WorkspaceFormatRefused`` (code, message, details) for a workspace a
+    newer version stored, an unreadable format file or a failed copy; a folder
+    that is not a workspace is returned as it is.
+    """
+    ws = Path(ws).resolve()
+    if (ws / "project.json").is_file():
+        from scholar_harness.workspace.format import prepare_for_writing
+
+        prepare_for_writing(ws, agent="scholar-agent/mcp")
+    return ws
+
+
+def _refused_answer(exc: Exception) -> str:
+    return json.dumps({"status": "ERROR", "code": getattr(exc, "code", type(exc).__name__),
+                       "error": getattr(exc, "message", str(exc))})
+
+
 def _succeeded(result: object) -> bool:
     """A tool result that is not an error (prose `Error: ...` or JSON ERROR)."""
     text = str(result)
@@ -311,6 +331,12 @@ def _journaled(action: str):
     def wrap(func):
         @functools.wraps(func)
         def inner(*args, **kwargs):
+            from scholar_harness.workspace.format import WorkspaceFormatRefused
+
+            try:
+                _open_for_writing(_mcp_anchor())
+            except WorkspaceFormatRefused as exc:
+                return _refused_answer(exc)
             result = func(*args, **kwargs)
             if _succeeded(result):
                 bound = inspect.signature(func).bind_partial(*args, **kwargs)
@@ -328,6 +354,7 @@ def _journaled(action: str):
 
 def _write_screening_proposals(out_d: Path, docs, decisions, *, tool: str, model: str | None) -> dict:
     """Write MCP screening output as proposals and journal it (AGT-16/19)."""
+    _open_for_writing(_mcp_anchor())
     included, excluded, conflicts, report = partition_screening_results(docs, decisions)
     out_d.mkdir(parents=True, exist_ok=True)
     payload = {
@@ -617,6 +644,7 @@ def nexus_pipeline_run(
         if skip_stages:
             skip = {s.strip() for s in skip_stages.split(",") if s.strip()}
 
+        _open_for_writing(ws)
         orchestrator = ResearchOrchestrator(workspace_dir=ws)
         result = asyncio.run(
             orchestrator.run_pipeline_async(
@@ -1295,7 +1323,7 @@ def nexus_submit_proposal(
         # no provenance and is refused, never stored blank.
         if not str(model or "").strip() or not str(prompt_sha256 or "").strip():
             return json.dumps({"status": "ERROR", "error": "PROVENANCE_MISSING"})
-        ws = _screening_workspace(workspace_dir)
+        ws = _open_for_writing(_screening_workspace(workspace_dir))
         context, _settings, _events, _winners = _state(ws)
         if study_id not in context.study_batch:
             return json.dumps({"status": "ERROR", "error": "UNKNOWN_STUDY"})
@@ -1497,7 +1525,7 @@ def nexus_assistant_propose(
                            "message": "give exactly one of session_id or workspace_dir"})
     if workspace_dir:
         return _assistant_answer(lambda: assistant.propose_on_workspace(
-            _assistant_workspace(workspace_dir), field=field, op=op, value=value,
+            _open_for_writing(_assistant_workspace(workspace_dir)), field=field, op=op, value=value,
             why=why, evidence=evidence, model=model, task=task,
         ))
     return _assistant_answer(lambda: assistant.propose_on_draft(
@@ -1545,7 +1573,7 @@ def nexus_assistant_report_finding(
             finding=finding, why=why, model=model,
         ))
     return _assistant_answer(lambda: assistant.report_on_workspace(
-        _assistant_workspace(workspace_dir), locator=locator, severity=severity, finding=finding, why=why, model=model,
+        _open_for_writing(_assistant_workspace(workspace_dir)), locator=locator, severity=severity, finding=finding, why=why, model=model,
     ))
 
 

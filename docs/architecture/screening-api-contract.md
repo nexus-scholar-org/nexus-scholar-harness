@@ -196,6 +196,10 @@ The UI reads proposals only through `GET /records/{study_id}/proposal`. The fiel
 | `WORKSPACE_NOT_VALID` | `/workspaces/open` | the folder is not a workspace, or no longer exists |
 | `WORKSPACE_BUSY` | `/workspaces/open` | an agent run is active or an approval is open; the restart would end it |
 | `RESTART_UNSUPPORTED` | `/workspaces/open` | the server was not started by `nexus-scholar ui` (M5-slim; all seven in `workspaces-api.md` §5) |
+| `WORKSPACE_FORMAT_NEWER` | every workspace route, `/workspaces/open` | the workspace was stored by a newer version of Nexus Scholar; it is not opened (H-workspace-format-version; the four in `workspaces-api.md` §5) |
+| `WORKSPACE_FORMAT_UNREADABLE` | every workspace route, `/workspaces/open` | the workspace's `workspace_format.json` cannot be read; it is not opened |
+| `WORKSPACE_COPY_FAILED` | every workspace route | the copy made before a newer version writes could not be saved; nothing in the workspace was changed |
+| `WORKSPACE_PREPARING` | every workspace route (503) | the copy is being made; `details` carries the review's title and the progress |
 | `PROVENANCE_MISSING` | events intake, collect | a decision lacks screener, method or `decided_at`, or its `decided_at` is more than 5 minutes ahead of the engine's clock (H-input-limits, F7); refused, never filled in (CON-11) |
 | `APPROVAL_WINDOW_UNAVAILABLE` | `/actions/pairing/begin`, `/actions/pairing/begin-all` | HTTP 409: the installed app (no terminal; its standard output is its log file, where a code must never go) could not open the approval-code window, so the codes would be shown nowhere; the staged codes stay unusable and expire, and asking again stages fresh ones (M13 Part A) |
 | `PROJECTION_STALE` | publish, PRISMA preview check | a `batch_NNN_decisions.json` differs from the decision events (its rewrite failed); publish refuses until a retry re-projects it (M1b-0) |

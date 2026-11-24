@@ -17,6 +17,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from scholar_harness.console.serve import create_app
+from scholar_harness.workspace.format import stamp_new
 
 ROOT = Path(__file__).resolve().parents[2]
 PROTOCOL = ROOT / "tests" / "kits" / "protocol" / "fixtures" / "canonical" / "identity_base.json"
@@ -43,6 +44,7 @@ def ws(tmp_path: Path) -> Path:
         json.dumps({"project_id": "corpus-api", "registered_workspace_id": "WSP-" + "c" * 32}), encoding="utf-8"
     )
     (ws / "protocol.json").write_text(PROTOCOL.read_text(encoding="utf-8"), encoding="utf-8")
+    stamp_new(ws)  # H-workspace-format-version: today's layout carries today's format
     return ws
 
 

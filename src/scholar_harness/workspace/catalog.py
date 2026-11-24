@@ -64,10 +64,22 @@ def _last_event(ws: Path) -> dict[str, Any] | None:
             size = handle.tell()
             handle.seek(max(0, size - 65536))
             lines = [line for line in handle.read().splitlines() if line.strip()]
-        row = json.loads(lines[-1]) if lines else None
-    except (OSError, ValueError):
+    except OSError:
         return None
-    return {"at": row.get("timestamp"), "action": row.get("action")} if isinstance(row, dict) else None
+    # H-workspace-format-version: the copy-and-stamp rows are not the researcher's
+    # activity; the column and `most_recent` show the last row that is.
+    from .format import FORMAT_ACTIONS
+
+    for line in reversed(lines):
+        try:
+            row = json.loads(line)
+        except ValueError:
+            return None
+        if not isinstance(row, dict):
+            return None
+        if row.get("action") not in FORMAT_ACTIONS:
+            return {"at": row.get("timestamp"), "action": row.get("action")}
+    return None
 
 
 def _has_corpus(ws: Path) -> bool:
@@ -114,6 +126,12 @@ def _title(ws: Path) -> str | None:
         return None
 
 
+def workspace_title(ws: Path) -> str:
+    """The review's title for messages, else its folder name."""
+    title = _title(ws)
+    return title if isinstance(title, str) and title.strip() else ws.name
+
+
 def describe(folder: Path, current: Path | None) -> dict[str, Any]:
     valid, reason = validity(folder)
     item: dict[str, Any] = {
@@ -126,12 +144,17 @@ def describe(folder: Path, current: Path | None) -> dict[str, Any]:
     if not valid:
         item["invalid_reason"] = reason
         return item
+    from . import format as wsformat
+
     has_corpus = _has_corpus(folder)
     item.update(
         has_corpus=has_corpus,
         screening_started=_screening_started(folder),
         status=_status(folder, has_corpus),
         last_event=_last_event(folder),
+        # H-workspace-format-version: read only; the list never stamps or copies.
+        format=wsformat.describe(folder),
+        last_copy=wsformat.last_copy(folder),
     )
     return item
 
@@ -259,6 +282,15 @@ def check_open(root: Path, slug: str, current: Path | None) -> Path:
     target = _target(root, slug)
     if not target.is_dir() or not validity(target)[0]:
         raise WorkspaceRefused("WORKSPACE_NOT_VALID", f"{target} is not a Nexus Scholar workspace ({validity(target)[1] or 'missing'})")
+    # H-workspace-format-version: the quick checks before the restart (a newer
+    # or unreadable workspace keeps the current one open); the copy itself runs
+    # in the new server, where the browser shows its progress.
+    from .format import WorkspaceFormatRefused, plan
+
+    try:
+        plan(target)
+    except WorkspaceFormatRefused as exc:
+        raise WorkspaceRefused(exc.code, exc.message, status=exc.status, details=exc.details) from exc
     if current is None:
         return target
     if target == current.resolve():

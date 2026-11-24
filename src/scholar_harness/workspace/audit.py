@@ -175,6 +175,11 @@ def append_event(
     ``_refresher``/``_now`` are hermetic seams (tests only).
     """
     ws = Path(workspace).resolve()
+    # H-workspace-format-version: never journal into a workspace a newer
+    # version stored; raises before anything is written.
+    from .format import check_not_newer
+
+    check_not_newer(ws)
     audit_dir = ws / "audit"
     audit_dir.mkdir(parents=True, exist_ok=True)
     journal = audit_dir / "journal.jsonl"
@@ -254,6 +259,9 @@ def append_legacy_event(
     the observed ``status`` (a refused run must not log ``SUCCESS``).
     """
     ws = Path(workspace)
+    from .format import check_not_newer
+
+    check_not_newer(ws)  # H-workspace-format-version backstop
     audit_file = ws / "audit" / "journal.jsonl"
     audit_file.parent.mkdir(parents=True, exist_ok=True)
 

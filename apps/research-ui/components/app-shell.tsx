@@ -8,6 +8,7 @@ import { translate, type Locale } from "@/i18n";
 
 import { NextStepBar } from "./next-step-bar";
 import { SiteHeader } from "./site-header";
+import { WorkspacePreparationGate } from "./workspace-preparation";
 
 /**
  * The id the skip link targets.
@@ -62,7 +63,10 @@ export function AppShell({
       <NextStepBar locale={locale} pathname={pathname} />
 
       <main id={MAIN_CONTENT_ID} tabIndex={-1} className={oneScreen ? "flex-1 focus:outline-none lg:flex lg:min-h-0 lg:flex-col" : "flex-1 focus:outline-none"}>
-        {children}
+        {/* H-workspace-format-version: while the engine saves a copy of the review, which review and how far. */}
+        <WorkspacePreparationGate locale={locale} pathname={pathname}>
+          {children}
+        </WorkspacePreparationGate>
       </main>
 
       <footer className={oneScreen ? "border-t border-rule bg-leaf lg:hidden" : "border-t border-rule bg-leaf"}>

@@ -57,6 +57,9 @@ def _bootstrap(tmp):
         encoding="utf-8",
     )
     (ws / "project.json").write_text(json.dumps({"title": "Test WS", "stats": {}}), encoding="utf-8")
+    from scholar_harness.workspace.format import stamp_new
+
+    stamp_new(ws)  # H-workspace-format-version: today's layout carries today's format
     return ws
 
 

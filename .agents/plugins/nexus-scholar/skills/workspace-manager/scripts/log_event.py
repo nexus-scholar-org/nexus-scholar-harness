@@ -231,6 +231,16 @@ def log_project_event(
         if candidate.is_dir():
             path = candidate
 
+    # H-workspace-format-version: never write into a workspace a newer version
+    # stored (or whose format file cannot be read). Outside the package's
+    # environment the check is not available and is skipped.
+    try:
+        from scholar_harness.workspace.format import check_not_newer
+    except ImportError:
+        check_not_newer = None
+    if check_not_newer is not None:
+        check_not_newer(path)
+
     audit_dir = path / "audit"
     audit_dir.mkdir(parents=True, exist_ok=True)
     journal_path = audit_dir / "journal.jsonl"

@@ -36,9 +36,22 @@ def _root(request: Request) -> tuple[Path, str]:
 def list_workspaces(request: Request, include_invalid: bool = False) -> dict[str, Any]:
     root, source = _root(request)
     try:
-        return catalog.listing(root, source, request.app.state.workspace, include_invalid=include_invalid)
+        out = catalog.listing(root, source, request.app.state.workspace, include_invalid=include_invalid)
     except catalog.WorkspaceRefused as exc:
         raise _error(exc) from exc
+    out["preparation"] = _preparation(request)
+    return out
+
+
+def _preparation(request: Request) -> dict[str, Any] | None:
+    gate = getattr(request.app.state, "format_gate", None)
+    return gate.snapshot() if gate is not None else None
+
+
+@router.get("/workspaces/preparation")
+def workspace_preparation(request: Request) -> dict[str, Any]:
+    """Whether the open workspace is ready, being copied (with progress), or refused (H-workspace-format-version)."""
+    return {"preparation": _preparation(request)}
 
 
 class CreateBody(BaseModel):
@@ -68,9 +81,13 @@ def open_workspace(body: OpenBody, request: Request, background: BackgroundTasks
         target = catalog.check_open(root, body.slug, current)
     except catalog.WorkspaceRefused as exc:
         raise _error(exc) from exc
-    if current is not None and target == current.resolve():
-        return JSONResponse({"slug": target.name, "path": str(target), "restarting": False}, status_code=200)
     on_open = getattr(request.app.state, "on_open", None)
+    gate = getattr(request.app.state, "format_gate", None)
+    # H-workspace-format-version: Open on the current review after its copy failed
+    # (or was cancelled) is the retry: the server restarts on it and tries again.
+    retry = gate is not None and gate.state in ("refused", "cancelled") and on_open is not None
+    if current is not None and target == current.resolve() and not retry:
+        return JSONResponse({"slug": target.name, "path": str(target), "restarting": False}, status_code=200)
     if on_open is None:
         raise HTTPException(
             status_code=501,

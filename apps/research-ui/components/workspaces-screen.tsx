@@ -48,6 +48,9 @@ const COPY = {
     "status.screening": "Screening in progress",
     "status.published": "Published",
     "status.publishedChanged": "Published, decisions since",
+    "badge.newer": "Made with a newer version",
+    "badge.copyFailed": "Copy failed",
+    lastCopy: "Copy saved before an update",
     untitled: "Untitled",
     never: "No activity yet",
     "create.label": "New workspace",
@@ -102,6 +105,9 @@ const COPY = {
     "status.screening": "Sélection en cours",
     "status.published": "Publiée",
     "status.publishedChanged": "Publiée, décisions depuis",
+    "badge.newer": "Créée avec une version plus récente",
+    "badge.copyFailed": "Échec de la copie",
+    lastCopy: "Copie enregistrée avant une mise à jour",
     untitled: "Sans titre",
     never: "Aucune activité",
     "create.label": "Nouvel espace",
@@ -156,6 +162,9 @@ const COPY = {
     "status.screening": "الفرز جارٍ",
     "status.published": "منشور",
     "status.publishedChanged": "منشور، مع قرارات بعده",
+    "badge.newer": "أُنشئت بإصدار أحدث",
+    "badge.copyFailed": "فشل النسخ",
+    lastCopy: "نسخة محفوظة قبل تحديث",
     untitled: "بلا عنوان",
     never: "لا نشاط بعد",
     "create.label": "مساحة عمل جديدة",
@@ -474,10 +483,22 @@ export function WorkspacesScreen({ locale }: Readonly<{ locale: Locale }>) {
                       <td className="p-3">
                         <p className="font-medium text-ink">{item.title ?? t("untitled")}</p>
                         <p className="text-xs text-ink-muted"><bdi dir="ltr">{item.path}</bdi></p>
+                        {/* H-workspace-format-version: the newest copy saved before a newer version opened it. */}
+                        {item.last_copy ? (
+                          <p className="text-xs text-ink-muted" data-last-copy={item.last_copy.name}>
+                            {t("lastCopy")}: <Stamp at={item.last_copy.at} /> · <bdi dir="ltr">{item.last_copy.folder}</bdi>
+                          </p>
+                        ) : null}
                       </td>
                       <td className="p-3">
                         <span className="flex flex-wrap items-center gap-2">
                           <DecisionBadge role={status.role}>{t(status.key)}</DecisionBadge>
+                          {item.format?.newer ? (
+                            <span data-format-newer><DecisionBadge role="blocked">{t("badge.newer")}</DecisionBadge></span>
+                          ) : null}
+                          {item.is_current && listing?.preparation?.state === "refused" && listing.preparation.refusal?.code === "WORKSPACE_COPY_FAILED" ? (
+                            <span data-copy-failed><DecisionBadge role="blocked">{t("badge.copyFailed")}</DecisionBadge></span>
+                          ) : null}
                           {/* A status chip, never a wrapped button (M6-beta, review U-3). */}
                           {item.is_current ? (
                             <span className="whitespace-nowrap rounded-sm border border-brand px-2 py-0.5 text-xs text-brand" data-open-now>
