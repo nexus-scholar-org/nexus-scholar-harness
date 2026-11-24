@@ -29,7 +29,7 @@ from scholar_harness.workspace import catalog
 @pytest.fixture
 def ui(tmp_path):
     folder = tmp_path / "ui"
-    for page in ("", "screening/home", "workspaces"):
+    for page in ("", "screening/home", "workspaces", "settings"):
         (folder / "en" / page).mkdir(parents=True, exist_ok=True)
         (folder / "en" / page / "index.html").write_text("<html>app</html>", encoding="utf-8")
     return folder
@@ -250,7 +250,8 @@ def test_the_engine_runs_in_the_settings_folder_with_the_user_cache(home, monkey
     assert desktop.main(["--no-browser"]) == 0
     assert Path(seen["cwd"]) == home.settings.resolve() or Path(seen["cwd"]) == home.settings
     assert seen["cache"] == str(home.cache / "search") and seen["recon"] == str(home.cache / "inception_recon")
-    assert seen["landing"] == "/en/workspaces/" and seen["root"] == str((tmp_path / "workspaces").resolve())
+    # M13 Part B: the installed start's first run opens setup (answer 3); a saved choice lands on Workspaces.
+    assert seen["landing"] == "/en/settings/?setup=1" and seen["root"] == str((tmp_path / "workspaces").resolve())
     assert seen["terminal"] is False  # its output is the log: approval codes go to the window only
     assert os.getcwd() == before
     log = _logs(home)
@@ -388,3 +389,22 @@ def test_a_publish_that_clashes_once_is_tried_again(tmp_path, ui, monkeypatch):
     app_launcher._server = Started()
     app_launcher._when_ready(None)
     assert attempts == [8798, 8798, 8798] and said == []
+
+
+def test_the_installed_start_reads_dotenv_and_the_cache_from_its_own_folders(home, monkeypatch):
+    """Review of M13 Part B, P1: the search settings are read again after the start moves into its settings folder."""
+    for name in ("SCHOLAR_CACHE_DIR", "NEXUS_RECON_ROOT", "SCHOLAR_MAILTO"):
+        monkeypatch.setenv(name, "placeholder")  # recorded, so the test's end restores the original state
+        monkeypatch.delenv(name)
+    home.settings.mkdir(parents=True, exist_ok=True)
+    (home.settings / ".env").write_text("SCHOLAR_MAILTO=dotenv@example.org\n", encoding="utf-8")
+    seen: dict[str, str | None] = {}
+
+    def record(self):
+        from scholar_search.config import settings
+
+        seen.update(mailto=settings.mailto, cache=str(settings.cache_dir))
+
+    monkeypatch.setattr(launcher.Launcher, "run", record)
+    assert desktop.main(["--no-browser"]) == 0  # tests/conftest.py puts the shared settings back afterwards
+    assert seen == {"mailto": "dotenv@example.org", "cache": str(home.cache / "search")}

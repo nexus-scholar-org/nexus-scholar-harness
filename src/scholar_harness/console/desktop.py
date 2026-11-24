@@ -42,7 +42,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from . import code_window, control_window
+from . import code_window, control_window, folder_dialog
 from .browser import LAUNCH_PATH
 
 #: Points every per-user folder under one folder (tests, CI, a portable copy).
@@ -84,21 +84,23 @@ def app_folders(env: dict[str, str] | None = None, system: str | None = None) ->
     """The user's own folders for settings, logs and cache (spec §4.1)."""
     env = dict(os.environ if env is None else env)
     system = system or sys.platform
+    from scholar_search.user_settings import settings_dir
+
+    # One rule for the settings folder, shared with the engine and the MCP server (M13 Part B).
+    settings = settings_dir(env, system)
     if env.get(HOME_ENV):
         home = Path(env[HOME_ENV]).expanduser()
-        return AppFolders(home / "settings", home / "logs", home / "cache")
+        return AppFolders(settings, home / "logs", home / "cache")
     user = Path(env.get("USERPROFILE") or env.get("HOME") or Path.home())
     if system == "win32":
-        roaming = Path(env.get("APPDATA") or user / "AppData" / "Roaming")
         local = Path(env.get("LOCALAPPDATA") or user / "AppData" / "Local")
-        return AppFolders(roaming / APP_NAME, local / APP_NAME / "Logs", local / APP_NAME / "Cache")
+        return AppFolders(settings, local / APP_NAME / "Logs", local / APP_NAME / "Cache")
     if system == "darwin":
         library = user / "Library"
-        return AppFolders(library / "Application Support" / APP_NAME, library / "Logs" / APP_NAME, library / "Caches" / APP_NAME)
-    config = Path(env.get("XDG_CONFIG_HOME") or user / ".config")
+        return AppFolders(settings, library / "Logs" / APP_NAME, library / "Caches" / APP_NAME)
     state = Path(env.get("XDG_STATE_HOME") or user / ".local" / "state")
     cache = Path(env.get("XDG_CACHE_HOME") or user / ".cache")
-    return AppFolders(config / "nexus-scholar", state / "nexus-scholar" / "logs", cache / "nexus-scholar")
+    return AppFolders(settings, state / "nexus-scholar" / "logs", cache / "nexus-scholar")
 
 
 _MASKS: tuple[tuple[re.Pattern[str], str], ...] = (
@@ -264,6 +266,11 @@ def _start(
     os.chdir(folders.settings)
     os.environ.setdefault("SCHOLAR_CACHE_DIR", str(folders.cache / "search"))
     os.environ.setdefault("NEXUS_RECON_ROOT", str(folders.cache / "inception_recon"))
+    # The search settings were first built where the app started (an import made them);
+    # read them again here, so `.env` in the settings folder and the cache folder apply (M13 Part B).
+    from scholar_search.config import reload_settings
+
+    reload_settings()
 
     if stop:
         answer = instance_module.ask(folders.settings, "stop", wait=2.0)
@@ -305,6 +312,7 @@ def _start(
         panel: control_window.ControlPanel | None = None
         launcher = Launcher(
             root=root,
+            root_source=source,
             workspace=most_recent(root),
             ui_dir=ui_dir,
             port=free_port("127.0.0.1", DEFAULT_PORT),
@@ -365,6 +373,8 @@ def main(argv: list[str] | None = None, *, tell: Callable[[str], None] = tell_us
     args = list(sys.argv[1:] if argv is None else argv)
     if args[:1] == [code_window.CHILD_FLAG]:
         return code_window.run_child()
+    if args[:1] == [folder_dialog.CHILD_FLAG]:
+        return folder_dialog.run_child()
     folders = app_folders()
     try:
         log = open_log(folders.logs)

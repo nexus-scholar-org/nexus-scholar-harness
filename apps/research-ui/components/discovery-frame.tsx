@@ -14,6 +14,7 @@ import { fillNodes } from "@/components/assist-anchor";
 import { notifyDiscoveryChecks, useDiscoveryChecksVersion } from "@/components/checks-bus";
 import { notifyReviewChanged } from "@/components/review-bus";
 import { useInstalled } from "@/lib/engine-start";
+import { settingsT } from "@/lib/settings-copy";
 
 /**
  * What every discovery screen shares (spec 01 "Shared by 01–08", M3c-screens):
@@ -232,12 +233,18 @@ export function MailtoCard({ locale, onCheck }: Readonly<{ locale: Locale; onChe
       <p className="font-semibold text-ink">
         {t("mailto.title")}: <DecisionBadge role="unclear">{t("plan.limits.mailto.notSet")}</DecisionBadge>
       </p>
-      <p className="mt-2">
-        <code className="rounded-sm bg-paper px-2 py-1 font-mono text-[0.8125rem] text-ink" dir="ltr" data-mailto-line>
-          {t("mailto.line")}
-        </code>
-      </p>
+      {/* M13 Part B: the installed app has no environment to set; the Settings screen keeps the value. */}
+      {installed ? null : (
+        <p className="mt-2">
+          <code className="rounded-sm bg-paper px-2 py-1 font-mono text-[0.8125rem] text-ink" dir="ltr" data-mailto-line>
+            {t("mailto.line")}
+          </code>
+        </p>
+      )}
       <p className="mt-2 text-sm text-ink-muted">{t(installed ? "mailto.whereInstalled" : "mailto.where")}</p>
+      <a className="mt-2 inline-flex min-h-11 items-center text-brand underline" href={settingsHref(locale)} data-open-settings>
+        {settingsT(locale, "settings.open")}
+      </a>
       {onCheck ? (
         <Button className="mt-3" onClick={onCheck}>
           {t("mailto.check")}
@@ -259,12 +266,18 @@ export function OpenAlexKeyCard({ locale, onCheck }: Readonly<{ locale: Locale; 
       <p className="font-semibold text-ink">
         {t("openalexKey.title")}: <DecisionBadge role="unclear">{t("plan.limits.mailto.notSet")}</DecisionBadge>
       </p>
-      <p className="mt-2">
-        <code className="rounded-sm bg-paper px-2 py-1 font-mono text-[0.8125rem] text-ink" dir="ltr" data-openalex-key-line>
-          {t("openalexKey.line")}
-        </code>
-      </p>
+      {/* M13 Part B: the installed app has no environment to set; the Settings screen keeps the value. */}
+      {installed ? null : (
+        <p className="mt-2">
+          <code className="rounded-sm bg-paper px-2 py-1 font-mono text-[0.8125rem] text-ink" dir="ltr" data-openalex-key-line>
+            {t("openalexKey.line")}
+          </code>
+        </p>
+      )}
       <p className="mt-2 text-sm text-ink-muted">{t(installed ? "openalexKey.whereInstalled" : "openalexKey.where")}</p>
+      <a className="mt-2 inline-flex min-h-11 items-center text-brand underline" href={settingsHref(locale)} data-open-settings>
+        {settingsT(locale, "settings.open")}
+      </a>
       {onCheck ? (
         <Button className="mt-3" onClick={onCheck}>
           {t("mailto.check")}
@@ -486,4 +499,10 @@ export function countText(locale: Locale, n: number | null | undefined, capped: 
 /** A fraction the harness wrote, shown as a percentage for reading (the written value goes under Details). */
 export function percent(fraction: number): string {
   return `${Math.round(fraction * 10000) / 100} %`;
+}
+
+/** The Settings screen, keeping `?console=` in a development build (M13 Part B). */
+function settingsHref(locale: Locale): string {
+  const origin = typeof window === "undefined" ? null : new URLSearchParams(window.location.search).get("console");
+  return `/${locale}/settings/${origin ? `?console=${encodeURIComponent(origin)}` : ""}`;
 }

@@ -43,6 +43,7 @@ from .api import screening_v1 as screening_v1_api
 from .api import streams as streams_api
 from .api import workspace as workspace_api
 from .api import workspaces as workspaces_api
+from .api import settings as settings_api
 from .api import workbench as workbench_api
 from .refusals import BODY_INVALID
 from .runtimes.job_runner import JobRunner
@@ -104,8 +105,9 @@ def _body_invalid(exc: RequestValidationError) -> JSONResponse:
 def _workspace_free(path: str) -> bool:
     """API routes that answer with no workspace open (workspaces API §2; inception, M4a)."""
     # M10b Part C: the next-step route answers ``NO_REVIEW`` itself when no workspace is open.
-    return path in ("/api/v1/workspaces", "/api/v1/review/next-step") or path.startswith(
-        ("/api/v1/workspaces/", "/api/v1/inception/")
+    # M13 Part B: the Settings screen is first-run setup, before any review exists.
+    return path in ("/api/v1/workspaces", "/api/v1/review/next-step", "/api/v1/settings") or path.startswith(
+        ("/api/v1/workspaces/", "/api/v1/inception/", "/api/v1/settings/")
     )
 
 
@@ -132,7 +134,7 @@ def _format_blocked(app: FastAPI, path: str) -> JSONResponse | None:
     gate = getattr(app.state, "format_gate", None)
     if gate is None or gate.ready or not path.startswith("/api/"):
         return None
-    if path in _FORMAT_FREE or path.startswith("/api/v1/inception/"):
+    if path in _FORMAT_FREE or path.startswith(("/api/v1/inception/", "/api/v1/settings")):
         return None
     if gate.state == "refused" and gate.refusal is not None:
         exc = gate.refusal
@@ -198,6 +200,8 @@ def create_app(
     phone_tokens: Iterable[str] | None = None,
     workspaces_root: str | Path | None = None,
     on_open: Callable[[Path], None] | None = None,
+    on_root_change: Callable[[Path], None] | None = None,
+    workspaces_root_source: str | None = None,
     browser_session: str | None = None,
     launch_codes: browser.LaunchCodes | None = None,
     ui_dir: str | Path | None = None,
@@ -284,9 +288,16 @@ def create_app(
     from scholar_harness.workspace.catalog import resolve_root
 
     root, source = resolve_root(Path(workspaces_root) if workspaces_root is not None else None)
+    if workspaces_root_source is not None:
+        # The launcher resolved the folder itself and says where it came from (M13 Part B):
+        # only a `--root` flag or the environment pins it against the Settings screen.
+        source = workspaces_root_source
     app.state.workspaces_root = root
     app.state.workspaces_root_source = source
     app.state.on_open = on_open
+    # M13 Part B: a reviews folder chosen on the Settings screen restarts the server on it.
+    app.state.on_root_change = on_root_change
+    app.state.started_as = started_as
 
     # Loopback-only CORS for GET from a loopback page (e.g. `next dev` on
     # :3000). CORS alone does not stop writes: a cross-origin "simple" POST
@@ -372,6 +383,7 @@ def create_app(
 
     app.include_router(workspace_api.router)
     app.include_router(workspaces_api.router)
+    app.include_router(settings_api.router)
     app.include_router(inception_api.router)
     app.include_router(recon_api.router)
     app.include_router(discovery_api.router)

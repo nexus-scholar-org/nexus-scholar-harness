@@ -38,6 +38,8 @@ export const NAV_ITEMS = [
   { id: "screening", href: "/screening/home" },
   // M12a Part A (DoD 9): offered once screening is published (`useChartingShown`).
   { id: "charting", href: "/charting" },
+  // M13 Part B: the Settings screen, on every route (spec shared/final/05-settings.md).
+  { id: "settings", href: "/settings" },
 ] as const;
 
 export type NavId = (typeof NAV_ITEMS)[number]["id"];
@@ -76,6 +78,7 @@ export function currentNavId(pathname: string, locale: Locale): NavId | undefine
   if (path === `/${locale}/discovery` || path.startsWith(`/${locale}/discovery/`)) return "discovery";
   if (path === `/${locale}/screening` || path.startsWith(`/${locale}/screening/`)) return "screening";
   if (path === `/${locale}/charting` || path.startsWith(`/${locale}/charting/`)) return "charting";
+  if (path === `/${locale}/settings`) return "settings";
   return undefined;
 }
 

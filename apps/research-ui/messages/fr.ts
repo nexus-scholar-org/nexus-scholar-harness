@@ -36,6 +36,7 @@ const fr: Record<MessageKey, string> = {
   "nav.discovery": "Recherche",
   "nav.screening": "Sélection",
   "nav.charting": "Extraction",
+  "nav.settings": "Réglages",
   "nav.workspaces": "Espaces de travail",
   "nav.landmark.primary": "Principal",
   "a11y.openMainNavigation": "Ouvrir la navigation principale",

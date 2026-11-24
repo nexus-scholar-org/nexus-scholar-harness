@@ -422,7 +422,7 @@ def keys_status() -> None:
 
 @keys_app.command("clear")
 def keys_clear(provider: str = typer.Argument(..., help=_PROVIDER_HELP)) -> None:
-    """Remove a provider's key from the OS keychain."""
+    """Remove a provider's key from the OS keychain (and from Nexus Scholar's keys file, M13 Part B)."""
     from scholar_agent.keys import clear_key
 
     try:
@@ -430,7 +430,7 @@ def keys_clear(provider: str = typer.Argument(..., help=_PROVIDER_HELP)) -> None
     except ValueError as exc:
         console.print(f"[bold red]❌ {exc}[/bold red]")
         raise typer.Exit(1) from exc
-    console.print(f"{provider}: {'removed from the keychain' if removed else 'no keychain entry'}")
+    console.print(f"{provider}: {'removed' if removed else 'no stored key'}")
 
 
 app.add_typer(keys_app, name="keys")
@@ -1695,13 +1695,14 @@ def ui(
             "copy. Or point NEXUS_UI_DIR at a static export.[/bold red]"
         )
         raise typer.Exit(1)
-    folder, _source = resolve_root(root)
+    folder, source = resolve_root(root)
     target = workspace.resolve() if workspace is not None else None
     if target is not None and not validity(target)[0]:
         console.print(f"[bold red]❌ Not a Nexus Scholar workspace: {target} ({validity(target)[1]})[/bold red]")
         raise typer.Exit(1)
     launcher = Launcher(
         root=folder,
+        root_source=source,
         workspace=target if target is not None else most_recent(folder),
         ui_dir=ui_dir,
         port=free_port("127.0.0.1", port),
@@ -1721,6 +1722,10 @@ def main():
 
     if sys.argv[1:2] == [code_window.CHILD_FLAG]:
         return code_window.run_child()
+    from .console import folder_dialog
+
+    if sys.argv[1:2] == [folder_dialog.CHILD_FLAG]:
+        return folder_dialog.run_child()
     app()
 
 

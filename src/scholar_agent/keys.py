@@ -69,6 +69,14 @@ def _from_keychain(provider: str) -> str | None:
     return value or None
 
 
+def _from_file(provider: str) -> str | None:
+    """A key kept in the user's keys file, where the keychain failed (M13 Part B, after the user confirmed it)."""
+    from scholar_search import user_settings
+
+    value, where = user_settings.stored_key(provider)
+    return value if where == "file" else None
+
+
 def _from_environment(provider: str) -> str | None:
     return os.environ.get(ENV_VARS[provider], "").strip() or None
 
@@ -79,9 +87,9 @@ def keychain_available() -> bool:
 
 
 def resolve_key(provider: str) -> str | None:
-    """The key to use: the environment variable if set, else the keychain entry, else None."""
+    """The key to use: the environment variable if set, else the keychain entry, else the keys file, else None."""
     _check(provider)
-    return _from_environment(provider) or _from_keychain(provider)
+    return _from_environment(provider) or _from_keychain(provider) or _from_file(provider)
 
 
 def key_status(provider: str) -> KeyStatus:
@@ -89,7 +97,9 @@ def key_status(provider: str) -> KeyStatus:
     in_keychain = bool(_from_keychain(provider))
     if _from_environment(provider):
         return KeyStatus(provider, "environment", also_in_keychain=in_keychain)
-    return KeyStatus(provider, "keychain" if in_keychain else "none")
+    if in_keychain:
+        return KeyStatus(provider, "keychain")
+    return KeyStatus(provider, "file" if _from_file(provider) else "none")
 
 
 _REFUSAL = re.compile(r"(?<!\d)401(?!\d)|AuthenticationError", re.IGNORECASE)
@@ -117,6 +127,11 @@ def refusal_note(provider: str) -> str:
             else ""
         )
         return f"{provider} refused the key from the environment variable {var}. Put a valid key in {var} (the shell or the .env file).{other}"
+    if status.source == "file":
+        return (
+            f"{provider} refused the key kept in Nexus Scholar's keys file (where the keychain could not be used). "
+            f"Replace it on the Settings screen, or remove it with `nexus-scholar keys clear {provider}` and set {var} instead."
+        )
     if status.source == "keychain":
         return (
             f"{provider} refused the key stored in the OS keychain. Replace it with `nexus-scholar keys set {provider}`, "
@@ -138,11 +153,14 @@ def store_key(provider: str, value: str) -> None:
 
 def clear_key(provider: str) -> bool:
     _check(provider)
+    from scholar_search import user_settings
+
+    removed_file = user_settings._remove_from_file(provider)  # the keys file too (M13 Part B)
     kr = _keyring()
     if kr is None:
-        return False
+        return removed_file
     try:
         kr.delete_password(SERVICE, provider)
     except Exception:  # noqa: BLE001 - nothing stored
-        return False
+        return removed_file
     return True

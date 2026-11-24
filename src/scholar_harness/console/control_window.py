@@ -158,9 +158,9 @@ class ControlPanel:
         if self.log_file is not None:
             self._open_folder(self.log_file.parent)
 
-    def open_settings_folder(self) -> None:
-        self.settings_folder.mkdir(parents=True, exist_ok=True)
-        self._open_folder(self.settings_folder)
+    def open_settings(self) -> None:
+        """The Settings screen in the browser, with a fresh one-time link (M13 Part B)."""
+        webbrowser.open(self.launcher.launch_url("/en/settings/"))
 
     def details(self) -> str:
         """What "Copy the details" puts on the clipboard: version, system, log file, the error."""
@@ -237,12 +237,12 @@ class ControlWindow:
         buttons.pack(fill="x")
         self.open_button = tk.Button(buttons, text="Open in browser", command=panel.open_in_browser)
         self.open_button.pack(side="left", padx=(0, 8))
+        tk.Button(buttons, text="Settings", command=panel.open_settings).pack(side="left", padx=(0, 8))
         self.stop_button = tk.Button(buttons, text="Stop Nexus Scholar", command=self.ask_to_stop)
         self.stop_button.pack(side="left")
         links = tk.Frame(frame)
         links.pack(fill="x", pady=(12, 0))
         tk.Button(links, text="Show the log file", relief="flat", fg="#1a5fb4", command=panel.open_log_folder).pack(side="left")
-        tk.Button(links, text="Open the settings folder", relief="flat", fg="#1a5fb4", command=panel.open_settings_folder).pack(side="left")
         self.copy_button = tk.Button(links, text="Copy the details", relief="flat", fg="#1a5fb4", command=self.copy_details)
         root.protocol("WM_DELETE_WINDOW", self.ask_to_stop)
         root.after(POLL_MS, self.poll)

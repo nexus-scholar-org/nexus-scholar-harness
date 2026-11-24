@@ -1,9 +1,29 @@
 """Configuration management for scholar-search-kit."""
 
 from pathlib import Path
+from typing import Any
 
 from pydantic import Field
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic_settings import BaseSettings, PydanticBaseSettingsSource, SettingsConfigDict
+
+
+class UserSettingsSource(PydanticBaseSettingsSource):
+    """The user's settings file and keychain (M13 Part B): the lowest-precedence source.
+
+    The environment and ``.env`` win over it (the researcher's answer 2,
+    2026-11-24); ``user_settings`` holds the file and keychain rules.
+    """
+
+    def get_field_value(self, field: Any, field_name: str) -> tuple[Any, str, bool]:
+        return None, field_name, False
+
+    def __call__(self) -> dict[str, Any]:
+        from . import user_settings
+
+        try:
+            return user_settings.search_values()
+        except Exception:  # noqa: BLE001 - an unreadable settings file never stops the engine
+            return {}
 
 
 class Settings(BaseSettings):
@@ -91,8 +111,35 @@ class Settings(BaseSettings):
         env_file_encoding="utf-8",
         env_prefix="SCHOLAR_",
         extra="ignore",
+        # An empty variable sets nothing, so it never hides the value saved on the Settings screen.
+        env_ignore_empty=True,
     )
+
+    @classmethod
+    def settings_customise_sources(
+        cls,
+        settings_cls: type[BaseSettings],
+        init_settings: PydanticBaseSettingsSource,
+        env_settings: PydanticBaseSettingsSource,
+        dotenv_settings: PydanticBaseSettingsSource,
+        file_secret_settings: PydanticBaseSettingsSource,
+    ) -> tuple[PydanticBaseSettingsSource, ...]:
+        # Environment, then `.env` in the current folder, then the user's settings (M13 Part B).
+        return (init_settings, env_settings, dotenv_settings, UserSettingsSource(settings_cls), file_secret_settings)
 
 
 # Global settings instance
 settings = Settings()
+
+
+def reload_settings() -> Settings:
+    """Read every source again into the one shared instance (M13 Part B).
+
+    Modules hold ``settings`` by reference (``from .config import settings``),
+    so the instance is updated in place: a contact e-mail or a key saved on the
+    Settings screen takes effect at the next request, with no restart.
+    """
+    fresh = Settings()
+    for name in Settings.model_fields:
+        object.__setattr__(settings, name, getattr(fresh, name))
+    return settings

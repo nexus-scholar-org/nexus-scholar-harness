@@ -1711,7 +1711,8 @@ def _apply_keychain_keys() -> list[str]:
     for provider, name in keys.ENV_VARS.items():
         if os.environ.get(name, "").strip():
             continue
-        value = keys._from_keychain(provider)
+        # The keys file stands in where the keychain failed (M13 Part B, after the user confirmed it).
+        value = keys._from_keychain(provider) or keys._from_file(provider)
         if value:
             os.environ[name] = value
             loaded.append(name)

@@ -90,7 +90,68 @@ def _guarded_connect_ex(self, address):
     return _REAL_CONNECT_EX(self, address)
 
 
+class _SessionKeyring:
+    """An empty in-memory keychain for the whole test session (M13 Part B).
+
+    No test reads or writes the real one; a test that needs its own fake
+    replaces this module with ``monkeypatch.setitem(sys.modules, "keyring", ...)``.
+    """
+
+    def __init__(self) -> None:
+        self.store: dict[tuple[str, str], str] = {}
+
+    def get_keyring(self):
+        return self
+
+    def get_password(self, service, name):
+        return self.store.get((service, name))
+
+    def set_password(self, service, name, value):
+        self.store[(service, name)] = value
+
+    def delete_password(self, service, name):
+        self.store.pop((service, name), None)
+
+
+def _isolate_user_settings() -> None:
+    import sys
+    import tempfile
+    import types
+
+    os.environ["NEXUS_SETTINGS_DIR"] = tempfile.mkdtemp(prefix="nexus-test-settings-")
+    # Child processes a test starts import the real keyring: point them at keyring's "null" backend.
+    os.environ["PYTHON_KEYRING_BACKEND"] = "keyring.backends.null.Keyring"
+    module = types.ModuleType("keyring")
+    for name in ("get_keyring", "get_password", "set_password", "delete_password"):
+        setattr(module, name, getattr(_KEYRING, name))
+    sys.modules["keyring"] = module
+
+
+_KEYRING = _SessionKeyring()
+
+
+@pytest.fixture(autouse=True)
+def _keep_search_settings():
+    """The shared search settings are put back after each test (a test may reload them in its own folder)."""
+    from scholar_search.config import settings
+
+    saved = settings.model_dump()
+    yield
+    for name, value in saved.items():
+        object.__setattr__(settings, name, value)
+
+
+@pytest.fixture(autouse=True)
+def _own_user_settings(tmp_path_factory, monkeypatch):
+    """Each test gets its own settings folder and an empty keychain (M13 Part B)."""
+    monkeypatch.setenv("NEXUS_SETTINGS_DIR", str(tmp_path_factory.mktemp("user-settings")))
+    _KEYRING.store.clear()
+    yield
+    _KEYRING.store.clear()
+
+
 def pytest_configure(config):
+    _isolate_user_settings()
     if os.environ.get("NEXUS_RECORD_CASSETTES") == "1" or os.environ.get("NEXUS_ALLOW_NETWORK") == "1":
         return
     socket.socket.connect = _guarded_connect

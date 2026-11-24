@@ -100,6 +100,8 @@ POST_PATHS: tuple[re.Pattern[str], ...] = tuple(
         # M12a Part F: start (or plan, dry) and cancel the look-up of open-access copies; confirm and
         # discard go through the charting events above.
         r"api/v1/charting/fetch(/cancel)?",
+        # M13 Part B: the Settings screen (`settings-api.md`); a key's value is never in an answer.
+        r"api/v1/settings/(keys/(openalex|semanticscholar|anthropic|openai_compatible|gemini)/remove|folder/choose|setup)",
     )
 )
 PUT_PATHS: tuple[re.Pattern[str], ...] = (
@@ -109,6 +111,8 @@ PUT_PATHS: tuple[re.Pattern[str], ...] = (
     re.compile(r"api/v1/screening/approver"),
     re.compile(r"api/v1/inception/drafts/[A-Za-z0-9_-]+"),
     re.compile(r"api/v1/discovery/report/methods"),
+    # M13 Part B: the contact e-mail and the keys, written from the Settings screen.
+    re.compile(r"api/v1/settings/(contact-email|keys/(openalex|semanticscholar|anthropic|openai_compatible|gemini))"),
 )
 #: The one GET with an effect: reading a draft records a reveal.
 READ_PROPOSAL = re.compile(r"api/v1/screening/records/[A-Za-z0-9_-]+/proposal")
@@ -173,7 +177,7 @@ def check(method: str, path: str, *, origin: str | None, host: str, fetch_site: 
     if method not in ("GET", "HEAD") and not writes:
         raise BrowserRefused(405, "CONSOLE_METHOD_REFUSED", "the browser may use GET, HEAD, POST and PUT")
     if method == "PUT" and not any(p.fullmatch(inner) for p in PUT_PATHS):
-        raise BrowserRefused(405, "CONSOLE_METHOD_REFUSED", "PUT is served only for the screening settings, the approver, inception drafts and the discovery methods text")
+        raise BrowserRefused(405, "CONSOLE_METHOD_REFUSED", "PUT is served only for the screening settings, the approver, inception drafts, the discovery methods text and the app's Settings")
     if method == "POST" and not any(p.fullmatch(inner) for p in POST_PATHS):
         raise BrowserRefused(405, "CONSOLE_METHOD_REFUSED", "POST is served only for the screening actions, the workspaces, inception and discovery")
     if READ_PROPOSAL.fullmatch(inner) and fetch_site not in (None, "same-origin", "none"):

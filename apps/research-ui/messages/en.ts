@@ -1,7 +1,7 @@
 /**
  * The English catalog — structural source of truth (D-I18N-03).
  *
- * This file defines the 24 keys that `fr.ts` and `ar.ts` must mirror exactly
+ * This file defines the 25 keys that `fr.ts` and `ar.ts` must mirror exactly
  * (compile-time via `Record<MessageKey, string>` and runtime via
  * `tests/i18n-catalog.test.ts`). A key added, removed, or misspelled here
  * cascades as a `tsc` error in the translations and a test failure in the
@@ -34,6 +34,7 @@ export const en = {
   "nav.discovery": "Discovery",
   "nav.screening": "Screening",
   "nav.charting": "Charting",
+  "nav.settings": "Settings",
   "nav.workspaces": "Workspaces",
   "nav.landmark.primary": "Primary",
 
