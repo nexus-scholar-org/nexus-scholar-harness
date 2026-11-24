@@ -12,9 +12,10 @@ history to read if you need the original reasoning (`git log --follow -- <path>`
 | :-- | :-- | :-- |
 | 2026-11-19 — M9a: what the measurement says about the ladder gates | 2 | The minimum share of the researcher's excludes an agent must take before a rung unlocks: the principle is accepted; the researcher decided on 2026-11-20 to set the number when M9b is built. |
 | 2026-11-23 — H-gate-and-ci | 1 | The standing permission for sessions to push a work branch and open a draft pull request: not given. |
-| 2026-11-24 — M13 Part A | 1 to 4 | Whether the rest of Part A (control window, app text) is a second PR; single instance for the installed start only; the 3-second cut of open responses on Open and Stop; where a tester puts the contact e-mail until Part B. |
 
-## 2026-11-24 — M13 Part A: the launcher for an installed app (PROPOSED; items 1 to 4 for the researcher, 5 to 16 the build's choices)
+## 2026-11-24 — M13 Part A: the launcher for an installed app (ACCEPTED 2026-11-24; items 1 to 4 as recommended, 5 to 16 the build's choices)
+
+**Accepted 2026-11-24.** The researcher accepted items 1 to 4 as recommended in the coordinator session ("Yes, both", to the question whether to accept Part A's four items as recommended and push and merge both builds): Part A in two pull requests, this one first; one engine per user for the installed start only; the 3-second cut of open responses on Open and Stop; the tester's contact e-mail in the settings folder's `.env` until Part B, in tester notes only.
 
 Record: `docs/roadmap/milestones/M13-part-a.md`. Specification: `docs/roadmap/milestones/M13-installers.md` §4.1, §4.2, §5.2 Part A. Started on the researcher's go of 2026-11-24 ("Start Part A and the workspace format version"), relayed by the coordinator session. Branch `dev/m13/part-a-launcher` from `main` `cc0e8fa1`, lane RELEASE. Built: `console/desktop.py` (the start from an icon: log file, user folders, failure messages), `console/instance.py` (one engine per user), the restart time limit, the approval window inside a bundle, the start with no console. Three known faults fixed, each with a test that failed on `cc0e8fa1`: release walk 1.1.0b7 fault 1 (Open left the engine stopped), trial build faults 3 and 4.
 

@@ -1,6 +1,6 @@
 # M13 Part A: the launcher for an installed app
 
-Status: **BUILT on `dev/m13/part-a-launcher` (from `main` `cc0e8fa1`, `main` `0bcefdd3` merged in), not pushed; the engine start path only (see "Not in this branch"). Lane RELEASE.** The researcher gave the go on 2026-11-24 ("Start Part A and the workspace format version"), relayed by the coordinator session "Nexus Scholar parent work". Specification: `docs/roadmap/milestones/M13-installers.md` §4.1, §4.2, §5.2 Part A and §8 (trial build). Decisions: `docs/decisions.md`, entry "2026-11-24 — M13 Part A".
+Status: **BUILT on `dev/m13/part-a-launcher` (from `main` `cc0e8fa1`, `main` `0bcefdd3` merged in); items 1 to 4 accepted by the researcher on 2026-11-24, in a pull request; the engine start path only (see "Not in this branch"). Lane RELEASE.** The researcher gave the go on 2026-11-24 ("Start Part A and the workspace format version"), relayed by the coordinator session "Nexus Scholar parent work". Specification: `docs/roadmap/milestones/M13-installers.md` §4.1, §4.2, §5.2 Part A and §8 (trial build). Decisions: `docs/decisions.md`, entry "2026-11-24 — M13 Part A".
 
 ## What a start from an icon does now
 
