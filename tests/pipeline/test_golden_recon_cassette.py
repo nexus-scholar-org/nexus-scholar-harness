@@ -95,6 +95,7 @@ def _replay_settings(monkeypatch):
     monkeypatch.setattr(settings, "s2_key", None)
 
 
+@pytest.mark.slow  # H-faster-python-tests-2: 12 s in the one-process timing pass of 2026-11-23.
 def test_the_golden_probe_keeps_each_leg_and_feeds_directions(tmp_path):
     store = ReconSessions(root=tmp_path / "recon")
     with _cassette():
@@ -124,6 +125,7 @@ def test_the_golden_probe_keeps_each_leg_and_feeds_directions(tmp_path):
         assert len(d["anchor_dois"]) >= 2
 
 
+@pytest.mark.slow  # H-faster-python-tests-2: 8 s in the one-process timing pass of 2026-11-23.
 def test_the_golden_probe_runs_from_http_and_binds(tmp_path):
     root = tmp_path / "root"
     root.mkdir()

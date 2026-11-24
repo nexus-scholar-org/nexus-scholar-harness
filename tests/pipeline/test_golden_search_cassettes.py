@@ -158,6 +158,7 @@ def test_golden_search_replays_with_legs_report_and_stable_ids(tmp_path):
     assert len(set(sci_1.values())) == len(sci_1)
 
 
+@pytest.mark.slow  # H-faster-python-tests-2: 8 s in the one-process timing pass of 2026-11-23.
 def test_the_cassette_holds_no_contact_address_or_key():
     """The recorded requests carry no contact address, key or User-Agent.
 
@@ -199,6 +200,7 @@ class _Client:
         pass
 
 
+@pytest.mark.slow  # H-faster-python-tests-2: 7 s in the one-process timing pass of 2026-11-23.
 def test_the_handoff_accept_gives_the_snapshot_the_cli_run_gives(tmp_path, monkeypatch):
     """M3d-engine (decision 2026-11-10): the browser run stops before the snapshot,
     and the hand-off accept builds the artifact the CLI run's accept step builds.
