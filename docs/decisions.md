@@ -13,7 +13,7 @@ history to read if you need the original reasoning (`git log --follow -- <path>`
 | 2026-11-19 — M9a: what the measurement says about the ladder gates | 2 | The minimum share of the researcher's excludes an agent must take before a rung unlocks: the principle is accepted; the researcher decided on 2026-11-20 to set the number when M9b is built. |
 | 2026-11-23 — H-gate-and-ci | 1 | The standing permission for sessions to push a work branch and open a draft pull request: not given. |
 
-## 2026-11-23 — H-workspace-format-version: a format version on every workspace, and a copy before a newer build first opens it (items 1 to 6 answered by the researcher 2026-11-24, five as recommended, item 2 changed to "Everything including PDFs"; build in progress)
+## 2026-11-23 — H-workspace-format-version: a format version on every workspace, and a copy before a newer build first opens it (items 1 to 6 answered by the researcher 2026-11-24, five as recommended, item 2 changed to "Everything including PDFs"; built 2026-11-24, review APPROVE, ready for PR; items 7 to 25 for the reviewer)
 
 Record: `docs/roadmap/milestones/H-workspace-format-version.md`. Source: the project review of 2026-11-23 (finding 9, recommendation 8) and the researcher's answer to M13 question 11 (build it before installers go to outside testers). Written from `main` `cc0e8fa1`. No Contract v1 file, fingerprint or published generation changes (record §5).
 
