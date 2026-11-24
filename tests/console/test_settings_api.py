@@ -392,3 +392,22 @@ def test_a_keychain_copy_that_cannot_be_removed_leaves_nothing_in_the_file(tmp_p
     answer = client.put("/api/v1/settings/keys/gemini", json={"value": "AIzaNEWMADEUP", "use_file": True})
     assert answer.json()["detail"]["code"] == "KEYCHAIN_UNAVAILABLE"
     assert not user_settings.keys_path().exists() or "gemini" not in user_settings.keys_path().read_text(encoding="utf-8")
+
+
+def test_a_test_home_keeps_its_reviews_inside_it(tmp_path, monkeypatch):
+    """M13 Part B, item 21 (the researcher, 2026-11-24): NEXUS_APP_HOME also moves the default reviews folder."""
+    home = tmp_path / "test-home"
+    monkeypatch.setenv(user_settings.APP_HOME_ENV, str(home))
+    monkeypatch.delenv("NEXUS_SETTINGS_DIR", raising=False)  # the settings folder follows the home too
+    assert catalog.resolve_root(None) == ((home / "workspaces").resolve(), "default")
+    # What already wins still wins: the Settings folder, the environment variable, --root.
+    user_settings.write_settings(workspaces_root=str(tmp_path / "chosen"))
+    assert catalog.resolve_root(None) == ((tmp_path / "chosen").resolve(), "settings")
+    monkeypatch.setenv(catalog.ROOT_ENV, str(tmp_path / "env-root"))
+    assert catalog.resolve_root(None) == ((tmp_path / "env-root").resolve(), "environment")
+    assert catalog.resolve_root(tmp_path / "flag") == ((tmp_path / "flag").resolve(), "flag")
+    # With neither variable, the default is the real Documents folder, as before.
+    monkeypatch.delenv(user_settings.APP_HOME_ENV)
+    monkeypatch.delenv(catalog.ROOT_ENV)
+    monkeypatch.setenv("NEXUS_SETTINGS_DIR", str(tmp_path / "other-settings"))
+    assert catalog.resolve_root(None) == (catalog.DEFAULT_ROOT.expanduser().resolve(), "default")

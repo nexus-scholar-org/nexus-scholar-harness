@@ -37,7 +37,9 @@ def resolve_root(flag: Path | None = None, env: dict[str, str] | None = None) ->
     """The workspaces root and where it came from: `flag`, `environment`, `settings` or `default`.
 
     `settings` is the folder chosen on the Settings screen (M13 Part B), below
-    the flag and the environment variable, which still win.
+    the flag and the environment variable, which still win. With
+    `NEXUS_APP_HOME` set (a test or portable home), the default is
+    `<home>/workspaces` instead of the real Documents folder (item 21).
     """
     env = os.environ if env is None else env
     if flag is not None:
@@ -49,6 +51,10 @@ def resolve_root(flag: Path | None = None, env: dict[str, str] | None = None) ->
     chosen = user_settings.workspaces_root()
     if chosen is not None:
         return chosen.expanduser().resolve(), "settings"
+    # M13 Part B, item 21 (the researcher, 2026-11-24: "Move it too"): a test home set with
+    # NEXUS_APP_HOME keeps its reviews inside it, never in the real Documents folder.
+    if env.get(user_settings.APP_HOME_ENV):
+        return (Path(env[user_settings.APP_HOME_ENV]).expanduser() / "workspaces").resolve(), "default"
     return DEFAULT_ROOT.expanduser().resolve(), "default"
 
 
