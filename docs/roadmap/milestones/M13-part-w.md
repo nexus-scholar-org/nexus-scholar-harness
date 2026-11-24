@@ -64,6 +64,7 @@ Status: **BUILT on `dev/m13/part-w-windows-installer` (cut from Part B's head `b
 | **A frozen start of that bundle** (`Nexus Scholar.exe --no-browser` from `C:\Windows`; the app home and the reviews folder both temporary; keyring pointed at its null backend) | `nexus-scholar-mcp.exe --help` exit 0; the engine answered, `/healthz` ok; the first page through a fresh launch link **2.3 s** after the start, on `/en/settings/` (first run); `started_as: installed`; `--stop` stopped it and freed the port; the review folder untouched; the log says `bundled: True` and holds no error |
 | The installer and its CI test | **not run yet**: the researcher chose CI only (answer 2), and the workflow runs on the pull request, which this session does not open |
 | Contract baseline, `select_test_gate --check` (24 areas) | current; OK |
+| **Selector `pr` gate on the final executable commit `27107316`** (Part W with `main` `ea85cbff` merged in; areas windows-packaging, console, test-gate-selector) | `tests/console tests/authority tests/test_ui_launcher.py tests/test_windows_packaging.py tests/unit tests/conformance`: 2817 passed, 5 skipped; `git diff --check`, ruff (`scripts/`, `src/` bug rules, `packaging/`), `select_test_gate --check`, contract baseline: pass. The full Python suite ran on `61885091` before the review repairs (5386 passed; the two selector tests then failing are fixed). The web app is unchanged by this part |
 
 **Not verified:**
 - the installer itself and its SmartScreen warning;
