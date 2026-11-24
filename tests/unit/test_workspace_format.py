@@ -281,11 +281,12 @@ def test_stopping_the_server_during_the_copy_cancels_it_and_stamps_nothing(old, 
     hold = _Hold(monkeypatch)
     before = _hashes(old)
     app = create_app(old)
-    assert hold.started.wait(10)
     gate = app.state.format_gate
-    gate._cancel.set()
-    hold.release.set()
-    gate.stop()
+    with TestClient(app):
+        assert hold.started.wait(10)
+        # Leaving the block runs the lifespan's shutdown, which must cancel the copy;
+        # the held file is released a moment later so the copy reaches its cancel check.
+        threading.Timer(0.3, hold.release.set).start()
     assert gate.state == "cancelled"
     assert not _zips(old) and not list(wf.copies_dir(old).glob("*.partial"))
     assert _hashes(old) == before
@@ -433,7 +434,7 @@ def test_the_five_newest_copies_are_kept_and_nothing_else_is_deleted(old):
     for minor in range(1, 7):
         wf.forget()
         assert wf.prepare_for_writing(old, agent="test", build=f"1.{minor}.0").copy is not None
-    ours = [p for p in _zips(old) if p.name.startswith(old.name)]
+    ours = [p for p in _zips(old) if wf._COPY_NAME.match(p.name)]
     assert len(ours) == 5
     assert not any("1.0.0-to-1.1.0" in p.name for p in ours)  # the oldest went
     assert (folder / "my-notes.zip").is_file()
@@ -455,6 +456,7 @@ WRITING_COMMANDS = (
     ["chase", "accept", "{ws}"],
     ["log", "event", "{ws}", "--action", "X"],
     ["log", "sync-index", "{ws}"],
+    ["log", "batch", "{ws}", "{ws}/events.jsonl"],
     ["extract", "publish", "{ws}"],
 )
 
@@ -518,3 +520,139 @@ def test_versions_sort_as_releases_do():
     keys = [wf.version_key(v) for v in order]
     assert keys == sorted(keys)
     assert wf.version_key("not a version") is None and wf.version_key(None) is None
+
+
+# --- the independent review's findings (round 1) ------------------------------------- #
+
+
+def test_a_long_review_name_keeps_the_copy_path_short(tmp_path):
+    """Finding 1: the copy's file name does not repeat the review's folder name (Windows' 260 characters)."""
+    # By hand: genesis under pytest's deep temporary folder would itself pass the limit (vendored skills).
+    ws = tmp_path / "a-systematic-review-of-unmanned-aerial-vehicle-imaging-for-weed-and-crop-stress-detection"
+    (ws / "audit").mkdir(parents=True)
+    (ws / "audit" / "journal.jsonl").write_text("", encoding="utf-8")
+    (ws / "project.json").write_text("{}", encoding="utf-8")
+    (ws / "protocol.json").write_text("{}", encoding="utf-8")
+    result = wf.prepare_for_writing(ws, agent="test")
+    assert len(ws.name) > 80
+    assert ws.name not in result.copy.name
+    # parent + "/.nexus-copies/" + slug + "/" + a name of at most about 100 characters
+    assert len(str(result.copy)) <= len(str(ws)) + len("/.nexus-copies/") + 100
+    assert len(result.copy.name) <= 100
+
+
+def test_a_lock_left_by_a_process_that_died_does_not_block(old):
+    """Finding 2: the lock is the operating system's; a leftover lock file holds nothing."""
+    folder = wf.copies_dir(old)
+    folder.mkdir(parents=True)
+    (folder / wf.LOCK_NAME).write_text("4242 left by a crashed process", encoding="utf-8")
+    started = __import__("time").monotonic()
+    assert wf.prepare_for_writing(old, agent="test").copy is not None
+    assert __import__("time").monotonic() - started < 5
+
+
+def test_a_lock_held_by_a_running_process_makes_the_open_wait_then_refuse(old, monkeypatch):
+    monkeypatch.setattr(wf, "LOCK_WAIT_S", 0.5)
+    folder = wf.copies_dir(old)
+    folder.mkdir(parents=True)
+    before = _hashes(old)
+    with open(folder / wf.LOCK_NAME, "a+b") as holder:
+        assert wf._try_lock(holder)
+        with pytest.raises(wf.WorkspaceFormatRefused) as refused:
+            wf.prepare_for_writing(old, agent="test")
+        wf._unlock(holder)
+    assert refused.value.code == wf.WORKSPACE_COPY_FAILED and "still being made" in refused.value.message
+    assert _hashes(old) == before
+
+
+def test_open_on_the_current_review_after_a_failed_copy_tries_again(old, monkeypatch):
+    """Finding 3: the retry restarts the server on the same review."""
+    monkeypatch.setattr(wf, "make_copy", lambda *a, **k: (_ for _ in ()).throw(
+        wf.WorkspaceFormatRefused(wf.WORKSPACE_COPY_FAILED, "disk full")))
+    opened = []
+    app = create_app(old, workspaces_root=old.parent, on_open=opened.append)
+    assert app.state.format_gate.refusal.code == wf.WORKSPACE_COPY_FAILED
+    answer = TestClient(app).post("/api/v1/workspaces/open", json={"slug": old.name})
+    assert answer.status_code == 202 and answer.json()["restarting"] is True
+    assert opened == [old.resolve()]
+
+
+def test_open_on_the_current_ready_review_still_restarts_nothing(old):
+    opened = []
+    app = create_app(old, workspaces_root=old.parent, on_open=opened.append)
+    answer = TestClient(app).post("/api/v1/workspaces/open", json={"slug": old.name})
+    assert answer.status_code == 200 and answer.json()["restarting"] is False and opened == []
+
+
+def test_open_refuses_an_unreadable_review_and_keeps_the_current_one(old):
+    root = old.parent
+    catalog.create(root, "Current Review")
+    (old / wf.FORMAT_FILE).write_text("{not json", encoding="utf-8")
+    opened = []
+    app = create_app(root / "current-review", workspaces_root=root, on_open=opened.append)
+    answer = TestClient(app).post("/api/v1/workspaces/open", json={"slug": old.name})
+    assert answer.status_code == 409 and answer.json()["detail"]["code"] == wf.WORKSPACE_FORMAT_UNREADABLE
+    assert opened == []
+
+
+def test_the_server_never_copies_or_stamps_a_folder_that_is_not_a_workspace(tmp_path):
+    """Finding 4: `serve` defaults to `.`; a plain folder is served as it is."""
+    plain = tmp_path / "parent" / "plain"
+    plain.mkdir(parents=True)
+    (plain / "notes.txt").write_text("not a review", encoding="utf-8")
+    create_app(plain)
+    assert sorted(p.name for p in plain.iterdir()) == ["notes.txt"]
+    assert not (plain.parent / wf.COPIES_DIR).exists()
+
+
+def test_the_last_activity_and_the_most_recent_review_ignore_the_stamp(tmp_path):
+    """Finding 5: the copy-and-stamp rows are not the researcher's activity."""
+    root = tmp_path / "root"
+    catalog.create(root, "Older Review")
+    catalog.create(root, "Newer Review")
+    older = root / "older-review"
+    (older / wf.FORMAT_FILE).unlink()
+    before = catalog.describe(older, None)["last_event"]
+    wf.prepare_for_writing(older, agent="test")
+    assert _journal(older)[-1]["action"] == wf.ACTION_STAMPED
+    assert catalog.describe(older, None)["last_event"] == before
+    assert catalog.most_recent(root) == root / "newer-review"
+
+
+def test_sync_dry_run_writes_nothing(old):
+    """Finding 6: "Compute stats without writing any files"."""
+    from typer.testing import CliRunner
+
+    from scholar_harness.cli import app as cli
+
+    before = _hashes(old)
+    CliRunner().invoke(cli, ["sync", "--workspace", str(old), "--dry-run"])
+    assert _hashes(old) == before and not wf.copies_dir(old).exists()
+
+
+def test_a_cancel_after_the_zip_is_written_still_stamps_nothing(old):
+    """Finding 7."""
+    cancel = threading.Event()
+
+    def progress(done, total):
+        if done == total:
+            cancel.set()  # the last file is in: the shutdown arrives during the check
+
+    before = _hashes(old)
+    with pytest.raises(wf.CopyCancelled):
+        wf.prepare_for_writing(old, agent="test", progress=progress, cancel=cancel)
+    assert _hashes(old) == before and not _zips(old)
+
+
+def test_prune_survives_a_copy_removed_meanwhile(old, monkeypatch):
+    """Finding 12."""
+    wf.prepare_for_writing(old, agent="test")
+    real_stat = Path.stat
+
+    def flaky(self, *args, **kwargs):
+        if self.suffix == ".zip":
+            raise FileNotFoundError(self)
+        return real_stat(self, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "stat", flaky)
+    assert wf.prune(old) == []

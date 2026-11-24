@@ -245,7 +245,8 @@ def create_app(
     # copied (in the background when large) and stamped before any route may
     # write; a newer or unreadable one, or a failed copy, is refused.
     app.state.format_gate = None
-    if ws is not None:
+    # Only a workspace: a plain folder (`serve` defaults to `.`) is never copied or stamped.
+    if ws is not None and any((ws / marker).is_file() for marker in ("project.json", "protocol.json", "audit/journal.jsonl")):
         from scholar_harness.workspace.catalog import workspace_title
         from scholar_harness.workspace.format import OpenGate
 

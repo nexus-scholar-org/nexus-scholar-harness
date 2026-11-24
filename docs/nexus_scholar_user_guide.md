@@ -490,7 +490,7 @@ newer version opens a review, it saves a copy of the whole review first,
 PDFs included, as one zip file beside your reviews:
 
 ```
-<your workspaces folder>/.nexus-copies/<review folder>/<review>-<date>-...zip
+<your workspaces folder>/.nexus-copies/<review folder>/<date>-format...zip
 ```
 
 While the copy is made the app shows "Saving a copy of …" with its progress,
@@ -511,7 +511,8 @@ newer version is not opened by an older one, so nothing in it is misread or
 overwritten. Install that version (or a later one) to continue. **"This
 review was not opened"** after a failed copy means nothing in the review was
 changed: free some disk space or check that the `.nexus-copies` folder can
-be written, then open it again.
+be written, then press **Try again** (or open the review again from the
+Workspaces screen).
 
 ## 11. Versioning
 

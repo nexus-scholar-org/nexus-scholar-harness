@@ -35,7 +35,7 @@ Record: `docs/roadmap/milestones/H-workspace-format-version.md`. Source: the pro
 7. The version is a file of its own, not a field in `project.json`, which five writers rewrite (some outside the package), so a race could drop it.
 8. Reads never stamp or copy: the Workspaces list, `most_recent`, `status`, `doctor` and display routes only read the file. Opening a workspace in the browser app counts as opening for writing.
 9. An unreadable format file is refused (`WORKSPACE_FORMAT_UNREADABLE`), never guessed.
-10. On a refusal at start, `create_app` starts with no workspace open and answers the refusal's own code on workspace routes; `ui` without `--workspace` lands on the Workspaces screen, where the row shows it.
+10. On a refusal at start, `create_app` keeps the review bound but refused: every workspace route answers the refusal's own code, and nothing writes. `ui` without `--workspace` lands on the Workspaces screen, where the row shows it. After a failed copy, Open on the same review (the card's "Try again") restarts on it and tries again (review round 1, finding 3).
 11. A migration step writes only files the copy holds, so restoring a copy gives the workspace as it was (with item 2, PDFs included).
 12. No restore command in this work: the user guide gives the steps by hand.
 
@@ -53,6 +53,7 @@ Record: `docs/roadmap/milestones/H-workspace-format-version.md`. Source: the pro
 22. The workspace-manager scripts (`init_project.py`, `log_event.py`) stamp at birth and refuse a newer workspace only when they run inside the package's environment; a copy vendored into a workspace before this build has no check.
 23. Test fixtures that model today's layout call `stamp_new` (three shared builders); hand-made fixtures elsewhere stay unstamped and are copied and stamped on first open, which their assertions do not see.
 24. The one-time notice's "seen" flag is kept in the browser's storage (`lib/copy-notice.ts`), per copy: a convenience; if storage is unavailable the notice shows again.
+25. Review round 1 (CHANGES, all repaired): the copy's file name is `<stamp>-format<from>-to<to>-<builds>.zip` inside `.nexus-copies/<slug>/` (no slug in the file name, for Windows' path limit); the copy lock is an operating-system lock that ends with its process; the gate runs only on a folder with a workspace marker; the Workspaces list's last activity and `most_recent` skip the format rows; `sync --dry-run` and `agent_screen.py review` do not open for writing; `workspace/meta` answers during a copy (the Workspaces screen polls it after Open); notices go to standard error.
 
 ## 2026-11-23 — H-remove-graph: `scholar_graph` removed after 1.1.0b7 (decided by the researcher 2026-11-23, finish confirmed 2026-11-24; items 1 to 3 accepted by the researcher 2026-11-24 as built)
 

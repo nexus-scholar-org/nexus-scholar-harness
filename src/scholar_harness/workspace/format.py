@@ -51,7 +51,7 @@ STORED_SUFFIXES = frozenset({".pdf", ".png", ".jpg", ".jpeg", ".gif", ".zip", ".
 #: Copies smaller than this are made before the app serves; larger ones in the background.
 FOREGROUND_BYTES = 64 * 1024 * 1024
 LOCK_NAME = ".copy.lock"
-LOCK_STALE_S = 6 * 3600
+#: How long an open waits for another live process's copy of the same review.
 LOCK_WAIT_S = 600.0
 
 WORKSPACE_FORMAT_NEWER = "WORKSPACE_FORMAT_NEWER"
@@ -64,7 +64,9 @@ ACTION_MIGRATED = "WORKSPACE_FORMAT_MIGRATED"
 ACTION_NEWER_BUILD = "WORKSPACE_OPENED_BY_NEWER_BUILD"
 FORMAT_ACTIONS = frozenset({ACTION_STAMPED, ACTION_MIGRATED, ACTION_NEWER_BUILD})
 
-_COPY_NAME = re.compile(r"^(?P<slug>.+)-(?P<at>\d{8}T\d{6}Z)(?:-\d+)?-format\d+-to\d+-.+\.zip$")
+#: A copy's file name; the folder (`.nexus-copies/<slug>/`) names the review, so the
+#: file name does not repeat it (a long folder name would pass Windows' 260 characters).
+_COPY_NAME = re.compile(r"^(?P<at>\d{8}T\d{6}Z)(?:-\d+)?-format\d+-to\d+-.+\.zip$")
 
 
 class WorkspaceFormatRefused(Exception):
@@ -233,12 +235,13 @@ def copy_members(ws: Path | str) -> list[tuple[Path, str, int]]:
     return out
 
 
-def copy_name(ws: Path, from_format: int, to_format: int, from_build: str | None, build: str, now: datetime) -> str:
+def copy_name(from_format: int, to_format: int, from_build: str | None, build: str, now: datetime) -> str:
+    """``20261130T100000Z-format0-to1-earlier-to-1.1.0b8.zip``: short whatever the review's name."""
     safe = re.compile(r"[^A-Za-z0-9.+-]+")
     stamp = now.strftime("%Y%m%dT%H%M%SZ")
     return (
-        f"{ws.name}-{stamp}-format{from_format}-to{to_format}-"
-        f"{safe.sub('_', from_build or 'earlier')}-to-{safe.sub('_', build)}.zip"
+        f"{stamp}-format{from_format}-to{to_format}-"
+        f"{safe.sub('_', from_build or 'earlier')[:40]}-to-{safe.sub('_', build)[:40]}.zip"
     )
 
 
@@ -265,7 +268,7 @@ def make_copy(
     n = 1
     while final.exists():  # two copies in one second
         n += 1
-        final = target_dir / re.sub(r"(\d{8}T\d{6}Z)-format", rf"\g<1>-{n}-format", name, count=1)
+        final = target_dir / re.sub(r"^(\d{8}T\d{6}Z)-format", rf"\g<1>-{n}-format", name, count=1)
     partial = target_dir / (final.name + ".partial")
     try:
         members = copy_members(ws)
@@ -293,6 +296,8 @@ def make_copy(
         if written != expected:
             changed = sorted(n for n in expected if written.get(n) != expected[n]) or sorted(set(written) - set(expected))
             raise OSError(f"a file changed while it was being copied ({', '.join(changed[:3])}); try again")
+        if cancel is not None and cancel.is_set():
+            raise CopyCancelled()
         os.replace(partial, final)
         return final
     except CopyCancelled:
@@ -304,8 +309,8 @@ def make_copy(
             WORKSPACE_COPY_FAILED,
             "This review was not opened. Nexus Scholar saves a copy of a review before a newer version opens "
             f"it, and the copy could not be saved: {type(exc).__name__}: {str(exc)[:300]}. Nothing in the "
-            f"review was changed. Free some disk space or check that the folder {target_dir} can be written, "
-            "then try again.",
+            f"review was changed. Check that there is enough free disk space and that the folder {target_dir} "
+            "can be written (on Windows a very deep folder can also be the cause), then try again.",
             details={"copies_dir": str(target_dir), "reason": f"{type(exc).__name__}: {str(exc)[:300]}"},
         ) from exc
 
@@ -346,15 +351,20 @@ def _write_readme(root: Path) -> None:
 def prune(ws: Path | str, keep: int = KEEP_COPIES) -> list[str]:
     """Delete this mechanism's copies beyond the ``keep`` newest; never another file."""
     folder = copies_dir(ws)
-    slug = Path(ws).resolve().name
-    ours = []
-    for path in folder.glob("*.zip") if folder.is_dir() else []:
-        match = _COPY_NAME.match(path.name)
-        if match and match.group("slug") == slug:
-            ours.append(path)
-    ours.sort(key=lambda p: (_COPY_NAME.match(p.name).group("at"), p.stat().st_mtime))  # type: ignore[union-attr]
+    ours: list[tuple[str, int, Path]] = []
+    try:
+        for path in folder.glob("*.zip") if folder.is_dir() else []:
+            match = _COPY_NAME.match(path.name)
+            if match:
+                try:
+                    ours.append((match.group("at"), path.stat().st_mtime_ns, path))
+                except OSError:
+                    continue  # removed meanwhile
+    except OSError:
+        return []
+    ours.sort(key=lambda item: item[:2])
     removed = []
-    for path in ours[: max(0, len(ours) - keep)]:
+    for _at, _mtime, path in ours[: max(0, len(ours) - keep)]:
         try:
             path.unlink()
             removed.append(path.name)
@@ -366,12 +376,11 @@ def prune(ws: Path | str, keep: int = KEEP_COPIES) -> list[str]:
 def last_copy(ws: Path | str) -> dict[str, Any] | None:
     """The newest copy of this workspace, for the Workspaces screen; a pure read."""
     folder = copies_dir(ws)
-    slug = Path(ws).resolve().name
     best: tuple[str, int, Path] | None = None
     try:
         for path in folder.glob("*.zip") if folder.is_dir() else []:
             match = _COPY_NAME.match(path.name)
-            if match and match.group("slug") == slug:
+            if match:
                 key = (match.group("at"), path.stat().st_mtime_ns, path)
                 if best is None or key[:2] > best[:2]:
                     best = key
@@ -387,17 +396,26 @@ def last_copy(ws: Path | str) -> dict[str, Any] | None:
 
 
 class _CopyLock:
-    """One copy of a workspace at a time, across processes; the file lives beside the copies."""
+    """One copy of a workspace at a time, across processes; the file lives beside the copies.
+
+    An operating-system lock on an open file (``msvcrt.locking`` on Windows,
+    ``fcntl.flock`` elsewhere): it ends with the process that holds it, so a
+    copy interrupted by a crash, a closed window or a power cut leaves nothing
+    that blocks the next open. The file itself stays; it holds no state.
+    """
 
     def __init__(self, ws: Path, cancel: threading.Event | None):
         self.path = copies_dir(ws) / LOCK_NAME
         self.cancel = cancel
-        self.fd: int | None = None
+        self.handle: Any = None
 
     def __enter__(self) -> _CopyLock:
         try:
             return self._take()
         except OSError as exc:
+            if self.handle is not None:
+                self.handle.close()
+                self.handle = None
             raise WorkspaceFormatRefused(
                 WORKSPACE_COPY_FAILED,
                 f"This review was not opened: the copy could not be started ({exc}). Nothing in the review was changed.",
@@ -406,30 +424,56 @@ class _CopyLock:
 
     def _take(self) -> _CopyLock:
         self.path.parent.mkdir(parents=True, exist_ok=True)
+        self.handle = open(self.path, "a+b")  # noqa: SIM115 - held until __exit__
         deadline = time.monotonic() + LOCK_WAIT_S
         while True:
-            try:
-                self.fd = os.open(self.path, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
-                os.write(self.fd, f"{os.getpid()} {uuid.uuid4().hex}".encode())
+            if _try_lock(self.handle):
                 return self
-            except FileExistsError:
-                try:
-                    if time.time() - self.path.stat().st_mtime > LOCK_STALE_S:
-                        self.path.unlink(missing_ok=True)
-                        continue
-                except OSError:
-                    continue
-                if time.monotonic() > deadline:
-                    raise OSError("another copy of this review is still being made") from None
-                if self.cancel is not None and self.cancel.wait(0.2):
-                    raise CopyCancelled() from None
-                if self.cancel is None:
-                    time.sleep(0.2)
+            if time.monotonic() > deadline:
+                raise OSError("another copy of this review is still being made by a running Nexus Scholar")
+            if self.cancel is not None and self.cancel.wait(0.2):
+                self.handle.close()
+                self.handle = None
+                raise CopyCancelled()
+            if self.cancel is None:
+                time.sleep(0.2)
 
     def __exit__(self, *_exc: object) -> None:
-        if self.fd is not None:
-            os.close(self.fd)
-        _remove(self.path)
+        if self.handle is not None:
+            _unlock(self.handle)
+            self.handle.close()
+            self.handle = None
+
+
+def _try_lock(handle: Any) -> bool:
+    try:
+        if os.name == "nt":
+            import msvcrt
+
+            handle.seek(0)
+            msvcrt.locking(handle.fileno(), msvcrt.LK_NBLCK, 1)
+        else:
+            import fcntl
+
+            fcntl.flock(handle.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+        return True
+    except OSError:
+        return False
+
+
+def _unlock(handle: Any) -> None:
+    try:
+        if os.name == "nt":
+            import msvcrt
+
+            handle.seek(0)
+            msvcrt.locking(handle.fileno(), msvcrt.LK_UNLCK, 1)
+        else:
+            import fcntl
+
+            fcntl.flock(handle.fileno(), fcntl.LOCK_UN)
+    except OSError:
+        pass
 
 
 # --- migrations ------------------------------------------------------------- #
@@ -537,9 +581,12 @@ def prepare_for_writing(
             _remember(ws, build)
             return Prepared(reason=None, from_format=current.state.format, from_build=current.state.written_by)
         state = current.state
-        name = copy_name(ws, state.format, max(state.format, CURRENT_FORMAT), state.written_by, build, datetime.now(UTC))
+        name = copy_name(state.format, max(state.format, CURRENT_FORMAT), state.written_by, build, datetime.now(UTC))
         copy = make_copy(ws, name, progress=progress, cancel=cancel)
         result = Prepared(copy, current.reason, state.format, max(state.format, CURRENT_FORMAT), state.written_by)
+        if cancel is not None and cancel.is_set():  # the server is stopping: stamp nothing
+            _remove(copy)
+            raise CopyCancelled()
         try:
             _record(ws, result, agent=agent, build=build)
         except OSError as exc:

@@ -89,6 +89,40 @@ describe("WorkspacePreparationGate", () => {
     expect(screen.queryByText("the screening home")).toBeNull();
   });
 
+  it("tries a failed copy again by opening the same review, then reloads", async () => {
+    const calls: string[] = [];
+    let opened = false;
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (url: string, init?: RequestInit) => {
+        const path = new URL(url, "http://localhost").pathname.replace("/api/console", "");
+        calls.push(`${init?.method ?? "GET"} ${path}`);
+        const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } });
+        if (path === "/api/v1/workspaces/open") {
+          opened = true;
+          return json({ slug: "sensor-stress", path: "x", restarting: true }, 202);
+        }
+        const refused = prep("refused", { refusal: { code: "WORKSPACE_COPY_FAILED", message: "disk full" } });
+        return json({ preparation: opened ? prep("preparing") : refused });
+      }),
+    );
+    const reload = vi.fn();
+    vi.stubGlobal("location", { ...window.location, reload, search: "" });
+    render(<WorkspacePreparationGate locale="en" pathname="/en/screening/home/">{page}</WorkspacePreparationGate>);
+    fireEvent.click(await screen.findByRole("button", { name: stateCopy("en", "WORKSPACE_COPY_FAILED").actionLabel }));
+    await waitFor(() => expect(reload).toHaveBeenCalled(), { timeout: 3000 });
+    expect(calls).toContain("POST /api/v1/workspaces/open");
+  });
+
+  it("announces the copy once, not every second", async () => {
+    engine([prep("preparing")]);
+    render(<WorkspacePreparationGate locale="en" pathname="/en/screening/home/">{page}</WorkspacePreparationGate>);
+    await screen.findByRole("progressbar");
+    const live = document.querySelectorAll("[role=status], [aria-live]");
+    expect(live).toHaveLength(1);
+    expect(live[0].textContent).toBe("Saving a copy of Sensor stress review before opening it");
+  });
+
   it("leaves the page alone when the engine has no such route", async () => {
     vi.stubGlobal("fetch", vi.fn(async () => new Response("{}", { status: 404 })));
     render(<WorkspacePreparationGate locale="ar" pathname="/ar/screening/home/">{page}</WorkspacePreparationGate>);

@@ -64,10 +64,22 @@ def _last_event(ws: Path) -> dict[str, Any] | None:
             size = handle.tell()
             handle.seek(max(0, size - 65536))
             lines = [line for line in handle.read().splitlines() if line.strip()]
-        row = json.loads(lines[-1]) if lines else None
-    except (OSError, ValueError):
+    except OSError:
         return None
-    return {"at": row.get("timestamp"), "action": row.get("action")} if isinstance(row, dict) else None
+    # H-workspace-format-version: the copy-and-stamp rows are not the researcher's
+    # activity; the column and `most_recent` show the last row that is.
+    from .format import FORMAT_ACTIONS
+
+    for line in reversed(lines):
+        try:
+            row = json.loads(line)
+        except ValueError:
+            return None
+        if not isinstance(row, dict):
+            return None
+        if row.get("action") not in FORMAT_ACTIONS:
+            return {"at": row.get("timestamp"), "action": row.get("action")}
+    return None
 
 
 def _has_corpus(ws: Path) -> bool:

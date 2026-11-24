@@ -76,6 +76,8 @@ an authoritative artifact.
 - A step is idempotent, journalled, and writes only files the copy holds; it
   never changes `protocol.json`, a Contract v1 artifact, a fingerprint or a
   published generation unless a contract decision says so.
+- The format file's `schema` stays `nexus.workspace-format.v1`; only `format`
+  rises (an older build reports an unknown `schema` as damaged, not newer).
 - Every door that writes into an existing workspace opens it with
   `prepare_for_writing` (or goes through `create_app`); reads never stamp.
 

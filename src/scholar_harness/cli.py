@@ -949,7 +949,8 @@ def sync(
     ),
 ):
     """Atomically rebuild project.json stats and INDEX.md from filesystem state."""
-    _open_for_writing(workspace)
+    if not dry_run:  # "without writing any files"
+        _open_for_writing(workspace)
     orchestrator = _orchestrator_class()(workspace)
     result = orchestrator.sync_state(dry_run=dry_run)
 

@@ -123,7 +123,7 @@ One function in `workspace/format.py`, called by every door that may write (§3.
 1. Read `workspace_format.json`. Missing: format 0. Unreadable, not JSON, a `format` that is not a whole number, or a `schema` it does not know: refuse `WORKSPACE_FORMAT_UNREADABLE` (it never guesses).
 2. `format` newer than this build's `CURRENT_FORMAT`: refuse `WORKSPACE_FORMAT_NEWER` (§3.4). Nothing is written.
 3. Decide whether a copy is needed: the format is older, or (question 1, recommended) `written_by` is older than this build. Same format and same build: return at once; nothing is written.
-4. Take the copy lock (`.nexus-copies/<slug>/.copy.lock`, created exclusively, beside the copies and so outside the review; one holder at a time, so two windows opening one review at once make one copy; a lock older than six hours is stale).
+4. Take the copy lock: an operating-system lock on `.nexus-copies/<slug>/.copy.lock` (`msvcrt.locking` on Windows, `fcntl.flock` elsewhere), beside the copies and so outside the review. One holder at a time, so two windows opening one review make one copy; the lock ends with the process that holds it, so a crash or a closed window leaves nothing that blocks the next open (review finding 2). An open waits up to ten minutes for another running copy of the same review, then refuses.
 5. Make the copy (§3.3). If it fails: delete the partial file, release the lock, refuse `WORKSPACE_COPY_FAILED`. The workspace has not been written.
 6. For each step from the workspace's format up to `CURRENT_FORMAT` (§4): one journal row naming the step, the copy and what it changes, then the step, then `workspace_format.json` with the step's `format`. A crash between the row and the stamp re-runs the step on the next open (steps are idempotent) and makes a second copy; the normal path makes one.
 7. Same format but an older `written_by`: one journal row `WORKSPACE_OPENED_BY_NEWER_BUILD` naming the copy, then `written_by` updated.
@@ -167,7 +167,7 @@ Coordination with M13 Part A: none needed. If Part A adds its own start-up step 
 
   Compressing PDFs gains nothing (their content is already compressed) and costs most of the time. The synthetic JSON is more repetitive than real records, so it compresses better than a real review's will; a cold disk is slower than these figures.
 - **Where**: `<the workspace's parent folder>/.nexus-copies/<slug>/`, which for a listed workspace is the workspaces folder (question 3). The dot keeps it out of the Workspaces list (`catalog.py:168`). For a repository checkout, `workspaces/.nexus-copies/` is added to `.gitignore`.
-- **Name**: `<slug>-<UTC yyyymmddTHHMMSSZ>-format<from>-to<to>-<built by>-to-<this build>.zip`, for example `sensor-stress-20261130T100000Z-format0-to1-1.1.0b7-to-1.1.0b8.zip`. A `README.txt` beside the copies says what they are and how to restore one.
+- **Name**: `<UTC yyyymmddTHHMMSSZ>-format<from>-to<to>-<built by>-to-<this build>.zip` inside the review's own folder, for example `.nexus-copies/sensor-stress/20261130T100000Z-format0-to1-1.1.0b7-to-1.1.0b8.zip`. The file name does not repeat the review's name: with it, a review name over about 66 characters under the default Windows root passed the 260-character path limit and the review could not be opened (review finding 1). A `README.txt` beside the copies says what they are and how to restore one.
 - **How many**: the five newest per workspace (question 3); older ones made by this mechanism are deleted after a new copy is verified. Nothing else in the folder is touched.
 - **Restore** (in the user guide, by hand; a restore command is a later, separate item):
   1. Close Nexus Scholar.
@@ -214,7 +214,7 @@ Only builds with this work protect anything: `1.1.0b7` and earlier have no check
 
 - **No Contract v1 file**, no schema, no golden fixture; `generate_contract_baseline.py --check` stays current (run at `cc0e8fa1`: "Contract baseline current").
 - **No fingerprint or digest.** The protocol fingerprint is computed from `protocol.json` alone (`authority/generations.py:971` `_protocol_fingerprint`); the registered workspace id is read from `project.json` (`generations.py:959`), whose content changes only in `updated_at`; a publication binds the batch files, the published outputs, the approval and the protocol (`screening/currentness.py:1-9`), none of which the stamp touches. A search for a digest over `audit/journal.jsonl`, `project.json` or `INDEX.md` found none. So the stamp changes no fingerprint, no corpus snapshot and no generation's currentness.
-- **What the stamp does change that a user can see**: the journal row becomes the workspace's last event, so the Workspaces list shows it as the last activity (`catalog.py:59-70`) and the stamped workspace becomes "most recent" (`catalog.py:139-144`, the one `ui` opens next). The build shows the copy's row with readable words, or ranks by the last row that is not a format row (a choice for the build, §6 test 6).
+- **What the stamp would change that a user can see, and does not**: a format row is not the researcher's activity, so the Workspaces list's last activity and `most_recent` (the review `ui` opens next) skip the rows `WORKSPACE_FORMAT_STAMPED`, `WORKSPACE_FORMAT_MIGRATED` and `WORKSPACE_OPENED_BY_NEWER_BUILD` (`catalog._last_event`; review finding 5). The copy itself shows on the row as "Copy saved before an update".
 - No published generation is re-made; no decision, batch or export is rewritten.
 
 ---
@@ -301,6 +301,25 @@ Branch `dev/h/workspace-format-version`; `origin/main` `0bcefdd3` (PR 308, H-rem
 6. The panel: a second b6 workspace with 40,000 small text files (109 MB) was the most recent at the next start; the screening home showed "Saving a copy of Third old review before opening it", "30 of 109 MB", then "60 of 109 MB", and opened by itself with the notice when the copy was done (screenshot `h-workspace-format-version-copy-panel.jpg` in the coordinator's notes folder).
 7. Open on the Workspaces screen did **not** restart the server in the app's browser pane, for a review that needed a copy, for one already stamped, and also on `cc0e8fa1` (main before this branch, same UI export): a **pre-existing** fault in this environment, not caused by this work. The same restart driven by a script against the real uvicorn server restarts and copies correctly (stamped and unstamped target). See §10.
 
+### Independent review, round 1 (`dce1abee`): CHANGES
+
+`milestone-reviewer` found one P1, four P2 and seven P3; each was repaired, with a test, in the commit after `dce1abee`:
+
+1. P1, a long review name made the copy path pass 260 characters on Windows and the review could not be opened (reproduced with a 52-character slug in a deep folder): the file name no longer repeats the review's name.
+2. P2, a lock left by a killed process blocked the review for up to six hours: an operating-system lock now, released when its process ends.
+3. P2, no retry inside the app after a failed copy: Open on the current review restarts on it (`workspaces.py`), and the card's "Try again" does that; decisions item 10 corrected (the app starts with the review bound but refused, not with none open).
+4. P2, `create_app` copied and stamped a folder that is not a workspace (`serve` defaults to `.`): the gate runs only where a workspace marker exists.
+5. P2, the last activity showed the raw stamp row and `most_recent` ranked by it: format rows are skipped.
+6. P3, `sync --dry-run` copied and stamped: skipped on a dry run.
+7. P3, a cancel during the zip's check could still stamp: checked again before the rename and before the journal.
+8. P3, the cancel test bypassed the lifespan: it now leaves a `TestClient` block.
+9. P3, one failed progress read froze the panel, and the next-step bar was not refreshed: reads retry with back-off; the page's remount sends the review-changed event.
+10. P3, the whole panel was a live region re-announced every second: one status line, announced once.
+11. P3, doors not named: the kit command lines that write into a workspace through a path (`scholar-pdf` acquire and extract-run with `workspace_root`, `scholar-search` output paths) have no check; named in §10.
+12. P3, `prune` could fail on a copy removed meanwhile: it skips it.
+
+Also from the review: Open on an unreadable review and `log batch` are now tested; the refusal card's link keeps `?console=`.
+
 ## 10. Not verified
 
 - **The researcher's real reviews** were not opened: their size, the size of their `pdfs/`, the zip's size and the time a copy takes are estimates. The figures in §1.6 are the repository's development workspaces.
@@ -315,4 +334,7 @@ Branch `dev/h/workspace-format-version`; `origin/main` `0bcefdd3` (PR 308, H-rem
 - **Open from the Workspaces screen in the app's browser pane**: the server does not restart, on this branch and on `cc0e8fa1` alike (§9 item 7); whether the same happens in an ordinary browser was not tried. It may be the "workspace-open hang" noted before release `1.1.0b7`.
 - **`written_by` reads `1.1.0b7`** on this branch, the version in `pyproject.toml`: a workspace opened by this build and later by the released `1.1.0b8` gets one more copy then (answer 1).
 - **The copy's time on a real review and on a cold disk**: measured on synthetic files from a warm cache only (§3.3).
-- **macOS and Linux**: the tests ran on Windows; CI runs them on Ubuntu.
+- **macOS and Linux**: the tests ran on Windows; CI runs them on Ubuntu (the `fcntl` lock path runs only there).
+- **The kit command lines** (`scholar-pdf acquire` / `extract-run` with `workspace_root`, `scholar-search` with an output path inside a workspace) write without the check (review finding 11); the harness commands, the app and the MCP server's writing tools are covered.
+- **A future change of the format file's `schema` string** would make this build report the file as damaged rather than newer: the string stays `nexus.workspace-format.v1` and only `format` rises (compass rule).
+- **Windows path length**: the copy path is now the review's path plus about 100 characters; a review folder already within about 100 characters of the limit can still fail to copy (the message names the possible cause).

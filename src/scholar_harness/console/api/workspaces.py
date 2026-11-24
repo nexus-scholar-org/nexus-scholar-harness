@@ -81,9 +81,13 @@ def open_workspace(body: OpenBody, request: Request, background: BackgroundTasks
         target = catalog.check_open(root, body.slug, current)
     except catalog.WorkspaceRefused as exc:
         raise _error(exc) from exc
-    if current is not None and target == current.resolve():
-        return JSONResponse({"slug": target.name, "path": str(target), "restarting": False}, status_code=200)
     on_open = getattr(request.app.state, "on_open", None)
+    gate = getattr(request.app.state, "format_gate", None)
+    # H-workspace-format-version: Open on the current review after its copy failed
+    # (or was cancelled) is the retry: the server restarts on it and tries again.
+    retry = gate is not None and gate.state in ("refused", "cancelled") and on_open is not None
+    if current is not None and target == current.resolve() and not retry:
+        return JSONResponse({"slug": target.name, "path": str(target), "restarting": False}, status_code=200)
     if on_open is None:
         raise HTTPException(
             status_code=501,

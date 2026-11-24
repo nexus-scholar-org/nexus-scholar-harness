@@ -642,7 +642,8 @@ export const STATES: Record<string, StateEntry> = {
   },
   WORKSPACE_COPY_FAILED: {
     role: "blocked",
-    action: "reload",
+    // The retry opens the same review again, so the engine restarts and copies anew.
+    action: "retry",
     copy: {
       en: T("This review was not opened", "Nexus Scholar saves a copy of a review before a newer version opens it, and the copy could not be saved. Nothing in the review was changed. Free some disk space or check that the copies folder can be written, then try again.", "Opening this review", "Try again"),
       fr: T("Cette revue n'a pas été ouverte", "Nexus Scholar enregistre une copie d'une revue avant qu'une version plus récente ne l'ouvre, et la copie n'a pas pu être enregistrée. Rien n'a été modifié dans la revue. Libérez de l'espace disque ou vérifiez que le dossier des copies est accessible en écriture, puis réessayez.", "L'ouverture de cette revue", "Réessayer"),

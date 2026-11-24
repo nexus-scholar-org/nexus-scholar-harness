@@ -5,8 +5,9 @@ import { Fragment, useCallback, useEffect, useMemo, useState, type ReactNode } f
 import { formatNumber, type Locale } from "@/i18n";
 import { Button } from "@/components/ui/base";
 import { StateCard } from "@/components/screening-state-card";
+import { notifyReviewChanged } from "@/components/review-bus";
 import { copyNoticeSeen, markCopyNoticeSeen } from "@/lib/copy-notice";
-import { getPreparation, type WorkspacePreparation } from "@/lib/workspaces";
+import { getPreparation, openWorkspace, type WorkspacePreparation } from "@/lib/workspaces";
 
 /**
  * The copy made before a newer version opens a review (H-workspace-format-version).
@@ -22,6 +23,8 @@ import { getPreparation, type WorkspacePreparation } from "@/lib/workspaces";
  */
 
 const POLL_MS = 1000;
+/** A read that fails while a copy runs is retried, slower each time, up to this many times. */
+const MAX_FAILED_READS = 8;
 
 const COPY = {
   en: {
@@ -96,20 +99,30 @@ export function WorkspacePreparationGate({
     const controller = new AbortController();
     let timer: ReturnType<typeof setTimeout> | undefined;
     let wasPreparing = false;
+    let failed = 0;
     const read = async () => {
       let next: WorkspacePreparation | null;
       try {
         next = await getPreparation(origin, controller.signal);
       } catch {
-        return; // an older engine or no engine: leave the page as it is
+        if (controller.signal.aborted) return;
+        // An older engine or no engine leaves the page as it is; during a copy a failed
+        // read is retried, more slowly each time, so the panel does not freeze.
+        if (wasPreparing && failed < MAX_FAILED_READS) {
+          failed += 1;
+          timer = setTimeout(() => void read(), POLL_MS * 2 ** Math.min(failed, 4));
+        }
+        return;
       }
       if (controller.signal.aborted) return;
+      failed = 0;
       setPreparation(next);
       if (next?.state === "preparing") {
         wasPreparing = true;
         timer = setTimeout(() => void read(), POLL_MS);
       } else if (wasPreparing) {
         setGeneration((g) => g + 1); // mount the page afresh: its reads were refused while copying
+        notifyReviewChanged(); // and the next-step bar, which sits outside this wrapper
       }
     };
     void read();
@@ -119,6 +132,29 @@ export function WorkspacePreparationGate({
     };
   }, [origin, onWorkspaces]);
 
+  // A failed copy is tried again by opening the same review: the engine restarts on it
+  // (H-workspace-format-version review, finding 3). The page reloads once it answers.
+  const retry = useCallback(
+    async (slug: string) => {
+      try {
+        await openWorkspace(origin, slug);
+      } catch {
+        // the reload below shows whatever the engine answers now
+      }
+      for (let i = 0; i < 40; i += 1) {
+        await new Promise((resolve) => setTimeout(resolve, 500));
+        try {
+          const next = await getPreparation(origin);
+          if (next?.state !== "refused") break;
+        } catch {
+          // restarting: try again
+        }
+      }
+      window.location.reload();
+    },
+    [origin],
+  );
+
   const copy = preparation?.state === "ready" ? preparation.result?.copy ?? null : null;
   const showNotice = copy !== null && !dismissed && !copyNoticeSeen(copy.name);
 
@@ -126,7 +162,9 @@ export function WorkspacePreparationGate({
     const total = Math.max(preparation.total_bytes, 1);
     const percent = Math.min(100, Math.round((preparation.done_bytes / total) * 100));
     return (
-      <section className="mx-auto max-w-2xl px-4 py-16 sm:px-6" role="status" aria-live="polite" data-preparing={preparation.slug}>
+      <section className="mx-auto max-w-2xl px-4 py-16 sm:px-6" data-preparing={preparation.slug}>
+        {/* Announced once; the progress is read from the bar on request, not re-announced every second. */}
+        <p className="sr-only" role="status">{t("panel.title", { title: preparation.title })}</p>
         <h1 className="font-display text-2xl font-semibold text-ink">{t("panel.title", { title: preparation.title })}</h1>
         <p className="mt-3 text-ink-muted">{t(preparation.reason === "build" ? "panel.reason.build" : "panel.reason.format")}</p>
         <div
@@ -150,9 +188,9 @@ export function WorkspacePreparationGate({
   if (preparation?.state === "refused" && preparation.refusal && !onWorkspaces) {
     return (
       <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6" data-preparation-refused={preparation.refusal.code}>
-        <StateCard locale={locale} code={preparation.refusal.code} message={preparation.refusal.message} consoleOrigin={origin} pageHeading onRetry={() => window.location.reload()} />
+        <StateCard locale={locale} code={preparation.refusal.code} message={preparation.refusal.message} consoleOrigin={origin} pageHeading onRetry={() => void retry(preparation.slug)} />
         <p className="mt-4">
-          <a className="inline-flex min-h-11 items-center text-brand underline" href={`/${locale}/workspaces/`}>
+          <a className="inline-flex min-h-11 items-center text-brand underline" href={`/${locale}/workspaces/${origin ? `?console=${encodeURIComponent(origin)}` : ""}`}>
             {t("refused.workspaces")}
           </a>
         </p>
