@@ -66,7 +66,10 @@ def test_the_user_folders_on_each_system():
     assert desktop.app_folders({desktop.HOME_ENV: "/t"}, "win32").settings == Path("/t/settings")
 
 
-def test_the_log_keeps_five_files_masks_and_stops_at_its_cap(tmp_path):
+def test_the_log_keeps_five_files_masks_and_stops_at_its_cap(tmp_path, monkeypatch):
+    # One process makes every file here, so each name ends with this live pid;
+    # on POSIX that would keep them all (see test_a_running_engines_log_is_not_pruned).
+    monkeypatch.setattr(desktop, "_running", lambda log: False)
     for n in range(7):
         desktop.open_log(tmp_path, now=datetime(2026, 11, 24, 10, 0, n)).close()
     assert len(list(tmp_path.glob("*.log"))) == desktop.KEEP_LOGS
@@ -131,7 +134,17 @@ def _engine(home_folders, root, ui):
 
 
 def _port_free(port: int) -> bool:
+    """Whether a new engine could listen on ``port`` now.
+
+    On POSIX the probe sets SO_REUSEADDR as uvicorn's own socket does: the
+    stopped server's closed connections stay in TIME_WAIT for a while, and a
+    plain bind is refused by them although nothing listens. A live listener
+    still refuses the bind. On Windows the option would let the bind through
+    beside a live listener, so it is not set there.
+    """
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as probe:
+        if os.name != "nt":
+            probe.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         try:
             probe.bind(("127.0.0.1", port))
         except OSError:
