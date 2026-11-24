@@ -107,3 +107,7 @@ Left as follow-ups:
 - **P3, an unknown reviews folder.** When the reviews folder is unknown, `--forget` now keeps the whole cache as well.
 - **P3, the uninstaller's question.** The record now quotes its new words.
 - **Not handled:** the uninstaller ignores `--forget`'s exit 1, so a key it could not remove is not reported. This is a follow-up.
+
+**Round 3: APPROVE** (`27107316` and `57b77e31`). Removing a leftover `engine.json` under an acquired lock cannot hide a live engine. An engine takes the lock before it publishes and holds it for its whole life, and a claim's release removes only its own file. Follow-ups:
+- Windows can release a killed process's lock a moment late, so the installer's message may show once.
+- The uninstaller ignores `--forget`'s exit 1.
