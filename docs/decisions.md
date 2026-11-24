@@ -160,7 +160,9 @@ Record: `docs/roadmap/milestones/H-charting-row-layout.md`. The work is the rese
 8. No hover tint was added (the table had none); the pinned cells would follow one.
 9. Other screens that pass `px-1 text-xs` through `className` (the query workbench's term buttons) have the same lost classes and are left for a follow-up.
 
-## 2026-11-23 — H-faster-python-tests-2: two more workspace templates and six slow marks; the temporary-folder setting refused (go-ahead by the researcher 2026-11-23; built; items 1 to 3 PROPOSED)
+## 2026-11-23 — H-faster-python-tests-2: two more workspace templates and six slow marks; the temporary-folder setting refused (go-ahead by the researcher 2026-11-23; built; items 1 to 3 ACCEPTED 2026-11-24)
+
+**Accepted 2026-11-24.** The researcher accepted items 1 to 3 as proposed in the coordinator session ("Yes accept", to the question whether to accept PR 312's three items and merge it): the scaffold-based console fixtures stay as they are; six long tests leave the inner gates; the temporary-folder setting is refused.
 
 Record: `docs/roadmap/milestones/H-faster-python-tests-2.md`. Items 1, 2 and 4 of "What is left" in the test-suite review's update of 2026-11-23, which the researcher told the review session to build ("Yes, build them"). Test code only; no product code.
 

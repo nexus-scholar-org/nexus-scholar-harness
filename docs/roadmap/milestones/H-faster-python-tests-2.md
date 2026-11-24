@@ -1,6 +1,6 @@
 # H-faster-python-tests-2 Two more workspace templates and six slow marks
 
-Branch: `dev/h/faster-python-tests-2` (from `origin/main` `6f31f92e`, which holds H-faster-python-tests, PR 303) · Lane: **STANDARD** (test code only; no product code, contract or public surface changes) · Status: **READY FOR PR** (review round 2 APPROVE on `b9ee992a`; pushed to the fork on the researcher's word of 2026-11-24, "Yes, open the PR"; decision items 1 to 3 PROPOSED) · Started: 2026-11-23
+Branch: `dev/h/faster-python-tests-2` (from `origin/main` `6f31f92e`, which holds H-faster-python-tests, PR 303) · Lane: **STANDARD** (test code only; no product code, contract or public surface changes) · Status: **IN PR 312** (review round 2 APPROVE on `b9ee992a`; pushed to the fork on the researcher's word of 2026-11-24, "Yes, open the PR"; decision items 1 to 3 accepted by the researcher on 2026-11-24, to merge when all checks are green) · Started: 2026-11-23
 
 `origin/main` `460f23f3` (PR 304, the M13-installers specification, documentation only) was merged in at `b9ee992a`; one conflict, `docs/decisions.md`, both entries kept. `origin/main` `f2a7407e` (PRs 305 to 311) was merged in at `86f1b4a0` on 2026-11-24, after the review: the same one conflict, both sides kept; `tests/console/test_approve_all.py` merged without a conflict (main added tests to it). The review did not read this merge.
 
