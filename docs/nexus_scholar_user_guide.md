@@ -1,6 +1,6 @@
 # nexus-scholar 1.1 (beta): user guide
 
-This guide follows the current beta, **1.1.0b7** (PyPI and GitHub). Where `main`
+This guide follows the current beta, **1.1.0b8** (PyPI and GitHub). Where `main`
 already does more, the text says so.
 
 `nexus-scholar` is the distributed entry point for the **Nexus Scholar
@@ -55,7 +55,7 @@ GitHub Releases — no source checkout, no per-kit installs.
 
 - Works on **Windows, macOS, Linux** (Python 3.11+ via `uv` or `pip`).
 - The wheel bundles the harness CLI **plus the four scholar kits** (protocol,
-  search, PDF, agent; the graph kit was removed after 1.1.0b7), the
+  search, PDF, agent; the graph kit was removed in 1.1.0b8), the
   research app (`nexus-scholar ui`) and the skill bundles, so a workspace initialized here is self-contained and
   portable.
 - PyPI: <https://pypi.org/project/nexus-scholar/>
@@ -72,7 +72,7 @@ GitHub Releases — no source checkout, no per-kit installs.
 Run any command in an ephemeral isolated environment directly from PyPI:
 
 ```sh
-uvx "nexus-scholar>=1.1.0b7" --help
+uvx "nexus-scholar>=1.1.0b8" --help
 ```
 
 `uvx` caches the environment, so repeat runs are fast.
@@ -84,15 +84,28 @@ uvx "nexus-scholar>=1.1.0b7" --help
 
 ```sh
 # Via standard pip:
-pip install "nexus-scholar>=1.1.0b7"
+pip install "nexus-scholar>=1.1.0b8"
 
 # Or as an isolated CLI tool via uv:
-uv tool install "nexus-scholar>=1.1.0b7"
+uv tool install "nexus-scholar>=1.1.0b8"
 ```
 
 The version in the command is needed while Nexus Scholar is in beta. Do not use
 `--prerelease allow`: it also takes development releases of other packages, and
 one of them stops the app from starting (see `docs/releases/1.1.0b4.md`).
+
+**On Windows, since 1.1.0b8, there is also an installer** (`NexusScholar-1.1.0b8-setup.exe`
+on the GitHub release page): no Python, no terminal, no administrator password. It is
+not signed, so Windows may warn before it runs. It installs for your user, adds a
+Start-menu entry, and starts the same app with a small control window (Open in browser,
+Settings, Stop). The same start with no terminal is the command `nexus-scholar-app` of
+the `uv`/`pip` install. Your contact e-mail and keys are then set on the **Settings**
+screen (keys go to the system keychain; a `uv`/`pip` install needs the `ai` extra for
+that, and asks before it keeps a key in a file otherwise); a value in the environment or
+a `.env` file still wins. Uninstalling never removes a review.
+
+**Since 1.1.0b8 a review has a format version,** and a newer version saves a copy of a
+review before it first opens it: see "The copy made before an update" below.
 
 Installs **two** executables on your PATH:
 `nexus-scholar` (this guide) and `scholar-agent` (the MCP server, §7).
@@ -518,6 +531,6 @@ Workspaces screen).
 
 - Releases are tagged on the harness repo (`v*`); each tag publishes a wheel to
   PyPI and GitHub Releases with auto-generated notes.
-- Upgrade during the beta with `uv tool install --force "nexus-scholar>=1.1.0b7"`
-  or `pip install -U "nexus-scholar>=1.1.0b7"`. Release notes are in
-  `docs/releases/` (1.1.0b7 is the latest).
+- Upgrade during the beta with `uv tool install --force "nexus-scholar>=1.1.0b8"`
+  or `pip install -U "nexus-scholar>=1.1.0b8"`. Release notes are in
+  `docs/releases/` (1.1.0b8 is the latest).
