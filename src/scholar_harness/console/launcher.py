@@ -33,7 +33,7 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import urlencode
 
-from . import browser, code_window
+from . import browser, code_window, log_noise
 from .instance import Instance
 
 UI_DIR_ENV = "NEXUS_UI_DIR"
@@ -270,13 +270,15 @@ def _uvicorn_server(app: Any, host: str, port: int) -> Any:
     # None and uvicorn's own logging set-up raises (trial build fault 4); its
     # loggers then use whatever the process set up (the installed app's log file).
     no_console = sys.stdout is None or sys.stderr is None
-    return uvicorn.Server(
-        uvicorn.Config(
-            app,
-            host=host,
-            port=port,
-            log_level="warning",
-            timeout_graceful_shutdown=RESTART_GRACE_SECONDS,
-            **({"log_config": None} if no_console else {}),
-        )
+    config = uvicorn.Config(
+        app,
+        host=host,
+        port=port,
+        log_level="warning",
+        timeout_graceful_shutdown=RESTART_GRACE_SECONDS,
+        **({"log_config": None} if no_console else {}),
     )
+    # After uvicorn configured its logging (the Config does it): a dropped browser connection
+    # and a grace period that cancelled nothing are not errors (H-b8-small-faults).
+    log_noise.install()
+    return uvicorn.Server(config)

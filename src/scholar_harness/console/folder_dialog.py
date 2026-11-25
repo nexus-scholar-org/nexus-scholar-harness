@@ -19,6 +19,7 @@ import os
 import subprocess
 import sys
 from pathlib import Path
+from typing import Any
 
 CHILD_FLAG = "--choose-folder"
 TITLE = "Nexus Scholar: where your reviews are kept"
@@ -36,6 +37,33 @@ def _command() -> list[str]:
     return [sys.executable, "-I", str(Path(__file__).resolve())]
 
 
+def _app_icon(root: Any) -> bool:
+    """The app's icon in the title bar (``console/window_icon.py``); never a reason not to open.
+
+    As a script (``python -I <this file>``, no package) the helper is loaded from
+    beside this file, standard library only; in the bundle (no source file beside
+    this one) it is imported by name, so this file has no import of the package.
+    """
+    try:
+        import importlib
+        import importlib.util
+
+        if __package__:
+            set_icon = importlib.import_module(f"{__package__}.window_icon").set_icon
+        else:
+            spec = importlib.util.spec_from_file_location(
+                "_nexus_window_icon", Path(__file__).resolve().with_name("window_icon.py")
+            )
+            if spec is None or spec.loader is None:
+                return False
+            module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(module)
+            set_icon = module.set_icon
+        return bool(set_icon(root))
+    except Exception:  # noqa: BLE001 - no helper, no icon file, or Tk refused it
+        return False
+
+
 def run_child() -> int:
     """The child's work: the starting folder on standard input, the answer on standard output."""
     start = sys.stdin.read().strip() if sys.stdin is not None else ""
@@ -48,6 +76,7 @@ def run_child() -> int:
         print(json.dumps({"unavailable": True}), flush=True)
         return 0
     root.withdraw()
+    _app_icon(root)
     root.attributes("-topmost", True)
     chosen = filedialog.askdirectory(parent=root, title=TITLE, initialdir=start or None, mustexist=False)
     root.destroy()

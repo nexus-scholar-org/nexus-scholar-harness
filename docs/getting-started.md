@@ -69,26 +69,31 @@ On **Workspaces**, click **New review**. It opens your drafts; start a new one
 or resume one. The steps are:
 
 1. **Scope.** What is the review about: the topic, the years and the languages.
-2. **Shape.** The lens (paradigm) and playbook, the unit of analysis, what
+2. **Explore.** A first search of the free databases on your topic gives a
+   small pool of papers; the screen shows the schools, topics and papers the
+   later steps draw on. It sends your topic to the databases, so it needs your
+   contact e-mail (see step 4, Discovery).
+3. **Direction.** Directions drawn from phrases that occur in at least two
+   papers of that pool, in the engine's order; you choose one, **Write my own
+   direction**, or **Continue without a direction** (the draft is then recorded
+   as not grounded, and Review and the protocol say so).
+4. **Shape.** The lens (paradigm) and playbook, the unit of analysis, what
    proof a reviewer would accept, what is out of scope, and the research
    questions. The lens the engine leans to and its draft question are shown as
    drafts; nothing is used until you choose it.
-3. **Concepts and criteria.** The concepts the search uses and the screening
+5. **Concepts and criteria.** The concepts the search uses and the screening
    criteria, each shown word for word with where it came from. A criterion the
    engine wrote needs your **Accept**; one you typed is accepted by default. A
    rejected criterion is not used.
-4. **Review and create.** Nothing is written until you press **Create the
+6. **Review and create.** Nothing is written until you press **Create the
    workspace**. If the folder already holds a workspace, the screen offers to
    replace it and keep a backup; if it has screening decisions, you type the
    workspace's name to confirm.
-5. **Done.** The folder and the protocol's fingerprint, and a link to open the
+7. **Done.** The folder and the protocol's fingerprint, and a link to open the
    workspace.
 
-The step bar also shows **Explore** and **Direction** (the grounded search of
-a first pool of papers). They have no screen yet; the CLI wizard
-(`nexus-scholar inception`) and the MCP tools still have them. Every save is
-checked against the draft's last update, so a second tab cannot overwrite your
-work without telling you.
+Every save is checked against the draft's last update, so a second tab cannot
+overwrite your work without telling you.
 
 ## 4. Import your search results
 
@@ -108,7 +113,9 @@ bar until the corpus is accepted, and on the screening home):
    duplicates it will remove (same DOI, or the same title, first author and year
    one year either way) and the studies left to screen. These are the numbers
    for your PRISMA flow diagram.
-3. **Accept and freeze the corpus.** Screening starts from it, so after this no
+3. **Accept on the Hand-off.** The Import step links to the **Hand-off**, which
+   shows the counts again, explains the freeze and asks you to confirm.
+   Accepting freezes the corpus: screening starts from it, so after this no
    database can be added or removed.
 
 Each file is copied unchanged into the workspace (`literature/raw/ris/`), and
@@ -125,7 +132,7 @@ import is one command:
 Discovery searches the free databases your protocol selects (among OpenAlex,
 Semantic Scholar, Crossref, arXiv and PubMed) with
 the query your protocol compiles, and records what each database was asked and
-what came back. Two settings are needed before you start the app:
+what came back. Two settings are needed before a search:
 
 - **`SCHOLAR_MAILTO`**, your contact email. A search refuses to start without
   it (`MAILTO_NOT_SET`), and the Plan screen prints the line to set.
@@ -134,8 +141,11 @@ what came back. Two settings are needed before you start the app:
   it (`OPENALEX_KEY_NOT_SET`), and the Plan screen prints the line to set. To
   search without OpenAlex, leave it out of the protocol's databases.
 
-Set both in the terminal before `nexus-scholar ui`, or put them in a `.env`
-file in the folder you start the app from (`SCHOLAR_MAILTO=you@university.edu`).
+Enter both on the **Settings** screen (the link on **Workspaces**, or **Open
+Settings** where a Discovery screen asks for them); a change there applies at
+once, with no restart. Or set them in the terminal before
+`nexus-scholar ui`, or in a `.env` file in the folder you start the app from
+(`SCHOLAR_MAILTO=you@university.edu`); a value set that way wins over Settings.
 Then open **Discovery** in the header. The entry page says where the search
 stands, and the steps are:
 
@@ -146,9 +156,9 @@ stands, and the steps are:
 3. **Harvest.** **Start the harvest**. Each database appears as it finishes,
    with the total it reported and how many records it returned. A database that
    stops at the cap reads "at least N".
-4. **Import.** The import screen above. For now a corpus is either a harvest or
-   imported exports, not both: add exports before the first harvest, or harvest
-   and skip this step.
+4. **Import** (optional). The import screen above. Exports you add, before or
+   after the harvest, are combined with it when you accept the corpus on the
+   Hand-off, and duplicates across both are removed.
 5. **Duplicates.** How many records were merged, by rule (identifier, exact
    title, close title). Pair-by-pair review is not built.
 6. **Report.** The PRISMA-S identification per database and a methods
@@ -232,8 +242,8 @@ beta, finish a screening on the version you started it with when you can.
 | `uv tool install` says no version matches, or installs 1.0.0 | Keep the version in the command: `"nexus-scholar>=1.1.0b8"` (the beta is a pre-release). |
 | The app stops at start with `No module named 'httpcore'` | It was installed with `--prerelease allow`. Reinstall: `uv tool install --force "nexus-scholar>=1.1.0b8"`. |
 | "No accepted corpus" (`SNAPSHOT_NOT_ACCEPTED`) | Import and accept your search results (step 4). |
-| `MAILTO_NOT_SET` before a search | Set `SCHOLAR_MAILTO` (and `SCHOLAR_OPENALEX_KEY`) as in step 4, Discovery, then start the app again. |
-| `OPENALEX_KEY_NOT_SET` before a search | Set `SCHOLAR_OPENALEX_KEY` as in step 4, Discovery, then start the app again, or leave OpenAlex out of the run. |
+| `MAILTO_NOT_SET` before a search | Enter your contact e-mail on the **Settings** screen: it applies at once, with no restart. If you set `SCHOLAR_MAILTO` in the terminal or a `.env` file instead (step 4, Discovery), start the app again after changing it. |
+| `OPENALEX_KEY_NOT_SET` before a search | Enter the OpenAlex key on the **Settings** screen (it applies at once), or set `SCHOLAR_OPENALEX_KEY` as in step 4, Discovery, and start the app again; or leave OpenAlex out of the run. |
 | `VERIFIED_EXISTS` when adding an export | `literature/verified.json` holds records that no search and no import of this app made, so the app does not know where they came from. Accept them as they are, or remove the file to import exports instead. (After a search in the app, exports can be added: the Hand-off accept combines both.) |
 | "No records in this file" (`SOURCE_NOT_RIS`) | Export the results as RIS (`.ris` or `.txt`) from the database, or as `.nbib` from PubMed (Send to → Citation manager), not as CSV or BibTeX. |
 | "File too large" (`SOURCE_TOO_LARGE`) | Export in parts of under 50 MB and add each part under the same database name. |

@@ -403,7 +403,7 @@ starts this server on your workspace.
 
 | Variable | Purpose |
 | --- | --- |
-| `SCHOLAR_MAILTO` | Contact email sent to Crossref (in the User-Agent) and to NCBI for PubMed. OpenAlex no longer reads an email and a search does not send it one; `scholar-pdf download` and `ingest` do send it to Unpaywall (as a parameter) and in the User-Agent of every request, and refuse without it. **Required for a live search**: without it `run`, a browser harvest and a recall check refuse with `MAILTO_NOT_SET`. |
+| `SCHOLAR_MAILTO` | Contact email, in the User-Agent of every request to the literature databases (`nexus-scholar/<version> (mailto:<address>)`: OpenAlex, Semantic Scholar, Crossref, arXiv, PubMed, bioRxiv), and as the `email` parameter to NCBI for PubMed (OpenAlex no longer reads an `email` or `mailto` parameter, so none is sent). The open-access look-up on Charting, `scholar-pdf download` and `ingest` send it to Unpaywall (as a parameter) and in the User-Agent of every request, including the download of each PDF from the site that holds it, and refuse without it. The Settings screen sets the same address and applies it at once, with no restart; a value in the environment or a `.env` file wins over it. Details: [data-flow.md](data-flow.md). **Required for a live search**: without it `run`, a browser harvest and a recall check refuse with `MAILTO_NOT_SET`. |
 | `SCHOLAR_OPENALEX_KEY` | OpenAlex API key (free, from openalex.org). **Required to search OpenAlex: OpenAlex has required a key since 2026-02-13.** A browser harvest that includes OpenAlex refuses with `OPENALEX_KEY_NOT_SET` until it is set, and the Plan screen shows whether it is set. Without it, a CLI `run` still sends OpenAlex keyless requests, which share a small daily budget with everyone on your network address; paging past the first page is refused, and the OpenAlex leg then fails with `PROVIDER_REFUSED` and a note naming the key. `scholar-pdf download` and `ingest` ask OpenAlex only with this key (sent as its key, never printed or written to the manifest); without it they ask Unpaywall only and say so. |
 | `SCHOLAR_S2_KEY` | Semantic Scholar API key (optional; without it the bulk search runs in Semantic Scholar's shared keyless pool). Sent as the `x-api-key` header. A key Semantic Scholar rejects (HTTP 401 or 403; keys unused for about 60 days are pruned, and a key pasted with quotes is refused) fails the Semantic Scholar leg with `PROVIDER_REFUSED` and a note naming the variable; the search is never retried without the key. The Plan screen shows "Set, not yet verified". A key allows 1 request per second across all endpoints; the search, the abstract step and citation chasing together send at most 0.9 per second (`SCHOLAR_RATE_LIMIT_S2`). |
 | `NEXUS_WORKSPACES_ROOT` | Folder holding your workspaces for `nexus-scholar ui` (else `~/Documents/Nexus Scholar/workspaces`). |
@@ -519,9 +519,11 @@ with the version you used before (a newer one would copy it again). The
 copies sit beside your reviews, so they are not a backup of your disk: if
 the workspaces folder is lost, so are they.
 
-**"Made with a newer version of Nexus Scholar."** A review last opened by a
-newer version is not opened by an older one, so nothing in it is misread or
-overwritten. Install that version (or a later one) to continue. **"This
+**"Made with a newer version of Nexus Scholar."** A review whose format is
+newer than this version knows (a later version changed how reviews are
+stored) is not opened, so nothing in it is misread or overwritten. Install
+the version the message names (or a later one) to continue. A review last
+opened by a newer version that stores reviews the same way opens as usual. **"This
 review was not opened"** after a failed copy means nothing in the review was
 changed: free some disk space or check that the `.nexus-copies` folder can
 be written, then press **Try again** (or open the review again from the

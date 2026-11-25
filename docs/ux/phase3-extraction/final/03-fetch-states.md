@@ -48,7 +48,7 @@ Boards: none; this adds states to screens 01 and 02, which keep their layout. Vi
 **Refusals.** Existing, reused: `MAILTO_NOT_SET` (✓ `refusals.py:169`, HTTP 409, raised today by `discovery.py:278-284`; the charting routes raising it are ✗ M12a Part F), `SCREENING_NOT_PUBLISHED` ✓ `refusals.py:229`, `RECORD_NOT_KEPT`, `BODY_INVALID`, `CHARTING_PROTOCOL_REPLACED` (✗ M12a Part A). New, ✗ M12a Part F (to add to `refusals.py`, the contract table and the refusals test):
 | Code | When | Words (en) |
 | :-- | :-- | :-- |
-| `MAILTO_NOT_SET` (409) | `GET plan` or `POST fetch` without `SCHOLAR_MAILTO`; no socket is opened | "A look-up needs a contact e-mail: the open-access services ask for it on every request. Set SCHOLAR_MAILTO for the console (environment or .env) and start it again. Nothing was sent." |
+| `MAILTO_NOT_SET` (409) | `GET plan` or `POST fetch` without `SCHOLAR_MAILTO`; no socket is opened | "A look-up needs a contact e-mail: the open-access services ask for it on every request. Save it on the Settings screen; it applies at once. Or set SCHOLAR_MAILTO for the console (environment or .env) and start it again. Nothing was sent." |
 | `FETCH_ALREADY_ACTIVE` (409) | a start while this workspace's run is running or cancelling | "A look-up is already running for this workspace. Wait for it to finish, or cancel it." (link: Show progress) |
 | `FETCH_NOT_PENDING` (409) | confirm or discard of a file that is not waiting (already confirmed, discarded, undone elsewhere, or none) | "That file is not waiting for you any more. Reload the table." |
 | `DISCARD_REASON_REQUIRED` (422) | discard without a reason, or "Other" without words | "Choose one reason first, then discard." |

@@ -474,8 +474,9 @@ def require_mailto() -> str:
     if not address:
         raise ChartingRefused(
             409, MAILTO_NOT_SET,
-            "A look-up needs a contact email for Unpaywall, OpenAlex and arXiv. Set SCHOLAR_MAILTO "
-            "for the console (environment or .env) and start it again.",
+            "A look-up needs a contact email for Unpaywall, OpenAlex and arXiv. Save it on the Settings "
+            "screen (it applies at once), or set SCHOLAR_MAILTO for the console (environment or .env) "
+            "and start it again.",
         )
     return address
 

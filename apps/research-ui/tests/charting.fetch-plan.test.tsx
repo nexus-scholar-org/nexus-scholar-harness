@@ -157,7 +157,7 @@ describe("charting.fetch-plan", () => {
     expect(card).toHaveAttribute("data-fetch-plan", "mailto");
     const alert = within(card).getByRole("alert");
     expect(alert).toHaveTextContent(
-      "A look-up needs a contact e-mail: the open-access services ask for it on every request. Set SCHOLAR_MAILTO for the console (environment or .env) and start it again. Nothing was sent.",
+      "A look-up needs a contact e-mail: the open-access services ask for it on every request. Save it on the Settings screen; it applies at once. Or set SCHOLAR_MAILTO for the console (environment or .env) and start it again. Nothing was sent.",
     );
     expect(within(alert).getByText("MAILTO_NOT_SET", { selector: "details span" })).toHaveAttribute("dir", "ltr");
     expect(within(card).queryByRole("button", { name: "Start the look-up" })).toBeNull();

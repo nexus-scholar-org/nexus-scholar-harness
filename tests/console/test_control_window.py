@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import http.cookiejar
 import json
+import sys
 import threading
 import time
 import urllib.request
@@ -264,6 +265,70 @@ def test_the_tk_window_builds_polls_and_closes(tmp_path):
     window.poll()  # the engine ended without an error: the window closes
     with pytest.raises(Exception):
         root.winfo_exists()
+
+
+class IconRoot:
+    """Stands in for a Tk root: records the icon it was given, or refuses it as Tk does off Windows."""
+
+    def __init__(self, error: BaseException | None = None):
+        self.error = error
+        self.icons: list[str] = []
+
+    def iconbitmap(self, default: str) -> None:
+        if self.error is not None:
+            raise self.error
+        self.icons.append(default)
+
+
+def test_the_window_gets_the_app_icon_from_the_package():
+    assert control_window.ICON.is_file() and control_window.ICON.suffix == ".ico"
+    assert control_window.ICON.parent == Path(control_window.__file__).resolve().parent  # package data, not packaging/
+    root = IconRoot()
+    assert control_window.set_icon(root) is True
+    assert root.icons == [str(control_window.ICON)]
+
+
+def test_an_icon_tk_refuses_or_a_missing_file_never_stops_the_window(tmp_path):
+    tk = pytest.importorskip("tkinter")
+    refusing = IconRoot(tk.TclError('bitmap "x.ico" not defined'))  # Linux and macOS Tk take no .ico
+    assert control_window.set_icon(refusing) is False
+    absent = IconRoot()
+    assert control_window.set_icon(absent, tmp_path / "missing.ico") is False and absent.icons == []
+
+
+def test_the_window_builds_even_when_tk_refuses_the_icon(tmp_path, monkeypatch):
+    root = control_window.make_root()
+    if root is None:
+        pytest.skip("no Tk or no display here")
+    root.withdraw()
+
+    def refuse(*_a: Any, **_k: Any) -> None:
+        import tkinter as tk
+
+        raise tk.TclError("no icon here")
+
+    try:
+        monkeypatch.setattr(root, "iconbitmap", refuse)
+        engine = threading.Thread(target=lambda: None, daemon=True)
+        engine.start()
+        window = control_window.ControlWindow(_panel(FakeLauncher(tmp_path), tmp_path), engine, root)
+        assert window.status.cget("text").startswith("Nexus Scholar is running")
+    finally:
+        root.destroy()
+
+
+def test_real_tk_takes_the_real_icon(tmp_path):
+    """Review round 1, finding 2: the real `.ico` given to a real Tk root on Windows."""
+    root = control_window.make_root()
+    if root is None:
+        pytest.skip("no Tk or no display here")
+    try:
+        root.withdraw()
+        accepted = control_window.set_icon(root)
+        if sys.platform == "win32":
+            assert accepted is True
+    finally:
+        root.destroy()
 
 
 def _wait_json(opener, url, timeout=20.0):
