@@ -84,7 +84,7 @@ describe("discovery.plan", () => {
     const { engine } = setUp({ mailto: false });
     render(<DiscoveryPlan locale="en" />);
     const card = (await screen.findByText("SCHOLAR_MAILTO=<your email>")).closest("[data-mailto]") as HTMLElement;
-    expect(within(card).getByText("Put this line in the console's environment, or in a .env file, then start the console again.")).toBeInTheDocument();
+    expect(within(card).getByText("Save your contact e-mail on the Settings screen; it applies at once. Or put this line in the console's environment, or in a .env file, then start the console again.")).toBeInTheDocument();
     // Let the first load's side reads settle before counting.
     await waitFor(() => expect(sent(engine)).toContain("GET /api/v1/discovery/runs"));
     const before = engine.calls.length;

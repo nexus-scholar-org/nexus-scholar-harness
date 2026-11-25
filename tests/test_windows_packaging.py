@@ -68,6 +68,17 @@ def test_the_bundle_recipe_has_both_programs_and_the_lessons_of_the_trial():
     assert (ROOT / "packaging" / "icons" / "nexus-scholar.ico").is_file()
 
 
+def test_the_control_window_icon_is_the_same_file_as_the_installer_icon():
+    """H-b8-small-faults: the title bar's copy (package data) never drifts from the drawn icon."""
+    drawn = ROOT / "packaging" / "icons" / "nexus-scholar.ico"
+    runtime = ROOT / "src" / "scholar_harness" / "console" / "nexus-scholar.ico"
+    assert runtime.read_bytes() == drawn.read_bytes()
+    # The bundle carries it as package data: the recipe collects scholar_harness's data files.
+    spec = (WINDOWS / "nexus-scholar.spec").read_text(encoding="utf-8")
+    assert "collect_data_files(package)" in spec and '"scholar_harness"' in spec
+    assert "RUNTIME_COPY" in (ROOT / "packaging" / "icons" / "make_icon.py").read_text(encoding="utf-8")
+
+
 def test_the_ci_test_never_points_at_the_real_reviews_folder():
     smoke = (WINDOWS / "smoke_test.ps1").read_text(encoding="utf-8")
     assert "$env:NEXUS_WORKSPACES_ROOT = Join-Path $root" in smoke

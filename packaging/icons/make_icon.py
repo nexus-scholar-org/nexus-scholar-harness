@@ -5,6 +5,10 @@ A plain "NS" monogram in the brand's archive blue (`brand` #24456e, `on-brand`
 beside it is the same design as a vector. Pillow draws it with its own built-in
 font, so the result does not depend on the fonts of the computer that runs it.
 
+It also writes the same `.ico` beside the control window
+(`src/scholar_harness/console/nexus-scholar.ico`), which shows it in its title bar
+at run time; `tests/test_windows_packaging.py` checks the two copies are the same bytes.
+
 Run it in a throw-away environment and commit the result:
 
     uv run --no-project --with "pillow>=11" python packaging/icons/make_icon.py
@@ -20,6 +24,8 @@ BRAND = (0x24, 0x45, 0x6E, 255)
 ON_BRAND = (255, 255, 255, 255)
 SIZES = [16, 24, 32, 48, 64, 128, 256]
 HERE = Path(__file__).resolve().parent
+#: The run-time copy the control window reads (package data in the wheel and the bundle).
+RUNTIME_COPY = HERE.parents[1] / "src" / "scholar_harness" / "console" / "nexus-scholar.ico"
 
 
 def draw(size: int = 256) -> Image.Image:
@@ -41,7 +47,8 @@ def main() -> None:
     art = draw(256)
     art.save(HERE / "nexus-scholar.ico", sizes=[(s, s) for s in SIZES])
     art.save(HERE / "nexus-scholar-256.png")
-    print(f"wrote {HERE / 'nexus-scholar.ico'} and the 256 px PNG")
+    RUNTIME_COPY.write_bytes((HERE / "nexus-scholar.ico").read_bytes())
+    print(f"wrote {HERE / 'nexus-scholar.ico'}, its copy {RUNTIME_COPY} and the 256 px PNG")
 
 
 if __name__ == "__main__":

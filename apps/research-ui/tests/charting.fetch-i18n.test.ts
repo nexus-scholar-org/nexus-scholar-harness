@@ -21,7 +21,7 @@ describe("charting.fetch-i18n", () => {
       }
     }
     expect(refusalWords("en", "MAILTO_NOT_SET")).toBe(
-      "A look-up needs a contact e-mail: the open-access services ask for it on every request. Set SCHOLAR_MAILTO for the console (environment or .env) and start it again. Nothing was sent.",
+      "A look-up needs a contact e-mail: the open-access services ask for it on every request. Save it on the Settings screen; it applies at once. Or set SCHOLAR_MAILTO for the console (environment or .env) and start it again. Nothing was sent.",
     );
     expect(refusalWords("en", "FETCH_ALREADY_ACTIVE")).toBe("A look-up is already running for this workspace. Wait for it to finish, or cancel it.");
     expect(refusalWords("en", "FETCH_NOT_PENDING")).toBe("That file is not waiting for you any more. Reload the table.");

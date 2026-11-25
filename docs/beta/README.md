@@ -43,12 +43,12 @@ workspace, import your RIS or `.nbib` files, prepare, screen, publish and export
 ## Known limits
 
 - **One reviewer.** A second screener, and agreement between two people (kappa), are not in the beta.
-- **Title and abstract only.** No full-text screening, data extraction or synthesis. Unclear records are listed for full text.
+- **Full text is handled by you, on the Charting step.** After publication, Charting lists the kept studies; you attach or fetch each PDF (the open-access look-up asks Unpaywall, arXiv and, with your key, OpenAlex), record a full-text decision and fill the charting columns by hand. The app extracts nothing from a PDF's text: the look-up only checks that the DOI or the title's words are on a fetched file's first two pages. There is no synthesis.
 - **RIS and PubMed `.nbib` only.** CSV and BibTeX are not imported yet.
 - **Approval uses a code shown on your computer:** in a small window, and also in the terminal when you started the app with `nexus-scholar ui`.
 - **The approver is a typed name,** not a verified sign-in.
 - **AI drafts are optional and not validated.** Do not report a recall or accuracy figure for them.
-- **The Discovery, Explore and Charting screens have not been tried by a second person.** Search needs `SCHOLAR_MAILTO`, and OpenAlex needs `SCHOLAR_OPENALEX_KEY` (required by OpenAlex since 2026-02-13). See the release notes, "Known limits" ([1.1.0b8](../releases/1.1.0b8.md), [1.1.0b7](../releases/1.1.0b7.md)).
+- **The Discovery, Explore and Charting screens have not been tried by a second person.** Search needs your contact e-mail (on the Settings screen, or `SCHOLAR_MAILTO`), and OpenAlex needs its key (Settings, or `SCHOLAR_OPENALEX_KEY`) (required by OpenAlex since 2026-02-13). See the release notes, "Known limits" ([1.1.0b8](../releases/1.1.0b8.md), [1.1.0b7](../releases/1.1.0b7.md)).
 
 ## Tell us what happened
 

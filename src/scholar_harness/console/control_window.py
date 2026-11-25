@@ -34,6 +34,9 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+#: The title bar's icon (shared with the approval-code window and the folder dialog).
+from .window_icon import ICON, set_icon  # noqa: F401 - ICON is read by tests and callers
+
 TITLE = "Nexus Scholar"
 POLL_MS = 1000
 #: After this long with the first launch link unused, the status line says the browser may be blocked.
@@ -228,6 +231,7 @@ class ControlWindow:
         self.panel, self.engine, self.root = panel, engine, root
         self._stopping = False
         root.title(TITLE)
+        set_icon(root)
         root.minsize(420, 0)
         frame = tk.Frame(root, padx=16, pady=16)
         frame.pack(fill="both", expand=True)

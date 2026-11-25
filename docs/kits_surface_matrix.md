@@ -217,8 +217,8 @@ latent bug**, with the working path in parentheses.
   `MAILTO_NOT_SET`, `config.py:12-17`, `engine.py:35-44`), `SCHOLAR_OPENALEX_KEY`
   (required in practice: OpenAlex made keys mandatory on 2026-02-13; keyless calls share
   a small per-IP daily budget and, per the OpenAlex docs, cursor paging past page one answers 401; the code
-  still labels the key optional, `config.py:20-22`, and still sends `mailto`, which
-  OpenAlex no longer uses), `SCHOLAR_S2_KEY`, `SCHOLAR_CACHE_DIR`, `SCHOLAR_HTTP_CACHE`;
+  still labels the key optional, `config.py:20-22`; no `mailto` parameter is sent to OpenAlex,
+  the contact address reaches every provider in the User-Agent, `http_client.py:103-104`), `SCHOLAR_S2_KEY`, `SCHOLAR_CACHE_DIR`, `SCHOLAR_HTTP_CACHE`;
   rate limits OA 10/s · CR 5/s · S2 1/s · PubMed 3/s (arXiv/bioRxiv 1/s).
   **Provider limits now below ours:** Crossref list requests are 3/s polite, 1/s
   public (since 2026-07-21; `config.py:46-48` sends 5/s); arXiv asks for one request

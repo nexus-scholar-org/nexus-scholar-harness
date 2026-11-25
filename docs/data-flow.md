@@ -10,7 +10,8 @@ page reaches any host other than this computer).
 
 This page lists every place where data leaves the machine, what is sent, and to
 whom. It was written for M5-slim (2026-11-05) and checked again on 2026-11-10
-against the beta 1.1.0b6.
+against the beta 1.1.0b6; the contact e-mail, citation chasing and the
+open-access look-up were checked against the code of 1.1.0b8 on 2026-11-25.
 
 ## Screening with an AI model (optional)
 
@@ -59,21 +60,36 @@ identifiers of your records** (DOIs, titles), never your decisions:
 | :-- | :-- | :-- |
 | Search (a harvest) | Discovery, **Start the harvest** (1.1.0b6); `nexus-scholar run`; `scholar-search`; MCP `nexus_discover` | The databases your protocol selects among OpenAlex, Semantic Scholar, Crossref, arXiv and PubMed (NCBI E-utilities); bioRxiv only when the protocol names it |
 | Plan (dry run) | Discovery, **Plan** | Nothing: the strings are translated on your computer |
-| Recall check | Discovery, **Recall** (on `main`) | The protocol query, to the protocol's databases; then each seed's identifier to Crossref and OpenAlex for a title check (`scholar_search/recall.py`) |
+| Recall check | Discovery, **Recall** (since 1.1.0b6) | The protocol query, to the protocol's databases; then each seed's identifier to Crossref and OpenAlex for a title check (`scholar_search/recall.py`) |
 | Abstract hydration and DOI verification, after a harvest | Part of the same run | Record DOIs (and arXiv ids) to Semantic Scholar, OpenAlex and Crossref (`scholar_search/enrichment.py`, `scholar_search/verifier.py`) |
-| Inception reconnaissance (a first pool of up to 25 papers) | CLI wizard, MCP `recon_*` tools, and the console's recon routes (1.1.0b5; the Explore screen is not built) | Your topic as a query, to OpenAlex, Semantic Scholar, Crossref and arXiv |
-| Full-text discovery and download (parked, not production) | CLI | Unpaywall, `doi.org` and the publisher sites it points to |
+| Inception reconnaissance (a first pool of up to 25 papers) | Inception, **Explore** (since 1.1.0b7); the CLI wizard and the MCP `recon_*` tools | Your topic as a query, to OpenAlex, Semantic Scholar, Crossref and arXiv |
+| Citation chasing, after the screening is published | Discovery, **Chase** (since 1.1.0b7); `nexus-scholar chase run` | The identifiers of your included studies, to OpenAlex and Semantic Scholar, for their references and citing papers (`scholar_harness/pipeline/citation_chase.py`) |
+| Open-access look-up and download | Charting, **Look up open-access copies** (since 1.1.0b7); `scholar-pdf download` and `ingest` | Each record's DOI to Unpaywall, and to OpenAlex when its key is set; an arXiv id to arXiv's API. Then a request to the address of each listed open-access PDF: the publisher's or repository's website that holds it, and any site it redirects to (at most five redirects from Charting). No address is guessed and no proxy is used (`scholar_harness/charting/fetch.py`, `scholar_pdf/downloader.py`) |
 
-With every search request the engine also sends who is asking:
+With these requests the engine also sends who is asking:
 
-- **Your contact email** (`SCHOLAR_MAILTO`): in the User-Agent header to every
-  provider (`nexus-scholar/<version> (mailto:<address>)`), as `mailto` to OpenAlex, which no longer uses it, and as `email` (with
-  `tool=nexus-scholar`) to PubMed. A live search refuses to start without it.
+- **Your contact email** (`SCHOLAR_MAILTO`, or the address saved on the
+  **Settings** screen): in the User-Agent header
+  (`nexus-scholar/<version> (mailto:<address>)`) of every request to the
+  literature databases above (`scholar_search/http_client.py`, `user_agent`),
+  to Unpaywall and OpenAlex in the open-access look-up, and to **every website a
+  PDF is downloaded from**, including any it redirects to
+  (`scholar_pdf/config.py` `user_agent`, used by `scholar_pdf/downloader.py`
+  `download_pdf`); as `email` (with `tool=nexus-scholar`) to PubMed; and as
+  `email` to Unpaywall. OpenAlex no longer reads an `email` or `mailto`
+  parameter, so none is sent. It is not sent to an AI provider. A live search,
+  a recall check, Explore and the open-access look-up refuse to start without it.
 - **Your OpenAlex key** (`SCHOLAR_OPENALEX_KEY`), to OpenAlex only, when set.
   OpenAlex has required a key since 2026-02-13; without one, your requests share
   a small daily budget with everyone on your network address.
 - **Your Semantic Scholar key** (`SCHOLAR_S2_KEY`), to Semantic Scholar only,
   when set.
+
+The open-access look-up on Charting also writes the contact e-mail into the
+review itself: into each look-up's run file (`charting/fetch_runs/<run>.json`)
+and into the audit journal's start event (`audit/journal.jsonl`)
+(`scholar_harness/charting/fetch.py`, `start`). A review folder you share
+carries it.
 
 Responses are cached on your disk under `.cache/` unless `SCHOLAR_HTTP_CACHE`
 is off. Provider details: [`kits/search/PROVIDERS_2026-11.md`](kits/search/PROVIDERS_2026-11.md).

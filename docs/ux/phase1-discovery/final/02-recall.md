@@ -63,7 +63,7 @@ No phone route; a phone token gets `TOKEN_SCOPE_REFUSED`. The writes sit under t
 - **Error** (typed, `StateCard`; codes under Details):
   - `PROTOCOL_MISSING` (409), `PROTOCOL_INVALID` (422): on load via the plan read, or on Check; the card stands for the screen with the inception link.
   - `SEEDS_INVALID` (422): the engine's message names the first bad seed; this is the one code whose card body is the engine's sentence verbatim (LTR) above the standard sentence "A seed could not be used. Nothing was checked." Focus moves to the first seed field.
-  - `MAILTO_NOT_SET` (409): the card prints `SCHOLAR_MAILTO=<your email>` in a code block and "Put this line in the console's environment, or in a .env file, then start the console again.", with Retry (re-sends the same Check). The plan card of 01 shows the same state before Check when `mailto_set` is false, and Check is then not disabled (the engine decides).
+  - `MAILTO_NOT_SET` (409): the card prints `SCHOLAR_MAILTO=<your email>` in a code block and "Save your contact e-mail on the Settings screen; it applies at once. Or put this line in the console's environment, or in a .env file, then start the console again.", with Retry (re-sends the same Check). The plan card of 01 shows the same state before Check when `mailto_set` is false, and Check is then not disabled (the engine decides).
   - `DISCOVERY_JOB_ACTIVE` (409): "A harvest or a check is already running." with "Follow the running job" if it is a check, otherwise a link to Harvest.
   - `DISCOVERY_JOB_NOT_FOUND` (404): the shared sentence.
   - A failed job (`failed` event, `job.error.code`): the card names the code (`DISCOVERY_FAILED` or a provider code) with `error.message` under Details.
