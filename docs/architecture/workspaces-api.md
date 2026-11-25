@@ -13,7 +13,7 @@ The launcher resolves the workspaces root once, in this order, and passes it to 
 1. `nexus-scholar ui --root <folder>`;
 2. the `NEXUS_WORKSPACES_ROOT` environment variable;
 3. the folder chosen on the Settings screen (M13 Part B, [`settings-api.md`](settings-api.md); `root_source: "settings"`);
-4. `~/Documents/Nexus Scholar/workspaces` (created on first use).
+4. `~/Documents/Nexus Scholar/workspaces` (created on first use); with `NEXUS_APP_HOME` set (a test or portable home), `<home>/workspaces` instead (M13 Part B, item 21).
 
 `nexus-scholar ui --workspace <path>` opens that folder directly and skips the screen. The root is still resolved, so the screen works from the app bar; the open workspace may sit outside the root, and is then shown as the current row with its own path. Since M13 Part B the Settings screen can save the folder ([`settings-api.md`](settings-api.md)); `--root` and the environment variable still win.
 

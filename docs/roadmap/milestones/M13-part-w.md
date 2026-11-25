@@ -1,6 +1,6 @@
 # M13 Part W: the Windows installer
 
-Status: **BUILT on `dev/m13/part-w-windows-installer` (cut from Part B's head `b5501e1a`), not pushed; the installer itself is built and tested only in CI, so its first run is the pull request's. Lane RELEASE** (review round 1: the new `--forget` of the public `nexus-scholar-app`, a new pin and a new release asset). The researcher chose Part W on 2026-11-24 ("Which M13 part should start next": "Part W: Windows installer"), directly in this session. Specification: `docs/roadmap/milestones/M13-installers.md` §2.2, §3.1, §4.1, §4.6, §5.2 Part W, Q1, Q2, Q10; the trial build of §8. Decisions: `docs/decisions.md`, entry "2026-11-24 — M13 Part W".
+Status: **BUILT on `dev/m13/part-w-windows-installer` (cut from Part B's head `b5501e1a`); pushed on the researcher's word of 2026-11-25, in a pull request with item 21's branch merged in; the installer itself is built and tested only in CI, so its first run is the pull request's. Lane RELEASE** (review round 1: the new `--forget` of the public `nexus-scholar-app`, a new pin and a new release asset). The researcher chose Part W on 2026-11-24 ("Which M13 part should start next": "Part W: Windows installer"), directly in this session. Specification: `docs/roadmap/milestones/M13-installers.md` §2.2, §3.1, §4.1, §4.6, §5.2 Part W, Q1, Q2, Q10; the trial build of §8. Decisions: `docs/decisions.md`, entry "2026-11-24 — M13 Part W".
 
 ## Questions answered by the researcher (2026-11-24, before the build)
 

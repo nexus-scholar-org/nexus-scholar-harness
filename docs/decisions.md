@@ -12,9 +12,10 @@ history to read if you need the original reasoning (`git log --follow -- <path>`
 | :-- | :-- | :-- |
 | 2026-11-19 — M9a: what the measurement says about the ladder gates | 2 | The minimum share of the researcher's excludes an agent must take before a rung unlocks: the principle is accepted; the researcher decided on 2026-11-20 to set the number when M9b is built. |
 | 2026-11-23 — H-gate-and-ci | 1 | The standing permission for sessions to push a work branch and open a draft pull request: not given. |
-| 2026-11-24 — M13 Part B | 21 | Whether `NEXUS_APP_HOME` should also move the default reviews folder (recommended: yes, `<home>/workspaces`); not built, not answered by name. |
 
-## 2026-11-24 — M13 Part W: the Windows installer (PROPOSED; questions 1 to 3 answered by the researcher before the build; items 4 to 13 the build's choices)
+## 2026-11-24 — M13 Part W: the Windows installer (built; pushed on the researcher's word of 2026-11-25; questions 1 to 3 answered by the researcher before the build; items 4 to 13 the build's choices)
+
+**Pushed 2026-11-25.** The coordinator told the researcher that the installer script had never been compiled, that the pull request's CI run is its first build and install test, and that after the merge the next release tag attaches an unsigned `setup.exe` to the public release; asked whether to push Part W and item 21 and merge each at green, they answered "Push and merge".
 
 Record: `docs/roadmap/milestones/M13-part-w.md`. Specification: `docs/roadmap/milestones/M13-installers.md` §2.2, §4.1, §4.6, §5.2 Part W, Q1, Q2, Q10. Started on the researcher's choice of 2026-11-24 ("Part W: Windows installer"). Branch `dev/m13/part-w-windows-installer` from Part B's head. The lane is RELEASE, after review round 1: `--forget` is a new flag of the public `nexus-scholar-app`, and the part adds a pin and a release asset.
 
@@ -41,7 +42,7 @@ None now. Answer 3 waits for the first installer.
 12. A gate area `windows-packaging` (`docs/architecture/test_gate_manifest.json`) runs `tests/test_windows_packaging.py` for changes under `packaging/`. Two selector tests that used `packaging/unknown.cfg` as their example of an unclaimed path now use `unclaimed/unknown.cfg`.
 13. Only the job that attaches the installer to a release has write permission, and it runs only on a tag. A stop that does not happen stops the install with a message, instead of installing over a running engine. The installer always uses the default folder (`DisableDirPage=yes`), because a deep custom folder could break the 260-character path limit.
 
-## 2026-11-24 — M13 Part B: settings and first-run setup (built; pushed on the researcher's word of 2026-11-24; questions 1 to 8 answered by the researcher before the build; item 21 still open for the researcher; items 9 to 20 and 22 the build's choices)
+## 2026-11-24 — M13 Part B: settings and first-run setup (built; pushed on the researcher's word of 2026-11-24; questions 1 to 8 answered by the researcher before the build; item 21 answered by the researcher 2026-11-24 and built on its own branch; items 9 to 20 and 22 the build's choices)
 
 **Pushed 2026-11-24.** The coordinator asked the researcher whether to accept items 20 and 21 as recommended and to push and merge at green; they answered "Push and merge when the ci I s green". Item 20 (the cards keep their own step and add an "Open Settings" link) ships as built on that word. Item 21 is not built and was not answered by name: it stays open.
 
@@ -60,7 +61,7 @@ Record: `docs/roadmap/milestones/M13-part-b.md`. Specification: `docs/roadmap/mi
 
 **For the researcher to decide**
 
-21. **Should `NEXUS_APP_HOME` also move the default reviews folder?** Today it moves the installed start's settings, log and cache folders only. The reviews folder still defaults to `~/Documents/Nexus Scholar/workspaces`, the real one, unless `NEXUS_WORKSPACES_ROOT` is set too. A test home that still points at the real reviews is a trap. The coordinator's check by hand avoided it only by setting that variable, and the first command written for the check did not. *Recommended:* yes. With `NEXUS_APP_HOME` set, the default becomes `<home>/workspaces`. `--root`, `NEXUS_WORKSPACES_ROOT` and a folder chosen in Settings still win, and a user who sets neither variable sees no change. *Alternative:* leave it, and say in the user guide and the tester notes that both variables are needed. Not changed in this branch until the researcher answers.
+21. *(Answered 2026-11-24 by the researcher, directly in the building session: "Move it too (Recommended)". Built on `dev/m13/app-home-reviews`: `workspace/catalog.py:resolve_root`; test `tests/console/test_settings_api.py::test_a_test_home_keeps_its_reviews_inside_it`.)* 21. **Should `NEXUS_APP_HOME` also move the default reviews folder?** Today it moves the installed start's settings, log and cache folders only. The reviews folder still defaults to `~/Documents/Nexus Scholar/workspaces`, the real one, unless `NEXUS_WORKSPACES_ROOT` is set too. A test home that still points at the real reviews is a trap. The coordinator's check by hand avoided it only by setting that variable, and the first command written for the check did not. *Recommended:* yes. With `NEXUS_APP_HOME` set, the default becomes `<home>/workspaces`. `--root`, `NEXUS_WORKSPACES_ROOT` and a folder chosen in Settings still win, and a user who sets neither variable sees no change. *Alternative:* leave it, and say in the user guide and the tester notes that both variables are needed. Not changed in this branch until the researcher answers.
 
 **Choices made in the build (for the reviewer)**
 
