@@ -800,7 +800,9 @@ def start(
         "with_doi": chosen.counts.get("with_doi", 0), "with_arxiv_only": with_arxiv,
         "neither": chosen.counts.get("neither", 0),
         "left_out": {k: chosen.counts.get(k, 0) for k in ("already_have_file", "waiting", "discarded")},
-        "providers": providers, "email": email, "openalex_key_set": key,
+        # Only that a contact address was set, never the address: the review folder is shared (decision
+        # 2026-11-25, H-b8-small-faults item 12). Run files of 1.1.0b7 and 1.1.0b8 still hold ``email``.
+        "providers": providers, "contact_email_set": bool(email), "openalex_key_set": key,
         "now": {"phase": "starting", "host": None}, "recent_requests": [],
         "started_at": now(), "finished_at": None, "cancel_requested": False, "error": None,
     }
@@ -817,7 +819,7 @@ def start(
             agent="scholar-harness/charting-fetch",
             outputs=[str(RUNS_DIR / f"{run_id}.json").replace("\\", "/"), MANIFEST.as_posix()],
             parameters={"run_id": run_id, "scope": chosen.scope, "providers": providers,
-                        "email": email, "openalex_key_set": key,
+                        "contact_email_set": bool(email), "openalex_key_set": key,
                         "max_bytes": MAX_BYTES, "max_redirects": MAX_REDIRECTS},
             metrics={"records_asked": len(chosen.asked), "with_doi": run["with_doi"],
                      "with_arxiv_only": with_arxiv, "neither": run["neither"], **run["left_out"]},
@@ -1108,6 +1110,9 @@ def read_run(ws: Path | str, run_id: str) -> dict[str, Any]:
 def _view(ws: Path, run: dict[str, Any], *, just_started: bool = False) -> dict[str, Any]:
     out = dict(run)
     out.pop("study_ids", None)
+    # A run file of 1.1.0b7 or 1.1.0b8 holds the address; the screen is answered only that one was set.
+    if "email" in out:
+        out.setdefault("contact_email_set", bool(out.pop("email")))
     state = run.get("state")
     if state == "running" and run.get("cancel_requested"):
         out["state"] = "cancelling"

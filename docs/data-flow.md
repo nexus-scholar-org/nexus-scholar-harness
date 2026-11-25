@@ -85,14 +85,22 @@ With these requests the engine also sends who is asking:
 - **Your Semantic Scholar key** (`SCHOLAR_S2_KEY`), to Semantic Scholar only,
   when set.
 
-The open-access look-up on Charting also writes the contact e-mail into the
-review itself: into each look-up's run file (`charting/fetch_runs/<run>.json`)
-and into the audit journal's start event (`audit/journal.jsonl`)
-(`scholar_harness/charting/fetch.py`, `start`). A review folder you share
-carries it.
+The open-access look-up on Charting records in the review only that a contact
+e-mail was set (`contact_email_set` in each look-up's run file,
+`charting/fetch_runs/<run>.json`, and in the audit journal's start event,
+`audit/journal.jsonl`; `scholar_harness/charting/fetch.py`, `start`), never the
+address. The plan shown before a look-up names the address to you; it is not
+written to disk. A look-up run by 1.1.0b7 or 1.1.0b8 did write the address into
+both files, and a review folder holding such a look-up still carries it: this
+version reads those files as they are and no screen shows the address from
+them, but it does not remove it, and the journal route of the local API
+(`GET /api/v1/audit/events`) answers journal rows as they are stored.
 
 Responses are cached on your disk under `.cache/` unless `SCHOLAR_HTTP_CACHE`
-is off. Provider details: [`kits/search/PROVIDERS_2026-11.md`](kits/search/PROVIDERS_2026-11.md).
+is off. The cache keeps each request with its headers and address, so it holds
+your contact e-mail (the User-Agent, and PubMed's `email` parameter). It lives
+in the folder the app was started from, or in your user cache folder for the
+installed app; the open-access look-up does not use it. Provider details: [`kits/search/PROVIDERS_2026-11.md`](kits/search/PROVIDERS_2026-11.md).
 
 The import path that screening starts from (the Import screen, or
 `nexus-scholar accept-corpus` on a file you exported) sends nothing.

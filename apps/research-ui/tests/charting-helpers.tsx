@@ -269,7 +269,7 @@ export function runView(over: Partial<FetchRun> = {}): FetchRun {
     skipped_no_id: 0,
     not_reached: 0,
     providers: ["unpaywall"],
-    email: "you@example.org",
+    contact_email_set: true,
     openalex_key_set: false,
     now: { phase: "starting", host: null },
     recent_requests: [],

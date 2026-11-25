@@ -281,8 +281,8 @@ def _require_mailto() -> None:
     if not _mailto_set():
         raise Refused(
             409, refusals.MAILTO_NOT_SET,
-            "A search needs a contact email for the literature databases. Set SCHOLAR_MAILTO "
-            "for the console (environment or .env) and start it again.",
+            "A search needs a contact email for the literature databases. Save it on the Settings screen "
+            "(it applies at once), or set SCHOLAR_MAILTO for the console (environment or .env) and start it again.",
         )
 
 
@@ -295,8 +295,9 @@ def _require_openalex_key(providers: list[str]) -> None:
     if "openalex" in providers and not _openalex_key_set():
         raise Refused(
             409, refusals.OPENALEX_KEY_NOT_SET,
-            "OpenAlex needs an API key. Set SCHOLAR_OPENALEX_KEY for the console "
-            "(environment or .env) and start it again, or leave OpenAlex out of this run.",
+            "OpenAlex needs an API key. Save it on the Settings screen (it applies at once), or set "
+            "SCHOLAR_OPENALEX_KEY for the console (environment or .env) and start it again, or leave "
+            "OpenAlex out of this run.",
         )
 
 

@@ -103,7 +103,7 @@ Roles: `include` for sufficient or coherent, `unclear` for thin, fragmented, par
 
 | Code (HTTP) | Role | en title | en body | en affects | en action |
 | :-- | :-- | :-- | :-- | :-- | :-- |
-| `MAILTO_NOT_SET` (409) | blocked | This console has no contact email for the literature databases | A search needs one, and no request was sent. There is no setting for it in the app yet: set SCHOLAR_MAILTO in the environment or the .env of the console and start the console again. | New searches (a pool already on screen still works) | Reload the page |
+| `MAILTO_NOT_SET` (409) | blocked | This console has no contact email for the literature databases | A search needs one, and no request was sent. Add it in Settings. (Corrected 2026-11-25, H-b8-followups: the Settings screen exists since M13 Part B, and these are the card's words in `lib/screening-states.ts`. The engine's own message for this code names both ways: save it on the Settings screen, or set SCHOLAR_MAILTO in the environment or a .env.) | New searches (a pool already on screen still works) | Reload the page |
 | `PROVIDER_UNKNOWN` (422, M10a) | blocked | That database list cannot be searched | The engine accepts a non-empty list of OpenAlex, Semantic Scholar, Crossref and arXiv, each once. Nothing was sent. | This search | Reset the databases |
 | `BODY_INVALID` (422, M10a) | blocked | That search request was not valid | The query must be 1 to 2000 characters and cannot be sent with a narrower search. Nothing was sent. | This search | Edit the query |
 | `RECON_JOB_ACTIVE` (409) | unclear | A search for this draft is already running | Only one runs at a time. | Starting another search | Watch the running search |
