@@ -13,6 +13,17 @@ history to read if you need the original reasoning (`git log --follow -- <path>`
 | 2026-11-19 — M9a: what the measurement says about the ladder gates | 2 | The minimum share of the researcher's excludes an agent must take before a rung unlocks: the principle is accepted; the researcher decided on 2026-11-20 to set the number when M9b is built. |
 | 2026-11-23 — H-gate-and-ci | 1 | The standing permission for sessions to push a work branch and open a draft pull request: not given. |
 
+## 2026-11-25 — Release 1.1.0b8 (the researcher's word of 2026-11-25; the tag is pushed after the release pull request merges)
+
+Record: `docs/roadmap/milestones/R-1.1.0b8.md`. Notes: `docs/releases/1.1.0b8.md`. Branch `dev/release/1.1.0b8` from `main` `a4e53f5e`.
+
+**The researcher's words (2026-11-25, in the coordinator session).** After the coordinator installed the CI-built installer on this PC and tested it on temporary folders, at the researcher's request ("Yes do it and install then test it"), and reported two small faults (the control window's title bar shows a default icon; harmless error lines in the app's log), the researcher answered: "Leave them and push tag and publish". The coordinator had told the researcher on 2026-11-25, before Part W was pushed, that the next release tag attaches an unsigned `setup.exe` to the public release, and that a tag also publishes to PyPI.
+
+1. **The version is `1.1.0b8`.** `v1.1.0b7` was tagged on 2026-11-23, so the next beta takes the next number. It carries PRs #308 to #315: the graph removal, M13 Parts A, B and W, the workspace format version, item 21 and the faster Python tests.
+2. **The two small faults are not fixed in this release.** They are named in the release note's known limits.
+3. **No walk of a built wheel this time.** The evidence is the pull request's CI run, the installer job's own install, start, stop and uninstall on the tag, and the coordinator's test of the installed app on this PC on 2026-11-25 (record). Answer 2 of the Part W entry ("nothing new is installed on this PC") is changed by the researcher's request of 2026-11-25 for that one install.
+4. **The tag's installer job attaches the installer to the release for the first time.** That job never ran before (it is skipped on a pull request). If it fails, the release has no installer until the job is run again; the wheel and PyPI do not depend on it.
+
 ## 2026-11-24 — M13 Part W: the Windows installer (built; pushed on the researcher's word of 2026-11-25; questions 1 to 3 answered by the researcher before the build; items 4 to 13 the build's choices)
 
 **Pushed 2026-11-25.** The coordinator told the researcher that the installer script had never been compiled, that the pull request's CI run is its first build and install test, and that after the merge the next release tag attaches an unsigned `setup.exe` to the public release; asked whether to push Part W and item 21 and merge each at green, they answered "Push and merge".

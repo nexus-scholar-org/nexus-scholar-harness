@@ -6,7 +6,7 @@ Everything runs on your computer. No account or API key is needed to screen (the
 agent is optional and not covered here).
 
 The commands are the same on Windows (PowerShell), macOS and Linux unless a
-step says otherwise. This guide is for the beta, version **1.1.0b7**. To check
+step says otherwise. This guide is for the beta, version **1.1.0b8**. To check
 the version you have, run `nexus-scholar --version`.
 
 ## 1. Install uv (once)
@@ -22,7 +22,7 @@ uv --version
 ## 2. Install Nexus Scholar
 
 ```bash
-uv tool install "nexus-scholar>=1.1.0b7"
+uv tool install "nexus-scholar>=1.1.0b8"
 ```
 
 The version in the command is needed while Nexus Scholar is in beta: it lets uv take a beta of Nexus Scholar without taking betas of anything else. Do not use `--prerelease allow`: it also takes development releases of other packages, and one of them stops the app from starting. The command installs the `nexus-scholar` command for your user. Check it:
@@ -31,9 +31,16 @@ The version in the command is needed while Nexus Scholar is in beta: it lets uv 
 nexus-scholar --version
 ```
 
-It should print `nexus-scholar 1.1.0b7`. You can now run `nexus-scholar` from any
+It should print `nexus-scholar 1.1.0b8`. You can now run `nexus-scholar` from any
 folder, and you do not need to activate anything. If you use pip instead of uv:
-`pip install "nexus-scholar>=1.1.0b7"`.
+`pip install "nexus-scholar>=1.1.0b8"`.
+
+**On Windows without a terminal:** run `NexusScholar-1.1.0b8-setup.exe` from the
+[release page](https://github.com/nexus-scholar-org/nexus-scholar-harness/releases/tag/v1.1.0b8)
+instead of steps 1 and 2, then start Nexus Scholar from the Start menu. The installer
+is not signed, so Windows may warn you first. The first start opens a short setup
+screen for your contact e-mail and keys; the rest of this guide is the same, except
+that approval codes appear in a small window, not in a terminal.
 
 ## 3. Start the app and create a workspace
 
@@ -209,20 +216,21 @@ listed in [data-flow.md](data-flow.md).
 ## Updating
 
 ```bash
-uv tool install --force "nexus-scholar>=1.1.0b7"
+uv tool install --force "nexus-scholar>=1.1.0b8"
 ```
 
-Then check `nexus-scholar --version`. During the beta, finish a screening on the
-version you started it with when you can; reading a workspace across versions
-is not yet tested.
+Then check `nexus-scholar --version`. With the Windows installer, run the newer
+`setup.exe` instead. Since 1.1.0b8 the first open of a review by a newer version saves
+a copy of it first (see the user guide, "The copy made before an update"). During the
+beta, finish a screening on the version you started it with when you can.
 
 ## Troubleshooting
 
 | What you see | What to do |
 | :-- | :-- |
 | `nexus-scholar` is not found | Run `uv tool update-shell`, then open a new terminal. |
-| `uv tool install` says no version matches, or installs 1.0.0 | Keep the version in the command: `"nexus-scholar>=1.1.0b7"` (the beta is a pre-release). |
-| The app stops at start with `No module named 'httpcore'` | It was installed with `--prerelease allow`. Reinstall: `uv tool install --force "nexus-scholar>=1.1.0b7"`. |
+| `uv tool install` says no version matches, or installs 1.0.0 | Keep the version in the command: `"nexus-scholar>=1.1.0b8"` (the beta is a pre-release). |
+| The app stops at start with `No module named 'httpcore'` | It was installed with `--prerelease allow`. Reinstall: `uv tool install --force "nexus-scholar>=1.1.0b8"`. |
 | "No accepted corpus" (`SNAPSHOT_NOT_ACCEPTED`) | Import and accept your search results (step 4). |
 | `MAILTO_NOT_SET` before a search | Set `SCHOLAR_MAILTO` (and `SCHOLAR_OPENALEX_KEY`) as in step 4, Discovery, then start the app again. |
 | `OPENALEX_KEY_NOT_SET` before a search | Set `SCHOLAR_OPENALEX_KEY` as in step 4, Discovery, then start the app again, or leave OpenAlex out of the run. |
@@ -248,7 +256,7 @@ cd nexus-scholar-harness
 npm --prefix apps/research-ui ci
 npm --prefix apps/research-ui run build:export
 uv build --wheel
-uv tool install --force dist/nexus_scholar-1.1.0b7-py3-none-any.whl
+uv tool install --force dist/nexus_scholar-1.1.0b8-py3-none-any.whl
 ```
 
 The wheel's file name carries the version in `pyproject.toml`. If the app opens

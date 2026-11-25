@@ -1,11 +1,11 @@
-# Nexus Scholar beta (1.1.0b7)
+# Nexus Scholar beta (1.1.0b8)
 
 Thank you for testing. This page says who the beta is for, how to install it,
 what it cannot do yet, and how to tell us what happened.
 
-## What is new in 1.1.0b7
+## What is new in 1.1.0b8
 
-1.1.0b7 adds the Explore and Direction steps and the query workbench to inception, one corpus from a harvest and imported exports, citation chasing, triage highlights, a criteria pilot, the declaration of decisions stored from the agent's drafts, and a Charting step after publication (full-text status and decision, attached PDFs, an open-access look-up, a spreadsheet export). It also **removes** the `scholar-rag` and `scholar-verify` commands, the `rag` extra and eight MCP tools. Most of what is new was used only on test data. Copy your workspace folders before you upgrade: a workspace has no format version yet. Upgrade with `uv tool install --force "nexus-scholar>=1.1.0b7"`. Details: [release notes](../releases/1.1.0b7.md); the earlier [1.1.0b6](../releases/1.1.0b6.md) added the Discovery screens.
+1.1.0b8 adds a **Windows installer** (unsigned; no Python or terminal needed), a start with no terminal (`nexus-scholar-app`), a **Settings** screen for your contact e-mail, keys and reviews folder, and a format version on each review: before this build first writes to a review made with an older build it saves one copy of the whole review, PDFs included, under `.nexus-copies/` in your reviews folder. It also **removes** the citation graph (`scholar-graph`, two MCP tools). Upgrade with `uv tool install --force "nexus-scholar>=1.1.0b8"`, or run the installer from the [release page](https://github.com/nexus-scholar-org/nexus-scholar-harness/releases/tag/v1.1.0b8). Details: [release notes](../releases/1.1.0b8.md); the earlier [1.1.0b7](../releases/1.1.0b7.md) added Explore and Direction, the query workbench, citation chasing, the criteria pilot and the Charting step, mostly used only on test data.
 
 ## Who it is for
 
@@ -16,14 +16,16 @@ methods paragraph.
 
 ## Install (four commands)
 
+On Windows you can skip these commands: run `NexusScholar-1.1.0b8-setup.exe` from the [release page](https://github.com/nexus-scholar-org/nexus-scholar-harness/releases/tag/v1.1.0b8) and start Nexus Scholar from the Start menu. The installer is not signed, so Windows may warn you first (see the [release notes](../releases/1.1.0b8.md)).
+
 1. Install [uv](https://docs.astral.sh/uv/getting-started/installation/), then open a new terminal.
 2. Install Nexus Scholar:
 
    ```bash
-   uv tool install "nexus-scholar>=1.1.0b7"
+   uv tool install "nexus-scholar>=1.1.0b8"
    ```
 
-3. Check the version (it should print `nexus-scholar 1.1.0b7`):
+3. Check the version (it should print `nexus-scholar 1.1.0b8`):
 
    ```bash
    nexus-scholar --version
@@ -43,10 +45,10 @@ workspace, import your RIS or `.nbib` files, prepare, screen, publish and export
 - **One reviewer.** A second screener, and agreement between two people (kappa), are not in the beta.
 - **Title and abstract only.** No full-text screening, data extraction or synthesis. Unclear records are listed for full text.
 - **RIS and PubMed `.nbib` only.** CSV and BibTeX are not imported yet.
-- **Approval uses a code shown in the terminal.** Keep the terminal where the app runs in view.
+- **Approval uses a code shown on your computer:** in a small window, and also in the terminal when you started the app with `nexus-scholar ui`.
 - **The approver is a typed name,** not a verified sign-in.
 - **AI drafts are optional and not validated.** Do not report a recall or accuracy figure for them.
-- **The Discovery, Explore and Charting screens have not been tried by a second person.** Search needs `SCHOLAR_MAILTO`, and OpenAlex needs `SCHOLAR_OPENALEX_KEY` (required by OpenAlex since 2026-02-13). See the [release notes](../releases/1.1.0b7.md), "Known limits".
+- **The Discovery, Explore and Charting screens have not been tried by a second person.** Search needs `SCHOLAR_MAILTO`, and OpenAlex needs `SCHOLAR_OPENALEX_KEY` (required by OpenAlex since 2026-02-13). See the release notes, "Known limits" ([1.1.0b8](../releases/1.1.0b8.md), [1.1.0b7](../releases/1.1.0b7.md)).
 
 ## Tell us what happened
 
