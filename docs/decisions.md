@@ -13,13 +13,20 @@ history to read if you need the original reasoning (`git log --follow -- <path>`
 | 2026-11-19 — M9a: what the measurement says about the ladder gates | 2 | The minimum share of the researcher's excludes an agent must take before a rung unlocks: the principle is accepted; the researcher decided on 2026-11-20 to set the number when M9b is built. |
 | 2026-11-23 — H-gate-and-ci | 1 | The standing permission for sessions to push a work branch and open a draft pull request: not given. |
 
-## 2026-11-25 — H-b8-small-faults: the app's icon on its windows, two harmless log lines, the contact e-mail wording (built, not pushed; items 1 to 12 PROPOSED)
+## 2026-11-25 — H-b8-small-faults: the app's icon on its windows, two harmless log lines, the contact e-mail wording (merged 2026-11-25, PR #317, `d60f2ef3`; items 1 to 10 ACCEPTED 2026-11-25, 8 as built; items 11 and 12 decided 2026-11-25 and built on `dev/h/b8-followups`; items 13 and 14 PROPOSED)
 
-Record: `docs/roadmap/milestones/H-b8-small-faults.md`. Branch `dev/h/b8-small-faults` from `main` `1985267b` (the released 1.1.0b8), lane STANDARD.
+Record: `docs/roadmap/milestones/H-b8-small-faults.md`. Branch `dev/h/b8-small-faults` from `main` `1985267b` (the released 1.1.0b8), lane STANDARD. Follow-up: `docs/roadmap/milestones/H-b8-followups.md`.
 
 **The researcher's words (2026-11-25, in the coordinator session):** "Fix all remaining problems". The two faults of the release entry below (item 2) and the faults the coordinator found while releasing it were briefed to a building session.
 
-**Proposed (the build's choices; each could have been made differently)**
+**Answered by the researcher (2026-11-25, in the coordinator session, after the merge)**
+
+- Items 1 to 7, 9 and 10: "Accept all nine". ACCEPTED.
+- Item 8, the contact e-mail in the User-Agent of PDF downloads, to the site holding the PDF and its redirects: "Keep, now disclosed". ACCEPTED as built.
+- Item 11, the five engine messages that still say to restart: "Correct in a follow-up". Built on `dev/h/b8-followups` (each now names the Settings screen first, then the environment line with its restart).
+- Item 12, the look-up writing the contact e-mail into the review folder: "Stop storing it": "the run file and the journal record only that a contact address was set, not the address. Existing reviews keep what they already hold." Built on `dev/h/b8-followups` (`contact_email_set`).
+
+**The build's choices (items 1 to 10 ACCEPTED 2026-11-25; 11 and 12 superseded by the answers above)**
 
 1. **Where the icon lives.** A byte-identical copy of `packaging/icons/nexus-scholar.ico` at `src/scholar_harness/console/nexus-scholar.ico`, package data in the wheel and collected into the bundle by the existing `collect_data_files("scholar_harness")`. `make_icon.py` writes both, and a test fails if they differ. *Not chosen:* one file only, moved into the package with the spec and the installer script pointing at it (it changes the installer's build paths, which only the tag's CI job tests); a `datas` entry in the spec (the bundle would then differ from the wheel).
 2. **What the icon does where Tk refuses it.** `iconbitmap(default=…)` on the window's Tk root; any refusal or a missing file leaves Tk's icon and the window opens. Whether the native message boxes the window opens (the closing question) show it was not checked. No PNG icon for Linux and macOS (`iconphoto`), which have no installer yet.
@@ -33,6 +40,11 @@ Record: `docs/roadmap/milestones/H-b8-small-faults.md`. Branch `dev/h/b8-small-f
 10. **The restart wording on the terminal start.** Discovery's `mailto.where` and `openalexKey.where`, and Charting's `charting.refusal.MAILTO_NOT_SET`, now say first that Settings applies at once, then keep the environment line with its restart (three languages; the FINAL specs that quote them follow). The engine's own refusal in `charting/fetch.py` says the same. *Not chosen:* dropping the environment line (it is still how a terminal user who keeps keys in `.env` works).
 11. **The same restart wording elsewhere in the engine is not changed here.** `console/api/discovery.py:285`, `:299`, `console/api/recon.py:202` and `recon/session.py:372`, `:524` still say "start it again"; the screens show their own words for these codes, so the engine text reaches only the API and the command line. A follow-up if wanted.
 12. **The contact e-mail stored in the review.** `data-flow.md` now says that the open-access look-up writes the address into its run file and the journal's start event, so a shared review carries it. The behaviour is not changed.
+
+**Proposed on `dev/h/b8-followups` (the follow-up's own choices)**
+
+13. **The field name and its shape.** The run file (`charting/fetch_runs/<run>.json`) and the `CHARTING_FETCH_STARTED` journal row's `parameters` carry `contact_email_set: true` in place of `email: <address>`, beside the existing `openalex_key_set`. Neither is part of Contract v1, the baseline or a typed model, so the workspace format version is not raised: 1.1.0b8 reading a new run file passes the unknown field through and never read `email` from a run (its screen reads the address from the plan only); the export's services list reads only `providers`. *Not chosen:* dropping the field without a replacement (the record would no longer say that a contact was sent).
+14. **What the engine answers for an old run.** `GET /charting/fetch` (`fetch._view`) no longer returns the address of a run file written by 1.1.0b7 or 1.1.0b8: it answers `contact_email_set: true` instead. The file itself is not rewritten (the researcher's "Existing reviews keep what they already hold"). The journal's old start rows are not changed (the journal is append-only), and the journal route (`GET /api/v1/audit/events`) answers them as stored; no screen and no MCP tool reads that route. *Not chosen:* passing the old field through as before (it put the address back on a screen that no longer needs it).
 
 ## 2026-11-25 — Release 1.1.0b8 (the researcher's word of 2026-11-25; the tag is pushed after the release pull request merges)
 

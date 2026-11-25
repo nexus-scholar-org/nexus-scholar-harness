@@ -1,5 +1,5 @@
 # H-b8-small-faults The app's icon on its windows, two harmless log lines, the contact e-mail wording, documentation follow-ups
-Branch: dev/h/b8-small-faults · Lane: **STANDARD** · Status: READY FOR PR, not pushed (nothing committed; independent review round 1 APPROVE with repairs, all made) · Started: 2026-11-25
+Branch: dev/h/b8-small-faults · Lane: **STANDARD** · Status: **MERGED** 2026-11-25 (PR #317, merge commit `d60f2ef3`; CI on head `05ea7316`: 12 checks passed, 1 skipped; independent review rounds 1 and 2 APPROVE, repairs made) · Started: 2026-11-25
 
 Base: `origin/main` at `1985267b` (the released 1.1.0b8). Source: the coordinator's test of the installed 1.1.0b8 on this PC on 2026-11-25 (two faults named in the release note's known limits, `docs/releases/1.1.0b8.md`, which is not edited here), a wrong sentence on the Settings screen, and documentation found stale during the release. The researcher's words (2026-11-25): "Fix all remaining problems". No live request to a literature database, no AI spend, the app was not started on the real folders, the version is unchanged.
 
@@ -117,7 +117,10 @@ All on the uncommitted working tree of `dev/h/b8-small-faults` (base `1985267b`)
 The full Python suite was not run (CI runs it).
 
 ## Decisions
-See `docs/decisions.md`, entry "2026-11-25 — H-b8-small-faults": items 1 to 12 PROPOSED.
+See `docs/decisions.md`, entry "2026-11-25 — H-b8-small-faults": items 1 to 7, 9 and 10 ACCEPTED 2026-11-25 ("Accept all nine"); item 8 ACCEPTED as built ("Keep, now disclosed"); items 11 ("Correct in a follow-up") and 12 ("Stop storing it") decided the same day and built in the follow-up below.
+
+## Follow-up
+`dev/h/b8-followups` (from `d60f2ef3`, record `docs/roadmap/milestones/H-b8-followups.md`) builds the researcher's answers to items 11 and 12 of 2026-11-25: the five engine messages named in section 5 and the two FINAL specs now name the Settings screen first; the look-up records `contact_email_set` instead of the address in its run file and the journal's start event, and `docs/data-flow.md` says so.
 
 ## Not verified
 - **The icon in the real installed app.** Not built or installed here; the bundle's copy relies on `collect_data_files("scholar_harness")` collecting a non-Python file beside a module, which is that function's documented behaviour, not something run. On Windows the real-Tk test sets the real `.ico` on a withdrawn window; nobody looked at a title bar. The approval-code window and the folder dialog were not opened as real children (`python -I` or the bundle's flags); their loader was tested in-process and its standard-library-only load in a `python -I` subprocess. Whether the native message boxes and the native folder dialog show the icon was not checked.

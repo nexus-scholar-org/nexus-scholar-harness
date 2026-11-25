@@ -198,8 +198,8 @@ def _require_mailto(request: Request) -> None:
     if not _mailto_set(request):
         raise ReconRefused(
             MAILTO_NOT_SET,
-            "A search needs a contact email for the literature databases. Set SCHOLAR_MAILTO "
-            "for the console (environment or .env) and start it again.",
+            "A search needs a contact email for the literature databases. Save it on the Settings screen "
+            "(it applies at once), or set SCHOLAR_MAILTO for the console (environment or .env) and start it again.",
         )
 
 

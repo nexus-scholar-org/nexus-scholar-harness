@@ -614,7 +614,8 @@ def test_the_journal_rows_carry_the_counts_and_never_the_key(world):
         response, _, _ = standard_run(world, host)
     ws = world["ws"]
     [started], [finished] = journal(ws, fx.STARTED), journal(ws, fx.FINISHED)
-    assert started["parameters"]["email"] == CONTACT and started["parameters"]["openalex_key_set"] is True
+    assert started["parameters"]["contact_email_set"] is True and started["parameters"]["openalex_key_set"] is True
+    assert "email" not in started["parameters"]
     assert started["metrics"] == {"records_asked": 3, "with_doi": 1, "with_arxiv_only": 1, "neither": 1,
                                   "already_have_file": 0, "waiting": 0, "discarded": 0}
     m = finished["metrics"]
@@ -622,6 +623,41 @@ def test_the_journal_rows_carry_the_counts_and_never_the_key(world):
     for path in (ws / "audit" / "journal.jsonl", ws / "charting" / "fetch_manifest.jsonl",
                  ws / "charting" / "fetch_runs" / f"{response.json()['run_id']}.json"):
         assert SECRET_KEY not in path.read_text(encoding="utf-8")
+
+
+def test_a_run_writes_no_contact_address_into_the_review_and_the_plan_still_shows_it(world):
+    """Decision 2026-11-25 (H-b8-small-faults item 12, "Stop storing it"): only that an address was set."""
+    client, ws = world["client"], world["ws"]
+    assert client.get(f"{BASE}/fetch/plan").json()["email"] == CONTACT  # said on the screen, not stored
+    with ThreadedStub(ROUTES) as host:
+        response, lookups, _ = standard_run(world, host)
+    assert response.status_code == 202
+    assert any(params.get("email") == CONTACT for _, params in lookups.calls)  # Unpaywall was still asked with it
+    run = json.loads((ws / "charting" / "fetch_runs" / f"{response.json()['run_id']}.json").read_text(encoding="utf-8"))
+    assert run["contact_email_set"] is True and "email" not in run
+    view = client.get(f"{BASE}/fetch").json()
+    assert view["contact_email_set"] is True and CONTACT not in json.dumps(view)
+    needle = CONTACT.encode("utf-8")
+    holding = [p.relative_to(ws).as_posix() for p in ws.rglob("*") if p.is_file() and needle in p.read_bytes()]
+    assert holding == []
+
+
+def test_an_older_run_file_that_holds_the_address_still_loads_and_the_address_is_not_answered(world):
+    folder = world["ws"] / "charting" / "fetch_runs"
+    folder.mkdir(parents=True, exist_ok=True)
+    record = {"run_id": "FR-" + "1" * 24, "state": "finished", "started_at": "2026-11-24T09:00:00Z",
+              "finished_at": "2026-11-24T09:05:00Z", "total": 3, "reached": 3, "providers": ["unpaywall"],
+              "email": "older-build@example.org", "openalex_key_set": False}
+    path = folder / f"{record['run_id']}.json"
+    path.write_text(json.dumps(record), encoding="utf-8")
+    before = path.read_text(encoding="utf-8")
+    response = world["client"].get(f"{BASE}/fetch")
+    assert response.status_code == 200
+    view = response.json()
+    assert view["run_id"] == record["run_id"] and view["state"] == "finished"
+    assert view["contact_email_set"] is True and "email" not in view
+    assert "older-build@example.org" not in response.text
+    assert path.read_text(encoding="utf-8") == before  # what the review holds is kept as it is
 
 
 def test_a_run_this_console_did_not_finish_reads_as_interrupted_without_a_write(world):

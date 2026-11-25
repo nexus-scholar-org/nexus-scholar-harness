@@ -749,7 +749,7 @@ export function discoveryEngine(options: DiscoveryFakeOptions = {}) {
         : protocol === "invalid"
           ? refuse(422, "PROTOCOL_INVALID", "protocol.json is not a valid protocol: method.retrieval_cap must be positive")
           : null;
-    const mailtoRefusal = refuse(409, "MAILTO_NOT_SET", "A search needs a contact email for the literature databases. Set SCHOLAR_MAILTO for the console (environment or .env) and start it again.");
+    const mailtoRefusal = refuse(409, "MAILTO_NOT_SET", "A search needs a contact email for the literature databases. Save it on the Settings screen (it applies at once), or set SCHOLAR_MAILTO for the console (environment or .env) and start it again.");
     const busy = (): Answer | null => {
       const active = activeJob();
       return active ? refuse(409, "DISCOVERY_JOB_ACTIVE", "A discovery job is already running for this workspace.", { job: active }) : null;
@@ -781,7 +781,7 @@ export function discoveryEngine(options: DiscoveryFakeOptions = {}) {
         ("refused" in checked ? checked.refused : null) ??
         (!mailto ? mailtoRefusal : null) ??
         (!openalexKey && (requested ?? protocolProviders).includes("openalex")
-          ? refuse(409, "OPENALEX_KEY_NOT_SET", "OpenAlex needs an API key. Set SCHOLAR_OPENALEX_KEY for the console (environment or .env) and start it again, or leave OpenAlex out of this run.")
+          ? refuse(409, "OPENALEX_KEY_NOT_SET", "OpenAlex needs an API key. Save it on the Settings screen (it applies at once), or set SCHOLAR_OPENALEX_KEY for the console (environment or .env) and start it again, or leave OpenAlex out of this run.")
           : null) ??
         (accepted ? refuse(409, "CORPUS_ALREADY_ACCEPTED", "The corpus snapshot is accepted; a frozen corpus is never searched again from the browser.") : null) ??
         busy();
@@ -876,7 +876,7 @@ export function discoveryEngine(options: DiscoveryFakeOptions = {}) {
         ("refused" in checked ? checked.refused : null) ??
         (!mailto ? mailtoRefusal : null) ??
         (!openalexKey && (requested ?? protocolProviders).includes("openalex")
-          ? refuse(409, "OPENALEX_KEY_NOT_SET", "OpenAlex needs an API key. Set SCHOLAR_OPENALEX_KEY for the console (environment or .env) and start it again, or leave OpenAlex out of this run.")
+          ? refuse(409, "OPENALEX_KEY_NOT_SET", "OpenAlex needs an API key. Save it on the Settings screen (it applies at once), or set SCHOLAR_OPENALEX_KEY for the console (environment or .env) and start it again, or leave OpenAlex out of this run.")
           : null) ??
         (accepted ? refuse(409, "CORPUS_ALREADY_ACCEPTED", "The corpus snapshot is accepted; a frozen corpus is never searched again from the browser.") : null) ??
         busy();
@@ -1021,7 +1021,7 @@ export function discoveryEngine(options: DiscoveryFakeOptions = {}) {
         (directions && (!directions.length || directions.some((d) => d !== "forward" && d !== "backward")) ? refuse(422, "CHASE_DIRECTION_INVALID", "directions must be among ['forward', 'backward']") : null) ??
         (body?.seeds && body.seeds !== "included" && body.seeds !== "included+unclear" ? refuse(422, "CHASE_SEEDS_INVALID", "seed source must be one of ['included', 'included+unclear']") : null) ??
         (!openalexKey && providers.includes("openalex")
-          ? refuse(409, "OPENALEX_KEY_NOT_SET", "OpenAlex needs an API key. Set SCHOLAR_OPENALEX_KEY for the console (environment or .env) and start it again, or leave OpenAlex out of this run.")
+          ? refuse(409, "OPENALEX_KEY_NOT_SET", "OpenAlex needs an API key. Save it on the Settings screen (it applies at once), or set SCHOLAR_OPENALEX_KEY for the console (environment or .env) and start it again, or leave OpenAlex out of this run.")
           : null) ??
         busy();
       if (refused) return refused;

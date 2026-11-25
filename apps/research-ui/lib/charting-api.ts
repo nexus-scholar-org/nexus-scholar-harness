@@ -585,7 +585,8 @@ export interface FetchRun {
   /** Records left out before or during the run; `changed_during_run` counts rows the researcher changed after the start. */
   left_out?: { already_have_file?: number; waiting?: number; discarded?: number; changed_during_run?: number };
   providers?: string[];
-  email?: string;
+  /** Only that a contact e-mail was set; the address itself is never stored in the review (2026-11-25). */
+  contact_email_set?: boolean;
   openalex_key_set?: boolean;
   now?: { phase: string; host: string | null; seconds?: number };
   recent_requests?: { host: string; answer: string }[];

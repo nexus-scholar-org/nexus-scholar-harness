@@ -368,8 +368,9 @@ class ReconSessions:
         except MailtoNotSet as exc:
             raise ReconRefused(
                 MAILTO_NOT_SET,
-                "A search needs a contact email for the literature databases. Set SCHOLAR_MAILTO "
-                "for the console (environment or .env) and start it again.",
+                "A search needs a contact email for the literature databases. Save it on the Settings screen, "
+                "or set SCHOLAR_MAILTO (environment or .env). The console applies a saved address at once; "
+                "an MCP server or a command already running reads it when it next starts.",
                 status=409,
             ) from exc
         artifact = self.persist(sid, "pool", pool)
@@ -520,8 +521,9 @@ class ReconSessions:
         except MailtoNotSet as exc:
             raise ReconRefused(
                 MAILTO_NOT_SET,
-                "A search needs a contact email for the literature databases. Set SCHOLAR_MAILTO "
-                "for the console (environment or .env) and start it again.",
+                "A search needs a contact email for the literature databases. Save it on the Settings screen, "
+                "or set SCHOLAR_MAILTO (environment or .env). The console applies a saved address at once; "
+                "an MCP server or a command already running reads it when it next starts.",
             ) from exc
         merged_pool, merged_terms = result["pool"], result["distilled"]
         followup_pools = result.get("followup_pools") or []
