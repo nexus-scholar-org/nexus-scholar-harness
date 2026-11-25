@@ -31,6 +31,7 @@ import io
 import os
 import platform
 import re
+import shutil
 import sys
 import threading
 import time
@@ -274,7 +275,21 @@ def _start(
 
     if stop:
         answer = instance_module.ask(folders.settings, "stop", wait=2.0)
-        _say("Asked the running engine to stop." if answer else "No running engine answered; nothing to stop.")
+        if answer:
+            _say("Asked the running engine to stop.")
+            return 0
+        # No engine answered. If none holds the lock either, an engine.json left by a forced
+        # end (Task Manager, a crash) is stale: remove it, so the installer's "stop it first"
+        # does not wait for an engine that is gone (M13 Part W, review round 2).
+        claim = instance_module.Instance(folders.settings)
+        if claim.acquire():
+            try:
+                claim.info_path.unlink(missing_ok=True)
+            finally:
+                claim.release()
+            _say("No running engine; a leftover engine.json was removed if there was one.")
+        else:
+            _say("An engine holds the lock but does not answer; nothing was removed.")
         return 0
 
     claim = instance_module.Instance(folders.settings)
@@ -343,6 +358,87 @@ def _start(
             tell(problem)
 
 
+FORGET_FLAG = "--forget"
+
+
+def _holds(folder: Path, inner: Path | None) -> bool:
+    """Whether deleting `folder` could touch `inner` (one inside the other, either way)."""
+    if inner is None:
+        return False
+    try:
+        a, b = inner.resolve(), folder.resolve()
+        return a.is_relative_to(b) or b.is_relative_to(a)
+    except (OSError, ValueError):
+        return True  # when unsure, keep the folder
+
+
+#: Kept by --forget: an inception draft's explorations in progress (Explore, Direction) live here,
+#: and the draft itself, under the reviews folder, would come back without them.
+KEPT_CACHE = "inception_recon"
+
+
+def forget(folders: AppFolders) -> int:
+    """Remove this user's Nexus Scholar settings, saved keys, logs and cache; never a review (M13 Part W).
+
+    The Windows uninstaller runs it when "Also remove my settings and saved keys"
+    is ticked (specification §4.6; unticked by default). The keys go from the
+    system keychain and from the keys file. A folder that holds the reviews
+    folder is never deleted, only the files this app wrote in it.
+    """
+    from scholar_search import user_settings
+
+    from scholar_harness.workspace.catalog import resolve_root
+
+    from . import instance as instance_module
+
+    # A running engine holds its files and keys: stop it first and wait for its lock.
+    if instance_module.read_info(folders.settings) is not None:
+        instance_module.ask(folders.settings, "stop", wait=2.0)
+        claim = instance_module.Instance(folders.settings)
+        deadline = time.monotonic() + 30
+        while not claim.acquire():
+            if time.monotonic() >= deadline:
+                print("Nexus Scholar is still running; nothing was removed.", file=sys.stderr)
+                return 1
+            time.sleep(0.25)
+        claim.release()
+    try:
+        reviews, _source = resolve_root(None)
+    except Exception:  # noqa: BLE001 - when the reviews folder is unknown, keep every folder that might hold it
+        reviews = None
+    failed = False
+    for name in user_settings.KEY_ENV:
+        try:
+            user_settings.remove_key(name)
+        except Exception:  # noqa: BLE001 - a locked keychain: the rest still goes, and the exit says so
+            failed = True
+    if folders.cache.is_dir() and reviews is not None:
+        # The cache goes, except the explorations in progress of unfinished inception drafts
+        # (and nothing at all when the reviews folder is unknown, as for the other folders).
+        for entry in folders.cache.iterdir():
+            if entry.name == KEPT_CACHE or _holds(entry, reviews):
+                continue
+            if entry.is_dir():
+                shutil.rmtree(entry, ignore_errors=True)
+            else:
+                try:
+                    entry.unlink()
+                except OSError:
+                    pass
+    for folder in (folders.settings, folders.logs):
+        if not folder.exists():
+            continue
+        if _holds(folder, reviews) or reviews is None:
+            for known in ("settings.json", "keys.json", "engine.json", "engine.lock", ".env"):
+                try:
+                    (folder / known).unlink()
+                except OSError:
+                    pass
+            continue
+        shutil.rmtree(folder, ignore_errors=True)
+    return 1 if failed else 0
+
+
 def run_with_window(launcher: Any, panel: control_window.ControlPanel, root_window: Any) -> bool:
     """The engine in a background thread, the control window on this (main) thread.
 
@@ -376,6 +472,8 @@ def main(argv: list[str] | None = None, *, tell: Callable[[str], None] = tell_us
     if args[:1] == [folder_dialog.CHILD_FLAG]:
         return folder_dialog.run_child()
     folders = app_folders()
+    if args == [FORGET_FLAG]:
+        return forget(folders)
     try:
         log = open_log(folders.logs)
     except OSError as exc:

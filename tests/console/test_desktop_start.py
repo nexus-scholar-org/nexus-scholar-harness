@@ -408,3 +408,77 @@ def test_the_installed_start_reads_dotenv_and_the_cache_from_its_own_folders(hom
     monkeypatch.setattr(launcher.Launcher, "run", record)
     assert desktop.main(["--no-browser"]) == 0  # tests/conftest.py puts the shared settings back afterwards
     assert seen == {"mailto": "dotenv@example.org", "cache": str(home.cache / "search")}
+
+
+def test_forget_removes_settings_keys_logs_and_cache_but_never_a_review(home, tmp_path):
+    """M13 Part W: the uninstaller's "Also remove my settings and saved keys" (specification §4.6)."""
+    from scholar_search import user_settings
+
+    reviews = tmp_path / "workspaces"
+    catalog.create(reviews, "Kept Review")
+    user_settings.write_settings(contact_email="r@example.org")
+    user_settings.store_key("openalex", "oa-MADE-UP")
+    user_settings.store_key("gemini", "AIza-MADE-UP", use_file=True)
+    for folder in (home.logs, home.cache):
+        folder.mkdir(parents=True, exist_ok=True)
+        (folder / "something").write_text("x", encoding="utf-8")
+    (home.cache / desktop.KEPT_CACHE / "sessions").mkdir(parents=True)
+    (home.cache / desktop.KEPT_CACHE / "sessions" / "probe.json").write_text("{}", encoding="utf-8")
+    assert desktop.main([desktop.FORGET_FLAG]) == 0
+    assert user_settings.stored_key("openalex") == (None, None) and user_settings.stored_key("gemini") == (None, None)
+    for folder in (home.settings, home.logs):
+        assert not folder.exists(), folder
+    assert not (home.cache / "something").exists()
+    # Review of Part W, P2: an unfinished draft's explorations in progress stay.
+    assert (home.cache / desktop.KEPT_CACHE / "sessions" / "probe.json").is_file()
+    assert (reviews / "kept-review" / "project.json").is_file()  # the review stays
+
+
+def test_forget_keeps_a_folder_that_holds_the_reviews(home, tmp_path, monkeypatch):
+    from scholar_search import user_settings
+
+    inside = home.settings / "reviews"  # a reviews folder chosen inside the settings folder
+    monkeypatch.setenv(catalog.ROOT_ENV, str(inside))
+    catalog.create(inside, "Inside Review")
+    user_settings.write_settings(contact_email="r@example.org")
+    assert desktop.main([desktop.FORGET_FLAG]) == 0
+    assert not user_settings.settings_path().exists()
+    assert (inside / "inside-review" / "project.json").is_file()
+
+
+def test_forget_stops_a_running_engine_first(home, monkeypatch):
+    """Review of Part W, P3: a running engine holds its files and keys, so it is stopped and waited for."""
+    from scholar_search import user_settings
+
+    holder = instance.Instance(home.settings)
+    assert holder.acquire()
+    holder.publish("127.0.0.1", 9)
+    asked: list[str] = []
+
+    def stop(folder, action, wait=0):
+        asked.append(action)
+        holder.release()  # the engine stops and lets go of its lock
+        return {"stopping": True}
+
+    monkeypatch.setattr(instance, "ask", stop)
+    user_settings.write_settings(contact_email="r@example.org")
+    assert desktop.main([desktop.FORGET_FLAG]) == 0
+    assert asked == ["stop"] and not user_settings.settings_path().exists()
+
+
+def test_stop_removes_a_leftover_engine_file_and_keeps_a_live_one(home):
+    """Review of Part W, round 2: a forced end leaves engine.json; --stop clears it only when no engine holds the lock."""
+    home.settings.mkdir(parents=True, exist_ok=True)
+    leftover = home.settings / instance.INFO_NAME
+    leftover.write_text('{"pid": 1, "host": "127.0.0.1", "port": 9, "secret": "x"}', encoding="utf-8")
+    assert desktop.main(["--stop"]) == 0
+    assert not leftover.exists()  # no engine answered and none held the lock
+
+    holder = instance.Instance(home.settings)
+    assert holder.acquire()
+    holder.publish("127.0.0.1", 9)  # a live engine that does not answer (port 9)
+    try:
+        assert desktop.main(["--stop"]) == 0
+        assert holder.info_path.exists()  # a held lock: nothing removed
+    finally:
+        holder.release()

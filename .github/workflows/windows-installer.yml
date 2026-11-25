@@ -1,0 +1,120 @@
+name: Windows installer
+
+# M13 Part W: the per-user Windows installer, built from the wheel on GitHub's Windows runner
+# (the researcher's answer, 2026-11-24: built and tested in CI only). Not on every pull request:
+# on a v* tag (the installer is attached to that release), on demand, and on a pull request that
+# changes the packaging files or this workflow.
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch: {}
+  pull_request:
+    paths:
+      - 'packaging/**'
+      - '.github/workflows/windows-installer.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  installer:
+    runs-on: windows-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v2
+        with:
+          version: "0.12.5"
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: apps/research-ui/package-lock.json
+
+      - name: Read the project version
+        shell: bash
+        run: |
+          VERSION="$(uv run --no-project python -c 'import tomllib; print(tomllib.load(open("pyproject.toml","rb"))["project"]["version"])')"
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+          if [ "$GITHUB_REF_TYPE" = "tag" ] && [ "$GITHUB_REF_NAME" != "v$VERSION" ]; then
+            echo "::error::tag $GITHUB_REF_NAME does not match the project version v$VERSION"
+            exit 1
+          fi
+
+      - name: Build the app's static export
+        working-directory: apps/research-ui
+        run: |
+          npm ci
+          npm run build:export
+
+      - name: Build the wheel
+        env:
+          NEXUS_WHEEL_REQUIRE_UI: "1"
+        run: uv build --wheel
+
+      - name: Install Inno Setup
+        # Inno Setup 6.3 or later (the script's `x64compatible`); its compiler is looked up, not assumed.
+        shell: pwsh
+        run: |
+          choco install innosetup --yes --no-progress
+          $iscc = Get-ChildItem -Path "${env:ProgramFiles(x86)}", "$env:ProgramFiles" -Recurse -Filter ISCC.exe -ErrorAction SilentlyContinue | Select-Object -First 1
+          if (-not $iscc) { throw "Inno Setup's compiler was not found after the install" }
+          "ISCC=$($iscc.FullName)" | Out-File -Append -Encoding utf8 $env:GITHUB_ENV
+
+      - name: Build the bundle and the installer
+        # A short work folder: Windows refuses paths over 260 characters (the trial build).
+        shell: bash
+        run: >
+          uv run --no-project python packaging/windows/build.py
+          --wheel "dist/nexus_scholar-${VERSION}-py3-none-any.whl"
+          --work "C:/nsb" --out dist/windows --installer
+          --iscc "$ISCC"
+
+      - name: Install, start, stop and uninstall it
+        shell: pwsh
+        run: ./packaging/windows/smoke_test.ps1 -Installer "dist/windows/NexusScholar-$env:VERSION-setup.exe"
+
+      - name: Keep the installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: NexusScholar-${{ env.VERSION }}-setup
+          path: dist/windows/NexusScholar-*-setup.exe
+          if-no-files-found: error
+
+  attach:
+    # Only on a tag, and only this job may write to the release.
+    needs: installer
+    if: github.ref_type == 'tag'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist/windows
+          merge-multiple: true
+
+      - name: Attach it to the release
+        # release.yml makes the release on the same tag; wait for it, then add the installer.
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          for attempt in $(seq 1 40); do
+            if gh release view "v${VERSION}" > /dev/null 2>&1; then
+              gh release upload "v${VERSION}" "dist/windows/NexusScholar-${VERSION}-setup.exe" --clobber
+              exit 0
+            fi
+            sleep 30
+          done
+          echo "::error::the release v${VERSION} did not appear in 20 minutes"
+          exit 1
